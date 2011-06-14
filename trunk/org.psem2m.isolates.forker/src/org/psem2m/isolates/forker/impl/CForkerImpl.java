@@ -34,6 +34,15 @@ public class CForkerImpl implements IForker {
 		// Empty the pool
 	}
 
+	/**
+	 * Execute proxy, active in jVisualVM
+	 * 
+	 * @param aIsolateID
+	 *            Isolate ID
+	 * 
+	 * @param aCommand
+	 *            System command
+	 */
 	public void execute(final String aIsolateID, final String aCommand) {
 		execute(aIsolateID, aCommand, null);
 	}

@@ -17,6 +17,16 @@ public interface IForker {
 	 */
 	public void dispose();
 
+	/**
+	 * Isolate execution (first version)
+	 * 
+	 * @param aIsolateID
+	 *            Isolate ID
+	 * @param aCommand
+	 *            System command (with arguments)
+	 * @param aEnvironment
+	 *            Launch environment (ignored)
+	 */
 	public void execute(String aIsolateID, String aCommand,
 			String[] aEnvironment);
 
