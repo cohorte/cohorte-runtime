@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Isolates Utilities
+Bundle-SymbolicName: org.psem2m.isolates.utilities
+Bundle-Version: 1.0.0.qualifier
+Bundle-Vendor: isandlatech.com
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Import-Package: org.osgi.framework;version="1.3.0"

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<iPOJO xmlns:jmx="org.apache.felix.ipojo.handlers.jmx">
+
+	<component className="org.psem2m.isolates.forker.impl.CForkerImpl"
+		architecture="true" immediate="true" name="forker">
+
+		<provides />
+		<jmx:config>
+			<!-- Exposed methods -->
+			<jmx:method name="execute"
+				description="Executes the given command as an isolate." />
+			<jmx:method name="kill"
+				description="Kills the given isolate." />
+		</jmx:config>
+	</component>
+
+	<instance component="forker" />
+</iPOJO>
