@@ -2,13 +2,15 @@ package org.psem2m.utilities.teststools;
 
 import java.util.logging.Level;
 
+import junit.framework.TestCase;
+
 import org.psem2m.utilities.CXDateTime;
 
 /**
  * @author isandlaTech - ogattaz
  * 
  */
-public class CQualityTestBase {
+public class CQualityTestBase extends TestCase {
 
 	final static String SEP_TIME = ":";
 
