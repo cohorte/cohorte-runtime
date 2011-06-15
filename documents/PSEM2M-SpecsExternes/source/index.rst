@@ -11,7 +11,7 @@ PSEM2M - Spécifications externes
    content/glossaire
    content/contexte
    content/config
-   content/protocoles
+   content/services
    content/sondes
    content/moniteur
    content/ide
