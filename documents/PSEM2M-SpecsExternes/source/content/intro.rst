@@ -1,7 +1,7 @@
 .. Introduction
 
 Introduction
-============
+############
 
 Ce document a pour but de décrire toutes les fonctionnalités, les formats de
 fichiers et les protocoles liés à PSEM2M.

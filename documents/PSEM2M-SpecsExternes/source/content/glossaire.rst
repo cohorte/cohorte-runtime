@@ -1,11 +1,12 @@
 .. Glossaire
 
 Glossaire
-=========
+#########
 
 .. todo:: À remplir
 
 .. glossary::
+   :sorted:
 
    EDI
       Environnement de Développement Intégré
