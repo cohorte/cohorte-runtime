@@ -1,4 +1,5 @@
 .. Spécification des sondes
+.. highlight:: java
 
 Spécification des sondes
 ########################
@@ -16,6 +17,24 @@ type JMX, inscrites par iPOJO.
 Dans un premier temps, elles utiliseront le *MBeanManager* et le protocole de
 transmission par défaut de la plateforme utilisée.
 
+Sonde de contrôle d'état
+========================
+
+Cette sonde doit être présente dans tout isolat utilisant JMX.
+Il s'agit d'un simple *ping*, permettant de connaître l'état de l'isolat, s'il
+peut répondre ou non.
+
+Dans le cas des plateformes OSGi, cette sonde renvoie l'état visible de tous les
+bundles installés :
+
+* ``Map<String, Integer> getBundlesState()``
+
+     Renvoie une association des identifiants des bundles installés et de leur
+     état.
+
+* ``String ping(String)``
+
+     Renvoie la chaîne reçue en paramètre.
 
 Sondes spécifiques
 ******************
