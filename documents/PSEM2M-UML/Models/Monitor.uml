@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<uml:Model xmi:version="2.1" xmlns:xmi="http://schema.omg.org/spec/XMI/2.1" xmlns:uml="http://www.eclipse.org/uml2/3.0.0/UML" xmi:id="_qb8akM37EdqwVrslYOdUDA" name="PSEM2M">
+  <packagedElement xmi:type="uml:PrimitiveType" xmi:id="_kPj6YJf2EeCzecClE7vDCQ" name="boolean"/>
+  <packagedElement xmi:type="uml:PrimitiveType" xmi:id="_rpptYJf2EeCzecClE7vDCQ" name="String"/>
+  <packagedElement xmi:type="uml:PrimitiveType" xmi:id="_4l_A8Jf2EeCzecClE7vDCQ" name="int"/>
+  <packagedElement xmi:type="uml:Component" xmi:id="_iAwDAJgCEeCzecClE7vDCQ" name="Vue physique">
+    <packagedElement xmi:type="uml:Package" xmi:id="_ItfZkJgDEeCzecClE7vDCQ" name="Monitor">
+      <packagedElement xmi:type="uml:Interface" xmi:id="_hHeSoJf3EeCzecClE7vDCQ" name="IIsolateManager">
+        <ownedOperation xmi:id="_j38PIJf3EeCzecClE7vDCQ" name="restartPlatform">
+          <ownedParameter xmi:id="_uW-5gJf6EeCzecClE7vDCQ" name="aForce" type="_kPj6YJf2EeCzecClE7vDCQ"/>
+          <ownedParameter xmi:id="_MnqpwJf7EeCzecClE7vDCQ" name="return" type="_kPj6YJf2EeCzecClE7vDCQ" direction="return"/>
+        </ownedOperation>
+        <ownedOperation xmi:id="_lHXPoJf3EeCzecClE7vDCQ" name="stopPlatform"/>
+        <ownedOperation xmi:id="_mRcdIJf3EeCzecClE7vDCQ" name="getRunningIsolates">
+          <ownedParameter xmi:id="_njfT0Jf3EeCzecClE7vDCQ" name="return" type="_WoiV8Jf0EeCzecClE7vDCQ" direction="return" effect="create"/>
+        </ownedOperation>
+        <ownedOperation xmi:id="_33rUAJf3EeCzecClE7vDCQ" name="startIsolate">
+          <ownedParameter xmi:id="_5FnGwJf3EeCzecClE7vDCQ" name="return" type="_nftR8Jf1EeCzecClE7vDCQ" direction="return"/>
+          <ownedParameter xmi:id="_8iKGIJf3EeCzecClE7vDCQ" name="aIsolateId" type="_rpptYJf2EeCzecClE7vDCQ"/>
+          <ownedParameter xmi:id="_GHLfoJf4EeCzecClE7vDCQ" name="aForceRestart" type="_kPj6YJf2EeCzecClE7vDCQ"/>
+        </ownedOperation>
+        <ownedOperation xmi:id="_K6rD0Jf4EeCzecClE7vDCQ" name="stopIsolate">
+          <ownedParameter xmi:id="_L273wJf4EeCzecClE7vDCQ" name="aIsolateId" type="_rpptYJf2EeCzecClE7vDCQ"/>
+          <ownedParameter xmi:id="_c8-rUJf7EeCzecClE7vDCQ" name="return" type="_kPj6YJf2EeCzecClE7vDCQ" direction="return"/>
+        </ownedOperation>
+        <ownedOperation xmi:id="_O2Sk0Jf4EeCzecClE7vDCQ" name="getIsolate">
+          <ownedParameter xmi:id="_QRk3EJf4EeCzecClE7vDCQ" name="return" type="_nftR8Jf1EeCzecClE7vDCQ" direction="return"/>
+          <ownedParameter xmi:id="_SA9xEJf4EeCzecClE7vDCQ" name="aIsolateId" type="_rpptYJf2EeCzecClE7vDCQ"/>
+        </ownedOperation>
+        <ownedOperation xmi:id="_U-wF8Jf6EeCzecClE7vDCQ" name="getPossibleIsolates">
+          <ownedParameter xmi:id="_YkRbIJf6EeCzecClE7vDCQ" name="return" type="_rpptYJf2EeCzecClE7vDCQ" direction="return"/>
+        </ownedOperation>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Component" xmi:id="_kC1PgJgCEeCzecClE7vDCQ" name="Moniteur" clientDependency="_3d2BQJgDEeCzecClE7vDCQ _GILSQJgFEeCzecClE7vDCQ">
+        <ownedAttribute xmi:type="uml:Port" xmi:id="__G0aQJgCEeCzecClE7vDCQ" name="JMX_Management" aggregation="composite"/>
+        <packagedElement xmi:type="uml:Usage" xmi:id="_3d2BQJgDEeCzecClE7vDCQ" name="Usage1" supplier="_VO6FAJf-EeCzecClE7vDCQ" client="_kC1PgJgCEeCzecClE7vDCQ"/>
+        <packagedElement xmi:type="uml:Usage" xmi:id="_GILSQJgFEeCzecClE7vDCQ" name="Usage2" supplier="_nftR8Jf1EeCzecClE7vDCQ" client="_kC1PgJgCEeCzecClE7vDCQ"/>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Enumeration" xmi:id="_mzhMQJfzEeCzecClE7vDCQ" name="EIsolateState">
+        <ownedLiteral xmi:id="_pNBaQJfzEeCzecClE7vDCQ" name="STOPPED"/>
+        <ownedLiteral xmi:id="_qQQY4JfzEeCzecClE7vDCQ" name="RUNNING"/>
+        <ownedLiteral xmi:id="_rIyjYJfzEeCzecClE7vDCQ" name="ZOMBIE"/>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Package" xmi:id="_Y4_8sJf0EeCzecClE7vDCQ" name="Monitor.impl" visibility="private">
+        <packagedElement xmi:type="uml:Class" xmi:id="_QEWQMJf0EeCzecClE7vDCQ" name="IsolateManager" clientDependency="_SJD58Jf0EeCzecClE7vDCQ _BvtwIJf4EeCzecClE7vDCQ">
+          <ownedAttribute xmi:id="_8z_H4Jf1EeCzecClE7vDCQ" name="pPossibleIsolates" visibility="private" type="_nftR8Jf1EeCzecClE7vDCQ" isUnique="false">
+            <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_DU-IoJf2EeCzecClE7vDCQ" value="*"/>
+            <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_DNpYoJf2EeCzecClE7vDCQ"/>
+          </ownedAttribute>
+          <ownedAttribute xmi:id="_seWSAJf8EeCzecClE7vDCQ" name="pRunningIsolates" visibility="private" type="_nftR8Jf1EeCzecClE7vDCQ" isUnique="false">
+            <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_vuXRQJf8EeCzecClE7vDCQ" value="*"/>
+            <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_vlJq4Jf8EeCzecClE7vDCQ"/>
+          </ownedAttribute>
+          <interfaceRealization xmi:id="_SJD58Jf0EeCzecClE7vDCQ" name="InterfaceRealization1" supplier="_ct5ckJfyEeCzecClE7vDCQ" client="_QEWQMJf0EeCzecClE7vDCQ" contract="_ct5ckJfyEeCzecClE7vDCQ"/>
+          <interfaceRealization xmi:id="_BvtwIJf4EeCzecClE7vDCQ" name="InterfaceRealization2" supplier="_hHeSoJf3EeCzecClE7vDCQ" client="_QEWQMJf0EeCzecClE7vDCQ" contract="_hHeSoJf3EeCzecClE7vDCQ"/>
+          <ownedOperation xmi:id="_FOg5oJf1EeCzecClE7vDCQ" name="generatePossibleIsolates"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Class" xmi:id="_S7IQEJf0EeCzecClE7vDCQ" name="RouteManager" clientDependency="_UgnnMJf0EeCzecClE7vDCQ _U41S4Jf0EeCzecClE7vDCQ __XuBMJf7EeCzecClE7vDCQ">
+          <ownedAttribute xmi:id="_nclh8Jf0EeCzecClE7vDCQ" name="pPossibleRoutes" visibility="private" type="_clOE4Jf2EeCzecClE7vDCQ" isUnique="false">
+            <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_qJoXAJf0EeCzecClE7vDCQ" value="*"/>
+            <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_qtggIJf0EeCzecClE7vDCQ"/>
+          </ownedAttribute>
+          <ownedAttribute xmi:id="_yu5DAJf8EeCzecClE7vDCQ" name="pActiveRoutes" visibility="private" type="_clOE4Jf2EeCzecClE7vDCQ" isUnique="false">
+            <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_1yFHMJf8EeCzecClE7vDCQ" value="*"/>
+            <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_1iek8Jf8EeCzecClE7vDCQ"/>
+          </ownedAttribute>
+          <interfaceRealization xmi:id="_UgnnMJf0EeCzecClE7vDCQ" name="InterfaceRealization1" supplier="_eYNpUJfyEeCzecClE7vDCQ" client="_S7IQEJf0EeCzecClE7vDCQ" contract="_eYNpUJfyEeCzecClE7vDCQ"/>
+          <interfaceRealization xmi:id="_U41S4Jf0EeCzecClE7vDCQ" name="InterfaceRealization2" supplier="_ct5ckJfyEeCzecClE7vDCQ" client="_S7IQEJf0EeCzecClE7vDCQ" contract="_ct5ckJfyEeCzecClE7vDCQ"/>
+          <interfaceRealization xmi:id="__XuBMJf7EeCzecClE7vDCQ" name="InterfaceRealization3" supplier="_yBPIQJf7EeCzecClE7vDCQ" client="_S7IQEJf0EeCzecClE7vDCQ" contract="_yBPIQJf7EeCzecClE7vDCQ"/>
+          <ownedOperation xmi:id="_i4mZYJf0EeCzecClE7vDCQ" name="generatePossibleRoutes"/>
+          <ownedOperation xmi:id="_SlfdoJf8EeCzecClE7vDCQ" name="selectRoute">
+            <ownedParameter xmi:id="_VXS24Jf8EeCzecClE7vDCQ" name="return" type="_clOE4Jf2EeCzecClE7vDCQ" direction="return"/>
+            <ownedParameter xmi:id="_WcuN4Jf8EeCzecClE7vDCQ" name="aRouteId" type="_rpptYJf2EeCzecClE7vDCQ"/>
+            <ownedParameter xmi:id="_B8i48Jf9EeCzecClE7vDCQ" name="aIsolateId" type="_rpptYJf2EeCzecClE7vDCQ"/>
+          </ownedOperation>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Class" xmi:id="_VqI0AJf0EeCzecClE7vDCQ" name="Route" clientDependency="_EgqDMJf3EeCzecClE7vDCQ">
+          <ownedAttribute xmi:id="_YoowAJf1EeCzecClE7vDCQ" name="pIsolateBegin" visibility="private" type="_rpptYJf2EeCzecClE7vDCQ"/>
+          <ownedAttribute xmi:id="_blPEAJf1EeCzecClE7vDCQ" name="pIsolateEnd" visibility="private" type="_rpptYJf2EeCzecClE7vDCQ"/>
+          <ownedAttribute xmi:id="_c4s3AJf1EeCzecClE7vDCQ" name="pWeight" visibility="private" type="_4l_A8Jf2EeCzecClE7vDCQ"/>
+          <ownedAttribute xmi:id="_PhpSIJf8EeCzecClE7vDCQ" name="pRouteId" visibility="private" type="_rpptYJf2EeCzecClE7vDCQ"/>
+          <interfaceRealization xmi:id="_EgqDMJf3EeCzecClE7vDCQ" name="InterfaceRealization1" supplier="_clOE4Jf2EeCzecClE7vDCQ" client="_VqI0AJf0EeCzecClE7vDCQ" contract="_clOE4Jf2EeCzecClE7vDCQ"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Class" xmi:id="_WoiV8Jf0EeCzecClE7vDCQ" name="Isolate" clientDependency="_3qeQYJf1EeCzecClE7vDCQ">
+          <ownedAttribute xmi:id="_PDUbkJf1EeCzecClE7vDCQ" name="pId" visibility="private" type="_rpptYJf2EeCzecClE7vDCQ"/>
+          <ownedAttribute xmi:id="_RsFNkJf1EeCzecClE7vDCQ" name="pState" visibility="private" type="_mzhMQJfzEeCzecClE7vDCQ"/>
+          <ownedAttribute xmi:id="_UNDVgJf1EeCzecClE7vDCQ" name="pLastHeartbeat" visibility="private" type="_4l_A8Jf2EeCzecClE7vDCQ"/>
+          <interfaceRealization xmi:id="_3qeQYJf1EeCzecClE7vDCQ" name="InterfaceRealization1" supplier="_nftR8Jf1EeCzecClE7vDCQ" client="_WoiV8Jf0EeCzecClE7vDCQ" contract="_nftR8Jf1EeCzecClE7vDCQ"/>
+        </packagedElement>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Interface" xmi:id="_eYNpUJfyEeCzecClE7vDCQ" name="IIsolateListenter">
+        <ownedOperation xmi:id="_4ZuDYJfyEeCzecClE7vDCQ" name="isolateStateChanged">
+          <ownedParameter xmi:id="_uKKCoJfzEeCzecClE7vDCQ" name="aIsolateId" type="_rpptYJf2EeCzecClE7vDCQ"/>
+          <ownedParameter xmi:id="_vexFIJfzEeCzecClE7vDCQ" name="aNewState" type="_mzhMQJfzEeCzecClE7vDCQ"/>
+        </ownedOperation>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Interface" xmi:id="_yBPIQJf7EeCzecClE7vDCQ" name="IRouteManager">
+        <ownedOperation xmi:id="_3eDWQJf7EeCzecClE7vDCQ" name="getActiveRoutes">
+          <ownedParameter xmi:id="_4ee4gJf7EeCzecClE7vDCQ" name="return" type="_clOE4Jf2EeCzecClE7vDCQ" direction="return"/>
+        </ownedOperation>
+      </packagedElement>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Package" xmi:id="_M_LRMJgDEeCzecClE7vDCQ" name="Forker">
+      <packagedElement xmi:type="uml:Component" xmi:id="_k8eNQJgCEeCzecClE7vDCQ" name="Forker" clientDependency="_X9A3wJgDEeCzecClE7vDCQ">
+        <ownedAttribute xmi:type="uml:Port" xmi:id="_nsVFwJgCEeCzecClE7vDCQ" name="JMX_Commands" aggregation="composite"/>
+        <interfaceRealization xmi:id="_X9A3wJgDEeCzecClE7vDCQ" name="InterfaceRealization1" supplier="_VO6FAJf-EeCzecClE7vDCQ" client="_k8eNQJgCEeCzecClE7vDCQ" contract="_VO6FAJf-EeCzecClE7vDCQ"/>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Interface" xmi:id="_VO6FAJf-EeCzecClE7vDCQ" name="IForker">
+        <generalization xmi:id="_KpfeIJgBEeCzecClE7vDCQ" general="_ct5ckJfyEeCzecClE7vDCQ"/>
+        <ownedOperation xmi:id="_YhOxYJf-EeCzecClE7vDCQ" name="startProcess">
+          <ownedParameter xmi:id="_v_kEEJf-EeCzecClE7vDCQ" name="aIsolateId" type="_rpptYJf2EeCzecClE7vDCQ"/>
+        </ownedOperation>
+        <ownedOperation xmi:id="_0glYMJf-EeCzecClE7vDCQ" name="getProcess">
+          <ownedParameter xmi:id="_4DrrgJf-EeCzecClE7vDCQ" name="aIsolateId" type="_rpptYJf2EeCzecClE7vDCQ"/>
+          <ownedParameter xmi:id="_-J_icJf-EeCzecClE7vDCQ" name="return" direction="return"/>
+        </ownedOperation>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Interface" xmi:id="_WUnI0Jf-EeCzecClE7vDCQ" name="IProcess">
+        <ownedOperation xmi:id="_XdomYJf-EeCzecClE7vDCQ" name="getProcessId">
+          <ownedParameter xmi:id="_iYoUUJf-EeCzecClE7vDCQ" name="return" type="_4l_A8Jf2EeCzecClE7vDCQ" direction="return"/>
+        </ownedOperation>
+        <ownedOperation xmi:id="_fW2lYJf-EeCzecClE7vDCQ" name="stop">
+          <ownedParameter xmi:id="_jZ1SoJf-EeCzecClE7vDCQ" name="return" type="_4l_A8Jf2EeCzecClE7vDCQ" direction="return"/>
+        </ownedOperation>
+        <ownedOperation xmi:id="_7ttGMJf-EeCzecClE7vDCQ" name="getIsolateId">
+          <ownedParameter xmi:id="_8qQOAJf-EeCzecClE7vDCQ" name="return" type="_rpptYJf2EeCzecClE7vDCQ" direction="return"/>
+        </ownedOperation>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Package" xmi:id="_CIG90Jf_EeCzecClE7vDCQ" name="forker.impl" visibility="private">
+        <packagedElement xmi:type="uml:Class" xmi:id="_FQ1CQJf_EeCzecClE7vDCQ" name="AbstractForker" clientDependency="_NSADYJf_EeCzecClE7vDCQ _86udgJf_EeCzecClE7vDCQ" isAbstract="true">
+          <ownedAttribute xmi:id="_-7MD8JgAEeCzecClE7vDCQ" name="pConfiguration" visibility="private" type="_ikIHwJgAEeCzecClE7vDCQ"/>
+          <interfaceRealization xmi:id="_NSADYJf_EeCzecClE7vDCQ" name="InterfaceRealization1" supplier="_VO6FAJf-EeCzecClE7vDCQ" client="_FQ1CQJf_EeCzecClE7vDCQ" contract="_VO6FAJf-EeCzecClE7vDCQ"/>
+          <interfaceRealization xmi:id="_86udgJf_EeCzecClE7vDCQ" name="InterfaceRealization2" supplier="_ct5ckJfyEeCzecClE7vDCQ" client="_FQ1CQJf_EeCzecClE7vDCQ" contract="_ct5ckJfyEeCzecClE7vDCQ"/>
+          <ownedOperation xmi:id="_HqyGwJgAEeCzecClE7vDCQ" name="prepareEnvironment" visibility="protected" isAbstract="true">
+            <ownedParameter xmi:id="_cOHn8JgAEeCzecClE7vDCQ" name="aIsolateId" type="_rpptYJf2EeCzecClE7vDCQ"/>
+          </ownedOperation>
+          <ownedOperation xmi:id="_fZZRIJgAEeCzecClE7vDCQ" name="getConfiguration" visibility="protected">
+            <ownedParameter xmi:id="_BmvEMJgBEeCzecClE7vDCQ" name="return" type="_ikIHwJgAEeCzecClE7vDCQ" direction="return"/>
+          </ownedOperation>
+          <ownedOperation xmi:id="_OhZj0JgBEeCzecClE7vDCQ" name="getDirectoryName">
+            <ownedParameter xmi:id="_Umi9IJgBEeCzecClE7vDCQ" name="aIsolateId" type="_rpptYJf2EeCzecClE7vDCQ"/>
+            <ownedParameter xmi:id="_SU0yIJgBEeCzecClE7vDCQ" name="aPattern" type="_rpptYJf2EeCzecClE7vDCQ"/>
+            <ownedParameter xmi:id="_yQjH4JgBEeCzecClE7vDCQ" name="return" type="_rpptYJf2EeCzecClE7vDCQ" direction="return"/>
+          </ownedOperation>
+          <ownedOperation xmi:id="_0O65EJgBEeCzecClE7vDCQ" name="makeDirectory">
+            <ownedParameter xmi:id="_15s_4JgBEeCzecClE7vDCQ" name="aPath" type="_rpptYJf2EeCzecClE7vDCQ"/>
+            <ownedParameter xmi:id="_4Tqg4JgBEeCzecClE7vDCQ" name="aClear" type="_kPj6YJf2EeCzecClE7vDCQ"/>
+          </ownedOperation>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Class" xmi:id="_Hr7ywJf_EeCzecClE7vDCQ" name="AbstractProcess" clientDependency="_M5SBYJf_EeCzecClE7vDCQ" isAbstract="true">
+          <ownedAttribute xmi:id="_Juv_EJf_EeCzecClE7vDCQ" name="pProcessId" visibility="private" type="_4l_A8Jf2EeCzecClE7vDCQ"/>
+          <ownedAttribute xmi:id="_TT1qAJf_EeCzecClE7vDCQ" name="pIsolateId" visibility="private" type="_rpptYJf2EeCzecClE7vDCQ"/>
+          <interfaceRealization xmi:id="_M5SBYJf_EeCzecClE7vDCQ" name="InterfaceRealization1" supplier="_WUnI0Jf-EeCzecClE7vDCQ" client="_Hr7ywJf_EeCzecClE7vDCQ" contract="_WUnI0Jf-EeCzecClE7vDCQ"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Class" xmi:id="_hCdWIJf_EeCzecClE7vDCQ" name="UnixProcess">
+          <generalization xmi:id="_kLs_AJf_EeCzecClE7vDCQ" general="_Hr7ywJf_EeCzecClE7vDCQ"/>
+          <ownedOperation xmi:id="_kp5MUJf-EeCzecClE7vDCQ" name="kill">
+            <ownedParameter xmi:id="_lT-rIJf-EeCzecClE7vDCQ" name="return" type="_4l_A8Jf2EeCzecClE7vDCQ" direction="return"/>
+            <ownedParameter xmi:id="_mST7oJf-EeCzecClE7vDCQ" name="aSignal" type="_4l_A8Jf2EeCzecClE7vDCQ"/>
+          </ownedOperation>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Class" xmi:id="_iV2QoJf_EeCzecClE7vDCQ" name="WindowsProcess">
+          <generalization xmi:id="_kryNQJf_EeCzecClE7vDCQ" general="_Hr7ywJf_EeCzecClE7vDCQ"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Class" xmi:id="_ra-CEJf_EeCzecClE7vDCQ" name="FelixForker">
+          <generalization xmi:id="_tBc3sJf_EeCzecClE7vDCQ" general="_FQ1CQJf_EeCzecClE7vDCQ"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Class" xmi:id="_ikIHwJgAEeCzecClE7vDCQ" name="ForkerConfiguration">
+          <ownedAttribute xmi:id="_nxHxEJgAEeCzecClE7vDCQ" name="pWorkingDirectory" visibility="private" type="_rpptYJf2EeCzecClE7vDCQ"/>
+          <ownedAttribute xmi:id="_q4P6EJgAEeCzecClE7vDCQ" name="pIsolateDirectoryPattern" visibility="private" type="_rpptYJf2EeCzecClE7vDCQ"/>
+          <ownedOperation xmi:id="_yoYOgJgAEeCzecClE7vDCQ" name="getWorkingDirectory">
+            <ownedParameter xmi:id="_1ZqDUJgAEeCzecClE7vDCQ" name="return" type="_rpptYJf2EeCzecClE7vDCQ" direction="return"/>
+          </ownedOperation>
+          <ownedOperation xmi:id="_2X8QgJgAEeCzecClE7vDCQ" name="getIsolateDirectoryPattern">
+            <ownedParameter xmi:id="_4DaT0JgAEeCzecClE7vDCQ" name="return" type="_rpptYJf2EeCzecClE7vDCQ" direction="return"/>
+          </ownedOperation>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Class" xmi:id="_H8rdIJgCEeCzecClE7vDCQ" name="ProcessFactory">
+          <ownedOperation xmi:id="_KSQ0cJgCEeCzecClE7vDCQ" name="startProcess" isStatic="true">
+            <ownedParameter xmi:id="_L4TlMJgCEeCzecClE7vDCQ" name="return" type="_WUnI0Jf-EeCzecClE7vDCQ" direction="return"/>
+            <ownedParameter xmi:id="_NKe-wJgCEeCzecClE7vDCQ" name="aExecutable" type="_rpptYJf2EeCzecClE7vDCQ"/>
+            <ownedParameter xmi:id="_QiKsQJgCEeCzecClE7vDCQ" name="aParameters" type="_rpptYJf2EeCzecClE7vDCQ"/>
+            <ownedParameter xmi:id="_SZGYsJgCEeCzecClE7vDCQ" name="aWorkingDirectory" type="_rpptYJf2EeCzecClE7vDCQ"/>
+          </ownedOperation>
+        </packagedElement>
+      </packagedElement>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Package" xmi:id="_gRM7gJgDEeCzecClE7vDCQ" name="Isolat">
+      <packagedElement xmi:type="uml:Component" xmi:id="_lrTpMJgCEeCzecClE7vDCQ" name="Isolat" clientDependency="_-jHa0JgDEeCzecClE7vDCQ">
+        <ownedAttribute xmi:type="uml:Port" xmi:id="_vBiYwJgCEeCzecClE7vDCQ" name="JMX_Control" aggregation="composite"/>
+        <realization xmi:id="_-jHa0JgDEeCzecClE7vDCQ" name="ComponentRealization1" supplier="_k8eNQJgCEeCzecClE7vDCQ" client="_lrTpMJgCEeCzecClE7vDCQ" realizingClassifier="_k8eNQJgCEeCzecClE7vDCQ"/>
+      </packagedElement>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Package" xmi:id="_kFVUcJgDEeCzecClE7vDCQ" name="Isolat n">
+      <packagedElement xmi:type="uml:Component" xmi:id="_kFVUcZgDEeCzecClE7vDCQ" name="Isolat" clientDependency="_9yAuAJgDEeCzecClE7vDCQ _Fji7MJgFEeCzecClE7vDCQ">
+        <ownedAttribute xmi:type="uml:Port" xmi:id="_kFVUcpgDEeCzecClE7vDCQ" name="JMX_Control" aggregation="composite"/>
+        <interfaceRealization xmi:id="_Fji7MJgFEeCzecClE7vDCQ" name="InterfaceRealization1" supplier="_nftR8Jf1EeCzecClE7vDCQ" client="_kFVUcZgDEeCzecClE7vDCQ" contract="_nftR8Jf1EeCzecClE7vDCQ"/>
+        <realization xmi:id="_9yAuAJgDEeCzecClE7vDCQ" name="ComponentRealization1" supplier="_k8eNQJgCEeCzecClE7vDCQ" client="_kFVUcZgDEeCzecClE7vDCQ" realizingClassifier="_k8eNQJgCEeCzecClE7vDCQ"/>
+      </packagedElement>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Package" xmi:id="_MZAMkJgEEeCzecClE7vDCQ" name="Commons">
+      <packagedElement xmi:type="uml:Interface" xmi:id="_nftR8Jf1EeCzecClE7vDCQ" name="IIsolate">
+        <ownedOperation xmi:id="_xeM7YJf1EeCzecClE7vDCQ" name="getState">
+          <ownedParameter xmi:id="_y7FwIJf1EeCzecClE7vDCQ" name="return" type="_mzhMQJfzEeCzecClE7vDCQ" direction="return"/>
+        </ownedOperation>
+        <ownedOperation xmi:id="_rpcHcJf1EeCzecClE7vDCQ" name="getId">
+          <ownedParameter xmi:id="_w60sEJf2EeCzecClE7vDCQ" name="return" type="_rpptYJf2EeCzecClE7vDCQ" direction="return"/>
+        </ownedOperation>
+        <ownedOperation xmi:id="_XdhLQJf2EeCzecClE7vDCQ" name="ping">
+          <ownedParameter xmi:id="_6gb7cJf2EeCzecClE7vDCQ" name="return" type="_4l_A8Jf2EeCzecClE7vDCQ" direction="return"/>
+        </ownedOperation>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Interface" xmi:id="_ct5ckJfyEeCzecClE7vDCQ" name="IReconfigurable">
+        <ownedOperation xmi:id="__yIbYJfyEeCzecClE7vDCQ" name="reloadConfiguration">
+          <ownedParameter xmi:id="_FgoPQJfzEeCzecClE7vDCQ" name="aPath" type="_rpptYJf2EeCzecClE7vDCQ" effect="read"/>
+          <ownedParameter xmi:id="_Pof3IJfzEeCzecClE7vDCQ" name="aForce" type="_kPj6YJf2EeCzecClE7vDCQ" effect="read"/>
+        </ownedOperation>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Interface" xmi:id="_clOE4Jf2EeCzecClE7vDCQ" name="IRoute">
+        <ownedOperation xmi:id="_do36QJf2EeCzecClE7vDCQ" name="getBeginningId">
+          <ownedParameter xmi:id="_el3uAJf2EeCzecClE7vDCQ" name="return" type="_rpptYJf2EeCzecClE7vDCQ" direction="return"/>
+        </ownedOperation>
+        <ownedOperation xmi:id="_-AjMMJf2EeCzecClE7vDCQ" name="getEndId">
+          <ownedParameter xmi:id="__LpGUJf2EeCzecClE7vDCQ" name="return" type="_rpptYJf2EeCzecClE7vDCQ" direction="return"/>
+        </ownedOperation>
+        <ownedOperation xmi:id="_OJe-oJf3EeCzecClE7vDCQ" name="getWeight">
+          <ownedParameter xmi:id="_PBm5cJf3EeCzecClE7vDCQ" name="return" type="_4l_A8Jf2EeCzecClE7vDCQ" direction="return"/>
+        </ownedOperation>
+        <ownedOperation xmi:id="_M-6PoJf8EeCzecClE7vDCQ" name="getRouteId">
+          <ownedParameter xmi:id="_Z3TeYJf8EeCzecClE7vDCQ" name="return" type="_rpptYJf2EeCzecClE7vDCQ" direction="return"/>
+        </ownedOperation>
+      </packagedElement>
+    </packagedElement>
+  </packagedElement>
+</uml:Model>

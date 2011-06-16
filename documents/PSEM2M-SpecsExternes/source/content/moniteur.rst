@@ -36,7 +36,7 @@ création d'images, ...) sur ordre de l'administrateur.
 
 Cet ordre peut être émis à l'aide d'une opération JMX :
 
-* ``boolean reloadConfiguration(String aFileName, boolean aKillUselesses)``
+* ``boolean reloadConfiguration(String aPath, boolean aForce)``
 
    Force la relecture du fichier de configuration par le moniteur, en lui
    indiquant s'il faut ou non tuer les isolats ayant disparu de la
@@ -54,21 +54,34 @@ l'ensemble des isolats et les démarre à l'aide du *forker*.
 Le moniteur offre un certain nombre d'opérations utilisables via JMX afin de
 pouvoir interagir sur les isolats :
 
-* ``boolean restartPlatform(boolean force)``
+* ``boolean restartPlatform(boolean aForce)``
 
-     Redémarre la plateforme complète
+     Redémarre la plateforme complète.
 
-* ``boolean restartIsolate(String aIsolateId)``
+* ``IIsolate startIsolate(String aIsolateId, boolean aForceRestart)``
 
-     Redémarre l'isolat indiqué
+     Démarre l'isolat indiqué, forçant ou non son redémarrage si celui est
+     déjà en cours d'exécution.
+     Retourne le nouvel isolat, nul en cas de problème.
 
-* ``int getIsolateState(String aIsolateId)``
+* ``boolean stopIsolate(String aIsolateId)``
 
-     Renvoie l'état de l'isolat indiqué (OK, ne répond pas, non lancé)
+     Arrête l'isolat indiqué. Renvoie faux en cas de problème.
+
+* ``IIsolate getIsolate(String aIsolateId)``
+
+     Renvoie l'isolat indiqué, ce qui permet d'avoir accès à son état et à
+     le contrôler.
 
 * ``String[] getRunningIsolates()``
 
-     Renvoie une vue de la liste des isolats ayant l'état OK
+     Renvoie une vue de la liste des identifiants des isolats étant dans l'état
+     **RUNNING**.
+
+* ``String[] getPossibleIsolates()``
+
+     Renvoie une vue de la liste complète des identifiants des isolats ayant
+     été correctement décrit par le fichier de configuration.
 
 
 Routage des message
@@ -83,6 +96,6 @@ La gestion du routage est faite en interne par le moniteur.
 Afin de conserver une certaine cohérence de la plateforme, seuls des accès en
 lectures sont autorisés :
 
-* ``Route[] getActiveRoutes()``
+* ``IRoute[] getActiveRoutes()``
 
      Renvoie une vue de l'ensemble des routes actives
