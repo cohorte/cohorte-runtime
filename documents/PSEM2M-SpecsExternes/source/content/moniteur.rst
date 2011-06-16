@@ -60,8 +60,8 @@ pouvoir interagir sur les isolats :
 
 * ``IIsolate startIsolate(String aIsolateId, boolean aForceRestart)``
 
-     Démarre l'isolat indiqué, forçant ou non son redémarrage si celui est
-     déjà en cours d'exécution.
+     Ordonne au forker de démarrer l'isolat indiqué, forçant ou non son
+     redémarrage si celui est déjà en cours d'exécution.
      Retourne le nouvel isolat, nul en cas de problème.
 
 * ``boolean stopIsolate(String aIsolateId)``
