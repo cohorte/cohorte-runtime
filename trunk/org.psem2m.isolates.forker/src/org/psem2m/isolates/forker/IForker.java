@@ -1,50 +1,37 @@
 /**
- * File:   IForker.java
- * Author: Thomas Calmant
- * Date:   14 juin 2011
+ * 
  */
 package org.psem2m.isolates.forker;
 
+import org.psem2m.isolates.commons.IReconfigurable;
+
 /**
- * Represents a forker service
- * 
- * @author Thomas Calmant
+ * Description of a Forker
  */
-public interface IForker {
+public interface IForker extends IReconfigurable {
 
-	/**
-	 * Stops all running isolates and the pool of isolates
-	 */
-	public void dispose();
+    /** The constant used in configuration to be replaced by the isolate ID */
+    String ISOLATE_DIRECTORY_VARIABLE = "${isolate.id}";
 
-	/**
-	 * Isolate execution (first version)
-	 * 
-	 * @param aIsolateID
-	 *            Isolate ID
-	 * @param aCommand
-	 *            System command (with arguments)
-	 * @param aEnvironment
-	 *            Launch environment (ignored)
-	 */
-	public void execute(String aIsolateID, String aCommand,
-			String[] aEnvironment);
+    /**
+     * Retrieves the process informations about the given isolate.
+     * 
+     * @param aIsolateId
+     *            An isolate ID
+     * 
+     * @return The process associated with the isolate ID, null if not available
+     */
+    IProcess getProcess(String aIsolateId);
 
-	/**
-	 * Initializes the forker and its pool of isolates.
-	 * 
-	 * @param aPoolSize
-	 *            Number of pre-loaded basic isolates
-	 * @return True on success
-	 */
-	public boolean initializeForker(int aPoolSize);
-
-	/**
-	 * Kills the given isolate
-	 * 
-	 * @param aIsolateId
-	 *            The ID of the isolate to kill
-	 * @return True on success
-	 */
-	public boolean kill(String aIsolateId);
+    /**
+     * Starts the given isolate according to the current forker configuration
+     * 
+     * @param aIsolateId
+     *            ID of the isolate to be started
+     * @param aForce
+     *            Restarts the existing isolate if any
+     * 
+     * @return True if the process has been started, else false
+     */
+    boolean startProcess(String aIsolateId, boolean aForce);
 }
