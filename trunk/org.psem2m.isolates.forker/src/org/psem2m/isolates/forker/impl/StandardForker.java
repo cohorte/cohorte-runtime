@@ -40,8 +40,9 @@ public class StandardForker extends AbstractForker {
 	    final ProcessConfiguration aProcessConfiguration)
 	    throws IOException {
 
-	Activator.getLogger().logDebug(this, "runProcess", "Trying to run : ",
-		aPlatformConfiguration, aProcessConfiguration);
+	Activator.getLogger().logDebug(this, "runProcess",
+		"Standard to run : ", aPlatformConfiguration,
+		aProcessConfiguration);
 
 	// Prepare the builder
 	ProcessBuilder processBuilder = new ProcessBuilder(
@@ -54,12 +55,8 @@ public class StandardForker extends AbstractForker {
 	}
 
 	// Set the environment
-	final Map<String, String> environmentConfig = aProcessConfiguration
-		.getEnvironment();
-	if (environmentConfig != null) {
-	    Map<String, String> environmentMap = processBuilder.environment();
-	    environmentMap.putAll(environmentConfig);
-	}
+	Map<String, String> environmentMap = processBuilder.environment();
+	environmentMap.putAll(aProcessConfiguration.getEnvironment());
 
 	return processBuilder.start();
     }

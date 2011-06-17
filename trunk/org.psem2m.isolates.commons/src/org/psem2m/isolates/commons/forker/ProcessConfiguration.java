@@ -6,6 +6,7 @@
 package org.psem2m.isolates.commons.forker;
 
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Description of a process configuration to parameter the Forker service
@@ -13,6 +14,12 @@ import java.util.Map;
  * @author Thomas Calmant
  */
 public class ProcessConfiguration {
+
+    /** The isolate ID environment variable */
+    public static final String ISOLATE_ID = "psem2m.isolate.id";
+
+    /** Isolate ID variable in environment values */
+    public static final CharSequence ISOLATE_VARIABLE = "${isolate.id}";
 
     /** The command array */
     private String[] pCommandArray;
@@ -62,6 +69,29 @@ public class ProcessConfiguration {
 	pEnvironment = aEnvironment;
 	pWorkingDirectory = aWorkingDirectory;
 	pIsolateConfiguration = aIsolateConfiguration;
+
+	fillEnvironment();
+    }
+
+    /**
+     * Sets up the common environment variables and replaces variables.
+     */
+    private void fillEnvironment() {
+
+	if (pEnvironment == null) {
+	    pEnvironment = new TreeMap<String, String>();
+	}
+
+	final String isolateId = pIsolateConfiguration.getIsolateId();
+
+	for (String key : pEnvironment.keySet()) {
+
+	    String value = pEnvironment.get(key);
+	    value = value.replace(ISOLATE_VARIABLE, isolateId);
+	    pEnvironment.put(key, value);
+	}
+
+	pEnvironment.put(ISOLATE_ID, isolateId);
     }
 
     /**

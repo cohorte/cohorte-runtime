@@ -7,6 +7,7 @@ package org.psem2m.isolates.forker.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.InvalidParameterException;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -67,6 +68,8 @@ public abstract class AbstractForker implements IForker {
 			"Error waiting for termination : ", e);
 	    }
 	}
+
+	pStartedProcesses.remove(aIsolateId);
     }
 
     /**
@@ -96,15 +99,34 @@ public abstract class AbstractForker implements IForker {
     /*
      * (non-Javadoc)
      * 
+     * @see org.psem2m.isolates.commons.forker.IForker#ping(java.lang.String)
+     */
+    @Override
+    public EProcessState ping(final String aIsolateId) {
+
+	Process process = pStartedProcesses.get(aIsolateId);
+	if (process == null) {
+	    return EProcessState.DEAD;
+	}
+
+	// TODO ping process
+
+	return EProcessState.ALIVE;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see
      * org.psem2m.isolates.commons.forker.IForker#runProcess(org.psem2m.isolates
      * .commons.IPlatformConfiguration,
      * org.psem2m.isolates.commons.forker.IProcessConfiguration)
      */
     @Override
-    public void runProcess(final PlatformConfiguration aPlatformConfiguration,
+    public Process runProcess(
+	    final PlatformConfiguration aPlatformConfiguration,
 	    final ProcessConfiguration aProcessConfiguration)
-	    throws IOException {
+	    throws IOException, InvalidParameterException {
 
 	Activator.getLogger().logDebug(this, "runProcess",
 		"Running process for isolate",
@@ -115,7 +137,9 @@ public abstract class AbstractForker implements IForker {
 
 	Process oldProcess = pStartedProcesses.get(isolateId);
 	if (oldProcess != null) {
-	    return;
+	    // throw new
+	    // InvalidParameterException("Isolate is already running");
+	    killProcess(isolateId);
 	}
 
 	Process newProcess = doRunProcess(aPlatformConfiguration,
@@ -124,5 +148,7 @@ public abstract class AbstractForker implements IForker {
 	if (newProcess != null) {
 	    pStartedProcesses.put(isolateId, newProcess);
 	}
+
+	return newProcess;
     }
 }

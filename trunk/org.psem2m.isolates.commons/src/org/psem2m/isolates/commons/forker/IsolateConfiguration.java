@@ -28,7 +28,6 @@ public class IsolateConfiguration {
      *            The isolate ID
      */
     public IsolateConfiguration(final String aIsolateId) {
-
 	this(aIsolateId, new String[0], -1);
     }
 
@@ -48,6 +47,28 @@ public class IsolateConfiguration {
 	pBundles = aBundles;
 	pIsolateId = aIsolateId;
 	pMaxTimeout = aMaxTimeout;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(final Object aObj) {
+
+	if (pIsolateId == null) {
+	    return false;
+	}
+
+	if (aObj instanceof IsolateConfiguration) {
+	    return pIsolateId.equals(((IsolateConfiguration) aObj).pIsolateId);
+
+	} else if (aObj instanceof CharSequence) {
+	    return pIsolateId.equals(aObj);
+	}
+
+	return false;
     }
 
     /**
@@ -81,5 +102,15 @@ public class IsolateConfiguration {
      */
     public int getMaxTimeout() {
 	return pMaxTimeout;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+	return pIsolateId.hashCode();
     }
 }

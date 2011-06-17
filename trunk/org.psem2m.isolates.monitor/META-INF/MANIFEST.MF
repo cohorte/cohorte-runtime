@@ -1,0 +1,40 @@
+Manifest-Version: 1.0
+Bundle-Vendor: isandlaTech
+iPOJO-Components: component { $immediate="true" $name="isolates-manage
+ r" $classname="org.psem2m.isolates.monitor.impl.IsolateManager" $arch
+ itecture="true" callback { $transition="validate" $method="startPlatf
+ orm" }callback { $transition="invalidate" $method="stopPlatform" }pro
+ vides { }manipulation { field { $name="pForker" $type="org.psem2m.iso
+ lates.commons.forker.IForker" }field { $name="pPlatformConfiguration"
+  $type="org.psem2m.isolates.commons.PlatformConfiguration" }field { $
+ name="pPossibleIsolates" $type="java.util.Map" }field { $name="pRunni
+ ngIsolates" $type="java.util.Map" }field { $name="pRunning" $type="bo
+ olean" }field { $name="pMonitors" $type="java.util.Map" }method { $na
+ me="$init" }method { $name="getPossibleIsolates" $return="java.util.C
+ ollection" }method { $name="getRunningIsolates" $return="java.util.Co
+ llection" }method { $arguments="{java.lang.String}" $name="isolateSto
+ pped" }method { $arguments="{java.lang.String}" $name="monitorStopped
+ " }method { $arguments="{java.lang.String,boolean}" $name="reloadConf
+ iguration" }method { $arguments="{boolean}" $name="restartPlatform" $
+ return="boolean" }method { $arguments="{java.lang.String,boolean}" $n
+ ame="startIsolate" $return="java.lang.Process" }method { $name="start
+ Platform" }method { $arguments="{java.lang.String}" $name="stopIsolat
+ e" $return="boolean" }method { $name="stopPlatform" }interface { $nam
+ e="org.psem2m.isolates.commons.IReconfigurable" }interface { $name="o
+ rg.psem2m.isolates.monitor.IIsolateManager" }interface { $name="org.p
+ sem2m.isolates.monitor.IIsolateListener" }}requires { $field="pForker
+ " $optional="false" $filter="(target=standard)" }}instance { $compone
+ nt="isolates-manager" }
+Bundle-Version: 1.0.0.qualifier
+Bundle-Name: Monitor
+Bundle-ManifestVersion: 2
+Bundle-Activator: org.psem2m.isolates.monitor.Activator
+Created-By: iPOJO  1.8.0
+Bundle-SymbolicName: org.psem2m.isolates.monitor
+Import-Package: org.osgi.service.log;version=1.3, org.psem2m.isolates.
+ commons.forker;version=1.0.0, org.apache.felix.ipojo.architecture;ver
+ sion=1.8.0, org.apache.felix.ipojo;version=1.8.0, org.osgi.framework;
+ version=1.3.0, org.psem2m.utilities.logging, org.osgi.service.cm;vers
+ ion=1.2, org.psem2m.isolates.commons;version=1.0.0
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+

@@ -27,8 +27,25 @@ public class CForkerJunitTest extends CQualityTestBase {
 		pForkerTester.getIdentifier());
     }
 
+    /**
+     * Tests the Felix forker
+     */
+    public void testFelixFork() throws Exception {
+	logMethodName(this, "testFelixFork");
+
+	pForkerTester.execLine("fork-felix /home/tcalmant/test "
+		+ "/home/tcalmant/test/org.apache.felix.shell-1.4.2.jar "
+		+ "/home/tcalmant/test/org.apache.felix.shell.tui-1.4.1.jar "
+		+ "/home/tcalmant/org.apache.felix.shell.remote-1.1.2.jar ");
+    }
+
+    /**
+     * Tests standard forker
+     * 
+     * @throws Exception
+     */
     public void testForkSimple() throws Exception {
-	logMethodName(this, "testLogLog");
+	logMethodName(this, "testForkSimple");
 
 	pForkerTester.execLine("fork /usr/bin/gnome-terminal -x htop");
     }

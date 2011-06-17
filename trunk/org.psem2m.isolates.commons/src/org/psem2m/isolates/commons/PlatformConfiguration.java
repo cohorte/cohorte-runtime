@@ -6,6 +6,8 @@
 package org.psem2m.isolates.commons;
 
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Describes the platform configuration.
@@ -13,6 +15,20 @@ import java.io.File;
  * @author Thomas Calmant
  */
 public class PlatformConfiguration {
+
+    /**
+     * Retrieves the java interpreter path, based on java.home property
+     * 
+     * @return The path to the java interpreter
+     */
+    public static String getJavaPath() {
+
+	return System.getProperty("java.home") + File.separator + "bin"
+		+ File.separator + "java";
+    }
+
+    /** Common bundles needed by all isolates */
+    private Set<String> pCommonBundles = new HashSet<String>();
 
     /** The platform home directory */
     private String pPlatformDirectory;
@@ -33,6 +49,36 @@ public class PlatformConfiguration {
 
 	pPlatformDirectory = makeAbsolutePath(aPlatformPath);
 	pRepository = makeAbsolutePath(aRepository);
+    }
+
+    /**
+     * Adds the given bundle to the ones needed by all isolates
+     * 
+     * @param aBundle
+     *            New common bundle
+     */
+    public void addCommonBundle(final String aBundle) {
+
+	File bundleFile = new File(aBundle);
+
+	if (!bundleFile.exists()) {
+	    bundleFile = new File(pRepository, aBundle);
+	}
+
+	if (!bundleFile.exists()) {
+	    return;
+	}
+
+	pCommonBundles.add(bundleFile.getAbsolutePath());
+    }
+
+    /**
+     * Retrieves bundles needed by all isolates
+     * 
+     * @return bundles needed by all isolates
+     */
+    public String[] getCommonBundles() {
+	return pCommonBundles.toArray(new String[0]);
     }
 
     /**
@@ -70,5 +116,22 @@ public class PlatformConfiguration {
 	} else {
 	    return System.getProperty("user.home");
 	}
+    }
+
+    /**
+     * Removes the given bundle from the ones needed by all isolates
+     * 
+     * @param aBundle
+     *            Removed common bundle
+     */
+    public void removeCommonBundle(final String aBundle) {
+
+	File bundleFile = new File(aBundle);
+	if (!bundleFile.exists()) {
+	    pCommonBundles.remove(aBundle);
+	    return;
+	}
+
+	pCommonBundles.remove(bundleFile.getAbsolutePath());
     }
 }

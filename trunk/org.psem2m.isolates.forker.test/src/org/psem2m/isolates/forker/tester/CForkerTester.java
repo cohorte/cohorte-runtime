@@ -5,6 +5,9 @@
  */
 package org.psem2m.isolates.forker.tester;
 
+import java.io.IOException;
+import java.security.InvalidParameterException;
+import java.util.Arrays;
 import java.util.StringTokenizer;
 
 import org.osgi.framework.BundleContext;
@@ -32,8 +35,7 @@ public class CForkerTester extends CConsoleTester {
     protected IForker pFelixForker;
 
     /** The platform configuration */
-    private PlatformConfiguration pPlatformConfiguration = new PlatformConfiguration(
-	    ".", ".");
+    private PlatformConfiguration pPlatformConfiguration;
 
     /** The standard forker service */
     protected IForker pStdForker;
@@ -46,6 +48,12 @@ public class CForkerTester extends CConsoleTester {
      */
     public CForkerTester(final String[] aArgs) throws Exception {
 	super(aArgs);
+
+	pPlatformConfiguration = new PlatformConfiguration("/home/tcalmant",
+		"/home/tcalmant/programmation/workspaces/psem2m/platforms/felix");
+
+	pPlatformConfiguration
+		.addCommonBundle("org.apache.felix.ipojo-1.8.0.jar");
     }
 
     @Override
@@ -56,8 +64,9 @@ public class CForkerTester extends CConsoleTester {
 	addHelpSubLine(aHelp, "launches the given executable file ('exec'), "
 		+ "with the given arguments ('args')");
 
-	addHelpLine(aHelp, FORK_FELIX_COMMAND);
-	addHelpSubLine(aHelp, "launches the felix forker text");
+	addHelpLine(aHelp, FORK_FELIX_COMMAND + "dir bundle1 [bundle2 [...]]");
+	addHelpSubLine(aHelp, "launches the felix forker in the given 'dir'"
+		+ "with the given bundles");
     }
 
     /**
@@ -88,8 +97,41 @@ public class CForkerTester extends CConsoleTester {
 	return true;
     }
 
-    protected boolean doForkTest(final String aCommandLine) {
-	logInfo("No pre-defined tests available...");
+    /**
+     * Uses the Felix forker
+     * 
+     * @param aCommandLine
+     * @return
+     * @throws InvalidParameterException
+     * @throws IOException
+     */
+    protected boolean doForkFelix(final String aCommandLine)
+	    throws InvalidParameterException, IOException {
+
+	String[] elements = aCommandLine.split(" ");
+
+	if (elements.length < 2) {
+	    throw new InvalidParameterException("Missing arguments");
+	}
+
+	String workingDir = elements[1];
+
+	String[] bundles = null;
+	if (elements.length > 2) {
+	    bundles = new String[elements.length - 2];
+	    for (int i = 2; i < elements.length; i++) {
+		bundles[i - 2] = elements[i];
+	    }
+	}
+
+	IsolateConfiguration isolateConfig = new IsolateConfiguration(
+		"isolat-felix", bundles, -1);
+
+	ProcessConfiguration processConfig = new ProcessConfiguration(null,
+		null, workingDir, isolateConfig);
+
+	System.out.println("Running..." + Arrays.toString(bundles));
+	getForker("felix").runProcess(pPlatformConfiguration, processConfig);
 	return true;
     }
 
@@ -134,7 +176,7 @@ public class CForkerTester extends CConsoleTester {
 	    return doFork(aLine);
 
 	} else if (aCommand.equals(FORK_FELIX_COMMAND)) {
-	    return doForkTest(aLine);
+	    return doForkFelix(aLine);
 	}
 
 	return false;
