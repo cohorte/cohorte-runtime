@@ -1,198 +1,128 @@
 /**
- * 
+ * File:   AbstractForker.java
+ * Author: Thomas Calmant
+ * Date:   17 juin 2011
  */
 package org.psem2m.isolates.forker.impl;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.psem2m.isolates.commons.IReconfigurable;
-import org.psem2m.isolates.forker.IForker;
-import org.psem2m.isolates.forker.IProcess;
+import org.psem2m.isolates.commons.PlatformConfiguration;
+import org.psem2m.isolates.commons.forker.IForker;
+import org.psem2m.isolates.commons.forker.ProcessConfiguration;
+import org.psem2m.isolates.forker.Activator;
 
 /**
- * Abstract forker methods
+ * Basic forker information behaviors
  * 
+ * @author Thomas Calmant
  */
-public abstract class AbstractForker implements IForker, IReconfigurable {
+public abstract class AbstractForker implements IForker {
 
-    /** Current forker configuration */
-    private ForkerConfiguration pConfiguration = new ForkerConfiguration();
-
-    /** Isolates ran from this forker */
-    private Map<String, IProcess> pIsolatedProcesses = new TreeMap<String, IProcess>();
+    /** Keeping trace of started processes */
+    private final Map<String, Process> pStartedProcesses = new TreeMap<String, Process>();
 
     /**
-     * Retrieves the current configuration.
+     * Starts a process according to the given configuration. Called by
+     * {@link AbstractForker#runProcess(PlatformConfiguration, ProcessConfiguration)}
+     * , which stores the result of this method.
      * 
-     * @return the configuration
+     * @param aPlatformConfiguration
+     *            The platform configuration
+     * @param aProcessConfiguration
+     *            The configuration of the future process
+     * @return The launched process, null on error
+     * @throws IOException
      */
-    protected ForkerConfiguration getConfiguration() {
-	return pConfiguration;
-    }
-
-    /**
-     * Retrieves the complete directory name for the given isolate ID
-     * 
-     * @param aIsolateId
-     *            The isolate ID
-     * @param aPattern
-     *            The directory pattern
-     * 
-     * @return The directory name
-     */
-    public String getDirectoryName(final CharSequence aIsolateId,
-	    final String aPattern) {
-
-	// Build the complete directory name
-	StringBuilder builder = new StringBuilder();
-	builder.append(pConfiguration.getWorkingDirectory());
-	builder.append(File.separator);
-
-	// Replace the isolateId variable in the pattern
-	builder.append(aPattern.replace(ISOLATE_DIRECTORY_VARIABLE, aIsolateId));
-
-	return builder.toString();
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.forker.IForker#getProcess(java.lang.String)
-     */
-    @Override
-    public IProcess getProcess(final String aIsolateId) {
-	return pIsolatedProcesses.get(aIsolateId);
-    }
-
-    /**
-     * Creates the given directory and parent directories if necessary. If
-     * aClear is true, removes existing directory content if any, else fails if
-     * directory already exists.
-     * 
-     * @param aPath
-     *            Directory path
-     * @param aClear
-     *            Clear existing content
-     * 
-     * @return True on success, False on failure
-     */
-    public boolean makeDirectory(final String aPath, final boolean aClear) {
-
-	File dirPath = new File(aPath);
-
-	if (!dirPath.exists()) {
-	    // Create directory and parent directories if needed
-	    if (!dirPath.mkdirs()) {
-		return false;
-	    }
-
-	} else if (!dirPath.isDirectory()) {
-	    // Can't touch a file with the same name
-	    return false;
-
-	} else {
-
-	    // Test if the directory is empty
-	    boolean emptyDir = (dirPath.list().length == 0);
-
-	    if (!emptyDir) {
-
-		if (!aClear) {
-		    // We're not authorized to clear this directory
-		    return false;
-
-		} else {
-		    // Erase it
-		    removeDirectory(dirPath);
-		}
-	    }
-	}
-
-	return true;
-    }
-
-    /**
-     * Asks child class to prepare the future isolate environment
-     * 
-     * @param aIsolateId
-     *            The isolate ID
-     * 
-     * @return The isolate process configuration
-     */
-    protected abstract ProcessConfiguration prepareEnvironment(String aIsolateId);
+    protected abstract Process doRunProcess(
+	    final PlatformConfiguration aPlatformConfiguration,
+	    final ProcessConfiguration aProcessConfiguration)
+	    throws IOException;
 
     /*
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.isolates.commons.IReconfigurable#reloadConfiguration(java.
-     * lang.String, boolean)
+     * org.psem2m.isolates.commons.forker.IForker#killProcess(java.lang.String)
      */
     @Override
-    public void reloadConfiguration(final String aPath, final boolean aForce) {
+    public void killProcess(final String aIsolateId) {
 
-	pConfiguration.loadConfiguration(aPath);
-	// TODO reload isolates
+	Activator.getLogger().logDebug(this, "killProcess",
+		"Trying to kill : ", aIsolateId);
+
+	Process process = pStartedProcesses.get(aIsolateId);
+	if (process != null) {
+	    process.destroy();
+
+	    try {
+		process.waitFor();
+		pStartedProcesses.remove(aIsolateId);
+
+	    } catch (InterruptedException e) {
+		Activator.getLogger().logSevere(this, "killProcess",
+			"Error waiting for termination : ", e);
+	    }
+	}
     }
 
     /**
-     * Recursively deletes the given directory
+     * Returns a valid directory from the given path (it may return the parent
+     * directory).
      * 
-     * @param aDirectory
-     *            The directory to be deleted
+     * @param aPath
+     *            base directory path
+     * @return A valid directory path
      */
-    public void removeDirectory(final File aDirectory) {
+    protected File makeDirectory(final String aPath) {
 
-	if (aDirectory.isDirectory()) {
+	File directory = new File(aPath);
 
-	    File[] dirContent = aDirectory.listFiles();
-	    for (File node : dirContent) {
+	if (!directory.exists()) {
+	    // Create directory if needed
+	    directory.mkdirs();
 
-		if (node.isDirectory()) {
-		    // Delete sub directory
-		    removeDirectory(node);
-
-		} else {
-		    // Delete file
-		    node.delete();
-		}
-	    }
-
-	    aDirectory.delete();
+	} else if (!directory.isDirectory()) {
+	    // Use the parent directory if the path represents something else
+	    directory = directory.getParentFile();
 	}
+
+	return directory;
     }
 
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.forker.IForker#startProcess(java.lang.String)
+     * @see
+     * org.psem2m.isolates.commons.forker.IForker#runProcess(org.psem2m.isolates
+     * .commons.IPlatformConfiguration,
+     * org.psem2m.isolates.commons.forker.IProcessConfiguration)
      */
     @Override
-    public boolean startProcess(final String aIsolateId, final boolean aForce) {
+    public void runProcess(final PlatformConfiguration aPlatformConfiguration,
+	    final ProcessConfiguration aProcessConfiguration)
+	    throws IOException {
 
-	IProcess oldProcess = pIsolatedProcesses.get(aIsolateId);
+	Activator.getLogger().logDebug(this, "runProcess",
+		"Running process for isolate",
+		aProcessConfiguration.getIsolateConfiguration().getIsolateId());
+
+	final String isolateId = aProcessConfiguration
+		.getIsolateConfiguration().getIsolateId();
+
+	Process oldProcess = pStartedProcesses.get(isolateId);
 	if (oldProcess != null) {
-	    // The isolate is already running
-
-	    if (aForce) {
-		// Stop it
-		oldProcess.stop();
-
-	    } else {
-		// We're not authorized to kill it
-		return false;
-	    }
+	    return;
 	}
 
-	// Prepare the isolate directory
-	ProcessConfiguration processConfig = prepareEnvironment(aIsolateId);
-	IProcess process = ProcessFactory.startProcess(processConfig);
-	if (process != null) {
-	    pIsolatedProcesses.put(aIsolateId, process);
-	}
+	Process newProcess = doRunProcess(aPlatformConfiguration,
+		aProcessConfiguration);
 
-	return (process != null);
+	if (newProcess != null) {
+	    pStartedProcesses.put(isolateId, newProcess);
+	}
     }
 }
