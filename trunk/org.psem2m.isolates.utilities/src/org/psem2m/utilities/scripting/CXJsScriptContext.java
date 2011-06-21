@@ -73,7 +73,7 @@ public class CXJsScriptContext implements ScriptContext {
 
 	public String getDurationStrMs() {
 		return new StringBuilder(pAction).append(" - ")
-				.append(pTimer.getDurationStrMs()).toString();
+				.append(pTimer.getDurationStrMilliSec()).toString();
 	}
 
 	public long getDurationNs() {
@@ -84,7 +84,7 @@ public class CXJsScriptContext implements ScriptContext {
 		return new StringBuilder().append(pAction).append(" - StartAt[")
 				.append(pTimer.getStartAtSecStr()).append("] - StopAt[")
 				.append(pTimer.getStopAtSecStr()).append("] - Duration[")
-				.append(pTimer.getDurationStrMs()).append("]").toString();
+				.append(pTimer.getDurationStrMilliSec()).append("]").toString();
 	}
 
 	public String descrToString() {

@@ -1,6 +1,15 @@
+/*******************************************************************************
+ * Copyright (c) 2011 www.isandlatech.com (www.isandlatech.com)
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    ogattaz (isandlaTech) - initial API and implementation
+ *******************************************************************************/
 package org.psem2m.utilities;
 
-//
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -15,7 +24,7 @@ import java.util.TreeSet;
  * CAdminAbstractListComparator --> Gere tri ascendant et descendant -
  * resverSort();
  * 
- * @author isandlaTech - ogattaz
+ * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  * @param <E>
  */
@@ -28,10 +37,10 @@ public class CXSortList<E> extends ArrayList<E> {
 
 	public final static boolean SORTBYKEY = true;
 
-	// Comparator courant
+	/** Comparator courant **/
 	private CXAbstractListComparator<E> pComparator = null;
 
-	// Contient la liste triee des objets en phase avec ArrayList
+	/** Contient la liste triee des objets en phase avec ArrayList **/
 	TreeSet<E> pTreeSet = null;
 
 	/**
@@ -43,59 +52,59 @@ public class CXSortList<E> extends ArrayList<E> {
 
 	/**
 	 */
-	public CXSortList(boolean aSortAsc) {
+	public CXSortList(final boolean aSortAsc) {
 		super();
 		setComparator(getDefaultComparator(aSortAsc));
 	}
 
 	/**
 	 */
-	public CXSortList(Collection<E> aCol) throws Exception {
+	public CXSortList(final Collection<E> aCol) throws Exception {
 		super();
 		init(aCol.iterator(), getDefaultComparator());
 	}
 
 	/**
 	 */
-	public CXSortList(Collection<E> aCol, CXAbstractListComparator<E> aComp)
-			throws Exception {
+	public CXSortList(final Collection<E> aCol,
+			final CXAbstractListComparator<E> aComp) throws Exception {
 		super();
 		init(aCol.iterator(), aComp);
 	}
 
 	/**
 	 */
-	public CXSortList(CXAbstractListComparator<E> aComp) {
+	public CXSortList(final CXAbstractListComparator<E> aComp) {
 		super();
 		setComparator(aComp);
 	}
 
 	/**
 	 */
-	public CXSortList(Enumeration<E> aEnum) throws Exception {
+	public CXSortList(final Enumeration<E> aEnum) throws Exception {
 		super();
 		init(aEnum, getDefaultComparator());
 	}
 
 	/**
 	 */
-	public CXSortList(Enumeration<E> aEnum, CXAbstractListComparator<E> aComp)
-			throws Exception {
+	public CXSortList(final Enumeration<E> aEnum,
+			final CXAbstractListComparator<E> aComp) throws Exception {
 		super();
 		init(aEnum, aComp);
 	}
 
 	/**
 	 */
-	public CXSortList(Iterator<E> aIt) throws Exception {
+	public CXSortList(final Iterator<E> aIt) throws Exception {
 		super();
 		init(aIt, getDefaultComparator());
 	}
 
 	/**
 		*/
-	public CXSortList(Iterator<E> aIt, CXAbstractListComparator<E> aComp)
-			throws Exception {
+	public CXSortList(final Iterator<E> aIt,
+			final CXAbstractListComparator<E> aComp) throws Exception {
 		super();
 		init(aIt, aComp);
 	}
@@ -104,22 +113,24 @@ public class CXSortList<E> extends ArrayList<E> {
 	 * Interface collection
 	 */
 	@Override
-	public boolean add(E o) {
-		if (getTreeSet().add(o))
+	public boolean add(final E o) {
+		if (getTreeSet().add(o)) {
 			return super.add(o);
-		else
+		} else {
 			return false;
+		}
 	}
 
 	/**
 	 * Interface collection
 	 */
 	@Override
-	public boolean addAll(Collection<? extends E> c) {
+	public boolean addAll(final Collection<? extends E> c) {
 		if (c != null) {
 			Iterator<? extends E> wIt = c.iterator();
-			while (wIt.hasNext())
+			while (wIt.hasNext()) {
 				this.add(wIt.next());
+			}
 		}
 		return true;
 	}
@@ -139,18 +150,22 @@ public class CXSortList<E> extends ArrayList<E> {
 		return pComparator;
 	}
 
-	// A REIMPLEMENTER
 	/**
-	 * Comparateur par defaut - A reimplementer
+	 * Comparateur par defaut
+	 * <p>
+	 * A reimplementer : MUST BE OVERWRITED
 	 */
 	protected CXAbstractListComparator<E> getDefaultComparator() {
 		return null;
 	}
 
 	/**
-	 * Comparateur par defaut - A reimplementer
+	 * Comparateur par defaut
+	 * <p>
+	 * A reimplementer : MUST BE OVERWRITED
 	 */
-	protected CXAbstractListComparator<E> getDefaultComparator(boolean aSortAsc) {
+	protected CXAbstractListComparator<E> getDefaultComparator(
+			final boolean aSortAsc) {
 		return null;
 	}
 
@@ -168,11 +183,13 @@ public class CXSortList<E> extends ArrayList<E> {
 	 * @param aEnum
 	 * @param aComp
 	 */
-	private void init(Enumeration<E> aEnum, CXAbstractListComparator<E> aComp) {
+	private void init(final Enumeration<E> aEnum,
+			final CXAbstractListComparator<E> aComp) {
 		setComparator(aComp);
 		if (aEnum != null) {
-			while (aEnum.hasMoreElements())
+			while (aEnum.hasMoreElements()) {
 				add(aEnum.nextElement());
+			}
 		}
 	}
 
@@ -183,53 +200,70 @@ public class CXSortList<E> extends ArrayList<E> {
 	 * @param aIt
 	 * @param aComp
 	 */
-	private void init(Iterator<E> aIt, CXAbstractListComparator<E> aComp) {
+	private void init(final Iterator<E> aIt,
+			final CXAbstractListComparator<E> aComp) {
 		setComparator(aComp);
 		if (aIt != null) {
-			while (aIt.hasNext())
+			while (aIt.hasNext()) {
 				add(aIt.next());
+			}
 		}
 	}
 
+	/**
+	 * @return
+	 */
 	public boolean isAsc() {
-		if (getComparator() != null)
+		if (getComparator() != null) {
 			return getComparator().isAsc();
-		else
+		} else {
 			return false;
-	}
-
-	public boolean isDesc() {
-		if (getComparator() != null)
-			return getComparator().isDesc();
-		else
-			return false;
+		}
 	}
 
 	/**
-	 * Interface collection
+	 * @return
+	 */
+	public boolean isDesc() {
+		if (getComparator() != null) {
+			return getComparator().isDesc();
+		} else {
+			return false;
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.util.AbstractList#iterator()
 	 */
 	@Override
 	public Iterator<E> iterator() {
-		if (getTreeSet() != null)
+		if (getTreeSet() != null) {
 			return getTreeSet().iterator();
-		else
+		} else {
 			return this.iterator();
+		}
 	}
 
-	/**
-	 * Interface collection
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.util.ArrayList#remove(java.lang.Object)
 	 */
 	@Override
-	public boolean remove(Object o) {
+	public boolean remove(final Object o) {
 		getTreeSet().remove(o);
 		return super.remove(o);
 	}
 
-	/**
-	 * Interface collection
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.util.AbstractCollection#removeAll(java.util.Collection)
 	 */
 	@Override
-	public boolean removeAll(Collection<?> aCollection) {
+	public boolean removeAll(final Collection<?> aCollection) {
 		getTreeSet().remove(aCollection);
 		return super.removeAll(aCollection);
 	}
@@ -237,32 +271,38 @@ public class CXSortList<E> extends ArrayList<E> {
 	/**
 	 */
 	public void reverseSort() {
-		if (getTreeSet() != null && getComparator() != null)
+		if (getTreeSet() != null && getComparator() != null) {
 			sort(getComparator().reverseSort());
+		}
 	}
 
 	/**
 	 * Renvoie true si aComp a ete pris en compte (liste recalculee)
+	 * 
+	 * @param aComp
+	 * @return
 	 */
-	protected boolean setComparator(CXAbstractListComparator<E> aComp) {
+	protected boolean setComparator(final CXAbstractListComparator<E> aComp) {
 		boolean wRecalc = false;
-		if (aComp == null)
+		if (aComp == null) {
 			wRecalc = pComparator != null;
-		else if (pComparator != null)
+		} else if (pComparator != null) {
 			wRecalc = true; // On ne compare pas aComp et pComparator
 							// volontairement pour forcer le recalcul -> voir
 							// reverseSort
-		else
+		} else {
 			wRecalc = true;
+		}
 
 		wRecalc = wRecalc || pTreeSet == null;
 
 		if (wRecalc) {
 			pComparator = aComp;
-			if (pComparator == null)
+			if (pComparator == null) {
 				pTreeSet = new TreeSet<E>();
-			else
+			} else {
 				pTreeSet = new TreeSet<E>(pComparator);
+			}
 
 			Iterator<E> wIt = super.iterator();
 			while (wIt.hasNext()) {
@@ -276,18 +316,23 @@ public class CXSortList<E> extends ArrayList<E> {
 	/**
 	 * aComp comporte le type de tri Asc ou Desc On peut l'inverser par
 	 * reverseSort
+	 * 
+	 * @param aComp
 	 */
-	public void sort(CXAbstractListComparator<E> aComp) {
+	public void sort(final CXAbstractListComparator<E> aComp) {
 		setComparator(aComp);
 	}
 
 	/**
+	 * @param aSep
+	 * @return
 	 */
-	public String toString(String aSep) {
+	public String toString(final String aSep) {
 		StringBuilder wRes = new StringBuilder(1024);
 		Iterator<E> wIt = getTreeSet().iterator();
-		while (wIt.hasNext())
+		while (wIt.hasNext()) {
 			wRes.append(wIt.next()).append(aSep);
+		}
 		return wRes.toString();
 	}
 }

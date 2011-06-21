@@ -5,6 +5,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.psem2m.utilities.CXException;
+import org.psem2m.utilities.CXJavaRunContext;
 import org.psem2m.utilities.CXStringUtils;
 
 /**
@@ -38,9 +39,9 @@ public class CActivityLoggerStd extends CActivityObject implements
 	 * @return
 	 * @throws Exception
 	 */
-	public static IActivityLogger newLogger(String aLoggerName,
-			String aFilePathPattern, String aLevel, int aFileLimit,
-			int aFileCount) throws Exception {
+	public static IActivityLogger newLogger(final String aLoggerName,
+			final String aFilePathPattern, final String aLevel,
+			final int aFileLimit, final int aFileCount) throws Exception {
 
 		CActivityLoggerStd wLogger = new CActivityLoggerStd(aLoggerName,
 				aFilePathPattern, aLevel, aFileLimit, aFileCount);
@@ -75,8 +76,9 @@ public class CActivityLoggerStd extends CActivityObject implements
 	 *            the number of files to use
 	 * @throws Exception
 	 */
-	protected CActivityLoggerStd(String aLoggerName, String aFilePathPattern,
-			String aLevel, int aFileLimit, int aFileCount) throws Exception {
+	protected CActivityLoggerStd(final String aLoggerName,
+			final String aFilePathPattern, final String aLevel,
+			final int aFileLimit, final int aFileCount) throws Exception {
 		super(null, aLoggerName);
 		pFilePathPattern = aFilePathPattern;
 		pLevel = aLevel;
@@ -85,11 +87,12 @@ public class CActivityLoggerStd extends CActivityObject implements
 	}
 
 	@Override
-	public Appendable addDescriptionInBuffer(Appendable aBuffer) {
+	public Appendable addDescriptionInBuffer(final Appendable aBuffer) {
 		super.addDescriptionInBuffer(aBuffer);
 		CXStringUtils.appendKeyValInBuff(aBuffer, LABEL_LEVEL, pLevel);
-		if (pFileHandler != null)
+		if (pFileHandler != null) {
 			pFileHandler.addDescriptionInBuffer(aBuffer);
+		}
 		return aBuffer;
 	}
 
@@ -98,7 +101,7 @@ public class CActivityLoggerStd extends CActivityObject implements
 	 * @param e
 	 * @return
 	 */
-	protected CharSequence buildLine(CharSequence aLine, Throwable e) {
+	protected CharSequence buildLine(CharSequence aLine, final Throwable e) {
 		if (e != null) {
 			StringBuilder wSB = new StringBuilder();
 			wSB.append(aLine);
@@ -220,7 +223,7 @@ public class CActivityLoggerStd extends CActivityObject implements
 	}
 
 	@Override
-	public boolean isLoggable(Level aLevel) {
+	public boolean isLoggable(final Level aLevel) {
 		return isOpened() && pLogger.isLoggable(aLevel);
 	}
 
@@ -257,13 +260,15 @@ public class CActivityLoggerStd extends CActivityObject implements
 	 * java.lang.Object, java.lang.CharSequence, java.lang.Object[])
 	 */
 	@Override
-	public void log(Level aLevel, Object aWho, CharSequence aWhat,
-			Object... aInfos) {
+	public void log(final Level aLevel, final Object aWho,
+			final CharSequence aWhat, final Object... aInfos) {
 
 		String wLogLine = null;
 		if (isOpened()) {
 			wLogLine = pFormater.formatLogLine(aInfos);
 		}
+		CharSequence wWhat = (aWhat != null) ? aWhat : CXJavaRunContext
+				.getPreCallingMethod();
 
 		// to diagnose the logging tool
 		if (isTraceDebugOn()) {
@@ -271,13 +276,13 @@ public class CActivityLoggerStd extends CActivityObject implements
 			wTB.appendDescr("LOG", aLevel.getName());
 			wTB.append(' ');
 			wTB.append(wLogLine != null ? wLogLine : "no infos");
-			traceDebug(this, aWhat, wTB);
+			traceDebug(this, wWhat, wTB);
 		}
 
 		if (wLogLine != null) {
 
 			pLogger.logp(aLevel, pFormater.getWhoObjectId(aWho),
-					aWhat.toString(), wLogLine);
+					wWhat.toString(), wLogLine);
 		}
 
 	}
@@ -290,7 +295,8 @@ public class CActivityLoggerStd extends CActivityObject implements
 	 * java.lang.CharSequence, java.lang.Object[])
 	 */
 	@Override
-	public void logDebug(Object aWho, CharSequence aWhat, Object... aInfos) {
+	public void logDebug(final Object aWho, final CharSequence aWhat,
+			final Object... aInfos) {
 		log(Level.FINE, aWho, aWhat, aInfos);
 
 	}
@@ -303,7 +309,8 @@ public class CActivityLoggerStd extends CActivityObject implements
 	 * java.lang.CharSequence, java.lang.Object[])
 	 */
 	@Override
-	public void logInfo(Object aWho, CharSequence aWhat, Object... aInfos) {
+	public void logInfo(final Object aWho, final CharSequence aWhat,
+			final Object... aInfos) {
 		log(Level.INFO, aWho, aWhat, aInfos);
 	}
 
@@ -315,7 +322,8 @@ public class CActivityLoggerStd extends CActivityObject implements
 	 * java.lang.CharSequence, java.lang.Object[])
 	 */
 	@Override
-	public void logSevere(Object aWho, CharSequence aWhat, Object... aInfos) {
+	public void logSevere(final Object aWho, final CharSequence aWhat,
+			final Object... aInfos) {
 		log(Level.SEVERE, aWho, aWhat, aInfos);
 	}
 
@@ -327,7 +335,8 @@ public class CActivityLoggerStd extends CActivityObject implements
 	 * java.lang.CharSequence, java.lang.Object[])
 	 */
 	@Override
-	public void logWarn(Object aWho, CharSequence aWhat, Object... aInfos) {
+	public void logWarn(final Object aWho, final CharSequence aWhat,
+			final Object... aInfos) {
 		log(Level.WARNING, aWho, aWhat, aInfos);
 	}
 
@@ -335,18 +344,22 @@ public class CActivityLoggerStd extends CActivityObject implements
    * 
    */
 	protected void open() throws Exception {
-		if (!hasLoggerName())
+		if (!hasLoggerName()) {
 			throw new Exception(
 					"No \"LoggerName\" available to configure Logger.");
-		if (!hasLevel())
+		}
+		if (!hasLevel()) {
 			throw new Exception("No \"Level\" available to configure Logger.");
-		if (!hasFileHandler())
+		}
+		if (!hasFileHandler()) {
 			throw new Exception(
 					"No instance of FileHandler available to configure Logger.");
+		}
 
-		if (isOpened())
+		if (isOpened()) {
 			throw new Exception("The Logger [" + pLogger.getName()
 					+ "] is already opened.");
+		}
 
 		pLogger = Logger.getLogger(getLoggerName());
 		removeCurrentsHandlers();
@@ -368,7 +381,7 @@ public class CActivityLoggerStd extends CActivityObject implements
 	}
 
 	@Override
-	public void pushLogLineBuffer(CLogLineBuffer aLoggerLineBuffer) {
+	public void pushLogLineBuffer(final CLogLineBuffer aLoggerLineBuffer) {
 		// si cache : remettre l'instance de CLogLineBuffer dans le cache
 	}
 
@@ -389,7 +402,7 @@ public class CActivityLoggerStd extends CActivityObject implements
 	/**
 	 * @return
 	 */
-	protected void setFileHandler(CActivityFileHandler aFileHandler) {
+	protected void setFileHandler(final CActivityFileHandler aFileHandler) {
 		pFileHandler = aFileHandler;
 	}
 }

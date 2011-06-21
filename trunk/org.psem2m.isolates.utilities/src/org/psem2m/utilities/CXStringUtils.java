@@ -1,29 +1,39 @@
+/*******************************************************************************
+ * Copyright (c) 2011 www.isandlatech.com (www.isandlatech.com)
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    ogattaz (isandlaTech) - initial API and implementation
+ *******************************************************************************/
+
 package org.psem2m.utilities;
 
 /**
- * @author isandlaTech
+ * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
-public class CXStringUtils {
+public class CXStringUtils implements IConstants {
 
-	public static final String EMPTY = "";
-	private final static String FORMAT_EXCEPTION = "Exception={%s] ";
-	private final static String FORMAT_MESAGE = "Message={%s] ";
+	private final static String FORMAT_EXCEPTION = "Exception=[%s] ";
+	private final static String FORMAT_MESAGE = "Message=[%s] ";
 	private final static String LIB_APPEND_ERROR = "ERROR DURING AN APPEND IN A APPENDABLE. ";
+
 	// les caracteres trimables : space, tabulation, LineFeed, CariageReturn
 	private final static String TRIMABLE_CHARS = " \t\n\r";
 	// les controles trimables : tabulation, LineFeed, CariageReturn
 	private final static String TRIMABLE_CONTROL = "\t\n\r";
+
 	public static final String UNICODE_PREFIX = "\\u";
+
 	public static final String VAL_FALSE = "false";
 	public static final String VAL_KO = "ko";
 	public static final String VAL_NO = "no";
 	public static final String VAL_OFF = "off";
-
 	public static final String VAL_OK = "ok";
-
 	public static final String VAL_ON = "on";
-
 	public static final String VAL_TRUE = "true";
 	public static final String VAL_YES = "yes";
 	// pas le underscore
@@ -35,7 +45,8 @@ public class CXStringUtils {
 	 * @param aChar
 	 * @return
 	 */
-	public static Appendable appendCharInBuff(Appendable aBuffer, char aChar) {
+	public static Appendable appendCharInBuff(final Appendable aBuffer,
+			final char aChar) {
 		try {
 			return aBuffer.append(aChar);
 		} catch (Exception e) {
@@ -50,10 +61,11 @@ public class CXStringUtils {
 	 * @param aLen
 	 * @return
 	 */
-	public static Appendable appendChars(Appendable aBuffer, char aChar,
-			int aLen) {
-		if (aLen < 1)
+	public static Appendable appendChars(final Appendable aBuffer,
+			final char aChar, final int aLen) {
+		if (aLen < 1) {
 			return aBuffer;
+		}
 		try {
 
 			for (int wI = 0; wI < aLen; wI++) {
@@ -71,8 +83,8 @@ public class CXStringUtils {
 	 * @param aArgs
 	 * @return
 	 */
-	public static Appendable appendFormatStrInBuff(Appendable aBuffer,
-			String aFormat, Object... aArgs) {
+	public static Appendable appendFormatStrInBuff(final Appendable aBuffer,
+			final String aFormat, final Object... aArgs) {
 		try {
 			return aBuffer.append(String.format(aFormat, aArgs));
 		} catch (Exception e) {
@@ -87,8 +99,8 @@ public class CXStringUtils {
 	 * @param aValue
 	 * @return
 	 */
-	public static Appendable appendKeyValInBuff(Appendable aBuffer,
-			String aKey, Object aValue) {
+	public static Appendable appendKeyValInBuff(final Appendable aBuffer,
+			final String aKey, final Object aValue) {
 		try {
 
 			return aBuffer.append(' ').append(aKey).append("=[")
@@ -107,8 +119,8 @@ public class CXStringUtils {
 	 * @param aValueB
 	 * @return
 	 */
-	public static Appendable appendKeyValsInBuff(Appendable aBuffer,
-			String aKey, Object aValue, Object aValueB) {
+	public static Appendable appendKeyValsInBuff(final Appendable aBuffer,
+			final String aKey, final Object aValue, final Object aValueB) {
 		try {
 			return aBuffer.append(' ').append(aKey).append("=[")
 					.append(aValue == null ? "null" : aValue.toString())
@@ -128,8 +140,8 @@ public class CXStringUtils {
 	 * @param aLeadingChar
 	 * @return
 	 */
-	public static Appendable appendSeqAdjustLeft(Appendable aBuffer,
-			CharSequence aValue, int aLen, char aLeadingChar) {
+	public static Appendable appendSeqAdjustLeft(final Appendable aBuffer,
+			final CharSequence aValue, final int aLen, final char aLeadingChar) {
 		try {
 			int wLen = aValue.length();
 			if (wLen < aLen) {
@@ -137,8 +149,9 @@ public class CXStringUtils {
 				return appendChars(aBuffer, aLeadingChar, aLen - wLen);
 			} else if (wLen > aLen) {
 				return aBuffer.append(aValue.subSequence(0, aLen));
-			} else
+			} else {
 				return aBuffer.append(aValue);
+			}
 		} catch (Throwable e) {
 			return new StringBuilder().append(CXException.eInString(e));
 		}
@@ -151,17 +164,18 @@ public class CXStringUtils {
 	 * @param aLeadingChar
 	 * @return
 	 */
-	static public Appendable appendSeqAdjustRight(Appendable aBuffer,
-			String aValue, int aLen, char aLeadingChar) {
+	static public Appendable appendSeqAdjustRight(final Appendable aBuffer,
+			final String aValue, final int aLen, final char aLeadingChar) {
 		try {
 			int wLen = aValue.length();
 			if (wLen < aLen) {
 				appendChars(aBuffer, aLeadingChar, aLen - wLen);
 				return aBuffer.append(aValue);
-			} else if (wLen > aLen)
+			} else if (wLen > aLen) {
 				return aBuffer.append(aValue.subSequence(wLen - aLen, wLen));
-			else
+			} else {
 				return aBuffer.append(aValue);
+			}
 		} catch (Throwable e) {
 			return new StringBuilder().append(CXException.eInString(e));
 		}
@@ -172,12 +186,13 @@ public class CXStringUtils {
 	 * @param aStrs
 	 * @return
 	 */
-	public static Appendable appendStringsInBuff(Appendable aBuffer,
-			String... aStrs) {
+	public static Appendable appendStringsInBuff(final Appendable aBuffer,
+			final String... aStrs) {
 		try {
 			if (aStrs != null && aStrs.length > 0) {
-				for (String wStr : aStrs)
+				for (String wStr : aStrs) {
 					aBuffer.append(' ').append(wStr);
+				}
 			}
 			return aBuffer;
 		} catch (Exception e) {
@@ -190,7 +205,7 @@ public class CXStringUtils {
 	 * @param aBool
 	 * @return
 	 */
-	public static String boolToOkKo(boolean aBool) {
+	public static String boolToOkKo(final boolean aBool) {
 		return (aBool) ? VAL_OK : VAL_KO;
 	}
 
@@ -198,7 +213,7 @@ public class CXStringUtils {
 	 * @param aBool
 	 * @return
 	 */
-	public static String boolToOnOff(boolean aBool) {
+	public static String boolToOnOff(final boolean aBool) {
 		return (aBool) ? VAL_ON : VAL_OFF;
 	}
 
@@ -206,7 +221,7 @@ public class CXStringUtils {
 	 * @param aBool
 	 * @return
 	 */
-	public static String boolToTrueFalse(boolean aBool) {
+	public static String boolToTrueFalse(final boolean aBool) {
 		return (aBool) ? VAL_TRUE : VAL_FALSE;
 	}
 
@@ -214,7 +229,7 @@ public class CXStringUtils {
 	 * @param aBool
 	 * @return
 	 */
-	public static String boolToYesNo(boolean aBool) {
+	public static String boolToYesNo(final boolean aBool) {
 		return (aBool) ? VAL_YES : VAL_NO;
 	}
 
@@ -222,7 +237,7 @@ public class CXStringUtils {
 	 * @param e
 	 * @return
 	 */
-	private static String buildAppendErrorMess(Exception e) {
+	private static String buildAppendErrorMess(final Exception e) {
 		StringBuilder wSB = new StringBuilder();
 		wSB.append(LIB_APPEND_ERROR);
 		if (e != null) {
@@ -240,16 +255,18 @@ public class CXStringUtils {
 	 * @param aChar
 	 * @return le nombre d'instance du caractere dans la chaene
 	 */
-	public static int countChar(String aString, char aChar) {
-		if (aString == null)
+	public static int countChar(final String aString, final char aChar) {
+		if (aString == null) {
 			return -1;
+		}
 
 		int wCount = 0;
 		int wMax = aString.length();
 		int wI = 0;
 		while (wI < wMax) {
-			if (aString.charAt(wI) == aChar)
+			if (aString.charAt(wI) == aChar) {
 				wCount++;
+			}
 			wI++;
 		}
 		return wCount;
@@ -260,14 +277,15 @@ public class CXStringUtils {
 	 * @param aValue
 	 * @return
 	 */
-	public static String formatKeyValueInString(String aKey, Object aValue) {
+	public static String formatKeyValueInString(final String aKey,
+			final Object aValue) {
 		StringBuilder wSB = new StringBuilder();
 		return wSB.append(aKey).append("=[")
 				.append(aValue == null ? "null" : aValue.toString())
 				.append(']').toString();
 	}
 
-	public static String getExceptionStack(Throwable e) {
+	public static String getExceptionStack(final Throwable e) {
 		java.io.StringWriter wSW = new java.io.StringWriter();
 		e.printStackTrace(new java.io.PrintWriter(wSW));
 		return wSW.toString();
@@ -277,14 +295,16 @@ public class CXStringUtils {
 	 * @param aStr
 	 * @return
 	 */
-	public static boolean isNumeric(String aStr) {
-		if (aStr == null)
+	public static boolean isNumeric(final String aStr) {
+		if (aStr == null) {
 			return false;
+		}
 		int wMax = aStr.length();
 		int wI = 0;
 		while (wI < wMax) {
-			if (!Character.isDigit(aStr.charAt(wI)))
+			if (!Character.isDigit(aStr.charAt(wI))) {
 				return false;
+			}
 			wI++;
 		}
 		return true;
@@ -294,7 +314,7 @@ public class CXStringUtils {
 	 * @param aValue
 	 * @return true if all the characters are "trimable"
 	 */
-	public static boolean isTrimable(String aValue) {
+	public static boolean isTrimable(final String aValue) {
 		return (aValue != null) ? isTrimable(aValue, 0, aValue.length())
 				: false;
 	}
@@ -305,15 +325,18 @@ public class CXStringUtils {
 	 * @param aLen
 	 * @return true if all the characters are "trimable"
 	 */
-	public static boolean isTrimable(String aValue, int aOffset, int aOffsetEnd) {
-		if (aValue == null)
+	public static boolean isTrimable(final String aValue, final int aOffset,
+			final int aOffsetEnd) {
+		if (aValue == null) {
 			return false;
+		}
 
 		int wMax = aOffsetEnd;
 		int wI = aOffset;
 		while (wI < wMax) {
-			if (!isTrimableChar(aValue.charAt(wI)))
+			if (!isTrimableChar(aValue.charAt(wI))) {
 				return false;
+			}
 			wI++;
 		}
 		return true;
@@ -324,7 +347,7 @@ public class CXStringUtils {
 	 * @param aChar
 	 * @return
 	 */
-	public static boolean isTrimableChar(char aChar) {
+	public static boolean isTrimableChar(final char aChar) {
 		return (TRIMABLE_CHARS.indexOf(aChar) != -1);
 	}
 
@@ -332,7 +355,7 @@ public class CXStringUtils {
 	 * @param aChar
 	 * @return
 	 */
-	public static boolean isWordSeparatorChar(char aChar) {
+	public static boolean isWordSeparatorChar(final char aChar) {
 		return (WORD_SPARATOR_CHARS.indexOf(aChar) != -1);
 	}
 
@@ -342,18 +365,19 @@ public class CXStringUtils {
 	 * @param aLeadingChar
 	 * @return
 	 */
-	static public String strAdjustLeft(String aValue, int aLen,
-			char aLeadingChar) {
+	static public String strAdjustLeft(final String aValue, final int aLen,
+			final char aLeadingChar) {
 		int wLen = aValue.length();
-		if (wLen < aLen)
+		if (wLen < aLen) {
 			return aValue + strFromChar(aLeadingChar, aLen - wLen);
-		else if (wLen > aLen)
+		} else if (wLen > aLen) {
 			return aValue.substring(0, aLen);
-		else
+		} else {
 			return aValue;
+		}
 	}
 
-	static public String strAdjustRight(long aValue, int aLen) {
+	static public String strAdjustRight(final long aValue, final int aLen) {
 		return strAdjustRight(String.valueOf(aValue), aLen, '0');
 	}
 
@@ -363,15 +387,16 @@ public class CXStringUtils {
 	 * @param aLeadingChar
 	 * @return
 	 */
-	static public String strAdjustRight(String aValue, int aLen,
-			char aLeadingChar) {
+	static public String strAdjustRight(final String aValue, final int aLen,
+			final char aLeadingChar) {
 		int wLen = aValue.length();
-		if (wLen < aLen)
+		if (wLen < aLen) {
 			return strFromChar(aLeadingChar, aLen - wLen) + aValue;
-		else if (wLen > aLen)
+		} else if (wLen > aLen) {
 			return aValue.substring(aValue.length() - aLen);
-		else
+		} else {
 			return aValue;
+		}
 	}
 
 	/**
@@ -379,11 +404,13 @@ public class CXStringUtils {
 	 * @param aLen
 	 * @return
 	 */
-	static public String strFromChar(char aChar, int aLen) {
-		if (aLen < 1)
+	static public String strFromChar(final char aChar, final int aLen) {
+		if (aLen < 1) {
 			return EMPTY;
-		if (aLen == 1)
+		}
+		if (aLen == 1) {
 			return String.valueOf(aChar);
+		}
 		char[] wBuffer = new char[aLen];
 		for (int wI = 0; wI < aLen; wI++) {
 			wBuffer[wI] = aChar;
@@ -400,7 +427,7 @@ public class CXStringUtils {
 	 * @param aStr
 	 * @return
 	 */
-	public static String strFullTrim(String aStr) {
+	public static String strFullTrim(final String aStr) {
 		return strFullTrim(aStr, TRIMABLE_CHARS);
 	}
 
@@ -414,9 +441,10 @@ public class CXStringUtils {
 	 * @param aBadChars
 	 * @return
 	 */
-	public static String strFullTrim(String aStr, String aBadChars) {
-		if (aBadChars == null)
+	public static String strFullTrim(final String aStr, String aBadChars) {
+		if (aBadChars == null) {
 			aBadChars = TRIMABLE_CHARS;
+		}
 		return strFullTrim(aStr, aBadChars, aBadChars);
 	}
 
@@ -427,26 +455,30 @@ public class CXStringUtils {
 	 * @param aBadCharsSuffix
 	 * @return
 	 */
-	public static String strFullTrim(String aStr, String aBadCharsPrefix,
-			String aBadCharsSuffix) {
+	public static String strFullTrim(String aStr, final String aBadCharsPrefix,
+			final String aBadCharsSuffix) {
 		if (aStr != null && aStr.length() != 0) {
 			if (aBadCharsPrefix != null) {
 				int wLen = aStr.length();
 				int wPos = 0;
 				while (wPos < wLen
-						&& aBadCharsPrefix.indexOf(aStr.charAt(wPos)) != -1)
+						&& aBadCharsPrefix.indexOf(aStr.charAt(wPos)) != -1) {
 					wPos++;
-				if (wPos > 0)
+				}
+				if (wPos > 0) {
 					aStr = aStr.substring(wPos, wLen);
+				}
 			}
 			if (aBadCharsSuffix != null && aStr.length() != 0) {
 				int wLen = aStr.length();
 				int wPos = wLen - 1;
 				while (wPos >= 0
-						&& aBadCharsSuffix.indexOf(aStr.charAt(wPos)) != -1)
+						&& aBadCharsSuffix.indexOf(aStr.charAt(wPos)) != -1) {
 					wPos--;
-				if (wPos < wLen - 1)
+				}
+				if (wPos < wLen - 1) {
 					aStr = aStr.substring(0, wPos + 1);
+				}
 			}
 		}
 		return aStr;
@@ -461,7 +493,7 @@ public class CXStringUtils {
 	 * @param aStr
 	 * @return
 	 */
-	public static String strFullTrimKeepingFrefixSpaces(String aStr) {
+	public static String strFullTrimKeepingFrefixSpaces(final String aStr) {
 		return strFullTrim(aStr, TRIMABLE_CONTROL, TRIMABLE_CHARS);
 	}
 
@@ -469,7 +501,7 @@ public class CXStringUtils {
 	 * @param aValues
 	 * @return
 	 */
-	public static String stringTableToString(String[] aValues) {
+	public static String stringTableToString(final String[] aValues) {
 		return stringTableToString(aValues, ",");
 	}
 
@@ -478,13 +510,15 @@ public class CXStringUtils {
 	 * @param sep
 	 * @return
 	 */
-	public static String stringTableToString(String[] aValues, String aSeparator) {
+	public static String stringTableToString(final String[] aValues,
+			final String aSeparator) {
 		StringBuilder wSB = new StringBuilder(256);
 		if (aValues != null) {
 			int wMax = aValues.length;
 			for (int wI = 0; wI < wMax; wI++) {
-				if (wI > 0)
+				if (wI > 0) {
 					wSB.append(aSeparator);
+				}
 				wSB.append(aValues[wI]);
 			}
 		}
@@ -495,7 +529,7 @@ public class CXStringUtils {
 	 * @param aStr
 	 * @return
 	 */
-	public static boolean strIsInt(String aStr) {
+	public static boolean strIsInt(final String aStr) {
 		try {
 			Integer.parseInt(aStr);
 			return true;
@@ -508,7 +542,7 @@ public class CXStringUtils {
 	 * @param aStr
 	 * @return
 	 */
-	public static String strKeapOnlyAlpha(String aStr) {
+	public static String strKeapOnlyAlpha(final String aStr) {
 		return strKeepCharGreaterThan(aStr, 'A');
 	}
 
@@ -517,47 +551,52 @@ public class CXStringUtils {
 	 * @param aCharLimit
 	 * @return
 	 */
-	public static String strKeepCharGreaterThan(String aStr, char aCharLimit) {
+	public static String strKeepCharGreaterThan(final String aStr,
+			final char aCharLimit) {
 		int wLen = (aStr != null) ? aStr.length() : 0;
-		if (wLen < 1)
+		if (wLen < 1) {
 			return aStr;
+		}
 
 		StringBuilder wSB = new StringBuilder(wLen);
 		char wChar;
 		int wI = 0;
 		while (wI < wLen) {
 			wChar = aStr.charAt(wI);
-			if (wChar >= aCharLimit)
+			if (wChar >= aCharLimit) {
 				wSB.append(wChar);
+			}
 			wI++;
 		}
 		return wSB.toString();
 	}
 
-	public static String strLeft(String aStr, char aDelim) {
+	public static String strLeft(final String aStr, final char aDelim) {
 		return strLeft(aStr, String.valueOf(aDelim));
 	}
 
-	public static String strLeft(String aStr, String aDelim) {
+	public static String strLeft(final String aStr, final String aDelim) {
 		String wRes = EMPTY;
 		if (aStr != null && aDelim != null) {
 			int wPos = aStr.indexOf(aDelim);
-			if (wPos != -1 && wPos != 0)
+			if (wPos != -1 && wPos != 0) {
 				wRes = aStr.substring(0, wPos);
+			}
 		}
 		return wRes;
 	}
 
-	public static String strLeftBack(String aStr, char aDelim) {
+	public static String strLeftBack(final String aStr, final char aDelim) {
 		return strLeftBack(aStr, String.valueOf(aDelim));
 	}
 
-	public static String strLeftBack(String aStr, String aDelim) {
+	public static String strLeftBack(final String aStr, final String aDelim) {
 		String wRes = "";
 		if (aStr != null && aDelim != null) {
 			int wPos = aStr.lastIndexOf(aDelim);
-			if (wPos != -1 && wPos != 0)
+			if (wPos != -1 && wPos != 0) {
 				wRes = aStr.substring(0, wPos);
+			}
 		}
 		return wRes;
 	}
@@ -570,7 +609,8 @@ public class CXStringUtils {
 	 * @param aBy
 	 * @return la nouvelle chaine de caracteres
 	 */
-	public static String strReplaceAll(String aStr, String aWhat, String aBy) {
+	public static String strReplaceAll(final String aStr, final String aWhat,
+			final String aBy) {
 		if (aStr != null && aStr.length() != 0 && aWhat != null
 				&& aWhat.length() != 0 && aBy != null) {
 			StringBuilder wRes = new StringBuilder(aStr);
@@ -584,8 +624,9 @@ public class CXStringUtils {
 				wPos = aStr.lastIndexOf(aWhat, wLastPos);
 			}
 			return wRes.toString();
-		} else
+		} else {
 			return aStr;
+		}
 	}
 
 	/**
@@ -593,7 +634,7 @@ public class CXStringUtils {
 	 * @param aDelim
 	 * @return
 	 */
-	public static String strRight(String aStr, char aDelim) {
+	public static String strRight(final String aStr, final char aDelim) {
 		return strRight(aStr, String.valueOf(aDelim));
 	}
 
@@ -602,31 +643,33 @@ public class CXStringUtils {
 	 * @param aDelim
 	 * @return
 	 */
-	public static String strRight(String aStr, String aDelim) {
+	public static String strRight(final String aStr, final String aDelim) {
 		String wRes = "";
 		if (aStr != null && aDelim != null) {
 			int wPos = aStr.indexOf(aDelim);
-			if (wPos != -1 && wPos != (aStr.length() - 1))
+			if (wPos != -1 && wPos != (aStr.length() - 1)) {
 				wRes = aStr.substring(wPos + aDelim.length());
+			}
 		}
 		return wRes;
 	}
 
-	public static String strRightBack(String aStr, char aDelim) {
+	public static String strRightBack(final String aStr, final char aDelim) {
 		return strRightBack(aStr, String.valueOf(aDelim));
 	}
 
-	public static String strRightBack(String aStr, String aDelim) {
+	public static String strRightBack(final String aStr, final String aDelim) {
 		String wRes = "";
 		if (aStr != null && aDelim != null) {
 			int wPos = aStr.lastIndexOf(aDelim);
-			if (wPos != -1 && wPos != (aStr.length() - 1))
+			if (wPos != -1 && wPos != (aStr.length() - 1)) {
 				wRes = aStr.substring(wPos + aDelim.length());
+			}
 		}
 		return wRes;
 	}
 
-	public static boolean strToBoolean(String aStr) {
+	public static boolean strToBoolean(final String aStr) {
 		return (aStr != null && (aStr.equals(VAL_YES) || aStr.equals(VAL_ON)
 				|| aStr.equals(VAL_OK) || aStr.equals(VAL_TRUE)));
 	}
@@ -635,7 +678,7 @@ public class CXStringUtils {
 	 * @param aStr
 	 * @return a String contain hexadecimal that correspond to caractere of aStr
 	 */
-	public static String strtoHexadecimal(String aStr) {
+	public static String strtoHexadecimal(final String aStr) {
 		String result = "";
 		for (int i = 0; i < aStr.length(); i++) {
 			result += Integer.toHexString(aStr.charAt(i)) + "00";
@@ -648,7 +691,7 @@ public class CXStringUtils {
 	 * @param aDefValue
 	 * @return
 	 */
-	public static int strToInt(String aStr, int aDefValue) {
+	public static int strToInt(final String aStr, final int aDefValue) {
 		try {
 			return Integer.parseInt(aStr);
 		} catch (Throwable e) {
@@ -660,12 +703,14 @@ public class CXStringUtils {
 	 * @param aText
 	 * @return
 	 */
-	public static String toFirstCharUpperCase(String aText) {
-		if (aText == null)
+	public static String toFirstCharUpperCase(final String aText) {
+		if (aText == null) {
 			return null;
+		}
 		int wMax = aText.length();
-		if (wMax == 0)
+		if (wMax == 0) {
 			return aText;
+		}
 		char[] wChars = aText.toCharArray();
 		int wI = 0;
 		char wChar;
@@ -675,8 +720,9 @@ public class CXStringUtils {
 			wChar = wChars[wI];
 			wIsWordSeparator = isWordSeparatorChar(wChar);
 			if (wIsWordSeparator) {
-				if (wIsInWord)
+				if (wIsInWord) {
 					wIsInWord = false;
+				}
 			} else {
 				if (!wIsInWord) {
 					wChars[wI] = Character.toUpperCase(wChar);

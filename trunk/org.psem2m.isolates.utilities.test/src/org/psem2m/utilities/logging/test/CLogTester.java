@@ -1,6 +1,7 @@
 package org.psem2m.utilities.logging.test;
 
 import java.util.StringTokenizer;
+import java.util.logging.Level;
 
 import org.psem2m.utilities.files.CXFile;
 import org.psem2m.utilities.files.CXFileDir;
@@ -40,16 +41,26 @@ public class CLogTester extends CConsoleTester {
 		super(args);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.utilities.teststools.CConsoleTester#buildHelp(java.lang.
+	 * StringBuilder)
+	 */
 	@Override
 	protected void buildHelp(final StringBuilder aHelp) {
-		this.addHelpTitle(aHelp, "CLogTester");
-		this.addHelpLine(aHelp,
-				"log [logKind [NbLines [FileSize [FileCount]]]]");
-		this.addHelpSubLine(aHelp,
+		addHelpTitle(aHelp, "CLogTester");
+		addHelpLine(aHelp, "log [logKind [NbLines [FileSize [FileCount]]]]");
+		addHelpSubLine(aHelp,
 				"tests the three log formats (logKind \"log\" or \"txt\" or \"xml\")");
-		this.addHelpSubLine(aHelp,
+		addHelpSubLine(aHelp,
 				"generate the log files in the folder \"${user.dir}/files/logging\"");
-		this.addHelpSubLine(aHelp, "ex: log xml 5000 1m 10");
+		addHelpSubLine(aHelp, "ex: log xml 5000 1m 10");
+	}
+
+	private String buildLogContent(final int aIdx, final Level alevel) {
+		return String.format("log line [%d][%s]", aIdx, alevel);
+
 	}
 
 	/**
@@ -195,20 +206,24 @@ public class CLogTester extends CConsoleTester {
 	 * @param aNbLogs
 	 */
 	private void useLogger(final IActivityLogger aLogger, final int aNbLogs) {
-		String wFormat = "Test le log numéro [%d]";
 		String wLine;
 		int wI = 0;
 		while (wI < aNbLogs) {
 
-			wLine = String.format(wFormat, wI);
+			wLine = buildLogContent(wI, Level.FINE);
+			aLogger.logDebug(this, null, wLine);
+			wI++;
+			tempo(2);
+
+			wLine = buildLogContent(wI, Level.INFO);
 			aLogger.logInfo(this, "logInfo", wLine);
 			wI++;
 			tempo(2);
-			wLine = String.format(wFormat, wI);
+			wLine = buildLogContent(wI, Level.WARNING);
 			aLogger.logWarn(this, "logWarn", wLine);
 			wI++;
 			tempo(1);
-			wLine = String.format(wFormat, wI);
+			wLine = buildLogContent(wI, Level.SEVERE);
 			aLogger.logSevere(this, "logError", wLine, new Exception(wLine));
 			wI++;
 			tempo(1);
