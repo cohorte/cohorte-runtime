@@ -33,6 +33,8 @@ Dans ce fichier, on doit être capable de définir les comportements du moniteur
   isolat et leur paramètres propres
 * port d'écoute de la socket d'administration
 
+.. todo:: Insérer schéma du fichier
+
 
 Configuration des isolats
 *************************
@@ -85,3 +87,5 @@ Il pourra également indiquer :
 * le nom d'un exécutable à lancer *avant* le démarrage de l'isolat et ses
   paramètres
 * le nom d'un exécutable à lancer *après* la mort de l'isolat et ses paramètres
+
+.. todo:: Insérer schéma du fichier

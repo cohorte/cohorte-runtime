@@ -14,3 +14,6 @@ Glossaire
    IDE
       Voir EDI
    
+   Isolat
+      Processus lourd (au sens POSIX)
+      

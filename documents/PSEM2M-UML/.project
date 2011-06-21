@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>PSEM2M-UMLModel</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>org.topcased.modeler.org.topcased.modeler.builders.todoNoteBuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+		<buildCommand>
+			<name>fr.obeo.acceleo.gen.ui.acceleoGenBuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>fr.obeo.acceleo.gen.ui.acceleoGenNature</nature>
+		<nature>org.topcased.core.topcasednature</nature>
+	</natures>
+</projectDescription>

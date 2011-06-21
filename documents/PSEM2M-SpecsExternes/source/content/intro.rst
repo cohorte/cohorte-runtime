@@ -3,6 +3,9 @@
 Introduction
 ############
 
+Objectifs du document
+*********************
+
 Ce document a pour but de décrire toutes les fonctionnalités, les formats de
 fichiers et les protocoles liés à PSEM2M.
 
@@ -10,9 +13,31 @@ fichiers et les protocoles liés à PSEM2M.
    PSEM2M et les spécifications qu'il décrit seront modifiées au cours du
    développement.
 
-   De fait, ce document sert de base à la définition des spécifications du
-   projet, mais ne peut être utilisé avec la version finale de l'outil.
+   De fait, cette version de ce document sert de base à la définition des
+   spécifications du projet, mais ne peut être utilisé avec la version finale
+   de l'outil.
 
+
+Portée du document
+******************
+
+Ce document est destiné :
+
+* à l'équipe principale du projet :
+
+   * Olivier Gattaz
+   * Thomas Calmant
+
+* à l'équipe de ADELE :
+
+   * Didier Donsez
+   * Kiev Gama
+
+
+Organisation du document
+************************
+
+.. todo:: À revoir selon nouvelle version
 
 Ce document sera divisé en 3 parties :
 
