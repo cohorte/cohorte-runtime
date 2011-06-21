@@ -10,10 +10,13 @@
  *******************************************************************************/
 package org.psem2m.utilities.test;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
 
 import org.psem2m.utilities.CXArray;
 import org.psem2m.utilities.CXJavaRunContext;
+import org.psem2m.utilities.CXStringUtils;
 import org.psem2m.utilities.CXTimer;
 import org.psem2m.utilities.logging.CLogToolsException;
 import org.psem2m.utilities.teststools.CConsoleTester;
@@ -26,6 +29,7 @@ public class CUtilitiesBasicTester extends CConsoleTester {
 
 	private final static String CMDE_CALLS = "calls";
 	private final static String CMDE_METHODS = "methods";
+	private final static String CMDE_TIMER = "timer";
 
 	/**
 	 * @param args
@@ -61,6 +65,9 @@ public class CUtilitiesBasicTester extends CConsoleTester {
 		addHelpSubLine(aHelp, "...");
 		addHelpLine(aHelp, CMDE_METHODS + "");
 		addHelpSubLine(aHelp, "...");
+
+		addHelpLine(aHelp, CMDE_TIMER + "");
+		addHelpSubLine(aHelp, "test the CXTimer class");
 	}
 
 	/**
@@ -135,6 +142,38 @@ public class CUtilitiesBasicTester extends CConsoleTester {
 		return true;
 	}
 
+	/**
+	 * @param aST
+	 * @return
+	 * @throws Exception
+	 */
+	private boolean doCmdeTimer(final StringTokenizer aST) throws Exception {
+		logInfo(CMDE_TIMER + " begin");
+		List<String> wStrs = new ArrayList<String>();
+		CXTimer wTimer = new CXTimer(CXTimer.START);
+
+		try {
+			for (int wI = 0; wI < 100; wI++) {
+				// implmenetation SUN => 2 milliseconds + 0 nanoseconds
+				Thread.sleep(2, 499000);
+				wStrs.add(CXStringUtils.strFromChar('-', 1024));
+			}
+		} catch (InterruptedException e) {
+			// nothing
+		}
+		wTimer.stop();
+		logInfo("DurationMs=[%f]", wTimer.getDurationMs());
+		logInfo("DurationMs=[%d]", wTimer.getDurationNs());
+		logInfo("DurationMilliSec=[%s]", wTimer.getDurationStrMilliSec());
+		logInfo("DurationMicroSec=[%s]", wTimer.getDurationStrMicroSec());
+		logInfo("HeapStart=[%s]", wTimer.getHeapStart());
+		logInfo("HeapStop=[%s]", wTimer.getHeapStop());
+		logInfo("HeapDelta=[%s]", wTimer.getHeapDelta());
+
+		logInfoAndPrompt(CMDE_TIMER + " end");
+		return true;
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -149,6 +188,8 @@ public class CUtilitiesBasicTester extends CConsoleTester {
 			return doCmdeMethods(aST);
 		} else if (CMDE_CALLS.equalsIgnoreCase(aCommand)) {
 			return doCmdeCalls(aST);
+		} else if (CMDE_TIMER.equalsIgnoreCase(aCommand)) {
+			return doCmdeTimer(aST);
 		} else {
 			return false;
 		}

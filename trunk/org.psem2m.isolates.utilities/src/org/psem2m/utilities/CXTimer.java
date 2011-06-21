@@ -11,6 +11,8 @@
 package org.psem2m.utilities;
 
 /**
+ * 
+ * 
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
@@ -48,7 +50,7 @@ public class CXTimer implements IXDescriber {
 	 * @return
 	 */
 	public static String nanoSecToMilliSecStr(final long aNanoSec) {
-		Double wDbl = new Double((double) aNanoSec / (double) 1000000);
+		Double wDbl = new Double((double) aNanoSec / (double) 1000000000);
 		return String.format(FMT_MILI_SEC, wDbl.longValue());
 	}
 
@@ -58,60 +60,88 @@ public class CXTimer implements IXDescriber {
 
 	/** Temps au declenchement du timer **/
 	private long pStartNano = 0;
-
+	/** Temps à l'arrêt du timer **/
 	private long pStopNano = 0;
 	/** Nanotime pour calcul du temps ecoule depuis le depart **/
 	private long pTimeRefNano = 0;
 
 	/**
-	 * 
+	 * instanciate a not started timer.
 	 */
 	public CXTimer() {
-		super();
+		this(null, 0, false);
 	}
 
 	/**
-	 * @param aStart
+	 * instanciate a started or a not started timer.
+	 * 
+	 * @param aStarted
+	 *            starts the timer if true
 	 */
-	public CXTimer(final boolean aStart) {
-		this(null, 0, aStart);
+	public CXTimer(final boolean aStarted) {
+		this(null, 0, aStarted);
 	}
 
 	/**
+	 * instanciate a not started timer.
+	 * 
 	 * @param aTimeRefNano
+	 *            a time reference (to have an other then the start time of the
+	 *            JVM)
 	 */
 	public CXTimer(final long aTimeRefNano) {
 		this(null, aTimeRefNano, false);
 	}
 
 	/**
+	 * instanciate a started or a not started timer.
+	 * 
 	 * @param aTimeRefNano
+	 *            a time reference (to have an other than the start time of the
+	 *            JVM)
 	 * @param aStart
+	 *            starts the timer if true
 	 */
 	public CXTimer(final long aTimeRefNano, final boolean aStart) {
 		this(null, aTimeRefNano, aStart);
 	}
 
 	/**
-	 * @param aDescr
-	 * @param aStart
-	 */
-	public CXTimer(final String aDescr, final boolean aStart) {
-		this(aDescr, 0, aStart);
-	}
-
-	/**
-	 * @param aDescr
-	 * @param aTimeRefNano
-	 */
-	public CXTimer(final String aDescr, final long aTimeRefNano) {
-		this(aDescr, aTimeRefNano, false);
-	}
-
-	/**
+	 * instanciate a started or a not started timer.
+	 * 
 	 * @param aName
-	 * @param aTimeRefNano
+	 *            the name of the timer
 	 * @param aStart
+	 *            starts the timer if true
+	 */
+	public CXTimer(final String aName, final boolean aStart) {
+		this(aName, 0, aStart);
+	}
+
+	/**
+	 * instanciate a not started timer.
+	 * 
+	 * @param aName
+	 *            the name of the timer
+	 * @param aTimeRefNano
+	 *            a time reference (to have an other than the start time of the
+	 *            JVM)
+	 */
+	public CXTimer(final String aName, final long aTimeRefNano) {
+		this(aName, aTimeRefNano, false);
+	}
+
+	/**
+	 * instanciate a started or a not started timer.
+	 * 
+	 * @param aName
+	 *            the name of the timer
+	 * 
+	 * @param aTimeRefNano
+	 *            a time reference (to have an other than the start time of the
+	 *            JVM)
+	 * @param aStart
+	 *            starts the timer if true
 	 */
 	public CXTimer(final String aName, final long aTimeRefNano,
 			final boolean aStart) {
@@ -157,14 +187,14 @@ public class CXTimer implements IXDescriber {
 	}
 
 	/**
-	 * @return
+	 * @return the duration in milliseconds
 	 */
 	public double getDurationMs() {
 		return (double) getDurationNs() / 1000000;
 	}
 
 	/**
-	 * @return
+	 * @return the duration in nanoseconds
 	 */
 	public long getDurationNs() {
 		if (pStartNano == 0) {
@@ -174,21 +204,24 @@ public class CXTimer implements IXDescriber {
 	}
 
 	/**
-	 * @return
+	 * @return a formated string ("%06d") containing the duration in
+	 *         milliseconds
 	 */
 	public String getDurationStrMicroSec() {
 		return nanoSecToMicroSecStr(getDurationNs());
 	}
 
 	/**
-	 * @return
+	 * @return a formated string ("%6.3f") containing the duration in in
+	 *         milliseconds with microesconds
 	 */
 	public String getDurationStrMilliSec() {
 		return nanoSecToMilliSecStr(getDurationNs());
 	}
 
 	/**
-	 * @return
+	 * @return the delta between the sizes of the heap collected at the start
+	 *         and stop times of the timer.
 	 */
 	public String getHeapDelta() {
 		return heapSizeToStr((pHeapStop == 0 ? Runtime.getRuntime()
@@ -196,14 +229,14 @@ public class CXTimer implements IXDescriber {
 	}
 
 	/**
-	 * @return
+	 * @return the size of the heap collected at the start time of the timer.
 	 */
 	public String getHeapStart() {
 		return heapSizeToStr(pHeapStart);
 	}
 
 	/**
-	 * @return
+	 * @return the size of the heap collected at the stop time of the timer.
 	 */
 	public String getHeapStop() {
 		return heapSizeToStr(pHeapStop == 0 ? Runtime.getRuntime().freeMemory()
@@ -211,77 +244,93 @@ public class CXTimer implements IXDescriber {
 	}
 
 	/**
-	 * @return
+	 * @return the name of the timer
 	 */
 	public String getName() {
 		return pName;
 	}
 
 	/**
-	 * @return
+	 * @return the start time since the reference time, formated ("%06d") with
+	 *         milliseconds
 	 */
 	public String getStartAtMsStr() {
 		return nanoSecToMilliSecStr(getStartAtNano());
 	}
 
 	/**
-	 * @return
+	 * @return the start time since the reference time in nanoseconds
 	 */
 	public long getStartAtNano() {
 		return pStartNano - pTimeRefNano;
 	}
 
 	/**
-	 * @return
+	 * @return the start time since the reference time, formated ("%6.3f") with
+	 *         milliseconds and microseconds
 	 */
 	public String getStartAtSecStr() {
 		return nanoSecToMicroSecStr(getStartAtNano());
 	}
 
 	/**
-	 * @return
+	 * @return the stop time since the reference time, formated ("%06d") with
+	 *         milliseconds
 	 */
 	public String getStopAtMsStr() {
 		return nanoSecToMilliSecStr(getStopAtNano());
 	}
 
 	/**
-	 * @return
+	 * @return the stop time since the reference time in nanoseconds
 	 */
 	public long getStopAtNano() {
 		return pStopNano - pTimeRefNano;
 	}
 
 	/**
-	 * @return
+	 * @return the stop time since the reference time, formated ("%6.3f") with
+	 *         milliseconds and microseconds
 	 */
 	public String getStopAtSecStr() {
 		return nanoSecToMicroSecStr(getStopAtNano());
 	}
 
 	/**
-	 * @return
+	 * @return true if the timer is started and not stopped
 	 */
 	public boolean isCounting() {
 		return isStarted() && !isStopped();
 	}
 
 	/**
-	 * @return
+	 * @return true if the timer is started
 	 */
 	public boolean isStarted() {
 		return pStartNano > 0;
 	}
 
 	/**
-	 * @return
+	 * @return true if the timer is stopped
 	 */
 	public boolean isStopped() {
 		return pStopNano > 0;
 	}
 
 	/**
+	 * resets the timer (raz all the memorized times)
+	 */
+	public void reset() {
+		reset(0);
+	}
+
+	/**
+	 * resets the timer (raz all the memorized times) and sets the reference
+	 * time
+	 * 
 	 * @param aTimeRefNano
+	 *            a time reference (to have an other than the start time of the
+	 *            JVM)
 	 */
 	public void reset(final long aTimeRefNano) {
 		pHeapStart = 0;
@@ -292,7 +341,9 @@ public class CXTimer implements IXDescriber {
 	}
 
 	/**
-	 * @return
+	 * start the timer
+	 * 
+	 * @return the timer
 	 */
 	public CXTimer start() {
 		pHeapStart = Runtime.getRuntime().freeMemory();
@@ -302,8 +353,12 @@ public class CXTimer implements IXDescriber {
 	}
 
 	/**
+	 * start the timer with a new reference time
+	 * 
 	 * @param aTimeRefNano
-	 * @return
+	 *            a time reference (to have an other than the start time of the
+	 *            JVM)
+	 * @return the timer
 	 */
 	public CXTimer start(final long aTimeRefNano) {
 		pTimeRefNano = aTimeRefNano > 0 ? aTimeRefNano : 0;
@@ -312,7 +367,9 @@ public class CXTimer implements IXDescriber {
 	}
 
 	/**
-	 * @return
+	 * stop the timer
+	 * 
+	 * @return the number of nanosecond passed since the start time
 	 */
 	public long stop() {
 		pHeapStop = Runtime.getRuntime().freeMemory();
@@ -321,7 +378,17 @@ public class CXTimer implements IXDescriber {
 	}
 
 	/**
-	 * @return
+	 * @return the formated number of milliseconds and microseconds ("%6.3f")
+	 *         passed since the start time
+	 */
+	public String stopStrMicroSec() {
+		pStopNano = System.nanoTime();
+		return getDurationStrMilliSec();
+	}
+
+	/**
+	 * @return the formated number of milliseconds ("%06d") passed since the
+	 *         start time
 	 */
 	public String stopStrMs() {
 		pStopNano = System.nanoTime();
