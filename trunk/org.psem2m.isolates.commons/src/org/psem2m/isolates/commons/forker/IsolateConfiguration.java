@@ -5,30 +5,44 @@
  */
 package org.psem2m.isolates.commons.forker;
 
+import java.util.Map;
+import java.util.TreeMap;
+
+import org.psem2m.isolates.commons.IBundleRef;
+import org.psem2m.isolates.commons.IIsolateConfiguration;
+
 /**
  * Describes an isolate configuration
  * 
  * @author Thomas Calmant
  */
-public class IsolateConfiguration {
+public class IsolateConfiguration implements IIsolateConfiguration {
+
+    /** Isolate process arguments */
+    private String[] pArguments;
 
     /** Needed bundles */
-    private String[] pBundles;
+    private IBundleRef[] pBundles;
+
+    /** Isolate process environment */
+    private Map<String, String> pEnvironment;
 
     /** Isolate ID */
     private String pIsolateId;
 
-    /** Maximum isolate timeout */
-    private int pMaxTimeout;
+    /** Kind of isolate */
+    private IsolateKind pKind;
 
     /**
-     * Same as IsolateConfiguration(aIsolateId, new String[0], -1).
+     * Sets up an isolate without extra bundles
      * 
      * @param aIsolateId
      *            The isolate ID
+     * @param aKind
+     *            The kind of isolate
      */
-    public IsolateConfiguration(final String aIsolateId) {
-	this(aIsolateId, new String[0], -1);
+    public IsolateConfiguration(final String aIsolateId, final IsolateKind aKind) {
+	this(aIsolateId, aKind, new IBundleRef[0], null);
     }
 
     /**
@@ -36,17 +50,36 @@ public class IsolateConfiguration {
      * 
      * @param aIsolateId
      *            The isolate ID
+     * @param aKind
+     *            The kind of isolate
      * @param aBundles
      *            Isolate bundles
-     * @param aMaxTimeout
-     *            Maximum timeout of the isolate
      */
     public IsolateConfiguration(final String aIsolateId,
-	    final String[] aBundles, final int aMaxTimeout) {
+	    final IsolateKind aKind, final IBundleRef[] aBundles) {
+	this(aIsolateId, aKind, aBundles, null);
+    }
 
+    /**
+     * Sets up the isolate configuration
+     * 
+     * @param aIsolateId
+     *            The isolate ID
+     * @param aKind
+     *            The kind of isolate
+     * @param aBundles
+     *            Isolate bundles
+     * @param aArguments
+     *            Arguments for the isolate process
+     */
+    public IsolateConfiguration(final String aIsolateId,
+	    final IsolateKind aKind, final IBundleRef[] aBundles,
+	    final String[] aArguments) {
+
+	pArguments = aArguments;
 	pBundles = aBundles;
 	pIsolateId = aIsolateId;
-	pMaxTimeout = aMaxTimeout;
+	pEnvironment = new TreeMap<String, String>();
     }
 
     /*
@@ -71,6 +104,16 @@ public class IsolateConfiguration {
 	return false;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.commons.IIsolateConfiguration#getArguments()
+     */
+    @Override
+    public String[] getArguments() {
+	return pArguments;
+    }
+
     /**
      * Retrieves an array containing the IDs of bundles needed by the isolate,
      * if any.
@@ -79,29 +122,39 @@ public class IsolateConfiguration {
      * 
      * @return An array of bundle IDs
      */
-    public String[] getBundles() {
+    @Override
+    public IBundleRef[] getBundles() {
 	return pBundles;
     }
 
-    /**
-     * Retrieves the isolate ID.
+    /*
+     * (non-Javadoc)
      * 
-     * Can't return null.
-     * 
-     * @return The isolate ID.
+     * @see org.psem2m.isolates.commons.IIsolateConfiguration#getEnvironment()
      */
-    public String getIsolateId() {
+    @Override
+    public Map<String, String> getEnvironment() {
+	return pEnvironment;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.commons.IIsolateConfiguration#getId()
+     */
+    @Override
+    public String getId() {
 	return pIsolateId;
     }
 
-    /**
-     * Retrieves the maximum timeout of the isolate before it is considered
-     * stuck.
+    /*
+     * (non-Javadoc)
      * 
-     * @return The maximum isolate timeout
+     * @see org.psem2m.isolates.commons.IIsolateConfiguration#getKind()
      */
-    public int getMaxTimeout() {
-	return pMaxTimeout;
+    @Override
+    public IsolateKind getKind() {
+	return pKind;
     }
 
     /*

@@ -3,29 +3,20 @@
  * Author: Thomas Calmant
  * Date:   17 juin 2011
  */
-package org.psem2m.isolates.commons;
+package org.psem2m.isolates.commons.impl;
 
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.psem2m.isolates.commons.IPlatformConfiguration;
 
 /**
  * Describes the platform configuration.
  * 
  * @author Thomas Calmant
  */
-public class PlatformConfiguration {
-
-    /**
-     * Retrieves the java interpreter path, based on java.home property
-     * 
-     * @return The path to the java interpreter
-     */
-    public static String getJavaPath() {
-
-	return System.getProperty("java.home") + File.separator + "bin"
-		+ File.separator + "java";
-    }
+public class PlatformConfiguration implements IPlatformConfiguration {
 
     /** Common bundles needed by all isolates */
     private Set<String> pCommonBundles = new HashSet<String>();
@@ -51,12 +42,14 @@ public class PlatformConfiguration {
 	pRepository = makeAbsolutePath(aRepository);
     }
 
-    /**
-     * Adds the given bundle to the ones needed by all isolates
+    /*
+     * (non-Javadoc)
      * 
-     * @param aBundle
-     *            New common bundle
+     * @see
+     * org.psem2m.isolates.commons.IPlatformConfiguration#addCommonBundle(java
+     * .lang.String)
      */
+    @Override
     public void addCommonBundle(final String aBundle) {
 
 	File bundleFile = new File(aBundle);
@@ -72,29 +65,69 @@ public class PlatformConfiguration {
 	pCommonBundles.add(bundleFile.getAbsolutePath());
     }
 
-    /**
-     * Retrieves bundles needed by all isolates
+    /*
+     * (non-Javadoc)
      * 
-     * @return bundles needed by all isolates
+     * @see
+     * org.psem2m.isolates.commons.IPlatformConfiguration#getCommonBundles()
      */
+    @Override
     public String[] getCommonBundles() {
 	return pCommonBundles.toArray(new String[0]);
     }
 
-    /**
-     * Retrieves the platform home directory
+    /*
+     * (non-Javadoc)
      * 
-     * @return The platform home directory
+     * @see
+     * org.psem2m.isolates.commons.IPlatformConfiguration#getIsolatesDirectory()
      */
+    @Override
+    public String getIsolatesDirectory() {
+	return pPlatformDirectory + File.separator + "work";
+    }
+
+    /**
+     * Retrieves the java interpreter path, based on java.home property
+     * 
+     * @return The path to the java interpreter
+     */
+    @Override
+    public String getJavaExecutable() {
+
+	StringBuilder javaExecutablePath = new StringBuilder();
+	javaExecutablePath.append(System.getProperty("java.home"));
+	javaExecutablePath.append(File.separator);
+	javaExecutablePath.append("bin");
+	javaExecutablePath.append(File.separator);
+	javaExecutablePath.append("java");
+
+	if (System.getProperty("os.family", "").startsWith("win")) {
+	    javaExecutablePath.append(".exe");
+	}
+
+	return javaExecutablePath.toString();
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.commons.IPlatformConfiguration#getPlatformDirectory()
+     */
+    @Override
     public String getPlatformDirectory() {
 	return pPlatformDirectory;
     }
 
-    /**
-     * Retrieves the <b>full</b> path of the platform bundles repository.
+    /*
+     * (non-Javadoc)
      * 
-     * @return The full path of the platform bundles repository.
+     * @see
+     * org.psem2m.isolates.commons.IPlatformConfiguration#getRepositoryDirectory
+     * ()
      */
+    @Override
     public String getRepositoryDirectory() {
 	return pRepository;
     }
@@ -118,12 +151,14 @@ public class PlatformConfiguration {
 	}
     }
 
-    /**
-     * Removes the given bundle from the ones needed by all isolates
+    /*
+     * (non-Javadoc)
      * 
-     * @param aBundle
-     *            Removed common bundle
+     * @see
+     * org.psem2m.isolates.commons.IPlatformConfiguration#removeCommonBundle
+     * (java.lang.String)
      */
+    @Override
     public void removeCommonBundle(final String aBundle) {
 
 	File bundleFile = new File(aBundle);

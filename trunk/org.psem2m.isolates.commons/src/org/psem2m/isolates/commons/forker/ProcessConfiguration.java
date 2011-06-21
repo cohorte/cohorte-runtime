@@ -82,7 +82,7 @@ public class ProcessConfiguration {
 	    pEnvironment = new TreeMap<String, String>();
 	}
 
-	final String isolateId = pIsolateConfiguration.getIsolateId();
+	final String isolateId = pIsolateConfiguration.getId();
 
 	for (String key : pEnvironment.keySet()) {
 

@@ -8,7 +8,8 @@ package org.psem2m.isolates.commons.forker;
 import java.io.IOException;
 import java.security.InvalidParameterException;
 
-import org.psem2m.isolates.commons.PlatformConfiguration;
+import org.psem2m.isolates.commons.IIsolateConfiguration;
+import org.psem2m.isolates.commons.IPlatformConfiguration;
 
 /**
  * Description of the Forker service
@@ -27,14 +28,6 @@ public interface IForker {
     }
 
     /**
-     * Kills the process with the given isolate ID
-     * 
-     * @param aIsolateId
-     *            The ID of the isolate to kill
-     */
-    void killProcess(String aIsolateId);
-
-    /**
      * Tests the given isolate state
      * 
      * @param aIsolateId
@@ -44,21 +37,36 @@ public interface IForker {
     EProcessState ping(String aIsolateId);
 
     /**
-     * Starts a process according to the given configuration
+     * Updates the known platform configuration
      * 
      * @param aPlatformConfiguration
      *            The platform configuration
-     * @param aProcessConfiguration
-     *            The configuration of the future process (contains the isolate
-     *            ID)
+     */
+    void setConfiguration(IPlatformConfiguration aPlatformConfiguration);
+
+    /**
+     * Starts a process according to the given configuration
+     * 
+     * @param aIsolateConfiguration
+     *            The configuration of the isolate to start
      * 
      * @return The isolate process
+     * 
      * @throws IOException
      *             An error occurred while starting the process
      * @throws InvalidParameterException
      *             An isolate with the given isolate ID is already running.
+     * @throws Exception
+     *             An error occurred while preparing or starting the isolate
      */
-    Process runProcess(PlatformConfiguration aPlatformConfiguration,
-	    ProcessConfiguration aProcessConfiguration) throws IOException,
-	    InvalidParameterException;
+    void startIsolate(IIsolateConfiguration aIsolateConfiguration)
+	    throws IOException, InvalidParameterException, Exception;
+
+    /**
+     * Kills the process with the given isolate ID
+     * 
+     * @param aIsolateId
+     *            The ID of the isolate to kill
+     */
+    void stopIsolate(String aIsolateId);
 }

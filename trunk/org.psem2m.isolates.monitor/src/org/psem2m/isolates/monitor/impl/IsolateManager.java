@@ -9,17 +9,18 @@ import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.TreeMap;
 
+import org.psem2m.isolates.commons.IIsolateConfiguration;
+import org.psem2m.isolates.commons.IPlatformConfiguration;
 import org.psem2m.isolates.commons.IReconfigurable;
-import org.psem2m.isolates.commons.PlatformConfiguration;
 import org.psem2m.isolates.commons.forker.IForker;
-import org.psem2m.isolates.commons.forker.IsolateConfiguration;
 import org.psem2m.isolates.commons.forker.ProcessConfiguration;
+import org.psem2m.isolates.commons.impl.PlatformConfiguration;
 import org.psem2m.isolates.monitor.Activator;
 import org.psem2m.isolates.monitor.IIsolateListener;
 import org.psem2m.isolates.monitor.IIsolateManager;
+import org.psem2m.utilities.CXTimer;
 
 /**
  * Isolate manager : starts/restarts/stops isolates according to the
@@ -35,10 +36,10 @@ public class IsolateManager implements IReconfigurable, IIsolateManager,
     private Map<String, ProcessMonitorThread> pMonitors = new TreeMap<String, ProcessMonitorThread>();
 
     /** Platform configuration */
-    private PlatformConfiguration pPlatformConfiguration;
+    private IPlatformConfiguration pPlatformConfiguration;
 
     /** Possible isolates */
-    private Map<String, ProcessConfiguration> pPossibleIsolates = new TreeMap<String, ProcessConfiguration>();
+    private Map<String, IIsolateConfiguration> pPossibleIsolates = new TreeMap<String, IIsolateConfiguration>();
 
     /** Platform running */
     private boolean pRunning = false;
@@ -59,7 +60,7 @@ public class IsolateManager implements IReconfigurable, IIsolateManager,
      * @return pPossibleIsolates
      */
     @Override
-    public Collection<ProcessConfiguration> getPossibleIsolates() {
+    public Collection<IIsolateConfiguration> getPossibleIsolates() {
 	return pPossibleIsolates.values();
     }
 
@@ -121,24 +122,11 @@ public class IsolateManager implements IReconfigurable, IIsolateManager,
 	pPlatformConfiguration
 		.addCommonBundle("org.apache.felix.ipojo-1.8.0.jar");
 
-	// Isolates definition
-	String[] ids = new String[] { "htop", "python" };
-	String[][] cmds = new String[][] {
-		{ "/usr/bin/gnome-terminal", "-x", "htop" },
-		{ "/usr/bin/gnome-terminal", "-x", "/usr/bin/python" } };
-
-	for (int i = 0; i < ids.length; i++) {
-	    IsolateConfiguration isolateConfig = new IsolateConfiguration(
-		    ids[i]);
-
-	    ProcessConfiguration processConfig = new ProcessConfiguration(
-		    cmds[i], isolateConfig);
-
-	    pPossibleIsolates.put(ids[i], processConfig);
-	}
-
 	Activator.getLogger().logDebug(this, "reloadConfiguration", "Found ",
 		pPossibleIsolates.size(), " isolates");
+
+	// Update the forker
+	pForker.setConfiguration(pPlatformConfiguration);
     }
 
     @Override
@@ -154,37 +142,40 @@ public class IsolateManager implements IReconfigurable, IIsolateManager,
     }
 
     @Override
-    public Process startIsolate(final String aIsolateId,
+    public boolean startIsolate(final String aIsolateId,
 	    final boolean aForceRestart) {
 
-	Process process = null;
+	CXTimer timer = new CXTimer(true);
 
-	ProcessConfiguration config = pPossibleIsolates.get(aIsolateId);
-	if (config == null) {
-	    return null;
+	IIsolateConfiguration isolateConfig = pPossibleIsolates.get(aIsolateId);
+	if (isolateConfig == null) {
+	    return false;
 	}
 
 	try {
 	    // Start the process
-	    process = pForker.runProcess(pPlatformConfiguration, config);
-
-	    // Start the monitor
-	    ProcessMonitorThread monitor = new ProcessMonitorThread(this,
-		    aIsolateId, process);
-
-	    monitor.start();
-	    pMonitors.put(aIsolateId, monitor);
+	    pForker.startIsolate(isolateConfig);
 
 	} catch (InvalidParameterException e) {
 	    Activator.getLogger().logSevere(this, "startPlatform",
 		    "Error in isolate configuration : ", e);
+	    return false;
 
 	} catch (IOException e) {
 	    Activator.getLogger().logSevere(this, "startPlatform",
 		    "Error starting isolate : ", e);
+	    return false;
+
+	} catch (Exception e) {
+	    Activator.getLogger().logSevere(this, "startPlatform",
+		    "Error preparing or starting isolate : ", e);
 	}
 
-	return process;
+	timer.stop();
+	Activator.getLogger().logDebug(this, "startPlatform", "Result : ",
+		timer.getDurationStrMicroSec());
+
+	return true;
     }
 
     /**
@@ -195,28 +186,8 @@ public class IsolateManager implements IReconfigurable, IIsolateManager,
 	Activator.getLogger().logDebug(this, "startPlatform", "Starting ",
 		pPossibleIsolates.size(), " isolates");
 
-	for (Entry<String, ProcessConfiguration> entry : pPossibleIsolates
-		.entrySet()) {
-
-	    try {
-		String isolateId = entry.getKey();
-
-		Process process = pForker.runProcess(pPlatformConfiguration,
-			entry.getValue());
-
-		ProcessMonitorThread monitor = new ProcessMonitorThread(this,
-			isolateId, process);
-		monitor.start();
-		pMonitors.put(isolateId, monitor);
-
-	    } catch (InvalidParameterException e) {
-		Activator.getLogger().logSevere(this, "startPlatform",
-			"Error in isolate configuration : ", e);
-
-	    } catch (IOException e) {
-		Activator.getLogger().logSevere(this, "startPlatform",
-			"Error starting isolate : ", e);
-	    }
+	for (String isolateId : pPossibleIsolates.keySet()) {
+	    startIsolate(isolateId, true);
 	}
 
 	pRunning = true;
@@ -225,7 +196,7 @@ public class IsolateManager implements IReconfigurable, IIsolateManager,
     @Override
     public boolean stopIsolate(final String aIsolateId) {
 
-	pForker.killProcess(aIsolateId);
+	pForker.stopIsolate(aIsolateId);
 	return true;
     }
 
@@ -235,7 +206,7 @@ public class IsolateManager implements IReconfigurable, IIsolateManager,
 	pRunning = false;
 
 	for (String isolateId : pRunningIsolates.keySet()) {
-	    pForker.killProcess(isolateId);
+	    pForker.stopIsolate(isolateId);
 	}
     }
 }

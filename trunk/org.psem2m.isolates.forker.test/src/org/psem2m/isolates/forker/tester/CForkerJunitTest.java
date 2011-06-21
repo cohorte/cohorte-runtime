@@ -33,7 +33,7 @@ public class CForkerJunitTest extends CQualityTestBase {
     public void testFelixFork() throws Exception {
 	logMethodName(this, "testFelixFork");
 
-	pForkerTester.execLine("fork-felix /home/tcalmant/test "
+	pForkerTester.execLine(CForkerTester.FORK_FELIX_COMMAND + " "
 		+ "/home/tcalmant/test/org.apache.felix.shell-1.4.2.jar "
 		+ "/home/tcalmant/test/org.apache.felix.shell.tui-1.4.1.jar "
 		+ "/home/tcalmant/org.apache.felix.shell.remote-1.1.2.jar ");
@@ -47,6 +47,7 @@ public class CForkerJunitTest extends CQualityTestBase {
     public void testForkSimple() throws Exception {
 	logMethodName(this, "testForkSimple");
 
-	pForkerTester.execLine("fork /usr/bin/gnome-terminal -x htop");
+	pForkerTester.execLine(CForkerTester.FORK_JAVA_COMMAND
+		+ " /usr/bin/gnome-terminal -x htop");
     }
 }

@@ -1,28 +1,8 @@
 Manifest-Version: 1.0
-Export-Package: org.psem2m.isolates.forker,org.psem2m.isolates.forker.
- impl
-iPOJO-Components: component { $immediate="true" $name="std-forker" $cl
- assname="org.psem2m.isolates.forker.impl.StandardForker" $architectur
- e="true" provides { property { $mandatory="false" $name="target" $val
- ue="standard" $type="string" }}manipulation { $super="org.psem2m.isol
- ates.forker.impl.AbstractForker" method { $name="$init" }method { $ar
- guments="{org.psem2m.isolates.commons.PlatformConfiguration,org.psem2
- m.isolates.commons.forker.ProcessConfiguration}" $name="doRunProcess"
-  $return="java.lang.Process" }}}component { $immediate="true" $name="
- felix-forker" $classname="org.psem2m.isolates.forker.impl.FelixForker
- " $architecture="true" provides { property { $mandatory="false" $name
- ="target" $value="felix" $type="string" }}manipulation { $super="org.
- psem2m.isolates.forker.impl.AbstractForker" method { $name="$init" }m
- ethod { $arguments="{java.io.File,java.io.File}" $name="copyFile" }me
- thod { $arguments="{org.psem2m.isolates.commons.PlatformConfiguration
- ,org.psem2m.isolates.commons.forker.ProcessConfiguration}" $name="doR
- unProcess" $return="java.lang.Process" }method { $arguments="{java.la
- ng.String,java.lang.String[]}" $name="join" $return="java.lang.String
- " }method { $arguments="{java.lang.String,java.lang.String[],java.lan
- g.String[]}" $name="makeConf" }method { $arguments="{org.psem2m.isola
- tes.commons.PlatformConfiguration,org.psem2m.isolates.commons.forker.
- ProcessConfiguration}" $name="prepareProfile" }}}instance { $componen
- t="std-forker" }instance { $component="felix-forker" }
+Export-Package: org.psem2m.isolates.forker
+iPOJO-Components: component { $immediate="true" $name="isolate-forker"
+  $classname="org.psem2m.isolates.forker.impl.Forker" $architecture="t
+ rue" provides { }}instance { $component="isolate-forker" }
 Bundle-Vendor: isandlatech.com
 Bundle-Version: 0.0.1.qualifier
 Bundle-Name: Forker
@@ -33,8 +13,8 @@ Bundle-SymbolicName: org.psem2m.isolates.forker
 Import-Package: org.osgi.service.log;version=1.3, org.psem2m.isolates.
  commons.forker;version=1.0.0, org.apache.felix.ipojo.architecture;ver
  sion=1.8.0, org.apache.felix.ipojo;version=1.8.0, org.osgi.framework;
- version=1.3.0, org.psem2m.utilities.logging, org.osgi.service.cm;vers
- ion=1.2, org.psem2m.isolates.commons;version=1.0.0, org.psem2m.utilit
- ies
+ version=1.3.0, org.psem2m.isolates.commons.impl, org.psem2m.utilities
+ .logging, org.osgi.service.cm;version=1.2, org.psem2m.isolates.common
+ s;version=1.0.0, org.psem2m.utilities
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 

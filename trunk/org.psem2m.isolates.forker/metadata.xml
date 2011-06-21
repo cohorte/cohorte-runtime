@@ -3,20 +3,10 @@
 	xsi:schemaLocation="org.apache.felix.ipojo http://felix.apache.org/ipojo/schemas/CURRENT/core.xsd"
 	xmlns="org.apache.felix.ipojo" xmlns:jmx="org.apache.felix.ipojo.handlers.jmx">
 
-	<component classname="org.psem2m.isolates.forker.impl.StandardForker"
-		architecture="true" immediate="true" name="std-forker">
-		<provides>
-			<property name="target" type="string" value="standard" />
-		</provides>
+	<component classname="org.psem2m.isolates.forker.impl.Forker"
+		architecture="true" immediate="true" name="isolate-forker">
+		<provides />
 	</component>
 
-	<component classname="org.psem2m.isolates.forker.impl.FelixForker"
-		architecture="true" immediate="true" name="felix-forker">
-		<provides>
-			<property name="target" type="string" value="felix" />
-		</provides>
-	</component>
-
-	<instance component="std-forker" />
-	<instance component="felix-forker" />
+	<instance component="isolate-forker" />
 </ipojo>

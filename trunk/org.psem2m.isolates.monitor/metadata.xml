@@ -6,7 +6,7 @@
 	<component classname="org.psem2m.isolates.monitor.impl.IsolateManager"
 		architecture="true" immediate="true" name="isolates-manager">
 		<provides />
-		<requires field="pForker" optional="false" filter="(target=standard)" />
+		<requires field="pForker" optional="false" />
 		
 		<callback transition="validate" method="startPlatform"/>
 		<callback transition="invalidate" method="stopPlatform"/>

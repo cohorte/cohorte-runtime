@@ -5,6 +5,7 @@ package org.psem2m.isolates.monitor;
 
 import java.util.Collection;
 
+import org.psem2m.isolates.commons.IIsolateConfiguration;
 import org.psem2m.isolates.commons.forker.ProcessConfiguration;
 
 /**
@@ -20,7 +21,7 @@ public interface IIsolateManager {
      * 
      * @return ret
      */
-    public Collection<ProcessConfiguration> getPossibleIsolates();
+    public Collection<IIsolateConfiguration> getPossibleIsolates();
 
     /**
      * Description of the method getRunningIsolates.
@@ -47,7 +48,7 @@ public interface IIsolateManager {
      * @param aForceRestart
      * @return ret
      */
-    public Process startIsolate(String aIsolateId, boolean aForceRestart);
+    public boolean startIsolate(String aIsolateId, boolean aForceRestart);
 
     /**
      * Description of the method stopIsolate.
