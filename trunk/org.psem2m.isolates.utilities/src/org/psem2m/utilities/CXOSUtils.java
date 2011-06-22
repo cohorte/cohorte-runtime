@@ -1,7 +1,20 @@
+/*******************************************************************************
+ * Copyright (c) 2011 www.isandlatech.com (www.isandlatech.com)
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    ogattaz (isandlaTech) - initial API and implementation
+ *******************************************************************************/
 package org.psem2m.utilities;
 
 import java.io.File;
 import java.util.Iterator;
+import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.Set;
 
 public class CXOSUtils {
 
@@ -65,11 +78,13 @@ public class CXOSUtils {
 
 	private final static String FILE_EXT_TXT = "txt";
 	private final static String FILE_NAME_DUMMY = "dummy";
+
+	private final static String OSKEY_MACOSX = "Mac OS X";
 	private final static String OSKEY_WIN2000 = "2000";
 	private final static String OSKEY_WIN2003 = "2003";
 	private final static String OSKEY_WIN2008 = "2008";
-
 	private final static String OSKEY_WINNT = "NT";
+	private final static String OSKEY_WINVISTA = "Vista";
 	private final static String OSKEY_WINXP = "XP";
 
 	private final static String SYS_PROPERTY_FILEENCODING = "file.encoding";
@@ -81,24 +96,124 @@ public class CXOSUtils {
 	public final static String SYS_PROPERTY_USERDIR = "user.dir";
 
 	/**
+	 * @param aSB
+	 * @param aId
+	 * @param aValue
+	 * @param aEndLine
+	 * @return
+	 */
+	private static StringBuilder addEnvPropertiesInfoDescrInSB(
+			final StringBuilder aSB, final String aId, String aValue,
+			final boolean aValueMultiLineLine, final char aEndLine) {
+
+		if (!aValueMultiLineLine && aValue.contains(CXStringUtils.LINE_SEP)) {
+			aValue = aValue.replace('\n', '§');
+		}
+		return CXJvmUtils.addDescrAlignInSB(aSB, aId, 30, aValue, 90, aEndLine);
+
+	}
+
+	/**
 	 * @return
 	 */
 	public static String dumpSupportedEncodings() {
 		Iterator<String> wEncodings = getSupportedEncodings();
 		StringBuilder wSB = new StringBuilder(256);
 		while (wEncodings.hasNext()) {
-			if (wSB.length() > 0)
+			if (wSB.length() > 0) {
 				wSB.append(',');
+			}
 			wSB.append(wEncodings.next());
 		}
 		return wSB.toString();
 	}
 
 	/**
-	 * @return
+	 * @return the defaut encoding which must be used to store character files.
 	 */
 	public static String getDefaultFileEncoding() {
 		return ENCODING_UTF_8;
+	}
+
+	/**
+	 * Dump the environment variables
+	 * 
+	 * @return the environment variables as a name-value pairs table
+	 */
+	public static String getEnvContext() {
+		return getEnvContext('\n', CXJvmUtils.VALUE_MULTI_LINE);
+	}
+
+	/**
+	 * 
+	 * Dump the environment variables
+	 * 
+	 * @param aSeparator
+	 *            the separator included between each information
+	 * @param aValueMultiLineLine
+	 *            accepts format multiline information if true
+	 * @return the environment variables as a name-value pairs list separated by
+	 *         the separator
+	 * @throws java.io.IOException
+	 */
+	public static String getEnvContext(final char aSeparator,
+			final boolean aValueMultiLineLine) {
+
+		StringBuilder wSB = new StringBuilder();
+
+		try {
+			CXSortListProperties wEnv = new CXSortListProperties(
+					getEnvironment(), CXSortList.ASCENDING,
+					CXSortList.SORTBYKEY);
+
+			Set<Entry<Object, Object>> wProps = wEnv.getTreeSet();
+
+			for (Entry<Object, Object> wProp : wProps) {
+				if (wSB.length() > 0) {
+					wSB.append(aSeparator);
+				}
+				addEnvPropertiesInfoDescrInSB(wSB,
+						String.valueOf(wProp.getKey()),
+						String.valueOf(wProp.getValue()), aValueMultiLineLine,
+						aSeparator);
+
+			}
+		} catch (Throwable e) {
+			wSB.append(CXException.eInString(e));
+		}
+
+		return wSB.toString();
+	}
+
+	/**
+	 * @return
+	 * @throws java.io.IOException
+	 */
+	public static Properties getEnvironment() throws java.io.IOException {
+		return (isOsWindowsFamily()) ? getEnvWindows() : getEnvUnix();
+	}
+
+	/**
+	 * @return
+	 * @throws java.io.IOException
+	 */
+	public static Properties getEnvUnix() throws java.io.IOException {
+
+		Properties env = new Properties();
+		env.load(Runtime.getRuntime().exec("env").getInputStream());
+		return env;
+	}
+
+	/**
+	 * @return
+	 * @throws java.io.IOException
+	 */
+	public static Properties getEnvWindows() throws java.io.IOException {
+
+		Properties env = new Properties();
+		// doesn't suport 95,98, millenium...
+		env.load(Runtime.getRuntime().exec("cmd.exe /c set").getInputStream());
+		return env;
 	}
 
 	/**
@@ -130,7 +245,7 @@ public class CXOSUtils {
 	 * @param aOsName
 	 * @return
 	 */
-	public static String getStdOutEncoding(String aOsName) {
+	public static String getStdOutEncoding(final String aOsName) {
 		if (aOsName == null || aOsName.length() == 0) {
 			return ENCODING_ISO_8859_1;
 		} else if (isOsWindowsFamily(aOsName)) {
@@ -147,6 +262,9 @@ public class CXOSUtils {
 		return java.nio.charset.Charset.availableCharsets().keySet().iterator();
 	}
 
+	/**
+	 * @return
+	 */
 	private static String getTempAbsolutePath() {
 		String wPath = null;
 		try {
@@ -159,6 +277,9 @@ public class CXOSUtils {
 		return wPath;
 	}
 
+	/**
+	 * @return
+	 */
 	public static String getTempPath() {
 		String wPath = System.getProperty(SYS_PROPERTY_TMPDIR);
 
@@ -179,83 +300,134 @@ public class CXOSUtils {
 	}
 
 	/**
-	 * @return
+	 * @return true if the current OS is Mac OS X
+	 */
+	public static boolean isOsMacOsX() {
+		return isOsMacOsX(getOsName());
+	}
+
+	/**
+	 * @param aOsName
+	 *            the OS name to test
+	 * @return true if the OS name match the identifier of Mac OS X
+	 */
+	public static boolean isOsMacOsX(final String aOsName) {
+		return (aOsName.indexOf(OSKEY_MACOSX) > -1);
+	}
+
+	/**
+	 * @param aOsName
+	 *            the OS name to test
+	 * @return true if the OS name match the identifier of an Unix one
+	 */
+	public static boolean isOsUnixFamily(final String aOsName) {
+		return !isOsWindowsFamily();
+	}
+
+	/**
+	 * @return true if the current OS is Windows 2000
 	 */
 	public static boolean isOsWindows2000() {
 		return isOsWindows2000(getOsName());
 	}
 
 	/**
-	 * @return
+	 * @param aOsName
+	 *            the OS name to test
+	 * @return true if the OS name match the identifier of Windows 2000
 	 */
-	public static boolean isOsWindows2000(String aOsName) {
+	public static boolean isOsWindows2000(final String aOsName) {
 		return (aOsName.indexOf(OSKEY_WIN2000) > -1);
 	}
 
 	/**
-	 * @return
+	 * @return true if the current OS is Windows 2003
 	 */
 	public static boolean isOsWindows2003() {
 		return isOsWindows2003(getOsName());
 	}
 
 	/**
-	 * @return
+	 * @param aOsName
+	 *            the OS name to test
+	 * @return true if the OS name match the identifier of Windows 2003
 	 */
-	public static boolean isOsWindows2003(String aOsName) {
+	public static boolean isOsWindows2003(final String aOsName) {
 		return (aOsName.indexOf(OSKEY_WIN2003) > -1);
 	}
 
 	/**
 	 * @param aOsName
-	 * @return
+	 *            the OS name to test
+	 * @return true if the OS name match the identifier of Windows 2008
 	 */
-	public static boolean isOsWindows2008(String aOsName) {
+	public static boolean isOsWindows2008(final String aOsName) {
 		return (aOsName.indexOf(OSKEY_WIN2008) > -1);
 	}
 
 	/**
-	 * @return
+	 * @return true if the current OS is a Windows one
 	 */
 	public static boolean isOsWindowsFamily() {
 		return isOsWindowsFamily(getOsName());
 	}
 
 	/**
-	 * @return
+	 * @param aOsName
+	 *            the OS name to test
+	 * @return true if the OS name match the identifier of a Windows one
 	 */
-	public static boolean isOsWindowsFamily(String aOsName) {
-		return isOsWindowsXP(aOsName) || isOsWindows2000(aOsName)
-				|| isOsWindows2003(aOsName) || isOsWindows2008(aOsName)
-				|| isOsWindowsNT(aOsName);
+	public static boolean isOsWindowsFamily(final String aOsName) {
+		return isOsWindowsXP(aOsName) || isOsWindowsVista(aOsName)
+				|| isOsWindows2000(aOsName) || isOsWindows2003(aOsName)
+				|| isOsWindows2008(aOsName) || isOsWindowsNT(aOsName);
 	}
 
 	/**
-	 * @return
+	 * @return true if the current OS is Windows NT
 	 */
 	public static boolean isOsWindowsNT() {
 		return isOsWindowsNT(getOsName());
 	}
 
 	/**
-	 * @return
+	 * @param aOsName
+	 *            the OS name to test
+	 * @return true if the OS name match the identifier of Windows NT
 	 */
-	public static boolean isOsWindowsNT(String aOsName) {
+	public static boolean isOsWindowsNT(final String aOsName) {
 		return (aOsName.indexOf(OSKEY_WINNT) > -1);
 	}
 
 	/**
-	 * @return
+	 * @return true if the current OS is Windows Vista
+	 */
+	public static boolean isOsWindowsVista() {
+		return isOsWindowsVista(getOsName());
+	}
+
+	/**
+	 * @param aOsName
+	 *            the OS name to test
+	 * @return true if the OS name match the identifier of Windows Vista
+	 */
+	public static boolean isOsWindowsVista(final String aOsName) {
+		return (aOsName.indexOf(OSKEY_WINVISTA) > -1);
+	}
+
+	/**
+	 * @return true if the current OS is Windows XP
 	 */
 	public static boolean isOsWindowsXP() {
 		return isOsWindowsXP(getOsName());
 	}
 
 	/**
-	 * @return
+	 * @param aOsName
+	 *            the OS name to test
+	 * @return true if the OS name match the identifier of Windows XP
 	 */
-	public static boolean isOsWindowsXP(String aOsName) {
+	public static boolean isOsWindowsXP(final String aOsName) {
 		return (aOsName.indexOf(OSKEY_WINXP) > -1);
 	}
-
 }

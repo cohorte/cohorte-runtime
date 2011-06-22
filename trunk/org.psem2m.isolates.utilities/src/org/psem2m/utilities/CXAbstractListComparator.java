@@ -1,92 +1,111 @@
+/*******************************************************************************
+ * Copyright (c) 2011 www.isandlatech.com (www.isandlatech.com)
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    ogattaz (isandlaTech) - initial API and implementation
+ *******************************************************************************/
 package org.psem2m.utilities;
-//
+
 import java.util.Comparator;
-//
+
 /**
-* Classe de base des comparateurs utilis�s dans la classe CAdminListSorted
-* 
-* M�thodes � r�impl�menter
-* 	abstract protected int compareObjects(Object a, Object b);
-* 	protected boolean equalsObjects(Object a, Object b); -->  a==b par d�faut
-*/
-public abstract class CXAbstractListComparator<E> implements Comparator<E>
-{
-	// Trie ascendant par d�faut
+ * Base class for the comparators
+ * 
+ * Methods to be overwrited:
+ * <ul>
+ * <li>abstract protected int compareObjects(Object a, Object b);
+ * <li>protected boolean equalsObjects(Object a, Object b); --> a==b by default
+ * </ul>
+ * 
+ */
+public abstract class CXAbstractListComparator<E> implements Comparator<E> {
+	// ascending sort by default
 	private boolean pAsc = true;
-	
-	// CONSTRUCTEURS
-	
-	public CXAbstractListComparator()
-	{
-//16w_104 - Fiche 44010 - Eclatement History
+
+	/**
+	 * 
+	 */
+	public CXAbstractListComparator() {
 		this(true);
 	}
-	
-	public CXAbstractListComparator(boolean aSortAsc)
-	{
+
+	/**
+	 * @param aSortAsc
+	 */
+	public CXAbstractListComparator(final boolean aSortAsc) {
 		super();
 		pAsc = aSortAsc;
 	}
-	
+
 	// METHODES DE L'INTERFACE COMPARE
-	
+
 	@Override
-	public int compare(E a, E b)
-	{
+	public int compare(final E a, final E b) {
 		int wRes = 0;
-		if (!equalsObjects(a, b))
-		{
+		if (!equalsObjects(a, b)) {
 			wRes = compareObjects(a, b);
-			// !!!! Le TreeSet consid�re les �l�ments �gaux comme identique et ne les ajoute pas (Ordre total)
-			// --> on force la diff�rence 
-			// --> Ca ralentit l'insertion mais ca n'a d'impact que sur l'ordre de classement des �l�ments �gaux
-			if (wRes == 0)
+			// !!!! Le TreeSet considere les elements egaux comme identique et
+			// ne les ajoute pas (Ordre total)
+			// --> on force la difference
+			// --> Ca ralentit l'insertion mais ca n'a d'impact que sur l'ordre
+			// de classement des elements egaux
+			if (wRes == 0) {
 				wRes = 1;
+			}
 			// On inverse le tri si ordre descendant
-			if (isDesc())
+			if (isDesc()) {
 				wRes = wRes * -1;
-		} // Else renvoie 0 (b �crase a) car un m�me objet ne peut �tre ajout� 2 fois dans la liste
+			}
+		} // Else renvoie 0 (b ecrase a) car un meme objet ne peut etre ajoute 2
+			// fois dans la liste
 		return wRes;
 	}
-	
+
+	// A reimplementer pour le critere de tri
+	// Idem methode compare
+	abstract protected int compareObjects(Object a, Object b);
+
+	// METHODES ABSTRAITES ET A REIMPLEMENTER
+
 	@Override
-	public boolean equals(Object obj)
-	{
+	public boolean equals(final Object obj) {
 		return obj != null && obj instanceof Comparator<?>;
 	}
-	
-	// METHODES ABSTRAITES ET A REIMPLEMENTER
-	
-	// A r�impl�menter pour le crit�re de tri
-	// Idem m�thode compare
-	abstract protected int compareObjects(Object a, Object b);
-	
-	// A r�impl�menter pour le crit�re de tri
+
+	// A reimplementer pour le critere de tri
 	// Renvoie true si les objets a et b sont identiques (au sens du pointeur)
-	// Ex : Liste de fichiers tri�e par taille
+	// Ex : Liste de fichiers triee par taille
 	// --> a et b sont identique si les path sont identiques
 	// -----> equalsObjects compare les path de a et b
-	// --> Si a et b ont la m�me taille ils ne sont pas consid�r�s comme identiques
+	// --> Si a et b ont la meme taille ils ne sont pas consideres comme
+	// identiques
 	// -----> equalsObjects renvoie false
-	protected boolean equalsObjects(Object a, Object b)
-	{
-		return a==b;
+	protected boolean equalsObjects(final Object a, final Object b) {
+		return a == b;
 	}
-	
-	// IMPLEMENTATION
-	
-	public boolean isAsc()
-	{
+
+	/**
+	 * @return
+	 */
+	public boolean isAsc() {
 		return pAsc;
 	}
-	
-	public boolean isDesc()
-	{
+
+	/**
+	 * @return
+	 */
+	public boolean isDesc() {
 		return !pAsc;
 	}
-	
-	public CXAbstractListComparator<E> reverseSort()
-	{
+
+	/**
+	 * @return
+	 */
+	public CXAbstractListComparator<E> reverseSort() {
 		pAsc = !pAsc;
 		return this;
 	}

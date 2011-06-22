@@ -8,7 +8,7 @@
  * Contributors:
  *    ogattaz (isandlaTech) - initial API and implementation
  *******************************************************************************/
-package org.psem2m.utilities.logging.test;
+package org.psem2m.utilities.test;
 
 import org.psem2m.utilities.teststools.CQualityTestBase;
 
@@ -16,9 +16,9 @@ import org.psem2m.utilities.teststools.CQualityTestBase;
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
-public class CLogJunitTest extends CQualityTestBase {
+public class CUtilitiesBasicJunitTest extends CQualityTestBase {
 
-	private CLogTester pAppTester;
+	private CUtilitiesBasicTester pAppTester;
 
 	/*
 	 * (non-Javadoc)
@@ -27,46 +27,34 @@ public class CLogJunitTest extends CQualityTestBase {
 	 */
 	@Override
 	public void setUp() throws Exception {
-		pAppTester = new CLogTester(START_ARGS);
+		pAppTester = new CUtilitiesBasicTester(START_ARGS);
 		logInfo(this, "startTests", "App=[%s]", pAppTester.getIdentifier());
 	}
 
 	/**
 	 * @throws Exception
 	 */
-	public void testA_LogLog() throws Exception {
+	public void testA_Timer() throws Exception {
 		logMethodName(this, "testLogLog");
 
-		// kind: log
-		// nbLog: 2000
-		// filesize: 1 megabytes
-		// filecount: 10
-		pAppTester.execLine("log log 2000 1m 10");
+		pAppTester.execLine("timer");
 	}
 
 	/**
 	 * @throws Exception
 	 */
-	public void testB_LogTxt() throws Exception {
+	public void testB_Calls() throws Exception {
 		logMethodName(this, "testLogTxt");
 
-		// kind: log
-		// nbLog: 5000
-		// filesize: 2 megabytes
-		// filecount: 10
-		pAppTester.execLine("log txt 5000 2m 10");
+		pAppTester.execLine("calls");
 	}
 
 	/**
 	 * @throws Exception
 	 */
-	public void testC_LogXml() throws Exception {
+	public void testC_Methos() throws Exception {
 		logMethodName(this, "testLogXml");
 
-		// kind: xml
-		// nbLog: 2000
-		// filesize: 1 megabytes
-		// filecount: 10
-		pAppTester.execLine("log xml 2000 1m 10");
+		pAppTester.execLine("methods");
 	}
 }

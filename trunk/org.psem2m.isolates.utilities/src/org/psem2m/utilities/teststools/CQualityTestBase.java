@@ -14,6 +14,8 @@ public class CQualityTestBase extends TestCase {
 
 	final static String SEP_TIME = ":";
 
+	public final static String[] START_ARGS = { "-junit" };
+
 	/**
 	 * @param aWho
 	 * @param aLevel

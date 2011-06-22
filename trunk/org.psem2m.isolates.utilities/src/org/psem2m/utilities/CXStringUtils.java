@@ -8,7 +8,6 @@
  * Contributors:
  *    ogattaz (isandlaTech) - initial API and implementation
  *******************************************************************************/
-
 package org.psem2m.utilities;
 
 /**
@@ -21,10 +20,14 @@ public class CXStringUtils implements IConstants {
 	private final static String FORMAT_MESAGE = "Message=[%s] ";
 	private final static String LIB_APPEND_ERROR = "ERROR DURING AN APPEND IN A APPENDABLE. ";
 
-	// les caracteres trimables : space, tabulation, LineFeed, CariageReturn
-	private final static String TRIMABLE_CHARS = " \t\n\r";
-	// les controles trimables : tabulation, LineFeed, CariageReturn
-	private final static String TRIMABLE_CONTROL = "\t\n\r";
+	/** usual line separator **/
+	public final static String LINE_SEP = "\n";
+
+	/** the trimables characters : space, tabulation, LineFeed, CariageReturn **/
+	public final static String TRIMABLE_CHARS = " \t\n\r";
+
+	/** the trimables control characters : tabulation, LineFeed, CariageReturn **/
+	public final static String TRIMABLE_CONTROL = "\t\n\r";
 
 	public static final String UNICODE_PREFIX = "\\u";
 
@@ -36,8 +39,9 @@ public class CXStringUtils implements IConstants {
 	public static final String VAL_ON = "on";
 	public static final String VAL_TRUE = "true";
 	public static final String VAL_YES = "yes";
-	// pas le underscore
-	private final static String WORD_SPARATOR_CHARS = TRIMABLE_CHARS
+
+	/** Doesn't contain the underscore character **/
+	public final static String WORD_SPARATOR_CHARS = TRIMABLE_CHARS
 			+ "./e?,;:!%e^$ee*e=+&\"#\'{([-|`\\^@)]=}+e";
 
 	/**

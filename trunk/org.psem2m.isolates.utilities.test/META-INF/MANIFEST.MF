@@ -14,4 +14,5 @@ Import-Package: junit.framework,
  org.psem2m.utilities.system,
  org.psem2m.utilities.teststools
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Test-Suite: org.psem2m.utilities.logging.test.CLogJunitTest
+Test-Suite: org.psem2m.utilities.logging.test.CLogJunitTest,org.psem2m.utilities.test.CUtilitiesBasicJunitTest
+
