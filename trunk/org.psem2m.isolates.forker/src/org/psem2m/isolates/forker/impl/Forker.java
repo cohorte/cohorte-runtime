@@ -30,6 +30,13 @@ public class Forker implements IForker {
     /** Isolate <-> Process association */
     private Map<String, IProcessRef> pRunningIsolates = new TreeMap<String, IProcessRef>();
 
+    /**
+     * Default constructor
+     */
+    public Forker() {
+	// Do nothing
+    }
+
     /*
      * (non-Javadoc)
      * 
