@@ -12,9 +12,9 @@ PSEM2M - Spécifications externes
    content/contexte
    content/config
    content/services
-   content/sondes
    content/moniteur
    content/forker
+   content/sondes
    content/ide
 
    

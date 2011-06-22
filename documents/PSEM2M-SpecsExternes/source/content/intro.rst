@@ -21,14 +21,14 @@ fichiers et les protocoles liés à PSEM2M.
 Portée du document
 ******************
 
-Ce document est destiné :
+Ce document est destiné à :
 
-* à l'équipe principale du projet :
+* l'équipe principale du projet :
 
    * Olivier Gattaz
    * Thomas Calmant
 
-* à l'équipe de ADELE :
+* l'équipe de ADELE :
 
    * Didier Donsez
    * Kiev Gama
@@ -37,11 +37,9 @@ Ce document est destiné :
 Organisation du document
 ************************
 
-.. todo:: À revoir selon nouvelle version
-
-Ce document sera divisé en 3 parties :
+Ce document sera divisé en trois parties :
 
 #. La première partie décrira le contexte d'utilisation de PSEM2M.
 #. La deuxième partie donnera la spécification de l'API et du mode de
-   fonctionnement du projet.
-#. La troisième partie décrira l'IDE associé à PSEM2M.
+   fonctionnement du moniteur, du forker et des sondes des isolats.
+#. La troisième partie décrira les API des bundles utilitaires.
