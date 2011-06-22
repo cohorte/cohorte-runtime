@@ -10,6 +10,7 @@ Import-Package: junit.framework,
  org.osgi.framework;version="1.3.0",
  org.psem2m.isolates.commons;version="1.0.0",
  org.psem2m.isolates.commons.forker;version="1.0.0",
+ org.psem2m.isolates.commons.impl,
  org.psem2m.utilities,
  org.psem2m.utilities.teststools
 Test-Suite: org.psem2m.isolates.forker.tester.CForkerJunitTest
