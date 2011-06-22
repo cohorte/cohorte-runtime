@@ -14,6 +14,7 @@ PSEM2M - Spécifications externes
    content/services
    content/sondes
    content/moniteur
+   content/forker
    content/ide
 
    

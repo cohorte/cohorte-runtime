@@ -4,6 +4,9 @@
 Spécification des sondes
 ########################
 
+Les sondes correspondent aux interfaces des isolats utilisés par le moniteur et
+le forker pour tester l'état d'un isolat.
+
 
 Sondes JMX
 **********
@@ -14,8 +17,9 @@ OSGi, ou en tant que modules additionnels pour les applications les gérant.
 Les sondes utilisées pour tester l'état des frameworks OSGi seront toutes de
 type JMX, inscrites par iPOJO.
 
-Dans un premier temps, elles utiliseront le *MBeanManager* et le protocole de
-transmission par défaut de la plateforme utilisée.
+Ces sondes utiliseront le *MBeanManager* et le protocole de transmission par
+défaut de la plateforme utilisée.
+
 
 Sonde de contrôle d'état
 ========================
@@ -34,7 +38,9 @@ bundles installés :
 
 * ``String ping(String)``
 
-     Renvoie la chaîne reçue en paramètre.
+     Renvoie la chaîne reçue en paramètre. Ceci permet de tester la qualité
+     de la liaison.
+
 
 Sondes spécifiques
 ******************

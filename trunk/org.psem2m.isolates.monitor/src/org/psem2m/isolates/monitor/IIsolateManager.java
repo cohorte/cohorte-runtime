@@ -9,60 +9,57 @@ import org.psem2m.isolates.commons.IIsolateConfiguration;
 import org.psem2m.isolates.commons.forker.ProcessConfiguration;
 
 /**
- * Description of the interface IIsolateManager.
- * 
+ * Describes an IsolateMaanger, the "monitor".
  */
-
 public interface IIsolateManager {
 
     /**
-     * Description of the method getPossibleIsolates.
+     * Retrieves the list of the isolates defined in the configuration file.
      * 
-     * 
-     * @return ret
+     * @return The list of defined isolates
      */
     public Collection<IIsolateConfiguration> getPossibleIsolates();
 
     /**
-     * Description of the method getRunningIsolates.
+     * Retrieves the list of isolates started by the monitor and considered as
+     * running.
      * 
-     * 
-     * @return ret
+     * @return The list of isolates started by this monitor.
      */
     public Collection<ProcessConfiguration> getRunningIsolates();
 
     /**
-     * Description of the method restartPlatform.
-     * 
+     * Restarts the whole platform and its isolates.
      * 
      * @param aForce
-     * @return ret
+     *            Force remaining isolates to stop
+     * @return True on success, False on error.
      */
     public boolean restartPlatform(boolean aForce);
 
     /**
-     * Description of the method startIsolate.
-     * 
+     * Uses a forker to start the isolate configured with the given ID. If it is
+     * already running, the aForceRestart parameter allows to force its restart.
      * 
      * @param aIsolateId
+     *            ID of the isolate to launch
      * @param aForceRestart
-     * @return ret
+     *            Force isolate restart if already running
+     * @return True on success.
      */
     public boolean startIsolate(String aIsolateId, boolean aForceRestart);
 
     /**
-     * Description of the method stopIsolate.
-     * 
+     * Stops (or kills) the isolate with the given ID.
      * 
      * @param aIsolateId
-     * @return ret
+     *            The ID of the isolate to stop
+     * @return True on success, false if it was not running.
      */
     public boolean stopIsolate(String aIsolateId);
 
     /**
-     * Description of the method stopPlatform.
-     * 
-     * 
+     * Stops the whole platform, with isolates.
      */
     public void stopPlatform();
 }

@@ -15,7 +15,7 @@ Le moniteur doit accepter les paramètres suivants :
 +--------------+-------------------+-----------------------------------------+
 | Paramètre    | Valeur par défaut | Description                             |
 +==============+===================+=========================================+
-| -c,          | ./monitor.conf    | Fichier de configuration principale à   |
+| -c,          | ./monitor.xml     | Fichier de configuration principale à   |
 | --config     |                   | utiliser                                |
 +--------------+-------------------+-----------------------------------------+
 | -f,          | Faux              | Si ce paramètre est indiqué, le         |
@@ -56,36 +56,72 @@ pouvoir interagir sur les isolats :
 
 * ``boolean restartPlatform(boolean aForce)``
 
-     Redémarre la plateforme complète.
+     Redémarre la plateforme complète. Le paramètre permet de forcer l'arrêt des
+     isolats toujours en cours de fonctionnement.
 
-* ``IIsolate startIsolate(String aIsolateId, boolean aForceRestart)``
+* ``boolean startIsolate(String aIsolateId, boolean aForceRestart)``
 
      Ordonne au forker de démarrer l'isolat indiqué, forçant ou non son
      redémarrage si celui est déjà en cours d'exécution.
-     Retourne le nouvel isolat, nul en cas de problème.
 
 * ``boolean stopIsolate(String aIsolateId)``
 
      Arrête l'isolat indiqué. Renvoie faux en cas de problème.
 
-* ``IIsolate getIsolate(String aIsolateId)``
+* ``IIsolateConfiguration getIsolate(String aIsolateId)``
 
-     Renvoie l'isolat indiqué, ce qui permet d'avoir accès à son état et à
-     le contrôler.
+     Renvoie la configuration de l'isolat indiqué.
 
-* ``String[] getRunningIsolates()``
+* ``... getRunningIsolates()``
 
-     Renvoie une vue de la liste des identifiants des isolats étant dans l'état
-     **RUNNING**.
+     Renvoie une vue de la liste des identifiants des isolats ayant été démarré
+     par ce moniteur et étant considéré en cours d'exécution, c'est-à-dire un
+     isolat qui :
 
-* ``String[] getPossibleIsolates()``
+     * a émis les notifications de démarrage (base OK, bundles OK, ...)
+     * répond correspond à un ping sur une de ses sondes.
 
-     Renvoie une vue de la liste complète des identifiants des isolats ayant
+     Le résultat est une liste d'informations contenant l'identifiant de chaque
+     isolat.
+
+* ``Collection<IIsolateConfiguration> getPossibleIsolates()``
+
+     Renvoie une vue de la liste complète des configurations des isolats ayant
      été correctement décrit par le fichier de configuration.
+
+
+Ces méthodes ne seront pas disponibles par service OSGi *distant* : il n'est pas
+nécessaire que les isolats puissent accéder directement au moniteur.
+
+
+Écoute des isolats
+******************
+
+Le moniteur fournit une méthode JMX, utilisée par les sondes JMX des isolats
+pour indiquer leur état de démarrage.
+Quand un isolat démarre, il utilise cette méthode pour indiquer quelle étape il
+vient de démarrer.
+
+* ``void updateIsolateState(String aIsolateId, int aCurrentStep, int aTotalSteps)``
+
+   Cette méthode est utilisée par les isolats via JMX pour notifier le moniteur
+   qu'ils ont avancé à une certaine étape.
+
+   Le premier paramètre indique l'isolat démarrant, le deuxième indique la
+   nouvelle étape de progression et le dernier indique le nombre d'étapes de
+   progressions attendues.
+
+Généralement, le démarrage d'un isolat se fait en deux étapes :
+
+#. Démarrage des bundles communs aux isolats (bibliothèques communes, sondes, ...)
+#. Démarrage des bundles spécifiques à l'isolat
 
 
 Routage des message
 *******************
+
+.. note:: Cette section sera à compléter lorsque les exigences correspondantes
+   auront été clairement mises à jour.
 
 Les routes de messages sont définies dans un fichier de configuration.
 
