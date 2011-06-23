@@ -9,32 +9,14 @@ Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
 Import-Package: org.osgi.service.log;version=1.3, org.psem2m.isolates.
  commons.forker;version=1.0.0, org.apache.felix.ipojo.architecture;ver
- sion=1.8.0, org.apache.felix.ipojo;version=1.8.0, org.osgi.framework;
- version=1.3.0, org.psem2m.isolates.commons.impl, org.psem2m.utilities
+ sion=1.8.0, org.apache.felix.ipojo;version=1.8.0, org.psem2m.isolates
+ .commons.impl, org.osgi.framework;version=1.3.0, org.psem2m.utilities
  .logging, org.osgi.service.cm;version=1.2, org.psem2m.isolates.common
  s;version=1.0.0, org.psem2m.utilities
 iPOJO-Components: component { $immediate="true" $name="isolates-manage
  r" $classname="org.psem2m.isolates.monitor.impl.IsolateManager" $arch
  itecture="true" callback { $transition="validate" $method="startPlatf
  orm" }callback { $transition="invalidate" $method="stopPlatform" }pro
- vides { }manipulation { field { $name="pForker" $type="org.psem2m.iso
- lates.commons.forker.IForker" }field { $name="pPlatformConfiguration"
-  $type="org.psem2m.isolates.commons.IPlatformConfiguration" }field { 
- $name="pPossibleIsolates" $type="java.util.Map" }field { $name="pRunn
- ingIsolates" $type="java.util.Map" }field { $name="pRunning" $type="b
- oolean" }field { $name="pMonitors" $type="java.util.Map" }method { $n
- ame="$init" }method { $name="getPossibleIsolates" $return="java.util.
- Collection" }method { $name="getRunningIsolates" $return="java.util.C
- ollection" }method { $arguments="{java.lang.String}" $name="isolateSt
- opped" }method { $arguments="{java.lang.String}" $name="monitorStoppe
- d" }method { $arguments="{java.lang.String,boolean}" $name="reloadCon
- figuration" }method { $arguments="{boolean}" $name="restartPlatform" 
- $return="boolean" }method { $arguments="{java.lang.String,boolean}" $
- name="startIsolate" $return="boolean" }method { $name="startPlatform"
-  }method { $arguments="{java.lang.String}" $name="stopIsolate" $retur
- n="boolean" }method { $name="stopPlatform" }interface { $name="org.ps
- em2m.isolates.commons.IReconfigurable" }interface { $name="org.psem2m
- .isolates.monitor.IIsolateManager" }interface { $name="org.psem2m.iso
- lates.monitor.IIsolateListener" }}requires { $field="pForker" $option
- al="false" }}instance { $component="isolates-manager" }
+ vides { }requires { $field="pForker" $optional="false" }}instance { $
+ component="isolates-manager" }
 
