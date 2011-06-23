@@ -27,6 +27,7 @@ do
     make $SPHINX_TARGET > ../log.txt 2>&1
     if [ $? -ne 0 ]
     then
+        cat ../log.txt
         echo "Sphinx error. Abandon"
         exit 1
     fi
