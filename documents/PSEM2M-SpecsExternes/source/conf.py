@@ -191,7 +191,7 @@ latex_font_size = u'10pt'
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
-latex_documents = [('index', 'PSEM2M-SpecsExternes.tex', u'PSEM2M-SpecsExternes Documentation', u'Thomas Calmant, Olivier Gattaz', 'manual')]
+latex_documents = [('index', 'PSEM2M-SpecsExternes.tex', u'PSEM2M - Spécifications Externes', u'Thomas Calmant, Olivier Gattaz', 'manual')]
 
 
 # A dictionary that contains LaTeX snippets that override those Sphinx usually

@@ -190,10 +190,10 @@ latex_font_size = u'10pt'
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
-latex_documents = [('index', 'PSEM2M-PlanTest.tex', u'PSEM2M-PlanTest Documentation', u'Thomas Calmant', 'manual')]
+latex_documents = [('index', 'PSEM2M-PlanTest.tex', u'PSEM2M - Plan de Tests', u'Thomas Calmant', 'manual')]
 
 
-# A dictionary that contains LaTeX snippets that override those Sphinx usually 
+# A dictionary that contains LaTeX snippets that override those Sphinx usually
 # puts into the generated .tex files.
 latex_elements = { 'babel': '\\usepackage[french]{babel}' }
 
