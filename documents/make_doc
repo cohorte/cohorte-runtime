@@ -1,0 +1,44 @@
+#!/bin/bash
+
+OUTPUT=`readlink -f $1`
+
+SPHINX_TARGET=latexpdf
+SPHINX_OUTPUT=build/latex
+
+PROJECTS=`find . -maxdepth 1 -type d -name "PSEM2M-*"`
+
+mkdir --parents $OUTPUT
+
+for doc_dir in $PROJECTS
+do
+    file_name=`basename $doc_dir`
+
+    # Do nothing if no makefile is present
+    if [ ! -f $doc_dir/Makefile ]
+    then
+        echo "$file_name doesn't contain a Makefile"
+        continue
+    fi
+
+    cd $doc_dir
+    echo "Producing $file_name"
+
+    # Make the PDF
+    make $SPHINX_TARGET > ../log.txt 2>&1
+    if [ $? -ne 0 ]
+    then
+        echo "Sphinx error. Abandon"
+        exit 1
+    fi
+
+    # Move it
+    mv $SPHINX_OUTPUT/$file_name.pdf $OUTPUT/$file_name.pdf
+
+    # Clean the directory
+    rm -fr $SPHINX_OUTPUT
+    rm ../log.txt
+
+    cd ..
+done
+
+echo "Done."
