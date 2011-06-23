@@ -6,9 +6,15 @@ Introduction
 Objectif du document
 ********************
 
-Ce document a pour but de décrire les tests qui devront être exécuter afin de
-valider le comportement des éléments développés pour la plateforme PSEM2M,
-ainsi que le comportement globale de la plateforme.
+Ce document a pour but de décrire les tests à appliquer aux éléments de la
+plateforme PSEM2M.
+
+Ces tests devront :
+
+* valider le comportement des éléments de base (configuration, ...)
+* valider l'adéquation aux spécifications des composants de la plateforme PSEM2M,
+* valider le comportement globale de la plateforme PSEM2M,
+* découvrir des anomalies, aussi bien fonctionnelles qu'architecturales
 
 
 Portée du document
