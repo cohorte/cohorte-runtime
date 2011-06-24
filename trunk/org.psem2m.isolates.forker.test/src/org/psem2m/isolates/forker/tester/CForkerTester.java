@@ -20,6 +20,7 @@ import org.psem2m.isolates.commons.Utilities;
 import org.psem2m.isolates.commons.forker.IForker;
 import org.psem2m.isolates.commons.forker.IsolateConfiguration;
 import org.psem2m.isolates.commons.impl.PlatformConfiguration;
+import org.psem2m.utilities.files.CXFileDir;
 import org.psem2m.utilities.teststools.CConsoleTester;
 
 /**
@@ -28,157 +29,166 @@ import org.psem2m.utilities.teststools.CConsoleTester;
  */
 public class CForkerTester extends CConsoleTester {
 
-    /** Pre-defined tests for the 'fork' command */
-    public static final String FORK_FELIX_COMMAND = "fork-felix";
+	/** Pre-defined tests for the 'fork' command */
+	public static final String FORK_FELIX_COMMAND = "fork-felix";
 
-    /** Fork command */
-    public static final String FORK_JAVA_COMMAND = "fork-java";
+	/** Fork command */
+	public static final String FORK_JAVA_COMMAND = "fork-java";
 
-    /** The Felix forker service */
-    protected IForker pFelixForker;
+	/** The Felix forker service */
+	protected IForker pFelixForker;
 
-    /** The platform configuration */
-    private IPlatformConfiguration pPlatformConfiguration;
+	/** The platform configuration */
+	private final IPlatformConfiguration pPlatformConfiguration;
 
-    /** The standard forker service */
-    protected IForker pStdForker;
+	/** The standard forker service */
+	protected IForker pStdForker;
 
-    /**
-     * Standard constructor
-     * 
-     * @param aArgs
-     * @throws Exception
-     */
-    public CForkerTester(final String[] aArgs) throws Exception {
-	super(aArgs);
+	/**
+	 * Standard constructor
+	 * 
+	 * @param aArgs
+	 * @throws Exception
+	 */
+	public CForkerTester(final String[] aArgs) throws Exception {
+		super(aArgs);
 
-	pPlatformConfiguration = new PlatformConfiguration("/home/tcalmant",
-		"/home/tcalmant/programmation/workspaces/psem2m/platforms/felix");
+		// TODO call the configuration service
+		// -Dorg.psem2m.platform.base=${workspace_loc}/psem2m/platforms/felix.user.dir
+		CXFileDir wBaseDir = new CXFileDir(
+				System.getProperty("org.psem2m.platform.base"));
+		// -Dorg.psem2m.platform.target=${workspace_loc}/psem2m/platforms/felix
+		CXFileDir wTargetDir = new CXFileDir(
+				System.getProperty("org.psem2m.platform.target"));
 
-	pPlatformConfiguration
-		.addCommonBundle("org.apache.felix.ipojo-1.8.0.jar");
-    }
+		// Global platform configuration
+		pPlatformConfiguration = new PlatformConfiguration(
+				wBaseDir.getAbsolutePath(), wTargetDir.getAbsolutePath());
 
-    @Override
-    protected void buildHelp(final StringBuilder aHelp) {
-	addHelpTitle(aHelp, "Forker Tester");
-
-	addHelpLine(aHelp, FORK_JAVA_COMMAND + " [args]");
-	addHelpSubLine(aHelp, "launches the java interpreter "
-		+ "with the given arguments ('args')");
-
-	addHelpLine(aHelp, FORK_FELIX_COMMAND
-		+ "bundle1 [bundle2 [...]] (INCOMPLETE)");
-	addHelpSubLine(aHelp,
-		"launches the felix forker with the given bundles");
-    }
-
-    /**
-     * Uses the Felix forker
-     * 
-     * @param aCommandLine
-     * @return
-     * @throws Exception
-     */
-    protected boolean doForkFelix(final String aCommandLine) throws Exception {
-
-	String[] elements = aCommandLine.split(" ");
-
-	if (elements.length < 2) {
-	    throw new InvalidParameterException("Missing arguments");
+		pPlatformConfiguration
+				.addCommonBundle("org.apache.felix.ipojo-1.8.0.jar");
 	}
 
-	List<IBundleRef> bundles = new ArrayList<IBundleRef>();
-	for (int i = 2; i < elements.length; i++) {
+	@Override
+	protected void buildHelp(final StringBuilder aHelp) {
+		addHelpTitle(aHelp, "Forker Tester");
 
-	    IBundleRef bundleRef = Utilities.findBundle(pPlatformConfiguration,
-		    elements[i]);
-	    bundles.add(bundleRef);
+		addHelpLine(aHelp, FORK_JAVA_COMMAND + " [args]");
+		addHelpSubLine(aHelp, "launches the java interpreter "
+				+ "with the given arguments ('args')");
+
+		addHelpLine(aHelp, FORK_FELIX_COMMAND
+				+ "bundle1 [bundle2 [...]] (INCOMPLETE)");
+		addHelpSubLine(aHelp,
+				"launches the felix forker with the given bundles");
 	}
 
-	IsolateConfiguration isolateConfig = new IsolateConfiguration(
-		"isolat-felix", IsolateKind.FELIX,
-		bundles.toArray(new IBundleRef[0]));
+	/**
+	 * Uses the Felix forker
+	 * 
+	 * @param aCommandLine
+	 * @return
+	 * @throws Exception
+	 */
+	protected boolean doForkFelix(final String aCommandLine) throws Exception {
 
-	IForker forker = getForker();
-	forker.setConfiguration(pPlatformConfiguration);
-	forker.startIsolate(isolateConfig);
-	return true;
-    }
+		String[] elements = aCommandLine.split(" ");
 
-    /**
-     * Tests the standard forker
-     * 
-     * @param aCommandLine
-     * @return
-     * @throws Exception
-     */
-    protected boolean doForkJava(final String aCommandLine) throws Exception {
+		if (elements.length < 2) {
+			throw new InvalidParameterException("Missing arguments");
+		}
 
-	String[] elements = aCommandLine.split(" ");
+		List<IBundleRef> bundles = new ArrayList<IBundleRef>();
+		for (int i = 2; i < elements.length; i++) {
 
-	String[] cmdArray = null;
-	if (elements.length > 1) {
-	    cmdArray = new String[elements.length - 1];
+			IBundleRef bundleRef = Utilities.findBundle(pPlatformConfiguration,
+					elements[i]);
+			bundles.add(bundleRef);
+		}
 
-	    for (int i = 1; i < elements.length; i++) {
-		cmdArray[i - 1] = elements[i];
-	    }
+		IsolateConfiguration isolateConfig = new IsolateConfiguration(
+				"isolat-felix", IsolateKind.FELIX,
+				bundles.toArray(new IBundleRef[0]));
+
+		IForker forker = getForker();
+		forker.setConfiguration(pPlatformConfiguration);
+		forker.startIsolate(isolateConfig);
+		return true;
 	}
 
-	IsolateConfiguration isolateConfig = new IsolateConfiguration(
-		"isolat-java", IsolateKind.JAVA);
+	/**
+	 * Tests the standard forker
+	 * 
+	 * @param aCommandLine
+	 * @return
+	 * @throws Exception
+	 */
+	protected boolean doForkJava(final String aCommandLine) throws Exception {
 
-	IForker forker = getForker();
-	forker.setConfiguration(pPlatformConfiguration);
-	forker.startIsolate(isolateConfig);
+		String[] elements = aCommandLine.split(" ");
 
-	return true;
-    }
+		String[] cmdArray = null;
+		if (elements.length > 1) {
+			cmdArray = new String[elements.length - 1];
 
-    /**
-     * Retrieves the forker service
-     * 
-     * @return The forker service, null if not found
-     */
-    protected IForker getForker() {
+			for (int i = 1; i < elements.length; i++) {
+				cmdArray[i - 1] = elements[i];
+			}
+		}
 
-	BundleContext context = Activator.getContext();
-	try {
-	    ServiceReference[] refs = context.getServiceReferences(
-		    IForker.class.getName(), null);
+		IsolateConfiguration isolateConfig = new IsolateConfiguration(
+				"isolat-java", IsolateKind.JAVA);
 
-	    if (refs != null && refs.length != 0) {
-		return (IForker) context.getService(refs[0]);
-	    }
+		IForker forker = getForker();
+		forker.setConfiguration(pPlatformConfiguration);
+		forker.startIsolate(isolateConfig);
 
-	} catch (InvalidSyntaxException e) {
-	    logInfo("Error searching for a forker : ");
-	    logInfo(e);
+		return true;
 	}
 
-	return null;
-    }
+	/**
+	 * Retrieves the forker service
+	 * 
+	 * @return The forker service, null if not found
+	 */
+	protected IForker getForker() {
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.psem2m.utilities.teststools.CConsoleTester#monitorCommand(java.lang
-     * .String, java.lang.String, java.util.StringTokenizer)
-     */
-    @Override
-    public boolean monitorCommand(final String aCommand, final String aLine,
-	    final StringTokenizer aST) throws Exception {
+		BundleContext context = Activator.getContext();
+		try {
+			ServiceReference[] refs = context.getServiceReferences(
+					IForker.class.getName(), null);
 
-	if (aCommand.equals(FORK_JAVA_COMMAND)) {
-	    return doForkJava(aLine);
+			if (refs != null && refs.length != 0) {
+				return (IForker) context.getService(refs[0]);
+			}
 
-	} else if (aCommand.equals(FORK_FELIX_COMMAND)) {
-	    return doForkFelix(aLine);
+		} catch (InvalidSyntaxException e) {
+			logInfo("Error searching for a forker : ");
+			logInfo(e);
+		}
+
+		return null;
 	}
 
-	return false;
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.psem2m.utilities.teststools.CConsoleTester#monitorCommand(java.lang
+	 * .String, java.lang.String, java.util.StringTokenizer)
+	 */
+	@Override
+	public boolean monitorCommand(final String aCommand, final String aLine,
+			final StringTokenizer aST) throws Exception {
+
+		if (aCommand.equals(FORK_JAVA_COMMAND)) {
+			return doForkJava(aLine);
+
+		} else if (aCommand.equals(FORK_FELIX_COMMAND)) {
+			return doForkFelix(aLine);
+		}
+
+		return false;
+	}
 
 }
