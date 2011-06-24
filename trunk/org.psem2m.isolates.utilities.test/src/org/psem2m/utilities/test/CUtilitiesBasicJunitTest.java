@@ -34,27 +34,48 @@ public class CUtilitiesBasicJunitTest extends CQualityTestBase {
 	/**
 	 * @throws Exception
 	 */
-	public void testA_Timer() throws Exception {
-		logMethodName(this, "testLogLog");
-
-		pAppTester.execLine("timer");
+	public void testA() throws Exception {
+		logInfo(this, "test command=[%s]", CUtilitiesBasicTester.CMDE_TIMER);
+		pAppTester.execLine(CUtilitiesBasicTester.CMDE_TIMER);
 	}
 
 	/**
 	 * @throws Exception
 	 */
-	public void testB_Calls() throws Exception {
-		logMethodName(this, "testLogTxt");
-
-		pAppTester.execLine("calls");
+	public void testB() throws Exception {
+		logInfo(this, "test command=[%s]", CUtilitiesBasicTester.CMDE_CALLS);
+		pAppTester.execLine(CUtilitiesBasicTester.CMDE_CALLS);
 	}
 
 	/**
 	 * @throws Exception
 	 */
-	public void testC_Methos() throws Exception {
-		logMethodName(this, "testLogXml");
+	public void testC() throws Exception {
+		logInfo(this, "test command=[%s]", CUtilitiesBasicTester.CMDE_METHODS);
+		pAppTester.execLine(CUtilitiesBasicTester.CMDE_METHODS);
+	}
 
-		pAppTester.execLine("methods");
+	/**
+	 * @throws Exception
+	 */
+	public void testD() throws Exception {
+		logInfo(this, "test command=[%s]", CUtilitiesBasicTester.CMDE_JAVA);
+		pAppTester.execLine(CUtilitiesBasicTester.CMDE_JAVA);
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	public void testE() throws Exception {
+		logInfo(this, "test command=[%s]", CUtilitiesBasicTester.CMDE_ENV);
+		pAppTester.execLine(CUtilitiesBasicTester.CMDE_ENV);
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	public void testF() throws Exception {
+		logInfo(this, "test command=[%s]", CUtilitiesBasicTester.CMDE_OS);
+		pAppTester.execLine(CUtilitiesBasicTester.CMDE_OS);
 	}
 }

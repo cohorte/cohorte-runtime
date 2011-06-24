@@ -28,7 +28,7 @@ import org.psem2m.utilities.teststools.CConsoleTester;
  */
 public class CLogTester extends CConsoleTester {
 
-	private final static String CMDE_LOG = "log";
+	final static String CMDE_LOG = "log";
 
 	/**
 	 * @param args
@@ -80,8 +80,11 @@ public class CLogTester extends CConsoleTester {
 
 		this.logInfo(CMDE_LOG + " begin");
 
-		CXFileDir wLogDir = new CXFileDir(getUserDir(), "files");
-		wLogDir = new CXFileDir(wLogDir, "logging");
+		CXFileDir wLogDir = new CXFileDir(getUserDir(), "var");
+		wLogDir = new CXFileDir(wLogDir, "log");
+		if (!wLogDir.exists()) {
+			wLogDir.createHierarchy();
+		}
 
 		String wKindLog = "txt";
 		if (aST.hasMoreTokens()) {

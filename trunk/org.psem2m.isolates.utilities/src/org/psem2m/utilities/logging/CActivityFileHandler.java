@@ -6,12 +6,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.FileHandler;
 
+import org.psem2m.utilities.CXException;
 import org.psem2m.utilities.CXOSUtils;
 import org.psem2m.utilities.CXStringUtils;
 import org.psem2m.utilities.IXDescriber;
 import org.psem2m.utilities.files.CXFileText;
 
 public class CActivityFileHandler extends FileHandler implements IXDescriber {
+
 	public final static String LABEL_COUNT = "Count";
 
 	public final static String LABEL_EXISTING = "ExistingFileNames";
@@ -33,6 +35,7 @@ public class CActivityFileHandler extends FileHandler implements IXDescriber {
 	private final String MESS_PARENT_DOESNT_EXIST = "The parent directory [%s] does'nt exist.";
 
 	private final String MESS_UNABLE_FIND_VARID = "Unable to get pattern var id at the index [%d].The pattern size is [%d].";
+
 	private final int pCount;
 	private final CXFileText[] pFiles;
 
@@ -43,7 +46,8 @@ public class CActivityFileHandler extends FileHandler implements IXDescriber {
 	 * @param aCount
 	 * @throws Exception
 	 */
-	CActivityFileHandler(String aPattern, int aCount) throws Exception {
+	CActivityFileHandler(final String aPattern, final int aCount)
+			throws Exception {
 		this(aPattern, LIMIT_STD, aCount);
 	}
 
@@ -53,8 +57,8 @@ public class CActivityFileHandler extends FileHandler implements IXDescriber {
 	 * @param aCount
 	 * @throws Exception
 	 */
-	CActivityFileHandler(String aPattern, int aLimit, int aCount)
-			throws Exception {
+	CActivityFileHandler(final String aPattern, final int aLimit,
+			final int aCount) throws Exception {
 		this(aPattern, aLimit, aCount, true);
 	}
 
@@ -63,8 +67,8 @@ public class CActivityFileHandler extends FileHandler implements IXDescriber {
 	 * @param aLimit
 	 * @param aCount
 	 */
-	CActivityFileHandler(String aPattern, int aLimit, int aCount, boolean append)
-			throws Exception {
+	CActivityFileHandler(final String aPattern, final int aLimit,
+			final int aCount, final boolean append) throws Exception {
 		super(aPattern, aLimit, aCount, append);
 		setEncoding(CXOSUtils.ENCODING_UTF_8);
 		pPattern = aPattern;
@@ -74,7 +78,7 @@ public class CActivityFileHandler extends FileHandler implements IXDescriber {
 	}
 
 	@Override
-	public Appendable addDescriptionInBuffer(Appendable aBuffer) {
+	public Appendable addDescriptionInBuffer(final Appendable aBuffer) {
 		CXStringUtils.appendKeyValInBuff(aBuffer, LABEL_PATTERN, getPattern());
 		CXStringUtils.appendKeyValInBuff(aBuffer, LABEL_COUNT, getCount());
 		CXStringUtils.appendKeyValInBuff(aBuffer, LABEL_EXISTING,
@@ -82,12 +86,13 @@ public class CActivityFileHandler extends FileHandler implements IXDescriber {
 		return aBuffer;
 	}
 
-	private StringBuilder addExistingFileNamesInSB(StringBuilder aSB) {
+	private StringBuilder addExistingFileNamesInSB(final StringBuilder aSB) {
 		List<String> wFileNames = getExistingFileNames();
 		Iterator<String> wFileNamesIt = wFileNames.iterator();
 		while (wFileNamesIt.hasNext()) {
-			if (aSB.length() > 0)
+			if (aSB.length() > 0) {
 				aSB.append(',');
+			}
 			aSB.append(wFileNamesIt.next());
 		}
 		return aSB;
@@ -97,6 +102,40 @@ public class CActivityFileHandler extends FileHandler implements IXDescriber {
 		return 256;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.util.logging.FileHandler#close()
+	 */
+	@Override
+	public void close() throws SecurityException {
+
+		if (CXOSUtils.isOsMacOsX()) {
+
+			Thread wClosingThread = new Thread(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						CActivityFileHandler.super.close();
+					} catch (Exception e) {
+						System.err.println(CXException.eInString(e));
+					}
+				}
+			}, "Closing log thread");
+			// Allows the Java Virtual Machine to exit even this Thread is
+			// running
+			wClosingThread.setDaemon(true);
+
+			wClosingThread.start();
+
+		} else {
+			super.close();
+		}
+	}
+
+	/**
+	 * @return
+	 */
 	private String dumpExistingFileNames() {
 		return addExistingFileNamesInSB(new StringBuilder(32 * getCount()))
 				.toString();
@@ -108,7 +147,7 @@ public class CActivityFileHandler extends FileHandler implements IXDescriber {
 	 * @return
 	 * @throws IOException
 	 */
-	private CXFileText generate(int aGenerationNum) throws Exception {
+	private CXFileText generate(final int aGenerationNum) throws Exception {
 		String wPath = replacePatternVariables(getPattern(), aGenerationNum);
 
 		CXFileText wFile = new CXFileText(wPath);
@@ -179,8 +218,9 @@ public class CActivityFileHandler extends FileHandler implements IXDescriber {
 	 * @return
 	 * @throws Exception
 	 */
-	private String replacePatternVariable(String aPattern, int aGenerationNum,
-			String aPatternVariableId) throws Exception {
+	private String replacePatternVariable(final String aPattern,
+			final int aGenerationNum, final String aPatternVariableId)
+			throws Exception {
 		String wValue = null;
 		if (VAR_T.equals(aPatternVariableId)) {
 			wValue = System.getProperty("java.io.tmpdir");
@@ -199,22 +239,24 @@ public class CActivityFileHandler extends FileHandler implements IXDescriber {
 	}
 
 	/**
-	 * 
-	 * <li>/ s�parateur de r�pertoires dans le syst�me de fichier local <li>%g
-	 * le nombre g�n�r� automatiquement par la rotation cyclique des fichiers
-	 * <li>%t r�pertoire temporaire du syst�me <li>%h r�pertoire de connexion de
-	 * l�utilisateur (�quivalent de "user.home" ) <li>%u un nombre al�atoire
-	 * unique <b>==> non support� !</b>
-	 * 
-	 * Pour d�sp�cialiser le caract�re � % �, il faut le doubler.
+	 * <ul>
+	 * <li>/ separateur de repertoires dans le systeme de fichier local
+	 * <li>%g le nombre genere automatiquement par la rotation cyclique des
+	 * fichiers
+	 * <li>%t repertoire temporaire du systeme
+	 * <li>%h repertoire de connexion de l'utilisateur (equivalent de
+	 * "user.home" )
+	 * <li>%u un nombre aleatoire unique <b>==> non supporte !</b>
+	 * <ul>
+	 * Pour despecialiser le caractere '%', il faut le doubler.
 	 * 
 	 * Exemple : "%t/myApps.%g.log", 10000, 4
 	 * 
 	 * @param tring
 	 * @return
 	 */
-	private String replacePatternVariables(String aPattern, int aGenerationNum)
-			throws Exception {
+	private String replacePatternVariables(String aPattern,
+			final int aGenerationNum) throws Exception {
 		int wPercentPos = aPattern.indexOf(VAR_PREFIX);
 		String wVariableId;
 		while (wPercentPos > -1) {
@@ -232,6 +274,11 @@ public class CActivityFileHandler extends FileHandler implements IXDescriber {
 		return aPattern;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.utilities.IXDescriber#toDescription()
+	 */
 	@Override
 	public String toDescription() {
 		return addDescriptionInBuffer(

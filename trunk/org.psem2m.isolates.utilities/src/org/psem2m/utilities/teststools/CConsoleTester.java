@@ -142,10 +142,18 @@ public abstract class CConsoleTester extends CBaseTester {
 	}
 
 	/**
+	 * -Dorg.psem2m.platform.base=${workspace_loc}/psem2m/platforms/felix.user.
+	 * dir/logs
+	 * 
 	 * @return
 	 */
 	public static CXFileDir getUserDir() {
-		return new CXFileDir(System.getProperty("user.dir"));
+		String wPlatformBase = System.getProperty("org.psem2m.platform.base");
+		if (wPlatformBase != null && !wPlatformBase.isEmpty()) {
+			return new CXFileDir(wPlatformBase);
+		} else {
+			return new CXFileDir(System.getProperty("user.dir"));
+		}
 	}
 
 	/**

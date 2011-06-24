@@ -32,11 +32,12 @@ import org.psem2m.utilities.teststools.CConsoleTester;
  */
 public class CUtilitiesBasicTester extends CConsoleTester {
 
-	private final static String CMDE_CALLS = "calls";
-	private final static String CMDE_ENV = "env";
-	private final static String CMDE_JAVA = "java";
-	private final static String CMDE_METHODS = "methods";
-	private final static String CMDE_TIMER = "timer";
+	final static String CMDE_CALLS = "calls";
+	final static String CMDE_ENV = "env";
+	final static String CMDE_JAVA = "java";
+	final static String CMDE_METHODS = "methods";
+	final static String CMDE_OS = "os";
+	final static String CMDE_TIMER = "timer";
 
 	/**
 	 * @param args
@@ -81,6 +82,10 @@ public class CUtilitiesBasicTester extends CConsoleTester {
 
 		addHelpLine(aHelp, CMDE_JAVA + "");
 		addHelpSubLine(aHelp, "Dump the context of the JVM");
+
+		addHelpLine(aHelp, CMDE_OS + "");
+		addHelpSubLine(aHelp, "Make many test on the OS name");
+
 	}
 
 	/**
@@ -230,6 +235,34 @@ public class CUtilitiesBasicTester extends CConsoleTester {
 	}
 
 	/**
+	 * Execute the test command "OS"
+	 * 
+	 * @param aST
+	 *            the command line as an instance of sting tokeniser
+	 * @return true
+	 * @throws Exception
+	 */
+	private boolean doCmdeOs(final StringTokenizer aST) throws Exception {
+
+		logInfo(CMDE_OS + " begin");
+
+		CXTimer wTimer = new CXTimer(CXTimer.START);
+		boolean wIsOsWindowsFamily = CXOSUtils.isOsWindowsFamily();
+		wTimer.stop();
+		logInfo("isOsWindowsFamily=[%b] Duration=[%s] millisecs",
+				wIsOsWindowsFamily, wTimer.getDurationStrMicroSec());
+
+		wTimer = new CXTimer(CXTimer.START);
+		boolean wIsOsUnixFamily = CXOSUtils.isOsUnixFamily();
+		wTimer.stop();
+		logInfo("isOsUnixFamily=[%b] Duration=[%s] millisecs", wIsOsUnixFamily,
+				wTimer.getDurationStrMicroSec());
+
+		logInfoAndPrompt(CMDE_OS + " end");
+		return true;
+	}
+
+	/**
 	 * Execute the test command "timer"
 	 * 
 	 * @param aST
@@ -284,6 +317,8 @@ public class CUtilitiesBasicTester extends CConsoleTester {
 			return doCmdeGetEnv(aST);
 		} else if (CMDE_JAVA.equalsIgnoreCase(aCommand)) {
 			return doCmdeJvaContext(aST);
+		} else if (CMDE_OS.equalsIgnoreCase(aCommand)) {
+			return doCmdeOs(aST);
 		} else {
 			return false;
 		}

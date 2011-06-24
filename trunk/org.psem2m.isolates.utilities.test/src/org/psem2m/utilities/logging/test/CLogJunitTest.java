@@ -34,39 +34,39 @@ public class CLogJunitTest extends CQualityTestBase {
 	/**
 	 * @throws Exception
 	 */
-	public void testA_LogLog() throws Exception {
-		logMethodName(this, "testLogLog");
+	public void testA() throws Exception {
+		logInfo(this, "test command=[%s] kind=[%s]", CLogTester.CMDE_LOG, "log");
 
 		// kind: log
 		// nbLog: 2000
 		// filesize: 1 megabytes
 		// filecount: 10
-		pAppTester.execLine("log log 2000 1m 10");
+		pAppTester.execLine(CLogTester.CMDE_LOG + " log 2000 1m 10");
 	}
 
 	/**
 	 * @throws Exception
 	 */
-	public void testB_LogTxt() throws Exception {
-		logMethodName(this, "testLogTxt");
+	public void testB() throws Exception {
+		logInfo(this, "test command=[%s] kind=[%s]", CLogTester.CMDE_LOG, "txt");
 
 		// kind: log
 		// nbLog: 5000
 		// filesize: 2 megabytes
 		// filecount: 10
-		pAppTester.execLine("log txt 5000 2m 10");
+		pAppTester.execLine(CLogTester.CMDE_LOG + " txt 5000 2m 10");
 	}
 
 	/**
 	 * @throws Exception
 	 */
-	public void testC_LogXml() throws Exception {
-		logMethodName(this, "testLogXml");
+	public void testC() throws Exception {
+		logInfo(this, "test command=[%s] kind=[%s]", CLogTester.CMDE_LOG, "xml");
 
 		// kind: xml
 		// nbLog: 2000
 		// filesize: 1 megabytes
 		// filecount: 10
-		pAppTester.execLine("log xml 2000 1m 10");
+		pAppTester.execLine(CLogTester.CMDE_LOG + " xml 2000 1m 10");
 	}
 }
