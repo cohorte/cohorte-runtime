@@ -24,29 +24,34 @@ public class CLogFormater {
 	 *            a table of object
 	 * @return the given StringBuffer
 	 */
-	public StringBuilder addTextsInLogLine(StringBuilder aSB,
-			Object... aObjects) {
+	public StringBuilder addTextsInLogLine(final StringBuilder aSB,
+			final Object... aObjects) {
 
-		if (aObjects == null || aObjects.length == 0)
+		if (aObjects == null || aObjects.length == 0) {
 			return aSB;
+		}
 
 		Object wObj;
 		for (int wI = 0; wI < aObjects.length; wI++) {
 			wObj = aObjects[wI];
-			if (wObj == null)
+			if (wObj == null) {
 				aObjects[wI] = CLogTools.LIB_NULL;
-			else if (wObj instanceof Throwable)
+			} else if (wObj instanceof Throwable) {
 				aObjects[wI] = pToolsException.eInString((Throwable) wObj, '|');
+			}
 
 		}
 
+		// if there is only one info
 		if (aObjects.length == 1) {
-			if (aObjects[0] == null)
+			if (aObjects[0] == null) {
 				return aSB;
+			}
 
-			if (aObjects[0] instanceof Throwable)
+			if (aObjects[0] instanceof Throwable) {
 				return aSB.append(pToolsException
 						.eStackToString((Throwable) aObjects[0]));
+			}
 
 			return aSB.append(String.valueOf(aObjects[0]));
 		}
@@ -67,15 +72,18 @@ public class CLogFormater {
 			if (wStr != null) {
 				wIsId = wStr.endsWith("=");
 
-				if (wIsValue)
+				if (wIsValue) {
 					aSB.append('[');
+				}
 
 				aSB.append(wStr);
 
-				if (wIsValue)
+				if (wIsValue) {
 					aSB.append(']');
-				if (!wIsId)
+				}
+				if (!wIsId) {
 					aSB.append(' ');
+				}
 			}
 		}
 
@@ -89,7 +97,7 @@ public class CLogFormater {
 	 * @param aObjects
 	 * @return
 	 */
-	public String formatLogLine(Object... aObjects) {
+	public String formatLogLine(final Object... aObjects) {
 		StringBuilder wSB = new StringBuilder(128);
 		addTextsInLogLine(wSB, aObjects);
 		return wSB.toString();
@@ -99,13 +107,15 @@ public class CLogFormater {
 	 * @param aWho
 	 * @return
 	 */
-	String getWhoObjectId(Object aWho) {
-		if (aWho == null)
+	public String getWhoObjectId(final Object aWho) {
+		if (aWho == null) {
 			return CLogTools.LIB_NULL;
+		}
 
-		if (aWho instanceof Class)
+		if (aWho instanceof Class) {
 			return ((Class<?>) aWho).getSimpleName() + '_'
 					+ DUMMY_SHORT_HASHCODE;
+		}
 
 		return new StringBuffer().append(aWho.getClass().getSimpleName())
 				.append('_').append(pTools.strAdjustRight(aWho.hashCode(), 4))

@@ -5,6 +5,7 @@ import java.util.logging.Level;
 import junit.framework.TestCase;
 
 import org.psem2m.utilities.CXDateTime;
+import org.psem2m.utilities.CXJavaRunContext;
 
 /**
  * @author isandlaTech - ogattaz
@@ -19,18 +20,18 @@ public class CQualityTestBase extends TestCase {
 	/**
 	 * @param aWho
 	 * @param aLevel
-	 * @param aWhat
+	 * @param aMethod
 	 * @param aFormat
 	 * @param aArgs
 	 * @return
 	 */
 	private String formatLog(final Object aWho, final Level aLevel,
-			final CharSequence aWhat, final CharSequence aFormat,
+			final CharSequence aMethod, final CharSequence aFormat,
 			final Object... aArgs) {
 
 		return "[" + formatTime(System.currentTimeMillis()) + "][" + aLevel
 				+ "][" + Thread.currentThread().getName() + "]"
-				+ aWho.getClass().getSimpleName() + ":" + aWhat.toString()
+				+ aWho.getClass().getSimpleName() + ":" + aMethod.toString()
 				+ " | " + String.format(String.valueOf(aFormat), aArgs);
 	}
 
@@ -46,14 +47,14 @@ public class CQualityTestBase extends TestCase {
 	/**
 	 * @param aWho
 	 * @param aLevel
-	 * @param aWhat
+	 * @param aMethod
 	 * @param aFormat
 	 * @param aArgs
 	 */
 	protected void log(final Object aWho, final Level aLevel,
-			final CharSequence aWhat, final CharSequence aFormat,
+			final CharSequence aMethod, final CharSequence aFormat,
 			final Object... aArgs) {
-		System.out.println(formatLog(aWho, aLevel, aWhat, aFormat, aArgs));
+		System.out.println(formatLog(aWho, aLevel, aMethod, aFormat, aArgs));
 	}
 
 	/**
@@ -62,9 +63,10 @@ public class CQualityTestBase extends TestCase {
 	 * @param aFormat
 	 * @param aArgs
 	 */
-	protected void logDebug(final Object aWho, final CharSequence aWhat,
-			final CharSequence aFormat, final Object... aArgs) {
-		log(aWho, Level.SEVERE, aWhat, aFormat, aArgs);
+	protected void logDebug(final Object aWho, final CharSequence aFormat,
+			final Object... aArgs) {
+		log(aWho, Level.SEVERE, CXJavaRunContext.getCallingMethod(), aFormat,
+				aArgs);
 	}
 
 	/**
@@ -73,9 +75,10 @@ public class CQualityTestBase extends TestCase {
 	 * @param aFormat
 	 * @param aArgs
 	 */
-	protected void logFine(final Object aWho, final CharSequence aWhat,
-			final CharSequence aFormat, final Object... aArgs) {
-		log(aWho, Level.FINE, aWhat, aFormat, aArgs);
+	protected void logFine(final Object aWho, final CharSequence aFormat,
+			final Object... aArgs) {
+		log(aWho, Level.FINE, CXJavaRunContext.getCallingMethod(), aFormat,
+				aArgs);
 	}
 
 	/**
@@ -84,9 +87,10 @@ public class CQualityTestBase extends TestCase {
 	 * @param aFormat
 	 * @param aArgs
 	 */
-	protected void logInfo(final Object aWho, final CharSequence aWhat,
-			final CharSequence aFormat, final Object... aArgs) {
-		log(aWho, Level.INFO, aWhat, aFormat, aArgs);
+	protected void logInfo(final Object aWho, final CharSequence aFormat,
+			final Object... aArgs) {
+		log(aWho, Level.INFO, CXJavaRunContext.getCallingMethod(), aFormat,
+				aArgs);
 	}
 
 	/**

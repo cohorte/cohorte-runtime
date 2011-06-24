@@ -83,6 +83,8 @@ public class CXOSUtils {
 	private final static String OSKEY_WIN2000 = "2000";
 	private final static String OSKEY_WIN2003 = "2003";
 	private final static String OSKEY_WIN2008 = "2008";
+	private final static String OSKEY_WIN7 = "Windows 7";
+	private final static String OSKEY_WIN8 = "Windows 8";
 	private final static String OSKEY_WINNT = "NT";
 	private final static String OSKEY_WINVISTA = "Vista";
 	private final static String OSKEY_WINXP = "XP";
@@ -96,21 +98,35 @@ public class CXOSUtils {
 	public final static String SYS_PROPERTY_USERDIR = "user.dir";
 
 	/**
+	 * add a pair
+	 * 
+	 * <pre>
+	 *                         ANT_PATH=[/Applications/apache-ant-1.8.2]
+	 *                     APP_ICON_286=[../Resources/Eclipse.icns]
+	 * </pre>
+	 * 
 	 * @param aSB
+	 *            the buffer
 	 * @param aId
+	 *            the id
+	 * @param wMaxIdLen
+	 *            the len a the id
 	 * @param aValue
-	 * @param aEndLine
+	 *            the value
+	 * @param aValueMultiLineLine
+	 *            if false, the line separator present in the value are replaced
+	 *            by '§'
 	 * @return
 	 */
 	private static StringBuilder addEnvPropertiesInfoDescrInSB(
-			final StringBuilder aSB, final String aId, String aValue,
-			final boolean aValueMultiLineLine, final char aEndLine) {
+			final StringBuilder aSB, final String aId, final int wMaxIdLen,
+			String aValue, final boolean aValueMultiLineLine) {
 
 		if (!aValueMultiLineLine && aValue.contains(CXStringUtils.LINE_SEP)) {
 			aValue = aValue.replace('\n', '§');
 		}
-		return CXJvmUtils.addDescrAlignInSB(aSB, aId, 30, aValue, 90, aEndLine);
-
+		return CXJvmUtils.addDescrAlignInSB(aSB, aId, wMaxIdLen, aValue,
+				120 - wMaxIdLen, CXJvmUtils.SEP_NUL);
 	}
 
 	/**
@@ -162,20 +178,30 @@ public class CXOSUtils {
 		StringBuilder wSB = new StringBuilder();
 
 		try {
-			CXSortListProperties wEnv = new CXSortListProperties(
-					getEnvironment(), CXSortList.ASCENDING,
-					CXSortList.SORTBYKEY);
 
-			Set<Entry<Object, Object>> wProps = wEnv.getTreeSet();
+			Properties wEnv = getEnvironment();
+
+			int wMaxKeyLen = -1;
+			int wLen;
+			for (Object wKey : wEnv.keySet()) {
+				wLen = String.valueOf(wKey).length();
+				if (wLen > wMaxKeyLen) {
+					wMaxKeyLen = wLen;
+				}
+			}
+
+			CXSortListProperties wSortedEnv = new CXSortListProperties(wEnv,
+					CXSortList.ASCENDING, CXSortList.SORTBYKEY);
+
+			Set<Entry<Object, Object>> wProps = wSortedEnv.getTreeSet();
 
 			for (Entry<Object, Object> wProp : wProps) {
 				if (wSB.length() > 0) {
 					wSB.append(aSeparator);
 				}
 				addEnvPropertiesInfoDescrInSB(wSB,
-						String.valueOf(wProp.getKey()),
-						String.valueOf(wProp.getValue()), aValueMultiLineLine,
-						aSeparator);
+						String.valueOf(wProp.getKey()), wMaxKeyLen,
+						String.valueOf(wProp.getValue()), aValueMultiLineLine);
 
 			}
 		} catch (Throwable e) {
@@ -205,45 +231,45 @@ public class CXOSUtils {
 	}
 
 	/**
-	 * @return
+	 * @return ans
 	 * @throws java.io.IOException
 	 */
 	public static Properties getEnvWindows() throws java.io.IOException {
 
 		Properties env = new Properties();
 		// doesn't suport 95,98, millenium...
-		env.load(Runtime.getRuntime().exec("cmd.exe /c set").getInputStream());
+		if (isOsWindowsFamily()) {
+			env.load(Runtime.getRuntime().exec("cmd.exe /c set")
+					.getInputStream());
+		}
 		return env;
 	}
 
 	/**
-	 * @return
+	 * @return the encoding currently used
 	 */
 	public static String getOsFileEncoding() {
 		return System.getProperty(SYS_PROPERTY_FILEENCODING);
 	}
 
 	/**
-	 * @return
+	 * @return the name of the current OS
 	 */
 	public static String getOsName() {
 		return System.getProperty(SYS_PROPERTY_OSNAME);
 	}
 
 	/**
-	 * retourne l'encodage de l'outputstream "StdOut" de l'os "aOsName"
-	 * 
-	 * Encodage par defaut pour le systeme
+	 * @return the encoding of the outputstream "StdOut"
 	 */
 	public static String getStdOutEncoding() {
 		return getStdOutEncoding(getOsName());
 	}
 
 	/**
-	 * retourne l'encodage de l'outputstream "StdOut" de l'os "aOsName"
-	 * 
 	 * @param aOsName
-	 * @return
+	 *            the OS name to test
+	 * @return the encoding of the outputstream "StdOut" of the specified OS
 	 */
 	public static String getStdOutEncoding(final String aOsName) {
 		if (aOsName == null || aOsName.length() == 0) {
@@ -316,6 +342,13 @@ public class CXOSUtils {
 	}
 
 	/**
+	 * @return true if the current OS is an Unix one
+	 */
+	public static boolean isOsUnixFamily() {
+		return isOsUnixFamily(getOsName());
+	}
+
+	/**
 	 * @param aOsName
 	 *            the OS name to test
 	 * @return true if the OS name match the identifier of an Unix one
@@ -366,6 +399,22 @@ public class CXOSUtils {
 	}
 
 	/**
+	 * @return true if the current OS is Windows 7
+	 */
+	public static boolean isOsWindowsEight() {
+		return isOsWindowsNT(getOsName());
+	}
+
+	/**
+	 * @param aOsName
+	 *            the OS name to test
+	 * @return true if the OS name match the identifier of Windows 7
+	 */
+	public static boolean isOsWindowsEight(final String aOsName) {
+		return (aOsName.indexOf(OSKEY_WIN8) > -1);
+	}
+
+	/**
 	 * @return true if the current OS is a Windows one
 	 */
 	public static boolean isOsWindowsFamily() {
@@ -378,9 +427,10 @@ public class CXOSUtils {
 	 * @return true if the OS name match the identifier of a Windows one
 	 */
 	public static boolean isOsWindowsFamily(final String aOsName) {
-		return isOsWindowsXP(aOsName) || isOsWindowsVista(aOsName)
-				|| isOsWindows2000(aOsName) || isOsWindows2003(aOsName)
-				|| isOsWindows2008(aOsName) || isOsWindowsNT(aOsName);
+		return isOsWindowsXP(aOsName) || isOsWindowsSeven(aOsName)
+				|| isOsWindowsEight(aOsName) || isOsWindowsVista(aOsName)
+				|| isOsWindows2003(aOsName) || isOsWindows2008(aOsName)
+				|| isOsWindows2000(aOsName) || isOsWindowsNT(aOsName);
 	}
 
 	/**
@@ -397,6 +447,22 @@ public class CXOSUtils {
 	 */
 	public static boolean isOsWindowsNT(final String aOsName) {
 		return (aOsName.indexOf(OSKEY_WINNT) > -1);
+	}
+
+	/**
+	 * @return true if the current OS is Windows 7
+	 */
+	public static boolean isOsWindowsSeven() {
+		return isOsWindowsNT(getOsName());
+	}
+
+	/**
+	 * @param aOsName
+	 *            the OS name to test
+	 * @return true if the OS name match the identifier of Windows 7
+	 */
+	public static boolean isOsWindowsSeven(final String aOsName) {
+		return (aOsName.indexOf(OSKEY_WIN7) > -1);
 	}
 
 	/**

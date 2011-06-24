@@ -28,26 +28,56 @@ public class CActivityFormaterBasic extends CActivityFormater {
 	 * @see java.util.logging.Formatter#format(java.util.logging.LogRecord)
 	 */
 	@Override
-	public synchronized String format(LogRecord aRecord) {
+	public synchronized String format(final LogRecord aRecord) {
+
+		return format(aRecord.getMillis(), aRecord.getLevel(),
+				aRecord.getSourceClassName(), aRecord.getSourceMethodName(),
+				aRecord.getMessage());
+		// pSB.delete(0, pSB.length());
+		//
+		// pSB.append(aRecord.getMillis());
+		// pSB.append(SEP_COLUMN);
+		// pSB.append(getFormatedNanoSecs());
+		// pSB.append(SEP_COLUMN);
+		// pSB.append(formatDate(aRecord.getMillis()));
+		// pSB.append(SEP_COLUMN);
+		// pSB.append(formatTime(aRecord.getMillis()));
+		// pSB.append(SEP_COLUMN);
+		// pSB.append(formatLevel(aRecord.getLevel()));
+		// pSB.append(SEP_COLUMN);
+		// addThreadNameInLogLine(pSB, Thread.currentThread().getName());
+		// pSB.append(SEP_COLUMN);
+		// pSB.append(formatWho(aRecord.getSourceClassName()));
+		// pSB.append(SEP_COLUMN);
+		// pSB.append(formatWhat(aRecord.getSourceMethodName()));
+		// pSB.append(SEP_COLUMN);
+		// pSB.append(aRecord.getMessage().replace(SEP_LINE, '§'));
+		// pSB.append(SEP_LINE);
+		// return pSB.toString();
+	}
+
+	public String format(final long aMillis, final Level aLevel,
+			final String aSourceClassName, final String aSourceMethodName,
+			final String aLine) {
 		pSB.delete(0, pSB.length());
 
-		pSB.append(aRecord.getMillis());
+		pSB.append(aMillis);
 		pSB.append(SEP_COLUMN);
 		pSB.append(getFormatedNanoSecs());
 		pSB.append(SEP_COLUMN);
-		pSB.append(formatDate(aRecord.getMillis()));
+		pSB.append(formatDate(aMillis));
 		pSB.append(SEP_COLUMN);
-		pSB.append(formatTime(aRecord.getMillis()));
+		pSB.append(formatTime(aMillis));
 		pSB.append(SEP_COLUMN);
-		pSB.append(formatLevel(aRecord.getLevel()));
+		pSB.append(formatLevel(aLevel));
 		pSB.append(SEP_COLUMN);
 		addThreadNameInLogLine(pSB, Thread.currentThread().getName());
 		pSB.append(SEP_COLUMN);
-		pSB.append(formatWho(aRecord.getSourceClassName()));
+		pSB.append(formatWho(aSourceClassName));
 		pSB.append(SEP_COLUMN);
-		pSB.append(formatWhat(aRecord.getSourceMethodName()));
+		pSB.append(formatWhat(aSourceMethodName));
 		pSB.append(SEP_COLUMN);
-		pSB.append(aRecord.getMessage().replace(SEP_LINE, '§'));
+		pSB.append(aLine.replace(SEP_LINE, '§'));
 		pSB.append(SEP_LINE);
 		return pSB.toString();
 	}
@@ -56,7 +86,7 @@ public class CActivityFormaterBasic extends CActivityFormater {
 	 * @param aLevel
 	 * @return
 	 */
-	private String formatDate(long aMillis) {
+	private String formatDate(final long aMillis) {
 		return CXDateTime.time2StrAAAAMMJJ(aMillis, SEP_DATE);
 
 	}
@@ -65,7 +95,7 @@ public class CActivityFormaterBasic extends CActivityFormater {
 	 * @param aLevel
 	 * @return
 	 */
-	private String formatLevel(Level aLevel) {
+	private String formatLevel(final Level aLevel) {
 		return CXStringUtils.strAdjustLeft(aLevel.getName(), LENGTH_LEVEL, ' ');
 
 	}
@@ -74,7 +104,7 @@ public class CActivityFormaterBasic extends CActivityFormater {
 	 * @param aLevel
 	 * @return
 	 */
-	private String formatTime(long aMillis) {
+	private String formatTime(final long aMillis) {
 		return CXDateTime.time2StrHHMMSSmmm(aMillis, SEP_TIME);
 
 	}
@@ -83,7 +113,7 @@ public class CActivityFormaterBasic extends CActivityFormater {
 	 * @param aLevel
 	 * @return
 	 */
-	private String formatWhat(String aMethod) {
+	private String formatWhat(final String aMethod) {
 		return CXStringUtils.strAdjustLeft(
 				aMethod.replace(SEP_COLUMN, REPLACE_COLUMN), LENGTH_WHAT, ' ');
 
@@ -93,7 +123,7 @@ public class CActivityFormaterBasic extends CActivityFormater {
 	 * @param aLevel
 	 * @return
 	 */
-	private String formatWho(String aWho) {
+	private String formatWho(final String aWho) {
 		return CXStringUtils.strAdjustLeft(
 				aWho.replace(SEP_COLUMN, REPLACE_COLUMN), LENGTH_WHO, ' ');
 

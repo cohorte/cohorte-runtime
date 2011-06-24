@@ -146,7 +146,7 @@ public class CLogToolsException {
 	 * @param aStatck
 	 * @return
 	 */
-	private String cutStackAfterComAdonix(String aStatck) {
+	private String cutStackAfterOrgPsem2m(String aStatck) {
 		int wPos = aStatck.lastIndexOf(PSEM2M_CLASSES_PREFIX);
 		if (wPos > -1) {
 			wPos = aStatck.indexOf('\n', wPos);
@@ -248,7 +248,7 @@ public class CLogToolsException {
 				return NO_STACK;
 			}
 
-			return cutStackAfterComAdonix(wS);
+			return cutStackAfterOrgPsem2m(wS);
 		} catch (Throwable e2) {
 			return messCantGetStack(e2);
 		}
