@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ipojo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="org.apache.felix.ipojo http://felix.apache.org/ipojo/schemas/CURRENT/core.xsd"
+	xmlns="org.apache.felix.ipojo" xmlns:jmx="org.apache.felix.ipojo.handlers.jmx">
+
+	<component classname="org.psem2m.isolates.utilities.osgi.Activator"
+		architecture="true" immediate="true" name="isolates-utilities">
+		<provides />
+		<requires field="pLogService" optional="false" />
+		
+		<callback transition="validate" method="startPojo"/>
+		<callback transition="invalidate" method="stopPojo"/>
+	</component>
+
+	<instance component="isolates-utilities" />
+</ipojo>
