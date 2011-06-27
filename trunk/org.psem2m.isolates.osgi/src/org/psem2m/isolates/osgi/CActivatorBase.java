@@ -1,18 +1,9 @@
-/*******************************************************************************
- * Copyright (c) 2011 www.isandlatech.com (www.isandlatech.com)
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- *
- * Contributors:
- *    ogattaz (isandlaTech) - initial API and implementation
- *******************************************************************************/
-package org.psem2m.isolates.utilities.osgi;
+package org.psem2m.isolates.osgi;
 
 import java.util.logging.Level;
 
-import org.osgi.service.log.LogService;
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
 import org.psem2m.utilities.CXJavaRunContext;
 import org.psem2m.utilities.CXStringUtils;
 import org.psem2m.utilities.logging.CActivityFormaterBasic;
@@ -20,42 +11,41 @@ import org.psem2m.utilities.logging.CLogFormater;
 import org.psem2m.utilities.logging.IActivityLoggerBase;
 
 /**
- * This is an Activator which implement the IActivityLoggerBase interface to
- * provide a direct access to the logger of the isolate .
- * 
- * 
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
-public abstract class CPojoActivatorLogger extends CPojoActivatorBase implements
-		IActivityLoggerBase {
+public abstract class CActivatorBase extends CPojoBase implements
+		IActivityLoggerBase, BundleActivator {
+
+	public static String LIB_BNDL_ID = "BundleId";
+	public static String LIB_POJO_ID = "PojoId";
+
+	private BundleContext context;
 
 	/**
-	 * @param aLevel
-	 * @return
-	 */
-	private static int levelToLogServiceLevel(final Level aLevel) {
-		if (aLevel.intValue() == Level.INFO.intValue()) {
-			return LogService.LOG_ERROR;
-		} else if (aLevel.intValue() == Level.FINE.intValue()) {
-			return LogService.LOG_ERROR;
-		} else if (aLevel.intValue() == Level.WARNING.intValue()) {
-			return LogService.LOG_ERROR;
-		} else if (aLevel.intValue() == Level.SEVERE.intValue()) {
-			return LogService.LOG_ERROR;
-		}
-		return LogService.LOG_INFO;
-	}
+	 * The formater which format jthe log line
+	 * 
+	 * <pre>
+	 * TimeStamp     TimeStamp      TimeStamp  TimeStamp    Level    Thread name       Instance id          Method               LogLine
+	 * (millis)      (nano)         (date)     (hhmmss.sss) 
+	 * 1309180295049;00000065317000;2011/06/27;15:11:35:049;INFO   ;   FelixStartLevel;CIsolateLogger_2236 ;__validatePojo      ;EnvContext:
+	 * </pe>
+	 **/
+	private final CActivityFormaterBasic pCActivityFormaterBasic;
 
-	private final CActivityFormaterBasic pCActivityFormaterBasic = new CActivityFormaterBasic();
-
-	private final CLogFormater pLogFormater = new CLogFormater();
+	/** The formater which converts the array of objects to a line **/
+	private final CLogFormater pLogFormater;
 
 	/**
 	 * Explicit default constructor
 	 */
-	public CPojoActivatorLogger() {
+	public CActivatorBase() {
 		super();
+
+		pCActivityFormaterBasic = new CActivityFormaterBasic();
+		pCActivityFormaterBasic.acceptMultiline(true);
+
+		pLogFormater = new CLogFormater();
 	}
 
 	/*
@@ -67,15 +57,21 @@ public abstract class CPojoActivatorLogger extends CPojoActivatorBase implements
 	 */
 	@Override
 	public Appendable addDescriptionInBuffer(final Appendable aBuffer) {
-		CXStringUtils.appendKeyValInBuff(aBuffer, LIB_ID, getIdentifier());
+		super.addDescriptionInBuffer(aBuffer);
+		CXStringUtils.appendKeyValInBuff(aBuffer, LIB_BNDL_ID, getBundleId());
 		return aBuffer;
 	}
 
 	/**
-	 * @return
+	 * @return the id of the bundle
 	 */
-	public IActivityLoggerBase getIsolateLogger() {
-		return this;
+	public abstract String getBundleId();
+
+	/**
+	 * @return the BundleContext of the bundle
+	 */
+	public BundleContext getContext() {
+		return context;
 	}
 
 	/*
@@ -137,6 +133,13 @@ public abstract class CPojoActivatorLogger extends CPojoActivatorBase implements
 		return true;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.psem2m.utilities.logging.IActivityLoggerBase#log(java.util.logging
+	 * .Level, java.lang.Object, java.lang.CharSequence, java.lang.Object[])
+	 */
 	@Override
 	public void log(final Level aLevel, final Object aWho,
 			final CharSequence aWhat, final Object... aInfos) {
@@ -144,10 +147,10 @@ public abstract class CPojoActivatorLogger extends CPojoActivatorBase implements
 		CharSequence wWhat = (aWhat != null) ? aWhat : CXJavaRunContext
 				.getPreCallingMethod();
 
-		logInLogService(levelToLogServiceLevel(aLevel),
-				pCActivityFormaterBasic.format(System.currentTimeMillis(),
-						aLevel, pLogFormater.getWhoObjectId(aWho),
-						wWhat.toString(), pLogFormater.formatLogLine(aInfos)));
+		System.out.println(pCActivityFormaterBasic.format(
+				System.currentTimeMillis(), aLevel,
+				pLogFormater.getWhoObjectId(aWho), wWhat.toString(),
+				pLogFormater.formatLogLine(aInfos)));
 	}
 
 	/*
@@ -207,10 +210,26 @@ public abstract class CPojoActivatorLogger extends CPojoActivatorBase implements
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see org.psem2m.utilities.IXDescriber#toDescription()
+	 * @see
+	 * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext
+	 * )
 	 */
 	@Override
-	public String toDescription() {
-		return addDescriptionInBuffer(new StringBuilder(128)).toString();
+	public void start(final BundleContext bundleContext) throws Exception {
+		context = bundleContext;
+		logInfo(this, null, "START", toDescription());
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
+	 */
+	@Override
+	public void stop(final BundleContext bundleContext) throws Exception {
+		logInfo(this, null, "STOP", toDescription());
+		context = null;
+	}
+
 }

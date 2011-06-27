@@ -8,20 +8,14 @@
  * Contributors:
  *    ogattaz (isandlaTech) - initial API and implementation
  *******************************************************************************/
-package org.psem2m.isolates.utilities.osgi;
+package org.psem2m.isolates.osgi;
 
-import org.osgi.service.log.LogEntry;
-import org.osgi.service.log.LogListener;
+import org.psem2m.utilities.logging.IActivityLoggerBase;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
-public class CLogListener implements LogListener {
-	// Invoked by the log service implementation for each log entry
-	@Override
-	public void logged(final LogEntry entry) {
+public interface IIsolateLoggerService extends IActivityLoggerBase {
 
-		System.out.println(entry.getMessage());
-	}
 }

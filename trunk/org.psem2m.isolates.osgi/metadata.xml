@@ -3,14 +3,49 @@
 	xsi:schemaLocation="org.apache.felix.ipojo http://felix.apache.org/ipojo/schemas/CURRENT/core.xsd"
 	xmlns="org.apache.felix.ipojo" xmlns:jmx="org.apache.felix.ipojo.handlers.jmx">
 
-	<component classname="org.psem2m.isolates.utilities.osgi.Activator"
-		architecture="true" immediate="true" name="isolates-utilities">
-		<provides />
-		<requires field="pLogService" optional="false" />
-		
-		<callback transition="validate" method="startPojo"/>
-		<callback transition="invalidate" method="stopPojo"/>
-	</component>
 
-	<instance component="isolates-utilities" />
+	<component classname="org.psem2m.isolates.osgi.Activator"
+		architecture="true" immediate="true" name="isolates-osgi-bundle">
+		<provides />
+		<requires field="pIsolateLoggerService" optional="false" />
+		
+		<callback transition="validate" method="validatePojo"/>
+		<callback transition="invalidate" method="invalidatePojo"/>
+	</component>
+	<instance component="isolates-osgi-bundle"   />
+	
+	
+	<component classname="org.psem2m.isolates.osgi.CIsolateLoggerImpl"
+		architecture="true" immediate="true" name="isolates-osgi-isolate-logger">
+		<provides />
+		<requires field="pLogService"  optional="false"/>
+		<requires field="pLogReaderService" optional="false" />
+		
+		<callback transition="validate" method="validatePojo"/>
+		<callback transition="invalidate" method="invalidatePojo"/>
+	</component>
+	<instance component="isolates-osgi-isolate-logger"   />
+	
+	<component classname="org.psem2m.isolates.osgi.CPlatformDirsImpl"
+		architecture="true" immediate="true" name="isolates-osgi-platform-dirs">
+		<provides />
+		<requires field="pIsolateLoggerService" optional="false" />
+		
+		<callback transition="validate" method="validatePojo"/>
+		<callback transition="invalidate" method="invalidatePojo"/>
+	</component>
+	<instance component="isolates-osgi-platform-dirs"   />
+	
+	<component classname="org.psem2m.isolates.osgi.CBundleLoggerImpl"
+		architecture="true" immediate="true" name="isolates-osgi-bundle-logger">
+		<provides />
+		<requires field="pIsolateLoggerService" optional="false" />
+		<requires field="pPlatformDirsService" optional="false" />
+		
+		<callback transition="validate" method="validatePojo"/>
+		<callback transition="invalidate" method="invalidatePojo"/>
+	</component>
+	<instance component="isolates-osgi-bundle-logger"   />
+	
+	
 </ipojo>
