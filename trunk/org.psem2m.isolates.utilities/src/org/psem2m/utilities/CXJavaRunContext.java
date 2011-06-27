@@ -65,7 +65,7 @@ public class CXJavaRunContext {
 	 * @param aBefore
 	 * @return
 	 */
-	private static String getMethod(final String aToolMethodName,
+	public static String getMethod(final String aToolMethodName,
 			final int aBefore) {
 
 		StackTraceElement[] wSTEs = getStackTrace();

@@ -13,12 +13,20 @@ public class CActivityFormaterBasic extends CActivityFormater {
 	private final static int LENGTH_WHO = 20;
 	final static char SEP_COLUMN = ';';
 	final static char SEP_MILLI = '.';
+	private boolean pMultiline = false;
 
 	/**
    * 
    */
 	public CActivityFormaterBasic() {
 		super();
+	}
+
+	/**
+	 * @param aAccepted
+	 */
+	public void acceptMultiline(final boolean aAccepted) {
+		pMultiline = aAccepted;
 	}
 
 	/*
@@ -32,30 +40,17 @@ public class CActivityFormaterBasic extends CActivityFormater {
 
 		return format(aRecord.getMillis(), aRecord.getLevel(),
 				aRecord.getSourceClassName(), aRecord.getSourceMethodName(),
-				aRecord.getMessage());
-		// pSB.delete(0, pSB.length());
-		//
-		// pSB.append(aRecord.getMillis());
-		// pSB.append(SEP_COLUMN);
-		// pSB.append(getFormatedNanoSecs());
-		// pSB.append(SEP_COLUMN);
-		// pSB.append(formatDate(aRecord.getMillis()));
-		// pSB.append(SEP_COLUMN);
-		// pSB.append(formatTime(aRecord.getMillis()));
-		// pSB.append(SEP_COLUMN);
-		// pSB.append(formatLevel(aRecord.getLevel()));
-		// pSB.append(SEP_COLUMN);
-		// addThreadNameInLogLine(pSB, Thread.currentThread().getName());
-		// pSB.append(SEP_COLUMN);
-		// pSB.append(formatWho(aRecord.getSourceClassName()));
-		// pSB.append(SEP_COLUMN);
-		// pSB.append(formatWhat(aRecord.getSourceMethodName()));
-		// pSB.append(SEP_COLUMN);
-		// pSB.append(aRecord.getMessage().replace(SEP_LINE, '§'));
-		// pSB.append(SEP_LINE);
-		// return pSB.toString();
+				aRecord.getMessage()) + SEP_LINE;
 	}
 
+	/**
+	 * @param aMillis
+	 * @param aLevel
+	 * @param aSourceClassName
+	 * @param aSourceMethodName
+	 * @param aLine
+	 * @return
+	 */
 	public String format(final long aMillis, final Level aLevel,
 			final String aSourceClassName, final String aSourceMethodName,
 			final String aLine) {
@@ -77,8 +72,7 @@ public class CActivityFormaterBasic extends CActivityFormater {
 		pSB.append(SEP_COLUMN);
 		pSB.append(formatWhat(aSourceMethodName));
 		pSB.append(SEP_COLUMN);
-		pSB.append(aLine.replace(SEP_LINE, '§'));
-		pSB.append(SEP_LINE);
+		pSB.append((pMultiline) ? aLine : aLine.replace(SEP_LINE, '§'));
 		return pSB.toString();
 	}
 
