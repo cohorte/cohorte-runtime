@@ -11,33 +11,18 @@
 package org.psem2m.isolates.osgi;
 
 import org.osgi.framework.BundleContext;
-import org.psem2m.utilities.logging.IActivityLoggerBase;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
-public class Activator extends CActivatorBase implements IActivityLoggerBase {
-
-	private static Activator sActivator;
-
-	/**
-	 * @return
-	 */
-	public static Activator getInstance() {
-		return sActivator;
-	}
-
-	/** LogService reference managed by iPojo (see metadata.xml) **/
-	private IIsolateLoggerService pIsolateLoggerService;
+public class Activator extends CActivatorBase implements IBundleIsolatesOsgi {
 
 	/**
 	 * Explicit default constructor
 	 */
 	public Activator() {
 		super();
-		sActivator = this;
-
 	}
 
 	/*
@@ -47,7 +32,7 @@ public class Activator extends CActivatorBase implements IActivityLoggerBase {
 	 */
 	@Override
 	public void destroy() {
-
+		// ...
 	}
 
 	/*
@@ -77,11 +62,9 @@ public class Activator extends CActivatorBase implements IActivityLoggerBase {
 	 */
 	@Override
 	public void invalidatePojo() {
-		// log in the main logger of the isolate
-		pIsolateLoggerService
-				.logInfo(this, null, "INVALIDATE", toDescription());
-
-		// TODO
+		// logs in the bundle output
+		this.logInfo(this, null, "INVALIDATE", toDescription());
+		// ...
 	}
 
 	/*
@@ -94,6 +77,7 @@ public class Activator extends CActivatorBase implements IActivityLoggerBase {
 	@Override
 	public void start(final BundleContext bundleContext) throws Exception {
 		super.start(bundleContext);
+		// ...
 	}
 
 	/*
@@ -105,6 +89,7 @@ public class Activator extends CActivatorBase implements IActivityLoggerBase {
 	@Override
 	public void stop(final BundleContext bundleContext) throws Exception {
 		super.stop(bundleContext);
+		// ...
 	}
 
 	/*
@@ -114,11 +99,8 @@ public class Activator extends CActivatorBase implements IActivityLoggerBase {
 	 */
 	@Override
 	public void validatePojo() {
-		// log in the main logger of the isolate
-		pIsolateLoggerService.logInfo(this, null, "VALIDATE", toDescription());
-
-		// TODO
-
+		// logs in the bundle output
+		this.logInfo(this, null, "VALIDATE", toDescription());
+		// ...
 	}
-
 }

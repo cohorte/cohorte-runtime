@@ -7,7 +7,6 @@
 	<component classname="org.psem2m.isolates.osgi.Activator"
 		architecture="true" immediate="true" name="isolates-osgi-bundle">
 		<provides />
-		<requires field="pIsolateLoggerService" optional="false" />
 		
 		<callback transition="validate" method="validatePojo"/>
 		<callback transition="invalidate" method="invalidatePojo"/>
@@ -18,6 +17,7 @@
 	<component classname="org.psem2m.isolates.osgi.CIsolateLoggerImpl"
 		architecture="true" immediate="true" name="isolates-osgi-isolate-logger">
 		<provides />
+		<requires field="pBundleIsolatesOsgi" optional="false" />
 		<requires field="pLogService"  optional="false"/>
 		<requires field="pLogReaderService" optional="false" />
 		
@@ -29,7 +29,7 @@
 	<component classname="org.psem2m.isolates.osgi.CPlatformDirsImpl"
 		architecture="true" immediate="true" name="isolates-osgi-platform-dirs">
 		<provides />
-		<requires field="pIsolateLoggerService" optional="false" />
+		<requires field="pBundleIsolatesOsgi" optional="false" />
 		
 		<callback transition="validate" method="validatePojo"/>
 		<callback transition="invalidate" method="invalidatePojo"/>
@@ -39,7 +39,7 @@
 	<component classname="org.psem2m.isolates.osgi.CBundleLoggerImpl"
 		architecture="true" immediate="true" name="isolates-osgi-bundle-logger">
 		<provides />
-		<requires field="pIsolateLoggerService" optional="false" />
+		<requires field="pBundleIsolatesOsgi" optional="false" />
 		<requires field="pPlatformDirsService" optional="false" />
 		
 		<callback transition="validate" method="validatePojo"/>

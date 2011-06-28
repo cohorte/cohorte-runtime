@@ -12,7 +12,6 @@ package org.psem2m.isolates.tracer;
 
 import org.psem2m.isolates.osgi.CBundleLoggerBase;
 import org.psem2m.isolates.osgi.IBundleLoggerService;
-import org.psem2m.isolates.osgi.IIsolateLoggerService;
 import org.psem2m.isolates.osgi.IPlatformDirsService;
 
 /**
@@ -32,7 +31,7 @@ public class CBundleLoggerImpl extends CBundleLoggerBase implements
 	}
 
 	/** LogService reference managed by iPojo (see metadata.xml) **/
-	private IIsolateLoggerService pIsolateLoggerService;
+	private IBundleIsolatesTracer pBundleIsolatesTracer;
 
 	/** LogService reference managed by iPojo (see metadata.xml) **/
 	private IPlatformDirsService pPlatformDirsService;
@@ -57,6 +56,16 @@ public class CBundleLoggerImpl extends CBundleLoggerBase implements
 	/*
 	 * (non-Javadoc)
 	 * 
+	 * @see org.psem2m.isolates.osgi.CBundleLoggerBase#getBundleId()
+	 */
+	@Override
+	public String getBundleId() {
+		return pBundleIsolatesTracer.getBundleId();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.psem2m.isolates.osgi.CPojoBase#getPojoId()
 	 */
 	@Override
@@ -71,8 +80,8 @@ public class CBundleLoggerImpl extends CBundleLoggerBase implements
 	 */
 	@Override
 	public void invalidatePojo() {
-		// log in the main logger of the isolate
-		pIsolateLoggerService
+		// logs in the bundle output
+		pBundleIsolatesTracer
 				.logInfo(this, null, "INVALIDATE", toDescription());
 
 		destroy();
@@ -85,13 +94,13 @@ public class CBundleLoggerImpl extends CBundleLoggerBase implements
 	 */
 	@Override
 	public void validatePojo() {
-		// log in the main logger of the isolate
-		pIsolateLoggerService.logInfo(this, null, "VALIDATE", toDescription());
+		// logs in the bundle output
+		pBundleIsolatesTracer.logInfo(this, null, "VALIDATE", toDescription());
 		try {
 			pBundleLogger = newBundleLogger(pPlatformDirsService
 					.getIsolateLogDir());
 		} catch (Throwable e) {
-			pIsolateLoggerService.logSevere(this, null, e);
+			pBundleIsolatesTracer.logSevere(this, null, e);
 		}
 	}
 }

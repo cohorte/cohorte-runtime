@@ -20,6 +20,9 @@ import org.psem2m.isolates.osgi.IIsolateLoggerService;
 public class CTracerImpl extends CPojoBase implements ITracerService {
 
 	/** LogService reference managed by iPojo (see metadata.xml) **/
+	private IBundleIsolatesTracer pBundleIsolatesTracer;
+
+	/** LogService reference managed by iPojo (see metadata.xml) **/
 	private IIsolateLoggerService pIsolateLoggerService;
 
 	/**
@@ -56,8 +59,8 @@ public class CTracerImpl extends CPojoBase implements ITracerService {
 	 */
 	@Override
 	public void invalidatePojo() {
-		// log in the main logger of the isolate
-		pIsolateLoggerService
+		// logs in the bundle output
+		pBundleIsolatesTracer
 				.logInfo(this, null, "INVALIDATE", toDescription());
 	}
 
@@ -68,8 +71,9 @@ public class CTracerImpl extends CPojoBase implements ITracerService {
 	 */
 	@Override
 	public void validatePojo() {
-		// log in the main logger of the isolate
-		pIsolateLoggerService.logInfo(this, null, "VALIDATE", toDescription());
+		// logs in the bundle output
+		pBundleIsolatesTracer.logInfo(this, null, "VALIDATE", toDescription());
+
 	}
 
 }

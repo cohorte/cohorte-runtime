@@ -44,7 +44,8 @@ public class CPlatformDirsImpl extends CPojoBase implements
 		return System.getProperty(PROP_PLATFORM_BASE);
 	}
 
-	private IIsolateLoggerService pIsolateLoggerService;
+	/** LogService reference managed by iPojo (see metadata.xml) **/
+	private IBundleIsolatesOsgi pBundleIsolatesOsgi;
 
 	/**
 	 * Explicit default constructor
@@ -156,9 +157,8 @@ public class CPlatformDirsImpl extends CPojoBase implements
 	 */
 	@Override
 	public void invalidatePojo() {
-		// log in the main logger of the isolate
-		pIsolateLoggerService
-				.logInfo(this, null, "INVALIDATE", toDescription());
+		// logs in the bundle output
+		pBundleIsolatesOsgi.logInfo(this, null, "INVALIDATE", toDescription());
 	}
 
 	/*
@@ -168,8 +168,8 @@ public class CPlatformDirsImpl extends CPojoBase implements
 	 */
 	@Override
 	public void validatePojo() {
-		// log in the main logger of the isolate
-		pIsolateLoggerService.logInfo(this, null, "VALIDATE", toDescription());
+		// logs in the bundle output
+		pBundleIsolatesOsgi.logInfo(this, null, "VALIDATE", toDescription());
 	}
 
 }

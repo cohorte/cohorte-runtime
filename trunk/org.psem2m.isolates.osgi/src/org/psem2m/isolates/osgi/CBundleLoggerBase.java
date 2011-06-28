@@ -59,6 +59,8 @@ public abstract class CBundleLoggerBase extends CPojoBase implements
 		}
 	}
 
+	public abstract String getBundleId();
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -195,7 +197,7 @@ public abstract class CBundleLoggerBase extends CPojoBase implements
 	 */
 	protected IActivityLogger newBundleLogger(final CXFileDir aLogDir)
 			throws Exception {
-		String wBundleId = Activator.getInstance().getBundleId();
+		String wBundleId = getBundleId();
 		CXFile wLogFile = new CXFile(aLogDir, wBundleId + "_%g.log");
 		return CActivityLoggerBasic.newLogger(wBundleId,
 				wLogFile.getAbsolutePath(), IActivityLogger.ALL,

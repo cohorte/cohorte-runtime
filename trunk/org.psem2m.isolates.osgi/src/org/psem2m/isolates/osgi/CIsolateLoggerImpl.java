@@ -51,6 +51,9 @@ public class CIsolateLoggerImpl extends CPojoBase implements
 		return LogService.LOG_INFO;
 	}
 
+	/** LogService reference managed by iPojo (see metadata.xml) **/
+	private IBundleIsolatesOsgi pBundleIsolatesOsgi;
+
 	/**
 	 * The formater which format jthe log line
 	 * 
@@ -149,8 +152,8 @@ public class CIsolateLoggerImpl extends CPojoBase implements
 	 */
 	@Override
 	public void invalidatePojo() {
-		// log in the main logger of the isolate
-		logInfo(this, null, "INVALIDATE", toDescription());
+		// logs in the bundle output
+		pBundleIsolatesOsgi.logInfo(this, null, "INVALIDATE", toDescription());
 
 		destroy();
 	}
@@ -320,11 +323,14 @@ public class CIsolateLoggerImpl extends CPojoBase implements
 	 */
 	@Override
 	public void validatePojo() {
+		// logs in the bundle output
+		pBundleIsolatesOsgi.logInfo(this, null, "VALIDATE", toDescription());
+
 		// configure the main logger of the isolate
 		pLogReaderService.addLogListener(new CIsolateLoggerListener());
 
-		// log in the main logger of the isolate
-		logInfo(this, null, "VALIDATE", toDescription());
+		// logs in the logger of the isolate
+		logInfo(this, null, "OPEN", toDescription());
 
 		// org.psem2m.platform.isolate.id=[development]
 		if (!("development".equalsIgnoreCase(CPlatformDirsImpl
@@ -334,6 +340,6 @@ public class CIsolateLoggerImpl extends CPojoBase implements
 
 			logInfo(this, null, "EnvContext:\n%s", CXOSUtils.getEnvContext());
 		}
-
 	}
+
 }

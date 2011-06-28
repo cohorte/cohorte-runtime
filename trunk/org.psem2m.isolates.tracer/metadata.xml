@@ -17,7 +17,7 @@
 	<component classname="org.psem2m.isolates.tracer.CBundleLoggerImpl"
 		architecture="true" immediate="true" name="isolates-tracer-bundle-logger">
 		<provides />
-		<requires field="pIsolateLoggerService" optional="false" />
+		<requires field="pBundleIsolatesTracer" optional="false" />
 		<requires field="pPlatformDirsService" optional="false" />
 		
 		<callback transition="validate" method="validatePojo"/>
@@ -28,6 +28,7 @@
 	<component classname="org.psem2m.isolates.tracer.CTracerImpl"
 		architecture="true" immediate="true" name="isolates-tracer-tracer">
 		<provides />
+		<requires field="pBundleIsolatesTracer" optional="false" />
 		<requires field="pIsolateLoggerService" optional="false" />
 		
 		<callback transition="validate" method="validatePojo"/>

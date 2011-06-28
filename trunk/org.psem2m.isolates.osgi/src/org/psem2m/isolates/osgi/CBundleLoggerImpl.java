@@ -10,7 +10,6 @@
  *******************************************************************************/
 package org.psem2m.isolates.osgi;
 
-
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
@@ -28,7 +27,7 @@ public class CBundleLoggerImpl extends CBundleLoggerBase implements
 	}
 
 	/** LogService reference managed by iPojo (see metadata.xml) **/
-	private IIsolateLoggerService pIsolateLoggerService;
+	private IBundleIsolatesOsgi pBundleIsolatesOsgi;
 
 	/** LogService reference managed by iPojo (see metadata.xml) **/
 	private IPlatformDirsService pPlatformDirsService;
@@ -53,6 +52,16 @@ public class CBundleLoggerImpl extends CBundleLoggerBase implements
 	/*
 	 * (non-Javadoc)
 	 * 
+	 * @see org.psem2m.isolates.osgi.CBundleLoggerBase#getBundleId()
+	 */
+	@Override
+	public String getBundleId() {
+		return pBundleIsolatesOsgi.getBundleId();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.psem2m.isolates.osgi.CPojoBase#getPojoId()
 	 */
 	@Override
@@ -67,9 +76,8 @@ public class CBundleLoggerImpl extends CBundleLoggerBase implements
 	 */
 	@Override
 	public void invalidatePojo() {
-		// log in the main logger of the isolate
-		pIsolateLoggerService
-				.logInfo(this, null, "INVALIDATE", toDescription());
+		// logs in the output of the bundle
+		pBundleIsolatesOsgi.logInfo(this, null, "INVALIDATE", toDescription());
 
 		destroy();
 	}
@@ -81,13 +89,13 @@ public class CBundleLoggerImpl extends CBundleLoggerBase implements
 	 */
 	@Override
 	public void validatePojo() {
-		// log in the main logger of the isolate
-		pIsolateLoggerService.logInfo(this, null, "VALIDATE", toDescription());
+		// logs in the output of the bundle
+		pBundleIsolatesOsgi.logInfo(this, null, "VALIDATE", toDescription());
 		try {
 			pBundleLogger = newBundleLogger(pPlatformDirsService
 					.getIsolateLogDir());
 		} catch (Throwable e) {
-			pIsolateLoggerService.logSevere(this, null, e);
+			pBundleIsolatesOsgi.logSevere(this, null, e);
 		}
 	}
 }

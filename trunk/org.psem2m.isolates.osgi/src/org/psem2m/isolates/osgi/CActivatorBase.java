@@ -15,7 +15,7 @@ import org.psem2m.utilities.logging.IActivityLoggerBase;
  * 
  */
 public abstract class CActivatorBase extends CPojoBase implements
-		IActivityLoggerBase, BundleActivator {
+		IActivatorBase, IActivityLoggerBase, BundleActivator {
 
 	public static String LIB_BNDL_ID = "BundleId";
 	public static String LIB_POJO_ID = "PojoId";
@@ -65,6 +65,7 @@ public abstract class CActivatorBase extends CPojoBase implements
 	/**
 	 * @return the id of the bundle
 	 */
+	@Override
 	public abstract String getBundleId();
 
 	/**
