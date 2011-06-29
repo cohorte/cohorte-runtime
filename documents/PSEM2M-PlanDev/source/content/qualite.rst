@@ -53,7 +53,7 @@ Pour le projet PSEM2M, le dépôt central principal sera le serveur local
 **chamechaude**.
 
 Ce dépôt central principal hébergera également la forge du site, basée sur
-Redmine et Hudson.
+Redmine et Jenkins.
 
 L'équipe utilise également l'outil Eclipse. Cet outil dispose d'un module
 d'interfaçage avec Git sous forme d'un module d'extension.
@@ -72,7 +72,8 @@ dernières versions des sources et partager son travail.
    * la documentation en cours de réalisation doit appartenir à la branche
      **develop**; celle validée doit être dans la branche **master**.
 
-* Les règles de mise à disposition dans le dépôt Git local d'un développeur sont les suivantes :
+* Les règles de mise à disposition dans le dépôt Git local d'un développeur sont
+  les suivantes :
 
    * le code de la branche **master** ne doit pas poser de problèmes de
      compilation.
