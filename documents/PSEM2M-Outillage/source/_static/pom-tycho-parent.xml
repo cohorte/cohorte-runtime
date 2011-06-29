@@ -1,0 +1,64 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<name>PSEM2M Project</name>
+	<groupId>org.psem2m</groupId>
+	<artifactId>parent</artifactId>
+	<version>0.0.2-SNAPSHOT</version>
+	<packaging>pom</packaging>
+
+	<modules>
+		<!-- Chemins relatifs vers les modules fils -->
+		<module>../org.psem2m.shared.utilities</module>
+		<module>../org.psem2m.shared.commons</module>
+	</modules>
+
+	<properties>
+		<!-- Tout le code est en UTF-8 -->
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+		<!-- Target Platform pour Tycho -->
+		<tycho.targetPlatform>${basedir}/../org.psem2m.target/</tycho.targetPlatform>
+	</properties>
+
+	<build>
+		<directory>${project.basedir}/target</directory>
+		<outputDirectory>${project.build.directory}/classes</outputDirectory>
+		<finalName>${jar.name}</finalName>
+		<sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
+		<plugins>
+			<!-- Plugin Maven Tycho -->
+			<plugin>
+				<!-- Ne pas oublier d'indiquer l'héritage du plugin -->
+				<inherited>true</inherited>
+				<groupId>org.sonatype.tycho</groupId>
+				<artifactId>tycho-maven-plugin</artifactId>
+				<version>0.9.0</version>
+				<!-- Inscrit les packaging Tycho -->
+				<extensions>true</extensions>
+			</plugin>
+			<!-- Plugin Target Platform pour Tycho -->
+			<plugin>
+				<inherited>true</inherited>
+				<groupId>org.codehaus.tycho</groupId>
+				<artifactId>target-platform-configuration</artifactId>
+				<version>0.9.0</version>
+				<configuration>
+					<!-- Target Platform locale ou P2 -->
+					<resolver>local</resolver>
+				</configuration>
+			</plugin>
+			<!-- Plugin version Java cible -->
+			<plugin>
+				<inherited>true</inherited>
+				<groupId>org.sonatype.tycho</groupId>
+				<artifactId>maven-osgi-compiler-plugin</artifactId>
+				<version>0.9.0</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>
