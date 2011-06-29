@@ -3,8 +3,6 @@
 Glossaire
 #########
 
-.. todo:: À remplir
-
 .. glossary::
    :sorted:
 
@@ -15,5 +13,10 @@ Glossaire
       Voir EDI
    
    Isolat
-      Processus lourd (au sens POSIX)
-      
+      Processus lourd (au sens POSIX) surveillé par un moniteur
+   
+   JMX
+      Java Management Extensions
+   
+   JVM
+      Java Virtual Machine (Machine Virtuelle Java)

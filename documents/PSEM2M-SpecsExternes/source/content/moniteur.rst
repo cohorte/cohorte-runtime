@@ -1,6 +1,7 @@
 .. Interfaces du moniteur
 .. highlight:: java
 
+.. _interfaces-moniteur:
 
 Interfaces du moniteur
 ######################
