@@ -3,6 +3,35 @@
 Outils SOA
 ##########
 
+SOA et OSGi
+***********
+
+Petite description des interactions possibles entre les frameworks SCA et OSGi :
+
+* OSGI to SCA
+
+  * Les services SCA sont exportés dans un registre OSGi (OSGi invoque SCA)
+
+* SCA to OSGi
+
+  * Les références SCA sont importées depuis un registre OSGi (SCA invoque OSGi)
+
+* OSGI in SCA
+
+  * Les composants SCA sont implémentés par des bundles OSGi
+
+* OSGi for SCA
+
+  * Applications SCA avec une dynamique OSGi (ajout/suppression de bundles OSGi)
+
+* SCA for OSGi
+
+  * Plusieurs langages d'implémentation supportés (composants SCA)
+  * Plusieurs protocoles réseaux supportés (services SCA)
+
+Plus d'informations sur ce diaporama (pages 8 à 16) :
+`FraSCAti and OSGi <https://wiki.ow2.org/frascati/attach?page=Documents%2F2011-OUGF-FraSCAti-with-OSGi.pdf>`_.
+
 Apache Tuscany
 **************
 
