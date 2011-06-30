@@ -1,7 +1,7 @@
 .. Eclipse ECF
 
-Annexe 3 -- Eclipse ECF
-#######################
+Eclipse ECF
+###########
 
 L'utilisation d'Eclipse ECF avec Declarative Services est très simple : il
 suffit d'ajouter les bonnes dépendances et de faire une indication d'export de

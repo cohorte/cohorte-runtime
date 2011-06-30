@@ -1,7 +1,7 @@
 .. Configuration de la forge
 
-Annexe 1 -- Configuration de la forge
-#####################################
+Configuration de la forge
+#########################
 
 
 Présentation de la forge

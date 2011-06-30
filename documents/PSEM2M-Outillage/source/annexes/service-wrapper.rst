@@ -1,7 +1,7 @@
 .. Service wrapper
 
-Annexe 4 -- Service Wrapper
-###########################
+Service Wrapper
+###############
 
 
 Version du projet indépendante d'Eclipse
@@ -123,6 +123,6 @@ ce dernier se voulant compatible avec le premier.
 
 Exemple de fichier *wrapper.conf* :
 
-.. literalinclude:: /_static/yajsw-wrapper.ini
+.. literalinclude:: /_static/yajsw-wrapper.conf
    :language: ini
    :linenos:

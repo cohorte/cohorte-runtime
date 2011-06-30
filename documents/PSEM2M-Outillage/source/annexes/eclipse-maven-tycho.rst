@@ -1,7 +1,7 @@
 .. Gestion de projet avec Eclipse, Maven et Tycho
 
-Annexe 2 -- Gestion de projet avec Eclipse, Maven et Tycho
-##########################################################
+Gestion de projet avec Eclipse, Maven et Tycho
+##############################################
 
 
 Gestion de projet avec Eclipse PDE

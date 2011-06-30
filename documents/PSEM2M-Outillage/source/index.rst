@@ -24,12 +24,13 @@ Sélection des outils
 Annexes
 #######
 
-.. toctree:: 
+.. toctree::
+   :numbered:
    :maxdepth: 2
    
    annexes/forge
-   annexes/ecf
    annexes/eclipse-maven-tycho
+   annexes/ecf
    annexes/service-wrapper
    
    
