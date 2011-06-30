@@ -7,10 +7,10 @@
 .. |pfork| replace:: *child_post_fork()*
 
 Opérations post-fork
-====================
+####################
 
 Description
------------
+***********
 
 Lorsque l'on effectue un |fork|, le fils obtient une copie des informations du
 processus père, notamment une copie de la liste des *file descriptors (fd)*.
@@ -30,21 +30,21 @@ Pour éviter cela, le fils doit :
 
 
 Cas particulier : les sockets
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+=============================
 
 Dans le cas des sockets, nous pouvons être confronté à un problème de session
 dans les protocoles utilisés.
 Nous ne savons pas les gérer correctement pour le moment.
 
-Dans le cas des sockets clients, nous conservons la connexion, ce qui permet 
+Dans le cas des sockets clients, nous conservons la connexion, ce qui permet
 un fonctionnement correcte pour la plupart des cas.
 
-Dans le cas des sockets serveurs, nous fermons la connexion, en attendant de 
+Dans le cas des sockets serveurs, nous fermons la connexion, en attendant de
 trouver un moyen viable de les traiter.
 
- 
+
 Présentation de libIsolator
----------------------------
+***************************
 
 La libIsolator est un bibliothèque partagée faisant la liaison entre les *fd*
 vus par l'application et ceux connus par le système.
@@ -67,7 +67,7 @@ open-source.
 
 
 Avantages / Inconvénients
-^^^^^^^^^^^^^^^^^^^^^^^^^
+=========================
 
 * Les avantages :
 
@@ -82,7 +82,7 @@ Avantages / Inconvénients
 * Les inconvénients :
 
   * Bibliothèque quasi-transparente : certaines méthodes ne peuvent pas être
-    traitées correctement. Ainsi *man* n'a pas accès au *tty* comme il le 
+    traitées correctement. Ainsi *man* n'a pas accès au *tty* comme il le
     devrait et ne fonctionne pas correctement,
 
   * Nécessité de couvrir toutes les méthodes de la libC utilisant des *fd*, y
@@ -98,7 +98,7 @@ Avantages / Inconvénients
 
 
 Autres pistes
-^^^^^^^^^^^^^
+=============
 
 Nous nous intéressons à l'implémentation des opérations post-fork sur les *fd*
 dans le noyau, à la fin des méthodes |forkit| et |forkall|.
@@ -108,11 +108,11 @@ prêts à l'emploi à son redémarrage.
 
 Étant donné que nous ne pourrions jamais avoir un traitement aussi fin qu'avec
 libIsolator, nous conserverions cette bibliothèque pour les opérations de plus
-haut niveau, comme la gestion des sockets ou la mise à jour de *getpid()*. 
+haut niveau, comme la gestion des sockets ou la mise à jour de *getpid()*.
 
 
 Appel de la méthode |pfork|
----------------------------
+***************************
 
 Nous utilisons un gestionnaire de signal **SIGUSR2** pour appeler cette méthode.
 Celui-ci est inscrit à l'initialisation de la bibliothèque, avant l'exécution du
@@ -128,22 +128,22 @@ gestionnaire appelle la méthode |pfork|.
 
 
 Qui appelle |pfork| ?
-^^^^^^^^^^^^^^^^^^^^^
+=====================
 
 Actuellement, c'est à celui qui a appelé |forkit| de lancer le signal.
-De cette manière, nous pouvons prévoir le choix du signal à émettre dans un 
+De cette manière, nous pouvons prévoir le choix du signal à émettre dans un
 fichier de configuration.
 
 Cependant, nous étudions également l'ajout de **SIGUSR2** à la liste des signaux
 en attente de traitement directement à la fin de la méthode |forkit|.
 De cette manière, nous serions certains qu'il n'y a aucun délai entre la gestion
 des signaux **SIGCONT** et **SIGUSR2**, c'est-à-dire qu'il n'y a pas de temps
-mort pendant lequel le processus fils pourrait s'exécuter avec des *fd* 
+mort pendant lequel le processus fils pourrait s'exécuter avec des *fd*
 invalides.
 
 
 Ordre de traitement des signaux
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+===============================
 
 Les signaux *semblent* être appelés dans l'ordre décroissant de leur valeur.
 Ainsi **SIGUSR2** (12) est géré avant **SIGUSR1** (10).

@@ -5,10 +5,10 @@
 .. |forkit| replace:: *forkit()*
 
 Implémentation du |forkit| - Première version
-=============================================
+#############################################
 
 Principe
---------
+********
 
 Le principe de cette première version de l'appel système |forkit| est de copier
 et modifier le code source du |fork| afin qu'il permette de dupliquer un
@@ -16,13 +16,13 @@ processus autre que l'appelant.
 
 
 Modification du noyau - Partie 1
---------------------------------
+********************************
 
 Ajout des méthodes
-^^^^^^^^^^^^^^^^^^
+==================
 
-La méthode |forkit| agit exactement comme la méthode |fork|, mais remplace 
-toute utilisation de la macro  *current* par un paramètre indiquant la tâche à 
+La méthode |forkit| agit exactement comme la méthode |fork|, mais remplace
+toute utilisation de la macro  *current* par un paramètre indiquant la tâche à
 utiliser comme source.
 
 Ce travail est important en terme de quantité : quasiment toutes les fonctions
@@ -42,22 +42,22 @@ Pour ajouter la méthode |forkit| :
 
 #. on remplace toutes les occurrences de *current* par un argument
    *parent_process* dans chaque méthode de **forkit.c**.
-   Étant donné que nous sommes en C, nous ajoutons le suffixe *_2* à 
-   toutes les méthodes que l'on modifie. 
+   Étant donné que nous sommes en C, nous ajoutons le suffixe *_2* à
+   toutes les méthodes que l'on modifie.
 
-#. on supprime les variables globales et les méthodes non modifiées, sous peine 
+#. on supprime les variables globales et les méthodes non modifiées, sous peine
    d'avoir des erreurs de duplication lors de compilation.
-   
+
    **Attention**, ce nettoyage implique des modification du fichier **fork.c**
    (suppression du modifieur ``static``) afin de pouvoir accéder à toutes
    les variables et méthodes nécessaires à |forkit| :
-   
+
    #. on transforme les définitions de ces méthodes en déclarations externes
-   
+
    #. on transforme les définitions et déclarations de variables globales non
       statiques en déclarations externes.
-   
-   #. même chose pour les variables globales statiques, en ayant pris soin de 
+
+   #. même chose pour les variables globales statiques, en ayant pris soin de
       les rendre non statiques dans les fichiers où elles sont déclarées.
 
 
@@ -71,7 +71,7 @@ Pour ajouter la méthode |forkit| :
 
 
 Ajout de l'appel système
-^^^^^^^^^^^^^^^^^^^^^^^^
+========================
 
 Cette partie a été faite en suivant les instructions de [#add_syscall_1]_.
 Étant donné qu'il s'agit d'un test, seule l'architecture x86_64 est prise en
@@ -79,7 +79,7 @@ compte.
 
 
 #. on ajoute la déclaration du numéro d'appel système dans
-   **arch/x86/include/asm/unistd_64.h** : ::
+   **arch/x86/include/asm/unistd_64.h** :::
 
       #define __NR_forkit 300
       __SYSCALL(__NR_forkit, stub_forkit)
@@ -88,13 +88,13 @@ compte.
    comme il est indiqué *stub_fork*.
 
 
-#. on définit *sys_forkit* dans **arch/x86/include/asm/syscalls.h** : ::
+#. on définit *sys_forkit* dans **arch/x86/include/asm/syscalls.h** :::
 
       int sys_forkit(struct pt_regs *);
 
 
-#. on déclare la fonction *sys_forkit* dans le fichier 
-   **arch/x86/kernel/process.c** : ::
+#. on déclare la fonction *sys_forkit* dans le fichier
+   **arch/x86/kernel/process.c** :::
 
       // Définition du cœur de forkit
       extern long do_forkit(unsigned long clone_flags,
@@ -109,23 +109,25 @@ compte.
          return do_forkit(SIGCHLD, regs->sp, regs, 0, NULL, NULL);
       }
 
-#. on ajoute le fichier **forkit.c** au fichier **kernel/Makefile** : ::
+#. on ajoute le fichier **forkit.c** au fichier **kernel/Makefile** :::
 
       obj-y += forkit.o
 
 
 Modification du noyau - Partie 2
---------------------------------
+********************************
 
 Modification des conventions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+============================
 
-Après quelques lectures, nous avons pu apercevoir quelques particularité de 
+Après quelques lectures, nous avons pu apercevoir quelques particularité de
 l'appel système |fork|, notamment le fait de ne pas enregistrer l'appel dans
 le fichier **linux/syscalls.h** et de ne pas utiliser un nom standard,
 *stub_fork*, pour être déclaré dans **asm/unistd.h**.
 
 Nous avons donc modifié les fichiers comme suit :
+
+.. tabularcolumns:: |p{5cm}|p{1cm}|p{4cm}|p{5cm}|
 
 +--------------------------------------+-------+-------------------------------------+---------------------------------------------------+
 | Fichier                              | Ligne | Ancien                              | Nouveau                                           |
@@ -135,14 +137,14 @@ Nous avons donc modifié les fichiers comme suit :
 | include/ linux/ syscalls.h           | 830   | (inexistant)                        | // asmlinkage long sys_forkit(unsigned long pid); |
 +--------------------------------------+-------+-------------------------------------+---------------------------------------------------+
 
-La dernière modification prépare l'emplacement où devra être défini l'appel 
+La dernière modification prépare l'emplacement où devra être défini l'appel
 système lorsque son implémentation sera indépendante de la plateforme.
 De cette manière, il sera accessible depuis les fichiers d'en-tête du noyau et
 donc pour toutes les applications à compiler sur ce noyau.
 
 
 Ajout d'un paramètre à l'appel système
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+======================================
 
 Le but est de remplacer ``parent_process = current`` par un passage de paramètre
 à l'appel système.
@@ -181,6 +183,8 @@ fichier **forkit.c** en ajoutant le paramètre *pid* :
 
 Nous devons alors mettre à jour les autres fichiers :
 
+.. tabularcolumns:: |p{5cm}|p{1cm}|p{4cm}|p{5cm}|
+
 +-------------------------------------+-------+---------------------------------------+----------------------------------------------------------+
 | Fichier                             | Ligne | Ancien                                | Nouveau                                                  |
 +=====================================+=======+=======================================+==========================================================+
@@ -192,7 +196,7 @@ Nous devons alors mettre à jour les autres fichiers :
 .. _forkit-eval-1:
 
 Évaluation du résultat
-^^^^^^^^^^^^^^^^^^^^^^
+======================
 
 On utilise un programme appelant directement l'appel système *sys_forkit* pour
 tester le fonctionnement du programme.
@@ -204,9 +208,10 @@ un paramètre.
    :language: c
    :linenos:
 
+.. only:: not(latex)
 
-Référence
----------
-
+   Références
+   **********
+   
 .. [#add_syscall_1]  Ajouter un appel système au noyau 2.6 : `<http://courses.cs.vt.edu/~cs3204/spring2004/Projects/2/InstructionsToAddSystemCallToLinux_rev00.pdf>`_
 .. [#add_syscall_2]  Ajouter un appel système au noyau 2.6 : `<http://www.csee.umbc.edu/courses/undergraduate/CMSC421/fall02/burt/projects/howto_add_systemcall.html>`_

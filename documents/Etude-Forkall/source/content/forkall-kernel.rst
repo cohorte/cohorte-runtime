@@ -83,6 +83,8 @@ Clonage des threads
 Le clonage des threads utilise également la méthode *do_fork()*, mais en
 indiquant un certain nombre de drapeaux :
 
+.. tabularcolumns:: |p{4cm}|p{10cm}|
+
 +-------------------+---------------------------------------------------------+
 | Drapeau           | Description                                             |
 +===================+=========================================================+
@@ -206,25 +208,26 @@ entier.
 Plus d'informations sont disponibles ici : [#descr_tls]_.
 
 
-Rubrique "fourre tout"
-**********************
+Informations complémentaires
+****************************
 
-.. todo:: À trier / reformuler / ranger
-
-.. note:: Un des deux points suivants (ou les deux) a permis de ne plus tuer
-   le père quand le fils meurt après son démarrage.
-
-* Registre FS : extra data segment, apparemment indique la taille de la mémoire
+* Le registre FS : *extra data segment*, indique la taille de la mémoire
   valide accessible (en gros la taille des 2 pages de mémoire)
-  Registre uniquement présent sur 64 bits.
-  *Pourrait* correspondre à IP en 32 bits, qui n'est pas présent en 64 : à
-  vérifier en regardant du code 32 bits.
 
-  => Voir `<http://www.linux.it/~rubini/docs/ksys/ksys.html>`_, "why get_fs()"
+  Ce registre est physiquement présent sur les processeurs x86 64 bits et
+  correspond à une variable *par CPU* sur les autres architectures.
+  Cette variable *pourrait* correspondre au registre IP en 32 bits, qui n'est
+  pas présent en 64 bits : une étude approfondie de cette branche du noyau est
+  nécessaire pour valider cette assertion.
+
+  Pour plus d'informations, voir la page
+  `why get_fs() <http://www.linux.it/~rubini/docs/ksys/ksys.html>`_.
 
 
-* Traiter le cas des applications à interface graphique => arrêt du processus
-  fils par X
+* Dans le cas des applications graphiques, le serveur X tue l'application fille
+  car celle-ci utilise la même session que sa mère. Il semblerai que celà soit
+  une sécurité de X.
+
 
 Références
 **********
