@@ -8,7 +8,7 @@
  * Contributors:
  *    ogattaz (isandlaTech) - initial API and implementation
  *******************************************************************************/
-package org.psem2m.isolates.osgi;
+package org.psem2m.isolates.base;
 
 import org.osgi.framework.BundleContext;
 
@@ -16,13 +16,27 @@ import org.osgi.framework.BundleContext;
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
-public class Activator extends CActivatorBase implements IBundleIsolatesOsgi {
+public class CBundleBaseActivator extends CActivatorBase implements
+		IBundleBaseActivator {
+
+	/** first instance **/
+	private static IBundleBaseActivator sActivatorIsolatesBase = null;
+
+	/**
+	 * @return
+	 */
+	public static IBundleBaseActivator getInstance() {
+		return sActivatorIsolatesBase;
+	}
 
 	/**
 	 * Explicit default constructor
 	 */
-	public Activator() {
+	public CBundleBaseActivator() {
 		super();
+		if (sActivatorIsolatesBase == null) {
+			sActivatorIsolatesBase = this;
+		}
 	}
 
 	/*
@@ -43,28 +57,6 @@ public class Activator extends CActivatorBase implements IBundleIsolatesOsgi {
 	@Override
 	public String getBundleId() {
 		return getClass().getPackage().getName();
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.isolates.osgi.CPojoBase#getPojoId()
-	 */
-	@Override
-	public String getPojoId() {
-		return "isolates-osgi-bundle";
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.isolates.osgi.CPojoBase#invalidatePojo()
-	 */
-	@Override
-	public void invalidatePojo() {
-		// logs in the bundle output
-		this.logInfo(this, null, "INVALIDATE", toDescription());
-		// ...
 	}
 
 	/*
@@ -92,15 +84,4 @@ public class Activator extends CActivatorBase implements IBundleIsolatesOsgi {
 		// ...
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.isolates.osgi.CPojoBase#validatePojo()
-	 */
-	@Override
-	public void validatePojo() {
-		// logs in the bundle output
-		this.logInfo(this, null, "VALIDATE", toDescription());
-		// ...
-	}
 }

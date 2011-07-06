@@ -64,8 +64,8 @@ public class CTracerServiceImpl extends CPojoBase implements ITracerService {
 	@Override
 	public void invalidatePojo() {
 		// logs in the bundle output
-		pBundleTracerLoggerService.logInfo(this, "invalidatePojo", "INVALIDATE",
-				toDescription());
+		pBundleTracerLoggerService.logInfo(this, "invalidatePojo",
+				"INVALIDATE", toDescription());
 	}
 
 	/*
@@ -81,7 +81,7 @@ public class CTracerServiceImpl extends CPojoBase implements ITracerService {
 
 		List<String> wIds = pLogChannelsService.getChannelsIds();
 
-		pBundleTracerLoggerService.logInfo(this, null, "getChannelsIds=[%s",
+		pBundleTracerLoggerService.logInfo(this, null, "getChannelsIds=[%s]",
 				CXStringUtils.stringListToString(wIds));
 	}
 }

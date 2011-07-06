@@ -8,25 +8,14 @@
  * Contributors:
  *    ogattaz (isandlaTech) - initial API and implementation
  *******************************************************************************/
-package org.psem2m.isolates.osgi;
+package org.psem2m.isolates.tracer;
+
+import org.psem2m.utilities.logging.IActivityLoggerBase;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
-public interface IPojoBase {
-	/**
-	 * @return the id of the bundle
-	 */
-	public String getPojoId();
+public interface IBundleTracerLoggerService extends IActivityLoggerBase {
 
-	/**
-	 * @throws Exception
-	 */
-	public void invalidatePojo();
-
-	/**
-	 * @throws Exception
-	 */
-	public void validatePojo();
 }

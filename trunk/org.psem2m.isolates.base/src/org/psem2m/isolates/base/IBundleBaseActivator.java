@@ -8,14 +8,15 @@
  * Contributors:
  *    ogattaz (isandlaTech) - initial API and implementation
  *******************************************************************************/
-package org.psem2m.isolates.osgi;
+package org.psem2m.isolates.base;
 
-import org.psem2m.utilities.logging.IActivityLogger;
+import org.psem2m.utilities.logging.IActivityLoggerBase;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
-public interface IBundleLoggerService extends IActivityLogger {
+public interface IBundleBaseActivator extends IActivatorBase,
+		IActivityLoggerBase {
 
 }

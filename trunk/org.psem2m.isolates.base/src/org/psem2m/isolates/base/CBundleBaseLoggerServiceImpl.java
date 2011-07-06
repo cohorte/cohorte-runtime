@@ -8,27 +8,38 @@
  * Contributors:
  *    ogattaz (isandlaTech) - initial API and implementation
  *******************************************************************************/
-package org.psem2m.isolates.osgi;
-
-import org.osgi.service.log.LogEntry;
-import org.osgi.service.log.LogListener;
+package org.psem2m.isolates.base;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
-public class CIsolateLoggerListener implements LogListener {
+public class CBundleBaseLoggerServiceImpl extends CBundleLoggerBase implements
+		IBundleBaseLoggerService {
 
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see
-	 * org.osgi.service.log.LogListener#logged(org.osgi.service.log.LogEntry)
+	 * @see org.psem2m.isolates.base.CPojoBase#invalidatePojo()
 	 */
 	@Override
-	public void logged(final LogEntry entry) {
-		// Invoked by the log service implementation for each log entry
-		System.out.println(entry.getMessage());
+	public void invalidatePojo() {
+		// logs in the bundle output
+		logInfo(this, "invalidatePojo", "INVALIDATE", toDescription());
+
+		setActivityLoggerBase(null);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.isolates.base.CPojoBase#validatePojo()
+	 */
+	@Override
+	public void validatePojo() {
+		setActivityLoggerBase(CBundleBaseActivator.getInstance());
+
+		// logs in the bundle output
+		logInfo(this, "validatePojo", "VALIDATE", toDescription());
+	}
 }
