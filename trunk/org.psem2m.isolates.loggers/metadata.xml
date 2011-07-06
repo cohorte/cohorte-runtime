@@ -3,23 +3,27 @@
 	xsi:schemaLocation="org.apache.felix.ipojo http://felix.apache.org/ipojo/schemas/CURRENT/core.xsd"
 	xmlns="org.apache.felix.ipojo" xmlns:jmx="org.apache.felix.ipojo.handlers.jmx">
 
-	<component classname="org.psem2m.isolates.tracer.CBundleTracerLoggerServiceImpl"
-		architecture="true" immediate="true" name="isolates-tracer-bundle-logger">
+
+	<component classname="org.psem2m.isolates.loggers.CBundleLoggersLoggerServiceImpl"
+		architecture="true" immediate="true" name="isolates-loggers-bundle-logger">
 		<provides />
 		
 		<callback transition="validate" method="validatePojo"/>
 		<callback transition="invalidate" method="invalidatePojo"/>
 	</component>
-	<instance component="isolates-tracer-bundle-logger"   />
+	<instance component="isolates-loggers-bundle-logger"   />
 	
-	<component classname="org.psem2m.isolates.tracer.CTracerServiceImpl"
-		architecture="true" immediate="true" name="isolates-tracer-tracer">
+	
+	<component classname="org.psem2m.isolates.loggers.CLogChannelsServiceImpl"
+		architecture="true" immediate="true" name="isolates-loggers-channels">
 		<provides />
-		<requires field="pBundleTracerLoggerService" optional="false" />
-		<requires field="pLogChannelsService" optional="false" />
+		
+		<requires field="pBundleLoggersLoggerService" optional="false" />
+		<requires field="pPlatformDirsService" optional="false" />
 		
 		<callback transition="validate" method="validatePojo"/>
 		<callback transition="invalidate" method="invalidatePojo"/>
 	</component>
-	<instance component="isolates-tracer-tracer"   />
+	<instance component="isolates-loggers-channels"   />
+	
 </ipojo>

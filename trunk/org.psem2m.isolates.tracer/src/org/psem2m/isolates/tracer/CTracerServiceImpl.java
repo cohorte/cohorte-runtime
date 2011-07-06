@@ -10,25 +10,29 @@
  *******************************************************************************/
 package org.psem2m.isolates.tracer;
 
-import org.psem2m.isolates.osgi.CPojoBase;
-import org.psem2m.isolates.osgi.IIsolateLoggerService;
+import java.util.List;
+
+import org.apache.felix.ipojo.Pojo;
+import org.psem2m.isolates.base.CPojoBase;
+import org.psem2m.isolates.loggers.ILogChannelsService;
+import org.psem2m.utilities.CXStringUtils;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
-public class CTracerImpl extends CPojoBase implements ITracerService {
+public class CTracerServiceImpl extends CPojoBase implements ITracerService {
 
-	/** LogService reference managed by iPojo (see metadata.xml) **/
-	private IBundleIsolatesTracer pBundleIsolatesTracer;
+	/** Service reference managed by iPojo (see metadata.xml) **/
+	private IBundleTracerLoggerService pBundleTracerLoggerService;
 
-	/** LogService reference managed by iPojo (see metadata.xml) **/
-	private IIsolateLoggerService pIsolateLoggerService;
+	/** Service reference managed by iPojo (see metadata.xml) **/
+	private ILogChannelsService pLogChannelsService;
 
 	/**
 	 * Explicite default constructor
 	 */
-	public CTracerImpl() {
+	public CTracerServiceImpl() {
 		super();
 	}
 
@@ -49,7 +53,7 @@ public class CTracerImpl extends CPojoBase implements ITracerService {
 	 */
 	@Override
 	public String getPojoId() {
-		return "isolates-tracer-tracer";
+		return ((Pojo) this).getComponentInstance().getInstanceName();
 	}
 
 	/*
@@ -60,8 +64,8 @@ public class CTracerImpl extends CPojoBase implements ITracerService {
 	@Override
 	public void invalidatePojo() {
 		// logs in the bundle output
-		pBundleIsolatesTracer
-				.logInfo(this, null, "INVALIDATE", toDescription());
+		pBundleTracerLoggerService.logInfo(this, "invalidatePojo", "INVALIDATE",
+				toDescription());
 	}
 
 	/*
@@ -72,8 +76,12 @@ public class CTracerImpl extends CPojoBase implements ITracerService {
 	@Override
 	public void validatePojo() {
 		// logs in the bundle output
-		pBundleIsolatesTracer.logInfo(this, null, "VALIDATE", toDescription());
+		pBundleTracerLoggerService.logInfo(this, "validatePojo", "VALIDATE",
+				toDescription());
 
+		List<String> wIds = pLogChannelsService.getChannelsIds();
+
+		pBundleTracerLoggerService.logInfo(this, null, "getChannelsIds=[%s",
+				CXStringUtils.stringListToString(wIds));
 	}
-
 }

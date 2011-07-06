@@ -11,23 +11,33 @@
 package org.psem2m.isolates.tracer;
 
 import org.osgi.framework.BundleContext;
-import org.psem2m.isolates.osgi.CActivatorBase;
-import org.psem2m.isolates.osgi.IIsolateLoggerService;
+import org.psem2m.isolates.base.CActivatorBase;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
-public class Activator extends CActivatorBase implements IBundleIsolatesTracer {
+public class CBundleTracerActivator extends CActivatorBase implements
+		IBundleTracerActivator {
 
-	/** LogService reference managed by iPojo (see metadata.xml) **/
-	private IIsolateLoggerService pIsolateLoggerService;
+	/** first instance **/
+	private static IBundleTracerActivator sBundleTracerActivator = null;
+
+	/**
+	 * @return
+	 */
+	public static IBundleTracerActivator getInstance() {
+		return sBundleTracerActivator;
+	}
 
 	/**
 	 * Explicit default constructor
 	 */
-	public Activator() {
+	public CBundleTracerActivator() {
 		super();
+		if (sBundleTracerActivator == null) {
+			sBundleTracerActivator = this;
+		}
 	}
 
 	/*
@@ -47,31 +57,8 @@ public class Activator extends CActivatorBase implements IBundleIsolatesTracer {
 	 */
 	@Override
 	public String getBundleId() {
-		return Activator.class.getPackage().getName();
+		return CBundleTracerActivator.class.getPackage().getName();
 
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.isolates.osgi.CPojoBase#getPojoId()
-	 */
-	@Override
-	public String getPojoId() {
-		return "isolates-tracer-bundle";
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.isolates.osgi.CPojoBase#invalidatePojo()
-	 */
-	@Override
-	public void invalidatePojo() {
-		// logs in the bundle output
-		this.logInfo(this, null, "INVALIDATE", toDescription());
-
-		// ...
 	}
 
 	/*
@@ -96,18 +83,6 @@ public class Activator extends CActivatorBase implements IBundleIsolatesTracer {
 	@Override
 	public void stop(final BundleContext bundleContext) throws Exception {
 		super.stop(bundleContext);
-		// ...
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.isolates.osgi.CPojoBase#validatePojo()
-	 */
-	@Override
-	public void validatePojo() {
-		// logs in the bundle output
-		this.logInfo(this, null, "VALIDATE", toDescription());
 		// ...
 	}
 }

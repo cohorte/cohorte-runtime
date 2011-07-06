@@ -10,14 +10,14 @@
  *******************************************************************************/
 package org.psem2m.isolates.tracer;
 
-import org.psem2m.isolates.osgi.IActivatorBase;
+import org.psem2m.isolates.base.IActivatorBase;
 import org.psem2m.utilities.logging.IActivityLoggerBase;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
-public interface IBundleIsolatesTracer extends IActivatorBase,
+public interface IBundleTracerActivator extends IActivatorBase,
 		IActivityLoggerBase {
 
 }

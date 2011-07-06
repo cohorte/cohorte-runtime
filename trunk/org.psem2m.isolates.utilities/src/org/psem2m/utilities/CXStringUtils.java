@@ -10,6 +10,8 @@
  *******************************************************************************/
 package org.psem2m.utilities;
 
+import java.util.List;
+
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
@@ -502,6 +504,37 @@ public class CXStringUtils implements IConstants {
 	}
 
 	/**
+	 * @param aStringList
+	 * @return
+	 */
+	public static String stringListToString(final List<String> aStringList) {
+		return stringListToString(aStringList, ",");
+
+	}
+
+	/**
+	 * @param strings
+	 * @param sep
+	 * @return
+	 */
+	public static String stringListToString(final List<String> aStringList,
+			final String aSeparator) {
+		if (aStringList == null || aStringList.size() == 0) {
+			return EMPTY;
+		}
+		StringBuilder wSB = new StringBuilder(256);
+		int wI = 0;
+		for (String wStr : aStringList) {
+			if (wI > 0) {
+				wSB.append(aSeparator);
+			}
+			wSB.append(wStr);
+			wI++;
+		}
+		return wSB.toString();
+	}
+
+	/**
 	 * @param aValues
 	 * @return
 	 */
@@ -516,15 +549,16 @@ public class CXStringUtils implements IConstants {
 	 */
 	public static String stringTableToString(final String[] aValues,
 			final String aSeparator) {
+		if (aValues == null || aValues.length == 0) {
+			return EMPTY;
+		}
 		StringBuilder wSB = new StringBuilder(256);
-		if (aValues != null) {
-			int wMax = aValues.length;
-			for (int wI = 0; wI < wMax; wI++) {
-				if (wI > 0) {
-					wSB.append(aSeparator);
-				}
-				wSB.append(aValues[wI]);
+		int wMax = aValues.length;
+		for (int wI = 0; wI < wMax; wI++) {
+			if (wI > 0) {
+				wSB.append(aSeparator);
 			}
+			wSB.append(aValues[wI]);
 		}
 		return wSB.toString();
 	}

@@ -1,60 +1,40 @@
 Manifest-Version: 1.0
-Bundle-Activator: org.psem2m.isolates.tracer.Activator
+Bundle-Activator: org.psem2m.isolates.tracer.CBundleTracerActivator
 Bundle-ManifestVersion: 2
 Bundle-Name: Tracer
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: org.psem2m.isolates.tracer
+Bundle-Vendor: isandlaTech (www.isandlatech.com)
 Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
 Export-Package: org.psem2m.isolates.tracer,org.psem2m.isolates.tracer.
  impl;uses:="org.psem2m.tracer"
-Import-Package: org.psem2m.isolates.osgi, org.osgi.service.log;version
- =1.3, org.apache.felix.ipojo.architecture;version=1.8.0, org.apache.f
- elix.ipojo;version=1.8.0, org.osgi.framework;version=1.3.0, org.psem2
- m.utilities.logging, org.osgi.service.cm;version=1.2, org.psem2m.util
- ities
+Import-Package: org.osgi.service.log;version=1.3, org.psem2m.isolates.
+ base, org.psem2m.isolates.loggers, org.apache.felix.ipojo.architectur
+ e;version=1.8.0, org.apache.felix.ipojo;version=1.8.0, org.osgi.frame
+ work;version=1.3.0, org.psem2m.utilities.logging, org.osgi.service.cm
+ ;version=1.2, org.psem2m.utilities
 iPOJO-Components: component { $immediate="true" $name="isolates-tracer
- -bundle" $classname="org.psem2m.isolates.tracer.Activator" $architect
- ure="true" callback { $transition="validate" $method="validatePojo" }
- callback { $transition="invalidate" $method="invalidatePojo" }provide
- s { }manipulation { $super="org.psem2m.isolates.osgi.CActivatorBase" 
- field { $name="pIsolateLoggerService" $type="org.psem2m.isolates.osgi
- .IIsolateLoggerService" }method { $name="$init" }method { $name="dest
- roy" }method { $name="getBundleId" $return="java.lang.String" }method
-  { $name="getPojoId" $return="java.lang.String" }method { $name="inva
- lidatePojo" }method { $arguments="{org.osgi.framework.BundleContext}"
-  $name="start" }method { $arguments="{org.osgi.framework.BundleContex
- t}" $name="stop" }method { $name="validatePojo" }interface { $name="o
- rg.psem2m.isolates.tracer.IBundleIsolatesTracer" }}requires { $field=
- "pIsolateLoggerService" $optional="false" }}component { $immediate="t
- rue" $name="isolates-tracer-bundle-logger" $classname="org.psem2m.iso
- lates.tracer.CBundleLoggerImpl" $architecture="true" callback { $tran
- sition="validate" $method="validatePojo" }callback { $transition="inv
- alidate" $method="invalidatePojo" }provides { }manipulation { $super=
- "org.psem2m.isolates.osgi.CBundleLoggerBase" field { $name="pPlatform
- DirsService" $type="org.psem2m.isolates.osgi.IPlatformDirsService" }f
- ield { $name="pBundleIsolatesTracer" $type="org.psem2m.isolates.trace
- r.IBundleIsolatesTracer" }method { $name="getInstance" $return="org.p
- sem2m.isolates.tracer.CBundleLoggerImpl" }method { $name="$init" }met
- hod { $name="destroy" }method { $name="getBundleId" $return="java.lan
- g.String" }method { $name="getPojoId" $return="java.lang.String" }met
- hod { $name="invalidatePojo" }method { $name="validatePojo" }interfac
- e { $name="org.psem2m.isolates.osgi.IBundleLoggerService" }}requires 
- { $field="pBundleIsolatesTracer" $optional="false" }requires { $field
- ="pPlatformDirsService" $optional="false" }}component { $immediate="t
- rue" $name="isolates-tracer-tracer" $classname="org.psem2m.isolates.t
- racer.CTracerImpl" $architecture="true" callback { $transition="valid
- ate" $method="validatePojo" }callback { $transition="invalidate" $met
- hod="invalidatePojo" }provides { }manipulation { $super="org.psem2m.i
- solates.osgi.CPojoBase" field { $name="pIsolateLoggerService" $type="
- org.psem2m.isolates.osgi.IIsolateLoggerService" }field { $name="pBund
- leIsolatesTracer" $type="org.psem2m.isolates.tracer.IBundleIsolatesTr
- acer" }method { $name="$init" }method { $name="destroy" }method { $na
- me="getPojoId" $return="java.lang.String" }method { $name="invalidate
- Pojo" }method { $name="validatePojo" }interface { $name="org.psem2m.i
- solates.tracer.ITracerService" }}requires { $field="pBundleIsolatesTr
- acer" $optional="false" }requires { $field="pIsolateLoggerService" $o
- ptional="false" }}instance { $component="isolates-tracer-bundle" }ins
- tance { $component="isolates-tracer-bundle-logger" }instance { $compo
- nent="isolates-tracer-tracer" }
+ -bundle-logger" $classname="org.psem2m.isolates.tracer.CBundleTracerL
+ oggerServiceImpl" $architecture="true" callback { $transition="valida
+ te" $method="validatePojo" }callback { $transition="invalidate" $meth
+ od="invalidatePojo" }provides { }manipulation { $super="org.psem2m.is
+ olates.base.CBundleLoggerBase" method { $name="$init" }method { $name
+ ="invalidatePojo" }method { $name="validatePojo" }interface { $name="
+ org.psem2m.isolates.tracer.IBundleTracerLoggerService" }}}component {
+  $immediate="true" $name="isolates-tracer-tracer" $classname="org.pse
+ m2m.isolates.tracer.CTracerServiceImpl" $architecture="true" callback
+  { $transition="validate" $method="validatePojo" }callback { $transit
+ ion="invalidate" $method="invalidatePojo" }provides { }manipulation {
+  $super="org.psem2m.isolates.base.CPojoBase" field { $name="pBundleTr
+ acerLoggerService" $type="org.psem2m.isolates.tracer.IBundleTracerLog
+ gerService" }field { $name="pLogChannelsService" $type="org.psem2m.is
+ olates.loggers.ILogChannelsService" }method { $name="$init" }method {
+  $name="destroy" }method { $name="getPojoId" $return="java.lang.Strin
+ g" }method { $name="invalidatePojo" }method { $name="validatePojo" }i
+ nterface { $name="org.psem2m.isolates.tracer.ITracerService" }}requir
+ es { $field="pBundleTracerLoggerService" $optional="false" }requires 
+ { $field="pLogChannelsService" $optional="false" }}instance { $compon
+ ent="isolates-tracer-bundle-logger" }instance { $component="isolates-
+ tracer-tracer" }
 

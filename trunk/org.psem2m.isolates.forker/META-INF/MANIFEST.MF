@@ -16,5 +16,16 @@ Import-Package: org.osgi.service.log;version=1.3, org.psem2m.isolates.
  , org.psem2m.isolates.commons;version=1.0.0, org.psem2m.utilities
 iPOJO-Components: component { $immediate="true" $name="isolate-forker"
   $classname="org.psem2m.isolates.forker.impl.Forker" $architecture="t
- rue" provides { }}instance { $component="isolate-forker" }
+ rue" provides { }manipulation { field { $name="pPlatformConfiguration
+ " $type="org.psem2m.isolates.commons.IPlatformConfiguration" }field {
+  $name="pRunningIsolates" $type="java.util.Map" }method { $name="$ini
+ t" }method { $arguments="{java.lang.String}" $name="ping" $return="or
+ g.psem2m.isolates.commons.forker.IForker$EProcessState" }method { $ar
+ guments="{org.psem2m.isolates.commons.IPlatformConfiguration}" $name=
+ "setConfiguration" }method { $arguments="{org.psem2m.isolates.commons
+ .IIsolateConfiguration}" $name="startIsolate" }method { $arguments="{
+ java.lang.String}" $name="stopIsolate" }method { $name="$SWITCH_TABLE
+ $org$psem2m$isolates$commons$IIsolateConfiguration$IsolateKind" $retu
+ rn="int[]" }interface { $name="org.psem2m.isolates.commons.forker.IFo
+ rker" }}}instance { $component="isolate-forker" }
 

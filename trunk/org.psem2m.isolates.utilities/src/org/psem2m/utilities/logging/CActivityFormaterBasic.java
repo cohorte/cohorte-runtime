@@ -108,7 +108,7 @@ public class CActivityFormaterBasic extends CActivityFormater {
 	 * @return
 	 */
 	private String formatWhat(final String aMethod) {
-		return CXStringUtils.strAdjustLeft(
+		return CXStringUtils.strAdjustRight(
 				aMethod.replace(SEP_COLUMN, REPLACE_COLUMN), LENGTH_WHAT, ' ');
 
 	}
@@ -118,7 +118,7 @@ public class CActivityFormaterBasic extends CActivityFormater {
 	 * @return
 	 */
 	private String formatWho(final String aWho) {
-		return CXStringUtils.strAdjustLeft(
+		return CXStringUtils.strAdjustRight(
 				aWho.replace(SEP_COLUMN, REPLACE_COLUMN), LENGTH_WHO, ' ');
 
 	}
