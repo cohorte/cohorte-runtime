@@ -98,6 +98,7 @@ public class Forker implements IForker {
 
 	case FELIX:
 	    isolateRunner = new CIsolateRunner();
+	    break;
 
 	default:
 	    throw new UnsupportedOperationException("Unknown runner : "

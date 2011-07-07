@@ -5,7 +5,6 @@
  */
 package org.psem2m.isolates.forker.impl.runners;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
@@ -136,6 +135,8 @@ public class CIsolateRunner extends JavaRunner {
 		URL bundleUrl = bundleRef.getUri().toURL();
 		bundleURLs.add(bundleUrl);
 
+		System.out.println("Add bundle : " + bundleUrl);
+
 	    } catch (MalformedURLException e) {
 		e.printStackTrace();
 	    }
@@ -177,16 +178,16 @@ public class CIsolateRunner extends JavaRunner {
 	javaOptions.addAll(prepareClasspathArgument(kind));
 
 	// Find the bootstrap JAR file
-	URL bootstrapLocation = Utilities
-		.findClassJar(IBootstrapConstants.class);
-	File bootstrapFile = new File(bootstrapLocation.toURI());
+	IBundleRef bootstrapRef = Utilities.findBundle(
+		getPlatformConfiguration(), BOOTSTRAP_NAMES);
 
 	// Prepare its arguments
 	List<String> bootstrapArguments = prepareBootstrapArguments(kind);
 
 	// Run the file
-	IProcessRef processRef = runJavaJar(bootstrapFile, javaOptions,
-		bootstrapArguments, aIsolateConfiguration.getEnvironment(),
+	IProcessRef processRef = runJavaJar(bootstrapRef.getFile(),
+		javaOptions, bootstrapArguments,
+		aIsolateConfiguration.getEnvironment(),
 		createWorkingDirectory(aIsolateConfiguration.getId()));
 
 	// Writes the bundles configuration to the process

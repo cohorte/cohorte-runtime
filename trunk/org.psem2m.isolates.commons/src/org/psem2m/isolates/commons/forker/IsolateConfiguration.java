@@ -79,6 +79,7 @@ public class IsolateConfiguration implements IIsolateConfiguration {
 	pArguments = aArguments;
 	pBundles = aBundles;
 	pIsolateId = aIsolateId;
+	pKind = aKind;
 	pEnvironment = new TreeMap<String, String>();
     }
 

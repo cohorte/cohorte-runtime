@@ -74,6 +74,8 @@ public class Utilities {
 		// Do nothing, we're determining the kind of element
 	    } catch (URISyntaxException e) {
 		// Do nothing, we're determining the kind of element
+	    } catch (IllegalArgumentException e) {
+		// Do nothing, the URI is not absolute
 	    }
 	}
 

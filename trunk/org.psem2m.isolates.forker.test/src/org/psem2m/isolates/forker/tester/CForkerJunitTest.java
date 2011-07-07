@@ -34,9 +34,9 @@ public class CForkerJunitTest extends CQualityTestBase {
 	logMethodName(this, "testFelixFork");
 
 	pForkerTester.execLine(CForkerTester.FORK_FELIX_COMMAND + " "
-		+ "/home/tcalmant/test/org.apache.felix.shell-1.4.2.jar "
-		+ "/home/tcalmant/test/org.apache.felix.shell.tui-1.4.1.jar "
-		+ "/home/tcalmant/org.apache.felix.shell.remote-1.1.2.jar ");
+		+ "org.apache.felix.shell-1.4.2.jar "
+		+ "org.apache.felix.shell.tui-1.4.1.jar "
+		+ "org.apache.felix.shell.remote-1.1.2.jar ");
     }
 
     /**
