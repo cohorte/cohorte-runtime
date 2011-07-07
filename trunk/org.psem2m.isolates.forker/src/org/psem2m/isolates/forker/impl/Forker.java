@@ -14,7 +14,7 @@ import org.psem2m.isolates.commons.forker.IForker;
 import org.psem2m.isolates.forker.Activator;
 import org.psem2m.isolates.forker.IIsolateRunner;
 import org.psem2m.isolates.forker.IProcessRef;
-import org.psem2m.isolates.forker.impl.runners.FelixRunner;
+import org.psem2m.isolates.forker.impl.runners.CIsolateRunner;
 import org.psem2m.isolates.forker.impl.runners.JavaRunner;
 
 /**
@@ -97,7 +97,7 @@ public class Forker implements IForker {
 	    break;
 
 	case FELIX:
-	    isolateRunner = new FelixRunner();
+	    isolateRunner = new CIsolateRunner();
 
 	default:
 	    throw new UnsupportedOperationException("Unknown runner : "

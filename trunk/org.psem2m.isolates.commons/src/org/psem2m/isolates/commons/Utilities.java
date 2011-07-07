@@ -82,6 +82,19 @@ public class Utilities {
     }
 
     /**
+     * The retrieves the URL of the Jar file containing the given class
+     * 
+     * @param aClass
+     *            Class to look for
+     * @return The Jar file containing the class
+     */
+    public static URL findClassJar(final Class<?> aClass) {
+
+	return aClass.getResource('/' + aClass.getName().replace('.', '/')
+		+ ".class");
+    }
+
+    /**
      * Objects joining operation, using the {@link String#valueOf(Object)}
      * method.
      * 

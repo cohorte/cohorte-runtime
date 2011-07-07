@@ -13,7 +13,6 @@ import java.util.Map;
 
 import org.psem2m.isolates.forker.IProcessRef;
 import org.psem2m.isolates.forker.IProcessRunner;
-import org.psem2m.isolates.forker.ProcessRef;
 
 /**
  * @author Thomas Calmant
@@ -63,7 +62,7 @@ public class ProcessBuilderRunner implements IProcessRunner {
 	    builder.environment().putAll(aEnvironment);
 	}
 
-	builder.start();
-	return new ProcessRef(-1);
+	Process javaRuntimeProcess = builder.start();
+	return new ProcessRef(-1, javaRuntimeProcess);
     }
 }

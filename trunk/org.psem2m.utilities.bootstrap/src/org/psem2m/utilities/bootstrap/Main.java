@@ -31,20 +31,11 @@ import java.util.TreeMap;
  */
 public class Main {
 
-    /** Help command */
-    public static final String HELP_COMMAND = "--help";
-
     /** Ignored characters for normalization. Order matters ! */
     public static final String[] IGNORED_CHARACTERS = { "--", "-D", "-" };
 
-    /** Read lines from input */
-    public static final String READ_LINES_COMMAND = "--read-input-lines";
-
     /** Test command (writes a serialized URL array in a file) */
     public static final String TEST_COMMAND = "--test";
-
-    /** Read array object from input */
-    public static final String UNSERIALIZE_COMMAND = "--unserialize-input";
 
     /**
      * Bootstrap entry point
@@ -196,11 +187,11 @@ public class Main {
 
 	StringBuilder builder = new StringBuilder();
 	builder.append("\nPSEM2M Bootstrap Options :\n");
-	builder.append("\t" + HELP_COMMAND + " : Prints this help\n");
-	builder.append("\t" + READ_LINES_COMMAND
+	builder.append("\t" + IBootstrapConstants.HELP_COMMAND + " : Prints this help\n");
+	builder.append("\t" + IBootstrapConstants.READ_LINES_COMMAND
 		+ " : Read extra data from the standard input, line by line\n");
 	builder.append("\t"
-		+ UNSERIALIZE_COMMAND
+		+ IBootstrapConstants.UNSERIALIZE_COMMAND
 		+ " : un-serialize a java.net.URL array from the standard input.\n");
 
 	System.out.println(builder);
@@ -261,14 +252,14 @@ public class Main {
 	    // Test the action
 	    final String action = aProgramArguments[0].toLowerCase();
 
-	    if (action.equalsIgnoreCase(READ_LINES_COMMAND)) {
+	    if (action.equalsIgnoreCase(IBootstrapConstants.READ_LINES_COMMAND)) {
 		final String[] extraConfiguration = readConfigurationLines(System.in);
 		bundlesConfiguration = stringsToURLs(extraConfiguration);
 
-	    } else if (action.equalsIgnoreCase(UNSERIALIZE_COMMAND)) {
+	    } else if (action.equalsIgnoreCase(IBootstrapConstants.UNSERIALIZE_COMMAND)) {
 		bundlesConfiguration = readSerializedConfiguration(System.in);
 
-	    } else if (action.equalsIgnoreCase(HELP_COMMAND)) {
+	    } else if (action.equalsIgnoreCase(IBootstrapConstants.HELP_COMMAND)) {
 		// Help
 		printHelp();
 		return null;

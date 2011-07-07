@@ -53,9 +53,11 @@ public class JavaRunner extends AbstractRunner {
      * 
      * @param aJarFile
      *            Jar file to execute
-     * @param aList
+     * @param aJavaOptions
+     *            JVM options, added before "-jar"
+     * @param aJarArguments
      *            Additional Arguments
-     * @param aMap
+     * @param aEnvironment
      *            Process environment
      * @param aWorkingDirectory
      *            Process working directory
@@ -64,17 +66,25 @@ public class JavaRunner extends AbstractRunner {
      *             An error occurred while trying to run Java
      */
     public IProcessRef runJavaJar(final File aJarFile,
-	    final List<String> aList, final Map<String, String> aMap,
-	    final File aWorkingDirectory) throws IOException {
+	    final List<String> aJavaOptions, final List<String> aJarArguments,
+	    final Map<String, String> aEnvironment, final File aWorkingDirectory)
+	    throws IOException {
 
 	// Prepare the Java interpreter JAR indication
 	List<String> arguments = new ArrayList<String>();
+
+	// JVM options
+	if (aJavaOptions != null) {
+	    arguments.addAll(aJavaOptions);
+	}
+
+	// Jar file
 	arguments.add("-jar");
 	arguments.add(aJarFile.getAbsolutePath());
 
-	// Append JAR arguments
-	if (aList != null) {
-	    for (String jarArgument : aList) {
+	// Append JAR program arguments
+	if (aJarArguments != null) {
+	    for (String jarArgument : aJarArguments) {
 		arguments.add(jarArgument);
 	    }
 	}
@@ -82,7 +92,8 @@ public class JavaRunner extends AbstractRunner {
 	// Run it
 	IProcessRunner runner = getProcessRunner();
 	return runner.runProcess(pJavaExecutable,
-		arguments.toArray(new String[0]), aMap, aWorkingDirectory);
+		arguments.toArray(new String[0]), aEnvironment,
+		aWorkingDirectory);
     }
 
     /*

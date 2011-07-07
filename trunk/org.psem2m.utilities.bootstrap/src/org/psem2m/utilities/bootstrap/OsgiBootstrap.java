@@ -24,10 +24,6 @@ import org.osgi.framework.launch.FrameworkFactory;
  */
 public class OsgiBootstrap {
 
-    /** Framework configuration key */
-    public static final String CONFIG_FRAMEWORK = IBootstrapConstants.PROPERTY_PREFIX
-	    + "osgi.framework";
-
     /** Default OSGi pFramework : Felix */
     public static final String DEFAULT_FRAMEWORK = "org.apache.felix.framework.FrameworkFactory";
 
@@ -42,7 +38,7 @@ public class OsgiBootstrap {
 
     static {
 	// Initialize the static map
-	FRAMEWORK_FACTORIES.put("eclipse",
+	FRAMEWORK_FACTORIES.put("equinox",
 		"org.eclipse.osgi.launch.EquinoxFactory");
 	FRAMEWORK_FACTORIES.put("felix",
 		"org.apache.felix.framework.FrameworkFactory");
@@ -119,7 +115,8 @@ public class OsgiBootstrap {
      */
     protected FrameworkFactory getFrameworkFactory() {
 
-	String osgiFramework = pBootstrapConfiguration.get(CONFIG_FRAMEWORK);
+	String osgiFramework = pBootstrapConfiguration
+		.get(IBootstrapConstants.CONFIG_FRAMEWORK);
 	if (osgiFramework == null) {
 	    osgiFramework = DEFAULT_FRAMEWORK;
 	}

@@ -99,7 +99,7 @@ public abstract class AbstractOSGiRunner extends JavaRunner {
 	prepareProfile(workingDirectory);
 
 	// Run it
-	IProcessRef result = runJavaJar(frameworkFile, getArguments(),
+	IProcessRef result = runJavaJar(frameworkFile, null, getArguments(),
 		getEnvironment(), workingDirectory);
 
 	return result;
