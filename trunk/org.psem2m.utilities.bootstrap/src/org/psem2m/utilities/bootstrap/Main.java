@@ -7,8 +7,13 @@ package org.psem2m.utilities.bootstrap;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -38,6 +43,9 @@ public class Main {
     /** Read lines from input */
     public static final String READ_LINES_COMMAND = "--read-input-lines";
 
+    /** Test command (writes a serialized URL array in a file) */
+    public static final String TEST_COMMAND = "--test";
+
     /** Read array object from input */
     public static final String UNSERIALIZE_COMMAND = "--unserialize-input";
 
@@ -49,8 +57,44 @@ public class Main {
      */
     public static void main(final String[] aArgs) {
 
+	if (aArgs[0].equalsIgnoreCase(TEST_COMMAND)) {
+	    writeSerializationTest("./test.dat");
+	    return;
+	}
+
 	Main program = new Main();
 	program.run(aArgs);
+    }
+
+    /**
+     * Writes a serialized sample file
+     * 
+     * @param aFileName
+     *            Output file name
+     */
+    protected static void writeSerializationTest(final String aFileName) {
+
+	try {
+	    URL[] urls = new URL[] {
+		    new File(
+			    "../../platforms/felix/org.apache.felix.shell-1.4.2.jar")
+			    .toURI().toURL(),
+		    new File(
+			    "../../platforms/felix/org.apache.felix.shell.tui-1.4.1.jar")
+			    .toURI().toURL() };
+
+	    ObjectOutputStream oos = new ObjectOutputStream(
+		    new FileOutputStream(aFileName));
+	    oos.writeObject(urls);
+	    oos.close();
+
+	} catch (MalformedURLException e) {
+	    e.printStackTrace();
+	} catch (FileNotFoundException e) {
+	    e.printStackTrace();
+	} catch (IOException e) {
+	    e.printStackTrace();
+	}
     }
 
     /** Bootstrap configuration */
@@ -169,16 +213,19 @@ public class Main {
      * Read lines, removing duplications, from the standard input until the
      * first empty line.
      * 
-     * @return The read lines
+     * @param aInputStream
+     *            The stream to read
+     * 
+     * @return The read lines content
      */
-    protected String[] readConfigurationFromStdin() {
+    protected String[] readConfigurationLines(final InputStream aInputStream) {
 
 	// Use a set to avoid duplications
 	Set<String> linesSet = new HashSet<String>();
 
 	// Read from standard input
 	final BufferedReader reader = new BufferedReader(new InputStreamReader(
-		System.in));
+		aInputStream));
 
 	// One bundle URL per line
 	try {
@@ -197,6 +244,45 @@ public class Main {
 	}
 
 	return linesSet.toArray(new String[0]);
+    }
+
+    /**
+     * Reads the first serialized object from the input stream. Return null if
+     * it wasn't an array of URL.
+     * 
+     * @param aInputStream
+     *            The stream to read
+     * @return The deserialized URL array, null on error.
+     */
+    protected URL[] readSerializedConfiguration(final InputStream aInputStream) {
+
+	Object readData = null;
+
+	try {
+	    // Try to read some data
+	    ObjectInputStream objectStream = new ObjectInputStream(aInputStream);
+	    readData = objectStream.readObject();
+	    objectStream.close();
+
+	} catch (IOException e) {
+	    e.printStackTrace();
+	} catch (ClassNotFoundException e) {
+	    e.printStackTrace();
+	}
+
+	// Try to understand what we read (instanceof is false if null)
+
+	if (readData instanceof URL[]) {
+	    // Direct array
+	    return (URL[]) readData;
+
+	} else if (readData instanceof String[]) {
+	    // String to URL conversion needed
+	    return stringsToURLs((String[]) readData);
+	}
+
+	// Unknown format
+	return null;
     }
 
     /**
@@ -219,8 +305,11 @@ public class Main {
 	    final String action = aProgramArguments[0].toLowerCase();
 
 	    if (action.equalsIgnoreCase(READ_LINES_COMMAND)) {
-		final String[] extraConfiguration = readConfigurationFromStdin();
+		final String[] extraConfiguration = readConfigurationLines(System.in);
 		bundlesConfiguration = stringsToURLs(extraConfiguration);
+
+	    } else if (action.equalsIgnoreCase(UNSERIALIZE_COMMAND)) {
+		bundlesConfiguration = readSerializedConfiguration(System.in);
 
 	    } else if (action.equalsIgnoreCase(HELP_COMMAND)) {
 		// Help
@@ -233,6 +322,10 @@ public class Main {
 		printHelp();
 		return;
 	    }
+
+	} else {
+	    printHelp();
+	    return;
 	}
 
 	// OSGi bootstrap
@@ -242,7 +335,7 @@ public class Main {
 	Framework framework = bootstrap.createFramework();
 	bootstrap.populateFramework(bundlesConfiguration);
 
-	// Temporary...
+	// FIXME Temporary...
 	try {
 	    framework.start();
 	    framework.waitForStop(0);
