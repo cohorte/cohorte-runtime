@@ -24,9 +24,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 
-import org.osgi.framework.BundleException;
-import org.osgi.framework.launch.Framework;
-
 /**
  * Bootstrap entry point
  * 
@@ -57,6 +54,7 @@ public class Main {
      */
     public static void main(final String[] aArgs) {
 
+	// Special test command
 	if (aArgs[0].equalsIgnoreCase(TEST_COMMAND)) {
 	    writeSerializationTest("./test.dat");
 	    return;
@@ -247,6 +245,50 @@ public class Main {
     }
 
     /**
+     * Analyzes program arguments and reads the input stream if indicated
+     * 
+     * @param aProgramArguments
+     *            Program arguments
+     * @return The bundles URL array, null on unknown action
+     */
+    protected URL[] readParameters(final String[] aProgramArguments) {
+
+	// Prepare extra configuration reading
+	URL[] bundlesConfiguration = new URL[0];
+
+	if (aProgramArguments.length > 0) {
+
+	    // Test the action
+	    final String action = aProgramArguments[0].toLowerCase();
+
+	    if (action.equalsIgnoreCase(READ_LINES_COMMAND)) {
+		final String[] extraConfiguration = readConfigurationLines(System.in);
+		bundlesConfiguration = stringsToURLs(extraConfiguration);
+
+	    } else if (action.equalsIgnoreCase(UNSERIALIZE_COMMAND)) {
+		bundlesConfiguration = readSerializedConfiguration(System.in);
+
+	    } else if (action.equalsIgnoreCase(HELP_COMMAND)) {
+		// Help
+		printHelp();
+		return null;
+
+	    } else {
+		// Unknown command
+		System.err.println("Unknown command : " + action);
+		printHelp();
+		return null;
+	    }
+
+	} else {
+	    printHelp();
+	    return null;
+	}
+
+	return bundlesConfiguration;
+    }
+
+    /**
      * Reads the first serialized object from the input stream. Return null if
      * it wasn't an array of URL.
      * 
@@ -286,7 +328,7 @@ public class Main {
     }
 
     /**
-     * Main code
+     * Entry point code
      * 
      * @param aProgramArguments
      *            Program arguments
@@ -296,57 +338,49 @@ public class Main {
 	// Extract the configuration
 	extractConfiguration(aProgramArguments);
 
-	// Prepare extra configuration reading
-	URL[] bundlesConfiguration = new URL[0];
-
-	if (aProgramArguments.length > 0) {
-
-	    // Test the action
-	    final String action = aProgramArguments[0].toLowerCase();
-
-	    if (action.equalsIgnoreCase(READ_LINES_COMMAND)) {
-		final String[] extraConfiguration = readConfigurationLines(System.in);
-		bundlesConfiguration = stringsToURLs(extraConfiguration);
-
-	    } else if (action.equalsIgnoreCase(UNSERIALIZE_COMMAND)) {
-		bundlesConfiguration = readSerializedConfiguration(System.in);
-
-	    } else if (action.equalsIgnoreCase(HELP_COMMAND)) {
-		// Help
-		printHelp();
-		return;
-
-	    } else {
-		// Unknown command
-		System.err.println("Unknown command : " + action);
-		printHelp();
-		return;
-	    }
-
-	} else {
-	    printHelp();
+	// Act as indicated
+	final URL[] bundlesConfiguration = readParameters(aProgramArguments);
+	if (bundlesConfiguration == null) {
 	    return;
 	}
 
-	// OSGi bootstrap
+	// Start
+	runBootstrap(bundlesConfiguration);
+    }
+
+    /**
+     * Run the OSGi bootstrap
+     */
+    protected void runBootstrap(final URL[] aBundlesConfiguration) {
+
+	// Prepare the bootstrap
 	OsgiBootstrap bootstrap = new OsgiBootstrap(pBootstrapConfiguration,
 		pOtherConfiguration);
 
-	Framework framework = bootstrap.createFramework();
-	bootstrap.populateFramework(bundlesConfiguration);
+	// Initialize the framework
+	bootstrap.createFramework();
 
-	// FIXME Temporary...
+	// Install indicated bundles
+	bootstrap.installBundles(aBundlesConfiguration);
+
+	// Start the framework
+	bootstrap.startFramework();
+
+	// Start installed bundles
+	bootstrap.startBundles();
+
+	// Activity loop
 	try {
-	    framework.start();
-	    framework.waitForStop(0);
-	    // framework.stop();
-	} catch (BundleException e) {
-	    // TODO Auto-generated catch block
-	    e.printStackTrace();
+	    do {
+		System.out.println("Ping");
+	    } while (!bootstrap.waitForStop(1000));
+
 	} catch (InterruptedException e) {
-	    // TODO Auto-generated catch block
 	    e.printStackTrace();
 	}
+
+	// Stop the framework
+	bootstrap.stopFramework();
     }
 
     /**
