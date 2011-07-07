@@ -1,0 +1,46 @@
+Manifest-Version: 1.0
+Bundle-Activator: org.psem2m.isolates.loggers.CBundleLoggersActivator
+Bundle-ManifestVersion: 2
+Bundle-Name: Loggers
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-SymbolicName: org.psem2m.isolates.loggers
+Bundle-Vendor: isandlaTech (www.isandlatech.com)
+Bundle-Version: 1.0.0.qualifier
+Created-By: iPOJO  1.8.0
+Export-Package: org.psem2m.isolates.loggers
+Import-Package: org.osgi.service.log;version=1.3, org.psem2m.isolates.
+ base, org.apache.felix.ipojo.architecture;version=1.8.0, org.apache.f
+ elix.ipojo;version=1.8.0, org.osgi.framework;version=1.3.0, org.psem2
+ m.utilities.logging, org.osgi.service.cm;version=1.2, org.psem2m.util
+ ities.files, org.psem2m.utilities
+iPOJO-Components: component { $immediate="true" $name="isolates-logger
+ s-bundle-logger" $classname="org.psem2m.isolates.loggers.CBundleLogge
+ rsLoggerServiceImpl" $architecture="true" callback { $transition="val
+ idate" $method="validatePojo" }callback { $transition="invalidate" $m
+ ethod="invalidatePojo" }provides { }manipulation { $super="org.psem2m
+ .isolates.base.CBundleLoggerBase" method { $name="$init" }method { $n
+ ame="invalidatePojo" }method { $name="validatePojo" }interface { $nam
+ e="org.psem2m.isolates.loggers.IBundleLoggersLoggerService" }}}compon
+ ent { $immediate="true" $name="isolates-loggers-channels" $classname=
+ "org.psem2m.isolates.loggers.CLogChannelsServiceImpl" $architecture="
+ true" callback { $transition="validate" $method="validatePojo" }callb
+ ack { $transition="invalidate" $method="invalidatePojo" }provides { }
+ manipulation { $super="org.psem2m.isolates.base.CPojoBase" field { $n
+ ame="pPlatformDirsService" $type="org.psem2m.isolates.base.IPlatformD
+ irsService" }field { $name="pLoggers" $type="java.util.TreeMap" }fiel
+ d { $name="pBundleLoggersLoggerService" $type="org.psem2m.isolates.lo
+ ggers.IBundleLoggersLoggerService" }method { $name="$init" }method { 
+ $name="destroy" }method { $name="getChannels" $return="java.util.List
+ " }method { $name="getChannelsIds" $return="java.util.List" }method {
+  $arguments="{java.lang.String}" $name="getLogChannel" $return="org.p
+ sem2m.utilities.logging.IActivityLoggerBase" }method { $arguments="{j
+ ava.lang.String,org.psem2m.utilities.files.CXFileDir}" $name="instanc
+ iateLogger" $return="org.psem2m.utilities.logging.IActivityLogger" }m
+ ethod { $name="invalidatePojo" }method { $arguments="{java.lang.Strin
+ g}" $name="newLogger" $return="org.psem2m.utilities.logging.IActivity
+ Logger" }method { $name="validatePojo" }interface { $name="org.psem2m
+ .isolates.loggers.ILogChannelsService" }}requires { $field="pBundleLo
+ ggersLoggerService" $optional="false" }requires { $field="pPlatformDi
+ rsService" $optional="false" }}instance { $component="isolates-logger
+ s-bundle-logger" }instance { $component="isolates-loggers-channels" }
+
