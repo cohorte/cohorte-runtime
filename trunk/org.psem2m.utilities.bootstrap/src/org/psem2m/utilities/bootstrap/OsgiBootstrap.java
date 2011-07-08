@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Level;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
@@ -101,6 +102,9 @@ public class OsgiBootstrap {
 	    pFramework.init();
 
 	} catch (BundleException e) {
+	    Main.getInstance().sendMessage(Level.SEVERE, "OsgiBootstrap",
+		    "createFramework", "Framework inialization error", e);
+
 	    e.printStackTrace();
 	    pFramework = null;
 	}
@@ -111,7 +115,7 @@ public class OsgiBootstrap {
     /**
      * Retrieves the OSGi pFramework factory
      * 
-     * @return A FrameworkFactory instance, null on error
+     * @return A FrameworkFactory pSingleton, null on error
      */
     protected FrameworkFactory getFrameworkFactory() {
 
@@ -134,11 +138,17 @@ public class OsgiBootstrap {
 	    return (FrameworkFactory) Class.forName(factoryName).newInstance();
 
 	} catch (InstantiationException e) {
-	    e.printStackTrace();
+	    Main.getInstance().sendMessage(Level.SEVERE, "OsgiBootstrap",
+		    "getFrameworkFactory", "Can't create a new instance", e);
+
 	} catch (IllegalAccessException e) {
-	    e.printStackTrace();
+	    Main.getInstance().sendMessage(Level.SEVERE, "OsgiBootstrap",
+		    "getFrameworkFactory", "Illegal class access", e);
+
 	} catch (ClassNotFoundException e) {
-	    e.printStackTrace();
+	    Main.getInstance().sendMessage(Level.SEVERE, "OsgiBootstrap",
+		    "getFrameworkFactory", "Factory class not found", e);
+
 	}
 
 	return null;
@@ -159,6 +169,9 @@ public class OsgiBootstrap {
 			.installBundle(url.toString()));
 
 	    } catch (BundleException e) {
+		Main.getInstance().sendMessage(Level.SEVERE, "OsgiBootstrap",
+			"getFrameworkFactory",
+			"Error installing bundle '" + url + "'", e);
 		e.printStackTrace();
 	    }
 	}

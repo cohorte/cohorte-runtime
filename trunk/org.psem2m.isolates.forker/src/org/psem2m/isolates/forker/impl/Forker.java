@@ -96,6 +96,7 @@ public class Forker implements IForker {
 	    isolateRunner = new JavaRunner();
 	    break;
 
+	case EQUINOX:
 	case FELIX:
 	    isolateRunner = new CIsolateRunner();
 	    break;

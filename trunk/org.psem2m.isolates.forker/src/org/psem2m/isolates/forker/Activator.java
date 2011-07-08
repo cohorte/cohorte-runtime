@@ -15,7 +15,7 @@ public class Activator implements BundleActivator {
 	/** Bundle context */
 	private static BundleContext sBundleContext;
 
-	/** Current bundle instance */
+	/** Current bundle pSingleton */
 	private static Activator sCurrentInstance;
 
 	/**

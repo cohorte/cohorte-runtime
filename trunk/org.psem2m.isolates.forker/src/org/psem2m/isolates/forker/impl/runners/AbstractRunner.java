@@ -61,10 +61,10 @@ public abstract class AbstractRunner implements IIsolateRunner {
     }
 
     /**
-     * Retrieves a process runner instance, corresponding to the running
+     * Retrieves a process runner pSingleton, corresponding to the running
      * operating system.
      * 
-     * @return A OS-dependent process runner instance
+     * @return A OS-dependent process runner pSingleton
      */
     protected IProcessRunner getProcessRunner() {
 	return new ProcessBuilderRunner();

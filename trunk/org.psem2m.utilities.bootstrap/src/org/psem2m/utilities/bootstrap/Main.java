@@ -6,6 +6,7 @@
 package org.psem2m.utilities.bootstrap;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -14,6 +15,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -23,6 +25,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
 
 /**
  * Bootstrap entry point
@@ -34,8 +38,20 @@ public class Main {
     /** Ignored characters for normalization. Order matters ! */
     public static final String[] IGNORED_CHARACTERS = { "--", "-D", "-" };
 
+    /** Program singleton */
+    private static Main pSingleton;
+
     /** Test command (writes a serialized URL array in a file) */
     public static final String TEST_COMMAND = "--test";
+
+    /**
+     * Retrieves the program singleton
+     * 
+     * @return The singleton
+     */
+    public static Main getInstance() {
+	return pSingleton;
+    }
 
     /**
      * Bootstrap entry point
@@ -51,8 +67,9 @@ public class Main {
 	    return;
 	}
 
-	Main program = new Main();
-	program.run(aArgs);
+	pSingleton = new Main();
+	pSingleton.run(aArgs);
+	pSingleton.closeStreams();
     }
 
     /**
@@ -89,8 +106,45 @@ public class Main {
     /** Bootstrap configuration */
     private final Map<String, String> pBootstrapConfiguration = new TreeMap<String, String>();
 
+    /** Object output stream */
+    private ObjectOutputStream pObjectOutputStream;
+
     /** Other properties */
     private final Map<String, String> pOtherConfiguration = new TreeMap<String, String>();
+
+    /** Real error output */
+    private PrintStream pStandardError;
+
+    /** Real standard output */
+    private PrintStream pStandardOutput;
+
+    /**
+     * Constructor : redirects output immediately
+     */
+    private Main() {
+
+	// Store old values
+	pStandardError = System.err;
+	pStandardOutput = System.out;
+
+	redirectOutputs();
+	openStreams();
+    }
+
+    /**
+     * Closes object streams
+     */
+    protected void closeStreams() {
+
+	if (pObjectOutputStream != null) {
+	    try {
+
+		pObjectOutputStream.close();
+	    } catch (IOException e) {
+		e.printStackTrace();
+	    }
+	}
+    }
 
     /**
      * Extracts the configuration from system properties and program arguments
@@ -179,6 +233,19 @@ public class Main {
     }
 
     /**
+     * Opens object output streams
+     */
+    protected void openStreams() {
+
+	try {
+	    pObjectOutputStream = new ObjectOutputStream(pStandardOutput);
+
+	} catch (IOException e) {
+	    e.printStackTrace();
+	}
+    }
+
+    /**
      * Prints the help message
      * 
      * @return The help message content
@@ -187,7 +254,8 @@ public class Main {
 
 	StringBuilder builder = new StringBuilder();
 	builder.append("\nPSEM2M Bootstrap Options :\n");
-	builder.append("\t" + IBootstrapConstants.HELP_COMMAND + " : Prints this help\n");
+	builder.append("\t" + IBootstrapConstants.HELP_COMMAND
+		+ " : Prints this help\n");
 	builder.append("\t" + IBootstrapConstants.READ_LINES_COMMAND
 		+ " : Read extra data from the standard input, line by line\n");
 	builder.append("\t"
@@ -256,10 +324,12 @@ public class Main {
 		final String[] extraConfiguration = readConfigurationLines(System.in);
 		bundlesConfiguration = stringsToURLs(extraConfiguration);
 
-	    } else if (action.equalsIgnoreCase(IBootstrapConstants.UNSERIALIZE_COMMAND)) {
+	    } else if (action
+		    .equalsIgnoreCase(IBootstrapConstants.UNSERIALIZE_COMMAND)) {
 		bundlesConfiguration = readSerializedConfiguration(System.in);
 
-	    } else if (action.equalsIgnoreCase(IBootstrapConstants.HELP_COMMAND)) {
+	    } else if (action
+		    .equalsIgnoreCase(IBootstrapConstants.HELP_COMMAND)) {
 		// Help
 		printHelp();
 		return null;
@@ -319,6 +389,22 @@ public class Main {
     }
 
     /**
+     * Replaces current standard output streams them with a memory output.
+     */
+    protected void redirectOutputs() {
+
+	// stdout
+	ByteArrayOutputStream fakeOutputStream = new ByteArrayOutputStream();
+	PrintStream fakeOutput = new PrintStream(fakeOutputStream);
+	System.setOut(fakeOutput);
+
+	// stderr
+	ByteArrayOutputStream fakeErrorStream = new ByteArrayOutputStream();
+	PrintStream fakeError = new PrintStream(fakeErrorStream);
+	System.setErr(fakeError);
+    }
+
+    /**
      * Entry point code
      * 
      * @param aProgramArguments
@@ -348,30 +434,100 @@ public class Main {
 	OsgiBootstrap bootstrap = new OsgiBootstrap(pBootstrapConfiguration,
 		pOtherConfiguration);
 
+	sendMessage(Level.INFO, "Main", "runBootstrap", "Creating framework...");
+
 	// Initialize the framework
-	bootstrap.createFramework();
+	if (bootstrap.createFramework() == null) {
+	    sendMessage(Level.SEVERE, "Main", "runBootstrap",
+		    "Can't create framework");
+	    return;
+	}
+
+	sendMessage(Level.INFO, "Main", "runBootstrap", "Installing bundles...");
 
 	// Install indicated bundles
 	bootstrap.installBundles(aBundlesConfiguration);
 
+	sendMessage(Level.INFO, "Main", "runBootstrap", "Starting framework...");
+
 	// Start the framework
 	bootstrap.startFramework();
+
+	sendMessage(Level.INFO, "Main", "runBootstrap", "Starting bundles...");
 
 	// Start installed bundles
 	bootstrap.startBundles();
 
+	sendMessage(Level.INFO, "Main", "runBootstrap", "Running...");
+
 	// Activity loop
 	try {
 	    do {
-		System.out.println("Ping");
+		// Do something..;
 	    } while (!bootstrap.waitForStop(1000));
 
 	} catch (InterruptedException e) {
 	    e.printStackTrace();
 	}
 
+	sendMessage(Level.INFO, "Main", "runBootstrap", "Stopping...");
+
 	// Stop the framework
 	bootstrap.stopFramework();
+
+	sendMessage(Level.INFO, "Main", "runBootstrap", "Stopped");
+    }
+
+    /**
+     * Sends the given message via a LogRecord object serialized on the standard
+     * input
+     * 
+     * @param aLevel
+     *            Message level
+     * @param aSourceClass
+     *            Source class name
+     * @param aSourceMethod
+     *            Source method name
+     * @param aMessage
+     *            Log message
+     */
+    protected void sendMessage(final Level aLevel, final String aSourceClass,
+	    final String aSourceMethod, final String aMessage) {
+
+	sendMessage(aLevel, aSourceClass, aSourceMethod, aMessage, null);
+    }
+
+    /**
+     * Sends the given message via a LogRecord object serialized on the standard
+     * input
+     * 
+     * @param aLevel
+     *            Message level
+     * @param aSourceClass
+     *            Source class name
+     * @param aSourceMethod
+     *            Source method name
+     * @param aMessage
+     *            Log message
+     * @param aThrowable
+     *            An exception
+     */
+    protected void sendMessage(final Level aLevel, final String aSourceClass,
+	    final String aSourceMethod, final String aMessage,
+	    final Throwable aThrowable) {
+
+	try {
+	    LogRecord record = new LogRecord(aLevel, aMessage);
+	    record.setLoggerName("Bootstrap");
+	    record.setSourceClassName(aSourceClass);
+	    record.setSourceMethodName(aSourceMethod);
+	    record.setThrown(aThrowable);
+
+	    pObjectOutputStream.writeObject(record);
+
+	} catch (IOException e) {
+	    e.printStackTrace(pStandardError);
+	}
     }
 
     /**

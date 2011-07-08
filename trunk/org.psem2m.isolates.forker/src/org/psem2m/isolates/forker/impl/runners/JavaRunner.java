@@ -8,6 +8,7 @@ package org.psem2m.isolates.forker.impl.runners;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -39,12 +40,13 @@ public class JavaRunner extends AbstractRunner {
      * @throws IOException
      *             An error occurred while trying to run Java
      */
-    public IProcessRef runJava(final String[] aArguments,
+    public IProcessRef runJava(final List<String> aArguments,
 	    final Map<String, String> aEnvironment, final File aWorkingDirectory)
 	    throws IOException {
 
 	IProcessRunner runner = getProcessRunner();
-	return runner.runProcess(pJavaExecutable, aArguments, aEnvironment,
+	return runner.runProcess(pJavaExecutable,
+		aArguments.toArray(new String[0]), aEnvironment,
 		aWorkingDirectory);
     }
 
@@ -122,7 +124,16 @@ public class JavaRunner extends AbstractRunner {
     public IProcessRef startIsolate(
 	    final IIsolateConfiguration aIsolateConfiguration) throws Exception {
 
-	return runJava(aIsolateConfiguration.getArguments(),
-		aIsolateConfiguration.getEnvironment(), null);
+	// Non null list
+	List<String> javaArguments = new ArrayList<String>();
+
+	// Add isolate arguments, if any
+	String[] isolateArguments = aIsolateConfiguration.getArguments();
+	if (isolateArguments != null) {
+	    javaArguments.addAll(Arrays.asList(isolateArguments));
+	}
+
+	return runJava(javaArguments, aIsolateConfiguration.getEnvironment(),
+		null);
     }
 }
