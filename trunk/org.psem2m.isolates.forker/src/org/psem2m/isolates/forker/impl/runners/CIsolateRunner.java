@@ -200,9 +200,11 @@ public class CIsolateRunner extends JavaRunner {
 
 		    // Try to print the log record
 		    if (readObject instanceof LogRecord) {
+			printLog((LogRecord) readObject);
 
 		    } else if (readObject instanceof CharSequence) {
 			System.out.println(readObject.toString());
+
 		    } else {
 			System.out.println("[BOOTSTRAP] UNKNWON LOG FORMAT");
 		    }
