@@ -28,6 +28,13 @@ public interface IPlatformConfiguration {
     String[] getCommonBundles();
 
     /**
+     * Retrieves references to the bundles needed by all isolates
+     * 
+     * @return references to bundles needed by all isolates
+     */
+    IBundleRef[] getCommonBundlesRef();
+
+    /**
      * Retrieves the root directory where the platform runs the isolates.
      * 
      * @return The isolates working directories root

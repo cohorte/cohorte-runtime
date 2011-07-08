@@ -40,6 +40,32 @@ public class CIsolateRunner extends JavaRunner {
 	    "org.apache.felix.main-3.2.2.jar", "felix.jar" };
 
     /**
+     * Converts an array of bundle references to an URL list. Ignores invalid
+     * names.
+     * 
+     * @param aBundles
+     *            Bundles to be converted.
+     * @return A list of URLs
+     */
+    protected List<URL> bundlesToUrls(final IBundleRef[] aBundles) {
+
+	List<URL> bundleURLs = new ArrayList<URL>();
+
+	// Loop on bundles
+	for (IBundleRef bundleRef : aBundles) {
+	    try {
+		URL bundleUrl = bundleRef.getUri().toURL();
+		bundleURLs.add(bundleUrl);
+
+	    } catch (MalformedURLException e) {
+		e.printStackTrace();
+	    }
+	}
+
+	return bundleURLs;
+    }
+
+    /**
      * Prepares bootstrap arguments. Tells it to wait for serialized data on its
      * standard input
      * 
@@ -130,27 +156,20 @@ public class CIsolateRunner extends JavaRunner {
 
 	// Convert bundle references to URLs
 	List<URL> bundleURLs = new ArrayList<URL>();
-	for (IBundleRef bundleRef : aIsolateConfiguration.getBundles()) {
-	    try {
-		URL bundleUrl = bundleRef.getUri().toURL();
-		bundleURLs.add(bundleUrl);
 
-		System.out.println("Add bundle : " + bundleUrl);
+	// Common bundles
+	bundleURLs.addAll(bundlesToUrls(getPlatformConfiguration()
+		.getCommonBundlesRef()));
 
-	    } catch (MalformedURLException e) {
-		e.printStackTrace();
-	    }
-	}
-
-	// Convert the list into an array
-	URL[] bundleUrlsArray = bundleURLs.toArray(new URL[0]);
+	// Isolate bundles
+	bundleURLs.addAll(bundlesToUrls(aIsolateConfiguration.getBundles()));
 
 	try {
 	    ObjectOutputStream objectStream = new ObjectOutputStream(
 		    processInput);
 
 	    // Send data
-	    objectStream.writeObject(bundleUrlsArray);
+	    objectStream.writeObject(bundleURLs.toArray(new URL[0]));
 
 	    // Close it
 	    objectStream.close();

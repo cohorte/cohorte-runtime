@@ -6,10 +6,14 @@
 package org.psem2m.isolates.commons.impl;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
+import org.psem2m.isolates.commons.IBundleRef;
 import org.psem2m.isolates.commons.IPlatformConfiguration;
+import org.psem2m.isolates.commons.Utilities;
 
 /**
  * Describes the platform configuration.
@@ -74,6 +78,27 @@ public class PlatformConfiguration implements IPlatformConfiguration {
     @Override
     public String[] getCommonBundles() {
 	return pCommonBundles.toArray(new String[0]);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.commons.IPlatformConfiguration#getCommonBundlesRef()
+     */
+    @Override
+    public IBundleRef[] getCommonBundlesRef() {
+
+	List<IBundleRef> refs = new ArrayList<IBundleRef>();
+
+	for (String bundleName : pCommonBundles) {
+	    IBundleRef bundleRef = Utilities.findBundle(this, bundleName);
+	    if (bundleRef != null) {
+		refs.add(bundleRef);
+	    }
+	}
+
+	return refs.toArray(new IBundleRef[0]);
     }
 
     /*
