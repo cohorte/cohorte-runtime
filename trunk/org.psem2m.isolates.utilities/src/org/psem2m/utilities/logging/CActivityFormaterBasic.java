@@ -1,59 +1,43 @@
 package org.psem2m.utilities.logging;
 
 import java.util.logging.Level;
-import java.util.logging.LogRecord;
 
 import org.psem2m.utilities.CXDateTime;
 import org.psem2m.utilities.CXStringUtils;
 
 public class CActivityFormaterBasic extends CActivityFormater {
 
+	/** the width of the level column **/
 	private final static int LENGTH_LEVEL = 7;
+	/** the width of the what column **/
 	private final static int LENGTH_WHAT = 20;
+	/** the width of the who column **/
 	private final static int LENGTH_WHO = 20;
+
+	/** the column separator **/
 	final static char SEP_COLUMN = ';';
+
+	/** the milliseconds separator **/
 	final static char SEP_MILLI = '.';
-	private boolean pMultiline = false;
 
 	/**
-   * 
-   */
+	 * 
+	 */
 	public CActivityFormaterBasic() {
 		super();
 	}
 
-	/**
-	 * @param aAccepted
-	 */
-	public void acceptMultiline(final boolean aAccepted) {
-		pMultiline = aAccepted;
-	}
-
 	/*
-	 * 
 	 * (non-Javadoc)
 	 * 
-	 * @see java.util.logging.Formatter#format(java.util.logging.LogRecord)
+	 * @see org.psem2m.utilities.logging.CActivityFormater#format(long,
+	 * java.util.logging.Level, java.lang.String, java.lang.String,
+	 * java.lang.String, boolean)
 	 */
 	@Override
-	public synchronized String format(final LogRecord aRecord) {
-
-		return format(aRecord.getMillis(), aRecord.getLevel(),
-				aRecord.getSourceClassName(), aRecord.getSourceMethodName(),
-				aRecord.getMessage()) + SEP_LINE;
-	}
-
-	/**
-	 * @param aMillis
-	 * @param aLevel
-	 * @param aSourceClassName
-	 * @param aSourceMethodName
-	 * @param aLine
-	 * @return
-	 */
-	public String format(final long aMillis, final Level aLevel,
+	public synchronized String format(final long aMillis, final Level aLevel,
 			final String aSourceClassName, final String aSourceMethodName,
-			final String aLine) {
+			final String aText, final boolean aWhithEndLine) {
 		pSB.delete(0, pSB.length());
 
 		pSB.append(aMillis);
@@ -72,7 +56,10 @@ public class CActivityFormaterBasic extends CActivityFormater {
 		pSB.append(SEP_COLUMN);
 		pSB.append(formatWhat(aSourceMethodName));
 		pSB.append(SEP_COLUMN);
-		pSB.append((pMultiline) ? aLine : aLine.replace(SEP_LINE, '§'));
+		pSB.append(formatText(aText));
+		if (aWhithEndLine) {
+			pSB.append(SEP_LINE);
+		}
 		return pSB.toString();
 	}
 
@@ -90,8 +77,17 @@ public class CActivityFormaterBasic extends CActivityFormater {
 	 * @return
 	 */
 	private String formatLevel(final Level aLevel) {
-		return CXStringUtils.strAdjustLeft(aLevel.getName(), LENGTH_LEVEL, ' ');
+		return CXStringUtils.strAdjustLeft((aLevel != null) ? aLevel.getName()
+				: CXStringUtils.LIB_NULL, LENGTH_LEVEL, ' ');
 
+	}
+
+	private String formatText(final String aText) {
+		if (aText == null) {
+			return CXStringUtils.LIB_NULL;
+		} else {
+			return (pMultiline) ? aText : aText.replace(SEP_LINE, '§');
+		}
 	}
 
 	/**
@@ -109,7 +105,8 @@ public class CActivityFormaterBasic extends CActivityFormater {
 	 */
 	private String formatWhat(final String aMethod) {
 		return CXStringUtils.strAdjustRight(
-				aMethod.replace(SEP_COLUMN, REPLACE_COLUMN), LENGTH_WHAT, ' ');
+				(aMethod != null) ? aMethod.replace(SEP_COLUMN, REPLACE_COLUMN)
+						: CXStringUtils.LIB_NULL, LENGTH_WHAT, ' ');
 
 	}
 
@@ -119,7 +116,8 @@ public class CActivityFormaterBasic extends CActivityFormater {
 	 */
 	private String formatWho(final String aWho) {
 		return CXStringUtils.strAdjustRight(
-				aWho.replace(SEP_COLUMN, REPLACE_COLUMN), LENGTH_WHO, ' ');
+				(aWho != null) ? aWho.replace(SEP_COLUMN, REPLACE_COLUMN)
+						: CXStringUtils.LIB_NULL, LENGTH_WHO, ' ');
 
 	}
 
