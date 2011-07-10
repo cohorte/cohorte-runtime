@@ -7,8 +7,6 @@ package org.psem2m.isolates.monitor.impl;
 
 import java.security.InvalidParameterException;
 
-import org.apache.felix.ipojo.annotations.Component;
-import org.apache.felix.ipojo.annotations.Requires;
 import org.psem2m.isolates.monitor.IBundleMonitorLoggerService;
 import org.psem2m.isolates.monitor.IIsolateListener;
 
@@ -17,12 +15,9 @@ import org.psem2m.isolates.monitor.IIsolateListener;
  * 
  * @author Thomas Calmant
  */
-@Component(name = "isolates-monitor-ProcessMonitorThread", immediate = true)
 public class ProcessMonitorThread extends Thread {
 
-	/** Service reference managed by iPojo (see metadata.xml) **/
-	@Requires
-	private IBundleMonitorLoggerService pBundleMonitorLoggerService;
+	private final IBundleMonitorLoggerService pBundleMonitorLoggerService;
 
 	/** Monitored isolate ID */
 	private final String pIsolateId;
@@ -45,11 +40,13 @@ public class ProcessMonitorThread extends Thread {
 	 * @throws InvalidParameterException
 	 *             One of the parameters is null.
 	 */
-	public ProcessMonitorThread(final IIsolateListener aListener,
-			final String aIsolateId, final Process aProcess)
-			throws InvalidParameterException {
+	public ProcessMonitorThread(
+			final IBundleMonitorLoggerService aBundleMonitorLoggerService,
+			final IIsolateListener aListener, final String aIsolateId,
+			final Process aProcess) throws InvalidParameterException {
 
 		super();
+		pBundleMonitorLoggerService = aBundleMonitorLoggerService;
 		pListener = aListener;
 		pIsolateId = aIsolateId;
 		pProcess = aProcess;

@@ -50,15 +50,5 @@ iPOJO-Components: component { $immediate="true" $name="isolates-monito
  g.psem2m.isolates.monitor.IIsolateListener" }}requires { $field="pBun
  dleMonitorLoggerSvc" $optional="false" }requires { $field="pForker" $
  optional="false" }}instance { $component="isolates-monitor-logger" }i
- nstance { $component="isolates-monitor-monitor" }component { $immedia
- te="true" $name="isolates-monitor-ProcessMonitorThread" $classname="o
- rg.psem2m.isolates.monitor.impl.ProcessMonitorThread" $public="true" 
- manipulation { $super="java.lang.Thread" field { $name="pIsolateId" $
- type="java.lang.String" }field { $name="pProcess" $type="java.lang.Pr
- ocess" }field { $name="pBundleMonitorLoggerService" $type="org.psem2m
- .isolates.monitor.IBundleMonitorLoggerService" }field { $name="pListe
- ner" $type="org.psem2m.isolates.monitor.IIsolateListener" }method { $
- arguments="{org.psem2m.isolates.monitor.IIsolateListener,java.lang.St
- ring,java.lang.Process}" $name="$init" }method { $name="run" }}requir
- es { $field="pBundleMonitorLoggerService" }}
+ nstance { $component="isolates-monitor-monitor" }
 
