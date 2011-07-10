@@ -1,6 +1,7 @@
 package org.psem2m.utilities.logging;
 
 import java.util.logging.Level;
+import java.util.logging.LogRecord;
 
 import org.psem2m.utilities.IXDescriber;
 
@@ -62,6 +63,11 @@ public interface IActivityLoggerBase extends IXDescriber {
 	 */
 	public void log(Level aLevel, Object aWho, CharSequence aWhat,
 			Object... aInfos);
+
+	/**
+	 * @param record
+	 */
+	public void log(LogRecord record);
 
 	/**
 	 * @param aWho

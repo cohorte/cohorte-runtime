@@ -8,7 +8,7 @@
  * Contributors:
  *    ogattaz (isandlaTech) - initial API and implementation
  *******************************************************************************/
-package org.psem2m.utilities.test;
+package org.psem2m.isolates.utilities.test.basic;
 
 import org.psem2m.utilities.teststools.CQualityTestBase;
 
@@ -16,9 +16,9 @@ import org.psem2m.utilities.teststools.CQualityTestBase;
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
-public class CUtilitiesBasicJunitTest extends CQualityTestBase {
+public class CBasicJunitTest extends CQualityTestBase {
 
-	private CUtilitiesBasicTester pAppTester;
+	private CBasicTester pAppTester;
 
 	/*
 	 * (non-Javadoc)
@@ -27,7 +27,7 @@ public class CUtilitiesBasicJunitTest extends CQualityTestBase {
 	 */
 	@Override
 	public void setUp() throws Exception {
-		pAppTester = new CUtilitiesBasicTester(START_ARGS);
+		pAppTester = new CBasicTester(START_ARGS);
 		logInfo(this, "startTests", "App=[%s]", pAppTester.getIdentifier());
 	}
 
@@ -35,47 +35,59 @@ public class CUtilitiesBasicJunitTest extends CQualityTestBase {
 	 * @throws Exception
 	 */
 	public void testA() throws Exception {
-		logInfo(this, "test command=[%s]", CUtilitiesBasicTester.CMDE_TIMER);
-		pAppTester.execLine(CUtilitiesBasicTester.CMDE_TIMER);
+		logInfo(this, null, "test command=[%s]",
+				CBasicTester.CMDE_TIMER);
+		pAppTester.execLine(CBasicTester.CMDE_TIMER);
 	}
 
 	/**
 	 * @throws Exception
 	 */
 	public void testB() throws Exception {
-		logInfo(this, "test command=[%s]", CUtilitiesBasicTester.CMDE_CALLS);
-		pAppTester.execLine(CUtilitiesBasicTester.CMDE_CALLS);
+		logInfo(this, null, "test command=[%s]",
+				CBasicTester.CMDE_CALLS);
+		pAppTester.execLine(CBasicTester.CMDE_CALLS);
 	}
 
 	/**
 	 * @throws Exception
 	 */
 	public void testC() throws Exception {
-		logInfo(this, "test command=[%s]", CUtilitiesBasicTester.CMDE_METHODS);
-		pAppTester.execLine(CUtilitiesBasicTester.CMDE_METHODS);
+		logInfo(this, null, "test command=[%s]",
+				CBasicTester.CMDE_METHODS);
+		pAppTester.execLine(CBasicTester.CMDE_METHODS);
 	}
 
 	/**
 	 * @throws Exception
 	 */
 	public void testD() throws Exception {
-		logInfo(this, "test command=[%s]", CUtilitiesBasicTester.CMDE_JAVA);
-		pAppTester.execLine(CUtilitiesBasicTester.CMDE_JAVA);
+		logInfo(this, null, "test command=[%s]",
+				CBasicTester.CMDE_JAVA);
+		pAppTester.execLine(CBasicTester.CMDE_JAVA);
 	}
 
 	/**
 	 * @throws Exception
 	 */
 	public void testE() throws Exception {
-		logInfo(this, "test command=[%s]", CUtilitiesBasicTester.CMDE_ENV);
-		pAppTester.execLine(CUtilitiesBasicTester.CMDE_ENV);
+		logInfo(this, null, "test command=[%s]", CBasicTester.CMDE_ENV);
+		pAppTester.execLine(CBasicTester.CMDE_ENV);
 	}
 
 	/**
 	 * @throws Exception
 	 */
 	public void testF() throws Exception {
-		logInfo(this, "test command=[%s]", CUtilitiesBasicTester.CMDE_OS);
-		pAppTester.execLine(CUtilitiesBasicTester.CMDE_OS);
+		logInfo(this, null, "test command=[%s]", CBasicTester.CMDE_OS);
+		pAppTester.execLine(CBasicTester.CMDE_OS);
+	}
+
+	/**
+	 * @param aLine
+	 */
+	@Override
+	protected void writeLog(final String aLine) {
+		System.out.println(aLine);
 	}
 }

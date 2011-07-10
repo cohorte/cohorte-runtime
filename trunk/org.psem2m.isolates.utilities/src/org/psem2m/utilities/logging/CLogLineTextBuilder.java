@@ -1,19 +1,46 @@
 package org.psem2m.utilities.logging;
 
 /**
+ * 
+ * Builds the text of a log line with an array of objects.
+ * <ul>
+ * <li>converts null of Thowable to strings
+ * <li>if the first object is a format, the text is the result of the
+ * String.format() method
+ * <li>builds the text by appending the string value of each object.
+ * <ul>
+ * <li>if a string is endding by a character equal, it is and the next string
+ * value is added with square brackets (eg: "id=", "1258" => "id=[1258)]" )
+ * </ul>
+ * </ul>
+ * 
+ * 
+ * 
  * @author Olivier Gattaz < olivier dot gattaz at isandlatech dot com >
  * 
  */
-public class CLogFormater {
+public class CLogLineTextBuilder {
 
 	private static String DUMMY_SHORT_HASHCODE = "0000";
+
+	private static CLogLineTextBuilder sLogLineTextBuilder = new CLogLineTextBuilder();
+
+	/**
+	 * @return
+	 */
+	public static CLogLineTextBuilder getInstance() {
+		return sLogLineTextBuilder;
+	}
 
 	private final CLogTools pTools = CLogTools.getInstance();
 
 	private final CLogToolsException pToolsException = CLogToolsException
 			.getInstance();
 
-	public CLogFormater() {
+	/**
+	 * Explicit default constructor
+	 */
+	private CLogLineTextBuilder() {
 		super();
 	}
 
@@ -31,6 +58,7 @@ public class CLogFormater {
 			return aSB;
 		}
 
+		// converts null of Thowable to strings
 		Object wObj;
 		for (int wI = 0; wI < aObjects.length; wI++) {
 			wObj = aObjects[wI];
@@ -39,54 +67,43 @@ public class CLogFormater {
 			} else if (wObj instanceof Throwable) {
 				aObjects[wI] = pToolsException.eInString((Throwable) wObj, '|');
 			}
-
 		}
 
 		// if there is only one info
 		if (aObjects.length == 1) {
-			if (aObjects[0] == null) {
-				return aSB;
-			}
-
-			if (aObjects[0] instanceof Throwable) {
-				return aSB.append(pToolsException
-						.eStackToString((Throwable) aObjects[0]));
-			}
-
 			return aSB.append(String.valueOf(aObjects[0]));
 		}
 
-		// if the first object is a format
+		// if the first object is a format, return the result of the
+		// String.format() method
 		if (aObjects[0].toString().indexOf('%') > -1) {
 			return aSB.append(String.format(aObjects[0].toString(),
 					pTools.removeOneObject(aObjects, 0)));
 		}
 
+		// builds the text by appending the string value of each object.
 		boolean wIsId = false;
 		boolean wIsValue = false;
 		String wStr;
 		int wMax = aObjects.length;
 		for (int wI = 0; wI < wMax; wI++) {
 			wIsValue = wIsId;
-			wStr = aObjects[wI].toString();
-			if (wStr != null) {
-				wIsId = wStr.endsWith("=");
+			wStr = String.valueOf(aObjects[wI]);
+			wIsId = wStr.endsWith("=");
 
-				if (wIsValue) {
-					aSB.append('[');
-				}
+			if (wIsValue) {
+				aSB.append('[');
+			}
 
-				aSB.append(wStr);
+			aSB.append(wStr);
 
-				if (wIsValue) {
-					aSB.append(']');
-				}
-				if (!wIsId) {
-					aSB.append(' ');
-				}
+			if (wIsValue) {
+				aSB.append(']');
+			}
+			if (!wIsId) {
+				aSB.append(' ');
 			}
 		}
-
 		return aSB;
 	}
 
@@ -107,7 +124,7 @@ public class CLogFormater {
 	 * @param aWho
 	 * @return
 	 */
-	public String getWhoObjectId(final Object aWho) {
+	public String formatWhoObjectId(final Object aWho) {
 		if (aWho == null) {
 			return CLogTools.LIB_NULL;
 		}

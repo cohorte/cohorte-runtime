@@ -8,15 +8,14 @@ abstract class CActivityObject extends CXObjectBase {
 	 * @param aParent
 	 * @param ixIdentifier
 	 */
-	CActivityObject(CActivityObject aParent, String aIdentifier) {
+	CActivityObject(final CActivityObject aParent, final String aIdentifier) {
 		super(aParent, aIdentifier);
-
 	}
 
 	/**
 	 * @param ixIdentifier
 	 */
-	CActivityObject(String aIdentifier) {
+	CActivityObject(final String aIdentifier) {
 		super(aIdentifier);
 	}
 
@@ -46,9 +45,11 @@ abstract class CActivityObject extends CXObjectBase {
 	 * @param aMethod
 	 * @param aLineBuffer
 	 */
-	void traceDebug(Object aWho, CharSequence aMethod, CharSequence aLineBuffer) {
-		if (hasActivityObjectParent())
+	void traceDebug(final Object aWho, final CharSequence aMethod,
+			final CharSequence aLineBuffer) {
+		if (hasActivityObjectParent()) {
 			getActivityObjectParent().traceDebug(aWho, aMethod, aLineBuffer);
+		}
 	}
 
 }

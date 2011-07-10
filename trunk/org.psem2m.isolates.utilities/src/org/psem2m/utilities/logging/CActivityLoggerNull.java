@@ -1,17 +1,32 @@
 package org.psem2m.utilities.logging;
 
 import java.util.logging.Level;
+import java.util.logging.LogRecord;
 
 import org.psem2m.utilities.CXStringUtils;
 
+/**
+ * @author isandlatech (www.isandlatech.com) - ogattaz
+ * 
+ */
 public class CActivityLoggerNull implements IActivityLogger {
 
+	/**
+	 * @return
+	 */
 	public static CActivityLoggerNull getInstance() {
 		return new CActivityLoggerNull();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.psem2m.utilities.IXDescriber#addDescriptionInBuffer(java.lang.Appendable
+	 * )
+	 */
 	@Override
-	public Appendable addDescriptionInBuffer(Appendable aBuffer) {
+	public Appendable addDescriptionInBuffer(final Appendable aBuffer) {
 		return CXStringUtils.appendStringsInBuff(aBuffer, getClass()
 				.getSimpleName(), String.valueOf(hashCode()));
 	}
@@ -23,13 +38,22 @@ public class CActivityLoggerNull implements IActivityLogger {
 		return 128;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.utilities.logging.IActivityLogger#close()
+	 */
 	@Override
 	public void close() {
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.utilities.logging.IActivityLogger#getRequester()
+	 */
 	@Override
 	public IActivityRequester getRequester() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -39,7 +63,7 @@ public class CActivityLoggerNull implements IActivityLogger {
 	}
 
 	@Override
-	public boolean isLoggable(Level aLevel) {
+	public boolean isLoggable(final Level aLevel) {
 		return false;
 	}
 
@@ -69,9 +93,20 @@ public class CActivityLoggerNull implements IActivityLogger {
 	}
 
 	@Override
-	public void log(Level aLevel, Object aWho, CharSequence aWhat,
-			Object... aInfos) {
+	public void log(final Level aLevel, final Object aWho,
+			final CharSequence aWhat, final Object... aInfos) {
 
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.psem2m.utilities.logging.IActivityLoggerBase#log(java.util.logging
+	 * .LogRecord)
+	 */
+	@Override
+	public void log(final LogRecord record) {
 	}
 
 	/*
@@ -82,7 +117,8 @@ public class CActivityLoggerNull implements IActivityLogger {
 	 * java.lang.CharSequence, java.lang.Object[])
 	 */
 	@Override
-	public void logDebug(Object aWho, CharSequence aWhat, Object... aInfos) {
+	public void logDebug(final Object aWho, final CharSequence aWhat,
+			final Object... aInfos) {
 
 	}
 
@@ -94,7 +130,8 @@ public class CActivityLoggerNull implements IActivityLogger {
 	 * java.lang.CharSequence, java.lang.Object[])
 	 */
 	@Override
-	public void logInfo(Object aWho, CharSequence aWhat, Object... aInfos) {
+	public void logInfo(final Object aWho, final CharSequence aWhat,
+			final Object... aInfos) {
 	}
 
 	/*
@@ -105,7 +142,8 @@ public class CActivityLoggerNull implements IActivityLogger {
 	 * java.lang.CharSequence, java.lang.Object[])
 	 */
 	@Override
-	public void logSevere(Object aWho, CharSequence aWhat, Object... aInfos) {
+	public void logSevere(final Object aWho, final CharSequence aWhat,
+			final Object... aInfos) {
 	}
 
 	/*
@@ -116,7 +154,8 @@ public class CActivityLoggerNull implements IActivityLogger {
 	 * java.lang.CharSequence, java.lang.Object[])
 	 */
 	@Override
-	public void logWarn(Object aWho, CharSequence aWhat, Object... aInfos) {
+	public void logWarn(final Object aWho, final CharSequence aWhat,
+			final Object... aInfos) {
 	}
 
 	@Override
@@ -125,7 +164,7 @@ public class CActivityLoggerNull implements IActivityLogger {
 	}
 
 	@Override
-	public void pushLogLineBuffer(CLogLineBuffer aLoggerLineBuffer) {
+	public void pushLogLineBuffer(final CLogLineBuffer aLoggerLineBuffer) {
 
 	}
 

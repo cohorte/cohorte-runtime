@@ -8,7 +8,7 @@
  * Contributors:
  *    ogattaz (isandlaTech) - initial API and implementation
  *******************************************************************************/
-package org.psem2m.utilities.test;
+package org.psem2m.isolates.utilities.test.basic;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +30,7 @@ import org.psem2m.utilities.teststools.CConsoleTester;
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
-public class CUtilitiesBasicTester extends CConsoleTester {
+public class CBasicTester extends CConsoleTester {
 
 	final static String CMDE_CALLS = "calls";
 	final static String CMDE_ENV = "env";
@@ -44,7 +44,7 @@ public class CUtilitiesBasicTester extends CConsoleTester {
 	 */
 	public static void main(final String[] args) {
 		try {
-			CConsoleTester.main(new CUtilitiesBasicTester(args));
+			CConsoleTester.main(new CBasicTester(args));
 		} catch (Throwable e) {
 			System.out.println("main(): EXCEPTION\n");
 			System.out.println(CLogToolsException.getInstance().eInString(e));
@@ -56,7 +56,7 @@ public class CUtilitiesBasicTester extends CConsoleTester {
 	 * @param args
 	 * @throws Exception
 	 */
-	public CUtilitiesBasicTester(final String[] args) throws Exception {
+	public CBasicTester(final String[] args) throws Exception {
 		super(args);
 	}
 

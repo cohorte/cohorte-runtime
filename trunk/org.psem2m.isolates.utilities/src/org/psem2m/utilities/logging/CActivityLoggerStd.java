@@ -1,7 +1,9 @@
 package org.psem2m.utilities.logging;
 
+import java.util.logging.Formatter;
 import java.util.logging.Handler;
 import java.util.logging.Level;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 import org.psem2m.utilities.CXException;
@@ -9,7 +11,7 @@ import org.psem2m.utilities.CXJavaRunContext;
 import org.psem2m.utilities.CXStringUtils;
 
 /**
- * @author ogattaz
+ * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
 public class CActivityLoggerStd extends CActivityObject implements
@@ -58,11 +60,12 @@ public class CActivityLoggerStd extends CActivityObject implements
 
 	private final String pFilePathPattern;
 
-	private final CLogFormater pFormater = new CLogFormater();
-
 	private final String pLevel;
 
 	private Logger pLogger;
+
+	private final CLogLineTextBuilder pLogLineTextBuilder = CLogLineTextBuilder
+			.getInstance();
 
 	/**
 	 * @param aLoggerName
@@ -118,13 +121,22 @@ public class CActivityLoggerStd extends CActivityObject implements
 	@Override
 	public void close() {
 		if (isOpened()) {
+			// restart the logging in the parent logger
 			pLogger.setUseParentHandlers(true);
+
 			String wLine = String.format(FORMAT_CLOSELOG, getLoggerName());
 			pLogger.logp(Level.INFO, getClass().getSimpleName(),
 					LIB_METHOD_CLOSE, wLine);
+			// close
 			pLogger.setLevel(Level.OFF);
 			pFileHandler.close();
-			pLogger.removeHandler(pFileHandler);
+
+			// disociates the file handler and the logger
+			if (hasFileHandler()) {
+				pLogger.removeHandler(pFileHandler);
+			}
+
+			// free the logger
 			pLogger = null;
 		}
 	}
@@ -265,7 +277,7 @@ public class CActivityLoggerStd extends CActivityObject implements
 
 		String wLogLine = null;
 		if (isOpened()) {
-			wLogLine = pFormater.formatLogLine(aInfos);
+			wLogLine = pLogLineTextBuilder.formatLogLine(aInfos);
 		}
 		CharSequence wWhat = (aWhat != null) ? aWhat : CXJavaRunContext
 				.getPreCallingMethod();
@@ -281,10 +293,22 @@ public class CActivityLoggerStd extends CActivityObject implements
 
 		if (wLogLine != null) {
 
-			pLogger.logp(aLevel, pFormater.getWhoObjectId(aWho),
+			pLogger.logp(aLevel, pLogLineTextBuilder.formatWhoObjectId(aWho),
 					wWhat.toString(), wLogLine);
 		}
 
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.psem2m.utilities.logging.IActivityLoggerBase#log(java.util.logging
+	 * .LogRecord)
+	 */
+	@Override
+	public void log(final LogRecord record) {
+		pLogger.log(record);
 	}
 
 	/*
@@ -361,14 +385,31 @@ public class CActivityLoggerStd extends CActivityObject implements
 					+ "] is already opened.");
 		}
 
+		/*
+		 * If a new logger is created its log level will be configured based on
+		 * the LogManager configuration and it will configured to also send
+		 * logging output to its parent's handlers. It will be registered in the
+		 * LogManager global namespace.
+		 */
 		pLogger = Logger.getLogger(getLoggerName());
-		removeCurrentsHandlers();
-		pLogger.addHandler(pFileHandler);
+		// remove the current handler of the new logger
+		removeHandlers(pLogger);
+		// put in place the Filehandler in the logger
+		if (hasFileHandler()) {
+			pLogger.addHandler(pFileHandler);
+			// use the same formater as the file handler one in the parent
+			// logger
+			if (pLogger.getUseParentHandlers()) {
+				setFormater(pLogger.getParent(), pFileHandler.getFormatter());
+			}
+		}
 		pLogger.setLevel(CActivityUtils.levelToLevel(pLevel));
 
 		String wLine = String.format(FORMAT_OPENLOG, getLoggerName());
+		// log in the current logger and in its parent
 		logInfo(this, LIB_METHOD_OPEN, wLine);
 
+		// stop the logging in the parent logger
 		pLogger.setUseParentHandlers(false);
 	}
 
@@ -386,15 +427,19 @@ public class CActivityLoggerStd extends CActivityObject implements
 	}
 
 	/**
+	 * @param aLogger
 	 * @return
 	 */
-	private int removeCurrentsHandlers() {
-		Handler[] wHandlers = pLogger.getHandlers();
-		int wMax = (wHandlers != null) ? wHandlers.length : -1;
-		int wI = 0;
-		while (wI < wMax) {
-			pLogger.removeHandler(wHandlers[wI]);
-			wI++;
+	private int removeHandlers(final Logger aLogger) {
+		int wMax = -1;
+		if (aLogger != null) {
+			Handler[] wHandlers = aLogger.getHandlers();
+			wMax = (wHandlers != null) ? wHandlers.length : -1;
+			int wI = 0;
+			while (wI < wMax) {
+				aLogger.removeHandler(wHandlers[wI]);
+				wI++;
+			}
 		}
 		return wMax;
 	}
@@ -404,5 +449,24 @@ public class CActivityLoggerStd extends CActivityObject implements
 	 */
 	protected void setFileHandler(final CActivityFileHandler aFileHandler) {
 		pFileHandler = aFileHandler;
+	}
+
+	/**
+	 * @param aLogger
+	 * @param aFormatter
+	 * @return
+	 */
+	private int setFormater(final Logger aLogger, final Formatter aFormatter) {
+		int wMax = -1;
+		if (aLogger != null) {
+			Handler[] wHandlers = aLogger.getHandlers();
+			wMax = (wHandlers != null) ? wHandlers.length : -1;
+			int wI = 0;
+			while (wI < wMax) {
+				wHandlers[wI].setFormatter(aFormatter);
+				wI++;
+			}
+		}
+		return wMax;
 	}
 }

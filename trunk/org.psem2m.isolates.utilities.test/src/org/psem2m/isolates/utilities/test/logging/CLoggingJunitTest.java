@@ -8,7 +8,7 @@
  * Contributors:
  *    ogattaz (isandlaTech) - initial API and implementation
  *******************************************************************************/
-package org.psem2m.utilities.logging.test;
+package org.psem2m.isolates.utilities.test.logging;
 
 import org.psem2m.utilities.teststools.CQualityTestBase;
 
@@ -16,9 +16,9 @@ import org.psem2m.utilities.teststools.CQualityTestBase;
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
-public class CLogJunitTest extends CQualityTestBase {
+public class CLoggingJunitTest extends CQualityTestBase {
 
-	private CLogTester pAppTester;
+	private CLoggingTester pAppTester;
 
 	/*
 	 * (non-Javadoc)
@@ -27,7 +27,7 @@ public class CLogJunitTest extends CQualityTestBase {
 	 */
 	@Override
 	public void setUp() throws Exception {
-		pAppTester = new CLogTester(START_ARGS);
+		pAppTester = new CLoggingTester(START_ARGS);
 		logInfo(this, "startTests", "App=[%s]", pAppTester.getIdentifier());
 	}
 
@@ -35,38 +35,41 @@ public class CLogJunitTest extends CQualityTestBase {
 	 * @throws Exception
 	 */
 	public void testA() throws Exception {
-		logInfo(this, "test command=[%s] kind=[%s]", CLogTester.CMDE_LOG, "log");
+		logInfo(this, null, "test command=[%s] kind=[%s]", CLoggingTester.CMDE_LOG,
+				"log");
 
 		// kind: log
 		// nbLog: 2000
 		// filesize: 1 megabytes
 		// filecount: 10
-		pAppTester.execLine(CLogTester.CMDE_LOG + " log 2000 1m 10");
+		pAppTester.execLine(CLoggingTester.CMDE_LOG + " log 2000 1m 10");
 	}
 
 	/**
 	 * @throws Exception
 	 */
 	public void testB() throws Exception {
-		logInfo(this, "test command=[%s] kind=[%s]", CLogTester.CMDE_LOG, "txt");
+		logInfo(this, null, "test command=[%s] kind=[%s]", CLoggingTester.CMDE_LOG,
+				"txt");
 
 		// kind: log
 		// nbLog: 5000
 		// filesize: 2 megabytes
 		// filecount: 10
-		pAppTester.execLine(CLogTester.CMDE_LOG + " txt 5000 2m 10");
+		pAppTester.execLine(CLoggingTester.CMDE_LOG + " txt 5000 2m 10");
 	}
 
 	/**
 	 * @throws Exception
 	 */
 	public void testC() throws Exception {
-		logInfo(this, "test command=[%s] kind=[%s]", CLogTester.CMDE_LOG, "xml");
+		logInfo(this, null, "test command=[%s] kind=[%s]", CLoggingTester.CMDE_LOG,
+				"xml");
 
 		// kind: xml
 		// nbLog: 2000
 		// filesize: 1 megabytes
 		// filecount: 10
-		pAppTester.execLine(CLogTester.CMDE_LOG + " xml 2000 1m 10");
+		pAppTester.execLine(CLoggingTester.CMDE_LOG + " xml 2000 1m 10");
 	}
 }

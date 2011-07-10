@@ -8,7 +8,7 @@
  * Contributors:
  *    ogattaz (isandlaTech) - initial API and implementation
  *******************************************************************************/
-package org.psem2m.utilities.logging.test;
+package org.psem2m.isolates.utilities.test.logging;
 
 import java.util.StringTokenizer;
 import java.util.logging.Level;
@@ -26,7 +26,7 @@ import org.psem2m.utilities.teststools.CConsoleTester;
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
-public class CLogTester extends CConsoleTester {
+public class CLoggingTester extends CConsoleTester {
 
 	final static String CMDE_LOG = "log";
 
@@ -35,7 +35,7 @@ public class CLogTester extends CConsoleTester {
 	 */
 	public static void main(final String[] args) {
 		try {
-			CConsoleTester.main(new CLogTester(args));
+			CConsoleTester.main(new CLoggingTester(args));
 		} catch (Throwable e) {
 			System.out.println("main(): EXCEPTION\n");
 			System.out.println(CLogToolsException.getInstance().eInString(e));
@@ -47,7 +47,7 @@ public class CLogTester extends CConsoleTester {
 	 * @param args
 	 * @throws Exception
 	 */
-	public CLogTester(final String[] args) throws Exception {
+	public CLoggingTester(final String[] args) throws Exception {
 		super(args);
 	}
 

@@ -6,7 +6,11 @@ import java.util.logging.LogRecord;
 
 import org.psem2m.utilities.CXStringUtils;
 
-abstract class CActivityFormater extends Formatter {
+/**
+ * @author isandlatech (www.isandlatech.com) - ogattaz
+ * 
+ */
+abstract class CActivityFormater extends Formatter implements IActivityFormater {
 
 	/**
 	 * long: The long data type is a 64-bit signed two's complement integer.
@@ -26,12 +30,6 @@ abstract class CActivityFormater extends Formatter {
 	/** 1 day duration => 14 digits **/
 	private final static int LENGTH_NANO = 14;
 
-	/**
-	 * the value of the multi-lines-text flag to not replace the end-line in the
-	 * text of the log line
-	 **/
-	public final static boolean MULTILINES_TEXT = true;
-
 	final static char REPLACE_COLUMN = '_';
 
 	final static String SEP_DATE = "/";
@@ -41,12 +39,6 @@ abstract class CActivityFormater extends Formatter {
 	final static String SEP_TIME = ":";
 
 	final static int SIZE_LOG_THREADNAME = 18;
-
-	/**
-	 * the value of the end-line flag to obtain an end-line at the end of the
-	 * formated line
-	 **/
-	public final static boolean WITH_END_LINE = true;
 
 	/**
 	 * the flag to control the replacement of the end-lin in the text of the log
@@ -73,9 +65,13 @@ abstract class CActivityFormater extends Formatter {
 		initStartTime();
 	}
 
-	/**
-	 * @param aAccepted
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.psem2m.utilities.logging.IActivityFormater#acceptMultiline(boolean)
 	 */
+	@Override
 	public void acceptMultiline(final boolean aAccepted) {
 		pMultiline = aAccepted;
 	}
@@ -87,7 +83,7 @@ abstract class CActivityFormater extends Formatter {
 	 */
 	StringBuilder addThreadNameInLogLine(final StringBuilder aSB,
 			final String aThreadName) {
-		aSB.append(pTools.strAdjustRight(aThreadName, SIZE_LOG_THREADNAME, ' '));
+		aSB.append(pTools.strAdjustLeft(aThreadName, SIZE_LOG_THREADNAME, ' '));
 		return aSB;
 	}
 
@@ -102,32 +98,28 @@ abstract class CActivityFormater extends Formatter {
 
 	}
 
-	/**
-	 * @param record
-	 *            the log record to be formatted.
-	 * @param aWhithEndLine
-	 *            append an end line if true
-	 * @return the formatted log record
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.psem2m.utilities.logging.IActivityFormater#format(java.util.logging
+	 * .LogRecord, boolean)
 	 */
+	@Override
 	public String format(final LogRecord aRecord, final boolean aWhithEndLine) {
 		return format(aRecord.getMillis(), aRecord.getLevel(),
 				aRecord.getSourceClassName(), aRecord.getSourceMethodName(),
 				aRecord.getMessage(), aWhithEndLine);
 	}
 
-	/**
-	 * @param aMillis
-	 *            the timestamp ofthe line
-	 * @param aLevel
-	 *            the level of the log
-	 * @param aSourceClassName
-	 *            the name of the class which fired the log line
-	 * @param aSourceMethodName
-	 *            the name of the method which fired the log line
-	 * @param aText
-	 *            the text of the line
-	 * @return the formatted log line without an end line
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.utilities.logging.IActivityFormater#format(long,
+	 * java.util.logging.Level, java.lang.String, java.lang.String,
+	 * java.lang.String)
 	 */
+	@Override
 	public String format(final long aMillis, final Level aLevel,
 			final String aSourceClassName, final String aSourceMethodName,
 			final String aText) {
@@ -135,21 +127,14 @@ abstract class CActivityFormater extends Formatter {
 				aText, !WITH_END_LINE);
 	}
 
-	/**
-	 * @param aMillis
-	 *            the timestamp ofthe line
-	 * @param aLevel
-	 *            the level of the log
-	 * @param aSourceClassName
-	 *            the name of the class which fired the log line
-	 * @param aSourceMethodName
-	 *            the name of the method which fired the log line
-	 * @param aText
-	 *            the text of the line
-	 * @param aWhithEndLine
-	 *            append an end line if true
-	 * @return the formatted log line
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.utilities.logging.IActivityFormater#format(long,
+	 * java.util.logging.Level, java.lang.String, java.lang.String,
+	 * java.lang.String, boolean)
 	 */
+	@Override
 	public abstract String format(final long aMillis, final Level aLevel,
 			final String aSourceClassName, final String aSourceMethodName,
 			final String aText, final boolean aWhithEndLine);

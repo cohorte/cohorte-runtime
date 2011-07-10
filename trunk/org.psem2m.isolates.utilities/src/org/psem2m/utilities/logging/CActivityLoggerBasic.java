@@ -1,5 +1,7 @@
 package org.psem2m.utilities.logging;
 
+import java.util.logging.Formatter;
+
 import org.psem2m.utilities.CXException;
 
 /**
@@ -23,9 +25,9 @@ public class CActivityLoggerBasic extends CActivityLoggerStd implements
 	 * @return
 	 * @throws Exception
 	 */
-	public static IActivityLogger newLogger(String aLoggerName,
-			String aFilePathPattern, String aLevel, int aFileLimit,
-			int aFileCount) throws Exception {
+	public static IActivityLogger newLogger(final String aLoggerName,
+			final String aFilePathPattern, final String aLevel,
+			final int aFileLimit, final int aFileCount) throws Exception {
 		CActivityLoggerBasic wLogger = new CActivityLoggerBasic(aLoggerName,
 				aFilePathPattern, aLevel, aFileLimit, aFileCount);
 		wLogger.initFileHandler();
@@ -46,8 +48,9 @@ public class CActivityLoggerBasic extends CActivityLoggerStd implements
 	 *            the number of files to use
 	 * @throws Exception
 	 */
-	protected CActivityLoggerBasic(String aLoggerName, String aFilePathPattern,
-			String aLevel, int aFileLimit, int aFileCount) throws Exception {
+	protected CActivityLoggerBasic(final String aLoggerName,
+			final String aFilePathPattern, final String aLevel,
+			final int aFileLimit, final int aFileCount) throws Exception {
 		super(aLoggerName, aFilePathPattern, aLevel, aFileLimit, aFileCount);
 	}
 
@@ -58,7 +61,7 @@ public class CActivityLoggerBasic extends CActivityLoggerStd implements
 	 * @see org.psem2m.utilities.CActivityLogger#buildLine(java.lang.String,
 	 * java.lang.Throwable)
 	 */
-	protected String buildLine(String aLine, Throwable e) {
+	protected String buildLine(String aLine, final Throwable e) {
 		if (e != null) {
 			StringBuffer wSB = new StringBuffer();
 			wSB.append(aLine);
@@ -79,14 +82,17 @@ public class CActivityLoggerBasic extends CActivityLoggerStd implements
 		return new CActivityRequesterBasic(getLoggerName(), getFileHandler());
 	}
 
-	/**
-   * 
-   */
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.utilities.logging.CActivityLoggerStd#initFileHandler()
+	 */
 	@Override
 	protected void initFileHandler() throws Exception {
 		CActivityFileHandler wFileHandler = new CActivityFileHandler(
 				getFilePathPattern(), getFileLimit(), getFileCount());
-		wFileHandler.setFormatter(new CActivityFormaterBasic());
-		setFileHandler(wFileHandler);
+		wFileHandler.setFormatter((Formatter) CActivityFormaterBasic
+				.getInstance());
+		super.setFileHandler(wFileHandler);
 	}
 }

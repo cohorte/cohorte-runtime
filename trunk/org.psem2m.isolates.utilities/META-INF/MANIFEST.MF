@@ -1,9 +1,9 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Isolates Utilities
+Bundle-Name: Utilities
 Bundle-SymbolicName: org.psem2m.isolates.utilities
 Bundle-Version: 1.0.0.qualifier
-Bundle-Vendor: isandlatech.com
+Bundle-Vendor: isandlaTech (www.isandlatech.com)
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Import-Package: junit.framework
 Export-Package: org.psem2m.utilities,

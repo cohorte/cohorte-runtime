@@ -5,15 +5,28 @@ import java.util.logging.Level;
 import org.psem2m.utilities.CXDateTime;
 import org.psem2m.utilities.CXStringUtils;
 
+/**
+ * 
+ * <pre>
+ * TimeStamp     TimeStamp      TimeStamp  TimeStamp    Level    Thread name       Instance id          Method               LogLine
+ * (millis)      (nano)         (date)     (hhmmss.sss) 
+ * 1309180295049;00000065317000;2011/06/27;15:11:35:049;INFO   ;   FelixStartLevel;CIsolateLogger_2236 ;__validatePojo      ;EnvContext:
+ * </pre>
+ * 
+ * @author isandlatech (www.isandlatech.com) - ogattaz
+ * 
+ */
 public class CActivityFormaterBasic extends CActivityFormater {
 
 	/** the width of the level column **/
 	private final static int LENGTH_LEVEL = 7;
-	/** the width of the what column **/
-	private final static int LENGTH_WHAT = 20;
-	/** the width of the who column **/
-	private final static int LENGTH_WHO = 20;
 
+	/** the width of the what column **/
+	private final static int LENGTH_WHAT = 25;
+
+	/** the width of the who column **/
+	private final static int LENGTH_WHO = 25;
+	private final static CActivityFormaterBasic sActivityFormaterBasic = new CActivityFormaterBasic();
 	/** the column separator **/
 	final static char SEP_COLUMN = ';';
 
@@ -21,7 +34,14 @@ public class CActivityFormaterBasic extends CActivityFormater {
 	final static char SEP_MILLI = '.';
 
 	/**
-	 * 
+	 * @return
+	 */
+	public static IActivityFormater getInstance() {
+		return sActivityFormaterBasic;
+	}
+
+	/**
+	 * Explicit default constructor
 	 */
 	public CActivityFormaterBasic() {
 		super();
@@ -106,7 +126,7 @@ public class CActivityFormaterBasic extends CActivityFormater {
 	private String formatWhat(final String aMethod) {
 		return CXStringUtils.strAdjustRight(
 				(aMethod != null) ? aMethod.replace(SEP_COLUMN, REPLACE_COLUMN)
-						: CXStringUtils.LIB_NULL, LENGTH_WHAT, ' ');
+						: CXStringUtils.EMPTY, LENGTH_WHAT, ' ');
 
 	}
 
@@ -117,7 +137,7 @@ public class CActivityFormaterBasic extends CActivityFormater {
 	private String formatWho(final String aWho) {
 		return CXStringUtils.strAdjustRight(
 				(aWho != null) ? aWho.replace(SEP_COLUMN, REPLACE_COLUMN)
-						: CXStringUtils.LIB_NULL, LENGTH_WHO, ' ');
+						: CXStringUtils.EMPTY, LENGTH_WHO, ' ');
 
 	}
 
