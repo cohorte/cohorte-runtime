@@ -15,7 +15,6 @@ import javax.management.MBeanInfo;
 import javax.management.MBeanNotificationInfo;
 import javax.management.MBeanOperationInfo;
 
-import org.psem2m.isolates.tracer.TraceLine;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz

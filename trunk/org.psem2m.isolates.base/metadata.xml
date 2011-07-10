@@ -4,7 +4,7 @@
 	xmlns="org.apache.felix.ipojo" xmlns:jmx="org.apache.felix.ipojo.handlers.jmx">
 
 
-	<component classname="org.psem2m.isolates.base.CBundleBaseLoggerServiceImpl"
+	<component classname="org.psem2m.isolates.base.impl.CBundleBaseLoggerSvc"
 		architecture="true" immediate="true" name="isolates-base-bundle-logger">
 		<provides />
 		
@@ -15,10 +15,10 @@
 	
 
 	
-	<component classname="org.psem2m.isolates.base.CPlatformDirsServiceImpl"
+	<component classname="org.psem2m.isolates.base.impl.CPlatformDirsSvc"
 		architecture="true" immediate="true" name="isolates-base-platform-dirs">
 		<provides />
-		<requires field="pBundleBaseLoggerService" optional="false" />
+		<requires field="pBundleBaseLoggerSvc" optional="false" />
 		
 		<callback transition="validate" method="validatePojo"/>
 		<callback transition="invalidate" method="invalidatePojo"/>

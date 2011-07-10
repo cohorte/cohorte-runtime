@@ -13,34 +13,35 @@ Import-Package: org.osgi.service.log;version=1.3.0, org.apache.felix.i
  , org.osgi.framework;version=1.3.0, org.psem2m.utilities.logging, org
  .osgi.service.cm;version=1.2, org.psem2m.utilities.files, org.psem2m.
  utilities
+Service-Component: OSGI-INF/CBundleBaseActivator.xml
 iPOJO-Components: component { $immediate="true" $name="isolates-base-b
- undle-logger" $classname="org.psem2m.isolates.base.CBundleBaseLoggerS
- erviceImpl" $architecture="true" callback { $transition="validate" $m
- ethod="validatePojo" }callback { $transition="invalidate" $method="in
- validatePojo" }provides { }manipulation { $super="org.psem2m.isolates
- .base.CBundleLoggerBase" method { $name="$init" }method { $name="inva
- lidatePojo" }method { $name="validatePojo" }interface { $name="org.ps
- em2m.isolates.base.IBundleBaseLoggerService" }}}component { $immediat
- e="true" $name="isolates-base-platform-dirs" $classname="org.psem2m.i
- solates.base.CPlatformDirsServiceImpl" $architecture="true" callback 
- { $transition="validate" $method="validatePojo" }callback { $transiti
- on="invalidate" $method="invalidatePojo" }provides { }manipulation { 
- $super="org.psem2m.isolates.base.CPojoBase" field { $name="pBundleBas
- eLoggerService" $type="org.psem2m.isolates.base.IBundleBaseLoggerServ
- ice" }method { $name="getCurrentIsolateId" $return="java.lang.String"
-  }method { $name="getCurrentPlatformBase" $return="java.lang.String" 
- }method { $name="$init" }method { $arguments="{java.lang.Appendable}"
-  $name="addDescriptionInBuffer" $return="java.lang.Appendable" }metho
- d { $name="destroy" }method { $name="getIsolateId" $return="java.lang
- .String" }method { $name="getIsolateLogDir" $return="org.psem2m.utili
- ties.files.CXFileDir" }method { $arguments="{java.lang.String}" $name
- ="getIsolateLogDir" $return="org.psem2m.utilities.files.CXFileDir" }m
- ethod { $name="getPlatformBaseDir" $return="org.psem2m.utilities.file
- s.CXFileDir" }method { $name="getPlatformLogDir" $return="org.psem2m.
- utilities.files.CXFileDir" }method { $name="invalidatePojo" }method {
-  $name="validatePojo" }interface { $name="org.psem2m.isolates.base.IP
- latformDirsService" }interface { $name="org.psem2m.isolates.base.IPoj
- oBase" }}requires { $field="pBundleBaseLoggerService" $optional="fals
- e" }}instance { $component="isolates-base-bundle-logger" }instance { 
- $component="isolates-base-platform-dirs" }
+ undle-logger" $classname="org.psem2m.isolates.base.impl.CBundleBaseLo
+ ggerSvc" $architecture="true" callback { $transition="validate" $meth
+ od="validatePojo" }callback { $transition="invalidate" $method="inval
+ idatePojo" }provides { }manipulation { $super="org.psem2m.isolates.ba
+ se.CBundleLoggerBase" method { $name="$init" }method { $name="invalid
+ atePojo" }method { $name="validatePojo" }interface { $name="org.psem2
+ m.isolates.base.IBundleBaseLoggerSvc" }}}component { $immediate="true
+ " $name="isolates-base-platform-dirs" $classname="org.psem2m.isolates
+ .base.impl.CPlatformDirsSvc" $architecture="true" callback { $transit
+ ion="validate" $method="validatePojo" }callback { $transition="invali
+ date" $method="invalidatePojo" }provides { }manipulation { $super="or
+ g.psem2m.isolates.base.CPojoBase" field { $name="pBundleBaseLoggerSvc
+ " $type="org.psem2m.isolates.base.IBundleBaseLoggerSvc" }method { $na
+ me="getCurrentIsolateId" $return="java.lang.String" }method { $name="
+ getCurrentPlatformBase" $return="java.lang.String" }method { $name="$
+ init" }method { $arguments="{java.lang.Appendable}" $name="addDescrip
+ tionInBuffer" $return="java.lang.Appendable" }method { $name="destroy
+ " }method { $name="getIsolateId" $return="java.lang.String" }method {
+  $name="getIsolateLogDir" $return="org.psem2m.utilities.files.CXFileD
+ ir" }method { $arguments="{java.lang.String}" $name="getIsolateLogDir
+ " $return="org.psem2m.utilities.files.CXFileDir" }method { $name="get
+ PlatformBaseDir" $return="org.psem2m.utilities.files.CXFileDir" }meth
+ od { $name="getPlatformLogDir" $return="org.psem2m.utilities.files.CX
+ FileDir" }method { $name="invalidatePojo" }method { $name="validatePo
+ jo" }interface { $name="org.psem2m.isolates.base.IPlatformDirsSvc" }i
+ nterface { $name="org.psem2m.isolates.base.IPojoBase" }}requires { $f
+ ield="pBundleBaseLoggerSvc" $optional="false" }}instance { $component
+ ="isolates-base-bundle-logger" }instance { $component="isolates-base-
+ platform-dirs" }
 

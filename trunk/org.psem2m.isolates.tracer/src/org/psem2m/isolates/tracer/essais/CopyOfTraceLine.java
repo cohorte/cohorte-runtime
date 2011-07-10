@@ -21,10 +21,9 @@ import javax.management.MBeanException;
 import javax.management.MBeanInfo;
 import javax.management.ReflectionException;
 
-import org.psem2m.isolates.tracer.TraceLineMBean;
-import org.psem2m.isolates.tracer.impl.ITraceLine;
-import org.psem2m.isolates.tracer.impl.ITraceLineSetter;
-import org.psem2m.isolates.tracer.impl.ITraceLinesProvider;
+import org.psem2m.isolates.tracer.ITraceLine;
+import org.psem2m.isolates.tracer.ITraceLineSetter;
+import org.psem2m.isolates.tracer.ITraceLinesProvider;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz

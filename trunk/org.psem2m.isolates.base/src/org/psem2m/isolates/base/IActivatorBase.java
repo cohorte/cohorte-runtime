@@ -10,12 +10,22 @@
  *******************************************************************************/
 package org.psem2m.isolates.base;
 
+import org.osgi.framework.BundleContext;
+
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
 public interface IActivatorBase {
 
+	/**
+	 * @return
+	 */
 	public String getBundleId();
+
+	/**
+	 * @return
+	 */
+	public BundleContext getContext();
 
 }

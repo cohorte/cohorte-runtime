@@ -57,7 +57,7 @@ public class CBundleTracerActivator extends CActivatorBase implements
 	 */
 	@Override
 	public String getBundleId() {
-		return CBundleTracerActivator.class.getPackage().getName();
+		return getClass().getPackage().getName();
 
 	}
 

@@ -3,15 +3,25 @@
 	xsi:schemaLocation="org.apache.felix.ipojo http://felix.apache.org/ipojo/schemas/CURRENT/core.xsd"
 	xmlns="org.apache.felix.ipojo" xmlns:jmx="org.apache.felix.ipojo.handlers.jmx">
 
-	<component classname="org.psem2m.isolates.monitor.impl.IsolateManager"
-		architecture="true" immediate="true" name="isolates-manager">
+
+	<component classname="org.psem2m.isolates.monitor.impl.CBundleMonitorLoggerSvc"
+		architecture="true" immediate="true" name="isolates-monitor-logger">
 		<provides />
+		
+		<callback transition="validate" method="validatePojo"/>
+		<callback transition="invalidate" method="invalidatePojo"/>
+	</component>
+	<instance component="isolates-monitor-logger"   />
+	
+	<component classname="org.psem2m.isolates.monitor.impl.CIsolateManagerSvc"
+		architecture="true" immediate="true" name="isolates-monitor-monitor">
+		<provides />
+		
+		<requires field="pBundleMonitorLoggerSvc" optional="false" />
 		<requires field="pForker" optional="false" />
 		
-		<callback transition="validate" method="startPlatform"/>
-		<callback transition="invalidate" method="stopPlatform"/>
-		
+		<callback transition="validate" method="validatePojo"/>
+		<callback transition="invalidate" method="invalidatePojo"/>
 	</component>
-
-	<instance component="isolates-manager" />
+	<instance component="isolates-monitor-monitor" />
 </ipojo>

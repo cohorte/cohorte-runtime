@@ -44,6 +44,7 @@ public class CBundleBaseActivator extends CActivatorBase implements
 	 * 
 	 * @see org.psem2m.utilities.CXObjectBase#destroy()
 	 */
+
 	@Override
 	public void destroy() {
 		// ...
@@ -62,14 +63,13 @@ public class CBundleBaseActivator extends CActivatorBase implements
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see
-	 * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext
-	 * )
+	 * @see org.psem2m.isolates.base.CActivatorBase#start(org.osgi.framework.
+	 * BundleContext)
 	 */
 	@Override
 	public void start(final BundleContext bundleContext) throws Exception {
 		super.start(bundleContext);
-		// ...
+
 	}
 
 	/*

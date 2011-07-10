@@ -7,7 +7,9 @@ package org.psem2m.isolates.monitor.impl;
 
 import java.security.InvalidParameterException;
 
-import org.psem2m.isolates.monitor.Activator;
+import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Requires;
+import org.psem2m.isolates.monitor.IBundleMonitorLoggerService;
 import org.psem2m.isolates.monitor.IIsolateListener;
 
 /**
@@ -15,65 +17,70 @@ import org.psem2m.isolates.monitor.IIsolateListener;
  * 
  * @author Thomas Calmant
  */
+@Component(name = "isolates-monitor-ProcessMonitorThread", immediate = true)
 public class ProcessMonitorThread extends Thread {
 
-    /** Monitored isolate ID */
-    private String pIsolateId;
+	/** Service reference managed by iPojo (see metadata.xml) **/
+	@Requires
+	private IBundleMonitorLoggerService pBundleMonitorLoggerService;
 
-    /** Isolate listener */
-    private IIsolateListener pListener;
+	/** Monitored isolate ID */
+	private final String pIsolateId;
 
-    /** Monitored isolate process */
-    private Process pProcess;
+	/** Isolate listener */
+	private final IIsolateListener pListener;
 
-    /**
-     * Prepares a monitor thread
-     * 
-     * @param aListener
-     *            The isolate listener
-     * @param aIsolateId
-     *            The isolate ID
-     * @param aProcess
-     *            The isolate process
-     * @throws InvalidParameterException
-     *             One of the parameters is null.
-     */
-    public ProcessMonitorThread(final IIsolateListener aListener,
-	    final String aIsolateId, final Process aProcess)
-	    throws InvalidParameterException {
+	/** Monitored isolate process */
+	private final Process pProcess;
 
-	super();
-	pListener = aListener;
-	pIsolateId = aIsolateId;
-	pProcess = aProcess;
+	/**
+	 * Prepares a monitor thread
+	 * 
+	 * @param aListener
+	 *            The isolate listener
+	 * @param aIsolateId
+	 *            The isolate ID
+	 * @param aProcess
+	 *            The isolate process
+	 * @throws InvalidParameterException
+	 *             One of the parameters is null.
+	 */
+	public ProcessMonitorThread(final IIsolateListener aListener,
+			final String aIsolateId, final Process aProcess)
+			throws InvalidParameterException {
 
-	if (pListener == null || pIsolateId == null || pProcess == null) {
-	    throw new InvalidParameterException(
-		    "Isolate ID, process and listener can't be null");
+		super();
+		pListener = aListener;
+		pIsolateId = aIsolateId;
+		pProcess = aProcess;
+
+		if (pListener == null || pIsolateId == null || pProcess == null) {
+			throw new InvalidParameterException(
+					"Isolate ID, process and listener can't be null");
+		}
+
+		setName("monitor-" + pIsolateId);
 	}
 
-	setName("monitor-" + pIsolateId);
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Thread#run()
+	 */
+	@Override
+	public void run() {
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Thread#run()
-     */
-    @Override
-    public void run() {
+		try {
+			// Use a IForker.ping() loop instead of a blocking waitFor()
+			pProcess.waitFor();
+			// pListener.isolateStopped(pIsolateId);
 
-	try {
-	    // Use a IForker.ping() loop instead of a blocking waitFor()
-	    pProcess.waitFor();
-	    // pListener.isolateStopped(pIsolateId);
+		} catch (InterruptedException e) {
 
-	} catch (InterruptedException e) {
+			pBundleMonitorLoggerService.logSevere(this, "Monitor process",
+					"Interrupted : ", e);
 
-	    Activator.getLogger().logSevere(this, "Monitor process",
-		    "Interrupted : ", e);
-
-	    pListener.monitorStopped(pIsolateId);
+			pListener.monitorStopped(pIsolateId);
+		}
 	}
-    }
 }

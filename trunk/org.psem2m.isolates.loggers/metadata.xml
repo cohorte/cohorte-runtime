@@ -4,22 +4,22 @@
 	xmlns="org.apache.felix.ipojo" xmlns:jmx="org.apache.felix.ipojo.handlers.jmx">
 
 
-	<component classname="org.psem2m.isolates.loggers.CBundleLoggersLoggerServiceImpl"
-		architecture="true" immediate="true" name="isolates-loggers-bundle-logger">
+	<component classname="org.psem2m.isolates.loggers.impl.CBundleLoggersLoggerSvc"
+		architecture="true" immediate="true" name="isolates-loggers-logger">
 		<provides />
 		
 		<callback transition="validate" method="validatePojo"/>
 		<callback transition="invalidate" method="invalidatePojo"/>
 	</component>
-	<instance component="isolates-loggers-bundle-logger"   />
+	<instance component="isolates-loggers-logger"   />
 	
 	
-	<component classname="org.psem2m.isolates.loggers.CLogChannelsServiceImpl"
+	<component classname="org.psem2m.isolates.loggers.impl.CLogChannelsSvc"
 		architecture="true" immediate="true" name="isolates-loggers-channels">
 		<provides />
 		
-		<requires field="pBundleLoggersLoggerService" optional="false" />
-		<requires field="pPlatformDirsService" optional="false" />
+		<requires field="pBundleLoggersLoggerSvc" optional="false" />
+		<requires field="pPlatformDirsSvc" optional="false" />
 		
 		<callback transition="validate" method="validatePojo"/>
 		<callback transition="invalidate" method="invalidatePojo"/>

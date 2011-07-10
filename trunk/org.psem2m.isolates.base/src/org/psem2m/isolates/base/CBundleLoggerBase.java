@@ -11,6 +11,7 @@
 package org.psem2m.isolates.base;
 
 import java.util.logging.Level;
+import java.util.logging.LogRecord;
 
 import org.psem2m.utilities.CXStringUtils;
 import org.psem2m.utilities.logging.IActivityLoggerBase;
@@ -130,6 +131,20 @@ public abstract class CBundleLoggerBase extends CPojoBase implements
 			final CharSequence aWhat, final Object... aInfos) {
 		if (pActivityLoggerBase != null) {
 			pActivityLoggerBase.log(aLevel, aWho, aWhat, aInfos);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.psem2m.utilities.logging.IActivityLoggerBase#log(java.util.logging
+	 * .LogRecord)
+	 */
+	@Override
+	public void log(final LogRecord record) {
+		if (pActivityLoggerBase != null) {
+			pActivityLoggerBase.log(record);
 		}
 	}
 

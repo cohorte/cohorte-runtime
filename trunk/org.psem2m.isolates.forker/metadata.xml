@@ -3,10 +3,27 @@
 	xsi:schemaLocation="org.apache.felix.ipojo http://felix.apache.org/ipojo/schemas/CURRENT/core.xsd"
 	xmlns="org.apache.felix.ipojo" xmlns:jmx="org.apache.felix.ipojo.handlers.jmx">
 
-	<component classname="org.psem2m.isolates.forker.impl.Forker"
-		architecture="true" immediate="true" name="isolate-forker">
+
+
+	<component classname="org.psem2m.isolates.forker.impl.CBundleForkerLoggerSvc"
+		architecture="true" immediate="true" name="isolates-forker-logger">
 		<provides />
+		
+		<callback transition="validate" method="validatePojo"/>
+		<callback transition="invalidate" method="invalidatePojo"/>
+	</component>
+	<instance component="isolates-forker-logger"   />
+	
+	
+	<component classname="org.psem2m.isolates.forker.impl.CForkerSvc"
+		architecture="true" immediate="true" name="isolate-forker-forker">
+		<provides />
+		
+		<requires field="pBundleForkerLoggerSvc" optional="false" />
+		
+		<callback transition="validate" method="validatePojo"/>
+		<callback transition="invalidate" method="invalidatePojo"/>
 	</component>
 
-	<instance component="isolate-forker" />
+	<instance component="isolate-forker-forker" />
 </ipojo>

@@ -15,8 +15,6 @@ import java.lang.reflect.Method;
 import javax.management.IntrospectionException;
 import javax.management.MBeanAttributeInfo;
 
-import org.psem2m.isolates.tracer.TraceLine;
-import org.psem2m.isolates.tracer.TraceLineMBean;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz

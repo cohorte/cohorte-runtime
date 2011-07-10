@@ -10,6 +10,8 @@
  *******************************************************************************/
 package org.psem2m.isolates.tracer.impl;
 
+import org.psem2m.isolates.tracer.ITraceLineSetter;
+
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 

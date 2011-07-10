@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Bundle-Activator: org.psem2m.isolates.forker.Activator
+Bundle-Activator: org.psem2m.isolates.forker.CBundleForkerActivator
 Bundle-ManifestVersion: 2
 Bundle-Name: Forker
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
@@ -9,23 +9,39 @@ Bundle-Version: 0.0.1.qualifier
 Created-By: iPOJO  1.8.0
 Export-Package: org.psem2m.isolates.forker
 Import-Package: org.osgi.service.log;version=1.3, org.psem2m.isolates.
- commons.forker;version=1.0.0, org.apache.felix.ipojo.architecture;ver
- sion=1.8.0, org.apache.felix.ipojo;version=1.8.0, org.osgi.framework;
- version=1.3.0, org.psem2m.isolates.commons.impl, org.psem2m.utilities
- .logging, org.osgi.service.cm;version=1.2, org.psem2m.isolates.common
- s;version=1.0.0, org.psem2m.utilities.files, org.psem2m.utilities
-iPOJO-Components: component { $immediate="true" $name="isolate-forker"
-  $classname="org.psem2m.isolates.forker.impl.Forker" $architecture="t
- rue" provides { }manipulation { field { $name="pPlatformConfiguration
- " $type="org.psem2m.isolates.commons.IPlatformConfiguration" }field {
-  $name="pRunningIsolates" $type="java.util.Map" }method { $name="$ini
- t" }method { $arguments="{java.lang.String}" $name="ping" $return="or
- g.psem2m.isolates.commons.forker.IForker$EProcessState" }method { $ar
- guments="{org.psem2m.isolates.commons.IPlatformConfiguration}" $name=
- "setConfiguration" }method { $arguments="{org.psem2m.isolates.commons
- .IIsolateConfiguration}" $name="startIsolate" }method { $arguments="{
- java.lang.String}" $name="stopIsolate" }method { $name="$SWITCH_TABLE
- $org$psem2m$isolates$commons$IIsolateConfiguration$IsolateKind" $retu
- rn="int[]" }interface { $name="org.psem2m.isolates.commons.forker.IFo
- rker" }}}instance { $component="isolate-forker" }
+ commons.forker;version=1.0.0, org.psem2m.isolates.base, org.apache.fe
+ lix.ipojo.architecture;version=1.8.0, org.apache.felix.ipojo;version=
+ 1.8.0, org.psem2m.isolates.commons.impl, org.osgi.framework;version=1
+ .3.0, org.psem2m.utilities.logging, org.osgi.service.cm;version=1.2, 
+ org.psem2m.utilities.files, org.psem2m.isolates.commons;version=1.0.0
+ , org.psem2m.utilities
+iPOJO-Components: component { $immediate="true" $name="isolates-forker
+ -logger" $classname="org.psem2m.isolates.forker.impl.CBundleForkerLog
+ gerSvc" $architecture="true" callback { $transition="validate" $metho
+ d="validatePojo" }callback { $transition="invalidate" $method="invali
+ datePojo" }provides { }manipulation { $super="org.psem2m.isolates.bas
+ e.CBundleLoggerBase" method { $name="$init" }method { $name="invalida
+ tePojo" }method { $name="validatePojo" }interface { $name="org.psem2m
+ .isolates.forker.IBundleForkerLoggerSvc" }}}component { $immediate="t
+ rue" $name="isolate-forker-forker" $classname="org.psem2m.isolates.fo
+ rker.impl.CForkerSvc" $architecture="true" callback { $transition="va
+ lidate" $method="validatePojo" }callback { $transition="invalidate" $
+ method="invalidatePojo" }provides { }manipulation { $super="org.psem2
+ m.isolates.base.CPojoBase" field { $name="pBundleForkerLoggerSvc" $ty
+ pe="org.psem2m.isolates.forker.IBundleForkerLoggerSvc" }field { $name
+ ="pPlatformConfiguration" $type="org.psem2m.isolates.commons.IPlatfor
+ mConfiguration" }field { $name="pRunningIsolates" $type="java.util.Ma
+ p" }method { $name="$init" }method { $name="destroy" }method { $name=
+ "invalidatePojo" }method { $arguments="{java.lang.String}" $name="pin
+ g" $return="org.psem2m.isolates.commons.forker.IForker$EProcessState"
+  }method { $arguments="{org.psem2m.isolates.commons.IPlatformConfigur
+ ation}" $name="setConfiguration" }method { $arguments="{org.psem2m.is
+ olates.commons.IIsolateConfiguration}" $name="startIsolate" }method {
+  $arguments="{java.lang.String}" $name="stopIsolate" }method { $name=
+ "validatePojo" }method { $name="$SWITCH_TABLE$org$psem2m$isolates$com
+ mons$IIsolateConfiguration$IsolateKind" $return="int[]" }interface { 
+ $name="org.psem2m.isolates.commons.forker.IForker" }}requires { $fiel
+ d="pBundleForkerLoggerSvc" $optional="false" }}instance { $component=
+ "isolates-forker-logger" }instance { $component="isolate-forker-forke
+ r" }
 
