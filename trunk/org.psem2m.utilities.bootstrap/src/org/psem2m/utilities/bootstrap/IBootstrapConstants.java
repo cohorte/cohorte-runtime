@@ -6,21 +6,26 @@
 package org.psem2m.utilities.bootstrap;
 
 /**
- * @author tcalmant
+ * Common bootstrap constants
  * 
+ * @author Thomas Calmant
  */
 public interface IBootstrapConstants {
 
+    /** Framework configuration key */
+    String CONFIG_FRAMEWORK = IBootstrapConstants.PROPERTY_PREFIX
+            + "osgi.framework";
+
+    /** Help command */
+    String HELP_COMMAND = "--help";
+
     /** Bootstrap properties prefix */
     String PROPERTY_PREFIX = "org.psem2m.bootstrap.";
-    /** Help command */
-    public static final String HELP_COMMAND = "--help";
+
     /** Read lines from input */
-    public static final String READ_LINES_COMMAND = "--read-input-lines";
+    String READ_LINES_COMMAND = "--read-input-lines";
+
     /** Read array object from input */
-    public static final String UNSERIALIZE_COMMAND = "--unserialize-input";
-    /** Framework configuration key */
-    public static final String CONFIG_FRAMEWORK = PROPERTY_PREFIX
-            + "osgi.framework";
+    String UNSERIALIZE_COMMAND = "--unserialize-input";
 
 }
