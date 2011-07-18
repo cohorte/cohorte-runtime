@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ipojo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="org.apache.felix.ipojo http://felix.apache.org/ipojo/schemas/CURRENT/core.xsd org.apache.felix.ipojo.handlers.jmx http://felix.apache.org/ipojo/schemas/CURRENT/jmx.xsd"
+	xmlns="org.apache.felix.ipojo" xmlns:jmx="org.apache.felix.ipojo.handlers.jmx">
+
+	<component classname="org.psem2m.isolates.slave.agent.core.AgentCore"
+		architecture="true" immediate="true" name="isolates-slave-agent-core">
+
+		<jmx:config>
+			<jmx:method name="getBundleInfo"
+				description="Retrieves informations about the bundle with the given ID, null if not found" />
+
+			<jmx:method name="getBundlesState"
+				description="Retrieves a Map&lt;String, int&gt; associating bundles ID and state" />
+
+			<jmx:method name="installBundle"
+				description="Install the given bundle (needs a valid URL) and returns its ID. Throws a BundleException on error" />
+
+			<jmx:method name="startBundle" description="Starts the bundle with the given UID" />
+
+			<jmx:method name="stopBundle" description="Stops the bundle with the given UID" />
+
+			<jmx:method name="uninstallBundle"
+				description="Uninstalls the bundle with the given UID" />
+
+			<jmx:method name="updateBundle" description="Updates the bundle with the given UID" />
+		</jmx:config>
+
+	</component>
+
+	<instance component="isolates-slave-agent-core" />
+</ipojo>
