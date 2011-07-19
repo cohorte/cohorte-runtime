@@ -6,6 +6,8 @@ package org.psem2m.isolates.slave.agent.core;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.packageadmin.PackageAdmin;
 import org.psem2m.isolates.base.CPojoBase;
 import org.psem2m.isolates.commons.IBundleInfo;
 import org.psem2m.isolates.commons.impl.BundleInfo;
@@ -19,8 +21,8 @@ public class AgentCore extends CPojoBase {
     private BundleContext pBundleContext = null;
 
     public AgentCore(final BundleContext aBundleContext) {
-        super();
-        pBundleContext = aBundleContext;
+	super();
+	pBundleContext = aBundleContext;
     }
 
     /*
@@ -30,7 +32,7 @@ public class AgentCore extends CPojoBase {
      */
     @Override
     public void destroy() {
-        // ...
+	// ...
     }
 
     /**
@@ -42,12 +44,12 @@ public class AgentCore extends CPojoBase {
      */
     public IBundleInfo getBundleInfo(final long aBundleId) {
 
-        Bundle bundle = pBundleContext.getBundle(aBundleId);
-        if (bundle == null) {
-            return null;
-        }
+	Bundle bundle = pBundleContext.getBundle(aBundleId);
+	if (bundle == null) {
+	    return null;
+	}
 
-        return new BundleInfo(bundle);
+	return new BundleInfo(bundle);
     }
 
     /**
@@ -57,16 +59,16 @@ public class AgentCore extends CPojoBase {
      */
     public IBundleInfo[] getBundlesState() {
 
-        Bundle[] bundles = pBundleContext.getBundles();
-        IBundleInfo[] bundlesInfo = new IBundleInfo[bundles.length];
+	Bundle[] bundles = pBundleContext.getBundles();
+	IBundleInfo[] bundlesInfo = new IBundleInfo[bundles.length];
 
-        int i = 0;
-        for (Bundle bundle : bundles) {
-            bundlesInfo[i] = new BundleInfo(bundle);
-            i++;
-        }
+	int i = 0;
+	for (Bundle bundle : bundles) {
+	    bundlesInfo[i] = new BundleInfo(bundle);
+	    i++;
+	}
 
-        return bundlesInfo;
+	return bundlesInfo;
     }
 
     /**
@@ -79,7 +81,7 @@ public class AgentCore extends CPojoBase {
      *             An error occurred while installing the bundle
      */
     public long installBundle(final String aBundleUrl) throws BundleException {
-        return pBundleContext.installBundle(aBundleUrl).getBundleId();
+	return pBundleContext.installBundle(aBundleUrl).getBundleId();
     }
 
     /*
@@ -89,39 +91,62 @@ public class AgentCore extends CPojoBase {
      */
     @Override
     public void invalidatePojo() {
-        // ...
+	// ...
     }
 
     /**
      * Refreshes packages (like the refresh command in Felix / Equinox). The
-     * bundle ID array can be null, to refresh the whole framework
+     * bundle ID array can be null, to refresh the whole framework.
+     * 
+     * TODO {@link PackageAdmin} is now deprecated (OSGi 4.3), but Felix 3.2.2
+     * does currently not support the new way.
      * 
      * @param aBundleIdArray
-     * @return
+     *            An array containing the UID of the bundles to refresh, null to
+     *            refresh all
+     * @return True on success, false on error
      */
-    // public boolean refreshPackages(final long aBundleIdArray[]) {
-    //
-    // ServiceReference svcRef = pBundleContext
-    // .getServiceReference(PackageAdmin.class.getName());
-    // if (svcRef == null) {
-    // return false;
-    // }
-    //
-    // // Grab the service
-    // PackageAdmin packadmin = (PackageAdmin) pBundleContext
-    // .getService(svcRef);
-    // if (packadmin == null) {
-    // return false;
-    // }
-    //
-    // // Refresh packages
-    // packadmin.refreshPackages(null);
-    //
-    // // Release the service
-    // pBundleContext.ungetService(svcRef);
-    //
-    // return true;
-    // }
+    public boolean refreshPackages(final long[] aBundleIdArray) {
+
+	// Prepare the bundle array
+	Bundle[] bundles = null;
+
+	if (aBundleIdArray != null) {
+	    bundles = new Bundle[aBundleIdArray.length];
+	    int i = 0;
+	    for (long bundleId : aBundleIdArray) {
+
+		Bundle bundle = pBundleContext.getBundle(bundleId);
+		if (bundle != null) {
+		    bundles[i++] = bundle;
+		}
+	    }
+	}
+
+	// Grab the service
+	ServiceReference svcRef = pBundleContext
+		.getServiceReference(PackageAdmin.class.getName());
+	if (svcRef == null) {
+	    return false;
+	}
+
+	PackageAdmin packadmin = (PackageAdmin) pBundleContext
+		.getService(svcRef);
+	if (packadmin == null) {
+	    return false;
+	}
+
+	try {
+	    // Refresh packages
+	    packadmin.refreshPackages(bundles);
+
+	} finally {
+	    // Release the service in any case
+	    pBundleContext.ungetService(svcRef);
+	}
+
+	return true;
+    }
 
     /**
      * Starts the given bundle
@@ -134,13 +159,13 @@ public class AgentCore extends CPojoBase {
      */
     public boolean startBundle(final long aBundleId) throws BundleException {
 
-        Bundle bundle = pBundleContext.getBundle(aBundleId);
-        if (bundle == null) {
-            return false;
-        }
+	Bundle bundle = pBundleContext.getBundle(aBundleId);
+	if (bundle == null) {
+	    return false;
+	}
 
-        bundle.start();
-        return true;
+	bundle.start();
+	return true;
     }
 
     /**
@@ -154,13 +179,13 @@ public class AgentCore extends CPojoBase {
      */
     public boolean stopBundle(final long aBundleId) throws BundleException {
 
-        Bundle bundle = pBundleContext.getBundle(aBundleId);
-        if (bundle == null) {
-            return false;
-        }
+	Bundle bundle = pBundleContext.getBundle(aBundleId);
+	if (bundle == null) {
+	    return false;
+	}
 
-        bundle.stop();
-        return true;
+	bundle.stop();
+	return true;
     }
 
     /**
@@ -174,13 +199,13 @@ public class AgentCore extends CPojoBase {
      */
     public boolean uninstallBundle(final long aBundleId) throws BundleException {
 
-        Bundle bundle = pBundleContext.getBundle(aBundleId);
-        if (bundle == null) {
-            return false;
-        }
+	Bundle bundle = pBundleContext.getBundle(aBundleId);
+	if (bundle == null) {
+	    return false;
+	}
 
-        bundle.uninstall();
-        return true;
+	bundle.uninstall();
+	return true;
     }
 
     /**
@@ -194,13 +219,13 @@ public class AgentCore extends CPojoBase {
      */
     public boolean updateBundle(final long aBundleId) throws BundleException {
 
-        Bundle bundle = pBundleContext.getBundle(aBundleId);
-        if (bundle == null) {
-            return false;
-        }
+	Bundle bundle = pBundleContext.getBundle(aBundleId);
+	if (bundle == null) {
+	    return false;
+	}
 
-        bundle.update();
-        return true;
+	bundle.update();
+	return true;
     }
 
     /*
@@ -210,6 +235,6 @@ public class AgentCore extends CPojoBase {
      */
     @Override
     public void validatePojo() {
-        // ...
+	// ...
     }
 }

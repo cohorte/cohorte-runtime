@@ -16,6 +16,8 @@
 			<jmx:method name="installBundle"
 				description="Install the given bundle (needs a valid URL) and returns its ID. Throws a BundleException on error" />
 
+			<jmx:method name="refreshPackages" description="Refreshes the bundles packages" />
+
 			<jmx:method name="startBundle" description="Starts the bundle with the given UID" />
 
 			<jmx:method name="stopBundle" description="Stops the bundle with the given UID" />
