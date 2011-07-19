@@ -29,9 +29,9 @@ iPOJO-Components: component { $immediate="true" $name="isolates-forker
  method="invalidatePojo" }provides { }manipulation { $super="org.psem2
  m.isolates.base.CPojoBase" field { $name="pBundleForkerLoggerSvc" $ty
  pe="org.psem2m.isolates.forker.IBundleForkerLoggerSvc" }field { $name
- ="pPlatformConfiguration" $type="org.psem2m.isolates.commons.IPlatfor
- mConfiguration" }field { $name="pRunningIsolates" $type="java.util.Ma
- p" }method { $name="$init" }method { $name="destroy" }method { $name=
+ ="pRunningIsolates" $type="java.util.Map" }field { $name="pPlatformCo
+ nfiguration" $type="org.psem2m.isolates.commons.IPlatformConfiguratio
+ n" }method { $name="$init" }method { $name="destroy" }method { $name=
  "invalidatePojo" }method { $arguments="{java.lang.String}" $name="pin
  g" $return="org.psem2m.isolates.commons.forker.IForker$EProcessState"
   }method { $arguments="{org.psem2m.isolates.commons.IPlatformConfigur
