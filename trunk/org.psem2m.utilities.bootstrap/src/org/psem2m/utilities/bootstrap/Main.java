@@ -1,15 +1,21 @@
 /**
  * File:   Main.java
- * Author: Thomas Calmant
- * Date:   6 juil. 2011
+ * Author: "Thomas Calmant"
+ * Date:   19 juil. 2011
  */
 package org.psem2m.utilities.bootstrap;
 
+import jargs.gnu.CmdLineParser;
+import jargs.gnu.CmdLineParser.Option;
+
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -24,17 +30,10 @@ import org.psem2m.utilities.bootstrap.streams.MessageSender;
 import org.psem2m.utilities.bootstrap.streams.RedirectedOutputStream;
 
 /**
- * Bootstrap entry point
+ * @author "Thomas Calmant"
  * 
- * @author Thomas Calmant
  */
 public class Main {
-
-    /** Ignored characters for normalization. Order matters ! */
-    public static final String[] IGNORED_CHARACTERS = { "--", "-D", "-" };
-
-    /** Test command (writes a serialized URL array in a file) */
-    public static final String TEST_COMMAND = "--test";
 
     /**
      * Bootstrap entry point
@@ -44,74 +43,13 @@ public class Main {
      */
     public static void main(final String[] aArgs) {
 
-        if (aArgs.length < 2) {
-            printHelp();
-            return;
-        }
+	Main program = new Main(aArgs);
 
-        // Special test command
-        if (aArgs[0].equalsIgnoreCase(TEST_COMMAND)) {
-            writeSerializationTest("./test.dat");
-            return;
-        }
+	// Read the bundles list and run the bootstrap
+	URL[] bundleConfiguration = program.readConfiguration();
+	program.runBootstrap(bundleConfiguration);
 
-        Main bootstrap = new Main();
-        bootstrap.run(aArgs);
-        bootstrap.closeStreams();
-    }
-
-    /**
-     * Prints the help message
-     * 
-     * @return The help message content
-     */
-    public static StringBuilder printHelp() {
-
-        StringBuilder builder = new StringBuilder();
-        builder.append("\nPSEM2M Bootstrap Options :\n");
-        builder.append("\t" + IBootstrapConstants.HELP_COMMAND
-                + " : Prints this help\n");
-        builder.append("\t" + IBootstrapConstants.READ_LINES_COMMAND
-                + " : Read extra data from the standard input, line by line\n");
-        builder.append("\t"
-                + IBootstrapConstants.UNSERIALIZE_COMMAND
-                + " : un-serialize a java.net.URL array from the standard input.\n");
-        builder.append("\t" + TEST_COMMAND
-                + " : Writes a serialized URL array in a file\n");
-
-        System.out.println(builder);
-        return builder;
-    }
-
-    /**
-     * Writes a serialized sample file
-     * 
-     * @param aFileName
-     *            Output file name
-     */
-    protected static void writeSerializationTest(final String aFileName) {
-
-        try {
-            URL[] urls = new URL[] {
-                    new File(
-                            "../../platforms/felix/org.apache.felix.shell-1.4.2.jar")
-                            .toURI().toURL(),
-                    new File(
-                            "../../platforms/felix/org.apache.felix.shell.tui-1.4.1.jar")
-                            .toURI().toURL() };
-
-            ObjectOutputStream oos = new ObjectOutputStream(
-                    new FileOutputStream(aFileName));
-            oos.writeObject(urls);
-            oos.close();
-
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+	program.closeStreams();
     }
 
     /** Bootstrap configuration */
@@ -120,14 +58,20 @@ public class Main {
     /** Input configuration reader */
     private ConfigurationReader pConfigurationReader;
 
+    /** Human output format */
+    private boolean pHumanOutput = false;
+
     /** Message sender */
     private MessageSender pMessageSender;
 
-    /** Object output stream */
-    private ObjectOutputStream pObjectOutputStream;
-
     /** Other properties */
     private final Map<String, String> pOtherConfiguration = new TreeMap<String, String>();
+
+    /** Object output stream */
+    private OutputStream pOutputStream;
+
+    /** Read serialized data flag */
+    private boolean pReadSerializedData = false;
 
     /** Real standard output */
     private PrintStream pStandardOutput;
@@ -135,21 +79,24 @@ public class Main {
     /**
      * Constructor : redirects output immediately
      */
-    private Main() {
+    private Main(final String[] aArgs) {
 
-        // Prepare the input reader
-        pConfigurationReader = new ConfigurationReader(System.in);
+	prepareProperties();
 
-        // Store old output stream
-        pStandardOutput = System.out;
+	// Read arguments
+	initializeFromArgs(aArgs);
 
-        // Prepare the object output stream
-        openStreams();
+	// Store old output stream
+	pStandardOutput = System.out;
 
-        // Prepare the message sender
-        pMessageSender = new MessageSender(pObjectOutputStream);
+	// Prepare the output stream
+	openStreams();
 
-        redirectOutputs();
+	// Prepare the message sender
+	pMessageSender = new MessageSender(pOutputStream);
+	pMessageSender.setHumanMode(pHumanOutput);
+
+	redirectOutputs();
     }
 
     /**
@@ -157,60 +104,116 @@ public class Main {
      */
     protected void closeStreams() {
 
-        if (pObjectOutputStream != null) {
-            try {
+	if (pOutputStream != null) {
+	    try {
+		pOutputStream.close();
 
-                pObjectOutputStream.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+	    } catch (IOException e) {
+		e.printStackTrace();
+	    }
+	}
     }
 
     /**
-     * Extracts the configuration from system properties and program arguments
+     * Analyzes the program arguments
      * 
-     * @param aProgramArguments
+     * @param aArgs
      *            The program arguments
      */
-    protected void extractConfiguration(final String[] aProgramArguments) {
+    protected void initializeFromArgs(final String[] aArgs) {
 
-        // Put bootstrap system properties into the map
-        for (Entry<Object, Object> property : System.getProperties().entrySet()) {
+	CmdLineParser parser = new CmdLineParser();
 
-            final String strKey = String.valueOf(property.getKey());
-            if (strKey.startsWith(IBootstrapConstants.PROPERTY_PREFIX)) {
+	/* Configuration input */
+	// Dummy option
+	parser.addBooleanOption(IBootstrapConstants.READ_LINES_COMMAND);
 
-                final Object value = property.getValue();
-                if (value != null) {
-                    pBootstrapConfiguration.put(strKey,
-                            String.valueOf(property.getValue()));
-                }
-            } else {
-                pOtherConfiguration.put(strKey, (String) property.getValue());
-            }
-        }
+	Option readFromFileOpt = parser
+		.addStringOption(IBootstrapConstants.READ_FROM_FILE);
 
-        // Put bootstrap arguments properties into the map
-        for (String arg : aProgramArguments) {
+	Option readSerializedOpt = parser
+		.addBooleanOption(IBootstrapConstants.UNSERIALIZE_COMMAND);
 
-            final String[] normalizedArg = normalizeArgument(arg);
-            if (normalizedArg[0]
-                    .startsWith(IBootstrapConstants.PROPERTY_PREFIX)
-                    && normalizedArg[1] != null) {
-                // Valid bootstrap argument
-                pBootstrapConfiguration.put(normalizedArg[0], normalizedArg[1]);
+	// Use a human output
+	Option humanOutputOpt = parser
+		.addBooleanOption(IBootstrapConstants.HUMAN_OUTPUT_FLAG);
 
-            } else {
-                pOtherConfiguration.put(normalizedArg[0], normalizedArg[1]);
-            }
-        }
+	// Help command
+	Option printHelpOpt = parser
+		.addBooleanOption(IBootstrapConstants.HELP_COMMAND);
+
+	// Write some test data
+	Option writeTestFileOpt = parser
+		.addStringOption(IBootstrapConstants.TEST_COMMAND);
+
+	// Parse the arguments
+	try {
+	    parser.parse(aArgs);
+
+	} catch (CmdLineParser.OptionException e) {
+
+	    // Fatal error : unrecognized option
+	    System.err.println(e.getMessage());
+	    printHelp();
+	    System.exit(1);
+	}
+
+	/* Handle options */
+	// Print help
+	if ((Boolean) parser.getOptionValue(printHelpOpt, false)) {
+	    printHelp();
+	    return;
+	}
+
+	// Write sample file
+	String fileName = (String) parser.getOptionValue(writeTestFileOpt);
+	if (fileName != null) {
+	    writeSerializationTest(fileName);
+	    return;
+	}
+
+	// Set the human output flag
+	pHumanOutput = (Boolean) parser.getOptionValue(humanOutputOpt, false);
+
+	// Prepare the read input stream
+	InputStream configStream = System.in;
+
+	fileName = (String) parser.getOptionValue(readFromFileOpt);
+	if (fileName != null) {
+	    try {
+		configStream = new FileInputStream(fileName);
+
+	    } catch (FileNotFoundException e) {
+		System.err.println("File not found : " + e);
+		System.exit(2);
+	    }
+	}
+
+	pConfigurationReader = new ConfigurationReader(configStream);
+
+	// Content format
+	pReadSerializedData = (Boolean) parser.getOptionValue(
+		readSerializedOpt, false);
+
+	/* Use pending arguments */
+	String[] remainingArgs = parser.getRemainingArgs();
+	for (String argument : remainingArgs) {
+
+	    String[] property = normalizeArgument(argument);
+
+	    if (property[0].startsWith(IBootstrapConstants.PROPERTY_PREFIX)) {
+		// Put it directly in the bootstrap properties
+		pBootstrapConfiguration.put(property[0], property[1]);
+
+	    } else {
+		// Put it directly in the other properties
+		pOtherConfiguration.put(property[0], property[1]);
+	    }
+	}
     }
 
     /**
      * Tries to normalize a program argument :
-     * 
-     * - removes its leading -, --, -D
      * 
      * - Break it into 2 parts if it contains an '='
      * 
@@ -220,37 +223,30 @@ public class Main {
      */
     protected String[] normalizeArgument(final String aArg) {
 
-        String[] result = new String[2];
+	String[] result = new String[2];
 
-        if (aArg == null) {
-            // Never return null
-            result[0] = "";
-            result[1] = null;
+	if (aArg == null) {
+	    // Never return null
+	    result[0] = "";
+	    result[1] = null;
 
-        } else {
-            // Prepare the argument, maybe its value
-            String argument = aArg;
-            String value = null;
+	} else {
+	    // Prepare the argument, maybe its value
+	    String argument = aArg;
+	    String value = null;
 
-            // Remove the leading characters
-            for (String leadingSequence : IGNORED_CHARACTERS) {
-                if (aArg.startsWith(leadingSequence)) {
-                    argument = aArg.substring(leadingSequence.length());
-                }
-            }
+	    // Extract value, if any
+	    int valueIndex = argument.indexOf('=');
+	    if (valueIndex != -1) {
+		value = argument.substring(valueIndex + 1);
+		argument = argument.substring(0, valueIndex);
+	    }
 
-            // Extract value, if any
-            int valueIndex = argument.indexOf('=');
-            if (valueIndex != -1) {
-                value = argument.substring(valueIndex + 1);
-                argument = argument.substring(0, valueIndex);
-            }
+	    result[0] = argument;
+	    result[1] = value;
+	}
 
-            result[0] = argument;
-            result[1] = value;
-        }
-
-        return result;
+	return result;
     }
 
     /**
@@ -258,58 +254,89 @@ public class Main {
      */
     protected void openStreams() {
 
-        try {
-            pObjectOutputStream = new ObjectOutputStream(pStandardOutput);
+	if (pHumanOutput) {
+	    pOutputStream = System.out;
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+	} else {
+	    try {
+		pOutputStream = new ObjectOutputStream(pStandardOutput);
+
+	    } catch (IOException e) {
+		e.printStackTrace();
+	    }
+	}
     }
 
     /**
-     * Analyzes program arguments and reads the input stream if indicated
-     * 
-     * @param aProgramArguments
-     *            Program arguments
-     * @return The bundles URL array, null on unknown action
+     * Prepares bootstrap and other properties from the system properties
      */
-    protected URL[] readParameters(final String[] aProgramArguments) {
+    protected void prepareProperties() {
+	// Put bootstrap system properties into the map
+	for (Entry<Object, Object> property : System.getProperties().entrySet()) {
 
-        // Prepare extra configuration reading
-        URL[] bundlesConfiguration = new URL[0];
+	    final String strKey = String.valueOf(property.getKey());
+	    if (strKey.startsWith(IBootstrapConstants.PROPERTY_PREFIX)) {
 
-        if (aProgramArguments.length > 0) {
+		final Object value = property.getValue();
+		if (value != null) {
+		    pBootstrapConfiguration.put(strKey,
+			    String.valueOf(property.getValue()));
+		}
+	    } else {
+		pOtherConfiguration.put(strKey, (String) property.getValue());
+	    }
+	}
+    }
 
-            // Test the action
-            final String action = aProgramArguments[0].toLowerCase();
+    /**
+     * Prints the help message
+     * 
+     * @return The help message content
+     */
+    public StringBuilder printHelp() {
 
-            if (action.equalsIgnoreCase(IBootstrapConstants.READ_LINES_COMMAND)) {
-                bundlesConfiguration = pConfigurationReader.readURLLines();
+	StringBuilder builder = new StringBuilder();
+	builder.append("\nPSEM2M Bootstrap Options :\n");
 
-            } else if (action
-                    .equalsIgnoreCase(IBootstrapConstants.UNSERIALIZE_COMMAND)) {
-                bundlesConfiguration = pConfigurationReader
-                        .readSerializedConfiguration();
+	builder.append("\t --" + IBootstrapConstants.HELP_COMMAND
+		+ " : Prints this help\n");
 
-            } else if (action
-                    .equalsIgnoreCase(IBootstrapConstants.HELP_COMMAND)) {
-                // Help
-                printHelp();
-                return null;
+	builder.append("\t --"
+		+ IBootstrapConstants.HUMAN_OUTPUT_FLAG
+		+ " : Output in a human readable mode (default: serialized mode)\n");
 
-            } else {
-                // Unknown command
-                System.err.println("Unknown command : " + action);
-                printHelp();
-                return null;
-            }
+	builder.append("\t --"
+		+ IBootstrapConstants.READ_LINES_COMMAND
+		+ " : Reads the list of bundle from the input, one bundle file name by line (default)\n");
 
-        } else {
-            printHelp();
-            return null;
-        }
+	builder.append("\t --" + IBootstrapConstants.UNSERIALIZE_COMMAND
+		+ " : un-serializes a java.net.URL array from the input.\n");
 
-        return bundlesConfiguration;
+	builder.append("\t --" + IBootstrapConstants.READ_FROM_FILE
+		+ "=<file> "
+		+ ": Use the given file as input (default: standard input)\n");
+
+	builder.append("\t --" + IBootstrapConstants.TEST_COMMAND
+		+ " : Writes a serialized URL array in a file\n");
+
+	System.out.println(builder);
+	return builder;
+    }
+
+    /**
+     * Reads the configuration from the bootstrap input
+     * 
+     * @return The bundles URL array, null on error
+     */
+    protected URL[] readConfiguration() {
+
+	if (pReadSerializedData) {
+	    // Serialized data
+	    return pConfigurationReader.readSerializedConfiguration();
+	}
+
+	// Line by line data
+	return pConfigurationReader.readURLLines();
     }
 
     /**
@@ -317,41 +344,20 @@ public class Main {
      */
     protected void redirectOutputs() {
 
-        // New output streams
-        RedirectedOutputStream fakeOutputStream = new RedirectedOutputStream(
-                pMessageSender, Level.INFO, "stdout");
+	// New output streams
+	RedirectedOutputStream fakeOutputStream = new RedirectedOutputStream(
+		pMessageSender, Level.INFO, "stdout");
 
-        RedirectedOutputStream fakeErrorStream = new RedirectedOutputStream(
-                pMessageSender, Level.WARNING, "stderr");
+	RedirectedOutputStream fakeErrorStream = new RedirectedOutputStream(
+		pMessageSender, Level.WARNING, "stderr");
 
-        // Replace standard output
-        PrintStream fakeOutput = new PrintStream(fakeOutputStream, true);
-        System.setOut(fakeOutput);
+	// Replace standard output
+	PrintStream fakeOutput = new PrintStream(fakeOutputStream, true);
+	System.setOut(fakeOutput);
 
-        // Replace standard error output
-        fakeOutput = new PrintStream(fakeErrorStream, true);
-        System.setErr(fakeOutput);
-    }
-
-    /**
-     * Entry point code
-     * 
-     * @param aProgramArguments
-     *            Program arguments
-     */
-    public void run(final String[] aProgramArguments) {
-
-        // Extract the configuration
-        extractConfiguration(aProgramArguments);
-
-        // Act as indicated
-        final URL[] bundlesConfiguration = readParameters(aProgramArguments);
-        if (bundlesConfiguration == null) {
-            return;
-        }
-
-        // Start
-        runBootstrap(bundlesConfiguration);
+	// Replace standard error output
+	fakeOutput = new PrintStream(fakeErrorStream, true);
+	System.setErr(fakeOutput);
     }
 
     /**
@@ -359,58 +365,89 @@ public class Main {
      */
     protected void runBootstrap(final URL[] aBundlesConfiguration) {
 
-        // Prepare the bootstrap
-        OsgiBootstrap bootstrap = new OsgiBootstrap(pMessageSender,
-                pBootstrapConfiguration, pOtherConfiguration);
+	// Prepare the bootstrap
+	OsgiBootstrap bootstrap = new OsgiBootstrap(pMessageSender,
+		pBootstrapConfiguration, pOtherConfiguration);
 
-        pMessageSender.sendMessage(Level.INFO, "Main", "runBootstrap",
-                "Creating framework...");
+	pMessageSender.sendMessage(Level.INFO, "Main", "runBootstrap",
+		"Creating framework...");
 
-        // Initialize the framework
-        if (bootstrap.createFramework() == null) {
-            pMessageSender.sendMessage(Level.SEVERE, "Main", "runBootstrap",
-                    "Can't create framework");
-            return;
-        }
+	// Initialize the framework
+	if (bootstrap.createFramework() == null) {
+	    pMessageSender.sendMessage(Level.SEVERE, "Main", "runBootstrap",
+		    "Can't create framework");
+	    return;
+	}
 
-        pMessageSender.sendMessage(Level.INFO, "Main", "runBootstrap",
-                "Installing bundles...");
+	pMessageSender.sendMessage(Level.INFO, "Main", "runBootstrap",
+		"Installing bundles...");
 
-        // Install indicated bundles
-        bootstrap.installBundles(aBundlesConfiguration);
+	// Install indicated bundles
+	bootstrap.installBundles(aBundlesConfiguration);
 
-        pMessageSender.sendMessage(Level.INFO, "Main", "runBootstrap",
-                "Starting framework...");
+	pMessageSender.sendMessage(Level.INFO, "Main", "runBootstrap",
+		"Starting framework...");
 
-        // Start the framework
-        bootstrap.startFramework();
+	// Start the framework
+	bootstrap.startFramework();
 
-        pMessageSender.sendMessage(Level.INFO, "Main", "runBootstrap",
-                "Starting bundles...");
+	pMessageSender.sendMessage(Level.INFO, "Main", "runBootstrap",
+		"Starting bundles...");
 
-        // Start installed bundles
-        bootstrap.startBundles();
+	// Start installed bundles
+	bootstrap.startBundles();
 
-        pMessageSender.sendMessage(Level.INFO, "Main", "runBootstrap",
-                "Running...");
+	pMessageSender.sendMessage(Level.INFO, "Main", "runBootstrap",
+		"Running...");
 
-        // Activity loop
-        try {
-            do {
-                // Do something..;
-            } while (!bootstrap.waitForStop(1000));
+	// Activity loop
+	try {
+	    do {
+		// Do something..;
+	    } while (!bootstrap.waitForStop(1000));
 
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+	} catch (InterruptedException e) {
+	    e.printStackTrace();
+	}
 
-        pMessageSender.sendMessage(Level.INFO, "Main", "runBootstrap",
-                "Stopping...");
+	pMessageSender.sendMessage(Level.INFO, "Main", "runBootstrap",
+		"Stopping...");
 
-        // Stop the framework
-        bootstrap.stopFramework();
+	// Stop the framework
+	bootstrap.stopFramework();
 
-        pMessageSender.sendMessage(Level.INFO, "Main", "runBootstrap",
-                "Stopped");
+	pMessageSender.sendMessage(Level.INFO, "Main", "runBootstrap",
+		"Stopped");
+    }
+
+    /**
+     * Writes a serialized sample file
+     * 
+     * @param aFileName
+     *            Output file name
+     */
+    protected void writeSerializationTest(final String aFileName) {
+
+	try {
+	    URL[] urls = new URL[] {
+		    new File(
+			    "../../platforms/felix/org.apache.felix.shell-1.4.2.jar")
+			    .toURI().toURL(),
+		    new File(
+			    "../../platforms/felix/org.apache.felix.shell.tui-1.4.1.jar")
+			    .toURI().toURL() };
+
+	    ObjectOutputStream oos = new ObjectOutputStream(
+		    new FileOutputStream(aFileName));
+	    oos.writeObject(urls);
+	    oos.close();
+
+	} catch (MalformedURLException e) {
+	    e.printStackTrace();
+	} catch (FileNotFoundException e) {
+	    e.printStackTrace();
+	} catch (IOException e) {
+	    e.printStackTrace();
+	}
     }
 }

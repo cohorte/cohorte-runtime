@@ -26,7 +26,7 @@ public interface IMessageSender {
      *            Log message
      */
     void sendMessage(final Level aLevel, final CharSequence aSourceClass,
-            final CharSequence aSourceMethod, final CharSequence aMessage);
+	    final CharSequence aSourceMethod, final CharSequence aMessage);
 
     /**
      * Sends the given message via a LogRecord object serialized on the standard
@@ -44,6 +44,14 @@ public interface IMessageSender {
      *            An exception
      */
     void sendMessage(final Level aLevel, final CharSequence aSourceClass,
-            final CharSequence aSourceMethod, final CharSequence aMessage,
-            final Throwable aThrowable);
+	    final CharSequence aSourceMethod, final CharSequence aMessage,
+	    final Throwable aThrowable);
+
+    /**
+     * Activates or deactivates the human readable output mode
+     * 
+     * @param aHumanMode
+     *            Human mode flag
+     */
+    void setHumanMode(boolean aHumanMode);
 }
