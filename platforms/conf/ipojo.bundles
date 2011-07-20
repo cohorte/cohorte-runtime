@@ -1,0 +1,5 @@
+# iPOJO Core and JMX
+felix/org.apache.felix.ipojo-1.8.0.jar
+
+felix/org.apache.felix.ipojo.handler.extender-1.4.0.jar
+felix/org.apache.felix.ipojo.handler.jmx-1.4.0.jar
