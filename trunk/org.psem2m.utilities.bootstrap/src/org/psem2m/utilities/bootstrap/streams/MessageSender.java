@@ -93,7 +93,7 @@ public class MessageSender implements IMessageSender {
 	builder.append(".");
 	builder.append(aLogRecord.getSourceMethodName());
 	builder.append(" :: ");
-	builder.append(aLogRecord.getMessage().trim());
+	builder.append(aLogRecord.getMessage());
 
 	appendThrowable(builder, aLogRecord.getThrown());
 
@@ -142,7 +142,13 @@ public class MessageSender implements IMessageSender {
 	    final CharSequence aSourceClass, final CharSequence aSourceMethod,
 	    final CharSequence aMessage, final Throwable aThrowable) {
 
-	LogRecord record = new LogRecord(aLevel, aMessage.toString());
+	String message = aMessage.toString();
+	if (message.trim().isEmpty()) {
+	    // Ignore empty messages
+	    return;
+	}
+
+	LogRecord record = new LogRecord(aLevel, message);
 	record.setLoggerName("Bootstrap");
 	record.setSourceClassName(aSourceClass.toString());
 	record.setSourceMethodName(aSourceMethod.toString());
