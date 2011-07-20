@@ -27,6 +27,10 @@ import org.psem2m.utilities.bootstrap.IMessageSender;
  */
 public class OsgiBootstrap {
 
+    /** Name to use in logs */
+    private static final String CLASS_LOG_NAME = OsgiBootstrap.class
+	    .getSimpleName();
+
     /** Default OSGi pFramework : Felix */
     public static final String DEFAULT_FRAMEWORK = "org.apache.felix.framework.FrameworkFactory";
 
@@ -40,11 +44,11 @@ public class OsgiBootstrap {
     public static final String OSGI_STORAGE_CLEAN_ON_INIT = "onFirstInit";
 
     static {
-        // Initialize the static map
-        FRAMEWORK_FACTORIES.put("equinox",
-                "org.eclipse.osgi.launch.EquinoxFactory");
-        FRAMEWORK_FACTORIES.put("felix",
-                "org.apache.felix.framework.FrameworkFactory");
+	// Initialize the static map
+	FRAMEWORK_FACTORIES.put("equinox",
+		"org.eclipse.osgi.launch.EquinoxFactory");
+	FRAMEWORK_FACTORIES.put("felix",
+		"org.apache.felix.framework.FrameworkFactory");
     }
 
     /** The bootstrap configuration */
@@ -75,24 +79,24 @@ public class OsgiBootstrap {
      *            OSGi framework configuration map
      */
     public OsgiBootstrap(final IMessageSender aMessageSender,
-            final Map<String, String> aBootstrapConfiguration,
-            final Map<String, String> aFrameworkConfiguration) {
+	    final Map<String, String> aBootstrapConfiguration,
+	    final Map<String, String> aFrameworkConfiguration) {
 
-        pMessageSender = aMessageSender;
+	pMessageSender = aMessageSender;
 
-        if (aBootstrapConfiguration != null) {
-            pBootstrapConfiguration.putAll(aBootstrapConfiguration);
-        }
+	if (aBootstrapConfiguration != null) {
+	    pBootstrapConfiguration.putAll(aBootstrapConfiguration);
+	}
 
-        if (aFrameworkConfiguration != null) {
-            pFrameworkConfiguration.putAll(aFrameworkConfiguration);
-        }
+	if (aFrameworkConfiguration != null) {
+	    pFrameworkConfiguration.putAll(aFrameworkConfiguration);
+	}
 
-        // Flush the cache by default
-        if (!aFrameworkConfiguration.containsKey(OSGI_STORAGE_CLEAN)) {
-            aFrameworkConfiguration.put(OSGI_STORAGE_CLEAN,
-                    OSGI_STORAGE_CLEAN_ON_INIT);
-        }
+	// Flush the cache by default
+	if (!aFrameworkConfiguration.containsKey(OSGI_STORAGE_CLEAN)) {
+	    aFrameworkConfiguration.put(OSGI_STORAGE_CLEAN,
+		    OSGI_STORAGE_CLEAN_ON_INIT);
+	}
     }
 
     /**
@@ -102,28 +106,28 @@ public class OsgiBootstrap {
      */
     public Framework createFramework() {
 
-        final FrameworkFactory factory = getFrameworkFactory();
-        if (factory == null) {
-            // Could not find the factory
-            return null;
-        }
+	final FrameworkFactory factory = getFrameworkFactory();
+	if (factory == null) {
+	    // Could not find the factory
+	    return null;
+	}
 
-        // Create the framework object
-        pFramework = factory.newFramework(pFrameworkConfiguration);
+	// Create the framework object
+	pFramework = factory.newFramework(pFrameworkConfiguration);
 
-        try {
-            // Initializes the framework
-            pFramework.init();
+	try {
+	    // Initializes the framework
+	    pFramework.init();
 
-        } catch (BundleException e) {
-            pMessageSender.sendMessage(Level.SEVERE, "OsgiBootstrap",
-                    "createFramework", "Framework inialization error", e);
+	} catch (BundleException e) {
+	    pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
+		    "createFramework", "Framework inialization error", e);
 
-            e.printStackTrace();
-            pFramework = null;
-        }
+	    e.printStackTrace();
+	    pFramework = null;
+	}
 
-        return pFramework;
+	return pFramework;
     }
 
     /**
@@ -133,39 +137,39 @@ public class OsgiBootstrap {
      */
     protected FrameworkFactory getFrameworkFactory() {
 
-        String osgiFramework = pBootstrapConfiguration
-                .get(IBootstrapConstants.CONFIG_FRAMEWORK);
-        if (osgiFramework == null) {
-            osgiFramework = DEFAULT_FRAMEWORK;
-        }
+	String osgiFramework = pBootstrapConfiguration
+		.get(IBootstrapConstants.CONFIG_FRAMEWORK);
+	if (osgiFramework == null) {
+	    osgiFramework = DEFAULT_FRAMEWORK;
+	}
 
-        // Try to find the factory
-        String factoryName = FRAMEWORK_FACTORIES.get(osgiFramework);
+	// Try to find the factory
+	String factoryName = FRAMEWORK_FACTORIES.get(osgiFramework);
 
-        // If none found, consider the configuration as the factory
-        if (factoryName == null) {
-            factoryName = osgiFramework;
-        }
+	// If none found, consider the configuration as the factory
+	if (factoryName == null) {
+	    factoryName = osgiFramework;
+	}
 
-        // Find and instantiate the class
-        try {
-            return (FrameworkFactory) Class.forName(factoryName).newInstance();
+	// Find and instantiate the class
+	try {
+	    return (FrameworkFactory) Class.forName(factoryName).newInstance();
 
-        } catch (InstantiationException e) {
-            pMessageSender.sendMessage(Level.SEVERE, "OsgiBootstrap",
-                    "getFrameworkFactory", "Can't create a new instance", e);
+	} catch (InstantiationException e) {
+	    pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
+		    "getFrameworkFactory", "Can't create a new instance", e);
 
-        } catch (IllegalAccessException e) {
-            pMessageSender.sendMessage(Level.SEVERE, "OsgiBootstrap",
-                    "getFrameworkFactory", "Illegal class access", e);
+	} catch (IllegalAccessException e) {
+	    pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
+		    "getFrameworkFactory", "Illegal class access", e);
 
-        } catch (ClassNotFoundException e) {
-            pMessageSender.sendMessage(Level.SEVERE, "OsgiBootstrap",
-                    "getFrameworkFactory", "Factory class not found", e);
+	} catch (ClassNotFoundException e) {
+	    pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
+		    "getFrameworkFactory", "Factory class not found", e);
 
-        }
+	}
 
-        return null;
+	return null;
     }
 
     /**
@@ -174,35 +178,53 @@ public class OsgiBootstrap {
      * @param aBundlesConfiguration
      *            List of bundles to install
      * 
+     * @return True on success, False if an error occurred
      */
-    public void installBundles(final URL[] aBundlesConfiguration) {
+    public boolean installBundles(final URL[] aBundlesConfiguration) {
 
-        for (URL url : aBundlesConfiguration) {
-            try {
-                pInstalledBundles.add(pFramework.getBundleContext()
-                        .installBundle(url.toString()));
+	boolean success = true;
+	for (URL url : aBundlesConfiguration) {
+	    try {
+		pInstalledBundles.add(pFramework.getBundleContext()
+			.installBundle(url.toString()));
 
-            } catch (BundleException e) {
-                pMessageSender.sendMessage(Level.SEVERE, "OsgiBootstrap",
-                        "getFrameworkFactory", "Error installing bundle '"
-                                + url + "'", e);
-                e.printStackTrace();
-            }
-        }
+	    } catch (BundleException e) {
+		pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
+			"getFrameworkFactory", "Error installing bundle '"
+				+ url + "'", e);
+
+		e.printStackTrace();
+		success = false;
+	    }
+	}
+
+	return success;
     }
 
     /**
      * Starts installed bundles
+     * 
+     * @return False if an error occurred
      */
-    public void startBundles() {
+    public boolean startBundles() {
 
-        for (Bundle bundle : pInstalledBundles) {
-            try {
-                bundle.start();
-            } catch (BundleException e) {
-                e.printStackTrace();
-            }
-        }
+	boolean success = true;
+	for (Bundle bundle : pInstalledBundles) {
+	    try {
+		bundle.start();
+
+	    } catch (BundleException e) {
+		pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
+			"startFramework",
+			"Error starting bundle : '" + bundle.getSymbolicName()
+				+ "'", e);
+
+		e.printStackTrace();
+		success = false;
+	    }
+	}
+
+	return success;
     }
 
     /**
@@ -212,15 +234,17 @@ public class OsgiBootstrap {
      */
     public boolean startFramework() {
 
-        try {
-            pFramework.start();
-            return true;
+	try {
+	    pFramework.start();
+	    return true;
 
-        } catch (BundleException e) {
-            e.printStackTrace();
-        }
+	} catch (BundleException e) {
+	    pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
+		    "startFramework", "Error starting the framework", e);
+	    e.printStackTrace();
+	}
 
-        return false;
+	return false;
     }
 
     /**
@@ -230,19 +254,23 @@ public class OsgiBootstrap {
      */
     public boolean stopFramework() {
 
-        if (pFramework.getState() != Bundle.ACTIVE) {
-            return false;
-        }
+	if (pFramework.getState() != Bundle.ACTIVE) {
+	    // The framework is already in a non-active state
+	    return true;
+	}
 
-        try {
-            pFramework.stop();
-            return true;
+	try {
+	    pFramework.stop();
+	    return true;
 
-        } catch (BundleException e) {
-            e.printStackTrace();
-        }
+	} catch (BundleException e) {
+	    pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
+		    "stopFramework", "Error stopping the framework", e);
 
-        return false;
+	    e.printStackTrace();
+	}
+
+	return false;
     }
 
     /**
@@ -257,7 +285,7 @@ public class OsgiBootstrap {
      */
     public boolean waitForStop(final int aTimeout) throws InterruptedException {
 
-        FrameworkEvent event = pFramework.waitForStop(aTimeout);
-        return event.getType() != FrameworkEvent.WAIT_TIMEDOUT;
+	FrameworkEvent event = pFramework.waitForStop(aTimeout);
+	return event.getType() != FrameworkEvent.WAIT_TIMEDOUT;
     }
 }

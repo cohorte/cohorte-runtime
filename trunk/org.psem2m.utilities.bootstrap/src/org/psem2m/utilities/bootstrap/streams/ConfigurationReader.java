@@ -15,9 +15,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+
+import org.psem2m.utilities.bootstrap.IMessageSender;
 
 /**
  * Reads the bootstrap configuration from the given input stream
@@ -25,6 +28,9 @@ import java.util.Set;
  * @author Thomas Calmant
  */
 public class ConfigurationReader {
+
+    /** Comment marker in configuration file */
+    public static final String COMMENT_MARKER = "#";
 
     /** File include command */
     public static final String INCLUDE_COMMAND = "include:";
@@ -52,9 +58,9 @@ public class ConfigurationReader {
 		File file = new File(value);
 
 		try {
-		    if (file.exists()) {
-			valueUrl = file.toURI().toURL();
-		    }
+		    // Accept the URL in any case at this time
+		    // File existence will be tested later
+		    valueUrl = file.toURI().toURL();
 
 		} catch (MalformedURLException ex) {
 		    // Abandon this string
@@ -72,14 +78,22 @@ public class ConfigurationReader {
     /** Configuration input stream */
     private InputStream pInputStream;
 
+    /** Message sender (mainly for errors) */
+    private IMessageSender pMessageSender;
+
     /**
      * Prepares to read the given input stream
      * 
      * @param aInputStream
      *            The configuration input stream
+     * @param aMessageSender
+     *            Log message sender
      */
-    public ConfigurationReader(final InputStream aInputStream) {
+    public ConfigurationReader(final InputStream aInputStream,
+	    final IMessageSender aMessageSender) {
+
 	pInputStream = aInputStream;
+	pMessageSender = aMessageSender;
     }
 
     /**
@@ -162,7 +176,7 @@ public class ConfigurationReader {
     protected String[] readStringLines(final InputStream aInputStream) {
 
 	// Use a set to avoid duplications
-	Set<String> linesSet = new HashSet<String>();
+	Set<String> linesSet = new LinkedHashSet<String>();
 
 	// Read from standard input
 	final BufferedReader reader = new BufferedReader(new InputStreamReader(
@@ -172,9 +186,17 @@ public class ConfigurationReader {
 	try {
 	    String readLine = reader.readLine();
 
-	    while (readLine != null && !readLine.isEmpty()) {
+	    // readLine can be null if the end of file is reached
+	    while (readLine != null) {
 
-		if (readLine.startsWith(INCLUDE_COMMAND)) {
+		// Trim the line
+		readLine = readLine.trim();
+
+		// Test the comment marker
+		if (readLine.isEmpty() || readLine.startsWith(COMMENT_MARKER)) {
+		    // Do nothing (ignore the other commands
+
+		} else if (readLine.startsWith(INCLUDE_COMMAND)) {
 		    // File include
 		    InputStream includedStream = getIncludedFileStream(readLine);
 
@@ -183,8 +205,14 @@ public class ConfigurationReader {
 				.asList(readStringLines(includedStream)));
 
 		    } else {
-			System.err.println("Can't open file : "
-				+ readLine.substring(INCLUDE_COMMAND.length()));
+
+			pMessageSender.sendMessage(
+				Level.WARNING,
+				"ConfigurationReader",
+				"readStringLines",
+				"Can't open file : "
+					+ readLine.substring(INCLUDE_COMMAND
+						.length()));
 		    }
 
 		} else {

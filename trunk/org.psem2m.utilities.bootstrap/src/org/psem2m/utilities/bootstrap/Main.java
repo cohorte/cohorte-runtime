@@ -18,6 +18,7 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -30,10 +31,14 @@ import org.psem2m.utilities.bootstrap.streams.MessageSender;
 import org.psem2m.utilities.bootstrap.streams.RedirectedOutputStream;
 
 /**
- * @author "Thomas Calmant"
+ * Bootstrap entry point
  * 
+ * @author "Thomas Calmant"
  */
 public class Main {
+
+    /** Name to use in logs */
+    private static final String CLASS_LOG_NAME = "Bootstrap.Main";
 
     /**
      * Bootstrap entry point
@@ -43,13 +48,26 @@ public class Main {
      */
     public static void main(final String[] aArgs) {
 
+	// Read the arguments, open the streams
 	Main program = new Main(aArgs);
 
 	// Read the bundles list and run the bootstrap
 	URL[] bundleConfiguration = program.readConfiguration();
-	program.runBootstrap(bundleConfiguration);
 
+	// Test bundle files
+	if (!program.testBundles(bundleConfiguration)) {
+	    System.exit(1);
+	}
+
+	// Run the framework if everything is OK
+	boolean success = program.runBootstrap(bundleConfiguration);
+
+	// Close the streams before exit
 	program.closeStreams();
+
+	if (!success) {
+	    System.exit(1);
+	}
     }
 
     /** Bootstrap configuration */
@@ -57,6 +75,9 @@ public class Main {
 
     /** Input configuration reader */
     private ConfigurationReader pConfigurationReader;
+
+    /** Input configuration stream */
+    private InputStream pConfigurationStream = System.in;
 
     /** Human output format */
     private boolean pHumanOutput = false;
@@ -96,6 +117,9 @@ public class Main {
 	pMessageSender = new MessageSender(pOutputStream);
 	pMessageSender.setHumanMode(pHumanOutput);
 
+	pConfigurationReader = new ConfigurationReader(pConfigurationStream,
+		pMessageSender);
+
 	redirectOutputs();
     }
 
@@ -106,7 +130,10 @@ public class Main {
 
 	if (pOutputStream != null) {
 	    try {
-		pOutputStream.close();
+		if (!System.out.equals(pOutputStream)) {
+		    // Avoid closing the stdout, or we'll be blocked here.
+		    pOutputStream.close();
+		}
 
 	    } catch (IOException e) {
 		e.printStackTrace();
@@ -175,21 +202,17 @@ public class Main {
 	// Set the human output flag
 	pHumanOutput = (Boolean) parser.getOptionValue(humanOutputOpt, false);
 
-	// Prepare the read input stream
-	InputStream configStream = System.in;
-
+	// Prepare the configuration input stream (default: stdin)
 	fileName = (String) parser.getOptionValue(readFromFileOpt);
 	if (fileName != null) {
 	    try {
-		configStream = new FileInputStream(fileName);
+		pConfigurationStream = new FileInputStream(fileName);
 
 	    } catch (FileNotFoundException e) {
 		System.err.println("File not found : " + e);
 		System.exit(2);
 	    }
 	}
-
-	pConfigurationReader = new ConfigurationReader(configStream);
 
 	// Content format
 	pReadSerializedData = (Boolean) parser.getOptionValue(
@@ -362,42 +385,59 @@ public class Main {
 
     /**
      * Run the OSGi bootstrap
+     * 
+     * @return True on success, False on error
      */
-    protected void runBootstrap(final URL[] aBundlesConfiguration) {
+    protected boolean runBootstrap(final URL[] aBundlesConfiguration) {
 
 	// Prepare the bootstrap
 	OsgiBootstrap bootstrap = new OsgiBootstrap(pMessageSender,
 		pBootstrapConfiguration, pOtherConfiguration);
 
-	pMessageSender.sendMessage(Level.INFO, "Main", "runBootstrap",
+	pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME, "runBootstrap",
 		"Creating framework...");
 
 	// Initialize the framework
 	if (bootstrap.createFramework() == null) {
-	    pMessageSender.sendMessage(Level.SEVERE, "Main", "runBootstrap",
-		    "Can't create framework");
-	    return;
+	    pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
+		    "runBootstrap", "Can't create framework");
+	    return false;
 	}
 
-	pMessageSender.sendMessage(Level.INFO, "Main", "runBootstrap",
+	pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME, "runBootstrap",
 		"Installing bundles...");
 
 	// Install indicated bundles
-	bootstrap.installBundles(aBundlesConfiguration);
+	if (!bootstrap.installBundles(aBundlesConfiguration)) {
+	    pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
+		    "runBootstrap", "Error installing bundles. Abandon");
+	    return false;
+	}
 
-	pMessageSender.sendMessage(Level.INFO, "Main", "runBootstrap",
+	pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME, "runBootstrap",
 		"Starting framework...");
 
 	// Start the framework
-	bootstrap.startFramework();
+	if (!bootstrap.startFramework()) {
+	    pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
+		    "runBootstrap", "Error starting framework. Abandon");
+	    return false;
+	}
 
-	pMessageSender.sendMessage(Level.INFO, "Main", "runBootstrap",
+	pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME, "runBootstrap",
 		"Starting bundles...");
 
 	// Start installed bundles
-	bootstrap.startBundles();
+	if (!bootstrap.startBundles()) {
+	    pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
+		    "runBootstrap", "Error starting bundles. Abandon");
 
-	pMessageSender.sendMessage(Level.INFO, "Main", "runBootstrap",
+	    // Stop the framework "gracefully"
+	    bootstrap.stopFramework();
+	    return false;
+	}
+
+	pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME, "runBootstrap",
 		"Running...");
 
 	// Activity loop
@@ -410,14 +450,67 @@ public class Main {
 	    e.printStackTrace();
 	}
 
-	pMessageSender.sendMessage(Level.INFO, "Main", "runBootstrap",
+	pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME, "runBootstrap",
 		"Stopping...");
 
 	// Stop the framework
-	bootstrap.stopFramework();
+	if (!bootstrap.stopFramework()) {
+	    pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
+		    "runBootstrap", "Error stopping the framework. Ignoring.");
 
-	pMessageSender.sendMessage(Level.INFO, "Main", "runBootstrap",
-		"Stopped");
+	} else {
+	    pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME,
+		    "runBootstrap", "Stopped");
+	}
+
+	return true;
+    }
+
+    /**
+     * Tests the if all bundles in the given bundle URL array are valid files
+     * 
+     * @param aBundleUrlArray
+     *            A bundle URL array
+     * @return True if all bundles are files, False if one them is not
+     */
+    public boolean testBundles(final URL[] aBundleUrlArray) {
+
+	if (aBundleUrlArray == null || aBundleUrlArray.length == 0) {
+	    pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
+		    "testBundles", "No bundle in the configuration array");
+
+	    return false;
+	}
+
+	// The file: protocol prefix
+	final String fileProtocol = "file";
+
+	for (URL bundleUrl : aBundleUrlArray) {
+
+	    if (!fileProtocol.equalsIgnoreCase(bundleUrl.getProtocol())) {
+		// Ignore non file: URLs
+		continue;
+	    }
+
+	    try {
+		File bundleFile = new File(bundleUrl.toURI());
+		if (!bundleFile.isFile()) {
+		    pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
+			    "testBundles", "Bundle not found : '" + bundleUrl
+				    + "'");
+
+		    return false;
+		}
+
+	    } catch (URISyntaxException e) {
+		// Just print a warning
+		pMessageSender.sendMessage(Level.WARNING, CLASS_LOG_NAME,
+			"testBundles", "Bad URI : '" + bundleUrl + "'");
+	    }
+
+	}
+
+	return true;
     }
 
     /**
