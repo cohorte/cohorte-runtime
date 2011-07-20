@@ -9,6 +9,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.logging.Level;
 
@@ -96,6 +97,12 @@ public class OsgiBootstrap {
 	if (!aFrameworkConfiguration.containsKey(OSGI_STORAGE_CLEAN)) {
 	    aFrameworkConfiguration.put(OSGI_STORAGE_CLEAN,
 		    OSGI_STORAGE_CLEAN_ON_INIT);
+	}
+
+	// Force the system properties
+	for (Entry<String, String> property : aFrameworkConfiguration
+		.entrySet()) {
+	    System.setProperty(property.getKey(), property.getValue());
 	}
     }
 
