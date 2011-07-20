@@ -7,4 +7,6 @@ Document de Conception Globale
 .. toctree::
    :maxdepth: 2
    
+   content/introduction
+   content/architecture
    
