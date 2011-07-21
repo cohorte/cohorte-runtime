@@ -10,23 +10,31 @@
  *******************************************************************************/
 package org.psem2m.isolates.base;
 
+import org.osgi.framework.BundleException;
+
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
 public interface IPojoBase {
-	/**
-	 * @return the id of the bundle
-	 */
-	public String getPojoId();
+    /**
+     * @return the id of the bundle
+     */
+    public String getPojoId();
 
-	/**
-	 * @throws Exception
-	 */
-	public void invalidatePojo();
+    /**
+     * Called when the POJO has been invalidated by iPOJO (dependency gone, ...)
+     * 
+     * @throws BundleException
+     *             An error occurred while stopping the POJO
+     */
+    public void invalidatePojo() throws BundleException;
 
-	/**
-	 * @throws Exception
-	 */
-	public void validatePojo();
+    /**
+     * Called when iPOJO starts the POJO.
+     * 
+     * @throws BundleException
+     *             An error occurred while starting the POJO
+     */
+    public void validatePojo() throws BundleException;
 }
