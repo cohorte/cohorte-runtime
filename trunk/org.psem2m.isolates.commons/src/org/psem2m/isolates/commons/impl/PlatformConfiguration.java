@@ -32,6 +32,16 @@ public class PlatformConfiguration implements IPlatformConfiguration {
     private String pRepository;
 
     /**
+     * Default constructor uses system properties
+     */
+    public PlatformConfiguration() {
+
+	final String platformBase = System.getProperty("psem2m.base");
+	pPlatformDirectory = makeAbsolutePath(platformBase);
+	pRepository = makeAbsolutePath(platformBase + "/repo");
+    }
+
+    /**
      * Sets up the platform configuration
      * 
      * @param aPlatformPath
