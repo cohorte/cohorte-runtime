@@ -76,7 +76,7 @@ start() {
 
     # Run all
     echo "Running bootstrap..."
-    $PSEM2M_JAVA -cp "$BOOTSTRAP_FILE:$PLATFORM_FRAMEWORK_BUNDLE_FILE" $BOOTSTRAP_MAIN_CLASS --human --lines --file=$PROVISION_FILE psem2m.home="$PSEM2M_HOME" psem2m.base="$PSEM2M_BASE" &
+    $PSEM2M_JAVA -cp "$BOOTSTRAP_FILE:$PLATFORM_FRAMEWORK_BUNDLE_FILE" $BOOTSTRAP_MAIN_CLASS --human --lines --file=$PROVISION_FILE psem2m.home="$PSEM2M_HOME" psem2m.base="$PSEM2M_BASE" psem2m.isolate.id="master" &
 
     echo "Started"
     return 0
@@ -128,6 +128,9 @@ echo "Home: $PSEM2M_HOME"
 echo "Base: $PSEM2M_BASE"
 echo "Java: $PSEM2M_JAVA"
 echo "=================="
+
+# Go to base
+cd $PSEM2M_BASE
 
 # ------ Main code ------
 
