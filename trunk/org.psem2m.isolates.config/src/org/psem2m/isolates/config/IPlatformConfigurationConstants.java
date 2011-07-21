@@ -12,8 +12,11 @@ package org.psem2m.isolates.config;
  */
 public interface IPlatformConfigurationConstants {
 
-    /** Extra "standard" configuration folders */
-    String EXTRA_CONF_FOLDERS[] = { "/etc/psem2m", "/etc/default/psem2m" };
+    /**
+     * Extra "standard" configuration folders, in descending priority : the
+     * first one contains default values, overridden by the next one and so on.
+     */
+    String EXTRA_CONF_FOLDERS[] = { "/etc/default/psem2m", "/etc/psem2m" };
 
     /** Main configuration file */
     String FILE_MAIN_CONF = "platform.xml";

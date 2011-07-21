@@ -6,6 +6,7 @@
 package org.psem2m.isolates.config;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * Description of the PSEM2M Configuration reader service.
@@ -40,6 +41,15 @@ public interface ISvcConfig {
      * @return The date value
      */
     Date getParamDate(IParamId aParamId);
+
+    /**
+     * Retrieves the object value of the given parameter
+     * 
+     * @param aParamId
+     *            The parameter ID
+     * @return The object list (null if non existent)
+     */
+    List<Object> getParamList(IParamId aParamId);
 
     /**
      * Retrieves the long value of the given parameter

@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.InvalidPropertiesFormatException;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
@@ -28,6 +29,9 @@ import org.psem2m.utilities.logging.IActivityLoggerBase;
  * @author Thomas Calmant
  */
 public class CConfigSvc extends CPojoBase implements ISvcConfig {
+
+    /** The list separator in values */
+    public static final String LIST_SEPARATOR = ";";
 
     /** Read configuration */
     private Properties pConfiguration;
@@ -69,22 +73,22 @@ public class CConfigSvc extends CPojoBase implements ISvcConfig {
 
 	final Set<String> configFolders = new LinkedHashSet<String>();
 
-	// Get the home and base folders
-	final String platformBase = System
-		.getProperty(IPlatformConfigurationConstants.SYSTEM_PSEM2M_BASE);
-	if (platformBase != null && !platformBase.isEmpty()) {
-	    configFolders.add(platformBase);
-	}
-
-	final String platformHome = System
-		.getProperty(IPlatformConfigurationConstants.SYSTEM_PSEM2M_HOME);
-	if (platformHome != null && !platformHome.isEmpty()) {
-	    configFolders.add(platformHome);
-	}
-
 	// Add extra "standard" configuration folders
 	configFolders.addAll(Arrays
 		.asList(IPlatformConfigurationConstants.EXTRA_CONF_FOLDERS));
+
+	// Get the home then base folders, if they exist
+	String platformDir = System
+		.getProperty(IPlatformConfigurationConstants.SYSTEM_PSEM2M_HOME);
+	if (platformDir != null && !platformDir.isEmpty()) {
+	    configFolders.add(platformDir);
+	}
+
+	platformDir = System
+		.getProperty(IPlatformConfigurationConstants.SYSTEM_PSEM2M_BASE);
+	if (platformDir != null && !platformDir.isEmpty()) {
+	    configFolders.add(platformDir);
+	}
 
 	// Test configuration files existence
 	for (String folder : configFolders) {
@@ -109,8 +113,7 @@ public class CConfigSvc extends CPojoBase implements ISvcConfig {
      */
     @Override
     public Object getParam(final IParamId aParamId) {
-
-	return null;
+	return pConfiguration.getProperty(aParamId.getId());
     }
 
     /*
@@ -143,13 +146,44 @@ public class CConfigSvc extends CPojoBase implements ISvcConfig {
      * (non-Javadoc)
      * 
      * @see
+     * org.psem2m.isolates.config.ISvcConfig#getParamList(org.psem2m.isolates
+     * .config.IParamId)
+     */
+    @Override
+    public List<Object> getParamList(final IParamId aParamId) {
+
+	String paramStr = getParamStr(aParamId);
+	if (paramStr == null) {
+	    return null;
+	}
+
+	Object[] paramList = paramStr.split(LIST_SEPARATOR);
+	return Arrays.asList(paramList);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
      * org.psem2m.isolates.config.ISvcConfig#getParamStr(org.psem2m.isolates
      * .config.IParamId)
      */
     @Override
     public Long getParamNum(final IParamId aParamId) {
-	// TODO Auto-generated method stub
-	return null;
+
+	String paramStr = getParamStr(aParamId);
+	if (paramStr == null) {
+	    // Invalid param ID
+	    return null;
+	}
+
+	try {
+	    return Long.parseLong(paramStr);
+
+	} catch (NumberFormatException ex) {
+	    // Invalid number format
+	    return null;
+	}
     }
 
     /*
@@ -161,8 +195,7 @@ public class CConfigSvc extends CPojoBase implements ISvcConfig {
      */
     @Override
     public String getParamStr(final IParamId aParamId) {
-	// TODO Auto-generated method stub
-	return null;
+	return pConfiguration.getProperty(aParamId.getId());
     }
 
     /*
@@ -187,8 +220,7 @@ public class CConfigSvc extends CPojoBase implements ISvcConfig {
      */
     @Override
     public boolean isParamExists(final IParamId aParamId) {
-	// TODO Auto-generated method stub
-	return false;
+	return pConfiguration.containsKey(aParamId.getId());
     }
 
     /**

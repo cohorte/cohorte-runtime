@@ -11,9 +11,9 @@ Created-By: iPOJO  1.8.0
 Export-Package: org.psem2m.isolates.config
 Import-Package: org.osgi.service.log;version=1.3, org.psem2m.isolates.
  base, org.apache.felix.ipojo.architecture;version=1.8.0, org.apache.f
- elix.ipojo;version=1.8.0, org.osgi.framework;version=1.5.0, javax.xml
- .parsers;version=1.3.0, org.psem2m.utilities.logging, org.osgi.servic
- e.cm;version=1.2, org.w3c.dom;version=3.0.0, org.psem2m.utilities
+ elix.ipojo;version=1.8.0, javax.xml.parsers;version=1.3.0, org.osgi.f
+ ramework;version=1.5.0, org.psem2m.utilities.logging, org.osgi.servic
+ e.cm;version=1.2, org.psem2m.utilities, org.w3c.dom;version=3.0.0
 iPOJO-Components: component { $immediate="true" $name="isolates-config
  -logger-factory" $classname="org.psem2m.isolates.config.impl.CBundleC
  onfigLoggerSvc" $architecture="true" callback { $transition="validate
@@ -38,14 +38,16 @@ iPOJO-Components: component { $immediate="true" $name="isolates-config
  onfig.IParamId}" $name="getParamBool" $return="java.lang.Boolean" }me
  thod { $arguments="{org.psem2m.isolates.config.IParamId}" $name="getP
  aramDate" $return="java.util.Date" }method { $arguments="{org.psem2m.
- isolates.config.IParamId}" $name="getParamNum" $return="java.lang.Lon
- g" }method { $arguments="{org.psem2m.isolates.config.IParamId}" $name
- ="getParamStr" $return="java.lang.String" }method { $name="invalidate
- Pojo" }method { $arguments="{org.psem2m.isolates.config.IParamId}" $n
- ame="isParamExists" $return="boolean" }method { $name="readConfigurat
- ion" }method { $name="validatePojo" }interface { $name="org.psem2m.is
- olates.config.ISvcConfig" }}requires { $field="pLoggerSvc" $optional=
- "false" }}component { $immediate="true" $classname="org.psem2m.isolat
+ isolates.config.IParamId}" $name="getParamList" $return="java.util.Li
+ st" }method { $arguments="{org.psem2m.isolates.config.IParamId}" $nam
+ e="getParamNum" $return="java.lang.Long" }method { $arguments="{org.p
+ sem2m.isolates.config.IParamId}" $name="getParamStr" $return="java.la
+ ng.String" }method { $name="invalidatePojo" }method { $arguments="{or
+ g.psem2m.isolates.config.IParamId}" $name="isParamExists" $return="bo
+ olean" }method { $name="readConfiguration" }method { $name="validateP
+ ojo" }interface { $name="org.psem2m.isolates.config.ISvcConfig" }}req
+ uires { $field="pLoggerSvc" $optional="false" $from="isolates-config-
+ logger" }}component { $immediate="true" $classname="org.psem2m.isolat
  es.config.impl.PojoErrorHandler" $architecture="true" provides { }man
  ipulation { method { $name="$init" }method { $arguments="{org.apache.
  felix.ipojo.ComponentInstance,java.lang.String,java.lang.Throwable}" 

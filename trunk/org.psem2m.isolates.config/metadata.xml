@@ -19,21 +19,22 @@
 
 		<provides specifications="org.psem2m.isolates.config.ISvcConfig" />
 
-		<requires field="pLoggerSvc" optional="false" />
+		<requires field="pLoggerSvc" optional="false"
+			from="isolates-config-logger" />
 
 		<callback transition="validate" method="validatePojo" />
 		<callback transition="invalidate" method="invalidatePojo" />
 	</component>
- 
- 
- <component classname="org.psem2m.isolates.config.impl.PojoErrorHandler"
+
+
+	<!-- iPOJO Error handler sample -->
+	<component classname="org.psem2m.isolates.config.impl.PojoErrorHandler"
 		architecture="true" immediate="true">
 
 		<provides />
 	</component>
-	
 	<instance component="org.psem2m.isolates.config.impl.PojoErrorHandler" />
- 
+
 	<!-- Instances -->
 	<instance component="isolates-config-logger-factory" name="isolates-config-logger" />
 	<instance component="isolates-config-factory" name="isolates-config" />
