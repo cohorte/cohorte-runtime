@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ipojo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="org.apache.felix.ipojo http://felix.apache.org/ipojo/schemas/CURRENT/core.xsd"
+	xmlns="org.apache.felix.ipojo" xmlns:jmx="org.apache.felix.ipojo.handlers.jmx">
+
+	<!-- The logger, specific to the bundle -->
+	<component
+		classname="org.psem2m.isolates.master.manager.impl.CMasterManagerLoggerSvc"
+		architecture="true" immediate="true" name="isolates-master-manager-logger-factory">
+
+		<provides specifications="org.psem2m.utilities.logging.IActivityLoggerBase" />
+
+		<callback transition="validate" method="validatePojo" />
+		<callback transition="invalidate" method="invalidatePojo" />
+	</component>
+
+	<!-- The configuration service -->
+	<component classname="org.psem2m.isolates.master.manager.impl.CMasterManager"
+		architecture="true" immediate="true" name="isolates-master-manager-factory">
+		
+		<requires field="pConfiguration" optional="false" />
+
+		<requires field="pLoggerSvc" optional="false"
+			from="isolates-master-manager-logger" />
+
+		<callback transition="validate" method="validatePojo" />
+		<callback transition="invalidate" method="invalidatePojo" />
+	</component>
+
+	<!-- Instances -->
+	<instance component="isolates-master-manager-logger-factory"
+		name="isolates-master-manager-logger" />
+	<instance component="isolates-master-manager-factory" name="isolates-master-manager" />
+</ipojo>
