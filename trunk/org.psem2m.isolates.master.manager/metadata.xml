@@ -17,7 +17,7 @@
 	<!-- The configuration service -->
 	<component classname="org.psem2m.isolates.master.manager.impl.CMasterManager"
 		architecture="true" immediate="true" name="isolates-master-manager-factory">
-		
+
 		<requires field="pConfiguration" optional="false" />
 
 		<requires field="pLoggerSvc" optional="false"

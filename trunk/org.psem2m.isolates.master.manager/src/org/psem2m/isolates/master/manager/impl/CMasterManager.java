@@ -5,10 +5,15 @@
  */
 package org.psem2m.isolates.master.manager.impl;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.CPojoBase;
@@ -22,6 +27,7 @@ import org.psem2m.isolates.commons.impl.PlatformConfiguration;
 import org.psem2m.isolates.config.IParamId;
 import org.psem2m.isolates.config.ISvcConfig;
 import org.psem2m.isolates.master.manager.IMasterManagerConfig;
+import org.psem2m.utilities.CXTimedoutCall;
 import org.psem2m.utilities.logging.IActivityLoggerBase;
 
 /**
@@ -37,13 +43,20 @@ public class CMasterManager extends CPojoBase {
     private ISvcConfig pConfiguration;
 
     /** Isolates configuration list */
-    private final List<IIsolateConfiguration> pIsolatesConfiguration = new ArrayList<IIsolateConfiguration>();
+    private final Map<String, IIsolateConfiguration> pIsolatesConfiguration = new LinkedHashMap<String, IIsolateConfiguration>();
 
     /** Log service, handled by iPOJO */
     private IActivityLoggerBase pLoggerSvc;
 
     /** The platform configuration */
     private IPlatformConfiguration pPlatformConfiguration = new PlatformConfiguration();
+
+    /**
+     * Default constructor
+     */
+    public CMasterManager() {
+	super();
+    }
 
     /*
      * (non-Javadoc)
@@ -113,7 +126,7 @@ public class CMasterManager extends CPojoBase {
 
 	for (Object rawObject : strRaw) {
 	    if (rawObject != null) {
-		strList.add(rawObject.toString());
+		strList.add(rawObject.toString().trim());
 	    }
 	}
 
@@ -121,7 +134,7 @@ public class CMasterManager extends CPojoBase {
     }
 
     /**
-     * Reads a string from the given configuration pair
+     * Reads a string from the given configuration pair and trims it
      * 
      * @param aPrefix
      *            Parameter ID prefix (without trailing dot)
@@ -130,7 +143,14 @@ public class CMasterManager extends CPojoBase {
      * @return Null on error, a string on success
      */
     protected String getConfigurationStr(final String aPrefix, final String aKey) {
-	return pConfiguration.getParamStr(makeParamId(aPrefix + "." + aKey));
+
+	String result = pConfiguration.getParamStr(makeParamId(aPrefix + "."
+		+ aKey));
+	if (result == null) {
+	    return null;
+	}
+
+	return result.trim();
     }
 
     /*
@@ -144,17 +164,6 @@ public class CMasterManager extends CPojoBase {
 	// logs in the bundle logger
 	pLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
 		toDescription());
-    }
-
-    /**
-     * Prepares a ParamId with the Master Manager prefix
-     * 
-     * @param aKey
-     *            Master manager configuration key
-     * @return The parameter ID
-     */
-    protected IParamId makeManagerParamId(final String aKey) {
-	return makeParamId(IMasterManagerConfig.MANAGER_NAMESPACE + "." + aKey);
     }
 
     /**
@@ -178,9 +187,10 @@ public class CMasterManager extends CPojoBase {
      * Read isolates descriptions from the configuration. Fails if their is no
      * isolates described.
      * 
-     * @return True on success, False on failure
+     * @throws Exception
+     *             The configuration file doesn't contain all needed data
      */
-    protected boolean readIsolatesDescription() {
+    protected void readIsolatesDescription() throws Exception {
 
 	// Empty current list
 	pIsolatesConfiguration.clear();
@@ -189,11 +199,11 @@ public class CMasterManager extends CPojoBase {
 	List<String> isolateIdsList = getConfigurationList(
 		IMasterManagerConfig.MANAGER_NAMESPACE,
 		IMasterManagerConfig.ISOLATE_ID_LIST);
-
 	if (isolateIdsList == null || isolateIdsList.isEmpty()) {
-	    return false;
+	    throw new Exception("Empty isolate IDs list");
 	}
 
+	// Make the configuration array
 	for (String isolateId : isolateIdsList) {
 
 	    // Get the framework
@@ -201,23 +211,88 @@ public class CMasterManager extends CPojoBase {
 		    IMasterManagerConfig.ISOLATE_FRAMEWORK);
 
 	    IsolateKind kind;
-	    try {
-		kind = IsolateKind.valueOf(isolateFramework);
-	    } catch (IllegalArgumentException ex) {
-		// Bad framework name value, use default
+
+	    if (isolateFramework == null) {
+		System.out.println("No kind indicated");
 		kind = DEFAULT_ISOLATE_KIND;
+
+	    } else {
+		try {
+		    kind = IsolateKind.valueOf(isolateFramework);
+		} catch (IllegalArgumentException ex) {
+		    // Bad framework name value, use default
+		    System.out.println("Bad kind. Use default - "
+			    + isolateFramework);
+		    kind = DEFAULT_ISOLATE_KIND;
+		}
 	    }
 
 	    // Get the bundles
 	    IBundleRef[] bundlesRef = getBundlesRef(isolateId);
 
+	    // Get the isolate JVM arguments
+	    List<String> isolateArgs = getConfigurationList(isolateId,
+		    IMasterManagerConfig.ISOLATE_ARGS);
+
+	    String[] isolateArgsArray = null;
+	    if (isolateArgs != null) {
+		isolateArgs.toArray(new String[0]);
+	    }
+
 	    // Store the configuration
 	    IsolateConfiguration isolateConf = new IsolateConfiguration(
-		    isolateId, kind, bundlesRef);
-	    pIsolatesConfiguration.add(isolateConf);
+		    isolateId, kind, bundlesRef, isolateArgsArray);
+
+	    pIsolatesConfiguration.put(isolateId, isolateConf);
+	}
+    }
+
+    /**
+     * Tries to start the forker bundle
+     * 
+     * @throws Exception
+     *             Invalid configuration
+     */
+    protected void startForker() throws Exception {
+
+	// Find the script
+	List<String> forkerCommand = pPlatformConfiguration
+		.getForkerStartCommand();
+	if (forkerCommand == null) {
+	    throw new Exception("Can't determine how to start the forker");
 	}
 
-	return true;
+	// Prepare the process builder
+	ProcessBuilder builder = new ProcessBuilder(forkerCommand);
+	builder.directory(new File(pPlatformConfiguration
+		.getPlatformBaseDirectory()));
+
+	// Run !
+	try {
+	    final Process forkerProcess = builder.start();
+
+	    // Wait some time for the script to return
+	    int exitValue = CXTimedoutCall.call(new Callable<Integer>() {
+
+		@Override
+		public Integer call() throws Exception {
+		    return forkerProcess.waitFor();
+		}
+	    }, 500);
+
+	    System.out.println("Exit value : " + exitValue);
+
+	    // Test its result
+	    if (exitValue != 0) {
+		throw new Exception("Error launching the forker isolate");
+	    }
+
+	} catch (IOException ex) {
+	    throw new Exception("Error launching the forker script", ex);
+
+	} catch (IllegalThreadStateException ex) {
+	    // Ignore it : the exit value could not be calculated
+	}
     }
 
     /*
@@ -231,5 +306,18 @@ public class CMasterManager extends CPojoBase {
 	// logs in the bundle logger
 	pLoggerSvc.logInfo(this, "validatePojo", "VALIDATE", toDescription());
 
+	try {
+	    System.out.println("Read isolates");
+	    pLoggerSvc.logInfo(this, "validatePojo", "Read conf");
+	    readIsolatesDescription();
+
+	    System.out.println("Start forker");
+	    pLoggerSvc.logInfo(this, "validatePojo", "Start forker");
+	    startForker();
+
+	} catch (Exception e) {
+	    throw new BundleException(
+		    "Unable to read the isolates configuration", e);
+	}
     }
 }

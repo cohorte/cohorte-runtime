@@ -1,17 +1,52 @@
 Manifest-Version: 1.0
+Bundle-Activator: org.psem2m.isolates.master.manager.CBundleMasterMana
+ gerActivator
 Bundle-ManifestVersion: 2
 Bundle-Name: PSEM2M Master Manager
-Bundle-SymbolicName: org.psem2m.isolates.master.manager
-Bundle-Version: 1.0.0.qualifier
-Bundle-Activator: org.psem2m.isolates.master.manager.CBundleMasterManagerActivator
-Bundle-Vendor: isandlaTech.com
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Import-Package: org.osgi.framework;version="1.3.0",
- org.psem2m.isolates.base,
- org.psem2m.isolates.commons;version="1.0.0",
- org.psem2m.isolates.commons.forker;version="1.0.0",
- org.psem2m.isolates.commons.impl,
- org.psem2m.isolates.config,
- org.psem2m.utilities,
- org.psem2m.utilities.logging
+Bundle-SymbolicName: org.psem2m.isolates.master.manager
+Bundle-Vendor: isandlaTech.com
+Bundle-Version: 1.0.0.qualifier
+Created-By: iPOJO  1.8.0
 Export-Package: org.psem2m.isolates.master.manager
+Import-Package: org.osgi.service.log;version=1.3, org.psem2m.isolates.
+ commons.forker;version=1.0.0, org.psem2m.isolates.base, org.apache.fe
+ lix.ipojo.architecture;version=1.8.0, org.psem2m.isolates.config, org
+ .apache.felix.ipojo;version=1.8.0, org.osgi.framework;version=1.3.0, 
+ org.psem2m.isolates.commons.impl, org.psem2m.utilities.logging, org.o
+ sgi.service.cm;version=1.2, org.psem2m.isolates.commons;version=1.0.0
+ , org.psem2m.utilities
+iPOJO-Components: component { $immediate="true" $name="isolates-master
+ -manager-logger-factory" $classname="org.psem2m.isolates.master.manag
+ er.impl.CMasterManagerLoggerSvc" $architecture="true" callback { $tra
+ nsition="validate" $method="validatePojo" }callback { $transition="in
+ validate" $method="invalidatePojo" }provides { $specifications="org.p
+ sem2m.utilities.logging.IActivityLoggerBase" }manipulation { $super="
+ org.psem2m.isolates.base.CBundleLoggerBase" method { $name="$init" }m
+ ethod { $name="invalidatePojo" }method { $name="validatePojo" }interf
+ ace { $name="org.psem2m.utilities.logging.IActivityLoggerBase" }}}com
+ ponent { $immediate="true" $name="isolates-master-manager-factory" $c
+ lassname="org.psem2m.isolates.master.manager.impl.CMasterManager" $ar
+ chitecture="true" callback { $transition="validate" $method="validate
+ Pojo" }callback { $transition="invalidate" $method="invalidatePojo" }
+ manipulation { $super="org.psem2m.isolates.base.CPojoBase" field { $n
+ ame="pIsolatesConfiguration" $type="java.util.Map" }field { $name="pL
+ oggerSvc" $type="org.psem2m.utilities.logging.IActivityLoggerBase" }f
+ ield { $name="pPlatformConfiguration" $type="org.psem2m.isolates.comm
+ ons.IPlatformConfiguration" }field { $name="pConfiguration" $type="or
+ g.psem2m.isolates.config.ISvcConfig" }method { $name="$init" }method 
+ { $name="destroy" }method { $arguments="{java.lang.String}" $name="ge
+ tBundlesRef" $return="org.psem2m.isolates.commons.IBundleRef[]" }meth
+ od { $arguments="{java.lang.String,java.lang.String}" $name="getConfi
+ gurationList" $return="java.util.List" }method { $arguments="{java.la
+ ng.String,java.lang.String}" $name="getConfigurationStr" $return="jav
+ a.lang.String" }method { $name="invalidatePojo" }method { $arguments=
+ "{java.lang.String}" $name="makeParamId" $return="org.psem2m.isolates
+ .config.IParamId" }method { $name="readIsolatesDescription" }method {
+  $name="startForker" }method { $name="validatePojo" }}requires { $fie
+ ld="pConfiguration" $optional="false" }requires { $field="pLoggerSvc"
+  $optional="false" $from="isolates-master-manager-logger" }}instance 
+ { $component="isolates-master-manager-logger-factory" $name="isolates
+ -master-manager-logger" }instance { $component="isolates-master-manag
+ er-factory" $name="isolates-master-manager" }
+
