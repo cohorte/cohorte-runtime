@@ -134,7 +134,7 @@ write_bootstrap_script() {
     # Prepare the file
     local OUTPUT_FILE=$PSEM2M_BASE/$FORKER_SCRIPT_FILE
     mkdir -p `dirname $OUTPUT_FILE`
-    touch OUTPUT_FILE
+    touch $OUTPUT_FILE
 
     # Make it executable
     chmod +x $OUTPUT_FILE

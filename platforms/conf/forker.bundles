@@ -1,0 +1,6 @@
+# Include the base needed bundles
+include: conf/shell.bundles
+include: conf/ipojo.bundles
+
+# Common bundles
+felix/org.apache.felix.log-1.0.1.jar
