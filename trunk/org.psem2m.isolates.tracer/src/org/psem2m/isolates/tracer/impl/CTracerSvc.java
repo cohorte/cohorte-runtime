@@ -15,20 +15,29 @@ import java.util.List;
 import org.apache.felix.ipojo.Pojo;
 import org.psem2m.isolates.base.CPojoBase;
 import org.psem2m.isolates.loggers.ILogChannelsSvc;
-import org.psem2m.isolates.tracer.IBundleTracerLoggerSvc;
-import org.psem2m.isolates.tracer.ITracerService;
+import org.psem2m.isolates.tracer.ITracerSvc;
 import org.psem2m.utilities.CXStringUtils;
+import org.psem2m.utilities.logging.IActivityLoggerBase;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
-public class CTracerSvc extends CPojoBase implements ITracerService {
+public class CTracerSvc extends CPojoBase implements ITracerSvc {
 
-	/** Service reference managed by iPojo (see metadata.xml) **/
-	private IBundleTracerLoggerSvc pBundleTracerLoggerSvc;
+	/**
+	 * Service reference managed by iPojo (see metadata.xml)
+	 * 
+	 * This service is the logger of the current bundle
+	 **/
+	private IActivityLoggerBase pBundleTracerLoggerSvc;
 
-	/** Service reference managed by iPojo (see metadata.xml) **/
+	/**
+	 * Service reference managed by iPojo (see metadata.xml)
+	 * 
+	 * This service is used to control the opened logging channels : set level,
+	 * redirect to the tracer, ...
+	 **/
 	private ILogChannelsSvc pLogChannelsService;
 
 	/**
@@ -66,8 +75,8 @@ public class CTracerSvc extends CPojoBase implements ITracerService {
 	@Override
 	public void invalidatePojo() {
 		// logs in the bundle output
-		pBundleTracerLoggerSvc.logInfo(this, "invalidatePojo",
-				"INVALIDATE", toDescription());
+		pBundleTracerLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
+				toDescription());
 	}
 
 	/*

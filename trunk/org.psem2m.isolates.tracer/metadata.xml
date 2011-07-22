@@ -3,23 +3,37 @@
 	xsi:schemaLocation="org.apache.felix.ipojo http://felix.apache.org/ipojo/schemas/CURRENT/core.xsd"
 	xmlns="org.apache.felix.ipojo" xmlns:jmx="org.apache.felix.ipojo.handlers.jmx">
 
-	<component classname="org.psem2m.isolates.tracer.impl.CBundleTracerLoggerSvc"
-		architecture="true" immediate="true" name="isolates-tracer-bundle-logger">
-		<provides />
-		
-		<callback transition="validate" method="validatePojo"/>
-		<callback transition="invalidate" method="invalidatePojo"/>
+	<!-- The logger, specific to the bundle -->
+	<component
+		classname="org.psem2m.isolates.tracer.impl.CBundleTracerLoggerSvc"
+		architecture="true" immediate="true" name="isolates-tracer-bundle-logger-factory">
+
+		<provides specifications="org.psem2m.utilities.logging.IActivityLoggerBase" />
+
+		<callback transition="validate" method="validatePojo" />
+		<callback transition="invalidate" method="invalidatePojo" />
 	</component>
-	<instance component="isolates-tracer-bundle-logger"   />
-	
+
+	<!-- The Tracer service -->
 	<component classname="org.psem2m.isolates.tracer.impl.CTracerSvc"
-		architecture="true" immediate="true" name="isolates-tracer-tracer">
-		<provides />
-		<requires field="pBundleTracerLoggerSvc" optional="false" />
+		architecture="true" immediate="true" name="isolates-tracer-tracer-factory">
+
+		<provides specifications="org.psem2m.isolates.tracer.ITracerSvc" />
+
 		<requires field="pLogChannelsService" optional="false" />
-		
-		<callback transition="validate" method="validatePojo"/>
-		<callback transition="invalidate" method="invalidatePojo"/>
+
+		<requires field="pBundleTracerLoggerSvc" optional="false"
+			from="isolates-tracer-bundle-logger"/>
+
+		<callback transition="validate" method="validatePojo" />
+		<callback transition="invalidate" method="invalidatePojo" />
 	</component>
-	<instance component="isolates-tracer-tracer"   />
+
+
+	<instance component="isolates-tracer-bundle-logger-factory"
+		name="isolates-tracer-bundle-logger" />
+
+	<instance component="isolates-tracer-tracer-factory"
+		name="isolates-tracer-tracer" />
+
 </ipojo>

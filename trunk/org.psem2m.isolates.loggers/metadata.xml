@@ -3,27 +3,37 @@
 	xsi:schemaLocation="org.apache.felix.ipojo http://felix.apache.org/ipojo/schemas/CURRENT/core.xsd"
 	xmlns="org.apache.felix.ipojo" xmlns:jmx="org.apache.felix.ipojo.handlers.jmx">
 
+	<!-- The logger, specific to the bundle -->
+	<component
+		classname="org.psem2m.isolates.loggers.impl.CBundleLoggersLoggerSvc"
+		architecture="true" immediate="true" name="isolates-loggers-logger-factory">
 
-	<component classname="org.psem2m.isolates.loggers.impl.CBundleLoggersLoggerSvc"
-		architecture="true" immediate="true" name="isolates-loggers-logger">
-		<provides />
-		
+		<provides specifications="org.psem2m.utilities.logging.IActivityLoggerBase" />
+
 		<callback transition="validate" method="validatePojo"/>
 		<callback transition="invalidate" method="invalidatePojo"/>
 	</component>
-	<instance component="isolates-loggers-logger"   />
-	
-	
+
+	<!-- The logging Channels service-->
 	<component classname="org.psem2m.isolates.loggers.impl.CLogChannelsSvc"
-		architecture="true" immediate="true" name="isolates-loggers-channels">
-		<provides />
-		
-		<requires field="pBundleLoggersLoggerSvc" optional="false" />
+		architecture="true" immediate="true" name="isolates-loggers-channels-factory">
+
+		<provides specifications="org.psem2m.isolates.loggers.ILogChannelsSvc" />
+
 		<requires field="pPlatformDirsSvc" optional="false" />
-		
+
+		<requires field="pBundleLoggersLoggerSvc" optional="false"
+			from="isolates-loggers-logger" />
+
 		<callback transition="validate" method="validatePojo"/>
 		<callback transition="invalidate" method="invalidatePojo"/>
 	</component>
-	<instance component="isolates-loggers-channels"   />
-	
+
+
+	<instance component="isolates-loggers-logger-factory"
+		name="isolates-loggers-logger" />
+
+	<instance component="isolates-loggers-channels-factory"
+		name="isolates-loggers-channels"   />
+
 </ipojo>

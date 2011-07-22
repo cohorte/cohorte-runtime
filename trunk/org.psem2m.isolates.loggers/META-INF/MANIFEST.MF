@@ -14,33 +14,36 @@ Import-Package: org.osgi.service.log;version=1.3, org.psem2m.isolates.
  m.utilities.logging, org.osgi.service.cm;version=1.2, org.psem2m.util
  ities.files, org.psem2m.utilities
 iPOJO-Components: component { $immediate="true" $name="isolates-logger
- s-logger" $classname="org.psem2m.isolates.loggers.impl.CBundleLoggers
- LoggerSvc" $architecture="true" callback { $transition="validate" $me
- thod="validatePojo" }callback { $transition="invalidate" $method="inv
- alidatePojo" }provides { }manipulation { $super="org.psem2m.isolates.
- base.CBundleLoggerBase" method { $name="$init" }method { $name="inval
- idatePojo" }method { $name="validatePojo" }interface { $name="org.pse
- m2m.isolates.loggers.IBundleLoggersLoggerSvc" }}}component { $immedia
- te="true" $name="isolates-loggers-channels" $classname="org.psem2m.is
- olates.loggers.impl.CLogChannelsSvc" $architecture="true" callback { 
- $transition="validate" $method="validatePojo" }callback { $transition
- ="invalidate" $method="invalidatePojo" }provides { }manipulation { $s
- uper="org.psem2m.isolates.base.CPojoBase" field { $name="pPlatformDir
- sSvc" $type="org.psem2m.isolates.base.IPlatformDirsSvc" }field { $nam
- e="pLoggers" $type="java.util.TreeMap" }field { $name="pBundleLoggers
- LoggerSvc" $type="org.psem2m.isolates.loggers.IBundleLoggersLoggerSvc
- " }method { $name="$init" }method { $name="destroy" }method { $name="
- getChannels" $return="java.util.List" }method { $name="getChannelsIds
- " $return="java.util.List" }method { $arguments="{java.lang.String}" 
- $name="getLogChannel" $return="org.psem2m.utilities.logging.IActivity
- LoggerBase" }method { $arguments="{java.lang.String,org.psem2m.utilit
- ies.files.CXFileDir}" $name="instanciateLogger" $return="org.psem2m.u
- tilities.logging.IActivityLogger" }method { $name="invalidatePojo" }m
- ethod { $arguments="{java.lang.String}" $name="newLogger" $return="or
- g.psem2m.utilities.logging.IActivityLogger" }method { $name="validate
- Pojo" }interface { $name="org.psem2m.isolates.loggers.ILogChannelsSvc
- " }}requires { $field="pBundleLoggersLoggerSvc" $optional="false" }re
- quires { $field="pPlatformDirsSvc" $optional="false" }}instance { $co
- mponent="isolates-loggers-logger" }instance { $component="isolates-lo
- ggers-channels" }
+ s-logger-factory" $classname="org.psem2m.isolates.loggers.impl.CBundl
+ eLoggersLoggerSvc" $architecture="true" callback { $transition="valid
+ ate" $method="validatePojo" }callback { $transition="invalidate" $met
+ hod="invalidatePojo" }provides { $specifications="org.psem2m.utilitie
+ s.logging.IActivityLoggerBase" }manipulation { $super="org.psem2m.iso
+ lates.base.CBundleLoggerBase" method { $name="$init" }method { $name=
+ "invalidatePojo" }method { $name="validatePojo" }interface { $name="o
+ rg.psem2m.utilities.logging.IActivityLoggerBase" }}}component { $imme
+ diate="true" $name="isolates-loggers-channels-factory" $classname="or
+ g.psem2m.isolates.loggers.impl.CLogChannelsSvc" $architecture="true" 
+ callback { $transition="validate" $method="validatePojo" }callback { 
+ $transition="invalidate" $method="invalidatePojo" }provides { $specif
+ ications="org.psem2m.isolates.loggers.ILogChannelsSvc" }manipulation 
+ { $super="org.psem2m.isolates.base.CPojoBase" field { $name="pLoggers
+ " $type="java.util.TreeMap" }field { $name="pPlatformDirsSvc" $type="
+ org.psem2m.isolates.base.IPlatformDirsSvc" }field { $name="pBundleLog
+ gersLoggerSvc" $type="org.psem2m.utilities.logging.IActivityLoggerBas
+ e" }method { $name="$init" }method { $name="destroy" }method { $name=
+ "getChannels" $return="java.util.List" }method { $name="getChannelsId
+ s" $return="java.util.List" }method { $arguments="{java.lang.String}"
+  $name="getLogChannel" $return="org.psem2m.utilities.logging.IActivit
+ yLoggerBase" }method { $arguments="{java.lang.String,org.psem2m.utili
+ ties.files.CXFileDir}" $name="instanciateLogger" $return="org.psem2m.
+ utilities.logging.IActivityLogger" }method { $name="invalidatePojo" }
+ method { $arguments="{java.lang.String}" $name="newLogger" $return="o
+ rg.psem2m.utilities.logging.IActivityLogger" }method { $name="validat
+ ePojo" }interface { $name="org.psem2m.isolates.loggers.ILogChannelsSv
+ c" }}requires { $field="pPlatformDirsSvc" $optional="false" }requires
+  { $field="pBundleLoggersLoggerSvc" $optional="false" $from="isolates
+ -loggers-logger" }}instance { $component="isolates-loggers-logger-fac
+ tory" $name="isolates-loggers-logger" }instance { $component="isolate
+ s-loggers-channels-factory" $name="isolates-loggers-channels" }
 

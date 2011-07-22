@@ -12,14 +12,14 @@ package org.psem2m.isolates.tracer.impl;
 
 import org.psem2m.isolates.base.CBundleLoggerBase;
 import org.psem2m.isolates.tracer.CBundleTracerActivator;
-import org.psem2m.isolates.tracer.IBundleTracerLoggerSvc;
+import org.psem2m.utilities.logging.IActivityLoggerBase;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
 public class CBundleTracerLoggerSvc extends CBundleLoggerBase implements
-		IBundleTracerLoggerSvc {
+		IActivityLoggerBase {
 
 	/*
 	 * (non-Javadoc)
