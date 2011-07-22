@@ -14,6 +14,7 @@ import java.util.Set;
 import org.psem2m.isolates.commons.IBundleRef;
 import org.psem2m.isolates.commons.IPlatformConfiguration;
 import org.psem2m.isolates.commons.Utilities;
+import org.psem2m.utilities.CXOSUtils;
 
 /**
  * Describes the platform configuration.
@@ -25,8 +26,11 @@ public class PlatformConfiguration implements IPlatformConfiguration {
     /** Common bundles needed by all isolates */
     private Set<String> pCommonBundles = new HashSet<String>();
 
+    /** The platform base directory */
+    private String pPlatformBase;
+
     /** The platform home directory */
-    private String pPlatformDirectory;
+    private String pPlatformHome;
 
     /** The full bundle repository path */
     private String pRepository;
@@ -36,23 +40,40 @@ public class PlatformConfiguration implements IPlatformConfiguration {
      */
     public PlatformConfiguration() {
 
-	final String platformBase = System.getProperty("psem2m.base");
-	pPlatformDirectory = makeAbsolutePath(platformBase);
-	pRepository = makeAbsolutePath(platformBase + "/repo");
+	pPlatformHome = makeAbsolutePath(System.getProperty("psem2m.home"));
+	pPlatformBase = makeAbsolutePath(System.getProperty("psem2m.base"),
+		pPlatformHome);
+
+	pRepository = makeAbsolutePath(pPlatformBase + "/repo");
     }
 
     /**
      * Sets up the platform configuration
      * 
-     * @param aPlatformPath
+     * @param aPlatformHomePath
      *            The platform home directory
      * @param aRepository
      *            The bundle repository path
      */
-    public PlatformConfiguration(final String aPlatformPath,
+    public PlatformConfiguration(final String aPlatformHomePath,
 	    final String aRepository) {
 
-	pPlatformDirectory = makeAbsolutePath(aPlatformPath);
+	this(aPlatformHomePath, null, aRepository);
+    }
+
+    /**
+     * Sets up the platform configuration
+     * 
+     * @param aPlatformHomePath
+     *            The platform home directory
+     * @param aRepository
+     *            The bundle repository path
+     */
+    public PlatformConfiguration(final String aPlatformHomePath,
+	    final String aPlatformBasePath, final String aRepository) {
+
+	pPlatformHome = makeAbsolutePath(aPlatformHomePath);
+	pPlatformBase = makeAbsolutePath(aPlatformBasePath, pPlatformHome);
 	pRepository = makeAbsolutePath(aRepository);
     }
 
@@ -115,11 +136,38 @@ public class PlatformConfiguration implements IPlatformConfiguration {
      * (non-Javadoc)
      * 
      * @see
+     * org.psem2m.isolates.commons.IPlatformConfiguration#getForkerStartCommand
+     * ()
+     */
+    @Override
+    public List<String> getForkerStartCommand() {
+
+	List<String> command = new ArrayList<String>();
+
+	if (CXOSUtils.isOsUnixFamily()) {
+	    // The interpreter
+	    command.add("/bin/bash");
+
+	    // The file
+	    command.add(pPlatformHome + "/var/run_forker.sh");
+
+	} else {
+	    // TODO: the windows version
+	    return null;
+	}
+
+	return command;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
      * org.psem2m.isolates.commons.IPlatformConfiguration#getIsolatesDirectory()
      */
     @Override
     public String getIsolatesDirectory() {
-	return pPlatformDirectory + File.separator + "work";
+	return pPlatformHome + File.separator + "work";
     }
 
     /**
@@ -148,11 +196,23 @@ public class PlatformConfiguration implements IPlatformConfiguration {
      * (non-Javadoc)
      * 
      * @see
+     * org.psem2m.isolates.commons.IPlatformConfiguration#getPlatformBaseDirectory
+     * ()
+     */
+    @Override
+    public String getPlatformBaseDirectory() {
+	return pPlatformBase;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
      * org.psem2m.isolates.commons.IPlatformConfiguration#getPlatformDirectory()
      */
     @Override
-    public String getPlatformDirectory() {
-	return pPlatformDirectory;
+    public String getPlatformHomeDirectory() {
+	return pPlatformHome;
     }
 
     /*
@@ -172,17 +232,37 @@ public class PlatformConfiguration implements IPlatformConfiguration {
      * returns the user home directory
      * 
      * @param aDirectory
-     *            Directory path to be transformed
+     *            Directory to transform
      * @return The absolute directory path or the user home
      */
     protected String makeAbsolutePath(final String aDirectory) {
+	return makeAbsolutePath(aDirectory, System.getProperty("user.home"));
+    }
+
+    /**
+     * Returns the absolute path for the given directory if it exists, else
+     * returns the given default value
+     * 
+     * @param aDirectory
+     *            Directory path to be transformed
+     * @param aDefaultValue
+     *            Default value to use if the given directory name is null or
+     *            doesn't point to a directory
+     * @return The absolute directory path or the user home
+     */
+    protected String makeAbsolutePath(final String aDirectory,
+	    final String aDefaultValue) {
+
+	if (aDirectory == null) {
+	    return aDefaultValue;
+	}
 
 	File directory = new File(aDirectory);
 	if (directory.isDirectory()) {
 	    return directory.getAbsolutePath();
 
 	} else {
-	    return System.getProperty("user.home");
+	    return aDefaultValue;
 	}
     }
 

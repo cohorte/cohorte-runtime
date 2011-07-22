@@ -19,7 +19,7 @@ public interface IPlatformConfigurationConstants {
     String EXTRA_CONF_FOLDERS[] = { "/etc/default/psem2m", "/etc/psem2m" };
 
     /** Main configuration file */
-    String FILE_MAIN_CONF = "platform.xml";
+    String FILE_MAIN_CONF = "platform.properties";
 
     /** Configuration sub-directory */
     String SUBDIR_CONF = "conf";

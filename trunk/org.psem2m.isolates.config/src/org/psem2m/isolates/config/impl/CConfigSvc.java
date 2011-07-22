@@ -34,7 +34,7 @@ public class CConfigSvc extends CPojoBase implements ISvcConfig {
     public static final String LIST_SEPARATOR = ";";
 
     /** Read configuration */
-    private Properties pConfiguration;
+    private final Properties pConfiguration = new Properties();
 
     /** Found configuration files */
     private final Set<File> pConfigurationFiles = new LinkedHashSet<File>();
@@ -46,6 +46,7 @@ public class CConfigSvc extends CPojoBase implements ISvcConfig {
      * Default constructor
      */
     public CConfigSvc() {
+	// ...
     }
 
     /*
@@ -81,13 +82,15 @@ public class CConfigSvc extends CPojoBase implements ISvcConfig {
 	String platformDir = System
 		.getProperty(IPlatformConfigurationConstants.SYSTEM_PSEM2M_HOME);
 	if (platformDir != null && !platformDir.isEmpty()) {
-	    configFolders.add(platformDir);
+	    configFolders.add(platformDir + File.separator
+		    + IPlatformConfigurationConstants.SUBDIR_CONF);
 	}
 
 	platformDir = System
 		.getProperty(IPlatformConfigurationConstants.SYSTEM_PSEM2M_BASE);
 	if (platformDir != null && !platformDir.isEmpty()) {
-	    configFolders.add(platformDir);
+	    configFolders.add(platformDir + File.separator
+		    + IPlatformConfigurationConstants.SUBDIR_CONF);
 	}
 
 	// Test configuration files existence
@@ -238,7 +241,7 @@ public class CConfigSvc extends CPojoBase implements ISvcConfig {
 	    try {
 		// Try to read the XML file
 		FileInputStream inputStream = new FileInputStream(configFile);
-		pConfiguration.loadFromXML(inputStream);
+		pConfiguration.load(inputStream);
 
 	    } catch (InvalidPropertiesFormatException e) {
 

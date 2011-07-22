@@ -5,6 +5,8 @@
  */
 package org.psem2m.isolates.commons;
 
+import java.util.List;
+
 /**
  * Describes the platform configuration
  * 
@@ -35,6 +37,15 @@ public interface IPlatformConfiguration {
     IBundleRef[] getCommonBundlesRef();
 
     /**
+     * Retrieves the command line to start the forker script using
+     * {@link ProcessBuilder}. The command is ready to be used for the host
+     * operating system.
+     * 
+     * @return The forker start script command
+     */
+    List<String> getForkerStartCommand();
+
+    /**
      * Retrieves the root directory where the platform runs the isolates.
      * 
      * @return The isolates working directories root
@@ -49,11 +60,18 @@ public interface IPlatformConfiguration {
     String getJavaExecutable();
 
     /**
+     * Retrieves the platform base directory
+     * 
+     * @return The platform base directory
+     */
+    String getPlatformBaseDirectory();
+
+    /**
      * Retrieves the platform home directory
      * 
      * @return The platform home directory
      */
-    String getPlatformDirectory();
+    String getPlatformHomeDirectory();
 
     /**
      * Retrieves the <b>full</b> path of the platform bundles repository.
