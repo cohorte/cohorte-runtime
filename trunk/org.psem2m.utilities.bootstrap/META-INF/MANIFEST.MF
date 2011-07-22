@@ -1,0 +1,20 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: PSEM2M Bootstrap
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-SymbolicName: org.psem2m.utilities.bootstrap
+Bundle-Vendor: isandlaTech (www.isandlatech.com)
+Bundle-Version: 1.0.0.qualifier
+Created-By: iPOJO  1.8.0
+Export-Package: org.psem2m.utilities.bootstrap
+Import-Package: org.osgi.service.log;version=1.3, junit.framework, org
+ .apache.felix.ipojo.architecture;version=1.8.0, org.apache.felix.ipoj
+ o;version=1.8.0, org.osgi.framework, org.osgi.service.cm;version=1.2
+Main-Class: org.psem2m.utilities.bootstrap.Main
+iPOJO-Components: component { $immediate="true" $name="isolates-bootst
+ rap-factory" $classname="org.psem2m.utilities.bootstrap.impl.OsgiBoot
+ strapPojo" $architecture="true" $public="false" provides { }manipulat
+ ion { $super="org.psem2m.utilities.bootstrap.impl.OsgiBootstrapPure" 
+ method { $name="$init" }}}instance { $component="isolates-bootstrap-f
+ actory" $name="isolates-bootstrap" }
+

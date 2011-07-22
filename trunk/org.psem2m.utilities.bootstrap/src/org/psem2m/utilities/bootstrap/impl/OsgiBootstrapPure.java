@@ -1,5 +1,5 @@
 /**
- * File:   OsgiBootstrap.java
+ * File:   OsgiBootstrapPure.java
  * Author: Thomas Calmant
  * Date:   6 juil. 2011
  */
@@ -20,16 +20,17 @@ import org.osgi.framework.launch.Framework;
 import org.osgi.framework.launch.FrameworkFactory;
 import org.psem2m.utilities.bootstrap.IBootstrapConstants;
 import org.psem2m.utilities.bootstrap.IMessageSender;
+import org.psem2m.utilities.bootstrap.ISvcBootstrap;
 
 /**
  * Bootstrap for OSGi frameworks
  * 
  * @author Thomas Calmant
  */
-public class OsgiBootstrap {
+public class OsgiBootstrapPure implements ISvcBootstrap {
 
     /** Name to use in logs */
-    private static final String CLASS_LOG_NAME = OsgiBootstrap.class
+    private static final String CLASS_LOG_NAME = OsgiBootstrapPure.class
 	    .getSimpleName();
 
     /** Default OSGi pFramework : Felix */
@@ -79,7 +80,7 @@ public class OsgiBootstrap {
      * @param aFrameworkConfiguration
      *            OSGi framework configuration map
      */
-    public OsgiBootstrap(final IMessageSender aMessageSender,
+    public OsgiBootstrapPure(final IMessageSender aMessageSender,
 	    final Map<String, String> aBootstrapConfiguration,
 	    final Map<String, String> aFrameworkConfiguration) {
 
@@ -94,23 +95,24 @@ public class OsgiBootstrap {
 	}
 
 	// Flush the cache by default
-	if (!aFrameworkConfiguration.containsKey(OSGI_STORAGE_CLEAN)) {
-	    aFrameworkConfiguration.put(OSGI_STORAGE_CLEAN,
+	if (!pFrameworkConfiguration.containsKey(OSGI_STORAGE_CLEAN)) {
+	    pFrameworkConfiguration.put(OSGI_STORAGE_CLEAN,
 		    OSGI_STORAGE_CLEAN_ON_INIT);
 	}
 
 	// Force the system properties
-	for (Entry<String, String> property : aFrameworkConfiguration
+	for (Entry<String, String> property : pFrameworkConfiguration
 		.entrySet()) {
 	    System.setProperty(property.getKey(), property.getValue());
 	}
     }
 
-    /**
-     * Boot the OSGi pFramework according to the given configuration
+    /*
+     * (non-Javadoc)
      * 
-     * @return The launched framework, null on error
+     * @see org.psem2m.utilities.bootstrap.impl.ISvcBootstrap#createFramework()
      */
+    @Override
     public Framework createFramework() {
 
 	final FrameworkFactory factory = getFrameworkFactory();
@@ -179,14 +181,14 @@ public class OsgiBootstrap {
 	return null;
     }
 
-    /**
-     * Install bundles into the framework
+    /*
+     * (non-Javadoc)
      * 
-     * @param aBundlesConfiguration
-     *            List of bundles to install
-     * 
-     * @return True on success, False if an error occurred
+     * @see
+     * org.psem2m.utilities.bootstrap.impl.ISvcBootstrap#installBundles(java
+     * .net.URL[])
      */
+    @Override
     public boolean installBundles(final URL[] aBundlesConfiguration) {
 
 	boolean success = true;
@@ -208,11 +210,27 @@ public class OsgiBootstrap {
 	return success;
     }
 
-    /**
-     * Starts installed bundles
+    /*
+     * (non-Javadoc)
      * 
-     * @return False if an error occurred
+     * @see
+     * org.psem2m.utilities.bootstrap.impl.ISvcBootstrap#setMessageSender(org
+     * .psem2m.utilities.bootstrap.IMessageSender)
      */
+    @Override
+    public void setMessageSender(final IMessageSender aMessageSender) {
+
+	if (aMessageSender != null) {
+	    pMessageSender = aMessageSender;
+	}
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.utilities.bootstrap.impl.ISvcBootstrap#startBundles()
+     */
+    @Override
     public boolean startBundles() {
 
 	boolean success = true;
@@ -234,11 +252,12 @@ public class OsgiBootstrap {
 	return success;
     }
 
-    /**
-     * Starts the framework
+    /*
+     * (non-Javadoc)
      * 
-     * @return True on success, False on error
+     * @see org.psem2m.utilities.bootstrap.impl.ISvcBootstrap#startFramework()
      */
+    @Override
     public boolean startFramework() {
 
 	try {
@@ -254,11 +273,12 @@ public class OsgiBootstrap {
 	return false;
     }
 
-    /**
-     * Stops the framework
+    /*
+     * (non-Javadoc)
      * 
-     * @return True on success, false on error
+     * @see org.psem2m.utilities.bootstrap.impl.ISvcBootstrap#stopFramework()
      */
+    @Override
     public boolean stopFramework() {
 
 	if (pFramework.getState() != Bundle.ACTIVE) {
@@ -280,16 +300,12 @@ public class OsgiBootstrap {
 	return false;
     }
 
-    /**
-     * Waits for the framework to stop
+    /*
+     * (non-Javadoc)
      * 
-     * @param aTimeout
-     *            Operation timeout in milliseconds, 0 for infinite
-     * @return True if the framework stopped (successfully or by error), false
-     *         if the timeout raised.
-     * @throws InterruptedException
-     *             The waiting timer was interrupted
+     * @see org.psem2m.utilities.bootstrap.impl.ISvcBootstrap#waitForStop(int)
      */
+    @Override
     public boolean waitForStop(final int aTimeout) throws InterruptedException {
 
 	FrameworkEvent event = pFramework.waitForStop(aTimeout);

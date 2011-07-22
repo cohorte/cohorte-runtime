@@ -25,7 +25,7 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.logging.Level;
 
-import org.psem2m.utilities.bootstrap.impl.OsgiBootstrap;
+import org.psem2m.utilities.bootstrap.impl.OsgiBootstrapPure;
 import org.psem2m.utilities.bootstrap.streams.ConfigurationReader;
 import org.psem2m.utilities.bootstrap.streams.MessageSender;
 import org.psem2m.utilities.bootstrap.streams.RedirectedOutputStream;
@@ -391,7 +391,7 @@ public class Main {
     protected boolean runBootstrap(final URL[] aBundlesConfiguration) {
 
 	// Prepare the bootstrap
-	OsgiBootstrap bootstrap = new OsgiBootstrap(pMessageSender,
+	ISvcBootstrap bootstrap = new OsgiBootstrapPure(pMessageSender,
 		pBootstrapConfiguration, pOtherConfiguration);
 
 	pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME, "runBootstrap",

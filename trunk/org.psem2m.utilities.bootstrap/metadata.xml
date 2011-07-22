@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ipojo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="org.apache.felix.ipojo http://felix.apache.org/ipojo/schemas/CURRENT/core.xsd"
+	xmlns="org.apache.felix.ipojo" xmlns:jmx="org.apache.felix.ipojo.handlers.jmx">
+	
+	<!-- Only export the service -->
+	<component classname="org.psem2m.utilities.bootstrap.impl.OsgiBootstrapPojo"
+		architecture="true" immediate="true" name="isolates-bootstrap-factory" public="false">
+		<provides />
+	</component>
+	<instance component="isolates-bootstrap-factory" name="isolates-bootstrap" />
+</ipojo>
