@@ -5,6 +5,7 @@
  */
 package org.psem2m.utilities.bootstrap.impl;
 
+import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +39,9 @@ public class OsgiBootstrapPure implements ISvcBootstrap {
 
     /** Framework factories content */
     public static final Map<String, String> FRAMEWORK_FACTORIES = new TreeMap<String, String>();
+
+    /** OSGi framework storage definition */
+    public static final String OSGI_FRAMEWORK_STORAGE = "org.osgi.framework.storage";
 
     /** OSGI storage cleaning option */
     public static final String OSGI_STORAGE_CLEAN = "org.osgi.framework.storage.clean";
@@ -95,15 +99,51 @@ public class OsgiBootstrapPure implements ISvcBootstrap {
 	}
 
 	// Flush the cache by default
-	if (!pFrameworkConfiguration.containsKey(OSGI_STORAGE_CLEAN)) {
-	    pFrameworkConfiguration.put(OSGI_STORAGE_CLEAN,
-		    OSGI_STORAGE_CLEAN_ON_INIT);
+	if (!pFrameworkConfiguration.containsKey(OSGI_FRAMEWORK_STORAGE)) {
+
+	    // Prepare the directory
+	    File frameworkCacheDirectory = new File(System.getProperty(
+		    "psem2m.base", "."), "var/work/"
+		    + System.getProperty("isolate.id", "felix-cache"));
+
+	    if (frameworkCacheDirectory.exists()) {
+		// Dump it ...
+		cleanDirectory(frameworkCacheDirectory);
+
+	    } else {
+		// ... or create it if necessary
+		frameworkCacheDirectory.mkdirs();
+	    }
+
+	    // Set up the property
+	    pFrameworkConfiguration.put(OSGI_FRAMEWORK_STORAGE,
+		    frameworkCacheDirectory.getAbsolutePath());
 	}
 
 	// Force the system properties
 	for (Entry<String, String> property : pFrameworkConfiguration
 		.entrySet()) {
 	    System.setProperty(property.getKey(), property.getValue());
+	}
+    }
+
+    /**
+     * Empties a directory (but doesn't delete it
+     * 
+     * @param aDirectory
+     *            Directory to empty
+     */
+    private void cleanDirectory(final File aDirectory) {
+
+	File[] files = aDirectory.listFiles();
+
+	for (File file : files) {
+	    if (file.isDirectory()) {
+		cleanDirectory(file);
+
+	    } else {
+		file.delete();
+	    }
 	}
     }
 
