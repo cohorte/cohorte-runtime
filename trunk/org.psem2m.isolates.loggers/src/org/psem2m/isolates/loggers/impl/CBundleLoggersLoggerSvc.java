@@ -12,14 +12,14 @@ package org.psem2m.isolates.loggers.impl;
 
 import org.psem2m.isolates.base.CBundleLoggerBase;
 import org.psem2m.isolates.loggers.CBundleLoggersActivator;
-import org.psem2m.isolates.loggers.IBundleLoggersLoggerSvc;
+import org.psem2m.utilities.logging.IActivityLoggerBase;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
 public class CBundleLoggersLoggerSvc extends CBundleLoggerBase implements
-		IBundleLoggersLoggerSvc {
+		IActivityLoggerBase {
 
 	/**
 	 * Explicit default constructor

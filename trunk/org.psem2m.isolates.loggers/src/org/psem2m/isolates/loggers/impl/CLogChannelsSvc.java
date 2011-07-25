@@ -18,7 +18,6 @@ import java.util.TreeMap;
 import org.psem2m.isolates.base.CLogIsolatesRedirector;
 import org.psem2m.isolates.base.CPojoBase;
 import org.psem2m.isolates.base.IPlatformDirsSvc;
-import org.psem2m.isolates.loggers.IBundleLoggersLoggerSvc;
 import org.psem2m.isolates.loggers.ILogChannelsSvc;
 import org.psem2m.utilities.CXJvmUtils;
 import org.psem2m.utilities.files.CXFile;
@@ -33,9 +32,14 @@ import org.psem2m.utilities.logging.IActivityLoggerBase;
  */
 public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
 
-	/** Service reference managed by iPojo (see metadata.xml) **/
-	private IBundleLoggersLoggerSvc pBundleLoggersLoggerSvc;
+	/**
+	 * Service reference managed by iPojo (see metadata.xml)
+	 * 
+	 * This service is the logger of the current bundle
+	 **/
+	private IActivityLoggerBase pBundleLoggersLoggerSvc;
 
+	/** the "repository" of the opened logging channels **/
 	TreeMap<String, IActivityLogger> pLoggers = new TreeMap<String, IActivityLogger>();
 
 	/** Service reference managed by iPojo (see metadata.xml) **/

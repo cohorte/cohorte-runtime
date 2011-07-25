@@ -8,14 +8,12 @@
  * Contributors:
  *    ogattaz (isandlaTech) - initial API and implementation
  *******************************************************************************/
-package org.psem2m.isolates.loggers;
-
-import org.psem2m.utilities.logging.IActivityLoggerBase;
+package org.psem2m.isolates.tracer;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
- * 
+ *
  */
-public interface IBundleLoggersLoggerSvc extends IActivityLoggerBase {
+public interface ITracerSvc {
 
 }
