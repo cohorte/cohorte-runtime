@@ -3,28 +3,40 @@
 	xsi:schemaLocation="org.apache.felix.ipojo http://felix.apache.org/ipojo/schemas/CURRENT/core.xsd"
 	xmlns="org.apache.felix.ipojo" xmlns:jmx="org.apache.felix.ipojo.handlers.jmx">
 
+	<!-- The logger, specific to the bundle
+	ATTENTION : like the activator is already instanciate (cf. OSGI actovator),
+	we define the attribute "factory-method" to indicate to iPojo how it retreive
+	the existing instance to "define" the component with it
+	-->
+	<component classname="org.psem2m.isolates.base.CBundleBaseActivator"
+		architecture="true" immediate="true" name="isolates-base-bundle-logger-factory"
+		factory-method="getInstance">
 
-	<component classname="org.psem2m.isolates.base.impl.CBundleBaseLoggerSvc"
-		architecture="true" immediate="true" name="isolates-base-bundle-logger">
-		<provides />
-		
+		<provides specifications="org.psem2m.utilities.logging.IActivityLoggerBase" />
+
 		<callback transition="validate" method="validatePojo"/>
 		<callback transition="invalidate" method="invalidatePojo"/>
 	</component>
-	<instance component="isolates-base-bundle-logger"   />
-	
 
-	
+
+
+	<!-- The PlatformDirs service -->
 	<component classname="org.psem2m.isolates.base.impl.CPlatformDirsSvc"
-		architecture="true" immediate="true" name="isolates-base-platform-dirs">
+		architecture="true" immediate="true" name="isolates-base-platform-dirs-factory">
 		<provides />
-		<requires field="pBundleBaseLoggerSvc" optional="false" />
-		
+		<requires field="pLoggerSvc" optional="false" />
+
 		<callback transition="validate" method="validatePojo"/>
 		<callback transition="invalidate" method="invalidatePojo"/>
 	</component>
-	<instance component="isolates-base-platform-dirs"   />
-	
-	
-	
+
+
+	<instance component="isolates-base-bundle-logger-factory"
+		name="isolates-base-bundle-logger" />
+
+	<instance component="isolates-base-platform-dirs-factory"
+		name="isolates-base-platform-dirs" />
+
+
+
 </ipojo>

@@ -10,29 +10,12 @@
  *******************************************************************************/
 package org.psem2m.isolates.loggers;
 
-import java.util.List;
+import org.psem2m.utilities.logging.IActivityLogger;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
-public interface ILogChannelsSvc {
-
-	/**
-	 * @return the list of available channels
-	 */
-	public List<ILogChannelSvc> getChannels();
-
-	/**
-	 * @return the list of the ids of the available channels
-	 */
-	public List<String> getChannelsIds();
-
-	/**
-	 * @param aChannelId
-	 *            the channel id of the logger to retreive
-	 * @return the instance of Logger corresponding to the channel id
-	 */
-	public ILogChannelSvc getLogChannel(String aChannelId) throws Exception;
+public interface ILogChannelSvc extends IActivityLogger {
 
 }

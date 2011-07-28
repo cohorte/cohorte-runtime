@@ -12,22 +12,24 @@ package org.psem2m.isolates.loggers;
 
 import org.osgi.framework.BundleContext;
 import org.psem2m.isolates.base.CActivatorBase;
+import org.psem2m.isolates.base.IActivatorBase;
+import org.psem2m.utilities.logging.IActivityLoggerBase;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
 public class CBundleLoggersActivator extends CActivatorBase implements
-		IBundleLoggersActivator {
+		IActivatorBase, IActivityLoggerBase {
 
 	/** first instance **/
-	private static IBundleLoggersActivator sBundleLoggersActivator = null;
+	private static CBundleLoggersActivator sSingleton = null;
 
 	/**
 	 * @return
 	 */
-	public static IBundleLoggersActivator getInstance() {
-		return sBundleLoggersActivator;
+	public static CBundleLoggersActivator getInstance() {
+		return sSingleton;
 	}
 
 	/**
@@ -35,8 +37,8 @@ public class CBundleLoggersActivator extends CActivatorBase implements
 	 */
 	public CBundleLoggersActivator() {
 		super();
-		if (sBundleLoggersActivator == null) {
-			sBundleLoggersActivator = this;
+		if (sSingleton == null) {
+			sSingleton = this;
 		}
 	}
 
@@ -48,16 +50,6 @@ public class CBundleLoggersActivator extends CActivatorBase implements
 	@Override
 	public void destroy() {
 		// nothing...
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.isolates.utilities.osgi.CActivatorBase#getBundleId()
-	 */
-	@Override
-	public String getBundleId() {
-		return getClass().getPackage().getName();
 	}
 
 	/*

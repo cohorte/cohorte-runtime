@@ -2,7 +2,7 @@ package org.psem2m.utilities.logging;
 
 import java.util.logging.XMLFormatter;
 
-public class CActivityLoggerXml extends CActivityLoggerStd implements
+public class CActivityLoggerXml extends CActivityLogger implements
 		IActivityLogger {
 
 	/**

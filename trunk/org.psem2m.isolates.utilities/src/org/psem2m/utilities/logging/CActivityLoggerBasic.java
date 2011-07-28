@@ -8,7 +8,7 @@ import org.psem2m.utilities.CXException;
  * @author ogattaz
  * 
  */
-public class CActivityLoggerBasic extends CActivityLoggerStd implements
+public class CActivityLoggerBasic extends CActivityLogger implements
 		IActivityLogger {
 
 	/**

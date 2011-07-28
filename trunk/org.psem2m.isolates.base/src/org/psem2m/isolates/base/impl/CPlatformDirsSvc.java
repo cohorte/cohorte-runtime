@@ -11,11 +11,11 @@
 package org.psem2m.isolates.base.impl;
 
 import org.psem2m.isolates.base.CPojoBase;
-import org.psem2m.isolates.base.IBundleBaseLoggerSvc;
 import org.psem2m.isolates.base.IPlatformDirsSvc;
 import org.psem2m.isolates.base.IPojoBase;
 import org.psem2m.utilities.CXStringUtils;
 import org.psem2m.utilities.files.CXFileDir;
+import org.psem2m.utilities.logging.IActivityLoggerBase;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
@@ -49,7 +49,7 @@ public class CPlatformDirsSvc extends CPojoBase implements IPlatformDirsSvc,
 	}
 
 	/** Service reference managed by iPojo (see metadata.xml) **/
-	private IBundleBaseLoggerSvc pBundleBaseLoggerSvc;
+	private IActivityLoggerBase pLoggerSvc;
 
 	/**
 	 * Explicit default constructor
@@ -152,7 +152,7 @@ public class CPlatformDirsSvc extends CPojoBase implements IPlatformDirsSvc,
 	@Override
 	public void invalidatePojo() {
 		// logs in the bundle output
-		pBundleBaseLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
+		pLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
 				toDescription());
 	}
 
@@ -164,7 +164,7 @@ public class CPlatformDirsSvc extends CPojoBase implements IPlatformDirsSvc,
 	@Override
 	public void validatePojo() {
 		// logs in the bundle output
-		pBundleBaseLoggerSvc.logInfo(this, "validatePojo", "VALIDATE",
+		pLoggerSvc.logInfo(this, "validatePojo", "VALIDATE",
 				toDescription());
 	}
 

@@ -11,22 +11,23 @@
 package org.psem2m.isolates.base;
 
 import org.osgi.framework.BundleContext;
+import org.psem2m.utilities.logging.IActivityLoggerBase;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
 public class CBundleBaseActivator extends CActivatorBase implements
-		IBundleBaseActivator {
+		IActivatorBase, IActivityLoggerBase {
 
 	/** first instance **/
-	private static IBundleBaseActivator sActivatorIsolatesBase = null;
+	private static CBundleBaseActivator sSingleton = null;
 
 	/**
 	 * @return
 	 */
-	public static IBundleBaseActivator getInstance() {
-		return sActivatorIsolatesBase;
+	public static CBundleBaseActivator getInstance() {
+		return sSingleton;
 	}
 
 	/**
@@ -34,30 +35,14 @@ public class CBundleBaseActivator extends CActivatorBase implements
 	 */
 	public CBundleBaseActivator() {
 		super();
-		if (sActivatorIsolatesBase == null) {
-			sActivatorIsolatesBase = this;
+		if (sSingleton == null) {
+			sSingleton = this;
 		}
 	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.utilities.CXObjectBase#destroy()
-	 */
 
 	@Override
 	public void destroy() {
 		// ...
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.isolates.utilities.osgi.CActivatorBase#getBundleId()
-	 */
-	@Override
-	public String getBundleId() {
-		return getClass().getPackage().getName();
 	}
 
 	/*

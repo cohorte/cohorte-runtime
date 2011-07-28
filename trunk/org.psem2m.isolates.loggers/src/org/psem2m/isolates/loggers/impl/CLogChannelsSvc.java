@@ -18,29 +18,33 @@ import java.util.TreeMap;
 import org.psem2m.isolates.base.CLogIsolatesRedirector;
 import org.psem2m.isolates.base.CPojoBase;
 import org.psem2m.isolates.base.IPlatformDirsSvc;
+import org.psem2m.isolates.loggers.ILogChannelSvc;
 import org.psem2m.isolates.loggers.ILogChannelsSvc;
 import org.psem2m.utilities.CXJvmUtils;
 import org.psem2m.utilities.files.CXFile;
 import org.psem2m.utilities.files.CXFileDir;
-import org.psem2m.utilities.logging.CActivityLoggerBasic;
 import org.psem2m.utilities.logging.IActivityLogger;
 import org.psem2m.utilities.logging.IActivityLoggerBase;
 
 /**
+ * 
+ * This service is a Service factory.
+ * 
+ * 
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
 public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
+
+	/** the "repository" of the opened logging channels **/
+	TreeMap<String, ILogChannelSvc> pLoggers = new TreeMap<String, ILogChannelSvc>();
 
 	/**
 	 * Service reference managed by iPojo (see metadata.xml)
 	 * 
 	 * This service is the logger of the current bundle
 	 **/
-	private IActivityLoggerBase pBundleLoggersLoggerSvc;
-
-	/** the "repository" of the opened logging channels **/
-	TreeMap<String, IActivityLogger> pLoggers = new TreeMap<String, IActivityLogger>();
+	private IActivityLoggerBase pLoggerSvc;
 
 	/** Service reference managed by iPojo (see metadata.xml) **/
 	private IPlatformDirsSvc pPlatformDirsSvc;
@@ -59,7 +63,7 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
 	 */
 	@Override
 	public void destroy() {
-		for (Entry<String, IActivityLogger> wLoggerEntry : pLoggers.entrySet()) {
+		for (Entry<String, ILogChannelSvc> wLoggerEntry : pLoggers.entrySet()) {
 			wLoggerEntry.getValue().close();
 		}
 		pLoggers.clear();
@@ -69,9 +73,9 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
 	 * @return the list of available channels
 	 */
 	@Override
-	public List<IActivityLogger> getChannels() {
-		List<IActivityLogger> wLoggers = new ArrayList<IActivityLogger>();
-		for (Entry<String, IActivityLogger> wLoggerEntry : pLoggers.entrySet()) {
+	public List<ILogChannelSvc> getChannels() {
+		List<ILogChannelSvc> wLoggers = new ArrayList<ILogChannelSvc>();
+		for (Entry<String, ILogChannelSvc> wLoggerEntry : pLoggers.entrySet()) {
 			wLoggers.add(wLoggerEntry.getValue());
 		}
 
@@ -84,17 +88,17 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
 	@Override
 	public List<String> getChannelsIds() {
 		List<String> wIds = new ArrayList<String>();
-		for (Entry<String, IActivityLogger> wLoggerEntry : pLoggers.entrySet()) {
+		for (Entry<String, ILogChannelSvc> wLoggerEntry : pLoggers.entrySet()) {
 			wIds.add(wLoggerEntry.getKey());
 		}
 		return wIds;
 	}
 
 	@Override
-	public IActivityLoggerBase getLogChannel(final String aChannelId)
+	public ILogChannelSvc getLogChannel(final String aChannelId)
 			throws Exception {
 
-		IActivityLogger wLogger = pLoggers.get(aChannelId);
+		ILogChannelSvc wLogger = pLoggers.get(aChannelId);
 		if (wLogger != null) {
 			return wLogger;
 		}
@@ -108,12 +112,11 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
 	 * @return
 	 * @throws Exception
 	 */
-	private IActivityLogger instanciateLogger(final String aChannelId,
+	private ILogChannelSvc instanciateLogger(final String aChannelId,
 			final CXFileDir aLogDir) throws Exception {
 		CXFile wLogFile = new CXFile(aLogDir, aChannelId + "_%g.log");
-		return CActivityLoggerBasic.newLogger(aChannelId,
-				wLogFile.getAbsolutePath(), IActivityLogger.ALL,
-				1024 * 1024 * 100, 5);
+		return CLogChannelSvc.newLogger(aChannelId, wLogFile.getAbsolutePath(),
+				IActivityLogger.ALL, 1024 * 1024 * 100, 5);
 
 	}
 
@@ -125,7 +128,7 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
 	@Override
 	public void invalidatePojo() {
 		// logs in the bundle output
-		pBundleLoggersLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
+		pLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
 				toDescription());
 		destroy();
 	}
@@ -134,9 +137,9 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
 	 * @param aChannelId
 	 * @return
 	 */
-	private IActivityLogger newLogger(final String aChannelId) throws Exception {
+	private ILogChannelSvc newLogger(final String aChannelId) throws Exception {
 
-		IActivityLogger wLogger = instanciateLogger(aChannelId,
+		ILogChannelSvc wLogger = instanciateLogger(aChannelId,
 				pPlatformDirsSvc.getIsolateLogDir());
 
 		pLoggers.put(aChannelId, wLogger);
@@ -153,8 +156,7 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
 	public void validatePojo() {
 
 		// logs in the bundle output
-		pBundleLoggersLoggerSvc.logInfo(this, "validatePojo", "VALIDATE",
-				toDescription());
+		pLoggerSvc.logInfo(this, "validatePojo", "VALIDATE", toDescription());
 
 		try {
 			IActivityLogger wLogger = newLogger("isolate-"
@@ -165,7 +167,7 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
 			CLogIsolatesRedirector.getInstance().setListener(wLogger);
 
 		} catch (Exception e) {
-			pBundleLoggersLoggerSvc.logSevere(this, "validatePojo", e);
+			pLoggerSvc.logSevere(this, "validatePojo", e);
 		}
 	}
 }

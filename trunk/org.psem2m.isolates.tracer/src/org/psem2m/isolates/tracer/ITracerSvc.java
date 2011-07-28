@@ -10,10 +10,23 @@
  *******************************************************************************/
 package org.psem2m.isolates.tracer;
 
+import java.util.List;
+
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
- *
+ * 
  */
 public interface ITracerSvc {
+
+	/**
+	 * @return the list of the ids of the tracable channels
+	 */
+	public List<String> getTracableChannelsIds();
+
+	/**
+	 * @param aIds
+	 * @return
+	 */
+	public boolean traceChannels(List<String> aIds);
 
 }

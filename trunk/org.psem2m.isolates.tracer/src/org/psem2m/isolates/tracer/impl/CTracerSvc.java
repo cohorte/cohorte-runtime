@@ -28,17 +28,17 @@ public class CTracerSvc extends CPojoBase implements ITracerSvc {
 	/**
 	 * Service reference managed by iPojo (see metadata.xml)
 	 * 
-	 * This service is the logger of the current bundle
+	 * This service is used to control the opened logging channels : set level,
+	 * redirect to the tracer, ...
 	 **/
-	private IActivityLoggerBase pBundleTracerLoggerSvc;
+	private ILogChannelsSvc pLogChannelsSvc;
 
 	/**
 	 * Service reference managed by iPojo (see metadata.xml)
 	 * 
-	 * This service is used to control the opened logging channels : set level,
-	 * redirect to the tracer, ...
+	 * This service is the logger of the current bundle
 	 **/
-	private ILogChannelsSvc pLogChannelsService;
+	private IActivityLoggerBase pLoggerSvc;
 
 	/**
 	 * Explicite default constructor
@@ -70,13 +70,37 @@ public class CTracerSvc extends CPojoBase implements ITracerSvc {
 	/*
 	 * (non-Javadoc)
 	 * 
+	 * @see org.psem2m.isolates.tracer.ITracerSvc#getTracableChannelsIds()
+	 */
+	@Override
+	public List<String> getTracableChannelsIds() {
+		return pLogChannelsSvc.getChannelsIds();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.psem2m.isolates.osgi.CPojoBase#invalidatePojo()
 	 */
 	@Override
 	public void invalidatePojo() {
 		// logs in the bundle output
-		pBundleTracerLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
+		pLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
 				toDescription());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.isolates.tracer.ITracerSvc#traceChannels(java.util.List)
+	 */
+	@Override
+	public boolean traceChannels(final List<String> aIds) {
+
+		for (String wId : aIds) {
+			// pLogChannelsSvc.getLogChannel(wId).setHandler(this);
+		}
+		return true;
 	}
 
 	/*
@@ -87,12 +111,11 @@ public class CTracerSvc extends CPojoBase implements ITracerSvc {
 	@Override
 	public void validatePojo() {
 		// logs in the bundle output
-		pBundleTracerLoggerSvc.logInfo(this, "validatePojo", "VALIDATE",
-				toDescription());
+		pLoggerSvc.logInfo(this, "validatePojo", "VALIDATE", toDescription());
 
-		List<String> wIds = pLogChannelsService.getChannelsIds();
+		List<String> wIds = pLogChannelsSvc.getChannelsIds();
 
-		pBundleTracerLoggerSvc.logInfo(this, null, "getChannelsIds=[%s]",
+		pLoggerSvc.logInfo(this, null, "getChannelsIds=[%s]",
 				CXStringUtils.stringListToString(wIds));
 	}
 }

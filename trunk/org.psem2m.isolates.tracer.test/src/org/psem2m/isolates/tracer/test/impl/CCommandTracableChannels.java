@@ -1,0 +1,133 @@
+/*******************************************************************************
+ * Copyright (c) 2011 www.isandlatech.com (www.isandlatech.com)
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    ogattaz (isandlaTech) - initial API and implementation
+ *******************************************************************************/
+package org.psem2m.isolates.tracer.test.impl;
+
+import java.io.PrintStream;
+import java.util.List;
+
+import org.apache.felix.shell.Command;
+import org.osgi.framework.BundleException;
+import org.psem2m.isolates.base.CPojoBase;
+import org.psem2m.isolates.tracer.ITracerSvc;
+import org.psem2m.utilities.CXStringUtils;
+import org.psem2m.utilities.logging.IActivityLoggerBase;
+
+/**
+ * 
+ * @see http://felix.apache.org/site/apache-felix-shell.html
+ * 
+ * @author isandlatech (www.isandlatech.com) - ogattaz
+ * 
+ */
+public class CCommandTracableChannels extends CPojoBase implements Command {
+
+	/**
+	 * Service reference managed by iPojo (see metadata.xml)
+	 * 
+	 * This service is the logger of the current bundle
+	 **/
+	private IActivityLoggerBase pLoggerSvc;
+
+	/**
+	 * Service reference managed by iPojo (see metadata.xml)
+	 * 
+	 * This service is the logger of the current bundle
+	 **/
+	private ITracerSvc pTracerSvc;
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.utilities.CXObjectBase#destroy()
+	 */
+	@Override
+	public void destroy() {
+		// ...
+
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.apache.felix.shell.Command#execute(java.lang.String,
+	 * java.io.PrintStream, java.io.PrintStream)
+	 */
+	@Override
+	public void execute(final String aArgs, final PrintStream out,
+			final PrintStream err) {
+
+		pLoggerSvc.logInfo(this, "execute", "cmde=[%s] args=[%s]", getName(),
+				aArgs);
+
+		out.println(getName() + " begin");
+		List<String> wIds = pTracerSvc.getTracableChannelsIds();
+
+		out.println(String.format("TracableChannelsIds=[%s]",
+				CXStringUtils.stringListToString(wIds)));
+
+		out.println(getName() + " end");
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.apache.felix.shell.Command#getName()
+	 */
+	@Override
+	public String getName() {
+		return "tracableChannels";
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.apache.felix.shell.Command#getShortDescription()
+	 */
+	@Override
+	public String getShortDescription() {
+		// TODO Auto-generated method stub
+		return "return the list of the tracable log channels.";
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.apache.felix.shell.Command#getUsage()
+	 */
+	@Override
+	public String getUsage() {
+		return getName();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.isolates.base.CPojoBase#invalidatePojo()
+	 */
+	@Override
+	public void invalidatePojo() throws BundleException {
+		// logs in the bundle output
+		pLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
+				toDescription());
+
+		List<String> wIds = pTracerSvc.getTracableChannelsIds();
+
+		pLoggerSvc.logInfo(this, null, "getTracableChannelsIds=[%s]",
+				CXStringUtils.stringListToString(wIds));
+
+	}
+
+	@Override
+	public void validatePojo() throws BundleException {
+		// logs in the bundle output
+		pLoggerSvc.logInfo(this, "validatePojo", "VALIDATE", toDescription());
+	}
+}

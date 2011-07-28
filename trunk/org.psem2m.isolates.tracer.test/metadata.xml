@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ipojo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="org.apache.felix.ipojo http://felix.apache.org/ipojo/schemas/CURRENT/core.xsd"
+	xmlns="org.apache.felix.ipojo" xmlns:jmx="org.apache.felix.ipojo.handlers.jmx">
+
+	<!-- The logger, specific to the bundle
+	ATTENTION : like the activator is already instanciate (cf. OSGI actovator),
+	we define the attribute "factory-method" to indicate to iPojo how it retreive
+	the existing instance to "define" the component with it
+	-->
+	<component
+		classname="org.psem2m.isolates.tracer.test.CBundleTracerTestActivator"
+		architecture="true" immediate="true" name="isolates-tracertest-bundle-logger-factory"
+		factory-method="getInstance" >
+
+		<provides specifications="org.psem2m.utilities.logging.IActivityLoggerBase" />
+
+		<callback transition="validate" method="validatePojo" />
+		<callback transition="invalidate" method="invalidatePojo" />
+	</component>
+
+
+	<!-- The command "TracableChannels"  service -->
+	<component
+		classname="org.psem2m.isolates.tracer.test.impl.CCommandTracableChannels"
+		architecture="true" immediate="true" name="isolates-tracertest-command-tracablechannels-factory" >
+
+		<provides specifications="org.apache.felix.shell.Command" />
+
+		<requires field="pTracerSvc" optional="false"
+			from="isolates-tracer-tracer" />
+
+		<requires field="pLoggerSvc" optional="false"
+			from="isolates-tracertest-bundle-logger"/>
+
+		<callback transition="validate" method="validatePojo" />
+		<callback transition="invalidate" method="invalidatePojo" />
+	</component>
+
+	<!-- The command "TraceChannels"  service -->
+	<component
+		classname="org.psem2m.isolates.tracer.test.impl.CCommandTraceChannels"
+		architecture="true" immediate="true" name="isolates-tracertest-command-tracechannels-factory">
+
+		<provides specifications="org.apache.felix.shell.Command" />
+
+		<requires field="pTracerSvc" optional="false"
+			from="isolates-tracer-tracer" />
+
+		<requires field="pLoggerSvc" optional="false"
+			from="isolates-tracertest-bundle-logger"/>
+
+		<callback transition="validate" method="validatePojo" />
+		<callback transition="invalidate" method="invalidatePojo" />
+	</component>
+
+
+	<instance component="isolates-tracertest-bundle-logger-factory"
+		name="isolates-tracertest-bundle-logger" />
+
+	<instance component="isolates-tracertest-command-tracablechannels-factory"
+		name="isolates-tracertest-command-tracablechannels" />
+
+	<instance component="isolates-tracertest-command-tracechannels-factory"
+		name="isolates-tracertest-command-tracechannels" />
+
+</ipojo>

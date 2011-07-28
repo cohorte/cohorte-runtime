@@ -1,22 +1,25 @@
 package org.psem2m.isolates.utilities.test;
 
+import org.osgi.framework.BundleContext;
 import org.psem2m.isolates.base.CActivatorBase;
+import org.psem2m.isolates.base.IActivatorBase;
+import org.psem2m.utilities.logging.IActivityLoggerBase;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
 public class CBundleUtilitiesTestActivator extends CActivatorBase implements
-		IBundleUtilitiesTestActivator {
+		IActivatorBase, IActivityLoggerBase {
 
 	/** first instance **/
-	private static IBundleUtilitiesTestActivator sBundleUtilitiesTesterActivator = null;
+	private static CBundleUtilitiesTestActivator sSingleton = null;
 
 	/**
 	 * @return
 	 */
-	public static IBundleUtilitiesTestActivator getInstance() {
-		return sBundleUtilitiesTesterActivator;
+	public static CBundleUtilitiesTestActivator getInstance() {
+		return sSingleton;
 	}
 
 	/**
@@ -24,8 +27,8 @@ public class CBundleUtilitiesTestActivator extends CActivatorBase implements
 	 */
 	public CBundleUtilitiesTestActivator() {
 		super();
-		if (sBundleUtilitiesTesterActivator == null) {
-			sBundleUtilitiesTesterActivator = this;
+		if (sSingleton == null) {
+			sSingleton = this;
 		}
 	}
 
@@ -36,17 +39,31 @@ public class CBundleUtilitiesTestActivator extends CActivatorBase implements
 	 */
 	@Override
 	public void destroy() {
-
+		// ...
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see org.psem2m.isolates.base.CActivatorBase#getBundleId()
+	 * @see
+	 * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext
+	 * )
 	 */
 	@Override
-	public String getBundleId() {
-		return getClass().getPackage().getName();
+	public void start(final BundleContext bundleContext) throws Exception {
+		super.start(bundleContext);
+		// ...
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
+	 */
+	@Override
+	public void stop(final BundleContext bundleContext) throws Exception {
+		super.stop(bundleContext);
+		// ...
+	}
 }

@@ -12,22 +12,24 @@ package org.psem2m.isolates.tracer;
 
 import org.osgi.framework.BundleContext;
 import org.psem2m.isolates.base.CActivatorBase;
+import org.psem2m.isolates.base.IActivatorBase;
+import org.psem2m.utilities.logging.IActivityLoggerBase;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
 public class CBundleTracerActivator extends CActivatorBase implements
-		IBundleTracerActivator {
+		IActivatorBase, IActivityLoggerBase {
 
 	/** first instance **/
-	private static IBundleTracerActivator sBundleTracerActivator = null;
+	private static CBundleTracerActivator sSingleton = null;
 
 	/**
 	 * @return
 	 */
-	public static IBundleTracerActivator getInstance() {
-		return sBundleTracerActivator;
+	public static CBundleTracerActivator getInstance() {
+		return sSingleton;
 	}
 
 	/**
@@ -35,8 +37,8 @@ public class CBundleTracerActivator extends CActivatorBase implements
 	 */
 	public CBundleTracerActivator() {
 		super();
-		if (sBundleTracerActivator == null) {
-			sBundleTracerActivator = this;
+		if (sSingleton == null) {
+			sSingleton = this;
 		}
 	}
 
@@ -48,17 +50,6 @@ public class CBundleTracerActivator extends CActivatorBase implements
 	@Override
 	public void destroy() {
 		// nothing...
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.isolates.utilities.osgi.CActivatorBase#getBundleId()
-	 */
-	@Override
-	public String getBundleId() {
-		return getClass().getPackage().getName();
-
 	}
 
 	/*
@@ -85,4 +76,5 @@ public class CBundleTracerActivator extends CActivatorBase implements
 		super.stop(bundleContext);
 		// ...
 	}
+
 }

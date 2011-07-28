@@ -16,7 +16,7 @@ import java.util.logging.Level;
 import org.psem2m.utilities.files.CXFile;
 import org.psem2m.utilities.files.CXFileDir;
 import org.psem2m.utilities.logging.CActivityLoggerBasic;
-import org.psem2m.utilities.logging.CActivityLoggerStd;
+import org.psem2m.utilities.logging.CActivityLogger;
 import org.psem2m.utilities.logging.CActivityLoggerXml;
 import org.psem2m.utilities.logging.CLogToolsException;
 import org.psem2m.utilities.logging.IActivityLogger;
@@ -197,7 +197,7 @@ public class CLoggingTester extends CConsoleTester {
 					wLogFileTxt.getAbsolutePath(), IActivityLogger.ALL,
 					aFileLimit, aFileCount);
 		} else if ("log".equalsIgnoreCase(aKindLog)) {
-			wLogger = CActivityLoggerStd.newLogger(wLoggerNameBasic,
+			wLogger = CActivityLogger.newLogger(wLoggerNameBasic,
 					wLogFileTxt.getAbsolutePath(), IActivityLogger.ALL,
 					aFileLimit, aFileCount);
 		} else {

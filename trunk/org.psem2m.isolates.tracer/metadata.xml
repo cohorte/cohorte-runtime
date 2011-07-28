@@ -3,10 +3,15 @@
 	xsi:schemaLocation="org.apache.felix.ipojo http://felix.apache.org/ipojo/schemas/CURRENT/core.xsd"
 	xmlns="org.apache.felix.ipojo" xmlns:jmx="org.apache.felix.ipojo.handlers.jmx">
 
-	<!-- The logger, specific to the bundle -->
+	<!-- The logger, specific to the bundle
+	ATTENTION : like the activator is already instanciate (cf. OSGI actovator),
+	we define the attribute "factory-method" to indicate to iPojo how it retreive
+	the existing instance to "define" the component with it
+	-->
 	<component
-		classname="org.psem2m.isolates.tracer.impl.CBundleTracerLoggerSvc"
-		architecture="true" immediate="true" name="isolates-tracer-bundle-logger-factory">
+		classname="org.psem2m.isolates.tracer.CBundleTracerActivator"
+		architecture="true" immediate="true" name="isolates-tracer-bundle-logger-factory"
+		factory-method="getInstance">
 
 		<provides specifications="org.psem2m.utilities.logging.IActivityLoggerBase" />
 
@@ -14,15 +19,17 @@
 		<callback transition="invalidate" method="invalidatePojo" />
 	</component>
 
+
 	<!-- The Tracer service -->
 	<component classname="org.psem2m.isolates.tracer.impl.CTracerSvc"
 		architecture="true" immediate="true" name="isolates-tracer-tracer-factory">
 
 		<provides specifications="org.psem2m.isolates.tracer.ITracerSvc" />
 
-		<requires field="pLogChannelsService" optional="false" />
+		<requires field="pLogChannelsSvc" optional="false"
+		from="isolates-loggers-channels" />
 
-		<requires field="pBundleTracerLoggerSvc" optional="false"
+		<requires field="pLoggerSvc" optional="false"
 			from="isolates-tracer-bundle-logger"/>
 
 		<callback transition="validate" method="validatePojo" />
