@@ -16,6 +16,6 @@ import org.psem2m.utilities.logging.IActivityLoggerBase;
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
-public interface IBundleBaseLoggerSvc extends IActivityLoggerBase {
+public interface IIsolateLoggerSvc extends IActivityLoggerBase {
 
 }

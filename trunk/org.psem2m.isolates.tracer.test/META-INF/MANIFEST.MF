@@ -16,57 +16,57 @@ Import-Package: org.psem2m.isolates.tracer.impl, org.psem2m.utilities.
  version=1.3.0, org.osgi.service.cm;version=1.2, org.psem2m.isolates.t
  racer.essais, org.psem2m.utilities
 iPOJO-Components: component { $immediate="true" $name="isolates-tracer
- test-bundle-logger-factory" $classname="org.psem2m.isolates.tracer.te
+ test-isolatelogger-factory" $classname="org.psem2m.isolates.tracer.te
  st.CBundleTracerTestActivator" $factory-method="getInstance" $archite
  cture="true" callback { $transition="validate" $method="validatePojo"
   }callback { $transition="invalidate" $method="invalidatePojo" }provi
- des { $specifications="org.psem2m.utilities.logging.IActivityLoggerBa
- se" }manipulation { $super="org.psem2m.isolates.base.CActivatorBase" 
- method { $name="getInstance" $return="org.psem2m.isolates.tracer.test
- .CBundleTracerTestActivator" }method { $name="$init" }method { $name=
- "destroy" }method { $arguments="{org.osgi.framework.BundleContext}" $
- name="start" }method { $arguments="{org.osgi.framework.BundleContext}
- " $name="stop" }interface { $name="org.psem2m.isolates.base.IActivato
- rBase" }interface { $name="org.psem2m.utilities.logging.IActivityLogg
- erBase" }}}component { $immediate="true" $name="isolates-tracertest-c
- ommand-tracablechannels-factory" $classname="org.psem2m.isolates.trac
- er.test.impl.CCommandTracableChannels" $architecture="true" callback 
- { $transition="validate" $method="validatePojo" }callback { $transiti
- on="invalidate" $method="invalidatePojo" }provides { $specifications=
- "org.apache.felix.shell.Command" }manipulation { $super="org.psem2m.i
- solates.base.CPojoBase" field { $name="pLoggerSvc" $type="org.psem2m.
- utilities.logging.IActivityLoggerBase" }field { $name="pTracerSvc" $t
- ype="org.psem2m.isolates.tracer.ITracerSvc" }method { $name="$init" }
- method { $name="destroy" }method { $arguments="{java.lang.String,java
- .io.PrintStream,java.io.PrintStream}" $name="execute" }method { $name
- ="getName" $return="java.lang.String" }method { $name="getShortDescri
- ption" $return="java.lang.String" }method { $name="getUsage" $return=
- "java.lang.String" }method { $name="invalidatePojo" }method { $name="
- validatePojo" }interface { $name="org.apache.felix.shell.Command" }}r
- equires { $field="pTracerSvc" $optional="false" $from="isolates-trace
- r-tracer" }requires { $field="pLoggerSvc" $optional="false" $from="is
- olates-tracertest-bundle-logger" }}component { $immediate="true" $nam
- e="isolates-tracertest-command-tracechannels-factory" $classname="org
- .psem2m.isolates.tracer.test.impl.CCommandTraceChannels" $architectur
- e="true" callback { $transition="validate" $method="validatePojo" }ca
- llback { $transition="invalidate" $method="invalidatePojo" }provides 
- { $specifications="org.apache.felix.shell.Command" }manipulation { $s
- uper="org.psem2m.isolates.base.CPojoBase" field { $name="pLoggerSvc" 
- $type="org.psem2m.utilities.logging.IActivityLoggerBase" }field { $na
- me="pTracerSvc" $type="org.psem2m.isolates.tracer.ITracerSvc" }method
-  { $name="$init" }method { $name="destroy" }method { $arguments="{jav
- a.lang.String,java.io.PrintStream,java.io.PrintStream}" $name="execut
- e" }method { $name="getName" $return="java.lang.String" }method { $na
- me="getShortDescription" $return="java.lang.String" }method { $name="
- getUsage" $return="java.lang.String" }method { $name="invalidatePojo"
-  }method { $name="validatePojo" }interface { $name="org.apache.felix.
- shell.Command" }}requires { $field="pTracerSvc" $optional="false" $fr
- om="isolates-tracer-tracer" }requires { $field="pLoggerSvc" $optional
- ="false" $from="isolates-tracertest-bundle-logger" }}instance { $comp
- onent="isolates-tracertest-bundle-logger-factory" $name="isolates-tra
- certest-bundle-logger" }instance { $component="isolates-tracertest-co
- mmand-tracablechannels-factory" $name="isolates-tracertest-command-tr
- acablechannels" }instance { $component="isolates-tracertest-command-t
- racechannels-factory" $name="isolates-tracertest-command-tracechannel
- s" }
+ des { $specifications="org.psem2m.isolates.base.IIsolateLoggerSvc" }m
+ anipulation { $super="org.psem2m.isolates.base.CActivatorBase" method
+  { $name="getInstance" $return="org.psem2m.isolates.tracer.test.CBund
+ leTracerTestActivator" }method { $name="$init" }method { $name="destr
+ oy" }method { $arguments="{org.osgi.framework.BundleContext}" $name="
+ start" }method { $arguments="{org.osgi.framework.BundleContext}" $nam
+ e="stop" }interface { $name="org.psem2m.isolates.base.IActivatorBase"
+  }interface { $name="org.psem2m.isolates.base.IIsolateLoggerSvc" }}}c
+ omponent { $immediate="true" $name="isolates-tracertest-command-traca
+ blechannels-factory" $classname="org.psem2m.isolates.tracer.test.impl
+ .CCommandTracableChannels" $architecture="true" callback { $transitio
+ n="validate" $method="validatePojo" }callback { $transition="invalida
+ te" $method="invalidatePojo" }provides { $specifications="org.apache.
+ felix.shell.Command" }manipulation { $super="org.psem2m.isolates.base
+ .CPojoBase" field { $name="pIsolateLoggerSvc" $type="org.psem2m.isola
+ tes.base.IIsolateLoggerSvc" }field { $name="pTracerSvc" $type="org.ps
+ em2m.isolates.tracer.ITracerSvc" }method { $name="$init" }method { $n
+ ame="destroy" }method { $arguments="{java.lang.String,java.io.PrintSt
+ ream,java.io.PrintStream}" $name="execute" }method { $name="getName" 
+ $return="java.lang.String" }method { $name="getShortDescription" $ret
+ urn="java.lang.String" }method { $name="getUsage" $return="java.lang.
+ String" }method { $name="invalidatePojo" }method { $name="validatePoj
+ o" }interface { $name="org.apache.felix.shell.Command" }}requires { $
+ field="pTracerSvc" $optional="false" $from="isolates-tracer-tracer" }
+ requires { $field="pIsolateLoggerSvc" $optional="false" $from="isolat
+ es-tracertest-isolatelogger" }}component { $immediate="true" $name="i
+ solates-tracertest-command-tracechannels-factory" $classname="org.pse
+ m2m.isolates.tracer.test.impl.CCommandTraceChannels" $architecture="t
+ rue" callback { $transition="validate" $method="validatePojo" }callba
+ ck { $transition="invalidate" $method="invalidatePojo" }provides { $s
+ pecifications="org.apache.felix.shell.Command" }manipulation { $super
+ ="org.psem2m.isolates.base.CPojoBase" field { $name="pIsolateLoggerSv
+ c" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name=
+ "pTracerSvc" $type="org.psem2m.isolates.tracer.ITracerSvc" }method { 
+ $name="$init" }method { $name="destroy" }method { $arguments="{java.l
+ ang.String,java.io.PrintStream,java.io.PrintStream}" $name="execute" 
+ }method { $name="getName" $return="java.lang.String" }method { $name=
+ "getShortDescription" $return="java.lang.String" }method { $name="get
+ Usage" $return="java.lang.String" }method { $name="invalidatePojo" }m
+ ethod { $name="validatePojo" }interface { $name="org.apache.felix.she
+ ll.Command" }}requires { $field="pTracerSvc" $optional="false" $from=
+ "isolates-tracer-tracer" }requires { $field="pIsolateLoggerSvc" $opti
+ onal="false" $from="isolates-tracertest-isolatelogger" }}instance { $
+ component="isolates-tracertest-isolatelogger-factory" $name="isolates
+ -tracertest-isolatelogger" }instance { $component="isolates-tracertes
+ t-command-tracablechannels-factory" $name="isolates-tracertest-comman
+ d-tracablechannels" }instance { $component="isolates-tracertest-comma
+ nd-tracechannels-factory" $name="isolates-tracertest-command-tracecha
+ nnels" }
 

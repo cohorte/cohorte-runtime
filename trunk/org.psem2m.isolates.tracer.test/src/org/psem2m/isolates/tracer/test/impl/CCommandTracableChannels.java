@@ -16,9 +16,9 @@ import java.util.List;
 import org.apache.felix.shell.Command;
 import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.CPojoBase;
+import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.tracer.ITracerSvc;
 import org.psem2m.utilities.CXStringUtils;
-import org.psem2m.utilities.logging.IActivityLoggerBase;
 
 /**
  * 
@@ -34,7 +34,7 @@ public class CCommandTracableChannels extends CPojoBase implements Command {
 	 * 
 	 * This service is the logger of the current bundle
 	 **/
-	private IActivityLoggerBase pLoggerSvc;
+	private IIsolateLoggerSvc pIsolateLoggerSvc;
 
 	/**
 	 * Service reference managed by iPojo (see metadata.xml)
@@ -64,7 +64,7 @@ public class CCommandTracableChannels extends CPojoBase implements Command {
 	public void execute(final String aArgs, final PrintStream out,
 			final PrintStream err) {
 
-		pLoggerSvc.logInfo(this, "execute", "cmde=[%s] args=[%s]", getName(),
+		pIsolateLoggerSvc.logInfo(this, "execute", "cmde=[%s] args=[%s]", getName(),
 				aArgs);
 
 		out.println(getName() + " begin");
@@ -115,12 +115,12 @@ public class CCommandTracableChannels extends CPojoBase implements Command {
 	@Override
 	public void invalidatePojo() throws BundleException {
 		// logs in the bundle output
-		pLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
+		pIsolateLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
 				toDescription());
 
 		List<String> wIds = pTracerSvc.getTracableChannelsIds();
 
-		pLoggerSvc.logInfo(this, null, "getTracableChannelsIds=[%s]",
+		pIsolateLoggerSvc.logInfo(this, null, "getTracableChannelsIds=[%s]",
 				CXStringUtils.stringListToString(wIds));
 
 	}
@@ -128,6 +128,6 @@ public class CCommandTracableChannels extends CPojoBase implements Command {
 	@Override
 	public void validatePojo() throws BundleException {
 		// logs in the bundle output
-		pLoggerSvc.logInfo(this, "validatePojo", "VALIDATE", toDescription());
+		pIsolateLoggerSvc.logInfo(this, "validatePojo", "VALIDATE", toDescription());
 	}
 }

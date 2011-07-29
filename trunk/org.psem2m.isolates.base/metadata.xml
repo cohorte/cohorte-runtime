@@ -9,10 +9,10 @@
 	the existing instance to "define" the component with it
 	-->
 	<component classname="org.psem2m.isolates.base.CBundleBaseActivator"
-		architecture="true" immediate="true" name="isolates-base-bundle-logger-factory"
+		architecture="true" immediate="true" name="isolates-base-isolatelogger-factory"
 		factory-method="getInstance">
 
-		<provides specifications="org.psem2m.utilities.logging.IActivityLoggerBase" />
+		<provides specifications="org.psem2m.isolates.base.IIsolateLoggerSvc" />
 
 		<callback transition="validate" method="validatePojo"/>
 		<callback transition="invalidate" method="invalidatePojo"/>
@@ -24,19 +24,18 @@
 	<component classname="org.psem2m.isolates.base.impl.CPlatformDirsSvc"
 		architecture="true" immediate="true" name="isolates-base-platform-dirs-factory">
 		<provides />
-		<requires field="pLoggerSvc" optional="false" />
+		<requires field="pIsolateLoggerSvc" optional="false"
+			from ="isolates-base-isolatelogger" />
 
 		<callback transition="validate" method="validatePojo"/>
 		<callback transition="invalidate" method="invalidatePojo"/>
 	</component>
 
 
-	<instance component="isolates-base-bundle-logger-factory"
-		name="isolates-base-bundle-logger" />
+	<instance component="isolates-base-isolatelogger-factory"
+		name="isolates-base-isolatelogger" />
 
 	<instance component="isolates-base-platform-dirs-factory"
 		name="isolates-base-platform-dirs" />
-
-
 
 </ipojo>

@@ -10,54 +10,286 @@
  *******************************************************************************/
 package org.psem2m.isolates.loggers.impl;
 
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+
+import org.osgi.framework.BundleException;
+import org.psem2m.isolates.base.CPojoBase;
+import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.loggers.ILogChannelSvc;
-import org.psem2m.utilities.logging.CActivityLoggerBasic;
+import org.psem2m.isolates.loggers.ILogChannelsSvc;
+import org.psem2m.utilities.logging.CLogLineBuffer;
+import org.psem2m.utilities.logging.IActivityRequester;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
-public class CLogChannelSvc extends CActivityLoggerBasic implements
-		ILogChannelSvc {
+public class CLogChannelSvc extends CPojoBase implements ILogChannelSvc {
 
 	/**
-	 * @param aTracer
-	 * @param aLoggerName
-	 * @param aFilePathPattern
-	 *            the pattern for naming the output file
-	 * @param aLevel
-	 *            the value for the log level (may be null)
-	 * @param aFileLimit
-	 *            the maximum number of bytes to write to any one file
-	 * @param aFileCount
-	 *            the number of files to use
+	 * field managed by iPojo (see metadata.xml)
+	 * 
+	 * <requires field="pChannelName" />
+	 */
+	private String pChannelName;
+
+	/**
+	 * Service reference managed by iPojo (see metadata.xml)
+	 * 
+	 * This service is the general logger of the current isolate
+	 **/
+	private IIsolateLoggerSvc pIsolateLoggerSvc;
+
+	/**
+	 * Service reference managed by iPojo (see metadata.xml)
+	 * 
+	 * This service is the general logger of the current isolate
+	 **/
+	private ILogChannelsSvc pLogChannelsSvc;
+
+	/** **/
+	private ILogChannelSvc pLogger;
+
+	/**
+	 * Explicit default constructor
+	 */
+	public CLogChannelSvc() {
+		super();
+
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.utilities.logging.IActivityLogger#close()
+	 */
+	@Override
+	public void close() {
+		pLogger.close();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.utilities.CXObjectBase#destroy()
+	 */
+	@Override
+	public void destroy() {
+		pLogger = null;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.utilities.logging.IActivityLogger#getRequester()
+	 */
+	@Override
+	public IActivityRequester getRequester() {
+		return pLogger.getRequester();
+	}
+
+	/**
 	 * @return
-	 * @throws Exception
 	 */
-	public static ILogChannelSvc newLogger(final String aLoggerName,
-			final String aFilePathPattern, final String aLevel,
-			final int aFileLimit, final int aFileCount) throws Exception {
-
-		CLogChannelSvc wLogger = new CLogChannelSvc(aLoggerName,
-				aFilePathPattern, aLevel, aFileLimit, aFileCount);
-		wLogger.initFileHandler();
-		wLogger.open();
-		return wLogger;
+	private boolean hasLogger() {
+		return pLogger != null;
 	}
 
-	/**
-	 * @param aLoggerName
-	 * @param aFilePathPattern
-	 * @param aLevel
-	 * @param aFileLimit
-	 * @param aFileCount
-	 * @throws Exception
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.isolates.base.CPojoBase#invalidatePojo()
 	 */
-	protected CLogChannelSvc(final String aLoggerName,
-			final String aFilePathPattern, final String aLevel,
-			final int aFileLimit, final int aFileCount) throws Exception {
-		super(aLoggerName, aFilePathPattern, aLevel, aFileLimit, aFileCount);
-		// TODO Auto-generated constructor stub
+	@Override
+	public void invalidatePojo() throws BundleException {
+		// logs in the isolate logger
+		pIsolateLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
+				toDescription());
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.utilities.logging.IActivityLoggerBase#isLogDebugOn()
+	 */
+	@Override
+	public boolean isLogDebugOn() {
+		return (!hasLogger()) ? false : pLogger.isLogDebugOn();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.psem2m.utilities.logging.IActivityLoggerBase#isLoggable(java.util
+	 * .logging.Level)
+	 */
+	@Override
+	public boolean isLoggable(final Level aLevel) {
+		return (!hasLogger()) ? false : pLogger.isLoggable(aLevel);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.utilities.logging.IActivityLoggerBase#isLogInfoOn()
+	 */
+	@Override
+	public boolean isLogInfoOn() {
+		return (!hasLogger()) ? false : pLogger.isLogInfoOn();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.utilities.logging.IActivityLoggerBase#isLogSevereOn()
+	 */
+	@Override
+	public boolean isLogSevereOn() {
+		return (!hasLogger()) ? false : pLogger.isLogSevereOn();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.utilities.logging.IActivityLoggerBase#isLogWarningOn()
+	 */
+	@Override
+	public boolean isLogWarningOn() {
+		return (!hasLogger()) ? false : pLogger.isLogWarningOn();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.psem2m.utilities.logging.IActivityLoggerBase#log(java.util.logging
+	 * .Level, java.lang.Object, java.lang.CharSequence, java.lang.Object[])
+	 */
+	@Override
+	public void log(final Level aLevel, final Object aWho,
+			final CharSequence aWhat, final Object... aInfos) {
+		if (hasLogger()) {
+			pLogger.log(aLevel, aWho, aWhat, aInfos);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.psem2m.utilities.logging.IActivityLoggerBase#log(java.util.logging
+	 * .LogRecord)
+	 */
+	@Override
+	public void log(final LogRecord record) {
+		if (hasLogger()) {
+			pLogger.log(record);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.psem2m.utilities.logging.IActivityLoggerBase#logDebug(java.lang.Object
+	 * , java.lang.CharSequence, java.lang.Object[])
+	 */
+	@Override
+	public void logDebug(final Object aWho, final CharSequence aWhat,
+			final Object... aInfos) {
+		if (hasLogger()) {
+			pLogger.logDebug(aWho, aWhat, aInfos);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.psem2m.utilities.logging.IActivityLoggerBase#logInfo(java.lang.Object
+	 * , java.lang.CharSequence, java.lang.Object[])
+	 */
+	@Override
+	public void logInfo(final Object aWho, final CharSequence aWhat,
+			final Object... aInfos) {
+		if (hasLogger()) {
+			pLogger.logInfo(aWho, aWhat, aInfos);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.psem2m.utilities.logging.IActivityLoggerBase#logSevere(java.lang.
+	 * Object, java.lang.CharSequence, java.lang.Object[])
+	 */
+	@Override
+	public void logSevere(final Object aWho, final CharSequence aWhat,
+			final Object... aInfos) {
+		if (hasLogger()) {
+			pLogger.logSevere(aWho, aWhat, aInfos);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.psem2m.utilities.logging.IActivityLoggerBase#logWarn(java.lang.Object
+	 * , java.lang.CharSequence, java.lang.Object[])
+	 */
+	@Override
+	public void logWarn(final Object aWho, final CharSequence aWhat,
+			final Object... aInfos) {
+		if (hasLogger()) {
+			pLogger.logWarn(aWho, aWhat, aInfos);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.utilities.logging.IActivityLogger#popLogLineBuffer()
+	 */
+	@Override
+	public CLogLineBuffer popLogLineBuffer() {
+		return (!hasLogger()) ? null : pLogger.popLogLineBuffer();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.psem2m.utilities.logging.IActivityLogger#pushLogLineBuffer(org.psem2m
+	 * .utilities.logging.CLogLineBuffer)
+	 */
+	@Override
+	public void pushLogLineBuffer(final CLogLineBuffer aLoggerLineBuffer) {
+		if (hasLogger()) {
+			pLogger.pushLogLineBuffer(aLoggerLineBuffer);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.isolates.base.CPojoBase#validatePojo()
+	 */
+	@Override
+	public void validatePojo() throws BundleException {
+		// logs in the isolate logger
+		pIsolateLoggerSvc.logInfo(this, "validatePojo", "VALIDATE",
+				toDescription());
+
+		try {
+			pLogger = pLogChannelsSvc.getLogChannel(pChannelName);
+		} catch (Exception e) {
+			pIsolateLoggerSvc.logSevere(this, "validatePojo", e);
+			pLogger = null;
+		}
+
+	}
 }

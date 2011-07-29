@@ -14,40 +14,41 @@ Import-Package: org.osgi.service.log;version=1.3.0, org.apache.felix.i
  .osgi.service.cm;version=1.2, org.psem2m.utilities.files, org.psem2m.
  utilities
 Service-Component: OSGI-INF/CBundleBaseActivator.xml
-iPOJO-Components: component { $immediate="true" $name="isolates-base-b
- undle-logger-factory" $classname="org.psem2m.isolates.base.CBundleBas
+iPOJO-Components: component { $immediate="true" $name="isolates-base-i
+ solatelogger-factory" $classname="org.psem2m.isolates.base.CBundleBas
  eActivator" $factory-method="getInstance" $architecture="true" callba
  ck { $transition="validate" $method="validatePojo" }callback { $trans
  ition="invalidate" $method="invalidatePojo" }provides { $specificatio
- ns="org.psem2m.utilities.logging.IActivityLoggerBase" }manipulation {
-  $super="org.psem2m.isolates.base.CActivatorBase" method { $name="get
- Instance" $return="org.psem2m.isolates.base.CBundleBaseActivator" }me
- thod { $name="$init" }method { $name="destroy" }method { $arguments="
- {org.osgi.framework.BundleContext}" $name="start" }method { $argument
- s="{org.osgi.framework.BundleContext}" $name="stop" }interface { $nam
- e="org.psem2m.isolates.base.IActivatorBase" }interface { $name="org.p
- sem2m.utilities.logging.IActivityLoggerBase" }}}component { $immediat
- e="true" $name="isolates-base-platform-dirs-factory" $classname="org.
- psem2m.isolates.base.impl.CPlatformDirsSvc" $architecture="true" call
- back { $transition="validate" $method="validatePojo" }callback { $tra
- nsition="invalidate" $method="invalidatePojo" }provides { }manipulati
- on { $super="org.psem2m.isolates.base.CPojoBase" field { $name="pLogg
- erSvc" $type="org.psem2m.utilities.logging.IActivityLoggerBase" }meth
- od { $name="getCurrentIsolateId" $return="java.lang.String" }method {
-  $name="getCurrentPlatformBase" $return="java.lang.String" }method { 
- $name="$init" }method { $arguments="{java.lang.Appendable}" $name="ad
- dDescriptionInBuffer" $return="java.lang.Appendable" }method { $name=
- "destroy" }method { $name="getIsolateId" $return="java.lang.String" }
- method { $name="getIsolateLogDir" $return="org.psem2m.utilities.files
- .CXFileDir" }method { $arguments="{java.lang.String}" $name="getIsola
- teLogDir" $return="org.psem2m.utilities.files.CXFileDir" }method { $n
- ame="getPlatformBaseDir" $return="org.psem2m.utilities.files.CXFileDi
- r" }method { $name="getPlatformLogDir" $return="org.psem2m.utilities.
- files.CXFileDir" }method { $name="invalidatePojo" }method { $name="va
- lidatePojo" }interface { $name="org.psem2m.isolates.base.IPlatformDir
- sSvc" }interface { $name="org.psem2m.isolates.base.IPojoBase" }}requi
- res { $field="pLoggerSvc" $optional="false" }}instance { $component="
- isolates-base-bundle-logger-factory" $name="isolates-base-bundle-logg
- er" }instance { $component="isolates-base-platform-dirs-factory" $nam
- e="isolates-base-platform-dirs" }
+ ns="org.psem2m.isolates.base.IIsolateLoggerSvc" }manipulation { $supe
+ r="org.psem2m.isolates.base.CActivatorBase" method { $name="getInstan
+ ce" $return="org.psem2m.isolates.base.CBundleBaseActivator" }method {
+  $name="$init" }method { $name="destroy" }method { $arguments="{org.o
+ sgi.framework.BundleContext}" $name="start" }method { $arguments="{or
+ g.osgi.framework.BundleContext}" $name="stop" }interface { $name="org
+ .psem2m.isolates.base.IActivatorBase" }interface { $name="org.psem2m.
+ utilities.logging.IActivityLoggerBase" }}}component { $immediate="tru
+ e" $name="isolates-base-platform-dirs-factory" $classname="org.psem2m
+ .isolates.base.impl.CPlatformDirsSvc" $architecture="true" callback {
+  $transition="validate" $method="validatePojo" }callback { $transitio
+ n="invalidate" $method="invalidatePojo" }provides { }manipulation { $
+ super="org.psem2m.isolates.base.CPojoBase" field { $name="pIsolateLog
+ gerSvc" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }method { 
+ $name="getCurrentIsolateId" $return="java.lang.String" }method { $nam
+ e="getCurrentPlatformBase" $return="java.lang.String" }method { $name
+ ="$init" }method { $arguments="{java.lang.Appendable}" $name="addDesc
+ riptionInBuffer" $return="java.lang.Appendable" }method { $name="dest
+ roy" }method { $name="getIsolateId" $return="java.lang.String" }metho
+ d { $name="getIsolateLogDir" $return="org.psem2m.utilities.files.CXFi
+ leDir" }method { $arguments="{java.lang.String}" $name="getIsolateLog
+ Dir" $return="org.psem2m.utilities.files.CXFileDir" }method { $name="
+ getPlatformBaseDir" $return="org.psem2m.utilities.files.CXFileDir" }m
+ ethod { $name="getPlatformLogDir" $return="org.psem2m.utilities.files
+ .CXFileDir" }method { $name="invalidatePojo" }method { $name="validat
+ ePojo" }interface { $name="org.psem2m.isolates.base.IPlatformDirsSvc"
+  }interface { $name="org.psem2m.isolates.base.IPojoBase" }}requires {
+  $field="pIsolateLoggerSvc" $optional="false" $from="isolates-base-is
+ olatelogger" }}instance { $component="isolates-base-isolatelogger-fac
+ tory" $name="isolates-base-isolatelogger" }instance { $component="iso
+ lates-base-platform-dirs-factory" $name="isolates-base-platform-dirs"
+  }
 

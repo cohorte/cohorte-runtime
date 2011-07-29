@@ -14,40 +14,75 @@ Import-Package: org.osgi.service.log;version=1.3, org.psem2m.isolates.
  m.utilities.logging, org.osgi.service.cm;version=1.2, org.psem2m.util
  ities.files, org.psem2m.utilities
 iPOJO-Components: component { $immediate="true" $name="isolates-logger
- s-logger-factory" $classname="org.psem2m.isolates.loggers.CBundleLogg
- ersActivator" $factory-method="getInstance" $architecture="true" call
- back { $transition="validate" $method="validatePojo" }callback { $tra
- nsition="invalidate" $method="invalidatePojo" }provides { $specificat
- ions="org.psem2m.utilities.logging.IActivityLoggerBase" }manipulation
-  { $super="org.psem2m.isolates.base.CActivatorBase" method { $name="g
- etInstance" $return="org.psem2m.isolates.loggers.CBundleLoggersActiva
- tor" }method { $name="$init" }method { $name="destroy" }method { $arg
- uments="{org.osgi.framework.BundleContext}" $name="start" }method { $
- arguments="{org.osgi.framework.BundleContext}" $name="stop" }interfac
- e { $name="org.psem2m.isolates.base.IActivatorBase" }interface { $nam
- e="org.psem2m.utilities.logging.IActivityLoggerBase" }}}component { $
- immediate="true" $name="isolates-loggers-channels-factory" $classname
- ="org.psem2m.isolates.loggers.impl.CLogChannelsSvc" $architecture="tr
- ue" callback { $transition="validate" $method="validatePojo" }callbac
- k { $transition="invalidate" $method="invalidatePojo" }provides { $sp
- ecifications="org.psem2m.isolates.loggers.ILogChannelsSvc" }manipulat
- ion { $super="org.psem2m.isolates.base.CPojoBase" field { $name="pLog
- gers" $type="java.util.TreeMap" }field { $name="pPlatformDirsSvc" $ty
- pe="org.psem2m.isolates.base.IPlatformDirsSvc" }field { $name="pLogge
- rSvc" $type="org.psem2m.utilities.logging.IActivityLoggerBase" }metho
- d { $name="$init" }method { $name="destroy" }method { $name="getChann
- els" $return="java.util.List" }method { $name="getChannelsIds" $retur
- n="java.util.List" }method { $arguments="{java.lang.String}" $name="g
- etLogChannel" $return="org.psem2m.isolates.loggers.ILogChannelSvc" }m
- ethod { $arguments="{java.lang.String,org.psem2m.utilities.files.CXFi
- leDir}" $name="instanciateLogger" $return="org.psem2m.isolates.logger
+ s-isolatelogger-factory" $classname="org.psem2m.isolates.loggers.CBun
+ dleLoggersActivator" $factory-method="getInstance" $architecture="tru
+ e" callback { $transition="validate" $method="validatePojo" }callback
+  { $transition="invalidate" $method="invalidatePojo" }provides { $spe
+ cifications="org.psem2m.isolates.base.IIsolateLoggerSvc" }manipulatio
+ n { $super="org.psem2m.isolates.base.CActivatorBase" method { $name="
+ getInstance" $return="org.psem2m.isolates.loggers.CBundleLoggersActiv
+ ator" }method { $name="$init" }method { $name="destroy" }method { $ar
+ guments="{org.osgi.framework.BundleContext}" $name="start" }method { 
+ $arguments="{org.osgi.framework.BundleContext}" $name="stop" }interfa
+ ce { $name="org.psem2m.isolates.base.IActivatorBase" }interface { $na
+ me="org.psem2m.isolates.base.IIsolateLoggerSvc" }}}component { $immed
+ iate="true" $name="isolates-loggers-channels-factory" $classname="org
+ .psem2m.isolates.loggers.impl.CLogChannelsSvc" $architecture="true" c
+ allback { $transition="validate" $method="validatePojo" }callback { $
+ transition="invalidate" $method="invalidatePojo" }provides { $specifi
+ cations="org.psem2m.isolates.loggers.ILogChannelsSvc" }manipulation {
+  $super="org.psem2m.isolates.base.CPojoBase" field { $name="pPlatform
+ DirsSvc" $type="org.psem2m.isolates.base.IPlatformDirsSvc" }field { $
+ name="pLoggers" $type="java.util.TreeMap" }field { $name="pIsolateLog
+ gerSvc" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }method { 
+ $name="$init" }method { $name="destroy" }method { $name="getChannels"
+  $return="java.util.List" }method { $name="getChannelsIds" $return="j
+ ava.util.List" }method { $arguments="{java.lang.String}" $name="getLo
+ gChannel" $return="org.psem2m.isolates.loggers.ILogChannelSvc" }metho
+ d { $arguments="{java.lang.String,org.psem2m.utilities.files.CXFileDi
+ r}" $name="instanciateLogChannel" $return="org.psem2m.isolates.logger
  s.ILogChannelSvc" }method { $name="invalidatePojo" }method { $argumen
- ts="{java.lang.String}" $name="newLogger" $return="org.psem2m.isolate
- s.loggers.ILogChannelSvc" }method { $name="validatePojo" }interface {
-  $name="org.psem2m.isolates.loggers.ILogChannelsSvc" }}requires { $fi
- eld="pPlatformDirsSvc" $optional="false" }requires { $field="pLoggerS
- vc" $optional="false" $from="isolates-loggers-logger" }}instance { $c
- omponent="isolates-loggers-logger-factory" $name="isolates-loggers-lo
- gger" }instance { $component="isolates-loggers-channels-factory" $nam
- e="isolates-loggers-channels" }
+ ts="{java.lang.String}" $name="newLogChannel" $return="org.psem2m.iso
+ lates.loggers.ILogChannelSvc" }method { $name="validatePojo" }interfa
+ ce { $name="org.psem2m.isolates.loggers.ILogChannelsSvc" }}requires {
+  $field="pPlatformDirsSvc" $optional="false" }requires { $field="pIso
+ lateLoggerSvc" $optional="false" $from="isolates-loggers-isolatelogge
+ r" }}component { $immediate="true" $name="isolates-loggers-channel-fa
+ ctory" $classname="org.psem2m.isolates.loggers.impl.CLogChannelSvc" $
+ architecture="true" callback { $transition="validate" $method="valida
+ tePojo" }callback { $transition="invalidate" $method="invalidatePojo"
+  }provides { $specifications="org.psem2m.isolates.loggers.ILogChannel
+ Svc" }properties { property { $field="pChannelName" $mandatory="false
+ " }}manipulation { $super="org.psem2m.isolates.base.CPojoBase" field 
+ { $name="pLogger" $type="org.psem2m.isolates.loggers.ILogChannelSvc" 
+ }field { $name="pChannelName" $type="java.lang.String" }field { $name
+ ="pIsolateLoggerSvc" $type="org.psem2m.isolates.base.IIsolateLoggerSv
+ c" }field { $name="pLogChannelsSvc" $type="org.psem2m.isolates.logger
+ s.ILogChannelsSvc" }method { $name="$init" }method { $name="close" }m
+ ethod { $name="destroy" }method { $name="getRequester" $return="org.p
+ sem2m.utilities.logging.IActivityRequester" }method { $name="hasLogge
+ r" $return="boolean" }method { $name="invalidatePojo" }method { $name
+ ="isLogDebugOn" $return="boolean" }method { $arguments="{java.util.lo
+ gging.Level}" $name="isLoggable" $return="boolean" }method { $name="i
+ sLogInfoOn" $return="boolean" }method { $name="isLogSevereOn" $return
+ ="boolean" }method { $name="isLogWarningOn" $return="boolean" }method
+  { $arguments="{java.util.logging.Level,java.lang.Object,java.lang.Ch
+ arSequence,java.lang.Object[]}" $name="log" }method { $arguments="{ja
+ va.util.logging.LogRecord}" $name="log" }method { $arguments="{java.l
+ ang.Object,java.lang.CharSequence,java.lang.Object[]}" $name="logDebu
+ g" }method { $arguments="{java.lang.Object,java.lang.CharSequence,jav
+ a.lang.Object[]}" $name="logInfo" }method { $arguments="{java.lang.Ob
+ ject,java.lang.CharSequence,java.lang.Object[]}" $name="logSevere" }m
+ ethod { $arguments="{java.lang.Object,java.lang.CharSequence,java.lan
+ g.Object[]}" $name="logWarn" }method { $name="popLogLineBuffer" $retu
+ rn="org.psem2m.utilities.logging.CLogLineBuffer" }method { $arguments
+ ="{org.psem2m.utilities.logging.CLogLineBuffer}" $name="pushLogLineBu
+ ffer" }method { $name="validatePojo" }interface { $name="org.psem2m.i
+ solates.loggers.ILogChannelSvc" }}requires { $field="pIsolateLoggerSv
+ c" $optional="false" $from="isolates-loggers-isolatelogger" }requires
+  { $field="pLogChannelsSvc" $optional="false" $from="isolates-loggers
+ -channels" }}instance { $component="isolates-loggers-isolatelogger-fa
+ ctory" $name="isolates-loggers-isolatelogger" }instance { $component=
+ "isolates-loggers-channels-factory" $name="isolates-loggers-channels"
+  }
 

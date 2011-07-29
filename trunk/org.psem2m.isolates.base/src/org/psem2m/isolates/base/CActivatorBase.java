@@ -14,7 +14,6 @@ import org.psem2m.utilities.CXJavaRunContext;
 import org.psem2m.utilities.CXStringUtils;
 import org.psem2m.utilities.logging.CActivityFormaterBasic;
 import org.psem2m.utilities.logging.IActivityFormater;
-import org.psem2m.utilities.logging.IActivityLoggerBase;
 
 /**
  * 
@@ -24,7 +23,7 @@ import org.psem2m.utilities.logging.IActivityLoggerBase;
  * 
  */
 public abstract class CActivatorBase extends CPojoBase implements
-		IActivatorBase, IActivityLoggerBase, BundleActivator {
+		IActivatorBase, IIsolateLoggerSvc, BundleActivator {
 	/**
 	 * @author isandlatech (www.isandlatech.com) - ogattaz
 	 * 

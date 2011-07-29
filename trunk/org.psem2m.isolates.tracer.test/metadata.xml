@@ -10,10 +10,10 @@
 	-->
 	<component
 		classname="org.psem2m.isolates.tracer.test.CBundleTracerTestActivator"
-		architecture="true" immediate="true" name="isolates-tracertest-bundle-logger-factory"
+		architecture="true" immediate="true" name="isolates-tracertest-isolatelogger-factory"
 		factory-method="getInstance" >
 
-		<provides specifications="org.psem2m.utilities.logging.IActivityLoggerBase" />
+		<provides specifications="org.psem2m.isolates.base.IIsolateLoggerSvc" />
 
 		<callback transition="validate" method="validatePojo" />
 		<callback transition="invalidate" method="invalidatePojo" />
@@ -30,8 +30,8 @@
 		<requires field="pTracerSvc" optional="false"
 			from="isolates-tracer-tracer" />
 
-		<requires field="pLoggerSvc" optional="false"
-			from="isolates-tracertest-bundle-logger"/>
+		<requires field="pIsolateLoggerSvc" optional="false"
+			from="isolates-tracertest-isolatelogger"/>
 
 		<callback transition="validate" method="validatePojo" />
 		<callback transition="invalidate" method="invalidatePojo" />
@@ -47,16 +47,16 @@
 		<requires field="pTracerSvc" optional="false"
 			from="isolates-tracer-tracer" />
 
-		<requires field="pLoggerSvc" optional="false"
-			from="isolates-tracertest-bundle-logger"/>
+		<requires field="pIsolateLoggerSvc" optional="false"
+			from="isolates-tracertest-isolatelogger"/>
 
 		<callback transition="validate" method="validatePojo" />
 		<callback transition="invalidate" method="invalidatePojo" />
 	</component>
 
 
-	<instance component="isolates-tracertest-bundle-logger-factory"
-		name="isolates-tracertest-bundle-logger" />
+	<instance component="isolates-tracertest-isolatelogger-factory"
+		name="isolates-tracertest-isolatelogger" />
 
 	<instance component="isolates-tracertest-command-tracablechannels-factory"
 		name="isolates-tracertest-command-tracablechannels" />

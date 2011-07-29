@@ -15,35 +15,35 @@ Import-Package: org.osgi.service.log;version=1.3, org.psem2m.isolates.
  work;version=1.3.0, org.psem2m.utilities.logging, org.osgi.service.cm
  ;version=1.2, org.psem2m.utilities
 iPOJO-Components: component { $immediate="true" $name="isolates-tracer
- -bundle-logger-factory" $classname="org.psem2m.isolates.tracer.CBundl
+ -isolatelogger-factory" $classname="org.psem2m.isolates.tracer.CBundl
  eTracerActivator" $factory-method="getInstance" $architecture="true" 
  callback { $transition="validate" $method="validatePojo" }callback { 
  $transition="invalidate" $method="invalidatePojo" }provides { $specif
- ications="org.psem2m.utilities.logging.IActivityLoggerBase" }manipula
- tion { $super="org.psem2m.isolates.base.CActivatorBase" method { $nam
- e="getInstance" $return="org.psem2m.isolates.tracer.CBundleTracerActi
- vator" }method { $name="$init" }method { $name="destroy" }method { $a
- rguments="{org.osgi.framework.BundleContext}" $name="start" }method {
-  $arguments="{org.osgi.framework.BundleContext}" $name="stop" }interf
- ace { $name="org.psem2m.isolates.base.IActivatorBase" }interface { $n
- ame="org.psem2m.utilities.logging.IActivityLoggerBase" }}}component {
-  $immediate="true" $name="isolates-tracer-tracer-factory" $classname=
- "org.psem2m.isolates.tracer.impl.CTracerSvc" $architecture="true" cal
- lback { $transition="validate" $method="validatePojo" }callback { $tr
- ansition="invalidate" $method="invalidatePojo" }provides { $specifica
- tions="org.psem2m.isolates.tracer.ITracerSvc" }manipulation { $super=
- "org.psem2m.isolates.base.CPojoBase" field { $name="pLoggerSvc" $type
- ="org.psem2m.utilities.logging.IActivityLoggerBase" }field { $name="p
- LogChannelsSvc" $type="org.psem2m.isolates.loggers.ILogChannelsSvc" }
- method { $name="$init" }method { $name="destroy" }method { $name="get
- PojoId" $return="java.lang.String" }method { $name="getTracableChanne
- lsIds" $return="java.util.List" }method { $name="invalidatePojo" }met
- hod { $arguments="{java.util.List}" $name="traceChannels" $return="bo
- olean" }method { $name="validatePojo" }interface { $name="org.psem2m.
- isolates.tracer.ITracerSvc" }}requires { $field="pLogChannelsSvc" $op
- tional="false" $from="isolates-loggers-channels" }requires { $field="
- pLoggerSvc" $optional="false" $from="isolates-tracer-bundle-logger" }
- }instance { $component="isolates-tracer-bundle-logger-factory" $name=
- "isolates-tracer-bundle-logger" }instance { $component="isolates-trac
- er-tracer-factory" $name="isolates-tracer-tracer" }
+ ications="org.psem2m.isolates.base.IIsolateLoggerSvc" }manipulation {
+  $super="org.psem2m.isolates.base.CActivatorBase" method { $name="get
+ Instance" $return="org.psem2m.isolates.tracer.CBundleTracerActivator"
+  }method { $name="$init" }method { $name="destroy" }method { $argumen
+ ts="{org.osgi.framework.BundleContext}" $name="start" }method { $argu
+ ments="{org.osgi.framework.BundleContext}" $name="stop" }interface { 
+ $name="org.psem2m.isolates.base.IActivatorBase" }interface { $name="o
+ rg.psem2m.isolates.base.IIsolateLoggerSvc" }}}component { $immediate=
+ "true" $name="isolates-tracer-tracer-factory" $classname="org.psem2m.
+ isolates.tracer.impl.CTracerSvc" $architecture="true" callback { $tra
+ nsition="validate" $method="validatePojo" }callback { $transition="in
+ validate" $method="invalidatePojo" }provides { $specifications="org.p
+ sem2m.isolates.tracer.ITracerSvc" }manipulation { $super="org.psem2m.
+ isolates.base.CPojoBase" field { $name="pIsolateLoggerSvc" $type="org
+ .psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pLogChannels
+ Svc" $type="org.psem2m.isolates.loggers.ILogChannelsSvc" }method { $n
+ ame="$init" }method { $name="destroy" }method { $name="getPojoId" $re
+ turn="java.lang.String" }method { $name="getTracableChannelsIds" $ret
+ urn="java.util.List" }method { $name="invalidatePojo" }method { $argu
+ ments="{java.util.List}" $name="traceChannels" $return="boolean" }met
+ hod { $name="validatePojo" }interface { $name="org.psem2m.isolates.tr
+ acer.ITracerSvc" }}requires { $field="pLogChannelsSvc" $optional="fal
+ se" $from="isolates-loggers-channels" }requires { $field="pIsolateLog
+ gerSvc" $optional="false" $from="isolates-tracer-isolatelogger" }}ins
+ tance { $component="isolates-tracer-isolatelogger-factory" $name="iso
+ lates-tracer-isolatelogger" }instance { $component="isolates-tracer-t
+ racer-factory" $name="isolates-tracer-tracer" }
 

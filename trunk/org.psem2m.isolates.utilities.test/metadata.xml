@@ -10,10 +10,10 @@
 	-->
 	<component
 		classname="org.psem2m.isolates.utilities.test.CBundleUtilitiesTestActivator"
-		architecture="true" immediate="true" name="isolates-utilitiestest-bundle-logger-factory"
+		architecture="true" immediate="true" name="isolates-utilitiestest-isolatelogger-factory"
 		factory-method="getInstance" >
 
-		<provides specifications="org.psem2m.utilities.logging.IActivityLoggerBase" />
+		<provides specifications="org.psem2m.isolates.base.IIsolateLoggerSvc" />
 
 		<callback transition="validate" method="validatePojo" />
 		<callback transition="invalidate" method="invalidatePojo" />
@@ -22,8 +22,8 @@
 
 
 
-	<instance component="isolates-utilitiestest-bundle-logger-factory"
-		name="isolates-utilitiestest-bundle-logger" />
+	<instance component="isolates-utilitiestest-isolatelogger-factory"
+		name="isolates-utilitiestest-isolatelogger" />
 
 
 </ipojo>

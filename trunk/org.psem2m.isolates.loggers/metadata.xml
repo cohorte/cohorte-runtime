@@ -3,23 +3,21 @@
 	xsi:schemaLocation="org.apache.felix.ipojo http://felix.apache.org/ipojo/schemas/CURRENT/core.xsd"
 	xmlns="org.apache.felix.ipojo" xmlns:jmx="org.apache.felix.ipojo.handlers.jmx">
 
-	<!-- The logger, specific to the bundle
-	ATTENTION : like the activator is already instanciate (cf. OSGI actovator),
-	we define the attribute "factory-method" to indicate to iPojo how it retreive
-	the existing instance to "define" the component with it
-	-->
-	<component
-		classname="org.psem2m.isolates.loggers.CBundleLoggersActivator"
-		architecture="true" immediate="true" name="isolates-loggers-logger-factory"
+	<!-- The logger, specific to the bundle ATTENTION : like the activator is
+		already instanciate (cf. OSGI actovator), we define the attribute "factory-method"
+		to indicate to iPojo how it retreive the existing instance to "define" the
+		component with it -->
+	<component classname="org.psem2m.isolates.loggers.CBundleLoggersActivator"
+		architecture="true" immediate="true" name="isolates-loggers-isolatelogger-factory"
 		factory-method="getInstance">
 
-		<provides specifications="org.psem2m.utilities.logging.IActivityLoggerBase" />
+		<provides specifications="org.psem2m.isolates.base.IIsolateLoggerSvc" />
 
-		<callback transition="validate" method="validatePojo"/>
-		<callback transition="invalidate" method="invalidatePojo"/>
+		<callback transition="validate" method="validatePojo" />
+		<callback transition="invalidate" method="invalidatePojo" />
 	</component>
 
-	<!-- The logging Channels service-->
+	<!-- The logging Channels service factory -->
 	<component classname="org.psem2m.isolates.loggers.impl.CLogChannelsSvc"
 		architecture="true" immediate="true" name="isolates-loggers-channels-factory">
 
@@ -27,18 +25,37 @@
 
 		<requires field="pPlatformDirsSvc" optional="false" />
 
-		<requires field="pLoggerSvc" optional="false"
-			from="isolates-loggers-logger" />
+		<requires field="pIsolateLoggerSvc" optional="false"
+			from="isolates-loggers-isolatelogger" />
 
-		<callback transition="validate" method="validatePojo"/>
-		<callback transition="invalidate" method="invalidatePojo"/>
+		<callback transition="validate" method="validatePojo" />
+		<callback transition="invalidate" method="invalidatePojo" />
 	</component>
 
 
-	<instance component="isolates-loggers-logger-factory"
-		name="isolates-loggers-logger" />
+	<!-- The logging Channel service factory -->
+	<component classname="org.psem2m.isolates.loggers.impl.CLogChannelSvc"
+		architecture="true" immediate="true" name="isolates-loggers-channel-factory" >
 
-	<instance component="isolates-loggers-channels-factory"
-		name="isolates-loggers-channels"   />
+		<provides specifications="org.psem2m.isolates.loggers.ILogChannelSvc" />
+
+		<properties>
+			<property field="pChannelName" />
+		</properties>
+
+		<requires field="pIsolateLoggerSvc" optional="false"
+			from="isolates-loggers-isolatelogger" />
+
+		<requires field="pLogChannelsSvc" optional="false"
+			from="isolates-loggers-channels" />
+
+		<callback transition="validate" method="validatePojo" />
+		<callback transition="invalidate" method="invalidatePojo" />
+	</component>
+
+
+	<instance component="isolates-loggers-isolatelogger-factory" name="isolates-loggers-isolatelogger" />
+
+	<instance component="isolates-loggers-channels-factory" name="isolates-loggers-channels" />
 
 </ipojo>

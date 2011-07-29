@@ -14,10 +14,10 @@ import java.util.List;
 
 import org.apache.felix.ipojo.Pojo;
 import org.psem2m.isolates.base.CPojoBase;
+import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.loggers.ILogChannelsSvc;
 import org.psem2m.isolates.tracer.ITracerSvc;
 import org.psem2m.utilities.CXStringUtils;
-import org.psem2m.utilities.logging.IActivityLoggerBase;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
@@ -28,17 +28,17 @@ public class CTracerSvc extends CPojoBase implements ITracerSvc {
 	/**
 	 * Service reference managed by iPojo (see metadata.xml)
 	 * 
-	 * This service is used to control the opened logging channels : set level,
-	 * redirect to the tracer, ...
+	 * This service is the logger of the current bundle
 	 **/
-	private ILogChannelsSvc pLogChannelsSvc;
+	private IIsolateLoggerSvc pIsolateLoggerSvc;
 
 	/**
 	 * Service reference managed by iPojo (see metadata.xml)
 	 * 
-	 * This service is the logger of the current bundle
+	 * This service is used to control the opened logging channels : set level,
+	 * redirect to the tracer, ...
 	 **/
-	private IActivityLoggerBase pLoggerSvc;
+	private ILogChannelsSvc pLogChannelsSvc;
 
 	/**
 	 * Explicite default constructor
@@ -85,7 +85,7 @@ public class CTracerSvc extends CPojoBase implements ITracerSvc {
 	@Override
 	public void invalidatePojo() {
 		// logs in the bundle output
-		pLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
+		pIsolateLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
 				toDescription());
 	}
 
@@ -111,11 +111,12 @@ public class CTracerSvc extends CPojoBase implements ITracerSvc {
 	@Override
 	public void validatePojo() {
 		// logs in the bundle output
-		pLoggerSvc.logInfo(this, "validatePojo", "VALIDATE", toDescription());
+		pIsolateLoggerSvc.logInfo(this, "validatePojo", "VALIDATE",
+				toDescription());
 
 		List<String> wIds = pLogChannelsSvc.getChannelsIds();
 
-		pLoggerSvc.logInfo(this, null, "getChannelsIds=[%s]",
+		pIsolateLoggerSvc.logInfo(this, null, "getChannelsIds=[%s]",
 				CXStringUtils.stringListToString(wIds));
 	}
 }

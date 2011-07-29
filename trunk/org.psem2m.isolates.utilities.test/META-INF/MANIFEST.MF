@@ -18,19 +18,18 @@ Import-Package: org.psem2m.utilities.teststools, org.psem2m.utilities.
 Test-Suite: org.psem2m.isolates.utilities.test.logging.CLoggingJunitTe
  st,org.psem2m.isolates.utilities.test.basic.CBasicJunitTest
 iPOJO-Components: component { $immediate="true" $name="isolates-utilit
- iestest-bundle-logger-factory" $classname="org.psem2m.isolates.utilit
+ iestest-isolatelogger-factory" $classname="org.psem2m.isolates.utilit
  ies.test.CBundleUtilitiesTestActivator" $factory-method="getInstance"
   $architecture="true" callback { $transition="validate" $method="vali
  datePojo" }callback { $transition="invalidate" $method="invalidatePoj
- o" }provides { $specifications="org.psem2m.utilities.logging.IActivit
- yLoggerBase" }manipulation { $super="org.psem2m.isolates.base.CActiva
- torBase" method { $name="getInstance" $return="org.psem2m.isolates.ut
- ilities.test.CBundleUtilitiesTestActivator" }method { $name="$init" }
- method { $name="destroy" }method { $arguments="{org.osgi.framework.Bu
- ndleContext}" $name="start" }method { $arguments="{org.osgi.framework
- .BundleContext}" $name="stop" }interface { $name="org.psem2m.isolates
- .base.IActivatorBase" }interface { $name="org.psem2m.utilities.loggin
- g.IActivityLoggerBase" }}}instance { $component="isolates-utilitieste
- st-bundle-logger-factory" $name="isolates-utilitiestest-bundle-logger
- " }
+ o" }provides { $specifications="org.psem2m.isolates.base.IIsolateLogg
+ erSvc" }manipulation { $super="org.psem2m.isolates.base.CActivatorBas
+ e" method { $name="getInstance" $return="org.psem2m.isolates.utilitie
+ s.test.CBundleUtilitiesTestActivator" }method { $name="$init" }method
+  { $name="destroy" }method { $arguments="{org.osgi.framework.BundleCo
+ ntext}" $name="start" }method { $arguments="{org.osgi.framework.Bundl
+ eContext}" $name="stop" }interface { $name="org.psem2m.isolates.base.
+ IActivatorBase" }interface { $name="org.psem2m.utilities.logging.IAct
+ ivityLoggerBase" }}}instance { $component="isolates-utilitiestest-iso
+ latelogger-factory" $name="isolates-utilitiestest-isolatelogger" }
 

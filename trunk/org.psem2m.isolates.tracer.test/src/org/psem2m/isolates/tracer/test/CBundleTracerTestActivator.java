@@ -13,14 +13,14 @@ package org.psem2m.isolates.tracer.test;
 import org.osgi.framework.BundleContext;
 import org.psem2m.isolates.base.CActivatorBase;
 import org.psem2m.isolates.base.IActivatorBase;
-import org.psem2m.utilities.logging.IActivityLoggerBase;
+import org.psem2m.isolates.base.IIsolateLoggerSvc;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
 public class CBundleTracerTestActivator extends CActivatorBase implements
-		IActivatorBase, IActivityLoggerBase {
+		IActivatorBase, IIsolateLoggerSvc {
 
 	/** first instance **/
 	private static CBundleTracerTestActivator sSingleton = null;
