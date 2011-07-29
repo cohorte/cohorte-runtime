@@ -224,13 +224,21 @@ public class Main {
 
 	    String[] property = normalizeArgument(argument);
 
-	    if (property[0].startsWith(IBootstrapConstants.PROPERTY_PREFIX)) {
+	    if (property[0]
+		    .startsWith(IBootstrapConstants.BOOTSTRAP_PROPERTY_PREFIX)) {
 		// Put it directly in the bootstrap properties
 		pBootstrapConfiguration.put(property[0], property[1]);
 
 	    } else {
 		// Put it directly in the other properties
 		pOtherConfiguration.put(property[0], property[1]);
+
+		// Set immediately system properties (to allow the
+		// PSEM2M_HOME/BASE resolution)
+		if (property[0]
+			.startsWith(IBootstrapConstants.PLATFORM_PROPERTY_PREFIX)) {
+		    System.setProperty(property[0], property[1]);
+		}
 	    }
 	}
     }
@@ -298,7 +306,8 @@ public class Main {
 	for (Entry<Object, Object> property : System.getProperties().entrySet()) {
 
 	    final String strKey = String.valueOf(property.getKey());
-	    if (strKey.startsWith(IBootstrapConstants.PROPERTY_PREFIX)) {
+	    if (strKey
+		    .startsWith(IBootstrapConstants.BOOTSTRAP_PROPERTY_PREFIX)) {
 
 		final Object value = property.getValue();
 		if (value != null) {

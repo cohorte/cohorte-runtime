@@ -12,8 +12,12 @@ package org.psem2m.utilities.bootstrap;
  */
 public interface IBootstrapConstants {
 
+    /** Bootstrap properties prefix */
+    String BOOTSTRAP_PROPERTY_PREFIX = IBootstrapConstants.PLATFORM_PROPERTY_PREFIX
+	    + ".bootstrap.";
+
     /** Framework configuration key */
-    String CONFIG_FRAMEWORK = IBootstrapConstants.PROPERTY_PREFIX
+    String CONFIG_FRAMEWORK = IBootstrapConstants.BOOTSTRAP_PROPERTY_PREFIX
 	    + "osgi.framework";
 
     /** Help command */
@@ -22,8 +26,8 @@ public interface IBootstrapConstants {
     /** Output human readable lines, not serialized ones */
     String HUMAN_OUTPUT_FLAG = "human";
 
-    /** Bootstrap properties prefix */
-    String PROPERTY_PREFIX = "org.psem2m.bootstrap.";
+    /** Platform property prefix */
+    String PLATFORM_PROPERTY_PREFIX = "org.psem2m";
 
     /** Read lines from the given file */
     String READ_FROM_FILE = "file";

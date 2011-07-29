@@ -35,45 +35,8 @@ public class ConfigurationReader {
     /** File include command */
     public static final String INCLUDE_COMMAND = "include:";
 
-    /**
-     * Converts the given strings array into an URL array. Uses the file
-     * protocol for malformed URLs.
-     * 
-     * @param aStringArray
-     *            Strings to be converted
-     * @return URL array corresponding to the strings
-     */
-    public static URL[] stringsToURLs(final String[] aStringArray) {
-
-	List<URL> result = new ArrayList<URL>(aStringArray.length);
-
-	for (String value : aStringArray) {
-	    URL valueUrl = null;
-	    try {
-		// Try a direct conversion
-		valueUrl = new URL(value);
-
-	    } catch (MalformedURLException e) {
-		// Try using the file protocol
-		File file = new File(value);
-
-		try {
-		    // Accept the URL in any case at this time
-		    // File existence will be tested later
-		    valueUrl = file.toURI().toURL();
-
-		} catch (MalformedURLException ex) {
-		    // Abandon this string
-		}
-	    }
-
-	    if (valueUrl != null) {
-		result.add(valueUrl);
-	    }
-	}
-
-	return result.toArray(new URL[0]);
-    }
+    /** Bundle finder */
+    private FileFinder pFileFinder;
 
     /** Configuration input stream */
     private InputStream pInputStream;
@@ -94,6 +57,7 @@ public class ConfigurationReader {
 
 	pInputStream = aInputStream;
 	pMessageSender = aMessageSender;
+	pFileFinder = new FileFinder(pMessageSender);
     }
 
     /**
@@ -110,7 +74,12 @@ public class ConfigurationReader {
 	    String fileName = aIncludeLine.substring(INCLUDE_COMMAND.length())
 		    .trim();
 
-	    return new FileInputStream(fileName);
+	    File file = pFileFinder.find(fileName);
+	    if (file != null) {
+		return new FileInputStream(file);
+	    }
+
+	    return null;
 
 	} catch (FileNotFoundException e) {
 	    return null;
@@ -239,5 +208,47 @@ public class ConfigurationReader {
      */
     public URL[] readURLLines() {
 	return stringsToURLs(readStringLines());
+    }
+
+    /**
+     * Converts the given strings array into an URL array. Uses the file
+     * protocol for malformed URLs.
+     * 
+     * @param aStringArray
+     *            Strings to be converted
+     * @return URL array corresponding to the strings
+     */
+    public URL[] stringsToURLs(final String[] aStringArray) {
+
+	List<URL> result = new ArrayList<URL>(aStringArray.length);
+
+	for (String value : aStringArray) {
+	    URL valueUrl = null;
+	    try {
+		// Try a direct conversion
+		valueUrl = new URL(value);
+
+	    } catch (MalformedURLException e) {
+		// Try using the file protocol
+		File file = pFileFinder.find(value);
+
+		if (file != null) {
+		    try {
+			// Accept the URL in any case at this time
+			// File existence will be tested later
+			valueUrl = file.toURI().toURL();
+
+		    } catch (MalformedURLException ex) {
+			// Abandon this string
+		    }
+		}
+	    }
+
+	    if (valueUrl != null) {
+		result.add(valueUrl);
+	    }
+	}
+
+	return result.toArray(new URL[0]);
     }
 }
