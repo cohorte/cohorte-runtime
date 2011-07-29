@@ -26,6 +26,7 @@ import org.psem2m.isolates.config.IParamId;
 import org.psem2m.isolates.config.ISvcConfig;
 import org.psem2m.isolates.master.manager.IMasterManagerConfig;
 import org.psem2m.utilities.CXTimedoutCall;
+import org.psem2m.utilities.files.CXFileDir;
 import org.psem2m.utilities.logging.IActivityLoggerBase;
 
 /**
@@ -263,7 +264,13 @@ public class CMasterManager extends CPojoBase {
 
 	// Prepare the process builder
 	ProcessBuilder builder = new ProcessBuilder(forkerCommand);
-	builder.directory(pPlatformDirsSvc.getForkerWorkingDir());
+
+	CXFileDir workingDir = pPlatformDirsSvc.getForkerWorkingDir();
+	if (!workingDir.exists()) {
+	    workingDir.mkdirs();
+	}
+
+	builder.directory(workingDir);
 
 	// Run !
 	try {
@@ -315,8 +322,10 @@ public class CMasterManager extends CPojoBase {
 	    startForker();
 
 	} catch (Exception e) {
-	    throw new BundleException(
-		    "Unable to read the isolates configuration", e);
+	    pLoggerSvc.logSevere(this, "validatePojo",
+		    "Error starting Master.manager", e);
+
+	    throw new BundleException("Error starting Master.manager", e);
 	}
     }
 }

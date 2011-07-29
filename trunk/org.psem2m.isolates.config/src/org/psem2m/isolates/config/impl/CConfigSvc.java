@@ -268,14 +268,14 @@ public class CConfigSvc extends CPojoBase implements ISvcConfig {
 	pLoggerSvc.logInfo(this, "validatePojo", "VALIDATE", toDescription());
 
 	// Find configuration files
-	if (!findConfigurationFiles()) {
-	    pLoggerSvc.logSevere(this, "validatePojo",
-		    "No configuration files have been found.");
-
-	    throw new BundleException("No configuration files have been found.");
-	}
-
-	// Parse'em all
-	readConfiguration();
+	// if (!findConfigurationFiles()) {
+	// pLoggerSvc.logSevere(this, "validatePojo",
+	// "No configuration files have been found.");
+	//
+	// throw new BundleException("No configuration files have been found.");
+	// }
+	//
+	// // Parse'em all
+	// readConfiguration();
     }
 }
