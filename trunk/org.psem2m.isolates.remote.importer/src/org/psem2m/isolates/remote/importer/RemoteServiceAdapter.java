@@ -19,6 +19,7 @@ import org.osgi.framework.ServiceRegistration;
 import org.ow2.chameleon.rose.RemoteConstants;
 import org.ow2.chameleon.rose.client.RemoteProxyFactory;
 import org.psem2m.isolates.base.CPojoBase;
+import org.psem2m.isolates.base.IPlatformProperties;
 import org.psem2m.isolates.commons.remote.IRemoteServiceClientHandler;
 import org.psem2m.isolates.commons.remote.IRemoteServiceEventListener;
 import org.psem2m.isolates.commons.remote.RemoteServiceEvent;
@@ -55,8 +56,9 @@ public class RemoteServiceAdapter extends CPojoBase implements
 	super();
 	pBundleContext = aBundleContext;
 
-	// TODO find it with configuration
-	pIsolateId = System.getProperty("isolate.id");
+	// Retrieve the isolate ID for properties
+	pIsolateId = System
+		.getProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID);
     }
 
     /*
