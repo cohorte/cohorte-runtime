@@ -1,0 +1,49 @@
+Manifest-Version: 1.0
+Bundle-Activator: org.psem2m.isolates.tool.restserver.CBundleRestServe
+ rActivator
+Bundle-ManifestVersion: 2
+Bundle-Name: Restserver
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-SymbolicName: org.psem2m.isolates.tool.restserver
+Bundle-Version: 1.0.0.qualifier
+Created-By: iPOJO  1.8.0
+Import-Package: org.osgi.service.log;version=1.3, org.psem2m.isolates.
+ base, org.psem2m.isolates.loggers, org.apache.felix.ipojo.architectur
+ e;version=1.8.0, org.apache.felix.ipojo;version=1.8.0, org.osgi.frame
+ work;version=1.3.0, org.psem2m.utilities.logging, org.osgi.service.cm
+ ;version=1.2, org.psem2m.utilities
+iPOJO-Components: component { $immediate="true" $name="isolates-restse
+ rver-isolatelogger-factory" $classname="org.psem2m.isolates.tool.rest
+ server.CBundleRestServerActivator" $factory-method="getInstance" $arc
+ hitecture="true" callback { $transition="validate" $method="validateP
+ ojo" }callback { $transition="invalidate" $method="invalidatePojo" }p
+ rovides { $specifications="org.psem2m.isolates.base.IIsolateLoggerSvc
+ " }manipulation { $super="org.psem2m.isolates.base.CActivatorBase" me
+ thod { $name="getInstance" $return="org.psem2m.isolates.tool.restserv
+ er.CBundleRestServerActivator" }method { $name="$init" }method { $nam
+ e="destroy" }method { $arguments="{org.osgi.framework.BundleContext}"
+  $name="start" }method { $arguments="{org.osgi.framework.BundleContex
+ t}" $name="stop" }interface { $name="org.psem2m.isolates.base.IActiva
+ torBase" }interface { $name="org.psem2m.isolates.base.IIsolateLoggerS
+ vc" }}}component { $immediate="true" $name="isolates-restserver-rests
+ erver-factory" $classname="org.psem2m.isolates.tool.restserver.impl.C
+ RestServerSvc" $architecture="true" callback { $transition="validate"
+  $method="validatePojo" }callback { $transition="invalidate" $method=
+ "invalidatePojo" }provides { $specifications="org.psem2m.isolates.too
+ l.restserver.IRestServerSvc" }manipulation { $super="org.psem2m.isola
+ tes.base.CPojoBase" field { $name="pRestServerLoggerSvc" $type="org.p
+ sem2m.isolates.loggers.ILogChannelSvc" }field { $name="pIsolateLogger
+ Svc" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }method { $na
+ me="$init" }method { $name="destroy" }method { $name="init" }method {
+  $name="invalidatePojo" }method { $name="validatePojo" }interface { $
+ name="org.psem2m.isolates.tool.restserver.IRestServerSvc" }}requires 
+ { $field="pRestServerLoggerSvc" $optional="false" $from="isolates-res
+ tserver-logger-channel" }requires { $field="pIsolateLoggerSvc" $optio
+ nal="false" $from="isolates-restserver-isolatelogger" }}instance { $c
+ omponent="isolates-loggers-channel-factory" $name="isolates-restserve
+ r-logger-channel" property { $name="pChannelName" $value="bundle-rest
+ server" }}instance { $component="isolates-restserver-isolatelogger-fa
+ ctory" $name="isolates-restserver-isolatelogger" }instance { $compone
+ nt="isolates-restserver-restserver-factory" $name="isolates-restserve
+ r-restserver" }
+

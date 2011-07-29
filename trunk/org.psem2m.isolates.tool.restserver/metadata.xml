@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ipojo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="org.apache.felix.ipojo http://felix.apache.org/ipojo/schemas/CURRENT/core.xsd"
+	xmlns="org.apache.felix.ipojo" xmlns:jmx="org.apache.felix.ipojo.handlers.jmx">
+
+	<!-- The logger, specific to the bundle ATTENTION : like the activator is
+		already instanciate (cf. OSGI actovator), we define the attribute "factory-method"
+		to indicate to iPojo how it retreive the existing instance to "define" the
+		component with it -->
+	<component
+		classname="org.psem2m.isolates.tool.restserver.CBundleRestServerActivator"
+		architecture="true" immediate="true"
+		name="isolates-restserver-isolatelogger-factory" factory-method="getInstance">
+
+		<provides specifications="org.psem2m.isolates.base.IIsolateLoggerSvc" />
+
+		<callback transition="validate" method="validatePojo" />
+		<callback transition="invalidate" method="invalidatePojo" />
+	</component>
+
+
+	<!-- The RestServer service -->
+	<component classname="org.psem2m.isolates.tool.restserver.impl.CRestServerSvc"
+		architecture="true" immediate="true" name="isolates-restserver-restserver-factory">
+
+		<provides specifications="org.psem2m.isolates.tool.restserver.IRestServerSvc" />
+
+		<requires field="pRestServerLoggerSvc" optional="false"
+			from="isolates-restserver-logger-channel" />
+
+
+		<requires field="pIsolateLoggerSvc" optional="false"
+			from="isolates-restserver-isolatelogger" />
+
+
+		<callback transition="validate" method="validatePojo" />
+		<callback transition="invalidate" method="invalidatePojo" />
+	</component>
+
+
+	<instance component="isolates-loggers-channel-factory" name="isolates-restserver-logger-channel">
+		<property name="pChannelName" value="bundle-restserver" />
+	</instance>
+
+
+	<instance component="isolates-restserver-isolatelogger-factory"
+		name="isolates-restserver-isolatelogger" />
+
+
+	<instance component="isolates-restserver-restserver-factory"
+		name="isolates-restserver-restserver" />
+
+
+</ipojo>
