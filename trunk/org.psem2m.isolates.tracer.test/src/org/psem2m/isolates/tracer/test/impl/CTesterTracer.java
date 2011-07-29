@@ -15,6 +15,10 @@ import org.psem2m.isolates.tracer.impl.CTraceLine;
 import org.psem2m.utilities.teststools.CConsoleTester;
 
 /**
+ * This application test the MBeans which send trace lines to the dedicated
+ * plug-in in the VisualVm application
+ * 
+ * 
  * @author ogattaz
  * 
  */
@@ -95,7 +99,7 @@ public class CTesterTracer extends CConsoleTester implements
 	}
 
 	/**
-	 * @return true : the dommand is done!
+	 * @return true : the command is done!
 	 */
 	private boolean doCmdeTrace(final StringTokenizer aST) throws Exception {
 
@@ -159,7 +163,7 @@ public class CTesterTracer extends CConsoleTester implements
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	private int getNexLineIdx() {
 		pLineIdx++;

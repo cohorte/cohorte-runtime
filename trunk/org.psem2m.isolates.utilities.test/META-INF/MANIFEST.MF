@@ -15,8 +15,8 @@ Import-Package: org.psem2m.utilities.teststools, org.psem2m.utilities.
  base, org.apache.felix.ipojo.architecture;version=1.8.0, org.osgi.fra
  mework;version=1.3.0, org.psem2m.utilities.rsrc, org.osgi.service.cm;
  version=1.2, org.psem2m.utilities
-Test-Suite: org.psem2m.isolates.utilities.test.logging.CLoggingJunitTe
- st,org.psem2m.isolates.utilities.test.basic.CBasicJunitTest
+Test-Suite: org.psem2m.isolates.utilities.test.logging.CJUnitLogging, 
+ org.psem2m.isolates.utilities.test.basic.CJUnitBasic
 iPOJO-Components: component { $immediate="true" $name="isolates-utilit
  iestest-isolatelogger-factory" $classname="org.psem2m.isolates.utilit
  ies.test.CBundleUtilitiesTestActivator" $factory-method="getInstance"
