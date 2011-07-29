@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.security.InvalidParameterException;
 
 import org.psem2m.isolates.commons.IIsolateConfiguration;
-import org.psem2m.isolates.commons.IPlatformConfiguration;
 
 /**
  * Description of the Forker service
@@ -35,14 +34,6 @@ public interface IForker {
      * @return The isolate process state
      */
     EProcessState ping(String aIsolateId);
-
-    /**
-     * Updates the known platform configuration
-     * 
-     * @param aPlatformConfiguration
-     *            The platform configuration
-     */
-    void setConfiguration(IPlatformConfiguration aPlatformConfiguration);
 
     /**
      * Starts a process according to the given configuration

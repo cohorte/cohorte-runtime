@@ -101,14 +101,19 @@ public class OsgiBootstrapPure implements ISvcBootstrap {
 	// Flush the cache by default
 	if (!pFrameworkConfiguration.containsKey(OSGI_FRAMEWORK_STORAGE)) {
 
+	    // Find an isolate ID
+	    String isolateId = pFrameworkConfiguration.get("isolate.id");
+	    if (isolateId == null) {
+		System.getProperty("isolate.id", "felix-cache");
+	    }
+
 	    // Prepare the directory
 	    File frameworkCacheDirectory = new File(System.getProperty(
-		    "psem2m.base", "."), "var/work/"
-		    + System.getProperty("isolate.id", "felix-cache"));
+		    "psem2m.base", "."), "var/work/" + isolateId);
 
 	    if (frameworkCacheDirectory.exists()) {
 		// Dump it ...
-		cleanDirectory(frameworkCacheDirectory);
+		removeDirectory(frameworkCacheDirectory);
 
 	    } else {
 		// ... or create it if necessary
@@ -124,26 +129,6 @@ public class OsgiBootstrapPure implements ISvcBootstrap {
 	for (Entry<String, String> property : pFrameworkConfiguration
 		.entrySet()) {
 	    System.setProperty(property.getKey(), property.getValue());
-	}
-    }
-
-    /**
-     * Empties a directory (but doesn't delete it
-     * 
-     * @param aDirectory
-     *            Directory to empty
-     */
-    private void cleanDirectory(final File aDirectory) {
-
-	File[] files = aDirectory.listFiles();
-
-	for (File file : files) {
-	    if (file.isDirectory()) {
-		cleanDirectory(file);
-
-	    } else {
-		file.delete();
-	    }
 	}
     }
 
@@ -239,8 +224,8 @@ public class OsgiBootstrapPure implements ISvcBootstrap {
 
 	    } catch (BundleException e) {
 		pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
-			"getFrameworkFactory", "Error installing bundle '"
-				+ url + "'", e);
+			"installBundles", "Error installing bundle '" + url
+				+ "'", e);
 
 		e.printStackTrace();
 		success = false;
@@ -248,6 +233,26 @@ public class OsgiBootstrapPure implements ISvcBootstrap {
 	}
 
 	return success;
+    }
+
+    /**
+     * Empties a directory and deletes it
+     * 
+     * @param aDirectory
+     *            Directory to delete
+     */
+    protected void removeDirectory(final File aDirectory) {
+
+	File[] files = aDirectory.listFiles();
+
+	for (File file : files) {
+	    if (file.isDirectory()) {
+		removeDirectory(file);
+
+	    }
+
+	    file.delete();
+	}
     }
 
     /*
@@ -276,11 +281,14 @@ public class OsgiBootstrapPure implements ISvcBootstrap {
 	boolean success = true;
 	for (Bundle bundle : pInstalledBundles) {
 	    try {
+		pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME,
+			"startBundles",
+			"Starting : " + bundle.getSymbolicName());
 		bundle.start();
 
 	    } catch (BundleException e) {
 		pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
-			"startFramework",
+			"startBundles",
 			"Error starting bundle : '" + bundle.getSymbolicName()
 				+ "'", e);
 

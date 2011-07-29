@@ -7,48 +7,50 @@ Bundle-SymbolicName: org.psem2m.isolates.monitor
 Bundle-Vendor: isandlaTech
 Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
-Import-Package: org.osgi.service.log;version=1.3, org.psem2m.isolates.
- commons.forker;version=1.0.0, org.psem2m.isolates.base, org.apache.fe
- lix.ipojo.architecture;version=1.8.0, org.apache.felix.ipojo;version=
- 1.8.0, org.psem2m.isolates.commons.impl, org.osgi.framework;version=1
- .3.0, org.psem2m.utilities.logging, org.osgi.service.cm;version=1.2, 
- org.psem2m.utilities.files, org.psem2m.isolates.commons;version=1.0.0
- , org.psem2m.utilities
+Import-Package: org.apache.felix.ipojo;version="1.8.0",
+ org.apache.felix.ipojo.architecture;version="1.8.0",
+ org.osgi.framework;version="1.3.0",
+ org.osgi.service.cm;version="1.2",
+ org.osgi.service.log;version="1.3",
+ org.psem2m.isolates.base;version="1.0.0",
+ org.psem2m.isolates.commons;version="1.0.0",
+ org.psem2m.isolates.commons.forker;version="1.0.0",
+ org.psem2m.utilities,
+ org.psem2m.utilities.logging
 iPOJO-Components: component { $immediate="true" $name="isolates-monito
- r-logger" $classname="org.psem2m.isolates.monitor.impl.CBundleMonitor
- LoggerSvc" $architecture="true" callback { $transition="validate" $me
- thod="validatePojo" }callback { $transition="invalidate" $method="inv
- alidatePojo" }provides { }manipulation { $super="org.psem2m.isolates.
- base.CBundleLoggerBase" method { $name="$init" }method { $name="inval
- idatePojo" }method { $name="validatePojo" }interface { $name="org.pse
- m2m.isolates.monitor.IBundleMonitorLoggerService" }}}component { $imm
- ediate="true" $name="isolates-monitor-monitor" $classname="org.psem2m
- .isolates.monitor.impl.CIsolateManagerSvc" $architecture="true" callb
- ack { $transition="validate" $method="validatePojo" }callback { $tran
- sition="invalidate" $method="invalidatePojo" }provides { }manipulatio
- n { $super="org.psem2m.isolates.base.CPojoBase" field { $name="pBundl
- eMonitorLoggerSvc" $type="org.psem2m.isolates.monitor.IBundleMonitorL
- oggerService" }field { $name="pForker" $type="org.psem2m.isolates.com
- mons.forker.IForker" }field { $name="pPlatformConfiguration" $type="o
- rg.psem2m.isolates.commons.IPlatformConfiguration" }field { $name="pP
- ossibleIsolates" $type="java.util.Map" }field { $name="pRunningIsolat
- es" $type="java.util.Map" }field { $name="pRunning" $type="boolean" }
- field { $name="pMonitors" $type="java.util.Map" }method { $name="$ini
- t" }method { $name="destroy" }method { $name="getPossibleIsolates" $r
- eturn="java.util.Collection" }method { $name="getRunningIsolates" $re
- turn="java.util.Collection" }method { $name="invalidatePojo" }method 
- { $arguments="{java.lang.String}" $name="isolateStopped" }method { $a
- rguments="{java.lang.String}" $name="monitorStopped" }method { $argum
- ents="{java.lang.String,boolean}" $name="reloadConfiguration" }method
-  { $arguments="{boolean}" $name="restartPlatform" $return="boolean" }
- method { $arguments="{java.lang.String,boolean}" $name="startIsolate"
-  $return="boolean" }method { $name="startPlatform" }method { $argumen
- ts="{java.lang.String}" $name="stopIsolate" $return="boolean" }method
-  { $name="stopPlatform" }method { $name="validatePojo" }interface { $
- name="org.psem2m.isolates.commons.IReconfigurable" }interface { $name
- ="org.psem2m.isolates.monitor.IIsolateManager" }interface { $name="or
- g.psem2m.isolates.monitor.IIsolateListener" }}requires { $field="pBun
- dleMonitorLoggerSvc" $optional="false" }requires { $field="pForker" $
- optional="false" }}instance { $component="isolates-monitor-logger" }i
- nstance { $component="isolates-monitor-monitor" }
+ r-logger-factory" $classname="org.psem2m.isolates.monitor.impl.CBundl
+ eMonitorLoggerSvc" $architecture="true" callback { $transition="valid
+ ate" $method="validatePojo" }callback { $transition="invalidate" $met
+ hod="invalidatePojo" }provides { $specifications="org.psem2m.isolates
+ .monitor.IBundleMonitorLoggerService" }manipulation { $super="org.pse
+ m2m.isolates.base.CBundleLoggerBase" method { $name="$init" }method {
+  $name="invalidatePojo" }method { $name="validatePojo" }interface { $
+ name="org.psem2m.isolates.monitor.IBundleMonitorLoggerService" }}}com
+ ponent { $immediate="true" $name="isolates-monitor-factory" $classnam
+ e="org.psem2m.isolates.monitor.impl.CIsolateManagerSvc" $architecture
+ ="true" $public="false" callback { $transition="validate" $method="va
+ lidatePojo" }callback { $transition="invalidate" $method="invalidateP
+ ojo" }provides { }manipulation { $super="org.psem2m.isolates.base.CPo
+ joBase" field { $name="pBundleMonitorLoggerSvc" $type="org.psem2m.iso
+ lates.monitor.IBundleMonitorLoggerService" }field { $name="pPossibleI
+ solates" $type="java.util.Map" }field { $name="pRunningIsolates" $typ
+ e="java.util.Map" }field { $name="pRunning" $type="boolean" }field { 
+ $name="pMonitors" $type="java.util.Map" }field { $name="pForker" $typ
+ e="org.psem2m.isolates.commons.forker.IForker" }method { $name="$init
+ " }method { $name="destroy" }method { $name="getPossibleIsolates" $re
+ turn="java.util.Collection" }method { $name="getRunningIsolates" $ret
+ urn="java.util.Collection" }method { $name="invalidatePojo" }method {
+  $arguments="{java.lang.String}" $name="isolateStopped" }method { $ar
+ guments="{java.lang.String}" $name="monitorStopped" }method { $argume
+ nts="{boolean}" $name="restartPlatform" $return="boolean" }method { $
+ arguments="{java.lang.String,boolean}" $name="startIsolate" $return="
+ boolean" }method { $name="startPlatform" }method { $arguments="{java.
+ lang.String}" $name="stopIsolate" $return="boolean" }method { $name="
+ stopPlatform" }method { $name="validatePojo" }interface { $name="org.
+ psem2m.isolates.monitor.IIsolateManager" }interface { $name="org.psem
+ 2m.isolates.monitor.IIsolateListener" }}requires { $field="pBundleMon
+ itorLoggerSvc" $optional="false" }requires { $field="pForker" $option
+ al="false" }}instance { $component="isolates-monitor-logger-factory" 
+ $name="isolates-monitor-logger" }instance { $component="isolates-moni
+ tor-factory" $name="isolates-monitor-monitor" }
 

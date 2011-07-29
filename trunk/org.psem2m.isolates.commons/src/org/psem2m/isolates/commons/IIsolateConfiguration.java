@@ -7,6 +7,8 @@ package org.psem2m.isolates.commons;
 
 import java.util.Map;
 
+import org.psem2m.isolates.base.bundles.BundleRef;
+
 /**
  * Description of an isolate
  * 
@@ -40,7 +42,7 @@ public interface IIsolateConfiguration {
      * 
      * @return the bundles needed in the isolate
      */
-    IBundleRef[] getBundles();
+    BundleRef[] getBundles();
 
     /**
      * Retrieves the environment variables of the isolated process

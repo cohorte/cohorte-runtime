@@ -1,5 +1,9 @@
-# iPOJO Core and JMX
+# iPOJO Core
 felix/org.apache.felix.ipojo-1.8.0.jar
 
+# Whiteboard pattern
+felix/org.apache.felix.ipojo.handler.whiteboard-1.6.0.jar
+
+# JMX
 felix/org.apache.felix.ipojo.handler.extender-1.4.0.jar
 felix/org.apache.felix.ipojo.handler.jmx-1.4.0.jar

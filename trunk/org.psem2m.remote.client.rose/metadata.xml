@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ipojo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="org.apache.felix.ipojo http://felix.apache.org/ipojo/schemas/CURRENT/core.xsd"
+	xmlns="org.apache.felix.ipojo" xmlns:jmx="org.apache.felix.ipojo.handlers.jmx">
+
+	<!-- The Rose end point handler -->
+	<component classname="org.psem2m.remote.client.rose.RoseClientHandler"
+		architecture="true" immediate="true" name="remote-client-handler-rose-factory">
+
+		<provides specifications="org.psem2m.isolates.commons.remote.IRemoteServiceClientHandler" />
+		
+		<requires field="pProxyFactories" optional="false" />
+
+		<callback transition="validate" method="validatePojo" />
+		<callback transition="invalidate" method="invalidatePojo" />
+	</component>
+
+	<!-- Instances -->
+	<instance component="remote-client-handler-rose-factory" name="remote-client-handler-rose" />
+</ipojo>

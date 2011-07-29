@@ -1,0 +1,53 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1311769935985
+Build-Jdk: 1.6.0_21
+Built-By: tcalmant
+Bundle-Description: Parent POM of the OW2 Chameleon project
+Bundle-DocURL: http://ow2.org
+Bundle-License: http://www.apache.org/licenses/LICENSE-2.0.txt
+Bundle-ManifestVersion: 2
+Bundle-Name: OW2 Chameleon ROSE JSON-RPC Endpoint Factory (jabsorb.org
+ )
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-SymbolicName: jabsorb-endpoint-factory
+Bundle-Vendor: OW2 Chameleon
+Bundle-Version: 0.1.4.SNAPSHOT
+Created-By: Apache Maven Bundle Plugin & iPOJO  1.6.0
+Import-Package: org.jabsorb, org.ow2.chameleon.rose.pub;version=0.2, o
+ rg.apache.felix.ipojo;version=1.6.0, javax.servlet;version=2.5, org.o
+ w2.chameleon.rose;version=0.2, org.osgi.service.log;version=1.3, org.
+ ow2.chameleon.rose.server;version=0.2, org.apache.felix.ipojo.archite
+ cture;version=1.6.0, org.osgi.util.tracker;version=1.4, org.osgi.fram
+ ework;version=1.3, org.osgi.service.cm;version=1.2, org.ow2.chameleon
+ .rose.util;version=0.2, org.osgi.service.http;version=1.2
+Tool: Bnd-0.0.357
+iPOJO-Components: component { $classname="org.ow2.chameleon.rose.jsonr
+ pc.endpoint.JsonRpcEndpointFactory" $name="rose.component.jsonrpc.end
+ point.factory" callback { $transition="validate" $method="start" }cal
+ lback { $transition="invalidate" $method="stop" }provides { property 
+ { $name="remote.configs.supported" $value="{jsonrpc, org.jabsorb, jso
+ n-rpc}" $type="java.lang.String[]" }}properties { property { $field="
+ gzip_threshold" $name="gzip.threshold" $value="200" }property { $fiel
+ d="servletname" $name="jsonrpc.servlet.name" $value="/JSON-RPC" $immu
+ table="true" }}manipulation { field { $name="endpointNames" $type="ja
+ va.util.Set" }field { $name="servletname" $type="java.lang.String" }f
+ ield { $name="jsonbridge" $type="org.jabsorb.JSONRPCBridge" }field { 
+ $name="gzip_threshold" $type="java.lang.String" }field { $name="logge
+ r" $type="org.osgi.service.log.LogService" }field { $name="httpservic
+ e" $type="org.osgi.service.http.HttpService" }method { $name="$init" 
+ }method { $arguments="{java.lang.Object,java.lang.ClassLoader,java.ut
+ il.Map}" $name="createEndpoint" }method { $arguments="{java.lang.Obje
+ ct,java.util.Map}" $name="createEndpoint" }method { $arguments="{java
+ .lang.String}" $name="destroyEndpoint" }method { $name="getConfigs" $
+ return="java.lang.String[]" }method { $arguments="{java.lang.String}"
+  $name="getEndpointBaseUri" $return="java.lang.String" }method { $arg
+ uments="{java.lang.String}" $name="getEndpointPort" $return="int" }me
+ thod { $arguments="{java.lang.String}" $name="getEndpointProtocol" $r
+ eturn="java.lang.String" }method { $name="start" }method { $name="sto
+ p" }interface { $name="org.ow2.chameleon.rose.server.EndpointFactory"
+  }}requires { $field="httpservice" $optional="false" }requires { $fie
+ ld="logger" $default-implementation="org.ow2.chameleon.rose.util.LogS
+ erviceImpl" $optional="true" }}instance { $component="rose.component.
+ jsonrpc.endpoint.factory" $name="org.ow2.chameleon.rose.server.Endpoi
+ ntFactory-JSON-RPC" }
+

@@ -1,0 +1,14 @@
+# OSGi Compendium 4.2
+felix/org.osgi.compendium-4.2.0.jar
+
+# Log Service
+felix/org.apache.felix.log-1.0.1.jar
+
+# HTTP Service
+felix/org.apache.felix.http.bundle-2.2.0.jar
+
+# Felix Shell
+include: conf/shell.bundles
+
+# iPOJO Bundles
+include: conf/ipojo.bundles

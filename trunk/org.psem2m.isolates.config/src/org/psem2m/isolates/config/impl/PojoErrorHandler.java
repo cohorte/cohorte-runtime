@@ -8,6 +8,7 @@ package org.psem2m.isolates.config.impl;
 import org.apache.felix.ipojo.ComponentInstance;
 import org.apache.felix.ipojo.ErrorHandler;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 
 /**
@@ -15,6 +16,13 @@ import org.osgi.framework.BundleException;
  * 
  */
 public class PojoErrorHandler implements ErrorHandler {
+
+    /**
+     * Default constructor
+     */
+    public PojoErrorHandler() {
+	// ...
+    }
 
     /*
      * (non-Javadoc)
@@ -33,9 +41,15 @@ public class PojoErrorHandler implements ErrorHandler {
 
 	try {
 	    // Try to stop the bundle on the first error
-	    Bundle badBundle = aComponentInstance.getContext().getBundle();
-	    aComponentInstance.dispose();
-	    badBundle.stop();
+	    if (aComponentInstance != null) {
+
+		BundleContext context = aComponentInstance.getContext();
+		if (context != null) {
+		    Bundle badBundle = context.getBundle();
+		    aComponentInstance.dispose();
+		    badBundle.stop();
+		}
+	    }
 
 	} catch (BundleException e) {
 	    // We're really not lucky...

@@ -10,6 +10,10 @@ JAVA="java"
 MONITOR_ISOLATE_ID="psem2m.master"
 FORKER_ISOLATE_ID="psem2m.forker"
 
+PROP_PLATFORM_ISOLATE_ID="org.psem2m.platform.isolate.id"
+PROP_PLATFORM_HOME="org.psem2m.platform.home"
+PROP_PLATFORM_BASE="org.psem2m.platform.base"
+
 # Platform folders
 DIR_CONF="conf"
 DIR_REPO="repo"
@@ -84,6 +88,7 @@ start() {
     rm -fr $FELIX_CACHE
 
     echo "Starting platform..."
+    local MONITOR_PID_FILE="$PSEM2M_BASE/var/monitor.pid"
 
     # Try to find the base platform framework file
     local framework_file=$(find_conf_file $PLATFORM_FRAMEWORK_FILENAME)
@@ -120,16 +125,30 @@ start() {
 
     # Run all
     echo "Running bootstrap..."
-    $PSEM2M_JAVA -cp "$BOOTSTRAP_FILE:$framework_bundle_file" $BOOTSTRAP_MAIN_CLASS --human --lines --file="$provision_file" psem2m.home="$PSEM2M_HOME" psem2m.base="$PSEM2M_BASE" psem2m.isolate.id="$MONITOR_ISOLATE_ID" &
+    touch $MONITOR_PID_FILE
+    $PSEM2M_JAVA -cp "$BOOTSTRAP_FILE:$framework_bundle_file" $BOOTSTRAP_MAIN_CLASS --human --lines --file="$provision_file" $PROP_PLATFORM_HOME="$PSEM2M_HOME" $PROP_PLATFORM_BASE="$PSEM2M_BASE" $PROP_PLATFORM_ISOLATE_ID="$MONITOR_ISOLATE_ID" org.osgi.service.http.port=9000 org.apache.felix.http.jettyEnabled=true osgi.shell.telnet.port=6000 &
+    echo $! > $MONITOR_PID_FILE
 
     echo "Started"
     return 0
 }
 
+stop() {
+
+    local MONITOR_PID_FILE="$PSEM2M_BASE/var/monitor.pid"
+
+    local forker_pid=$(cat $MONITOR_PID_FILE 2>/dev/null)
+
+    if [ -n $forker_pid ]
+    then
+        kill $forker_pid
+    fi
+}
+
 #
 # Writes the script to be used to start the forker isolate
 #
-write_bootstrap_script() {
+write_forker_starter() {
 
     # Prepare the file
     local OUTPUT_FILE=$PSEM2M_BASE/$FORKER_SCRIPT_FILE
@@ -199,7 +218,7 @@ fi
     # Third part : the bootstrap line
     echo "
 # Run the forker isolate
-$PSEM2M_JAVA -cp \"$BOOTSTRAP_FILE:$framework_bundle_file\" $BOOTSTRAP_MAIN_CLASS --human --lines --file=\"$provision_file\" psem2m.home=\"$PSEM2M_HOME\" psem2m.base=\"$PSEM2M_BASE\" psem2m.isolate.id=\"$FORKER_ISOLATE_ID\" &
+$PSEM2M_JAVA -cp \"$BOOTSTRAP_FILE:$framework_bundle_file\" $BOOTSTRAP_MAIN_CLASS --human --lines --file=\"$provision_file\" $PROP_PLATFORM_HOME=\"$PSEM2M_HOME\" $PROP_PLATFORM_BASE=\"$PSEM2M_BASE\" $PROP_PLATFORM_ISOLATE_ID=\"$FORKER_ISOLATE_ID\" org.osgi.service.http.port=9001 org.apache.felix.http.jettyEnabled=true osgi.shell.telnet.port=6001 &
 " >> $OUTPUT_FILE
 
     # Fourth (and last) part : the PID file
@@ -275,12 +294,18 @@ cd $PSEM2M_BASE
 case $1 in
     start)
         echo "========== Start =========="
+        write_forker_starter
         start
         ;;
 
+    stop)
+        echo "========== Stop  =========="
+        stop
+        ;;
+
     test)
-        echo "========== Test  =========="
-        write_bootstrap_script
+        echo "=========== Test =========="
+        write_forker_starter
         ;;
 
     *)

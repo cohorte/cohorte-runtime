@@ -1,0 +1,56 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: PSEM2M Remote Service Importer
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-SymbolicName: org.psem2m.isolates.remote.importer
+Bundle-Vendor: isandlaTech.com
+Bundle-Version: 1.0.0.qualifier
+Created-By: iPOJO  1.8.0
+Import-Package: org.apache.felix.ipojo;version=1.8.0, javax.servlet;ve
+ rsion=2.5.0, org.ow2.chameleon.rose;version=0.2.3, org.osgi.service.l
+ og;version=1.3, org.psem2m.isolates.commons.remote, org.psem2m.isolat
+ es.base, org.apache.felix.ipojo.architecture;version=1.8.0, org.osgi.
+ framework;version=1.5.0, org.ow2.chameleon.rose.client;version=0.2.3,
+  org.osgi.service.cm;version=1.2, org.osgi.service.http;version=1.2.1
+ , org.psem2m.utilities, javax.servlet.http;version=2.5.0
+iPOJO-Components: component { $immediate="true" $name="remote-service-
+ adapter-factory" $classname="org.psem2m.isolates.remote.importer.Remo
+ teServiceAdapter" $architecture="true" callback { $transition="valida
+ te" $method="validatePojo" }callback { $transition="invalidate" $meth
+ od="invalidatePojo" }provides { $specifications="org.psem2m.isolates.
+ commons.remote.IRemoteServiceEventListener" }manipulation { $super="o
+ rg.psem2m.isolates.base.CPojoBase" field { $name="pRegisteredServices
+ " $type="java.util.Map" }field { $name="pIsolateId" $type="java.lang.
+ String" }field { $name="pClientHandlers" $type="org.psem2m.isolates.c
+ ommons.remote.IRemoteServiceClientHandler[]" }field { $name="pBundleC
+ ontext" $type="org.osgi.framework.BundleContext" }method { $arguments
+ ="{org.osgi.framework.BundleContext}" $name="$init" }method { $name="
+ destroy" }method { $arguments="{java.util.Dictionary}" $name="filterP
+ roperties" $return="java.util.Dictionary" }method { $arguments="{java
+ .lang.String}" $name="findAssociatedFactory" $return="org.ow2.chamele
+ on.rose.client.RemoteProxyFactory" }method { $arguments="{org.psem2m.
+ isolates.commons.remote.RemoteServiceEvent}" $name="handleRemoteEvent
+ " }method { $name="invalidatePojo" }method { $name="validatePojo" }me
+ thod { $name="$SWITCH_TABLE$org$psem2m$isolates$commons$remote$Remote
+ ServiceEvent$ServiceEventType" $return="int[]" }interface { $name="or
+ g.psem2m.isolates.commons.remote.IRemoteServiceEventListener" }}requi
+ res { $field="pClientHandlers" $optional="false" }}component { $immed
+ iate="true" $name="remote-service-servlet-factory" $classname="org.ps
+ em2m.isolates.remote.importer.ServletRegisterer" $architecture="true"
+  callback { $transition="validate" $method="validatePojo" }callback {
+  $transition="invalidate" $method="invalidatePojo" }manipulation { $s
+ uper="org.psem2m.isolates.base.CPojoBase" field { $name="pLogger" $ty
+ pe="org.osgi.service.log.LogService" }field { $name="pRemoteServiceLi
+ steners" $type="org.psem2m.isolates.commons.remote.IRemoteServiceEven
+ tListener[]" }field { $name="pHttpService" $type="org.osgi.service.ht
+ tp.HttpService" }method { $name="$init" }method { $name="destroy" }me
+ thod { $arguments="{org.psem2m.isolates.commons.remote.RemoteServiceE
+ vent}" $name="handleRemoteEvent" }method { $name="invalidatePojo" }me
+ thod { $name="validatePojo" }interface { $name="org.psem2m.isolates.c
+ ommons.remote.IRemoteServiceEventListener" }}requires { $field="pHttp
+ Service" $optional="false" }requires { $field="pRemoteServiceListener
+ s" $optional="false" }requires { $field="pLogger" $optional="true" }}
+ instance { $component="remote-service-adapter-factory" $name="remote-
+ service-adapter" }instance { $component="remote-service-servlet-facto
+ ry" $name="remote-service-servlet" }
+

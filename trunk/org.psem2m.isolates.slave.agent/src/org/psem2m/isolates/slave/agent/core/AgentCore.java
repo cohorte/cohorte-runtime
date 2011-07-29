@@ -9,8 +9,7 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.psem2m.isolates.base.CPojoBase;
-import org.psem2m.isolates.commons.IBundleInfo;
-import org.psem2m.isolates.commons.impl.BundleInfo;
+import org.psem2m.isolates.base.bundles.BundleInfo;
 
 /**
  * @author Thomas Calmant
@@ -42,7 +41,7 @@ public class AgentCore extends CPojoBase {
      *            A bundle ID
      * @return The context of the bundle with the given ID, null if not found
      */
-    public IBundleInfo getBundleInfo(final long aBundleId) {
+    public BundleInfo getBundleInfo(final long aBundleId) {
 
 	Bundle bundle = pBundleContext.getBundle(aBundleId);
 	if (bundle == null) {
@@ -57,10 +56,10 @@ public class AgentCore extends CPojoBase {
      * 
      * @return Bundles information
      */
-    public IBundleInfo[] getBundlesState() {
+    public BundleInfo[] getBundlesState() {
 
 	Bundle[] bundles = pBundleContext.getBundles();
-	IBundleInfo[] bundlesInfo = new IBundleInfo[bundles.length];
+	BundleInfo[] bundlesInfo = new BundleInfo[bundles.length];
 
 	int i = 0;
 	for (Bundle bundle : bundles) {

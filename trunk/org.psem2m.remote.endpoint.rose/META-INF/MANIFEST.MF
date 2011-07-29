@@ -1,0 +1,33 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: PSEM2M Rose Endpoint Handler
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-SymbolicName: org.psem2m.remote.endpoint.rose
+Bundle-Vendor: isandlaTech.com
+Bundle-Version: 1.0.0.qualifier
+Created-By: iPOJO  1.8.0
+Import-Package: org.ow2.chameleon.rose;version=0.2.3, org.osgi.service
+ .log;version=1.3, org.psem2m.isolates.commons.remote, org.ow2.chamele
+ on.rose.server;version=0.2.3, org.psem2m.isolates.base, org.apache.fe
+ lix.ipojo.architecture;version=1.8.0, org.apache.felix.ipojo;version=
+ 1.8.0, org.osgi.framework;version=1.5.0, org.osgi.service.cm;version=
+ 1.2, org.psem2m.isolates.commons;version=1.0.0, org.psem2m.utilities
+iPOJO-Components: component { $immediate="true" $name="remote-endpoint
+ -handler-rose-factory" $classname="org.psem2m.remote.endpoint.rose.Ro
+ seEndpointHandler" $architecture="true" callback { $transition="valid
+ ate" $method="validatePojo" }callback { $transition="invalidate" $met
+ hod="invalidatePojo" }provides { $specifications="org.psem2m.isolates
+ .commons.remote.IEndpointHandler" }manipulation { $super="org.psem2m.
+ isolates.base.CPojoBase" field { $name="pBundleContext" $type="org.os
+ gi.framework.BundleContext" }method { $arguments="{org.osgi.framework
+ .BundleContext}" $name="$init" }method { $arguments="{org.osgi.framew
+ ork.ServiceReference}" $name="createEndpoint" $return="org.psem2m.iso
+ lates.commons.remote.EndpointDescription[]" }method { $name="destroy"
+  }method { $arguments="{org.osgi.framework.ServiceReference}" $name="
+ destroyEndpoint" $return="boolean" }method { $arguments="{java.util.M
+ ap}" $name="findExportFactories" $return="org.osgi.framework.ServiceR
+ eference[]" }method { $name="invalidatePojo" }method { $name="validat
+ ePojo" }interface { $name="org.psem2m.isolates.commons.remote.IEndpoi
+ ntHandler" }}}instance { $component="remote-endpoint-handler-rose-fac
+ tory" $name="remote-endpoint-handler-rose" }
+

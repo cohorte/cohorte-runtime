@@ -1,0 +1,59 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1303140929025
+Build-Jdk: 1.6.0_24
+Built-By: barjo
+Bundle-Description: OW2 Chameleon ROSE Core bundle
+Bundle-DocURL: http://ow2.org
+Bundle-License: http://www.apache.org/licenses/LICENSE-2.0.txt
+Bundle-ManifestVersion: 2
+Bundle-Name: OW2 Chameleon ROSE Core
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-SymbolicName: org.ow2.chameleon.rose.core
+Bundle-Vendor: OW2 Chameleon
+Bundle-Version: 0.2.3
+Created-By: Apache Maven Bundle Plugin & iPOJO  1.6.0
+Export-Package: org.ow2.chameleon.rose;uses:="org.osgi.framework,org.o
+ w2.chameleon.rose.disco";version="0.2.3",org.ow2.chameleon.rose.clien
+ t;version="0.2.3",org.ow2.chameleon.rose.server;version="0.2.3",org.o
+ w2.chameleon.rose.pub;uses:="org.osgi.framework";version="0.2.3",org.
+ ow2.chameleon.rose.disco;uses:="org.osgi.framework";version="0.2.3",o
+ rg.ow2.chameleon.rose.util;uses:="org.ow2.chameleon.rose,org.osgi.fra
+ mework,org.osgi.service.log,org.ow2.chameleon.rose.disco";version="0.
+ 2.3",org.ow2.chameleon.rose.eventbridge;version="0.2.3"
+Import-Package: org.ow2.chameleon.rose.pub;version=0.2, org.apache.fel
+ ix.ipojo;version=1.6.0, org.ow2.chameleon.rose;version=0.2, org.osgi.
+ service.log;version=1.3, org.ow2.chameleon.rose.disco;version=0.2, or
+ g.ow2.chameleon.rose.server;version=0.2, org.ow2.chameleon.rose.event
+ bridge;version=0.2, org.apache.felix.ipojo.architecture;version=1.6.0
+ , org.osgi.util.tracker;version=1.4, org.osgi.framework;version=1.3, 
+ org.ow2.chameleon.rose.client;version=0.2, org.osgi.service.cm;versio
+ n=1.2, org.ow2.chameleon.rose.util;version=0.2
+Tool: Bnd-0.0.357
+iPOJO-Components: component { $classname="org.ow2.chameleon.rose.impl.
+ GenericEndpointFactory" $name="rose.component.autoexport" callback { 
+ $transition="validate" $method="start" }callback { $transition="inval
+ idate" $method="stop" }properties { property { $field="filter" $name=
+ "export.filter" }}manipulation { field { $name="configs" $type="java.
+ lang.String[]" }field { $name="sidToEndpointDescription" $type="java.
+ util.Map" }field { $name="context" $type="org.osgi.framework.BundleCo
+ ntext" }field { $name="logger" $type="org.osgi.service.log.LogService
+ " }field { $name="tracker" $type="org.osgi.util.tracker.ServiceTracke
+ r" }field { $name="exporter" $type="org.ow2.chameleon.rose.server.End
+ pointFactory" }field { $name="filter" $type="java.lang.String" }field
+  { $name="idGenerator" $type="org.ow2.chameleon.rose.RemoteIdGenerato
+ r" }method { $arguments="{org.osgi.framework.BundleContext}" $name="$
+ init" }method { $name="start" }method { $name="stop" }method { $argum
+ ents="{org.ow2.chameleon.rose.server.EndpointFactory,org.osgi.framewo
+ rk.ServiceReference}" $name="bindEndpointFactory" }method { $argument
+ s="{org.osgi.framework.ServiceReference}" $name="addingService" $retu
+ rn="java.lang.Object" }method { $arguments="{org.osgi.framework.Servi
+ ceReference,java.lang.Object}" $name="modifiedService" }method { $arg
+ uments="{org.osgi.framework.ServiceReference,java.lang.Object}" $name
+ ="removedService" }interface { $name="org.osgi.util.tracker.ServiceTr
+ ackerCustomizer" }}requires { $field="logger" $default-implementation
+ ="org.ow2.chameleon.rose.util.LogServiceImpl" $optional="true" }requi
+ res { $field="idGenerator" $default-implementation="org.ow2.chameleon
+ .rose.util.DefaultRemoteIdGenerator" $optional="true" }requires { $id
+ ="exporter" $optional="false" callback { $method="bindEndpointFactory
+ " $type="bind" }}}
+

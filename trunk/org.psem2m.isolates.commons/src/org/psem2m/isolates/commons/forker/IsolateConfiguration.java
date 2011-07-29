@@ -8,7 +8,7 @@ package org.psem2m.isolates.commons.forker;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.psem2m.isolates.commons.IBundleRef;
+import org.psem2m.isolates.base.bundles.BundleRef;
 import org.psem2m.isolates.commons.IIsolateConfiguration;
 
 /**
@@ -22,7 +22,7 @@ public class IsolateConfiguration implements IIsolateConfiguration {
     private String[] pArguments;
 
     /** Needed bundles */
-    private IBundleRef[] pBundles;
+    private BundleRef[] pBundles;
 
     /** Isolate process environment */
     private Map<String, String> pEnvironment;
@@ -42,7 +42,7 @@ public class IsolateConfiguration implements IIsolateConfiguration {
      *            The kind of isolate
      */
     public IsolateConfiguration(final String aIsolateId, final IsolateKind aKind) {
-	this(aIsolateId, aKind, new IBundleRef[0], null);
+	this(aIsolateId, aKind, new BundleRef[0], null);
     }
 
     /**
@@ -56,7 +56,7 @@ public class IsolateConfiguration implements IIsolateConfiguration {
      *            Isolate bundles
      */
     public IsolateConfiguration(final String aIsolateId,
-	    final IsolateKind aKind, final IBundleRef[] aBundles) {
+	    final IsolateKind aKind, final BundleRef[] aBundles) {
 	this(aIsolateId, aKind, aBundles, null);
     }
 
@@ -73,7 +73,7 @@ public class IsolateConfiguration implements IIsolateConfiguration {
      *            Arguments for the isolate process
      */
     public IsolateConfiguration(final String aIsolateId,
-	    final IsolateKind aKind, final IBundleRef[] aBundles,
+	    final IsolateKind aKind, final BundleRef[] aBundles,
 	    final String[] aArguments) {
 
 	pArguments = aArguments;
@@ -124,7 +124,7 @@ public class IsolateConfiguration implements IIsolateConfiguration {
      * @return An array of bundle IDs
      */
     @Override
-    public IBundleRef[] getBundles() {
+    public BundleRef[] getBundles() {
 	return pBundles;
     }
 

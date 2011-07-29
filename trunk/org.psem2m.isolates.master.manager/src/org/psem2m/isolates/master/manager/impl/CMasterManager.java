@@ -5,7 +5,6 @@
  */
 package org.psem2m.isolates.master.manager.impl;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -17,13 +16,12 @@ import java.util.concurrent.Callable;
 
 import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.CPojoBase;
-import org.psem2m.isolates.commons.IBundleRef;
+import org.psem2m.isolates.base.IPlatformDirsSvc;
+import org.psem2m.isolates.base.bundles.BundleRef;
+import org.psem2m.isolates.base.bundles.IBundleFinderSvc;
 import org.psem2m.isolates.commons.IIsolateConfiguration;
 import org.psem2m.isolates.commons.IIsolateConfiguration.IsolateKind;
-import org.psem2m.isolates.commons.IPlatformConfiguration;
-import org.psem2m.isolates.commons.Utilities;
 import org.psem2m.isolates.commons.forker.IsolateConfiguration;
-import org.psem2m.isolates.commons.impl.PlatformConfiguration;
 import org.psem2m.isolates.config.IParamId;
 import org.psem2m.isolates.config.ISvcConfig;
 import org.psem2m.isolates.master.manager.IMasterManagerConfig;
@@ -39,6 +37,9 @@ public class CMasterManager extends CPojoBase {
     /** Default isolate kind */
     private static final IsolateKind DEFAULT_ISOLATE_KIND = IsolateKind.FELIX;
 
+    /** The bundle finder */
+    private IBundleFinderSvc pBundleFinderSvc;
+
     /** Available configuration */
     private ISvcConfig pConfiguration;
 
@@ -48,8 +49,8 @@ public class CMasterManager extends CPojoBase {
     /** Log service, handled by iPOJO */
     private IActivityLoggerBase pLoggerSvc;
 
-    /** The platform configuration */
-    private IPlatformConfiguration pPlatformConfiguration = new PlatformConfiguration();
+    /** The platform directory service */
+    private IPlatformDirsSvc pPlatformDirsSvc;
 
     /**
      * Default constructor
@@ -76,7 +77,7 @@ public class CMasterManager extends CPojoBase {
      *            The isolate ID
      * @return An array of bundle references, null on error
      */
-    protected IBundleRef[] getBundlesRef(final String aIsolateId) {
+    protected BundleRef[] getBundlesRef(final String aIsolateId) {
 
 	List<String> isolateBundles = getConfigurationList(aIsolateId,
 		IMasterManagerConfig.ISOLATE_BUNDLES_LIST);
@@ -85,13 +86,12 @@ public class CMasterManager extends CPojoBase {
 	    return null;
 	}
 
-	Set<IBundleRef> bundlesRef = new LinkedHashSet<IBundleRef>(
+	Set<BundleRef> bundlesRef = new LinkedHashSet<BundleRef>(
 		isolateBundles.size());
 
 	for (String bundleName : isolateBundles) {
 
-	    IBundleRef ref = Utilities.findBundle(pPlatformConfiguration,
-		    bundleName);
+	    BundleRef ref = pBundleFinderSvc.findBundle(bundleName);
 	    if (ref != null) {
 		bundlesRef.add(ref);
 	    } else {
@@ -100,7 +100,7 @@ public class CMasterManager extends CPojoBase {
 	    }
 	}
 
-	return bundlesRef.toArray(new IBundleRef[0]);
+	return bundlesRef.toArray(new BundleRef[0]);
     }
 
     /**
@@ -228,7 +228,7 @@ public class CMasterManager extends CPojoBase {
 	    }
 
 	    // Get the bundles
-	    IBundleRef[] bundlesRef = getBundlesRef(isolateId);
+	    BundleRef[] bundlesRef = getBundlesRef(isolateId);
 
 	    // Get the isolate JVM arguments
 	    List<String> isolateArgs = getConfigurationList(isolateId,
@@ -256,16 +256,14 @@ public class CMasterManager extends CPojoBase {
     protected void startForker() throws Exception {
 
 	// Find the script
-	List<String> forkerCommand = pPlatformConfiguration
-		.getForkerStartCommand();
+	List<String> forkerCommand = pPlatformDirsSvc.getForkerStartCommand();
 	if (forkerCommand == null) {
 	    throw new Exception("Can't determine how to start the forker");
 	}
 
 	// Prepare the process builder
 	ProcessBuilder builder = new ProcessBuilder(forkerCommand);
-	builder.directory(new File(pPlatformConfiguration
-		.getPlatformBaseDirectory()));
+	builder.directory(pPlatformDirsSvc.getForkerWorkingDir());
 
 	// Run !
 	try {
@@ -307,9 +305,10 @@ public class CMasterManager extends CPojoBase {
 	pLoggerSvc.logInfo(this, "validatePojo", "VALIDATE", toDescription());
 
 	try {
-	    System.out.println("Read isolates");
-	    pLoggerSvc.logInfo(this, "validatePojo", "Read conf");
-	    readIsolatesDescription();
+	    // DEBUG Removed for tests
+	    // System.out.println("Read isolates");
+	    // pLoggerSvc.logInfo(this, "validatePojo", "Read conf");
+	    // readIsolatesDescription();
 
 	    System.out.println("Start forker");
 	    pLoggerSvc.logInfo(this, "validatePojo", "Start forker");

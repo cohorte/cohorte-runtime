@@ -1,6 +1,8 @@
 # Include the base needed bundles
-include: conf/shell.bundles
-include: conf/ipojo.bundles
+include: conf/common.bundles
+include: conf/psem2m.bundles
 
-# Common bundles
-felix/org.apache.felix.log-1.0.1.jar
+# Monitor bundles
+repo/client.rose.jar
+repo/importer.jar
+repo/master.manager.jar

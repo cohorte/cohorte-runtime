@@ -5,23 +5,24 @@
 
 
 	<component classname="org.psem2m.isolates.monitor.impl.CBundleMonitorLoggerSvc"
-		architecture="true" immediate="true" name="isolates-monitor-logger">
-		<provides />
-		
-		<callback transition="validate" method="validatePojo"/>
-		<callback transition="invalidate" method="invalidatePojo"/>
+		architecture="true" immediate="true" name="isolates-monitor-logger-factory">
+		<provides specifications="org.psem2m.isolates.monitor.IBundleMonitorLoggerService" />
+
+		<callback transition="validate" method="validatePojo" />
+		<callback transition="invalidate" method="invalidatePojo" />
 	</component>
-	<instance component="isolates-monitor-logger"   />
-	
+	<instance component="isolates-monitor-logger-factory" name="isolates-monitor-logger" />
+
 	<component classname="org.psem2m.isolates.monitor.impl.CIsolateManagerSvc"
-		architecture="true" immediate="true" name="isolates-monitor-monitor">
+		architecture="true" immediate="true" name="isolates-monitor-factory"
+		public="false">
 		<provides />
-		
+
 		<requires field="pBundleMonitorLoggerSvc" optional="false" />
 		<requires field="pForker" optional="false" />
-		
-		<callback transition="validate" method="validatePojo"/>
-		<callback transition="invalidate" method="invalidatePojo"/>
+
+		<callback transition="validate" method="validatePojo" />
+		<callback transition="invalidate" method="invalidatePojo" />
 	</component>
-	<instance component="isolates-monitor-monitor" />
+	<instance component="isolates-monitor-factory" name="isolates-monitor-monitor" />
 </ipojo>

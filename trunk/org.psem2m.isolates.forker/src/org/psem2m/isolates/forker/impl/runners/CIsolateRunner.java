@@ -15,25 +15,31 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.LogRecord;
 
-import org.psem2m.isolates.commons.IBundleRef;
+import org.osgi.framework.BundleException;
+import org.psem2m.isolates.base.CPojoBase;
+import org.psem2m.isolates.base.IPlatformDirsSvc;
+import org.psem2m.isolates.base.bundles.BundleRef;
+import org.psem2m.isolates.base.bundles.IBundleFinderSvc;
 import org.psem2m.isolates.commons.IIsolateConfiguration;
 import org.psem2m.isolates.commons.IIsolateConfiguration.IsolateKind;
-import org.psem2m.isolates.commons.Utilities;
+import org.psem2m.isolates.forker.IBundleForkerLoggerSvc;
+import org.psem2m.isolates.forker.IIsolateRunner;
 import org.psem2m.isolates.forker.IProcessRef;
 import org.psem2m.isolates.forker.impl.processes.ProcessRef;
 import org.psem2m.utilities.bootstrap.IBootstrapConstants;
+import org.psem2m.utilities.files.CXFileDir;
 import org.psem2m.utilities.logging.CActivityFormaterBasic;
 import org.psem2m.utilities.logging.IActivityFormater;
 
 /**
- * @author Thomas Calmant
+ * OSGi framework isolate runner
  * 
+ * @author Thomas Calmant
  */
-public class CIsolateRunner extends JavaRunner {
+public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
 
     /** Bootstrap main class */
     public static final String BOOTSTRAP_MAIN_CLASS = "org.psem2m.utilities.bootstrap.Main";
@@ -53,8 +59,27 @@ public class CIsolateRunner extends JavaRunner {
     /** Bootstrap long argument prefix */
     public static final String LONG_ARGUMENT_PREFIX = "--";
 
+    /** Bundle finder service, injected by iPOJO */
+    private IBundleFinderSvc pBundleFinderSvc;
+
+    /** The logger service, injected by iPOJO */
+    private IBundleForkerLoggerSvc pBundleForkerLoggerSvc;
+
+    /** Java isolate runner service, injected by iPOJO */
+    private IJavaRunner pJavaRunner;
+
     /** Basic log formatter */
     private final CActivityFormaterBasic pLogFormatter = new CActivityFormaterBasic();
+
+    /** The platform directory service, injected by iPOJO */
+    private IPlatformDirsSvc pPlatformDirsSvc;
+
+    /**
+     * Default constructor
+     */
+    public CIsolateRunner() {
+	super();
+    }
 
     /**
      * Converts an array of bundle references to an URL list. Ignores invalid
@@ -64,12 +89,12 @@ public class CIsolateRunner extends JavaRunner {
      *            Bundles to be converted.
      * @return A list of URLs
      */
-    protected List<URL> bundlesToUrls(final IBundleRef[] aBundles) {
+    protected List<URL> bundlesToUrls(final BundleRef[] aBundles) {
 
 	List<URL> bundleURLs = new ArrayList<URL>();
 
 	// Loop on bundles
-	for (IBundleRef bundleRef : aBundles) {
+	for (BundleRef bundleRef : aBundles) {
 	    try {
 		URL bundleUrl = bundleRef.getUri().toURL();
 		bundleURLs.add(bundleUrl);
@@ -80,6 +105,42 @@ public class CIsolateRunner extends JavaRunner {
 	}
 
 	return bundleURLs;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.forker.impl.runners.JavaRunner#canRun(org.psem2m.
+     * isolates.commons.IIsolateConfiguration.IsolateKind)
+     */
+    @Override
+    public boolean canRun(final IsolateKind aIsolateKind) {
+	return aIsolateKind == IsolateKind.EQUINOX
+		|| aIsolateKind == IsolateKind.FELIX;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.utilities.CXObjectBase#destroy()
+     */
+    @Override
+    public void destroy() {
+	// ...
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.base.CPojoBase#invalidatePojo()
+     */
+    @Override
+    public void invalidatePojo() throws BundleException {
+
+	// logs in the bundle logger
+	pBundleForkerLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
+		toDescription());
     }
 
     /**
@@ -118,7 +179,7 @@ public class CIsolateRunner extends JavaRunner {
      * @return the JVM classpath argument
      */
     protected List<String> prepareClasspathArgument(
-	    final IBundleRef aBootstrapRef, final IsolateKind aKind) {
+	    final BundleRef aBootstrapRef, final IsolateKind aKind) {
 
 	List<String> classpathArgument = new ArrayList<String>();
 	classpathArgument.add("-cp");
@@ -127,16 +188,14 @@ public class CIsolateRunner extends JavaRunner {
 	StringBuilder classPath = new StringBuilder();
 
 	// Find the framework main bundle
-	IBundleRef mainBundleRef;
+	BundleRef mainBundleRef;
 	switch (aKind) {
 	case FELIX:
-	    mainBundleRef = Utilities.findBundle(getPlatformConfiguration(),
-		    FELIX_NAMES);
+	    mainBundleRef = pBundleFinderSvc.findBundle(FELIX_NAMES);
 	    break;
 
 	case EQUINOX:
-	    mainBundleRef = Utilities.findBundle(getPlatformConfiguration(),
-		    EQUINOX_NAMES);
+	    mainBundleRef = pBundleFinderSvc.findBundle(EQUINOX_NAMES);
 	    break;
 
 	default:
@@ -145,12 +204,12 @@ public class CIsolateRunner extends JavaRunner {
 	}
 
 	// Add the boostrap JAR
-	classPath.append(aBootstrapRef.getFile().getPath());
+	classPath.append(aBootstrapRef.getFile().getAbsolutePath());
 	classPath.append(File.pathSeparator);
 
 	// Add the found framework, if any
 	if (mainBundleRef != null) {
-	    classPath.append(mainBundleRef.getFile().getPath());
+	    classPath.append(mainBundleRef.getFile().getAbsolutePath());
 	    classPath.append(File.pathSeparator);
 	}
 
@@ -207,22 +266,30 @@ public class CIsolateRunner extends JavaRunner {
 
 		    // Try to print the log record
 		    if (readObject instanceof LogRecord) {
+			pBundleForkerLoggerSvc.log((LogRecord) readObject);
 			printLog((LogRecord) readObject);
 
 		    } else if (readObject instanceof CharSequence) {
-			System.out.println(readObject.toString());
+			pBundleForkerLoggerSvc.logInfo(this, "LogFrom."
+				+ aProcessRef.getPid(), readObject.toString());
 
 		    } else {
-			System.out.println("[BOOTSTRAP] UNKNWON LOG FORMAT");
+			pBundleForkerLoggerSvc.logWarn(this, "LogFrom."
+				+ aProcessRef.getPid(), "Unknown log format",
+				readObject);
 		    }
 
 		} catch (ClassNotFoundException e) {
-		    System.out.println("Can't read class : " + e);
+		    pBundleForkerLoggerSvc.logWarn(this, "LogFrom."
+			    + aProcessRef.getPid(), "Class Not Found", e);
 		}
 	    }
 
 	} catch (EOFException e) {
-	    System.out.println("Isolate gone : " + process.exitValue());
+
+	    pBundleForkerLoggerSvc.logInfo(this,
+		    "LogFrom." + aProcessRef.getPid(), "Isolate gone : ",
+		    process.exitValue());
 
 	} catch (IOException e) {
 	    e.printStackTrace();
@@ -251,10 +318,6 @@ public class CIsolateRunner extends JavaRunner {
 
 	// Convert bundle references to URLs
 	List<URL> bundleURLs = new ArrayList<URL>();
-
-	// Common bundles
-	bundleURLs.addAll(bundlesToUrls(getPlatformConfiguration()
-		.getCommonBundlesRef()));
 
 	// Isolate bundles
 	bundleURLs.addAll(bundlesToUrls(aIsolateConfiguration.getBundles()));
@@ -289,8 +352,7 @@ public class CIsolateRunner extends JavaRunner {
 	List<String> javaOptions = new ArrayList<String>();
 
 	// Find the bootstrap JAR file
-	IBundleRef bootstrapRef = Utilities.findBundle(
-		getPlatformConfiguration(), BOOTSTRAP_NAMES);
+	BundleRef bootstrapRef = pBundleFinderSvc.findBundle(BOOTSTRAP_NAMES);
 
 	// Add the class path argument
 	javaOptions.addAll(prepareClasspathArgument(bootstrapRef, kind));
@@ -301,12 +363,16 @@ public class CIsolateRunner extends JavaRunner {
 	// Add its arguments
 	javaOptions.addAll(prepareBootstrapArguments(kind));
 
-	System.out.println(Arrays.toString(javaOptions.toArray()));
+	// Set up the working directory
+	CXFileDir workingDirectory = pPlatformDirsSvc
+		.getIsolateWorkingDir(aIsolateConfiguration.getId());
+	if (!workingDirectory.exists()) {
+	    workingDirectory.mkdirs();
+	}
 
 	// Run the file
-	IProcessRef processRef = runJava(javaOptions,
-		aIsolateConfiguration.getEnvironment(),
-		createWorkingDirectory(aIsolateConfiguration.getId()));
+	IProcessRef processRef = pJavaRunner.runJava(javaOptions,
+		aIsolateConfiguration.getEnvironment(), workingDirectory);
 
 	// Writes the bundles configuration to the process
 	sendConfiguration(processRef, aIsolateConfiguration);
@@ -314,5 +380,18 @@ public class CIsolateRunner extends JavaRunner {
 	// Wait for the end of the isolate
 	readMessages(processRef);
 	return processRef;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.base.CPojoBase#validatePojo()
+     */
+    @Override
+    public void validatePojo() throws BundleException {
+
+	// logs in the bundle logger
+	pBundleForkerLoggerSvc.logInfo(this, "validatePojo", "VALIDATE",
+		toDescription());
     }
 }

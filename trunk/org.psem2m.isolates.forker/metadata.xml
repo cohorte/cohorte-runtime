@@ -3,27 +3,71 @@
 	xsi:schemaLocation="org.apache.felix.ipojo http://felix.apache.org/ipojo/schemas/CURRENT/core.xsd"
 	xmlns="org.apache.felix.ipojo" xmlns:jmx="org.apache.felix.ipojo.handlers.jmx">
 
-
-
+	<!-- Logger associated to the forker -->
 	<component classname="org.psem2m.isolates.forker.impl.CBundleForkerLoggerSvc"
-		architecture="true" immediate="true" name="isolates-forker-logger">
-		<provides />
-		
-		<callback transition="validate" method="validatePojo"/>
-		<callback transition="invalidate" method="invalidatePojo"/>
+		architecture="true" immediate="true" name="isolates-forker-logger"
+		public="false">
+
+		<provides specifications="org.psem2m.isolates.forker.IBundleForkerLoggerSvc" />
+
+		<callback transition="validate" method="validatePojo" />
+		<callback transition="invalidate" method="invalidatePojo" />
 	</component>
-	<instance component="isolates-forker-logger"   />
-	
-	
-	<component classname="org.psem2m.isolates.forker.impl.CForkerSvc"
-		architecture="true" immediate="true" name="isolate-forker-forker">
-		<provides />
-		
+	<instance component="isolates-forker-logger" />
+
+	<!-- Java Runner -->
+	<component classname="org.psem2m.isolates.forker.impl.runners.JavaRunner"
+		architecture="true" immediate="true" name="isolates-runner-java-factory"
+		public="false">
+
+		<provides specifications="org.psem2m.isolates.forker.impl.runners.IJavaRunner" />
+
 		<requires field="pBundleForkerLoggerSvc" optional="false" />
-		
-		<callback transition="validate" method="validatePojo"/>
-		<callback transition="invalidate" method="invalidatePojo"/>
+		<requires field="pPlatformDirsSvc" optional="false" />
+
+		<callback transition="validate" method="validatePojo" />
+		<callback transition="invalidate" method="invalidatePojo" />
+	</component>
+	<instance component="isolates-runner-java-factory" name="isolates-runner-java" />
+
+	<!-- OSGi Runner -->
+	<component classname="org.psem2m.isolates.forker.impl.runners.CIsolateRunner"
+		architecture="true" immediate="true" name="isolates-runner-osgi-factory"
+		public="false">
+
+		<provides specifications="org.psem2m.isolates.forker.IIsolateRunner" />
+
+		<requires field="pBundleForkerLoggerSvc" optional="false" />
+		<requires field="pPlatformDirsSvc" optional="false" />
+		<requires field="pJavaRunner" optional="false" />
+
+		<callback transition="validate" method="validatePojo" />
+		<callback transition="invalidate" method="invalidatePojo" />
+	</component>
+	<instance component="isolates-runner-osgi-factory" name="isolates-runner-osgi" />
+
+
+	<!-- Forker -->
+	<component classname="org.psem2m.isolates.forker.impl.CForkerSvc"
+		architecture="true" immediate="true" name="isolate-forker-factory"
+		public="false">
+		<provides specifications="org.psem2m.isolates.commons.forker.IForker" />
+
+		<!-- Needed to export instance properties -->
+		<properties propagation="true" />
+
+		<requires field="pBundleForkerLoggerSvc" optional="false" />
+		<requires field="pIsolateRunners" optional="false" />
+
+		<callback transition="validate" method="validatePojo" />
+		<callback transition="invalidate" method="invalidatePojo" />
 	</component>
 
-	<instance component="isolate-forker-forker" />
+	<!-- Exported instance -->
+	<instance component="isolate-forker-factory" name="isolate-forker-instance">
+		<property name="service.exported.interfaces" value="*" />
+		<property name="service.exported.configs" value="{json-rpc}"
+			type="String[]" />
+		<property name="endpoint.name" value="forker" type="String" />
+	</instance>
 </ipojo>

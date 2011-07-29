@@ -6,7 +6,6 @@
 package org.psem2m.isolates.forker;
 
 import org.psem2m.isolates.commons.IIsolateConfiguration;
-import org.psem2m.isolates.commons.IPlatformConfiguration;
 
 /**
  * Describes an isolate runner
@@ -16,12 +15,13 @@ import org.psem2m.isolates.commons.IPlatformConfiguration;
 public interface IIsolateRunner {
 
     /**
-     * Sets the global configuration
+     * Tests if the runner can start the given kind of isolate
      * 
-     * @param aPlatformConfiguration
-     *            The platform configuration
+     * @param aIsolateKind
+     *            A kind of isolate
+     * @return True if the runner can start the given kind of isolate
      */
-    void setConfiguration(IPlatformConfiguration aPlatformConfiguration);
+    boolean canRun(IIsolateConfiguration.IsolateKind aIsolateKind);
 
     /**
      * Tries to run the isolate described by the given configuration

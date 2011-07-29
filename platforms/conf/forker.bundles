@@ -1,6 +1,9 @@
 # Include the base needed bundles
-include: conf/shell.bundles
-include: conf/ipojo.bundles
+include: conf/common.bundles
+include: conf/psem2m.bundles
 
-# Common bundles
-felix/org.apache.felix.log-1.0.1.jar
+# Forker bundles
+repo/slave.jar
+repo/forker.jar
+repo/endpoint.rose.jar
+repo/exporter.jar

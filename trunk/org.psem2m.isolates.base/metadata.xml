@@ -3,39 +3,56 @@
 	xsi:schemaLocation="org.apache.felix.ipojo http://felix.apache.org/ipojo/schemas/CURRENT/core.xsd"
 	xmlns="org.apache.felix.ipojo" xmlns:jmx="org.apache.felix.ipojo.handlers.jmx">
 
-	<!-- The logger, specific to the bundle
-	ATTENTION : like the activator is already instanciate (cf. OSGI actovator),
-	we define the attribute "factory-method" to indicate to iPojo how it retreive
-	the existing instance to "define" the component with it
-	-->
+	<!-- The logger, specific to the bundle ATTENTION : like the activator is 
+		already instantiate (cf. OSGI activator), we define the attribute "factory-method" 
+		to indicate to iPojo how it retrieve the existing instance to "define" the 
+		component with it -->
 	<component classname="org.psem2m.isolates.base.CBundleBaseActivator"
 		architecture="true" immediate="true" name="isolates-base-isolatelogger-factory"
 		factory-method="getInstance">
 
 		<provides specifications="org.psem2m.isolates.base.IIsolateLoggerSvc" />
 
-		<callback transition="validate" method="validatePojo"/>
-		<callback transition="invalidate" method="invalidatePojo"/>
+		<callback transition="validate" method="validatePojo" />
+		<callback transition="invalidate" method="invalidatePojo" />
 	</component>
 
-
-
-	<!-- The PlatformDirs service -->
+	<!-- The platform directories service -->
 	<component classname="org.psem2m.isolates.base.impl.CPlatformDirsSvc"
-		architecture="true" immediate="true" name="isolates-base-platform-dirs-factory">
-		<provides />
-		<requires field="pIsolateLoggerSvc" optional="false"
-			from ="isolates-base-isolatelogger" />
+		architecture="true" immediate="true" name="isolates-base-platform-dirs-factory"
+		public="false">
 
-		<callback transition="validate" method="validatePojo"/>
-		<callback transition="invalidate" method="invalidatePojo"/>
+		<provides specifications="org.psem2m.isolates.base.IPlatformDirsSvc" />
+
+		<requires field="pIsolateLoggerSvc" optional="false"
+			from="isolates-base-isolatelogger" />
+
+		<callback transition="validate" method="validatePojo" />
+		<callback transition="invalidate" method="invalidatePojo" />
 	</component>
 
+	<!-- The bundle finder service -->
+	<component classname="org.psem2m.isolates.base.bundles.impl.CBundleFinderSvc"
+		architecture="true" immediate="true" name="isolates-base-bundle-finder-factory"
+		public="false">
 
+		<provides specifications="org.psem2m.isolates.base.bundles.IBundleFinderSvc" />
+
+		<requires field="pIsolateLoggerSvc" optional="false"
+			from="isolates-base-isolatelogger" />
+		<requires field="pPlatformDirsSvc" optional="false" />
+
+		<callback transition="validate" method="validatePojo" />
+		<callback transition="invalidate" method="invalidatePojo" />
+	</component>
+
+	<!-- Instances -->
 	<instance component="isolates-base-isolatelogger-factory"
 		name="isolates-base-isolatelogger" />
 
 	<instance component="isolates-base-platform-dirs-factory"
 		name="isolates-base-platform-dirs" />
 
+	<instance component="isolates-base-bundle-finder-factory"
+		name="isolates-base-bundle-finder" />
 </ipojo>

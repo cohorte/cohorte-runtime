@@ -7,79 +7,50 @@ package org.psem2m.isolates.commons;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.psem2m.isolates.commons.impl.BundleRef;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.ServiceReference;
 
 /**
  * Various utility methods
  * 
  * @author Thomas Calmant
  */
-public class Utilities {
+public final class Utilities {
 
     /**
-     * Searches for a bundle according to the given possible names. It looks in
-     * the local directory, then in platform repository if needed.
+     * Tries to load the given class by looking into all available bundles.
      * 
-     * @param aPlatformConfiguration
-     *            Platform configuration
-     * @param aPossibleNames
-     *            Possible file names for the bundle
-     * @return A file reference to the bundle, null if not found
+     * @param aBundles
+     *            An array containing all bundles to search into
+     * @param aClassName
+     *            Name of the class to load
+     * @return The searched class, null if not found
      */
-    public static IBundleRef findBundle(
-	    final IPlatformConfiguration aPlatformConfiguration,
-	    final String... aPossibleNames) {
+    public static Class<?> findClassInBundles(final Bundle[] aBundles,
+	    final String aClassName) {
 
-	if (aPlatformConfiguration == null || aPossibleNames == null
-		|| aPossibleNames.length == 0) {
+	if (aBundles == null) {
 	    return null;
 	}
 
-	final String repository = aPlatformConfiguration
-		.getRepositoryDirectory() + File.separator;
+	for (Bundle bundle : aBundles) {
 
-	for (String name : aPossibleNames) {
+	    // Only work with RESOLVED and ACTIVE bundles
+	    int bundleState = bundle.getState();
+	    if (bundleState == Bundle.ACTIVE || bundleState == Bundle.RESOLVED) {
+		try {
+		    return bundle.loadClass(aClassName);
 
-	    // Test 'local' File
-	    File bundleFile = new File(name);
-	    if (bundleFile.exists()) {
-		return new BundleRef(name, bundleFile);
-	    }
-
-	    // Test 'repository' file
-	    bundleFile = new File(repository + name);
-	    if (bundleFile.exists()) {
-		return new BundleRef(name, bundleFile);
-	    }
-
-	    // Test URI
-	    try {
-		URI bundleUri = new URI(name);
-		URL bundleUrl = bundleUri.toURL();
-
-		if (bundleUrl.getProtocol().equals("file")) {
-
-		    bundleFile = new File(bundleUri.getPath());
-		    if (bundleFile.exists()) {
-			return new BundleRef(name, bundleFile);
-		    }
+		} catch (ClassNotFoundException e) {
+		    // Class not found, try next bundle...
 		}
-
-	    } catch (MalformedURLException e) {
-		// Do nothing, we're determining the kind of element
-	    } catch (URISyntaxException e) {
-		// Do nothing, we're determining the kind of element
-	    } catch (IllegalArgumentException e) {
-		// Do nothing, the URI is not absolute
 	    }
 	}
 
-	// Bundle not found
 	return null;
     }
 
@@ -94,6 +65,27 @@ public class Utilities {
 
 	return aClass.getResource('/' + aClass.getName().replace('.', '/')
 		+ ".class");
+    }
+
+    /**
+     * Retrieves the service properties as a map
+     * 
+     * @param aServiceReference
+     *            A reference to the service
+     * @return The service properties
+     */
+    public static Map<String, String> getServiceProperties(
+	    final ServiceReference aServiceReference) {
+
+	Map<String, String> serviceProperties = new HashMap<String, String>();
+
+	String[] propertyKeys = aServiceReference.getPropertyKeys();
+	for (String key : propertyKeys) {
+	    serviceProperties.put(key,
+		    String.valueOf(aServiceReference.getProperty(key)));
+	}
+
+	return serviceProperties;
     }
 
     /**
@@ -184,5 +176,12 @@ public class Utilities {
 	}
 
 	return directory;
+    }
+
+    /**
+     * Hide the constructor of a utility class
+     */
+    private Utilities() {
+	// Hide constructor
     }
 }

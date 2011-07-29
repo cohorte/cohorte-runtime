@@ -16,27 +16,32 @@ package org.psem2m.isolates.base;
  */
 public interface IPlatformProperties {
 
-	/**
-	 * contains the absolute path of the BASE folder of the current application
-	 */
-	public final static String PROP_PLATFORM_BASE = "org.psem2m.platform.base";
+    /**
+     * contains the absolute path of the BASE folder of the current application
+     */
+    public final static String PROP_PLATFORM_BASE = "org.psem2m.platform.base";
 
-	/**
-	 * contains the id of the current isolates.
-	 * 
-	 * <pre>
-	 * -Dorg.psem2m.platform.isolate.id=development
-	 * </pre>
-	 */
-	public final static String PROP_PLATFORM_ISOLATE_ID = "org.psem2m.platform.isolate.id";
+    /**
+     * contains the absolute path of the HOME folder of the current application
+     */
+    public final static String PROP_PLATFORM_HOME = "org.psem2m.platform.home";
 
-	/**
-	 * if "true", allows the redirection of the output of the osgi logservice in
-	 * the logger of the current isolate.
-	 * 
-	 * <pre>
-	 * -Dorg.psem2m.platform.isolate.redirect.logservice=true
-	 * </pre>
-	 */
-	public final static String PROP_PLATFORM_REDIRECT_LOGSVC = "org.psem2m.platform.isolate.redirect.logservice";
+    /**
+     * contains the id of the current isolates.
+     * 
+     * <pre>
+     * -Dorg.psem2m.platform.isolate.id=development
+     * </pre>
+     */
+    public final static String PROP_PLATFORM_ISOLATE_ID = "org.psem2m.platform.isolate.id";
+
+    /**
+     * if "true", allows the redirection of the output of the osgi logservice in
+     * the logger of the current isolate.
+     * 
+     * <pre>
+     * -Dorg.psem2m.platform.isolate.redirect.logservice=true
+     * </pre>
+     */
+    public final static String PROP_PLATFORM_REDIRECT_LOGSVC = "org.psem2m.platform.isolate.redirect.logservice";
 }
