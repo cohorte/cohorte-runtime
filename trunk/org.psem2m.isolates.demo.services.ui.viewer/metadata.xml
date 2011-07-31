@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ipojo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="org.apache.felix.ipojo http://felix.apache.org/ipojo/schemas/CURRENT/core.xsd"
+	xmlns="org.apache.felix.ipojo" xmlns:jmx="org.apache.felix.ipojo.handlers.jmx">
+
+	<!-- The logger, specific to the bundle ATTENTION : like the activator is
+		already instanciate (cf. OSGI actovator), we define the attribute "factory-method"
+		to indicate to iPojo how it retreive the existing instance to "define" the
+		component with it -->
+	<component
+		classname="org.psem2m.isolates.demo.services.ui.viewer.CBundleUiActivator"
+		architecture="true" immediate="true"
+		name="isolates-servicesuiviewer-isolatelogger-factory"
+		factory-method="getInstance">
+
+		<provides specifications="org.psem2m.isolates.base.IIsolateLoggerSvc" />
+
+		<callback transition="validate" method="validatePojo" />
+		<callback transition="invalidate" method="invalidatePojo" />
+	</component>
+
+
+
+	<!-- The UI service -->
+	<component classname="org.psem2m.isolates.demo.services.ui.viewer.impl.CUiSvc"
+		architecture="true" immediate="true"
+		name="isolates-servicesuiviewer-ui-factory">
+
+		<provides specifications="org.psem2m.isolates.demo.services.ui.viewer.IUiSvc" />
+
+		<requires field="pIsolateLoggerSvc" optional="false"
+			from="isolates-servicesuiviewer-isolatelogger" />
+
+		<requires field="pPlatformDirsSvc" optional="false" />
+
+
+		<callback transition="validate" method="validatePojo" />
+		<callback transition="invalidate" method="invalidatePojo" />
+	</component>
+
+
+	<instance component="isolates-servicesuiviewer-isolatelogger-factory"
+		name="isolates-servicesuiviewer-isolatelogger" />
+
+	<instance component="isolates-servicesuiviewer-ui-factory"
+		name="isolates-servicesuiviewer-ui" />
+
+</ipojo>
