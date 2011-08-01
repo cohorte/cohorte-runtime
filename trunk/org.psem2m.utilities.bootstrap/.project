@@ -32,4 +32,11 @@
 		<nature>org.eclipse.pde.PluginNature</nature>
 		<nature>org.psem2m.eclipse.ipojo.iPojoNature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>src/org/psem2m/isolates/base/boot/IsolateStatus.java</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/org.psem2m.isolates.base/src/org/psem2m/isolates/base/boot/IsolateStatus.java</locationURI>
+		</link>
+	</linkedResources>
 </projectDescription>
