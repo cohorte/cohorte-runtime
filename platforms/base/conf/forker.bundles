@@ -1,0 +1,13 @@
+# Include the base needed bundles
+include: conf/common.bundles
+include: conf/psem2m.bundles
+
+# Forker bundles
+org.psem2m.isolates.slave.agent
+org.psem2m.isolates.forker
+
+# Rose endpoint
+org.psem2m.remote.endpoint.rose
+
+# PSEM2M Exporter
+org.psem2m.isolates.remote.exporter

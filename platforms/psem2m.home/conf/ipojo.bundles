@@ -1,0 +1,9 @@
+# iPOJO Core
+org.apache.felix.ipojo
+
+# Whiteboard pattern
+org.apache.felix.ipojo.handler.whiteboard
+
+# JMX
+org.apache.felix.ipojo.handler.extender
+org.apache.felix.ipojo.handler.jmx

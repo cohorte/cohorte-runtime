@@ -1,0 +1,23 @@
+# jUnit, needed by utilities
+org.apache.felix.ipojo.junit4osgi
+
+# Rose
+org.ow2.chameleon.rose.core
+log4j
+commons-logging
+
+# No symbolic name for those two ones
+felix/org.apache.servicemix.bundles.commons-codec-1.3_4.jar
+felix/org.apache.servicemix.bundles.commons-httpclient-3.1_6.jar
+
+# Rose (suite)
+org.ow2.chameleon.commons.jabsorb
+jabsorb-client-factory
+jabsorb-endpoint-factory
+
+# PSEM2M Bundles
+org.psem2m.isolates.utilities
+org.psem2m.isolates.base
+org.psem2m.isolates.commons
+org.psem2m.isolates.loggers
+org.psem2m.isolates.config

@@ -1,6 +1,6 @@
 # Felix Shell bundles
-felix/org.apache.felix.shell-1.4.2.jar
+org.apache.felix.shell
 # felix/org.apache.felix.shell.tui-1.4.1.jar
 
 # Include the remote shell
-felix/org.apache.felix.shell.remote-1.1.2.jar
+org.apache.felix.shell.remote

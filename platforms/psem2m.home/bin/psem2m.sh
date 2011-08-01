@@ -17,10 +17,11 @@ PROP_PLATFORM_BASE="org.psem2m.platform.base"
 # Platform folders
 DIR_CONF="conf"
 DIR_REPO="repo"
-FELIX_CACHE="felix-cache"
+DIR_WORK="var/work"
+DIR_WORK_FORKER="var/forker"
 
 # Forker script file (relative to FORKER_BASE)
-FORKER_SCRIPT_FILE="/var/run_forker.sh"
+FORKER_SCRIPT_FILE="var/run_forker.sh"
 FORKER_PROVISION_FILENAME=forker.bundles
 FORKER_FRAMEWORK_FILENAME=forker.framework
 
@@ -40,7 +41,7 @@ find_conf_file() {
 
     local conf_folders="$PSEM2M_BASE/$DIR_CONF $PSEM2M_HOME/$DIR_CONF $PLATFORM_EXTRA_CONF_FOLDERS"
 
-    local conf_file=`find $conf_folders -name $1 -print -quit 2>/dev/null`
+    local conf_file=`find -L $conf_folders -name $1 -print -quit 2>/dev/null`
     if [ -z $conf_file ]
     then
         return 1
@@ -55,7 +56,7 @@ find_conf_file() {
 #
 find_bundle_file() {
 
-    local bundle_file=`find $1 $PSEM2M_BASE/$DIR_REPO $PSEM2M_HOME/$DIR_REPO -name $1 -print -quit 2>/dev/null`
+    local bundle_file=`find -L $1 $PSEM2M_BASE/$DIR_REPO $PSEM2M_HOME/$DIR_REPO -name $1 -print -quit 2>/dev/null`
     if [ -e $bundle_file ]
     then
         echo $bundle_file
@@ -85,7 +86,8 @@ read_framework_file() {
 #
 start() {
     echo "Cleaning cache..."
-    rm -fr $FELIX_CACHE
+    rm -fr $PSEM2M_BASE/$DIR_WORK
+    rm -fr $PSEM2M_BASE/$DIR_WORK_FORKER
 
     echo "Starting platform..."
     local MONITOR_PID_FILE="$PSEM2M_BASE/var/monitor.pid"

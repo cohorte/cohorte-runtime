@@ -1,9 +1,0 @@
-# Include the base needed bundles
-include: conf/common.bundles
-include: conf/psem2m.bundles
-
-# Forker bundles
-repo/slave.jar
-repo/forker.jar
-repo/endpoint.rose.jar
-repo/exporter.jar

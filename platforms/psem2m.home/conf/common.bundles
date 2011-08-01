@@ -1,11 +1,11 @@
 # OSGi Compendium 4.2
-felix/org.osgi.compendium-4.2.0.jar
+osgi.cmpn
 
 # Log Service
-felix/org.apache.felix.log-1.0.1.jar
+org.apache.felix.log
 
 # HTTP Service
-felix/org.apache.felix.http.bundle-2.2.0.jar
+org.apache.felix.http.bundle
 
 # Felix Shell
 include: conf/shell.bundles

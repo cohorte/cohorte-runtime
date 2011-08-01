@@ -3,6 +3,6 @@ include: conf/common.bundles
 include: conf/psem2m.bundles
 
 # Monitor bundles
-repo/client.rose.jar
-repo/importer.jar
-repo/master.manager.jar
+org.psem2m.remote.client.rose
+org.psem2m.isolates.remote.importer
+org.psem2m.isolates.master.manager
