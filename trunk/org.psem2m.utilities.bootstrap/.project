@@ -21,12 +21,13 @@
 			</arguments>
 		</buildCommand>
 		<buildCommand>
-			<name>org.psem2m.eclipse.ipojo.ipojoBuilder</name>
+			<name>org.ow2.chameleon.eclipse.ipojo.ipojoBuilder</name>
 			<arguments>
 			</arguments>
 		</buildCommand>
 	</buildSpec>
 	<natures>
+		<nature>org.ow2.chameleon.eclipse.ipojo.iPojoNature</nature>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 		<nature>org.eclipse.pde.PluginNature</nature>
 		<nature>org.psem2m.eclipse.ipojo.iPojoNature</nature>
