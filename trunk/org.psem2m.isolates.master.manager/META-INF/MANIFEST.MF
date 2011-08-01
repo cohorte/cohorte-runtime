@@ -20,6 +20,7 @@ Import-Package: org.apache.felix.ipojo;version="1.8.0",
  org.psem2m.isolates.commons.forker;version="1.0.0",
  org.psem2m.isolates.config,
  org.psem2m.utilities,
+ org.psem2m.utilities.files,
  org.psem2m.utilities.logging
 iPOJO-Components: component { $immediate="true" $name="isolates-master
  -manager-logger-factory" $classname="org.psem2m.isolates.master.manag
