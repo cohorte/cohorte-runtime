@@ -8,9 +8,9 @@ Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
 Import-Package: org.osgi.service.log;version=1.3, org.psem2m.isolates.
  commons.remote;version=1.0.0, org.psem2m.isolates.base;version=1.0.0,
-  org.apache.felix.ipojo.architecture;version= 1.8.0, org.apache.felix
- .ipojo;version= 1.8.0, org.osgi.framework;version=1.5.0, org.osgi.ser
- vice.cm;version=1.2, org.psem2m.utilities.files, org.psem2m.utilities
+  org.apache.felix.ipojo.architecture;version=1.8.0, org.apache.felix.
+ ipojo;version=1.8.0, org.osgi.framework;version=1.5.0, org.osgi.servi
+ ce.cm;version=1.2, org.psem2m.utilities.files, org.psem2m.utilities
 iPOJO-Components: component { $immediate="true" $name="remote-endpoint
  s-directory-factory" $classname="org.psem2m.remote.endpoints.director
  y.impl.file.FileDirectory" $architecture="true" $public="false" callb
