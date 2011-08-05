@@ -19,16 +19,20 @@ iPOJO-Components: component { $immediate="true" $name="remote-endpoint
  ons="org.psem2m.remote.endpoints.directory.IEndpointDirectory" }manip
  ulation { $super="org.psem2m.isolates.base.CPojoBase" field { $name="
  pContentHandler" $type="org.psem2m.remote.endpoints.directory.IDirect
- oryContentHandler" }field { $name="platformDirsSvc" $type="org.psem2m
- .isolates.base.IPlatformDirsSvc" }method { $name="$init" }method { $a
- rguments="{org.osgi.framework.ServiceReference,org.psem2m.isolates.co
- mmons.remote.EndpointDescription}" $name="addEndpoint" }method { $nam
- e="destroy" }method { $arguments="{java.lang.String}" $name="findEndp
- oints" $return="org.psem2m.isolates.commons.remote.EndpointDescriptio
- n[]" }method { $name="invalidatePojo" }method { $arguments="{org.psem
- 2m.isolates.commons.remote.EndpointDescription}" $name="removeEndpoin
- t" }method { $name="validatePojo" }interface { $name="org.psem2m.remo
- te.endpoints.directory.IEndpointDirectory" }}}instance { $component="
- remote-endpoints-directory-factory" $name="remote-endpoints-directory
- " }
+ oryContentHandler" }field { $name="pLastKnownState" $type="java.util.
+ List" }field { $name="pFilePoller" $type="org.psem2m.remote.endpoints
+ .directory.impl.file.FilePoller" }field { $name="platformDirsSvc" $ty
+ pe="org.psem2m.isolates.base.IPlatformDirsSvc" }method { $name="$init
+ " }method { $arguments="{org.osgi.framework.ServiceReference,org.psem
+ 2m.isolates.commons.remote.EndpointDescription}" $name="addEndpoint" 
+ }method { $name="destroy" }method { $name="directoryModified" }method
+  { $arguments="{java.lang.String}" $name="findEndpoints" $return="org
+ .psem2m.isolates.commons.remote.EndpointDescription[]" }method { $nam
+ e="invalidatePojo" }method { $arguments="{org.psem2m.isolates.commons
+ .remote.EndpointDescription}" $name="removeEndpoint" }method { $name=
+ "validatePojo" }interface { $name="org.psem2m.remote.endpoints.direct
+ ory.IEndpointDirectory" }interface { $name="org.psem2m.remote.endpoin
+ ts.directory.IEndpointDirectoryListener" }}}instance { $component="re
+ mote-endpoints-directory-factory" $name="remote-endpoints-directory" 
+ }
 

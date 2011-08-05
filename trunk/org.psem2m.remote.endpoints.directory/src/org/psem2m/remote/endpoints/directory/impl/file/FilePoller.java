@@ -108,5 +108,8 @@ public class FilePoller extends Thread {
 				notifyListeners();
 			}
 		}
+
+		// Clear the listeners list (no more usage of this thread)
+		pListeners.clear();
 	}
 }

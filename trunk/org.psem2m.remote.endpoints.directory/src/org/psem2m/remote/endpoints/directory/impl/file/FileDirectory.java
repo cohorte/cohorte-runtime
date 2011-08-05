@@ -15,6 +15,7 @@ import org.psem2m.isolates.base.IPlatformDirsSvc;
 import org.psem2m.isolates.commons.remote.EndpointDescription;
 import org.psem2m.remote.endpoints.directory.IDirectoryContentHandler;
 import org.psem2m.remote.endpoints.directory.IEndpointDirectory;
+import org.psem2m.remote.endpoints.directory.IEndpointDirectoryListener;
 import org.psem2m.utilities.files.CXFile;
 import org.psem2m.utilities.files.CXFileDir;
 
@@ -24,7 +25,8 @@ import org.psem2m.utilities.files.CXFileDir;
  * 
  * @author Thomas Calmant
  */
-public class FileDirectory extends CPojoBase implements IEndpointDirectory {
+public class FileDirectory extends CPojoBase implements IEndpointDirectory,
+		IEndpointDirectoryListener {
 
 	/** End points directory file name, relative to $PSEM2M_BASE */
 	public static final String DIRECTORY_FILE_NAME = "var" + File.separator
@@ -32,6 +34,12 @@ public class FileDirectory extends CPojoBase implements IEndpointDirectory {
 
 	/** Directory content handler */
 	private IDirectoryContentHandler pContentHandler;
+
+	/** Directory file watcher thread */
+	private FilePoller pFilePoller;
+
+	/** Last known end points list content */
+	private List<EndpointDescription> pLastKnownState;
 
 	/** Platform directories service, injected by iPOJO */
 	private IPlatformDirsSvc platformDirsSvc;
@@ -66,6 +74,44 @@ public class FileDirectory extends CPojoBase implements IEndpointDirectory {
 	@Override
 	public void destroy() {
 		// ...
+	}
+
+	@Override
+	public synchronized void directoryModified() {
+
+		List<EndpointDescription> newContent;
+		try {
+			newContent = pContentHandler.getEndpoints();
+
+		} catch (IOException e) {
+			// Error reading end points list : file deleted ?
+			return;
+		}
+
+		// Look for new end points
+		List<EndpointDescription> addedEndpoints = new ArrayList<EndpointDescription>();
+		for (EndpointDescription endpoint : newContent) {
+			if (!pLastKnownState.contains(endpoint)) {
+				addedEndpoints.add(endpoint);
+			}
+		}
+
+		// Look for removed end points
+		List<EndpointDescription> removedEndpoints = new ArrayList<EndpointDescription>();
+		for (EndpointDescription endpoint : pLastKnownState) {
+			if (!newContent.contains(endpoint)) {
+				removedEndpoints.add(endpoint);
+			}
+		}
+
+		// Update last known state
+		pLastKnownState = newContent;
+
+		System.out.println("The directory has been modified - "
+				+ addedEndpoints.size() + " new end points, "
+				+ removedEndpoints.size() + " removed end points");
+
+		// TODO propagate the modifications
 	}
 
 	@Override
@@ -113,6 +159,7 @@ public class FileDirectory extends CPojoBase implements IEndpointDirectory {
 	@Override
 	public void invalidatePojo() throws BundleException {
 		// do nothing...
+		pFilePoller.interrupt();
 		System.out.println("RSR Gone");
 	}
 
@@ -142,6 +189,20 @@ public class FileDirectory extends CPojoBase implements IEndpointDirectory {
 		CXFile repositoryFile = new CXFile(baseDir, DIRECTORY_FILE_NAME);
 
 		pContentHandler = new FileContentHandler(repositoryFile);
+
+		// Try to store the initial state
+		try {
+			pLastKnownState = pContentHandler.getEndpoints();
+
+		} catch (IOException e) {
+			// No file yet ?
+			pLastKnownState = new ArrayList<EndpointDescription>();
+		}
+
+		pFilePoller = new FilePoller(repositoryFile, 1000);
+		pFilePoller.addDirectoryListener(this);
+		pFilePoller.start();
+
 		System.out.println("RSR Created with file : " + repositoryFile);
 	}
 }
