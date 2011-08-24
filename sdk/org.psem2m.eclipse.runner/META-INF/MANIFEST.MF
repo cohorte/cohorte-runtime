@@ -1,0 +1,20 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: PSEM2M Runner
+Bundle-SymbolicName: org.psem2m.eclipse.runner;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: org.psem2m.eclipse.runner.RunnerPlugin
+Bundle-Vendor: isandlatech.com
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.eclipse.debug.ui,
+ org.eclipse.pde.ui,
+ org.eclipse.ant.core,
+ org.eclipse.ui.ide;bundle-version="3.7.0",
+ org.eclipse.core.variables;bundle-version="3.2.500",
+ org.eclipse.jdt.launching;bundle-version="3.6.0",
+ org.eclipse.jdt.core;bundle-version="3.7.0",
+ org.eclipse.ui.console;bundle-version="3.5.100"
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-ActivationPolicy: lazy
+Export-Package: org.psem2m.eclipse.runner.ui
