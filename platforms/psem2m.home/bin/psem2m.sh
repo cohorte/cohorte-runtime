@@ -14,14 +14,15 @@ PROP_PLATFORM_ISOLATE_ID="org.psem2m.platform.isolate.id"
 PROP_PLATFORM_HOME="org.psem2m.platform.home"
 PROP_PLATFORM_BASE="org.psem2m.platform.base"
 
+PROP_PLATFORM_DEBUG_PORT="org.psem2m.debug.port"
+
 # Platform folders
 DIR_CONF="conf"
 DIR_REPO="repo"
-DIR_WORK="var/work"
-DIR_WORK_FORKER="var/forker"
+FELIX_CACHE="felix-cache"
 
 # Forker script file (relative to FORKER_BASE)
-FORKER_SCRIPT_FILE="var/run_forker.sh"
+FORKER_SCRIPT_FILE="/var/run_forker.sh"
 FORKER_PROVISION_FILENAME=forker.bundles
 FORKER_FRAMEWORK_FILENAME=forker.framework
 
@@ -41,7 +42,7 @@ find_conf_file() {
 
     local conf_folders="$PSEM2M_BASE/$DIR_CONF $PSEM2M_HOME/$DIR_CONF $PLATFORM_EXTRA_CONF_FOLDERS"
 
-    local conf_file=`find -L $conf_folders -name $1 -print -quit 2>/dev/null`
+    local conf_file=`find $conf_folders -name $1 -print -quit 2>/dev/null`
     if [ -z $conf_file ]
     then
         return 1
@@ -56,7 +57,7 @@ find_conf_file() {
 #
 find_bundle_file() {
 
-    local bundle_file=`find -L $1 $PSEM2M_BASE/$DIR_REPO $PSEM2M_HOME/$DIR_REPO -name $1 -print -quit 2>/dev/null`
+    local bundle_file=`find $1 $PSEM2M_BASE/$DIR_REPO $PSEM2M_HOME/$DIR_REPO -name $1 -print -quit 2>/dev/null`
     if [ -e $bundle_file ]
     then
         echo $bundle_file
@@ -86,8 +87,7 @@ read_framework_file() {
 #
 start() {
     echo "Cleaning cache..."
-    rm -fr $PSEM2M_BASE/$DIR_WORK
-    rm -fr $PSEM2M_BASE/$DIR_WORK_FORKER
+    rm -fr $FELIX_CACHE
 
     echo "Starting platform..."
     local MONITOR_PID_FILE="$PSEM2M_BASE/var/monitor.pid"
@@ -128,7 +128,7 @@ start() {
     # Run all
     echo "Running bootstrap..."
     touch $MONITOR_PID_FILE
-    $PSEM2M_JAVA -cp "$BOOTSTRAP_FILE:$framework_bundle_file" $BOOTSTRAP_MAIN_CLASS --human --lines --file="$provision_file" $PROP_PLATFORM_HOME="$PSEM2M_HOME" $PROP_PLATFORM_BASE="$PSEM2M_BASE" $PROP_PLATFORM_ISOLATE_ID="$MONITOR_ISOLATE_ID" org.osgi.service.http.port=9000 org.apache.felix.http.jettyEnabled=true osgi.shell.telnet.port=6000 &
+    $PSEM2M_JAVA $JVM_EXTRA_ARGS -cp "$BOOTSTRAP_FILE:$framework_bundle_file" $BOOTSTRAP_MAIN_CLASS --human --lines --file="$provision_file" $PROP_PLATFORM_HOME="$PSEM2M_HOME" $PROP_PLATFORM_BASE="$PSEM2M_BASE" $PROP_PLATFORM_ISOLATE_ID="$MONITOR_ISOLATE_ID" org.osgi.service.http.port=9000 org.apache.felix.http.jettyEnabled=true osgi.shell.telnet.port=6000 &
     echo $! > $MONITOR_PID_FILE
 
     echo "Started"
@@ -220,7 +220,7 @@ fi
     # Third part : the bootstrap line
     echo "
 # Run the forker isolate
-$PSEM2M_JAVA -cp \"$BOOTSTRAP_FILE:$framework_bundle_file\" $BOOTSTRAP_MAIN_CLASS --human --lines --file=\"$provision_file\" $PROP_PLATFORM_HOME=\"$PSEM2M_HOME\" $PROP_PLATFORM_BASE=\"$PSEM2M_BASE\" $PROP_PLATFORM_ISOLATE_ID=\"$FORKER_ISOLATE_ID\" org.osgi.service.http.port=9001 org.apache.felix.http.jettyEnabled=true osgi.shell.telnet.port=6001 &
+$PSEM2M_JAVA $JVM_FORKER_EXTRA_ARGS -cp \"$BOOTSTRAP_FILE:$framework_bundle_file\" $BOOTSTRAP_MAIN_CLASS --human --lines --file=\"$provision_file\" $PROP_PLATFORM_HOME=\"$PSEM2M_HOME\" $PROP_PLATFORM_BASE=\"$PSEM2M_BASE\" $PROP_PLATFORM_ISOLATE_ID=\"$FORKER_ISOLATE_ID\" org.osgi.service.http.port=9001 org.apache.felix.http.jettyEnabled=true osgi.shell.telnet.port=6001 $PROG_FORKER_EXTRA_ARGS &
 " >> $OUTPUT_FILE
 
     # Fourth (and last) part : the PID file
@@ -230,8 +230,34 @@ echo $! > $FORKER_PID_FILE
 ' >> $OUTPUT_FILE
 }
 
+prepare_debug() {
+
+    DEBUG_MODE=1
+
+    # Monitor arguments
+    local PORT=$PSEM2M_DEBUG_PORT
+    if [ -z $PORT ]
+    then
+        echo "No debug port indicated. Abandon."
+        exit 1
+    fi
+
+    JVM_EXTRA_ARGS="-Xdebug -Xrunjdwp:transport=dt_socket,address=127.0.0.1:$PORT,suspend=y"
+
+    # Forker arguments
+    local PORT=`expr $PORT + 1`
+    JVM_FORKER_EXTRA_ARGS="-Xdebug -Xrunjdwp:transport=dt_socket,address=127.0.0.1:$PORT,suspend=y"
+    PROG_FORKER_EXTRA_ARGS="$PROP_PLATFORM_DEBUG_PORT=$PORT"
+
+    echo "DEBUG MODE..."
+    echo "mono   : $JVM_EXTRA_ARGS"
+    echo "forker : $JVM_FORKER_EXTRA_ARGS"
+    echo "extra  : $PROG_FORKER_EXTRA_ARGS"
+    echo "...DEBUG MODE"
+}
+
 help() {
-    echo "Usage : $0 (start|stop|status|test)"
+    echo "Usage : $0 (start|debug|stop|status|test)"
     return 0
 }
 
@@ -296,6 +322,13 @@ cd $PSEM2M_BASE
 case $1 in
     start)
         echo "========== Start =========="
+        write_forker_starter
+        start
+        ;;
+
+    debug)
+        echo "========== Debug =========="
+        prepare_debug
         write_forker_starter
         start
         ;;
