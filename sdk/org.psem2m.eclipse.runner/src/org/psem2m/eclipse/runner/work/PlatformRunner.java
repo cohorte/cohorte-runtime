@@ -15,9 +15,7 @@ import java.util.Map.Entry;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
-import org.eclipse.debug.core.model.IProcess;
 import org.psem2m.eclipse.runner.RunnerPlugin;
-import org.psem2m.eclipse.runner.ui.OutputConsole;
 
 /**
  * Runs the PSEM2M bootstrap with debug options
@@ -26,17 +24,11 @@ import org.psem2m.eclipse.runner.ui.OutputConsole;
  */
 public class PlatformRunner {
 
-	/** Ouput console name */
-	public static final String CONSOLE_NAME = "PSEM2M Runner";
-
 	/** PSEM2M Base */
 	private String pBase;
 
 	/** Base remote debug port */
 	private int pBaseDebugPort;
-
-	/** Output console */
-	private OutputConsole pConsole;
 
 	/** PSEM2M Home */
 	private String pHome;
@@ -59,9 +51,6 @@ public class PlatformRunner {
 	public PlatformRunner(final String aPlatformHome,
 			final String aPlatformBase, final String aWorkingDirectory,
 			final int aBaseDebugPort) {
-
-		// Prepare the output console
-		pConsole = new OutputConsole(CONSOLE_NAME);
 
 		// Store the port
 		pBaseDebugPort = aBaseDebugPort;
@@ -173,18 +162,12 @@ public class PlatformRunner {
 
 		final String[] environmentArray = convertEnvironmentMapToArray(environmentMap);
 
-		// Prepare a console
-		pConsole.activate();
-
 		// Run it !
-		Process execProcess = DebugPlugin.exec(commandLine, workingDirectory,
-				environmentArray);
+		final Process execProcess = DebugPlugin.exec(commandLine,
+				workingDirectory, environmentArray);
 
-		IProcess streamProcess = DebugPlugin.newProcess(aLaunch, execProcess,
-				commandLine[0]);
-
-		// Handle outputs
-		pConsole.listenStreams(streamProcess.getStreamsProxy());
+		// Add the process to the launch
+		DebugPlugin.newProcess(aLaunch, execProcess, commandLine[0]);
 
 		return execProcess;
 	}
