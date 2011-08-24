@@ -114,8 +114,10 @@ public class RunnerLaunchDelegate implements ILaunchConfigurationDelegate {
 				nbDebugConfigurations);
 
 		try {
-			remoteDebug.createLaunchConfigurations(baseDebugPort);
-			remoteDebug.run();
+			if (debugMode) {
+				remoteDebug.createLaunchConfigurations(baseDebugPort);
+				remoteDebug.run();
+			}
 
 			// Stop if needed
 			if (monitor.isCanceled()) {
@@ -151,8 +153,10 @@ public class RunnerLaunchDelegate implements ILaunchConfigurationDelegate {
 
 		} finally {
 			// Clean up the mess
-			remoteDebug.deleteLaunchConfigurations();
-			remoteDebug.killAll();
+			if (debugMode) {
+				remoteDebug.deleteLaunchConfigurations();
+				remoteDebug.killAll();
+			}
 
 			// End of work
 			monitor.done();

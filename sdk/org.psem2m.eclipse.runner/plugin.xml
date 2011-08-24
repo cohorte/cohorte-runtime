@@ -6,7 +6,7 @@
       <launchConfigurationType
             delegate="org.psem2m.eclipse.runner.work.RunnerLaunchDelegate"
             id="org.psem2m.eclipse.runner.psem2mLaunchConfigurationType"
-            modes="debug"
+            modes="run, debug"
             name="PSEM2M Runner"
             public="true">
       </launchConfigurationType>

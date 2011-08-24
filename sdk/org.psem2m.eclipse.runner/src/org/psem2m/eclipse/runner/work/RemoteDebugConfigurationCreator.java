@@ -38,6 +38,7 @@ public class RemoteDebugConfigurationCreator {
 	/** The list of current configurations */
 	private final List<ILaunchConfiguration> pLaunchConfigurations = new ArrayList<ILaunchConfiguration>();
 
+	/** List of launched debuggers */
 	private List<ILaunch> pLaunchList = new ArrayList<ILaunch>();
 
 	/** The number of configurations to set up */
