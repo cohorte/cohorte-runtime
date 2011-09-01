@@ -18,33 +18,40 @@ import org.psem2m.isolates.forker.IBundleForkerLoggerSvc;
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
-public class CBundleForkerLoggerSvc extends CBundleLoggerBase
-		implements IBundleForkerLoggerSvc {
+public class CBundleForkerLoggerSvc extends CBundleLoggerBase implements
+	IBundleForkerLoggerSvc {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.isolates.base.CPojoBase#invalidatePojo()
-	 */
-	@Override
-	public void invalidatePojo() {
-		// logs in the bundle output
-		logInfo(this, "invalidatePojo", "INVALIDATE", toDescription());
+    /**
+     * 
+     */
+    public CBundleForkerLoggerSvc() {
+	super();
+    }
 
-		setActivityLoggerBase(null);
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.base.CPojoBase#invalidatePojo()
+     */
+    @Override
+    public void invalidatePojo() {
+	// logs in the bundle output
+	logInfo(this, "invalidatePojo", "INVALIDATE", toDescription());
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.isolates.base.CPojoBase#validatePojo()
-	 */
-	@Override
-	public void validatePojo() {
-		setActivityLoggerBase(CBundleForkerActivator.getInstance());
+	setActivityLoggerBase(null);
+    }
 
-		// logs in the bundle output
-		logInfo(this, "validatePojo", "VALIDATE", toDescription());
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.base.CPojoBase#validatePojo()
+     */
+    @Override
+    public void validatePojo() {
+	setActivityLoggerBase(CBundleForkerActivator.getInstance());
+
+	// logs in the bundle output
+	logInfo(this, "validatePojo", "VALIDATE", toDescription());
+    }
 
 }

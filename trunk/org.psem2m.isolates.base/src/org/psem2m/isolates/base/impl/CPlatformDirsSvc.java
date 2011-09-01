@@ -139,24 +139,41 @@ public class CPlatformDirsSvc extends CPojoBase implements IPlatformDirsSvc,
 	List<String> command = new ArrayList<String>();
 
 	// Prepare the final script name
-	StringBuilder scriptFileName = new StringBuilder(
+	final StringBuilder scriptFileNameBuilder = new StringBuilder(
 		FORKER_SCRIPT_BASE_NAME);
 
 	// Interpreter and script extension depends on the system
 	if (CXOSUtils.isOsWindowsFamily()) {
 	    command.addAll(Arrays.asList(SCRIPT_WINDOWS_COMMAND));
-	    scriptFileName.append(".bat");
+	    scriptFileNameBuilder.append(".bat");
 
 	} else {
 	    command.addAll(Arrays.asList(SCRIPT_LINUX_COMMAND));
-	    scriptFileName.append(".sh");
+	    scriptFileNameBuilder.append(".sh");
 	}
 
 	// Finish with the script file name
-	CXFileDir varDirectory = new CXFileDir(getCurrentPlatformBase(),
-		VAR_DIRECTORY);
-	CXFile scriptFile = new CXFile(varDirectory, scriptFileName.toString());
-	command.add(scriptFile.getAbsolutePath());
+	final String scriptFileName = scriptFileNameBuilder.toString();
+	final String[] possibleDirectories = { System.getProperty("user.dir"),
+		getCurrentPlatformBase(), getCurrentPlatformHome() };
+	boolean scriptFound = false;
+
+	for (String platformDirectory : possibleDirectories) {
+
+	    CXFileDir varDirectory = new CXFileDir(platformDirectory,
+		    VAR_DIRECTORY);
+	    CXFile scriptFile = new CXFile(varDirectory, scriptFileName);
+
+	    if (scriptFile.exists()) {
+		command.add(scriptFile.getAbsolutePath());
+		scriptFound = true;
+		break;
+	    }
+	}
+
+	if (!scriptFound) {
+	    return null;
+	}
 
 	return command;
     }

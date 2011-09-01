@@ -42,7 +42,7 @@ find_conf_file() {
 
     local conf_folders="$PSEM2M_BASE/$DIR_CONF $PSEM2M_HOME/$DIR_CONF $PLATFORM_EXTRA_CONF_FOLDERS"
 
-    local conf_file=`find $conf_folders -name $1 -print -quit 2>/dev/null`
+    local conf_file=`find -L $conf_folders -name $1 -print -quit 2>/dev/null`
     if [ -z $conf_file ]
     then
         return 1
@@ -57,7 +57,7 @@ find_conf_file() {
 #
 find_bundle_file() {
 
-    local bundle_file=`find $1 $PSEM2M_BASE/$DIR_REPO $PSEM2M_HOME/$DIR_REPO -name $1 -print -quit 2>/dev/null`
+    local bundle_file=`find -L $1 $PSEM2M_BASE/$DIR_REPO $PSEM2M_HOME/$DIR_REPO -name $1 -print -quit 2>/dev/null`
     if [ -e $bundle_file ]
     then
         echo $bundle_file
@@ -82,12 +82,18 @@ read_framework_file() {
     fi
 }
 
+clear_cache() {
+    rm -fr "./var/work"
+    rm -fr "$PSEM2M_BASE/var/work"
+    rm -fr "$PSEM2M_HOME/var/work"
+}
+
 #
 # Start function
 #
 start() {
     echo "Cleaning cache..."
-    rm -fr $FELIX_CACHE
+    clear_cache
 
     echo "Starting platform..."
     local MONITOR_PID_FILE="$PSEM2M_BASE/var/monitor.pid"
