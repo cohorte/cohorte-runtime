@@ -25,16 +25,16 @@ import org.psem2m.eclipse.runner.RunnerPlugin;
 public class PlatformRunner {
 
 	/** PSEM2M Base */
-	private String pBase;
+	private File pBase;
 
 	/** Base remote debug port */
 	private int pBaseDebugPort;
 
 	/** PSEM2M Home */
-	private String pHome;
+	private File pHome;
 
 	/** Working directory */
-	private String pWorkingDirectory;
+	private File pWorkingDirectory;
 
 	/**
 	 * Sets up the bootstrap runner
@@ -48,29 +48,28 @@ public class PlatformRunner {
 	 * @param aBaseDebugPort
 	 *            Base remote debug port
 	 */
-	public PlatformRunner(final String aPlatformHome,
-			final String aPlatformBase, final String aWorkingDirectory,
-			final int aBaseDebugPort) {
+	public PlatformRunner(final File aPlatformHome, final File aPlatformBase,
+			final File aWorkingDir, final int aBaseDebugPort) {
 
 		// Store the port
 		pBaseDebugPort = aBaseDebugPort;
 
 		// Prepare home and base directories
 		pHome = aPlatformHome;
-		if (pHome == null || pHome.isEmpty()) {
+		if (pHome == null) {
 			// Use a default value here
-			pHome = System.getProperty("user.home");
+			pHome = new File(System.getProperty("user.home"));
 		}
 
 		pBase = aPlatformBase;
-		if (pBase == null || pHome.isEmpty()) {
+		if (pBase == null) {
 			// Use home as base if needed
 			pBase = pHome;
 		}
 
 		// Prepare working directory
-		pWorkingDirectory = aWorkingDirectory;
-		if (pWorkingDirectory == null || pWorkingDirectory.isEmpty()) {
+		pWorkingDirectory = aWorkingDir;
+		if (pWorkingDirectory == null) {
 			pWorkingDirectory = pBase;
 		}
 	}
@@ -142,9 +141,8 @@ public class PlatformRunner {
 			throws CoreException {
 
 		// Prepare working directory
-		final File workingDirectory = new File(pWorkingDirectory);
-		if (!workingDirectory.exists()) {
-			workingDirectory.mkdirs();
+		if (!pWorkingDirectory.exists()) {
+			pWorkingDirectory.mkdirs();
 		}
 
 		// Prepare arguments
@@ -152,8 +150,8 @@ public class PlatformRunner {
 
 		// Prepare environment
 		final Map<String, String> environmentMap = new HashMap<String, String>();
-		environmentMap.put("PSEM2M_HOME", pHome);
-		environmentMap.put("PSEM2M_BASE", pBase);
+		environmentMap.put("PSEM2M_HOME", pHome.getAbsolutePath());
+		environmentMap.put("PSEM2M_BASE", pBase.getAbsolutePath());
 
 		if (aDebugMode) {
 			environmentMap.put("PSEM2M_DEBUG_PORT",
@@ -164,7 +162,7 @@ public class PlatformRunner {
 
 		// Run it !
 		final Process execProcess = DebugPlugin.exec(commandLine,
-				workingDirectory, environmentArray);
+				pWorkingDirectory, environmentArray);
 
 		// Add the process to the launch
 		DebugPlugin.newProcess(aLaunch, execProcess, commandLine[0]);

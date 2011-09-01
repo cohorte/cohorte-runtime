@@ -5,12 +5,15 @@
  */
 package org.psem2m.eclipse.runner.work;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.variables.IStringVariableManager;
+import org.eclipse.core.variables.VariablesPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
@@ -26,6 +29,44 @@ import org.psem2m.eclipse.runner.RunnerPlugin;
  * @author Thomas Calmant
  */
 public class RunnerLaunchDelegate implements ILaunchConfigurationDelegate {
+
+	/**
+	 * Extends the given location string if it contains Eclipse variables. The
+	 * target must be a directory.
+	 * 
+	 * Converts workspace relative and other Eclipse special path variables to
+	 * their real file system target.
+	 * 
+	 * @param aLocation
+	 *            A location that could contain Eclipse variables
+	 * @return The target directory File object, null on error
+	 */
+	protected File getExtendedPath(final String aLocation) {
+
+		if (aLocation == null) {
+			return null;
+		}
+
+		final IStringVariableManager varMan = VariablesPlugin.getDefault()
+				.getStringVariableManager();
+
+		try {
+			String expandedLocation = varMan
+					.performStringSubstitution(aLocation);
+
+			if (expandedLocation.length() > 0) {
+				File path = new File(expandedLocation);
+				if (path.isDirectory()) {
+					return path;
+				}
+			}
+
+		} catch (CoreException ex) {
+			// Do nothing...
+		}
+
+		return null;
+	}
 
 	/**
 	 * Retrieves the list of plug-ins to export
@@ -72,23 +113,24 @@ public class RunnerLaunchDelegate implements ILaunchConfigurationDelegate {
 		final boolean debugMode = ILaunchManager.DEBUG_MODE.equals(aMode);
 
 		// Retrieve PSEM2M home and base
-		final String platformHome = aConfiguration.getAttribute(
-				IRunnerConfigurationConstants.PSEM2M_HOME, (String) null);
+		final File platformHome = getExtendedPath(aConfiguration.getAttribute(
+				IRunnerConfigurationConstants.PSEM2M_HOME, (String) null));
 
-		final String platformBase = aConfiguration.getAttribute(
-				IRunnerConfigurationConstants.PSEM2M_BASE, (String) null);
+		final File platformBase = getExtendedPath(aConfiguration.getAttribute(
+				IRunnerConfigurationConstants.PSEM2M_BASE, (String) null));
 
-		final String workingDir = aConfiguration.getAttribute(
-				IRunnerConfigurationConstants.WORKING_DIRECTORY, (String) null);
+		final File workingDir = getExtendedPath(aConfiguration.getAttribute(
+				IRunnerConfigurationConstants.WORKING_DIRECTORY, (String) null));
 
 		// Extract the plug-ins list
 		final List<String> selectedPlugins = getWorkspaceBundlesList(aConfiguration);
 
 		// Retrieve the bundles output folder
-		final String outputFolder = aConfiguration.getAttribute(
-				IRunnerConfigurationConstants.EXPORT_OUTPUT_FOLDER, "");
+		final File outputFolder = getExtendedPath(aConfiguration.getAttribute(
+				IRunnerConfigurationConstants.EXPORT_OUTPUT_FOLDER,
+				(String) null));
 
-		if (outputFolder.isEmpty()) {
+		if (outputFolder == null) {
 			RunnerPlugin.logError("No output folder set", null);
 			return;
 		}
@@ -127,7 +169,7 @@ public class RunnerLaunchDelegate implements ILaunchConfigurationDelegate {
 
 			// Export bundles with PDE
 			final BundleExporter bundleExporter = new BundleExporter(
-					outputFolder, selectedPlugins);
+					outputFolder.getAbsolutePath(), selectedPlugins);
 			bundleExporter.export(monitor);
 
 			// Stop if needed
