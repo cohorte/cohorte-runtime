@@ -20,12 +20,14 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationType;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.ILaunchManager;
+import org.eclipse.debug.core.sourcelookup.ISourceContainer;
+import org.eclipse.debug.core.sourcelookup.ISourceLookupDirector;
+import org.eclipse.debug.core.sourcelookup.containers.DefaultSourceContainer;
+import org.eclipse.debug.core.sourcelookup.containers.ProjectSourceContainer;
 import org.eclipse.debug.ui.DebugUITools;
-import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.internal.launching.JavaSourceLookupDirector;
 import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
-import org.eclipse.jdt.launching.IRuntimeClasspathEntry;
-import org.eclipse.jdt.launching.JavaRuntime;
 import org.psem2m.eclipse.runner.RunnerPlugin;
 
 /**
@@ -107,14 +109,7 @@ public class RemoteDebugConfigurationCreator {
 					IJavaLaunchConfigurationConstants.ATTR_CONNECT_MAP,
 					connectorMap);
 
-			// Set the source path
-			remoteDebugConfig.setAttribute(
-					IJavaLaunchConfigurationConstants.ATTR_DEFAULT_SOURCE_PATH,
-					false);
-
-			remoteDebugConfig.setAttribute(
-					IJavaLaunchConfigurationConstants.ATTR_SOURCE_PATH,
-					getAllJavaProjectsMemento());
+			setupSourceLocator(remoteDebugConfig);
 
 			// Store it
 			pLaunchConfigurations.add(remoteDebugConfig);
@@ -141,43 +136,6 @@ public class RemoteDebugConfigurationCreator {
 
 		// Clear the list
 		pLaunchConfigurations.clear();
-	}
-
-	/**
-	 * Retrieves all Java project source paths in the workspace
-	 * 
-	 * @return An array ready to be used with
-	 *         {@link IJavaLaunchConfigurationConstants#ATTR_SOURCE_PATH}
-	 */
-	protected List<String> getAllJavaProjectsMemento() {
-
-		final List<String> resultList = new ArrayList<String>();
-
-		// Get all projects in workspace
-		final IProject[] projects = ResourcesPlugin.getWorkspace().getRoot()
-				.getProjects();
-		for (IProject project : projects) {
-
-			try {
-				if (project.hasNature(JavaCore.NATURE_ID)) {
-					// Project has a Java nature
-					final IJavaProject javaProject = (IJavaProject) project
-							.getNature(JavaCore.NATURE_ID);
-
-					// Prepare the runtime entry
-					final IRuntimeClasspathEntry classpathEntry = JavaRuntime
-							.newProjectRuntimeClasspathEntry(javaProject);
-
-					// Store its memento (XML String version)
-					resultList.add(classpathEntry.getMemento());
-				}
-
-			} catch (CoreException ex) {
-				// Ignore errors : we're just helping the user
-			}
-		}
-
-		return resultList;
 	}
 
 	/**
@@ -210,5 +168,57 @@ public class RemoteDebugConfigurationCreator {
 
 			pLaunchList.add(launch);
 		}
+	}
+
+	/**
+	 * Sets up the source locator for the given launch configuration.
+	 * 
+	 * Adds the default container (JRE) and all Java projects in the workspace.
+	 * 
+	 * @param aConfigurationCopy
+	 *            A launch configuration working copy
+	 * @throws CoreException
+	 *             An error occurred while setting up the source locator
+	 */
+	protected void setupSourceLocator(
+			final ILaunchConfigurationWorkingCopy aConfigurationCopy)
+			throws CoreException {
+
+		// Prepare the locator
+		final ISourceLookupDirector sourceLookup = new JavaSourceLookupDirector();
+		sourceLookup.initializeDefaults(aConfigurationCopy);
+		sourceLookup.setFindDuplicates(true);
+
+		// Get all Java project as containers
+		List<ISourceContainer> sourceContainers = new ArrayList<ISourceContainer>();
+		sourceContainers.add(new DefaultSourceContainer());
+
+		final IProject[] projects = ResourcesPlugin.getWorkspace().getRoot()
+				.getProjects();
+
+		for (IProject project : projects) {
+			try {
+				if (project.hasNature(JavaCore.NATURE_ID)) {
+					// Project has a Java nature
+					sourceContainers.add(new ProjectSourceContainer(project,
+							true));
+				}
+
+			} catch (CoreException ex) {
+				// Ignore errors : we're just helping the user
+			}
+		}
+
+		sourceLookup.setSourceContainers(sourceContainers
+				.toArray(new ISourceContainer[0]));
+
+		// Add the locator information in the configuration
+		aConfigurationCopy.setAttribute(
+				ILaunchConfiguration.ATTR_SOURCE_LOCATOR_ID,
+				sourceLookup.getId());
+
+		aConfigurationCopy.setAttribute(
+				ILaunchConfiguration.ATTR_SOURCE_LOCATOR_MEMENTO,
+				sourceLookup.getMemento());
 	}
 }

@@ -140,18 +140,13 @@ public class RunnerLaunchDelegate implements ILaunchConfigurationDelegate {
 			final PlatformRunner platformRunner = new PlatformRunner(
 					platformHome, platformBase, workingDir, baseDebugPort);
 
-			final Process monitorProcess = platformRunner.runPlatform(aLaunch,
-					debugMode);
+			/*
+			 * It runs the script, which ends immediately, so it's useless to
+			 * wait for it
+			 */
+			platformRunner.runPlatform(aLaunch, debugMode);
 
-			try {
-				// TODO: try to be more efficient
-				monitorProcess.waitFor();
-
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-
-		} finally {
+		} catch (CoreException ex) {
 			// Clean up the mess
 			if (debugMode) {
 				remoteDebug.deleteLaunchConfigurations();
@@ -160,6 +155,9 @@ public class RunnerLaunchDelegate implements ILaunchConfigurationDelegate {
 
 			// End of work
 			monitor.done();
+
+			// Propagate the exception
+			throw ex;
 		}
 	}
 
