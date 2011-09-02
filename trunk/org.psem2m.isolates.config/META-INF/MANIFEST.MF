@@ -9,56 +9,79 @@ Bundle-Vendor: isandlaTech.com
 Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
 Export-Package: org.psem2m.isolates.config
-Import-Package: org.apache.felix.ipojo;version="1.8.0",
- org.apache.felix.ipojo.architecture;version="1.8.0",
- org.osgi.framework;version="1.5.0",
- org.osgi.service.cm;version="1.2",
- org.osgi.service.log;version="1.3",
- org.psem2m.isolates.base,
- org.psem2m.utilities,
- org.psem2m.utilities.logging
-iPOJO-Components: component { $immediate="true" $name="isolates-config
- -logger-factory" $classname="org.psem2m.isolates.config.impl.CBundleC
- onfigLoggerSvc" $architecture="true" callback { $transition="validate
- " $method="validatePojo" }callback { $transition="invalidate" $method
- ="invalidatePojo" }provides { $specifications="org.psem2m.utilities.l
- ogging.IActivityLoggerBase" }manipulation { $super="org.psem2m.isolat
- es.base.CBundleLoggerBase" method { $name="$init" }method { $name="in
- validatePojo" }method { $name="validatePojo" }interface { $name="org.
- psem2m.utilities.logging.IActivityLoggerBase" }}}component { $immedia
- te="true" $name="isolates-config-factory" $classname="org.psem2m.isol
- ates.config.impl.CConfigSvc" $architecture="true" callback { $transit
- ion="validate" $method="validatePojo" }callback { $transition="invali
- date" $method="invalidatePojo" }provides { $specifications="org.psem2
- m.isolates.config.ISvcConfig" }manipulation { $super="org.psem2m.isol
- ates.base.CPojoBase" field { $name="pConfigurationFiles" $type="java.
- util.Set" }field { $name="pLoggerSvc" $type="org.psem2m.utilities.log
- ging.IActivityLoggerBase" }field { $name="pConfiguration" $type="java
- .util.Properties" }method { $name="$init" }method { $name="destroy" }
- method { $name="findConfigurationFiles" $return="boolean" }method { $
- arguments="{org.psem2m.isolates.config.IParamId}" $name="getParam" $r
- eturn="java.lang.Object" }method { $arguments="{org.psem2m.isolates.c
- onfig.IParamId}" $name="getParamBool" $return="java.lang.Boolean" }me
- thod { $arguments="{org.psem2m.isolates.config.IParamId}" $name="getP
- aramDate" $return="java.util.Date" }method { $arguments="{org.psem2m.
- isolates.config.IParamId}" $name="getParamList" $return="java.util.Li
- st" }method { $arguments="{org.psem2m.isolates.config.IParamId}" $nam
- e="getParamNum" $return="java.lang.Long" }method { $arguments="{org.p
- sem2m.isolates.config.IParamId}" $name="getParamStr" $return="java.la
- ng.String" }method { $name="invalidatePojo" }method { $arguments="{or
- g.psem2m.isolates.config.IParamId}" $name="isParamExists" $return="bo
- olean" }method { $name="readConfiguration" }method { $name="validateP
- ojo" }interface { $name="org.psem2m.isolates.config.ISvcConfig" }}req
- uires { $field="pLoggerSvc" $optional="false" $from="isolates-config-
- logger" }}component { $immediate="true" $classname="org.psem2m.isolat
- es.config.impl.PojoErrorHandler" $architecture="true" provides { }man
- ipulation { method { $name="$init" }method { $arguments="{org.apache.
- felix.ipojo.ComponentInstance,java.lang.String,java.lang.Throwable}" 
- $name="onError" }method { $arguments="{org.apache.felix.ipojo.Compone
- ntInstance,java.lang.String,java.lang.Throwable}" $name="onWarning" }
- interface { $name="org.apache.felix.ipojo.ErrorHandler" }}}instance {
-  $component="org.psem2m.isolates.config.impl.PojoErrorHandler" }insta
- nce { $component="isolates-config-logger-factory" $name="isolates-con
- fig-logger" }instance { $component="isolates-config-factory" $name="i
- solates-config" }
+Import-Package: org.osgi.service.log;version=1.3, org.psem2m.isolates.
+ base, org.apache.felix.ipojo.architecture;version=1.8.0, org.apache.f
+ elix.ipojo;version=1.8.0, org.json, org.osgi.framework;version=1.5.0,
+  org.psem2m.utilities.logging, org.osgi.service.cm;version=1.2, org.p
+ sem2m.utilities
+iPOJO-Components: instance { $component="org.psem2m.isolates.config.im
+ pl.PojoErrorHandler" }instance { $component="isolates-config-logger-f
+ actory" $name="isolates-config-logger" }instance { $component="isolat
+ es-config-factory" $name="isolates-config" }component { $immediate="t
+ rue" $name="isolates-config-logger-factory" $classname="org.psem2m.is
+ olates.config.impl.CBundleConfigLoggerSvc" $architecture="true" callb
+ ack { $transition="validate" $method="validatePojo" }callback { $tran
+ sition="invalidate" $method="invalidatePojo" }provides { $specificati
+ ons="org.psem2m.utilities.logging.IActivityLoggerBase" }manipulation 
+ { $super="org.psem2m.isolates.base.CBundleLoggerBase" field { $name="
+ __MvalidatePojo" $type="boolean" }field { $name="__MinvalidatePojo" $
+ type="boolean" }method { $name="$init" }method { $name="invalidatePoj
+ o" }method { $name="validatePojo" }interface { $name="org.psem2m.util
+ ities.logging.IActivityLoggerBase" }}}component { $immediate="true" $
+ name="isolates-config-factory" $classname="org.psem2m.isolates.config
+ .impl.CConfigSvc" $architecture="true" callback { $transition="valida
+ te" $method="validatePojo" }callback { $transition="invalidate" $meth
+ od="invalidatePojo" }provides { $specifications="org.psem2m.isolates.
+ config.ISvcConfig" }manipulation { $super="org.psem2m.isolates.base.C
+ PojoBase" field { $name="pConfigurationFiles" $type="java.util.Set" }
+ field { $name="__MgetParamDate$org_psem2m_isolates_config_IParamId" $
+ type="boolean" }field { $name="__MisParamExists$org_psem2m_isolates_c
+ onfig_IParamId" $type="boolean" }field { $name="__Mdestroy" $type="bo
+ olean" }field { $name="__MgetParamList$org_psem2m_isolates_config_IPa
+ ramId" $type="boolean" }field { $name="__MinvalidatePojo" $type="bool
+ ean" }field { $name="__MgetParamNum$org_psem2m_isolates_config_IParam
+ Id" $type="boolean" }field { $name="__FpLoggerSvc" $type="boolean" }f
+ ield { $name="__FpConfigurationFiles" $type="boolean" }field { $name=
+ "pLoggerSvc" $type="org.psem2m.utilities.logging.IActivityLoggerBase"
+  }field { $name="__MgetParam$org_psem2m_isolates_config_IParamId" $ty
+ pe="boolean" }field { $name="__MvalidatePojo" $type="boolean" }field 
+ { $name="__MfindConfigurationFiles" $type="boolean" }field { $name="p
+ Configuration" $type="java.util.Properties" }field { $name="__MgetPar
+ amBool$org_psem2m_isolates_config_IParamId" $type="boolean" }field { 
+ $name="__MgetParamStr$org_psem2m_isolates_config_IParamId" $type="boo
+ lean" }field { $name="__FpConfiguration" $type="boolean" }field { $na
+ me="__MreadConfiguration" $type="boolean" }method { $name="__getpConf
+ iguration" $return="java.util.Properties" }method { $arguments="{java
+ .util.Properties}" $name="__setpConfiguration" }method { $name="__get
+ pConfigurationFiles" $return="java.util.Set" }method { $arguments="{j
+ ava.util.Set}" $name="__setpConfigurationFiles" }method { $name="__ge
+ tpLoggerSvc" $return="org.psem2m.utilities.logging.IActivityLoggerBas
+ e" }method { $arguments="{org.psem2m.utilities.logging.IActivityLogge
+ rBase}" $name="__setpLoggerSvc" }method { $name="$init" }method { $na
+ me="destroy" }method { $name="findConfigurationFiles" $return="boolea
+ n" }method { $arguments="{org.psem2m.isolates.config.IParamId}" $name
+ ="getParam" $return="java.lang.Object" }method { $arguments="{org.pse
+ m2m.isolates.config.IParamId}" $name="getParamBool" $return="java.lan
+ g.Boolean" }method { $arguments="{org.psem2m.isolates.config.IParamId
+ }" $name="getParamDate" $return="java.util.Date" }method { $arguments
+ ="{org.psem2m.isolates.config.IParamId}" $name="getParamList" $return
+ ="java.util.List" }method { $arguments="{org.psem2m.isolates.config.I
+ ParamId}" $name="getParamNum" $return="java.lang.Long" }method { $arg
+ uments="{org.psem2m.isolates.config.IParamId}" $name="getParamStr" $r
+ eturn="java.lang.String" }method { $name="invalidatePojo" }method { $
+ arguments="{org.psem2m.isolates.config.IParamId}" $name="isParamExist
+ s" $return="boolean" }method { $name="readConfiguration" }method { $n
+ ame="validatePojo" }interface { $name="org.psem2m.isolates.config.ISv
+ cConfig" }}requires { $field="pLoggerSvc" $optional="false" $from="is
+ olates-config-logger" }}component { $immediate="true" $classname="org
+ .psem2m.isolates.config.impl.PojoErrorHandler" $architecture="true" p
+ rovides { }manipulation { field { $name="__MonError$org_apache_felix_
+ ipojo_ComponentInstance$java_lang_String$java_lang_Throwable" $type="
+ boolean" }field { $name="__MonWarning$org_apache_felix_ipojo_Componen
+ tInstance$java_lang_String$java_lang_Throwable" $type="boolean" }meth
+ od { $name="$init" }method { $arguments="{org.apache.felix.ipojo.Comp
+ onentInstance,java.lang.String,java.lang.Throwable}" $name="onError" 
+ }method { $arguments="{org.apache.felix.ipojo.ComponentInstance,java.
+ lang.String,java.lang.Throwable}" $name="onWarning" }interface { $nam
+ e="org.apache.felix.ipojo.ErrorHandler" }}}
 
