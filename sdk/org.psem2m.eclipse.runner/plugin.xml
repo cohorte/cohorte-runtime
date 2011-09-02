@@ -19,5 +19,13 @@
             type="org.psem2m.eclipse.runner.psem2mLaunchConfigurationType">
       </launchConfigurationTabGroup>
    </extension>
+   <extension
+         point="org.eclipse.debug.ui.launchConfigurationTypeImages">
+      <launchConfigurationTypeImage
+            configTypeID="org.psem2m.eclipse.runner.psem2mLaunchConfigurationType"
+            icon="icons/isandlatech_16.gif"
+            id="org.psem2m.eclipse.runner.psem2mLaunchConfigurationImage">
+      </launchConfigurationTypeImage>
+   </extension>
 
 </plugin>
