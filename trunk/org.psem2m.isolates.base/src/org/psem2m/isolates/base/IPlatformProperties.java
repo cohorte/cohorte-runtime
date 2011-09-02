@@ -7,6 +7,7 @@
  *
  * Contributors:
  *    ogattaz (isandlaTech) - initial API and implementation
+ *    tcalmant (isandlaTech) - Debug constant
  *******************************************************************************/
 package org.psem2m.isolates.base;
 
@@ -17,14 +18,23 @@ package org.psem2m.isolates.base;
 public interface IPlatformProperties {
 
     /**
+     * The debug port used by the forker
+     * 
+     * If present, the platform is ran in debug mode and the isolates must be
+     * started in remote debug mode, connecting to localhost:debug_port+n, with
+     * n > 0.
+     */
+    String PROP_BASE_DEBUG_PORT = "org.psem2m.debug.port";
+
+    /**
      * contains the absolute path of the BASE folder of the current application
      */
-    public final static String PROP_PLATFORM_BASE = "org.psem2m.platform.base";
+    String PROP_PLATFORM_BASE = "org.psem2m.platform.base";
 
     /**
      * contains the absolute path of the HOME folder of the current application
      */
-    public final static String PROP_PLATFORM_HOME = "org.psem2m.platform.home";
+    String PROP_PLATFORM_HOME = "org.psem2m.platform.home";
 
     /**
      * contains the id of the current isolates.
@@ -33,7 +43,7 @@ public interface IPlatformProperties {
      * -Dorg.psem2m.platform.isolate.id=development
      * </pre>
      */
-    public final static String PROP_PLATFORM_ISOLATE_ID = "org.psem2m.platform.isolate.id";
+    String PROP_PLATFORM_ISOLATE_ID = "org.psem2m.platform.isolate.id";
 
     /**
      * if "true", allows the redirection of the output of the osgi logservice in
@@ -43,5 +53,5 @@ public interface IPlatformProperties {
      * -Dorg.psem2m.platform.isolate.redirect.logservice=true
      * </pre>
      */
-    public final static String PROP_PLATFORM_REDIRECT_LOGSVC = "org.psem2m.platform.isolate.redirect.logservice";
+    String PROP_PLATFORM_REDIRECT_LOGSVC = "org.psem2m.platform.isolate.redirect.logservice";
 }
