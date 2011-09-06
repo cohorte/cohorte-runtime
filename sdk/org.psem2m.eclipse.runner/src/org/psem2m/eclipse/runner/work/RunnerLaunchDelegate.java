@@ -167,10 +167,10 @@ public class RunnerLaunchDelegate implements ILaunchConfigurationDelegate {
 				return;
 			}
 
-			// Export bundles with PDE
-			final BundleExporter bundleExporter = new BundleExporter(
-					outputFolder.getAbsolutePath(), selectedPlugins);
-			bundleExporter.export(monitor);
+			// Export bundles with iPOJO Nature
+			final JarExporter bundleExporter = new JarExporter(
+					outputFolder.getAbsolutePath());
+			bundleExporter.export(selectedPlugins, monitor);
 
 			// Stop if needed
 			if (monitor.isCanceled()) {
@@ -189,6 +189,9 @@ public class RunnerLaunchDelegate implements ILaunchConfigurationDelegate {
 			platformRunner.runPlatform(aLaunch, debugMode);
 
 		} catch (CoreException ex) {
+
+			RunnerPlugin.logError("Error launching the platform", ex);
+
 			// Clean up the mess
 			if (debugMode) {
 				remoteDebug.deleteLaunchConfigurations();
