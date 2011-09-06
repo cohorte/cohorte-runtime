@@ -3,14 +3,15 @@
  * Author: Thomas Calmant
  * Date:   6 sept. 2011
  */
-package org.psem2m.isolates.config.json.impl;
+package org.psem2m.isolates.config.impl;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.psem2m.isolates.config.json.IApplicationDescr;
-import org.psem2m.isolates.config.json.IIsolateDescr;
+import org.psem2m.isolates.config.IApplicationDescr;
+import org.psem2m.isolates.config.IIsolateDescr;
+
 
 /**
  * Description of an application

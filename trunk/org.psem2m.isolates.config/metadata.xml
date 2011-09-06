@@ -26,15 +26,6 @@
 		<callback transition="invalidate" method="invalidatePojo" />
 	</component>
 
-
-	<!-- iPOJO Error handler sample -->
-	<component classname="org.psem2m.isolates.config.impl.PojoErrorHandler"
-		architecture="true" immediate="true">
-
-		<provides />
-	</component>
-	<instance component="org.psem2m.isolates.config.impl.PojoErrorHandler" />
-
 	<!-- Instances -->
 	<instance component="isolates-config-logger-factory" name="isolates-config-logger" />
 	<instance component="isolates-config-factory" name="isolates-config" />

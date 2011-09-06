@@ -14,10 +14,13 @@ import java.util.Scanner;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.psem2m.isolates.config.IApplicationDescr;
+import org.psem2m.isolates.config.IBundleDescr;
 import org.psem2m.isolates.config.IConfigurationReader;
-import org.psem2m.isolates.config.json.IApplicationDescr;
-import org.psem2m.isolates.config.json.IBundleDescr;
-import org.psem2m.isolates.config.json.IIsolateDescr;
+import org.psem2m.isolates.config.IIsolateDescr;
+import org.psem2m.isolates.config.impl.ApplicationDescription;
+import org.psem2m.isolates.config.impl.BundleDescription;
+import org.psem2m.isolates.config.impl.IsolateDescription;
 import org.psem2m.isolates.config.json.IJsonConfigKeys;
 
 /**
@@ -64,7 +67,7 @@ public class JsonConfigReader implements IConfigurationReader {
      *            JSON configuration file
      */
     @Override
-    public void load(final String aFile) {
+    public boolean load(final String aFile) {
 
 	try {
 	    // Parse the configuration
@@ -80,6 +83,8 @@ public class JsonConfigReader implements IConfigurationReader {
 	    parseIsolates(configRoot
 		    .getJSONArray(IJsonConfigKeys.CONFIG_ISOLATES_ARRAY));
 
+	    return true;
+
 	} catch (JSONException ex) {
 	    System.err.println("Error parsing a configuration file");
 	    ex.printStackTrace();
@@ -88,6 +93,8 @@ public class JsonConfigReader implements IConfigurationReader {
 	    System.err.println("Can't access a configuration file");
 	    e.printStackTrace();
 	}
+
+	return false;
     }
 
     /**

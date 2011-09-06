@@ -3,9 +3,10 @@
  * Author: "Thomas Calmant"
  * Date:   2 sept. 2011
  */
-package org.psem2m.isolates.config.json.impl;
+package org.psem2m.isolates.config.impl;
 
-import org.psem2m.isolates.config.json.IBundleDescr;
+import org.psem2m.isolates.config.IBundleDescr;
+
 
 /**
  * Description of a bundle

@@ -3,7 +3,7 @@
  * Author: Thomas Calmant
  * Date:   2 sept. 2011
  */
-package org.psem2m.isolates.config.json;
+package org.psem2m.isolates.config;
 
 import java.io.Serializable;
 import java.util.List;

@@ -5,8 +5,6 @@
  */
 package org.psem2m.isolates.config;
 
-import org.psem2m.isolates.config.json.IApplicationDescr;
-
 /**
  * Defines a PSEM2M configuration reader
  * 
@@ -36,6 +34,7 @@ public interface IConfigurationReader {
      * 
      * @param aConfigurationFile
      *            A PSEM2M configuration file
+     * @return True if the file was successfully read
      */
-    void load(String aConfigurationFile);
+    boolean load(String aConfigurationFile);
 }
