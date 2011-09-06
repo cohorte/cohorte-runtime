@@ -5,29 +5,22 @@
  */
 package org.psem2m.isolates.base.bundles.impl;
 
+import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-import org.osgi.framework.BundleException;
-import org.psem2m.isolates.base.CPojoBase;
-import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.bundles.BundleRef;
 import org.psem2m.isolates.base.bundles.IBundleFinderSvc;
 import org.psem2m.isolates.base.dirs.IPlatformDirsSvc;
-import org.psem2m.utilities.files.CXFile;
-import org.psem2m.utilities.files.CXFileDir;
 
 /**
  * Implements the bundle finder, using the platform directories service
  * 
  * @author Thomas Calmant
  */
-public class CBundleFinderSvc extends CPojoBase implements IBundleFinderSvc {
-
-    /** Service reference managed by iPojo (see metadata.xml) **/
-    private IIsolateLoggerSvc pIsolateLoggerSvc;
+public class CBundleFinderSvc implements IBundleFinderSvc {
 
     /** Platform directories service */
     private IPlatformDirsSvc pPlatformDirsSvc;
@@ -52,16 +45,6 @@ public class CBundleFinderSvc extends CPojoBase implements IBundleFinderSvc {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.utilities.CXObjectBase#destroy()
-     */
-    @Override
-    public void destroy() {
-	// ...
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
      * @see
      * org.psem2m.isolates.base.bundles.IBundleFinderSvc#findBundle(java.lang
      * .String[])
@@ -70,7 +53,7 @@ public class CBundleFinderSvc extends CPojoBase implements IBundleFinderSvc {
     public BundleRef findBundle(final String... aBundlePossibleNames) {
 
 	// Look in each repository
-	for (CXFileDir repository : pPlatformDirsSvc.getRepositories()) {
+	for (File repository : pPlatformDirsSvc.getRepositories()) {
 
 	    if (!repository.exists() || !repository.isDirectory()) {
 		continue;
@@ -79,7 +62,7 @@ public class CBundleFinderSvc extends CPojoBase implements IBundleFinderSvc {
 	    // Look for each possible name
 	    for (String bundleName : aBundlePossibleNames) {
 
-		CXFile bundleFile = new CXFile(repository, bundleName);
+		File bundleFile = new File(repository, bundleName);
 		if (bundleFile.exists()) {
 		    // Stop on first bundle found
 		    return new BundleRef(bundleName, bundleFile);
@@ -91,7 +74,7 @@ public class CBundleFinderSvc extends CPojoBase implements IBundleFinderSvc {
 	for (String bundleName : aBundlePossibleNames) {
 
 	    // Try 'local' file
-	    CXFile bundleFile = new CXFile(bundleName);
+	    File bundleFile = new File(bundleName);
 	    if (bundleFile.exists()) {
 		// Stop on first bundle found
 		return new BundleRef(bundleName, bundleFile);
@@ -104,7 +87,7 @@ public class CBundleFinderSvc extends CPojoBase implements IBundleFinderSvc {
 
 		if (bundleUrl.getProtocol().equals("file")) {
 
-		    bundleFile = new CXFile(bundleUri.getPath());
+		    bundleFile = new File(bundleUri.getPath());
 		    if (bundleFile.exists()) {
 			return new BundleRef(bundleName, bundleFile);
 		    }
@@ -120,31 +103,5 @@ public class CBundleFinderSvc extends CPojoBase implements IBundleFinderSvc {
 	}
 
 	return null;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.base.CPojoBase#invalidatePojo()
-     */
-    @Override
-    public void invalidatePojo() throws BundleException {
-
-	// logs in the bundle output
-	pIsolateLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
-		toDescription());
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.base.CPojoBase#validatePojo()
-     */
-    @Override
-    public void validatePojo() throws BundleException {
-
-	// logs in the bundle output
-	pIsolateLoggerSvc.logInfo(this, "validatePojo", "VALIDATE",
-		toDescription());
     }
 }

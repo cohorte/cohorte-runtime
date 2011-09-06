@@ -33,7 +33,6 @@ import org.psem2m.isolates.forker.IIsolateRunner;
 import org.psem2m.isolates.forker.IProcessRef;
 import org.psem2m.isolates.forker.impl.processes.ProcessRef;
 import org.psem2m.utilities.bootstrap.IBootstrapConstants;
-import org.psem2m.utilities.files.CXFileDir;
 import org.psem2m.utilities.logging.CActivityFormaterBasic;
 import org.psem2m.utilities.logging.IActivityFormater;
 
@@ -491,7 +490,7 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
 	javaOptions.addAll(prepareBootstrapArguments(kind));
 
 	// Set up the working directory
-	CXFileDir workingDirectory = pPlatformDirsSvc
+	File workingDirectory = pPlatformDirsSvc
 		.getIsolateWorkingDir(aIsolateConfiguration.getId());
 	if (!workingDirectory.exists()) {
 	    workingDirectory.mkdirs();

@@ -15,21 +15,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.psem2m.isolates.base.CPojoBase;
-import org.psem2m.isolates.base.IIsolateLoggerSvc;
-import org.psem2m.isolates.base.IPojoBase;
 import org.psem2m.isolates.base.dirs.IPlatformDirsSvc;
-import org.psem2m.utilities.CXOSUtils;
-import org.psem2m.utilities.CXStringUtils;
-import org.psem2m.utilities.files.CXFile;
-import org.psem2m.utilities.files.CXFileDir;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
-public class CPlatformDirsSvc extends CPojoBase implements IPlatformDirsSvc,
-	IPojoBase {
+public class CPlatformDirsSvc implements IPlatformDirsSvc {
 
     /** Forker start script name */
     public static final String FORKER_SCRIPT_BASE_NAME = "run_forker";
@@ -89,39 +81,11 @@ public class CPlatformDirsSvc extends CPojoBase implements IPlatformDirsSvc,
 	return System.getProperty(PROP_PLATFORM_HOME);
     }
 
-    /** Service reference managed by iPojo (see metadata.xml) **/
-    private IIsolateLoggerSvc pIsolateLoggerSvc;
-
     /**
      * Explicit default constructor
      */
     public CPlatformDirsSvc() {
 	super();
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.psem2m.utilities.IXDescriber#addDescriptionInBuffer(java.lang.Appendable
-     * )
-     */
-    @Override
-    public Appendable addDescriptionInBuffer(final Appendable aBuffer) {
-	super.addDescriptionInBuffer(aBuffer);
-	CXStringUtils.appendKeyValInBuff(aBuffer, LIB_ISOLATE_ID,
-		getCurrentIsolateId());
-	return aBuffer;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.utilities.CXObjectBase#destroy()
-     */
-    @Override
-    public void destroy() {
-	// ...
     }
 
     /*
@@ -139,7 +103,7 @@ public class CPlatformDirsSvc extends CPojoBase implements IPlatformDirsSvc,
 		FORKER_SCRIPT_BASE_NAME);
 
 	// Interpreter and script extension depends on the system
-	if (CXOSUtils.isOsWindowsFamily()) {
+	if (isOsWindowsFamily()) {
 	    command.addAll(Arrays.asList(SCRIPT_WINDOWS_COMMAND));
 	    scriptFileNameBuilder.append(".bat");
 
@@ -156,9 +120,8 @@ public class CPlatformDirsSvc extends CPojoBase implements IPlatformDirsSvc,
 
 	for (String platformDirectory : possibleDirectories) {
 
-	    CXFileDir varDirectory = new CXFileDir(platformDirectory,
-		    VAR_DIRECTORY);
-	    CXFile scriptFile = new CXFile(varDirectory, scriptFileName);
+	    File varDirectory = new File(platformDirectory, VAR_DIRECTORY);
+	    File scriptFile = new File(varDirectory, scriptFileName);
 
 	    if (scriptFile.exists()) {
 		command.add(scriptFile.getAbsolutePath());
@@ -190,7 +153,7 @@ public class CPlatformDirsSvc extends CPojoBase implements IPlatformDirsSvc,
      * @see org.psem2m.isolates.osgi.IPlatformDirs#getIsolateLogDir()
      */
     @Override
-    public CXFileDir getIsolateLogDir() throws Exception {
+    public File getIsolateLogDir() throws Exception {
 	return getIsolateLogDir(getCurrentIsolateId());
 
     }
@@ -202,10 +165,10 @@ public class CPlatformDirsSvc extends CPojoBase implements IPlatformDirsSvc,
      * org.psem2m.isolates.osgi.IPlatformDirs#getIsolateLogDir(java.lang.String)
      */
     @Override
-    public CXFileDir getIsolateLogDir(final String aIsolateId) throws Exception {
-	CXFileDir wLogDir = new CXFileDir(getPlatformLogDir(), aIsolateId);
+    public File getIsolateLogDir(final String aIsolateId) throws Exception {
+	File wLogDir = new File(getPlatformLogDir(), aIsolateId);
 	if (!wLogDir.exists()) {
-	    wLogDir.createHierarchy();
+	    wLogDir.mkdirs();
 	}
 	return wLogDir;
     }
@@ -218,8 +181,8 @@ public class CPlatformDirsSvc extends CPojoBase implements IPlatformDirsSvc,
      * .String)
      */
     @Override
-    public CXFileDir getIsolateWorkingDir(final String aIsolateId) {
-	return new CXFileDir(getPlatformBaseDir(), ISOLATE_WORKING_DIR_BASE
+    public File getIsolateWorkingDir(final String aIsolateId) {
+	return new File(getPlatformBaseDir(), ISOLATE_WORKING_DIR_BASE
 		+ aIsolateId);
     }
 
@@ -229,8 +192,8 @@ public class CPlatformDirsSvc extends CPojoBase implements IPlatformDirsSvc,
      * @see org.psem2m.isolates.osgi.IPlatformDirs#getPlatformBaseDir()
      */
     @Override
-    public CXFileDir getPlatformBaseDir() {
-	return new CXFileDir(getCurrentPlatformBase());
+    public File getPlatformBaseDir() {
+	return new File(getCurrentPlatformBase());
     }
 
     /*
@@ -239,8 +202,8 @@ public class CPlatformDirsSvc extends CPojoBase implements IPlatformDirsSvc,
      * @see org.psem2m.isolates.base.IPlatformDirsSvc#getPlatformHomeDir()
      */
     @Override
-    public CXFileDir getPlatformHomeDir() {
-	return new CXFileDir(getCurrentPlatformHome());
+    public File getPlatformHomeDir() {
+	return new File(getCurrentPlatformHome());
     }
 
     /*
@@ -249,11 +212,11 @@ public class CPlatformDirsSvc extends CPojoBase implements IPlatformDirsSvc,
      * @see org.psem2m.isolates.osgi.IPlatformDirs#getPlatformLogDir()
      */
     @Override
-    public CXFileDir getPlatformLogDir() throws Exception {
-	CXFileDir wLogDir = new CXFileDir(getPlatformBaseDir(),
-		LOGGING_DIR_BASE + "psem2m");
+    public File getPlatformLogDir() throws Exception {
+	File wLogDir = new File(getPlatformBaseDir(), LOGGING_DIR_BASE
+		+ "psem2m");
 	if (!wLogDir.exists()) {
-	    wLogDir.createHierarchy();
+	    wLogDir.mkdirs();
 	}
 	return wLogDir;
     }
@@ -264,10 +227,10 @@ public class CPlatformDirsSvc extends CPojoBase implements IPlatformDirsSvc,
      * @see org.psem2m.isolates.base.dirs.IPlatformDirsSvc#getPlatformRootDirs()
      */
     @Override
-    public CXFileDir[] getPlatformRootDirs() {
+    public File[] getPlatformRootDirs() {
 
-	return new CXFileDir[] { getPlatformHomeDir(), getPlatformBaseDir(),
-		new CXFileDir(System.getProperty("user.dir")) };
+	return new File[] { getPlatformHomeDir(), getPlatformBaseDir(),
+		new File(System.getProperty("user.dir")) };
     }
 
     /*
@@ -276,50 +239,41 @@ public class CPlatformDirsSvc extends CPojoBase implements IPlatformDirsSvc,
      * @see org.psem2m.isolates.base.IPlatformDirsSvc#getRepositories()
      */
     @Override
-    public CXFileDir[] getRepositories() {
+    public File[] getRepositories() {
 
-	List<CXFileDir> repositories = new ArrayList<CXFileDir>();
+	List<File> repositories = new ArrayList<File>();
 
 	// Current instance repository
-	CXFileDir baseRepo = new CXFileDir(getPlatformBaseDir(),
-		REPOSITORY_NAME);
+	File baseRepo = new File(getPlatformBaseDir(), REPOSITORY_NAME);
 	if (baseRepo.exists()) {
 	    repositories.add(baseRepo);
 	}
 
 	// Home repository
-	CXFileDir homeRepo = new CXFileDir(getPlatformHomeDir(),
-		REPOSITORY_NAME);
+	File homeRepo = new File(getPlatformHomeDir(), REPOSITORY_NAME);
 	if (!homeRepo.equals(baseRepo) && homeRepo.exists()) {
 	    repositories.add(homeRepo);
 	}
 
 	// Add other repositories here, from higher to lower priority
 
-	return repositories.toArray(new CXFileDir[0]);
+	return repositories.toArray(new File[0]);
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Tests if we're running on Windows
      * 
-     * @see org.psem2m.isolates.osgi.IPojoBase#invalidatePojo()
+     * @return True if we're running on Windows
      */
-    @Override
-    public void invalidatePojo() {
-	// logs in the bundle output
-	pIsolateLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
-		toDescription());
-    }
+    protected boolean isOsWindowsFamily() {
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.osgi.IPojoBase#validatePojo()
-     */
-    @Override
-    public void validatePojo() {
-	// logs in the bundle output
-	pIsolateLoggerSvc.logInfo(this, "validatePojo", "VALIDATE",
-		toDescription());
+	String osName = System.getProperty("os.name");
+	if (osName == null) {
+	    // What ?
+	    return false;
+	}
+
+	osName = osName.toLowerCase();
+	return osName.startsWith("windows");
     }
 }

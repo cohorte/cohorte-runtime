@@ -10,10 +10,10 @@
  *******************************************************************************/
 package org.psem2m.isolates.base.dirs;
 
+import java.io.File;
 import java.util.List;
 
 import org.psem2m.isolates.base.IPlatformProperties;
-import org.psem2m.utilities.files.CXFileDir;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
@@ -38,7 +38,7 @@ public interface IPlatformDirsSvc extends IPlatformProperties {
      * @return the log directory of the current isolate
      * @throws Exception
      */
-    CXFileDir getIsolateLogDir() throws Exception;
+    File getIsolateLogDir() throws Exception;
 
     /**
      * @param aIsolateId
@@ -47,14 +47,14 @@ public interface IPlatformDirsSvc extends IPlatformProperties {
      * @throws Exception
      *             if the hierarchy doesn't exist and can't be created
      */
-    CXFileDir getIsolateLogDir(final String aIsolateId) throws Exception;
+    File getIsolateLogDir(final String aIsolateId) throws Exception;
 
     /**
      * @param aIsolateId
      *            the id of an isolate
      * @return The isolate working directory
      */
-    CXFileDir getIsolateWorkingDir(String aIsolateId);
+    File getIsolateWorkingDir(String aIsolateId);
 
     /**
      * Retrieves the PSEM2M_BASE value
@@ -65,7 +65,7 @@ public interface IPlatformDirsSvc extends IPlatformProperties {
      * 
      * @return the base directory of the platform
      */
-    CXFileDir getPlatformBaseDir();
+    File getPlatformBaseDir();
 
     /**
      * Retrieves the PSEM2M_HOME value
@@ -76,13 +76,13 @@ public interface IPlatformDirsSvc extends IPlatformProperties {
      * 
      * @return
      */
-    CXFileDir getPlatformHomeDir();
+    File getPlatformHomeDir();
 
     /**
      * @return the log directory of the platform
      * @throws Exception
      */
-    CXFileDir getPlatformLogDir() throws Exception;
+    File getPlatformLogDir() throws Exception;
 
     /**
      * Retrieves the platform root directories : home, base and working
@@ -90,7 +90,7 @@ public interface IPlatformDirsSvc extends IPlatformProperties {
      * 
      * @return The platform root directories
      */
-    CXFileDir[] getPlatformRootDirs();
+    File[] getPlatformRootDirs();
 
     /**
      * Retrieves all known repositories, in order of priority.
@@ -100,5 +100,5 @@ public interface IPlatformDirsSvc extends IPlatformProperties {
      * 
      * @return An array with at least one element
      */
-    CXFileDir[] getRepositories();
+    File[] getRepositories();
 }

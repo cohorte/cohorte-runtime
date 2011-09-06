@@ -5,9 +5,8 @@
  */
 package org.psem2m.isolates.base.bundles;
 
+import java.io.File;
 import java.net.URI;
-
-import org.psem2m.utilities.files.CXFile;
 
 /**
  * Describes a bundle reference
@@ -17,7 +16,7 @@ import org.psem2m.utilities.files.CXFile;
 public class BundleRef {
 
     /** The bundle file */
-    private CXFile pBundleFile;
+    private File pBundleFile;
 
     /** The bundle name */
     private String pBundleName;
@@ -33,7 +32,7 @@ public class BundleRef {
      * @param aBundleFile
      *            The bundle file
      */
-    public BundleRef(final String aBundleName, final CXFile aBundleFile) {
+    public BundleRef(final String aBundleName, final File aBundleFile) {
 	pBundleFile = aBundleFile;
 	pBundleName = aBundleName;
 	pBundleUri = aBundleFile.toURI();
@@ -57,7 +56,7 @@ public class BundleRef {
      * 
      * @see org.psem2m.isolates.commons.IBundleRef#getFile()
      */
-    public CXFile getFile() {
+    public File getFile() {
 	return pBundleFile;
     }
 

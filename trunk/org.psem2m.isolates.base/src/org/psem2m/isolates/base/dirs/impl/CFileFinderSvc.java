@@ -11,7 +11,6 @@ import java.util.List;
 
 import org.psem2m.isolates.base.dirs.IFileFinderSvc;
 import org.psem2m.isolates.base.dirs.IPlatformDirsSvc;
-import org.psem2m.utilities.files.CXFileDir;
 
 /**
  * Simple file finder : tries to find the given file in the platform main
@@ -53,7 +52,7 @@ public class CFileFinderSvc implements IFileFinderSvc {
 	final List<File> foundFiles = new ArrayList<File>();
 
 	// Test on each PSEM2M root directory
-	for (CXFileDir rootDir : pPlatformDirs.getPlatformRootDirs()) {
+	for (File rootDir : pPlatformDirs.getPlatformRootDirs()) {
 
 	    final File testFile = new File(rootDir, aFileName);
 	    if (testFile.exists()) {

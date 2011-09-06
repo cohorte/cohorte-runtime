@@ -23,12 +23,6 @@
 		public="false">
 
 		<provides specifications="org.psem2m.isolates.base.dirs.IPlatformDirsSvc" />
-
-		<requires field="pIsolateLoggerSvc" optional="false"
-			from="isolates-base-isolatelogger" />
-
-		<callback transition="validate" method="validatePojo" />
-		<callback transition="invalidate" method="invalidatePojo" />
 	</component>
 
 	<!-- The bundle finder service -->
@@ -37,13 +31,7 @@
 		public="false">
 
 		<provides specifications="org.psem2m.isolates.base.bundles.IBundleFinderSvc" />
-
-		<requires field="pIsolateLoggerSvc" optional="false"
-			from="isolates-base-isolatelogger" />
 		<requires field="pPlatformDirsSvc" optional="false" />
-
-		<callback transition="validate" method="validatePojo" />
-		<callback transition="invalidate" method="invalidatePojo" />
 	</component>
 
 	<!-- The file finder service -->
@@ -52,11 +40,7 @@
 		public="false">
 
 		<provides specifications="org.psem2m.isolates.base.dirs.IFileFinderSvc" />
-
 		<requires field="pPlatformDirsSvc" optional="false" />
-
-		<callback transition="validate" method="validatePojo" />
-		<callback transition="invalidate" method="invalidatePojo" />
 	</component>
 
 	<!-- Instances -->

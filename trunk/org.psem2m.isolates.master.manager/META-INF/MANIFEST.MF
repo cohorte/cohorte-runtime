@@ -27,25 +27,24 @@ iPOJO-Components: instance { $component="isolates-master-manager-logge
  te" $method="validatePojo" }callback { $transition="invalidate" $meth
  od="invalidatePojo" }provides { $specifications="org.psem2m.utilities
  .logging.IActivityLoggerBase" }manipulation { $super="org.psem2m.isol
- ates.base.CBundleLoggerBase" field { $name="__MvalidatePojo" $type="b
- oolean" }field { $name="__MinvalidatePojo" $type="boolean" }method { 
- $name="$init" }method { $name="invalidatePojo" }method { $name="valid
- atePojo" }interface { $name="org.psem2m.utilities.logging.IActivityLo
- ggerBase" }}}component { $immediate="true" $name="isolates-master-man
- ager-factory" $classname="org.psem2m.isolates.master.manager.impl.CMa
- sterManager" $architecture="true" callback { $transition="validate" $
- method="validatePojo" }callback { $transition="invalidate" $method="i
- nvalidatePojo" }manipulation { $super="org.psem2m.isolates.base.CPojo
- Base" field { $name="pPlatformDirsSvc" $type="org.psem2m.isolates.bas
- e.dirs.IPlatformDirsSvc" }field { $name="pLoggerSvc" $type="org.psem2
- m.utilities.logging.IActivityLoggerBase" }field { $name="pConfigurati
- on" $type="org.psem2m.isolates.base.conf.ISvcConfig" }field { $name="
- pBundleFinderSvc" $type="org.psem2m.isolates.base.bundles.IBundleFind
- erSvc" }method { $name="$init" }method { $name="destroy" }method { $a
- rguments="{java.lang.String}" $name="getBundlesRef" $return="org.psem
- 2m.isolates.base.bundles.BundleRef[]" }method { $name="invalidatePojo
- " }method { $name="startForker" }method { $name="validatePojo" }}requ
- ires { $field="pBundleFinderSvc" $optional="false" }requires { $field
- ="pPlatformDirsSvc" $optional="false" }requires { $field="pLoggerSvc"
-  $optional="false" $from="isolates-master-manager-logger" }}
+ ates.base.CBundleLoggerBase" method { $name="$init" }method { $name="
+ invalidatePojo" }method { $name="validatePojo" }interface { $name="or
+ g.psem2m.utilities.logging.IActivityLoggerBase" }}}component { $immed
+ iate="true" $name="isolates-master-manager-factory" $classname="org.p
+ sem2m.isolates.master.manager.impl.CMasterManager" $architecture="tru
+ e" callback { $transition="validate" $method="validatePojo" }callback
+  { $transition="invalidate" $method="invalidatePojo" }manipulation { 
+ $super="org.psem2m.isolates.base.CPojoBase" field { $name="pPlatformD
+ irsSvc" $type="org.psem2m.isolates.base.dirs.IPlatformDirsSvc" }field
+  { $name="pLoggerSvc" $type="org.psem2m.utilities.logging.IActivityLo
+ ggerBase" }field { $name="pConfiguration" $type="org.psem2m.isolates.
+ base.conf.ISvcConfig" }field { $name="pBundleFinderSvc" $type="org.ps
+ em2m.isolates.base.bundles.IBundleFinderSvc" }method { $name="$init" 
+ }method { $name="destroy" }method { $arguments="{java.lang.String}" $
+ name="getBundlesRef" $return="org.psem2m.isolates.base.bundles.Bundle
+ Ref[]" }method { $name="invalidatePojo" }method { $name="startForker"
+  }method { $name="validatePojo" }}requires { $field="pBundleFinderSvc
+ " $optional="false" }requires { $field="pPlatformDirsSvc" $optional="
+ false" }requires { $field="pLoggerSvc" $optional="false" $from="isola
+ tes-master-manager-logger" }}
 

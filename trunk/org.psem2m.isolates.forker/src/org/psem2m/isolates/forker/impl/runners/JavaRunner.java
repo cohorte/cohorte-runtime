@@ -23,7 +23,6 @@ import org.psem2m.isolates.forker.IProcessRunner;
 import org.psem2m.isolates.forker.impl.processes.ProcessBuilderRunner;
 import org.psem2m.utilities.CXJvmUtils;
 import org.psem2m.utilities.CXOSUtils;
-import org.psem2m.utilities.files.CXFileDir;
 
 /**
  * Runs the Java interpreter for the given isolate
@@ -211,7 +210,7 @@ public class JavaRunner extends CPojoBase implements IJavaRunner {
 	}
 
 	// Working directory
-	CXFileDir workingDirectory = pPlatformDirsSvc
+	File workingDirectory = pPlatformDirsSvc
 		.getIsolateWorkingDir(aIsolateConfiguration.getId());
 
 	return runJava(javaArguments, aIsolateConfiguration.getEnvironment(),

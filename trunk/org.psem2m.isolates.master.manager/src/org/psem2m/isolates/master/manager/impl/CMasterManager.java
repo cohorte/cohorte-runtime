@@ -5,6 +5,7 @@
  */
 package org.psem2m.isolates.master.manager.impl;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -21,7 +22,6 @@ import org.psem2m.isolates.base.conf.ISvcConfig;
 import org.psem2m.isolates.base.dirs.IPlatformDirsSvc;
 import org.psem2m.isolates.commons.IIsolateConfiguration.IsolateKind;
 import org.psem2m.utilities.CXTimedoutCall;
-import org.psem2m.utilities.files.CXFileDir;
 import org.psem2m.utilities.logging.IActivityLoggerBase;
 
 /**
@@ -130,7 +130,7 @@ public class CMasterManager extends CPojoBase {
 	ProcessBuilder builder = new ProcessBuilder(forkerCommand);
 
 	// TODO compute the working directory in a better way...
-	CXFileDir workingDir = pPlatformDirsSvc
+	File workingDir = pPlatformDirsSvc
 		.getIsolateWorkingDir("psem2m.forker");
 	if (!workingDir.exists()) {
 	    workingDir.mkdirs();
