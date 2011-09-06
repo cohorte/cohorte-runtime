@@ -18,7 +18,7 @@ import java.util.TreeMap;
 import org.psem2m.isolates.base.CLogIsolatesRedirector;
 import org.psem2m.isolates.base.CPojoBase;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
-import org.psem2m.isolates.base.IPlatformDirsSvc;
+import org.psem2m.isolates.base.dirs.IPlatformDirsSvc;
 import org.psem2m.isolates.loggers.ILogChannelSvc;
 import org.psem2m.isolates.loggers.ILogChannelsSvc;
 import org.psem2m.utilities.CXJvmUtils;

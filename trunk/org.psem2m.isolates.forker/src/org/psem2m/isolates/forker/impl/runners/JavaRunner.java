@@ -14,7 +14,7 @@ import java.util.Map;
 
 import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.CPojoBase;
-import org.psem2m.isolates.base.IPlatformDirsSvc;
+import org.psem2m.isolates.base.dirs.IPlatformDirsSvc;
 import org.psem2m.isolates.commons.IIsolateConfiguration;
 import org.psem2m.isolates.commons.IIsolateConfiguration.IsolateKind;
 import org.psem2m.isolates.forker.IBundleForkerLoggerSvc;

@@ -21,11 +21,11 @@ import java.util.logging.LogRecord;
 
 import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.CPojoBase;
-import org.psem2m.isolates.base.IPlatformDirsSvc;
 import org.psem2m.isolates.base.IPlatformProperties;
 import org.psem2m.isolates.base.boot.IsolateStatus;
 import org.psem2m.isolates.base.bundles.BundleRef;
 import org.psem2m.isolates.base.bundles.IBundleFinderSvc;
+import org.psem2m.isolates.base.dirs.IPlatformDirsSvc;
 import org.psem2m.isolates.commons.IIsolateConfiguration;
 import org.psem2m.isolates.commons.IIsolateConfiguration.IsolateKind;
 import org.psem2m.isolates.forker.IBundleForkerLoggerSvc;
