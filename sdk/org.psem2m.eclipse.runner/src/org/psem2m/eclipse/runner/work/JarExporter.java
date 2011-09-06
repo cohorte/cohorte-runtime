@@ -12,7 +12,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.pde.internal.core.project.BundleProjectDescription;
 import org.ow2.chameleon.eclipse.ipojo.exporter.core.BundleExporter;
 import org.psem2m.eclipse.runner.RunnerPlugin;
 
@@ -72,64 +71,45 @@ public class JarExporter {
 	}
 
 	/**
-	 * Exports the given plugins
+	 * Exports the given projects using iPOJO Nature exporter
 	 * 
-	 * @param aSelectedPlugins
-	 *            Bundles IDs representing the projects to be exported
+	 * @param aSelectedProjectsNames
+	 *            Names of the projects to be exported
 	 * @param aMonitor
 	 *            Progress monitor
 	 * 
 	 * @return True if all projects have been exported, false is one generated
 	 *         an error
 	 */
-	public boolean export(final List<String> aSelectedPlugins,
+	public boolean export(final List<String> aSelectedProjectsNames,
 			final IProgressMonitor aMonitor) {
 
-		return export(findProjectsFromId(aSelectedPlugins), aMonitor);
+		return export(findProjectsFromName(aSelectedProjectsNames), aMonitor);
 	}
 
 	/**
-	 * Finds projects with the given bundle IDs
+	 * Finds the projects corresponding to the given names
 	 * 
-	 * @param aPluginsIds
-	 *            Bundle IDs list
-	 * @return Projects corresponding to the given IDs
+	 * @param aProjectNames
+	 *            Project names
+	 * @return The corresponding projects
 	 */
-	@SuppressWarnings("restriction")
-	public IProject[] findProjectsFromId(final List<String> aPluginsIds) {
+	public IProject[] findProjectsFromName(final List<String> aProjectNames) {
 
-		// Use a copy of the argument
-		final List<String> pluginsIds = new ArrayList<String>(aPluginsIds);
-		final List<IProject> models = new ArrayList<IProject>();
+		final List<IProject> selectedProjects = new ArrayList<IProject>(
+				aProjectNames.size());
 
-		// Test all projects
+		// Test all names
 		final IProject[] projects = ResourcesPlugin.getWorkspace().getRoot()
 				.getProjects();
 		for (IProject project : projects) {
 
-			try {
-				// Read the project description
-				final BundleProjectDescription bundleProject = new BundleProjectDescription(
-						project);
-
-				// Test if the plug-in ID corresponds to the bundle symbolic
-				// name
-				final String bundleId = bundleProject.getSymbolicName();
-				if (pluginsIds.contains(bundleId)) {
-
-					// No need to keep it in further tests
-					pluginsIds.remove(bundleId);
-				}
-
-			} catch (CoreException e) {
-				// Not a bundle project, try next one
+			if (aProjectNames.contains(project.getName())) {
+				// Project found
+				selectedProjects.add(project);
 			}
 		}
 
-		if (models.size() != aPluginsIds.size()) {
-			RunnerPlugin.logWarning("Some plug-ins to export were not found");
-		}
-
-		return models.toArray(new IProject[0]);
+		return selectedProjects.toArray(new IProject[0]);
 	}
 }

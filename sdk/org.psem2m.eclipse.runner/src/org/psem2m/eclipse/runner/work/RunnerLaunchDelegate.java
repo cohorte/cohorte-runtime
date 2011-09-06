@@ -122,16 +122,23 @@ public class RunnerLaunchDelegate implements ILaunchConfigurationDelegate {
 		final File workingDir = getExtendedPath(aConfiguration.getAttribute(
 				IRunnerConfigurationConstants.WORKING_DIRECTORY, (String) null));
 
-		// Extract the plug-ins list
-		final List<String> selectedPlugins = getWorkspaceBundlesList(aConfiguration);
-
 		// Retrieve the bundles output folder
 		final File outputFolder = getExtendedPath(aConfiguration.getAttribute(
 				IRunnerConfigurationConstants.EXPORT_OUTPUT_FOLDER,
 				(String) null));
-
 		if (outputFolder == null) {
-			RunnerPlugin.logError("No output folder set", null);
+			RunnerPlugin.logError("No output folder set",
+					new RuntimeException());
+			return;
+		}
+
+		// Retrieve the plug-ins list
+		@SuppressWarnings("unchecked")
+		final List<String> selectedPlugins = aConfiguration.getAttribute(
+				IRunnerConfigurationConstants.EXPORT_PROJECTS_LIST,
+				new ArrayList<String>());
+		if (selectedPlugins.isEmpty()) {
+			RunnerPlugin.logWarning("No projects will be exported");
 			return;
 		}
 

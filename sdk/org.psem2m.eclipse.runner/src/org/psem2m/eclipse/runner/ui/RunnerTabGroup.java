@@ -9,7 +9,6 @@ import org.eclipse.debug.ui.AbstractLaunchConfigurationTabGroup;
 import org.eclipse.debug.ui.CommonTab;
 import org.eclipse.debug.ui.ILaunchConfigurationDialog;
 import org.eclipse.debug.ui.ILaunchConfigurationTab;
-import org.eclipse.pde.ui.launcher.BundlesTab;
 
 /**
  * Prepares the Run configuration tabs
@@ -31,7 +30,7 @@ public class RunnerTabGroup extends AbstractLaunchConfigurationTabGroup {
 
 		// Tabs in the tab group
 		ILaunchConfigurationTab tabs[] = new ILaunchConfigurationTab[] {
-				new Psem2mTab(), new BundlesTab(), new CommonTab() };
+				new Psem2mTab(), new ProjectsSelectionTab(), new CommonTab() };
 
 		setTabs(tabs);
 	}

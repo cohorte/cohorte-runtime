@@ -24,8 +24,14 @@ public interface IRunnerConfigurationConstants {
 	/** Default remote debug port */
 	int DEFAULT_DEBUG_PORT = 8000;
 
-	/** Plug-ins export output folder */
+	/** Plug-ins export output folder (String) */
 	String EXPORT_OUTPUT_FOLDER = "org.psem2m.runner.output_folder";
+
+	/** Exported projects (List&lt;String&gt; - project names) */
+	String EXPORT_PROJECTS_LIST = "org.psem2m.runner.projects_list";
+
+	/** Bundle exporter must use build.properties file, if any (boolean) */
+	String EXPORT_USE_BUILD_PROPERTIES = "org.psem2m.runner.use_build_properties";
 
 	/** PSEM2M Home */
 	String PSEM2M_BASE = "org.psem2m.base";
