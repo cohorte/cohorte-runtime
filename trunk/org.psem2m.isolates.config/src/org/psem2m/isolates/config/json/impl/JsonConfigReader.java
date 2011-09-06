@@ -8,73 +8,77 @@ package org.psem2m.isolates.config.json.impl;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.psem2m.isolates.config.IConfigurationReader;
+import org.psem2m.isolates.config.json.IApplicationDescr;
 import org.psem2m.isolates.config.json.IBundleDescr;
 import org.psem2m.isolates.config.json.IIsolateDescr;
+import org.psem2m.isolates.config.json.IJsonConfigKeys;
 
 /**
- * @author Thomas Calmant
+ * PSEM2M configuration reader from JSON files
  * 
+ * @author Thomas Calmant
  */
-public class JsonConfigReader {
+public class JsonConfigReader implements IConfigurationReader {
 
-    public static final String CONFIG_APP_ID = "appId";
+    /** The described application */
+    private ApplicationDescription pApplication;
 
-    public static final String CONFIG_BUNDLE_FILE = "file";
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.config.IConfigurationReader#getApplication(java.lang
+     * .String)
+     */
+    @Override
+    public IApplicationDescr getApplication(final String aApplicationId) {
 
-    public static final String CONFIG_BUNDLE_FROM = "from";
+	if (pApplication.getApplicationId().equals(aApplicationId)) {
+	    return pApplication;
+	}
 
-    public static final String CONFIG_BUNDLE_NAME = "symbolicName";
-
-    public static final String CONFIG_BUNDLE_OPTIONAL = "optional";
-
-    public static final String CONFIG_BUNDLE_VERSION = "version";
-
-    public static final String CONFIG_ISOLATE_BUNDLES = "bundles";
-
-    public static final String CONFIG_ISOLATE_FROM = "from";
-
-    public static final String CONFIG_ISOLATE_ID = "id";
-
-    public static final String CONFIG_ISOLATE_VMARGS = "vmArgs";
-
-    public static final String CONFIG_ISOLATES_ARRAY = "isolates";
-
-    /** Application ID (one application per file) */
-    private String pApplicationId;
-
-    /** Isolates ID -> Configuration map */
-    private final Map<String, IIsolateDescr> pIsolates = new HashMap<String, IIsolateDescr>();
-
-    public String getApplicationId() {
-	return pApplicationId;
+	return null;
     }
 
-    public IIsolateDescr getIsolate(final String aId) {
-	return pIsolates.get(aId);
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.config.IConfigurationReader#getApplicationIds()
+     */
+    @Override
+    public String[] getApplicationIds() {
+	return new String[] { pApplication.getApplicationId() };
     }
 
+    /**
+     * Loads the given configuration file
+     * 
+     * @param aFile
+     *            JSON configuration file
+     */
+    @Override
     public void load(final String aFile) {
-
-	pApplicationId = null;
-	pIsolates.clear();
 
 	try {
 	    // Parse the configuration
 	    final JSONObject configRoot = readJsonObjectFile(aFile);
 
 	    // Throws JSONException if key is not found
-	    pApplicationId = configRoot.getString(CONFIG_APP_ID);
+	    String applicationId = configRoot
+		    .getString(IJsonConfigKeys.CONFIG_APP_ID);
+
+	    pApplication = new ApplicationDescription(applicationId);
 
 	    // Throws JSONException if key is not found
-	    parseIsolates(configRoot.getJSONArray(CONFIG_ISOLATES_ARRAY));
+	    parseIsolates(configRoot
+		    .getJSONArray(IJsonConfigKeys.CONFIG_ISOLATES_ARRAY));
 
 	} catch (JSONException ex) {
 	    System.err.println("Error parsing a configuration file");
@@ -89,37 +93,46 @@ public class JsonConfigReader {
     /**
      * Parses a bundle entry
      * 
-     * @param aJsonObject
+     * @param aBundleObject
      *            JSON bundle entry
      * @return The bundle description
      * @throws JSONException
      *             The bundle entry is invalid
      */
-    protected IBundleDescr parseBundle(final JSONObject aJsonObject)
+    protected IBundleDescr parseBundle(final JSONObject aBundleObject)
 	    throws JSONException {
 
 	// Get the symbolic name
-	final String symbolicName = aJsonObject.getString(CONFIG_BUNDLE_NAME);
+	final String symbolicName = aBundleObject
+		.getString(IJsonConfigKeys.CONFIG_BUNDLE_NAME);
 
 	// Get the version (optional)
-	final String version = aJsonObject.optString(CONFIG_BUNDLE_VERSION);
+	final String version = aBundleObject
+		.optString(IJsonConfigKeys.CONFIG_BUNDLE_VERSION);
 
 	// Get the file name (optional)
-	final String fileName = aJsonObject.optString(CONFIG_BUNDLE_FILE);
+	final String fileName = aBundleObject
+		.optString(IJsonConfigKeys.CONFIG_BUNDLE_FILE);
 
 	// Bundle optional flag (optional)
-	final boolean optional = aJsonObject.optBoolean(CONFIG_BUNDLE_OPTIONAL,
-		false);
+	final boolean optional = aBundleObject.optBoolean(
+		IJsonConfigKeys.CONFIG_BUNDLE_OPTIONAL, false);
 
 	// Create the description
 	return new BundleDescription(symbolicName, version, fileName, optional);
     }
 
     /**
+     * Parses an array of bundles
+     * 
      * @param aIsolateDescription
+     *            Isolate currently described
      * @param aJsonArray
+     *            Bundle array
      * @throws JSONException
+     *             An error occurred while reading the array
      * @throws FileNotFoundException
+     *             An imported file wasn't found
      */
     protected void parseBundles(final IsolateDescription aIsolateDescription,
 	    final JSONArray aJsonArray) throws JSONException,
@@ -130,11 +143,11 @@ public class JsonConfigReader {
 
 	    final JSONObject bundleObject = aJsonArray.getJSONObject(i);
 
-	    if (bundleObject.has(CONFIG_BUNDLE_FROM)) {
+	    if (bundleObject.has(IJsonConfigKeys.CONFIG_FROM)) {
 		// Read "distant" object
 		parseBundles(aIsolateDescription,
 			readJsonArrayFile(bundleObject
-				.getString(CONFIG_BUNDLE_FROM)));
+				.getString(IJsonConfigKeys.CONFIG_FROM)));
 
 	    } else {
 		// Parse local object
@@ -143,19 +156,31 @@ public class JsonConfigReader {
 	}
     }
 
-    protected IIsolateDescr parseIsolate(final JSONObject isolateObject)
+    /**
+     * Parses an isolate entry
+     * 
+     * @param aIsolateObject
+     *            A JSON object describing an isolate
+     * @return The description of the isolate
+     * @throws JSONException
+     *             An error occurred while reading the object
+     * @throws FileNotFoundException
+     *             An imported file wasn't found
+     */
+    protected IIsolateDescr parseIsolate(final JSONObject aIsolateObject)
 	    throws JSONException, FileNotFoundException {
 
 	// Isolate ID
-	final String isolateId = isolateObject.getString(CONFIG_ISOLATE_ID);
+	final String isolateId = aIsolateObject
+		.getString(IJsonConfigKeys.CONFIG_ISOLATE_ID);
 
 	// Prepare the description object
 	final IsolateDescription isolateDescription = new IsolateDescription(
 		isolateId);
 
 	// Isolate VM Args
-	final JSONArray vmArgsArray = isolateObject
-		.optJSONArray(CONFIG_ISOLATE_VMARGS);
+	final JSONArray vmArgsArray = aIsolateObject
+		.optJSONArray(IJsonConfigKeys.CONFIG_ISOLATE_VMARGS);
 
 	// Add the JSONArray content to the vmArgs
 	if (vmArgsArray != null) {
@@ -172,15 +197,21 @@ public class JsonConfigReader {
 
 	// Isolate bundles
 	parseBundles(isolateDescription,
-		isolateObject.getJSONArray(CONFIG_ISOLATE_BUNDLES));
+		aIsolateObject
+			.getJSONArray(IJsonConfigKeys.CONFIG_ISOLATE_BUNDLES));
 
 	return isolateDescription;
     }
 
     /**
+     * Parses an array of isolates
+     * 
      * @param aJsonArray
+     *            Bundle array
      * @throws JSONException
+     *             An error occurred while reading the array
      * @throws FileNotFoundException
+     *             An imported file wasn't found
      */
     protected void parseIsolates(final JSONArray aJsonArray)
 	    throws JSONException, FileNotFoundException {
@@ -188,20 +219,21 @@ public class JsonConfigReader {
 	final int isolatesCount = aJsonArray.length();
 	for (int i = 0; i < isolatesCount; i++) {
 
+	    final IIsolateDescr isolateDescription;
 	    final JSONObject isolateObject = aJsonArray.getJSONObject(i);
 
-	    if (isolateObject.has(CONFIG_ISOLATE_FROM)) {
+	    if (isolateObject.has(IJsonConfigKeys.CONFIG_FROM)) {
 		// Case 1 : the isolate is described in another file
-		parseIsolates(readJsonArrayFile(isolateObject
-			.getString(CONFIG_ISOLATE_FROM)));
+		isolateDescription = parseIsolate(readJsonObjectFile(isolateObject
+			.getString(IJsonConfigKeys.CONFIG_FROM)));
 
 	    } else {
 		// Case 2 : everything is described here
-		final IIsolateDescr isolateDescr = parseIsolate(isolateObject);
-
-		// Store the isolate
-		pIsolates.put(isolateDescr.getId(), isolateDescr);
+		isolateDescription = parseIsolate(isolateObject);
 	    }
+
+	    // Store it
+	    pApplication.addIsolate(isolateDescription);
 	}
     }
 
@@ -216,22 +248,41 @@ public class JsonConfigReader {
      */
     protected String readFile(final File aFile) throws FileNotFoundException {
 
+	// TODO try multiple files paths
 	return new Scanner(aFile).useDelimiter("\\Z").next();
     }
 
+    /**
+     * Reads the given file and parses it as a JSON array
+     * 
+     * @param aFile
+     *            File to read
+     * @return The parsed JSON array
+     * @throws JSONException
+     *             The file is not a JSON array
+     * @throws FileNotFoundException
+     *             The given file wasn't found
+     */
     protected JSONArray readJsonArrayFile(final String aFile)
 	    throws JSONException, FileNotFoundException {
-	// TODO Test possible file paths (HOME, BASE, ...)
-	final String fileContent = readFile(new File(aFile));
 
-	return new JSONArray(fileContent);
+	return new JSONArray(readFile(new File(aFile)));
     }
 
+    /**
+     * Reads the given file and parses it as a JSON object
+     * 
+     * @param aFile
+     *            File to read
+     * @return The parsed JSON array
+     * @throws JSONException
+     *             The file is not a JSON object
+     * @throws FileNotFoundException
+     *             The given file wasn't found
+     */
     protected JSONObject readJsonObjectFile(final String aFile)
 	    throws JSONException, FileNotFoundException {
-	// TODO Test possible file paths (HOME, BASE, ...)
-	final String fileContent = readFile(new File(aFile));
 
-	return new JSONObject(fileContent);
+	return new JSONObject(readFile(new File(aFile)));
     }
 }

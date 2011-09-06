@@ -8,10 +8,14 @@ package org.psem2m.isolates.config.json.impl;
 import org.psem2m.isolates.config.json.IBundleDescr;
 
 /**
- * @author Thomas Calmant
+ * Description of a bundle
  * 
+ * @author Thomas Calmant
  */
 public class BundleDescription implements IBundleDescr {
+
+    /** Serializable version */
+    private static final long serialVersionUID = 1L;
 
     /** Bundle file name, if specified */
     private String pFile;

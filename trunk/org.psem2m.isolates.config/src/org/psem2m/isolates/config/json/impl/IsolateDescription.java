@@ -1,6 +1,6 @@
 /**
  * File:   IsolateDescription.java
- * Author: "Thomas Calmant"
+ * Author: Thomas Calmant
  * Date:   2 sept. 2011
  */
 package org.psem2m.isolates.config.json.impl;
@@ -14,10 +14,14 @@ import org.psem2m.isolates.config.json.IBundleDescr;
 import org.psem2m.isolates.config.json.IIsolateDescr;
 
 /**
- * @author "Thomas Calmant"
+ * Description of an isolate
  * 
+ * @author Thomas Calmant
  */
 public class IsolateDescription implements IIsolateDescr {
+
+    /** Serializable version */
+    private static final long serialVersionUID = 1L;
 
     /** Isolate bundles (can't be null) */
     private final Set<IBundleDescr> pBundles = new HashSet<IBundleDescr>();

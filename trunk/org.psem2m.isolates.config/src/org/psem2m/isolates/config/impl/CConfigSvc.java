@@ -21,6 +21,7 @@ import org.psem2m.isolates.base.CPojoBase;
 import org.psem2m.isolates.config.IParamId;
 import org.psem2m.isolates.config.IPlatformConfigurationConstants;
 import org.psem2m.isolates.config.ISvcConfig;
+import org.psem2m.isolates.config.json.impl.JsonConfigReader;
 import org.psem2m.utilities.logging.IActivityLoggerBase;
 
 /**
@@ -263,6 +264,14 @@ public class CConfigSvc extends CPojoBase implements ISvcConfig {
      */
     @Override
     public void validatePojo() throws BundleException {
+
+	System.out.println("Read conf");
+	pLoggerSvc.logInfo(this, "TestJson", "Reading conf...");
+
+	JsonConfigReader reader = new JsonConfigReader();
+	reader.load("/home/tcalmant/Bureau/config.js");
+	System.out.println("Done");
+	pLoggerSvc.logInfo(this, "TestJs123on", "Reading conf Done");
 
 	// logs in the bundle logger
 	pLoggerSvc.logInfo(this, "validatePojo", "VALIDATE", toDescription());
