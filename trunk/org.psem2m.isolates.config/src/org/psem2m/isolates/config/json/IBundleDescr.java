@@ -5,11 +5,13 @@
  */
 package org.psem2m.isolates.config.json;
 
+import java.io.Serializable;
+
 /**
  * @author "Thomas Calmant"
  * 
  */
-public interface IBundleDescr {
+public interface IBundleDescr extends Serializable {
 
     String getFile();
 
