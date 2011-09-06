@@ -1,5 +1,5 @@
 /**
- * File:   OsgiBootstrapPure.java
+ * File:   FrameworkStarter.java
  * Author: Thomas Calmant
  * Date:   6 juil. 2011
  */
@@ -19,19 +19,19 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.FrameworkEvent;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.launch.FrameworkFactory;
+import org.psem2m.isolates.base.IPlatformProperties;
 import org.psem2m.utilities.bootstrap.IBootstrapConstants;
 import org.psem2m.utilities.bootstrap.IMessageSender;
-import org.psem2m.utilities.bootstrap.ISvcBootstrap;
 
 /**
  * Bootstrap for OSGi frameworks
  * 
  * @author Thomas Calmant
  */
-public class OsgiBootstrapPure implements ISvcBootstrap {
+public class FrameworkStarter {
 
     /** Name to use in logs */
-    private static final String CLASS_LOG_NAME = OsgiBootstrapPure.class
+    private static final String CLASS_LOG_NAME = FrameworkStarter.class
 	    .getSimpleName();
 
     /** Default OSGi pFramework : Felix */
@@ -48,12 +48,6 @@ public class OsgiBootstrapPure implements ISvcBootstrap {
 
     /** OSGi storage cleaning option value : onFirstInit */
     public static final String OSGI_STORAGE_CLEAN_ON_INIT = "onFirstInit";
-
-    /** Platform base property */
-    public static final String PROP_PLATFORM_BASE = "org.psem2m.platform.base";
-
-    /** Isolate ID */
-    public static final String PROP_PLATFORM_ISOLATE_ID = "org.psem2m.platform.isolate.id";
 
     static {
 	// Initialize the static map
@@ -90,7 +84,7 @@ public class OsgiBootstrapPure implements ISvcBootstrap {
      * @param aFrameworkConfiguration
      *            OSGi framework configuration map
      */
-    public OsgiBootstrapPure(final IMessageSender aMessageSender,
+    public FrameworkStarter(final IMessageSender aMessageSender,
 	    final Map<String, String> aBootstrapConfiguration,
 	    final Map<String, String> aFrameworkConfiguration) {
 
@@ -109,14 +103,17 @@ public class OsgiBootstrapPure implements ISvcBootstrap {
 
 	    // Find an isolate ID
 	    String isolateId = pFrameworkConfiguration
-		    .get(PROP_PLATFORM_ISOLATE_ID);
+		    .get(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID);
 	    if (isolateId == null) {
-		System.getProperty(PROP_PLATFORM_ISOLATE_ID, "felix-cache");
+		System.getProperty(
+			IPlatformProperties.PROP_PLATFORM_ISOLATE_ID,
+			"unknown-isolate");
 	    }
 
 	    // Prepare the directory
 	    File frameworkCacheDirectory = new File(System.getProperty(
-		    PROP_PLATFORM_BASE, "."), "var/work/" + isolateId);
+		    IPlatformProperties.PROP_PLATFORM_BASE, "."), "var/work/"
+		    + isolateId);
 
 	    if (frameworkCacheDirectory.exists()) {
 		// Dump it ...
@@ -144,7 +141,6 @@ public class OsgiBootstrapPure implements ISvcBootstrap {
      * 
      * @see org.psem2m.utilities.bootstrap.impl.ISvcBootstrap#createFramework()
      */
-    @Override
     public Framework createFramework() {
 
 	final FrameworkFactory factory = getFrameworkFactory();
@@ -220,7 +216,6 @@ public class OsgiBootstrapPure implements ISvcBootstrap {
      * org.psem2m.utilities.bootstrap.impl.ISvcBootstrap#installBundles(java
      * .net.URL[])
      */
-    @Override
     public boolean installBundles(final URL[] aBundlesConfiguration) {
 
 	boolean success = true;
@@ -269,7 +264,6 @@ public class OsgiBootstrapPure implements ISvcBootstrap {
      * org.psem2m.utilities.bootstrap.impl.ISvcBootstrap#setMessageSender(org
      * .psem2m.utilities.bootstrap.IMessageSender)
      */
-    @Override
     public void setMessageSender(final IMessageSender aMessageSender) {
 
 	if (aMessageSender != null) {
@@ -282,7 +276,6 @@ public class OsgiBootstrapPure implements ISvcBootstrap {
      * 
      * @see org.psem2m.utilities.bootstrap.impl.ISvcBootstrap#startBundles()
      */
-    @Override
     public boolean startBundles() {
 
 	boolean success = true;
@@ -312,7 +305,6 @@ public class OsgiBootstrapPure implements ISvcBootstrap {
      * 
      * @see org.psem2m.utilities.bootstrap.impl.ISvcBootstrap#startFramework()
      */
-    @Override
     public boolean startFramework() {
 
 	try {
@@ -333,7 +325,6 @@ public class OsgiBootstrapPure implements ISvcBootstrap {
      * 
      * @see org.psem2m.utilities.bootstrap.impl.ISvcBootstrap#stopFramework()
      */
-    @Override
     public boolean stopFramework() {
 
 	if (pFramework.getState() != Bundle.ACTIVE) {
@@ -360,7 +351,6 @@ public class OsgiBootstrapPure implements ISvcBootstrap {
      * 
      * @see org.psem2m.utilities.bootstrap.impl.ISvcBootstrap#waitForStop(int)
      */
-    @Override
     public boolean waitForStop(final int aTimeout) throws InterruptedException {
 
 	FrameworkEvent event = pFramework.waitForStop(aTimeout);
