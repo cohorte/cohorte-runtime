@@ -17,6 +17,7 @@ import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -45,10 +46,8 @@ public class ProjectsSelectionTab extends AbstractLaunchConfigurationTab {
 
 		@Override
 		public void handleEvent(final Event aEvent) {
-
-			// For all others, set dirty in any case
+			// Set dirty state on
 			setDirty(true);
-
 			updateLaunchConfigurationDialog();
 		}
 	};
@@ -59,6 +58,20 @@ public class ProjectsSelectionTab extends AbstractLaunchConfigurationTab {
 
 	/** Projects list */
 	private Table pProjectsTable;
+
+	/** "Select all" button */
+	private Button pSelectAll;
+
+	/**
+	 * Project selection buttons
+	 */
+	private final Listener pSelectButtonListener = new Listener() {
+
+		@Override
+		public void handleEvent(final Event aEvent) {
+			selectAllProjects(pSelectAll.equals(aEvent.widget));
+		}
+	};
 
 	/** "Use build.properties" button */
 	private Button pUseBuildProperties;
@@ -79,6 +92,9 @@ public class ProjectsSelectionTab extends AbstractLaunchConfigurationTab {
 		GridLayout layout = new GridLayout();
 		layout.numColumns = 1;
 		pageRoot.setLayout(layout);
+
+		final Rectangle rect = aParent.getClientArea();
+		pageRoot.setSize(rect.width - rect.x, rect.height - rect.y);
 
 		// Prepare the project selection
 		createProjectSelectionTable(pageRoot);
@@ -102,13 +118,16 @@ public class ProjectsSelectionTab extends AbstractLaunchConfigurationTab {
 
 		// Set a grid layout
 		GridLayout layout = new GridLayout();
-		layout.numColumns = 1;
+		layout.numColumns = 2;
 		aParent.setLayout(layout);
 
 		// Prepare the table
 		pProjectsTable = new Table(aParent, SWT.BORDER | SWT.CHECK
 				| SWT.H_SCROLL | SWT.V_SCROLL);
-		pProjectsTable.setLayoutData(new GridData(GridData.FILL_BOTH));
+
+		GridData tableData = new GridData(GridData.FILL_BOTH);
+		tableData.horizontalSpan = 2;
+		pProjectsTable.setLayoutData(tableData);
 
 		// Fill it
 		for (IProject project : ResourcesPlugin.getWorkspace().getRoot()
@@ -121,7 +140,7 @@ public class ProjectsSelectionTab extends AbstractLaunchConfigurationTab {
 							SWT.NONE);
 					item.setText(project.getName());
 					item.setImage(pProjectImage);
-					item.setData(project);
+					item.setData(project.getName());
 				}
 
 			} catch (CoreException ex) {
@@ -131,6 +150,17 @@ public class ProjectsSelectionTab extends AbstractLaunchConfigurationTab {
 		}
 
 		pProjectsTable.addListener(SWT.Selection, pEventListener);
+
+		// Buttons
+		pSelectAll = new Button(aParent, SWT.NONE);
+		pSelectAll.setText("Select all");
+		pSelectAll.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		pSelectAll.addListener(SWT.Selection, pSelectButtonListener);
+
+		Button unselectAll = new Button(aParent, SWT.NONE);
+		unselectAll.setText("Unselect all");
+		unselectAll.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		unselectAll.addListener(SWT.Selection, pSelectButtonListener);
 	}
 
 	/*
@@ -212,6 +242,24 @@ public class ProjectsSelectionTab extends AbstractLaunchConfigurationTab {
 				projectsList);
 	}
 
+	/**
+	 * Checks or un-checks all projects in the table
+	 * 
+	 * @param aCheck
+	 *            True to check all, False to un-check all
+	 */
+	public void selectAllProjects(final boolean aCheck) {
+
+		// Check or un-check all items
+		for (TableItem item : pProjectsTable.getItems()) {
+			item.setChecked(aCheck);
+		}
+
+		// Set dirty state
+		setDirty(true);
+		updateLaunchConfigurationDialog();
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -245,9 +293,7 @@ public class ProjectsSelectionTab extends AbstractLaunchConfigurationTab {
 		for (TableItem item : pProjectsTable.getItems()) {
 
 			final Object itemData = item.getData();
-			if (itemData instanceof String) {
-				item.setChecked(aProjectList.contains(itemData));
-			}
+			item.setChecked(aProjectList.contains(itemData));
 		}
 	}
 }
