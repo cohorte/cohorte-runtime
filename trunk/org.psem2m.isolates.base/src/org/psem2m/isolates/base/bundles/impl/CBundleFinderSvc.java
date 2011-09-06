@@ -9,14 +9,13 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Arrays;
 
 import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.CPojoBase;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
-import org.psem2m.isolates.base.IPlatformDirsSvc;
 import org.psem2m.isolates.base.bundles.BundleRef;
 import org.psem2m.isolates.base.bundles.IBundleFinderSvc;
+import org.psem2m.isolates.base.dirs.IPlatformDirsSvc;
 import org.psem2m.utilities.files.CXFile;
 import org.psem2m.utilities.files.CXFileDir;
 
@@ -38,6 +37,16 @@ public class CBundleFinderSvc extends CPojoBase implements IBundleFinderSvc {
      */
     public CBundleFinderSvc() {
 	super();
+    }
+
+    /**
+     * Constructor for non-injected usage
+     * 
+     * @param aPlatformDirsSvc
+     *            A platform service instance
+     */
+    public CBundleFinderSvc(final IPlatformDirsSvc aPlatformDirsSvc) {
+	pPlatformDirsSvc = aPlatformDirsSvc;
     }
 
     /*
@@ -110,8 +119,6 @@ public class CBundleFinderSvc extends CPojoBase implements IBundleFinderSvc {
 	    }
 	}
 
-	pIsolateLoggerSvc.logWarn(this, "findBundle", "Bundle not found : "
-		+ Arrays.toString(aBundlePossibleNames));
 	return null;
     }
 

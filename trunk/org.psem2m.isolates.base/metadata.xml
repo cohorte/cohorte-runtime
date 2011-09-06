@@ -18,11 +18,11 @@
 	</component>
 
 	<!-- The platform directories service -->
-	<component classname="org.psem2m.isolates.base.impl.CPlatformDirsSvc"
+	<component classname="org.psem2m.isolates.base.dirs.impl.CPlatformDirsSvc"
 		architecture="true" immediate="true" name="isolates-base-platform-dirs-factory"
 		public="false">
 
-		<provides specifications="org.psem2m.isolates.base.IPlatformDirsSvc" />
+		<provides specifications="org.psem2m.isolates.base.dirs.IPlatformDirsSvc" />
 
 		<requires field="pIsolateLoggerSvc" optional="false"
 			from="isolates-base-isolatelogger" />
@@ -46,6 +46,19 @@
 		<callback transition="invalidate" method="invalidatePojo" />
 	</component>
 
+	<!-- The file finder service -->
+	<component classname="org.psem2m.isolates.base.dirs.impl.CFileFinderSvc"
+		architecture="true" immediate="true" name="isolates-base-file-finder-factory"
+		public="false">
+
+		<provides specifications="org.psem2m.isolates.base.dirs.IFileFinderSvc" />
+
+		<requires field="pPlatformDirsSvc" optional="false" />
+
+		<callback transition="validate" method="validatePojo" />
+		<callback transition="invalidate" method="invalidatePojo" />
+	</component>
+
 	<!-- Instances -->
 	<instance component="isolates-base-isolatelogger-factory"
 		name="isolates-base-isolatelogger" />
@@ -55,4 +68,6 @@
 
 	<instance component="isolates-base-bundle-finder-factory"
 		name="isolates-base-bundle-finder" />
+
+	<instance component="isolates-base-file-finder-factory" name="isolates-base-file-finder" />
 </ipojo>

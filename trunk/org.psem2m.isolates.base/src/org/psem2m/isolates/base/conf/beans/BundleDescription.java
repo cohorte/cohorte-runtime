@@ -3,9 +3,9 @@
  * Author: "Thomas Calmant"
  * Date:   2 sept. 2011
  */
-package org.psem2m.isolates.config.impl;
+package org.psem2m.isolates.base.conf.beans;
 
-import org.psem2m.isolates.config.IBundleDescr;
+import org.psem2m.isolates.base.conf.IBundleDescr;
 
 
 /**

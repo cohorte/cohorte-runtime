@@ -8,7 +8,7 @@
  * Contributors:
  *    ogattaz (isandlaTech) - initial API and implementation
  *******************************************************************************/
-package org.psem2m.isolates.base.impl;
+package org.psem2m.isolates.base.dirs.impl;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -17,8 +17,8 @@ import java.util.List;
 
 import org.psem2m.isolates.base.CPojoBase;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
-import org.psem2m.isolates.base.IPlatformDirsSvc;
 import org.psem2m.isolates.base.IPojoBase;
+import org.psem2m.isolates.base.dirs.IPlatformDirsSvc;
 import org.psem2m.utilities.CXOSUtils;
 import org.psem2m.utilities.CXStringUtils;
 import org.psem2m.utilities.files.CXFile;
@@ -256,6 +256,18 @@ public class CPlatformDirsSvc extends CPojoBase implements IPlatformDirsSvc,
 	    wLogDir.createHierarchy();
 	}
 	return wLogDir;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.base.dirs.IPlatformDirsSvc#getPlatformRootDirs()
+     */
+    @Override
+    public CXFileDir[] getPlatformRootDirs() {
+
+	return new CXFileDir[] { getPlatformHomeDir(), getPlatformBaseDir(),
+		new CXFileDir(System.getProperty("user.dir")) };
     }
 
     /*

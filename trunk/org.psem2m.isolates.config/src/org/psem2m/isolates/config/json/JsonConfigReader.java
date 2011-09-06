@@ -3,7 +3,7 @@
  * Author: Thomas Calmant
  * Date:   2 sept. 2011
  */
-package org.psem2m.isolates.config.json.impl;
+package org.psem2m.isolates.config.json;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -14,14 +14,13 @@ import java.util.Scanner;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.psem2m.isolates.config.IApplicationDescr;
-import org.psem2m.isolates.config.IBundleDescr;
-import org.psem2m.isolates.config.IConfigurationReader;
-import org.psem2m.isolates.config.IIsolateDescr;
-import org.psem2m.isolates.config.impl.ApplicationDescription;
-import org.psem2m.isolates.config.impl.BundleDescription;
-import org.psem2m.isolates.config.impl.IsolateDescription;
-import org.psem2m.isolates.config.json.IJsonConfigKeys;
+import org.psem2m.isolates.base.conf.IApplicationDescr;
+import org.psem2m.isolates.base.conf.IBundleDescr;
+import org.psem2m.isolates.base.conf.IConfigurationReader;
+import org.psem2m.isolates.base.conf.IIsolateDescr;
+import org.psem2m.isolates.base.conf.beans.ApplicationDescription;
+import org.psem2m.isolates.base.conf.beans.BundleDescription;
+import org.psem2m.isolates.base.conf.beans.IsolateDescription;
 
 /**
  * PSEM2M configuration reader from JSON files

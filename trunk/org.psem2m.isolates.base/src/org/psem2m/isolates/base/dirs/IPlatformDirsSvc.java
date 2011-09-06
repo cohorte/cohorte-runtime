@@ -1,17 +1,18 @@
 /*******************************************************************************
  * Copyright (c) 2011 www.isandlatech.com (www.isandlatech.com)
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
  *    ogattaz (isandlaTech) - initial API and implementation
  *******************************************************************************/
-package org.psem2m.isolates.base;
+package org.psem2m.isolates.base.dirs;
 
 import java.util.List;
 
+import org.psem2m.isolates.base.IPlatformProperties;
 import org.psem2m.utilities.files.CXFileDir;
 
 /**
@@ -26,34 +27,34 @@ public interface IPlatformDirsSvc extends IPlatformProperties {
      * 
      * @return The forker start command
      */
-    public List<String> getForkerStartCommand();
+    List<String> getForkerStartCommand();
 
     /**
      * @return the id of the current isolate
      */
-    public String getIsolateId();
+    String getIsolateId();
 
     /**
      * @return the log directory of the current isolate
      * @throws Exception
      */
-    public CXFileDir getIsolateLogDir() throws Exception;
+    CXFileDir getIsolateLogDir() throws Exception;
 
     /**
      * @param aIsolateId
      *            the id of an isolate
      * @return the log directory of the isolate
      * @throws Exception
-     *             if the hiearchy doesn't exist and can't be created
+     *             if the hierarchy doesn't exist and can't be created
      */
-    public CXFileDir getIsolateLogDir(final String aIsolateId) throws Exception;
+    CXFileDir getIsolateLogDir(final String aIsolateId) throws Exception;
 
     /**
      * @param aIsolateId
      *            the id of an isolate
      * @return The isolate working directory
      */
-    public CXFileDir getIsolateWorkingDir(String aIsolateId);
+    CXFileDir getIsolateWorkingDir(String aIsolateId);
 
     /**
      * Retrieves the PSEM2M_BASE value
@@ -64,7 +65,7 @@ public interface IPlatformDirsSvc extends IPlatformProperties {
      * 
      * @return the base directory of the platform
      */
-    public CXFileDir getPlatformBaseDir();
+    CXFileDir getPlatformBaseDir();
 
     /**
      * Retrieves the PSEM2M_HOME value
@@ -75,13 +76,21 @@ public interface IPlatformDirsSvc extends IPlatformProperties {
      * 
      * @return
      */
-    public CXFileDir getPlatformHomeDir();
+    CXFileDir getPlatformHomeDir();
 
     /**
      * @return the log directory of the platform
      * @throws Exception
      */
-    public CXFileDir getPlatformLogDir() throws Exception;
+    CXFileDir getPlatformLogDir() throws Exception;
+
+    /**
+     * Retrieves the platform root directories : home, base and working
+     * directory
+     * 
+     * @return The platform root directories
+     */
+    CXFileDir[] getPlatformRootDirs();
 
     /**
      * Retrieves all known repositories, in order of priority.
@@ -91,5 +100,5 @@ public interface IPlatformDirsSvc extends IPlatformProperties {
      * 
      * @return An array with at least one element
      */
-    public CXFileDir[] getRepositories();
+    CXFileDir[] getRepositories();
 }

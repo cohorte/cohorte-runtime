@@ -10,10 +10,11 @@ Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
 Export-Package: org.psem2m.isolates.config
 Import-Package: org.osgi.service.log;version=1.3, org.psem2m.isolates.
- base, org.apache.felix.ipojo.architecture;version=1.8.0, org.apache.f
- elix.ipojo;version=1.8.0, org.osgi.framework;version=1.5.0, org.json,
-  org.psem2m.utilities.logging, org.osgi.service.cm;version=1.2, org.p
- sem2m.utilities
+ base.conf, org.psem2m.isolates.base, org.apache.felix.ipojo.architect
+ ure;version=1.8.0, org.apache.felix.ipojo;version=1.8.0, org.osgi.fra
+ mework;version=1.5.0, org.json, org.psem2m.utilities.logging, org.osg
+ i.service.cm;version=1.2, org.psem2m.isolates.base.conf.beans, org.ps
+ em2m.utilities
 iPOJO-Components: instance { $component="isolates-config-logger-factor
  y" $name="isolates-config-logger" }instance { $component="isolates-co
  nfig-factory" $name="isolates-config" }component { $immediate="true" 
@@ -22,9 +23,8 @@ iPOJO-Components: instance { $component="isolates-config-logger-factor
   $transition="validate" $method="validatePojo" }callback { $transitio
  n="invalidate" $method="invalidatePojo" }provides { $specifications="
  org.psem2m.utilities.logging.IActivityLoggerBase" }manipulation { $su
- per="org.psem2m.isolates.base.CBundleLoggerBase" field { $name="__Mva
- lidatePojo" $type="boolean" }field { $name="__MinvalidatePojo" $type=
- "boolean" }method { $name="$init" }method { $name="invalidatePojo" }m
- ethod { $name="validatePojo" }interface { $name="org.psem2m.utilities
- .logging.IActivityLoggerBase" }}}
+ per="org.psem2m.isolates.base.CBundleLoggerBase" method { $name="$ini
+ t" }method { $name="invalidatePojo" }method { $name="validatePojo" }i
+ nterface { $name="org.psem2m.utilities.logging.IActivityLoggerBase" }
+ }}
 

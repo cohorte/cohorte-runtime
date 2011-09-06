@@ -3,7 +3,8 @@
  * Author: Thomas Calmant
  * Date:   6 sept. 2011
  */
-package org.psem2m.isolates.config;
+package org.psem2m.isolates.base.conf;
+
 
 /**
  * PSEM2M Configuration service
