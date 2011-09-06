@@ -21,6 +21,8 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.ui.PlatformUI;
@@ -35,6 +37,25 @@ import org.psem2m.eclipse.runner.RunnerPlugin;
  * @author Thomas Calmant
  */
 public class ProjectsSelectionTab extends AbstractLaunchConfigurationTab {
+
+	/**
+	 * Simple listener that sets the dirty state on any modification
+	 */
+	private final Listener pEventListener = new Listener() {
+
+		@Override
+		public void handleEvent(final Event aEvent) {
+
+			// For all others, set dirty in any case
+			setDirty(true);
+
+			updateLaunchConfigurationDialog();
+		}
+	};
+
+	/** IDE Project image */
+	private final Image pProjectImage = PlatformUI.getWorkbench()
+			.getSharedImages().getImage(IDE.SharedImages.IMG_OBJ_PROJECT);
 
 	/** Projects list */
 	private Table pProjectsTable;
@@ -65,6 +86,7 @@ public class ProjectsSelectionTab extends AbstractLaunchConfigurationTab {
 		// Add the build.properties option
 		pUseBuildProperties = createCheckButton(pageRoot,
 				"Use build.properties");
+		pUseBuildProperties.addListener(SWT.Selection, pEventListener);
 
 		// Set the main control
 		setControl(pageRoot);
@@ -83,10 +105,6 @@ public class ProjectsSelectionTab extends AbstractLaunchConfigurationTab {
 		layout.numColumns = 1;
 		aParent.setLayout(layout);
 
-		// Prepare the project image
-		final Image projectImage = PlatformUI.getWorkbench().getSharedImages()
-				.getImage(IDE.SharedImages.IMG_OBJ_PROJECT);
-
 		// Prepare the table
 		pProjectsTable = new Table(aParent, SWT.BORDER | SWT.CHECK
 				| SWT.H_SCROLL | SWT.V_SCROLL);
@@ -102,7 +120,7 @@ public class ProjectsSelectionTab extends AbstractLaunchConfigurationTab {
 					final TableItem item = new TableItem(pProjectsTable,
 							SWT.NONE);
 					item.setText(project.getName());
-					item.setImage(projectImage);
+					item.setImage(pProjectImage);
 					item.setData(project);
 				}
 
@@ -111,6 +129,18 @@ public class ProjectsSelectionTab extends AbstractLaunchConfigurationTab {
 						+ project.getName(), ex);
 			}
 		}
+
+		pProjectsTable.addListener(SWT.Selection, pEventListener);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.debug.ui.AbstractLaunchConfigurationTab#getImage()
+	 */
+	@Override
+	public Image getImage() {
+		return pProjectImage;
 	}
 
 	/*
