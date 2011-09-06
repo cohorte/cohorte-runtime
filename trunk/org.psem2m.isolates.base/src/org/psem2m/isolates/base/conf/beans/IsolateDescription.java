@@ -13,7 +13,6 @@ import java.util.Set;
 import org.psem2m.isolates.base.conf.IBundleDescr;
 import org.psem2m.isolates.base.conf.IIsolateDescr;
 
-
 /**
  * Description of an isolate
  * 
