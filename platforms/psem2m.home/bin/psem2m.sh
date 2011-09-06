@@ -82,6 +82,9 @@ read_framework_file() {
     fi
 }
 
+#
+# Clear the /var/work directory
+#
 clear_cache() {
     rm -fr "./var/work"
     rm -fr "$PSEM2M_BASE/var/work"

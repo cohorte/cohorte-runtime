@@ -34,10 +34,6 @@ public class CPlatformDirsSvc extends CPojoBase implements IPlatformDirsSvc,
     /** Forker start script name */
     public static final String FORKER_SCRIPT_BASE_NAME = "run_forker";
 
-    /** Forker working directory */
-    public static final String FORKER_WORKING_DIR = CPlatformDirsSvc.VAR_DIRECTORY
-	    + File.separator + "forker";
-
     /** Isolate working directory parent */
     public static final String ISOLATE_WORKING_DIR_BASE = CPlatformDirsSvc.VAR_DIRECTORY
 	    + File.separator + "work" + File.separator;
@@ -176,16 +172,6 @@ public class CPlatformDirsSvc extends CPojoBase implements IPlatformDirsSvc,
 	}
 
 	return command;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.base.IPlatformDirsSvc#getForkerWorkingDir()
-     */
-    @Override
-    public CXFileDir getForkerWorkingDir() {
-	return new CXFileDir(getCurrentPlatformBase(), FORKER_WORKING_DIR);
     }
 
     /*

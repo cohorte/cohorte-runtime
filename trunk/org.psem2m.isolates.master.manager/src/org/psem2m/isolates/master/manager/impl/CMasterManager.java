@@ -265,7 +265,9 @@ public class CMasterManager extends CPojoBase {
 	// Prepare the process builder
 	ProcessBuilder builder = new ProcessBuilder(forkerCommand);
 
-	CXFileDir workingDir = pPlatformDirsSvc.getForkerWorkingDir();
+	// TODO compute the working directory in a better way...
+	CXFileDir workingDir = pPlatformDirsSvc
+		.getIsolateWorkingDir("psem2m.forker");
 	if (!workingDir.exists()) {
 	    workingDir.mkdirs();
 	}

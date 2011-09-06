@@ -49,6 +49,12 @@ public class OsgiBootstrapPure implements ISvcBootstrap {
     /** OSGi storage cleaning option value : onFirstInit */
     public static final String OSGI_STORAGE_CLEAN_ON_INIT = "onFirstInit";
 
+    /** Platform base property */
+    public static final String PROP_PLATFORM_BASE = "org.psem2m.platform.base";
+
+    /** Isolate ID */
+    public static final String PROP_PLATFORM_ISOLATE_ID = "org.psem2m.platform.isolate.id";
+
     static {
 	// Initialize the static map
 	FRAMEWORK_FACTORIES.put("equinox",
@@ -102,14 +108,15 @@ public class OsgiBootstrapPure implements ISvcBootstrap {
 	if (!pFrameworkConfiguration.containsKey(OSGI_FRAMEWORK_STORAGE)) {
 
 	    // Find an isolate ID
-	    String isolateId = pFrameworkConfiguration.get("isolate.id");
+	    String isolateId = pFrameworkConfiguration
+		    .get(PROP_PLATFORM_ISOLATE_ID);
 	    if (isolateId == null) {
-		System.getProperty("isolate.id", "felix-cache");
+		System.getProperty(PROP_PLATFORM_ISOLATE_ID, "felix-cache");
 	    }
 
 	    // Prepare the directory
 	    File frameworkCacheDirectory = new File(System.getProperty(
-		    "psem2m.base", "."), "var/work/" + isolateId);
+		    PROP_PLATFORM_BASE, "."), "var/work/" + isolateId);
 
 	    if (frameworkCacheDirectory.exists()) {
 		// Dump it ...

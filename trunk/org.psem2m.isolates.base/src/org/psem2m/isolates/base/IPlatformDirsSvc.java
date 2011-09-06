@@ -29,13 +29,6 @@ public interface IPlatformDirsSvc extends IPlatformProperties {
     public List<String> getForkerStartCommand();
 
     /**
-     * Retrieves a working directory specific to the forker
-     * 
-     * @return A working directory specific to the forker
-     */
-    public CXFileDir getForkerWorkingDir();
-
-    /**
      * @return the id of the current isolate
      */
     public String getIsolateId();
