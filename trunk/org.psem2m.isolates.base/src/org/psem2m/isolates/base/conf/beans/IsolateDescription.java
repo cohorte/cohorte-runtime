@@ -29,6 +29,9 @@ public class IsolateDescription implements IIsolateDescr {
     /** Isolate ID */
     private final String pIsolateId;
 
+    /** Isolate kind, must never be null */
+    private String pIsolateKind = "";
+
     /** Isolate Java VM arguments (can't be null, must be ordered) */
     private final List<String> pVmArguments = new ArrayList<String>();
 
@@ -64,10 +67,38 @@ public class IsolateDescription implements IIsolateDescr {
     /*
      * (non-Javadoc)
      * 
+     * @see org.psem2m.isolates.base.conf.IIsolateDescr#getKind()
+     */
+    @Override
+    public String getKind() {
+	return pIsolateKind;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.psem2m.isolates.config.json.IIsolateDescr#getVMArgs()
      */
     @Override
     public List<String> getVMArgs() {
 	return pVmArguments;
+    }
+
+    /**
+     * Sets the kind of isolate
+     * 
+     * @param aKind
+     *            The kind of the isolate
+     * 
+     * @see IIsolateDescr#getKind()
+     */
+    public void setKind(final String aKind) {
+
+	if (aKind != null) {
+	    pIsolateKind = aKind;
+
+	} else {
+	    pIsolateKind = "";
+	}
     }
 }

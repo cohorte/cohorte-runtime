@@ -36,6 +36,9 @@ public interface IJsonConfigKeys {
     /** Isolate ID (string, mandatory) */
     String CONFIG_ISOLATE_ID = "id";
 
+    /** Isolate kind (to be handled by the forker and the bootstrap) */
+    String CONFIG_ISOLATE_KIND = "kind";
+
     /** Isolate Java virtual machine arguments (string array, optional) */
     String CONFIG_ISOLATE_VMARGS = "vmArgs";
 

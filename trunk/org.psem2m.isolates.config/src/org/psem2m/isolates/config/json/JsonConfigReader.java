@@ -202,6 +202,10 @@ public class JsonConfigReader implements IConfigurationReader {
 	final IsolateDescription isolateDescription = new IsolateDescription(
 		isolateId);
 
+	// Isolate kind
+	isolateDescription.setKind(aIsolateObject
+		.optString(IJsonConfigKeys.CONFIG_ISOLATE_KIND));
+
 	// Isolate VM Args
 	final JSONArray vmArgsArray = aIsolateObject
 		.optJSONArray(IJsonConfigKeys.CONFIG_ISOLATE_VMARGS);

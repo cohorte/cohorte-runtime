@@ -32,6 +32,15 @@ public interface IIsolateDescr extends Serializable {
     String getId();
 
     /**
+     * Retrieves the kind of isolate. Must be a kind handled by the bootstrap,
+     * namely "equinox" or "felix". Never returns null, can return an empty
+     * string.
+     * 
+     * @return The kind of isolate
+     */
+    String getKind();
+
+    /**
      * Retrieves the list of Java Virtual Machine arguments to be used when
      * starting the isolate process. Can be null.
      * 
