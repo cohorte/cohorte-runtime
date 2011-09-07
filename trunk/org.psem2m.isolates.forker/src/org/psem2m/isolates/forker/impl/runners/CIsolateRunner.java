@@ -10,8 +10,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -62,7 +60,12 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
 
     /** Possible bootstrap names */
     public static final String[] BOOTSTRAP_NAMES = new String[] {
-	    "org.psem2m.bootstrap.jar", "bootstrap.jar" };
+    /* Symbolic name */
+    "org.psem2m.utilities.bootstrap",
+    /* JAR name */
+    "org.psem2m.utilities.bootstrap.jar",
+    /* Second JAR name */
+    "bootstrap.jar" };
 
     /** Equinox framework names */
     public static final String[] EQUINOX_NAMES = new String[] {
@@ -188,29 +191,59 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
     }
 
     /**
-     * Prepares bootstrap arguments. Tells it to wait for serialized data on its
-     * standard input
+     * Prepares a property definition as a bootstrap program argument
      * 
-     * @param aKind
-     *            Kind of isolate (of framework)
+     * @param aKey
+     *            Property name
+     * @param aValue
+     *            Property value
+     * @return The property definition as a bootstrap argument
+     */
+    protected String makeBootstrapDefinition(final String aKey,
+	    final String aValue) {
+
+	StringBuilder bootstrapDef = new StringBuilder(aKey.length()
+		+ aValue.length() + 1);
+	bootstrapDef.append(aKey);
+	bootstrapDef.append("=");
+	bootstrapDef.append(aValue);
+
+	return bootstrapDef.toString();
+    }
+
+    /**
+     * Prepares bootstrap arguments. Indicates the kind of framework to be used
+     * and sets up isolate properties.
+     * 
+     * @param aIsolateConfiguration
+     *            Description of the isolate
      * 
      * @return The bootstrap arguments, never null
      */
-    protected List<String> prepareBootstrapArguments(final IsolateKind aKind) {
+    protected List<String> prepareBootstrapArguments(
+	    final IIsolateConfiguration aIsolateConfiguration) {
 
-	List<String> bootstrapArguments = new ArrayList<String>();
+	final List<String> bootstrapArguments = new ArrayList<String>();
 
-	// Use serialized data for communication
-	bootstrapArguments.add(LONG_ARGUMENT_PREFIX
-		+ IBootstrapConstants.UNSERIALIZE_COMMAND);
+	// Framework to be used (in lower case)
+	bootstrapArguments.add(makeBootstrapDefinition(
+		IBootstrapConstants.CONFIG_FRAMEWORK, aIsolateConfiguration
+			.getKind().toString().toLowerCase()));
 
-	// Framework to be used
-	StringBuilder bootstrapFramework = new StringBuilder(
-		IBootstrapConstants.CONFIG_FRAMEWORK);
-	bootstrapFramework.append("=");
-	bootstrapFramework.append(aKind.toString().toLowerCase());
+	// Isolate ID
+	bootstrapArguments.add(makeBootstrapDefinition(
+		IPlatformProperties.PROP_PLATFORM_ISOLATE_ID,
+		aIsolateConfiguration.getId()));
 
-	bootstrapArguments.add(bootstrapFramework.toString());
+	// PSEM2M Home
+	bootstrapArguments.add(makeBootstrapDefinition(
+		IPlatformProperties.PROP_PLATFORM_HOME, pPlatformDirsSvc
+			.getPlatformHomeDir().getAbsolutePath()));
+
+	// PSEM2M Base
+	bootstrapArguments.add(makeBootstrapDefinition(
+		IPlatformProperties.PROP_PLATFORM_BASE, pPlatformDirsSvc
+			.getPlatformBaseDir().getAbsolutePath()));
 
 	return bootstrapArguments;
     }
@@ -225,7 +258,7 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
     protected List<String> prepareClasspathArgument(
 	    final BundleRef aBootstrapRef, final IsolateKind aKind) {
 
-	List<String> classpathArgument = new ArrayList<String>();
+	final List<String> classpathArgument = new ArrayList<String>();
 	classpathArgument.add("-cp");
 
 	// Don't forget the current directory as a classpath
@@ -247,7 +280,7 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
 	    break;
 	}
 
-	// Add the boostrap JAR
+	// Add the bootstrap JAR
 	classPath.append(aBootstrapRef.getFile().getAbsolutePath());
 	classPath.append(File.pathSeparator);
 
@@ -394,47 +427,6 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
     }
 
     /**
-     * Sends the bundles URL array to the standard input of the bootstrap
-     * 
-     * @param aProcessRef
-     *            The ran process
-     * @param aIsolateConfiguration
-     *            The isolate configuration
-     */
-    protected void sendConfiguration(final IProcessRef aProcessRef,
-	    final IIsolateConfiguration aIsolateConfiguration) {
-
-	// Grab a reference to the process
-	if (!(aProcessRef instanceof ProcessRef)) {
-	    return;
-	}
-
-	// Prepare the object stream
-	Process process = ((ProcessRef) aProcessRef).getProcess();
-	OutputStream processInput = process.getOutputStream();
-
-	// Convert bundle references to URLs
-	List<URL> bundleURLs = new ArrayList<URL>();
-
-	// Isolate bundles
-	bundleURLs.addAll(bundlesToUrls(aIsolateConfiguration.getBundles()));
-
-	try {
-	    ObjectOutputStream objectStream = new ObjectOutputStream(
-		    processInput);
-
-	    // Send data
-	    objectStream.writeObject(bundleURLs.toArray(new URL[0]));
-
-	    // Close it
-	    objectStream.close();
-
-	} catch (IOException e) {
-	    e.printStackTrace();
-	}
-    }
-
-    /**
      * Prepares the debug mode parameters, if needed
      * 
      * @param aJavaOptions
@@ -468,8 +460,7 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
     public IProcessRef startIsolate(
 	    final IIsolateConfiguration aIsolateConfiguration) throws Exception {
 
-	IsolateKind kind = aIsolateConfiguration.getKind();
-	List<String> javaOptions = new ArrayList<String>();
+	final List<String> javaOptions = new ArrayList<String>();
 
 	// A new isolate is launched
 	pIsolateIndex++;
@@ -478,7 +469,8 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
 	BundleRef bootstrapRef = pBundleFinderSvc.findBundle(BOOTSTRAP_NAMES);
 
 	// Add the class path argument
-	javaOptions.addAll(prepareClasspathArgument(bootstrapRef, kind));
+	javaOptions.addAll(prepareClasspathArgument(bootstrapRef,
+		aIsolateConfiguration.getKind()));
 
 	// Set debug mode, if needed
 	setupDebugMode(javaOptions);
@@ -487,7 +479,7 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
 	javaOptions.add(BOOTSTRAP_MAIN_CLASS);
 
 	// Add its arguments
-	javaOptions.addAll(prepareBootstrapArguments(kind));
+	javaOptions.addAll(prepareBootstrapArguments(aIsolateConfiguration));
 
 	// Set up the working directory
 	File workingDirectory = pPlatformDirsSvc
@@ -502,9 +494,6 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
 	if (processRef == null) {
 	    return null;
 	}
-
-	// Writes the bundles configuration to the process
-	sendConfiguration(processRef, aIsolateConfiguration);
 
 	// Wait for the "running" or "failure" of the isolate
 	if (readMessages(processRef)) {
