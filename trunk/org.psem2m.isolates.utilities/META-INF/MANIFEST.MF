@@ -8,6 +8,7 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Import-Package: junit.framework
 Export-Package: org.psem2m.utilities,
  org.psem2m.utilities.files,
+ org.psem2m.utilities.json,
  org.psem2m.utilities.logging,
  org.psem2m.utilities.rsrc,
  org.psem2m.utilities.scripting,

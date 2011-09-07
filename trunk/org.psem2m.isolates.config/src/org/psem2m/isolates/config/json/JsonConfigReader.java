@@ -11,9 +11,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Scanner;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.psem2m.isolates.base.conf.IApplicationDescr;
 import org.psem2m.isolates.base.conf.IBundleDescr;
 import org.psem2m.isolates.base.conf.IConfigurationReader;
@@ -21,6 +18,9 @@ import org.psem2m.isolates.base.conf.IIsolateDescr;
 import org.psem2m.isolates.base.conf.beans.ApplicationDescription;
 import org.psem2m.isolates.base.conf.beans.BundleDescription;
 import org.psem2m.isolates.base.conf.beans.IsolateDescription;
+import org.psem2m.utilities.json.JSONArray;
+import org.psem2m.utilities.json.JSONException;
+import org.psem2m.utilities.json.JSONObject;
 
 /**
  * PSEM2M configuration reader from JSON files
@@ -64,6 +64,8 @@ public class JsonConfigReader implements IConfigurationReader {
      * 
      * @param aFile
      *            JSON configuration file
+     * 
+     * @return True on a successful read, else false
      */
     @Override
     public boolean load(final String aFile) {
@@ -254,7 +256,7 @@ public class JsonConfigReader implements IConfigurationReader {
      */
     protected String readFile(final File aFile) throws FileNotFoundException {
 
-	// TODO try multiple files paths
+	// TODO try multiple files paths (use FileFinder service)
 	return new Scanner(aFile).useDelimiter("\\Z").next();
     }
 
