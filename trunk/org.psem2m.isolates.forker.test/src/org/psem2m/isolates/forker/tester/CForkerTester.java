@@ -15,9 +15,8 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.psem2m.isolates.base.bundles.BundleRef;
 import org.psem2m.isolates.base.bundles.IBundleFinderSvc;
-import org.psem2m.isolates.commons.IIsolateConfiguration.IsolateKind;
+import org.psem2m.isolates.base.conf.beans.IsolateDescription;
 import org.psem2m.isolates.commons.forker.IForker;
-import org.psem2m.isolates.commons.forker.IsolateConfiguration;
 import org.psem2m.utilities.logging.CLogToolsException;
 import org.psem2m.utilities.teststools.CConsoleTester;
 
@@ -103,9 +102,9 @@ public class CForkerTester extends CConsoleTester {
 	    bundles.add(bundleRef);
 	}
 
-	IsolateConfiguration isolateConfig = new IsolateConfiguration(
-		"isolat-felix", IsolateKind.FELIX,
-		bundles.toArray(new BundleRef[0]));
+	IsolateDescription isolateConfig = new IsolateDescription(
+		"isolat-felix");
+	isolateConfig.setKind("felix");
 
 	IForker forker = getForker();
 	forker.startIsolate(isolateConfig);
@@ -132,8 +131,8 @@ public class CForkerTester extends CConsoleTester {
 	    }
 	}
 
-	IsolateConfiguration isolateConfig = new IsolateConfiguration(
-		"isolat-java", IsolateKind.JAVA);
+	IsolateDescription isolateConfig = new IsolateDescription("isolat-java");
+	isolateConfig.setKind("java");
 
 	IForker forker = getForker();
 	forker.startIsolate(isolateConfig);
