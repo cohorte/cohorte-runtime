@@ -15,6 +15,17 @@ import java.io.File;
 public interface IFileFinderSvc {
 
     /**
+     * Tries to find the given file in the platform folders
+     * 
+     * @param aBaseFile
+     *            Base file reference (aFileName could be relative to it)
+     * @param aFileName
+     *            The file to found (uses its absolute path then its name)
+     * @return All found files with the given information, null if none found
+     */
+    File[] find(File aBaseFile, String aFileName);
+
+    /**
      * Tries to find the given file name in the platform folders.
      * 
      * Tries in the home, then in the base and finally without prefix (for

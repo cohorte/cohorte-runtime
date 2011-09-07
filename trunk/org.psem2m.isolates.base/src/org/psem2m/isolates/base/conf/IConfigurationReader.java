@@ -5,6 +5,8 @@
  */
 package org.psem2m.isolates.base.conf;
 
+import org.psem2m.isolates.base.dirs.IFileFinderSvc;
+
 /**
  * Defines a PSEM2M configuration reader
  * 
@@ -34,7 +36,10 @@ public interface IConfigurationReader {
      * 
      * @param aConfigurationFile
      *            A PSEM2M configuration file
+     * @param aFileFinder
+     *            A file finder service instance
+     * 
      * @return True if the file was successfully read
      */
-    boolean load(String aConfigurationFile);
+    boolean load(String aConfigurationFile, IFileFinderSvc aFileFinder);
 }

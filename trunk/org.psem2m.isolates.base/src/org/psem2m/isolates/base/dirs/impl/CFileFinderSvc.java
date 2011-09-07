@@ -7,7 +7,9 @@ package org.psem2m.isolates.base.dirs.impl;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.psem2m.isolates.base.dirs.IFileFinderSvc;
 import org.psem2m.isolates.base.dirs.IPlatformDirsSvc;
@@ -44,10 +46,69 @@ public class CFileFinderSvc implements IFileFinderSvc {
     /*
      * (non-Javadoc)
      * 
+     * @see org.psem2m.isolates.base.dirs.IFileFinderSvc#find(java.io.File,
+     * java.lang.String)
+     */
+    @Override
+    public File[] find(final File aBaseFile, final String aFileName) {
+
+	// Use a set to avoid duplicates
+	final Set<File> foundFiles = new LinkedHashSet<File>();
+
+	if (aBaseFile != null) {
+	    // Try to be relative to the parent, if the base file is a file
+	    File baseDir = null;
+
+	    if (aBaseFile.isFile()) {
+		// Base file is a file : get its parent directory
+		baseDir = aBaseFile.getParentFile();
+
+	    } else if (aBaseFile.isDirectory()) {
+		// Use the directory
+		baseDir = aBaseFile;
+	    }
+
+	    if (baseDir != null) {
+		// We have a valid base
+		final File testRelFile = new File(baseDir, aFileName);
+		if (testRelFile.exists()) {
+		    // Found !
+		    foundFiles.add(testRelFile);
+		}
+	    }
+	}
+
+	// In any case, try using only the file name
+	foundFiles.addAll(internalFind(aFileName));
+	return foundFiles.toArray(new File[0]);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.psem2m.isolates.base.dirs.IFileFinderSvc#find(java.lang.String)
      */
     @Override
     public File[] find(final String aFileName) {
+
+	final List<File> foundFiles = internalFind(aFileName);
+	if (foundFiles.isEmpty()) {
+	    // Return null if no file was found
+	    return null;
+	}
+
+	return foundFiles.toArray(new File[0]);
+    }
+
+    /**
+     * Tries to find the given file in the platform directories. Never returns
+     * null.
+     * 
+     * @param aFileName
+     *            Name of the file to search for
+     * @return The list of the corresponding files (never null, can be empty)
+     */
+    protected List<File> internalFind(final String aFileName) {
 
 	final List<File> foundFiles = new ArrayList<File>();
 
@@ -60,11 +121,6 @@ public class CFileFinderSvc implements IFileFinderSvc {
 	    }
 	}
 
-	if (foundFiles.isEmpty()) {
-	    // Return null if no file was found
-	    return null;
-	}
-
-	return foundFiles.toArray(new File[0]);
+	return foundFiles;
     }
 }

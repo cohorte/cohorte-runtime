@@ -14,6 +14,7 @@ import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.CPojoBase;
 import org.psem2m.isolates.base.conf.IApplicationDescr;
 import org.psem2m.isolates.base.conf.ISvcConfig;
+import org.psem2m.isolates.base.dirs.IFileFinderSvc;
 import org.psem2m.isolates.config.IPlatformConfigurationConstants;
 import org.psem2m.isolates.config.json.JsonConfigReader;
 import org.psem2m.utilities.logging.IActivityLoggerBase;
@@ -28,7 +29,10 @@ public class CJsonConfigSvc extends CPojoBase implements ISvcConfig {
     /** Found configuration files */
     private final Set<File> pConfigurationFiles = new LinkedHashSet<File>();
 
-    /** Log service, handled by iPOJO */
+    /** File finder service, injected by iPOJO */
+    private IFileFinderSvc pFileFinder;
+
+    /** Log service, injected by iPOJO */
     private IActivityLoggerBase pLoggerSvc;
 
     /** JSON Configuration reader */
@@ -38,7 +42,7 @@ public class CJsonConfigSvc extends CPojoBase implements ISvcConfig {
      * Default constructor
      */
     public CJsonConfigSvc() {
-	// ...
+	super();
     }
 
     /*
@@ -135,7 +139,8 @@ public class CJsonConfigSvc extends CPojoBase implements ISvcConfig {
      */
     @Override
     public boolean refresh() {
-	return pReader.load(IPlatformConfigurationConstants.FILE_MAIN_CONF);
+	return pReader.load(IPlatformConfigurationConstants.FILE_MAIN_CONF,
+		pFileFinder);
     }
 
     /*

@@ -21,6 +21,7 @@
 
 		<requires field="pLoggerSvc" optional="false"
 			from="isolates-config-logger" />
+		<requires field="pFileFinder" optional="false" />
 
 		<callback transition="validate" method="validatePojo" />
 		<callback transition="invalidate" method="invalidatePojo" />

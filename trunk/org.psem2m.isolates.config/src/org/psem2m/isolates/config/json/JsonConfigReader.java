@@ -10,6 +10,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Stack;
 
 import org.psem2m.isolates.base.conf.IApplicationDescr;
 import org.psem2m.isolates.base.conf.IBundleDescr;
@@ -18,6 +19,7 @@ import org.psem2m.isolates.base.conf.IIsolateDescr;
 import org.psem2m.isolates.base.conf.beans.ApplicationDescription;
 import org.psem2m.isolates.base.conf.beans.BundleDescription;
 import org.psem2m.isolates.base.conf.beans.IsolateDescription;
+import org.psem2m.isolates.base.dirs.IFileFinderSvc;
 import org.psem2m.utilities.json.JSONArray;
 import org.psem2m.utilities.json.JSONException;
 import org.psem2m.utilities.json.JSONObject;
@@ -31,6 +33,12 @@ public class JsonConfigReader implements IConfigurationReader {
 
     /** The described application */
     private ApplicationDescription pApplication;
+
+    /** A file finder */
+    private IFileFinderSvc pFileFinder;
+
+    /** The file inclusion stack, for relative paths */
+    private final Stack<File> pIncludeStack = new Stack<File>();
 
     /*
      * (non-Javadoc)
@@ -59,16 +67,17 @@ public class JsonConfigReader implements IConfigurationReader {
 	return new String[] { pApplication.getApplicationId() };
     }
 
-    /**
-     * Loads the given configuration file
+    /*
+     * (non-Javadoc)
      * 
-     * @param aFile
-     *            JSON configuration file
-     * 
-     * @return True on a successful read, else false
+     * @see
+     * org.psem2m.isolates.base.conf.IConfigurationReader#load(java.lang.String,
+     * org.psem2m.isolates.base.dirs.IFileFinderSvc)
      */
     @Override
-    public boolean load(final String aFile) {
+    public boolean load(final String aFile, final IFileFinderSvc aFileFinder) {
+
+	pFileFinder = aFileFinder;
 
 	try {
 	    // Parse the configuration
@@ -93,6 +102,13 @@ public class JsonConfigReader implements IConfigurationReader {
 	} catch (IOException e) {
 	    System.err.println("Can't access a configuration file");
 	    e.printStackTrace();
+
+	} finally {
+	    // Don't reference the finder anymore
+	    pFileFinder = null;
+
+	    // Clear the stack
+	    pIncludeStack.clear();
 	}
 
 	return false;
@@ -254,10 +270,30 @@ public class JsonConfigReader implements IConfigurationReader {
      * @throws FileNotFoundException
      *             File not found
      */
-    protected String readFile(final File aFile) throws FileNotFoundException {
+    protected String readFile(final String aFileName)
+	    throws FileNotFoundException {
 
-	// TODO try multiple files paths (use FileFinder service)
-	return new Scanner(aFile).useDelimiter("\\Z").next();
+	final File confFile;
+	File baseFile = null;
+
+	if (!pIncludeStack.isEmpty()) {
+	    // Use a base file, if possible
+	    baseFile = pIncludeStack.peek();
+	}
+
+	final File[] foundFiles = pFileFinder.find(baseFile, aFileName);
+	if (foundFiles == null) {
+	    throw new FileNotFoundException(aFileName);
+	}
+
+	// Use the first corresponding file
+	confFile = foundFiles[0];
+
+	// Add it to the stack (it will be the next read file)
+	pIncludeStack.push(confFile);
+
+	// Read its content at once
+	return new Scanner(confFile).useDelimiter("\\Z").next();
     }
 
     /**
@@ -274,7 +310,7 @@ public class JsonConfigReader implements IConfigurationReader {
     protected JSONArray readJsonArrayFile(final String aFile)
 	    throws JSONException, FileNotFoundException {
 
-	return new JSONArray(readFile(new File(aFile)));
+	return new JSONArray(readFile(aFile));
     }
 
     /**
@@ -291,6 +327,6 @@ public class JsonConfigReader implements IConfigurationReader {
     protected JSONObject readJsonObjectFile(final String aFile)
 	    throws JSONException, FileNotFoundException {
 
-	return new JSONObject(readFile(new File(aFile)));
+	return new JSONObject(readFile(aFile));
     }
 }
