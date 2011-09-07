@@ -28,17 +28,22 @@
 	</natures>
 	<linkedResources>
 		<link>
+			<name>src/org/psem2m/isolates</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>src/org/psem2m/isolates/base</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>src/org/psem2m/isolates/base/IPlatformProperties.java</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/org.psem2m.isolates.base/src/org/psem2m/isolates/base/IPlatformProperties.java</locationURI>
 		</link>
 		<link>
-			<name>src/org/psem2m/isolates/base/conf</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>src/org/psem2m/isolates/base/dirs</name>
+			<name>src/org/psem2m/isolates/base/boot</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -46,76 +51,6 @@
 			<name>src/org/psem2m/isolates/base/boot/IsolateStatus.java</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/org.psem2m.isolates.base/src/org/psem2m/isolates/base/boot/IsolateStatus.java</locationURI>
-		</link>
-		<link>
-			<name>src/org/psem2m/isolates/base/conf/IApplicationDescr.java</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/org.psem2m.isolates.base/src/org/psem2m/isolates/base/conf/IApplicationDescr.java</locationURI>
-		</link>
-		<link>
-			<name>src/org/psem2m/isolates/base/conf/IBundleDescr.java</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/org.psem2m.isolates.base/src/org/psem2m/isolates/base/conf/IBundleDescr.java</locationURI>
-		</link>
-		<link>
-			<name>src/org/psem2m/isolates/base/conf/IConfigurationReader.java</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/org.psem2m.isolates.base/src/org/psem2m/isolates/base/conf/IConfigurationReader.java</locationURI>
-		</link>
-		<link>
-			<name>src/org/psem2m/isolates/base/conf/IIsolateDescr.java</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/org.psem2m.isolates.base/src/org/psem2m/isolates/base/conf/IIsolateDescr.java</locationURI>
-		</link>
-		<link>
-			<name>src/org/psem2m/isolates/base/conf/ISvcConfig.java</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/org.psem2m.isolates.base/src/org/psem2m/isolates/base/conf/ISvcConfig.java</locationURI>
-		</link>
-		<link>
-			<name>src/org/psem2m/isolates/base/conf/beans</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>src/org/psem2m/isolates/base/dirs/IFileFinderSvc.java</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/org.psem2m.isolates.base/src/org/psem2m/isolates/base/dirs/IFileFinderSvc.java</locationURI>
-		</link>
-		<link>
-			<name>src/org/psem2m/isolates/base/dirs/IPlatformDirsSvc.java</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/org.psem2m.isolates.base/src/org/psem2m/isolates/base/dirs/IPlatformDirsSvc.java</locationURI>
-		</link>
-		<link>
-			<name>src/org/psem2m/isolates/base/dirs/impl</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>src/org/psem2m/isolates/base/conf/beans/ApplicationDescription.java</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/org.psem2m.isolates.base/src/org/psem2m/isolates/base/conf/beans/ApplicationDescription.java</locationURI>
-		</link>
-		<link>
-			<name>src/org/psem2m/isolates/base/conf/beans/BundleDescription.java</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/org.psem2m.isolates.base/src/org/psem2m/isolates/base/conf/beans/BundleDescription.java</locationURI>
-		</link>
-		<link>
-			<name>src/org/psem2m/isolates/base/conf/beans/IsolateDescription.java</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/org.psem2m.isolates.base/src/org/psem2m/isolates/base/conf/beans/IsolateDescription.java</locationURI>
-		</link>
-		<link>
-			<name>src/org/psem2m/isolates/base/dirs/impl/CFileFinderSvc.java</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/org.psem2m.isolates.base/src/org/psem2m/isolates/base/dirs/impl/CFileFinderSvc.java</locationURI>
-		</link>
-		<link>
-			<name>src/org/psem2m/isolates/base/dirs/impl/CPlatformDirsSvc.java</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/org.psem2m.isolates.base/src/org/psem2m/isolates/base/dirs/impl/CPlatformDirsSvc.java</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

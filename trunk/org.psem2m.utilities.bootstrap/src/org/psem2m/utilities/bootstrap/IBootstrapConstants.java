@@ -5,6 +5,7 @@
  */
 package org.psem2m.utilities.bootstrap;
 
+
 /**
  * Common bootstrap constants
  * 
@@ -12,32 +13,35 @@ package org.psem2m.utilities.bootstrap;
  */
 public interface IBootstrapConstants {
 
-	/** Bootstrap properties prefix */
-	String BOOTSTRAP_PROPERTY_PREFIX = IBootstrapConstants.PLATFORM_PROPERTY_PREFIX
-			+ ".bootstrap.";
+    /** Bootstrap properties prefix */
+    String BOOTSTRAP_PROPERTY_PREFIX = IBootstrapConstants.PLATFORM_PROPERTY_PREFIX
+	    + ".bootstrap.";
 
-	/** Framework configuration key */
-	String CONFIG_FRAMEWORK = IBootstrapConstants.BOOTSTRAP_PROPERTY_PREFIX
-			+ "osgi.framework";
+    /** Bundle symbolic name Manifest attribute name */
+    String BUNDLE_SYMBOLIC_NAME = "Bundle-SymbolicName";
 
-	/** Help command */
-	String HELP_COMMAND = "help";
+    /** Framework configuration key */
+    String CONFIG_FRAMEWORK = IBootstrapConstants.BOOTSTRAP_PROPERTY_PREFIX
+	    + "osgi.framework";
 
-	/** Output human readable lines, not serialized ones */
-	String HUMAN_OUTPUT_FLAG = "human";
+    /** OSGi bundles list file */
+    String FILE_OSGI_BUNDLES = "osgi.bundles";
 
-	/** Platform property prefix */
-	String PLATFORM_PROPERTY_PREFIX = "org.psem2m";
+    /** Platform bundles list file */
+    String FILE_PLATFORM_BUNDLES = "psem2m.bundles";
 
-	/** Read lines from the given file */
-	String READ_FROM_FILE = "file";
+    /** Help command */
+    String HELP_COMMAND = "help";
 
-	/** Read lines from input */
-	String READ_LINES_COMMAND = "lines";
+    /** Output human readable lines, not serialized ones */
+    String HUMAN_OUTPUT_FLAG = "human";
 
-	/** Test command (writes a serialized URL array in a file) */
-	String TEST_COMMAND = "test";
+    /** PSEM2M Configuration directory */
+    String PLATFORM_CONFIGURATION_DIR = "conf";
 
-	/** Read array object from input */
-	String UNSERIALIZE_COMMAND = "serialized";
+    /** Platform property prefix */
+    String PLATFORM_PROPERTY_PREFIX = "org.psem2m";
+
+    /** Platform base and home repository directory name */
+    String PLATFORM_REPOSITORY_DIR = "repo";
 }
