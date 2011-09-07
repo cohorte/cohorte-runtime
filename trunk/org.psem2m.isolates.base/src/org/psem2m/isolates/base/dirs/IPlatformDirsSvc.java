@@ -57,6 +57,13 @@ public interface IPlatformDirsSvc extends IPlatformProperties {
     File getIsolateWorkingDir(String aIsolateId);
 
     /**
+     * Retrieves the Java executable file
+     * 
+     * @return The Java executable file
+     */
+    File getJavaExecutable();
+
+    /**
      * Retrieves the PSEM2M_BASE value
      * 
      * <pre>

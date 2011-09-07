@@ -57,25 +57,15 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
 	STARTED,
     }
 
-    /** Bootstrap main class */
-    public static final String BOOTSTRAP_MAIN_CLASS = "org.psem2m.utilities.bootstrap.Main";
-
-    /** Possible bootstrap names */
-    public static final String[] BOOTSTRAP_NAMES = new String[] {
-    /* Symbolic name */
-    "org.psem2m.utilities.bootstrap",
-    /* JAR name */
-    "org.psem2m.utilities.bootstrap.jar",
-    /* Second JAR name */
-    "bootstrap.jar" };
-
     /** Equinox framework names */
     public static final String[] EQUINOX_NAMES = new String[] {
-	    "org.eclipse.osgi_3.7.0.v20110613.jar", "equinox.jar" };
+	    "org.eclipse.osgi", "org.eclipse.osgi_3.7.0.v20110613.jar",
+	    "equinox.jar" };
 
     /** Felix framework names */
     public static final String[] FELIX_NAMES = new String[] {
-	    "org.apache.felix.main-3.2.2.jar", "felix.jar" };
+	    "org.apache.felix.main", "org.apache.felix.main-3.2.2.jar",
+	    "felix.jar" };
 
     /** Bootstrap long argument prefix */
     public static final String LONG_ARGUMENT_PREFIX = "--";
@@ -261,12 +251,13 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
     /**
      * Prepares the JVM classpath argument according to the isolate kind
      * 
-     * @param aBootstrapRef
+     * @param aBootstrapFile
+     *            The bootstrap JAR file
      * 
      * @return the JVM classpath argument
      */
-    protected List<String> prepareClasspathArgument(
-	    final BundleRef aBootstrapRef, final String aKind) {
+    protected List<String> prepareClasspathArgument(final File aBootstrapFile,
+	    final String aKind) {
 
 	final List<String> classpathArgument = new ArrayList<String>();
 	classpathArgument.add("-cp");
@@ -295,7 +286,7 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
 	}
 
 	// Add the bootstrap JAR
-	classPath.append(aBootstrapRef.getFile().getAbsolutePath());
+	classPath.append(aBootstrapFile.getAbsolutePath());
 	classPath.append(File.pathSeparator);
 
 	// Add the OSGi framework
@@ -478,17 +469,17 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
 	pIsolateIndex++;
 
 	// Find the bootstrap JAR file
-	BundleRef bootstrapRef = pBundleFinderSvc.findBundle(BOOTSTRAP_NAMES);
+	File bootstrapFile = pBundleFinderSvc.getBootstrap();
 
 	// Add the class path argument
-	javaOptions.addAll(prepareClasspathArgument(bootstrapRef,
+	javaOptions.addAll(prepareClasspathArgument(bootstrapFile,
 		aIsolateConfiguration.getKind()));
 
 	// Set debug mode, if needed
 	setupDebugMode(javaOptions);
 
 	// Add the Bootstrap main class name
-	javaOptions.add(BOOTSTRAP_MAIN_CLASS);
+	javaOptions.add(IBundleFinderSvc.BOOTSTRAP_MAIN_CLASS);
 
 	// Add its arguments
 	javaOptions.addAll(prepareBootstrapArguments(aIsolateConfiguration));

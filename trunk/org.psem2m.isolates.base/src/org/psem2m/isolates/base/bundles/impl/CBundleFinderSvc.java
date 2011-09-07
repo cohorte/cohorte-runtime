@@ -104,4 +104,21 @@ public class CBundleFinderSvc implements IBundleFinderSvc {
 
 	return null;
     }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.base.bundles.IBundleFinderSvc#getBootstrap()
+     */
+    @Override
+    public File getBootstrap() {
+
+	final BundleRef bootRef = findBundle(BOOTSTRAP_SYMBOLIC_NAME);
+	if (bootRef == null) {
+	    // Bootstrap not found
+	    return null;
+	}
+
+	return bootRef.getFile();
+    }
 }

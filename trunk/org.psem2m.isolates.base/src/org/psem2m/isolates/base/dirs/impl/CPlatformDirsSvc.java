@@ -16,6 +16,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.psem2m.isolates.base.dirs.IPlatformDirsSvc;
+import org.psem2m.utilities.CXJvmUtils;
+import org.psem2m.utilities.CXOSUtils;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
@@ -184,6 +186,30 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
     public File getIsolateWorkingDir(final String aIsolateId) {
 	return new File(getPlatformBaseDir(), ISOLATE_WORKING_DIR_BASE
 		+ aIsolateId);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.base.dirs.IPlatformDirsSvc#getJavaExecutable()
+     */
+    @Override
+    public File getJavaExecutable() {
+
+	final StringBuilder javaExecutablePath = new StringBuilder();
+
+	javaExecutablePath.append(System
+		.getProperty(CXJvmUtils.SYSPROP_JAVA_HOME));
+	javaExecutablePath.append(File.separator);
+	javaExecutablePath.append("bin");
+	javaExecutablePath.append(File.separator);
+	javaExecutablePath.append("java");
+
+	if (CXOSUtils.isOsWindowsFamily()) {
+	    javaExecutablePath.append(".exe");
+	}
+
+	return new File(javaExecutablePath.toString());
     }
 
     /*

@@ -54,4 +54,9 @@ public interface IPlatformProperties {
      * </pre>
      */
     String PROP_PLATFORM_REDIRECT_LOGSVC = "org.psem2m.platform.isolate.redirect.logservice";
+
+    /**
+     * Forker isolate ID
+     */
+    String SPECIAL_ISOLATE_ID_FORKER = "org.psem2m.internals.isolate.forker";
 }

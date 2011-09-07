@@ -20,8 +20,6 @@ import org.psem2m.isolates.forker.IBundleForkerLoggerSvc;
 import org.psem2m.isolates.forker.IProcessRef;
 import org.psem2m.isolates.forker.IProcessRunner;
 import org.psem2m.isolates.forker.impl.processes.ProcessBuilderRunner;
-import org.psem2m.utilities.CXJvmUtils;
-import org.psem2m.utilities.CXOSUtils;
 
 /**
  * Runs the Java interpreter for the given isolate
@@ -70,28 +68,6 @@ public class JavaRunner extends CPojoBase implements IJavaRunner {
     }
 
     /**
-     * Retrieves the java interpreter path, based on java.home property
-     * 
-     * @return The path to the java interpreter
-     */
-    public String getJavaExecutable() {
-
-	StringBuilder javaExecutablePath = new StringBuilder();
-	javaExecutablePath.append(System
-		.getProperty(CXJvmUtils.SYSPROP_JAVA_HOME));
-	javaExecutablePath.append(File.separator);
-	javaExecutablePath.append("bin");
-	javaExecutablePath.append(File.separator);
-	javaExecutablePath.append("java");
-
-	if (CXOSUtils.isOsWindowsFamily()) {
-	    javaExecutablePath.append(".exe");
-	}
-
-	return javaExecutablePath.toString();
-    }
-
-    /**
      * Retrieves a process runner pSingleton, corresponding to the running
      * operating system.
      * 
@@ -115,6 +91,15 @@ public class JavaRunner extends CPojoBase implements IJavaRunner {
 		toDescription());
     }
 
+    /**
+     * Prepares a Java interpreter argument to define a JVM property
+     * 
+     * @param aKey
+     *            Property name
+     * @param aValue
+     *            Property value
+     * @return The property definition argument
+     */
     protected String makeJavaProperty(final String aKey, final String aValue) {
 
 	final StringBuilder propertyDef = new StringBuilder(aKey.length()
@@ -126,7 +111,6 @@ public class JavaRunner extends CPojoBase implements IJavaRunner {
 	propertyDef.append(aValue);
 
 	return propertyDef.toString();
-
     }
 
     /**
@@ -248,7 +232,9 @@ public class JavaRunner extends CPojoBase implements IJavaRunner {
     @Override
     public void validatePojo() throws BundleException {
 
-	pJavaExecutable = getJavaExecutable();
+	// Store the Java executable path
+	pJavaExecutable = pPlatformDirsSvc.getJavaExecutable()
+		.getAbsolutePath();
 
 	// logs in the bundle logger
 	pBundleForkerLoggerSvc.logInfo(this, "validatePojo", "VALIDATE",

@@ -6,7 +6,9 @@
 package org.psem2m.isolates.master.manager.impl;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -14,13 +16,13 @@ import java.util.concurrent.Callable;
 
 import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.CPojoBase;
+import org.psem2m.isolates.base.IPlatformProperties;
 import org.psem2m.isolates.base.bundles.BundleRef;
 import org.psem2m.isolates.base.bundles.IBundleFinderSvc;
 import org.psem2m.isolates.base.conf.IApplicationDescr;
 import org.psem2m.isolates.base.conf.IBundleDescr;
 import org.psem2m.isolates.base.conf.ISvcConfig;
 import org.psem2m.isolates.base.dirs.IPlatformDirsSvc;
-import org.psem2m.isolates.commons.IIsolateConfiguration.IsolateKind;
 import org.psem2m.utilities.CXTimedoutCall;
 import org.psem2m.utilities.logging.IActivityLoggerBase;
 
@@ -29,8 +31,8 @@ import org.psem2m.utilities.logging.IActivityLoggerBase;
  */
 public class CMasterManager extends CPojoBase {
 
-    /** Default isolate kind */
-    private static final IsolateKind DEFAULT_ISOLATE_KIND = IsolateKind.FELIX;
+    /** Default OSGi framework to use to start the forker (Felix) */
+    public static final String DEFAULT_OSGI_FRAMEWORK = "org.apache.felix.main";
 
     /** The bundle finder */
     private IBundleFinderSvc pBundleFinderSvc;
@@ -113,25 +115,113 @@ public class CMasterManager extends CPojoBase {
     }
 
     /**
-     * Tries to start the forker bundle
+     * Prepares a Java interpreter argument to define a JVM property
+     * 
+     * @param aKey
+     *            Property name
+     * @param aValue
+     *            Property value
+     * @return The property definition argument
+     */
+    protected String makeJavaProperty(final String aKey, final String aValue) {
+
+	final StringBuilder propertyDef = new StringBuilder(aKey.length()
+		+ aValue.length() + 3);
+
+	propertyDef.append("-D");
+	propertyDef.append(aKey);
+	propertyDef.append("=");
+	propertyDef.append(aValue);
+
+	return propertyDef.toString();
+    }
+
+    /**
+     * Tries to start the forker bundle. Code is based on JavaRunner from the
+     * bundle "forker".
      * 
      * @throws Exception
      *             Invalid configuration
      */
     protected void startForker() throws Exception {
 
-	// Find the script
-	List<String> forkerCommand = pPlatformDirsSvc.getForkerStartCommand();
-	if (forkerCommand == null) {
-	    throw new Exception("Can't determine how to start the forker");
+	// Find the Java executable
+	final File javaExecutable = pPlatformDirsSvc.getJavaExecutable();
+	if (javaExecutable == null || !javaExecutable.exists()) {
+	    // Fatal error : don't know where is Java
+	    throw new FileNotFoundException("Can't find the Java executable");
 	}
+
+	// Find the bootstrap
+	final File bootstrapJar = pBundleFinderSvc.getBootstrap();
+	if (bootstrapJar == null) {
+	    // Fatal error if the JAR file is not found
+	    throw new FileNotFoundException("Can't find the bootstrap");
+	}
+
+	// Find the OSGi Framework
+	final BundleRef osgiFrameworkRef = pBundleFinderSvc
+		.findBundle(DEFAULT_OSGI_FRAMEWORK);
+	if (osgiFrameworkRef == null || osgiFrameworkRef.getFile() == null) {
+	    // Fatal error : can't find the default OSGi framework
+	    throw new FileNotFoundException(
+		    "Can't find the default OSGi framework - "
+			    + DEFAULT_OSGI_FRAMEWORK);
+	}
+
+	// Prepare the command line
+	final List<String> forkerCommand = new ArrayList<String>();
+
+	// The Java executable
+	forkerCommand.add(javaExecutable.getAbsolutePath());
+
+	// Defines properties
+	{
+	    // Isolate ID
+	    forkerCommand.add(makeJavaProperty(
+		    IPlatformProperties.PROP_PLATFORM_ISOLATE_ID,
+		    IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER));
+
+	    // PSEM2M Home
+	    forkerCommand.add(makeJavaProperty(
+		    IPlatformProperties.PROP_PLATFORM_HOME, pPlatformDirsSvc
+			    .getPlatformHomeDir().getAbsolutePath()));
+
+	    // PSEM2M Base
+	    forkerCommand.add(makeJavaProperty(
+		    IPlatformProperties.PROP_PLATFORM_BASE, pPlatformDirsSvc
+			    .getPlatformBaseDir().getAbsolutePath()));
+	}
+
+	// The class path
+	{
+	    forkerCommand.add("-cp");
+
+	    StringBuilder cpBuilder = new StringBuilder();
+
+	    // Bootstrap
+	    cpBuilder.append(bootstrapJar.getAbsolutePath());
+	    cpBuilder.append(File.pathSeparator);
+
+	    // OSGi Framework
+	    cpBuilder.append(osgiFrameworkRef.getFile().getAbsolutePath());
+	    cpBuilder.append(File.pathSeparator);
+
+	    // Working directory
+	    cpBuilder.append(".");
+
+	    forkerCommand.add(cpBuilder.toString());
+	}
+
+	// The bootstrap main class
+	forkerCommand.add(IBundleFinderSvc.BOOTSTRAP_MAIN_CLASS);
 
 	// Prepare the process builder
 	ProcessBuilder builder = new ProcessBuilder(forkerCommand);
 
-	// TODO compute the working directory in a better way...
-	File workingDir = pPlatformDirsSvc
-		.getIsolateWorkingDir("psem2m.forker");
+	// Compute the working directory
+	final File workingDir = pPlatformDirsSvc
+		.getIsolateWorkingDir(IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER);
 	if (!workingDir.exists()) {
 	    workingDir.mkdirs();
 	}
