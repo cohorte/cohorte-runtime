@@ -9,8 +9,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.psem2m.isolates.base.CPojoBase;
-import org.psem2m.isolates.commons.IIsolateConfiguration;
-import org.psem2m.isolates.commons.IIsolateConfiguration.IsolateKind;
+import org.psem2m.isolates.base.conf.IIsolateDescr;
 import org.psem2m.isolates.commons.forker.IForker;
 import org.psem2m.isolates.forker.IBundleForkerLoggerSvc;
 import org.psem2m.isolates.forker.IIsolateRunner;
@@ -84,11 +83,11 @@ public class CForkerSvc extends CPojoBase implements IForker {
      * 
      * @see
      * org.psem2m.isolates.commons.forker.IForker#startIsolate(org.psem2m.isolates
-     * .commons.IIsolateConfiguration)
+     * .base.conf.IIsolateDescr)
      */
     @Override
-    public final void startIsolate(
-	    final IIsolateConfiguration aIsolateConfiguration) throws Exception {
+    public final void startIsolate(final IIsolateDescr aIsolateConfiguration)
+	    throws Exception {
 
 	final String isolateId = aIsolateConfiguration.getId();
 
@@ -104,7 +103,7 @@ public class CForkerSvc extends CPojoBase implements IForker {
 	// Find the runner for this isolate
 	IIsolateRunner isolateRunner = null;
 
-	IsolateKind isolateKind = aIsolateConfiguration.getKind();
+	final String isolateKind = aIsolateConfiguration.getKind();
 	for (IIsolateRunner availableRunner : pIsolateRunners) {
 	    if (availableRunner.canRun(isolateKind)) {
 		isolateRunner = availableRunner;

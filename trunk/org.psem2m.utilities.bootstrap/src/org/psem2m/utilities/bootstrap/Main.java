@@ -22,7 +22,6 @@ import java.util.logging.Level;
 
 import org.psem2m.isolates.base.boot.IsolateStatus;
 import org.psem2m.utilities.bootstrap.config.ConfigurationReader;
-import org.psem2m.utilities.bootstrap.impl.FrameworkStarter;
 import org.psem2m.utilities.bootstrap.streams.MessageSender;
 import org.psem2m.utilities.bootstrap.streams.RedirectedOutputStream;
 

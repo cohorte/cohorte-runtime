@@ -5,7 +5,7 @@
  */
 package org.psem2m.isolates.forker;
 
-import org.psem2m.isolates.commons.IIsolateConfiguration;
+import org.psem2m.isolates.base.conf.IIsolateDescr;
 
 /**
  * Describes an isolate runner
@@ -21,7 +21,7 @@ public interface IIsolateRunner {
      *            A kind of isolate
      * @return True if the runner can start the given kind of isolate
      */
-    boolean canRun(IIsolateConfiguration.IsolateKind aIsolateKind);
+    boolean canRun(String aIsolateKind);
 
     /**
      * Tries to run the isolate described by the given configuration
@@ -33,6 +33,6 @@ public interface IIsolateRunner {
      * @throws Exception
      *             An error occurred while preparing or starting the isolate
      */
-    IProcessRef startIsolate(IIsolateConfiguration aIsolateConfiguration)
+    IProcessRef startIsolate(IIsolateDescr aIsolateConfiguration)
 	    throws Exception;
 }

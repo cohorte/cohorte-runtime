@@ -3,7 +3,7 @@
  * Author: Thomas Calmant
  * Date:   6 juil. 2011
  */
-package org.psem2m.utilities.bootstrap.impl;
+package org.psem2m.utilities.bootstrap;
 
 import java.io.File;
 import java.net.URL;
@@ -20,8 +20,6 @@ import org.osgi.framework.FrameworkEvent;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.launch.FrameworkFactory;
 import org.psem2m.isolates.base.IPlatformProperties;
-import org.psem2m.utilities.bootstrap.IBootstrapConstants;
-import org.psem2m.utilities.bootstrap.IMessageSender;
 
 /**
  * Bootstrap for OSGi frameworks
@@ -53,6 +51,7 @@ public class FrameworkStarter {
 	// Initialize the static map
 	FRAMEWORK_FACTORIES.put("equinox",
 		"org.eclipse.osgi.launch.EquinoxFactory");
+
 	FRAMEWORK_FACTORIES.put("felix",
 		"org.apache.felix.framework.FrameworkFactory");
     }

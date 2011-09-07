@@ -8,15 +8,14 @@ package org.psem2m.isolates.forker.impl.runners;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.CPojoBase;
+import org.psem2m.isolates.base.IPlatformProperties;
+import org.psem2m.isolates.base.conf.IIsolateDescr;
 import org.psem2m.isolates.base.dirs.IPlatformDirsSvc;
-import org.psem2m.isolates.commons.IIsolateConfiguration;
-import org.psem2m.isolates.commons.IIsolateConfiguration.IsolateKind;
 import org.psem2m.isolates.forker.IBundleForkerLoggerSvc;
 import org.psem2m.isolates.forker.IProcessRef;
 import org.psem2m.isolates.forker.IProcessRunner;
@@ -30,6 +29,9 @@ import org.psem2m.utilities.CXOSUtils;
  * @author Thomas Calmant
  */
 public class JavaRunner extends CPojoBase implements IJavaRunner {
+
+    /** Supported isolate kind */
+    public static final String SUPPORTED_ISOLATE_KIND = "java";
 
     /** The logger */
     private IBundleForkerLoggerSvc pBundleForkerLoggerSvc;
@@ -50,13 +52,11 @@ public class JavaRunner extends CPojoBase implements IJavaRunner {
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * org.psem2m.isolates.forker.IIsolateRunner#canRun(org.psem2m.isolates.
-     * commons.IIsolateConfiguration.IsolateKind)
+     * @see org.psem2m.isolates.forker.IIsolateRunner#canRun(java.lang.String)
      */
     @Override
-    public boolean canRun(final IsolateKind aIsolateKind) {
-	return aIsolateKind == IsolateKind.JAVA;
+    public boolean canRun(final String aIsolateKind) {
+	return SUPPORTED_ISOLATE_KIND.equals(aIsolateKind);
     }
 
     /*
@@ -113,6 +113,20 @@ public class JavaRunner extends CPojoBase implements IJavaRunner {
 	// logs in the bundle logger
 	pBundleForkerLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
 		toDescription());
+    }
+
+    protected String makeJavaProperty(final String aKey, final String aValue) {
+
+	final StringBuilder propertyDef = new StringBuilder(aKey.length()
+		+ aValue.length() + 3);
+
+	propertyDef.append("-D");
+	propertyDef.append(aKey);
+	propertyDef.append("=");
+	propertyDef.append(aValue);
+
+	return propertyDef.toString();
+
     }
 
     /**
@@ -193,28 +207,37 @@ public class JavaRunner extends CPojoBase implements IJavaRunner {
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.isolates.forker.impl.runners.AbstractRunner#doStartIsolate
-     * (org. psem2m.isolates.commons.IIsolateConfiguration)
+     * org.psem2m.isolates.forker.IIsolateRunner#startIsolate(org.psem2m.isolates
+     * .base.conf.IIsolateDescr)
      */
     @Override
-    public IProcessRef startIsolate(
-	    final IIsolateConfiguration aIsolateConfiguration) throws Exception {
+    public IProcessRef startIsolate(final IIsolateDescr aIsolateConfiguration)
+	    throws Exception {
 
-	// Non null list
-	List<String> javaArguments = new ArrayList<String>();
+	// Java arguments list
+	final List<String> javaArguments = new ArrayList<String>();
 
-	// Add isolate arguments, if any
-	String[] isolateArguments = aIsolateConfiguration.getArguments();
-	if (isolateArguments != null) {
-	    javaArguments.addAll(Arrays.asList(isolateArguments));
-	}
+	// Isolate ID
+	javaArguments.add(makeJavaProperty(
+		IPlatformProperties.PROP_PLATFORM_ISOLATE_ID,
+		aIsolateConfiguration.getId()));
+
+	// PSEM2M Home
+	javaArguments.add(makeJavaProperty(
+		IPlatformProperties.PROP_PLATFORM_HOME, pPlatformDirsSvc
+			.getPlatformHomeDir().getAbsolutePath()));
+
+	// PSEM2M Base
+	javaArguments.add(makeJavaProperty(
+		IPlatformProperties.PROP_PLATFORM_BASE, pPlatformDirsSvc
+			.getPlatformBaseDir().getAbsolutePath()));
 
 	// Working directory
 	File workingDirectory = pPlatformDirsSvc
 		.getIsolateWorkingDir(aIsolateConfiguration.getId());
 
-	return runJava(javaArguments, aIsolateConfiguration.getEnvironment(),
-		workingDirectory);
+	// Run the isolate
+	return runJava(javaArguments, null, workingDirectory);
     }
 
     /*

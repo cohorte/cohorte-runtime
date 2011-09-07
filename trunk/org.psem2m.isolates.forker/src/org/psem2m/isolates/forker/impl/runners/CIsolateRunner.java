@@ -13,7 +13,10 @@ import java.io.ObjectInputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 
@@ -23,9 +26,8 @@ import org.psem2m.isolates.base.IPlatformProperties;
 import org.psem2m.isolates.base.boot.IsolateStatus;
 import org.psem2m.isolates.base.bundles.BundleRef;
 import org.psem2m.isolates.base.bundles.IBundleFinderSvc;
+import org.psem2m.isolates.base.conf.IIsolateDescr;
 import org.psem2m.isolates.base.dirs.IPlatformDirsSvc;
-import org.psem2m.isolates.commons.IIsolateConfiguration;
-import org.psem2m.isolates.commons.IIsolateConfiguration.IsolateKind;
 import org.psem2m.isolates.forker.IBundleForkerLoggerSvc;
 import org.psem2m.isolates.forker.IIsolateRunner;
 import org.psem2m.isolates.forker.IProcessRef;
@@ -77,6 +79,17 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
 
     /** Bootstrap long argument prefix */
     public static final String LONG_ARGUMENT_PREFIX = "--";
+
+    /** Supported isolate kinds */
+    public static final Map<String, String[]> SUPPORTED_ISOLATE_KINDS = new HashMap<String, String[]>();
+
+    /*
+     * Map initialization
+     */
+    static {
+	SUPPORTED_ISOLATE_KINDS.put("felix", FELIX_NAMES);
+	SUPPORTED_ISOLATE_KINDS.put("equinox", EQUINOX_NAMES);
+    }
 
     /** Base debug port, <= 0 if not used */
     private int pBaseDebugPort = -1;
@@ -135,14 +148,11 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * org.psem2m.isolates.forker.impl.runners.JavaRunner#canRun(org.psem2m.
-     * isolates.commons.IIsolateConfiguration.IsolateKind)
+     * @see org.psem2m.isolates.forker.IIsolateRunner#canRun(java.lang.String)
      */
     @Override
-    public boolean canRun(final IsolateKind aIsolateKind) {
-	return aIsolateKind == IsolateKind.EQUINOX
-		|| aIsolateKind == IsolateKind.FELIX;
+    public boolean canRun(final String aIsolateKind) {
+	return SUPPORTED_ISOLATE_KINDS.keySet().contains(aIsolateKind);
     }
 
     /*
@@ -221,7 +231,7 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
      * @return The bootstrap arguments, never null
      */
     protected List<String> prepareBootstrapArguments(
-	    final IIsolateConfiguration aIsolateConfiguration) {
+	    final IIsolateDescr aIsolateConfiguration) {
 
 	final List<String> bootstrapArguments = new ArrayList<String>();
 
@@ -256,7 +266,7 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
      * @return the JVM classpath argument
      */
     protected List<String> prepareClasspathArgument(
-	    final BundleRef aBootstrapRef, final IsolateKind aKind) {
+	    final BundleRef aBootstrapRef, final String aKind) {
 
 	final List<String> classpathArgument = new ArrayList<String>();
 	classpathArgument.add("-cp");
@@ -266,29 +276,31 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
 
 	// Find the framework main bundle
 	BundleRef mainBundleRef;
-	switch (aKind) {
-	case FELIX:
-	    mainBundleRef = pBundleFinderSvc.findBundle(FELIX_NAMES);
-	    break;
 
-	case EQUINOX:
-	    mainBundleRef = pBundleFinderSvc.findBundle(EQUINOX_NAMES);
-	    break;
+	String[] mainBundleNames = SUPPORTED_ISOLATE_KINDS.get(aKind);
+	if (mainBundleNames == null) {
+	    // Use Felix framework by default, we should never come here
+	    mainBundleNames = FELIX_NAMES;
 
-	default:
-	    mainBundleRef = null;
-	    break;
+	    pBundleForkerLoggerSvc
+		    .logWarn(this, "prepareClasspathArgument",
+			    "Unsupported isolate kind, using the Felix framework by default");
+	}
+
+	mainBundleRef = pBundleFinderSvc.findBundle(mainBundleNames);
+	if (mainBundleRef == null) {
+	    pBundleForkerLoggerSvc.logSevere(this, "prepareClasspathArgument",
+		    "Can't find an OSGi framework file, searching for : "
+			    + Arrays.toString(mainBundleNames));
 	}
 
 	// Add the bootstrap JAR
 	classPath.append(aBootstrapRef.getFile().getAbsolutePath());
 	classPath.append(File.pathSeparator);
 
-	// Add the found framework, if any
-	if (mainBundleRef != null) {
-	    classPath.append(mainBundleRef.getFile().getAbsolutePath());
-	    classPath.append(File.pathSeparator);
-	}
+	// Add the OSGi framework
+	classPath.append(mainBundleRef.getFile().getAbsolutePath());
+	classPath.append(File.pathSeparator);
 
 	classPath.append(".");
 	classpathArgument.add(classPath.toString());
@@ -453,12 +465,12 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.isolates.forker.impl.runners.JavaRunner#startIsolate(org.psem2m
-     * .isolates.commons.IIsolateConfiguration)
+     * org.psem2m.isolates.forker.IIsolateRunner#startIsolate(org.psem2m.isolates
+     * .base.conf.IIsolateDescr)
      */
     @Override
-    public IProcessRef startIsolate(
-	    final IIsolateConfiguration aIsolateConfiguration) throws Exception {
+    public IProcessRef startIsolate(final IIsolateDescr aIsolateConfiguration)
+	    throws Exception {
 
 	final List<String> javaOptions = new ArrayList<String>();
 
@@ -488,9 +500,9 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
 	    workingDirectory.mkdirs();
 	}
 
-	// Run the file
-	IProcessRef processRef = pJavaRunner.runJava(javaOptions,
-		aIsolateConfiguration.getEnvironment(), workingDirectory);
+	// Run the bootstrap
+	IProcessRef processRef = pJavaRunner.runJava(javaOptions, null,
+		workingDirectory);
 	if (processRef == null) {
 	    return null;
 	}

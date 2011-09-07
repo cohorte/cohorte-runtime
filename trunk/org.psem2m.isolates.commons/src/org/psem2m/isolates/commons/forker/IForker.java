@@ -8,7 +8,7 @@ package org.psem2m.isolates.commons.forker;
 import java.io.IOException;
 import java.security.InvalidParameterException;
 
-import org.psem2m.isolates.commons.IIsolateConfiguration;
+import org.psem2m.isolates.base.conf.IIsolateDescr;
 
 /**
  * Description of the Forker service
@@ -50,8 +50,8 @@ public interface IForker {
      * @throws Exception
      *             An error occurred while preparing or starting the isolate
      */
-    void startIsolate(IIsolateConfiguration aIsolateConfiguration)
-	    throws IOException, InvalidParameterException, Exception;
+    void startIsolate(IIsolateDescr aIsolateConfiguration) throws IOException,
+	    InvalidParameterException, Exception;
 
     /**
      * Kills the process with the given isolate ID
