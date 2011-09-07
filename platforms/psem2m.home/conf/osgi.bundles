@@ -1,0 +1,17 @@
+# OSGi base bundles
+#
+# This file should not contain more than the really basic OSGi bundles needed
+# by the PSEM2M base.
+#
+# DO NOT use it as an application provision file. Use JSON configuration files
+# for that.
+#
+
+# OSGi Compendium 4.2
+osgi.cmpn
+
+# Log Service
+org.apache.felix.log
+
+# iPOJO Stuffs
+include: ipojo.bundles

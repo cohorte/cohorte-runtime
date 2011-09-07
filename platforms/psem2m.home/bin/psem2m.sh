@@ -125,19 +125,10 @@ start() {
     fi
     echo "OSGi Framework: $framework_bundle_file"
 
-    # Try to find the base platform provisionning file
-    local provision_file=$(find_conf_file $PLATFORM_PROVISION_FILENAME)
-    if [ -z $provision_file ]
-    then
-        echo "Error: Can't find the platform provision file '$PLATFORM_PROVISION_FILENAME'" >&2
-        return 1
-    fi
-    echo "Provision file: $provision_file"
-
     # Run all
     echo "Running bootstrap..."
     touch $MONITOR_PID_FILE
-    $PSEM2M_JAVA $JVM_EXTRA_ARGS -cp "$BOOTSTRAP_FILE:$framework_bundle_file" $BOOTSTRAP_MAIN_CLASS --human --lines --file="$provision_file" $PROP_PLATFORM_HOME="$PSEM2M_HOME" $PROP_PLATFORM_BASE="$PSEM2M_BASE" $PROP_PLATFORM_ISOLATE_ID="$MONITOR_ISOLATE_ID" org.osgi.service.http.port=9000 org.apache.felix.http.jettyEnabled=true osgi.shell.telnet.port=6000 &
+    $PSEM2M_JAVA $JVM_EXTRA_ARGS -cp "$BOOTSTRAP_FILE:$framework_bundle_file" $BOOTSTRAP_MAIN_CLASS --human $PROP_PLATFORM_HOME="$PSEM2M_HOME" $PROP_PLATFORM_BASE="$PSEM2M_BASE" $PROP_PLATFORM_ISOLATE_ID="$MONITOR_ISOLATE_ID" org.osgi.service.http.port=9000 org.apache.felix.http.jettyEnabled=true osgi.shell.telnet.port=6000 &
     echo $! > $MONITOR_PID_FILE
 
     echo "Started"

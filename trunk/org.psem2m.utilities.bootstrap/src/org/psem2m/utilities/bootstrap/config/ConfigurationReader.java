@@ -188,8 +188,11 @@ public class ConfigurationReader {
      * @param aStringArray
      *            Strings to be converted
      * @return URL collection corresponding to the strings
+     * @throws FileNotFoundException
+     *             A bundle file is missing
      */
-    public Collection<URL> stringsToURLs(final String[] aStringArray) {
+    public Collection<URL> stringsToURLs(final String[] aStringArray)
+	    throws FileNotFoundException {
 
 	List<URL> result = new ArrayList<URL>(aStringArray.length);
 
@@ -219,9 +222,7 @@ public class ConfigurationReader {
 		    }
 
 		} else {
-		    pMessageSender.sendMessage(Level.WARNING,
-			    "Configuration Reader", "stringsToURLs",
-			    "Bundle not found : " + value);
+		    throw new FileNotFoundException(value);
 		}
 	    }
 

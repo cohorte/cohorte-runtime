@@ -1,9 +1,14 @@
+# iPOJO base bundles file
+# Needed by the PSEM2M base
+
 # iPOJO Core
 org.apache.felix.ipojo
 
-# Whiteboard pattern
+# iPOJO Extender
+org.apache.felix.ipojo.handler.extender
+
+# White board pattern handler
 org.apache.felix.ipojo.handler.whiteboard
 
-# JMX
-org.apache.felix.ipojo.handler.extender
+# JMX handler
 org.apache.felix.ipojo.handler.jmx

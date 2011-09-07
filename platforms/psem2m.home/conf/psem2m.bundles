@@ -1,0 +1,27 @@
+# PSEM2M Base bundles
+#
+# Indicates which bundles must be installed to consider an isolate as neutral
+# and ready to roll.
+#
+# DO NOT use this file as an application provision file. Use JSON configuration
+# files for that.
+#
+
+# FIXME jUnit is needed by Utilities
+org.apache.felix.ipojo.junit4osgi
+
+# Utility classes
+org.psem2m.isolates.utilities
+
+# Base services (finders, ...)
+org.psem2m.isolates.base
+
+# Log services
+org.psem2m.isolates.loggers
+
+# Configuration reader
+org.psem2m.isolates.config
+
+# Isolate agent (use the configuration to load the next bundles)
+# Should be the last bundle to be started by the bootstrap
+# TODO org.psem2m.isolates.agent
