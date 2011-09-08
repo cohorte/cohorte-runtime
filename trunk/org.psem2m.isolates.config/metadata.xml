@@ -3,9 +3,13 @@
 	xsi:schemaLocation="org.apache.felix.ipojo http://felix.apache.org/ipojo/schemas/CURRENT/core.xsd"
 	xmlns="org.apache.felix.ipojo" xmlns:jmx="org.apache.felix.ipojo.handlers.jmx">
 
-	<!-- The logger, specific to the bundle -->
-	<component classname="org.psem2m.isolates.config.impl.CBundleConfigLoggerSvc"
-		architecture="true" immediate="true" name="isolates-config-logger-factory">
+	<!-- The logger, specific to the bundle ATTENTION : like the activator is 
+		already instantiate (cf. OSGI activator), we define the attribute "factory-method" 
+		to indicate to iPojo how it retrieve the existing instance to "define" the 
+		component with it -->
+	<component classname="org.psem2m.isolates.config.CBundleConfigurationActivator"
+		architecture="true" immediate="true" name="isolates-config-logger-factory"
+		factory-method="getInstance">
 
 		<provides specifications="org.psem2m.utilities.logging.IActivityLoggerBase" />
 
@@ -14,7 +18,7 @@
 	</component>
 
 	<!-- The configuration service -->
-	<component classname="org.psem2m.isolates.config.impl.CConfigSvc"
+	<component classname="org.psem2m.isolates.config.impl.CJsonConfigSvc"
 		architecture="true" immediate="true" name="isolates-config-factory">
 
 		<provides specifications="org.psem2m.isolates.config.ISvcConfig" />

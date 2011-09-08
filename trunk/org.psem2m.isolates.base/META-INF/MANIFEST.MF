@@ -44,57 +44,64 @@ iPOJO-Components: instance { $component="isolates-base-isolatelogger-f
  y" $classname="org.psem2m.isolates.base.dirs.impl.CPlatformDirsSvc" $
  architecture="true" $public="false" provides { $specifications="org.p
  sem2m.isolates.base.dirs.IPlatformDirsSvc" }manipulation { field { $n
- ame="__MgetIsolateWorkingDir$java_lang_String" $type="boolean" }field
-  { $name="__MgetIsolateId" $type="boolean" }field { $name="__MgetRepo
- sitories" $type="boolean" }field { $name="__MgetPlatformBaseDir" $typ
- e="boolean" }field { $name="__MgetIsolateLogDir" $type="boolean" }fie
- ld { $name="__MgetPlatformHomeDir" $type="boolean" }field { $name="__
- MisOsWindowsFamily" $type="boolean" }field { $name="__MgetPlatformRoo
- tDirs" $type="boolean" }field { $name="__MgetForkerStartCommand" $typ
- e="boolean" }field { $name="__MgetIsolateLogDir$java_lang_String" $ty
- pe="boolean" }field { $name="__MgetPlatformLogDir" $type="boolean" }m
- ethod { $name="getCurrentIsolateId" $return="java.lang.String" }metho
- d { $name="getCurrentPlatformBase" $return="java.lang.String" }method
-  { $name="getCurrentPlatformHome" $return="java.lang.String" }method 
- { $name="$init" }method { $name="getForkerStartCommand" $return="java
- .util.List" }method { $name="getIsolateId" $return="java.lang.String"
-  }method { $name="getIsolateLogDir" $return="java.io.File" }method { 
- $arguments="{java.lang.String}" $name="getIsolateLogDir" $return="jav
- a.io.File" }method { $arguments="{java.lang.String}" $name="getIsolat
- eWorkingDir" $return="java.io.File" }method { $name="getPlatformBaseD
- ir" $return="java.io.File" }method { $name="getPlatformHomeDir" $retu
- rn="java.io.File" }method { $name="getPlatformLogDir" $return="java.i
- o.File" }method { $name="getPlatformRootDirs" $return="java.io.File[]
- " }method { $name="getRepositories" $return="java.io.File[]" }method 
- { $name="isOsWindowsFamily" $return="boolean" }interface { $name="org
- .psem2m.isolates.base.dirs.IPlatformDirsSvc" }}}component { $immediat
- e="true" $name="isolates-base-bundle-finder-factory" $classname="org.
- psem2m.isolates.base.bundles.impl.CBundleFinderSvc" $architecture="tr
- ue" $public="false" provides { $specifications="org.psem2m.isolates.b
- ase.bundles.IBundleFinderSvc" }manipulation { field { $name="pPlatfor
- mDirsSvc" $type="org.psem2m.isolates.base.dirs.IPlatformDirsSvc" }fie
- ld { $name="__MfindBundle$java_lang_String__" $type="boolean" }field 
- { $name="__FpPlatformDirsSvc" $type="boolean" }method { $name="__getp
- PlatformDirsSvc" $return="org.psem2m.isolates.base.dirs.IPlatformDirs
- Svc" }method { $arguments="{org.psem2m.isolates.base.dirs.IPlatformDi
- rsSvc}" $name="__setpPlatformDirsSvc" }method { $name="$init" }method
-  { $arguments="{org.psem2m.isolates.base.dirs.IPlatformDirsSvc}" $nam
- e="$init" }method { $arguments="{java.lang.String[]}" $name="findBund
- le" $return="org.psem2m.isolates.base.bundles.BundleRef" }interface {
-  $name="org.psem2m.isolates.base.bundles.IBundleFinderSvc" }}requires
-  { $field="pPlatformDirsSvc" $optional="false" }}component { $immedia
- te="true" $name="isolates-base-file-finder-factory" $classname="org.p
- sem2m.isolates.base.dirs.impl.CFileFinderSvc" $architecture="true" $p
- ublic="false" provides { $specifications="org.psem2m.isolates.base.di
- rs.IFileFinderSvc" }manipulation { field { $name="pPlatformDirs" $typ
- e="org.psem2m.isolates.base.dirs.IPlatformDirsSvc" }field { $name="__
- Mfind$java_lang_String" $type="boolean" }field { $name="__FpPlatformD
- irs" $type="boolean" }method { $name="__getpPlatformDirs" $return="or
- g.psem2m.isolates.base.dirs.IPlatformDirsSvc" }method { $arguments="{
- org.psem2m.isolates.base.dirs.IPlatformDirsSvc}" $name="__setpPlatfor
- mDirs" }method { $name="$init" }method { $arguments="{org.psem2m.isol
- ates.base.dirs.IPlatformDirsSvc}" $name="$init" }method { $arguments=
- "{java.lang.String}" $name="find" $return="java.io.File[]" }interface
-  { $name="org.psem2m.isolates.base.dirs.IFileFinderSvc" }}requires { 
- $field="pPlatformDirsSvc" $optional="false" }}
+ ame="__MgetIsolateId" $type="boolean" }field { $name="__MgetRepositor
+ ies" $type="boolean" }field { $name="__MgetIsolateLogDir" $type="bool
+ ean" }field { $name="__MgetPlatformHomeDir" $type="boolean" }field { 
+ $name="__MisOsWindowsFamily" $type="boolean" }field { $name="__MgetPl
+ atformRootDirs" $type="boolean" }field { $name="__MgetIsolateWorkingD
+ ir$java_lang_String" $type="boolean" }field { $name="__MgetJavaExecut
+ able" $type="boolean" }field { $name="__MgetPlatformBaseDir" $type="b
+ oolean" }field { $name="__MgetForkerStartCommand" $type="boolean" }fi
+ eld { $name="__MgetIsolateLogDir$java_lang_String" $type="boolean" }f
+ ield { $name="__MgetPlatformLogDir" $type="boolean" }method { $name="
+ getCurrentIsolateId" $return="java.lang.String" }method { $name="getC
+ urrentPlatformBase" $return="java.lang.String" }method { $name="getCu
+ rrentPlatformHome" $return="java.lang.String" }method { $name="$init"
+  }method { $name="getForkerStartCommand" $return="java.util.List" }me
+ thod { $name="getIsolateId" $return="java.lang.String" }method { $nam
+ e="getIsolateLogDir" $return="java.io.File" }method { $arguments="{ja
+ va.lang.String}" $name="getIsolateLogDir" $return="java.io.File" }met
+ hod { $arguments="{java.lang.String}" $name="getIsolateWorkingDir" $r
+ eturn="java.io.File" }method { $name="getJavaExecutable" $return="jav
+ a.io.File" }method { $name="getPlatformBaseDir" $return="java.io.File
+ " }method { $name="getPlatformHomeDir" $return="java.io.File" }method
+  { $name="getPlatformLogDir" $return="java.io.File" }method { $name="
+ getPlatformRootDirs" $return="java.io.File[]" }method { $name="getRep
+ ositories" $return="java.io.File[]" }method { $name="isOsWindowsFamil
+ y" $return="boolean" }interface { $name="org.psem2m.isolates.base.dir
+ s.IPlatformDirsSvc" }}}component { $immediate="true" $name="isolates-
+ base-bundle-finder-factory" $classname="org.psem2m.isolates.base.bund
+ les.impl.CBundleFinderSvc" $architecture="true" $public="false" provi
+ des { $specifications="org.psem2m.isolates.base.bundles.IBundleFinder
+ Svc" }manipulation { field { $name="pPlatformDirsSvc" $type="org.psem
+ 2m.isolates.base.dirs.IPlatformDirsSvc" }field { $name="__MfindBundle
+ $java_lang_String__" $type="boolean" }field { $name="__MgetBootstrap"
+  $type="boolean" }field { $name="__FpPlatformDirsSvc" $type="boolean"
+  }method { $name="__getpPlatformDirsSvc" $return="org.psem2m.isolates
+ .base.dirs.IPlatformDirsSvc" }method { $arguments="{org.psem2m.isolat
+ es.base.dirs.IPlatformDirsSvc}" $name="__setpPlatformDirsSvc" }method
+  { $name="$init" }method { $arguments="{org.psem2m.isolates.base.dirs
+ .IPlatformDirsSvc}" $name="$init" }method { $arguments="{java.lang.St
+ ring[]}" $name="findBundle" $return="org.psem2m.isolates.base.bundles
+ .BundleRef" }method { $name="getBootstrap" $return="java.io.File" }in
+ terface { $name="org.psem2m.isolates.base.bundles.IBundleFinderSvc" }
+ }requires { $field="pPlatformDirsSvc" $optional="false" }}component {
+  $immediate="true" $name="isolates-base-file-finder-factory" $classna
+ me="org.psem2m.isolates.base.dirs.impl.CFileFinderSvc" $architecture=
+ "true" $public="false" provides { $specifications="org.psem2m.isolate
+ s.base.dirs.IFileFinderSvc" }manipulation { field { $name="__Mfind$ja
+ va_io_File$java_lang_String" $type="boolean" }field { $name="__Minter
+ nalFind$java_lang_String" $type="boolean" }field { $name="pPlatformDi
+ rs" $type="org.psem2m.isolates.base.dirs.IPlatformDirsSvc" }field { $
+ name="__Mfind$java_lang_String" $type="boolean" }field { $name="__FpP
+ latformDirs" $type="boolean" }method { $name="__getpPlatformDirs" $re
+ turn="org.psem2m.isolates.base.dirs.IPlatformDirsSvc" }method { $argu
+ ments="{org.psem2m.isolates.base.dirs.IPlatformDirsSvc}" $name="__set
+ pPlatformDirs" }method { $name="$init" }method { $arguments="{org.pse
+ m2m.isolates.base.dirs.IPlatformDirsSvc}" $name="$init" }method { $ar
+ guments="{java.io.File,java.lang.String}" $name="find" $return="java.
+ io.File[]" }method { $arguments="{java.lang.String}" $name="find" $re
+ turn="java.io.File[]" }method { $arguments="{java.lang.String}" $name
+ ="internalFind" $return="java.util.List" }interface { $name="org.psem
+ 2m.isolates.base.dirs.IFileFinderSvc" }}}
 

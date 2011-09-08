@@ -40,7 +40,6 @@
 		public="false">
 
 		<provides specifications="org.psem2m.isolates.base.dirs.IFileFinderSvc" />
-		<requires field="pPlatformDirsSvc" optional="false" />
 	</component>
 
 	<!-- Instances -->
