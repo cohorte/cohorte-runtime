@@ -8,46 +8,79 @@ Bundle-SymbolicName: org.psem2m.isolates.slave.agent
 Bundle-Vendor: isandlatech.com
 Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
-Import-Package: org.apache.felix.ipojo;version="1.8.0",
- org.apache.felix.ipojo.architecture;version="1.8.0",
- org.osgi.framework;version="1.3.0",
- org.osgi.service.cm;version="1.2",
- org.osgi.service.log;version="1.3",
- org.osgi.service.packageadmin;version="1.2.0",
- org.psem2m.isolates.base;version="1.0.0",
- org.psem2m.isolates.base.bundles;version="1.0.0",
- org.psem2m.utilities.logging
-iPOJO-Components: component { $immediate="true" $name="isolates-slave-
- agent-core" $classname="org.psem2m.isolates.slave.agent.core.AgentCor
- e" $architecture="true" org.apache.felix.ipojo.handlers.jmx:config { 
- org.apache.felix.ipojo.handlers.jmx:method { $description="Retrieves 
- informations about the bundle with the given ID, null if not found" $
- name="getBundleInfo" }org.apache.felix.ipojo.handlers.jmx:method { $d
- escription="Retrieves a Map<String, int> associating bundles ID and s
- tate" $name="getBundlesState" }org.apache.felix.ipojo.handlers.jmx:me
- thod { $description="Install the given bundle (needs a valid URL) and
-  returns its ID. Throws a BundleException on error" $name="installBun
- dle" }org.apache.felix.ipojo.handlers.jmx:method { $description="Refr
- eshes the bundles packages" $name="refreshPackages" }org.apache.felix
- .ipojo.handlers.jmx:method { $description="Starts the bundle with the
-  given UID" $name="startBundle" }org.apache.felix.ipojo.handlers.jmx:
- method { $description="Stops the bundle with the given UID" $name="st
- opBundle" }org.apache.felix.ipojo.handlers.jmx:method { $description=
- "Uninstalls the bundle with the given UID" $name="uninstallBundle" }o
- rg.apache.felix.ipojo.handlers.jmx:method { $description="Updates the
-  bundle with the given UID" $name="updateBundle" }}manipulation { $su
- per="org.psem2m.isolates.base.CPojoBase" field { $name="pBundleContex
- t" $type="org.osgi.framework.BundleContext" }method { $arguments="{or
- g.osgi.framework.BundleContext}" $name="$init" }method { $name="destr
- oy" }method { $arguments="{long}" $name="getBundleInfo" $return="org.
- psem2m.isolates.base.bundles.BundleInfo" }method { $name="getBundlesS
- tate" $return="org.psem2m.isolates.base.bundles.BundleInfo[]" }method
-  { $arguments="{java.lang.String}" $name="installBundle" $return="lon
- g" }method { $name="invalidatePojo" }method { $arguments="{long[]}" $
- name="refreshPackages" $return="boolean" }method { $arguments="{long}
- " $name="startBundle" $return="boolean" }method { $arguments="{long}"
-  $name="stopBundle" $return="boolean" }method { $arguments="{long}" $
- name="uninstallBundle" $return="boolean" }method { $arguments="{long}
- " $name="updateBundle" $return="boolean" }method { $name="validatePoj
- o" }}}instance { $component="isolates-slave-agent-core" }
+Import-Package: org.osgi.service.log;version=1.3, org.psem2m.isolates.
+ base;version=1.0.0, org.psem2m.isolates.base.conf, org.psem2m.isolate
+ s.base.dirs, org.apache.felix.ipojo.architecture;version=1.8.0, org.p
+ sem2m.isolates.base.bundles;version=1.0.0, org.apache.felix.ipojo;ver
+ sion=1.8.0, org.osgi.framework;version=1.3.0, org.psem2m.utilities.lo
+ gging, org.osgi.service.cm;version=1.2, org.osgi.service.packageadmin
+ ;version=1.2.0
+iPOJO-Components: instance { $component="isolates-slave-agent-logger-f
+ actory" $name="isolates-slave-agent-logger" }instance { $component="i
+ solates-slave-agent-core-factory" $name="isolates-slave-agent-core" }
+ component { $immediate="true" $name="isolates-slave-agent-logger-fact
+ ory" $classname="org.psem2m.isolates.slave.agent.CBundleSlaveAgentAct
+ ivator" $factory-method="getInstance" $architecture="true" callback {
+  $transition="validate" $method="validatePojo" }callback { $transitio
+ n="invalidate" $method="invalidatePojo" }provides { $specifications="
+ org.psem2m.isolates.base.IIsolateLoggerSvc" }manipulation { $super="o
+ rg.psem2m.isolates.base.CActivatorBase" method { $name="getInstance" 
+ $return="org.psem2m.isolates.slave.agent.CBundleSlaveAgentActivator" 
+ }method { $name="$init" }method { $name="destroy" }method { $name="ge
+ tBundleId" $return="java.lang.String" }method { $arguments="{org.osgi
+ .framework.BundleContext}" $name="start" }method { $arguments="{org.o
+ sgi.framework.BundleContext}" $name="stop" }interface { $name="org.ps
+ em2m.isolates.base.IActivatorBase" }interface { $name="org.psem2m.uti
+ lities.logging.IActivityLoggerBase" }}}component { $immediate="true" 
+ $name="isolates-slave-agent-core-factory" $classname="org.psem2m.isol
+ ates.slave.agent.core.AgentCore" $architecture="true" $public="false"
+  org.apache.felix.ipojo.handlers.jmx:config { org.apache.felix.ipojo.
+ handlers.jmx:method { $description="Retrieves informations about the 
+ bundle with the given ID, null if not found" $name="getBundleInfo" }o
+ rg.apache.felix.ipojo.handlers.jmx:method { $description="Retrieves a
+  Map<String, int> associating bundles ID and state" $name="getBundles
+ State" }org.apache.felix.ipojo.handlers.jmx:method { $description="In
+ stall the given bundle (needs a valid URL) and returns its ID. Throws
+  a BundleException on error" $name="installBundle" }org.apache.felix.
+ ipojo.handlers.jmx:method { $description="Refreshes the bundles packa
+ ges" $name="refreshPackages" }org.apache.felix.ipojo.handlers.jmx:met
+ hod { $description="Starts the bundle with the given UID" $name="star
+ tBundle" }org.apache.felix.ipojo.handlers.jmx:method { $description="
+ Stops the bundle with the given UID" $name="stopBundle" }org.apache.f
+ elix.ipojo.handlers.jmx:method { $description="Uninstalls the bundle 
+ with the given UID" $name="uninstallBundle" }org.apache.felix.ipojo.h
+ andlers.jmx:method { $description="Updates the bundle with the given 
+ UID" $name="updateBundle" }}provides { $specifications="org.psem2m.is
+ olates.slave.agent.ISvcAgent" }manipulation { $super="org.psem2m.isol
+ ates.base.CPojoBase" field { $name="pPlatformDirsSvc" $type="org.psem
+ 2m.isolates.base.dirs.IPlatformDirsSvc" }field { $name="pConfiguratio
+ nSvc" $type="org.psem2m.isolates.base.conf.ISvcConfig" }field { $name
+ ="pLoggerSvc" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }fie
+ ld { $name="pGuardianThread" $type="org.psem2m.isolates.slave.agent.c
+ ore.GuardianThread" }field { $name="pInstalledBundles" $type="java.ut
+ il.Map" }field { $name="pBundleFinderSvc" $type="org.psem2m.isolates.
+ base.bundles.IBundleFinderSvc" }field { $name="pBundleContext" $type=
+ "org.osgi.framework.BundleContext" }method { $arguments="{org.osgi.fr
+ amework.BundleContext}" $name="$init" }method { $name="destroy" }meth
+ od { $arguments="{org.psem2m.isolates.base.conf.IBundleDescr}" $name=
+ "findBundleURL" $return="java.lang.String" }method { $arguments="{lon
+ g}" $name="getBundle" $return="org.osgi.framework.Bundle" }method { $
+ arguments="{long}" $name="getBundleInfo" $return="org.psem2m.isolates
+ .base.bundles.BundleInfo" }method { $name="getBundlesState" $return="
+ org.psem2m.isolates.base.bundles.BundleInfo[]" }method { $name="getIn
+ stalledBundles" $return="java.util.Map" }method { $arguments="{java.l
+ ang.String}" $name="installBundle" $return="long" }method { $name="in
+ validatePojo" }method { $name="neutralizeIsolate" }method { $name="pr
+ epareIsolate" }method { $arguments="{java.lang.String}" $name="prepar
+ eIsolate" }method { $arguments="{long[]}" $name="refreshPackages" $re
+ turn="boolean" }method { $arguments="{long}" $name="startBundle" $ret
+ urn="boolean" }method { $arguments="{long}" $name="stopBundle" $retur
+ n="boolean" }method { $arguments="{long}" $name="uninstallBundle" $re
+ turn="boolean" }method { $arguments="{long}" $name="updateBundle" $re
+ turn="boolean" }method { $name="validatePojo" }interface { $name="org
+ .psem2m.isolates.slave.agent.ISvcAgent" }}requires { $field="pBundleF
+ inderSvc" $optional="false" }requires { $field="pConfigurationSvc" $o
+ ptional="false" }requires { $field="pLoggerSvc" $optional="false" $fr
+ om="isolates-slave-agent-logger" }requires { $field="pPlatformDirsSvc
+ " $optional="false" }}
 

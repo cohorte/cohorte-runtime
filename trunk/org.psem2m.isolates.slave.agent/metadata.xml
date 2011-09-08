@@ -3,8 +3,32 @@
 	xsi:schemaLocation="org.apache.felix.ipojo http://felix.apache.org/ipojo/schemas/CURRENT/core.xsd org.apache.felix.ipojo.handlers.jmx http://felix.apache.org/ipojo/schemas/CURRENT/jmx.xsd"
 	xmlns="org.apache.felix.ipojo" xmlns:jmx="org.apache.felix.ipojo.handlers.jmx">
 
+	<!-- The logger, specific to the bundle ATTENTION : like the activator is 
+		already instantiate (cf. OSGI activator), we define the attribute "factory-method" 
+		to indicate to iPojo how it retrieve the existing instance to "define" the 
+		component with it -->
+	<component classname="org.psem2m.isolates.slave.agent.CBundleSlaveAgentActivator"
+		architecture="true" immediate="true" name="isolates-slave-agent-logger-factory"
+		factory-method="getInstance">
+
+		<provides specifications="org.psem2m.isolates.base.IIsolateLoggerSvc" />
+
+		<callback transition="validate" method="validatePojo" />
+		<callback transition="invalidate" method="invalidatePojo" />
+	</component>
+
+	<!-- Agent core -->
 	<component classname="org.psem2m.isolates.slave.agent.core.AgentCore"
-		architecture="true" immediate="true" name="isolates-slave-agent-core">
+		architecture="true" immediate="true" name="isolates-slave-agent-core-factory"
+		public="false">
+
+		<provides specifications="org.psem2m.isolates.slave.agent.ISvcAgent" />
+
+		<requires field="pBundleFinderSvc" optional="false" />
+		<requires field="pConfigurationSvc" optional="false" />
+		<requires field="pLoggerSvc" optional="false"
+			from="isolates-slave-agent-logger" />
+		<requires field="pPlatformDirsSvc" optional="false" />
 
 		<jmx:config>
 			<jmx:method name="getBundleInfo"
@@ -27,8 +51,10 @@
 
 			<jmx:method name="updateBundle" description="Updates the bundle with the given UID" />
 		</jmx:config>
-
 	</component>
 
-	<instance component="isolates-slave-agent-core" />
+	<!-- Instances -->
+	<instance component="isolates-slave-agent-logger-factory"
+		name="isolates-slave-agent-logger" />
+	<instance component="isolates-slave-agent-core-factory" name="isolates-slave-agent-core" />
 </ipojo>
