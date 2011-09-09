@@ -20,6 +20,7 @@ import org.psem2m.isolates.base.conf.beans.ApplicationDescription;
 import org.psem2m.isolates.base.conf.beans.BundleDescription;
 import org.psem2m.isolates.base.conf.beans.IsolateDescription;
 import org.psem2m.isolates.base.dirs.IFileFinderSvc;
+import org.psem2m.isolates.config.IPlatformConfigurationConstants;
 import org.psem2m.utilities.json.JSONArray;
 import org.psem2m.utilities.json.JSONException;
 import org.psem2m.utilities.json.JSONObject;
@@ -278,15 +279,19 @@ public class JsonConfigReader implements IConfigurationReader {
 	    throws FileNotFoundException {
 
 	final File confFile;
-	File baseFile = null;
+	final File baseFile;
 
 	if (!pIncludeStack.isEmpty()) {
 	    // Use a base file, if possible
 	    baseFile = pIncludeStack.peek();
+
+	} else {
+	    // Use the configuration directory
+	    baseFile = new File(IPlatformConfigurationConstants.SUBDIR_CONF);
 	}
 
 	final File[] foundFiles = pFileFinder.find(baseFile, aFileName);
-	if (foundFiles == null) {
+	if (foundFiles == null || foundFiles.length == 0) {
 	    throw new FileNotFoundException(aFileName);
 	}
 
@@ -294,7 +299,7 @@ public class JsonConfigReader implements IConfigurationReader {
 	confFile = foundFiles[0];
 
 	// Add it to the stack (it will be the next read file)
-	pIncludeStack.push(confFile);
+	pIncludeStack.push(confFile.getAbsoluteFile());
 
 	// Read its content at once
 	return new Scanner(confFile).useDelimiter("\\Z").next();

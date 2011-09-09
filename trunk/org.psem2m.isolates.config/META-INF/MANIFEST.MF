@@ -9,12 +9,12 @@ Bundle-Vendor: isandlaTech.com
 Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
 Export-Package: org.psem2m.isolates.config
-Import-Package: org.psem2m.utilities.json, org.osgi.service.log;versio
- n=1.3, org.psem2m.isolates.base.dirs, org.psem2m.isolates.base.conf, 
- org.psem2m.isolates.base, org.apache.felix.ipojo.architecture;version
- =1.8.0, org.apache.felix.ipojo;version=1.8.0, org.osgi.framework;vers
- ion=1.5.0, org.psem2m.utilities.logging, org.osgi.service.cm;version=
- 1.2, org.psem2m.isolates.base.conf.beans, org.psem2m.utilities
+Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
+ .ipojo.architecture;version=1.8.0, org.osgi.framework;version=1.5.0, 
+ org.osgi.service.cm;version=1.2, org.osgi.service.log;version=1.3, or
+ g.psem2m.isolates.base, org.psem2m.isolates.base.conf, org.psem2m.iso
+ lates.base.conf.beans, org.psem2m.isolates.base.dirs, org.psem2m.util
+ ities, org.psem2m.utilities.json, org.psem2m.utilities.logging
 iPOJO-Components: instance { $component="isolates-config-logger-factor
  y" $name="isolates-config-logger" }instance { $component="isolates-co
  nfig-factory" $name="isolates-config" }component { $immediate="true" 
@@ -24,25 +24,44 @@ iPOJO-Components: instance { $component="isolates-config-logger-factor
  datePojo" }callback { $transition="invalidate" $method="invalidatePoj
  o" }provides { $specifications="org.psem2m.utilities.logging.IActivit
  yLoggerBase" }manipulation { $super="org.psem2m.isolates.base.CActiva
- torBase" method { $name="getInstance" $return="org.psem2m.isolates.co
- nfig.CBundleConfigurationActivator" }method { $name="$init" }method {
-  $name="destroy" }method { $name="getBundleId" $return="java.lang.Str
- ing" }}}component { $immediate="true" $name="isolates-config-factory"
-  $classname="org.psem2m.isolates.config.impl.CJsonConfigSvc" $archite
- cture="true" callback { $transition="validate" $method="validatePojo"
-  }callback { $transition="invalidate" $method="invalidatePojo" }provi
- des { $specifications="org.psem2m.isolates.config.ISvcConfig" }manipu
- lation { $super="org.psem2m.isolates.base.CPojoBase" field { $name="p
- ConfigurationFiles" $type="java.util.Set" }field { $name="pLoggerSvc"
-  $type="org.psem2m.utilities.logging.IActivityLoggerBase" }field { $n
- ame="pFileFinder" $type="org.psem2m.isolates.base.dirs.IFileFinderSvc
- " }field { $name="pReader" $type="org.psem2m.isolates.config.json.Jso
- nConfigReader" }method { $name="$init" }method { $name="destroy" }met
- hod { $name="findConfigurationFiles" $return="boolean" }method { $nam
- e="getApplication" $return="org.psem2m.isolates.base.conf.IApplicatio
- nDescr" }method { $name="invalidatePojo" }method { $name="refresh" $r
- eturn="boolean" }method { $name="validatePojo" }interface { $name="or
- g.psem2m.isolates.base.conf.ISvcConfig" }}requires { $field="pLoggerS
- vc" $optional="false" $from="isolates-config-logger" }requires { $fie
- ld="pFileFinder" $optional="false" }}
+ torBase" field { $name="__MgetBundleId" $type="boolean" }field { $nam
+ e="__Mdestroy" $type="boolean" }method { $name="getInstance" $return=
+ "org.psem2m.isolates.config.CBundleConfigurationActivator" }method { 
+ $name="$init" }method { $name="destroy" }method { $name="getBundleId"
+  $return="java.lang.String" }}}component { $immediate="true" $name="i
+ solates-config-factory" $classname="org.psem2m.isolates.config.impl.C
+ JsonConfigSvc" $architecture="true" callback { $transition="validate"
+  $method="validatePojo" }callback { $transition="invalidate" $method=
+ "invalidatePojo" }provides { $specifications="org.psem2m.isolates.bas
+ e.conf.ISvcConfig" }manipulation { $super="org.psem2m.isolates.base.C
+ PojoBase" field { $name="pConfigurationFiles" $type="java.util.Set" }
+ field { $name="__FpFileFinder" $type="boolean" }field { $name="__Mdes
+ troy" $type="boolean" }field { $name="__Mrefresh" $type="boolean" }fi
+ eld { $name="__MgetApplication" $type="boolean" }field { $name="pRead
+ er" $type="org.psem2m.isolates.config.json.JsonConfigReader" }field {
+  $name="__MinvalidatePojo" $type="boolean" }field { $name="__FpLogger
+ Svc" $type="boolean" }field { $name="__FpConfigurationFiles" $type="b
+ oolean" }field { $name="pFileFinder" $type="org.psem2m.isolates.base.
+ dirs.IFileFinderSvc" }field { $name="pLoggerSvc" $type="org.psem2m.ut
+ ilities.logging.IActivityLoggerBase" }field { $name="__FpReader" $typ
+ e="boolean" }field { $name="__MvalidatePojo" $type="boolean" }field {
+  $name="__MfindConfigurationFiles" $type="boolean" }method { $name="_
+ _getpConfigurationFiles" $return="java.util.Set" }method { $arguments
+ ="{java.util.Set}" $name="__setpConfigurationFiles" }method { $name="
+ __getpFileFinder" $return="org.psem2m.isolates.base.dirs.IFileFinderS
+ vc" }method { $arguments="{org.psem2m.isolates.base.dirs.IFileFinderS
+ vc}" $name="__setpFileFinder" }method { $name="__getpLoggerSvc" $retu
+ rn="org.psem2m.utilities.logging.IActivityLoggerBase" }method { $argu
+ ments="{org.psem2m.utilities.logging.IActivityLoggerBase}" $name="__s
+ etpLoggerSvc" }method { $name="__getpReader" $return="org.psem2m.isol
+ ates.config.json.JsonConfigReader" }method { $arguments="{org.psem2m.
+ isolates.config.json.JsonConfigReader}" $name="__setpReader" }method 
+ { $name="$init" }method { $name="destroy" }method { $name="findConfig
+ urationFiles" $return="boolean" }method { $name="getApplication" $ret
+ urn="org.psem2m.isolates.base.conf.IApplicationDescr" }method { $name
+ ="invalidatePojo" }method { $name="refresh" $return="boolean" }method
+  { $name="validatePojo" }interface { $name="org.psem2m.isolates.base.
+ conf.ISvcConfig" }}requires { $field="pLoggerSvc" $optional="false" $
+ from="isolates-config-logger" }requires { $field="pFileFinder" $optio
+ nal="false" }}
 
