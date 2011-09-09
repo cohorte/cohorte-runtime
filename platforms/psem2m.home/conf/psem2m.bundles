@@ -24,4 +24,4 @@ org.psem2m.isolates.config
 
 # Isolate agent (use the configuration to load the next bundles)
 # Should be the last bundle to be started by the bootstrap
-# TODO org.psem2m.isolates.agent
+org.psem2m.isolates.slave.agent

@@ -68,9 +68,6 @@ public class CFileFinderSvc implements IFileFinderSvc {
     @Override
     public File[] find(final File aBaseFile, final String aFileName) {
 
-	System.out
-		.println("File: " + aFileName + " - Base file : " + aBaseFile);
-
 	// Use a set to avoid duplicates
 	final Set<File> foundFiles = new LinkedHashSet<File>();
 
@@ -152,12 +149,8 @@ public class CFileFinderSvc implements IFileFinderSvc {
 	for (File rootDir : pPlatformDirs.getPlatformRootDirs()) {
 
 	    final File testFile = new File(rootDir, aFileName);
-
-	    System.out.println("Testing : " + testFile);
-
 	    if (testFile.exists()) {
 		foundFiles.add(testFile);
-		System.out.println("\tFOUND");
 	    }
 	}
 

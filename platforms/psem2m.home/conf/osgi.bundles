@@ -15,3 +15,7 @@ org.apache.felix.log
 
 # iPOJO Stuffs
 include: ipojo.bundles
+
+# Shell stuffs
+org.apache.felix.shell
+org.apache.felix.shell.remote

@@ -1,0 +1,26 @@
+{
+    "appId":"development-app",
+    "isolates":[
+        {
+            "from":"monitor.js"
+        },
+        {
+            "from":"forker.js"
+        },
+        {
+            "id":"isolate-1",
+            "kind":"felix",
+            "bundles":[
+                {
+                    "symbolicName":"org.apache.felix.shell"
+                },
+                {
+                    "symbolicName":"org.apache.felix.shell.remote"
+                },
+                {
+                    "symbolicName":"org.apache.felix.shell.tui"
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,27 @@
+{
+    "id":"org.psem2m.internals.isolate.forker",
+    "kind":"felix",
+    "bundles":[
+        {
+            "symbolicName":"org.apache.felix.shell"
+        },
+        {
+            "symbolicName":"org.apache.felix.shell.remote"
+        },
+        {
+            "symbolicName":"org.psem2m.remote.endpoint.rose",
+            "optional":true
+        },
+        {
+            "symbolicName":"org.psem2m.isolates.remote.exporter",
+            "optional":true
+        },
+        {
+            "symbolicName":"org.psem2m.isolates.forker"
+        },
+        {
+            "symbolicName":"org.psem2m.isolates.demo.services.ui.viewer",
+            "optional":true
+        }
+    ]
+}

@@ -5,9 +5,11 @@
 # @author Thomas Calmant -- isandlaTech.com
 #
 
+export DISPLAY=":0.0"
+
 # Common constants
 JAVA="java"
-MONITOR_ISOLATE_ID="psem2m.master"
+MONITOR_ISOLATE_ID="psem2m.monitor"
 FORKER_ISOLATE_ID="psem2m.forker"
 
 PROP_PLATFORM_ISOLATE_ID="org.psem2m.platform.isolate.id"
