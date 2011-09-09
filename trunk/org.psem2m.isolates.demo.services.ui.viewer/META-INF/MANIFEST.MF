@@ -8,44 +8,44 @@ Bundle-SymbolicName: org.psem2m.isolates.demo.services.ui.viewer
 Bundle-Vendor: isandlaTech (www.isandlatech.com)
 Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
-Import-Package: org.osgi.service.log;version=1.3, javax.swing, org.pse
- m2m.isolates.base, org.apache.felix.ipojo.architecture;version=1.8.0,
-  org.apache.felix.ipojo;version=1.8.0, org.osgi.framework;version=1.3
- .0, org.psem2m.utilities.logging, org.osgi.service.cm;version=1.2, or
- g.psem2m.utilities
-iPOJO-Components: component { $immediate="true" $name="isolates-servic
- esuiviewer-isolatelogger-factory" $classname="org.psem2m.isolates.dem
- o.services.ui.viewer.CBundleUiActivator" $factory-method="getInstance
- " $architecture="true" callback { $transition="validate" $method="val
- idatePojo" }callback { $transition="invalidate" $method="invalidatePo
- jo" }provides { $specifications="org.psem2m.isolates.base.IIsolateLog
- gerSvc" }manipulation { $super="org.psem2m.isolates.base.CActivatorBa
- se" method { $name="getInstance" $return="org.psem2m.isolates.demo.se
- rvices.ui.viewer.CBundleUiActivator" }method { $name="$init" }method 
- { $name="destroy" }method { $arguments="{org.osgi.framework.BundleCon
- text}" $name="start" }method { $arguments="{org.osgi.framework.Bundle
- Context}" $name="stop" }interface { $name="org.psem2m.isolates.base.I
- ActivatorBase" }interface { $name="org.psem2m.isolates.base.IIsolateL
- oggerSvc" }}}component { $immediate="true" $name="isolates-servicesui
- viewer-ui-factory" $classname="org.psem2m.isolates.demo.services.ui.v
- iewer.impl.CUiSvc" $architecture="true" callback { $transition="valid
- ate" $method="validatePojo" }callback { $transition="invalidate" $met
- hod="invalidatePojo" }provides { $specifications="org.psem2m.isolates
- .demo.services.ui.viewer.IUiSvc" }manipulation { $super="org.psem2m.i
- solates.base.CPojoBase" field { $name="pPlatformDirsSvc" $type="org.p
- sem2m.isolates.base.IPlatformDirsSvc" }field { $name="pIsolateLoggerS
- vc" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name
- ="pFrameMain" $type="org.psem2m.isolates.demo.services.ui.viewer.impl
- .CFrameMain" }method { $name="$init" }method { $name="destroy" }metho
- d { $name="hasFrame" $return="boolean" }method { $name="init" }method
-  { $name="initFrame" }method { $name="invalidatePojo" }method { $name
- ="validatePojo" }method { $arguments="{org.psem2m.isolates.demo.servi
- ces.ui.viewer.impl.CUiSvc}" $name="access$0" }interface { $name="org.
- psem2m.isolates.demo.services.ui.viewer.IUiSvc" }}requires { $field="
- pIsolateLoggerSvc" $optional="false" $from="isolates-servicesuiviewer
- -isolatelogger" }requires { $field="pPlatformDirsSvc" $optional="fals
- e" }}instance { $component="isolates-servicesuiviewer-isolatelogger-f
- actory" $name="isolates-servicesuiviewer-isolatelogger" }instance { $
- component="isolates-servicesuiviewer-ui-factory" $name="isolates-serv
- icesuiviewer-ui" }
+Import-Package: javax.swing, org.apache.felix.ipojo;version=1.8.0, org
+ .apache.felix.ipojo.architecture;version=1.8.0, org.osgi.framework;ve
+ rsion=1.3.0, org.osgi.service.cm;version=1.2, org.osgi.service.log;ve
+ rsion=1.3, org.psem2m.isolates.base, org.psem2m.isolates.base.dirs, o
+ rg.psem2m.utilities, org.psem2m.utilities.logging
+iPOJO-Components: instance { $component="isolates-servicesuiviewer-iso
+ latelogger-factory" $name="isolates-servicesuiviewer-isolatelogger" }
+ instance { $component="isolates-servicesuiviewer-ui-factory" $name="i
+ solates-servicesuiviewer-ui" }component { $immediate="true" $name="is
+ olates-servicesuiviewer-isolatelogger-factory" $classname="org.psem2m
+ .isolates.demo.services.ui.viewer.CBundleUiActivator" $factory-method
+ ="getInstance" $architecture="true" callback { $transition="validate"
+  $method="validatePojo" }callback { $transition="invalidate" $method=
+ "invalidatePojo" }provides { $specifications="org.psem2m.isolates.bas
+ e.IIsolateLoggerSvc" }manipulation { $super="org.psem2m.isolates.base
+ .CActivatorBase" method { $name="getInstance" $return="org.psem2m.iso
+ lates.demo.services.ui.viewer.CBundleUiActivator" }method { $name="$i
+ nit" }method { $name="destroy" }method { $arguments="{org.osgi.framew
+ ork.BundleContext}" $name="start" }method { $arguments="{org.osgi.fra
+ mework.BundleContext}" $name="stop" }interface { $name="org.psem2m.is
+ olates.base.IActivatorBase" }interface { $name="org.psem2m.isolates.b
+ ase.IIsolateLoggerSvc" }}}component { $immediate="true" $name="isolat
+ es-servicesuiviewer-ui-factory" $classname="org.psem2m.isolates.demo.
+ services.ui.viewer.impl.CUiSvc" $architecture="true" callback { $tran
+ sition="validate" $method="validatePojo" }callback { $transition="inv
+ alidate" $method="invalidatePojo" }provides { $specifications="org.ps
+ em2m.isolates.demo.services.ui.viewer.IUiSvc" }manipulation { $super=
+ "org.psem2m.isolates.base.CPojoBase" field { $name="pPlatformDirsSvc"
+  $type="org.psem2m.isolates.base.dirs.IPlatformDirsSvc" }field { $nam
+ e="pIsolateLoggerSvc" $type="org.psem2m.isolates.base.IIsolateLoggerS
+ vc" }field { $name="pFrameMain" $type="org.psem2m.isolates.demo.servi
+ ces.ui.viewer.impl.CFrameMain" }method { $name="$init" }method { $nam
+ e="destroy" }method { $name="hasFrame" $return="boolean" }method { $n
+ ame="init" }method { $name="initFrame" }method { $name="invalidatePoj
+ o" }method { $name="validatePojo" }method { $arguments="{org.psem2m.i
+ solates.demo.services.ui.viewer.impl.CUiSvc}" $name="access$0" }inter
+ face { $name="org.psem2m.isolates.demo.services.ui.viewer.IUiSvc" }}r
+ equires { $field="pIsolateLoggerSvc" $optional="false" $from="isolate
+ s-servicesuiviewer-isolatelogger" }requires { $field="pPlatformDirsSv
+ c" $optional="false" }}
 
