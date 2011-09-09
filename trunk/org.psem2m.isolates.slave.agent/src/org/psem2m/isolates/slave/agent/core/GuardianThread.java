@@ -96,6 +96,13 @@ public class GuardianThread extends Thread {
 		    }
 		}
 	    }
+
+	    // FIXME for debug purpose : slow down
+	    try {
+		Thread.sleep(1000);
+	    } catch (InterruptedException e1) {
+		e1.printStackTrace();
+	    }
 	}
 
 	// End of monitoring

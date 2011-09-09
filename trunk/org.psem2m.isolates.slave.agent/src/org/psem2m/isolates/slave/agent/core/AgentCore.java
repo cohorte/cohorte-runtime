@@ -260,6 +260,8 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
     @Override
     public void prepareIsolate(final String aIsolateId) throws Exception {
 
+	System.out.println("Preparing isolate : " + aIsolateId);
+
 	// Read the configuration
 	final IIsolateDescr isolateDescr = pConfigurationSvc.getApplication()
 		.getIsolate(aIsolateId);
@@ -337,9 +339,19 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
 		    startBundle(bundleId);
 
 		} catch (BundleException ex) {
-		    if (!pInstalledBundles.get(bundleId).isOptional()) {
+		    if (pInstalledBundles.get(bundleId).isOptional()) {
+			// Simply log
+			pLoggerSvc.logWarn(this, "prepareIsolate",
+				"Can't start bundle ",
+				pInstalledBundles.get(bundleId)
+					.getSymbolicName(), ex);
+
+			System.err.println(ex);
+
+		    } else {
 			// Propagate error if the bundle is not optional
 			throw ex;
+
 		    }
 		}
 	    }
@@ -494,7 +506,6 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
     @Override
     public void validatePojo() {
 	// Prepare the current isolate, nobody else can do it
-
 	try {
 	    prepareIsolate();
 
@@ -503,6 +514,9 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
 	    pGuardianThread.start();
 
 	} catch (Exception ex) {
+	    System.err.println("Preparation error : " + ex);
+	    ex.printStackTrace();
+
 	    // Log the error
 	    pLoggerSvc.logSevere(this, "validatePojo",
 		    "Error preparing this isolate : ", ex);

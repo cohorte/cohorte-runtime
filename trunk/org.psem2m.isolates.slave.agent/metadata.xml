@@ -29,6 +29,9 @@
 		<requires field="pLoggerSvc" optional="false"
 			from="isolates-slave-agent-logger" />
 		<requires field="pPlatformDirsSvc" optional="false" />
+		
+		<callback transition="validate" method="validatePojo" />
+		<callback transition="invalidate" method="invalidatePojo" />
 
 		<jmx:config>
 			<jmx:method name="getBundleInfo"
