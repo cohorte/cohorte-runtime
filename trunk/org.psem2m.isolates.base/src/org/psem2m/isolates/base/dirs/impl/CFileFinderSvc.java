@@ -43,6 +43,22 @@ public class CFileFinderSvc implements IFileFinderSvc {
 	pPlatformDirs = aPlatformDirs;
     }
 
+    protected String extractPlatformPath(final String aPath) {
+
+	if (aPath == null || aPath.isEmpty()) {
+	    return null;
+	}
+
+	for (File rootDir : pPlatformDirs.getPlatformRootDirs()) {
+	    // Test if the path starts with the root path
+	    if (aPath.startsWith(rootDir.getPath())) {
+		return aPath.substring(rootDir.getPath().length());
+	    }
+	}
+
+	return null;
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -51,6 +67,9 @@ public class CFileFinderSvc implements IFileFinderSvc {
      */
     @Override
     public File[] find(final File aBaseFile, final String aFileName) {
+
+	System.out
+		.println("File: " + aFileName + " - Base file : " + aBaseFile);
 
 	// Use a set to avoid duplicates
 	final Set<File> foundFiles = new LinkedHashSet<File>();
@@ -72,14 +91,31 @@ public class CFileFinderSvc implements IFileFinderSvc {
 		// We have a valid base
 		final File testRelFile = new File(baseDir, aFileName);
 		if (testRelFile.exists()) {
-		    // Found !
 		    foundFiles.add(testRelFile);
 		}
+
+		/*
+		 * If the base file path begins with a platform root, remove it.
+		 * Allows cross conf/ repo/ references.
+		 */
+		final String platformSubDir = extractPlatformPath(baseDir
+			.getPath());
+		if (platformSubDir != null) {
+		    foundFiles.addAll(internalFind(platformSubDir
+			    + File.separator + aFileName));
+
+		}
+
+	    } else {
+		// Test the path directly in the platform dirs
+		foundFiles.addAll(internalFind(aBaseFile.getPath()
+			+ File.separator + aFileName));
 	    }
 	}
 
 	// In any case, try using only the file name
 	foundFiles.addAll(internalFind(aFileName));
+
 	return foundFiles.toArray(new File[0]);
     }
 
@@ -116,8 +152,12 @@ public class CFileFinderSvc implements IFileFinderSvc {
 	for (File rootDir : pPlatformDirs.getPlatformRootDirs()) {
 
 	    final File testFile = new File(rootDir, aFileName);
+
+	    System.out.println("Testing : " + testFile);
+
 	    if (testFile.exists()) {
 		foundFiles.add(testFile);
+		System.out.println("\tFOUND");
 	    }
 	}
 

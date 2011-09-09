@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?> 
 <ipojo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="org.apache.felix.ipojo http://felix.apache.org/ipojo/schemas/CURRENT/core.xsd"
 	xmlns="org.apache.felix.ipojo" xmlns:jmx="org.apache.felix.ipojo.handlers.jmx">
@@ -38,6 +38,8 @@
 	<component classname="org.psem2m.isolates.base.dirs.impl.CFileFinderSvc"
 		architecture="true" immediate="true" name="isolates-base-file-finder-factory"
 		public="false">
+		
+		<requires field="pPlatformDirs" optional="false" />
 
 		<provides specifications="org.psem2m.isolates.base.dirs.IFileFinderSvc" />
 	</component>

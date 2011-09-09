@@ -14,10 +14,10 @@ Export-Package: org.psem2m.isolates.base;version="1.0.0"; uses:="org.o
  ="1.0.0";uses:="org.osgi.framework,org.psem2m.utilities.files",org.ps
  em2m.isolates.base.conf,org.psem2m.isolates.base.conf.beans,org.psem2
  m.isolates.base.dirs
-Import-Package: org.osgi.service.log;version=1.3.0, org.apache.felix.i
- pojo.architecture;version=1.8.0, org.apache.felix.ipojo;version=1.8.0
- , org.osgi.framework;version=1.3.0, org.psem2m.utilities.logging, org
- .osgi.service.cm;version=1.2, org.psem2m.utilities
+Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
+ .ipojo.architecture;version=1.8.0, org.osgi.framework;version=1.3.0, 
+ org.osgi.service.cm;version=1.2, org.osgi.service.log;version=1.3.0, 
+ org.psem2m.utilities, org.psem2m.utilities.logging
 Service-Component: OSGI-INF/CBundleBaseActivator.xml
 iPOJO-Components: instance { $component="isolates-base-isolatelogger-f
  actory" $name="isolates-base-isolatelogger" }instance { $component="i
@@ -89,19 +89,15 @@ iPOJO-Components: instance { $component="isolates-base-isolatelogger-f
   $immediate="true" $name="isolates-base-file-finder-factory" $classna
  me="org.psem2m.isolates.base.dirs.impl.CFileFinderSvc" $architecture=
  "true" $public="false" provides { $specifications="org.psem2m.isolate
- s.base.dirs.IFileFinderSvc" }manipulation { field { $name="__Mfind$ja
- va_io_File$java_lang_String" $type="boolean" }field { $name="__Minter
- nalFind$java_lang_String" $type="boolean" }field { $name="pPlatformDi
- rs" $type="org.psem2m.isolates.base.dirs.IPlatformDirsSvc" }field { $
- name="__Mfind$java_lang_String" $type="boolean" }field { $name="__FpP
- latformDirs" $type="boolean" }method { $name="__getpPlatformDirs" $re
- turn="org.psem2m.isolates.base.dirs.IPlatformDirsSvc" }method { $argu
- ments="{org.psem2m.isolates.base.dirs.IPlatformDirsSvc}" $name="__set
- pPlatformDirs" }method { $name="$init" }method { $arguments="{org.pse
- m2m.isolates.base.dirs.IPlatformDirsSvc}" $name="$init" }method { $ar
- guments="{java.io.File,java.lang.String}" $name="find" $return="java.
- io.File[]" }method { $arguments="{java.lang.String}" $name="find" $re
- turn="java.io.File[]" }method { $arguments="{java.lang.String}" $name
- ="internalFind" $return="java.util.List" }interface { $name="org.psem
- 2m.isolates.base.dirs.IFileFinderSvc" }}}
+ s.base.dirs.IFileFinderSvc" }manipulation { field { $name="pPlatformD
+ irs" $type="org.psem2m.isolates.base.dirs.IPlatformDirsSvc" }method {
+  $name="$init" }method { $arguments="{org.psem2m.isolates.base.dirs.I
+ PlatformDirsSvc}" $name="$init" }method { $arguments="{java.lang.Stri
+ ng}" $name="extractPlatformPath" $return="java.lang.String" }method {
+  $arguments="{java.io.File,java.lang.String}" $name="find" $return="j
+ ava.io.File[]" }method { $arguments="{java.lang.String}" $name="find"
+  $return="java.io.File[]" }method { $arguments="{java.lang.String}" $
+ name="internalFind" $return="java.util.List" }interface { $name="org.
+ psem2m.isolates.base.dirs.IFileFinderSvc" }}requires { $field="pPlatf
+ ormDirs" $optional="false" }}
 

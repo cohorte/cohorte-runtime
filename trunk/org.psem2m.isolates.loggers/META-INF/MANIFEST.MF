@@ -8,11 +8,11 @@ Bundle-Vendor: isandlaTech (www.isandlatech.com)
 Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
 Export-Package: org.psem2m.isolates.loggers
-Import-Package: org.osgi.service.log;version=1.3, org.psem2m.isolates.
- base, org.psem2m.isolates.base.dirs, org.apache.felix.ipojo.architect
- ure;version=1.8.0, org.apache.felix.ipojo;version=1.8.0, org.osgi.fra
- mework;version=1.3.0, org.psem2m.utilities.logging, org.osgi.service.
- cm;version=1.2, org.psem2m.utilities.files, org.psem2m.utilities
+Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
+ .ipojo.architecture;version=1.8.0, org.osgi.framework;version=1.3.0, 
+ org.osgi.service.cm;version=1.2, org.osgi.service.log;version=1.3, or
+ g.psem2m.isolates.base, org.psem2m.isolates.base.dirs, org.psem2m.uti
+ lities, org.psem2m.utilities.files, org.psem2m.utilities.logging
 iPOJO-Components: instance { $component="isolates-loggers-isolatelogge
  r-factory" $name="isolates-loggers-isolatelogger" }instance { $compon
  ent="isolates-loggers-channels-factory" $name="isolates-loggers-chann
