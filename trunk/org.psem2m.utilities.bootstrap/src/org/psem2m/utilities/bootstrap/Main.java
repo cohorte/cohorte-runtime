@@ -87,6 +87,9 @@ public class Main {
 	if (!success) {
 	    System.exit(1);
 	}
+
+	// Exit in any case (do not wait for non-daemon threads)
+	System.exit(0);
     }
 
     /** Bootstrap configuration */
@@ -94,6 +97,9 @@ public class Main {
 
     /** Configuration file reader */
     private final ConfigurationReader pConfigurationReader;
+
+    /** Real error output */
+    private final PrintStream pErrorOutput;
 
     /** Human output format */
     private boolean pHumanOutput = false;
@@ -122,6 +128,7 @@ public class Main {
 
 	// Store old output stream
 	pStandardOutput = System.out;
+	pErrorOutput = System.err;
 
 	// Prepare the output stream
 	openStreams();
@@ -140,9 +147,16 @@ public class Main {
      */
     protected void closeStreams() {
 
+	// Reset system error (in any case)
+	System.setErr(pErrorOutput);
+
 	if (pOutputStream != null) {
 	    try {
-		if (!System.out.equals(pOutputStream)) {
+		if (!pStandardOutput.equals(pOutputStream)) {
+
+		    // Reset System.out (or we will be stuck on close())
+		    System.setOut(pStandardOutput);
+
 		    // Avoid closing the stdout, or we'll be blocked here.
 		    pOutputStream.close();
 		}

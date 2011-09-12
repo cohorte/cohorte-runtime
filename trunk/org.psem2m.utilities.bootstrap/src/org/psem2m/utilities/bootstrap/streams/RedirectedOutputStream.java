@@ -32,13 +32,13 @@ public class RedirectedOutputStream extends OutputStream {
      * Prepares the output stream
      */
     public RedirectedOutputStream(final IMessageSender aMessageSender,
-            final Level aLevel, final String aName) {
-        super();
+	    final Level aLevel, final String aName) {
+	super();
 
-        pBuffer = new StringBuffer();
-        pLevel = aLevel;
-        pLoggerName = aName;
-        pSender = aMessageSender;
+	pBuffer = new StringBuffer();
+	pLevel = aLevel;
+	pLoggerName = aName;
+	pSender = aMessageSender;
     }
 
     /*
@@ -48,8 +48,9 @@ public class RedirectedOutputStream extends OutputStream {
      */
     @Override
     public void close() throws IOException {
-        pBuffer.delete(0, pBuffer.length());
-        super.close();
+
+	pBuffer.delete(0, pBuffer.length());
+	super.close();
     }
 
     /*
@@ -60,9 +61,9 @@ public class RedirectedOutputStream extends OutputStream {
     @Override
     public void flush() throws IOException {
 
-        pSender.sendMessage(pLevel, "RedirectedOutputStream", pLoggerName,
-                pBuffer);
-        pBuffer.delete(0, pBuffer.length());
+	pSender.sendMessage(pLevel, "RedirectedOutputStream", pLoggerName,
+		pBuffer);
+	pBuffer.delete(0, pBuffer.length());
     }
 
     /*
@@ -73,7 +74,7 @@ public class RedirectedOutputStream extends OutputStream {
     @Override
     public void write(final int aByte) throws IOException {
 
-        // We receive a byte, not a code point
-        pBuffer.appendCodePoint(aByte);
+	// We receive a byte, not a code point
+	pBuffer.appendCodePoint(aByte);
     }
 }
