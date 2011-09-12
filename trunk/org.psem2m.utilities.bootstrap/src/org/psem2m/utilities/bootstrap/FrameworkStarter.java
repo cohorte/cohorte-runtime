@@ -19,7 +19,7 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.FrameworkEvent;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.launch.FrameworkFactory;
-import org.psem2m.isolates.base.IPlatformProperties;
+import org.psem2m.isolates.constants.IPlatformProperties;
 
 /**
  * Bootstrap for OSGi frameworks

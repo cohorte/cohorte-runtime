@@ -19,7 +19,7 @@ import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
-import org.psem2m.isolates.base.IPlatformProperties;
+import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.utilities.bootstrap.IBootstrapConstants;
 
 /**
