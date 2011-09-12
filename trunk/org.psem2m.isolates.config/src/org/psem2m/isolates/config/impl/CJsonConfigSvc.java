@@ -11,7 +11,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.osgi.framework.BundleException;
-import org.psem2m.isolates.base.CPojoBase;
+import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.config.IPlatformConfigurationConstants;
 import org.psem2m.isolates.config.json.JsonConfigReader;
 import org.psem2m.isolates.services.conf.IApplicationDescr;

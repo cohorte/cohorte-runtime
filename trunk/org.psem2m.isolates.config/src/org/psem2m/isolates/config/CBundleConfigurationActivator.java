@@ -5,7 +5,7 @@
  */
 package org.psem2m.isolates.config;
 
-import org.psem2m.isolates.base.CActivatorBase;
+import org.psem2m.isolates.base.activators.CActivatorBase;
 
 /**
  * @author Thomas Calmant

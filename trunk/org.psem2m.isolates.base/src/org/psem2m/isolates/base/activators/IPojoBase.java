@@ -8,7 +8,7 @@
  * Contributors:
  *    ogattaz (isandlaTech) - initial API and implementation
  *******************************************************************************/
-package org.psem2m.isolates.base;
+package org.psem2m.isolates.base.activators;
 
 import org.osgi.framework.BundleException;
 

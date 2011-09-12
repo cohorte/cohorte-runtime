@@ -17,8 +17,8 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.ow2.chameleon.rose.RemoteConstants;
 import org.ow2.chameleon.rose.server.EndpointFactory;
-import org.psem2m.isolates.base.CPojoBase;
 import org.psem2m.isolates.base.Utilities;
+import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.services.remote.IEndpointHandler;
 import org.psem2m.isolates.services.remote.beans.EndpointDescription;
 

@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.osgi.framework.BundleException;
-import org.psem2m.isolates.base.CPojoBase;
+import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.forker.IBundleForkerLoggerSvc;
 import org.psem2m.isolates.forker.IProcessRef;

@@ -8,13 +8,20 @@ Bundle-SymbolicName: org.psem2m.isolates.tracer.test
 Bundle-Vendor: isandlaTech (www.isandlatech.com)
 Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
-Import-Package: org.psem2m.utilities.teststools, org.psem2m.isolates.t
- racer.impl, org.psem2m.isolates.tracer, org.apache.felix.ipojo;versio
- n=1.8.0, org.psem2m.utilities.logging, org.osgi.service.log;version=1
- .3, org.apache.felix.shell;version=1.0.0, junit.framework, org.psem2m
- .isolates.base, org.apache.felix.ipojo.architecture;version=1.8.0, or
- g.osgi.framework;version=1.3.0, org.osgi.service.cm;version=1.2, org.
- psem2m.isolates.tracer.essais, org.psem2m.utilities
+Import-Package: junit.framework,
+ org.apache.felix.ipojo;version="1.8.0",
+ org.apache.felix.ipojo.architecture;version="1.8.0",
+ org.apache.felix.shell;version="1.0.0",
+ org.osgi.framework;version="1.3.0",
+ org.osgi.service.cm;version="1.2",
+ org.osgi.service.log;version="1.3",
+ org.psem2m.isolates.base.activators;version="1.0.0",
+ org.psem2m.isolates.tracer,
+ org.psem2m.isolates.tracer.essais,
+ org.psem2m.isolates.tracer.impl,
+ org.psem2m.utilities,
+ org.psem2m.utilities.logging,
+ org.psem2m.utilities.teststools
 Test-Suite: org.psem2m.isolates.tracer.test.impl.CJUnitTracableChannel
  s, org.psem2m.isolates.tracer.test.impl.CJUnitTraceChannels
 iPOJO-Components: component { $immediate="true" $name="isolates-tracer

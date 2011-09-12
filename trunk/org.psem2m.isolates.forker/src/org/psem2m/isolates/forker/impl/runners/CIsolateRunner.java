@@ -21,7 +21,7 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 
 import org.osgi.framework.BundleException;
-import org.psem2m.isolates.base.CPojoBase;
+import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.base.boot.IsolateStatus;
 import org.psem2m.isolates.base.bundles.BundleRef;
 import org.psem2m.isolates.base.bundles.IBundleFinderSvc;

@@ -8,7 +8,7 @@
  * Contributors:
  *    ogattaz (isandlaTech) - initial API and implementation
  *******************************************************************************/
-package org.psem2m.isolates.base;
+package org.psem2m.isolates.base.activators;
 
 import java.util.Enumeration;
 import java.util.logging.Level;
@@ -28,7 +28,7 @@ import org.psem2m.isolates.constants.IPlatformProperties;
  * put in place a LogListener which will redirect all the logs to the logger of
  * the isolate.
  * 
- * @see org.psem2m.isolates.base.CActivatorBase
+ * @see org.psem2m.isolates.base.activators.CActivatorBase
  * 
  *      The redirection is manageable using the system property
  *      "org.psem2m.platform.isolate.redirect.logservice"

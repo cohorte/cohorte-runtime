@@ -10,7 +10,7 @@ import java.util.List;
 
 import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceReference;
-import org.psem2m.isolates.base.CPojoBase;
+import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.isolates.services.remote.beans.EndpointDescription;
 import org.psem2m.remote.endpoints.directory.IDirectoryContentHandler;

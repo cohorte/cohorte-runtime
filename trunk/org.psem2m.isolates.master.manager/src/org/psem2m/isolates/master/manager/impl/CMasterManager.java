@@ -15,7 +15,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 
 import org.osgi.framework.BundleException;
-import org.psem2m.isolates.base.CPojoBase;
+import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.base.bundles.BundleRef;
 import org.psem2m.isolates.base.bundles.IBundleFinderSvc;
 import org.psem2m.isolates.constants.IPlatformProperties;

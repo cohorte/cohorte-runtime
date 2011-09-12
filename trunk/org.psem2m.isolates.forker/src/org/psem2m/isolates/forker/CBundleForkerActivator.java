@@ -11,7 +11,7 @@
 package org.psem2m.isolates.forker;
 
 import org.osgi.framework.BundleContext;
-import org.psem2m.isolates.base.CActivatorBase;
+import org.psem2m.isolates.base.activators.CActivatorBase;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz

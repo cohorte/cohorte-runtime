@@ -1,4 +1,4 @@
-package org.psem2m.isolates.base;
+package org.psem2m.isolates.base.activators;
 
 import org.apache.felix.ipojo.Pojo;
 import org.osgi.framework.BundleException;

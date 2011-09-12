@@ -1,7 +1,7 @@
 package org.psem2m.isolates.monitor;
 
 import org.osgi.framework.BundleContext;
-import org.psem2m.isolates.base.CActivatorBase;
+import org.psem2m.isolates.base.activators.CActivatorBase;
 
 public class CBundleMonitorActivator extends CActivatorBase implements
 		IBundleMonitorActivator {

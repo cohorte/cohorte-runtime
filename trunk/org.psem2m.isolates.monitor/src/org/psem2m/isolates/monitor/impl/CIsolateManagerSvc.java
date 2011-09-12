@@ -11,7 +11,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.psem2m.isolates.base.CPojoBase;
+import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.monitor.IBundleMonitorLoggerService;
 import org.psem2m.isolates.monitor.IIsolateListener;
 import org.psem2m.isolates.monitor.IIsolateManager;

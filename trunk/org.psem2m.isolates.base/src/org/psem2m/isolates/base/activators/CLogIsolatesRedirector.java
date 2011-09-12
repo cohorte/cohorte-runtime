@@ -8,7 +8,7 @@
  * Contributors:
  *    ogattaz (isandlaTech) - initial API and implementation
  *******************************************************************************/
-package org.psem2m.isolates.base;
+package org.psem2m.isolates.base.activators;
 
 import java.util.EmptyStackException;
 import java.util.Stack;
@@ -22,7 +22,7 @@ import org.psem2m.utilities.logging.IActivityLogger;
  * Redirects the log lines produced by the Activity logger of each bundle in the
  * Activity logger of the current isolate
  * 
- * @see org.psem2m.isolates.base.CActivatorBase
+ * @see org.psem2m.isolates.base.activators.CActivatorBase
  * 
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 

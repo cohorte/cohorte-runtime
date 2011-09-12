@@ -8,7 +8,7 @@ package org.psem2m.isolates.forker.impl;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.psem2m.isolates.base.CPojoBase;
+import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.forker.IBundleForkerLoggerSvc;
 import org.psem2m.isolates.forker.IIsolateRunner;
 import org.psem2m.isolates.forker.IProcessRef;

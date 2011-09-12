@@ -10,7 +10,7 @@
  *******************************************************************************/
 package org.psem2m.isolates.forker.tester;
 
-import org.psem2m.isolates.base.IActivatorBase;
+import org.psem2m.isolates.base.activators.IActivatorBase;
 import org.psem2m.utilities.logging.IActivityLoggerBase;
 
 /**

@@ -10,7 +10,7 @@
  *******************************************************************************/
 package org.psem2m.isolates.forker.impl;
 
-import org.psem2m.isolates.base.CBundleLoggerBase;
+import org.psem2m.isolates.base.activators.CBundleLoggerBase;
 import org.psem2m.isolates.forker.CBundleForkerActivator;
 import org.psem2m.isolates.forker.IBundleForkerLoggerSvc;
 

@@ -10,7 +10,7 @@
  *******************************************************************************/
 package org.psem2m.isolates.master.manager.impl;
 
-import org.psem2m.isolates.base.CBundleLoggerBase;
+import org.psem2m.isolates.base.activators.CBundleLoggerBase;
 import org.psem2m.isolates.master.manager.CBundleMasterManagerActivator;
 import org.psem2m.utilities.logging.IActivityLoggerBase;
 

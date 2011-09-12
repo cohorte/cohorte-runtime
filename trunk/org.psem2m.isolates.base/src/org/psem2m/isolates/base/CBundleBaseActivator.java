@@ -11,6 +11,8 @@
 package org.psem2m.isolates.base;
 
 import org.osgi.framework.BundleContext;
+import org.psem2m.isolates.base.activators.CActivatorBase;
+import org.psem2m.isolates.base.activators.IActivatorBase;
 import org.psem2m.utilities.logging.IActivityLoggerBase;
 
 /**

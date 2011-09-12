@@ -8,7 +8,7 @@
  * Contributors:
  *    ogattaz (isandlaTech) - initial API and implementation
  *******************************************************************************/
-package org.psem2m.isolates.monitor;
+package org.psem2m.isolates.utilities.test;
 
 import org.psem2m.isolates.base.activators.IActivatorBase;
 import org.psem2m.utilities.logging.IActivityLoggerBase;
@@ -17,7 +17,7 @@ import org.psem2m.utilities.logging.IActivityLoggerBase;
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
-public interface IBundleMonitorActivator extends IActivatorBase,
+public interface IBundleUtilitiesTestActivator extends IActivatorBase,
 		IActivityLoggerBase {
 
 }

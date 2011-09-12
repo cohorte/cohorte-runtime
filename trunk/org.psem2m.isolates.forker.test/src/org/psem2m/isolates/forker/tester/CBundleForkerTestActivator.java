@@ -11,7 +11,7 @@
 package org.psem2m.isolates.forker.tester;
 
 import org.osgi.framework.BundleContext;
-import org.psem2m.isolates.base.CActivatorBase;
+import org.psem2m.isolates.base.activators.CActivatorBase;
 
 public class CBundleForkerTestActivator extends CActivatorBase implements
 		IBundleForkerTestActivator {

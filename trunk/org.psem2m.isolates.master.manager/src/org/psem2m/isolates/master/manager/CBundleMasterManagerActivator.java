@@ -10,7 +10,7 @@
  *******************************************************************************/
 package org.psem2m.isolates.master.manager;
 
-import org.psem2m.isolates.base.CActivatorBase;
+import org.psem2m.isolates.base.activators.CActivatorBase;
 
 /**
  * PSEM2M isolate manager (launcher)

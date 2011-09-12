@@ -10,7 +10,7 @@
  *******************************************************************************/
 package org.psem2m.isolates.monitor.impl;
 
-import org.psem2m.isolates.base.CBundleLoggerBase;
+import org.psem2m.isolates.base.activators.CBundleLoggerBase;
 import org.psem2m.isolates.monitor.CBundleMonitorActivator;
 import org.psem2m.isolates.monitor.IBundleMonitorLoggerService;
 

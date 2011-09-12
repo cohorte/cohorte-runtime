@@ -15,8 +15,8 @@ import java.util.List;
 
 import org.apache.felix.shell.Command;
 import org.osgi.framework.BundleException;
-import org.psem2m.isolates.base.CPojoBase;
-import org.psem2m.isolates.base.IIsolateLoggerSvc;
+import org.psem2m.isolates.base.activators.CPojoBase;
+import org.psem2m.isolates.base.activators.IIsolateLoggerSvc;
 import org.psem2m.isolates.tracer.ITracerSvc;
 import org.psem2m.utilities.CXStringUtils;
 
