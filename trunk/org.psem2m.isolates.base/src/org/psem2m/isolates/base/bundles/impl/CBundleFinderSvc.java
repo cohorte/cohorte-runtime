@@ -20,7 +20,7 @@ import java.util.jar.Manifest;
 import org.osgi.framework.Constants;
 import org.psem2m.isolates.base.bundles.BundleRef;
 import org.psem2m.isolates.base.bundles.IBundleFinderSvc;
-import org.psem2m.isolates.base.dirs.IPlatformDirsSvc;
+import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 
 /**
  * Implements the bundle finder, using the platform directories service

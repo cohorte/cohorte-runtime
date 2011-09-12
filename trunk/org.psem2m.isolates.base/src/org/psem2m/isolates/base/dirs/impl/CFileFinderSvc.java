@@ -11,8 +11,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.psem2m.isolates.base.dirs.IFileFinderSvc;
-import org.psem2m.isolates.base.dirs.IPlatformDirsSvc;
+import org.psem2m.isolates.services.dirs.IFileFinderSvc;
+import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 
 /**
  * Simple file finder : tries to find the given file in the platform main

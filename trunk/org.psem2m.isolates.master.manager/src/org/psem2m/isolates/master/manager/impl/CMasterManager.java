@@ -16,13 +16,13 @@ import java.util.concurrent.Callable;
 
 import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.CPojoBase;
-import org.psem2m.isolates.base.IPlatformProperties;
 import org.psem2m.isolates.base.bundles.BundleRef;
 import org.psem2m.isolates.base.bundles.IBundleFinderSvc;
-import org.psem2m.isolates.base.conf.IApplicationDescr;
-import org.psem2m.isolates.base.conf.IBundleDescr;
-import org.psem2m.isolates.base.conf.ISvcConfig;
-import org.psem2m.isolates.base.dirs.IPlatformDirsSvc;
+import org.psem2m.isolates.constants.IPlatformProperties;
+import org.psem2m.isolates.services.conf.IApplicationDescr;
+import org.psem2m.isolates.services.conf.IBundleDescr;
+import org.psem2m.isolates.services.conf.ISvcConfig;
+import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.utilities.CXTimedoutCall;
 import org.psem2m.utilities.logging.IActivityLoggerBase;
 
@@ -191,6 +191,10 @@ public class CMasterManager extends CPojoBase {
 	    forkerCommand.add(makeJavaProperty(
 		    IPlatformProperties.PROP_PLATFORM_BASE, pPlatformDirsSvc
 			    .getPlatformBaseDir().getAbsolutePath()));
+
+	    // Remote Shell
+	    forkerCommand
+		    .add(makeJavaProperty("osgi.shell.telnet.port", "6001"));
 	}
 
 	// The class path

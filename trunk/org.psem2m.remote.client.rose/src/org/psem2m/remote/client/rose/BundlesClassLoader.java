@@ -6,7 +6,7 @@
 package org.psem2m.remote.client.rose;
 
 import org.osgi.framework.BundleContext;
-import org.psem2m.isolates.commons.Utilities;
+import org.psem2m.isolates.base.Utilities;
 
 /**
  * "Fake" Class loader, trying to load a class that could be in one of the

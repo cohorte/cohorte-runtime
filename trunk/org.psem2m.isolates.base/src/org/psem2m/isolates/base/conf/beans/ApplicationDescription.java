@@ -9,8 +9,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.psem2m.isolates.base.conf.IApplicationDescr;
-import org.psem2m.isolates.base.conf.IIsolateDescr;
+import org.psem2m.isolates.services.conf.IApplicationDescr;
+import org.psem2m.isolates.services.conf.IIsolateDescr;
 
 
 /**

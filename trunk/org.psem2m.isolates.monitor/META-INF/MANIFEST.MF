@@ -7,50 +7,48 @@ Bundle-SymbolicName: org.psem2m.isolates.monitor
 Bundle-Vendor: isandlaTech
 Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
-Import-Package: org.apache.felix.ipojo;version="1.8.0",
- org.apache.felix.ipojo.architecture;version="1.8.0",
- org.osgi.framework;version="1.3.0",
- org.osgi.service.cm;version="1.2",
- org.osgi.service.log;version="1.3",
- org.psem2m.isolates.base;version="1.0.0",
- org.psem2m.isolates.commons;version="1.0.0",
- org.psem2m.isolates.commons.forker;version="1.0.0",
- org.psem2m.utilities,
- org.psem2m.utilities.logging
-iPOJO-Components: component { $immediate="true" $name="isolates-monito
- r-logger-factory" $classname="org.psem2m.isolates.monitor.impl.CBundl
- eMonitorLoggerSvc" $architecture="true" callback { $transition="valid
- ate" $method="validatePojo" }callback { $transition="invalidate" $met
- hod="invalidatePojo" }provides { $specifications="org.psem2m.isolates
- .monitor.IBundleMonitorLoggerService" }manipulation { $super="org.pse
- m2m.isolates.base.CBundleLoggerBase" method { $name="$init" }method {
-  $name="invalidatePojo" }method { $name="validatePojo" }interface { $
- name="org.psem2m.isolates.monitor.IBundleMonitorLoggerService" }}}com
- ponent { $immediate="true" $name="isolates-monitor-factory" $classnam
- e="org.psem2m.isolates.monitor.impl.CIsolateManagerSvc" $architecture
- ="true" $public="false" callback { $transition="validate" $method="va
- lidatePojo" }callback { $transition="invalidate" $method="invalidateP
- ojo" }provides { }manipulation { $super="org.psem2m.isolates.base.CPo
- joBase" field { $name="pBundleMonitorLoggerSvc" $type="org.psem2m.iso
- lates.monitor.IBundleMonitorLoggerService" }field { $name="pPossibleI
- solates" $type="java.util.Map" }field { $name="pRunningIsolates" $typ
- e="java.util.Map" }field { $name="pRunning" $type="boolean" }field { 
- $name="pMonitors" $type="java.util.Map" }field { $name="pForker" $typ
- e="org.psem2m.isolates.commons.forker.IForker" }method { $name="$init
- " }method { $name="destroy" }method { $name="getPossibleIsolates" $re
- turn="java.util.Collection" }method { $name="getRunningIsolates" $ret
- urn="java.util.Collection" }method { $name="invalidatePojo" }method {
-  $arguments="{java.lang.String}" $name="isolateStopped" }method { $ar
- guments="{java.lang.String}" $name="monitorStopped" }method { $argume
- nts="{boolean}" $name="restartPlatform" $return="boolean" }method { $
- arguments="{java.lang.String,boolean}" $name="startIsolate" $return="
- boolean" }method { $name="startPlatform" }method { $arguments="{java.
- lang.String}" $name="stopIsolate" $return="boolean" }method { $name="
- stopPlatform" }method { $name="validatePojo" }interface { $name="org.
- psem2m.isolates.monitor.IIsolateManager" }interface { $name="org.psem
- 2m.isolates.monitor.IIsolateListener" }}requires { $field="pBundleMon
- itorLoggerSvc" $optional="false" }requires { $field="pForker" $option
- al="false" }}instance { $component="isolates-monitor-logger-factory" 
- $name="isolates-monitor-logger" }instance { $component="isolates-moni
- tor-factory" $name="isolates-monitor-monitor" }
+Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
+ .ipojo.architecture;version=1.8.0, org.osgi.framework;version=1.3.0, 
+ org.osgi.service.cm;version=1.2, org.osgi.service.log;version=1.3, or
+ g.psem2m.isolates.base;version=1.0.0, org.psem2m.isolates.services.co
+ nf;version=1.0.0, org.psem2m.isolates.services.forker;version=1.0.0, 
+ org.psem2m.utilities, org.psem2m.utilities.logging
+iPOJO-Components: instance { $component="isolates-monitor-logger-facto
+ ry" $name="isolates-monitor-logger" }instance { $component="isolates-
+ monitor-factory" $name="isolates-monitor-monitor" }component { $immed
+ iate="true" $name="isolates-monitor-logger-factory" $classname="org.p
+ sem2m.isolates.monitor.impl.CBundleMonitorLoggerSvc" $architecture="t
+ rue" callback { $transition="validate" $method="validatePojo" }callba
+ ck { $transition="invalidate" $method="invalidatePojo" }provides { $s
+ pecifications="org.psem2m.isolates.monitor.IBundleMonitorLoggerServic
+ e" }manipulation { $super="org.psem2m.isolates.base.CBundleLoggerBase
+ " field { $name="__MvalidatePojo" $type="boolean" }field { $name="__M
+ invalidatePojo" $type="boolean" }method { $name="$init" }method { $na
+ me="invalidatePojo" }method { $name="validatePojo" }interface { $name
+ ="org.psem2m.isolates.monitor.IBundleMonitorLoggerService" }}}compone
+ nt { $immediate="true" $name="isolates-monitor-factory" $classname="o
+ rg.psem2m.isolates.monitor.impl.CIsolateManagerSvc" $architecture="tr
+ ue" $public="false" callback { $transition="validate" $method="valida
+ tePojo" }callback { $transition="invalidate" $method="invalidatePojo"
+  }provides { }manipulation { $super="org.psem2m.isolates.base.CPojoBa
+ se" field { $name="pBundleMonitorLoggerSvc" $type="org.psem2m.isolate
+ s.monitor.IBundleMonitorLoggerService" }field { $name="pForker" $type
+ ="org.psem2m.isolates.services.forker.IForker" }field { $name="pPossi
+ bleIsolates" $type="java.util.Map" }field { $name="pRunningIsolates" 
+ $type="java.util.Map" }field { $name="pRunning" $type="boolean" }fiel
+ d { $name="pMonitors" $type="java.util.Map" }method { $name="$init" }
+ method { $name="destroy" }method { $name="getPossibleIsolates" $retur
+ n="java.util.Collection" }method { $name="getRunningIsolates" $return
+ ="java.util.Collection" }method { $name="invalidatePojo" }method { $a
+ rguments="{java.lang.String}" $name="isolateStopped" }method { $argum
+ ents="{java.lang.String}" $name="monitorStopped" }method { $arguments
+ ="{boolean}" $name="restartPlatform" $return="boolean" }method { $arg
+ uments="{java.lang.String,boolean}" $name="startIsolate" $return="boo
+ lean" }method { $name="startPlatform" }method { $arguments="{java.lan
+ g.String}" $name="stopIsolate" $return="boolean" }method { $name="sto
+ pPlatform" }method { $name="validatePojo" }interface { $name="org.pse
+ m2m.isolates.monitor.IIsolateManager" }interface { $name="org.psem2m.
+ isolates.monitor.IIsolateListener" }}requires { $field="pBundleMonito
+ rLoggerSvc" $optional="false" }requires { $field="pForker" $optional=
+ "false" }}
 

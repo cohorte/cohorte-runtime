@@ -7,17 +7,25 @@ Bundle-SymbolicName: org.psem2m.isolates.base
 Bundle-Vendor: isandlaTech (www.isandlatech.com)
 Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
-Export-Package: org.psem2m.isolates.base;version="1.0.0"; uses:="org.o
- sgi.service.log,  org.osgi.framework,  org.psem2m.utilities.logging, 
-  org.psem2m.utilities.files,  org.psem2m.utilities",org.psem2m.isolat
- es.base.boot;version="1.0.0",org.psem2m.isolates.base.bundles;version
- ="1.0.0";uses:="org.osgi.framework,org.psem2m.utilities.files",org.ps
- em2m.isolates.base.conf,org.psem2m.isolates.base.conf.beans,org.psem2
- m.isolates.base.dirs
-Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
- .ipojo.architecture;version=1.8.0, org.osgi.framework;version=1.3.0, 
- org.osgi.service.cm;version=1.2, org.osgi.service.log;version=1.3.0, 
- org.psem2m.utilities, org.psem2m.utilities.logging
+Export-Package: org.psem2m.isolates.base;version="1.0.0";
+  uses:="org.osgi.service.log,
+   org.osgi.framework,
+   org.psem2m.utilities.logging,
+   org.psem2m.utilities.files,
+   org.psem2m.utilities",
+ org.psem2m.isolates.base.boot;version="1.0.0",
+ org.psem2m.isolates.base.bundles;version="1.0.0";uses:="org.osgi.framework,org.psem2m.utilities.files",
+ org.psem2m.isolates.base.conf.beans;version="1.0.0"
+Import-Package: org.apache.felix.ipojo;version="1.8.0",
+ org.apache.felix.ipojo.architecture;version="1.8.0",
+ org.osgi.framework;version="1.3.0",
+ org.osgi.service.cm;version="1.2",
+ org.osgi.service.log;version="1.3.0",
+ org.psem2m.isolates.constants;version="1.0.0",
+ org.psem2m.isolates.services.conf;version="1.0.0",
+ org.psem2m.isolates.services.dirs;version="1.0.0",
+ org.psem2m.utilities,
+ org.psem2m.utilities.logging
 Service-Component: OSGI-INF/CBundleBaseActivator.xml
 iPOJO-Components: instance { $component="isolates-base-isolatelogger-f
  actory" $name="isolates-base-isolatelogger" }instance { $component="i
@@ -68,42 +76,47 @@ iPOJO-Components: instance { $component="isolates-base-isolatelogger-f
   { $name="getPlatformLogDir" $return="java.io.File" }method { $name="
  getPlatformRootDirs" $return="java.io.File[]" }method { $name="getRep
  ositories" $return="java.io.File[]" }method { $name="isOsWindowsFamil
- y" $return="boolean" }interface { $name="org.psem2m.isolates.base.dir
- s.IPlatformDirsSvc" }}}component { $immediate="true" $name="isolates-
- base-bundle-finder-factory" $classname="org.psem2m.isolates.base.bund
- les.impl.CBundleFinderSvc" $architecture="true" $public="false" provi
- des { $specifications="org.psem2m.isolates.base.bundles.IBundleFinder
- Svc" }manipulation { field { $name="pPlatformDirsSvc" $type="org.psem
- 2m.isolates.base.dirs.IPlatformDirsSvc" }field { $name="pBundlesCache
- " $type="java.util.Map" }method { $name="$init" }method { $arguments=
- "{org.psem2m.isolates.base.dirs.IPlatformDirsSvc}" $name="$init" }met
- hod { $name="findAllBundles" }method { $arguments="{java.io.File}" $n
- ame="findAllBundles" }method { $arguments="{java.lang.String[]}" $nam
- e="findBundle" $return="org.psem2m.isolates.base.bundles.BundleRef" }
- method { $name="getBootstrap" $return="java.io.File" }method { $argum
- ents="{java.io.File}" $name="getBundleSymbolicName" $return="java.lan
- g.String" }interface { $name="org.psem2m.isolates.base.bundles.IBundl
- eFinderSvc" }}requires { $field="pPlatformDirsSvc" $optional="false" 
- }}component { $immediate="true" $name="isolates-base-file-finder-fact
- ory" $classname="org.psem2m.isolates.base.dirs.impl.CFileFinderSvc" $
- architecture="true" $public="false" provides { $specifications="org.p
- sem2m.isolates.base.dirs.IFileFinderSvc" }manipulation { field { $nam
- e="__Mfind$java_io_File$java_lang_String" $type="boolean" }field { $n
- ame="__MinternalFind$java_lang_String" $type="boolean" }field { $name
- ="__MextractPlatformPath$java_lang_String" $type="boolean" }field { $
- name="pPlatformDirs" $type="org.psem2m.isolates.base.dirs.IPlatformDi
- rsSvc" }field { $name="__Mfind$java_lang_String" $type="boolean" }fie
- ld { $name="__FpPlatformDirs" $type="boolean" }method { $name="__getp
- PlatformDirs" $return="org.psem2m.isolates.base.dirs.IPlatformDirsSvc
- " }method { $arguments="{org.psem2m.isolates.base.dirs.IPlatformDirsS
- vc}" $name="__setpPlatformDirs" }method { $name="$init" }method { $ar
- guments="{org.psem2m.isolates.base.dirs.IPlatformDirsSvc}" $name="$in
- it" }method { $arguments="{java.lang.String}" $name="extractPlatformP
- ath" $return="java.lang.String" }method { $arguments="{java.io.File,j
- ava.lang.String}" $name="find" $return="java.io.File[]" }method { $ar
- guments="{java.lang.String}" $name="find" $return="java.io.File[]" }m
- ethod { $arguments="{java.lang.String}" $name="internalFind" $return=
- "java.util.List" }interface { $name="org.psem2m.isolates.base.dirs.IF
- ileFinderSvc" }}requires { $field="pPlatformDirs" $optional="false" }
- }
+ y" $return="boolean" }}}component { $immediate="true" $name="isolates
+ -base-bundle-finder-factory" $classname="org.psem2m.isolates.base.bun
+ dles.impl.CBundleFinderSvc" $architecture="true" $public="false" prov
+ ides { $specifications="org.psem2m.isolates.base.bundles.IBundleFinde
+ rSvc" }manipulation { field { $name="pPlatformDirsSvc" $type="IPlatfo
+ rmDirsSvc" }field { $name="__FpBundlesCache" $type="boolean" }field {
+  $name="__MfindBundle$java_lang_String__" $type="boolean" }field { $n
+ ame="__MgetBootstrap" $type="boolean" }field { $name="pBundlesCache" 
+ $type="java.util.Map" }field { $name="__MgetBundleSymbolicName$java_i
+ o_File" $type="boolean" }field { $name="__MfindAllBundles$java_io_Fil
+ e" $type="boolean" }field { $name="__MfindAllBundles" $type="boolean"
+  }field { $name="__FpPlatformDirsSvc" $type="boolean" }method { $name
+ ="__getpBundlesCache" $return="java.util.Map" }method { $arguments="{
+ java.util.Map}" $name="__setpBundlesCache" }method { $name="__getpPla
+ tformDirsSvc" $return="IPlatformDirsSvc" }method { $arguments="{IPlat
+ formDirsSvc}" $name="__setpPlatformDirsSvc" }method { $name="$init" }
+ method { $arguments="{IPlatformDirsSvc}" $name="$init" }method { $nam
+ e="findAllBundles" }method { $arguments="{java.io.File}" $name="findA
+ llBundles" }method { $arguments="{java.lang.String[]}" $name="findBun
+ dle" $return="org.psem2m.isolates.base.bundles.BundleRef" }method { $
+ name="getBootstrap" $return="java.io.File" }method { $arguments="{jav
+ a.io.File}" $name="getBundleSymbolicName" $return="java.lang.String" 
+ }interface { $name="org.psem2m.isolates.base.bundles.IBundleFinderSvc
+ " }}requires { $field="pPlatformDirsSvc" $optional="false" }}componen
+ t { $immediate="true" $name="isolates-base-file-finder-factory" $clas
+ sname="org.psem2m.isolates.base.dirs.impl.CFileFinderSvc" $architectu
+ re="true" $public="false" provides { $specifications="org.psem2m.isol
+ ates.base.dirs.IFileFinderSvc" }manipulation { field { $name="__Mfind
+ $java_io_File$java_lang_String" $type="boolean" }field { $name="__Min
+ ternalFind$java_lang_String" $type="boolean" }field { $name="__Mextra
+ ctPlatformPath$java_lang_String" $type="boolean" }field { $name="pPla
+ tformDirs" $type="IPlatformDirsSvc" }field { $name="__Mfind$java_lang
+ _String" $type="boolean" }field { $name="__FpPlatformDirs" $type="boo
+ lean" }method { $name="__getpPlatformDirs" $return="IPlatformDirsSvc"
+  }method { $arguments="{IPlatformDirsSvc}" $name="__setpPlatformDirs"
+  }method { $name="$init" }method { $arguments="{IPlatformDirsSvc}" $n
+ ame="$init" }method { $arguments="{java.lang.String}" $name="extractP
+ latformPath" $return="java.lang.String" }method { $arguments="{java.i
+ o.File,java.lang.String}" $name="find" $return="java.io.File[]" }meth
+ od { $arguments="{java.lang.String}" $name="find" $return="java.io.Fi
+ le[]" }method { $arguments="{java.lang.String}" $name="internalFind" 
+ $return="java.util.List" }}requires { $field="pPlatformDirs" $optiona
+ l="false" }}
 

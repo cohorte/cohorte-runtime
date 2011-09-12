@@ -13,10 +13,10 @@ import org.osgi.framework.BundleException;
 import org.ow2.chameleon.rose.client.RemoteClientFactory;
 import org.ow2.chameleon.rose.client.RemoteProxyFactory;
 import org.psem2m.isolates.base.CPojoBase;
-import org.psem2m.isolates.commons.Utilities;
-import org.psem2m.isolates.commons.remote.EndpointDescription;
-import org.psem2m.isolates.commons.remote.IRemoteServiceClientHandler;
-import org.psem2m.isolates.commons.remote.RemoteServiceEvent;
+import org.psem2m.isolates.base.Utilities;
+import org.psem2m.isolates.services.remote.IRemoteServiceClientHandler;
+import org.psem2m.isolates.services.remote.beans.EndpointDescription;
+import org.psem2m.isolates.services.remote.beans.RemoteServiceEvent;
 
 /**
  * Implementation of a remote service client handler, using Rose ClientFactory

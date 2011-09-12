@@ -5,7 +5,7 @@
  */
 package org.psem2m.isolates.forker;
 
-import org.psem2m.isolates.base.conf.IIsolateDescr;
+import org.psem2m.isolates.services.conf.IIsolateDescr;
 
 /**
  * Describes an isolate runner

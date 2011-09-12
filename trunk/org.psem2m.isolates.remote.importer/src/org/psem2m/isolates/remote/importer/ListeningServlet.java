@@ -13,9 +13,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.psem2m.isolates.commons.remote.EndpointDescription;
-import org.psem2m.isolates.commons.remote.IRemoteServiceEventListener;
-import org.psem2m.isolates.commons.remote.RemoteServiceEvent;
+import org.psem2m.isolates.services.remote.IRemoteServiceEventListener;
+import org.psem2m.isolates.services.remote.beans.EndpointDescription;
+import org.psem2m.isolates.services.remote.beans.RemoteServiceEvent;
 
 /**
  * @author Thomas Calmant

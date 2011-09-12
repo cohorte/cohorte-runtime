@@ -13,13 +13,13 @@ import java.util.Map;
 
 import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.CPojoBase;
-import org.psem2m.isolates.base.IPlatformProperties;
-import org.psem2m.isolates.base.conf.IIsolateDescr;
-import org.psem2m.isolates.base.dirs.IPlatformDirsSvc;
+import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.forker.IBundleForkerLoggerSvc;
 import org.psem2m.isolates.forker.IProcessRef;
 import org.psem2m.isolates.forker.IProcessRunner;
 import org.psem2m.isolates.forker.impl.processes.ProcessBuilderRunner;
+import org.psem2m.isolates.services.conf.IIsolateDescr;
+import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 
 /**
  * Runs the Java interpreter for the given isolate

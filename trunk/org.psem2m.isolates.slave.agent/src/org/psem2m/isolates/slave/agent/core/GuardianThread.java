@@ -10,7 +10,7 @@ import java.util.Map.Entry;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
-import org.psem2m.isolates.base.conf.IBundleDescr;
+import org.psem2m.isolates.services.conf.IBundleDescr;
 
 /**
  * Guardian thread, monitoring bundles installed by the agent

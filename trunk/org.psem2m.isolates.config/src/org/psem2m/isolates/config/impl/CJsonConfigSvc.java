@@ -12,11 +12,11 @@ import java.util.Set;
 
 import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.CPojoBase;
-import org.psem2m.isolates.base.conf.IApplicationDescr;
-import org.psem2m.isolates.base.conf.ISvcConfig;
-import org.psem2m.isolates.base.dirs.IFileFinderSvc;
 import org.psem2m.isolates.config.IPlatformConfigurationConstants;
 import org.psem2m.isolates.config.json.JsonConfigReader;
+import org.psem2m.isolates.services.conf.IApplicationDescr;
+import org.psem2m.isolates.services.conf.ISvcConfig;
+import org.psem2m.isolates.services.dirs.IFileFinderSvc;
 import org.psem2m.utilities.logging.IActivityLoggerBase;
 
 /**

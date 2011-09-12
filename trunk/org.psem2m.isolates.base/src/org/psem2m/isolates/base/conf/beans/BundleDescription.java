@@ -5,7 +5,7 @@
  */
 package org.psem2m.isolates.base.conf.beans;
 
-import org.psem2m.isolates.base.conf.IBundleDescr;
+import org.psem2m.isolates.services.conf.IBundleDescr;
 
 
 /**

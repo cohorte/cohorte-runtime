@@ -10,8 +10,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.psem2m.isolates.base.conf.IBundleDescr;
-import org.psem2m.isolates.base.conf.IIsolateDescr;
+import org.psem2m.isolates.services.conf.IBundleDescr;
+import org.psem2m.isolates.services.conf.IIsolateDescr;
 
 /**
  * Description of an isolate

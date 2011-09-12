@@ -16,7 +16,7 @@ import org.osgi.framework.ServiceReference;
 import org.psem2m.isolates.base.bundles.BundleRef;
 import org.psem2m.isolates.base.bundles.IBundleFinderSvc;
 import org.psem2m.isolates.base.conf.beans.IsolateDescription;
-import org.psem2m.isolates.commons.forker.IForker;
+import org.psem2m.isolates.services.forker.IForker;
 import org.psem2m.utilities.logging.CLogToolsException;
 import org.psem2m.utilities.teststools.CConsoleTester;
 

@@ -22,10 +22,10 @@ import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 import org.psem2m.isolates.base.CPojoBase;
-import org.psem2m.isolates.commons.remote.EndpointDescription;
-import org.psem2m.isolates.commons.remote.IEndpointHandler;
-import org.psem2m.isolates.commons.remote.RemoteServiceEvent;
-import org.psem2m.isolates.commons.remote.RemoteServiceEvent.ServiceEventType;
+import org.psem2m.isolates.services.remote.IEndpointHandler;
+import org.psem2m.isolates.services.remote.beans.EndpointDescription;
+import org.psem2m.isolates.services.remote.beans.RemoteServiceEvent;
+import org.psem2m.isolates.services.remote.beans.RemoteServiceEvent.ServiceEventType;
 
 /**
  * Tracks services to be exported and uses active handlers to create associated
@@ -35,245 +35,245 @@ import org.psem2m.isolates.commons.remote.RemoteServiceEvent.ServiceEventType;
  */
 public class ServiceExporter extends CPojoBase implements ServiceListener {
 
-	/**
-	 * The filter to detect exported services only. Test the existence of the
-	 * service.exported.interfaces and service.exported.configs properties.
-	 */
-	public static final String EXPORTED_SERVICE_FILTER = "(|(service.exported.interfaces=*)(service.exported.configs=*))";
+    /**
+     * The filter to detect exported services only. Test the existence of the
+     * service.exported.interfaces and service.exported.configs properties.
+     */
+    public static final String EXPORTED_SERVICE_FILTER = "(|(service.exported.interfaces=*)(service.exported.configs=*))";
 
-	/** The bundle context */
-	private final BundleContext pBundleContext;
+    /** The bundle context */
+    private final BundleContext pBundleContext;
 
-	/** End point handlers */
-	private IEndpointHandler[] pEndpointHandlers;
+    /** End point handlers */
+    private IEndpointHandler[] pEndpointHandlers;
 
-	/**
-	 * Base constructor
-	 * 
-	 * @param aBundleContext
-	 *            The bundle context
-	 */
-	public ServiceExporter(final BundleContext aBundleContext) {
-		super();
-		pBundleContext = aBundleContext;
-	}
+    /**
+     * Base constructor
+     * 
+     * @param aBundleContext
+     *            The bundle context
+     */
+    public ServiceExporter(final BundleContext aBundleContext) {
+	super();
+	pBundleContext = aBundleContext;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.utilities.CXObjectBase#destroy()
-	 */
-	@Override
-	public void destroy() {
-		// ...
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.utilities.CXObjectBase#destroy()
+     */
+    @Override
+    public void destroy() {
+	// ...
+    }
 
-	/**
-	 * Creates all possible end points according to the service properties
-	 * 
-	 * @param aServiceReference
-	 *            Service to be exported
-	 * @return A list of created end points
-	 */
-	protected List<EndpointDescription> exportService(
-			final ServiceReference aServiceReference) {
+    /**
+     * Creates all possible end points according to the service properties
+     * 
+     * @param aServiceReference
+     *            Service to be exported
+     * @return A list of created end points
+     */
+    protected List<EndpointDescription> exportService(
+	    final ServiceReference aServiceReference) {
 
-		List<EndpointDescription> endpointDescriptions = new ArrayList<EndpointDescription>();
+	List<EndpointDescription> endpointDescriptions = new ArrayList<EndpointDescription>();
 
-		for (IEndpointHandler handler : pEndpointHandlers) {
+	for (IEndpointHandler handler : pEndpointHandlers) {
 
-			try {
-				EndpointDescription[] endpoints = handler
-						.createEndpoint(aServiceReference);
+	    try {
+		EndpointDescription[] endpoints = handler
+			.createEndpoint(aServiceReference);
 
-				// Store end points if they are valid
-				if (endpoints != null && endpoints.length != 0) {
-					endpointDescriptions.addAll(Arrays.asList(endpoints));
-				}
-
-			} catch (Throwable t) {
-				// Log errors
-				t.printStackTrace();
-			}
+		// Store end points if they are valid
+		if (endpoints != null && endpoints.length != 0) {
+		    endpointDescriptions.addAll(Arrays.asList(endpoints));
 		}
 
-		return endpointDescriptions;
+	    } catch (Throwable t) {
+		// Log errors
+		t.printStackTrace();
+	    }
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.isolates.base.CPojoBase#invalidatePojo()
-	 */
-	@Override
-	public void invalidatePojo() throws BundleException {
+	return endpointDescriptions;
+    }
 
-		pBundleContext.removeServiceListener(this);
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.base.CPojoBase#invalidatePojo()
+     */
+    @Override
+    public void invalidatePojo() throws BundleException {
+
+	pBundleContext.removeServiceListener(this);
+    }
+
+    /**
+     * Sends the service notification
+     * 
+     * @param aServiceReference
+     *            A reference to the modified service
+     * @param aNewEndpoints
+     *            Added end points, in case of registration of a new service
+     */
+    protected void sendNotification(final ServiceReference aServiceReference,
+	    final ServiceEventType aEventType,
+	    final List<EndpointDescription> aNewEndpoints) {
+
+	// Safe conversion
+	EndpointDescription[] endpointsArray = null;
+	if (aNewEndpoints != null) {
+	    endpointsArray = aNewEndpoints.toArray(new EndpointDescription[0]);
 	}
 
-	/**
-	 * Sends the service notification
-	 * 
-	 * @param aServiceReference
-	 *            A reference to the modified service
-	 * @param aNewEndpoints
-	 *            Added end points, in case of registration of a new service
-	 */
-	protected void sendNotification(final ServiceReference aServiceReference,
-			final ServiceEventType aEventType,
-			final List<EndpointDescription> aNewEndpoints) {
+	// Prepare the transmitted information
+	final RemoteServiceEvent serviceEvent = new RemoteServiceEvent(
+		aServiceReference, aEventType, endpointsArray);
 
-		// Safe conversion
-		EndpointDescription[] endpointsArray = null;
-		if (aNewEndpoints != null) {
-			endpointsArray = aNewEndpoints.toArray(new EndpointDescription[0]);
+	// TODO To be replaced by a look into a directory
+	String[] test = new String[] { "http://localhost:9000/remote-service-importer" };
+
+	// For each isolate, send a signal
+	for (String isolateImporter : test) {
+
+	    try {
+		// Try to parse the URL and open a connection
+		URL isolateImporterUrl = new URL(isolateImporter);
+		URLConnection urlConnection = isolateImporterUrl
+			.openConnection();
+
+		if (urlConnection instanceof HttpURLConnection) {
+
+		    // Only handle HTTP streams
+		    HttpURLConnection httpConnection = (HttpURLConnection) urlConnection;
+
+		    // POST message
+		    httpConnection.setRequestMethod("POST");
+		    httpConnection.setUseCaches(false);
+		    httpConnection.setDoInput(true);
+		    httpConnection.setDoOutput(true);
+
+		    // Raw content-type
+		    httpConnection.setRequestProperty("Content-Type",
+			    "application/octet-stream");
+
+		    // After fields, before content
+		    httpConnection.connect();
+
+		    // Write the event in the request body
+		    ObjectOutputStream objectStream = new ObjectOutputStream(
+			    httpConnection.getOutputStream());
+
+		    objectStream.writeObject(serviceEvent);
+		    objectStream.flush();
+		    objectStream.close();
+
+		    // Flush the request
+		    httpConnection.getResponseCode();
+		    httpConnection.disconnect();
 		}
 
-		// Prepare the transmitted information
-		final RemoteServiceEvent serviceEvent = new RemoteServiceEvent(
-				aServiceReference, aEventType, endpointsArray);
+	    } catch (MalformedURLException e) {
+		e.printStackTrace();
 
-		// TODO To be replaced by a look into a directory
-		String[] test = new String[] { "http://localhost:9000/remote-service-importer" };
+	    } catch (IOException e) {
 
-		// For each isolate, send a signal
-		for (String isolateImporter : test) {
+		e.printStackTrace();
+	    }
+	}
+    }
 
-			try {
-				// Try to parse the URL and open a connection
-				URL isolateImporterUrl = new URL(isolateImporter);
-				URLConnection urlConnection = isolateImporterUrl
-						.openConnection();
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.osgi.framework.ServiceListener#serviceChanged(org.osgi.framework.
+     * ServiceEvent)
+     */
+    @Override
+    public void serviceChanged(final ServiceEvent aServiceEvent) {
 
-				if (urlConnection instanceof HttpURLConnection) {
+	// Event type, if recognized
+	ServiceEventType eventType = null;
 
-					// Only handle HTTP streams
-					HttpURLConnection httpConnection = (HttpURLConnection) urlConnection;
+	// New export end points
+	List<EndpointDescription> newEndpoints = null;
 
-					// POST message
-					httpConnection.setRequestMethod("POST");
-					httpConnection.setUseCaches(false);
-					httpConnection.setDoInput(true);
-					httpConnection.setDoOutput(true);
+	switch (aServiceEvent.getType()) {
+	case ServiceEvent.REGISTERED:
 
-					// Raw content-type
-					httpConnection.setRequestProperty("Content-Type",
-							"application/octet-stream");
+	    // Export service
+	    newEndpoints = exportService(aServiceEvent.getServiceReference());
+	    if (newEndpoints == null || newEndpoints.isEmpty()) {
+		// Error while exporting service
+		return;
+	    }
 
-					// After fields, before content
-					httpConnection.connect();
+	    // Exported service registered
+	    eventType = ServiceEventType.REGISTERED;
+	    break;
 
-					// Write the event in the request body
-					ObjectOutputStream objectStream = new ObjectOutputStream(
-							httpConnection.getOutputStream());
+	case ServiceEvent.UNREGISTERING:
+	    // Unregistering exported service
+	    eventType = ServiceEventType.UNREGISTERED;
+	    break;
 
-					objectStream.writeObject(serviceEvent);
-					objectStream.flush();
-					objectStream.close();
+	case ServiceEvent.MODIFIED_ENDMATCH:
+	    // Local service is no longer exported (so unregister it)
+	    eventType = ServiceEventType.UNREGISTERED;
+	    break;
 
-					// Flush the request
-					httpConnection.getResponseCode();
-					httpConnection.disconnect();
-				}
-
-			} catch (MalformedURLException e) {
-				e.printStackTrace();
-
-			} catch (IOException e) {
-
-				e.printStackTrace();
-			}
-		}
+	case ServiceEvent.MODIFIED:
+	    // Service properties have been modified
+	    eventType = ServiceEventType.MODIFIED;
+	    break;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.osgi.framework.ServiceListener#serviceChanged(org.osgi.framework.
-	 * ServiceEvent)
-	 */
-	@Override
-	public void serviceChanged(final ServiceEvent aServiceEvent) {
+	if (eventType != null) {
+	    // Send the notification if the event is recognized
+	    sendNotification(aServiceEvent.getServiceReference(), eventType,
+		    newEndpoints);
+	}
+    }
 
-		// Event type, if recognized
-		ServiceEventType eventType = null;
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.base.CPojoBase#validatePojo()
+     */
+    @Override
+    public void validatePojo() throws BundleException {
 
-		// New export end points
-		List<EndpointDescription> newEndpoints = null;
+	// Handle already registered services
+	try {
+	    ServiceReference[] exportedServices = pBundleContext
+		    .getAllServiceReferences(null, EXPORTED_SERVICE_FILTER);
 
-		switch (aServiceEvent.getType()) {
-		case ServiceEvent.REGISTERED:
+	    if (exportedServices != null) {
+		for (ServiceReference serviceRef : exportedServices) {
+		    // Fake event to have the same behavior
+		    ServiceEvent serviceEvent = new ServiceEvent(
+			    ServiceEvent.REGISTERED, serviceRef);
 
-			// Export service
-			newEndpoints = exportService(aServiceEvent.getServiceReference());
-			if (newEndpoints == null || newEndpoints.isEmpty()) {
-				// Error while exporting service
-				return;
-			}
-
-			// Exported service registered
-			eventType = ServiceEventType.REGISTERED;
-			break;
-
-		case ServiceEvent.UNREGISTERING:
-			// Unregistering exported service
-			eventType = ServiceEventType.UNREGISTERED;
-			break;
-
-		case ServiceEvent.MODIFIED_ENDMATCH:
-			// Local service is no longer exported (so unregister it)
-			eventType = ServiceEventType.UNREGISTERED;
-			break;
-
-		case ServiceEvent.MODIFIED:
-			// Service properties have been modified
-			eventType = ServiceEventType.MODIFIED;
-			break;
+		    serviceChanged(serviceEvent);
 		}
+	    }
 
-		if (eventType != null) {
-			// Send the notification if the event is recognized
-			sendNotification(aServiceEvent.getServiceReference(), eventType,
-					newEndpoints);
-		}
+	} catch (InvalidSyntaxException ex) {
+	    ex.printStackTrace();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.isolates.base.CPojoBase#validatePojo()
-	 */
-	@Override
-	public void validatePojo() throws BundleException {
+	// Register a listener for future exported services
+	try {
+	    pBundleContext.addServiceListener(this, EXPORTED_SERVICE_FILTER);
 
-		// Handle already registered services
-		try {
-			ServiceReference[] exportedServices = pBundleContext
-					.getAllServiceReferences(null, EXPORTED_SERVICE_FILTER);
+	} catch (InvalidSyntaxException e) {
 
-			if (exportedServices != null) {
-				for (ServiceReference serviceRef : exportedServices) {
-					// Fake event to have the same behavior
-					ServiceEvent serviceEvent = new ServiceEvent(
-							ServiceEvent.REGISTERED, serviceRef);
-
-					serviceChanged(serviceEvent);
-				}
-			}
-
-		} catch (InvalidSyntaxException ex) {
-			ex.printStackTrace();
-		}
-
-		// Register a listener for future exported services
-		try {
-			pBundleContext.addServiceListener(this, EXPORTED_SERVICE_FILTER);
-
-		} catch (InvalidSyntaxException e) {
-
-			throw new BundleException(
-					"Error creating the service listener filter", e);
-		}
+	    throw new BundleException(
+		    "Error creating the service listener filter", e);
 	}
+    }
 }

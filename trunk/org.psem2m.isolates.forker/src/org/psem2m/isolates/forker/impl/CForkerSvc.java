@@ -9,11 +9,11 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.psem2m.isolates.base.CPojoBase;
-import org.psem2m.isolates.base.conf.IIsolateDescr;
-import org.psem2m.isolates.commons.forker.IForker;
 import org.psem2m.isolates.forker.IBundleForkerLoggerSvc;
 import org.psem2m.isolates.forker.IIsolateRunner;
 import org.psem2m.isolates.forker.IProcessRef;
+import org.psem2m.isolates.services.conf.IIsolateDescr;
+import org.psem2m.isolates.services.forker.IForker;
 
 /**
  * Basic forker information behaviors

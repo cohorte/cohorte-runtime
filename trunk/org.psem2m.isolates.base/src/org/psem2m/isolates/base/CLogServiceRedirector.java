@@ -18,6 +18,7 @@ import org.osgi.service.log.LogEntry;
 import org.osgi.service.log.LogListener;
 import org.osgi.service.log.LogReaderService;
 import org.osgi.service.log.LogService;
+import org.psem2m.isolates.constants.IPlatformProperties;
 
 /**
  * this singleton redirects the log lines of the OSGI log service in the

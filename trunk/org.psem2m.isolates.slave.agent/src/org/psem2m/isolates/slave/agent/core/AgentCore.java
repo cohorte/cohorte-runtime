@@ -15,14 +15,14 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.psem2m.isolates.base.CPojoBase;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
-import org.psem2m.isolates.base.IPlatformProperties;
 import org.psem2m.isolates.base.bundles.BundleInfo;
 import org.psem2m.isolates.base.bundles.BundleRef;
 import org.psem2m.isolates.base.bundles.IBundleFinderSvc;
-import org.psem2m.isolates.base.conf.IBundleDescr;
-import org.psem2m.isolates.base.conf.IIsolateDescr;
-import org.psem2m.isolates.base.conf.ISvcConfig;
-import org.psem2m.isolates.base.dirs.IPlatformDirsSvc;
+import org.psem2m.isolates.constants.IPlatformProperties;
+import org.psem2m.isolates.services.conf.IBundleDescr;
+import org.psem2m.isolates.services.conf.IIsolateDescr;
+import org.psem2m.isolates.services.conf.ISvcConfig;
+import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.isolates.slave.agent.ISvcAgent;
 
 /**

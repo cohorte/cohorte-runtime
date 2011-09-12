@@ -12,13 +12,12 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.psem2m.isolates.base.CPojoBase;
-import org.psem2m.isolates.commons.IIsolateConfiguration;
-import org.psem2m.isolates.commons.forker.IForker;
-import org.psem2m.isolates.commons.forker.IForker.EProcessState;
-import org.psem2m.isolates.commons.forker.ProcessConfiguration;
 import org.psem2m.isolates.monitor.IBundleMonitorLoggerService;
 import org.psem2m.isolates.monitor.IIsolateListener;
 import org.psem2m.isolates.monitor.IIsolateManager;
+import org.psem2m.isolates.services.conf.IIsolateDescr;
+import org.psem2m.isolates.services.forker.IForker;
+import org.psem2m.isolates.services.forker.IForker.EProcessState;
 import org.psem2m.utilities.CXTimer;
 
 /**
@@ -38,7 +37,7 @@ public class CIsolateManagerSvc extends CPojoBase implements IIsolateManager,
     private final Map<String, ProcessMonitorThread> pMonitors = new TreeMap<String, ProcessMonitorThread>();
 
     /** Possible isolates */
-    private final Map<String, IIsolateConfiguration> pPossibleIsolates = new TreeMap<String, IIsolateConfiguration>();
+    private final Map<String, IIsolateDescr> pPossibleIsolates = new TreeMap<String, IIsolateDescr>();
 
     /** Platform running */
     private boolean pRunning = false;
@@ -70,7 +69,7 @@ public class CIsolateManagerSvc extends CPojoBase implements IIsolateManager,
      * @return pPossibleIsolates
      */
     @Override
-    public Collection<IIsolateConfiguration> getPossibleIsolates() {
+    public Collection<IIsolateDescr> getPossibleIsolates() {
 	return pPossibleIsolates.values();
     }
 
@@ -153,7 +152,7 @@ public class CIsolateManagerSvc extends CPojoBase implements IIsolateManager,
 
 	CXTimer timer = new CXTimer(true);
 
-	IIsolateConfiguration isolateConfig = pPossibleIsolates.get(aIsolateId);
+	IIsolateDescr isolateConfig = pPossibleIsolates.get(aIsolateId);
 	if (isolateConfig == null) {
 	    return false;
 	}

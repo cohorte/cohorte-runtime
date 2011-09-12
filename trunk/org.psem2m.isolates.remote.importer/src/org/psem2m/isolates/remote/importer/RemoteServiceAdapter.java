@@ -19,10 +19,10 @@ import org.osgi.framework.ServiceRegistration;
 import org.ow2.chameleon.rose.RemoteConstants;
 import org.ow2.chameleon.rose.client.RemoteProxyFactory;
 import org.psem2m.isolates.base.CPojoBase;
-import org.psem2m.isolates.base.IPlatformProperties;
-import org.psem2m.isolates.commons.remote.IRemoteServiceClientHandler;
-import org.psem2m.isolates.commons.remote.IRemoteServiceEventListener;
-import org.psem2m.isolates.commons.remote.RemoteServiceEvent;
+import org.psem2m.isolates.constants.IPlatformProperties;
+import org.psem2m.isolates.services.remote.IRemoteServiceClientHandler;
+import org.psem2m.isolates.services.remote.IRemoteServiceEventListener;
+import org.psem2m.isolates.services.remote.beans.RemoteServiceEvent;
 
 /**
  * @author Thomas Calmant
