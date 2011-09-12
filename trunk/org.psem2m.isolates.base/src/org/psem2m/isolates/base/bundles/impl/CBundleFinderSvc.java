@@ -36,13 +36,6 @@ public class CBundleFinderSvc implements IBundleFinderSvc {
     private IPlatformDirsSvc pPlatformDirsSvc;
 
     /**
-     * Default constructor
-     */
-    public CBundleFinderSvc() {
-	super();
-    }
-
-    /**
      * Constructor for non-injected usage
      * 
      * @param aPlatformDirsSvc

@@ -26,23 +26,23 @@ public class CFileFinderSvc implements IFileFinderSvc {
     private IPlatformDirsSvc pPlatformDirs;
 
     /**
-     * Default constructor (for iPOJO)
-     */
-    public CFileFinderSvc() {
-	super();
-    }
-
-    /**
      * Constructor without injection
      * 
      * @param aPlatformDirs
      *            Platform directory service instance
      */
     public CFileFinderSvc(final IPlatformDirsSvc aPlatformDirs) {
-	super();
 	pPlatformDirs = aPlatformDirs;
     }
 
+    /**
+     * Tries to extract a platform root path from the given. Non-null result
+     * indicates that the given path is a root sub-path.
+     * 
+     * @param aPath
+     *            Path to be transformed
+     * @return The root-path if any, else null
+     */
     protected String extractPlatformPath(final String aPath) {
 
 	if (aPath == null || aPath.isEmpty()) {

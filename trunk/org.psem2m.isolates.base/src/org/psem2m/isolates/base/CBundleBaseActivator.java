@@ -7,68 +7,125 @@
  *
  * Contributors:
  *    ogattaz (isandlaTech) - initial API and implementation
+ *    Thomas Calmant (isandlaTech) - Pure OSGi convertion
  *******************************************************************************/
 package org.psem2m.isolates.base;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.psem2m.isolates.base.activators.CActivatorBase;
-import org.psem2m.isolates.base.activators.IActivatorBase;
-import org.psem2m.utilities.logging.IActivityLoggerBase;
+import org.osgi.framework.ServiceRegistration;
+import org.psem2m.isolates.base.bundles.IBundleFinderSvc;
+import org.psem2m.isolates.base.bundles.impl.CBundleFinderSvc;
+import org.psem2m.isolates.base.dirs.impl.CFileFinderSvc;
+import org.psem2m.isolates.base.dirs.impl.CPlatformDirsSvc;
+import org.psem2m.isolates.services.dirs.IFileFinderSvc;
+import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
- * 
+ * @author Thomas Calmant
  */
-public class CBundleBaseActivator extends CActivatorBase implements
-		IActivatorBase, IActivityLoggerBase {
+public class CBundleBaseActivator implements BundleActivator {
 
-	/** first instance **/
-	private static CBundleBaseActivator sSingleton = null;
+    /** Bundle finder service */
+    private CBundleFinderSvc pBundleFinderSvc;
 
-	/**
-	 * @return
-	 */
-	public static CBundleBaseActivator getInstance() {
-		return sSingleton;
+    /** File finder service */
+    private CFileFinderSvc pFileFinderSvc;
+
+    /** Platform directories service */
+    private CPlatformDirsSvc pPlatformDirsSvc;
+
+    /** OSGi services registration */
+    private final List<ServiceRegistration> pRegisteredServices = new ArrayList<ServiceRegistration>();
+
+    /**
+     * Creates or retrieves an instance of the bundle finder
+     * 
+     * @return A bundle finder instance
+     */
+    public IBundleFinderSvc getBundleFinder() {
+
+	if (pBundleFinderSvc == null) {
+	    pBundleFinderSvc = new CBundleFinderSvc(getPlatformDirs());
 	}
 
-	/**
-	 * Explicit default constructor
-	 */
-	public CBundleBaseActivator() {
-		super();
-		if (sSingleton == null) {
-			sSingleton = this;
-		}
+	return pBundleFinderSvc;
+    }
+
+    /**
+     * Creates or retrieves an instance of the file finder
+     * 
+     * @return A file finder instance
+     */
+    public IFileFinderSvc getFileFinder() {
+
+	if (pFileFinderSvc == null) {
+	    pFileFinderSvc = new CFileFinderSvc(getPlatformDirs());
 	}
 
-	@Override
-	public void destroy() {
-		// ...
+	return pFileFinderSvc;
+    }
+
+    /**
+     * Creates or retrieves an instance of the platform directories registry
+     * 
+     * @return A platform directories registry instance
+     */
+    public IPlatformDirsSvc getPlatformDirs() {
+
+	if (pPlatformDirsSvc == null) {
+	    pPlatformDirsSvc = new CPlatformDirsSvc();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.isolates.base.CActivatorBase#start(org.osgi.framework.
-	 * BundleContext)
-	 */
-	@Override
-	public void start(final BundleContext bundleContext) throws Exception {
-		super.start(bundleContext);
+	return pPlatformDirsSvc;
+    }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext
+     * )
+     */
+    @Override
+    public synchronized void start(final BundleContext aBundleContext) {
+
+	ServiceRegistration registration;
+
+	// Register platform directories
+	registration = aBundleContext.registerService(
+		IPlatformDirsSvc.class.getName(), getPlatformDirs(), null);
+	pRegisteredServices.add(registration);
+
+	// Register the file finder
+	registration = aBundleContext.registerService(
+		IFileFinderSvc.class.getName(), getFileFinder(), null);
+	pRegisteredServices.add(registration);
+
+	// Register the bundle finder
+	registration = aBundleContext.registerService(
+		IBundleFinderSvc.class.getName(), getBundleFinder(), null);
+	pRegisteredServices.add(registration);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
+     */
+    @Override
+    public synchronized void stop(final BundleContext aBundleContext) {
+
+	// Unregister all services
+	for (ServiceRegistration registration : pRegisteredServices) {
+	    registration.unregister();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
-	 */
-	@Override
-	public void stop(final BundleContext bundleContext) throws Exception {
-		super.stop(bundleContext);
-		// ...
-	}
-
+	pRegisteredServices.clear();
+    }
 }

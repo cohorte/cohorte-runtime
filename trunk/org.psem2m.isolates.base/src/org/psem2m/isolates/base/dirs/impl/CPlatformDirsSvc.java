@@ -83,13 +83,6 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 	return System.getProperty(PROP_PLATFORM_HOME);
     }
 
-    /**
-     * Explicit default constructor
-     */
-    public CPlatformDirsSvc() {
-	super();
-    }
-
     /*
      * (non-Javadoc)
      * 
