@@ -12,7 +12,7 @@
 		architecture="true" immediate="true"
 		name="isolates-restserver-isolatelogger-factory" factory-method="getInstance">
 
-		<provides specifications="org.psem2m.isolates.base.IIsolateLoggerSvc" />
+		<provides specifications="org.psem2m.isolates.base.activators.IIsolateLoggerSvc" />
 
 		<callback transition="validate" method="validatePojo" />
 		<callback transition="invalidate" method="invalidatePojo" />

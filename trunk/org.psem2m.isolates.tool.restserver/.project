@@ -21,8 +21,13 @@
 			</arguments>
 		</buildCommand>
 		<buildCommand>
-			<name>org.ow2.chameleon.eclipse.ipojo.ipojoBuilder</name>
+			<name>org.eclipse.ui.externaltools.ExternalToolBuilder</name>
+			<triggers>full,incremental,</triggers>
 			<arguments>
+				<dictionary>
+					<key>LaunchConfigHandle</key>
+					<value>&lt;project&gt;/.externalToolBuilders/org.ow2.chameleon.eclipse.ipojo.ipojoBuilder.launch</value>
+				</dictionary>
 			</arguments>
 		</buildCommand>
 	</buildSpec>

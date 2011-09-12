@@ -1,9 +1,9 @@
 package org.psem2m.isolates.demo.services.ui.viewer;
 
 import org.osgi.framework.BundleContext;
-import org.psem2m.isolates.base.CActivatorBase;
-import org.psem2m.isolates.base.IActivatorBase;
-import org.psem2m.isolates.base.IIsolateLoggerSvc;
+import org.psem2m.isolates.base.activators.CActivatorBase;
+import org.psem2m.isolates.base.activators.IActivatorBase;
+import org.psem2m.isolates.base.activators.IIsolateLoggerSvc;
 
 public class CBundleUiActivator extends CActivatorBase implements
 		IActivatorBase, IIsolateLoggerSvc {

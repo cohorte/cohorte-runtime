@@ -10,10 +10,10 @@
  *******************************************************************************/
 package org.psem2m.isolates.demo.services.ui.viewer.impl;
 
-import org.psem2m.isolates.base.CPojoBase;
-import org.psem2m.isolates.base.IIsolateLoggerSvc;
-import org.psem2m.isolates.base.dirs.IPlatformDirsSvc;
+import org.psem2m.isolates.base.activators.CPojoBase;
+import org.psem2m.isolates.base.activators.IIsolateLoggerSvc;
 import org.psem2m.isolates.demo.services.ui.viewer.IUiSvc;
+import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
