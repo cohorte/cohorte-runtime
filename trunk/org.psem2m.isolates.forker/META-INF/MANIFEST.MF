@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-Activator: org.psem2m.isolates.forker.CBundleForkerActivator
 Bundle-ManifestVersion: 2
-Bundle-Name: Forker
+Bundle-Name: PSEM2M Forker Service
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: org.psem2m.isolates.forker
 Bundle-Vendor: isandlatech.com
