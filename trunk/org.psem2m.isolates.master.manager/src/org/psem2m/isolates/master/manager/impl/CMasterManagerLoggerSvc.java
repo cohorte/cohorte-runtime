@@ -21,6 +21,10 @@ import org.psem2m.utilities.logging.IActivityLoggerBase;
 public class CMasterManagerLoggerSvc extends CBundleLoggerBase implements
 	IActivityLoggerBase {
 
+    public CMasterManagerLoggerSvc() {
+	super();
+    }
+
     /*
      * (non-Javadoc)
      * 
