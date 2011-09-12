@@ -21,7 +21,7 @@
 	<component classname="org.psem2m.isolates.config.impl.CJsonConfigSvc"
 		architecture="true" immediate="true" name="isolates-config-factory">
 
-		<provides specifications="org.psem2m.isolates.base.conf.ISvcConfig" />
+		<provides specifications="org.psem2m.isolates.services.conf.ISvcConfig" />
 
 		<requires field="pLoggerSvc" optional="false"
 			from="isolates-config-logger" />

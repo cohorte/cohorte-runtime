@@ -51,7 +51,7 @@
 	<component classname="org.psem2m.isolates.forker.impl.CForkerSvc"
 		architecture="true" immediate="true" name="isolate-forker-factory"
 		public="false">
-		<provides specifications="org.psem2m.isolates.commons.forker.IForker" />
+		<provides specifications="org.psem2m.isolates.services.forker.IForker" />
 
 		<!-- Needed to export instance properties -->
 		<properties propagation="true" />

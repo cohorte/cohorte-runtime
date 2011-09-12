@@ -7,7 +7,7 @@
 	<component classname="org.psem2m.remote.client.rose.RoseClientHandler"
 		architecture="true" immediate="true" name="remote-client-handler-rose-factory">
 
-		<provides specifications="org.psem2m.isolates.commons.remote.IRemoteServiceClientHandler" />
+		<provides specifications="org.psem2m.isolates.services.remote.IRemoteServiceClientHandler" />
 		
 		<requires field="pProxyFactories" optional="false" />
 

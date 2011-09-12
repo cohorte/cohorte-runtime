@@ -7,7 +7,7 @@
 	<component classname="org.psem2m.remote.endpoint.rose.RoseEndpointHandler"
 		architecture="true" immediate="true" name="remote-endpoint-handler-rose-factory">
 
-		<provides specifications="org.psem2m.isolates.commons.remote.IEndpointHandler" />
+		<provides specifications="org.psem2m.isolates.services.remote.IEndpointHandler" />
 
 		<callback transition="validate" method="validatePojo" />
 		<callback transition="invalidate" method="invalidatePojo" />

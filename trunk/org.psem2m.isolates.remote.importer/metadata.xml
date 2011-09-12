@@ -7,7 +7,7 @@
 	<component classname="org.psem2m.isolates.remote.importer.RemoteServiceAdapter"
 		architecture="true" immediate="true" name="remote-service-adapter-factory">
 
-		<provides specifications="org.psem2m.isolates.commons.remote.IRemoteServiceEventListener" />
+		<provides specifications="org.psem2m.isolates.services.remote.IRemoteServiceEventListener" />
 		
 		<requires field="pClientHandlers" optional="false" />
 
