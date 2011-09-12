@@ -7,13 +7,13 @@
 # files for that.
 #
 
-# FIXME jUnit is needed by Utilities
-org.apache.felix.ipojo.junit4osgi
+# Basic constants and remote beans
+org.psem2m.isolates.constants
 
 # Utility classes
 org.psem2m.isolates.utilities
 
-# Base services (finders, ...)
+# Base services exports
 org.psem2m.isolates.base
 
 # Log services
