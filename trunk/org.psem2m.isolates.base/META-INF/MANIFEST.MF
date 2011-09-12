@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Bundle-Activator: org.psem2m.isolates.base.CBundleBaseActivator
+Bundle-Activator: org.psem2m.isolates.base.internal.CBundleBaseActivator
 Bundle-ManifestVersion: 2
 Bundle-Name: PSEM2M Base services
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6

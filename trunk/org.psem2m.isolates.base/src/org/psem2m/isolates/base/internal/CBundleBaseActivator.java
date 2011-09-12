@@ -9,20 +9,26 @@
  *    ogattaz (isandlaTech) - initial API and implementation
  *    Thomas Calmant (isandlaTech) - Pure OSGi convertion
  *******************************************************************************/
-package org.psem2m.isolates.base;
+package org.psem2m.isolates.base.internal;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.log.LogReaderService;
+import org.osgi.service.log.LogService;
 import org.psem2m.isolates.base.bundles.IBundleFinderSvc;
 import org.psem2m.isolates.base.bundles.impl.CBundleFinderSvc;
 import org.psem2m.isolates.base.dirs.impl.CFileFinderSvc;
 import org.psem2m.isolates.base.dirs.impl.CPlatformDirsSvc;
 import org.psem2m.isolates.services.dirs.IFileFinderSvc;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
+import org.psem2m.utilities.logging.CActivityLoggerBasic;
+import org.psem2m.utilities.logging.IActivityLogger;
+import org.psem2m.utilities.logging.IActivityLoggerBase;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
@@ -30,11 +36,29 @@ import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
  */
 public class CBundleBaseActivator implements BundleActivator {
 
+    /** Maximum log files for the LogService */
+    public static final int LOG_FILES_COUNT = 5;
+
+    /** Maximum log file size (100 Mo) */
+    public static final int LOG_FILES_SIZE = 100 * 1024 * 1024;
+
+    /** Log service underlying logger */
+    private IActivityLogger pActivityLogger;
+
     /** Bundle finder service */
     private CBundleFinderSvc pBundleFinderSvc;
 
     /** File finder service */
     private CFileFinderSvc pFileFinderSvc;
+
+    /** Internal log handler */
+    private CLogInternal pLogInternal;
+
+    /** Log reader service factory */
+    private CLogReaderServiceFactory pLogReaderServiceFactory;
+
+    /** Log service factory */
+    private CLogServiceFactory pLogServiceFactory;
 
     /** Platform directories service */
     private CPlatformDirsSvc pPlatformDirsSvc;
@@ -71,6 +95,87 @@ public class CBundleBaseActivator implements BundleActivator {
     }
 
     /**
+     * Prepares the activity logger
+     * 
+     * @return The activity logger
+     * @throws Exception
+     *             An error occurred while preparing the logger
+     */
+    protected IActivityLogger getLogger() throws Exception {
+
+	// Be sure we have a valid platform service instance
+	if (pPlatformDirsSvc == null) {
+	    getPlatformDirs();
+	}
+
+	if (pActivityLogger == null) {
+
+	    final StringBuilder pathBuilder = new StringBuilder(
+		    pPlatformDirsSvc.getIsolateLogDir().getAbsolutePath());
+	    pathBuilder.append(File.separator);
+	    pathBuilder.append("LogService-%g.txt");
+
+	    pActivityLogger = CActivityLoggerBasic.newLogger(
+		    pPlatformDirsSvc.getIsolateId() + "-LogService",
+		    pathBuilder.toString(), IActivityLoggerBase.ALL,
+		    LOG_FILES_SIZE, LOG_FILES_COUNT);
+
+	}
+
+	return pActivityLogger;
+    }
+
+    /**
+     * Creates or retrieves an instance of the internal log handler
+     * 
+     * @return the internal log handler
+     * @throws Exception
+     *             An error occurred while preparing the underlying logger
+     */
+    public CLogInternal getLogInternal() throws Exception {
+
+	if (pLogInternal == null) {
+	    pLogInternal = new CLogInternal(getLogger());
+	}
+
+	return pLogInternal;
+    }
+
+    /**
+     * Creates or retrieves an instance of the log reader service factory
+     * 
+     * @return the log reader service factory
+     * @throws Exception
+     *             An error occurred while preparing the underlying logger
+     */
+    public CLogReaderServiceFactory getLogReaderServiceFactory()
+	    throws Exception {
+
+	if (pLogReaderServiceFactory == null) {
+	    pLogReaderServiceFactory = new CLogReaderServiceFactory(
+		    getLogInternal());
+	}
+
+	return pLogReaderServiceFactory;
+    }
+
+    /**
+     * Creates or retrieves an instance of the log service factory
+     * 
+     * @return A log service factory instance
+     * @throws Exception
+     *             An error occurred while preparing the underlying logger
+     */
+    public CLogServiceFactory getLogServiceFactory() throws Exception {
+
+	if (pLogServiceFactory == null) {
+	    pLogServiceFactory = new CLogServiceFactory(getLogInternal());
+	}
+
+	return pLogServiceFactory;
+    }
+
+    /**
      * Creates or retrieves an instance of the platform directories registry
      * 
      * @return A platform directories registry instance
@@ -100,6 +205,23 @@ public class CBundleBaseActivator implements BundleActivator {
 	registration = aBundleContext.registerService(
 		IPlatformDirsSvc.class.getName(), getPlatformDirs(), null);
 	pRegisteredServices.add(registration);
+
+	try {
+	    // LogService interface
+	    registration = aBundleContext.registerService(
+		    LogService.class.getName(), getLogServiceFactory(), null);
+	    pRegisteredServices.add(registration);
+
+	    // LogReader service interface
+	    registration = aBundleContext.registerService(
+		    LogReaderService.class.getName(),
+		    getLogReaderServiceFactory(), null);
+	    pRegisteredServices.add(registration);
+
+	} catch (Exception e) {
+	    System.err.println("Can't create the log service factory");
+	    e.printStackTrace();
+	}
 
 	// Register the file finder
 	registration = aBundleContext.registerService(
