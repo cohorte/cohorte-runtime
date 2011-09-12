@@ -225,10 +225,13 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
 			    pInstalledBundles.get(bundleId).getSymbolicName(),
 			    ex);
 		}
-
-		// Consider the bundle as removed
-		pInstalledBundles.remove(bundleId);
 	    }
+
+	    /*
+	     * Clear the map (outside the loop : do not touch the map in a
+	     * foreach loop)
+	     */
+	    pInstalledBundles.clear();
 	}
     }
 
