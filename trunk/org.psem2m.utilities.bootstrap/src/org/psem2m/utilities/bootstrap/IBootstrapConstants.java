@@ -5,7 +5,6 @@
  */
 package org.psem2m.utilities.bootstrap;
 
-
 /**
  * Common bootstrap constants
  * 
@@ -23,9 +22,6 @@ public interface IBootstrapConstants {
     /** Framework configuration key */
     String CONFIG_FRAMEWORK = IBootstrapConstants.BOOTSTRAP_PROPERTY_PREFIX
 	    + "osgi.framework";
-
-    /** OSGi bundles list file */
-    String FILE_OSGI_BUNDLES = "osgi.bundles";
 
     /** Platform bundles list file */
     String FILE_PLATFORM_BUNDLES = "psem2m.bundles";

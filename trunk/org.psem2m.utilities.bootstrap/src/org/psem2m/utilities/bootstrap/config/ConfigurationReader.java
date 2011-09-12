@@ -79,21 +79,14 @@ public class ConfigurationReader {
     }
 
     /**
-     * Reads and parses the base configuration files
+     * Reads and parses the base configuration file
      * 
      * @throws IOException
-     *             An error occurred reading those files
+     *             An error occurred reading this file
      */
     public URL[] readConfiguration() throws IOException {
 
-	// Find bundle files
-	final File osgiFile = pFileFinder
-		.findInConfiguration(IBootstrapConstants.FILE_OSGI_BUNDLES);
-	if (osgiFile == null) {
-	    throw new IOException("Can't find the base file '"
-		    + IBootstrapConstants.FILE_OSGI_BUNDLES + "'");
-	}
-
+	// Find bundle file
 	final File platformFile = pFileFinder
 		.findInConfiguration(IBootstrapConstants.FILE_PLATFORM_BUNDLES);
 	if (platformFile == null) {
@@ -102,14 +95,11 @@ public class ConfigurationReader {
 	}
 
 	// Parse them all
-	final String[] osgiBundles = readStringLines(new FileInputStream(
-		osgiFile));
 	final String[] platformBundles = readStringLines(new FileInputStream(
 		platformFile));
 
 	// Linked set, to avoid duplication and keep order
 	final Set<URL> bundlesUrls = new LinkedHashSet<URL>();
-	bundlesUrls.addAll(stringsToURLs(osgiBundles));
 	bundlesUrls.addAll(stringsToURLs(platformBundles));
 	return bundlesUrls.toArray(new URL[0]);
     }
