@@ -18,10 +18,6 @@
             "optional":true
         },
         {
-            "symbolicName":"org.psem2m.isolates.commons",
-            "optional":true
-        },
-        {
             "symbolicName":"org.psem2m.remote.client.rose",
             "optional":true
         },

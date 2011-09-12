@@ -85,12 +85,12 @@ read_framework_file() {
 }
 
 #
-# Clear the /var/work directory
+# Clear the /var/work directories content
 #
 clear_cache() {
-    rm -fr "./var/work"
-    rm -fr "$PSEM2M_BASE/var/work"
-    rm -fr "$PSEM2M_HOME/var/work"
+    rm -fr "./var/work/*"
+    rm -fr "$PSEM2M_BASE/var/work/*"
+    rm -fr "$PSEM2M_HOME/var/work/*"
 }
 
 #
@@ -99,6 +99,7 @@ clear_cache() {
 start() {
     echo "Cleaning cache..."
     clear_cache
+    mkdir -p $PSEM2M_BASE/var
 
     echo "Starting platform..."
     local MONITOR_PID_FILE="$PSEM2M_BASE/var/monitor.pid"
@@ -149,89 +150,6 @@ stop() {
     fi
 }
 
-#
-# Writes the script to be used to start the forker isolate
-#
-write_forker_starter() {
-
-    # Prepare the file
-    local OUTPUT_FILE=$PSEM2M_BASE/$FORKER_SCRIPT_FILE
-    mkdir -p `dirname $OUTPUT_FILE`
-    touch $OUTPUT_FILE
-
-    # Make it executable
-    chmod +x $OUTPUT_FILE
-
-    # Find the forker configuration files
-    local framework_file=$(find_conf_file $FORKER_FRAMEWORK_FILENAME)
-    if [ -z $framework_file ]
-    then
-        echo "Error: Can't find the forker framework file '$FORKER_FRAMEWORK_FILENAME'" >&2
-        return 1
-    fi
-
-    # Read the framework file name and test if it really exists
-    local framework_bundle=$(read_framework_file $framework_file)
-    if [ -z $framework_bundle ]
-    then
-        echo "Error: can't read the OSGi framework main bundle name in $framework_file"
-        return 1
-    fi
-
-    local framework_bundle_file=$(find_bundle_file $framework_bundle)
-    if [ ! -e $framework_bundle_file ]
-    then
-        echo "Error: can't find the OSGi framework main bundle file '$framework_bundle'"
-        return 1
-    fi
-
-    # Try to find the base platform provisionning file
-    local provision_file=$(find_conf_file $FORKER_PROVISION_FILENAME)
-    if [ -z $provision_file ]
-    then
-        echo "Error: Can't find the platform provision file '$FORKER_PROVISION_FILENAME'" >&2
-        return 1
-    fi
-
-    # Write it down
-
-    # First part : constants
-    echo "#!/bin/bash
-
-# Constants
-FORKER_PID_FILE=\"$PSEM2M_BASE/var/forker.lock\"
-" > $OUTPUT_FILE
-
-    # Second part : PID test
-    echo '
-# Test if the forker is already running...
-forker_pid=$(cat $FORKER_PID_FILE 2>/dev/null)
-
-if [ -n $forker_pid ]
-then
-    # Non empty string, test the given PID
-    ps --no-headers --pid $forker_pid >/dev/null 2>&1
-    if [ $? -eq 0 ]
-    then
-        echo Forker already running with PID $forker_pid >&2
-        exit 1
-    fi
-fi
-' >> $OUTPUT_FILE
-
-    # Third part : the bootstrap line
-    echo "
-# Run the forker isolate
-$PSEM2M_JAVA $JVM_FORKER_EXTRA_ARGS -cp \"$BOOTSTRAP_FILE:$framework_bundle_file\" $BOOTSTRAP_MAIN_CLASS --human --lines --file=\"$provision_file\" $PROP_PLATFORM_HOME=\"$PSEM2M_HOME\" $PROP_PLATFORM_BASE=\"$PSEM2M_BASE\" $PROP_PLATFORM_ISOLATE_ID=\"$FORKER_ISOLATE_ID\" org.osgi.service.http.port=9001 org.apache.felix.http.jettyEnabled=true osgi.shell.telnet.port=6001 $PROG_FORKER_EXTRA_ARGS &
-" >> $OUTPUT_FILE
-
-    # Fourth (and last) part : the PID file
-    echo '
-# Write the forker PID
-echo $! > $FORKER_PID_FILE
-' >> $OUTPUT_FILE
-}
-
 prepare_debug() {
 
     DEBUG_MODE=1
@@ -259,7 +177,7 @@ prepare_debug() {
 }
 
 help() {
-    echo "Usage : $0 (start|debug|stop|status|test)"
+    echo "Usage : $0 (start|debug|stop|status)"
     return 0
 }
 
@@ -324,25 +242,18 @@ cd $PSEM2M_BASE
 case $1 in
     start)
         echo "========== Start =========="
-        write_forker_starter
         start
         ;;
 
     debug)
         echo "========== Debug =========="
         prepare_debug
-        write_forker_starter
         start
         ;;
 
     stop)
         echo "========== Stop  =========="
         stop
-        ;;
-
-    test)
-        echo "=========== Test =========="
-        write_forker_starter
         ;;
 
     *)
