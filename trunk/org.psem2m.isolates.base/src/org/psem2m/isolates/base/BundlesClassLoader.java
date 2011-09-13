@@ -3,10 +3,9 @@
  * Author: Thomas Calmant
  * Date:   28 juil. 2011
  */
-package org.psem2m.remote.client.rose;
+package org.psem2m.isolates.base;
 
 import org.osgi.framework.BundleContext;
-import org.psem2m.isolates.base.Utilities;
 
 /**
  * "Fake" Class loader, trying to load a class that could be in one of the
@@ -72,6 +71,6 @@ public class BundlesClassLoader extends ClassLoader {
      */
     @Override
     public String toString() {
-	return "BundeLoader(" + super.toString() + ")";
+	return "BundleLoader(" + super.toString() + ")";
     }
 }

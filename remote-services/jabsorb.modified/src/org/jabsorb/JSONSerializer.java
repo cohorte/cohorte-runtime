@@ -598,6 +598,21 @@ public class JSONSerializer implements Serializable {
     }
 
     /**
+     * Sets up the class loader to be used by the serializer
+     * 
+     * FIXME added by Thomas Calmant
+     * 
+     * @param aClassLoader
+     *            The new class loader to use
+     */
+    public synchronized void setClassLoader(final ClassLoader aClassLoader) {
+
+	if (aClassLoader != null) {
+	    classLoader = aClassLoader;
+	}
+    }
+
+    /**
      * Set the fixupCircRefs flag. If true, FixUps are generated to handle
      * circular references found during marshalling. If false, an exception is
      * thrown if a circular reference is found during serialization.

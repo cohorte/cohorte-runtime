@@ -12,6 +12,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.ow2.chameleon.rose.client.RemoteClientFactory;
 import org.ow2.chameleon.rose.client.RemoteProxyFactory;
+import org.psem2m.isolates.base.BundlesClassLoader;
 import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.services.remote.IRemoteServiceClientHandler;

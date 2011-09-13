@@ -19,7 +19,8 @@ Import-Package: javax.servlet;version=2.5, org.apache.felix.ipojo;vers
  , org.osgi.service.http;version=1.2, org.osgi.service.log;version=1.3
  , org.osgi.util.tracker;version=1.4, org.ow2.chameleon.rose;version=0
  .2, org.ow2.chameleon.rose.pub;version=0.2, org.ow2.chameleon.rose.se
- rver;version=0.2, org.ow2.chameleon.rose.util;version=0.2
+ rver;version=0.2, org.ow2.chameleon.rose.util;version=0.2, org.psem2m
+ .isolates.base;version=1.0.0
 Tool: Bnd-0.0.357
 iPOJO-Components: instance { $component="rose.component.jsonrpc.endpoi
  nt.factory" $name="org.ow2.chameleon.rose.server.EndpointFactory-JSON
@@ -36,18 +37,20 @@ iPOJO-Components: instance { $component="rose.component.jsonrpc.endpoi
  me="jsonbridge" $type="org.jabsorb.JSONRPCBridge" }field { $name="gzi
  p_threshold" $type="java.lang.String" }field { $name="logger" $type="
  org.osgi.service.log.LogService" }field { $name="httpservice" $type="
- org.osgi.service.http.HttpService" }method { $name="$init" }method { 
- $arguments="{java.lang.Object,java.lang.ClassLoader,java.util.Map}" $
- name="createEndpoint" }method { $arguments="{java.lang.Object,java.ut
- il.Map}" $name="createEndpoint" }method { $arguments="{java.lang.Stri
- ng}" $name="destroyEndpoint" }method { $name="getConfigs" $return="ja
- va.lang.String[]" }method { $arguments="{java.lang.String}" $name="ge
- tEndpointBaseUri" $return="java.lang.String" }method { $arguments="{j
- ava.lang.String}" $name="getEndpointPort" $return="int" }method { $ar
- guments="{java.lang.String}" $name="getEndpointProtocol" $return="jav
- a.lang.String" }method { $name="start" }method { $name="stop" }interf
- ace { $name="org.ow2.chameleon.rose.server.EndpointFactory" }}require
- s { $field="httpservice" $optional="false" }requires { $field="logger
- " $default-implementation="org.ow2.chameleon.rose.util.LogServiceImpl
- " $optional="true" }}
+ org.osgi.service.http.HttpService" }field { $name="pBundleContext" $t
+ ype="org.osgi.framework.BundleContext" }method { $arguments="{org.osg
+ i.framework.BundleContext}" $name="$init" }method { $arguments="{java
+ .lang.Object,java.lang.ClassLoader,java.util.Map}" $name="createEndpo
+ int" }method { $arguments="{java.lang.Object,java.util.Map}" $name="c
+ reateEndpoint" }method { $arguments="{java.lang.String}" $name="destr
+ oyEndpoint" }method { $name="getConfigs" $return="java.lang.String[]"
+  }method { $arguments="{java.lang.String}" $name="getEndpointBaseUri"
+  $return="java.lang.String" }method { $arguments="{java.lang.String}"
+  $name="getEndpointPort" $return="int" }method { $arguments="{java.la
+ ng.String}" $name="getEndpointProtocol" $return="java.lang.String" }m
+ ethod { $name="start" }method { $name="stop" }interface { $name="org.
+ ow2.chameleon.rose.server.EndpointFactory" }}requires { $field="https
+ ervice" $optional="false" }requires { $field="logger" $default-implem
+ entation="org.ow2.chameleon.rose.util.LogServiceImpl" $optional="true
+ " }}
 

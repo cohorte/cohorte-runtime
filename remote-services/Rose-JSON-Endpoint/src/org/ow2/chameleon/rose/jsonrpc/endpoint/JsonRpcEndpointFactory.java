@@ -8,10 +8,12 @@ import java.util.Set;
 
 import org.jabsorb.JSONRPCBridge;
 import org.jabsorb.JSONRPCServlet;
+import org.osgi.framework.BundleContext;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 import org.osgi.service.log.LogService;
 import org.ow2.chameleon.rose.server.EndpointFactory;
+import org.psem2m.isolates.base.BundlesClassLoader;
 
 /**
  * This component provides a JsonRpc, jabsorb.org based implementation of an
@@ -57,6 +59,9 @@ public class JsonRpcEndpointFactory implements EndpointFactory {
      */
     private LogService logger;
 
+    /** The bundle context */
+    private BundleContext pBundleContext;
+
     /**
      * The Servlet name of the JSON-RPC bridge.
      */
@@ -65,8 +70,9 @@ public class JsonRpcEndpointFactory implements EndpointFactory {
     /**
      * Default constructor, for iPOJO
      */
-    public JsonRpcEndpointFactory() {
+    public JsonRpcEndpointFactory(final BundleContext aBundleContext) {
 	super();
+	pBundleContext = aBundleContext;
     }
 
     /*
@@ -260,6 +266,10 @@ public class JsonRpcEndpointFactory implements EndpointFactory {
 	// Set the bridge to a global bridge. (HttpSession are not managed here)
 	// TODO support the HttpSession
 	jsonbridge = JSONRPCBridge.getGlobalBridge();
+
+	final BundlesClassLoader classLoader = new BundlesClassLoader(
+		pBundleContext);
+	JSONRPCBridge.getSerializer().setClassLoader(classLoader);
     }
 
     /**
