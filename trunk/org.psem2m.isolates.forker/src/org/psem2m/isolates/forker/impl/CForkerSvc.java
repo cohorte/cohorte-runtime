@@ -86,18 +86,18 @@ public class CForkerSvc extends CPojoBase implements IForker {
      * .base.conf.IIsolateDescr)
      */
     @Override
-    public final void startIsolate(final IIsolateDescr aIsolateConfiguration)
-	    throws Exception {
+    public final EStartError startIsolate(
+	    final IIsolateDescr aIsolateConfiguration) {
 
 	final String isolateId = aIsolateConfiguration.getId();
-
 	pBundleForkerLoggerSvc.logInfo(this, "startIsolate",
 		"Trying to launch =", isolateId);
 
 	// Test if the isolate is already running
 	if (pRunningIsolates.containsKey(isolateId)) {
-	    throw new Exception("The isolate '" + isolateId
-		    + "' is already running");
+	    // throw new Exception("The isolate '" + isolateId
+	    // + "' is already running");
+	    return EStartError.ALREADY_RUNNING;
 	}
 
 	// Find the runner for this isolate
@@ -113,20 +113,31 @@ public class CForkerSvc extends CPojoBase implements IForker {
 
 	// Fail if no runner was found
 	if (isolateRunner == null) {
-	    throw new Exception("No runner for : "
-		    + aIsolateConfiguration.getKind());
+	    // throw new Exception("No runner for : "
+	    // + aIsolateConfiguration.getKind());
+	    return EStartError.UNKNOWN_KIND;
 	}
 
 	// Run it
-	IProcessRef isolateRef = isolateRunner
-		.startIsolate(aIsolateConfiguration);
+	final IProcessRef isolateRef;
+
+	try {
+	    isolateRef = isolateRunner.startIsolate(aIsolateConfiguration);
+
+	} catch (Exception e) {
+	    e.printStackTrace();
+	    return EStartError.RUNNER_EXCEPTION;
+	}
 
 	if (isolateRef == null) {
-	    throw new Exception("No reference to the isolate process. Abort.");
+	    // throw new
+	    // Exception("No reference to the isolate process. Abort.");
+	    return EStartError.NO_PROCESS_REF;
 	}
 
 	// Store it
 	pRunningIsolates.put(isolateId, isolateRef);
+	return EStartError.SUCCESS;
     }
 
     /*

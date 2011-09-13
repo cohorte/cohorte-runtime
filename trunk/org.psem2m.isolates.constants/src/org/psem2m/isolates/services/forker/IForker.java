@@ -26,6 +26,10 @@ public interface IForker {
 	ALIVE, DEAD, STUCK,
     }
 
+    enum EStartError {
+	ALREADY_RUNNING, NO_PROCESS_REF, RUNNER_EXCEPTION, SUCCESS, UNKNOWN_KIND
+    }
+
     /**
      * Tests the given isolate state
      * 
@@ -50,8 +54,9 @@ public interface IForker {
      * @throws Exception
      *             An error occurred while preparing or starting the isolate
      */
-    void startIsolate(IIsolateDescr aIsolateConfiguration) throws IOException,
-	    InvalidParameterException, Exception;
+    EStartError startIsolate(IIsolateDescr aIsolateConfiguration);
+
+    // throws IOException, InvalidParameterException, Exception;
 
     /**
      * Kills the process with the given isolate ID
