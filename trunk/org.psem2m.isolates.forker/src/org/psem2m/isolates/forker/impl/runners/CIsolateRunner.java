@@ -478,6 +478,9 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
 	// Set debug mode, if needed
 	setupDebugMode(javaOptions);
 
+	// Add isolate VM arguments
+	javaOptions.addAll(aIsolateConfiguration.getVMArgs());
+
 	// Add the Bootstrap main class name
 	javaOptions.add(IBundleFinderSvc.BOOTSTRAP_MAIN_CLASS);
 
