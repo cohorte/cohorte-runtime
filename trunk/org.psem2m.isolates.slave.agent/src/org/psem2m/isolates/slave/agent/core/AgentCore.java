@@ -11,6 +11,7 @@ import java.util.Map;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.psem2m.isolates.base.activators.CPojoBase;
@@ -205,6 +206,19 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
 	if (pGuardianThread != null && pGuardianThread.isAlive()) {
 	    pGuardianThread.interrupt();
 	}
+    }
+
+    /**
+     * Tests if the given bundle is a fragment. Fragment bundles can't be
+     * started.
+     * 
+     * @param aBundle
+     *            Bundle to be tested
+     * @return True if the bundle is a fragment
+     */
+    public boolean isFragment(final Bundle aBundle) {
+
+	return aBundle.getHeaders().get(Constants.FRAGMENT_HOST) != null;
     }
 
     /*
@@ -438,7 +452,12 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
 	    return false;
 	}
 
-	bundle.start();
+	if (!isFragment(bundle)) {
+	    // Fragments can't be started
+	    bundle.start();
+	}
+
+	// Ignore the fact that the bundle is a fragment
 	return true;
     }
 
