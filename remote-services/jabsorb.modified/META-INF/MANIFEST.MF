@@ -16,7 +16,8 @@ Created-By: Apache Maven Bundle Plugin
 Import-Package: javax.servlet,
  javax.servlet.http,
  org.apache.commons.httpclient;resolution:=optional,
- org.apache.commons.httpclient.methods;resolution:=optional
+ org.apache.commons.httpclient.methods;resolution:=optional,
+ org.slf4j;version="1.6.2"
 Bundle-DocURL: http://wiki.chameleon.ow2.org/xwiki/bin/view/Main
 Tool: Bnd-1.43.0
 Bnd-LastModified: 1311850690191

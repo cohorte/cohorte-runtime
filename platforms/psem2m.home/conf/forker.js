@@ -1,6 +1,11 @@
 {
     "id":"org.psem2m.internals.isolates.forker",
     "kind":"felix",
+    "vmArgs":[
+        "-Dosgi.shell.telnet.port=6001",
+        "-Dorg.osgi.service.http.port=9001",
+        "-Dorg.apache.felix.http.jettyEnabled=true"
+    ],
     "bundles":[
         {
             "symbolicName":"org.psem2m.isolates.demo.services.ui.viewer",

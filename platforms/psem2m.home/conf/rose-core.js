@@ -3,6 +3,12 @@
         "symbolicName":"org.apache.felix.http.bundle"
     },
     {
+        "symbolicName":"slf4j.api"
+    },
+    {
+        "symbolicName":"slf4j.jdk14"
+    },
+    {
         "symbolicName":"org.ow2.chameleon.commons.jabsorb"
     },
     {

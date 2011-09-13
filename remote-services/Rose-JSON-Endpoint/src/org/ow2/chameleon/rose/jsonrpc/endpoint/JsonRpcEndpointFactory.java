@@ -62,6 +62,13 @@ public class JsonRpcEndpointFactory implements EndpointFactory {
      */
     private String servletname;
 
+    /**
+     * Default constructor, for iPOJO
+     */
+    public JsonRpcEndpointFactory() {
+	super();
+    }
+
     /*
      * (non-Javadoc)
      * 
