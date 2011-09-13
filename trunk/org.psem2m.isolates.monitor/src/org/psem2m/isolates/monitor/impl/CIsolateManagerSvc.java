@@ -12,12 +12,13 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.psem2m.isolates.base.activators.CPojoBase;
+import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.monitor.IBundleMonitorLoggerService;
 import org.psem2m.isolates.monitor.IIsolateListener;
 import org.psem2m.isolates.monitor.IIsolateManager;
 import org.psem2m.isolates.services.conf.IIsolateDescr;
+import org.psem2m.isolates.services.conf.ISvcConfig;
 import org.psem2m.isolates.services.forker.IForker;
-import org.psem2m.isolates.services.forker.IForker.EProcessState;
 import org.psem2m.utilities.CXTimer;
 
 /**
@@ -27,30 +28,26 @@ import org.psem2m.utilities.CXTimer;
 public class CIsolateManagerSvc extends CPojoBase implements IIsolateManager,
 	IIsolateListener {
 
-    /** Service reference managed by iPojo (see metadata.xml) **/
+    /** Logger, injected by iPOJO **/
     private IBundleMonitorLoggerService pBundleMonitorLoggerSvc;
 
-    /** Forker service */
-    private IForker pForker;
+    /** Configuration service, injected by iPOJO */
+    private ISvcConfig pConfigurationSvc;
+
+    /** Forker service, injected by iPOJO */
+    private IForker pForkerSvc;
 
     /** Isolate monitors */
     private final Map<String, ProcessMonitorThread> pMonitors = new TreeMap<String, ProcessMonitorThread>();
 
-    /** Possible isolates */
-    private final Map<String, IIsolateDescr> pPossibleIsolates = new TreeMap<String, IIsolateDescr>();
-
     /** Platform running */
     private boolean pRunning = false;
-
-    /** Running isolates */
-    private final Map<String, ProcessConfiguration> pRunningIsolates = new TreeMap<String, ProcessConfiguration>();
 
     /**
      * Initiates the manager
      */
     public CIsolateManagerSvc() {
 	super();
-	// reloadConfiguration(null, true);
     }
 
     /*
@@ -63,24 +60,14 @@ public class CIsolateManagerSvc extends CPojoBase implements IIsolateManager,
 	// ...
     }
 
-    /**
-     * Return pPossibleIsolates.
+    /*
+     * (non-Javadoc)
      * 
-     * @return pPossibleIsolates
+     * @see org.psem2m.isolates.monitor.IIsolateManager#getRunningIsolates()
      */
     @Override
-    public Collection<IIsolateDescr> getPossibleIsolates() {
-	return pPossibleIsolates.values();
-    }
-
-    /**
-     * Return pRunningIsolates.
-     * 
-     * @return pRunningIsolates
-     */
-    @Override
-    public Collection<ProcessConfiguration> getRunningIsolates() {
-	return pRunningIsolates.values();
+    public Collection<String> getRunningIsolates() {
+	return pMonitors.keySet();
     }
 
     /*
@@ -97,6 +84,38 @@ public class CIsolateManagerSvc extends CPojoBase implements IIsolateManager,
 	stopPlatform();
     }
 
+    /**
+     * Tests if the given isolate ID is an internal one, therefore if it should
+     * be ignored while starting the platform.
+     * 
+     * @param aIsolateId
+     *            ID to be tested
+     * @return True if the ID should be ignored
+     */
+    protected boolean isInternalIsolate(final String aIsolateId) {
+
+	if (aIsolateId == null) {
+	    // Invalid ID, don't use it
+	    return true;
+	}
+
+	if (aIsolateId
+		.startsWith(IPlatformProperties.SPECIAL_INTERNAL_ISOLATES_PREFIX)) {
+	    // The ID begins with the internal prefix
+	    return true;
+	}
+
+	final String currentId = System
+		.getProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID);
+	if (aIsolateId.equals(currentId)) {
+	    // Current isolate ID is an internal one
+	    return true;
+	}
+
+	// Play with it
+	return false;
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -110,8 +129,14 @@ public class CIsolateManagerSvc extends CPojoBase implements IIsolateManager,
 	pBundleMonitorLoggerSvc.logInfo(this, "IsolateMonitor",
 		"Isolate stopped : ", aIsolateId);
 
-	pRunningIsolates.remove(aIsolateId);
-	pMonitors.remove(aIsolateId);
+	if (pMonitors.containsKey(aIsolateId)) {
+	    // Stop the monitor
+	    Thread monitor = pMonitors.get(aIsolateId);
+	    monitor.interrupt();
+
+	    // Remove it from the map
+	    pMonitors.remove(aIsolateId);
+	}
 
 	if (pRunning) {
 	    // Restart isolate
@@ -128,12 +153,18 @@ public class CIsolateManagerSvc extends CPojoBase implements IIsolateManager,
      */
     @Override
     public void monitorStopped(final String aIsolateId) {
+
 	pBundleMonitorLoggerSvc.logWarn(this, "IsolateMonitor",
 		"Monitor stopped before the isolate : ", aIsolateId);
 
 	pMonitors.remove(aIsolateId);
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.monitor.IIsolateManager#restartPlatform(boolean)
+     */
     @Override
     public boolean restartPlatform(final boolean aForce) {
 
@@ -146,20 +177,32 @@ public class CIsolateManagerSvc extends CPojoBase implements IIsolateManager,
 	return false;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.monitor.IIsolateManager#startIsolate(java.lang.String
+     * , boolean)
+     */
     @Override
     public boolean startIsolate(final String aIsolateId,
 	    final boolean aForceRestart) {
 
-	CXTimer timer = new CXTimer(true);
+	// Performance counter (for DEBUG)
+	final CXTimer timer = new CXTimer(true);
 
-	IIsolateDescr isolateConfig = pPossibleIsolates.get(aIsolateId);
+	// Get the isolate configuration
+	final IIsolateDescr isolateConfig = pConfigurationSvc.getApplication()
+		.getIsolate(aIsolateId);
 	if (isolateConfig == null) {
 	    return false;
 	}
 
 	try {
 	    // Start the process
-	    pForker.startIsolate(isolateConfig);
+	    pForkerSvc.startIsolate(isolateConfig);
+
+	    // TODO add a monitor
 
 	} catch (InvalidParameterException e) {
 	    pBundleMonitorLoggerSvc.logSevere(this, "startPlatform",
@@ -184,17 +227,22 @@ public class CIsolateManagerSvc extends CPojoBase implements IIsolateManager,
     }
 
     /**
-     * Loads the configuration for the first time
+     * Starts all isolates from the configuration that are not the current one
+     * neither internal ones
      */
     protected void startPlatform() {
 
-	for (String isolateId : pPossibleIsolates.keySet()) {
-	    startIsolate(isolateId, true);
+	for (String isolateId : pConfigurationSvc.getApplication()
+		.getIsolateIds()) {
+
+	    if (!isInternalIsolate(isolateId)) {
+		startIsolate(isolateId, true);
+	    }
 	}
 
 	pRunning = true;
 	pBundleMonitorLoggerSvc.logInfo(this, "startPlatform",
-		"Nb started isolates=[%d]", pPossibleIsolates.size());
+		"Nb monitored isolates=[%d]", pMonitors.size());
     }
 
     /*
@@ -206,7 +254,7 @@ public class CIsolateManagerSvc extends CPojoBase implements IIsolateManager,
     @Override
     public boolean stopIsolate(final String aIsolateId) {
 
-	pForker.stopIsolate(aIsolateId);
+	pForkerSvc.stopIsolate(aIsolateId);
 	return true;
     }
 
@@ -216,16 +264,22 @@ public class CIsolateManagerSvc extends CPojoBase implements IIsolateManager,
      * @see org.psem2m.isolates.monitor.IIsolateManager#stopPlatform()
      */
     @Override
-    public void stopPlatform() {
+    public synchronized void stopPlatform() {
 
 	pRunning = false;
+	int nbStopped = 0;
 
-	for (String isolateId : pRunningIsolates.keySet()) {
-	    pForker.stopIsolate(isolateId);
+	// Stop every isolate
+	for (String isolateId : pMonitors.keySet()) {
+	    pForkerSvc.stopIsolate(isolateId);
+	    nbStopped++;
 	}
 
+	// Clear the map
+	pMonitors.clear();
+
 	pBundleMonitorLoggerSvc.logInfo(this, "stopPlatform",
-		"Nb stopped isolates=[%d] ", pPossibleIsolates.size());
+		"Nb stopped isolates=[%d] ", nbStopped);
     }
 
     /*
@@ -239,10 +293,7 @@ public class CIsolateManagerSvc extends CPojoBase implements IIsolateManager,
 	pBundleMonitorLoggerSvc.logInfo(this, "validatePojo", "VALIDATE",
 		toDescription());
 
-	// Remote services test
-	EProcessState value = pForker.ping("TOTO");
-	System.out.println("Forker test :  " + value);
-
+	// Start the whole platform
 	startPlatform();
     }
 }

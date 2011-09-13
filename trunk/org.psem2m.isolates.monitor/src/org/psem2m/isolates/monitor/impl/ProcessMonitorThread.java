@@ -17,67 +17,68 @@ import org.psem2m.isolates.monitor.IIsolateListener;
  */
 public class ProcessMonitorThread extends Thread {
 
-	private final IBundleMonitorLoggerService pBundleMonitorLoggerService;
+    private final IBundleMonitorLoggerService pBundleMonitorLoggerService;
 
-	/** Monitored isolate ID */
-	private final String pIsolateId;
+    /** Monitored isolate ID */
+    private final String pIsolateId;
 
-	/** Isolate listener */
-	private final IIsolateListener pListener;
+    /** Isolate listener */
+    private final IIsolateListener pListener;
 
-	/** Monitored isolate process */
-	private final Process pProcess;
+    /** Monitored isolate process */
+    private final Process pProcess;
 
-	/**
-	 * Prepares a monitor thread
-	 * 
-	 * @param aListener
-	 *            The isolate listener
-	 * @param aIsolateId
-	 *            The isolate ID
-	 * @param aProcess
-	 *            The isolate process
-	 * @throws InvalidParameterException
-	 *             One of the parameters is null.
-	 */
-	public ProcessMonitorThread(
-			final IBundleMonitorLoggerService aBundleMonitorLoggerService,
-			final IIsolateListener aListener, final String aIsolateId,
-			final Process aProcess) throws InvalidParameterException {
+    /**
+     * Prepares a monitor thread
+     * 
+     * @param aListener
+     *            The isolate listener
+     * @param aIsolateId
+     *            The isolate ID
+     * @param aProcess
+     *            The isolate process
+     * @throws InvalidParameterException
+     *             One of the parameters is null.
+     */
+    public ProcessMonitorThread(
+	    final IBundleMonitorLoggerService aBundleMonitorLoggerService,
+	    final IIsolateListener aListener, final String aIsolateId,
+	    final Process aProcess) throws InvalidParameterException {
 
-		super();
-		pBundleMonitorLoggerService = aBundleMonitorLoggerService;
-		pListener = aListener;
-		pIsolateId = aIsolateId;
-		pProcess = aProcess;
+	// Prepare the thread
+	super("Monitor-" + aIsolateId);
+	setDaemon(true);
 
-		if (pListener == null || pIsolateId == null || pProcess == null) {
-			throw new InvalidParameterException(
-					"Isolate ID, process and listener can't be null");
-		}
+	pBundleMonitorLoggerService = aBundleMonitorLoggerService;
+	pListener = aListener;
+	pIsolateId = aIsolateId;
+	pProcess = aProcess;
 
-		setName("monitor-" + pIsolateId);
+	if (pListener == null || pIsolateId == null || pProcess == null) {
+	    throw new InvalidParameterException(
+		    "Isolate ID, process and listener can't be null");
 	}
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Thread#run()
-	 */
-	@Override
-	public void run() {
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Thread#run()
+     */
+    @Override
+    public void run() {
 
-		try {
-			// Use a IForker.ping() loop instead of a blocking waitFor()
-			pProcess.waitFor();
-			// pListener.isolateStopped(pIsolateId);
+	try {
+	    // Use a IForker.ping() loop instead of a blocking waitFor()
+	    pProcess.waitFor();
+	    // pListener.isolateStopped(pIsolateId);
 
-		} catch (InterruptedException e) {
+	} catch (InterruptedException e) {
 
-			pBundleMonitorLoggerService.logSevere(this, "Monitor process",
-					"Interrupted : ", e);
+	    pBundleMonitorLoggerService.logSevere(this, "Monitor process",
+		    "Interrupted : ", e);
 
-			pListener.monitorStopped(pIsolateId);
-		}
+	    pListener.monitorStopped(pIsolateId);
 	}
+    }
 }

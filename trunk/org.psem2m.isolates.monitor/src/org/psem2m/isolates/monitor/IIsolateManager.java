@@ -5,28 +5,18 @@ package org.psem2m.isolates.monitor;
 
 import java.util.Collection;
 
-import org.psem2m.isolates.commons.IIsolateConfiguration;
-import org.psem2m.isolates.commons.forker.ProcessConfiguration;
-
 /**
  * Describes an IsolateMaanger, the "monitor".
  */
 public interface IIsolateManager {
 
     /**
-     * Retrieves the list of the isolates defined in the configuration file.
+     * Retrieves the list of isolate IDs started by the monitor and considered
+     * as running.
      * 
-     * @return The list of defined isolates
+     * @return The list of isolate IDs started by this monitor.
      */
-    public Collection<IIsolateConfiguration> getPossibleIsolates();
-
-    /**
-     * Retrieves the list of isolates started by the monitor and considered as
-     * running.
-     * 
-     * @return The list of isolates started by this monitor.
-     */
-    public Collection<ProcessConfiguration> getRunningIsolates();
+    public Collection<String> getRunningIsolates();
 
     /**
      * Restarts the whole platform and its isolates.
