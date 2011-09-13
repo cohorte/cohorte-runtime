@@ -42,5 +42,5 @@ public interface IBundleDescr extends Serializable {
      * 
      * @return True if the bundle is optional
      */
-    boolean isOptional();
+    boolean getOptional();
 }

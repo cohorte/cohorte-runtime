@@ -7,7 +7,6 @@ package org.psem2m.isolates.base.conf.beans;
 
 import org.psem2m.isolates.services.conf.IBundleDescr;
 
-
 /**
  * Description of a bundle
  * 
@@ -29,6 +28,13 @@ public class BundleDescription implements IBundleDescr {
 
     /** Bundle version, if specified */
     private String pVersion;
+
+    /**
+     * Default constructor
+     */
+    public BundleDescription() {
+	// Do nothing
+    }
 
     /**
      * Sets up the bundle description
@@ -74,6 +80,16 @@ public class BundleDescription implements IBundleDescr {
     /*
      * (non-Javadoc)
      * 
+     * @see org.psem2m.isolates.config.json.IBundleDescr#getOptional()
+     */
+    @Override
+    public boolean getOptional() {
+	return pOptional;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.psem2m.isolates.config.json.IBundleDescr#getSymbolicName()
      */
     @Override
@@ -91,13 +107,43 @@ public class BundleDescription implements IBundleDescr {
 	return pVersion;
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Sets the bundle file (bean method)
      * 
-     * @see org.psem2m.isolates.config.json.IBundleDescr#isOptional()
+     * @param aFile
+     *            Bundle file
      */
-    @Override
-    public boolean isOptional() {
-	return pOptional;
+    public void setFile(final String aFile) {
+	pFile = aFile;
+    }
+
+    /**
+     * Set the bundle are optional or not (bean method)
+     * 
+     * @param aOptional
+     *            Tur if the bundle is optional
+     */
+    public void setOptional(final boolean aOptional) {
+	pOptional = aOptional;
+    }
+
+    /**
+     * Sets the bundle symbolic name (bean method)
+     * 
+     * @param aSymbolicName
+     *            The bundle symbolic name
+     */
+    public void setSymbolicName(final String aSymbolicName) {
+	pSymbolicName = aSymbolicName;
+    }
+
+    /**
+     * Sets the bundle version (bean method)
+     * 
+     * @param aVersion
+     *            the bundle version
+     */
+    public void setVersion(final String aVersion) {
+	pVersion = aVersion;
     }
 }

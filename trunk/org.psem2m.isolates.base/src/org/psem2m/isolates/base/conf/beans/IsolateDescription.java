@@ -27,13 +27,20 @@ public class IsolateDescription implements IIsolateDescr {
     private final Set<IBundleDescr> pBundles = new LinkedHashSet<IBundleDescr>();
 
     /** Isolate ID */
-    private final String pIsolateId;
+    private String pIsolateId;
 
     /** Isolate kind, must never be null */
     private String pIsolateKind = "";
 
     /** Isolate Java VM arguments (can't be null, must be ordered) */
     private final List<String> pVmArguments = new ArrayList<String>();
+
+    /**
+     * Default constructor
+     */
+    public IsolateDescription() {
+	// Do nothing
+    }
 
     /**
      * Sets up the isolate description
@@ -85,6 +92,27 @@ public class IsolateDescription implements IIsolateDescr {
     }
 
     /**
+     * Sets the isolate bundles
+     * 
+     * @param aBundles
+     *            the isolate bundles
+     */
+    public void setBundles(final Set<IBundleDescr> aBundles) {
+	pBundles.clear();
+	pBundles.addAll(aBundles);
+    }
+
+    /**
+     * Sets the isolate ID
+     * 
+     * @param aIsolateId
+     *            the isolate ID
+     */
+    public void setId(final String aIsolateId) {
+	pIsolateId = aIsolateId;
+    }
+
+    /**
      * Sets the kind of isolate
      * 
      * @param aKind
@@ -100,5 +128,16 @@ public class IsolateDescription implements IIsolateDescr {
 	} else {
 	    pIsolateKind = "";
 	}
+    }
+
+    /**
+     * Sets the Java virtual machine arguments
+     * 
+     * @param aVmArgs
+     *            the VM arguments
+     */
+    public void setVMArgs(final List<String> aVmArgs) {
+	pVmArguments.clear();
+	pVmArguments.addAll(aVmArgs);
     }
 }
