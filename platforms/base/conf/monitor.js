@@ -4,7 +4,6 @@
     "bundles":[
         {
             "symbolicName":"org.apache.felix.shell",
-            "debug":true
         },
         {
             "symbolicName":"org.apache.felix.shell.remote"
@@ -31,7 +30,10 @@
         },
         {
             "symbolicName":"org.psem2m.isolates.master.manager",
-            "optional":true
+        },
+        {
+            "symbolicName":"org.psem2m.isolates.monitor",
+            "optional":false
         }
     ]
 }

@@ -1,5 +1,5 @@
 {
-    "id":"org.psem2m.internals.isolate.forker",
+    "id":"org.psem2m.internals.isolates.forker",
     "kind":"felix",
     "bundles":[
         {
