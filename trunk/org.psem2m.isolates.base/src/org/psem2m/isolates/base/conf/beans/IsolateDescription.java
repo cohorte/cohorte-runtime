@@ -6,7 +6,7 @@
 package org.psem2m.isolates.base.conf.beans;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -24,7 +24,7 @@ public class IsolateDescription implements IIsolateDescr {
     private static final long serialVersionUID = 1L;
 
     /** Isolate bundles (can't be null) */
-    private final Set<IBundleDescr> pBundles = new HashSet<IBundleDescr>();
+    private final Set<IBundleDescr> pBundles = new LinkedHashSet<IBundleDescr>();
 
     /** Isolate ID */
     private final String pIsolateId;
