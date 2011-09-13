@@ -1,0 +1,11 @@
+[
+	{
+        "symbolicName":"org.apache.felix.http.bundle"
+    },
+    {
+        "symbolicName":"org.ow2.chameleon.commons.jabsorb"
+    },
+    {
+        "symbolicName":"org.ow2.chameleon.rose.core"
+    },
+]

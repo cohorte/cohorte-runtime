@@ -3,32 +3,23 @@
     "kind":"felix",
     "bundles":[
         {
-            "symbolicName":"org.apache.felix.shell",
+            "symbolicName":"org.psem2m.isolates.demo.services.ui.viewer",
+            "optional":true
+        },
+        {
+            "symbolicName":"org.apache.felix.shell"
         },
         {
             "symbolicName":"org.apache.felix.shell.remote"
         },
         {
-            "symbolicName":"org.ow2.chameleon.commons.jabsorb"
+            "from":"rose-core.js"
         },
         {
-            "symbolicName":"org.ow2.chameleon.rose.core",
-        },
-        {
-            "symbolicName":"org.apache.felix.http.bundle",
-        },
-        {
-            "symbolicName":"org.psem2m.remote.client.rose",
-        },
-        {
-            "symbolicName":"jabsorb-client-factory"
+            "from":"rose-client.js"
         },
         {
             "symbolicName":"org.psem2m.isolates.remote.importer"
-        },
-        {
-            "symbolicName":"org.psem2m.isolates.demo.services.ui.viewer",
-            "optional":true
         },
         {
             "symbolicName":"org.psem2m.isolates.master.manager"
