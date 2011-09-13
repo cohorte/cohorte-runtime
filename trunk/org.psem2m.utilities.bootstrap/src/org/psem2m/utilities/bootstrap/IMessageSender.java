@@ -4,6 +4,9 @@
 package org.psem2m.utilities.bootstrap;
 
 import java.util.logging.Level;
+import java.util.logging.LogRecord;
+
+import org.psem2m.isolates.base.boot.IsolateStatus;
 
 /**
  * Represents a message sender
@@ -11,6 +14,14 @@ import java.util.logging.Level;
  * @author Thomas Calmant
  */
 public interface IMessageSender {
+
+    /**
+     * Sends the given message on the standard output
+     * 
+     * @param aLogRecord
+     *            Log to be written
+     */
+    void sendLog(LogRecord aLogRecord);
 
     /**
      * Sends the given message via a LogRecord object serialized on the standard
@@ -56,6 +67,14 @@ public interface IMessageSender {
      *            Isolate start progress level
      */
     void sendStatus(int aState, double aProgress);
+
+    /**
+     * Sends an isolate status serialized on the standard output
+     * 
+     * @param aIsolateStatus
+     *            The isolate status
+     */
+    void sendStatus(IsolateStatus aIsolateStatus);
 
     /**
      * Activates or deactivates the human readable output mode

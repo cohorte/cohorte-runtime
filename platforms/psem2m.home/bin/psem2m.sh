@@ -34,7 +34,7 @@ PLATFORM_PROVISION_FILENAME=platform.bundles
 PLATFORM_FRAMEWORK_FILENAME=platform.framework
 
 # Bootstrap configuration
-BOOTSTRAP_FILENAME=bootstrap.jar
+BOOTSTRAP_FILENAME=org.psem2m.utilities.bootstrap.jar
 BOOTSTRAP_MAIN_CLASS=org.psem2m.utilities.bootstrap.Main
 
 #
@@ -88,9 +88,9 @@ read_framework_file() {
 # Clear the /var/work directories content
 #
 clear_cache() {
-    rm -fr "./var/work/*"
-    rm -fr "$PSEM2M_BASE/var/work/*"
-    rm -fr "$PSEM2M_HOME/var/work/*"
+    rm -fr "./var/work"
+    rm -fr "$PSEM2M_BASE/var/work"
+    rm -fr "$PSEM2M_HOME/var/work"
 }
 
 #

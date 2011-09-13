@@ -16,6 +16,9 @@ public class IsolateStatus implements Serializable {
     /** Serial version UID */
     private static final long serialVersionUID = 1L;
 
+    /** The isolate agent has successfully prepared the isolate */
+    public static final int STATE_AGENT_DONE = 10;
+
     /** Bundles are installed */
     public static final int STATE_BUNDLES_INSTALLED = 2;
 
@@ -35,10 +38,10 @@ public class IsolateStatus implements Serializable {
     public static final int STATE_READ_CONF = 0;
 
     /** Framework is stopped */
-    public static final int STATE_STOPPED = 6;
+    public static final int STATE_STOPPED = 100;
 
     /** Framework is stopping */
-    public static final int STATE_STOPPING = 5;
+    public static final int STATE_STOPPING = 99;
 
     /** The source isolate ID */
     private final String pIsolateId;

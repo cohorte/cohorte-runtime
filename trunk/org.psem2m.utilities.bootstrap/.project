@@ -53,6 +53,11 @@
 			<locationURI>PARENT-1-PROJECT_LOC/org.psem2m.isolates.constants/src/org/psem2m/isolates/constants/IPlatformProperties.java</locationURI>
 		</link>
 		<link>
+			<name>src/org/psem2m/isolates/base/boot/IBootstrapMessageSender.java</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/org.psem2m.isolates.base/src/org/psem2m/isolates/base/boot/IBootstrapMessageSender.java</locationURI>
+		</link>
+		<link>
 			<name>src/org/psem2m/isolates/base/boot/IsolateStatus.java</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/org.psem2m.isolates.base/src/org/psem2m/isolates/base/boot/IsolateStatus.java</locationURI>

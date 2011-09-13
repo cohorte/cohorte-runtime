@@ -415,6 +415,13 @@ public class Main {
 	}
 
 	pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME, "runBootstrap",
+		"Registering bootstrap services...");
+	pMessageSender.sendStatus(IsolateStatus.STATE_FRAMEWORK_STARTED, 2.5);
+
+	// Install bootstrap service
+	bootstrap.installBootstrapService();
+
+	pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME, "runBootstrap",
 		"Starting bundles...");
 	pMessageSender.sendStatus(IsolateStatus.STATE_FRAMEWORK_STARTED, 3);
 

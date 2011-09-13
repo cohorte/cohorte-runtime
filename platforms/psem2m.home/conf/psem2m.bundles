@@ -29,6 +29,8 @@ include: ipojo.bundles
 org.apache.felix.shell
 org.apache.felix.shell.remote
 
+org.apache.felix.ipojo.arch
+
 # PSEM2M Extra Log services
 org.psem2m.isolates.loggers
 

@@ -16,9 +16,11 @@ import java.util.logging.Level;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.Constants;
 import org.osgi.framework.FrameworkEvent;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.launch.FrameworkFactory;
+import org.psem2m.isolates.base.boot.IBootstrapMessageSender;
 import org.psem2m.isolates.constants.IPlatformProperties;
 
 /**
@@ -38,15 +40,6 @@ public class FrameworkStarter {
     /** Framework factories content */
     public static final Map<String, String> FRAMEWORK_FACTORIES = new TreeMap<String, String>();
 
-    /** OSGi framework storage definition */
-    public static final String OSGI_FRAMEWORK_STORAGE = "org.osgi.framework.storage";
-
-    /** OSGI storage cleaning option */
-    public static final String OSGI_STORAGE_CLEAN = "org.osgi.framework.storage.clean";
-
-    /** OSGi storage cleaning option value : onFirstInit */
-    public static final String OSGI_STORAGE_CLEAN_ON_INIT = "onFirstInit";
-
     static {
 	// Initialize the static map
 	FRAMEWORK_FACTORIES.put("equinox",
@@ -58,6 +51,9 @@ public class FrameworkStarter {
 
     /** The bootstrap configuration */
     private Map<String, String> pBootstrapConfiguration = new TreeMap<String, String>();
+
+    /** Bootstrap message sender service */
+    private final BootstrapMessageSender pBootstrapService;
 
     /** The launched framework */
     private Framework pFramework;
@@ -87,8 +83,13 @@ public class FrameworkStarter {
 	    final Map<String, String> aBootstrapConfiguration,
 	    final Map<String, String> aFrameworkConfiguration) {
 
+	// Set up the message sender
 	pMessageSender = aMessageSender;
 
+	// Create the bootstrap message sender service instance
+	pBootstrapService = new BootstrapMessageSender(pMessageSender);
+
+	// Prepare the configurations
 	if (aBootstrapConfiguration != null) {
 	    pBootstrapConfiguration.putAll(aBootstrapConfiguration);
 	}
@@ -98,7 +99,7 @@ public class FrameworkStarter {
 	}
 
 	// Flush the cache by default
-	if (!pFrameworkConfiguration.containsKey(OSGI_FRAMEWORK_STORAGE)) {
+	if (!pFrameworkConfiguration.containsKey(Constants.FRAMEWORK_STORAGE)) {
 
 	    // Find an isolate ID
 	    String isolateId = pFrameworkConfiguration
@@ -124,9 +125,22 @@ public class FrameworkStarter {
 	    }
 
 	    // Set up the property
-	    pFrameworkConfiguration.put(OSGI_FRAMEWORK_STORAGE,
+	    pFrameworkConfiguration.put(Constants.FRAMEWORK_STORAGE,
 		    frameworkCacheDirectory.getAbsolutePath());
 	}
+
+	/*
+	 * Extra system package, to allow a dialog between bundles and the
+	 * bootstrap.
+	 * 
+	 * IMPORTANT: Use a package version greater than the one exported by
+	 * isolates.base, else it won't be imported when needed.
+	 * 
+	 * IMPORTANT 2: As isolates.base contains this package, it won't the one
+	 * we export here.
+	 */
+	pFrameworkConfiguration.put(Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA,
+		"org.psem2m.isolates.base.boot; version=1.0.1");
 
 	// Force the system properties
 	for (Entry<String, String> property : pFrameworkConfiguration
@@ -208,6 +222,24 @@ public class FrameworkStarter {
 	return null;
     }
 
+    /**
+     * Installs the bootstrap message sender service
+     */
+    protected void installBootstrapService() {
+
+	pFramework.getBundleContext().registerService(
+		IBootstrapMessageSender.class.getName(), pBootstrapService,
+		null);
+
+	try {
+	    pFramework.getBundleContext().getClass().getClassLoader()
+		    .loadClass(IBootstrapMessageSender.class.getName());
+	} catch (ClassNotFoundException e) {
+	    // TODO Auto-generated catch block
+	    e.printStackTrace();
+	}
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -267,6 +299,7 @@ public class FrameworkStarter {
 
 	if (aMessageSender != null) {
 	    pMessageSender = aMessageSender;
+	    pBootstrapService.setMessageSender(pMessageSender);
 	}
     }
 

@@ -103,6 +103,36 @@ public class MessageSender implements IMessageSender {
 	return builder.toString();
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.utilities.bootstrap.IMessageSender#sendLog(java.util.logging
+     * .LogRecord)
+     */
+    @Override
+    public void sendLog(final LogRecord aLogRecord) {
+
+	// Set the logger name, if needed
+	if (aLogRecord.getLoggerName() == null) {
+	    aLogRecord.setLoggerName("Bootstrap");
+	}
+
+	try {
+	    // Send to the output
+	    if (pHumanMode) {
+		pOutputStream.write(formatRecord(aLogRecord).getBytes());
+
+	    } else {
+		((ObjectOutputStream) pOutputStream).writeObject(aLogRecord);
+	    }
+
+	} catch (IOException e) {
+	    // Use a Java logger on error
+	    Logger.getLogger(LOGGER_NAME).log(aLogRecord);
+	}
+    }
+
     /**
      * Sends the given message via a LogRecord object serialized on the standard
      * input
@@ -156,17 +186,7 @@ public class MessageSender implements IMessageSender {
 	record.setSourceMethodName(aSourceMethod.toString());
 	record.setThrown(aThrowable);
 
-	try {
-	    if (pHumanMode) {
-		pOutputStream.write(formatRecord(record).getBytes());
-
-	    } else {
-		((ObjectOutputStream) pOutputStream).writeObject(record);
-	    }
-
-	} catch (IOException e) {
-	    Logger.getLogger(LOGGER_NAME).log(record);
-	}
+	sendLog(record);
     }
 
     /*
@@ -177,20 +197,32 @@ public class MessageSender implements IMessageSender {
      */
     @Override
     public void sendStatus(final int aState, final double aProgress) {
+	sendStatus(new IsolateStatus(Main.getIsolateId(), aState, aProgress));
+    }
 
-	IsolateStatus status = new IsolateStatus(Main.getIsolateId(), aState,
-		aProgress);
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.utilities.bootstrap.IMessageSender#sendStatus(org.psem2m.isolates
+     * .base.boot.IsolateStatus)
+     */
+    @Override
+    public void sendStatus(final IsolateStatus aIsolateStatus) {
 
 	try {
+	    // Send the status
 	    if (pHumanMode) {
 		sendMessage(Level.INFO, LOGGER_NAME, "sendStatus",
-			status.toString());
+			aIsolateStatus.toString());
 
 	    } else {
-		((ObjectOutputStream) pOutputStream).writeObject(status);
+		((ObjectOutputStream) pOutputStream)
+			.writeObject(aIsolateStatus);
 	    }
 
 	} catch (IOException ex) {
+	    // Log a line on error
 	    Logger.getLogger(LOGGER_NAME).log(Level.SEVERE,
 		    "Error sending isolate status", ex);
 	}
