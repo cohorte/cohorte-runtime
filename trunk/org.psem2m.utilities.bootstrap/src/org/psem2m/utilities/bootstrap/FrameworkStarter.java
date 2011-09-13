@@ -269,6 +269,19 @@ public class FrameworkStarter {
     }
 
     /**
+     * Tests if the given bundle is a fragment. Fragment bundles can't be
+     * started.
+     * 
+     * @param aBundle
+     *            Bundle to be tested
+     * @return True if the bundle is a fragment
+     */
+    protected boolean isFragment(final Bundle aBundle) {
+
+	return aBundle.getHeaders().get(Constants.FRAGMENT_HOST) != null;
+    }
+
+    /**
      * Empties a directory and deletes it
      * 
      * @param aDirectory
@@ -313,10 +326,20 @@ public class FrameworkStarter {
 	boolean success = true;
 	for (Bundle bundle : pInstalledBundles) {
 	    try {
-		pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME,
-			"startBundles",
-			"Starting : " + bundle.getSymbolicName());
-		bundle.start();
+
+		if (isFragment(bundle)) {
+		    // Do nothing with fragments
+		    pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME,
+			    "startBundles", bundle.getSymbolicName()
+				    + " is a fragment.");
+
+		} else {
+		    // Start the bundle
+		    pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME,
+			    "startBundles",
+			    "Starting : " + bundle.getSymbolicName());
+		    bundle.start();
+		}
 
 	    } catch (BundleException e) {
 		pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
