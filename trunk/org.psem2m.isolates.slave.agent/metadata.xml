@@ -24,12 +24,13 @@
 
 		<provides specifications="org.psem2m.isolates.slave.agent.ISvcAgent" />
 
+		<requires field="pBootstrapSender" optional="false" />
 		<requires field="pBundleFinderSvc" optional="false" />
 		<requires field="pConfigurationSvc" optional="false" />
 		<requires field="pLoggerSvc" optional="false"
 			from="isolates-slave-agent-logger" />
 		<requires field="pPlatformDirsSvc" optional="false" />
-		
+
 		<callback transition="validate" method="validatePojo" />
 		<callback transition="invalidate" method="invalidatePojo" />
 

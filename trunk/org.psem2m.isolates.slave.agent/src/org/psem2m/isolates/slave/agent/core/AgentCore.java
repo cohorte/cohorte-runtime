@@ -15,6 +15,8 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.base.activators.IIsolateLoggerSvc;
+import org.psem2m.isolates.base.boot.IBootstrapMessageSender;
+import org.psem2m.isolates.base.boot.IsolateStatus;
 import org.psem2m.isolates.base.bundles.BundleInfo;
 import org.psem2m.isolates.base.bundles.BundleRef;
 import org.psem2m.isolates.base.bundles.IBundleFinderSvc;
@@ -31,6 +33,9 @@ import org.psem2m.isolates.slave.agent.ISvcAgent;
  * @author Thomas Calmant
  */
 public class AgentCore extends CPojoBase implements ISvcAgent {
+
+    /** Bootstrap message sender */
+    private IBootstrapMessageSender pBootstrapSender;
 
     /** Agent bundle context */
     private BundleContext pBundleContext = null;
@@ -510,15 +515,22 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
     public void validatePojo() {
 	// Prepare the current isolate, nobody else can do it
 	try {
+	    System.out.println("Here !");
+	    pBootstrapSender.sendStatus(-12, 42);
+
 	    prepareIsolate();
 
 	    // Start the guardian on success
 	    pGuardianThread = new GuardianThread(this);
 	    pGuardianThread.start();
 
+	    pBootstrapSender.sendStatus(IsolateStatus.STATE_AGENT_DONE, 100);
+
 	} catch (Exception ex) {
 	    System.err.println("Preparation error : " + ex);
 	    ex.printStackTrace();
+
+	    pBootstrapSender.sendStatus(IsolateStatus.STATE_FAILURE, -1);
 
 	    // Log the error
 	    pLoggerSvc.logSevere(this, "validatePojo",
