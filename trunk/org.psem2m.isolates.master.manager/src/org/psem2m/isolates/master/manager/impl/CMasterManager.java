@@ -12,10 +12,12 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
+import java.util.logging.LogRecord;
 
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.activators.CPojoBase;
+import org.psem2m.isolates.base.boot.IsolateStatus;
 import org.psem2m.isolates.base.bundles.BundleRef;
 import org.psem2m.isolates.base.bundles.IBundleFinderSvc;
 import org.psem2m.isolates.constants.IPlatformProperties;
@@ -23,7 +25,6 @@ import org.psem2m.isolates.services.conf.IApplicationDescr;
 import org.psem2m.isolates.services.conf.IBundleDescr;
 import org.psem2m.isolates.services.conf.ISvcConfig;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
-import org.psem2m.utilities.CXTimedoutCall;
 import org.psem2m.utilities.logging.IActivityLoggerBase;
 
 /**
@@ -34,11 +35,19 @@ public class CMasterManager extends CPojoBase {
     /** Default OSGi framework to use to start the forker (Felix) */
     public static final String DEFAULT_OSGI_FRAMEWORK = "org.apache.felix.main";
 
+    private BundleContext pBundleContext;
+
     /** The bundle finder */
     private IBundleFinderSvc pBundleFinderSvc;
 
     /** Available configuration */
     private ISvcConfig pConfiguration;
+
+    /** The forker process */
+    private Process pForkerProcess;
+
+    /** Forker watcher */
+    private ForkerWatchThread pForkerThread;
 
     /** Log service, handled by iPOJO */
     private IActivityLoggerBase pLoggerSvc;
@@ -49,8 +58,9 @@ public class CMasterManager extends CPojoBase {
     /**
      * Default constructor
      */
-    public CMasterManager() {
+    public CMasterManager(final BundleContext context) {
 	super();
+	pBundleContext = context;
     }
 
     /*
@@ -101,6 +111,45 @@ public class CMasterManager extends CPojoBase {
 	return bundlesRef.toArray(new BundleRef[0]);
     }
 
+    /**
+     * Handles the given isolate status from the forker or the watcher
+     * 
+     * @param aIsolateStatus
+     *            A forker status
+     */
+    protected synchronized void handleForkerStatus(
+	    final IsolateStatus aIsolateStatus) {
+	System.out.println("Forker said : " + aIsolateStatus);
+
+	if (aIsolateStatus.getState() == IsolateStatus.STATE_FAILURE) {
+	    System.err.println("Forker as failed.");
+	    pLoggerSvc.logSevere(this, "handleForkerStatus",
+		    "Forker as failed starting.");
+
+	    try {
+		// Try to restart it
+		startForker();
+
+		// Don't forget to restart the thread
+		startWatcher();
+
+	    } catch (Exception ex) {
+		// Log the restart error
+		pLoggerSvc.logSevere(this, "handleForkerStatus",
+			"Error restarting the forker :", ex);
+
+		try {
+		    pBundleContext.getBundle(0).stop();
+
+		} catch (Exception e) {
+		    // At this point, it's difficult to do something nice...
+		    pLoggerSvc.logSevere(this, "handleForkerStatus",
+			    "CAN'T SUICIDE", e);
+		}
+	    }
+	}
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -109,9 +158,22 @@ public class CMasterManager extends CPojoBase {
     @Override
     public void invalidatePojo() throws BundleException {
 
+	// Stop the watcher
+	pForkerThread.interrupt();
+
 	// logs in the bundle logger
 	pLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
 		toDescription());
+    }
+
+    /**
+     * Logs the given record grabbed from the forker
+     * 
+     * @param aLogRecord
+     *            A forker log record
+     */
+    protected void logFromForker(final LogRecord aLogRecord) {
+	pLoggerSvc.log(aLogRecord);
     }
 
     /**
@@ -140,10 +202,12 @@ public class CMasterManager extends CPojoBase {
      * Tries to start the forker bundle. Code is based on JavaRunner from the
      * bundle "forker".
      * 
+     * @return The forker process
+     * 
      * @throws Exception
      *             Invalid configuration
      */
-    protected void startForker() throws Exception {
+    protected Process startForker() throws Exception {
 
 	// Find the Java executable
 	final File javaExecutable = pPlatformDirsSvc.getJavaExecutable();
@@ -233,31 +297,24 @@ public class CMasterManager extends CPojoBase {
 	builder.directory(workingDir);
 
 	// Run !
-	try {
-	    final Process forkerProcess = builder.start();
+	pForkerProcess = builder.start();
+	return pForkerProcess;
+    }
 
-	    // Wait some time for the script to return
-	    int exitValue = CXTimedoutCall.call(new Callable<Integer>() {
+    /**
+     * Starts the forker watcher thread
+     * 
+     * @throws IOException
+     *             Invalid forker output format
+     */
+    protected void startWatcher() throws IOException {
 
-		@Override
-		public Integer call() throws Exception {
-		    return forkerProcess.waitFor();
-		}
-	    }, 500);
-
-	    System.out.println("Exit value : " + exitValue);
-
-	    // Test its result
-	    if (exitValue != 0) {
-		throw new Exception("Error launching the forker isolate");
-	    }
-
-	} catch (IOException ex) {
-	    throw new Exception("Error launching the forker script", ex);
-
-	} catch (IllegalThreadStateException ex) {
-	    // Ignore it : the exit value could not be calculated
+	if (pForkerThread != null) {
+	    pForkerThread.interrupt();
 	}
+
+	pForkerThread = new ForkerWatchThread(this, pForkerProcess);
+	pForkerThread.start();
     }
 
     /*
@@ -272,9 +329,15 @@ public class CMasterManager extends CPojoBase {
 	pLoggerSvc.logInfo(this, "validatePojo", "VALIDATE", toDescription());
 
 	try {
-	    System.out.println("Start forker");
 	    pLoggerSvc.logInfo(this, "validatePojo", "Start forker");
-	    startForker();
+
+	    // Start the forker
+	    if (startForker() == null) {
+		throw new Exception("Can't start the forker");
+	    }
+
+	    // Start the forker watcher
+	    startWatcher();
 
 	} catch (Exception e) {
 	    pLoggerSvc.logSevere(this, "validatePojo",

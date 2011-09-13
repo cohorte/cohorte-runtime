@@ -515,9 +515,6 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
     public void validatePojo() {
 	// Prepare the current isolate, nobody else can do it
 	try {
-	    System.out.println("Here !");
-	    pBootstrapSender.sendStatus(-12, 42);
-
 	    prepareIsolate();
 
 	    // Start the guardian on success
