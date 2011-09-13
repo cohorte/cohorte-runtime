@@ -23,6 +23,7 @@ import org.psem2m.isolates.base.bundles.IBundleFinderSvc;
 import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.services.conf.IApplicationDescr;
 import org.psem2m.isolates.services.conf.IBundleDescr;
+import org.psem2m.isolates.services.conf.IIsolateDescr;
 import org.psem2m.isolates.services.conf.ISvcConfig;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.utilities.logging.IActivityLoggerBase;
@@ -33,7 +34,7 @@ import org.psem2m.utilities.logging.IActivityLoggerBase;
 public class CMasterManager extends CPojoBase {
 
     /** Default OSGi framework to use to start the forker (Felix) */
-    public static final String DEFAULT_OSGI_FRAMEWORK = "org.apache.felix.main";
+    public static final String OSGI_FRAMEWORK_FELIX = "org.apache.felix.main";
 
     private BundleContext pBundleContext;
 
@@ -41,7 +42,7 @@ public class CMasterManager extends CPojoBase {
     private IBundleFinderSvc pBundleFinderSvc;
 
     /** Available configuration */
-    private ISvcConfig pConfiguration;
+    private ISvcConfig pConfigurationSvc;
 
     /** The forker process */
     private Process pForkerProcess;
@@ -83,7 +84,8 @@ public class CMasterManager extends CPojoBase {
      */
     protected BundleRef[] getBundlesRef(final String aIsolateId) {
 
-	final IApplicationDescr application = pConfiguration.getApplication();
+	final IApplicationDescr application = pConfigurationSvc
+		.getApplication();
 	final Set<IBundleDescr> isolateBundles = application.getIsolate(
 		aIsolateId).getBundles();
 
@@ -209,6 +211,13 @@ public class CMasterManager extends CPojoBase {
      */
     protected Process startForker() throws Exception {
 
+	// Get the forker configuration
+	final IIsolateDescr forkerDescr = pConfigurationSvc.getApplication()
+		.getIsolate(IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER);
+	if (forkerDescr == null) {
+	    throw new Exception("No configuration found to start the forker.");
+	}
+
 	// Find the Java executable
 	final File javaExecutable = pPlatformDirsSvc.getJavaExecutable();
 	if (javaExecutable == null || !javaExecutable.exists()) {
@@ -224,13 +233,14 @@ public class CMasterManager extends CPojoBase {
 	}
 
 	// Find the OSGi Framework
+	// FIXME: use the "kind" argument
 	final BundleRef osgiFrameworkRef = pBundleFinderSvc
-		.findBundle(DEFAULT_OSGI_FRAMEWORK);
+		.findBundle(OSGI_FRAMEWORK_FELIX);
 	if (osgiFrameworkRef == null || osgiFrameworkRef.getFile() == null) {
 	    // Fatal error : can't find the default OSGi framework
 	    throw new FileNotFoundException(
 		    "Can't find the default OSGi framework - "
-			    + DEFAULT_OSGI_FRAMEWORK);
+			    + OSGI_FRAMEWORK_FELIX);
 	}
 
 	// Prepare the command line
@@ -241,6 +251,9 @@ public class CMasterManager extends CPojoBase {
 
 	// Defines properties
 	{
+	    // Isolate VM arguments
+	    forkerCommand.addAll(forkerDescr.getVMArgs());
+
 	    // Isolate ID
 	    forkerCommand.add(makeJavaProperty(
 		    IPlatformProperties.PROP_PLATFORM_ISOLATE_ID,
@@ -255,10 +268,6 @@ public class CMasterManager extends CPojoBase {
 	    forkerCommand.add(makeJavaProperty(
 		    IPlatformProperties.PROP_PLATFORM_BASE, pPlatformDirsSvc
 			    .getPlatformBaseDir().getAbsolutePath()));
-
-	    // Remote Shell
-	    forkerCommand
-		    .add(makeJavaProperty("osgi.shell.telnet.port", "6001"));
 	}
 
 	// The class path

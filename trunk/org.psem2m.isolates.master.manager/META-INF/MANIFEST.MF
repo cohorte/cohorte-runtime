@@ -39,22 +39,23 @@ iPOJO-Components: instance { $component="isolates-master-manager-logge
  rg.psem2m.isolates.services.dirs.IPlatformDirsSvc" }field { $name="pF
  orkerThread" $type="org.psem2m.isolates.master.manager.impl.ForkerWat
  chThread" }field { $name="pForkerProcess" $type="java.lang.Process" }
- field { $name="pLoggerSvc" $type="org.psem2m.utilities.logging.IActiv
- ityLoggerBase" }field { $name="pConfiguration" $type="org.psem2m.isol
- ates.services.conf.ISvcConfig" }field { $name="pBundleFinderSvc" $typ
- e="org.psem2m.isolates.base.bundles.IBundleFinderSvc" }field { $name=
- "pBundleContext" $type="org.osgi.framework.BundleContext" }method { $
- arguments="{org.osgi.framework.BundleContext}" $name="$init" }method 
- { $name="destroy" }method { $arguments="{java.lang.String}" $name="ge
- tBundlesRef" $return="org.psem2m.isolates.base.bundles.BundleRef[]" }
- method { $arguments="{org.psem2m.isolates.base.boot.IsolateStatus}" $
- name="handleForkerStatus" }method { $name="invalidatePojo" }method { 
- $arguments="{java.util.logging.LogRecord}" $name="logFromForker" }met
- hod { $arguments="{java.lang.String,java.lang.String}" $name="makeJav
- aProperty" $return="java.lang.String" }method { $name="startForker" $
- return="java.lang.Process" }method { $name="startWatcher" }method { $
- name="validatePojo" }}requires { $field="pBundleFinderSvc" $optional=
- "false" }requires { $field="pPlatformDirsSvc" $optional="false" }requ
- ires { $field="pLoggerSvc" $optional="false" $from="isolates-master-m
- anager-logger" }}
+ field { $name="pConfigurationSvc" $type="org.psem2m.isolates.services
+ .conf.ISvcConfig" }field { $name="pLoggerSvc" $type="org.psem2m.utili
+ ties.logging.IActivityLoggerBase" }field { $name="pBundleFinderSvc" $
+ type="org.psem2m.isolates.base.bundles.IBundleFinderSvc" }field { $na
+ me="pBundleContext" $type="org.osgi.framework.BundleContext" }method 
+ { $arguments="{org.osgi.framework.BundleContext}" $name="$init" }meth
+ od { $name="destroy" }method { $arguments="{java.lang.String}" $name=
+ "getBundlesRef" $return="org.psem2m.isolates.base.bundles.BundleRef[]
+ " }method { $arguments="{org.psem2m.isolates.base.boot.IsolateStatus}
+ " $name="handleForkerStatus" }method { $name="invalidatePojo" }method
+  { $arguments="{java.util.logging.LogRecord}" $name="logFromForker" }
+ method { $arguments="{java.lang.String,java.lang.String}" $name="make
+ JavaProperty" $return="java.lang.String" }method { $name="startForker
+ " $return="java.lang.Process" }method { $name="startWatcher" }method 
+ { $name="validatePojo" }}requires { $field="pBundleFinderSvc" $option
+ al="false" }requires { $field="pConfigurationSvc" $optional="false" }
+ requires { $field="pPlatformDirsSvc" $optional="false" }requires { $f
+ ield="pLoggerSvc" $optional="false" $from="isolates-master-manager-lo
+ gger" }}
 
