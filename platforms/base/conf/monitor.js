@@ -9,31 +9,32 @@
             "symbolicName":"org.apache.felix.shell.remote"
         },
         {
+            "symbolicName":"org.ow2.chameleon.commons.jabsorb"
+        },
+        {
             "symbolicName":"org.ow2.chameleon.rose.core",
-            "optional":true
         },
         {
             "symbolicName":"org.apache.felix.http.bundle",
-            "optional":true
         },
         {
             "symbolicName":"org.psem2m.remote.client.rose",
-            "optional":true
         },
         {
-            "symbolicName":"org.psem2m.isolates.remote.importer",
-            "optional":true
+            "symbolicName":"jabsorb-client-factory"
+        },
+        {
+            "symbolicName":"org.psem2m.isolates.remote.importer"
         },
         {
             "symbolicName":"org.psem2m.isolates.demo.services.ui.viewer",
             "optional":true
         },
         {
-            "symbolicName":"org.psem2m.isolates.master.manager",
+            "symbolicName":"org.psem2m.isolates.master.manager"
         },
         {
-            "symbolicName":"org.psem2m.isolates.monitor",
-            "optional":false
+            "symbolicName":"org.psem2m.isolates.monitor"
         }
     ]
 }

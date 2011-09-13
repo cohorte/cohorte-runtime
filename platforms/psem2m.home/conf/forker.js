@@ -9,8 +9,22 @@
             "symbolicName":"org.apache.felix.shell.remote"
         },
         {
+            "symbolicName":"org.ow2.chameleon.commons.jabsorb"
+        },
+        {
+            "symbolicName":"org.ow2.chameleon.rose.core",
+            "optional":true
+        },
+        {
+            "symbolicName":"org.apache.felix.http.bundle",
+            "optional":true
+        },
+        {
             "symbolicName":"org.psem2m.remote.endpoint.rose",
             "optional":true
+        },
+        {
+            "symbolicName":"jabsorb-endpoint-factory"
         },
         {
             "symbolicName":"org.psem2m.isolates.remote.exporter",
