@@ -27,30 +27,31 @@ iPOJO-Components: instance { $component="rose.component.jsonrpc.endpoi
  -RPC" }component { $classname="org.ow2.chameleon.rose.jsonrpc.endpoin
  t.JsonRpcEndpointFactory" $name="rose.component.jsonrpc.endpoint.fact
  ory" callback { $transition="validate" $method="start" }callback { $t
- ransition="invalidate" $method="stop" }provides { property { $name="r
- emote.configs.supported" $value="{jsonrpc, org.jabsorb, json-rpc}" $t
- ype="java.lang.String[]" }}properties { property { $field="gzip_thres
- hold" $name="gzip.threshold" $value="200" }property { $field="servlet
- name" $name="jsonrpc.servlet.name" $value="/JSON-RPC" $immutable="tru
- e" }}manipulation { field { $name="endpointNames" $type="java.util.Se
- t" }field { $name="servletname" $type="java.lang.String" }field { $na
- me="jsonbridge" $type="org.jabsorb.JSONRPCBridge" }field { $name="gzi
- p_threshold" $type="java.lang.String" }field { $name="logger" $type="
- org.osgi.service.log.LogService" }field { $name="httpservice" $type="
- org.osgi.service.http.HttpService" }field { $name="pBundleContext" $t
- ype="org.osgi.framework.BundleContext" }method { $arguments="{org.osg
- i.framework.BundleContext}" $name="$init" }method { $arguments="{java
- .lang.Object,java.lang.ClassLoader,java.util.Map}" $name="createEndpo
- int" }method { $arguments="{java.lang.Object,java.util.Map}" $name="c
- reateEndpoint" }method { $arguments="{java.lang.String}" $name="destr
- oyEndpoint" }method { $name="getConfigs" $return="java.lang.String[]"
-  }method { $arguments="{java.lang.String}" $name="getEndpointBaseUri"
-  $return="java.lang.String" }method { $arguments="{java.lang.String}"
-  $name="getEndpointPort" $return="int" }method { $arguments="{java.la
- ng.String}" $name="getEndpointProtocol" $return="java.lang.String" }m
- ethod { $name="start" }method { $name="stop" }interface { $name="org.
- ow2.chameleon.rose.server.EndpointFactory" }}requires { $field="https
- ervice" $optional="false" }requires { $field="logger" $default-implem
- entation="org.ow2.chameleon.rose.util.LogServiceImpl" $optional="true
- " }}
+ ransition="invalidate" $method="stop" }provides { property { $mandato
+ ry="false" $name="remote.configs.supported" $value="{jsonrpc, org.jab
+ sorb, json-rpc}" $type="java.lang.String[]" }}properties { property {
+  $field="gzip_threshold" $mandatory="false" $name="gzip.threshold" $v
+ alue="200" }property { $field="servletname" $mandatory="false" $name=
+ "jsonrpc.servlet.name" $value="/JSON-RPC" }}manipulation { field { $n
+ ame="endpointNames" $type="java.util.Set" }field { $name="servletname
+ " $type="java.lang.String" }field { $name="jsonbridge" $type="org.jab
+ sorb.JSONRPCBridge" }field { $name="gzip_threshold" $type="java.lang.
+ String" }field { $name="logger" $type="org.osgi.service.log.LogServic
+ e" }field { $name="httpservice" $type="org.osgi.service.http.HttpServ
+ ice" }field { $name="pBundleContext" $type="org.osgi.framework.Bundle
+ Context" }method { $arguments="{org.osgi.framework.BundleContext}" $n
+ ame="$init" }method { $arguments="{java.lang.Object,java.lang.ClassLo
+ ader,java.util.Map}" $name="createEndpoint" }method { $arguments="{ja
+ va.lang.Object,java.util.Map}" $name="createEndpoint" }method { $argu
+ ments="{java.lang.String}" $name="destroyEndpoint" }method { $name="g
+ etConfigs" $return="java.lang.String[]" }method { $arguments="{java.l
+ ang.String}" $name="getEndpointBaseUri" $return="java.lang.String" }m
+ ethod { $arguments="{java.lang.String}" $name="getEndpointPort" $retu
+ rn="int" }method { $arguments="{java.lang.String}" $name="getEndpoint
+ Protocol" $return="java.lang.String" }method { $name="start" }method 
+ { $name="stop" }interface { $name="org.ow2.chameleon.rose.server.Endp
+ ointFactory" }}requires { $field="httpservice" $optional="false" $fil
+ ter="(org.osgi.service.http.port=*)" }requires { $field="logger" $def
+ ault-implementation="org.ow2.chameleon.rose.util.LogServiceImpl" $opt
+ ional="true" }}
 

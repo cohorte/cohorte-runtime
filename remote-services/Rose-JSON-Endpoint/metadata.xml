@@ -12,9 +12,10 @@
 	See the License for the specific language governing permissions and
 	limitations under the License.
 -->
-
-
-<ipojo>
+<ipojo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="org.apache.felix.ipojo http://felix.apache.org/ipojo/schemas/CURRENT/core.xsd"
+	xmlns="org.apache.felix.ipojo">
+	
 	<component name="rose.component.jsonrpc.endpoint.factory"
 		classname="org.ow2.chameleon.rose.jsonrpc.endpoint.JsonRpcEndpointFactory">
 
@@ -26,10 +27,10 @@
 		<properties>
 			<property name="gzip.threshold" value="200" field="gzip_threshold" />
 			<property name="jsonrpc.servlet.name" value="/JSON-RPC"
-				field="servletname" immutable="true" />
+				field="servletname" />
 		</properties>
 
-		<requires field="httpservice" optional="false" />
+		<requires field="httpservice" optional="false" filter="(org.osgi.service.http.port=*)" />
 		<requires field="logger" optional="true" 
 				  default-implementation="org.ow2.chameleon.rose.util.LogServiceImpl"/>
 
