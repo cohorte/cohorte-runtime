@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.logging.Level;
 
 import org.osgi.framework.launch.Framework;
-import org.psem2m.isolates.base.boot.IsolateStatus;
+import org.psem2m.isolates.base.isolates.boot.IsolateStatus;
 
 /**
  * Framework execution thread, allowing to let the main-thread for UI purpose

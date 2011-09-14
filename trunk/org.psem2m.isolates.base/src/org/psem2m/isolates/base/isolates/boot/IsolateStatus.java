@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.psem2m.isolates.base.boot;
+package org.psem2m.isolates.base.isolates.boot;
 
 import java.io.Serializable;
 

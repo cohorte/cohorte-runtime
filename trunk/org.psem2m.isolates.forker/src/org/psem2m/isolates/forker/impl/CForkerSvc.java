@@ -5,10 +5,14 @@
  */
 package org.psem2m.isolates.forker.impl;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.LogRecord;
 
 import org.psem2m.isolates.base.activators.CPojoBase;
+import org.psem2m.isolates.base.isolates.IIsolateOutputListener;
+import org.psem2m.isolates.base.isolates.boot.IsolateStatus;
 import org.psem2m.isolates.forker.IBundleForkerLoggerSvc;
 import org.psem2m.isolates.forker.IIsolateRunner;
 import org.psem2m.isolates.forker.IProcessRef;
@@ -20,7 +24,8 @@ import org.psem2m.isolates.services.forker.IForker;
  * 
  * @author Thomas Calmant
  */
-public class CForkerSvc extends CPojoBase implements IForker {
+public class CForkerSvc extends CPojoBase implements IForker,
+	IIsolateOutputListener {
 
     /** Service reference managed by iPojo (see metadata.xml) **/
     private IBundleForkerLoggerSvc pBundleForkerLoggerSvc;
@@ -46,6 +51,35 @@ public class CForkerSvc extends CPojoBase implements IForker {
     @Override
     public void destroy() {
 	// ...
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.base.isolates.boot.IIsolateOutputListener#handleIsolateLogRecord
+     * (java.lang.String, java.util.logging.LogRecord)
+     */
+    @Override
+    public void handleIsolateLogRecord(final String aSourceIsolateId,
+	    final LogRecord aLogRecord) {
+
+	pBundleForkerLoggerSvc.log(aLogRecord);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.base.isolates.boot.IIsolateOutputListener#handleIsolateStatus
+     * (java.lang.String, org.psem2m.isolates.base.isolates.boot.IsolateStatus)
+     */
+    @Override
+    public void handleIsolateStatus(final String aSourceIsolateId,
+	    final IsolateStatus aIsolateStatus) {
+
+	pBundleForkerLoggerSvc.logInfo(this, "", "Read from "
+		+ aSourceIsolateId + " : " + aIsolateStatus);
     }
 
     /*
@@ -137,6 +171,19 @@ public class CForkerSvc extends CPojoBase implements IForker {
 
 	// Store it
 	pRunningIsolates.put(isolateId, isolateRef);
+
+	// Start the output reader
+	try {
+	    final CProcessWatcherThread watcherThread = new CProcessWatcherThread(
+		    this, isolateId, (Process) isolateRef);
+	    watcherThread.start();
+
+	} catch (IOException ex) {
+	    pBundleForkerLoggerSvc.logWarn(this, "",
+		    "Can't start the watcher for :", isolateId, ex);
+	    return EStartError.NO_WATCHER;
+	}
+
 	return EStartError.SUCCESS;
     }
 
@@ -154,7 +201,8 @@ public class CForkerSvc extends CPojoBase implements IForker {
 
 	IProcessRef process = pRunningIsolates.get(aIsolateId);
 	if (process != null) {
-	    // TODO
+	    // TODO Do it a little more softly
+	    ((Process) process).destroy();
 	}
 
 	pRunningIsolates.remove(aIsolateId);

@@ -7,8 +7,8 @@ package org.psem2m.utilities.bootstrap;
 
 import java.util.logging.LogRecord;
 
-import org.psem2m.isolates.base.boot.IBootstrapMessageSender;
-import org.psem2m.isolates.base.boot.IsolateStatus;
+import org.psem2m.isolates.base.isolates.boot.IBootstrapMessageSender;
+import org.psem2m.isolates.base.isolates.boot.IsolateStatus;
 
 /**
  * The bootstrap message sender service implementation

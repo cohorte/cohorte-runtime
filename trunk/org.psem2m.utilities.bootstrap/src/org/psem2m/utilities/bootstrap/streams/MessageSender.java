@@ -10,7 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
-import org.psem2m.isolates.base.boot.IsolateStatus;
+import org.psem2m.isolates.base.isolates.boot.IsolateStatus;
 import org.psem2m.utilities.bootstrap.IMessageSender;
 import org.psem2m.utilities.bootstrap.Main;
 

@@ -6,7 +6,7 @@ package org.psem2m.utilities.bootstrap;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 
-import org.psem2m.isolates.base.boot.IsolateStatus;
+import org.psem2m.isolates.base.isolates.boot.IsolateStatus;
 
 /**
  * Represents a message sender

@@ -9,10 +9,14 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.logging.LogRecord;
 
-import org.psem2m.isolates.base.boot.IsolateStatus;
+import org.psem2m.isolates.base.isolates.IIsolateOutputListener;
+import org.psem2m.isolates.base.isolates.boot.IsolateStatus;
 import org.psem2m.isolates.constants.IPlatformProperties;
 
 /**
+ * Thread reading the forker process output. Notifies an
+ * {@link IIsolateOutputListener} on each understood read object.
+ * 
  * @author Thomas Calmant
  */
 public class ForkerWatchThread extends Thread {
@@ -26,26 +30,26 @@ public class ForkerWatchThread extends Thread {
     /** Forker process */
     private Process pForkerProcess;
 
-    /** Parent manager */
-    private CMasterManager pParent;
+    /** Process output listener */
+    private IIsolateOutputListener pOutputListener;
 
     /**
      * Sets up the forker watcher
      * 
      * @param aForkerOutput
      *            The forker output stream
-     * @param aParentManager
-     *            Parent master manager
+     * @param aOutputListener
+     *            Process output listener
      * @throws IOException
      *             Invalid forker output format
      */
-    public ForkerWatchThread(final CMasterManager aParentManager,
+    public ForkerWatchThread(final IIsolateOutputListener aOutputListener,
 	    final Process aForkerProcess) throws IOException {
 
 	super(THREAD_NAME);
 	setDaemon(true);
 
-	pParent = aParentManager;
+	pOutputListener = aOutputListener;
 	pForkerProcess = aForkerProcess;
 	pForkerOutput = new ObjectInputStream(pForkerProcess.getInputStream());
     }
@@ -65,11 +69,15 @@ public class ForkerWatchThread extends Thread {
 
 		if (readObject instanceof IsolateStatus) {
 		    // Let the manager handle this
-		    pParent.handleForkerStatus((IsolateStatus) readObject);
+		    pOutputListener.handleIsolateStatus(
+			    IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER,
+			    (IsolateStatus) readObject);
 
 		} else if (readObject instanceof LogRecord) {
 		    // Log it
-		    pParent.logFromForker((LogRecord) readObject);
+		    pOutputListener.handleIsolateLogRecord(
+			    IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER,
+			    (LogRecord) readObject);
 		}
 
 		// Ignore other objects
@@ -77,9 +85,11 @@ public class ForkerWatchThread extends Thread {
 	    } catch (IOException e) {
 		// IO Exception are fatal : destroy the forker process
 		pForkerProcess.destroy();
-		pParent.handleForkerStatus(new IsolateStatus(
+		pOutputListener.handleIsolateStatus(
 			IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER,
-			IsolateStatus.STATE_FAILURE, -1));
+			new IsolateStatus(
+				IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER,
+				IsolateStatus.STATE_FAILURE, -1));
 
 		return;
 

@@ -21,9 +21,10 @@ import java.util.logging.LogRecord;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.activators.CPojoBase;
-import org.psem2m.isolates.base.boot.IsolateStatus;
 import org.psem2m.isolates.base.bundles.BundleRef;
 import org.psem2m.isolates.base.bundles.IBundleFinderSvc;
+import org.psem2m.isolates.base.isolates.IIsolateOutputListener;
+import org.psem2m.isolates.base.isolates.boot.IsolateStatus;
 import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.services.conf.IApplicationDescr;
 import org.psem2m.isolates.services.conf.IBundleDescr;
@@ -35,7 +36,7 @@ import org.psem2m.utilities.logging.IActivityLoggerBase;
 /**
  * @author Thomas Calmant
  */
-public class CMasterManager extends CPojoBase {
+public class CMasterManager extends CPojoBase implements IIsolateOutputListener {
 
     /** Default OSGi framework to use to start the forker (Felix) */
     public static final String OSGI_FRAMEWORK_FELIX = "org.apache.felix.main";
@@ -117,14 +118,17 @@ public class CMasterManager extends CPojoBase {
 	return bundlesRef.toArray(new BundleRef[0]);
     }
 
-    /**
-     * Handles the given isolate status from the forker or the watcher
+    /*
+     * (non-Javadoc)
      * 
-     * @param aIsolateStatus
-     *            A forker status
+     * @see
+     * org.psem2m.isolates.base.isolates.boot.IIsolateOutputListener#handleIsolateStatus
+     * (java.lang.String, org.psem2m.isolates.base.isolates.boot.IsolateStatus)
      */
-    protected synchronized void handleForkerStatus(
+    @Override
+    public synchronized void handleIsolateStatus(final String aIsolateId,
 	    final IsolateStatus aIsolateStatus) {
+
 	System.out.println("Forker said : " + aIsolateStatus);
 
 	if (aIsolateStatus.getState() == IsolateStatus.STATE_FAILURE) {
@@ -159,6 +163,19 @@ public class CMasterManager extends CPojoBase {
     /*
      * (non-Javadoc)
      * 
+     * @see
+     * org.psem2m.isolates.base.isolates.boot.IIsolateOutputListener#handleLogRecord(
+     * java.lang.String, java.util.logging.LogRecord)
+     */
+    @Override
+    public void handleIsolateLogRecord(final String aSourceIsolateId,
+	    final LogRecord aLogRecord) {
+	pLoggerSvc.log(aLogRecord);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.psem2m.isolates.base.CPojoBase#invalidatePojo()
      */
     @Override
@@ -170,16 +187,6 @@ public class CMasterManager extends CPojoBase {
 	// logs in the bundle logger
 	pLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
 		toDescription());
-    }
-
-    /**
-     * Logs the given record grabbed from the forker
-     * 
-     * @param aLogRecord
-     *            A forker log record
-     */
-    protected void logFromForker(final LogRecord aLogRecord) {
-	pLoggerSvc.log(aLogRecord);
     }
 
     /**

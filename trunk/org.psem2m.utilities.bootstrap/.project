@@ -43,7 +43,7 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>src/org/psem2m/isolates/base/boot</name>
+			<name>src/org/psem2m/isolates/base/isolates</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -53,14 +53,19 @@
 			<locationURI>PARENT-1-PROJECT_LOC/org.psem2m.isolates.constants/src/org/psem2m/isolates/constants/IPlatformProperties.java</locationURI>
 		</link>
 		<link>
-			<name>src/org/psem2m/isolates/base/boot/IBootstrapMessageSender.java</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/org.psem2m.isolates.base/src/org/psem2m/isolates/base/boot/IBootstrapMessageSender.java</locationURI>
+			<name>src/org/psem2m/isolates/base/isolates/boot</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>src/org/psem2m/isolates/base/boot/IsolateStatus.java</name>
+			<name>src/org/psem2m/isolates/base/isolates/boot/IBootstrapMessageSender.java</name>
 			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/org.psem2m.isolates.base/src/org/psem2m/isolates/base/boot/IsolateStatus.java</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/org.psem2m.isolates.base/src/org/psem2m/isolates/base/isolates/boot/IBootstrapMessageSender.java</locationURI>
+		</link>
+		<link>
+			<name>src/org/psem2m/isolates/base/isolates/boot/IsolateStatus.java</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/org.psem2m.isolates.base/src/org/psem2m/isolates/base/isolates/boot/IsolateStatus.java</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

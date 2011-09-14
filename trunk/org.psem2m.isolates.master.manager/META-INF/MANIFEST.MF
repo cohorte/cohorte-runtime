@@ -9,14 +9,20 @@ Bundle-Vendor: isandlaTech.com
 Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
 Export-Package: org.psem2m.isolates.master.manager
-Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
- .ipojo.architecture;version=1.8.0, org.osgi.framework;version=1.3.0, 
- org.osgi.service.cm;version=1.2, org.osgi.service.log;version=1.3, or
- g.psem2m.isolates.base.activators;version=1.0.0, org.psem2m.isolates.
- base.boot;version=1.0.0, org.psem2m.isolates.base.bundles;version=1.0
- .0, org.psem2m.isolates.constants;version=1.0.0, org.psem2m.isolates.
- services.conf;version=1.0.0, org.psem2m.isolates.services.dirs;versio
- n=1.0.0, org.psem2m.utilities, org.psem2m.utilities.logging
+Import-Package: org.apache.felix.ipojo;version="1.8.0",
+ org.apache.felix.ipojo.architecture;version="1.8.0",
+ org.osgi.framework;version="1.3.0",
+ org.osgi.service.cm;version="1.2",
+ org.osgi.service.log;version="1.3",
+ org.psem2m.isolates.base.activators;version="1.0.0",
+ org.psem2m.isolates.base.bundles;version="1.0.0",
+ org.psem2m.isolates.base.isolates;version="1.0.0",
+ org.psem2m.isolates.base.isolates.boot;version="1.0.0",
+ org.psem2m.isolates.constants;version="1.0.0",
+ org.psem2m.isolates.services.conf;version="1.0.0",
+ org.psem2m.isolates.services.dirs;version="1.0.0",
+ org.psem2m.utilities,
+ org.psem2m.utilities.logging
 iPOJO-Components: instance { $component="isolates-master-manager-logge
  r-factory" $name="isolates-master-manager-logger" }instance { $compon
  ent="isolates-master-manager-factory" $name="isolates-master-manager"
@@ -47,19 +53,22 @@ iPOJO-Components: instance { $component="isolates-master-manager-logge
  { $arguments="{org.osgi.framework.BundleContext}" $name="$init" }meth
  od { $name="destroy" }method { $arguments="{java.lang.String}" $name=
  "getBundlesRef" $return="org.psem2m.isolates.base.bundles.BundleRef[]
- " }method { $arguments="{org.psem2m.isolates.base.boot.IsolateStatus}
- " $name="handleForkerStatus" }method { $name="invalidatePojo" }method
-  { $arguments="{java.util.logging.LogRecord}" $name="logFromForker" }
- method { $arguments="{java.lang.String,java.lang.String}" $name="make
- JavaProperty" $return="java.lang.String" }method { $name="startForker
- " $return="java.lang.Process" }method { $name="startWatcher" }method 
- { $name="validatePojo" }method { $name="waitForRsi" }method { $argume
- nts="{org.psem2m.isolates.master.manager.impl.CMasterManager}" $name=
- "access$0" }method { $arguments="{org.psem2m.isolates.master.manager.
- impl.CMasterManager}" $name="access$1" $return="org.psem2m.utilities.
- logging.IActivityLoggerBase" }}requires { $field="pBundleFinderSvc" $
- optional="false" }requires { $field="pConfigurationSvc" $optional="fa
- lse" }requires { $field="pPlatformDirsSvc" $optional="false" }require
- s { $field="pLoggerSvc" $optional="false" $from="isolates-master-mana
- ger-logger" }}
+ " }method { $arguments="{java.lang.String,org.psem2m.isolates.base.is
+ olates.boot.IsolateStatus}" $name="handleIsolateStatus" }method { $ar
+ guments="{java.lang.String,java.util.logging.LogRecord}" $name="handl
+ eIsolateLogRecord" }method { $name="invalidatePojo" }method { $argume
+ nts="{java.lang.String,java.lang.String}" $name="makeJavaProperty" $r
+ eturn="java.lang.String" }method { $name="startForker" $return="java.
+ lang.Process" }method { $name="startWatcher" }method { $name="validat
+ ePojo" }method { $name="waitForRsi" }method { $arguments="{java.lang.
+ String,IsolateStatus}" $name="handleIsolateStatus" }method { $argumen
+ ts="{org.psem2m.isolates.master.manager.impl.CMasterManager}" $name="
+ access$0" }method { $arguments="{org.psem2m.isolates.master.manager.i
+ mpl.CMasterManager}" $name="access$1" $return="org.psem2m.utilities.l
+ ogging.IActivityLoggerBase" }interface { $name="org.psem2m.isolates.b
+ ase.isolates.IIsolateOutputListener" }}requires { $field="pBundleFind
+ erSvc" $optional="false" }requires { $field="pConfigurationSvc" $opti
+ onal="false" }requires { $field="pPlatformDirsSvc" $optional="false" 
+ }requires { $field="pLoggerSvc" $optional="false" $from="isolates-mas
+ ter-manager-logger" }}
 

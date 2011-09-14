@@ -24,7 +24,7 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.FrameworkEvent;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.launch.FrameworkFactory;
-import org.psem2m.isolates.base.boot.IBootstrapMessageSender;
+import org.psem2m.isolates.base.isolates.boot.IBootstrapMessageSender;
 import org.psem2m.isolates.constants.IPlatformProperties;
 
 /**
@@ -139,7 +139,8 @@ public class FrameworkStarter {
 	 * we export here.
 	 */
 	pFrameworkConfiguration.put(Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA,
-		"org.psem2m.isolates.base.boot; version=1.0.1");
+		IBootstrapMessageSender.class.getPackage().getName()
+			+ "; version=1.0.1");
 
 	// Force the system properties
 	for (Entry<String, String> property : pFrameworkConfiguration

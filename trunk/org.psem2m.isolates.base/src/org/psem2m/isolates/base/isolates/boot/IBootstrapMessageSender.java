@@ -3,7 +3,7 @@
  * Author: Thomas Calmant
  * Date:   12 sept. 2011
  */
-package org.psem2m.isolates.base.boot;
+package org.psem2m.isolates.base.isolates.boot;
 
 import java.util.logging.LogRecord;
 

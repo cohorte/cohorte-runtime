@@ -22,9 +22,9 @@ import java.util.logging.LogRecord;
 
 import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.activators.CPojoBase;
-import org.psem2m.isolates.base.boot.IsolateStatus;
 import org.psem2m.isolates.base.bundles.BundleRef;
 import org.psem2m.isolates.base.bundles.IBundleFinderSvc;
+import org.psem2m.isolates.base.isolates.boot.IsolateStatus;
 import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.forker.IBundleForkerLoggerSvc;
 import org.psem2m.isolates.forker.IIsolateRunner;
