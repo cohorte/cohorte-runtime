@@ -17,6 +17,9 @@ import org.psem2m.isolates.constants.IPlatformProperties;
  */
 public class ForkerWatchThread extends Thread {
 
+    /** Thread name */
+    public static final String THREAD_NAME = "PSEM2M-Monitor-ForkerWatcher";
+
     /** The forker output stream */
     private ObjectInputStream pForkerOutput;
 
@@ -39,7 +42,7 @@ public class ForkerWatchThread extends Thread {
     public ForkerWatchThread(final CMasterManager aParentManager,
 	    final Process aForkerProcess) throws IOException {
 
-	super("Forker-Watcher");
+	super(THREAD_NAME);
 	setDaemon(true);
 
 	pParent = aParentManager;

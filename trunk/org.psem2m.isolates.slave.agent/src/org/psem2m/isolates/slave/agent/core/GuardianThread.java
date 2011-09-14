@@ -19,6 +19,9 @@ import org.psem2m.isolates.services.conf.IBundleDescr;
  */
 public class GuardianThread extends Thread {
 
+    /** Thread name */
+    public static final String THREAD_NAME = "PSEM2M-Agent-Guardian";
+
     /** Parent agent */
     private AgentCore pAgentCore;
 
@@ -30,7 +33,7 @@ public class GuardianThread extends Thread {
      */
     public GuardianThread(final AgentCore aParent) {
 
-	super("PSEM2M-Agent-Guardian");
+	super(THREAD_NAME);
 	pAgentCore = aParent;
 
 	// Set this thread as a daemon one, to avoid mess when the JVM exits

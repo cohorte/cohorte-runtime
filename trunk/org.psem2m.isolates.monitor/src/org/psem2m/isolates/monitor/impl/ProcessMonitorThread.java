@@ -17,6 +17,10 @@ import org.psem2m.isolates.monitor.IIsolateListener;
  */
 public class ProcessMonitorThread extends Thread {
 
+    /** Thread name prefix (followed by isolate ID) */
+    public static final String THREAD_NAME_PREFIX = "PSEM2M-ProcessMonitor-";
+
+    /** Logger Service */
     private final IBundleMonitorLoggerService pBundleMonitorLoggerService;
 
     /** Monitored isolate ID */
@@ -46,7 +50,7 @@ public class ProcessMonitorThread extends Thread {
 	    final Process aProcess) throws InvalidParameterException {
 
 	// Prepare the thread
-	super("Monitor-" + aIsolateId);
+	super(THREAD_NAME_PREFIX + aIsolateId);
 	setDaemon(true);
 
 	pBundleMonitorLoggerService = aBundleMonitorLoggerService;
