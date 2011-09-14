@@ -10,7 +10,14 @@
         {
             "id":"isolate-1",
             "kind":"felix",
+            "vmArgs":[
+                "-Dosgi.shell.telnet.port=6002"
+            ],
             "bundles":[
+                {
+                    "symbolicName":"org.psem2m.isolates.demo.services.ui.viewer",
+                    "optional":true
+                },
                 {
                     "symbolicName":"org.apache.felix.shell"
                 },
