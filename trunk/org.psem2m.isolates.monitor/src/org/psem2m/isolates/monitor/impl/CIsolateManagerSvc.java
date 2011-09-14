@@ -5,8 +5,6 @@
  */
 package org.psem2m.isolates.monitor.impl;
 
-import java.io.IOException;
-import java.security.InvalidParameterException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
@@ -195,33 +193,30 @@ public class CIsolateManagerSvc extends CPojoBase implements IIsolateManager,
 	final IIsolateDescr isolateConfig = pConfigurationSvc.getApplication()
 		.getIsolate(aIsolateId);
 	if (isolateConfig == null) {
+	    pBundleMonitorLoggerSvc.logWarn(this, "startIsolate",
+		    "No configuration for isolate ID ", aIsolateId);
 	    return false;
 	}
 
 	try {
 	    // Start the process
-	    pForkerSvc.startIsolate(isolateConfig);
-
-	    // TODO add a monitor
-
-	} catch (InvalidParameterException e) {
-	    pBundleMonitorLoggerSvc.logSevere(this, "startPlatform",
-		    "Error in isolate configuration : ", e);
-	    return false;
-
-	} catch (IOException e) {
-	    pBundleMonitorLoggerSvc.logSevere(this, "startPlatform",
-		    "Error starting isolate : ", e);
-	    return false;
+	    final IForker.EStartError result = pForkerSvc
+		    .startIsolate(isolateConfig);
+	    System.out.println("Start isolate(" + aIsolateId + ") = " + result);
 
 	} catch (Exception e) {
+	    // Should not happen
+	    System.err.println("Error preparing isolate : " + e);
+	    e.printStackTrace();
+
 	    pBundleMonitorLoggerSvc.logSevere(this, "startPlatform",
 		    "Error preparing or starting isolate : ", e);
 	}
 
 	timer.stop();
-	pBundleMonitorLoggerSvc.logDebug(this, "startPlatform", "Result : ",
-		timer.getDurationStrMicroSec());
+	pBundleMonitorLoggerSvc.logDebug(this, "startPlatform",
+		"Isolate start request time : ",
+		timer.getDurationStrMicroSec(), "ms");
 
 	return true;
     }
