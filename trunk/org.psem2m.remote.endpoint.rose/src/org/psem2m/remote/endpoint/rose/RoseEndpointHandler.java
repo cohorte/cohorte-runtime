@@ -5,9 +5,7 @@
  */
 package org.psem2m.remote.endpoint.rose;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 import org.osgi.framework.BundleContext;
@@ -15,6 +13,7 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.log.LogService;
 import org.ow2.chameleon.rose.RemoteConstants;
 import org.ow2.chameleon.rose.server.EndpointFactory;
 import org.psem2m.isolates.base.Utilities;
@@ -34,6 +33,12 @@ public class RoseEndpointHandler extends CPojoBase implements IEndpointHandler {
 
     /** The bundle context */
     private final BundleContext pBundleContext;
+
+    /** Rose end point factory, injected by iPOJO */
+    private EndpointFactory pEndpointFactory;
+
+    /** Log service */
+    private LogService pLogger;
 
     /**
      * Prepares the component
@@ -63,7 +68,7 @@ public class RoseEndpointHandler extends CPojoBase implements IEndpointHandler {
 	}
 
 	// Copy service properties in a map
-	Map<String, String> serviceProperties = Utilities
+	final Map<String, String> serviceProperties = Utilities
 		.getServiceProperties(aServiceReference);
 
 	// Compute a end point name
@@ -76,53 +81,29 @@ public class RoseEndpointHandler extends CPojoBase implements IEndpointHandler {
 		    endPointName);
 	}
 
-	// Find indicated factories
-	ServiceReference endpointFactoriesRefs[] = findExportFactories(serviceProperties);
-	if (endpointFactoriesRefs == null) {
-	    System.out.println("No end point factory");
-	    return null;
-	}
-
 	// Get a reference to the service
 	Object serviceInstance = pBundleContext.getService(aServiceReference);
 	if (serviceInstance == null) {
-	    // TODO: log
-	    System.out.println("No service instance available");
+	    pLogger.log(LogService.LOG_ERROR,
+		    "The service reference to export as no associated instance.");
 	    return null;
 	}
 
 	// Create end points
-	List<EndpointDescription> endpointDescriptions = new ArrayList<EndpointDescription>();
+	pEndpointFactory.createEndpoint(serviceInstance, serviceProperties);
 
-	for (ServiceReference factoryRef : endpointFactoriesRefs) {
+	// Store the end point description
+	final String protocol = pEndpointFactory
+		.getEndpointProtocol(endPointName);
+	final String uri = pEndpointFactory.getEndpointBaseUri(endPointName);
+	final int port = pEndpointFactory.getEndpointPort(endPointName);
 
-	    EndpointFactory factory = (EndpointFactory) pBundleContext
-		    .getService(factoryRef);
+	// FIXME Do it in a fancier way
+	final String exportedConfig = pEndpointFactory.getConfigs()[0];
 
-	    if (factory != null) {
-		try {
-		    factory.createEndpoint(serviceInstance, serviceProperties);
-
-		    // Store the end point description
-		    String protocol = factory.getEndpointProtocol(endPointName);
-		    String uri = factory.getEndpointBaseUri(endPointName);
-		    int port = factory.getEndpointPort(endPointName);
-
-		    // FIXME To it better
-		    final String exportedConfig = factory.getConfigs()[0];
-
-		    endpointDescriptions.add(new EndpointDescription(
-			    aServiceReference, exportedConfig, endPointName,
-			    protocol, uri, port));
-
-		} finally {
-		    // Release the service reference
-		    pBundleContext.ungetService(factoryRef);
-		}
-	    }
-	}
-
-	return endpointDescriptions.toArray(new EndpointDescription[0]);
+	return new EndpointDescription[] { new EndpointDescription(
+		aServiceReference, exportedConfig, endPointName, protocol, uri,
+		port) };
     }
 
     /*
@@ -150,11 +131,11 @@ public class RoseEndpointHandler extends CPojoBase implements IEndpointHandler {
 	}
 
 	// Copy service properties in a map
-	Map<String, String> serviceProperties = Utilities
+	final Map<String, String> serviceProperties = Utilities
 		.getServiceProperties(aServiceReference);
 
 	// Find the end point name
-	String endpointName = serviceProperties
+	final String endpointName = serviceProperties
 		.get(EndpointFactory.PROP_ENDPOINT_NAME);
 
 	// Abandon if non found
@@ -162,87 +143,10 @@ public class RoseEndpointHandler extends CPojoBase implements IEndpointHandler {
 	    return false;
 	}
 
-	// Find indicated factories
-	ServiceReference endpointFactoriesRefs[] = findExportFactories(serviceProperties);
-	if (endpointFactoriesRefs == null) {
-	    return false;
-	}
-
-	// Destroy end points
-	for (ServiceReference factoryRef : endpointFactoriesRefs) {
-
-	    EndpointFactory factory = (EndpointFactory) pBundleContext
-		    .getService(factoryRef);
-
-	    if (factory != null) {
-		factory.destroyEndpoint(endpointName);
-		pBundleContext.ungetService(factoryRef);
-	    }
-	}
+	// Destroy end point
+	pEndpointFactory.destroyEndpoint(endpointName);
 
 	return true;
-    }
-
-    /**
-     * Finds all factories references corresponding to the specified
-     * service.exported.configs
-     * 
-     * @param aServiceProperties
-     *            Service properties
-     * @return Factories services references, null if none found
-     */
-    protected ServiceReference[] findExportFactories(
-	    final Map<String, String> aServiceProperties) {
-
-	// Get the export configurations
-	Object exportConfigsRaw = aServiceProperties
-		.get(RemoteConstants.SERVICE_EXPORTED_CONFIGS);
-	String[] exportConfigsArray = null;
-
-	if (exportConfigsRaw instanceof String[]) {
-	    // Multiple configurations
-	    exportConfigsArray = (String[]) exportConfigsRaw;
-
-	} else if (exportConfigsRaw instanceof String) {
-	    // Single configuration
-	    exportConfigsArray = new String[] { (String) exportConfigsRaw };
-
-	}
-
-	// Prepare a filter, if needed
-	String factoryFilter = null;
-
-	if (exportConfigsArray != null && exportConfigsArray.length != 0) {
-
-	    StringBuilder builder = new StringBuilder();
-	    builder.append("(|");
-
-	    for (String exportConfig : exportConfigsArray) {
-		builder.append("(");
-		builder.append(RemoteConstants.REMOTE_CONFIGS_SUPPORTED);
-		builder.append("=");
-		builder.append(exportConfig);
-		builder.append(")");
-	    }
-
-	    builder.append(")");
-	}
-
-	// Get all factories found
-	try {
-	    ServiceReference[] references = pBundleContext
-		    .getServiceReferences(EndpointFactory.class.getName(),
-			    factoryFilter);
-
-	    System.out.println("Found : " + Arrays.toString(references));
-
-	    return references;
-
-	} catch (InvalidSyntaxException e) {
-	    e.printStackTrace();
-	    // Act as nothing found on error
-	    return null;
-	}
     }
 
     /*

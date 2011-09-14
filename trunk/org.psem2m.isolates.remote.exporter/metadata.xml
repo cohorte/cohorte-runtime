@@ -7,6 +7,7 @@
 	<component classname="org.psem2m.isolates.remote.exporter.ServiceExporter"
 		architecture="true" immediate="true" name="remote-service-exporter-factory">
 		
+		<requires field="pLogger" optional="false" />
 		<requires field="pEndpointHandlers" optional="false" />
 
 		<callback transition="validate" method="validatePojo" />

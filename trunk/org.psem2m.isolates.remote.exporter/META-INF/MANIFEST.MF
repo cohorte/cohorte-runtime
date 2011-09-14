@@ -6,32 +6,30 @@ Bundle-SymbolicName: org.psem2m.isolates.remote.exporter
 Bundle-Vendor: isandlaTech.com
 Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
-Import-Package: org.apache.felix.ipojo;version="1.8.0",
- org.apache.felix.ipojo.architecture;version="1.8.0",
- org.osgi.framework;version="1.5.0",
- org.osgi.service.cm;version="1.2",
- org.osgi.service.log;version="1.3",
- org.psem2m.isolates.base.activators;version="1.0.0",
- org.psem2m.isolates.services.remote;version="1.0.0",
- org.psem2m.isolates.services.remote.beans;version="1.0.0",
- org.psem2m.utilities
+Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
+ .ipojo.architecture;version=1.8.0, org.osgi.framework;version=1.5.0, 
+ org.osgi.service.cm;version=1.2, org.osgi.service.log;version=1.3, or
+ g.psem2m.isolates.base.activators;version=1.0.0, org.psem2m.isolates.
+ services.remote;version=1.0.0, org.psem2m.isolates.services.remote.be
+ ans;version=1.0.0, org.psem2m.utilities
 iPOJO-Components: instance { $component="remote-service-exporter-facto
  ry" $name="remote-service-exporter" }component { $immediate="true" $n
  ame="remote-service-exporter-factory" $classname="org.psem2m.isolates
  .remote.exporter.ServiceExporter" $architecture="true" callback { $tr
  ansition="validate" $method="validatePojo" }callback { $transition="i
  nvalidate" $method="invalidatePojo" }manipulation { $super="org.psem2
- m.isolates.base.activators.CPojoBase" field { $name="pEndpointHandler
- s" $type="org.psem2m.isolates.services.remote.IEndpointHandler[]" }fi
- eld { $name="pBundleContext" $type="org.osgi.framework.BundleContext"
-  }method { $arguments="{org.osgi.framework.BundleContext}" $name="$in
- it" }method { $name="destroy" }method { $arguments="{org.osgi.framewo
- rk.ServiceReference}" $name="exportService" $return="java.util.List" 
- }method { $name="invalidatePojo" }method { $arguments="{org.osgi.fram
- ework.ServiceReference,org.psem2m.isolates.services.remote.beans.Remo
- teServiceEvent$ServiceEventType,java.util.List}" $name="sendNotificat
- ion" }method { $arguments="{org.osgi.framework.ServiceEvent}" $name="
- serviceChanged" }method { $name="validatePojo" }interface { $name="or
- g.osgi.framework.ServiceListener" }}requires { $field="pEndpointHandl
- ers" $optional="false" }}
+ m.isolates.base.activators.CPojoBase" field { $name="pLogger" $type="
+ org.osgi.service.log.LogService" }field { $name="pEndpointHandlers" $
+ type="org.psem2m.isolates.services.remote.IEndpointHandler[]" }field 
+ { $name="pBundleContext" $type="org.osgi.framework.BundleContext" }me
+ thod { $arguments="{org.osgi.framework.BundleContext}" $name="$init" 
+ }method { $name="destroy" }method { $arguments="{org.osgi.framework.S
+ erviceReference}" $name="exportService" $return="java.util.List" }met
+ hod { $name="invalidatePojo" }method { $arguments="{org.osgi.framewor
+ k.ServiceReference,org.psem2m.isolates.services.remote.beans.RemoteSe
+ rviceEvent$ServiceEventType,java.util.List}" $name="sendNotification"
+  }method { $arguments="{org.osgi.framework.ServiceEvent}" $name="serv
+ iceChanged" }method { $name="validatePojo" }interface { $name="org.os
+ gi.framework.ServiceListener" }}requires { $field="pLogger" $optional
+ ="false" }requires { $field="pEndpointHandlers" $optional="false" }}
 

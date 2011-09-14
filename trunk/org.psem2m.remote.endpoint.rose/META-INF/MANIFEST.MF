@@ -22,14 +22,16 @@ iPOJO-Components: instance { $component="remote-endpoint-handler-rose-
   $transition="invalidate" $method="invalidatePojo" }provides { $speci
  fications="org.psem2m.isolates.services.remote.IEndpointHandler" }man
  ipulation { $super="org.psem2m.isolates.base.activators.CPojoBase" fi
- eld { $name="pBundleContext" $type="org.osgi.framework.BundleContext"
-  }method { $arguments="{org.osgi.framework.BundleContext}" $name="$in
- it" }method { $arguments="{org.osgi.framework.ServiceReference}" $nam
- e="createEndpoint" $return="org.psem2m.isolates.services.remote.beans
- .EndpointDescription[]" }method { $name="destroy" }method { $argument
- s="{org.osgi.framework.ServiceReference}" $name="destroyEndpoint" $re
- turn="boolean" }method { $arguments="{java.util.Map}" $name="findExpo
- rtFactories" $return="org.osgi.framework.ServiceReference[]" }method 
- { $name="invalidatePojo" }method { $name="validatePojo" }interface { 
- $name="org.psem2m.isolates.services.remote.IEndpointHandler" }}}
+ eld { $name="pLogger" $type="org.osgi.service.log.LogService" }field 
+ { $name="pEndpointFactory" $type="org.ow2.chameleon.rose.server.Endpo
+ intFactory" }field { $name="pBundleContext" $type="org.osgi.framework
+ .BundleContext" }method { $arguments="{org.osgi.framework.BundleConte
+ xt}" $name="$init" }method { $arguments="{org.osgi.framework.ServiceR
+ eference}" $name="createEndpoint" $return="org.psem2m.isolates.servic
+ es.remote.beans.EndpointDescription[]" }method { $name="destroy" }met
+ hod { $arguments="{org.osgi.framework.ServiceReference}" $name="destr
+ oyEndpoint" $return="boolean" }method { $name="invalidatePojo" }metho
+ d { $name="validatePojo" }interface { $name="org.psem2m.isolates.serv
+ ices.remote.IEndpointHandler" }}requires { $field="pLogger" $optional
+ ="false" }requires { $field="pEndpointFactory" $optional="false" }}
 

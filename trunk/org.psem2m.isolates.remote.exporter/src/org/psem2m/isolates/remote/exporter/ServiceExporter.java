@@ -21,6 +21,7 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.log.LogService;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.services.remote.IEndpointHandler;
 import org.psem2m.isolates.services.remote.beans.EndpointDescription;
@@ -46,6 +47,9 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
 
     /** End point handlers */
     private IEndpointHandler[] pEndpointHandlers;
+
+    /** The logger */
+    private LogService pLogger;
 
     /**
      * Base constructor
@@ -180,7 +184,6 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
 		e.printStackTrace();
 
 	    } catch (IOException e) {
-
 		e.printStackTrace();
 	    }
 	}
@@ -247,6 +250,8 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
     @Override
     public void validatePojo() throws BundleException {
 
+	pLogger.log(LogService.LOG_INFO, "validatePojo()");
+
 	// Handle already registered services
 	try {
 	    ServiceReference[] exportedServices = pBundleContext
@@ -271,6 +276,9 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
 	    pBundleContext.addServiceListener(this, EXPORTED_SERVICE_FILTER);
 
 	} catch (InvalidSyntaxException e) {
+
+	    pLogger.log(LogService.LOG_ERROR,
+		    "Error creating the service listener", e);
 
 	    throw new BundleException(
 		    "Error creating the service listener filter", e);

@@ -8,6 +8,9 @@
 		architecture="true" immediate="true" name="remote-endpoint-handler-rose-factory">
 
 		<provides specifications="org.psem2m.isolates.services.remote.IEndpointHandler" />
+		
+		<requires field="pLogger" optional="false" />
+		<requires field="pEndpointFactory" optional="false" />
 
 		<callback transition="validate" method="validatePojo" />
 		<callback transition="invalidate" method="invalidatePojo" />

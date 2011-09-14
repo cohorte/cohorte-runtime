@@ -98,9 +98,16 @@ public class ServletRegisterer extends CPojoBase implements
 		    this), null, null);
 
 	} catch (ServletException e) {
-	    e.printStackTrace();
+	    pLogger.log(LogService.LOG_ERROR,
+		    "Error registering the RSI servlet", e);
+
+	    throw new BundleException("Error registering the RSI servlet", e);
+
 	} catch (NamespaceException e) {
-	    e.printStackTrace();
+	    pLogger.log(LogService.LOG_ERROR,
+		    "Error registering the RSI servlet", e);
+
+	    throw new BundleException("Error registering the RSI servlet", e);
 	}
     }
 }
