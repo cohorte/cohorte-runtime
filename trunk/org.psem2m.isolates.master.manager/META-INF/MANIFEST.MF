@@ -53,9 +53,13 @@ iPOJO-Components: instance { $component="isolates-master-manager-logge
  method { $arguments="{java.lang.String,java.lang.String}" $name="make
  JavaProperty" $return="java.lang.String" }method { $name="startForker
  " $return="java.lang.Process" }method { $name="startWatcher" }method 
- { $name="validatePojo" }}requires { $field="pBundleFinderSvc" $option
- al="false" }requires { $field="pConfigurationSvc" $optional="false" }
- requires { $field="pPlatformDirsSvc" $optional="false" }requires { $f
- ield="pLoggerSvc" $optional="false" $from="isolates-master-manager-lo
- gger" }}
+ { $name="validatePojo" }method { $name="waitForRsi" }method { $argume
+ nts="{org.psem2m.isolates.master.manager.impl.CMasterManager}" $name=
+ "access$0" }method { $arguments="{org.psem2m.isolates.master.manager.
+ impl.CMasterManager}" $name="access$1" $return="org.psem2m.utilities.
+ logging.IActivityLoggerBase" }}requires { $field="pBundleFinderSvc" $
+ optional="false" }requires { $field="pConfigurationSvc" $optional="fa
+ lse" }requires { $field="pPlatformDirsSvc" $optional="false" }require
+ s { $field="pLoggerSvc" $optional="false" $from="isolates-master-mana
+ ger-logger" }}
 

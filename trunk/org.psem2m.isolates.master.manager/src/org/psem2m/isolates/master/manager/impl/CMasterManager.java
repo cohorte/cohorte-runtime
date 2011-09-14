@@ -8,6 +8,10 @@ package org.psem2m.isolates.master.manager.impl;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -334,25 +338,105 @@ public class CMasterManager extends CPojoBase {
     @Override
     public void validatePojo() throws BundleException {
 
+	new Thread() {
+
+	    @Override
+	    public void run() {
+		// Wait for the RSI entry to come up
+		waitForRsi();
+
+		try {
+		    pLoggerSvc.logInfo(this, "validatePojo", "Start forker");
+
+		    // Start the forker
+		    if (startForker() == null) {
+			throw new Exception("Can't start the forker");
+		    }
+
+		    // Start the forker watcher
+		    startWatcher();
+
+		} catch (Exception e) {
+		    pLoggerSvc.logSevere(this, "validatePojo",
+			    "Error starting Master.manager", e);
+
+		    // throw new
+		    // BundleException("Error starting Master.manager", e);
+		}
+	    }
+
+	}.start();
+
 	// logs in the bundle logger
 	pLoggerSvc.logInfo(this, "validatePojo", "VALIDATE", toDescription());
 
+	// // Wait for the RSI entry to come up
+	// waitForRsi();
+	//
+	// try {
+	// pLoggerSvc.logInfo(this, "validatePojo", "Start forker");
+	//
+	// // Start the forker
+	// if (startForker() == null) {
+	// throw new Exception("Can't start the forker");
+	// }
+	//
+	// // Start the forker watcher
+	// startWatcher();
+	//
+	// } catch (Exception e) {
+	// pLoggerSvc.logSevere(this, "validatePojo",
+	// "Error starting Master.manager", e);
+	//
+	// throw new BundleException("Error starting Master.manager", e);
+	// }
+    }
+
+    /**
+     * Sends HTTP GET requests to the remote service importer, in order to start
+     * the forker <b>after</b> being able to listen to its notifications.
+     */
+    private void waitForRsi() {
+
+	// Try to parse the URL and open a connection
 	try {
-	    pLoggerSvc.logInfo(this, "validatePojo", "Start forker");
+	    URL isolateImporterUrl = new URL(
+		    "http://localhost:9000/remote-service-importer");
 
-	    // Start the forker
-	    if (startForker() == null) {
-		throw new Exception("Can't start the forker");
-	    }
+	    int lastResponse = 0;
 
-	    // Start the forker watcher
-	    startWatcher();
+	    do {
+		try {
+		    final URLConnection urlConnection = isolateImporterUrl
+			    .openConnection();
 
-	} catch (Exception e) {
-	    pLoggerSvc.logSevere(this, "validatePojo",
-		    "Error starting Master.manager", e);
+		    if (urlConnection instanceof HttpURLConnection) {
 
-	    throw new BundleException("Error starting Master.manager", e);
+			// Only handle HTTP streams
+
+			final HttpURLConnection httpConnection = (HttpURLConnection) urlConnection;
+			httpConnection.connect();
+
+			lastResponse = httpConnection.getResponseCode();
+
+			httpConnection.disconnect();
+		    }
+		} catch (IOException ex) {
+		    // Ignore
+		}
+
+		try {
+		    Thread.sleep(500);
+
+		} catch (InterruptedException e) {
+		    // Ignore
+		}
+
+	    } while (lastResponse == HttpURLConnection.HTTP_NOT_FOUND);
+
+	} catch (MalformedURLException ex) {
+	    // WHAT ?
+	    ex.printStackTrace();
 	}
     }
 }
