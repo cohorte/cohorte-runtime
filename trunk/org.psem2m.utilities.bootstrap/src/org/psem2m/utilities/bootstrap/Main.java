@@ -17,10 +17,22 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.TreeMap;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Executor;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
-import org.psem2m.isolates.base.boot.IsolateStatus;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleEvent;
+import org.osgi.framework.Constants;
+import org.osgi.framework.SynchronousBundleListener;
+import org.osgi.framework.launch.Framework;
+import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.utilities.bootstrap.config.ConfigurationReader;
 import org.psem2m.utilities.bootstrap.streams.MessageSender;
 import org.psem2m.utilities.bootstrap.streams.RedirectedOutputStream;
@@ -35,16 +47,14 @@ public class Main {
     /** Name to use in logs */
     private static final String CLASS_LOG_NAME = "Bootstrap.Main";
 
-    /** @see org.psem2m.isolates.base.IPlatformProperties#PROP_PLATFORM_ISOLATE_ID */
-    public final static String PROP_PLATFORM_ISOLATE_ID = "org.psem2m.platform.isolate.id";
-
     /**
      * Retrieves the isolate ID system property
      * 
      * @return The isolate ID
      */
     public static String getIsolateId() {
-	return System.getProperty(PROP_PLATFORM_ISOLATE_ID, "<unknown>");
+	return System.getProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID,
+		"<unknown>");
     }
 
     /**
@@ -56,40 +66,7 @@ public class Main {
     public static void main(final String[] aArgs) {
 
 	// Read the arguments, open the streams
-	Main program = new Main(aArgs);
-
-	// Read the bundles list and run the bootstrap
-	URL[] bundleConfiguration;
-	try {
-	    bundleConfiguration = program.readConfiguration();
-	} catch (IOException e) {
-	    e.printStackTrace();
-	    System.exit(1);
-
-	    // Avoids compilation warning
-	    return;
-	}
-
-	// Test bundle files
-	if (!program.testBundles(bundleConfiguration)) {
-	    System.exit(1);
-
-	    // Avoids compilation warning
-	    return;
-	}
-
-	// Run the framework if everything is OK
-	boolean success = program.runBootstrap(bundleConfiguration);
-
-	// Close the streams before exit
-	program.closeStreams();
-
-	if (!success) {
-	    System.exit(1);
-	}
-
-	// Exit in any case (do not wait for non-daemon threads)
-	System.exit(0);
+	new Main(aArgs).run();
     }
 
     /** Bootstrap configuration */
@@ -100,6 +77,9 @@ public class Main {
 
     /** Real error output */
     private final PrintStream pErrorOutput;
+
+    /** Framework starter thread */
+    private FrameworkStarterThread pFrameworkStarterThread;
 
     /** Human output format */
     private boolean pHumanOutput = false;
@@ -115,6 +95,10 @@ public class Main {
 
     /** Real standard output */
     private final PrintStream pStandardOutput;
+
+    /** The UI Thread work queue */
+    private final BlockingQueue<Runnable> pUiWorkQueue = new LinkedBlockingQueue<Runnable>(
+	    1);
 
     /**
      * Constructor : redirects output immediately
@@ -368,104 +352,159 @@ public class Main {
     }
 
     /**
-     * Run the OSGi bootstrap
+     * Prepares the "runInThreadUI" service. The result flag is turned to on
+     * when the framework main bundle is stopped.
      * 
-     * @return True on success, False on error
+     * Based on bndtools.launcher (EPL License)
+     * 
+     * @param aFramework
+     *            The hosted OSGi framework
+     * 
+     * @return The atomic boolean flag indicating the end of the loop.
      */
-    protected boolean runBootstrap(final URL[] aBundlesConfiguration) {
+    protected AtomicBoolean registerUIThreadService(final Framework aFramework) {
 
-	// Prepare the bootstrap
-	final FrameworkStarter bootstrap = new FrameworkStarter(pMessageSender,
-		pBootstrapConfiguration, pOtherConfiguration);
+	// Get the framework system bundle context
+	final BundleContext frameworkContext = aFramework.getBundleContext();
 
-	pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME, "runBootstrap",
-		"Creating framework...");
-	pMessageSender.sendStatus(IsolateStatus.STATE_READ_CONF, 0);
+	// Set up the service properties
+	final Properties mainThreadExecutorProps = new Properties();
+	mainThreadExecutorProps.put("thread", "main");
+	mainThreadExecutorProps.put(Constants.SERVICE_RANKING,
+		Integer.valueOf(-1000));
 
-	// Initialize the framework
-	if (bootstrap.createFramework() == null) {
-	    pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
-		    "runBootstrap", "Can't create framework");
-	    pMessageSender.sendStatus(IsolateStatus.STATE_FAILURE, 0);
-	    return false;
-	}
+	// Prepare the service instance
+	final Executor mainThreadExecutor = new Executor() {
+	    @Override
+	    public void execute(final Runnable command) {
+		pMessageSender.sendMessage(Level.FINEST, "UI-Executor",
+			"execute", "Executor enqueuing a new task");
 
-	pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME, "runBootstrap",
-		"Installing bundles...");
-	pMessageSender.sendStatus(IsolateStatus.STATE_FRAMEWORK_LOADED, 1);
+		// add() will throw an exception if the queue is full, which is
+		// what we want
+		pUiWorkQueue.add(command);
+	    }
+	};
 
-	// Install indicated bundles
-	if (!bootstrap.installBundles(aBundlesConfiguration)) {
-	    pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
-		    "runBootstrap", "Error installing bundles. Abandon");
-	    pMessageSender.sendStatus(IsolateStatus.STATE_FAILURE, 0);
-	    return false;
-	}
+	// Register the executor
+	frameworkContext.registerService(Executor.class.getName(),
+		mainThreadExecutor, mainThreadExecutorProps);
 
-	pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME, "runBootstrap",
-		"Starting framework...");
-	pMessageSender.sendStatus(IsolateStatus.STATE_BUNDLES_INSTALLED, 2);
+	// Shutdown flag
+	final AtomicBoolean shutdown = new AtomicBoolean(false);
+	final Thread mainThread = Thread.currentThread();
 
-	// Start the framework
-	if (!bootstrap.startFramework()) {
-	    pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
-		    "runBootstrap", "Error starting framework. Abandon");
-	    pMessageSender.sendStatus(IsolateStatus.STATE_FAILURE, 0);
-	    return false;
-	}
+	/*
+	 * Create a bundle listener that will pull us out of the queue polling
+	 * loop when the system bundle starts to shutdown
+	 */
+	frameworkContext.addBundleListener(new SynchronousBundleListener() {
+	    @Override
+	    public void bundleChanged(final BundleEvent event) {
+		if (event.getBundle().getBundleId() == 0
+			&& event.getType() == BundleEvent.STOPPING) {
 
-	pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME, "runBootstrap",
-		"Registering bootstrap services...");
-	pMessageSender.sendStatus(IsolateStatus.STATE_FRAMEWORK_STARTED, 2.5);
+		    pMessageSender.sendMessage(Level.INFO, "UI-Executor",
+			    "bundleChanged", "Main bundle is stopping");
+		    shutdown.set(true);
+		    mainThread.interrupt();
+		}
+	    }
+	});
 
-	// Install bootstrap service
-	bootstrap.installBootstrapService();
+	return shutdown;
+    }
 
-	pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME, "runBootstrap",
-		"Starting bundles...");
-	pMessageSender.sendStatus(IsolateStatus.STATE_FRAMEWORK_STARTED, 3);
+    /**
+     * Bootstrap main program
+     */
+    public void run() {
 
-	// Start installed bundles
-	if (!bootstrap.startBundles()) {
-	    pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
-		    "runBootstrap", "Error starting bundles. Abandon");
-	    pMessageSender.sendStatus(IsolateStatus.STATE_FAILURE, 0);
-
-	    // Stop the framework "gracefully"
-	    bootstrap.stopFramework();
-	    return false;
-	}
-
-	pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME, "runBootstrap",
-		"Running...");
-	pMessageSender.sendStatus(IsolateStatus.STATE_BUNDLES_STARTED, 4);
-
-	// Activity loop
+	// Read the bundles list and run the bootstrap
+	URL[] bundleConfiguration;
 	try {
-	    do {
-		// Do something..;
-	    } while (!bootstrap.waitForStop(1000));
+	    bundleConfiguration = readConfiguration();
 
-	} catch (InterruptedException e) {
+	} catch (IOException e) {
 	    e.printStackTrace();
+	    System.exit(1);
+
+	    // Avoids compilation warning
+	    return;
 	}
 
-	pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME, "runBootstrap",
-		"Stopping...");
-	pMessageSender.sendStatus(IsolateStatus.STATE_STOPPING, 5);
+	// Test bundle files
+	if (!testBundles(bundleConfiguration)) {
+	    System.exit(1);
 
-	// Stop the framework
-	if (!bootstrap.stopFramework()) {
+	    // Avoids compilation warning
+	    return;
+	}
+
+	// Run the framework...
+	try {
+	    // Prepare the thread
+	    pFrameworkStarterThread = new FrameworkStarterThread(
+		    pMessageSender, pBootstrapConfiguration,
+		    pOtherConfiguration);
+
+	    // Prepare the framework (without starting it)
+	    final Framework framework = pFrameworkStarterThread
+		    .prepareFramework();
+
+	    // Register the UI service
+	    final AtomicBoolean shutdown = registerUIThreadService(framework);
+	    final Bundle frameworkBundle = framework.getBundleContext()
+		    .getBundle();
+
+	    // Run the beast
+	    pFrameworkStarterThread.runBootstrap(bundleConfiguration);
+
+	    // Start the framework activity thread
+	    pFrameworkStarterThread.start();
+
+	    // Enter a loop to poll on the work queue
+	    while (!shutdown.get()
+		    && frameworkBundle.getState() == Bundle.ACTIVE) {
+		try {
+		    Runnable work = pUiWorkQueue.poll(3, TimeUnit.SECONDS);
+		    if (work != null) {
+			pMessageSender.sendMessage(Level.FINEST, "UI-Executor",
+				"Work-loop",
+				"Main thread received a work task, executing.");
+
+			work.run();
+		    }
+
+		} catch (InterruptedException e) {
+		    pMessageSender.sendMessage(Level.FINEST, "UI-Executor",
+			    "Work-loop",
+			    "Main thread interrupted. End of the world.");
+		}
+	    }
+
+	    // Interrupt the framework starter
+	    pFrameworkStarterThread.interrupt();
+
+	    // Clear the interrupted state if it was uncaught during the above
+	    // loop
+	    Thread.interrupted();
+
+	} catch (Exception ex) {
+
 	    pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
-		    "runBootstrap", "Error stopping the framework. Ignoring.");
+		    "runBootstrap", "Can't start the framework thread", ex);
 
-	} else {
-	    pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME,
-		    "runBootstrap", "Stopped");
+	    if (pFrameworkStarterThread != null) {
+		pFrameworkStarterThread.stopFramework();
+	    }
 	}
 
-	pMessageSender.sendStatus(IsolateStatus.STATE_STOPPED, 6);
-	return true;
+	// Close the streams before exit
+	closeStreams();
+
+	// Exit in any case (do not wait for non-daemon threads)
+	System.exit(0);
     }
 
     /**
