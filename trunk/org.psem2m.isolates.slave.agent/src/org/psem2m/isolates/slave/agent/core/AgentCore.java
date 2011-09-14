@@ -282,8 +282,6 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
     @Override
     public void prepareIsolate(final String aIsolateId) throws Exception {
 
-	System.out.println("Preparing isolate : " + aIsolateId);
-
 	// Read the configuration
 	final IIsolateDescr isolateDescr = pConfigurationSvc.getApplication()
 		.getIsolate(aIsolateId);
@@ -326,7 +324,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
 			    break;
 
 			default:
-			    if (bundleDescr.isOptional()) {
+			    if (bundleDescr.getOptional()) {
 				// Ignore error if the bundle is optional
 				pLoggerSvc.logWarn(this, "prepareIsolate",
 					"Error installing ", bundleName, ex);
@@ -341,7 +339,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
 		} else {
 		    // Bundle not found : throw an error if it's mandatory
 
-		    if (bundleDescr.isOptional()) {
+		    if (bundleDescr.getOptional()) {
 			// Simply log
 			pLoggerSvc.logWarn(this, "prepareIsolate",
 				"Bundle not found : ", bundleName);
@@ -361,7 +359,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
 		    startBundle(bundleId);
 
 		} catch (BundleException ex) {
-		    if (pInstalledBundles.get(bundleId).isOptional()) {
+		    if (pInstalledBundles.get(bundleId).getOptional()) {
 			// Simply log
 			pLoggerSvc.logWarn(this, "prepareIsolate",
 				"Can't start bundle ",

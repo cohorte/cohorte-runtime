@@ -64,7 +64,7 @@ public class GuardianThread extends Thread {
 		    final Bundle osgiBundle = pAgentCore.getBundle(bundleId);
 		    if (osgiBundle == null) {
 
-			if (!bundleDescr.isOptional()) {
+			if (!bundleDescr.getOptional()) {
 			    // TODO handle the missing bundle
 			    System.err.println("MISSING BUNDLE: "
 				    + bundleDescr.getSymbolicName());
@@ -79,7 +79,7 @@ public class GuardianThread extends Thread {
 				pAgentCore.startBundle(bundleId);
 
 			    } catch (BundleException e) {
-				if (!bundleDescr.isOptional()) {
+				if (!bundleDescr.getOptional()) {
 				    // TODO handle this case
 				    System.err.println("INVALID STATE BUNDLE: "
 					    + bundleDescr.getSymbolicName()
