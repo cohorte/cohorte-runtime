@@ -355,7 +355,9 @@ public class Main {
      * Prepares the "runInThreadUI" service. The result flag is turned to on
      * when the framework main bundle is stopped.
      * 
-     * Based on bndtools.launcher (EPL License)
+     * Based on bndtools.launcher
+     * (https://github.com/njbartlett/bndtools.launcher
+     * /blob/master/src/bndtools/launcher/Main.java), under EPL License
      * 
      * @param aFramework
      *            The hosted OSGi framework

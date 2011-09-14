@@ -5,9 +5,13 @@
  */
 package org.psem2m.utilities.bootstrap;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -35,22 +39,17 @@ public class FrameworkStarter {
 	    .getSimpleName();
 
     /** Default OSGi pFramework : Felix */
-    public static final String DEFAULT_FRAMEWORK = "org.apache.felix.framework.FrameworkFactory";
+    public static final String DEFAULT_FRAMEWORKFACTORY = "org.apache.felix.framework.FrameworkFactory";
 
-    /** Framework factories content */
-    public static final Map<String, String> FRAMEWORK_FACTORIES = new TreeMap<String, String>();
-
-    static {
-	// Initialize the static map
-	FRAMEWORK_FACTORIES.put("equinox",
-		"org.eclipse.osgi.launch.EquinoxFactory");
-
-	FRAMEWORK_FACTORIES.put("felix",
-		"org.apache.felix.framework.FrameworkFactory");
-    }
+    /**
+     * JAR resource file containing the name of the framework factory. Usable at
+     * least with Equinox and Felix
+     */
+    public static final String SERVICE_FRAMEWORKFACTORY_RESOURCE = "META-INF/services/"
+	    + FrameworkFactory.class.getName();
 
     /** The bootstrap configuration */
-    private Map<String, String> pBootstrapConfiguration = new TreeMap<String, String>();
+    private final Map<String, String> pBootstrapConfiguration = new TreeMap<String, String>();
 
     /** Bootstrap message sender service */
     private final BootstrapMessageSender pBootstrapService;
@@ -59,10 +58,10 @@ public class FrameworkStarter {
     private Framework pFramework;
 
     /** The framework/system configuration */
-    private Map<String, String> pFrameworkConfiguration = new TreeMap<String, String>();
+    private final Map<String, String> pFrameworkConfiguration = new TreeMap<String, String>();
 
     /** The installed bundles list */
-    private List<Bundle> pInstalledBundles = new ArrayList<Bundle>();
+    private final List<Bundle> pInstalledBundles = new ArrayList<Bundle>();
 
     /** Log message sender */
     private IMessageSender pMessageSender;
@@ -187,18 +186,62 @@ public class FrameworkStarter {
      */
     protected FrameworkFactory getFrameworkFactory() {
 
-	String osgiFramework = pBootstrapConfiguration
+	// The asked framework factory, can be null
+	final String osgiFramework = pBootstrapConfiguration
 		.get(IBootstrapConstants.CONFIG_FRAMEWORK);
-	if (osgiFramework == null) {
-	    osgiFramework = DEFAULT_FRAMEWORK;
-	}
 
-	// Try to find the factory
-	String factoryName = FRAMEWORK_FACTORIES.get(osgiFramework);
+	// Framework factory name
+	final String factoryName;
 
-	// If none found, consider the configuration as the factory
-	if (factoryName == null) {
-	    factoryName = osgiFramework;
+	// Get the list of META-INF visible factories
+	final List<String> visibleFactories = getMetaInfFrameworkFactories();
+
+	if (osgiFramework != null) {
+
+	    if (visibleFactories.contains(osgiFramework)) {
+		// Given framework name was a real factory, so use it
+		factoryName = osgiFramework;
+
+	    } else {
+		// Consider the given name as a part of a framework name (felix,
+		// equinox, ...)
+		final String lowerCaseOsgiFramework = osgiFramework
+			.toLowerCase();
+
+		String matchingFactory = null;
+
+		for (String visibleFactory : visibleFactories) {
+
+		    // Be case insensitive
+		    if (visibleFactory.toLowerCase().contains(
+			    lowerCaseOsgiFramework)) {
+			// Found it !
+			matchingFactory = visibleFactory;
+			break;
+		    }
+		}
+
+		if (matchingFactory != null) {
+		    // We found something
+		    factoryName = matchingFactory;
+
+		} else if (!visibleFactories.isEmpty()) {
+		    // Use the first factory found
+		    factoryName = visibleFactories.get(0);
+
+		} else {
+		    // Try with the default name
+		    factoryName = DEFAULT_FRAMEWORKFACTORY;
+		}
+	    }
+
+	} else if (!visibleFactories.isEmpty()) {
+	    // Use the first visible factory if we have no hint
+	    factoryName = visibleFactories.get(0);
+
+	} else {
+	    // Absolutely no factory is visible, try the default name
+	    factoryName = DEFAULT_FRAMEWORKFACTORY;
 	}
 
 	// Find and instantiate the class
@@ -223,6 +266,79 @@ public class FrameworkStarter {
     }
 
     /**
+     * Finds all framework factories class name visible by the class loader
+     * 
+     * Code from Bndtools.launcher
+     * (https://github.com/njbartlett/bndtools.launcher
+     * /blob/master/src/bndtools/launcher/ServiceFinder.java), under EPL license
+     * 
+     * @return All visible framework factories, an empty list if nothing is
+     *         found or on error.
+     */
+    protected List<String> getMetaInfFrameworkFactories() {
+
+	// Prepare the result list
+	final List<String> factoriesNames = new ArrayList<String>();
+
+	// Get the current class loader
+	final ClassLoader classLoader = getClass().getClassLoader();
+
+	// Find all resources
+	final Enumeration<URL> visibleServiceFiles;
+	try {
+	    visibleServiceFiles = classLoader
+		    .getResources(SERVICE_FRAMEWORKFACTORY_RESOURCE);
+
+	} catch (IOException ex) {
+	    pMessageSender.sendMessage(Level.WARNING, CLASS_LOG_NAME,
+		    "getMetaInfFrameworkFactories",
+		    "Can't load framework factory definitions", ex);
+	    return factoriesNames;
+	}
+
+	while (visibleServiceFiles.hasMoreElements()) {
+
+	    final URL url = visibleServiceFiles.nextElement();
+	    BufferedReader rdr = null;
+
+	    try {
+		// Read the file, line by line
+		rdr = new BufferedReader(
+			new InputStreamReader(url.openStream()));
+
+		String line;
+		while ((line = rdr.readLine()) != null) {
+		    line = line.trim();
+
+		    // Ignore comments and empty lines
+		    if (!line.startsWith("#") && line.length() > 0) {
+			factoriesNames.add(line);
+		    }
+		}
+
+	    } catch (IOException ex) {
+		// Should never happen
+		pMessageSender.sendMessage(Level.WARNING, CLASS_LOG_NAME,
+			"getMetaInfFrameworkFactories",
+			"Error loading a factory definition file", ex);
+
+	    } finally {
+		// Be nice and clean all
+		if (rdr != null) {
+		    try {
+			rdr.close();
+
+		    } catch (IOException e) {
+			// Ignore error at this level...
+		    }
+		}
+	    }
+	}
+
+	return factoriesNames;
+    }
+
+    /**
      * Installs the bootstrap message sender service
      */
     protected void installBootstrapService() {
@@ -230,14 +346,6 @@ public class FrameworkStarter {
 	pFramework.getBundleContext().registerService(
 		IBootstrapMessageSender.class.getName(), pBootstrapService,
 		null);
-
-	try {
-	    pFramework.getBundleContext().getClass().getClassLoader()
-		    .loadClass(IBootstrapMessageSender.class.getName());
-	} catch (ClassNotFoundException e) {
-	    // TODO Auto-generated catch block
-	    e.printStackTrace();
-	}
     }
 
     /*
