@@ -9,6 +9,7 @@
 
 		<provides specifications="org.psem2m.isolates.services.remote.IRemoteServiceClientHandler" />
 		
+		<requires field="pLogger" optional="false" />
 		<requires field="pProxyFactories" optional="false" />
 
 		<callback transition="validate" method="validatePojo" />

@@ -10,6 +10,7 @@ import java.util.Map;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.osgi.service.log.LogService;
 import org.ow2.chameleon.rose.client.RemoteClientFactory;
 import org.ow2.chameleon.rose.client.RemoteProxyFactory;
 import org.psem2m.isolates.base.BundlesClassLoader;
@@ -30,6 +31,9 @@ public class RoseClientHandler extends CPojoBase implements
 
     /** The component bundle context */
     private BundleContext pBundleContext;
+
+    /** Log service */
+    private LogService pLogger;
 
     /** Rose remote proxy factories */
     private RemoteProxyFactory[] pProxyFactories;
@@ -132,20 +136,23 @@ public class RoseClientHandler extends CPojoBase implements
 
 	// No factory, no proxy
 	if (aServiceEvent == null || pProxyFactories.length == 0) {
-	    System.out.println("No proxies");
+	    pLogger.log(LogService.LOG_ERROR, "[RoseClientHandler] No proxies");
 	    return null;
 	}
 
 	// Compute the interface name
 	String[] interfaceNames = aServiceEvent.getInterfacesNames();
 	if (interfaceNames == null || interfaceNames.length == 0) {
-	    System.out.println("No interface array");
+	    pLogger.log(LogService.LOG_ERROR,
+		    "[RoseClientHandler] No/Empty interface array");
 	    return null;
 	}
 
 	final String interfaceName = interfaceNames[interfaceNames.length - 1];
 	if (interfaceName == null) {
 	    System.out.println("No interface");
+	    pLogger.log(LogService.LOG_ERROR,
+		    "[RoseClientHandler] No interface");
 	    return null;
 	}
 
@@ -153,8 +160,9 @@ public class RoseClientHandler extends CPojoBase implements
 	// Class.forName(interfaceName) won't work...
 	final Class<?> interfaceClass = Utilities.findClassInBundles(
 		pBundleContext.getBundles(), interfaceName);
-
 	if (interfaceClass == null) {
+	    pLogger.log(LogService.LOG_ERROR, "[RoseClientHandler] Interface '"
+		    + interfaceName + "' no found");
 	    throw new ClassNotFoundException(interfaceName);
 	}
 
@@ -177,13 +185,15 @@ public class RoseClientHandler extends CPojoBase implements
 
 	// Nothing found : abandon.
 	if (preferredFactory == null || selectedEndpoint == null) {
-	    System.out.println("No factory/endpoint couple found");
+	    pLogger.log(LogService.LOG_ERROR,
+		    "[RoseClientHandler] No factory/endpoint couple found");
 	    return null;
 	}
 
 	final String endpointUri = selectedEndpoint.computeURI();
 	if (endpointUri == null) {
-	    System.out.println("Invalid URI");
+	    pLogger.log(LogService.LOG_ERROR,
+		    "[RoseClientHandler] Invalid endpoint URI");
 	    return null;
 	}
 
@@ -196,6 +206,7 @@ public class RoseClientHandler extends CPojoBase implements
 		endpointUri);
 
 	// Prepare a framework wide class loader
+	// FIXME CLASS LOADER
 	final BundlesClassLoader classLoader = new BundlesClassLoader(
 		pBundleContext);
 
