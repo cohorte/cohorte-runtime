@@ -5,16 +5,13 @@
  */
 package org.psem2m.remote.endpoint.rose;
 
-import java.util.Arrays;
 import java.util.Map;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
-import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogService;
-import org.ow2.chameleon.rose.RemoteConstants;
 import org.ow2.chameleon.rose.server.EndpointFactory;
 import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.base.activators.CPojoBase;
@@ -88,6 +85,20 @@ public class RoseEndpointHandler extends CPojoBase implements IEndpointHandler {
 		    "The service reference to export as no associated instance.");
 	    return null;
 	}
+
+	// Set the exported interface name (first one found)
+	final String[] interfaceName = (String[]) aServiceReference
+		.getProperty(Constants.OBJECTCLASS);
+
+	if (interfaceName == null || interfaceName.length == 0) {
+	    pLogger.log(LogService.LOG_WARNING, "No " + Constants.OBJECTCLASS
+		    + " service property. Endpoint creation aborted.");
+	    return null;
+	}
+
+	// Set the service interface name (for Rose)
+	serviceProperties.put(EndpointFactory.PROP_INTERFACE_NAME,
+		interfaceName[0]);
 
 	// Create end points
 	pEndpointFactory.createEndpoint(serviceInstance, serviceProperties);
