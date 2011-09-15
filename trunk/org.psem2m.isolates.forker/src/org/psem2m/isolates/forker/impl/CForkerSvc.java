@@ -16,6 +16,7 @@ import org.psem2m.isolates.base.isolates.boot.IsolateStatus;
 import org.psem2m.isolates.forker.IBundleForkerLoggerSvc;
 import org.psem2m.isolates.forker.IIsolateRunner;
 import org.psem2m.isolates.forker.IProcessRef;
+import org.psem2m.isolates.forker.impl.processes.ProcessRef;
 import org.psem2m.isolates.services.conf.IIsolateDescr;
 import org.psem2m.isolates.services.forker.IForker;
 
@@ -56,9 +57,8 @@ public class CForkerSvc extends CPojoBase implements IForker,
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * org.psem2m.isolates.base.isolates.boot.IIsolateOutputListener#handleIsolateLogRecord
-     * (java.lang.String, java.util.logging.LogRecord)
+     * @see org.psem2m.isolates.base.isolates.IIsolateOutputListener#
+     * handleIsolateLogRecord(java.lang.String, java.util.logging.LogRecord)
      */
     @Override
     public void handleIsolateLogRecord(final String aSourceIsolateId,
@@ -71,7 +71,7 @@ public class CForkerSvc extends CPojoBase implements IForker,
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.isolates.base.isolates.boot.IIsolateOutputListener#handleIsolateStatus
+     * org.psem2m.isolates.base.isolates.IIsolateOutputListener#handleIsolateStatus
      * (java.lang.String, org.psem2m.isolates.base.isolates.boot.IsolateStatus)
      */
     @Override
@@ -175,7 +175,7 @@ public class CForkerSvc extends CPojoBase implements IForker,
 	// Start the output reader
 	try {
 	    final CProcessWatcherThread watcherThread = new CProcessWatcherThread(
-		    this, isolateId, (Process) isolateRef);
+		    this, isolateId, ((ProcessRef) isolateRef).getProcess());
 	    watcherThread.start();
 
 	} catch (IOException ex) {
@@ -202,7 +202,7 @@ public class CForkerSvc extends CPojoBase implements IForker,
 	IProcessRef process = pRunningIsolates.get(aIsolateId);
 	if (process != null) {
 	    // TODO Do it a little more softly
-	    ((Process) process).destroy();
+	    ((ProcessRef) process).getProcess().destroy();
 	}
 
 	pRunningIsolates.remove(aIsolateId);
