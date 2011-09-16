@@ -104,9 +104,7 @@ public class FileContentHandler implements IDirectoryContentHandler {
 		    }
 
 		} catch (ClassNotFoundException e) {
-		    // TODO log error / re-throw the exception ?
-		    System.err.println("Can't deserialize data");
-		    e.printStackTrace();
+		    throw new IOException("Can't serialize an unknown class", e);
 		}
 
 	    } finally {

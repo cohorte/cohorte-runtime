@@ -10,6 +10,7 @@ import java.util.List;
 
 import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.log.LogService;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.isolates.services.remote.beans.EndpointDescription;
@@ -39,8 +40,11 @@ public class FileDirectory extends CPojoBase implements IEndpointDirectory,
     /** Last known end points list content */
     private List<EndpointDescription> pLastKnownState;
 
+    /** OSGi log service, injected by iPOJO */
+    private LogService pLoggerSvc;
+
     /** Platform directories service, injected by iPOJO */
-    private IPlatformDirsSvc platformDirsSvc;
+    private IPlatformDirsSvc pPlatformDirsSvc;
 
     /**
      * Default constructor
@@ -62,10 +66,8 @@ public class FileDirectory extends CPojoBase implements IEndpointDirectory,
 	    pContentHandler.addEndpoint(aEndpointDescription);
 
 	} catch (IOException e) {
-	    // TODO Log it
-	    System.err.println("Error adding endpoint - "
-		    + aEndpointDescription);
-	    e.printStackTrace();
+	    pLoggerSvc.log(LogService.LOG_ERROR, "Error adding endpoint - "
+		    + aEndpointDescription, e);
 	}
     }
 
@@ -105,9 +107,10 @@ public class FileDirectory extends CPojoBase implements IEndpointDirectory,
 	// Update last known state
 	pLastKnownState = newContent;
 
-	System.out.println("The directory has been modified - "
-		+ addedEndpoints.size() + " new end points, "
-		+ removedEndpoints.size() + " removed end points");
+	pLoggerSvc.log(LogService.LOG_INFO,
+		"The directory has been modified - " + addedEndpoints.size()
+			+ " new end points, " + removedEndpoints.size()
+			+ " removed end points");
 
 	// TODO propagate the modifications
     }
@@ -126,10 +129,10 @@ public class FileDirectory extends CPojoBase implements IEndpointDirectory,
 	    endpointsList = pContentHandler.getEndpoints();
 
 	} catch (IOException e) {
-	    // TODO log error
-	    System.err.println("Error reading endpoints list to find "
-		    + aInterfaceName);
-	    e.printStackTrace();
+	    pLoggerSvc
+		    .log(LogService.LOG_ERROR,
+			    "Error reading endpoints list to find "
+				    + aInterfaceName, e);
 
 	    // Do not return null
 	    return new EndpointDescription[0];
@@ -158,7 +161,7 @@ public class FileDirectory extends CPojoBase implements IEndpointDirectory,
     public void invalidatePojo() throws BundleException {
 	// do nothing...
 	pFilePoller.interrupt();
-	System.out.println("RSR Gone");
+	pLoggerSvc.log(LogService.LOG_INFO, "RST Gone");
     }
 
     @Override
@@ -173,17 +176,15 @@ public class FileDirectory extends CPojoBase implements IEndpointDirectory,
 	    pContentHandler.removeEndpoint(aEndpointDescription);
 
 	} catch (IOException e) {
-	    // TODO log error
-	    System.err.println("Error removing endpoint - "
-		    + aEndpointDescription);
-	    e.printStackTrace();
+	    pLoggerSvc.log(LogService.LOG_ERROR, "Error removing endpoint - "
+		    + aEndpointDescription, e);
 	}
     }
 
     @Override
     public void validatePojo() throws BundleException {
 
-	File baseDir = platformDirsSvc.getPlatformBaseDir();
+	File baseDir = pPlatformDirsSvc.getPlatformBaseDir();
 	File repositoryFile = new File(baseDir, DIRECTORY_FILE_NAME);
 
 	pContentHandler = new FileContentHandler(repositoryFile);
@@ -201,6 +202,7 @@ public class FileDirectory extends CPojoBase implements IEndpointDirectory,
 	pFilePoller.addDirectoryListener(this);
 	pFilePoller.start();
 
-	System.out.println("RSR Created with file : " + repositoryFile);
+	pLoggerSvc.log(LogService.LOG_INFO, "RSR Created with file : "
+		+ repositoryFile);
     }
 }

@@ -10,6 +10,9 @@
 		public="false">
 
 		<provides specifications="org.psem2m.remote.endpoints.directory.IEndpointDirectory" />
+		
+		<requires field="pLoggerSvc" optional="false" />
+		<requires field="pPlatformDirsSvc" optional="false" />
 
 		<callback transition="validate" method="validatePojo" />
 		<callback transition="invalidate" method="invalidatePojo" />

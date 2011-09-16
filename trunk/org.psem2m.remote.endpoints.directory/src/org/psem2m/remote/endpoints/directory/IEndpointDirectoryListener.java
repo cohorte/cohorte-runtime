@@ -10,8 +10,8 @@ package org.psem2m.remote.endpoints.directory;
  */
 public interface IEndpointDirectoryListener {
 
-	/**
-	 * The end point directory has been modified
-	 */
-	void directoryModified();
+    /**
+     * The end point directory has been modified
+     */
+    void directoryModified();
 }
