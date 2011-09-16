@@ -66,8 +66,9 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
      *            Bundle context
      */
     public AgentCore(final BundleContext aBundleContext) {
-	super();
-	pBundleContext = aBundleContext;
+
+        super();
+        pBundleContext = aBundleContext;
     }
 
     /*
@@ -77,7 +78,8 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
      */
     @Override
     public void destroy() {
-	// ...
+
+        // ...
     }
 
     /**
@@ -90,36 +92,36 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
      */
     public String findBundleURL(final IBundleDescr aBundleDescr) {
 
-	final String bundleFileName = aBundleDescr.getFile();
-	BundleRef bundleRef = null;
+        final String bundleFileName = aBundleDescr.getFile();
+        BundleRef bundleRef = null;
 
-	if (bundleFileName != null && !bundleFileName.isEmpty()) {
-	    // A file name was given
-	    bundleRef = pBundleFinderSvc.findBundle(bundleFileName);
-	}
+        if (bundleFileName != null && !bundleFileName.isEmpty()) {
+            // A file name was given
+            bundleRef = pBundleFinderSvc.findBundle(bundleFileName);
+        }
 
-	if (bundleRef == null) {
-	    // No corresponding file was found, use the symbolic name
-	    bundleRef = pBundleFinderSvc.findBundle(aBundleDescr
-		    .getSymbolicName());
-	}
+        if (bundleRef == null) {
+            // No corresponding file was found, use the symbolic name
+            bundleRef = pBundleFinderSvc.findBundle(aBundleDescr
+                    .getSymbolicName());
+        }
 
-	if (bundleRef == null) {
-	    // Bundle not found
-	    return null;
-	}
+        if (bundleRef == null) {
+            // Bundle not found
+            return null;
+        }
 
-	try {
-	    // Retrieve its URL
-	    return bundleRef.getUri().toURL().toString();
+        try {
+            // Retrieve its URL
+            return bundleRef.getUri().toURL().toString();
 
-	} catch (MalformedURLException ex) {
-	    pLoggerSvc.logWarn(this, "findBundleURL",
-		    "Error preparing bundle URL", ex);
-	}
+        } catch (MalformedURLException ex) {
+            pLoggerSvc.logWarn(this, "findBundleURL",
+                    "Error preparing bundle URL", ex);
+        }
 
-	// Return null on error
-	return null;
+        // Return null on error
+        return null;
     }
 
     /**
@@ -132,7 +134,8 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
      * @see BundleContext#getBundle(long)
      */
     public Bundle getBundle(final long aBundleId) {
-	return pBundleContext.getBundle(aBundleId);
+
+        return pBundleContext.getBundle(aBundleId);
     }
 
     /**
@@ -144,12 +147,12 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
      */
     public BundleInfo getBundleInfo(final long aBundleId) {
 
-	Bundle bundle = pBundleContext.getBundle(aBundleId);
-	if (bundle == null) {
-	    return null;
-	}
+        Bundle bundle = pBundleContext.getBundle(aBundleId);
+        if (bundle == null) {
+            return null;
+        }
 
-	return new BundleInfo(bundle);
+        return new BundleInfo(bundle);
     }
 
     /**
@@ -159,16 +162,16 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
      */
     public BundleInfo[] getBundlesState() {
 
-	Bundle[] bundles = pBundleContext.getBundles();
-	BundleInfo[] bundlesInfo = new BundleInfo[bundles.length];
+        Bundle[] bundles = pBundleContext.getBundles();
+        BundleInfo[] bundlesInfo = new BundleInfo[bundles.length];
 
-	int i = 0;
-	for (Bundle bundle : bundles) {
-	    bundlesInfo[i] = new BundleInfo(bundle);
-	    i++;
-	}
+        int i = 0;
+        for (Bundle bundle : bundles) {
+            bundlesInfo[i] = new BundleInfo(bundle);
+            i++;
+        }
 
-	return bundlesInfo;
+        return bundlesInfo;
     }
 
     /**
@@ -178,7 +181,8 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
      * @return The installed bundles.
      */
     public Map<Long, IBundleDescr> getInstalledBundles() {
-	return pInstalledBundles;
+
+        return pInstalledBundles;
     }
 
     /**
@@ -191,7 +195,8 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
      *             An error occurred while installing the bundle
      */
     public long installBundle(final String aBundleUrl) throws BundleException {
-	return pBundleContext.installBundle(aBundleUrl).getBundleId();
+
+        return pBundleContext.installBundle(aBundleUrl).getBundleId();
     }
 
     /*
@@ -202,10 +207,10 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
     @Override
     public void invalidatePojo() {
 
-	// Stop the guardian thread, if any
-	if (pGuardianThread != null && pGuardianThread.isAlive()) {
-	    pGuardianThread.interrupt();
-	}
+        // Stop the guardian thread, if any
+        if (pGuardianThread != null && pGuardianThread.isAlive()) {
+            pGuardianThread.interrupt();
+        }
     }
 
     /**
@@ -218,7 +223,41 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
      */
     public boolean isFragment(final Bundle aBundle) {
 
-	return aBundle.getHeaders().get(Constants.FRAGMENT_HOST) != null;
+        return aBundle.getHeaders().get(Constants.FRAGMENT_HOST) != null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.slave.agent.ISvcAgent#killIsolate()
+     */
+    @Override
+    public void killIsolate() {
+
+        pLoggerSvc.logInfo(this, "killIsolate", "Kills this isolate [%s]",
+                pPlatformDirsSvc.getIsolateId());
+
+        // Neutralize the isolate
+        neutralizeIsolate();
+
+        try {
+            // Stop the platform
+            pBundleContext.getBundle(0).stop();
+
+        } catch (BundleException e) {
+            // Damn
+            pLoggerSvc.logSevere(this, "validatePojo",
+                    "Can't stop the framework", e);
+
+            try {
+                // Hara kiri
+                pBundleContext.getBundle().stop();
+
+            } catch (BundleException e1) {
+                pLoggerSvc.logSevere(this, "validatePojo",
+                        "Agent suicide FAILED (you're in trouble)", e1);
+            }
+        }
     }
 
     /*
@@ -229,29 +268,29 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
     @Override
     public void neutralizeIsolate() {
 
-	synchronized (pInstalledBundles) {
-	    // Synchronized map, to avoid messing with the guardian
+        synchronized (pInstalledBundles) {
+            // Synchronized map, to avoid messing with the guardian
 
-	    for (Long bundleId : pInstalledBundles.keySet()) {
+            for (Long bundleId : pInstalledBundles.keySet()) {
 
-		try {
-		    uninstallBundle(bundleId);
+                try {
+                    uninstallBundle(bundleId);
 
-		} catch (BundleException ex) {
-		    // Only log the error
-		    pLoggerSvc.logWarn(this, "neutralizeIsolate",
-			    "Error stopping bundle : ",
-			    pInstalledBundles.get(bundleId).getSymbolicName(),
-			    ex);
-		}
-	    }
+                } catch (BundleException ex) {
+                    // Only log the error
+                    pLoggerSvc.logWarn(this, "neutralizeIsolate",
+                            "Error stopping bundle : ",
+                            pInstalledBundles.get(bundleId).getSymbolicName(),
+                            ex);
+                }
+            }
 
-	    /*
-	     * Clear the map (outside the loop : do not touch the map in a
-	     * foreach loop)
-	     */
-	    pInstalledBundles.clear();
-	}
+            /*
+             * Clear the map (outside the loop : do not touch the map in a
+             * foreach loop)
+             */
+            pInstalledBundles.clear();
+        }
     }
 
     /*
@@ -262,14 +301,14 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
     @Override
     public void prepareIsolate() throws Exception {
 
-	// Find the isolate ID
-	final String isolateId = pPlatformDirsSvc.getIsolateId();
-	if (isolateId == null) {
-	    throw new IllegalArgumentException("No explicit isolate ID found");
-	}
+        // Find the isolate ID
+        final String isolateId = pPlatformDirsSvc.getIsolateId();
+        if (isolateId == null) {
+            throw new IllegalArgumentException("No explicit isolate ID found");
+        }
 
-	// Prepare it
-	prepareIsolate(isolateId);
+        // Prepare it
+        prepareIsolate(isolateId);
     }
 
     /*
@@ -282,102 +321,102 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
     @Override
     public void prepareIsolate(final String aIsolateId) throws Exception {
 
-	// Read the configuration
-	final IIsolateDescr isolateDescr = pConfigurationSvc.getApplication()
-		.getIsolate(aIsolateId);
-	if (isolateDescr == null) {
-	    throw new IllegalArgumentException("Isolate '" + aIsolateId
-		    + "' is not defined in the configuration.");
-	}
+        // Read the configuration
+        final IIsolateDescr isolateDescr = pConfigurationSvc.getApplication()
+                .getIsolate(aIsolateId);
+        if (isolateDescr == null) {
+            throw new IllegalArgumentException("Isolate '" + aIsolateId
+                    + "' is not defined in the configuration.");
+        }
 
-	// Update the system property in any case, before installing bundles
-	System.setProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID,
-		aIsolateId);
+        // Update the system property in any case, before installing bundles
+        System.setProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID,
+                aIsolateId);
 
-	synchronized (pInstalledBundles) {
-	    // Synchronized map, to avoid messing with the guardian
+        synchronized (pInstalledBundles) {
+            // Synchronized map, to avoid messing with the guardian
 
-	    // First loop : install bundles
-	    for (IBundleDescr bundleDescr : isolateDescr.getBundles()) {
+            // First loop : install bundles
+            for (IBundleDescr bundleDescr : isolateDescr.getBundles()) {
 
-		final String bundleName = bundleDescr.getSymbolicName();
-		final String bundleUrl = findBundleURL(bundleDescr);
-		if (bundleUrl != null) {
-		    // Bundle found
+                final String bundleName = bundleDescr.getSymbolicName();
+                final String bundleUrl = findBundleURL(bundleDescr);
+                if (bundleUrl != null) {
+                    // Bundle found
 
-		    try {
-			// Install bundle
-			long bundleId = installBundle(bundleUrl);
+                    try {
+                        // Install bundle
+                        long bundleId = installBundle(bundleUrl);
 
-			// Update the list of installed bundles
-			pInstalledBundles.put(bundleId, bundleDescr);
+                        // Update the list of installed bundles
+                        pInstalledBundles.put(bundleId, bundleDescr);
 
-		    } catch (BundleException ex) {
+                    } catch (BundleException ex) {
 
-			switch (ex.getType()) {
-			case BundleException.DUPLICATE_BUNDLE_ERROR:
-			    // Simply log this
-			    pLoggerSvc.logInfo(this, "prepareIsolate",
-				    "Bundle ", bundleName,
-				    " is already installed");
+                        switch (ex.getType()) {
+                        case BundleException.DUPLICATE_BUNDLE_ERROR:
+                            // Simply log this
+                            pLoggerSvc.logInfo(this, "prepareIsolate",
+                                    "Bundle ", bundleName,
+                                    " is already installed");
 
-			    break;
+                            break;
 
-			default:
-			    if (bundleDescr.getOptional()) {
-				// Ignore error if the bundle is optional
-				pLoggerSvc.logWarn(this, "prepareIsolate",
-					"Error installing ", bundleName, ex);
+                        default:
+                            if (bundleDescr.getOptional()) {
+                                // Ignore error if the bundle is optional
+                                pLoggerSvc.logWarn(this, "prepareIsolate",
+                                        "Error installing ", bundleName, ex);
 
-			    } else {
-				// Propagate the exception
-				throw ex;
-			    }
-			}
-		    }
+                            } else {
+                                // Propagate the exception
+                                throw ex;
+                            }
+                        }
+                    }
 
-		} else {
-		    // Bundle not found : throw an error if it's mandatory
+                } else {
+                    // Bundle not found : throw an error if it's mandatory
 
-		    if (bundleDescr.getOptional()) {
-			// Simply log
-			pLoggerSvc.logWarn(this, "prepareIsolate",
-				"Bundle not found : ", bundleName);
+                    if (bundleDescr.getOptional()) {
+                        // Simply log
+                        pLoggerSvc.logWarn(this, "prepareIsolate",
+                                "Bundle not found : ", bundleName);
 
-		    } else {
-			// Severe error
-			throw new FileNotFoundException("Can't find bundle : "
-				+ bundleName);
-		    }
-		}
-	    }
+                    } else {
+                        // Severe error
+                        throw new FileNotFoundException("Can't find bundle : "
+                                + bundleName);
+                    }
+                }
+            }
 
-	    // Second loop : start bundles
-	    for (Long bundleId : pInstalledBundles.keySet()) {
+            // Second loop : start bundles
+            for (Long bundleId : pInstalledBundles.keySet()) {
 
-		try {
-		    startBundle(bundleId);
+                try {
+                    startBundle(bundleId);
 
-		} catch (BundleException ex) {
-		    if (pInstalledBundles.get(bundleId).getOptional()) {
-			// Simply log
-			pLoggerSvc.logWarn(this, "prepareIsolate",
-				"Can't start bundle ",
-				pInstalledBundles.get(bundleId)
-					.getSymbolicName(), ex);
+                } catch (BundleException ex) {
+                    if (pInstalledBundles.get(bundleId).getOptional()) {
+                        // Simply log
+                        pLoggerSvc.logWarn(this, "prepareIsolate",
+                                "Can't start bundle ",
+                                pInstalledBundles.get(bundleId)
+                                        .getSymbolicName(), ex);
 
-			System.err.println(ex);
+                        System.err.println(ex);
 
-		    } else {
-			// Propagate error if the bundle is not optional
-			throw ex;
+                    } else {
+                        // Propagate error if the bundle is not optional
+                        throw ex;
 
-		    }
-		}
-	    }
+                    }
+                }
+            }
 
-	    // End of synchronization here : the guardian will test bundles
-	}
+            // End of synchronization here : the guardian will test bundles
+        }
     }
 
     /**
@@ -394,44 +433,44 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
      */
     public boolean refreshPackages(final long[] aBundleIdArray) {
 
-	// Prepare the bundle array
-	Bundle[] bundles = null;
+        // Prepare the bundle array
+        Bundle[] bundles = null;
 
-	if (aBundleIdArray != null) {
-	    bundles = new Bundle[aBundleIdArray.length];
-	    int i = 0;
-	    for (long bundleId : aBundleIdArray) {
+        if (aBundleIdArray != null) {
+            bundles = new Bundle[aBundleIdArray.length];
+            int i = 0;
+            for (long bundleId : aBundleIdArray) {
 
-		Bundle bundle = pBundleContext.getBundle(bundleId);
-		if (bundle != null) {
-		    bundles[i++] = bundle;
-		}
-	    }
-	}
+                Bundle bundle = pBundleContext.getBundle(bundleId);
+                if (bundle != null) {
+                    bundles[i++] = bundle;
+                }
+            }
+        }
 
-	// Grab the service
-	ServiceReference svcRef = pBundleContext
-		.getServiceReference(PackageAdmin.class.getName());
-	if (svcRef == null) {
-	    return false;
-	}
+        // Grab the service
+        ServiceReference svcRef = pBundleContext
+                .getServiceReference(PackageAdmin.class.getName());
+        if (svcRef == null) {
+            return false;
+        }
 
-	PackageAdmin packadmin = (PackageAdmin) pBundleContext
-		.getService(svcRef);
-	if (packadmin == null) {
-	    return false;
-	}
+        PackageAdmin packadmin = (PackageAdmin) pBundleContext
+                .getService(svcRef);
+        if (packadmin == null) {
+            return false;
+        }
 
-	try {
-	    // Refresh packages
-	    packadmin.refreshPackages(bundles);
+        try {
+            // Refresh packages
+            packadmin.refreshPackages(bundles);
 
-	} finally {
-	    // Release the service in any case
-	    pBundleContext.ungetService(svcRef);
-	}
+        } finally {
+            // Release the service in any case
+            pBundleContext.ungetService(svcRef);
+        }
 
-	return true;
+        return true;
     }
 
     /**
@@ -445,18 +484,18 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
      */
     public boolean startBundle(final long aBundleId) throws BundleException {
 
-	Bundle bundle = pBundleContext.getBundle(aBundleId);
-	if (bundle == null) {
-	    return false;
-	}
+        Bundle bundle = pBundleContext.getBundle(aBundleId);
+        if (bundle == null) {
+            return false;
+        }
 
-	if (!isFragment(bundle)) {
-	    // Fragments can't be started
-	    bundle.start();
-	}
+        if (!isFragment(bundle)) {
+            // Fragments can't be started
+            bundle.start();
+        }
 
-	// Ignore the fact that the bundle is a fragment
-	return true;
+        // Ignore the fact that the bundle is a fragment
+        return true;
     }
 
     /**
@@ -470,13 +509,13 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
      */
     public boolean stopBundle(final long aBundleId) throws BundleException {
 
-	Bundle bundle = pBundleContext.getBundle(aBundleId);
-	if (bundle == null) {
-	    return false;
-	}
+        Bundle bundle = pBundleContext.getBundle(aBundleId);
+        if (bundle == null) {
+            return false;
+        }
 
-	bundle.stop();
-	return true;
+        bundle.stop();
+        return true;
     }
 
     /**
@@ -490,17 +529,17 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
      */
     public boolean uninstallBundle(final long aBundleId) throws BundleException {
 
-	Bundle bundle = pBundleContext.getBundle(aBundleId);
-	if (bundle == null) {
-	    return false;
-	}
+        Bundle bundle = pBundleContext.getBundle(aBundleId);
+        if (bundle == null) {
+            return false;
+        }
 
-	if (bundle.getState() != Bundle.UNINSTALLED) {
-	    // Avoid to do the job for nothing
-	    bundle.uninstall();
-	}
+        if (bundle.getState() != Bundle.UNINSTALLED) {
+            // Avoid to do the job for nothing
+            bundle.uninstall();
+        }
 
-	return true;
+        return true;
     }
 
     /**
@@ -514,13 +553,13 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
      */
     public boolean updateBundle(final long aBundleId) throws BundleException {
 
-	Bundle bundle = pBundleContext.getBundle(aBundleId);
-	if (bundle == null) {
-	    return false;
-	}
+        Bundle bundle = pBundleContext.getBundle(aBundleId);
+        if (bundle == null) {
+            return false;
+        }
 
-	bundle.update();
-	return true;
+        bundle.update();
+        return true;
     }
 
     /*
@@ -530,47 +569,29 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
      */
     @Override
     public void validatePojo() {
-	// Prepare the current isolate, nobody else can do it
-	try {
-	    prepareIsolate();
 
-	    // Start the guardian on success
-	    pGuardianThread = new GuardianThread(this);
-	    pGuardianThread.start();
+        // Prepare the current isolate, nobody else can do it
+        try {
+            prepareIsolate();
 
-	    pBootstrapSender.sendStatus(IsolateStatus.STATE_AGENT_DONE, 100);
+            // Start the guardian on success
+            pGuardianThread = new GuardianThread(this);
+            pGuardianThread.start();
 
-	} catch (Exception ex) {
-	    System.err.println("Preparation error : " + ex);
-	    ex.printStackTrace();
+            pBootstrapSender.sendStatus(IsolateStatus.STATE_AGENT_DONE, 100);
 
-	    pBootstrapSender.sendStatus(IsolateStatus.STATE_FAILURE, -1);
+        } catch (Exception ex) {
+            System.err.println("Preparation error : " + ex);
+            ex.printStackTrace();
 
-	    // Log the error
-	    pLoggerSvc.logSevere(this, "validatePojo",
-		    "Error preparing this isolate : ", ex);
+            pBootstrapSender.sendStatus(IsolateStatus.STATE_FAILURE, -1);
 
-	    // Neutralize the isolate
-	    neutralizeIsolate();
+            // Log the error
+            pLoggerSvc.logSevere(this, "validatePojo",
+                    "Error preparing this isolate : ", ex);
 
-	    try {
-		// Stop the platform
-		pBundleContext.getBundle(0).stop();
-
-	    } catch (BundleException e) {
-		// Damn
-		pLoggerSvc.logSevere(this, "validatePojo",
-			"Can't stop the framework", e);
-
-		try {
-		    // Hara kiri
-		    pBundleContext.getBundle().stop();
-
-		} catch (BundleException e1) {
-		    pLoggerSvc.logSevere(this, "validatePojo",
-			    "Agent suicide FAILED (you're in trouble)", e1);
-		}
-	    }
-	}
+            // the the isolate !
+            killIsolate();
+        }
     }
 }

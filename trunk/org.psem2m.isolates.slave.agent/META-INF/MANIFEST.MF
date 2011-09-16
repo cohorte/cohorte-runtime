@@ -77,18 +77,19 @@ iPOJO-Components: instance { $component="isolates-slave-agent-logger-f
  d { $name="getInstalledBundles" $return="java.util.Map" }method { $ar
  guments="{java.lang.String}" $name="installBundle" $return="long" }me
  thod { $name="invalidatePojo" }method { $arguments="{org.osgi.framewo
- rk.Bundle}" $name="isFragment" $return="boolean" }method { $name="neu
- tralizeIsolate" }method { $name="prepareIsolate" }method { $arguments
- ="{java.lang.String}" $name="prepareIsolate" }method { $arguments="{l
- ong[]}" $name="refreshPackages" $return="boolean" }method { $argument
- s="{long}" $name="startBundle" $return="boolean" }method { $arguments
- ="{long}" $name="stopBundle" $return="boolean" }method { $arguments="
- {long}" $name="uninstallBundle" $return="boolean" }method { $argument
- s="{long}" $name="updateBundle" $return="boolean" }method { $name="va
- lidatePojo" }interface { $name="org.psem2m.isolates.slave.agent.ISvcA
- gent" }}requires { $field="pBootstrapSender" $optional="false" }requi
- res { $field="pBundleFinderSvc" $optional="false" }requires { $field=
- "pConfigurationSvc" $optional="false" }requires { $field="pLoggerSvc"
-  $optional="false" $from="isolates-slave-agent-logger" }requires { $f
- ield="pPlatformDirsSvc" $optional="false" }}
+ rk.Bundle}" $name="isFragment" $return="boolean" }method { $name="kil
+ lIsolate" }method { $name="neutralizeIsolate" }method { $name="prepar
+ eIsolate" }method { $arguments="{java.lang.String}" $name="prepareIso
+ late" }method { $arguments="{long[]}" $name="refreshPackages" $return
+ ="boolean" }method { $arguments="{long}" $name="startBundle" $return=
+ "boolean" }method { $arguments="{long}" $name="stopBundle" $return="b
+ oolean" }method { $arguments="{long}" $name="uninstallBundle" $return
+ ="boolean" }method { $arguments="{long}" $name="updateBundle" $return
+ ="boolean" }method { $name="validatePojo" }interface { $name="org.pse
+ m2m.isolates.slave.agent.ISvcAgent" }}requires { $field="pBootstrapSe
+ nder" $optional="false" }requires { $field="pBundleFinderSvc" $option
+ al="false" }requires { $field="pConfigurationSvc" $optional="false" }
+ requires { $field="pLoggerSvc" $optional="false" $from="isolates-slav
+ e-agent-logger" }requires { $field="pPlatformDirsSvc" $optional="fals
+ e" }}
 

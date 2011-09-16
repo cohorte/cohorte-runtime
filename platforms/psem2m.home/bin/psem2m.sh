@@ -12,6 +12,12 @@ JAVA="java"
 MONITOR_ISOLATE_ID="psem2m.monitor"
 FORKER_ISOLATE_ID="psem2m.forker"
 
+if [ -z $PLATFORM_ISOLATE_ID ]
+then
+	PLATFORM_ISOLATE_ID="$MONITOR_ISOLATE_ID"
+fi
+
+
 PROP_PLATFORM_ISOLATE_ID="org.psem2m.platform.isolate.id"
 PROP_PLATFORM_HOME="org.psem2m.platform.home"
 PROP_PLATFORM_BASE="org.psem2m.platform.base"
@@ -129,9 +135,9 @@ start() {
     echo "OSGi Framework: $framework_bundle_file"
 
     # Run all
-    echo "Running bootstrap..."
+    echo "Running bootstrap ($PLATFORM_ISOLATE_ID)..."
     touch $MONITOR_PID_FILE
-    $PSEM2M_JAVA $JVM_EXTRA_ARGS -cp "$BOOTSTRAP_FILE:$framework_bundle_file" $BOOTSTRAP_MAIN_CLASS --human $PROP_PLATFORM_HOME="$PSEM2M_HOME" $PROP_PLATFORM_BASE="$PSEM2M_BASE" $PROP_PLATFORM_ISOLATE_ID="$MONITOR_ISOLATE_ID" org.osgi.service.http.port=9000 org.apache.felix.http.jettyEnabled=true osgi.shell.telnet.port=6000 &
+    $PSEM2M_JAVA $JVM_EXTRA_ARGS -cp "$BOOTSTRAP_FILE:$framework_bundle_file" $BOOTSTRAP_MAIN_CLASS --human $PROP_PLATFORM_HOME="$PSEM2M_HOME" $PROP_PLATFORM_BASE="$PSEM2M_BASE" $PROP_PLATFORM_ISOLATE_ID="$PLATFORM_ISOLATE_ID" org.osgi.service.http.port=9000 org.apache.felix.http.jettyEnabled=true osgi.shell.telnet.port=6000 &
     echo $! > $MONITOR_PID_FILE
 
     echo "Started"
@@ -210,6 +216,15 @@ then
     else
         # Find the first 'java' in the shell
         PSEM2M_JAVA=`which java`
+    fi
+    
+    # "which" does'nt work on OSX ???
+    if [ -z $PSEM2M_JAVA ]
+    then
+        if [ -e /usr/bin/java ]
+    	then
+    		PSEM2M_JAVA=/usr/bin/java
+    	fi
     fi
 
     # Nothing found => Error

@@ -13,6 +13,12 @@ package org.psem2m.isolates.slave.agent;
 public interface ISvcAgent {
 
     /**
+     * Stops and removes all bundles added by this agent, stop the OSGI
+     * framework and the basic bundles, and kill the process
+     */
+    void killIsolate();
+
+    /**
      * Stops and removes all bundles added by this agent.
      */
     void neutralizeIsolate();
