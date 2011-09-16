@@ -7,6 +7,7 @@ package org.psem2m.eclipse.runner.work;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
@@ -14,6 +15,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.variables.IStringVariableManager;
 import org.eclipse.core.variables.VariablesPlugin;
+import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
@@ -193,7 +195,8 @@ public class RunnerLaunchDelegate implements ILaunchConfigurationDelegate {
 			 * It runs the script, which ends immediately, so it's useless to
 			 * wait for it
 			 */
-			platformRunner.runPlatform(aLaunch, debugMode);
+			platformRunner.runPlatform(aLaunch,
+					makeEnvironment(aConfiguration), debugMode);
 
 		} catch (CoreException ex) {
 
@@ -211,6 +214,31 @@ public class RunnerLaunchDelegate implements ILaunchConfigurationDelegate {
 			// Propagate the exception
 			throw ex;
 		}
+	}
+
+	/**
+	 * Retrieves the complete environment defined by the environment tab. Result
+	 * is read only
+	 * 
+	 * @param aConfiguration
+	 *            Launch configuration
+	 * @return The configured process environment, null on error
+	 */
+	protected List<String> makeEnvironment(
+			final ILaunchConfiguration aConfiguration) {
+
+		final String[] configEnv;
+
+		try {
+			configEnv = DebugPlugin.getDefault().getLaunchManager()
+					.getEnvironment(aConfiguration);
+
+		} catch (CoreException e) {
+			RunnerPlugin.logError("Error retrieving launch environment", e);
+			return null;
+		}
+
+		return Arrays.asList(configEnv);
 	}
 
 	/**

@@ -8,9 +8,11 @@ package org.psem2m.eclipse.runner.work;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugPlugin;
@@ -23,6 +25,9 @@ import org.psem2m.eclipse.runner.RunnerPlugin;
  * @author Thomas Calmant
  */
 public class PlatformRunner {
+
+	/** The PSEM2M run script name (Unix) */
+	public static final String RUN_SCRIPT_NAME = "bin/psem2m.sh";
 
 	/** PSEM2M Base */
 	private File pBase;
@@ -75,23 +80,49 @@ public class PlatformRunner {
 	}
 
 	/**
-	 * Converts the given map to a "key=value" strings array
+	 * Converts the given map to a "key=value" strings list
 	 * 
 	 * @param aEnvironmentMap
 	 *            Environment map
-	 * @return The corresponding array
+	 * @return The corresponding list
 	 */
-	protected String[] convertEnvironmentMapToArray(
+	protected List<String> convertEnvironmentMapToList(
 			final Map<String, String> aEnvironmentMap) {
 
-		final String[] environment = new String[aEnvironmentMap.size()];
+		final List<String> environment = new ArrayList<String>(
+				aEnvironmentMap.size());
 
-		int i = 0;
 		for (Entry<String, String> entry : aEnvironmentMap.entrySet()) {
-			environment[i++] = entry.getKey() + "=" + entry.getValue();
+			environment.add(entry.getKey() + "=" + entry.getValue());
 		}
 
 		return environment;
+	}
+
+	/**
+	 * Tries to find the PSEM2M run script. Searches in BASE, HOME and if not
+	 * found returns the working directory file path representation, without
+	 * testing its existence.
+	 * 
+	 * @return The first found script file, or a file representing it in the
+	 *         working directory
+	 */
+	protected File findRunScript() {
+
+		// Try base directory
+		File runScript = new File(pBase, RUN_SCRIPT_NAME);
+		if (runScript.exists()) {
+			return runScript;
+		}
+
+		// Try home directory
+		runScript = new File(pHome, RUN_SCRIPT_NAME);
+		if (runScript.exists()) {
+			return runScript;
+		}
+
+		// Return with working directory
+		return new File(pWorkingDirectory, RUN_SCRIPT_NAME);
 	}
 
 	/**
@@ -107,7 +138,7 @@ public class PlatformRunner {
 			throws CoreException {
 
 		// Find the start script
-		final File runScript = new File(pHome, "bin/psem2m.sh");
+		final File runScript = findRunScript();
 		if (!runScript.exists()) {
 			// The script must exist, of course
 			throw RunnerPlugin.prepareException(
@@ -129,15 +160,19 @@ public class PlatformRunner {
 	}
 
 	/**
-	 * Runs the platform using the PSEM2M_HOME/bin/psem2m.sh script
+	 * Runs the platform using the PSEM2M_HOME/bin/psem2m.sh script.
+	 * PSEM2M_HOME, PSEM2M_BASE and PSEM2M_DEBUG_PORT can't be overridden by
+	 * aEnvironment.
 	 * 
 	 * @param aLaunch
 	 *            Current launch context
-	 * 
+	 * @param aEnvironment
+	 *            Process environment variables (can be null).
 	 * @param aDebugMode
 	 *            If true, prepend debug options to the script arguments
 	 */
-	public Process runPlatform(final ILaunch aLaunch, final boolean aDebugMode)
+	public Process runPlatform(final ILaunch aLaunch,
+			final List<String> aEnvironment, final boolean aDebugMode)
 			throws CoreException {
 
 		// Prepare working directory
@@ -158,11 +193,13 @@ public class PlatformRunner {
 					Integer.toString(pBaseDebugPort));
 		}
 
-		final String[] environmentArray = convertEnvironmentMapToArray(environmentMap);
+		final Set<String> processEnvironment = new LinkedHashSet<String>();
+		processEnvironment.addAll(convertEnvironmentMapToList(environmentMap));
+		processEnvironment.addAll(aEnvironment);
 
 		// Run it !
 		final Process execProcess = DebugPlugin.exec(commandLine,
-				pWorkingDirectory, environmentArray);
+				pWorkingDirectory, processEnvironment.toArray(new String[0]));
 
 		// Add the process to the launch
 		DebugPlugin.newProcess(aLaunch, execProcess, commandLine[0]);

@@ -7,6 +7,7 @@ package org.psem2m.eclipse.runner.ui;
 
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTabGroup;
 import org.eclipse.debug.ui.CommonTab;
+import org.eclipse.debug.ui.EnvironmentTab;
 import org.eclipse.debug.ui.ILaunchConfigurationDialog;
 import org.eclipse.debug.ui.ILaunchConfigurationTab;
 
@@ -30,7 +31,8 @@ public class RunnerTabGroup extends AbstractLaunchConfigurationTabGroup {
 
 		// Tabs in the tab group
 		ILaunchConfigurationTab tabs[] = new ILaunchConfigurationTab[] {
-				new Psem2mTab(), new ProjectsSelectionTab(), new CommonTab() };
+				new Psem2mTab(), new ProjectsSelectionTab(),
+				new EnvironmentTab(), new CommonTab() };
 
 		setTabs(tabs);
 	}
