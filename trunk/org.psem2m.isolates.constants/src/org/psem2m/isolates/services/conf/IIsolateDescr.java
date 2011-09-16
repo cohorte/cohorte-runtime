@@ -41,6 +41,13 @@ public interface IIsolateDescr extends Serializable {
     String getKind();
 
     /**
+     * Retrieves the URL of the isolate's Remote Service Repository (RSR)
+     * 
+     * @return The RSR URL, null if not indicated.
+     */
+    String getRemoteServiceRepositoryUrl();
+
+    /**
      * Retrieves the list of Java Virtual Machine arguments to be used when
      * starting the isolate process. Can be null.
      * 

@@ -32,6 +32,9 @@ public class IsolateDescription implements IIsolateDescr {
     /** Isolate kind, must never be null */
     private String pIsolateKind = "";
 
+    /** Isolate RSR access URL */
+    private String pRsrUrl;
+
     /** Isolate Java VM arguments (can't be null, must be ordered) */
     private final List<String> pVmArguments = new ArrayList<String>();
 
@@ -84,6 +87,18 @@ public class IsolateDescription implements IIsolateDescr {
     /*
      * (non-Javadoc)
      * 
+     * @see
+     * org.psem2m.isolates.services.conf.IIsolateDescr#getRemoteServiceRepositoryUrl
+     * ()
+     */
+    @Override
+    public String getRemoteServiceRepositoryUrl() {
+	return pRsrUrl;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.psem2m.isolates.config.json.IIsolateDescr#getVMArgs()
      */
     @Override
@@ -128,6 +143,16 @@ public class IsolateDescription implements IIsolateDescr {
 	} else {
 	    pIsolateKind = "";
 	}
+    }
+
+    /**
+     * Retrieves the URL to access the isolate's Remote Service Repository (RSR)
+     * 
+     * @param aUrl
+     *            The RSR URL
+     */
+    public void setRstUrl(final String aUrl) {
+	pRsrUrl = aUrl;
     }
 
     /**
