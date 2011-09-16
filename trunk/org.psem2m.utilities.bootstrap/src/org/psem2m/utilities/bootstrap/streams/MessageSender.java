@@ -111,7 +111,7 @@ public class MessageSender implements IMessageSender {
      * .LogRecord)
      */
     @Override
-    public void sendLog(final LogRecord aLogRecord) {
+    public synchronized void sendLog(final LogRecord aLogRecord) {
 
 	// Set the logger name, if needed
 	if (aLogRecord.getLoggerName() == null) {
@@ -208,7 +208,7 @@ public class MessageSender implements IMessageSender {
      * .base.boot.IsolateStatus)
      */
     @Override
-    public void sendStatus(final IsolateStatus aIsolateStatus) {
+    public synchronized void sendStatus(final IsolateStatus aIsolateStatus) {
 
 	try {
 	    // Send the status
