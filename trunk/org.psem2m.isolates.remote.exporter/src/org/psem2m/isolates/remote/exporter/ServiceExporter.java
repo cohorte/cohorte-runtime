@@ -27,6 +27,7 @@ import org.psem2m.isolates.services.remote.IEndpointHandler;
 import org.psem2m.isolates.services.remote.beans.EndpointDescription;
 import org.psem2m.isolates.services.remote.beans.RemoteServiceEvent;
 import org.psem2m.isolates.services.remote.beans.RemoteServiceEvent.ServiceEventType;
+import org.psem2m.remote.endpoints.directory.IEndpointDirectory;
 
 /**
  * Tracks services to be exported and uses active handlers to create associated
@@ -44,6 +45,9 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
 
     /** The bundle context */
     private final BundleContext pBundleContext;
+
+    /** End point directory */
+    private IEndpointDirectory pEndpointDirectorySvc;
 
     /** End point handlers */
     private IEndpointHandler[] pEndpointHandlers;
@@ -82,26 +86,33 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
     protected List<EndpointDescription> exportService(
 	    final ServiceReference aServiceReference) {
 
-	final List<EndpointDescription> endpointDescriptions = new ArrayList<EndpointDescription>();
+	final List<EndpointDescription> resultEndpoints = new ArrayList<EndpointDescription>();
 
 	for (IEndpointHandler handler : pEndpointHandlers) {
 
 	    try {
-		EndpointDescription[] endpoints = handler
+		final EndpointDescription[] createdEndpoints = handler
 			.createEndpoint(aServiceReference);
 
 		// Store end points if they are valid
-		if (endpoints != null && endpoints.length != 0) {
-		    endpointDescriptions.addAll(Arrays.asList(endpoints));
+		if (createdEndpoints != null && createdEndpoints.length != 0) {
+		    resultEndpoints.addAll(Arrays.asList(createdEndpoints));
+
+		    for (EndpointDescription endpoint : createdEndpoints) {
+			// Add the new end point to the directory
+			pEndpointDirectorySvc.addEndpoint(aServiceReference,
+				endpoint);
+		    }
 		}
 
 	    } catch (Throwable t) {
 		// Log errors
-		t.printStackTrace();
+		pLogger.log(LogService.LOG_WARNING,
+			"Error creating an end point", t);
 	    }
 	}
 
-	return endpointDescriptions;
+	return resultEndpoints;
     }
 
     /*
@@ -259,6 +270,13 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
     protected void unexportService(final ServiceReference aServiceReference) {
 
 	for (IEndpointHandler handler : pEndpointHandlers) {
+
+	    for (EndpointDescription endpointDescription : handler
+		    .getEndpoints(aServiceReference)) {
+		// Remove end points from RSR
+		pEndpointDirectorySvc.removeEndpoint(endpointDescription);
+	    }
+
 	    try {
 		// Try to remove the end point
 		handler.destroyEndpoint(aServiceReference);

@@ -8,6 +8,7 @@ package org.psem2m.isolates.services.remote.beans;
 import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 
 import org.osgi.framework.ServiceReference;
 
@@ -99,6 +100,38 @@ public class EndpointDescription implements Serializable {
 	}
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(final Object aObj) {
+
+	if (!(aObj instanceof EndpointDescription)) {
+	    return false;
+	}
+
+	final EndpointDescription other = (EndpointDescription) aObj;
+
+	// End point access
+	if (!safeCompare(pHost, other.pHost)
+		|| !safeCompare(pPort, other.pPort)
+		|| !safeCompare(pProtocol, other.pProtocol)) {
+	    return false;
+	}
+
+	// End point properties
+	if (!safeCompare(pEndpointName, other.pEndpointName)
+		|| !safeCompare(pEndpointUri, other.pEndpointUri)
+		|| !safeCompare(pExportedConfig, other.pExportedConfig)) {
+	    return false;
+	}
+
+	// Finally, test exported interfaces
+	return Arrays.equals(pExportedInterfaces, other.pExportedInterfaces);
+    }
+
     /**
      * Retrieves the end point name, as in service properties (can be null)
      * 
@@ -161,6 +194,27 @@ public class EndpointDescription implements Serializable {
      */
     public String getProtocol() {
 	return pProtocol;
+    }
+
+    /**
+     * Safely compares two objects (with equals)
+     * 
+     * @param aObjectA
+     *            Object A
+     * @param aObjectB
+     *            Object B
+     * @return True if objects are equals (or both null)
+     */
+    protected boolean safeCompare(final Object aObjectA, final Object aObjectB) {
+
+	if (aObjectA != null) {
+	    return aObjectA.equals(aObjectB);
+	} else if (aObjectB != null) {
+	    return aObjectB.equals(aObjectA);
+	} else {
+	    // Both null
+	    return true;
+	}
     }
 
     /**

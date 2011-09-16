@@ -5,6 +5,9 @@
  */
 package org.psem2m.remote.endpoint.rose;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.osgi.framework.BundleContext;
@@ -30,6 +33,9 @@ public class RoseEndpointHandler extends CPojoBase implements IEndpointHandler {
 
     /** The bundle context */
     private final BundleContext pBundleContext;
+
+    /** Service -&gt; End points description mapping */
+    private final Map<ServiceReference, List<EndpointDescription>> pEndpointDescriptionsMapping = new HashMap<ServiceReference, List<EndpointDescription>>();
 
     /** Rose end point factory, injected by iPOJO */
     private EndpointFactory pEndpointFactory;
@@ -57,7 +63,7 @@ public class RoseEndpointHandler extends CPojoBase implements IEndpointHandler {
      * .framework.ServiceReference)
      */
     @Override
-    public EndpointDescription[] createEndpoint(
+    public synchronized EndpointDescription[] createEndpoint(
 	    final ServiceReference aServiceReference) {
 
 	if (aServiceReference == null) {
@@ -112,9 +118,26 @@ public class RoseEndpointHandler extends CPojoBase implements IEndpointHandler {
 	// FIXME Do it in a fancier way
 	final String exportedConfig = pEndpointFactory.getConfigs()[0];
 
-	return new EndpointDescription[] { new EndpointDescription(
-		aServiceReference, exportedConfig, endPointName, protocol, uri,
-		port) };
+	// Prepare the list of results
+	final List<EndpointDescription> newEndpoints = new ArrayList<EndpointDescription>();
+
+	newEndpoints.add(new EndpointDescription(aServiceReference,
+		exportedConfig, endPointName, protocol, uri, port));
+
+	// Add it to the service reference existing entries
+	final List<EndpointDescription> serviceEndpoints = pEndpointDescriptionsMapping
+		.get(aServiceReference);
+	if (serviceEndpoints != null) {
+	    // Append new elements to the list
+	    serviceEndpoints.addAll(newEndpoints);
+
+	} else {
+	    // Store the new entry
+	    pEndpointDescriptionsMapping.put(aServiceReference, newEndpoints);
+	}
+
+	// Return an array of new elements
+	return newEndpoints.toArray(new EndpointDescription[0]);
     }
 
     /*
@@ -135,29 +158,65 @@ public class RoseEndpointHandler extends CPojoBase implements IEndpointHandler {
      * osgi.framework.ServiceReference)
      */
     @Override
-    public boolean destroyEndpoint(final ServiceReference aServiceReference) {
+    public synchronized boolean destroyEndpoint(
+	    final ServiceReference aServiceReference) {
 
 	if (aServiceReference == null) {
 	    return false;
 	}
 
-	// Copy service properties in a map
-	final Map<String, String> serviceProperties = Utilities
-		.getServiceProperties(aServiceReference);
+	// Remove the entry from the map
+	final List<EndpointDescription> associatedDescriptions = pEndpointDescriptionsMapping
+		.get(aServiceReference);
+	if (associatedDescriptions != null) {
 
-	// Find the end point name
-	final String endpointName = serviceProperties
-		.get(EndpointFactory.PROP_ENDPOINT_NAME);
+	    // Loop on end points descriptions
+	    for (EndpointDescription description : associatedDescriptions) {
 
-	// Abandon if non found
-	if (endpointName == null || endpointName.isEmpty()) {
-	    return false;
+		try {
+		    pEndpointFactory.destroyEndpoint(description
+			    .getEndpointName());
+
+		} catch (Exception ex) {
+		    pLogger.log(
+			    LogService.LOG_WARNING,
+			    "Can't destroy end point '"
+				    + description.getEndpointName() + "'", ex);
+		}
+
+	    }
+
+	    // Clear the associated list content
+	    associatedDescriptions.clear();
 	}
 
-	// Destroy end point
-	pEndpointFactory.destroyEndpoint(endpointName);
-
+	pEndpointDescriptionsMapping.remove(aServiceReference);
 	return true;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.services.remote.IEndpointHandler#getEndpoints(org
+     * .osgi.framework.ServiceReference)
+     */
+    @Override
+    public synchronized EndpointDescription[] getEndpoints(
+	    final ServiceReference aServiceReference) {
+
+	// Empty result array to avoid returning null
+	final EndpointDescription[] emptyArray = new EndpointDescription[0];
+
+	// Get all known end points
+	final List<EndpointDescription> knownEndpoints = pEndpointDescriptionsMapping
+		.get(aServiceReference);
+	if (knownEndpoints == null) {
+	    // Never return null
+	    return emptyArray;
+	}
+
+	return knownEndpoints.toArray(emptyArray);
     }
 
     /*
