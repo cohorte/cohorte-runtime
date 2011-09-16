@@ -40,7 +40,7 @@
 		<requires field="pBundleForkerLoggerSvc" optional="false" />
 		<requires field="pPlatformDirsSvc" optional="false" />
 		<requires field="pBundleFinderSvc" optional="false" />
-		<requires field="pJavaRunner" optional="false" />
+		<requires field="pJavaRunnerSvc" optional="false" />
 
 		<callback transition="validate" method="validatePojo" />
 		<callback transition="invalidate" method="invalidatePojo" />

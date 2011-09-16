@@ -5,11 +5,7 @@
  */
 package org.psem2m.isolates.forker.impl.runners;
 
-import java.io.EOFException;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -17,24 +13,18 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.LogRecord;
 
 import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.base.bundles.BundleRef;
 import org.psem2m.isolates.base.bundles.IBundleFinderSvc;
-import org.psem2m.isolates.base.isolates.boot.IsolateStatus;
 import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.forker.IBundleForkerLoggerSvc;
 import org.psem2m.isolates.forker.IIsolateRunner;
 import org.psem2m.isolates.forker.IProcessRef;
-import org.psem2m.isolates.forker.impl.processes.ProcessRef;
 import org.psem2m.isolates.services.conf.IIsolateDescr;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.utilities.bootstrap.IBootstrapConstants;
-import org.psem2m.utilities.logging.CActivityFormaterBasic;
-import org.psem2m.utilities.logging.IActivityFormater;
 
 /**
  * OSGi framework isolate runner
@@ -42,20 +32,6 @@ import org.psem2m.utilities.logging.IActivityFormater;
  * @author Thomas Calmant
  */
 public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
-
-    /**
-     * Isolate state description after reading an IsolateStatus message
-     * 
-     * @author Thomas Calmant
-     */
-    protected enum IsolateStatusAction {
-	/** Isolate is still booting (do nothing) */
-	BOOTING,
-	/** An error occurred while starting the isolate */
-	FAILED,
-	/** Isolate is started (can stop listening) */
-	STARTED,
-    }
 
     /** Equinox framework names */
     public static final String[] EQUINOX_NAMES = new String[] {
@@ -94,10 +70,7 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
     private int pIsolateIndex = 0;
 
     /** Java isolate runner service, injected by iPOJO */
-    private IJavaRunner pJavaRunner;
-
-    /** Basic log formatter */
-    private final CActivityFormaterBasic pLogFormatter = new CActivityFormaterBasic();
+    private IJavaRunner pJavaRunnerSvc;
 
     /** The platform directory service, injected by iPOJO */
     private IPlatformDirsSvc pPlatformDirsSvc;
@@ -153,28 +126,6 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
     @Override
     public void destroy() {
 	// ...
-    }
-
-    /**
-     * Computes the action to do according to the given isolate status
-     * 
-     * @param aStatus
-     *            The last isolate status received
-     * @return The action to apply
-     */
-    protected IsolateStatusAction handleIsolateStatus(
-	    final IsolateStatus aStatus) {
-
-	switch (aStatus.getState()) {
-
-	case IsolateStatus.STATE_FAILURE:
-	    return IsolateStatusAction.FAILED;
-
-	case IsolateStatus.STATE_BUNDLES_STARTED:
-	    return IsolateStatusAction.STARTED;
-	}
-
-	return IsolateStatusAction.BOOTING;
     }
 
     /*
@@ -330,106 +281,6 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
     }
 
     /**
-     * Prints the given log record on the standard output
-     * 
-     * @param aLogRecord
-     *            The log record to print
-     */
-    protected void printLog(final LogRecord aLogRecord) {
-
-	System.out.println(pLogFormatter.format(aLogRecord,
-		!IActivityFormater.WITH_END_LINE));
-
-	Throwable thrown = aLogRecord.getThrown();
-	if (thrown != null) {
-	    thrown.printStackTrace(System.out);
-	}
-    }
-
-    /**
-     * Reads and prints bootstrap log records
-     * 
-     * @param aProcessRef
-     *            Bootstrap process reference
-     * 
-     * @return True if the process is running, False if it died before the
-     *         method returns
-     */
-    protected boolean readMessages(final IProcessRef aProcessRef) {
-
-	// Grab a reference to the process
-	if (!(aProcessRef instanceof ProcessRef)) {
-	    return false;
-	}
-
-	// Prepare the object stream
-	Process process = ((ProcessRef) aProcessRef).getProcess();
-	InputStream processOutput = process.getInputStream();
-
-	try {
-
-	    ObjectInputStream objectStream = new ObjectInputStream(
-		    processOutput);
-
-	    // Loop until the end of the bootstrap
-	    while (true) {
-
-		try {
-		    // Read the object
-		    Object readObject = objectStream.readObject();
-
-		    // Test if we are reading an isolate status
-		    if (readObject instanceof IsolateStatus) {
-
-			IsolateStatusAction action = handleIsolateStatus((IsolateStatus) readObject);
-			pBundleForkerLoggerSvc.log(Level.INFO, this,
-				"StatusFrom." + aProcessRef.getPid(),
-				"Received status : " + readObject);
-
-			switch (action) {
-			case STARTED:
-			    return true;
-
-			case FAILED:
-			    return false;
-			}
-
-		    }
-		    // Try to print the log record
-		    else if (readObject instanceof LogRecord) {
-			pBundleForkerLoggerSvc.log((LogRecord) readObject);
-			printLog((LogRecord) readObject);
-
-		    } else if (readObject instanceof CharSequence) {
-			pBundleForkerLoggerSvc.logInfo(this, "LogFrom."
-				+ aProcessRef.getPid(), readObject.toString());
-
-		    } else {
-			pBundleForkerLoggerSvc.logWarn(this, "LogFrom."
-				+ aProcessRef.getPid(), "Unknown log format",
-				readObject);
-		    }
-
-		} catch (ClassNotFoundException e) {
-		    pBundleForkerLoggerSvc.logWarn(this, "LogFrom."
-			    + aProcessRef.getPid(), "Class Not Found", e);
-		}
-	    }
-
-	} catch (EOFException e) {
-
-	    pBundleForkerLoggerSvc.logInfo(this,
-		    "LogFrom." + aProcessRef.getPid(), "Isolate gone : ",
-		    process.exitValue());
-
-	} catch (IOException e) {
-	    e.printStackTrace();
-	}
-
-	return false;
-    }
-
-    /**
      * Prepares the debug mode parameters, if needed
      * 
      * @param aJavaOptions
@@ -495,21 +346,7 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
 	}
 
 	// Run the bootstrap
-	IProcessRef processRef = pJavaRunner.runJava(javaOptions, null,
-		workingDirectory);
-	if (processRef == null) {
-	    return null;
-	}
-
-	// Wait for the "running" or "failure" of the isolate
-	if (readMessages(processRef)) {
-	    // Success
-	    return processRef;
-
-	} else {
-	    // Failure
-	    return null;
-	}
+	return pJavaRunnerSvc.runJava(javaOptions, null, workingDirectory);
     }
 
     /*
