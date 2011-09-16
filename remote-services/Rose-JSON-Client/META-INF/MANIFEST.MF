@@ -13,23 +13,23 @@ Bundle-Version: 0.1.0.SNAPSHOT
 Created-By: Apache Maven Bundle Plugin & iPOJO  1.4.0
 Export-Package: org.ow2.chameleon.rose.jsonrpc.client;uses:="org.ow2.c
  hameleon.rose.client,org.jabsorb.client"
-Import-Package: org.osgi.service.log;version=1.3, org.apache.felix.ipo
- jo.architecture;version=1.4.0, org.apache.felix.ipojo;version=1.4.0, 
- org.jabsorb.client, org.ow2.chameleon.rose.client;version=0.2.3, org.
- ow2.chameleon.rose.jsonrpc.client, org.osgi.service.cm;version=1.2
+Import-Package: org.apache.felix.ipojo;version=1.4.0, org.apache.felix
+ .ipojo.architecture;version=1.4.0, org.jabsorb.client, org.osgi.servi
+ ce.cm;version=1.2, org.osgi.service.log;version=1.3, org.ow2.chameleo
+ n.rose.client;version=0.2.3, org.ow2.chameleon.rose.jsonrpc.client
 Tool: Bnd-0.0.357
-iPOJO-Components: component { $classname="org.ow2.chameleon.rose.jsonr
- pc.client.JsonRpcClientFactory" $name="rose.component.jsonrpc.client.
- factory" provides { property { $name="remote.configs.supported" $valu
- e="{jsonrpc, org.jabsorb, json-rpc}" $type="java.lang.String[]" }}man
- ipulation { field { $name="proxies" $type="java.util.HashMap" }method
-  { $name="$init" }method { $arguments="{java.lang.Object}" $name="des
- troyRemoteProxy" }method { $name="getConfigs" $return="java.lang.Stri
- ng[]" }method { $arguments="{java.util.Map,java.lang.Class}" $name="g
- etRemoteProxy" $return="java.lang.Object" }method { $arguments="{java
- .util.Map,java.lang.ClassLoader,java.lang.Class}" $name="getRemotePro
- xy" $return="java.lang.Object" }method { $name="stop" }interface { $n
- ame="org.ow2.chameleon.rose.client.RemoteProxyFactory" }}}instance { 
- $component="rose.component.jsonrpc.client.factory" $name="org.ow2.cha
- meleon.rose.client.RemoteProxyFactory-JSON-RPC" }
+iPOJO-Components: instance { $component="rose.component.jsonrpc.client
+ .factory" $name="org.ow2.chameleon.rose.client.RemoteProxyFactory-JSO
+ N-RPC" }component { $classname="org.ow2.chameleon.rose.jsonrpc.client
+ .JsonRpcClientFactory" $name="rose.component.jsonrpc.client.factory" 
+ provides { property { $name="remote.configs.supported" $value="{jsonr
+ pc, org.jabsorb, json-rpc}" $type="java.lang.String[]" }}manipulation
+  { field { $name="proxies" $type="java.util.HashMap" }method { $name=
+ "$init" }method { $arguments="{java.lang.Object}" $name="destroyRemot
+ eProxy" }method { $name="getConfigs" $return="java.lang.String[]" }me
+ thod { $arguments="{java.util.Map,java.lang.Class}" $name="getRemoteP
+ roxy" $return="java.lang.Object" }method { $arguments="{java.util.Map
+ ,java.lang.ClassLoader,java.lang.Class}" $name="getRemoteProxy" $retu
+ rn="java.lang.Object" }method { $name="stop" }interface { $name="org.
+ ow2.chameleon.rose.client.RemoteProxyFactory" }}}
 

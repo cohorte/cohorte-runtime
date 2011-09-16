@@ -23,34 +23,32 @@ iPOJO-Components: instance { $component="isolates-monitor-logger-facto
  ck { $transition="invalidate" $method="invalidatePojo" }provides { $s
  pecifications="org.psem2m.isolates.monitor.IBundleMonitorLoggerServic
  e" }manipulation { $super="org.psem2m.isolates.base.activators.CBundl
- eLoggerBase" field { $name="__MvalidatePojo" $type="boolean" }field {
-  $name="__MinvalidatePojo" $type="boolean" }method { $name="$init" }m
- ethod { $name="invalidatePojo" }method { $name="validatePojo" }interf
- ace { $name="org.psem2m.isolates.monitor.IBundleMonitorLoggerService"
-  }}}component { $immediate="true" $name="isolates-monitor-factory" $c
- lassname="org.psem2m.isolates.monitor.impl.CIsolateManagerSvc" $archi
- tecture="true" $public="false" callback { $transition="validate" $met
- hod="validatePojo" }callback { $transition="invalidate" $method="inva
- lidatePojo" }provides { }manipulation { $super="org.psem2m.isolates.b
- ase.activators.CPojoBase" field { $name="pConfigurationSvc" $type="or
- g.psem2m.isolates.services.conf.ISvcConfig" }field { $name="pForkerSv
- c" $type="org.psem2m.isolates.services.forker.IForker" }field { $name
- ="pBundleMonitorLoggerSvc" $type="org.psem2m.isolates.monitor.IBundle
- MonitorLoggerService" }field { $name="pRunning" $type="boolean" }fiel
- d { $name="pMonitors" $type="java.util.Map" }method { $name="$init" }
- method { $name="destroy" }method { $name="getRunningIsolates" $return
- ="java.util.Collection" }method { $name="invalidatePojo" }method { $a
- rguments="{java.lang.String}" $name="isInternalIsolate" $return="bool
- ean" }method { $arguments="{java.lang.String}" $name="isolateStopped"
-  }method { $arguments="{java.lang.String}" $name="monitorStopped" }me
- thod { $arguments="{boolean}" $name="restartPlatform" $return="boolea
- n" }method { $arguments="{java.lang.String,boolean}" $name="startIsol
- ate" $return="boolean" }method { $name="startPlatform" }method { $arg
- uments="{java.lang.String}" $name="stopIsolate" $return="boolean" }me
- thod { $name="stopPlatform" }method { $name="validatePojo" }interface
-  { $name="org.psem2m.isolates.monitor.IIsolateManager" }interface { $
- name="org.psem2m.isolates.monitor.IIsolateListener" }}requires { $fie
- ld="pBundleMonitorLoggerSvc" $optional="false" }requires { $field="pC
- onfigurationSvc" $optional="false" }requires { $field="pForkerSvc" $o
- ptional="false" }}
+ eLoggerBase" method { $name="$init" }method { $name="invalidatePojo" 
+ }method { $name="validatePojo" }interface { $name="org.psem2m.isolate
+ s.monitor.IBundleMonitorLoggerService" }}}component { $immediate="tru
+ e" $name="isolates-monitor-factory" $classname="org.psem2m.isolates.m
+ onitor.impl.CIsolateManagerSvc" $architecture="true" $public="false" 
+ callback { $transition="validate" $method="validatePojo" }callback { 
+ $transition="invalidate" $method="invalidatePojo" }provides { }manipu
+ lation { $super="org.psem2m.isolates.base.activators.CPojoBase" field
+  { $name="pConfigurationSvc" $type="org.psem2m.isolates.services.conf
+ .ISvcConfig" }field { $name="pForkerSvc" $type="org.psem2m.isolates.s
+ ervices.forker.IForker" }field { $name="pBundleMonitorLoggerSvc" $typ
+ e="org.psem2m.isolates.monitor.IBundleMonitorLoggerService" }field { 
+ $name="pRunning" $type="boolean" }field { $name="pMonitors" $type="ja
+ va.util.Map" }method { $name="$init" }method { $name="destroy" }metho
+ d { $name="getRunningIsolates" $return="java.util.Collection" }method
+  { $name="invalidatePojo" }method { $arguments="{java.lang.String}" $
+ name="isInternalIsolate" $return="boolean" }method { $arguments="{jav
+ a.lang.String}" $name="isolateStopped" }method { $arguments="{java.la
+ ng.String}" $name="monitorStopped" }method { $arguments="{boolean}" $
+ name="restartPlatform" $return="boolean" }method { $arguments="{java.
+ lang.String,boolean}" $name="startIsolate" $return="boolean" }method 
+ { $name="startPlatform" }method { $arguments="{java.lang.String}" $na
+ me="stopIsolate" $return="boolean" }method { $name="stopPlatform" }me
+ thod { $name="validatePojo" }interface { $name="org.psem2m.isolates.m
+ onitor.IIsolateManager" }interface { $name="org.psem2m.isolates.monit
+ or.IIsolateListener" }}requires { $field="pBundleMonitorLoggerSvc" $o
+ ptional="false" }requires { $field="pConfigurationSvc" $optional="fal
+ se" }requires { $field="pForkerSvc" $optional="false" }}
 
