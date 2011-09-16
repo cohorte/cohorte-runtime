@@ -29,7 +29,9 @@ iPOJO-Components: instance { $component="remote-service-exporter-facto
  k.ServiceReference,org.psem2m.isolates.services.remote.beans.RemoteSe
  rviceEvent$ServiceEventType,java.util.List}" $name="sendNotification"
   }method { $arguments="{org.osgi.framework.ServiceEvent}" $name="serv
- iceChanged" }method { $name="validatePojo" }interface { $name="org.os
- gi.framework.ServiceListener" }}requires { $field="pLogger" $optional
- ="false" }requires { $field="pEndpointHandlers" $optional="false" }}
+ iceChanged" }method { $arguments="{org.osgi.framework.ServiceReferenc
+ e}" $name="unexportService" }method { $name="validatePojo" }interface
+  { $name="org.osgi.framework.ServiceListener" }}requires { $field="pL
+ ogger" $optional="false" }requires { $field="pEndpointHandlers" $opti
+ onal="false" }}
 

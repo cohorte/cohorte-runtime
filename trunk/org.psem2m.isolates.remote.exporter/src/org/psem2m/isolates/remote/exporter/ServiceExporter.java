@@ -82,7 +82,7 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
     protected List<EndpointDescription> exportService(
 	    final ServiceReference aServiceReference) {
 
-	List<EndpointDescription> endpointDescriptions = new ArrayList<EndpointDescription>();
+	final List<EndpointDescription> endpointDescriptions = new ArrayList<EndpointDescription>();
 
 	for (IEndpointHandler handler : pEndpointHandlers) {
 
@@ -239,6 +239,36 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
 	    // Send the notification if the event is recognized
 	    sendNotification(aServiceEvent.getServiceReference(), eventType,
 		    newEndpoints);
+
+	    if (eventType == ServiceEventType.UNREGISTERED) {
+		/*
+		 * Wait for the notification to be sent before destroying end
+		 * points
+		 */
+		unexportService(aServiceEvent.getServiceReference());
+	    }
+	}
+    }
+
+    /**
+     * Destroys all end points corresponding to the given service.
+     * 
+     * @param aServiceReference
+     *            Reference to the service to stop to export
+     */
+    protected void unexportService(final ServiceReference aServiceReference) {
+
+	for (IEndpointHandler handler : pEndpointHandlers) {
+	    try {
+		// Try to remove the end point
+		handler.destroyEndpoint(aServiceReference);
+
+	    } catch (Exception ex) {
+		// Log errors
+		pLogger.log(LogService.LOG_WARNING,
+			"Can't remove endpoint from " + handler
+				+ " for reference " + aServiceReference, ex);
+	    }
 	}
     }
 
