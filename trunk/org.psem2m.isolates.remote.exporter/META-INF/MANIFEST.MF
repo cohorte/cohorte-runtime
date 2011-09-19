@@ -19,21 +19,23 @@ iPOJO-Components: instance { $component="remote-service-exporter-facto
  .remote.exporter.ServiceExporter" $architecture="true" callback { $tr
  ansition="validate" $method="validatePojo" }callback { $transition="i
  nvalidate" $method="invalidatePojo" }manipulation { $super="org.psem2
- m.isolates.base.activators.CPojoBase" field { $name="pLogger" $type="
- org.osgi.service.log.LogService" }field { $name="pEndpointDirectorySv
- c" $type="org.psem2m.remote.endpoints.directory.IEndpointDirectory" }
- field { $name="pEndpointHandlers" $type="org.psem2m.isolates.services
- .remote.IEndpointHandler[]" }field { $name="pBundleContext" $type="or
- g.osgi.framework.BundleContext" }method { $arguments="{org.osgi.frame
- work.BundleContext}" $name="$init" }method { $name="destroy" }method 
- { $arguments="{org.osgi.framework.ServiceReference}" $name="exportSer
- vice" $return="java.util.List" }method { $name="invalidatePojo" }meth
- od { $arguments="{org.osgi.framework.ServiceReference,org.psem2m.isol
- ates.services.remote.beans.RemoteServiceEvent$ServiceEventType,java.u
- til.List}" $name="sendNotification" }method { $arguments="{org.osgi.f
- ramework.ServiceEvent}" $name="serviceChanged" }method { $arguments="
- {org.osgi.framework.ServiceReference}" $name="unexportService" }metho
- d { $name="validatePojo" }interface { $name="org.osgi.framework.Servi
- ceListener" }}requires { $field="pLogger" $optional="false" }requires
-  { $field="pEndpointHandlers" $optional="false" }}
+ m.isolates.base.activators.CPojoBase" field { $name="pRepository" $ty
+ pe="org.psem2m.isolates.services.remote.IRemoteServiceRepository" }fi
+ eld { $name="pLogger" $type="org.osgi.service.log.LogService" }field 
+ { $name="pBroadcaster" $type="org.psem2m.isolates.services.remote.IRe
+ moveServiceBroadcaster" }field { $name="pEndpointHandlers" $type="org
+ .psem2m.isolates.services.remote.IEndpointHandler[]" }field { $name="
+ pBundleContext" $type="org.osgi.framework.BundleContext" }method { $a
+ rguments="{org.osgi.framework.BundleContext}" $name="$init" }method {
+  $arguments="{org.osgi.framework.ServiceReference}" $name="createEndp
+ oints" $return="java.util.List" }method { $name="destroy" }method { $
+ arguments="{org.osgi.framework.ServiceReference}" $name="exportServic
+ e" $return="boolean" }method { $name="invalidatePojo" }method { $argu
+ ments="{org.osgi.framework.ServiceEvent}" $name="serviceChanged" }met
+ hod { $arguments="{org.osgi.framework.ServiceReference}" $name="unexp
+ ortService" }method { $name="validatePojo" }interface { $name="org.os
+ gi.framework.ServiceListener" }}requires { $field="pBroadcaster" $opt
+ ional="false" }requires { $field="pEndpointHandlers" $optional="false
+ " }requires { $field="pLogger" $optional="false" }requires { $field="
+ pRepository" $optional="false" }}
 

@@ -1,5 +1,5 @@
 /**
- * File:   RemoteServiceAdapter.java
+ * File:   RemoteServiceImporter.java
  * Author: Thomas Calmant
  * Date:   26 juil. 2011
  */
@@ -13,25 +13,29 @@ import java.util.Map;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
-import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.ow2.chameleon.rose.RemoteConstants;
-import org.ow2.chameleon.rose.client.RemoteProxyFactory;
 import org.psem2m.isolates.base.activators.CPojoBase;
-import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.services.remote.IRemoteServiceClientHandler;
 import org.psem2m.isolates.services.remote.IRemoteServiceEventListener;
+import org.psem2m.isolates.services.remote.IRemoteServiceRepository;
+import org.psem2m.isolates.services.remote.IRemoveServiceBroadcaster;
 import org.psem2m.isolates.services.remote.beans.RemoteServiceEvent;
 
 /**
+ * Core the Remote Service Importer (RSI). Responds to RSR events to create and
+ * delete remote services proxies.
+ * 
  * @author Thomas Calmant
  */
 public class RemoteServiceAdapter extends CPojoBase implements
-	IRemoteServiceEventListener {
+        IRemoteServiceEventListener {
 
     /** Service export properties prefix */
     public static final String SERVICE_EXPORTED_PREFIX = "service.exported.";
+
+    /** Remote service broadcaster (RSB) */
+    private IRemoveServiceBroadcaster pBroadcaster;
 
     /** The component bundle context */
     private BundleContext pBundleContext;
@@ -39,11 +43,11 @@ public class RemoteServiceAdapter extends CPojoBase implements
     /** Remote service proxy handlers */
     private IRemoteServiceClientHandler[] pClientHandlers;
 
-    /** Local isolate ID */
-    private final String pIsolateId;
-
     /** Registered services */
     private final Map<String, ProxyServiceInfo> pRegisteredServices = new HashMap<String, ProxyServiceInfo>();
+
+    /** Remote service repository (RSR) */
+    private IRemoteServiceRepository pRepository;
 
     /**
      * Constructor
@@ -53,12 +57,8 @@ public class RemoteServiceAdapter extends CPojoBase implements
      */
     public RemoteServiceAdapter(final BundleContext aBundleContext) {
 
-	super();
-	pBundleContext = aBundleContext;
-
-	// Retrieve the isolate ID for properties
-	pIsolateId = System
-		.getProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID);
+        super();
+        pBundleContext = aBundleContext;
     }
 
     /*
@@ -68,7 +68,8 @@ public class RemoteServiceAdapter extends CPojoBase implements
      */
     @Override
     public void destroy() {
-	// ...
+
+        // ...
     }
 
     /**
@@ -79,63 +80,35 @@ public class RemoteServiceAdapter extends CPojoBase implements
      * @return The service properties, without the remote service ones
      */
     protected Dictionary<String, ?> filterProperties(
-	    final Dictionary<String, ?> aServiceProperties) {
+            final Dictionary<String, ?> aServiceProperties) {
 
-	if (aServiceProperties == null) {
-	    return null;
-	}
+        if (aServiceProperties == null) {
+            return null;
+        }
 
-	Dictionary<String, Object> filteredProperties = new Hashtable<String, Object>();
+        Dictionary<String, Object> filteredProperties = new Hashtable<String, Object>();
 
-	// Add "import" properties
-	filteredProperties.put(RemoteConstants.SERVICE_IMPORTED, "true");
+        // Add "import" properties
+        filteredProperties.put(RemoteConstants.SERVICE_IMPORTED, "true");
 
-	Object exportedProperty = aServiceProperties
-		.get(RemoteConstants.SERVICE_EXPORTED_CONFIGS);
-	if (exportedProperty != null) {
-	    filteredProperties.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS,
-		    exportedProperty);
-	}
+        Object exportedProperty = aServiceProperties
+                .get(RemoteConstants.SERVICE_EXPORTED_CONFIGS);
+        if (exportedProperty != null) {
+            filteredProperties.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS,
+                    exportedProperty);
+        }
 
-	// Remove "export" properties
-	Enumeration<String> propertiesKeys = aServiceProperties.keys();
-	while (propertiesKeys.hasMoreElements()) {
-	    // Test all keys
-	    String nextElement = propertiesKeys.nextElement();
-	    if (nextElement.startsWith(SERVICE_EXPORTED_PREFIX)) {
-		aServiceProperties.remove(nextElement);
-	    }
-	}
+        // Remove "export" properties
+        Enumeration<String> propertiesKeys = aServiceProperties.keys();
+        while (propertiesKeys.hasMoreElements()) {
+            // Test all keys
+            String nextElement = propertiesKeys.nextElement();
+            if (nextElement.startsWith(SERVICE_EXPORTED_PREFIX)) {
+                aServiceProperties.remove(nextElement);
+            }
+        }
 
-	return filteredProperties;
-    }
-
-    protected RemoteProxyFactory findAssociatedFactory(
-	    final String aExportedConfig) {
-
-	StringBuilder filter = new StringBuilder();
-	filter.append("(");
-	filter.append(RemoteConstants.REMOTE_CONFIGS_SUPPORTED);
-	filter.append("=");
-	filter.append(aExportedConfig);
-	filter.append(")");
-
-	ServiceReference[] serviceRef;
-	try {
-	    serviceRef = pBundleContext.getServiceReferences(
-		    RemoteProxyFactory.class.getName(), filter.toString());
-
-	} catch (InvalidSyntaxException e) {
-	    // TODO Use a logger
-	    e.printStackTrace();
-	    return null;
-	}
-
-	if (serviceRef == null || serviceRef.length == 0) {
-	    return null;
-	}
-
-	return null;
+        return filteredProperties;
     }
 
     /*
@@ -146,36 +119,25 @@ public class RemoteServiceAdapter extends CPojoBase implements
      */
     @Override
     public synchronized void handleRemoteEvent(
-	    final RemoteServiceEvent aServiceEvent) {
+            final RemoteServiceEvent aServiceEvent) {
 
-	if (aServiceEvent == null) {
-	    return;
-	}
+        System.out.println("Handling event : " + aServiceEvent);
 
-	System.out.println("Handling event : " + aServiceEvent);
+        // Store the remote service ID
+        final String serviceId = aServiceEvent.getServiceId();
 
-	// Ignore "local" calls (same isolate.id)
-	if (pIsolateId.equals(aServiceEvent.getSourceIsolateId())) {
-	    System.out.println("Ignoring service due to source=dest : "
-		    + aServiceEvent);
-	    return;
-	}
+        switch (aServiceEvent.getEventType()) {
 
-	// Store the remote service ID
-	final String serviceId = aServiceEvent.getServiceId();
+        case REGISTERED: {
+            registerService(aServiceEvent);
+            break;
+        }
 
-	switch (aServiceEvent.getEventType()) {
-
-	case REGISTERED: {
-	    registerService(aServiceEvent);
-	    break;
-	}
-
-	case UNREGISTERED: {
-	    unregisterService(serviceId);
-	    break;
-	}
-	}
+        case UNREGISTERED: {
+            unregisterService(serviceId);
+            break;
+        }
+        }
     }
 
     /*
@@ -186,10 +148,13 @@ public class RemoteServiceAdapter extends CPojoBase implements
     @Override
     public void invalidatePojo() throws BundleException {
 
-	// Unregister all exported services
-	for (String serviceId : pRegisteredServices.keySet()) {
-	    unregisterService(serviceId);
-	}
+        // Stop listening to the RSR
+        pRepository.removeListener(this);
+
+        // Unregister all exported services
+        for (String serviceId : pRegisteredServices.keySet()) {
+            unregisterService(serviceId);
+        }
     }
 
     /**
@@ -200,51 +165,51 @@ public class RemoteServiceAdapter extends CPojoBase implements
      */
     protected void registerService(final RemoteServiceEvent aServiceEvent) {
 
-	// Store the remote service ID
-	final String serviceId = aServiceEvent.getServiceId();
+        // Store the remote service ID
+        final String serviceId = aServiceEvent.getServiceId();
 
-	if (pRegisteredServices.containsKey(serviceId)) {
-	    // Ignore already registered ids
-	    System.out.println("Already registered service : " + serviceId);
-	    return;
-	}
+        if (pRegisteredServices.containsKey(serviceId)) {
+            // Ignore already registered ids
+            System.out.println("Already registered service : " + serviceId);
+            return;
+        }
 
-	// Create a proxy
-	Object serviceProxy = null;
-	for (IRemoteServiceClientHandler clientHandler : pClientHandlers) {
-	    try {
-		serviceProxy = clientHandler.getRemoteProxy(aServiceEvent);
+        // Create a proxy
+        Object serviceProxy = null;
+        for (IRemoteServiceClientHandler clientHandler : pClientHandlers) {
+            try {
+                serviceProxy = clientHandler.getRemoteProxy(aServiceEvent);
 
-	    } catch (ClassNotFoundException e) {
-		e.printStackTrace();
-		return;
-	    }
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+                return;
+            }
 
-	    if (serviceProxy != null) {
-		break;
-	    }
-	}
+            if (serviceProxy != null) {
+                break;
+            }
+        }
 
-	if (serviceProxy == null) {
-	    System.out.println("No proxy created");
-	    return;
-	}
+        if (serviceProxy == null) {
+            System.out.println("No proxy created");
+            return;
+        }
 
-	// Filter properties, if any
-	Dictionary<String, ?> filteredProperties = filterProperties(aServiceEvent
-		.getServiceProperties());
+        // Filter properties, if any
+        Dictionary<String, ?> filteredProperties = filterProperties(aServiceEvent
+                .getServiceProperties());
 
-	// Register the service
-	ServiceRegistration serviceReg = pBundleContext.registerService(
-		aServiceEvent.getInterfacesNames(), serviceProxy,
-		filteredProperties);
+        // Register the service
+        ServiceRegistration serviceReg = pBundleContext.registerService(
+                aServiceEvent.getInterfacesNames(), serviceProxy,
+                filteredProperties);
 
-	// Store the registration information
-	if (serviceReg != null) {
-	    ProxyServiceInfo serviceInfo = new ProxyServiceInfo(serviceReg,
-		    serviceProxy);
-	    pRegisteredServices.put(aServiceEvent.getServiceId(), serviceInfo);
-	}
+        // Store the registration information
+        if (serviceReg != null) {
+            ProxyServiceInfo serviceInfo = new ProxyServiceInfo(serviceReg,
+                    serviceProxy);
+            pRegisteredServices.put(aServiceEvent.getServiceId(), serviceInfo);
+        }
     }
 
     /**
@@ -255,25 +220,25 @@ public class RemoteServiceAdapter extends CPojoBase implements
      */
     protected void unregisterService(final String aServiceId) {
 
-	// Retrieve the service registration
-	ProxyServiceInfo serviceInfo = pRegisteredServices.get(aServiceId);
+        // Retrieve the service registration
+        ProxyServiceInfo serviceInfo = pRegisteredServices.get(aServiceId);
 
-	ServiceRegistration serviceReg = serviceInfo.getServiceRegistration();
-	if (serviceReg != null) {
-	    // Unregister it
-	    serviceReg.unregister();
-	}
+        ServiceRegistration serviceReg = serviceInfo.getServiceRegistration();
+        if (serviceReg != null) {
+            // Unregister it
+            serviceReg.unregister();
+        }
 
-	Object proxy = serviceInfo.getProxy();
-	for (IRemoteServiceClientHandler handler : pClientHandlers) {
-	    try {
-		handler.destroyProxy(proxy);
-	    } catch (Throwable t) {
-		// Ignore exceptions
-	    }
-	}
+        Object proxy = serviceInfo.getProxy();
+        for (IRemoteServiceClientHandler handler : pClientHandlers) {
+            try {
+                handler.destroyProxy(proxy);
+            } catch (Throwable t) {
+                // Ignore exceptions
+            }
+        }
 
-	pRegisteredServices.remove(aServiceId);
+        pRegisteredServices.remove(aServiceId);
     }
 
     /*
@@ -283,5 +248,11 @@ public class RemoteServiceAdapter extends CPojoBase implements
      */
     @Override
     public void validatePojo() throws BundleException {
+
+        // Register to RSR events
+        pRepository.addListener(this);
+
+        // Request other isolates state with the RSB
+        pBroadcaster.requestAllEndpoints();
     }
 }

@@ -6,14 +6,16 @@
 	<!-- The remote importer service -->
 	<component classname="org.psem2m.isolates.remote.exporter.ServiceExporter"
 		architecture="true" immediate="true" name="remote-service-exporter-factory">
-		
-		<requires field="pLogger" optional="false" />
+
+		<requires field="pBroadcaster" optional="false" />
 		<requires field="pEndpointHandlers" optional="false" />
+		<requires field="pLogger" optional="false" />
+		<requires field="pRepository" optional="false" />
 
 		<callback transition="validate" method="validatePojo" />
 		<callback transition="invalidate" method="invalidatePojo" />
 	</component>
-	
+
 	<!-- Instances -->
 	<instance component="remote-service-exporter-factory" name="remote-service-exporter" />
 </ipojo> 

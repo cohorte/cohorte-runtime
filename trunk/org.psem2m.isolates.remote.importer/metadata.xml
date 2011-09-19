@@ -5,24 +5,23 @@
 
 	<!-- The remote importer service -->
 	<component classname="org.psem2m.isolates.remote.importer.RemoteServiceAdapter"
-		architecture="true" immediate="true" name="remote-service-adapter-factory">
+		architecture="true" immediate="true" name="remote-service-importer-factory">
 
-		<provides specifications="org.psem2m.isolates.services.remote.IRemoteServiceEventListener" />
-		
+		<requires field="pBroadcaster" optional="false" />
 		<requires field="pClientHandlers" optional="false" />
+		<requires field="pRepository" optional="false" />
 
 		<callback transition="validate" method="validatePojo" />
 		<callback transition="invalidate" method="invalidatePojo" />
 	</component>
-	
+
 	<!-- The servlet register -->
 	<component classname="org.psem2m.isolates.remote.importer.ServletRegisterer"
 		architecture="true" immediate="true" name="remote-service-servlet-factory">
-		
+
 		<!-- Do not provide the IRemoteServiceEventListener interface ! -->
 
 		<requires field="pHttpService" optional="false" />
-		<requires field="pRemoteServiceListeners" optional="false" />
 		<requires field="pLogger" optional="true" />
 
 		<callback transition="validate" method="validatePojo" />
@@ -30,6 +29,8 @@
 	</component>
 
 	<!-- Instances -->
-	<instance component="remote-service-adapter-factory" name="remote-service-adapter" />
-	<instance component="remote-service-servlet-factory" name="remote-service-servlet" />
+	<instance component="remote-service-importer-factory" name="remote-service-importer" />
+
+	<!-- <instance component="remote-service-servlet-factory" name="remote-service-servlet" 
+		/> -->
 </ipojo>
