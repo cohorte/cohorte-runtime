@@ -227,18 +227,21 @@ public class RunnerLaunchDelegate implements ILaunchConfigurationDelegate {
 	protected List<String> makeEnvironment(
 			final ILaunchConfiguration aConfiguration) {
 
-		final String[] configEnv;
-
 		try {
-			configEnv = DebugPlugin.getDefault().getLaunchManager()
-					.getEnvironment(aConfiguration);
+			final String[] configEnv = DebugPlugin.getDefault()
+					.getLaunchManager().getEnvironment(aConfiguration);
+
+			if (configEnv != null && configEnv.length > 0) {
+				// This method doesn't like null arguments
+				return Arrays.asList(configEnv);
+			}
 
 		} catch (CoreException e) {
 			RunnerPlugin.logError("Error retrieving launch environment", e);
 			return null;
 		}
 
-		return Arrays.asList(configEnv);
+		return null;
 	}
 
 	/**
