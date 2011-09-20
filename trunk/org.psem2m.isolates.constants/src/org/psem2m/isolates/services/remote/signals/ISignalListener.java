@@ -5,8 +5,6 @@
  */
 package org.psem2m.isolates.services.remote.signals;
 
-import java.io.Serializable;
-
 /**
  * Represents a signal listener
  * 
@@ -22,5 +20,5 @@ public interface ISignalListener {
      * @param aSignalData
      *            Signal data
      */
-    void handleReceivedSignal(String aSignalName, Serializable aSignalData);
+    void handleReceivedSignal(String aSignalName, Object aSignalData);
 }

@@ -17,6 +17,14 @@ import java.util.Set;
 public interface IIsolateDescr extends Serializable {
 
     /**
+     * Retrieves the URL, in a string form, to access the isolate signal
+     * receiver.
+     * 
+     * @return The URL to access the isolate
+     */
+    String getAccessUrl();
+
+    /**
      * Retrieves the list of bundles to be installed in the isolate. Can't be
      * null and should'nt be empty.
      * 
@@ -39,13 +47,6 @@ public interface IIsolateDescr extends Serializable {
      * @return The kind of isolate
      */
     String getKind();
-
-    /**
-     * Retrieves the URL of the isolate's Remote Service Repository (RSR)
-     * 
-     * @return The RSR URL, null if not indicated.
-     */
-    String getRemoteServiceRepositoryUrl();
 
     /**
      * Retrieves the list of Java Virtual Machine arguments to be used when
