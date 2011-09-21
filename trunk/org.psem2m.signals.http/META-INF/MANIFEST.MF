@@ -58,11 +58,12 @@ iPOJO-Components: instance { $component="org.psem2m.remotes.signals.ht
  I}" }method { $name="isolatesIdsToUrl" $return="java.net.URL[]" $argu
  ments="{java.lang.String[],java.net.URI}" }method { $name="isValidIso
  late" $return="boolean" $arguments="{java.lang.String}" }method { $na
- me="sendData" $arguments="{org.psem2m.isolates.services.remote.signal
- s.ISignalEmitter$EEmitterTargets,java.lang.String,java.io.Serializabl
- e}" }method { $name="sendData" $return="boolean" $arguments="{java.la
- ng.String,java.lang.String,java.io.Serializable}" }method { $name="ta
- rgetToUrl" $return="java.net.URL[]" $arguments="{org.psem2m.isolates.
- services.remote.signals.ISignalEmitter$EEmitterTargets,java.net.URI}"
-  }method { $name="validatePojo" }}}
+ me="logSenderThreadError" $arguments="{java.lang.String,java.lang.Exc
+ eption}" }method { $name="sendData" $arguments="{org.psem2m.isolates.
+ services.remote.signals.ISignalEmitter$EEmitterTargets,java.lang.Stri
+ ng,java.io.Serializable}" }method { $name="sendData" $return="boolean
+ " $arguments="{java.lang.String,java.lang.String,java.io.Serializable
+ }" }method { $name="targetToUrl" $return="java.net.URL[]" $arguments=
+ "{org.psem2m.isolates.services.remote.signals.ISignalEmitter$EEmitter
+ Targets,java.net.URI}" }method { $name="validatePojo" }}}
 

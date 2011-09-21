@@ -30,8 +30,8 @@ import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.services.conf.IIsolateDescr;
 import org.psem2m.isolates.services.conf.ISvcConfig;
 import org.psem2m.isolates.services.remote.signals.ISignalEmitter;
-import org.psem2m.remotes.signals.http.IHttpSignalsConstants;
 import org.psem2m.remotes.signals.http.HttpSignalData;
+import org.psem2m.remotes.signals.http.IHttpSignalsConstants;
 
 /**
  * Implementation of a signal sender. Uses HTTP Sender Thread to do the job.
@@ -136,7 +136,8 @@ public class HttpSignalSender extends CPojoBase implements ISignalEmitter {
 
         for (URL targetUrl : aUrls) {
             // Use threads to parallelize the sending process
-            pExecutor.execute(new HttpSenderThread(targetUrl, sentObject));
+            pExecutor
+                    .execute(new HttpSenderThread(this, targetUrl, sentObject));
         }
     }
 
@@ -241,6 +242,20 @@ public class HttpSignalSender extends CPojoBase implements ISignalEmitter {
         return !aIsolateId
                 .equals(IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER)
                 && !aIsolateId.equals(currentIsolateId);
+    }
+
+    /**
+     * Lets the sending thread access to the logger
+     * 
+     * @param aMessage
+     *            Error message
+     * @param aException
+     *            Cause of the error, if any
+     */
+    protected void logSenderThreadError(final String aMessage,
+            final Exception aException) {
+
+        pLogger.log(LogService.LOG_WARNING, aMessage, aException);
     }
 
     /*

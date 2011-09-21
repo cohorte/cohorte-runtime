@@ -19,6 +19,9 @@ import java.net.URLConnection;
  */
 public class HttpSenderThread extends Thread {
 
+    /** Parent HTTP sender */
+    private HttpSignalSender pParentSender;
+
     /** Data to send in request */
     private Serializable pRequestData;
 
@@ -28,14 +31,18 @@ public class HttpSenderThread extends Thread {
     /**
      * Sets up the thread
      * 
+     * @param aHttpSignalSender
+     *            Parent signal handler
      * @param aTargetUrl
      *            Target HTTP URL
      * @param aData
      *            Request content
      */
-    public HttpSenderThread(final URL aTargetUrl, final Serializable aData) {
+    public HttpSenderThread(final HttpSignalSender aHttpSignalSender,
+            final URL aTargetUrl, final Serializable aData) {
 
         super();
+        pParentSender = aHttpSignalSender;
         pTargetUrl = aTargetUrl;
         pRequestData = aData;
     }
@@ -94,8 +101,11 @@ public class HttpSenderThread extends Thread {
             }
 
         } catch (IOException e) {
-            // TODO use a logger
-            e.printStackTrace();
+
+            if (pParentSender != null) {
+                // Only care about the error if the parent is valid
+                pParentSender.logSenderThreadError("Error sending signal", e);
+            }
         }
     }
 }
