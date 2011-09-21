@@ -8,6 +8,12 @@ package org.psem2m.remote.client.rose;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Instantiate;
+import org.apache.felix.ipojo.annotations.Invalidate;
+import org.apache.felix.ipojo.annotations.Provides;
+import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.service.log.LogService;
@@ -27,6 +33,9 @@ import org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration;
  * 
  * @author Thomas Calmant
  */
+@Component(name = "remote-client-handler-rose-factory", publicFactory = false)
+@Provides(specifications = IRemoteServiceClientHandler.class)
+@Instantiate(name = "remote-client-handler-rose")
 public class RoseClientHandler extends CPojoBase implements
         IRemoteServiceClientHandler {
 
@@ -34,9 +43,11 @@ public class RoseClientHandler extends CPojoBase implements
     private BundleContext pBundleContext;
 
     /** Log service */
+    @Requires
     private LogService pLogger;
 
     /** Rose remote proxy factories */
+    @Requires
     private RemoteProxyFactory[] pProxyFactories;
 
     /**
@@ -161,7 +172,6 @@ public class RoseClientHandler extends CPojoBase implements
 
         final String interfaceName = interfaceNames[interfaceNames.length - 1];
         if (interfaceName == null) {
-            System.out.println("No interface");
             pLogger.log(LogService.LOG_ERROR,
                     "[RoseClientHandler] No interface");
             return null;
@@ -233,10 +243,10 @@ public class RoseClientHandler extends CPojoBase implements
      * @see org.psem2m.isolates.base.CPojoBase#invalidatePojo()
      */
     @Override
+    @Invalidate
     public void invalidatePojo() throws BundleException {
 
-        // ...
-        System.out.println("RoserHandlerClient Gone");
+        pLogger.log(LogService.LOG_INFO, "RoserHandlerClient Gone");
     }
 
     /*
@@ -245,9 +255,9 @@ public class RoseClientHandler extends CPojoBase implements
      * @see org.psem2m.isolates.base.CPojoBase#validatePojo()
      */
     @Override
+    @Validate
     public void validatePojo() throws BundleException {
 
-        // ...
-        System.out.println("RoserHandlerClient alive");
+        pLogger.log(LogService.LOG_INFO, "RoserHandlerClient Ready");
     }
 }
