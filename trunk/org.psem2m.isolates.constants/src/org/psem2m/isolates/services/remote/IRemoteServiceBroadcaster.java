@@ -1,5 +1,5 @@
 /**
- * File:   IRemoveServiceBroadcaster.java
+ * File:   IRemoteServiceBroadcaster.java
  * Author: Thomas Calmant
  * Date:   19 sept. 2011
  */
@@ -12,7 +12,7 @@ import org.psem2m.isolates.services.remote.beans.RemoteServiceEvent;
  * 
  * @author Thomas Calmant
  */
-public interface IRemoveServiceBroadcaster {
+public interface IRemoteServiceBroadcaster {
 
     /**
      * Sends a request to all other isolates to send notifications about their

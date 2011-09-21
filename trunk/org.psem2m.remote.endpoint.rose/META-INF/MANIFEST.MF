@@ -6,14 +6,17 @@ Bundle-SymbolicName: org.psem2m.remote.endpoint.rose
 Bundle-Vendor: isandlaTech.com
 Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
-Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
- .ipojo.architecture;version=1.8.0, org.osgi.framework;version=1.5.0, 
- org.osgi.service.cm;version=1.2, org.osgi.service.log;version=1.3, or
- g.ow2.chameleon.rose;version=0.2.3, org.ow2.chameleon.rose.server;ver
- sion=0.2.3, org.psem2m.isolates.base;version=1.0.0, org.psem2m.isolat
- es.base.activators;version=1.0.0, org.psem2m.isolates.services.remote
- ;version=1.0.0, org.psem2m.isolates.services.remote.beans;version=1.0
- .0, org.psem2m.utilities
+Import-Package: org.apache.felix.ipojo;version="1.8.0",
+ org.apache.felix.ipojo.architecture;version="1.8.0",
+ org.osgi.framework;version="1.5.0",
+ org.osgi.service.cm;version="1.2",
+ org.osgi.service.log;version="1.3",
+ org.ow2.chameleon.rose;version="0.2.3",
+ org.ow2.chameleon.rose.server;version="0.2.3",
+ org.psem2m.isolates.base.activators;version="1.0.0",
+ org.psem2m.isolates.services.remote;version="1.0.0",
+ org.psem2m.isolates.services.remote.beans;version="1.0.0",
+ org.psem2m.utilities
 iPOJO-Components: instance { $component="remote-endpoint-handler-rose-
  factory" $name="remote-endpoint-handler-rose" }component { $classname
  ="org.psem2m.remote.endpoint.rose.RoseEndpointHandler" $architecture=
@@ -30,11 +33,13 @@ iPOJO-Components: instance { $component="remote-endpoint-handler-rose-
  ry" $type="org.ow2.chameleon.rose.server.EndpointFactory" }field { $n
  ame="pLogger" $type="org.osgi.service.log.LogService" }method { $name
  ="createEndpoint" $return="org.psem2m.isolates.services.remote.beans.
- EndpointDescription[]" $arguments="{org.osgi.framework.ServiceReferen
- ce}" }method { $name="destroy" }method { $name="destroyEndpoint" $ret
- urn="boolean" $arguments="{org.osgi.framework.ServiceReference}" }met
- hod { $name="getEndpoints" $return="org.psem2m.isolates.services.remo
- te.beans.EndpointDescription[]" $arguments="{org.osgi.framework.Servi
- ceReference}" }method { $name="invalidatePojo" }method { $name="valid
- atePojo" }}}
+ EndpointDescription[]" $arguments="{java.lang.String,org.osgi.framewo
+ rk.ServiceReference}" }method { $name="destroy" }method { $name="dest
+ royEndpoint" $return="boolean" $arguments="{org.osgi.framework.Servic
+ eReference}" }method { $name="getEndpoints" $return="org.psem2m.isola
+ tes.services.remote.beans.EndpointDescription[]" $arguments="{org.osg
+ i.framework.ServiceReference}" }method { $name="getServiceProperiesMa
+ p" $return="java.util.Map" $arguments="{org.osgi.framework.ServiceRef
+ erence}" }method { $name="invalidatePojo" }method { $name="validatePo
+ jo" }}}
 

@@ -21,6 +21,7 @@ import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.services.remote.IRemoteServiceEventListener;
 import org.psem2m.isolates.services.remote.IRemoteServiceRepository;
 import org.psem2m.isolates.services.remote.beans.EndpointDescription;
+import org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration;
 
 /**
  * Implementation of an RSR
@@ -36,15 +37,12 @@ public class RemoteServiceRepository extends CPojoBase implements
     /** Remote service event listeners */
     private final Set<IRemoteServiceEventListener> pListeners = new HashSet<IRemoteServiceEventListener>();
 
-    /** Locally registered end points */
-    private final Set<EndpointDescription> pLocalEndpoints = new HashSet<EndpointDescription>();
-
     /** Log service, injected by iPOJO */
     @Requires
     private LogService pLogger;
 
-    /** Known remote end points */
-    private final Set<EndpointDescription> pRemoteEndpoins = new HashSet<EndpointDescription>();
+    /** Exported service registrations */
+    private final Set<RemoteServiceRegistration> pRegistrations = new HashSet<RemoteServiceRegistration>();
 
     /*
      * (non-Javadoc)
@@ -57,7 +55,9 @@ public class RemoteServiceRepository extends CPojoBase implements
     public void addListener(final IRemoteServiceEventListener aListener) {
 
         if (aListener != null) {
-            pListeners.add(aListener);
+            synchronized (pListeners) {
+                pListeners.add(aListener);
+            }
         }
     }
 
@@ -76,25 +76,14 @@ public class RemoteServiceRepository extends CPojoBase implements
      * (non-Javadoc)
      * 
      * @see org.psem2m.isolates.services.remote.IRemoteServiceRepository#
-     * getKnownEndpoints()
+     * getLocalRegistrations()
      */
     @Override
-    public EndpointDescription[] getKnownEndpoints() {
+    public RemoteServiceRegistration[] getLocalRegistrations() {
 
-        // FIXME always empty
-        return pRemoteEndpoins.toArray(new EndpointDescription[0]);
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.services.remote.IRemoteServiceRepository#
-     * getLocalEndpoints()
-     */
-    @Override
-    public EndpointDescription[] getLocalEndpoints() {
-
-        return pLocalEndpoints.toArray(new EndpointDescription[0]);
+        synchronized (pRegistrations) {
+            return pRegistrations.toArray(new RemoteServiceRegistration[0]);
+        }
     }
 
     /*
@@ -112,29 +101,38 @@ public class RemoteServiceRepository extends CPojoBase implements
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * org.psem2m.isolates.services.remote.IRemoteServiceRepository#registerEndpoint
-     * (org.psem2m.isolates.services.remote.beans.EndpointDescription)
+     * @see org.psem2m.isolates.services.remote.IRemoteServiceRepository#
+     * registerExportedService
+     * (org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration)
      */
     @Override
-    public void registerEndpoint(final EndpointDescription aEndpointDescription) {
+    public void registerExportedService(
+            final RemoteServiceRegistration aRegistration) {
 
-        // Just add it to the local end points
-        pLocalEndpoints.add(aEndpointDescription);
+        if (aRegistration != null) {
+
+            synchronized (pRegistrations) {
+                pRegistrations.add(aRegistration);
+            }
+        }
     }
 
     /*
      * (non-Javadoc)
      * 
      * @see org.psem2m.isolates.services.remote.IRemoteServiceRepository#
-     * registerEndpoints(java.util.Collection)
+     * registerExportedServices(java.util.Collection)
      */
     @Override
-    public void registerEndpoints(
-            final Collection<EndpointDescription> aEndpointsDescriptions) {
+    public void registerExportedServices(
+            final Collection<RemoteServiceRegistration> aRegistrations) {
 
-        // Just add them to the local end points
-        pLocalEndpoints.addAll(aEndpointsDescriptions);
+        if (aRegistrations != null) {
+
+            for (RemoteServiceRegistration registration : aRegistrations) {
+                registerExportedService(registration);
+            }
+        }
     }
 
     /*
@@ -148,7 +146,9 @@ public class RemoteServiceRepository extends CPojoBase implements
     public void removeListener(final IRemoteServiceEventListener aListener) {
 
         if (aListener != null) {
-            pListeners.remove(aListener);
+            synchronized (pListeners) {
+                pListeners.remove(aListener);
+            }
         }
     }
 
@@ -163,8 +163,11 @@ public class RemoteServiceRepository extends CPojoBase implements
     public void unregisterEndpoint(
             final EndpointDescription aEndpointDescription) {
 
-        // Just remove it
-        pLocalEndpoints.remove(aEndpointDescription);
+        synchronized (pRegistrations) {
+            for (RemoteServiceRegistration registration : pRegistrations) {
+                registration.removeEndpoints(aEndpointDescription);
+            }
+        }
     }
 
     /*
@@ -177,8 +180,20 @@ public class RemoteServiceRepository extends CPojoBase implements
     public void unregisterEndpoints(
             final Collection<EndpointDescription> aEndpointsDescriptions) {
 
-        // Just remove them
-        pLocalEndpoints.removeAll(aEndpointsDescriptions);
+        if (aEndpointsDescriptions == null || aEndpointsDescriptions.isEmpty()) {
+            return;
+        }
+
+        // Convert the collection into an array
+        final EndpointDescription[] endpointsDescriptionsArray = aEndpointsDescriptions
+                .toArray(new EndpointDescription[aEndpointsDescriptions.size()]);
+
+        synchronized (pRegistrations) {
+            // Remove end points from registrations
+            for (RemoteServiceRegistration registration : pRegistrations) {
+                registration.removeEndpoints(endpointsDescriptionsArray);
+            }
+        }
     }
 
     /*

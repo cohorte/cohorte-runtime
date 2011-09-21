@@ -76,15 +76,14 @@ public final class Utilities {
      *            A reference to the service
      * @return The service properties
      */
-    public static Map<String, String> getServiceProperties(
+    public static Map<String, Object> getServiceProperties(
             final ServiceReference aServiceReference) {
 
-        Map<String, String> serviceProperties = new HashMap<String, String>();
+        Map<String, Object> serviceProperties = new HashMap<String, Object>();
 
         String[] propertyKeys = aServiceReference.getPropertyKeys();
         for (String key : propertyKeys) {
-            serviceProperties.put(key,
-                    String.valueOf(aServiceReference.getProperty(key)));
+            serviceProperties.put(key, aServiceReference.getProperty(key));
         }
 
         return serviceProperties;

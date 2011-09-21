@@ -22,20 +22,18 @@ iPOJO-Components: instance { $component="org.psem2m.isolates.remote.re
  idatePojo" }manipulation { $super="org.psem2m.isolates.base.activator
  s.CPojoBase" interface { $name="org.psem2m.isolates.services.remote.I
  RemoteServiceRepository" }field { $name="pListeners" $type="java.util
- .Set" }field { $name="pLocalEndpoints" $type="java.util.Set" }field {
-  $name="pLogger" $type="org.osgi.service.log.LogService" }field { $na
- me="pRemoteEndpoins" $type="java.util.Set" }method { $name="addListen
- er" $arguments="{org.psem2m.isolates.services.remote.IRemoteServiceEv
- entListener}" }method { $name="destroy" }method { $name="getKnownEndp
- oints" $return="org.psem2m.isolates.services.remote.beans.EndpointDes
- cription[]" }method { $name="getLocalEndpoints" $return="org.psem2m.i
- solates.services.remote.beans.EndpointDescription[]" }method { $name=
- "invalidatePojo" }method { $name="registerEndpoint" $arguments="{org.
- psem2m.isolates.services.remote.beans.EndpointDescription}" }method {
-  $name="registerEndpoints" $arguments="{java.util.Collection}" }metho
- d { $name="removeListener" $arguments="{org.psem2m.isolates.services.
- remote.IRemoteServiceEventListener}" }method { $name="unregisterEndpo
- int" $arguments="{org.psem2m.isolates.services.remote.beans.EndpointD
- escription}" }method { $name="unregisterEndpoints" $arguments="{java.
- util.Collection}" }method { $name="validatePojo" }}}
+ .Set" }field { $name="pLogger" $type="org.osgi.service.log.LogService
+ " }field { $name="pRegistrations" $type="java.util.Set" }method { $na
+ me="addListener" $arguments="{org.psem2m.isolates.services.remote.IRe
+ moteServiceEventListener}" }method { $name="destroy" }method { $name=
+ "getLocalRegistrations" $return="org.psem2m.isolates.services.remote.
+ beans.RemoteServiceRegistration[]" }method { $name="invalidatePojo" }
+ method { $name="registerExportedService" $arguments="{org.psem2m.isol
+ ates.services.remote.beans.RemoteServiceRegistration}" }method { $nam
+ e="registerExportedServices" $arguments="{java.util.Collection}" }met
+ hod { $name="removeListener" $arguments="{org.psem2m.isolates.service
+ s.remote.IRemoteServiceEventListener}" }method { $name="unregisterEnd
+ point" $arguments="{org.psem2m.isolates.services.remote.beans.Endpoin
+ tDescription}" }method { $name="unregisterEndpoints" $arguments="{jav
+ a.util.Collection}" }method { $name="validatePojo" }}}
 

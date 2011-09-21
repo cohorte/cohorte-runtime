@@ -8,6 +8,7 @@ package org.psem2m.isolates.services.remote;
 import java.util.Collection;
 
 import org.psem2m.isolates.services.remote.beans.EndpointDescription;
+import org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration;
 
 /**
  * Description of an RSR (Remote Service Repository)
@@ -25,38 +26,30 @@ public interface IRemoteServiceRepository {
     void addListener(IRemoteServiceEventListener aListener);
 
     /**
-     * Retrieves all remote end points currently known by the RSR. The RSR
-     * should not send requests to update its state to return to this method.
-     * 
-     * @return The current state of the RSR
-     */
-    EndpointDescription[] getKnownEndpoints();
-
-    /**
      * Retrieves all local end points registered to this RSR.
      * 
-     * @return All local end points known by this RSR
+     * @return All exported service known by this RSR
      */
-    EndpointDescription[] getLocalEndpoints();
+    RemoteServiceRegistration[] getLocalRegistrations();
 
     /**
      * Registers a local end point. Doesn't asks the RSB to notify other
      * isolates.
      * 
-     * @param aEndpointDescription
-     *            A end point description
+     * @param aRegistration
+     *            An exported service registration
      */
-    void registerEndpoint(EndpointDescription aEndpointDescription);
+    void registerExportedService(RemoteServiceRegistration aRegistration);
 
     /**
      * Registers multiple local end points at once. Doesn't asks the RSB to
      * notify other isolates.
      * 
-     * @param aEndpointDescription
-     *            A list of end points descriptions
+     * @param aRegistrations
+     *            A list of remote service registrations done
      */
-    void registerEndpoints(
-            Collection<EndpointDescription> aEndpointsDescriptions);
+    void registerExportedServices(
+            Collection<RemoteServiceRegistration> aRegistrations);
 
     /**
      * Removes a listener from the RSR

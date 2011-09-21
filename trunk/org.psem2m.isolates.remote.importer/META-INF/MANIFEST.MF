@@ -15,42 +15,28 @@ Import-Package: javax.servlet;version=2.5.0, javax.servlet.http;versio
  ctivators;version=1.0.0, org.psem2m.isolates.constants;version=1.0.0,
   org.psem2m.isolates.services.remote;version=1.0.0, org.psem2m.isolat
  es.services.remote.beans;version=1.0.0, org.psem2m.utilities
-iPOJO-Components: instance { $component="remote-service-importer-facto
- ry" $name="remote-service-importer" }component { $classname="org.psem
- 2m.isolates.remote.importer.RemoteServiceAdapter" $architecture="true
- " $immediate="true" $name="remote-service-importer-factory" requires 
- { $field="pBroadcaster" $optional="false" }requires { $field="pClient
- Handlers" $optional="false" }requires { $field="pRepository" $optiona
- l="false" }callback { $transition="validate" $method="validatePojo" }
- callback { $transition="invalidate" $method="invalidatePojo" }manipul
- ation { $super="org.psem2m.isolates.base.activators.CPojoBase" interf
- ace { $name="org.psem2m.isolates.services.remote.IRemoteServiceEventL
- istener" }field { $name="pBroadcaster" $type="org.psem2m.isolates.ser
- vices.remote.IRemoveServiceBroadcaster" }field { $name="pBundleContex
- t" $type="org.osgi.framework.BundleContext" }field { $name="pClientHa
- ndlers" $type="org.psem2m.isolates.services.remote.IRemoteServiceClie
- ntHandler[]" }field { $name="pRegisteredServices" $type="java.util.Ma
- p" }field { $name="pRepository" $type="org.psem2m.isolates.services.r
- emote.IRemoteServiceRepository" }method { $name="destroy" }method { $
- name="filterProperties" $return="java.util.Dictionary" $arguments="{j
- ava.util.Dictionary}" }method { $name="handleRemoteEvent" $arguments=
+iPOJO-Components: instance { $component="org.psem2m.isolates.remote.im
+ porter.RemoteServiceAdapter" $name="remote-service-importer" }compone
+ nt { $classname="org.psem2m.isolates.remote.importer.RemoteServiceAda
+ pter" $name="remote-service-importer-factory" $public="false" provide
+ s { $specifications="{org.psem2m.isolates.services.remote.IRemoteServ
+ iceEventListener}" }requires { $field="pBroadcaster" }requires { $fie
+ ld="pClientHandlers" }requires { $field="pLogger" }callback { $transi
+ tion="invalidate" $method="invalidatePojo" }callback { $transition="v
+ alidate" $method="validatePojo" }manipulation { $super="org.psem2m.is
+ olates.base.activators.CPojoBase" interface { $name="org.psem2m.isola
+ tes.services.remote.IRemoteServiceEventListener" }field { $name="pBro
+ adcaster" $type="org.psem2m.isolates.services.remote.IRemoteServiceBr
+ oadcaster" }field { $name="pBundleContext" $type="org.osgi.framework.
+ BundleContext" }field { $name="pClientHandlers" $type="org.psem2m.iso
+ lates.services.remote.IRemoteServiceClientHandler[]" }field { $name="
+ pLogger" $type="org.osgi.service.log.LogService" }field { $name="pReg
+ isteredServices" $type="java.util.Map" }method { $name="destroy" }met
+ hod { $name="filterProperties" $return="java.util.Dictionary" $argume
+ nts="{java.util.Map}" }method { $name="handleRemoteEvent" $arguments=
  "{org.psem2m.isolates.services.remote.beans.RemoteServiceEvent}" }met
  hod { $name="invalidatePojo" }method { $name="registerService" $argum
  ents="{org.psem2m.isolates.services.remote.beans.RemoteServiceEvent}"
   }method { $name="unregisterService" $arguments="{java.lang.String}" 
- }method { $name="validatePojo" }}}component { $classname="org.psem2m.
- isolates.remote.importer.ServletRegisterer" $architecture="true" $imm
- ediate="true" $name="remote-service-servlet-factory" requires { $fiel
- d="pHttpService" $optional="false" }requires { $field="pLogger" $opti
- onal="true" }callback { $transition="validate" $method="validatePojo"
-  }callback { $transition="invalidate" $method="invalidatePojo" }manip
- ulation { $super="org.psem2m.isolates.base.activators.CPojoBase" inte
- rface { $name="org.psem2m.isolates.services.remote.IRemoteServiceEven
- tListener" }field { $name="pHttpService" $type="org.osgi.service.http
- .HttpService" }field { $name="pLogger" $type="org.osgi.service.log.Lo
- gService" }field { $name="pRemoteServiceListeners" $type="org.psem2m.
- isolates.services.remote.IRemoteServiceEventListener[]" }method { $na
- me="destroy" }method { $name="handleRemoteEvent" $arguments="{org.pse
- m2m.isolates.services.remote.beans.RemoteServiceEvent}" }method { $na
- me="invalidatePojo" }method { $name="validatePojo" }}}
+ }method { $name="validatePojo" }}}
 

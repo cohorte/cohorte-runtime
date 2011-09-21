@@ -8,7 +8,6 @@ package org.psem2m.isolates.services.remote.beans;
 import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
 
 /**
  * Description of an end point description
@@ -29,9 +28,6 @@ public class EndpointDescription implements Serializable {
     /** Associated "service.exported.configs" value */
     private final String pExportedConfig;
 
-    /** Interfaces exported by this end point */
-    private final String[] pExportedInterfaces;
-
     /** End point host */
     private String pHost;
 
@@ -44,8 +40,6 @@ public class EndpointDescription implements Serializable {
     /**
      * Sets up the end point description
      * 
-     * @param aExportedInterfaces
-     *            Interfaces exported by this end point
      * @param aExportedConfig
      *            Remote Services exported configurations
      * @param aEndpointName
@@ -58,16 +52,9 @@ public class EndpointDescription implements Serializable {
      * @param aPort
      *            Port to join the end point
      */
-    public EndpointDescription(final String[] aExportedInterfaces,
-            final String aExportedConfig, final String aEndpointName,
-            final String aProtocol, final String aEndpointUri, final int aPort) {
-
-        if (aExportedInterfaces != null) {
-            pExportedInterfaces = aExportedInterfaces;
-
-        } else {
-            pExportedInterfaces = new String[0];
-        }
+    public EndpointDescription(final String aExportedConfig,
+            final String aEndpointName, final String aProtocol,
+            final String aEndpointUri, final int aPort) {
 
         pExportedConfig = aExportedConfig;
         pEndpointName = aEndpointName;
@@ -123,7 +110,7 @@ public class EndpointDescription implements Serializable {
         }
 
         // Finally, test exported interfaces
-        return Arrays.equals(pExportedInterfaces, other.pExportedInterfaces);
+        return true;
     }
 
     /**
@@ -155,16 +142,6 @@ public class EndpointDescription implements Serializable {
     public String getExportedConfig() {
 
         return pExportedConfig;
-    }
-
-    /**
-     * Retrieves the array of the interfaces exported by this end point
-     * 
-     * @return The interfaces exported by this end point
-     */
-    public String[] getExportedInterfaces() {
-
-        return pExportedInterfaces;
     }
 
     /**
