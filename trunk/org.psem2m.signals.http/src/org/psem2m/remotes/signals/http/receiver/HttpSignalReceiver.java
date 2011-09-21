@@ -6,6 +6,7 @@
 package org.psem2m.remotes.signals.http.receiver;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -19,6 +20,7 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.log.LogService;
+import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.services.remote.signals.ISignalData;
 import org.psem2m.isolates.services.remote.signals.ISignalListener;
@@ -79,21 +81,23 @@ public class HttpSignalReceiver extends CPojoBase implements ISignalReceiver,
         System.out.println("Received signal '" + aSignalName + "' : "
                 + aSignalData);
 
-        Set<ISignalListener> signalListeners = null;
+        final Set<ISignalListener> signalListeners = new HashSet<ISignalListener>();
 
         // Get listeners set
         synchronized (pListeners) {
-            signalListeners = pListeners.get(aSignalName);
-            if (signalListeners == null) {
-                return;
+
+            for (String signal : pListeners.keySet()) {
+
+                // Take care of jokers ('*' and '?')
+                if (Utilities.matchFilter(aSignalName, signal)) {
+                    signalListeners.addAll(pListeners.get(signal));
+                }
             }
         }
 
         // Notify listeners (with a different lock, as other signals may come)
-        synchronized (signalListeners) {
-            for (ISignalListener listener : signalListeners) {
-                listener.handleReceivedSignal(aSignalName, aSignalData);
-            }
+        for (ISignalListener listener : signalListeners) {
+            listener.handleReceivedSignal(aSignalName, aSignalData);
         }
     }
 
