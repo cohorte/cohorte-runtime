@@ -5,7 +5,6 @@
  */
 package org.psem2m.remotes.signals.http.receiver;
 
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.PrintWriter;
@@ -15,6 +14,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.psem2m.isolates.services.remote.signals.ISignalData;
 import org.psem2m.isolates.services.remote.signals.ISignalListener;
 
 /**
@@ -89,26 +89,28 @@ public class ServletReceiver extends HttpServlet {
         }
 
         // Read the inner object
-        Object signalData = null;
+        final ISignalData signalData;
 
+        final ObjectInputStream inputStream = new ObjectInputStream(
+                aReq.getInputStream());
         try {
-            final ObjectInputStream inputStream = new ObjectInputStream(
-                    aReq.getInputStream());
-            try {
-                signalData = inputStream.readObject();
+            final Object readData = inputStream.readObject();
 
-            } catch (ClassNotFoundException e) {
-                aResp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                        "Class not found : " + e);
+            if (readData instanceof ISignalData) {
+                // Valid object found
+                signalData = (ISignalData) readData;
+
+            } else {
+                // Bad content
+                aResp.sendError(HttpServletResponse.SC_BAD_REQUEST,
+                        "Bad request content. Only ISignalData objects are allowed.");
                 return;
             }
 
-        } catch (EOFException ex) {
-            /*
-             * Do nothing : ObjectInputStream constructor reached the end of
-             * stream before the end of the header, so we consider the signal
-             * content as null.
-             */
+        } catch (ClassNotFoundException e) {
+            aResp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Class not found : " + e);
+            return;
         }
 
         if (pSignalListener != null) {

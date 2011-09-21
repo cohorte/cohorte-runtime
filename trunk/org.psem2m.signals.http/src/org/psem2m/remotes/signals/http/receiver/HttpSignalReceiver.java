@@ -20,6 +20,7 @@ import org.osgi.framework.BundleException;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.log.LogService;
 import org.psem2m.isolates.base.activators.CPojoBase;
+import org.psem2m.isolates.services.remote.signals.ISignalData;
 import org.psem2m.isolates.services.remote.signals.ISignalListener;
 import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
 import org.psem2m.remotes.signals.http.IHttpSignalsConstants;
@@ -73,7 +74,7 @@ public class HttpSignalReceiver extends CPojoBase implements ISignalReceiver,
      */
     @Override
     public void handleReceivedSignal(final String aSignalName,
-            final Object aSignalData) {
+            final ISignalData aSignalData) {
 
         System.out.println("Received signal '" + aSignalName + "' : "
                 + aSignalData);

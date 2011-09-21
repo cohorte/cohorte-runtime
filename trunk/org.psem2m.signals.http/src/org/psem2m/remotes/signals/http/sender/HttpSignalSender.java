@@ -31,6 +31,7 @@ import org.psem2m.isolates.services.conf.IIsolateDescr;
 import org.psem2m.isolates.services.conf.ISvcConfig;
 import org.psem2m.isolates.services.remote.signals.ISignalEmitter;
 import org.psem2m.remotes.signals.http.IHttpSignalsConstants;
+import org.psem2m.remotes.signals.http.HttpSignalData;
 
 /**
  * Implementation of a signal sender. Uses HTTP Sender Thread to do the job.
@@ -130,9 +131,12 @@ public class HttpSignalSender extends CPojoBase implements ISignalEmitter {
      */
     protected void internalSendData(final URL[] aUrls, final Serializable aData) {
 
+        // Prepare the real signal data object
+        final HttpSignalData sentObject = new HttpSignalData(aData);
+
         for (URL targetUrl : aUrls) {
             // Use threads to parallelize the sending process
-            pExecutor.execute(new HttpSenderThread(targetUrl, aData));
+            pExecutor.execute(new HttpSenderThread(targetUrl, sentObject));
         }
     }
 

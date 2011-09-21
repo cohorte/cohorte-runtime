@@ -48,6 +48,11 @@ public class HttpSenderThread extends Thread {
     @Override
     public void run() {
 
+        if (pRequestData == null) {
+            // Do not send empty signal
+            return;
+        }
+
         try {
             // Try to parse the URL and open a connection
             final URLConnection urlConnection = pTargetUrl.openConnection();
@@ -62,7 +67,7 @@ public class HttpSenderThread extends Thread {
                     httpConnection.setRequestMethod("POST");
                     httpConnection.setUseCaches(false);
                     httpConnection.setDoInput(true);
-                    httpConnection.setDoOutput(pRequestData != null);
+                    httpConnection.setDoOutput(true);
 
                     // Raw content-type
                     httpConnection.setRequestProperty("Content-Type",
@@ -71,15 +76,13 @@ public class HttpSenderThread extends Thread {
                     // After fields, before content
                     httpConnection.connect();
 
-                    if (pRequestData != null) {
-                        // Write the event in the request body, if any
-                        final ObjectOutputStream objectStream = new ObjectOutputStream(
-                                httpConnection.getOutputStream());
+                    // Write the event in the request body, if any
+                    final ObjectOutputStream objectStream = new ObjectOutputStream(
+                            httpConnection.getOutputStream());
 
-                        objectStream.writeObject(pRequestData);
-                        objectStream.flush();
-                        objectStream.close();
-                    }
+                    objectStream.writeObject(pRequestData);
+                    objectStream.flush();
+                    objectStream.close();
 
                     // Flush the request
                     httpConnection.getResponseCode();

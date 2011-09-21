@@ -20,5 +20,5 @@ public interface ISignalListener {
      * @param aSignalData
      *            Signal data
      */
-    void handleReceivedSignal(String aSignalName, Object aSignalData);
+    void handleReceivedSignal(String aSignalName, ISignalData aSignalData);
 }
