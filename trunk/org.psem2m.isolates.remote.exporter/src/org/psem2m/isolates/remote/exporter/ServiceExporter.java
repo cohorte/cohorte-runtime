@@ -9,6 +9,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Instantiate;
+import org.apache.felix.ipojo.annotations.Invalidate;
+import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
@@ -20,8 +25,8 @@ import org.osgi.service.log.LogService;
 import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.services.remote.IEndpointHandler;
-import org.psem2m.isolates.services.remote.IRemoteServiceRepository;
 import org.psem2m.isolates.services.remote.IRemoteServiceBroadcaster;
+import org.psem2m.isolates.services.remote.IRemoteServiceRepository;
 import org.psem2m.isolates.services.remote.beans.EndpointDescription;
 import org.psem2m.isolates.services.remote.beans.RemoteServiceEvent;
 import org.psem2m.isolates.services.remote.beans.RemoteServiceEvent.ServiceEventType;
@@ -33,6 +38,8 @@ import org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration;
  * 
  * @author Thomas Calmant
  */
+@Component(name = "remote-service-exporter-factory", publicFactory = false)
+@Instantiate(name = "remote-service-exporter")
 public class ServiceExporter extends CPojoBase implements ServiceListener {
 
     /**
@@ -42,18 +49,22 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
     public static final String EXPORTED_SERVICE_FILTER = "(|(service.exported.interfaces=*)(service.exported.configs=*))";
 
     /** Remote service broadcaster (RSB) */
+    @Requires
     private IRemoteServiceBroadcaster pBroadcaster;
 
     /** The bundle context */
     private final BundleContext pBundleContext;
 
     /** End point handlers */
+    @Requires
     private IEndpointHandler[] pEndpointHandlers;
 
     /** The logger */
+    @Requires
     private LogService pLogger;
 
     /** Remote service repository (RSR) */
+    @Requires
     private IRemoteServiceRepository pRepository;
 
     /**
@@ -158,6 +169,7 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
      * @see org.psem2m.isolates.base.CPojoBase#invalidatePojo()
      */
     @Override
+    @Invalidate
     public void invalidatePojo() throws BundleException {
 
         pBundleContext.removeServiceListener(this);
@@ -268,6 +280,7 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
      * @see org.psem2m.isolates.base.CPojoBase#validatePojo()
      */
     @Override
+    @Validate
     public void validatePojo() throws BundleException {
 
         pLogger.log(LogService.LOG_INFO, "validatePojo()");
