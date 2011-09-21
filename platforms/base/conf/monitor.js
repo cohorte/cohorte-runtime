@@ -1,6 +1,7 @@
 {
-    "id":"psem2m.monitor",
+    "id":"org.psem2m.internals.isolates.monitor-1",
     "kind":"felix",
+    "httpPort":9000,
     "bundles":[
         {
             "symbolicName":"org.psem2m.isolates.demo.services.ui.viewer",
@@ -13,13 +14,19 @@
             "symbolicName":"org.apache.felix.shell.remote"
         },
         {
+            "from":"signals-http.js"
+        },
+        {
             "from":"rose-core.js"
         },
         {
             "from":"rose-client.js"
         },
         {
-            "symbolicName":"org.psem2m.isolates.remote.importer"
+            "from":"rose-server.js"
+        },
+        {
+            "from":"remote-services.js"
         },
         {
             "symbolicName":"org.psem2m.isolates.master.manager"
