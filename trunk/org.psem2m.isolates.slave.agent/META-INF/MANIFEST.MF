@@ -85,9 +85,11 @@ iPOJO-Components: instance { $component="isolates-slave-agent-logger-f
  illIsolate" }method { $name="neutralizeIsolate" }method { $name="prep
  areIsolate" }method { $name="prepareIsolate" $arguments="{java.lang.S
  tring}" }method { $name="refreshPackages" $return="boolean" $argument
- s="{long[]}" }method { $name="startBundle" $return="boolean" $argumen
- ts="{long}" }method { $name="stopBundle" $return="boolean" $arguments
- ="{long}" }method { $name="uninstallBundle" $return="boolean" $argume
- nts="{long}" }method { $name="updateBundle" $return="boolean" $argume
- nts="{long}" }method { $name="validatePojo" }}}
+ s="{long[]}" }method { $name="setupHttpProperties" $arguments="{org.p
+ sem2m.isolates.services.conf.IIsolateDescr}" }method { $name="startBu
+ ndle" $return="boolean" $arguments="{long}" }method { $name="stopBund
+ le" $return="boolean" $arguments="{long}" }method { $name="uninstallB
+ undle" $return="boolean" $arguments="{long}" }method { $name="updateB
+ undle" $return="boolean" $arguments="{long}" }method { $name="validat
+ ePojo" }}}
 
