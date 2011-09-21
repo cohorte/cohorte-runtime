@@ -21,6 +21,9 @@
 		<requires field="pBundleFinderSvc" optional="false" />
 		<requires field="pConfigurationSvc" optional="false" />
 		<requires field="pPlatformDirsSvc" optional="false" />
+		
+		<requires field="pSignalEmitter" optional="false" />
+		<requires field="pSignalReceiver" optional="false" />
 
 		<requires field="pLoggerSvc" optional="false"
 			from="isolates-master-manager-logger" />
