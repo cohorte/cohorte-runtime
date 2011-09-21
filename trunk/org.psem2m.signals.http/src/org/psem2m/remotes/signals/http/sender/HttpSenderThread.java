@@ -62,7 +62,7 @@ public class HttpSenderThread extends Thread {
                     httpConnection.setRequestMethod("POST");
                     httpConnection.setUseCaches(false);
                     httpConnection.setDoInput(true);
-                    httpConnection.setDoOutput(true);
+                    httpConnection.setDoOutput(pRequestData != null);
 
                     // Raw content-type
                     httpConnection.setRequestProperty("Content-Type",
@@ -71,13 +71,15 @@ public class HttpSenderThread extends Thread {
                     // After fields, before content
                     httpConnection.connect();
 
-                    // Write the event in the request body
-                    final ObjectOutputStream objectStream = new ObjectOutputStream(
-                            httpConnection.getOutputStream());
+                    if (pRequestData != null) {
+                        // Write the event in the request body, if any
+                        final ObjectOutputStream objectStream = new ObjectOutputStream(
+                                httpConnection.getOutputStream());
 
-                    objectStream.writeObject(pRequestData);
-                    objectStream.flush();
-                    objectStream.close();
+                        objectStream.writeObject(pRequestData);
+                        objectStream.flush();
+                        objectStream.close();
+                    }
 
                     // Flush the request
                     httpConnection.getResponseCode();
