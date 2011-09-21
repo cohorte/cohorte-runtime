@@ -51,11 +51,11 @@ public class JsonConfigReader implements IConfigurationReader {
     @Override
     public IApplicationDescr getApplication(final String aApplicationId) {
 
-	if (pApplication.getApplicationId().equals(aApplicationId)) {
-	    return pApplication;
-	}
+        if (pApplication.getApplicationId().equals(aApplicationId)) {
+            return pApplication;
+        }
 
-	return null;
+        return null;
     }
 
     /*
@@ -65,7 +65,8 @@ public class JsonConfigReader implements IConfigurationReader {
      */
     @Override
     public String[] getApplicationIds() {
-	return new String[] { pApplication.getApplicationId() };
+
+        return new String[] { pApplication.getApplicationId() };
     }
 
     /*
@@ -78,41 +79,41 @@ public class JsonConfigReader implements IConfigurationReader {
     @Override
     public boolean load(final String aFile, final IFileFinderSvc aFileFinder) {
 
-	pFileFinder = aFileFinder;
+        pFileFinder = aFileFinder;
 
-	try {
-	    // Parse the configuration
-	    final JSONObject configRoot = readJsonObjectFile(aFile);
+        try {
+            // Parse the configuration
+            final JSONObject configRoot = readJsonObjectFile(aFile);
 
-	    // Throws JSONException if key is not found
-	    String applicationId = configRoot
-		    .getString(IJsonConfigKeys.CONFIG_APP_ID);
+            // Throws JSONException if key is not found
+            String applicationId = configRoot
+                    .getString(IJsonConfigKeys.CONFIG_APP_ID);
 
-	    pApplication = new ApplicationDescription(applicationId);
+            pApplication = new ApplicationDescription(applicationId);
 
-	    // Throws JSONException if key is not found
-	    parseIsolates(configRoot
-		    .getJSONArray(IJsonConfigKeys.CONFIG_ISOLATES_ARRAY));
+            // Throws JSONException if key is not found
+            parseIsolates(configRoot
+                    .getJSONArray(IJsonConfigKeys.CONFIG_ISOLATES_ARRAY));
 
-	    return true;
+            return true;
 
-	} catch (JSONException ex) {
-	    System.err.println("Error parsing a configuration file");
-	    ex.printStackTrace();
+        } catch (JSONException ex) {
+            System.err.println("Error parsing a configuration file");
+            ex.printStackTrace();
 
-	} catch (IOException e) {
-	    System.err.println("Can't access a configuration file");
-	    e.printStackTrace();
+        } catch (IOException e) {
+            System.err.println("Can't access a configuration file");
+            e.printStackTrace();
 
-	} finally {
-	    // Don't reference the finder anymore
-	    pFileFinder = null;
+        } finally {
+            // Don't reference the finder anymore
+            pFileFinder = null;
 
-	    // Clear the stack
-	    pIncludeStack.clear();
-	}
+            // Clear the stack
+            pIncludeStack.clear();
+        }
 
-	return false;
+        return false;
     }
 
     /**
@@ -125,26 +126,26 @@ public class JsonConfigReader implements IConfigurationReader {
      *             The bundle entry is invalid
      */
     protected IBundleDescr parseBundle(final JSONObject aBundleObject)
-	    throws JSONException {
+            throws JSONException {
 
-	// Get the symbolic name
-	final String symbolicName = aBundleObject
-		.getString(IJsonConfigKeys.CONFIG_BUNDLE_NAME);
+        // Get the symbolic name
+        final String symbolicName = aBundleObject
+                .getString(IJsonConfigKeys.CONFIG_BUNDLE_NAME);
 
-	// Get the version (optional)
-	final String version = aBundleObject
-		.optString(IJsonConfigKeys.CONFIG_BUNDLE_VERSION);
+        // Get the version (optional)
+        final String version = aBundleObject
+                .optString(IJsonConfigKeys.CONFIG_BUNDLE_VERSION);
 
-	// Get the file name (optional)
-	final String fileName = aBundleObject
-		.optString(IJsonConfigKeys.CONFIG_BUNDLE_FILE);
+        // Get the file name (optional)
+        final String fileName = aBundleObject
+                .optString(IJsonConfigKeys.CONFIG_BUNDLE_FILE);
 
-	// Bundle optional flag (optional)
-	final boolean optional = aBundleObject.optBoolean(
-		IJsonConfigKeys.CONFIG_BUNDLE_OPTIONAL, false);
+        // Bundle optional flag (optional)
+        final boolean optional = aBundleObject.optBoolean(
+                IJsonConfigKeys.CONFIG_BUNDLE_OPTIONAL, false);
 
-	// Create the description
-	return new BundleDescription(symbolicName, version, fileName, optional);
+        // Create the description
+        return new BundleDescription(symbolicName, version, fileName, optional);
     }
 
     /**
@@ -160,25 +161,25 @@ public class JsonConfigReader implements IConfigurationReader {
      *             An imported file wasn't found
      */
     protected void parseBundles(final IsolateDescription aIsolateDescription,
-	    final JSONArray aJsonArray) throws JSONException,
-	    FileNotFoundException {
+            final JSONArray aJsonArray) throws JSONException,
+            FileNotFoundException {
 
-	final int bundlesCount = aJsonArray.length();
-	for (int i = 0; i < bundlesCount; i++) {
+        final int bundlesCount = aJsonArray.length();
+        for (int i = 0; i < bundlesCount; i++) {
 
-	    final JSONObject bundleObject = aJsonArray.getJSONObject(i);
+            final JSONObject bundleObject = aJsonArray.getJSONObject(i);
 
-	    if (bundleObject.has(IJsonConfigKeys.CONFIG_FROM)) {
-		// Read "distant" object
-		parseBundles(aIsolateDescription,
-			readJsonArrayFile(bundleObject
-				.getString(IJsonConfigKeys.CONFIG_FROM)));
+            if (bundleObject.has(IJsonConfigKeys.CONFIG_FROM)) {
+                // Read "distant" object
+                parseBundles(aIsolateDescription,
+                        readJsonArrayFile(bundleObject
+                                .getString(IJsonConfigKeys.CONFIG_FROM)));
 
-	    } else {
-		// Parse local object
-		aIsolateDescription.getBundles().add(parseBundle(bundleObject));
-	    }
-	}
+            } else {
+                // Parse local object
+                aIsolateDescription.getBundles().add(parseBundle(bundleObject));
+            }
+        }
     }
 
     /**
@@ -193,43 +194,57 @@ public class JsonConfigReader implements IConfigurationReader {
      *             An imported file wasn't found
      */
     protected IIsolateDescr parseIsolate(final JSONObject aIsolateObject)
-	    throws JSONException, FileNotFoundException {
+            throws JSONException, FileNotFoundException {
 
-	// Isolate ID
-	final String isolateId = aIsolateObject
-		.getString(IJsonConfigKeys.CONFIG_ISOLATE_ID);
+        // Isolate ID
+        final String isolateId = aIsolateObject
+                .getString(IJsonConfigKeys.CONFIG_ISOLATE_ID);
 
-	// Prepare the description object
-	final IsolateDescription isolateDescription = new IsolateDescription(
-		isolateId);
+        // Prepare the description object
+        final IsolateDescription isolateDescription = new IsolateDescription(
+                isolateId);
 
-	// Isolate kind
-	isolateDescription.setKind(aIsolateObject
-		.optString(IJsonConfigKeys.CONFIG_ISOLATE_KIND));
+        // Isolate kind
+        isolateDescription.setKind(aIsolateObject
+                .optString(IJsonConfigKeys.CONFIG_ISOLATE_KIND));
 
-	// Isolate VM Args
-	final JSONArray vmArgsArray = aIsolateObject
-		.optJSONArray(IJsonConfigKeys.CONFIG_ISOLATE_VMARGS);
+        // Isolate VM Args
+        final JSONArray vmArgsArray = aIsolateObject
+                .optJSONArray(IJsonConfigKeys.CONFIG_ISOLATE_VMARGS);
 
-	// Add the JSONArray content to the vmArgs
-	if (vmArgsArray != null) {
+        // Add the JSONArray content to the vmArgs
+        if (vmArgsArray != null) {
 
-	    final List<String> isolateVmArgsList = isolateDescription
-		    .getVMArgs();
+            final List<String> isolateVmArgsList = isolateDescription
+                    .getVMArgs();
 
-	    final int vmArgsCount = vmArgsArray.length();
-	    for (int i = 0; i < vmArgsCount; i++) {
-		// Add all string to the list
-		isolateVmArgsList.add(vmArgsArray.getString(i));
-	    }
-	}
+            final int vmArgsCount = vmArgsArray.length();
+            for (int i = 0; i < vmArgsCount; i++) {
+                // Add all string to the list
+                isolateVmArgsList.add(vmArgsArray.getString(i));
+            }
+        }
 
-	// Isolate bundles
-	parseBundles(isolateDescription,
-		aIsolateObject
-			.getJSONArray(IJsonConfigKeys.CONFIG_ISOLATE_BUNDLES));
+        // Isolate HTTP communication port
+        final String isolatePort = aIsolateObject
+                .optString(IJsonConfigKeys.CONFIG_ISOLATE_PORT);
+        if (isolatePort != null) {
 
-	return isolateDescription;
+            final StringBuilder accessUrl = new StringBuilder();
+
+            // FIXME considers that the communication is HTTP only
+            accessUrl.append("http://localhost:");
+            accessUrl.append(isolatePort);
+
+            isolateDescription.setAccessUrl(accessUrl.toString());
+        }
+
+        // Isolate bundles
+        parseBundles(isolateDescription,
+                aIsolateObject
+                        .getJSONArray(IJsonConfigKeys.CONFIG_ISOLATE_BUNDLES));
+
+        return isolateDescription;
     }
 
     /**
@@ -243,27 +258,27 @@ public class JsonConfigReader implements IConfigurationReader {
      *             An imported file wasn't found
      */
     protected void parseIsolates(final JSONArray aJsonArray)
-	    throws JSONException, FileNotFoundException {
+            throws JSONException, FileNotFoundException {
 
-	final int isolatesCount = aJsonArray.length();
-	for (int i = 0; i < isolatesCount; i++) {
+        final int isolatesCount = aJsonArray.length();
+        for (int i = 0; i < isolatesCount; i++) {
 
-	    final IIsolateDescr isolateDescription;
-	    final JSONObject isolateObject = aJsonArray.getJSONObject(i);
+            final IIsolateDescr isolateDescription;
+            final JSONObject isolateObject = aJsonArray.getJSONObject(i);
 
-	    if (isolateObject.has(IJsonConfigKeys.CONFIG_FROM)) {
-		// Case 1 : the isolate is described in another file
-		isolateDescription = parseIsolate(readJsonObjectFile(isolateObject
-			.getString(IJsonConfigKeys.CONFIG_FROM)));
+            if (isolateObject.has(IJsonConfigKeys.CONFIG_FROM)) {
+                // Case 1 : the isolate is described in another file
+                isolateDescription = parseIsolate(readJsonObjectFile(isolateObject
+                        .getString(IJsonConfigKeys.CONFIG_FROM)));
 
-	    } else {
-		// Case 2 : everything is described here
-		isolateDescription = parseIsolate(isolateObject);
-	    }
+            } else {
+                // Case 2 : everything is described here
+                isolateDescription = parseIsolate(isolateObject);
+            }
 
-	    // Store it
-	    pApplication.addIsolate(isolateDescription);
-	}
+            // Store it
+            pApplication.addIsolate(isolateDescription);
+        }
     }
 
     /**
@@ -276,33 +291,33 @@ public class JsonConfigReader implements IConfigurationReader {
      *             File not found
      */
     protected String readFile(final String aFileName)
-	    throws FileNotFoundException {
+            throws FileNotFoundException {
 
-	final File confFile;
-	final File baseFile;
+        final File confFile;
+        final File baseFile;
 
-	if (!pIncludeStack.isEmpty()) {
-	    // Use a base file, if possible
-	    baseFile = pIncludeStack.peek();
+        if (!pIncludeStack.isEmpty()) {
+            // Use a base file, if possible
+            baseFile = pIncludeStack.peek();
 
-	} else {
-	    // Use the configuration directory
-	    baseFile = new File(IPlatformConfigurationConstants.SUBDIR_CONF);
-	}
+        } else {
+            // Use the configuration directory
+            baseFile = new File(IPlatformConfigurationConstants.SUBDIR_CONF);
+        }
 
-	final File[] foundFiles = pFileFinder.find(baseFile, aFileName);
-	if (foundFiles == null || foundFiles.length == 0) {
-	    throw new FileNotFoundException(aFileName);
-	}
+        final File[] foundFiles = pFileFinder.find(baseFile, aFileName);
+        if (foundFiles == null || foundFiles.length == 0) {
+            throw new FileNotFoundException(aFileName);
+        }
 
-	// Use the first corresponding file
-	confFile = foundFiles[0];
+        // Use the first corresponding file
+        confFile = foundFiles[0];
 
-	// Add it to the stack (it will be the next read file)
-	pIncludeStack.push(confFile.getAbsoluteFile());
+        // Add it to the stack (it will be the next read file)
+        pIncludeStack.push(confFile.getAbsoluteFile());
 
-	// Read its content at once
-	return new Scanner(confFile).useDelimiter("\\Z").next();
+        // Read its content at once
+        return new Scanner(confFile).useDelimiter("\\Z").next();
     }
 
     /**
@@ -317,9 +332,9 @@ public class JsonConfigReader implements IConfigurationReader {
      *             The given file wasn't found
      */
     protected JSONArray readJsonArrayFile(final String aFile)
-	    throws JSONException, FileNotFoundException {
+            throws JSONException, FileNotFoundException {
 
-	return new JSONArray(readFile(aFile));
+        return new JSONArray(readFile(aFile));
     }
 
     /**
@@ -334,8 +349,8 @@ public class JsonConfigReader implements IConfigurationReader {
      *             The given file wasn't found
      */
     protected JSONObject readJsonObjectFile(final String aFile)
-	    throws JSONException, FileNotFoundException {
+            throws JSONException, FileNotFoundException {
 
-	return new JSONObject(readFile(aFile));
+        return new JSONObject(readFile(aFile));
     }
 }

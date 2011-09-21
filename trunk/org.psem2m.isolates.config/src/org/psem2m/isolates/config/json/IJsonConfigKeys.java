@@ -39,6 +39,9 @@ public interface IJsonConfigKeys {
     /** Isolate kind (to be handled by the forker and the bootstrap) */
     String CONFIG_ISOLATE_KIND = "kind";
 
+    /** The HTTP server port (used for Jetty and Signals-HTTP */
+    String CONFIG_ISOLATE_PORT = "httpPort";
+
     /** Isolate Java virtual machine arguments (string array, optional) */
     String CONFIG_ISOLATE_VMARGS = "vmArgs";
 
