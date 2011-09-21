@@ -1,0 +1,33 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: PSEM2M Remote Services Broadcaster
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-SymbolicName: org.psem2m.isolates.remote.broadcaster
+Bundle-Vendor: isandlaTech.com
+Bundle-Version: 1.0.0.qualifier
+Created-By: iPOJO  1.8.0
+Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
+ .ipojo.architecture;version=1.8.0, org.osgi.framework;version=1.5.0, 
+ org.osgi.service.cm;version=1.2, org.osgi.service.log;version=1.3.0, 
+ org.psem2m.isolates.base.activators;version=1.0.0, org.psem2m.isolate
+ s.constants;version=1.0.0, org.psem2m.isolates.services.remote;versio
+ n=1.0.0, org.psem2m.isolates.services.remote.beans;version=1.0.0, org
+ .psem2m.isolates.services.remote.signals;version=1.0.0, org.psem2m.ut
+ ilities;version=1.0.0
+iPOJO-Components: instance { $component="org.psem2m.isolates.remote.br
+ oadcaster.RemoteServiceBroadcaster" $name="remote-rsb" }component { $
+ classname="org.psem2m.isolates.remote.broadcaster.RemoteServiceBroadc
+ aster" $name="remote-rsb-factory" $public="false" provides { $specifi
+ cations="{org.psem2m.isolates.services.remote.IRemoteServiceBroadcast
+ er}" }requires { $field="pLogger" }requires { $field="pSignalEmitter"
+  }callback { $transition="invalidate" $method="invalidatePojo" }callb
+ ack { $transition="validate" $method="validatePojo" }manipulation { $
+ super="org.psem2m.isolates.base.activators.CPojoBase" interface { $na
+ me="org.psem2m.isolates.services.remote.IRemoteServiceBroadcaster" }f
+ ield { $name="pLogger" $type="org.osgi.service.log.LogService" }field
+  { $name="pSignalEmitter" $type="org.psem2m.isolates.services.remote.
+ signals.ISignalEmitter" }method { $name="destroy" }method { $name="in
+ validatePojo" }method { $name="requestAllEndpoints" }method { $name="
+ sendNotification" $arguments="{org.psem2m.isolates.services.remote.be
+ ans.RemoteServiceEvent}" }method { $name="validatePojo" }}}
+
