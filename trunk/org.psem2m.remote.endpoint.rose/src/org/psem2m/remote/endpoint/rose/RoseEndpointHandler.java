@@ -10,6 +10,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Instantiate;
+import org.apache.felix.ipojo.annotations.Invalidate;
+import org.apache.felix.ipojo.annotations.Provides;
+import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
@@ -25,6 +31,9 @@ import org.psem2m.isolates.services.remote.beans.EndpointDescription;
  * 
  * @author Thomas Calmant
  */
+@Component(name = "remote-endpoint-handler-rose-factory", publicFactory = false)
+@Provides(specifications = IEndpointHandler.class)
+@Instantiate(name = "remote-endpoint-handler-rose")
 public class RoseEndpointHandler extends CPojoBase implements IEndpointHandler {
 
     /** The bundle context */
@@ -34,9 +43,11 @@ public class RoseEndpointHandler extends CPojoBase implements IEndpointHandler {
     private final Map<ServiceReference, List<EndpointDescription>> pEndpointDescriptionsMapping = new HashMap<ServiceReference, List<EndpointDescription>>();
 
     /** Rose end point factory, injected by iPOJO */
+    @Requires
     private EndpointFactory pEndpointFactory;
 
     /** Log service */
+    @Requires
     private LogService pLogger;
 
     /**
@@ -288,6 +299,7 @@ public class RoseEndpointHandler extends CPojoBase implements IEndpointHandler {
      * @see org.psem2m.isolates.base.CPojoBase#invalidatePojo()
      */
     @Override
+    @Invalidate
     public void invalidatePojo() throws BundleException {
 
         pLogger.log(LogService.LOG_INFO, "RoseEndpointHandler Gone");
@@ -299,6 +311,7 @@ public class RoseEndpointHandler extends CPojoBase implements IEndpointHandler {
      * @see org.psem2m.isolates.base.CPojoBase#validatePojo()
      */
     @Override
+    @Validate
     public void validatePojo() throws BundleException {
 
         pLogger.log(LogService.LOG_INFO, "RoseEndpointHandler Ready");
