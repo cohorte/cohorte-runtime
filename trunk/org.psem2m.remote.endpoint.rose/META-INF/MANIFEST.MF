@@ -15,27 +15,26 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  ;version=1.0.0, org.psem2m.isolates.services.remote.beans;version=1.0
  .0, org.psem2m.utilities
 iPOJO-Components: instance { $component="remote-endpoint-handler-rose-
- factory" $name="remote-endpoint-handler-rose" }component { $immediate
- ="true" $name="remote-endpoint-handler-rose-factory" $classname="org.
- psem2m.remote.endpoint.rose.RoseEndpointHandler" $architecture="true"
-  callback { $transition="validate" $method="validatePojo" }callback {
-  $transition="invalidate" $method="invalidatePojo" }provides { $speci
- fications="org.psem2m.isolates.services.remote.IEndpointHandler" }man
- ipulation { $super="org.psem2m.isolates.base.activators.CPojoBase" fi
- eld { $name="pLogger" $type="org.osgi.service.log.LogService" }field 
- { $name="pEndpointFactory" $type="org.ow2.chameleon.rose.server.Endpo
- intFactory" }field { $name="pEndpointDescriptionsMapping" $type="java
- .util.Map" }field { $name="pBundleContext" $type="org.osgi.framework.
- BundleContext" }method { $arguments="{org.osgi.framework.BundleContex
- t}" $name="$init" }method { $arguments="{org.osgi.framework.ServiceRe
- ference}" $name="createEndpoint" $return="org.psem2m.isolates.service
- s.remote.beans.EndpointDescription[]" }method { $name="destroy" }meth
- od { $arguments="{org.osgi.framework.ServiceReference}" $name="destro
- yEndpoint" $return="boolean" }method { $arguments="{org.osgi.framewor
- k.ServiceReference}" $name="getEndpoints" $return="org.psem2m.isolate
- s.services.remote.beans.EndpointDescription[]" }method { $name="inval
- idatePojo" }method { $name="validatePojo" }interface { $name="org.pse
- m2m.isolates.services.remote.IEndpointHandler" }}requires { $field="p
- Logger" $optional="false" }requires { $field="pEndpointFactory" $opti
- onal="false" }}
+ factory" $name="remote-endpoint-handler-rose" }component { $classname
+ ="org.psem2m.remote.endpoint.rose.RoseEndpointHandler" $architecture=
+ "true" $immediate="true" $name="remote-endpoint-handler-rose-factory"
+  provides { $specifications="org.psem2m.isolates.services.remote.IEnd
+ pointHandler" }requires { $field="pLogger" $optional="false" }require
+ s { $field="pEndpointFactory" $optional="false" }callback { $transiti
+ on="validate" $method="validatePojo" }callback { $transition="invalid
+ ate" $method="invalidatePojo" }manipulation { $super="org.psem2m.isol
+ ates.base.activators.CPojoBase" interface { $name="org.psem2m.isolate
+ s.services.remote.IEndpointHandler" }field { $name="pBundleContext" $
+ type="org.osgi.framework.BundleContext" }field { $name="pEndpointDesc
+ riptionsMapping" $type="java.util.Map" }field { $name="pEndpointFacto
+ ry" $type="org.ow2.chameleon.rose.server.EndpointFactory" }field { $n
+ ame="pLogger" $type="org.osgi.service.log.LogService" }method { $name
+ ="createEndpoint" $return="org.psem2m.isolates.services.remote.beans.
+ EndpointDescription[]" $arguments="{org.osgi.framework.ServiceReferen
+ ce}" }method { $name="destroy" }method { $name="destroyEndpoint" $ret
+ urn="boolean" $arguments="{org.osgi.framework.ServiceReference}" }met
+ hod { $name="getEndpoints" $return="org.psem2m.isolates.services.remo
+ te.beans.EndpointDescription[]" $arguments="{org.osgi.framework.Servi
+ ceReference}" }method { $name="invalidatePojo" }method { $name="valid
+ atePojo" }}}
 

@@ -29,31 +29,30 @@ Import-Package: org.apache.felix.ipojo;version=1.6.0, org.apache.felix
  .chameleon.rose.pub;version=0.2, org.ow2.chameleon.rose.server;versio
  n=0.2, org.ow2.chameleon.rose.util;version=0.2
 Tool: Bnd-0.0.357
-iPOJO-Components: component { $classname="org.ow2.chameleon.rose.impl.
- GenericEndpointFactory" $name="rose.component.autoexport" callback { 
- $transition="validate" $method="start" }callback { $transition="inval
- idate" $method="stop" }properties { property { $field="filter" $name=
- "export.filter" }}manipulation { field { $name="configs" $type="java.
- lang.String[]" }field { $name="sidToEndpointDescription" $type="java.
- util.Map" }field { $name="context" $type="org.osgi.framework.BundleCo
- ntext" }field { $name="logger" $type="org.osgi.service.log.LogService
- " }field { $name="tracker" $type="org.osgi.util.tracker.ServiceTracke
- r" }field { $name="exporter" $type="org.ow2.chameleon.rose.server.End
- pointFactory" }field { $name="filter" $type="java.lang.String" }field
-  { $name="idGenerator" $type="org.ow2.chameleon.rose.RemoteIdGenerato
- r" }method { $arguments="{org.osgi.framework.BundleContext}" $name="$
- init" }method { $name="start" }method { $name="stop" }method { $argum
- ents="{org.ow2.chameleon.rose.server.EndpointFactory,org.osgi.framewo
- rk.ServiceReference}" $name="bindEndpointFactory" }method { $argument
- s="{org.osgi.framework.ServiceReference}" $name="addingService" $retu
- rn="java.lang.Object" }method { $arguments="{org.osgi.framework.Servi
- ceReference,java.lang.Object}" $name="modifiedService" }method { $arg
- uments="{org.osgi.framework.ServiceReference,java.lang.Object}" $name
- ="removedService" }interface { $name="org.osgi.util.tracker.ServiceTr
- ackerCustomizer" }}requires { $field="logger" $default-implementation
- ="org.ow2.chameleon.rose.util.LogServiceImpl" $optional="true" }requi
- res { $field="idGenerator" $default-implementation="org.ow2.chameleon
- .rose.util.DefaultRemoteIdGenerator" $optional="true" }requires { $id
- ="exporter" $optional="false" callback { $method="bindEndpointFactory
- " $type="bind" }}}
+iPOJO-Components: component { $name="rose.component.autoexport" $class
+ name="org.ow2.chameleon.rose.impl.GenericEndpointFactory" properties 
+ { property { $name="export.filter" $field="filter" }}requires { $fiel
+ d="logger" $optional="true" $default-implementation="org.ow2.chameleo
+ n.rose.util.LogServiceImpl" }requires { $field="idGenerator" $optiona
+ l="true" $default-implementation="org.ow2.chameleon.rose.util.Default
+ RemoteIdGenerator" }requires { $optional="false" $id="exporter" callb
+ ack { $type="bind" $method="bindEndpointFactory" }}callback { $transi
+ tion="validate" $method="start" }callback { $transition="invalidate" 
+ $method="stop" }manipulation { interface { $name="org.osgi.util.track
+ er.ServiceTrackerCustomizer" }field { $name="configs" $type="java.lan
+ g.String[]" }field { $name="context" $type="org.osgi.framework.Bundle
+ Context" }field { $name="exporter" $type="org.ow2.chameleon.rose.serv
+ er.EndpointFactory" }field { $name="filter" $type="java.lang.String" 
+ }field { $name="idGenerator" $type="org.ow2.chameleon.rose.RemoteIdGe
+ nerator" }field { $name="logger" $type="org.osgi.service.log.LogServi
+ ce" }field { $name="sidToEndpointDescription" $type="java.util.Map" }
+ field { $name="tracker" $type="org.osgi.util.tracker.ServiceTracker" 
+ }method { $name="start" }method { $name="stop" }method { $name="bindE
+ ndpointFactory" $arguments="{org.ow2.chameleon.rose.server.EndpointFa
+ ctory,org.osgi.framework.ServiceReference}" }method { $name="addingSe
+ rvice" $return="java.lang.Object" $arguments="{org.osgi.framework.Ser
+ viceReference}" }method { $name="modifiedService" $arguments="{org.os
+ gi.framework.ServiceReference,java.lang.Object}" }method { $name="rem
+ ovedService" $arguments="{org.osgi.framework.ServiceReference,java.la
+ ng.Object}" }}}
 

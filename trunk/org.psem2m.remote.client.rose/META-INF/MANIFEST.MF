@@ -15,26 +15,25 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  ;version=1.0.0, org.psem2m.isolates.services.remote.beans;version=1.0
  .0, org.psem2m.utilities
 iPOJO-Components: instance { $component="remote-client-handler-rose-fa
- ctory" $name="remote-client-handler-rose" }component { $immediate="tr
- ue" $name="remote-client-handler-rose-factory" $classname="org.psem2m
- .remote.client.rose.RoseClientHandler" $architecture="true" callback 
- { $transition="validate" $method="validatePojo" }callback { $transiti
- on="invalidate" $method="invalidatePojo" }provides { $specifications=
- "org.psem2m.isolates.services.remote.IRemoteServiceClientHandler" }ma
- nipulation { $super="org.psem2m.isolates.base.activators.CPojoBase" f
- ield { $name="pLogger" $type="org.osgi.service.log.LogService" }field
-  { $name="pProxyFactories" $type="org.ow2.chameleon.rose.client.Remot
- eProxyFactory[]" }field { $name="pBundleContext" $type="org.osgi.fram
- ework.BundleContext" }method { $arguments="{org.osgi.framework.Bundle
- Context}" $name="$init" }method { $arguments="{java.lang.String[],jav
- a.lang.String}" $name="arrayContains" $return="boolean" }method { $na
- me="destroy" }method { $arguments="{java.lang.Object}" $name="destroy
- Proxy" }method { $arguments="{java.lang.String}" $name="findAssociate
- dFactory" $return="org.ow2.chameleon.rose.client.RemoteProxyFactory" 
- }method { $arguments="{org.psem2m.isolates.services.remote.beans.Remo
- teServiceEvent}" $name="getRemoteProxy" $return="java.lang.Object" }m
- ethod { $name="invalidatePojo" }method { $name="validatePojo" }interf
- ace { $name="org.psem2m.isolates.services.remote.IRemoteServiceClient
- Handler" }}requires { $field="pLogger" $optional="false" }requires { 
- $field="pProxyFactories" $optional="false" }}
+ ctory" $name="remote-client-handler-rose" }component { $classname="or
+ g.psem2m.remote.client.rose.RoseClientHandler" $architecture="true" $
+ immediate="true" $name="remote-client-handler-rose-factory" provides 
+ { $specifications="org.psem2m.isolates.services.remote.IRemoteService
+ ClientHandler" }requires { $field="pLogger" $optional="false" }requir
+ es { $field="pProxyFactories" $optional="false" }callback { $transiti
+ on="validate" $method="validatePojo" }callback { $transition="invalid
+ ate" $method="invalidatePojo" }manipulation { $super="org.psem2m.isol
+ ates.base.activators.CPojoBase" interface { $name="org.psem2m.isolate
+ s.services.remote.IRemoteServiceClientHandler" }field { $name="pBundl
+ eContext" $type="org.osgi.framework.BundleContext" }field { $name="pL
+ ogger" $type="org.osgi.service.log.LogService" }field { $name="pProxy
+ Factories" $type="org.ow2.chameleon.rose.client.RemoteProxyFactory[]"
+  }method { $name="arrayContains" $return="boolean" $arguments="{java.
+ lang.String[],java.lang.String}" }method { $name="destroy" }method { 
+ $name="destroyProxy" $arguments="{java.lang.Object}" }method { $name=
+ "findAssociatedFactory" $return="org.ow2.chameleon.rose.client.Remote
+ ProxyFactory" $arguments="{java.lang.String}" }method { $name="getRem
+ oteProxy" $return="java.lang.Object" $arguments="{org.psem2m.isolates
+ .services.remote.beans.RemoteServiceEvent}" }method { $name="invalida
+ tePojo" }method { $name="validatePojo" }}}
 

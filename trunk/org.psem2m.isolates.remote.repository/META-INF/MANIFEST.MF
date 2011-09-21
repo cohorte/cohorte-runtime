@@ -13,30 +13,29 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  s.services.remote;version=1.0.0, org.psem2m.isolates.services.remote.
  beans;version=1.0.0, org.psem2m.utilities;version=1.0.0
 iPOJO-Components: instance { $component="org.psem2m.isolates.remote.re
- pository.RemoteServiceRepository" $name="remote-rsr" }component { $na
- me="remote-rsr-factory" $classname="org.psem2m.isolates.remote.reposi
- tory.RemoteServiceRepository" $public="false" callback { $transition=
- "invalidate" $method="invalidatePojo" }callback { $transition="valida
- te" $method="validatePojo" }provides { $specifications="{org.psem2m.i
- solates.services.remote.IRemoteServiceRepository}" }manipulation { $s
- uper="org.psem2m.isolates.base.activators.CPojoBase" field { $name="p
- Logger" $type="org.osgi.service.log.LogService" }field { $name="pRemo
- teEndpoins" $type="java.util.Set" }field { $name="pLocalEndpoints" $t
- ype="java.util.Set" }field { $name="pListeners" $type="java.util.Set"
-  }method { $name="$init" }method { $arguments="{org.psem2m.isolates.s
- ervices.remote.IRemoteServiceEventListener}" $name="addListener" }met
- hod { $name="destroy" }method { $name="getKnownEndpoints" $return="or
- g.psem2m.isolates.services.remote.beans.EndpointDescription[]" }metho
- d { $name="getLocalEndpoints" $return="org.psem2m.isolates.services.r
- emote.beans.EndpointDescription[]" }method { $name="invalidatePojo" }
- method { $arguments="{org.psem2m.isolates.services.remote.beans.Endpo
- intDescription}" $name="registerEndpoint" }method { $arguments="{java
- .util.Collection}" $name="registerEndpoints" }method { $arguments="{o
- rg.psem2m.isolates.services.remote.IRemoteServiceEventListener}" $nam
- e="removeListener" }method { $arguments="{org.psem2m.isolates.service
- s.remote.beans.EndpointDescription}" $name="unregisterEndpoint" }meth
- od { $arguments="{java.util.Collection}" $name="unregisterEndpoints" 
- }method { $name="validatePojo" }interface { $name="org.psem2m.isolate
- s.services.remote.IRemoteServiceRepository" }}requires { $field="pLog
- ger" }}
+ pository.RemoteServiceRepository" $name="remote-rsr" }component { $cl
+ assname="org.psem2m.isolates.remote.repository.RemoteServiceRepositor
+ y" $name="remote-rsr-factory" $public="false" provides { $specificati
+ ons="{org.psem2m.isolates.services.remote.IRemoteServiceRepository}" 
+ }requires { $field="pLogger" }callback { $transition="invalidate" $me
+ thod="invalidatePojo" }callback { $transition="validate" $method="val
+ idatePojo" }manipulation { $super="org.psem2m.isolates.base.activator
+ s.CPojoBase" interface { $name="org.psem2m.isolates.services.remote.I
+ RemoteServiceRepository" }field { $name="pListeners" $type="java.util
+ .Set" }field { $name="pLocalEndpoints" $type="java.util.Set" }field {
+  $name="pLogger" $type="org.osgi.service.log.LogService" }field { $na
+ me="pRemoteEndpoins" $type="java.util.Set" }method { $name="addListen
+ er" $arguments="{org.psem2m.isolates.services.remote.IRemoteServiceEv
+ entListener}" }method { $name="destroy" }method { $name="getKnownEndp
+ oints" $return="org.psem2m.isolates.services.remote.beans.EndpointDes
+ cription[]" }method { $name="getLocalEndpoints" $return="org.psem2m.i
+ solates.services.remote.beans.EndpointDescription[]" }method { $name=
+ "invalidatePojo" }method { $name="registerEndpoint" $arguments="{org.
+ psem2m.isolates.services.remote.beans.EndpointDescription}" }method {
+  $name="registerEndpoints" $arguments="{java.util.Collection}" }metho
+ d { $name="removeListener" $arguments="{org.psem2m.isolates.services.
+ remote.IRemoteServiceEventListener}" }method { $name="unregisterEndpo
+ int" $arguments="{org.psem2m.isolates.services.remote.beans.EndpointD
+ escription}" }method { $name="unregisterEndpoints" $arguments="{java.
+ util.Collection}" }method { $name="validatePojo" }}}
 

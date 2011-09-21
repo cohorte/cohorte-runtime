@@ -18,18 +18,18 @@ Import-Package: org.apache.felix.ipojo;version=1.4.0, org.apache.felix
  ce.cm;version=1.2, org.osgi.service.log;version=1.3, org.ow2.chameleo
  n.rose.client;version=0.2.3, org.ow2.chameleon.rose.jsonrpc.client
 Tool: Bnd-0.0.357
-iPOJO-Components: instance { $component="rose.component.jsonrpc.client
- .factory" $name="org.ow2.chameleon.rose.client.RemoteProxyFactory-JSO
- N-RPC" }component { $classname="org.ow2.chameleon.rose.jsonrpc.client
- .JsonRpcClientFactory" $name="rose.component.jsonrpc.client.factory" 
- provides { property { $name="remote.configs.supported" $value="{jsonr
- pc, org.jabsorb, json-rpc}" $type="java.lang.String[]" }}manipulation
-  { field { $name="proxies" $type="java.util.HashMap" }method { $name=
- "$init" }method { $arguments="{java.lang.Object}" $name="destroyRemot
- eProxy" }method { $name="getConfigs" $return="java.lang.String[]" }me
- thod { $arguments="{java.util.Map,java.lang.Class}" $name="getRemoteP
- roxy" $return="java.lang.Object" }method { $arguments="{java.util.Map
- ,java.lang.ClassLoader,java.lang.Class}" $name="getRemoteProxy" $retu
- rn="java.lang.Object" }method { $name="stop" }interface { $name="org.
- ow2.chameleon.rose.client.RemoteProxyFactory" }}}
+iPOJO-Components: instance { $name="org.ow2.chameleon.rose.client.Remo
+ teProxyFactory-JSON-RPC" $component="rose.component.jsonrpc.client.fa
+ ctory" }component { $name="rose.component.jsonrpc.client.factory" $cl
+ assname="org.ow2.chameleon.rose.jsonrpc.client.JsonRpcClientFactory" 
+ provides { property { $name="remote.configs.supported" $type="java.la
+ ng.String[]" $value="{jsonrpc, org.jabsorb, json-rpc}" }}manipulation
+  { interface { $name="org.ow2.chameleon.rose.client.RemoteProxyFactor
+ y" }field { $name="proxies" $type="java.util.HashMap" }method { $name
+ ="destroyRemoteProxy" $arguments="{java.lang.Object}" }method { $name
+ ="getConfigs" $return="java.lang.String[]" }method { $name="getRemote
+ Proxy" $return="java.lang.Object" $arguments="{java.util.Map,java.lan
+ g.Class}" }method { $name="getRemoteProxy" $return="java.lang.Object"
+  $arguments="{java.util.Map,java.lang.ClassLoader,java.lang.Class}" }
+ method { $name="stop" }}}
 
