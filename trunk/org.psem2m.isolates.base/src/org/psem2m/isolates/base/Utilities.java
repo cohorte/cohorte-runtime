@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.StringTokenizer;
+import java.util.regex.Pattern;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceReference;
@@ -31,27 +33,27 @@ public final class Utilities {
      * @return The searched class, null if not found
      */
     public static Class<?> findClassInBundles(final Bundle[] aBundles,
-	    final String aClassName) {
+            final String aClassName) {
 
-	if (aBundles == null) {
-	    return null;
-	}
+        if (aBundles == null) {
+            return null;
+        }
 
-	for (Bundle bundle : aBundles) {
+        for (Bundle bundle : aBundles) {
 
-	    // Only work with RESOLVED and ACTIVE bundles
-	    int bundleState = bundle.getState();
-	    if (bundleState == Bundle.ACTIVE || bundleState == Bundle.RESOLVED) {
-		try {
-		    return bundle.loadClass(aClassName);
+            // Only work with RESOLVED and ACTIVE bundles
+            int bundleState = bundle.getState();
+            if (bundleState == Bundle.ACTIVE || bundleState == Bundle.RESOLVED) {
+                try {
+                    return bundle.loadClass(aClassName);
 
-		} catch (ClassNotFoundException e) {
-		    // Class not found, try next bundle...
-		}
-	    }
-	}
+                } catch (ClassNotFoundException e) {
+                    // Class not found, try next bundle...
+                }
+            }
+        }
 
-	return null;
+        return null;
     }
 
     /**
@@ -63,8 +65,8 @@ public final class Utilities {
      */
     public static URL findClassJar(final Class<?> aClass) {
 
-	return aClass.getResource('/' + aClass.getName().replace('.', '/')
-		+ ".class");
+        return aClass.getResource('/' + aClass.getName().replace('.', '/')
+                + ".class");
     }
 
     /**
@@ -75,17 +77,17 @@ public final class Utilities {
      * @return The service properties
      */
     public static Map<String, String> getServiceProperties(
-	    final ServiceReference aServiceReference) {
+            final ServiceReference aServiceReference) {
 
-	Map<String, String> serviceProperties = new HashMap<String, String>();
+        Map<String, String> serviceProperties = new HashMap<String, String>();
 
-	String[] propertyKeys = aServiceReference.getPropertyKeys();
-	for (String key : propertyKeys) {
-	    serviceProperties.put(key,
-		    String.valueOf(aServiceReference.getProperty(key)));
-	}
+        String[] propertyKeys = aServiceReference.getPropertyKeys();
+        for (String key : propertyKeys) {
+            serviceProperties.put(key,
+                    String.valueOf(aServiceReference.getProperty(key)));
+        }
 
-	return serviceProperties;
+        return serviceProperties;
     }
 
     /**
@@ -99,23 +101,23 @@ public final class Utilities {
      * @return Joined strings
      */
     public static String join(final String aJoinSequence,
-	    final Object[] aJoinedObjects) {
+            final Object[] aJoinedObjects) {
 
-	StringBuilder builder = new StringBuilder();
-	boolean first = true;
+        StringBuilder builder = new StringBuilder();
+        boolean first = true;
 
-	for (Object object : aJoinedObjects) {
+        for (Object object : aJoinedObjects) {
 
-	    if (!first) {
-		builder.append(aJoinSequence);
-	    } else {
-		first = false;
-	    }
+            if (!first) {
+                builder.append(aJoinSequence);
+            } else {
+                first = false;
+            }
 
-	    builder.append(String.valueOf(object));
-	}
+            builder.append(String.valueOf(object));
+        }
 
-	return builder.toString();
+        return builder.toString();
     }
 
     /**
@@ -128,23 +130,23 @@ public final class Utilities {
      * @return Joined strings
      */
     public static String join(final String aJoinSequence,
-	    final String... aJoinedStrings) {
+            final String... aJoinedStrings) {
 
-	StringBuilder builder = new StringBuilder();
-	boolean first = true;
+        StringBuilder builder = new StringBuilder();
+        boolean first = true;
 
-	for (String string : aJoinedStrings) {
+        for (String string : aJoinedStrings) {
 
-	    if (!first) {
-		builder.append(aJoinSequence);
-	    } else {
-		first = false;
-	    }
+            if (!first) {
+                builder.append(aJoinSequence);
+            } else {
+                first = false;
+            }
 
-	    builder.append(string);
-	}
+            builder.append(string);
+        }
 
-	return builder.toString();
+        return builder.toString();
     }
 
     /**
@@ -159,29 +161,68 @@ public final class Utilities {
      *             The directory already exists or can't be created
      */
     public static File makeDirectory(final CharSequence aPath)
-	    throws IOException {
+            throws IOException {
 
-	File directory = new File(aPath.toString());
+        File directory = new File(aPath.toString());
 
-	if (!directory.exists()) {
-	    // Create directory if needed
-	    if (!directory.mkdirs()) {
-		throw new IOException(
-			"Directory not created. Already existing ?");
-	    }
+        if (!directory.exists()) {
+            // Create directory if needed
+            if (!directory.mkdirs()) {
+                throw new IOException(
+                        "Directory not created. Already existing ?");
+            }
 
-	} else if (!directory.isDirectory()) {
-	    // A node already has this name
-	    throw new IOException("'" + aPath + "' is not a valid directory.");
-	}
+        } else if (!directory.isDirectory()) {
+            // A node already has this name
+            throw new IOException("'" + aPath + "' is not a valid directory.");
+        }
 
-	return directory;
+        return directory;
+    }
+
+    /**
+     * Tests if the given string matches the filter.
+     * 
+     * The filter is the regular filename filter and not a regular expression.
+     * Allowed are *.* or ???.xml, etc.
+     * 
+     * Found at : <a href="http://blogs.igalia.com/eocanha/?p=67">blogs.igalia
+     * .com/eocanha/?p=67</a>
+     * 
+     * @param aTested
+     *            Tested string
+     * @param aFilter
+     *            Filename filter-like string
+     * 
+     * @return True if matches and false if either null or no match
+     */
+    public static boolean matchFilter(final String aTested, final String aFilter) {
+
+        if (aTested == null || aFilter == null) {
+            return false;
+        }
+
+        StringBuffer f = new StringBuffer();
+
+        for (StringTokenizer st = new StringTokenizer(aFilter, "?*", true); st
+                .hasMoreTokens();) {
+            String t = st.nextToken();
+            if (t.equals("?")) {
+                f.append(".");
+            } else if (t.equals("*")) {
+                f.append(".*");
+            } else {
+                f.append(Pattern.quote(t));
+            }
+        }
+        return aTested.matches(f.toString());
     }
 
     /**
      * Hide the constructor of a utility class
      */
     private Utilities() {
-	// Hide constructor
+
+        // Hide constructor
     }
 }
