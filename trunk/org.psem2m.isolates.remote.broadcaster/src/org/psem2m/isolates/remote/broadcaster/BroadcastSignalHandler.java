@@ -8,7 +8,11 @@ package org.psem2m.isolates.remote.broadcaster;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Instantiate;
+import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.osgi.service.log.LogService;
 import org.psem2m.isolates.base.activators.CPojoBase;
@@ -29,6 +33,8 @@ import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
  * 
  * @author Thomas Calmant
  */
+@Component(name = "remote-rsb-signal-handler-factory", publicFactory = false)
+@Instantiate(name = "remote-rsb-signal-handler")
 public class BroadcastSignalHandler extends CPojoBase implements
         ISignalListener {
 
@@ -156,6 +162,7 @@ public class BroadcastSignalHandler extends CPojoBase implements
      * @see org.psem2m.isolates.base.activators.CPojoBase#invalidatePojo()
      */
     @Override
+    @Invalidate
     public void invalidatePojo() throws BundleException {
 
         // Unregister the listener
@@ -169,6 +176,7 @@ public class BroadcastSignalHandler extends CPojoBase implements
      * @see org.psem2m.isolates.base.activators.CPojoBase#validatePojo()
      */
     @Override
+    @Validate
     public void validatePojo() throws BundleException {
 
         // Register to all broadcast signals
