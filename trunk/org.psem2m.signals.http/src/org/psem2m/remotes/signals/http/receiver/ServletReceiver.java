@@ -17,6 +17,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.osgi.framework.BundleContext;
 import org.psem2m.isolates.services.remote.signals.ISignalData;
 import org.psem2m.isolates.services.remote.signals.ISignalListener;
+import org.psem2m.remotes.signals.http.HttpSignalData;
 
 /**
  * HTTP signal receiver servlet
@@ -92,7 +93,8 @@ public class ServletReceiver extends HttpServlet {
         final String signalName = aReq.getPathInfo();
         if (signalName == null) {
             // Invalid name, send a 404
-            aResp.sendError(HttpServletResponse.SC_NOT_FOUND);
+            aResp.sendError(HttpServletResponse.SC_NOT_FOUND,
+                    "No signal name in URI");
             return;
         }
 
@@ -107,6 +109,12 @@ public class ServletReceiver extends HttpServlet {
             if (readData instanceof ISignalData) {
                 // Valid object found
                 signalData = (ISignalData) readData;
+
+                if (signalData instanceof HttpSignalData) {
+                    // Set the sender if we can
+                    ((HttpSignalData) signalData).setHostName(aReq
+                            .getRemoteHost());
+                }
 
             } else {
                 // Bad content

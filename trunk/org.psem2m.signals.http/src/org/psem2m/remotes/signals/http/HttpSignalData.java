@@ -20,6 +20,9 @@ public class HttpSignalData implements Serializable, ISignalData {
     /** Serial version UID */
     private static final long serialVersionUID = 1L;
 
+    /** The sender host name (default: localhost) */
+    private String pHostName = "localhost";
+
     /** ID of the source isolate */
     private String pIsolateSender;
 
@@ -39,7 +42,9 @@ public class HttpSignalData implements Serializable, ISignalData {
                 .getProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID);
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.psem2m.remotes.signals.http.ISignalData#getIsolateSender()
      */
     @Override
@@ -48,12 +53,38 @@ public class HttpSignalData implements Serializable, ISignalData {
         return pIsolateSender;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.services.remote.signals.ISignalData#getSenderHostName
+     * ()
+     */
+    @Override
+    public String getSenderHostName() {
+
+        return pHostName;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.psem2m.remotes.signals.http.ISignalData#getSignalData()
      */
     @Override
     public Serializable getSignalContent() {
 
         return pSignalData;
+    }
+
+    /**
+     * Sets the signal sender host name
+     * 
+     * @param aHostName
+     *            The signal sender host name
+     */
+    public void setHostName(final String aHostName) {
+
+        pHostName = aHostName;
     }
 }

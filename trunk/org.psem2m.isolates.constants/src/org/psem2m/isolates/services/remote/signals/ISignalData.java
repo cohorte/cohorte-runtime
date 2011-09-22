@@ -1,6 +1,6 @@
 /**
  * File:   ISignalData.java
- * Author: "Thomas Calmant"
+ * Author: Thomas Calmant
  * Date:   21 sept. 2011
  */
 package org.psem2m.isolates.services.remote.signals;
@@ -8,8 +8,9 @@ package org.psem2m.isolates.services.remote.signals;
 import java.io.Serializable;
 
 /**
- * @author "Thomas Calmant"
- *
+ * Represents the object associated to a signal
+ * 
+ * @author Thomas Calmant
  */
 public interface ISignalData {
 
@@ -18,13 +19,19 @@ public interface ISignalData {
      * 
      * @return the ID of the sender
      */
-    public abstract String getIsolateSender();
+    String getIsolateSender();
+
+    /**
+     * Retrieves the signal sender host name, null if unusable.
+     * 
+     * @return The sender host name
+     */
+    String getSenderHostName();
 
     /**
      * Retrieves the data associated to the signal (can be null)
      * 
      * @return the signal data
      */
-    public abstract Serializable getSignalContent();
-
+    Serializable getSignalContent();
 }
