@@ -9,12 +9,12 @@ export DISPLAY=":0.0"
 
 # Common constants
 JAVA="java"
-MONITOR_ISOLATE_ID="psem2m.monitor"
+MONITOR_ISOLATE_ID="org.psem2m.internals.isolates.monitor-1"
 FORKER_ISOLATE_ID="psem2m.forker"
 
 if [ -z $PLATFORM_ISOLATE_ID ]
 then
-	PLATFORM_ISOLATE_ID="$MONITOR_ISOLATE_ID"
+    PLATFORM_ISOLATE_ID="$MONITOR_ISOLATE_ID"
 fi
 
 
@@ -217,14 +217,14 @@ then
         # Find the first 'java' in the shell
         PSEM2M_JAVA=`which java`
     fi
-    
+
     # "which" does'nt work on OSX ???
     if [ -z $PSEM2M_JAVA ]
     then
         if [ -e /usr/bin/java ]
-    	then
-    		PSEM2M_JAVA=/usr/bin/java
-    	fi
+        then
+            PSEM2M_JAVA=/usr/bin/java
+        fi
     fi
 
     # Nothing found => Error
