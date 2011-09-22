@@ -80,14 +80,18 @@ public class BroadcastSignalHandler extends CPojoBase implements
     public void handleReceivedSignal(final String aSignalName,
             final ISignalData aSignalData) {
 
+        final Object signalContent = aSignalData.getSignalContent();
+
         if (ISignalsConstants.BROADCASTER_SIGNAL_REMOTE_EVENT
                 .equals(aSignalName)) {
             // Remote event notification
 
-            final Object signalContent = aSignalData.getSignalContent();
             if (signalContent instanceof RemoteServiceEvent) {
                 // Valid signal content, handle it
-                handleRemoteEvent((RemoteServiceEvent) signalContent);
+                final RemoteServiceEvent event = (RemoteServiceEvent) signalContent;
+                event.setSenderHostName(aSignalData.getSenderHostName());
+
+                handleRemoteEvent(event);
             }
 
         } else if (ISignalsConstants.BROADCASTER_SIGNAL_REQUEST_ENDPOINTS
@@ -127,6 +131,8 @@ public class BroadcastSignalHandler extends CPojoBase implements
                 .getLocalRegistrations();
         if (localRegistrations == null || localRegistrations.length == 0) {
             // Don't say anything if we have anything to say...
+            pLogger.log(LogService.LOG_INFO,
+                    "RequestEndpoints received, but the RSR is empty");
             return;
         }
 
