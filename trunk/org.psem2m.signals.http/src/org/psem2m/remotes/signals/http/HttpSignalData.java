@@ -87,4 +87,20 @@ public class HttpSignalData implements Serializable, ISignalData {
 
         pHostName = aHostName;
     }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+
+        final StringBuilder builder = new StringBuilder("HttpSignalData(");
+        builder.append("Sender: ").append(pIsolateSender);
+        builder.append(", Data: ").append(pSignalData);
+        builder.append(")");
+
+        return builder.toString();
+    }
 }
