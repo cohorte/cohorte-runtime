@@ -3,7 +3,7 @@
  * Author: Thomas Calmant
  * Date:   22 sept. 2011
  */
-package org.psem2m.remotes.signals.http.receiver;
+package org.psem2m.isolates.base;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,7 +11,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectStreamClass;
 
 import org.osgi.framework.BundleContext;
-import org.psem2m.isolates.base.Utilities;
 
 /**
  * A class loader aware ObjectInputStream.

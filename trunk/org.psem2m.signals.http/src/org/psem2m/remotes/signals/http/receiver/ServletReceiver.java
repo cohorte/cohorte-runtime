@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.osgi.framework.BundleContext;
+import org.psem2m.isolates.base.OsgiObjectInputStream;
 import org.psem2m.isolates.services.remote.signals.ISignalData;
 import org.psem2m.isolates.services.remote.signals.ISignalListener;
 import org.psem2m.remotes.signals.http.HttpSignalData;
