@@ -61,6 +61,9 @@ public class EndpointDescription implements Serializable {
         pProtocol = aProtocol;
         pEndpointUri = aEndpointUri;
         pPort = aPort;
+
+        // Set the default host name
+        pHost = "localhost";
     }
 
     /**
