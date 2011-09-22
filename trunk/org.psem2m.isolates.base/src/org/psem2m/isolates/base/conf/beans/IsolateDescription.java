@@ -23,6 +23,9 @@ public class IsolateDescription implements IIsolateDescr {
     /** Serializable version */
     private static final long serialVersionUID = 1L;
 
+    /** The isolate access URL */
+    private String pAccessUrl;
+
     /** Isolate bundles (can't be null) */
     private final Set<IBundleDescr> pBundles = new LinkedHashSet<IBundleDescr>();
 
@@ -32,9 +35,6 @@ public class IsolateDescription implements IIsolateDescr {
     /** Isolate kind, must never be null */
     private String pIsolateKind = "";
 
-    /** Isolate RSR access URL */
-    private String pRsrUrl;
-
     /** Isolate Java VM arguments (can't be null, must be ordered) */
     private final List<String> pVmArguments = new ArrayList<String>();
 
@@ -42,7 +42,8 @@ public class IsolateDescription implements IIsolateDescr {
      * Default constructor
      */
     public IsolateDescription() {
-	// Do nothing
+
+        // Do nothing
     }
 
     /**
@@ -51,7 +52,19 @@ public class IsolateDescription implements IIsolateDescr {
      * @param aIsolateId
      */
     public IsolateDescription(final String aIsolateId) {
-	pIsolateId = aIsolateId;
+
+        pIsolateId = aIsolateId;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.services.conf.IIsolateDescr#getAccessUrl()
+     */
+    @Override
+    public String getAccessUrl() {
+
+        return pAccessUrl;
     }
 
     /*
@@ -61,7 +74,8 @@ public class IsolateDescription implements IIsolateDescr {
      */
     @Override
     public Set<IBundleDescr> getBundles() {
-	return pBundles;
+
+        return pBundles;
     }
 
     /*
@@ -71,7 +85,8 @@ public class IsolateDescription implements IIsolateDescr {
      */
     @Override
     public String getId() {
-	return pIsolateId;
+
+        return pIsolateId;
     }
 
     /*
@@ -81,19 +96,8 @@ public class IsolateDescription implements IIsolateDescr {
      */
     @Override
     public String getKind() {
-	return pIsolateKind;
-    }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.psem2m.isolates.services.conf.IIsolateDescr#getRemoteServiceRepositoryUrl
-     * ()
-     */
-    @Override
-    public String getRemoteServiceRepositoryUrl() {
-	return pRsrUrl;
+        return pIsolateKind;
     }
 
     /*
@@ -103,7 +107,19 @@ public class IsolateDescription implements IIsolateDescr {
      */
     @Override
     public List<String> getVMArgs() {
-	return pVmArguments;
+
+        return pVmArguments;
+    }
+
+    /**
+     * Sets the bundle access URL
+     * 
+     * @param aUrl
+     *            The access URL
+     */
+    public void setAccessUrl(final String aUrl) {
+
+        pAccessUrl = aUrl;
     }
 
     /**
@@ -113,8 +129,9 @@ public class IsolateDescription implements IIsolateDescr {
      *            the isolate bundles
      */
     public void setBundles(final Set<IBundleDescr> aBundles) {
-	pBundles.clear();
-	pBundles.addAll(aBundles);
+
+        pBundles.clear();
+        pBundles.addAll(aBundles);
     }
 
     /**
@@ -124,7 +141,8 @@ public class IsolateDescription implements IIsolateDescr {
      *            the isolate ID
      */
     public void setId(final String aIsolateId) {
-	pIsolateId = aIsolateId;
+
+        pIsolateId = aIsolateId;
     }
 
     /**
@@ -137,22 +155,12 @@ public class IsolateDescription implements IIsolateDescr {
      */
     public void setKind(final String aKind) {
 
-	if (aKind != null) {
-	    pIsolateKind = aKind;
+        if (aKind != null) {
+            pIsolateKind = aKind;
 
-	} else {
-	    pIsolateKind = "";
-	}
-    }
-
-    /**
-     * Retrieves the URL to access the isolate's Remote Service Repository (RSR)
-     * 
-     * @param aUrl
-     *            The RSR URL
-     */
-    public void setRstUrl(final String aUrl) {
-	pRsrUrl = aUrl;
+        } else {
+            pIsolateKind = "";
+        }
     }
 
     /**
@@ -162,7 +170,8 @@ public class IsolateDescription implements IIsolateDescr {
      *            the VM arguments
      */
     public void setVMArgs(final List<String> aVmArgs) {
-	pVmArguments.clear();
-	pVmArguments.addAll(aVmArgs);
+
+        pVmArguments.clear();
+        pVmArguments.addAll(aVmArgs);
     }
 }

@@ -1,5 +1,6 @@
 {
     "appId":"development-app",
+    "httpPort":9002,
     "isolates":[
         {
             "from":"monitor.js"
@@ -10,6 +11,7 @@
         {
             "id":"isolate-1",
             "kind":"felix",
+            "httpPort":9999,
             "vmArgs":[
                 "-Dosgi.shell.telnet.port=6002"
             ],

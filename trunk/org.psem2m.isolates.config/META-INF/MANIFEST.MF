@@ -18,33 +18,32 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  rg.psem2m.utilities.json, org.psem2m.utilities.logging
 iPOJO-Components: instance { $component="isolates-config-logger-factor
  y" $name="isolates-config-logger" }instance { $component="isolates-co
- nfig-factory" $name="isolates-config" }component { $immediate="true" 
- $name="isolates-config-logger-factory" $classname="org.psem2m.isolate
- s.config.CBundleConfigurationActivator" $factory-method="getInstance"
-  $architecture="true" callback { $transition="validate" $method="vali
- datePojo" }callback { $transition="invalidate" $method="invalidatePoj
- o" }provides { $specifications="org.psem2m.utilities.logging.IActivit
- yLoggerBase" }manipulation { $super="org.psem2m.isolates.base.activat
+ nfig-factory" $name="isolates-config" }component { $classname="org.ps
+ em2m.isolates.config.CBundleConfigurationActivator" $architecture="tr
+ ue" $immediate="true" $name="isolates-config-logger-factory" $factory
+ -method="getInstance" provides { $specifications="org.psem2m.utilitie
+ s.logging.IActivityLoggerBase" }callback { $transition="validate" $me
+ thod="validatePojo" }callback { $transition="invalidate" $method="inv
+ alidatePojo" }manipulation { $super="org.psem2m.isolates.base.activat
  ors.CActivatorBase" method { $name="getInstance" $return="org.psem2m.
- isolates.config.CBundleConfigurationActivator" }method { $name="$init
- " }method { $name="destroy" }method { $name="getBundleId" $return="ja
- va.lang.String" }}}component { $immediate="true" $name="isolates-conf
- ig-factory" $classname="org.psem2m.isolates.config.impl.CJsonConfigSv
- c" $architecture="true" callback { $transition="validate" $method="va
- lidatePojo" }callback { $transition="invalidate" $method="invalidateP
- ojo" }provides { $specifications="org.psem2m.isolates.services.conf.I
- SvcConfig" }manipulation { $super="org.psem2m.isolates.base.activator
- s.CPojoBase" field { $name="pConfigurationFiles" $type="java.util.Set
- " }field { $name="pLoggerSvc" $type="org.psem2m.utilities.logging.IAc
- tivityLoggerBase" }field { $name="pFileFinder" $type="org.psem2m.isol
- ates.services.dirs.IFileFinderSvc" }field { $name="pReader" $type="or
- g.psem2m.isolates.config.json.JsonConfigReader" }method { $name="$ini
- t" }method { $name="destroy" }method { $name="findConfigurationFiles"
-  $return="boolean" }method { $name="getApplication" $return="org.psem
- 2m.isolates.services.conf.IApplicationDescr" }method { $name="invalid
- atePojo" }method { $name="refresh" $return="boolean" }method { $name=
- "validatePojo" }interface { $name="org.psem2m.isolates.services.conf.
- ISvcConfig" }}requires { $field="pLoggerSvc" $optional="false" $from=
- "isolates-config-logger" }requires { $field="pFileFinder" $optional="
- false" }}
+ isolates.config.CBundleConfigurationActivator" }method { $name="destr
+ oy" }method { $name="getBundleId" $return="java.lang.String" }}}compo
+ nent { $classname="org.psem2m.isolates.config.impl.CJsonConfigSvc" $a
+ rchitecture="true" $immediate="true" $name="isolates-config-factory" 
+ provides { $specifications="org.psem2m.isolates.services.conf.ISvcCon
+ fig" }requires { $field="pLoggerSvc" $optional="false" $from="isolate
+ s-config-logger" }requires { $field="pFileFinder" $optional="false" }
+ callback { $transition="validate" $method="validatePojo" }callback { 
+ $transition="invalidate" $method="invalidatePojo" }manipulation { $su
+ per="org.psem2m.isolates.base.activators.CPojoBase" interface { $name
+ ="org.psem2m.isolates.services.conf.ISvcConfig" }field { $name="pConf
+ igurationFiles" $type="java.util.Set" }field { $name="pFileFinder" $t
+ ype="org.psem2m.isolates.services.dirs.IFileFinderSvc" }field { $name
+ ="pLoggerSvc" $type="org.psem2m.utilities.logging.IActivityLoggerBase
+ " }field { $name="pReader" $type="org.psem2m.isolates.config.json.Jso
+ nConfigReader" }method { $name="destroy" }method { $name="findConfigu
+ rationFiles" $return="boolean" }method { $name="getApplication" $retu
+ rn="org.psem2m.isolates.services.conf.IApplicationDescr" }method { $n
+ ame="invalidatePojo" }method { $name="refresh" $return="boolean" }met
+ hod { $name="validatePojo" }}}
 

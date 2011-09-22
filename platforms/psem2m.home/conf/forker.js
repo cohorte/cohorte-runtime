@@ -1,10 +1,9 @@
 {
     "id":"org.psem2m.internals.isolates.forker",
     "kind":"felix",
+    "httpPort":9001,
     "vmArgs":[
-        "-Dosgi.shell.telnet.port=6001",
-        "-Dorg.osgi.service.http.port=9001",
-        "-Dorg.apache.felix.http.jettyEnabled=true"
+        "-Dosgi.shell.telnet.port=6001"
     ],
     "bundles":[
         {
@@ -18,13 +17,19 @@
             "symbolicName":"org.apache.felix.shell.remote"
         },
         {
+            "from":"signals-http.js"
+        },
+        {
             "from":"rose-core.js"
+        },
+        {
+            "from":"rose-client.js"
         },
         {
             "from":"rose-server.js"
         },
         {
-            "symbolicName":"org.psem2m.isolates.remote.exporter"
+            "from":"remote-services.js"
         },
         {
             "symbolicName":"org.psem2m.isolates.forker"

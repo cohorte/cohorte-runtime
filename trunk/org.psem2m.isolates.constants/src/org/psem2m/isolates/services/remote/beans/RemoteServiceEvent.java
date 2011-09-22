@@ -6,291 +6,113 @@
 package org.psem2m.isolates.services.remote.beans;
 
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Dictionary;
-import java.util.Hashtable;
-
-import org.osgi.framework.Constants;
-import org.osgi.framework.ServiceReference;
-import org.osgi.framework.ServiceRegistration;
-import org.psem2m.isolates.constants.IPlatformProperties;
 
 /**
+ * Represents a remote service event
+ * 
  * @author Thomas Calmant
  */
 public class RemoteServiceEvent implements Serializable {
 
-	/**
-	 * Kind of service event
-	 * 
-	 * @author Thomas Calmant
-	 */
-	public enum ServiceEventType {
+    /**
+     * Kind of service event
+     * 
+     * @author Thomas Calmant
+     */
+    public enum ServiceEventType {
 
-		/** The service properties have been modified */
-		MODIFIED,
+        /** The service properties have been modified */
+        MODIFIED,
 
-		/** The service have just been registered */
-		REGISTERED,
+        /** The service have just been registered */
+        REGISTERED,
 
-		/** The service have just been unregistered */
-		UNREGISTERED,
-	}
+        /** The service have just been unregistered */
+        UNREGISTERED,
+    }
 
-	/** The serializable version UID */
-	private static final long serialVersionUID = 1L;
+    /** The serial version UID */
+    private static final long serialVersionUID = 1L;
 
-	/** Unknown isolate ID constant */
-	public static final String UNKNOWN_ISOLATE_ID = "unknown";
+    /** Service event type */
+    private final ServiceEventType pEventType;
 
-	/** End points available to access this service */
-	private final EndpointDescription[] pEndpoints;
+    /** Remote service event sender (default : "localhost") */
+    private String pSenderHostName = "localhost";
 
-	/** Service event type */
-	private final ServiceEventType pEventType;
+    /** Remote service registration (with end points) */
+    private final RemoteServiceRegistration pServiceRegistration;
 
-	/** Service interfaces names */
-	private final String[] pInterfacesNames;
+    /**
+     * Sets up the service event
+     * 
+     * @param aEventType
+     *            Kind of event
+     * @param aRegistration
+     *            Service registration associated to the event
+     */
+    public RemoteServiceEvent(final ServiceEventType aEventType,
+            final RemoteServiceRegistration aRegistration) {
 
-	/** An ID representing the service */
-	private final String pServiceId;
+        pEventType = aEventType;
+        pServiceRegistration = aRegistration;
+    }
 
-	/** Service properties */
-	private final Dictionary<String, Object> pServiceProperties;
+    /**
+     * Retrieves the kind of event
+     * 
+     * @return the kind of event
+     */
+    public ServiceEventType getEventType() {
 
-	/** Source isolate ID */
-	private final String pSourceIsolate;
+        return pEventType;
+    }
 
-	/**
-	 * Sets up the event
-	 * 
-	 * @param aClass
-	 *            Service interface class (can't be null)
-	 * @param aProperties
-	 *            Service properties (can be null)
-	 * @param aEventType
-	 *            The service event type
-	 */
-	public RemoteServiceEvent(final Class<?> aClass,
-			final Dictionary<String, Object> aProperties,
-			final ServiceEventType aEventType) {
+    /**
+     * Retrieves the sender host name
+     * 
+     * @return the event sender host name
+     */
+    public String getSenderHostName() {
 
-		this(new String[] { aClass.getName() }, aProperties, aEventType, null);
-	}
+        return pSenderHostName;
+    }
 
-	/**
-	 * Sets up the event
-	 * 
-	 * @param aClass
-	 *            Service interface class (can't be null)
-	 * @param aEventType
-	 *            The service event type
-	 */
-	public RemoteServiceEvent(final Class<?> aClass,
-			final ServiceEventType aEventType) {
+    /**
+     * Retrieves the service registration description associated to the event
+     * 
+     * @return the service registration description
+     */
+    public RemoteServiceRegistration getServiceRegistration() {
 
-		this(aClass.getName(), aEventType);
-	}
+        return pServiceRegistration;
+    }
 
-	/**
-	 * Sets up the event
-	 * 
-	 * @param aServiceReference
-	 *            A service reference
-	 * @param aEventType
-	 *            The service event type
-	 */
-	public RemoteServiceEvent(final ServiceReference aServiceReference,
-			final ServiceEventType aEventType,
-			final EndpointDescription[] aEndpoints) {
+    /**
+     * Sets the event sender host name. This method should be called only when
+     * an event is received.
+     * 
+     * @param aSenderHostName
+     *            the event sender host name
+     */
+    public void setSenderHostName(final String aSenderHostName) {
 
-		// String array, as defined in OSGi specs
-		pInterfacesNames = (String[]) aServiceReference
-				.getProperty(Constants.OBJECTCLASS);
-		pEventType = aEventType;
-		pSourceIsolate = System.getProperty(
-				IPlatformProperties.PROP_PLATFORM_ISOLATE_ID,
-				UNKNOWN_ISOLATE_ID);
-		pEndpoints = aEndpoints;
+        pSenderHostName = aSenderHostName;
+    }
 
-		// Look after service properties
-		pServiceProperties = new Hashtable<String, Object>();
-		for (String propertyKey : aServiceReference.getPropertyKeys()) {
-			pServiceProperties.put(propertyKey,
-					aServiceReference.getProperty(propertyKey));
-		}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
 
-		// Generate an ID
-		StringBuilder builder = new StringBuilder();
-		builder.append(pSourceIsolate);
-		builder.append(".");
-		builder.append(pServiceProperties.get(Constants.SERVICE_ID));
+        final StringBuilder builder = new StringBuilder("RemoteServiceEvent(");
+        builder.append("Event=").append(pEventType);
+        builder.append(", Reg=").append(pServiceRegistration);
+        builder.append(")");
 
-		pServiceId = builder.toString();
-	}
-
-	/**
-	 * Sets up the event
-	 * 
-	 * @param aServiceRegistration
-	 *            A service registration reference
-	 * @param aEventType
-	 *            The service event type
-	 */
-	public RemoteServiceEvent(final ServiceRegistration aServiceRegistration,
-			final ServiceEventType aEventType) {
-
-		this(aServiceRegistration.getReference(), aEventType, null);
-	}
-
-	/**
-	 * Sets up the event
-	 * 
-	 * @param aClassName
-	 *            Service interface name (can't be null)
-	 * @param aEventType
-	 *            The service event type
-	 */
-	public RemoteServiceEvent(final String aClassName,
-			final ServiceEventType aEventType) {
-
-		this(new String[] { aClassName }, null, aEventType, null);
-	}
-
-	/**
-	 * Sets up the event
-	 * 
-	 * @param aInterfaces
-	 *            Service interfaces names (can't be null nor empty)
-	 * @param aProperties
-	 *            Service properties (can be null)
-	 * @param aEventType
-	 *            The service event type
-	 */
-	public RemoteServiceEvent(final String[] aInterfaces,
-			final Dictionary<String, Object> aProperties,
-			final ServiceEventType aEventType,
-			final EndpointDescription[] aEndpoints) {
-
-		pInterfacesNames = aInterfaces;
-		pServiceProperties = aProperties;
-		pEventType = aEventType;
-		pSourceIsolate = System.getProperty(
-				IPlatformProperties.PROP_PLATFORM_ISOLATE_ID,
-				UNKNOWN_ISOLATE_ID);
-		pEndpoints = aEndpoints;
-
-		String serviceId = null;
-
-		// Try to use service properties
-		if (aProperties != null) {
-			// Try to find the service ID, if any
-			Long rawServiceId = (Long) aProperties.get(Constants.SERVICE_ID);
-			if (rawServiceId != null) {
-				serviceId = rawServiceId.toString();
-			}
-		}
-
-		// If the service ID is not found, use the exported interfaces
-		if (serviceId == null) {
-			serviceId = Arrays.toString(aInterfaces);
-		}
-
-		pServiceId = pSourceIsolate + "." + serviceId;
-	}
-
-	/**
-	 * Sets up the event
-	 * 
-	 * @param aClassName
-	 *            Service interfaces names (can't be null nor empty)
-	 * @param aEventType
-	 *            The service event type
-	 */
-	public RemoteServiceEvent(final String[] aInterfaces,
-			final ServiceEventType aEventType) {
-
-		this(aInterfaces, null, aEventType, null);
-	}
-
-	/**
-	 * Retrieves available end points to access this service
-	 * 
-	 * @return end points to access this service
-	 */
-	public EndpointDescription[] getEndpoints() {
-		return pEndpoints;
-	}
-
-	/**
-	 * Retrieves the kind of event
-	 * 
-	 * @return the kind of event
-	 */
-	public ServiceEventType getEventType() {
-		return pEventType;
-	}
-
-	/**
-	 * Retrieves the service interfaces names
-	 * 
-	 * @return the service interfaces names
-	 */
-	public String[] getInterfacesNames() {
-		return pInterfacesNames;
-	}
-
-	/**
-	 * Retrieves the service identifier, based on the source isolate and the
-	 * 'local' service ID (or exported interfaces).
-	 * 
-	 * @return The service identifier
-	 */
-	public String getServiceId() {
-		return pServiceId;
-	}
-
-	/**
-	 * Retrieves the service properties, can return null.
-	 * 
-	 * @return the properties of the associated service
-	 */
-	public Dictionary<String, Object> getServiceProperties() {
-		return pServiceProperties;
-	}
-
-	/**
-	 * Retrieves the ID of the source isolate or "unknown"
-	 * 
-	 * @return The ID of the source isolate
-	 */
-	public String getSourceIsolateId() {
-		return pSourceIsolate;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-
-		StringBuilder builder = new StringBuilder();
-		builder.append("RemoteServiceEvent(");
-		builder.append("Source=").append(pSourceIsolate);
-		builder.append(", ID=").append(pServiceId);
-		builder.append(", Event=").append(pEventType);
-		builder.append(", Endpoint.count=");
-
-		if (pEndpoints == null) {
-			builder.append("<null>");
-		} else {
-			builder.append(pEndpoints.length);
-		}
-
-		builder.append(")");
-
-		return builder.toString();
-	}
+        return builder.toString();
+    }
 }

@@ -8,9 +8,6 @@ package org.psem2m.isolates.services.remote.beans;
 import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
-
-import org.osgi.framework.ServiceReference;
 
 /**
  * Description of an end point description
@@ -31,9 +28,6 @@ public class EndpointDescription implements Serializable {
     /** Associated "service.exported.configs" value */
     private final String pExportedConfig;
 
-    /** Interfaces exported by this end point */
-    private final String[] pExportedInterfaces;
-
     /** End point host */
     private String pHost;
 
@@ -43,21 +37,9 @@ public class EndpointDescription implements Serializable {
     /** End point access protocol (http, ...) */
     private final String pProtocol;
 
-    public EndpointDescription(final ServiceReference aServiceReference,
-	    final String aExportedConfig, final String aEndpointName,
-	    final String aProtocol, final String aEndpointUri, final int aPort) {
-
-	// Default assignments
-	this(new String[0], aExportedConfig, aEndpointName, aProtocol,
-		aEndpointUri, aPort);
-
-    }
-
     /**
      * Sets up the end point description
      * 
-     * @param aExportedInterfaces
-     *            Interfaces exported by this end point
      * @param aExportedConfig
      *            Remote Services exported configurations
      * @param aEndpointName
@@ -70,16 +52,18 @@ public class EndpointDescription implements Serializable {
      * @param aPort
      *            Port to join the end point
      */
-    public EndpointDescription(final String[] aExportedInterfaces,
-	    final String aExportedConfig, final String aEndpointName,
-	    final String aProtocol, final String aEndpointUri, final int aPort) {
+    public EndpointDescription(final String aExportedConfig,
+            final String aEndpointName, final String aProtocol,
+            final String aEndpointUri, final int aPort) {
 
-	pExportedInterfaces = aExportedInterfaces;
-	pExportedConfig = aExportedConfig;
-	pEndpointName = aEndpointName;
-	pProtocol = aProtocol;
-	pEndpointUri = aEndpointUri;
-	pPort = aPort;
+        pExportedConfig = aExportedConfig;
+        pEndpointName = aEndpointName;
+        pProtocol = aProtocol;
+        pEndpointUri = aEndpointUri;
+        pPort = aPort;
+
+        // Set the default host name
+        pHost = "localhost";
     }
 
     /**
@@ -89,15 +73,15 @@ public class EndpointDescription implements Serializable {
      */
     public String computeURI() {
 
-	try {
-	    URI uri = new URI(pProtocol, null, pHost, pPort, pEndpointUri,
-		    null, null);
-	    return uri.toString();
+        try {
+            URI uri = new URI(pProtocol, null, pHost, pPort, pEndpointUri,
+                    null, null);
+            return uri.toString();
 
-	} catch (URISyntaxException ex) {
-	    ex.printStackTrace();
-	    return null;
-	}
+        } catch (URISyntaxException ex) {
+            ex.printStackTrace();
+            return null;
+        }
     }
 
     /*
@@ -108,28 +92,28 @@ public class EndpointDescription implements Serializable {
     @Override
     public boolean equals(final Object aObj) {
 
-	if (!(aObj instanceof EndpointDescription)) {
-	    return false;
-	}
+        if (!(aObj instanceof EndpointDescription)) {
+            return false;
+        }
 
-	final EndpointDescription other = (EndpointDescription) aObj;
+        final EndpointDescription other = (EndpointDescription) aObj;
 
-	// End point access
-	if (!safeCompare(pHost, other.pHost)
-		|| !safeCompare(pPort, other.pPort)
-		|| !safeCompare(pProtocol, other.pProtocol)) {
-	    return false;
-	}
+        // End point access
+        if (!safeCompare(pHost, other.pHost)
+                || !safeCompare(pPort, other.pPort)
+                || !safeCompare(pProtocol, other.pProtocol)) {
+            return false;
+        }
 
-	// End point properties
-	if (!safeCompare(pEndpointName, other.pEndpointName)
-		|| !safeCompare(pEndpointUri, other.pEndpointUri)
-		|| !safeCompare(pExportedConfig, other.pExportedConfig)) {
-	    return false;
-	}
+        // End point properties
+        if (!safeCompare(pEndpointName, other.pEndpointName)
+                || !safeCompare(pEndpointUri, other.pEndpointUri)
+                || !safeCompare(pExportedConfig, other.pExportedConfig)) {
+            return false;
+        }
 
-	// Finally, test exported interfaces
-	return Arrays.equals(pExportedInterfaces, other.pExportedInterfaces);
+        // Finally, test exported interfaces
+        return true;
     }
 
     /**
@@ -138,7 +122,8 @@ public class EndpointDescription implements Serializable {
      * @return the end point name
      */
     public String getEndpointName() {
-	return pEndpointName;
+
+        return pEndpointName;
     }
 
     /**
@@ -148,7 +133,8 @@ public class EndpointDescription implements Serializable {
      * @return the end point URI
      */
     public String getEndpointUri() {
-	return pEndpointUri;
+
+        return pEndpointUri;
     }
 
     /**
@@ -157,16 +143,8 @@ public class EndpointDescription implements Serializable {
      * @return the associated "service.exported.configs" value
      */
     public String getExportedConfig() {
-	return pExportedConfig;
-    }
 
-    /**
-     * Retrieves the array of the interfaces exported by this end point
-     * 
-     * @return The interfaces exported by this end point
-     */
-    public String[] getExportedInterfaces() {
-	return pExportedInterfaces;
+        return pExportedConfig;
     }
 
     /**
@@ -175,7 +153,8 @@ public class EndpointDescription implements Serializable {
      * @return The end point host
      */
     public String getHost() {
-	return pHost;
+
+        return pHost;
     }
 
     /**
@@ -184,7 +163,8 @@ public class EndpointDescription implements Serializable {
      * @return the end point port
      */
     public int getPort() {
-	return pPort;
+
+        return pPort;
     }
 
     /**
@@ -193,7 +173,8 @@ public class EndpointDescription implements Serializable {
      * @return The end point access protocol
      */
     public String getProtocol() {
-	return pProtocol;
+
+        return pProtocol;
     }
 
     /**
@@ -207,14 +188,14 @@ public class EndpointDescription implements Serializable {
      */
     protected boolean safeCompare(final Object aObjectA, final Object aObjectB) {
 
-	if (aObjectA != null) {
-	    return aObjectA.equals(aObjectB);
-	} else if (aObjectB != null) {
-	    return aObjectB.equals(aObjectA);
-	} else {
-	    // Both null
-	    return true;
-	}
+        if (aObjectA != null) {
+            return aObjectA.equals(aObjectB);
+        } else if (aObjectB != null) {
+            return aObjectB.equals(aObjectA);
+        } else {
+            // Both null
+            return true;
+        }
     }
 
     /**
@@ -225,7 +206,8 @@ public class EndpointDescription implements Serializable {
      *            The end point host
      */
     public void setHost(final String aHost) {
-	pHost = aHost;
+
+        pHost = aHost;
     }
 
     /*
@@ -236,14 +218,14 @@ public class EndpointDescription implements Serializable {
     @Override
     public String toString() {
 
-	StringBuilder builder = new StringBuilder();
-	builder.append("EndpointDescription(");
-	builder.append("protocol=").append(pProtocol);
-	builder.append(", port=").append(pPort);
-	builder.append(", uri=").append(pEndpointUri);
-	builder.append(", name=").append(pEndpointName);
-	builder.append(")");
+        StringBuilder builder = new StringBuilder();
+        builder.append("EndpointDescription(");
+        builder.append("protocol=").append(pProtocol);
+        builder.append(", port=").append(pPort);
+        builder.append(", uri=").append(pEndpointUri);
+        builder.append(", name=").append(pEndpointName);
+        builder.append(")");
 
-	return builder.toString();
+        return builder.toString();
     }
 }

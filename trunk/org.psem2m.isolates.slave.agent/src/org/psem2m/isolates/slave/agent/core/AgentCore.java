@@ -5,8 +5,10 @@ package org.psem2m.isolates.slave.agent.core;
 
 import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -333,6 +335,9 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
         System.setProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID,
                 aIsolateId);
 
+        // FIXME Update the HTTP port system properties
+        setupHttpProperties(isolateDescr);
+
         synchronized (pInstalledBundles) {
             // Synchronized map, to avoid messing with the guardian
 
@@ -471,6 +476,58 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
         }
 
         return true;
+    }
+
+    /**
+     * Sets up the HTTP bundle system properties for the new isolate
+     * configuration. Does nothing if the configured access URL is null, empty
+     * or not based on HTTP.
+     * 
+     * @param aIsolateDescr
+     *            The description of the new isolate configuration
+     */
+    protected void setupHttpProperties(final IIsolateDescr aIsolateDescr) {
+
+        // Get the configured URL
+        final String isolateAccessStr = aIsolateDescr.getAccessUrl();
+        if (isolateAccessStr == null || isolateAccessStr.isEmpty()) {
+            pLoggerSvc.log(Level.WARNING, this, "setupHttpProperties",
+                    "No access URL defined for ", aIsolateDescr.getId());
+            return;
+        }
+
+        // Make a real URL to extract information
+        final URL isolateAccessUrl;
+        try {
+            isolateAccessUrl = new URL(isolateAccessStr);
+
+        } catch (MalformedURLException e) {
+            pLoggerSvc.log(Level.WARNING, this, "setupHttpProperties",
+                    "Invalid access URL '", isolateAccessStr, "' for ",
+                    aIsolateDescr.getId());
+            return;
+        }
+
+        // Test the access protocol
+        if (!"http".equals(isolateAccessUrl.getProtocol())) {
+            // Ignore non-HTTP access URL
+            return;
+        }
+
+        // Find the access port
+        int accessPort = isolateAccessUrl.getPort();
+        if (accessPort == -1) {
+            // No port defined, do nothing
+            pLoggerSvc.log(Level.WARNING, this, "setupHttpProperties",
+                    "No port defined in URL '", isolateAccessStr, "' for ",
+                    aIsolateDescr.getId());
+            return;
+        }
+
+        // Everything is OK, set up the properties
+        System.setProperty("org.osgi.service.http.port",
+                Integer.toString(accessPort));
+        System.setProperty("org.apache.felix.http.jettyEnabled", "true");
     }
 
     /**

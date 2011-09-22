@@ -10,10 +10,10 @@ import org.osgi.framework.ServiceRegistration;
 public class ProxyServiceInfo {
 
     /** The proxy object */
-    public Object pProxy;
+    private final Object pProxy;
 
     /** The service registration information */
-    public ServiceRegistration pServiceRegistration;
+    private final ServiceRegistration pServiceRegistration;
 
     /**
      * Sets up the bean
@@ -24,7 +24,7 @@ public class ProxyServiceInfo {
      *            Service proxy object
      */
     public ProxyServiceInfo(final ServiceRegistration aRegistration,
-    	final Object aProxy) {
+            final Object aProxy) {
 
         pServiceRegistration = aRegistration;
         pProxy = aProxy;
@@ -36,6 +36,7 @@ public class ProxyServiceInfo {
      * @return the proxy object
      */
     public Object getProxy() {
+
         return pProxy;
     }
 
@@ -45,6 +46,7 @@ public class ProxyServiceInfo {
      * @return the service registration information
      */
     public ServiceRegistration getServiceRegistration() {
+
         return pServiceRegistration;
     }
 }

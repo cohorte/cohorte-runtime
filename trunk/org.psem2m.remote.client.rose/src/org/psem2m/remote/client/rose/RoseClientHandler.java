@@ -8,6 +8,12 @@ package org.psem2m.remote.client.rose;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Instantiate;
+import org.apache.felix.ipojo.annotations.Invalidate;
+import org.apache.felix.ipojo.annotations.Provides;
+import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.service.log.LogService;
@@ -19,6 +25,7 @@ import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.services.remote.IRemoteServiceClientHandler;
 import org.psem2m.isolates.services.remote.beans.EndpointDescription;
 import org.psem2m.isolates.services.remote.beans.RemoteServiceEvent;
+import org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration;
 
 /**
  * Implementation of a remote service client handler, using Rose ClientFactory
@@ -26,16 +33,21 @@ import org.psem2m.isolates.services.remote.beans.RemoteServiceEvent;
  * 
  * @author Thomas Calmant
  */
+@Component(name = "remote-client-handler-rose-factory", publicFactory = false)
+@Provides(specifications = IRemoteServiceClientHandler.class)
+@Instantiate(name = "remote-client-handler-rose")
 public class RoseClientHandler extends CPojoBase implements
-	IRemoteServiceClientHandler {
+        IRemoteServiceClientHandler {
 
     /** The component bundle context */
     private BundleContext pBundleContext;
 
     /** Log service */
+    @Requires
     private LogService pLogger;
 
     /** Rose remote proxy factories */
+    @Requires
     private RemoteProxyFactory[] pProxyFactories;
 
     /**
@@ -43,8 +55,8 @@ public class RoseClientHandler extends CPojoBase implements
      */
     public RoseClientHandler(final BundleContext aBundleContext) {
 
-	super();
-	pBundleContext = aBundleContext;
+        super();
+        pBundleContext = aBundleContext;
     }
 
     /**
@@ -59,17 +71,17 @@ public class RoseClientHandler extends CPojoBase implements
      */
     protected boolean arrayContains(final String[] aArray, final String aString) {
 
-	if (aArray == null) {
-	    return false;
-	}
+        if (aArray == null) {
+            return false;
+        }
 
-	for (String value : aArray) {
-	    if (value != null && value.equals(aString)) {
-		return true;
-	    }
-	}
+        for (String value : aArray) {
+            if (value != null && value.equals(aString)) {
+                return true;
+            }
+        }
 
-	return false;
+        return false;
     }
 
     /*
@@ -79,7 +91,8 @@ public class RoseClientHandler extends CPojoBase implements
      */
     @Override
     public void destroy() {
-	// ...
+
+        // ...
     }
 
     /*
@@ -92,14 +105,14 @@ public class RoseClientHandler extends CPojoBase implements
     @Override
     public void destroyProxy(final Object aProxy) {
 
-	for (RemoteProxyFactory factory : pProxyFactories) {
-	    try {
-		factory.destroyRemoteProxy(aProxy);
-	    } catch (IllegalArgumentException ex) {
-		// Ignore errors : the proxy hasn't been created with this
-		// factory
-	    }
-	}
+        for (RemoteProxyFactory factory : pProxyFactories) {
+            try {
+                factory.destroyRemoteProxy(aProxy);
+            } catch (IllegalArgumentException ex) {
+                // Ignore errors : the proxy hasn't been created with this
+                // factory
+            }
+        }
     }
 
     /**
@@ -110,17 +123,17 @@ public class RoseClientHandler extends CPojoBase implements
      * @return The first matching factory, null if not found
      */
     protected RemoteProxyFactory findAssociatedFactory(
-	    final String aExportConfig) {
+            final String aExportConfig) {
 
-	for (RemoteProxyFactory factory : pProxyFactories) {
+        for (RemoteProxyFactory factory : pProxyFactories) {
 
-	    if (factory != null
-		    && arrayContains(factory.getConfigs(), aExportConfig)) {
-		return factory;
-	    }
-	}
+            if (factory != null
+                    && arrayContains(factory.getConfigs(), aExportConfig)) {
+                return factory;
+            }
+        }
 
-	return null;
+        return null;
     }
 
     /*
@@ -132,87 +145,96 @@ public class RoseClientHandler extends CPojoBase implements
      */
     @Override
     public Object getRemoteProxy(final RemoteServiceEvent aServiceEvent)
-	    throws ClassNotFoundException {
+            throws ClassNotFoundException {
 
-	// No factory, no proxy
-	if (aServiceEvent == null || pProxyFactories.length == 0) {
-	    pLogger.log(LogService.LOG_ERROR, "[RoseClientHandler] No proxies");
-	    return null;
-	}
+        // No factory, no proxy
+        if (aServiceEvent == null || pProxyFactories.length == 0) {
+            pLogger.log(LogService.LOG_ERROR, "[RoseClientHandler] No proxies");
+            return null;
+        }
 
-	// Compute the interface name
-	String[] interfaceNames = aServiceEvent.getInterfacesNames();
-	if (interfaceNames == null || interfaceNames.length == 0) {
-	    pLogger.log(LogService.LOG_ERROR,
-		    "[RoseClientHandler] No/Empty interface array");
-	    return null;
-	}
+        // Get the remote service registration
+        final RemoteServiceRegistration serviceRegistration = aServiceEvent
+                .getServiceRegistration();
+        if (serviceRegistration == null) {
+            pLogger.log(LogService.LOG_ERROR,
+                    "[RoseClientHandler] No service registration in event");
+            return null;
+        }
 
-	final String interfaceName = interfaceNames[interfaceNames.length - 1];
-	if (interfaceName == null) {
-	    System.out.println("No interface");
-	    pLogger.log(LogService.LOG_ERROR,
-		    "[RoseClientHandler] No interface");
-	    return null;
-	}
+        // Compute the interface name
+        String[] interfaceNames = serviceRegistration.getExportedInterfaces();
+        if (interfaceNames == null || interfaceNames.length == 0) {
+            pLogger.log(LogService.LOG_ERROR,
+                    "[RoseClientHandler] No/Empty interface array");
+            return null;
+        }
 
-	// Find the class
-	// Class.forName(interfaceName) won't work...
-	final Class<?> interfaceClass = Utilities.findClassInBundles(
-		pBundleContext.getBundles(), interfaceName);
-	if (interfaceClass == null) {
-	    pLogger.log(LogService.LOG_ERROR, "[RoseClientHandler] Interface '"
-		    + interfaceName + "' no found");
-	    throw new ClassNotFoundException(interfaceName);
-	}
+        final String interfaceName = interfaceNames[interfaceNames.length - 1];
+        if (interfaceName == null) {
+            pLogger.log(LogService.LOG_ERROR,
+                    "[RoseClientHandler] No interface");
+            return null;
+        }
 
-	// Get available end points
-	EndpointDescription[] endpoints = aServiceEvent.getEndpoints();
+        // Find the class
+        // Class.forName(interfaceName) won't work...
+        final Class<?> interfaceClass = Utilities.findClassInBundles(
+                pBundleContext.getBundles(), interfaceName);
+        if (interfaceClass == null) {
+            pLogger.log(LogService.LOG_ERROR, "[RoseClientHandler] Interface '"
+                    + interfaceName + "' no found");
+            throw new ClassNotFoundException(interfaceName);
+        }
 
-	// Find a factory
-	RemoteProxyFactory preferredFactory = null;
-	EndpointDescription selectedEndpoint = null;
+        // Get available end points
+        final EndpointDescription[] endpoints = serviceRegistration
+                .getEndpoints();
 
-	for (EndpointDescription endpoint : endpoints) {
-	    preferredFactory = findAssociatedFactory(endpoint
-		    .getExportedConfig());
+        // Find a factory
+        RemoteProxyFactory preferredFactory = null;
+        EndpointDescription selectedEndpoint = null;
 
-	    if (preferredFactory != null) {
-		selectedEndpoint = endpoint;
-		break;
-	    }
-	}
+        for (EndpointDescription endpoint : endpoints) {
+            preferredFactory = findAssociatedFactory(endpoint
+                    .getExportedConfig());
 
-	// Nothing found : abandon.
-	if (preferredFactory == null || selectedEndpoint == null) {
-	    pLogger.log(LogService.LOG_ERROR,
-		    "[RoseClientHandler] No factory/endpoint couple found");
-	    return null;
-	}
+            if (preferredFactory != null) {
+                selectedEndpoint = endpoint;
+                break;
+            }
+        }
 
-	final String endpointUri = selectedEndpoint.computeURI();
-	if (endpointUri == null) {
-	    pLogger.log(LogService.LOG_ERROR,
-		    "[RoseClientHandler] Invalid endpoint URI");
-	    return null;
-	}
+        // Nothing found : abandon.
+        if (preferredFactory == null || selectedEndpoint == null) {
+            pLogger.log(LogService.LOG_ERROR,
+                    "[RoseClientHandler] No factory/endpoint couple found");
+            return null;
+        }
 
-	// Convert end point properties to a map
-	Map<String, String> endpointProperties = new HashMap<String, String>();
-	endpointProperties.put(RemoteClientFactory.PROP_ENDPOINT_NAME,
-		selectedEndpoint.getEndpointName());
+        final String endpointUri = selectedEndpoint.computeURI();
+        if (endpointUri == null) {
+            pLogger.log(LogService.LOG_ERROR,
+                    "[RoseClientHandler] Invalid endpoint URI");
+            return null;
+        }
 
-	endpointProperties.put(RemoteClientFactory.PROP_ENDPOINT_URI,
-		endpointUri);
+        // Convert end point properties to a map
+        Map<String, String> endpointProperties = new HashMap<String, String>();
+        endpointProperties.put(RemoteClientFactory.PROP_ENDPOINT_NAME,
+                selectedEndpoint.getEndpointName());
 
-	// Prepare a framework wide class loader
-	// FIXME CLASS LOADER
-	final BundlesClassLoader classLoader = new BundlesClassLoader(
-		pBundleContext);
+        endpointProperties.put(RemoteClientFactory.PROP_ENDPOINT_URI,
+                endpointUri);
 
-	Object serviceProxy = preferredFactory.getRemoteProxy(
-		endpointProperties, classLoader, interfaceClass);
-	return serviceProxy;
+        // Prepare a framework wide class loader
+        // FIXME CLASS LOADER
+        final BundlesClassLoader classLoader = new BundlesClassLoader(
+                pBundleContext);
+
+        Object serviceProxy = preferredFactory.getRemoteProxy(
+                endpointProperties, classLoader, interfaceClass);
+        return serviceProxy;
     }
 
     /*
@@ -221,9 +243,10 @@ public class RoseClientHandler extends CPojoBase implements
      * @see org.psem2m.isolates.base.CPojoBase#invalidatePojo()
      */
     @Override
+    @Invalidate
     public void invalidatePojo() throws BundleException {
-	// ...
-	System.out.println("RoserHandlerClient Gone");
+
+        pLogger.log(LogService.LOG_INFO, "RoserHandlerClient Gone");
     }
 
     /*
@@ -232,8 +255,9 @@ public class RoseClientHandler extends CPojoBase implements
      * @see org.psem2m.isolates.base.CPojoBase#validatePojo()
      */
     @Override
+    @Validate
     public void validatePojo() throws BundleException {
-	// ...
-	System.out.println("RoserHandlerClient alive");
+
+        pLogger.log(LogService.LOG_INFO, "RoserHandlerClient Ready");
     }
 }

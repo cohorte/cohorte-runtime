@@ -11,4 +11,5 @@ Export-Package: org.psem2m.isolates.constants;version="1.0.0",
  org.psem2m.isolates.services.dirs;version="1.0.0",
  org.psem2m.isolates.services.forker;version="1.0.0",
  org.psem2m.isolates.services.remote;version="1.0.0",
- org.psem2m.isolates.services.remote.beans;version="1.0.0"
+ org.psem2m.isolates.services.remote.beans;version="1.0.0",
+ org.psem2m.isolates.services.remote.signals;version="1.0.0"

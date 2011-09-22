@@ -18,11 +18,14 @@ public interface IEndpointHandler {
     /**
      * Create all end points needed for the specified service
      * 
+     * @param aExportedInterface
+     *            Interface to export from the given service
      * @param aServiceReference
      *            A reference to the service to be exported
      * @return A description of all created end points, null on error
      */
-    EndpointDescription[] createEndpoint(ServiceReference aServiceReference);
+    EndpointDescription[] createEndpoint(String aExportedInterface,
+            ServiceReference aServiceReference);
 
     /**
      * Destroys the end point(s) associated to the given service
