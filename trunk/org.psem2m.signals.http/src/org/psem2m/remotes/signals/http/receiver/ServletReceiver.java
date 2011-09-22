@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.osgi.framework.BundleContext;
 import org.psem2m.isolates.services.remote.signals.ISignalData;
 import org.psem2m.isolates.services.remote.signals.ISignalListener;
 
@@ -27,8 +28,11 @@ public class ServletReceiver extends HttpServlet {
     /** Serial version UID */
     private static final long serialVersionUID = 1L;
 
+    /** The bundle context */
+    private final BundleContext pBundleContext;
+
     /** Signal reception listener */
-    private ISignalListener pSignalListener;
+    private final ISignalListener pSignalListener;
 
     /** Valid signals caught */
     private int pSignalsCaughtCount;
@@ -36,12 +40,16 @@ public class ServletReceiver extends HttpServlet {
     /**
      * Sets up the servlet
      * 
+     * @param aBundleContext
+     *            The bundle context
      * @param aListener
      *            Main signal reception listener
      */
-    public ServletReceiver(final ISignalListener aListener) {
+    public ServletReceiver(final BundleContext aBundleContext,
+            final ISignalListener aListener) {
 
         super();
+        pBundleContext = aBundleContext;
         pSignalListener = aListener;
     }
 
@@ -91,8 +99,8 @@ public class ServletReceiver extends HttpServlet {
         // Read the inner object
         final ISignalData signalData;
 
-        final ObjectInputStream inputStream = new ObjectInputStream(
-                aReq.getInputStream());
+        final ObjectInputStream inputStream = new OsgiObjectInputStream(
+                pBundleContext, aReq.getInputStream());
         try {
             final Object readData = inputStream.readObject();
 

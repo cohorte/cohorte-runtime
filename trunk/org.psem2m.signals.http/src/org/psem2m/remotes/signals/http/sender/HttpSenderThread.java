@@ -92,7 +92,24 @@ public class HttpSenderThread extends Thread {
                     objectStream.close();
 
                     // Flush the request
-                    httpConnection.getResponseCode();
+                    final int responseCode = httpConnection.getResponseCode();
+
+                    if (responseCode != HttpURLConnection.HTTP_OK) {
+
+                        final StringBuilder message = new StringBuilder();
+                        message.append("Received status ").append(responseCode)
+                                .append(" - ")
+                                .append(httpConnection.getResponseMessage())
+                                .append(" from ").append(pTargetUrl);
+
+                        if (pParentSender != null) {
+                            pParentSender.logSenderThreadError(
+                                    message.toString(), null);
+
+                        } else {
+                            System.out.println(message);
+                        }
+                    }
 
                 } finally {
                     // In any case, close the connection
@@ -104,7 +121,8 @@ public class HttpSenderThread extends Thread {
 
             if (pParentSender != null) {
                 // Only care about the error if the parent is valid
-                pParentSender.logSenderThreadError("Error sending signal", e);
+                pParentSender.logSenderThreadError("Error sending signal to : "
+                        + pTargetUrl, e);
             }
         }
     }
