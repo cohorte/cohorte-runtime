@@ -13,7 +13,7 @@ package org.psem2m.isolates.constants;
 public interface ISignalsConstants {
 
     /** Remote service broadcaster signals names prefix */
-    String BROADCASTER_SIGNAL_NAME_PREFIX = "/remote-service-broadcaster";
+    String BROADCASTER_SIGNAL_NAME_PREFIX = "/psem2m/remote-service-broadcaster";
 
     /**
      * Broadcaster Remote Event notification signal.
@@ -31,6 +31,9 @@ public interface ISignalsConstants {
      */
     String BROADCASTER_SIGNAL_REQUEST_ENDPOINTS = BROADCASTER_SIGNAL_NAME_PREFIX
             + "/request-endpoints";
+
+    /** IsolateStatus signal */
+    String ISOLATE_STATUS_SIGNAL = "/psem2m/isolate/status";
 
     /** Match all sub signals */
     String MATCH_ALL = "/*";

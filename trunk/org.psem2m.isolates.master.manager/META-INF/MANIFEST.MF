@@ -20,50 +20,50 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  g.psem2m.isolates.services.remote.signals;version=1.0.0, org.psem2m.u
  tilities, org.psem2m.utilities.logging
 iPOJO-Components: instance { $component="org.psem2m.isolates.master.ma
- nager.impl.CMasterManager" $name="isolates-master-manager" }instance 
- { $component="org.psem2m.isolates.master.manager.impl.CMasterManagerL
- oggerSvc" $name="isolates-master-manager-logger" }component { $classn
- ame="org.psem2m.isolates.master.manager.impl.CMasterManager" $name="i
- solates-master-manager-factory" $public="false" requires { $field="pB
- undleFinderSvc" }requires { $field="pConfigurationSvc" }requires { $f
- ield="pLoggerSvc" $from="isolates-master-manager-logger" }requires { 
- $field="pPlatformDirsSvc" }requires { $field="pSignalEmitter" }requir
- es { $field="pSignalReceiver" $filter="(signal-receiver-online=true)"
-  }callback { $transition="invalidate" $method="invalidatePojo" }callb
- ack { $transition="validate" $method="validatePojo" }manipulation { $
- super="org.psem2m.isolates.base.activators.CPojoBase" interface { $na
- me="org.psem2m.isolates.base.isolates.IIsolateOutputListener" }interf
- ace { $name="org.psem2m.isolates.services.remote.signals.ISignalListe
- ner" }field { $name="pBundleContext" $type="org.osgi.framework.Bundle
- Context" }field { $name="pBundleFinderSvc" $type="org.psem2m.isolates
- .base.bundles.IBundleFinderSvc" }field { $name="pConfigurationSvc" $t
- ype="org.psem2m.isolates.services.conf.ISvcConfig" }field { $name="pF
- orkerProcess" $type="java.lang.Process" }field { $name="pForkerThread
- " $type="org.psem2m.isolates.master.manager.impl.ForkerWatchThread" }
- field { $name="pLoggerSvc" $type="org.psem2m.utilities.logging.IActiv
- ityLoggerBase" }field { $name="pPlatformDirsSvc" $type="org.psem2m.is
- olates.services.dirs.IPlatformDirsSvc" }field { $name="pSignalEmitter
- " $type="org.psem2m.isolates.services.remote.signals.ISignalBroadcast
- er" }field { $name="pSignalReceiver" $type="org.psem2m.isolates.servi
- ces.remote.signals.ISignalReceiver" }method { $name="destroy" }method
-  { $name="emitSignal" }method { $name="getBundlesRef" $return="org.ps
- em2m.isolates.base.bundles.BundleRef[]" $arguments="{java.lang.String
- }" }method { $name="handleIsolateLogRecord" $arguments="{java.lang.St
- ring,java.util.logging.LogRecord}" }method { $name="handleIsolateStat
- us" $arguments="{java.lang.String,org.psem2m.isolates.base.isolates.b
- oot.IsolateStatus}" }method { $name="handleReceivedSignal" $arguments
- ="{java.lang.String,org.psem2m.isolates.services.remote.signals.ISign
- alData}" }method { $name="invalidatePojo" }method { $name="makeJavaPr
- operty" $return="java.lang.String" $arguments="{java.lang.String,java
- .lang.String}" }method { $name="startForker" $return="java.lang.Proce
- ss" }method { $name="startWatcher" }method { $name="validatePojo" }}}
- component { $classname="org.psem2m.isolates.master.manager.impl.CMast
- erManagerLoggerSvc" $name="isolates-master-manager-logger-factory" $p
- ublic="false" provides { $specifications="{org.psem2m.utilities.loggi
- ng.IActivityLoggerBase}" }callback { $transition="invalidate" $method
- ="invalidatePojo" }callback { $transition="validate" $method="validat
- ePojo" }manipulation { $super="org.psem2m.isolates.base.activators.CB
- undleLoggerBase" interface { $name="org.psem2m.utilities.logging.IAct
- ivityLoggerBase" }method { $name="invalidatePojo" }method { $name="va
- lidatePojo" }}}
+ nager.impl.CForkerHandlerSvc" $name="isolates-master-manager" }instan
+ ce { $component="org.psem2m.isolates.master.manager.impl.CMasterManag
+ erLoggerSvc" $name="isolates-master-manager-logger" }component { $cla
+ ssname="org.psem2m.isolates.master.manager.impl.CForkerHandlerSvc" $n
+ ame="isolates-master-manager-factory" $public="false" provides { $spe
+ cifications="{org.psem2m.isolates.base.isolates.IForkerHandler}" }req
+ uires { $field="pBundleFinderSvc" }requires { $field="pConfigurationS
+ vc" }requires { $field="pLoggerSvc" $from="isolates-master-manager-lo
+ gger" }requires { $field="pPlatformDirsSvc" }callback { $transition="
+ invalidate" $method="invalidatePojo" }callback { $transition="validat
+ e" $method="validatePojo" }manipulation { $super="org.psem2m.isolates
+ .base.activators.CPojoBase" interface { $name="org.psem2m.isolates.ba
+ se.isolates.IForkerHandler" }interface { $name="org.psem2m.isolates.b
+ ase.isolates.IIsolateOutputListener" }field { $name="pBundleContext" 
+ $type="org.osgi.framework.BundleContext" }field { $name="pBundleFinde
+ rSvc" $type="org.psem2m.isolates.base.bundles.IBundleFinderSvc" }fiel
+ d { $name="pConfigurationSvc" $type="org.psem2m.isolates.services.con
+ f.ISvcConfig" }field { $name="pForkerProcess" $type="java.lang.Proces
+ s" }field { $name="pForkerThread" $type="org.psem2m.isolates.master.m
+ anager.impl.ForkerWatchThread" }field { $name="pIsolateListeners" $ty
+ pe="java.util.Set" }field { $name="pLoggerSvc" $type="org.psem2m.util
+ ities.logging.IActivityLoggerBase" }field { $name="pPlatformDirsSvc" 
+ $type="org.psem2m.isolates.services.dirs.IPlatformDirsSvc" }method { 
+ $name="destroy" }method { $name="getBundlesRef" $return="org.psem2m.i
+ solates.base.bundles.BundleRef[]" $arguments="{java.lang.String}" }me
+ thod { $name="handleIsolateLogRecord" $arguments="{java.lang.String,j
+ ava.util.logging.LogRecord}" }method { $name="handleIsolateStatus" $a
+ rguments="{java.lang.String,org.psem2m.isolates.base.isolates.boot.Is
+ olateStatus}" }method { $name="internalStartForker" $return="java.lan
+ g.Process" }method { $name="invalidatePojo" }method { $name="makeJava
+ Property" $return="java.lang.String" $arguments="{java.lang.String,ja
+ va.lang.String}" }method { $name="registerIsolateEventListener" $argu
+ ments="{org.psem2m.isolates.base.isolates.IIsolateStatusEventListener
+ }" }method { $name="startForker" $return="boolean" }method { $name="s
+ tartWatcher" }method { $name="stopForker" $return="boolean" }method {
+  $name="stopWatcher" }method { $name="unregisterIsolateEventListener"
+  $arguments="{org.psem2m.isolates.base.isolates.IIsolateStatusEventLi
+ stener}" }method { $name="validatePojo" }}}component { $classname="or
+ g.psem2m.isolates.master.manager.impl.CMasterManagerLoggerSvc" $name=
+ "isolates-master-manager-logger-factory" $public="false" provides { $
+ specifications="{org.psem2m.utilities.logging.IActivityLoggerBase}" }
+ callback { $transition="invalidate" $method="invalidatePojo" }callbac
+ k { $transition="validate" $method="validatePojo" }manipulation { $su
+ per="org.psem2m.isolates.base.activators.CBundleLoggerBase" interface
+  { $name="org.psem2m.utilities.logging.IActivityLoggerBase" }method {
+  $name="invalidatePojo" }method { $name="validatePojo" }}}
 
