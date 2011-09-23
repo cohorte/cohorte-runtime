@@ -87,9 +87,6 @@ public class HttpSignalReceiver extends CPojoBase implements
     public void handleReceivedSignal(final String aSignalName,
             final ISignalData aSignalData) {
 
-        System.out.println("Received signal '" + aSignalName + "' : "
-                + aSignalData);
-
         // Get listeners set
         synchronized (pListeners) {
             // Notify listeners
