@@ -1,37 +1,20 @@
 /**
- * File:   ISignalEmitter.java
+ * File:   ISignalBroadcastProvider.java
  * Author: Thomas Calmant
- * Date:   19 sept. 2011
+ * Date:   23 sept. 2011
  */
 package org.psem2m.isolates.services.remote.signals;
 
 import java.io.Serializable;
 
+import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster.EEmitterTargets;
+
 /**
- * Represents a signal emitter service
+ * Represents a signal broadcast provider
  * 
  * @author Thomas Calmant
  */
-public interface ISignalEmitter {
-
-    /**
-     * Predefined signal targets
-     * 
-     * @author Thomas Calmant
-     */
-    enum EEmitterTargets {
-        /** All isolates and monitors (except forker) */
-        ALL,
-
-        /** The forker (only value to access to it) */
-        FORKER,
-
-        /** All isolates (neither monitor nor forker) */
-        ISOLATES,
-
-        /** All monitors (not the forker) */
-        MONITORS,
-    }
+public interface ISignalBroadcastProvider {
 
     /**
      * Sends the given data to the given targets.

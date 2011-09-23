@@ -24,7 +24,7 @@ import org.psem2m.isolates.services.remote.beans.RemoteServiceEvent;
 import org.psem2m.isolates.services.remote.beans.RemoteServiceEvent.ServiceEventType;
 import org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration;
 import org.psem2m.isolates.services.remote.signals.ISignalData;
-import org.psem2m.isolates.services.remote.signals.ISignalEmitter;
+import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
 import org.psem2m.isolates.services.remote.signals.ISignalListener;
 import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
 
@@ -52,7 +52,7 @@ public class BroadcastSignalHandler extends CPojoBase implements
 
     /** Signal sender, injected by iPOJO */
     @Requires
-    private ISignalEmitter pSignalEmitter;
+    private ISignalBroadcaster pSignalEmitter;
 
     /** Signal receiver, injected by iPOJO */
     @Requires
