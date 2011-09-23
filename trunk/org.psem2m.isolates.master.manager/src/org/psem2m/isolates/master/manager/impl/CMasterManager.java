@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.LogRecord;
 
 import org.apache.felix.ipojo.annotations.Component;
@@ -69,9 +68,6 @@ public class CMasterManager extends CPojoBase implements
     /** The forker process */
     private Process pForkerProcess;
 
-    /** Forker started flag */
-    private AtomicBoolean pForkerStarted = new AtomicBoolean();
-
     /** Forker watcher */
     private ForkerWatchThread pForkerThread;
 
@@ -82,9 +78,6 @@ public class CMasterManager extends CPojoBase implements
     /** The platform directory service */
     @Requires
     private IPlatformDirsSvc pPlatformDirsSvc;
-
-    /** READY signal sender */
-    private ReadySignalSender pReadySignalSenderThread;
 
     /** Signal sender */
     @Requires
@@ -236,41 +229,25 @@ public class CMasterManager extends CPojoBase implements
             // Not of out business...
         }
 
-        synchronized (pForkerStarted) {
+        // That was the signal we were waiting for
+        try {
+            pLoggerSvc.logInfo(this, "handleReceivedSignal", "Start forker");
 
-            if (pForkerStarted.get()) {
-                // Avoid starting it twice
-                return;
-            }
-
-            // That was the signal we were waiting for
-            try {
-                pLoggerSvc
-                        .logInfo(this, "handleReceivedSignal", "Start forker");
-
-                if (startForker() == null) {
-                    pLoggerSvc.logSevere(this, "handleReceivedSignal",
-                            "Can't start the forker.");
-
-                } else {
-                    pLoggerSvc.logInfo(this, "handleReceivedSignal",
-                            "Forker started.");
-
-                    // Set the flag up
-                    pForkerStarted.set(true);
-
-                    // Interrupt the sending thread
-                    pReadySignalSenderThread.interrupt();
-                    pReadySignalSenderThread = null;
-
-                    // Start the forker watcher
-                    startWatcher();
-                }
-
-            } catch (Exception e) {
+            if (startForker() == null) {
                 pLoggerSvc.logSevere(this, "handleReceivedSignal",
-                        "Error starting the forker", e);
+                        "Can't start the forker.");
+
+            } else {
+                pLoggerSvc.logInfo(this, "handleReceivedSignal",
+                        "Forker started.");
+
+                // Start the forker watcher
+                startWatcher();
             }
+
+        } catch (Exception e) {
+            pLoggerSvc.logSevere(this, "handleReceivedSignal",
+                    "Error starting the forker", e);
         }
     }
 
@@ -282,12 +259,6 @@ public class CMasterManager extends CPojoBase implements
     @Override
     @Invalidate
     public void invalidatePojo() throws BundleException {
-
-        // Stop the signal sender
-        if (pReadySignalSenderThread != null) {
-            pReadySignalSenderThread.interrupt();
-            pReadySignalSenderThread = null;
-        }
 
         // Stop the watcher
         if (pForkerThread != null) {
@@ -460,9 +431,9 @@ public class CMasterManager extends CPojoBase implements
         // Register to the internal signal
         pSignalReceiver.registerListener(MASTER_MANAGER_READY_SIGNAL, this);
 
-        // Start the thread sending signal as needed
-        pReadySignalSenderThread = new ReadySignalSender(this, pForkerStarted);
-        pReadySignalSenderThread.start();
+        // Emit the start forker signal
+        pSignalEmitter.sendData(pPlatformDirsSvc.getIsolateId(),
+                MASTER_MANAGER_READY_SIGNAL, null);
 
         // logs in the bundle logger
         pLoggerSvc.logInfo(this, "validatePojo", "VALIDATE", toDescription());
