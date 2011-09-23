@@ -25,10 +25,12 @@ org.psem2m.isolates.base
 # iPOJO Stuffs
 include: ipojo.bundles
 
+# Signals Base (based on iPOJO)
+org.psem2m.signals
+
 # Shell stuffs
 org.apache.felix.shell
 org.apache.felix.shell.remote
-
 org.apache.felix.ipojo.arch
 
 # PSEM2M Extra Log services
