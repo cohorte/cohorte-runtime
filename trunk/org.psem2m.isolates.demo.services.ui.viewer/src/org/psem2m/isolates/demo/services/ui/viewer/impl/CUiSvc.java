@@ -10,16 +10,24 @@
  *******************************************************************************/
 package org.psem2m.isolates.demo.services.ui.viewer.impl;
 
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.base.activators.IIsolateLoggerSvc;
 import org.psem2m.isolates.demo.services.ui.viewer.IUiSvc;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
+import org.psem2m.isolates.slave.agent.ISvcAgent;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
 public class CUiSvc extends CPojoBase implements IUiSvc {
+
+    /**
+     * The window of the bundle
+     */
     private CFrameMain pFrameMain;
 
     /**
@@ -29,14 +37,22 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
      **/
     private IIsolateLoggerSvc pIsolateLoggerSvc;
 
-    /** Service reference managed by iPojo (see metadata.xml) **/
+    /**
+     * Service reference managed by iPojo (see metadata.xml)
+     **/
     private IPlatformDirsSvc pPlatformDirsSvc;
+
+    /**
+     * Service reference managed by iPojo (see metadata.xml)
+     */
+    private ISvcAgent pSvcAgent;
 
     /**
      * Explicit default constructor
      */
     public CUiSvc() {
-	super();
+
+        super();
     }
 
     /*
@@ -46,51 +62,65 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
      */
     @Override
     public void destroy() {
-	pIsolateLoggerSvc.logInfo(this, "destroy", "hasFrame=[%b]", hasFrame());
-	if (hasFrame()) {
-	    pFrameMain.dispose();
-	    pFrameMain = null;
-	}
+
+        pIsolateLoggerSvc.logInfo(this, "destroy", "hasFrame=[%b]", hasFrame());
+        if (hasFrame()) {
+            pFrameMain.dispose();
+            pFrameMain = null;
+        }
     }
 
     private boolean hasFrame() {
-	return pFrameMain != null;
+
+        return pFrameMain != null;
     }
 
     /**
-	 *
-	 */
+       *
+       */
     private void init() {
-	Runnable wRunnable = new Runnable() {
-	    /*
-	     * (non-Javadoc)
-	     * 
-	     * @see java.lang.Runnable#run()
-	     */
-	    @Override
-	    public void run() {
-		initFrame();
-	    }
-	};
-	new Thread(wRunnable, "initUiSvc").start();
-	// SwingUtilities.invokeLater(wRunnable);
+
+        Runnable wRunnable = new Runnable() {
+            /*
+             * (non-Javadoc)
+             * 
+             * @see java.lang.Runnable#run()
+             */
+            @Override
+            public void run() {
+
+                initFrame();
+            }
+        };
+        new Thread(wRunnable, "initUiSvc").start();
+        // SwingUtilities.invokeLater(wRunnable);
 
     }
 
     /**
-	 *
-	 */
+       *
+       */
     private void initFrame() {
-	try {
-	    pIsolateLoggerSvc.logInfo(this, "initFrame",
-		    "Create the frame [%s]", pPlatformDirsSvc.getIsolateId());
-	    pFrameMain = new CFrameMain();
-	    pFrameMain.setLocationRelativeTo(null);
-	    pFrameMain.setIsolateName(pPlatformDirsSvc.getIsolateId());
-	    pFrameMain.setVisible(true);
-	} catch (Exception e) {
-	    pIsolateLoggerSvc.logSevere(this, "init", e);
-	}
+
+        try {
+            pIsolateLoggerSvc.logInfo(this, "initFrame",
+                    "Create the frame [%s]", pPlatformDirsSvc.getIsolateId());
+            pFrameMain = new CFrameMain();
+            pFrameMain.setLocationRelativeTo(null);
+            pFrameMain.setIsolateName(pPlatformDirsSvc.getIsolateId());
+
+            pFrameMain.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(final WindowEvent we) {
+
+                    pSvcAgent.killIsolate();
+                }
+            });
+
+            pFrameMain.setVisible(true);
+        } catch (Exception e) {
+            pIsolateLoggerSvc.logSevere(this, "init", e);
+        }
     }
 
     /*
@@ -100,11 +130,12 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
      */
     @Override
     public void invalidatePojo() {
-	// logs in the bundle output
-	pIsolateLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
-		toDescription());
 
-	destroy();
+        // logs in the bundle output
+        pIsolateLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
+                toDescription());
+
+        destroy();
     }
 
     /*
@@ -114,11 +145,12 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
      */
     @Override
     public void validatePojo() {
-	// logs in the bundle output
-	pIsolateLoggerSvc.logInfo(this, "validatePojo", "VALIDATE",
-		toDescription());
 
-	init();
+        // logs in the bundle output
+        pIsolateLoggerSvc.logInfo(this, "validatePojo", "VALIDATE",
+                toDescription());
+
+        init();
     }
 
 }

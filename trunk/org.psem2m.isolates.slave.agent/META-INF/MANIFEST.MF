@@ -92,4 +92,5 @@ iPOJO-Components: instance { $component="isolates-slave-agent-logger-f
  undle" $return="boolean" $arguments="{long}" }method { $name="updateB
  undle" $return="boolean" $arguments="{long}" }method { $name="validat
  ePojo" }}}
+Export-Package: org.psem2m.isolates.slave.agent
 

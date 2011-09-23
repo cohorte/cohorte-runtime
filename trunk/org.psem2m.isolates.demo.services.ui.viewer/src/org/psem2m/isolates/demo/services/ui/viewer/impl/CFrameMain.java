@@ -2,107 +2,148 @@ package org.psem2m.isolates.demo.services.ui.viewer.impl;
 
 import java.awt.BorderLayout;
 
-import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.ListModel;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
 /**
- * This code was edited or generated using CloudGarden's Jigloo SWT/Swing GUI
- * Builder, which is free for non-commercial use. If Jigloo is being used
- * commercially (ie, by a corporation, company or business for any purpose
- * whatever) then you should purchase a license for each developer using Jigloo.
- * Please visit www.cloudgarden.com for details. Use of Jigloo implies
- * acceptance of these licensing terms. A COMMERCIAL LICENSE HAS NOT BEEN
- * PURCHASED FOR THIS MACHINE, SO JIGLOO OR THIS CODE CANNOT BE USED LEGALLY FOR
- * ANY CORPORATE OR COMMERCIAL PURPOSE.
+ * 
  */
 public class CFrameMain extends javax.swing.JFrame {
 
-	/**
+    /**
+     * @author ogattaz
+     * 
+     */
+    class MutableList extends JList {
+
+        private static final long serialVersionUID = 4547840131868565534L;
+
+        /**
+         * 
+         */
+        MutableList() {
+
+            super(new DefaultListModel());
+        }
+
+        /**
+         * @return
+         */
+        DefaultListModel getContents() {
+
+            return (DefaultListModel) getModel();
+        }
+    }
+
+    /**
 	 *
 	 */
-	private static final long serialVersionUID = -2939661125543649591L;
+    private static final long serialVersionUID = -2939661125543649591L;
 
-	/**
+    /**
 	 *
 	 */
-	private final static String TITLE_PREFIX = "psem2m - isolate view  - [%s]";
+    private final static String TITLE_PREFIX = "psem2m - isolate view  - [%s]";
 
-	/**
-	 * Auto-generated main method to display this JFrame
-	 */
-	public static void main(final String[] args) {
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				CFrameMain inst = new CFrameMain();
-				inst.setLocationRelativeTo(null);
-				inst.setVisible(true);
-			}
-		});
-	}
+    /**
+     * Auto-generated main method to display this JFrame
+     */
+    public static void main(final String[] args) {
 
-	private JList jList;
-	private JPanel jPanelPage;
-	private JScrollPane jScrollPaneList;
-	private JScrollPane jScrollPanePage;
-	private JSplitPane jSplitPaneMain;
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
 
-	/**
+                CFrameMain inst = new CFrameMain();
+                inst.setLocationRelativeTo(null);
+                inst.setVisible(true);
+            }
+        });
+    }
+
+    private MutableList jList;
+    private JPanel jPanelPage;
+    private JScrollPane jScrollPaneList;
+    private JScrollPane jScrollPanePage;
+    private JSplitPane jSplitPaneMain;
+    private JScrollPane scrollPane;
+
+    private JTabbedPane tabbedPane;
+    private JTextArea textArea;
+
+    /**
 	 *
 	 */
-	public CFrameMain() {
-		super();
-		initGUI();
-	}
+    public CFrameMain() {
 
-	/**
+        super();
+        initGUI();
+    }
+
+    /**
 	 *
 	 */
-	private void initGUI() {
-		try {
-			BorderLayout thisLayout = new BorderLayout();
-			setTitle("psem2m - isolate view");
-			getContentPane().setLayout(thisLayout);
-			this.setPreferredSize(new java.awt.Dimension(1000, 800));
-			setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-			{
-				jSplitPaneMain = new JSplitPane();
-				getContentPane().add(jSplitPaneMain, BorderLayout.CENTER);
-				{
-					jScrollPanePage = new JScrollPane();
-					jSplitPaneMain.add(jScrollPanePage, JSplitPane.RIGHT);
-					{
-						jPanelPage = new JPanel();
-						jScrollPanePage.setViewportView(jPanelPage);
-					}
-				}
-				{
-					jScrollPaneList = new JScrollPane();
-					jSplitPaneMain.add(jScrollPaneList, JSplitPane.LEFT);
-					{
-						ListModel jListModel = new DefaultComboBoxModel(
-								new String[] { "Item One", "Item Two",
-										"Item Three", "Item Four" });
-						jList = new JList();
-						jScrollPaneList.setViewportView(jList);
-						jList.setModel(jListModel);
-					}
-				}
-			}
-			pack();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+    private void initGUI() {
 
-	void setIsolateName(final String aIsolateName) {
-		setTitle(String.format(TITLE_PREFIX, aIsolateName));
-	}
+        try {
+            BorderLayout thisLayout = new BorderLayout();
+            setTitle("psem2m - isolate view");
+            getContentPane().setLayout(thisLayout);
+            this.setPreferredSize(new java.awt.Dimension(1000, 800));
+            setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+            {
+                tabbedPane = new JTabbedPane(SwingConstants.TOP);
+                getContentPane().add(tabbedPane, BorderLayout.CENTER);
+                jSplitPaneMain = new JSplitPane();
+                jSplitPaneMain.setOneTouchExpandable(true);
+                tabbedPane.addTab("Services", null, jSplitPaneMain, null);
+                {
+                    jScrollPanePage = new JScrollPane();
+                    jSplitPaneMain.add(jScrollPanePage, JSplitPane.RIGHT);
+                    {
+                        jPanelPage = new JPanel();
+                        jScrollPanePage.setViewportView(jPanelPage);
+                    }
+                }
+                jScrollPaneList = new JScrollPane();
+                jSplitPaneMain.add(jScrollPaneList, JSplitPane.LEFT);
+                jScrollPaneList.setViewportView(jList);
+                {
+                    scrollPane = new JScrollPane();
+                    tabbedPane.addTab("Log", null, scrollPane, null);
+                }
+                {
+                    textArea = new JTextArea();
+                    tabbedPane.addTab("Console", null, textArea, null);
+                }
+                jList = new MutableList();
+            }
+            {
+                jList.getContents().addElement("Item One");
+                // jList.getContents().addElement("Item One'");
+                // jList.getContents().removeElement("Item One'");
+            }
+
+            pack();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * @param aIsolateName
+     */
+    void setIsolateName(final String aIsolateName) {
+
+        setTitle(String.format(TITLE_PREFIX, aIsolateName));
+    }
 
 }
