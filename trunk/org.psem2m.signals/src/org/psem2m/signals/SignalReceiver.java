@@ -10,6 +10,8 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
@@ -49,6 +51,9 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver,
 
     /** Number of available providers */
     private int pNbProviders = 0;
+
+    /** Notification thread pool */
+    private ExecutorService pNotificationExecutor;
 
     /** On-line service property */
     @ServiceProperty(name = ISignalReceiver.PROPERTY_ONLINE, value = "false", mandatory = true)
@@ -116,10 +121,17 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver,
             }
         }
 
-        // Notify listeners (with a different lock, as other signals may come)
-        for (ISignalListener listener : signalListeners) {
-            listener.handleReceivedSignal(aSignalName, aSignalData);
-        }
+        // Notify listeners in another thread
+        pNotificationExecutor.execute(new Runnable() {
+
+            @Override
+            public void run() {
+
+                for (ISignalListener listener : signalListeners) {
+                    listener.handleReceivedSignal(aSignalName, aSignalData);
+                }
+            }
+        });
     }
 
     /*
@@ -140,6 +152,9 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver,
         synchronized (pListeners) {
             pListeners.clear();
         }
+
+        // Stop the executor
+        pNotificationExecutor.shutdown();
 
         pLogger.log(LogService.LOG_INFO, "Base Signal Receiver Gone");
     }
@@ -254,6 +269,9 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver,
     @Override
     @Validate
     public void validatePojo() throws BundleException {
+
+        // Set up the thread pool
+        pNotificationExecutor = Executors.newFixedThreadPool(1);
 
         pLogger.log(LogService.LOG_INFO, "Base Signal Receiver Ready");
     }

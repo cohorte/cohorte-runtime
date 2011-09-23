@@ -53,20 +53,21 @@ iPOJO-Components: instance { $component="org.psem2m.signals.SignalBroa
  e { $name="org.psem2m.isolates.services.remote.signals.ISignalListene
  r" }field { $name="pListeners" $type="java.util.Map" }field { $name="
  pLogger" $type="org.osgi.service.log.LogService" }field { $name="pNbP
- roviders" $type="int" }field { $name="pPropertyOnline" $type="boolean
- " }field { $name="pReceivers" $type="org.psem2m.isolates.services.rem
- ote.signals.ISignalReceptionProvider[]" }method { $name="bindProvider
- " $arguments="{org.psem2m.isolates.services.remote.signals.ISignalRec
- eptionProvider}" }method { $name="destroy" }method { $name="handleRec
- eivedSignal" $arguments="{java.lang.String,org.psem2m.isolates.servic
- es.remote.signals.ISignalData}" }method { $name="invalidatePojo" }met
- hod { $name="isOnline" $return="boolean" }method { $name="localRecept
- ion" $arguments="{java.lang.String,org.psem2m.isolates.services.remot
- e.signals.ISignalData}" }method { $name="registerListener" $arguments
- ="{java.lang.String,org.psem2m.isolates.services.remote.signals.ISign
- alListener}" }method { $name="unbindProvider" $arguments="{org.psem2m
- .isolates.services.remote.signals.ISignalReceptionProvider}" }method 
- { $name="unregisterListener" $arguments="{java.lang.String,org.psem2m
- .isolates.services.remote.signals.ISignalListener}" }method { $name="
- validatePojo" }}}
+ roviders" $type="int" }field { $name="pNotificationExecutor" $type="j
+ ava.util.concurrent.ExecutorService" }field { $name="pPropertyOnline"
+  $type="boolean" }field { $name="pReceivers" $type="org.psem2m.isolat
+ es.services.remote.signals.ISignalReceptionProvider[]" }method { $nam
+ e="bindProvider" $arguments="{org.psem2m.isolates.services.remote.sig
+ nals.ISignalReceptionProvider}" }method { $name="destroy" }method { $
+ name="handleReceivedSignal" $arguments="{java.lang.String,org.psem2m.
+ isolates.services.remote.signals.ISignalData}" }method { $name="inval
+ idatePojo" }method { $name="isOnline" $return="boolean" }method { $na
+ me="localReception" $arguments="{java.lang.String,org.psem2m.isolates
+ .services.remote.signals.ISignalData}" }method { $name="registerListe
+ ner" $arguments="{java.lang.String,org.psem2m.isolates.services.remot
+ e.signals.ISignalListener}" }method { $name="unbindProvider" $argumen
+ ts="{org.psem2m.isolates.services.remote.signals.ISignalReceptionProv
+ ider}" }method { $name="unregisterListener" $arguments="{java.lang.St
+ ring,org.psem2m.isolates.services.remote.signals.ISignalListener}" }m
+ ethod { $name="validatePojo" }}}
 
