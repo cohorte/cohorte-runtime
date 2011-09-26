@@ -6,7 +6,7 @@ package org.psem2m.isolates.slave.agent.core;
 import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -55,7 +55,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
     private GuardianThread pGuardianThread;
 
     /** Bundles installed by the agent : bundle ID -&gt; bundle description map */
-    private final Map<Long, IBundleDescr> pInstalledBundles = new HashMap<Long, IBundleDescr>();
+    private final Map<Long, IBundleDescr> pInstalledBundles = new LinkedHashMap<Long, IBundleDescr>();
 
     /** Isolate logger, injected by iPOJO */
     private IIsolateLoggerSvc pIsolateLoggerSvc;
@@ -247,8 +247,8 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
     @Override
     public void killIsolate() {
 
-        pIsolateLoggerSvc.logInfo(this, "killIsolate", "Kills this isolate [%s]",
-                pPlatformDirsSvc.getIsolateId());
+        pIsolateLoggerSvc.logInfo(this, "killIsolate",
+                "Kills this isolate [%s]", pPlatformDirsSvc.getIsolateId());
 
         // Neutralize the isolate
         neutralizeIsolate();
@@ -381,8 +381,9 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
                         default:
                             if (bundleDescr.getOptional()) {
                                 // Ignore error if the bundle is optional
-                                pIsolateLoggerSvc.logWarn(this, "prepareIsolate",
-                                        "Error installing ", bundleName, ex);
+                                pIsolateLoggerSvc.logWarn(this,
+                                        "prepareIsolate", "Error installing ",
+                                        bundleName, ex);
 
                             } else {
                                 // Propagate the exception
