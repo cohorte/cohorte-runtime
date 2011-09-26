@@ -36,7 +36,7 @@ public class FrameworkStarter {
 
     /** Name to use in logs */
     private static final String CLASS_LOG_NAME = FrameworkStarter.class
-	    .getSimpleName();
+            .getSimpleName();
 
     /** Default OSGi pFramework : Felix */
     public static final String DEFAULT_FRAMEWORKFACTORY = "org.apache.felix.framework.FrameworkFactory";
@@ -46,7 +46,7 @@ public class FrameworkStarter {
      * least with Equinox and Felix
      */
     public static final String SERVICE_FRAMEWORKFACTORY_RESOURCE = "META-INF/services/"
-	    + FrameworkFactory.class.getName();
+            + FrameworkFactory.class.getName();
 
     /** The bootstrap configuration */
     private final Map<String, String> pBootstrapConfiguration = new TreeMap<String, String>();
@@ -79,74 +79,74 @@ public class FrameworkStarter {
      *            OSGi framework configuration map
      */
     public FrameworkStarter(final IMessageSender aMessageSender,
-	    final Map<String, String> aBootstrapConfiguration,
-	    final Map<String, String> aFrameworkConfiguration) {
+            final Map<String, String> aBootstrapConfiguration,
+            final Map<String, String> aFrameworkConfiguration) {
 
-	// Set up the message sender
-	pMessageSender = aMessageSender;
+        // Set up the message sender
+        pMessageSender = aMessageSender;
 
-	// Create the bootstrap message sender service instance
-	pBootstrapService = new BootstrapMessageSender(pMessageSender);
+        // Create the bootstrap message sender service instance
+        pBootstrapService = new BootstrapMessageSender(pMessageSender);
 
-	// Prepare the configurations
-	if (aBootstrapConfiguration != null) {
-	    pBootstrapConfiguration.putAll(aBootstrapConfiguration);
-	}
+        // Prepare the configurations
+        if (aBootstrapConfiguration != null) {
+            pBootstrapConfiguration.putAll(aBootstrapConfiguration);
+        }
 
-	if (aFrameworkConfiguration != null) {
-	    pFrameworkConfiguration.putAll(aFrameworkConfiguration);
-	}
+        if (aFrameworkConfiguration != null) {
+            pFrameworkConfiguration.putAll(aFrameworkConfiguration);
+        }
 
-	// Flush the cache by default
-	if (!pFrameworkConfiguration.containsKey(Constants.FRAMEWORK_STORAGE)) {
+        // Flush the cache by default
+        if (!pFrameworkConfiguration.containsKey(Constants.FRAMEWORK_STORAGE)) {
 
-	    // Find an isolate ID
-	    String isolateId = pFrameworkConfiguration
-		    .get(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID);
-	    if (isolateId == null) {
-		System.getProperty(
-			IPlatformProperties.PROP_PLATFORM_ISOLATE_ID,
-			"unknown-isolate");
-	    }
+            // Find an isolate ID
+            String isolateId = pFrameworkConfiguration
+                    .get(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID);
+            if (isolateId == null) {
+                System.getProperty(
+                        IPlatformProperties.PROP_PLATFORM_ISOLATE_ID,
+                        "unknown-isolate");
+            }
 
-	    // Prepare the directory
-	    File frameworkCacheDirectory = new File(System.getProperty(
-		    IPlatformProperties.PROP_PLATFORM_BASE, "."), "var/work/"
-		    + isolateId);
+            // Prepare the directory
+            File frameworkCacheDirectory = new File(System.getProperty(
+                    IPlatformProperties.PROP_PLATFORM_BASE, "."), "var/work/"
+                    + isolateId);
 
-	    if (frameworkCacheDirectory.exists()) {
-		// Dump it ...
-		removeDirectory(frameworkCacheDirectory);
+            if (frameworkCacheDirectory.exists()) {
+                // Dump it ...
+                removeDirectory(frameworkCacheDirectory);
 
-	    } else {
-		// ... or create it if necessary
-		frameworkCacheDirectory.mkdirs();
-	    }
+            } else {
+                // ... or create it if necessary
+                frameworkCacheDirectory.mkdirs();
+            }
 
-	    // Set up the property
-	    pFrameworkConfiguration.put(Constants.FRAMEWORK_STORAGE,
-		    frameworkCacheDirectory.getAbsolutePath());
-	}
+            // Set up the property
+            pFrameworkConfiguration.put(Constants.FRAMEWORK_STORAGE,
+                    frameworkCacheDirectory.getAbsolutePath());
+        }
 
-	/*
-	 * Extra system package, to allow a dialog between bundles and the
-	 * bootstrap.
-	 * 
-	 * IMPORTANT: Use a package version greater than the one exported by
-	 * isolates.base, else it won't be imported when needed.
-	 * 
-	 * IMPORTANT 2: As isolates.base contains this package, it won't the one
-	 * we export here.
-	 */
-	pFrameworkConfiguration.put(Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA,
-		IBootstrapMessageSender.class.getPackage().getName()
-			+ "; version=1.0.1");
+        /*
+         * Extra system package, to allow a dialog between bundles and the
+         * bootstrap.
+         * 
+         * IMPORTANT: Use a package version greater than the one exported by
+         * isolates.base, else it won't be imported when needed.
+         * 
+         * IMPORTANT 2: As isolates.base contains this package, it won't the one
+         * we export here.
+         */
+        pFrameworkConfiguration.put(Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA,
+                IBootstrapMessageSender.class.getPackage().getName()
+                        + "; version=1.0.1");
 
-	// Force the system properties
-	for (Entry<String, String> property : pFrameworkConfiguration
-		.entrySet()) {
-	    System.setProperty(property.getKey(), property.getValue());
-	}
+        // Force the system properties
+        for (Entry<String, String> property : pFrameworkConfiguration
+                .entrySet()) {
+            System.setProperty(property.getKey(), property.getValue());
+        }
     }
 
     /*
@@ -156,28 +156,28 @@ public class FrameworkStarter {
      */
     public Framework createFramework() {
 
-	final FrameworkFactory factory = getFrameworkFactory();
-	if (factory == null) {
-	    // Could not find the factory
-	    return null;
-	}
+        final FrameworkFactory factory = getFrameworkFactory();
+        if (factory == null) {
+            // Could not find the factory
+            return null;
+        }
 
-	// Create the framework object
-	pFramework = factory.newFramework(pFrameworkConfiguration);
+        // Create the framework object
+        pFramework = factory.newFramework(pFrameworkConfiguration);
 
-	try {
-	    // Initializes the framework
-	    pFramework.init();
+        try {
+            // Initializes the framework
+            pFramework.init();
 
-	} catch (BundleException e) {
-	    pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
-		    "createFramework", "Framework inialization error", e);
+        } catch (BundleException e) {
+            pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
+                    "createFramework", "Framework inialization error", e);
 
-	    e.printStackTrace();
-	    pFramework = null;
-	}
+            e.printStackTrace();
+            pFramework = null;
+        }
 
-	return pFramework;
+        return pFramework;
     }
 
     /**
@@ -187,83 +187,83 @@ public class FrameworkStarter {
      */
     protected FrameworkFactory getFrameworkFactory() {
 
-	// The asked framework factory, can be null
-	final String osgiFramework = pBootstrapConfiguration
-		.get(IBootstrapConstants.CONFIG_FRAMEWORK);
+        // The asked framework factory, can be null
+        final String osgiFramework = pBootstrapConfiguration
+                .get(IBootstrapConstants.CONFIG_FRAMEWORK);
 
-	// Framework factory name
-	final String factoryName;
+        // Framework factory name
+        final String factoryName;
 
-	// Get the list of META-INF visible factories
-	final List<String> visibleFactories = getMetaInfFrameworkFactories();
+        // Get the list of META-INF visible factories
+        final List<String> visibleFactories = getMetaInfFrameworkFactories();
 
-	if (osgiFramework != null) {
+        if (osgiFramework != null) {
 
-	    if (visibleFactories.contains(osgiFramework)) {
-		// Given framework name was a real factory, so use it
-		factoryName = osgiFramework;
+            if (visibleFactories.contains(osgiFramework)) {
+                // Given framework name was a real factory, so use it
+                factoryName = osgiFramework;
 
-	    } else {
-		// Consider the given name as a part of a framework name (felix,
-		// equinox, ...)
-		final String lowerCaseOsgiFramework = osgiFramework
-			.toLowerCase();
+            } else {
+                // Consider the given name as a part of a framework name (felix,
+                // equinox, ...)
+                final String lowerCaseOsgiFramework = osgiFramework
+                        .toLowerCase();
 
-		String matchingFactory = null;
+                String matchingFactory = null;
 
-		for (String visibleFactory : visibleFactories) {
+                for (String visibleFactory : visibleFactories) {
 
-		    // Be case insensitive
-		    if (visibleFactory.toLowerCase().contains(
-			    lowerCaseOsgiFramework)) {
-			// Found it !
-			matchingFactory = visibleFactory;
-			break;
-		    }
-		}
+                    // Be case insensitive
+                    if (visibleFactory.toLowerCase().contains(
+                            lowerCaseOsgiFramework)) {
+                        // Found it !
+                        matchingFactory = visibleFactory;
+                        break;
+                    }
+                }
 
-		if (matchingFactory != null) {
-		    // We found something
-		    factoryName = matchingFactory;
+                if (matchingFactory != null) {
+                    // We found something
+                    factoryName = matchingFactory;
 
-		} else if (!visibleFactories.isEmpty()) {
-		    // Use the first factory found
-		    factoryName = visibleFactories.get(0);
+                } else if (!visibleFactories.isEmpty()) {
+                    // Use the first factory found
+                    factoryName = visibleFactories.get(0);
 
-		} else {
-		    // Try with the default name
-		    factoryName = DEFAULT_FRAMEWORKFACTORY;
-		}
-	    }
+                } else {
+                    // Try with the default name
+                    factoryName = DEFAULT_FRAMEWORKFACTORY;
+                }
+            }
 
-	} else if (!visibleFactories.isEmpty()) {
-	    // Use the first visible factory if we have no hint
-	    factoryName = visibleFactories.get(0);
+        } else if (!visibleFactories.isEmpty()) {
+            // Use the first visible factory if we have no hint
+            factoryName = visibleFactories.get(0);
 
-	} else {
-	    // Absolutely no factory is visible, try the default name
-	    factoryName = DEFAULT_FRAMEWORKFACTORY;
-	}
+        } else {
+            // Absolutely no factory is visible, try the default name
+            factoryName = DEFAULT_FRAMEWORKFACTORY;
+        }
 
-	// Find and instantiate the class
-	try {
-	    return (FrameworkFactory) Class.forName(factoryName).newInstance();
+        // Find and instantiate the class
+        try {
+            return (FrameworkFactory) Class.forName(factoryName).newInstance();
 
-	} catch (InstantiationException e) {
-	    pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
-		    "getFrameworkFactory", "Can't create a new instance", e);
+        } catch (InstantiationException e) {
+            pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
+                    "getFrameworkFactory", "Can't create a new instance", e);
 
-	} catch (IllegalAccessException e) {
-	    pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
-		    "getFrameworkFactory", "Illegal class access", e);
+        } catch (IllegalAccessException e) {
+            pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
+                    "getFrameworkFactory", "Illegal class access", e);
 
-	} catch (ClassNotFoundException e) {
-	    pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
-		    "getFrameworkFactory", "Factory class not found", e);
+        } catch (ClassNotFoundException e) {
+            pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
+                    "getFrameworkFactory", "Factory class not found", e);
 
-	}
+        }
 
-	return null;
+        return null;
     }
 
     /**
@@ -278,65 +278,65 @@ public class FrameworkStarter {
      */
     protected List<String> getMetaInfFrameworkFactories() {
 
-	// Prepare the result list
-	final List<String> factoriesNames = new ArrayList<String>();
+        // Prepare the result list
+        final List<String> factoriesNames = new ArrayList<String>();
 
-	// Get the current class loader
-	final ClassLoader classLoader = getClass().getClassLoader();
+        // Get the current class loader
+        final ClassLoader classLoader = getClass().getClassLoader();
 
-	// Find all resources
-	final Enumeration<URL> visibleServiceFiles;
-	try {
-	    visibleServiceFiles = classLoader
-		    .getResources(SERVICE_FRAMEWORKFACTORY_RESOURCE);
+        // Find all resources
+        final Enumeration<URL> visibleServiceFiles;
+        try {
+            visibleServiceFiles = classLoader
+                    .getResources(SERVICE_FRAMEWORKFACTORY_RESOURCE);
 
-	} catch (IOException ex) {
-	    pMessageSender.sendMessage(Level.WARNING, CLASS_LOG_NAME,
-		    "getMetaInfFrameworkFactories",
-		    "Can't load framework factory definitions", ex);
-	    return factoriesNames;
-	}
+        } catch (IOException ex) {
+            pMessageSender.sendMessage(Level.WARNING, CLASS_LOG_NAME,
+                    "getMetaInfFrameworkFactories",
+                    "Can't load framework factory definitions", ex);
+            return factoriesNames;
+        }
 
-	while (visibleServiceFiles.hasMoreElements()) {
+        while (visibleServiceFiles.hasMoreElements()) {
 
-	    final URL url = visibleServiceFiles.nextElement();
-	    BufferedReader rdr = null;
+            final URL url = visibleServiceFiles.nextElement();
+            BufferedReader rdr = null;
 
-	    try {
-		// Read the file, line by line
-		rdr = new BufferedReader(
-			new InputStreamReader(url.openStream()));
+            try {
+                // Read the file, line by line
+                rdr = new BufferedReader(
+                        new InputStreamReader(url.openStream()));
 
-		String line;
-		while ((line = rdr.readLine()) != null) {
-		    line = line.trim();
+                String line;
+                while ((line = rdr.readLine()) != null) {
+                    line = line.trim();
 
-		    // Ignore comments and empty lines
-		    if (!line.startsWith("#") && line.length() > 0) {
-			factoriesNames.add(line);
-		    }
-		}
+                    // Ignore comments and empty lines
+                    if (!line.startsWith("#") && line.length() > 0) {
+                        factoriesNames.add(line);
+                    }
+                }
 
-	    } catch (IOException ex) {
-		// Should never happen
-		pMessageSender.sendMessage(Level.WARNING, CLASS_LOG_NAME,
-			"getMetaInfFrameworkFactories",
-			"Error loading a factory definition file", ex);
+            } catch (IOException ex) {
+                // Should never happen
+                pMessageSender.sendMessage(Level.WARNING, CLASS_LOG_NAME,
+                        "getMetaInfFrameworkFactories",
+                        "Error loading a factory definition file", ex);
 
-	    } finally {
-		// Be nice and clean all
-		if (rdr != null) {
-		    try {
-			rdr.close();
+            } finally {
+                // Be nice and clean all
+                if (rdr != null) {
+                    try {
+                        rdr.close();
 
-		    } catch (IOException e) {
-			// Ignore error at this level...
-		    }
-		}
-	    }
-	}
+                    } catch (IOException e) {
+                        // Ignore error at this level...
+                    }
+                }
+            }
+        }
 
-	return factoriesNames;
+        return factoriesNames;
     }
 
     /**
@@ -344,9 +344,9 @@ public class FrameworkStarter {
      */
     protected void installBootstrapService() {
 
-	pFramework.getBundleContext().registerService(
-		IBootstrapMessageSender.class.getName(), pBootstrapService,
-		null);
+        pFramework.getBundleContext().registerService(
+                IBootstrapMessageSender.class.getName(), pBootstrapService,
+                null);
     }
 
     /*
@@ -358,23 +358,23 @@ public class FrameworkStarter {
      */
     public boolean installBundles(final URL[] aBundlesConfiguration) {
 
-	boolean success = true;
-	for (URL url : aBundlesConfiguration) {
-	    try {
-		pInstalledBundles.add(pFramework.getBundleContext()
-			.installBundle(url.toString()));
+        boolean success = true;
+        for (URL url : aBundlesConfiguration) {
+            try {
+                pInstalledBundles.add(pFramework.getBundleContext()
+                        .installBundle(url.toString()));
 
-	    } catch (BundleException e) {
-		pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
-			"installBundles", "Error installing bundle '" + url
-				+ "'", e);
+            } catch (BundleException e) {
+                pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
+                        "installBundles", "Error installing bundle '" + url
+                                + "'", e);
 
-		e.printStackTrace();
-		success = false;
-	    }
-	}
+                e.printStackTrace();
+                success = false;
+            }
+        }
 
-	return success;
+        return success;
     }
 
     /**
@@ -387,7 +387,7 @@ public class FrameworkStarter {
      */
     protected boolean isFragment(final Bundle aBundle) {
 
-	return aBundle.getHeaders().get(Constants.FRAGMENT_HOST) != null;
+        return aBundle.getHeaders().get(Constants.FRAGMENT_HOST) != null;
     }
 
     /**
@@ -398,16 +398,16 @@ public class FrameworkStarter {
      */
     protected void removeDirectory(final File aDirectory) {
 
-	File[] files = aDirectory.listFiles();
+        File[] files = aDirectory.listFiles();
 
-	for (File file : files) {
-	    if (file.isDirectory()) {
-		removeDirectory(file);
+        for (File file : files) {
+            if (file.isDirectory()) {
+                removeDirectory(file);
 
-	    }
+            }
 
-	    file.delete();
-	}
+            file.delete();
+        }
     }
 
     /*
@@ -419,10 +419,10 @@ public class FrameworkStarter {
      */
     public void setMessageSender(final IMessageSender aMessageSender) {
 
-	if (aMessageSender != null) {
-	    pMessageSender = aMessageSender;
-	    pBootstrapService.setMessageSender(pMessageSender);
-	}
+        if (aMessageSender != null) {
+            pMessageSender = aMessageSender;
+            pBootstrapService.setMessageSender(pMessageSender);
+        }
     }
 
     /*
@@ -432,36 +432,36 @@ public class FrameworkStarter {
      */
     public boolean startBundles() {
 
-	boolean success = true;
-	for (Bundle bundle : pInstalledBundles) {
-	    try {
+        boolean success = true;
+        for (Bundle bundle : pInstalledBundles) {
+            try {
 
-		if (isFragment(bundle)) {
-		    // Do nothing with fragments
-		    pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME,
-			    "startBundles", bundle.getSymbolicName()
-				    + " is a fragment.");
+                if (isFragment(bundle)) {
+                    // Do nothing with fragments
+                    pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME,
+                            "startBundles", bundle.getSymbolicName()
+                                    + " is a fragment.");
 
-		} else {
-		    // Start the bundle
-		    pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME,
-			    "startBundles",
-			    "Starting : " + bundle.getSymbolicName());
-		    bundle.start();
-		}
+                } else {
+                    // Start the bundle
+                    pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME,
+                            "startBundles",
+                            "Starting : " + bundle.getSymbolicName());
+                    bundle.start();
+                }
 
-	    } catch (BundleException e) {
-		pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
-			"startBundles",
-			"Error starting bundle : '" + bundle.getSymbolicName()
-				+ "'", e);
+            } catch (BundleException e) {
+                pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
+                        "startBundles",
+                        "Error starting bundle : '" + bundle.getSymbolicName()
+                                + "'", e);
 
-		e.printStackTrace();
-		success = false;
-	    }
-	}
+                e.printStackTrace();
+                success = false;
+            }
+        }
 
-	return success;
+        return success;
     }
 
     /*
@@ -471,17 +471,17 @@ public class FrameworkStarter {
      */
     public boolean startFramework() {
 
-	try {
-	    pFramework.start();
-	    return true;
+        try {
+            pFramework.start();
+            return true;
 
-	} catch (BundleException e) {
-	    pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
-		    "startFramework", "Error starting the framework", e);
-	    e.printStackTrace();
-	}
+        } catch (BundleException e) {
+            pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
+                    "startFramework", "Error starting the framework", e);
+            e.printStackTrace();
+        }
 
-	return false;
+        return false;
     }
 
     /*
@@ -491,23 +491,19 @@ public class FrameworkStarter {
      */
     public boolean stopFramework() {
 
-	if (pFramework.getState() != Bundle.ACTIVE) {
-	    // The framework is already in a non-active state
-	    return true;
-	}
+        try {
 
-	try {
-	    pFramework.stop();
-	    return true;
+            pFramework.stop();
+            return true;
 
-	} catch (BundleException e) {
-	    pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
-		    "stopFramework", "Error stopping the framework", e);
+        } catch (BundleException e) {
+            pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
+                    "stopFramework", "Error stopping the framework", e);
 
-	    e.printStackTrace();
-	}
+            e.printStackTrace();
+        }
 
-	return false;
+        return false;
     }
 
     /*
@@ -517,7 +513,7 @@ public class FrameworkStarter {
      */
     public boolean waitForStop(final int aTimeout) throws InterruptedException {
 
-	FrameworkEvent event = pFramework.waitForStop(aTimeout);
-	return event.getType() != FrameworkEvent.WAIT_TIMEDOUT;
+        FrameworkEvent event = pFramework.waitForStop(aTimeout);
+        return event.getType() != FrameworkEvent.WAIT_TIMEDOUT;
     }
 }

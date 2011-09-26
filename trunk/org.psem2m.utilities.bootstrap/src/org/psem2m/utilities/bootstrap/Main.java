@@ -53,8 +53,9 @@ public class Main {
      * @return The isolate ID
      */
     public static String getIsolateId() {
-	return System.getProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID,
-		"<unknown>");
+
+        return System.getProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID,
+                "<unknown>");
     }
 
     /**
@@ -65,8 +66,8 @@ public class Main {
      */
     public static void main(final String[] aArgs) {
 
-	// Read the arguments, open the streams
-	new Main(aArgs).run();
+        // Read the arguments, open the streams
+        new Main(aArgs).run();
     }
 
     /** Bootstrap configuration */
@@ -98,32 +99,32 @@ public class Main {
 
     /** The UI Thread work queue */
     private final BlockingQueue<Runnable> pUiWorkQueue = new LinkedBlockingQueue<Runnable>(
-	    1);
+            1);
 
     /**
      * Constructor : redirects output immediately
      */
     private Main(final String[] aArgs) {
 
-	prepareProperties();
+        prepareProperties();
 
-	// Read arguments
-	initializeFromArgs(aArgs);
+        // Read arguments
+        initializeFromArgs(aArgs);
 
-	// Store old output stream
-	pStandardOutput = System.out;
-	pErrorOutput = System.err;
+        // Store old output stream
+        pStandardOutput = System.out;
+        pErrorOutput = System.err;
 
-	// Prepare the output stream
-	openStreams();
+        // Prepare the output stream
+        openStreams();
 
-	// Prepare the message sender
-	pMessageSender = new MessageSender(pOutputStream);
-	pMessageSender.setHumanMode(pHumanOutput);
+        // Prepare the message sender
+        pMessageSender = new MessageSender(pOutputStream);
+        pMessageSender.setHumanMode(pHumanOutput);
 
-	pConfigurationReader = new ConfigurationReader(pMessageSender);
+        pConfigurationReader = new ConfigurationReader(pMessageSender);
 
-	redirectOutputs();
+        redirectOutputs();
     }
 
     /**
@@ -131,24 +132,24 @@ public class Main {
      */
     protected void closeStreams() {
 
-	// Reset system error (in any case)
-	System.setErr(pErrorOutput);
+        // Reset system error (in any case)
+        System.setErr(pErrorOutput);
 
-	if (pOutputStream != null) {
-	    try {
-		if (!pStandardOutput.equals(pOutputStream)) {
+        if (pOutputStream != null) {
+            try {
+                if (!pStandardOutput.equals(pOutputStream)) {
 
-		    // Reset System.out (or we will be stuck on close())
-		    System.setOut(pStandardOutput);
+                    // Reset System.out (or we will be stuck on close())
+                    System.setOut(pStandardOutput);
 
-		    // Avoid closing the stdout, or we'll be blocked here.
-		    pOutputStream.close();
-		}
+                    // Avoid closing the stdout, or we'll be blocked here.
+                    pOutputStream.close();
+                }
 
-	    } catch (IOException e) {
-		e.printStackTrace();
-	    }
-	}
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     /**
@@ -159,64 +160,64 @@ public class Main {
      */
     protected void initializeFromArgs(final String[] aArgs) {
 
-	CmdLineParser parser = new CmdLineParser();
+        CmdLineParser parser = new CmdLineParser();
 
-	/* Configuration input */
-	// Use a human output
-	Option humanOutputOpt = parser
-		.addBooleanOption(IBootstrapConstants.HUMAN_OUTPUT_FLAG);
+        /* Configuration input */
+        // Use a human output
+        Option humanOutputOpt = parser
+                .addBooleanOption(IBootstrapConstants.HUMAN_OUTPUT_FLAG);
 
-	// Help command
-	Option printHelpOpt = parser
-		.addBooleanOption(IBootstrapConstants.HELP_COMMAND);
+        // Help command
+        Option printHelpOpt = parser
+                .addBooleanOption(IBootstrapConstants.HELP_COMMAND);
 
-	// Parse the arguments
-	try {
-	    parser.parse(aArgs);
+        // Parse the arguments
+        try {
+            parser.parse(aArgs);
 
-	} catch (CmdLineParser.OptionException e) {
+        } catch (CmdLineParser.OptionException e) {
 
-	    // Fatal error : unrecognized option
-	    System.err.println(e.getMessage());
-	    printHelp();
-	    System.exit(1);
-	}
+            // Fatal error : unrecognized option
+            System.err.println(e.getMessage());
+            printHelp();
+            System.exit(1);
+        }
 
-	/* Handle options */
-	// Print help
-	if ((Boolean) parser.getOptionValue(printHelpOpt, false)) {
-	    printHelp();
-	    return;
-	}
+        /* Handle options */
+        // Print help
+        if ((Boolean) parser.getOptionValue(printHelpOpt, false)) {
+            printHelp();
+            return;
+        }
 
-	// Set the human output flag
-	pHumanOutput = (Boolean) parser.getOptionValue(humanOutputOpt, false);
+        // Set the human output flag
+        pHumanOutput = (Boolean) parser.getOptionValue(humanOutputOpt, false);
 
-	/* Use pending arguments */
-	String[] remainingArgs = parser.getRemainingArgs();
-	for (String argument : remainingArgs) {
+        /* Use pending arguments */
+        String[] remainingArgs = parser.getRemainingArgs();
+        for (String argument : remainingArgs) {
 
-	    String[] property = normalizeArgument(argument);
+            String[] property = normalizeArgument(argument);
 
-	    if (property[0]
-		    .startsWith(IBootstrapConstants.BOOTSTRAP_PROPERTY_PREFIX)) {
-		// Put it directly in the bootstrap properties
-		pBootstrapConfiguration.put(property[0], property[1]);
+            if (property[0]
+                    .startsWith(IBootstrapConstants.BOOTSTRAP_PROPERTY_PREFIX)) {
+                // Put it directly in the bootstrap properties
+                pBootstrapConfiguration.put(property[0], property[1]);
 
-	    } else {
-		// Put it directly in the other properties
-		pOtherConfiguration.put(property[0], property[1]);
+            } else {
+                // Put it directly in the other properties
+                pOtherConfiguration.put(property[0], property[1]);
 
-		/*
-		 * Set immediately system properties (to allow the
-		 * PSEM2M_HOME/BASE resolution)
-		 */
-		if (property[0]
-			.startsWith(IBootstrapConstants.PLATFORM_PROPERTY_PREFIX)) {
-		    System.setProperty(property[0], property[1]);
-		}
-	    }
-	}
+                /*
+                 * Set immediately system properties (to allow the
+                 * PSEM2M_HOME/BASE resolution)
+                 */
+                if (property[0]
+                        .startsWith(IBootstrapConstants.PLATFORM_PROPERTY_PREFIX)) {
+                    System.setProperty(property[0], property[1]);
+                }
+            }
+        }
     }
 
     /**
@@ -230,30 +231,30 @@ public class Main {
      */
     protected String[] normalizeArgument(final String aArg) {
 
-	String[] result = new String[2];
+        String[] result = new String[2];
 
-	if (aArg == null) {
-	    // Never return null
-	    result[0] = "";
-	    result[1] = null;
+        if (aArg == null) {
+            // Never return null
+            result[0] = "";
+            result[1] = null;
 
-	} else {
-	    // Prepare the argument, maybe its value
-	    String argument = aArg;
-	    String value = null;
+        } else {
+            // Prepare the argument, maybe its value
+            String argument = aArg;
+            String value = null;
 
-	    // Extract value, if any
-	    int valueIndex = argument.indexOf('=');
-	    if (valueIndex != -1) {
-		value = argument.substring(valueIndex + 1);
-		argument = argument.substring(0, valueIndex);
-	    }
+            // Extract value, if any
+            int valueIndex = argument.indexOf('=');
+            if (valueIndex != -1) {
+                value = argument.substring(valueIndex + 1);
+                argument = argument.substring(0, valueIndex);
+            }
 
-	    result[0] = argument;
-	    result[1] = value;
-	}
+            result[0] = argument;
+            result[1] = value;
+        }
 
-	return result;
+        return result;
     }
 
     /**
@@ -261,39 +262,40 @@ public class Main {
      */
     protected void openStreams() {
 
-	if (pHumanOutput) {
-	    pOutputStream = System.out;
+        if (pHumanOutput) {
+            pOutputStream = System.out;
 
-	} else {
-	    try {
-		pOutputStream = new ObjectOutputStream(pStandardOutput);
+        } else {
+            try {
+                pOutputStream = new ObjectOutputStream(pStandardOutput);
 
-	    } catch (IOException e) {
-		e.printStackTrace();
-	    }
-	}
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     /**
      * Prepares bootstrap and other properties from the system properties
      */
     protected void prepareProperties() {
-	// Put bootstrap system properties into the map
-	for (Entry<Object, Object> property : System.getProperties().entrySet()) {
 
-	    final String strKey = String.valueOf(property.getKey());
-	    if (strKey
-		    .startsWith(IBootstrapConstants.BOOTSTRAP_PROPERTY_PREFIX)) {
+        // Put bootstrap system properties into the map
+        for (Entry<Object, Object> property : System.getProperties().entrySet()) {
 
-		final Object value = property.getValue();
-		if (value != null) {
-		    pBootstrapConfiguration.put(strKey,
-			    String.valueOf(property.getValue()));
-		}
-	    } else {
-		pOtherConfiguration.put(strKey, (String) property.getValue());
-	    }
-	}
+            final String strKey = String.valueOf(property.getKey());
+            if (strKey
+                    .startsWith(IBootstrapConstants.BOOTSTRAP_PROPERTY_PREFIX)) {
+
+                final Object value = property.getValue();
+                if (value != null) {
+                    pBootstrapConfiguration.put(strKey,
+                            String.valueOf(property.getValue()));
+                }
+            } else {
+                pOtherConfiguration.put(strKey, (String) property.getValue());
+            }
+        }
     }
 
     /**
@@ -303,18 +305,18 @@ public class Main {
      */
     public StringBuilder printHelp() {
 
-	StringBuilder builder = new StringBuilder();
-	builder.append("\nPSEM2M Bootstrap Options :\n");
+        StringBuilder builder = new StringBuilder();
+        builder.append("\nPSEM2M Bootstrap Options :\n");
 
-	builder.append("\t --" + IBootstrapConstants.HELP_COMMAND
-		+ " : Prints this help\n");
+        builder.append("\t --" + IBootstrapConstants.HELP_COMMAND
+                + " : Prints this help\n");
 
-	builder.append("\t --"
-		+ IBootstrapConstants.HUMAN_OUTPUT_FLAG
-		+ " : Output in a human readable mode (default: serialized mode)\n");
+        builder.append("\t --"
+                + IBootstrapConstants.HUMAN_OUTPUT_FLAG
+                + " : Output in a human readable mode (default: serialized mode)\n");
 
-	System.out.println(builder);
-	return builder;
+        System.out.println(builder);
+        return builder;
     }
 
     /**
@@ -326,8 +328,8 @@ public class Main {
      */
     protected URL[] readConfiguration() throws IOException {
 
-	// Line by line data
-	return pConfigurationReader.readConfiguration();
+        // Line by line data
+        return pConfigurationReader.readConfiguration();
     }
 
     /**
@@ -335,20 +337,20 @@ public class Main {
      */
     protected void redirectOutputs() {
 
-	// New output streams
-	RedirectedOutputStream fakeOutputStream = new RedirectedOutputStream(
-		pMessageSender, Level.INFO, "stdout");
+        // New output streams
+        RedirectedOutputStream fakeOutputStream = new RedirectedOutputStream(
+                pMessageSender, Level.INFO, "stdout");
 
-	RedirectedOutputStream fakeErrorStream = new RedirectedOutputStream(
-		pMessageSender, Level.WARNING, "stderr");
+        RedirectedOutputStream fakeErrorStream = new RedirectedOutputStream(
+                pMessageSender, Level.WARNING, "stderr");
 
-	// Replace standard output
-	PrintStream fakeOutput = new PrintStream(fakeOutputStream, true);
-	System.setOut(fakeOutput);
+        // Replace standard output
+        PrintStream fakeOutput = new PrintStream(fakeOutputStream, true);
+        System.setOut(fakeOutput);
 
-	// Replace standard error output
-	fakeOutput = new PrintStream(fakeErrorStream, true);
-	System.setErr(fakeOutput);
+        // Replace standard error output
+        fakeOutput = new PrintStream(fakeErrorStream, true);
+        System.setErr(fakeOutput);
     }
 
     /**
@@ -366,55 +368,57 @@ public class Main {
      */
     protected AtomicBoolean registerUIThreadService(final Framework aFramework) {
 
-	// Get the framework system bundle context
-	final BundleContext frameworkContext = aFramework.getBundleContext();
+        // Get the framework system bundle context
+        final BundleContext frameworkContext = aFramework.getBundleContext();
 
-	// Set up the service properties
-	final Properties mainThreadExecutorProps = new Properties();
-	mainThreadExecutorProps.put("thread", "main");
-	mainThreadExecutorProps.put(Constants.SERVICE_RANKING,
-		Integer.valueOf(-1000));
+        // Set up the service properties
+        final Properties mainThreadExecutorProps = new Properties();
+        mainThreadExecutorProps.put("thread", "main");
+        mainThreadExecutorProps.put(Constants.SERVICE_RANKING,
+                Integer.valueOf(-1000));
 
-	// Prepare the service instance
-	final Executor mainThreadExecutor = new Executor() {
-	    @Override
-	    public void execute(final Runnable command) {
-		pMessageSender.sendMessage(Level.FINEST, "UI-Executor",
-			"execute", "Executor enqueuing a new task");
+        // Prepare the service instance
+        final Executor mainThreadExecutor = new Executor() {
+            @Override
+            public void execute(final Runnable command) {
 
-		// add() will throw an exception if the queue is full, which is
-		// what we want
-		pUiWorkQueue.add(command);
-	    }
-	};
+                pMessageSender.sendMessage(Level.FINEST, "UI-Executor",
+                        "execute", "Executor enqueuing a new task");
 
-	// Register the executor
-	frameworkContext.registerService(Executor.class.getName(),
-		mainThreadExecutor, mainThreadExecutorProps);
+                // add() will throw an exception if the queue is full, which is
+                // what we want
+                pUiWorkQueue.add(command);
+            }
+        };
 
-	// Shutdown flag
-	final AtomicBoolean shutdown = new AtomicBoolean(false);
-	final Thread mainThread = Thread.currentThread();
+        // Register the executor
+        frameworkContext.registerService(Executor.class.getName(),
+                mainThreadExecutor, mainThreadExecutorProps);
 
-	/*
-	 * Create a bundle listener that will pull us out of the queue polling
-	 * loop when the system bundle starts to shutdown
-	 */
-	frameworkContext.addBundleListener(new SynchronousBundleListener() {
-	    @Override
-	    public void bundleChanged(final BundleEvent event) {
-		if (event.getBundle().getBundleId() == 0
-			&& event.getType() == BundleEvent.STOPPING) {
+        // Shutdown flag
+        final AtomicBoolean shutdown = new AtomicBoolean(false);
+        final Thread mainThread = Thread.currentThread();
 
-		    pMessageSender.sendMessage(Level.INFO, "UI-Executor",
-			    "bundleChanged", "Main bundle is stopping");
-		    shutdown.set(true);
-		    mainThread.interrupt();
-		}
-	    }
-	});
+        /*
+         * Create a bundle listener that will pull us out of the queue polling
+         * loop when the system bundle starts to shutdown
+         */
+        frameworkContext.addBundleListener(new SynchronousBundleListener() {
+            @Override
+            public void bundleChanged(final BundleEvent event) {
 
-	return shutdown;
+                if (event.getBundle().getBundleId() == 0
+                        && event.getType() == BundleEvent.STOPPING) {
+
+                    pMessageSender.sendMessage(Level.INFO, "UI-Executor",
+                            "bundleChanged", "Main bundle is stopping");
+                    shutdown.set(true);
+                    mainThread.interrupt();
+                }
+            }
+        });
+
+        return shutdown;
     }
 
     /**
@@ -422,91 +426,91 @@ public class Main {
      */
     public void run() {
 
-	// Read the bundles list and run the bootstrap
-	URL[] bundleConfiguration;
-	try {
-	    bundleConfiguration = readConfiguration();
+        // Read the bundles list and run the bootstrap
+        URL[] bundleConfiguration;
+        try {
+            bundleConfiguration = readConfiguration();
 
-	} catch (IOException e) {
-	    e.printStackTrace();
-	    System.exit(1);
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
 
-	    // Avoids compilation warning
-	    return;
-	}
+            // Avoids compilation warning
+            return;
+        }
 
-	// Test bundle files
-	if (!testBundles(bundleConfiguration)) {
-	    System.exit(1);
+        // Test bundle files
+        if (!testBundles(bundleConfiguration)) {
+            System.exit(1);
 
-	    // Avoids compilation warning
-	    return;
-	}
+            // Avoids compilation warning
+            return;
+        }
 
-	// Run the framework...
-	try {
-	    // Prepare the thread
-	    pFrameworkStarterThread = new FrameworkStarterThread(
-		    pMessageSender, pBootstrapConfiguration,
-		    pOtherConfiguration);
+        // Run the framework...
+        try {
+            // Prepare the thread
+            pFrameworkStarterThread = new FrameworkStarterThread(
+                    pMessageSender, pBootstrapConfiguration,
+                    pOtherConfiguration);
 
-	    // Prepare the framework (without starting it)
-	    final Framework framework = pFrameworkStarterThread
-		    .prepareFramework();
+            // Prepare the framework (without starting it)
+            final Framework framework = pFrameworkStarterThread
+                    .prepareFramework();
 
-	    // Register the UI service
-	    final AtomicBoolean shutdown = registerUIThreadService(framework);
-	    final Bundle frameworkBundle = framework.getBundleContext()
-		    .getBundle();
+            // Register the UI service
+            final AtomicBoolean shutdown = registerUIThreadService(framework);
+            final Bundle frameworkBundle = framework.getBundleContext()
+                    .getBundle();
 
-	    // Run the beast
-	    pFrameworkStarterThread.runBootstrap(bundleConfiguration);
+            // Run the beast
+            pFrameworkStarterThread.runBootstrap(bundleConfiguration);
 
-	    // Start the framework activity thread
-	    pFrameworkStarterThread.start();
+            // Start the framework activity thread
+            pFrameworkStarterThread.start();
 
-	    // Enter a loop to poll on the work queue
-	    while (!shutdown.get()
-		    && frameworkBundle.getState() == Bundle.ACTIVE) {
-		try {
-		    Runnable work = pUiWorkQueue.poll(3, TimeUnit.SECONDS);
-		    if (work != null) {
-			pMessageSender.sendMessage(Level.FINEST, "UI-Executor",
-				"Work-loop",
-				"Main thread received a work task, executing.");
+            // Enter a loop to poll on the work queue
+            while (!shutdown.get()
+                    && frameworkBundle.getState() == Bundle.ACTIVE) {
+                try {
+                    Runnable work = pUiWorkQueue.poll(3, TimeUnit.SECONDS);
+                    if (work != null) {
+                        pMessageSender.sendMessage(Level.FINEST, "UI-Executor",
+                                "Work-loop",
+                                "Main thread received a work task, executing.");
 
-			work.run();
-		    }
+                        work.run();
+                    }
 
-		} catch (InterruptedException e) {
-		    pMessageSender.sendMessage(Level.FINEST, "UI-Executor",
-			    "Work-loop",
-			    "Main thread interrupted. End of the world.");
-		}
-	    }
+                } catch (InterruptedException e) {
+                    pMessageSender.sendMessage(Level.FINEST, "UI-Executor",
+                            "Work-loop",
+                            "Main thread interrupted. End of the world.");
+                }
+            }
 
-	    // Interrupt the framework starter
-	    pFrameworkStarterThread.interrupt();
+            // Interrupt the framework starter
+            pFrameworkStarterThread.join(5000);
 
-	    // Clear the interrupted state if it was uncaught during the above
-	    // loop
-	    Thread.interrupted();
+            // Clear the interrupted state if it was uncaught during the above
+            // loop
+            Thread.interrupted();
 
-	} catch (Exception ex) {
+        } catch (Exception ex) {
 
-	    pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
-		    "runBootstrap", "Can't start the framework thread", ex);
+            pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
+                    "runBootstrap", "Can't start the framework thread", ex);
 
-	    if (pFrameworkStarterThread != null) {
-		pFrameworkStarterThread.stopFramework();
-	    }
-	}
+            if (pFrameworkStarterThread != null) {
+                pFrameworkStarterThread.stopFramework();
+            }
+        }
 
-	// Close the streams before exit
-	closeStreams();
+        // Close the streams before exit
+        closeStreams();
 
-	// Exit in any case (do not wait for non-daemon threads)
-	System.exit(0);
+        // Exit in any case (do not wait for non-daemon threads)
+        System.exit(0);
     }
 
     /**
@@ -518,41 +522,41 @@ public class Main {
      */
     public boolean testBundles(final URL[] aBundleUrlArray) {
 
-	if (aBundleUrlArray == null || aBundleUrlArray.length == 0) {
-	    pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
-		    "testBundles", "No bundle in the configuration array");
+        if (aBundleUrlArray == null || aBundleUrlArray.length == 0) {
+            pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
+                    "testBundles", "No bundle in the configuration array");
 
-	    return false;
-	}
+            return false;
+        }
 
-	// The file: protocol prefix
-	final String fileProtocol = "file";
+        // The file: protocol prefix
+        final String fileProtocol = "file";
 
-	for (URL bundleUrl : aBundleUrlArray) {
+        for (URL bundleUrl : aBundleUrlArray) {
 
-	    if (!fileProtocol.equalsIgnoreCase(bundleUrl.getProtocol())) {
-		// Ignore non file: URLs
-		continue;
-	    }
+            if (!fileProtocol.equalsIgnoreCase(bundleUrl.getProtocol())) {
+                // Ignore non file: URLs
+                continue;
+            }
 
-	    try {
-		File bundleFile = new File(bundleUrl.toURI());
-		if (!bundleFile.isFile()) {
-		    pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
-			    "testBundles", "Bundle not found : '" + bundleUrl
-				    + "'");
+            try {
+                File bundleFile = new File(bundleUrl.toURI());
+                if (!bundleFile.isFile()) {
+                    pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
+                            "testBundles", "Bundle not found : '" + bundleUrl
+                                    + "'");
 
-		    return false;
-		}
+                    return false;
+                }
 
-	    } catch (URISyntaxException e) {
-		// Just print a warning
-		pMessageSender.sendMessage(Level.WARNING, CLASS_LOG_NAME,
-			"testBundles", "Bad URI : '" + bundleUrl + "'");
-	    }
+            } catch (URISyntaxException e) {
+                // Just print a warning
+                pMessageSender.sendMessage(Level.WARNING, CLASS_LOG_NAME,
+                        "testBundles", "Bad URI : '" + bundleUrl + "'");
+            }
 
-	}
+        }
 
-	return true;
+        return true;
     }
 }
