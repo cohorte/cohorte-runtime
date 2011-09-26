@@ -360,17 +360,14 @@ public class Psem2mTab extends AbstractLaunchConfigurationTab {
 				pExportedBundlesPath);
 
 		// Debuggers count
-		setConfiguredText(
-				aConfiguration,
+		setConfiguredInteger(aConfiguration,
 				IRunnerConfigurationConstants.DEBUG_COUNT,
-				Integer.toString(IRunnerConfigurationConstants.DEFAULT_DEBUG_COUNT),
-				pNbDebuggers);
+				IRunnerConfigurationConstants.DEFAULT_DEBUG_COUNT, pNbDebuggers);
 
 		// Base remote debug port
-		setConfiguredText(
-				aConfiguration,
+		setConfiguredInteger(aConfiguration,
 				IRunnerConfigurationConstants.DEBUG_PORT,
-				Integer.toString(IRunnerConfigurationConstants.DEFAULT_DEBUG_PORT),
+				IRunnerConfigurationConstants.DEFAULT_DEBUG_PORT,
 				pBaseDebugPort);
 	}
 
@@ -414,8 +411,37 @@ public class Psem2mTab extends AbstractLaunchConfigurationTab {
 
 	/**
 	 * Sets the text field content using the given configuration or the default
-	 * value. If the default value is null, {@link IMakefileConstants#UNDEFINED}
-	 * is used.
+	 * value.
+	 * 
+	 * @param aConfiguration
+	 *            Launch configuration to be used
+	 * @param aConfigurationKey
+	 *            Text field key in the launch configuration
+	 * @param aDefaultValue
+	 *            Value to be used if the text field key is not present
+	 * @param aTextField
+	 *            Target text field
+	 */
+	protected void setConfiguredInteger(
+			final ILaunchConfiguration aConfiguration,
+			final String aConfigurationKey, final int aDefaultValue,
+			final Text aTextField) {
+
+		int value;
+		try {
+			value = aConfiguration.getAttribute(aConfigurationKey,
+					aDefaultValue);
+
+		} catch (CoreException e) {
+			value = aDefaultValue;
+		}
+
+		aTextField.setText(Integer.toString(value));
+	}
+
+	/**
+	 * Sets the text field content using the given configuration or the default
+	 * value.
 	 * 
 	 * @param aConfiguration
 	 *            Launch configuration to be used
