@@ -14,18 +14,20 @@ import org.osgi.framework.BundleException;
 import org.osgi.service.log.LogService;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.base.isolates.IForkerHandler;
-import org.psem2m.isolates.base.isolates.IIsolateHandler;
 import org.psem2m.isolates.base.isolates.IIsolateStatusEventListener;
 import org.psem2m.isolates.base.isolates.boot.IsolateStatus;
+import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.constants.ISignalsConstants;
 import org.psem2m.isolates.services.conf.IIsolateDescr;
 import org.psem2m.isolates.services.conf.ISvcConfig;
+import org.psem2m.isolates.services.forker.IForker;
+import org.psem2m.isolates.services.forker.IForker.EStartError;
 import org.psem2m.isolates.services.remote.signals.ISignalData;
 import org.psem2m.isolates.services.remote.signals.ISignalListener;
 import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
 
 /**
- * Core monitor logic, based on ForkerStarter and IsolateStarter
+ * Core monitor logic, based on IForkerStarter and IForker
  * 
  * @author Thomas Calmant
  */
@@ -42,19 +44,19 @@ public class MonitorCore extends CPojoBase implements
     @Requires(id = "forker-handler", optional = true)
     private IForkerHandler pForkerHandler;
 
-    /** Isolate starter service */
-    @Requires(id = "isolate-handler", optional = true)
-    private IIsolateHandler pIsolateHandler;
+    /** The forker service */
+    @Requires(id = "forker-service", optional = true)
+    private IForker pForkerSvc;
 
     /** Log service */
     @Requires
     private LogService pLogger;
 
     /** TODO Forker handler presence property */
-    private boolean pPropertyForker = false;
+    private boolean pPropertyForkerHandlerPresent = false;
 
-    /** TODO Forker handler presence property */
-    private boolean pPropertyIsolate = false;
+    /** TODO Forker service presence property */
+    private boolean pPropertyForkerPresent = false;
 
     /**
      * Default constructor
@@ -73,24 +75,45 @@ public class MonitorCore extends CPojoBase implements
     @Bind(id = "forker-handler")
     protected void bindForkerHandler(final IForkerHandler aForkerHandler) {
 
-        pPropertyForker = true;
+        pPropertyForkerHandlerPresent = true;
         aForkerHandler.registerIsolateEventListener(this);
 
         // Immediately try to start the forker
-        startForker();
+        aForkerHandler.startForker();
     }
 
     /**
-     * Called by iPOJO when an isolate handler is bound
+     * Called by iPOJO when a forker service is bound.
      * 
-     * @param aIsolateHandler
-     *            An isolate handler
+     * @param aForker
+     *            A forker service
      */
-    @Bind(id = "isolate-handler")
-    protected void bindIsolateHandler(final IIsolateHandler aIsolateHandler) {
+    @Bind(id = "forker-service")
+    protected void bindForkerService(final IForker aForker) {
 
-        pPropertyIsolate = true;
-        aIsolateHandler.registerIsolateEventListener(this);
+        // Update the service state
+        pPropertyForkerPresent = true;
+
+        // Get the current isolate ID, to avoid running ourselves
+        final String currentIsolateId = System
+                .getProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID);
+
+        for (String isolateId : pConfiguration.getApplication().getIsolateIds()) {
+
+            if (isolateId.equals(currentIsolateId)) {
+                // Do not start ourselves
+                continue;
+
+            } else if (isolateId
+                    .equals(IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER)) {
+                // Do not start the forker that way
+                continue;
+
+            } else {
+                // Start the damn thing
+                startIsolate(isolateId);
+            }
+        }
     }
 
     /**
@@ -117,6 +140,21 @@ public class MonitorCore extends CPojoBase implements
         // ...
     }
 
+    /**
+     * Handles forker status messages
+     * 
+     * @param aIsolateStatus
+     *            A forker isolate status
+     */
+    protected void handleForkerStatus(final IsolateStatus aIsolateStatus) {
+
+        if (pPropertyForkerHandlerPresent
+                && aIsolateStatus.getState() == IsolateStatus.STATE_FAILURE) {
+
+            pForkerHandler.startForker();
+        }
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -127,7 +165,26 @@ public class MonitorCore extends CPojoBase implements
     @Override
     public void handleIsolateStatusEvent(final IsolateStatus aIsolateStatus) {
 
-        System.out.println("MonitorCore received status : " + aIsolateStatus);
+        final String sourceIsolateId = aIsolateStatus.getIsolateId();
+
+        if (IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER
+                .equals(sourceIsolateId)) {
+
+            // The forker is a special case
+            handleForkerStatus(aIsolateStatus);
+
+        } else {
+
+            if (aIsolateStatus.getState() == IsolateStatus.STATE_FAILURE) {
+                // Normal isolate handling : when it fails, restart it
+                startIsolate(sourceIsolateId);
+
+            } else {
+                // Simply log
+                System.out.println("MonitorCore received status : "
+                        + aIsolateStatus);
+            }
+        }
     }
 
     /*
@@ -141,8 +198,10 @@ public class MonitorCore extends CPojoBase implements
     public void handleReceivedSignal(final String aSignalName,
             final ISignalData aSignalData) {
 
-        if (aSignalData instanceof IsolateStatus) {
-            handleIsolateStatusEvent((IsolateStatus) aSignalData);
+        // Test if the signal content is an isolate status
+        final Object signalContent = aSignalData.getSignalContent();
+        if (signalContent instanceof IsolateStatus) {
+            handleIsolateStatusEvent((IsolateStatus) signalContent);
         }
     }
 
@@ -158,37 +217,6 @@ public class MonitorCore extends CPojoBase implements
     }
 
     /**
-     * Starts the forker, using the forker handler
-     * 
-     * @return True on success, false on error
-     */
-    protected boolean startForker() {
-
-        if (!pPropertyForker) {
-            // No forker service
-            return false;
-        }
-
-        return pForkerHandler.startForker();
-    }
-
-    /**
-     * Starts the given isolate description
-     * 
-     * @param aIsolateDescr
-     *            An isolate description
-     * @return True on success, false on error
-     */
-    protected boolean startIsolate(final IIsolateDescr aIsolateDescr) {
-
-        if (!pPropertyIsolate) {
-            return false;
-        }
-
-        return pIsolateHandler.startIsolate(aIsolateDescr, false);
-    }
-
-    /**
      * Starts the given isolate
      * 
      * @param aIsolateId
@@ -196,6 +224,11 @@ public class MonitorCore extends CPojoBase implements
      * @return True on success, false on error
      */
     protected boolean startIsolate(final String aIsolateId) {
+
+        if (!pPropertyForkerPresent) {
+            // No forker service
+            return false;
+        }
 
         if (aIsolateId == null) {
             // Invalid ID
@@ -209,7 +242,28 @@ public class MonitorCore extends CPojoBase implements
             return false;
         }
 
-        return startIsolate(isolateDescr);
+        final EStartError result = pForkerSvc.startIsolate(isolateDescr);
+
+        // Success if the isolate is running (even if we done nothing)
+        return result == EStartError.SUCCESS
+                || result == EStartError.ALREADY_RUNNING;
+    }
+
+    /**
+     * Asks the forker service to stop the given isolate.
+     * 
+     * @param aIsolateId
+     *            The ID of the isolate to stop
+     * @return True if the forker was called.
+     */
+    protected boolean stopIsolate(final String aIsolateId) {
+
+        if (!pPropertyForkerPresent) {
+            return false;
+        }
+
+        pForkerSvc.stopIsolate(aIsolateId);
+        return true;
     }
 
     /**
@@ -221,21 +275,21 @@ public class MonitorCore extends CPojoBase implements
     @Unbind(id = "forker-handler")
     protected void unbindForkerHandler(final IForkerHandler aForkerHandler) {
 
-        pPropertyForker = false;
+        pPropertyForkerHandlerPresent = false;
         aForkerHandler.unregisterIsolateEventListener(this);
     }
 
     /**
-     * Called by iPOJO when the isolate handler is gone
+     * Called by iPOJO when a forker service is gone.
      * 
-     * @param aIsolateHandler
-     *            A isolate handler
+     * @param aForker
+     *            A forker service
      */
-    @Unbind(id = "isolate-handler")
-    protected void unbindIsolateHandler(final IIsolateHandler aIsolateHandler) {
+    @Unbind(id = "forker-service")
+    protected void unbindForkerService(final IForker aForker) {
 
-        pPropertyIsolate = false;
-        aIsolateHandler.unregisterIsolateEventListener(this);
+        // Update the service state
+        pPropertyForkerPresent = false;
     }
 
     /*
