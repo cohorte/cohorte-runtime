@@ -21,7 +21,6 @@ import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
-import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.base.bundles.BundleRef;
@@ -52,9 +51,6 @@ public class CForkerHandlerSvc extends CPojoBase implements IForkerHandler,
     /** Default OSGi framework to use to start the forker (Felix) */
     public static final String OSGI_FRAMEWORK_FELIX = "org.apache.felix.main";
 
-    /** The Bundle Context */
-    private BundleContext pBundleContext;
-
     /** The bundle finder */
     @Requires
     private IBundleFinderSvc pBundleFinderSvc;
@@ -83,10 +79,9 @@ public class CForkerHandlerSvc extends CPojoBase implements IForkerHandler,
     /**
      * Default constructor
      */
-    public CForkerHandlerSvc(final BundleContext context) {
+    public CForkerHandlerSvc() {
 
         super();
-        pBundleContext = context;
     }
 
     /*
@@ -167,37 +162,6 @@ public class CForkerHandlerSvc extends CPojoBase implements IForkerHandler,
         // Notify listeners (let them take a decision)
         for (IIsolateStatusEventListener listener : pIsolateListeners) {
             listener.handleIsolateStatusEvent(aIsolateStatus);
-        }
-
-        // Kill the watcher on failure
-        if (aIsolateStatus.getState() == IsolateStatus.STATE_FAILURE) {
-
-            stopWatcher();
-
-            pLoggerSvc.logSevere(this, "handleForkerStatus",
-                    "Forker as failed starting.");
-
-            try {
-                // Try to restart it
-                startForker();
-
-                // Don't forget to restart the thread
-                startWatcher();
-
-            } catch (Exception ex) {
-                // Log the restart error
-                pLoggerSvc.logSevere(this, "handleForkerStatus",
-                        "Error restarting the forker :", ex);
-
-                try {
-                    pBundleContext.getBundle(0).stop();
-
-                } catch (Exception e) {
-                    // At this point, it's difficult to do something nice...
-                    pLoggerSvc.logSevere(this, "handleForkerStatus",
-                            "CAN'T SUICIDE", e);
-                }
-            }
         }
     }
 
@@ -383,6 +347,8 @@ public class CForkerHandlerSvc extends CPojoBase implements IForkerHandler,
             }
 
         } catch (Exception e) {
+            pLoggerSvc.logSevere(this, "startForker",
+                    "Error starting forker process : ", e);
             return false;
         }
 
