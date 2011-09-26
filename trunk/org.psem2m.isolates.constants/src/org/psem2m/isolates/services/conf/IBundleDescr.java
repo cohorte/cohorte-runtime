@@ -6,6 +6,7 @@
 package org.psem2m.isolates.services.conf;
 
 import java.io.Serializable;
+import java.util.Properties;
 
 /**
  * Describes a bundle
@@ -20,6 +21,21 @@ public interface IBundleDescr extends Serializable {
      * @return The bundle file path, or null
      */
     String getFile();
+
+    /**
+     * Tests if the bundle is declared optional in the configuration file. If
+     * true, the isolate state is valid even if this bundle is not present.
+     * 
+     * @return True if the bundle is optional
+     */
+    boolean getOptional();
+
+    /**
+     * Retrieves the set of properties declared in the bundle description.
+     * 
+     * @return an instance of Properties else null.
+     */
+    Properties getProperties();
 
     /**
      * Retrieves the bundle symbolic name. Can't be null.
@@ -37,10 +53,9 @@ public interface IBundleDescr extends Serializable {
     String getVersion();
 
     /**
-     * Tests if the bundle is declared optional in the configuration file. If
-     * true, the isolate state is valid even if this bundle is not present.
+     * Tests if the bundle has a set of properties.
      * 
-     * @return True if the bundle is optional
+     * @return true if the bundle description has a set of properties
      */
-    boolean getOptional();
+    boolean hasProperties();
 }

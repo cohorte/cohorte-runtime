@@ -24,6 +24,9 @@ public interface IJsonConfigKeys {
     /** Bundle is optional (boolean, optional) */
     String CONFIG_BUNDLE_OPTIONAL = "optional";
 
+    /** Bundle file path (string, optional) */
+    String CONFIG_BUNDLE_PROPERTIES = "properties";
+
     /** Bundle version (string, optional) */
     String CONFIG_BUNDLE_VERSION = "version";
 

@@ -8,7 +8,10 @@ package org.psem2m.isolates.config.json;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.Scanner;
 import java.util.Stack;
 
@@ -145,7 +148,17 @@ public class JsonConfigReader implements IConfigurationReader {
                 IJsonConfigKeys.CONFIG_BUNDLE_OPTIONAL, false);
 
         // Create the description
-        return new BundleDescription(symbolicName, version, fileName, optional);
+        BundleDescription wBundleDescription = new BundleDescription(
+                symbolicName, version, fileName, optional);
+        try {
+            final JSONObject wSetOfProperties = aBundleObject
+                    .getJSONObject(IJsonConfigKeys.CONFIG_BUNDLE_PROPERTIES);
+            wBundleDescription.setProperties(parseProperties(wSetOfProperties));
+        } catch (Exception e) {
+            // ... nothing
+        }
+
+        return wBundleDescription;
     }
 
     /**
@@ -279,6 +292,27 @@ public class JsonConfigReader implements IConfigurationReader {
             // Store it
             pApplication.addIsolate(isolateDescription);
         }
+    }
+
+    /**
+     * @param aSetOfProperties
+     * @return
+     */
+    private Properties parseProperties(final JSONObject aSetOfProperties) {
+
+        if (aSetOfProperties != null) {
+            Properties wProperties = new Properties();
+            Iterator<Entry<String, Object>> wEntries = aSetOfProperties
+                    .entries();
+            Entry<String, Object> wEntry;
+            while (wEntries.hasNext()) {
+                wEntry = wEntries.next();
+                wProperties.put(wEntry.getKey(), wEntry.getValue());
+            }
+            return wProperties;
+        }
+
+        return null;
     }
 
     /**

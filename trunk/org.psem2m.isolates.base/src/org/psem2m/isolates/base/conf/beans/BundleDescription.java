@@ -5,6 +5,8 @@
  */
 package org.psem2m.isolates.base.conf.beans;
 
+import java.util.Properties;
+
 import org.psem2m.isolates.services.conf.IBundleDescr;
 
 /**
@@ -23,6 +25,8 @@ public class BundleDescription implements IBundleDescr {
     /** True if the bundle is optional */
     private boolean pOptional;
 
+    private Properties pProperties = null;
+
     /** Bundle symbolic name, mandatory */
     private String pSymbolicName;
 
@@ -33,7 +37,8 @@ public class BundleDescription implements IBundleDescr {
      * Default constructor
      */
     public BundleDescription() {
-	// Do nothing
+
+        // Do nothing
     }
 
     /**
@@ -43,7 +48,8 @@ public class BundleDescription implements IBundleDescr {
      *            The bundle symbolic name (mandatory)
      */
     public BundleDescription(final String aSymbolicName) {
-	this(aSymbolicName, null, null, false);
+
+        this(aSymbolicName, null, null, false);
     }
 
     /**
@@ -59,12 +65,12 @@ public class BundleDescription implements IBundleDescr {
      *            Bundle is optional
      */
     public BundleDescription(final String aSymbolicName, final String aVersion,
-	    final String aFile, final boolean aOptional) {
+            final String aFile, final boolean aOptional) {
 
-	pSymbolicName = aSymbolicName;
-	pVersion = aVersion;
-	pFile = aFile;
-	pOptional = aOptional;
+        pSymbolicName = aSymbolicName;
+        pVersion = aVersion;
+        pFile = aFile;
+        pOptional = aOptional;
     }
 
     /*
@@ -74,7 +80,8 @@ public class BundleDescription implements IBundleDescr {
      */
     @Override
     public String getFile() {
-	return pFile;
+
+        return pFile;
     }
 
     /*
@@ -84,7 +91,16 @@ public class BundleDescription implements IBundleDescr {
      */
     @Override
     public boolean getOptional() {
-	return pOptional;
+
+        return pOptional;
+    }
+
+    /**
+     * @return an instance of Properties
+     */
+    public Properties getProperties() {
+
+        return pProperties;
     }
 
     /*
@@ -94,7 +110,8 @@ public class BundleDescription implements IBundleDescr {
      */
     @Override
     public String getSymbolicName() {
-	return pSymbolicName;
+
+        return pSymbolicName;
     }
 
     /*
@@ -104,7 +121,16 @@ public class BundleDescription implements IBundleDescr {
      */
     @Override
     public String getVersion() {
-	return pVersion;
+
+        return pVersion;
+    }
+
+    /**
+     * @return true if the bundle has a set of properties
+     */
+    public boolean hasProperties() {
+
+        return pProperties != null;
     }
 
     /**
@@ -114,17 +140,30 @@ public class BundleDescription implements IBundleDescr {
      *            Bundle file
      */
     public void setFile(final String aFile) {
-	pFile = aFile;
+
+        pFile = aFile;
     }
 
     /**
      * Set the bundle are optional or not (bean method)
      * 
      * @param aOptional
-     *            Tur if the bundle is optional
+     *            True if the bundle is optional
      */
     public void setOptional(final boolean aOptional) {
-	pOptional = aOptional;
+
+        pOptional = aOptional;
+    }
+
+    /**
+     * Set the properties of the bundle
+     * 
+     * @param pProperties
+     *            an instance of Properties
+     */
+    public void setProperties(final Properties aProperties) {
+
+        pProperties = aProperties;
     }
 
     /**
@@ -134,7 +173,8 @@ public class BundleDescription implements IBundleDescr {
      *            The bundle symbolic name
      */
     public void setSymbolicName(final String aSymbolicName) {
-	pSymbolicName = aSymbolicName;
+
+        pSymbolicName = aSymbolicName;
     }
 
     /**
@@ -144,6 +184,7 @@ public class BundleDescription implements IBundleDescr {
      *            the bundle version
      */
     public void setVersion(final String aVersion) {
-	pVersion = aVersion;
+
+        pVersion = aVersion;
     }
 }

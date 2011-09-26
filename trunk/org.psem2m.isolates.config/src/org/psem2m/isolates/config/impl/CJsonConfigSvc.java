@@ -19,6 +19,7 @@ import org.psem2m.isolates.services.conf.IApplicationDescr;
 import org.psem2m.isolates.services.conf.IBundleDescr;
 import org.psem2m.isolates.services.conf.ISvcConfig;
 import org.psem2m.isolates.services.dirs.IFileFinderSvc;
+import org.psem2m.utilities.CXListUtils;
 
 /**
  * Implements the configuration service
@@ -45,19 +46,6 @@ public class CJsonConfigSvc extends CPojoBase implements ISvcConfig {
     public CJsonConfigSvc() {
 
         super();
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.psem2m.isolates.config.ISvcConfig#getParam(org.psem2m.isolates.config
-     * .IParamId)
-     */
-    @Override
-    public void destroy() {
-
-        // ...
     }
 
     /**
@@ -154,6 +142,13 @@ public class CJsonConfigSvc extends CPojoBase implements ISvcConfig {
                         "   - Bundle=", wIBundleDescr.getSymbolicName(),
                         "Optional=", wIBundleDescr.getOptional(), "Version=",
                         wIBundleDescr.getVersion());
+
+                if (wIBundleDescr.hasProperties()) {
+                    pIsolateLoggerSvc.logInfo(this, "logDumpConfig",
+                            "     - Properties=", CXListUtils
+                                    .PropertiesToString(wIBundleDescr
+                                            .getProperties()));
+                }
 
             }
         }

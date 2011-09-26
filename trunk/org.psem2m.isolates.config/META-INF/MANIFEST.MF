@@ -31,9 +31,9 @@ iPOJO-Components: instance { $component="isolates-config-factory" $nam
  $type="org.psem2m.isolates.services.dirs.IFileFinderSvc" }field { $na
  me="pIsolateLoggerSvc" $type="org.psem2m.isolates.base.IIsolateLogger
  Svc" }field { $name="pReader" $type="org.psem2m.isolates.config.json.
- JsonConfigReader" }method { $name="destroy" }method { $name="findConf
- igurationFiles" $return="boolean" }method { $name="getApplication" $r
- eturn="org.psem2m.isolates.services.conf.IApplicationDescr" }method {
-  $name="invalidatePojo" }method { $name="logDumpConfig" }method { $na
- me="refresh" $return="boolean" }method { $name="validatePojo" }}}
+ JsonConfigReader" }method { $name="findConfigurationFiles" $return="b
+ oolean" }method { $name="getApplication" $return="org.psem2m.isolates
+ .services.conf.IApplicationDescr" }method { $name="invalidatePojo" }m
+ ethod { $name="logDumpConfig" }method { $name="refresh" $return="bool
+ ean" }method { $name="validatePojo" }}}
 
