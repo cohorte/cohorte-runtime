@@ -30,6 +30,7 @@
 		<requires field="pLoggerSvc" optional="false"
 			from="isolates-slave-agent-logger" />
 		<requires field="pPlatformDirsSvc" optional="false" />
+		<requires field="pSignalBroadcaster" optional="false" />
 
 		<callback transition="validate" method="validatePojo" />
 		<callback transition="invalidate" method="invalidatePojo" />
