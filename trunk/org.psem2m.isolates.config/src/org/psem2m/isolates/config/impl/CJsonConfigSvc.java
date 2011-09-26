@@ -11,13 +11,14 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.osgi.framework.BundleException;
+import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.config.IPlatformConfigurationConstants;
 import org.psem2m.isolates.config.json.JsonConfigReader;
 import org.psem2m.isolates.services.conf.IApplicationDescr;
+import org.psem2m.isolates.services.conf.IBundleDescr;
 import org.psem2m.isolates.services.conf.ISvcConfig;
 import org.psem2m.isolates.services.dirs.IFileFinderSvc;
-import org.psem2m.utilities.logging.IActivityLoggerBase;
 
 /**
  * Implements the configuration service
@@ -33,7 +34,7 @@ public class CJsonConfigSvc extends CPojoBase implements ISvcConfig {
     private IFileFinderSvc pFileFinder;
 
     /** Log service, injected by iPOJO */
-    private IActivityLoggerBase pLoggerSvc;
+    private IIsolateLoggerSvc pIsolateLoggerSvc;
 
     /** JSON Configuration reader */
     private final JsonConfigReader pReader = new JsonConfigReader();
@@ -42,7 +43,8 @@ public class CJsonConfigSvc extends CPojoBase implements ISvcConfig {
      * Default constructor
      */
     public CJsonConfigSvc() {
-	super();
+
+        super();
     }
 
     /*
@@ -54,7 +56,8 @@ public class CJsonConfigSvc extends CPojoBase implements ISvcConfig {
      */
     @Override
     public void destroy() {
-	// ...
+
+        // ...
     }
 
     /**
@@ -65,42 +68,42 @@ public class CJsonConfigSvc extends CPojoBase implements ISvcConfig {
      */
     protected boolean findConfigurationFiles() {
 
-	// Clear old values
-	pConfigurationFiles.clear();
+        // Clear old values
+        pConfigurationFiles.clear();
 
-	final Set<String> configFolders = new LinkedHashSet<String>();
+        final Set<String> configFolders = new LinkedHashSet<String>();
 
-	// Add extra "standard" configuration folders
-	configFolders.addAll(Arrays
-		.asList(IPlatformConfigurationConstants.EXTRA_CONF_FOLDERS));
+        // Add extra "standard" configuration folders
+        configFolders.addAll(Arrays
+                .asList(IPlatformConfigurationConstants.EXTRA_CONF_FOLDERS));
 
-	// Get the home then base folders, if they exist
-	String platformDir = System
-		.getProperty(IPlatformConfigurationConstants.SYSTEM_PSEM2M_HOME);
-	if (platformDir != null && !platformDir.isEmpty()) {
-	    configFolders.add(platformDir + File.separator
-		    + IPlatformConfigurationConstants.SUBDIR_CONF);
-	}
+        // Get the home then base folders, if they exist
+        String platformDir = System
+                .getProperty(IPlatformConfigurationConstants.SYSTEM_PSEM2M_HOME);
+        if (platformDir != null && !platformDir.isEmpty()) {
+            configFolders.add(platformDir + File.separator
+                    + IPlatformConfigurationConstants.SUBDIR_CONF);
+        }
 
-	platformDir = System
-		.getProperty(IPlatformConfigurationConstants.SYSTEM_PSEM2M_BASE);
-	if (platformDir != null && !platformDir.isEmpty()) {
-	    configFolders.add(platformDir + File.separator
-		    + IPlatformConfigurationConstants.SUBDIR_CONF);
-	}
+        platformDir = System
+                .getProperty(IPlatformConfigurationConstants.SYSTEM_PSEM2M_BASE);
+        if (platformDir != null && !platformDir.isEmpty()) {
+            configFolders.add(platformDir + File.separator
+                    + IPlatformConfigurationConstants.SUBDIR_CONF);
+        }
 
-	// Test configuration files existence
-	for (String folder : configFolders) {
+        // Test configuration files existence
+        for (String folder : configFolders) {
 
-	    File configFile = new File(folder,
-		    IPlatformConfigurationConstants.FILE_MAIN_CONF);
+            File configFile = new File(folder,
+                    IPlatformConfigurationConstants.FILE_MAIN_CONF);
 
-	    if (configFile.isFile()) {
-		pConfigurationFiles.add(configFile);
-	    }
-	}
+            if (configFile.isFile()) {
+                pConfigurationFiles.add(configFile);
+            }
+        }
 
-	return !pConfigurationFiles.isEmpty();
+        return !pConfigurationFiles.isEmpty();
     }
 
     /*
@@ -111,12 +114,12 @@ public class CJsonConfigSvc extends CPojoBase implements ISvcConfig {
     @Override
     public IApplicationDescr getApplication() {
 
-	final String[] appIds = pReader.getApplicationIds();
-	if (appIds == null || appIds.length < 1) {
-	    return null;
-	}
+        final String[] appIds = pReader.getApplicationIds();
+        if (appIds == null || appIds.length < 1) {
+            return null;
+        }
 
-	return pReader.getApplication(appIds[0]);
+        return pReader.getApplication(appIds[0]);
     }
 
     /*
@@ -127,9 +130,33 @@ public class CJsonConfigSvc extends CPojoBase implements ISvcConfig {
     @Override
     public void invalidatePojo() {
 
-	// logs in the bundle logger
-	pLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
-		toDescription());
+        // logs in the bundle logger
+        pIsolateLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
+                toDescription());
+    }
+
+    /**
+     * log a dump of the config
+     */
+    private void logDumpConfig() {
+
+        pIsolateLoggerSvc.logInfo(this, "logDumpConfig", "Application=",
+                getApplication().getApplicationId());
+        for (String wIsolateId : getApplication().getIsolateIds()) {
+
+            pIsolateLoggerSvc.logInfo(this, "logDumpConfig", " - IsolateId=",
+                    wIsolateId);
+
+            for (IBundleDescr wIBundleDescr : getApplication().getIsolate(
+                    wIsolateId).getBundles()) {
+
+                pIsolateLoggerSvc.logInfo(this, "logDumpConfig",
+                        "   - Bundle=", wIBundleDescr.getSymbolicName(),
+                        "Optional=", wIBundleDescr.getOptional(), "Version=",
+                        wIBundleDescr.getVersion());
+
+            }
+        }
     }
 
     /*
@@ -139,8 +166,9 @@ public class CJsonConfigSvc extends CPojoBase implements ISvcConfig {
      */
     @Override
     public boolean refresh() {
-	return pReader.load(IPlatformConfigurationConstants.FILE_MAIN_CONF,
-		pFileFinder);
+
+        return pReader.load(IPlatformConfigurationConstants.FILE_MAIN_CONF,
+                pFileFinder);
     }
 
     /*
@@ -151,10 +179,14 @@ public class CJsonConfigSvc extends CPojoBase implements ISvcConfig {
     @Override
     public void validatePojo() throws BundleException {
 
-	// logs in the bundle logger
-	pLoggerSvc.logInfo(this, "validatePojo", "VALIDATE", toDescription());
+        // logs in the bundle logger
+        pIsolateLoggerSvc.logInfo(this, "validatePojo", "VALIDATE",
+                toDescription());
 
-	// Read the configuration
-	refresh();
+        // Read the configuration
+        refresh();
+
+        // Log a dump of the config
+        logDumpConfig();
     }
 }

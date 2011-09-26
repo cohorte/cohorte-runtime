@@ -6,55 +6,61 @@ package org.psem2m.utilities;
  */
 class CXIdentifier implements IXIdentifier {
 
-	private final static String ANONYMOUS = "anonymous";
-	private final long pCpt;
-	private final String pFullId;
-	private final String pId;
+    private final static String ANONYMOUS = "anonymous";
+    private final long pCpt;
+    private final String pFullId;
+    private final String pId;
 
-	/**
-	 * @param aId
-	 */
-	CXIdentifier(String aId) {
-		super();
-		pId = (aId != null) ? aId : ANONYMOUS;
-		pCpt = CXObjectCounter.getCpt();
-		pFullId = buildFullId();
-	}
+    /**
+     * @param aId
+     */
+    CXIdentifier(final String aId) {
 
-	/**
-	 * @return
-	 */
-	private String buildFullId() {
-		StringBuilder wSB = new StringBuilder(32);
-		wSB.append(getId());
-		wSB.append('+');
-		wSB.append(getCpt());
-		return wSB.toString();
-	}
+        super();
+        pId = aId != null ? aId : ANONYMOUS;
+        pCpt = CXObjectCounter.getCpt();
+        pFullId = buildFullId();
+    }
 
-	@Override
-	public long getCpt() {
-		return pCpt;
-	}
+    /**
+     * @return
+     */
+    private String buildFullId() {
 
-	@Override
-	public String getId() {
-		return pId;
-	}
+        StringBuilder wSB = new StringBuilder(32);
+        wSB.append(getId());
+        wSB.append('+');
+        wSB.append(getCpt());
+        return wSB.toString();
+    }
 
-	public boolean hasId() {
-		return pId != null;
-	}
+    @Override
+    public long getCpt() {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		return pFullId;
-	}
+        return pCpt;
+    }
+
+    @Override
+    public String getId() {
+
+        return pId;
+    }
+
+    public boolean hasId() {
+
+        return pId != null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+
+        return pFullId;
+    }
 }
 
 /**
@@ -63,134 +69,152 @@ class CXIdentifier implements IXIdentifier {
  */
 public abstract class CXObjectBase implements IXObjectBase {
 
-	private final static IXObjectBase ROOTOBJECT = new CXObjectRoot();
+    private final static IXObjectBase ROOTOBJECT = new CXObjectRoot();
 
-	private final IXIdentifier pIdentifier;
+    private final IXIdentifier pIdentifier;
 
-	private final IXObjectBase pParent;
+    private final IXObjectBase pParent;
 
-	/**
-	 * @param aId
-	 */
-	public CXObjectBase() {
-		this(null, null);
-	}
+    /**
+     * @param aId
+     */
+    public CXObjectBase() {
 
-	/**
-	 * @param aParent
-	 * @param aId
-	 */
-	public CXObjectBase(IXObjectBase aParent) {
-		this(aParent, null);
-	}
+        this(null, null);
+    }
 
-	/**
-	 * @param aParent
-	 * @param aId
-	 */
-	public CXObjectBase(IXObjectBase aParent, String aId) {
-		super();
-		pParent = (aParent != null) ? aParent : ROOTOBJECT;
-		pIdentifier = buildIdentifier(aId);
-	}
+    /**
+     * @param aParent
+     * @param aId
+     */
+    public CXObjectBase(final IXObjectBase aParent) {
 
-	/**
-	 * @param aId
-	 */
-	public CXObjectBase(String aId) {
-		this(null, aId);
-	}
+        this(aParent, null);
+    }
 
-	@Override
-	public Appendable addDescriptionInBuffer(Appendable aBuffer) {
-		CXStringUtils.appendKeyValInBuff(aBuffer, LIB_ID, getIdentifier());
-		return aBuffer;
-	}
+    /**
+     * @param aParent
+     * @param aId
+     */
+    public CXObjectBase(final IXObjectBase aParent, final String aId) {
 
-	/**
-	 * @param aId
-	 * @param aClass
-	 * @return
-	 */
-	private IXIdentifier buildIdentifier(String aId) {
-		if (aId == null || aId.length() == 0)
-			aId = getClass().getSimpleName();
-		return new CXIdentifier(aId);
-	}
+        super();
+        pParent = aParent != null ? aParent : ROOTOBJECT;
+        pIdentifier = buildIdentifier(aId);
+    }
 
-	public int calcDescriptionLength() {
-		return 128;
-	}
+    /**
+     * @param aId
+     */
+    public CXObjectBase(final String aId) {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.utilities.IXIdentifiable#compareTo(org.psem2m.utilities.
-	 * IXIdentifiable)
-	 */
-	@Override
-	public int compareTo(IXIdentifiable<?> defElem) {
-		return getIdentifier().compareTo(defElem.getIdentifier().toString());
-	}
+        this(null, aId);
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.utilities.IXObjectBase#destroy()
-	 */
-	@Override
-	public abstract void destroy();
+    @Override
+    public Appendable addDescriptionInBuffer(final Appendable aBuffer) {
 
-	/**
-	 * @param aChild
-	 * @return
-	 */
-	protected IXObjectBase destroyChild(IXObjectBase aChild) {
-		if (aChild != null)
-			aChild.destroy();
-		return null;
-	}
+        CXStringUtils.appendKeyValInBuff(aBuffer, LIB_ID, getIdentifier());
+        return aBuffer;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.utilities.IXIdentifiable#getId()
-	 */
-	@Override
-	public String getIdentifier() {
-		return pIdentifier.toString();
-	}
+    /**
+     * @param aId
+     * @param aClass
+     * @return
+     */
+    private IXIdentifier buildIdentifier(String aId) {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.utilities.IXObjectBase#getParent()
-	 */
-	@Override
-	public IXObjectBase getParent() {
-		return pParent;
-	}
+        if (aId == null || aId.length() == 0) {
+            aId = getClass().getSimpleName();
+        }
+        return new CXIdentifier(aId);
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.utilities.IXObjectBase#hasParent()
-	 */
-	@Override
-	public boolean hasParent() {
-		return getParent() != null && getParent() != ROOTOBJECT;
-	}
+    public int calcDescriptionLength() {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.utilities.IXDescriber#toDescription()
-	 */
-	@Override
-	public String toDescription() {
-		return addDescriptionInBuffer(
-				new StringBuilder(calcDescriptionLength())).toString();
-	}
+        return 128;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.utilities.IXIdentifiable#compareTo(org.psem2m.utilities.
+     * IXIdentifiable)
+     */
+    @Override
+    public int compareTo(final IXIdentifiable<?> defElem) {
+
+        return getIdentifier().compareTo(defElem.getIdentifier().toString());
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.utilities.IXObjectBase#destroy()
+     */
+    @Override
+    public void destroy() {
+
+        // ...
+    }
+
+    /**
+     * @param aChild
+     * @return
+     */
+    protected IXObjectBase destroyChild(final IXObjectBase aChild) {
+
+        if (aChild != null) {
+            aChild.destroy();
+        }
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.utilities.IXIdentifiable#getId()
+     */
+    @Override
+    public String getIdentifier() {
+
+        return pIdentifier.toString();
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.utilities.IXObjectBase#getParent()
+     */
+    @Override
+    public IXObjectBase getParent() {
+
+        return pParent;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.utilities.IXObjectBase#hasParent()
+     */
+    @Override
+    public boolean hasParent() {
+
+        return getParent() != null && getParent() != ROOTOBJECT;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.utilities.IXDescriber#toDescription()
+     */
+    @Override
+    public String toDescription() {
+
+        return addDescriptionInBuffer(
+                new StringBuilder(calcDescriptionLength())).toString();
+    }
 }
 
 /**
@@ -201,24 +225,26 @@ public abstract class CXObjectBase implements IXObjectBase {
  */
 class CXObjectCounter {
 
-	private static final CXObjectCounter sCounter = new CXObjectCounter();
+    private static final CXObjectCounter sCounter = new CXObjectCounter();
 
-	/**
-	 * @return
-	 */
-	static long getCpt() {
-		return sCounter.getNextCpt();
-	}
+    /**
+     * @return
+     */
+    static long getCpt() {
 
-	private long pCpt = 0;
+        return sCounter.getNextCpt();
+    }
 
-	/**
-	 * @return
-	 */
-	synchronized long getNextCpt() {
-		pCpt++;
-		return pCpt;
-	}
+    private long pCpt = 0;
+
+    /**
+     * @return
+     */
+    synchronized long getNextCpt() {
+
+        pCpt++;
+        return pCpt;
+    }
 
 }
 
@@ -228,53 +254,62 @@ class CXObjectCounter {
  */
 class CXObjectRoot implements IXObjectBase {
 
-	private final static String ME = "ROOTOBJECT_0";
+    private final static String ME = "ROOTOBJECT_0";
 
-	/**
+    /**
 	 * 
 	 */
-	public CXObjectRoot() {
-		super();
-	}
+    public CXObjectRoot() {
 
-	@Override
-	public Appendable addDescriptionInBuffer(Appendable aBuffer) {
-		CXStringUtils.appendKeyValInBuff(aBuffer, LIB_ID, getIdentifier());
-		return aBuffer;
-	}
+        super();
+    }
 
-	public int calcDescriptionLength() {
-		return 128;
-	}
+    @Override
+    public Appendable addDescriptionInBuffer(final Appendable aBuffer) {
 
-	@Override
-	public int compareTo(IXIdentifiable<?> aIdentifiable) {
-		return (this == aIdentifiable) ? 0 : -1;
-	}
+        CXStringUtils.appendKeyValInBuff(aBuffer, LIB_ID, getIdentifier());
+        return aBuffer;
+    }
 
-	@Override
-	public void destroy() {
-	}
+    public int calcDescriptionLength() {
 
-	@Override
-	public String getIdentifier() {
-		return ME;
-	}
+        return 128;
+    }
 
-	@Override
-	public IXObjectBase getParent() {
-		return null;
-	}
+    @Override
+    public int compareTo(final IXIdentifiable<?> aIdentifiable) {
 
-	@Override
-	public boolean hasParent() {
-		return false;
-	}
+        return this == aIdentifiable ? 0 : -1;
+    }
 
-	@Override
-	public String toDescription() {
-		return addDescriptionInBuffer(
-				new StringBuilder(calcDescriptionLength())).toString();
-	}
+    @Override
+    public void destroy() {
+
+    }
+
+    @Override
+    public String getIdentifier() {
+
+        return ME;
+    }
+
+    @Override
+    public IXObjectBase getParent() {
+
+        return null;
+    }
+
+    @Override
+    public boolean hasParent() {
+
+        return false;
+    }
+
+    @Override
+    public String toDescription() {
+
+        return addDescriptionInBuffer(
+                new StringBuilder(calcDescriptionLength())).toString();
+    }
 
 }

@@ -15,11 +15,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.osgi.framework.BundleException;
+import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.base.bundles.BundleRef;
 import org.psem2m.isolates.base.bundles.IBundleFinderSvc;
 import org.psem2m.isolates.constants.IPlatformProperties;
-import org.psem2m.isolates.forker.IBundleForkerLoggerSvc;
 import org.psem2m.isolates.forker.IIsolateRunner;
 import org.psem2m.isolates.forker.IProcessRef;
 import org.psem2m.isolates.services.conf.IIsolateDescr;
@@ -35,13 +35,13 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
 
     /** Equinox framework names */
     public static final String[] EQUINOX_NAMES = new String[] {
-	    "org.eclipse.osgi", "org.eclipse.osgi_3.7.0.v20110613.jar",
-	    "equinox.jar" };
+            "org.eclipse.osgi", "org.eclipse.osgi_3.7.0.v20110613.jar",
+            "equinox.jar" };
 
     /** Felix framework names */
     public static final String[] FELIX_NAMES = new String[] {
-	    "org.apache.felix.main", "org.apache.felix.main-3.2.2.jar",
-	    "felix.jar" };
+            "org.apache.felix.main", "org.apache.felix.main-3.2.2.jar",
+            "felix.jar" };
 
     /** Bootstrap long argument prefix */
     public static final String LONG_ARGUMENT_PREFIX = "--";
@@ -53,8 +53,8 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
      * Map initialization
      */
     static {
-	SUPPORTED_ISOLATE_KINDS.put("felix", FELIX_NAMES);
-	SUPPORTED_ISOLATE_KINDS.put("equinox", EQUINOX_NAMES);
+        SUPPORTED_ISOLATE_KINDS.put("felix", FELIX_NAMES);
+        SUPPORTED_ISOLATE_KINDS.put("equinox", EQUINOX_NAMES);
     }
 
     /** Base debug port, <= 0 if not used */
@@ -63,11 +63,11 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
     /** Bundle finder service, injected by iPOJO */
     private IBundleFinderSvc pBundleFinderSvc;
 
-    /** The logger service, injected by iPOJO */
-    private IBundleForkerLoggerSvc pBundleForkerLoggerSvc;
-
     /** Launched isolate index */
     private int pIsolateIndex = 0;
+
+    /** The logger service, injected by iPOJO */
+    private IIsolateLoggerSvc pIsolateLoggerSvc;
 
     /** Java isolate runner service, injected by iPOJO */
     private IJavaRunner pJavaRunnerSvc;
@@ -79,7 +79,8 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
      * Default constructor
      */
     public CIsolateRunner() {
-	super();
+
+        super();
     }
 
     /**
@@ -92,20 +93,20 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
      */
     protected List<URL> bundlesToUrls(final BundleRef[] aBundles) {
 
-	List<URL> bundleURLs = new ArrayList<URL>();
+        List<URL> bundleURLs = new ArrayList<URL>();
 
-	// Loop on bundles
-	for (BundleRef bundleRef : aBundles) {
-	    try {
-		URL bundleUrl = bundleRef.getUri().toURL();
-		bundleURLs.add(bundleUrl);
+        // Loop on bundles
+        for (BundleRef bundleRef : aBundles) {
+            try {
+                URL bundleUrl = bundleRef.getUri().toURL();
+                bundleURLs.add(bundleUrl);
 
-	    } catch (MalformedURLException e) {
-		e.printStackTrace();
-	    }
-	}
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
+        }
 
-	return bundleURLs;
+        return bundleURLs;
     }
 
     /*
@@ -115,7 +116,8 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
      */
     @Override
     public boolean canRun(final String aIsolateKind) {
-	return SUPPORTED_ISOLATE_KINDS.keySet().contains(aIsolateKind);
+
+        return SUPPORTED_ISOLATE_KINDS.keySet().contains(aIsolateKind);
     }
 
     /*
@@ -125,7 +127,8 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
      */
     @Override
     public void destroy() {
-	// ...
+
+        // ...
     }
 
     /*
@@ -136,9 +139,9 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
     @Override
     public void invalidatePojo() throws BundleException {
 
-	// logs in the bundle logger
-	pBundleForkerLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
-		toDescription());
+        // logs in the bundle logger
+        pIsolateLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
+                toDescription());
     }
 
     /**
@@ -151,15 +154,15 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
      * @return The property definition as a bootstrap argument
      */
     protected String makeBootstrapDefinition(final String aKey,
-	    final String aValue) {
+            final String aValue) {
 
-	StringBuilder bootstrapDef = new StringBuilder(aKey.length()
-		+ aValue.length() + 1);
-	bootstrapDef.append(aKey);
-	bootstrapDef.append("=");
-	bootstrapDef.append(aValue);
+        StringBuilder bootstrapDef = new StringBuilder(aKey.length()
+                + aValue.length() + 1);
+        bootstrapDef.append(aKey);
+        bootstrapDef.append("=");
+        bootstrapDef.append(aValue);
 
-	return bootstrapDef.toString();
+        return bootstrapDef.toString();
     }
 
     /**
@@ -172,31 +175,31 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
      * @return The bootstrap arguments, never null
      */
     protected List<String> prepareBootstrapArguments(
-	    final IIsolateDescr aIsolateConfiguration) {
+            final IIsolateDescr aIsolateConfiguration) {
 
-	final List<String> bootstrapArguments = new ArrayList<String>();
+        final List<String> bootstrapArguments = new ArrayList<String>();
 
-	// Framework to be used (in lower case)
-	bootstrapArguments.add(makeBootstrapDefinition(
-		IBootstrapConstants.CONFIG_FRAMEWORK, aIsolateConfiguration
-			.getKind().toString().toLowerCase()));
+        // Framework to be used (in lower case)
+        bootstrapArguments.add(makeBootstrapDefinition(
+                IBootstrapConstants.CONFIG_FRAMEWORK, aIsolateConfiguration
+                        .getKind().toString().toLowerCase()));
 
-	// Isolate ID
-	bootstrapArguments.add(makeBootstrapDefinition(
-		IPlatformProperties.PROP_PLATFORM_ISOLATE_ID,
-		aIsolateConfiguration.getId()));
+        // Isolate ID
+        bootstrapArguments.add(makeBootstrapDefinition(
+                IPlatformProperties.PROP_PLATFORM_ISOLATE_ID,
+                aIsolateConfiguration.getId()));
 
-	// PSEM2M Home
-	bootstrapArguments.add(makeBootstrapDefinition(
-		IPlatformProperties.PROP_PLATFORM_HOME, pPlatformDirsSvc
-			.getPlatformHomeDir().getAbsolutePath()));
+        // PSEM2M Home
+        bootstrapArguments.add(makeBootstrapDefinition(
+                IPlatformProperties.PROP_PLATFORM_HOME, pPlatformDirsSvc
+                        .getPlatformHomeDir().getAbsolutePath()));
 
-	// PSEM2M Base
-	bootstrapArguments.add(makeBootstrapDefinition(
-		IPlatformProperties.PROP_PLATFORM_BASE, pPlatformDirsSvc
-			.getPlatformBaseDir().getAbsolutePath()));
+        // PSEM2M Base
+        bootstrapArguments.add(makeBootstrapDefinition(
+                IPlatformProperties.PROP_PLATFORM_BASE, pPlatformDirsSvc
+                        .getPlatformBaseDir().getAbsolutePath()));
 
-	return bootstrapArguments;
+        return bootstrapArguments;
     }
 
     /**
@@ -208,45 +211,45 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
      * @return the JVM classpath argument
      */
     protected List<String> prepareClasspathArgument(final File aBootstrapFile,
-	    final String aKind) {
+            final String aKind) {
 
-	final List<String> classpathArgument = new ArrayList<String>();
-	classpathArgument.add("-cp");
+        final List<String> classpathArgument = new ArrayList<String>();
+        classpathArgument.add("-cp");
 
-	// Don't forget the current directory as a classpath
-	StringBuilder classPath = new StringBuilder();
+        // Don't forget the current directory as a classpath
+        StringBuilder classPath = new StringBuilder();
 
-	// Find the framework main bundle
-	BundleRef mainBundleRef;
+        // Find the framework main bundle
+        BundleRef mainBundleRef;
 
-	String[] mainBundleNames = SUPPORTED_ISOLATE_KINDS.get(aKind);
-	if (mainBundleNames == null) {
-	    // Use Felix framework by default, we should never come here
-	    mainBundleNames = FELIX_NAMES;
+        String[] mainBundleNames = SUPPORTED_ISOLATE_KINDS.get(aKind);
+        if (mainBundleNames == null) {
+            // Use Felix framework by default, we should never come here
+            mainBundleNames = FELIX_NAMES;
 
-	    pBundleForkerLoggerSvc
-		    .logWarn(this, "prepareClasspathArgument",
-			    "Unsupported isolate kind, using the Felix framework by default");
-	}
+            pIsolateLoggerSvc
+                    .logWarn(this, "prepareClasspathArgument",
+                            "Unsupported isolate kind, using the Felix framework by default");
+        }
 
-	mainBundleRef = pBundleFinderSvc.findBundle(mainBundleNames);
-	if (mainBundleRef == null) {
-	    pBundleForkerLoggerSvc.logSevere(this, "prepareClasspathArgument",
-		    "Can't find an OSGi framework file, searching for : "
-			    + Arrays.toString(mainBundleNames));
-	}
+        mainBundleRef = pBundleFinderSvc.findBundle(mainBundleNames);
+        if (mainBundleRef == null) {
+            pIsolateLoggerSvc.logSevere(this, "prepareClasspathArgument",
+                    "Can't find an OSGi framework file, searching for : "
+                            + Arrays.toString(mainBundleNames));
+        }
 
-	// Add the bootstrap JAR
-	classPath.append(aBootstrapFile.getAbsolutePath());
-	classPath.append(File.pathSeparator);
+        // Add the bootstrap JAR
+        classPath.append(aBootstrapFile.getAbsolutePath());
+        classPath.append(File.pathSeparator);
 
-	// Add the OSGi framework
-	classPath.append(mainBundleRef.getFile().getAbsolutePath());
-	classPath.append(File.pathSeparator);
+        // Add the OSGi framework
+        classPath.append(mainBundleRef.getFile().getAbsolutePath());
+        classPath.append(File.pathSeparator);
 
-	classPath.append(".");
-	classpathArgument.add(classPath.toString());
-	return classpathArgument;
+        classPath.append(".");
+        classpathArgument.add(classPath.toString());
+        return classpathArgument;
     }
 
     /**
@@ -254,30 +257,30 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
      */
     protected void prepareDebugMode() {
 
-	// Test if the debug port is indicated
-	final String debugPortStr = System
-		.getProperty(IPlatformProperties.PROP_BASE_DEBUG_PORT);
-	if (debugPortStr == null) {
-	    return;
-	}
+        // Test if the debug port is indicated
+        final String debugPortStr = System
+                .getProperty(IPlatformProperties.PROP_BASE_DEBUG_PORT);
+        if (debugPortStr == null) {
+            return;
+        }
 
-	// Prepare the base port to be used
-	try {
-	    pBaseDebugPort = Integer.parseInt(debugPortStr);
+        // Prepare the base port to be used
+        try {
+            pBaseDebugPort = Integer.parseInt(debugPortStr);
 
-	    if (pBaseDebugPort <= 0 || pBaseDebugPort > 65535) {
-		throw new NumberFormatException("Invalid port number");
-	    }
+            if (pBaseDebugPort <= 0 || pBaseDebugPort > 65535) {
+                throw new NumberFormatException("Invalid port number");
+            }
 
-	} catch (NumberFormatException ex) {
+        } catch (NumberFormatException ex) {
 
-	    // Reset the port value, if needed
-	    pBaseDebugPort = -1;
+            // Reset the port value, if needed
+            pBaseDebugPort = -1;
 
-	    pBundleForkerLoggerSvc.logWarn(this, "prepareDebugMode",
-		    "Can't activate Debug Mode, invalide port number : ",
-		    debugPortStr);
-	}
+            pIsolateLoggerSvc.logWarn(this, "prepareDebugMode",
+                    "Can't activate Debug Mode, invalide port number : ",
+                    debugPortStr);
+        }
     }
 
     /**
@@ -288,19 +291,19 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
      */
     protected void setupDebugMode(final List<String> aJavaOptions) {
 
-	if (aJavaOptions == null || pBaseDebugPort <= 0) {
-	    return;
-	}
+        if (aJavaOptions == null || pBaseDebugPort <= 0) {
+            return;
+        }
 
-	// JVM debug mode
-	aJavaOptions.add("-Xdebug");
+        // JVM debug mode
+        aJavaOptions.add("-Xdebug");
 
-	// Connection parameter
-	final String connectStr = String.format(
-		"-Xrunjdwp:transport=dt_socket,address=127.0.0.1:%d,suspend=y",
-		pBaseDebugPort + pIsolateIndex);
+        // Connection parameter
+        final String connectStr = String.format(
+                "-Xrunjdwp:transport=dt_socket,address=127.0.0.1:%d,suspend=y",
+                pBaseDebugPort + pIsolateIndex);
 
-	aJavaOptions.add(connectStr);
+        aJavaOptions.add(connectStr);
     }
 
     /*
@@ -312,41 +315,41 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
      */
     @Override
     public IProcessRef startIsolate(final IIsolateDescr aIsolateConfiguration)
-	    throws Exception {
+            throws Exception {
 
-	final List<String> javaOptions = new ArrayList<String>();
+        final List<String> javaOptions = new ArrayList<String>();
 
-	// A new isolate is launched
-	pIsolateIndex++;
+        // A new isolate is launched
+        pIsolateIndex++;
 
-	// Find the bootstrap JAR file
-	File bootstrapFile = pBundleFinderSvc.getBootstrap();
+        // Find the bootstrap JAR file
+        File bootstrapFile = pBundleFinderSvc.getBootstrap();
 
-	// Add the class path argument
-	javaOptions.addAll(prepareClasspathArgument(bootstrapFile,
-		aIsolateConfiguration.getKind()));
+        // Add the class path argument
+        javaOptions.addAll(prepareClasspathArgument(bootstrapFile,
+                aIsolateConfiguration.getKind()));
 
-	// Set debug mode, if needed
-	setupDebugMode(javaOptions);
+        // Set debug mode, if needed
+        setupDebugMode(javaOptions);
 
-	// Add isolate VM arguments
-	javaOptions.addAll(aIsolateConfiguration.getVMArgs());
+        // Add isolate VM arguments
+        javaOptions.addAll(aIsolateConfiguration.getVMArgs());
 
-	// Add the Bootstrap main class name
-	javaOptions.add(IBundleFinderSvc.BOOTSTRAP_MAIN_CLASS);
+        // Add the Bootstrap main class name
+        javaOptions.add(IBundleFinderSvc.BOOTSTRAP_MAIN_CLASS);
 
-	// Add its arguments
-	javaOptions.addAll(prepareBootstrapArguments(aIsolateConfiguration));
+        // Add its arguments
+        javaOptions.addAll(prepareBootstrapArguments(aIsolateConfiguration));
 
-	// Set up the working directory
-	File workingDirectory = pPlatformDirsSvc
-		.getIsolateWorkingDir(aIsolateConfiguration.getId());
-	if (!workingDirectory.exists()) {
-	    workingDirectory.mkdirs();
-	}
+        // Set up the working directory
+        File workingDirectory = pPlatformDirsSvc
+                .getIsolateWorkingDir(aIsolateConfiguration.getId());
+        if (!workingDirectory.exists()) {
+            workingDirectory.mkdirs();
+        }
 
-	// Run the bootstrap
-	return pJavaRunnerSvc.runJava(javaOptions, null, workingDirectory);
+        // Run the bootstrap
+        return pJavaRunnerSvc.runJava(javaOptions, null, workingDirectory);
     }
 
     /*
@@ -357,8 +360,8 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
     @Override
     public void validatePojo() throws BundleException {
 
-	// logs in the bundle logger
-	pBundleForkerLoggerSvc.logInfo(this, "validatePojo", "VALIDATE",
-		toDescription());
+        // logs in the bundle logger
+        pIsolateLoggerSvc.logInfo(this, "validatePojo", "VALIDATE",
+                toDescription());
     }
 }

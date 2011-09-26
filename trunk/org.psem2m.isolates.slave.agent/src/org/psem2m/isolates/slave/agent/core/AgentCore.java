@@ -16,8 +16,8 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.packageadmin.PackageAdmin;
+import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
-import org.psem2m.isolates.base.activators.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.bundles.BundleInfo;
 import org.psem2m.isolates.base.bundles.BundleRef;
 import org.psem2m.isolates.base.bundles.IBundleFinderSvc;
@@ -56,7 +56,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
     private final Map<Long, IBundleDescr> pInstalledBundles = new HashMap<Long, IBundleDescr>();
 
     /** Isolate logger, injected by iPOJO */
-    private IIsolateLoggerSvc pLoggerSvc;
+    private IIsolateLoggerSvc pIsolateLoggerSvc;
 
     /** Platform directories service, injected by iPOJO */
     private IPlatformDirsSvc pPlatformDirsSvc;
@@ -118,7 +118,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
             return bundleRef.getUri().toURL().toString();
 
         } catch (MalformedURLException ex) {
-            pLoggerSvc.logWarn(this, "findBundleURL",
+            pIsolateLoggerSvc.logWarn(this, "findBundleURL",
                     "Error preparing bundle URL", ex);
         }
 
@@ -236,7 +236,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
     @Override
     public void killIsolate() {
 
-        pLoggerSvc.logInfo(this, "killIsolate", "Kills this isolate [%s]",
+        pIsolateLoggerSvc.logInfo(this, "killIsolate", "Kills this isolate [%s]",
                 pPlatformDirsSvc.getIsolateId());
 
         // Neutralize the isolate
@@ -248,7 +248,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
 
         } catch (BundleException e) {
             // Damn
-            pLoggerSvc.logSevere(this, "validatePojo",
+            pIsolateLoggerSvc.logSevere(this, "validatePojo",
                     "Can't stop the framework", e);
 
             try {
@@ -256,7 +256,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
                 pBundleContext.getBundle().stop();
 
             } catch (BundleException e1) {
-                pLoggerSvc.logSevere(this, "validatePojo",
+                pIsolateLoggerSvc.logSevere(this, "validatePojo",
                         "Agent suicide FAILED (you're in trouble)", e1);
             }
         }
@@ -280,7 +280,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
 
                 } catch (BundleException ex) {
                     // Only log the error
-                    pLoggerSvc.logWarn(this, "neutralizeIsolate",
+                    pIsolateLoggerSvc.logWarn(this, "neutralizeIsolate",
                             "Error stopping bundle : ",
                             pInstalledBundles.get(bundleId).getSymbolicName(),
                             ex);
@@ -361,7 +361,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
                         switch (ex.getType()) {
                         case BundleException.DUPLICATE_BUNDLE_ERROR:
                             // Simply log this
-                            pLoggerSvc.logInfo(this, "prepareIsolate",
+                            pIsolateLoggerSvc.logInfo(this, "prepareIsolate",
                                     "Bundle ", bundleName,
                                     " is already installed");
 
@@ -370,7 +370,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
                         default:
                             if (bundleDescr.getOptional()) {
                                 // Ignore error if the bundle is optional
-                                pLoggerSvc.logWarn(this, "prepareIsolate",
+                                pIsolateLoggerSvc.logWarn(this, "prepareIsolate",
                                         "Error installing ", bundleName, ex);
 
                             } else {
@@ -385,7 +385,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
 
                     if (bundleDescr.getOptional()) {
                         // Simply log
-                        pLoggerSvc.logWarn(this, "prepareIsolate",
+                        pIsolateLoggerSvc.logWarn(this, "prepareIsolate",
                                 "Bundle not found : ", bundleName);
 
                     } else {
@@ -405,7 +405,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
                 } catch (BundleException ex) {
                     if (pInstalledBundles.get(bundleId).getOptional()) {
                         // Simply log
-                        pLoggerSvc.logWarn(this, "prepareIsolate",
+                        pIsolateLoggerSvc.logWarn(this, "prepareIsolate",
                                 "Can't start bundle ",
                                 pInstalledBundles.get(bundleId)
                                         .getSymbolicName(), ex);
@@ -491,7 +491,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
         // Get the configured URL
         final String isolateAccessStr = aIsolateDescr.getAccessUrl();
         if (isolateAccessStr == null || isolateAccessStr.isEmpty()) {
-            pLoggerSvc.log(Level.WARNING, this, "setupHttpProperties",
+            pIsolateLoggerSvc.log(Level.WARNING, this, "setupHttpProperties",
                     "No access URL defined for ", aIsolateDescr.getId());
             return;
         }
@@ -502,7 +502,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
             isolateAccessUrl = new URL(isolateAccessStr);
 
         } catch (MalformedURLException e) {
-            pLoggerSvc.log(Level.WARNING, this, "setupHttpProperties",
+            pIsolateLoggerSvc.log(Level.WARNING, this, "setupHttpProperties",
                     "Invalid access URL '", isolateAccessStr, "' for ",
                     aIsolateDescr.getId());
             return;
@@ -518,7 +518,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
         int accessPort = isolateAccessUrl.getPort();
         if (accessPort == -1) {
             // No port defined, do nothing
-            pLoggerSvc.log(Level.WARNING, this, "setupHttpProperties",
+            pIsolateLoggerSvc.log(Level.WARNING, this, "setupHttpProperties",
                     "No port defined in URL '", isolateAccessStr, "' for ",
                     aIsolateDescr.getId());
             return;
@@ -644,7 +644,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
             pBootstrapSender.sendStatus(IsolateStatus.STATE_FAILURE, -1);
 
             // Log the error
-            pLoggerSvc.logSevere(this, "validatePojo",
+            pIsolateLoggerSvc.logSevere(this, "validatePojo",
                     "Error preparing this isolate : ", ex);
 
             // the the isolate !

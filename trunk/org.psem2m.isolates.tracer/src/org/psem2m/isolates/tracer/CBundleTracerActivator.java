@@ -13,68 +13,72 @@ package org.psem2m.isolates.tracer;
 import org.osgi.framework.BundleContext;
 import org.psem2m.isolates.base.activators.CActivatorBase;
 import org.psem2m.isolates.base.activators.IActivatorBase;
-import org.psem2m.isolates.base.activators.IIsolateLoggerSvc;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
 public class CBundleTracerActivator extends CActivatorBase implements
-		IActivatorBase, IIsolateLoggerSvc {
+        IActivatorBase {
 
-	/** first instance **/
-	private static CBundleTracerActivator sSingleton = null;
+    /** first instance **/
+    private static CBundleTracerActivator sSingleton = null;
 
-	/**
-	 * @return
-	 */
-	public static CBundleTracerActivator getInstance() {
-		return sSingleton;
-	}
+    /**
+     * @return
+     */
+    public static CBundleTracerActivator getInstance() {
 
-	/**
-	 * Explicit default constructor
-	 */
-	public CBundleTracerActivator() {
-		super();
-		if (sSingleton == null) {
-			sSingleton = this;
-		}
-	}
+        return sSingleton;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.utilities.CXObjectBase#destroy()
-	 */
-	@Override
-	public void destroy() {
-		// nothing...
-	}
+    /**
+     * Explicit default constructor
+     */
+    public CBundleTracerActivator() {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext
-	 * )
-	 */
-	@Override
-	public void start(final BundleContext bundleContext) throws Exception {
-		super.start(bundleContext);
-		// ...
-	}
+        super();
+        if (sSingleton == null) {
+            sSingleton = this;
+        }
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
-	 */
-	@Override
-	public void stop(final BundleContext bundleContext) throws Exception {
-		super.stop(bundleContext);
-		// ...
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.utilities.CXObjectBase#destroy()
+     */
+    @Override
+    public void destroy() {
+
+        // nothing...
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext
+     * )
+     */
+    @Override
+    public void start(final BundleContext bundleContext) throws Exception {
+
+        super.start(bundleContext);
+        // ...
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
+     */
+    @Override
+    public void stop(final BundleContext bundleContext) throws Exception {
+
+        super.stop(bundleContext);
+        // ...
+    }
 
 }

@@ -3,10 +3,13 @@ package org.psem2m.isolates.slave.agent;
 import org.osgi.framework.BundleContext;
 import org.psem2m.isolates.base.activators.CActivatorBase;
 import org.psem2m.isolates.base.activators.IActivatorBase;
-import org.psem2m.utilities.logging.IActivityLoggerBase;
 
+/**
+ * @author ogattaz
+ * 
+ */
 public class CBundleSlaveAgentActivator extends CActivatorBase implements
-        IActivatorBase, IActivityLoggerBase {
+        IActivatorBase {
 
     /** Current valid instance */
     private static CBundleSlaveAgentActivator sInstance = null;
@@ -17,10 +20,12 @@ public class CBundleSlaveAgentActivator extends CActivatorBase implements
      * @return the current instance of the activator
      */
     public static CBundleSlaveAgentActivator getInstance() {
+
         return sInstance;
     }
 
     public CBundleSlaveAgentActivator() {
+
         super();
         sInstance = this;
     }
@@ -32,6 +37,7 @@ public class CBundleSlaveAgentActivator extends CActivatorBase implements
      */
     @Override
     public void destroy() {
+
         // ...
     }
 
@@ -42,6 +48,7 @@ public class CBundleSlaveAgentActivator extends CActivatorBase implements
      */
     @Override
     public String getBundleId() {
+
         return getClass().getPackage().getName();
     }
 
@@ -54,6 +61,7 @@ public class CBundleSlaveAgentActivator extends CActivatorBase implements
      */
     @Override
     public void start(final BundleContext aBundleContext) throws Exception {
+
         sInstance = this;
         super.start(aBundleContext);
     }
@@ -66,6 +74,7 @@ public class CBundleSlaveAgentActivator extends CActivatorBase implements
      */
     @Override
     public void stop(final BundleContext aBundleContext) throws Exception {
+
         super.stop(aBundleContext);
         sInstance = null;
     }

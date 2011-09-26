@@ -11,13 +11,11 @@
 package org.psem2m.isolates.forker.tester;
 
 import org.psem2m.isolates.base.activators.IActivatorBase;
-import org.psem2m.utilities.logging.IActivityLoggerBase;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
-public interface IBundleForkerTestActivator extends IActivatorBase,
-		IActivityLoggerBase {
+public interface IBundleForkerTestActivator extends IActivatorBase {
 
 }

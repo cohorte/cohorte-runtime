@@ -18,70 +18,75 @@ import org.psem2m.isolates.base.activators.CActivatorBase;
  * 
  */
 public class CBundleForkerActivator extends CActivatorBase implements
-		IBundleForkerActivator {
+        IBundleForkerActivator {
 
-	/** first instance **/
-	private static IBundleForkerActivator sBundleForkerActivator = null;
+    /** first instance **/
+    private static IBundleForkerActivator sBundleForkerActivator = null;
 
-	/**
-	 * @return
-	 */
-	public static IBundleForkerActivator getInstance() {
-		return sBundleForkerActivator;
-	}
+    /**
+     * @return
+     */
+    public static IBundleForkerActivator getInstance() {
 
-	/**
-	 * Explicit default constructor
-	 */
-	public CBundleForkerActivator() {
-		super();
-		if (sBundleForkerActivator == null) {
-			sBundleForkerActivator = this;
-		}
-	}
+        return sBundleForkerActivator;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.utilities.CXObjectBase#destroy()
-	 */
-	@Override
-	public void destroy() {
-		// ...
-	}
+    /**
+     * Explicit default constructor
+     */
+    public CBundleForkerActivator() {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.isolates.utilities.osgi.CActivatorBase#getBundleId()
-	 */
-	@Override
-	public String getBundleId() {
-		return getClass().getPackage().getName();
-	}
+        super();
+        if (sBundleForkerActivator == null) {
+            sBundleForkerActivator = this;
+        }
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext
-	 * )
-	 */
-	@Override
-	public void start(final BundleContext aBundleContext) throws Exception {
-		super.start(aBundleContext);
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.utilities.CXObjectBase#destroy()
+     */
+    @Override
+    public void destroy() {
 
-	}
+        // ...
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
-	 */
-	@Override
-	public void stop(final BundleContext aBundleContext) throws Exception {
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.utilities.osgi.CActivatorBase#getBundleId()
+     */
+    @Override
+    public String getBundleId() {
 
-		super.stop(aBundleContext);
-	}
+        return getClass().getPackage().getName();
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext
+     * )
+     */
+    @Override
+    public void start(final BundleContext aBundleContext) throws Exception {
+
+        super.start(aBundleContext);
+
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
+     */
+    @Override
+    public void stop(final BundleContext aBundleContext) throws Exception {
+
+        super.stop(aBundleContext);
+    }
 }

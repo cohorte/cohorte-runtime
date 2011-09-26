@@ -3,17 +3,7 @@
 	xsi:schemaLocation="org.apache.felix.ipojo http://felix.apache.org/ipojo/schemas/CURRENT/core.xsd"
 	xmlns="org.apache.felix.ipojo" xmlns:jmx="org.apache.felix.ipojo.handlers.jmx">
 
-	<!-- Logger associated to the forker -->
-	<component classname="org.psem2m.isolates.forker.impl.CBundleForkerLoggerSvc"
-		architecture="true" immediate="true" name="isolates-forker-logger"
-		public="false">
 
-		<provides specifications="org.psem2m.isolates.forker.IBundleForkerLoggerSvc" />
-
-		<callback transition="validate" method="validatePojo" />
-		<callback transition="invalidate" method="invalidatePojo" />
-	</component>
-	<instance component="isolates-forker-logger" />
 
 	<!-- Java Runner -->
 	<component classname="org.psem2m.isolates.forker.impl.runners.JavaRunner"
@@ -22,7 +12,7 @@
 
 		<provides specifications="org.psem2m.isolates.forker.impl.runners.IJavaRunner" />
 
-		<requires field="pBundleForkerLoggerSvc" optional="false" />
+		<requires field="pIsolateLoggerSvc" optional="false" />
 		<requires field="pPlatformDirsSvc" optional="false" />
 
 		<callback transition="validate" method="validatePojo" />
@@ -37,7 +27,7 @@
 
 		<provides specifications="org.psem2m.isolates.forker.IIsolateRunner" />
 
-		<requires field="pBundleForkerLoggerSvc" optional="false" />
+		<requires field="pIsolateLoggerSvc" optional="false" />
 		<requires field="pPlatformDirsSvc" optional="false" />
 		<requires field="pBundleFinderSvc" optional="false" />
 		<requires field="pJavaRunnerSvc" optional="false" />
@@ -57,7 +47,7 @@
 		<!-- Needed to export instance properties -->
 		<properties propagation="true" />
 
-		<requires field="pBundleForkerLoggerSvc" optional="false" />
+		<requires field="pIsolateLoggerSvc" optional="false" />
 		<requires field="pIsolateRunners" optional="false" />
 
 		<callback transition="validate" method="validatePojo" />

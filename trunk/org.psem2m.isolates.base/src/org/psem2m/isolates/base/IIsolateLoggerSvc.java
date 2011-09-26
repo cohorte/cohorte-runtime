@@ -8,7 +8,7 @@
  * Contributors:
  *    ogattaz (isandlaTech) - initial API and implementation
  *******************************************************************************/
-package org.psem2m.isolates.base.activators;
+package org.psem2m.isolates.base;
 
 import org.psem2m.utilities.logging.IActivityLoggerBase;
 

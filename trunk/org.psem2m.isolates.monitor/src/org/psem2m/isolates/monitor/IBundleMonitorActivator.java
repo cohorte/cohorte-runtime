@@ -11,13 +11,11 @@
 package org.psem2m.isolates.monitor;
 
 import org.psem2m.isolates.base.activators.IActivatorBase;
-import org.psem2m.utilities.logging.IActivityLoggerBase;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
-public interface IBundleMonitorActivator extends IActivatorBase,
-		IActivityLoggerBase {
+public interface IBundleMonitorActivator extends IActivatorBase {
 
 }

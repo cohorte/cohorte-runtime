@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-Activator: org.psem2m.isolates.tracer.CBundleTracerActivator
 Bundle-ManifestVersion: 2
-Bundle-Name: Tracer
+Bundle-Name: PSEM2M Tracer
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: org.psem2m.isolates.tracer
 Bundle-Vendor: isandlaTech (www.isandlatech.com)
@@ -12,38 +12,24 @@ Export-Package: org.psem2m.isolates.tracer,org.psem2m.isolates.tracer.
 Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  .ipojo.architecture;version=1.8.0, org.osgi.framework;version=1.3.0, 
  org.osgi.service.cm;version=1.2, org.osgi.service.log;version=1.3, or
- g.psem2m.isolates.base.activators;version=1.0.0, org.psem2m.isolates.
- loggers, org.psem2m.utilities, org.psem2m.utilities.logging
-iPOJO-Components: instance { $component="isolates-tracer-isolatelogger
- -factory" $name="isolates-tracer-isolatelogger" }instance { $componen
- t="isolates-tracer-tracer-factory" $name="isolates-tracer-tracer" }co
- mponent { $classname="org.psem2m.isolates.tracer.CBundleTracerActivat
- or" $architecture="true" $immediate="true" $name="isolates-tracer-iso
- latelogger-factory" $factory-method="getInstance" provides { $specifi
- cations="org.psem2m.isolates.base.activators.IIsolateLoggerSvc" }call
- back { $transition="validate" $method="validatePojo" }callback { $tra
- nsition="invalidate" $method="invalidatePojo" }manipulation { $super=
- "org.psem2m.isolates.base.activators.CActivatorBase" interface { $nam
- e="org.psem2m.isolates.base.activators.IActivatorBase" }interface { $
- name="org.psem2m.isolates.base.activators.IIsolateLoggerSvc" }method 
- { $name="getInstance" $return="org.psem2m.isolates.tracer.CBundleTrac
- erActivator" }method { $name="destroy" }method { $name="start" $argum
- ents="{org.osgi.framework.BundleContext}" }method { $name="stop" $arg
- uments="{org.osgi.framework.BundleContext}" }}}component { $classname
- ="org.psem2m.isolates.tracer.impl.CTracerSvc" $architecture="true" $i
- mmediate="true" $name="isolates-tracer-tracer-factory" provides { $sp
- ecifications="org.psem2m.isolates.tracer.ITracerSvc" }requires { $fie
- ld="pLogChannelsSvc" $optional="false" $from="isolates-loggers-channe
- ls" }requires { $field="pIsolateLoggerSvc" $optional="false" $from="i
- solates-tracer-isolatelogger" }callback { $transition="validate" $met
- hod="validatePojo" }callback { $transition="invalidate" $method="inva
- lidatePojo" }manipulation { $super="org.psem2m.isolates.base.activato
- rs.CPojoBase" interface { $name="org.psem2m.isolates.tracer.ITracerSv
- c" }field { $name="pIsolateLoggerSvc" $type="org.psem2m.isolates.base
- .activators.IIsolateLoggerSvc" }field { $name="pLogChannelsSvc" $type
- ="org.psem2m.isolates.loggers.ILogChannelsSvc" }method { $name="destr
- oy" }method { $name="getPojoId" $return="java.lang.String" }method { 
- $name="getTracableChannelsIds" $return="java.util.List" }method { $na
- me="invalidatePojo" }method { $name="traceChannels" $return="boolean"
-  $arguments="{java.util.List}" }method { $name="validatePojo" }}}
+ g.psem2m.isolates.base;version=1.0.0, org.psem2m.isolates.base.activa
+ tors;version=1.0.0, org.psem2m.isolates.loggers, org.psem2m.utilities
+ , org.psem2m.utilities.logging
+iPOJO-Components: instance { $component="isolates-tracer-tracer-factor
+ y" $name="isolates-tracer-tracer" }component { $classname="org.psem2m
+ .isolates.tracer.impl.CTracerSvc" $architecture="true" $immediate="tr
+ ue" $name="isolates-tracer-tracer-factory" provides { $specifications
+ ="org.psem2m.isolates.tracer.ITracerSvc" }requires { $field="pIsolate
+ LoggerSvc" $optional="false" }requires { $field="pLogChannelsSvc" $op
+ tional="false" }callback { $transition="validate" $method="validatePo
+ jo" }callback { $transition="invalidate" $method="invalidatePojo" }ma
+ nipulation { $super="org.psem2m.isolates.base.activators.CPojoBase" i
+ nterface { $name="org.psem2m.isolates.tracer.ITracerSvc" }field { $na
+ me="pIsolateLoggerSvc" $type="org.psem2m.isolates.base.IIsolateLogger
+ Svc" }field { $name="pLogChannelsSvc" $type="org.psem2m.isolates.logg
+ ers.ILogChannelsSvc" }method { $name="destroy" }method { $name="getPo
+ joId" $return="java.lang.String" }method { $name="getTracableChannels
+ Ids" $return="java.util.List" }method { $name="invalidatePojo" }metho
+ d { $name="traceChannels" $return="boolean" $arguments="{java.util.Li
+ st}" }method { $name="validatePojo" }}}
 

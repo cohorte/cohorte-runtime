@@ -13,8 +13,8 @@ package org.psem2m.isolates.demo.services.ui.viewer.impl;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
+import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
-import org.psem2m.isolates.base.activators.IIsolateLoggerSvc;
 import org.psem2m.isolates.demo.services.ui.viewer.IUiSvc;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.isolates.slave.agent.ISvcAgent;

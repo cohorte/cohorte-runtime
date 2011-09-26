@@ -14,8 +14,8 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 
 import org.osgi.framework.BundleException;
+import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
-import org.psem2m.isolates.base.activators.IIsolateLoggerSvc;
 import org.psem2m.isolates.loggers.ILogChannelSvc;
 import org.psem2m.isolates.loggers.ILogChannelsSvc;
 import org.psem2m.utilities.logging.CLogLineBuffer;

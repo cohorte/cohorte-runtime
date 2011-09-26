@@ -4,14 +4,7 @@
 	xmlns="org.apache.felix.ipojo" xmlns:jmx="org.apache.felix.ipojo.handlers.jmx">
 
 
-	<component classname="org.psem2m.isolates.monitor.impl.CBundleMonitorLoggerSvc"
-		architecture="true" immediate="true" name="isolates-monitor-logger-factory">
-		<provides specifications="org.psem2m.isolates.monitor.IBundleMonitorLoggerService" />
 
-		<callback transition="validate" method="validatePojo" />
-		<callback transition="invalidate" method="invalidatePojo" />
-	</component>
-	<instance component="isolates-monitor-logger-factory" name="isolates-monitor-logger" />
 
 	<component classname="org.psem2m.isolates.monitor.impl.CIsolateManagerSvc"
 		architecture="true" immediate="true" name="isolates-monitor-factory"

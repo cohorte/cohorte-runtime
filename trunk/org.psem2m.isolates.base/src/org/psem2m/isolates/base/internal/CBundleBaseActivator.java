@@ -20,13 +20,15 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.log.LogReaderService;
 import org.osgi.service.log.LogService;
+import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.bundles.IBundleFinderSvc;
 import org.psem2m.isolates.base.bundles.impl.CBundleFinderSvc;
 import org.psem2m.isolates.base.dirs.impl.CFileFinderSvc;
 import org.psem2m.isolates.base.dirs.impl.CPlatformDirsSvc;
 import org.psem2m.isolates.services.dirs.IFileFinderSvc;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
-import org.psem2m.utilities.logging.CActivityLoggerBasic;
+import org.psem2m.utilities.CXJvmUtils;
+import org.psem2m.utilities.CXObjectBase;
 import org.psem2m.utilities.logging.IActivityLogger;
 import org.psem2m.utilities.logging.IActivityLoggerBase;
 
@@ -34,7 +36,56 @@ import org.psem2m.utilities.logging.IActivityLoggerBase;
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * @author Thomas Calmant
  */
-public class CBundleBaseActivator implements BundleActivator {
+public class CBundleBaseActivator extends CXObjectBase implements
+        BundleActivator {
+
+    /**
+     * Service Infos bean
+     * 
+     * @author ogattaz
+     * 
+     */
+    class CServiceInfos {
+        /** the service **/
+        Object pService;
+        /** the name of the service **/
+        String pServiceName;
+
+        /** the registration info of the service **/
+        ServiceRegistration pServiceRegistration;
+
+        CServiceInfos(final ServiceRegistration aServiceRegistration,
+                final String aServiceName, final Object aService) {
+
+            pServiceRegistration = aServiceRegistration;
+            pServiceName = aServiceName;
+            pService = aService;
+        }
+
+        /**
+         * @return
+         */
+        public Object getService() {
+
+            return pService;
+        }
+
+        /**
+         * @return
+         */
+        public String getServiceName() {
+
+            return pServiceName;
+        }
+
+        /**
+         * @return
+         */
+        public ServiceRegistration getServiceRegistration() {
+
+            return pServiceRegistration;
+        }
+    }
 
     /** Maximum log files for the LogService */
     public static final int LOG_FILES_COUNT = 5;
@@ -51,6 +102,8 @@ public class CBundleBaseActivator implements BundleActivator {
     /** File finder service */
     private CFileFinderSvc pFileFinderSvc;
 
+    private CIsolateLoggerSvc pIsolateLoggerSvc;
+
     /** Internal log handler */
     private CLogInternal pLogInternal;
 
@@ -64,7 +117,7 @@ public class CBundleBaseActivator implements BundleActivator {
     private CPlatformDirsSvc pPlatformDirsSvc;
 
     /** OSGi services registration */
-    private final List<ServiceRegistration> pRegisteredServices = new ArrayList<ServiceRegistration>();
+    private final List<CServiceInfos> pRegisteredServicesInfos = new ArrayList<CServiceInfos>();
 
     /**
      * Creates or retrieves an instance of the bundle finder
@@ -73,11 +126,11 @@ public class CBundleBaseActivator implements BundleActivator {
      */
     public IBundleFinderSvc getBundleFinder() {
 
-	if (pBundleFinderSvc == null) {
-	    pBundleFinderSvc = new CBundleFinderSvc(getPlatformDirs());
-	}
+        if (pBundleFinderSvc == null) {
+            pBundleFinderSvc = new CBundleFinderSvc(getPlatformDirs());
+        }
 
-	return pBundleFinderSvc;
+        return pBundleFinderSvc;
     }
 
     /**
@@ -87,11 +140,24 @@ public class CBundleBaseActivator implements BundleActivator {
      */
     public IFileFinderSvc getFileFinder() {
 
-	if (pFileFinderSvc == null) {
-	    pFileFinderSvc = new CFileFinderSvc(getPlatformDirs());
-	}
+        if (pFileFinderSvc == null) {
+            pFileFinderSvc = new CFileFinderSvc(getPlatformDirs());
+        }
 
-	return pFileFinderSvc;
+        return pFileFinderSvc;
+    }
+
+    /**
+     * @return
+     * @throws Exception
+     */
+    public CIsolateLoggerSvc getIsolateLoggerSvc() throws Exception {
+
+        if (pIsolateLoggerSvc == null) {
+            pIsolateLoggerSvc = new CIsolateLoggerSvc(getLogger());
+        }
+
+        return pIsolateLoggerSvc;
     }
 
     /**
@@ -103,26 +169,34 @@ public class CBundleBaseActivator implements BundleActivator {
      */
     protected IActivityLogger getLogger() throws Exception {
 
-	// Be sure we have a valid platform service instance
-	if (pPlatformDirsSvc == null) {
-	    getPlatformDirs();
-	}
+        // if no logger already created
+        if (pActivityLogger == null) {
 
-	if (pActivityLogger == null) {
+            // Be sure we have a valid platform service instance
+            IPlatformDirsSvc wPlatformDirsSvc = getPlatformDirs();
 
-	    final StringBuilder pathBuilder = new StringBuilder(
-		    pPlatformDirsSvc.getIsolateLogDir().getAbsolutePath());
-	    pathBuilder.append(File.separator);
-	    pathBuilder.append("LogService-%g.txt");
+            // the name of the logger
+            String wLoggerName = "psem2m.isolate."
+                    + wPlatformDirsSvc.getIsolateId();
 
-	    pActivityLogger = CActivityLoggerBasic.newLogger(
-		    pPlatformDirsSvc.getIsolateId() + "-LogService",
-		    pathBuilder.toString(), IActivityLoggerBase.ALL,
-		    LOG_FILES_SIZE, LOG_FILES_COUNT);
+            // the FilePathPattern of the logger
+            final StringBuilder wFilePathPattern = new StringBuilder();
+            wFilePathPattern.append(wPlatformDirsSvc.getIsolateLogDir()
+                    .getAbsolutePath());
+            wFilePathPattern.append(File.separator);
+            wFilePathPattern.append("LogService-%g.txt");
 
-	}
+            pActivityLogger = new CIsolateLoggerChannel(wLoggerName,
+                    wFilePathPattern.toString(), IActivityLoggerBase.ALL,
+                    LOG_FILES_SIZE, LOG_FILES_COUNT);
 
-	return pActivityLogger;
+            // add the context
+            pActivityLogger.logInfo(this, "getLogger",
+                    CXJvmUtils.getJavaContext());
+
+        }
+
+        return pActivityLogger;
     }
 
     /**
@@ -134,11 +208,11 @@ public class CBundleBaseActivator implements BundleActivator {
      */
     public CLogInternal getLogInternal() throws Exception {
 
-	if (pLogInternal == null) {
-	    pLogInternal = new CLogInternal(getLogger());
-	}
+        if (pLogInternal == null) {
+            pLogInternal = new CLogInternal(getLogger());
+        }
 
-	return pLogInternal;
+        return pLogInternal;
     }
 
     /**
@@ -149,14 +223,14 @@ public class CBundleBaseActivator implements BundleActivator {
      *             An error occurred while preparing the underlying logger
      */
     public CLogReaderServiceFactory getLogReaderServiceFactory()
-	    throws Exception {
+            throws Exception {
 
-	if (pLogReaderServiceFactory == null) {
-	    pLogReaderServiceFactory = new CLogReaderServiceFactory(
-		    getLogInternal());
-	}
+        if (pLogReaderServiceFactory == null) {
+            pLogReaderServiceFactory = new CLogReaderServiceFactory(
+                    getLogInternal());
+        }
 
-	return pLogReaderServiceFactory;
+        return pLogReaderServiceFactory;
     }
 
     /**
@@ -168,11 +242,12 @@ public class CBundleBaseActivator implements BundleActivator {
      */
     public CLogServiceFactory getLogServiceFactory() throws Exception {
 
-	if (pLogServiceFactory == null) {
-	    pLogServiceFactory = new CLogServiceFactory(getLogInternal());
-	}
+        // if no LogServiceFactory already created
+        if (pLogServiceFactory == null) {
+            pLogServiceFactory = new CLogServiceFactory(getLogInternal());
+        }
 
-	return pLogServiceFactory;
+        return pLogServiceFactory;
     }
 
     /**
@@ -182,11 +257,78 @@ public class CBundleBaseActivator implements BundleActivator {
      */
     public IPlatformDirsSvc getPlatformDirs() {
 
-	if (pPlatformDirsSvc == null) {
-	    pPlatformDirsSvc = new CPlatformDirsSvc();
-	}
+        // if no PlatformDirsSvc already created
+        if (pPlatformDirsSvc == null) {
+            pPlatformDirsSvc = new CPlatformDirsSvc();
+        }
 
-	return pPlatformDirsSvc;
+        return pPlatformDirsSvc;
+    }
+
+    /**
+     * @param aServiceInterface
+     * @param aService
+     * @param aState
+     */
+    private void logServiceManipulation(final String aServiceName,
+            final Object aService, final String aState) {
+
+        try {
+
+            getLogger().logInfo(this, "logServiceRegistering", "Service=",
+                    aServiceName, aState + '=', true);
+
+        } catch (Exception e) {
+            System.err.println("Can't log registration");
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * log the registration of a service in the logger of the isolate
+     * 
+     * @param aName
+     * @param aService
+     * @throws Exception
+     */
+    private void logServiceRegistration(final String aServiceName,
+            final Object aService) {
+
+        logServiceManipulation(aServiceName, aService, "Registered");
+    }
+
+    /**
+     * log the unregistration of a service in the logger of the isolate
+     * 
+     * @param aName
+     * @param aService
+     * @throws Exception
+     */
+    private void logServiceUnregistration(final String aServiceName,
+            final Object aService) {
+
+        logServiceManipulation(aServiceName, aService, "Unregistered");
+    }
+
+    /**
+     * @param aServiceInterface
+     * @param aService
+     */
+    private void registerOneService(final BundleContext aBundleContext,
+            final String aServiceName, final Object aService) {
+
+        try {
+            ServiceRegistration registration = aBundleContext.registerService(
+                    aServiceName, aService, null);
+            pRegisteredServicesInfos.add(new CServiceInfos(registration,
+                    aServiceName, aService));
+            logServiceRegistration(aServiceName, aService);
+
+        } catch (Exception e) {
+            System.err.format("Can't register the service [%s].", aServiceName);
+            e.printStackTrace();
+        }
+
     }
 
     /*
@@ -197,41 +339,54 @@ public class CBundleBaseActivator implements BundleActivator {
      * )
      */
     @Override
-    public synchronized void start(final BundleContext aBundleContext) {
+    public void start(final BundleContext aBundleContext) {
 
-	ServiceRegistration registration;
+        try {
+            getLogger().logInfo(this, "start", "START", toDescription());
+        } catch (Exception e) {
+            System.err.println("Can't log the begining of the start method");
+            e.printStackTrace();
+        }
 
-	// Register platform directories
-	registration = aBundleContext.registerService(
-		IPlatformDirsSvc.class.getName(), getPlatformDirs(), null);
-	pRegisteredServices.add(registration);
+        // Register platform directories service
+        registerOneService(aBundleContext, IPlatformDirsSvc.class.getName(),
+                getPlatformDirs());
 
-	try {
-	    // LogService interface
-	    registration = aBundleContext.registerService(
-		    LogService.class.getName(), getLogServiceFactory(), null);
-	    pRegisteredServices.add(registration);
+        try {
+            // LogService interface
+            registerOneService(aBundleContext, LogService.class.getName(),
+                    getLogServiceFactory());
+        } catch (Exception e) {
+            System.err.println("Can't get the LogServiceFactory");
+            e.printStackTrace();
+        }
+        try {
+            // LogReader service interface
+            registerOneService(aBundleContext,
+                    LogReaderService.class.getName(),
+                    getLogReaderServiceFactory());
+        } catch (Exception e) {
+            System.err.println("Can't get the LogReaderServiceFactory");
+            e.printStackTrace();
+        }
+        try {
+            // IsolateLogger service
+            registerOneService(aBundleContext,
+                    IIsolateLoggerSvc.class.getName(), getIsolateLoggerSvc());
+        } catch (Exception e) {
+            System.err.println("Can't get the IsolateLoggerSvc");
+            e.printStackTrace();
 
-	    // LogReader service interface
-	    registration = aBundleContext.registerService(
-		    LogReaderService.class.getName(),
-		    getLogReaderServiceFactory(), null);
-	    pRegisteredServices.add(registration);
+        }
 
-	} catch (Exception e) {
-	    System.err.println("Can't create the log service factory");
-	    e.printStackTrace();
-	}
+        // Register the file finder
+        registerOneService(aBundleContext, IFileFinderSvc.class.getName(),
+                getFileFinder());
 
-	// Register the file finder
-	registration = aBundleContext.registerService(
-		IFileFinderSvc.class.getName(), getFileFinder(), null);
-	pRegisteredServices.add(registration);
+        // Register the bundle finder
+        registerOneService(aBundleContext, IBundleFinderSvc.class.getName(),
+                getBundleFinder());
 
-	// Register the bundle finder
-	registration = aBundleContext.registerService(
-		IBundleFinderSvc.class.getName(), getBundleFinder(), null);
-	pRegisteredServices.add(registration);
     }
 
     /*
@@ -241,13 +396,30 @@ public class CBundleBaseActivator implements BundleActivator {
      * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
      */
     @Override
-    public synchronized void stop(final BundleContext aBundleContext) {
+    public void stop(final BundleContext aBundleContext) {
 
-	// Unregister all services
-	for (ServiceRegistration registration : pRegisteredServices) {
-	    registration.unregister();
-	}
+        try {
+            getLogger().logInfo(this, "stop", "STOP", toDescription());
+        } catch (Exception e) {
+            System.err.println("Can't log the begining of the stop method");
+            e.printStackTrace();
+        }
 
-	pRegisteredServices.clear();
+        // Unregister all services
+        for (CServiceInfos wServiceInfos : pRegisteredServicesInfos) {
+            wServiceInfos.getServiceRegistration().unregister();
+            logServiceUnregistration(wServiceInfos.getServiceName(),
+                    wServiceInfos.getService());
+        }
+
+        pRegisteredServicesInfos.clear();
+
+        try {
+            getLogger().logInfo(this, "stop", "STOP ENDED");
+            getLogger().close();
+        } catch (Exception e) {
+            System.err.println("Can't log the begining of the stop method");
+            e.printStackTrace();
+        }
     }
 }

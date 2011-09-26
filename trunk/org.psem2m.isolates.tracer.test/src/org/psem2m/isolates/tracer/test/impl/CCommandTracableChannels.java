@@ -15,8 +15,8 @@ import java.util.List;
 
 import org.apache.felix.shell.Command;
 import org.osgi.framework.BundleException;
+import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
-import org.psem2m.isolates.base.activators.IIsolateLoggerSvc;
 import org.psem2m.isolates.tracer.ITracerSvc;
 import org.psem2m.utilities.CXStringUtils;
 
@@ -29,105 +29,112 @@ import org.psem2m.utilities.CXStringUtils;
  */
 public class CCommandTracableChannels extends CPojoBase implements Command {
 
-	/**
-	 * Service reference managed by iPojo (see metadata.xml)
-	 * 
-	 * This service is the logger of the current bundle
-	 **/
-	private IIsolateLoggerSvc pIsolateLoggerSvc;
+    /**
+     * Service reference managed by iPojo (see metadata.xml)
+     * 
+     * This service is the logger of the current bundle
+     **/
+    private IIsolateLoggerSvc pIsolateLoggerSvc;
 
-	/**
-	 * Service reference managed by iPojo (see metadata.xml)
-	 * 
-	 * This service is the logger of the current bundle
-	 **/
-	private ITracerSvc pTracerSvc;
+    /**
+     * Service reference managed by iPojo (see metadata.xml)
+     * 
+     * This service is the logger of the current bundle
+     **/
+    private ITracerSvc pTracerSvc;
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.utilities.CXObjectBase#destroy()
-	 */
-	@Override
-	public void destroy() {
-		// ...
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.utilities.CXObjectBase#destroy()
+     */
+    @Override
+    public void destroy() {
 
-	}
+        // ...
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.apache.felix.shell.Command#execute(java.lang.String,
-	 * java.io.PrintStream, java.io.PrintStream)
-	 */
-	@Override
-	public void execute(final String aArgs, final PrintStream out,
-			final PrintStream err) {
+    }
 
-		pIsolateLoggerSvc.logInfo(this, "execute", "cmde=[%s] args=[%s]", getName(),
-				aArgs);
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.apache.felix.shell.Command#execute(java.lang.String,
+     * java.io.PrintStream, java.io.PrintStream)
+     */
+    @Override
+    public void execute(final String aArgs, final PrintStream out,
+            final PrintStream err) {
 
-		out.println(getName() + " begin");
-		List<String> wIds = pTracerSvc.getTracableChannelsIds();
+        pIsolateLoggerSvc.logInfo(this, "execute", "cmde=[%s] args=[%s]",
+                getName(), aArgs);
 
-		out.println(String.format("TracableChannelsIds=[%s]",
-				CXStringUtils.stringListToString(wIds)));
+        out.println(getName() + " begin");
+        List<String> wIds = pTracerSvc.getTracableChannelsIds();
 
-		out.println(getName() + " end");
-	}
+        out.println(String.format("TracableChannelsIds=[%s]",
+                CXStringUtils.stringListToString(wIds)));
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.apache.felix.shell.Command#getName()
-	 */
-	@Override
-	public String getName() {
-		return "tracableChannels";
-	}
+        out.println(getName() + " end");
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.apache.felix.shell.Command#getShortDescription()
-	 */
-	@Override
-	public String getShortDescription() {
-		// TODO Auto-generated method stub
-		return "return the list of the tracable log channels.";
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.apache.felix.shell.Command#getName()
+     */
+    @Override
+    public String getName() {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.apache.felix.shell.Command#getUsage()
-	 */
-	@Override
-	public String getUsage() {
-		return getName();
-	}
+        return "tracableChannels";
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.isolates.base.CPojoBase#invalidatePojo()
-	 */
-	@Override
-	public void invalidatePojo() throws BundleException {
-		// logs in the bundle output
-		pIsolateLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
-				toDescription());
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.apache.felix.shell.Command#getShortDescription()
+     */
+    @Override
+    public String getShortDescription() {
 
-		List<String> wIds = pTracerSvc.getTracableChannelsIds();
+        // TODO Auto-generated method stub
+        return "return the list of the tracable log channels.";
+    }
 
-		pIsolateLoggerSvc.logInfo(this, null, "getTracableChannelsIds=[%s]",
-				CXStringUtils.stringListToString(wIds));
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.apache.felix.shell.Command#getUsage()
+     */
+    @Override
+    public String getUsage() {
 
-	}
+        return getName();
+    }
 
-	@Override
-	public void validatePojo() throws BundleException {
-		// logs in the bundle output
-		pIsolateLoggerSvc.logInfo(this, "validatePojo", "VALIDATE", toDescription());
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.base.CPojoBase#invalidatePojo()
+     */
+    @Override
+    public void invalidatePojo() throws BundleException {
+
+        // logs in the bundle output
+        pIsolateLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
+                toDescription());
+
+        List<String> wIds = pTracerSvc.getTracableChannelsIds();
+
+        pIsolateLoggerSvc.logInfo(this, null, "getTracableChannelsIds=[%s]",
+                CXStringUtils.stringListToString(wIds));
+
+    }
+
+    @Override
+    public void validatePojo() throws BundleException {
+
+        // logs in the bundle output
+        pIsolateLoggerSvc.logInfo(this, "validatePojo", "VALIDATE",
+                toDescription());
+    }
 }

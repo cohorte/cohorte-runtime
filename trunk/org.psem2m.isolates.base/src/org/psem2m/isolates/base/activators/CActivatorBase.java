@@ -1,503 +1,204 @@
 package org.psem2m.isolates.base.activators;
 
-import java.util.logging.Level;
-import java.util.logging.LogRecord;
-
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
-import org.osgi.service.log.LogReaderService;
 import org.osgi.service.log.LogService;
-import org.psem2m.utilities.CXJavaRunContext;
+import org.psem2m.isolates.base.IIsolateLoggerSvc;
+import org.psem2m.utilities.CXObjectBase;
 import org.psem2m.utilities.CXStringUtils;
-import org.psem2m.utilities.logging.CActivityFormaterBasic;
-import org.psem2m.utilities.logging.IActivityFormater;
 
 /**
- * 
+ * This abstract class is the base of all the PSEM2M bundles activator.
  * 
  * 
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
-public abstract class CActivatorBase extends CPojoBase implements
-		IActivatorBase, IIsolateLoggerSvc, BundleActivator {
-	/**
-	 * @author isandlatech (www.isandlatech.com) - ogattaz
-	 * 
-	 */
-	class CLogReaderServiceListner implements ServiceListener {
+public abstract class CActivatorBase extends CXObjectBase implements
+        IActivatorBase, BundleActivator {
 
-		/**
-		 * Explicit default constructor
-		 */
-		CLogReaderServiceListner() {
-			super();
-		}
+    /**
+     * The listener used to wait for the IIsolateLoggerSvc OSGI service.
+     * 
+     * @author isandlatech (www.isandlatech.com) - ogattaz
+     * 
+     */
+    class CIsolateLoggerListner implements ServiceListener {
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see
-		 * org.osgi.framework.ServiceListener#serviceChanged(org.osgi.framework
-		 * .ServiceEvent)
-		 */
-		@Override
-		public void serviceChanged(final ServiceEvent event) {
-			if (event.getType() == ServiceEvent.REGISTERED) {
-				ServiceReference wLogReaderServiceRef = event
-						.getServiceReference();
-				LogReaderService wLogReaderService = (LogReaderService) getContext()
-						.getService(wLogReaderServiceRef);
-				bindLogReaderService(wLogReaderService);
+        /**
+         * Explicit default constructor
+         */
+        CIsolateLoggerListner() {
 
-			} else if (event.getType() == ServiceEvent.UNREGISTERING) {
-				getContext().ungetService(event.getServiceReference());
-				unbindLogReaderService();
-			}
-		}
+            super();
+        }
 
-	}
+        /*
+         * (non-Javadoc)
+         * 
+         * @see
+         * org.osgi.framework.ServiceListener#serviceChanged(org.osgi.framework
+         * .ServiceEvent)
+         */
+        @Override
+        public void serviceChanged(final ServiceEvent event) {
 
-	/**
-	 * @author isandlatech (www.isandlatech.com) - ogattaz
-	 * 
-	 */
-	class CLogServiceListner implements ServiceListener {
+            if (event.getType() == ServiceEvent.REGISTERED) {
+                ServiceReference wConfigRef = event.getServiceReference();
+                IIsolateLoggerSvc wLogService = (IIsolateLoggerSvc) getContext()
+                        .getService(wConfigRef);
+                bindIsolateLogerSvc(wLogService);
 
-		/**
-		 * Explicit default constructor
-		 */
-		CLogServiceListner() {
-			super();
-		}
+            } else if (event.getType() == ServiceEvent.UNREGISTERING) {
+                getContext().ungetService(event.getServiceReference());
+                unbindIsolateLogerSvc();
+            }
+        }
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see
-		 * org.osgi.framework.ServiceListener#serviceChanged(org.osgi.framework
-		 * .ServiceEvent)
-		 */
-		@Override
-		public void serviceChanged(final ServiceEvent event) {
-			if (event.getType() == ServiceEvent.REGISTERED) {
-				ServiceReference wConfigRef = event.getServiceReference();
-				LogService wLogService = (LogService) getContext().getService(
-						wConfigRef);
-				bindLogService(wLogService);
+    }
 
-			} else if (event.getType() == ServiceEvent.UNREGISTERING) {
-				getContext().ungetService(event.getServiceReference());
-				unbindLogService();
-			}
-		}
+    public static String LIB_BNDL_ID = "BundleId";
 
-	}
+    public static String LIB_POJO_ID = "PojoId";
 
-	public static String LIB_BNDL_ID = "BundleId";
+    /**
+     * the BundleContext given by the framework during the call of the method
+     * start
+     **/
+    private BundleContext pContext = null;
 
-	public static String LIB_POJO_ID = "PojoId";
+    /** the reference to the isolateLogger service **/
+    private IIsolateLoggerSvc pIsolateLoggerSvc;
 
-	/**
-	 * The formater which format the log line
-	 * 
-	 * <pre>
-	 * TimeStamp     TimeStamp      TimeStamp  TimeStamp    Level    Thread name       Instance id          Method               LogLine
-	 * (millis)      (nano)         (date)     (hhmmss.sss)
-	 * 1309180295049;00000065317000;2011/06/27;15:11:35:049;INFO   ;   FelixStartLevel;CIsolateLogger_2236 ;__validatePojo      ;EnvContext:
-	 * </pre>
-	 **/
-	private final IActivityFormater pCActivityFormaterBasic = CActivityFormaterBasic
-			.getInstance();
+    /**
+     * the flag to indicates if that the LogListener was put in place by this
+     * Activator
+     **/
+    private boolean pLogListenerSet = false;
 
-	private BundleContext pContext = null;
+    /**
+     * Explicit default constructor
+     */
+    public CActivatorBase() {
 
-	/** **/
-	private final CLogIsolatesRedirector pLogIsolatesRedirector = CLogIsolatesRedirector
-			.getInstance();
+        super();
+    }
 
-	/**
-	 * the flag to indicates if that the LogListener was put in place by this
-	 * Activator
-	 **/
-	private boolean pLogListenerSet = false;
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.utilities.IXDescriber#addDescriptionInBuffer(java.lang.Appendable
+     * )
+     */
+    @Override
+    public Appendable addDescriptionInBuffer(final Appendable aBuffer) {
 
-	/** the reference to the LogReader service **/
-	private LogReaderService pLogReaderService = null;
+        super.addDescriptionInBuffer(aBuffer);
+        CXStringUtils.appendKeyValInBuff(aBuffer, LIB_BNDL_ID, getBundleId());
+        return aBuffer;
+    }
 
-	/** the reference to the Log service **/
-	private LogService pLogService = null;
+    /**
+     * @param aIsolateLogerSvc
+     */
+    private void bindIsolateLogerSvc(final IIsolateLoggerSvc aIsolateLogerSvc) {
 
-	/**
-	 * Explicit default constructor
-	 */
-	public CActivatorBase() {
-		super();
-		pCActivityFormaterBasic.acceptMultiline(true);
-	}
+        pIsolateLoggerSvc = aIsolateLogerSvc;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.psem2m.utilities.IXDescriber#addDescriptionInBuffer(java.lang.Appendable
-	 * )
-	 */
-	@Override
-	public Appendable addDescriptionInBuffer(final Appendable aBuffer) {
-		super.addDescriptionInBuffer(aBuffer);
-		CXStringUtils.appendKeyValInBuff(aBuffer, LIB_BNDL_ID, getBundleId());
-		return aBuffer;
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.base.activators.IActivatorBase#getBundleId()
+     */
+    @Override
+    public String getBundleId() {
 
-	/**
-	 * @param aLogReaderService
-	 */
-	public void bindLogReaderService(final LogReaderService aLogReaderService) {
-		logInfo(this, "bindLogReaderService",
-				" LogListener already in place=[%b]",
-				CLogServiceRedirector.hasListener());
+        return getClass().getPackage().getName();
+    }
 
-		pLogReaderService = aLogReaderService;
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.base.IActivatorBase#getContext()
+     */
+    @Override
+    public BundleContext getContext() {
 
-		pLogListenerSet = CLogServiceRedirector
-				.putInPlaceLogListener(pLogReaderService);
-		if (pLogListenerSet) {
+        return pContext;
+    }
 
-			logInfo(this, "bindLogReaderService",
-					"------------ LogService redirector set !  re-log stored LogEntries begin.");
-			int wNb = CLogServiceRedirector.relogLogEntries();
-			logInfo(this,
-					"bindLogReaderService",
-					"------------ re-log stored LogEntries end. NbEntries=[%d]",
-					wNb);
-		}
-	}
+    /**
+     * @return
+     */
+    private boolean hasIsolateLoggerSvc() {
 
-	/**
-	 * @param aLogService
-	 */
-	public void bindLogService(final LogService aLogService) {
-		pLogService = aLogService;
+        return pIsolateLoggerSvc != null;
+    }
 
-		logInfo(this, "bindLogService");
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext
+     * )
+     */
+    @Override
+    public void start(final BundleContext bundleContext) throws Exception {
 
-	/**
-	 * @param aLevel
-	 * @return
-	 */
-	private int convertToLogServiceLevel(final Level aLevel) {
-		if (aLevel.equals(Level.INFO)) {
-			return LogService.LOG_INFO;
-		}
-		if (aLevel.equals(Level.FINE)) {
-			return LogService.LOG_DEBUG;
-		}
-		if (aLevel.equals(Level.SEVERE)) {
-			return LogService.LOG_ERROR;
-		}
-		if (aLevel.equals(Level.WARNING)) {
-			return LogService.LOG_WARNING;
-		}
+        pContext = bundleContext;
 
-		return LogService.LOG_INFO;
-	}
+        // find and bind the LogService
+        ServiceReference wIsolateLoggerServiceRef = bundleContext
+                .getServiceReference(IIsolateLoggerSvc.class.getName());
 
-	/**
-	 * @return the id of the bundle
-	 */
-	@Override
-	public String getBundleId() {
-		return getClass().getPackage().getName();
-	}
+        IIsolateLoggerSvc wIsolateLogerSvc = null;
+        if (wIsolateLoggerServiceRef != null) {
+            wIsolateLogerSvc = (IIsolateLoggerSvc) bundleContext
+                    .getService(wIsolateLoggerServiceRef);
+        }
 
-	/**
-	 * @return
-	 */
-	protected IActivityFormater getCActivityFormater() {
-		return pCActivityFormaterBasic;
-	}
+        if (wIsolateLogerSvc != null) {
+            bindIsolateLogerSvc(wIsolateLogerSvc);
+        } else {
+            String wFilter = "(objectclass=" + LogService.class.getName() + ")";
+            getContext().addServiceListener(new CIsolateLoggerListner(),
+                    wFilter);
+        }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.isolates.base.IActivatorBase#getContext()
-	 */
-	@Override
-	public BundleContext getContext() {
-		return pContext;
-	}
+        if (hasIsolateLoggerSvc()) {
+            pIsolateLoggerSvc.logInfo(this, "start", "START", toDescription());
+        }
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.isolates.base.CPojoBase#invalidatePojo()
-	 */
-	@Override
-	public void invalidatePojo() {
-		// logs in the bundle output
-		logInfo(this, "invalidatePojo", "INVALIDATE", toDescription());
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
+     */
+    @Override
+    public void stop(final BundleContext bundleContext) throws Exception {
 
-	}
+        if (hasIsolateLoggerSvc()) {
+            pIsolateLoggerSvc.logInfo(this, "stop", "STOP", toDescription());
+        }
+        pContext = null;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.utilities.logging.IActivityLogger#isLogDebugOn()
-	 */
-	@Override
-	public boolean isLogDebugOn() {
-		return true;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.psem2m.utilities.logging.IActivityLogger#isLoggable(java.util.logging
-	 * .Level)
-	 */
-	@Override
-	public boolean isLoggable(final Level aLevel) {
-		return true;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.utilities.logging.IActivityLogger#isLogInfoOn()
-	 */
-	@Override
-	public boolean isLogInfoOn() {
-		return true;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.utilities.logging.IActivityLogger#isLogSevereOn()
-	 */
-	@Override
-	public boolean isLogSevereOn() {
-		return true;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.psem2m.utilities.logging.IActivityLogger#log(java.util.logging.Level,
-	 * java.lang.Object, java.lang.CharSequence, java.lang.Object[])
-	 */
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.utilities.logging.IActivityLogger#isLogWarningOn()
-	 */
-	@Override
-	public boolean isLogWarningOn() {
-		return true;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.psem2m.utilities.logging.IActivityLoggerBase#log(java.util.logging
-	 * .Level, java.lang.Object, java.lang.CharSequence, java.lang.Object[])
-	 */
-	@Override
-	public void log(final Level aLevel, final Object aWho,
-			final CharSequence aWhat, final Object... aInfos) {
-
-		CharSequence wWhat = (aWhat != null) ? aWhat : CXJavaRunContext
-				.getPreCallingMethod();
-
-		// Test code:
-		// Adds the last four digits of the hascode of the current logger to
-		// show that iPojo reuses the instance (singleton) of the
-		// activator of the bundle to "define" (not instantiate) the component
-		// which provides the log service of the bundle.
-		// @see in the metadata file of each bundle, the component
-		// "xxx-xxx-bundle-logger-factory" has an attribute "factory-method" to
-		// allow iPojo to retreive the singleton
-		//
-		// wWhat = wWhat + " L_"
-		// + CXStringUtils.strAdjustRight(this.hashCode(), 4);
-
-		pLogIsolatesRedirector.log(aLevel, aWho, wWhat, aInfos);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.psem2m.utilities.logging.IActivityLoggerBase#log(java.util.logging
-	 * .LogRecord)
-	 */
-	@Override
-	public void log(final LogRecord record) {
-		String wLine = pCActivityFormaterBasic.format(record);
-		if (pLogService != null) {
-			pLogService.log(convertToLogServiceLevel(record.getLevel()), wLine);
-		} else {
-			System.out.println(wLine);
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.psem2m.utilities.logging.IActivityLogger#logDebug(java.lang.Object,
-	 * java.lang.CharSequence, java.lang.Object[])
-	 */
-	@Override
-	public void logDebug(final Object aWho, final CharSequence aWhat,
-			final Object... aInfos) {
-		this.log(Level.FINE, aWho, aWhat, aInfos);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.psem2m.utilities.logging.IActivityLogger#logInfo(java.lang.Object,
-	 * java.lang.CharSequence, java.lang.Object[])
-	 */
-	@Override
-	public void logInfo(final Object aWho, final CharSequence aWhat,
-			final Object... aInfos) {
-		this.log(Level.INFO, aWho, aWhat, aInfos);
-
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.psem2m.utilities.logging.IActivityLogger#logSevere(java.lang.Object,
-	 * java.lang.CharSequence, java.lang.Object[])
-	 */
-	@Override
-	public void logSevere(final Object aWho, final CharSequence aWhat,
-			final Object... aInfos) {
-		this.log(Level.SEVERE, aWho, aWhat, aInfos);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.psem2m.utilities.logging.IActivityLogger#logWarn(java.lang.Object,
-	 * java.lang.CharSequence, java.lang.Object[])
-	 */
-	@Override
-	public void logWarn(final Object aWho, final CharSequence aWhat,
-			final Object... aInfos) {
-		this.log(Level.WARNING, aWho, aWhat, aInfos);
-
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext
-	 * )
-	 */
-	@Override
-	public void start(final BundleContext bundleContext) throws Exception {
-		pContext = bundleContext;
-
-		// find and bind the LogService
-		ServiceReference scrServiceRef = bundleContext
-				.getServiceReference(LogService.class.getName());
-
-		LogService wLogService = null;
-		if (scrServiceRef != null) {
-			wLogService = (LogService) bundleContext.getService(scrServiceRef);
-		}
-
-		if (wLogService != null) {
-			bindLogService(wLogService);
-		} else {
-			String wFilter = "(objectclass=" + LogService.class.getName() + ")";
-			getContext().addServiceListener(new CLogServiceListner(), wFilter);
-		}
-
-		// find and bind the LogReaderService
-		ServiceReference wLogReaderServiceRef = bundleContext
-				.getServiceReference(LogReaderService.class.getName());
-
-		LogReaderService wLogReaderService = null;
-		if (wLogReaderServiceRef != null) {
-			wLogReaderService = (LogReaderService) bundleContext
-					.getService(wLogReaderServiceRef);
-		}
-
-		if (wLogReaderService != null) {
-			bindLogReaderService(wLogReaderService);
-		} else {
-			String wFilter = "(objectclass=" + LogReaderService.class.getName()
-					+ ")";
-			getContext().addServiceListener(new CLogReaderServiceListner(),
-					wFilter);
-		}
-
-		logInfo(this, "start", "START", toDescription());
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
-	 */
-	@Override
-	public void stop(final BundleContext bundleContext) throws Exception {
-		logInfo(this, "stop", "STOP", toDescription());
-		pContext = null;
-	}
-
-	/**
-	 * unbind the logReadService and remove the LogListener if this activator
-	 * put it in place during the binding of the logReadService.
-	 */
-	public void unbindLogReaderService() {
-		logInfo(this, "unbindLogReaderService");
-
-		if (pLogListenerSet) {
-			logInfo(this, "unbindLogReaderService",
-					"remove the LogListener put in place by this activator.");
-			CLogServiceRedirector.removeLogListener();
-		}
-		pLogReaderService = null;
-
-	}
-
-	/**
+    /**
 	 *
 	 */
-	public void unbindLogService() {
-		logInfo(this, "unbindLogService");
-		pLogService = null;
-	}
+    public void unbindIsolateLogerSvc() {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.isolates.base.CPojoBase#validatePojo()
-	 */
-	@Override
-	public void validatePojo() {
-
-		// logs in the bundle output
-		logInfo(this, "validatePojo", "VALIDATE", toDescription());
-	}
+        if (hasIsolateLoggerSvc()) {
+            pIsolateLoggerSvc.logInfo(this, "unbindLogService");
+        }
+        pIsolateLoggerSvc = null;
+    }
 
 }

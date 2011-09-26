@@ -10,10 +10,10 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.LogRecord;
 
+import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.base.isolates.IIsolateOutputListener;
 import org.psem2m.isolates.base.isolates.boot.IsolateStatus;
-import org.psem2m.isolates.forker.IBundleForkerLoggerSvc;
 import org.psem2m.isolates.forker.IIsolateRunner;
 import org.psem2m.isolates.forker.IProcessRef;
 import org.psem2m.isolates.forker.impl.processes.ProcessRef;
@@ -26,10 +26,10 @@ import org.psem2m.isolates.services.forker.IForker;
  * @author Thomas Calmant
  */
 public class CForkerSvc extends CPojoBase implements IForker,
-	IIsolateOutputListener {
+        IIsolateOutputListener {
 
-    /** Service reference managed by iPojo (see metadata.xml) **/
-    private IBundleForkerLoggerSvc pBundleForkerLoggerSvc;
+    /** The logger service, injected by iPOJO */
+    private IIsolateLoggerSvc pIsolateLoggerSvc;
 
     /** Isolate runners, injected by iPOJO */
     private IIsolateRunner[] pIsolateRunners;
@@ -41,7 +41,8 @@ public class CForkerSvc extends CPojoBase implements IForker,
      * Default constructor
      */
     public CForkerSvc() {
-	super();
+
+        super();
     }
 
     /*
@@ -51,7 +52,8 @@ public class CForkerSvc extends CPojoBase implements IForker,
      */
     @Override
     public void destroy() {
-	// ...
+
+        // ...
     }
 
     /*
@@ -62,9 +64,9 @@ public class CForkerSvc extends CPojoBase implements IForker,
      */
     @Override
     public void handleIsolateLogRecord(final String aSourceIsolateId,
-	    final LogRecord aLogRecord) {
+            final LogRecord aLogRecord) {
 
-	pBundleForkerLoggerSvc.log(aLogRecord);
+        pIsolateLoggerSvc.log(aLogRecord);
     }
 
     /*
@@ -76,10 +78,10 @@ public class CForkerSvc extends CPojoBase implements IForker,
      */
     @Override
     public void handleIsolateStatus(final String aSourceIsolateId,
-	    final IsolateStatus aIsolateStatus) {
+            final IsolateStatus aIsolateStatus) {
 
-	pBundleForkerLoggerSvc.logInfo(this, "", "Read from "
-		+ aSourceIsolateId + " : " + aIsolateStatus);
+        pIsolateLoggerSvc.logInfo(this, "", "Read from " + aSourceIsolateId
+                + " : " + aIsolateStatus);
     }
 
     /*
@@ -89,9 +91,10 @@ public class CForkerSvc extends CPojoBase implements IForker,
      */
     @Override
     public void invalidatePojo() {
-	// logs in the bundle logger
-	pBundleForkerLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
-		toDescription());
+
+        // logs in the bundle logger
+        pIsolateLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
+                toDescription());
     }
 
     /*
@@ -102,14 +105,14 @@ public class CForkerSvc extends CPojoBase implements IForker,
     @Override
     public EProcessState ping(final String aIsolateId) {
 
-	IProcessRef process = pRunningIsolates.get(aIsolateId);
-	if (process == null) {
-	    return EProcessState.DEAD;
-	}
+        IProcessRef process = pRunningIsolates.get(aIsolateId);
+        if (process == null) {
+            return EProcessState.DEAD;
+        }
 
-	// TODO ping process
+        // TODO ping process
 
-	return EProcessState.ALIVE;
+        return EProcessState.ALIVE;
     }
 
     /*
@@ -121,70 +124,70 @@ public class CForkerSvc extends CPojoBase implements IForker,
      */
     @Override
     public final EStartError startIsolate(
-	    final IIsolateDescr aIsolateConfiguration) {
+            final IIsolateDescr aIsolateConfiguration) {
 
-	final String isolateId = aIsolateConfiguration.getId();
-	pBundleForkerLoggerSvc.logInfo(this, "startIsolate",
-		"Trying to launch =", isolateId);
+        final String isolateId = aIsolateConfiguration.getId();
+        pIsolateLoggerSvc.logInfo(this, "startIsolate", "Trying to launch =",
+                isolateId);
 
-	// Test if the isolate is already running
-	if (pRunningIsolates.containsKey(isolateId)) {
-	    // throw new Exception("The isolate '" + isolateId
-	    // + "' is already running");
-	    return EStartError.ALREADY_RUNNING;
-	}
+        // Test if the isolate is already running
+        if (pRunningIsolates.containsKey(isolateId)) {
+            // throw new Exception("The isolate '" + isolateId
+            // + "' is already running");
+            return EStartError.ALREADY_RUNNING;
+        }
 
-	// Find the runner for this isolate
-	IIsolateRunner isolateRunner = null;
+        // Find the runner for this isolate
+        IIsolateRunner isolateRunner = null;
 
-	final String isolateKind = aIsolateConfiguration.getKind();
-	for (IIsolateRunner availableRunner : pIsolateRunners) {
-	    if (availableRunner.canRun(isolateKind)) {
-		isolateRunner = availableRunner;
-		break;
-	    }
-	}
+        final String isolateKind = aIsolateConfiguration.getKind();
+        for (IIsolateRunner availableRunner : pIsolateRunners) {
+            if (availableRunner.canRun(isolateKind)) {
+                isolateRunner = availableRunner;
+                break;
+            }
+        }
 
-	// Fail if no runner was found
-	if (isolateRunner == null) {
-	    // throw new Exception("No runner for : "
-	    // + aIsolateConfiguration.getKind());
-	    return EStartError.UNKNOWN_KIND;
-	}
+        // Fail if no runner was found
+        if (isolateRunner == null) {
+            // throw new Exception("No runner for : "
+            // + aIsolateConfiguration.getKind());
+            return EStartError.UNKNOWN_KIND;
+        }
 
-	// Run it
-	final IProcessRef isolateRef;
+        // Run it
+        final IProcessRef isolateRef;
 
-	try {
-	    isolateRef = isolateRunner.startIsolate(aIsolateConfiguration);
+        try {
+            isolateRef = isolateRunner.startIsolate(aIsolateConfiguration);
 
-	} catch (Exception e) {
-	    e.printStackTrace();
-	    return EStartError.RUNNER_EXCEPTION;
-	}
+        } catch (Exception e) {
+            e.printStackTrace();
+            return EStartError.RUNNER_EXCEPTION;
+        }
 
-	if (isolateRef == null) {
-	    // throw new
-	    // Exception("No reference to the isolate process. Abort.");
-	    return EStartError.NO_PROCESS_REF;
-	}
+        if (isolateRef == null) {
+            // throw new
+            // Exception("No reference to the isolate process. Abort.");
+            return EStartError.NO_PROCESS_REF;
+        }
 
-	// Store it
-	pRunningIsolates.put(isolateId, isolateRef);
+        // Store it
+        pRunningIsolates.put(isolateId, isolateRef);
 
-	// Start the output reader
-	try {
-	    final CProcessWatcherThread watcherThread = new CProcessWatcherThread(
-		    this, isolateId, ((ProcessRef) isolateRef).getProcess());
-	    watcherThread.start();
+        // Start the output reader
+        try {
+            final CProcessWatcherThread watcherThread = new CProcessWatcherThread(
+                    this, isolateId, ((ProcessRef) isolateRef).getProcess());
+            watcherThread.start();
 
-	} catch (IOException ex) {
-	    pBundleForkerLoggerSvc.logWarn(this, "",
-		    "Can't start the watcher for :", isolateId, ex);
-	    return EStartError.NO_WATCHER;
-	}
+        } catch (IOException ex) {
+            pIsolateLoggerSvc.logWarn(this, "",
+                    "Can't start the watcher for :", isolateId, ex);
+            return EStartError.NO_WATCHER;
+        }
 
-	return EStartError.SUCCESS;
+        return EStartError.SUCCESS;
     }
 
     /*
@@ -196,16 +199,16 @@ public class CForkerSvc extends CPojoBase implements IForker,
     @Override
     public void stopIsolate(final String aIsolateId) {
 
-	pBundleForkerLoggerSvc.logInfo(this, "stopIsolate", "Trying to kill =",
-		aIsolateId);
+        pIsolateLoggerSvc.logInfo(this, "stopIsolate", "Trying to kill =",
+                aIsolateId);
 
-	IProcessRef process = pRunningIsolates.get(aIsolateId);
-	if (process != null) {
-	    // TODO Do it a little more softly
-	    ((ProcessRef) process).getProcess().destroy();
-	}
+        IProcessRef process = pRunningIsolates.get(aIsolateId);
+        if (process != null) {
+            // TODO Do it a little more softly
+            ((ProcessRef) process).getProcess().destroy();
+        }
 
-	pRunningIsolates.remove(aIsolateId);
+        pRunningIsolates.remove(aIsolateId);
     }
 
     /*
@@ -215,8 +218,9 @@ public class CForkerSvc extends CPojoBase implements IForker,
      */
     @Override
     public void validatePojo() {
-	// logs in the bundle logger
-	pBundleForkerLoggerSvc.logInfo(this, "validatePojo", "VALIDATE",
-		toDescription());
+
+        // logs in the bundle logger
+        pIsolateLoggerSvc.logInfo(this, "validatePojo", "VALIDATE",
+                toDescription());
     }
 }

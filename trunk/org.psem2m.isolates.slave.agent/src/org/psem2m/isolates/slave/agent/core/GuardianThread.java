@@ -33,11 +33,11 @@ public class GuardianThread extends Thread {
      */
     public GuardianThread(final AgentCore aParent) {
 
-	super(THREAD_NAME);
-	pAgentCore = aParent;
+        super(THREAD_NAME);
+        pAgentCore = aParent;
 
-	// Set this thread as a daemon one, to avoid mess when the JVM exits
-	setDaemon(true);
+        // Set this thread as a daemon one, to avoid mess when the JVM exits
+        setDaemon(true);
     }
 
     /*
@@ -47,67 +47,68 @@ public class GuardianThread extends Thread {
      */
     @Override
     public void run() {
-	// Main monitoring loop
 
-	while (!isInterrupted()) {
+        // Main monitoring loop
 
-	    final Map<Long, IBundleDescr> bundles = pAgentCore
-		    .getInstalledBundles();
+        while (!isInterrupted()) {
 
-	    synchronized (bundles) {
-		// Synchronized, to avoid problems
+            final Map<Long, IBundleDescr> bundles = pAgentCore
+                    .getInstalledBundles();
 
-		// Test'em all
-		for (Entry<Long, IBundleDescr> entry : bundles.entrySet()) {
+            synchronized (bundles) {
+                // Synchronized, to avoid problems
 
-		    final long bundleId = entry.getKey();
-		    final IBundleDescr bundleDescr = entry.getValue();
+                // Test'em all
+                for (Entry<Long, IBundleDescr> entry : bundles.entrySet()) {
 
-		    // Test if the bundle is valid
-		    final Bundle osgiBundle = pAgentCore.getBundle(bundleId);
-		    if (osgiBundle == null) {
+                    final long bundleId = entry.getKey();
+                    final IBundleDescr bundleDescr = entry.getValue();
 
-			if (!bundleDescr.getOptional()) {
-			    // TODO handle the missing bundle
-			    System.err.println("MISSING BUNDLE: "
-				    + bundleDescr.getSymbolicName());
-			}
-			// Don't care if the bundle is optional
+                    // Test if the bundle is valid
+                    final Bundle osgiBundle = pAgentCore.getBundle(bundleId);
+                    if (osgiBundle == null) {
 
-		    } else {
-			// Test the bundle state
-			if (osgiBundle.getState() != Bundle.ACTIVE) {
-			    try {
-				// Try to wake it up
-				pAgentCore.startBundle(bundleId);
+                        if (!bundleDescr.getOptional()) {
+                            // TODO handle the missing bundle
+                            System.err.println("MISSING BUNDLE: "
+                                    + bundleDescr.getSymbolicName());
+                        }
+                        // Don't care if the bundle is optional
 
-			    } catch (BundleException e) {
-				if (!bundleDescr.getOptional()) {
-				    // TODO handle this case
-				    System.err.println("INVALID STATE BUNDLE: "
-					    + bundleDescr.getSymbolicName()
-					    + " - " + e);
+                    } else {
+                        // Test the bundle state
+                        if (osgiBundle.getState() != Bundle.ACTIVE) {
+                            try {
+                                // Try to wake it up
+                                pAgentCore.startBundle(bundleId);
 
-				} else {
-				    System.out
-					    .println("WARNING: can't wake up bundle "
-						    + bundleDescr
-							    .getSymbolicName());
-				}
-			    }
-			}
-		    }
-		}
-	    }
+                            } catch (BundleException e) {
+                                if (!bundleDescr.getOptional()) {
+                                    // TODO handle this case
+                                    System.err.println("INVALID STATE BUNDLE: "
+                                            + bundleDescr.getSymbolicName()
+                                            + " - " + e);
 
-	    // FIXME for debug purpose : slow down
-	    try {
-		Thread.sleep(1000);
-	    } catch (InterruptedException e1) {
-		e1.printStackTrace();
-	    }
-	}
+                                } else {
+                                    System.out
+                                            .println("WARNING: can't wake up bundle "
+                                                    + bundleDescr
+                                                            .getSymbolicName());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
-	// End of monitoring
+            // FIXME for debug purpose : slow down
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e1) {
+                // ... no dump : ;
+            }
+        }
+
+        // End of monitoring
     }
 }

@@ -23,28 +23,20 @@ public class CBundleConfigurationActivator extends CActivatorBase {
      * @return An instance of the activator or null
      */
     public static CBundleConfigurationActivator getInstance() {
-	return sBundleInstance;
+
+        return sBundleInstance;
     }
 
     /**
      * Sets up the bundle activator instance reference if needed
      */
     public CBundleConfigurationActivator() {
-	super();
 
-	if (sBundleInstance == null) {
-	    sBundleInstance = this;
-	}
-    }
+        super();
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.utilities.CXObjectBase#destroy()
-     */
-    @Override
-    public void destroy() {
-	// ...
+        if (sBundleInstance == null) {
+            sBundleInstance = this;
+        }
     }
 
     /*
@@ -54,6 +46,7 @@ public class CBundleConfigurationActivator extends CActivatorBase {
      */
     @Override
     public String getBundleId() {
-	return getClass().getPackage().getName();
+
+        return getClass().getPackage().getName();
     }
 }

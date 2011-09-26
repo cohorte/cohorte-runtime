@@ -12,9 +12,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.osgi.framework.BundleException;
+import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.constants.IPlatformProperties;
-import org.psem2m.isolates.forker.IBundleForkerLoggerSvc;
 import org.psem2m.isolates.forker.IProcessRef;
 import org.psem2m.isolates.forker.IProcessRunner;
 import org.psem2m.isolates.forker.impl.processes.ProcessBuilderRunner;
@@ -31,8 +31,8 @@ public class JavaRunner extends CPojoBase implements IJavaRunner {
     /** Supported isolate kind */
     public static final String SUPPORTED_ISOLATE_KIND = "java";
 
-    /** The logger */
-    private IBundleForkerLoggerSvc pBundleForkerLoggerSvc;
+    /** The logger service, injected by iPOJO */
+    private IIsolateLoggerSvc pIsolateLoggerSvc;
 
     /** The Java executable */
     private String pJavaExecutable;
@@ -44,7 +44,8 @@ public class JavaRunner extends CPojoBase implements IJavaRunner {
      * Default constructor
      */
     public JavaRunner() {
-	super();
+
+        super();
     }
 
     /*
@@ -54,7 +55,8 @@ public class JavaRunner extends CPojoBase implements IJavaRunner {
      */
     @Override
     public boolean canRun(final String aIsolateKind) {
-	return SUPPORTED_ISOLATE_KIND.equals(aIsolateKind);
+
+        return SUPPORTED_ISOLATE_KIND.equals(aIsolateKind);
     }
 
     /*
@@ -64,7 +66,8 @@ public class JavaRunner extends CPojoBase implements IJavaRunner {
      */
     @Override
     public void destroy() {
-	// ...
+
+        // ...
     }
 
     /**
@@ -74,8 +77,9 @@ public class JavaRunner extends CPojoBase implements IJavaRunner {
      * @return A OS-dependent process runner pSingleton
      */
     protected IProcessRunner getProcessRunner() {
-	// TODO Use a service ?
-	return new ProcessBuilderRunner();
+
+        // TODO Use a service ?
+        return new ProcessBuilderRunner();
     }
 
     /*
@@ -86,9 +90,9 @@ public class JavaRunner extends CPojoBase implements IJavaRunner {
     @Override
     public void invalidatePojo() throws BundleException {
 
-	// logs in the bundle logger
-	pBundleForkerLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
-		toDescription());
+        // logs in the bundle logger
+        pIsolateLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
+                toDescription());
     }
 
     /**
@@ -102,15 +106,15 @@ public class JavaRunner extends CPojoBase implements IJavaRunner {
      */
     protected String makeJavaProperty(final String aKey, final String aValue) {
 
-	final StringBuilder propertyDef = new StringBuilder(aKey.length()
-		+ aValue.length() + 3);
+        final StringBuilder propertyDef = new StringBuilder(aKey.length()
+                + aValue.length() + 3);
 
-	propertyDef.append("-D");
-	propertyDef.append(aKey);
-	propertyDef.append("=");
-	propertyDef.append(aValue);
+        propertyDef.append("-D");
+        propertyDef.append(aKey);
+        propertyDef.append("=");
+        propertyDef.append(aValue);
 
-	return propertyDef.toString();
+        return propertyDef.toString();
     }
 
     /**
@@ -128,14 +132,14 @@ public class JavaRunner extends CPojoBase implements IJavaRunner {
      */
     @Override
     public IProcessRef runJava(final List<String> aArguments,
-	    final Map<String, String> aEnvironment, final File aWorkingDirectory)
-	    throws IOException {
+            final Map<String, String> aEnvironment, final File aWorkingDirectory)
+            throws IOException {
 
-	IProcessRunner runner = getProcessRunner();
+        IProcessRunner runner = getProcessRunner();
 
-	return runner.runProcess(pJavaExecutable,
-		aArguments.toArray(new String[0]), aEnvironment,
-		aWorkingDirectory);
+        return runner.runProcess(pJavaExecutable,
+                aArguments.toArray(new String[0]), aEnvironment,
+                aWorkingDirectory);
     }
 
     /**
@@ -157,34 +161,34 @@ public class JavaRunner extends CPojoBase implements IJavaRunner {
      */
     @Override
     public IProcessRef runJavaJar(final File aJarFile,
-	    final List<String> aJavaOptions, final List<String> aJarArguments,
-	    final Map<String, String> aEnvironment, final File aWorkingDirectory)
-	    throws IOException {
+            final List<String> aJavaOptions, final List<String> aJarArguments,
+            final Map<String, String> aEnvironment, final File aWorkingDirectory)
+            throws IOException {
 
-	// Prepare the Java interpreter JAR indication
-	List<String> arguments = new ArrayList<String>();
+        // Prepare the Java interpreter JAR indication
+        List<String> arguments = new ArrayList<String>();
 
-	// JVM options
-	if (aJavaOptions != null) {
-	    arguments.addAll(aJavaOptions);
-	}
+        // JVM options
+        if (aJavaOptions != null) {
+            arguments.addAll(aJavaOptions);
+        }
 
-	// Jar file
-	arguments.add("-jar");
-	arguments.add(aJarFile.getAbsolutePath());
+        // Jar file
+        arguments.add("-jar");
+        arguments.add(aJarFile.getAbsolutePath());
 
-	// Append JAR program arguments
-	if (aJarArguments != null) {
-	    for (String jarArgument : aJarArguments) {
-		arguments.add(jarArgument);
-	    }
-	}
+        // Append JAR program arguments
+        if (aJarArguments != null) {
+            for (String jarArgument : aJarArguments) {
+                arguments.add(jarArgument);
+            }
+        }
 
-	// Run it
-	IProcessRunner runner = getProcessRunner();
-	return runner.runProcess(pJavaExecutable,
-		arguments.toArray(new String[0]), aEnvironment,
-		aWorkingDirectory);
+        // Run it
+        IProcessRunner runner = getProcessRunner();
+        return runner.runProcess(pJavaExecutable,
+                arguments.toArray(new String[0]), aEnvironment,
+                aWorkingDirectory);
     }
 
     /*
@@ -196,32 +200,32 @@ public class JavaRunner extends CPojoBase implements IJavaRunner {
      */
     @Override
     public IProcessRef startIsolate(final IIsolateDescr aIsolateConfiguration)
-	    throws Exception {
+            throws Exception {
 
-	// Java arguments list
-	final List<String> javaArguments = new ArrayList<String>();
+        // Java arguments list
+        final List<String> javaArguments = new ArrayList<String>();
 
-	// Isolate ID
-	javaArguments.add(makeJavaProperty(
-		IPlatformProperties.PROP_PLATFORM_ISOLATE_ID,
-		aIsolateConfiguration.getId()));
+        // Isolate ID
+        javaArguments.add(makeJavaProperty(
+                IPlatformProperties.PROP_PLATFORM_ISOLATE_ID,
+                aIsolateConfiguration.getId()));
 
-	// PSEM2M Home
-	javaArguments.add(makeJavaProperty(
-		IPlatformProperties.PROP_PLATFORM_HOME, pPlatformDirsSvc
-			.getPlatformHomeDir().getAbsolutePath()));
+        // PSEM2M Home
+        javaArguments.add(makeJavaProperty(
+                IPlatformProperties.PROP_PLATFORM_HOME, pPlatformDirsSvc
+                        .getPlatformHomeDir().getAbsolutePath()));
 
-	// PSEM2M Base
-	javaArguments.add(makeJavaProperty(
-		IPlatformProperties.PROP_PLATFORM_BASE, pPlatformDirsSvc
-			.getPlatformBaseDir().getAbsolutePath()));
+        // PSEM2M Base
+        javaArguments.add(makeJavaProperty(
+                IPlatformProperties.PROP_PLATFORM_BASE, pPlatformDirsSvc
+                        .getPlatformBaseDir().getAbsolutePath()));
 
-	// Working directory
-	File workingDirectory = pPlatformDirsSvc
-		.getIsolateWorkingDir(aIsolateConfiguration.getId());
+        // Working directory
+        File workingDirectory = pPlatformDirsSvc
+                .getIsolateWorkingDir(aIsolateConfiguration.getId());
 
-	// Run the isolate
-	return runJava(javaArguments, null, workingDirectory);
+        // Run the isolate
+        return runJava(javaArguments, null, workingDirectory);
     }
 
     /*
@@ -232,12 +236,12 @@ public class JavaRunner extends CPojoBase implements IJavaRunner {
     @Override
     public void validatePojo() throws BundleException {
 
-	// Store the Java executable path
-	pJavaExecutable = pPlatformDirsSvc.getJavaExecutable()
-		.getAbsolutePath();
+        // Store the Java executable path
+        pJavaExecutable = pPlatformDirsSvc.getJavaExecutable()
+                .getAbsolutePath();
 
-	// logs in the bundle logger
-	pBundleForkerLoggerSvc.logInfo(this, "validatePojo", "VALIDATE",
-		toDescription());
+        // logs in the bundle logger
+        pIsolateLoggerSvc.logInfo(this, "validatePojo", "VALIDATE",
+                toDescription());
     }
 }
