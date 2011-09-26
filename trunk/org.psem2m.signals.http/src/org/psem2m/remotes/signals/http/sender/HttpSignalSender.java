@@ -29,7 +29,8 @@ import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.services.conf.IIsolateDescr;
 import org.psem2m.isolates.services.conf.ISvcConfig;
-import org.psem2m.isolates.services.remote.signals.ISignalEmitter;
+import org.psem2m.isolates.services.remote.signals.ISignalBroadcastProvider;
+import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
 import org.psem2m.remotes.signals.http.HttpSignalData;
 import org.psem2m.remotes.signals.http.IHttpSignalsConstants;
 
@@ -39,9 +40,10 @@ import org.psem2m.remotes.signals.http.IHttpSignalsConstants;
  * @author Thomas Calmant
  */
 @Component(name = "remote-signal-sender-http-factory", publicFactory = false)
-@Provides(specifications = ISignalEmitter.class)
+@Provides(specifications = ISignalBroadcastProvider.class)
 @Instantiate(name = "remote-signal-http-sender")
-public class HttpSignalSender extends CPojoBase implements ISignalEmitter {
+public class HttpSignalSender extends CPojoBase implements
+        ISignalBroadcastProvider {
 
     /** Configuration service, injected by iPOJO */
     @Requires
@@ -262,12 +264,12 @@ public class HttpSignalSender extends CPojoBase implements ISignalEmitter {
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.isolates.services.remote.signals.ISignalEmitter#sendData(org
+     * org.psem2m.isolates.services.remote.signals.ISignalBroadcaster#sendData(org
      * .psem2m.isolates.services.remote.signals.ISignalEmitter.EEmitterTargets,
      * java.lang.String, java.io.Serializable)
      */
     @Override
-    public void sendData(final EEmitterTargets aTargets,
+    public void sendData(final ISignalBroadcaster.EEmitterTargets aTargets,
             final String aSignalName, final Serializable aData) {
 
         // Find the URLs corresponding to targets
@@ -289,7 +291,7 @@ public class HttpSignalSender extends CPojoBase implements ISignalEmitter {
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.isolates.services.remote.signals.ISignalEmitter#sendData(java
+     * org.psem2m.isolates.services.remote.signals.ISignalBroadcaster#sendData(java
      * .lang.String, java.lang.String, java.io.Serializable)
      */
     @Override
@@ -323,7 +325,7 @@ public class HttpSignalSender extends CPojoBase implements ISignalEmitter {
      *            Signal name
      * @return Corresponding URLs, null on error
      */
-    protected URL[] targetToUrl(final EEmitterTargets aTargets,
+    protected URL[] targetToUrl(final ISignalBroadcaster.EEmitterTargets aTargets,
             final URI aSignalName) {
 
         switch (aTargets) {

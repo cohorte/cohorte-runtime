@@ -10,6 +10,11 @@
  *******************************************************************************/
 package org.psem2m.isolates.master.manager.impl;
 
+import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Instantiate;
+import org.apache.felix.ipojo.annotations.Invalidate;
+import org.apache.felix.ipojo.annotations.Provides;
+import org.apache.felix.ipojo.annotations.Validate;
 import org.psem2m.isolates.base.activators.CBundleLoggerBase;
 import org.psem2m.isolates.master.manager.CBundleMasterManagerActivator;
 import org.psem2m.utilities.logging.IActivityLoggerBase;
@@ -18,11 +23,15 @@ import org.psem2m.utilities.logging.IActivityLoggerBase;
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
+@Component(name = "isolates-master-manager-logger-factory", publicFactory = false)
+@Provides(specifications = IActivityLoggerBase.class)
+@Instantiate(name = "isolates-master-manager-logger")
 public class CMasterManagerLoggerSvc extends CBundleLoggerBase implements
-	IActivityLoggerBase {
+        IActivityLoggerBase {
 
     public CMasterManagerLoggerSvc() {
-	super();
+
+        super();
     }
 
     /*
@@ -31,11 +40,13 @@ public class CMasterManagerLoggerSvc extends CBundleLoggerBase implements
      * @see org.psem2m.isolates.base.CPojoBase#invalidatePojo()
      */
     @Override
+    @Invalidate
     public void invalidatePojo() {
-	// logs in the bundle output
-	logInfo(this, "invalidatePojo", "INVALIDATE", toDescription());
 
-	setActivityLoggerBase(null);
+        // logs in the bundle output
+        logInfo(this, "invalidatePojo", "INVALIDATE", toDescription());
+
+        setActivityLoggerBase(null);
     }
 
     /*
@@ -44,11 +55,12 @@ public class CMasterManagerLoggerSvc extends CBundleLoggerBase implements
      * @see org.psem2m.isolates.base.CPojoBase#validatePojo()
      */
     @Override
+    @Validate
     public void validatePojo() {
-	setActivityLoggerBase(CBundleMasterManagerActivator.getInstance());
 
-	// logs in the bundle output
-	logInfo(this, "validatePojo", "VALIDATE", toDescription());
+        setActivityLoggerBase(CBundleMasterManagerActivator.getInstance());
+
+        // logs in the bundle output
+        logInfo(this, "validatePojo", "VALIDATE", toDescription());
     }
-
 }

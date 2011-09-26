@@ -17,8 +17,8 @@ import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.constants.ISignalsConstants;
 import org.psem2m.isolates.services.remote.IRemoteServiceBroadcaster;
 import org.psem2m.isolates.services.remote.beans.RemoteServiceEvent;
-import org.psem2m.isolates.services.remote.signals.ISignalEmitter;
-import org.psem2m.isolates.services.remote.signals.ISignalEmitter.EEmitterTargets;
+import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
+import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster.EEmitterTargets;
 
 /**
  * Implementation of an RSB
@@ -37,7 +37,7 @@ public class RemoteServiceBroadcaster extends CPojoBase implements
 
     /** Signal sender service, inject by iPOJO */
     @Requires
-    private ISignalEmitter pSignalEmitter;
+    private ISignalBroadcaster pSignalEmitter;
 
     /*
      * (non-Javadoc)
