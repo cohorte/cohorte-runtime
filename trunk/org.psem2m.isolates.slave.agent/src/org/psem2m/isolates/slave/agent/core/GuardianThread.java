@@ -105,7 +105,7 @@ public class GuardianThread extends Thread {
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e1) {
-                // ... no dump : ;
+                // Ignore sleep errors
             }
         }
 

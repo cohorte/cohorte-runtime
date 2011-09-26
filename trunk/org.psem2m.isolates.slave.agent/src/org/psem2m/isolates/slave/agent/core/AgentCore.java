@@ -24,10 +24,12 @@ import org.psem2m.isolates.base.bundles.IBundleFinderSvc;
 import org.psem2m.isolates.base.isolates.boot.IBootstrapMessageSender;
 import org.psem2m.isolates.base.isolates.boot.IsolateStatus;
 import org.psem2m.isolates.constants.IPlatformProperties;
+import org.psem2m.isolates.constants.ISignalsConstants;
 import org.psem2m.isolates.services.conf.IBundleDescr;
 import org.psem2m.isolates.services.conf.IIsolateDescr;
 import org.psem2m.isolates.services.conf.ISvcConfig;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
+import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
 import org.psem2m.isolates.slave.agent.ISvcAgent;
 
 /**
@@ -41,7 +43,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
     private IBootstrapMessageSender pBootstrapSender;
 
     /** Agent bundle context */
-    private BundleContext pBundleContext = null;
+    private BundleContext pBundleContext;
 
     /** Bundle finder, injected by iPOJO */
     private IBundleFinderSvc pBundleFinderSvc;
@@ -60,6 +62,9 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
 
     /** Platform directories service, injected by iPOJO */
     private IPlatformDirsSvc pPlatformDirsSvc;
+
+    /** Signal broadcaster */
+    private ISignalBroadcaster pSignalBroadcaster;
 
     /**
      * Sets up the agent (called by iPOJO)
@@ -208,6 +213,12 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
      */
     @Override
     public void invalidatePojo() {
+
+        pSignalBroadcaster.sendData(
+                ISignalBroadcaster.EEmitterTargets.MONITORS,
+                ISignalsConstants.ISOLATE_STATUS_SIGNAL, new IsolateStatus(
+                        pPlatformDirsSvc.getIsolateId(),
+                        IsolateStatus.STATE_STOPPED, 100));
 
         // Stop the guardian thread, if any
         if (pGuardianThread != null && pGuardianThread.isAlive()) {
@@ -636,12 +647,23 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
             pGuardianThread.start();
 
             pBootstrapSender.sendStatus(IsolateStatus.STATE_AGENT_DONE, 100);
+            pSignalBroadcaster.sendData(
+                    ISignalBroadcaster.EEmitterTargets.MONITORS,
+                    ISignalsConstants.ISOLATE_STATUS_SIGNAL, new IsolateStatus(
+                            pPlatformDirsSvc.getIsolateId(),
+                            IsolateStatus.STATE_AGENT_DONE, 100));
 
         } catch (Exception ex) {
             System.err.println("Preparation error : " + ex);
             ex.printStackTrace();
 
             pBootstrapSender.sendStatus(IsolateStatus.STATE_FAILURE, -1);
+
+            pSignalBroadcaster.sendData(
+                    ISignalBroadcaster.EEmitterTargets.MONITORS,
+                    ISignalsConstants.ISOLATE_STATUS_SIGNAL, new IsolateStatus(
+                            pPlatformDirsSvc.getIsolateId(),
+                            IsolateStatus.STATE_FAILURE, -1));
 
             // Log the error
             pIsolateLoggerSvc.logSevere(this, "validatePojo",

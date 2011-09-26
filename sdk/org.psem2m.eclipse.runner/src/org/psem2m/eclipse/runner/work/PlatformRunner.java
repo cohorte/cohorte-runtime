@@ -195,7 +195,10 @@ public class PlatformRunner {
 
 		final Set<String> processEnvironment = new LinkedHashSet<String>();
 		processEnvironment.addAll(convertEnvironmentMapToList(environmentMap));
-		processEnvironment.addAll(aEnvironment);
+
+		if (aEnvironment != null) {
+			processEnvironment.addAll(aEnvironment);
+		}
 
 		// Run it !
 		final Process execProcess = DebugPlugin.exec(commandLine,

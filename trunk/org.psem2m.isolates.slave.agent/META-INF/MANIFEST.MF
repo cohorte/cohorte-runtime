@@ -17,7 +17,8 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  psem2m.isolates.base.bundles;version=1.0.0, org.psem2m.isolates.base.
  isolates.boot, org.psem2m.isolates.constants;version=1.0.0, org.psem2
  m.isolates.services.conf;version=1.0.0, org.psem2m.isolates.services.
- dirs;version=1.0.0, org.psem2m.utilities.logging
+ dirs;version=1.0.0, org.psem2m.isolates.services.remote.signals;versi
+ on=1.0.0, org.psem2m.utilities.logging
 iPOJO-Components: instance { $component="isolates-slave-agent-core-fac
  tory" $name="isolates-slave-agent-core" }component { $classname="org.
  psem2m.isolates.slave.agent.core.AgentCore" $architecture="true" $imm
@@ -27,54 +28,56 @@ iPOJO-Components: instance { $component="isolates-slave-agent-core-fac
  s { $field="pBundleFinderSvc" $optional="false" }requires { $field="p
  ConfigurationSvc" $optional="false" }requires { $field="pIsolateLogge
  rSvc" $optional="false" }requires { $field="pPlatformDirsSvc" $option
- al="false" }callback { $transition="validate" $method="validatePojo" 
- }callback { $transition="invalidate" $method="invalidatePojo" }org.ap
- ache.felix.ipojo.handlers.jmx:config { org.apache.felix.ipojo.handler
- s.jmx:method { $name="getBundleInfo" $description="Retrieves informat
- ions about the bundle with the given ID, null if not found" }org.apac
- he.felix.ipojo.handlers.jmx:method { $name="getBundlesState" $descrip
- tion="Retrieves a Map<String, int> associating bundles ID and state" 
- }org.apache.felix.ipojo.handlers.jmx:method { $name="installBundle" $
- description="Install the given bundle (needs a valid URL) and returns
-  its ID. Throws a BundleException on error" }org.apache.felix.ipojo.h
- andlers.jmx:method { $name="refreshPackages" $description="Refreshes 
- the bundles packages" }org.apache.felix.ipojo.handlers.jmx:method { $
- name="startBundle" $description="Starts the bundle with the given UID
- " }org.apache.felix.ipojo.handlers.jmx:method { $name="stopBundle" $d
- escription="Stops the bundle with the given UID" }org.apache.felix.ip
- ojo.handlers.jmx:method { $name="uninstallBundle" $description="Unins
- talls the bundle with the given UID" }org.apache.felix.ipojo.handlers
- .jmx:method { $name="updateBundle" $description="Updates the bundle w
- ith the given UID" }}manipulation { $super="org.psem2m.isolates.base.
- activators.CPojoBase" interface { $name="org.psem2m.isolates.slave.ag
- ent.ISvcAgent" }field { $name="pBootstrapSender" $type="org.psem2m.is
- olates.base.isolates.boot.IBootstrapMessageSender" }field { $name="pB
- undleContext" $type="org.osgi.framework.BundleContext" }field { $name
- ="pBundleFinderSvc" $type="org.psem2m.isolates.base.bundles.IBundleFi
- nderSvc" }field { $name="pConfigurationSvc" $type="org.psem2m.isolate
- s.services.conf.ISvcConfig" }field { $name="pGuardianThread" $type="o
- rg.psem2m.isolates.slave.agent.core.GuardianThread" }field { $name="p
- InstalledBundles" $type="java.util.Map" }field { $name="pIsolateLogge
- rSvc" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $na
- me="pPlatformDirsSvc" $type="org.psem2m.isolates.services.dirs.IPlatf
- ormDirsSvc" }method { $name="destroy" }method { $name="findBundleURL"
-  $return="java.lang.String" $arguments="{org.psem2m.isolates.services
- .conf.IBundleDescr}" }method { $name="getBundle" $return="org.osgi.fr
- amework.Bundle" $arguments="{long}" }method { $name="getBundleInfo" $
- return="org.psem2m.isolates.base.bundles.BundleInfo" $arguments="{lon
- g}" }method { $name="getBundlesState" $return="org.psem2m.isolates.ba
- se.bundles.BundleInfo[]" }method { $name="getInstalledBundles" $retur
- n="java.util.Map" }method { $name="installBundle" $return="long" $arg
- uments="{java.lang.String}" }method { $name="invalidatePojo" }method 
- { $name="isFragment" $return="boolean" $arguments="{org.osgi.framewor
- k.Bundle}" }method { $name="killIsolate" }method { $name="neutralizeI
- solate" }method { $name="prepareIsolate" }method { $name="prepareIsol
- ate" $arguments="{java.lang.String}" }method { $name="refreshPackages
- " $return="boolean" $arguments="{long[]}" }method { $name="setupHttpP
- roperties" $arguments="{org.psem2m.isolates.services.conf.IIsolateDes
- cr}" }method { $name="startBundle" $return="boolean" $arguments="{lon
- g}" }method { $name="stopBundle" $return="boolean" $arguments="{long}
- " }method { $name="uninstallBundle" $return="boolean" $arguments="{lo
- ng}" }method { $name="updateBundle" $return="boolean" $arguments="{lo
- ng}" }method { $name="validatePojo" }}}
+ al="false" }requires { $field="pSignalBroadcaster" $optional="false" 
+ }callback { $transition="validate" $method="validatePojo" }callback {
+  $transition="invalidate" $method="invalidatePojo" }org.apache.felix.
+ ipojo.handlers.jmx:config { org.apache.felix.ipojo.handlers.jmx:metho
+ d { $name="getBundleInfo" $description="Retrieves informations about 
+ the bundle with the given ID, null if not found" }org.apache.felix.ip
+ ojo.handlers.jmx:method { $name="getBundlesState" $description="Retri
+ eves a Map<String, int> associating bundles ID and state" }org.apache
+ .felix.ipojo.handlers.jmx:method { $name="installBundle" $description
+ ="Install the given bundle (needs a valid URL) and returns its ID. Th
+ rows a BundleException on error" }org.apache.felix.ipojo.handlers.jmx
+ :method { $name="refreshPackages" $description="Refreshes the bundles
+  packages" }org.apache.felix.ipojo.handlers.jmx:method { $name="start
+ Bundle" $description="Starts the bundle with the given UID" }org.apac
+ he.felix.ipojo.handlers.jmx:method { $name="stopBundle" $description=
+ "Stops the bundle with the given UID" }org.apache.felix.ipojo.handler
+ s.jmx:method { $name="uninstallBundle" $description="Uninstalls the b
+ undle with the given UID" }org.apache.felix.ipojo.handlers.jmx:method
+  { $name="updateBundle" $description="Updates the bundle with the giv
+ en UID" }}manipulation { $super="org.psem2m.isolates.base.activators.
+ CPojoBase" interface { $name="org.psem2m.isolates.slave.agent.ISvcAge
+ nt" }field { $name="pBootstrapSender" $type="org.psem2m.isolates.base
+ .isolates.boot.IBootstrapMessageSender" }field { $name="pBundleContex
+ t" $type="org.osgi.framework.BundleContext" }field { $name="pBundleFi
+ nderSvc" $type="org.psem2m.isolates.base.bundles.IBundleFinderSvc" }f
+ ield { $name="pConfigurationSvc" $type="org.psem2m.isolates.services.
+ conf.ISvcConfig" }field { $name="pGuardianThread" $type="org.psem2m.i
+ solates.slave.agent.core.GuardianThread" }field { $name="pInstalledBu
+ ndles" $type="java.util.Map" }field { $name="pIsolateLoggerSvc" $type
+ ="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pPlatfo
+ rmDirsSvc" $type="org.psem2m.isolates.services.dirs.IPlatformDirsSvc"
+  }field { $name="pSignalBroadcaster" $type="org.psem2m.isolates.servi
+ ces.remote.signals.ISignalBroadcaster" }method { $name="destroy" }met
+ hod { $name="findBundleURL" $return="java.lang.String" $arguments="{o
+ rg.psem2m.isolates.services.conf.IBundleDescr}" }method { $name="getB
+ undle" $return="org.osgi.framework.Bundle" $arguments="{long}" }metho
+ d { $name="getBundleInfo" $return="org.psem2m.isolates.base.bundles.B
+ undleInfo" $arguments="{long}" }method { $name="getBundlesState" $ret
+ urn="org.psem2m.isolates.base.bundles.BundleInfo[]" }method { $name="
+ getInstalledBundles" $return="java.util.Map" }method { $name="install
+ Bundle" $return="long" $arguments="{java.lang.String}" }method { $nam
+ e="invalidatePojo" }method { $name="isFragment" $return="boolean" $ar
+ guments="{org.osgi.framework.Bundle}" }method { $name="killIsolate" }
+ method { $name="neutralizeIsolate" }method { $name="prepareIsolate" }
+ method { $name="prepareIsolate" $arguments="{java.lang.String}" }meth
+ od { $name="refreshPackages" $return="boolean" $arguments="{long[]}" 
+ }method { $name="setupHttpProperties" $arguments="{org.psem2m.isolate
+ s.services.conf.IIsolateDescr}" }method { $name="startBundle" $return
+ ="boolean" $arguments="{long}" }method { $name="stopBundle" $return="
+ boolean" $arguments="{long}" }method { $name="uninstallBundle" $retur
+ n="boolean" $arguments="{long}" }method { $name="updateBundle" $retur
+ n="boolean" $arguments="{long}" }method { $name="validatePojo" }}}
 

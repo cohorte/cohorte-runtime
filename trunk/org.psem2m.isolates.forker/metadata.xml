@@ -49,6 +49,7 @@
 
 		<requires field="pIsolateLoggerSvc" optional="false" />
 		<requires field="pIsolateRunners" optional="false" />
+		<requires field="pSignalBroadcaster" optional="false" />
 
 		<callback transition="validate" method="validatePojo" />
 		<callback transition="invalidate" method="invalidatePojo" />
