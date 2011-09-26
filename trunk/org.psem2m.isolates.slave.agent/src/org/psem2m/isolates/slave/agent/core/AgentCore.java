@@ -361,6 +361,13 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
                     // Bundle found
 
                     try {
+
+                        // set the properties of the bundle to be installed
+                        if (bundleDescr.hasProperties()) {
+                            System.getProperties().putAll(
+                                    bundleDescr.getProperties());
+                        }
+
                         // Install bundle
                         long bundleId = installBundle(bundleUrl);
 
