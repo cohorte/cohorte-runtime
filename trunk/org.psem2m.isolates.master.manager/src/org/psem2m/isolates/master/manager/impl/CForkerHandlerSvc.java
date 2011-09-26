@@ -22,6 +22,7 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
+import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.base.bundles.BundleRef;
 import org.psem2m.isolates.base.bundles.IBundleFinderSvc;
@@ -35,7 +36,6 @@ import org.psem2m.isolates.services.conf.IBundleDescr;
 import org.psem2m.isolates.services.conf.IIsolateDescr;
 import org.psem2m.isolates.services.conf.ISvcConfig;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
-import org.psem2m.utilities.logging.IActivityLoggerBase;
 
 /**
  * PSEM2M Master Manager, starting and monitoring the Forker process.
@@ -69,8 +69,8 @@ public class CForkerHandlerSvc extends CPojoBase implements IForkerHandler,
     private final Set<IIsolateStatusEventListener> pIsolateListeners = new HashSet<IIsolateStatusEventListener>();
 
     /** Log service, handled by iPOJO */
-    @Requires(from = "isolates-master-manager-logger")
-    private IActivityLoggerBase pLoggerSvc;
+    @Requires
+    private IIsolateLoggerSvc pLoggerSvc;
 
     /** The platform directory service */
     @Requires
