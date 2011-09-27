@@ -111,6 +111,13 @@ public abstract class CXObjectBase implements IXObjectBase {
         this(null, aId);
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.utilities.IXDescriber#addDescriptionInBuffer(java.lang.Appendable
+     * )
+     */
     @Override
     public Appendable addDescriptionInBuffer(final Appendable aBuffer) {
 

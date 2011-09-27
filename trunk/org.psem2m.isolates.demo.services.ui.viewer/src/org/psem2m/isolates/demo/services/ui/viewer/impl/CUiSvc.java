@@ -106,8 +106,10 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
             pIsolateLoggerSvc.logInfo(this, "initFrame",
                     "Create the frame [%s]", pPlatformDirsSvc.getIsolateId());
             pFrameMain = new CFrameMain();
-            pFrameMain.setLocationRelativeTo(null);
             pFrameMain.setIsolateName(pPlatformDirsSvc.getIsolateId());
+
+            pIsolateLoggerSvc.logInfo(this, "initFrame", "FrameConfig : %s",
+                    pFrameMain.getFrameConfig().toDescription());
 
             pFrameMain.addWindowListener(new WindowAdapter() {
                 @Override
@@ -149,6 +151,10 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
         // logs in the bundle output
         pIsolateLoggerSvc.logInfo(this, "validatePojo", "VALIDATE",
                 toDescription());
+
+        pIsolateLoggerSvc.logInfo(this, "validatePojo",
+                "psem2m.demo.ui.viewer.color=",
+                System.getProperty("psem2m.demo.ui.viewer.color"));
 
         init();
     }
