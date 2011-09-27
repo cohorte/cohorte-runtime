@@ -3,18 +3,27 @@
     "kind":"felix",
     "httpPort":9001,
     "vmArgs":[
-        "-Dosgi.shell.telnet.port=6001"
-    ],
+              ],
     "bundles":[
         {
             "symbolicName":"org.psem2m.isolates.demo.services.ui.viewer",
-            "optional":true
+            "optional":true,
+            "properties":{
+            	"psem2m.demo.ui.viewer.top":"0scr",
+            	"psem2m.demo.ui.viewer.left":"0.25scr",
+            	"psem2m.demo.ui.viewer.width":"0.25scr",
+            	"psem2m.demo.ui.viewer.height":"0.5scr",
+            	"psem2m.demo.ui.viewer.color":"Beige"
+            }
         },
         {
             "symbolicName":"org.apache.felix.shell"
         },
         {
-            "symbolicName":"org.apache.felix.shell.remote"
+            "symbolicName":"org.apache.felix.shell.remote",
+            "properties":{
+            	"osgi.shell.telnet.port":"6001"
+            }
         },
         {
             "from":"signals-http.js"

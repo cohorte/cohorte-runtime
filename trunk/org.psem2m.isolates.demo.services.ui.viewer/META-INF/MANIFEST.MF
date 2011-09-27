@@ -23,16 +23,19 @@ iPOJO-Components: instance { $component="isolates-demo-ui-viewer-facto
   $specifications="org.psem2m.isolates.demo.services.ui.viewer.IUiSvc"
   }requires { $field="pIsolateLoggerSvc" $optional="false" }requires {
   $field="pPlatformDirsSvc" $optional="false" }requires { $field="pSvc
- Agent" $optional="false" }callback { $transition="validate" $method="
- validatePojo" }callback { $transition="invalidate" $method="invalidat
- ePojo" }manipulation { $super="org.psem2m.isolates.base.activators.CP
- ojoBase" interface { $name="org.psem2m.isolates.demo.services.ui.view
- er.IUiSvc" }field { $name="pFrameMain" $type="org.psem2m.isolates.dem
- o.services.ui.viewer.impl.CFrameMain" }field { $name="pIsolateLoggerS
- vc" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name
- ="pPlatformDirsSvc" $type="org.psem2m.isolates.services.dirs.IPlatfor
- mDirsSvc" }field { $name="pSvcAgent" $type="org.psem2m.isolates.slave
- .agent.ISvcAgent" }method { $name="destroy" }method { $name="hasFrame
- " $return="boolean" }method { $name="init" }method { $name="initFrame
- " }method { $name="invalidatePojo" }method { $name="validatePojo" }}}
+ Agent" $optional="false" }requires { $field="pUiExecutor" $optional="
+ false" $filter="(thread=main)" }callback { $transition="validate" $me
+ thod="validatePojo" }callback { $transition="invalidate" $method="inv
+ alidatePojo" }manipulation { $super="org.psem2m.isolates.base.activat
+ ors.CPojoBase" interface { $name="org.psem2m.isolates.demo.services.u
+ i.viewer.IUiSvc" }field { $name="pFrameMain" $type="org.psem2m.isolat
+ es.demo.services.ui.viewer.impl.CFrameMain" }field { $name="pIsolateL
+ oggerSvc" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field {
+  $name="pPlatformDirsSvc" $type="org.psem2m.isolates.services.dirs.IP
+ latformDirsSvc" }field { $name="pSvcAgent" $type="org.psem2m.isolates
+ .slave.agent.ISvcAgent" }field { $name="pUiExecutor" $type="java.util
+ .concurrent.Executor" }method { $name="destroy" }method { $name="hasF
+ rame" $return="boolean" }method { $name="init" }method { $name="initF
+ rame" }method { $name="invalidatePojo" }method { $name="validatePojo"
+  }}}
 

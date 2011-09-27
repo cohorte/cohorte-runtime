@@ -12,6 +12,7 @@ package org.psem2m.isolates.demo.services.ui.viewer.impl;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.concurrent.Executor;
 
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
@@ -46,6 +47,10 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
      * Service reference managed by iPojo (see metadata.xml)
      */
     private ISvcAgent pSvcAgent;
+    /**
+     * Service reference managed by iPojo (see metadata.xml)
+     */
+    private Executor pUiExecutor;
 
     /**
      * Explicit default constructor
@@ -76,8 +81,8 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
     }
 
     /**
-       *
-       */
+     * 
+     */
     private void init() {
 
         Runnable wRunnable = new Runnable() {
@@ -89,12 +94,16 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
             @Override
             public void run() {
 
-                initFrame();
+                CUiSvc.this.initFrame();
             }
         };
-        new Thread(wRunnable, "initUiSvc").start();
-        // SwingUtilities.invokeLater(wRunnable);
-
+        try {
+            // new Thread(wRunnable, "initUiSvc").start();
+            // SwingUtilities.invokeLater(wRunnable);
+            pUiExecutor.execute(wRunnable);
+        } catch (Exception e) {
+            pIsolateLoggerSvc.logSevere(this, "init", e);
+        }
     }
 
     /**
@@ -151,10 +160,6 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
         // logs in the bundle output
         pIsolateLoggerSvc.logInfo(this, "validatePojo", "VALIDATE",
                 toDescription());
-
-        pIsolateLoggerSvc.logInfo(this, "validatePojo",
-                "psem2m.demo.ui.viewer.color=",
-                System.getProperty("psem2m.demo.ui.viewer.color"));
 
         init();
     }

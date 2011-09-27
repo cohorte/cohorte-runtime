@@ -17,7 +17,8 @@ import org.psem2m.utilities.CXObjectBase;
 import org.psem2m.utilities.CXStringUtils;
 
 /**
- * represent a dimension
+ * represent a size and its value usable to set a Frame (eg. top, left,
+ * width,...)
  * 
  * @author ogattaz
  * 
@@ -40,15 +41,15 @@ public class CFrameSizeValue extends CXObjectBase {
     private final String pValue;
 
     /**
-     * @param aDimension
+     * @param aFrameSize
      * @param aValue
      */
-    public CFrameSizeValue(final EFrameSize aDimension, final String aValue) {
+    public CFrameSizeValue(final EFrameSize aFrameSize, final String aValue) {
 
         super();
-        pDimension = aDimension;
+        pDimension = aFrameSize;
         pValue = aValue;
-        pPixels = calcPixels(aDimension, aValue);
+        pPixels = calcPixels(aFrameSize, aValue);
     }
 
     /*
@@ -142,5 +143,4 @@ public class CFrameSizeValue extends CXObjectBase {
 
         return pValue;
     }
-
 }
