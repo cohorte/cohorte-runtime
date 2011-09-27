@@ -368,12 +368,19 @@ public class Main {
      */
     protected AtomicBoolean registerUIThreadService(final Framework aFramework) {
 
+        final String wCurrentThreadName = Thread.currentThread().getName();
+
+        pMessageSender.sendMessage(Level.FINEST, "Main",
+                "registerUIThreadService", String.format(
+                        "Install the service [%s] CurrentThread=[%s]",
+                        Executor.class.getName(), wCurrentThreadName));
+
         // Get the framework system bundle context
         final BundleContext frameworkContext = aFramework.getBundleContext();
 
         // Set up the service properties
         final Properties mainThreadExecutorProps = new Properties();
-        mainThreadExecutorProps.put("thread", "main");
+        mainThreadExecutorProps.put("thread", wCurrentThreadName);
         mainThreadExecutorProps.put(Constants.SERVICE_RANKING,
                 Integer.valueOf(-1000));
 
@@ -382,8 +389,10 @@ public class Main {
             @Override
             public void execute(final Runnable command) {
 
-                pMessageSender.sendMessage(Level.FINEST, "UI-Executor",
-                        "execute", "Executor enqueuing a new task");
+                pMessageSender.sendMessage(Level.FINEST, "Main$Executor",
+                        "execute", String.format(
+                                "Executor enqueuing the new task [%s].",
+                                command.toString()));
 
                 // add() will throw an exception if the queue is full, which is
                 // what we want
@@ -410,8 +419,9 @@ public class Main {
                 if (event.getBundle().getBundleId() == 0
                         && event.getType() == BundleEvent.STOPPING) {
 
-                    pMessageSender.sendMessage(Level.INFO, "UI-Executor",
-                            "bundleChanged", "Main bundle is stopping");
+                    pMessageSender.sendMessage(Level.INFO,
+                            "Main$SynchronousBundleListener", "bundleChanged",
+                            "Main bundle is stopping");
                     shutdown.set(true);
                     mainThread.interrupt();
                 }
@@ -425,6 +435,11 @@ public class Main {
      * Bootstrap main program
      */
     public void run() {
+
+        // log the beginning of the run method
+        pMessageSender
+                .sendMessage(Level.FINEST, "Main", "run/Start", String.format(
+                        "CurrentThread=[%s]", Thread.currentThread().getName()));
 
         // Read the bundles list and run the bootstrap
         URL[] bundleConfiguration;
@@ -475,9 +490,14 @@ public class Main {
                 try {
                     Runnable work = pUiWorkQueue.poll(3, TimeUnit.SECONDS);
                     if (work != null) {
-                        pMessageSender.sendMessage(Level.FINEST, "UI-Executor",
-                                "Work-loop",
-                                "Main thread received a work task, executing.");
+                        pMessageSender
+                                .sendMessage(
+                                        Level.FINEST,
+                                        "Main",
+                                        "run/Work-loop",
+                                        String.format(
+                                                "Main thread received the work task [%s], executing.",
+                                                work.toString()));
 
                         work.run();
                     }
