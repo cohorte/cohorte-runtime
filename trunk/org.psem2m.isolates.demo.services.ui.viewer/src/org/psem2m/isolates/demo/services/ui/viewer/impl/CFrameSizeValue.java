@@ -73,6 +73,10 @@ public class CFrameSizeValue extends CXObjectBase {
      */
     private int calcPixels(final EFrameSize aDimension, final String aValue) {
 
+        if (aValue == null || aValue.isEmpty()) {
+            return getDefaultPixel(aDimension);
+        }
+
         String wValue = aValue.indexOf(',') > -1 ? aValue.replace(',', '.')
                 : aValue;
 
