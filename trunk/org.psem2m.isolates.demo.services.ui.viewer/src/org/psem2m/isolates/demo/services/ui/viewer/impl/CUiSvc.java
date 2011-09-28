@@ -12,6 +12,7 @@ package org.psem2m.isolates.demo.services.ui.viewer.impl;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.List;
 import java.util.concurrent.Executor;
 
 import org.osgi.framework.ServiceEvent;
@@ -31,7 +32,7 @@ import org.psem2m.isolates.slave.agent.ISvcAgent;
 public class CUiSvc extends CPojoBase implements IUiSvc {
 
     /**
-     * The listener used to wait for the IIsolateLoggerSvc OSGI service.
+     * The listener used to track all the service events
      * 
      * @author isandlatech (www.isandlatech.com) - ogattaz
      * 
@@ -60,7 +61,7 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
                     && (event.getType() == ServiceEvent.REGISTERED || event
                             .getType() == ServiceEvent.UNREGISTERING)) {
 
-                updateListOfService(event.getServiceReference(),
+                updateTableOfService(event.getServiceReference(),
                         event.getType());
             }
         }
@@ -101,6 +102,38 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
         super();
     }
 
+    /**
+     * do the creation of the main frame of this UISvc
+     */
+    private void createFrameMainExec() {
+
+        try {
+            pIsolateLoggerSvc.logInfo(this, "initFrame",
+                    "Create the frame [%s]", pPlatformDirsSvc.getIsolateId());
+            CFrameMain wFrameMain = new CFrameMain();
+
+            pIsolateLoggerSvc.logInfo(this, "initFrame", "FrameConfig : %s",
+                    wFrameMain.getFrameConfig().toDescription());
+
+            wFrameMain.setTitle(pPlatformDirsSvc.getIsolateId());
+
+            wFrameMain.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(final WindowEvent we) {
+
+                    pSvcAgent.killIsolate();
+                }
+            });
+            wFrameMain.setVisible(true);
+
+            // store the reference of the FrameMain (synchronized)
+            setFrameMain(wFrameMain);
+
+        } catch (Exception e) {
+            pIsolateLoggerSvc.logSevere(this, "init", e);
+        }
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -118,7 +151,7 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
     }
 
     /**
-     * @return
+     * @return the reference of the main frame of the UISvc is available
      */
     private synchronized CFrameMain getFrameMain() {
 
@@ -126,7 +159,7 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
     }
 
     /**
-     * @return
+     * @return true if the main frame of the UISvc is available
      */
     private boolean hasFrameMain() {
 
@@ -134,38 +167,7 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
     }
 
     /**
-       *
-       */
-    private void initFrameMainExec() {
-
-        try {
-            pIsolateLoggerSvc.logInfo(this, "initFrame",
-                    "Create the frame [%s]", pPlatformDirsSvc.getIsolateId());
-            CFrameMain wFrameMain = new CFrameMain();
-            wFrameMain.setTitle(pPlatformDirsSvc.getIsolateId());
-
-            pIsolateLoggerSvc.logInfo(this, "initFrame", "FrameConfig : %s",
-                    wFrameMain.getFrameConfig().toDescription());
-
-            wFrameMain.addWindowListener(new WindowAdapter() {
-                @Override
-                public void windowClosing(final WindowEvent we) {
-
-                    pSvcAgent.killIsolate();
-                }
-            });
-            wFrameMain.setVisible(true);
-
-            // store the reference to the FrameMain
-            setFrameMain(wFrameMain);
-
-        } catch (Exception e) {
-            pIsolateLoggerSvc.logSevere(this, "init", e);
-        }
-    }
-
-    /**
-     * 
+     * launch the creation of the main frame of this UISvc
      */
     private void initFramMain() {
 
@@ -173,7 +175,7 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
             @Override
             public void run() {
 
-                CUiSvc.this.initFrameMainExec();
+                CUiSvc.this.createFrameMainExec();
             }
         };
         try {
@@ -185,15 +187,15 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
     }
 
     /**
-     * 
+     * launch the initialization of the content of the table of services
      */
-    private void initListOfService() {
+    private void initTableOfService() {
 
         Runnable wRunnable = new Runnable() {
             @Override
             public void run() {
 
-                CUiSvc.this.initListOfServiceExec();
+                CUiSvc.this.initTableOfServiceExec();
             }
         };
         try {
@@ -205,25 +207,22 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
     }
 
     /**
-     * 
+     * do the initialization of the content of the table o services
      */
-    private void initListOfServiceExec() {
+    private void initTableOfServiceExec() {
 
         if (hasFrameMain()) {
-            CFrameMain wFrameMain = getFrameMain();
-            wFrameMain.getServicesListModel().clear();
+
             try {
-                ServiceReference[] wServiceReferences = CBundleUiActivator
-                        .getInstance().getContext()
-                        .getAllServiceReferences(null, null);
 
-                for (ServiceReference wServiceReference : wServiceReferences) {
-                    wFrameMain.getServicesListModel().addElement(
-                            wServiceReference.toString());
+                List<ServiceReference> wListOfServiceRef = CBundleUiActivator
+                        .getInstance().getAllServiceReferences();
 
-                    pIsolateLoggerSvc.logInfo(this, "initListOfService",
-                            "add Service=[%s]", wServiceReference.toString());
-                }
+                pFrameMain.setServiceTable(wListOfServiceRef);
+
+                pIsolateLoggerSvc.logInfo(this, "initListOfService",
+                        "add [%d] services : [%s]", wListOfServiceRef.size(),
+                        wListOfServiceRef.toString());
 
             } catch (Exception e) {
                 pIsolateLoggerSvc.logSevere(this, "initListOfService", e);
@@ -249,20 +248,29 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
 
     /**
      * @param aFrameMain
+     *            store the reference of the main frame of the UISvc
      */
     private synchronized void setFrameMain(final CFrameMain aFrameMain) {
 
         pFrameMain = aFrameMain;
     }
 
-    private void updateListOfService(final ServiceReference aServiceReference,
-            final int aEvent) {
+    /**
+     * Launch the update the table of service with a service reference and a
+     * service event (REGISTERED or UNREGISTERING)
+     * 
+     * @param aServiceReference
+     * @param aServiceEvent
+     */
+    private void updateTableOfService(final ServiceReference aServiceReference,
+            final int aServiceEvent) {
 
         Runnable wRunnable = new Runnable() {
             @Override
             public void run() {
 
-                CUiSvc.this.updateListOfServiceExec(aServiceReference, aEvent);
+                CUiSvc.this.updateTableOfServiceExec(aServiceReference,
+                        aServiceEvent);
             }
         };
         try {
@@ -274,16 +282,21 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
     }
 
     /**
+     * do the update the table of service with a service reference and a service
+     * event (REGISTERED or UNREGISTERING)
+     * 
      * @param aServiceReference
      * @param aEvent
      */
-    private void updateListOfServiceExec(
+    private void updateTableOfServiceExec(
             final ServiceReference aServiceReference, final int aEvent) {
 
         pIsolateLoggerSvc.logInfo(this, "updateListOfServiceExec",
                 "%s ServiceReference=[%s]",
                 aEvent == ServiceEvent.REGISTERED ? "REGISTERED"
                         : "UNREGISTERING", aServiceReference.toString());
+
+        pFrameMain.setServiceTable(aServiceReference, aEvent);
 
     }
 
@@ -301,7 +314,7 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
 
         initFramMain();
 
-        initListOfService();
+        initTableOfService();
 
         // put in place a service listener to setup the list of service
         try {

@@ -1,7 +1,11 @@
 package org.psem2m.isolates.base.activators;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
@@ -60,9 +64,7 @@ public abstract class CActivatorBase extends CXObjectBase implements
 
     }
 
-    public static String LIB_BNDL_ID = "BundleId";
-
-    public static String LIB_POJO_ID = "PojoId";
+    private static String LIB_BNDL_ID = "BundleId";
 
     /**
      * the BundleContext given by the framework during the call of the method
@@ -72,12 +74,6 @@ public abstract class CActivatorBase extends CXObjectBase implements
 
     /** the reference to the isolateLogger service **/
     private IIsolateLoggerSvc pIsolateLoggerSvc;
-
-    /**
-     * the flag to indicates if that the LogListener was put in place by this
-     * Activator
-     **/
-    private boolean pLogListenerSet = false;
 
     /**
      * Explicit default constructor
@@ -110,6 +106,28 @@ public abstract class CActivatorBase extends CXObjectBase implements
         pIsolateLoggerSvc = aIsolateLogerSvc;
     }
 
+    @Override
+    public List<ServiceReference> getAllServiceReferences() {
+
+        List<ServiceReference> wListOfServiceRef = new ArrayList<ServiceReference>();
+
+        try {
+            ServiceReference[] wServiceReferences = getContext()
+                    .getAllServiceReferences(null, null);
+
+            for (ServiceReference wServiceReference : wServiceReferences) {
+                wListOfServiceRef.add(wServiceReference);
+            }
+
+        } catch (InvalidSyntaxException e) {
+            // can't throw an InvalidSyntaxException, the method
+            // getAllServiceReferences uses no filter !
+            pIsolateLoggerSvc.logSevere(this, "getAllServiceReferences", e);
+        }
+
+        return wListOfServiceRef;
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -130,6 +148,27 @@ public abstract class CActivatorBase extends CXObjectBase implements
     public BundleContext getContext() {
 
         return pContext;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.base.activators.IActivatorBase#getServiceReference
+     * (java.lang.Long)
+     */
+    @Override
+    public ServiceReference getServiceReference(final Long aServiceId)
+            throws Exception {
+
+        String wFilter = String.format("(%s=%s)",
+                org.osgi.framework.Constants.SERVICE_ID, aServiceId.toString());
+        ServiceReference[] wServiceReferences = getContext()
+                .getServiceReferences(null, wFilter);
+        if (wServiceReferences != null && wServiceReferences.length > 0) {
+            return wServiceReferences[0];
+        }
+        return null;
     }
 
     /**

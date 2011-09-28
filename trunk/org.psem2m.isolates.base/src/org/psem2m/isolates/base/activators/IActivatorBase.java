@@ -10,7 +10,10 @@
  *******************************************************************************/
 package org.psem2m.isolates.base.activators;
 
+import java.util.List;
+
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
@@ -18,14 +21,31 @@ import org.osgi.framework.BundleContext;
  */
 public interface IActivatorBase {
 
-	/**
-	 * @return
-	 */
-	public String getBundleId();
+    /**
+     * @return aList of all the available service references.
+     */
+    public List<ServiceReference> getAllServiceReferences();
 
-	/**
-	 * @return
-	 */
-	public BundleContext getContext();
+    /**
+     * @return
+     */
+    public String getBundleId();
+
+    /**
+     * @return
+     */
+    public BundleContext getContext();
+
+    /**
+     * retrieves the service reference of a service using the unique service id
+     * 
+     * @param aServiceId
+     *            the unique service id
+     * @return an instance of ServiceReference
+     * 
+     * @throws Exception
+     */
+    public ServiceReference getServiceReference(Long aServiceId)
+            throws Exception;
 
 }
