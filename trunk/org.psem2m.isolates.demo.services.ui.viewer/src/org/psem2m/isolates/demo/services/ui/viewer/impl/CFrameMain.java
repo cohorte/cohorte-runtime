@@ -12,8 +12,6 @@
 package org.psem2m.isolates.demo.services.ui.viewer.impl;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.Toolkit;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
@@ -126,6 +124,11 @@ public class CFrameMain extends javax.swing.JFrame {
         return pFrameConfig;
     }
 
+    DefaultListModel getServicesListModel() {
+
+        return jList.getContents();
+    }
+
     /**
      * 
      */
@@ -184,23 +187,19 @@ public class CFrameMain extends javax.swing.JFrame {
     /**
      * @param aIsolateName
      */
-    void setIsolateName(final String aIsolateName) {
+    @Override
+    public void setTitle(final String aIsolateName) {
 
-        setTitle(String.format(TITLE_PREFIX, aIsolateName));
-    }
+        String wId;
+        if (aIsolateName == null || aIsolateName.isEmpty()) {
+            wId = "NO ID";
+        } else {
+            int wPos = aIsolateName.lastIndexOf('.');
+            wId = wPos > -1 && wPos + 1 < aIsolateName.length() - 1 ? aIsolateName
+                    .substring(wPos + 1) : aIsolateName;
+        }
 
-    /**
-     * 
-     */
-    private void setPos() {
-
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        Dimension windowSize = getSize();
-
-        int windowX = Math.max(0, (screenSize.width - windowSize.width) / 2);
-        int windowY = Math.max(0, (screenSize.height - windowSize.height) / 2);
-
-        setLocation(windowX, windowY);
+        super.setTitle(String.format(TITLE_PREFIX, wId));
     }
 
 }
