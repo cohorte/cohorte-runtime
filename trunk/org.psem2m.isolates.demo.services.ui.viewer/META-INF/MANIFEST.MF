@@ -34,8 +34,15 @@ iPOJO-Components: instance { $component="isolates-demo-ui-viewer-facto
   $name="pPlatformDirsSvc" $type="org.psem2m.isolates.services.dirs.IP
  latformDirsSvc" }field { $name="pSvcAgent" $type="org.psem2m.isolates
  .slave.agent.ISvcAgent" }field { $name="pUiExecutor" $type="java.util
- .concurrent.Executor" }method { $name="destroy" }method { $name="hasF
- rame" $return="boolean" }method { $name="init" }method { $name="initF
- rame" }method { $name="invalidatePojo" }method { $name="validatePojo"
-  }}}
+ .concurrent.Executor" }method { $name="destroy" }method { $name="getF
+ rameMain" $return="org.psem2m.isolates.demo.services.ui.viewer.impl.C
+ FrameMain" }method { $name="hasFrameMain" $return="boolean" }method {
+  $name="initFrameMainExec" }method { $name="initFramMain" }method { $
+ name="initListOfService" }method { $name="initListOfServiceExec" }met
+ hod { $name="invalidatePojo" }method { $name="setFrameMain" $argument
+ s="{org.psem2m.isolates.demo.services.ui.viewer.impl.CFrameMain}" }me
+ thod { $name="updateListOfService" $arguments="{org.osgi.framework.Se
+ rviceReference,int}" }method { $name="updateListOfServiceExec" $argum
+ ents="{org.osgi.framework.ServiceReference,int}" }method { $name="val
+ idatePojo" }}}
 

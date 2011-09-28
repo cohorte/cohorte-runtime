@@ -6,8 +6,11 @@ package org.psem2m.isolates.slave.agent.core;
 import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 
 import org.osgi.framework.Bundle;
@@ -284,16 +287,23 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
         synchronized (pInstalledBundles) {
             // Synchronized map, to avoid messing with the guardian
 
-            for (Long bundleId : pInstalledBundles.keySet()) {
+            List<Entry<Long, IBundleDescr>> wList = new ArrayList<Entry<Long, IBundleDescr>>(
+                    pInstalledBundles.entrySet());
+
+            Long wBundleId;
+            for (int wI = wList.size() - 1; wI > -1; wI--) {
+                wBundleId = wList.get(wI).getKey();
 
                 try {
-                    uninstallBundle(bundleId);
+                    pIsolateLoggerSvc.logInfo(this, "neutralizeIsolate",
+                            "BundleId=[%d]", wBundleId);
+                    uninstallBundle(wBundleId);
 
                 } catch (BundleException ex) {
                     // Only log the error
                     pIsolateLoggerSvc.logWarn(this, "neutralizeIsolate",
                             "Error stopping bundle : ",
-                            pInstalledBundles.get(bundleId).getSymbolicName(),
+                            pInstalledBundles.get(wBundleId).getSymbolicName(),
                             ex);
                 }
             }

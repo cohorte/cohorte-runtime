@@ -25,9 +25,9 @@ import org.psem2m.utilities.CXStringUtils;
  */
 public class CFrameSizeValue extends CXObjectBase {
 
-    private final static int DEFAULT_HEIGHT = 200;
+    private final static int DEFAULT_HEIGHT = 500;
 
-    private final static int DEFAULT_WIDTH = 200;
+    private final static int DEFAULT_WIDTH = 500;
 
     private final static Dimension sScreenSize = Toolkit.getDefaultToolkit()
             .getScreenSize();
