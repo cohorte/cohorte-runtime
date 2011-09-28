@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright ... -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<!-- POM file version -->
+	<modelVersion>4.0.0</modelVersion>
+
+	<!-- Parent POM file -->
+	<parent>
+		<groupId>org.psem2m</groupId>
+		<artifactId>psem2m.root</artifactId>
+		<version>1.0.0</version>
+		<relativePath>Path-To-Root-POM-File</relativePath>
+	</parent>
+
+	<!-- Artifact information -->
+	<groupId>org.psem2m.groupId</groupId>
+	<artifactId>artifact.Id</artifactId>
+	<version>1.0.0</version>
+	<name>Optional, if present in Manifest</name>
+	<packaging>bundle</packaging>
+
+	<dependencies>
+		<dependency>
+			<!-- Either that standard artifact, or the Target Platform framework -->
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.core</artifactId>
+			<version>4.1.0</version>
+			<type>jar</type>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<!-- Bundle creation parameters -->
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<extensions>true</extensions>
+				<configuration>
+					<instructions>
+						<_include>META-INF/MANIFEST.MF</_include>
+					</instructions>
+				</configuration>
+			</plugin>
+
+			<!-- iPOJO Manipulation -->
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-ipojo-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>ipojo-bundle</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>

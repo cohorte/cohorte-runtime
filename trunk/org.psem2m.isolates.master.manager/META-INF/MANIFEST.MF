@@ -50,10 +50,10 @@ iPOJO-Components: instance { $component="org.psem2m.isolates.master.ma
  ojo" }method { $name="makeJavaProperty" $return="java.lang.String" $a
  rguments="{java.lang.String,java.lang.String}" }method { $name="regis
  terIsolateEventListener" $arguments="{org.psem2m.isolates.base.isolat
- es.IIsolateStatusEventListener}" }method { $name="startForker" $retur
- n="boolean" }method { $name="startWatcher" }method { $name="stopForke
- r" $return="boolean" }method { $name="stopWatcher" }method { $name="u
- nregisterIsolateEventListener" $arguments="{org.psem2m.isolates.base.
- isolates.IIsolateStatusEventListener}" }method { $name="validatePojo"
-  }}}
+ es.IIsolateStatusEventListener}" }method { $name="setupDebugMode" $re
+ turn="java.util.List" }method { $name="startForker" $return="boolean"
+  }method { $name="startWatcher" }method { $name="stopForker" $return=
+ "boolean" }method { $name="stopWatcher" }method { $name="unregisterIs
+ olateEventListener" $arguments="{org.psem2m.isolates.base.isolates.II
+ solateStatusEventListener}" }method { $name="validatePojo" }}}
 

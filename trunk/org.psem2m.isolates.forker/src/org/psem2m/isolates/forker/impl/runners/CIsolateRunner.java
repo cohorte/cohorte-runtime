@@ -299,11 +299,9 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
         aJavaOptions.add("-Xdebug");
 
         // Connection parameter
-        final String connectStr = String.format(
+        aJavaOptions.add(String.format(
                 "-Xrunjdwp:transport=dt_socket,address=127.0.0.1:%d,suspend=y",
-                pBaseDebugPort + pIsolateIndex);
-
-        aJavaOptions.add(connectStr);
+                pBaseDebugPort + pIsolateIndex));
     }
 
     /*
@@ -359,6 +357,9 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
      */
     @Override
     public void validatePojo() throws BundleException {
+
+        // Read debug properties
+        prepareDebugMode();
 
         // logs in the bundle logger
         pIsolateLoggerSvc.logInfo(this, "validatePojo", "VALIDATE",
