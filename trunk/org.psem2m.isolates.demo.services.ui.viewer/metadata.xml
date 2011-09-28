@@ -16,6 +16,9 @@
         <requires field="pPlatformDirsSvc" optional="false" />
         
         <requires field="pSvcAgent" optional="false" />
+        
+        <requires field="pUiExecutor" optional="false" 
+         filter="(thread=main)" />
 
         <callback transition="validate" method="validatePojo" />
         <callback transition="invalidate" method="invalidatePojo" />

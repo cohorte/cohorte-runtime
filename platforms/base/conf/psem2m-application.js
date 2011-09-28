@@ -1,6 +1,5 @@
 {
     "appId":"development-app",
-    "httpPort":9002,
     "isolates":[
         {
             "from":"monitor.js"
@@ -13,18 +12,27 @@
             "kind":"felix",
             "httpPort":9999,
             "vmArgs":[
-                "-Dosgi.shell.telnet.port=6002"
-            ],
+                      ],
             "bundles":[
                 {
                     "symbolicName":"org.psem2m.isolates.demo.services.ui.viewer",
-                    "optional":true
+                    "optional":true,
+                    "properties":{
+                    	"psem2m.demo.ui.viewer.top":"0scr",
+                    	"psem2m.demo.ui.viewer.left":"0.5scr",
+                    	"psem2m.demo.ui.viewer.width":"0.5scr",
+                    	"psem2m.demo.ui.viewer.height":"0.5scr",
+                    	"psem2m.demo.ui.viewer.color":"YellowGreen"
+                    }
                 },
                 {
                     "symbolicName":"org.apache.felix.shell"
                 },
                 {
-                    "symbolicName":"org.apache.felix.shell.remote"
+                    "symbolicName":"org.apache.felix.shell.remote",
+                    "properties":{
+                    	"osgi.shell.telnet.port":"6002"
+                    }
                 },
                 {
                     "symbolicName":"org.apache.felix.shell.tui"
