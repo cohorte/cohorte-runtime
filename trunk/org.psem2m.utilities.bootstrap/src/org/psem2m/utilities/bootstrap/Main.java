@@ -99,7 +99,7 @@ public class Main {
 
     /** The UI Thread work queue */
     private final BlockingQueue<Runnable> pUiWorkQueue = new LinkedBlockingQueue<Runnable>(
-            1);
+            Integer.MAX_VALUE);
 
     /**
      * Constructor : redirects output immediately
