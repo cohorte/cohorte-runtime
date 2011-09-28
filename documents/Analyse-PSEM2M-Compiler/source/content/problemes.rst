@@ -108,6 +108,44 @@ comparer des numéros de version.
 Target Platform : Définition des artefacts Maven
 ************************************************
 
+Les JARs présents dans la *Target Platform* sont nécessaires à la compilation
+des bundles du projet.
+
+De fait, il est impératif que ces fichiers soient visibles par le mécanisme de
+dépendances de Maven et doivent donc être installés à l'aide de la commande :
+
+.. code-block:: bash
+
+   mvn install:install-file -Dfile=<path-to-file> -DgroupId=<group-id> \
+    -DartifactId=<artifact-id> -Dversion=<version> -Dpackaging=<packaging>
+   
+
+* ``<path-to-file>`` : chemin absolu ou relatif vers le fichier JAR à installer,
+* ``<group-id>`` : groupe de l'artefact Maven,
+* ``<artifact-id>`` : identifiant de l'artefact Maven,
+* ``<version>`` : numéro de version de projet Maven, au format
+  ``<major>.<minor>.<incremental>-<qualifier>``,
+* ``<packaging>`` : type de projet Maven (*pom*, *jar*, *bundle*, ...).
+
+
+Afin de différencier les bundles de chaque *Target Platform* et de ceux présents
+sur les dépôts Maven, le plus simple est de leur donner un *group ID*
+particulier, dépendant du nom de leur *Target Platform* d'origine.
+On pourra par exemple utiliser les *group IDs* ``org.psem2m.target.felix`` et
+``org.psem2m.target.equinox``.
+
+L'identifiant de l'artifact devra être le nom symbolique du bundle installé,
+afin de le retrouver facilement.
+
+Le numéro de version sera également celui indiqué dans le fichier Manifest.
+Il sera cependant nécessaire de convertir le qualificatif Eclipse ``.qualifier``
+par sa version Maven ``-SNAPSHOT``.
+Dans le cas particulier où un bundle de la *Target Platform* n'a pas de numéro
+de version, il faudra lui en attribuer un par défaut : "0.0.0".
+
+Enfin, le paramètre *packaging* devrait prendre comme option *bundle*.
+L'impact du choix entre *bundle* et *jar* n'est pas connu.
+
 
 Gestion des ressources incluses (*build.properties*)
 ****************************************************
