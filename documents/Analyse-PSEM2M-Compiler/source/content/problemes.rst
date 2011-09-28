@@ -1,9 +1,6 @@
 .. Problèmes potentiels
 
-.. _Dev.net - Théorie des graphes: http://rperrot.developpez.com/articles/algo/theorie/graphes/
-.. _GraphStream: http://graphstream.sourceforge.net/
-
-Points critiques
+Points sensibles
 ################
 
 Analyse des fichiers Manifest.mf
@@ -65,13 +62,13 @@ possible que le graphe de dépendance généré contienne des cycles (boucles).
 
 La détection des cycles dans un graphe est un problème en soi.
 L'utilisation d'une matrice d'adjacence, telle que décrite dans
-`Dev.net - Théorie des graphes`_ pourrait simplifier cette détection, mais
-serait consommatrice de mémoire.
+`Développez.com <http://rperrot.developpez.com/articles/algo/theorie/graphes/>`_
+pourrait simplifier cette détection, mais serait consommatrice de mémoire.
 
-Une bibliothèque de gestion et de visualisation de graphes pour Java est
-disponible ici : `GraphStream`_.
-Elle dispose notamment d'un algorithme de détection de cycle :
-``org.jgrapht.alg.CycleDetector``.
+Il existe différentes bibliothèques de gestion de graphes pour Java.
+Celle qui semble le plus proche de nos attentes est
+`GraphStream <http://graphstream.sourceforge.net/>`_, car elle dispose notamment
+d'un algorithme de détection de cycle : ``org.jgrapht.alg.CycleDetector``.
 
 
 Gestion des numéros de version
@@ -147,16 +144,125 @@ Enfin, le paramètre *packaging* devrait prendre comme option *bundle*.
 L'impact du choix entre *bundle* et *jar* n'est pas connu.
 
 
-Gestion des ressources incluses (*build.properties*)
-****************************************************
+Hiérarchie et gestion des ressources (*build.properties*)
+*********************************************************
+
+Dans les projets Eclipse, le fichier *build.properties* permet d'indiquer des
+fichiers à insérer dans le JAR final.
+Ces fichiers seront copiés dans l'archive selon leur chemin relatif à la racine
+du projet.
+
+Dans le cas de Maven, c'est le dossier ``src/main/resources`` qui contient
+directement les ressources non compilables à insérer dans le JAR.
+
+L'une des premières opérations de PSEM2M Compiler sera donc de modifier
+l'arborescence du projet traité afin qu'elle corresponde à celle utilisée dans
+les projets Maven standards :
+
+::
+
+   - projet Maven
+   |-- src
+   | |-- main
+   | | |-- java (sources Java)
+   | | |-- ressources (ressources non compilées)
+
+
+Ré-utilisation ou génération du Manifest
+****************************************
+
+Le plug-in de génération de bundle pour Maven est capable de générer un fichier
+Manifest à partir des propriétés indiquées dans le fichier *pom.xml*, mais il
+est également capable d'utiliser un Manifest existant.
+
+L'avantage de générer un Manifest depuis le fichier *pom.xml* est de pouvoir
+partir sur un fichier neuf, n'ayant pas subit les modifications éventuellement
+apportées par des plug-ins Eclipse au cours du développement.
+
+À l'inverse, utiliser le Manifest existant permet de s'assurer que les éléments
+de la plateforme compilés avec PSEM2M Compiler ont exactement les mêmes
+propriétés que ceux utilisés dans l'environnement de développement.
+
+
+Les instructions de configuration du traitement du Manifest sont décrites dans
+`la documentation de Felix <http://felix.apache.org/site/apache-felix-maven-bundle-plugin-bnd.html>`_.
+
+
+Instructions de génération de Manifest
+======================================
+
+Toutes les propriétés du bloc ``<instructions>`` et dont le nom commence par
+une majuscule seront inscrite dans le Manifest généré.
+
+.. code-block:: xml
+
+   <plugin>
+     <groupId>org.apache.felix</groupId>
+     <artifactId>maven-bundle-plugin</artifactId>
+     <extensions>true</extensions>
+     <configuration>
+       <instructions>
+         <Export-Package>com.my.company.api</Export-Package>
+         <Private-Package>com.my.company.*</Private-Package>
+         <Bundle-Activator>com.my.company.Activator</Bundle-Activator>
+       </instructions>
+     </configuration>
+   </plugin>
+
+
+Instructions de réutilisation de Manifest
+=========================================
+
+La réutilisation se suffit à elle-même :
+
+.. code-block:: xml
+
+   <configuration>
+     <instructions>
+       <_include>META-INF/MANIFEST.MF</_include>
+     </instructions>
+   </configuration>
+
+On peut également ajouter ou remplacer des entrées du Manifest existant :
+
+.. code-block:: xml
+
+   <configuration>
+     <instructions>
+       <_include>src/main/resources/META-INF/MANIFEST.MF</_include>
+       <Export-Package>org.example.*</Export-Package>
+     </instructions>
+   </configuration>
 
 
 Modèle de fichier projet Maven
 ******************************
 
+Pour finir, voici à quoi devraient ressembler les fichiers *pom.xml* générés par
+PSEM2M Compiler.
+
+Projet Parent
+=============
+
+.. literalinclude:: ../_static/pom-root.xml
+   :language: xml
+   :tab-width: 4
+   :linenos:
+
+
 Modèle de base
 ==============
+
+.. literalinclude:: ../_static/pom-base.xml
+   :language: xml
+   :tab-width: 4
+   :linenos:
 
 
 Modèle iPOJO
 ============
+
+.. literalinclude:: ../_static/pom-ipojo.xml
+   :language: xml
+   :tab-width: 4
+   :linenos:
