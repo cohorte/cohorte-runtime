@@ -214,6 +214,9 @@ public class CForkerHandlerSvc extends CPojoBase implements IForkerHandler,
         // The Java executable
         forkerCommand.add(javaExecutable.getAbsolutePath());
 
+        // Add the debug parameters, if needed
+        forkerCommand.addAll(setupDebugMode());
+
         // Defines properties
         {
             // Isolate VM arguments
@@ -330,6 +333,63 @@ public class CForkerHandlerSvc extends CPojoBase implements IForkerHandler,
                 pIsolateListeners.add(aListener);
             }
         }
+    }
+
+    /**
+     * Prepares the debug mode parameters, if needed / possible
+     * 
+     * @return The debug parameters (to be set before -jar), never null
+     */
+    protected List<String> setupDebugMode() {
+
+        // JVM debug port
+        final int monitorDebugPort;
+
+        // Result parameters list
+        final List<String> resultList = new ArrayList<String>();
+
+        // Test if the debug port is indicated
+        final String debugPortStr = System
+                .getProperty(IPlatformProperties.PROP_BASE_DEBUG_PORT);
+        if (debugPortStr == null) {
+            // Nothing to do
+            return resultList;
+        }
+
+        // Prepare the base port to be used
+        try {
+            monitorDebugPort = Integer.parseInt(debugPortStr);
+
+            if (monitorDebugPort <= 0 || monitorDebugPort > 65535) {
+                throw new NumberFormatException("Invalid port number");
+            }
+
+        } catch (NumberFormatException ex) {
+            pLoggerSvc.logWarn(this, "setupDebugMode",
+                    "Can't activate Debug Mode, invalide port number : ",
+                    debugPortStr);
+
+            // Can't do anything useful
+            return resultList;
+        }
+
+        // Forker debug port is the monitor one +1
+        final int forkerDebugPort = monitorDebugPort + 1;
+
+        // JVM debug mode
+        resultList.add("-Xdebug");
+
+        // Connection parameter
+        resultList.add(String.format(
+                "-Xrunjdwp:transport=dt_socket,address=127.0.0.1:%d,suspend=y",
+                forkerDebugPort));
+
+        // Forker base debug port
+        resultList.add(makeJavaProperty(
+                IPlatformProperties.PROP_BASE_DEBUG_PORT,
+                Integer.toString(forkerDebugPort)));
+
+        return resultList;
     }
 
     /*
