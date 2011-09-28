@@ -10,7 +10,6 @@ export DISPLAY=":0.0"
 # Common constants
 JAVA="java"
 MONITOR_ISOLATE_ID="org.psem2m.internals.isolates.monitor-1"
-FORKER_ISOLATE_ID="psem2m.forker"
 
 if [ -z $PLATFORM_ISOLATE_ID ]
 then
@@ -28,11 +27,6 @@ PROP_PLATFORM_DEBUG_PORT="org.psem2m.debug.port"
 DIR_CONF="conf"
 DIR_REPO="repo"
 FELIX_CACHE="felix-cache"
-
-# Forker script file (relative to FORKER_BASE)
-FORKER_SCRIPT_FILE="/var/run_forker.sh"
-FORKER_PROVISION_FILENAME=forker.bundles
-FORKER_FRAMEWORK_FILENAME=forker.framework
 
 # Platform configuration
 PLATFORM_EXTRA_CONF_FOLDERS=""
@@ -137,7 +131,15 @@ start() {
     # Run all
     echo "Running bootstrap ($PLATFORM_ISOLATE_ID)..."
     touch $MONITOR_PID_FILE
-    $PSEM2M_JAVA $JVM_EXTRA_ARGS -cp "$BOOTSTRAP_FILE:$framework_bundle_file" $BOOTSTRAP_MAIN_CLASS --human $PROP_PLATFORM_HOME="$PSEM2M_HOME" $PROP_PLATFORM_BASE="$PSEM2M_BASE" $PROP_PLATFORM_ISOLATE_ID="$PLATFORM_ISOLATE_ID" org.osgi.service.http.port=9000 org.apache.felix.http.jettyEnabled=true osgi.shell.telnet.port=6000 &
+    $PSEM2M_JAVA $JVM_EXTRA_ARGS -cp "$BOOTSTRAP_FILE:$framework_bundle_file" \
+        $BOOTSTRAP_MAIN_CLASS \
+        --human \
+        $PROP_PLATFORM_HOME="$PSEM2M_HOME" \
+        $PROP_PLATFORM_BASE="$PSEM2M_BASE" \
+        $PROP_PLATFORM_ISOLATE_ID="$PLATFORM_ISOLATE_ID" \
+        $MONITOR_DEBUG_ARGS \
+        osgi.shell.telnet.port=6000 &
+
     echo $! > $MONITOR_PID_FILE
 
     echo "Started"
@@ -169,16 +171,10 @@ prepare_debug() {
     fi
 
     JVM_EXTRA_ARGS="-Xdebug -Xrunjdwp:transport=dt_socket,address=127.0.0.1:$PORT,suspend=y"
-
-    # Forker arguments
-    local PORT=`expr $PORT + 1`
-    JVM_FORKER_EXTRA_ARGS="-Xdebug -Xrunjdwp:transport=dt_socket,address=127.0.0.1:$PORT,suspend=y"
-    PROG_FORKER_EXTRA_ARGS="$PROP_PLATFORM_DEBUG_PORT=$PORT"
+    MONITOR_DEBUG_ARGS="$PROP_PLATFORM_DEBUG_PORT=$PORT"
 
     echo "DEBUG MODE..."
-    echo "mono   : $JVM_EXTRA_ARGS"
-    echo "forker : $JVM_FORKER_EXTRA_ARGS"
-    echo "extra  : $PROG_FORKER_EXTRA_ARGS"
+    echo "moniteur : $JVM_EXTRA_ARGS"
     echo "...DEBUG MODE"
 }
 
