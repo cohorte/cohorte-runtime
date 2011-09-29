@@ -441,6 +441,20 @@ public class Main {
                 .sendMessage(Level.FINEST, "Main", "run/Start", String.format(
                         "CurrentThread=[%s]", Thread.currentThread().getName()));
 
+        // tips to make AWT available on MacOsX ???
+        // os.name=[Mac OS X]
+        if ("Mac OS X".equalsIgnoreCase(System.getProperty("os.name"))) {
+
+            CAWTLoader wAWTLoader = new CAWTLoader();
+            pMessageSender.sendMessage(
+                    Level.FINEST,
+                    "Main",
+                    "run/Start",
+                    String.format("os.name=[%s] RgbOfBlackColor=[%s]",
+                            System.getProperty("os.name"),
+                            Integer.toHexString(wAWTLoader.getBlackRgb())));
+        }
+
         // Read the bundles list and run the bootstrap
         URL[] bundleConfiguration;
         try {
