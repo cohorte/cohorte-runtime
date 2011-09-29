@@ -8,6 +8,7 @@ package org.psem2m.isolates.config.json;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -188,6 +189,11 @@ public class JsonConfigReader implements IConfigurationReader {
                         readJsonArrayFile(bundleObject
                                 .getString(IJsonConfigKeys.CONFIG_FROM)));
 
+                // Remove the included file from the stack
+                if (!pIncludeStack.isEmpty()) {
+                    pIncludeStack.pop();
+                }
+
             } else {
                 // Parse local object
                 aIsolateDescription.getBundles().add(parseBundle(bundleObject));
@@ -284,6 +290,11 @@ public class JsonConfigReader implements IConfigurationReader {
                 isolateDescription = parseIsolate(readJsonObjectFile(isolateObject
                         .getString(IJsonConfigKeys.CONFIG_FROM)));
 
+                // Remove the included file from the stack
+                if (!pIncludeStack.isEmpty()) {
+                    pIncludeStack.pop();
+                }
+
             } else {
                 // Case 2 : everything is described here
                 isolateDescription = parseIsolate(isolateObject);
@@ -295,20 +306,26 @@ public class JsonConfigReader implements IConfigurationReader {
     }
 
     /**
+     * Parses a set of properties from the JSON file
+     * 
      * @param aSetOfProperties
-     * @return
+     *            A JSON object representing the properties
+     * @return A Properties object
      */
-    private Properties parseProperties(final JSONObject aSetOfProperties) {
+    protected Properties parseProperties(final JSONObject aSetOfProperties) {
 
         if (aSetOfProperties != null) {
-            Properties wProperties = new Properties();
-            Iterator<Entry<String, Object>> wEntries = aSetOfProperties
+
+            final Properties wProperties = new Properties();
+            final Iterator<Entry<String, Object>> wEntries = aSetOfProperties
                     .entries();
+
             Entry<String, Object> wEntry;
             while (wEntries.hasNext()) {
                 wEntry = wEntries.next();
                 wProperties.put(wEntry.getKey(), wEntry.getValue());
             }
+
             return wProperties;
         }
 
@@ -343,6 +360,8 @@ public class JsonConfigReader implements IConfigurationReader {
         if (foundFiles == null || foundFiles.length == 0) {
             throw new FileNotFoundException(aFileName);
         }
+
+        System.out.println("Found files : " + Arrays.toString(foundFiles));
 
         // Use the first corresponding file
         confFile = foundFiles[0];
