@@ -14,8 +14,9 @@ Import-Package: javax.swing, javax.swing.event, javax.swing.table, org
  e;version=1.8.0, org.osgi.framework;version=1.3.0, org.osgi.service.c
  m;version=1.2, org.osgi.service.log;version=1.3, org.psem2m.isolates.
  base;version=1.0.0, org.psem2m.isolates.base.activators;version=1.0.0
- , org.psem2m.isolates.services.dirs;version=1.0.0, org.psem2m.isolate
- s.slave.agent, org.psem2m.utilities, org.psem2m.utilities.logging
+ , org.psem2m.isolates.services.conf;version=1.0.0, org.psem2m.isolate
+ s.services.dirs;version=1.0.0, org.psem2m.isolates.slave.agent, org.p
+ sem2m.utilities, org.psem2m.utilities.logging
 iPOJO-Components: instance { $component="isolates-demo-ui-viewer-facto
  ry" $name="isolates-demo-ui-viewer" }component { $classname="org.psem
  2m.isolates.demo.services.ui.viewer.impl.CUiSvc" $architecture="true"
@@ -23,26 +24,29 @@ iPOJO-Components: instance { $component="isolates-demo-ui-viewer-facto
   $specifications="org.psem2m.isolates.demo.services.ui.viewer.IUiSvc"
   }requires { $field="pIsolateLoggerSvc" $optional="false" }requires {
   $field="pPlatformDirsSvc" $optional="false" }requires { $field="pSvc
- Agent" $optional="false" }requires { $field="pUiExecutor" $optional="
- false" $filter="(thread=main)" }callback { $transition="validate" $me
- thod="validatePojo" }callback { $transition="invalidate" $method="inv
- alidatePojo" }manipulation { $super="org.psem2m.isolates.base.activat
- ors.CPojoBase" interface { $name="org.psem2m.isolates.demo.services.u
- i.viewer.IUiSvc" }field { $name="pFrameMain" $type="org.psem2m.isolat
- es.demo.services.ui.viewer.impl.CFrameMain" }field { $name="pIsolateL
- oggerSvc" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field {
-  $name="pPlatformDirsSvc" $type="org.psem2m.isolates.services.dirs.IP
- latformDirsSvc" }field { $name="pSvcAgent" $type="org.psem2m.isolates
- .slave.agent.ISvcAgent" }field { $name="pUiExecutor" $type="java.util
- .concurrent.Executor" }method { $name="createFrameMainExec" }method {
-  $name="destroy" }method { $name="getFrameMain" $return="org.psem2m.i
- solates.demo.services.ui.viewer.impl.CFrameMain" }method { $name="has
- FrameMain" $return="boolean" }method { $name="initFramMain" }method {
-  $name="initTableOfService" }method { $name="initTableOfServiceExec" 
- }method { $name="invalidatePojo" }method { $name="setFrameMain" $argu
- ments="{org.psem2m.isolates.demo.services.ui.viewer.impl.CFrameMain}"
-  }method { $name="updateTableOfService" $arguments="{org.osgi.framewo
- rk.ServiceReference,int}" }method { $name="updateTableOfServiceExec" 
- $arguments="{org.osgi.framework.ServiceReference,int}" }method { $nam
- e="validatePojo" }}}
+ Agent" $optional="false" }requires { $field="pSvcConfig" $optional="f
+ alse" }requires { $field="pUiExecutor" $optional="false" $filter="(th
+ read=main)" }callback { $transition="validate" $method="validatePojo"
+  }callback { $transition="invalidate" $method="invalidatePojo" }manip
+ ulation { $super="org.psem2m.isolates.base.activators.CPojoBase" inte
+ rface { $name="org.psem2m.isolates.demo.services.ui.viewer.IUiSvc" }f
+ ield { $name="pFrameMain" $type="org.psem2m.isolates.demo.services.ui
+ .viewer.impl.CFrameMain" }field { $name="pIsolateLoggerSvc" $type="or
+ g.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pPlatformDi
+ rsSvc" $type="org.psem2m.isolates.services.dirs.IPlatformDirsSvc" }fi
+ eld { $name="pSvcAgent" $type="org.psem2m.isolates.slave.agent.ISvcAg
+ ent" }field { $name="pSvcConfig" $type="org.psem2m.isolates.services.
+ conf.ISvcConfig" }field { $name="pUiExecutor" $type="java.util.concur
+ rent.Executor" }method { $name="buildConfigDump" $return="java.lang.S
+ tring" }method { $name="createFrameMainExec" }method { $name="destroy
+ " }method { $name="getFrameMain" $return="org.psem2m.isolates.demo.se
+ rvices.ui.viewer.impl.CFrameMain" }method { $name="hasFrameMain" $ret
+ urn="boolean" }method { $name="initFrameMainContent" }method { $name=
+ "initFrameMainContentExec" }method { $name="initFramMain" }method { $
+ name="invalidatePojo" }method { $name="setFrameMain" $arguments="{org
+ .psem2m.isolates.demo.services.ui.viewer.impl.CFrameMain}" }method { 
+ $name="updateTableOfService" $arguments="{org.osgi.framework.ServiceR
+ eference,int}" }method { $name="updateTableOfServiceExec" $arguments=
+ "{org.osgi.framework.ServiceReference,int}" }method { $name="validate
+ Pojo" }}}
 

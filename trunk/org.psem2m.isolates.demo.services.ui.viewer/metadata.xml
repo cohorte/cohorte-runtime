@@ -17,6 +17,9 @@
         
         <requires field="pSvcAgent" optional="false" />
         
+        <requires field="pSvcConfig" optional="false" />
+        
+        
         <requires field="pUiExecutor" optional="false" 
          filter="(thread=main)" />
 

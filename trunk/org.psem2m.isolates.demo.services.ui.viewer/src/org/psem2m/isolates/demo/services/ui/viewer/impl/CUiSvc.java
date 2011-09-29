@@ -22,8 +22,12 @@ import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.demo.services.ui.viewer.CBundleUiActivator;
 import org.psem2m.isolates.demo.services.ui.viewer.IUiSvc;
+import org.psem2m.isolates.services.conf.IBundleDescr;
+import org.psem2m.isolates.services.conf.ISvcConfig;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.isolates.slave.agent.ISvcAgent;
+import org.psem2m.utilities.CXListUtils;
+import org.psem2m.utilities.CXStringUtils;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
@@ -84,10 +88,14 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
      * Service reference managed by iPojo (see metadata.xml)
      **/
     private IPlatformDirsSvc pPlatformDirsSvc;
+
     /**
      * Service reference managed by iPojo (see metadata.xml)
      */
     private ISvcAgent pSvcAgent;
+
+    /** Configuration service */
+    private ISvcConfig pSvcConfig;
 
     /**
      * Service reference managed by iPojo (see metadata.xml)
@@ -100,6 +108,49 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
     public CUiSvc() {
 
         super();
+    }
+
+    /**
+     * log a dump of the config
+     */
+    private String buildConfigDump() {
+
+        StringBuilder wSB = new StringBuilder();
+
+        CXStringUtils.appendKeyValInBuff(wSB, "Application", pSvcConfig
+                .getApplication().getApplicationId());
+
+        pSvcConfig.getApplication().getIsolate(pPlatformDirsSvc.getIsolateId());
+
+        for (String wIsolateId : pSvcConfig.getApplication().getIsolateIds()) {
+
+            CXStringUtils.appendKeyValInBuff(wSB, "\n - IsolateId", wIsolateId);
+        }
+
+        String wCurrentIsolateId = pPlatformDirsSvc.getIsolateId();
+
+        CXStringUtils.appendKeyValInBuff(wSB, "\nCurrentIsolateId",
+                wCurrentIsolateId);
+
+        for (IBundleDescr wIBundleDescr : pSvcConfig.getApplication()
+                .getIsolate(wCurrentIsolateId).getBundles()) {
+
+            CXStringUtils.appendKeyValInBuff(wSB, "\n  - Bundle",
+                    wIBundleDescr.getSymbolicName());
+            CXStringUtils.appendKeyValInBuff(wSB, "Optional",
+                    wIBundleDescr.getOptional());
+            CXStringUtils.appendKeyValInBuff(wSB, "Version",
+                    wIBundleDescr.getVersion());
+
+            if (wIBundleDescr.hasProperties()) {
+                CXStringUtils.appendKeyValInBuff(wSB, "\n    - Properties",
+                        CXListUtils.PropertiesToString(
+                                wIBundleDescr.getProperties(),
+                                "\n                  "));
+            }
+        }
+
+        return wSB.toString();
     }
 
     /**
@@ -167,6 +218,55 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
     }
 
     /**
+     * launch the initialization of the content of the table of services and the
+     * configuration
+     */
+    private void initFrameMainContent() {
+
+        Runnable wRunnable = new Runnable() {
+            @Override
+            public void run() {
+
+                CUiSvc.this.initFrameMainContentExec();
+            }
+        };
+        try {
+            // gives the runnable to the UIExecutor
+            pUiExecutor.execute(wRunnable);
+        } catch (Exception e) {
+            pIsolateLoggerSvc.logSevere(this, "init", e);
+        }
+    }
+
+    /**
+     * do the initialization of the content of the table o services and the
+     * configuration
+     */
+    private void initFrameMainContentExec() {
+
+        if (hasFrameMain()) {
+
+            try {
+
+                pFrameMain.setConfigextArea(buildConfigDump());
+
+                List<ServiceReference> wListOfServiceRef = CBundleUiActivator
+                        .getInstance().getAllServiceReferences();
+
+                pFrameMain.setServiceTable(wListOfServiceRef);
+
+                pIsolateLoggerSvc.logInfo(this, "initListOfService",
+                        "add [%d] services : [%s]", wListOfServiceRef.size(),
+                        wListOfServiceRef.toString());
+
+            } catch (Exception e) {
+                pIsolateLoggerSvc.logSevere(this, "initListOfService", e);
+
+            }
+        }
+    }
+
+    /**
      * launch the creation of the main frame of this UISvc
      */
     private void initFramMain() {
@@ -183,51 +283,6 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
             pUiExecutor.execute(wRunnable);
         } catch (Exception e) {
             pIsolateLoggerSvc.logSevere(this, "init", e);
-        }
-    }
-
-    /**
-     * launch the initialization of the content of the table of services
-     */
-    private void initTableOfService() {
-
-        Runnable wRunnable = new Runnable() {
-            @Override
-            public void run() {
-
-                CUiSvc.this.initTableOfServiceExec();
-            }
-        };
-        try {
-            // gives the runnable to the UIExecutor
-            pUiExecutor.execute(wRunnable);
-        } catch (Exception e) {
-            pIsolateLoggerSvc.logSevere(this, "init", e);
-        }
-    }
-
-    /**
-     * do the initialization of the content of the table o services
-     */
-    private void initTableOfServiceExec() {
-
-        if (hasFrameMain()) {
-
-            try {
-
-                List<ServiceReference> wListOfServiceRef = CBundleUiActivator
-                        .getInstance().getAllServiceReferences();
-
-                pFrameMain.setServiceTable(wListOfServiceRef);
-
-                pIsolateLoggerSvc.logInfo(this, "initListOfService",
-                        "add [%d] services : [%s]", wListOfServiceRef.size(),
-                        wListOfServiceRef.toString());
-
-            } catch (Exception e) {
-                pIsolateLoggerSvc.logSevere(this, "initListOfService", e);
-
-            }
         }
     }
 
@@ -314,7 +369,7 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
 
         initFramMain();
 
-        initTableOfService();
+        initFrameMainContent();
 
         // put in place a service listener to setup the list of service
         try {
@@ -325,5 +380,4 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
 
         }
     }
-
 }

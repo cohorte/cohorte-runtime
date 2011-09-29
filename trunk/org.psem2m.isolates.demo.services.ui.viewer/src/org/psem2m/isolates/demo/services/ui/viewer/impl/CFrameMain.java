@@ -20,6 +20,7 @@ import java.util.List;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -55,9 +56,94 @@ import org.psem2m.utilities.CXStringUtils;
  */
 public class CFrameMain extends javax.swing.JFrame {
 
+    /**
+     * 
+     * @author ogattaz
+     * 
+     */
+    class CFilterActionListener implements ActionListener {
+        @Override
+        public void actionPerformed(final ActionEvent aActionEvent) {
+
+            JComboBox wCombo = (JComboBox) aActionEvent.getSource();
+            String wFilter = (String) wCombo.getSelectedItem();
+            setServicesFilterPsem2mOn(FILTER_PSEM2M.equals(wFilter));
+            setServiceTable(CBundleUiActivator.getInstance()
+                    .getAllServiceReferences());
+        }
+    }
+
+    /**
+     * 
+     * @author ogattaz
+     * 
+     */
+    class CFontSizeActionListener implements ActionListener {
+
+        @Override
+        public void actionPerformed(final ActionEvent aActionEvent) {
+
+            JComboBox wCombo = (JComboBox) aActionEvent.getSource();
+            String wSize = (String) wCombo.getSelectedItem();
+            if (FONT_SIZE_SMALL.equals(wSize)) {
+
+                pServicesTable.setFont(new Font("Lucida Grande", Font.PLAIN,
+                        FONT_SIZE_SMALL_PT));
+                pServiceInfosTextArea.setFont(new Font("Courier New",
+                        Font.PLAIN, FONT_SIZE_SMALL_PT));
+
+            } else if (FONT_SIZE_NORMAL.equals(wSize)) {
+
+                pServicesTable.setFont(new Font("Lucida Grande", Font.PLAIN,
+                        FONT_SIZE_NORMAL_PT));
+                pServiceInfosTextArea.setFont(new Font("Courier New",
+                        Font.PLAIN, FONT_SIZE_NORMAL_PT));
+
+            } else if (FONT_SIZE_LARGE.equals(wSize)) {
+
+                pServicesTable.setFont(new Font("Lucida Grande", Font.PLAIN,
+                        FONT_SIZE_LARGE_PT));
+                pServiceInfosTextArea.setFont(new Font("Courier New",
+                        Font.PLAIN, FONT_SIZE_LARGE_PT));
+
+            }
+        }
+
+    }
+
+    /**
+     * Look at TableSelectionDemo.java from java tutorial to learn how work the
+     * JTable selection model
+     * 
+     * @author ogattaz
+     * 
+     */
+    class CServicesSelectionListener implements ListSelectionListener {
+
+        @Override
+        public void valueChanged(final ListSelectionEvent aListSelectionEvent) {
+
+            int wRowIdx = pServicesTable.getSelectionModel()
+                    .getLeadSelectionIndex();
+            if (wRowIdx > -1 && wRowIdx < pServicesTableModel.getRowCount()) {
+                // if sorted
+                wRowIdx = pServicesTable.convertRowIndexToModel(wRowIdx);
+                // set the text info of the service
+                pServiceInfosTextArea.setText(buildServiceInfosText(wRowIdx));
+            }
+        }
+    }
+
     private final static String FILTER_All = "all services";
 
     private final static String FILTER_PSEM2M = "psem2m services";
+    private final static String FONT_SIZE_LARGE = "large";
+
+    private final static int FONT_SIZE_LARGE_PT = 14;
+    private final static String FONT_SIZE_NORMAL = "normal";
+    private final static int FONT_SIZE_NORMAL_PT = 12;
+    private final static String FONT_SIZE_SMALL = "small";
+    private final static int FONT_SIZE_SMALL_PT = 10;
 
     /** the format of the title of the main Frame **/
     private final static String FRAME_TITLE_FORMAT = "psem2m - viewer - isolate [%s]";
@@ -82,6 +168,11 @@ public class CFrameMain extends javax.swing.JFrame {
         });
     }
 
+    private JLabel lblNewLabel;
+
+    private JLabel lblNewLabel_1;
+    private JPanel panel;
+    private JTextArea pConfigTextArea;
     private final CFrameConfig pFrameConfig;
     private JScrollPane pLoggerScrollPane;
     private JTabbedPane pMainTabbedPane;
@@ -89,13 +180,19 @@ public class CFrameMain extends javax.swing.JFrame {
     private JTextArea pServiceInfosTextArea;
     private JPanel pServicesControlPanel;
     private JComboBox pServicesFilterComboBox;
-    private boolean pServicesFilterPsem2m = true;
+    private boolean pServicesFilterPsem2mOn = true;
+    private JComboBox pServicesFontSizeComboBox;
+
     private JScrollPane pServicesScrollPane;
+
     private JSplitPane pServicesSplitPane;
+
     private JTable pServicesTable;
+
     private DefaultTableModel pServicesTableModel;
+
     private JScrollPane scrollPane;
-    private JTextArea txtrPconsoletextarea;
+
     private JTextArea txtrPlogtextarea;
 
     /**
@@ -114,7 +211,7 @@ public class CFrameMain extends javax.swing.JFrame {
      */
     private boolean addOneServiceRow(final Object[] aDataRow) {
 
-        if (pServicesFilterPsem2m
+        if (pServicesFilterPsem2mOn
                 && !aDataRow[0].toString().startsWith("org.psem2m")) {
             return false;
         }
@@ -235,8 +332,8 @@ public class CFrameMain extends javax.swing.JFrame {
     }
 
     /**
-     * 
-     */
+ * 
+ */
     private void fireUpdateTable() {
 
         pServicesTable.tableChanged(new TableModelEvent(pServicesTableModel));
@@ -287,6 +384,9 @@ public class CFrameMain extends javax.swing.JFrame {
 
                             {
                                 pServicesTable = new JTable();
+                                pServicesTable.setFont(new Font(
+                                        "Lucida Grande", Font.PLAIN,
+                                        FONT_SIZE_NORMAL_PT));
                                 pServicesTable.setModel(new DefaultTableModel(
                                         new Object[][] {},
                                         new String[] { "Name", "ServiceId",
@@ -315,32 +415,12 @@ public class CFrameMain extends javax.swing.JFrame {
                             pServicesTable.setColumnSelectionAllowed(false);
                             pServicesTable.setRowSelectionAllowed(true);
 
-                            // see TableSelectionDemo.java from java tutorial
+                            // Look at TableSelectionDemo.java from java
+                            // tutorial to learn how work the JTable selection
+                            // model
                             pServicesTable.getSelectionModel()
                                     .addListSelectionListener(
-                                            new ListSelectionListener() {
-
-                                                @Override
-                                                public void valueChanged(
-                                                        final ListSelectionEvent aListSelectionEvent) {
-
-                                                    int wRowIdx = pServicesTable
-                                                            .getSelectionModel()
-                                                            .getLeadSelectionIndex();
-                                                    if (wRowIdx > -1
-                                                            && wRowIdx < pServicesTableModel
-                                                                    .getRowCount()) {
-                                                        // if sorted
-                                                        wRowIdx = pServicesTable
-                                                                .convertRowIndexToModel(wRowIdx);
-                                                        // set the text info of
-                                                        // the
-                                                        // service
-                                                        pServiceInfosTextArea
-                                                                .setText(buildServiceInfosText(wRowIdx));
-                                                    }
-                                                }
-                                            });
+                                            new CServicesSelectionListener());
 
                             pServicesScrollPane.setViewportView(pServicesTable);
                             pServicesSplitPane.add(pServicesScrollPane,
@@ -356,50 +436,60 @@ public class CFrameMain extends javax.swing.JFrame {
                             pServicesControlPanel.setLayout(new BorderLayout(0,
                                     0));
                             {
-                                pServicesFilterComboBox = new JComboBox();
-                                pServicesFilterComboBox
-                                        .addActionListener(new ActionListener() {
-                                            @Override
-                                            public void actionPerformed(
-                                                    final ActionEvent aActionEvent) {
-
-                                                JComboBox wCombo = (JComboBox) aActionEvent
-                                                        .getSource();
-                                                String wFilter = (String) wCombo
-                                                        .getSelectedItem();
-                                                pServicesFilterPsem2m = FILTER_PSEM2M
-                                                        .equals(wFilter);
-                                                setServiceTable(CBundleUiActivator
-                                                        .getInstance()
-                                                        .getAllServiceReferences());
-                                            }
-                                        });
-                                pServicesFilterComboBox
-                                        .setModel(new DefaultComboBoxModel(
-                                                new String[] { FILTER_PSEM2M,
-                                                        FILTER_All }));
-
-                                pServicesControlPanel.add(
-                                        pServicesFilterComboBox,
-                                        BorderLayout.SOUTH);
-                            }
-                            {
                                 {
                                     pServiceInfosTextArea = new JTextArea();
                                     pServiceInfosScrollPane = new JScrollPane(
                                             pServiceInfosTextArea);
                                     pServiceInfosTextArea
                                             .setForeground(Color.BLACK);
-                                    pServiceInfosTextArea
-                                            .setText("Info...\n dfqsdfg qqlf qsfdu.\n dfqsdfg qqlf hqs.\n dfqsdfg qqlffdu hqosdu ");
+                                    pServiceInfosTextArea.setText("Info...");
                                     pServiceInfosTextArea.setFont(new Font(
-                                            "Courier New", Font.PLAIN, 11));
+                                            "Courier New", Font.PLAIN,
+                                            FONT_SIZE_NORMAL_PT));
 
                                 }
                                 pServicesControlPanel.add(
                                         pServiceInfosScrollPane,
                                         BorderLayout.CENTER);
 
+                            }
+                            {
+                                panel = new JPanel();
+                                pServicesControlPanel.add(panel,
+                                        BorderLayout.NORTH);
+                                {
+                                    lblNewLabel = new JLabel("Filter");
+                                    panel.add(lblNewLabel);
+                                }
+                                {
+                                    pServicesFilterComboBox = new JComboBox();
+                                    panel.add(pServicesFilterComboBox);
+                                    pServicesFilterComboBox
+                                            .addActionListener(new CFilterActionListener());
+                                    pServicesFilterComboBox
+                                            .setModel(new DefaultComboBoxModel(
+                                                    new String[] {
+                                                            FILTER_PSEM2M,
+                                                            FILTER_All }));
+                                }
+                                {
+                                    lblNewLabel_1 = new JLabel("Font");
+                                    panel.add(lblNewLabel_1);
+                                }
+                                {
+                                    pServicesFontSizeComboBox = new JComboBox();
+                                    pServicesFontSizeComboBox
+                                            .setModel(new DefaultComboBoxModel(
+                                                    new String[] {
+                                                            FONT_SIZE_SMALL,
+                                                            FONT_SIZE_NORMAL,
+                                                            FONT_SIZE_LARGE }));
+                                    pServicesFontSizeComboBox
+                                            .setSelectedIndex(1);// normal
+                                    panel.add(pServicesFontSizeComboBox);
+                                    pServicesFontSizeComboBox
+                                            .addActionListener(new CFontSizeActionListener());
+                                }
                             }
                         }
                     }
@@ -417,11 +507,14 @@ public class CFrameMain extends javax.swing.JFrame {
                 }
                 {
                     scrollPane = new JScrollPane();
-                    pMainTabbedPane.addTab("Console", null, scrollPane, null);
+                    pMainTabbedPane.addTab("Configuration", null, scrollPane,
+                            null);
                     {
-                        txtrPconsoletextarea = new JTextArea();
-                        txtrPconsoletextarea.setText("pConsoletextArea");
-                        scrollPane.setViewportView(txtrPconsoletextarea);
+                        pConfigTextArea = new JTextArea();
+                        pConfigTextArea.setFont(new Font("Courier New",
+                                Font.PLAIN, FONT_SIZE_NORMAL_PT));
+                        pConfigTextArea.setText("XXX ...");
+                        scrollPane.setViewportView(pConfigTextArea);
                     }
                 }
             }
@@ -465,6 +558,22 @@ public class CFrameMain extends javax.swing.JFrame {
             }
         }
         return wSB.toString();
+    }
+
+    /**
+     * @param aText
+     */
+    void setConfigextArea(final String aText) {
+
+        pConfigTextArea.setText(aText);
+    }
+
+    /**
+     * @param aFlag
+     */
+    private void setServicesFilterPsem2mOn(final boolean aFlag) {
+
+        pServicesFilterPsem2mOn = aFlag;
     }
 
     /**

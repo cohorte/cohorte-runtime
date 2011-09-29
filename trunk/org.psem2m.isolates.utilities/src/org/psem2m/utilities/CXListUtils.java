@@ -197,11 +197,30 @@ public class CXListUtils {
     }
 
     /**
-     * @param aProperties
+     * Dump the content of a properties using the format "%s=[%s]" and a comma
+     * as separator
      * 
-     * @return a string containing all the
+     * @param aProperties
+     *            the properties to dump
+     * @return a string containing all the dump of the properties
      */
     public static String PropertiesToString(final Properties aProperties) {
+
+        return PropertiesToString(aProperties, ",");
+    }
+
+    /**
+     * Dump the content of a properties using the format "%s=[%s]" and an
+     * explicit separator
+     * 
+     * @param aProperties
+     *            the properties to dump
+     * @param aSep
+     *            the separator inserted between the properties
+     * @return a string containing all the dump of the properties
+     */
+    public static String PropertiesToString(final Properties aProperties,
+            final String aSep) {
 
         StringBuilder wResult = new StringBuilder();
 
@@ -212,7 +231,7 @@ public class CXListUtils {
             while (wIt.hasNext()) {
                 Map.Entry<Object, Object> wEnt = wIt.next();
                 if (wResult.length() > 0) {
-                    wResult.append(',');
+                    wResult.append(aSep);
                 }
                 wResult.append(String.format("%s=[%s]", wEnt.getKey()
                         .toString(), wEnt.getValue().toString()));
