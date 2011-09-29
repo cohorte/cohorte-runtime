@@ -67,8 +67,8 @@ public interface IPlatformDirsSvc extends IPlatformProperties {
      * Retrieves the PSEM2M_BASE value
      * 
      * <pre>
-     * -Dorg.psem2m.platform.base=${workspace_loc}/psem2m/platforms/felix.user.dir
-     * </pre>
+     * -Dorg.psem2m.platform.base=${workspace_loc}/psem2m/platforms/felix.user
+     * .dir </pre>
      * 
      * @return the base directory of the platform
      */
@@ -77,9 +77,7 @@ public interface IPlatformDirsSvc extends IPlatformProperties {
     /**
      * Retrieves the PSEM2M_HOME value
      * 
-     * <pre>
-     * -Dorg.psem2m.platform.home=/usr/share/psem2m
-     * </pre>
+     * <pre> -Dorg.psem2m.platform.home=/usr/share/psem2m </pre>
      * 
      * @return
      */
@@ -92,7 +90,7 @@ public interface IPlatformDirsSvc extends IPlatformProperties {
     File getPlatformLogDir() throws Exception;
 
     /**
-     * Retrieves the platform root directories : home, base and working
+     * Retrieves the platform root directories : base, home and working
      * directory
      * 
      * @return The platform root directories

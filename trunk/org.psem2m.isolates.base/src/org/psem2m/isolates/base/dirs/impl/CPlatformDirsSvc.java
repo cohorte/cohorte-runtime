@@ -30,13 +30,13 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 
     /** Isolate working directory parent */
     public static final String ISOLATE_WORKING_DIR_BASE = CPlatformDirsSvc.VAR_DIRECTORY
-	    + File.separator + "work" + File.separator;
+            + File.separator + "work" + File.separator;
 
     public static String LIB_ISOLATE_ID = "IsolateId";
 
     /** Platform instance log directory */
     public static final String LOGGING_DIR_BASE = CPlatformDirsSvc.VAR_DIRECTORY
-	    + File.separator + "log" + File.separator;
+            + File.separator + "log" + File.separator;
 
     /** Platform base and home repository directory name */
     public static final String REPOSITORY_NAME = "repo";
@@ -51,36 +51,34 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
     public static final String VAR_DIRECTORY = "var";
 
     /**
-     * <pre>
-     * org.psem2m.platform.isolate.id=[development]
-     * </pre>
+     * <pre> org.psem2m.platform.isolate.id=[development] </pre>
      * 
      * @return
      */
     private static String getCurrentIsolateId() {
-	return System.getProperty(PROP_PLATFORM_ISOLATE_ID);
+
+        return System.getProperty(PROP_PLATFORM_ISOLATE_ID);
     }
 
     /**
-     * <pre>
-     * org.psem2m.platform.base=[/Users/ogattaz/workspaces/psem2m/psem2m/platforms/felix.user.dir]
-     * </pre>
+     * <pre> org.psem2m.platform.base=[/Users/ogattaz/workspaces/psem2m/psem2m/
+     * platforms/felix.user.dir] </pre>
      * 
      * @return
      */
     static String getCurrentPlatformBase() {
-	return System.getProperty(PROP_PLATFORM_BASE);
+
+        return System.getProperty(PROP_PLATFORM_BASE);
     }
 
     /**
-     * <pre>
-     * org.psem2m.platform.home=[/usr/share/psem2m]
-     * </pre>
+     * <pre> org.psem2m.platform.home=[/usr/share/psem2m] </pre>
      * 
      * @return
      */
     static String getCurrentPlatformHome() {
-	return System.getProperty(PROP_PLATFORM_HOME);
+
+        return System.getProperty(PROP_PLATFORM_HOME);
     }
 
     /*
@@ -91,45 +89,45 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
     @Override
     public List<String> getForkerStartCommand() {
 
-	List<String> command = new ArrayList<String>();
+        List<String> command = new ArrayList<String>();
 
-	// Prepare the final script name
-	final StringBuilder scriptFileNameBuilder = new StringBuilder(
-		FORKER_SCRIPT_BASE_NAME);
+        // Prepare the final script name
+        final StringBuilder scriptFileNameBuilder = new StringBuilder(
+                FORKER_SCRIPT_BASE_NAME);
 
-	// Interpreter and script extension depends on the system
-	if (isOsWindowsFamily()) {
-	    command.addAll(Arrays.asList(SCRIPT_WINDOWS_COMMAND));
-	    scriptFileNameBuilder.append(".bat");
+        // Interpreter and script extension depends on the system
+        if (isOsWindowsFamily()) {
+            command.addAll(Arrays.asList(SCRIPT_WINDOWS_COMMAND));
+            scriptFileNameBuilder.append(".bat");
 
-	} else {
-	    command.addAll(Arrays.asList(SCRIPT_LINUX_COMMAND));
-	    scriptFileNameBuilder.append(".sh");
-	}
+        } else {
+            command.addAll(Arrays.asList(SCRIPT_LINUX_COMMAND));
+            scriptFileNameBuilder.append(".sh");
+        }
 
-	// Finish with the script file name
-	final String scriptFileName = scriptFileNameBuilder.toString();
-	final String[] possibleDirectories = { System.getProperty("user.dir"),
-		getCurrentPlatformBase(), getCurrentPlatformHome() };
-	boolean scriptFound = false;
+        // Finish with the script file name
+        final String scriptFileName = scriptFileNameBuilder.toString();
+        final String[] possibleDirectories = { System.getProperty("user.dir"),
+                getCurrentPlatformBase(), getCurrentPlatformHome() };
+        boolean scriptFound = false;
 
-	for (String platformDirectory : possibleDirectories) {
+        for (String platformDirectory : possibleDirectories) {
 
-	    File varDirectory = new File(platformDirectory, VAR_DIRECTORY);
-	    File scriptFile = new File(varDirectory, scriptFileName);
+            File varDirectory = new File(platformDirectory, VAR_DIRECTORY);
+            File scriptFile = new File(varDirectory, scriptFileName);
 
-	    if (scriptFile.exists()) {
-		command.add(scriptFile.getAbsolutePath());
-		scriptFound = true;
-		break;
-	    }
-	}
+            if (scriptFile.exists()) {
+                command.add(scriptFile.getAbsolutePath());
+                scriptFound = true;
+                break;
+            }
+        }
 
-	if (!scriptFound) {
-	    return null;
-	}
+        if (!scriptFound) {
+            return null;
+        }
 
-	return command;
+        return command;
     }
 
     /*
@@ -139,7 +137,8 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
      */
     @Override
     public String getIsolateId() {
-	return getCurrentIsolateId();
+
+        return getCurrentIsolateId();
     }
 
     /*
@@ -149,7 +148,8 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
      */
     @Override
     public File getIsolateLogDir() throws Exception {
-	return getIsolateLogDir(getCurrentIsolateId());
+
+        return getIsolateLogDir(getCurrentIsolateId());
 
     }
 
@@ -161,11 +161,12 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
      */
     @Override
     public File getIsolateLogDir(final String aIsolateId) throws Exception {
-	File wLogDir = new File(getPlatformLogDir(), aIsolateId);
-	if (!wLogDir.exists()) {
-	    wLogDir.mkdirs();
-	}
-	return wLogDir;
+
+        File wLogDir = new File(getPlatformLogDir(), aIsolateId);
+        if (!wLogDir.exists()) {
+            wLogDir.mkdirs();
+        }
+        return wLogDir;
     }
 
     /*
@@ -177,8 +178,9 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
      */
     @Override
     public File getIsolateWorkingDir(final String aIsolateId) {
-	return new File(getPlatformBaseDir(), ISOLATE_WORKING_DIR_BASE
-		+ aIsolateId);
+
+        return new File(getPlatformBaseDir(), ISOLATE_WORKING_DIR_BASE
+                + aIsolateId);
     }
 
     /*
@@ -189,20 +191,20 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
     @Override
     public File getJavaExecutable() {
 
-	final StringBuilder javaExecutablePath = new StringBuilder();
+        final StringBuilder javaExecutablePath = new StringBuilder();
 
-	javaExecutablePath.append(System
-		.getProperty(CXJvmUtils.SYSPROP_JAVA_HOME));
-	javaExecutablePath.append(File.separator);
-	javaExecutablePath.append("bin");
-	javaExecutablePath.append(File.separator);
-	javaExecutablePath.append("java");
+        javaExecutablePath.append(System
+                .getProperty(CXJvmUtils.SYSPROP_JAVA_HOME));
+        javaExecutablePath.append(File.separator);
+        javaExecutablePath.append("bin");
+        javaExecutablePath.append(File.separator);
+        javaExecutablePath.append("java");
 
-	if (CXOSUtils.isOsWindowsFamily()) {
-	    javaExecutablePath.append(".exe");
-	}
+        if (CXOSUtils.isOsWindowsFamily()) {
+            javaExecutablePath.append(".exe");
+        }
 
-	return new File(javaExecutablePath.toString());
+        return new File(javaExecutablePath.toString());
     }
 
     /*
@@ -212,7 +214,8 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
      */
     @Override
     public File getPlatformBaseDir() {
-	return new File(getCurrentPlatformBase());
+
+        return new File(getCurrentPlatformBase());
     }
 
     /*
@@ -222,7 +225,8 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
      */
     @Override
     public File getPlatformHomeDir() {
-	return new File(getCurrentPlatformHome());
+
+        return new File(getCurrentPlatformHome());
     }
 
     /*
@@ -232,12 +236,13 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
      */
     @Override
     public File getPlatformLogDir() throws Exception {
-	File wLogDir = new File(getPlatformBaseDir(), LOGGING_DIR_BASE
-		+ "psem2m");
-	if (!wLogDir.exists()) {
-	    wLogDir.mkdirs();
-	}
-	return wLogDir;
+
+        File wLogDir = new File(getPlatformBaseDir(), LOGGING_DIR_BASE
+                + "psem2m");
+        if (!wLogDir.exists()) {
+            wLogDir.mkdirs();
+        }
+        return wLogDir;
     }
 
     /*
@@ -248,8 +253,8 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
     @Override
     public File[] getPlatformRootDirs() {
 
-	return new File[] { getPlatformHomeDir(), getPlatformBaseDir(),
-		new File(System.getProperty("user.dir")) };
+        return new File[] { getPlatformBaseDir(), getPlatformHomeDir(),
+                new File(System.getProperty("user.dir")) };
     }
 
     /*
@@ -260,23 +265,23 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
     @Override
     public File[] getRepositories() {
 
-	List<File> repositories = new ArrayList<File>();
+        List<File> repositories = new ArrayList<File>();
 
-	// Current instance repository
-	File baseRepo = new File(getPlatformBaseDir(), REPOSITORY_NAME);
-	if (baseRepo.exists()) {
-	    repositories.add(baseRepo);
-	}
+        // Current instance repository
+        File baseRepo = new File(getPlatformBaseDir(), REPOSITORY_NAME);
+        if (baseRepo.exists()) {
+            repositories.add(baseRepo);
+        }
 
-	// Home repository
-	File homeRepo = new File(getPlatformHomeDir(), REPOSITORY_NAME);
-	if (!homeRepo.equals(baseRepo) && homeRepo.exists()) {
-	    repositories.add(homeRepo);
-	}
+        // Home repository
+        File homeRepo = new File(getPlatformHomeDir(), REPOSITORY_NAME);
+        if (!homeRepo.equals(baseRepo) && homeRepo.exists()) {
+            repositories.add(homeRepo);
+        }
 
-	// Add other repositories here, from higher to lower priority
+        // Add other repositories here, from higher to lower priority
 
-	return repositories.toArray(new File[0]);
+        return repositories.toArray(new File[0]);
     }
 
     /**
@@ -286,13 +291,13 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
      */
     protected boolean isOsWindowsFamily() {
 
-	String osName = System.getProperty("os.name");
-	if (osName == null) {
-	    // What ?
-	    return false;
-	}
+        String osName = System.getProperty("os.name");
+        if (osName == null) {
+            // What ?
+            return false;
+        }
 
-	osName = osName.toLowerCase();
-	return osName.startsWith("windows");
+        osName = osName.toLowerCase();
+        return osName.startsWith("windows");
     }
 }
