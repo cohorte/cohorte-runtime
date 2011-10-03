@@ -8,7 +8,6 @@ package org.psem2m.isolates.config.json;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -360,8 +359,6 @@ public class JsonConfigReader implements IConfigurationReader {
         if (foundFiles == null || foundFiles.length == 0) {
             throw new FileNotFoundException(aFileName);
         }
-
-        System.out.println("Found files : " + Arrays.toString(foundFiles));
 
         // Use the first corresponding file
         confFile = foundFiles[0];

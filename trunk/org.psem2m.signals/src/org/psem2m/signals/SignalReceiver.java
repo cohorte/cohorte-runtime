@@ -105,8 +105,8 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver,
     public void handleReceivedSignal(final String aSignalName,
             final ISignalData aSignalData) {
 
-        System.out.println("Received signal '" + aSignalName + "' : "
-                + aSignalData);
+        pLogger.log(LogService.LOG_INFO, "Received signal '" + aSignalName
+                + "' : " + aSignalData);
 
         final Set<ISignalListener> signalListeners = new HashSet<ISignalListener>();
 
