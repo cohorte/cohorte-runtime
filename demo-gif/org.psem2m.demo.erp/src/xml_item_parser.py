@@ -4,6 +4,7 @@ Created on 3 oct. 2011
 @author: Thomas Calmant
 '''
 
+import xml.dom.minidom
 import xml.parsers.expat
 
 class XmlItemParser(object):
@@ -88,4 +89,34 @@ class XmlItemParser(object):
         elif name == "item":
             self.__items.append(self.__current_item)
             self.__current_item = None
+
+# ------------------------------------------------------------------------------
+
+class XmlItemOutput(object):
+    """
+    XML output generator
+    """
+    
+    def items_to_xml(self, items, root_tag="items", element_tag="item"):
+        """
+        Converts the given items list to an XML file
+        """
+        if not items:
+            return ""
         
+        impl = xml.dom.minidom.getDOMImplementation()
+        doc = impl.createDocument(None, root_tag, None)
+        
+        for item in items:
+            itemNode = doc.createElement(element_tag)
+            
+            for key in item.keys():
+                keyNode = doc.createElement(key)
+                valueNode = doc.createTextNode(str(item[key]))
+                
+                keyNode.appendChild(valueNode)
+                itemNode.appendChild(keyNode)
+            
+            doc.documentElement.appendChild(itemNode)
+        
+        return doc.toxml()

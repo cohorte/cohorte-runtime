@@ -7,11 +7,11 @@ Created on 3 oct. 2011
 '''
 
 import BaseHTTPServer
+import itertools
 import os
 import random
 import sys
 import urlparse
-
 import xml_item_parser as item_parser
 
 # ------------------------------------------------------------------------------
@@ -30,7 +30,7 @@ class Erp(object):
         self.__items = dict()
         self.__stocks = dict()
         
-        self.load_content("/home/tcalmant/Bureau")
+        self.load_content(os.getcwd() + os.sep + "data")
         
     
     def load_content(self, source_folder):
@@ -130,8 +130,7 @@ class Erp(object):
         Sets the state of the ERP (True or False)
         """
         self.__running = running
-
-
+    
 
 ERP_INSTANCE = Erp()
 
@@ -190,22 +189,30 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
             self.send_internal_error()
             return
         
-        # Send answer
-        self.send_response(200)
-        self.end_headers()
-        
         if "category" in self.parsed_query:
             # Retrieve a category
-            category = self.parsed_query["category"]
+            category = self.parsed_query["category"][0]
             items = ERP_INSTANCE.get_items(category)
             
         else:
             # Retrieve all items
             items = []
-            for category in ERP_INSTANCE.get_categories():
+            for category in ERP_INSTANCE.get_categories():        
                 items.append(ERP_INSTANCE.get_items(category))
+            
+            # Chain all sub-lists
+            items = itertools.chain.from_iterable(items)
         
-        self.wfile.write("Items : " + str(items))
+        
+        # Prepare the XML response file
+        xmlData = item_parser.XmlItemOutput().items_to_xml(items)
+        
+        # Send answer
+        self.send_response(200)
+        self.send_header("content-length", len(xmlData))
+        self.send_header("content-type", "text/xml")
+        self.end_headers()
+        self.wfile.write(xmlData)
 
     
     def handle_get_items_stock(self):
@@ -216,8 +223,35 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
             self.send_internal_error()
             return
         
+        if self.command != "POST":
+            self.send_error(403, \
+                            "This URI is accessible only with POST requests")
+            self.end_headers()
+            return
+        
+        # Read requested items from POST content
+        requested_items = item_parser.XmlItemParser().parse_file(self.rfile)
+        if not requested_items:
+            self.send_internal_error()
+            return
+        
+        # Get the stock for each requested item
+        itemsStockDict = dict() 
+        for item in requested_items:
+            if "id" in item:
+                itemId = item["id"]
+                itemsStockDict[itemId] = ERP_INSTANCE.get_item_stock(itemId)
+                
+        
+        # Prepare the XML response file
+        xmlData = item_parser.XmlItemOutput().items_to_xml(itemsStockDict)
+        
+        # Send answer
         self.send_response(200)
+        self.send_header("content-length", len(xmlData))
+        self.send_header("content-type", "text/xml")
         self.end_headers()
+        self.wfile.write(xmlData)
     
     
     def handle_get_state(self):
@@ -231,6 +265,15 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
             # Server is running -> 200
             self.send_response(200)
             self.end_headers()
+            self.wfile.write("""<html>
+<head>
+<title>Server Get State</title>
+</head>
+<body>
+<p>ERP Server is running and activated.</p>
+</body>
+</html>
+""")
         
         
     def handle_set_state(self):
@@ -238,28 +281,35 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
         Handles /setStateERP requests
         """
         
+        code = 400
         if "activate" in self.parsed_query:
             
             activation = str(self.parsed_query["activate"][0]).upper()
             
             if activation == "ON" or activation == "TRUE":
                 ERP_INSTANCE.set_running(True)
-                self.send_response(200)
+                code = 200
                 
             elif activation == "OFF" or activation == "FALSE":
                 ERP_INSTANCE.set_running(False)
-                self.send_response(200)
-                
-            else:
-                # Unknown action, bad request
-                self.send_response(400)
-        
-        else:
-            # Error 400 - Bad Request
-            self.send_response(400)
+                code = 200
         
         # End of treatment
+        if code < 400:
+            self.send_response(code)
+        else:
+            self.send_error(code)
         self.end_headers()
+        
+        self.wfile.write("""<html>
+<head>
+<title>Server Set State</title>
+</head>
+<body>
+<p>ERP setState returned with code : """ + str(code) + """</p>
+</body>
+</html>
+""")
     
     
     def do_GET(self):
