@@ -1,0 +1,59 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Demo - Data Server
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-SymbolicName: org.psem2m.demo.data.server
+Bundle-Vendor: isandlaTech
+Bundle-Version: 1.0.0.qualifier
+Created-By: iPOJO  1.8.0
+Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
+ .ipojo.architecture;version=1.8.0, org.osgi.framework;version=1.5.0, 
+ org.osgi.service.cm;version=1.2, org.osgi.service.log;version=1.3, or
+ g.psem2m.demo.data.cache, org.psem2m.demo.erp.api.beans, org.psem2m.d
+ emo.erp.api.services, org.psem2m.isolates.base;version=1.0.0, org.pse
+ m2m.isolates.base.activators;version=1.0.0, org.psem2m.utilities;vers
+ ion=1.0.0, org.psem2m.utilities.logging;version=1.0.0
+iPOJO-Components: instance { $component="demo-dataserver-factory" $nam
+ e="demo-dataserver" property { $name="service.exported.interfaces" $v
+ alue="*" }property { $name="service.exported.configs" $value="{json-r
+ pc}" $type="String[]" }property { $name="endpoint.name" $value="datas
+ erver" $type="String" }}instance { $component="org.psem2m.demo.data.s
+ erver.impl.QuarterbackSvc" $name="demo-quarterback" }component { $cla
+ ssname="org.psem2m.demo.data.server.impl.DataServerSvc" $name="demo-d
+ ataserver-factory" $public="false" properties { $propagation="true" }
+ provides { $specifications="{org.psem2m.demo.erp.api.services.IErpDat
+ a}" }requires { $field="pLogger" }requires { $field="pQuarterback" }c
+ allback { $transition="invalidate" $method="invalidatePojo" }callback
+  { $transition="validate" $method="validatePojo" }manipulation { $sup
+ er="org.psem2m.isolates.base.activators.CPojoBase" interface { $name=
+ "org.psem2m.demo.erp.api.services.IErpData" }field { $name="pLogger" 
+ $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pQ
+ uarterback" $type="org.psem2m.demo.data.server.IQuarterback" }method 
+ { $name="getItems" $return="org.psem2m.demo.erp.api.beans.CachedItemB
+ ean[]" $arguments="{java.lang.String}" }method { $name="getItemsStock
+ " $return="org.psem2m.demo.erp.api.beans.CachedItemStockBean[]" $argu
+ ments="{java.lang.String[]}" }method { $name="invalidatePojo" }method
+  { $name="validatePojo" }}}component { $classname="org.psem2m.demo.da
+ ta.server.impl.QuarterbackSvc" $name="demo-quarterback-factory" $publ
+ ic="false" provides { $specifications="{org.psem2m.demo.data.server.I
+ Quarterback}" property { $name="erp.available" $field="isProxyAvailab
+ le" }}requires { $field="pCache" }requires { $field="pErpProxy" $opti
+ onal="true" $id="erp-proxy" callback { $method="bindErp" $type="bind"
+  }callback { $method="unbindErp" $type="unbind" }}requires { $field="
+ pLogger" }callback { $transition="invalidate" $method="invalidatePojo
+ " }callback { $transition="validate" $method="validatePojo" }manipula
+ tion { $super="org.psem2m.isolates.base.activators.CPojoBase" interfa
+ ce { $name="org.psem2m.demo.data.server.IQuarterback" }field { $name=
+ "isProxyAvailable" $type="boolean" }field { $name="pCache" $type="org
+ .psem2m.demo.data.cache.IDataCache" }field { $name="pErpProxy" $type=
+ "org.psem2m.demo.erp.api.services.IErpDataProxy" }field { $name="pLog
+ ger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }method { $na
+ me="bindErp" $arguments="{org.psem2m.demo.erp.api.services.IErpDataPr
+ oxy}" }method { $name="getItems" $return="org.psem2m.demo.erp.api.bea
+ ns.CachedItemBean[]" $arguments="{java.lang.String}" }method { $name=
+ "getItemsStock" $return="org.psem2m.demo.erp.api.beans.CachedItemStoc
+ kBean[]" $arguments="{java.lang.String[]}" }method { $name="invalidat
+ ePojo" }method { $name="isProxyAvailable" $return="boolean" }method {
+  $name="unbindErp" $arguments="{org.psem2m.demo.erp.api.services.IErp
+ DataProxy}" }method { $name="validatePojo" }}}
+

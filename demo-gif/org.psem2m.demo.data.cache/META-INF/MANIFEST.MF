@@ -1,0 +1,44 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Demo - Data Server Cache
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-SymbolicName: org.psem2m.demo.data.cache
+Bundle-Vendor: isandlatech.com
+Bundle-Version: 1.0.0.qualifier
+Created-By: iPOJO  1.8.0
+Export-Package: org.psem2m.demo.data.cache
+Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
+ .ipojo.architecture;version=1.8.0, org.osgi.framework;version=1.5.0, 
+ org.osgi.service.cm;version=1.2, org.osgi.service.log;version=1.3, or
+ g.psem2m.demo.erp.api.beans, org.psem2m.isolates.base;version=1.0.0, 
+ org.psem2m.isolates.base.activators;version=1.0.0, org.psem2m.utiliti
+ es;version=1.0.0, org.psem2m.utilities.logging;version=1.0.0
+iPOJO-Components: instance { $component="org.psem2m.demo.data.cache.im
+ pl.ItemBeanDataCache" $name="demo-data-cache" }component { $classname
+ ="org.psem2m.demo.data.cache.impl.ItemBeanDataCache" $name="demo-data
+ -cache-factory" $public="false" provides { $specifications="{org.psem
+ 2m.demo.data.cache.IDataCache}" }requires { $field="pLogger" }callbac
+ k { $transition="invalidate" $method="invalidatePojo" }callback { $tr
+ ansition="validate" $method="validatePojo" }manipulation { $super="or
+ g.psem2m.isolates.base.activators.CPojoBase" interface { $name="org.p
+ sem2m.demo.data.cache.IDataCache" }field { $name="pCategoriesItems" $
+ type="java.util.Map" }field { $name="pCategoriesItemsAge" $type="java
+ .util.Map" }field { $name="pItemsCache" $type="java.util.Map" }field 
+ { $name="pItemsCacheAge" $type="java.util.Map" }field { $name="pItems
+ Stock" $type="java.util.Map" }field { $name="pItemsStockAge" $type="j
+ ava.util.Map" }field { $name="pLogger" $type="org.psem2m.isolates.bas
+ e.IIsolateLoggerSvc" }method { $name="getCategoryInformationAge" $ret
+ urn="long" $arguments="{java.lang.String}" }method { $name="getCatego
+ ryItems" $return="java.util.Set" $arguments="{java.lang.String}" }met
+ hod { $name="getItem" $return="org.psem2m.demo.erp.api.beans.ItemBean
+ " $arguments="{java.lang.String}" }method { $name="getItemInformation
+ Age" $return="long" $arguments="{java.lang.String}" }method { $name="
+ getItemStock" $return="long" $arguments="{java.lang.String}" }method 
+ { $name="getItemStockInformationAge" $return="long" $arguments="{java
+ .lang.String}" }method { $name="invalidatePojo" }method { $name="upda
+ teCategoryItems" $arguments="{java.lang.String,java.util.Collection}"
+  }method { $name="updateItemBean" $arguments="{java.lang.String,org.p
+ sem2m.demo.erp.api.beans.ItemBean}" }method { $name="updateItemStock"
+  $arguments="{java.lang.String,long}" }method { $name="validatePojo" 
+ }}}
+
