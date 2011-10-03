@@ -167,4 +167,24 @@ public class RemoteServiceRegistration implements Serializable {
             }
         }
     }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+
+        final StringBuilder builder = new StringBuilder(
+                "RemoteServiceRegistration(");
+        builder.append("serviceId = ").append(pServiceId);
+        builder.append(", Endpoints : [");
+        for (EndpointDescription endpoint : pEndpoints) {
+            builder.append(endpoint);
+        }
+        builder.append("])");
+
+        return builder.toString();
+    }
 }
