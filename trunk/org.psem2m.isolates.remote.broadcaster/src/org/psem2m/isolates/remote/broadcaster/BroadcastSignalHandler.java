@@ -23,8 +23,8 @@ import org.psem2m.isolates.services.remote.beans.EndpointDescription;
 import org.psem2m.isolates.services.remote.beans.RemoteServiceEvent;
 import org.psem2m.isolates.services.remote.beans.RemoteServiceEvent.ServiceEventType;
 import org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration;
-import org.psem2m.isolates.services.remote.signals.ISignalData;
 import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
+import org.psem2m.isolates.services.remote.signals.ISignalData;
 import org.psem2m.isolates.services.remote.signals.ISignalListener;
 import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
 
@@ -81,6 +81,7 @@ public class BroadcastSignalHandler extends CPojoBase implements
             final ISignalData aSignalData) {
 
         final Object signalContent = aSignalData.getSignalContent();
+        final String senderHostName = aSignalData.getSenderHostName();
 
         if (ISignalsConstants.BROADCASTER_SIGNAL_REMOTE_EVENT
                 .equals(aSignalName)) {
@@ -89,9 +90,21 @@ public class BroadcastSignalHandler extends CPojoBase implements
             if (signalContent instanceof RemoteServiceEvent) {
                 // Valid signal content, handle it
                 final RemoteServiceEvent event = (RemoteServiceEvent) signalContent;
-                event.setSenderHostName(aSignalData.getSenderHostName());
+                event.setSenderHostName(senderHostName);
 
                 handleRemoteEvent(event);
+
+            } else if (signalContent instanceof RemoteServiceEvent[]) {
+                /*
+                 * Multiple remote service events received, handle them one by
+                 * one
+                 */
+                for (RemoteServiceEvent event : (RemoteServiceEvent[]) signalContent) {
+
+                    // Update its content and notify listeners
+                    event.setSenderHostName(senderHostName);
+                    handleRemoteEvent(event);
+                }
             }
 
         } else if (ISignalsConstants.BROADCASTER_SIGNAL_REQUEST_ENDPOINTS
