@@ -6,6 +6,8 @@ Bundle-SymbolicName: org.psem2m.demo.erp.client
 Bundle-Vendor: isandlaTech.com
 Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
+Export-Package: javax.xml.parsers,javax.xml.transform,org.w3c.dom,org.
+ xml.sax
 Import-Package: javax.xml.parsers, javax.xml.transform, org.apache.fel
  ix.ipojo;version=1.8.0, org.apache.felix.ipojo.architecture;version=1
  .8.0, org.osgi.framework;version=1.5.0, org.osgi.service.cm;version=1
@@ -46,8 +48,4 @@ iPOJO-Components: instance { $component="demo-erp-client-python-factor
  2m.demo.erp.api.beans.ItemBean[]" $arguments="{java.lang.String}" }me
  thod { $name="xmlToItemStocks" $return="java.util.Map" $arguments="{j
  ava.lang.String}" }}}
-Export-Package: javax.xml.parsers,
- javax.xml.transform,
- org.w3c.dom,
- org.xml.sax
 
