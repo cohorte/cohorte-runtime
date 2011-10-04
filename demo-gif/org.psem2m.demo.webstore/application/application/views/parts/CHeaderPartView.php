@@ -42,7 +42,7 @@ writeln('window.innerWidth=document.images["George"].width;');writeln('window.in
 writeln('function doTitle(){document.title="'+imageTitle+'";}');writeln('</sc'+'ript>');
 if (!AutoClose) writeln('</head><body bgcolor=ffffff scroll="no" onload="reSizeToImage();doTitle();self.focus()">')
 else writeln('</head><body bgcolor=ffffff scroll="no" onload="reSizeToImage();doTitle();self.focus()" onblur="self.close()">');
-writeln('<img name="George" src='+imageURL+' style="display:block;width:500px"></body></html>');
+writeln('<img name="George" src='+imageURL+' style="display:block;width:500px" onclick="window.close();"></body></html>');
 close();		
 }}
 

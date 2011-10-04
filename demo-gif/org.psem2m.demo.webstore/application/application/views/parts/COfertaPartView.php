@@ -24,8 +24,8 @@ $wDetailUrl = "/". base_url()."index.php/CHome/showDetails/".$wRandomItem;
 		<div class="oferta">
 
 			<div class="oferta_content">
-				<img src="/<?php echo base_url(); ?>app_resources/images/<?php echo $wRandomImage;?>"
-					width="94" height="92" border="0" class="oferta_img" />
+				<a href="<?php echo $wDetailUrl;?>" > <img src="/<?php echo base_url(); ?>app_resources/images/<?php echo $wRandomImage;?>"
+					width="94" height="92" border="0" class="oferta_img" /></a>
 
 				<div class="oferta_details">
 					<div class="oferta_title"><?php echo $wRandomItem;?></div>

@@ -18,19 +18,25 @@ margin:auto;
 padding:0px;
 }
 .top_bar{
+	position:absolute;
 width:1000px;
-height:38px;
+top:-30px;
+height:38px; 
 background-color:#4a4a4a;
+cursor:hand;
 }
 .top_search{
+	position:inherited;
 width:370px;
-height:32px;
+height:37px;/*37px*/
+
 margin:0px 20px 0 0;
 _margin:0px 10px 0 0;
 float:right;
 background:url(images/top_search_bg.gif) no-repeat center;
 }
 input.search_input{
+	position:inherited;
 width:182px;
 height:18px;
 float:left;
@@ -40,20 +46,24 @@ border-bottom-color:#ffffff;
 border-right-color:#ffffff;
 }
 .search_text{
+	position:inherited;
 float:left;
 width:110px;
 padding:8px 0 0 15px;
 color:#999999;
 }
 .search_text a{
+	position:inherited;
 text-decoration:none;
 color:#999999;
 }
 .search_bt{
+	position:inherited;
 float:left;
 padding:2px 0 0 15px;
 }
 .languages{
+	position:inherited;
 float:right;
 width:150px;
 padding:8px 0 0 0;
