@@ -6,28 +6,48 @@ Bundle-SymbolicName: org.psem2m.demo.erp.client
 Bundle-Vendor: isandlaTech.com
 Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
-Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
- .ipojo.architecture;version=1.8.0, org.osgi.framework;version=1.5.0, 
- org.osgi.service.cm;version=1.2, org.osgi.service.log;version=1.3, or
- g.psem2m.demo.erp.api.beans, org.psem2m.demo.erp.api.services, org.ps
- em2m.isolates.base;version=1.0.0, org.psem2m.isolates.base.activators
- ;version=1.0.0, org.psem2m.utilities;version=1.0.0, org.psem2m.utilit
- ies.logging;version=1.0.0
-iPOJO-Components: instance { $component="demo-erp-client-fake-factory"
-  $name="demo-erp-client-FAKE" property { $name="service.exported.inte
- rfaces" $value="*" }property { $name="service.exported.configs" $valu
- e="{json-rpc}" $type="String[]" }property { $name="endpoint.name" $va
- lue="dataserver" $type="String" }}component { $classname="org.psem2m.
- demo.erp.client.FakeErpClient" $name="demo-erp-client-fake-factory" $
- public="false" properties { $propagation="true" }provides { $specific
- ations="{org.psem2m.demo.erp.api.services.IErpDataProxy}" }requires {
-  $field="pLogger" }callback { $transition="invalidate" $method="inval
- idatePojo" }callback { $transition="validate" $method="validatePojo" 
- }manipulation { $super="org.psem2m.isolates.base.activators.CPojoBase
- " interface { $name="org.psem2m.demo.erp.api.services.IErpDataProxy" 
- }field { $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLogg
- erSvc" }method { $name="getItems" $return="org.psem2m.demo.erp.api.be
- ans.ItemBean[]" $arguments="{java.lang.String}" }method { $name="getI
- temsStock" $return="int[]" $arguments="{java.lang.String[]}" }method 
- { $name="invalidatePojo" }method { $name="validatePojo" }}}
+Import-Package: javax.xml.parsers, javax.xml.transform, org.apache.fel
+ ix.ipojo;version=1.8.0, org.apache.felix.ipojo.architecture;version=1
+ .8.0, org.osgi.framework;version=1.5.0, org.osgi.service.cm;version=1
+ .2, org.osgi.service.log;version=1.3, org.psem2m.demo.erp.api.beans, 
+ org.psem2m.demo.erp.api.services, org.psem2m.isolates.base;version=1.
+ 0.0, org.psem2m.isolates.base.activators;version=1.0.0, org.psem2m.ut
+ ilities;version=1.0.0, org.psem2m.utilities.logging;version=1.0.0, or
+ g.w3c.dom, org.xml.sax
+iPOJO-Components: instance { $component="demo-erp-client-python-factor
+ y" $name="demo-erp-client-Python" property { $name="service.exported.
+ interfaces" $value="*" }property { $name="service.exported.configs" $
+ value="{json-rpc}" $type="String[]" }property { $name="endpoint.name"
+  $value="erp-proxy" $type="String" }}component { $classname="org.psem
+ 2m.demo.erp.client.ErpClient" $name="demo-erp-client-python-factory" 
+ $public="false" properties { $propagation="true" }provides { $specifi
+ cations="{org.psem2m.demo.erp.api.services.IErpDataProxy}" }requires 
+ { $field="pLogger" }callback { $transition="validate" $method="valida
+ tePojo" }manipulation { $super="org.psem2m.isolates.base.activators.C
+ PojoBase" interface { $name="org.psem2m.demo.erp.api.services.IErpDat
+ aProxy" }field { $name="pConfig" $type="org.psem2m.demo.erp.client.Er
+ pClientConfig" }field { $name="pLogger" $type="org.psem2m.isolates.ba
+ se.IIsolateLoggerSvc" }method { $name="domToString" $return="java.lan
+ g.String" $arguments="{org.w3c.dom.Document}" }method { $name="forgeU
+ rl" $return="java.net.URL" $arguments="{java.lang.String,java.lang.St
+ ring}" }method { $name="getDomDocumentBuilder" $return="javax.xml.par
+ sers.DocumentBuilder" }method { $name="getElementChildValue" $return=
+ "java.lang.String" $arguments="{org.w3c.dom.Element,java.lang.String}
+ " }method { $name="getItems" $return="org.psem2m.demo.erp.api.beans.I
+ temBean[]" $arguments="{java.lang.String}" }method { $name="getItemsS
+ tock" $return="int[]" $arguments="{java.lang.String[]}" }method { $na
+ me="getUrlPOSTResult" $return="java.lang.String" $arguments="{java.ne
+ t.URL,java.lang.String}" }method { $name="getUrlResult" $return="java
+ .lang.String" $arguments="{java.net.URL}" }method { $name="invalidate
+ Pojo" }method { $name="itemsIdsToXml" $return="java.lang.String" $arg
+ uments="{java.lang.String[]}" }method { $name="parseXmlString" $retur
+ n="org.w3c.dom.Document" $arguments="{java.lang.String}" }method { $n
+ ame="validatePojo" }method { $name="xmlToItemBeans" $return="org.psem
+ 2m.demo.erp.api.beans.ItemBean[]" $arguments="{java.lang.String}" }me
+ thod { $name="xmlToItemStocks" $return="java.util.Map" $arguments="{j
+ ava.lang.String}" }}}
+Export-Package: javax.xml.parsers,
+ javax.xml.transform,
+ org.w3c.dom,
+ org.xml.sax
 
