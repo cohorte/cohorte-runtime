@@ -153,6 +153,7 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
         """
         # Prepare handlers dictionary
         self._handlers = dict()
+        self._handlers["/"] = self.handle_index_page
         self._handlers[ErpHttpServer.GET_ITEMS] = self.handle_get_items
         self._handlers[ErpHttpServer.GET_ITEMS_STOCK] = \
                                                 self.handle_get_items_stock
@@ -354,18 +355,6 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
         # Parse URL
         self.parsed_url = urlparse.urlparse(self.path)
 
-        try:
-            with open("./html" + self.parsed_url.path) as requested_file:
-                self.__send_response(200, requested_file.read(), \
-                                     mimetypes.guess_type(self.parsed_url.path))
-
-            # File sent, nothing else to do
-            return
-
-        except:
-            # File doesn't exist
-            pass
-
         # Read the parameters
         self.parsed_query = urlparse.parse_qs(self.parsed_url.query)
 
@@ -374,8 +363,20 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
             self._handlers[self.parsed_url.path]()
 
         else:
+            try:
+                with open("./html" + self.parsed_url.path) as requested_file:
+                    self.__send_response(200, requested_file.read(), \
+                                         mimetypes.guess_type(self.parsed_url.path)[0])
+            
+                # File sent, nothing else to do
+                return
+                
+            except Exception, ex:
+                # File doesn't exist
+                self.__send_response(404)
+                return
             # No handler found, use information page
-            self.handle_index_page()
+            #self.handle_index_page()
 
 
     def do_POST(self):

@@ -76,7 +76,7 @@ class XmlItemParser(object):
         """
         if self.__current_item and self.__current_attribute:
             # Set the node content
-            self.__current_item[self.__current_attribute] += data
+            self.__current_item[self.__current_attribute] += data.encode("ascii", "ignore")
 
     
     def __end_element(self, name):
