@@ -1,6 +1,16 @@
 <?php
-class CContact extends CI_Controller {
+class CContact extends MY_Controller {
 
+	/**
+	*
+	* Enter description here ...
+	*/
+	public function __construct(){
+		parent::__construct();
+		log_message('debug', "** CContact.[init]");
+	
+	}
+	
 	/**
 	 * Index Page for this controller.
 	 *
@@ -39,39 +49,5 @@ class CContact extends CI_Controller {
 		$this->load->view('CContactView',$data);
 	}
 	
-	
-	/**
-	*
-	* Enter description here ...
-	* @param unknown_type $aItem
-	*/
-	private function injectStockInItem($aItem){
-		$wItemIds = array();
-		array_push($wItemIds,$aItem['id']);
-		$wItemsStock= $this->Item_model->getItemsStock($wItemIds);
-		$aItem['stock']=$wItemsStock[0]['stock'];
-		$aItem['qualityClass'] = $this->convertQualityToClass ($wItemsStock[0]['qualityLevel']);
-	
-		//echo  '<br/>'.var_export($aItem,true);
-	
-		return $aItem;
-	}
-	
-	/**
-	* 0 : SYNC Top qualité (retour direct de l’ERP)
-	* 1 : FRESH Cache niveau 1 (moins de 1 minute (incluses) depuis la mise en cache)
-	* 2 : ACCEPTABLE Cache niveau 2 (moins de 5 minutes (incluses) depuis la mise en cache)
-	* 3 : WARNING Cache niveau 3 (moins de 15 minutes (incluses) depuis la mise en cache)
-	* 4 : CRITICAL Qualité critique (plus de 15 minutes depuis la mise en cache)
-	*
-	* @param Integer $aQuality
-	*/
-	private function convertQualityToClass($aQuality){
-		if ($aQuality==0) return 'sync';
-		if ($aQuality==1) return 'fresh';
-		if ($aQuality==2) return 'acceptable';
-		if ($aQuality==3) return 'warning';
-		return 'critical';
-	}
 	
 }
