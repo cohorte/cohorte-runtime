@@ -27,7 +27,7 @@ class Item_model extends CI_Model {
 	 */
 	public function getItem($aItemId){
 
-		$this->rpcGetItem($aItemId);
+		//$this->rpcGetItem($aItemId);
 
 		return  $this->localGetItem($aItemId);
 	}
@@ -49,7 +49,9 @@ class Item_model extends CI_Model {
 	 */
 	public function getItems($aCategorie='',$aStartIdx=0, $aNb=99, $aRandom=false)
 	{
-		return $this->localGetItems($aCategorie,$aStartIdx, $aNb, $aRandom);
+		return $this->rpcGetItems($aCategorie,$aStartIdx,$aNb,$aRandom);
+
+		//return $this->localGetItems($aCategorie,$aStartIdx, $aNb, $aRandom);
 	}
 
 	/**
@@ -122,7 +124,7 @@ class Item_model extends CI_Model {
 		* the second argument is the method (either GET or POST, case-sensitive, defaults to POST),
 		* and the third is the port number (defaults to 80).
 		*/
-		$wJsonrpcClient->server('http://localhost/','POST',8888);
+		$wJsonrpcClient->server('http://localhost/JSON-RPC/dataserver','POST',9010);
 
 		/*
 		 * You can then specify a method with $client->method().
@@ -142,12 +144,11 @@ class Item_model extends CI_Model {
 		/*
 		 *
 		*/
-		$wJsonrpcClient->timeout(2);
-
-		//$wJsonrpcClient->send_request();
-
+		$wJsonrpcClient->timeout(5);
 
 		log_message('debug', "** Item_model.rpcGetItem() : wJsonrpcClient=[". var_export($wJsonrpcClient,true)."]" );
+
+		$wJsonrpcClient->send_request();
 
 
 		return null;
@@ -163,7 +164,70 @@ class Item_model extends CI_Model {
 	 */
 	private function rpcGetItems($aCategorie,$aStartIdx, $aNb, $aRandom)
 	{
-		return null;
+
+		$wJsonrpcClient =& $this->jsonrpc->get_client();
+		$wJsonrpcClient->server('http://localhost/JSON-RPC','POST',9010);
+		$wJsonrpcClient->method('dataserver.getItems').
+
+		$wParam = array();
+		array_push($wParam,$aCategorie);
+		$wJsonrpcClient->request($wParam);
+
+		$wJsonrpcClient->timeout(5);
+
+		log_message('debug', "** Item_model.rpcGetItems() : wJsonrpcClient=[". var_export($wJsonrpcClient,true)."]" );
+
+		$wJsonObject = $wJsonrpcClient->send_request();
+
+		if ($wJsonObject == true){
+			log_message('debug', "** Item_model.rpcGetItems() : get_response_object=[". var_export($wJsonrpcClient->get_response_object(),true)."]" );
+		}else{
+			log_message('debug', "** Item_model.rpcGetItems() : get_response_[". var_export($wJsonrpcClient->get_response(),true)."]" );
+		}
+
+		$wData = $wJsonrpcClient->get_response_object();
+		/*
+		 *	stdClass::__set_state(array(
+			'id' => 'ID_834117402',
+			'result' =>
+				array (
+					0 =>
+						stdClass::__set_state(array(
+							'id' => 'mouse001',
+							'price' => '25.00 EUR',
+							'qualityLevel' => 0,
+							'description' => 'Aujourd\'hui ',
+							'name' => 'Souris en Bambou',
+							'javaClass' => 'org.psem2m.demo.erp.api.beans.CachedItemBean',
+						)),
+					1 => 
+					    stdClass::__set_state(array(
+					       'id' => 'mouse002',
+					       'price' => '35.33 EUR',
+					       'qualityLevel' => 0,
+					       'description' => 'Souris sans fil',
+					       'name' => 'Advance Arty POP Flower Mouse',
+					       'javaClass' => 'org.psem2m.demo.erp.api.beans.CachedItemBean',
+					    )),
+				 ...
+			))
+		*/
+		$wItemBeans = $wData->result;
+		
+		
+		$wItems = array();
+		
+		foreach ($wItemBeans as $wIdB=>$wItemBean) {
+			$wItem = array();
+			$wItem['id'] = $wItemBean->id;
+			$wItem['lib'] = $wItemBean->name;
+			$wItem['price'] = $wItemBean->price;
+			$wItem['qualityLevel'] = $wItemBean->qualityLevel;
+			$wItem['text'] = $wItemBean->description;
+			array_push($wItems,$wItem);
+		}
+
+		return $wItems;
 	}
 
 	/**
@@ -247,7 +311,7 @@ class Item_model extends CI_Model {
 			* 4 : CRITICAL Qualité critique (plus de 15 minutes depuis la mise en cache)
 			*/
 			//$wItem['stockquality'] = ($wStock<10)?}:($wStock<30)?3: rand(0,2);
-			
+				
 			if ($wStock<10){
 				$wItem['stockquality'] = 4;
 			}
