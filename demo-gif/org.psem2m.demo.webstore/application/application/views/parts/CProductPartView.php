@@ -25,7 +25,7 @@ $wDetailUrl = "/". base_url()."/index.php/CHome/showDetails/".$Item['id'];
 		<div class="prod_price">
 			<span class="price"><?php echo $Item['price']; ?> EUR</span>
 			&nbsp;
-			<span class="stock">Availability: <span class="stock<?php echo $Item['stockclass']; ?>"><?php echo $Item['stock']; ?></span></span>
+			<span class="stock">Availability: <span class="stock<?php echo $Item['qualityClass']; ?>"><?php echo $Item['stock']; ?></span></span>
 			
 		</div>
 	</div>

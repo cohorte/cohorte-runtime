@@ -16,19 +16,19 @@ class Item_model extends CI_Model {
 	/**
 	 * return the found Item bean (array)
 	 *
-	 * The returned bean (array) contains four values :
+	 * The returned bean (array) contains five values :
 	 * - String  'id'
-	 * - String  'lib'
-	 * - String  'text'
+	 * - String  'name'
+	 * - String  'description'
 	 * - Integer 'price'
+	 * - Integer 'qualityLevel'
 	 *
-	 * @param String $aItemId
-	 * @return Array|NULL  an array of items
+	 * @param String $aItemId The item id to find
+	 * @return Array|NULL  an item bean (array) or null
 	 */
 	public function getItem($aItemId){
-
+		
 		//$this->rpcGetItem($aItemId);
-
 		return  $this->localGetItem($aItemId);
 	}
 
@@ -36,32 +36,32 @@ class Item_model extends CI_Model {
 	/**
 	 * return an array of item beans (array)
 	 *
-	 * Each returned bean (array) contains four values :
+	 * Each returned bean (array) contains five values :
 	 * - String  'id'
-	 * - String  'lib'
-	 * - String  'text'
+	 * - String  'name'
+	 * - String  'description'
 	 * - Integer 'price'
+	 * - Integer 'qualityLevel'
 	 *
-	 * @param String $aCategorie
-	 * @param Integer $aSimpleList
-	 * @param Integer $aNb
-	 * @param Boolean $aRandom
+	 * @param String $aCategorie  The category of the returned items.
+	 * @param Integer $aNbItems the number of wanted items 
+	 * @param Boolean $aRandom  Gets the items at random in the golbal list of items. 
+	 * @param Integer $aStartIdx The start index in the global list of items. This parameter isn't taken if the "aRandom" one is set to true
 	 */
-	public function getItems($aCategorie='',$aStartIdx=0, $aNb=99, $aRandom=false)
-	{
-		return $this->rpcGetItems($aCategorie,$aStartIdx,$aNb,$aRandom);
-
-		//return $this->localGetItems($aCategorie,$aStartIdx, $aNb, $aRandom);
+	public function getItems($aCategory='', $aNbItems=99, $aRandom=false,$aStartIdx=0){
+		
+		//return $this->rpcGetItems($aCategory, $aNbItems ,$aRandom, $aStartIdx);
+		return $this->localGetItems($aCategory, $aNbItems, $aRandom, $aStartIdx);
 	}
 
 	/**
 	 *
-	 * return a array of item beans containing a stock quantity according the passed list of item ids.
+	 * return a array of item beans containing a quantity according the passed list of item ids.
 	 *
 	 * Each returned bean (array) contains three values :
 	 * - String  'id'
 	 * - Integer 'stock"
-	 * - Integer 'stockquality"
+	 * - Integer 'qualityLevel'
 	 *
 	 * 0 : SYNC Top qualité (retour direct de l’ERP)
 	 * 1 : FRESH Cache niveau 1 (moins de 1 minute (incluses) depuis la mise en cache)
@@ -69,9 +69,11 @@ class Item_model extends CI_Model {
 	 * 3 : WARNING Cache niveau 3 (moins de 15 minutes (incluses) depuis la mise en cache)
 	 * 4 : CRITICAL Qualité critique (plus de 15 minutes depuis la mise en cache)
 	 *
-	 * @param Array $aItemIds
+	 * @param Array $aItemIds An array of item ids.
 	 */
 	public function getItemsStock($aItemIds){
+		
+		//return  $this->rpcGetItemsStock($aItemIds);
 		return  $this->localGetItemsStock($aItemIds);
 	}
 
@@ -146,12 +148,43 @@ class Item_model extends CI_Model {
 		*/
 		$wJsonrpcClient->timeout(5);
 
-		log_message('debug', "** Item_model.rpcGetItem() : wJsonrpcClient=[". var_export($wJsonrpcClient,true)."]" );
+		log_message('INFO', "** Item_model.rpcGetItem() : wJsonrpcClient=[". var_export($wJsonrpcClient,true)."]" );
 
-		$wJsonrpcClient->send_request();
+		$wJsonObject = $wJsonrpcClient->send_request();
 
+		if ($wJsonObject != true){
+			log_message('ERROR', "** Item_model.rpcGetItem() : get_response_[". var_export($wJsonrpcClient->get_response(),true)."]" );
+			return null;
+		}
+		
+		log_message('INFO', "** Item_model.rpcGetItem() : get_response_object=[". var_export($wJsonrpcClient->get_response_object(),true)."]" );
 
-		return null;
+		$wData = $wJsonrpcClient->get_response_object();
+
+		/*
+		*	stdClass::__set_state(array(
+				'id' => 'ID_834117402',
+				'result' =>
+						stdClass::__set_state(array(
+							'id' => 'mouse001',
+							'price' => '25.00 EUR',
+							'qualityLevel' => 0,
+							'description' => 'Aujourd\'hui ',
+							'name' => 'Souris en Bambou',
+							'javaClass' => 'org.psem2m.demo.erp.api.beans.CachedItemBean',
+						))
+				))
+		*/
+		$wItemBean = $wData->result;
+		
+		$wItem = array();
+		$wItem['id'] = $wItemBean->id;
+		$wItem['name'] = $wItemBean->name;
+		$wItem['price'] = $wItemBean->price;
+		$wItem['qualityLevel'] = $wItemBean->qualityLevel;
+		$wItem['description'] = $wItemBean->description;
+		
+		return $wItem;
 	}
 
 	/**
@@ -162,7 +195,7 @@ class Item_model extends CI_Model {
 	 * @param unknown_type $aNb
 	 * @param unknown_type $aRandom
 	 */
-	private function rpcGetItems($aCategorie,$aStartIdx, $aNb, $aRandom)
+	private function rpcGetItems($aCategorie, $aNbItems, $aRandom,$aStartIdx)
 	{
 
 		$wJsonrpcClient =& $this->jsonrpc->get_client();
@@ -175,15 +208,16 @@ class Item_model extends CI_Model {
 
 		$wJsonrpcClient->timeout(5);
 
-		log_message('debug', "** Item_model.rpcGetItems() : wJsonrpcClient=[". var_export($wJsonrpcClient,true)."]" );
+		log_message('INFO', "** Item_model.rpcGetItems() : wJsonrpcClient=[". var_export($wJsonrpcClient,true)."]" );
 
 		$wJsonObject = $wJsonrpcClient->send_request();
 
-		if ($wJsonObject == true){
-			log_message('debug', "** Item_model.rpcGetItems() : get_response_object=[". var_export($wJsonrpcClient->get_response_object(),true)."]" );
-		}else{
-			log_message('debug', "** Item_model.rpcGetItems() : get_response_[". var_export($wJsonrpcClient->get_response(),true)."]" );
+		if ($wJsonObject != true){
+			log_message('ERROR', "** Item_model.rpcGetItems() : get_response_[". var_export($wJsonrpcClient->get_response(),true)."]" );
+			return null;
 		}
+		
+		log_message('INFO', "** Item_model.rpcGetItems() : get_response_object=[". var_export($wJsonrpcClient->get_response_object(),true)."]" );
 
 		$wData = $wJsonrpcClient->get_response_object();
 		/*
@@ -220,10 +254,10 @@ class Item_model extends CI_Model {
 		foreach ($wItemBeans as $wIdB=>$wItemBean) {
 			$wItem = array();
 			$wItem['id'] = $wItemBean->id;
-			$wItem['lib'] = $wItemBean->name;
+			$wItem['name'] = $wItemBean->name;
 			$wItem['price'] = $wItemBean->price;
 			$wItem['qualityLevel'] = $wItemBean->qualityLevel;
-			$wItem['text'] = $wItemBean->description;
+			$wItem['description'] = $wItemBean->description;
 			array_push($wItems,$wItem);
 		}
 
@@ -237,7 +271,66 @@ class Item_model extends CI_Model {
 	 * @param Array $aItemIds
 	 */
 	private function rpcGetItemsStock($aItemIds){
-		return  null;
+		
+		$wJsonrpcClient =& $this->jsonrpc->get_client();
+		$wJsonrpcClient->server('http://localhost/JSON-RPC','POST',9010);
+		$wJsonrpcClient->method('dataserver.getItemsStock').
+		
+		$wParam = array();
+		array_push($wParam,$aItemIds);
+		$wJsonrpcClient->request($wParam);
+		
+		$wJsonrpcClient->timeout(5);
+		
+		log_message('INFO', "** Item_model.rpcGetItemsStock() : wJsonrpcClient=[". var_export($wJsonrpcClient,true)."]" );
+		
+		$wJsonObject = $wJsonrpcClient->send_request();
+		
+		
+		if ($wJsonObject != true){
+			log_message('ERROR', "** Item_model.rpcGetItemsStock() : get_response_[". var_export($wJsonrpcClient->get_response(),true)."]" );
+			return null;
+		}
+		
+		log_message('INFO', "** Item_model.rpcGetItemsStock() : get_response_object=[". var_export($wJsonrpcClient->get_response_object(),true)."]" );
+		
+		$wData = $wJsonrpcClient->get_response_object();
+		/*
+		 *	stdClass::__set_state(array(
+			'id' => 'ID_834117402',
+			'result' =>
+				array (
+					0 =>
+						stdClass::__set_state(array(
+							'id' => 'mouse001',
+							'stock' => '22',
+							'qualityLevel' => 0,
+							'javaClass' => 'org.psem2m.demo.erp.api.beans.CachedItemStockBean',
+						)),
+					1 => 
+					    stdClass::__set_state(array(
+					       'id' => 'mouse002',
+					       'stock' => '100',
+					       'qualityLevel' => 0,
+					       'javaClass' => 'org.psem2m.demo.erp.api.beans.CachedItemStockBean',
+					    )),
+				 ...
+			))
+		*/
+		$wItemBeans = $wData->result;
+		
+		
+		$wItems = array();
+		
+		foreach ($wItemBeans as $wIdB=>$wItemBean) {
+			$wItem = array();
+			$wItem['id'] = $wItemBean->id;
+			$wItem['stock'] = $wItemBean->stock;
+			$wItem['qualityLevel'] = $wItemBean->qualityLevel;
+			array_push($wItems,$wItem);
+		}
+
+		return $wItems;
 	}
 
 	//************************************************************************************************
@@ -301,8 +394,8 @@ class Item_model extends CI_Model {
 			$wItem = array();
 
 			$wItem['id'] = $wItemId;
-			$wStock = rand(0,100);
-			$wItem['stock'] = $wStock;
+			$wQuantity = rand(0,100);
+			$wItem['stock'] = $wQuantity;
 			/*
 			 * 0 : SYNC Top qualité (retour direct de l’ERP)
 			* 1 : FRESH Cache niveau 1 (moins de 1 minute (incluses) depuis la mise en cache)
@@ -312,17 +405,17 @@ class Item_model extends CI_Model {
 			*/
 			//$wItem['stockquality'] = ($wStock<10)?}:($wStock<30)?3: rand(0,2);
 				
-			if ($wStock<10){
-				$wItem['stockquality'] = 4;
+			if ($wQuantity<10){
+				$wItem['qualityLevel'] = 4;
 			}
-			else if ($wStock<30){
-				$wItem['stockquality'] = 3;
-			} else if ($wStock<50){
-				$wItem['stockquality'] = 2;
-			}else if ($wStock<75){
-				$wItem['stockquality'] = 1;
+			else if ($wQuantity<30){
+				$wItem['qualityLevel'] = 3;
+			} else if ($wQuantity<50){
+				$wItem['qualityLevel'] = 2;
+			}else if ($wQuantity<75){
+				$wItem['qualityLevel'] = 1;
 			}else {
-				$wItem['stockquality'] = 0;
+				$wItem['qualityLevel'] = 0;
 			}
 
 			array_push($wItems,$wItem);

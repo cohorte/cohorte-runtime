@@ -51,7 +51,7 @@ class CShoppingCart extends CI_Controller {
 		array_push($wItemIds,$aItem['id']);
 		$wItemsStock= $this->Item_model->getItemsStock($wItemIds);
 		$aItem['stock']=$wItemsStock[0]['stock'];
-		$aItem['stockclass'] = $this->convertQualityToClass ($wItemsStock[0]['stockquality']);
+		$aItem['qualityClass'] = $this->convertQualityToClass ($wItemsStock[0]['qualityLevel']);
 	
 		//echo  '<br/>'.var_export($aItem,true);
 	

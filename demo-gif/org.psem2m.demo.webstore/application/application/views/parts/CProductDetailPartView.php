@@ -28,11 +28,11 @@ $wImageUrl = "/".base_url()."app_resources/images/_items/".$Item['id'].".png";
 			<div class="details_big_box">
 				<div class="product_title_big"><?php echo $Item['id']; ?> </div>
 				<div class="specifications">
-					Product : <span class="blue"><?php echo $Item['lib']; ?></span>
+					Product : <span class="blue"><?php echo $Item['name']; ?></span>
 					<br />
-					Description: <span class="blue"><?php echo $Item['text']; ?></span>
+					Description: <span class="blue"><?php echo $Item['description']; ?></span>
 					<br />
-					Availability: <span class="prod_price_big"> <span class="stock<?php echo $Item['stockclass']; ?>"><?php echo $Item['stock']; ?></span></span>
+					Availability: <span class="prod_price_big"> <span class="stock<?php echo $Item['qualityClass']; ?>"><?php echo $Item['stock']; ?></span></span>
 					<br />
 					Tip transport: <span class="blue">Mic</span>
 					<br />
