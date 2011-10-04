@@ -46,4 +46,8 @@ iPOJO-Components: instance { $component="demo-erp-client-python-factor
  2m.demo.erp.api.beans.ItemBean[]" $arguments="{java.lang.String}" }me
  thod { $name="xmlToItemStocks" $return="java.util.Map" $arguments="{j
  ava.lang.String}" }}}
+Export-Package: javax.xml.parsers,
+ javax.xml.transform,
+ org.w3c.dom,
+ org.xml.sax
 
