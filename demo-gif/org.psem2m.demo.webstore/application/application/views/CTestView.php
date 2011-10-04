@@ -58,7 +58,7 @@ td {
 			Home </a>
 	</p>
 
-	<table border="1">
+	<table >
 
 
 
