@@ -3,10 +3,10 @@
 	xsi:schemaLocation="org.apache.felix.ipojo http://felix.apache.org/ipojo/schemas/CURRENT/core.xsd"
 	xmlns="org.apache.felix.ipojo">
 
-	<instance component="demo-erp-client-fake-factory" name="demo-erp-client-FAKE">
+	<instance component="demo-erp-client-python-factory" name="demo-erp-client-Python">
 		<property name="service.exported.interfaces" value="*" />
 		<property name="service.exported.configs" value="{json-rpc}"
 			type="String[]" />
-		<property name="endpoint.name" value="dataserver" type="String" />
+		<property name="endpoint.name" value="erp-proxy" type="String" />
 	</instance>
 </ipojo>
