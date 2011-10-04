@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -206,7 +207,7 @@ public class ErpClient extends CPojoBase implements IErpDataProxy {
             return null;
         }
 
-        return tagNode.getNodeValue();
+        return tagNode.getTextContent();
     }
 
     /*
@@ -363,18 +364,28 @@ public class ErpClient extends CPojoBase implements IErpDataProxy {
      */
     protected String getUrlResult(final URL aUrl) {
 
+        if (aUrl == null) {
+            return null;
+        }
+
         HttpURLConnection connection = null;
         try {
             // Connect to the URL
             connection = (HttpURLConnection) aUrl.openConnection();
 
             final int code = connection.getResponseCode();
-            if (code != HttpURLConnection.HTTP_ACCEPTED) {
+            if (code != HttpURLConnection.HTTP_OK) {
                 // Something happened
                 return null;
             }
 
-            return (String) connection.getContent();
+            /*
+             * Read the response content See here for more information :
+             * http://weblogs
+             * .java.net/blog/pat/archive/2004/10/stupid_scanner_1.html
+             */
+            return new Scanner(connection.getInputStream()).useDelimiter("\\A")
+                    .next();
 
         } catch (MalformedURLException e) {
             pLogger.logSevere(this, "getItems", "Error generating the ERP URL",
@@ -481,6 +492,16 @@ public class ErpClient extends CPojoBase implements IErpDataProxy {
     public void validatePojo() throws BundleException {
 
         pConfig = new ErpClientConfig();
+        try {
+            pConfig.init();
+
+        } catch (Exception e) {
+            pLogger.logSevere(this, "validatePojo",
+                    "Error reading ERP Client configuration.", e);
+
+            throw new BundleException("Error reading ERP Client configuration",
+                    e);
+        }
 
         pLogger.logInfo(this, "validatePojo", "Python ERP Client Ready");
     }

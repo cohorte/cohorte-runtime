@@ -132,6 +132,9 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
 
             } catch (Exception ex) {
                 // If ERP returned null or if an error occurred -> use cache
+                pLogger.logInfo(this, "getItems",
+                        "Error calling the ERP Proxy service ", ex);
+
                 useCache = true;
             }
         }
