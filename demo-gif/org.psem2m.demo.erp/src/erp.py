@@ -22,7 +22,7 @@ class Erp(object):
         # Prepare random stuffs
         random.seed()
 
-        # Prepare members
+        # Prepare members 
         self.__running = True
         self.__categories = dict()
         self.__items = dict()
@@ -30,7 +30,7 @@ class Erp(object):
 
 
     def load_content(self, source_folder):
-        """
+        """ 
         Loads the ERP data from XML files in the given folder (not recursive)
         
         @param source_folder: Folder to look into
@@ -48,17 +48,17 @@ class Erp(object):
                 source_file = source_folder + os.sep + member
 
                 parser = xml_item_parser.XmlItemParser()
-                xmlNodes = parser.parse_file(source_file)
+                xml_nodes = parser.parse_file(source_file)
 
-                if not xmlNodes or "items" not in xmlNodes:
+                if not xml_nodes or "items" not in xml_nodes:
                     # No items in the file
                     continue
 
                 items = []
-                for itemsNode in xmlNodes["items"]:
-                    if "item" in itemsNode:
-                        for itemNode in itemsNode["item"]:
-                            items.append(itemNode)
+                for items_node in xml_nodes["items"]:
+                    if "item" in items_node:
+                        for item_node in items_node["item"]:
+                            items.append(item_node)
 
                 self.__store_items(category, items)
 
@@ -95,7 +95,7 @@ class Erp(object):
         """
         if item_id == "?" and len(self.__items) > 0:
             # Special name for random item
-            item_id = random.choice(self.__items)
+            item_id = random.choice(self.__items.keys())
 
         if item_id in self.__items:
             return self.__items[item_id]

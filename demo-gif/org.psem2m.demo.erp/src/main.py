@@ -82,11 +82,13 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
             code = 400
 
         else:
-            item = ERP_INSTANCE.get_item(self.parsed_query["id"])
+            # Call the ERP
+            item = ERP_INSTANCE.get_item(self.parsed_query["id"][0])
+
             if item:
                 # Item found
                 code = 200
-                xmlData = xml_item_parser.XmlItemOutput().items_to_xml([item])
+                xmlData = xml_item_parser.items_to_xml([item])
 
             else:
                 # Item not found
@@ -112,22 +114,38 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
             return
 
         # Read the XML data in the POST query
-        requested_items = xml_item_parser.XmlItemParser().parse_file(self.rfile)
-        if not requested_items:
+        post_body = self.__read_post_body()
+        xmlNodes = xml_item_parser.XmlItemParser().parse(post_body)
+        if not xmlNodes:
             self.__send_internal_error()
             return
 
-        if "category" in requested_items:
-            # Retrieve a category
-            category = self.parsed_query["category"][0]
-            items = ERP_INSTANCE.get_items(category)
+        if "criteria" not in xmlNodes or len(xmlNodes["criteria"]) == 0:
+            self.__send_response(400, "Invalid Request", "text/plain")
+            return
 
-        else:
-            items = self.__get_all_items()
+        # Read the request
+        criteria = xmlNodes["criteria"][0]
 
+        try:
+            category = criteria["category"]
+            base_id = criteria["baseId"]
+            count = int(criteria["count"])
+            randomize = (criteria["randomize"].lower() == "true")
+
+        except Exception, ex:
+            # An error occurred while reading the request
+            self.send_response(400, "Invalid request content\n" + str(ex), \
+                               "text/plain")
+
+        # Call the ERP
+        items = ERP_INSTANCE.get_items(category, count, randomize, base_id)
+
+        if items == None:
+            self.__send_internal_error()
 
         # Prepare the XML response file
-        xmlData = xml_item_parser.XmlItemOutput().items_to_xml(items)
+        xmlData = xml_item_parser.items_to_xml(items)
 
         # Send answer
         self.__send_response(200, xmlData, "text/xml")
@@ -148,21 +166,32 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
             return
 
         # Read requested items from POST content
-        requested_items = xml_item_parser.XmlItemParser().parse_file(self.rfile)
-        if not requested_items:
+        post_body = self.__read_post_body()
+        xmlNodes = xml_item_parser.XmlItemParser().parse(post_body)
+        if not xmlNodes or "items" not in xmlNodes:
             self.__send_internal_error()
             return
 
         # Get the stock for each requested item
-        itemsStockDict = dict()
-        for item in requested_items:
-            if "id" in item:
-                itemId = item["id"]
-                itemsStockDict[itemId] = ERP_INSTANCE.get_item_stock(itemId)
+        requested_items = xmlNodes["items"]
+        result_items = []
 
+        for itemNode in requested_items:
+            try:
+                item = itemNode["item"][0]
+                itemId = item["id"]
+
+                itemStockDict = {}
+                itemStockDict["id"] = itemId
+                itemStockDict["stock"] = ERP_INSTANCE.get_item_stock(itemId)
+
+                result_items.append(itemStockDict)
+
+            except KeyError, ex:
+                print >> sys.stderr, "Error looking for node :", ex
 
         # Prepare the XML response file
-        xmlData = xml_item_parser.XmlItemOutput().items_to_xml(itemsStockDict)
+        xmlData = xml_item_parser.items_to_xml(result_items)
 
         # Send answer
         self.__send_response(200, xmlData, "text/xml")
@@ -316,6 +345,19 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
         """
         # Handled as GET requests
         self.do_GET()
+
+
+    def __read_post_body(self):
+        """
+        Reads the body of a POST request, returns an empty string on error
+        """
+        try :
+            content_len = int(self.headers.getheader('content-length'))
+            return self.rfile.read(content_len)
+
+        except Exception, ex:
+            print >> sys.stderr, "Error reading POST body :", ex
+            return ""
 
 
     def __send_response(self, code=200, content=None, content_type="text/html"):
