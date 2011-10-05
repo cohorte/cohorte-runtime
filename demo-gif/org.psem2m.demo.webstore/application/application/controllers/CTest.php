@@ -1,7 +1,6 @@
 <?php
-class CTest extends CI_Controller {
+class CTest extends MY_Controller {
 
-	private $pSessionData = null;
 
 	/**
 	 * Constructor
@@ -33,7 +32,8 @@ class CTest extends CI_Controller {
 	{
 		log_message('debug', "** CTest.index()");
 
-		$this->session->sess_create();
+// 		$this->session->sess_destroy();
+// 		$this->session->sess_create();
 		$this->pSessionData = $this->retreiveSessionData();
 
 
@@ -45,8 +45,12 @@ class CTest extends CI_Controller {
 		$data['DetailedItem'] = $wDetailedItem;
 		
 		
+		$wPageBaseId = $this->pSessionData->getPageBaseId();
+		
+		
+		
 		$this->load->model('Item_model');
-		$data['Items'] = $this->Item_model->getItems($wCategorie,0,12,false);
+		$data['Items'] = $this->Item_model->getItems($wCategorie,6,false,$wPageBaseId);
 
 		$this->pSessionData->setNbItems = 25;
 		$this->pSessionData->setCategorie = ($wCategorie=="screens")?"mouses":"screens";
@@ -54,86 +58,8 @@ class CTest extends CI_Controller {
 
 		$this->load->view('CTestView',$data);
 
-
 	}
 
 
-	// ******************************************************************************************
-	// A set of méthod to put in the MY_CI_Controller classe when it will work...
-	// ******************************************************************************************
-	
-	/**
-	 *
-	 * @return    the current instance of CSessionData
-	 */
-	protected function getSessionData(){
-		log_message('debug', "** CTest.getSessionData()");
-
-		if ($this->pSessionData==null){
-			$this->pSessionData = retreiveSessionData();
-		}
-
-		return $this->pSessionData;
-	}
-
-	/**
-	 *
-	 * Save the current instance of CSessionData
-	 */
-	protected function saveSessionData(){
-		log_message('debug', "** CTest.saveSessionData()");
-
-		$this->storeSessionData($this->pSessionData);
-	}
-	/**
-	 * retrieve the instance of CSessionData in the CI session. Creates a new one if it doesn't exist.
-	 *
-	 * @return    a instance of CSessionData
-	 **/
-	protected function retreiveSessionData(){
-		log_message('debug', "** CTest.retreiveSessionData()");
-
-		$wElectronix = $this->session->userdata('electronix');
-
-		log_message('debug', "** CTest.retreiveSessionData() : Electronix=[".$wElectronix ."]" );
-
-		if ($wElectronix == false){
-			log_message('debug', "** CTest.retreiveSessionData() : no GifData ! ");
-
-			$wSessionData = $this->storeSessionData($this->newSessionData());
-		}else {
-			// Creates the SessionData bean with the array "all_userdata"
-			$wSessionData = new CSessionData($this->session->all_userdata());
-		}
-		return $wSessionData;
-	}
-
-	/**
-	 *
-	 * @return    a new instance of CSessionData
-	 **/
-	private function newSessionData(){
-		log_message('debug', "** CTest.newSessionData()");
-		$wSessionData = new CSessionData();
-		$wSessionData->setElectronix($wSessionData->getTimeStamp());
-		$wSessionData->setCategorie('screens');
-		$wSessionData->setDetailedItem('');
-		$wSessionData->setStartPageIdx(0);
-		
-		return $wSessionData;
-	}
-
-	/**
-	 *
-	 * @param    $aSessionData    the session data to store
-	 * @return    the stored instance of CSessionData
-	 **/
-	protected function storeSessionData($aSessionData){
-		log_message('debug', "** CTest.storeSessionData()");
-		$this->session->set_userdata($aSessionData->getProperties());
-
-		log_message('debug', "** CTest.storeSessionData() : all_userdata=[". var_export($this->session->all_userdata(),true)."]" );
-		return $aSessionData;
-	}
 
 }

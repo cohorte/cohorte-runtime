@@ -4,7 +4,7 @@
 <?php
 }
 
-$wImageUrl = "/".base_url()."app_resources/images/_items/".$Item['id'].".png";
+$wImageUrl = "/".base_url()."app_resources/images/_items/".$id.".png";
 ?>
 
 
@@ -26,19 +26,19 @@ $wImageUrl = "/".base_url()."app_resources/images/_items/".$Item['id'].".png";
 				</div>
 			</div>
 			<div class="details_big_box">
-				<div class="product_title_big"><?php echo $Item['id']; ?> </div>
+				<div class="product_title_big"><?php echo $id; ?> </div>
 				<div class="specifications">
-					Product : <span class="blue"><?php echo $Item['name']; ?></span>
+					Product : <span class="blue"><?php echo $name; ?></span>
 					<br />
-					Description: <span class="blue"><?php echo $Item['description']; ?></span>
+					Description: <span class="blue"><?php echo $description; ?></span>
 					<br />
-					Availability: <span class="prod_price_big"> <span class="stock<?php echo $Item['qualityClass']; ?>"><?php echo $Item['stock']; ?></span></span>
+					Availability: <span class="prod_price_big"> <span class="stock<?php echo $stockQualityClass; ?>"><?php $stock; ?></span></span>
 					<br />
 					Tip transport: <span class="blue">Mic</span>
 					<br />
 					Tax include: <span class="blue">TVA</span><br />
 				</div>
-				<div class="prod_price_big"> <span class="price"><?php echo $Item['price']; ?> EUR</span>
+				<div class="prod_price_big"> <span class="price"><?php echo $price; ?> EUR</span>
 				</div>
 
 				<a href="#" class="addtocart">add to cart</a> <a href="#"

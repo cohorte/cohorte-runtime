@@ -26,37 +26,40 @@ class CHome extends MY_Controller {
 	 * map to /index.php/welcome/<method_name>
 	 * @see http://codeigniter.com/user_guide/general/urls.html
 	 */
-	public function index()
-	{
+	public function index(){
+		
 		log_message('debug', "** CHome.index()");
 
 		$this->load->model('Item_model');
 
 
-		$wRandomIdx = rand(1, 21);
-		$wRandomIdx = str_pad($wRandomIdx, 3, "0", STR_PAD_LEFT);
-		$wRandomTyp = rand(0, 1);
-		$wRandomItem = (($wRandomTyp==0)?'screen':'mouse').$wRandomIdx;
+
 
 
 		$wCategorie = $this->pSessionData->getCategorie();
 		$wDetailedItem = $this->pSessionData->getDetailedItem();
-		$wStartPageIdx = $this->pSessionData->getStartPageIdx();
+		$wPageBaseId = $this->pSessionData->getPageBaseId();
 
 		$data['Categorie'] = $wCategorie;
-		$data['DetailedItem'] = $wDetailedItem;
+		
 
-		// get the 6 first items of a categorie
-		$wItems = $this->Item_model->getItems($wCategorie,$wStartPageIdx,6,false);
+		// get the 6 items of according the category
+		$wItems = $this->Item_model->getItems($wCategorie,6,false,$wPageBaseId);
+		
+		// memo of the id of the last item of the page
+		$this->pSessionData->setNextPageBaseId($wItems[count($wItems)-1]['id']);
 
 		$data['Items'] = $this->injectStockInItems($wItems);
 
 
 		// get the 3 random items in the categorie
-		$wItemsRandom = $this->Item_model->getItems($wCategorie,0,2,true);
+		$wItemsRandom = $this->Item_model->getItems($wCategorie,2,true);
 
 		$data['ItemsRandom'] = $this->injectStockInItems($wItemsRandom);
-
+		
+		// get the oferta item
+		$data['ItemOferta'] = $this->Item_model->getItem('?');
+		
 		// get the special item
 		$wItemSpecial = $this->Item_model->getItem('screen001');
 		$data['ItemSpecial'] =$this->injectStockInItem($wItemSpecial);
@@ -67,10 +70,19 @@ class CHome extends MY_Controller {
 
 		if ($wDetailedItem != ''){
 			$wItemDetail = $this->Item_model->getItem($wDetailedItem);
-			$data['ItemDetail'] =$this->injectStockInItem($wItemDetail);
-
+			if ($wItemDetail!=null){
+				$data['ItemDetail'] =$this->injectStockInItem($wItemDetail);
+			} else{
+				//raz
+				$wDetailedItem = '';
+				$this->pSessionData->setDetailedItem($wDetailedItem);
+			}
 		}
-
+		$data['DetailedItem'] = $wDetailedItem;
+		
+		
+		$this->saveSessionData();
+		
 		$this->load->view('CHomeView',$data);
 	}
 
@@ -79,14 +91,23 @@ class CHome extends MY_Controller {
 	* Enter description here ...
 	* @param unknown_type $aItemId
 	*/
-	public function showDetails($aItemId='')
-	{
+	public function showDetails($aItemId=''){
+		
 		log_message('debug', "** CHome.showDetails() : ItemId=[".$aItemId."]");
-	
+		
+		if ($aItemId == 'x'){
+			$aItemId = '?';
+		}else if ($aItemId != ''){
+			if (strpos($aItemId,' ')>-1){
+				$aItemId='';
+			}else{
+				$aItemId = mb_strtolower($aItemId);
+			}
+		}
 	
 		$this->pSessionData->setDetailedItem($aItemId);
-		$this->saveSessionData();
-			
+		// the sessin data is saved at the end of the "index" method.
+		// $this->saveSessionData();			
 		$this->index();
 	}
 	
@@ -95,50 +116,52 @@ class CHome extends MY_Controller {
 	 * Enter description here ...
 	 * @param unknown_type $aCategorie
 	 */
-	public function changeCategorie($aCategorie)
-	{
+	public function changeCategorie($aCategorie){
+		
 		log_message('debug', "** CHome.changeCategorie() : Categorie=[".$aCategorie."]");
 	
 		$this->pSessionData->setCategorie($aCategorie);
-		$this->pSessionData->setStartPageIdx(0);
+		$this->pSessionData->setPreviousPageBaseId('');
+		$this->pSessionData->setPageBaseId('');
+		$this->pSessionData->setNextPageBaseId('');
 		$this->pSessionData->setDetailedItem('');
 		$this->saveSessionData();
 	
 		$this->index();
 	}
 	
-	
 	/**
 	 *
-	 * Enter description here ...
+	 * PreviousPageBaseId
+	 * PageBaseId
+	 * NextPageBaseId
+	 * 
 	 */
 	public function previousPageItem(){
-	
-		$wStartPageIdx = $this->pSessionData->getStartPageIdx();
-	
-		$wStartPageIdx = $wStartPageIdx-6;
-		if ($wStartPageIdx<0) $wStartPageIdx=0;
-	
-		$this->pSessionData->setStartPageIdx($wStartPageIdx);
-		$this->saveSessionData();
-	
+		
+		$this->pSessionData->setPageBaseId($this->pSessionData->getPreviousPageBaseId());
+		
+		$this->pSessionData->setPreviousPageBaseId('');
+		
+		// the sessin data is saved at the end of the "index" method.
+		// $this->saveSessionData();
 		$this->index();
 	}
 	
 	/**
 	 *
-	 * Enter description here ...
+	 * PreviousPageBaseId
+	 * PageBaseId
+	 * NextPageBaseId
+	 * 
 	 */
 	public function nextPageItem(){
-	
-		$wStartPageIdx = $this->pSessionData->getStartPageIdx();
-	
-		$wStartPageIdx = $wStartPageIdx+6;
-		if ($wStartPageIdx<0) $wStartPageIdx=0;
-	
-		$this->pSessionData->setStartPageIdx($wStartPageIdx);
-		$this->saveSessionData();
-	
+		
+		$this->pSessionData->setPreviousPageBaseId($this->pSessionData->getPageBaseId());
+		$this->pSessionData->setPageBaseId($this->pSessionData->getNextPageBaseId());
+		
+		// the sessin data is saved at the end of the "index" method.
+		// $this->saveSessionData();	
 		$this->index();
 	}
 

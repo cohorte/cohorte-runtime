@@ -19,7 +19,7 @@
 <?php $this->load->view('parts/CLogoPartView'); ?>
 
 <!--  LOAD OFERTA -->
-<?php $this->load->view('parts/COfertaPartView'); ?>
+<?php $this->load->view('parts/COfertaPartView',$ItemOferta); ?>
 
 </div>
 
@@ -43,10 +43,7 @@ $this->load->view('parts/CNavigatorPartView',$datanav);
 
 <!--  LOAD SPECIAL PRODUCT -->
 <div class="title_box">Special Products</div>
-<?php 
-$wDataSpecial = array();
-$wDataSpecial['Item']= $ItemSpecial;
-$this->load->view('parts/CProductHightLightPartView',$wDataSpecial); ?>
+<?php $this->load->view('parts/CProductHightLightPartView',$ItemSpecial); ?>
 
      
 			<!--  LOAD NEWSLETTER -->
@@ -69,11 +66,8 @@ $this->load->view('parts/CProductHightLightPartView',$wDataSpecial); ?>
 
 <!--  LOAD SPECIAL PRODUCTS -->
 <?php foreach ($ItemsRandom as $Id1=>$wItemR) {
-		$wDataProduct = array();
-		$wDataProduct['Item']=$wItemR;
-		$wDataProduct['Categorie'] = $Categorie;
-		$this->load->view('parts/CProductPartView',$wDataProduct);
-	}
+		$this->load->view('parts/CProductPartView',$wItemR);
+}
 ?>
 
 <?php }else{ ?>
@@ -85,12 +79,8 @@ $this->load->view('parts/CProductHightLightPartView',$wDataSpecial); ?>
 </div>
 
 <!--  LOAD PRODUCT DETAILS -->
-<?php 
-				
-	$wDataProductDetail = array();
-	$wDataProductDetail['Item']=$ItemDetail;
-	$wDataProductDetail['Categorie'] = $Categorie;
-	$this->load->view('parts/CProductDetailPartView',$wDataProductDetail);
+<?php 	
+	$this->load->view('parts/CProductDetailPartView',$ItemDetail);
 
 ?>
 <?php }?>
@@ -105,13 +95,7 @@ $this->load->view('parts/CProductHightLightPartView',$wDataSpecial); ?>
 				
 <!--  LOAD PRODUCT PAGE -->
 <?php foreach ($Items as $Id1=>$wItemL) {
-				
-	
-						
-	$wDataProduct = array();
-	$wDataProduct['Item']=$wItemL;
-	$wDataProduct['Categorie'] = $Categorie;
-	$this->load->view('parts/CProductPartView',$wDataProduct);
+	$this->load->view('parts/CProductPartView',$wItemL);
 }
 ?>
 
@@ -125,13 +109,9 @@ $this->load->view('parts/CProductHightLightPartView',$wDataSpecial); ?>
 <!--  LOAD NEWSLETTER -->
 <?php $this->load->view('parts/CShoppingCartSummaryPartView'); ?>
 
-
 <!--  LOAD PRODUCT NEW -->
 <div class="title_box">What's new</div>
-<?php 
-$wDataNew = array();
-$wDataNew['Item']= $ItemNew;
-$this->load->view('parts/CProductHightLightPartView',$wDataNew); ?>
+<?php $this->load->view('parts/CProductHightLightPartView',$ItemNew); ?>
 
 
 <!--  LOAD NEWSLETTER -->
