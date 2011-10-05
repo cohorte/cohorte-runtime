@@ -62,7 +62,7 @@ public class CachedItemStockBean implements ICachedBean {
     /**
      * @return the item ID
      */
-    public String getItemId() {
+    public String getId() {
 
         return pItemId;
     }
@@ -90,7 +90,7 @@ public class CachedItemStockBean implements ICachedBean {
      * @param aItemId
      *            the item ID
      */
-    public void setItemId(final String aItemId) {
+    public void setId(final String aItemId) {
 
         pItemId = aItemId;
     }
