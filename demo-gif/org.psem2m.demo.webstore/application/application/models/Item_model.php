@@ -46,12 +46,12 @@ class Item_model extends CI_Model {
 	 * @param String $aCategorie  The category of the returned items.
 	 * @param Integer $aNbItems the number of wanted items 
 	 * @param Boolean $aRandom  Gets the items at random in the golbal list of items. 
-	 * @param Integer $aStartIdx The start index in the global list of items. This parameter isn't taken if the "aRandom" one is set to true
+	 * @param Integer $aStartIdx The base . This parameter isn't taken if the "aRandom" one is set to true
 	 */
-	public function getItems($aCategory='', $aNbItems=99, $aRandom=false,$aStartIdx=0){
+	public function getItems($aCategory='', $aNbItems=99, $aRandom=false,$aBaseId=''){
 		
-		//return $this->rpcGetItems($aCategory, $aNbItems ,$aRandom, $aStartIdx);
-		return $this->localGetItems($aCategory, $aNbItems, $aRandom, $aStartIdx);
+		//return $this->rpcGetItems($aCategory, $aNbItems ,$aRandom, $aBaseId);
+		return $this->localGetItems($aCategory, $aNbItems, $aRandom, $aBaseId);
 	}
 
 	/**
@@ -190,12 +190,12 @@ class Item_model extends CI_Model {
 	/**
 	 * return an array of items asking the dataserver
 	 *
-	 * @param unknown_type $aCategorie
-	 * @param unknown_type $aStartIdx
-	 * @param unknown_type $aNb
-	 * @param unknown_type $aRandom
+	 * @param String $aCategorie
+	 * @param Integer $aNbItems
+	 * @param boolean $aNb
+	 * @param String $aBaseId
 	 */
-	private function rpcGetItems($aCategorie, $aNbItems, $aRandom,$aStartIdx)
+	private function rpcGetItems($aCategorie, $aNbItems, $aRandom,$aBaseId)
 	{
 
 		$wJsonrpcClient =& $this->jsonrpc->get_client();
@@ -204,6 +204,9 @@ class Item_model extends CI_Model {
 
 		$wParam = array();
 		array_push($wParam,$aCategorie);
+// 		array_push($wParam,$aNbItems);
+// 		array_push($wParam,$aRandom);
+// 		array_push($wParam,$aBaseId);
 		$wJsonrpcClient->request($wParam);
 
 		$wJsonrpcClient->timeout(5);
@@ -357,14 +360,14 @@ class Item_model extends CI_Model {
 	/**
 	 * return an array of items reading the local data ( items.xml)
 	 *
-	 * @param unknown_type $aCategorie
-	 * @param unknown_type $aStartIdx
-	 * @param unknown_type $aNb
-	 * @param unknown_type $aRandom
+	 * @param String $aCategorie
+	 * @param Integer $aNbItems
+	 * @param boolean $aNb
+	 * @param String $aBaseId
 	 */
-	private function localGetItems($aCategorie,$aStartIdx, $aNb, $aRandom)
-	{
-		log_message('debug', "** CItem.getItems() : [".$aCategorie."][".$aStartIdx."][".$aNb."][".$aRandom."]");
+	private function localGetItems($aCategorie, $aNbItems, $aRandom,$aBaseId){
+		
+		log_message('debug', "** CItem.getItems() : [".$aCategorie."][".$aNbItems."][".$aRandom."][".$aBaseId."]");
 
 		$wItems = $this->localBuildItems();
 
@@ -372,8 +375,8 @@ class Item_model extends CI_Model {
 			$wItems = $this->localSubsetCategorie($wItems,$aCategorie);
 		}
 
-		if ($aStartIdx>0 || $aNb<99){
-			$wItems = $this->localSubsetPage($wItems,$aStartIdx,$aNb,$aRandom);
+		if ( $aNbItems<99 ){
+			$wItems = $this->localSubsetPage($wItems,$aNbItems, $aRandom,$aBaseId);
 		}
 
 
@@ -453,25 +456,42 @@ class Item_model extends CI_Model {
 	/**
 	 * Return a subset of n items according to the start index or the randomization
 	 *
-	 * @param Integer $aItems
-	 * @param Integer $aNb
-	 * @param Boolean $aRandom
+	* @param Integer $aNbItems
+	* @param boolean $aNb
+	* @param String $aBaseId
 	 * @return Array
 	 */
-	private function localSubsetPage($aItems,$aStartIdx,$aNb,$aRandom){
+	private function localSubsetPage($aItems, $aNbItems, $aRandom,$aBaseId){
 
 		$wItems = array();
+		
+		$wStartIdx  =  ($aRandom)?0 : $this->findStartIdx($aItems,$aBaseId);
 
 		$wMax = count($aItems);
-		if ($aNb +$aStartIdx>$wMax){
-			$aNb=$wMax-$aStartIdx;
+		if ($aNbItems +$wStartIdx>$wMax){
+			$aNbItems=$wMax-$wStartIdx;
 		}
-		for ($i = $aStartIdx; $i < $aStartIdx+$aNb; $i++) {
-			$wIdx = ($aRandom)? rand(0, $wMax-1): $i;
+		for ($wI = $wStartIdx; $wI < $wStartIdx+$aNbItems; $wI++) {
+			$wIdx = ($aRandom)? rand(0, $wMax-1): $wI;
 			array_push($wItems,$aItems[$wIdx]);
 		}
 
 		return $wItems;
+	}
+	
+	/**
+	 * @return the start index according the passed base id.
+	 */
+	private function findStartIdx($aItems,$aBaseId){
+		$wI = 0;
+		foreach ($aItems as $wId=>$wItem) {
+			// if the id is greater than $aBaseId
+			if ($wItem['id'] > $aBaseId){
+				return $wI;
+			}
+			$wI++;
+		}
+		return 0;
 	}
 
 	/**

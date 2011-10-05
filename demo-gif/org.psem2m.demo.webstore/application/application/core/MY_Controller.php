@@ -20,7 +20,6 @@ class MY_Controller extends CI_Controller {
 		$this->pSessionData = $this->retreiveSessionData();
 	}
 
-
 	/**
 	 *
 	 * Enter description here ...
@@ -130,6 +129,7 @@ class MY_Controller extends CI_Controller {
 		}else {
 			// Creates the SessionData bean with the array "all_userdata"
 			$wSessionData = new CSessionData($this->session->all_userdata());
+			
 		}
 		return $wSessionData;
 	}
@@ -143,8 +143,12 @@ class MY_Controller extends CI_Controller {
 		$wSessionData = new CSessionData();
 		$wSessionData->setElectronix($wSessionData->getTimeStamp());
 		$wSessionData->setCategorie('screens');
+		
 		$wSessionData->setDetailedItem('');
-		$wSessionData->setStartPageIdx(0);
+		
+		$wSessionData->setPreviousPageBaseId('');
+		$wSessionData->setPageBaseId('');
+		$wSessionData->setNextPageBaseId('');
 
 		return $wSessionData;
 	}
