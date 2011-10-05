@@ -34,10 +34,8 @@ class CShoppingCart extends MY_Controller {
 			
 		$data = array();
 		
-// 		$data['ItemSpecial'] = $this->Item_model->getItem('screen001');
-		
-// 		$data['ItemNew'] = $this->Item_model->getItem('mouse001');
-
+		// get the oferta item
+		$data['ItemOferta'] = $this->Item_model->getItem('?');
 		
 		// get the special item
 		$wItemSpecial = $this->Item_model->getItem('screen012');

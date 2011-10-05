@@ -33,10 +33,7 @@ class CHome extends MY_Controller {
 		$this->load->model('Item_model');
 
 
-		$wRandomIdx = rand(1, 21);
-		$wRandomIdx = str_pad($wRandomIdx, 3, "0", STR_PAD_LEFT);
-		$wRandomTyp = rand(0, 1);
-		$wRandomItem = (($wRandomTyp==0)?'screen':'mouse').$wRandomIdx;
+
 
 
 		$wCategorie = $this->pSessionData->getCategorie();
@@ -44,12 +41,13 @@ class CHome extends MY_Controller {
 		$wPageBaseId = $this->pSessionData->getPageBaseId();
 
 		$data['Categorie'] = $wCategorie;
+		
 
-		// get the 6 first items of a categorie
+		// get the 6 items of according the category
 		$wItems = $this->Item_model->getItems($wCategorie,6,false,$wPageBaseId);
 		
+		// memo of the id of the last item of the page
 		$this->pSessionData->setNextPageBaseId($wItems[count($wItems)-1]['id']);
-		
 
 		$data['Items'] = $this->injectStockInItems($wItems);
 
@@ -58,7 +56,10 @@ class CHome extends MY_Controller {
 		$wItemsRandom = $this->Item_model->getItems($wCategorie,2,true);
 
 		$data['ItemsRandom'] = $this->injectStockInItems($wItemsRandom);
-
+		
+		// get the oferta item
+		$data['ItemOferta'] = $this->Item_model->getItem('?');
+		
 		// get the special item
 		$wItemSpecial = $this->Item_model->getItem('screen001');
 		$data['ItemSpecial'] =$this->injectStockInItem($wItemSpecial);
@@ -94,7 +95,9 @@ class CHome extends MY_Controller {
 		
 		log_message('debug', "** CHome.showDetails() : ItemId=[".$aItemId."]");
 		
-		if ($aItemId != ''){
+		if ($aItemId == 'x'){
+			$aItemId = '?';
+		}else if ($aItemId != ''){
 			if (strpos($aItemId,' ')>-1){
 				$aItemId='';
 			}else{
@@ -103,8 +106,8 @@ class CHome extends MY_Controller {
 		}
 	
 		$this->pSessionData->setDetailedItem($aItemId);
-		$this->saveSessionData();
-			
+		// the sessin data is saved at the end of the "index" method.
+		// $this->saveSessionData();			
 		$this->index();
 	}
 	

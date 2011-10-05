@@ -346,8 +346,16 @@ class Item_model extends CI_Model {
 	 * @param unknown_type $aItemId
 	 */
 	private function localGetItem($aItemId){
-
+		log_message('debug', "** CItem.localGetItem() : [".$aItemId."]");
+		
 		$wItems = $this->localBuildItems();
+		
+		if ($aItemId == '?'){
+			$wRandomIdx = rand(1, 21);
+			$wRandomIdx = str_pad($wRandomIdx, 3, "0", STR_PAD_LEFT);
+			$wRandomTyp = rand(0, 1);
+			$aItemId = (($wRandomTyp==0)?'screen':'mouse').$wRandomIdx;
+		}
 
 		foreach ($wItems as $wId=>$wItem) {
 			if ($wItem['id']==$aItemId){
@@ -367,7 +375,7 @@ class Item_model extends CI_Model {
 	 */
 	private function localGetItems($aCategorie, $aNbItems, $aRandom,$aBaseId){
 		
-		log_message('debug', "** CItem.getItems() : [".$aCategorie."][".$aNbItems."][".$aRandom."][".$aBaseId."]");
+		log_message('debug', "** CItem.localGetItems() : [".$aCategorie."][".$aNbItems."][".$aRandom."][".$aBaseId."]");
 
 		$wItems = $this->localBuildItems();
 

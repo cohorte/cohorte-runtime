@@ -30,7 +30,7 @@ class MY_Controller extends CI_Controller {
 		array_push($wItemIds,$aItem['id']);
 		$wItemsStock= $this->Item_model->getItemsStock($wItemIds);
 		$aItem['stock']=$wItemsStock[0]['stock'];
-		$aItem['qualityClass'] = $this->convertQualityToClass ($wItemsStock[0]['qualityLevel']);
+		$aItem['stockQualityClass'] = $this->convertQualityToClass ($wItemsStock[0]['qualityLevel']);
 
 		//echo  '<br/>'.var_export($aItem,true);
 
@@ -58,7 +58,7 @@ class MY_Controller extends CI_Controller {
 		$wI=0;
 		foreach ($aItems as $wId=>$wItem) {
 			$wItem['stock'] = $wItemsStock[$wI]['stock'];
-			$wItem['qualityClass'] = $this->convertQualityToClass ($wItemsStock[$wI]['qualityLevel']);
+			$wItem['stockQualityClass'] = $this->convertQualityToClass ($wItemsStock[$wI]['qualityLevel']);
 			//echo  '<br/>'.var_export($wItemsStock[$wI]['stock'],true)."&nbsp;".var_export($wItemsStock[$wI]['stockquality'],true);
 			array_push($wItems,$wItem);
 			$wI++;

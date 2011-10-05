@@ -3,9 +3,9 @@
 <body>
 <?php }
 
-$wImageUrl = "/".base_url()."app_resources/images/_items/".$Item['id'].".jpg";
+$wImageUrl = "/".base_url()."app_resources/images/_items/".$id.".jpg";
 
-$wDetailUrl = "/". base_url()."index.php/CHome/showDetails/".$Item['id']; 
+$wDetailUrl = "/". base_url()."index.php/CHome/showDetails/".$id; 
 
 ?>
 
@@ -15,7 +15,7 @@ $wDetailUrl = "/". base_url()."index.php/CHome/showDetails/".$Item['id'];
 	
 	<div class="center_prod_box">
 		<div class="product_title">
-			<a href="<?php echo $wDetailUrl; ?>"><?php echo $Item['id']; ?> </a>
+			<a href="<?php echo $wDetailUrl; ?>"><?php echo $id; ?> </a>
 		</div>
 		<div class="product_img">
 			<a href="<?php echo $wDetailUrl; ?>"><img
@@ -23,9 +23,9 @@ $wDetailUrl = "/". base_url()."index.php/CHome/showDetails/".$Item['id'];
 				alt="" title="" border="0" width="100px" /> </a>
 		</div>
 		<div class="prod_price">
-			<span class="price"><?php echo $Item['price']; ?> EUR</span>
+			<span class="price"><?php echo $price; ?> EUR</span>
 			&nbsp;
-			<span class="stock">Availability: <span class="stock<?php echo $Item['qualityClass']; ?>"><?php echo $Item['stock']; ?></span></span>
+			<span class="stock">Availability: <span class="stock<?php echo $stockQualityClass; ?>"><?php echo $stock; ?></span></span>
 			
 		</div>
 	</div>
