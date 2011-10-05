@@ -4,9 +4,9 @@
 <?php 
 }
 
-$wImageUrl = "/".base_url()."app_resources/images/_items/".$id.".jpg";
+$wImageUrl = base_url()."app_resources/images/_items/".$id.".jpg";
 
-$wDetailUrl = "/". base_url()."/index.php/CHome/showDetails/".$id;
+$wDetailUrl =  base_url()."index.php/CHome/showDetails/".$id;
 
 ?>
 

@@ -74,7 +74,7 @@ $this->load->view('parts/CNavigatorPartView',$datanav);
 
 <div class="center_title_bar"><?php echo $DetailedItem ?> details ... &nbsp;  &nbsp;<span style="font-size:9pt;font-weight:normal;">(  &nbsp;
 
- <a href="/<?php echo base_url(); ?>index.php/CHome/showDetails">close</a>
+ <a href="<?php echo base_url(); ?>index.php/CHome/showDetails">close</a>
  &nbsp;)</span>
 </div>
 
@@ -87,9 +87,9 @@ $this->load->view('parts/CNavigatorPartView',$datanav);
 				
 <div class="center_title_bar">
 <?php echo $Categorie ?> &nbsp;  &nbsp;<span style="font-size:9pt;font-weight:normal;">(  &nbsp;
-<a href="/<?php echo base_url(); ?>index.php/CHome/previousPageItem">previous</a>
+<a href="<?php echo base_url(); ?>index.php/CHome/previousPageItem">previous</a>
  &nbsp;
- <a href="/<?php echo base_url(); ?>index.php/CHome/nextPageItem">next</a>
+ <a href="<?php echo base_url(); ?>index.php/CHome/nextPageItem">next</a>
  &nbsp;)</span>
 </div>
 				

@@ -14,7 +14,7 @@
 | path to your installation.
 |
 */
-$config['base_url']	= 'gif2011ws';
+$config['base_url']	= '/gif2011ws';
 
 /*
 |--------------------------------------------------------------------------

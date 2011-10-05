@@ -9,13 +9,13 @@
 	
 <title>Electronix Store</title>
 
-<link rel="stylesheet" type="text/css" href="/<?php echo base_url(); ?>app_resources/style.css" />
+<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>app_resources/style.css" />
 
 <!--[if IE 6]>
 <link rel="stylesheet" type="text/css" href="iecss.css" />
 <![endif]-->
 
-<script type="text/javascript" src="/<?php echo base_url(); ?>js/app_resources/boxOver.js"></script>
+<script type="text/javascript" src="<?php echo base_url(); ?>js/app_resources/boxOver.js"></script>
 
 <script>
 PositionX = 100;

@@ -65,7 +65,7 @@ $this->load->view('parts/CNavigatorPartView',$datanav);
 
 <?php 
 
-echo form_open('updateCart');
+echo form_open('CShoppingCart/updateCart');
 ?>
 
 <table id="shoppingcart"  >
@@ -122,7 +122,7 @@ endforeach;
 
 <script>
 function callControler(aMethod){
-	var wUrl = "/<?php echo base_url(); ?>index.php/CShoppingCart/"+aMethod;
+	var wUrl = "<?php echo base_url(); ?>index.php/CShoppingCart/"+aMethod;
 	window.location.href=wUrl;
 }
 

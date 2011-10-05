@@ -3,11 +3,11 @@
 <body>
 <?php }
 
-$wImageUrl = "/".base_url()."app_resources/images/_items/".$id.".jpg";
+$wImageUrl = base_url()."app_resources/images/_items/".$id.".jpg";
 
-$wDetailUrl = "/". base_url()."index.php/CHome/showDetails/".$id; 
+$wDetailUrl = base_url()."index.php/CHome/showDetails/".$id; 
 
-$wAddCartUrl = "/". base_url()."index.php/CHome/addToCart/".$id;
+$wAddCartUrl =  base_url()."index.php/CHome/addToCart/".$id;
 
 ?>
 
@@ -37,19 +37,19 @@ $wAddCartUrl = "/". base_url()."index.php/CHome/addToCart/".$id;
 	<div class="prod_details_tab">
 
 		<a href="<?php echo $wAddCartUrl; ?>" title="header=[Add to cart] body=[&nbsp;] fade=[on]"> <img
-			src="/<?php echo base_url(); ?>app_resources/images/cart.gif" alt=""
+			src="<?php echo base_url(); ?>app_resources/images/cart.gif" alt=""
 			title="" border="0" class="left_bt" /> </a> 
 
 			
 			<a href="#"
 			title="header=[Specials] body=[&nbsp;] fade=[on]"> <img
-			src="/<?php echo base_url(); ?>app_resources/images/favs.gif" alt=""
+			src="<?php echo base_url(); ?>app_resources/images/favs.gif" alt=""
 			title="" border="0" class="left_bt" /> </a> 
 			
 			
 			<a href="#"
 			title="header=[Gifts] body=[&nbsp;] fade=[on]"> <img
-			src="/<?php echo base_url(); ?>app_resources/images/favorites.gif"
+			src="<?php echo base_url(); ?>app_resources/images/favorites.gif"
 			alt="" title="" border="0" class="left_bt" /> </a> 
 			
 			

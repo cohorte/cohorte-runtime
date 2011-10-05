@@ -6,9 +6,9 @@
 
 $wQty = 1;
 
-$wAddCartUrl = "/". base_url()."index.php/CHome/addToCart/".$id;
+$wAddCartUrl =  base_url()."index.php/CHome/addToCart/".$id;
 
-$wImageUrl = "/".base_url()."app_resources/images/_items/".$id.".png";
+$wImageUrl = base_url()."app_resources/images/_items/".$id.".png";
 ?>
 
 	<div class="prod_box_big">

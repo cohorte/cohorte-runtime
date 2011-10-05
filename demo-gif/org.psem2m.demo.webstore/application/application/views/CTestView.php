@@ -54,7 +54,7 @@ td {
 	</table>
 
 	<p>
-		<a href="/<?php echo base_url(); ?>index.php/CHome/index" class="nav1">
+		<a href="<?php echo base_url(); ?>index.php/CHome/index" class="nav1">
 			Home </a>
 	</p>
 

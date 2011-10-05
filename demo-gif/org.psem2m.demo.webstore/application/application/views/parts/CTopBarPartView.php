@@ -63,7 +63,7 @@
 	function launchRequest(aObject){
 		var wSearch = document.getElementById("search").value;
 		
-		var wDetailUrl = "/<?php echo base_url(); ?>index.php/CHome/showDetails/"+ wSearch; 
+		var wDetailUrl = "<?php echo base_url(); ?>index.php/CHome/showDetails/"+ wSearch; 
 		
 		window.location.href= wDetailUrl;
 		return true;
@@ -83,17 +83,17 @@
 			</div>
 			<input type="text" class="search_input" id="search" onclick="setFocus(this);" />
 			<input type="image"
-				src="/<?php echo base_url(); ?>app_resources/images/search.gif"
+				src="<?php echo base_url(); ?>app_resources/images/search.gif"
 				class="search_bt" onclick="launchRequest(this);"/>
 		</div>
 		<div class="languages" onclick="setFocus(this);">
 			<div class="lang_text">Languages:</div>
 			<a href="#" class="lang" ><img
-				src="/<?php echo base_url(); ?>app_resources/images/en.gif" alt=""
+				src="<?php echo base_url(); ?>app_resources/images/en.gif" alt=""
 				title="" border="0" /> </a>
 				
 			<a href="#" class="lang"><img
-				src="/<?php echo base_url(); ?>app_resources/images/de.gif" alt=""
+				src="<?php echo base_url(); ?>app_resources/images/de.gif" alt=""
 				title="" border="0" /> </a>
 		</div>
 	</div>

@@ -5,8 +5,8 @@
 
 
 	<div id="logo">
-		<a href="/<?php echo base_url(); ?>index.php/CHome"><img
-			src="/<?php echo base_url(); ?>app_resources/images/logo.png" alt=""
+		<a href="<?php echo base_url(); ?>index.php/CHome"><img
+			src="<?php echo base_url(); ?>app_resources/images/logo.png" alt=""
 			title="" border="0" width="237" height="140" /> </a>
 	</div>
 	

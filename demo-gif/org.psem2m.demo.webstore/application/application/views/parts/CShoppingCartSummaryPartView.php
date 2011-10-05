@@ -16,7 +16,7 @@ $wTotal = $this->cart->total();
 <div class="shopping_cart">
 
 
-<div class="cart_title"><a href="/<?php echo base_url(); ?>index.php/CShoppingCart" title="Checkout" >Shopping cart</a></div>
+<div class="cart_title"><a href="<?php echo base_url(); ?>index.php/CShoppingCart" title="Checkout" >Shopping cart</a></div>
 
 <div class="cart_details">
 <?php echo $wNbItems; ?> items
@@ -25,8 +25,8 @@ Total: <span class="price"><?php echo $wTotal;?> EUR</span>
 </div>
 
 <div class="cart_icon">
-<a href="/<?php echo base_url(); ?>index.php/CShoppingCart" title="Checkout">
-<img src="/<?php echo base_url(); ?>app_resources/images/shoppingcart.png" alt="" title="Checkout" width="48" height="48" border="0" /> </a>
+<a href="<?php echo base_url(); ?>index.php/CShoppingCart" title="Checkout">
+<img src="<?php echo base_url(); ?>app_resources/images/shoppingcart.png" alt="" title="Checkout" width="48" height="48" border="0" /> </a>
 </div>
 
 </div>
