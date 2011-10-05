@@ -6,16 +6,19 @@ Bundle-SymbolicName: org.psem2m.demo.erp.client
 Bundle-Vendor: isandlaTech.com
 Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
-Export-Package: javax.xml.parsers,javax.xml.transform,org.w3c.dom,org.
- xml.sax
-Import-Package: javax.xml.parsers, javax.xml.transform, org.apache.fel
- ix.ipojo;version=1.8.0, org.apache.felix.ipojo.architecture;version=1
- .8.0, org.osgi.framework;version=1.5.0, org.osgi.service.cm;version=1
- .2, org.osgi.service.log;version=1.3, org.psem2m.demo.erp.api.beans, 
- org.psem2m.demo.erp.api.services, org.psem2m.isolates.base;version=1.
- 0.0, org.psem2m.isolates.base.activators;version=1.0.0, org.psem2m.ut
- ilities;version=1.0.0, org.psem2m.utilities.logging;version=1.0.0, or
- g.w3c.dom, org.xml.sax
+Export-Package: javax.xml.parsers,
+ javax.xml.transform,
+ org.w3c.dom,
+ org.xml.sax
+Import-Package: javax.xml.parsers, javax.xml.transform, javax.xml.tran
+ sform.dom, javax.xml.transform.stream, org.apache.felix.ipojo;version
+ =1.8.0, org.apache.felix.ipojo.architecture;version=1.8.0, org.osgi.f
+ ramework;version=1.5.0, org.osgi.service.cm;version=1.2, org.osgi.ser
+ vice.log;version=1.3, org.psem2m.demo.erp.api.beans, org.psem2m.demo.
+ erp.api.services, org.psem2m.isolates.base;version=1.0.0, org.psem2m.
+ isolates.base.activators;version=1.0.0, org.psem2m.utilities;version=
+ 1.0.0, org.psem2m.utilities.logging;version=1.0.0, org.w3c.dom, org.x
+ ml.sax
 iPOJO-Components: instance { $component="demo-erp-client-python-factor
  y" $name="demo-erp-client-Python" property { $name="service.exported.
  interfaces" $value="*" }property { $name="service.exported.configs" $

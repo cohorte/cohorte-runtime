@@ -226,7 +226,6 @@ public class ErpClient extends CPojoBase implements IErpDataProxy {
         if (aItemId == null || aItemId.isEmpty()) {
             // No ID given
             return null;
-
         }
 
         // Prepare the query
@@ -245,16 +244,20 @@ public class ErpClient extends CPojoBase implements IErpDataProxy {
 
                 } else {
                     // Invalid / empty result
+                    pLogger.logInfo(this, "getItem",
+                            "Bad result from ERP (null or empty)");
                     return null;
                 }
 
             } else {
                 // No answer
+                pLogger.logInfo(this, "getItem",
+                        "No answer from the ERP (null)");
                 return null;
             }
 
         } catch (MalformedURLException e) {
-            pLogger.logSevere(this, "getItems", "Error generating the ERP URL",
+            pLogger.logSevere(this, "getItem", "Error generating the ERP URL",
                     e);
         }
 
@@ -294,7 +297,8 @@ public class ErpClient extends CPojoBase implements IErpDataProxy {
                 return xmlToItemBeans(result);
 
             } else {
-                return null;
+                pLogger.logInfo(this, "getItem",
+                        "No answer from the ERP (null)");
             }
 
         } catch (MalformedURLException e) {
@@ -336,7 +340,7 @@ public class ErpClient extends CPojoBase implements IErpDataProxy {
 
         try {
             // Prepare the URL
-            final URL erpUrl = forgeUrl(GET_ITEMS_URI, null);
+            final URL erpUrl = forgeUrl(GET_ITEMS_STOCK_URI, null);
 
             final String result = getUrlPOSTResult(erpUrl, xmlQuery);
             if (result != null) {
@@ -388,6 +392,9 @@ public class ErpClient extends CPojoBase implements IErpDataProxy {
             // Connect to the URL
             connection = (HttpURLConnection) aUrl.openConnection();
 
+            // Use a 2 seconds timeout
+            connection.setReadTimeout(2000);
+
             // Prepare the POST request
             connection.setRequestMethod("POST");
             connection.setDoOutput(true);
@@ -399,12 +406,21 @@ public class ErpClient extends CPojoBase implements IErpDataProxy {
             connection.getOutputStream().write(bodyContent);
 
             final int code = connection.getResponseCode();
-            if (code != HttpURLConnection.HTTP_ACCEPTED) {
+            if (code != HttpURLConnection.HTTP_OK) {
                 // Something happened
+                pLogger.logInfo(this, "getUrlPOSTResult",
+                        "Error during a POST request to ", aUrl, " - code=",
+                        code);
                 return null;
             }
 
-            return (String) connection.getContent();
+            /*
+             * Read the response content See here for more information :
+             * http://weblogs
+             * .java.net/blog/pat/archive/2004/10/stupid_scanner_1.html
+             */
+            return new Scanner(connection.getInputStream()).useDelimiter("\\A")
+                    .next();
 
         } catch (MalformedURLException e) {
             pLogger.logSevere(this, "getItems", "Error generating the ERP URL",
@@ -445,6 +461,9 @@ public class ErpClient extends CPojoBase implements IErpDataProxy {
             final int code = connection.getResponseCode();
             if (code != HttpURLConnection.HTTP_OK) {
                 // Something happened
+                pLogger.logInfo(this, "getUrlPOSTResult",
+                        "Error during a POST request to ", aUrl, " - code=",
+                        code);
                 return null;
             }
 
