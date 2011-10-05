@@ -35,17 +35,19 @@ iPOJO-Components: instance { $component="demo-erp-client-python-factor
  ring}" }method { $name="getDomDocumentBuilder" $return="javax.xml.par
  sers.DocumentBuilder" }method { $name="getElementChildValue" $return=
  "java.lang.String" $arguments="{org.w3c.dom.Element,java.lang.String}
- " }method { $name="getItems" $return="org.psem2m.demo.erp.api.beans.I
- temBean[]" $arguments="{java.lang.String}" }method { $name="getItemsS
- tock" $return="int[]" $arguments="{java.lang.String[]}" }method { $na
- me="getUrlPOSTResult" $return="java.lang.String" $arguments="{java.ne
- t.URL,java.lang.String}" }method { $name="getUrlResult" $return="java
- .lang.String" $arguments="{java.net.URL}" }method { $name="invalidate
- Pojo" }method { $name="itemsIdsToXml" $return="java.lang.String" $arg
- uments="{java.lang.String[]}" }method { $name="parseXmlString" $retur
- n="org.w3c.dom.Document" $arguments="{java.lang.String}" }method { $n
- ame="validatePojo" }method { $name="xmlToItemBeans" $return="org.psem
- 2m.demo.erp.api.beans.ItemBean[]" $arguments="{java.lang.String}" }me
- thod { $name="xmlToItemStocks" $return="java.util.Map" $arguments="{j
- ava.lang.String}" }}}
+ " }method { $name="getItem" $return="org.psem2m.demo.erp.api.beans.It
+ emBean" $arguments="{java.lang.String}" }method { $name="getItems" $r
+ eturn="org.psem2m.demo.erp.api.beans.ItemBean[]" $arguments="{java.la
+ ng.String,int,boolean,java.lang.String}" }method { $name="getItemsSto
+ ck" $return="int[]" $arguments="{java.lang.String[]}" }method { $name
+ ="getUrlPOSTResult" $return="java.lang.String" $arguments="{java.net.
+ URL,java.lang.String}" }method { $name="getUrlResult" $return="java.l
+ ang.String" $arguments="{java.net.URL}" }method { $name="invalidatePo
+ jo" }method { $name="itemsIdsToXml" $return="java.lang.String" $argum
+ ents="{java.lang.String[]}" }method { $name="parseXmlString" $return=
+ "org.w3c.dom.Document" $arguments="{java.lang.String}" }method { $nam
+ e="validatePojo" }method { $name="xmlToItemBeans" $return="org.psem2m
+ .demo.erp.api.beans.ItemBean[]" $arguments="{java.lang.String}" }meth
+ od { $name="xmlToItemStocks" $return="java.util.Map" $arguments="{jav
+ a.lang.String}" }}}
 

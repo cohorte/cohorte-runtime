@@ -52,6 +52,9 @@ import org.xml.sax.SAXException;
 @Provides(specifications = IErpDataProxy.class)
 public class ErpClient extends CPojoBase implements IErpDataProxy {
 
+    /** getItem() method URI */
+    public static final String GET_ITEM_URI = "/getItem";
+
     /** getItemsStock() method URI */
     public static final String GET_ITEMS_STOCK_URI = "/getItemsStock";
 
@@ -214,10 +217,61 @@ public class ErpClient extends CPojoBase implements IErpDataProxy {
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.demo.erp.api.services.IErpDataProxy#getItems(java.lang.String)
+     * org.psem2m.demo.erp.api.services.IErpDataProxy#getItem(java.lang.String)
      */
     @Override
-    public ItemBean[] getItems(final String aCategory) {
+    public ItemBean getItem(final String aItemId) {
+
+        if (aItemId == null || aItemId.isEmpty()) {
+            // No ID given
+            return null;
+
+        }
+
+        // Prepare the query
+        final String query = "?id=" + aItemId;
+
+        try {
+            // Prepare the URL
+            final URL erpUrl = forgeUrl(GET_ITEM_URI, query);
+
+            final String result = getUrlResult(erpUrl);
+            if (result != null) {
+                final ItemBean[] resultArray = xmlToItemBeans(result);
+                if (result != null && resultArray.length > 0) {
+                    // Return the first element found
+                    return resultArray[0];
+
+                } else {
+                    // Invalid / empty result
+                    return null;
+                }
+
+            } else {
+                // No answer
+                return null;
+            }
+
+        } catch (MalformedURLException e) {
+            pLogger.logSevere(this, "getItems", "Error generating the ERP URL",
+                    e);
+        }
+
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.demo.erp.api.services.IErpDataProxy#getItems(java.lang.String,
+     * int, boolean, java.lang.String)
+     */
+    @Override
+    public ItemBean[] getItems(final String aCategory, final int aItemsCount,
+            final boolean aRandomize, final String aBaseId) {
+
+        // TODO prepare a POST query
 
         final String query;
         if (aCategory == null || aCategory.isEmpty()) {
