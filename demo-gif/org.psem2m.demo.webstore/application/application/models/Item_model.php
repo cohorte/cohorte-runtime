@@ -502,6 +502,7 @@ class Item_model extends CI_Model {
 		return 0;
 	}
 
+
 	/**
 	 *
 	 * @return Array An array of items. Each item is an array

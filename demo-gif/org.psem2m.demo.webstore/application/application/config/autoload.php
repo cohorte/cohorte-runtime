@@ -64,7 +64,7 @@ $autoload['libraries'] = array('session','cart','CBean','CSessionData','CXml');
 |	$autoload['helper'] = array('url', 'file');
 */
 
-$autoload['helper'] = array('url','file');
+$autoload['helper'] = array('url','file','form');
 
 
 /*

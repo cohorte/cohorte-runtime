@@ -33,9 +33,6 @@ class CHome extends MY_Controller {
 		$this->load->model('Item_model');
 
 
-
-
-
 		$wCategorie = $this->pSessionData->getCategorie();
 		$wDetailedItem = $this->pSessionData->getDetailedItem();
 		$wPageBaseId = $this->pSessionData->getPageBaseId();
@@ -79,13 +76,44 @@ class CHome extends MY_Controller {
 			}
 		}
 		$data['DetailedItem'] = $wDetailedItem;
-		
+				
 		
 		$this->saveSessionData();
 		
 		$this->load->view('CHomeView',$data);
 	}
 
+	/**
+	 * 
+	 * @param String $aItemId
+	 * @param String $aName
+	 * @param Double $aPrice
+	 * @param integer $aQty
+	 */
+	public function addToCart($aItemId=''){
+		log_message('debug', "** CHome.addToCart() : wCartLine=[".$aItemId."]");
+		
+		if ($aItemId!=''){
+		
+			$this->load->model('Item_model');
+			
+			$wItem = $this->Item_model->getItem($aItemId);
+			
+			$wCartLine =  array(
+	                       'id'      => $aItemId,
+	                       'qty'     => 1,
+	                       'price'   => $wItem['price'],
+	                       'name'    => $wItem['name']
+	                    );
+			
+			log_message('INFO', "** CHome.addToCart() : wCartLine=[".var_export($wCartLine,true)."]");
+			
+			$this->cart->insert($wCartLine);
+		}
+		$this->index();
+	}
+	
+		
 	/**
 	*
 	* Enter description here ...
@@ -113,7 +141,6 @@ class CHome extends MY_Controller {
 	
 	/**
 	 *
-	 * Enter description here ...
 	 * @param unknown_type $aCategorie
 	 */
 	public function changeCategorie($aCategorie){

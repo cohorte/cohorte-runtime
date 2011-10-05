@@ -7,11 +7,27 @@ class CXml {
 		log_message('debug', "** CXml.[init]");
 	}
 
+	/**
+	 * to be sure we read UTF-8 xml content
+	 * 
+	 * @see http://de3.php.net/manual/en/function.file-get-contents.php#85008
+	 * 
+	 * @param String $file
+	 * @return string
+	 */
+	private function file_get_contents_utf8($file) {
+		$content = file_get_contents($file);
+		/* 
+		 "auto" may be used, which expands to  "ASCII,JIS,UTF-8,EUC-JP,SJIS".
+		 */
+		return mb_convert_encoding($content, 'UTF-8','auto');
+	}
+	
 	public function load($file) {
 		log_message('debug', "** CXml.load() : file=[".$file."]");
 		
 		if (! file_exists($file)) return false;
-		return $this->document = (file_get_contents($file));
+		return $this->document = ($this->file_get_contents_utf8($file));
 	}
 
 	public function parse() {
