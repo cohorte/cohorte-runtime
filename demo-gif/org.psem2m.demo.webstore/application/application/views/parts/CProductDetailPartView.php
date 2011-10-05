@@ -4,9 +4,12 @@
 <?php
 }
 
+$wQty = 1;
+
+$wAddCartUrl = "/". base_url()."index.php/CHome/addToCart/".$id;
+
 $wImageUrl = "/".base_url()."app_resources/images/_items/".$id.".png";
 ?>
-
 
 	<div class="prod_box_big">
 		<div class="top_prod_box_big"></div>
@@ -41,7 +44,7 @@ $wImageUrl = "/".base_url()."app_resources/images/_items/".$id.".png";
 				<div class="prod_price_big"> <span class="price"><?php echo $price; ?> EUR</span>
 				</div>
 
-				<a href="#" class="addtocart">add to cart</a> <a href="#"
+				<a href="<?php echo $wAddCartUrl;?>" class="addtocart">add to cart</a> <a href=""
 					class="compare">compare</a>
 			</div>
 		</div>

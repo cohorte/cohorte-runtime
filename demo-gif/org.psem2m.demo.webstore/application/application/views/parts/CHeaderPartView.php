@@ -1,22 +1,25 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<meta http-equiv="Content-Type"
-	content="text/html; charset=windows-1252" />
+
+<!-- 
+@see http://philsturgeon.co.uk/blog/2009/08/UTF-8-support-for-CodeIgniter
+ -->
+<meta http-equiv="content-type" content="text/html; charset=<?php echo config_item('charset');?>" />
+	
 <title>Electronix Store</title>
-<link rel="stylesheet" type="text/css"
-	href="/<?php echo base_url(); ?>app_resources/style.css" />
+
+<link rel="stylesheet" type="text/css" href="/<?php echo base_url(); ?>app_resources/style.css" />
+
 <!--[if IE 6]>
 <link rel="stylesheet" type="text/css" href="iecss.css" />
 <![endif]-->
-<script type="text/javascript"
-	src="/<?php echo base_url(); ?>js/app_resources/boxOver.js"></script>
 
+<script type="text/javascript" src="/<?php echo base_url(); ?>js/app_resources/boxOver.js"></script>
 
 <script>
 PositionX = 100;
 PositionY = 100;
-
 
 defaultWidth  = 500;
 defaultHeight = 500;
@@ -45,9 +48,7 @@ else writeln('</head><body bgcolor=ffffff scroll="no" onload="reSizeToImage();do
 writeln('<img name="George" src='+imageURL+' style="display:block;width:500px" onclick="window.close();"></body></html>');
 close();		
 }}
-
 </script>
-
 
 </head>
 <body>

@@ -44,9 +44,44 @@ class CShoppingCart extends MY_Controller {
 		// get the new item
 		$wItemNew = $this->Item_model->getItem('mouse004');
 		$data['ItemNew'] =$this->injectStockInItem($wItemNew);
-		
+				
 		
 		$this->load->view('CShoppingCartView',$data);
+	}
+	
+	/**
+	*
+	* Enter description here ...
+	*/
+	public function updateCart(){
+		log_message('debug', "** CShoppingCart.updateCart()");
+		
+		$this->index();
+	}
+	
+	/**
+	 * 
+	 * Enter description here ...
+	 */
+	public function eraseCart(){
+		log_message('debug', "** CShoppingCart.eraseCart()");
+		
+	
+		//Permits you to destroy the cart. This function will likely be called when you are finished processing the customer's order.
+		$this->cart->destroy();
+				
+		
+		$this->index();
+	}
+	
+	/**
+	*
+	* Enter description here ...
+	*/
+	public function sendCart(){
+		log_message('debug', "** CShoppingCart.sendCart()");
+		
+		$this->index();
 	}
 	
 }

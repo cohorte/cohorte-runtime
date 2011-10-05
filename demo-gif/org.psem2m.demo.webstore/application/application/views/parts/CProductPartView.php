@@ -7,6 +7,8 @@ $wImageUrl = "/".base_url()."app_resources/images/_items/".$id.".jpg";
 
 $wDetailUrl = "/". base_url()."index.php/CHome/showDetails/".$id; 
 
+$wAddCartUrl = "/". base_url()."index.php/CHome/addToCart/".$id;
+
 ?>
 
 <div class="prod_box">
@@ -34,7 +36,7 @@ $wDetailUrl = "/". base_url()."index.php/CHome/showDetails/".$id;
 	
 	<div class="prod_details_tab">
 
-		<a href="#" title="header=[Add to cart] body=[&nbsp;] fade=[on]"> <img
+		<a href="<?php echo $wAddCartUrl; ?>" title="header=[Add to cart] body=[&nbsp;] fade=[on]"> <img
 			src="/<?php echo base_url(); ?>app_resources/images/cart.gif" alt=""
 			title="" border="0" class="left_bt" /> </a> 
 

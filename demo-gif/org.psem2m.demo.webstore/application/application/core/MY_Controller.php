@@ -128,12 +128,45 @@ class MY_Controller extends CI_Controller {
 			$wSessionData = $this->storeSessionData($this->newSessionData());
 		}else {
 			// Creates the SessionData bean with the array "all_userdata"
-			$wSessionData = new CSessionData($this->session->all_userdata());
-			
+			$wArray = $this->session->all_userdata();
+			if (array_key_exists('cart_contents', $wArray)) {
+				
+				$wArray2 = array();
+				foreach($wArray as $wKey=>$wValue){
+					log_message('INFO', "** MY_Controller.retreiveSessionData() :  wKey=[". var_export($wKey,true)."] wValue=[". var_export($wValue,true)."]" );
+						
+					if ($wKey != 'cart_contents'){
+						$wArray2[$wKey]=$wValue;
+					}
+				}
+				
+					
+				$wArray = $wArray2;
+			}
+			$wSessionData = new CSessionData( $wArray);
+			log_message('INFO', "** MY_Controller.retreiveSessionData() : wSessionData=[". var_export($wSessionData,true)."]" );
+				
 		}
 		return $wSessionData;
 	}
-
+	
+	/**
+	 * 
+	 * Enter description here ...
+	 * @param unknown_type $aArray
+	 * @param unknown_type $aKey
+	 * @return multitype:|unknown
+	 */
+	function removeFromArray($aArray, $aKey){
+		$wIdx=0;
+		foreach($aArray as $wKey=>$wValue){
+			if($wKey == $aKey){
+				return array_splice($aArray, $wIdx, 1);
+			}
+			$wIdx++;
+		}
+		return $aArray;
+	}
 	/**
 		*
 		* @return    a new instance of CSessionData
