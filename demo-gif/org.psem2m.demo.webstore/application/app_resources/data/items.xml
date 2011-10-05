@@ -2,7 +2,7 @@
 <items>
 	<item>
 		<id>mouse001</id>
-		<name>Souris en Bambou</name>
+		<name>XX Souris en Bambou</name>
 		<price>25.00</price>
 		<description>Aujourd'hui, pour se satisfaire aux normes environnementales,
 			nous nous devons de trouver de nouveaux matériaux pour la production.
@@ -13,19 +13,19 @@
 	</item>
 	<item>
 		<id>mouse002</id>
-		<name>Advance Arty POP Flower Mouse</name>
+		<name>XX Advance Arty POP Flower Mouse</name>
 		<price>35.33</price>
 		<description>Souris sans fil</description>
 	</item>
 	<item>
 		<id>mouse003</id>
-		<name>Advance Arty POP Rainbow Mouse</name>
+		<name>XX Advance Arty POP Rainbow Mouse</name>
 		<price>12.00</price>
 		<description>Souris sans fil</description>
 	</item>
 	<item>
 		<id>mouse004</id>
-		<name>AMicrosoft Hardware for Business Optical Mouse 200</name>
+		<name>XX AMicrosoft Hardware for Business Optical Mouse 200</name>
 		<price>19.50</price>
 		<description>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do
 			eiusmod tempor incididunt ut labore et dolore magna aliqua.
@@ -33,45 +33,45 @@
 	</item>
 	<item>
 		<id>mouse005</id>
-		<name>Bluestork BS-MEEEPC</name>
+		<name>XX Bluestork BS-MEEEPC</name>
 		<price>24.00</price>
 		<description>Mini souris optique</description>
 	</item>
 	<item>
 		<id>mouse006</id>
-		<name>Logitech B110 Optical USB Mouse</name>
+		<name>XX Logitech B110 Optical USB Mouse</name>
 		<price>15.50</price>
 		<description>Ut enim ad minim veniam, quis nostrud exercitation ullamco
 		</description>
 	</item>
 	<item>
 		<id>mouse007</id>
-		<name>Genius NetScroll 310</name>
+		<name>XX Genius NetScroll 310</name>
 		<price>15.50</price>
 		<description>Et nunc reges, intelligite... erudimini, qui judicatis terram
 		</description>
 	</item>
 	<item>
 		<id>mouse008</id>
-		<name>Bluestork souris Office USB 800 DPI</name>
+		<name>XX Bluestork souris Office USB 800 DPI</name>
 		<price>15.50</price>
 		<description>Mens sana in corpore sano </description>
 	</item>
 	<item>
 		<id>mouse009</id>
-		<name>Genius ScrollToo 200 </name>
+		<name>XX Genius ScrollToo 200 </name>
 		<price>15.50</price>
 		<description>Redde Caesari quae sunt Caesaris, et quae sunt Dei Deo</description>
 	</item>
 	<item>
 		<id>mouse010</id>
-		<name>Logitech Mouse M90</name>
+		<name>XX Logitech Mouse M90</name>
 		<price>15.50</price>
 		<description>Video meliora proboque deteriora sequor </description>
 	</item>
 	<item>
 		<id>mouse011</id>
-		<name>Microsoft ARC Mouse</name>
+		<name>XX Microsoft ARC Mouse</name>
 		<price>15.50</price>
 		<description>Souris Laser sans fil pliable. Cælum non animum mutant qui trans
 			mare currunt
@@ -79,7 +79,7 @@
 	</item>
 	<item>
 		<id>mouse012</id>
-		<name>Microsoft Basic Optical Mouse</name>
+		<name>XX Microsoft Basic Optical Mouse</name>
 		<price>15.50</price>
 		<description>Souris optique USB "For Business". Actus dicatur bonus qui est
 			conformis legi et rationi
@@ -87,14 +87,14 @@
 	</item>
 	<item>
 		<id>mouse013</id>
-		<name>Razer Ultraslick Mouse DeathAdder</name>
+		<name>XX Razer Ultraslick Mouse DeathAdder</name>
 		<price>15.50</price>
 		<description>Ab esse ad posse valet, a posse ad esse non valet consequentia.
 		</description>
 	</item>
 	<item>
 		<id>mouse014</id>
-		<name>Heden miao</name>
+		<name>XX Heden miao</name>
 		<price>15.50</price>
 		<description>Souris sans fil tactile. Consuetudo est jus quodam moribus
 			institutum, quod pro lege usurpatur ubi deficit lex.
@@ -102,13 +102,13 @@
 	</item>
 	<item>
 		<id>mouse015</id>
-		<name>Logitech LS1 Laser Mouse</name>
+		<name>XX Logitech LS1 Laser Mouse</name>
 		<price>15.50</price>
 		<description>Cras amet qui nunquam amavit ; quique amavit, cras amet.</description>
 	</item>
 	<item>
 		<id>mouse016</id>
-		<name>Logitech Wireless Mouse M305</name>
+		<name>XX Logitech Wireless Mouse M305</name>
 		<price>15.50</price>
 		<description>Souris sans fil ("Flourish"). Felix qui potuit rerum cognoscere
 			causas.
@@ -116,7 +116,7 @@
 	</item>
 	<item>
 		<id>mouse017</id>
-		<name>Logitech Wireless Mouse M235</name>
+		<name>XX Logitech Wireless Mouse M235</name>
 		<price>15.50</price>
 		<description>Souris sans fil. Ecclesia abhorret sanguinem ou Ecclesia
 			abhorret a sanguine.
@@ -124,7 +124,7 @@
 	</item>
 	<item>
 		<id>mouse018</id>
-		<name>Logitech Wireless Mouse M325 Fingerprint Flowers</name>
+		<name>XX Logitech Wireless Mouse M325 Fingerprint Flowers</name>
 		<price>15.50</price>
 		<description>Souris sans fil. Ecclesia abhorret sanguinem ou Ecclesia
 			abhorret a sanguine.
@@ -132,7 +132,7 @@
 	</item>
 	<item>
 		<id>mouse019</id>
-		<name>Microsoft Wireless Mobile Mouse 4000</name>
+		<name>XX Microsoft Wireless Mobile Mouse 4000</name>
 		<price>15.50</price>
 		<description>Souris sans fil. Deus dedit, deus abstulit, sit nomen domini
 			benedictum.
@@ -140,7 +140,7 @@
 	</item>
 	<item>
 		<id>mouse020</id>
-		<name>Sweex Notebook Optical Mouse</name>
+		<name>XX Sweex Notebook Optical Mouse</name>
 		<price>15.50</price>
 		<description>Ignorantia iuris neminem excusat (Ignorantia juris neminem
 			excusat).
@@ -148,7 +148,7 @@
 	</item>
 	<item>
 		<id>mouse021</id>
-		<name>A4Tech Oscar Laser Gaming Mouse XL-747H</name>
+		<name>XX A4Tech Oscar Laser Gaming Mouse XL-747H</name>
 		<price>15.50</price>
 		<description>Souris pour joueur. Iovis erepto fulmine per inferna vehitur
 			Promethei genus.
@@ -156,7 +156,7 @@
 	</item>
 	<item>
 		<id>mouse022</id>
-		<name>Cooler Master Storm Spawn</name>
+		<name>XX Cooler Master Storm Spawn</name>
 		<price>15.50</price>
 		<description>Souris pour joueur. Jovis erepto fulmine per inferna vehitur
 			Promethei genus.
@@ -164,7 +164,7 @@
 	</item>
 	<item>
 		<id>mouse023</id>
-		<name>Cyborg R.A.T. 3</name>
+		<name>XX Cyborg R.A.T. 3</name>
 		<price>15.50</price>
 		<description>Souris laser pour joueur. Lex naturalis non scribitur, sed
 			profluit quodam naturali fonte in singulis exprimititur.
@@ -172,7 +172,7 @@
 	</item>
 	<item>
 		<id>mouse024</id>
-		<name>Microsoft Wireless Mobile Mouse 4000</name>
+		<name>XX Microsoft Wireless Mobile Mouse 4000</name>
 		<price>15.50</price>
 		<description>Souris sans fil. Lex naturalis non scribitur, sed profluit
 			quodam naturali fonte in singulis exprimititur.
@@ -180,7 +180,7 @@
 	</item>
 	<item>
 		<id>mouse025</id>
-		<name>Sweex Notebook Optical Mouse</name>
+		<name>XX Sweex Notebook Optical Mouse</name>
 		<price>15.50</price>
 		<description>Lex naturalis non scribitur, sed profluit quodam naturali fonte
 			in singulis exprimititur .
@@ -188,7 +188,7 @@
 	</item>
 	<item>
 		<id>mouse026</id>
-		<name>A4Tech Oscar Laser Gaming Mouse XL-747H</name>
+		<name>XX A4Tech Oscar Laser Gaming Mouse XL-747H</name>
 		<price>15.50</price>
 		<description>Souris pour joueur. Non vestimentum virum ornat, sed vir
 			vestimentum.
@@ -196,7 +196,7 @@
 	</item>
 	<item>
 		<id>mouse027</id>
-		<name>Cooler Master Storm Spawn</name>
+		<name>XX Cooler Master Storm Spawn</name>
 		<price>15.50</price>
 		<description>Souris pour joueur. Omnes enim qui acceperint gladium, gladio
 			peribunt.
@@ -204,7 +204,7 @@
 	</item>
 	<item>
 		<id>mouse028</id>
-		<name>Cyborg R.A.T. 3</name>
+		<name>XX Cyborg R.A.T. 3</name>
 		<price>15.50</price>
 		<description>Souris laser pour joueur. Omnes enim qui acceperint gladium,
 			gladio peribunt.
@@ -212,7 +212,7 @@
 	</item>
 	<item>
 		<id>screen001</id>
-		<name>Asus - VE228T Ecran LED</name>
+		<name>XX Asus - VE228T Ecran LED</name>
 		<description>21.5" (54.6 cm) - Full HD (1920x1080) - 5 ms - 250 cd/m² - DVI-D
 			/ VGA / Audio
 			Moniteur Asus VE228T. Profitez d'images plus réalistes
@@ -223,7 +223,7 @@
 	</item>
 	<item>
 		<id>screen002</id>
-		<name>PROMO - HANNS G - Ecran LED - HL225DBB</name>
+		<name>XX PROMO - HANNS G - Ecran LED - HL225DBB</name>
 		<description>21.5" - 1920 x 1080 (16/9) - 5 ms - VGA / DVI-D (HDCP)
 			Ecran
 			HANNS G utilisant la technologie LCD/LED de 21.5". Référence :
@@ -233,7 +233,7 @@
 	</item>
 	<item>
 		<id>screen003</id>
-		<name>Samsung - SyncMaster BX2235 - Ecran LED</name>
+		<name>XX Samsung - SyncMaster BX2235 - Ecran LED</name>
 		<description>21.5" (55 cm) Full HD 1920x1080p (16:9) - 2 ms - DVI
 			Le
 			SyncMaster LED BX2235 est idéal pour découvrir les écrans LED
@@ -248,7 +248,7 @@
 	</item>
 	<item>
 		<id>screen004</id>
-		<name>AOC - 2436Vwa (Noir) - Ecran LCD</name>
+		<name>XX AOC - 2436Vwa (Noir) - Ecran LCD</name>
 		<description>3,6" (60 cm) - Full HD (1920x1080) - 5ms - hauts-parleurs
 			intégrés - DVI, VGA
 			Le 2436Vwa de AOC offre une qualité dimage
@@ -264,7 +264,7 @@
 	</item>
 	<item>
 		<id>screen005</id>
-		<name>Iiyama ProLite E2273HDS-1 (noir) - Ecran LCD</name>
+		<name>XX Iiyama ProLite E2273HDS-1 (noir) - Ecran LCD</name>
 		<description>22" (56 cm) - Full HD (1920x1080) 16:9 - 2 ms - Haut Parleurs
 			Stéréo (2x 1W) - HDMI, DVI-D, D-Sub
 			Le ProLite E2273HDS-1 est un écran
@@ -280,7 +280,7 @@
 	</item>
 	<item>
 		<id>screen006</id>
-		<name>Asus - ML228H - Ecran LED</name>
+		<name>XX Asus - ML228H - Ecran LED</name>
 		<description>21.5" Full HD (1920x1080) - 2ms - D-Sub / HDMI
 			Elégance du
 			design, excellence des images ! Profitez d'images
@@ -295,7 +295,7 @@
 	</item>
 	<item>
 		<id>screen007</id>
-		<name>Hyundai - Q226Ld - Ecran LED</name>
+		<name>XX Hyundai - Q226Ld - Ecran LED</name>
 		<description>22" (55 cm) format 16:9 - Full HD (1920x1080) / 60 Hz - 250
 			cd/m2 - 5 ms - Haut Parleurs - DVI / VGA
 			Un écran de 21.5" au design
@@ -310,7 +310,7 @@
 	</item>
 	<item>
 		<id>screen008</id>
-		<name>Asus - VW247H - Ecran LED</name>
+		<name>XX Asus - VW247H - Ecran LED</name>
 		<description>23.6" (60 cm) Format 16:9 - Full HD (1920x1080p) - 2ms -
 			Haut-parleurs stéréo 2x2W RMS - VGA / DVI / HDMI
 			ASUS VW247H. Des
@@ -326,7 +326,7 @@
 	</item>
 	<item>
 		<id>screen009</id>
-		<name>HANNS G - HL245DBB - Ecran LED</name>
+		<name>XX HANNS G - HL245DBB - Ecran LED</name>
 		<description>23.6" (60 cm) - Full HD (1920x1080p) - 250 cd/cm² - 5 ms - VGA /
 			DVI-D
 			Ecran LCD Hanns.G à technologie de rétroéclairage par LED.
@@ -339,7 +339,7 @@
 	</item>
 	<item>
 		<id>screen010</id>
-		<name>Iiyama - ProLite B2274HDS-1 - Ecran LED</name>
+		<name>XX Iiyama - ProLite B2274HDS-1 - Ecran LED</name>
 		<description>22" (56 cm) - 1920x1080 - 2 ms - Haut Parleurs Stéréo (2x 1W) -
 			HDMI, DVI-D, VGA
 			Cet écran LCD avec rétro-éclairage LED. Il affiche
@@ -354,7 +354,7 @@
 	</item>
 	<item>
 		<id>screen011</id>
-		<name>Hyundai - T236LD - Ecran LED</name>
+		<name>XX Hyundai - T236LD - Ecran LED</name>
 		<description>23" (58 cm) format 16:9 - 1920 x 1080 / 60 Hz - 250 cd/m2 - 5 ms
 			- DVI / VGA
 			Hyundai T236LD. Un moniteur 23" au format large 16:9 Full
@@ -368,7 +368,7 @@
 	</item>
 	<item>
 		<id>screen012</id>
-		<name>LG - IPS231P-BN - Ecran LED</name>
+		<name>XX LG - IPS231P-BN - Ecran LED</name>
 		<description>23" (58 cm) - Full HD 1080p - 5 ms - HP intégrés (2 x 1 W ) -
 			DVI / VGA
 			Le nouveau moniteur LG IPS231P-BN combine les forces d'une
@@ -381,7 +381,7 @@
 	</item>
 	<item>
 		<id>screen013</id>
-		<name>Iiyama - ProLite B2475HDS-1 (noir) - Ecran LED</name>
+		<name>XX Iiyama - ProLite B2475HDS-1 (noir) - Ecran LED</name>
 		<description>23.6" (60 cm) - Full HD (1920x1080) 16:9 - 2 ms - Haut Parleurs
 			Stéréo (2x 2W) - D-Sub, DVI-D, HDMI
 			Le nouveau moniteur LCD LED de la
@@ -395,7 +395,7 @@
 	</item>
 	<item>
 		<id>screen014</id>
-		<name>Samsung - Ecran LED - XL2370</name>
+		<name>XX Samsung - Ecran LED - XL2370</name>
 		<description>23 pouces - 2 ms - 16:9 - VGA/DVI/HDMI *F*
 			LCD 23 pouces (16:9) -
 			2 ms
@@ -404,7 +404,7 @@
 	</item>
 	<item>
 		<id>screen015</id>
-		<name>Samsung - SyncMaster F2380M (Noir) - Ecran LCD</name>
+		<name>XX Samsung - SyncMaster F2380M (Noir) - Ecran LCD</name>
 		<description>23" (58,4 cm) - Full HD (1920x1080) - 2 ms - HDMI, DVI-D, VGA
 			Le
 			F2380M est équipée d'une dalle PVA permettant d'obtenir des couleurs
@@ -416,7 +416,7 @@
 	</item>
 	<item>
 		<id>screen016</id>
-		<name>LG - E2290V-SN - Ecran LED</name>
+		<name>XX LG - E2290V-SN - Ecran LED</name>
 		<description>21.5" (54.7 cm) - Full HD 1080p - 2 ms - D-Sub 15 broches (VGA)
 			/ DVI-D / HDMI / Sortie Casque
 			Le E2290V, lauréat de l innovation,
@@ -431,7 +431,7 @@
 	</item>
 	<item>
 		<id>screen017</id>
-		<name>Samsung - SyncMaster C23A750X (Série 7) - Ecran LED / Station
+		<name>XX Samsung - SyncMaster C23A750X (Série 7) - Ecran LED / Station
 			d'accueil
 		</name>
 		<description>23" (58.4 cm) Full HD 1920x1080p (16:9) - 2 ms - D-Sub, HDMI,
@@ -449,7 +449,7 @@
 	</item>
 	<item>
 		<id>screen018</id>
-		<name>Samsung - SyncMaster S23A750D (Série 7) - Ecran LED 3D (120 Hz)
+		<name>XX Samsung - SyncMaster S23A750D (Série 7) - Ecran LED 3D (120 Hz)
 		</name>
 		<description>23" (58.4 cm) Full HD (1920x1080) - 2 ms - DisplayPort, HDMI
 			Le
@@ -463,7 +463,7 @@
 	</item>
 	<item>
 		<id>screen019</id>
-		<name>Samsung - SyncMaster BX2235 - Ecran LED</name>
+		<name>XX Samsung - SyncMaster BX2235 - Ecran LED</name>
 		<description>21.5" (55 cm) Full HD 1920x1080p (16:9) - 2 ms - DVI
 			Le
 			SyncMaster LED BX2235 est idéal pour découvrir les écrans LED
@@ -478,7 +478,7 @@
 	</item>
 	<item>
 		<id>screen020</id>
-		<name>AOC - 2436Vwa (Noir) - Ecran LCD</name>
+		<name>XX AOC - 2436Vwa (Noir) - Ecran LCD</name>
 		<description>23,6" (60 cm) - Full HD (1920x1080) - 5ms - hauts-parleurs
 			intégrés - DVI, VGA
 			Le 2436Vwa de AOC offre une qualité dimage
@@ -493,7 +493,7 @@
 	</item>
 	<item>
 		<id>screen021</id>
-		<name>Iiyama ProLite E2273HDS-1 (noir) - Ecran LCD</name>
+		<name>XX Iiyama ProLite E2273HDS-1 (noir) - Ecran LCD</name>
 		<description>22" (56 cm) - Full HD (1920x1080) 16:9 - 2 ms - Haut Parleurs
 			Stéréo (2x 1W) - HDMI, DVI-D, D-Sub
 			Le ProLite E2273HDS-1 est un écran

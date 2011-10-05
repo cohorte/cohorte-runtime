@@ -28,7 +28,10 @@ class Item_model extends CI_Model {
 	 */
 	public function getItem($aItemId){
 		
-		//$this->rpcGetItem($aItemId);
+		$wResponse = $this->rpcGetItem($aItemId);
+		if ($wResponse!=null){
+			return  $wResponse;
+		}
 		return  $this->localGetItem($aItemId);
 	}
 
@@ -50,7 +53,10 @@ class Item_model extends CI_Model {
 	 */
 	public function getItems($aCategory='', $aNbItems=99, $aRandom=false,$aBaseId=''){
 		
-		//return $this->rpcGetItems($aCategory, $aNbItems ,$aRandom, $aBaseId);
+		$wResponse = $this->rpcGetItems($aCategory, $aNbItems ,$aRandom, $aBaseId);
+		if ($wResponse!=null){
+			return $wResponse;
+		}
 		return $this->localGetItems($aCategory, $aNbItems, $aRandom, $aBaseId);
 	}
 
@@ -73,7 +79,10 @@ class Item_model extends CI_Model {
 	 */
 	public function getItemsStock($aItemIds){
 		
-		//return  $this->rpcGetItemsStock($aItemIds);
+		$wResponse =  $this->rpcGetItemsStock($aItemIds);
+		if ($wResponse!=null){
+			return $wResponse;
+		}
 		return  $this->localGetItemsStock($aItemIds);
 	}
 
@@ -126,14 +135,14 @@ class Item_model extends CI_Model {
 		* the second argument is the method (either GET or POST, case-sensitive, defaults to POST),
 		* and the third is the port number (defaults to 80).
 		*/
-		$wJsonrpcClient->server('http://localhost/JSON-RPC/dataserver','POST',9010);
+		$wJsonrpcClient->server('http://localhost/JSON-RPC','POST',9010);
 
 		/*
 		 * You can then specify a method with $client->method().
 		* Method takes a single string representing the JSON-RPC method.
 		* This may be empty if you are querying a JSON resource that doesn't adhere to the JSON-RPC spec.
 		*/
-		$wJsonrpcClient->method('getItem').
+		$wJsonrpcClient->method('dataserver.getItem').
 
 		/*
 		 * You can specify parameters with $client->request(), which takes an array representing
@@ -143,12 +152,9 @@ class Item_model extends CI_Model {
 		array_push($wParam,$aItemId);
 		$wJsonrpcClient->request($wParam);
 
-		/*
-		 *
-		*/
 		$wJsonrpcClient->timeout(5);
 
-		log_message('INFO', "** Item_model.rpcGetItem() : wJsonrpcClient=[". var_export($wJsonrpcClient,true)."]" );
+		//log_message('INFO', "** Item_model.rpcGetItem() : wJsonrpcClient=[". var_export($wJsonrpcClient,true)."]" );
 
 		$wJsonObject = $wJsonrpcClient->send_request();
 
@@ -204,14 +210,14 @@ class Item_model extends CI_Model {
 
 		$wParam = array();
 		array_push($wParam,$aCategorie);
-// 		array_push($wParam,$aNbItems);
-// 		array_push($wParam,$aRandom);
-// 		array_push($wParam,$aBaseId);
+ 		array_push($wParam,$aNbItems);
+ 		array_push($wParam,$aRandom);
+ 		array_push($wParam,$aBaseId);
 		$wJsonrpcClient->request($wParam);
 
 		$wJsonrpcClient->timeout(5);
 
-		log_message('INFO', "** Item_model.rpcGetItems() : wJsonrpcClient=[". var_export($wJsonrpcClient,true)."]" );
+		//log_message('INFO', "** Item_model.rpcGetItems() : wJsonrpcClient=[". var_export($wJsonrpcClient,true)."]" );
 
 		$wJsonObject = $wJsonrpcClient->send_request();
 
@@ -285,7 +291,7 @@ class Item_model extends CI_Model {
 		
 		$wJsonrpcClient->timeout(5);
 		
-		log_message('INFO', "** Item_model.rpcGetItemsStock() : wJsonrpcClient=[". var_export($wJsonrpcClient,true)."]" );
+		//log_message('INFO', "** Item_model.rpcGetItemsStock() : wJsonrpcClient=[". var_export($wJsonrpcClient,true)."]" );
 		
 		$wJsonObject = $wJsonrpcClient->send_request();
 		
