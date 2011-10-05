@@ -8,132 +8,18 @@ Created on 3 oct. 2011
 
 import BaseHTTPServer
 import itertools
+import mimetypes
 import os
 import random
 import sys
 import urlparse
-import xml_item_parser as item_parser
-import mimetypes
 
-# ------------------------------------------------------------------------------
+import erp
+import xml_item_parser
 
-class Erp(object):
-    """
-    Describes the ERP state
-    """
-    def __init__(self):
-        """
-        Prepares the ERP members
-        """
-        self.__running = True
-
-        self.__categories = dict()
-        self.__items = dict()
-        self.__stocks = dict()
-
-        self.load_content(os.getcwd() + os.sep + "data")
-
-
-    def load_content(self, source_folder):
-        """
-        Loads the ERP data from the given file
-        """
-        self.__categories = dict()
-        self.__items = dict()
-        self.__stocks = dict()
-
-        folder_content = os.listdir(source_folder)
-
-        for member in folder_content:
-            if member.endswith(".xml"):
-
-                category = member[:-len(".xml")]
-                source_file = source_folder + os.sep + member
-
-                parser = item_parser.XmlItemParser()
-                items = parser.parse_file(source_file)
-
-                if not items:
-                    # No items in the file
-                    continue
-
-                self.__store_items(category, items)
-
-
-    def __store_items(self, category, items):
-        """
-        Stores the parsed items in the ERP
-        """
-        self.__categories[category] = []
-
-        for item in items:
-            item_id = item["id"]
-
-            self.__categories[category].append(item_id)
-            self.__items[item_id] = item
-            self.__stocks[item_id] = random.randint(0, 220)
-
-
-    def get_categories(self):
-        """
-        Retrieves the list of all known categories
-        
-        @return: All known categories
-        """
-        return self.__categories.keys()
-
-
-    def get_items(self, category):
-        """
-        Retrieves the items of the given category, None if the category is
-        unknown
-        
-        @param category: The category to list
-        @return: A list of items, or None
-        """
-        if category not in self.__categories:
-            # No category found
-            return
-
-        items = []
-
-        for item_id in self.__categories[category]:
-            # Store each element in a list
-            if item_id in self.__items:
-                items.append(self.__items[item_id])
-
-        return items
-
-
-    def get_item_stock(self, item_id):
-        """
-        Retrieves the availability of the given item (int)
-        
-        @param item_id: ID of the item
-        @return: The available stock for the given item, -1 if the item is
-        unknown
-        """
-        if item_id not in self.__stocks:
-            return -1
-
-        return int(self.__stocks[item_id])
-
-
-    def is_running(self):
-        """
-        Returns the running state of the  ERP
-        """
-        return self.__running
-
-
-    def set_running(self, running):
-        """
-        Sets the state of the ERP (True or False)
-        """
-        self.__running = running
-
-
-ERP_INSTANCE = Erp()
+# Load the ERP
+ERP_INSTANCE = erp.Erp()
+ERP_INSTANCE.load_content(os.getcwd() + os.sep + "data")
 
 # ------------------------------------------------------------------------------
 
@@ -142,6 +28,7 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
     ERP HTTP Server for PSEM2M Demo
     """
 
+    GET_ITEM = "/getItem"
     GET_ITEMS = "/getItems"
     GET_ITEMS_STOCK = "/getItemsStock"
     GET_STATE = "/getStateERP"
@@ -154,6 +41,8 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
         # Prepare handlers dictionary
         self._handlers = dict()
         self._handlers["/"] = self.handle_index_page
+        self._handlers["/index.html"] = self.handle_index_page
+        self._handlers[ErpHttpServer.GET_ITEM] = self.handle_get_item
         self._handlers[ErpHttpServer.GET_ITEMS] = self.handle_get_items
         self._handlers[ErpHttpServer.GET_ITEMS_STOCK] = \
                                                 self.handle_get_items_stock
@@ -177,6 +66,35 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
         # Chain all sub-lists
         return itertools.chain.from_iterable(items)
 
+    def handle_get_item(self):
+        """
+        Retrieves the item corresponding to the given ID (an array of 1 element)
+        
+        The ID is given in the URL (query string)
+        """
+        if not ERP_INSTANCE.is_running():
+            self.__send_internal_error()
+            return
+
+        xmlData = None
+        if not "id" in self.parsed_query:
+            # Bad request (400)
+            code = 400
+
+        else:
+            item = ERP_INSTANCE.get_item(self.parsed_query["id"])
+            if item:
+                # Item found
+                code = 200
+                xmlData = xml_item_parser.XmlItemOutput().items_to_xml([item])
+
+            else:
+                # Item not found
+                code = 404
+
+        # Send answer
+        self.__send_response(code, xmlData, "text/xml")
+
 
     def handle_get_items(self):
         """
@@ -186,7 +104,20 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
             self.__send_internal_error()
             return
 
-        if "category" in self.parsed_query:
+        # Only POST command is allowed here
+        if self.command != "POST":
+            self.send_error(403, \
+                            "This URI is accessible only with POST requests")
+            self.end_headers()
+            return
+
+        # Read the XML data in the POST query
+        requested_items = xml_item_parser.XmlItemParser().parse_file(self.rfile)
+        if not requested_items:
+            self.__send_internal_error()
+            return
+
+        if "category" in requested_items:
             # Retrieve a category
             category = self.parsed_query["category"][0]
             items = ERP_INSTANCE.get_items(category)
@@ -196,7 +127,7 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
 
         # Prepare the XML response file
-        xmlData = item_parser.XmlItemOutput().items_to_xml(items)
+        xmlData = xml_item_parser.XmlItemOutput().items_to_xml(items)
 
         # Send answer
         self.__send_response(200, xmlData, "text/xml")
@@ -217,7 +148,7 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
             return
 
         # Read requested items from POST content
-        requested_items = item_parser.XmlItemParser().parse_file(self.rfile)
+        requested_items = xml_item_parser.XmlItemParser().parse_file(self.rfile)
         if not requested_items:
             self.__send_internal_error()
             return
@@ -231,7 +162,7 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
 
         # Prepare the XML response file
-        xmlData = item_parser.XmlItemOutput().items_to_xml(itemsStockDict)
+        xmlData = xml_item_parser.XmlItemOutput().items_to_xml(itemsStockDict)
 
         # Send answer
         self.__send_response(200, xmlData, "text/xml")
@@ -367,13 +298,13 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
                 with open("./html" + self.parsed_url.path) as requested_file:
                     self.__send_response(200, requested_file.read(), \
                                          mimetypes.guess_type(self.parsed_url.path)[0])
-            
+
                 # File sent, nothing else to do
                 return
-                
+
             except Exception, ex:
                 # File doesn't exist
-                self.__send_response(404)
+                self.__send_response(404, str(ex))
                 return
             # No handler found, use information page
             #self.handle_index_page()
