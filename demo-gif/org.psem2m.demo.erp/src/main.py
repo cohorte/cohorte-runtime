@@ -173,15 +173,17 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
             return
 
         # Get the stock for each requested item
-        requested_items = xmlNodes["items"]
+        requested_items = xmlNodes["items"][0]
         result_items = []
 
-        for itemNode in requested_items:
-            try:
-                item = itemNode["item"][0]
-                itemId = item["id"]
+        if "item" not in requested_items:
+            self.__send_internal_error()
+            return
 
+        for item in requested_items["item"]:
+            try:
                 itemStockDict = {}
+                itemId = item["id"]
                 itemStockDict["id"] = itemId
                 itemStockDict["stock"] = ERP_INSTANCE.get_item_stock(itemId)
 
