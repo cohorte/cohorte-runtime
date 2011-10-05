@@ -26,24 +26,42 @@ package org.jabsorb.client;
 /**
  * Exception created from the JSON-RPC error response
  */
-public class ErrorResponse extends ClientError
-{
-  private String trace;
+public class ErrorResponse extends ClientError {
 
-  public ErrorResponse(Integer code, String message, String trace)
-  {
-    super(ErrorResponse.formatMessage(code, message, trace));
-    this.trace = trace;
-  }
+    /** Serial version UID */
+    private static final long serialVersionUID = 1L;
 
-  private static String formatMessage(Integer code, String message, String trace)
-  {
-    String result = code == null ? "JSONRPC error: " : "JSONRPC error code "
-        + code.toString() + ": ";
-    if (message != null)
-    {
-      result += "\nCaused by " + message;
+    private static String formatMessage(final Integer code,
+            final String message, final String trace) {
+
+        StringBuilder resultBuilder = new StringBuilder();
+        if (code == null) {
+            resultBuilder.append("JSONRPC error: ");
+        } else {
+            resultBuilder.append("JSONRPC error code ").append(code)
+                    .append(": ");
+        }
+
+        if (message != null) {
+            resultBuilder.append("\nCaused by ").append(message);
+        }
+        if (trace != null) {
+            resultBuilder.append("\nTrace :\n").append(trace);
+        }
+        return resultBuilder.toString();
     }
-    return result;
-  }
+
+    private String trace;
+
+    public ErrorResponse(final Integer code, final String message,
+            final String trace) {
+
+        super(ErrorResponse.formatMessage(code, message, trace));
+        this.trace = trace;
+    }
+
+    public String getTrace() {
+
+        return trace;
+    }
 }
