@@ -48,12 +48,27 @@ public class DataServerSvc extends CPojoBase implements IErpData {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.demo.erp.api.services.IErpData#getItems(java.lang.String)
+     * @see org.psem2m.demo.erp.api.services.IErpData#getItem(java.lang.String)
      */
     @Override
-    public CachedItemBean[] getItems(final String aCategory) {
+    public CachedItemBean getItem(final String aItemId) {
 
-        return pQuarterback.getItems(aCategory);
+        return pQuarterback.getItem(aItemId);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.demo.erp.api.services.IErpData#getItems(java.lang.String,
+     * int, boolean, java.lang.String)
+     */
+    @Override
+    public CachedItemBean[] getItems(final String aCategory,
+            final int aItemsCount, final boolean aRandomize,
+            final String aBaseId) {
+
+        return pQuarterback.getItems(aCategory, aItemsCount, aRandomize,
+                aBaseId);
     }
 
     /*

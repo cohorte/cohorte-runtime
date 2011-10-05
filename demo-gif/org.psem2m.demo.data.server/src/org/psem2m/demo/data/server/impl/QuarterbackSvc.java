@@ -82,10 +82,57 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.demo.erp.api.services.IErpData#getItems(java.lang.String)
+     * @see org.psem2m.demo.erp.api.services.IErpData#getItem(java.lang.String)
      */
     @Override
-    public CachedItemBean[] getItems(final String aCategory) {
+    public CachedItemBean getItem(final String aItemId) {
+
+        if (isProxyAvailable) {
+            // Try with the ERP
+
+            try {
+                final ItemBean itemBean = pErpProxy.getItem(aItemId);
+
+                if (itemBean != null) {
+                    // Update the cache
+                    pCache.updateItemBean(aItemId, itemBean);
+
+                    // Return the bean
+                    return new CachedItemBean(itemBean,
+                            IQualityLevels.CACHE_LEVEL_SYNC);
+                }
+
+            } catch (Exception e) {
+                // An error occurred using the ERP, continue with the cache
+            }
+        }
+
+        // The ERP failed
+        synchronized (pCache) {
+
+            final ItemBean item = pCache.getItem(aItemId);
+            final long itemAge = pCache.getItemInformationAge(aItemId);
+
+            if (item != null && itemAge != -1) {
+                // Return the cached bean
+                return new CachedItemBean(item, itemAge);
+            }
+        }
+
+        // Nothing found, return null
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.demo.erp.api.services.IErpData#getItems(java.lang.String,
+     * int, boolean, java.lang.String)
+     */
+    @Override
+    public CachedItemBean[] getItems(final String aCategory,
+            final int aItemsCount, final boolean aRandomize,
+            final String aBaseId) {
 
         // Result list
         final List<CachedItemBean> pItems = new ArrayList<CachedItemBean>();
@@ -96,7 +143,8 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
         if (isProxyAvailable) {
             // Proxy available : use it
             try {
-                final ItemBean[] erpResult = pErpProxy.getItems(aCategory);
+                final ItemBean[] erpResult = pErpProxy.getItems(aCategory,
+                        aItemsCount, aRandomize, aBaseId);
 
                 if (erpResult != null) {
                     // ERP answered, don't use the cache
