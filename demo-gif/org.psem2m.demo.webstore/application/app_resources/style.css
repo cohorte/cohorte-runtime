@@ -338,18 +338,22 @@ padding:5px 0 5px 0;
 padding:5px 0 5px 0;
 font-size:16px;
 }
+
+span.price, span.reduce, span.stock{
+	font-family:Verdana;
+	font-size:12px;
+	color:#847676;
+}
 span.reduce{
-color:#999999;
-text-decoration:line-through;
+	color:#999999;
+	text-decoration:line-through;
 }
 span.price{
-color:blue;
+	color:blue;
 }
 span.stock{
-font-family:Verdana;
-font-size:12px;
+	cursor:help;
 }
-
 /*
  * 0 : SYNC Top qualité (retour direct de l’ERP)
  * 1 : FRESH Cache niveau 1 (moins de 1 minute (incluses) depuis la mise en cache)
@@ -357,22 +361,32 @@ font-size:12px;
  * 3 : WARNING Cache niveau 3 (moins de 15 minutes (incluses) depuis la mise en cache)
  * 4 : CRITICAL Qualité critique (plus de 15 minutes depuis la mise en cache)
  */
+ span.stocksync,  span.stockfresh, span.stockacceptable, span.stockwarning, span.stockcritical {
+	font-weight:bold;
+ 	background-repeat:no-repeat;
+	background-position:right center; 
+	background-size:10px;
+	padding:5px 20px 5px 2px;
+ }
 span.stocksync{
-font-weight:bold;
-color:#4CC417; /*Green3*/
+	color:#4CC417; /*Green3*/
+	background-image:url(images/quality_sync.png) 
 }
 span.stockfresh{
-color:#3EA99F; /*Light Sea Green*/
+	color:#3EA99F; /*Light Sea Green*/
+	background-image: url(images/quality_fresh.png) ;
 }
 span.stockacceptable{
-color:#EAC117; /*Gold2*/
+	color:#EAC117; /*Gold2*/
+	background-image:url(images/quality_acceptable.png);
 }
 span.stockwarning{
-color:#F88017;/*Dark Orange*/
+	color:#F88017;/*Dark Orange*/
+	background-image:url(images/quality_warning.png);
 }
 span.stockcritical{
-font-weight:bold;
-color:#F62217; /* Red1*/
+	color:#F62217; /* Red1*/
+	background-image:url(images/quality_critical.png) ;
 }
 /*----------newsletter--------------*/
 input.newsletter_input{

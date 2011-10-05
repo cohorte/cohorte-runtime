@@ -34,12 +34,13 @@ $wImageUrl = "/".base_url()."app_resources/images/_items/".$id.".png";
 					Product : <span class="blue"><?php echo $name; ?></span>
 					<br />
 					Description: <span class="blue"><?php echo $description; ?></span>
-					<br />
-					Availability: <span class="prod_price_big"> <span class="stock<?php echo $stockQualityClass; ?>"><?php $stock; ?></span></span>
-					<br />
+					<br /><br />
 					Tip transport: <span class="blue">Mic</span>
-					<br />
-					Tax include: <span class="blue">TVA</span><br />
+					&nbsp;
+					Tax include: <span class="blue">TVA</span>
+					&nbsp;
+					<span class="stock" title="<?php echo $stockQualityClass; ?>">Stock: <span class="stock<?php echo $stockQualityClass; ?>" style="font-size:12pt"><?php echo $stock; ?></span></span>
+					
 				</div>
 				<div class="prod_price_big"> <span class="price"><?php echo $price; ?> EUR</span>
 				</div>

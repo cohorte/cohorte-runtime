@@ -27,7 +27,7 @@ $wAddCartUrl = "/". base_url()."index.php/CHome/addToCart/".$id;
 		<div class="prod_price">
 			<span class="price"><?php echo $price; ?> EUR</span>
 			&nbsp;
-			<span class="stock">Availability: <span class="stock<?php echo $stockQualityClass; ?>"><?php echo $stock; ?></span></span>
+			<span class="stock"  title="<?php echo $stockQualityClass; ?>">Stock: <span class="stock<?php echo $stockQualityClass; ?>"><?php echo $stock; ?></span></span>
 			
 		</div>
 	</div>
