@@ -64,8 +64,8 @@ $this->load->view('parts/CNavigatorPartView',$datanav);
 <div class="form_row">
 
 <?php 
-
-echo form_open('CShoppingCart/updateCart');
+$attributes = array( 'id' => 'cartForm');
+echo form_open('CShoppingCart/updateCart',$attributes);
 ?>
 
 <table id="shoppingcart"  >
@@ -80,10 +80,10 @@ echo form_open('CShoppingCart/updateCart');
 <?php 
 
 $i = 1; 
-
 foreach ( $this->cart->contents() as $items): 
-
-echo form_hidden($i.'[rowid]', $items['rowid']); ?>
+	echo form_hidden($i.'[rowid]', $items['rowid']); 
+	echo form_hidden($i.'[id]', $items['id']); 
+?>
 
 	<tr>
 	  <td><?php echo form_input(array('name' => $i.'[qty]', 'value' => $items['qty'], 'maxlength' => '3', 'size' => '5')); ?></td>
@@ -123,17 +123,19 @@ endforeach;
 <script>
 function callControler(aMethod){
 	var wUrl = "<?php echo base_url(); ?>index.php/CShoppingCart/"+aMethod;
-	window.location.href=wUrl;
+	var wForm = document.getElementById("cartForm");
+	wForm.action=wUrl;
+	wForm.submit();
 }
 
 </script>
 
 <p>
-<?php echo form_submit('', 'Update your Cart'); ?>
-
 <input type="button" onclick="callControler('eraseCart');" value="Erase cart"/>
-
-<input type="button" onclick="callControler('sendCart');" value="Send cart"/>
+&nbsp;
+<input type="button" onclick="callControler('updateCart');" value="Update your Cart"/>
+&nbsp;
+<input type="button" onclick="callControler('applyCart');" value="Apply cart"/>
 </p>
 
 </div>  

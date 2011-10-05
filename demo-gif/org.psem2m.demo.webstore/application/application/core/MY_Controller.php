@@ -129,18 +129,15 @@ class MY_Controller extends CI_Controller {
 		}else {
 			// Creates the SessionData bean with the array "all_userdata"
 			$wArray = $this->session->all_userdata();
+			// remove 'cart_contents' from the array.
 			if (array_key_exists('cart_contents', $wArray)) {
-				
 				$wArray2 = array();
 				foreach($wArray as $wKey=>$wValue){
-					log_message('INFO', "** MY_Controller.retreiveSessionData() :  wKey=[". var_export($wKey,true)."] wValue=[". var_export($wValue,true)."]" );
-						
+					//log_message('INFO', "** MY_Controller.retreiveSessionData() :  wKey=[". var_export($wKey,true)."] wValue=[". var_export($wValue,true)."]" );
 					if ($wKey != 'cart_contents'){
 						$wArray2[$wKey]=$wValue;
 					}
 				}
-				
-					
 				$wArray = $wArray2;
 			}
 			$wSessionData = new CSessionData( $wArray);
