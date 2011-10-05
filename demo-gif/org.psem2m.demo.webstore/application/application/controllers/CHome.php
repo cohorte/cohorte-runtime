@@ -26,8 +26,8 @@ class CHome extends MY_Controller {
 	 * map to /index.php/welcome/<method_name>
 	 * @see http://codeigniter.com/user_guide/general/urls.html
 	 */
-	public function index()
-	{
+	public function index(){
+		
 		log_message('debug', "** CHome.index()");
 
 		$this->load->model('Item_model');
@@ -44,7 +44,6 @@ class CHome extends MY_Controller {
 		$wStartPageIdx = $this->pSessionData->getStartPageIdx();
 
 		$data['Categorie'] = $wCategorie;
-		$data['DetailedItem'] = $wDetailedItem;
 
 		// get the 6 first items of a categorie
 		$wItems = $this->Item_model->getItems($wCategorie,$wStartPageIdx,6,false);
@@ -67,8 +66,15 @@ class CHome extends MY_Controller {
 
 		if ($wDetailedItem != ''){
 			$wItemDetail = $this->Item_model->getItem($wDetailedItem);
-			$data['ItemDetail'] =$this->injectStockInItem($wItemDetail);
-
+			if ($wItemDetail!=null){
+				$data['ItemDetail'] =$this->injectStockInItem($wItemDetail);
+			} else{
+				//raz
+				$wDetailedItem = '';
+				$this->pSessionData->setDetailedItem($wDetailedItem);
+				$this->saveSessionData();
+			}
+			$data['DetailedItem'] = $wDetailedItem;
 		}
 
 		$this->load->view('CHomeView',$data);
@@ -79,10 +85,17 @@ class CHome extends MY_Controller {
 	* Enter description here ...
 	* @param unknown_type $aItemId
 	*/
-	public function showDetails($aItemId='')
-	{
+	public function showDetails($aItemId=''){
+		
 		log_message('debug', "** CHome.showDetails() : ItemId=[".$aItemId."]");
-	
+		
+		if ($aItemId != ''){
+			if (strpos($aItemId,' ')>-1){
+				$aItemId='';
+			}else{
+				$aItemId = mb_strtolower($aItemId);
+			}
+		}
 	
 		$this->pSessionData->setDetailedItem($aItemId);
 		$this->saveSessionData();
@@ -95,8 +108,8 @@ class CHome extends MY_Controller {
 	 * Enter description here ...
 	 * @param unknown_type $aCategorie
 	 */
-	public function changeCategorie($aCategorie)
-	{
+	public function changeCategorie($aCategorie){
+		
 		log_message('debug', "** CHome.changeCategorie() : Categorie=[".$aCategorie."]");
 	
 		$this->pSessionData->setCategorie($aCategorie);

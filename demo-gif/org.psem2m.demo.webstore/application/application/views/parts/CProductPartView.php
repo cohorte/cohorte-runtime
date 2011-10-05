@@ -5,7 +5,7 @@
 
 $wImageUrl = "/".base_url()."app_resources/images/_items/".$Item['id'].".jpg";
 
-$wDetailUrl = "/". base_url()."/index.php/CHome/showDetails/".$Item['id']; 
+$wDetailUrl = "/". base_url()."index.php/CHome/showDetails/".$Item['id']; 
 
 ?>
 
