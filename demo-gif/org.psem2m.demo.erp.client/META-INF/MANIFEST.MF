@@ -46,8 +46,11 @@ iPOJO-Components: instance { $component="demo-erp-client-python-factor
  jo" }method { $name="itemsIdsToXml" $return="java.lang.String" $argum
  ents="{java.lang.String[]}" }method { $name="parseXmlString" $return=
  "org.w3c.dom.Document" $arguments="{java.lang.String}" }method { $nam
- e="validatePojo" }method { $name="xmlToItemBeans" $return="org.psem2m
- .demo.erp.api.beans.ItemBean[]" $arguments="{java.lang.String}" }meth
- od { $name="xmlToItemStocks" $return="java.util.Map" $arguments="{jav
- a.lang.String}" }}}
+ e="prepareListPostRequest" $return="java.lang.String" $arguments="{ja
+ va.lang.String,java.lang.String,java.util.List}" }method { $name="pre
+ pareSimplePostRequest" $return="java.lang.String" $arguments="{java.l
+ ang.String,java.util.Map}" }method { $name="validatePojo" }method { $
+ name="xmlToItemBeans" $return="org.psem2m.demo.erp.api.beans.ItemBean
+ []" $arguments="{java.lang.String}" }method { $name="xmlToItemStocks"
+  $return="java.util.Map" $arguments="{java.lang.String}" }}}
 

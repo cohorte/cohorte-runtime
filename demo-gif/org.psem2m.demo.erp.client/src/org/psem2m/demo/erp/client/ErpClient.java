@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Scanner;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -271,23 +272,24 @@ public class ErpClient extends CPojoBase implements IErpDataProxy {
     public ItemBean[] getItems(final String aCategory, final int aItemsCount,
             final boolean aRandomize, final String aBaseId) {
 
-        // TODO prepare a POST query
+        // Prepare the POST query
+        final Map<String, String> queryMap = new HashMap<String, String>();
+        queryMap.put("category", aCategory);
+        queryMap.put("count", String.valueOf(aItemsCount));
+        queryMap.put("randomize", String.valueOf(aRandomize));
+        queryMap.put("baseId", aBaseId);
 
-        final String query;
-        if (aCategory == null || aCategory.isEmpty()) {
-            // No category given
-            query = null;
-
-        } else {
-            // Prepare the query
-            query = "?category=" + aCategory;
+        final String query = prepareSimplePostRequest("criteria", queryMap);
+        if (query == null) {
+            // Bad query content
+            return null;
         }
 
         try {
             // Prepare the URL
-            final URL erpUrl = forgeUrl(GET_ITEMS_URI, query);
+            final URL erpUrl = forgeUrl(GET_ITEMS_URI, null);
 
-            final String result = getUrlResult(erpUrl);
+            final String result = getUrlPOSTResult(erpUrl, query);
             if (result != null) {
                 return xmlToItemBeans(result);
 
@@ -317,13 +319,26 @@ public class ErpClient extends CPojoBase implements IErpDataProxy {
             return null;
         }
 
+        // Prepare the Query
+        final List<Map<String, String>> queryList = new ArrayList<Map<String, String>>(
+                aItemIds.length);
+
+        // Prepare item nodes
+        for (String itemId : aItemIds) {
+            final Map<String, String> itemMap = new HashMap<String, String>();
+            itemMap.put("id", itemId);
+            queryList.add(itemMap);
+        }
+
+        // Generate the XML POST query
+        final String xmlQuery = prepareListPostRequest("items", "item",
+                queryList);
+
         try {
             // Prepare the URL
             final URL erpUrl = forgeUrl(GET_ITEMS_URI, null);
 
-            final String result = getUrlPOSTResult(erpUrl,
-                    itemsIdsToXml(aItemIds));
-
+            final String result = getUrlPOSTResult(erpUrl, xmlQuery);
             if (result != null) {
 
                 // Analyze the XML result
@@ -511,6 +526,13 @@ public class ErpClient extends CPojoBase implements IErpDataProxy {
         return domToString(document);
     }
 
+    /**
+     * Parses the given XML data using the DOM parser.
+     * 
+     * @param aXmlData
+     *            An XML String stream
+     * @return The parsed DOM document, null on error.
+     */
     protected Document parseXmlString(final String aXmlData) {
 
         // Get the DOM document builder
@@ -534,6 +556,142 @@ public class ErpClient extends CPojoBase implements IErpDataProxy {
         }
 
         return null;
+    }
+
+    /**
+     * Prepares an XML String data. The root node as the given tag name. Each
+     * item corresponds to a root child with the given item tag name.
+     * 
+     * @param aRootTag
+     *            XML Root tag name
+     * @param aItemName
+     *            Item node name
+     * @param aItems
+     *            Item children description
+     * @return An XML string, null on error
+     */
+    protected String prepareListPostRequest(final String aRootTag,
+            final String aItemName, final List<Map<String, String>> aItems) {
+
+        if (aRootTag == null || aRootTag.isEmpty() || aItemName == null
+                || aItemName.isEmpty() || aItems == null || aItems.isEmpty()) {
+            // Invalid array
+            return null;
+        }
+
+        // Get the document builder
+        final DocumentBuilder docBuilder = getDomDocumentBuilder();
+        if (docBuilder == null) {
+            return null;
+        }
+
+        // Write the document
+        final Document document = docBuilder.newDocument();
+
+        // The root
+        final Element rootNode = document.createElement(aRootTag);
+        document.appendChild(rootNode);
+
+        // The items
+        for (Map<String, String> listItem : aItems) {
+
+            if (listItem == null) {
+                // Ignore null items
+                continue;
+            }
+
+            // Prepare the item node, but don't add it yet
+            final Element itemNode = document.createElement(aItemName);
+
+            // Generate the item children
+            for (Entry<String, String> mapEntry : listItem.entrySet()) {
+
+                final String key = mapEntry.getKey();
+                if (key == null) {
+                    // Don't use null keys...
+                    continue;
+                }
+
+                String value = mapEntry.getValue();
+                if (value == null) {
+                    // Consider null values as empty ones
+                    value = "";
+                }
+
+                // The node
+                final Element keyNode = document.createElement(key);
+                itemNode.appendChild(keyNode);
+
+                // The data
+                keyNode.appendChild(document.createTextNode(value));
+            }
+
+            // Only add the item node if it useful
+            if (itemNode.hasChildNodes()) {
+                rootNode.appendChild(itemNode);
+            }
+        }
+
+        // Convert to a string
+        return domToString(document);
+    }
+
+    /**
+     * Prepares an XML POST request. Root node gets the given root tag name. Map
+     * keys are root node children tag names, values are Text nodes.
+     * 
+     * @param aRootTag
+     *            The root node tag name
+     * @param aRequestValues
+     *            Children tag names -&gt; value
+     * @return The corresponding XML data
+     */
+    protected String prepareSimplePostRequest(final String aRootTag,
+            final Map<String, String> aRequestValues) {
+
+        if (aRootTag == null || aRequestValues == null
+                || aRequestValues.isEmpty()) {
+            // Invalid map
+            return null;
+        }
+
+        // Get the document builder
+        final DocumentBuilder docBuilder = getDomDocumentBuilder();
+        if (docBuilder == null) {
+            return null;
+        }
+
+        // Write the document
+        final Document document = docBuilder.newDocument();
+
+        // The root
+        final Element rootNode = document.createElement(aRootTag);
+        document.appendChild(rootNode);
+
+        for (Entry<String, String> mapEntry : aRequestValues.entrySet()) {
+
+            final String key = mapEntry.getKey();
+            if (key == null) {
+                // Don't use null keys...
+                continue;
+            }
+
+            String value = mapEntry.getValue();
+            if (value == null) {
+                // Consider null values as empty ones
+                value = "";
+            }
+
+            // The node
+            final Element keyNode = document.createElement(key);
+            rootNode.appendChild(keyNode);
+
+            // The data
+            keyNode.appendChild(document.createTextNode(value));
+        }
+
+        // Convert to a string
+        return domToString(document);
     }
 
     /*
