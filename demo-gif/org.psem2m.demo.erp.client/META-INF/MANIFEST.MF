@@ -8,6 +8,8 @@ Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
 Export-Package: javax.xml.parsers,
  javax.xml.transform,
+ javax.xml.transform.dom,
+ javax.xml.transform.stream,
  org.w3c.dom,
  org.xml.sax
 Import-Package: javax.xml.parsers, javax.xml.transform, javax.xml.tran
