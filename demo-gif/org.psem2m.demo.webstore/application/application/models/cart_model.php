@@ -25,9 +25,9 @@ class Cart_model extends CI_Model {
 	 */
 	public function applyCart($aCartLines){
 		
-			$wResponse =  $this->rpcApplyCart($aCartLines);
-		if ($wResponse!=null){
-			return $wResponse;
+		$wResponse =  $this->rpcApplyCart($aCartLines);
+		if (!is_null($wResponse)){
+				return $wResponse;
 		}
 		return  $this->localApplyCart($aCartLines);
 	}
