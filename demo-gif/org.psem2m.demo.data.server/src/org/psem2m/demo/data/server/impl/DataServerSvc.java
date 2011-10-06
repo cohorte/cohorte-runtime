@@ -59,8 +59,12 @@ public class DataServerSvc extends CPojoBase implements IErpData {
     @Override
     public CErpActionReport applyCart(final CCartLine[] aCartLines) {
 
-        return pQuarterback.applyCart(aCartLines);
+        final CErpActionReport result = pQuarterback.applyCart(aCartLines);
 
+        pLogger.logInfo(this, "applyCart", "applyCart(",
+                Arrays.toString(aCartLines), ") =", result);
+
+        return result;
     }
 
     /*

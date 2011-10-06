@@ -46,7 +46,7 @@ public class CErpActionReport {
     /**
      * Explicit public constructor
      */
-    private CErpActionReport() {
+    public CErpActionReport() {
 
         super();
     }
@@ -142,4 +142,24 @@ public class CErpActionReport {
         this.pStatus = aStatus;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+
+        final StringBuilder builder = new StringBuilder("CErpActionReport(");
+        builder.append("status=").append(pStatus);
+        builder.append(", quality=").append(pQualityLevel);
+        builder.append(", message=").append(pMessage);
+
+        if (pReasonInfos != null && !pReasonInfos.isEmpty()) {
+            builder.append(", reason=").append(pReasonInfos);
+        }
+        builder.append(")");
+
+        return builder.toString();
+    }
 }
