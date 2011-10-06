@@ -57,7 +57,8 @@ public class DataServerSvc extends CPojoBase implements IErpData {
 
         final CachedItemBean resultBean = pQuarterback.getItem(aItemId);
 
-        pLogger.logInfo(this, "getItem", "getItem(", aItemId, ") =", resultBean);
+        pLogger.logInfo(this, "getItem", "\n\tgetItem(", aItemId, ") =",
+                resultBean);
 
         return resultBean;
     }
@@ -76,9 +77,14 @@ public class DataServerSvc extends CPojoBase implements IErpData {
         final CachedItemBean[] resultArray = pQuarterback.getItems(aCategory,
                 aItemsCount, aRandomize, aBaseId);
 
-        pLogger.logInfo(this, "getItems", "getItems(", aCategory, ", ",
-                aItemsCount, ", ", aRandomize, ", ", aBaseId, ") =",
-                Arrays.toString(resultArray));
+        final StringBuilder resultLogBuilder = new StringBuilder();
+        for (CachedItemBean bean : resultArray) {
+            resultLogBuilder.append("\t\t").append(bean).append("\n");
+        }
+
+        pLogger.logInfo(this, "getItems", "\n\tgetItems(", aCategory, ", ",
+                aItemsCount, ", ", aRandomize, ", ", aBaseId, ") =\n",
+                resultLogBuilder, "\n");
 
         return resultArray;
     }
@@ -96,7 +102,12 @@ public class DataServerSvc extends CPojoBase implements IErpData {
         final CachedItemStockBean[] resultArray = pQuarterback
                 .getItemsStock(aItemIds);
 
-        pLogger.logInfo(this, "getItemsStock", "getItemsStock(",
+        final StringBuilder resultLogBuilder = new StringBuilder();
+        for (CachedItemStockBean bean : resultArray) {
+            resultLogBuilder.append("\t\t").append(bean).append("\n");
+        }
+
+        pLogger.logInfo(this, "getItemsStock", "\n\tgetItemsStock(",
                 Arrays.toString(aItemIds), ") =", Arrays.toString(resultArray));
 
         return resultArray;
