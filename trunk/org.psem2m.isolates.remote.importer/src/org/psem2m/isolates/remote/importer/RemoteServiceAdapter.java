@@ -205,6 +205,8 @@ public class RemoteServiceAdapter extends CPojoBase implements
 
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
+                pLogger.log(LogService.LOG_ERROR,
+                        "Error looking for proxyfied class", e);
                 return;
             }
 
@@ -214,7 +216,6 @@ public class RemoteServiceAdapter extends CPojoBase implements
         }
 
         if (serviceProxy == null) {
-            System.out.println("No proxy created");
             pLogger.log(LogService.LOG_ERROR,
                     "[RemoteServiceAdapter] No proxy created for service : "
                             + serviceId);
@@ -225,17 +226,29 @@ public class RemoteServiceAdapter extends CPojoBase implements
         final Dictionary<String, Object> filteredProperties = filterProperties(registration
                 .getServiceProperties());
 
-        // Register the service
-        ServiceRegistration serviceReg = pBundleContext.registerService(
-                registration.getExportedInterfaces(), serviceProxy,
-                filteredProperties);
+        // Used in the thread
+        final Object finalServiceProxy = serviceProxy;
 
-        // Store the registration information
-        if (serviceReg != null) {
-            ProxyServiceInfo serviceInfo = new ProxyServiceInfo(serviceReg,
-                    serviceProxy);
-            pRegisteredServices.put(serviceId, serviceInfo);
-        }
+        // Register the service
+        new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+
+                // This call is synchronous and may take a while
+                // -> use a thread
+                ServiceRegistration serviceReg = pBundleContext
+                        .registerService(registration.getExportedInterfaces(),
+                                finalServiceProxy, filteredProperties);
+
+                // Store the registration information
+                if (serviceReg != null) {
+                    ProxyServiceInfo serviceInfo = new ProxyServiceInfo(
+                            serviceReg, finalServiceProxy);
+                    pRegisteredServices.put(serviceId, serviceInfo);
+                }
+            }
+        }).start();
     }
 
     /**
