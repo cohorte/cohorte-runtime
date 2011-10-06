@@ -8,11 +8,10 @@ package org.psem2m.demo.data.server.impl;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.SortedSet;
 
 import org.psem2m.demo.data.cache.IDataCache;
 import org.psem2m.demo.erp.api.beans.CachedItemBean;
@@ -88,15 +87,14 @@ public class CachedErp {
             final boolean aRandomize, final String aBaseId) {
 
         // Get the items of the category
-        final SortedSet<String> categoryItems = aCache
-                .getCategoryItems(aCategory);
+        final Set<String> categoryItems = aCache.getCategoryItems(aCategory);
         if (categoryItems == null) {
             // Empty category
             return new CachedItemBean[0];
         }
 
         // Selected IDs
-        final Set<String> itemsIds = new HashSet<String>();
+        final List<String> itemsIds = new ArrayList<String>();
 
         if (aRandomize) {
             // Case 1 : random
@@ -112,7 +110,6 @@ public class CachedErp {
         int i = 0;
 
         for (String itemId : itemsIds) {
-
             // Get information about the item
             final ItemBean item = aCache.getItem(itemId);
             final long itemAge = aCache.getItemInformationAge(itemId);
@@ -170,7 +167,7 @@ public class CachedErp {
      *            Maximum number of IDs to retrieve
      * @return A random set
      */
-    private Collection<String> getRandomItems(final Set<String> aItemsIds,
+    protected Collection<String> getRandomItems(final Set<String> aItemsIds,
             final int aCount) {
 
         // Compute the number of items to retrieve
@@ -200,7 +197,7 @@ public class CachedErp {
      *            Maximum number of items in the page
      * @return The IDs to show in the page
      */
-    private Collection<String> paginateItems(final SortedSet<String> aItemsIds,
+    protected Collection<String> paginateItems(final Set<String> aItemsIds,
             final String aBaseId, final int aItemsCount) {
 
         // Basic test of items count
@@ -208,45 +205,55 @@ public class CachedErp {
             return aItemsIds;
         }
 
-        // Get a sub-set of the IDs, beginning just after the baseID
-        final SortedSet<String> basedSet;
         if (aBaseId == null || aBaseId.isEmpty()) {
-            basedSet = aItemsIds;
+            // No base : make a sub list from the set
+            final List<String> resultList = new ArrayList<String>(aItemsCount);
+
+            int i = 0;
+            for (String id : aItemsIds) {
+
+                if (i == aItemsCount) {
+                    break;
+                }
+
+                resultList.add(id);
+                i++;
+            }
+
+            return resultList;
 
         } else if (aItemsIds.contains(aBaseId)) {
-            // Base id found
-            final SortedSet<String> subSet = aItemsIds.tailSet(aBaseId);
+            // Base ID exists in the set
 
-            // Get the following ID
+            final Iterator<String> iterator = aItemsIds.iterator();
+            while (iterator.hasNext()) {
+                // Go to the base ID
+                final String id = iterator.next();
+                if (aBaseId.equals(id)) {
+                    break;
+                }
+            }
+
+            // We are just after the base ID
+            final List<String> resultList = new ArrayList<String>(aItemsCount);
+
             try {
-                basedSet = subSet.tailSet(subSet.iterator().next());
+                // Get count elements after it
+                for (int i = 0; i < aItemsCount; i++) {
+                    resultList.add(iterator.next());
+                }
 
             } catch (NoSuchElementException e) {
-                // No element after the base ID
-                return null;
+                // There were less count elements after the base ID, ignore
+                // error
             }
 
-        } else {
-            // Invalid base
-            return null;
+            // Return the list
+            return resultList;
+
         }
 
-        // Compute the new items count
-        final int itemsCount = Math.min(aItemsCount, basedSet.size());
-
-        // Set up the result collection
-        final List<String> resultList = new ArrayList<String>(itemsCount);
-        int i = 0;
-        for (String itemId : basedSet) {
-
-            if (i == itemsCount) {
-                break;
-            }
-
-            resultList.add(itemId);
-            i++;
-        }
-
-        return resultList;
+        // Invalid base
+        return null;
     }
 }

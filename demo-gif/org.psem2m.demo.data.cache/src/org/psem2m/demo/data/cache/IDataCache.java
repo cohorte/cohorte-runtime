@@ -6,7 +6,7 @@
 package org.psem2m.demo.data.cache;
 
 import java.util.Collection;
-import java.util.SortedSet;
+import java.util.Set;
 
 import org.psem2m.demo.erp.api.beans.ItemBean;
 
@@ -34,7 +34,7 @@ public interface IDataCache {
      *            A category
      * @return Items IDs of the category, null if none.
      */
-    SortedSet<String> getCategoryItems(String aCategory);
+    Set<String> getCategoryItems(String aCategory);
 
     /**
      * Retrieves the cached item bean, null if not present
