@@ -8,6 +8,7 @@ Created on 3 oct. 2011
 
 import BaseHTTPServer
 import itertools
+import logging
 import mimetypes
 import os
 import random
@@ -17,9 +18,67 @@ import urlparse
 import erp
 import xml_item_parser
 
+# ------------------------------------------------------------------------------
+
 # Load the ERP
 ERP_INSTANCE = erp.Erp()
 ERP_INSTANCE.load_content(os.getcwd() + os.sep + "data")
+
+def get_all_items():
+    """
+    Retrieves a list containing all items in the ERP
+    """
+    # Retrieve all items
+    items = []
+    for category in ERP_INSTANCE.get_categories():
+        items.append(ERP_INSTANCE.get_items(category))
+
+    # Chain all sub-lists
+    return itertools.chain.from_iterable(items)
+
+
+def prepare_items_rows():
+    """
+    Prepares HTML table rows representing the items complete status
+    """
+
+    # Item map expected keys
+    item_keys = ["id", "lib", "price", "stock"]
+    item_keys_label = {"id": "ID", "lib": "Name", "price": "Price", \
+                 "stock": "Quantity"}
+
+
+    item_html_row = "\t\t<tr>\n"
+
+    # Table header
+    html_content = "\t<thead>\n\t\t<tr>\n"
+
+    for key in item_keys:
+        # Write head
+        html_content += "\t" * 3 + "<th>\n" + "\t" * 4
+        html_content += item_keys_label[key] + "\n" + "\t" * 3 + "</th>\n"
+
+        # Prepare item row model
+        item_html_row += "\t" * 3 + "<td>\n" + "\t" * 4
+        item_html_row += "{" + key + "}\n" + "\t" * 3 + "</td>\n"
+
+
+    # End of head
+    html_content += "\t\t</tr>\n\t</thead>\n\t<tbody>\n"
+
+    # Prepare items dictionary (items & stock)
+    items = get_all_items()
+
+    if items:
+        for item in items:
+            item["stock"] = ERP_INSTANCE.get_item_stock(item["id"])
+
+            # Write the line
+            html_content += item_html_row.format(**item)
+
+    # End of table
+    html_content += "\t</tbody>\n"
+    return html_content
 
 # ------------------------------------------------------------------------------
 
@@ -38,35 +97,30 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
         """
         Constructor
         """
+        # Parsed query members
+        self.parsed_query = None
+        self.parsed_url = None
+
         # Prepare handlers dictionary
         self._handlers = dict()
-        self._handlers["/"] = self.handle_index_page
-        self._handlers["/index.html"] = self.handle_index_page
-        self._handlers[ErpHttpServer.GET_ITEM] = self.handle_get_item
-        self._handlers[ErpHttpServer.GET_ITEMS] = self.handle_get_items
+        self._handlers["/"] = self._handle_index_page
+        self._handlers["/index.html"] = self._handle_index_page
+        self._handlers[ErpHttpServer.GET_ITEM] = self._handle_get_item
+        self._handlers[ErpHttpServer.GET_ITEMS] = self._handle_get_items
         self._handlers[ErpHttpServer.GET_ITEMS_STOCK] = \
-                                                self.handle_get_items_stock
-        self._handlers[ErpHttpServer.GET_STATE] = self.handle_get_state
-        self._handlers[ErpHttpServer.SET_STATE] = self.handle_set_state
+                                                self._handle_get_items_stock
+        self._handlers[ErpHttpServer.GET_STATE] = self._handle_get_state
+        self._handlers[ErpHttpServer.SET_STATE] = self._handle_set_state
+
+        # Path handled flag
+        self._handled = False
 
         # Call parent constructor (calls request handling)
         BaseHTTPServer.BaseHTTPRequestHandler.__init__(self, request, \
                                                        client_address, server)
 
 
-    def __get_all_items(self):
-        """
-        Retrieves a list containing all items
-        """
-        # Retrieve all items
-        items = []
-        for category in ERP_INSTANCE.get_categories():
-            items.append(ERP_INSTANCE.get_items(category))
-
-        # Chain all sub-lists
-        return itertools.chain.from_iterable(items)
-
-    def handle_get_item(self):
+    def _handle_get_item(self):
         """
         Retrieves the item corresponding to the given ID (an array of 1 element)
         
@@ -76,7 +130,7 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
             self.__send_internal_error()
             return
 
-        xmlData = None
+        xml_data = None
         if not "id" in self.parsed_query:
             # Bad request (400)
             code = 400
@@ -88,17 +142,17 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
             if item:
                 # Item found
                 code = 200
-                xmlData = xml_item_parser.items_to_xml([item])
+                xml_data = xml_item_parser.items_to_xml([item])
 
             else:
                 # Item not found
                 code = 404
 
         # Send answer
-        self.__send_response(code, xmlData, "text/xml")
+        self.__send_response(code, xml_data, "text/xml")
 
 
-    def handle_get_items(self):
+    def _handle_get_items(self):
         """
         Handles /getItems requests
         """
@@ -115,17 +169,17 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
         # Read the XML data in the POST query
         post_body = self.__read_post_body()
-        xmlNodes = xml_item_parser.XmlItemParser().parse(post_body)
-        if not xmlNodes:
+        xml_nodes = xml_item_parser.XmlItemParser().parse(post_body)
+        if not xml_nodes:
             self.__send_internal_error()
             return
 
-        if "criteria" not in xmlNodes or len(xmlNodes["criteria"]) == 0:
+        if "criteria" not in xml_nodes or len(xml_nodes["criteria"]) == 0:
             self.__send_response(400, "Invalid Request", "text/plain")
             return
 
         # Read the request
-        criteria = xmlNodes["criteria"][0]
+        criteria = xml_nodes["criteria"][0]
 
         try:
             category = criteria["category"]
@@ -145,13 +199,13 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
             self.__send_internal_error()
 
         # Prepare the XML response file
-        xmlData = xml_item_parser.items_to_xml(items)
+        xml_data = xml_item_parser.items_to_xml(items)
 
         # Send answer
-        self.__send_response(200, xmlData, "text/xml")
+        self.__send_response(200, xml_data, "text/xml")
 
 
-    def handle_get_items_stock(self):
+    def _handle_get_items_stock(self):
         """
         Handles /getItemsStock requests
         """
@@ -167,13 +221,13 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
         # Read requested items from POST content
         post_body = self.__read_post_body()
-        xmlNodes = xml_item_parser.XmlItemParser().parse(post_body)
-        if not xmlNodes or "items" not in xmlNodes:
+        xml_nodes = xml_item_parser.XmlItemParser().parse(post_body)
+        if not xml_nodes or "items" not in xml_nodes:
             self.__send_internal_error()
             return
 
         # Get the stock for each requested item
-        requested_items = xmlNodes["items"][0]
+        requested_items = xml_nodes["items"][0]
         result_items = []
 
         if "item" not in requested_items:
@@ -182,24 +236,24 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
         for item in requested_items["item"]:
             try:
-                itemStockDict = {}
-                itemId = item["id"]
-                itemStockDict["id"] = itemId
-                itemStockDict["stock"] = ERP_INSTANCE.get_item_stock(itemId)
+                item_stock_dict = {}
+                item_id = item["id"]
+                item_stock_dict["id"] = item_id
+                item_stock_dict["stock"] = ERP_INSTANCE.get_item_stock(item_id)
 
-                result_items.append(itemStockDict)
+                result_items.append(item_stock_dict)
 
             except KeyError, ex:
                 print >> sys.stderr, "Error looking for node :", ex
 
         # Prepare the XML response file
-        xmlData = xml_item_parser.items_to_xml(result_items)
+        xml_data = xml_item_parser.items_to_xml(result_items)
 
         # Send answer
-        self.__send_response(200, xmlData, "text/xml")
+        self.__send_response(200, xml_data, "text/xml")
 
 
-    def handle_get_state(self):
+    def _handle_get_state(self):
         """
         Handles /getStateERP requests
         """
@@ -207,14 +261,14 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
             self.__send_internal_error()
 
         else:
-            with open("./html/state_running.html") as f:
-                page_content = f.read()
+            with open("./html/state_running.html") as html_file:
+                page_content = html_file.read()
 
             # Server is running -> 200
             self.__send_response(200, page_content)
 
 
-    def handle_set_state(self):
+    def _handle_set_state(self):
         """
         Handles /setStateERP requests
         """
@@ -233,19 +287,21 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
                 code = 200
 
         # Prepare response content
-        with open("./html/code_result.html") as f:
+        with open("./html/code_result.html") as html_file:
             args = {"code": code}
-            page_content = f.read().format(**args)
+            page_content = html_file.read().format(**args)
 
         # Send the response
         self.__send_response(code, page_content)
 
 
-    def handle_index_page(self):
+    def _handle_index_page(self):
         """
         Prepares an information page to show and change the ERP status, and to
         show the items stocks
         """
+        # Don't log what we send from here...
+        self._handled = False
 
         # Prepare the format() arguments
         format_args = dict()
@@ -257,57 +313,13 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
             format_args["erp-running"] = "OFF"
 
         # Items state
-        format_args["items-status"] = self.__prepare_items_rows()
+        format_args["items-status"] = prepare_items_rows()
 
-        with open("./html/erp_state.html") as f:
-            page_content = f.read().format(**format_args)
+        with open("./html/erp_state.html") as html_file:
+            page_content = html_file.read().format(**format_args)
 
         # Send the response
         self.__send_response(200, page_content)
-
-
-    def __prepare_items_rows(self):
-        """
-        Prepares HTML table rows representing the items complete status
-        """
-
-        # Item map expected keys
-        item_keys = ["id", "lib", "price", "stock"]
-        item_keys_label = {"id": "ID", "lib": "Name", "price": "Price", \
-                     "stock": "Quantity"}
-
-
-        item_html_row = "\t\t<tr>\n"
-
-        # Table header
-        html_content = "\t<thead>\n\t\t<tr>\n"
-
-        for key in item_keys:
-            # Write head
-            html_content += "\t" * 3 + "<th>\n" + "\t" * 4
-            html_content += item_keys_label[key] + "\n" + "\t" * 3 + "</th>\n"
-
-            # Prepare item row model
-            item_html_row += "\t" * 3 + "<td>\n" + "\t" * 4
-            item_html_row += "{" + key + "}\n" + "\t" * 3 + "</td>\n"
-
-
-        # End of head
-        html_content += "\t\t</tr>\n\t</thead>\n\t<tbody>\n"
-
-        # Prepare items dictionary (items & stock)
-        items = self.__get_all_items()
-
-        if items:
-            for item in items:
-                item["stock"] = ERP_INSTANCE.get_item_stock(item["id"])
-
-                # Write the line
-                html_content += item_html_row.format(**item)
-
-        # End of table
-        html_content += "\t</tbody>\n"
-        return html_content
 
 
     def do_GET(self):
@@ -320,15 +332,31 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
         # Read the parameters
         self.parsed_query = urlparse.parse_qs(self.parsed_url.query)
 
+        # Some log...
+        logging.debug("%s - %s - %s", self.command, self.parsed_url.path, \
+                      self.parsed_query)
+
         # Find and use the handler
         if self.parsed_url.path in self._handlers:
-            self._handlers[self.parsed_url.path]()
+            # Log handlers events
+            self._handled = True
+
+            try:
+                self._handlers[self.parsed_url.path]()
+
+            except Exception, ex:
+                self.__send_response(500, str(ex), "text/plain")
 
         else:
+            # No handle found => Try with a real file
             try:
                 with open("./html" + self.parsed_url.path) as requested_file:
+                    mime = mimetypes.guess_type(self.parsed_url.path)
+                    if not mime:
+                        mime = ["text/plain"]
+
                     self.__send_response(200, requested_file.read(), \
-                                         mimetypes.guess_type(self.parsed_url.path)[0])
+                                mime[0])
 
                 # File sent, nothing else to do
                 return
@@ -337,8 +365,6 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
                 # File doesn't exist
                 self.__send_response(404, str(ex))
                 return
-            # No handler found, use information page
-            #self.handle_index_page()
 
 
     def do_POST(self):
@@ -347,6 +373,14 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
         """
         # Handled as GET requests
         self.do_GET()
+
+
+    def log_message(self, msg_format, *args):
+        """
+        Override the Handler logging system
+        """
+        if self._handled:
+            logging.info(msg_format, *args)
 
 
     def __read_post_body(self):
@@ -366,6 +400,11 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
         """
         Sends an HTTP response
         """
+
+        if self._handled:
+            # Log handler results
+            logging.debug("code = %d - content :\n%s", code, content)
+
         if code < 400:
             self.send_response(code)
         else:
@@ -385,8 +424,8 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
         """
         Sends a generic 500 server error message
         """
-        with open("./html/internal_error.html") as f:
-            page_content = f.read()
+        with open("./html/internal_error.html") as html_file:
+            page_content = html_file.read()
 
         self.__send_response(500, page_content)
 
@@ -397,17 +436,36 @@ def main():
     """
     Script entry point
     """
+
+    # Default values
+    port = 8080
+    logfile = "./log.txt"
+    loglevel = logging.DEBUG
+
+    # Read the the arguments
+    try:
+        port = int(sys.argv[1])
+        logfile = sys.argv[2]
+        loglevel = getattr(logging, sys.argv[3].upper(), logging.DEBUG)
+
+    except IndexError:
+        # Ignore index error (use defaults)
+        pass
+
+    except ValueError, ex:
+        print >> sys.stderr, "Error reading port :", ex
+
+    # Prepare the "random" module
     random.seed()
 
-    port = 8080
-    if len(sys.argv) > 1:
-        try:
-            port = int(sys.argv[1])
-        except Exception, ex:
-            print >> sys.stderr, "Error reading port number :", ex
+    # Prepare the "logging" module
+    logging.basicConfig(filename=logfile, level=loglevel, \
+                        format='%(asctime)s %(message)s')
 
+    # Bind the server
     server = BaseHTTPServer.HTTPServer(('', port), ErpHttpServer)
 
+    # Run, Forest !
     print "Serving..."
     try:
         server.serve_forever()
