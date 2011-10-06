@@ -1,7 +1,7 @@
 {
-    "id":"org.psem2m.internals.isolates.monitor-1",
+    "id":"org.psem2m.internals.isolates.forker",
     "kind":"felix",
-    "httpPort":9100,
+    "httpPort":9101,
     "vmArgs":[
               ],
     "bundles":[
@@ -10,10 +10,10 @@
             "optional":true,
             "properties":{
             	"psem2m.demo.ui.viewer.top":"0.5scr",
-            	"psem2m.demo.ui.viewer.left":"0scr",
+            	"psem2m.demo.ui.viewer.left":"0.25scr",
             	"psem2m.demo.ui.viewer.width":"0.25scr",
             	"psem2m.demo.ui.viewer.height":"0.5scr",
-            	"psem2m.demo.ui.viewer.color":"SkyBlue"
+            	"psem2m.demo.ui.viewer.color":"Beige"
             }
         },
         {
@@ -22,7 +22,7 @@
         {
             "symbolicName":"org.apache.felix.shell.remote",
             "properties":{
-            	"osgi.shell.telnet.port":"6000"
+            	"osgi.shell.telnet.port":"6001"
             }
         },
         {
@@ -38,19 +38,10 @@
             "from":"rose-server.js"
         },
         {
-            "from":"remote-services.js",
-            "overide":[{
-            	"symbolicName":"org.psem2m.isolates.remote.importer",
-            	"properties":{
-                	"org.psem2m.isolates.remote.importer.excludes":"org.psem2m.demo.*"
-                }
-            }]
+            "from":"remote-services.js"
         },
         {
-            "symbolicName":"org.psem2m.isolates.master.manager"
-        },
-        {
-            "symbolicName":"org.psem2m.isolates.monitor"
+            "symbolicName":"org.psem2m.isolates.forker"
         }
     ]
 }

@@ -1,7 +1,7 @@
 {
     "id":"gif.demo.data-server",
     "kind":"felix",
-    "httpPort":9010,
+    "httpPort":9210,
     "vmArgs":[
         
     ],
@@ -11,10 +11,10 @@
             "optional":true,
             "properties":{
                 "psem2m.demo.ui.viewer.top":"0.5scr",
-                "psem2m.demo.ui.viewer.left":"0scr",
+                "psem2m.demo.ui.viewer.left":"0.5scr",
                 "psem2m.demo.ui.viewer.width":"0.25scr",
                 "psem2m.demo.ui.viewer.height":"0.5scr",
-                "psem2m.demo.ui.viewer.color":"SkyBlue"
+                "psem2m.demo.ui.viewer.color":"YellowGreen"
             }
         },
         {
