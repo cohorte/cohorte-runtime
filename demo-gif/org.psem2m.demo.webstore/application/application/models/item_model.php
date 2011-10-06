@@ -29,8 +29,8 @@ class Item_model extends CI_Model {
 	public function getItem($aItemId){
 		
 		$wResponse = $this->rpcGetItem($aItemId);
-		if ($wResponse!=null){
-			return  $wResponse;
+		if (!is_null($wResponse)){
+					return  $wResponse;
 		}
 		return  $this->localGetItem($aItemId);
 	}
@@ -54,7 +54,7 @@ class Item_model extends CI_Model {
 	public function getItems($aCategory='', $aNbItems=99, $aRandom=false,$aBaseId=''){
 		
 		$wResponse = $this->rpcGetItems($aCategory, $aNbItems ,$aRandom, $aBaseId);
-		if ($wResponse!=null){
+		if (!is_null($wResponse)){
 			return $wResponse;
 		}
 		return $this->localGetItems($aCategory, $aNbItems, $aRandom, $aBaseId);
@@ -80,8 +80,8 @@ class Item_model extends CI_Model {
 	public function getItemsStock($aItemIds){
 		
 		$wResponse =  $this->rpcGetItemsStock($aItemIds);
-		if ($wResponse!=null){
-			return $wResponse;
+		if (!is_null($wResponse)){
+				return $wResponse;
 		}
 		return  $this->localGetItemsStock($aItemIds);
 	}

@@ -57,7 +57,6 @@ class CShoppingCart extends MY_Controller {
 		log_message('debug', "** CShoppingCart.updateCart() : _POST=[". var_export($_POST,true)."]" );
 
 		/*
-		 *
 			_POST=[array (
 				1 =>
 					array (
@@ -70,11 +69,7 @@ class CShoppingCart extends MY_Controller {
 						'qty' => '22',
 					),
 			)]
-		*
-		*
 		*/
-			
-
 		$this->cart->update($_POST);
 
 		$this->index();
@@ -87,10 +82,8 @@ class CShoppingCart extends MY_Controller {
 	public function eraseCart(){
 		log_message('debug', "** CShoppingCart.eraseCart()");
 
-
 		//Permits you to destroy the cart. This function will likely be called when you are finished processing the customer's order.
 		$this->cart->destroy();
-
 
 		$this->index();
 	}
@@ -105,7 +98,6 @@ class CShoppingCart extends MY_Controller {
 		$this->load->model('Cart_model');
 		
 		/*
-		 * 
 			Cart=[array (
 			  '7142441163b7d49b1efc67f9491af996' => 
 				  array (
@@ -126,8 +118,8 @@ class CShoppingCart extends MY_Controller {
 				    'subtotal' => 281,
 				  ),
 			)]
-		 * 
 		 */
+		
 		$wCartLines = array();
 		
 		// @see the java class org.psem2m.demo.erp.api.beans.CCartLine
@@ -141,12 +133,12 @@ class CShoppingCart extends MY_Controller {
 			array_push($wCartLines,$wCartLine);
 		}
 		
-		log_message('debug', "** CShoppingCart.applyCart() : wCartLines=[". var_export($wCartLines,true)."]" );
+		//log_message('INFO', "** CShoppingCart.applyCart() : wCartLines=[". var_export($wCartLines,true)."]" );
 		
 		
 		$wErpResponse = $this->Cart_model->applyCart($wCartLines);
 		
-		log_message('debug', "** CShoppingCart.applyCart() : wErpResponse=[". var_export($wErpResponse,true)."]" );
+		log_message('INFO', "** CShoppingCart.applyCart() : wErpResponse=[". var_export($wErpResponse,true)."]" );
 		
 		$this->index();
 	}
