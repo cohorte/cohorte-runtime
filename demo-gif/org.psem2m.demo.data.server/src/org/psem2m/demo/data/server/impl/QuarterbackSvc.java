@@ -141,8 +141,23 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
         // The ERP failed
         synchronized (pCache) {
 
-            final ItemBean item = pCache.getItem(aItemId);
-            final long itemAge = pCache.getItemInformationAge(aItemId);
+            final ItemBean item;
+            final String itemId;
+
+            if ("?".equals(aItemId)) {
+                item = pCache.getRandomItem();
+                if (item != null) {
+                    itemId = item.getId();
+                } else {
+                    itemId = null;
+                }
+
+            } else {
+                item = pCache.getItem(aItemId);
+                itemId = aItemId;
+            }
+
+            final long itemAge = pCache.getItemInformationAge(itemId);
 
             if (item != null && itemAge != -1) {
                 // Return the cached bean
