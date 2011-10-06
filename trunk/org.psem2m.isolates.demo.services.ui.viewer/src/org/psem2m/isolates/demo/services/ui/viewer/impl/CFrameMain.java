@@ -66,8 +66,8 @@ public class CFrameMain extends javax.swing.JFrame {
         public void actionPerformed(final ActionEvent aActionEvent) {
 
             JComboBox wCombo = (JComboBox) aActionEvent.getSource();
-            String wFilter = (String) wCombo.getSelectedItem();
-            setServicesFilterPsem2mOn(FILTER_PSEM2M.equals(wFilter));
+            String wSelectedFilterName = (String) wCombo.getSelectedItem();
+            setServicesFilterKind(wSelectedFilterName);
             setServiceTable(CBundleUiActivator.getInstance()
                     .getAllServiceReferences());
         }
@@ -135,10 +135,13 @@ public class CFrameMain extends javax.swing.JFrame {
     }
 
     private final static String FILTER_All = "all services";
-
+    private final static int FILTER_All_KIND = 2;
     private final static String FILTER_PSEM2M = "psem2m services";
-    private final static String FONT_SIZE_LARGE = "large";
+    private final static int FILTER_PSEM2M_KIND = 1;
+    private final static String FILTER_REMOTE = "remote services";
+    private final static int FILTER_REMOTE_KIND = 0;
 
+    private final static String FONT_SIZE_LARGE = "large";
     private final static int FONT_SIZE_LARGE_PT = 14;
     private final static String FONT_SIZE_NORMAL = "normal";
     private final static int FONT_SIZE_NORMAL_PT = 12;
@@ -168,8 +171,12 @@ public class CFrameMain extends javax.swing.JFrame {
         });
     }
 
-    private JLabel lblNewLabel;
+    private int COLUMN_IDX_BUNDLE_ID = 3;
+    private int COLUMN_IDX_NAME = 0;
+    private int COLUMN_IDX_REMOTE_INFO = 1;
+    private int COLUMN_IDX_SERVICE_ID = 2;
 
+    private JLabel lblNewLabel;
     private JLabel lblNewLabel_1;
     private JPanel panel;
     private JTextArea pConfigTextArea;
@@ -178,9 +185,13 @@ public class CFrameMain extends javax.swing.JFrame {
     private JTabbedPane pMainTabbedPane;
     private JScrollPane pServiceInfosScrollPane;
     private JTextArea pServiceInfosTextArea;
+
     private JPanel pServicesControlPanel;
+
     private JComboBox pServicesFilterComboBox;
-    private boolean pServicesFilterPsem2mOn = true;
+
+    private int pServicesFilterKind = FILTER_REMOTE_KIND;
+
     private JComboBox pServicesFontSizeComboBox;
 
     private JScrollPane pServicesScrollPane;
@@ -211,12 +222,21 @@ public class CFrameMain extends javax.swing.JFrame {
      */
     private boolean addOneServiceRow(final Object[] aDataRow) {
 
-        if (pServicesFilterPsem2mOn
-                && !aDataRow[0].toString().startsWith("org.psem2m")) {
-            return false;
+        if (pServicesFilterKind == FILTER_All_KIND
+
+                || pServicesFilterKind == FILTER_PSEM2M_KIND
+                && (aDataRow[COLUMN_IDX_NAME].toString().startsWith(
+                        "org.psem2m.") || aDataRow[COLUMN_IDX_NAME].toString()
+                        .startsWith("o.p."))
+
+                || pServicesFilterKind == FILTER_REMOTE_KIND
+                && !aDataRow[COLUMN_IDX_REMOTE_INFO].toString().isEmpty()
+
+        ) {
+            pServicesTableModel.addRow(aDataRow);
+            return true;
         }
-        pServicesTableModel.addRow(aDataRow);
-        return true;
+        return false;
     }
 
     /**
@@ -227,10 +247,12 @@ public class CFrameMain extends javax.swing.JFrame {
      */
     private Object[] buildRowData(final ServiceReference aServiceReference) {
 
-        Object[] wRowData = new Object[3];
-        wRowData[0] = extractServiceNameCleaned(aServiceReference);
-        wRowData[1] = extractServiceId(aServiceReference);
-        wRowData[2] = aServiceReference.getBundle().getBundleId();
+        Object[] wRowData = new Object[4];
+        wRowData[COLUMN_IDX_NAME] = extractServiceNameCleaned(aServiceReference);
+        wRowData[COLUMN_IDX_REMOTE_INFO] = extractRemoteInfo(aServiceReference);
+        wRowData[COLUMN_IDX_SERVICE_ID] = extractServiceId(aServiceReference);
+        wRowData[COLUMN_IDX_BUNDLE_ID] = aServiceReference.getBundle()
+                .getBundleId();
         return wRowData;
     }
 
@@ -244,7 +266,7 @@ public class CFrameMain extends javax.swing.JFrame {
 
         try {
             Long wServiceId = Long.parseLong(pServicesTableModel.getValueAt(
-                    aRowIdx, 1).toString());
+                    aRowIdx, COLUMN_IDX_SERVICE_ID).toString());
 
             ServiceReference wServiceReference = CBundleUiActivator
                     .getInstance().getServiceReference(wServiceId);
@@ -272,6 +294,28 @@ public class CFrameMain extends javax.swing.JFrame {
 
         removeAllRow();
         fireUpdateTable();
+    }
+
+    /**
+     * return the "remote" attribute of a service
+     * 
+     * => 'E' if exported , 'I' if exported
+     * 
+     * @param aServiceReference
+     * @return a string representing the remote attribute
+     */
+    private String extractRemoteInfo(final ServiceReference aServiceReference) {
+
+        if (aServiceReference.getProperty("service.exported.configs") != null) {
+            return "E";
+        }
+
+        if (aServiceReference.getProperty("service.imported") != null) {
+            return "I";
+        }
+
+        return "";
+
     }
 
     /**
@@ -388,11 +432,11 @@ public class CFrameMain extends javax.swing.JFrame {
                                         "Lucida Grande", Font.PLAIN,
                                         FONT_SIZE_NORMAL_PT));
                                 pServicesTable.setModel(new DefaultTableModel(
-                                        new Object[][] {},
-                                        new String[] { "Name", "ServiceId",
-                                                "BundleId" }) {
+                                        new Object[][] {}, new String[] {
+                                                "Name", "i/e", "Service",
+                                                "Bundle" }) {
                                     boolean[] columnEditables = new boolean[] {
-                                            false, false, false };
+                                            false, false, false, false };
 
                                     @Override
                                     public boolean isCellEditable(
@@ -403,6 +447,12 @@ public class CFrameMain extends javax.swing.JFrame {
                                 });
                                 pServicesTable.getColumnModel().getColumn(0)
                                         .setPreferredWidth(300);
+                                pServicesTable.getColumnModel().getColumn(1)
+                                        .setPreferredWidth(10);
+                                pServicesTable.getColumnModel().getColumn(2)
+                                        .setPreferredWidth(30);
+                                pServicesTable.getColumnModel().getColumn(3)
+                                        .setPreferredWidth(30);
                             }
                             pServicesTableModel = (DefaultTableModel) pServicesTable
                                     .getModel();
@@ -469,6 +519,7 @@ public class CFrameMain extends javax.swing.JFrame {
                                     pServicesFilterComboBox
                                             .setModel(new DefaultComboBoxModel(
                                                     new String[] {
+                                                            FILTER_REMOTE,
                                                             FILTER_PSEM2M,
                                                             FILTER_All }));
                                 }
@@ -569,11 +620,18 @@ public class CFrameMain extends javax.swing.JFrame {
     }
 
     /**
-     * @param aFlag
+     * @param aFilterName
+     *            the name of the selected filter
      */
-    private void setServicesFilterPsem2mOn(final boolean aFlag) {
+    private void setServicesFilterKind(final String aFilterName) {
 
-        pServicesFilterPsem2mOn = aFlag;
+        if (FILTER_REMOTE.equals(aFilterName)) {
+            pServicesFilterKind = FILTER_REMOTE_KIND;
+        } else if (FILTER_PSEM2M.equals(aFilterName)) {
+            pServicesFilterKind = FILTER_PSEM2M_KIND;
+        } else {
+            pServicesFilterKind = FILTER_All_KIND;
+        }
     }
 
     /**
