@@ -34,18 +34,20 @@ class CTest extends MY_Controller {
 
 // 		$this->session->sess_destroy();
 // 		$this->session->sess_create();
-		$this->pSessionData = $this->retreiveSessionData();
 
 
 		$wCategorie = $this->pSessionData->getCategorie();
 		$wDetailedItem = $this->pSessionData->getDetailedItem();
+		$wPageBaseId = $this->pSessionData->getPageBaseId();
 
+		log_message('debug', "** CTest.index() wCategorie=[".$wCategorie."] wDetailedItem=[".$wDetailedItem."] wPageBaseId=[".$wPageBaseId."]");
+		
+		
 		$data['SessionId']=$this->session->userdata('session_id');
 		$data['Categorie'] = $wCategorie;
 		$data['DetailedItem'] = $wDetailedItem;
 		
 		
-		$wPageBaseId = $this->pSessionData->getPageBaseId();
 		
 		
 		
@@ -54,9 +56,9 @@ class CTest extends MY_Controller {
 
 		$this->pSessionData->setNbItems = 25;
 		$this->pSessionData->setCategorie = ($wCategorie=="screens")?"mouses":"screens";
-		$this->saveSessionData();
 
 		$this->load->view('CTestView',$data);
+
 
 	}
 

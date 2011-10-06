@@ -43,8 +43,8 @@ class CHome extends MY_Controller {
 		// get the 6 items of according the category
 		$wItems = $this->Item_model->getItems($wCategorie,6,false,$wPageBaseId);
 		
-		// memo of the id of the last item of the page
-		$this->pSessionData->setNextPageBaseId($wItems[count($wItems)-1]['id']);
+		// memo of the id of the last item of the page if there is one...
+		$this->pSessionData->setNextPageBaseId(  (count($wItems)>0)? $wItems[count($wItems)-1]['id'] : '');
 
 		$data['Items'] = $this->injectStockInItems($wItems);
 
@@ -76,10 +76,7 @@ class CHome extends MY_Controller {
 			}
 		}
 		$data['DetailedItem'] = $wDetailedItem;
-				
-		
-		$this->saveSessionData();
-		
+						
 		$this->load->view('CHomeView',$data);
 	}
 
@@ -152,7 +149,6 @@ class CHome extends MY_Controller {
 		$this->pSessionData->setPageBaseId('');
 		$this->pSessionData->setNextPageBaseId('');
 		$this->pSessionData->setDetailedItem('');
-		$this->saveSessionData();
 	
 		$this->index();
 	}
@@ -170,8 +166,6 @@ class CHome extends MY_Controller {
 		
 		$this->pSessionData->setPreviousPageBaseId('');
 		
-		// the sessin data is saved at the end of the "index" method.
-		// $this->saveSessionData();
 		$this->index();
 	}
 	
@@ -186,9 +180,7 @@ class CHome extends MY_Controller {
 		
 		$this->pSessionData->setPreviousPageBaseId($this->pSessionData->getPageBaseId());
 		$this->pSessionData->setPageBaseId($this->pSessionData->getNextPageBaseId());
-		
-		// the sessin data is saved at the end of the "index" method.
-		// $this->saveSessionData();	
+			
 		$this->index();
 	}
 

@@ -585,19 +585,25 @@ color:#5F9FAB;
 /*---------------shopping cart------------------*/
 table#shoppingcart{
 width:100%;
-border:1px solid blue;
+/*border:1px solid blue;*/
 }
 table#shoppingcart td{
-border:1px solid red;
+border:1px solid #DFDFDF;
 }
 /*---------------contact_form------------------*/
 .contact_form{
-width:355px;
+width:100%;
+/*
+width:335px;
 float:left;
 padding:0px 0 0 75px;
+*/
 }
 .form_row{
+width:100%;
+/*
 width:335px;
+*/
 clear:both;
 padding:10px 0 10px 0;
 _padding:5px 0 5px 0;

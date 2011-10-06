@@ -2,13 +2,15 @@
 
 class Cart_model extends CI_Model {
 
+	private $DataServerPort = 9210;
+	
 	/**
 	 *
 	 * PHP5 constructor
 	 */
 	function __construct(){
 		parent::__construct();
-		log_message('debug', "** Cart_model.[init]");
+		log_message('debug', "** Cart_model.[init] [".$this->DataServerPort."]");
 
 		$this->load->library('jsonrpc');
 	}
@@ -56,7 +58,7 @@ class Cart_model extends CI_Model {
 		* the second argument is the method (either GET or POST, case-sensitive, defaults to POST),
 		* and the third is the port number (defaults to 80).
 		*/
-		$wJsonrpcClient->server('http://localhost/JSON-RPC','POST',9210);
+		$wJsonrpcClient->server('http://localhost/JSON-RPC','POST',$this->DataServerPort);
 		
 		/*
 		 * You can then specify a method with $client->method().
@@ -75,7 +77,9 @@ class Cart_model extends CI_Model {
 		
 		$wJsonrpcClient->timeout(5);
 		
-		//log_message('INFO', "** Item_model.rpcGetItem() : wJsonrpcClient=[". var_export($wJsonrpcClient,true)."]" );
+		if(log_isOn('OFF')){
+			log_message('INFO', "** Item_model.rpcGetItem() : wJsonrpcClient=[". var_export($wJsonrpcClient,true)."]" );
+		}
 		
 		$wJsonObject = $wJsonrpcClient->send_request();
 		
@@ -84,7 +88,9 @@ class Cart_model extends CI_Model {
 			return null;
 		}
 		
-		log_message('INFO', "** Item_model.rpcGetItem() : get_response_object=[". var_export($wJsonrpcClient->get_response_object(),true)."]" );
+		if(log_isOn('INFO')){
+			log_message('INFO', "** Item_model.rpcGetItem() : get_response_object=[". var_export($wJsonrpcClient->get_response_object(),true)."]" );
+		}
 
 		$wData = $wJsonrpcClient->get_response_object();
 		

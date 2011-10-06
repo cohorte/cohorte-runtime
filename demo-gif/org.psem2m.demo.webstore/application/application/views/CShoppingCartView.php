@@ -55,11 +55,11 @@ $this->load->view('parts/CNavigatorPartView',$datanav);
 <div class="center_content">
 <div class="center_title_bar">Shopping cart</div>
     
-<div class="prod_box_big">
+<div class="prod_box_big" style="border:0px solid red;">
 <div class="top_prod_box_big"></div>
-<div class="center_prod_box_big">            
+<div class="center_prod_box_big" style="border:0px solid red;">            
                  
-<div class="contact_form">
+<div class="contact_form" >
                            
 <div class="form_row">
 
@@ -146,7 +146,11 @@ function callControler(aMethod){
 </div>
 <div class="bottom_prod_box_big"></div>                                
 </div>
-       
+
+
+<p>
+<?php echo $CartMessage; ?>
+</p>
     
    
 </div><!-- end of center content -->
