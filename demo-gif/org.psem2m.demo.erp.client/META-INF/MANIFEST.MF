@@ -6,12 +6,8 @@ Bundle-SymbolicName: org.psem2m.demo.erp.client
 Bundle-Vendor: isandlaTech.com
 Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
-Export-Package: javax.xml.parsers,
- javax.xml.transform,
- javax.xml.transform.dom,
- javax.xml.transform.stream,
- org.w3c.dom,
- org.xml.sax
+Export-Package: javax.xml.parsers,javax.xml.transform,javax.xml.transf
+ orm.dom,javax.xml.transform.stream,org.w3c.dom,org.xml.sax
 Import-Package: javax.xml.parsers, javax.xml.transform, javax.xml.tran
  sform.dom, javax.xml.transform.stream, org.apache.felix.ipojo;version
  =1.8.0, org.apache.felix.ipojo.architecture;version=1.8.0, org.osgi.f
