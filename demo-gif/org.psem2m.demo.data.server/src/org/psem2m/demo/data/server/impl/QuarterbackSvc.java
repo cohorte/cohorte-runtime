@@ -7,7 +7,6 @@ package org.psem2m.demo.data.server.impl;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
@@ -51,6 +50,9 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
     /** The internal cache */
     @Requires
     private IDataCache pCache;
+
+    /** Cached ERP */
+    private CachedErp pCachedErp;
 
     /** ERP Proxy (imported service) */
     @Requires(id = IPOJO_ID_ERP, optional = true)
@@ -138,35 +140,10 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
             }
         }
 
-        // The ERP failed
+        // The ERP failed, use the cache
         synchronized (pCache) {
-
-            final ItemBean item;
-            final String itemId;
-
-            if ("?".equals(aItemId)) {
-                item = pCache.getRandomItem();
-                if (item != null) {
-                    itemId = item.getId();
-                } else {
-                    itemId = null;
-                }
-
-            } else {
-                item = pCache.getItem(aItemId);
-                itemId = aItemId;
-            }
-
-            final long itemAge = pCache.getItemInformationAge(itemId);
-
-            if (item != null && itemAge != -1) {
-                // Return the cached bean
-                return new CachedItemBean(item, itemAge);
-            }
+            return pCachedErp.getItem(pCache, aItemId);
         }
-
-        // Nothing found, return null
-        return null;
     }
 
     /*
@@ -180,12 +157,6 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
             final int aItemsCount, final boolean aRandomize,
             final String aBaseId) {
 
-        // Result list
-        final List<CachedItemBean> pItems = new ArrayList<CachedItemBean>();
-
-        // Flag to use the cache
-        boolean useCache = true;
-
         if (isProxyAvailable) {
             // Proxy available : use it
             try {
@@ -193,8 +164,9 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
                         aItemsCount, aRandomize, aBaseId);
 
                 if (erpResult != null) {
-                    // ERP answered, don't use the cache
-                    useCache = false;
+
+                    // Result list
+                    final List<CachedItemBean> pItems = new ArrayList<CachedItemBean>();
 
                     // Category content for cache update
                     final List<String> categoryItemIds = new ArrayList<String>();
@@ -222,49 +194,22 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
                     synchronized (pCache) {
                         pCache.updateCategoryItems(aCategory, categoryItemIds);
                     }
+
+                    return pItems.toArray(new CachedItemBean[pItems.size()]);
                 }
 
             } catch (Exception ex) {
                 // If ERP returned null or if an error occurred -> use cache
                 pLogger.logInfo(this, "getItems",
                         "Error calling the ERP Proxy service ", ex);
-
-                useCache = true;
             }
         }
 
-        if (useCache) {
-            // Grab data from the cache
-            synchronized (pCache) {
-
-                final Set<String> categoryItems = pCache
-                        .getCategoryItems(aCategory);
-                if (categoryItems == null) {
-                    // Empty category
-                    return new CachedItemBean[0];
-                }
-
-                // Get item beans
-                for (String itemId : categoryItems) {
-                    synchronized (pCache) {
-
-                        final ItemBean item = pCache.getItem(itemId);
-                        final long itemAge = pCache
-                                .getItemInformationAge(itemId);
-
-                        if (item != null && itemAge != -1) {
-
-                            // Prepare and add the cached bean
-                            final CachedItemBean cachedBean = new CachedItemBean(
-                                    item, itemAge);
-                            pItems.add(cachedBean);
-                        }
-                    }
-                }
-            }
+        // Grab data from the cache
+        synchronized (pCache) {
+            return pCachedErp.getItems(pCache, aCategory, aItemsCount,
+                    aRandomize, aBaseId);
         }
-
-        return pItems.toArray(new CachedItemBean[pItems.size()]);
     }
 
     /*
@@ -313,31 +258,10 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
 
         }
 
-        // Result list
-        final CachedItemStockBean[] resultArray = new CachedItemStockBean[aItemIds.length];
-
-        // Read data from the cache
+        // Returns the cached ERP result
         synchronized (pCache) {
-
-            for (int i = 0; i < aItemIds.length; i++) {
-
-                // Get the ID
-                final String itemId = aItemIds[i];
-
-                // Read the cache
-                final long beanStock = pCache.getItemStock(itemId);
-                final long stockAge = pCache.getItemStockInformationAge(itemId);
-
-                if (beanStock != -1 && stockAge != -1) {
-                    // Cache is valid, prepare a bean
-                    final CachedItemStockBean stockBean = new CachedItemStockBean(
-                            itemId, beanStock, stockAge);
-                    resultArray[i] = stockBean;
-                }
-            }
+            return pCachedErp.getItemsStock(pCache, aItemIds);
         }
-
-        return resultArray;
     }
 
     /*
@@ -349,6 +273,7 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
     @Invalidate
     public void invalidatePojo() throws BundleException {
 
+        pCachedErp = null;
         pLogger.logInfo(this, "invalidatePojo", "QuarterbackSvc Gone");
     }
 
@@ -384,6 +309,7 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
     @Validate
     public void validatePojo() throws BundleException {
 
+        pCachedErp = new CachedErp();
         pLogger.logInfo(this, "validatePojo", "QuarterbackSvc Ready");
     }
 }
