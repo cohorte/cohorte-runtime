@@ -49,19 +49,21 @@ iPOJO-Components: instance { $component="demo-dataserver-factory" $nam
  manipulation { $super="org.psem2m.isolates.base.activators.CPojoBase"
   interface { $name="org.psem2m.demo.data.server.IQuarterback" }field 
  { $name="isProxyAvailable" $type="boolean" }field { $name="pCache" $t
- ype="org.psem2m.demo.data.cache.IDataCache" }field { $name="pErpProxy
- " $type="org.psem2m.demo.erp.api.services.IErpDataProxy" }field { $na
- me="pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }meth
- od { $name="applyCart" $return="org.psem2m.demo.erp.api.beans.CErpAct
- ionReport" $arguments="{org.psem2m.demo.erp.api.beans.CCartLine[]}" }
- method { $name="bindErp" $arguments="{org.psem2m.demo.erp.api.service
- s.IErpDataProxy}" }method { $name="getItem" $return="org.psem2m.demo.
- erp.api.beans.CachedItemBean" $arguments="{java.lang.String}" }method
-  { $name="getItems" $return="org.psem2m.demo.erp.api.beans.CachedItem
- Bean[]" $arguments="{java.lang.String,int,boolean,java.lang.String}" 
- }method { $name="getItemsStock" $return="org.psem2m.demo.erp.api.bean
- s.CachedItemStockBean[]" $arguments="{java.lang.String[]}" }method { 
- $name="invalidatePojo" }method { $name="isProxyAvailable" $return="bo
- olean" }method { $name="unbindErp" $arguments="{org.psem2m.demo.erp.a
- pi.services.IErpDataProxy}" }method { $name="validatePojo" }}}
+ ype="org.psem2m.demo.data.cache.IDataCache" }field { $name="pCachedEr
+ p" $type="org.psem2m.demo.data.server.impl.CachedErp" }field { $name=
+ "pErpProxy" $type="org.psem2m.demo.erp.api.services.IErpDataProxy" }f
+ ield { $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLogger
+ Svc" }method { $name="applyCart" $return="org.psem2m.demo.erp.api.bea
+ ns.CErpActionReport" $arguments="{org.psem2m.demo.erp.api.beans.CCart
+ Line[]}" }method { $name="bindErp" $arguments="{org.psem2m.demo.erp.a
+ pi.services.IErpDataProxy}" }method { $name="getItem" $return="org.ps
+ em2m.demo.erp.api.beans.CachedItemBean" $arguments="{java.lang.String
+ }" }method { $name="getItems" $return="org.psem2m.demo.erp.api.beans.
+ CachedItemBean[]" $arguments="{java.lang.String,int,boolean,java.lang
+ .String}" }method { $name="getItemsStock" $return="org.psem2m.demo.er
+ p.api.beans.CachedItemStockBean[]" $arguments="{java.lang.String[]}" 
+ }method { $name="invalidatePojo" }method { $name="isProxyAvailable" $
+ return="boolean" }method { $name="unbindErp" $arguments="{org.psem2m.
+ demo.erp.api.services.IErpDataProxy}" }method { $name="validatePojo" 
+ }}}
 

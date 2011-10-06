@@ -1,6 +1,6 @@
 /**
  * File:   IDataCache.java
- * Author: "Thomas Calmant"
+ * Author: Thomas Calmant
  * Date:   3 oct. 2011
  */
 package org.psem2m.demo.data.cache;
@@ -11,8 +11,9 @@ import java.util.Set;
 import org.psem2m.demo.erp.api.beans.ItemBean;
 
 /**
- * @author "Thomas Calmant"
- *
+ * Represents a DataServer cache
+ * 
+ * @author Thomas Calmant
  */
 public interface IDataCache {
 
@@ -24,7 +25,7 @@ public interface IDataCache {
      *            A category
      * @return The last update time stamp, or -1
      */
-    public abstract long getCategoryInformationAge(final String aCategory);
+    long getCategoryInformationAge(String aCategory);
 
     /**
      * Retrieves the items IDs of the given category
@@ -33,7 +34,7 @@ public interface IDataCache {
      *            A category
      * @return Items IDs of the category, null if none.
      */
-    public abstract Set<String> getCategoryItems(final String aCategory);
+    Set<String> getCategoryItems(String aCategory);
 
     /**
      * Retrieves the cached item bean, null if not present
@@ -42,7 +43,7 @@ public interface IDataCache {
      *            An item ID
      * @return The cached item bean, or null
      */
-    public abstract ItemBean getItem(final String aItemId);
+    ItemBean getItem(String aItemId);
 
     /**
      * Retrieves the time stamp of the last item update, -1 if the item ID is
@@ -52,7 +53,7 @@ public interface IDataCache {
      *            An item ID
      * @return The last update time stamp, or -1
      */
-    public abstract long getItemInformationAge(final String aItemId);
+    long getItemInformationAge(String aItemId);
 
     /**
      * Retrieves the cached stock value of the given item. Returns -1 if no
@@ -62,7 +63,7 @@ public interface IDataCache {
      *            An item ID
      * @return The cached stock value, -1 if none
      */
-    public abstract long getItemStock(final String aItemId);
+    long getItemStock(String aItemId);
 
     /**
      * Retrieves the time stamp of the last item stock update, -1 if the item ID
@@ -72,7 +73,15 @@ public interface IDataCache {
      *            An item ID
      * @return The last update time stamp, or -1
      */
-    public abstract long getItemStockInformationAge(final String aItemId);
+    long getItemStockInformationAge(String aItemId);
+
+    /**
+     * Retrieves a random item from the cache. Returns null if no item is
+     * available in the cache.
+     * 
+     * @return A random item, null if cache is empty.
+     */
+    ItemBean getRandomItem();
 
     /**
      * Updates a category items content. If the collection is null, the category
@@ -83,8 +92,7 @@ public interface IDataCache {
      * @param aItemIds
      *            IDs of the items of the category
      */
-    public abstract void updateCategoryItems(final String aCategory,
-            final Collection<String> aItemIds);
+    void updateCategoryItems(String aCategory, Collection<String> aItemIds);
 
     /**
      * Updates an item's stock value
@@ -94,8 +102,7 @@ public interface IDataCache {
      * @param aStock
      *            Its stock
      */
-    public abstract void updateItemBean(final String aItemId,
-            final ItemBean aBean);
+    void updateItemBean(String aItemId, ItemBean aBean);
 
     /**
      * Updates an item's stock value
@@ -105,6 +112,6 @@ public interface IDataCache {
      * @param aStock
      *            Its stock
      */
-    public abstract void updateItemStock(final String aItemId, final long aStock);
+    void updateItemStock(String aItemId, long aStock);
 
 }

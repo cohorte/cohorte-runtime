@@ -31,12 +31,14 @@ import javax.xml.transform.stream.StreamResult;
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.ServiceProperty;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.demo.erp.api.beans.ItemBean;
 import org.psem2m.demo.erp.api.services.IErpDataProxy;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
+import org.psem2m.isolates.slave.agent.ISvcAgent;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -62,12 +64,26 @@ public class ErpClient extends CPojoBase implements IErpDataProxy {
     /** getItems() method URI */
     public static final String GET_ITEMS_URI = "/getItems";
 
+    /** /getState URI */
+    public static final String GET_STATE_URI = "/getStateERP";
+
+    /** The slave agent (to kill the isolate) */
+    @Requires
+    private ISvcAgent pAgentSvc;
+
     /** ERP Client configuration */
     private ErpClientConfig pConfig;
 
     /** Log service */
     @Requires
     private IIsolateLoggerSvc pLogger;
+
+    /** Number of ERP access failures */
+    private int pNbFailures = 0;
+
+    /** PSEM2M Service export flag property */
+    @ServiceProperty(name = "psem2m.service.export", value = "false")
+    private boolean pPropertyExported = false;
 
     /**
      * Default constructor
@@ -237,6 +253,9 @@ public class ErpClient extends CPojoBase implements IErpDataProxy {
 
             final String result = getUrlResult(erpUrl);
             if (result != null) {
+                // Reset failure counter
+                pNbFailures = 0;
+
                 final ItemBean[] resultArray = xmlToItemBeans(result);
                 if (result != null && resultArray.length > 0) {
                     // Return the first element found
@@ -253,6 +272,10 @@ public class ErpClient extends CPojoBase implements IErpDataProxy {
                 // No answer
                 pLogger.logInfo(this, "getItem",
                         "No answer from the ERP (null)");
+
+                // Kill isolate in case of many errors
+                handleFailure();
+
                 return null;
             }
 
@@ -294,11 +317,17 @@ public class ErpClient extends CPojoBase implements IErpDataProxy {
 
             final String result = getUrlPOSTResult(erpUrl, query);
             if (result != null) {
+                // Reset failure counter
+                pNbFailures = 0;
+
                 return xmlToItemBeans(result);
 
             } else {
                 pLogger.logInfo(this, "getItem",
                         "No answer from the ERP (null)");
+
+                // Kill isolate in case of many errors
+                handleFailure();
             }
 
         } catch (MalformedURLException e) {
@@ -344,6 +373,8 @@ public class ErpClient extends CPojoBase implements IErpDataProxy {
 
             final String result = getUrlPOSTResult(erpUrl, xmlQuery);
             if (result != null) {
+                // Reset failure counter
+                pNbFailures = 0;
 
                 // Analyze the XML result
                 final Map<String, Integer> resultMap = xmlToItemStocks(result);
@@ -366,6 +397,8 @@ public class ErpClient extends CPojoBase implements IErpDataProxy {
                 return resultArray;
 
             } else {
+                // Kill isolate in case of many errors
+                handleFailure();
                 return null;
             }
 
@@ -492,6 +525,23 @@ public class ErpClient extends CPojoBase implements IErpDataProxy {
         return null;
     }
 
+    /**
+     * Tests if the ERP failed to often, in which case the isolate is stopped.
+     */
+    protected void handleFailure() {
+
+        pNbFailures++;
+
+        if (pNbFailures >= 3) {
+            // Log the failure
+            pLogger.logSevere(this, "handleFailure",
+                    "TOO MANY FAILS FROM ERP : ABANDON");
+
+            // Kill isolate
+            pAgentSvc.killIsolate();
+        }
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -500,7 +550,18 @@ public class ErpClient extends CPojoBase implements IErpDataProxy {
     @Override
     public void invalidatePojo() throws BundleException {
 
+        pPropertyExported = false;
         pLogger.logInfo(this, "invalidatePojo", "Python ERP Client Gone");
+    }
+
+    /**
+     * Returns the service export flag state
+     * 
+     * @return The service export flag state
+     */
+    public boolean isServiceExported() {
+
+        return pPropertyExported;
     }
 
     /**
@@ -713,6 +774,81 @@ public class ErpClient extends CPojoBase implements IErpDataProxy {
         return domToString(document);
     }
 
+    /**
+     * Tries to access the ERP. Considers an HTTP 200 code on /getStateErp as a
+     * success.
+     * 
+     * @return True on success, False on error.
+     */
+    protected boolean testErpConnection() {
+
+        try {
+            final URL stateUrl = forgeUrl(GET_STATE_URI, null);
+
+            // Connect to the URL
+            HttpURLConnection connection = (HttpURLConnection) stateUrl
+                    .openConnection();
+
+            final int code = connection.getResponseCode();
+            if (code != HttpURLConnection.HTTP_OK) {
+                // Something happened
+                pLogger.logInfo(this, "testErpConnection",
+                        "ERP answered with code=", code);
+                return false;
+            }
+
+            // OK
+            return true;
+
+        } catch (MalformedURLException e) {
+            pLogger.logSevere(this, "testErpConnection",
+                    "Can't forge the ERP URL");
+
+        } catch (Exception e) {
+            pLogger.logSevere(this, "testErpConnection", "Can't access the ERP");
+        }
+
+        return false;
+    }
+
+    /**
+     * Validates the presence of the ERP. Kills the isolate after 3 failures.
+     */
+    protected void validateErpPresence() {
+
+        pLogger.logInfo(this, "validateErpPresence", "Test ERP presence...");
+
+        // Test the connection to the ERP, kill the isolate on failure
+        boolean erpAccessible = false;
+        for (int nbTries = 0; nbTries < 3; nbTries++) {
+
+            if (testErpConnection()) {
+                erpAccessible = true;
+                break;
+            }
+
+            // Give some more time...
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                // We may be killed in another way
+                return;
+            }
+        }
+
+        pLogger.logInfo(this, "validateErpPresence", "ERP Present =",
+                erpAccessible);
+
+        if (erpAccessible) {
+            // Client ready to roll
+            pPropertyExported = true;
+
+        } else {
+            // Can't access the ERP, suicide
+            pAgentSvc.killIsolate();
+        }
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -722,6 +858,10 @@ public class ErpClient extends CPojoBase implements IErpDataProxy {
     @Validate
     public void validatePojo() throws BundleException {
 
+        // Reset the failure counter
+        pNbFailures = 0;
+
+        // Read the ERP client configuration
         pConfig = new ErpClientConfig();
         try {
             pConfig.init();
@@ -733,6 +873,16 @@ public class ErpClient extends CPojoBase implements IErpDataProxy {
             throw new BundleException("Error reading ERP Client configuration",
                     e);
         }
+
+        // Validate the ERP presence in a new thread
+        new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+
+                validateErpPresence();
+            }
+        }).start();
 
         pLogger.logInfo(this, "validatePojo", "Python ERP Client Ready");
     }

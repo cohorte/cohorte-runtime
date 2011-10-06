@@ -7,6 +7,7 @@ package org.psem2m.demo.data.cache.impl;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -164,6 +165,41 @@ public class ItemBeanDataCache extends CPojoBase implements IDataCache {
     /*
      * (non-Javadoc)
      * 
+     * @see org.psem2m.demo.data.cache.IDataCache#getRandomItem()
+     */
+    @Override
+    public ItemBean getRandomItem() {
+
+        if (pItemsCache.isEmpty()) {
+            return null;
+        }
+
+        final int nbItems = pItemsCache.size();
+        final int randomItem = (int) Math.random() * nbItems;
+
+        // Get the ID at the selected index
+        String itemId = null;
+        final Iterator<String> iterator = pItemsCache.keySet().iterator();
+        int i = 0;
+        while (iterator.hasNext()) {
+
+            if (i == randomItem) {
+                // Found !
+                itemId = iterator.next();
+                break;
+            }
+
+            // Continue
+            i++;
+            iterator.next();
+        }
+
+        return pItemsCache.get(itemId);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.psem2m.isolates.base.activators.CPojoBase#invalidatePojo()
      */
     @Override
@@ -200,12 +236,9 @@ public class ItemBeanDataCache extends CPojoBase implements IDataCache {
         Set<String> categoryItems = pCategoriesItems.get(aCategory);
         if (categoryItems == null) {
             // Set up a new set
-            categoryItems = new LinkedHashSet<String>();
+            categoryItems = new LinkedHashSet<String>(aItemIds.size());
             pCategoriesItems.put(aCategory, categoryItems);
 
-        } else {
-            // Reset the old one
-            categoryItems.clear();
         }
 
         // Update values and age
