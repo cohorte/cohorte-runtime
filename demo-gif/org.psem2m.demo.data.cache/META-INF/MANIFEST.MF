@@ -29,17 +29,17 @@ iPOJO-Components: instance { $component="org.psem2m.demo.data.cache.im
  ava.util.Map" }field { $name="pLogger" $type="org.psem2m.isolates.bas
  e.IIsolateLoggerSvc" }method { $name="getCategoryInformationAge" $ret
  urn="long" $arguments="{java.lang.String}" }method { $name="getCatego
- ryItems" $return="java.util.Set" $arguments="{java.lang.String}" }met
- hod { $name="getItem" $return="org.psem2m.demo.erp.api.beans.ItemBean
- " $arguments="{java.lang.String}" }method { $name="getItemInformation
- Age" $return="long" $arguments="{java.lang.String}" }method { $name="
- getItemStock" $return="long" $arguments="{java.lang.String}" }method 
- { $name="getItemStockInformationAge" $return="long" $arguments="{java
- .lang.String}" }method { $name="getRandomItem" $return="org.psem2m.de
- mo.erp.api.beans.ItemBean" }method { $name="invalidatePojo" }method {
-  $name="updateCategoryItems" $arguments="{java.lang.String,java.util.
- Collection}" }method { $name="updateItemBean" $arguments="{java.lang.
- String,org.psem2m.demo.erp.api.beans.ItemBean}" }method { $name="upda
- teItemStock" $arguments="{java.lang.String,long}" }method { $name="va
- lidatePojo" }}}
+ ryItems" $return="java.util.SortedSet" $arguments="{java.lang.String}
+ " }method { $name="getItem" $return="org.psem2m.demo.erp.api.beans.It
+ emBean" $arguments="{java.lang.String}" }method { $name="getItemInfor
+ mationAge" $return="long" $arguments="{java.lang.String}" }method { $
+ name="getItemStock" $return="long" $arguments="{java.lang.String}" }m
+ ethod { $name="getItemStockInformationAge" $return="long" $arguments=
+ "{java.lang.String}" }method { $name="getRandomItem" $return="org.pse
+ m2m.demo.erp.api.beans.ItemBean" }method { $name="invalidatePojo" }me
+ thod { $name="updateCategoryItems" $arguments="{java.lang.String,java
+ .util.Collection}" }method { $name="updateItemBean" $arguments="{java
+ .lang.String,org.psem2m.demo.erp.api.beans.ItemBean}" }method { $name
+ ="updateItemStock" $arguments="{java.lang.String,long}" }method { $na
+ me="validatePojo" }}}
 

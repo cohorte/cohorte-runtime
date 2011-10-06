@@ -8,9 +8,9 @@ package org.psem2m.demo.data.cache.impl;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
@@ -35,7 +35,7 @@ import org.psem2m.isolates.base.activators.CPojoBase;
 public class ItemBeanDataCache extends CPojoBase implements IDataCache {
 
     /** Categories content. Key = Category name, Value = Array of item IDs */
-    private final Map<String, Set<String>> pCategoriesItems = new HashMap<String, Set<String>>();
+    private final Map<String, SortedSet<String>> pCategoriesItems = new HashMap<String, SortedSet<String>>();
 
     /** Age of category data. Key = item ID, Value = last update time stamp */
     private final Map<String, Long> pCategoriesItemsAge = new HashMap<String, Long>();
@@ -93,7 +93,7 @@ public class ItemBeanDataCache extends CPojoBase implements IDataCache {
      * .String)
      */
     @Override
-    public Set<String> getCategoryItems(final String aCategory) {
+    public SortedSet<String> getCategoryItems(final String aCategory) {
 
         return pCategoriesItems.get(aCategory);
     }
@@ -233,15 +233,12 @@ public class ItemBeanDataCache extends CPojoBase implements IDataCache {
         }
 
         // Set or clear the actual category content
-        Set<String> categoryItems = pCategoriesItems.get(aCategory);
+        SortedSet<String> categoryItems = pCategoriesItems.get(aCategory);
         if (categoryItems == null) {
             // Set up a new set
-            categoryItems = new LinkedHashSet<String>();
+            categoryItems = new TreeSet<String>();
             pCategoriesItems.put(aCategory, categoryItems);
 
-        } else {
-            // Reset the old one
-            categoryItems.clear();
         }
 
         // Update values and age
