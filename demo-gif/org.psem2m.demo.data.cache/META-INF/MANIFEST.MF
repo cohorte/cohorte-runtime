@@ -35,10 +35,11 @@ iPOJO-Components: instance { $component="org.psem2m.demo.data.cache.im
  Age" $return="long" $arguments="{java.lang.String}" }method { $name="
  getItemStock" $return="long" $arguments="{java.lang.String}" }method 
  { $name="getItemStockInformationAge" $return="long" $arguments="{java
- .lang.String}" }method { $name="invalidatePojo" }method { $name="upda
- teCategoryItems" $arguments="{java.lang.String,java.util.Collection}"
-  }method { $name="updateItemBean" $arguments="{java.lang.String,org.p
- sem2m.demo.erp.api.beans.ItemBean}" }method { $name="updateItemStock"
-  $arguments="{java.lang.String,long}" }method { $name="validatePojo" 
- }}}
+ .lang.String}" }method { $name="getRandomItem" $return="org.psem2m.de
+ mo.erp.api.beans.ItemBean" }method { $name="invalidatePojo" }method {
+  $name="updateCategoryItems" $arguments="{java.lang.String,java.util.
+ Collection}" }method { $name="updateItemBean" $arguments="{java.lang.
+ String,org.psem2m.demo.erp.api.beans.ItemBean}" }method { $name="upda
+ teItemStock" $arguments="{java.lang.String,long}" }method { $name="va
+ lidatePojo" }}}
 
