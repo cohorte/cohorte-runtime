@@ -14,6 +14,8 @@ import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.demo.data.server.IQuarterback;
+import org.psem2m.demo.erp.api.beans.CCartLine;
+import org.psem2m.demo.erp.api.beans.CErpActionReport;
 import org.psem2m.demo.erp.api.beans.CachedItemBean;
 import org.psem2m.demo.erp.api.beans.CachedItemStockBean;
 import org.psem2m.demo.erp.api.services.IErpData;
@@ -45,6 +47,20 @@ public class DataServerSvc extends CPojoBase implements IErpData {
     public DataServerSvc() {
 
         super();
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.demo.erp.api.services.IErpData#applyCart(org.psem2m.demo.erp
+     * .api.beans.CCartLine[])
+     */
+    @Override
+    public CErpActionReport applyCart(final CCartLine[] aCartLines) {
+
+        return pQuarterback.applyCart(aCartLines);
+
     }
 
     /*

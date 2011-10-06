@@ -21,6 +21,8 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.demo.data.cache.IDataCache;
 import org.psem2m.demo.data.server.IQuarterback;
+import org.psem2m.demo.erp.api.beans.CCartLine;
+import org.psem2m.demo.erp.api.beans.CErpActionReport;
 import org.psem2m.demo.erp.api.beans.CachedItemBean;
 import org.psem2m.demo.erp.api.beans.CachedItemStockBean;
 import org.psem2m.demo.erp.api.beans.IQualityLevels;
@@ -64,6 +66,35 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
     public QuarterbackSvc() {
 
         super();
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.demo.erp.api.services.IErpData#applyCart(org.psem2m.demo.erp
+     * .api.beans.CCartLine[])
+     */
+    @Override
+    public CErpActionReport applyCart(final CCartLine[] aCartLines) {
+
+        StringBuilder wSB = new StringBuilder();
+
+        wSB.append(String.format("Received cart : [%d] lines : [ ",
+                aCartLines.length));
+        int wI = 0;
+        for (CCartLine wCartLine : aCartLines) {
+            if (wI > 0) {
+                wSB.append(',');
+            }
+            wSB.append(String.format("{%d=>%s }", wI, wCartLine.toString()));
+            wI++;
+        }
+        wSB.append("]");
+
+        return new CErpActionReport(
+                java.net.HttpURLConnection.HTTP_NOT_IMPLEMENTED,
+                "applyCart() must be implemented.", wSB.toString());
     }
 
     /**

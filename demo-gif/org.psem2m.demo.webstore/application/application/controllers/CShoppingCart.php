@@ -73,6 +73,7 @@ class CShoppingCart extends MY_Controller {
 		*
 		*
 		*/
+			
 
 		$this->cart->update($_POST);
 
@@ -99,10 +100,53 @@ class CShoppingCart extends MY_Controller {
 	 * Enter description here ...
 	 */
 	public function applyCart(){
-		log_message('debug', "** CShoppingCart.applyCart() : _POST=[". var_export($_POST,true)."]" );
+		log_message('debug', "** CShoppingCart.applyCart() : Cart=[". var_export($this->cart->contents(),true)."]" );
+		
+		$this->load->model('Cart_model');
+		
+		/*
+		 * 
+			Cart=[array (
+			  '7142441163b7d49b1efc67f9491af996' => 
+				  array (
+				    'rowid' => '7142441163b7d49b1efc67f9491af996',
+				    'id' => 'screen011',
+				    'qty' => '1',
+				    'price' => '179.00',
+				    'name' => 'XX Hyundai - T236LD - Ecran LED',
+				    'subtotal' => 179,
+				  ),
+			  'a5f646a4c959b70cf25870835c5e6460' => 
+				  array (
+				    'rowid' => 'a5f646a4c959b70cf25870835c5e6460',
+				    'id' => 'screen016',
+				    'qty' => '1',
+				    'price' => '281.00',
+				    'name' => 'XX LG - E2290V-SN - Ecran LED',
+				    'subtotal' => 281,
+				  ),
+			)]
+		 * 
+		 */
+		$wCartLines = array();
+		
+		// @see the java class org.psem2m.demo.erp.api.beans.CCartLine
+		foreach ($this->cart->contents() as $wRowId=>$wRowData) {
+			$wCartLine = array();
+			$wCartLine['lineId'] = $wRowId;
+			$wCartLine['itemId'] = $wRowData['id'];
+			$wCartLine['quantity'] = $wRowData['qty'];
+			$wCartLine['javaClass'] = 'org.psem2m.demo.erp.api.beans.CCartLine';
+				
+			array_push($wCartLines,$wCartLine);
+		}
+		
+		log_message('debug', "** CShoppingCart.applyCart() : wCartLines=[". var_export($wCartLines,true)."]" );
 		
 		
+		$wErpResponse = $this->Cart_model->applyCart($wCartLines);
 		
+		log_message('debug', "** CShoppingCart.applyCart() : wErpResponse=[". var_export($wErpResponse,true)."]" );
 		
 		$this->index();
 	}
