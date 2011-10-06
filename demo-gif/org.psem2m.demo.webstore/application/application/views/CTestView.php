@@ -54,14 +54,32 @@ td {
 	</table>
 
 	<p>
-		<a href="<?php echo base_url(); ?>index.php/CHome/index" class="nav1">
-			Home </a>
+		<a href="<?php echo base_url(); ?>index.php/CHome" class="nav1">Home </a>
+		&nbsp;
+		<a href="<?php echo base_url(); ?>index.php/CTest" class="nav1">Test </a>
 	</p>
 
+<p>
+<?php 
+try {
+	if ( ! function_exists('log_isOn'))
+	{
+		echo "function_exists('log_isOn') => false";
+	}else{
+		if (log_isOn('DEBUG')){
+				echo "log_isOn('DEBUG') => true";
+		}else{
+			echo "log_isOn('DEBUG') => false";
+		}
+	}
+} catch (Exception $e) {
+    echo 'Exception reçue : ',  $e->getMessage();
+}
+?>
+</p>
+
+
 	<table >
-
-
-
 	<?php foreach($Items as $id1=>$sub1) { ?>
 		<tr>
 			<td><?php echo $id1; ?></td>

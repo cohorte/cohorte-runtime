@@ -1,4 +1,20 @@
-<?php
+<?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+/**
+ * CodeIgniter extension
+ *
+ * An open source application development framework for PHP 5.1.6 or newer
+ *
+ * @package		CodeIgniter
+ * @author		isandlaTech
+ * @copyright	Copyright (c)  2011, isandlaTech.
+ * @license		http://codeigniter.com/user_guide/license.html
+ * @link		http://isandlaTech.com
+ * @since		Version 1.0
+ * @filesource
+ */
+
+// ------------------------------------------------------------------------
+
 
 class MY_Controller extends CI_Controller {
 
@@ -17,7 +33,8 @@ class MY_Controller extends CI_Controller {
 		parent::__construct();
 		log_message('debug', "** MY_Controller.[init]");
 		
-		$this->pSessionData = $this->retreiveSessionData();
+		$this->pSessionData = new CSessionData();
+		$this->pSessionData->setSession($this->session);
 	}
 
 	/**
@@ -33,7 +50,6 @@ class MY_Controller extends CI_Controller {
 		$aItem['stockQualityClass'] = $this->convertQualityToClass ($wItemsStock[0]['qualityLevel']);
 
 		//echo  '<br/>'.var_export($aItem,true);
-
 		return $aItem;
 	}
 	/**
@@ -87,114 +103,7 @@ class MY_Controller extends CI_Controller {
 	
 
 
-	/**
-		*
-		* @return    the current instance of CSessionData
-		*/
-	protected function getSessionData(){
-		log_message('debug', "** MY_Controller.getSessionData()");
 
-		if ($this->pSessionData==null){
-			$this->pSessionData = retreiveSessionData();
-		}
-
-		return $this->pSessionData;
-	}
-
-	/**
-	 *
-		* Save the current instance of CSessionData
-		*/
-	protected function saveSessionData(){
-		log_message('debug', "** MY_Controller.saveSessionData()");
-
-		$this->storeSessionData($this->pSessionData);
-	}
-	/**
-		* retrieve the instance of CSessionData in the CI session. Creates a new one if it doesn't exist.
-		*
-		* @return    a instance of CSessionData
-		**/
-	protected function retreiveSessionData(){
-		log_message('debug', "** MY_Controller.retreiveSessionData()");
-
-		$wElectronix = $this->session->userdata('electronix');
-
-		log_message('debug', "** MY_Controller.retreiveSessionData() : Electronix=[".$wElectronix ."]" );
-
-		if ($wElectronix == false){
-			log_message('debug', "** MY_Controller.retreiveSessionData() : no GifData ! ");
-
-			$wSessionData = $this->storeSessionData($this->newSessionData());
-		}else {
-			// Creates the SessionData bean with the array "all_userdata"
-			$wArray = $this->session->all_userdata();
-			// remove 'cart_contents' from the array.
-			if (array_key_exists('cart_contents', $wArray)) {
-				$wArray2 = array();
-				foreach($wArray as $wKey=>$wValue){
-					//log_message('INFO', "** MY_Controller.retreiveSessionData() :  wKey=[". var_export($wKey,true)."] wValue=[". var_export($wValue,true)."]" );
-					if ($wKey != 'cart_contents'){
-						$wArray2[$wKey]=$wValue;
-					}
-				}
-				$wArray = $wArray2;
-			}
-			$wSessionData = new CSessionData( $wArray);
-			log_message('INFO', "** MY_Controller.retreiveSessionData() : wSessionData=[". var_export($wSessionData,true)."]" );
-				
-		}
-		return $wSessionData;
-	}
-	
-	/**
-	 * 
-	 * Enter description here ...
-	 * @param unknown_type $aArray
-	 * @param unknown_type $aKey
-	 * @return multitype:|unknown
-	 */
-	function removeFromArray($aArray, $aKey){
-		$wIdx=0;
-		foreach($aArray as $wKey=>$wValue){
-			if($wKey == $aKey){
-				return array_splice($aArray, $wIdx, 1);
-			}
-			$wIdx++;
-		}
-		return $aArray;
-	}
-	/**
-		*
-		* @return    a new instance of CSessionData
-		**/
-	private function newSessionData(){
-		log_message('debug', "** MY_Controller.newSessionData()");
-		$wSessionData = new CSessionData();
-		$wSessionData->setElectronix($wSessionData->getTimeStamp());
-		$wSessionData->setCategorie('screens');
-		
-		$wSessionData->setDetailedItem('');
-		
-		$wSessionData->setPreviousPageBaseId('');
-		$wSessionData->setPageBaseId('');
-		$wSessionData->setNextPageBaseId('');
-
-		return $wSessionData;
-	}
-
-	/**
-		*
-		* @param    $aSessionData    the session data to store
-		* @return    the stored instance of CSessionData
-		**/
-	protected function storeSessionData($aSessionData){
-		log_message('debug', "** MY_Controller.storeSessionData()");
-		$this->session->set_userdata($aSessionData->getProperties());
-
-		log_message('debug', "** MY_Controller.storeSessionData() : all_userdata=[". var_export($this->session->all_userdata(),true)."]" );
-		return $aSessionData;
-	}
 
 }
 

@@ -44,7 +44,11 @@ class CShoppingCart extends MY_Controller {
 		// get the new item
 		$wItemNew = $this->Item_model->getItem('mouse004');
 		$data['ItemNew'] =$this->injectStockInItem($wItemNew);
-
+		
+		// put in the data array given to the view the message available in the session data
+		$data['CartMessage'] =$this->pSessionData->getCartMessage();
+		//remove the message
+		$this->pSessionData->setCartMessage('');
 
 		$this->load->view('CShoppingCartView',$data);
 	}
@@ -138,7 +142,12 @@ class CShoppingCart extends MY_Controller {
 		
 		$wErpResponse = $this->Cart_model->applyCart($wCartLines);
 		
-		log_message('INFO', "** CShoppingCart.applyCart() : wErpResponse=[". var_export($wErpResponse,true)."]" );
+		if(log_isOn('INFO')){
+			log_message('INFO', "** CShoppingCart.applyCart() : wErpResponse=[". var_export($wErpResponse,true)."]" );
+		}
+		
+		// put the message in the session data usable in the index method of the contoller
+		$this->pSessionData->setCartMessage(var_export($wErpResponse,true));
 		
 		$this->index();
 	}

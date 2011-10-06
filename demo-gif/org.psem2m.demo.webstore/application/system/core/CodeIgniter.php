@@ -47,6 +47,9 @@
  * ------------------------------------------------------
  */
 	require(BASEPATH.'core/Common.php');
+	
+	
+
 
 /*
  * ------------------------------------------------------
@@ -140,7 +143,25 @@
 	{
 		$CFG->_assign_to_config($assign_to_config);
 	}
-
+	
+	
+/* ###########################################################################
+*
+* EXTENSION OGATTAZ
+*
+* Load "application/core/MY_Common.php " if exists
+*
+* ###########################################################################*/
+	
+	$wMyCommonAbsolutePath = APPPATH.'core/'.$CFG->config['subclass_prefix'].'Common.php';
+	if (file_exists($wMyCommonAbsolutePath))
+	{
+		require ($wMyCommonAbsolutePath);
+		
+		log_message('debug', 'MY_Common initialized from ['.$wMyCommonAbsolutePath.']');
+	}
+	unset($wMyCommonAbsolutePath);
+	
 /*
  * ------------------------------------------------------
  *  Instantiate the UTF-8 class
@@ -231,11 +252,24 @@
 		return CI_Controller::get_instance();
 	}
 
-
-	if (file_exists(APPPATH.'core/'.$CFG->config['subclass_prefix'].'Controller.php'))
+	
+	/* ###########################################################################
+	*
+	* MODIFICATION OGATTAZ
+	*
+	* Load "application/core/MY_Controller.php " if exists
+	*
+	* ###########################################################################*/
+	
+	$wMyControllerAbsolutePath = APPPATH.'core/'.$CFG->config['subclass_prefix'].'Controller.php';
+	if (file_exists($wMyControllerAbsolutePath))
 	{
-		require APPPATH.'core/'.$CFG->config['subclass_prefix'].'Controller.php';
+		require($wMyControllerAbsolutePath);
+		
+		log_message('debug', 'MY_Controller initialized from ['.$wMyControllerAbsolutePath.']');
 	}
+	unset($wMyControllerAbsolutePath);
+	
 
 	// Load the local application controller
 	// Note: The Router class automatically validates the controller path using the router->_validate_request().

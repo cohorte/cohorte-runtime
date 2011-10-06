@@ -1,6 +1,8 @@
 <?php
 
 class Item_model extends CI_Model {
+	
+	private $DataServerPort = 9210;
 
 	/**
 	 *
@@ -8,7 +10,9 @@ class Item_model extends CI_Model {
 	 */
 	function __construct(){
 		parent::__construct();
-		log_message('debug', "** Item_model.[init]");
+		
+		
+		log_message('debug', "** Item_model.[init] [".$this->DataServerPort."]");
 
 		$this->load->library('jsonrpc');
 	}
@@ -135,7 +139,7 @@ class Item_model extends CI_Model {
 		* the second argument is the method (either GET or POST, case-sensitive, defaults to POST),
 		* and the third is the port number (defaults to 80).
 		*/
-		$wJsonrpcClient->server('http://localhost/JSON-RPC','POST',9210);
+		$wJsonrpcClient->server('http://localhost/JSON-RPC','POST',$this->DataServerPort);
 
 		/*
 		 * You can then specify a method with $client->method().
@@ -153,18 +157,24 @@ class Item_model extends CI_Model {
 		$wJsonrpcClient->request($wParams);
 
 		$wJsonrpcClient->timeout(5);
-
-		//log_message('INFO', "** Item_model.rpcGetItem() : wJsonrpcClient=[". var_export($wJsonrpcClient,true)."]" );
+		
+		if(log_isOn('OFF')){
+			log_message('INFO', "** Item_model.rpcGetItem() : wJsonrpcClient=[". var_export($wJsonrpcClient,true)."]" );
+		}
 
 		$wJsonObject = $wJsonrpcClient->send_request();
 
 		if ($wJsonObject != true){
-			log_message('ERROR', "** Item_model.rpcGetItem() : get_response_[". var_export($wJsonrpcClient->get_response(),true)."]" );
+			if(log_isOn('ERROR')){
+				log_message('ERROR', "** Item_model.rpcGetItem() : get_response_[". var_export($wJsonrpcClient->get_response(),true)."]" );
+			}
 			return null;
 		}
 		
-		log_message('INFO', "** Item_model.rpcGetItem() : get_response_object=[". var_export($wJsonrpcClient->get_response_object(),true)."]" );
-
+		if(log_isOn('OFF')){
+			log_message('INFO', "** Item_model.rpcGetItem() : get_response_object=[". var_export($wJsonrpcClient->get_response_object(),true)."]" );
+		}
+		
 		$wData = $wJsonrpcClient->get_response_object();
 
 		/*
@@ -205,7 +215,7 @@ class Item_model extends CI_Model {
 	{
 
 		$wJsonrpcClient =& $this->jsonrpc->get_client();
-		$wJsonrpcClient->server('http://localhost/JSON-RPC','POST',9210);
+		$wJsonrpcClient->server('http://localhost/JSON-RPC','POST',$this->DataServerPort);
 		$wJsonrpcClient->method('dataserver.getItems').
 
 		$wParams = array();
@@ -217,7 +227,9 @@ class Item_model extends CI_Model {
 
 		$wJsonrpcClient->timeout(5);
 
-		//log_message('INFO', "** Item_model.rpcGetItems() : wJsonrpcClient=[". var_export($wJsonrpcClient,true)."]" );
+		if(log_isOn('OFF')){
+			log_message('INFO', "** Item_model.rpcGetItems() : wJsonrpcClient=[". var_export($wJsonrpcClient,true)."]" );
+		}
 
 		$wJsonObject = $wJsonrpcClient->send_request();
 
@@ -226,7 +238,9 @@ class Item_model extends CI_Model {
 			return null;
 		}
 		
-		log_message('INFO', "** Item_model.rpcGetItems() : get_response_object=[". var_export($wJsonrpcClient->get_response_object(),true)."]" );
+		if(log_isOn('OFF')){
+			log_message('INFO', "** Item_model.rpcGetItems() : get_response_object=[". var_export($wJsonrpcClient->get_response_object(),true)."]" );
+		}
 
 		$wData = $wJsonrpcClient->get_response_object();
 		/*
@@ -282,7 +296,7 @@ class Item_model extends CI_Model {
 	private function rpcGetItemsStock($aItemIds){
 		
 		$wJsonrpcClient =& $this->jsonrpc->get_client();
-		$wJsonrpcClient->server('http://localhost/JSON-RPC','POST',9210);
+		$wJsonrpcClient->server('http://localhost/JSON-RPC','POST',$this->DataServerPort);
 		$wJsonrpcClient->method('dataserver.getItemsStock').
 		
 		$wParams = array();
@@ -291,7 +305,9 @@ class Item_model extends CI_Model {
 		
 		$wJsonrpcClient->timeout(5);
 		
-		//log_message('INFO', "** Item_model.rpcGetItemsStock() : wJsonrpcClient=[". var_export($wJsonrpcClient,true)."]" );
+		if(log_isOn('OFF')){
+			log_message('INFO', "** Item_model.rpcGetItemsStock() : wJsonrpcClient=[". var_export($wJsonrpcClient,true)."]" );
+		}
 		
 		$wJsonObject = $wJsonrpcClient->send_request();
 		
@@ -301,7 +317,9 @@ class Item_model extends CI_Model {
 			return null;
 		}
 		
-		log_message('INFO', "** Item_model.rpcGetItemsStock() : get_response_object=[". var_export($wJsonrpcClient->get_response_object(),true)."]" );
+		if(log_isOn('OFF')){
+			log_message('INFO', "** Item_model.rpcGetItemsStock() : get_response_object=[". var_export($wJsonrpcClient->get_response_object(),true)."]" );
+		}
 		
 		$wData = $wJsonrpcClient->get_response_object();
 		/*
