@@ -160,7 +160,7 @@ def items_to_xml(items, root_tag="items", element_tag="item"):
     """
     Converts the given items list to an XML file
     """
-    if not items:
+    if items == None:
         return ""
 
     impl = xml.dom.minidom.getDOMImplementation()
