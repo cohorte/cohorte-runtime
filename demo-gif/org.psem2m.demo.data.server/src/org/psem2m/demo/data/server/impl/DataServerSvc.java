@@ -5,6 +5,8 @@
  */
 package org.psem2m.demo.data.server.impl;
 
+import java.util.Arrays;
+
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
@@ -53,7 +55,11 @@ public class DataServerSvc extends CPojoBase implements IErpData {
     @Override
     public CachedItemBean getItem(final String aItemId) {
 
-        return pQuarterback.getItem(aItemId);
+        final CachedItemBean resultBean = pQuarterback.getItem(aItemId);
+
+        pLogger.logInfo(this, "getItem", "getItem(", aItemId, ") =", resultBean);
+
+        return resultBean;
     }
 
     /*
@@ -67,8 +73,14 @@ public class DataServerSvc extends CPojoBase implements IErpData {
             final int aItemsCount, final boolean aRandomize,
             final String aBaseId) {
 
-        return pQuarterback.getItems(aCategory, aItemsCount, aRandomize,
-                aBaseId);
+        final CachedItemBean[] resultArray = pQuarterback.getItems(aCategory,
+                aItemsCount, aRandomize, aBaseId);
+
+        pLogger.logInfo(this, "getItems", "getItems(", aCategory, ", ",
+                aItemsCount, ", ", aRandomize, ", ", aBaseId, ") =",
+                Arrays.toString(resultArray));
+
+        return resultArray;
     }
 
     /*
@@ -81,7 +93,13 @@ public class DataServerSvc extends CPojoBase implements IErpData {
     @Override
     public CachedItemStockBean[] getItemsStock(final String[] aItemIds) {
 
-        return pQuarterback.getItemsStock(aItemIds);
+        final CachedItemStockBean[] resultArray = pQuarterback
+                .getItemsStock(aItemIds);
+
+        pLogger.logInfo(this, "getItemsStock", "getItemsStock(",
+                Arrays.toString(aItemIds), ") =", Arrays.toString(resultArray));
+
+        return resultArray;
     }
 
     /*
