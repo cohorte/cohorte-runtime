@@ -8,7 +8,7 @@ class Item_model extends CI_Model {
 	 */
 	function __construct(){
 		parent::__construct();
-		log_message('debug', "** CItem.[init]");
+		log_message('debug', "** Item_model.[init]");
 
 		$this->load->library('jsonrpc');
 	}
@@ -135,7 +135,7 @@ class Item_model extends CI_Model {
 		* the second argument is the method (either GET or POST, case-sensitive, defaults to POST),
 		* and the third is the port number (defaults to 80).
 		*/
-		$wJsonrpcClient->server('http://localhost/JSON-RPC','POST',9010);
+		$wJsonrpcClient->server('http://localhost/JSON-RPC','POST',9210);
 
 		/*
 		 * You can then specify a method with $client->method().
@@ -148,9 +148,9 @@ class Item_model extends CI_Model {
 		 * You can specify parameters with $client->request(), which takes an array representing
 		* the request parameters.
 		*/
-		$wParam = array();
-		array_push($wParam,$aItemId);
-		$wJsonrpcClient->request($wParam);
+		$wParams = array();
+		array_push($wParams,$aItemId);
+		$wJsonrpcClient->request($wParams);
 
 		$wJsonrpcClient->timeout(5);
 
@@ -205,15 +205,15 @@ class Item_model extends CI_Model {
 	{
 
 		$wJsonrpcClient =& $this->jsonrpc->get_client();
-		$wJsonrpcClient->server('http://localhost/JSON-RPC','POST',9010);
+		$wJsonrpcClient->server('http://localhost/JSON-RPC','POST',9210);
 		$wJsonrpcClient->method('dataserver.getItems').
 
-		$wParam = array();
-		array_push($wParam,$aCategorie);
- 		array_push($wParam,$aNbItems);
- 		array_push($wParam,$aRandom);
- 		array_push($wParam,$aBaseId);
-		$wJsonrpcClient->request($wParam);
+		$wParams = array();
+		array_push($wParams,$aCategorie);
+ 		array_push($wParams,$aNbItems);
+ 		array_push($wParams,$aRandom);
+ 		array_push($wParams,$aBaseId);
+		$wJsonrpcClient->request($wParams);
 
 		$wJsonrpcClient->timeout(5);
 
@@ -282,12 +282,12 @@ class Item_model extends CI_Model {
 	private function rpcGetItemsStock($aItemIds){
 		
 		$wJsonrpcClient =& $this->jsonrpc->get_client();
-		$wJsonrpcClient->server('http://localhost/JSON-RPC','POST',9010);
+		$wJsonrpcClient->server('http://localhost/JSON-RPC','POST',9210);
 		$wJsonrpcClient->method('dataserver.getItemsStock').
 		
-		$wParam = array();
-		array_push($wParam,$aItemIds);
-		$wJsonrpcClient->request($wParam);
+		$wParams = array();
+		array_push($wParams,$aItemIds);
+		$wJsonrpcClient->request($wParams);
 		
 		$wJsonrpcClient->timeout(5);
 		
