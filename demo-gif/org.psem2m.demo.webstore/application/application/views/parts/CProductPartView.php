@@ -22,7 +22,7 @@ $wAddCartUrl =  base_url()."index.php/CHome/addToCart/".$id;
 		<div class="product_img">
 			<a href="<?php echo $wDetailUrl; ?>"><img
 				src="<?php echo $wImageUrl; ?>"
-				alt="" title="" border="0" width="100px" /> </a>
+				alt="" title="<?php echo $name; ?>" border="0" width="100px"   height="100px"/> </a>
 		</div>
 		<div class="prod_price">
 			<span class="price"><?php echo $price; ?> EUR</span>
