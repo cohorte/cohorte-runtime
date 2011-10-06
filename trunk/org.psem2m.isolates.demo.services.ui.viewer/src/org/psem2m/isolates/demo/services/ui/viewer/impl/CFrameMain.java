@@ -16,9 +16,11 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -28,6 +30,8 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.ListSelectionModel;
+import javax.swing.RowSorter.SortKey;
+import javax.swing.SortOrder;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
@@ -61,13 +65,46 @@ public class CFrameMain extends javax.swing.JFrame {
      * @author ogattaz
      * 
      */
+    class CCompactionActionListener implements ActionListener {
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see
+         * java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent
+         * )
+         */
+        @Override
+        public void actionPerformed(final ActionEvent aEvt) {
+
+            // Perform action
+            JCheckBox wCheckBox = (JCheckBox) aEvt.getSource();
+
+            // use state to set the comptaion flag
+            setServiceNameCompaction(wCheckBox.isSelected());
+
+            // reload the services
+            setServiceTable(CBundleUiActivator.getInstance()
+                    .getAllServiceReferences());
+        }
+
+    }
+
+    /**
+     * 
+     * @author ogattaz
+     * 
+     */
     class CFilterActionListener implements ActionListener {
         @Override
         public void actionPerformed(final ActionEvent aActionEvent) {
 
             JComboBox wCombo = (JComboBox) aActionEvent.getSource();
             String wSelectedFilterName = (String) wCombo.getSelectedItem();
+
             setServicesFilterKind(wSelectedFilterName);
+
+            // reload the services
             setServiceTable(CBundleUiActivator.getInstance()
                     .getAllServiceReferences());
         }
@@ -85,30 +122,49 @@ public class CFrameMain extends javax.swing.JFrame {
 
             JComboBox wCombo = (JComboBox) aActionEvent.getSource();
             String wSize = (String) wCombo.getSelectedItem();
-            if (FONT_SIZE_SMALL.equals(wSize)) {
 
-                pServicesTable.setFont(new Font("Lucida Grande", Font.PLAIN,
-                        FONT_SIZE_SMALL_PT));
-                pServiceInfosTextArea.setFont(new Font("Courier New",
-                        Font.PLAIN, FONT_SIZE_SMALL_PT));
+            if (FONT_SIZE_SMALL.equals(wSize)) {
+                adjustTableRow(FONT_NAME_TABLE, FONT_SIZE_SMALL_PT);
+                setTextAreaFont(FONT_NAME_TEXTAREA, FONT_SIZE_SMALL_PT);
 
             } else if (FONT_SIZE_NORMAL.equals(wSize)) {
-
-                pServicesTable.setFont(new Font("Lucida Grande", Font.PLAIN,
-                        FONT_SIZE_NORMAL_PT));
-                pServiceInfosTextArea.setFont(new Font("Courier New",
-                        Font.PLAIN, FONT_SIZE_NORMAL_PT));
+                adjustTableRow(FONT_NAME_TABLE, FONT_SIZE_NORMAL_PT);
+                setTextAreaFont(FONT_NAME_TEXTAREA, FONT_SIZE_NORMAL_PT);
 
             } else if (FONT_SIZE_LARGE.equals(wSize)) {
-
-                pServicesTable.setFont(new Font("Lucida Grande", Font.PLAIN,
-                        FONT_SIZE_LARGE_PT));
-                pServiceInfosTextArea.setFont(new Font("Courier New",
-                        Font.PLAIN, FONT_SIZE_LARGE_PT));
+                adjustTableRow(FONT_NAME_TABLE, FONT_SIZE_LARGE_PT);
+                setTextAreaFont(FONT_NAME_TEXTAREA, FONT_SIZE_LARGE_PT);
 
             }
         }
 
+        /**
+         * @param aFontName
+         * @param aSize
+         */
+        private void adjustTableRow(final String aFontName, final int aSize) {
+
+            Font wNewFont = setTableFont(aFontName, aSize);
+            pServicesTable.setRowHeight(calcRowHeight(wNewFont));
+        }
+
+        /**
+         * @param aFont
+         * @return
+         */
+        private int calcFontHeight(final Font aFont) {
+
+            return getGraphics().getFontMetrics(aFont).getHeight();
+        }
+
+        /**
+         * @param aFont
+         * @return
+         */
+        private int calcRowHeight(final Font aFont) {
+
+            return calcFontHeight(aFont) + 2;
+        }
     }
 
     /**
@@ -135,19 +191,22 @@ public class CFrameMain extends javax.swing.JFrame {
     }
 
     private final static String FILTER_All = "all services";
+
     private final static int FILTER_All_KIND = 2;
     private final static String FILTER_PSEM2M = "psem2m services";
     private final static int FILTER_PSEM2M_KIND = 1;
     private final static String FILTER_REMOTE = "remote services";
     private final static int FILTER_REMOTE_KIND = 0;
 
+    private final static String FONT_NAME_TABLE = "Lucida Grande";
+    private final static String FONT_NAME_TEXTAREA = "Courier New";
+
     private final static String FONT_SIZE_LARGE = "large";
-    private final static int FONT_SIZE_LARGE_PT = 14;
+    private final static int FONT_SIZE_LARGE_PT = 16;
     private final static String FONT_SIZE_NORMAL = "normal";
     private final static int FONT_SIZE_NORMAL_PT = 12;
     private final static String FONT_SIZE_SMALL = "small";
     private final static int FONT_SIZE_SMALL_PT = 10;
-
     /** the format of the title of the main Frame **/
     private final static String FRAME_TITLE_FORMAT = "psem2m - viewer - isolate [%s]";
 
@@ -172,11 +231,12 @@ public class CFrameMain extends javax.swing.JFrame {
     }
 
     private int COLUMN_IDX_BUNDLE_ID = 3;
+
     private int COLUMN_IDX_NAME = 0;
     private int COLUMN_IDX_REMOTE_INFO = 1;
     private int COLUMN_IDX_SERVICE_ID = 2;
-
     private JLabel lblNewLabel;
+
     private JLabel lblNewLabel_1;
     private JPanel panel;
     private JTextArea pConfigTextArea;
@@ -185,23 +245,16 @@ public class CFrameMain extends javax.swing.JFrame {
     private JTabbedPane pMainTabbedPane;
     private JScrollPane pServiceInfosScrollPane;
     private JTextArea pServiceInfosTextArea;
-
+    private boolean pServiceNameCompaction = false;
     private JPanel pServicesControlPanel;
-
     private JComboBox pServicesFilterComboBox;
-
     private int pServicesFilterKind = FILTER_REMOTE_KIND;
-
     private JComboBox pServicesFontSizeComboBox;
-
+    private JCheckBox pServicesNameCompactionCheckBox;
     private JScrollPane pServicesScrollPane;
-
     private JSplitPane pServicesSplitPane;
-
     private JTable pServicesTable;
-
     private DefaultTableModel pServicesTableModel;
-
     private JScrollPane scrollPane;
 
     private JTextArea txtrPlogtextarea;
@@ -248,7 +301,7 @@ public class CFrameMain extends javax.swing.JFrame {
     private Object[] buildRowData(final ServiceReference aServiceReference) {
 
         Object[] wRowData = new Object[4];
-        wRowData[COLUMN_IDX_NAME] = extractServiceNameCleaned(aServiceReference);
+        wRowData[COLUMN_IDX_NAME] = extractServiceNameCleanedCompacted(aServiceReference);
         wRowData[COLUMN_IDX_REMOTE_INFO] = extractRemoteInfo(aServiceReference);
         wRowData[COLUMN_IDX_SERVICE_ID] = extractServiceId(aServiceReference);
         wRowData[COLUMN_IDX_BUNDLE_ID] = aServiceReference.getBundle()
@@ -364,6 +417,32 @@ public class CFrameMain extends javax.swing.JFrame {
      * @param aServiceReference
      * @return
      */
+    private String extractServiceNameCleanedCompacted(
+            final ServiceReference aServiceReference) {
+
+        String wName = extractServiceNameCleaned(aServiceReference);
+        if (pServiceNameCompaction) {
+            StringBuilder wSB = new StringBuilder();
+            int wI = 0;
+            for (String wPart : wName.split("\\.")) {
+                if (wI > 0) {
+                    wSB.append('.');
+                }
+                if (wI < 3) {
+                    wPart = wPart.substring(0, 1);
+                }
+                wSB.append(wPart);
+                wI++;
+            }
+            wName = wSB.toString();
+        }
+        return wName;
+    }
+
+    /**
+     * @param aServiceReference
+     * @return
+     */
     private int findServiceRow(final ServiceReference aServiceReference) {
 
         String wServiceName = extractServiceNameCleaned(aServiceReference);
@@ -412,7 +491,7 @@ public class CFrameMain extends javax.swing.JFrame {
                 getContentPane().add(pMainTabbedPane);
                 {
                     pServicesSplitPane = new JSplitPane();
-                    pServicesSplitPane.setResizeWeight(0.75);
+                    pServicesSplitPane.setResizeWeight(0.6);
                     pServicesSplitPane
                             .setOrientation(JSplitPane.VERTICAL_SPLIT);
                     pMainTabbedPane.addTab("Services", null,
@@ -428,9 +507,7 @@ public class CFrameMain extends javax.swing.JFrame {
 
                             {
                                 pServicesTable = new JTable();
-                                pServicesTable.setFont(new Font(
-                                        "Lucida Grande", Font.PLAIN,
-                                        FONT_SIZE_NORMAL_PT));
+
                                 pServicesTable.setModel(new DefaultTableModel(
                                         new Object[][] {}, new String[] {
                                                 "Name", "i/e", "Service",
@@ -460,6 +537,10 @@ public class CFrameMain extends javax.swing.JFrame {
                                     pServicesTableModel);
                             pServicesTable.setRowSorter(wServicesSorter);
 
+                            List<SortKey> wSortKeys = new ArrayList<SortKey>();
+                            wSortKeys.add(new SortKey(0, SortOrder.ASCENDING));
+                            wServicesSorter.setSortKeys(wSortKeys);
+
                             pServicesTable
                                     .setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
                             pServicesTable.setColumnSelectionAllowed(false);
@@ -471,6 +552,8 @@ public class CFrameMain extends javax.swing.JFrame {
                             pServicesTable.getSelectionModel()
                                     .addListSelectionListener(
                                             new CServicesSelectionListener());
+
+                            setTableFont(FONT_NAME_TABLE, FONT_SIZE_NORMAL_PT);
 
                             pServicesScrollPane.setViewportView(pServicesTable);
                             pServicesSplitPane.add(pServicesScrollPane,
@@ -493,9 +576,9 @@ public class CFrameMain extends javax.swing.JFrame {
                                     pServiceInfosTextArea
                                             .setForeground(Color.BLACK);
                                     pServiceInfosTextArea.setText("Info...");
-                                    pServiceInfosTextArea.setFont(new Font(
-                                            "Courier New", Font.PLAIN,
-                                            FONT_SIZE_NORMAL_PT));
+
+                                    setTextAreaFont(FONT_NAME_TEXTAREA,
+                                            FONT_SIZE_NORMAL_PT);
 
                                 }
                                 pServicesControlPanel.add(
@@ -508,7 +591,7 @@ public class CFrameMain extends javax.swing.JFrame {
                                 pServicesControlPanel.add(panel,
                                         BorderLayout.NORTH);
                                 {
-                                    lblNewLabel = new JLabel("Filter");
+                                    lblNewLabel = new JLabel("filter");
                                     panel.add(lblNewLabel);
                                 }
                                 {
@@ -524,7 +607,7 @@ public class CFrameMain extends javax.swing.JFrame {
                                                             FILTER_All }));
                                 }
                                 {
-                                    lblNewLabel_1 = new JLabel("Font");
+                                    lblNewLabel_1 = new JLabel("font");
                                     panel.add(lblNewLabel_1);
                                 }
                                 {
@@ -538,8 +621,16 @@ public class CFrameMain extends javax.swing.JFrame {
                                     pServicesFontSizeComboBox
                                             .setSelectedIndex(1);// normal
                                     panel.add(pServicesFontSizeComboBox);
+
                                     pServicesFontSizeComboBox
                                             .addActionListener(new CFontSizeActionListener());
+                                }
+                                {
+                                    pServicesNameCompactionCheckBox = new JCheckBox(
+                                            "compact");
+                                    pServicesNameCompactionCheckBox
+                                            .addActionListener(new CCompactionActionListener());
+                                    panel.add(pServicesNameCompactionCheckBox);
                                 }
                             }
                         }
@@ -620,6 +711,14 @@ public class CFrameMain extends javax.swing.JFrame {
     }
 
     /**
+     * @param aCompaction
+     */
+    private void setServiceNameCompaction(final boolean aCompaction) {
+
+        pServiceNameCompaction = aCompaction;
+    }
+
+    /**
      * @param aFilterName
      *            the name of the selected filter
      */
@@ -669,6 +768,28 @@ public class CFrameMain extends javax.swing.JFrame {
                 fireUpdateTable();
             }
         }
+    }
+
+    /**
+     * @param aFontName
+     * @param aSize
+     */
+    private Font setTableFont(final String aFontName, final int aSize) {
+
+        Font wNewFont = new Font(aFontName, Font.PLAIN, aSize);
+        pServicesTable.setFont(wNewFont);
+        return wNewFont;
+    }
+
+    /**
+     * @param aFontName
+     * @param aSize
+     */
+    private Font setTextAreaFont(final String aFontName, final int aSize) {
+
+        Font wNewFont = new Font(aFontName, Font.PLAIN, aSize);
+        pServiceInfosTextArea.setFont(wNewFont);
+        return wNewFont;
     }
 
     /**

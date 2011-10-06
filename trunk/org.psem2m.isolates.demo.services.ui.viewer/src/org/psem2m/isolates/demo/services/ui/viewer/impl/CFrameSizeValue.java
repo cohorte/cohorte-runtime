@@ -27,7 +27,7 @@ public class CFrameSizeValue extends CXObjectBase {
 
     private final static int DEFAULT_HEIGHT = 500;
 
-    private final static int DEFAULT_WIDTH = 500;
+    private final static int DEFAULT_WIDTH = 550;
 
     private final static Dimension sScreenSize = Toolkit.getDefaultToolkit()
             .getScreenSize();
