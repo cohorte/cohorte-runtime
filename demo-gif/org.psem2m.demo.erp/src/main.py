@@ -389,7 +389,12 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
         """
         try :
             content_len = int(self.headers.getheader('content-length'))
-            return self.rfile.read(content_len)
+            post_body = self.rfile.read(content_len)
+
+            if self._handled:
+                logging.debug("POST BODY :\n%s", post_body)
+
+            return post_body
 
         except Exception, ex:
             print >> sys.stderr, "Error reading POST body :", ex
