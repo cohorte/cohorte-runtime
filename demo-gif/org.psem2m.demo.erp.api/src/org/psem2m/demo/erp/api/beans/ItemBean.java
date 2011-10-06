@@ -119,4 +119,19 @@ public class ItemBean {
         pPrice = aPrice;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+
+        final StringBuilder builder = new StringBuilder("ItemBean(");
+        builder.append("id=").append(pId);
+        builder.append(", name=").append(pName);
+        builder.append(")");
+
+        return builder.toString();
+    }
 }

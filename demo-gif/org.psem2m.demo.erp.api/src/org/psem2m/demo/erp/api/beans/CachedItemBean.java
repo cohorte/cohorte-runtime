@@ -77,4 +77,21 @@ public class CachedItemBean extends ItemBean implements ICachedBean {
 
         pCacheLevel = aInformationQualityLevel;
     }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+
+        final StringBuilder builder = new StringBuilder("CachedItemBean(");
+        builder.append("item=").append(super.toString());
+        builder.append(", quality=").append(
+                QualityUtilities.qualityToString(pCacheLevel));
+        builder.append(")");
+
+        return builder.toString();
+    }
 }

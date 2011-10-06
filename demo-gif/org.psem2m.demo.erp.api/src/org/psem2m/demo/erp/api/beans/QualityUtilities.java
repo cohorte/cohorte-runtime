@@ -51,4 +51,33 @@ public class QualityUtilities {
             }
         }
     }
+
+    /**
+     * Returns the String representation of the given quality level (UNKNOWN if
+     * invalid)
+     * 
+     * @param aQualityLevel
+     *            Quality level to transform into a String
+     * @return The String form of the quality level
+     */
+    public static String qualityToString(final int aQualityLevel) {
+
+        switch (aQualityLevel) {
+
+        case IQualityLevels.CACHE_LEVEL_SYNC:
+            return "SYNC";
+
+        case IQualityLevels.CACHE_LEVEL_FRESH:
+            return "FRESH";
+
+        case IQualityLevels.CACHE_LEVEL_WARNING:
+            return "WARNING";
+
+        case IQualityLevels.CACHE_LEVEL_CRITICAL:
+            return "CRITICAL";
+
+        default:
+            return "UNKNOWN";
+        }
+    }
 }

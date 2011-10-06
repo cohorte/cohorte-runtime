@@ -114,4 +114,22 @@ public class CachedItemStockBean implements ICachedBean {
 
         pStock = aStock;
     }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+
+        final StringBuilder builder = new StringBuilder("CachedItemStockBean(");
+        builder.append("id=").append(pItemId);
+        builder.append(", stock=").append(pStock);
+        builder.append(", quality=").append(
+                QualityUtilities.qualityToString(pQualityLevel));
+        builder.append(")");
+
+        return builder.toString();
+    }
 }
