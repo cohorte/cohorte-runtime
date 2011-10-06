@@ -10,16 +10,29 @@
 <script src="sorttable.js"></script>
 </head>
 <body>
-	<h1>ERP State ({erp-running})</h1>
-	<p>
-		ERP is <b>{erp-running}</b>. <a href="/setStateERP?activate=ON">Activate</a>
-		|&nbsp;<a href="/setStateERP?activate=OFF">Deactivate</a>
-	</p>
-	<p>
-		<a href="/">Refresh page</a>
-	</p>
-	<h2>Items status</h2>
-	<table class="sortable">{items-status}
-	</table>
+	<div id="title">
+		<h1>ERP State ({erp-running})</h1>
+		<p>
+			ERP is <b>{erp-running}</b>. <a href="/setStateERP?activate=ON">Activate</a>
+			|&nbsp;<a href="/setStateERP?activate=OFF">Deactivate</a>
+		</p>
+		<p>
+			<a href="/">Refresh page</a>
+		</p>
+	</div>
+	<div id="stats">
+		<p>Statistics :</p>
+		<dl>
+			<dt>State</dt>
+			<dd>{erp-running}</dd>
+			<dt>#. requests</dt>
+			<dd>erp-nb-requests</dd>
+		</dl>
+	</div>
+	<div id="items">
+		<h2>Items status</h2>
+		<table class="sortable">{items-status}
+		</table>
+	</div>
 </body>
 </html>
