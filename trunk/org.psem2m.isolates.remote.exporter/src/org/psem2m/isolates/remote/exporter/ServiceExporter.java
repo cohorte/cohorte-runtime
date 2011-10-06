@@ -7,7 +7,9 @@ package org.psem2m.isolates.remote.exporter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
@@ -45,8 +47,15 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
     /**
      * The filter to detect exported services only. Test the existence of the
      * service.exported.interfaces and service.exported.configs properties.
+     * 
+     * Optionally, a psem2m.service.export property can be set to false to block
+     * the export.
      */
-    public static final String EXPORTED_SERVICE_FILTER = "(|(service.exported.interfaces=*)(service.exported.configs=*))";
+    public static final String EXPORTED_SERVICE_FILTER = "(&"
+    // PSEM2M flag
+            + "(|(!(psem2m.service.export=*))(psem2m.service.export=true))"
+            // OSGi properties
+            + "(|(service.exported.interfaces=*)(service.exported.configs=*)))";
 
     /** Remote service broadcaster (RSB) */
     @Requires
@@ -62,6 +71,9 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
     /** The logger */
     @Requires
     private LogService pLogger;
+
+    /** Set of all local service IDs of exported services */
+    private Set<Long> pRegisteredServicesIds = new HashSet<Long>();
 
     /** Remote service repository (RSR) */
     @Requires
@@ -154,6 +166,7 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
 
         // Register them to the local RSR
         pRepository.registerExportedService(serviceRegistration);
+        setExported(aServiceReference);
 
         // Send an RSB notification
         final RemoteServiceEvent broadcastEvent = new RemoteServiceEvent(
@@ -175,6 +188,31 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
         pBundleContext.removeServiceListener(this);
     }
 
+    /**
+     * Tests if the given ID is already in the exported services list
+     * 
+     * @param aServiceId
+     *            A local service ID
+     * @return True if the service is already exported
+     */
+    protected boolean isAlreadyExported(final Long aServiceId) {
+
+        return pRegisteredServicesIds.contains(aServiceId);
+    }
+
+    /**
+     * Tests if the given service is already exported
+     * 
+     * @param aServiceReference
+     *            A service reference
+     * @return True if the service is already exported
+     */
+    protected boolean isAlreadyExported(final ServiceReference aServiceReference) {
+
+        return isAlreadyExported((Long) aServiceReference
+                .getProperty(Constants.SERVICE_ID));
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -190,9 +228,22 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
                 .getServiceReference();
 
         switch (aServiceEvent.getType()) {
-        // FIXME handle MODIFIED event (maybe we can register the service again)
+
+        case ServiceEvent.MODIFIED:
+            // Service properties have been modified
+            System.out.println("Modified - " + serviceReference + " - already="
+                    + isAlreadyExported(serviceReference));
+            if (!isAlreadyExported(serviceReference)) {
+                // Export the service if it just matched our filter
+                exportService(serviceReference);
+            }
+
+            // If we already export this service, ignore the signal
+            break;
+
         case ServiceEvent.REGISTERED:
             // Export service
+            System.out.println("Export - " + serviceReference);
             exportService(serviceReference);
             break;
 
@@ -201,13 +252,27 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
              * The service properties doesn't match anymore : it must not be
              * exported by now.
              */
+            System.out.println("END MATCH");
         case ServiceEvent.UNREGISTERING:
+            System.out.println("BYE");
             // Unregistering exported service
             unexportService(serviceReference);
             break;
 
         // Ignore other events
         }
+    }
+
+    /**
+     * Adds the given service to exported ones
+     * 
+     * @param aServiceReference
+     *            Exported service
+     */
+    protected void setExported(final ServiceReference aServiceReference) {
+
+        pRegisteredServicesIds.add((Long) aServiceReference
+                .getProperty(Constants.SERVICE_ID));
     }
 
     /**
@@ -292,11 +357,7 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
 
             if (exportedServices != null) {
                 for (ServiceReference serviceRef : exportedServices) {
-                    // Fake event to have the same behavior
-                    ServiceEvent serviceEvent = new ServiceEvent(
-                            ServiceEvent.REGISTERED, serviceRef);
-
-                    serviceChanged(serviceEvent);
+                    exportService(serviceRef);
                 }
             }
 
