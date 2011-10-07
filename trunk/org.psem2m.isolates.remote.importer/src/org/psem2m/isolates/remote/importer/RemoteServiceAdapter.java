@@ -260,15 +260,21 @@ public class RemoteServiceAdapter extends CPojoBase implements
     protected void unregisterService(final String aServiceId) {
 
         // Retrieve the service registration
-        ProxyServiceInfo serviceInfo = pRegisteredServices.get(aServiceId);
+        final ProxyServiceInfo serviceInfo = pRegisteredServices
+                .get(aServiceId);
+        if (serviceInfo == null) {
+            // Unknown service
+            return;
+        }
 
-        ServiceRegistration serviceReg = serviceInfo.getServiceRegistration();
+        final ServiceRegistration serviceReg = serviceInfo
+                .getServiceRegistration();
         if (serviceReg != null) {
             // Unregister it
             serviceReg.unregister();
         }
 
-        Object proxy = serviceInfo.getProxy();
+        final Object proxy = serviceInfo.getProxy();
         for (IRemoteServiceClientHandler handler : pClientHandlers) {
             try {
                 handler.destroyProxy(proxy);
