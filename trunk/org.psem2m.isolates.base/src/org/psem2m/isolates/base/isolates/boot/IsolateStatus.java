@@ -4,6 +4,7 @@
 package org.psem2m.isolates.base.isolates.boot;
 
 import java.io.Serializable;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Bean used for isolate information transmission between the bootstrap and the
@@ -12,6 +13,15 @@ import java.io.Serializable;
  * @author Thomas Calmant
  */
 public class IsolateStatus implements Serializable {
+
+    /**
+     * Next status object Unique ID
+     * 
+     * System.currentTimeMillis() guarantees that we'll have a UID greater than
+     * in previous executions.
+     */
+    private static AtomicLong pNextStatusUID = new AtomicLong(
+            System.currentTimeMillis());
 
     /** Serial version UID */
     private static final long serialVersionUID = 1L;
@@ -55,6 +65,9 @@ public class IsolateStatus implements Serializable {
     /** Isolate state */
     private final int pState;
 
+    /** Status object Unique ID */
+    private final long pStatusUID;
+
     /** Time stamp (set in constructor) */
     private final long pTimestamp;
 
@@ -74,8 +87,8 @@ public class IsolateStatus implements Serializable {
         pIsolateId = aIsolateId;
         pState = aState;
         pProgress = aProgress;
-
         pTimestamp = System.currentTimeMillis();
+        pStatusUID = pNextStatusUID.getAndIncrement();
     }
 
     /**
@@ -109,6 +122,16 @@ public class IsolateStatus implements Serializable {
     }
 
     /**
+     * Retrieves the status UID
+     * 
+     * @return the status UID
+     */
+    public long getStatusUID() {
+
+        return pStatusUID;
+    }
+
+    /**
      * Retrieves the status time stamp
      * 
      * @return the status time stamp
@@ -128,6 +151,7 @@ public class IsolateStatus implements Serializable {
 
         StringBuilder builder = new StringBuilder("IsolateStatus(");
         builder.append("isolate=").append(pIsolateId);
+        builder.append(", UID=").append(pStatusUID);
         builder.append(", state=").append(pState);
         builder.append(", progress=").append(pProgress);
         builder.append(", timestamp=").append(pTimestamp);
