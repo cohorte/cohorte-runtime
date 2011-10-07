@@ -88,7 +88,7 @@ public class CForkerSvc extends CPojoBase implements IForker,
 
         final int isolateState = aIsolateStatus.getState();
         if (isolateState == IsolateStatus.STATE_FAILURE
-                || isolateState == IsolateStatus.STATE_STOPPED) {
+                || isolateState == IsolateStatus.STATE_FRAMEWORK_STOPPED) {
             // Isolate stopped
             pRunningIsolates.remove(aSourceIsolateId);
         }

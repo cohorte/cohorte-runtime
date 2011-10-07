@@ -31,11 +31,13 @@ import org.psem2m.isolates.base.isolates.IIsolateOutputListener;
 import org.psem2m.isolates.base.isolates.IIsolateStatusEventListener;
 import org.psem2m.isolates.base.isolates.boot.IsolateStatus;
 import org.psem2m.isolates.constants.IPlatformProperties;
+import org.psem2m.isolates.constants.ISignalsConstants;
 import org.psem2m.isolates.services.conf.IApplicationDescr;
 import org.psem2m.isolates.services.conf.IBundleDescr;
 import org.psem2m.isolates.services.conf.IIsolateDescr;
 import org.psem2m.isolates.services.conf.ISvcConfig;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
+import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
 
 /**
  * PSEM2M Master Manager, starting and monitoring the Forker process.
@@ -75,6 +77,10 @@ public class CForkerHandlerSvc extends CPojoBase implements IForkerHandler,
     /** The platform directory service */
     @Requires
     private IPlatformDirsSvc pPlatformDirsSvc;
+
+    /** Signal sender */
+    @Requires
+    private ISignalBroadcaster pSignalSender;
 
     /**
      * Default constructor
@@ -447,6 +453,10 @@ public class CForkerHandlerSvc extends CPojoBase implements IForkerHandler,
      */
     @Override
     public boolean stopForker() {
+
+        // Send a signal
+        pSignalSender.sendData(ISignalBroadcaster.EEmitterTargets.FORKER,
+                ISignalsConstants.ISOLATE_STOP_SIGNAL, null);
 
         if (pForkerProcess != null) {
             // Use the brutal force

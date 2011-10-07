@@ -19,6 +19,9 @@ public class IsolateStatus implements Serializable {
     /** The isolate agent has successfully prepared the isolate */
     public static final int STATE_AGENT_DONE = 10;
 
+    /** Isolate slave agent is stopped, but the framework is still here */
+    public static final int STATE_AGENT_STOPPED = 90;
+
     /** Bundles are installed */
     public static final int STATE_BUNDLES_INSTALLED = 2;
 
@@ -34,14 +37,14 @@ public class IsolateStatus implements Serializable {
     /** Framework is started */
     public static final int STATE_FRAMEWORK_STARTED = 3;
 
-    /** Bootstrap is reading the configuration. Framework is not yet loaded */
-    public static final int STATE_READ_CONF = 0;
-
     /** Framework is stopped */
-    public static final int STATE_STOPPED = 100;
+    public static final int STATE_FRAMEWORK_STOPPED = 100;
 
     /** Framework is stopping */
-    public static final int STATE_STOPPING = 99;
+    public static final int STATE_FRAMEWORK_STOPPING = 99;
+
+    /** Bootstrap is reading the configuration. Framework is not yet loaded */
+    public static final int STATE_READ_CONF = 0;
 
     /** The source isolate ID */
     private final String pIsolateId;
@@ -63,11 +66,11 @@ public class IsolateStatus implements Serializable {
      *            Isolate start completion
      */
     public IsolateStatus(final String aIsolateId, final int aState,
-	    final double aProgress) {
+            final double aProgress) {
 
-	pIsolateId = aIsolateId;
-	pState = aState;
-	pProgress = aProgress;
+        pIsolateId = aIsolateId;
+        pState = aState;
+        pProgress = aProgress;
     }
 
     /**
@@ -76,7 +79,8 @@ public class IsolateStatus implements Serializable {
      * @return The source isolate ID
      */
     public String getIsolateId() {
-	return pIsolateId;
+
+        return pIsolateId;
     }
 
     /**
@@ -85,7 +89,8 @@ public class IsolateStatus implements Serializable {
      * @return The isolate start progress level
      */
     public double getProgress() {
-	return pProgress;
+
+        return pProgress;
     }
 
     /**
@@ -94,7 +99,8 @@ public class IsolateStatus implements Serializable {
      * @return The isolate state
      */
     public int getState() {
-	return pState;
+
+        return pState;
     }
 
     /*
@@ -105,12 +111,12 @@ public class IsolateStatus implements Serializable {
     @Override
     public String toString() {
 
-	StringBuilder builder = new StringBuilder("IsolateStatus(");
-	builder.append("isolate=").append(pIsolateId);
-	builder.append(", state=").append(pState);
-	builder.append(", progress=").append(pProgress);
-	builder.append(")");
+        StringBuilder builder = new StringBuilder("IsolateStatus(");
+        builder.append("isolate=").append(pIsolateId);
+        builder.append(", state=").append(pState);
+        builder.append(", progress=").append(pProgress);
+        builder.append(")");
 
-	return builder.toString();
+        return builder.toString();
     }
 }
