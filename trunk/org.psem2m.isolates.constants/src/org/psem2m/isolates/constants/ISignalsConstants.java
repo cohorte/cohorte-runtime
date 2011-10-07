@@ -32,15 +32,34 @@ public interface ISignalsConstants {
     String BROADCASTER_SIGNAL_REQUEST_ENDPOINTS = BROADCASTER_SIGNAL_NAME_PREFIX
             + "/request-endpoints";
 
-    /** IsolateStatus signal */
+    /**
+     * Lost contact with isolate
+     * 
+     * Associated data : the Isolate ID (CharSequence)
+     */
+    String ISOLATE_LOST_SIGNAL = "/psem2m/isolate/lost";
+
+    /**
+     * IsolateStatus signal
+     * 
+     * Associated data : an IsolateStatus object
+     */
     String ISOLATE_STATUS_SIGNAL = "/psem2m/isolate/status";
 
-    /** Stop isolate signal */
+    /**
+     * Stop isolate signal
+     * 
+     * Associated data : none
+     */
     String ISOLATE_STOP_SIGNAL = "/psem2m/isolate/stop";
 
     /** Match all sub signals */
     String MATCH_ALL = "/*";
 
-    /** Platform stop signal */
+    /**
+     * Platform stop signal
+     * 
+     * Associated data : none
+     */
     String MONITOR_SIGNAL_STOP_PLATFORM = "/psem2m/platform/stop";
 }

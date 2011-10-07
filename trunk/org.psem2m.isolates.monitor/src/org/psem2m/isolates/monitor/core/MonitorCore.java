@@ -5,15 +5,20 @@
  */
 package org.psem2m.isolates.monitor.core;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
+import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.ServiceProperty;
 import org.apache.felix.ipojo.annotations.Unbind;
+import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.osgi.service.log.LogService;
 import org.psem2m.isolates.base.activators.CPojoBase;
@@ -24,6 +29,7 @@ import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.constants.ISignalsConstants;
 import org.psem2m.isolates.services.conf.IIsolateDescr;
 import org.psem2m.isolates.services.conf.ISvcConfig;
+import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.isolates.services.forker.IForker;
 import org.psem2m.isolates.services.forker.IForker.EStartError;
 import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
@@ -59,6 +65,10 @@ public class MonitorCore extends CPojoBase implements
     /** Log service */
     @Requires
     private LogService pLogger;
+
+    /** Platform directories service */
+    @Requires
+    private IPlatformDirsSvc pPlatformDirsSvc;
 
     /** Platform state flag */
     private boolean pPlatformRunning = true;
@@ -142,13 +152,17 @@ public class MonitorCore extends CPojoBase implements
     @Bind(id = "signal-receiver")
     protected void bindSignalReceiver(final ISignalReceiver aSignalReceiver) {
 
-        // Subscribe to isolate status
-        aSignalReceiver.registerListener(
-                ISignalsConstants.ISOLATE_STATUS_SIGNAL, this);
-
         // Subscribe to the full-platform stop signal
         aSignalReceiver.registerListener(
                 ISignalsConstants.MONITOR_SIGNAL_STOP_PLATFORM, this);
+
+        // Subscribe to 'isolate lost' signal
+        aSignalReceiver.registerListener(ISignalsConstants.ISOLATE_LOST_SIGNAL,
+                this);
+
+        // Subscribe to isolate status
+        aSignalReceiver.registerListener(
+                ISignalsConstants.ISOLATE_STATUS_SIGNAL, this);
     }
 
     /*
@@ -177,6 +191,13 @@ public class MonitorCore extends CPojoBase implements
         }
     }
 
+    protected void handleIsolateFailure(final String aIsolateId) {
+
+        // Normal isolate handling : when it fails, restart it
+        startIsolate(aIsolateId);
+
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -203,8 +224,8 @@ public class MonitorCore extends CPojoBase implements
 
         } else {
             if (aIsolateStatus.getState() == IsolateStatus.STATE_FAILURE) {
-                // Normal isolate handling : when it fails, restart it
-                startIsolate(sourceIsolateId);
+                // Handle failure
+                handleIsolateFailure(sourceIsolateId);
 
             } else {
                 // Simply log
@@ -235,6 +256,12 @@ public class MonitorCore extends CPojoBase implements
                 handleIsolateStatusEvent((IsolateStatus) signalContent);
             }
 
+        } else if (aSignalName.equals(ISignalsConstants.ISOLATE_LOST_SIGNAL)) {
+            // Isolate lost -> ID in the signal content
+            if (signalContent instanceof CharSequence) {
+                handleIsolateFailure(String.valueOf(signalContent));
+            }
+
         } else if (aSignalName
                 .equals(ISignalsConstants.MONITOR_SIGNAL_STOP_PLATFORM)) {
             // Stop everything
@@ -248,6 +275,7 @@ public class MonitorCore extends CPojoBase implements
      * @see org.psem2m.isolates.base.activators.CPojoBase#invalidatePojo()
      */
     @Override
+    @Invalidate
     public void invalidatePojo() throws BundleException {
 
         // Clear the time stamps list
@@ -407,11 +435,49 @@ public class MonitorCore extends CPojoBase implements
      * @see org.psem2m.isolates.base.activators.CPojoBase#validatePojo()
      */
     @Override
+    @Validate
     public void validatePojo() throws BundleException {
 
         // Clear the time stamps list
         pLastIsolatesStatusUID.clear();
 
+        // Write our access URL to the $BASE/var/monitor.access file
+        writeAccessFile();
+
         pLogger.log(LogService.LOG_INFO, "PSEM2M Monitor Core Ready");
+    }
+
+    /**
+     * Tries to write this monitor access URL to $BASE/var/monitor.access.
+     * 
+     * Does nothing on error.
+     */
+    protected void writeAccessFile() {
+
+        try {
+            // Get the monitor access URL
+            final String isolateId = pPlatformDirsSvc.getIsolateId();
+            final String accessUrl = pConfiguration.getApplication()
+                    .getIsolate(isolateId).getAccessUrl();
+
+            // Create the file
+            final File accessFile = new File(
+                    pPlatformDirsSvc.getPlatformBaseDir(),
+                    "/var/monitor.access");
+            if (!accessFile.exists()) {
+                accessFile.createNewFile();
+            }
+
+            System.out.println("Writing to : " + accessFile);
+
+            // Write our access URL
+            final OutputStream outputStream = new FileOutputStream(accessFile);
+            outputStream.write(accessUrl.getBytes());
+            outputStream.close();
+
+        } catch (Exception e) {
+            // Error reading the configuration, too bad, but not important
+            e.printStackTrace();
+        }
     }
 }
