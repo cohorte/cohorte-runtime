@@ -696,24 +696,25 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener {
             pGuardianThread = new GuardianThread(this);
             pGuardianThread.start();
 
-            pBootstrapSender.sendStatus(IsolateStatus.STATE_AGENT_DONE, 100);
+            final IsolateStatus status = pBootstrapSender.sendStatus(
+                    IsolateStatus.STATE_AGENT_DONE, 100);
+
+            // Broadcast the same isolate status (same time stamp)
             pSignalBroadcaster.sendData(
                     ISignalBroadcaster.EEmitterTargets.MONITORS,
-                    ISignalsConstants.ISOLATE_STATUS_SIGNAL, new IsolateStatus(
-                            pPlatformDirsSvc.getIsolateId(),
-                            IsolateStatus.STATE_AGENT_DONE, 100));
+                    ISignalsConstants.ISOLATE_STATUS_SIGNAL, status);
 
         } catch (Exception ex) {
             System.err.println("Preparation error : " + ex);
             ex.printStackTrace();
 
-            pBootstrapSender.sendStatus(IsolateStatus.STATE_FAILURE, -1);
+            final IsolateStatus status = pBootstrapSender.sendStatus(
+                    IsolateStatus.STATE_FAILURE, -1);
 
+            // Broadcast the same isolate status (same time stamp)
             pSignalBroadcaster.sendData(
                     ISignalBroadcaster.EEmitterTargets.MONITORS,
-                    ISignalsConstants.ISOLATE_STATUS_SIGNAL, new IsolateStatus(
-                            pPlatformDirsSvc.getIsolateId(),
-                            IsolateStatus.STATE_FAILURE, -1));
+                    ISignalsConstants.ISOLATE_STATUS_SIGNAL, status);
 
             // Log the error
             pIsolateLoggerSvc.logSevere(this, "validatePojo",
