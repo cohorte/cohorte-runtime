@@ -204,7 +204,7 @@ public class RemoteServiceAdapter extends CPojoBase implements
                 serviceProxy = clientHandler.getRemoteProxy(aServiceEvent);
 
             } catch (ClassNotFoundException e) {
-                e.printStackTrace();
+                System.err.println("Class not found - " + e);
                 pLogger.log(LogService.LOG_ERROR,
                         "Error looking for proxyfied class", e);
                 return;
