@@ -24,10 +24,13 @@ public class HttpSignalData implements Serializable, ISignalData {
     private String pHostName = "localhost";
 
     /** ID of the source isolate */
-    private String pIsolateSender;
+    private final String pIsolateSender;
 
     /** Signal data */
-    private Serializable pSignalData;
+    private final Serializable pSignalData;
+
+    /** Signal time stamp */
+    private final long pTimestamp;
 
     /**
      * Sets up the signal data
@@ -40,6 +43,8 @@ public class HttpSignalData implements Serializable, ISignalData {
         pSignalData = aSignalData;
         pIsolateSender = System
                 .getProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID);
+
+        pTimestamp = System.currentTimeMillis();
     }
 
     /*
@@ -75,6 +80,18 @@ public class HttpSignalData implements Serializable, ISignalData {
     public Serializable getSignalContent() {
 
         return pSignalData;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.services.remote.signals.ISignalData#getTimestamp()
+     */
+    @Override
+    public long getTimestamp() {
+
+        return pTimestamp;
     }
 
     /**

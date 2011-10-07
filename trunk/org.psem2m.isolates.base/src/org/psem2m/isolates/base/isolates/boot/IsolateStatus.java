@@ -55,6 +55,9 @@ public class IsolateStatus implements Serializable {
     /** Isolate state */
     private final int pState;
 
+    /** Time stamp (set in constructor) */
+    private final long pTimestamp;
+
     /**
      * Sets up the bean
      * 
@@ -71,6 +74,8 @@ public class IsolateStatus implements Serializable {
         pIsolateId = aIsolateId;
         pState = aState;
         pProgress = aProgress;
+
+        pTimestamp = System.currentTimeMillis();
     }
 
     /**
@@ -103,6 +108,16 @@ public class IsolateStatus implements Serializable {
         return pState;
     }
 
+    /**
+     * Retrieves the status time stamp
+     * 
+     * @return the status time stamp
+     */
+    public long getTimestamp() {
+
+        return pTimestamp;
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -115,6 +130,7 @@ public class IsolateStatus implements Serializable {
         builder.append("isolate=").append(pIsolateId);
         builder.append(", state=").append(pState);
         builder.append(", progress=").append(pProgress);
+        builder.append(", timestamp=").append(pTimestamp);
         builder.append(")");
 
         return builder.toString();
