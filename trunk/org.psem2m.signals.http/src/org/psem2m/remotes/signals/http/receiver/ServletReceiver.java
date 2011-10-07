@@ -5,6 +5,7 @@
  */
 package org.psem2m.remotes.signals.http.receiver;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.PrintWriter;
@@ -100,11 +101,12 @@ public class ServletReceiver extends HttpServlet {
         }
 
         // Read the inner object
-        final ISignalData signalData;
+        ISignalData signalData = null;
 
-        final ObjectInputStream inputStream = new OsgiObjectInputStream(
-                pBundleContext, aReq.getInputStream());
         try {
+            final ObjectInputStream inputStream = new OsgiObjectInputStream(
+                    pBundleContext, aReq.getInputStream());
+
             final Object readData = inputStream.readObject();
 
             if (readData instanceof ISignalData) {
@@ -128,6 +130,12 @@ public class ServletReceiver extends HttpServlet {
             aResp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                     "Class not found : " + e);
             return;
+
+        } catch (EOFException e) {
+            // End Of File Exception : the POST body was empty
+            // WARNING: the sender in the signal data will be invalid
+            signalData = new HttpSignalData(null);
+            ((HttpSignalData) signalData).setHostName(aReq.getRemoteHost());
         }
 
         if (pSignalListener != null) {
