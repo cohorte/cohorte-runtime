@@ -67,8 +67,6 @@ Cet objet contient les informations suivantes :
 
     * **STATE_AGENT_STOPPED** (90) : le composant *Slave Agent* a été invalidé.
 
-    * **STATE_FRAMEWORK_LOADED** (1) : le framework OSGi a pu être instancié
-
   * En cas d'arrêt d'un isolat sur un échec, émis par le *Slave Agent* ou par
     le *forker*.
 
