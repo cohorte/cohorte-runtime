@@ -9,10 +9,10 @@
             "symbolicName":"org.psem2m.isolates.demo.services.ui.viewer",
             "optional":true,
             "properties":{
-            	"psem2m.demo.ui.viewer.top":"0.5scr",
-            	"psem2m.demo.ui.viewer.left":"0.25scr",
-            	"psem2m.demo.ui.viewer.width":"0.25scr",
-            	"psem2m.demo.ui.viewer.height":"0.5scr",
+            	"psem2m.demo.ui.viewer.top":"0.66scr",
+            	"psem2m.demo.ui.viewer.left":"0.166scr",
+            	"psem2m.demo.ui.viewer.width":"0.166scr",
+            	"psem2m.demo.ui.viewer.height":"0.33scr",
             	"psem2m.demo.ui.viewer.color":"Beige"
             }
         },
