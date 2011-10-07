@@ -191,11 +191,16 @@ public class MonitorCore extends CPojoBase implements
         }
     }
 
+    /**
+     * Handles an isolate failure (lost or killed)
+     * 
+     * @param aIsolateId
+     *            The isolate that failed
+     */
     protected void handleIsolateFailure(final String aIsolateId) {
 
         // Normal isolate handling : when it fails, restart it
         startIsolate(aIsolateId);
-
     }
 
     /*
@@ -206,7 +211,13 @@ public class MonitorCore extends CPojoBase implements
      * (org.psem2m.isolates.base.isolates.boot.IsolateStatus)
      */
     @Override
-    public void handleIsolateStatusEvent(final IsolateStatus aIsolateStatus) {
+    public void handleIsolateStatusEvent(final String aSourceIsolateId,
+            final IsolateStatus aIsolateStatus) {
+
+        if (aIsolateStatus == null) {
+            // Contact lost with the isolate
+            handleIsolateFailure(aSourceIsolateId);
+        }
 
         if (isStatusObsolete(aIsolateStatus)) {
             // Ignore status if it's too old
@@ -214,18 +225,15 @@ public class MonitorCore extends CPojoBase implements
             return;
         }
 
-        // Source isolate ID
-        final String sourceIsolateId = aIsolateStatus.getIsolateId();
-
         if (IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER
-                .equals(sourceIsolateId)) {
+                .equals(aSourceIsolateId)) {
             // The forker is a special case
             handleForkerStatus(aIsolateStatus);
 
         } else {
             if (aIsolateStatus.getState() == IsolateStatus.STATE_FAILURE) {
                 // Handle failure
-                handleIsolateFailure(sourceIsolateId);
+                handleIsolateFailure(aSourceIsolateId);
 
             } else {
                 // Simply log
@@ -253,7 +261,8 @@ public class MonitorCore extends CPojoBase implements
         if (aSignalName.equals(ISignalsConstants.ISOLATE_STATUS_SIGNAL)) {
             // Test if the signal content is an isolate status
             if (signalContent instanceof IsolateStatus) {
-                handleIsolateStatusEvent((IsolateStatus) signalContent);
+                final IsolateStatus status = (IsolateStatus) signalContent;
+                handleIsolateStatusEvent(status.getIsolateId(), status);
             }
 
         } else if (aSignalName.equals(ISignalsConstants.ISOLATE_LOST_SIGNAL)) {
@@ -285,10 +294,11 @@ public class MonitorCore extends CPojoBase implements
     }
 
     /**
-     * Tests if the given status is obsolete,
+     * Tests if the given status is obsolete
      * 
      * @param aIsolateStatus
      *            The status to test
+     * 
      * @return True if the status is obsolete
      */
     protected boolean isStatusObsolete(final IsolateStatus aIsolateStatus) {

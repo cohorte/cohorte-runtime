@@ -86,6 +86,21 @@ public class CForkerSvc extends CPojoBase implements IForker,
     public void handleIsolateStatus(final String aSourceIsolateId,
             final IsolateStatus aIsolateStatus) {
 
+        if (aIsolateStatus == null) {
+            // Contact lost with the isolate
+            pRunningIsolates.remove(aSourceIsolateId);
+
+            // Send the special signal and return
+            pSignalBroadcaster.sendData(
+                    ISignalBroadcaster.EEmitterTargets.MONITORS,
+                    ISignalsConstants.ISOLATE_LOST_SIGNAL, aSourceIsolateId);
+
+            pIsolateLoggerSvc.logInfo(this, "handleIsolateStatus",
+                    "Contact lost with", aSourceIsolateId);
+            return;
+        }
+
+        // Status read from the isolate itself
         final int isolateState = aIsolateStatus.getState();
         if (isolateState == IsolateStatus.STATE_FAILURE
                 || isolateState == IsolateStatus.STATE_FRAMEWORK_STOPPED) {
@@ -98,8 +113,8 @@ public class CForkerSvc extends CPojoBase implements IForker,
                 ISignalBroadcaster.EEmitterTargets.MONITORS,
                 ISignalsConstants.ISOLATE_STATUS_SIGNAL, aIsolateStatus);
 
-        pIsolateLoggerSvc.logInfo(this, "", "Read from " + aSourceIsolateId
-                + " : " + aIsolateStatus);
+        pIsolateLoggerSvc.logInfo(this, "handleIsolateStatus", "Read from",
+                aSourceIsolateId, ":", aIsolateStatus);
     }
 
     /*

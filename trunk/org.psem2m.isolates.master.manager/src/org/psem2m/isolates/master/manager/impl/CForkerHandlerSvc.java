@@ -167,7 +167,7 @@ public class CForkerHandlerSvc extends CPojoBase implements IForkerHandler,
 
         // Notify listeners (let them take a decision)
         for (IIsolateStatusEventListener listener : pIsolateListeners) {
-            listener.handleIsolateStatusEvent(aIsolateStatus);
+            listener.handleIsolateStatusEvent(aIsolateId, aIsolateStatus);
         }
     }
 

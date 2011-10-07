@@ -245,11 +245,12 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener {
     @Override
     public void invalidatePojo() {
 
+        final IsolateStatus status = pBootstrapSender.sendStatus(
+                IsolateStatus.STATE_AGENT_STOPPED, 100);
+
         pSignalBroadcaster.sendData(
                 ISignalBroadcaster.EEmitterTargets.MONITORS,
-                ISignalsConstants.ISOLATE_STATUS_SIGNAL, new IsolateStatus(
-                        pPlatformDirsSvc.getIsolateId(),
-                        IsolateStatus.STATE_AGENT_STOPPED, 100));
+                ISignalsConstants.ISOLATE_STATUS_SIGNAL, status);
 
         // Stop the guardian thread, if any
         if (pGuardianThread != null && pGuardianThread.isAlive()) {

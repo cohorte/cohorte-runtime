@@ -44,14 +44,14 @@ public class ForkerWatchThread extends Thread {
      *             Invalid forker output format
      */
     public ForkerWatchThread(final IIsolateOutputListener aOutputListener,
-	    final Process aForkerProcess) throws IOException {
+            final Process aForkerProcess) throws IOException {
 
-	super(THREAD_NAME);
-	setDaemon(true);
+        super(THREAD_NAME);
+        setDaemon(true);
 
-	pOutputListener = aOutputListener;
-	pForkerProcess = aForkerProcess;
-	pForkerOutput = new ObjectInputStream(pForkerProcess.getInputStream());
+        pOutputListener = aOutputListener;
+        pForkerProcess = aForkerProcess;
+        pForkerOutput = new ObjectInputStream(pForkerProcess.getInputStream());
     }
 
     /*
@@ -62,41 +62,38 @@ public class ForkerWatchThread extends Thread {
     @Override
     public void run() {
 
-	while (!isInterrupted()) {
+        while (!isInterrupted()) {
 
-	    try {
-		final Object readObject = pForkerOutput.readObject();
+            try {
+                final Object readObject = pForkerOutput.readObject();
 
-		if (readObject instanceof IsolateStatus) {
-		    // Let the manager handle this
-		    pOutputListener.handleIsolateStatus(
-			    IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER,
-			    (IsolateStatus) readObject);
+                if (readObject instanceof IsolateStatus) {
+                    // Let the manager handle this
+                    pOutputListener.handleIsolateStatus(
+                            IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER,
+                            (IsolateStatus) readObject);
 
-		} else if (readObject instanceof LogRecord) {
-		    // Log it
-		    pOutputListener.handleIsolateLogRecord(
-			    IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER,
-			    (LogRecord) readObject);
-		}
+                } else if (readObject instanceof LogRecord) {
+                    // Log it
+                    pOutputListener.handleIsolateLogRecord(
+                            IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER,
+                            (LogRecord) readObject);
+                }
 
-		// Ignore other objects
+                // Ignore other objects
 
-	    } catch (IOException e) {
-		// IO Exception are fatal : destroy the forker process
-		pForkerProcess.destroy();
-		pOutputListener.handleIsolateStatus(
-			IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER,
-			new IsolateStatus(
-				IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER,
-				IsolateStatus.STATE_FAILURE, -1));
+            } catch (IOException e) {
+                // IO Exception are fatal : destroy the forker process
+                pForkerProcess.destroy();
+                pOutputListener.handleIsolateStatus(
+                        IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER, null);
 
-		return;
+                return;
 
-	    } catch (ClassNotFoundException e) {
-		// Print error
-		e.printStackTrace();
-	    }
-	}
+            } catch (ClassNotFoundException e) {
+                // Print error
+                e.printStackTrace();
+            }
+        }
     }
 }

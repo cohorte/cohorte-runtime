@@ -35,13 +35,16 @@ public interface IIsolateOutputListener {
      * can be different of the one stored in the object in case of message
      * routing.
      * 
+     * The isolate status is null if the contact with the isolate has been lost.
+     * 
      * This method should be synchronized.
      * 
      * @param aSourceIsolateId
      *            The isolate ID from which the status has been received
      * @param aIsolateStatus
-     *            The isolate status object
+     *            The isolate status object, null if the contact with the
+     *            isolate has been lost.
      */
     void handleIsolateStatus(String aSourceIsolateId,
-	    IsolateStatus aIsolateStatus);
+            IsolateStatus aIsolateStatus);
 }

@@ -49,16 +49,17 @@ public class CProcessWatcherThread extends Thread {
      *             Invalid isolate output format
      */
     public CProcessWatcherThread(final IIsolateOutputListener aOutputListener,
-	    final String aIsolateId, final Process aProcess) throws IOException {
-	// Prepare the thread
-	super(THREAD_NAME_PREFIX + aIsolateId);
-	setDaemon(true);
+            final String aIsolateId, final Process aProcess) throws IOException {
 
-	pOutputListener = aOutputListener;
-	pIsolateId = aIsolateId;
-	pProcess = aProcess;
+        // Prepare the thread
+        super(THREAD_NAME_PREFIX + aIsolateId);
+        setDaemon(true);
 
-	pProcessOutput = new ObjectInputStream(pProcess.getInputStream());
+        pOutputListener = aOutputListener;
+        pIsolateId = aIsolateId;
+        pProcess = aProcess;
+
+        pProcessOutput = new ObjectInputStream(pProcess.getInputStream());
     }
 
     /*
@@ -69,37 +70,35 @@ public class CProcessWatcherThread extends Thread {
     @Override
     public void run() {
 
-	while (!isInterrupted()) {
+        while (!isInterrupted()) {
 
-	    try {
-		final Object readObject = pProcessOutput.readObject();
+            try {
+                final Object readObject = pProcessOutput.readObject();
 
-		if (readObject instanceof IsolateStatus) {
-		    // Let the manager handle this
-		    pOutputListener.handleIsolateStatus(pIsolateId,
-			    (IsolateStatus) readObject);
+                if (readObject instanceof IsolateStatus) {
+                    // Let the manager handle this
+                    pOutputListener.handleIsolateStatus(pIsolateId,
+                            (IsolateStatus) readObject);
 
-		} else if (readObject instanceof LogRecord) {
-		    // Log it
-		    pOutputListener.handleIsolateLogRecord(pIsolateId,
-			    (LogRecord) readObject);
-		}
+                } else if (readObject instanceof LogRecord) {
+                    // Log it
+                    pOutputListener.handleIsolateLogRecord(pIsolateId,
+                            (LogRecord) readObject);
+                }
 
-		// Ignore other objects
+                // Ignore other objects
 
-	    } catch (IOException e) {
-		// IO Exception are fatal : destroy the forker process
-		pProcess.destroy();
-		pOutputListener.handleIsolateStatus(pIsolateId,
-			new IsolateStatus(pIsolateId,
-				IsolateStatus.STATE_FAILURE, -1));
+            } catch (IOException e) {
+                // IO Exception are fatal : destroy the forker process
+                pProcess.destroy();
+                pOutputListener.handleIsolateStatus(pIsolateId, null);
 
-		return;
+                return;
 
-	    } catch (ClassNotFoundException e) {
-		// Print error
-		e.printStackTrace();
-	    }
-	}
+            } catch (ClassNotFoundException e) {
+                // Print error
+                e.printStackTrace();
+            }
+        }
     }
 }
