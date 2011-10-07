@@ -447,7 +447,7 @@ public class CFrameMain extends javax.swing.JFrame {
      */
     private int findServiceRow(final ServiceReference aServiceReference) {
 
-        String wServiceName = extractServiceNameCleaned(aServiceReference);
+        String wServiceName = extractServiceNameCleanedCompacted(aServiceReference);
         for (int wI = 0; wI < pServicesTableModel.getRowCount(); wI++) {
             if (wServiceName.equals(pServicesTableModel.getValueAt(wI, 0))) {
                 return wI;
