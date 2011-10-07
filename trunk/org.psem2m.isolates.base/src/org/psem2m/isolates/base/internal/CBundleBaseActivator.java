@@ -28,6 +28,7 @@ import org.psem2m.isolates.base.dirs.impl.CPlatformDirsSvc;
 import org.psem2m.isolates.services.dirs.IFileFinderSvc;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.utilities.CXJvmUtils;
+import org.psem2m.utilities.CXOSUtils;
 import org.psem2m.utilities.CXObjectBase;
 import org.psem2m.utilities.logging.IActivityLogger;
 import org.psem2m.utilities.logging.IActivityLoggerBase;
@@ -190,9 +191,13 @@ public class CBundleBaseActivator extends CXObjectBase implements
                     wFilePathPattern.toString(), IActivityLoggerBase.ALL,
                     LOG_FILES_SIZE, LOG_FILES_COUNT);
 
-            // add the context
+            // add the java context
             pActivityLogger.logInfo(this, "getLogger",
                     CXJvmUtils.getJavaContext());
+
+            // add the environment context
+            pActivityLogger.logInfo(this, "getLogger",
+                    CXOSUtils.getEnvContext());
 
         }
 

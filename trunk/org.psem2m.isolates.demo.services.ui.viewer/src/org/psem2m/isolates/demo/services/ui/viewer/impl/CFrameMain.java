@@ -233,7 +233,6 @@ public class CFrameMain extends javax.swing.JFrame {
     }
 
     private int COLUMN_IDX_BUNDLE_ID = 3;
-
     private int COLUMN_IDX_NAME = 0;
     private int COLUMN_IDX_REMOTE_INFO = 1;
     private int COLUMN_IDX_SERVICE_ID = 2;
@@ -449,7 +448,8 @@ public class CFrameMain extends javax.swing.JFrame {
 
         String wServiceName = extractServiceNameCleanedCompacted(aServiceReference);
         for (int wI = 0; wI < pServicesTableModel.getRowCount(); wI++) {
-            if (wServiceName.equals(pServicesTableModel.getValueAt(wI, 0))) {
+            if (wServiceName.equals(pServicesTableModel.getValueAt(wI,
+                    COLUMN_IDX_NAME))) {
                 return wI;
             }
         }
