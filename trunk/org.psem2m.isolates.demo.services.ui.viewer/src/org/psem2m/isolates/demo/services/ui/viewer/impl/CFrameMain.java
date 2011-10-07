@@ -190,6 +190,8 @@ public class CFrameMain extends javax.swing.JFrame {
         }
     }
 
+    private final static boolean COMPACTION = true;
+
     private final static String FILTER_All = "all services";
 
     private final static int FILTER_All_KIND = 2;
@@ -245,7 +247,7 @@ public class CFrameMain extends javax.swing.JFrame {
     private JTabbedPane pMainTabbedPane;
     private JScrollPane pServiceInfosScrollPane;
     private JTextArea pServiceInfosTextArea;
-    private boolean pServiceNameCompaction = false;
+    private boolean pServiceNameCompaction = COMPACTION;
     private JPanel pServicesControlPanel;
     private JComboBox pServicesFilterComboBox;
     private int pServicesFilterKind = FILTER_REMOTE_KIND;
@@ -630,6 +632,8 @@ public class CFrameMain extends javax.swing.JFrame {
                                             "compact");
                                     pServicesNameCompactionCheckBox
                                             .addActionListener(new CCompactionActionListener());
+                                    pServicesNameCompactionCheckBox
+                                            .setSelected(COMPACTION);
                                     panel.add(pServicesNameCompactionCheckBox);
                                 }
                             }
