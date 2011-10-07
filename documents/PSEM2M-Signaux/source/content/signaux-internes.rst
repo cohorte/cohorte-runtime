@@ -11,7 +11,7 @@ Les signaux sont utilisés en interne à plusieurs niveaux :
 Gestion des isolats
 *******************
 
-Les services utilisés pour la gestion des isolats sont les suivants :
+Les signaux utilisés pour la gestion des isolats sont les suivants :
 
 * */psem2m/isolate/status* : émis par un isolat pour indiquer un changement
   d'état.
@@ -21,9 +21,12 @@ Les services utilisés pour la gestion des isolats sont les suivants :
   signal engendre l'arrêt de l'isolat qui le reçoit, *via* un appel à
   ``ISvcAgent.killIsolate()``.
 
-* */psem2m/platform/stop* : surveillé par le *Monitor Core* de chaque moniteur,
-  le moniteur qui le reçoit se met arrête de démarrer des isolats et demande
-  l'arrêt des autres moniteurs, des isolats puis du forker.
+* */psem2m/platform/stop* : surveillé par le *Monitor Core* de chaque moniteur.
+  Celui qui le reçoit arrête de démarrer des isolats et demande l'arrêt des
+  autres moniteurs, des isolats puis du forker.
+
+  Le forker est arrêté en dernier afin de pouvoir tuer les isolats qui ne
+  répondent plus.
 
 État des isolats
 ================
@@ -82,8 +85,9 @@ Remote Services
 Le *Remote Services Broadcaster* (RSB) est utilisé par le
 *Remote Services Exporter* pour signaler qu'un service est désormais exporté
 par l'isolat courant.
-Les signaux émis sont gérés par le *Remote Service Importer* (RSI) afin de
-tenter d'importer les services distants dans l'isolat ayant reçu le message.
+À leur reception, ces signaux sont pris en charge par le
+*Remote Service Importer* (RSI) afin de tenter d'importer les services distants
+dans l'isolat ayant reçu le message.
 
 Les signaux transmis sont les suivants :
 
