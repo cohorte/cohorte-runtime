@@ -147,14 +147,20 @@ start() {
 }
 
 stop() {
+    local access_url=$(cat "$PSEM2M_BASE/var/monitor.access" 2>/dev/null)
 
-    local MONITOR_PID_FILE="$PSEM2M_BASE/var/monitor.pid"
-
-    local forker_pid=$(cat $MONITOR_PID_FILE 2>/dev/null)
-
-    if [ -n $forker_pid ]
+    if [ -n access_url ]
     then
-        kill $forker_pid
+        local stop_signal="$access_url/psem2m-signal-receiver/psem2m/platform/stop"
+        echo "Sending STOP signal : $stop_signal"
+
+        # (Un)comment to use wget or curl
+        # wget --post-data="" -O /dev/null $stop_signal 2>/dev/null
+        curl -d "" $stop_signal >/dev/null 2>/dev/null
+
+    else
+        echo "Can't stop the platform : monitor.access file is missing."
+        exit 1
     fi
 }
 
