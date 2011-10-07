@@ -39,7 +39,8 @@ public class MessageSender implements IMessageSender {
      *            Set human readable output mode
      */
     public MessageSender(final OutputStream aOutputStream) {
-	pOutputStream = aOutputStream;
+
+        pOutputStream = aOutputStream;
     }
 
     /**
@@ -51,29 +52,29 @@ public class MessageSender implements IMessageSender {
      *            A thrown error
      */
     protected void appendThrowable(final StringBuilder aBuilder,
-	    final Throwable aThrowable) {
+            final Throwable aThrowable) {
 
-	if (aBuilder == null || aThrowable == null) {
-	    return;
-	}
+        if (aBuilder == null || aThrowable == null) {
+            return;
+        }
 
-	aBuilder.append(aThrowable);
-	aBuilder.append(" :: ");
-	aBuilder.append(aThrowable.getMessage());
-	aBuilder.append("\n");
-	aThrowable.printStackTrace();
+        aBuilder.append(aThrowable);
+        aBuilder.append(" :: ");
+        aBuilder.append(aThrowable.getMessage());
+        aBuilder.append("\n");
+        aThrowable.printStackTrace();
 
-	StackTraceElement[] stackTrace = aThrowable.getStackTrace();
-	for (StackTraceElement element : stackTrace) {
-	    aBuilder.append("\tat ");
-	    aBuilder.append(element);
-	    aBuilder.append("\n");
-	}
+        StackTraceElement[] stackTrace = aThrowable.getStackTrace();
+        for (StackTraceElement element : stackTrace) {
+            aBuilder.append("\tat ");
+            aBuilder.append(element);
+            aBuilder.append("\n");
+        }
 
-	Throwable cause = aThrowable.getCause();
-	if (cause != null) {
-	    appendThrowable(aBuilder, cause);
-	}
+        Throwable cause = aThrowable.getCause();
+        if (cause != null) {
+            appendThrowable(aBuilder, cause);
+        }
     }
 
     /**
@@ -85,22 +86,22 @@ public class MessageSender implements IMessageSender {
      */
     protected String formatRecord(final LogRecord aLogRecord) {
 
-	StringBuilder builder = new StringBuilder();
-	builder.append("[");
-	builder.append(aLogRecord.getLoggerName());
-	builder.append("][");
-	builder.append(aLogRecord.getLevel());
-	builder.append("] ");
-	builder.append(aLogRecord.getSourceClassName());
-	builder.append(".");
-	builder.append(aLogRecord.getSourceMethodName());
-	builder.append(" :: ");
-	builder.append(aLogRecord.getMessage());
+        StringBuilder builder = new StringBuilder();
+        builder.append("[");
+        builder.append(aLogRecord.getLoggerName());
+        builder.append("][");
+        builder.append(aLogRecord.getLevel());
+        builder.append("] ");
+        builder.append(aLogRecord.getSourceClassName());
+        builder.append(".");
+        builder.append(aLogRecord.getSourceMethodName());
+        builder.append(" :: ");
+        builder.append(aLogRecord.getMessage());
 
-	appendThrowable(builder, aLogRecord.getThrown());
+        appendThrowable(builder, aLogRecord.getThrown());
 
-	builder.append("\n");
-	return builder.toString();
+        builder.append("\n");
+        return builder.toString();
     }
 
     /*
@@ -113,24 +114,24 @@ public class MessageSender implements IMessageSender {
     @Override
     public synchronized void sendLog(final LogRecord aLogRecord) {
 
-	// Set the logger name, if needed
-	if (aLogRecord.getLoggerName() == null) {
-	    aLogRecord.setLoggerName("Bootstrap");
-	}
+        // Set the logger name, if needed
+        if (aLogRecord.getLoggerName() == null) {
+            aLogRecord.setLoggerName("Bootstrap");
+        }
 
-	try {
-	    // Send to the output
-	    if (pHumanMode) {
-		pOutputStream.write(formatRecord(aLogRecord).getBytes());
+        try {
+            // Send to the output
+            if (pHumanMode) {
+                pOutputStream.write(formatRecord(aLogRecord).getBytes());
 
-	    } else {
-		((ObjectOutputStream) pOutputStream).writeObject(aLogRecord);
-	    }
+            } else {
+                ((ObjectOutputStream) pOutputStream).writeObject(aLogRecord);
+            }
 
-	} catch (IOException e) {
-	    // Use a Java logger on error
-	    Logger.getLogger(LOGGER_NAME).log(aLogRecord);
-	}
+        } catch (IOException e) {
+            // Use a Java logger on error
+            Logger.getLogger(LOGGER_NAME).log(aLogRecord);
+        }
     }
 
     /**
@@ -148,10 +149,10 @@ public class MessageSender implements IMessageSender {
      */
     @Override
     public void sendMessage(final Level aLevel,
-	    final CharSequence aSourceClass, final CharSequence aSourceMethod,
-	    final CharSequence aMessage) {
+            final CharSequence aSourceClass, final CharSequence aSourceMethod,
+            final CharSequence aMessage) {
 
-	sendMessage(aLevel, aSourceClass, aSourceMethod, aMessage, null);
+        sendMessage(aLevel, aSourceClass, aSourceMethod, aMessage, null);
     }
 
     /**
@@ -171,22 +172,22 @@ public class MessageSender implements IMessageSender {
      */
     @Override
     public void sendMessage(final Level aLevel,
-	    final CharSequence aSourceClass, final CharSequence aSourceMethod,
-	    final CharSequence aMessage, final Throwable aThrowable) {
+            final CharSequence aSourceClass, final CharSequence aSourceMethod,
+            final CharSequence aMessage, final Throwable aThrowable) {
 
-	String message = aMessage.toString();
-	if (message.trim().isEmpty()) {
-	    // Ignore empty messages
-	    return;
-	}
+        String message = aMessage.toString();
+        if (message.trim().isEmpty()) {
+            // Ignore empty messages
+            return;
+        }
 
-	LogRecord record = new LogRecord(aLevel, message);
-	record.setLoggerName("Bootstrap");
-	record.setSourceClassName(aSourceClass.toString());
-	record.setSourceMethodName(aSourceMethod.toString());
-	record.setThrown(aThrowable);
+        LogRecord record = new LogRecord(aLevel, message);
+        record.setLoggerName("Bootstrap");
+        record.setSourceClassName(aSourceClass.toString());
+        record.setSourceMethodName(aSourceMethod.toString());
+        record.setThrown(aThrowable);
 
-	sendLog(record);
+        sendLog(record);
     }
 
     /*
@@ -196,8 +197,10 @@ public class MessageSender implements IMessageSender {
      * double)
      */
     @Override
-    public void sendStatus(final int aState, final double aProgress) {
-	sendStatus(new IsolateStatus(Main.getIsolateId(), aState, aProgress));
+    public IsolateStatus sendStatus(final int aState, final double aProgress) {
+
+        return sendStatus(new IsolateStatus(Main.getIsolateId(), aState,
+                aProgress));
     }
 
     /*
@@ -208,24 +211,28 @@ public class MessageSender implements IMessageSender {
      * .base.boot.IsolateStatus)
      */
     @Override
-    public synchronized void sendStatus(final IsolateStatus aIsolateStatus) {
+    public synchronized IsolateStatus sendStatus(
+            final IsolateStatus aIsolateStatus) {
 
-	try {
-	    // Send the status
-	    if (pHumanMode) {
-		sendMessage(Level.INFO, LOGGER_NAME, "sendStatus",
-			aIsolateStatus.toString());
+        try {
+            // Send the status
+            if (pHumanMode) {
+                sendMessage(Level.INFO, LOGGER_NAME, "sendStatus",
+                        aIsolateStatus.toString());
 
-	    } else {
-		((ObjectOutputStream) pOutputStream)
-			.writeObject(aIsolateStatus);
-	    }
+            } else {
+                ((ObjectOutputStream) pOutputStream)
+                        .writeObject(aIsolateStatus);
+            }
 
-	} catch (IOException ex) {
-	    // Log a line on error
-	    Logger.getLogger(LOGGER_NAME).log(Level.SEVERE,
-		    "Error sending isolate status", ex);
-	}
+        } catch (IOException ex) {
+            // Log a line on error
+            Logger.getLogger(LOGGER_NAME).log(Level.SEVERE,
+                    "Error sending isolate status", ex);
+        }
+
+        // Always return the sent status
+        return aIsolateStatus;
     }
 
     /*
@@ -235,6 +242,7 @@ public class MessageSender implements IMessageSender {
      */
     @Override
     public void setHumanMode(final boolean aHumanMode) {
-	pHumanMode = aHumanMode;
+
+        pHumanMode = aHumanMode;
     }
 }

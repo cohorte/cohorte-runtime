@@ -30,14 +30,18 @@ public interface IBootstrapMessageSender {
      *            Isolate state
      * @param aProgress
      *            Isolate start progress level
+     * 
+     * @return The sent isolate status
      */
-    void sendStatus(int aState, double aProgress);
+    IsolateStatus sendStatus(int aState, double aProgress);
 
     /**
      * Sends an isolate status through the bootstrap output
      * 
      * @param aIsolateStatus
      *            The isolate status to send
+     * 
+     * @return The sent isolate status
      */
-    void sendStatus(IsolateStatus aIsolateStatus);
+    IsolateStatus sendStatus(IsolateStatus aIsolateStatus);
 }

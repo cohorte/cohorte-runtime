@@ -27,7 +27,8 @@ public class BootstrapMessageSender implements IBootstrapMessageSender {
      *            The underlying message sender
      */
     public BootstrapMessageSender(final IMessageSender aMessageSender) {
-	pMessageSender = aMessageSender;
+
+        pMessageSender = aMessageSender;
     }
 
     /*
@@ -39,7 +40,8 @@ public class BootstrapMessageSender implements IBootstrapMessageSender {
      */
     @Override
     public synchronized void sendLog(final LogRecord aLogRecord) {
-	pMessageSender.sendLog(aLogRecord);
+
+        pMessageSender.sendLog(aLogRecord);
     }
 
     /*
@@ -50,8 +52,9 @@ public class BootstrapMessageSender implements IBootstrapMessageSender {
      * double)
      */
     @Override
-    public void sendStatus(final int aState, final double aProgress) {
-	pMessageSender.sendStatus(aState, aProgress);
+    public IsolateStatus sendStatus(final int aState, final double aProgress) {
+
+        return pMessageSender.sendStatus(aState, aProgress);
     }
 
     /*
@@ -62,8 +65,10 @@ public class BootstrapMessageSender implements IBootstrapMessageSender {
      * psem2m.isolates.base.boot.IsolateStatus)
      */
     @Override
-    public synchronized void sendStatus(final IsolateStatus aIsolateStatus) {
-	pMessageSender.sendStatus(aIsolateStatus);
+    public synchronized IsolateStatus sendStatus(
+            final IsolateStatus aIsolateStatus) {
+
+        return pMessageSender.sendStatus(aIsolateStatus);
     }
 
     /**
@@ -73,7 +78,8 @@ public class BootstrapMessageSender implements IBootstrapMessageSender {
      *            The new message sender
      */
     public synchronized void setMessageSender(
-	    final IMessageSender aMessageSender) {
-	pMessageSender = aMessageSender;
+            final IMessageSender aMessageSender) {
+
+        pMessageSender = aMessageSender;
     }
 }

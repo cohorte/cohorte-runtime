@@ -37,7 +37,7 @@ public interface IMessageSender {
      *            Log message
      */
     void sendMessage(final Level aLevel, final CharSequence aSourceClass,
-	    final CharSequence aSourceMethod, final CharSequence aMessage);
+            final CharSequence aSourceMethod, final CharSequence aMessage);
 
     /**
      * Sends the given message via a LogRecord object serialized on the standard
@@ -55,8 +55,8 @@ public interface IMessageSender {
      *            An exception
      */
     void sendMessage(final Level aLevel, final CharSequence aSourceClass,
-	    final CharSequence aSourceMethod, final CharSequence aMessage,
-	    final Throwable aThrowable);
+            final CharSequence aSourceMethod, final CharSequence aMessage,
+            final Throwable aThrowable);
 
     /**
      * Sends an isolate status serialized on the standard output
@@ -65,16 +65,18 @@ public interface IMessageSender {
      *            Isolate state
      * @param aProgress
      *            Isolate start progress level
+     * @return The sent isolate status
      */
-    void sendStatus(int aState, double aProgress);
+    IsolateStatus sendStatus(int aState, double aProgress);
 
     /**
      * Sends an isolate status serialized on the standard output
      * 
      * @param aIsolateStatus
      *            The isolate status
+     * @return The sent isolate status
      */
-    void sendStatus(IsolateStatus aIsolateStatus);
+    IsolateStatus sendStatus(IsolateStatus aIsolateStatus);
 
     /**
      * Activates or deactivates the human readable output mode

@@ -33,6 +33,9 @@ import org.psem2m.isolates.services.conf.IIsolateDescr;
 import org.psem2m.isolates.services.conf.ISvcConfig;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
+import org.psem2m.isolates.services.remote.signals.ISignalData;
+import org.psem2m.isolates.services.remote.signals.ISignalListener;
+import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
 import org.psem2m.isolates.slave.agent.ISvcAgent;
 
 /**
@@ -40,7 +43,7 @@ import org.psem2m.isolates.slave.agent.ISvcAgent;
  * 
  * @author Thomas Calmant
  */
-public class AgentCore extends CPojoBase implements ISvcAgent {
+public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener {
 
     /** Bootstrap message sender */
     private IBootstrapMessageSender pBootstrapSender;
@@ -68,6 +71,9 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
 
     /** Signal broadcaster */
     private ISignalBroadcaster pSignalBroadcaster;
+
+    /** Signal receiver */
+    private ISignalReceiver pSignalReceiver;
 
     /**
      * Sets up the agent (called by iPOJO)
@@ -195,6 +201,28 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
         return pInstalledBundles;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.services.remote.signals.ISignalListener#
+     * handleReceivedSignal(java.lang.String,
+     * org.psem2m.isolates.services.remote.signals.ISignalData)
+     */
+    @Override
+    public void handleReceivedSignal(final String aSignalName,
+            final ISignalData aSignalData) {
+
+        if (aSignalName.equals(ISignalsConstants.ISOLATE_STOP_SIGNAL)) {
+
+            // Log what happened
+            pIsolateLoggerSvc.logInfo(this, "handleReceivedSignal",
+                    "STOP signal received. Killing isolate.");
+
+            // Kill ourselves
+            killIsolate();
+        }
+    }
+
     /**
      * Installs the given bundle
      * 
@@ -221,7 +249,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
                 ISignalBroadcaster.EEmitterTargets.MONITORS,
                 ISignalsConstants.ISOLATE_STATUS_SIGNAL, new IsolateStatus(
                         pPlatformDirsSvc.getIsolateId(),
-                        IsolateStatus.STATE_STOPPED, 100));
+                        IsolateStatus.STATE_AGENT_STOPPED, 100));
 
         // Stop the guardian thread, if any
         if (pGuardianThread != null && pGuardianThread.isAlive()) {
@@ -251,7 +279,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
     public void killIsolate() {
 
         pIsolateLoggerSvc.logInfo(this, "killIsolate",
-                "Kills this isolate [%s]", pPlatformDirsSvc.getIsolateId());
+                "Kill this isolate [%s]", pPlatformDirsSvc.getIsolateId());
 
         // Neutralize the isolate
         neutralizeIsolate();
@@ -656,6 +684,10 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
     @Override
     public void validatePojo() {
 
+        // Register to the signal receiver for the STOP signal
+        pSignalReceiver.registerListener(ISignalsConstants.ISOLATE_STOP_SIGNAL,
+                this);
+
         // Prepare the current isolate, nobody else can do it
         try {
             prepareIsolate();
@@ -664,24 +696,25 @@ public class AgentCore extends CPojoBase implements ISvcAgent {
             pGuardianThread = new GuardianThread(this);
             pGuardianThread.start();
 
-            pBootstrapSender.sendStatus(IsolateStatus.STATE_AGENT_DONE, 100);
+            final IsolateStatus status = pBootstrapSender.sendStatus(
+                    IsolateStatus.STATE_AGENT_DONE, 100);
+
+            // Broadcast the same isolate status (same time stamp)
             pSignalBroadcaster.sendData(
                     ISignalBroadcaster.EEmitterTargets.MONITORS,
-                    ISignalsConstants.ISOLATE_STATUS_SIGNAL, new IsolateStatus(
-                            pPlatformDirsSvc.getIsolateId(),
-                            IsolateStatus.STATE_AGENT_DONE, 100));
+                    ISignalsConstants.ISOLATE_STATUS_SIGNAL, status);
 
         } catch (Exception ex) {
             System.err.println("Preparation error : " + ex);
             ex.printStackTrace();
 
-            pBootstrapSender.sendStatus(IsolateStatus.STATE_FAILURE, -1);
+            final IsolateStatus status = pBootstrapSender.sendStatus(
+                    IsolateStatus.STATE_FAILURE, -1);
 
+            // Broadcast the same isolate status (same time stamp)
             pSignalBroadcaster.sendData(
                     ISignalBroadcaster.EEmitterTargets.MONITORS,
-                    ISignalsConstants.ISOLATE_STATUS_SIGNAL, new IsolateStatus(
-                            pPlatformDirsSvc.getIsolateId(),
-                            IsolateStatus.STATE_FAILURE, -1));
+                    ISignalsConstants.ISOLATE_STATUS_SIGNAL, status);
 
             // Log the error
             pIsolateLoggerSvc.logSevere(this, "validatePojo",

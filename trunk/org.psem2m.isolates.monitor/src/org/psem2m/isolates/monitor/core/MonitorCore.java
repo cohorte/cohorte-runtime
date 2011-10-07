@@ -22,6 +22,7 @@ import org.psem2m.isolates.services.conf.IIsolateDescr;
 import org.psem2m.isolates.services.conf.ISvcConfig;
 import org.psem2m.isolates.services.forker.IForker;
 import org.psem2m.isolates.services.forker.IForker.EStartError;
+import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
 import org.psem2m.isolates.services.remote.signals.ISignalData;
 import org.psem2m.isolates.services.remote.signals.ISignalListener;
 import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
@@ -52,11 +53,18 @@ public class MonitorCore extends CPojoBase implements
     @Requires
     private LogService pLogger;
 
+    /** Platform state flag */
+    private boolean pPlatformRunning = true;
+
     /** TODO Forker handler presence property */
     private boolean pPropertyForkerHandlerPresent = false;
 
     /** TODO Forker service presence property */
     private boolean pPropertyForkerPresent = false;
+
+    /** Signal sender */
+    @Requires
+    private ISignalBroadcaster pSignalSender;
 
     /**
      * Default constructor
@@ -125,8 +133,13 @@ public class MonitorCore extends CPojoBase implements
     @Bind(id = "signal-receiver")
     protected void bindSignalReceiver(final ISignalReceiver aSignalReceiver) {
 
+        // Subscribe to isolate status
         aSignalReceiver.registerListener(
                 ISignalsConstants.ISOLATE_STATUS_SIGNAL, this);
+
+        // Subscribe to the full-platform stop signal
+        aSignalReceiver.registerListener(
+                ISignalsConstants.MONITOR_SIGNAL_STOP_PLATFORM, this);
     }
 
     /*
@@ -198,10 +211,20 @@ public class MonitorCore extends CPojoBase implements
     public void handleReceivedSignal(final String aSignalName,
             final ISignalData aSignalData) {
 
-        // Test if the signal content is an isolate status
+        // Get the signal content (can be null)
         final Object signalContent = aSignalData.getSignalContent();
-        if (signalContent instanceof IsolateStatus) {
-            handleIsolateStatusEvent((IsolateStatus) signalContent);
+
+        // Signal status
+        if (aSignalName.equals(ISignalsConstants.ISOLATE_STATUS_SIGNAL)) {
+            // Test if the signal content is an isolate status
+            if (signalContent instanceof IsolateStatus) {
+                handleIsolateStatusEvent((IsolateStatus) signalContent);
+            }
+
+        } else if (aSignalName
+                .equals(ISignalsConstants.MONITOR_SIGNAL_STOP_PLATFORM)) {
+            // Stop everything
+            stopPlatform();
         }
     }
 
@@ -224,6 +247,11 @@ public class MonitorCore extends CPojoBase implements
      * @return True on success, false on error
      */
     protected boolean startIsolate(final String aIsolateId) {
+
+        if (!pPlatformRunning) {
+            // Platform is stopped
+            return false;
+        }
 
         if (!pPropertyForkerPresent) {
             // No forker service
@@ -264,6 +292,38 @@ public class MonitorCore extends CPojoBase implements
 
         pForkerSvc.stopIsolate(aIsolateId);
         return true;
+    }
+
+    /**
+     * Stops the platform.
+     * 
+     * Deactivate the startIsolate() method, sends a stop signal to all
+     * isolates, waits for all "suicide" signals. In case of timeout, tells the
+     * forker (if any) to kill the remaining isolates.
+     */
+    protected void stopPlatform() {
+
+        // Deactivate startIsolate()
+        pPlatformRunning = false;
+
+        // Kill other monitors (not including ourselves)
+        pSignalSender.sendData(ISignalBroadcaster.EEmitterTargets.MONITORS,
+                ISignalsConstants.ISOLATE_STOP_SIGNAL, null);
+
+        // Send a stop signal to isolates
+        pSignalSender.sendData(ISignalBroadcaster.EEmitterTargets.ISOLATES,
+                ISignalsConstants.ISOLATE_STOP_SIGNAL, null);
+
+        // TODO Wait for stop completion
+
+        // TODO Kill remaining isolates
+
+        // Kill the forker
+        pForkerHandler.stopForker();
+
+        // Last man standing...
+        pSignalSender.sendData(ISignalBroadcaster.EEmitterTargets.LOCAL,
+                ISignalsConstants.ISOLATE_STOP_SIGNAL, null);
     }
 
     /**

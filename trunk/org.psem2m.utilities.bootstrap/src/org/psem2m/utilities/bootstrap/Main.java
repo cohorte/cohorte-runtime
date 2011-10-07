@@ -493,7 +493,9 @@ public class Main {
                     .getBundle();
 
             // Run the beast
-            pFrameworkStarterThread.runBootstrap(bundleConfiguration);
+            if (!pFrameworkStarterThread.runBootstrap(bundleConfiguration)) {
+                throw new Exception("Error in runBootstrap()");
+            }
 
             // Start the framework activity thread
             pFrameworkStarterThread.start();

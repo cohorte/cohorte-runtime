@@ -190,7 +190,7 @@ public class FrameworkStarterThread extends Thread {
 
 	pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME, "runBootstrap",
 		"Stopping...");
-	pMessageSender.sendStatus(IsolateStatus.STATE_STOPPING, 5);
+	pMessageSender.sendStatus(IsolateStatus.STATE_FRAMEWORK_STOPPING, 5);
 
 	// Stop the framework
 	if (!pFrameworkStarter.stopFramework()) {
@@ -202,6 +202,6 @@ public class FrameworkStarterThread extends Thread {
 		    "runBootstrap", "Stopped");
 	}
 
-	pMessageSender.sendStatus(IsolateStatus.STATE_STOPPED, 6);
+	pMessageSender.sendStatus(IsolateStatus.STATE_FRAMEWORK_STOPPED, 6);
     }
 }

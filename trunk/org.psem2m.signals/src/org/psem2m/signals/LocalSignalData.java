@@ -22,7 +22,10 @@ import org.psem2m.isolates.services.remote.signals.ISignalData;
 public class LocalSignalData implements ISignalData {
 
     /** The data associated to the signal */
-    private Serializable pSignalData;
+    private final Serializable pSignalData;
+
+    /** Signal time stamp */
+    private final long pTimestamp;
 
     /**
      * Sets up the local signal data
@@ -33,6 +36,7 @@ public class LocalSignalData implements ISignalData {
     public LocalSignalData(final Serializable aData) {
 
         pSignalData = aData;
+        pTimestamp = System.currentTimeMillis();
     }
 
     /*
@@ -73,5 +77,17 @@ public class LocalSignalData implements ISignalData {
     public Serializable getSignalContent() {
 
         return pSignalData;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.services.remote.signals.ISignalData#getTimestamp()
+     */
+    @Override
+    public long getTimestamp() {
+
+        return pTimestamp;
     }
 }

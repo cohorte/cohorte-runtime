@@ -18,6 +18,7 @@
 		<requires field="pIsolateLoggerSvc" optional="false" />
 		<requires field="pPlatformDirsSvc" optional="false" />
 		<requires field="pSignalBroadcaster" optional="false" />
+		<requires field="pSignalReceiver" optional="false" />
 
 		<callback transition="validate" method="validatePojo" />
 		<callback transition="invalidate" method="invalidatePojo" />

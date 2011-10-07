@@ -35,6 +35,12 @@ public interface ISignalsConstants {
     /** IsolateStatus signal */
     String ISOLATE_STATUS_SIGNAL = "/psem2m/isolate/status";
 
+    /** Stop isolate signal */
+    String ISOLATE_STOP_SIGNAL = "/psem2m/isolate/stop";
+
     /** Match all sub signals */
     String MATCH_ALL = "/*";
+
+    /** Platform stop signal */
+    String MONITOR_SIGNAL_STOP_PLATFORM = "/psem2m/platform/stop";
 }

@@ -34,4 +34,11 @@ public interface ISignalData {
      * @return the signal data
      */
     Serializable getSignalContent();
+
+    /**
+     * Retrieves the time stamp of the signal creation
+     * 
+     * @return The signal creation time stamp
+     */
+    long getTimestamp();
 }
