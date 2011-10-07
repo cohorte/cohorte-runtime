@@ -5,10 +5,14 @@
  */
 package org.psem2m.isolates.monitor.core;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.ServiceProperty;
 import org.apache.felix.ipojo.annotations.Unbind;
 import org.osgi.framework.BundleException;
 import org.osgi.service.log.LogService;
@@ -49,6 +53,9 @@ public class MonitorCore extends CPojoBase implements
     @Requires(id = "forker-service", optional = true)
     private IForker pForkerSvc;
 
+    /** Last isolate status time stamp for each isolate */
+    private final Map<String, Long> pLastIsolatesStatusUID = new HashMap<String, Long>();
+
     /** Log service */
     @Requires
     private LogService pLogger;
@@ -56,10 +63,12 @@ public class MonitorCore extends CPojoBase implements
     /** Platform state flag */
     private boolean pPlatformRunning = true;
 
-    /** TODO Forker handler presence property */
+    /** Forker handler presence property */
+    @ServiceProperty(name = "forker-handler-present", value = "false")
     private boolean pPropertyForkerHandlerPresent = false;
 
-    /** TODO Forker service presence property */
+    /** Forker service presence property */
+    @ServiceProperty(name = "forker-service-present", value = "false")
     private boolean pPropertyForkerPresent = false;
 
     /** Signal sender */
@@ -161,7 +170,7 @@ public class MonitorCore extends CPojoBase implements
      */
     protected void handleForkerStatus(final IsolateStatus aIsolateStatus) {
 
-        if (pPropertyForkerHandlerPresent
+        if (pPlatformRunning && pPropertyForkerHandlerPresent
                 && aIsolateStatus.getState() == IsolateStatus.STATE_FAILURE) {
 
             pForkerHandler.startForker();
@@ -178,16 +187,21 @@ public class MonitorCore extends CPojoBase implements
     @Override
     public void handleIsolateStatusEvent(final IsolateStatus aIsolateStatus) {
 
+        if (isStatusObsolete(aIsolateStatus)) {
+            // Ignore status if it's too old
+            System.out.println("Obsolete status : " + aIsolateStatus);
+            return;
+        }
+
+        // Source isolate ID
         final String sourceIsolateId = aIsolateStatus.getIsolateId();
 
         if (IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER
                 .equals(sourceIsolateId)) {
-
             // The forker is a special case
             handleForkerStatus(aIsolateStatus);
 
         } else {
-
             if (aIsolateStatus.getState() == IsolateStatus.STATE_FAILURE) {
                 // Normal isolate handling : when it fails, restart it
                 startIsolate(sourceIsolateId);
@@ -236,7 +250,42 @@ public class MonitorCore extends CPojoBase implements
     @Override
     public void invalidatePojo() throws BundleException {
 
+        // Clear the time stamps list
+        pLastIsolatesStatusUID.clear();
+
         pLogger.log(LogService.LOG_INFO, "PSEM2M Monitor Core Gone");
+    }
+
+    /**
+     * Tests if the given status is obsolete,
+     * 
+     * @param aIsolateStatus
+     *            The status to test
+     * @return True if the status is obsolete
+     */
+    protected boolean isStatusObsolete(final IsolateStatus aIsolateStatus) {
+
+        final String sourceIsolateId = aIsolateStatus.getIsolateId();
+
+        // Status time stamp
+        final long statusStamp = aIsolateStatus.getStatusUID();
+
+        // Test if the status is too old or duplicated
+        final Long lastStamp = pLastIsolatesStatusUID.get(sourceIsolateId);
+        if (lastStamp != null) {
+            // We already read something from this isolate
+            if (lastStamp.longValue() >= statusStamp) {
+                /*
+                 * We read something after this one, or already read this one,
+                 * so ignore it
+                 */
+                return true;
+            }
+        }
+
+        // Update the status time stamp
+        pLastIsolatesStatusUID.put(sourceIsolateId, statusStamp);
+        return false;
     }
 
     /**
@@ -359,6 +408,9 @@ public class MonitorCore extends CPojoBase implements
      */
     @Override
     public void validatePojo() throws BundleException {
+
+        // Clear the time stamps list
+        pLastIsolatesStatusUID.clear();
 
         pLogger.log(LogService.LOG_INFO, "PSEM2M Monitor Core Ready");
     }
