@@ -19,6 +19,7 @@ import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
+import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.ServiceProperty;
 import org.apache.felix.ipojo.annotations.Unbind;
@@ -31,6 +32,7 @@ import org.psem2m.isolates.base.isolates.IIsolateStatusEventListener;
 import org.psem2m.isolates.base.isolates.boot.IsolateStatus;
 import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.constants.ISignalsConstants;
+import org.psem2m.isolates.monitor.IPlatformMonitor;
 import org.psem2m.isolates.services.conf.IIsolateDescr;
 import org.psem2m.isolates.services.conf.ISvcConfig;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
@@ -47,13 +49,15 @@ import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
  * @author Thomas Calmant
  */
 @Component(name = "psem2m-monitor-core-factory", publicFactory = false)
+@Provides(specifications = IPlatformMonitor.class)
 @Instantiate(name = "psem2m-monitor-core")
 public class MonitorCore extends CPojoBase implements
-        IIsolateStatusEventListener, ISignalListener {
+        IIsolateStatusEventListener, ISignalListener, IPlatformMonitor {
 
     /** Maximum launch tries in a streak */
     public static final String PROPERTY_MAX_TRIES_STREAK = "org.psem2m.monitor.isolates.triesMaxStreak";
 
+    /** Time to wait before killing isolates in a hard way */
     public static final String PROPERTY_STOP_PLATFORM_TIMEOUT = "org.psem2m.monitor.stop.timeout";
 
     /** Time to wait before next streak */
@@ -107,7 +111,7 @@ public class MonitorCore extends CPojoBase implements
     private ISignalBroadcaster pSignalSender;
 
     /** Time to wait for isolates to shut down (in milliseconds) */
-    public int pStopPlatformTimeout;
+    private int pStopPlatformTimeout;
 
     /** Semaphore used while the platform is stopping */
     private Semaphore pStopSemaphore;
@@ -462,7 +466,8 @@ public class MonitorCore extends CPojoBase implements
      *            An isolate ID
      * @return True on success, false on error
      */
-    protected boolean startIsolate(final String aIsolateId) {
+    @Override
+    public boolean startIsolate(final String aIsolateId) {
 
         if (!pPlatformRunning) {
             // Platform is stopped
@@ -500,7 +505,8 @@ public class MonitorCore extends CPojoBase implements
      *            The ID of the isolate to stop
      * @return True if the forker was called.
      */
-    protected boolean stopIsolate(final String aIsolateId) {
+    @Override
+    public boolean stopIsolate(final String aIsolateId) {
 
         if (!pPropertyForkerPresent) {
             return false;
@@ -517,7 +523,8 @@ public class MonitorCore extends CPojoBase implements
      * isolates, waits for all "suicide" signals. In case of timeout, tells the
      * forker (if any) to kill the remaining isolates.
      */
-    protected void stopPlatform() {
+    @Override
+    public void stopPlatform() {
 
         // Deactivate startIsolate()
         pPlatformRunning = false;
