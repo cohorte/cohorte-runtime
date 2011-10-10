@@ -271,7 +271,7 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver,
     public void validatePojo() throws BundleException {
 
         // Set up the thread pool
-        pNotificationExecutor = Executors.newFixedThreadPool(1);
+        pNotificationExecutor = Executors.newCachedThreadPool();
 
         pLogger.log(LogService.LOG_INFO, "Base Signal Receiver Ready");
     }
