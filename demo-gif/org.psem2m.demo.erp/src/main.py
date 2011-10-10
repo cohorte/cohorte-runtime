@@ -24,6 +24,25 @@ import xml_item_parser
 ERP_INSTANCE = erp.Erp()
 ERP_INSTANCE.load_content(os.getcwd() + os.sep + "data")
 
+def format_text(text, params=dict()):
+    """
+    Formats the given string, replacing {toto} by params["toto"], based
+    on params keys.
+    
+    @param text: Text to format
+    @param params: Format parameters
+    @return: The formatted text
+    """
+    if not params or not text:
+        # Empty parameters
+        return text
+
+    for key in params:
+        text = text.replace("{" + str(key) + "}", str(params[key]))
+
+    return text
+
+
 def get_all_items():
     """
     Retrieves a list containing all items in the ERP
@@ -290,8 +309,8 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
         # Prepare response content
         with open("./html/code_result.html") as html_file:
-            args = {"code": code}
-            page_content = html_file.read().format(**args)
+            format_args = {"code": code}
+            page_content = format_text(html_file.read(), format_args)
 
         # Send the response
         self.__send_response(code, page_content)
@@ -324,7 +343,7 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
         format_args["items-status"] = prepare_items_rows()
 
         with open("./html/erp_state.html") as html_file:
-            page_content = html_file.read().format(**format_args)
+            page_content = format_text(html_file.read(), format_args)
 
         # Send the response
         self.__send_response(200, page_content)
@@ -338,8 +357,8 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
         # Prepare response content
         with open("./html/code_result.html") as html_file:
-            args = {"code": 200}
-            page_content = html_file.read().format(**args)
+            format_args = {"code": 200}
+            page_content = format_text(html_file.read(), format_args)
 
         # Send the response
         self.__send_response(200, page_content)
