@@ -30,8 +30,8 @@ def get_all_items():
     """
     # Retrieve all items
     items = []
-    for category in ERP_INSTANCE.get_categories():
-        items.append(ERP_INSTANCE.get_items(category))
+    for category in ERP_INSTANCE.get_categories(False):
+        items.append(ERP_INSTANCE.get_items(category, update_stats=False))
 
     # Chain all sub-lists
     return itertools.chain.from_iterable(items)
@@ -71,7 +71,7 @@ def prepare_items_rows():
 
     if items:
         for item in items:
-            item["stock"] = ERP_INSTANCE.get_item_stock(item["id"])
+            item["stock"] = ERP_INSTANCE.get_item_stock(item["id"], False)
 
             # Write the line
             html_content += item_html_row.format(**item)
@@ -92,6 +92,7 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
     GET_ITEMS_STOCK = "/getItemsStock"
     GET_STATE = "/getStateERP"
     SET_STATE = "/setStateERP"
+    RESET_STATS = "/resetStats"
 
     def __init__(self, request, client_address, server):
         """
@@ -111,6 +112,7 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
                                                 self._handle_get_items_stock
         self._handlers[ErpHttpServer.GET_STATE] = self._handle_get_state
         self._handlers[ErpHttpServer.SET_STATE] = self._handle_set_state
+        self._handlers[ErpHttpServer.RESET_STATS] = self._handle_reset_stats
 
         # Path handled flag
         self._handled = False
@@ -312,11 +314,32 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
         else:
             format_args["erp-running"] = "OFF"
 
+        # Number of requests handled
+        erp_stats = ERP_INSTANCE.get_stats()
+        format_args["erp-requests"] = erp_stats["requests"]
+        format_args["erp-time"] = erp_stats["time"]
+        format_args["erp-average"] = erp_stats["average"]
+
         # Items state
         format_args["items-status"] = prepare_items_rows()
 
         with open("./html/erp_state.html") as html_file:
             page_content = html_file.read().format(**format_args)
+
+        # Send the response
+        self.__send_response(200, page_content)
+
+
+    def _handle_reset_stats(self):
+        """
+        Resets the ERP statistics
+        """
+        ERP_INSTANCE.reset_stats()
+
+        # Prepare response content
+        with open("./html/code_result.html") as html_file:
+            args = {"code": 200}
+            page_content = html_file.read().format(**args)
 
         # Send the response
         self.__send_response(200, page_content)

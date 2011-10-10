@@ -7,6 +7,7 @@ Created on 5 oct. 2011
 
 import os
 import random
+import time
 import xml_item_parser
 
 # ------------------------------------------------------------------------------
@@ -27,6 +28,9 @@ class Erp(object):
         self.__categories = dict()
         self.__items = dict()
         self.__stocks = dict()
+        self.__nb_requests = 0
+        self.__start_time = 0
+        self.__last_time = 0
 
 
     def load_content(self, source_folder):
@@ -77,22 +81,30 @@ class Erp(object):
             self.__stocks[item_id] = random.randint(0, 220)
 
 
-    def get_categories(self):
+    def get_categories(self, update_stats=True):
         """
         Retrieves the list of all known categories
         
+        @param update_stats: Update the ERP statistics
         @return: All known categories
         """
+        if update_stats:
+            self.__update_stats()
+
         return self.__categories.keys()
 
 
-    def get_item(self, item_id):
+    def get_item(self, item_id, update_stats=True):
         """
         Retrieves the item bean corresponding to the given ID. Returns None
         if not found.
         
+        @param update_stats: Update the ERP statistics
         @return: The item bean (map) or None
         """
+        if update_stats:
+            self.__update_stats()
+
         if item_id == "?" and len(self.__items) > 0:
             # Special name for random item
             item_id = random.choice(self.__items.keys())
@@ -103,7 +115,8 @@ class Erp(object):
         return None
 
 
-    def get_items(self, category, count=0, randomize=False, base_id=None):
+    def get_items(self, category, count=0, randomize=False, base_id=None, \
+                  update_stats=True):
         """
         Retrieves *count* items of the given category, None if the category is
         unknown.
@@ -115,9 +128,14 @@ class Erp(object):
         
         @param category: The category to list
         @param count: Number of items to retrieve (<= 0 for unlimited)
-        @param randomize: 
+        @param randomize: Prepare a random result
+        @param base_id: Base item identifier for pagination
+        @param update_stats: Update the ERP statistics
         @return: A list of items, or None
         """
+        if update_stats:
+            self.__update_stats()
+
         if category not in self.__categories:
             # No category found
             return
@@ -198,14 +216,18 @@ class Erp(object):
         return items_ids[base_index:end_index]
 
 
-    def get_item_stock(self, item_id):
+    def get_item_stock(self, item_id, update_stats=True):
         """
         Retrieves the availability of the given item (int)
         
         @param item_id: ID of the item
+        @param update_stats: Update the ERP statistics
         @return: The available stock for the given item, -1 if the item is
         unknown
         """
+        if update_stats:
+            self.__update_stats()
+
         if item_id not in self.__stocks:
             return -1
 
@@ -224,3 +246,39 @@ class Erp(object):
         Sets the state of the ERP (True or False)
         """
         self.__running = running
+
+
+    def reset_stats(self):
+        """
+        Resets the requests statistics
+        """
+        self.__nb_requests = 0
+        self.__start_time = 0
+        self.__last_time = 0
+
+
+    def __update_stats(self):
+        """
+        Updates the ERP statistics
+        """
+        if not self.__nb_requests:
+            # First handled request
+            self.__start_time = time.time()
+
+        self.__nb_requests += 1
+        self.__last_time = time.time()
+
+
+    def get_stats(self):
+        """
+        Retrieves the number of requests handled
+        """
+        nb_requests = self.__nb_requests
+        total_time = self.__last_time - self.__start_time
+
+        if not total_time:
+            # Avoid a division by 0
+            total_time = 1
+
+        return {"requests": self.__nb_requests, "time": total_time, \
+                "average": nb_requests / total_time}
