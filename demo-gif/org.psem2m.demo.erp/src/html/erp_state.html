@@ -35,8 +35,16 @@
 	</div>
 	<div id="items">
 		<h2>Items status</h2>
-		<table class="sortable">{items-status}
-		</table>
+		<form id="items-form" method="post" action="/updateStocks"
+			enctype="application/x-www-form-urlencoded">
+			<p>
+				<input type="submit" value="Apply changes" />
+			</p>
+			<div>{items-status-table}</div>
+			<p>
+				<input type="submit" value="Apply changes" />
+			</p>
+		</form>
 	</div>
 </body>
 </html>

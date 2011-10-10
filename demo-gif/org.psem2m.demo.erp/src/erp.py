@@ -234,6 +234,30 @@ class Erp(object):
         return int(self.__stocks[item_id])
 
 
+    def set_item_stock(self, item_id, new_stock, update_stats=True):
+        """
+        Set the stock value for the given item
+        
+        @param item_id: ID of the item
+        @param new_stock: New item stock (int)
+        @param update_stats: Update the ERP statistics
+        @return: True on success, False on error (unknown id, ...) 
+        """
+        if update_stats:
+            self.__update_stats()
+
+        if item_id not in self.__stocks:
+            return False
+
+        try:
+            self.__stocks[item_id] = int(new_stock)
+            return True
+
+        except:
+            # Error in conversion or in assignment...
+            return False
+
+
     def is_running(self):
         """
         Returns the running state of the  ERP

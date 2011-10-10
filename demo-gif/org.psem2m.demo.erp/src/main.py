@@ -70,7 +70,7 @@ def prepare_items_rows():
     item_html_row = "\t\t<tr>\n"
 
     # Table header
-    html_content = "\t<thead>\n\t\t<tr>\n"
+    html_content = '<table class="sortable">\n\t<thead>\n\t\t<tr>\n'
 
     for key in item_keys:
         # Write head
@@ -79,7 +79,14 @@ def prepare_items_rows():
 
         # Prepare item row model
         item_html_row += "\t" * 3 + "<td>\n" + "\t" * 4
-        item_html_row += "{" + key + "}\n" + "\t" * 3 + "</td>\n"
+
+        if key == "stock":
+            item_html_row += '<input type="text" name="{id}" value={stock} />'
+
+        else:
+            item_html_row += "{" + key + "}"
+
+        item_html_row += "\n" + "\t" * 3 + "</td>\n"
 
 
     # End of head
@@ -93,10 +100,10 @@ def prepare_items_rows():
             item["stock"] = ERP_INSTANCE.get_item_stock(item["id"], False)
 
             # Write the line
-            html_content += item_html_row.format(**item)
+            html_content += format_text(item_html_row, item)
 
     # End of table
-    html_content += "\t</tbody>\n"
+    html_content += "\t</tbody>\n</table>"
     return html_content
 
 # ------------------------------------------------------------------------------
@@ -112,6 +119,7 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
     GET_STATE = "/getStateERP"
     SET_STATE = "/setStateERP"
     RESET_STATS = "/resetStats"
+    UPDATE_STOCK = "/updateStocks"
 
     def __init__(self, request, client_address, server):
         """
@@ -132,6 +140,7 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
         self._handlers[ErpHttpServer.GET_STATE] = self._handle_get_state
         self._handlers[ErpHttpServer.SET_STATE] = self._handle_set_state
         self._handlers[ErpHttpServer.RESET_STATS] = self._handle_reset_stats
+        self._handlers[ErpHttpServer.UPDATE_STOCK] = self._handle_update_stock
 
         # Path handled flag
         self._handled = False
@@ -340,7 +349,7 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
         format_args["erp-average"] = erp_stats["average"]
 
         # Items state
-        format_args["items-status"] = prepare_items_rows()
+        format_args["items-status-table"] = prepare_items_rows()
 
         with open("./html/erp_state.html") as html_file:
             page_content = format_text(html_file.read(), format_args)
@@ -362,6 +371,35 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
         # Send the response
         self.__send_response(200, page_content)
+
+
+    def _handle_update_stock(self):
+        """
+        Updates the ERP items stocks according to the given POST data.
+        
+        The POST data is encoded with application/x-www-form-urlencoded
+        """
+
+        # Convert the given data into a Python dictionary
+        post_body = self.__read_post_body()
+        query_dict = urlparse.parse_qs(post_body)
+        code = 200
+
+        if not query_dict:
+            code = 400
+
+        else:
+            for item_id in query_dict:
+                ERP_INSTANCE.set_item_stock(item_id, query_dict[item_id][0], \
+                                            False)
+
+        # Prepare response content
+        with open("./html/code_result.html") as html_file:
+            format_args = {"code": code}
+            page_content = format_text(html_file.read(), format_args)
+
+        # Send the response
+        self.__send_response(code, page_content)
 
 
     def do_GET(self):

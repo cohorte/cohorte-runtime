@@ -1,8 +1,8 @@
 @CHARSET "UTF-8";
+
 body {
 	background-image: url("../images/bg.jpg");
 	background-repeat: repeat-x;
-	
 	font-family: sans-serif;
 	font-size: 0.8em;
 }
@@ -15,20 +15,32 @@ h2 {
 	font-size: 1.1em;
 }
 
-h1, h2 {
+h1,h2 {
 	color: #0a328c;
 }
 
 /* Sort-able tables */
 table.sortable thead {
-    background-color:#eee;
-    color:#666666;
-    font-weight: bold;
-    cursor: default;
+	background-color: #eee;
+	color: #666666;
+	font-weight: bold;
+	cursor: default;
+}
+
+table {
+	width: 50%;
+	border-collapse:collapse;
+}
+
+td {
+	border-width: 1px;
+    border-style: solid;
+    border-color: black;
+    padding: 2px;
 }
 
 tbody :hover {
-	background-color:#eee;
+	background-color: #eee;
 	text-decoration: none;
 }
 
