@@ -36,11 +36,10 @@ class Cart_model extends CI_Model {
 	
 	/**
 	 * 
-	 * Enter description here ...
-	 * @param unknown_type $aCartLines
+	 * @param Array $aCart
 	 * @return NULL
 	 */
-	private function rpcApplyCart($aCartLines){
+	private function rpcApplyCart($aCart){
 	
 		/*
 		* To access the client after loading the jsonrpc library, you can call
@@ -72,7 +71,7 @@ class Cart_model extends CI_Model {
 		* the request parameters.
 		*/
 		$wParams = array();
-		array_push($wParams,$aCartLines);
+		array_push($wParams,$aCart);
 		$wJsonrpcClient->request($wParams);
 		
 		$wJsonrpcClient->timeout(5);

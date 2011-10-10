@@ -43,9 +43,13 @@ $wImageUrl = base_url()."app_resources/images/_items/".$id.".png";
 			</div>
 			<div class="prod_price_big"> <span class="price"><?php echo $price; ?> EUR</span>
 			</div>
-
-			<a href="<?php echo $wAddCartUrl;?>" class="addtocart">add to cart</a> <a href=""
-				class="compare">compare</a>
+			
+			<?php if ($stock>0){ ?>
+			<a href="<?php echo $wAddCartUrl;?>" class="addtocart">add to cart</a> 
+			<?php }?>
+			
+			<a href="" class="compare">compare</a>
+			
 		</div>
 	</div>
 	<div class="bottom_prod_box_big"></div>

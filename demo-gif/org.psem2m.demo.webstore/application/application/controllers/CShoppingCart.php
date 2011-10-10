@@ -99,6 +99,10 @@ class CShoppingCart extends MY_Controller {
 	public function applyCart(){
 		log_message('debug', "** CShoppingCart.applyCart() : Cart=[". var_export($this->cart->contents(),true)."]" );
 		
+		
+
+		
+		
 		$this->load->model('Cart_model');
 		
 		/*
@@ -124,6 +128,10 @@ class CShoppingCart extends MY_Controller {
 			)]
 		 */
 		
+		
+
+		
+		
 		$wCartLines = array();
 		
 		// @see the java class org.psem2m.demo.erp.api.beans.CCartLine
@@ -137,10 +145,17 @@ class CShoppingCart extends MY_Controller {
 			array_push($wCartLines,$wCartLine);
 		}
 		
+		// We now need to create a unique identifier for the cart.
+		$wCartId = md5(microtime(false) );
+		
+		$wCart = array();
+		$wCart['cartId']= $wCartId;
+		$wCart['cartLines']= $wCartLines;
+		
 		//log_message('INFO', "** CShoppingCart.applyCart() : wCartLines=[". var_export($wCartLines,true)."]" );
 		
 		
-		$wErpResponse = $this->Cart_model->applyCart($wCartLines);
+		$wErpResponse = $this->Cart_model->applyCart($wCart);
 		
 		if(log_isOn('INFO')){
 			log_message('INFO', "** CShoppingCart.applyCart() : wErpResponse=[". var_export($wErpResponse,true)."]" );

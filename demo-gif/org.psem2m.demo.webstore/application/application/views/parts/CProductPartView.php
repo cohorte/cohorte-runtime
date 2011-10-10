@@ -36,24 +36,26 @@ $wAddCartUrl =  base_url()."index.php/CHome/addToCart/".$id;
 	
 	<div class="prod_details_tab">
 
+		<?php if ($stock>0){ ?>
 		<a href="<?php echo $wAddCartUrl; ?>" title="header=[Add to cart] body=[&nbsp;] fade=[on]"> <img
 			src="<?php echo base_url(); ?>app_resources/images/cart.gif" alt=""
 			title="" border="0" class="left_bt" /> </a> 
-
+		<?php }?>
 			
-			<a href="#"
+		<a href="#"
 			title="header=[Specials] body=[&nbsp;] fade=[on]"> <img
 			src="<?php echo base_url(); ?>app_resources/images/favs.gif" alt=""
 			title="" border="0" class="left_bt" /> </a> 
 			
 			
-			<a href="#"
+		<a href="#"
 			title="header=[Gifts] body=[&nbsp;] fade=[on]"> <img
 			src="<?php echo base_url(); ?>app_resources/images/favorites.gif"
 			alt="" title="" border="0" class="left_bt" /> </a> 
 			
 			
-			<a href="<?php echo $wDetailUrl; ?>" class="prod_details">details</a>
+		<a href="<?php echo $wDetailUrl; ?>" class="prod_details">details</a>
+		
 	</div>
 </div>
 	
