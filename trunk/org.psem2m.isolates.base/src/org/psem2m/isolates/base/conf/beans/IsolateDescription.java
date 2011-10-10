@@ -6,6 +6,7 @@
 package org.psem2m.isolates.base.conf.beans;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -75,7 +76,7 @@ public class IsolateDescription implements IIsolateDescr {
     @Override
     public Set<IBundleDescr> getBundles() {
 
-        return pBundles;
+        return Collections.unmodifiableSet(pBundles);
     }
 
     /*
@@ -108,7 +109,7 @@ public class IsolateDescription implements IIsolateDescr {
     @Override
     public List<String> getVMArgs() {
 
-        return pVmArguments;
+        return Collections.unmodifiableList(pVmArguments);
     }
 
     /**

@@ -5,13 +5,13 @@
  */
 package org.psem2m.isolates.base.conf.beans;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 import org.psem2m.isolates.services.conf.IApplicationDescr;
 import org.psem2m.isolates.services.conf.IIsolateDescr;
-
 
 /**
  * Description of an application
@@ -36,7 +36,8 @@ public class ApplicationDescription implements IApplicationDescr {
      *            The application ID
      */
     public ApplicationDescription(final String aId) {
-	pApplicationId = aId;
+
+        pApplicationId = aId;
     }
 
     /**
@@ -46,7 +47,8 @@ public class ApplicationDescription implements IApplicationDescr {
      *            An isolate
      */
     public void addIsolate(final IIsolateDescr aIsolateDescription) {
-	pIsolates.put(aIsolateDescription.getId(), aIsolateDescription);
+
+        pIsolates.put(aIsolateDescription.getId(), aIsolateDescription);
     }
 
     /*
@@ -56,7 +58,8 @@ public class ApplicationDescription implements IApplicationDescr {
      */
     @Override
     public String getApplicationId() {
-	return pApplicationId;
+
+        return pApplicationId;
     }
 
     /*
@@ -68,7 +71,8 @@ public class ApplicationDescription implements IApplicationDescr {
      */
     @Override
     public IIsolateDescr getIsolate(final String aId) {
-	return pIsolates.get(aId);
+
+        return pIsolates.get(aId);
     }
 
     /*
@@ -78,6 +82,7 @@ public class ApplicationDescription implements IApplicationDescr {
      */
     @Override
     public Set<String> getIsolateIds() {
-	return pIsolates.keySet();
+
+        return Collections.unmodifiableSet(pIsolates.keySet());
     }
 }
