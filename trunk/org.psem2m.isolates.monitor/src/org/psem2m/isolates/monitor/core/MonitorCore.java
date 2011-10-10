@@ -58,6 +58,9 @@ public class MonitorCore extends CPojoBase implements
     @Requires
     private ISvcConfig pConfiguration;
 
+    /** The isolate failure handler */
+    private IsolateFailureHandler pFailureHandler;
+
     /** Forker starter service */
     @Requires(id = "forker-handler", optional = true)
     private IForkerHandler pForkerHandler;
@@ -87,6 +90,15 @@ public class MonitorCore extends CPojoBase implements
     /** Forker service presence property */
     @ServiceProperty(name = "forker-service-present", value = "false")
     private boolean pPropertyForkerPresent = false;
+
+    /** Maximum launch tries in a streak */
+    public final String PROPERTY_MAX_TRIES_STREAK = "org.psem2m.isolates.triesMaxStreak";
+
+    /** Time to wait before next streak */
+    public final String PROPERTY_WAIT_TIME_BEFORE_STREAK = "org.psem2m.isolates.triesWaitBeforeStreak";
+
+    /** Time to wait before next try when in a streak */
+    public final String PROPERTY_WAIT_TIME_IN_STREAK = "org.psem2m.isolates.triesWaitInStreak";
 
     /** Signal sender */
     @Requires
@@ -217,8 +229,8 @@ public class MonitorCore extends CPojoBase implements
             return;
         }
 
-        // Normal isolate handling : when it fails, restart it
-        startIsolate(aIsolateId);
+        // Tell the failure handler
+        pFailureHandler.isolateFailed(aIsolateId);
     }
 
     /*
@@ -239,6 +251,8 @@ public class MonitorCore extends CPojoBase implements
 
         if (isStatusObsolete(aIsolateStatus)) {
             // Ignore status if it's too old
+            pLogger.log(LogService.LOG_INFO, "Obsolete status : "
+                    + aIsolateStatus);
             System.out.println("Obsolete status : " + aIsolateStatus);
             return;
         }
@@ -324,6 +338,10 @@ public class MonitorCore extends CPojoBase implements
         // Clear the time stamps list
         pLastIsolatesStatusUID.clear();
 
+        // Stop the failure handler
+        pFailureHandler.stop();
+        pFailureHandler = null;
+
         pLogger.log(LogService.LOG_INFO, "PSEM2M Monitor Core Gone");
     }
 
@@ -358,6 +376,26 @@ public class MonitorCore extends CPojoBase implements
         // Update the status time stamp
         pLastIsolatesStatusUID.put(sourceIsolateId, statusStamp);
         return false;
+    }
+
+    /**
+     * Retrieves the given system property integer. Returns the default value on
+     * error.
+     * 
+     * @param aProperty
+     *            A system property name
+     * @param aDefaultValue
+     *            A default value
+     * @return The system property value or the default one on error
+     */
+    protected int readIntSystemProperty(final String aProperty,
+            final int aDefaultValue) {
+
+        try {
+            return Integer.parseInt(System.getProperty(aProperty));
+        } catch (NumberFormatException e) {
+            return aDefaultValue;
+        }
     }
 
     /**
@@ -427,6 +465,9 @@ public class MonitorCore extends CPojoBase implements
         // Deactivate startIsolate()
         pPlatformRunning = false;
 
+        // Stop the failure handler
+        pFailureHandler.stop();
+
         // Clear the stopped isolates list
         pStoppedIsolates.clear();
 
@@ -457,7 +498,7 @@ public class MonitorCore extends CPojoBase implements
                 // Compute remaining isolates
                 synchronized (pStoppedIsolates) {
                     isolatesToStop.removeAll(pStoppedIsolates);
-                    System.out.println(pStoppedIsolates.size()
+                    pLogger.log(LogService.LOG_INFO, pStoppedIsolates.size()
                             + " stopped isolates, " + isolatesToStop.size()
                             + " remaining");
                     pStoppedIsolates.clear();
@@ -466,8 +507,8 @@ public class MonitorCore extends CPojoBase implements
                 // Kill remaining isolates
                 if (pPropertyForkerPresent) {
                     for (String isolateId : isolatesToStop) {
-                        System.out
-                                .println("Killing with forker : " + isolateId);
+                        pLogger.log(LogService.LOG_INFO,
+                                "Killing with the forker : " + isolateId);
                         pForkerSvc.stopIsolate(isolateId);
                     }
                 }
@@ -537,6 +578,17 @@ public class MonitorCore extends CPojoBase implements
         // Write our access URL to the $BASE/var/monitor.access file
         writeAccessFile();
 
+        // Prepare the failure handler
+        final int maxTriesStreak = readIntSystemProperty(
+                PROPERTY_MAX_TRIES_STREAK, 3);
+        final int timeInStreak = readIntSystemProperty(
+                PROPERTY_WAIT_TIME_IN_STREAK, 1);
+        final int timeBeforeStreak = readIntSystemProperty(
+                PROPERTY_WAIT_TIME_BEFORE_STREAK, 10);
+
+        pFailureHandler = new IsolateFailureHandler(this, maxTriesStreak,
+                timeInStreak, timeBeforeStreak);
+
         pLogger.log(LogService.LOG_INFO, "PSEM2M Monitor Core Ready");
     }
 
@@ -560,8 +612,6 @@ public class MonitorCore extends CPojoBase implements
             if (!accessFile.exists()) {
                 accessFile.createNewFile();
             }
-
-            System.out.println("Writing to : " + accessFile);
 
             // Write our access URL
             final OutputStream outputStream = new FileOutputStream(accessFile);
