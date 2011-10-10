@@ -113,12 +113,13 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
     ERP HTTP Server for PSEM2M Demo
     """
 
+    APPLY_CART = "/applyCart"
     GET_ITEM = "/getItem"
     GET_ITEMS = "/getItems"
     GET_ITEMS_STOCK = "/getItemsStock"
     GET_STATE = "/getStateERP"
-    SET_STATE = "/setStateERP"
     RESET_STATS = "/resetStats"
+    SET_STATE = "/setStateERP"
     UPDATE_STOCK = "/updateStocks"
 
     def __init__(self, request, client_address, server):
@@ -133,13 +134,14 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
         self._handlers = dict()
         self._handlers["/"] = self._handle_index_page
         self._handlers["/index.html"] = self._handle_index_page
+        self._handlers[ErpHttpServer.APPLY_CART] = self._handle_apply_cart
         self._handlers[ErpHttpServer.GET_ITEM] = self._handle_get_item
         self._handlers[ErpHttpServer.GET_ITEMS] = self._handle_get_items
         self._handlers[ErpHttpServer.GET_ITEMS_STOCK] = \
                                                 self._handle_get_items_stock
         self._handlers[ErpHttpServer.GET_STATE] = self._handle_get_state
-        self._handlers[ErpHttpServer.SET_STATE] = self._handle_set_state
         self._handlers[ErpHttpServer.RESET_STATS] = self._handle_reset_stats
+        self._handlers[ErpHttpServer.SET_STATE] = self._handle_set_state
         self._handlers[ErpHttpServer.UPDATE_STOCK] = self._handle_update_stock
 
         # Path handled flag
@@ -148,6 +150,58 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
         # Call parent constructor (calls request handling)
         BaseHTTPServer.BaseHTTPRequestHandler.__init__(self, request, \
                                                        client_address, server)
+
+
+    def _handle_apply_cart(self):
+        """
+        Applies the given cart to the ERP
+        """
+        if not ERP_INSTANCE.is_running():
+            self.__send_internal_error()
+            return
+
+        # Only POST command is allowed here
+        if self.command != "POST":
+            self.send_error(403, \
+                            "This URI is accessible only with POST requests")
+            self.end_headers()
+            return
+
+        # Read the XML data in the POST query
+        post_body = self.__read_post_body()
+        xml_nodes = xml_item_parser.XmlItemParser().parse(post_body)
+        if not xml_nodes:
+            self.__send_internal_error()
+            return
+
+        # Retrieve the cart description
+        if "cart" not in xml_nodes or len(xml_nodes["cart"]) == 0:
+            self.__send_response(400, "Invalid Request", "text/plain")
+            return
+
+        # Read the request
+        cart_node = xml_nodes["cart"][0]
+        cart_id = cart_node["cartId"]
+        cart_content = []
+
+        try:
+            for item_node in cart_node["cartLine"]:
+                cart_content.append({"id": item_node["itemId"], \
+                                     "quantity": int(item_node["quantity"])})
+
+        except Exception, ex:
+            # An error occurred while reading the request
+            self.send_response(400, "Invalid request content\n" + str(ex), \
+                               "text/plain")
+
+        # Call the ERP
+        result = ERP_INSTANCE.apply_cart(cart_id, cart_content)
+
+        if not result:
+            self.__send_internal_error()
+
+        # Send answer
+        self.__send_response(200)
 
 
     def _handle_get_item(self):
@@ -564,4 +618,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
