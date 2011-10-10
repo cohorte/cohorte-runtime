@@ -20,6 +20,7 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.demo.data.cache.IDataCache;
 import org.psem2m.demo.data.server.IQuarterback;
+import org.psem2m.demo.erp.api.beans.CCart;
 import org.psem2m.demo.erp.api.beans.CCartLine;
 import org.psem2m.demo.erp.api.beans.CErpActionReport;
 import org.psem2m.demo.erp.api.beans.CachedItemBean;
@@ -78,21 +79,28 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
      * .api.beans.CCartLine[])
      */
     @Override
-    public CErpActionReport applyCart(final CCartLine[] aCartLines) {
+    public CErpActionReport applyCart(final CCart aCart) {
+
+        String wCartId = aCart.getCartId();
+        CCartLine[] wCartLines = aCart.getCartLines();
+        int wNbLines = wCartLines != null ? wCartLines.length : -1;
 
         StringBuilder wSB = new StringBuilder();
 
-        wSB.append(String.format("Received cart : [%d] lines : [ ",
-                aCartLines.length));
-        int wI = 0;
-        for (CCartLine wCartLine : aCartLines) {
-            if (wI > 0) {
-                wSB.append(',');
+        wSB.append(String.format("Received cart [%s] : [%d] lines : [ ",
+                wCartId, wNbLines));
+
+        if (wNbLines > 0) {
+            int wI = 0;
+            for (CCartLine wCartLine : wCartLines) {
+                if (wI > 0) {
+                    wSB.append(',');
+                }
+                wSB.append(String.format("{%d=>%s }", wI, wCartLine.toString()));
+                wI++;
             }
-            wSB.append(String.format("{%d=>%s }", wI, wCartLine.toString()));
-            wI++;
+            wSB.append("]");
         }
-        wSB.append("]");
 
         return new CErpActionReport(
                 java.net.HttpURLConnection.HTTP_NOT_IMPLEMENTED,

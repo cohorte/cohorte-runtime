@@ -31,7 +31,7 @@ import java.net.HttpURLConnection;
  * @author ogattaz
  * 
  */
-public class CErpActionReport {
+public class CErpActionReport implements ICachedBean {
 
     private String pMessage = "Not Implemented.";
 
@@ -85,6 +85,7 @@ public class CErpActionReport {
     /**
      * @return the QualityLevel
      */
+    @Override
     public int getQualityLevel() {
 
         return pQualityLevel;
@@ -119,6 +120,7 @@ public class CErpActionReport {
      * @param aQualityLevel
      *            the pQualityLevel to set
      */
+    @Override
     public void setQualityLevel(final int aQualityLevel) {
 
         this.pQualityLevel = aQualityLevel;

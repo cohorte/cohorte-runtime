@@ -16,7 +16,7 @@
  *******************************************************************************/
 package org.psem2m.demo.erp.api.services;
 
-import org.psem2m.demo.erp.api.beans.CCartLine;
+import org.psem2m.demo.erp.api.beans.CCart;
 import org.psem2m.demo.erp.api.beans.CErpActionReport;
 import org.psem2m.demo.erp.api.beans.CachedItemBean;
 import org.psem2m.demo.erp.api.beans.CachedItemStockBean;
@@ -34,10 +34,10 @@ public interface IErpData {
      * Return always a bean CErpActionReport containing
      * 
      * @param aCartLines
-     *            the array of beans CCartLine
+     *            An instance of CCart
      * @return a bean CErpActionReport
      */
-    CErpActionReport applyCart(CCartLine[] aCartLines);
+    CErpActionReport applyCart(CCart aCart);
 
     /**
      * Retrieves the item bean corresponding to the given ID. Uses the cache if
