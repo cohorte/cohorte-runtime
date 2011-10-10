@@ -9,7 +9,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
@@ -46,6 +50,9 @@ import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
 @Instantiate(name = "psem2m-monitor-core")
 public class MonitorCore extends CPojoBase implements
         IIsolateStatusEventListener, ISignalListener {
+
+    /** Time to wait for isolates to shut down (in milliseconds) */
+    public static final long ISOLATE_STOP_WAIT_TIME = 1000;
 
     /** Configuration service */
     @Requires
@@ -84,6 +91,9 @@ public class MonitorCore extends CPojoBase implements
     /** Signal sender */
     @Requires
     private ISignalBroadcaster pSignalSender;
+
+    /** Stopped isolates (when platform is not running) */
+    private final Set<String> pStoppedIsolates = new HashSet<String>();
 
     /**
      * Default constructor
@@ -199,6 +209,14 @@ public class MonitorCore extends CPojoBase implements
      */
     protected void handleIsolateFailure(final String aIsolateId) {
 
+        if (!pPlatformRunning) {
+            // Platform is stopping
+            synchronized (pStoppedIsolates) {
+                pStoppedIsolates.add(aIsolateId);
+            }
+            return;
+        }
+
         // Normal isolate handling : when it fails, restart it
         startIsolate(aIsolateId);
     }
@@ -231,14 +249,30 @@ public class MonitorCore extends CPojoBase implements
             handleForkerStatus(aIsolateStatus);
 
         } else {
-            if (aIsolateStatus.getState() == IsolateStatus.STATE_FAILURE) {
+
+            switch (aIsolateStatus.getState()) {
+            case IsolateStatus.STATE_FAILURE:
                 // Handle failure
                 handleIsolateFailure(aSourceIsolateId);
+                break;
 
-            } else {
+            case IsolateStatus.STATE_FRAMEWORK_STOPPING:
+            case IsolateStatus.STATE_FRAMEWORK_STOPPED:
+                // Same treatment for both states
+                if (!pPlatformRunning) {
+                    // Add the isolate to the stopped ones
+                    synchronized (pStoppedIsolates) {
+                        pStoppedIsolates.add(aSourceIsolateId);
+                    }
+                }
+
+                // Continue to default treatment
+
+            default:
                 // Simply log
                 System.out.println("MonitorCore received status : "
                         + aIsolateStatus);
+                break;
             }
         }
     }
@@ -393,6 +427,19 @@ public class MonitorCore extends CPojoBase implements
         // Deactivate startIsolate()
         pPlatformRunning = false;
 
+        // Clear the stopped isolates list
+        pStoppedIsolates.clear();
+
+        // Prepare the list of configured isolates.
+        // Use a copy to avoid modifying the configuration...
+        final Set<String> isolatesToStop = new HashSet<String>(pConfiguration
+                .getApplication().getIsolateIds());
+
+        // Remove the forker and the current monitor
+        isolatesToStop.remove(IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER);
+        isolatesToStop.remove(System
+                .getProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID));
+
         // Kill other monitors (not including ourselves)
         pSignalSender.sendData(ISignalBroadcaster.EEmitterTargets.MONITORS,
                 ISignalsConstants.ISOLATE_STOP_SIGNAL, null);
@@ -401,16 +448,52 @@ public class MonitorCore extends CPojoBase implements
         pSignalSender.sendData(ISignalBroadcaster.EEmitterTargets.ISOLATES,
                 ISignalsConstants.ISOLATE_STOP_SIGNAL, null);
 
-        // TODO Wait for stop completion
+        // Prepare future work for stop completion
+        final Runnable endOfMethod = new Runnable() {
 
-        // TODO Kill remaining isolates
+            @Override
+            public void run() {
 
-        // Kill the forker
-        pForkerHandler.stopForker();
+                // Compute remaining isolates
+                synchronized (pStoppedIsolates) {
+                    isolatesToStop.removeAll(pStoppedIsolates);
+                    System.out.println(pStoppedIsolates.size()
+                            + " stopped isolates, " + isolatesToStop.size()
+                            + " remaining");
+                    pStoppedIsolates.clear();
+                }
 
-        // Last man standing...
-        pSignalSender.sendData(ISignalBroadcaster.EEmitterTargets.LOCAL,
-                ISignalsConstants.ISOLATE_STOP_SIGNAL, null);
+                // Kill remaining isolates
+                if (pPropertyForkerPresent) {
+                    for (String isolateId : isolatesToStop) {
+                        System.out
+                                .println("Killing with forker : " + isolateId);
+                        pForkerSvc.stopIsolate(isolateId);
+                    }
+                }
+
+                // Kill the forker
+                if (pPropertyForkerHandlerPresent) {
+                    // Try to use the handler to stop the forker
+                    pForkerHandler.stopForker();
+
+                } else {
+                    // Else, use the stop signal
+                    pSignalSender.sendData(
+                            ISignalBroadcaster.EEmitterTargets.FORKER,
+                            ISignalsConstants.ISOLATE_STOP_SIGNAL, null);
+                }
+
+                // Last man standing...
+                pSignalSender.sendData(
+                        ISignalBroadcaster.EEmitterTargets.LOCAL,
+                        ISignalsConstants.ISOLATE_STOP_SIGNAL, null);
+            }
+        };
+
+        // Run the end of the method in some time
+        Executors.newScheduledThreadPool(1).schedule(endOfMethod,
+                ISOLATE_STOP_WAIT_TIME, TimeUnit.MILLISECONDS);
     }
 
     /**
