@@ -81,6 +81,36 @@ class Erp(object):
             self.__stocks[item_id] = random.randint(0, 220)
 
 
+    def apply_cart(self, cart_id, cart_content, update_stats=True):
+        """
+        Applies the stock modifications according to the cart content
+        
+        @param cart_id: The identifier of the cart
+        @param cart_content: Content of the cart, a dictionary with at least
+        "id" and "quantity" entries.
+        @param update_stats: Update the ERP statistics
+        @return: True on success, False on error
+        """
+        if not cart_id or not cart_content:
+            # Invalid cart
+            return False
+
+        if update_stats:
+            self.__update_stats()
+
+        success = True
+
+        for item in cart_content:
+            item_id = item["id"]
+            current_stock = self.get_item_stock(item_id, False)
+            new_stock = current_stock - int(item["quantity"])
+
+            if not self.set_item_stock(item_id, new_stock, False):
+                success = False
+
+        return success
+
+
     def get_categories(self, update_stats=True):
         """
         Retrieves the list of all known categories
@@ -250,7 +280,9 @@ class Erp(object):
             return False
 
         try:
+            print "Old stock :", self.__stocks[item_id]
             self.__stocks[item_id] = int(new_stock)
+            print "New stock :", self.__stocks[item_id]
             return True
 
         except:
