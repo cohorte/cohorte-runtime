@@ -133,6 +133,10 @@ public class HttpSignalSender extends CPojoBase implements
      */
     protected void internalSendData(final URL[] aUrls, final Serializable aData) {
 
+        if (aUrls == null) {
+            return;
+        }
+
         // Prepare the real signal data object
         final HttpSignalData sentObject = new HttpSignalData(aData);
 
@@ -264,7 +268,8 @@ public class HttpSignalSender extends CPojoBase implements
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.isolates.services.remote.signals.ISignalBroadcaster#sendData(org
+     * org.psem2m.isolates.services.remote.signals.ISignalBroadcaster#sendData
+     * (org
      * .psem2m.isolates.services.remote.signals.ISignalEmitter.EEmitterTargets,
      * java.lang.String, java.io.Serializable)
      */
@@ -291,8 +296,8 @@ public class HttpSignalSender extends CPojoBase implements
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.isolates.services.remote.signals.ISignalBroadcaster#sendData(java
-     * .lang.String, java.lang.String, java.io.Serializable)
+     * org.psem2m.isolates.services.remote.signals.ISignalBroadcaster#sendData
+     * (java .lang.String, java.lang.String, java.io.Serializable)
      */
     @Override
     public boolean sendData(final String aIsolateId, final String aSignalName,
@@ -325,7 +330,8 @@ public class HttpSignalSender extends CPojoBase implements
      *            Signal name
      * @return Corresponding URLs, null on error
      */
-    protected URL[] targetToUrl(final ISignalBroadcaster.EEmitterTargets aTargets,
+    protected URL[] targetToUrl(
+            final ISignalBroadcaster.EEmitterTargets aTargets,
             final URI aSignalName) {
 
         switch (aTargets) {
