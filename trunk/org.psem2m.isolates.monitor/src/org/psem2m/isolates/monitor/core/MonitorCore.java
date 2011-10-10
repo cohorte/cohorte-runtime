@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.felix.ipojo.annotations.Bind;
@@ -51,8 +51,16 @@ import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
 public class MonitorCore extends CPojoBase implements
         IIsolateStatusEventListener, ISignalListener {
 
-    /** Time to wait for isolates to shut down (in milliseconds) */
-    public static final long ISOLATE_STOP_WAIT_TIME = 1000;
+    /** Maximum launch tries in a streak */
+    public static final String PROPERTY_MAX_TRIES_STREAK = "org.psem2m.monitor.isolates.triesMaxStreak";
+
+    public static final String PROPERTY_STOP_PLATFORM_TIMEOUT = "org.psem2m.monitor.stop.timeout";
+
+    /** Time to wait before next streak */
+    public static final String PROPERTY_WAIT_TIME_BEFORE_STREAK = "org.psem2m.monitor.isolates.triesWaitBeforeStreak";
+
+    /** Time to wait before next try when in a streak */
+    public static final String PROPERTY_WAIT_TIME_IN_STREAK = "org.psem2m.monitor.isolates.triesWaitInStreak";
 
     /** Configuration service */
     @Requires
@@ -68,6 +76,9 @@ public class MonitorCore extends CPojoBase implements
     /** The forker service */
     @Requires(id = "forker-service", optional = true)
     private IForker pForkerSvc;
+
+    /** Stopped isolates (when platform is not running) */
+    private final Set<String> pIsolatesToStop = new HashSet<String>();
 
     /** Last isolate status time stamp for each isolate */
     private final Map<String, Long> pLastIsolatesStatusUID = new HashMap<String, Long>();
@@ -91,21 +102,15 @@ public class MonitorCore extends CPojoBase implements
     @ServiceProperty(name = "forker-service-present", value = "false")
     private boolean pPropertyForkerPresent = false;
 
-    /** Maximum launch tries in a streak */
-    public final String PROPERTY_MAX_TRIES_STREAK = "org.psem2m.isolates.triesMaxStreak";
-
-    /** Time to wait before next streak */
-    public final String PROPERTY_WAIT_TIME_BEFORE_STREAK = "org.psem2m.isolates.triesWaitBeforeStreak";
-
-    /** Time to wait before next try when in a streak */
-    public final String PROPERTY_WAIT_TIME_IN_STREAK = "org.psem2m.isolates.triesWaitInStreak";
-
     /** Signal sender */
     @Requires
     private ISignalBroadcaster pSignalSender;
 
-    /** Stopped isolates (when platform is not running) */
-    private final Set<String> pStoppedIsolates = new HashSet<String>();
+    /** Time to wait for isolates to shut down (in milliseconds) */
+    public int pStopPlatformTimeout;
+
+    /** Semaphore used while the platform is stopping */
+    private Semaphore pStopSemaphore;
 
     /**
      * Default constructor
@@ -223,9 +228,7 @@ public class MonitorCore extends CPojoBase implements
 
         if (!pPlatformRunning) {
             // Platform is stopping
-            synchronized (pStoppedIsolates) {
-                pStoppedIsolates.add(aIsolateId);
-            }
+            isolateStopped(aIsolateId);
             return;
         }
 
@@ -272,13 +275,8 @@ public class MonitorCore extends CPojoBase implements
 
             case IsolateStatus.STATE_FRAMEWORK_STOPPING:
             case IsolateStatus.STATE_FRAMEWORK_STOPPED:
-                // Same treatment for both states
-                if (!pPlatformRunning) {
-                    // Add the isolate to the stopped ones
-                    synchronized (pStoppedIsolates) {
-                        pStoppedIsolates.add(aSourceIsolateId);
-                    }
-                }
+                // Same treatment for both states : the isolate is gone
+                isolateStopped(aSourceIsolateId);
 
                 // Continue to default treatment
 
@@ -346,6 +344,28 @@ public class MonitorCore extends CPojoBase implements
     }
 
     /**
+     * Handles the end of an isolate when the platform is stopping
+     * 
+     * @param aIsolateId
+     *            The isolate that stopped
+     */
+    protected void isolateStopped(final String aIsolateId) {
+
+        if (!pPlatformRunning) {
+
+            synchronized (pIsolatesToStop) {
+                pIsolatesToStop.remove(aIsolateId);
+
+                // No more isolates to stop ?
+                if (pIsolatesToStop.isEmpty()) {
+                    // Unlock the idled stopPlatform() job
+                    pStopSemaphore.release();
+                }
+            }
+        }
+    }
+
+    /**
      * Tests if the given status is obsolete
      * 
      * @param aIsolateStatus
@@ -376,6 +396,43 @@ public class MonitorCore extends CPojoBase implements
         // Update the status time stamp
         pLastIsolatesStatusUID.put(sourceIsolateId, statusStamp);
         return false;
+    }
+
+    /**
+     * Finishes the job of {@link #stopPlatform()} : kills the remaining
+     * isolates with forker, then kills the forker and the current monitor.
+     */
+    protected void killRemainingIsolates() {
+
+        // Compute remaining isolates
+        synchronized (pIsolatesToStop) {
+            pLogger.log(LogService.LOG_INFO, pIsolatesToStop.size()
+                    + " remaining isolates");
+
+            // Kill remaining isolates
+            if (pPropertyForkerPresent) {
+                for (String isolateId : pIsolatesToStop) {
+                    pLogger.log(LogService.LOG_INFO,
+                            "Killing with the forker : " + isolateId);
+                    pForkerSvc.stopIsolate(isolateId);
+                }
+            }
+        }
+
+        // Kill the forker
+        if (pPropertyForkerHandlerPresent) {
+            // Try to use the handler to stop the forker
+            pForkerHandler.stopForker();
+
+        } else {
+            // Else, use the stop signal
+            pSignalSender.sendData(ISignalBroadcaster.EEmitterTargets.FORKER,
+                    ISignalsConstants.ISOLATE_STOP_SIGNAL, null);
+        }
+
+        // Last man standing...
+        pSignalSender.sendData(ISignalBroadcaster.EEmitterTargets.LOCAL,
+                ISignalsConstants.ISOLATE_STOP_SIGNAL, null);
     }
 
     /**
@@ -468,17 +525,16 @@ public class MonitorCore extends CPojoBase implements
         // Stop the failure handler
         pFailureHandler.stop();
 
-        // Clear the stopped isolates list
-        pStoppedIsolates.clear();
-
         // Prepare the list of configured isolates.
-        // Use a copy to avoid modifying the configuration...
-        final Set<String> isolatesToStop = new HashSet<String>(pConfiguration
-                .getApplication().getIsolateIds());
+        pIsolatesToStop.clear();
+        pIsolatesToStop.addAll(pConfiguration.getApplication().getIsolateIds());
+
+        // Prepare the end semaphore
+        pStopSemaphore = new Semaphore(0);
 
         // Remove the forker and the current monitor
-        isolatesToStop.remove(IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER);
-        isolatesToStop.remove(System
+        pIsolatesToStop.remove(IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER);
+        pIsolatesToStop.remove(System
                 .getProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID));
 
         // Kill other monitors (not including ourselves)
@@ -489,52 +545,25 @@ public class MonitorCore extends CPojoBase implements
         pSignalSender.sendData(ISignalBroadcaster.EEmitterTargets.ISOLATES,
                 ISignalsConstants.ISOLATE_STOP_SIGNAL, null);
 
-        // Prepare future work for stop completion
-        final Runnable endOfMethod = new Runnable() {
+        // Finish the jobn in a new thread
+        new Thread(new Runnable() {
 
             @Override
             public void run() {
 
-                // Compute remaining isolates
-                synchronized (pStoppedIsolates) {
-                    isolatesToStop.removeAll(pStoppedIsolates);
-                    pLogger.log(LogService.LOG_INFO, pStoppedIsolates.size()
-                            + " stopped isolates, " + isolatesToStop.size()
-                            + " remaining");
-                    pStoppedIsolates.clear();
+                // Wait for the isolates to stop (1 second max)
+                try {
+                    pStopSemaphore.tryAcquire(pStopPlatformTimeout,
+                            TimeUnit.MILLISECONDS);
+
+                } catch (InterruptedException e) {
+                    // Pass through the semaphore on interruption
                 }
 
-                // Kill remaining isolates
-                if (pPropertyForkerPresent) {
-                    for (String isolateId : isolatesToStop) {
-                        pLogger.log(LogService.LOG_INFO,
-                                "Killing with the forker : " + isolateId);
-                        pForkerSvc.stopIsolate(isolateId);
-                    }
-                }
-
-                // Kill the forker
-                if (pPropertyForkerHandlerPresent) {
-                    // Try to use the handler to stop the forker
-                    pForkerHandler.stopForker();
-
-                } else {
-                    // Else, use the stop signal
-                    pSignalSender.sendData(
-                            ISignalBroadcaster.EEmitterTargets.FORKER,
-                            ISignalsConstants.ISOLATE_STOP_SIGNAL, null);
-                }
-
-                // Last man standing...
-                pSignalSender.sendData(
-                        ISignalBroadcaster.EEmitterTargets.LOCAL,
-                        ISignalsConstants.ISOLATE_STOP_SIGNAL, null);
+                // Finish the job
+                killRemainingIsolates();
             }
-        };
-
-        // Run the end of the method in some time
-        Executors.newScheduledThreadPool(1).schedule(endOfMethod,
-                ISOLATE_STOP_WAIT_TIME, TimeUnit.MILLISECONDS);
+        }).start();
     }
 
     /**
@@ -577,6 +606,10 @@ public class MonitorCore extends CPojoBase implements
 
         // Write our access URL to the $BASE/var/monitor.access file
         writeAccessFile();
+
+        // Prepare the stopPlatform() time out
+        pStopPlatformTimeout = readIntSystemProperty(
+                PROPERTY_STOP_PLATFORM_TIMEOUT, 1000);
 
         // Prepare the failure handler
         final int maxTriesStreak = readIntSystemProperty(
