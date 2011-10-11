@@ -201,7 +201,8 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
             self.__send_internal_error()
 
         # Send answer
-        self.__send_response(200)
+        self.__send_response(200, xml_item_parser.report_to_xml(result), \
+                             "text/xml")
 
 
     def _handle_get_item(self):

@@ -12,6 +12,20 @@ import xml_item_parser
 
 # ------------------------------------------------------------------------------
 
+class ErpActionReport(object):
+    """
+    Describes an ERP result bean
+    """
+    def __init__(self, code=200, message="", reason=""):
+        """
+        Prepares the report members
+        """
+        self.code = code
+        self.message = message
+        self.reason = reason
+
+# ------------------------------------------------------------------------------
+
 class Erp(object):
     """
     Describes the ERP state
@@ -89,16 +103,18 @@ class Erp(object):
         @param cart_content: Content of the cart, a dictionary with at least
         "id" and "quantity" entries.
         @param update_stats: Update the ERP statistics
-        @return: True on success, False on error
+        @return: An ERP Action Report
         """
         if not cart_id or not cart_content:
             # Invalid cart
-            return False
+            return ErpActionReport(400, "Cart is invalid", \
+                                   "No cart has no ID or content.")
 
         if update_stats:
             self.__update_stats()
 
         success = True
+        reason = ""
 
         for item in cart_content:
             item_id = item["id"]
@@ -107,8 +123,19 @@ class Erp(object):
 
             if not self.set_item_stock(item_id, new_stock, False):
                 success = False
+                reason += "Can't set item '" + str(item_id)
+                reason += "' stock value to : " + str(new_stock) + "\n"
 
-        return success
+
+        if success:
+            code = 200
+            message = "Cart applied"
+
+        else:
+            code = 500
+            message = "Can't apply the cart"
+
+        return ErpActionReport(code, message, reason)
 
 
     def get_categories(self, update_stats=True):
