@@ -5,6 +5,8 @@
  */
 package org.psem2m.demo.erp.api.services;
 
+import org.psem2m.demo.erp.api.beans.CCart;
+import org.psem2m.demo.erp.api.beans.CErpActionReport;
 import org.psem2m.demo.erp.api.beans.ItemBean;
 
 /**
@@ -13,6 +15,17 @@ import org.psem2m.demo.erp.api.beans.ItemBean;
  * @author Thomas Calmant
  */
 public interface IErpDataProxy {
+
+    /**
+     * Submit an array of cart lines to the ERP.
+     * 
+     * Return always a bean CErpActionReport containing
+     * 
+     * @param aCartLines
+     *            An instance of CCart
+     * @return a bean CErpActionReport
+     */
+    CErpActionReport applyCart(CCart aCart);
 
     /**
      * Retrieves the item bean corresponding to the given ID from the ERP.
