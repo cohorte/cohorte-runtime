@@ -9,7 +9,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 
 import org.apache.felix.ipojo.annotations.Component;
@@ -20,6 +22,7 @@ import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.demo.data.cache.IDataCache;
+import org.psem2m.demo.erp.api.beans.CCart;
 import org.psem2m.demo.erp.api.beans.ItemBean;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
@@ -33,6 +36,9 @@ import org.psem2m.isolates.base.activators.CPojoBase;
 @Provides(specifications = IDataCache.class)
 @Instantiate(name = "demo-data-cache")
 public class ItemBeanDataCache extends CPojoBase implements IDataCache {
+
+    /** The carts waiting queue */
+    private final Queue<CCart> pCartsQueue = new LinkedList<CCart>();
 
     /** Categories content. Key = Category name, Value = Array of item IDs */
     private final Map<String, Set<String>> pCategoriesItems = new HashMap<String, Set<String>>();
@@ -65,6 +71,24 @@ public class ItemBeanDataCache extends CPojoBase implements IDataCache {
     public ItemBeanDataCache() {
 
         super();
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.demo.data.cache.IDataCache#enqueueCart(org.psem2m.demo.erp
+     * .api.beans.CCart)
+     */
+    @Override
+    public boolean enqueueCart(final CCart aCart) {
+
+        try {
+            return pCartsQueue.add(aCart);
+
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /*
@@ -207,6 +231,17 @@ public class ItemBeanDataCache extends CPojoBase implements IDataCache {
     public void invalidatePojo() throws BundleException {
 
         pLogger.logInfo(this, "invalidatePojo", "Data cache Gone");
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.demo.data.cache.IDataCache#unqueueCart()
+     */
+    @Override
+    public CCart unqueueCart() {
+
+        return pCartsQueue.poll();
     }
 
     /*
