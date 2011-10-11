@@ -34,6 +34,10 @@ import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.ServiceProperty;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
+import org.psem2m.demo.erp.api.beans.CCart;
+import org.psem2m.demo.erp.api.beans.CCartLine;
+import org.psem2m.demo.erp.api.beans.CErpActionReport;
+import org.psem2m.demo.erp.api.beans.IQualityLevels;
 import org.psem2m.demo.erp.api.beans.ItemBean;
 import org.psem2m.demo.erp.api.services.IErpDataProxy;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
@@ -54,6 +58,9 @@ import org.xml.sax.SAXException;
 @Component(name = "demo-erp-client-python-factory", publicFactory = false, propagation = true)
 @Provides(specifications = IErpDataProxy.class)
 public class ErpClient extends CPojoBase implements IErpDataProxy {
+
+    /** applyCart() method URI */
+    public static final String APPLY_CART_URI = "/applyCart";
 
     /** getItem() method URI */
     public static final String GET_ITEM_URI = "/getItem";
@@ -91,6 +98,51 @@ public class ErpClient extends CPojoBase implements IErpDataProxy {
     public ErpClient() {
 
         super();
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.demo.erp.api.services.IErpDataProxy#applyCart(org.psem2m.demo
+     * .erp.api.beans.CCart)
+     */
+    @Override
+    public CErpActionReport applyCart(final CCart aCart) {
+
+        // Validate the cart
+        if (aCart == null) {
+            return new CErpActionReport(400, "Null cart given");
+        }
+
+        // Prepare the POST query
+        final String xmlBody = prepareCartQuery(aCart);
+
+        try {
+            // Prepare the URL
+            final URL erpUrl = forgeUrl(APPLY_CART_URI, null);
+
+            final CErpActionReport result = getUrlActionReport(erpUrl, xmlBody);
+            if (result != null) {
+                // Reset the failure counter
+                pNbFailures = 0;
+
+                return result;
+
+            } else {
+                pLogger.logInfo(this, "applyCart",
+                        "No answer from the ERP (null)");
+
+                // Kill isolate in case of many errors
+                handleFailure();
+            }
+
+        } catch (MalformedURLException e) {
+            pLogger.logSevere(this, "getItems", "Error generating the ERP URL",
+                    e);
+        }
+
+        return null;
     }
 
     /**
@@ -317,7 +369,7 @@ public class ErpClient extends CPojoBase implements IErpDataProxy {
 
             final String result = getUrlPOSTResult(erpUrl, query);
             if (result != null) {
-                // Reset failure counter
+                // Reset the failure counter
                 pNbFailures = 0;
 
                 return xmlToItemBeans(result);
@@ -411,11 +463,95 @@ public class ErpClient extends CPojoBase implements IErpDataProxy {
     }
 
     /**
+     * Connects to the given URL and converts the response content to an ERP
+     * action result if possible. Returns null on error.
+     * 
+     * @param aUrl
+     *            URL to connect to
+     * @param aPostBody
+     *            POST request body
+     * @return The server response if possible, else null
+     */
+    protected CErpActionReport getUrlActionReport(final URL aUrl,
+            final String aPostBody) {
+
+        if (aUrl == null) {
+            return null;
+        }
+
+        HttpURLConnection connection = null;
+        try {
+            // Connect to the URL
+            connection = (HttpURLConnection) aUrl.openConnection();
+
+            // Use a 2 seconds timeout
+            connection.setReadTimeout(2000);
+
+            // Prepare the POST request
+            connection.setRequestMethod("POST");
+            connection.setDoOutput(true);
+
+            final byte[] bodyContent = aPostBody.getBytes();
+            connection.setRequestProperty("content-length",
+                    Integer.toString(bodyContent.length));
+
+            connection.getOutputStream().write(bodyContent);
+
+            final int code = connection.getResponseCode();
+            if (code != HttpURLConnection.HTTP_OK) {
+                // Something happened
+                pLogger.logInfo(this, "getUrlActionReport",
+                        "Error during a POST request to ", aUrl, " - code=",
+                        code);
+            }
+
+            /*
+             * Read the response content See here for more information :
+             * http://weblogs
+             * .java.net/blog/pat/archive/2004/10/stupid_scanner_1.html
+             */
+            final String pageContent = new Scanner(connection.getInputStream())
+                    .useDelimiter("\\A").next();
+
+            if (code == 200) {
+                // We received a real action report
+                final CErpActionReport receivedReport = xmlToActionReport(pageContent);
+                if (receivedReport != null) {
+                    return receivedReport;
+                }
+            }
+
+            // Transform the page content into a report
+            final CErpActionReport report = new CErpActionReport(code,
+                    pageContent);
+            report.setQualityLevel(IQualityLevels.CACHE_LEVEL_SYNC);
+            return report;
+
+        } catch (MalformedURLException e) {
+            pLogger.logSevere(this, "getItems", "Error generating the ERP URL",
+                    e);
+
+        } catch (IOException e) {
+            pLogger.logSevere(this, "getItems", "Error connecting the ERP", e);
+
+        } finally {
+            // Be nice, disconnect
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Connects to the given URL and retrieves the POST response content on
      * success. Returns null on error or if the server response code is not 200.
      * 
      * @param aUrl
      *            URL to connect to
+     * @param aPostBody
+     *            POST request body
      * @return The server response on success, else null
      */
     protected String getUrlPOSTResult(final URL aUrl, final String aPostBody) {
@@ -495,7 +631,7 @@ public class ErpClient extends CPojoBase implements IErpDataProxy {
             if (code != HttpURLConnection.HTTP_OK) {
                 // Something happened
                 pLogger.logInfo(this, "getUrlPOSTResult",
-                        "Error during a POST request to ", aUrl, " - code=",
+                        "Error during a GET request to ", aUrl, " - code=",
                         code);
                 return null;
             }
@@ -636,6 +772,73 @@ public class ErpClient extends CPojoBase implements IErpDataProxy {
         }
 
         return null;
+    }
+
+    /**
+     * Prepares an XML POST request body with given cart
+     * 
+     * @param aCart
+     *            A cart
+     * @return The cart XML representation
+     */
+    protected String prepareCartQuery(final CCart aCart) {
+
+        // Just to be sure...
+        if (aCart == null) {
+            return null;
+        }
+
+        // Get the document builder
+        final DocumentBuilder docBuilder = getDomDocumentBuilder();
+        if (docBuilder == null) {
+            return null;
+        }
+
+        // Write the document
+        final Document document = docBuilder.newDocument();
+
+        // The root
+        final Element rootNode = document.createElement("cart");
+        document.appendChild(rootNode);
+
+        // The cart ID
+        final Element cartId = document.createElement("cartId");
+        cartId.appendChild(document.createTextNode(aCart.getCartId()));
+        rootNode.appendChild(cartId);
+
+        // The cart lines
+        for (CCartLine cartLine : aCart.getCartLines()) {
+
+            if (cartLine == null) {
+                // Ignore invalid lines
+                continue;
+            }
+
+            // Cart line
+            final Element cartLineNode = document.createElement("cartLine");
+            rootNode.appendChild(cartLineNode);
+
+            // Line ID
+            final Element lineIdNode = document.createElement("lineId");
+            lineIdNode
+                    .appendChild(document.createTextNode(cartLine.getLineId()));
+            cartLineNode.appendChild(lineIdNode);
+
+            // Item ID
+            final Element itemIdNode = document.createElement("itemId");
+            itemIdNode
+                    .appendChild(document.createTextNode(cartLine.getItemId()));
+            cartLineNode.appendChild(itemIdNode);
+
+            // Quantity
+            final Element quantityNode = document.createElement("quantity");
+            final String quantityStr = Double.toString(cartLine.getQuantity());
+            quantityNode.appendChild(document.createTextNode(quantityStr));
+            cartLineNode.appendChild(quantityNode);
+        }
+
+        // Convert to a string
+        return domToString(document);
     }
 
     /**
@@ -885,6 +1088,49 @@ public class ErpClient extends CPojoBase implements IErpDataProxy {
         }).start();
 
         pLogger.logInfo(this, "validatePojo", "Python ERP Client Ready");
+    }
+
+    /**
+     * Converts the given XML data to an ERP action report
+     * 
+     * @param aXmlData
+     *            XML data received from the ERP
+     * @return An ERP action report
+     */
+    protected CErpActionReport xmlToActionReport(final String aXmlData) {
+
+        // Parse the document
+        final Document document = parseXmlString(aXmlData);
+        if (document == null) {
+            return null;
+        }
+
+        // Get the root node
+        final Element rootNode = document.getDocumentElement();
+
+        // Get the ERP report
+        final String codeStr = getElementChildValue(rootNode, "code");
+        String message = getElementChildValue(rootNode, "message");
+        String reason = getElementChildValue(rootNode, "reason");
+
+        // Parse the integer
+        int code;
+        try {
+            code = Integer.parseInt(codeStr);
+
+        } catch (NumberFormatException e) {
+            code = 500;
+            message = e.toString();
+            reason = aXmlData;
+        }
+
+        // Prepare the report bean
+        final CErpActionReport actionReport = new CErpActionReport(code,
+                message, reason);
+
+        // Response from the ERP itself
+        actionReport.setQualityLevel(IQualityLevels.CACHE_LEVEL_SYNC);
+        return actionReport;
     }
 
     /**

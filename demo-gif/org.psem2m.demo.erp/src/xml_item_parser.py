@@ -179,3 +179,28 @@ def items_to_xml(items, root_tag="items", element_tag="item"):
         doc.documentElement.appendChild(item_node)
 
     return doc.toxml()
+
+
+def report_to_xml(action_report):
+    """
+    Converts the given action report to an XML file
+    """
+    if action_report == None:
+        return ""
+
+    impl = xml.dom.minidom.getDOMImplementation()
+    doc = impl.createDocument(None, "actionReport", None)
+
+    code_node = doc.createElement("code")
+    code_node.appendChild(doc.createTextNode(str(action_report.code)))
+    doc.documentElement.appendChild(code_node)
+
+    message_node = doc.createElement("message")
+    message_node.appendChild(doc.createTextNode(str(action_report.message)))
+    doc.documentElement.appendChild(message_node)
+
+    reason_node = doc.createElement("reason")
+    reason_node.appendChild(doc.createTextNode(str(action_report.reason)))
+    doc.documentElement.appendChild(reason_node)
+
+    return doc.toxml()

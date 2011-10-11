@@ -14,32 +14,18 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  org.psem2m.isolates.base.activators;version=1.0.0, org.psem2m.utiliti
  es;version=1.0.0, org.psem2m.utilities.logging;version=1.0.0
 iPOJO-Components: instance { $component="org.psem2m.demo.data.cache.im
- pl.ItemBeanDataCache" $name="demo-data-cache" }component { $classname
- ="org.psem2m.demo.data.cache.impl.ItemBeanDataCache" $name="demo-data
- -cache-factory" $public="false" provides { $specifications="{org.psem
- 2m.demo.data.cache.IDataCache}" }requires { $field="pLogger" }callbac
- k { $transition="invalidate" $method="invalidatePojo" }callback { $tr
- ansition="validate" $method="validatePojo" }manipulation { $super="or
- g.psem2m.isolates.base.activators.CPojoBase" interface { $name="org.p
- sem2m.demo.data.cache.IDataCache" }field { $name="pCategoriesItems" $
- type="java.util.Map" }field { $name="pCategoriesItemsAge" $type="java
- .util.Map" }field { $name="pItemsCache" $type="java.util.Map" }field 
- { $name="pItemsCacheAge" $type="java.util.Map" }field { $name="pItems
- Stock" $type="java.util.Map" }field { $name="pItemsStockAge" $type="j
- ava.util.Map" }field { $name="pLogger" $type="org.psem2m.isolates.bas
- e.IIsolateLoggerSvc" }method { $name="getCategoryInformationAge" $ret
- urn="long" $arguments="{java.lang.String}" }method { $name="getCatego
- ryItems" $return="java.util.Set" $arguments="{java.lang.String}" }met
- hod { $name="getItem" $return="org.psem2m.demo.erp.api.beans.ItemBean
- " $arguments="{java.lang.String}" }method { $name="getItemInformation
- Age" $return="long" $arguments="{java.lang.String}" }method { $name="
- getItemStock" $return="long" $arguments="{java.lang.String}" }method 
- { $name="getItemStockInformationAge" $return="long" $arguments="{java
- .lang.String}" }method { $name="getRandomItem" $return="org.psem2m.de
- mo.erp.api.beans.ItemBean" }method { $name="invalidatePojo" }method {
-  $name="updateCategoryItems" $arguments="{java.lang.String,java.util.
- Collection}" }method { $name="updateItemBean" $arguments="{java.lang.
- String,org.psem2m.demo.erp.api.beans.ItemBean}" }method { $name="upda
- teItemStock" $arguments="{java.lang.String,long}" }method { $name="va
- lidatePojo" }}}
+ pl.CacheFactoryImpl" $name="cache-channel-factory" }component { $clas
+ sname="org.psem2m.demo.data.cache.impl.CacheFactoryImpl" $name="cache
+ -channel-factory-factory" $public="false" provides { $specifications=
+ "{org.psem2m.demo.data.cache.ICacheFactory}" }requires { $field="pLog
+ ger" }callback { $transition="invalidate" $method="invalidatePojo" }c
+ allback { $transition="validate" $method="validatePojo" }manipulation
+  { $super="org.psem2m.isolates.base.activators.CPojoBase" interface {
+  $name="org.psem2m.demo.data.cache.ICacheFactory" }field { $name="pCh
+ annels" $type="java.util.Map" }field { $name="pLogger" $type="org.pse
+ m2m.isolates.base.IIsolateLoggerSvc" }method { $name="closeChannel" $
+ arguments="{java.lang.String}" }method { $name="invalidatePojo" }meth
+ od { $name="openChannel" $return="org.psem2m.demo.data.cache.ICacheCh
+ annel" $arguments="{java.lang.String}" }method { $name="validatePojo"
+  }}}
 

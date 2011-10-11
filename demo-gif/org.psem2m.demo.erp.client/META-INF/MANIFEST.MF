@@ -34,31 +34,38 @@ iPOJO-Components: instance { $component="demo-erp-client-python-factor
  { $name="pConfig" $type="org.psem2m.demo.erp.client.ErpClientConfig" 
  }field { $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLogg
  erSvc" }field { $name="pNbFailures" $type="int" }field { $name="pProp
- ertyExported" $type="boolean" }method { $name="domToString" $return="
- java.lang.String" $arguments="{org.w3c.dom.Document}" }method { $name
- ="forgeUrl" $return="java.net.URL" $arguments="{java.lang.String,java
- .lang.String}" }method { $name="getDomDocumentBuilder" $return="javax
- .xml.parsers.DocumentBuilder" }method { $name="getElementChildValue" 
- $return="java.lang.String" $arguments="{org.w3c.dom.Element,java.lang
- .String}" }method { $name="getItem" $return="org.psem2m.demo.erp.api.
- beans.ItemBean" $arguments="{java.lang.String}" }method { $name="getI
- tems" $return="org.psem2m.demo.erp.api.beans.ItemBean[]" $arguments="
- {java.lang.String,int,boolean,java.lang.String}" }method { $name="get
- ItemsStock" $return="int[]" $arguments="{java.lang.String[]}" }method
-  { $name="getUrlPOSTResult" $return="java.lang.String" $arguments="{j
- ava.net.URL,java.lang.String}" }method { $name="getUrlResult" $return
- ="java.lang.String" $arguments="{java.net.URL}" }method { $name="hand
- leFailure" }method { $name="invalidatePojo" }method { $name="isServic
- eExported" $return="boolean" }method { $name="itemsIdsToXml" $return=
- "java.lang.String" $arguments="{java.lang.String[]}" }method { $name=
- "parseXmlString" $return="org.w3c.dom.Document" $arguments="{java.lan
- g.String}" }method { $name="prepareListPostRequest" $return="java.lan
- g.String" $arguments="{java.lang.String,java.lang.String,java.util.Li
- st}" }method { $name="prepareSimplePostRequest" $return="java.lang.St
- ring" $arguments="{java.lang.String,java.util.Map}" }method { $name="
- testErpConnection" $return="boolean" }method { $name="validateErpPres
- ence" }method { $name="validatePojo" }method { $name="xmlToItemBeans"
-  $return="org.psem2m.demo.erp.api.beans.ItemBean[]" $arguments="{java
- .lang.String}" }method { $name="xmlToItemStocks" $return="java.util.M
- ap" $arguments="{java.lang.String}" }}}
+ ertyExported" $type="boolean" }method { $name="applyCart" $return="or
+ g.psem2m.demo.erp.api.beans.CErpActionReport" $arguments="{org.psem2m
+ .demo.erp.api.beans.CCart}" }method { $name="domToString" $return="ja
+ va.lang.String" $arguments="{org.w3c.dom.Document}" }method { $name="
+ forgeUrl" $return="java.net.URL" $arguments="{java.lang.String,java.l
+ ang.String}" }method { $name="getDomDocumentBuilder" $return="javax.x
+ ml.parsers.DocumentBuilder" }method { $name="getElementChildValue" $r
+ eturn="java.lang.String" $arguments="{org.w3c.dom.Element,java.lang.S
+ tring}" }method { $name="getItem" $return="org.psem2m.demo.erp.api.be
+ ans.ItemBean" $arguments="{java.lang.String}" }method { $name="getIte
+ ms" $return="org.psem2m.demo.erp.api.beans.ItemBean[]" $arguments="{j
+ ava.lang.String,int,boolean,java.lang.String}" }method { $name="getIt
+ emsStock" $return="int[]" $arguments="{java.lang.String[]}" }method {
+  $name="getUrlActionReport" $return="org.psem2m.demo.erp.api.beans.CE
+ rpActionReport" $arguments="{java.net.URL,java.lang.String}" }method 
+ { $name="getUrlPOSTResult" $return="java.lang.String" $arguments="{ja
+ va.net.URL,java.lang.String}" }method { $name="getUrlResult" $return=
+ "java.lang.String" $arguments="{java.net.URL}" }method { $name="handl
+ eFailure" }method { $name="invalidatePojo" }method { $name="isService
+ Exported" $return="boolean" }method { $name="itemsIdsToXml" $return="
+ java.lang.String" $arguments="{java.lang.String[]}" }method { $name="
+ parseXmlString" $return="org.w3c.dom.Document" $arguments="{java.lang
+ .String}" }method { $name="prepareCartQuery" $return="java.lang.Strin
+ g" $arguments="{org.psem2m.demo.erp.api.beans.CCart}" }method { $name
+ ="prepareListPostRequest" $return="java.lang.String" $arguments="{jav
+ a.lang.String,java.lang.String,java.util.List}" }method { $name="prep
+ areSimplePostRequest" $return="java.lang.String" $arguments="{java.la
+ ng.String,java.util.Map}" }method { $name="testErpConnection" $return
+ ="boolean" }method { $name="validateErpPresence" }method { $name="val
+ idatePojo" }method { $name="xmlToActionReport" $return="org.psem2m.de
+ mo.erp.api.beans.CErpActionReport" $arguments="{java.lang.String}" }m
+ ethod { $name="xmlToItemBeans" $return="org.psem2m.demo.erp.api.beans
+ .ItemBean[]" $arguments="{java.lang.String}" }method { $name="xmlToIt
+ emStocks" $return="java.util.Map" $arguments="{java.lang.String}" }}}
 
