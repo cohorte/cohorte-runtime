@@ -450,9 +450,26 @@ public class CXStringUtils implements IConstants {
         }
     }
 
+    /**
+     * @param aValue
+     * @param aLen
+     * @return
+     */
     static public String strAdjustRight(final long aValue, final int aLen) {
 
-        return strAdjustRight(String.valueOf(aValue), aLen, '0');
+        return strAdjustRight(aValue, aLen, '0');
+    }
+
+    /**
+     * @param aValue
+     * @param aLen
+     * @param aLeadingChar
+     * @return
+     */
+    static public String strAdjustRight(final long aValue, final int aLen,
+            final char aLeadingChar) {
+
+        return strAdjustRight(String.valueOf(aValue), aLen, aLeadingChar);
     }
 
     /**
