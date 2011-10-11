@@ -196,11 +196,11 @@ def report_to_xml(action_report):
     doc.documentElement.appendChild(code_node)
 
     message_node = doc.createElement("message")
-    message_node.appendChild(doc.createTextNode(str(action_report.code)))
+    message_node.appendChild(doc.createTextNode(str(action_report.message)))
     doc.documentElement.appendChild(message_node)
 
     reason_node = doc.createElement("reason")
-    reason_node.appendChild(doc.createTextNode(str(action_report.code)))
+    reason_node.appendChild(doc.createTextNode(str(action_report.reason)))
     doc.documentElement.appendChild(reason_node)
 
     return doc.toxml()

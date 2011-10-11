@@ -186,12 +186,14 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
         try:
             for item_node in cart_node["cartLine"]:
+                quantity = int(float(item_node["quantity"]))
+
                 cart_content.append({"id": item_node["itemId"], \
-                                     "quantity": int(item_node["quantity"])})
+                                     "quantity": quantity})
 
         except Exception, ex:
             # An error occurred while reading the request
-            self.send_response(400, "Invalid request content\n" + str(ex), \
+            self.__send_response(400, "Invalid request content\n" + str(ex), \
                                "text/plain")
 
         # Call the ERP
@@ -274,7 +276,7 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
         except Exception, ex:
             # An error occurred while reading the request
-            self.send_response(400, "Invalid request content\n" + str(ex), \
+            self.__send_response(400, "Invalid request content\n" + str(ex), \
                                "text/plain")
 
         # Call the ERP
@@ -543,7 +545,7 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
         if self._handled:
             # Log handler results
-            logging.debug("code = %d - content :\n%s", code, content)
+            logging.debug("code = %d - content :\n%s\n", code, content)
 
         if code < 400:
             self.send_response(code)
