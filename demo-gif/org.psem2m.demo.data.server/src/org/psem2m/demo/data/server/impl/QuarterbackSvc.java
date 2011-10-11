@@ -7,6 +7,7 @@ package org.psem2m.demo.data.server.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
@@ -242,8 +243,12 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
     @Override
     public CachedItemStockBean[] getItemsStock(final String[] aItemIds) {
 
-        if (isProxyAvailable) {
+        // Compute the carts information
+        final Map<String, Integer> cartsReservations = pCartAgent
+                .getReservedQuantites();
 
+        if (isProxyAvailable) {
+            // Use the ERP if possible
             try {
                 int[] itemsStock = pErpProxy.getItemsStock(aItemIds);
                 if (itemsStock != null) {
@@ -257,13 +262,21 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
                         for (int i = 0; i < aItemIds.length; i++) {
 
                             final String itemId = aItemIds[i];
+                            final Integer cartReservation = cartsReservations
+                                    .get(itemId);
+
+                            int resultStock = itemsStock[i];
+                            if (cartReservation != null) {
+                                // Remove reserved items
+                                resultStock -= cartReservation.intValue();
+                            }
 
                             // Prepare a result bean
                             resultArray[i] = new CachedItemStockBean(itemId,
-                                    itemsStock[i],
+                                    resultStock,
                                     IQualityLevels.CACHE_LEVEL_SYNC);
 
-                            // Update cache
+                            // Update cache with the real ERP value
                             pCache.updateItemStock(itemId, itemsStock[i]);
                         }
                     }
@@ -280,7 +293,8 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
 
         // Returns the cached ERP result
         synchronized (pCache) {
-            return pCachedErp.getItemsStock(pCache, aItemIds);
+            return pCachedErp
+                    .getItemsStock(pCache, aItemIds, cartsReservations);
         }
     }
 

@@ -23,6 +23,7 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.demo.data.server.ICartQueue;
 import org.psem2m.demo.erp.api.beans.CCart;
+import org.psem2m.demo.erp.api.beans.CCartLine;
 import org.psem2m.demo.erp.api.beans.CErpActionReport;
 import org.psem2m.demo.erp.api.services.IErpDataProxy;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
@@ -124,8 +125,11 @@ public class CartQueueAgent extends CPojoBase implements ICartQueue {
             final Semaphore cartSemaphore = new Semaphore(0);
             pSemaphores.put(aCart.getCartId(), cartSemaphore);
 
-            if (pCartsQueue.add(aCart)) {
-                return cartSemaphore;
+            synchronized (pCartsQueue) {
+
+                if (pCartsQueue.add(aCart)) {
+                    return cartSemaphore;
+                }
             }
 
         } catch (Exception e) {
@@ -158,6 +162,71 @@ public class CartQueueAgent extends CPojoBase implements ICartQueue {
         pActionReports.remove(cartId);
 
         return report;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.demo.data.server.ICartQueue#getItemReservedQuantity(java.lang
+     * .String)
+     */
+    @Override
+    public int getItemReservedQuantity(final String aItemId) {
+
+        if (aItemId == null || aItemId.isEmpty()) {
+            // Bad ID
+            return 0;
+        }
+
+        int reserveredQuantity = 0;
+
+        synchronized (pCartsQueue) {
+            for (CCart cart : pCartsQueue) {
+                // For each cart...
+                for (CCartLine cartLine : cart.getCartLines()) {
+                    // For each line...
+                    if (aItemId.equals(cartLine.getItemId())) {
+                        reserveredQuantity += (int) cartLine.getQuantity();
+                    }
+                }
+            }
+        }
+
+        return reserveredQuantity;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.demo.data.server.ICartQueue#getReservedQuantites()
+     */
+    @Override
+    public Map<String, Integer> getReservedQuantites() {
+
+        final Map<String, Integer> pResultMap = new HashMap<String, Integer>();
+
+        synchronized (pCartsQueue) {
+            for (CCart cart : pCartsQueue) {
+                // For each cart...
+                for (CCartLine cartLine : cart.getCartLines()) {
+                    // For each line...
+                    final String itemId = cartLine.getItemId();
+                    final Integer previousReservedQuantity = pResultMap
+                            .get(itemId);
+
+                    // Compute the new known reserved quantity
+                    int reservedQuantity = (int) cartLine.getQuantity();
+                    if (previousReservedQuantity != null) {
+                        reservedQuantity += previousReservedQuantity.intValue();
+                    }
+
+                    pResultMap.put(itemId, reservedQuantity);
+                }
+            }
+        }
+
+        return pResultMap;
     }
 
     /**

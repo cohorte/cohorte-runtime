@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
@@ -128,10 +129,12 @@ public class CachedErp {
      *            The data cache
      * @param aItemIds
      *            An array of items
+     * @param aReservedItems
+     *            Stock reserved for each item (carts)
      * @return The cached stock values, or an empty array
      */
     public CachedItemStockBean[] getItemsStock(final IDataCache aCache,
-            final String[] aItemIds) {
+            final String[] aItemIds, final Map<String, Integer> aReservedItems) {
 
         // Result array
         final CachedItemStockBean[] resultArray = new CachedItemStockBean[aItemIds.length];
@@ -142,8 +145,14 @@ public class CachedErp {
             final String itemId = aItemIds[i];
 
             // Read the cache
-            final long beanStock = aCache.getItemStock(itemId);
+            long beanStock = aCache.getItemStock(itemId);
             final long stockAge = aCache.getItemStockInformationAge(itemId);
+
+            // Remove the reserved stock
+            final Integer cartReservation = aReservedItems.get(itemId);
+            if (beanStock != -1 && cartReservation != null) {
+                beanStock -= cartReservation.intValue();
+            }
 
             if (beanStock != -1 && stockAge != -1) {
                 // Cache is valid, prepare a bean

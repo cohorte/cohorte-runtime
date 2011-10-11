@@ -5,6 +5,7 @@
  */
 package org.psem2m.demo.data.server;
 
+import java.util.Map;
 import java.util.concurrent.Semaphore;
 
 import org.psem2m.demo.erp.api.beans.CCart;
@@ -36,4 +37,20 @@ public interface ICartQueue {
      *         been treated.
      */
     CErpActionReport getActionReport(CCart aCart);
+
+    /**
+     * Retrieves the quantity reserved in all known carts for the given item
+     * 
+     * @param aItemId
+     *            An item ID
+     * @return The quantity reserved for this item (0 if not available)
+     */
+    int getItemReservedQuantity(String aItemId);
+
+    /**
+     * Retrieves the quantity reserved for each item in all known carts
+     * 
+     * @return All carts items reserved quantities
+     */
+    Map<String, Integer> getReservedQuantites();
 }
