@@ -8,7 +8,6 @@ package org.psem2m.demo.data.server.impl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.felix.ipojo.annotations.Bind;
@@ -95,20 +94,21 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
     public CErpActionReport applyCart(final CCart aCart) {
 
         // Enqueue the cart in the agent
-        final Semaphore responseSemaphore = pCartAgent.enqueueCart(aCart);
-        if (responseSemaphore == null) {
+        final CartQueueItem queuedItem = pCartAgent.enqueueCart(aCart);
+        if (queuedItem == null) {
             return new CErpActionReport(500, "Error enqueueing the cart");
         }
 
         // Wait for an answer during 2 seconds
         try {
-            responseSemaphore.tryAcquire(pCartAgentTimeout, TimeUnit.SECONDS);
+            queuedItem.getSemaphore().tryAcquire(pCartAgentTimeout,
+                    TimeUnit.SECONDS);
 
         } catch (InterruptedException e) {
             // We've been interrupted, ignore that...
         }
 
-        CErpActionReport report = pCartAgent.getActionReport(aCart);
+        CErpActionReport report = queuedItem.getReport();
         if (report == null) {
             // The cart has not yet been handled
             report = new CErpActionReport(300, "The cart '" + aCart.getCartId()

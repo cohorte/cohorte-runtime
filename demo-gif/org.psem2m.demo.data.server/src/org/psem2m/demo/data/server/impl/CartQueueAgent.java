@@ -5,11 +5,11 @@
  */
 package org.psem2m.demo.data.server.impl;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.felix.ipojo.annotations.Bind;
@@ -42,11 +42,8 @@ public class CartQueueAgent extends CPojoBase implements ICartQueue {
     /** ERP proxy iPOJO dependency ID */
     private static final String IPOJO_ERP_PROXY_ID = "erp-proxy";
 
-    /** Reports map */
-    private final Map<String, CErpActionReport> pActionReports = new HashMap<String, CErpActionReport>();
-
     /** The cart queue */
-    private final BlockingDeque<CCart> pCartsQueue = new LinkedBlockingDeque<CCart>();
+    private final BlockingDeque<CartQueueItem> pCartsQueue = new LinkedBlockingDeque<CartQueueItem>();
 
     /** The ERP proxy */
     @Requires(id = IPOJO_ERP_PROXY_ID, optional = true)
@@ -56,8 +53,8 @@ public class CartQueueAgent extends CPojoBase implements ICartQueue {
     @Requires
     private IIsolateLoggerSvc pLogger;
 
-    /** Cart - Semaphore association */
-    private final Map<String, Semaphore> pSemaphores = new HashMap<String, Semaphore>();
+    /** Reserved item quantities */
+    private final Map<String, Integer> pReservedItems = new HashMap<String, Integer>();
 
     /** Working thread */
     private Thread pWorker;
@@ -114,21 +111,22 @@ public class CartQueueAgent extends CPojoBase implements ICartQueue {
      * .api.beans.CCart)
      */
     @Override
-    public Semaphore enqueueCart(final CCart aCart) {
+    public CartQueueItem enqueueCart(final CCart aCart) {
 
         if (aCart == null || aCart.getCartId() == null) {
             return null;
         }
 
         try {
-            // Associate a semaphore to the cart
-            final Semaphore cartSemaphore = new Semaphore(0);
-            pSemaphores.put(aCart.getCartId(), cartSemaphore);
-
+            // Store the queue item
             synchronized (pCartsQueue) {
 
-                if (pCartsQueue.add(aCart)) {
-                    return cartSemaphore;
+                final CartQueueItem queueItem = new CartQueueItem(aCart);
+                if (pCartsQueue.add(queueItem)) {
+
+                    // Update items reservations
+                    updateReservations(aCart, false);
+                    return queueItem;
                 }
             }
 
@@ -140,62 +138,6 @@ public class CartQueueAgent extends CPojoBase implements ICartQueue {
         return null;
     }
 
-    /**
-     * Retrieves and removes the ERP action report from the agent result map
-     * 
-     * @param aCart
-     *            A cart
-     * @return The associated report, null on error or if the cart has not yet
-     *         been treated.
-     */
-    @Override
-    public CErpActionReport getActionReport(final CCart aCart) {
-
-        if (aCart == null || aCart.getCartId() == null) {
-            // Invalid cart
-            return null;
-        }
-
-        // Get and remove the report
-        final String cartId = aCart.getCartId();
-        final CErpActionReport report = pActionReports.get(cartId);
-        pActionReports.remove(cartId);
-
-        return report;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.psem2m.demo.data.server.ICartQueue#getItemReservedQuantity(java.lang
-     * .String)
-     */
-    @Override
-    public int getItemReservedQuantity(final String aItemId) {
-
-        if (aItemId == null || aItemId.isEmpty()) {
-            // Bad ID
-            return 0;
-        }
-
-        int reserveredQuantity = 0;
-
-        synchronized (pCartsQueue) {
-            for (CCart cart : pCartsQueue) {
-                // For each cart...
-                for (CCartLine cartLine : cart.getCartLines()) {
-                    // For each line...
-                    if (aItemId.equals(cartLine.getItemId())) {
-                        reserveredQuantity += (int) cartLine.getQuantity();
-                    }
-                }
-            }
-        }
-
-        return reserveredQuantity;
-    }
-
     /*
      * (non-Javadoc)
      * 
@@ -204,29 +146,9 @@ public class CartQueueAgent extends CPojoBase implements ICartQueue {
     @Override
     public Map<String, Integer> getReservedQuantites() {
 
-        final Map<String, Integer> pResultMap = new HashMap<String, Integer>();
-
-        synchronized (pCartsQueue) {
-            for (CCart cart : pCartsQueue) {
-                // For each cart...
-                for (CCartLine cartLine : cart.getCartLines()) {
-                    // For each line...
-                    final String itemId = cartLine.getItemId();
-                    final Integer previousReservedQuantity = pResultMap
-                            .get(itemId);
-
-                    // Compute the new known reserved quantity
-                    int reservedQuantity = (int) cartLine.getQuantity();
-                    if (previousReservedQuantity != null) {
-                        reservedQuantity += previousReservedQuantity.intValue();
-                    }
-
-                    pResultMap.put(itemId, reservedQuantity);
-                }
-            }
+        synchronized (pReservedItems) {
+            return Collections.unmodifiableMap(pReservedItems);
         }
-
-        return pResultMap;
     }
 
     /**
@@ -237,11 +159,13 @@ public class CartQueueAgent extends CPojoBase implements ICartQueue {
      */
     protected void handleCarts() throws InterruptedException {
 
-        // Get the first cart in the queue
-        final CCart workingCart = pCartsQueue.poll(1, TimeUnit.SECONDS);
-        if (workingCart == null) {
+        // Get and remove the first cart in the queue
+        final CartQueueItem workingItem = pCartsQueue.poll(1, TimeUnit.SECONDS);
+        if (workingItem == null) {
             return;
         }
+
+        final CCart workingCart = workingItem.getCart();
 
         // Try to apply the cart
         CErpActionReport report = null;
@@ -255,17 +179,18 @@ public class CartQueueAgent extends CPojoBase implements ICartQueue {
 
         if (report == null) {
             // Re-insert the cart on error
-            pCartsQueue.addFirst(workingCart);
+            pCartsQueue.addFirst(workingItem);
             return;
         }
 
-        // On success, associate the report to the cart
-        final String workingCartId = workingCart.getCartId();
-        pActionReports.put(workingCartId, report);
+        // On success, associate the report to the cart item
+        workingItem.setReport(report);
 
-        // Release the semaphore and remove it from the map
-        pSemaphores.get(workingCartId).release();
-        pSemaphores.remove(workingCartId);
+        // Release items reservations
+        updateReservations(workingCart, true);
+
+        // Release the semaphore
+        workingItem.getSemaphore().release();
     }
 
     /*
@@ -302,6 +227,57 @@ public class CartQueueAgent extends CPojoBase implements ICartQueue {
         if (pWorker != null) {
             pWorker.interrupt();
             pWorker = null;
+        }
+    }
+
+    /**
+     * Updates the items reservation map
+     * 
+     * @param aCart
+     *            A new cart to take into account
+     * @param aAppliedCart
+     *            The cart has just been applied (remove items from reservation)
+     */
+    protected void updateReservations(final CCart aCart,
+            final boolean aAppliedCart) {
+
+        synchronized (pReservedItems) {
+
+            for (CCartLine cartLine : aCart.getCartLines()) {
+                // For each line...
+                final String itemId = cartLine.getItemId();
+                final Integer previousReservedQuantityObj = pReservedItems
+                        .get(itemId);
+
+                // Get the cart reserved quantity
+                final int cartQuantity = (int) cartLine.getQuantity();
+
+                // Compute the previous reserved quantity
+                int previousReservedQuantity = 0;
+                if (previousReservedQuantityObj != null) {
+                    previousReservedQuantity = previousReservedQuantityObj
+                            .intValue();
+                }
+
+                // Compute the new reserved quantity
+                int newReservedQuantity = previousReservedQuantity;
+
+                if (aAppliedCart) {
+                    // Cart has been applied and is no more reserved
+                    newReservedQuantity -= cartQuantity;
+
+                } else {
+                    // Cart waiting for treatment
+                    newReservedQuantity += cartQuantity;
+                }
+
+                // Normalize (just in case)
+                if (newReservedQuantity < 0) {
+                    newReservedQuantity = 0;
+                }
+
+                pReservedItems.put(itemId, newReservedQuantity);
+            }
         }
     }
 
