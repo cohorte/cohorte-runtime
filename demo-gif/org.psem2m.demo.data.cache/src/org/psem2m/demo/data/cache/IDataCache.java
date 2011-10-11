@@ -8,7 +8,6 @@ package org.psem2m.demo.data.cache;
 import java.util.Collection;
 import java.util.Set;
 
-import org.psem2m.demo.erp.api.beans.CCart;
 import org.psem2m.demo.erp.api.beans.ItemBean;
 
 /**
@@ -17,15 +16,6 @@ import org.psem2m.demo.erp.api.beans.ItemBean;
  * @author Thomas Calmant
  */
 public interface IDataCache {
-
-    /**
-     * Enqueues the given cart, waiting for the ERP to come back
-     * 
-     * @param aCart
-     *            Cart to be stored
-     * @return True on success, False on error
-     */
-    boolean enqueueCart(CCart aCart);
 
     /**
      * Retrieves the time stamp of the last category update, -1 if the category
@@ -92,13 +82,6 @@ public interface IDataCache {
      * @return A random item, null if cache is empty.
      */
     ItemBean getRandomItem();
-
-    /**
-     * Pops the first cart of the waiting queue
-     * 
-     * @return The first cart of the queue, null if the queue is empty
-     */
-    CCart unqueueCart();
 
     /**
      * Updates a category items content. If the collection is null, the category
