@@ -21,7 +21,6 @@ import org.osgi.framework.BundleException;
 import org.psem2m.demo.data.cache.IDataCache;
 import org.psem2m.demo.data.server.IQuarterback;
 import org.psem2m.demo.erp.api.beans.CCart;
-import org.psem2m.demo.erp.api.beans.CCartLine;
 import org.psem2m.demo.erp.api.beans.CErpActionReport;
 import org.psem2m.demo.erp.api.beans.CachedItemBean;
 import org.psem2m.demo.erp.api.beans.CachedItemStockBean;
@@ -81,30 +80,29 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
     @Override
     public CErpActionReport applyCart(final CCart aCart) {
 
-        String wCartId = aCart.getCartId();
-        CCartLine[] wCartLines = aCart.getCartLines();
-        int wNbLines = wCartLines != null ? wCartLines.length : -1;
+        if (isProxyAvailable) {
+            // Proxy available : use it
 
-        StringBuilder wSB = new StringBuilder();
+            try {
+                final CErpActionReport actionReport = pErpProxy
+                        .applyCart(aCart);
 
-        wSB.append(String.format("Received cart [%s] : [%d] lines : [ ",
-                wCartId, wNbLines));
-
-        if (wNbLines > 0) {
-            int wI = 0;
-            for (CCartLine wCartLine : wCartLines) {
-                if (wI > 0) {
-                    wSB.append(',');
+                if (actionReport != null) {
+                    // Return the report on success
+                    return actionReport;
                 }
-                wSB.append(String.format("{%d=>%s }", wI, wCartLine.toString()));
-                wI++;
+
+            } catch (Exception e) {
+                // If ERP returned null or if an error occurred -> use cache
+                pLogger.logInfo(this, "applyCart",
+                        "Error calling the ERP Proxy service ", e);
             }
-            wSB.append("]");
         }
 
-        return new CErpActionReport(
-                java.net.HttpURLConnection.HTTP_NOT_IMPLEMENTED,
-                "applyCart() must be implemented.", wSB.toString());
+        // On invalid result or on error, call the cache
+        synchronized (pCache) {
+            return pCachedErp.applyCart(pCache, aCart);
+        }
     }
 
     /**
