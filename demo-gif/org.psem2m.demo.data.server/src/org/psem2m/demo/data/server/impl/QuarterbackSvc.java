@@ -6,6 +6,8 @@
 package org.psem2m.demo.data.server.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -20,7 +22,9 @@ import org.apache.felix.ipojo.annotations.ServiceProperty;
 import org.apache.felix.ipojo.annotations.Unbind;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
-import org.psem2m.demo.data.cache.IDataCache;
+import org.psem2m.demo.data.cache.CachedObject;
+import org.psem2m.demo.data.cache.ICacheChannel;
+import org.psem2m.demo.data.cache.ICacheFactory;
 import org.psem2m.demo.data.server.ICartQueue;
 import org.psem2m.demo.data.server.IQuarterback;
 import org.psem2m.demo.erp.api.beans.CCart;
@@ -43,6 +47,15 @@ import org.psem2m.isolates.base.activators.CPojoBase;
 @Instantiate(name = "demo-quarterback")
 public class QuarterbackSvc extends CPojoBase implements IQuarterback {
 
+    /** Items categories cache channel name */
+    protected static final String CACHE_CATEGORIES_NAME = "org.psem2m.demo.quarterback.categories";
+
+    /** Items cache channel name */
+    protected static final String CACHE_ITEMS_NAME = "org.psem2m.demo.quarterback.items";
+
+    /** Items stock cache channel name */
+    protected static final String CACHE_STOCKS_NAME = "org.psem2m.demo.quarterback.stock";
+
     /** ERP Proxy variable iPOJO ID */
     private static final String IPOJO_ID_ERP = "erp-proxy";
 
@@ -53,12 +66,12 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
     @ServiceProperty(name = "erp.available")
     private boolean isProxyAvailable = false;
 
-    /** The internal cache */
-    @Requires
-    private IDataCache pCache;
-
     /** Cached ERP */
     private CachedErp pCachedErp;
+
+    /** The internal cache */
+    @Requires
+    private ICacheFactory pCacheFactory;
 
     /** The cart queue agent */
     @Requires
@@ -66,6 +79,15 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
 
     /** The cart agent timeout (in seconds) */
     private int pCartAgentTimeout;
+
+    /** Items categories cache channel */
+    private ICacheChannel<String, Collection<String>> pChannelCategories;
+
+    /** Items cache channel */
+    private ICacheChannel<String, ItemBean> pChannelItems;
+
+    /** Items stock cache */
+    private ICacheChannel<String, Integer> pChannelStocks;
 
     /** ERP Proxy (imported service) */
     @Requires(id = IPOJO_ID_ERP, optional = true)
@@ -149,7 +171,7 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
 
                 if (itemBean != null) {
                     // Update the cache
-                    pCache.updateItemBean(aItemId, itemBean);
+                    pChannelItems.put(aItemId, itemBean);
 
                     // Return the bean
                     return new CachedItemBean(itemBean,
@@ -162,8 +184,8 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
         }
 
         // The ERP failed, use the cache
-        synchronized (pCache) {
-            return pCachedErp.getItem(pCache, aItemId);
+        synchronized (pChannelItems) {
+            return pCachedErp.getItem(pChannelItems, aItemId);
         }
     }
 
@@ -190,7 +212,14 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
                     final List<CachedItemBean> pItems = new ArrayList<CachedItemBean>();
 
                     // Category content for cache update
-                    final List<String> categoryItemIds = new ArrayList<String>();
+                    final Collection<String> categoryItemIds = new LinkedHashSet<String>();
+
+                    // Add the currently cached category IDs
+                    final CachedObject<Collection<String>> cachedCategory = pChannelCategories
+                            .get(aCategory);
+                    if (cachedCategory != null) {
+                        categoryItemIds.addAll(cachedCategory.getObject());
+                    }
 
                     for (ItemBean bean : erpResult) {
 
@@ -206,14 +235,14 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
                         categoryItemIds.add(beanId);
 
                         // Update the cache
-                        synchronized (pCache) {
-                            pCache.updateItemBean(beanId, bean);
+                        synchronized (pChannelItems) {
+                            pChannelItems.put(beanId, bean);
                         }
                     }
 
                     // Update the category cache
-                    synchronized (pCache) {
-                        pCache.updateCategoryItems(aCategory, categoryItemIds);
+                    synchronized (pChannelCategories) {
+                        pChannelCategories.put(aCategory, categoryItemIds);
                     }
 
                     return pItems.toArray(new CachedItemBean[pItems.size()]);
@@ -227,9 +256,12 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
         }
 
         // Grab data from the cache
-        synchronized (pCache) {
-            return pCachedErp.getItems(pCache, aCategory, aItemsCount,
-                    aRandomize, aBaseId);
+        synchronized (pChannelCategories) {
+            synchronized (pChannelItems) {
+
+                return pCachedErp.getItems(pChannelCategories, pChannelItems,
+                        aCategory, aItemsCount, aRandomize, aBaseId);
+            }
         }
     }
 
@@ -257,7 +289,7 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
                     final CachedItemStockBean[] resultArray = new CachedItemStockBean[itemsStock.length];
 
                     // Update the cache
-                    synchronized (pCache) {
+                    synchronized (pChannelStocks) {
 
                         for (int i = 0; i < aItemIds.length; i++) {
 
@@ -277,7 +309,7 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
                                     IQualityLevels.CACHE_LEVEL_SYNC);
 
                             // Update cache with the real ERP value
-                            pCache.updateItemStock(itemId, itemsStock[i]);
+                            pChannelStocks.put(itemId, itemsStock[i]);
                         }
                     }
 
@@ -292,9 +324,9 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
         }
 
         // Returns the cached ERP result
-        synchronized (pCache) {
-            return pCachedErp
-                    .getItemsStock(pCache, aItemIds, cartsReservations);
+        synchronized (pChannelStocks) {
+            return pCachedErp.getItemsStock(pChannelStocks, aItemIds,
+                    cartsReservations);
         }
     }
 
@@ -306,6 +338,11 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
     @Override
     @Invalidate
     public void invalidatePojo() throws BundleException {
+
+        // Close cache channels
+        pCacheFactory.closeChannel(CACHE_CATEGORIES_NAME);
+        pCacheFactory.closeChannel(CACHE_ITEMS_NAME);
+        pCacheFactory.closeChannel(CACHE_STOCKS_NAME);
 
         pCachedErp = null;
         pLogger.logInfo(this, "invalidatePojo", "QuarterbackSvc Gone");
@@ -354,6 +391,11 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
             // Default : 3 seconds
             pCartAgentTimeout = 3;
         }
+
+        // Open cache channels
+        pChannelCategories = pCacheFactory.openChannel(CACHE_CATEGORIES_NAME);
+        pChannelItems = pCacheFactory.openChannel(CACHE_ITEMS_NAME);
+        pChannelStocks = pCacheFactory.openChannel(CACHE_STOCKS_NAME);
 
         pCachedErp = new CachedErp();
         pLogger.logInfo(this, "validatePojo", "QuarterbackSvc Ready");

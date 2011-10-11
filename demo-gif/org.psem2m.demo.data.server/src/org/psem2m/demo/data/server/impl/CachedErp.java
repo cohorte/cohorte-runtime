@@ -12,9 +12,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Set;
 
-import org.psem2m.demo.data.cache.IDataCache;
+import org.psem2m.demo.data.cache.CachedObject;
+import org.psem2m.demo.data.cache.ICacheChannel;
 import org.psem2m.demo.erp.api.beans.CachedItemBean;
 import org.psem2m.demo.erp.api.beans.CachedItemStockBean;
 import org.psem2m.demo.erp.api.beans.ItemBean;
@@ -33,34 +33,29 @@ public class CachedErp {
      * If ID is '?', returns a randomly chosen item. Returns null on error.
      * 
      * @param aCache
-     *            The data cache
+     *            The items cache channel
      * @param aItemId
      *            The ID of item to retrieve
      * @return The selected item from cache, or null
      */
-    public CachedItemBean getItem(final IDataCache aCache, final String aItemId) {
+    public CachedItemBean getItem(final ICacheChannel<String, ItemBean> aCache,
+            final String aItemId) {
 
-        final ItemBean item;
-        final String itemId;
+        final CachedObject<ItemBean> cachedObject;
 
         if ("?".equals(aItemId)) {
-            item = aCache.getRandomItem();
-            if (item != null) {
-                itemId = item.getId();
-            } else {
-                itemId = null;
-            }
+            // Random object
+            cachedObject = aCache.getRandomObject();
 
         } else {
-            item = aCache.getItem(aItemId);
-            itemId = aItemId;
+            // Specific object
+            cachedObject = aCache.get(aItemId);
         }
 
-        final long itemAge = aCache.getItemInformationAge(itemId);
-
-        if (item != null && itemAge != -1) {
+        if (cachedObject != null) {
             // Return the cached bean
-            return new CachedItemBean(item, itemAge);
+            return new CachedItemBean(cachedObject.getObject(),
+                    cachedObject.getCacheAge());
         }
 
         return null;
@@ -70,8 +65,10 @@ public class CachedErp {
      * Uses the cache to to act like
      * {@link IErpDataProxy#getItems(String, int, boolean, String)}
      * 
-     * @param aCache
-     *            The data cache
+     * @param aCategoryCache
+     *            The categories cache channel
+     * @param aItemsCache
+     *            The items cache channel
      * @param aCategory
      *            Category to list
      * @param aItemsCount
@@ -83,12 +80,20 @@ public class CachedErp {
      * 
      * @return All elements of the category, or an empty array.
      */
-    public CachedItemBean[] getItems(final IDataCache aCache,
+    public CachedItemBean[] getItems(
+            final ICacheChannel<String, Collection<String>> aCategoryCache,
+            final ICacheChannel<String, ItemBean> aItemsCache,
             final String aCategory, final int aItemsCount,
             final boolean aRandomize, final String aBaseId) {
 
         // Get the items of the category
-        final Set<String> categoryItems = aCache.getCategoryItems(aCategory);
+        final CachedObject<Collection<String>> cachedCategory = aCategoryCache
+                .get(aCategory);
+        if (cachedCategory == null) {
+            return new CachedItemBean[0];
+        }
+
+        final Collection<String> categoryItems = cachedCategory.getObject();
         if (categoryItems == null) {
             // Empty category
             return new CachedItemBean[0];
@@ -112,8 +117,9 @@ public class CachedErp {
 
         for (String itemId : itemsIds) {
             // Get information about the item
-            final ItemBean item = aCache.getItem(itemId);
-            final long itemAge = aCache.getItemInformationAge(itemId);
+            final CachedObject<ItemBean> cacheItem = aItemsCache.get(itemId);
+            final ItemBean item = cacheItem.getObject();
+            final long itemAge = cacheItem.getCacheAge();
 
             // Store the bean
             resultArray[i++] = new CachedItemBean(item, itemAge);
@@ -125,15 +131,16 @@ public class CachedErp {
     /**
      * Uses the cache to act like {@link IErpDataProxy#getItemsStock(String[])}
      * 
-     * @param aCache
-     *            The data cache
+     * @param aStockCache
+     *            The items stock cache channel
      * @param aItemIds
      *            An array of items
      * @param aReservedItems
      *            Stock reserved for each item (carts)
      * @return The cached stock values, or an empty array
      */
-    public CachedItemStockBean[] getItemsStock(final IDataCache aCache,
+    public CachedItemStockBean[] getItemsStock(
+            final ICacheChannel<String, Integer> aStockCache,
             final String[] aItemIds, final Map<String, Integer> aReservedItems) {
 
         // Result array
@@ -145,8 +152,14 @@ public class CachedErp {
             final String itemId = aItemIds[i];
 
             // Read the cache
-            long beanStock = aCache.getItemStock(itemId);
-            final long stockAge = aCache.getItemStockInformationAge(itemId);
+            final CachedObject<Integer> cachedStock = aStockCache.get(itemId);
+            if (cachedStock == null) {
+                continue;
+            }
+
+            // Read cached information
+            int beanStock = cachedStock.getObject();
+            final long stockAge = cachedStock.getCacheAge();
 
             // Remove the reserved stock
             final Integer cartReservation = aReservedItems.get(itemId);
@@ -154,7 +167,7 @@ public class CachedErp {
                 beanStock -= cartReservation.intValue();
             }
 
-            if (beanStock != -1 && stockAge != -1) {
+            if (beanStock != -1) {
                 // Cache is valid, prepare a bean
                 final CachedItemStockBean stockBean = new CachedItemStockBean(
                         itemId, beanStock, stockAge);
@@ -176,8 +189,8 @@ public class CachedErp {
      *            Maximum number of IDs to retrieve
      * @return A random set
      */
-    protected Collection<String> getRandomItems(final Set<String> aItemsIds,
-            final int aCount) {
+    protected Collection<String> getRandomItems(
+            final Collection<String> aItemsIds, final int aCount) {
 
         // Compute the number of items to retrieve
         final int itemsCount;
@@ -206,8 +219,9 @@ public class CachedErp {
      *            Maximum number of items in the page
      * @return The IDs to show in the page
      */
-    protected Collection<String> paginateItems(final Set<String> aItemsIds,
-            final String aBaseId, final int aItemsCount) {
+    protected Collection<String> paginateItems(
+            final Collection<String> aItemsIds, final String aBaseId,
+            final int aItemsCount) {
 
         // Basic test of items count
         if (aItemsCount <= 0 || aItemsCount >= aItemsIds.size()) {
