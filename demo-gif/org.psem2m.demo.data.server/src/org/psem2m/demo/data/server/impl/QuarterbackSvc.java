@@ -7,6 +7,8 @@ package org.psem2m.demo.data.server.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
@@ -19,6 +21,7 @@ import org.apache.felix.ipojo.annotations.Unbind;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.demo.data.cache.IDataCache;
+import org.psem2m.demo.data.server.ICartQueue;
 import org.psem2m.demo.data.server.IQuarterback;
 import org.psem2m.demo.erp.api.beans.CCart;
 import org.psem2m.demo.erp.api.beans.CErpActionReport;
@@ -43,6 +46,9 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
     /** ERP Proxy variable iPOJO ID */
     private static final String IPOJO_ID_ERP = "erp-proxy";
 
+    /** The cart agent timeout system property (in seconds) */
+    public static final String PROPERTY_CART_AGENT_TIMEOUT = "org.psem2m.quarterback.cartAgentTimeout";
+
     /** ERP Proxy presence flag */
     @ServiceProperty(name = "erp.available")
     private boolean isProxyAvailable = false;
@@ -53,6 +59,13 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
 
     /** Cached ERP */
     private CachedErp pCachedErp;
+
+    /** The cart queue agent */
+    @Requires
+    private ICartQueue pCartAgent;
+
+    /** The cart agent timeout (in seconds) */
+    private int pCartAgentTimeout;
 
     /** ERP Proxy (imported service) */
     @Requires(id = IPOJO_ID_ERP, optional = true)
@@ -80,29 +93,30 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
     @Override
     public CErpActionReport applyCart(final CCart aCart) {
 
-        if (isProxyAvailable) {
-            // Proxy available : use it
-
-            try {
-                final CErpActionReport actionReport = pErpProxy
-                        .applyCart(aCart);
-
-                if (actionReport != null) {
-                    // Return the report on success
-                    return actionReport;
-                }
-
-            } catch (Exception e) {
-                // If ERP returned null or if an error occurred -> use cache
-                pLogger.logInfo(this, "applyCart",
-                        "Error calling the ERP Proxy service ", e);
-            }
+        // Enqueue the cart in the agent
+        final Semaphore responseSemaphore = pCartAgent.enqueueCart(aCart);
+        if (responseSemaphore == null) {
+            return new CErpActionReport(500, "Error enqueueing the cart");
         }
 
-        // On invalid result or on error, call the cache
-        synchronized (pCache) {
-            return pCachedErp.applyCart(pCache, aCart);
+        // Wait for an answer during 2 seconds
+        try {
+            responseSemaphore.tryAcquire(pCartAgentTimeout, TimeUnit.SECONDS);
+
+        } catch (InterruptedException e) {
+            // We've been interrupted, ignore that...
         }
+
+        CErpActionReport report = pCartAgent.getActionReport(aCart);
+        if (report == null) {
+            // The cart has not yet been handled
+            report = new CErpActionReport(300, "The cart '" + aCart.getCartId()
+                    + "' is in the treatment queue",
+                    "The agent took more than " + pCartAgentTimeout
+                            + " seconds to do its job.");
+        }
+
+        return report;
     }
 
     /**
@@ -314,6 +328,18 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
     @Override
     @Validate
     public void validatePojo() throws BundleException {
+
+        try {
+            // Read the cart agent timeout value (seconds)
+            final String timeoutStr = System
+                    .getProperty(PROPERTY_CART_AGENT_TIMEOUT);
+
+            pCartAgentTimeout = Integer.parseInt(timeoutStr);
+
+        } catch (NumberFormatException e) {
+            // Default : 3 seconds
+            pCartAgentTimeout = 3;
+        }
 
         pCachedErp = new CachedErp();
         pLogger.logInfo(this, "validatePojo", "QuarterbackSvc Ready");

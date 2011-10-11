@@ -18,51 +18,78 @@ iPOJO-Components: instance { $component="demo-dataserver-factory" $nam
  alue="*" }property { $name="service.exported.configs" $value="{json-r
  pc}" $type="String[]" }property { $name="endpoint.name" $value="datas
  erver" $type="String" }}instance { $component="org.psem2m.demo.data.s
- erver.impl.QuarterbackSvc" $name="demo-quarterback" }component { $cla
- ssname="org.psem2m.demo.data.server.impl.DataServerSvc" $name="demo-d
- ataserver-factory" $public="false" properties { $propagation="true" }
- provides { $specifications="{org.psem2m.demo.erp.api.services.IErpDat
- a}" }requires { $field="pLogger" }requires { $field="pQuarterback" }c
- allback { $transition="invalidate" $method="invalidatePojo" }callback
-  { $transition="validate" $method="validatePojo" }manipulation { $sup
- er="org.psem2m.isolates.base.activators.CPojoBase" interface { $name=
- "org.psem2m.demo.erp.api.services.IErpData" }field { $name="pLogger" 
- $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pQ
- uarterback" $type="org.psem2m.demo.data.server.IQuarterback" }method 
- { $name="applyCart" $return="org.psem2m.demo.erp.api.beans.CErpAction
- Report" $arguments="{org.psem2m.demo.erp.api.beans.CCart}" }method { 
- $name="getItem" $return="org.psem2m.demo.erp.api.beans.CachedItemBean
- " $arguments="{java.lang.String}" }method { $name="getItems" $return=
- "org.psem2m.demo.erp.api.beans.CachedItemBean[]" $arguments="{java.la
- ng.String,int,boolean,java.lang.String}" }method { $name="getItemsSto
- ck" $return="org.psem2m.demo.erp.api.beans.CachedItemStockBean[]" $ar
- guments="{java.lang.String[]}" }method { $name="invalidatePojo" }meth
- od { $name="validatePojo" }}}component { $classname="org.psem2m.demo.
- data.server.impl.QuarterbackSvc" $name="demo-quarterback-factory" $pu
- blic="false" provides { $specifications="{org.psem2m.demo.data.server
- .IQuarterback}" property { $name="erp.available" $field="isProxyAvail
- able" }}requires { $field="pCache" }requires { $field="pErpProxy" $op
- tional="true" $id="erp-proxy" callback { $method="bindErp" $type="bin
- d" }callback { $method="unbindErp" $type="unbind" }}requires { $field
- ="pLogger" }callback { $transition="invalidate" $method="invalidatePo
- jo" }callback { $transition="validate" $method="validatePojo" }manipu
- lation { $super="org.psem2m.isolates.base.activators.CPojoBase" inter
- face { $name="org.psem2m.demo.data.server.IQuarterback" }field { $nam
- e="isProxyAvailable" $type="boolean" }field { $name="pCache" $type="o
- rg.psem2m.demo.data.cache.IDataCache" }field { $name="pCachedErp" $ty
- pe="org.psem2m.demo.data.server.impl.CachedErp" }field { $name="pErpP
- roxy" $type="org.psem2m.demo.erp.api.services.IErpDataProxy" }field {
-  $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }
- method { $name="applyCart" $return="org.psem2m.demo.erp.api.beans.CEr
- pActionReport" $arguments="{org.psem2m.demo.erp.api.beans.CCart}" }me
- thod { $name="bindErp" $arguments="{org.psem2m.demo.erp.api.services.
- IErpDataProxy}" }method { $name="getItem" $return="org.psem2m.demo.er
- p.api.beans.CachedItemBean" $arguments="{java.lang.String}" }method {
-  $name="getItems" $return="org.psem2m.demo.erp.api.beans.CachedItemBe
- an[]" $arguments="{java.lang.String,int,boolean,java.lang.String}" }m
- ethod { $name="getItemsStock" $return="org.psem2m.demo.erp.api.beans.
- CachedItemStockBean[]" $arguments="{java.lang.String[]}" }method { $n
- ame="invalidatePojo" }method { $name="isProxyAvailable" $return="bool
- ean" }method { $name="unbindErp" $arguments="{org.psem2m.demo.erp.api
- .services.IErpDataProxy}" }method { $name="validatePojo" }}}
+ erver.impl.CartQueueAgent" $name="cart-queue-agent" }instance { $comp
+ onent="org.psem2m.demo.data.server.impl.QuarterbackSvc" $name="demo-q
+ uarterback" }component { $classname="org.psem2m.demo.data.server.impl
+ .CartQueueAgent" $name="cart-queue-agent-factory" $public="false" pro
+ vides { $specifications="{org.psem2m.demo.data.server.ICartQueue}" }r
+ equires { $field="pErpProxy" $optional="true" $id="erp-proxy" callbac
+ k { $method="bindErpProxy" $type="bind" }callback { $method="unbindEr
+ pProxy" $type="unbind" }}requires { $field="pLogger" }callback { $tra
+ nsition="invalidate" $method="invalidatePojo" }callback { $transition
+ ="validate" $method="validatePojo" }manipulation { $super="org.psem2m
+ .isolates.base.activators.CPojoBase" interface { $name="org.psem2m.de
+ mo.data.server.ICartQueue" }field { $name="pActionReports" $type="jav
+ a.util.Map" }field { $name="pCartsQueue" $type="java.util.concurrent.
+ BlockingDeque" }field { $name="pErpProxy" $type="org.psem2m.demo.erp.
+ api.services.IErpDataProxy" }field { $name="pLogger" $type="org.psem2
+ m.isolates.base.IIsolateLoggerSvc" }field { $name="pSemaphores" $type
+ ="java.util.Map" }field { $name="pWorker" $type="java.lang.Thread" }m
+ ethod { $name="bindErpProxy" $arguments="{org.psem2m.demo.erp.api.ser
+ vices.IErpDataProxy}" }method { $name="enqueueCart" $return="java.uti
+ l.concurrent.Semaphore" $arguments="{org.psem2m.demo.erp.api.beans.CC
+ art}" }method { $name="getActionReport" $return="org.psem2m.demo.erp.
+ api.beans.CErpActionReport" $arguments="{org.psem2m.demo.erp.api.bean
+ s.CCart}" }method { $name="handleCarts" }method { $name="invalidatePo
+ jo" }method { $name="unbindErpProxy" $arguments="{org.psem2m.demo.erp
+ .api.services.IErpDataProxy}" }method { $name="validatePojo" }}}compo
+ nent { $classname="org.psem2m.demo.data.server.impl.DataServerSvc" $n
+ ame="demo-dataserver-factory" $public="false" properties { $propagati
+ on="true" }provides { $specifications="{org.psem2m.demo.erp.api.servi
+ ces.IErpData}" }requires { $field="pLogger" }requires { $field="pQuar
+ terback" }callback { $transition="invalidate" $method="invalidatePojo
+ " }callback { $transition="validate" $method="validatePojo" }manipula
+ tion { $super="org.psem2m.isolates.base.activators.CPojoBase" interfa
+ ce { $name="org.psem2m.demo.erp.api.services.IErpData" }field { $name
+ ="pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field 
+ { $name="pQuarterback" $type="org.psem2m.demo.data.server.IQuarterbac
+ k" }method { $name="applyCart" $return="org.psem2m.demo.erp.api.beans
+ .CErpActionReport" $arguments="{org.psem2m.demo.erp.api.beans.CCart}"
+  }method { $name="getItem" $return="org.psem2m.demo.erp.api.beans.Cac
+ hedItemBean" $arguments="{java.lang.String}" }method { $name="getItem
+ s" $return="org.psem2m.demo.erp.api.beans.CachedItemBean[]" $argument
+ s="{java.lang.String,int,boolean,java.lang.String}" }method { $name="
+ getItemsStock" $return="org.psem2m.demo.erp.api.beans.CachedItemStock
+ Bean[]" $arguments="{java.lang.String[]}" }method { $name="invalidate
+ Pojo" }method { $name="validatePojo" }}}component { $classname="org.p
+ sem2m.demo.data.server.impl.QuarterbackSvc" $name="demo-quarterback-f
+ actory" $public="false" provides { $specifications="{org.psem2m.demo.
+ data.server.IQuarterback}" property { $name="erp.available" $field="i
+ sProxyAvailable" }}requires { $field="pCache" }requires { $field="pCa
+ rtAgent" }requires { $field="pErpProxy" $optional="true" $id="erp-pro
+ xy" callback { $method="bindErp" $type="bind" }callback { $method="un
+ bindErp" $type="unbind" }}requires { $field="pLogger" }callback { $tr
+ ansition="invalidate" $method="invalidatePojo" }callback { $transitio
+ n="validate" $method="validatePojo" }manipulation { $super="org.psem2
+ m.isolates.base.activators.CPojoBase" interface { $name="org.psem2m.d
+ emo.data.server.IQuarterback" }field { $name="isProxyAvailable" $type
+ ="boolean" }field { $name="pCache" $type="org.psem2m.demo.data.cache.
+ IDataCache" }field { $name="pCachedErp" $type="org.psem2m.demo.data.s
+ erver.impl.CachedErp" }field { $name="pCartAgent" $type="org.psem2m.d
+ emo.data.server.ICartQueue" }field { $name="pCartAgentTimeout" $type=
+ "int" }field { $name="pErpProxy" $type="org.psem2m.demo.erp.api.servi
+ ces.IErpDataProxy" }field { $name="pLogger" $type="org.psem2m.isolate
+ s.base.IIsolateLoggerSvc" }method { $name="applyCart" $return="org.ps
+ em2m.demo.erp.api.beans.CErpActionReport" $arguments="{org.psem2m.dem
+ o.erp.api.beans.CCart}" }method { $name="bindErp" $arguments="{org.ps
+ em2m.demo.erp.api.services.IErpDataProxy}" }method { $name="getItem" 
+ $return="org.psem2m.demo.erp.api.beans.CachedItemBean" $arguments="{j
+ ava.lang.String}" }method { $name="getItems" $return="org.psem2m.demo
+ .erp.api.beans.CachedItemBean[]" $arguments="{java.lang.String,int,bo
+ olean,java.lang.String}" }method { $name="getItemsStock" $return="org
+ .psem2m.demo.erp.api.beans.CachedItemStockBean[]" $arguments="{java.l
+ ang.String[]}" }method { $name="invalidatePojo" }method { $name="isPr
+ oxyAvailable" $return="boolean" }method { $name="unbindErp" $argument
+ s="{org.psem2m.demo.erp.api.services.IErpDataProxy}" }method { $name=
+ "validatePojo" }}}
 

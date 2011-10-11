@@ -14,11 +14,8 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 
 import org.psem2m.demo.data.cache.IDataCache;
-import org.psem2m.demo.erp.api.beans.CCart;
-import org.psem2m.demo.erp.api.beans.CErpActionReport;
 import org.psem2m.demo.erp.api.beans.CachedItemBean;
 import org.psem2m.demo.erp.api.beans.CachedItemStockBean;
-import org.psem2m.demo.erp.api.beans.IQualityLevels;
 import org.psem2m.demo.erp.api.beans.ItemBean;
 import org.psem2m.demo.erp.api.services.IErpDataProxy;
 
@@ -28,38 +25,6 @@ import org.psem2m.demo.erp.api.services.IErpDataProxy;
  * @author Thomas Calmant
  */
 public class CachedErp {
-
-    /**
-     * Puts the cart in the waiting queue
-     * 
-     * @param aCache
-     *            The data cache
-     * @param aCart
-     *            The cart to enqueue
-     * @return An action report
-     */
-    public CErpActionReport applyCart(final IDataCache aCache, final CCart aCart) {
-
-        int code;
-        String message;
-
-        if (aCache.enqueueCart(aCart)) {
-            code = 300;
-            message = "Cart has been stored, waiting for treatment";
-
-        } else {
-            code = 500;
-            message = "The cart '"
-                    + (aCart == null ? "<null>" : aCart.getCartId())
-                    + "'couldn't be cached";
-        }
-
-        final CErpActionReport report = new CErpActionReport(code, message,
-                "The ERP is unavailable");
-        report.setQualityLevel(IQualityLevels.CACHE_LEVEL_FRESH);
-
-        return report;
-    }
 
     /**
      * Uses the cache to act like {@link IErpDataProxy#getItem(String)}
