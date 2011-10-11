@@ -47,23 +47,25 @@ iPOJO-Components: instance { $component="demo-erp-client-python-factor
  ms" $return="org.psem2m.demo.erp.api.beans.ItemBean[]" $arguments="{j
  ava.lang.String,int,boolean,java.lang.String}" }method { $name="getIt
  emsStock" $return="int[]" $arguments="{java.lang.String[]}" }method {
-  $name="getUrlPOSTResult" $return="java.lang.String" $arguments="{jav
- a.net.URL,java.lang.String}" }method { $name="getUrlResult" $return="
- java.lang.String" $arguments="{java.net.URL}" }method { $name="handle
- Failure" }method { $name="invalidatePojo" }method { $name="isServiceE
- xported" $return="boolean" }method { $name="itemsIdsToXml" $return="j
- ava.lang.String" $arguments="{java.lang.String[]}" }method { $name="p
- arseXmlString" $return="org.w3c.dom.Document" $arguments="{java.lang.
- String}" }method { $name="prepareCartQuery" $return="java.lang.String
- " $arguments="{org.psem2m.demo.erp.api.beans.CCart}" }method { $name=
- "prepareListPostRequest" $return="java.lang.String" $arguments="{java
- .lang.String,java.lang.String,java.util.List}" }method { $name="prepa
- reSimplePostRequest" $return="java.lang.String" $arguments="{java.lan
- g.String,java.util.Map}" }method { $name="testErpConnection" $return=
- "boolean" }method { $name="validateErpPresence" }method { $name="vali
- datePojo" }method { $name="xmlToActionReport" $return="org.psem2m.dem
- o.erp.api.beans.CErpActionReport" $arguments="{java.lang.String}" }me
- thod { $name="xmlToItemBeans" $return="org.psem2m.demo.erp.api.beans.
- ItemBean[]" $arguments="{java.lang.String}" }method { $name="xmlToIte
- mStocks" $return="java.util.Map" $arguments="{java.lang.String}" }}}
+  $name="getUrlActionReport" $return="org.psem2m.demo.erp.api.beans.CE
+ rpActionReport" $arguments="{java.net.URL,java.lang.String}" }method 
+ { $name="getUrlPOSTResult" $return="java.lang.String" $arguments="{ja
+ va.net.URL,java.lang.String}" }method { $name="getUrlResult" $return=
+ "java.lang.String" $arguments="{java.net.URL}" }method { $name="handl
+ eFailure" }method { $name="invalidatePojo" }method { $name="isService
+ Exported" $return="boolean" }method { $name="itemsIdsToXml" $return="
+ java.lang.String" $arguments="{java.lang.String[]}" }method { $name="
+ parseXmlString" $return="org.w3c.dom.Document" $arguments="{java.lang
+ .String}" }method { $name="prepareCartQuery" $return="java.lang.Strin
+ g" $arguments="{org.psem2m.demo.erp.api.beans.CCart}" }method { $name
+ ="prepareListPostRequest" $return="java.lang.String" $arguments="{jav
+ a.lang.String,java.lang.String,java.util.List}" }method { $name="prep
+ areSimplePostRequest" $return="java.lang.String" $arguments="{java.la
+ ng.String,java.util.Map}" }method { $name="testErpConnection" $return
+ ="boolean" }method { $name="validateErpPresence" }method { $name="val
+ idatePojo" }method { $name="xmlToActionReport" $return="org.psem2m.de
+ mo.erp.api.beans.CErpActionReport" $arguments="{java.lang.String}" }m
+ ethod { $name="xmlToItemBeans" $return="org.psem2m.demo.erp.api.beans
+ .ItemBean[]" $arguments="{java.lang.String}" }method { $name="xmlToIt
+ emStocks" $return="java.util.Map" $arguments="{java.lang.String}" }}}
 
