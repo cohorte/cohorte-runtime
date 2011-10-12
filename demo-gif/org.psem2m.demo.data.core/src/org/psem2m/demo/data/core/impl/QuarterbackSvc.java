@@ -173,6 +173,9 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
                     // Update the cache
                     pChannelItems.put(aItemId, itemBean);
 
+                    // Flush the cache
+                    pCacheFactory.flush();
+
                     // Return the bean
                     return new CachedItemBean(itemBean,
                             IQualityLevels.CACHE_LEVEL_SYNC);
@@ -245,6 +248,9 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
                         pChannelCategories.put(aCategory, categoryItemIds);
                     }
 
+                    // Flush the cache
+                    pCacheFactory.flush();
+
                     return pItems.toArray(new CachedItemBean[pItems.size()]);
                 }
 
@@ -313,6 +319,9 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
                         }
                     }
 
+                    // Flush the cache
+                    pCacheFactory.flush();
+
                     // Return the result immediately
                     return resultArray;
                 }
@@ -340,9 +349,12 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
     public void invalidatePojo() throws BundleException {
 
         // Close cache channels
-        pCacheFactory.closeChannel(CACHE_CATEGORIES_NAME);
-        pCacheFactory.closeChannel(CACHE_ITEMS_NAME);
-        pCacheFactory.closeChannel(CACHE_STOCKS_NAME);
+        // pCacheFactory.closeChannel(CACHE_CATEGORIES_NAME);
+        // pCacheFactory.closeChannel(CACHE_ITEMS_NAME);
+        // pCacheFactory.closeChannel(CACHE_STOCKS_NAME);
+
+        // Flush the cache
+        pCacheFactory.flush();
 
         pCachedErp = null;
         pLogger.logInfo(this, "invalidatePojo", "QuarterbackSvc Gone");

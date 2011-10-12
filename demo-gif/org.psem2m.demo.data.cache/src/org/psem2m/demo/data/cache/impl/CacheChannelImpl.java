@@ -105,12 +105,16 @@ public class CacheChannelImpl<K extends Serializable, V extends Serializable>
     @Override
     public ICachedObject<V> put(final K aKey, final V aValue) {
 
+        final ICachedObject<V> result;
+
         if (aValue == null) {
-            return pCacheMap.remove(aKey);
+            result = pCacheMap.remove(aKey);
 
         } else {
-            return pCacheMap.put(aKey, new CachedObject<V>(aValue));
+            result = pCacheMap.put(aKey, new CachedObject<V>(aValue));
         }
+
+        return result;
     }
 
     /*

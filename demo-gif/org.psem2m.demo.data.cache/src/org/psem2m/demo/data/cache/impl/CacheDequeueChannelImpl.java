@@ -97,6 +97,7 @@ public class CacheDequeueChannelImpl<K extends Serializable, V extends Serializa
     public ICachedObject<V> put(final K aKey, final V aValue) {
 
         final ICachedObject<V> cachedObject = new CachedObject<V>(aValue);
+
         if (!contains(cachedObject)) {
             // Add in the queue, if needed
             offer(cachedObject);

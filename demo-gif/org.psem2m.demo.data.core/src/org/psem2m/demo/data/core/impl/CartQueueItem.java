@@ -93,6 +93,8 @@ public class CartQueueItem implements Serializable {
 
         // The ERP action report
         pReport = (CErpActionReport) aObjectInputStream.readObject();
+
+        pSemaphore = null;
     }
 
     /**

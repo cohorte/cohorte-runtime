@@ -12,6 +12,9 @@ package org.psem2m.demo.erp.api.beans;
  */
 public class CachedItemBean extends ItemBean implements ICachedBean {
 
+    /** Serial version UID */
+    private static final long serialVersionUID = 1L;
+
     /** Quality of the information returned */
     private int pCacheLevel;
 

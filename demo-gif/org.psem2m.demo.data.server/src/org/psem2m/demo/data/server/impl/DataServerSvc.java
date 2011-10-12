@@ -283,6 +283,9 @@ public class DataServerSvc extends CPojoBase implements IErpData {
         // Release the lock
         unblockQuarterbackAccess();
 
+        // Stop the thread "pool"
+        pLockRunner.shutdown();
+
         pLogger.logInfo(this, "invalidatePojo",
                 "Exported Data server service Gone");
     }

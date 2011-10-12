@@ -23,6 +23,11 @@ public interface ICacheFactory extends Serializable {
     void closeChannel(String aName);
 
     /**
+     * Flushes the cache.
+     */
+    void flush();
+
+    /**
      * Opens a standard cache channel. Creates a new one if needed.
      * 
      * Standard and Dequeue are indexed in different maps. Therefore, it is
