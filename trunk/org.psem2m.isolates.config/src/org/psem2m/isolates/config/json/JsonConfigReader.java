@@ -128,8 +128,8 @@ public class JsonConfigReader implements IConfigurationReader {
      * @throws JSONException
      *             The bundle entry is invalid
      */
-    protected IBundleDescr parseBundle(final JSONObject aBundleObject)
-            throws JSONException {
+    protected IBundleDescr parseBundle(final JSONObject aBundleObject,
+            final Properties aOverridenProperties) throws JSONException {
 
         // Get the symbolic name
         final String symbolicName = aBundleObject
@@ -148,15 +148,25 @@ public class JsonConfigReader implements IConfigurationReader {
                 IJsonConfigKeys.CONFIG_BUNDLE_OPTIONAL, false);
 
         // Create the description
-        BundleDescription wBundleDescription = new BundleDescription(
+        final BundleDescription wBundleDescription = new BundleDescription(
                 symbolicName, version, fileName, optional);
-        try {
-            final JSONObject wSetOfProperties = aBundleObject
-                    .getJSONObject(IJsonConfigKeys.CONFIG_BUNDLE_PROPERTIES);
-            wBundleDescription.setProperties(parseProperties(wSetOfProperties));
-        } catch (Exception e) {
-            // ... nothing
+
+        // Bundle properties (optional)
+        Properties bundleProperties = parseProperties(aBundleObject
+                .optJSONObject(IJsonConfigKeys.CONFIG_BUNDLE_PROPERTIES));
+
+        if (bundleProperties == null) {
+            // Set properties
+            bundleProperties = aOverridenProperties;
+
+        } else if (aOverridenProperties != null) {
+            // Override found properties with upper level ones
+            bundleProperties.putAll(aOverridenProperties);
+
         }
+
+        // Update the bundle properties
+        wBundleDescription.setProperties(bundleProperties);
 
         return wBundleDescription;
     }
@@ -174,7 +184,8 @@ public class JsonConfigReader implements IConfigurationReader {
      *             An imported file wasn't found
      */
     protected void parseBundles(final IsolateDescription aIsolateDescription,
-            final JSONArray aJsonArray) throws JSONException,
+            final JSONArray aJsonArray,
+            final Properties aOverriddenBundleProperties) throws JSONException,
             FileNotFoundException {
 
         final int bundlesCount = aJsonArray.length();
@@ -183,10 +194,25 @@ public class JsonConfigReader implements IConfigurationReader {
             final JSONObject bundleObject = aJsonArray.getJSONObject(i);
 
             if (bundleObject.has(IJsonConfigKeys.CONFIG_FROM)) {
+
+                // Overridden properties
+                Properties overriddenProperties = parseProperties(bundleObject
+                        .optJSONObject(IJsonConfigKeys.CONFIG_BUNDLE_OVERRIDDEN_PROPERTIES));
+
+                if (overriddenProperties == null) {
+                    // No new overridden properties
+                    overriddenProperties = aOverriddenBundleProperties;
+
+                } else if (aOverriddenBundleProperties != null) {
+                    // Override found properties with upper level ones
+                    overriddenProperties.putAll(aOverriddenBundleProperties);
+                }
+
                 // Read "distant" object
                 parseBundles(aIsolateDescription,
                         readJsonArrayFile(bundleObject
-                                .getString(IJsonConfigKeys.CONFIG_FROM)));
+                                .getString(IJsonConfigKeys.CONFIG_FROM)),
+                        overriddenProperties);
 
                 // Remove the included file from the stack
                 if (!pIncludeStack.isEmpty()) {
@@ -195,7 +221,8 @@ public class JsonConfigReader implements IConfigurationReader {
 
             } else {
                 // Parse local object
-                aIsolateDescription.getBundles().add(parseBundle(bundleObject));
+                aIsolateDescription.getBundles().add(
+                        parseBundle(bundleObject, aOverriddenBundleProperties));
             }
         }
     }
@@ -260,7 +287,8 @@ public class JsonConfigReader implements IConfigurationReader {
         // Isolate bundles
         parseBundles(isolateDescription,
                 aIsolateObject
-                        .getJSONArray(IJsonConfigKeys.CONFIG_ISOLATE_BUNDLES));
+                        .getJSONArray(IJsonConfigKeys.CONFIG_ISOLATE_BUNDLES),
+                null);
 
         return isolateDescription;
     }

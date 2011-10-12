@@ -24,7 +24,10 @@ public interface IJsonConfigKeys {
     /** Bundle is optional (boolean, optional) */
     String CONFIG_BUNDLE_OPTIONAL = "optional";
 
-    /** Bundle file path (string, optional) */
+    /** Bundle "from" associated overridden system properties (string, optional) */
+    String CONFIG_BUNDLE_OVERRIDDEN_PROPERTIES = "overriddenProperties";
+
+    /** Bundle associated system properties (string, optional) */
     String CONFIG_BUNDLE_PROPERTIES = "properties";
 
     /** Bundle version (string, optional) */
