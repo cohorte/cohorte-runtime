@@ -13,8 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-import org.psem2m.demo.data.cache.CachedObject;
 import org.psem2m.demo.data.cache.ICacheChannel;
+import org.psem2m.demo.data.cache.ICachedObject;
 import org.psem2m.demo.erp.api.beans.CachedItemBean;
 import org.psem2m.demo.erp.api.beans.CachedItemStockBean;
 import org.psem2m.demo.erp.api.beans.ItemBean;
@@ -41,7 +41,7 @@ public class CachedErp {
     public CachedItemBean getItem(final ICacheChannel<String, ItemBean> aCache,
             final String aItemId) {
 
-        final CachedObject<ItemBean> cachedObject;
+        final ICachedObject<ItemBean> cachedObject;
 
         if ("?".equals(aItemId)) {
             // Random object
@@ -87,7 +87,7 @@ public class CachedErp {
             final boolean aRandomize, final String aBaseId) {
 
         // Get the items of the category
-        final CachedObject<Collection<String>> cachedCategory = aCategoryCache
+        final ICachedObject<Collection<String>> cachedCategory = aCategoryCache
                 .get(aCategory);
         if (cachedCategory == null) {
             return new CachedItemBean[0];
@@ -117,7 +117,7 @@ public class CachedErp {
 
         for (String itemId : itemsIds) {
             // Get information about the item
-            final CachedObject<ItemBean> cacheItem = aItemsCache.get(itemId);
+            final ICachedObject<ItemBean> cacheItem = aItemsCache.get(itemId);
             final ItemBean item = cacheItem.getObject();
             final long itemAge = cacheItem.getCacheAge();
 
@@ -152,7 +152,7 @@ public class CachedErp {
             final String itemId = aItemIds[i];
 
             // Read the cache
-            final CachedObject<Integer> cachedStock = aStockCache.get(itemId);
+            final ICachedObject<Integer> cachedStock = aStockCache.get(itemId);
             if (cachedStock == null) {
                 continue;
             }

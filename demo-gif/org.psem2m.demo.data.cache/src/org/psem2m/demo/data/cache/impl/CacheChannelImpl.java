@@ -9,8 +9,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.psem2m.demo.data.cache.CachedObject;
 import org.psem2m.demo.data.cache.ICacheChannel;
+import org.psem2m.demo.data.cache.ICachedObject;
 
 /**
  * Implementation of a cache channel
@@ -39,7 +39,7 @@ public class CacheChannelImpl<K, V> implements ICacheChannel<K, V> {
      * @see org.psem2m.demo.data.cache.ICacheChannel#get(java.lang.Object)
      */
     @Override
-    public CachedObject<V> get(final K aKey) {
+    public ICachedObject<V> get(final K aKey) {
 
         return pCacheMap.get(aKey);
     }
@@ -50,7 +50,7 @@ public class CacheChannelImpl<K, V> implements ICacheChannel<K, V> {
      * @see org.psem2m.demo.data.cache.ICacheChannel#getRandomObject()
      */
     @Override
-    public CachedObject<V> getRandomObject() {
+    public ICachedObject<V> getRandomObject() {
 
         final int nbObjects = pCacheMap.size();
         if (nbObjects == 0) {
@@ -98,7 +98,7 @@ public class CacheChannelImpl<K, V> implements ICacheChannel<K, V> {
      * java.lang.Object)
      */
     @Override
-    public CachedObject<V> put(final K aKey, final V aValue) {
+    public ICachedObject<V> put(final K aKey, final V aValue) {
 
         if (aValue == null) {
             return pCacheMap.remove(aKey);

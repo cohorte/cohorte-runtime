@@ -3,14 +3,16 @@
  * Author: Thomas Calmant
  * Date:   11 oct. 2011
  */
-package org.psem2m.demo.data.cache;
+package org.psem2m.demo.data.cache.impl;
+
+import org.psem2m.demo.data.cache.ICachedObject;
 
 /**
  * Stores a cached object information
  * 
  * @author Thomas Calmant
  */
-public class CachedObject<T> {
+public class CachedObject<T> implements ICachedObject<T> {
 
     /** The cached object age */
     private long pCacheAge;
@@ -30,29 +32,28 @@ public class CachedObject<T> {
         pCacheAge = System.currentTimeMillis();
     }
 
-    /**
-     * Retrieves the age of the cached object
-     * 
-     * @return the age of the cached object
+    /* (non-Javadoc)
+     * @see org.psem2m.demo.data.cache.ICachedObject#getCacheAge()
      */
+    @Override
     public long getCacheAge() {
 
         return pCacheAge;
     }
 
-    /**
-     * Retrieves the cached object
-     * 
-     * @return the cached object
+    /* (non-Javadoc)
+     * @see org.psem2m.demo.data.cache.ICachedObject#getObject()
      */
+    @Override
     public T getObject() {
 
         return pCachedObject;
     }
 
-    /**
-     * Resets the cached object age
+    /* (non-Javadoc)
+     * @see org.psem2m.demo.data.cache.ICachedObject#touch()
      */
+    @Override
     public void touch() {
 
         pCacheAge = System.currentTimeMillis();
