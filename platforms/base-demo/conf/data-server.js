@@ -48,6 +48,9 @@
             "symbolicName":"org.psem2m.demo.data.cache"
         },
         {
+            "symbolicName":"org.psem2m.demo.data.core"
+        },
+        {
             "symbolicName":"org.psem2m.demo.data.server"
         }
     ]

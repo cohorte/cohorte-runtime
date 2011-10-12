@@ -3,7 +3,7 @@
  * Author: Thomas Calmant
  * Date:   3 oct. 2011
  */
-package org.psem2m.demo.data.server.impl;
+package org.psem2m.demo.data.core.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,11 +22,11 @@ import org.apache.felix.ipojo.annotations.ServiceProperty;
 import org.apache.felix.ipojo.annotations.Unbind;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
-import org.psem2m.demo.data.cache.CachedObject;
 import org.psem2m.demo.data.cache.ICacheChannel;
 import org.psem2m.demo.data.cache.ICacheFactory;
-import org.psem2m.demo.data.server.ICartQueue;
-import org.psem2m.demo.data.server.IQuarterback;
+import org.psem2m.demo.data.cache.ICachedObject;
+import org.psem2m.demo.data.core.ICartQueue;
+import org.psem2m.demo.data.core.IQuarterback;
 import org.psem2m.demo.erp.api.beans.CCart;
 import org.psem2m.demo.erp.api.beans.CErpActionReport;
 import org.psem2m.demo.erp.api.beans.CachedItemBean;
@@ -215,7 +215,7 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
                     final Collection<String> categoryItemIds = new LinkedHashSet<String>();
 
                     // Add the currently cached category IDs
-                    final CachedObject<Collection<String>> cachedCategory = pChannelCategories
+                    final ICachedObject<Collection<String>> cachedCategory = pChannelCategories
                             .get(aCategory);
                     if (cachedCategory != null) {
                         categoryItemIds.addAll(cachedCategory.getObject());

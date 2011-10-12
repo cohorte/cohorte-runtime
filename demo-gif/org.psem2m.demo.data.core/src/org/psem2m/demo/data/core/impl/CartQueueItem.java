@@ -3,7 +3,7 @@
  * Author: Thomas Calmant
  * Date:   11 oct. 2011
  */
-package org.psem2m.demo.data.server.impl;
+package org.psem2m.demo.data.core.impl;
 
 import java.util.concurrent.Semaphore;
 

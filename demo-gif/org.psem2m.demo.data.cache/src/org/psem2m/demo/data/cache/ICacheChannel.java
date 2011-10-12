@@ -24,14 +24,14 @@ public interface ICacheChannel<K, V> {
      *            A reference key
      * @return The associated object, null if none
      */
-    CachedObject<V> get(K aKey);
+    ICachedObject<V> get(K aKey);
 
     /**
      * Retrieves a random object from the channel, null if the channel is empty
      * 
      * @return A random object, or null
      */
-    CachedObject<V> getRandomObject();
+    ICachedObject<V> getRandomObject();
 
     /**
      * Tests if the channel is empty
@@ -49,7 +49,7 @@ public interface ICacheChannel<K, V> {
      *            The cached value
      * @return The previous cached value, null if none
      */
-    CachedObject<V> put(K aKey, V aValue);
+    ICachedObject<V> put(K aKey, V aValue);
 
     /**
      * Retrieves the number of cached objects

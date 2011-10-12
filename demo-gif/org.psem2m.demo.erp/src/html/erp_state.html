@@ -35,10 +35,14 @@
 	</div>
 	<div id="items">
 		<h2>Items status</h2>
+
 		<form id="items-form" method="post" action="/updateStocks"
 			enctype="application/x-www-form-urlencoded">
 			<p>
 				<input type="submit" value="Apply changes" />
+				<button name="reset" value="100">Reset 100</button>
+				<button name="reset" value="1000">Reset 1000</button>
+				<button name="reset" value="10000">Reset 10000</button>
 			</p>
 			<div>{items-status-table}</div>
 			<p>

@@ -446,9 +446,17 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
             code = 400
 
         else:
-            for item_id in query_dict:
-                ERP_INSTANCE.set_item_stock(item_id, query_dict[item_id][0], \
-                                            False)
+            if "reset" in query_dict:
+                new_stock = int(query_dict["reset"][0])
+
+                for item_id in query_dict:
+                    ERP_INSTANCE.set_item_stock(item_id, new_stock, False)
+
+            else:
+                for item_id in query_dict:
+                    ERP_INSTANCE.set_item_stock(item_id, \
+                                                query_dict[item_id][0], \
+                                                False)
 
         # Prepare response content
         with open("./html/code_result.html") as html_file:
