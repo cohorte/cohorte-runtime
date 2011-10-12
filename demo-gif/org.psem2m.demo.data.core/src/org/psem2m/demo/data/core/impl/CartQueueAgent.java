@@ -8,8 +8,6 @@ package org.psem2m.demo.data.core.impl;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.BlockingDeque;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.felix.ipojo.annotations.Bind;
@@ -21,6 +19,9 @@ import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Unbind;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
+import org.psem2m.demo.data.cache.ICacheDequeueChannel;
+import org.psem2m.demo.data.cache.ICacheFactory;
+import org.psem2m.demo.data.cache.ICachedObject;
 import org.psem2m.demo.data.core.ICartQueue;
 import org.psem2m.demo.erp.api.beans.CCart;
 import org.psem2m.demo.erp.api.beans.CCartLine;
@@ -39,11 +40,18 @@ import org.psem2m.isolates.base.activators.CPojoBase;
 @Instantiate(name = "cart-queue-agent")
 public class CartQueueAgent extends CPojoBase implements ICartQueue {
 
+    /** The cart queue cache channel */
+    private static final String CACHE_CHANNEL_CART = "psem2m.demo.cartQueueAgent.cartQueue";
+
     /** ERP proxy iPOJO dependency ID */
     private static final String IPOJO_ERP_PROXY_ID = "erp-proxy";
 
-    /** The cart queue */
-    private final BlockingDeque<CartQueueItem> pCartsQueue = new LinkedBlockingDeque<CartQueueItem>();
+    /** The cache factory service */
+    @Requires
+    private ICacheFactory pCacheFactory;
+
+    /** The cart cache queue channel */
+    private ICacheDequeueChannel<Object, CartQueueItem> pCartsChannel;
 
     /** The ERP proxy */
     @Requires(id = IPOJO_ERP_PROXY_ID, optional = true)
@@ -119,15 +127,14 @@ public class CartQueueAgent extends CPojoBase implements ICartQueue {
 
         try {
             // Store the queue item
-            synchronized (pCartsQueue) {
+            synchronized (pCartsChannel) {
 
                 final CartQueueItem queueItem = new CartQueueItem(aCart);
-                if (pCartsQueue.add(queueItem)) {
+                pCartsChannel.put(queueItem, queueItem);
 
-                    // Update items reservations
-                    updateReservations(aCart, false);
-                    return queueItem;
-                }
+                // Update items reservations
+                updateReservations(aCart, false);
+                return queueItem;
             }
 
         } catch (Exception e) {
@@ -160,11 +167,13 @@ public class CartQueueAgent extends CPojoBase implements ICartQueue {
     protected void handleCarts() throws InterruptedException {
 
         // Get and remove the first cart in the queue
-        final CartQueueItem workingItem = pCartsQueue.poll(1, TimeUnit.SECONDS);
-        if (workingItem == null) {
+        final ICachedObject<CartQueueItem> cachedItem = pCartsChannel.poll(1,
+                TimeUnit.SECONDS);
+        if (cachedItem == null) {
             return;
         }
 
+        final CartQueueItem workingItem = cachedItem.getObject();
         final CCart workingCart = workingItem.getCart();
 
         // Try to apply the cart
@@ -179,7 +188,7 @@ public class CartQueueAgent extends CPojoBase implements ICartQueue {
 
         if (report == null) {
             // Re-insert the cart on error
-            pCartsQueue.addFirst(workingItem);
+            pCartsChannel.addFirst(cachedItem);
             return;
         }
 
@@ -203,7 +212,7 @@ public class CartQueueAgent extends CPojoBase implements ICartQueue {
     public void invalidatePojo() throws BundleException {
 
         // Empty the cart queue
-        pCartsQueue.clear();
+        pCartsChannel.clear();
 
         // Stop the working thread
         if (pWorker != null) {
@@ -291,7 +300,7 @@ public class CartQueueAgent extends CPojoBase implements ICartQueue {
     public void validatePojo() throws BundleException {
 
         // Reset the cart queue
-        pCartsQueue.clear();
+        pCartsChannel = pCacheFactory.openDequeueChannel(CACHE_CHANNEL_CART);
 
         pLogger.logInfo(this, "validatePojo", "Cart Queue Agent Ready");
     }
