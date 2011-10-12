@@ -38,7 +38,10 @@
             "from":"rose-server.js"
         },
         {
-            "from":"remote-services.js"
+            "from":"remote-services.js",
+            "overriddenProperties":{
+                "org.psem2m.remote.filters.exclude":"*"
+            }
         },
         {
             "symbolicName":"org.psem2m.isolates.forker"
