@@ -403,7 +403,7 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
         erp_stats = ERP_INSTANCE.get_stats()
         format_args["erp-requests"] = erp_stats["requests"]
         format_args["erp-time"] = erp_stats["time"]
-        format_args["erp-average"] = erp_stats["average"]
+        format_args["erp-average"] = "%.2f" % erp_stats["average"]
 
         # Items state
         format_args["items-status-table"] = prepare_items_rows()
