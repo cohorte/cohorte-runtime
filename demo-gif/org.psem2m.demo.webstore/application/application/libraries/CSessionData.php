@@ -40,10 +40,10 @@ class CSessionData   {
 		if (! $this->pSession->userdata('detailed_item'))
 			$this->setDetailedItem('');
 
-		if (! $this->pSession->userdata('previous_page_base_d'))
+		if (! $this->pSession->userdata('previous_page_base_id'))
 			$this->setPreviousPageBaseId('');
 
-		if (! $this->pSession->userdata('page_base_d'))
+		if (! $this->pSession->userdata('page_base_id'))
 			$this->setPageBaseId('');
 
 		if (! $this->pSession->userdata('next_page_base_id'))
@@ -68,27 +68,29 @@ class CSessionData   {
 	 */
 	public function __call( $name, $args ) {
 
-		$value = (isset($args[0]))?$args[0]:"null";
+		$value = (isset($args[0]))?$args[0]:"no value";
 
 		if(log_isOn('DEBUG')){
-			log_message('DEBUG', "** CSessionData.__call() : [".$name."][".$value."]");
+			log_message('DEBUG', "** CSessionData.__call() : [".$name."]");
 		}
 
 		// Si nous avons getMaVariable
 		if( $this->isGetter( $name ) ) {
 
 			$name = $this->toProperty( $name );
+			$value = $this->pSession->userdata($name);
+			
 			if(log_isOn('INFO')){
-				log_message('INFO', "** CSessionData.__call() : read [".$name."]");
+				log_message('INFO', "** CSessionData.__call() : read [".$name."]=>[".$value."]");
 			}
-			return $this->pSession->userdata($name);
+			return $value;
 		}
 		// Si nous avons setMaVariable( $valeur )
 		else if( $this->isSetter( $name ) ) {
 
 			$name = $this->toProperty( $name );
 			if(log_isOn('INFO')){
-				log_message('INFO', "** CSessionData.__call() : store [".$name."]");
+				log_message('INFO', "** CSessionData.__call() : store [".$name."]<=[".$value."]");
 			}
 			return $this->pSession->set_userdata( $name , $args[0] );
 		}

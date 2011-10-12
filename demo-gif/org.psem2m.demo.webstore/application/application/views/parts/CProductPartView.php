@@ -9,6 +9,11 @@ $wDetailUrl = base_url()."index.php/CHome/showDetails/".$id;
 
 $wAddCartUrl =  base_url()."index.php/CHome/addToCart/".$id;
 
+$wName = $name;
+if (strlen($wName)>25){
+	$wName = substr($wName, 0, 23) . " ...";
+}
+
 ?>
 
 <div class="prod_box">
@@ -24,6 +29,7 @@ $wAddCartUrl =  base_url()."index.php/CHome/addToCart/".$id;
 				src="<?php echo $wImageUrl; ?>"
 				alt="" title="<?php echo $name; ?>" border="0" width="100px"   height="100px"/> </a>
 		</div>
+		<?php echo $wName; ?>
 		<div class="prod_price">
 			<span class="price"><?php echo $price; ?> EUR</span>
 			&nbsp;
