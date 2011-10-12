@@ -1,18 +1,22 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Demo - Data Server Cache
+Bundle-Name: Demo - Cache
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: org.psem2m.demo.data.cache
-Bundle-Vendor: isandlatech.com
+Bundle-Vendor: isandlaTech.com
 Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
-Export-Package: org.psem2m.demo.data.cache
-Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
- .ipojo.architecture;version=1.8.0, org.osgi.framework;version=1.5.0, 
- org.osgi.service.cm;version=1.2, org.osgi.service.log;version=1.3, or
- g.psem2m.demo.erp.api.beans, org.psem2m.isolates.base;version=1.0.0, 
- org.psem2m.isolates.base.activators;version=1.0.0, org.psem2m.utiliti
- es;version=1.0.0, org.psem2m.utilities.logging;version=1.0.0
+Import-Package: org.apache.felix.ipojo;version="1.8.0",
+ org.apache.felix.ipojo.architecture;version="1.8.0",
+ org.osgi.framework;version="1.5.0",
+ org.osgi.service.cm;version="1.2",
+ org.osgi.service.log;version="1.3",
+ org.psem2m.demo.data.cache,
+ org.psem2m.demo.erp.api.beans,
+ org.psem2m.isolates.base;version="1.0.0",
+ org.psem2m.isolates.base.activators;version="1.0.0",
+ org.psem2m.utilities;version="1.0.0",
+ org.psem2m.utilities.logging;version="1.0.0"
 iPOJO-Components: instance { $component="org.psem2m.demo.data.cache.im
  pl.CacheFactoryImpl" $name="cache-channel-factory" }component { $clas
  sname="org.psem2m.demo.data.cache.impl.CacheFactoryImpl" $name="cache
