@@ -32,8 +32,7 @@ class CTest extends MY_Controller {
 	{
 		log_message('debug', "** CTest.index()");
 
-// 		$this->session->sess_destroy();
-// 		$this->session->sess_create();
+
 
 
 		$wCategorie = $this->pSessionData->getCategorie();
@@ -46,9 +45,9 @@ class CTest extends MY_Controller {
 		$data['SessionId']=$this->session->userdata('session_id');
 		$data['Categorie'] = $wCategorie;
 		$data['DetailedItem'] = $wDetailedItem;
-		
-		
-		
+		$data['PreviousPageBaseId'] = $this->pSessionData->getPreviousPageBaseId();
+		$data['PageBaseId'] = $this->pSessionData->getPageBaseId();
+		$data['NextPageBaseId'] = $this->pSessionData->getNextPageBaseId();
 		
 		
 		$this->load->model('Item_model');
@@ -61,7 +60,12 @@ class CTest extends MY_Controller {
 
 
 	}
-
-
+	public function newSession()
+	{
+		$this->session->sess_destroy();
+		$this->session->sess_create();
+				
+		$this->index();
+	}
 
 }

@@ -49,7 +49,7 @@ class CHome extends MY_Controller {
 		$data['Items'] = $this->injectStockInItems($wItems);
 
 
-		// get the 3 random items in the categorie
+		// get the two random items in the categorie
 		$wItemsRandom = $this->Item_model->getItems($wCategorie,2,true);
 
 		$data['ItemsRandom'] = $this->injectStockInItems($wItemsRandom);
@@ -131,8 +131,7 @@ class CHome extends MY_Controller {
 		}
 	
 		$this->pSessionData->setDetailedItem($aItemId);
-		// the sessin data is saved at the end of the "index" method.
-		// $this->saveSessionData();			
+			
 		$this->index();
 	}
 	
@@ -162,6 +161,9 @@ class CHome extends MY_Controller {
 	 */
 	public function previousPageItem(){
 		
+		log_message('debug', "** CHome.previousPageItem()");
+		
+		
 		$this->pSessionData->setPageBaseId($this->pSessionData->getPreviousPageBaseId());
 		
 		$this->pSessionData->setPreviousPageBaseId('');
@@ -178,7 +180,11 @@ class CHome extends MY_Controller {
 	 */
 	public function nextPageItem(){
 		
+		log_message('debug', "** CHome.nextPageItem()");
+		
+		
 		$this->pSessionData->setPreviousPageBaseId($this->pSessionData->getPageBaseId());
+		
 		$this->pSessionData->setPageBaseId($this->pSessionData->getNextPageBaseId());
 			
 		$this->index();

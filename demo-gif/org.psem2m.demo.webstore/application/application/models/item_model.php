@@ -166,7 +166,8 @@ class Item_model extends CI_Model {
 
 		if ($wJsonObject != true){
 			if(log_isOn('ERROR')){
-				log_message('ERROR', "** Item_model.rpcGetItem() : get_response_[". var_export($wJsonrpcClient->get_response(),true)."]" );
+				log_message('ERROR', "** Item_model.rpcGetItem() : bad response" );
+				//log_message('ERROR', "** Item_model.rpcGetItem() : get_response_[". var_export($wJsonrpcClient->get_response(),true)."]" );
 			}
 			return null;
 		}
@@ -234,7 +235,8 @@ class Item_model extends CI_Model {
 		$wJsonObject = $wJsonrpcClient->send_request();
 
 		if ($wJsonObject != true){
-			log_message('ERROR', "** Item_model.rpcGetItems() : get_response_[". var_export($wJsonrpcClient->get_response(),true)."]" );
+			log_message('ERROR', "** Item_model.rpcGetItems() : bad response" );
+			//log_message('ERROR', "** Item_model.rpcGetItems() : get_response_[". var_export($wJsonrpcClient->get_response(),true)."]" );
 			return null;
 		}
 		
@@ -313,7 +315,8 @@ class Item_model extends CI_Model {
 		
 		
 		if ($wJsonObject != true){
-			log_message('ERROR', "** Item_model.rpcGetItemsStock() : get_response_[". var_export($wJsonrpcClient->get_response(),true)."]" );
+			log_message('ERROR', "** Item_model.rpcGetItemsStock() : bad response" );
+			//log_message('ERROR', "** Item_model.rpcGetItemsStock() : get_response_[". var_export($wJsonrpcClient->get_response(),true)."]" );
 			return null;
 		}
 		

@@ -71,6 +71,7 @@ echo form_open('CShoppingCart/updateCart',$attributes);
 <table id="shoppingcart"  >
 
 <tr>
+  <th>Id</th>
   <th>QTY</th>
   <th>Item Description</th>
   <th style="text-align:right">Item Price</th>
@@ -86,6 +87,7 @@ foreach ( $this->cart->contents() as $items):
 ?>
 
 	<tr>
+	<td><?php echo $items['id']; ?></td>
 	  <td><?php echo form_input(array('name' => $i.'[qty]', 'value' => $items['qty'], 'maxlength' => '3', 'size' => '5')); ?></td>
 	  <td>
 		<?php echo $items['name']; ?>
@@ -113,7 +115,7 @@ endforeach;
 ?>
 
 <tr>
-  <td colspan="2"> </td>
+  <td colspan="3"> </td>
   <td class="right"><strong>Total</strong></td>
   <td class="right">$<?php echo $this->cart->format_number($this->cart->total()); ?></td>
 </tr>
