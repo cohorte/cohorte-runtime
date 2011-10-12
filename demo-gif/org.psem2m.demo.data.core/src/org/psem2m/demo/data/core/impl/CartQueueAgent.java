@@ -3,7 +3,7 @@
  * Author: Thomas Calmant
  * Date:   11 oct. 2011
  */
-package org.psem2m.demo.data.server.impl;
+package org.psem2m.demo.data.core.impl;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -21,7 +21,7 @@ import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Unbind;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
-import org.psem2m.demo.data.server.ICartQueue;
+import org.psem2m.demo.data.core.ICartQueue;
 import org.psem2m.demo.erp.api.beans.CCart;
 import org.psem2m.demo.erp.api.beans.CCartLine;
 import org.psem2m.demo.erp.api.beans.CErpActionReport;

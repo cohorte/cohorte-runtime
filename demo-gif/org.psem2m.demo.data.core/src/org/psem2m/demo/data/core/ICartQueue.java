@@ -3,11 +3,11 @@
  * Author: Thomas Calmant
  * Date:   11 oct. 2011
  */
-package org.psem2m.demo.data.server;
+package org.psem2m.demo.data.core;
 
 import java.util.Map;
 
-import org.psem2m.demo.data.server.impl.CartQueueItem;
+import org.psem2m.demo.data.core.impl.CartQueueItem;
 import org.psem2m.demo.erp.api.beans.CCart;
 
 /**

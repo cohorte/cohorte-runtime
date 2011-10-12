@@ -6,6 +6,8 @@
 package org.psem2m.demo.data.server.impl;
 
 import java.util.Arrays;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -18,7 +20,7 @@ import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Unbind;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
-import org.psem2m.demo.data.server.IQuarterback;
+import org.psem2m.demo.data.core.IQuarterback;
 import org.psem2m.demo.erp.api.beans.CCart;
 import org.psem2m.demo.erp.api.beans.CErpActionReport;
 import org.psem2m.demo.erp.api.beans.CachedItemBean;
@@ -41,6 +43,9 @@ public class DataServerSvc extends CPojoBase implements IErpData {
     /** The quarterback service iPOJO member ID */
     private static final String IPOJO_QUARTERBACK_ID = "quarterback";
 
+    /** Write lock lock/unlock thread */
+    private final ExecutorService pLockRunner;
+
     /** Log service */
     @Requires
     private IIsolateLoggerSvc pLogger;
@@ -49,14 +54,37 @@ public class DataServerSvc extends CPojoBase implements IErpData {
     @Requires(id = IPOJO_QUARTERBACK_ID, optional = true)
     private IQuarterback pQuarterback;
 
+    /** Quarterback presence flag */
+    private boolean pQuarterbackPresent = false;
+
     /** The quarterback waiting lock */
-    private ReadWriteLock pQuarterbackWaitLock;
+    private final ReadWriteLock pQuarterbackWaitLock;
 
     /** The quarterback read lock */
-    private Lock pReadLock;
+    private final Lock pReadLock;
+
+    /** Write lock locker */
+    private final Runnable pRunWriteLocker = new Runnable() {
+
+        @Override
+        public void run() {
+
+            internalBlockQuarterbackAccess();
+        }
+    };
+
+    /** Write lock unlocker */
+    private final Runnable pRunWriteUnlocker = new Runnable() {
+
+        @Override
+        public void run() {
+
+            internalUnblockQuarterbackAccess();
+        }
+    };
 
     /** The quarterback write lock */
-    private Lock pWriteLock;
+    private final Lock pWriteLock;
 
     /**
      * Default constructor
@@ -64,6 +92,12 @@ public class DataServerSvc extends CPojoBase implements IErpData {
     public DataServerSvc() {
 
         super();
+
+        pQuarterbackWaitLock = new ReentrantReadWriteLock();
+        pReadLock = pQuarterbackWaitLock.readLock();
+        pWriteLock = pQuarterbackWaitLock.writeLock();
+
+        pLockRunner = Executors.newFixedThreadPool(1);
     }
 
     /*
@@ -77,7 +111,11 @@ public class DataServerSvc extends CPojoBase implements IErpData {
     public CErpActionReport applyCart(final CCart aCart) {
 
         // Wait for the quarterback to become available
-        waitQuarterbackAccess();
+        if (!waitQuarterbackAccess()) {
+            pLogger.logInfo(this, "applyCart",
+                    "Quarterback is absent after unlock : abandon");
+            return null;
+        }
 
         final CErpActionReport result = pQuarterback.applyCart(aCart);
 
@@ -96,16 +134,24 @@ public class DataServerSvc extends CPojoBase implements IErpData {
     @Bind(id = IPOJO_QUARTERBACK_ID)
     protected void bindQuarterback(final IQuarterback aQuarterback) {
 
+        pLogger.logInfo(this, "bindQuarterback",
+                "Quarterback bound - UNLOCK access");
+
+        pQuarterbackPresent = true;
+
         // Release clients
         unblockQuarterbackAccess();
+
+        pLogger.logInfo(this, "bindQuarterback",
+                "Quarterback bound - UNLOCK access DONE");
     }
 
     /**
-     * Blocks the access to the quarterback service
+     * Blocks the access to the quarterback service from the locker thread
      */
     protected void blockQuarterbackAccess() {
 
-        pWriteLock.lock();
+        pLockRunner.execute(pRunWriteLocker);
     }
 
     /*
@@ -117,7 +163,11 @@ public class DataServerSvc extends CPojoBase implements IErpData {
     public CachedItemBean getItem(final String aItemId) {
 
         // Wait for the quarterback to become available
-        waitQuarterbackAccess();
+        if (!waitQuarterbackAccess()) {
+            pLogger.logInfo(this, "getItem",
+                    "Quarterback is absent after unlock : abandon");
+            return null;
+        }
 
         final CachedItemBean resultBean = pQuarterback.getItem(aItemId);
 
@@ -139,7 +189,11 @@ public class DataServerSvc extends CPojoBase implements IErpData {
             final String aBaseId) {
 
         // Wait for the quarterback to become available
-        waitQuarterbackAccess();
+        if (!waitQuarterbackAccess()) {
+            pLogger.logInfo(this, "getItems",
+                    "Quarterback is absent after unlock : abandon");
+            return null;
+        }
 
         final CachedItemBean[] resultArray = pQuarterback.getItems(aCategory,
                 aItemsCount, aRandomize, aBaseId);
@@ -167,7 +221,11 @@ public class DataServerSvc extends CPojoBase implements IErpData {
     public CachedItemStockBean[] getItemsStock(final String[] aItemIds) {
 
         // Wait for the quarterback to become available
-        waitQuarterbackAccess();
+        if (!waitQuarterbackAccess()) {
+            pLogger.logInfo(this, "getItemsStock",
+                    "Quarterback is absent after unlock : abandon");
+            return null;
+        }
 
         final CachedItemStockBean[] resultArray = pQuarterback
                 .getItemsStock(aItemIds);
@@ -183,6 +241,36 @@ public class DataServerSvc extends CPojoBase implements IErpData {
         return resultArray;
     }
 
+    /**
+     * Blocks the access to the quarterback service
+     */
+    private void internalBlockQuarterbackAccess() {
+
+        // Lock only if not already locked
+        pWriteLock.tryLock();
+    }
+
+    /**
+     * Unlocks the access to the quarterback service
+     */
+    private void internalUnblockQuarterbackAccess() {
+
+        try {
+            // Try to unlock in any case
+            pWriteLock.unlock();
+
+        } catch (IllegalMonitorStateException e) {
+            /*
+             * Ignore this exception at this level : it means that the lock
+             * wasn't locked
+             */
+
+        } catch (Throwable th) {
+            pLogger.logWarn(this, "unblockQuarterbackAccess",
+                    "Error unlocking the write lock :", th);
+        }
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -192,12 +280,8 @@ public class DataServerSvc extends CPojoBase implements IErpData {
     @Invalidate
     public void invalidatePojo() throws BundleException {
 
-        pReadLock.unlock();
-        pWriteLock.unlock();
-
-        pReadLock = null;
-        pWriteLock = null;
-        pQuarterbackWaitLock = null;
+        // Release the lock
+        unblockQuarterbackAccess();
 
         pLogger.logInfo(this, "invalidatePojo",
                 "Exported Data server service Gone");
@@ -212,16 +296,24 @@ public class DataServerSvc extends CPojoBase implements IErpData {
     @Unbind(id = IPOJO_QUARTERBACK_ID)
     protected void unbindQuarterback(final IQuarterback aQuarterback) {
 
+        pLogger.logInfo(this, "unbindQuarterback",
+                "Quarterback bound - BLOCK access");
+
         // Block clients until the service is bound again
         blockQuarterbackAccess();
+
+        pQuarterbackPresent = false;
+
+        pLogger.logInfo(this, "unbindQuarterback",
+                "Quarterback bound - BLOCK access DONE");
     }
 
     /**
-     * Unlocks the access to the quarterback service
+     * Unlocks the access to the quarterback service from the locker thread
      */
     protected void unblockQuarterbackAccess() {
 
-        pWriteLock.unlock();
+        pLockRunner.execute(pRunWriteUnlocker);
     }
 
     /*
@@ -233,12 +325,16 @@ public class DataServerSvc extends CPojoBase implements IErpData {
     @Validate
     public void validatePojo() throws BundleException {
 
-        pQuarterbackWaitLock = new ReentrantReadWriteLock();
-        pReadLock = pQuarterbackWaitLock.readLock();
-        pWriteLock = pQuarterbackWaitLock.writeLock();
-
         // Block clients until we get the service
-        blockQuarterbackAccess();
+        if (!pQuarterbackPresent) {
+            pLogger.logInfo(this, "validatePojo",
+                    "No quarterback service present");
+            blockQuarterbackAccess();
+
+        } else {
+            pLogger.logInfo(this, "validatePojo", "Quarterback = "
+                    + pQuarterback);
+        }
 
         pLogger.logInfo(this, "validatePojo",
                 "Exported Data server service Ready");
@@ -247,9 +343,22 @@ public class DataServerSvc extends CPojoBase implements IErpData {
     /**
      * Used by quarterback clients methods to be blocked until the service comes
      */
-    protected void waitQuarterbackAccess() {
+    protected boolean waitQuarterbackAccess() {
 
-        pReadLock.lock();
-        pReadLock.unlock();
+        pLogger.logInfo(this, "waitQuarterbackAccess",
+                "Waiting for quarterback...");
+
+        try {
+            pReadLock.lock();
+
+        } finally {
+            // Just in case...
+            pReadLock.unlock();
+        }
+
+        pLogger.logInfo(this, "waitQuarterbackAccess",
+                "Waiting for quarterback DONE");
+
+        return pQuarterbackPresent;
     }
 }
