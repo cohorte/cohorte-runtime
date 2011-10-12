@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <items>
 	<item id="screen001">
-		<lib>Asus - VE228T Ecran LED</lib>
+		<lib>Asus - VE228T - LED</lib>
 		<text>21.5" (54.6 cm) - Full HD (1920x1080) - 5 ms - 250 cd/m² - DVI-D
 			/ VGA / Audio
 			Moniteur Asus VE228T. Profitez d'images plus réalistes
@@ -11,7 +11,7 @@
 		<price>118.30</price>
 	</item>
 	<item id="screen002">
-		<lib>PROMO - HANNS G - Ecran LED - HL225DBB</lib>
+		<lib>PROMO - HANNS G - LED - HL225DBB</lib>
 		<text>21.5" - 1920 x 1080 (16/9) - 5 ms - VGA / DVI-D (HDCP)
 			Ecran
 			HANNS G utilisant la technologie LCD/LED de 21.5". Référence :
@@ -20,7 +20,7 @@
 		<price>150.00</price>
 	</item>
 	<item id="screen003">
-		<lib>Samsung - SyncMaster BX2235 - Ecran LED</lib>
+		<lib>Samsung - SyncMaster BX2235 - LED</lib>
 		<text>21.5" (55 cm) Full HD 1920x1080p (16:9) - 2 ms - DVI
 			Le
 			SyncMaster LED BX2235 est idéal pour découvrir les écrans LED
@@ -34,7 +34,7 @@
 		<price>136.00</price>
 	</item>
 	<item id="screen004">
-		<lib>AOC - 2436Vwa (Noir) - Ecran LCD</lib>
+		<lib>AOC - 2436Vwa - Noir - LCD</lib>
 		<text>3,6" (60 cm) - Full HD (1920x1080) - 5ms - hauts-parleurs
 			intégrés - DVI, VGA
 			Le 2436Vwa de AOC offre une qualité dimage
@@ -49,7 +49,7 @@
 		<price>143.70</price>
 	</item>
 	<item id="screen005">
-		<lib>Iiyama ProLite E2273HDS-1 (noir) - Ecran LCD</lib>
+		<lib>Iiyama ProLite E2273HDS-1 - Noir - LCD</lib>
 		<text>22" (56 cm) - Full HD (1920x1080) 16:9 - 2 ms - Haut Parleurs
 			Stéréo (2x 1W) - HDMI, DVI-D, D-Sub
 			Le ProLite E2273HDS-1 est un écran
@@ -64,7 +64,7 @@
 		<price>162.30</price>
 	</item>
 	<item id="screen006">
-		<lib>Asus - ML228H - Ecran LED</lib>
+		<lib>Asus - ML228H - LED</lib>
 		<text>21.5" Full HD (1920x1080) - 2ms - D-Sub / HDMI
 			Elégance du
 			design, excellence des images ! Profitez d'images
@@ -78,7 +78,7 @@
 		<price>165.50</price>
 	</item>
 	<item id="screen007">
-		<lib>Hyundai - Q226Ld - Ecran LED</lib>
+		<lib>Hyundai - Q226Ld - LED</lib>
 		<text>22" (55 cm) format 16:9 - Full HD (1920x1080) / 60 Hz - 250
 			cd/m2 - 5 ms - Haut Parleurs - DVI / VGA
 			Un écran de 21.5" au design
@@ -92,7 +92,7 @@
 		<price>128.24</price>
 	</item>
 	<item id="screen008">
-		<lib>Asus - VW247H - Ecran LED</lib>
+		<lib>Asus - VW247H - LED</lib>
 		<text>23.6" (60 cm) Format 16:9 - Full HD (1920x1080p) - 2ms -
 			Haut-parleurs stéréo 2x2W RMS - VGA / DVI / HDMI
 			ASUS VW247H. Des
@@ -107,7 +107,7 @@
 		<price>167.30</price>
 	</item>
 	<item id="screen009">
-		<lib>HANNS G - HL245DBB - Ecran LED</lib>
+		<lib>HANNS G - HL245DBB - LED</lib>
 		<text>23.6" (60 cm) - Full HD (1920x1080p) - 250 cd/cm² - 5 ms - VGA /
 			DVI-D
 			Ecran LCD Hanns.G à technologie de rétroéclairage par LED.
@@ -119,7 +119,7 @@
 		<price>168.50</price>
 	</item>
 	<item id="screen010">
-		<lib>Iiyama - ProLite B2274HDS-1 - Ecran LED</lib>
+		<lib>Iiyama - ProLite B2274HDS-1 - LED</lib>
 		<text>22" (56 cm) - 1920x1080 - 2 ms - Haut Parleurs Stéréo (2x 1W) -
 			HDMI, DVI-D, VGA
 			Cet écran LCD avec rétro-éclairage LED. Il affiche
@@ -133,7 +133,7 @@
 		<price>178.70</price>
 	</item>
 	<item id="screen011">
-		<lib>Hyundai - T236LD - Ecran LED</lib>
+		<lib>Hyundai - T236LD - LED</lib>
 		<text>23" (58 cm) format 16:9 - 1920 x 1080 / 60 Hz - 250 cd/m2 - 5 ms
 			- DVI / VGA
 			Hyundai T236LD. Un moniteur 23" au format large 16:9 Full
@@ -146,7 +146,7 @@
 		<price>179.00</price>
 	</item>
 	<item id="screen012">
-		<lib>LG - IPS231P-BN - Ecran LED</lib>
+		<lib>LG - IPS231P-BN - LED</lib>
 		<text>23" (58 cm) - Full HD 1080p - 5 ms - HP intégrés (2 x 1 W ) -
 			DVI / VGA
 			Le nouveau moniteur LG IPS231P-BN combine les forces d'une
@@ -158,7 +158,7 @@
 		<price>192.70</price>
 	</item>
 	<item id="screen013">
-		<lib>Iiyama - ProLite B2475HDS-1 (noir) - Ecran LED</lib>
+		<lib>Iiyama - ProLite B2475HDS-1 - Noir - LED</lib>
 		<text>23.6" (60 cm) - Full HD (1920x1080) 16:9 - 2 ms - Haut Parleurs
 			Stéréo (2x 2W) - D-Sub, DVI-D, HDMI
 			Le nouveau moniteur LCD LED de la
@@ -171,7 +171,7 @@
 		<price>211.00</price>
 	</item>
 	<item id="screen014">
-		<lib>Samsung - Ecran LED - XL2370</lib>
+		<lib>Samsung - LED - XL2370</lib>
 		<text>23 pouces - 2 ms - 16:9 - VGA/DVI/HDMI *F*
 			LCD 23 pouces (16:9) -
 			2 ms
@@ -179,7 +179,7 @@
 		<price>218.80</price>
 	</item>
 	<item id="screen015">
-		<lib>Samsung - SyncMaster F2380M (Noir) - Ecran LCD</lib>
+		<lib>Samsung - SyncMaster F2380M - Noir - LCD</lib>
 		<text>23" (58,4 cm) - Full HD (1920x1080) - 2 ms - HDMI, DVI-D, VGA
 			Le
 			F2380M est équipée d'une dalle PVA permettant d'obtenir des couleurs
@@ -190,7 +190,7 @@
 		<price>261.70</price>
 	</item>
 	<item id="screen016">
-		<lib>LG - E2290V-SN - Ecran LED</lib>
+		<lib>LG - E2290V-SN - LED</lib>
 		<text>21.5" (54.7 cm) - Full HD 1080p - 2 ms - D-Sub 15 broches (VGA)
 			/ DVI-D / HDMI / Sortie Casque
 			Le E2290V, lauréat de l innovation,
@@ -204,7 +204,7 @@
 		<price>281.00</price>
 	</item>
 	<item id="screen017">
-		<lib>Samsung - SyncMaster C23A750X (Série 7) - Ecran LED / Station
+		<lib>Samsung - SyncMaster C23A750X - LED / Station
 			d'accueil
 		</lib>
 		<text>23" (58.4 cm) Full HD 1920x1080p (16:9) - 2 ms - D-Sub, HDMI,
@@ -221,8 +221,7 @@
 		<price>428.20</price>
 	</item>
 	<item id="screen018">
-		<lib>Samsung - SyncMaster S23A750D (Série 7) - Ecran LED 3D (120 Hz)
-		</lib>
+		<lib>Samsung - SyncMaster S23A750D - LED - 3D 120 Hz</lib>
 		<text>23" (58.4 cm) Full HD (1920x1080) - 2 ms - DisplayPort, HDMI
 			Le
 			SA750 offre des images incroyablement fluides grâce e à son moteur
@@ -234,7 +233,7 @@
 		<price>478.01</price>
 	</item>
 	<item id="screen019">
-		<lib>Samsung - SyncMaster BX2235 - Ecran LED</lib>
+		<lib>Samsung - SyncMaster BX2235 - LED</lib>
 		<text>21.5" (55 cm) Full HD 1920x1080p (16:9) - 2 ms - DVI
 			Le
 			SyncMaster LED BX2235 est idéal pour découvrir les écrans LED
@@ -248,7 +247,7 @@
 		<price>136.00</price>
 	</item>
 	<item id="screen020">
-		<lib>AOC - 2436Vwa (Noir) - Ecran LCD</lib>
+		<lib>AOC - 2436Vwa - Noir - LCD</lib>
 		<text>23,6" (60 cm) - Full HD (1920x1080) - 5ms - hauts-parleurs
 			intégrés - DVI, VGA
 			Le 2436Vwa de AOC offre une qualité dimage
@@ -262,7 +261,7 @@
 		<price>143.70</price>
 	</item>
 	<item id="screen021">
-		<lib>Iiyama ProLite E2273HDS-1 (noir) - Ecran LCD</lib>
+		<lib>Iiyama ProLite E2273HDS-1 - Noir - LCD</lib>
 		<text>22" (56 cm) - Full HD (1920x1080) 16:9 - 2 ms - Haut Parleurs
 			Stéréo (2x 1W) - HDMI, DVI-D, D-Sub
 			Le ProLite E2273HDS-1 est un écran
