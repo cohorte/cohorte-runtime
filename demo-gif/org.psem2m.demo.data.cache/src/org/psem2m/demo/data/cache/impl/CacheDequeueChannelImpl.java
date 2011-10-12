@@ -5,6 +5,7 @@
  */
 package org.psem2m.demo.data.cache.impl;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -18,8 +19,8 @@ import org.psem2m.demo.data.cache.ICachedObject;
  * 
  * @author Thomas Calmant
  */
-public class CacheDequeueChannelImpl<K, V> extends
-        LinkedBlockingDeque<ICachedObject<V>> implements
+public class CacheDequeueChannelImpl<K extends Serializable, V extends Serializable>
+        extends LinkedBlockingDeque<ICachedObject<V>> implements
         ICacheDequeueChannel<K, V> {
 
     /** Serial version UID */

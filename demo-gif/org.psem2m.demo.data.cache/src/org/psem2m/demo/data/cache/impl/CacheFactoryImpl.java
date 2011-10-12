@@ -5,6 +5,10 @@
  */
 package org.psem2m.demo.data.cache.impl;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,6 +34,9 @@ import org.psem2m.isolates.base.activators.CPojoBase;
 @Provides(specifications = ICacheFactory.class)
 @Instantiate(name = "cache-channel-factory")
 public class CacheFactoryImpl extends CPojoBase implements ICacheFactory {
+
+    /** Serial version UID */
+    private static final long serialVersionUID = 1L;
 
     /** Opened standard channels */
     private final Map<String, ICacheChannel<?, ?>> pChannels = new HashMap<String, ICacheChannel<?, ?>>();
@@ -90,7 +97,8 @@ public class CacheFactoryImpl extends CPojoBase implements ICacheFactory {
      * org.psem2m.demo.data.cache.ICacheFactory#openChannel(java.lang.String)
      */
     @Override
-    public <K, V> ICacheChannel<K, V> openChannel(final String aName) {
+    public <K extends Serializable, V extends Serializable> ICacheChannel<K, V> openChannel(
+            final String aName) {
 
         // Get the existing one
         @SuppressWarnings("unchecked")
@@ -116,7 +124,7 @@ public class CacheFactoryImpl extends CPojoBase implements ICacheFactory {
      * .String)
      */
     @Override
-    public <K, V> ICacheDequeueChannel<K, V> openDequeueChannel(
+    public <K extends Serializable, V extends Serializable> ICacheDequeueChannel<K, V> openDequeueChannel(
             final String aName) {
 
         // Get the existing one
@@ -135,6 +143,35 @@ public class CacheFactoryImpl extends CPojoBase implements ICacheFactory {
         return channel;
     }
 
+    /**
+     * Custom de-serialization
+     * 
+     * @param aObjectInputStream
+     *            An object input stream
+     * @throws IOException
+     *             An error occurred while reading the object
+     * @throws ClassNotFoundException
+     *             A required class wasn't found
+     */
+    @SuppressWarnings("unchecked")
+    private void readObject(final ObjectInputStream aObjectInputStream)
+            throws IOException, ClassNotFoundException {
+
+        // The standard channels
+        final Map<String, ICacheChannel<?, ?>> readStdChannels = (Map<String, ICacheChannel<?, ?>>) aObjectInputStream
+                .readObject();
+        if (readStdChannels != null) {
+            pChannels.putAll(readStdChannels);
+        }
+
+        // The queued channels
+        Map<String, ICacheDequeueChannel<?, ?>> readQueueChannels = (Map<String, ICacheDequeueChannel<?, ?>>) aObjectInputStream
+                .readObject();
+        if (readQueueChannels != null) {
+            pQueueChannels.putAll(readQueueChannels);
+        }
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -145,5 +182,23 @@ public class CacheFactoryImpl extends CPojoBase implements ICacheFactory {
     public void validatePojo() throws BundleException {
 
         pLogger.logInfo(this, "validatePojo", "Cache channel factory Ready");
+    }
+
+    /**
+     * Custom serialization
+     * 
+     * @param aObjectOutputStream
+     *            The object output stream
+     * @throws IOException
+     *             An error occurred while writing objects
+     */
+    private void writeObject(final ObjectOutputStream aObjectOutputStream)
+            throws IOException {
+
+        // The standard channels
+        aObjectOutputStream.writeObject(pChannels);
+
+        // The queued channels
+        aObjectOutputStream.writeObject(pQueueChannels);
     }
 }

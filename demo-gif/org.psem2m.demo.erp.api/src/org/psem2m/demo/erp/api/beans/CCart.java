@@ -10,11 +10,16 @@
  *******************************************************************************/
 package org.psem2m.demo.erp.api.beans;
 
+import java.io.Serializable;
+
 /**
  * @author ogattaz
  * 
  */
-public class CCart {
+public class CCart implements Serializable {
+
+    /** Serial version UID */
+    private static final long serialVersionUID = 1L;
 
     private String pCartId;
 

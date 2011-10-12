@@ -5,12 +5,15 @@
  */
 package org.psem2m.demo.data.cache;
 
+import java.io.Serializable;
+
 /**
  * Describes a cache channel
  * 
  * @author Thomas Calmant
  */
-public interface ICacheChannel<K, V> {
+public interface ICacheChannel<K extends Serializable, V extends Serializable>
+        extends Serializable {
 
     /**
      * Closes the channel

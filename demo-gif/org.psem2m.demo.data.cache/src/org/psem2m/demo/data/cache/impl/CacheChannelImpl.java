@@ -5,6 +5,7 @@
  */
 package org.psem2m.demo.data.cache.impl;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -17,7 +18,11 @@ import org.psem2m.demo.data.cache.ICachedObject;
  * 
  * @author Thomas Calmant
  */
-public class CacheChannelImpl<K, V> implements ICacheChannel<K, V> {
+public class CacheChannelImpl<K extends Serializable, V extends Serializable>
+        implements ICacheChannel<K, V> {
+
+    /** Serial version UID */
+    private static final long serialVersionUID = 1L;
 
     /** The internal map */
     private final Map<K, CachedObject<V>> pCacheMap = new HashMap<K, CachedObject<V>>();

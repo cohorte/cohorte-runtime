@@ -5,6 +5,7 @@
  */
 package org.psem2m.demo.data.cache;
 
+import java.io.Serializable;
 import java.util.concurrent.BlockingDeque;
 
 /**
@@ -12,6 +13,9 @@ import java.util.concurrent.BlockingDeque;
  * 
  * @author Thomas Calmant
  */
-public interface ICacheDequeueChannel<K, V> extends ICacheChannel<K, V>,
-        BlockingDeque<ICachedObject<V>> {
+public interface ICacheDequeueChannel<K extends Serializable, V extends Serializable>
+        extends ICacheChannel<K, V>, BlockingDeque<ICachedObject<V>>,
+        Serializable {
+
+    // Just a combination of interfaces
 }

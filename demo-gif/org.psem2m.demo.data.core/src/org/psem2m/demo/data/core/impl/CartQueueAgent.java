@@ -5,6 +5,7 @@
  */
 package org.psem2m.demo.data.core.impl;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -51,7 +52,7 @@ public class CartQueueAgent extends CPojoBase implements ICartQueue {
     private ICacheFactory pCacheFactory;
 
     /** The cart cache queue channel */
-    private ICacheDequeueChannel<Object, CartQueueItem> pCartsChannel;
+    private ICacheDequeueChannel<Serializable, CartQueueItem> pCartsChannel;
 
     /** The ERP proxy */
     @Requires(id = IPOJO_ERP_PROXY_ID, optional = true)

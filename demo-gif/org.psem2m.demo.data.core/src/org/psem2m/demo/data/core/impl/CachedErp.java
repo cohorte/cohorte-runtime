@@ -8,6 +8,7 @@ package org.psem2m.demo.data.core.impl;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -81,13 +82,13 @@ public class CachedErp {
      * @return All elements of the category, or an empty array.
      */
     public CachedItemBean[] getItems(
-            final ICacheChannel<String, Collection<String>> aCategoryCache,
+            final ICacheChannel<String, HashSet<String>> aCategoryCache,
             final ICacheChannel<String, ItemBean> aItemsCache,
             final String aCategory, final int aItemsCount,
             final boolean aRandomize, final String aBaseId) {
 
         // Get the items of the category
-        final ICachedObject<Collection<String>> cachedCategory = aCategoryCache
+        final ICachedObject<HashSet<String>> cachedCategory = aCategoryCache
                 .get(aCategory);
         if (cachedCategory == null) {
             return new CachedItemBean[0];

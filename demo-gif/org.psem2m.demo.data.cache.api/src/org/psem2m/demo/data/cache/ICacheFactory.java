@@ -5,12 +5,14 @@
  */
 package org.psem2m.demo.data.cache;
 
+import java.io.Serializable;
+
 /**
  * Defines a cache channel
  * 
  * @author Thomas Calmant
  */
-public interface ICacheFactory {
+public interface ICacheFactory extends Serializable {
 
     /**
      * Closes the channel with the given name
@@ -30,7 +32,8 @@ public interface ICacheFactory {
      *            Name of the channel
      * @return The cache channel
      */
-    <K, V> ICacheChannel<K, V> openChannel(String aName);
+    <K extends Serializable, V extends Serializable> ICacheChannel<K, V> openChannel(
+            String aName);
 
     /**
      * Opens a dequeue cache channel. Creates a new one if needed.
@@ -42,5 +45,6 @@ public interface ICacheFactory {
      *            Name of the channel
      * @return The cache channel
      */
-    <K, V> ICacheDequeueChannel<K, V> openDequeueChannel(String aName);
+    <K extends Serializable, V extends Serializable> ICacheDequeueChannel<K, V> openDequeueChannel(
+            String aName);
 }
