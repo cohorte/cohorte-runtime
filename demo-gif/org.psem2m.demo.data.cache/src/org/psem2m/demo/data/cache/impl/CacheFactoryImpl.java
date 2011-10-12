@@ -16,6 +16,7 @@ import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.demo.data.cache.ICacheChannel;
+import org.psem2m.demo.data.cache.ICacheDequeueChannel;
 import org.psem2m.demo.data.cache.ICacheFactory;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
@@ -30,12 +31,15 @@ import org.psem2m.isolates.base.activators.CPojoBase;
 @Instantiate(name = "cache-channel-factory")
 public class CacheFactoryImpl extends CPojoBase implements ICacheFactory {
 
-    /** Opened channels */
+    /** Opened standard channels */
     private final Map<String, ICacheChannel<?, ?>> pChannels = new HashMap<String, ICacheChannel<?, ?>>();
 
     /** Log service */
     @Requires
     private IIsolateLoggerSvc pLogger;
+
+    /** Opened queued channels */
+    private final Map<String, ICacheDequeueChannel<?, ?>> pQueueChannels = new HashMap<String, ICacheDequeueChannel<?, ?>>();
 
     /**
      * Default constructor
@@ -99,6 +103,33 @@ public class CacheFactoryImpl extends CPojoBase implements ICacheFactory {
 
             // Store it
             pChannels.put(aName, channel);
+        }
+
+        return channel;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.demo.data.cache.ICacheFactory#openDequeueChannel(java.lang
+     * .String)
+     */
+    @Override
+    public <K, V> ICacheDequeueChannel<K, V> openDequeueChannel(
+            final String aName) {
+
+        // Get the existing one
+        @SuppressWarnings("unchecked")
+        ICacheDequeueChannel<K, V> channel = (ICacheDequeueChannel<K, V>) pQueueChannels
+                .get(aName);
+
+        if (channel == null) {
+            // Create a new one if needed
+            channel = new CacheDequeueChannelImpl<K, V>();
+
+            // Store it
+            pQueueChannels.put(aName, channel);
         }
 
         return channel;

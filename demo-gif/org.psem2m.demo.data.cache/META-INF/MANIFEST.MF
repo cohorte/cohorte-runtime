@@ -23,9 +23,11 @@ iPOJO-Components: instance { $component="org.psem2m.demo.data.cache.im
   { $super="org.psem2m.isolates.base.activators.CPojoBase" interface {
   $name="org.psem2m.demo.data.cache.ICacheFactory" }field { $name="pCh
  annels" $type="java.util.Map" }field { $name="pLogger" $type="org.pse
- m2m.isolates.base.IIsolateLoggerSvc" }method { $name="closeChannel" $
- arguments="{java.lang.String}" }method { $name="invalidatePojo" }meth
- od { $name="openChannel" $return="org.psem2m.demo.data.cache.ICacheCh
- annel" $arguments="{java.lang.String}" }method { $name="validatePojo"
-  }}}
+ m2m.isolates.base.IIsolateLoggerSvc" }field { $name="pQueueChannels" 
+ $type="java.util.Map" }method { $name="closeChannel" $arguments="{jav
+ a.lang.String}" }method { $name="invalidatePojo" }method { $name="ope
+ nChannel" $return="org.psem2m.demo.data.cache.ICacheChannel" $argumen
+ ts="{java.lang.String}" }method { $name="openDequeueChannel" $return=
+ "org.psem2m.demo.data.cache.ICacheDequeueChannel" $arguments="{java.l
+ ang.String}" }method { $name="validatePojo" }}}
 

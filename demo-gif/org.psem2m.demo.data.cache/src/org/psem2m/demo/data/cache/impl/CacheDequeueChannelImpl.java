@@ -1,26 +1,32 @@
 /**
- * File:   CacheChannelImpl.java
+ * File:   CacheDequeueChannelImpl.java
  * Author: Thomas Calmant
- * Date:   11 oct. 2011
+ * Date:   12 oct. 2011
  */
 package org.psem2m.demo.data.cache.impl;
 
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.LinkedBlockingDeque;
 
-import org.psem2m.demo.data.cache.ICacheChannel;
+import org.psem2m.demo.data.cache.ICacheDequeueChannel;
 import org.psem2m.demo.data.cache.ICachedObject;
 
 /**
- * Implementation of a cache channel
+ * Implementation of a queued cache channel
  * 
  * @author Thomas Calmant
  */
-public class CacheChannelImpl<K, V> implements ICacheChannel<K, V> {
+public class CacheDequeueChannelImpl<K, V> extends
+        LinkedBlockingDeque<ICachedObject<V>> implements
+        ICacheDequeueChannel<K, V> {
 
-    /** The internal map */
-    private final Map<K, CachedObject<V>> pCacheMap = new HashMap<K, CachedObject<V>>();
+    /** Serial version UID */
+    private static final long serialVersionUID = 1L;
+
+    /** The internal association map */
+    private final Map<K, ICachedObject<V>> pAssociationMap = new HashMap<K, ICachedObject<V>>();
 
     /*
      * (non-Javadoc)
@@ -30,7 +36,8 @@ public class CacheChannelImpl<K, V> implements ICacheChannel<K, V> {
     @Override
     public void close() {
 
-        pCacheMap.clear();
+        clear();
+        pAssociationMap.clear();
     }
 
     /*
@@ -41,7 +48,7 @@ public class CacheChannelImpl<K, V> implements ICacheChannel<K, V> {
     @Override
     public ICachedObject<V> get(final K aKey) {
 
-        return pCacheMap.get(aKey);
+        return pAssociationMap.get(aKey);
     }
 
     /*
@@ -52,7 +59,7 @@ public class CacheChannelImpl<K, V> implements ICacheChannel<K, V> {
     @Override
     public ICachedObject<V> getRandomObject() {
 
-        final int nbObjects = pCacheMap.size();
+        final int nbObjects = size();
         if (nbObjects == 0) {
             // No objects, no random
             return null;
@@ -61,8 +68,7 @@ public class CacheChannelImpl<K, V> implements ICacheChannel<K, V> {
         final int randomIndex = (int) Math.random() * nbObjects;
 
         // Get the ID at the selected index
-        final Iterator<CachedObject<V>> iterator = pCacheMap.values()
-                .iterator();
+        final Iterator<ICachedObject<V>> iterator = iterator();
         int i = 0;
         while (iterator.hasNext()) {
 
@@ -83,39 +89,18 @@ public class CacheChannelImpl<K, V> implements ICacheChannel<K, V> {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.demo.data.cache.ICacheChannel#isEmpty()
-     */
-    @Override
-    public boolean isEmpty() {
-
-        return pCacheMap.isEmpty();
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
      * @see org.psem2m.demo.data.cache.ICacheChannel#put(java.lang.Object,
      * java.lang.Object)
      */
     @Override
     public ICachedObject<V> put(final K aKey, final V aValue) {
 
-        if (aValue == null) {
-            return pCacheMap.remove(aKey);
-
-        } else {
-            return pCacheMap.put(aKey, new CachedObject<V>(aValue));
+        final ICachedObject<V> cachedObject = new CachedObject<V>(aValue);
+        if (!contains(cachedObject)) {
+            // Add in the queue, if needed
+            offer(cachedObject);
         }
-    }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.demo.data.cache.ICacheChannel#size()
-     */
-    @Override
-    public int size() {
-
-        return pCacheMap.size();
+        return pAssociationMap.put(aKey, cachedObject);
     }
 }

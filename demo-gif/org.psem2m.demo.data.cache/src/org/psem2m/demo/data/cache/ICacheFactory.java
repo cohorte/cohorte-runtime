@@ -21,11 +21,26 @@ public interface ICacheFactory {
     void closeChannel(String aName);
 
     /**
-     * Opens a cache channel. Creates a new one if needed.
+     * Opens a standard cache channel. Creates a new one if needed.
+     * 
+     * Standard and Dequeue are indexed in different maps. Therefore, it is
+     * possible to have a standard and a dequeue channel with the same name.
      * 
      * @param aName
      *            Name of the channel
      * @return The cache channel
      */
     <K, V> ICacheChannel<K, V> openChannel(String aName);
+
+    /**
+     * Opens a dequeue cache channel. Creates a new one if needed.
+     * 
+     * Standard and Dequeue are indexed in different maps. Therefore, it is
+     * possible to have a standard and a dequeue channel with the same name.
+     * 
+     * @param aName
+     *            Name of the channel
+     * @return The cache channel
+     */
+    <K, V> ICacheDequeueChannel<K, V> openDequeueChannel(String aName);
 }

@@ -56,5 +56,5 @@ public interface ICacheChannel<K, V> {
      * 
      * @return the number of cached objects
      */
-    long size();
+    int size();
 }
