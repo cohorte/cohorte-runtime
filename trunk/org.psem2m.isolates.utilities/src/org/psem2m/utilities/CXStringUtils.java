@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.psem2m.utilities;
 
+import java.util.Enumeration;
 import java.util.List;
 
 /**
@@ -588,6 +589,41 @@ public class CXStringUtils implements IConstants {
     public static String strFullTrimKeepingFrefixSpaces(final String aStr) {
 
         return strFullTrim(aStr, TRIMABLE_CONTROL, TRIMABLE_CHARS);
+    }
+
+    /**
+     * @param aStringEnum
+     * @return
+     */
+    public static String stringEnumToString(
+            final Enumeration<String> aStringEnum) {
+
+        return stringEnumToString(aStringEnum, ",");
+
+    }
+
+    /**
+     * @param aStringEnum
+     * @param aSeparator
+     * @return
+     */
+    public static String stringEnumToString(
+            final Enumeration<String> aStringEnum, final String aSeparator) {
+
+        if (aStringEnum == null || !aStringEnum.hasMoreElements()) {
+            return EMPTY;
+        }
+        StringBuilder wSB = new StringBuilder(256);
+        int wI = 0;
+        while (aStringEnum.hasMoreElements()) {
+            if (wI > 0) {
+                wSB.append(aSeparator);
+            }
+            wSB.append(aStringEnum.nextElement());
+            wI++;
+
+        }
+        return wSB.toString();
     }
 
     /**
