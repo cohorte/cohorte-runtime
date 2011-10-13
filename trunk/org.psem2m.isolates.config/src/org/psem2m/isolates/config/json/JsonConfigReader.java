@@ -44,6 +44,37 @@ public class JsonConfigReader implements IConfigurationReader {
     /** The file inclusion stack, for relative paths */
     private final Stack<File> pIncludeStack = new Stack<File>();
 
+    /**
+     * Parses the given properties object and overrides it with the given
+     * properties
+     * 
+     * @param aPropertiesJsonObject
+     *            A properties JSON object (can't be null)
+     * @param aOverridingProperties
+     *            Overriding properties (can be null)
+     * 
+     * @return The overridden properties
+     */
+    protected Properties computeOverriddenProperties(
+            final JSONObject aPropertiesJsonObject,
+            final Properties aOverridingProperties) {
+
+        Properties overriddenProperties = parseProperties(aPropertiesJsonObject
+                .optJSONObject(IJsonConfigKeys.CONFIG_OVERRIDDEN_PROPERTIES));
+
+        if (overriddenProperties == null) {
+            // No properties in the JSON object, return overriding ones
+            return aOverridingProperties;
+        }
+
+        if (aOverridingProperties != null) {
+            // Override found properties
+            overriddenProperties.putAll(aOverridingProperties);
+        }
+
+        return overriddenProperties;
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -178,41 +209,32 @@ public class JsonConfigReader implements IConfigurationReader {
      *            Isolate currently described
      * @param aJsonArray
      *            Bundle array
+     * @param aOverridingProperties
+     *            Overriding properties (can be null)
+     * 
      * @throws JSONException
      *             An error occurred while reading the array
      * @throws FileNotFoundException
      *             An imported file wasn't found
      */
     protected void parseBundles(final IsolateDescription aIsolateDescription,
-            final JSONArray aJsonArray,
-            final Properties aOverriddenBundleProperties) throws JSONException,
-            FileNotFoundException {
+            final JSONArray aJsonArray, final Properties aOverridingProperties)
+            throws JSONException, FileNotFoundException {
 
         final int bundlesCount = aJsonArray.length();
         for (int i = 0; i < bundlesCount; i++) {
 
             final JSONObject bundleObject = aJsonArray.getJSONObject(i);
-
             if (bundleObject.has(IJsonConfigKeys.CONFIG_FROM)) {
-
                 // Overridden properties
-                Properties overriddenProperties = parseProperties(bundleObject
-                        .optJSONObject(IJsonConfigKeys.CONFIG_BUNDLE_OVERRIDDEN_PROPERTIES));
-
-                if (overriddenProperties == null) {
-                    // No new overridden properties
-                    overriddenProperties = aOverriddenBundleProperties;
-
-                } else if (aOverriddenBundleProperties != null) {
-                    // Override found properties with upper level ones
-                    overriddenProperties.putAll(aOverriddenBundleProperties);
-                }
+                final Properties overridingProperties = computeOverriddenProperties(
+                        bundleObject, aOverridingProperties);
 
                 // Read "distant" object
                 parseBundles(aIsolateDescription,
                         readJsonArrayFile(bundleObject
                                 .getString(IJsonConfigKeys.CONFIG_FROM)),
-                        overriddenProperties);
+                        overridingProperties);
 
                 // Remove the included file from the stack
                 if (!pIncludeStack.isEmpty()) {
@@ -222,7 +244,7 @@ public class JsonConfigReader implements IConfigurationReader {
             } else {
                 // Parse local object
                 aIsolateDescription.getBundles().add(
-                        parseBundle(bundleObject, aOverriddenBundleProperties));
+                        parseBundle(bundleObject, aOverridingProperties));
             }
         }
     }
@@ -232,14 +254,19 @@ public class JsonConfigReader implements IConfigurationReader {
      * 
      * @param aIsolateObject
      *            A JSON object describing an isolate
+     * @param aOverridingProperties
+     *            Overriding properties (overrides isolate's ones), can be null
+     * 
      * @return The description of the isolate
+     * 
      * @throws JSONException
      *             An error occurred while reading the object
      * @throws FileNotFoundException
      *             An imported file wasn't found
      */
-    protected IIsolateDescr parseIsolate(final JSONObject aIsolateObject)
-            throws JSONException, FileNotFoundException {
+    protected IIsolateDescr parseIsolate(final JSONObject aIsolateObject,
+            final Properties aOverridingProperties) throws JSONException,
+            FileNotFoundException {
 
         // Isolate ID
         final String isolateId = aIsolateObject
@@ -270,25 +297,40 @@ public class JsonConfigReader implements IConfigurationReader {
             }
         }
 
-        // Isolate HTTP communication port
-        final String isolatePort = aIsolateObject
-                .optString(IJsonConfigKeys.CONFIG_ISOLATE_PORT);
-        if (isolatePort != null) {
-
-            final StringBuilder accessUrl = new StringBuilder();
-
-            // FIXME considers that the communication is HTTP only
-            accessUrl.append("http://localhost:");
-            accessUrl.append(isolatePort);
-
-            isolateDescription.setAccessUrl(accessUrl.toString());
+        // Isolate HTTP communication host
+        String isolateHost = aIsolateObject
+                .optString(IJsonConfigKeys.CONFIG_ISOLATE_HOST);
+        if (isolateHost == null || isolateHost.isEmpty()) {
+            // Default to local host
+            isolateHost = "localhost";
         }
+
+        // Isolate HTTP communication port
+        String isolatePort = aIsolateObject
+                .optString(IJsonConfigKeys.CONFIG_ISOLATE_PORT);
+        if (isolatePort == null) {
+            // Default port : 8080
+            isolatePort = "8080";
+        }
+
+        // Compute the isolate access URL
+        final StringBuilder accessUrl = new StringBuilder();
+        // FIXME considers that the communication is HTTP only
+        accessUrl.append("http://");
+        accessUrl.append(isolateHost);
+        accessUrl.append(":");
+        accessUrl.append(isolatePort);
+        isolateDescription.setAccessUrl(accessUrl.toString());
+
+        // Parse overridden system properties
+        final Properties overridingProperties = computeOverriddenProperties(
+                aIsolateObject, aOverridingProperties);
 
         // Isolate bundles
         parseBundles(isolateDescription,
                 aIsolateObject
                         .getJSONArray(IJsonConfigKeys.CONFIG_ISOLATE_BUNDLES),
-                null);
+                overridingProperties);
 
         return isolateDescription;
     }
@@ -312,10 +354,16 @@ public class JsonConfigReader implements IConfigurationReader {
             final IIsolateDescr isolateDescription;
             final JSONObject isolateObject = aJsonArray.getJSONObject(i);
 
+            // Compute overriding properties
+            final Properties overridingProperties = computeOverriddenProperties(
+                    isolateObject, null);
+
             if (isolateObject.has(IJsonConfigKeys.CONFIG_FROM)) {
                 // Case 1 : the isolate is described in another file
-                isolateDescription = parseIsolate(readJsonObjectFile(isolateObject
-                        .getString(IJsonConfigKeys.CONFIG_FROM)));
+                isolateDescription = parseIsolate(
+                        readJsonObjectFile(isolateObject
+                                .getString(IJsonConfigKeys.CONFIG_FROM)),
+                        overridingProperties);
 
                 // Remove the included file from the stack
                 if (!pIncludeStack.isEmpty()) {
@@ -324,7 +372,8 @@ public class JsonConfigReader implements IConfigurationReader {
 
             } else {
                 // Case 2 : everything is described here
-                isolateDescription = parseIsolate(isolateObject);
+                isolateDescription = parseIsolate(isolateObject,
+                        overridingProperties);
             }
 
             // Store it

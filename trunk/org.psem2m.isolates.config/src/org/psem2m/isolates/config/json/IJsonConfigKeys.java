@@ -24,9 +24,6 @@ public interface IJsonConfigKeys {
     /** Bundle is optional (boolean, optional) */
     String CONFIG_BUNDLE_OPTIONAL = "optional";
 
-    /** Bundle "from" associated overridden system properties (string, optional) */
-    String CONFIG_BUNDLE_OVERRIDDEN_PROPERTIES = "overriddenProperties";
-
     /** Bundle associated system properties (string, optional) */
     String CONFIG_BUNDLE_PROPERTIES = "properties";
 
@@ -38,6 +35,9 @@ public interface IJsonConfigKeys {
 
     /** Isolate bundles array (array, mandatory) */
     String CONFIG_ISOLATE_BUNDLES = "bundles";
+
+    /** The HTTP server host */
+    String CONFIG_ISOLATE_HOST = "httpHost";
 
     /** Isolate ID (string, mandatory) */
     String CONFIG_ISOLATE_ID = "id";
@@ -53,4 +53,7 @@ public interface IJsonConfigKeys {
 
     /** Application isolates array (array, mandatory) */
     String CONFIG_ISOLATES_ARRAY = "isolates";
+
+    /** Bundle "from" associated overridden system properties (string, optional) */
+    String CONFIG_OVERRIDDEN_PROPERTIES = "overriddenProperties";
 }
