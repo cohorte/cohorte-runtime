@@ -8,10 +8,16 @@
             "from":"forker.js"
         },
         {
-            "from":"data-server.js"
+            "from":"data-server.js",
+            "overriddenProperties":{
+                "org.psem2m.remote.filters.include":"org.psem2m.demo.*"
+            }
         },
         {
-            "from":"erp-proxy.js"
+            "from":"erp-proxy.js",
+            "overriddenProperties":{
+                "org.psem2m.remote.filters.exclude":"*"
+            }
         }
     ]
 }

@@ -39,10 +39,7 @@
             "from":"rose-server.js"
         },
         {
-            "from":"remote-services.js",
-            "overriddenProperties":{
-                "org.psem2m.remote.filters.include":"org.psem2m.demo.*"
-            }
+            "from":"remote-services.js"
         },
         {
             "symbolicName":"org.psem2m.demo.erp.api"
