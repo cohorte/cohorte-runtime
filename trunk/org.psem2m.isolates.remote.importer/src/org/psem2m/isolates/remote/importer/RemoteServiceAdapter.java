@@ -272,7 +272,7 @@ public class RemoteServiceAdapter extends CPojoBase implements
 
             // Trim the string for filter efficiency
             final String trimmedFilter = filter.trim();
-            if (!(trimmedFilter.isEmpty() || trimmedFilter.equals("*"))) {
+            if (!trimmedFilter.isEmpty()) {
                 // Filter seems valid
                 aFilters.add(trimmedFilter);
             }
@@ -303,14 +303,15 @@ public class RemoteServiceAdapter extends CPojoBase implements
      * @param aServiceEvent
      *            A service registration event
      */
-    protected void registerService(final RemoteServiceEvent aServiceEvent) {
+    protected synchronized void registerService(
+            final RemoteServiceEvent aServiceEvent) {
 
         // Get the service registration object
         final RemoteServiceRegistration registration = aServiceEvent
                 .getServiceRegistration();
 
         for (String exportedInterface : registration.getExportedInterfaces()) {
-
+            // Test include / exclude filters
             if (!acceptInterface(exportedInterface)) {
                 return;
             }
@@ -387,7 +388,7 @@ public class RemoteServiceAdapter extends CPojoBase implements
      * @param aServiceId
      *            The removed service ID
      */
-    protected void unregisterService(final String aServiceId) {
+    protected synchronized void unregisterService(final String aServiceId) {
 
         // Retrieve the service registration
         final ProxyServiceInfo serviceInfo = pRegisteredServices
