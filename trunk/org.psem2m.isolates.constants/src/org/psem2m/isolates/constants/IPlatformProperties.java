@@ -39,9 +39,7 @@ public interface IPlatformProperties {
     /**
      * contains the id of the current isolates.
      * 
-     * <pre>
-     * -Dorg.psem2m.platform.isolate.id=development
-     * </pre>
+     * <pre> -Dorg.psem2m.platform.isolate.id=development </pre>
      */
     String PROP_PLATFORM_ISOLATE_ID = "org.psem2m.platform.isolate.id";
 
@@ -49,11 +47,23 @@ public interface IPlatformProperties {
      * if "true", allows the redirection of the output of the OSGi log service
      * in the logger of the current isolate.
      * 
-     * <pre>
-     * -Dorg.psem2m.platform.isolate.redirect.logservice=true
-     * </pre>
+     * <pre> -Dorg.psem2m.platform.isolate.redirect.logservice=true </pre>
      */
     String PROP_PLATFORM_REDIRECT_LOGSVC = "org.psem2m.platform.isolate.redirect.logservice";
+
+    /**
+     * Remote Service Importer exclusion filter
+     * 
+     * Default : "" Format : "filter1,filter2"
+     */
+    String PROP_REMOTE_SERVICE_FILTERS_EXCLUDE = "org.psem2m.remote.filters.exclude";
+
+    /**
+     * Remote Service Importer inclusion filter
+     * 
+     * Default : "*" Format : "filter1,filter2"
+     */
+    String PROP_REMOTE_SERVICE_FILTERS_INCLUDE = "org.psem2m.remote.filters.include";
 
     /**
      * Special isolates ID prefix
@@ -64,5 +74,5 @@ public interface IPlatformProperties {
      * Forker isolate ID
      */
     String SPECIAL_ISOLATE_ID_FORKER = SPECIAL_INTERNAL_ISOLATES_PREFIX
-	    + "forker";
+            + "forker";
 }

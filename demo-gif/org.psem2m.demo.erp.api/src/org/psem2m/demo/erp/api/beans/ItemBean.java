@@ -5,12 +5,17 @@
  */
 package org.psem2m.demo.erp.api.beans;
 
+import java.io.Serializable;
+
 /**
  * Description of an Item from the ERP
  * 
  * @author Thomas Calmant
  */
-public class ItemBean {
+public class ItemBean implements Serializable {
+
+    /** Serial version UID */
+    private static final long serialVersionUID = 1L;
 
     /** A short description of the item */
     private String pDescription;

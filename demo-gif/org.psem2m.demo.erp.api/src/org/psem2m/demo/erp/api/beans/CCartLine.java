@@ -10,13 +10,18 @@
  *******************************************************************************/
 package org.psem2m.demo.erp.api.beans;
 
+import java.io.Serializable;
+
 /**
  * The bean representing a line of a Shopping cart.
  * 
  * @author ogattaz
  * 
  */
-public class CCartLine {
+public class CCartLine implements Serializable {
+
+    /** Serial version UID */
+    private static final long serialVersionUID = 1L;
 
     private String pItemId;
 

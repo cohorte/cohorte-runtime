@@ -1,31 +1,43 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Demo - Data Server Cache
+Bundle-Name: Demo - Cache
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: org.psem2m.demo.data.cache
-Bundle-Vendor: isandlatech.com
+Bundle-Vendor: isandlaTech.com
 Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
-Export-Package: org.psem2m.demo.data.cache
 Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  .ipojo.architecture;version=1.8.0, org.osgi.framework;version=1.5.0, 
  org.osgi.service.cm;version=1.2, org.osgi.service.log;version=1.3, or
- g.psem2m.demo.erp.api.beans, org.psem2m.isolates.base;version=1.0.0, 
- org.psem2m.isolates.base.activators;version=1.0.0, org.psem2m.utiliti
- es;version=1.0.0, org.psem2m.utilities.logging;version=1.0.0
+ g.psem2m.demo.data.cache, org.psem2m.demo.erp.api.beans, org.psem2m.i
+ solates.base;version=1.0.0, org.psem2m.isolates.base.activators;versi
+ on=1.0.0, org.psem2m.isolates.services.dirs;version=1.0.0, org.psem2m
+ .utilities;version=1.0.0, org.psem2m.utilities.logging;version=1.0.0
 iPOJO-Components: instance { $component="org.psem2m.demo.data.cache.im
  pl.CacheFactoryImpl" $name="cache-channel-factory" }component { $clas
  sname="org.psem2m.demo.data.cache.impl.CacheFactoryImpl" $name="cache
  -channel-factory-factory" $public="false" provides { $specifications=
  "{org.psem2m.demo.data.cache.ICacheFactory}" }requires { $field="pLog
- ger" }callback { $transition="invalidate" $method="invalidatePojo" }c
- allback { $transition="validate" $method="validatePojo" }manipulation
-  { $super="org.psem2m.isolates.base.activators.CPojoBase" interface {
-  $name="org.psem2m.demo.data.cache.ICacheFactory" }field { $name="pCh
- annels" $type="java.util.Map" }field { $name="pLogger" $type="org.pse
- m2m.isolates.base.IIsolateLoggerSvc" }method { $name="closeChannel" $
- arguments="{java.lang.String}" }method { $name="invalidatePojo" }meth
- od { $name="openChannel" $return="org.psem2m.demo.data.cache.ICacheCh
- annel" $arguments="{java.lang.String}" }method { $name="validatePojo"
-  }}}
+ ger" }requires { $field="pPlatformDirsSvc" }callback { $transition="i
+ nvalidate" $method="invalidatePojo" }callback { $transition="validate
+ " $method="validatePojo" }manipulation { $super="org.psem2m.isolates.
+ base.activators.CPojoBase" interface { $name="org.psem2m.demo.data.ca
+ che.ICacheFactory" }field { $name="pChannels" $type="java.util.Map" }
+ field { $name="pExecutor" $type="java.util.concurrent.ExecutorService
+ " }field { $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLo
+ ggerSvc" }field { $name="pPlatformDirsSvc" $type="org.psem2m.isolates
+ .services.dirs.IPlatformDirsSvc" }field { $name="pQueueChannels" $typ
+ e="java.util.Map" }field { $name="pRunLoadFile" $type="java.lang.Runn
+ able" }field { $name="pRunWriteFile" $type="java.lang.Runnable" }meth
+ od { $name="closeChannel" $arguments="{java.lang.String}" }method { $
+ name="flush" }method { $name="internalWriteObject" $arguments="{java.
+ io.ObjectOutputStream}" }method { $name="invalidatePojo" }method { $n
+ ame="load" }method { $name="loadFromFile" }method { $name="openChanne
+ l" $return="org.psem2m.demo.data.cache.ICacheChannel" $arguments="{ja
+ va.lang.String}" }method { $name="openDequeueChannel" $return="org.ps
+ em2m.demo.data.cache.ICacheDequeueChannel" $arguments="{java.lang.Str
+ ing}" }method { $name="readObject" $arguments="{java.io.ObjectInputSt
+ ream}" }method { $name="storeToFile" }method { $name="validatePojo" }
+ method { $name="writeObject" $arguments="{java.io.ObjectOutputStream}
+ " }}}
 

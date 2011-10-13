@@ -11,10 +11,11 @@ Import-Package: javax.servlet;version=2.5.0, javax.servlet.http;versio
  .architecture;version=1.8.0, org.osgi.framework;version=1.5.0, org.os
  gi.service.cm;version=1.2, org.osgi.service.http;version=1.2.1, org.o
  sgi.service.log;version=1.3, org.ow2.chameleon.rose;version=0.2.3, or
- g.ow2.chameleon.rose.client;version=0.2.3, org.psem2m.isolates.base.a
- ctivators;version=1.0.0, org.psem2m.isolates.constants;version=1.0.0,
-  org.psem2m.isolates.services.remote;version=1.0.0, org.psem2m.isolat
- es.services.remote.beans;version=1.0.0, org.psem2m.utilities
+ g.ow2.chameleon.rose.client;version=0.2.3, org.psem2m.isolates.base;v
+ ersion=1.0.0, org.psem2m.isolates.base.activators;version=1.0.0, org.
+ psem2m.isolates.constants;version=1.0.0, org.psem2m.isolates.services
+ .remote;version=1.0.0, org.psem2m.isolates.services.remote.beans;vers
+ ion=1.0.0, org.psem2m.utilities
 iPOJO-Components: instance { $component="org.psem2m.isolates.remote.im
  porter.RemoteServiceAdapter" $name="remote-service-importer" }compone
  nt { $classname="org.psem2m.isolates.remote.importer.RemoteServiceAda
@@ -30,13 +31,17 @@ iPOJO-Components: instance { $component="org.psem2m.isolates.remote.im
  oadcaster" }field { $name="pBundleContext" $type="org.osgi.framework.
  BundleContext" }field { $name="pClientHandlers" $type="org.psem2m.iso
  lates.services.remote.IRemoteServiceClientHandler[]" }field { $name="
- pLogger" $type="org.osgi.service.log.LogService" }field { $name="pReg
- isteredServices" $type="java.util.Map" }method { $name="destroy" }met
- hod { $name="filterProperties" $return="java.util.Dictionary" $argume
- nts="{java.util.Map}" }method { $name="handleRemoteEvent" $arguments=
- "{org.psem2m.isolates.services.remote.beans.RemoteServiceEvent}" }met
- hod { $name="invalidatePojo" }method { $name="registerService" $argum
- ents="{org.psem2m.isolates.services.remote.beans.RemoteServiceEvent}"
-  }method { $name="unregisterService" $arguments="{java.lang.String}" 
- }method { $name="validatePojo" }}}
+ pExcludeFilters" $type="java.util.Set" }field { $name="pIncludeFilter
+ s" $type="java.util.Set" }field { $name="pLogger" $type="org.osgi.ser
+ vice.log.LogService" }field { $name="pRegisteredServices" $type="java
+ .util.Map" }method { $name="acceptInterface" $return="boolean" $argum
+ ents="{java.lang.String}" }method { $name="destroy" }method { $name="
+ filterProperties" $return="java.util.Dictionary" $arguments="{java.ut
+ il.Map}" }method { $name="handleRemoteEvent" $arguments="{org.psem2m.
+ isolates.services.remote.beans.RemoteServiceEvent}" }method { $name="
+ invalidatePojo" }method { $name="parseFilter" $arguments="{java.lang.
+ String,java.util.Set}" }method { $name="prepareFilters" }method { $na
+ me="registerService" $arguments="{org.psem2m.isolates.services.remote
+ .beans.RemoteServiceEvent}" }method { $name="unregisterService" $argu
+ ments="{java.lang.String}" }method { $name="validatePojo" }}}
 

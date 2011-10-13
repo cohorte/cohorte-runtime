@@ -7,9 +7,11 @@ package org.psem2m.isolates.remote.importer;
 
 import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
@@ -22,7 +24,9 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.log.LogService;
 import org.ow2.chameleon.rose.RemoteConstants;
+import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.base.activators.CPojoBase;
+import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.services.remote.IRemoteServiceBroadcaster;
 import org.psem2m.isolates.services.remote.IRemoteServiceClientHandler;
 import org.psem2m.isolates.services.remote.IRemoteServiceEventListener;
@@ -55,6 +59,12 @@ public class RemoteServiceAdapter extends CPojoBase implements
     @Requires
     private IRemoteServiceClientHandler[] pClientHandlers;
 
+    /** The service interfaces exclude filters */
+    private final Set<String> pExcludeFilters = new HashSet<String>();
+
+    /** The service interfaces include filters */
+    private final Set<String> pIncludeFilters = new HashSet<String>();
+
     /** Log service */
     @Requires
     private LogService pLogger;
@@ -72,6 +82,71 @@ public class RemoteServiceAdapter extends CPojoBase implements
 
         super();
         pBundleContext = aBundleContext;
+    }
+
+    /**
+     * Tests if the given interface can be accepted by the remote service
+     * importer
+     * 
+     * @param aInterfaceName
+     *            An imported interface name
+     * @return True if the service can be imported
+     */
+    protected boolean acceptInterface(final String aInterfaceName) {
+
+        // Tests results
+        boolean include = false;
+        boolean exclude = false;
+
+        // Test include filters
+        for (String includeFilter : pIncludeFilters) {
+            if (Utilities.matchFilter(aInterfaceName, includeFilter)) {
+                include = true;
+                break;
+            }
+        }
+
+        if (pIncludeFilters.isEmpty()) {
+            // Be friendly when no filter is given
+            include = true;
+        }
+
+        // Test exclude filters
+        for (String excludeFilter : pExcludeFilters) {
+            if (Utilities.matchFilter(aInterfaceName, excludeFilter)) {
+                exclude = true;
+            }
+        }
+
+        if (pExcludeFilters.isEmpty() && !pIncludeFilters.isEmpty()) {
+            // An inclusion filter is given, exclude everything else
+            exclude = !include;
+        }
+
+        if (include ^ exclude) {
+            // Only one possibility (include or not include)
+            return include;
+
+        } else if (!include) {
+            // Inclusion refused, exclusion not indicated : refuse the interface
+            return false;
+
+        } else {
+            // Worst case : both inclusion and exclusion flags are set
+
+            if (pIncludeFilters.contains(aInterfaceName)) {
+                // The interface full name is included
+                return true;
+
+            } else if (pExcludeFilters.contains(aInterfaceName)) {
+                // The interface full name is excluded
+                return false;
+
+            } else {
+                // The interface matches both filters : refuse it
+                return false;
+            }
+        }
     }
 
     /*
@@ -175,16 +250,72 @@ public class RemoteServiceAdapter extends CPojoBase implements
     }
 
     /**
+     * Parses the given filters string and add found ones to the given set
+     * 
+     * @param aFilterStr
+     *            A filters string
+     * @param aFilters
+     *            Set that will receive found filters
+     */
+    protected void parseFilter(final String aFilterStr,
+            final Set<String> aFilters) {
+
+        if (aFilterStr == null || aFilterStr.isEmpty() || aFilters == null) {
+            // Do nothing if not necessary...
+            return;
+        }
+
+        // "Parse" the string
+        final String[] filtersArray = aFilterStr.split(",");
+
+        for (String filter : filtersArray) {
+
+            // Trim the string for filter efficiency
+            final String trimmedFilter = filter.trim();
+            if (!trimmedFilter.isEmpty()) {
+                // Filter seems valid
+                aFilters.add(trimmedFilter);
+            }
+        }
+    }
+
+    /**
+     * Sets up the inclusion and exclusion filters
+     */
+    protected void prepareFilters() {
+
+        final String inclusionFilters = System
+                .getProperty(IPlatformProperties.PROP_REMOTE_SERVICE_FILTERS_INCLUDE);
+        if (inclusionFilters != null) {
+            parseFilter(inclusionFilters, pIncludeFilters);
+        }
+
+        final String exclusionFilters = System
+                .getProperty(IPlatformProperties.PROP_REMOTE_SERVICE_FILTERS_EXCLUDE);
+        if (exclusionFilters != null) {
+            parseFilter(exclusionFilters, pExcludeFilters);
+        }
+    }
+
+    /**
      * Registers the service described in the given event
      * 
      * @param aServiceEvent
      *            A service registration event
      */
-    protected void registerService(final RemoteServiceEvent aServiceEvent) {
+    protected synchronized void registerService(
+            final RemoteServiceEvent aServiceEvent) {
 
         // Get the service registration object
         final RemoteServiceRegistration registration = aServiceEvent
                 .getServiceRegistration();
+
+        for (String exportedInterface : registration.getExportedInterfaces()) {
+            // Test include / exclude filters
+            if (!acceptInterface(exportedInterface)) {
+                return;
+            }
+        }
 
         // Store the remote service ID
         final String serviceId = registration.getServiceId();
@@ -257,7 +388,7 @@ public class RemoteServiceAdapter extends CPojoBase implements
      * @param aServiceId
      *            The removed service ID
      */
-    protected void unregisterService(final String aServiceId) {
+    protected synchronized void unregisterService(final String aServiceId) {
 
         // Retrieve the service registration
         final ProxyServiceInfo serviceInfo = pRegisteredServices
@@ -294,6 +425,9 @@ public class RemoteServiceAdapter extends CPojoBase implements
     @Override
     @Validate
     public void validatePojo() throws BundleException {
+
+        // Prepare in/exclusion filters
+        prepareFilters();
 
         // Request other isolates state with the RSB
         pBroadcaster.requestAllEndpoints();

@@ -28,6 +28,10 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
     /** Forker start script name */
     public static final String FORKER_SCRIPT_BASE_NAME = "run_forker";
 
+    /** Isolate storage directory parent */
+    public static final String ISOLATE_STORAGE_DIR_BASE = CPlatformDirsSvc.VAR_DIRECTORY
+            + File.separator + "storage" + File.separator;
+
     /** Isolate working directory parent */
     public static final String ISOLATE_WORKING_DIR_BASE = CPlatformDirsSvc.VAR_DIRECTORY
             + File.separator + "work" + File.separator;
@@ -167,6 +171,26 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
             wLogDir.mkdirs();
         }
         return wLogDir;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateStorageDir
+     * (java.lang.String)
+     */
+    @Override
+    public File getIsolateStorageDir(final String aIsolateId) {
+
+        final File dir = new File(getPlatformBaseDir(),
+                ISOLATE_STORAGE_DIR_BASE + aIsolateId);
+        if (!dir.exists()) {
+            // Create directories if needed
+            dir.mkdirs();
+        }
+
+        return dir;
     }
 
     /*

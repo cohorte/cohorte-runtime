@@ -52,6 +52,13 @@ public interface IPlatformDirsSvc extends IPlatformProperties {
     /**
      * @param aIsolateId
      *            the id of an isolate
+     * @return The isolate storage directory
+     */
+    File getIsolateStorageDir(String aIsolateId);
+
+    /**
+     * @param aIsolateId
+     *            the id of an isolate
      * @return The isolate working directory
      */
     File getIsolateWorkingDir(String aIsolateId);

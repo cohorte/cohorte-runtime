@@ -5,6 +5,10 @@
  */
 package org.psem2m.demo.data.core.impl;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.concurrent.Semaphore;
 
 import org.psem2m.demo.erp.api.beans.CCart;
@@ -15,7 +19,10 @@ import org.psem2m.demo.erp.api.beans.CErpActionReport;
  * 
  * @author Thomas Calmant
  */
-public class CartQueueItem {
+public class CartQueueItem implements Serializable {
+
+    /** Serial version UID */
+    private static final long serialVersionUID = 1L;
 
     /** The cart */
     private CCart pCart;
@@ -69,6 +76,28 @@ public class CartQueueItem {
     }
 
     /**
+     * Custom de-serialization
+     * 
+     * @param aObjectInputStream
+     *            An object input stream
+     * @throws IOException
+     *             An error occurred while reading the object
+     * @throws ClassNotFoundException
+     *             A required class wasn't found
+     */
+    private void readObject(final ObjectInputStream aObjectInputStream)
+            throws IOException, ClassNotFoundException {
+
+        // The cart
+        pCart = (CCart) aObjectInputStream.readObject();
+
+        // The ERP action report
+        pReport = (CErpActionReport) aObjectInputStream.readObject();
+
+        pSemaphore = null;
+    }
+
+    /**
      * Sets the ERP action report
      * 
      * @param aReport
@@ -77,5 +106,23 @@ public class CartQueueItem {
     public synchronized void setReport(final CErpActionReport aReport) {
 
         pReport = aReport;
+    }
+
+    /**
+     * Custom serialization
+     * 
+     * @param aObjectOutputStream
+     *            The object output stream
+     * @throws IOException
+     *             An error occurred while writing objects
+     */
+    private void writeObject(final ObjectOutputStream aObjectOutputStream)
+            throws IOException {
+
+        // The cart
+        aObjectOutputStream.writeObject(pCart);
+
+        // The ERP action report
+        aObjectOutputStream.writeObject(pReport);
     }
 }

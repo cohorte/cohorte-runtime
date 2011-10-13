@@ -45,6 +45,9 @@
             "symbolicName":"org.psem2m.demo.erp.api"
         },
         {
+            "symbolicName":"org.psem2m.demo.data.cache.api"
+        },
+        {
             "symbolicName":"org.psem2m.demo.data.cache"
         },
         {

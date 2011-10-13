@@ -39,7 +39,11 @@
         },
         {
             "from":"remote-services.js",
-            "overide":[{
+            "overriddenProperties":{
+                "org.psem2m.remote.filters.include":"*",
+                "org.psem2m.remote.filters.exclude":"org.psem2m.demo.*"
+            },
+            "override":[{
             	"symbolicName":"org.psem2m.isolates.remote.importer",
             	"properties":{
                 	"org.psem2m.isolates.remote.importer.excludes":"org.psem2m.demo.*"

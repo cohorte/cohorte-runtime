@@ -6,7 +6,7 @@
 package org.psem2m.demo.data.core.impl;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -81,7 +81,7 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
     private int pCartAgentTimeout;
 
     /** Items categories cache channel */
-    private ICacheChannel<String, Collection<String>> pChannelCategories;
+    private ICacheChannel<String, HashSet<String>> pChannelCategories;
 
     /** Items cache channel */
     private ICacheChannel<String, ItemBean> pChannelItems;
@@ -173,6 +173,9 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
                     // Update the cache
                     pChannelItems.put(aItemId, itemBean);
 
+                    // Flush the cache
+                    pCacheFactory.flush();
+
                     // Return the bean
                     return new CachedItemBean(itemBean,
                             IQualityLevels.CACHE_LEVEL_SYNC);
@@ -212,10 +215,10 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
                     final List<CachedItemBean> pItems = new ArrayList<CachedItemBean>();
 
                     // Category content for cache update
-                    final Collection<String> categoryItemIds = new LinkedHashSet<String>();
+                    final HashSet<String> categoryItemIds = new LinkedHashSet<String>();
 
                     // Add the currently cached category IDs
-                    final ICachedObject<Collection<String>> cachedCategory = pChannelCategories
+                    final ICachedObject<HashSet<String>> cachedCategory = pChannelCategories
                             .get(aCategory);
                     if (cachedCategory != null) {
                         categoryItemIds.addAll(cachedCategory.getObject());
@@ -244,6 +247,9 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
                     synchronized (pChannelCategories) {
                         pChannelCategories.put(aCategory, categoryItemIds);
                     }
+
+                    // Flush the cache
+                    pCacheFactory.flush();
 
                     return pItems.toArray(new CachedItemBean[pItems.size()]);
                 }
@@ -313,6 +319,9 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
                         }
                     }
 
+                    // Flush the cache
+                    pCacheFactory.flush();
+
                     // Return the result immediately
                     return resultArray;
                 }
@@ -340,9 +349,12 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
     public void invalidatePojo() throws BundleException {
 
         // Close cache channels
-        pCacheFactory.closeChannel(CACHE_CATEGORIES_NAME);
-        pCacheFactory.closeChannel(CACHE_ITEMS_NAME);
-        pCacheFactory.closeChannel(CACHE_STOCKS_NAME);
+        // pCacheFactory.closeChannel(CACHE_CATEGORIES_NAME);
+        // pCacheFactory.closeChannel(CACHE_ITEMS_NAME);
+        // pCacheFactory.closeChannel(CACHE_STOCKS_NAME);
+
+        // Flush the cache
+        pCacheFactory.flush();
 
         pCachedErp = null;
         pLogger.logInfo(this, "invalidatePojo", "QuarterbackSvc Gone");

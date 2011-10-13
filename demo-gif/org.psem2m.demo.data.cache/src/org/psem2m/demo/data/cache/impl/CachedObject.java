@@ -5,6 +5,8 @@
  */
 package org.psem2m.demo.data.cache.impl;
 
+import java.io.Serializable;
+
 import org.psem2m.demo.data.cache.ICachedObject;
 
 /**
@@ -12,7 +14,11 @@ import org.psem2m.demo.data.cache.ICachedObject;
  * 
  * @author Thomas Calmant
  */
-public class CachedObject<T> implements ICachedObject<T> {
+public class CachedObject<T extends Serializable> implements ICachedObject<T>,
+        Serializable {
+
+    /** Serial version UID */
+    private static final long serialVersionUID = 1L;
 
     /** The cached object age */
     private long pCacheAge;
@@ -32,7 +38,9 @@ public class CachedObject<T> implements ICachedObject<T> {
         pCacheAge = System.currentTimeMillis();
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.psem2m.demo.data.cache.ICachedObject#getCacheAge()
      */
     @Override
@@ -41,7 +49,9 @@ public class CachedObject<T> implements ICachedObject<T> {
         return pCacheAge;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.psem2m.demo.data.cache.ICachedObject#getObject()
      */
     @Override
@@ -50,7 +60,9 @@ public class CachedObject<T> implements ICachedObject<T> {
         return pCachedObject;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.psem2m.demo.data.cache.ICachedObject#touch()
      */
     @Override
