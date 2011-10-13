@@ -41,7 +41,7 @@
         {
             "from":"remote-services.js",
             "overriddenProperties":{
-                "org.psem2m.remote.filters.include":"org.psem2m.demo.*"
+                "org.psem2m.remote.filters.exclude":"*"
             }
         },
         {
