@@ -12,8 +12,11 @@ import logging
 import mimetypes
 import os
 import random
+import socket
 import sys
 import urlparse
+
+import traceback
 
 import erp
 import xml_item_parser
@@ -485,12 +488,18 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
         if self.parsed_url.path in self._handlers:
             # Log handlers events
             self._handled = True
+            self._handlers[self.parsed_url.path]()
 
-            try:
-                self._handlers[self.parsed_url.path]()
-
-            except Exception, ex:
-                self.__send_response(500, str(ex), "text/plain")
+#            try:
+#                self._handlers[self.parsed_url.path]()
+#
+#            except socket.error, ex:
+#                print "Socket error ", ex
+#                traceback.print_exc()
+#
+#            except Exception, ex:
+#                traceback.print_exc()
+#                self.__send_response(500, str(ex), "text/plain")
 
         else:
             # No handle found => Try with a real file
@@ -574,6 +583,10 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
         """
         Sends a generic 500 server error message
         """
+        print >> sys.stderr, "-" * 30
+        traceback.print_stack()
+        print >> sys.stderr, "-" * 30
+
         with open("./html/internal_error.html") as html_file:
             page_content = html_file.read()
 

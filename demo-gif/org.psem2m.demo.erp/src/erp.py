@@ -195,7 +195,8 @@ class Erp(object):
 
         if category not in self.__categories:
             # No category found
-            return
+            print "Category", category, "not in", str(self.__categories)
+            return []
 
         if randomize:
             # Retrieve random items
