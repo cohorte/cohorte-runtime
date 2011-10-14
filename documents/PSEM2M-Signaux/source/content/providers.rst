@@ -68,3 +68,85 @@ du service de configuration (``IIsolateDescr.getAccessUrl()``).
 
 Un objet ``HttpSignalData`` est préparé pour contenir les données associées au
 signal, puis ajouté au corps de la requête à l'aide d'un ``ObjectOutputStream``.
+
+
+Propositions d'implémentations
+******************************
+
+L'utilisation du mécanisme de *serialisation* de Java permet de simplifier
+énormément l'utilisation des signaux entre deux machines virtuelles.
+Cependant, ce choix empêche d'émettre et de recevoir les signaux de programmes
+écrits dans un autre langage, ne se basant pas sur la machine virtuelle Java.
+
+Dans tous les cas, le contenu associé au signal doit fournit suffisamment
+d'informations pour pouvoir être converti en un objet implémentant l'interface
+``ISignalData``.
+
+
+Solution parallèle ou alternative ?
+===================================
+
+Ce document décrit quelques possibilités d'implémentations de fournisseurs de
+signaux pouvant résoudre ce problème d'interopérabilité.
+
+On distinguera deux types de solutions :
+
+* les solutions alternatives : les fournisseurs ne supportent que le mode
+  *ouvert*, permet d'émettre et de recevoir des signaux dans un ou plusieurs
+  formats utilisables par des outils ne se basant pas sur la machine virtuelle
+  Java,
+
+* les solutions parallèles : les fournisseurs supportent à la fois le mode
+  *Java*, utilisant la *serialisation*, et un ou plusieurs mode *ouvert*.
+
+
+Service de conversion d'objets ISignalData
+==========================================
+
+Afin de simplifier le travail des fournisseurs et de centraliser du code pouvant
+s'avérer redondant, il serait judicieux de définir un service se chargeant de
+convertir :
+
+* un objet Java ``ISignalData`` dans le format attendu par le récepteur du
+  signal
+* le contenu d'un signal reçu en un objet Java ``ISignalData``
+
+
+L'interface proposée pour un tel service est la suivante :
+
+.. literalinclude:: ../_static/ISignalDataConverter.java
+   :language: java
+   :tab-width: 4
+   :linenos:
+
+
+Le service devra également avoir une propriété ``signal.data.convert.accepts``,
+renvoyant un tableau d'objets String (``String[]``), indiquant les formats de
+donnés qu'il est capable de traiter.
+
+Solutions parallèles
+====================
+
+Extended HTTP Signals Provider
+------------------------------
+
+Cette implémentation serait une extension du fournisseur HTTP basé sur
+``ObjectInputStream`` et ``ObjectoutputStream``.
+
+Le principe est d'utiliser le champ *Content-Type* du protocole HTTP pour
+déterminer le format du contenu du signal.
+Les principaux types de contenu à gérer sont :
+
+* *application/octet-stream* : pour les objets Java sérialisés
+* *application/json* : pour les signaux décrits en JSON
+* *text/xml* : pour les signaux décrits en XML
+
+L'utilisation d'un service de type ``ISignalDataConverter`` est fortement
+recommandée, ceci garantissant notamment l'extensibilité des formats de données
+utilisables.
+
+
+Solutions alternatives
+======================
+
+Sans objet pour le moment.
