@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Controller;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
@@ -36,6 +37,9 @@ import org.psem2m.demo.erp.api.beans.ItemBean;
 import org.psem2m.demo.erp.api.services.IErpDataProxy;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
+import org.psem2m.isolates.services.remote.signals.ISignalData;
+import org.psem2m.isolates.services.remote.signals.ISignalListener;
+import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
 
 /**
  * Main strategy handler
@@ -45,7 +49,8 @@ import org.psem2m.isolates.base.activators.CPojoBase;
 @Component(name = "demo-quarterback-factory", publicFactory = false)
 @Provides(specifications = IQuarterback.class)
 @Instantiate(name = "demo-quarterback")
-public class QuarterbackSvc extends CPojoBase implements IQuarterback {
+public class QuarterbackSvc extends CPojoBase implements IQuarterback,
+        ISignalListener {
 
     /** Items categories cache channel name */
     protected static final String CACHE_CATEGORIES_NAME = "org.psem2m.demo.quarterback.categories";
@@ -61,6 +66,9 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
 
     /** The cart agent timeout system property (in seconds) */
     public static final String PROPERTY_CART_AGENT_TIMEOUT = "org.psem2m.quarterback.cartAgentTimeout";
+
+    /** Signal to toggle the component state */
+    public static final String SIGNAL_TOGGLE_COMPONENT = "/demo/core/quarterback/toggle";
 
     /** ERP Proxy presence flag */
     @ServiceProperty(name = "erp.available")
@@ -96,6 +104,10 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
     /** Log service */
     @Requires
     private IIsolateLoggerSvc pLogger;
+
+    /** iPOJO component controller */
+    @Controller
+    private boolean pQuarterbackActivated;
 
     /**
      * Default constructor
@@ -144,15 +156,25 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
 
     /**
      * Called by iPOJO when the ERP proxy is bound
-     * 
-     * @param aErpDataProxy
-     *            The ERP Proxy service
      */
     @Bind(id = IPOJO_ID_ERP)
-    protected void bindErp(final IErpDataProxy aErpDataProxy) {
+    protected void bindErp() {
 
         // Update the flag
         isProxyAvailable = true;
+    }
+
+    /**
+     * Called by iPOJO when the SSR is bound
+     * 
+     * @param aSignalReceiver
+     *            The SSR service
+     */
+    @Bind
+    protected void bindSignalReceiver(final ISignalReceiver aSignalReceiver) {
+
+        // Register to the component toggle signal
+        aSignalReceiver.registerListener(SIGNAL_TOGGLE_COMPONENT, this);
     }
 
     /*
@@ -342,6 +364,27 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
     /*
      * (non-Javadoc)
      * 
+     * @see org.psem2m.isolates.services.remote.signals.ISignalListener#
+     * handleReceivedSignal(java.lang.String,
+     * org.psem2m.isolates.services.remote.signals.ISignalData)
+     */
+    @Override
+    public void handleReceivedSignal(final String aSignalName,
+            final ISignalData aSignalData) {
+
+        if (SIGNAL_TOGGLE_COMPONENT.equals(aSignalName)) {
+
+            pLogger.logInfo(this, "handleReceivedSignal",
+                    "Quarterback toggle signal received");
+
+            // Toggle the component state : (in)validate will trace the change
+            pQuarterbackActivated = !pQuarterbackActivated;
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.psem2m.isolates.base.activators.CPojoBase#invalidatePojo()
      */
     @Override
@@ -372,12 +415,9 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
 
     /**
      * Called by iPOJO when the ERP proxy is unbound
-     * 
-     * @param aErpDataProxy
-     *            The ERP Proxy service
      */
     @Unbind(id = IPOJO_ID_ERP)
-    protected void unbindErp(final IErpDataProxy aErpDataProxy) {
+    protected void unbindErp() {
 
         // Update the flag
         isProxyAvailable = false;
