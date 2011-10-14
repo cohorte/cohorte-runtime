@@ -12,3 +12,6 @@ org.apache.felix.ipojo.handler.whiteboard
 
 # JMX handler
 org.apache.felix.ipojo.handler.jmx
+
+# Temporal handler
+org.apache.felix.ipojo.handler.temporal
