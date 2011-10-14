@@ -15,7 +15,8 @@ Import-Package: javax.servlet;version=2.5.0, javax.servlet.http;versio
  ersion=1.0.0, org.psem2m.isolates.base.activators;version=1.0.0, org.
  psem2m.isolates.constants;version=1.0.0, org.psem2m.isolates.services
  .remote;version=1.0.0, org.psem2m.isolates.services.remote.beans;vers
- ion=1.0.0, org.psem2m.utilities
+ ion=1.0.0, org.psem2m.utilities, org.psem2m.utilities.logging;version
+ =1.0.0
 iPOJO-Components: instance { $component="org.psem2m.isolates.remote.im
  porter.RemoteServiceAdapter" $name="remote-service-importer" }compone
  nt { $classname="org.psem2m.isolates.remote.importer.RemoteServiceAda
@@ -32,16 +33,17 @@ iPOJO-Components: instance { $component="org.psem2m.isolates.remote.im
  BundleContext" }field { $name="pClientHandlers" $type="org.psem2m.iso
  lates.services.remote.IRemoteServiceClientHandler[]" }field { $name="
  pExcludeFilters" $type="java.util.Set" }field { $name="pIncludeFilter
- s" $type="java.util.Set" }field { $name="pLogger" $type="org.osgi.ser
- vice.log.LogService" }field { $name="pRegisteredServices" $type="java
- .util.Map" }method { $name="acceptInterface" $return="boolean" $argum
- ents="{java.lang.String}" }method { $name="destroy" }method { $name="
- filterProperties" $return="java.util.Dictionary" $arguments="{java.ut
- il.Map}" }method { $name="handleRemoteEvent" $arguments="{org.psem2m.
- isolates.services.remote.beans.RemoteServiceEvent}" }method { $name="
- invalidatePojo" }method { $name="parseFilter" $arguments="{java.lang.
- String,java.util.Set}" }method { $name="prepareFilters" }method { $na
- me="registerService" $arguments="{org.psem2m.isolates.services.remote
- .beans.RemoteServiceEvent}" }method { $name="unregisterService" $argu
- ments="{java.lang.String}" }method { $name="validatePojo" }}}
+ s" $type="java.util.Set" }field { $name="pLogger" $type="org.psem2m.i
+ solates.base.IIsolateLoggerSvc" }field { $name="pRegisteredServices" 
+ $type="java.util.Map" }method { $name="acceptInterface" $return="bool
+ ean" $arguments="{java.lang.String}" }method { $name="destroy" }metho
+ d { $name="filterProperties" $return="java.util.Dictionary" $argument
+ s="{java.util.Map}" }method { $name="handleRemoteEvent" $arguments="{
+ org.psem2m.isolates.services.remote.beans.RemoteServiceEvent}" }metho
+ d { $name="invalidatePojo" }method { $name="parseFilter" $arguments="
+ {java.lang.String,java.util.Set}" }method { $name="prepareFilters" }m
+ ethod { $name="registerService" $arguments="{org.psem2m.isolates.serv
+ ices.remote.beans.RemoteServiceEvent}" }method { $name="unregisterSer
+ vice" $arguments="{java.lang.String}" }method { $name="validatePojo" 
+ }}}
 
