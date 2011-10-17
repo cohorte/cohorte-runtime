@@ -12,7 +12,6 @@ import logging
 import mimetypes
 import os
 import random
-import socket
 import sys
 import urlparse
 
