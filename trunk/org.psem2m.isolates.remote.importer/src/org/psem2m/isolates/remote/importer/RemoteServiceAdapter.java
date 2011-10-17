@@ -39,9 +39,9 @@ import org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration;
  * 
  * @author Thomas Calmant
  */
-@Component(name = "remote-service-importer-factory", publicFactory = false)
+@Component(name = "psem2m-remote-service-importer-factory", publicFactory = false)
 @Provides(specifications = IRemoteServiceEventListener.class)
-@Instantiate(name = "remote-service-importer")
+@Instantiate(name = "psem2m-remote-service-importer")
 public class RemoteServiceAdapter extends CPojoBase implements
         IRemoteServiceEventListener {
 

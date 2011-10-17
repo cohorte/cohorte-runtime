@@ -14,60 +14,60 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  g.psem2m.isolates.services.remote.signals;version=1.0.0, org.psem2m.u
  tilities;version=1.0.0
 iPOJO-Components: instance { $component="org.psem2m.signals.SignalBroa
- dcaster" $name="signal-broadcaster" }instance { $component="org.psem2
- m.signals.SignalReceiver" $name="signal-receiver" }component { $class
- name="org.psem2m.signals.SignalBroadcaster" $name="signal-broadcaster
- -factory" $public="true" provides { $specifications="{org.psem2m.isol
- ates.services.remote.signals.ISignalBroadcaster}" }requires { $field=
- "pBroadcasters" $optional="true" $id="providers" callback { $method="
- bindProvider" $type="bind" }}requires { $field="pLogger" }requires { 
- $field="pReceiver" }callback { $transition="invalidate" $method="inva
- lidatePojo" }callback { $transition="validate" $method="validatePojo"
-  }manipulation { $super="org.psem2m.isolates.base.activators.CPojoBas
- e" interface { $name="org.psem2m.isolates.services.remote.signals.ISi
- gnalBroadcaster" }field { $name="pBroadcasters" $type="org.psem2m.iso
- lates.services.remote.signals.ISignalBroadcastProvider[]" }field { $n
- ame="pLogger" $type="org.osgi.service.log.LogService" }field { $name=
- "pReceiver" $type="org.psem2m.isolates.services.remote.signals.ISigna
- lReceiver" }field { $name="pStoredSpecificSignals" $type="java.util.L
- ist" }field { $name="pStoredTargetedSignals" $type="java.util.List" }
- method { $name="bindProvider" $arguments="{org.psem2m.isolates.servic
- es.remote.signals.ISignalBroadcastProvider}" }method { $name="destroy
- " }method { $name="invalidatePojo" }method { $name="sendData" $argume
- nts="{org.psem2m.isolates.services.remote.signals.ISignalBroadcaster$
- EEmitterTargets,java.lang.String,java.io.Serializable}" }method { $na
- me="sendData" $return="boolean" $arguments="{java.lang.String,java.la
- ng.String,java.io.Serializable}" }method { $name="validatePojo" }}}co
- mponent { $classname="org.psem2m.signals.SignalReceiver" $name="signa
- l-receiver-factory" $public="false" provides { $specifications="{org.
- psem2m.isolates.services.remote.signals.ISignalReceiver}" property { 
- $name="signal-receiver-online" $field="pPropertyOnline" $value="false
- " $mandatory="true" }}requires { $field="pLogger" }requires { $field=
- "pReceivers" $optional="true" $id="receivers" $aggregate="true" $filt
- er="(signal.provider.ready=true)" callback { $method="bindProvider" $
- type="bind" }callback { $method="unbindProvider" $type="unbind" }}cal
- lback { $transition="invalidate" $method="invalidatePojo" }callback {
-  $transition="validate" $method="validatePojo" }manipulation { $super
- ="org.psem2m.isolates.base.activators.CPojoBase" interface { $name="o
- rg.psem2m.isolates.services.remote.signals.ISignalReceiver" }interfac
- e { $name="org.psem2m.isolates.services.remote.signals.ISignalListene
- r" }field { $name="pListeners" $type="java.util.Map" }field { $name="
- pLogger" $type="org.osgi.service.log.LogService" }field { $name="pNbP
- roviders" $type="int" }field { $name="pNotificationExecutor" $type="j
- ava.util.concurrent.ExecutorService" }field { $name="pPropertyOnline"
-  $type="boolean" }field { $name="pReceivers" $type="org.psem2m.isolat
- es.services.remote.signals.ISignalReceptionProvider[]" }method { $nam
- e="bindProvider" $arguments="{org.psem2m.isolates.services.remote.sig
- nals.ISignalReceptionProvider}" }method { $name="destroy" }method { $
- name="handleReceivedSignal" $arguments="{java.lang.String,org.psem2m.
- isolates.services.remote.signals.ISignalData}" }method { $name="inval
- idatePojo" }method { $name="isOnline" $return="boolean" }method { $na
- me="localReception" $arguments="{java.lang.String,org.psem2m.isolates
- .services.remote.signals.ISignalData}" }method { $name="registerListe
- ner" $arguments="{java.lang.String,org.psem2m.isolates.services.remot
- e.signals.ISignalListener}" }method { $name="unbindProvider" $argumen
- ts="{org.psem2m.isolates.services.remote.signals.ISignalReceptionProv
- ider}" }method { $name="unregisterListener" $arguments="{java.lang.St
- ring,org.psem2m.isolates.services.remote.signals.ISignalListener}" }m
- ethod { $name="validatePojo" }}}
+ dcaster" $name="psem2m-signal-broadcaster" }instance { $component="or
+ g.psem2m.signals.SignalReceiver" $name="psem2m-signal-receiver" }comp
+ onent { $classname="org.psem2m.signals.SignalBroadcaster" $name="psem
+ 2m-signal-broadcaster-factory" $public="true" provides { $specificati
+ ons="{org.psem2m.isolates.services.remote.signals.ISignalBroadcaster}
+ " }requires { $field="pBroadcasters" $optional="true" $id="providers"
+  callback { $method="bindProvider" $type="bind" }}requires { $field="
+ pLogger" }requires { $field="pReceiver" }callback { $transition="inva
+ lidate" $method="invalidatePojo" }callback { $transition="validate" $
+ method="validatePojo" }manipulation { $super="org.psem2m.isolates.bas
+ e.activators.CPojoBase" interface { $name="org.psem2m.isolates.servic
+ es.remote.signals.ISignalBroadcaster" }field { $name="pBroadcasters" 
+ $type="org.psem2m.isolates.services.remote.signals.ISignalBroadcastPr
+ ovider[]" }field { $name="pLogger" $type="org.osgi.service.log.LogSer
+ vice" }field { $name="pReceiver" $type="org.psem2m.isolates.services.
+ remote.signals.ISignalReceiver" }field { $name="pStoredSpecificSignal
+ s" $type="java.util.List" }field { $name="pStoredTargetedSignals" $ty
+ pe="java.util.List" }method { $name="bindProvider" $arguments="{org.p
+ sem2m.isolates.services.remote.signals.ISignalBroadcastProvider}" }me
+ thod { $name="destroy" }method { $name="invalidatePojo" }method { $na
+ me="sendData" $arguments="{org.psem2m.isolates.services.remote.signal
+ s.ISignalBroadcaster$EEmitterTargets,java.lang.String,java.io.Seriali
+ zable}" }method { $name="sendData" $return="boolean" $arguments="{jav
+ a.lang.String,java.lang.String,java.io.Serializable}" }method { $name
+ ="validatePojo" }}}component { $classname="org.psem2m.signals.SignalR
+ eceiver" $name="psem2m-signal-receiver-factory" $public="false" provi
+ des { $specifications="{org.psem2m.isolates.services.remote.signals.I
+ SignalReceiver}" property { $name="signal-receiver-online" $field="pP
+ ropertyOnline" $value="false" $mandatory="true" }}requires { $field="
+ pLogger" }requires { $field="pReceivers" $optional="true" $id="receiv
+ ers" $aggregate="true" $filter="(signal.provider.ready=true)" callbac
+ k { $method="bindProvider" $type="bind" }callback { $method="unbindPr
+ ovider" $type="unbind" }}callback { $transition="invalidate" $method=
+ "invalidatePojo" }callback { $transition="validate" $method="validate
+ Pojo" }manipulation { $super="org.psem2m.isolates.base.activators.CPo
+ joBase" interface { $name="org.psem2m.isolates.services.remote.signal
+ s.ISignalReceiver" }interface { $name="org.psem2m.isolates.services.r
+ emote.signals.ISignalListener" }field { $name="pListeners" $type="jav
+ a.util.Map" }field { $name="pLogger" $type="org.osgi.service.log.LogS
+ ervice" }field { $name="pNbProviders" $type="int" }field { $name="pNo
+ tificationExecutor" $type="java.util.concurrent.ExecutorService" }fie
+ ld { $name="pPropertyOnline" $type="boolean" }field { $name="pReceive
+ rs" $type="org.psem2m.isolates.services.remote.signals.ISignalRecepti
+ onProvider[]" }method { $name="bindProvider" $arguments="{org.psem2m.
+ isolates.services.remote.signals.ISignalReceptionProvider}" }method {
+  $name="destroy" }method { $name="handleReceivedSignal" $arguments="{
+ java.lang.String,org.psem2m.isolates.services.remote.signals.ISignalD
+ ata}" }method { $name="invalidatePojo" }method { $name="isOnline" $re
+ turn="boolean" }method { $name="localReception" $arguments="{java.lan
+ g.String,org.psem2m.isolates.services.remote.signals.ISignalData}" }m
+ ethod { $name="registerListener" $arguments="{java.lang.String,org.ps
+ em2m.isolates.services.remote.signals.ISignalListener}" }method { $na
+ me="unbindProvider" $arguments="{org.psem2m.isolates.services.remote.
+ signals.ISignalReceptionProvider}" }method { $name="unregisterListene
+ r" $arguments="{java.lang.String,org.psem2m.isolates.services.remote.
+ signals.ISignalListener}" }method { $name="validatePojo" }}}
 

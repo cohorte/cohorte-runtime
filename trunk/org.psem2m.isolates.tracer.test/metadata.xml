@@ -10,7 +10,7 @@
 	-->
 	<component
 		classname="org.psem2m.isolates.tracer.test.CBundleTracerTestActivator"
-		architecture="true" immediate="true" name="isolates-tracertest-isolatelogger-factory"
+		architecture="true" immediate="true" name="psem2m-tracertest-isolatelogger-factory"
 		factory-method="getInstance" >
 
 		<provides specifications="org.psem2m.isolates.base.IIsolateLoggerSvc" />
@@ -23,15 +23,15 @@
 	<!-- The command "TracableChannels"  service -->
 	<component
 		classname="org.psem2m.isolates.tracer.test.impl.CCommandTracableChannels"
-		architecture="true" immediate="true" name="isolates-tracertest-command-tracablechannels-factory" >
+		architecture="true" immediate="true" name="psem2m-tracertest-command-tracablechannels-factory" >
 
 		<provides specifications="org.apache.felix.shell.Command" />
 
 		<requires field="pTracerSvc" optional="false"
-			from="isolates-tracer-tracer" />
+			from="psem2m-tracer" />
 
 		<requires field="pIsolateLoggerSvc" optional="false"
-			from="isolates-tracertest-isolatelogger"/>
+			from="psem2m-tracertest-isolatelogger"/>
 
 		<callback transition="validate" method="validatePojo" />
 		<callback transition="invalidate" method="invalidatePojo" />
@@ -40,28 +40,28 @@
 	<!-- The command "TraceChannels"  service -->
 	<component
 		classname="org.psem2m.isolates.tracer.test.impl.CCommandTraceChannels"
-		architecture="true" immediate="true" name="isolates-tracertest-command-tracechannels-factory">
+		architecture="true" immediate="true" name="psem2m-tracertest-command-tracechannels-factory">
 
 		<provides specifications="org.apache.felix.shell.Command" />
 
 		<requires field="pTracerSvc" optional="false"
-			from="isolates-tracer-tracer" />
+			from="psem2m-tracer" />
 
 		<requires field="pIsolateLoggerSvc" optional="false"
-			from="isolates-tracertest-isolatelogger"/>
+			from="psem2m-tracertest-isolatelogger"/>
 
 		<callback transition="validate" method="validatePojo" />
 		<callback transition="invalidate" method="invalidatePojo" />
 	</component>
 
 
-	<instance component="isolates-tracertest-isolatelogger-factory"
-		name="isolates-tracertest-isolatelogger" />
+	<instance component="psem2m-tracertest-isolatelogger-factory"
+		name="psem2m-tracertest-isolatelogger" />
 
-	<instance component="isolates-tracertest-command-tracablechannels-factory"
-		name="isolates-tracertest-command-tracablechannels" />
+	<instance component="psem2m-tracertest-command-tracablechannels-factory"
+		name="psem2m-tracertest-command-tracablechannels" />
 
-	<instance component="isolates-tracertest-command-tracechannels-factory"
-		name="isolates-tracertest-command-tracechannels" />
+	<instance component="psem2m-tracertest-command-tracechannels-factory"
+		name="psem2m-tracertest-command-tracechannels" />
 
 </ipojo>

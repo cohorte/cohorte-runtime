@@ -10,7 +10,7 @@
 	-->
 	<component
 		classname="org.psem2m.isolates.utilities.test.CBundleUtilitiesTestActivator"
-		architecture="true" immediate="true" name="isolates-utilitiestest-isolatelogger-factory"
+		architecture="true" immediate="true" name="psem2m-utilitiestest-isolatelogger-factory"
 		factory-method="getInstance" >
 
 		<provides specifications="org.psem2m.isolates.base.IIsolateLoggerSvc" />
@@ -22,8 +22,8 @@
 
 
 
-	<instance component="isolates-utilitiestest-isolatelogger-factory"
-		name="isolates-utilitiestest-isolatelogger" />
+	<instance component="psem2m-utilitiestest-isolatelogger-factory"
+		name="psem2m-utilitiestest-isolatelogger" />
 
 
 </ipojo>

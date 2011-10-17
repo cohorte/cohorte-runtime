@@ -44,9 +44,9 @@ import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
  * 
  * @author Thomas Calmant
  */
-@Component(name = "isolates-master-manager-factory", publicFactory = false)
+@Component(name = "psem2m-master-manager-factory", publicFactory = false)
 @Provides(specifications = IForkerHandler.class)
-@Instantiate(name = "isolates-master-manager")
+@Instantiate(name = "psem2m-master-manager")
 public class CForkerHandlerSvc extends CPojoBase implements IForkerHandler,
         IIsolateOutputListener {
 

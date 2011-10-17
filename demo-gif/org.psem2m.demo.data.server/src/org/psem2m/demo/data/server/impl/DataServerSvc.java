@@ -30,7 +30,7 @@ import org.psem2m.isolates.base.activators.CPojoBase;
  * 
  * @author Thomas Calmant
  */
-@Component(name = "demo-dataserver-factory", publicFactory = true, propagation = true)
+@Component(name = "psem2m-demo-dataserver-factory", publicFactory = true, propagation = true)
 @Provides(specifications = IErpData.class)
 public class DataServerSvc extends CPojoBase implements IErpData {
 

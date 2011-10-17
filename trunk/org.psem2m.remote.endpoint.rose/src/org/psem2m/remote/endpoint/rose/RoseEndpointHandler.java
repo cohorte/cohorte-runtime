@@ -31,9 +31,9 @@ import org.psem2m.isolates.services.remote.beans.EndpointDescription;
  * 
  * @author Thomas Calmant
  */
-@Component(name = "remote-endpoint-handler-rose-factory", publicFactory = false)
+@Component(name = "psem2m-remote-endpoint-handler-rose-factory", publicFactory = false)
 @Provides(specifications = IEndpointHandler.class)
-@Instantiate(name = "remote-endpoint-handler-rose")
+@Instantiate(name = "psem2m-remote-endpoint-handler-rose")
 public class RoseEndpointHandler extends CPojoBase implements IEndpointHandler {
 
     /** The bundle context */

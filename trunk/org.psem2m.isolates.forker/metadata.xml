@@ -7,7 +7,7 @@
 
 	<!-- Java Runner -->
 	<component classname="org.psem2m.isolates.forker.impl.runners.JavaRunner"
-		architecture="true" immediate="true" name="isolates-runner-java-factory"
+		architecture="true" immediate="true" name="psem2m-runner-java-factory"
 		public="false">
 
 		<provides specifications="org.psem2m.isolates.forker.impl.runners.IJavaRunner" />
@@ -18,11 +18,11 @@
 		<callback transition="validate" method="validatePojo" />
 		<callback transition="invalidate" method="invalidatePojo" />
 	</component>
-	<instance component="isolates-runner-java-factory" name="isolates-runner-java" />
+	<instance component="psem2m-runner-java-factory" name="psem2m-runner-java" />
 
 	<!-- OSGi Runner -->
 	<component classname="org.psem2m.isolates.forker.impl.runners.CIsolateRunner"
-		architecture="true" immediate="true" name="isolates-runner-osgi-factory"
+		architecture="true" immediate="true" name="psem2m-runner-osgi-factory"
 		public="false">
 
 		<provides specifications="org.psem2m.isolates.forker.IIsolateRunner" />
@@ -35,12 +35,12 @@
 		<callback transition="validate" method="validatePojo" />
 		<callback transition="invalidate" method="invalidatePojo" />
 	</component>
-	<instance component="isolates-runner-osgi-factory" name="isolates-runner-osgi" />
+	<instance component="psem2m-runner-osgi-factory" name="psem2m-runner-osgi" />
 
 
 	<!-- Forker -->
 	<component classname="org.psem2m.isolates.forker.impl.CForkerSvc"
-		architecture="true" immediate="true" name="isolate-forker-factory"
+		architecture="true" immediate="true" name="psem2m-forker-factory"
 		public="false">
 		<provides specifications="org.psem2m.isolates.services.forker.IForker" />
 
@@ -56,7 +56,7 @@
 	</component>
 
 	<!-- Exported instance -->
-	<instance component="isolate-forker-factory" name="isolate-forker-instance">
+	<instance component="psem2m-forker-factory" name="psem2m-forker">
 		<property name="service.exported.interfaces" value="*" />
 		<property name="service.exported.configs" value="{json-rpc}"
 			type="String[]" />

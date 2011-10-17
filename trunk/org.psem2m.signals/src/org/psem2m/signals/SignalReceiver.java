@@ -36,9 +36,9 @@ import org.psem2m.isolates.services.remote.signals.ISignalReceptionProvider;
  * 
  * @author Thomas Calmant
  */
-@Component(name = "signal-receiver-factory", publicFactory = false)
+@Component(name = "psem2m-signal-receiver-factory", publicFactory = false)
 @Provides(specifications = ISignalReceiver.class)
-@Instantiate(name = "signal-receiver")
+@Instantiate(name = "psem2m-signal-receiver")
 public class SignalReceiver extends CPojoBase implements ISignalReceiver,
         ISignalListener {
 

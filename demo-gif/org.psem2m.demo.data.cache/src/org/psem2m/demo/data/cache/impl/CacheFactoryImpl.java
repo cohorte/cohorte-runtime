@@ -41,9 +41,9 @@ import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
  * 
  * @author Thomas Calmant
  */
-@Component(name = "cache-channel-factory-factory", publicFactory = false)
+@Component(name = "psem2m-cache-factory", publicFactory = false)
 @Provides(specifications = ICacheFactory.class)
-@Instantiate(name = "cache-channel-factory")
+@Instantiate(name = "psem2m-cache")
 public class CacheFactoryImpl extends CPojoBase implements ICacheFactory {
 
     /** Cache file name */

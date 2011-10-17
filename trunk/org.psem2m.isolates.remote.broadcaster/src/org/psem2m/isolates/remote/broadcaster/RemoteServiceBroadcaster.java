@@ -25,9 +25,9 @@ import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster.EEmitterTa
  * 
  * @author Thomas Calmant
  */
-@Component(name = "remote-rsb-factory", publicFactory = false)
+@Component(name = "psem2m-remote-rsb-factory", publicFactory = false)
 @Provides(specifications = IRemoteServiceBroadcaster.class)
-@Instantiate(name = "remote-rsb")
+@Instantiate(name = "psem2m-remote-rsb")
 public class RemoteServiceBroadcaster extends CPojoBase implements
         IRemoteServiceBroadcaster {
 

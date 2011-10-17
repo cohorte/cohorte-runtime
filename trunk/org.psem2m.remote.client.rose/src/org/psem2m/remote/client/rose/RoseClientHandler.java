@@ -33,9 +33,9 @@ import org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration;
  * 
  * @author Thomas Calmant
  */
-@Component(name = "remote-client-handler-rose-factory", publicFactory = false)
+@Component(name = "psem2m-remote-client-handler-rose-factory", publicFactory = false)
 @Provides(specifications = IRemoteServiceClientHandler.class)
-@Instantiate(name = "remote-client-handler-rose")
+@Instantiate(name = "psem2m-remote-client-handler-rose")
 public class RoseClientHandler extends CPojoBase implements
         IRemoteServiceClientHandler {
 

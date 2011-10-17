@@ -55,7 +55,7 @@ import org.xml.sax.SAXException;
  * 
  * @author Thomas Calmant
  */
-@Component(name = "demo-erp-client-python-factory", publicFactory = false, propagation = true)
+@Component(name = "psem2m-demo-erp-client-python-factory", publicFactory = false, propagation = true)
 @Provides(specifications = IErpDataProxy.class)
 public class ErpClient extends CPojoBase implements IErpDataProxy {
 

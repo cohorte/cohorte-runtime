@@ -14,60 +14,60 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  g.psem2m.isolates.base;version=1.0.0, org.psem2m.isolates.base.activa
  tors;version=1.0.0, org.psem2m.isolates.services.dirs;version=1.0.0, 
  org.psem2m.utilities, org.psem2m.utilities.logging
-iPOJO-Components: instance { $component="isolates-loggers-channels-fac
- tory" $name="isolates-loggers-channels" }component { $classname="org.
- psem2m.isolates.loggers.impl.CLogChannelsSvc" $architecture="true" $i
- mmediate="true" $name="isolates-loggers-channels-factory" provides { 
- $specifications="org.psem2m.isolates.loggers.ILogChannelsSvc" }requir
- es { $field="pPlatformDirsSvc" $optional="false" }requires { $field="
- pIsolateLoggerSvc" $optional="false" }callback { $transition="validat
- e" $method="validatePojo" }callback { $transition="invalidate" $metho
- d="invalidatePojo" }manipulation { $super="org.psem2m.isolates.base.a
- ctivators.CPojoBase" interface { $name="org.psem2m.isolates.loggers.I
- LogChannelsSvc" }field { $name="pIsolateLoggerSvc" $type="org.psem2m.
- isolates.base.IIsolateLoggerSvc" }field { $name="pLoggers" $type="jav
- a.util.TreeMap" }field { $name="pPlatformDirsSvc" $type="org.psem2m.i
- solates.services.dirs.IPlatformDirsSvc" }method { $name="destroy" }me
- thod { $name="getChannels" $return="java.util.List" }method { $name="
- getChannelsIds" $return="java.util.List" }method { $name="getLogChann
- el" $return="org.psem2m.isolates.loggers.ILogChannelSvc" $arguments="
- {java.lang.String}" }method { $name="instanciateLogChannel" $return="
- org.psem2m.isolates.loggers.ILogChannelSvc" $arguments="{java.lang.St
- ring,java.io.File}" }method { $name="invalidatePojo" }method { $name=
- "newLogChannel" $return="org.psem2m.isolates.loggers.ILogChannelSvc" 
- $arguments="{java.lang.String}" }method { $name="validatePojo" }}}com
- ponent { $classname="org.psem2m.isolates.loggers.impl.CLogChannelSvc"
-  $architecture="true" $immediate="true" $name="isolates-loggers-chann
- el-factory" provides { $specifications="org.psem2m.isolates.loggers.I
- LogChannelSvc" }properties { property { $field="pChannelName" $mandat
- ory="false" }}requires { $field="pIsolateLoggerSvc" $optional="false"
-  }requires { $field="pLogChannelsSvc" $optional="false" $from="isolat
- es-loggers-channels" }callback { $transition="validate" $method="vali
- datePojo" }callback { $transition="invalidate" $method="invalidatePoj
- o" }manipulation { $super="org.psem2m.isolates.base.activators.CPojoB
- ase" interface { $name="org.psem2m.isolates.loggers.ILogChannelSvc" }
- field { $name="pChannelName" $type="java.lang.String" }field { $name=
- "pIsolateLoggerSvc" $type="org.psem2m.isolates.base.IIsolateLoggerSvc
- " }field { $name="pLogChannelsSvc" $type="org.psem2m.isolates.loggers
- .ILogChannelsSvc" }field { $name="pLogger" $type="org.psem2m.isolates
- .loggers.ILogChannelSvc" }method { $name="close" }method { $name="des
- troy" }method { $name="getRequester" $return="org.psem2m.utilities.lo
- gging.IActivityRequester" }method { $name="hasLogger" $return="boolea
- n" }method { $name="invalidatePojo" }method { $name="isLogDebugOn" $r
- eturn="boolean" }method { $name="isLoggable" $return="boolean" $argum
- ents="{java.util.logging.Level}" }method { $name="isLogInfoOn" $retur
- n="boolean" }method { $name="isLogSevereOn" $return="boolean" }method
-  { $name="isLogWarningOn" $return="boolean" }method { $name="log" $ar
- guments="{java.util.logging.Level,java.lang.Object,java.lang.CharSequ
- ence,java.lang.Object[]}" }method { $name="log" $arguments="{java.uti
- l.logging.LogRecord}" }method { $name="logDebug" $arguments="{java.la
- ng.Object,java.lang.CharSequence,java.lang.Object[]}" }method { $name
- ="logInfo" $arguments="{java.lang.Object,java.lang.CharSequence,java.
- lang.Object[]}" }method { $name="logSevere" $arguments="{java.lang.Ob
- ject,java.lang.CharSequence,java.lang.Object[]}" }method { $name="log
- Warn" $arguments="{java.lang.Object,java.lang.CharSequence,java.lang.
- Object[]}" }method { $name="popLogLineBuffer" $return="org.psem2m.uti
- lities.logging.CLogLineBuffer" }method { $name="pushLogLineBuffer" $a
- rguments="{org.psem2m.utilities.logging.CLogLineBuffer}" }method { $n
- ame="validatePojo" }}}
+iPOJO-Components: instance { $component="psem2m-loggers-channels-facto
+ ry" $name="psem2m-loggers-channels" }component { $classname="org.psem
+ 2m.isolates.loggers.impl.CLogChannelsSvc" $architecture="true" $immed
+ iate="true" $name="psem2m-loggers-channels-factory" provides { $speci
+ fications="org.psem2m.isolates.loggers.ILogChannelsSvc" }requires { $
+ field="pPlatformDirsSvc" $optional="false" }requires { $field="pIsola
+ teLoggerSvc" $optional="false" }callback { $transition="validate" $me
+ thod="validatePojo" }callback { $transition="invalidate" $method="inv
+ alidatePojo" }manipulation { $super="org.psem2m.isolates.base.activat
+ ors.CPojoBase" interface { $name="org.psem2m.isolates.loggers.ILogCha
+ nnelsSvc" }field { $name="pIsolateLoggerSvc" $type="org.psem2m.isolat
+ es.base.IIsolateLoggerSvc" }field { $name="pLoggers" $type="java.util
+ .TreeMap" }field { $name="pPlatformDirsSvc" $type="org.psem2m.isolate
+ s.services.dirs.IPlatformDirsSvc" }method { $name="destroy" }method {
+  $name="getChannels" $return="java.util.List" }method { $name="getCha
+ nnelsIds" $return="java.util.List" }method { $name="getLogChannel" $r
+ eturn="org.psem2m.isolates.loggers.ILogChannelSvc" $arguments="{java.
+ lang.String}" }method { $name="instanciateLogChannel" $return="org.ps
+ em2m.isolates.loggers.ILogChannelSvc" $arguments="{java.lang.String,j
+ ava.io.File}" }method { $name="invalidatePojo" }method { $name="newLo
+ gChannel" $return="org.psem2m.isolates.loggers.ILogChannelSvc" $argum
+ ents="{java.lang.String}" }method { $name="validatePojo" }}}component
+  { $classname="org.psem2m.isolates.loggers.impl.CLogChannelSvc" $arch
+ itecture="true" $immediate="true" $name="psem2m-loggers-channel-facto
+ ry" provides { $specifications="org.psem2m.isolates.loggers.ILogChann
+ elSvc" }properties { property { $field="pChannelName" $mandatory="fal
+ se" }}requires { $field="pIsolateLoggerSvc" $optional="false" }requir
+ es { $field="pLogChannelsSvc" $optional="false" $from="psem2m-loggers
+ -channels" }callback { $transition="validate" $method="validatePojo" 
+ }callback { $transition="invalidate" $method="invalidatePojo" }manipu
+ lation { $super="org.psem2m.isolates.base.activators.CPojoBase" inter
+ face { $name="org.psem2m.isolates.loggers.ILogChannelSvc" }field { $n
+ ame="pChannelName" $type="java.lang.String" }field { $name="pIsolateL
+ oggerSvc" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field {
+  $name="pLogChannelsSvc" $type="org.psem2m.isolates.loggers.ILogChann
+ elsSvc" }field { $name="pLogger" $type="org.psem2m.isolates.loggers.I
+ LogChannelSvc" }method { $name="close" }method { $name="destroy" }met
+ hod { $name="getRequester" $return="org.psem2m.utilities.logging.IAct
+ ivityRequester" }method { $name="hasLogger" $return="boolean" }method
+  { $name="invalidatePojo" }method { $name="isLogDebugOn" $return="boo
+ lean" }method { $name="isLoggable" $return="boolean" $arguments="{jav
+ a.util.logging.Level}" }method { $name="isLogInfoOn" $return="boolean
+ " }method { $name="isLogSevereOn" $return="boolean" }method { $name="
+ isLogWarningOn" $return="boolean" }method { $name="log" $arguments="{
+ java.util.logging.Level,java.lang.Object,java.lang.CharSequence,java.
+ lang.Object[]}" }method { $name="log" $arguments="{java.util.logging.
+ LogRecord}" }method { $name="logDebug" $arguments="{java.lang.Object,
+ java.lang.CharSequence,java.lang.Object[]}" }method { $name="logInfo"
+  $arguments="{java.lang.Object,java.lang.CharSequence,java.lang.Objec
+ t[]}" }method { $name="logSevere" $arguments="{java.lang.Object,java.
+ lang.CharSequence,java.lang.Object[]}" }method { $name="logWarn" $arg
+ uments="{java.lang.Object,java.lang.CharSequence,java.lang.Object[]}"
+  }method { $name="popLogLineBuffer" $return="org.psem2m.utilities.log
+ ging.CLogLineBuffer" }method { $name="pushLogLineBuffer" $arguments="
+ {org.psem2m.utilities.logging.CLogLineBuffer}" }method { $name="valid
+ atePojo" }}}
 

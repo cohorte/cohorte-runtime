@@ -33,8 +33,8 @@ import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
  * 
  * @author Thomas Calmant
  */
-@Component(name = "remote-rsb-signal-handler-factory", publicFactory = false)
-@Instantiate(name = "remote-rsb-signal-handler")
+@Component(name = "psem2m-remote-rsb-signal-handler-factory", publicFactory = false)
+@Instantiate(name = "psem2m-remote-rsb-signal-handler")
 public class BroadcastSignalHandler extends CPojoBase implements
         ISignalListener {
 

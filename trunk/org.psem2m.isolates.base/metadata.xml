@@ -8,7 +8,7 @@
 		to indicate to iPojo how it retrieve the existing instance to "define" the 
 		component with it -->
 	<component classname="org.psem2m.isolates.base.CBundleBaseActivator"
-		architecture="true" immediate="true" name="isolates-base-isolatelogger-factory"
+		architecture="true" immediate="true" name="psem2m-base-isolatelogger-factory"
 		factory-method="getInstance">
 
 		<provides specifications="org.psem2m.isolates.base.IIsolateLoggerSvc" />
@@ -19,7 +19,7 @@
 
 	<!-- The platform directories service -->
 	<component classname="org.psem2m.isolates.base.dirs.impl.CPlatformDirsSvc"
-		architecture="true" immediate="true" name="isolates-base-platform-dirs-factory"
+		architecture="true" immediate="true" name="psem2m-base-platform-dirs-factory"
 		public="false">
 
 		<provides specifications="org.psem2m.isolates.base.dirs.IPlatformDirsSvc" />
@@ -27,7 +27,7 @@
 
 	<!-- The bundle finder service -->
 	<component classname="org.psem2m.isolates.base.bundles.impl.CBundleFinderSvc"
-		architecture="true" immediate="true" name="isolates-base-bundle-finder-factory"
+		architecture="true" immediate="true" name="psem2m-base-bundle-finder-factory"
 		public="false">
 
 		<provides specifications="org.psem2m.isolates.base.bundles.IBundleFinderSvc" />
@@ -36,7 +36,7 @@
 
 	<!-- The file finder service -->
 	<component classname="org.psem2m.isolates.base.dirs.impl.CFileFinderSvc"
-		architecture="true" immediate="true" name="isolates-base-file-finder-factory"
+		architecture="true" immediate="true" name="psem2m-base-file-finder-factory"
 		public="false">
 		
 		<requires field="pPlatformDirs" optional="false" />
@@ -45,14 +45,14 @@
 	</component>
 
 	<!-- Instances -->
-	<instance component="isolates-base-isolatelogger-factory"
-		name="isolates-base-isolatelogger" />
+	<instance component="psem2m-base-isolatelogger-factory"
+		name="psem2m-base-isolatelogger" />
 
-	<instance component="isolates-base-platform-dirs-factory"
-		name="isolates-base-platform-dirs" />
+	<instance component="psem2m-base-platform-dirs-factory"
+		name="psem2m-base-platform-dirs" />
 
-	<instance component="isolates-base-bundle-finder-factory"
-		name="isolates-base-bundle-finder" />
+	<instance component="psem2m-base-bundle-finder-factory"
+		name="psem2m-base-bundle-finder" />
 
-	<instance component="isolates-base-file-finder-factory" name="isolates-base-file-finder" />
+	<instance component="psem2m-base-file-finder-factory" name="psem2m-base-file-finder" />
 </ipojo>

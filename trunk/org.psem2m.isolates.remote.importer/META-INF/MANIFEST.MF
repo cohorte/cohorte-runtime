@@ -18,32 +18,32 @@ Import-Package: javax.servlet;version=2.5.0, javax.servlet.http;versio
  ion=1.0.0, org.psem2m.utilities, org.psem2m.utilities.logging;version
  =1.0.0
 iPOJO-Components: instance { $component="org.psem2m.isolates.remote.im
- porter.RemoteServiceAdapter" $name="remote-service-importer" }compone
- nt { $classname="org.psem2m.isolates.remote.importer.RemoteServiceAda
- pter" $name="remote-service-importer-factory" $public="false" provide
- s { $specifications="{org.psem2m.isolates.services.remote.IRemoteServ
- iceEventListener}" }requires { $field="pBroadcaster" }requires { $fie
- ld="pClientHandlers" }requires { $field="pLogger" }callback { $transi
- tion="invalidate" $method="invalidatePojo" }callback { $transition="v
- alidate" $method="validatePojo" }manipulation { $super="org.psem2m.is
- olates.base.activators.CPojoBase" interface { $name="org.psem2m.isola
- tes.services.remote.IRemoteServiceEventListener" }field { $name="pBro
- adcaster" $type="org.psem2m.isolates.services.remote.IRemoteServiceBr
- oadcaster" }field { $name="pBundleContext" $type="org.osgi.framework.
- BundleContext" }field { $name="pClientHandlers" $type="org.psem2m.iso
- lates.services.remote.IRemoteServiceClientHandler[]" }field { $name="
- pExcludeFilters" $type="java.util.Set" }field { $name="pIncludeFilter
- s" $type="java.util.Set" }field { $name="pLogger" $type="org.psem2m.i
- solates.base.IIsolateLoggerSvc" }field { $name="pRegisteredServices" 
- $type="java.util.Map" }method { $name="acceptInterface" $return="bool
- ean" $arguments="{java.lang.String}" }method { $name="destroy" }metho
- d { $name="filterProperties" $return="java.util.Dictionary" $argument
- s="{java.util.Map}" }method { $name="handleRemoteEvent" $arguments="{
- org.psem2m.isolates.services.remote.beans.RemoteServiceEvent}" }metho
- d { $name="invalidatePojo" }method { $name="parseFilter" $arguments="
- {java.lang.String,java.util.Set}" }method { $name="prepareFilters" }m
- ethod { $name="registerService" $arguments="{org.psem2m.isolates.serv
- ices.remote.beans.RemoteServiceEvent}" }method { $name="unregisterSer
- vice" $arguments="{java.lang.String}" }method { $name="validatePojo" 
- }}}
+ porter.RemoteServiceAdapter" $name="psem2m-remote-service-importer" }
+ component { $classname="org.psem2m.isolates.remote.importer.RemoteSer
+ viceAdapter" $name="psem2m-remote-service-importer-factory" $public="
+ false" provides { $specifications="{org.psem2m.isolates.services.remo
+ te.IRemoteServiceEventListener}" }requires { $field="pBroadcaster" }r
+ equires { $field="pClientHandlers" }requires { $field="pLogger" }call
+ back { $transition="invalidate" $method="invalidatePojo" }callback { 
+ $transition="validate" $method="validatePojo" }manipulation { $super=
+ "org.psem2m.isolates.base.activators.CPojoBase" interface { $name="or
+ g.psem2m.isolates.services.remote.IRemoteServiceEventListener" }field
+  { $name="pBroadcaster" $type="org.psem2m.isolates.services.remote.IR
+ emoteServiceBroadcaster" }field { $name="pBundleContext" $type="org.o
+ sgi.framework.BundleContext" }field { $name="pClientHandlers" $type="
+ org.psem2m.isolates.services.remote.IRemoteServiceClientHandler[]" }f
+ ield { $name="pExcludeFilters" $type="java.util.Set" }field { $name="
+ pIncludeFilters" $type="java.util.Set" }field { $name="pLogger" $type
+ ="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pRegist
+ eredServices" $type="java.util.Map" }method { $name="acceptInterface"
+  $return="boolean" $arguments="{java.lang.String}" }method { $name="d
+ estroy" }method { $name="filterProperties" $return="java.util.Diction
+ ary" $arguments="{java.util.Map}" }method { $name="handleRemoteEvent"
+  $arguments="{org.psem2m.isolates.services.remote.beans.RemoteService
+ Event}" }method { $name="invalidatePojo" }method { $name="parseFilter
+ " $arguments="{java.lang.String,java.util.Set}" }method { $name="prep
+ areFilters" }method { $name="registerService" $arguments="{org.psem2m
+ .isolates.services.remote.beans.RemoteServiceEvent}" }method { $name=
+ "unregisterService" $arguments="{java.lang.String}" }method { $name="
+ validatePojo" }}}
 

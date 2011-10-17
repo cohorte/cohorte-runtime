@@ -48,9 +48,9 @@ import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
  * 
  * @author Thomas Calmant
  */
-@Component(name = "demo-quarterback-factory", publicFactory = false)
+@Component(name = "psem2m-demo-quarterback-factory", publicFactory = false)
 @Provides(specifications = IQuarterback.class)
-@Instantiate(name = "demo-quarterback")
+@Instantiate(name = "psem2m-demo-quarterback")
 public class QuarterbackSvc extends CPojoBase implements IQuarterback,
         ISignalListener {
 

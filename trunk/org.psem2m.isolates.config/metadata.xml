@@ -7,7 +7,7 @@
 
 	<!-- The configuration service -->
 	<component classname="org.psem2m.isolates.config.impl.CJsonConfigSvc"
-		architecture="true" immediate="true" name="isolates-config-factory">
+		architecture="true" immediate="true" name="psem2m-config-factory">
 
 		<provides specifications="org.psem2m.isolates.services.conf.ISvcConfig" />
 
@@ -20,6 +20,6 @@
 	</component>
 
 	<!-- Instances -->
-	<instance component="isolates-config-factory" name="isolates-config" />
+	<instance component="psem2m-config-factory" name="psem2m-config" />
 	
 </ipojo>

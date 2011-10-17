@@ -40,8 +40,8 @@ import org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration;
  * 
  * @author Thomas Calmant
  */
-@Component(name = "remote-service-exporter-factory", publicFactory = false)
-@Instantiate(name = "remote-service-exporter")
+@Component(name = "psem2m-remote-service-exporter-factory", publicFactory = false)
+@Instantiate(name = "psem2m-remote-service-exporter")
 public class ServiceExporter extends CPojoBase implements ServiceListener {
 
     /**
