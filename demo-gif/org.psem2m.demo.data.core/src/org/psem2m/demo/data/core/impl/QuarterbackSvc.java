@@ -10,6 +10,8 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.felix.ipojo.annotations.Bind;
@@ -108,6 +110,19 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback,
     /** iPOJO component controller */
     @Controller
     private boolean pQuarterbackActivated;
+
+    /** The cache executor */
+    private ScheduledExecutorService pUpdateExecutor;
+
+    /** The cache updater runnable */
+    private Runnable pUpdateRunnable = new Runnable() {
+
+        @Override
+        public void run() {
+
+            updateCache();
+        }
+    };
 
     /**
      * Default constructor
@@ -391,6 +406,9 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback,
     @Invalidate
     public void invalidatePojo() throws BundleException {
 
+        // Stop the cache updater
+        pUpdateExecutor.shutdownNow();
+
         // Close cache channels
         // pCacheFactory.closeChannel(CACHE_CATEGORIES_NAME);
         // pCacheFactory.closeChannel(CACHE_ITEMS_NAME);
@@ -399,6 +417,7 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback,
         // Flush the cache
         pCacheFactory.flush();
 
+        // Forget the cached ERP
         pCachedErp = null;
         pLogger.logInfo(this, "invalidatePojo", "QuarterbackSvc Gone");
     }
@@ -421,6 +440,61 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback,
 
         // Update the flag
         isProxyAvailable = false;
+    }
+
+    /**
+     * Called by the scheduler at fixed intervals to update the cache if
+     * possible
+     */
+    public void updateCache() {
+
+        if (!isProxyAvailable) {
+            // ERP is absent, do nothing
+            pLogger.logInfo(this, "updateCache", "ERP is absent");
+            return;
+        }
+
+        pLogger.logInfo(this, "updateCache", "Update cache");
+
+        // Update categories
+        updateCategoryCache("screens");
+        updateCategoryCache("mouses");
+    }
+
+    /**
+     * Calls the ERP to get all items in the given category and their stock.
+     * Those calls will update the cache.
+     * 
+     * @param aCategory
+     *            Category to be updated
+     */
+    protected void updateCategoryCache(final String aCategory) {
+
+        if (!isProxyAvailable) {
+            // No ERP, no update
+            return;
+        }
+
+        // Retrieve **all** items of the given category
+        final CachedItemBean[] items = getItems(aCategory, -1, false, "");
+        if (items == null) {
+            // No items for the given category...
+            return;
+        }
+
+        // Get items IDs
+        final List<String> itemsIds = new ArrayList<String>(items.length);
+        for (CachedItemBean item : items) {
+            if (item.getQualityLevel() == IQualityLevels.CACHE_LEVEL_SYNC) {
+                // Only look for synchronized items
+                itemsIds.add(item.getId());
+            }
+        }
+
+        // Update the stocks (don't care about error)
+        if (!itemsIds.isEmpty()) {
+            getItemsStock(itemsIds.toArray(new String[itemsIds.size()]));
+        }
     }
 
     /*
@@ -449,7 +523,14 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback,
         pChannelItems = pCacheFactory.openChannel(CACHE_ITEMS_NAME);
         pChannelStocks = pCacheFactory.openChannel(CACHE_STOCKS_NAME);
 
+        // Prepare the cached ERP
         pCachedErp = new CachedErp();
+
+        // Prepare the cache updater
+        pUpdateExecutor = Executors.newScheduledThreadPool(1);
+        pUpdateExecutor.scheduleAtFixedRate(pUpdateRunnable, 10, 60,
+                TimeUnit.SECONDS);
+
         pLogger.logInfo(this, "validatePojo", "QuarterbackSvc Ready");
     }
 }

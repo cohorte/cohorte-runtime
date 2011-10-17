@@ -67,19 +67,22 @@ iPOJO-Components: instance { $component="org.psem2m.demo.data.core.imp
  sem2m.demo.data.cache.ICacheChannel" }field { $name="pErpProxy" $type
  ="org.psem2m.demo.erp.api.services.IErpDataProxy" }field { $name="pLo
  gger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $na
- me="pQuarterbackActivated" $type="boolean" }method { $name="applyCart
- " $return="org.psem2m.demo.erp.api.beans.CErpActionReport" $arguments
- ="{org.psem2m.demo.erp.api.beans.CCart}" }method { $name="bindErp" }m
- ethod { $name="bindSignalReceiver" $arguments="{org.psem2m.isolates.s
- ervices.remote.signals.ISignalReceiver}" }method { $name="getItem" $r
- eturn="org.psem2m.demo.erp.api.beans.CachedItemBean" $arguments="{jav
- a.lang.String}" }method { $name="getItems" $return="org.psem2m.demo.e
- rp.api.beans.CachedItemBean[]" $arguments="{java.lang.String,int,bool
- ean,java.lang.String}" }method { $name="getItemsStock" $return="org.p
- sem2m.demo.erp.api.beans.CachedItemStockBean[]" $arguments="{java.lan
- g.String[]}" }method { $name="handleReceivedSignal" $arguments="{java
- .lang.String,org.psem2m.isolates.services.remote.signals.ISignalData}
- " }method { $name="invalidatePojo" }method { $name="isProxyAvailable"
-  $return="boolean" }method { $name="unbindErp" }method { $name="valid
- atePojo" }}}
+ me="pQuarterbackActivated" $type="boolean" }field { $name="pUpdateExe
+ cutor" $type="java.util.concurrent.ScheduledExecutorService" }field {
+  $name="pUpdateRunnable" $type="java.lang.Runnable" }method { $name="
+ applyCart" $return="org.psem2m.demo.erp.api.beans.CErpActionReport" $
+ arguments="{org.psem2m.demo.erp.api.beans.CCart}" }method { $name="bi
+ ndErp" }method { $name="bindSignalReceiver" $arguments="{org.psem2m.i
+ solates.services.remote.signals.ISignalReceiver}" }method { $name="ge
+ tItem" $return="org.psem2m.demo.erp.api.beans.CachedItemBean" $argume
+ nts="{java.lang.String}" }method { $name="getItems" $return="org.psem
+ 2m.demo.erp.api.beans.CachedItemBean[]" $arguments="{java.lang.String
+ ,int,boolean,java.lang.String}" }method { $name="getItemsStock" $retu
+ rn="org.psem2m.demo.erp.api.beans.CachedItemStockBean[]" $arguments="
+ {java.lang.String[]}" }method { $name="handleReceivedSignal" $argumen
+ ts="{java.lang.String,org.psem2m.isolates.services.remote.signals.ISi
+ gnalData}" }method { $name="invalidatePojo" }method { $name="isProxyA
+ vailable" $return="boolean" }method { $name="unbindErp" }method { $na
+ me="updateCache" }method { $name="updateCategoryCache" $arguments="{j
+ ava.lang.String}" }method { $name="validatePojo" }}}
 
