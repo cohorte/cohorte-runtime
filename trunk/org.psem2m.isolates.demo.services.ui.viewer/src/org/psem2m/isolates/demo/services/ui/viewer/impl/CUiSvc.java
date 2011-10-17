@@ -12,6 +12,8 @@ package org.psem2m.isolates.demo.services.ui.viewer.impl;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -129,7 +131,7 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
      */
     private String buildComponentsDescription() {
 
-        final StringBuilder builder = new StringBuilder();
+        List<String> componentsLines = new ArrayList<String>();
 
         for (Architecture arch : pArchitectures) {
 
@@ -139,10 +141,20 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
             final String strState = description.getDescription().getAttribute(
                     "state");
 
+            final StringBuilder builder = new StringBuilder();
             builder.append(description.getName()).append("[")
                     .append(description.getBundleId()).append("] -> ")
                     .append(strState).append(" (")
                     .append(description.getState()).append(")\n");
+
+            componentsLines.add(builder.toString());
+        }
+
+        Collections.sort(componentsLines);
+
+        final StringBuilder builder = new StringBuilder();
+        for (String line : componentsLines) {
+            builder.append(line);
         }
 
         return builder.toString();
