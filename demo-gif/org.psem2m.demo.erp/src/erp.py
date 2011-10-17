@@ -7,6 +7,7 @@ Created on 5 oct. 2011
 
 import os
 import random
+import threading
 import time
 import xml_item_parser
 
@@ -45,6 +46,9 @@ class Erp(object):
         self.__nb_requests = 0
         self.__start_time = 0
         self.__last_time = 0
+
+        # Stock lock
+        self.__stock_lock = threading.RLock()
 
 
     def load_content(self, source_folder):
@@ -116,15 +120,34 @@ class Erp(object):
         success = True
         reason = ""
 
-        for item in cart_content:
-            item_id = item["id"]
-            current_stock = self.get_item_stock(item_id, False)
-            new_stock = current_stock - int(item["quantity"])
+        with self.__stock_lock:
 
-            if not self.set_item_stock(item_id, new_stock, False):
-                success = False
-                reason += "Can't set item '" + str(item_id)
-                reason += "' stock value to : " + str(new_stock) + "\n"
+            applied_mods = []
+
+            for item in cart_content:
+                # Validate the cart
+                item_id = item["id"]
+                quantity = int(item["quantity"])
+
+                current_stock = self.get_item_stock(item_id, False)
+                new_stock = current_stock - quantity
+
+                if new_stock < 0:
+                    return ErpActionReport(500, "Insufficient stock", \
+                                           "Can't get " + str(quantity) \
+                                           + item_id)
+
+                # Valid item
+                applied_mods.append((item_id, new_stock))
+
+
+            for item_id, new_stock in applied_mods:
+                # Apply modifications to the stock
+                if not self.set_item_stock(item_id, new_stock, False):
+                    success = False
+                    reason += "Can't set item '" + str(item_id)
+                    reason += "' stock value to : " + str(new_stock) + "\n"
+                    return
 
 
         if success:
@@ -289,7 +312,9 @@ class Erp(object):
         if item_id not in self.__stocks:
             return -1
 
-        return int(self.__stocks[item_id])
+        # Synchronized block
+        with self.__stock_lock:
+            return int(self.__stocks[item_id])
 
 
     def set_item_stock(self, item_id, new_stock, update_stats=True):
@@ -307,15 +332,19 @@ class Erp(object):
         if item_id not in self.__stocks:
             return False
 
-        try:
-            print "Old stock :", self.__stocks[item_id]
-            self.__stocks[item_id] = int(new_stock)
-            print "New stock :", self.__stocks[item_id]
-            return True
+        # Synchronized block
+        with self.__stock_lock:
+            try:
+                old_stock = self.__stocks[item_id]
+                self.__stocks[item_id] = int(new_stock)
 
-        except:
-            # Error in conversion or in assignment...
-            return False
+                print "Item :", item_id, "- old stock :", old_stock, \
+                      "- new stock :", int(new_stock)
+                return True
+
+            except:
+                # Error in conversion or in assignment...
+                return False
 
 
     def is_running(self):
