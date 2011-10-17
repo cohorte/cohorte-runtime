@@ -11,14 +11,19 @@ import java.io.Serializable;
  * Describes a cache channel
  * 
  * @author Thomas Calmant
+ * 
+ * @param <K>
+ *            The type of keys in the channel (must be serializable)
+ * @param <V>
+ *            The type of values in the channel (must be serializable)
  */
 public interface ICacheChannel<K extends Serializable, V extends Serializable>
         extends Serializable {
 
     /**
-     * Closes the channel
+     * Clears the channel content
      */
-    void close();
+    void clear();
 
     /**
      * Retrieves the cached object associated to the given key

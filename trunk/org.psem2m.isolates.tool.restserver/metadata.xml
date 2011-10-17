@@ -10,7 +10,7 @@
 	<component
 		classname="org.psem2m.isolates.tool.restserver.CBundleRestServerActivator"
 		architecture="true" immediate="true"
-		name="isolates-restserver-isolatelogger-factory" factory-method="getInstance">
+		name="psem2m-restserver-isolatelogger-factory" factory-method="getInstance">
 
 		<provides specifications="org.psem2m.isolates.base.activators.IIsolateLoggerSvc" />
 
@@ -21,16 +21,16 @@
 
 	<!-- The RestServer service -->
 	<component classname="org.psem2m.isolates.tool.restserver.impl.CRestServerSvc"
-		architecture="true" immediate="true" name="isolates-restserver-restserver-factory">
+		architecture="true" immediate="true" name="psem2m-restserver-restserver-factory">
 
 		<provides specifications="org.psem2m.isolates.tool.restserver.IRestServerSvc" />
 
 		<requires field="pRestServerLoggerSvc" optional="false"
-			from="isolates-restserver-logger-channel" />
+			from="psem2m-restserver-logger-channel" />
 
 
 		<requires field="pIsolateLoggerSvc" optional="false"
-			from="isolates-restserver-isolatelogger" />
+			from="psem2m-restserver-isolatelogger" />
 
 
 		<callback transition="validate" method="validatePojo" />
@@ -38,17 +38,17 @@
 	</component>
 
 
-	<instance component="isolates-loggers-channel-factory" name="isolates-restserver-logger-channel">
+	<instance component="psem2m-loggers-channel-factory" name="psem2m-restserver-logger-channel">
 		<property name="pChannelName" value="bundle-restserver" />
 	</instance>
 
 
-	<instance component="isolates-restserver-isolatelogger-factory"
-		name="isolates-restserver-isolatelogger" />
+	<instance component="psem2m-restserver-isolatelogger-factory"
+		name="psem2m-restserver-isolatelogger" />
 
 
-	<instance component="isolates-restserver-restserver-factory"
-		name="isolates-restserver-restserver" />
+	<instance component="psem2m-restserver-restserver-factory"
+		name="psem2m-restserver-restserver" />
 
 
 </ipojo>

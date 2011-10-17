@@ -15,43 +15,43 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  .psem2m.isolates.services.remote.signals;version=1.0.0, org.psem2m.ut
  ilities;version=1.0.0
 iPOJO-Components: instance { $component="org.psem2m.isolates.remote.br
- oadcaster.BroadcastSignalHandler" $name="remote-rsb-signal-handler" }
- instance { $component="org.psem2m.isolates.remote.broadcaster.RemoteS
- erviceBroadcaster" $name="remote-rsb" }component { $classname="org.ps
- em2m.isolates.remote.broadcaster.BroadcastSignalHandler" $name="remot
- e-rsb-signal-handler-factory" $public="false" requires { $field="pLog
- ger" }requires { $field="pRemoteEventsListeners" }requires { $field="
- pRepository" }requires { $field="pSignalEmitter" }requires { $field="
- pSignalReceiver" }callback { $transition="invalidate" $method="invali
- datePojo" }callback { $transition="validate" $method="validatePojo" }
- manipulation { $super="org.psem2m.isolates.base.activators.CPojoBase"
-  interface { $name="org.psem2m.isolates.services.remote.signals.ISign
- alListener" }field { $name="pLogger" $type="org.osgi.service.log.LogS
- ervice" }field { $name="pRemoteEventsListeners" $type="org.psem2m.iso
- lates.services.remote.IRemoteServiceEventListener[]" }field { $name="
- pRepository" $type="org.psem2m.isolates.services.remote.IRemoteServic
- eRepository" }field { $name="pSignalEmitter" $type="org.psem2m.isolat
- es.services.remote.signals.ISignalBroadcaster" }field { $name="pSigna
- lReceiver" $type="org.psem2m.isolates.services.remote.signals.ISignal
- Receiver" }method { $name="destroy" }method { $name="handleReceivedSi
- gnal" $arguments="{java.lang.String,org.psem2m.isolates.services.remo
- te.signals.ISignalData}" }method { $name="handleRemoteEvent" $argumen
- ts="{org.psem2m.isolates.services.remote.beans.RemoteServiceEvent}" }
- method { $name="handleRequestEndpoints" $arguments="{java.lang.String
- }" }method { $name="invalidatePojo" }method { $name="validatePojo" }}
- }component { $classname="org.psem2m.isolates.remote.broadcaster.Remot
- eServiceBroadcaster" $name="remote-rsb-factory" $public="false" provi
- des { $specifications="{org.psem2m.isolates.services.remote.IRemoteSe
- rviceBroadcaster}" }requires { $field="pLogger" }requires { $field="p
- SignalEmitter" }callback { $transition="invalidate" $method="invalida
- tePojo" }callback { $transition="validate" $method="validatePojo" }ma
- nipulation { $super="org.psem2m.isolates.base.activators.CPojoBase" i
- nterface { $name="org.psem2m.isolates.services.remote.IRemoteServiceB
- roadcaster" }field { $name="pLogger" $type="org.osgi.service.log.LogS
- ervice" }field { $name="pSignalEmitter" $type="org.psem2m.isolates.se
- rvices.remote.signals.ISignalBroadcaster" }method { $name="destroy" }
- method { $name="invalidatePojo" }method { $name="requestAllEndpoints"
-  }method { $name="sendNotification" $arguments="{org.psem2m.isolates.
- services.remote.beans.RemoteServiceEvent}" }method { $name="validateP
- ojo" }}}
+ oadcaster.BroadcastSignalHandler" $name="psem2m-remote-rsb-signal-han
+ dler" }instance { $component="org.psem2m.isolates.remote.broadcaster.
+ RemoteServiceBroadcaster" $name="psem2m-remote-rsb" }component { $cla
+ ssname="org.psem2m.isolates.remote.broadcaster.BroadcastSignalHandler
+ " $name="psem2m-remote-rsb-signal-handler-factory" $public="false" re
+ quires { $field="pLogger" }requires { $field="pRemoteEventsListeners"
+  }requires { $field="pRepository" }requires { $field="pSignalEmitter"
+  }requires { $field="pSignalReceiver" }callback { $transition="invali
+ date" $method="invalidatePojo" }callback { $transition="validate" $me
+ thod="validatePojo" }manipulation { $super="org.psem2m.isolates.base.
+ activators.CPojoBase" interface { $name="org.psem2m.isolates.services
+ .remote.signals.ISignalListener" }field { $name="pLogger" $type="org.
+ osgi.service.log.LogService" }field { $name="pRemoteEventsListeners" 
+ $type="org.psem2m.isolates.services.remote.IRemoteServiceEventListene
+ r[]" }field { $name="pRepository" $type="org.psem2m.isolates.services
+ .remote.IRemoteServiceRepository" }field { $name="pSignalEmitter" $ty
+ pe="org.psem2m.isolates.services.remote.signals.ISignalBroadcaster" }
+ field { $name="pSignalReceiver" $type="org.psem2m.isolates.services.r
+ emote.signals.ISignalReceiver" }method { $name="destroy" }method { $n
+ ame="handleReceivedSignal" $arguments="{java.lang.String,org.psem2m.i
+ solates.services.remote.signals.ISignalData}" }method { $name="handle
+ RemoteEvent" $arguments="{org.psem2m.isolates.services.remote.beans.R
+ emoteServiceEvent}" }method { $name="handleRequestEndpoints" $argumen
+ ts="{java.lang.String}" }method { $name="invalidatePojo" }method { $n
+ ame="validatePojo" }}}component { $classname="org.psem2m.isolates.rem
+ ote.broadcaster.RemoteServiceBroadcaster" $name="psem2m-remote-rsb-fa
+ ctory" $public="false" provides { $specifications="{org.psem2m.isolat
+ es.services.remote.IRemoteServiceBroadcaster}" }requires { $field="pL
+ ogger" }requires { $field="pSignalEmitter" }callback { $transition="i
+ nvalidate" $method="invalidatePojo" }callback { $transition="validate
+ " $method="validatePojo" }manipulation { $super="org.psem2m.isolates.
+ base.activators.CPojoBase" interface { $name="org.psem2m.isolates.ser
+ vices.remote.IRemoteServiceBroadcaster" }field { $name="pLogger" $typ
+ e="org.osgi.service.log.LogService" }field { $name="pSignalEmitter" $
+ type="org.psem2m.isolates.services.remote.signals.ISignalBroadcaster"
+  }method { $name="destroy" }method { $name="invalidatePojo" }method {
+  $name="requestAllEndpoints" }method { $name="sendNotification" $argu
+ ments="{org.psem2m.isolates.services.remote.beans.RemoteServiceEvent}
+ " }method { $name="validatePojo" }}}
 

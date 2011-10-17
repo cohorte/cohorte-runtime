@@ -48,14 +48,22 @@ class CErpActionReport(object):
         '''
         Constructor
         '''
-        try:
-            self.status = int(representation["status"])
-            self.message = representation["message"]
-            self.reasonInfos = representation["reasonInfos"]
-            self.qualityLevel = int(representation["qualityLevel"])
 
-        except Exception as e:
-            print "Error reading CErpActionReport :", e
+        if not representation:
+            self.status = -1
+            self.message = "NULL REPRESENTATION"
+            self.reasonInfos = "NULL REPRESENTATION"
+            self.qualityLevel = 100
+
+        else:
+            try:
+                self.status = int(representation["status"])
+                self.message = representation["message"]
+                self.reasonInfos = representation["reasonInfos"]
+                self.qualityLevel = int(representation["qualityLevel"])
+
+            except Exception as e:
+                print "Error reading CErpActionReport :", e
 
 
 # ------------------------------------------------------------------------------

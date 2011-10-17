@@ -240,9 +240,10 @@ public class CFrameMain extends javax.swing.JFrame {
 
     private JLabel lblNewLabel_1;
     private JPanel panel;
+    private JScrollPane pComponentsScrollPane;
+    private JTextArea pComponentsTextArea;
     private JTextArea pConfigTextArea;
     private final CFrameConfig pFrameConfig;
-    private JScrollPane pLoggerScrollPane;
     private JTabbedPane pMainTabbedPane;
     private JScrollPane pServiceInfosScrollPane;
     private JTextArea pServiceInfosTextArea;
@@ -256,9 +257,8 @@ public class CFrameMain extends javax.swing.JFrame {
     private JSplitPane pServicesSplitPane;
     private JTable pServicesTable;
     private DefaultTableModel pServicesTableModel;
-    private JScrollPane scrollPane;
 
-    private JTextArea txtrPlogtextarea;
+    private JScrollPane scrollPane;
 
     /**
      * 
@@ -642,13 +642,14 @@ public class CFrameMain extends javax.swing.JFrame {
                 }
 
                 {
-                    pLoggerScrollPane = new JScrollPane();
-                    pMainTabbedPane
-                            .addTab("Log", null, pLoggerScrollPane, null);
+                    pComponentsScrollPane = new JScrollPane();
+                    pMainTabbedPane.addTab("Components", null,
+                            pComponentsScrollPane, null);
                     {
-                        txtrPlogtextarea = new JTextArea();
-                        txtrPlogtextarea.setText("pLogTextArea");
-                        pLoggerScrollPane.setViewportView(txtrPlogtextarea);
+                        pComponentsTextArea = new JTextArea();
+                        pComponentsTextArea.setText("iPOJO Components...");
+                        pComponentsScrollPane
+                                .setViewportView(pComponentsTextArea);
                     }
                 }
                 {
@@ -704,6 +705,17 @@ public class CFrameMain extends javax.swing.JFrame {
             }
         }
         return wSB.toString();
+    }
+
+    /**
+     * Sets (replaces) the components text area content
+     * 
+     * @param aComponentsDescription
+     *            The new content
+     */
+    void setComponentsDescription(final String aComponentsDescription) {
+
+        pComponentsTextArea.setText(aComponentsDescription);
     }
 
     /**

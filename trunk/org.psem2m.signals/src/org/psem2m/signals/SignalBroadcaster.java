@@ -29,9 +29,9 @@ import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
  * 
  * @author Thomas Calmant
  */
-@Component(name = "signal-broadcaster-factory", publicFactory = true)
+@Component(name = "psem2m-signal-broadcaster-factory", publicFactory = true)
 @Provides(specifications = ISignalBroadcaster.class)
-@Instantiate(name = "signal-broadcaster")
+@Instantiate(name = "psem2m-signal-broadcaster")
 public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
 
     /** Broadcast providers */

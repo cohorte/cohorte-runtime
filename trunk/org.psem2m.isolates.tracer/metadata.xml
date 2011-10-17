@@ -8,7 +8,7 @@
 
 	<!-- The Tracer service -->
 	<component classname="org.psem2m.isolates.tracer.impl.CTracerSvc"
-		architecture="true" immediate="true" name="isolates-tracer-tracer-factory">
+		architecture="true" immediate="true" name="psem2m-tracer-factory">
 
 		<provides specifications="org.psem2m.isolates.tracer.ITracerSvc" />
 
@@ -22,7 +22,7 @@
 	</component>
 
 
-	<instance component="isolates-tracer-tracer-factory"
-		name="isolates-tracer-tracer" />
+	<instance component="psem2m-tracer-factory"
+		name="psem2m-tracer" />
 
 </ipojo>

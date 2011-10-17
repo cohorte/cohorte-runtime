@@ -12,10 +12,22 @@ import java.util.concurrent.BlockingDeque;
  * Defines a queued cache channel
  * 
  * @author Thomas Calmant
+ * 
+ * @param <K>
+ *            The type of keys in the channel (must be serializable)
+ * @param <V>
+ *            The type of values in the channel (must be serializable)
  */
 public interface ICacheDequeueChannel<K extends Serializable, V extends Serializable>
         extends ICacheChannel<K, V>, BlockingDeque<ICachedObject<V>>,
         Serializable {
 
-    // Just a combination of interfaces
+    /**
+     * Adds the given value to the channel (creates the cached object)
+     * 
+     * @param aValue
+     *            The value to be cached
+     * @return True on success
+     */
+    boolean add(V aValue);
 }

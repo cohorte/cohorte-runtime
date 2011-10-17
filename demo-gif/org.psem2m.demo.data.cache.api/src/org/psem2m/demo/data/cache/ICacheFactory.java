@@ -20,7 +20,7 @@ public interface ICacheFactory extends Serializable {
      * @param aName
      *            Name of the channel
      */
-    void closeChannel(String aName);
+    void clearChannel(String aName);
 
     /**
      * Flushes the cache.
@@ -52,4 +52,9 @@ public interface ICacheFactory extends Serializable {
      */
     <K extends Serializable, V extends Serializable> ICacheDequeueChannel<K, V> openDequeueChannel(
             String aName);
+
+    /**
+     * Reloads the cache from the flush target
+     */
+    void reload();
 }

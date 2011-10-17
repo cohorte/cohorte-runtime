@@ -30,9 +30,9 @@ import org.psem2m.remotes.signals.http.IHttpSignalsConstants;
  * 
  * @author Thomas Calmant
  */
-@Component(name = "remote-signal-receiver-http-factory", publicFactory = false)
+@Component(name = "psem2m-remote-signal-receiver-http-factory", publicFactory = false)
 @Provides(specifications = ISignalReceptionProvider.class)
-@Instantiate(name = "remote-signal-http-receiver")
+@Instantiate(name = "psem2m-remote-signal-http-receiver")
 public class HttpSignalReceiver extends CPojoBase implements
         ISignalReceptionProvider, ISignalListener {
 

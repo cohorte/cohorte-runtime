@@ -13,42 +13,29 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  mo.erp.api.services, org.psem2m.isolates.base;version=1.0.0, org.psem
  2m.isolates.base.activators;version=1.0.0, org.psem2m.utilities;versi
  on=1.0.0, org.psem2m.utilities.logging;version=1.0.0
-iPOJO-Components: instance { $component="demo-dataserver-factory" $nam
- e="demo-dataserver" property { $name="service.exported.interfaces" $v
- alue="*" }property { $name="service.exported.configs" $value="{json-r
- pc}" $type="String[]" }property { $name="endpoint.name" $value="datas
- erver" $type="String" }}component { $classname="org.psem2m.demo.data.
- server.impl.DataServerSvc" $name="demo-dataserver-factory" $public="f
- alse" properties { $propagation="true" }provides { $specifications="{
- org.psem2m.demo.erp.api.services.IErpData}" }requires { $field="pLogg
- er" }requires { $field="pQuarterback" $optional="true" $id="quarterba
- ck" callback { $method="bindQuarterback" $type="bind" }callback { $me
- thod="unbindQuarterback" $type="unbind" }}callback { $transition="inv
- alidate" $method="invalidatePojo" }callback { $transition="validate" 
- $method="validatePojo" }manipulation { $super="org.psem2m.isolates.ba
- se.activators.CPojoBase" interface { $name="org.psem2m.demo.erp.api.s
- ervices.IErpData" }field { $name="pLockRunner" $type="java.util.concu
- rrent.ExecutorService" }field { $name="pLogger" $type="org.psem2m.iso
- lates.base.IIsolateLoggerSvc" }field { $name="pQuarterback" $type="or
- g.psem2m.demo.data.core.IQuarterback" }field { $name="pQuarterbackPre
- sent" $type="boolean" }field { $name="pQuarterbackWaitLock" $type="ja
- va.util.concurrent.locks.ReadWriteLock" }field { $name="pReadLock" $t
- ype="java.util.concurrent.locks.Lock" }field { $name="pRunWriteLocker
- " $type="java.lang.Runnable" }field { $name="pRunWriteUnlocker" $type
- ="java.lang.Runnable" }field { $name="pWriteLock" $type="java.util.co
- ncurrent.locks.Lock" }method { $name="applyCart" $return="org.psem2m.
- demo.erp.api.beans.CErpActionReport" $arguments="{org.psem2m.demo.erp
- .api.beans.CCart}" }method { $name="bindQuarterback" $arguments="{org
- .psem2m.demo.data.core.IQuarterback}" }method { $name="blockQuarterba
- ckAccess" }method { $name="getItem" $return="org.psem2m.demo.erp.api.
- beans.CachedItemBean" $arguments="{java.lang.String}" }method { $name
- ="getItems" $return="org.psem2m.demo.erp.api.beans.CachedItemBean[]" 
- $arguments="{java.lang.String,int,boolean,java.lang.String}" }method 
- { $name="getItemsStock" $return="org.psem2m.demo.erp.api.beans.Cached
- ItemStockBean[]" $arguments="{java.lang.String[]}" }method { $name="i
- nternalBlockQuarterbackAccess" }method { $name="internalUnblockQuarte
- rbackAccess" }method { $name="invalidatePojo" }method { $name="unbind
- Quarterback" $arguments="{org.psem2m.demo.data.core.IQuarterback}" }m
- ethod { $name="unblockQuarterbackAccess" }method { $name="validatePoj
- o" }method { $name="waitQuarterbackAccess" $return="boolean" }}}
+iPOJO-Components: instance { $component="psem2m-demo-dataserver-factor
+ y" $name="psem2m-demo-dataserver" property { $name="service.exported.
+ interfaces" $value="*" }property { $name="service.exported.configs" $
+ value="{json-rpc}" $type="String[]" }property { $name="endpoint.name"
+  $value="dataserver" $type="String" }}component { $classname="org.pse
+ m2m.demo.data.server.impl.DataServerSvc" $name="psem2m-demo-dataserve
+ r-factory" $public="true" properties { $propagation="true" }provides 
+ { $specifications="{org.psem2m.demo.erp.api.services.IErpData}" }requ
+ ires { $field="pLogger" }org.apache.felix.ipojo.handler.temporal:temp
+ oral { $field="pQuarterback" $timeout="30000" $ontimeout="nullable" }
+ callback { $transition="invalidate" $method="invalidatePojo" }callbac
+ k { $transition="validate" $method="validatePojo" }manipulation { $su
+ per="org.psem2m.isolates.base.activators.CPojoBase" interface { $name
+ ="org.psem2m.demo.erp.api.services.IErpData" }field { $name="pLogger"
+  $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="p
+ Quarterback" $type="org.psem2m.demo.data.core.IQuarterback" }method {
+  $name="applyCart" $return="org.psem2m.demo.erp.api.beans.CErpActionR
+ eport" $arguments="{org.psem2m.demo.erp.api.beans.CCart}" }method { $
+ name="getItem" $return="org.psem2m.demo.erp.api.beans.CachedItemBean"
+  $arguments="{java.lang.String}" }method { $name="getItems" $return="
+ org.psem2m.demo.erp.api.beans.CachedItemBean[]" $arguments="{java.lan
+ g.String,int,boolean,java.lang.String}" }method { $name="getItemsStoc
+ k" $return="org.psem2m.demo.erp.api.beans.CachedItemStockBean[]" $arg
+ uments="{java.lang.String[]}" }method { $name="invalidatePojo" }metho
+ d { $name="validatePojo" }}}
 

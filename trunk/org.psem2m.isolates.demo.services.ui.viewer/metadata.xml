@@ -7,7 +7,7 @@
 
     <!-- The UI service -->
     <component classname="org.psem2m.isolates.demo.services.ui.viewer.impl.CUiSvc"
-        architecture="true" immediate="true" name="isolates-demo-ui-viewer-factory">
+        architecture="true" immediate="true" name="psem2m-ui-viewer-factory">
 
         <provides specifications="org.psem2m.isolates.demo.services.ui.viewer.IUiSvc" />
 
@@ -16,6 +16,8 @@
         <requires field="pPlatformDirsSvc" optional="false" />
         
         <requires field="pSvcAgent" optional="false" />
+        
+        <requires field="pArchitectures" optional="false" />
         
         <requires field="pSvcConfig" optional="false" />
         
@@ -28,7 +30,7 @@
     </component>
 
 
-    <instance component="isolates-demo-ui-viewer-factory"
-        name="isolates-demo-ui-viewer" />
+    <instance component="psem2m-ui-viewer-factory"
+        name="psem2m-ui-viewer" />
 
 </ipojo>

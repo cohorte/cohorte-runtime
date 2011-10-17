@@ -7,7 +7,7 @@
 
 	<!-- Agent core -->
 	<component classname="org.psem2m.isolates.slave.agent.core.AgentCore"
-		architecture="true" immediate="true" name="isolates-slave-agent-core-factory"
+		architecture="true" immediate="true" name="psem2m-slave-agent-core-factory"
 		public="false">
 
 		<provides specifications="org.psem2m.isolates.slave.agent.ISvcAgent" />
@@ -48,5 +48,5 @@
 
 	<!-- Instances -->
 
-	<instance component="isolates-slave-agent-core-factory" name="isolates-slave-agent-core" />
+	<instance component="psem2m-slave-agent-core-factory" name="psem2m-slave-agent-core" />
 </ipojo>

@@ -14,31 +14,32 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  , org.psem2m.isolates.services.remote.beans;version=1.0.0, org.psem2m
  .utilities
 iPOJO-Components: instance { $component="org.psem2m.isolates.remote.ex
- porter.ServiceExporter" $name="remote-service-exporter" }component { 
- $classname="org.psem2m.isolates.remote.exporter.ServiceExporter" $nam
- e="remote-service-exporter-factory" $public="false" requires { $field
- ="pBroadcaster" }requires { $field="pEndpointHandlers" }requires { $f
- ield="pLogger" }requires { $field="pRepository" }callback { $transiti
- on="invalidate" $method="invalidatePojo" }callback { $transition="val
- idate" $method="validatePojo" }manipulation { $super="org.psem2m.isol
- ates.base.activators.CPojoBase" interface { $name="org.osgi.framework
- .ServiceListener" }field { $name="pBroadcaster" $type="org.psem2m.iso
- lates.services.remote.IRemoteServiceBroadcaster" }field { $name="pBun
- dleContext" $type="org.osgi.framework.BundleContext" }field { $name="
- pEndpointHandlers" $type="org.psem2m.isolates.services.remote.IEndpoi
- ntHandler[]" }field { $name="pLogger" $type="org.osgi.service.log.Log
- Service" }field { $name="pRegisteredServicesIds" $type="java.util.Set
- " }field { $name="pRepository" $type="org.psem2m.isolates.services.re
- mote.IRemoteServiceRepository" }method { $name="createEndpoints" $ret
- urn="org.psem2m.isolates.services.remote.beans.RemoteServiceRegistrat
- ion" $arguments="{org.osgi.framework.ServiceReference}" }method { $na
- me="destroy" }method { $name="exportService" $return="boolean" $argum
- ents="{org.osgi.framework.ServiceReference}" }method { $name="invalid
- atePojo" }method { $name="isAlreadyExported" $return="boolean" $argum
- ents="{java.lang.Long}" }method { $name="isAlreadyExported" $return="
- boolean" $arguments="{org.osgi.framework.ServiceReference}" }method {
-  $name="serviceChanged" $arguments="{org.osgi.framework.ServiceEvent}
- " }method { $name="setExported" $arguments="{org.osgi.framework.Servi
- ceReference}" }method { $name="unexportService" $arguments="{org.osgi
- .framework.ServiceReference}" }method { $name="validatePojo" }}}
+ porter.ServiceExporter" $name="psem2m-remote-service-exporter" }compo
+ nent { $classname="org.psem2m.isolates.remote.exporter.ServiceExporte
+ r" $name="psem2m-remote-service-exporter-factory" $public="false" req
+ uires { $field="pBroadcaster" }requires { $field="pEndpointHandlers" 
+ }requires { $field="pLogger" }requires { $field="pRepository" }callba
+ ck { $transition="invalidate" $method="invalidatePojo" }callback { $t
+ ransition="validate" $method="validatePojo" }manipulation { $super="o
+ rg.psem2m.isolates.base.activators.CPojoBase" interface { $name="org.
+ osgi.framework.ServiceListener" }field { $name="pBroadcaster" $type="
+ org.psem2m.isolates.services.remote.IRemoteServiceBroadcaster" }field
+  { $name="pBundleContext" $type="org.osgi.framework.BundleContext" }f
+ ield { $name="pEndpointHandlers" $type="org.psem2m.isolates.services.
+ remote.IEndpointHandler[]" }field { $name="pLogger" $type="org.osgi.s
+ ervice.log.LogService" }field { $name="pRegisteredServicesIds" $type=
+ "java.util.Set" }field { $name="pRepository" $type="org.psem2m.isolat
+ es.services.remote.IRemoteServiceRepository" }method { $name="createE
+ ndpoints" $return="org.psem2m.isolates.services.remote.beans.RemoteSe
+ rviceRegistration" $arguments="{org.osgi.framework.ServiceReference}"
+  }method { $name="destroy" }method { $name="exportService" $return="b
+ oolean" $arguments="{org.osgi.framework.ServiceReference}" }method { 
+ $name="invalidatePojo" }method { $name="isAlreadyExported" $return="b
+ oolean" $arguments="{java.lang.Long}" }method { $name="isAlreadyExpor
+ ted" $return="boolean" $arguments="{org.osgi.framework.ServiceReferen
+ ce}" }method { $name="serviceChanged" $arguments="{org.osgi.framework
+ .ServiceEvent}" }method { $name="setExported" $arguments="{org.osgi.f
+ ramework.ServiceReference}" }method { $name="unexportService" $argume
+ nts="{org.osgi.framework.ServiceReference}" }method { $name="validate
+ Pojo" }}}
 

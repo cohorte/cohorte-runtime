@@ -3,7 +3,7 @@
 	xsi:schemaLocation="org.apache.felix.ipojo http://felix.apache.org/ipojo/schemas/CURRENT/core.xsd"
 	xmlns="org.apache.felix.ipojo">
 
-	<instance component="demo-dataserver-factory" name="demo-dataserver">
+	<instance component="psem2m-demo-dataserver-factory" name="psem2m-demo-dataserver">
 		<property name="service.exported.interfaces" value="*" />
 		<property name="service.exported.configs" value="{json-rpc}"
 			type="String[]" />

@@ -28,9 +28,9 @@ import org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration;
  * 
  * @author Thomas Calmant
  */
-@Component(name = "remote-rsr-factory", publicFactory = false)
+@Component(name = "psem2m-remote-rsr-factory", publicFactory = false)
 @Provides(specifications = IRemoteServiceRepository.class)
-@Instantiate(name = "remote-rsr")
+@Instantiate(name = "psem2m-remote-rsr")
 public class RemoteServiceRepository extends CPojoBase implements
         IRemoteServiceRepository {
 

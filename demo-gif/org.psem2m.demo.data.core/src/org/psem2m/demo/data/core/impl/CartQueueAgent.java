@@ -36,9 +36,9 @@ import org.psem2m.isolates.base.activators.CPojoBase;
  * 
  * @author Thomas Calmant
  */
-@Component(name = "cart-queue-agent-factory", publicFactory = false)
+@Component(name = "psem2m-cart-queue-agent-factory", publicFactory = false)
 @Provides(specifications = ICartQueue.class)
-@Instantiate(name = "cart-queue-agent")
+@Instantiate(name = "psem2m-cart-queue-agent")
 public class CartQueueAgent extends CPojoBase implements ICartQueue {
 
     /** The cart queue cache channel */

@@ -15,21 +15,21 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  g.psem2m.isolates.base;version=1.0.0, org.psem2m.isolates.base.activa
  tors;version=1.0.0, org.psem2m.isolates.loggers, org.psem2m.utilities
  , org.psem2m.utilities.logging
-iPOJO-Components: instance { $component="isolates-tracer-tracer-factor
- y" $name="isolates-tracer-tracer" }component { $classname="org.psem2m
- .isolates.tracer.impl.CTracerSvc" $architecture="true" $immediate="tr
- ue" $name="isolates-tracer-tracer-factory" provides { $specifications
- ="org.psem2m.isolates.tracer.ITracerSvc" }requires { $field="pIsolate
- LoggerSvc" $optional="false" }requires { $field="pLogChannelsSvc" $op
- tional="false" }callback { $transition="validate" $method="validatePo
- jo" }callback { $transition="invalidate" $method="invalidatePojo" }ma
- nipulation { $super="org.psem2m.isolates.base.activators.CPojoBase" i
- nterface { $name="org.psem2m.isolates.tracer.ITracerSvc" }field { $na
- me="pIsolateLoggerSvc" $type="org.psem2m.isolates.base.IIsolateLogger
- Svc" }field { $name="pLogChannelsSvc" $type="org.psem2m.isolates.logg
- ers.ILogChannelsSvc" }method { $name="destroy" }method { $name="getPo
- joId" $return="java.lang.String" }method { $name="getTracableChannels
- Ids" $return="java.util.List" }method { $name="invalidatePojo" }metho
- d { $name="traceChannels" $return="boolean" $arguments="{java.util.Li
- st}" }method { $name="validatePojo" }}}
+iPOJO-Components: instance { $component="psem2m-tracer-factory" $name=
+ "psem2m-tracer" }component { $classname="org.psem2m.isolates.tracer.i
+ mpl.CTracerSvc" $architecture="true" $immediate="true" $name="psem2m-
+ tracer-factory" provides { $specifications="org.psem2m.isolates.trace
+ r.ITracerSvc" }requires { $field="pIsolateLoggerSvc" $optional="false
+ " }requires { $field="pLogChannelsSvc" $optional="false" }callback { 
+ $transition="validate" $method="validatePojo" }callback { $transition
+ ="invalidate" $method="invalidatePojo" }manipulation { $super="org.ps
+ em2m.isolates.base.activators.CPojoBase" interface { $name="org.psem2
+ m.isolates.tracer.ITracerSvc" }field { $name="pIsolateLoggerSvc" $typ
+ e="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pLogCh
+ annelsSvc" $type="org.psem2m.isolates.loggers.ILogChannelsSvc" }metho
+ d { $name="destroy" }method { $name="getPojoId" $return="java.lang.St
+ ring" }method { $name="getTracableChannelsIds" $return="java.util.Lis
+ t" }method { $name="invalidatePojo" }method { $name="traceChannels" $
+ return="boolean" $arguments="{java.util.List}" }method { $name="valid
+ atePojo" }}}
 

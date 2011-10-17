@@ -7,7 +7,7 @@
 
 	<!-- The logging Channels service factory -->
 	<component classname="org.psem2m.isolates.loggers.impl.CLogChannelsSvc"
-		architecture="true" immediate="true" name="isolates-loggers-channels-factory">
+		architecture="true" immediate="true" name="psem2m-loggers-channels-factory">
 
 		<provides specifications="org.psem2m.isolates.loggers.ILogChannelsSvc" />
 
@@ -22,7 +22,7 @@
 
 	<!-- The logging Channel service factory -->
 	<component classname="org.psem2m.isolates.loggers.impl.CLogChannelSvc"
-		architecture="true" immediate="true" name="isolates-loggers-channel-factory" >
+		architecture="true" immediate="true" name="psem2m-loggers-channel-factory" >
 
 		<provides specifications="org.psem2m.isolates.loggers.ILogChannelSvc" />
 
@@ -33,7 +33,7 @@
 		<requires field="pIsolateLoggerSvc" optional="false" />
 
 		<requires field="pLogChannelsSvc" optional="false"
-			from="isolates-loggers-channels" />
+			from="psem2m-loggers-channels" />
 
 		<callback transition="validate" method="validatePojo" />
 		<callback transition="invalidate" method="invalidatePojo" />
@@ -41,6 +41,6 @@
 
 
 
-	<instance component="isolates-loggers-channels-factory" name="isolates-loggers-channels" />
+	<instance component="psem2m-loggers-channels-factory" name="psem2m-loggers-channels" />
 
 </ipojo>

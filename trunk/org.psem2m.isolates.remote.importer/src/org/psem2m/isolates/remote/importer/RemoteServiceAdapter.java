@@ -22,8 +22,8 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.log.LogService;
 import org.ow2.chameleon.rose.RemoteConstants;
+import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.constants.IPlatformProperties;
@@ -39,9 +39,9 @@ import org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration;
  * 
  * @author Thomas Calmant
  */
-@Component(name = "remote-service-importer-factory", publicFactory = false)
+@Component(name = "psem2m-remote-service-importer-factory", publicFactory = false)
 @Provides(specifications = IRemoteServiceEventListener.class)
-@Instantiate(name = "remote-service-importer")
+@Instantiate(name = "psem2m-remote-service-importer")
 public class RemoteServiceAdapter extends CPojoBase implements
         IRemoteServiceEventListener {
 
@@ -67,7 +67,7 @@ public class RemoteServiceAdapter extends CPojoBase implements
 
     /** Log service */
     @Requires
-    private LogService pLogger;
+    private IIsolateLoggerSvc pLogger;
 
     /** Registered services */
     private final Map<String, ProxyServiceInfo> pRegisteredServices = new HashMap<String, ProxyServiceInfo>();
@@ -208,15 +208,10 @@ public class RemoteServiceAdapter extends CPojoBase implements
      * handleRemoteEvent(org.psem2m.isolates.commons.remote.RemoteServiceEvent)
      */
     @Override
-    public synchronized void handleRemoteEvent(
-            final RemoteServiceEvent aServiceEvent) {
+    public void handleRemoteEvent(final RemoteServiceEvent aServiceEvent) {
 
-        pLogger.log(LogService.LOG_INFO,
-                "[RemoteServiceAdapter] Handling event : " + aServiceEvent);
-
-        // Store the remote service ID
-        final String serviceId = aServiceEvent.getServiceRegistration()
-                .getServiceId();
+        pLogger.logInfo(this, "handleRemoteEvent",
+                "Handling remote service event :", aServiceEvent);
 
         switch (aServiceEvent.getEventType()) {
 
@@ -226,7 +221,8 @@ public class RemoteServiceAdapter extends CPojoBase implements
         }
 
         case UNREGISTERED: {
-            unregisterService(serviceId);
+            unregisterService(aServiceEvent.getServiceRegistration()
+                    .getServiceId());
             break;
         }
         }
@@ -246,7 +242,7 @@ public class RemoteServiceAdapter extends CPojoBase implements
             unregisterService(serviceId);
         }
 
-        pLogger.log(LogService.LOG_INFO, "RemoteServiceAdapter Gone");
+        pLogger.logInfo(this, "invalidatePojo", "RemoteServiceAdapter Gone");
     }
 
     /**
@@ -321,10 +317,10 @@ public class RemoteServiceAdapter extends CPojoBase implements
         final String serviceId = registration.getServiceId();
 
         if (pRegisteredServices.containsKey(serviceId)) {
+
             // Ignore already registered ids
-            pLogger.log(LogService.LOG_WARNING,
-                    "[RemoteServiceAdapter] Already registered service : "
-                            + serviceId);
+            pLogger.logWarn(this, "registerService",
+                    "Already registered service : " + serviceId);
             return;
         }
 
@@ -336,7 +332,7 @@ public class RemoteServiceAdapter extends CPojoBase implements
 
             } catch (ClassNotFoundException e) {
                 System.err.println("Class not found - " + e);
-                pLogger.log(LogService.LOG_ERROR,
+                pLogger.logSevere(this, "registerService",
                         "Error looking for proxyfied class", e);
                 return;
             }
@@ -347,9 +343,8 @@ public class RemoteServiceAdapter extends CPojoBase implements
         }
 
         if (serviceProxy == null) {
-            pLogger.log(LogService.LOG_ERROR,
-                    "[RemoteServiceAdapter] No proxy created for service : "
-                            + serviceId);
+            pLogger.logSevere(this, "registerService",
+                    "No proxy created for service : " + serviceId);
             return;
         }
 
@@ -360,26 +355,26 @@ public class RemoteServiceAdapter extends CPojoBase implements
         // Used in the thread
         final Object finalServiceProxy = serviceProxy;
 
-        // Register the service
-        new Thread(new Runnable() {
+        // // Register the service
+        // new Thread(new Runnable() {
+        //
+        // @Override
+        // public void run() {
+        //
+        // This call is synchronous and may take a while
+        // -> use a thread
+        ServiceRegistration serviceReg = pBundleContext.registerService(
+                registration.getExportedInterfaces(), finalServiceProxy,
+                filteredProperties);
 
-            @Override
-            public void run() {
-
-                // This call is synchronous and may take a while
-                // -> use a thread
-                ServiceRegistration serviceReg = pBundleContext
-                        .registerService(registration.getExportedInterfaces(),
-                                finalServiceProxy, filteredProperties);
-
-                // Store the registration information
-                if (serviceReg != null) {
-                    ProxyServiceInfo serviceInfo = new ProxyServiceInfo(
-                            serviceReg, finalServiceProxy);
-                    pRegisteredServices.put(serviceId, serviceInfo);
-                }
-            }
-        }).start();
+        // Store the registration information
+        if (serviceReg != null) {
+            ProxyServiceInfo serviceInfo = new ProxyServiceInfo(serviceReg,
+                    finalServiceProxy);
+            pRegisteredServices.put(serviceId, serviceInfo);
+        }
+        // }
+        // }).start();
     }
 
     /**
@@ -432,6 +427,6 @@ public class RemoteServiceAdapter extends CPojoBase implements
         // Request other isolates state with the RSB
         pBroadcaster.requestAllEndpoints();
 
-        pLogger.log(LogService.LOG_INFO, "RemoteServiceAdapter Ready");
+        pLogger.logInfo(this, "validatePojo", "RemoteServiceAdapter Ready");
     }
 }

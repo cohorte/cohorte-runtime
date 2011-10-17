@@ -14,30 +14,29 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  on=1.0.0, org.psem2m.isolates.services.dirs;version=1.0.0, org.psem2m
  .utilities;version=1.0.0, org.psem2m.utilities.logging;version=1.0.0
 iPOJO-Components: instance { $component="org.psem2m.demo.data.cache.im
- pl.CacheFactoryImpl" $name="cache-channel-factory" }component { $clas
- sname="org.psem2m.demo.data.cache.impl.CacheFactoryImpl" $name="cache
- -channel-factory-factory" $public="false" provides { $specifications=
- "{org.psem2m.demo.data.cache.ICacheFactory}" }requires { $field="pLog
- ger" }requires { $field="pPlatformDirsSvc" }callback { $transition="i
- nvalidate" $method="invalidatePojo" }callback { $transition="validate
- " $method="validatePojo" }manipulation { $super="org.psem2m.isolates.
- base.activators.CPojoBase" interface { $name="org.psem2m.demo.data.ca
- che.ICacheFactory" }field { $name="pChannels" $type="java.util.Map" }
- field { $name="pExecutor" $type="java.util.concurrent.ExecutorService
- " }field { $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLo
- ggerSvc" }field { $name="pPlatformDirsSvc" $type="org.psem2m.isolates
- .services.dirs.IPlatformDirsSvc" }field { $name="pQueueChannels" $typ
- e="java.util.Map" }field { $name="pRunLoadFile" $type="java.lang.Runn
- able" }field { $name="pRunWriteFile" $type="java.lang.Runnable" }meth
- od { $name="closeChannel" $arguments="{java.lang.String}" }method { $
- name="flush" }method { $name="internalWriteObject" $arguments="{java.
- io.ObjectOutputStream}" }method { $name="invalidatePojo" }method { $n
- ame="load" }method { $name="loadFromFile" }method { $name="openChanne
- l" $return="org.psem2m.demo.data.cache.ICacheChannel" $arguments="{ja
- va.lang.String}" }method { $name="openDequeueChannel" $return="org.ps
- em2m.demo.data.cache.ICacheDequeueChannel" $arguments="{java.lang.Str
- ing}" }method { $name="readObject" $arguments="{java.io.ObjectInputSt
- ream}" }method { $name="storeToFile" }method { $name="validatePojo" }
- method { $name="writeObject" $arguments="{java.io.ObjectOutputStream}
- " }}}
+ pl.CacheFactoryImpl" $name="psem2m-cache" }component { $classname="or
+ g.psem2m.demo.data.cache.impl.CacheFactoryImpl" $name="psem2m-cache-f
+ actory" $public="false" provides { $specifications="{org.psem2m.demo.
+ data.cache.ICacheFactory}" }requires { $field="pLogger" }requires { $
+ field="pPlatformDirsSvc" }callback { $transition="invalidate" $method
+ ="invalidatePojo" }callback { $transition="validate" $method="validat
+ ePojo" }manipulation { $super="org.psem2m.isolates.base.activators.CP
+ ojoBase" interface { $name="org.psem2m.demo.data.cache.ICacheFactory"
+  }field { $name="pChannels" $type="java.util.Map" }field { $name="pEx
+ ecutor" $type="java.util.concurrent.ExecutorService" }field { $name="
+ pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { 
+ $name="pPlatformDirsSvc" $type="org.psem2m.isolates.services.dirs.IPl
+ atformDirsSvc" }field { $name="pQueueChannels" $type="java.util.Map" 
+ }field { $name="pRunLoadFile" $type="java.lang.Runnable" }field { $na
+ me="pRunWriteFile" $type="java.lang.Runnable" }method { $name="clearC
+ hannel" $arguments="{java.lang.String}" }method { $name="flush" }meth
+ od { $name="internalWriteObject" $arguments="{java.io.ObjectOutputStr
+ eam}" }method { $name="invalidatePojo" }method { $name="loadFromFile"
+  }method { $name="openChannel" $return="org.psem2m.demo.data.cache.IC
+ acheChannel" $arguments="{java.lang.String}" }method { $name="openDeq
+ ueueChannel" $return="org.psem2m.demo.data.cache.ICacheDequeueChannel
+ " $arguments="{java.lang.String}" }method { $name="readObject" $argum
+ ents="{java.io.ObjectInputStream}" }method { $name="reload" }method {
+  $name="storeToFile" }method { $name="validatePojo" }method { $name="
+ writeObject" $arguments="{java.io.ObjectOutputStream}" }}}
 

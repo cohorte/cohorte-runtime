@@ -39,9 +39,9 @@ import org.psem2m.remotes.signals.http.IHttpSignalsConstants;
  * 
  * @author Thomas Calmant
  */
-@Component(name = "remote-signal-sender-http-factory", publicFactory = false)
+@Component(name = "psem2m-remote-signal-sender-http-factory", publicFactory = false)
 @Provides(specifications = ISignalBroadcastProvider.class)
-@Instantiate(name = "remote-signal-http-sender")
+@Instantiate(name = "psem2m-remote-signal-http-sender")
 public class HttpSignalSender extends CPojoBase implements
         ISignalBroadcastProvider {
 

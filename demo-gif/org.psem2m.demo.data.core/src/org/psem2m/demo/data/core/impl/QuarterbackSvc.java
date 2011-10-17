@@ -10,10 +10,13 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Controller;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
@@ -36,16 +39,20 @@ import org.psem2m.demo.erp.api.beans.ItemBean;
 import org.psem2m.demo.erp.api.services.IErpDataProxy;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
+import org.psem2m.isolates.services.remote.signals.ISignalData;
+import org.psem2m.isolates.services.remote.signals.ISignalListener;
+import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
 
 /**
  * Main strategy handler
  * 
  * @author Thomas Calmant
  */
-@Component(name = "demo-quarterback-factory", publicFactory = false)
+@Component(name = "psem2m-demo-quarterback-factory", publicFactory = false)
 @Provides(specifications = IQuarterback.class)
-@Instantiate(name = "demo-quarterback")
-public class QuarterbackSvc extends CPojoBase implements IQuarterback {
+@Instantiate(name = "psem2m-demo-quarterback")
+public class QuarterbackSvc extends CPojoBase implements IQuarterback,
+        ISignalListener {
 
     /** Items categories cache channel name */
     protected static final String CACHE_CATEGORIES_NAME = "org.psem2m.demo.quarterback.categories";
@@ -61,6 +68,9 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
 
     /** The cart agent timeout system property (in seconds) */
     public static final String PROPERTY_CART_AGENT_TIMEOUT = "org.psem2m.quarterback.cartAgentTimeout";
+
+    /** Signal to toggle the component state */
+    public static final String SIGNAL_TOGGLE_COMPONENT = "/demo/core/quarterback/toggle";
 
     /** ERP Proxy presence flag */
     @ServiceProperty(name = "erp.available")
@@ -96,6 +106,23 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
     /** Log service */
     @Requires
     private IIsolateLoggerSvc pLogger;
+
+    /** iPOJO component controller */
+    @Controller
+    private boolean pQuarterbackActivated;
+
+    /** The cache executor */
+    private ScheduledExecutorService pUpdateExecutor;
+
+    /** The cache updater runnable */
+    private Runnable pUpdateRunnable = new Runnable() {
+
+        @Override
+        public void run() {
+
+            updateCache();
+        }
+    };
 
     /**
      * Default constructor
@@ -144,15 +171,25 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
 
     /**
      * Called by iPOJO when the ERP proxy is bound
-     * 
-     * @param aErpDataProxy
-     *            The ERP Proxy service
      */
     @Bind(id = IPOJO_ID_ERP)
-    protected void bindErp(final IErpDataProxy aErpDataProxy) {
+    protected void bindErp() {
 
         // Update the flag
         isProxyAvailable = true;
+    }
+
+    /**
+     * Called by iPOJO when the SSR is bound
+     * 
+     * @param aSignalReceiver
+     *            The SSR service
+     */
+    @Bind
+    protected void bindSignalReceiver(final ISignalReceiver aSignalReceiver) {
+
+        // Register to the component toggle signal
+        aSignalReceiver.registerListener(SIGNAL_TOGGLE_COMPONENT, this);
     }
 
     /*
@@ -342,11 +379,35 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
     /*
      * (non-Javadoc)
      * 
+     * @see org.psem2m.isolates.services.remote.signals.ISignalListener#
+     * handleReceivedSignal(java.lang.String,
+     * org.psem2m.isolates.services.remote.signals.ISignalData)
+     */
+    @Override
+    public void handleReceivedSignal(final String aSignalName,
+            final ISignalData aSignalData) {
+
+        if (SIGNAL_TOGGLE_COMPONENT.equals(aSignalName)) {
+
+            pLogger.logInfo(this, "handleReceivedSignal",
+                    "Quarterback toggle signal received");
+
+            // Toggle the component state : (in)validate will trace the change
+            pQuarterbackActivated = !pQuarterbackActivated;
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.psem2m.isolates.base.activators.CPojoBase#invalidatePojo()
      */
     @Override
     @Invalidate
     public void invalidatePojo() throws BundleException {
+
+        // Stop the cache updater
+        pUpdateExecutor.shutdownNow();
 
         // Close cache channels
         // pCacheFactory.closeChannel(CACHE_CATEGORIES_NAME);
@@ -356,6 +417,7 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
         // Flush the cache
         pCacheFactory.flush();
 
+        // Forget the cached ERP
         pCachedErp = null;
         pLogger.logInfo(this, "invalidatePojo", "QuarterbackSvc Gone");
     }
@@ -372,15 +434,67 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
 
     /**
      * Called by iPOJO when the ERP proxy is unbound
-     * 
-     * @param aErpDataProxy
-     *            The ERP Proxy service
      */
     @Unbind(id = IPOJO_ID_ERP)
-    protected void unbindErp(final IErpDataProxy aErpDataProxy) {
+    protected void unbindErp() {
 
         // Update the flag
         isProxyAvailable = false;
+    }
+
+    /**
+     * Called by the scheduler at fixed intervals to update the cache if
+     * possible
+     */
+    public void updateCache() {
+
+        if (!isProxyAvailable) {
+            // ERP is absent, do nothing
+            pLogger.logInfo(this, "updateCache", "ERP is absent");
+            return;
+        }
+
+        pLogger.logInfo(this, "updateCache", "Update cache");
+
+        // Update categories
+        updateCategoryCache("screens");
+        updateCategoryCache("mouses");
+    }
+
+    /**
+     * Calls the ERP to get all items in the given category and their stock.
+     * Those calls will update the cache.
+     * 
+     * @param aCategory
+     *            Category to be updated
+     */
+    protected void updateCategoryCache(final String aCategory) {
+
+        if (!isProxyAvailable) {
+            // No ERP, no update
+            return;
+        }
+
+        // Retrieve **all** items of the given category
+        final CachedItemBean[] items = getItems(aCategory, -1, false, "");
+        if (items == null) {
+            // No items for the given category...
+            return;
+        }
+
+        // Get items IDs
+        final List<String> itemsIds = new ArrayList<String>(items.length);
+        for (CachedItemBean item : items) {
+            if (item.getQualityLevel() == IQualityLevels.CACHE_LEVEL_SYNC) {
+                // Only look for synchronized items
+                itemsIds.add(item.getId());
+            }
+        }
+
+        // Update the stocks (don't care about error)
+        if (!itemsIds.isEmpty()) {
+            getItemsStock(itemsIds.toArray(new String[itemsIds.size()]));
+        }
     }
 
     /*
@@ -409,7 +523,14 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback {
         pChannelItems = pCacheFactory.openChannel(CACHE_ITEMS_NAME);
         pChannelStocks = pCacheFactory.openChannel(CACHE_STOCKS_NAME);
 
+        // Prepare the cached ERP
         pCachedErp = new CachedErp();
+
+        // Prepare the cache updater
+        pUpdateExecutor = Executors.newScheduledThreadPool(1);
+        pUpdateExecutor.scheduleAtFixedRate(pUpdateRunnable, 10, 60,
+                TimeUnit.SECONDS);
+
         pLogger.logInfo(this, "validatePojo", "QuarterbackSvc Ready");
     }
 }

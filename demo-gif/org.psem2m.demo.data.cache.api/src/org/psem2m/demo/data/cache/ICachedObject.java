@@ -1,14 +1,17 @@
 /**
  * File:   ICachedObject.java
- * Author: "Thomas Calmant"
+ * Author: Thomas Calmant
  * Date:   12 oct. 2011
  */
 package org.psem2m.demo.data.cache;
 
 /**
- * @author "Thomas Calmant"
- *
+ * Describes a cached object
+ * 
+ * @author Thomas Calmant
+ * 
  * @param <T>
+ *            The type if the cached object
  */
 public interface ICachedObject<T> {
 
@@ -17,18 +20,17 @@ public interface ICachedObject<T> {
      * 
      * @return the age of the cached object
      */
-    public abstract long getCacheAge();
+    long getCacheAge();
 
     /**
      * Retrieves the cached object
      * 
      * @return the cached object
      */
-    public abstract T getObject();
+    T getObject();
 
     /**
      * Resets the cached object age
      */
-    public abstract void touch();
-
+    void touch();
 }

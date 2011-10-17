@@ -12,9 +12,16 @@ package org.psem2m.isolates.demo.services.ui.viewer.impl;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
+import org.apache.felix.ipojo.architecture.Architecture;
+import org.apache.felix.ipojo.architecture.InstanceDescription;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
@@ -72,6 +79,9 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
 
     }
 
+    /** iPOJO Components architectures */
+    private Architecture[] pArchitectures;
+
     /**
      * The window of the bundle
      */
@@ -88,6 +98,9 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
      * Service reference managed by iPojo (see metadata.xml)
      **/
     private IPlatformDirsSvc pPlatformDirsSvc;
+
+    /** Scheduled executor */
+    private ScheduledExecutorService pScheduledExecutor;
 
     /**
      * Service reference managed by iPojo (see metadata.xml)
@@ -108,6 +121,43 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
     public CUiSvc() {
 
         super();
+    }
+
+    /**
+     * Builds a component description text, according to iPOJO architecture
+     * services
+     * 
+     * @return A iPOJO components description text
+     */
+    private String buildComponentsDescription() {
+
+        List<String> componentsLines = new ArrayList<String>();
+
+        for (Architecture arch : pArchitectures) {
+
+            final InstanceDescription description = arch
+                    .getInstanceDescription();
+
+            final String strState = description.getDescription().getAttribute(
+                    "state");
+
+            final StringBuilder builder = new StringBuilder();
+            builder.append(description.getName()).append("[")
+                    .append(description.getBundleId()).append("] -> ")
+                    .append(strState).append(" (")
+                    .append(description.getState()).append(")\n");
+
+            componentsLines.add(builder.toString());
+        }
+
+        Collections.sort(componentsLines);
+
+        final StringBuilder builder = new StringBuilder();
+        for (String line : componentsLines) {
+            builder.append(line);
+        }
+
+        return builder.toString();
     }
 
     /**
@@ -255,6 +305,9 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
 
                 pFrameMain.setServiceTable(wListOfServiceRef);
 
+                pFrameMain
+                        .setComponentsDescription(buildComponentsDescription());
+
                 pIsolateLoggerSvc.logInfo(this, "initListOfService",
                         "add [%d] services : [%s]", wListOfServiceRef.size(),
                         wListOfServiceRef.toString());
@@ -294,6 +347,9 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
     @Override
     public void invalidatePojo() {
 
+        // Stop the scheduled executor
+        pScheduledExecutor.shutdownNow();
+
         // logs in the bundle output
         pIsolateLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
                 toDescription());
@@ -308,6 +364,14 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
     private synchronized void setFrameMain(final CFrameMain aFrameMain) {
 
         pFrameMain = aFrameMain;
+    }
+
+    /**
+     * Updates the UI with the new components state
+     */
+    private void updateComponentsDescription() {
+
+        pFrameMain.setComponentsDescription(buildComponentsDescription());
     }
 
     /**
@@ -352,7 +416,6 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
                         : "UNREGISTERING", aServiceReference.toString());
 
         pFrameMain.setServiceTable(aServiceReference, aEvent);
-
     }
 
     /*
@@ -362,6 +425,9 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
      */
     @Override
     public void validatePojo() {
+
+        // Prepare the scheduled executor
+        pScheduledExecutor = Executors.newScheduledThreadPool(1);
 
         // logs in the bundle output
         pIsolateLoggerSvc.logInfo(this, "validatePojo", "VALIDATE",
@@ -379,5 +445,15 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
             pIsolateLoggerSvc.logSevere(this, "initListOfService", e);
 
         }
+
+        // Register the components updater
+        pScheduledExecutor.scheduleAtFixedRate(new Runnable() {
+
+            @Override
+            public void run() {
+
+                updateComponentsDescription();
+            }
+        }, 1, 1, TimeUnit.SECONDS);
     }
 }
