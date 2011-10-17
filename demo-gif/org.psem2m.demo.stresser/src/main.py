@@ -25,7 +25,8 @@ def _run(parameters):
 
 # ------------------------------------------------------------------------------
 
-def start_stressers(nb_scenario_1=15, nb_scenario_2=5, erp_off=True):
+def start_stressers(nb_scenario_1=15, nb_scenario_2=5, erp_off=True, \
+                    quarterback_off=True):
     """
     Runs the stressers in separate processes
     """
@@ -34,26 +35,34 @@ def start_stressers(nb_scenario_1=15, nb_scenario_2=5, erp_off=True):
     stressers = [{"scenario": 1, \
                   "stresser_id": base_id + stress_id, \
                   "think_time": random.randint(1, 3), \
-                  "nb_iterations": 100}
+                  "nb_iterations": 20}
                   for stress_id in xrange(0, nb_scenario_1)]
 
     # Scenario 2
-    base_id = len(stressers)
+    base_id = 50
     stressers += [{"scenario": 2, \
                    "stresser_id": base_id + stress_id, \
                    "think_time": random.uniform(.5, 2), \
-                   "nb_iterations": 100}
+                   "nb_iterations": 20}
                    for stress_id in xrange(0, nb_scenario_2)]
 
     # Scenario 3, if needed
     if erp_off:
-        base_id = len(stressers)
+        base_id = 70
         # 2 to 6 iterations
-        nb_iter = random.choice([n * 2 for n in xrange(1, 4)])
+        nb_iter = random.choice([n * 2 + 1 for n in xrange(1, 4)])
         stressers += [{"scenario": 3, \
                        "stresser_id": base_id, \
                        "think_time": 0, \
                        "nb_iterations": nb_iter}]
+
+    # Scenario 4, if needed
+    if quarterback_off:
+        base_id = 80
+        stressers += [{"scenario": 4, \
+                       "stresser_id": base_id, \
+                       "think_time": 5, \
+                       "nb_iterations": 2}]
 
     pool = Pool(len(stressers))
     pool.map(_run, stressers)

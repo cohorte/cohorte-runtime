@@ -146,6 +146,21 @@ class Stresser(object):
             return False
 
 
+    def scenario_4(self):
+        """
+        Scenario 4 : toggle the Quarterback component state
+        """
+        try:
+            # Use HTTP lib
+            urllib.urlopen("http://localhost:9210/psem2m-signal-receiver" + \
+                           "/demo/core/quarterback/toggle", \
+                           data="")
+
+            return True
+
+        except:
+            return False
+
     def run(self, scenario_id, nb_iterations=50):
         """
         Main loop
@@ -158,6 +173,8 @@ class Stresser(object):
             method = self.scenario_2
         elif scenario_id == 3:
             method = self.scenario_3
+        elif scenario_id == 4:
+            method = self.scenario_4
         else:
             print "Bad scenario number :", scenario_id
             return
