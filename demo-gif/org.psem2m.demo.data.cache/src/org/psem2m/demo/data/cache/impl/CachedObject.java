@@ -41,6 +41,21 @@ public class CachedObject<T extends Serializable> implements ICachedObject<T>,
     /*
      * (non-Javadoc)
      * 
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(final Object aObj) {
+
+        if (pCachedObject != null) {
+            return pCachedObject.equals(aObj);
+        }
+
+        return super.equals(aObj);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.psem2m.demo.data.cache.ICachedObject#getCacheAge()
      */
     @Override

@@ -33,7 +33,11 @@ import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 
 /**
- * Implementation of a cache channel factory
+ * Implementation of a cache channel factory.
+ * 
+ * <b>IMPORTANT :</b> The cache content is flushed when the component is
+ * stopped. Therefore, <b>do not</b> clear channels before the component is
+ * stopped, unless you do not want to save data upon component sessions.
  * 
  * @author Thomas Calmant
  */
@@ -97,15 +101,15 @@ public class CacheFactoryImpl extends CPojoBase implements ICacheFactory {
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.demo.data.cache.ICacheFactory#closeChannel(java.lang.String)
+     * org.psem2m.demo.data.cache.ICacheFactory#clearChannel(java.lang.String)
      */
     @Override
-    public void closeChannel(final String aName) {
+    public void clearChannel(final String aName) {
 
         ICacheChannel<?, ?> channel = pChannels.get(aName);
         if (channel != null) {
             pChannels.remove(channel);
-            channel.close();
+            channel.clear();
         }
     }
 
@@ -159,7 +163,7 @@ public class CacheFactoryImpl extends CPojoBase implements ICacheFactory {
             if (pExecutor.awaitTermination(1, TimeUnit.SECONDS)) {
                 // All tasks are terminated, close all channels
                 for (ICacheChannel<?, ?> channel : pChannels.values()) {
-                    channel.close();
+                    channel.clear();
                 }
                 pChannels.clear();
             }
@@ -169,15 +173,6 @@ public class CacheFactoryImpl extends CPojoBase implements ICacheFactory {
         }
 
         pLogger.logInfo(this, "invalidatePojo", "Cache channel factory Gone");
-    }
-
-    /**
-     * Loads the cache file from a thread
-     */
-    protected void load() {
-
-        // Read from the executor
-        pExecutor.execute(pRunLoadFile);
     }
 
     /**
@@ -304,6 +299,16 @@ public class CacheFactoryImpl extends CPojoBase implements ICacheFactory {
     }
 
     /**
+     * Loads the cache file from a thread
+     */
+    @Override
+    public void reload() {
+
+        // Read from the executor
+        pExecutor.execute(pRunLoadFile);
+    }
+
+    /**
      * Stores the cache to a file
      */
     private synchronized void storeToFile() {
@@ -365,7 +370,7 @@ public class CacheFactoryImpl extends CPojoBase implements ICacheFactory {
         pExecutor = Executors.newFixedThreadPool(1);
 
         // Load the previous cache
-        load();
+        reload();
 
         pLogger.logInfo(this, "validatePojo", "Cache channel factory Ready");
     }

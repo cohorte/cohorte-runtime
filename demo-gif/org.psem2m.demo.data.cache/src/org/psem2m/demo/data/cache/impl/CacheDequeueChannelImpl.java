@@ -32,10 +32,22 @@ public class CacheDequeueChannelImpl<K extends Serializable, V extends Serializa
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.demo.data.cache.ICacheChannel#close()
+     * @see
+     * org.psem2m.demo.data.cache.ICacheDequeueChannel#add(java.io.Serializable)
      */
     @Override
-    public void close() {
+    public boolean add(final V aValue) {
+
+        return add(new CachedObject<V>(aValue));
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.demo.data.cache.ICacheChannel#clear()
+     */
+    @Override
+    public void clear() {
 
         clear();
         pAssociationMap.clear();

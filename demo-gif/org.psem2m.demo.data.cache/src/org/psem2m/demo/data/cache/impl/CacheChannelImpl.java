@@ -30,10 +30,10 @@ public class CacheChannelImpl<K extends Serializable, V extends Serializable>
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.demo.data.cache.ICacheChannel#close()
+     * @see org.psem2m.demo.data.cache.ICacheChannel#clear()
      */
     @Override
-    public void close() {
+    public void clear() {
 
         pCacheMap.clear();
     }
