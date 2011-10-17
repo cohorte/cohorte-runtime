@@ -17,6 +17,8 @@
         
         <requires field="pSvcAgent" optional="false" />
         
+        <requires field="pArchitectures" optional="false" />
+        
         <requires field="pSvcConfig" optional="false" />
         
         
