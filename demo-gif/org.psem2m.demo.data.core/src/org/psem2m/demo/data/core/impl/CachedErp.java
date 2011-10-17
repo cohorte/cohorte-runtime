@@ -229,7 +229,8 @@ public class CachedErp {
             return aItemsIds;
         }
 
-        if (aBaseId == null || aBaseId.isEmpty()) {
+        if (aBaseId == null || aBaseId.isEmpty()
+                || !aItemsIds.contains(aBaseId)) {
             // No base : make a sub list from the set
             final List<String> resultList = new ArrayList<String>(aItemsCount);
 
@@ -246,7 +247,7 @@ public class CachedErp {
 
             return resultList;
 
-        } else if (aItemsIds.contains(aBaseId)) {
+        } else {
             // Base ID exists in the set
 
             final Iterator<String> iterator = aItemsIds.iterator();
@@ -276,8 +277,5 @@ public class CachedErp {
             return resultList;
 
         }
-
-        // Invalid base
-        return null;
     }
 }
