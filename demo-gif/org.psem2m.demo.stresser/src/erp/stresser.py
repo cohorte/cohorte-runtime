@@ -19,14 +19,16 @@ class Stresser(object):
     '''
     CATEGORIES = ('screens', 'mouses')
 
-    def __init__(self, name, think_time=.1, \
-                 server_host="localhost", server_port=9210):
+    def __init__(self, name, server_host="localhost", \
+                 server_port=9210, erp_port=8080):
         '''
         Constructor
         '''
         self.name = name
         self.__client = client.DataServerClient(server_host, server_port)
-        self.__think_time = think_time
+        self.__server_host = server_host
+        self.__server_port = server_port
+        self.__erp_port = erp_port
 
         # Scenario 1
         self._last_id = ""
@@ -132,7 +134,8 @@ class Stresser(object):
         Scenario 3 : start/stop ERP
         """
         try:
-            urllib.urlopen("http://localhost:8080/setStateERP?activate=" \
+            urllib.urlopen("http://" + self.__server_host + ":" \
+                           + str(self.__erp_port) + "/setStateERP?activate=" \
                            + self._mode)
 
             if self._mode == "ON":
@@ -150,22 +153,28 @@ class Stresser(object):
         """
         Scenario 4 : toggle the Quarterback component state
         """
-        try:
-            # Use HTTP lib
-            urllib.urlopen("http://localhost:9210/psem2m-signal-receiver" + \
-                           "/demo/core/quarterback/toggle", \
-                           data="")
+        #try:
+        # Use HTTP lib
+        urllib.urlopen("http://" + self.__server_host + ":" \
+                       + str(self.__server_port) + "/psem2m-signal-receiver" + \
+                       "/demo/core/quarterback/toggle", data="")
 
-            return True
+        return True
 
-        except:
-            return False
+        #except:
+        #    return False
 
-    def run(self, scenario_id, nb_iterations=50):
+    def run(self, scenario_id, parameters):
         """
         Main loop
         """
-        print "Stresser", self.name, "running..."
+
+        # Delay if any
+        if "delay" in parameters:
+            print self.name, "delayed..."
+            time.sleep(parameters["delay"])
+
+        print self.name, "running..."
 
         if scenario_id == 1:
             method = self.scenario_1
@@ -180,7 +189,21 @@ class Stresser(object):
             return
 
         i = 0
+        nb_iterations = parameters["nb_iterations"]
         errors = 0
+
+        param_think_time = parameters["think_time"]
+
+        if "think_time_min" in parameters:
+            param_think_time_min = parameters["think_time_min"]
+        else:
+            param_think_time_min = 5
+
+        if "think_time_max" in parameters:
+            param_think_time_max = parameters["think_time_max"]
+        else:
+            param_think_time_max = 10
+
         start_time = time.time()
         while i < nb_iterations:
 
@@ -193,10 +216,11 @@ class Stresser(object):
                 print "Error calling DataServer :", ex
                 traceback.print_exc()
 
-            if not self.__think_time:
-                think_time = random.randint(5, 10)
+            if param_think_time <= 0:
+                think_time = random.randint(param_think_time_min, \
+                                            param_think_time_max)
             else:
-                think_time = self.__think_time
+                think_time = param_think_time
 
             time.sleep(think_time)
             i += 1
