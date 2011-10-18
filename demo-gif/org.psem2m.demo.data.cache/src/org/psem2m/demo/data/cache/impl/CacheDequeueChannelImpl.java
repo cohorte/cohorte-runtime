@@ -49,7 +49,7 @@ public class CacheDequeueChannelImpl<K extends Serializable, V extends Serializa
     @Override
     public void clear() {
 
-        clear();
+        super.clear();
         pAssociationMap.clear();
     }
 
