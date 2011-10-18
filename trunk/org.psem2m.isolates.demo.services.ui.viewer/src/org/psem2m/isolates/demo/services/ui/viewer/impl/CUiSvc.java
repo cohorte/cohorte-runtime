@@ -374,7 +374,28 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
      */
     private void updateComponentsDescription() {
 
-        pFrameMain.setComponentsDescription(buildComponentsDescription());
+        final String wComponents = buildComponentsDescription();
+
+        int wNbValid = CXStringUtils.countSubString(wComponents, "invalid");
+
+        // logs in the logger of the isolate
+        pIsolateLoggerSvc.logInfo(this, "updateComponentsDescription",
+                "nbValidDomponents=[%d]", wNbValid);
+
+        Runnable wRunnable = new Runnable() {
+            @Override
+            public void run() {
+
+                pFrameMain.setComponentsDescription(wComponents);
+            }
+        };
+        try {
+            // gives the runnable to the UIExecutor
+            pUiExecutor.execute(wRunnable);
+        } catch (Exception e) {
+            pIsolateLoggerSvc.logSevere(this, "init", e);
+        }
+
     }
 
     /**
@@ -432,7 +453,7 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
         // Prepare the scheduled executor
         pScheduledExecutor = Executors.newScheduledThreadPool(1);
 
-        // logs in the bundle output
+        // logs in the logger of the isolate
         pIsolateLoggerSvc.logInfo(this, "validatePojo", "VALIDATE",
                 toDescription());
 
