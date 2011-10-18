@@ -92,6 +92,24 @@ public class ThreadsMonitor extends CPojoBase {
         }
     }
 
+    protected String findThreadStarter(final Thread aThread) {
+
+        // final ClassLoader classLoader = aThread.getContextClassLoader();
+        //
+        // StackTraceElement[] stack = aThread.getStackTrace();
+        // for (StackTraceElement s : stack) {
+        // System.out.println("Trace : " + s);
+        // }
+        //
+        // System.out.println(aThread + " - CL=" + classLoader + " - CLClass="
+        // + (classLoader != null ? classLoader.getClass() : "null")
+        // + "Class=" + aThread.getClass() + "- ClassCL="
+        // + aThread.getClass().getClassLoader() + " - Bundle : "
+        // + FrameworkUtil.getBundle(aThread.getClass()));
+
+        return "<unknown>";
+    }
+
     /**
      * Retrieves all running threads in the JVM.
      * 
@@ -173,36 +191,19 @@ public class ThreadsMonitor extends CPojoBase {
                     pLogger.logWarn(
                             this,
                             "updateMonitor",
-                            "HEAVY  ACTIVITY FOR %3d (%15.15s) - %5.2f / %5.2f",
+                            "HEAVY  ACTIVITY FOR %3d (%15.15s) - %5.2f / %5.2f - %s",
                             id, threadName, threadCpuUsage,
-                            threadAverageCpuUsage);
+                            threadAverageCpuUsage, findThreadStarter(thread));
 
                 } else if (threadCpuUsage > 50) {
                     // > 50% CPU usage
                     pLogger.logWarn(
                             this,
                             "updateMonitor",
-                            "HIGH   activity for %3d (%15.15s) - %5.2f / %5.2f",
+                            "HIGH   activity for %3d (%15.15s) - %5.2f / %5.2f - %s",
                             id, threadName, threadCpuUsage,
-                            threadAverageCpuUsage);
+                            threadAverageCpuUsage, findThreadStarter(thread));
 
-                } else if (threadCpuUsage > 0) {
-                    // > 0% CPU Usage
-                    pLogger.logInfo(
-                            this,
-                            "updateMonitor",
-                            "Normal activity for %3d (%15.15s) - %5.2f / %5.2f",
-                            id, threadName, threadCpuUsage,
-                            threadAverageCpuUsage);
-
-                } else if (threadAverageCpuUsage > 0) {
-                    // > 0% average CPU Usage
-                    pLogger.logInfo(
-                            this,
-                            "updateMonitor",
-                            "Low    activity for %3d (%15.15s) - %5.2f / %5.2f",
-                            id, threadName, threadCpuUsage,
-                            threadAverageCpuUsage);
                 }
             }
         }
