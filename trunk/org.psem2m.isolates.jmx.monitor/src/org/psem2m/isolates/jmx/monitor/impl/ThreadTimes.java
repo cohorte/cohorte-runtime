@@ -30,6 +30,15 @@ public class ThreadTimes {
     /** User time, when last seen */
     private long pLastUserTime;
 
+    /** Previous update CPU time */
+    private long pPreviousCpuTime;
+
+    /** Previous update nano time */
+    private long pPreviousNanoTime;
+
+    /** Previous update User time */
+    private long pPreviousUserTime;
+
     /** The thread ID */
     private final long pThreadId;
 
@@ -58,39 +67,39 @@ public class ThreadTimes {
     }
 
     /**
-     * Retrieves the average CPU time usage of the thread. Returns 0 if
-     * {@link #updateTimes(long, long)} was never called since the object
-     * creation.
+     * Retrieves the average CPU time usage of the thread, between the two last
+     * updates. Returns 0 if {@link #updateTimes(long, long)} was never called
+     * since the object creation.
      * 
      * @return The average CPU time usage, or 0
      */
     public double getAverageCpuTimeUsage() {
 
-        if (pInitialNanoTime == pLastNanoTime) {
+        if (pPreviousNanoTime == pLastNanoTime) {
             // Avoid a division by zero
             return 0;
         }
 
-        return ((pLastCpuTime - pInitialCpuTime) * 100.0)
-                / (pLastNanoTime - pInitialNanoTime);
+        return ((pLastCpuTime - pPreviousCpuTime) * 100.0)
+                / (pLastNanoTime - pPreviousNanoTime);
     }
 
     /**
-     * Retrieves the average User time usage of the thread. Returns 0 if
-     * {@link #updateTimes(long, long)} was never called since the object
-     * creation.
+     * Retrieves the average User time usage of the thread, between the two last
+     * updates. Returns 0 if {@link #updateTimes(long, long)} was never called
+     * since the object creation.
      * 
-     * @return The average CPU time usage, or 0
+     * @return The average User time usage, or 0
      */
     public double getAverageUserTimeUsage() {
 
-        if (pInitialNanoTime == pLastNanoTime) {
+        if (pPreviousNanoTime == pLastNanoTime) {
             // Avoid a division by zero
             return 0;
         }
 
-        return ((pLastUserTime - pInitialUserTime) * 100.0)
-                / (pLastNanoTime - pInitialNanoTime);
+        return ((pLastUserTime - pPreviousUserTime) * 100.0)
+                / (pLastNanoTime - pPreviousNanoTime);
     }
 
     /**
@@ -134,6 +143,26 @@ public class ThreadTimes {
     }
 
     /**
+     * Retrieves the CPU time of the previous update
+     * 
+     * @return the CPU time of the previous update
+     */
+    public long getPreviousCpuTime() {
+
+        return pPreviousCpuTime;
+    }
+
+    /**
+     * Retrieves the User time of the previous update
+     * 
+     * @return the User time of the previous update
+     */
+    public long getPreviousUserTime() {
+
+        return pPreviousUserTime;
+    }
+
+    /**
      * Retrieves the thread ID
      * 
      * @return the thread ID
@@ -141,6 +170,42 @@ public class ThreadTimes {
     public long getThreadId() {
 
         return pThreadId;
+    }
+
+    /**
+     * Retrieves the average CPU time usage of the thread, between the initial
+     * and the last updates. Returns 0 if {@link #updateTimes(long, long)} was
+     * never called since the object creation.
+     * 
+     * @return The average CPU time usage, or 0
+     */
+    public double getTotalAverageCpuTimeUsage() {
+
+        if (pInitialNanoTime == pLastNanoTime) {
+            // Avoid a division by zero
+            return 0;
+        }
+
+        return ((pLastCpuTime - pInitialCpuTime) * 100.0)
+                / (pLastNanoTime - pInitialNanoTime);
+    }
+
+    /**
+     * Retrieves the average User time usage of the thread, between the initial
+     * and the last updates. Returns 0 if {@link #updateTimes(long, long)} was
+     * never called since the object creation.
+     * 
+     * @return The average User time usage, or 0
+     */
+    public double getTotalAverageUserTimeUsage() {
+
+        if (pInitialNanoTime == pLastNanoTime) {
+            // Avoid a division by zero
+            return 0;
+        }
+
+        return ((pLastUserTime - pInitialUserTime) * 100.0)
+                / (pLastNanoTime - pInitialNanoTime);
     }
 
     /**
@@ -153,7 +218,16 @@ public class ThreadTimes {
      */
     public void updateTimes(final long aLastCpuTime, final long aLastUserTime) {
 
-        pLastNanoTime = System.nanoTime();
+        // Store call time
+        final long callTime = System.nanoTime();
+
+        // Store previous values
+        pPreviousCpuTime = pLastCpuTime;
+        pPreviousNanoTime = pLastNanoTime;
+        pPreviousUserTime = pLastUserTime;
+
+        // Update values
+        pLastNanoTime = callTime;
         pLastCpuTime = aLastCpuTime;
         pLastUserTime = aLastUserTime;
     }
