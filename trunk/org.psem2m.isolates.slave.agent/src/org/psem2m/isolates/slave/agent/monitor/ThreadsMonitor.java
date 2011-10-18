@@ -135,7 +135,7 @@ public class ThreadsMonitor extends CPojoBase {
      */
     protected void updateMonitor() {
 
-        pLogger.logInfo(this, "updateMonitor", "Update Monitor...");
+        // pLogger.logInfo(this, "updateMonitor", "Update Monitor...");
 
         synchronized (pMonitor) {
 
@@ -188,26 +188,26 @@ public class ThreadsMonitor extends CPojoBase {
 
                 } else if (threadCpuUsage > 0) {
                     // > 0% CPU Usage
-                    pLogger.logInfo(
-                            this,
-                            "updateMonitor",
-                            "Normal activity for %3d (%15.15s) - %5.2f / %5.2f",
-                            id, threadName, threadCpuUsage,
-                            threadAverageCpuUsage);
+                    // pLogger.logInfo(
+                    // this,
+                    // "updateMonitor",
+                    // "Normal activity for %3d (%15.15s) - %5.2f / %5.2f",
+                    // id, threadName, threadCpuUsage,
+                    // threadAverageCpuUsage);
 
                 } else if (threadAverageCpuUsage > 0) {
                     // > 0% average CPU Usage
-                    pLogger.logInfo(
-                            this,
-                            "updateMonitor",
-                            "Low    activity for %3d (%15.15s) - %5.2f / %5.2f",
-                            id, threadName, threadCpuUsage,
-                            threadAverageCpuUsage);
+                    // pLogger.logInfo(
+                    // this,
+                    // "updateMonitor",
+                    // "Low    activity for %3d (%15.15s) - %5.2f / %5.2f",
+                    // id, threadName, threadCpuUsage,
+                    // threadAverageCpuUsage);
                 }
             }
         }
 
-        pLogger.logInfo(this, "updateMonitor", "Update Monitor DONE");
+        // pLogger.logInfo(this, "updateMonitor", "Update Monitor DONE");
     }
 
     /*
