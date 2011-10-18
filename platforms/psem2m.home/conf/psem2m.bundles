@@ -16,6 +16,9 @@ osgi.cmpn
 # Basic constants and remote beans
 org.psem2m.isolates.constants
 
+# JMX Threads monitor
+org.psem2m.isolates.jmx.monitor
+
 # Utility classes
 org.psem2m.isolates.utilities
 
