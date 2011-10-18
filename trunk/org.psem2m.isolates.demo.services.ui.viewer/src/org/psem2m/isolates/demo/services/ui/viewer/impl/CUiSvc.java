@@ -142,10 +142,13 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
                     "state");
 
             final StringBuilder builder = new StringBuilder();
-            builder.append(description.getName()).append("[")
-                    .append(description.getBundleId()).append("] -> ")
-                    .append(strState).append(" (")
-                    .append(description.getState()).append(")\n");
+
+            builder.append(CXStringUtils.strAdjustLeft(description.getName(),
+                    40, '.'));
+            CXStringUtils.appendFormatStrInBuff(builder, "%3d >> %1d ",
+                    description.getBundleId(), description.getState());
+            builder.append(strState);
+            builder.append("\n");
 
             componentsLines.add(builder.toString());
         }

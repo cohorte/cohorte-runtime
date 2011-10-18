@@ -117,6 +117,13 @@ public class CFrameMain extends javax.swing.JFrame {
      */
     class CFontSizeActionListener implements ActionListener {
 
+        /*
+         * (non-Javadoc)
+         * 
+         * @see
+         * java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent
+         * )
+         */
         @Override
         public void actionPerformed(final ActionEvent aActionEvent) {
 
@@ -125,16 +132,21 @@ public class CFrameMain extends javax.swing.JFrame {
 
             if (FONT_SIZE_SMALL.equals(wSize)) {
                 adjustTableRow(FONT_NAME_TABLE, FONT_SIZE_SMALL_PT);
-                setTextAreaFont(FONT_NAME_TEXTAREA, FONT_SIZE_SMALL_PT);
+                setTextServiceFont(FONT_NAME_TEXTAREA, FONT_SIZE_SMALL_PT);
+                setTextComponentFont(FONT_NAME_TEXTAREA, FONT_SIZE_SMALL_PT);
+                setTextConfigFont(FONT_NAME_TEXTAREA, FONT_SIZE_SMALL_PT);
 
             } else if (FONT_SIZE_NORMAL.equals(wSize)) {
                 adjustTableRow(FONT_NAME_TABLE, FONT_SIZE_NORMAL_PT);
-                setTextAreaFont(FONT_NAME_TEXTAREA, FONT_SIZE_NORMAL_PT);
+                setTextServiceFont(FONT_NAME_TEXTAREA, FONT_SIZE_NORMAL_PT);
+                setTextComponentFont(FONT_NAME_TEXTAREA, FONT_SIZE_NORMAL_PT);
+                setTextConfigFont(FONT_NAME_TEXTAREA, FONT_SIZE_NORMAL_PT);
 
             } else if (FONT_SIZE_LARGE.equals(wSize)) {
                 adjustTableRow(FONT_NAME_TABLE, FONT_SIZE_LARGE_PT);
-                setTextAreaFont(FONT_NAME_TEXTAREA, FONT_SIZE_LARGE_PT);
-
+                setTextServiceFont(FONT_NAME_TEXTAREA, FONT_SIZE_LARGE_PT);
+                setTextComponentFont(FONT_NAME_TEXTAREA, FONT_SIZE_LARGE_PT);
+                setTextConfigFont(FONT_NAME_TEXTAREA, FONT_SIZE_LARGE_PT);
             }
         }
 
@@ -579,7 +591,7 @@ public class CFrameMain extends javax.swing.JFrame {
                                             .setForeground(Color.BLACK);
                                     pServiceInfosTextArea.setText("Info...");
 
-                                    setTextAreaFont(FONT_NAME_TEXTAREA,
+                                    setTextServiceFont(FONT_NAME_TEXTAREA,
                                             FONT_SIZE_NORMAL_PT);
 
                                 }
@@ -648,6 +660,8 @@ public class CFrameMain extends javax.swing.JFrame {
                     {
                         pComponentsTextArea = new JTextArea();
                         pComponentsTextArea.setText("iPOJO Components...");
+                        setTextComponentFont(FONT_NAME_TEXTAREA,
+                                FONT_SIZE_NORMAL_PT);
                         pComponentsScrollPane
                                 .setViewportView(pComponentsTextArea);
                     }
@@ -658,8 +672,9 @@ public class CFrameMain extends javax.swing.JFrame {
                             null);
                     {
                         pConfigTextArea = new JTextArea();
-                        pConfigTextArea.setFont(new Font("Courier New",
-                                Font.PLAIN, FONT_SIZE_NORMAL_PT));
+                        setTextConfigFont(FONT_NAME_TEXTAREA,
+                                FONT_SIZE_NORMAL_PT);
+
                         pConfigTextArea.setText("XXX ...");
                         scrollPane.setViewportView(pConfigTextArea);
                     }
@@ -797,11 +812,25 @@ public class CFrameMain extends javax.swing.JFrame {
         return wNewFont;
     }
 
+    private Font setTextComponentFont(final String aFontName, final int aSize) {
+
+        Font wNewFont = new Font(aFontName, Font.PLAIN, aSize);
+        pComponentsTextArea.setFont(wNewFont);
+        return wNewFont;
+    }
+
+    private Font setTextConfigFont(final String aFontName, final int aSize) {
+
+        Font wNewFont = new Font(aFontName, Font.PLAIN, aSize);
+        pConfigTextArea.setFont(wNewFont);
+        return wNewFont;
+    }
+
     /**
      * @param aFontName
      * @param aSize
      */
-    private Font setTextAreaFont(final String aFontName, final int aSize) {
+    private Font setTextServiceFont(final String aFontName, final int aSize) {
 
         Font wNewFont = new Font(aFontName, Font.PLAIN, aSize);
         pServiceInfosTextArea.setFont(wNewFont);
