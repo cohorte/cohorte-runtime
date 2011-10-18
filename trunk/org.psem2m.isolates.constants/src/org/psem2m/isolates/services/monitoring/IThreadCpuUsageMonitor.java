@@ -27,8 +27,9 @@ public interface IThreadCpuUsageMonitor {
     long[] getKnownThreadsIds();
 
     /**
-     * Retrieves the average CPU time of the given thread. Returns -1 if the
-     * thread is unknown (dead or never seen), 0 if the average CPU time
+     * Retrieves the average CPU usage of the given thread, between the first
+     * and the last time it was seen by {@link #update()}. Returns -1 if the
+     * thread is unknown (dead or never seen), 0 if the average CPU usage
      * couldn't be computed.
      * 
      * @param aThreadId
@@ -39,7 +40,17 @@ public interface IThreadCpuUsageMonitor {
     double getThreadAverageCpuUsage(final long aThreadId);
 
     /**
-     * Updates the monitor informations
+     * Retrieves the average CPU usage of the given thread between the two last
+     * calls to {@link #update()}.Returns -1 if the thread is unknown (dead or
+     * never seen), 0 if the average CPU usage couldn't be computed.
+     * 
+     * @param aThreadId
+     * @return
+     */
+    double getThreadCpuUsage(final long aThreadId);
+
+    /**
+     * Updates the monitor informations.
      */
     void update();
 }

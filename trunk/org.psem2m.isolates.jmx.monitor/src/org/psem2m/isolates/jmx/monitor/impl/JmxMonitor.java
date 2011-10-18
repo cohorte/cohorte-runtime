@@ -42,7 +42,7 @@ public class JmxMonitor implements IThreadCpuUsageMonitor {
      * ()
      */
     @Override
-    public synchronized double getAverageCpuUsage() {
+    public double getAverageCpuUsage() {
 
         double averageCpuTime = 0;
         int validThreads = 0;
@@ -75,7 +75,7 @@ public class JmxMonitor implements IThreadCpuUsageMonitor {
      * ()
      */
     @Override
-    public synchronized long[] getKnownThreadsIds() {
+    public long[] getKnownThreadsIds() {
 
         long[] result = new long[pTimes.size()];
         int i = 0;
@@ -98,7 +98,24 @@ public class JmxMonitor implements IThreadCpuUsageMonitor {
      * getThreadAverageCpuUsage(long)
      */
     @Override
-    public synchronized double getThreadAverageCpuUsage(final long aThreadId) {
+    public double getThreadAverageCpuUsage(final long aThreadId) {
+
+        final ThreadTimes threadTimes = pTimes.get(aThreadId);
+        if (threadTimes == null) {
+            return -1;
+        }
+
+        return threadTimes.getTotalAverageCpuTimeUsage();
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.services.monitoring.IThreadCpuUsageMonitor#
+     * getThreadCpuUsage(long)
+     */
+    @Override
+    public double getThreadCpuUsage(final long aThreadId) {
 
         final ThreadTimes threadTimes = pTimes.get(aThreadId);
         if (threadTimes == null) {
@@ -114,7 +131,7 @@ public class JmxMonitor implements IThreadCpuUsageMonitor {
      * @see org.psem2m.isolates.jmx.monitor.impl.ICpuThreadMonitor#update()
      */
     @Override
-    public synchronized void update() {
+    public void update() {
 
         if (!pThreadBean.isThreadCpuTimeSupported()) {
             // Thread CPU Time not supported, do nothing
