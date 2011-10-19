@@ -319,7 +319,7 @@ public class CXStringUtils implements IConstants {
      * 
      * @param aString
      * @param aChar
-     * @return le nombre d'instance du caractere dans la chaene
+     * @return the number of the searched char int the string
      */
     public static int countChar(final String aString, final char aChar) {
 
@@ -337,6 +337,23 @@ public class CXStringUtils implements IConstants {
             wI++;
         }
         return wCount;
+    }
+
+    /**
+     * @param aString
+     * @param aSubString
+     * @return the number of the searched sub-string int the string
+     */
+    public static int countSubString(final String aString,
+            final String aSubString) {
+
+        if (aString == null || aSubString == null || aString.isEmpty()
+                || aString.length() < aSubString.length()) {
+            return -1;
+        }
+        String[] wSplited = aString.split(aSubString);
+
+        return wSplited.length - 1;
     }
 
     /**

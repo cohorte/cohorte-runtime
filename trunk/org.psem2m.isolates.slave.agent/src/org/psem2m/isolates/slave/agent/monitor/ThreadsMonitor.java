@@ -153,7 +153,7 @@ public class ThreadsMonitor extends CPojoBase {
      */
     protected void updateMonitor() {
 
-        pLogger.logInfo(this, "updateMonitor", "Update Monitor...");
+        // pLogger.logInfo(this, "updateMonitor", "Update Monitor...");
 
         synchronized (pMonitor) {
 
@@ -203,12 +203,11 @@ public class ThreadsMonitor extends CPojoBase {
                             "HIGH   activity for %3d (%15.15s) - %5.2f / %5.2f - %s",
                             id, threadName, threadCpuUsage,
                             threadAverageCpuUsage, findThreadStarter(thread));
-
                 }
             }
         }
 
-        pLogger.logInfo(this, "updateMonitor", "Update Monitor DONE");
+        // pLogger.logInfo(this, "updateMonitor", "Update Monitor DONE");
     }
 
     /*

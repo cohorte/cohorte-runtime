@@ -142,10 +142,13 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
                     "state");
 
             final StringBuilder builder = new StringBuilder();
-            builder.append(description.getName()).append("[")
-                    .append(description.getBundleId()).append("] -> ")
-                    .append(strState).append(" (")
-                    .append(description.getState()).append(")\n");
+
+            builder.append(CXStringUtils.strAdjustLeft(description.getName(),
+                    40, '.'));
+            CXStringUtils.appendFormatStrInBuff(builder, "%3d >> %1d ",
+                    description.getBundleId(), description.getState());
+            builder.append(strState);
+            builder.append("\n");
 
             componentsLines.add(builder.toString());
         }
@@ -371,7 +374,28 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
      */
     private void updateComponentsDescription() {
 
-        pFrameMain.setComponentsDescription(buildComponentsDescription());
+        final String wComponents = buildComponentsDescription();
+
+        int wNbValid = CXStringUtils.countSubString(wComponents, "invalid");
+
+        // logs in the logger of the isolate
+        pIsolateLoggerSvc.logInfo(this, "updateComponentsDescription",
+                "nbValidDomponents=[%d]", wNbValid);
+
+        Runnable wRunnable = new Runnable() {
+            @Override
+            public void run() {
+
+                pFrameMain.setComponentsDescription(wComponents);
+            }
+        };
+        try {
+            // gives the runnable to the UIExecutor
+            pUiExecutor.execute(wRunnable);
+        } catch (Exception e) {
+            pIsolateLoggerSvc.logSevere(this, "init", e);
+        }
+
     }
 
     /**
@@ -429,7 +453,7 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
         // Prepare the scheduled executor
         pScheduledExecutor = Executors.newScheduledThreadPool(1);
 
-        // logs in the bundle output
+        // logs in the logger of the isolate
         pIsolateLoggerSvc.logInfo(this, "validatePojo", "VALIDATE",
                 toDescription());
 
