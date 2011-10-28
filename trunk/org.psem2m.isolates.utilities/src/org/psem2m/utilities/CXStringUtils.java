@@ -381,9 +381,18 @@ public class CXStringUtils implements IConstants {
      * @param aStr
      * @return
      */
+    public static boolean hasContent(final String aStr) {
+
+        return aStr != null && !aStr.isEmpty();
+    }
+
+    /**
+     * @param aStr
+     * @return
+     */
     public static boolean isNumeric(final String aStr) {
 
-        if (aStr == null) {
+        if (!hasContent(aStr)) {
             return false;
         }
         int wMax = aStr.length();
@@ -398,12 +407,12 @@ public class CXStringUtils implements IConstants {
     }
 
     /**
-     * @param aValue
+     * @param aStr
      * @return true if all the characters are "trimable"
      */
-    public static boolean isTrimable(final String aValue) {
+    public static boolean isTrimable(final String aStr) {
 
-        return aValue != null ? isTrimable(aValue, 0, aValue.length()) : false;
+        return (hasContent(aStr)) ? isTrimable(aStr, 0, aStr.length()) : false;
     }
 
     /**
@@ -455,8 +464,12 @@ public class CXStringUtils implements IConstants {
      * @param aLeadingChar
      * @return
      */
-    static public String strAdjustLeft(final String aValue, final int aLen,
+    static public String strAdjustLeft(String aValue, final int aLen,
             final char aLeadingChar) {
+
+        if (aValue == null) {
+            aValue = EMPTY;
+        }
 
         int wLen = aValue.length();
         if (wLen < aLen) {
@@ -496,9 +509,12 @@ public class CXStringUtils implements IConstants {
      * @param aLeadingChar
      * @return
      */
-    static public String strAdjustRight(final String aValue, final int aLen,
+    static public String strAdjustRight(String aValue, final int aLen,
             final char aLeadingChar) {
 
+        if (aValue == null) {
+            aValue = EMPTY;
+        }
         int wLen = aValue.length();
         if (wLen < aLen) {
             return strFromChar(aLeadingChar, aLen - wLen) + aValue;
@@ -567,7 +583,7 @@ public class CXStringUtils implements IConstants {
     public static String strFullTrim(String aStr, final String aBadCharsPrefix,
             final String aBadCharsSuffix) {
 
-        if (aStr != null && aStr.length() != 0) {
+        if (hasContent(aStr)) {
             if (aBadCharsPrefix != null) {
                 int wLen = aStr.length();
                 int wPos = 0;
