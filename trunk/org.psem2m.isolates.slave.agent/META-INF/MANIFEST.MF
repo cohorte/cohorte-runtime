@@ -98,7 +98,9 @@ iPOJO-Components: instance { $component="psem2m-slave-agent-core-facto
  m.isolates.services.monitoring.IThreadCpuUsageMonitor" }field { $name
  ="pScheduledExecutor" $type="java.util.concurrent.ScheduledExecutorSe
  rvice" }method { $name="enumerateThreadGroup" $arguments="{java.util.
- Map,java.lang.ThreadGroup}" }method { $name="getAllThreads" $return="
- java.util.Map" }method { $name="invalidatePojo" }method { $name="upda
- teMonitor" }method { $name="validatePojo" }}}
+ Map,java.lang.ThreadGroup}" }method { $name="findThreadStarter" $retu
+ rn="java.lang.String" $arguments="{java.lang.Thread}" }method { $name
+ ="getAllThreads" $return="java.util.Map" }method { $name="invalidateP
+ ojo" }method { $name="updateMonitor" }method { $name="validatePojo" }
+ }}
 
