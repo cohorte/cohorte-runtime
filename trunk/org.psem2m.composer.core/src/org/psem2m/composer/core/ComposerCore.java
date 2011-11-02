@@ -43,7 +43,7 @@ public class ComposerCore extends CPojoBase implements IComposer,
         ISignalListener {
 
     /** Composites fully-instantiated */
-    private final Map<String, CompositeBean> pFullComposites = new HashMap<String, CompositeBean>();
+    private final Map<String, InstantiatingComposite> pFullComposites = new HashMap<String, InstantiatingComposite>();
 
     /** Composites currently instantiating */
     private final Map<String, InstantiatingComposite> pInstantiatingComposites = new HashMap<String, InstantiatingComposite>();
@@ -60,7 +60,7 @@ public class ComposerCore extends CPojoBase implements IComposer,
     private ISignalBroadcaster pSignalBroadcaster;
 
     /** Composites waiting for full instantiation */
-    private final List<CompositeBean> pWaitingComposites = new ArrayList<CompositeBean>();
+    private final List<InstantiatingComposite> pWaitingComposites = new ArrayList<InstantiatingComposite>();
 
     /**
      * Default constructor
@@ -106,9 +106,6 @@ public class ComposerCore extends CPojoBase implements IComposer,
         final String signalSender = aSignalData.getIsolateSender();
         final Object signalContent = aSignalData.getSignalContent();
 
-        pLogger.logInfo(this, "RECEIVED SIGNAL", "sender=", signalSender,
-                "signal=", aSignalName, "object=", signalContent);
-
         if (ComposerAgentSignals.SIGNAL_RESPONSE_HANDLES_COMPONENTS
                 .equals(aSignalName)) {
             // An isolate can handle some components
@@ -129,15 +126,10 @@ public class ComposerCore extends CPojoBase implements IComposer,
         } else if (ComposerAgentSignals.SIGNAL_RESPONSE_INSTANTIATE_COMPONENTS
                 .equals(aSignalName)) {
             // An isolate started some components
-
-            pLogger.logInfo(this, "RECEIVED INSTANTIATE SIGNAL", "*------*");
-
             if (signalContent instanceof Map<?, ?>) {
 
-                pLogger.logInfo(this, "RECEIVED INSTANTIATE SIGNAL",
-                        "IT'S A MAP !");
-
-                updateInstantiatingCompositeStatus((Map<String, Object>) signalContent);
+                updateInstantiatingCompositeStatus(
+                        (Map<String, Object>) signalContent, signalSender);
             }
 
         } else if (ComposerAgentSignals.SIGNAL_ISOLATE_FACTORIES_GONE
@@ -188,7 +180,7 @@ public class ComposerCore extends CPojoBase implements IComposer,
         }
 
         // Add the component to the waiting list
-        pWaitingComposites.add(aComposite);
+        pWaitingComposites.add(new InstantiatingComposite(aComposite));
 
         // Send a signal with all components in an array
         pSignalBroadcaster.sendData(
@@ -246,9 +238,9 @@ public class ComposerCore extends CPojoBase implements IComposer,
 
         synchronized (pWaitingComposites) {
 
-            final List<CompositeBean> resolvedComposites = new ArrayList<CompositeBean>();
+            final List<InstantiatingComposite> resolvedComposites = new ArrayList<InstantiatingComposite>();
 
-            for (final CompositeBean composite : pWaitingComposites) {
+            for (final InstantiatingComposite composite : pWaitingComposites) {
 
                 final Map<String, ComponentBean[]> resolution = new HashMap<String, ComponentBean[]>();
                 if (composite.resolve(pIsolatesCapabilities, resolution)) {
@@ -256,16 +248,15 @@ public class ComposerCore extends CPojoBase implements IComposer,
                     resolvedComposites.add(composite);
 
                     // Do the job
-                    instantiateComposite(composite, resolution);
+                    instantiateComposite(composite.getBean(), resolution);
                 }
             }
 
             // Remove the resolved composites from the waiting list
-            for (final CompositeBean composite : resolvedComposites) {
+            for (final InstantiatingComposite composite : resolvedComposites) {
 
                 pWaitingComposites.remove(composite);
-                pInstantiatingComposites.put(composite.getName(),
-                        new InstantiatingComposite(composite));
+                pInstantiatingComposites.put(composite.getName(), composite);
             }
         }
     }
@@ -390,11 +381,36 @@ public class ComposerCore extends CPojoBase implements IComposer,
             return;
         }
 
+        // Flag indicating if a new composite resolution is needed
+        boolean needsNewResolution = false;
+
         synchronized (isolateComponents) {
             // Unmaps each component type with the isolate
             for (final String type : aComponentsTypes) {
                 isolateComponents.remove(type);
             }
+
+            // Update complete composites states
+            for (final InstantiatingComposite composite : pFullComposites
+                    .values()) {
+
+                composite.lostComponentTypes(aIsolateId, aComponentsTypes);
+
+                // Update the composite completion level if needed
+                if (!composite.isComplete()) {
+                    final String compositeName = composite.getName();
+                    pFullComposites.remove(compositeName);
+                    pWaitingComposites.add(composite);
+
+                    // A new resolution is needed
+                    needsNewResolution = true;
+                }
+            }
+        }
+
+        if (needsNewResolution) {
+            // Try to recompute a route for degraded composites
+            notifyComponentsRegistration();
         }
     }
 
@@ -404,9 +420,11 @@ public class ComposerCore extends CPojoBase implements IComposer,
      * 
      * @param aAgentResult
      *            A result map returned by a composer agent
+     * @param aHostIsolate
+     *            The ID of the isolate sending the new status
      */
     protected void updateInstantiatingCompositeStatus(
-            final Map<String, Object> aAgentResult) {
+            final Map<String, Object> aAgentResult, final String aHostIsolate) {
 
         // Working composite
         final String compositeName = (String) aAgentResult
@@ -434,14 +452,13 @@ public class ComposerCore extends CPojoBase implements IComposer,
         // Update the composite state
         for (final String componentName : instantiatedComponents) {
 
-            composite.componentStarted(componentName);
+            composite.componentStarted(componentName, aHostIsolate);
         }
 
         // Composite status is good
         if (composite.isComplete()) {
 
-            final CompositeBean compositeBean = composite.getBean();
-            pFullComposites.put(compositeBean.getName(), compositeBean);
+            pFullComposites.put(composite.getName(), composite);
 
             // Nothing more to do
             return;
@@ -467,8 +484,6 @@ public class ComposerCore extends CPojoBase implements IComposer,
 
         pLogger.logInfo(this, "validatePojo", "Composer Core Ready");
 
-        System.out.println("Running test...");
         test();
-        System.out.println("Test running...");
     }
 }

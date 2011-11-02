@@ -43,6 +43,6 @@ iPOJO-Components: instance { $component="org.psem2m.composer.core.Comp
  ents="{java.lang.String,java.lang.String[]}" }method { $name="test" }
  method { $name="unregisterComponentsForIsolate" $arguments="{java.lan
  g.String,java.lang.String[]}" }method { $name="updateInstantiatingCom
- positeStatus" $arguments="{java.util.Map}" }method { $name="validateP
- ojo" }}}
+ positeStatus" $arguments="{java.util.Map,java.lang.String}" }method {
+  $name="validatePojo" }}}
 
