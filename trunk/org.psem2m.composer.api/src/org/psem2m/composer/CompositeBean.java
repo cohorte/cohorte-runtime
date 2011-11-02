@@ -7,6 +7,8 @@ package org.psem2m.composer;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -22,7 +24,7 @@ public class CompositeBean implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /** The list of composite components */
-    private final List<ComponentBean> pComponents = new ArrayList<ComponentBean>();
+    private final Map<String, ComponentBean> pComponents = new HashMap<String, ComponentBean>();
 
     /** The composite name */
     private String pName;
@@ -48,8 +50,24 @@ public class CompositeBean implements Serializable {
             return;
         }
 
+        // Associate the component to the composite...
         aComponent.setCompositeName(pName);
-        pComponents.add(aComponent);
+
+        // Store it
+        pComponents.put(aComponent.getName(), aComponent);
+    }
+
+    /**
+     * Retrieves the component of this composite with the given name, null if
+     * not found
+     * 
+     * @param aComponentName
+     *            The name of the component to look for
+     * @return The component, null if not found
+     */
+    public ComponentBean getComponent(final String aComponentName) {
+
+        return pComponents.get(aComponentName);
     }
 
     /**
@@ -59,7 +77,8 @@ public class CompositeBean implements Serializable {
      */
     public ComponentBean[] getComponents() {
 
-        return pComponents.toArray(new ComponentBean[pComponents.size()]);
+        final Collection<ComponentBean> components = pComponents.values();
+        return components.toArray(new ComponentBean[components.size()]);
     }
 
     /**
@@ -76,6 +95,9 @@ public class CompositeBean implements Serializable {
      * Tries to resolve a component repartition in isolates according to their
      * capabilities and to components properties
      * 
+     * @param aComponentsSubSet
+     *            A set of components to be resolved, subset of composite
+     *            components
      * @param aIsolatesCapabilities
      *            Isolates capabilities
      * @param aResolution
@@ -83,12 +105,18 @@ public class CompositeBean implements Serializable {
      * 
      * @return True if the whole composite has been resolved
      */
-    public boolean resolve(
+    public boolean resolve(final Collection<ComponentBean> aComponentsSubSet,
             final Map<String, List<String>> aIsolatesCapabilities,
             final Map<String, ComponentBean[]> aResolution) {
 
-        if (aResolution == null) {
+        if (aComponentsSubSet == null || aIsolatesCapabilities == null
+                || aResolution == null) {
             // Can't resolve
+            return false;
+        }
+
+        if (!pComponents.values().containsAll(aComponentsSubSet)) {
+            // Not all given components are in this composite...
             return false;
         }
 
@@ -97,7 +125,7 @@ public class CompositeBean implements Serializable {
 
         // Make a copy of required components
         final List<ComponentBean> unresolvedComponents = new ArrayList<ComponentBean>(
-                pComponents);
+                aComponentsSubSet);
 
         for (final Entry<String, List<String>> capabilities : aIsolatesCapabilities
                 .entrySet()) {
@@ -143,12 +171,47 @@ public class CompositeBean implements Serializable {
     }
 
     /**
+     * Tries to resolve a component repartition in isolates according to their
+     * capabilities and to components properties
+     * 
+     * @param aIsolatesCapabilities
+     *            Isolates capabilities
+     * @param aResolution
+     *            The resulting resolution
+     * 
+     * @return True if the whole composite has been resolved
+     */
+    public boolean resolve(
+            final Map<String, List<String>> aIsolatesCapabilities,
+            final Map<String, ComponentBean[]> aResolution) {
+
+        return resolve(pComponents.values(), aIsolatesCapabilities, aResolution);
+    }
+
+    /**
      * Sets the components of the composite
      * 
      * @param aComponents
      *            the components
      */
-    public void setComponents(final List<ComponentBean> aComponents) {
+    public void setComponents(final Collection<ComponentBean> aComponents) {
+
+        pComponents.clear();
+
+        if (aComponents != null) {
+            for (final ComponentBean component : aComponents) {
+                addComponent(component);
+            }
+        }
+    }
+
+    /**
+     * Sets the components of the composite
+     * 
+     * @param aComponents
+     *            the components
+     */
+    public void setComponents(final ComponentBean[] aComponents) {
 
         pComponents.clear();
 
