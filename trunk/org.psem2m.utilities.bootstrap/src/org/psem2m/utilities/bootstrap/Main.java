@@ -146,7 +146,7 @@ public class Main {
                     pOutputStream.close();
                 }
 
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 e.printStackTrace();
             }
         }
@@ -160,22 +160,22 @@ public class Main {
      */
     protected void initializeFromArgs(final String[] aArgs) {
 
-        CmdLineParser parser = new CmdLineParser();
+        final CmdLineParser parser = new CmdLineParser();
 
         /* Configuration input */
         // Use a human output
-        Option humanOutputOpt = parser
+        final Option humanOutputOpt = parser
                 .addBooleanOption(IBootstrapConstants.HUMAN_OUTPUT_FLAG);
 
         // Help command
-        Option printHelpOpt = parser
+        final Option printHelpOpt = parser
                 .addBooleanOption(IBootstrapConstants.HELP_COMMAND);
 
         // Parse the arguments
         try {
             parser.parse(aArgs);
 
-        } catch (CmdLineParser.OptionException e) {
+        } catch (final CmdLineParser.OptionException e) {
 
             // Fatal error : unrecognized option
             System.err.println(e.getMessage());
@@ -194,10 +194,10 @@ public class Main {
         pHumanOutput = (Boolean) parser.getOptionValue(humanOutputOpt, false);
 
         /* Use pending arguments */
-        String[] remainingArgs = parser.getRemainingArgs();
-        for (String argument : remainingArgs) {
+        final String[] remainingArgs = parser.getRemainingArgs();
+        for (final String argument : remainingArgs) {
 
-            String[] property = normalizeArgument(argument);
+            final String[] property = normalizeArgument(argument);
 
             if (property[0]
                     .startsWith(IBootstrapConstants.BOOTSTRAP_PROPERTY_PREFIX)) {
@@ -231,7 +231,7 @@ public class Main {
      */
     protected String[] normalizeArgument(final String aArg) {
 
-        String[] result = new String[2];
+        final String[] result = new String[2];
 
         if (aArg == null) {
             // Never return null
@@ -244,7 +244,7 @@ public class Main {
             String value = null;
 
             // Extract value, if any
-            int valueIndex = argument.indexOf('=');
+            final int valueIndex = argument.indexOf('=');
             if (valueIndex != -1) {
                 value = argument.substring(valueIndex + 1);
                 argument = argument.substring(0, valueIndex);
@@ -269,7 +269,7 @@ public class Main {
             try {
                 pOutputStream = new ObjectOutputStream(pStandardOutput);
 
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 e.printStackTrace();
             }
         }
@@ -281,7 +281,8 @@ public class Main {
     protected void prepareProperties() {
 
         // Put bootstrap system properties into the map
-        for (Entry<Object, Object> property : System.getProperties().entrySet()) {
+        for (final Entry<Object, Object> property : System.getProperties()
+                .entrySet()) {
 
             final String strKey = String.valueOf(property.getKey());
             if (strKey
@@ -305,7 +306,7 @@ public class Main {
      */
     public StringBuilder printHelp() {
 
-        StringBuilder builder = new StringBuilder();
+        final StringBuilder builder = new StringBuilder();
         builder.append("\nPSEM2M Bootstrap Options :\n");
 
         builder.append("\t --" + IBootstrapConstants.HELP_COMMAND
@@ -338,10 +339,10 @@ public class Main {
     protected void redirectOutputs() {
 
         // New output streams
-        RedirectedOutputStream fakeOutputStream = new RedirectedOutputStream(
+        final RedirectedOutputStream fakeOutputStream = new RedirectedOutputStream(
                 pMessageSender, Level.INFO, "stdout");
 
-        RedirectedOutputStream fakeErrorStream = new RedirectedOutputStream(
+        final RedirectedOutputStream fakeErrorStream = new RedirectedOutputStream(
                 pMessageSender, Level.WARNING, "stderr");
 
         // Replace standard output
@@ -389,10 +390,10 @@ public class Main {
             @Override
             public void execute(final Runnable command) {
 
-                pMessageSender.sendMessage(Level.FINEST, "Main$Executor",
-                        "execute", String.format(
-                                "Executor enqueuing the new task [%s].",
-                                command.toString()));
+                // pMessageSender.sendMessage(Level.FINEST, "Main$Executor",
+                // "execute", String.format(
+                // "Executor enqueuing the new task [%s].",
+                // command.toString()));
 
                 // add() will throw an exception if the queue is full, which is
                 // what we want
@@ -445,7 +446,7 @@ public class Main {
         // os.name=[Mac OS X]
         if ("Mac OS X".equalsIgnoreCase(System.getProperty("os.name"))) {
 
-            CAWTLoader wAWTLoader = new CAWTLoader();
+            final CAWTLoader wAWTLoader = new CAWTLoader();
             pMessageSender.sendMessage(
                     Level.FINEST,
                     "Main",
@@ -460,7 +461,7 @@ public class Main {
         try {
             bundleConfiguration = readConfiguration();
 
-        } catch (IOException e) {
+        } catch (final IOException e) {
             e.printStackTrace();
             System.exit(1);
 
@@ -504,21 +505,22 @@ public class Main {
             while (!shutdown.get()
                     && frameworkBundle.getState() == Bundle.ACTIVE) {
                 try {
-                    Runnable work = pUiWorkQueue.poll(3, TimeUnit.SECONDS);
+                    final Runnable work = pUiWorkQueue
+                            .poll(3, TimeUnit.SECONDS);
                     if (work != null) {
-                        pMessageSender
-                                .sendMessage(
-                                        Level.FINEST,
-                                        "Main",
-                                        "run/Work-loop",
-                                        String.format(
-                                                "Main thread received the work task [%s], executing.",
-                                                work.toString()));
+                        // pMessageSender
+                        // .sendMessage(
+                        // Level.FINEST,
+                        // "Main",
+                        // "run/Work-loop",
+                        // String.format(
+                        // "Main thread received the work task [%s], executing.",
+                        // work.toString()));
 
                         work.run();
                     }
 
-                } catch (InterruptedException e) {
+                } catch (final InterruptedException e) {
                     pMessageSender.sendMessage(Level.FINEST, "UI-Executor",
                             "Work-loop",
                             "Main thread interrupted. End of the world.");
@@ -532,7 +534,7 @@ public class Main {
             // loop
             Thread.interrupted();
 
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
 
             pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
                     "runBootstrap", "Can't start the framework thread", ex);
@@ -568,7 +570,7 @@ public class Main {
         // The file: protocol prefix
         final String fileProtocol = "file";
 
-        for (URL bundleUrl : aBundleUrlArray) {
+        for (final URL bundleUrl : aBundleUrlArray) {
 
             if (!fileProtocol.equalsIgnoreCase(bundleUrl.getProtocol())) {
                 // Ignore non file: URLs
@@ -576,7 +578,7 @@ public class Main {
             }
 
             try {
-                File bundleFile = new File(bundleUrl.toURI());
+                final File bundleFile = new File(bundleUrl.toURI());
                 if (!bundleFile.isFile()) {
                     pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
                             "testBundles", "Bundle not found : '" + bundleUrl
@@ -585,7 +587,7 @@ public class Main {
                     return false;
                 }
 
-            } catch (URISyntaxException e) {
+            } catch (final URISyntaxException e) {
                 // Just print a warning
                 pMessageSender.sendMessage(Level.WARNING, CLASS_LOG_NAME,
                         "testBundles", "Bad URI : '" + bundleUrl + "'");
