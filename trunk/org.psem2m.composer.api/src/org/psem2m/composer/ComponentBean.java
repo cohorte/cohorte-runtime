@@ -45,9 +45,9 @@ public class ComponentBean implements Serializable {
     }
 
     /**
-     * Generates the base properties of the component.
+     * Generates the iPOJO instance properties of the component.
      * 
-     * Sets up the instance name and composite name properties
+     * Sets up the instance name and required fields filters properties
      * 
      * @param aAllFieldIdMapping
      *            A "field <b>name</b>" -&gt; "field <b>ID</b>" map, keys
@@ -63,9 +63,6 @@ public class ComponentBean implements Serializable {
 
         // Instance name
         properties.put(IpojoConstants.INSTANCE_NAME, pName);
-
-        // Composite name
-        properties.put(ComposerAgentConstants.COMPOSITE_NAME, pCompositeName);
 
         if (aAllFieldIdMapping != null) {
 

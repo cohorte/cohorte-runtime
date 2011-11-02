@@ -12,6 +12,9 @@ package org.psem2m.composer;
  */
 public interface IpojoConstants {
 
+    /** Provided service handler name */
+    String HANDLER_PROVIDED_SERVICE = "org.apache.felix.ipojo:provides";
+
     /** The instance name of a component */
     String INSTANCE_NAME = "instance.name";
 
