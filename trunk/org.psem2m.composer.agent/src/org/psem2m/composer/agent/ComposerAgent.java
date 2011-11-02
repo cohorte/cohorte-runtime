@@ -5,15 +5,15 @@
  */
 package org.psem2m.composer.agent;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.felix.ipojo.ComponentInstance;
 import org.apache.felix.ipojo.Factory;
-import org.apache.felix.ipojo.IPojoFactory;
+import org.apache.felix.ipojo.InstanceManager;
 import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
@@ -21,11 +21,13 @@ import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Unbind;
 import org.apache.felix.ipojo.annotations.Validate;
+import org.apache.felix.ipojo.handlers.providedservice.ProvidedServiceHandler;
 import org.apache.felix.ipojo.metadata.Element;
 import org.osgi.framework.BundleException;
 import org.psem2m.composer.ComponentBean;
 import org.psem2m.composer.ComposerAgentConstants;
 import org.psem2m.composer.ComposerAgentSignals;
+import org.psem2m.composer.IpojoConstants;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
@@ -58,9 +60,6 @@ public class ComposerAgent extends CPojoBase implements ISignalListener {
     /** The logger */
     @Requires
     private IIsolateLoggerSvc pLogger;
-
-    /** The factory class complete metadata field */
-    private Field pMetadataFactoryField;
 
     /** Platform properties */
     @Requires
@@ -95,24 +94,20 @@ public class ComposerAgent extends CPojoBase implements ISignalListener {
         pFactoriesFieldsIds.put(factoryName, fieldIdMap);
 
         // Set up the map content
-        if (aFactory instanceof IPojoFactory) {
-            // Working on an IPojoFactory
-            final Element componentModel = getFactoryMetadata((IPojoFactory) aFactory);
+        final Element componentModel = aFactory.getComponentMetadata();
+        final Element[] requiresElems = componentModel
+                .getElements(ComposerAgentConstants.REQUIRES_ELEMENT_NAME);
 
-            final Element[] requiresElems = componentModel
-                    .getElements(ComposerAgentConstants.REQUIRES_ELEMENT_NAME);
+        if (requiresElems != null) {
+            for (final Element requires : requiresElems) {
 
-            if (requiresElems != null) {
-                for (final Element requires : requiresElems) {
-
-                    final String name = requires
-                            .getAttribute(ComposerAgentConstants.REQUIRES_FIELD);
-                    if (name != null) {
-                        // The name is the most important part
-                        final String id = requires
-                                .getAttribute(ComposerAgentConstants.REQUIRES_ID);
-                        fieldIdMap.put(name, id);
-                    }
+                final String name = requires
+                        .getAttribute(ComposerAgentConstants.REQUIRES_FIELD);
+                if (name != null) {
+                    // The name is the most important part
+                    final String id = requires
+                            .getAttribute(ComposerAgentConstants.REQUIRES_ID);
+                    fieldIdMap.put(name, id);
                 }
             }
         }
@@ -125,8 +120,7 @@ public class ComposerAgent extends CPojoBase implements ISignalListener {
                 ComposerAgentSignals.SIGNAL_ISOLATE_ADD_FACTORY,
                 new String[] { factoryName });
 
-        pLogger.logInfo(this, "BIND FACTORY", "Factory bound & notified :",
-                factoryName);
+        pLogger.logInfo(this, "bindFactory", "Factory bound :", factoryName);
     }
 
     /**
@@ -192,60 +186,6 @@ public class ComposerAgent extends CPojoBase implements ISignalListener {
                 resultArray);
     }
 
-    /**
-     * Retrieves the complete metadata of the given factory if authorized.
-     * Returns null on error.
-     * 
-     * Because {@link IPojoFactory} is the abstract class extended by all iPOJO
-     * 1.8.0 factories, all Factory services instances should be handled by this
-     * method.
-     * 
-     * @param aFactory
-     *            An iPOJO Factory implementation
-     * 
-     * @return The factory complete metadata, null on exception or if not found.
-     */
-    protected Element getFactoryMetadata(final IPojoFactory aFactory) {
-
-        if (pMetadataFactoryField == null) {
-            // Get the interesting field
-
-            try {
-                // Get the field containing the component complete metadata
-                pMetadataFactoryField = IPojoFactory.class
-                        .getDeclaredField("m_componentMetadata");
-
-                pMetadataFactoryField.setAccessible(true);
-
-            } catch (final SecurityException e) {
-                pLogger.logSevere(this, "getFactoryMetadata",
-                        "Unauthorized access to the component metadata field",
-                        e);
-                return null;
-
-            } catch (final NoSuchFieldException e) {
-                pLogger.logSevere(this, "getFactoryMetadata",
-                        "The component metadata field has not been found",
-                        "(iPOJO implementation changed ?)", e);
-                return null;
-            }
-        }
-
-        try {
-            return (Element) pMetadataFactoryField.get(aFactory);
-
-        } catch (final IllegalArgumentException e) {
-            pLogger.logSevere(this, "getFactoryMetadata",
-                    "Bad factory type to retrieve the metadata field value", e);
-
-        } catch (final IllegalAccessException e) {
-            pLogger.logSevere(this, "getFactoryMetadata",
-                    "Unauthorized access to the component metadata field", e);
-        }
-
-        return null;
-    }
-
     /*
      * (non-Javadoc)
      * 
@@ -260,13 +200,9 @@ public class ComposerAgent extends CPojoBase implements ISignalListener {
         final String signalSender = aSignalData.getIsolateSender();
         final Object signalContent = aSignalData.getSignalContent();
 
-        pLogger.logInfo(this, "RECEIVED SIGNAL", "sender=", signalSender,
-                "signal=", aSignalName, "object=", signalContent);
-
         if (ComposerAgentSignals.SIGNAL_CAN_HANDLE_COMPONENTS
                 .equals(aSignalName)) {
             // Test if the isolate can instantiate the given components
-
             if (signalContent instanceof ComponentBean[]) {
 
                 canHandleComponents(signalSender,
@@ -284,7 +220,7 @@ public class ComposerAgent extends CPojoBase implements ISignalListener {
                             (ComponentBean[]) signalContent);
 
                 } catch (final Exception e) {
-                    pLogger.logSevere(this, "KING KONG KONG", e);
+                    pLogger.logSevere(this, "handleReceivedSignal", e);
                 }
             }
         }
@@ -302,9 +238,6 @@ public class ComposerAgent extends CPojoBase implements ISignalListener {
     protected void instantiateComponents(final String aIsolateId,
             final ComponentBean[] aComponents) {
 
-        pLogger.logInfo(this, "KING KING KING", "instantiateComponents - "
-                + aComponents);
-
         // Current isolate ID
         final String isolateId = pPlatformDirs.getIsolateId();
 
@@ -320,8 +253,8 @@ public class ComposerAgent extends CPojoBase implements ISignalListener {
         // Try to instantiate each component
         for (final ComponentBean component : aComponents) {
 
-            pLogger.logInfo(this, "KING KING KING", "Working on component : "
-                    + component);
+            pLogger.logInfo(this, "instantiateComponents",
+                    "Instantiating component :", component, "...");
 
             if (compositeName == null) {
                 compositeName = component.getCompositeName();
@@ -331,31 +264,56 @@ public class ComposerAgent extends CPojoBase implements ISignalListener {
             final Factory factory = pFactories.get(component.getType());
             if (factory == null) {
                 // Unknown component type
+                pLogger.logWarn(this, "instantiateComponents",
+                        "Factory not found :", component.getType());
+
                 failedComponents.add(component.getName());
                 continue;
             }
 
             // Prepare instance properties
-            final Properties properties = component
+            final Properties instanceProperties = component
                     .generateProperties(pFactoriesFieldsIds.get(component
                             .getType()));
-            properties.put(ComposerAgentConstants.HOST_ISOLATE, isolateId);
+
+            // Prepare provided service(s) properties
+            final Properties serviceProperties = new Properties();
+
+            // Composite name
+            serviceProperties.put(ComposerAgentConstants.COMPOSITE_NAME,
+                    component.getCompositeName());
+            // Host isolate
+            serviceProperties.put(ComposerAgentConstants.HOST_ISOLATE,
+                    isolateId);
+            // Exported service
+            serviceProperties.put("service.exported.interfaces", "*");
 
             try {
                 // Instantiate the component
-                factory.createComponentInstance(properties);
+                final ComponentInstance compInst = factory
+                        .createComponentInstance(instanceProperties);
+
+                if (compInst instanceof InstanceManager) {
+                    // We can get the control of the provided service handler
+                    final InstanceManager inst = (InstanceManager) compInst;
+                    final ProvidedServiceHandler serviceHandler = (ProvidedServiceHandler) inst
+                            .getHandler(IpojoConstants.HANDLER_PROVIDED_SERVICE);
+                    if (serviceHandler != null) {
+                        serviceHandler.addProperties(serviceProperties);
+                    }
+                }
+
                 succeededComponents.add(component.getName());
 
             } catch (final Exception e) {
 
                 // Fail !
                 failedComponents.add(component.getName());
-                pLogger.logSevere(this, "", "Error instantiating component '"
-                        + component.getName() + "'", e);
+                pLogger.logSevere(this, "instantiateComponents",
+                        "Error instantiating component '" + component.getName()
+                                + "'", e);
             }
         }
-
-        pLogger.logInfo(this, "KING KING KING", "preparing answer");
 
         // Set the composite name
         final HashMap<String, Object> resultMap = new HashMap<String, Object>();
@@ -373,12 +331,6 @@ public class ComposerAgent extends CPojoBase implements ISignalListener {
         resultMap.put(ComposerAgentSignals.RESULT_KEY_FAILED, failedArray);
 
         // Send the signal
-        pSignalBroadcaster.sendData(aIsolateId,
-                ComposerAgentSignals.SIGNAL_RESPONSE_INSTANTIATE_COMPONENTS,
-                resultMap);
-
-        pLogger.logInfo(this, "KING KING KING", "sent to " + isolateId);
-
         pSignalBroadcaster.sendData(
                 ISignalBroadcaster.EEmitterTargets.MONITORS,
                 ComposerAgentSignals.SIGNAL_RESPONSE_INSTANTIATE_COMPONENTS,
