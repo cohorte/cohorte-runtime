@@ -353,12 +353,19 @@ public class ComposerCore extends CPojoBase implements IComposer,
         final CompositeBean compositeTest = new CompositeBean();
         compositeTest.setName("Composite-Test");
 
-        final ComponentBean compo1 = new ComponentBean();
-        compo1.setName("hello-1");
-        compo1.setType("hello-test");
-        compo1.setFieldFilter("logger", null);
+        final ComponentBean compoProvider = new ComponentBean();
+        compoProvider.setName("hello-1");
+        compoProvider.setType("hello-test");
+        compoProvider.setIsolate("isolate-1");
+        compoProvider.setFieldFilter("logger", null);
+        compositeTest.addComponent(compoProvider);
 
-        compositeTest.addComponent(compo1);
+        final ComponentBean compoConsumer = new ComponentBean();
+        compoConsumer.setName("hello-consumer");
+        compoConsumer.setType("hello-consumer-test");
+        compoConsumer.setIsolate("isolate-2");
+        compoConsumer.setFieldFilter("logger", null);
+        compositeTest.addComponent(compoConsumer);
 
         // Fire at will
         instantiateComposite(compositeTest);
