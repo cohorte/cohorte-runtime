@@ -68,7 +68,7 @@ public class ComponentBean implements Serializable {
 
             // Set requires.filter property
             final Properties requiresFilterProperties = new Properties();
-            properties.put(IpojoConstants.REQUIRES_FILTER,
+            properties.put(IpojoConstants.REQUIRES_FILTERS,
                     requiresFilterProperties);
 
             for (final Entry<String, String> pFieldIdEntry : aAllFieldIdMapping
@@ -107,13 +107,15 @@ public class ComponentBean implements Serializable {
                     filter = builder.toString();
                 }
 
-                if (filter == null) {
-                    // Null filter is forbidden, replace it with an empty one
-                    filter = "";
-                }
+                if (filter != null) {
+                    // Trim the filter for the next test
+                    filter = filter.trim();
 
-                // Store the filter
-                requiresFilterProperties.put(fieldId, filter);
+                    if (!filter.isEmpty()) {
+                        // Non-empty filter, ready to be used
+                        requiresFilterProperties.put(fieldId, filter);
+                    }
+                }
             }
         }
 

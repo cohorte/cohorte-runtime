@@ -19,7 +19,7 @@ public interface IpojoConstants {
     String INSTANCE_NAME = "instance.name";
 
     /** Requires handler : filter attribute */
-    String REQUIRES_FILTER = "requires.filter";
+    String REQUIRES_FILTERS = "requires.filters";
 
     /** Requires handler : from attribute */
     String REQUIRES_FROM = "requires.from";
