@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.psem2m.composer.model.ComponentBean;
+
 /**
  * PSEM2M Composer composite description bean
  * 

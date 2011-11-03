@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.psem2m.composer.ComponentBean;
 
 /**
  * Represents a "composet", a set of components or composets.

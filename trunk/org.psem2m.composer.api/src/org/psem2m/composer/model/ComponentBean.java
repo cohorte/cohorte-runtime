@@ -3,13 +3,16 @@
  * Author: Thomas Calmant
  * Date:   26 oct. 2011
  */
-package org.psem2m.composer;
+package org.psem2m.composer.model;
 
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+
+import org.psem2m.composer.ComposerAgentConstants;
+import org.psem2m.composer.IpojoConstants;
 
 /**
  * PSEM2M Composer component description bean

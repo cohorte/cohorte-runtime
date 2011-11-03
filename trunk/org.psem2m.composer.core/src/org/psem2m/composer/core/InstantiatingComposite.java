@@ -14,8 +14,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.psem2m.composer.ComponentBean;
 import org.psem2m.composer.CompositeBean;
+import org.psem2m.composer.model.ComponentBean;
 
 /**
  * Represents an instantiating composite

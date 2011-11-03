@@ -6,16 +6,21 @@ Bundle-SymbolicName: org.psem2m.composer.agent
 Bundle-Vendor: isandlaTech.com
 Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
-Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
- .ipojo.architecture;version=1.8.0, org.apache.felix.ipojo.handlers.pr
- ovidedservice;version=1.8.1, org.apache.felix.ipojo.metadata;version=
- 1.8.0, org.osgi.framework;version=1.5.0, org.osgi.service.cm;version=
- 1.2, org.osgi.service.log;version=1.3, org.psem2m.composer;version=1.
- 0.0, org.psem2m.isolates.base;version=1.0.0, org.psem2m.isolates.base
- .activators;version=1.0.0, org.psem2m.isolates.services.dirs;version=
- 1.0.0, org.psem2m.isolates.services.remote.signals;version=1.0.0, org
- .psem2m.utilities;version=1.0.0, org.psem2m.utilities.logging;version
- =1.0.0
+Import-Package: org.apache.felix.ipojo;version="1.8.0",
+ org.apache.felix.ipojo.architecture;version="1.8.0",
+ org.apache.felix.ipojo.handlers.providedservice;version="1.8.1",
+ org.apache.felix.ipojo.metadata;version="1.8.0",
+ org.osgi.framework;version="1.5.0",
+ org.osgi.service.cm;version="1.2",
+ org.osgi.service.log;version="1.3",
+ org.psem2m.composer;version="1.0.0",
+ org.psem2m.composer.model;version="1.0.0",
+ org.psem2m.isolates.base;version="1.0.0",
+ org.psem2m.isolates.base.activators;version="1.0.0",
+ org.psem2m.isolates.services.dirs;version="1.0.0",
+ org.psem2m.isolates.services.remote.signals;version="1.0.0",
+ org.psem2m.utilities;version="1.0.0",
+ org.psem2m.utilities.logging;version="1.0.0"
 iPOJO-Components: instance { $component="org.psem2m.composer.agent.Com
  poserAgent" $name="psem2m-composer-agent" }component { $classname="or
  g.psem2m.composer.agent.ComposerAgent" $name="psem2m-composer-agent-f
@@ -39,13 +44,13 @@ iPOJO-Components: instance { $component="org.psem2m.composer.agent.Com
  uments="{org.apache.felix.ipojo.Factory}" }method { $name="bindSignal
  Receiver" $arguments="{org.psem2m.isolates.services.remote.signals.IS
  ignalReceiver}" }method { $name="canHandleComponents" $arguments="{ja
- va.lang.String,org.psem2m.composer.ComponentBean[]}" }method { $name=
- "handleReceivedSignal" $arguments="{java.lang.String,org.psem2m.isola
- tes.services.remote.signals.ISignalData}" }method { $name="instantiat
- eComponents" $arguments="{java.lang.String,org.psem2m.composer.Compon
- entBean[]}" }method { $name="invalidatePojo" }method { $name="unbindF
- actory" $arguments="{org.apache.felix.ipojo.Factory}" }method { $name
- ="unbindSignalBroadcaster" $arguments="{org.psem2m.isolates.services.
- remote.signals.ISignalBroadcaster}" }method { $name="validatePojo" }}
- }
+ va.lang.String,org.psem2m.composer.model.ComponentBean[]}" }method { 
+ $name="handleReceivedSignal" $arguments="{java.lang.String,org.psem2m
+ .isolates.services.remote.signals.ISignalData}" }method { $name="inst
+ antiateComponents" $arguments="{java.lang.String,org.psem2m.composer.
+ model.ComponentBean[]}" }method { $name="invalidatePojo" }method { $n
+ ame="unbindFactory" $arguments="{org.apache.felix.ipojo.Factory}" }me
+ thod { $name="unbindSignalBroadcaster" $arguments="{org.psem2m.isolat
+ es.services.remote.signals.ISignalBroadcaster}" }method { $name="vali
+ datePojo" }}}
 
