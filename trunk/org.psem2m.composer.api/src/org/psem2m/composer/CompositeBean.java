@@ -53,7 +53,7 @@ public class CompositeBean implements Serializable {
         }
 
         // Associate the component to the composite...
-        aComponent.setCompositeName(pName);
+        aComponent.setParentName(pName);
 
         // Store it
         pComponents.put(aComponent.getName(), aComponent);

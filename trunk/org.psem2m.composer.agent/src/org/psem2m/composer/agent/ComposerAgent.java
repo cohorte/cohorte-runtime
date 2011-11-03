@@ -257,7 +257,7 @@ public class ComposerAgent extends CPojoBase implements ISignalListener {
                     "Instantiating component :", component, "...");
 
             if (compositeName == null) {
-                compositeName = component.getCompositeName();
+                compositeName = component.getParentName();
             }
 
             // Get the factory
@@ -281,7 +281,7 @@ public class ComposerAgent extends CPojoBase implements ISignalListener {
 
             // Composite name
             serviceProperties.put(ComposerAgentConstants.COMPOSITE_NAME,
-                    component.getCompositeName());
+                    component.getParentName());
             // Host isolate
             serviceProperties.put(ComposerAgentConstants.HOST_ISOLATE,
                     isolateId);

@@ -5,7 +5,7 @@
  */
 package org.psem2m.composer.config;
 
-import org.psem2m.composer.model.ComponentSet;
+import org.psem2m.composer.model.ComponentSetBean;
 
 /**
  * Defines a PSEM2M Composer configuration file reader
@@ -22,5 +22,5 @@ public interface IComposerConfigReader {
      *            A configuration file name
      * @return The root component set, null on error
      */
-    ComponentSet load(String aFileName);
+    ComponentSetBean load(String aFileName);
 }

@@ -1,5 +1,5 @@
 /**
- * File:   ComponentSet.java
+ * File:   ComponentSetBean.java
  * Author: Thomas Calmant
  * Date:   3 nov. 2011
  */
@@ -15,13 +15,13 @@ import java.util.List;
  * 
  * @author Thomas Calmant
  */
-public class ComponentSet {
+public class ComponentSetBean {
 
     /** List of contained components */
     private final List<ComponentBean> pComponentBeans = new ArrayList<ComponentBean>();
 
     /** List of contained component sets */
-    private final List<ComponentSet> pComponentSets = new ArrayList<ComponentSet>();
+    private final List<ComponentSetBean> pComponentSets = new ArrayList<ComponentSetBean>();
 
     /** The name */
     private String pName;
@@ -35,7 +35,7 @@ public class ComponentSet {
     /**
      * Default constructor
      */
-    public ComponentSet() {
+    public ComponentSetBean() {
 
         // Does nothing
     }
@@ -55,7 +55,7 @@ public class ComponentSet {
      * 
      * @return the list of component sets
      */
-    public List<ComponentSet> getComponentSets() {
+    public List<ComponentSetBean> getComponentSets() {
 
         return pComponentSets;
     }
@@ -127,7 +127,7 @@ public class ComponentSet {
      * @param aComponents
      *            The components sets under this set
      */
-    public void setComponentSets(final Collection<ComponentSet> aComponentSets) {
+    public void setComponentSets(final Collection<ComponentSetBean> aComponentSets) {
 
         pComponentSets.clear();
 

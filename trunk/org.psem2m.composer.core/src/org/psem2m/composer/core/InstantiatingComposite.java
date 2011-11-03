@@ -66,7 +66,7 @@ public class InstantiatingComposite {
             return;
         }
 
-        if (!pComposite.getName().equals(aComponentBean.getCompositeName())) {
+        if (!pComposite.getName().equals(aComponentBean.getParentName())) {
             // We're not the parent of the given composite
             return;
         }
@@ -104,7 +104,7 @@ public class InstantiatingComposite {
             return;
         }
 
-        if (!pComposite.getName().equals(aComponentBean.getCompositeName())) {
+        if (!pComposite.getName().equals(aComponentBean.getParentName())) {
             // We're not the parent of the given composite
             return;
         }

@@ -24,11 +24,8 @@ public class ComponentBean implements Serializable {
     /** Version UID */
     private static final long serialVersionUID = 1L;
 
-    /** The name of the parent composite */
-    private String pCompositeName;
-
     /** Forced "@Requires" field filters */
-    private final Map<String, String> pFieldForcedFilters = new HashMap<String, String>();
+    private final Map<String, String> pFieldFilters = new HashMap<String, String>();
 
     /** The host isolate ID */
     private String pIsolate;
@@ -36,8 +33,17 @@ public class ComponentBean implements Serializable {
     /** The component name */
     private String pName;
 
+    /** The name of the parent composite */
+    private String pParentName;
+
+    /** Component properties */
+    private final Map<String, String> pProperties = new HashMap<String, String>();
+
     /** The component type */
     private String pType;
+
+    /** Component wires */
+    private final Map<String, String> pWires = new HashMap<String, String>();
 
     /**
      * Default constructor
@@ -89,13 +95,13 @@ public class ComponentBean implements Serializable {
                 // Compute the field filter
                 String filter = null;
 
-                if (pFieldForcedFilters.containsKey(fieldName)) {
+                if (pFieldFilters.containsKey(fieldName)) {
                     // Field name found
-                    filter = pFieldForcedFilters.get(fieldName);
+                    filter = pFieldFilters.get(fieldName);
 
-                } else if (pFieldForcedFilters.containsKey(fieldId)) {
+                } else if (pFieldFilters.containsKey(fieldId)) {
                     // Field ID found
-                    filter = pFieldForcedFilters.get(fieldId);
+                    filter = pFieldFilters.get(fieldId);
 
                 } else {
                     // Default : filter on the composite name
@@ -104,7 +110,7 @@ public class ComponentBean implements Serializable {
                     builder.append("(");
                     builder.append(ComposerAgentConstants.COMPOSITE_NAME);
                     builder.append("=");
-                    builder.append(pCompositeName);
+                    builder.append(pParentName);
                     builder.append(")");
 
                     filter = builder.toString();
@@ -126,23 +132,13 @@ public class ComponentBean implements Serializable {
     }
 
     /**
-     * Retrieves the name of the parent composite
-     * 
-     * @return the name of the parent composite
-     */
-    public String getCompositeName() {
-
-        return pCompositeName;
-    }
-
-    /**
      * Retrieves the forced fields filters map
      * 
      * @return the forced fields filters map
      */
     public Map<String, String> getFieldsFilters() {
 
-        return pFieldForcedFilters;
+        return pFieldFilters;
     }
 
     /**
@@ -166,6 +162,26 @@ public class ComponentBean implements Serializable {
     }
 
     /**
+     * Retrieves the name of the parent container
+     * 
+     * @return the name of the parent container
+     */
+    public String getParentName() {
+
+        return pParentName;
+    }
+
+    /**
+     * Retrieves the component properties map
+     * 
+     * @return the component properties map
+     */
+    public Map<String, String> getProperties() {
+
+        return pProperties;
+    }
+
+    /**
      * Retrieves the component type name
      * 
      * @return the component type name
@@ -176,14 +192,13 @@ public class ComponentBean implements Serializable {
     }
 
     /**
-     * Sets the parent composite name
+     * Retrieves the component wires
      * 
-     * @param aParentCompositeName
-     *            the name of the parent composite
+     * @return the component wires
      */
-    public void setCompositeName(final String aParentCompositeName) {
+    public Map<String, String> getWires() {
 
-        pCompositeName = aParentCompositeName;
+        return pWires;
     }
 
     /**
@@ -201,7 +216,7 @@ public class ComponentBean implements Serializable {
             return;
         }
 
-        pFieldForcedFilters.put(aField.trim(), aFilter);
+        pFieldFilters.put(aField.trim(), aFilter);
     }
 
     /**
@@ -212,10 +227,10 @@ public class ComponentBean implements Serializable {
      */
     public void setFieldsFilters(final Map<String, String> aFilters) {
 
-        pFieldForcedFilters.clear();
+        pFieldFilters.clear();
 
         if (aFilters != null) {
-            pFieldForcedFilters.putAll(aFilters);
+            pFieldFilters.putAll(aFilters);
         }
     }
 
@@ -242,6 +257,32 @@ public class ComponentBean implements Serializable {
     }
 
     /**
+     * Sets the parent container name
+     * 
+     * @param aParentName
+     *            the name of the parent container
+     */
+    public void setParentName(final String aParentName) {
+
+        pParentName = aParentName;
+    }
+
+    /**
+     * Sets the new component properties
+     * 
+     * @param aProperties
+     *            New component properties
+     */
+    public void setProperties(final Map<String, String> aProperties) {
+
+        pProperties.clear();
+
+        if (aProperties != null) {
+            pProperties.putAll(aProperties);
+        }
+    }
+
+    /**
      * Sets the component type name
      * 
      * @param aType
@@ -250,6 +291,21 @@ public class ComponentBean implements Serializable {
     public void setType(final String aType) {
 
         pType = aType;
+    }
+
+    /**
+     * Sets the component wires
+     * 
+     * @param aWires
+     *            the component wires
+     */
+    public void setWires(final Map<String, String> aWires) {
+
+        pWires.clear();
+
+        if (aWires != null) {
+            pWires.putAll(aWires);
+        }
     }
 
     /*
@@ -265,7 +321,7 @@ public class ComponentBean implements Serializable {
         builder.append("Name=").append(pName);
         builder.append(", Type=").append(pType);
         builder.append(", Isolate=").append(pIsolate);
-        builder.append(", Composite=").append(pCompositeName);
+        builder.append(", Parent=").append(pParentName);
         builder.append(")");
 
         return builder.toString();
