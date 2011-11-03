@@ -14,8 +14,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.psem2m.composer.CompositeBean;
 import org.psem2m.composer.model.ComponentBean;
+import org.psem2m.composer.model.ComponentsSetBean;
 
 /**
  * Represents an instantiating composite
@@ -25,7 +25,7 @@ import org.psem2m.composer.model.ComponentBean;
 public class InstantiatingComposite {
 
     /** The instantiating composite */
-    private final CompositeBean pComposite;
+    private final ComponentsSetBean pComposite;
 
     /** Components that still need to be started */
     private final List<String> pRemainingComponents = new ArrayList<String>();
@@ -39,7 +39,7 @@ public class InstantiatingComposite {
      * @param aComposite
      *            A composite bean
      */
-    public InstantiatingComposite(final CompositeBean aComposite) {
+    public InstantiatingComposite(final ComponentsSetBean aComposite) {
 
         pComposite = aComposite;
 
@@ -136,7 +136,7 @@ public class InstantiatingComposite {
      * 
      * @return the instantiating composite
      */
-    public CompositeBean getBean() {
+    public ComponentsSetBean getBean() {
 
         return pComposite;
     }

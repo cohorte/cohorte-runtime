@@ -5,6 +5,8 @@
  */
 package org.psem2m.composer;
 
+import org.psem2m.composer.model.ComponentsSetBean;
+
 /**
  * Defines a composer core service
  * 
@@ -13,10 +15,10 @@ package org.psem2m.composer;
 public interface IComposer {
 
     /**
-     * Tries to instantiate the given composite in the platform
+     * Tries to instantiate the given set of components in the platform
      * 
-     * @param aComposite
-     *            The composite to instantiate
+     * @param aComponentsSet
+     *            The set to instantiate
      */
-    void instantiateComposite(final CompositeBean aComposite);
+    void instantiateComponentsSet(final ComponentsSetBean aComponentsSet);
 }

@@ -21,9 +21,10 @@ import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.composer.ComposerAgentSignals;
-import org.psem2m.composer.CompositeBean;
 import org.psem2m.composer.IComposer;
+import org.psem2m.composer.config.IComposerConfigReader;
 import org.psem2m.composer.model.ComponentBean;
+import org.psem2m.composer.model.ComponentsSetBean;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
@@ -41,6 +42,10 @@ import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
 @Instantiate(name = "psem2m-composer-core")
 public class ComposerCore extends CPojoBase implements IComposer,
         ISignalListener {
+
+    /** Composer configuration reader */
+    @Requires
+    private IComposerConfigReader pConfigReader;
 
     /** Composites fully-instantiated */
     private final Map<String, InstantiatingComposite> pFullComposites = new HashMap<String, InstantiatingComposite>();
@@ -165,7 +170,7 @@ public class ComposerCore extends CPojoBase implements IComposer,
      * .Composite)
      */
     @Override
-    public void instantiateComposite(final CompositeBean aComposite) {
+    public void instantiateComponentsSet(final ComponentsSetBean aComposite) {
 
         if (aComposite == null) {
             // Invalid composite
@@ -197,7 +202,7 @@ public class ComposerCore extends CPojoBase implements IComposer,
      * @param aComponentsRepartition
      *            The computed components repartition
      */
-    protected void instantiateComposite(final CompositeBean aComposite,
+    protected void instantiateComposite(final ComponentsSetBean aComposite,
             final Map<String, ComponentBean[]> aComponentsRepartition) {
 
         for (final Entry<String, ComponentBean[]> isolateEntry : aComponentsRepartition
@@ -339,9 +344,12 @@ public class ComposerCore extends CPojoBase implements IComposer,
         notifyComponentsRegistration();
     }
 
-    private void test() {
+    /**
+     * Runs a simple Hello World test
+     */
+    protected void test() {
 
-        final CompositeBean compositeTest = new CompositeBean();
+        final ComponentsSetBean compositeTest = new ComponentsSetBean();
         compositeTest.setName("Composite-Test");
 
         final ComponentBean compoProvider = new ComponentBean();
@@ -359,7 +367,29 @@ public class ComposerCore extends CPojoBase implements IComposer,
         compositeTest.addComponent(compoConsumer);
 
         // Fire at will
-        instantiateComposite(compositeTest);
+        instantiateComponentsSet(compositeTest);
+    }
+
+    /**
+     * Runs a simple test, using the given configuration file
+     * 
+     * @param aFileName
+     *            A configuration file name
+     */
+    protected void test_conf(final String aFileName) {
+
+        pLogger.logInfo(this, "test_conf", "Running test...");
+        final ComponentsSetBean compoSet = pConfigReader.load(aFileName);
+
+        pLogger.logInfo(this, "test_conf", "Result=", compoSet);
+        if (compoSet == null) {
+            pLogger.logInfo(this, "test_conf", "Can't read the file", aFileName);
+            return;
+        }
+
+        // Fire at will
+        pLogger.logInfo(this, "test_conf", "Fire at will !");
+        instantiateComponentsSet(compoSet);
     }
 
     /**
@@ -484,6 +514,10 @@ public class ComposerCore extends CPojoBase implements IComposer,
 
         pLogger.logInfo(this, "validatePojo", "Composer Core Ready");
 
-        test();
+        try {
+            test_conf("test_compo.js");
+        } catch (final Throwable e) {
+            pLogger.logSevere(this, "", "Something went wrong\n", e);
+        }
     }
 }
