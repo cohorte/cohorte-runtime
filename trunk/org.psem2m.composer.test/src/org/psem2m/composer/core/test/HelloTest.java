@@ -7,6 +7,7 @@ package org.psem2m.composer.core.test;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
+import org.apache.felix.ipojo.annotations.Property;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
@@ -23,6 +24,10 @@ import org.psem2m.isolates.base.activators.CPojoBase;
 @Component(name = "hello-test")
 @Provides(specifications = IHelloSvc.class)
 public class HelloTest extends CPojoBase implements IHelloSvc {
+
+    /** Property test */
+    @Property(name = "default-name", value = "World")
+    private String pDefaultName;
 
     /** The logger */
     @Requires(id = "logger")
@@ -67,7 +72,15 @@ public class HelloTest extends CPojoBase implements IHelloSvc {
     @Override
     public String sayHello(final String aName) {
 
-        return "Hello, " + aName + " !";
+        final String name;
+        if (aName == null) {
+            name = pDefaultName;
+
+        } else {
+            name = aName;
+        }
+
+        return "Hello, " + name + " !";
     }
 
     /*

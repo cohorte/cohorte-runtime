@@ -61,9 +61,15 @@ public class HelloConsumerTest extends CPojoBase {
 
         pLogger.logInfo(this, "validatePojo", "Composer.Test.Hello Ready");
 
+        // Test 1 - with a name
         pLogger.logInfo(this, "validatePojo", "Say hello = ",
                 pService.sayHello("ConsumerTester"));
 
+        // Test 2 - with the default name
+        pLogger.logInfo(this, "validatePojo", "Say hello = ",
+                pService.sayHello(null));
+
+        // Test 3 - just to log somewhere else...
         pService.logHello("from ConsumerTester");
     }
 }

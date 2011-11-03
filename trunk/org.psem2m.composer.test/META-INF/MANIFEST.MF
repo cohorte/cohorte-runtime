@@ -22,13 +22,15 @@ iPOJO-Components: component { $classname="org.psem2m.composer.core.tes
  loSvc" }method { $name="invalidatePojo" }method { $name="validatePojo
  " }}}component { $classname="org.psem2m.composer.core.test.HelloTest"
   $name="hello-test" $public="true" provides { $specifications="{org.p
- sem2m.composer.test.api.IHelloSvc}" }requires { $field="pLogger" $id=
- "logger" }callback { $transition="invalidate" $method="invalidatePojo
- " }callback { $transition="validate" $method="validatePojo" }manipula
- tion { $super="org.psem2m.isolates.base.activators.CPojoBase" interfa
- ce { $name="org.psem2m.composer.test.api.IHelloSvc" }field { $name="p
- Logger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }method { 
- $name="invalidatePojo" }method { $name="logHello" $arguments="{java.l
- ang.String}" }method { $name="sayHello" $return="java.lang.String" $a
- rguments="{java.lang.String}" }method { $name="validatePojo" }}}
+ sem2m.composer.test.api.IHelloSvc}" }properties { property { $name="d
+ efault-name" $field="pDefaultName" $value="World" }}requires { $field
+ ="pLogger" $id="logger" }callback { $transition="invalidate" $method=
+ "invalidatePojo" }callback { $transition="validate" $method="validate
+ Pojo" }manipulation { $super="org.psem2m.isolates.base.activators.CPo
+ joBase" interface { $name="org.psem2m.composer.test.api.IHelloSvc" }f
+ ield { $name="pDefaultName" $type="java.lang.String" }field { $name="
+ pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }method {
+  $name="invalidatePojo" }method { $name="logHello" $arguments="{java.
+ lang.String}" }method { $name="sayHello" $return="java.lang.String" $
+ arguments="{java.lang.String}" }method { $name="validatePojo" }}}
 
