@@ -1,0 +1,49 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: PSEM2M - Composer Configuration Reader
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-SymbolicName: org.psem2m.composer.config
+Bundle-Vendor: isandlaTech.com
+Bundle-Version: 1.0.0.qualifier
+Created-By: iPOJO  1.8.0
+Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
+ .ipojo.architecture;version=1.8.0, org.osgi.framework;version=1.5.0, 
+ org.osgi.service.cm;version=1.2, org.osgi.service.log;version=1.3, or
+ g.psem2m.composer.config;version=1.0.0, org.psem2m.composer.model;ver
+ sion=1.0.0, org.psem2m.isolates.base;version=1.0.0, org.psem2m.isolat
+ es.base.activators;version=1.0.0, org.psem2m.isolates.config, org.pse
+ m2m.isolates.services.dirs;version=1.0.0, org.psem2m.utilities;versio
+ n=1.0.0, org.psem2m.utilities.json;version=1.0.0, org.psem2m.utilitie
+ s.logging;version=1.0.0
+iPOJO-Components: instance { $component="org.psem2m.composer.config.im
+ pl.JsonComposerConfigReader" $name="psem2m-composer-config-json" }com
+ ponent { $classname="org.psem2m.composer.config.impl.JsonComposerConf
+ igReader" $name="psem2m-composer-config-json-factory" $public="false"
+  provides { $specifications="{org.psem2m.composer.config.IComposerCon
+ figReader}" }requires { $field="pFileFinder" }requires { $field="pLog
+ ger" }callback { $transition="invalidate" $method="invalidatePojo" }c
+ allback { $transition="validate" $method="validatePojo" }manipulation
+  { $super="org.psem2m.isolates.base.activators.CPojoBase" interface {
+  $name="org.psem2m.composer.config.IComposerConfigReader" }field { $n
+ ame="pFileFinder" $type="org.psem2m.isolates.services.dirs.IFileFinde
+ rSvc" }field { $name="pIncludeStack" $type="java.util.Stack" }field {
+  $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }
+ method { $name="invalidatePojo" }method { $name="jsonObjectToMap" $re
+ turn="java.util.Map" $arguments="{org.psem2m.utilities.json.JSONObjec
+ t}" }method { $name="load" $return="org.psem2m.composer.model.Compone
+ ntsSetBean" $arguments="{java.lang.String}" }method { $name="parseCom
+ ponent" $return="org.psem2m.composer.model.ComponentBean" $arguments=
+ "{java.lang.String,org.psem2m.utilities.json.JSONObject}" }method { $
+ name="parseComponents" $return="java.util.Collection" $arguments="{ja
+ va.lang.String,org.psem2m.utilities.json.JSONArray}" }method { $name=
+ "parseComponentSet" $return="org.psem2m.composer.model.ComponentsSetB
+ ean" $arguments="{java.lang.String,org.psem2m.utilities.json.JSONObje
+ ct}" }method { $name="parseComponentSets" $return="java.util.Collecti
+ on" $arguments="{java.lang.String,org.psem2m.utilities.json.JSONArray
+ }" }method { $name="readFile" $return="java.lang.String" $arguments="
+ {java.lang.String}" }method { $name="readJsonArrayFile" $return="org.
+ psem2m.utilities.json.JSONArray" $arguments="{java.lang.String}" }met
+ hod { $name="readJsonObjectFile" $return="org.psem2m.utilities.json.J
+ SONObject" $arguments="{java.lang.String}" }method { $name="validateP
+ ojo" }}}
+
