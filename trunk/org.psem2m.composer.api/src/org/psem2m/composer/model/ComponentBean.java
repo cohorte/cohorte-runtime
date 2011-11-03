@@ -8,11 +8,6 @@ package org.psem2m.composer.model;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Properties;
-
-import org.psem2m.composer.ComposerAgentConstants;
-import org.psem2m.composer.IpojoConstants;
 
 /**
  * PSEM2M Composer component description bean
@@ -51,84 +46,6 @@ public class ComponentBean implements Serializable {
     public ComponentBean() {
 
         // Does nothing...
-    }
-
-    /**
-     * Generates the iPOJO instance properties of the component.
-     * 
-     * Sets up the instance name and required fields filters properties
-     * 
-     * @param aAllFieldIdMapping
-     *            A "field <b>name</b>" -&gt; "field <b>ID</b>" map, keys
-     *            represents all fields in the component, values (can be null)
-     *            their ID if useful
-     * 
-     * @return The base component properties
-     */
-    public Properties generateProperties(
-            final Map<String, String> aAllFieldIdMapping) {
-
-        final Properties properties = new Properties();
-
-        // Instance name
-        properties.put(IpojoConstants.INSTANCE_NAME, pName);
-
-        if (aAllFieldIdMapping != null) {
-
-            // Set requires.filter property
-            final Properties requiresFilterProperties = new Properties();
-            properties.put(IpojoConstants.REQUIRES_FILTERS,
-                    requiresFilterProperties);
-
-            for (final Entry<String, String> pFieldIdEntry : aAllFieldIdMapping
-                    .entrySet()) {
-
-                // Field name is constant
-                final String fieldName = pFieldIdEntry.getKey();
-
-                // Use the field ID if possible, else the field name
-                String fieldId = pFieldIdEntry.getValue();
-                if (fieldId == null) {
-                    fieldId = fieldName;
-                }
-
-                // Compute the field filter
-                String filter = null;
-
-                if (pFieldFilters.containsKey(fieldName)) {
-                    // Field name found
-                    filter = pFieldFilters.get(fieldName);
-
-                } else if (pFieldFilters.containsKey(fieldId)) {
-                    // Field ID found
-                    filter = pFieldFilters.get(fieldId);
-
-                } else {
-                    // Default : filter on the composite name
-                    final StringBuilder builder = new StringBuilder();
-
-                    builder.append("(");
-                    builder.append(ComposerAgentConstants.COMPOSITE_NAME);
-                    builder.append("=");
-                    builder.append(pParentName);
-                    builder.append(")");
-
-                    filter = builder.toString();
-                }
-
-                if (filter != null) {
-                    // Trim the filter for the next test
-                    filter = filter.trim();
-
-                    if (!filter.isEmpty()) {
-                        // Non-empty filter, ready to be used
-                        requiresFilterProperties.put(fieldId, filter);
-                    }
-                }
-            }
-        }
-
-        return properties;
     }
 
     /**

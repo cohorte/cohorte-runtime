@@ -3,12 +3,13 @@
  * Author: Thomas Calmant
  * Date:   26 oct. 2011
  */
-package org.psem2m.composer.agent;
+package org.psem2m.composer.agent.impl;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.apache.felix.ipojo.ComponentInstance;
@@ -24,9 +25,8 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.apache.felix.ipojo.handlers.providedservice.ProvidedServiceHandler;
 import org.apache.felix.ipojo.metadata.Element;
 import org.osgi.framework.BundleException;
-import org.psem2m.composer.ComposerAgentConstants;
-import org.psem2m.composer.ComposerAgentSignals;
-import org.psem2m.composer.IpojoConstants;
+import org.psem2m.composer.agent.ComposerAgentConstants;
+import org.psem2m.composer.agent.ComposerAgentSignals;
 import org.psem2m.composer.model.ComponentBean;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
@@ -186,6 +186,91 @@ public class ComposerAgent extends CPojoBase implements ISignalListener {
                 resultArray);
     }
 
+    /**
+     * Generates the iPOJO instance properties of the given component.
+     * 
+     * Sets up the instance name and required fields filters properties
+     * 
+     * @param aComponent
+     *            The instantiated component description
+     * 
+     * @return The iPOJO component properties
+     */
+    protected Properties generateComponentInstanceProperties(
+            final ComponentBean aComponent) {
+
+        // Prepare the result
+        final Properties properties = new Properties();
+
+        // Instance name
+        properties.put(IpojoConstants.INSTANCE_NAME, aComponent.getName());
+
+        // Get the field - ID map
+        final Map<String, String> fieldIdMapping = pFactoriesFieldsIds
+                .get(aComponent.getType());
+
+        if (fieldIdMapping != null) {
+
+            // Store a reference to the component fields filters map
+            final Map<String, String> fieldsFilters = aComponent
+                    .getFieldsFilters();
+
+            // Set requires.filter property
+            final Properties requiresFilterProperties = new Properties();
+            properties.put(IpojoConstants.REQUIRES_FILTERS,
+                    requiresFilterProperties);
+
+            for (final Entry<String, String> pFieldIdEntry : fieldIdMapping
+                    .entrySet()) {
+
+                // Field name is constant
+                final String fieldName = pFieldIdEntry.getKey();
+
+                // Use the field ID if possible, else the field name
+                String fieldId = pFieldIdEntry.getValue();
+                if (fieldId == null) {
+                    fieldId = fieldName;
+                }
+
+                // Compute the field filter
+                String filter = null;
+
+                if (fieldsFilters.containsKey(fieldName)) {
+                    // Field name found
+                    filter = fieldsFilters.get(fieldName);
+
+                } else if (fieldsFilters.containsKey(fieldId)) {
+                    // Field ID found
+                    filter = fieldsFilters.get(fieldId);
+
+                } else {
+                    // Default : filter on the composite name
+                    final StringBuilder builder = new StringBuilder();
+
+                    builder.append("(");
+                    builder.append(ComposerAgentConstants.COMPOSITE_NAME);
+                    builder.append("=");
+                    builder.append(aComponent.getParentName());
+                    builder.append(")");
+
+                    filter = builder.toString();
+                }
+
+                if (filter != null) {
+                    // Trim the filter for the next test
+                    filter = filter.trim();
+
+                    if (!filter.isEmpty()) {
+                        // Non-empty filter, ready to be used
+                        requiresFilterProperties.put(fieldId, filter);
+                    }
+                }
+            }
+        }
+
+        return properties;
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -272,9 +357,7 @@ public class ComposerAgent extends CPojoBase implements ISignalListener {
             }
 
             // Prepare instance properties
-            final Properties instanceProperties = component
-                    .generateProperties(pFactoriesFieldsIds.get(component
-                            .getType()));
+            final Properties instanceProperties = generateComponentInstanceProperties(component);
 
             // Prepare provided service(s) properties
             final Properties serviceProperties = new Properties();

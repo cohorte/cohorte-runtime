@@ -3,7 +3,7 @@
  * Author: Thomas Calmant
  * Date:   27 oct. 2011
  */
-package org.psem2m.composer;
+package org.psem2m.composer.agent;
 
 /**
  * Defines composer agent constants
