@@ -91,8 +91,13 @@ public class JsonComposerConfigReader extends CPojoBase implements
                 aJsonObject.length());
 
         for (final String key : aJsonObject.keySet()) {
-            // Store all values
-            resultMap.put(key, aJsonObject.optString(key));
+            // Store all valid values
+            final String value = aJsonObject.optString(key);
+
+            if (key != null && value != null) {
+                // Key and value are valid
+                resultMap.put(key, value);
+            }
         }
 
         return resultMap;
