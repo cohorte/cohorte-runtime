@@ -5,4 +5,6 @@ Bundle-SymbolicName: org.psem2m.composer.api
 Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: isandlaTech.com
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Export-Package: org.psem2m.composer;version="1.0.0"
+Export-Package: org.psem2m.composer;version="1.0.0",
+ org.psem2m.composer.config;version="1.0.0",
+ org.psem2m.composer.model;version="1.0.0"
