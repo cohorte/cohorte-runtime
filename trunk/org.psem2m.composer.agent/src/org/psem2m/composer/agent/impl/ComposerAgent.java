@@ -202,73 +202,93 @@ public class ComposerAgent extends CPojoBase implements ISignalListener {
         // Prepare the result
         final Properties properties = new Properties();
 
+        // Set the configured component properties
+        // (sensitive keys will be overridden)
+        properties.putAll(aComponent.getProperties());
+
         // Instance name
         properties.put(IpojoConstants.INSTANCE_NAME, aComponent.getName());
 
-        // Get the field - ID map
+        // Set up fields filters
         final Map<String, String> fieldIdMapping = pFactoriesFieldsIds
                 .get(aComponent.getType());
 
         if (fieldIdMapping != null) {
-
-            // Store a reference to the component fields filters map
-            final Map<String, String> fieldsFilters = aComponent
-                    .getFieldsFilters();
-
-            // Set requires.filter property
-            final Properties requiresFilterProperties = new Properties();
+            // Mapping available, use it
             properties.put(IpojoConstants.REQUIRES_FILTERS,
-                    requiresFilterProperties);
+                    generateFieldsFilters(aComponent, fieldIdMapping));
+        }
 
-            for (final Entry<String, String> pFieldIdEntry : fieldIdMapping
-                    .entrySet()) {
+        return properties;
+    }
 
-                // Field name is constant
-                final String fieldName = pFieldIdEntry.getKey();
+    /**
+     * Generates the iPOJO properties to force the filters to apply to
+     * configured required field
+     * 
+     * @param aComponent
+     *            Instantiated component
+     * @param aFieldIdMapping
+     *            Field name -&gt; iPOJO required field ID mapping
+     * @return The iPOJO requires.filters property value (never null)
+     */
+    protected Properties generateFieldsFilters(final ComponentBean aComponent,
+            final Map<String, String> aFieldIdMapping) {
 
-                // Use the field ID if possible, else the field name
-                String fieldId = pFieldIdEntry.getValue();
-                if (fieldId == null) {
-                    fieldId = fieldName;
-                }
+        // Store a reference to the component fields filters map
+        final Map<String, String> fieldsFilters = aComponent.getFieldsFilters();
 
-                // Compute the field filter
-                String filter = null;
+        // Set requires.filter property
+        final Properties requiresFilterProperties = new Properties();
 
-                if (fieldsFilters.containsKey(fieldName)) {
-                    // Field name found
-                    filter = fieldsFilters.get(fieldName);
+        for (final Entry<String, String> pFieldIdEntry : aFieldIdMapping
+                .entrySet()) {
 
-                } else if (fieldsFilters.containsKey(fieldId)) {
-                    // Field ID found
-                    filter = fieldsFilters.get(fieldId);
+            // Field name is constant
+            final String fieldName = pFieldIdEntry.getKey();
 
-                } else {
-                    // Default : filter on the composite name
-                    final StringBuilder builder = new StringBuilder();
+            // Use the field ID if possible, else the field name
+            String fieldId = pFieldIdEntry.getValue();
+            if (fieldId == null) {
+                fieldId = fieldName;
+            }
 
-                    builder.append("(");
-                    builder.append(ComposerAgentConstants.COMPOSITE_NAME);
-                    builder.append("=");
-                    builder.append(aComponent.getParentName());
-                    builder.append(")");
+            // Compute the field filter
+            String filter = null;
 
-                    filter = builder.toString();
-                }
+            if (fieldsFilters.containsKey(fieldName)) {
+                // Field name found
+                filter = fieldsFilters.get(fieldName);
 
-                if (filter != null) {
-                    // Trim the filter for the next test
-                    filter = filter.trim();
+            } else if (fieldsFilters.containsKey(fieldId)) {
+                // Field ID found
+                filter = fieldsFilters.get(fieldId);
 
-                    if (!filter.isEmpty()) {
-                        // Non-empty filter, ready to be used
-                        requiresFilterProperties.put(fieldId, filter);
-                    }
+            } else {
+                // Default : filter on the composite name
+                final StringBuilder builder = new StringBuilder();
+
+                builder.append("(");
+                builder.append(ComposerAgentConstants.COMPOSITE_NAME);
+                builder.append("=");
+                builder.append(aComponent.getParentName());
+                builder.append(")");
+
+                filter = builder.toString();
+            }
+
+            if (filter != null) {
+                // Trim the filter for the next test
+                filter = filter.trim();
+
+                if (!filter.isEmpty()) {
+                    // Non-empty filter, ready to be used
+                    requiresFilterProperties.put(fieldId, filter);
                 }
             }
         }
 
-        return properties;
+        return requiresFilterProperties;
     }
 
     /*
