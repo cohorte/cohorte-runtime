@@ -1,0 +1,50 @@
+{
+    "name":"application",
+    "composets":[
+        {
+            "name":"hello-world-provider",
+            "components":[
+                {
+                    "name":"hello-provider",
+                    "type":"hello-test",
+                    "isolate":"isolate-1",
+                    "filters":{
+                        "logger":""
+                    },
+                    "properties":{
+                        "default-name":"Mr Anderson"
+                    }
+                }
+            ]
+        },
+        {
+            "name":"hello-world-consumer",
+            "components":[
+                {
+                    "name":"hello-consumer",
+                    "type":"hello-consumer-test",
+                    "isolate":"isolate-2",
+                    "filters":{
+                        "logger":""
+                    },
+                    "wires":{
+                        "hello-svc":"hello-provider"
+                    }
+                }
+            ]
+        }
+    ],
+    "components":[
+        {
+            "name":"hello-provider",
+            "type":"hello-test",
+            "isolate":"isolate-1",
+            "filters":{
+                "logger":""
+            },
+            "properties":{
+                "default-name":"Mr Anderson"
+            }
+        }
+    ]
+}

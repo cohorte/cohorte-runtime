@@ -1,0 +1,25 @@
+{
+    "name":"hello-world",
+    "content":"components",
+    "components":[
+        {
+            "name":"hello-provider",
+            "type":"hello-test",
+            "isolate":"isolate-1",
+            "filters":{
+                "logger":""
+            },
+            "properties":{
+                "default-name":"Mr Anderson"
+            }
+        },
+        {
+            "name":"hello-consumer",
+            "type":"hello-consumer-test",
+            "isolate":"isolate-2",
+            "filters":{
+                "logger":""
+            }
+        }
+    ]
+}
