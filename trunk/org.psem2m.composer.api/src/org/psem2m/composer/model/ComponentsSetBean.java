@@ -5,6 +5,7 @@
  */
 package org.psem2m.composer.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -17,7 +18,11 @@ import java.util.Map.Entry;
  * 
  * @author Thomas Calmant
  */
-public class ComponentsSetBean {
+public class ComponentsSetBean extends AbstractModelBean implements
+        Serializable {
+
+    /** Version UID */
+    private static final long serialVersionUID = 1L;
 
     /** List of contained components */
     private final Map<String, ComponentBean> pComponentBeans = new HashMap<String, ComponentBean>();
@@ -25,14 +30,8 @@ public class ComponentsSetBean {
     /** List of contained components sets */
     private final List<ComponentsSetBean> pComponentSets = new ArrayList<ComponentsSetBean>();
 
-    /** The name */
-    private String pName;
-
-    /** Flag to indicate that the set contains only components */
-    private boolean pOnlyComponents;
-
-    /** The name of the parent components set */
-    private String pParentName;
+    /** The parent set */
+    private ComponentsSetBean pParent;
 
     /**
      * Default constructor
@@ -62,6 +61,110 @@ public class ComponentsSetBean {
         pComponentBeans.put(aComponent.getName(), aComponent);
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.composer.model.IModelBean#computeName()
+     */
+    @Override
+    public void computeName() {
+
+        if (pParent != null) {
+            // Get the parent name
+            final String parentName = pParent.getName();
+
+            // Update the bean name, if needed
+            if (parentName != null) {
+                pName = parentName + "." + pName;
+            }
+        }
+
+        synchronized (pComponentBeans) {
+
+            // Copy components list
+            final List<ComponentBean> components = new ArrayList<ComponentBean>(
+                    pComponentBeans.values());
+
+            // Reset the components map
+            pComponentBeans.clear();
+
+            // Update their name and re-populate the components map
+            for (final ComponentBean bean : components) {
+                bean.setParentName(pName);
+                bean.computeName();
+
+                // Now mapped with the new component name
+                pComponentBeans.put(bean.getName(), bean);
+            }
+        }
+
+        // Propagate modification to sub-sets
+        for (final ComponentsSetBean bean : pComponentSets) {
+            bean.setParentName(pName);
+            bean.computeName();
+        }
+    }
+
+    /**
+     * Recursively looks for a component endings with the given name, for leaves
+     * to the root component set
+     * 
+     * @param aComponentName
+     *            A component name
+     * @param aCallingChild
+     *            Child that called this method, to avoid looking into it twice.
+     * @return The first component found, or null
+     */
+    public ComponentBean findComponent(final String aComponentName,
+            final ComponentsSetBean aCallingChild) {
+
+        // Look into components
+        for (final String compoName : pComponentBeans.keySet()) {
+
+            if (compoName.endsWith(aComponentName)) {
+                return pComponentBeans.get(compoName);
+            }
+        }
+
+        // Look into sub-sets
+        for (final ComponentsSetBean subset : pComponentSets) {
+
+            if (subset.equals(aCallingChild)) {
+                // Ignore calling child
+                continue;
+            }
+
+            final ComponentBean component = subset.findComponent(
+                    aComponentName, null);
+            if (component != null) {
+                return component;
+            }
+        }
+
+        if (pParent == null) {
+            // No more way to try
+            return null;
+        }
+
+        // Ask the parent to continue the research
+        return pParent.findComponent(aComponentName, this);
+    }
+
+    /**
+     * Recursively populates the list with defined components
+     * 
+     * @param aComponents
+     *            A list that will be populated with components (can't be null)
+     */
+    protected void getAllComponents(final Collection<ComponentBean> aComponents) {
+
+        aComponents.addAll(pComponentBeans.values());
+
+        for (final ComponentsSetBean subset : pComponentSets) {
+            subset.getAllComponents(aComponents);
+        }
+    }
+
     /**
      * Retrieves the component of this set with the given name
      * 
@@ -72,7 +175,7 @@ public class ComponentsSetBean {
     public ComponentBean getComponent(final String aComponentName) {
 
         // None-recursive search
-        return getComponent(aComponentName, false);
+        return getComponent(aComponentName, true);
     }
 
     /**
@@ -105,14 +208,18 @@ public class ComponentsSetBean {
     }
 
     /**
-     * Retrieves the list of components
+     * Retrieves the list of all components (current set and sub-sets)
      * 
      * @return the list of components
      */
     public ComponentBean[] getComponents() {
 
-        final Collection<ComponentBean> components = pComponentBeans.values();
-        return components.toArray(new ComponentBean[components.size()]);
+        final List<ComponentBean> allComponents = new ArrayList<ComponentBean>();
+
+        // Recursively populate the result list
+        getAllComponents(allComponents);
+
+        return allComponents.toArray(new ComponentBean[allComponents.size()]);
     }
 
     /**
@@ -127,49 +234,39 @@ public class ComponentsSetBean {
     }
 
     /**
-     * Retrieves the components set name
-     * 
-     * @return the name
-     */
-    public String getName() {
-
-        return pName;
-    }
-
-    /**
-     * Retrieves the name of the parent set
-     * 
-     * @return the name of the parent set
-     */
-    public String getParentName() {
-
-        return pParentName;
-    }
-
-    /**
      * Tests if the set is empty
      * 
      * @return True if the set is empty
      */
     public boolean isEmpty() {
 
-        if (pComponentBeans.isEmpty()) {
-            // No components
-            return pOnlyComponents || pComponentSets.isEmpty();
-        }
-
         // We have beans...
-        return false;
+        return pComponentBeans.isEmpty() && pComponentSets.isEmpty();
     }
 
-    /**
-     * Tests if the set contains only components
+    /*
+     * (non-Javadoc)
      * 
-     * @return True if the set contains only components
+     * @see
+     * org.psem2m.composer.model.IModelBean#linkWires(org.psem2m.composer.model
+     * .ComponentsSetBean)
      */
-    public boolean isOnlyComponents() {
+    @Override
+    public boolean linkWires(final ComponentsSetBean aCallingParent) {
 
-        return pOnlyComponents;
+        boolean success = true;
+
+        // Components
+        for (final ComponentBean bean : pComponentBeans.values()) {
+            success &= bean.linkWires(this);
+        }
+
+        // Sub-sets
+        for (final ComponentsSetBean subset : pComponentSets) {
+            success &= subset.linkWires(this);
+        }
+
+        return success;
     }
 
     /**
@@ -201,6 +298,9 @@ public class ComponentsSetBean {
 
             if (!subset.resolve(aComponentsSubSet, aIsolatesCapabilities,
                     aResolution)) {
+
+                System.out.println("SUB SET FAILED - " + subset);
+
                 // A sub-set failed
                 return false;
             }
@@ -231,6 +331,7 @@ public class ComponentsSetBean {
 
                 if (isolateTypes.contains(component.getType())) {
                     // We've found a match
+                    System.out.println("RESOLVED : " + component.getName());
                     resolvedComponents.add(component);
                 }
             }
@@ -326,35 +427,38 @@ public class ComponentsSetBean {
     }
 
     /**
-     * Sets the components set name
+     * Sets the parent of this components set
      * 
-     * @param aName
-     *            the name
+     * @param aParent
+     *            the parent of this set
      */
-    public void setName(final String aName) {
+    public void setParent(final ComponentsSetBean aParent) {
 
-        pName = aName;
+        pParent = aParent;
+
+        // Also update the parent name
+        if (pParent != null) {
+            pParentName = pParent.getName();
+
+        } else {
+            pParentName = null;
+        }
     }
 
-    /**
-     * Indicates that the set contains only components
+    /*
+     * (non-Javadoc)
      * 
-     * @param aOnlyComponents
-     *            the set contains only components
+     * @see java.lang.Object#toString()
      */
-    public void setOnlyComponents(final boolean aOnlyComponents) {
+    @Override
+    public String toString() {
 
-        pOnlyComponents = aOnlyComponents;
-    }
+        final StringBuilder builder = new StringBuilder();
+        builder.append("ComponentsSet(");
+        builder.append("Name=").append(pName);
+        builder.append(", Parent=").append(pParent);
+        builder.append(")");
 
-    /**
-     * Sets the name of the parent set
-     * 
-     * @param aParentName
-     *            the name of the parent set
-     */
-    public void setParentName(final String aParentName) {
-
-        pParentName = aParentName;
+        return builder.toString();
     }
 }

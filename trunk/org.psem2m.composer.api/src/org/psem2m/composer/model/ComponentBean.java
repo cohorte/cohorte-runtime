@@ -8,13 +8,14 @@ package org.psem2m.composer.model;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * PSEM2M Composer component description bean
  * 
  * @author Thomas Calmant
  */
-public class ComponentBean implements Serializable {
+public class ComponentBean extends AbstractModelBean implements Serializable {
 
     /** Version UID */
     private static final long serialVersionUID = 1L;
@@ -25,11 +26,8 @@ public class ComponentBean implements Serializable {
     /** The host isolate ID */
     private String pIsolate;
 
-    /** The component name */
-    private String pName;
-
-    /** The name of the parent composite */
-    private String pParentName;
+    /** Flag indicating the bean name has already been computed */
+    private boolean pNameComputed = false;
 
     /** Component properties */
     private final Map<String, String> pProperties = new HashMap<String, String>();
@@ -46,6 +44,75 @@ public class ComponentBean implements Serializable {
     public ComponentBean() {
 
         // Does nothing...
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.composer.model.IModelBean#computeName()
+     */
+    @Override
+    public void computeName() {
+
+        if (pNameComputed) {
+            // Name already computed
+            return;
+        }
+
+        // Compute the new name
+        if (pParentName != null) {
+            pName = pParentName + "." + pName;
+
+            // Update the computation flag
+            pNameComputed = true;
+        }
+    }
+
+    /**
+     * Escapes special characters from the given LDAP filter
+     * 
+     * Inspired from
+     * 
+     * {@link https://www.owasp.org/index.php/Preventing_LDAP_Injection_in_Java}
+     * 
+     * @param aFilter
+     *            LDAP filter to escape
+     * @return The filtered LDAP filter
+     */
+    public final String escapeLDAPSearchFilter(final String aFilter) {
+
+        // Prepare the string builder
+        final StringBuilder builder = new StringBuilder(aFilter.length());
+
+        for (final char curChar : aFilter.toCharArray()) {
+
+            switch (curChar) {
+            case '\\':
+                builder.append("\\5c");
+                break;
+
+            case '*':
+                builder.append("\\2a");
+                break;
+
+            case '(':
+                builder.append("\\28");
+                break;
+
+            case ')':
+                builder.append("\\29");
+                break;
+
+            case '\u0000':
+                builder.append("\\00");
+                break;
+
+            default:
+                builder.append(curChar);
+            }
+        }
+
+        return builder.toString();
     }
 
     /**
@@ -66,26 +133,6 @@ public class ComponentBean implements Serializable {
     public String getIsolate() {
 
         return pIsolate;
-    }
-
-    /**
-     * Retrieves the component instance name
-     * 
-     * @return the component instance name
-     */
-    public String getName() {
-
-        return pName;
-    }
-
-    /**
-     * Retrieves the name of the parent container
-     * 
-     * @return the name of the parent container
-     */
-    public String getParentName() {
-
-        return pParentName;
     }
 
     /**
@@ -116,6 +163,46 @@ public class ComponentBean implements Serializable {
     public Map<String, String> getWires() {
 
         return pWires;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.composer.model.IModelBean#linkWires(org.psem2m.composer.model
+     * .ComponentsSetBean)
+     */
+    @Override
+    public boolean linkWires(final ComponentsSetBean aCallingParent) {
+
+        // Be optimistic
+        boolean result = true;
+
+        for (final Entry<String, String> wire : pWires.entrySet()) {
+
+            final String fieldName = wire.getKey();
+            final String componentName = wire.getValue();
+
+            final ComponentBean targetComponent = aCallingParent.findComponent(
+                    componentName, null);
+            if (targetComponent != null) {
+                // Prepare the field filter
+                final StringBuilder builder = new StringBuilder();
+                builder.append("(instance.name=");
+
+                // Escape the component name to avoid LDAP injection...
+                builder.append(escapeLDAPSearchFilter(targetComponent.getName()));
+                builder.append(")");
+
+                pFieldFilters.put(fieldName, builder.toString());
+
+            } else {
+                // Wire can't be linked, fail
+                result = false;
+            }
+        }
+
+        return result;
     }
 
     /**
@@ -160,28 +247,6 @@ public class ComponentBean implements Serializable {
     public void setIsolate(final String aIsolate) {
 
         pIsolate = aIsolate;
-    }
-
-    /**
-     * Sets the component instance name
-     * 
-     * @param aName
-     *            the instance name
-     */
-    public void setName(final String aName) {
-
-        pName = aName;
-    }
-
-    /**
-     * Sets the parent container name
-     * 
-     * @param aParentName
-     *            the name of the parent container
-     */
-    public void setParentName(final String aParentName) {
-
-        pParentName = aParentName;
     }
 
     /**
