@@ -315,9 +315,6 @@ public class ComponentsSetBean extends AbstractModelBean implements
 
             if (!subset.resolve(aComponentsSubSet, aIsolatesCapabilities,
                     aResolution)) {
-
-                System.out.println("SUB SET FAILED - " + subset);
-
                 // A sub-set failed
                 return false;
             }
@@ -341,14 +338,14 @@ public class ComponentsSetBean extends AbstractModelBean implements
             for (final ComponentBean component : unresolvedComponents) {
 
                 final String componentHost = component.getIsolate();
-                if (componentHost != null && !componentHost.equals(isolateId)) {
+                if (componentHost != null && !componentHost.isEmpty()
+                        && !componentHost.equals(isolateId)) {
                     // No the host we're waiting for
                     continue;
                 }
 
                 if (isolateTypes.contains(component.getType())) {
                     // We've found a match
-                    System.out.println("RESOLVED : " + component.getName());
                     resolvedComponents.add(component);
                 }
             }
