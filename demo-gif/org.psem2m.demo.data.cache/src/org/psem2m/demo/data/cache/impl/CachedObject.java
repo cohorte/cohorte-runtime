@@ -75,6 +75,46 @@ public class CachedObject<T extends Serializable> implements ICachedObject<T>,
         return pCachedObject;
     }
 
+    /**
+     * Sets the cache age
+     * 
+     * @param aAge
+     *            A cache age
+     */
+    protected void setCacheAge(final long aAge) {
+
+        pCacheAge = aAge;
+    }
+
+    /**
+     * Sets the contained object
+     * 
+     * @param aObject
+     *            An object
+     */
+    protected void setObject(final T aObject) {
+
+        pCachedObject = aObject;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+
+        final StringBuilder builder = new StringBuilder();
+
+        builder.append("CachedObject(");
+        builder.append("age = ").append(pCacheAge);
+        builder.append(", object=").append(pCachedObject);
+        builder.append(")");
+
+        return builder.toString();
+    }
+
     /*
      * (non-Javadoc)
      * 
