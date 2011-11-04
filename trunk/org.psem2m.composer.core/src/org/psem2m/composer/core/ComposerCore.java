@@ -166,14 +166,16 @@ public class ComposerCore extends CPojoBase implements IComposer,
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.composer.IComposer#instantiateComposite(org.psem2m.composer
-     * .Composite)
+     * org.psem2m.composer.IComposer#instantiateComponentsSet(org.psem2m.composer
+     * .model.ComponentsSetBean)
      */
     @Override
     public void instantiateComponentsSet(final ComponentsSetBean aComposite) {
 
         if (aComposite == null) {
             // Invalid composite
+            pLogger.logSevere(this, "instantiateComponentsSet",
+                    "Null components set");
             return;
         }
 
@@ -181,8 +183,13 @@ public class ComposerCore extends CPojoBase implements IComposer,
         final ComponentBean[] components = aComposite.getComponents();
         if (components == null || components.length == 0) {
             // Invalid components list
+            pLogger.logSevere(this, "instantiateComponentsSet",
+                    "Empty components set");
             return;
         }
+
+        // Prepare the components set model
+        prepareComponentsSet(aComposite);
 
         // Add the component to the waiting list
         pWaitingComposites.add(new InstantiatingComposite(aComposite));
@@ -202,7 +209,7 @@ public class ComposerCore extends CPojoBase implements IComposer,
      * @param aComponentsRepartition
      *            The computed components repartition
      */
-    protected void instantiateComposite(final ComponentsSetBean aComposite,
+    protected void instantiateComponentsSet(final ComponentsSetBean aComposite,
             final Map<String, ComponentBean[]> aComponentsRepartition) {
 
         for (final Entry<String, ComponentBean[]> isolateEntry : aComponentsRepartition
@@ -213,6 +220,8 @@ public class ComposerCore extends CPojoBase implements IComposer,
 
             if (isolateComponents == null || isolateComponents.length == 0) {
                 // Ignore empty components arrays
+                pLogger.logInfo(this, "instantiateComponentsSet",
+                        "Nothing to send to isolate", isolateId);
                 continue;
             }
 
@@ -253,7 +262,7 @@ public class ComposerCore extends CPojoBase implements IComposer,
                     resolvedComposites.add(composite);
 
                     // Do the job
-                    instantiateComposite(composite.getBean(), resolution);
+                    instantiateComponentsSet(composite.getBean(), resolution);
                 }
             }
 
@@ -264,6 +273,28 @@ public class ComposerCore extends CPojoBase implements IComposer,
                 pInstantiatingComposites.put(composite.getName(), composite);
             }
         }
+    }
+
+    /**
+     * Resolves the wires defined in the given components set.
+     * 
+     * For each component, the name is computed and the wires are linked
+     * 
+     * @param aComponentsSet
+     *            A components set
+     * 
+     * @return True if all wires are linked, false on error
+     */
+    protected boolean prepareComponentsSet(
+            final ComponentsSetBean aComponentsSet) {
+
+        if (aComponentsSet == null) {
+            pLogger.logWarn(this, "prepareComponentsSet", "Null components set");
+            return false;
+        }
+
+        aComponentsSet.computeName();
+        return aComponentsSet.linkWires(null);
     }
 
     /**
@@ -342,32 +373,6 @@ public class ComposerCore extends CPojoBase implements IComposer,
 
         // Time to try a new instantiation
         notifyComponentsRegistration();
-    }
-
-    /**
-     * Runs a simple Hello World test
-     */
-    protected void test() {
-
-        final ComponentsSetBean compositeTest = new ComponentsSetBean();
-        compositeTest.setName("Composite-Test");
-
-        final ComponentBean compoProvider = new ComponentBean();
-        compoProvider.setName("hello-1");
-        compoProvider.setType("hello-test");
-        compoProvider.setIsolate("isolate-1");
-        compoProvider.setFieldFilter("logger", null);
-        compositeTest.addComponent(compoProvider);
-
-        final ComponentBean compoConsumer = new ComponentBean();
-        compoConsumer.setName("hello-consumer");
-        compoConsumer.setType("hello-consumer-test");
-        compoConsumer.setIsolate("isolate-2");
-        compoConsumer.setFieldFilter("logger", null);
-        compositeTest.addComponent(compoConsumer);
-
-        // Fire at will
-        instantiateComponentsSet(compositeTest);
     }
 
     /**

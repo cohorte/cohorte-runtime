@@ -39,15 +39,16 @@ iPOJO-Components: instance { $component="org.psem2m.composer.core.Comp
  vedSignal" $arguments="{java.lang.String,org.psem2m.isolates.services
  .remote.signals.ISignalData}" }method { $name="instantiateComponentsS
  et" $arguments="{org.psem2m.composer.model.ComponentsSetBean}" }metho
- d { $name="instantiateComposite" $arguments="{org.psem2m.composer.mod
- el.ComponentsSetBean,java.util.Map}" }method { $name="invalidatePojo"
-  }method { $name="notifyComponentsRegistration" }method { $name="regi
- sterComponentsForIsolate" $arguments="{java.lang.String,org.psem2m.co
- mposer.model.ComponentBean[]}" }method { $name="registerComponentsFor
- Isolate" $arguments="{java.lang.String,java.lang.String[]}" }method {
-  $name="test" }method { $name="test_conf" $arguments="{java.lang.Stri
- ng}" }method { $name="unregisterComponentsForIsolate" $arguments="{ja
- va.lang.String,java.lang.String[]}" }method { $name="updateInstantiat
- ingCompositeStatus" $arguments="{java.util.Map,java.lang.String}" }me
- thod { $name="validatePojo" }}}
+ d { $name="instantiateComponentsSet" $arguments="{org.psem2m.composer
+ .model.ComponentsSetBean,java.util.Map}" }method { $name="invalidateP
+ ojo" }method { $name="notifyComponentsRegistration" }method { $name="
+ prepareComponentsSet" $return="boolean" $arguments="{org.psem2m.compo
+ ser.model.ComponentsSetBean}" }method { $name="registerComponentsForI
+ solate" $arguments="{java.lang.String,org.psem2m.composer.model.Compo
+ nentBean[]}" }method { $name="registerComponentsForIsolate" $argument
+ s="{java.lang.String,java.lang.String[]}" }method { $name="test_conf"
+  $arguments="{java.lang.String}" }method { $name="unregisterComponent
+ sForIsolate" $arguments="{java.lang.String,java.lang.String[]}" }meth
+ od { $name="updateInstantiatingCompositeStatus" $arguments="{java.uti
+ l.Map,java.lang.String}" }method { $name="validatePojo" }}}
 
