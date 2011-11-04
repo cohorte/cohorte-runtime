@@ -8,7 +8,7 @@ package org.psem2m.demo.data.cache;
 import java.io.Serializable;
 
 /**
- * Defines a cache channel
+ * Defines a cache channel factory
  * 
  * @author Thomas Calmant
  */
@@ -26,6 +26,24 @@ public interface ICacheFactory extends Serializable {
      * Flushes the cache.
      */
     void flush();
+
+    /**
+     * Tests if the given channel is already opened
+     * 
+     * @param aName
+     *            The channel name
+     * @return True if the channel is opened
+     */
+    boolean isChannelOpened(String aName);
+
+    /**
+     * Tests if the given dequeue channel is already opened
+     * 
+     * @param aName
+     *            The channel name
+     * @return True if the channel is opened
+     */
+    boolean isDequeueChannelOpened(String aName);
 
     /**
      * Opens a standard cache channel. Creates a new one if needed.

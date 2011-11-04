@@ -106,7 +106,7 @@ public class CacheFactoryImpl extends CPojoBase implements ICacheFactory {
     @Override
     public void clearChannel(final String aName) {
 
-        ICacheChannel<?, ?> channel = pChannels.get(aName);
+        final ICacheChannel<?, ?> channel = pChannels.get(aName);
         if (channel != null) {
             pChannels.remove(channel);
             channel.clear();
@@ -162,17 +162,43 @@ public class CacheFactoryImpl extends CPojoBase implements ICacheFactory {
         try {
             if (pExecutor.awaitTermination(1, TimeUnit.SECONDS)) {
                 // All tasks are terminated, close all channels
-                for (ICacheChannel<?, ?> channel : pChannels.values()) {
+                for (final ICacheChannel<?, ?> channel : pChannels.values()) {
                     channel.clear();
                 }
                 pChannels.clear();
             }
 
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
             // Ignore
         }
 
         pLogger.logInfo(this, "invalidatePojo", "Cache channel factory Gone");
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.demo.data.cache.ICacheFactory#isChannelOpened(java.lang.String
+     * )
+     */
+    @Override
+    public boolean isChannelOpened(final String aName) {
+
+        return pChannels.containsKey(aName);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.demo.data.cache.ICacheFactory#isDequeueChannelOpened(java.
+     * lang.String)
+     */
+    @Override
+    public boolean isDequeueChannelOpened(final String aName) {
+
+        return pQueueChannels.containsKey(aName);
     }
 
     /**
@@ -198,7 +224,7 @@ public class CacheFactoryImpl extends CPojoBase implements ICacheFactory {
             objectStream = new ObjectInputStream(new FileInputStream(cacheFile));
             readObject(objectStream);
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             pLogger.logWarn(this, "loadFromFile",
                     "Error loading cache from file", cacheFile, " :", e);
 
@@ -206,7 +232,7 @@ public class CacheFactoryImpl extends CPojoBase implements ICacheFactory {
             if (objectStream != null) {
                 try {
                     objectStream.close();
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     // Ignore errors
                 }
             }
@@ -291,7 +317,7 @@ public class CacheFactoryImpl extends CPojoBase implements ICacheFactory {
         }
 
         // The queued channels
-        Map<String, ICacheDequeueChannel<?, ?>> readQueueChannels = (Map<String, ICacheDequeueChannel<?, ?>>) aObjectInputStream
+        final Map<String, ICacheDequeueChannel<?, ?>> readQueueChannels = (Map<String, ICacheDequeueChannel<?, ?>>) aObjectInputStream
                 .readObject();
         if (readQueueChannels != null) {
             pQueueChannels.putAll(readQueueChannels);
@@ -324,7 +350,7 @@ public class CacheFactoryImpl extends CPojoBase implements ICacheFactory {
             try {
                 cacheFile.createNewFile();
 
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 pLogger.logSevere(this, "storeToFile",
                         "Can't create the cache file :", cacheFile);
                 return;
@@ -342,7 +368,7 @@ public class CacheFactoryImpl extends CPojoBase implements ICacheFactory {
 
             pLogger.logInfo(this, "flush", "FLUSH CACHE DONE");
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             pLogger.logWarn(this, "storeToFile", "Error writing cache to file",
                     cacheFile, " :", e);
 
@@ -350,7 +376,7 @@ public class CacheFactoryImpl extends CPojoBase implements ICacheFactory {
             if (objectStream != null) {
                 try {
                     objectStream.close();
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     // Ignore...
                 }
             }

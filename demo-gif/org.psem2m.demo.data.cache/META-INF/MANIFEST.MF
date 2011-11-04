@@ -31,12 +31,15 @@ iPOJO-Components: instance { $component="org.psem2m.demo.data.cache.im
  me="pRunWriteFile" $type="java.lang.Runnable" }method { $name="clearC
  hannel" $arguments="{java.lang.String}" }method { $name="flush" }meth
  od { $name="internalWriteObject" $arguments="{java.io.ObjectOutputStr
- eam}" }method { $name="invalidatePojo" }method { $name="loadFromFile"
-  }method { $name="openChannel" $return="org.psem2m.demo.data.cache.IC
- acheChannel" $arguments="{java.lang.String}" }method { $name="openDeq
- ueueChannel" $return="org.psem2m.demo.data.cache.ICacheDequeueChannel
- " $arguments="{java.lang.String}" }method { $name="readObject" $argum
- ents="{java.io.ObjectInputStream}" }method { $name="reload" }method {
-  $name="storeToFile" }method { $name="validatePojo" }method { $name="
- writeObject" $arguments="{java.io.ObjectOutputStream}" }}}
+ eam}" }method { $name="invalidatePojo" }method { $name="isChannelOpen
+ ed" $return="boolean" $arguments="{java.lang.String}" }method { $name
+ ="isDequeueChannelOpened" $return="boolean" $arguments="{java.lang.St
+ ring}" }method { $name="loadFromFile" }method { $name="openChannel" $
+ return="org.psem2m.demo.data.cache.ICacheChannel" $arguments="{java.l
+ ang.String}" }method { $name="openDequeueChannel" $return="org.psem2m
+ .demo.data.cache.ICacheDequeueChannel" $arguments="{java.lang.String}
+ " }method { $name="readObject" $arguments="{java.io.ObjectInputStream
+ }" }method { $name="reload" }method { $name="storeToFile" }method { $
+ name="validatePojo" }method { $name="writeObject" $arguments="{java.i
+ o.ObjectOutputStream}" }}}
 
