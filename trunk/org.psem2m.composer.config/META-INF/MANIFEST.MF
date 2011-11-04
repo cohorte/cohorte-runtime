@@ -37,13 +37,13 @@ iPOJO-Components: instance { $component="org.psem2m.composer.config.im
  name="parseComponents" $return="java.util.Collection" $arguments="{ja
  va.lang.String,org.psem2m.utilities.json.JSONArray}" }method { $name=
  "parseComponentSet" $return="org.psem2m.composer.model.ComponentsSetB
- ean" $arguments="{java.lang.String,org.psem2m.utilities.json.JSONObje
- ct}" }method { $name="parseComponentSets" $return="java.util.Collecti
- on" $arguments="{java.lang.String,org.psem2m.utilities.json.JSONArray
- }" }method { $name="readFile" $return="java.lang.String" $arguments="
- {java.lang.String}" }method { $name="readJsonArrayFile" $return="org.
- psem2m.utilities.json.JSONArray" $arguments="{java.lang.String}" }met
- hod { $name="readJsonObjectFile" $return="org.psem2m.utilities.json.J
- SONObject" $arguments="{java.lang.String}" }method { $name="validateP
- ojo" }}}
+ ean" $arguments="{org.psem2m.composer.model.ComponentsSetBean,org.pse
+ m2m.utilities.json.JSONObject}" }method { $name="parseComponentSets" 
+ $return="java.util.Collection" $arguments="{org.psem2m.composer.model
+ .ComponentsSetBean,org.psem2m.utilities.json.JSONArray}" }method { $n
+ ame="readFile" $return="java.lang.String" $arguments="{java.lang.Stri
+ ng}" }method { $name="readJsonArrayFile" $return="org.psem2m.utilitie
+ s.json.JSONArray" $arguments="{java.lang.String}" }method { $name="re
+ adJsonObjectFile" $return="org.psem2m.utilities.json.JSONObject" $arg
+ uments="{java.lang.String}" }method { $name="validatePojo" }}}
 

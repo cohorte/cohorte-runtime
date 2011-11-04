@@ -230,41 +230,31 @@ public class JsonComposerConfigReader extends CPojoBase implements
      * @throws JSONException
      *             An error occurred while parsing the file
      */
-    protected ComponentsSetBean parseComponentSet(final String aParentName,
-            final JSONObject aComponentSetNode) throws JSONException {
+    protected ComponentsSetBean parseComponentSet(
+            final ComponentsSetBean aParent, final JSONObject aComponentSetNode)
+            throws JSONException {
 
         // Get the name
         final String compoSetName = aComponentSetNode
                 .getString(IJsonComposerConfigConstants.COMPOSET_NAME);
 
-        // Get the type
-        final String compoSetType = aComponentSetNode
-                .getString(IJsonComposerConfigConstants.COMPOSET_CONTENT_TYPE);
-
         // Prepare the resulting component set
         final ComponentsSetBean resultSet = new ComponentsSetBean();
         resultSet.setName(compoSetName);
-        resultSet.setParentName(aParentName);
+        resultSet.setParent(aParent);
 
-        if (compoSetType
-                .equals(IJsonComposerConfigConstants.COMPOSET_CONTENT_TYPE_COMPONENTS)) {
+        // Get the components
+        final JSONArray components = aComponentSetNode
+                .optJSONArray(IJsonComposerConfigConstants.COMPOSET_COMPONENTS);
+        if (components != null) {
+            resultSet.setComponents(parseComponents(compoSetName, components));
+        }
 
-            // Get the underlying array
-            final JSONArray content = aComponentSetNode
-                    .getJSONArray(IJsonComposerConfigConstants.COMPOSET_COMPONENTS);
-
-            resultSet.setOnlyComponents(true);
-            resultSet.setComponents(parseComponents(compoSetName, content));
-
-        } else {
-
-            // Get the underlying array
-            final JSONArray content = aComponentSetNode
-                    .getJSONArray(IJsonComposerConfigConstants.COMPOSET_COMPOSETS);
-
-            resultSet.setOnlyComponents(false);
-            resultSet
-                    .setComponentSets(parseComponentSets(compoSetName, content));
+        // Get the sub-sets
+        final JSONArray subsets = aComponentSetNode
+                .optJSONArray(IJsonComposerConfigConstants.COMPOSET_COMPOSETS);
+        if (subsets != null) {
+            resultSet.setComponentSets(parseComponentSets(resultSet, subsets));
         }
 
         if (!resultSet.isEmpty()) {
@@ -288,7 +278,7 @@ public class JsonComposerConfigReader extends CPojoBase implements
      *             Error while parsing the file
      */
     protected Collection<ComponentsSetBean> parseComponentSets(
-            final String aParentName, final JSONArray aJsonArray)
+            final ComponentsSetBean aParent, final JSONArray aJsonArray)
             throws JSONException {
 
         // Result list
@@ -298,7 +288,7 @@ public class JsonComposerConfigReader extends CPojoBase implements
         final int arrayLen = aJsonArray.length();
         for (int i = 0; i < arrayLen; i++) {
 
-            final ComponentsSetBean compoSet = parseComponentSet(aParentName,
+            final ComponentsSetBean compoSet = parseComponentSet(aParent,
                     aJsonArray.getJSONObject(i));
             if (compoSet != null) {
                 // Successfully parsed component set
