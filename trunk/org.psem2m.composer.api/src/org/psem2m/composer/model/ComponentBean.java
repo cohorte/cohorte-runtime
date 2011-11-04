@@ -183,8 +183,8 @@ public class ComponentBean extends AbstractModelBean implements Serializable {
             final String fieldName = wire.getKey();
             final String componentName = wire.getValue();
 
-            final ComponentBean targetComponent = aCallingParent.findComponent(
-                    componentName, null);
+            final ComponentBean targetComponent = aCallingParent
+                    .findComponent(componentName);
             if (targetComponent != null) {
                 // Prepare the field filter
                 final StringBuilder builder = new StringBuilder();

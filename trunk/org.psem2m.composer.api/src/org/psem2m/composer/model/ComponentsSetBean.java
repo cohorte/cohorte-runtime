@@ -107,16 +107,33 @@ public class ComponentsSetBean extends AbstractModelBean implements
 
     /**
      * Recursively looks for a component endings with the given name, for leaves
+     * to the root component set.
+     * 
+     * @param aComponentName
+     *            A component name
+     * @return The first component found, or null
+     */
+    public ComponentBean findComponent(final String aComponentName) {
+
+        return findComponent(aComponentName, null, true);
+    }
+
+    /**
+     * Recursively looks for a component endings with the given name, for leaves
      * to the root component set
      * 
      * @param aComponentName
      *            A component name
      * @param aCallingChild
      *            Child that called this method, to avoid looking into it twice.
+     * @param aTryParent
+     *            Tells if the component must ask its parent to continue the
+     *            research or not
+     * 
      * @return The first component found, or null
      */
-    public ComponentBean findComponent(final String aComponentName,
-            final ComponentsSetBean aCallingChild) {
+    protected ComponentBean findComponent(final String aComponentName,
+            final ComponentsSetBean aCallingChild, final boolean aTryParent) {
 
         // Look into components
         for (final String compoName : pComponentBeans.keySet()) {
@@ -135,19 +152,19 @@ public class ComponentsSetBean extends AbstractModelBean implements
             }
 
             final ComponentBean component = subset.findComponent(
-                    aComponentName, null);
+                    aComponentName, null, false);
             if (component != null) {
                 return component;
             }
         }
 
-        if (pParent == null) {
+        if (pParent == null || !aTryParent) {
             // No more way to try
             return null;
         }
 
         // Ask the parent to continue the research
-        return pParent.findComponent(aComponentName, this);
+        return pParent.findComponent(aComponentName, this, true);
     }
 
     /**

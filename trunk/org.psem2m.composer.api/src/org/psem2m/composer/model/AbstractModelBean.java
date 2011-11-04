@@ -26,6 +26,49 @@ public abstract class AbstractModelBean implements IModelBean, Serializable {
     /*
      * (non-Javadoc)
      * 
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(final Object aObj) {
+
+        if (aObj instanceof AbstractModelBean) {
+            // The other object is also a model bean
+            final AbstractModelBean other = (AbstractModelBean) aObj;
+
+            // Compare names
+            boolean sameNames = false;
+
+            if (pName != null) {
+                sameNames = pName.equals(other.pName);
+
+            } else {
+                sameNames = (other.pName == null);
+            }
+
+            if (!sameNames) {
+                return false;
+            }
+
+            // Compare parent names
+            if (pParentName != null) {
+                sameNames = pParentName.equals(other.pParentName);
+            } else {
+                sameNames = (other.pParentName == null);
+            }
+
+            return sameNames;
+
+        } else if (aObj instanceof CharSequence) {
+            // The other object is a string, compare only the name
+            return aObj.equals(pName);
+        }
+
+        return false;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.psem2m.composer.model.IModelBean#getName()
      */
     @Override
