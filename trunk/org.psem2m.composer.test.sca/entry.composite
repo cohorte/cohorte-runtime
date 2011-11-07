@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<csa:composite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:csa="http://docs.oasis-open.org/ns/opencsa/sca/200912"
+	xmlns:psem2m="http://www.psem2m.org/ns/psem2m-sca"
+	xsi:schemaLocation="http://www.psem2m.org/ns/psem2m-sca psem2m-sca.xsd http://docs.oasis-open.org/ns/opencsa/sca/200912 http://docs.oasis-open.org/opencsa/sca-assembly/sca-1.1-cd06.xsd"
+	name="entry" targetNamespace="http://www.isandlatech.com/application/entry">
+
+	<csa:component name="entry-point">
+		<csa:service name="IComponent">
+			<csa:interface.java interface="org.psem2m.composer.test.api.IComponent" />
+		</csa:service>
+		<csa:reference name="next" />
+		<csa:reference name="logger" />
+		<csa:property name="nbIterations" value="20" />
+		<psem2m:implementation.psem2m type="test-entry"
+			isolate="isolate-2" />
+	</csa:component>
+	<csa:service name="IComponent" promote="entry-point/IComponent" />
+
+	<csa:component name="obi-wan_Kenobi">
+		<csa:service name="IComponent">
+			<csa:interface.java interface="org.psem2m.composer.test.api.IComponent" />
+		</csa:service>
+		<csa:reference name="next" />
+		<csa:reference name="second" />
+		<psem2m:implementation.psem2m type="fall-back"
+			isolate="isolate-1" />
+	</csa:component>
+	<csa:reference name="next" promote="obi-wan_Kenobi/next"
+		multiplicity="1..1" />
+	<csa:reference name="second" promote="obi-wan_Kenobi/second"
+		multiplicity="1..1" />
+
+	<csa:wire source="entry-point/next" target="obi-wan_Kenobi/IComponent" />
+</csa:composite>
