@@ -3,7 +3,7 @@
 	xmlns:csa="http://docs.oasis-open.org/ns/opencsa/sca/200912"
 	xmlns:psem2m="http://www.psem2m.org/ns/psem2m-sca"
 	xsi:schemaLocation="http://www.psem2m.org/ns/psem2m-sca psem2m-sca.xsd http://docs.oasis-open.org/ns/opencsa/sca/200912 http://docs.oasis-open.org/opencsa/sca-assembly/sca-1.1-cd06.xsd"
-	name="entry" targetNamespace="http://www.isandlatech.com/application/entry">
+	name="entry" targetNamespace="app/entry">
 
 	<csa:component name="entry-point">
 		<csa:service name="IComponent">
