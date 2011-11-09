@@ -7,11 +7,15 @@
 	<import namespace="http://docs.oasis-open.org/ns/opencsa/sca/200912"
 		schemaLocation="http://docs.oasis-open.org/opencsa/sca-assembly/sca-core-1.1-cd06.xsd" />
 
-	<!-- Define the new element -->
+	<!-- Define the new implementation element -->
 	<element name="implementation.psem2m" type="psem2m:Psem2mComponentType"
 		substitutionGroup="sca:implementation" />
+	
+	<!-- Define the new interface element -->
+    <element name="psem2m.filter" type="psem2m:Psem2mFilterType"
+        substitutionGroup="sca:interface" />
 
-	<!-- Define its type -->
+	<!-- Define the new implementation  type -->
 	<complexType name="Psem2mComponentType">
 		<complexContent>
 			<extension base="sca:Implementation">
@@ -24,4 +28,15 @@
 			</extension>
 		</complexContent>
 	</complexType>
+	
+	<!-- Define the new interface  type -->
+    <complexType name="Psem2mFilterType">
+        <complexContent>
+            <extension base="sca:Interface">
+            
+                <!-- Component Type -->
+                <attribute name="filter" type="string" use="required" />
+            </extension>
+        </complexContent>
+    </complexType>
 </schema>
