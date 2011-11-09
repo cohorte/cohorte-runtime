@@ -94,13 +94,15 @@ def main():
     # Prepare the options parser
     parser = OptionParser()
     parser.add_option("-C", "--root-composite", dest="root_composite", \
-                      default=None, metavar="ROOT",
-                      help="Sets the root targetNamespace of the composition to return (optional)")
+            default=None, metavar="ROOT",
+            help="Sets the root targetNamespace of the composition to return")
+
     parser.add_option("-o", "--outfile", dest="output", default="-", \
-                help="Write the result into FILE ('-' for standard output, default)", \
-                metavar="FILE")
+            help="Write the result into FILE ('-' for standard output)", \
+            metavar="FILE")
+
     parser.add_option("-r", "--recursive", dest="recursive", default=False,
-                      help="When a directory is found in paths, look recursively into it. Deactivated by default.")
+            help="Walk recursively in paths. Deactivated by default.")
 
     (options, args) = parser.parse_args()
 

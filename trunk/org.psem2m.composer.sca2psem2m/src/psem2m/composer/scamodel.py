@@ -6,7 +6,7 @@ Created on 8 nov. 2011
 @author: Thomas Calmant
 '''
 
-from __init__ import CompoSet, Component
+from psem2m.composer import CompoSet, Component
 
 class SCAModelNode(object):
     """
@@ -179,20 +179,20 @@ class SCAComposite(SCAModelNode):
         """
         # For each wire...
         for wire in self.wires:
-            # ... for each wire extremity...
-            for extremity in wire:
-                # ... test if a component uses this extremity
+            # ... for each wire ends...
+            for ends in wire:
+                # ... test if a component uses this ends
                 for component_name in self.components:
                     # Add a slash, to have a secure match (a/ vs. aa/)
                     name_with_slash = component_name + "/"
 
-                    if not extremity[0] and extremity[1].startswith(name_with_slash):
+                    if not ends[0] and ends[1].startswith(name_with_slash):
                         # Unresolved wire source name matches component name
-                        ref_name = extremity[1][len(name_with_slash):]
+                        ref_name = ends[1][len(name_with_slash):]
 
                         # Update the link
-                        extremity[0] = self.components[component_name]
-                        extremity[1] = ref_name
+                        ends[0] = self.components[component_name]
+                        ends[1] = ref_name
 
 
     def get_fqnamed_wires(self, named_wires):
@@ -270,9 +270,9 @@ class SCAComposite(SCAModelNode):
         composet.fqname = self.fqname
         composet.components = []
 
-        for sca_component in self.components.values():
+        for sca_child in self.components.values():
             # Convert all components/composites
-            composet.components.append(sca_component.to_psem2m_model(named_wires))
+            composet.components.append(sca_child.to_psem2m_model(named_wires))
 
         return composet
 

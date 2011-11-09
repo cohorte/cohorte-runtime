@@ -6,8 +6,8 @@ Created on 8 nov. 2011
 @author: Thomas Calmant
 """
 
-from __init__ import PSEM2M_XMLNS
-from scamodel import SCAComposite, SCAComponent
+from psem2m.composer import PSEM2M_XMLNS
+from psem2m.composer.scamodel import SCAComposite, SCAComponent
 from xml.dom.minidom import parse as xml_parse
 
 
@@ -15,7 +15,7 @@ XML_NS = "http://www.w3.org/2000/xmlns/"
 SCA_XMLNS = "http://docs.oasis-open.org/ns/opencsa/sca/200912"
 
 
-def getChildrenNS(node, namespace_uri, tag_name):
+def get_children_ns(node, namespace_uri, tag_name):
     """
     Retrieves all elements, children of the given one corresponding to the given
     tag and namespace. Returns None if the node is invalid
@@ -33,6 +33,96 @@ def getChildrenNS(node, namespace_uri, tag_name):
             result.append(child)
 
     return result
+
+
+def _handle_component(element):
+    """
+    Reads a csa:component node
+
+    @param element: A DOM Component element
+    """
+    # Prepare the object
+    component = SCAComponent()
+    component.name = element.getAttribute("name")
+
+    # Store the implementation node
+    for child in element.childNodes:
+        if (child.namespaceURI == SCA_XMLNS \
+                or child.namespaceURI == PSEM2M_XMLNS) \
+                and child.localName.startswith("implementation."):
+
+            implementation_name = child.localName
+
+            if implementation_name == "implementation.composite":
+                # The implementation is a sub-composite
+                component.is_composite = True
+                component.implementation["name"] = child.getAttribute("name")
+
+            elif implementation_name == "implementation.psem2m":
+                # PSEM2M component implementation
+                component.is_composite = False
+                component.implementation["type"] = child.getAttribute("type")
+                component.implementation["isolate"] = \
+                                                child.getAttribute("isolate")
+
+            else:
+                raise ValueError("Unknown implementation type : " \
+                                 + implementation_name)
+
+            break
+
+    # Properties
+    nodes = get_children_ns(element, SCA_XMLNS, "property")
+    if nodes:
+        component.properties = dict((node.getAttribute("name"), \
+                                     node.getAttribute("value")) \
+                                    for node in nodes)
+
+    # References
+    nodes = get_children_ns(element, SCA_XMLNS, "reference")
+    if nodes:
+        for node in nodes:
+            ref_name = node.getAttribute("name")
+            # Store the reference
+            component.references[ref_name] = None
+
+            # Store the reference filter
+            filters = get_children_ns(node, PSEM2M_XMLNS, "psem2m.filter")
+            if filters:
+                component.filters[ref_name] = filters[0].getAttribute("filter")
+
+    # Services
+    nodes = get_children_ns(element, SCA_XMLNS, "service")
+    if nodes:
+        component.services = [node.getAttribute("name") for node in nodes]
+
+    return component
+
+
+def _update_composite_sources(old_component, new_composite):
+    """
+    Updates the wires sources, by replacing the old component references
+    by its replacing composite ones
+    
+    @param composite: The old component parent composite
+    @param old_component: The replaced component
+    @param new_composite: The composite replacing the component
+    """
+
+    composite = old_component.parent
+
+    for old_reference_name in old_component.references:
+        # Prepare the current source definition for this reference
+        old_source = (old_component, old_reference_name)
+
+        # Prepare the new one
+        new_source = new_composite.get_promoted_component(old_reference_name)
+        if not new_source:
+            raise Exception("Can't do my job - no new_source for " \
+                            + str(old_source))
+
+        # Update the link in the parent composite
+        composite.update_wire_source(old_source, new_source)
 
 
 class SCAConverter(object):
@@ -60,21 +150,21 @@ class SCAConverter(object):
         @return: The PSEM2M Composer model of the composition
         """
         if not files_array:
-            raise "No input files given"
+            raise IOError("No input files given")
 
         # Load the SCA model
         for sca_file in files_array:
-            self._load_composite(sca_file)
+            self.load_composite(sca_file)
 
         # Resolve composites internal wires
         for composite in self._sca_composites.values():
             composite.resolve_wires()
 
         # Resolve hierarchy
-        self._compute_hierarchy()
+        self.compute_hierarchy()
 
         # Get the root SCA element
-        sca_root = self._select_root(root_composite_ns)
+        sca_root = self.select_root(root_composite_ns)
 
         # Compute nodes fully-qualified names
         sca_root.compute_fq_name()
@@ -87,7 +177,7 @@ class SCAConverter(object):
         return sca_root.to_psem2m_model(named_wires)
 
 
-    def _load_composite(self, sca_file):
+    def load_composite(self, sca_file):
         """
         Loads the model described by the given SCA XML file
         
@@ -121,7 +211,7 @@ class SCAConverter(object):
         # Parse components
         for element in root.getElementsByTagNameNS(SCA_XMLNS, "component"):
 
-            component = self._handle_component(element)
+            component = _handle_component(element)
             if component.is_valid():
                 composite.components[component.name] = component
                 component.parent = composite
@@ -129,19 +219,19 @@ class SCAConverter(object):
                 raise IOError("Incomplete component in " + sca_file)
 
         # Parse wires, services and references
-        nodes = getChildrenNS(root, SCA_XMLNS, "wire")
+        nodes = get_children_ns(root, SCA_XMLNS, "wire")
         if nodes:
             composite.wires = [([None, node.getAttribute("source")], \
                                 [None, node.getAttribute("target")]) \
                                 for node in nodes]
 
-        nodes = getChildrenNS(root, SCA_XMLNS, "reference")
+        nodes = get_children_ns(root, SCA_XMLNS, "reference")
         if nodes:
             composite.references = dict((node.getAttribute("name"), \
                                          node.getAttribute("promote")) \
                                          for node in nodes)
 
-        nodes = getChildrenNS(root, SCA_XMLNS, "service")
+        nodes = get_children_ns(root, SCA_XMLNS, "service")
         if nodes:
             composite.services = dict((node.getAttribute("name"), \
                                        node.getAttribute("promote")) \
@@ -155,71 +245,7 @@ class SCAConverter(object):
         self._sca_composites[composite.namespace] = composite
 
 
-    def _handle_component(self, element):
-        """
-        Reads a csa:component node
-
-        @param element: A DOM Component element
-        """
-        # Prepare the object
-        component = SCAComponent()
-        component.name = element.getAttribute("name")
-
-        # Store the implementation node
-        for child in element.childNodes:
-            if (child.namespaceURI == SCA_XMLNS \
-                    or child.namespaceURI == PSEM2M_XMLNS) \
-                    and child.localName.startswith("implementation."):
-
-                implementation_name = child.localName
-
-                if implementation_name == "implementation.composite":
-                    # The implementation is a sub-composite
-                    component.is_composite = True
-                    component.implementation["name"] = child.getAttribute("name")
-
-                elif implementation_name == "implementation.psem2m":
-                    # PSEM2M component implementation
-                    component.is_composite = False
-                    component.implementation["type"] = child.getAttribute("type")
-                    component.implementation["isolate"] = child.getAttribute("isolate")
-
-                else:
-                    raise ValueError("Unknown implementation type : " \
-                                     + implementation_name)
-
-                break
-
-        # Properties
-        nodes = getChildrenNS(element, SCA_XMLNS, "property")
-        if nodes:
-            component.properties = dict((node.getAttribute("name"), \
-                                         node.getAttribute("value")) \
-                                        for node in nodes)
-
-        # References
-        nodes = getChildrenNS(element, SCA_XMLNS, "reference")
-        if nodes:
-            for node in nodes:
-                ref_name = node.getAttribute("name")
-                # Store the reference
-                component.references[ref_name] = None
-
-                # Store the reference filter
-                filters = getChildrenNS(node, PSEM2M_XMLNS, "psem2m.filter")
-                if filters:
-                    component.filters[ref_name] = filters[0].getAttribute("filter")
-
-        # Services
-        nodes = getChildrenNS(element, SCA_XMLNS, "service")
-        if nodes:
-            component.services = [node.getAttribute("name") for node in nodes]
-
-        return component
-
-
-
-    def _compute_hierarchy(self):
+    def compute_hierarchy(self):
         """
         Does the job
         """
@@ -239,7 +265,8 @@ class SCAConverter(object):
                 if old_component.is_composite:
 
                     # Get the child composite name
-                    local_ns, name = old_component.implementation["name"].split(":")
+                    implementation_name = old_component.implementation["name"]
+                    local_ns, name = implementation_name.split(":")
 
                     for namespace in composite.imported_namespaces:
                         if local_ns == composite.imported_namespaces[namespace]:
@@ -259,40 +286,43 @@ class SCAConverter(object):
                     assert isinstance(new_composite, SCAComposite)
 
                     # Update links to composite services
-                    for service_name in old_component.services:
-                        # Prepare the current target definition for this service
-                        old_target = (old_component, service_name)
-
-                        # Prepare the new one
-                        new_target = new_composite.get_promoted_component(service_name)
-                        if not new_target:
-                            raise Exception("Can't do my job - no new_target for " + str(old_target))
-
-                        # Update wires targets in other composites
-                        for other_composite in self._sca_composites.values():
-
-                            # Don't work on new composite, useless
-                            if other_composite == new_composite:
-                                continue
-
-                            assert isinstance(other_composite, SCAComposite)
-                            other_composite.update_wire_target(old_target, new_target)
+                    self._update_wires_targets(old_component, new_composite)
 
                     # Update links from composite references
-                    for old_reference_name in old_component.references:
-                        # Prepare the current source definition for this reference
-                        old_source = (old_component, old_reference_name)
-
-                        # Prepare the new one
-                        new_source = new_composite.get_promoted_component(old_reference_name)
-                        if not new_source:
-                            raise Exception("Can't do my job - no new_source for " + str(old_source))
-
-                        # Update the link in the parent composite
-                        composite.update_wire_source(old_source, new_source)
+                    _update_composite_sources(old_component, new_composite)
 
 
-    def _select_root(self, root_composite_ns):
+    def _update_wires_targets(self, old_component, new_composite):
+        """
+        Updates wires target in all composites others than the old component
+        parent. Previous links to old_component must now point to new_composite.
+        
+        @param composite: The old component parent composite
+        @param old_component: The replaced component
+        @param new_composite: The composite replacing the component
+        """
+        for service_name in old_component.services:
+            # Prepare the current target definition for this service
+            old_target = (old_component, service_name)
+
+            # Prepare the new one
+            new_target = new_composite.get_promoted_component(service_name)
+            if not new_target:
+                raise Exception("Can't do my job - no new_target for " \
+                                + str(old_target))
+
+            # Update wires targets in other composites
+            for other_composite in self._sca_composites.values():
+
+                # Don't work on new composite, useless
+                if other_composite == new_composite:
+                    continue
+
+                assert isinstance(other_composite, SCAComposite)
+                other_composite.update_wire_target(old_target, new_target)
+
+
+    def select_root(self, root_composite_ns):
         """
         Selects the root composite from the SCA model
         
