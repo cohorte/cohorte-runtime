@@ -22,15 +22,16 @@ iPOJO-Components: component { $classname="org.psem2m.composer.demo.erp
  invalidatePojo" }callback { $transition="validate" $method="validateP
  ojo" }manipulation { $super="org.psem2m.isolates.base.activators.CPoj
  oBase" interface { $name="org.psem2m.composer.test.api.IComponent" }f
- ield { $name="pClient" $type="org.jabsorb.client.Client" }field { $na
- me="pErpHost" $type="java.lang.String" }field { $name="pErpPort" $typ
- e="int" }field { $name="pErpUri" $type="java.lang.String" }field { $n
- ame="pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }fie
- ld { $name="pProxy" $type="org.psem2m.composer.demo.IErpData" }method
-  { $name="computeResult" $return="java.util.Map" $arguments="{java.ut
- il.Map}" }method { $name="getItem" $arguments="{java.util.Map}" }meth
- od { $name="getItems" $arguments="{java.util.Map}" }method { $name="g
- etItemsStock" $arguments="{java.util.Map}" }method { $name="invalidat
- ePojo" }method { $name="prepareClient" }method { $name="validatePojo"
-  }}}
+ ield { $name="pBundleContext" $type="org.osgi.framework.BundleContext
+ " }field { $name="pClient" $type="org.jabsorb.client.Client" }field {
+  $name="pErpHost" $type="java.lang.String" }field { $name="pErpPort" 
+ $type="int" }field { $name="pErpUri" $type="java.lang.String" }field 
+ { $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" 
+ }field { $name="pProxy" $type="org.psem2m.composer.demo.IErpData" }me
+ thod { $name="computeResult" $return="java.util.Map" $arguments="{jav
+ a.util.Map}" }method { $name="getItem" $arguments="{java.util.Map}" }
+ method { $name="getItems" $arguments="{java.util.Map}" }method { $nam
+ e="getItemsStock" $arguments="{java.util.Map}" }method { $name="inval
+ idatePojo" }method { $name="prepareClient" }method { $name="validateP
+ ojo" }}}
 

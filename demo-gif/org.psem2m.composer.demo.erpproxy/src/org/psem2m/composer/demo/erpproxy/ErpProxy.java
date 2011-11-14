@@ -18,9 +18,11 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.jabsorb.client.Client;
 import org.jabsorb.client.HTTPSession;
 import org.jabsorb.client.Session;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.psem2m.composer.demo.IErpData;
 import org.psem2m.composer.test.api.IComponent;
+import org.psem2m.isolates.base.BundlesClassLoader;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
 
@@ -32,6 +34,9 @@ import org.psem2m.isolates.base.activators.CPojoBase;
 @Component(name = "erp-proxy-json-rpc")
 @Provides(specifications = IComponent.class)
 public class ErpProxy extends CPojoBase implements IComponent {
+
+    /** The bundle context */
+    private BundleContext pBundleContext;
 
     /** The Jabsorb client */
     private Client pClient;
@@ -54,6 +59,18 @@ public class ErpProxy extends CPojoBase implements IComponent {
 
     /** The ERP proxy */
     private IErpData pProxy;
+
+    /**
+     * Called by iPOJO...
+     * 
+     * @param aContext
+     *            The bundle context
+     */
+    public ErpProxy(final BundleContext aContext) {
+
+        super();
+        pBundleContext = aContext;
+    }
 
     /*
      * (non-Javadoc)
@@ -221,7 +238,7 @@ public class ErpProxy extends CPojoBase implements IComponent {
         // Prepare the Jabsorb client
         final Session session = new HTTPSession(new URI(builder.toString()));
 
-        pClient = new Client(session);
+        pClient = new Client(session, new BundlesClassLoader(pBundleContext));
         pProxy = (IErpData) pClient.openProxy(null, IErpData.class);
     }
 
