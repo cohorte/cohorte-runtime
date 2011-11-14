@@ -1,0 +1,36 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: PSEM2M Composer - Demo ERP Proxy
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-SymbolicName: org.psem2m.composer.demo.erpproxy
+Bundle-Vendor: isandlaTech.com
+Bundle-Version: 1.0.0.qualifier
+Created-By: iPOJO  1.8.0
+Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
+ .ipojo.architecture;version=1.8.0, org.jabsorb.client, org.osgi.frame
+ work;version=1.5.0, org.osgi.service.cm;version=1.2, org.osgi.service
+ .log;version=1.3, org.psem2m.composer.demo, org.psem2m.composer.test.
+ api, org.psem2m.isolates.base;version=1.0.0, org.psem2m.isolates.base
+ .activators;version=1.0.0, org.psem2m.utilities;version=1.0.0, org.ps
+ em2m.utilities.logging;version=1.0.0
+iPOJO-Components: component { $classname="org.psem2m.composer.demo.erp
+ proxy.ErpProxy" $name="erp-proxy-json-rpc" $public="true" provides { 
+ $specifications="{org.psem2m.composer.test.api.IComponent}" }properti
+ es { property { $name="host" $field="pErpHost" }property { $name="por
+ t" $field="pErpPort" }property { $name="uri" $field="pErpUri" }}requi
+ res { $field="pLogger" }callback { $transition="invalidate" $method="
+ invalidatePojo" }callback { $transition="validate" $method="validateP
+ ojo" }manipulation { $super="org.psem2m.isolates.base.activators.CPoj
+ oBase" interface { $name="org.psem2m.composer.test.api.IComponent" }f
+ ield { $name="pClient" $type="org.jabsorb.client.Client" }field { $na
+ me="pErpHost" $type="java.lang.String" }field { $name="pErpPort" $typ
+ e="int" }field { $name="pErpUri" $type="java.lang.String" }field { $n
+ ame="pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }fie
+ ld { $name="pProxy" $type="org.psem2m.composer.demo.IErpData" }method
+  { $name="computeResult" $return="java.util.Map" $arguments="{java.ut
+ il.Map}" }method { $name="getItem" $arguments="{java.util.Map}" }meth
+ od { $name="getItems" $arguments="{java.util.Map}" }method { $name="g
+ etItemsStock" $arguments="{java.util.Map}" }method { $name="invalidat
+ ePojo" }method { $name="prepareClient" }method { $name="validatePojo"
+  }}}
+
