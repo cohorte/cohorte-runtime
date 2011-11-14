@@ -1,90 +1,368 @@
 {
-    "name":"application",
+    "name":"DataServerApplication",
+    "components":[
+        {
+            "name":"dataServer-Exported",
+            "type":"server-exported",
+            "isolate":"isolate-1",
+            "properties":{
+                "endpoint.name":"dataserver",
+            },
+            "wires":{
+                "applyCart":"ApplyCart.serverEndpoint",
+                "getItem":"GetItem.serverEndpoint",
+                "getItems":"GetItems.serverEndpoint",
+                "getItemsStock":"GetItemsStock.serverEndpoint"
+            }
+        }
+    ],
     "composets":[
         {
-            "name":"entry",
+            "name":"GetItem",
             "components":[
                 {
-                    "name":"entry-point",
-                    "type":"test-entry",
-                    "isolate":"isolate-2",
-                    "properties":{
-                        "nbIterations":"20"
-                    },
+                    "name":"serverEndpoint",
+                    "type":"server-endpoint-getItem",
+                    "isolate":"isolate-1",
                     "wires":{
-                        "next":"obi-wan_Kenobi"
+                        "normalizer":"resultNormalizer",
+                        "next":"fallbackOnCache"
                     }
                 },
                 {
-                    "name":"obi-wan_Kenobi",
+                    "name":"resultNormalizer",
+                    "type":"normalizer-getItem",
+                    "isolate":"isolate-1"
+                },
+                {
+                    "name":"fallbackOnCache",
                     "type":"fall-back",
                     "isolate":"isolate-1",
                     "wires":{
-                        "next":"normal.get-cache",
-                        "second":"fallback.get-cache"
+                        "next":"erpChain.getCacheFirst",
+                        "second":"fallback.getCache"
                     }
+                }
+            ],
+            "composets":[
+                {
+                    "name":"fallback",
+                    "components":[
+                        {
+                            "name":"getCache",
+                            "type":"get-cache",
+                            "isolate":"isolate-cache",
+                            "properties":{
+                                "cacheChannel":"cache-getItem",
+                                "channelEntryName":"id"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name":"erpChain",
+                    "components":[
+                        {
+                            "name":"getCacheFirst",
+                            "type":"get-cache-if-recent",
+                            "isolate":"isolate-cache",
+                            "properties":{
+                                "cacheChannel":"cache-getItem",
+                                "channelEntryName":"id",
+                                "maxCacheAge":1000
+                            },
+                            "wires":{
+                                "next":"storeErpResult"
+                            }
+                        },
+                        {
+                            "name":"storeErpResult",
+                            "type":"store-cache",
+                            "isolate":"isolate-cache",
+                            "properties":{
+                                "cacheChannel":"cache-getItem",
+                                "channelEntryName":"id"
+                            },
+                            "wires":{
+                                "next":"safeErpCaller"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name":"erpCaller",
+                    "components":[
+                        {
+                            "name":"safeErpCaller",
+                            "type":"exception-catcher",
+                            "wires":{
+                                "next":"erpCaller"
+                            }
+                        },
+                        {
+                            "name":"erpCaller",
+                            "type":"erp-caller",
+                            "properties":{
+                                "host":"localhost",
+                                "port":8080,
+                                "method":"getItem"
+                            }
+                        }
+                    ]
                 }
             ]
         },
         {
-            "name":"fallback",
+            "name":"GetItems",
             "components":[
                 {
-                    "name":"get-cache",
-                    "type":"get-cache",
-                    "isolate":"isolate-1",
-                    "properties":{
-                        "channelName":"testCache",
-                        "channelEntryName":"toto"
-                    }
-                }
-            ]
-        },
-        {
-            "name":"normal",
-            "components":[
-                {
-                    "name":"get-cache",
-                    "type":"get-cache-if-recent",
-                    "isolate":"isolate-1",
-                    "properties":{
-                        "channelName":"testCache",
-                        "channelEntryName":"toto",
-                        "maxCacheAge":5000
-                    },
+                    "name":"serverEndpoint",
+                    "type":"server-endpoint-getItems",
                     "wires":{
-                        "next":"store-to-cache"
+                        "normalizer":"resultNormalizer",
+                        "next":"fallbackOnCache"
                     }
                 },
                 {
-                    "name":"store-to-cache",
-                    "type":"store-cache",
-                    "isolate":"isolate-1",
+                    "name":"resultNormalizer",
+                    "type":"normalizer-getItems"
+                },
+                {
+                    "name":"fallbackOnCache",
+                    "type":"fall-back",
+                    "wires":{
+                        "next":"erpChain.getCacheFirst",
+                        "second":"fallback.getCache"
+                    }
+                }
+            ],
+            "composets":[
+                {
+                    "name":"fallback",
+                    "components":[
+                        {
+                            "name":"getCache",
+                            "type":"get-cache",
+                            "isolate":"isolate-cache",
+                            "properties":{
+                                "cacheChannel":"cache-getItems",
+                                "channelEntryName":"ids"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name":"erpChain",
+                    "components":[
+                        {
+                            "name":"getCacheFirst",
+                            "type":"get-cache-if-recent",
+                            "isolate":"isolate-cache",
+                            "properties":{
+                                "cacheChannel":"cache-getItems",
+                                "channelEntryName":"ids",
+                                "maxCacheAge":1000
+                            },
+                            "wires":{
+                                "next":"storeErpResult"
+                            }
+                        },
+                        {
+                            "name":"storeErpResult",
+                            "type":"store-cache",
+                            "isolate":"isolate-cache",
+                            "properties":{
+                                "cacheChannel":"cache-getItems",
+                                "channelEntryName":"ids"
+                            },
+                            "wires":{
+                                "next":"safeErpCaller"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name":"erpCaller",
+                    "components":[
+                        {
+                            "name":"safeErpCaller",
+                            "type":"exception-catcher",
+                            "wires":{
+                                "next":"erpCaller"
+                            }
+                        },
+                        {
+                            "name":"erpCaller",
+                            "type":"erp-caller",
+                            "properties":{
+                                "host":"localhost",
+                                "port":8080,
+                                "method":"getItems"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name":"GetItemsStock",
+            "components":[
+                {
+                    "name":"serverEndpoint",
+                    "type":"server-endpoint-getItemsStock",
+                    "wires":{
+                        "normalizer":"resultNormalizer",
+                        "next":"computeQueuedCarts"
+                    }
+                },
+                {
+                    "name":"resultNormalizer",
+                    "type":"normalizer-getItemsStock"
+                },
+                {
+                    "name":"computeQueuedCarts",
+                    "type":"compute-queued-carts",
+                    "isolate":"isolate-cache",
                     "properties":{
-                        "channelName":"testCache",
-                        "channelEntryName":"toto"
+                        "cartCacheChannel":"carts",
+                        "cartItemId":"itemId",
+                        "cartItemQuantity":"quantity"
                     },
                     "wires":{
-                        "next":"safe-erp-caller"
+                        "next":"fallbackOnCache"
+                    }
+                },
+                {
+                    "name":"fallbackOnCache",
+                    "type":"fall-back",
+                    "wires":{
+                        "next":"erpChain.getCacheFirst",
+                        "second":"fallback.getCache"
+                    }
+                }
+            ],
+            "composets":[
+                {
+                    "name":"fallback",
+                    "components":[
+                        {
+                            "name":"getCache",
+                            "type":"get-cache",
+                            "isolate":"isolate-cache",
+                            "properties":{
+                                "cacheChannel":"cache-getItemsStock",
+                                "channelEntryName":"ids"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name":"erpChain",
+                    "components":[
+                        {
+                            "name":"getCacheFirst",
+                            "type":"get-cache-if-recent",
+                            "isolate":"isolate-cache",
+                            "properties":{
+                                "cacheChannel":"cache-getItemsStock",
+                                "channelEntryName":"ids",
+                                "maxCacheAge":1000
+                            },
+                            "wires":{
+                                "next":"storeErpResult"
+                            }
+                        },
+                        {
+                            "name":"storeErpResult",
+                            "type":"store-cache",
+                            "isolate":"isolate-cache",
+                            "properties":{
+                                "cacheChannel":"cache-getItemsStock",
+                                "channelEntryName":"ids"
+                            },
+                            "wires":{
+                                "next":"safeErpCaller"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name":"erpCaller",
+                    "components":[
+                        {
+                            "name":"safeErpCaller",
+                            "type":"exception-catcher",
+                            "wires":{
+                                "next":"erpCaller"
+                            }
+                        },
+                        {
+                            "name":"erpCaller",
+                            "type":"erp-caller",
+                            "properties":{
+                                "host":"localhost",
+                                "port":8080,
+                                "method":"getItemsStock"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name":"ApplyCart",
+            "components":[
+                {
+                    "name":"serverEndpoint",
+                    "type":"server-endpoint-applyCart",
+                    "wires":{
+                        "normalizer":"resultNormalizer",
+                        "next":"storeInQueue"
+                    }
+                },
+                {
+                    "name":"resultNormalizer",
+                    "type":"normalizer-applyCart"
+                },
+                {
+                    "name":"storeInQueue",
+                    "type":"store-cache-queue",
+                    "isolate":"isolate-cache",
+                    "properties":{
+                        "cacheChannel":"carts"
                     }
                 }
             ]
         },
         {
-            "name":"erp-caller",
+            "name":"CartsApplier",
             "components":[
                 {
-                    "name":"safe-erp-caller",
+                    "name":"scheduler",
+                    "type":"cache-queue-poller",
+                    "isolate":"isolate-cache",
+                    "properties":{
+                        "cacheChannel":"carts"
+                    },
+                    "wires":{
+                        "next":"safeErpCaller"
+                    }
+                },
+                {
+                    "name":"safeErpCaller",
                     "type":"exception-catcher",
-                    "isolate":"isolate-1",
                     "wires":{
-                        "next":"test-end"
+                        "next":"erpCaller"
                     }
                 },
                 {
-                    "name":"test-end",
-                    "type":"test-end",
-                    "isolate":"isolate-2"
+                    "name":"erpCaller",
+                    "type":"erp-caller",
+                    "properties":{
+                        "host":"localhost",
+                        "port":8080,
+                        "method":"applyCart"
+                    }
                 }
             ]
         }

@@ -54,9 +54,6 @@
                     "symbolicName":"org.psem2m.demo.data.cache.api"
                 },
                 {
-                    "symbolicName":"org.psem2m.demo.data.cache"
-                },
-                {
                     "symbolicName":"org.psem2m.composer.api"
                 },
                 {
@@ -67,11 +64,17 @@
                 },
                 {
                     "symbolicName":"org.psem2m.composer.test"
+                },
+                {
+                    "symbolicName":"org.psem2m.composer.demo.api"
+                },
+                {
+                    "symbolicName":"org.psem2m.composer.demo"
                 }
             ]
         },
         {
-            "id":"isolate-2",
+            "id":"isolate-cache",
             "kind":"felix",
             "httpPort":9003,
             "vmArgs":[
@@ -114,13 +117,13 @@
                     "from":"remote-services.js"
                 },
                 {
+                    "symbolicName":"org.psem2m.composer.api"
+                },
+                {
                     "symbolicName":"org.psem2m.demo.data.cache.api"
                 },
                 {
                     "symbolicName":"org.psem2m.demo.data.cache"
-                },
-                {
-                    "symbolicName":"org.psem2m.composer.api"
                 },
                 {
                     "symbolicName":"org.psem2m.composer.agent"
@@ -130,6 +133,12 @@
                 },
                 {
                     "symbolicName":"org.psem2m.composer.test"
+                },
+                {
+                    "symbolicName":"org.psem2m.composer.demo.api"
+                },
+                {
+                    "symbolicName":"org.psem2m.composer.demo"
                 }
             ]
         }
