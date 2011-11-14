@@ -5,7 +5,6 @@
  */
 package org.psem2m.composer.core.test.chain;
 
-import java.io.Serializable;
 import java.util.Map;
 
 import org.apache.felix.ipojo.annotations.Component;
@@ -64,15 +63,9 @@ public class ExceptionCatcher extends CPojoBase implements IComponent {
             return pNext.computeResult(aData);
 
         } catch (final Throwable th) {
-            // Store the exception, if possible
-            if (th instanceof Serializable) {
-                // Store the exception object
-                aData.put(KEY_ERROR, th);
 
-            } else {
-                // Store the String
-                aData.put(KEY_ERROR, CXException.eInString(th));
-            }
+            // Store the String
+            aData.put(KEY_ERROR, CXException.eInString(th));
         }
 
         return aData;
