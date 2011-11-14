@@ -61,7 +61,11 @@ public class ServerExported extends CPojoBase implements IErpData {
     public Map<String, Object> applyCart(final Map<String, Object> aCart) {
 
         try {
-            return pChainApplyCart.computeResult(aCart);
+            // Prepare the treatment map
+            final Map<String, Object> treatmentMap = new HashMap<String, Object>();
+            treatmentMap.put(IComponent.KEY_REQUEST, aCart);
+
+            return pChainApplyCart.computeResult(treatmentMap);
 
         } catch (final Exception ex) {
 
@@ -90,7 +94,7 @@ public class ServerExported extends CPojoBase implements IErpData {
 
             treatmentMap.put(IComponent.KEY_REQUEST, requestMap);
 
-            return pChainGetItem.computeResult(requestMap);
+            return pChainGetItem.computeResult(treatmentMap);
 
         } catch (final Exception ex) {
 
@@ -126,7 +130,7 @@ public class ServerExported extends CPojoBase implements IErpData {
 
             treatmentMap.put(IComponent.KEY_REQUEST, requestMap);
 
-            return pChainGetItems.computeResult(requestMap);
+            return pChainGetItems.computeResult(treatmentMap);
 
         } catch (final Exception ex) {
 
@@ -156,7 +160,7 @@ public class ServerExported extends CPojoBase implements IErpData {
 
             treatmentMap.put(IComponent.KEY_REQUEST, requestMap);
 
-            return pChainGetItemsStock.computeResult(requestMap);
+            return pChainGetItemsStock.computeResult(treatmentMap);
 
         } catch (final Exception ex) {
 
