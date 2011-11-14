@@ -20,8 +20,8 @@
                     "optional":true,
                     "properties":{
                         "psem2m.demo.ui.viewer.top":"0scr",
-                        "psem2m.demo.ui.viewer.left":"0.5scr",
-                        "psem2m.demo.ui.viewer.width":"0.25scr",
+                        "psem2m.demo.ui.viewer.left":"0.34scr",
+                        "psem2m.demo.ui.viewer.width":"0.33scr",
                         "psem2m.demo.ui.viewer.height":"0.5scr",
                         "psem2m.demo.ui.viewer.color":"YellowGreen"
                     }
@@ -70,6 +70,9 @@
                 },
                 {
                     "symbolicName":"org.psem2m.composer.demo"
+                },
+                {
+                    "symbolicName":"org.psem2m.composer.demo.erpproxy"
                 }
             ]
         },
@@ -86,8 +89,8 @@
                     "optional":true,
                     "properties":{
                         "psem2m.demo.ui.viewer.top":"0scr",
-                        "psem2m.demo.ui.viewer.left":"0.75scr",
-                        "psem2m.demo.ui.viewer.width":"0.25scr",
+                        "psem2m.demo.ui.viewer.left":"0.67scr",
+                        "psem2m.demo.ui.viewer.width":"0.33scr",
                         "psem2m.demo.ui.viewer.height":"0.5scr",
                         "psem2m.demo.ui.viewer.color":"YellowGreen"
                     }

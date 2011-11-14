@@ -7,12 +7,22 @@
             "isolate":"isolate-1",
             "properties":{
                 "endpoint.name":"dataserver",
+                
             },
             "wires":{
                 "applyCart":"ApplyCart.serverEndpoint",
                 "getItem":"GetItem.serverEndpoint",
                 "getItems":"GetItems.serverEndpoint",
                 "getItemsStock":"GetItemsStock.serverEndpoint"
+            }
+        },
+        {
+            "name":"erpProxy",
+            "type":"erp-proxy-json-rpc",
+            "isolate":"isolate-1",
+            "properties":{
+                "host":"localhost",
+                "port":8080
             }
         }
     ],
@@ -103,9 +113,10 @@
                             "name":"erpCaller",
                             "type":"erp-caller",
                             "properties":{
-                                "host":"localhost",
-                                "port":8080,
                                 "method":"getItem"
+                            },
+                            "wires":{
+                                "next":"erpProxy"
                             }
                         }
                     ]
@@ -195,9 +206,10 @@
                             "name":"erpCaller",
                             "type":"erp-caller",
                             "properties":{
-                                "host":"localhost",
-                                "port":8080,
                                 "method":"getItems"
+                            },
+                            "wires":{
+                                "next":"erpProxy"
                             }
                         }
                     ]
@@ -300,9 +312,10 @@
                             "name":"erpCaller",
                             "type":"erp-caller",
                             "properties":{
-                                "host":"localhost",
-                                "port":8080,
                                 "method":"getItemsStock"
+                            },
+                            "wires":{
+                                "next":"erpProxy"
                             }
                         }
                     ]
@@ -359,9 +372,10 @@
                     "name":"erpCaller",
                     "type":"erp-caller",
                     "properties":{
-                        "host":"localhost",
-                        "port":8080,
                         "method":"applyCart"
+                    },
+                    "wires":{
+                        "next":"erpProxy"
                     }
                 }
             ]
