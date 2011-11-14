@@ -8,9 +8,11 @@ package org.psem2m.composer.demo.impl;
 import java.util.Map;
 
 import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Property;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.composer.demo.DemoComponentsConstants;
 import org.psem2m.composer.test.api.IComponent;
@@ -26,17 +28,9 @@ import org.psem2m.isolates.base.activators.CPojoBase;
 @Provides(specifications = IComponent.class)
 public class ErpCaller extends CPojoBase implements IComponent {
 
-    /** The ERP host name */
-    @Property(name = "host")
-    private String pErpHost;
-
     /** The ERP method to call */
     @Property(name = "method")
     private String pErpMethod;
-
-    /** The ERP host port */
-    @Property(name = "port")
-    private int pErpPort;
 
     /** The instance name */
     @Property(name = DemoComponentsConstants.PROPERTY_INSTANCE_NAME)
@@ -45,6 +39,10 @@ public class ErpCaller extends CPojoBase implements IComponent {
     /** The logger */
     @Requires
     private IIsolateLoggerSvc pLogger;
+
+    /** The next component */
+    @Requires(id = NEXT_FIELD_ID)
+    private IComponent pNext;
 
     /*
      * (non-Javadoc)
@@ -55,13 +53,11 @@ public class ErpCaller extends CPojoBase implements IComponent {
     public Map<String, Object> computeResult(final Map<String, Object> aData)
             throws Exception {
 
-        // TODO Auto-generated method stub
-        pLogger.logInfo(this, "computeResult", pInstanceName, "called...");
+        // Indicate which method to use
+        aData.put("erp-method", pErpMethod);
 
-        aData.put(IComponent.KEY_RESULT,
-                "ERP Called at " + System.currentTimeMillis() + " - "
-                        + pErpHost + ":" + pErpPort + "/" + pErpMethod);
-        return aData;
+        // Call the next component
+        return pNext.computeResult(aData);
     }
 
     /*
@@ -70,6 +66,7 @@ public class ErpCaller extends CPojoBase implements IComponent {
      * @see org.psem2m.isolates.base.activators.CPojoBase#invalidatePojo()
      */
     @Override
+    @Invalidate
     public void invalidatePojo() throws BundleException {
 
         pLogger.logInfo(this, "invalidatePojo", "Component", pInstanceName,
@@ -82,6 +79,7 @@ public class ErpCaller extends CPojoBase implements IComponent {
      * @see org.psem2m.isolates.base.activators.CPojoBase#validatePojo()
      */
     @Override
+    @Validate
     public void validatePojo() throws BundleException {
 
         pLogger.logInfo(this, "validatePojo", "Component", pInstanceName,

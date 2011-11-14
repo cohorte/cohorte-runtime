@@ -9,9 +9,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Property;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.composer.demo.DemoComponentsConstants;
 import org.psem2m.composer.demo.IErpData;
@@ -179,6 +181,7 @@ public class ServerExported extends CPojoBase implements IErpData {
      * @see org.psem2m.isolates.base.activators.CPojoBase#invalidatePojo()
      */
     @Override
+    @Invalidate
     public void invalidatePojo() throws BundleException {
 
         pLogger.logInfo(this, "invalidatePojo", "Component", pInstanceName,
@@ -212,6 +215,7 @@ public class ServerExported extends CPojoBase implements IErpData {
      * @see org.psem2m.isolates.base.activators.CPojoBase#validatePojo()
      */
     @Override
+    @Validate
     public void validatePojo() throws BundleException {
 
         pLogger.logInfo(this, "validatePojo", "Component", pInstanceName,

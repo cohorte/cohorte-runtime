@@ -10,8 +10,10 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Property;
 import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.composer.demo.DemoComponentsConstants;
 import org.psem2m.composer.test.api.IComponent;
@@ -60,6 +62,7 @@ public class CacheQueuePoller extends CPojoBase implements Runnable {
      * @see org.psem2m.isolates.base.activators.CPojoBase#invalidatePojo()
      */
     @Override
+    @Invalidate
     public void invalidatePojo() throws BundleException {
 
         // Stop running thread
@@ -113,6 +116,7 @@ public class CacheQueuePoller extends CPojoBase implements Runnable {
      * @see org.psem2m.isolates.base.activators.CPojoBase#validatePojo()
      */
     @Override
+    @Validate
     public void validatePojo() throws BundleException {
 
         // Start the polling thread
