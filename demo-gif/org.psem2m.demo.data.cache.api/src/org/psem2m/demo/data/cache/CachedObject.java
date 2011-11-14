@@ -7,7 +7,6 @@ package org.psem2m.demo.data.cache;
 
 import java.io.Serializable;
 
-
 /**
  * Stores a cached object information
  * 
@@ -24,6 +23,14 @@ public class CachedObject<T extends Serializable> implements ICachedObject<T>,
 
     /** The cached object */
     private T pCachedObject;
+
+    /**
+     * Default constructor
+     */
+    public CachedObject() {
+
+        // Do nothing...
+    }
 
     /**
      * Sets up the members
@@ -80,7 +87,7 @@ public class CachedObject<T extends Serializable> implements ICachedObject<T>,
      * @param aAge
      *            A cache age
      */
-    protected void setCacheAge(final long aAge) {
+    public void setCacheAge(final long aAge) {
 
         pCacheAge = aAge;
     }
@@ -91,7 +98,7 @@ public class CachedObject<T extends Serializable> implements ICachedObject<T>,
      * @param aObject
      *            An object
      */
-    protected void setObject(final T aObject) {
+    public void setObject(final T aObject) {
 
         pCachedObject = aObject;
     }
