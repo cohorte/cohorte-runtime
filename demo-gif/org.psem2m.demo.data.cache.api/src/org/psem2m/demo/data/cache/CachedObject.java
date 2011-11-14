@@ -3,11 +3,10 @@
  * Author: Thomas Calmant
  * Date:   11 oct. 2011
  */
-package org.psem2m.demo.data.cache.impl;
+package org.psem2m.demo.data.cache;
 
 import java.io.Serializable;
 
-import org.psem2m.demo.data.cache.ICachedObject;
 
 /**
  * Stores a cached object information

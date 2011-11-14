@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingDeque;
 
+import org.psem2m.demo.data.cache.CachedObject;
 import org.psem2m.demo.data.cache.ICacheDequeueChannel;
 import org.psem2m.demo.data.cache.ICachedObject;
 

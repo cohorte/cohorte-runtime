@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.psem2m.demo.data.cache.CachedObject;
 import org.psem2m.demo.data.cache.ICacheChannel;
 import org.psem2m.demo.data.cache.ICachedObject;
 
