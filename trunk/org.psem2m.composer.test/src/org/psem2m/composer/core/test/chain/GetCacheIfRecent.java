@@ -17,6 +17,7 @@ import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.composer.test.api.IComponent;
+import org.psem2m.demo.data.cache.CachedObject;
 import org.psem2m.demo.data.cache.ICacheDequeueChannel;
 import org.psem2m.demo.data.cache.ICacheFactory;
 import org.psem2m.demo.data.cache.ICachedObject;
@@ -101,6 +102,15 @@ public class GetCacheIfRecent extends CPojoBase implements IComponent {
                 || (System.currentTimeMillis() - storedObject.getCacheAge()) > pMaxAge) {
             // Not stored or too old data, call the next component
             result = pNext.computeResult(aData);
+
+            final Serializable resultObject = (Serializable) result
+                    .get(KEY_RESULT);
+
+            if (!(result instanceof ICachedObject)) {
+                // Create a cached object
+                result.put(KEY_RESULT, new CachedObject<Serializable>(
+                        resultObject));
+            }
 
         } else {
             // Return the cached data

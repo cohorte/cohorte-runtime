@@ -29,6 +29,13 @@ public interface IComponent {
     String KEY_ERROR = "error";
 
     /**
+     * Data key to represent a treatment request
+     * 
+     * Value type : implementation dependent (should be a map)
+     */
+    String KEY_REQUEST = "request";
+
+    /**
      * Data key to represent a result
      * 
      * Value type : implementation dependent
