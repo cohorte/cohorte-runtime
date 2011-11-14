@@ -68,6 +68,7 @@ public class ComputeQueuedCarts extends CPojoBase implements IComponent {
      * 
      * @see org.psem2m.composer.test.api.IComponent#computeResult(java.util.Map)
      */
+    @SuppressWarnings("unchecked")
     @Override
     public Map<String, Object> computeResult(final Map<String, Object> aData)
             throws Exception {
@@ -89,17 +90,11 @@ public class ComputeQueuedCarts extends CPojoBase implements IComponent {
         // Get reserved quantities
         for (final ICachedObject<Serializable> cachedObject : queueCopy) {
 
-            @SuppressWarnings("unchecked")
-            final Map<String, Object> treatedMap = (Map<String, Object>) cachedObject
+            final Map<String, Object> cartMap = (Map<String, Object>) cachedObject
                     .getObject();
 
-            @SuppressWarnings("unchecked")
-            final Map<String, Map<String, Object>> cartRequest = (Map<String, Map<String, Object>>) treatedMap
-                    .get(IComponent.KEY_REQUEST);
-
-            for (final String lineId : cartRequest.keySet()) {
-
-                final Map<String, Object> cartLine = cartRequest.get(lineId);
+            for (final Map<String, Object> cartLine : ((Map<String, Object>[]) cartMap
+                    .get("lines"))) {
 
                 final String itemId = (String) cartLine.get(pCartItemIdKey);
                 final Integer itemQuantity = (Integer) cartLine
@@ -110,15 +105,16 @@ public class ComputeQueuedCarts extends CPojoBase implements IComponent {
         }
 
         // Remove reserved quantities from the returned stock
-        @SuppressWarnings("unchecked")
-        final Map<String, Map<String, Object>> resultMap = (Map<String, Map<String, Object>>) computedMap
-                .get(IComponent.KEY_RESULT);
+        final ICachedObject<?> result = (ICachedObject<?>) computedMap
+                .get(KEY_RESULT);
+
+        final Map<String, Integer> resultMap = (Map<String, Integer>) result
+                .getObject();
 
         for (final String itemId : resultMap.keySet()) {
 
             // Get the associated map (stock, quality, ...)
-            final Map<String, Object> itemData = resultMap.get(itemId);
-            final Integer currentStock = (Integer) itemData.get("stock");
+            final Integer currentStock = resultMap.get(itemId);
 
             if (currentStock == null) {
                 // Invalid stock
@@ -136,7 +132,7 @@ public class ComputeQueuedCarts extends CPojoBase implements IComponent {
                     newStock = 0;
                 }
 
-                itemData.put("stock", newStock);
+                resultMap.put(itemId, newStock);
             }
         }
 

@@ -53,14 +53,23 @@ public class StoreInCacheQueue extends CPojoBase implements IComponent {
      * 
      * @see org.psem2m.composer.test.api.IComponent#computeResult(java.util.Map)
      */
+    @SuppressWarnings("unchecked")
     @Override
     public Map<String, Object> computeResult(final Map<String, Object> aData)
             throws Exception {
 
+        final Map<String, Object> cartMap = (Map<String, Object>) aData
+                .get(KEY_REQUEST);
+
+        if (cartMap == null) {
+            aData.put(KEY_ERROR, "Null cart");
+            return aData;
+        }
+
         final ICacheDequeueChannel<?, Serializable> channel = pCache
                 .openDequeueChannel(pCacheChannelName);
 
-        channel.add((Serializable) aData);
+        channel.add((Serializable) cartMap);
 
         // TODO: wait until we get a response
         final Map<String, Object> resultMap = new HashMap<String, Object>();

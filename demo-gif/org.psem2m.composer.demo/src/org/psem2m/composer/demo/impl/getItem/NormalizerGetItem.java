@@ -49,7 +49,19 @@ public class NormalizerGetItem extends CPojoBase implements IComponent {
             throws Exception {
 
         final Object result = aData.get(KEY_RESULT);
+        final Object error = aData.get(KEY_ERROR);
 
+        if (error != null) {
+
+            // Prepare a new map, with both result and error
+            final Map<String, Object> resultMap = new HashMap<String, Object>();
+            resultMap.put(KEY_ERROR, error);
+            resultMap.put(KEY_RESULT, result);
+
+            return resultMap;
+        }
+
+        // Result is a CachedObject bean, transform it into a map
         if (result instanceof ICachedObject) {
 
             final ICachedObject<?> cachedObject = (ICachedObject<?>) result;
@@ -64,9 +76,15 @@ public class NormalizerGetItem extends CPojoBase implements IComponent {
             }
 
             newResult.put("cacheAge", cachedObject.getCacheAge());
-            aData.put(KEY_RESULT, newResult);
+            return newResult;
         }
 
+        // Result is a map, return it
+        if (result instanceof Map) {
+            return (Map<String, Object>) result;
+        }
+
+        // Unknown result type, return the whole data
         return aData;
     }
 
