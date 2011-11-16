@@ -13,7 +13,6 @@ package org.psem2m.isolates.demo.services.ui.viewer.impl;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -124,43 +123,43 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
     }
 
     /**
+     * @param arch
+     * @return
+     */
+    private Object[] buildComponentRowData(final Architecture arch) {
+
+        final InstanceDescription description = arch.getInstanceDescription();
+
+        final String strState = description.getDescription().getAttribute(
+                "state");
+
+        Object[] wRowData = new Object[4];
+        wRowData[CFrameMain.COMPONENT_COLUMN_IDX_NAME] = description.getName();
+        wRowData[CFrameMain.COMPONENT_COLUMN_IDX_FACTORY] = description
+                .getComponentDescription().getFactory().getName();
+        wRowData[CFrameMain.COMPONENT_COLUMN_IDX_BUNDLE] = String
+                .valueOf(description.getBundleId());
+        wRowData[CFrameMain.COMPONENT_COLUMN_IDX_STATE] = String.format(
+                "%1d %s", description.getState(), strState);
+        return wRowData;
+    }
+
+    /**
      * Builds a component description text, according to iPOJO architecture
      * services
      * 
      * @return A iPOJO components description text
      */
-    private String buildComponentsDescription() {
+    private List<Object[]> buildComponentsDescription() {
 
-        List<String> componentsLines = new ArrayList<String>();
+        List<Object[]> wComponentsLines = new ArrayList<Object[]>();
 
         for (Architecture arch : pArchitectures) {
 
-            final InstanceDescription description = arch
-                    .getInstanceDescription();
-
-            final String strState = description.getDescription().getAttribute(
-                    "state");
-
-            final StringBuilder builder = new StringBuilder();
-
-            builder.append(CXStringUtils.strAdjustLeft(description.getName(),
-                    40, '.'));
-            CXStringUtils.appendFormatStrInBuff(builder, "%3d >> %1d ",
-                    description.getBundleId(), description.getState());
-            builder.append(strState);
-            builder.append("\n");
-
-            componentsLines.add(builder.toString());
+            wComponentsLines.add(buildComponentRowData(arch));
         }
 
-        Collections.sort(componentsLines);
-
-        final StringBuilder builder = new StringBuilder();
-        for (String line : componentsLines) {
-            builder.append(line);
-        }
-
-        return builder.toString();
+        return wComponentsLines;
     }
 
     /**
@@ -374,9 +373,15 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
      */
     private void updateComponentsDescription() {
 
-        final String wComponents = buildComponentsDescription();
-
-        int wNbValid = CXStringUtils.countSubString(wComponents, "invalid");
+        final List<Object[]> wComponentsRows = buildComponentsDescription();
+        String wState;
+        int wNbValid = 0;
+        for (Object[] wComponentRow : wComponentsRows) {
+            wState = (String) wComponentRow[CFrameMain.COMPONENT_COLUMN_IDX_STATE];
+            if (wState != null && wState.contains("invalid")) {
+                wNbValid++;
+            }
+        }
 
         // logs in the logger of the isolate
         pIsolateLoggerSvc.logInfo(this, "updateComponentsDescription",
@@ -386,7 +391,7 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
             @Override
             public void run() {
 
-                pFrameMain.setComponentsDescription(wComponents);
+                pFrameMain.setComponentsDescription(wComponentsRows);
             }
         };
         try {
@@ -478,6 +483,6 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
 
                 updateComponentsDescription();
             }
-        }, 1, 1, TimeUnit.SECONDS);
+        }, 1, 5, TimeUnit.SECONDS);
     }
 }
