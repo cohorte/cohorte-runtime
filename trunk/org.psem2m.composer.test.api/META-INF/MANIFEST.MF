@@ -6,3 +6,4 @@ Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: isandlaTech.com
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: org.psem2m.composer.test.api
+Import-Package: org.psem2m.utilities;version="1.0.0"

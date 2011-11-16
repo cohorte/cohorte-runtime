@@ -6,7 +6,9 @@
 package org.psem2m.composer.demo.impl.getItemsStock;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -20,6 +22,8 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.composer.demo.DemoComponentsConstants;
 import org.psem2m.composer.test.api.IComponent;
+import org.psem2m.composer.test.api.IComponentContext;
+import org.psem2m.demo.data.cache.CachedObject;
 import org.psem2m.demo.data.cache.ICacheDequeueChannel;
 import org.psem2m.demo.data.cache.ICacheFactory;
 import org.psem2m.demo.data.cache.ICachedObject;
@@ -66,15 +70,17 @@ public class ComputeQueuedCarts extends CPojoBase implements IComponent {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.composer.test.api.IComponent#computeResult(java.util.Map)
+     * @see
+     * org.psem2m.composer.test.api.IComponent#computeResult(org.psem2m.composer
+     * .test.api.IComponentContext)
      */
     @SuppressWarnings("unchecked")
     @Override
-    public Map<String, Object> computeResult(final Map<String, Object> aData)
+    public IComponentContext computeResult(final IComponentContext aContext)
             throws Exception {
 
         // Call the chain...
-        final Map<String, Object> computedMap = pNext.computeResult(aData);
+        final IComponentContext computedResult = pNext.computeResult(aContext);
 
         // Open the channel
         final ICacheDequeueChannel<Serializable, Serializable> channel = pCache
@@ -104,40 +110,58 @@ public class ComputeQueuedCarts extends CPojoBase implements IComponent {
             }
         }
 
+        pLogger.logInfo(this, "...ComputeCarts...", "ResultContent=",
+                computedResult.getResults());
+
+        final List<Map<String, Object>> newResults = new ArrayList<Map<String, Object>>(
+                computedResult.getResults().size());
+
         // Remove reserved quantities from the returned stock
-        final ICachedObject<?> result = (ICachedObject<?>) computedMap
-                .get(KEY_RESULT);
+        for (final Map<String, Object> itemStockMap : computedResult
+                .getResults()) {
 
-        final Map<String, Integer> resultMap = (Map<String, Integer>) result
-                .getObject();
+            for (final String itemId : itemStockMap.keySet()) {
 
-        for (final String itemId : resultMap.keySet()) {
+                // Get the associated map (stock, quality, ...)
+                final Object mapValue = itemStockMap.get(itemId);
 
-            // Get the associated map (stock, quality, ...)
-            final Integer currentStock = resultMap.get(itemId);
+                if (mapValue instanceof ICachedObject) {
 
-            if (currentStock == null) {
-                // Invalid stock
-                continue;
-            }
+                    final ICachedObject<Integer> currentStock = (ICachedObject<Integer>) mapValue;
 
-            // Find the item ID in the cache
-            final Integer reservedQuantity = reservedQuantities.get(itemId);
-            if (reservedQuantity != null) {
-                // Valid value, reduce the current item stock
-                int newStock = currentStock.intValue()
-                        - reservedQuantity.intValue();
-                if (newStock < 0) {
-                    // Something went wrong ?
-                    newStock = 0;
+                    if (currentStock == null
+                            || currentStock.getObject() == null) {
+                        // Invalid stock
+                        continue;
+                    }
+
+                    // Find the item ID in the cache
+                    final Integer reservedQuantity = reservedQuantities
+                            .get(itemId);
+                    if (reservedQuantity != null) {
+                        // Valid value, reduce the current item stock
+                        int newStock = currentStock.getObject().intValue()
+                                - reservedQuantity.intValue();
+                        if (newStock < 0) {
+                            // Something went wrong ?
+                            newStock = 0;
+                        }
+
+                        // Prepare a new "cached" object
+                        final CachedObject<Integer> newCachedStock = new CachedObject<Integer>(
+                                newStock);
+                        newCachedStock.setCacheAge(currentStock.getCacheAge());
+
+                        itemStockMap.put(itemId, newCachedStock);
+                    }
                 }
-
-                resultMap.put(itemId, newStock);
             }
         }
 
-        computedMap.put(IComponent.KEY_RESULT, resultMap);
-        return computedMap;
+        computedResult.getResults().clear();
+        computedResult.getResults().addAll(newResults);
+
+        return computedResult;
     }
 
     /*

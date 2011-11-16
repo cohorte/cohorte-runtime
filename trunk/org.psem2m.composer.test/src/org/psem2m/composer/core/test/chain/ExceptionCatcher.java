@@ -5,8 +5,6 @@
  */
 package org.psem2m.composer.core.test.chain;
 
-import java.util.Map;
-
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Property;
@@ -15,9 +13,9 @@ import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.composer.test.api.IComponent;
+import org.psem2m.composer.test.api.IComponentContext;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
-import org.psem2m.utilities.CXException;
 
 /**
  * A standard component that catches exceptions and stores them in the "error"
@@ -52,23 +50,25 @@ public class ExceptionCatcher extends CPojoBase implements IComponent {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.composer.test.api.IComponent#computeResult(java.util.Map)
+     * @see
+     * org.psem2m.composer.test.api.IComponent#computeResult(org.psem2m.composer
+     * .test.api.IComponentContext)
      */
     @Override
-    public Map<String, Object> computeResult(final Map<String, Object> aData)
+    public IComponentContext computeResult(final IComponentContext aContext)
             throws Exception {
 
         try {
             // Try to do the job
-            return pNext.computeResult(aData);
+            return pNext.computeResult(aContext);
 
         } catch (final Throwable th) {
 
             // Store the String
-            aData.put(KEY_ERROR, CXException.eInString(th));
+            aContext.addError(pName, "Exception caught", th);
         }
 
-        return aData;
+        return aContext;
     }
 
     /*

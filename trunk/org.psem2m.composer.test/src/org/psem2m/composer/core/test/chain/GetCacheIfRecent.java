@@ -5,9 +5,12 @@
  */
 package org.psem2m.composer.core.test.chain;
 
-import java.io.FileNotFoundException;
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
@@ -17,8 +20,9 @@ import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.composer.test.api.IComponent;
+import org.psem2m.composer.test.api.IComponentContext;
 import org.psem2m.demo.data.cache.CachedObject;
-import org.psem2m.demo.data.cache.ICacheDequeueChannel;
+import org.psem2m.demo.data.cache.ICacheChannel;
 import org.psem2m.demo.data.cache.ICacheFactory;
 import org.psem2m.demo.data.cache.ICachedObject;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
@@ -39,15 +43,15 @@ public class GetCacheIfRecent extends CPojoBase implements IComponent {
     private ICacheFactory pChannelFactory;
 
     /** The interrogated channel name */
-    @Property(name = "channelName")
+    @Property(name = "cacheChannel")
     private String pChannelName;
 
     /** The type of channel */
-    @Property(name = "channelType")
+    @Property(name = "cacheChannelType")
     private String pChannelType;
 
-    /** The cached entry to retrieve */
-    @Property(name = "channelEntryName")
+    /** The key in the request map that indicated the cache entry to retrieve */
+    @Property(name = "requestKeyName")
     private String pEntryName;
 
     /** The logger */
@@ -74,61 +78,108 @@ public class GetCacheIfRecent extends CPojoBase implements IComponent {
         super();
     }
 
+    /**
+     * Tests if the given object has an acceptable age to be returned
+     * immediately
+     * 
+     * @param aCachedObject
+     *            The cached object to test
+     * @return True if the object can be returned immediately
+     */
+    protected boolean acceptableAge(final ICachedObject<?> aCachedObject) {
+
+        return !(aCachedObject == null || (System.currentTimeMillis() - aCachedObject
+                .getCacheAge()) > pMaxAge);
+    }
+
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.composer.test.api.IComponent#computeResult(java.util.Map)
+     * @see
+     * org.psem2m.composer.test.api.IComponent#computeResult(org.psem2m.composer
+     * .test.api.IComponentContext)
      */
+    @SuppressWarnings("unchecked")
     @Override
-    public Map<String, Object> computeResult(final Map<String, Object> aData)
+    public IComponentContext computeResult(final IComponentContext aContext)
             throws Exception {
 
-        // Prepare the result map reference
-        Map<String, Object> result = aData;
+        /* Try with the cache... */
+        final Object cacheResult = tryUsingCache(aContext.getRequest());
+        if (cacheResult != null) {
+            // Cache result has been found
+            aContext.getResults().clear();
 
-        // The cached object, if any
-        ICachedObject<Serializable> storedObject = null;
+            if (cacheResult instanceof Map) {
+                aContext.getResults().add((Map<String, Object>) cacheResult);
 
-        try {
-            // Get the cached object
-            storedObject = getCachedObject();
-
-        } catch (final FileNotFoundException ex) {
-            // Channel not found, indicate an error
-            pLogger.logWarn(this, "computeResult", pName, ex.getMessage());
-        }
-
-        if (storedObject == null
-                || (System.currentTimeMillis() - storedObject.getCacheAge()) > pMaxAge) {
-            // Not stored or too old data, call the next component
-            result = pNext.computeResult(aData);
-
-            final Serializable resultObject = (Serializable) result
-                    .get(KEY_RESULT);
-
-            if (!(result instanceof ICachedObject)) {
-                // Create a cached object
-                result.put(KEY_RESULT, new CachedObject<Serializable>(
-                        resultObject));
+            } else {
+                aContext.addError(pName, "Don't known how to handle "
+                        + cacheResult);
             }
 
-        } else {
-            // Return the cached data
-            result.put(KEY_RESULT, storedObject);
+            return aContext;
+        }
+
+        /* Call to the next component is needed */
+        pLogger.logInfo(this, "get-cache-if-recent",
+                "Cache too old, calling ERP");
+
+        // Not stored or too old data, call the next component
+        final IComponentContext result = pNext.computeResult(aContext);
+
+        final List<Map<String, Object>> resultsList = result.getResults();
+
+        for (final Map<String, Object> resultMap : resultsList) {
+            // For each map in result
+
+            for (final Entry<String, Object> entry : resultMap.entrySet()) {
+
+                final Object resultObject = entry.getValue();
+                if (resultObject instanceof Serializable
+                        && !(resultObject instanceof ICachedObject)) {
+
+                    // Create a cached object, if needed
+                    resultMap.put(entry.getKey(),
+                            new CachedObject<Serializable>(
+                                    (Serializable) resultObject));
+                }
+            }
         }
 
         return result;
     }
 
     /**
-     * Tries to get the stored data according to component properties
+     * Retrieves the cache key to use
      * 
-     * @return The stored data, can be null
-     * @throws FileNotFoundException
-     *             The channel to read doesn't exist
+     * @param aRequest
+     *            The request associated to the treatment
+     * @return The cache key to use, can be null
      */
-    protected ICachedObject<Serializable> getCachedObject()
-            throws FileNotFoundException {
+    @SuppressWarnings("unchecked")
+    protected Object getCacheKey(final Object aRequest) {
+
+        if (aRequest == null) {
+            // No information in the request, maybe we must retrieve a constant
+            return pEntryName;
+
+        } else if (pEntryName == null || !(aRequest instanceof Map)) {
+            // The request is not a Map, or no map entry is given : use the
+            // complete request as a key
+            return aRequest;
+        }
+
+        // We have a map and a entry name
+        return ((Map<Object, Object>) aRequest).get(pEntryName);
+    }
+
+    /**
+     * Retrieves the channel described by {@link #pChannelName}
+     * 
+     * @return The cache channel to use, null if not yet opened
+     */
+    protected ICacheChannel<Serializable, Serializable> getChannel() {
 
         // Detect the channel type
         final boolean isMapChannel = pChannelType == null
@@ -137,25 +188,16 @@ public class GetCacheIfRecent extends CPojoBase implements IComponent {
 
         if (isMapChannel && pChannelFactory.isChannelOpened(pChannelName)) {
             // Standard mapped channel
-            return pChannelFactory.openChannel(pChannelName).get(pEntryName);
-
-        } else if (!isMapChannel
-                && pChannelFactory.isDequeueChannelOpened(pChannelName)) {
-            // The channel is queued one
-            final ICacheDequeueChannel<Serializable, Serializable> channel = pChannelFactory
-                    .openDequeueChannel(pChannelName);
-
-            if (pEntryName == null) {
-                // Get the first data (don't remove it)
-                return channel.getFirst();
-
-            } else {
-                // Get the named data
-                return channel.get(pEntryName);
-            }
+            return pChannelFactory.openChannel(pChannelName);
         }
 
-        throw new FileNotFoundException("Cache not found : " + pChannelName);
+        if (!isMapChannel
+                && pChannelFactory.isDequeueChannelOpened(pChannelName)) {
+            // The channel is queued one
+            return pChannelFactory.openDequeueChannel(pChannelName);
+        }
+
+        return null;
     }
 
     /*
@@ -169,6 +211,100 @@ public class GetCacheIfRecent extends CPojoBase implements IComponent {
 
         pLogger.logInfo(this, "invalidatePojo", "Component '" + pName
                 + "' Gone");
+    }
+
+    /**
+     * Tries to find a valid value in the cache
+     * 
+     * @param aRequestData
+     *            The treatment request data
+     * @return The cached object, null if it's too old or not found
+     */
+    protected Object tryUsingCache(final Object aRequestData) {
+
+        // Get the channel
+        final ICacheChannel<Serializable, Serializable> channel = getChannel();
+        if (channel == null) {
+            // Channel not found...
+            pLogger.logWarn(this, "tryUsingCache", pName,
+                    ": Channel not found ", pChannelName);
+            return null;
+        }
+
+        // Get the cached item key
+        final Object cachedObjectKey = getCacheKey(aRequestData);
+
+        // Get the cached item(s)
+        if (cachedObjectKey instanceof Iterable
+                || (cachedObjectKey != null && cachedObjectKey.getClass()
+                        .isArray())) {
+
+            final Iterable<?> iterable;
+            if (cachedObjectKey instanceof Iterable) {
+                // The key can directly be iterated
+                iterable = (Iterable<?>) cachedObjectKey;
+
+            } else {
+                // The key is an array
+                iterable = Arrays.asList((Object[]) cachedObjectKey);
+            }
+
+            // Special case : the found key is an array or a list of keys
+            final Map<Object, Object> resultMap = new HashMap<Object, Object>();
+
+            // Flag to call the next element if needed
+            boolean mustCallNext = false;
+
+            // Loop on each keys
+            for (final Object key : iterable) {
+
+                if (key instanceof Serializable) {
+
+                    final ICachedObject<?> cachedObject = channel
+                            .get((Serializable) key);
+                    if (acceptableAge(cachedObject)) {
+                        // Acceptable data found...
+                        resultMap.put(key, cachedObject);
+
+                    } else {
+                        // Too old data found, call the next component
+
+                        pLogger.logInfo(this, "....getIfRecent...",
+                                "Too old key=", key, ", object=", cachedObject);
+
+                        mustCallNext = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!mustCallNext) {
+                // Valid cached object
+                return resultMap;
+            }
+
+        } else if (cachedObjectKey instanceof Serializable) {
+            // Use the found key, directly
+            final ICachedObject<?> cachedObject = channel
+                    .get((Serializable) cachedObjectKey);
+
+            if (acceptableAge(cachedObject)) {
+                // Valid cached object
+                return cachedObject;
+
+            } else {
+                pLogger.logInfo(this, "....getIfRecent...", "Too old key=",
+                        cachedObjectKey, ", object=", cachedObject);
+            }
+
+        } else {
+
+            pLogger.logInfo(this, "....getIfRecent...", "Unhandled type :",
+                    cachedObjectKey != null ? cachedObjectKey.getClass()
+                            : "<null>");
+        }
+
+        return null;
     }
 
     /*

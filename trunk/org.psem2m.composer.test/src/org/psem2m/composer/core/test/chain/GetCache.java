@@ -5,8 +5,9 @@
  */
 package org.psem2m.composer.core.test.chain;
 
-import java.io.FileNotFoundException;
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.felix.ipojo.annotations.Component;
@@ -17,9 +18,9 @@ import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.composer.test.api.IComponent;
-import org.psem2m.demo.data.cache.ICacheDequeueChannel;
+import org.psem2m.composer.test.api.IComponentContext;
+import org.psem2m.demo.data.cache.ICacheChannel;
 import org.psem2m.demo.data.cache.ICacheFactory;
-import org.psem2m.demo.data.cache.ICachedObject;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
 
@@ -38,15 +39,15 @@ public class GetCache extends CPojoBase implements IComponent {
     private ICacheFactory pChannelFactory;
 
     /** The interrogated channel name */
-    @Property(name = "channelName")
+    @Property(name = "cacheChannel")
     private String pChannelName;
 
     /** The type of channel */
-    @Property(name = "channelType")
+    @Property(name = "cacheChannelType")
     private String pChannelType;
 
-    /** The cached entry to retrieve */
-    @Property(name = "channelEntryName")
+    /** The key in the request map that indicated the cache entry to retrieve */
+    @Property(name = "requestKeyName")
     private String pEntryName;
 
     /** The logger */
@@ -70,31 +71,99 @@ public class GetCache extends CPojoBase implements IComponent {
      * 
      * @see org.psem2m.composer.test.api.IComponent#computeResult(java.util.Map)
      */
+    @SuppressWarnings("unchecked")
     @Override
-    public Map<String, Object> computeResult(final Map<String, Object> aData)
+    public IComponentContext computeResult(final IComponentContext aContext)
             throws Exception {
 
-        try {
-            // Set the result
-            aData.put(KEY_RESULT, getCachedObject());
-
-        } catch (final FileNotFoundException ex) {
-            // Channel not found, indicate an error
-            aData.put(KEY_ERROR, pName + " : " + ex.getMessage());
+        // Get the channel
+        final ICacheChannel<Serializable, Serializable> channel = getChannel();
+        if (channel == null) {
+            // Channel not found...
+            aContext.addError(pName, "Channel not found : " + pChannelName);
+            return aContext;
         }
 
-        return aData;
+        // Get the key of the object to retrieve from the cache
+        Object cachedObjectKey = getCacheKey(aContext.getRequest());
+
+        if (cachedObjectKey != null && cachedObjectKey.getClass().isArray()) {
+            // Convert arrays in lists, to pass the "instanceof" test
+            cachedObjectKey = Arrays.asList((Object[]) cachedObjectKey);
+        }
+
+        // Get the data
+        if (cachedObjectKey instanceof Iterable) {
+            // Special case : the found key is an array or a list of keys
+            final Map<String, Object> resultMap = new HashMap<String, Object>();
+
+            // Loop on each keys
+            for (final Object key : (Iterable<?>) cachedObjectKey) {
+
+                if (key instanceof Serializable) {
+                    resultMap
+                            .put((String) key, channel.get((Serializable) key));
+                }
+            }
+
+            // Set the result
+            aContext.setResult(resultMap);
+
+        } else if (cachedObjectKey instanceof Serializable) {
+            // Use the found key, directly
+            aContext.getResults().clear();
+
+            final Object cachedObject = channel
+                    .get((Serializable) cachedObjectKey);
+            if (cachedObject instanceof Map) {
+                aContext.getResults().add((Map<String, Object>) cachedObject);
+
+            } else {
+                aContext.addError(pName,
+                        "Don't know how to handle cached object '"
+                                + cachedObject + "' at key '" + cachedObjectKey
+                                + "'");
+            }
+
+        } else {
+            // Unresolved case
+            aContext.getResults().clear();
+            aContext.addError(pName, "No valid cache key found");
+        }
+
+        return aContext;
     }
 
     /**
-     * Tries to get the stored data according to component properties
+     * Retrieves the cache key to use
      * 
-     * @return The stored data, can be null
-     * @throws FileNotFoundException
-     *             The channel to read doesn't exist
+     * @param aRequest
+     *            The request associated to the treatment
+     * @return The cache key to use, can be null
      */
-    protected ICachedObject<Serializable> getCachedObject()
-            throws FileNotFoundException {
+    @SuppressWarnings("unchecked")
+    protected Object getCacheKey(final Object aRequest) {
+
+        if (aRequest == null) {
+            // No information in the request, maybe we must retrieve a constant
+            return pEntryName;
+
+        } else if (pEntryName == null || !(aRequest instanceof Map)) {
+            // The request is not a Map, or no map entry is given : use the
+            // complete request as a key
+            return aRequest;
+        }
+
+        // We have a map and a entry name
+        return ((Map<Object, Object>) aRequest).get(pEntryName);
+    }
+
+    /**
+     * Retrieves the channel described by {@link #pChannelName}
+     * 
+     * @return The cache channel to use, null if not yet opened
+     */
+    protected ICacheChannel<Serializable, Serializable> getChannel() {
 
         // Detect the channel type
         final boolean isMapChannel = pChannelType == null
@@ -103,25 +172,16 @@ public class GetCache extends CPojoBase implements IComponent {
 
         if (isMapChannel && pChannelFactory.isChannelOpened(pChannelName)) {
             // Standard mapped channel
-            return pChannelFactory.openChannel(pChannelName).get(pEntryName);
-
-        } else if (!isMapChannel
-                && pChannelFactory.isDequeueChannelOpened(pChannelName)) {
-            // The channel is queued one
-            final ICacheDequeueChannel<Serializable, Serializable> channel = pChannelFactory
-                    .openDequeueChannel(pChannelName);
-
-            if (pEntryName == null) {
-                // Get the first data (don't remove it)
-                return channel.getFirst();
-
-            } else {
-                // Get the named data
-                return channel.get(pEntryName);
-            }
+            return pChannelFactory.openChannel(pChannelName);
         }
 
-        throw new FileNotFoundException("Cache not found : " + pChannelName);
+        if (!isMapChannel
+                && pChannelFactory.isDequeueChannelOpened(pChannelName)) {
+            // The channel is queued one
+            return pChannelFactory.openDequeueChannel(pChannelName);
+        }
+
+        return null;
     }
 
     /*

@@ -7,6 +7,7 @@ package org.psem2m.composer.demo.impl.getItem;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
@@ -17,7 +18,9 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.composer.demo.DemoComponentsConstants;
 import org.psem2m.composer.test.api.IComponent;
+import org.psem2m.composer.test.api.IComponentContext;
 import org.psem2m.demo.data.cache.ICachedObject;
+import org.psem2m.demo.erp.api.beans.QualityUtilities;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
 
@@ -30,62 +33,91 @@ import org.psem2m.isolates.base.activators.CPojoBase;
 @Provides(specifications = IComponent.class)
 public class NormalizerGetItem extends CPojoBase implements IComponent {
 
-    /** The instance name */
-    @Property(name = DemoComponentsConstants.PROPERTY_INSTANCE_NAME)
-    private String pInstanceName;
+    /** Result keys translation map */
+    private final Map<String, String> pKeyTranslationMap = new HashMap<String, String>();
 
     /** The logger */
     @Requires
     private IIsolateLoggerSvc pLogger;
 
+    /** The instance name */
+    @Property(name = DemoComponentsConstants.PROPERTY_INSTANCE_NAME)
+    private String pName;
+
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.composer.test.api.IComponent#computeResult(java.util.Map)
+     * @see
+     * org.psem2m.composer.test.api.IComponent#computeResult(org.psem2m.composer
+     * .test.api.IComponentContext)
      */
-    @SuppressWarnings("unchecked")
     @Override
-    public Map<String, Object> computeResult(final Map<String, Object> aData)
+    public IComponentContext computeResult(final IComponentContext aContext)
             throws Exception {
 
-        final Object result = aData.get(KEY_RESULT);
-        final Object error = aData.get(KEY_ERROR);
-
-        if (error != null) {
-
+        if (aContext.hasError()) {
             // Prepare a new map, with both result and error
             final Map<String, Object> resultMap = new HashMap<String, Object>();
-            resultMap.put(KEY_ERROR, error);
-            resultMap.put(KEY_RESULT, result);
+            resultMap.put(KEY_ERROR, aContext.getErrors().toArray());
+            resultMap.put(KEY_RESULT, aContext.getResults().toArray());
 
-            return resultMap;
+            aContext.setResult(resultMap);
+            return aContext;
         }
 
-        // Result is a CachedObject bean, transform it into a map
-        if (result instanceof ICachedObject) {
-
-            final ICachedObject<?> cachedObject = (ICachedObject<?>) result;
-            final Map<String, Object> newResult = new HashMap<String, Object>();
-
-            if (cachedObject.getObject() instanceof Map) {
-                newResult
-                        .putAll((Map<? extends String, ? extends Object>) cachedObject
-                                .getObject());
-            } else {
-                newResult.put("content", cachedObject.getObject());
-            }
-
-            newResult.put("cacheAge", cachedObject.getCacheAge());
-            return newResult;
+        if (!aContext.hasResult()) {
+            // No error and no result...
+            aContext.addError(pName, "No result found...");
+            return aContext;
         }
+
+        final Map<String, Object> result = aContext.getResults().get(0);
 
         // Result is a map, return it
-        if (result instanceof Map) {
-            return (Map<String, Object>) result;
+        final Map<String, Object> itemMap = new HashMap<String, Object>();
+        long minAge = Integer.MAX_VALUE;
+
+        for (final Entry<String, Object> entry : result.entrySet()) {
+
+            final String key = entry.getKey();
+            final Object entryValue = entry.getValue();
+            final Object storedObject;
+
+            if (entryValue instanceof ICachedObject) {
+
+                final ICachedObject<?> cachedObject = (ICachedObject<?>) entryValue;
+
+                // Compute minimum age
+                if (minAge > cachedObject.getCacheAge()) {
+                    minAge = cachedObject.getCacheAge();
+                }
+
+                storedObject = cachedObject.getObject();
+
+            } else {
+                // Raw storage...
+                storedObject = entryValue;
+            }
+
+            // Translate the key, if needed
+            final String translatedKey = pKeyTranslationMap.get(key);
+            if (translatedKey == null) {
+                // No translation for this key
+                itemMap.put(key, storedObject);
+
+            } else if (!translatedKey.isEmpty()) {
+                // Not empty new key name : store it with a new name
+                itemMap.put(translatedKey, storedObject);
+            }
+            // Empty translation = ignore the key
         }
 
-        // Unknown result type, return the whole data
-        return aData;
+        // Get the worst quality level of the overall values
+        itemMap.put("qualityLevel",
+                QualityUtilities.computeCacheQuality(minAge));
+
+        aContext.setResult(itemMap);
+        return aContext;
     }
 
     /*
@@ -97,8 +129,9 @@ public class NormalizerGetItem extends CPojoBase implements IComponent {
     @Invalidate
     public void invalidatePojo() throws BundleException {
 
-        pLogger.logInfo(this, "invalidatePojo", "Component", pInstanceName,
-                "Gone");
+        pKeyTranslationMap.clear();
+
+        pLogger.logInfo(this, "invalidatePojo", "Component", pName, "Gone");
     }
 
     /*
@@ -110,7 +143,10 @@ public class NormalizerGetItem extends CPojoBase implements IComponent {
     @Validate
     public void validatePojo() throws BundleException {
 
-        pLogger.logInfo(this, "validatePojo", "Component", pInstanceName,
-                "Ready");
+        // Keys translation ERP -> WebStore
+        pKeyTranslationMap.put("lib", "name");
+        pKeyTranslationMap.put("text", "description");
+
+        pLogger.logInfo(this, "validatePojo", "Component", pName, "Ready");
     }
 }

@@ -5,8 +5,6 @@
  */
 package org.psem2m.composer.demo.impl.applyCart;
 
-import java.util.Map;
-
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Property;
@@ -16,6 +14,7 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.composer.demo.DemoComponentsConstants;
 import org.psem2m.composer.test.api.IComponent;
+import org.psem2m.composer.test.api.IComponentContext;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
 
@@ -50,10 +49,10 @@ public class EndpointApplyCart extends CPojoBase implements IComponent {
      * @see org.psem2m.composer.test.api.IComponent#computeResult(java.util.Map)
      */
     @Override
-    public Map<String, Object> computeResult(final Map<String, Object> aData)
+    public IComponentContext computeResult(final IComponentContext aContext)
             throws Exception {
 
-        return pNormalizer.computeResult(pNext.computeResult(aData));
+        return pNormalizer.computeResult(pNext.computeResult(aContext));
     }
 
     /*

@@ -5,8 +5,6 @@
  */
 package org.psem2m.composer.test.api;
 
-import java.util.Map;
-
 /**
  * Represents a member of a treatment chain
  * 
@@ -49,15 +47,15 @@ public interface IComponent {
     String PROPERTY_INSTANCE_NAME = "instance.name";
 
     /**
-     * The component does its job and updates the data map, according to
-     * standard keys.
+     * The component does its job and returns a new context or a modified one.
+     * Implementations must never return null.
      * 
-     * @param aData
+     * @param aContext
      *            The transferred data. The value should be serializable.
      * @return The treated data map (must never be null)
      * @throws Exception
      *             Something wrong occurred during the treatment
      */
-    Map<String, Object> computeResult(Map<String, Object> aData)
+    IComponentContext computeResult(IComponentContext aContext)
             throws Exception;
 }

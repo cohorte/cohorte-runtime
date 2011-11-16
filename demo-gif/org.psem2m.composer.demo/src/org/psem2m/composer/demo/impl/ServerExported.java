@@ -17,6 +17,7 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.composer.demo.DemoComponentsConstants;
 import org.psem2m.composer.demo.IErpData;
+import org.psem2m.composer.test.api.ComponentContextBean;
 import org.psem2m.composer.test.api.IComponent;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
@@ -46,13 +47,13 @@ public class ServerExported extends CPojoBase implements IErpData {
     @Requires(id = "getItemsStock")
     private IComponent pChainGetItemsStock;
 
-    /** The instance name */
-    @Property(name = DemoComponentsConstants.PROPERTY_INSTANCE_NAME)
-    private String pInstanceName;
-
     /** The logger */
     @Requires
     private IIsolateLoggerSvc pLogger;
+
+    /** The instance name */
+    @Property(name = DemoComponentsConstants.PROPERTY_INSTANCE_NAME)
+    private String pName;
 
     /*
      * (non-Javadoc)
@@ -63,11 +64,11 @@ public class ServerExported extends CPojoBase implements IErpData {
     public Map<String, Object> applyCart(final Map<String, Object> aCart) {
 
         try {
-            // Prepare the treatment map
-            final Map<String, Object> treatmentMap = new HashMap<String, Object>();
-            treatmentMap.put(IComponent.KEY_REQUEST, aCart);
+            // Prepare the component context
+            final ComponentContextBean context = new ComponentContextBean();
+            context.setRequest(aCart);
 
-            return pChainApplyCart.computeResult(treatmentMap);
+            return pChainApplyCart.computeResult(context).getResults().get(0);
 
         } catch (final Exception ex) {
 
@@ -88,21 +89,25 @@ public class ServerExported extends CPojoBase implements IErpData {
     @Override
     public Map<String, Object> getItem(final String aItemId) {
 
+        ComponentContextBean context = null;
         try {
             // Prepare the treatment map
-            final Map<String, Object> treatmentMap = new HashMap<String, Object>();
             final Map<String, Object> requestMap = new HashMap<String, Object>();
             requestMap.put("itemId", aItemId);
 
-            treatmentMap.put(IComponent.KEY_REQUEST, requestMap);
+            // Prepare the component context
+            context = new ComponentContextBean();
+            context.setRequest(requestMap);
 
-            return pChainGetItem.computeResult(treatmentMap);
+            return pChainGetItem.computeResult(context).getResults().get(0);
 
         } catch (final Exception ex) {
 
             // Log the error
             pLogger.logSevere(this, "getItem",
                     "Error treating an getItem request.", ex);
+
+            pLogger.logSevere(this, "getItem-Errors", context.getErrors());
 
             // Return an error map
             return makeErrorMap(ex);
@@ -122,17 +127,17 @@ public class ServerExported extends CPojoBase implements IErpData {
 
         try {
             // Prepare the treatment map
-            final Map<String, Object> treatmentMap = new HashMap<String, Object>();
-
             final Map<String, Object> requestMap = new HashMap<String, Object>();
             requestMap.put("category", aCategory);
             requestMap.put("itemsCount", aItemsCount);
             requestMap.put("randomize", aRandomize);
             requestMap.put("baseId", aBaseId);
 
-            treatmentMap.put(IComponent.KEY_REQUEST, requestMap);
+            // Prepare the component context
+            final ComponentContextBean context = new ComponentContextBean();
+            context.setRequest(requestMap);
 
-            return pChainGetItems.computeResult(treatmentMap);
+            return pChainGetItems.computeResult(context).getResults().get(0);
 
         } catch (final Exception ex) {
 
@@ -155,14 +160,15 @@ public class ServerExported extends CPojoBase implements IErpData {
 
         try {
             // Prepare the treatment map
-            final Map<String, Object> treatmentMap = new HashMap<String, Object>();
-
             final Map<String, Object> requestMap = new HashMap<String, Object>();
             requestMap.put("itemIds", aItemIds);
 
-            treatmentMap.put(IComponent.KEY_REQUEST, requestMap);
+            // Prepare the component context
+            final ComponentContextBean context = new ComponentContextBean();
+            context.setRequest(requestMap);
 
-            return pChainGetItemsStock.computeResult(treatmentMap);
+            return pChainGetItemsStock.computeResult(context).getResults()
+                    .get(0);
 
         } catch (final Exception ex) {
 
@@ -184,8 +190,7 @@ public class ServerExported extends CPojoBase implements IErpData {
     @Invalidate
     public void invalidatePojo() throws BundleException {
 
-        pLogger.logInfo(this, "invalidatePojo", "Component", pInstanceName,
-                "Gone");
+        pLogger.logInfo(this, "invalidatePojo", "Component", pName, "Gone");
     }
 
     /**
@@ -218,7 +223,6 @@ public class ServerExported extends CPojoBase implements IErpData {
     @Validate
     public void validatePojo() throws BundleException {
 
-        pLogger.logInfo(this, "validatePojo", "Component", pInstanceName,
-                "Ready");
+        pLogger.logInfo(this, "validatePojo", "Component", pName, "Ready");
     }
 }

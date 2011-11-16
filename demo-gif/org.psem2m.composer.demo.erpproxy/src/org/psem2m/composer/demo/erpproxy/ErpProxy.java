@@ -20,8 +20,10 @@ import org.jabsorb.client.HTTPSession;
 import org.jabsorb.client.Session;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.psem2m.composer.demo.DemoComponentsConstants;
 import org.psem2m.composer.demo.IErpData;
 import org.psem2m.composer.test.api.IComponent;
+import org.psem2m.composer.test.api.IComponentContext;
 import org.psem2m.isolates.base.BundlesClassLoader;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
@@ -57,6 +59,10 @@ public class ErpProxy extends CPojoBase implements IComponent {
     @Requires
     private IIsolateLoggerSvc pLogger;
 
+    /** The instance name */
+    @Property(name = DemoComponentsConstants.PROPERTY_INSTANCE_NAME)
+    private String pName;
+
     /** The ERP proxy */
     private IErpData pProxy;
 
@@ -75,34 +81,36 @@ public class ErpProxy extends CPojoBase implements IComponent {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.composer.test.api.IComponent#computeResult(java.util.Map)
+     * @see
+     * org.psem2m.composer.test.api.IComponent#computeResult(org.psem2m.composer
+     * .test.api.IComponentContext)
      */
     @Override
-    public Map<String, Object> computeResult(final Map<String, Object> aData)
+    public IComponentContext computeResult(final IComponentContext aContext)
             throws Exception {
 
         // The ERP method to call
-        final String method = (String) aData.get("erp-method");
+        final String method = (String) aContext.getMetadata().get("erp-method");
         if (method == null || method.isEmpty()) {
-            aData.put(KEY_ERROR, "No ERP method specified.");
-            return aData;
+            aContext.addError(pName, "No ERP method specified.");
+            return aContext;
         }
 
         // Call the corresponding method
         if (method.equals("getItem")) {
-            getItem(aData);
+            getItem(aContext);
 
         } else if (method.equals("getItems")) {
-            getItems(aData);
+            getItems(aContext);
 
         } else if (method.equals("getItemsStock")) {
-            getItemsStock(aData);
+            getItemsStock(aContext);
 
         } else {
-            aData.put(KEY_ERROR, "Method '" + method + "' not implemented");
+            aContext.addError(pName, "Method '" + method + "' not implemented");
         }
 
-        return aData;
+        return aContext;
     }
 
     /**
@@ -111,19 +119,16 @@ public class ErpProxy extends CPojoBase implements IComponent {
      * @param aData
      *            The chain component parameter
      */
-    @SuppressWarnings("unchecked")
-    protected void getItem(final Map<String, Object> aData) {
+    protected void getItem(final IComponentContext aContext) {
 
-        // Get the request map
-        final Map<String, Object> requestMap = (Map<String, Object>) aData
-                .get(KEY_REQUEST);
-        final String itemId = (String) requestMap.get("itemId");
+        // Get the itemId
+        final String itemId = (String) aContext.getRequest().get("itemId");
 
         // Call the ERP
         final Map<String, Object> result = pProxy.getItem(itemId);
 
         // Store the result
-        aData.put(KEY_RESULT, result);
+        aContext.setResult(result);
     }
 
     /**
@@ -132,12 +137,10 @@ public class ErpProxy extends CPojoBase implements IComponent {
      * @param aData
      *            The chain component parameter
      */
-    @SuppressWarnings("unchecked")
-    protected void getItems(final Map<String, Object> aData) {
+    protected void getItems(final IComponentContext aContext) {
 
         // Get the request map
-        final Map<String, Object> requestMap = (Map<String, Object>) aData
-                .get(KEY_REQUEST);
+        final Map<String, Object> requestMap = aContext.getRequest();
 
         // Get the parameters
         final String category = (String) requestMap.get("category");
@@ -161,7 +164,7 @@ public class ErpProxy extends CPojoBase implements IComponent {
                 itemsCount, randomize, baseId);
 
         // Store the result
-        aData.put(KEY_RESULT, result);
+        aContext.setResult(result);
     }
 
     /**
@@ -170,19 +173,17 @@ public class ErpProxy extends CPojoBase implements IComponent {
      * @param aData
      *            The chain component parameter
      */
-    @SuppressWarnings("unchecked")
-    protected void getItemsStock(final Map<String, Object> aData) {
+    protected void getItemsStock(final IComponentContext aContext) {
 
         // Get the request map
-        final Map<String, Object> requestMap = (Map<String, Object>) aData
-                .get(KEY_REQUEST);
+        final Map<String, Object> requestMap = aContext.getRequest();
         final String[] itemIds = (String[]) requestMap.get("itemIds");
 
         // Call the ERP
         final Map<String, Object> result = pProxy.getItemsStock(itemIds);
 
         // Store the result
-        aData.put(KEY_RESULT, result);
+        aContext.setResult(result);
     }
 
     /*

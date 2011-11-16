@@ -18,6 +18,7 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.composer.demo.DemoComponentsConstants;
 import org.psem2m.composer.test.api.IComponent;
+import org.psem2m.composer.test.api.IComponentContext;
 import org.psem2m.demo.data.cache.ICacheDequeueChannel;
 import org.psem2m.demo.data.cache.ICacheFactory;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
@@ -40,30 +41,30 @@ public class StoreInCacheQueue extends CPojoBase implements IComponent {
     @Property(name = "cacheChannel")
     private String pCacheChannelName;
 
-    /** The instance name */
-    @Property(name = DemoComponentsConstants.PROPERTY_INSTANCE_NAME)
-    private String pInstanceName;
-
     /** The logger */
     @Requires
     private IIsolateLoggerSvc pLogger;
 
+    /** The instance name */
+    @Property(name = DemoComponentsConstants.PROPERTY_INSTANCE_NAME)
+    private String pName;
+
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.composer.test.api.IComponent#computeResult(java.util.Map)
+     * @see
+     * org.psem2m.composer.test.api.IComponent#computeResult(org.psem2m.composer
+     * .test.api.IComponentContext)
      */
-    @SuppressWarnings("unchecked")
     @Override
-    public Map<String, Object> computeResult(final Map<String, Object> aData)
+    public IComponentContext computeResult(final IComponentContext aContext)
             throws Exception {
 
-        final Map<String, Object> cartMap = (Map<String, Object>) aData
-                .get(KEY_REQUEST);
+        final Map<String, Object> cartMap = aContext.getRequest();
 
         if (cartMap == null) {
-            aData.put(KEY_ERROR, "Null cart");
-            return aData;
+            aContext.addError(pName, "Null cart");
+            return aContext;
         }
 
         final ICacheDequeueChannel<?, Serializable> channel = pCache
@@ -73,8 +74,10 @@ public class StoreInCacheQueue extends CPojoBase implements IComponent {
 
         // TODO: wait until we get a response
         final Map<String, Object> resultMap = new HashMap<String, Object>();
-        resultMap.put(IComponent.KEY_RESULT, "Cart in queue...");
-        return resultMap;
+        resultMap.put(KEY_RESULT, "Cart in queue...");
+        aContext.setResult(resultMap);
+
+        return aContext;
     }
 
     /*
@@ -86,8 +89,7 @@ public class StoreInCacheQueue extends CPojoBase implements IComponent {
     @Invalidate
     public void invalidatePojo() throws BundleException {
 
-        pLogger.logInfo(this, "invalidatePojo", "Component", pInstanceName,
-                "Gone");
+        pLogger.logInfo(this, "invalidatePojo", "Component", pName, "Gone");
     }
 
     /*
@@ -99,7 +101,6 @@ public class StoreInCacheQueue extends CPojoBase implements IComponent {
     @Validate
     public void validatePojo() throws BundleException {
 
-        pLogger.logInfo(this, "validatePojo", "Component", pInstanceName,
-                "Ready");
+        pLogger.logInfo(this, "validatePojo", "Component", pName, "Ready");
     }
 }

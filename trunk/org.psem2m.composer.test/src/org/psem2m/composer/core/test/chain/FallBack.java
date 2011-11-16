@@ -5,8 +5,6 @@
  */
 package org.psem2m.composer.core.test.chain;
 
-import java.util.Map;
-
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Property;
@@ -15,6 +13,7 @@ import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.composer.test.api.IComponent;
+import org.psem2m.composer.test.api.IComponentContext;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
 
@@ -58,11 +57,11 @@ public class FallBack extends CPojoBase implements IComponent {
      * @see org.psem2m.composer.test.api.IComponent#computeResult(java.util.Map)
      */
     @Override
-    public Map<String, Object> computeResult(final Map<String, Object> aData)
+    public IComponentContext computeResult(final IComponentContext aContext)
             throws Exception {
 
-        // Prepare the result map reference
-        Map<String, Object> result = aData;
+        // Prepare the result context reference
+        IComponentContext result = aContext;
 
         // Flag to use fall back component
         boolean useFallback = true;
@@ -73,17 +72,11 @@ public class FallBack extends CPojoBase implements IComponent {
                     "First choice seems present");
 
             try {
-                result = pNext.computeResult(aData);
+                result = pNext.computeResult(aContext);
 
                 // Use fall back component if there is no result
                 // and if an error occurred
-                useFallback = (result.get(KEY_RESULT) == null)
-                        && (result.get(KEY_ERROR) != null);
-
-                pLogger.logInfo(this, "fallback.computeResult",
-                        "Post Compute result =", useFallback, "- result =",
-                        result.get(KEY_RESULT), "- error =",
-                        result.get(KEY_ERROR));
+                useFallback = !result.hasResult() && result.hasError();
 
             } catch (final Throwable error) {
                 // An error occurred
@@ -94,7 +87,7 @@ public class FallBack extends CPojoBase implements IComponent {
 
         if (useFallback) {
             // Something went wrong, call the other guy
-            pFallback.computeResult(aData);
+            pFallback.computeResult(aContext);
         }
 
         return result;

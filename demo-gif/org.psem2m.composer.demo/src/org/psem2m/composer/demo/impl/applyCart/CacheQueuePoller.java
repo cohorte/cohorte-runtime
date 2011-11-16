@@ -6,7 +6,6 @@
 package org.psem2m.composer.demo.impl.applyCart;
 
 import java.io.Serializable;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.felix.ipojo.annotations.Component;
@@ -17,6 +16,7 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.composer.demo.DemoComponentsConstants;
 import org.psem2m.composer.test.api.IComponent;
+import org.psem2m.composer.test.api.IComponentContext;
 import org.psem2m.demo.data.cache.ICacheDequeueChannel;
 import org.psem2m.demo.data.cache.ICacheFactory;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
@@ -89,8 +89,7 @@ public class CacheQueuePoller extends CPojoBase implements Runnable {
         try {
             while (pRunning) {
 
-                @SuppressWarnings("unchecked")
-                final Map<String, Object> content = (Map<String, Object>) channel
+                final IComponentContext content = (IComponentContext) channel
                         .poll(500, TimeUnit.MILLISECONDS);
 
                 if (content != null) {
