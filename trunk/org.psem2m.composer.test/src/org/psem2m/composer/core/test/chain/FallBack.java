@@ -87,7 +87,7 @@ public class FallBack extends CPojoBase implements IComponent {
 
         if (useFallback) {
             // Something went wrong, call the other guy
-            pFallback.computeResult(aContext);
+            result = pFallback.computeResult(aContext);
         }
 
         return result;
