@@ -15,6 +15,34 @@ import java.util.Map;
 public interface IComponentContext {
 
     /**
+     * RAW identifier : contains the RAW data sent by the caller
+     **/
+    String META_REQUEST_RAW = "META_REQUEST_RAW";
+
+    /**
+     * RAW identifier : contains the RAW data returned by the server
+     **/
+    String META_RESPONSE_RAW = "META_RESPONSE_RAW";
+
+    /**
+     * CRITERIAS identifier : allows the key builder to retrieve the map which
+     * contains the criteria values in the Request map
+     */
+    String REQUEST_CRITERIA = "REQUEST_CRITERIA";
+
+    /**
+     * KEY identifier : allows the key builder to retrieve the map which
+     * contains key parts in the Request map
+     **/
+    String REQUEST_KEY = "REQUEST_KEY";
+
+    /**
+     * KEYS identifier : allows the key builder to retrieve the list which
+     * contains key map in the Request map
+     **/
+    String REQUEST_KEYS = "REQUEST_KEYS";
+
+    /**
      * Add an error to the context
      * 
      * @param aComponentName

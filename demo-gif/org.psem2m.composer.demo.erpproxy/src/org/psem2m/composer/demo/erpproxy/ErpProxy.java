@@ -7,6 +7,8 @@ package org.psem2m.composer.demo.erpproxy;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.felix.ipojo.annotations.Component;
@@ -140,13 +142,15 @@ public class ErpProxy extends CPojoBase implements IComponent {
     protected void getItems(final IComponentContext aContext) {
 
         // Get the request map
-        final Map<String, Object> requestMap = aContext.getRequest();
+        @SuppressWarnings("unchecked")
+        final Map<String, Object> wCriteriaMap = (Map<String, Object>) aContext
+                .getRequest().get(IComponentContext.REQUEST_CRITERIA);
 
         // Get the parameters
-        final String category = (String) requestMap.get("category");
-        final Integer itemsCountObj = (Integer) requestMap.get("itemsCount");
-        final Boolean randomizeObj = (Boolean) requestMap.get("randomize");
-        final String baseId = (String) requestMap.get("baseId");
+        final String category = (String) wCriteriaMap.get("category");
+        final Integer itemsCountObj = (Integer) wCriteriaMap.get("itemsCount");
+        final Boolean randomizeObj = (Boolean) wCriteriaMap.get("randomize");
+        final String baseId = (String) wCriteriaMap.get("baseId");
 
         // Convert objects to primitives, taking care of null values
         int itemsCount = 0;
@@ -176,8 +180,16 @@ public class ErpProxy extends CPojoBase implements IComponent {
     protected void getItemsStock(final IComponentContext aContext) {
 
         // Get the request map
-        final Map<String, Object> requestMap = aContext.getRequest();
-        final String[] itemIds = (String[]) requestMap.get("itemIds");
+        @SuppressWarnings("unchecked")
+        final List<Map<String, Object>> wKeyList = (List<Map<String, Object>>) aContext
+                .getRequest().get(IComponentContext.REQUEST_KEYS);
+
+        List<String> wItemIds = new ArrayList<String>();
+        for (Map<String, Object> wKeyMap : wKeyList) {
+            wItemIds.add((String) wKeyMap.get("itemId"));
+        }
+
+        final String[] itemIds = wItemIds.toArray(new String[0]);
 
         // Call the ERP
         final Map<String, Object> result = pProxy.getItemsStock(itemIds);

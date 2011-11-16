@@ -5,7 +5,9 @@
  */
 package org.psem2m.composer.demo.impl;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.felix.ipojo.annotations.Component;
@@ -19,6 +21,7 @@ import org.psem2m.composer.demo.DemoComponentsConstants;
 import org.psem2m.composer.demo.IErpData;
 import org.psem2m.composer.test.api.ComponentContextBean;
 import org.psem2m.composer.test.api.IComponent;
+import org.psem2m.composer.test.api.IComponentContext;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
 
@@ -91,9 +94,14 @@ public class ServerExported extends CPojoBase implements IErpData {
 
         ComponentContextBean context = null;
         try {
+
+            // Prepare the key map
+            final Map<String, Object> wKeyMap = new HashMap<String, Object>();
+            wKeyMap.put("itemId", aItemId);
+
             // Prepare the treatment map
             final Map<String, Object> requestMap = new HashMap<String, Object>();
-            requestMap.put("itemId", aItemId);
+            requestMap.put(IComponentContext.REQUEST_KEY, wKeyMap);
 
             // Prepare the component context
             context = new ComponentContextBean();
@@ -126,12 +134,16 @@ public class ServerExported extends CPojoBase implements IErpData {
             final String aBaseId) {
 
         try {
+            // Prepare the criteria map
+            final Map<String, Object> wCriteriaMap = new HashMap<String, Object>();
+            wCriteriaMap.put("category", aCategory);
+            wCriteriaMap.put("itemsCount", aItemsCount);
+            wCriteriaMap.put("randomize", aRandomize);
+            wCriteriaMap.put("baseId", aBaseId);
+
             // Prepare the treatment map
             final Map<String, Object> requestMap = new HashMap<String, Object>();
-            requestMap.put("category", aCategory);
-            requestMap.put("itemsCount", aItemsCount);
-            requestMap.put("randomize", aRandomize);
-            requestMap.put("baseId", aBaseId);
+            requestMap.put(IComponentContext.REQUEST_CRITERIA, wCriteriaMap);
 
             // Prepare the component context
             final ComponentContextBean context = new ComponentContextBean();
@@ -159,9 +171,20 @@ public class ServerExported extends CPojoBase implements IErpData {
     public Map<String, Object> getItemsStock(final String[] aItemIds) {
 
         try {
+            // Prepare the key list of key maps
+            final List<Map<String, Object>> wKeyList = new ArrayList<Map<String, Object>>();
+
+            // Prepare the key maps
+            Map<String, Object> wKeyMap;
+            for (String wItemId : aItemIds) {
+                wKeyMap = new HashMap<String, Object>();
+                wKeyMap.put("itemId", wItemId);
+                wKeyList.add(wKeyMap);
+            }
+
             // Prepare the treatment map
             final Map<String, Object> requestMap = new HashMap<String, Object>();
-            requestMap.put("itemIds", aItemIds);
+            requestMap.put(IComponentContext.REQUEST_KEYS, wKeyList);
 
             // Prepare the component context
             final ComponentContextBean context = new ComponentContextBean();
