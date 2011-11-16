@@ -6,9 +6,7 @@
 package org.psem2m.composer.demo.impl.getItemsStock;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -79,44 +77,13 @@ public class ComputeQueuedCarts extends CPojoBase implements IComponent {
     public IComponentContext computeResult(final IComponentContext aContext)
             throws Exception {
 
-        // Call the chain...
+        /* Call the chain... */
         final IComponentContext computedResult = pNext.computeResult(aContext);
 
-        // Open the channel
-        final ICacheDequeueChannel<Serializable, Serializable> channel = pCache
-                .openDequeueChannel(pCartChannelName);
+        /* Reserved quantities map */
+        final Map<String, Integer> reservedQuantities = getReservedQuantities();
 
-        // Get a copy of the queue
-        final BlockingDeque<ICachedObject<Serializable>> queueCopy = new LinkedBlockingDeque<ICachedObject<Serializable>>(
-                channel);
-
-        // Reserved quantities map
-        final Map<String, Integer> reservedQuantities = new HashMap<String, Integer>();
-
-        // Get reserved quantities
-        for (final ICachedObject<Serializable> cachedObject : queueCopy) {
-
-            final Map<String, Object> cartMap = (Map<String, Object>) cachedObject
-                    .getObject();
-
-            for (final Map<String, Object> cartLine : ((Map<String, Object>[]) cartMap
-                    .get("lines"))) {
-
-                final String itemId = (String) cartLine.get(pCartItemIdKey);
-                final Integer itemQuantity = (Integer) cartLine
-                        .get(pCartItemQuantitydKey);
-
-                reservedQuantities.put(itemId, itemQuantity);
-            }
-        }
-
-        pLogger.logInfo(this, "...ComputeCarts...", "ResultContent=",
-                computedResult.getResults());
-
-        final List<Map<String, Object>> newResults = new ArrayList<Map<String, Object>>(
-                computedResult.getResults().size());
-
-        // Remove reserved quantities from the returned stock
+        /* Remove reserved quantities from the returned stock */
         for (final Map<String, Object> itemStockMap : computedResult
                 .getResults()) {
 
@@ -158,10 +125,50 @@ public class ComputeQueuedCarts extends CPojoBase implements IComponent {
             }
         }
 
-        computedResult.getResults().clear();
-        computedResult.getResults().addAll(newResults);
-
+        /*
+         * Modifications are made "in-place", so there is no need to create a
+         * temporary list
+         */
         return computedResult;
+    }
+
+    /**
+     * Computes the reserved quantity of each item referenced in carts
+     * 
+     * @return A itemID -&gt; reserved quantity map
+     */
+    @SuppressWarnings("unchecked")
+    protected Map<String, Integer> getReservedQuantities() {
+
+        // Open the carts channel
+        final ICacheDequeueChannel<Serializable, Serializable> channel = pCache
+                .openDequeueChannel(pCartChannelName);
+
+        // Get a copy of the queue
+        final BlockingDeque<ICachedObject<Serializable>> queueCopy = new LinkedBlockingDeque<ICachedObject<Serializable>>(
+                channel);
+
+        // Reserved quantities map
+        final Map<String, Integer> reservedQuantities = new HashMap<String, Integer>();
+
+        // Get reserved quantities
+        for (final ICachedObject<Serializable> cachedObject : queueCopy) {
+
+            final Map<String, Object> cartMap = (Map<String, Object>) cachedObject
+                    .getObject();
+
+            for (final Map<String, Object> cartLine : ((Map<String, Object>[]) cartMap
+                    .get("lines"))) {
+
+                final String itemId = (String) cartLine.get(pCartItemIdKey);
+                final Integer itemQuantity = (Integer) cartLine
+                        .get(pCartItemQuantitydKey);
+
+                reservedQuantities.put(itemId, itemQuantity);
+            }
+        }
+
+        return reservedQuantities;
     }
 
     /*

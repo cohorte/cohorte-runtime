@@ -78,8 +78,6 @@ public class NormalizerGetItemsStock extends CPojoBase implements IComponent {
         final Map<String, Object> result = aContext.getResults().get(0);
         final List<Map<String, Object>> resultList = new ArrayList<Map<String, Object>>();
 
-        pLogger.logInfo(this, "...Normalizer GetStocks...", result);
-
         for (final Entry<String, Object> entry : result.entrySet()) {
 
             final Object entryValue = entry.getValue();

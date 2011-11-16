@@ -292,7 +292,7 @@
                             "type":"store-cache",
                             "isolate":"isolate-cache",
                             "properties":{
-                                "cacheChannel":"cache-getItemsStock",
+                                "cacheChannel":"cache-getItemsStock"
                             },
                             "wires":{
                                 "next":"safeErpCaller"

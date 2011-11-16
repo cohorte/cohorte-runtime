@@ -123,8 +123,13 @@ public class ErpProxy extends CPojoBase implements IComponent {
      */
     protected void getItem(final IComponentContext aContext) {
 
+        // Get the key map
+        @SuppressWarnings("unchecked")
+        final Map<String, Object> keyMap = (Map<String, Object>) aContext
+                .getRequest().get(IComponentContext.REQUEST_KEY);
+
         // Get the itemId
-        final String itemId = (String) aContext.getRequest().get("itemId");
+        final String itemId = (String) keyMap.get("itemId");
 
         // Call the ERP
         final Map<String, Object> result = pProxy.getItem(itemId);
@@ -184,8 +189,8 @@ public class ErpProxy extends CPojoBase implements IComponent {
         final List<Map<String, Object>> wKeyList = (List<Map<String, Object>>) aContext
                 .getRequest().get(IComponentContext.REQUEST_KEYS);
 
-        List<String> wItemIds = new ArrayList<String>();
-        for (Map<String, Object> wKeyMap : wKeyList) {
+        final List<String> wItemIds = new ArrayList<String>();
+        for (final Map<String, Object> wKeyMap : wKeyList) {
             wItemIds.add((String) wKeyMap.get("itemId"));
         }
 
