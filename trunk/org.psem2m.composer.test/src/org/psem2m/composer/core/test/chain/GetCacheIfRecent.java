@@ -232,22 +232,14 @@ public class GetCacheIfRecent extends CPojoBase implements IComponent {
         }
 
         // Get the cached item key
-        final Object cachedObjectKey = getCacheKey(aRequestData);
+        Object cachedObjectKey = getCacheKey(aRequestData);
+
+        if (cachedObjectKey != null && cachedObjectKey.getClass().isArray()) {
+            cachedObjectKey = Arrays.asList((Object[]) cachedObjectKey);
+        }
 
         // Get the cached item(s)
-        if (cachedObjectKey instanceof Iterable
-                || (cachedObjectKey != null && cachedObjectKey.getClass()
-                        .isArray())) {
-
-            final Iterable<?> iterable;
-            if (cachedObjectKey instanceof Iterable) {
-                // The key can directly be iterated
-                iterable = (Iterable<?>) cachedObjectKey;
-
-            } else {
-                // The key is an array
-                iterable = Arrays.asList((Object[]) cachedObjectKey);
-            }
+        if (cachedObjectKey instanceof Iterable) {
 
             // Special case : the found key is an array or a list of keys
             final Map<Object, Object> resultMap = new HashMap<Object, Object>();
@@ -256,7 +248,7 @@ public class GetCacheIfRecent extends CPojoBase implements IComponent {
             boolean mustCallNext = false;
 
             // Loop on each keys
-            for (final Object key : iterable) {
+            for (final Object key : (Iterable<?>) cachedObjectKey) {
 
                 if (key instanceof Serializable) {
 
