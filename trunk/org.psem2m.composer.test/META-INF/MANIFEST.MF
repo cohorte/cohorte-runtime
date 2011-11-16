@@ -138,5 +138,6 @@ iPOJO-Components: component { $classname="org.psem2m.composer.core.tes
  ="org.psem2m.demo.data.cache.ICacheChannel" }method { $name="getObjec
  tToStore" $return="java.lang.Object" $arguments="{org.psem2m.composer
  .test.api.IComponentContext}" }method { $name="invalidatePojo" }metho
- d { $name="validatePojo" }}}
+ d { $name="storeMap" $arguments="{org.psem2m.demo.data.cache.ICacheCh
+ annel,java.util.Map}" }method { $name="validatePojo" }}}
 

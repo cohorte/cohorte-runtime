@@ -96,13 +96,13 @@ public class StoreCache extends CPojoBase implements IComponent {
 
         /* Get the data to be stored */
         final Object foundObject = getObjectToStore(result);
-        final Serializable objectToStore;
+        if (foundObject == null) {
+            // No object to store...
+            result.addError(pName,
+                    "Object to store in cache not found or null.");
+            return result;
 
-        if (foundObject == null || foundObject instanceof Serializable) {
-            // The found value can be stored...
-            objectToStore = (Serializable) foundObject;
-
-        } else {
+        } else if (!(foundObject instanceof Serializable)) {
             // Can't store it...
             result.addError(pName, "The found value is not Serializable : "
                     + foundObject);
@@ -110,25 +110,29 @@ public class StoreCache extends CPojoBase implements IComponent {
         }
 
         /* Store the data */
+        final Serializable objectToStore = (Serializable) foundObject;
+
         if (objectToStore instanceof Map) {
             // Special case : the object to be stored is a map
-            final Map<String, Object> storedMap = (Map<String, Object>) objectToStore;
-            final Object storeKey = storedMap.get(pEntryName);
-
-            if (storeKey == null) {
-                // No entry name, store the map as is
-                for (final Entry<String, Object> entry : storedMap.entrySet()) {
-
-                    channel.put(entry.getKey(), (Serializable) entry.getValue());
-                }
-
-            } else {
-                // We have a key to store the result
-                channel.put((Serializable) storeKey, objectToStore);
-            }
+            final Map<String, Object> mapToStore = (Map<String, Object>) objectToStore;
 
             // Store the result map
-            result.setResult(storedMap);
+            storeMap(channel, mapToStore);
+            result.setResult(mapToStore);
+
+        } else if (objectToStore instanceof Iterable) {
+            // Special case : the object is a list
+            result.getResults().clear();
+
+            for (final Object subObjectToStore : (Iterable<?>) objectToStore) {
+
+                if (subObjectToStore instanceof Map) {
+                    // Store sub maps
+                    final Map<String, Object> mapToStore = (Map<String, Object>) subObjectToStore;
+                    storeMap(channel, mapToStore);
+                    result.addResult(mapToStore);
+                }
+            }
 
         } else {
             // Don't know what to do...
@@ -177,6 +181,11 @@ public class StoreCache extends CPojoBase implements IComponent {
      */
     protected Object getObjectToStore(final IComponentContext aContext) {
 
+        if (!aContext.hasResult()) {
+            // No result : nothing to store
+            return null;
+        }
+
         // Data result value
         final Map<String, Object> dataResult = aContext.getResults().get(0);
 
@@ -205,6 +214,39 @@ public class StoreCache extends CPojoBase implements IComponent {
 
         pLogger.logInfo(this, "invalidatePojo", "Component '" + pName
                 + "' Gone");
+    }
+
+    /**
+     * Stores the given map into the cache
+     * 
+     * @param aChannel
+     *            The cache channel to use
+     * @param aMapToStore
+     *            The map to be stored
+     */
+    protected void storeMap(
+            final ICacheChannel<Serializable, Serializable> aChannel,
+            final Map<String, Object> aMapToStore) {
+
+        // Get the store key, if any
+        final Object storeKey = aMapToStore.get(pEntryName);
+
+        if (storeKey == null) {
+
+            if (pEntryName != null) {
+                pLogger.logWarn(this, "storeMap", "Warning :", pEntryName,
+                        "not found in ", aMapToStore);
+            }
+
+            // No entry name, store the map as is
+            for (final Entry<String, Object> entry : aMapToStore.entrySet()) {
+                aChannel.put(entry.getKey(), (Serializable) entry.getValue());
+            }
+
+        } else {
+            // We have a key to store the whole map
+            aChannel.put((Serializable) storeKey, (Serializable) aMapToStore);
+        }
     }
 
     /*
