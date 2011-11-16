@@ -1,5 +1,6 @@
 package org.psem2m.utilities;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -10,7 +11,36 @@ import java.util.Date;
 public class CXDateTime {
 
     public final static String DATE_SEP = "/";
+    private final static String PATTERN_TIMESTAMP = "DDD-hh:mm:ss.SSS";
+    private final static SimpleDateFormat sTimeStampFormater = new SimpleDateFormat(
+            PATTERN_TIMESTAMP);
     public final static String TIME_SEP = ":";
+
+    /**
+     * @return a formated time stamp in a string "DDD-hh:mm:ss.SSS"
+     */
+    public static String getFormatedTimeStamp() {
+
+        return getFormatedTimeStamp(new Date());
+    }
+
+    /**
+     * @param aDate
+     * @return a formated time stamp in a string "DDD-hh:mm:ss.SSS"
+     */
+    public static String getFormatedTimeStamp(Date aDate) {
+
+        return sTimeStampFormater.format(aDate);
+    }
+
+    /**
+     * @param aTime
+     * @return a formated time stamp in a string "DDD-hh:mm:ss.SSS"
+     */
+    public static String getFormatedTimeStamp(long aTime) {
+
+        return getFormatedTimeStamp(new Date(aTime));
+    }
 
     /**
      * @param aTime
@@ -101,11 +131,12 @@ public class CXDateTime {
      */
     public static String time2StrAAAAMMJJHHMMSS(long aTime, String aSep) {
 
-        if (aSep != null)
+        if (aSep != null) {
             return time2StrAAAAMMJJ(aTime, aSep) + aSep
                     + time2StrHHMMSS(aTime, aSep);
-        else
+        } else {
             return time2StrAAAAMMJJ(aTime, aSep) + time2StrHHMMSS(aTime, aSep);
+        }
     }
 
     /**
@@ -195,10 +226,11 @@ public class CXDateTime {
         String wDay = CXStringUtils.strAdjustRight(
                 wRightNow.get(Calendar.DAY_OF_MONTH), 2);
         String wSep = aSep == null ? "" : aSep;
-        if (aUs)
+        if (aUs) {
             return wYear + wSep + wMonth + wSep + wDay;
-        else
+        } else {
             return wDay + wSep + wMonth + wSep + wYear;
+        }
     }
 
     /**
@@ -216,16 +248,19 @@ public class CXDateTime {
             wRightNow.setTime(new Date(aTime));
             wResult.append(CXStringUtils.strAdjustRight(
                     wRightNow.get(Calendar.HOUR_OF_DAY), 2));
-            if (aSep != null)
+            if (aSep != null) {
                 wResult.append(aSep);
+            }
             wResult.append(CXStringUtils.strAdjustRight(
                     wRightNow.get(Calendar.MINUTE), 2));
-            if (aSep != null)
+            if (aSep != null) {
                 wResult.append(aSep);
+            }
             wResult.append(CXStringUtils.strAdjustRight(
                     wRightNow.get(Calendar.SECOND), 2));
-            if (aSep != null)
+            if (aSep != null) {
                 wResult.append(aSep);
+            }
             wResult.append(CXStringUtils.strAdjustRight(
                     wRightNow.get(Calendar.MILLISECOND), 3));
         }
