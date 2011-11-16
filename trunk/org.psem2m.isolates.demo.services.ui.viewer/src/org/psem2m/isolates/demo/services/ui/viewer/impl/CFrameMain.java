@@ -204,23 +204,25 @@ public class CFrameMain extends javax.swing.JFrame {
 
     private final static boolean COMPACTION = true;
 
-    private final static String FILTER_All = "all services";
+    private final static String EMPTY = "";
 
+    private final static String FILTER_All = "all services";
     private final static int FILTER_All_KIND = 2;
     private final static String FILTER_PSEM2M = "psem2m services";
     private final static int FILTER_PSEM2M_KIND = 1;
     private final static String FILTER_REMOTE = "remote services";
+
     private final static int FILTER_REMOTE_KIND = 0;
-
     private final static String FONT_NAME_TABLE = "Lucida Grande";
-    private final static String FONT_NAME_TEXTAREA = "Courier New";
 
+    private final static String FONT_NAME_TEXTAREA = "Courier New";
     private final static String FONT_SIZE_LARGE = "large";
     private final static int FONT_SIZE_LARGE_PT = 16;
     private final static String FONT_SIZE_NORMAL = "normal";
     private final static int FONT_SIZE_NORMAL_PT = 12;
     private final static String FONT_SIZE_SMALL = "small";
     private final static int FONT_SIZE_SMALL_PT = 10;
+
     /** the format of the title of the main Frame **/
     private final static String FRAME_TITLE_FORMAT = "psem2m - viewer - isolate [%s]";
 
@@ -244,12 +246,13 @@ public class CFrameMain extends javax.swing.JFrame {
         });
     }
 
-    private int COLUMN_IDX_BUNDLE_ID = 3;
-    private int COLUMN_IDX_NAME = 0;
-    private int COLUMN_IDX_REMOTE_INFO = 1;
-    private int COLUMN_IDX_SERVICE_ID = 2;
-    private JLabel lblNewLabel;
+    private int COLUMN_IDX_BUNDLE_ID = 4;
+    private int COLUMN_IDX_INTERFACE = 0;
+    private int COLUMN_IDX_NAME = 1;
+    private int COLUMN_IDX_REMOTE_INFO = 2;
+    private int COLUMN_IDX_SERVICE_ID = 3;
 
+    private JLabel lblNewLabel;
     private JLabel lblNewLabel_1;
     private JPanel panel;
     private JScrollPane pComponentsScrollPane;
@@ -268,6 +271,7 @@ public class CFrameMain extends javax.swing.JFrame {
     private JScrollPane pServicesScrollPane;
     private JSplitPane pServicesSplitPane;
     private JTable pServicesTable;
+
     private DefaultTableModel pServicesTableModel;
 
     private JScrollPane scrollPane;
@@ -313,8 +317,9 @@ public class CFrameMain extends javax.swing.JFrame {
      */
     private Object[] buildRowData(final ServiceReference aServiceReference) {
 
-        Object[] wRowData = new Object[4];
-        wRowData[COLUMN_IDX_NAME] = extractServiceNameCleanedCompacted(aServiceReference);
+        Object[] wRowData = new Object[5];
+        wRowData[COLUMN_IDX_INTERFACE] = extractServiceInterfaceCleanedCompacted(aServiceReference);
+        wRowData[COLUMN_IDX_NAME] = extractServiceNameCleaned(aServiceReference);
         wRowData[COLUMN_IDX_REMOTE_INFO] = extractRemoteInfo(aServiceReference);
         wRowData[COLUMN_IDX_SERVICE_ID] = extractServiceId(aServiceReference);
         wRowData[COLUMN_IDX_BUNDLE_ID] = aServiceReference.getBundle()
@@ -338,7 +343,7 @@ public class CFrameMain extends javax.swing.JFrame {
                     .getInstance().getServiceReference(wServiceId);
 
             CXStringUtils.appendKeyValInBuff(wSB, "  NAME",
-                    extractServiceNameCleaned(wServiceReference));
+                    extractServiceInterfaceCleaned(wServiceReference));
             CXStringUtils.appendKeyValInBuff(wSB, "\n SVCID",
                     extractServiceId(wServiceReference));
             CXStringUtils.appendKeyValInBuff(wSB, "\nBNDLID", wServiceReference
@@ -420,7 +425,7 @@ public class CFrameMain extends javax.swing.JFrame {
      * @param aServiceReference
      * @return a cleaned service name
      */
-    private String extractServiceNameCleaned(
+    private String extractServiceInterfaceCleaned(
             final ServiceReference aServiceReference) {
 
         return removeChars("[]", aServiceReference.toString());
@@ -430,10 +435,10 @@ public class CFrameMain extends javax.swing.JFrame {
      * @param aServiceReference
      * @return
      */
-    private String extractServiceNameCleanedCompacted(
+    private String extractServiceInterfaceCleanedCompacted(
             final ServiceReference aServiceReference) {
 
-        String wName = extractServiceNameCleaned(aServiceReference);
+        String wName = extractServiceInterfaceCleaned(aServiceReference);
         if (pServiceNameCompaction) {
             StringBuilder wSB = new StringBuilder();
             int wI = 0;
@@ -453,12 +458,34 @@ public class CFrameMain extends javax.swing.JFrame {
     }
 
     /**
+     * 
+     * 
+     * @param aServiceReference
+     * @return the component instance name whithour the first part which is
+     *         always the name of the composition
+     */
+    private String extractServiceNameCleaned(
+            final ServiceReference aServiceReference) {
+
+        String wName = EMPTY;
+        Object wProperty = aServiceReference.getProperty("instance.name");
+        if (wProperty != null && wProperty instanceof String) {
+            wName = (String) wProperty;
+            int wPos = wName.indexOf('.');
+            if (wPos > -1 && wPos + 1 < wName.length() - 1) {
+                wName = wName.substring(wPos + 1);
+            }
+        }
+        return wName;
+    }
+
+    /**
      * @param aServiceReference
      * @return
      */
     private int findServiceRow(final ServiceReference aServiceReference) {
 
-        String wServiceName = extractServiceNameCleanedCompacted(aServiceReference);
+        String wServiceName = extractServiceInterfaceCleanedCompacted(aServiceReference);
         for (int wI = 0; wI < pServicesTableModel.getRowCount(); wI++) {
             if (wServiceName.equals(pServicesTableModel.getValueAt(wI,
                     COLUMN_IDX_NAME))) {
@@ -524,10 +551,10 @@ public class CFrameMain extends javax.swing.JFrame {
 
                                 pServicesTable.setModel(new DefaultTableModel(
                                         new Object[][] {}, new String[] {
-                                                "Name", "i/e", "Service",
-                                                "Bundle" }) {
+                                                "Interface", "Name", "i/e",
+                                                "Service", "Bundle" }) {
                                     boolean[] columnEditables = new boolean[] {
-                                            false, false, false, false };
+                                            false, false, false, false, false };
 
                                     @Override
                                     public boolean isCellEditable(
@@ -536,13 +563,20 @@ public class CFrameMain extends javax.swing.JFrame {
                                         return columnEditables[column];
                                     }
                                 });
-                                pServicesTable.getColumnModel().getColumn(0)
-                                        .setPreferredWidth(300);
-                                pServicesTable.getColumnModel().getColumn(1)
+                                pServicesTable.getColumnModel()
+                                        .getColumn(COLUMN_IDX_INTERFACE)
+                                        .setPreferredWidth(150);
+                                pServicesTable.getColumnModel()
+                                        .getColumn(COLUMN_IDX_NAME)
+                                        .setPreferredWidth(200);
+                                pServicesTable.getColumnModel()
+                                        .getColumn(COLUMN_IDX_REMOTE_INFO)
                                         .setPreferredWidth(10);
-                                pServicesTable.getColumnModel().getColumn(2)
+                                pServicesTable.getColumnModel()
+                                        .getColumn(COLUMN_IDX_SERVICE_ID)
                                         .setPreferredWidth(30);
-                                pServicesTable.getColumnModel().getColumn(3)
+                                pServicesTable.getColumnModel()
+                                        .getColumn(COLUMN_IDX_BUNDLE_ID)
                                         .setPreferredWidth(30);
                             }
                             pServicesTableModel = (DefaultTableModel) pServicesTable
