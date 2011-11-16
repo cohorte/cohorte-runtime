@@ -16,6 +16,7 @@
  *******************************************************************************/
 package org.psem2m.composer.demo;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -76,5 +77,5 @@ public interface IErpData {
      *            Some items IDs
      * @return The corresponding stock entries, or an empty array.
      */
-    Map<String, Object> getItemsStock(String[] aItemIds);
+    List<Map<String, Object>> getItemsStock(String[] aItemIds);
 }
