@@ -10,7 +10,7 @@
         {
             "id":"isolate-1",
             "kind":"felix",
-            "httpPort":9002,
+            "httpPort":9210,
             "vmArgs":[
                 
             ],
@@ -54,6 +54,9 @@
                     "symbolicName":"org.psem2m.demo.data.cache.api"
                 },
                 {
+                    "symbolicName":"org.psem2m.demo.erp.api"
+                },
+                {
                     "symbolicName":"org.psem2m.composer.api"
                 },
                 {
@@ -79,7 +82,7 @@
         {
             "id":"isolate-cache",
             "kind":"felix",
-            "httpPort":9003,
+            "httpPort":9211,
             "vmArgs":[
                 
             ],
@@ -121,6 +124,9 @@
                 },
                 {
                     "symbolicName":"org.psem2m.composer.api"
+                },
+                {
+                    "symbolicName":"org.psem2m.demo.erp.api"
                 },
                 {
                     "symbolicName":"org.psem2m.demo.data.cache.api"

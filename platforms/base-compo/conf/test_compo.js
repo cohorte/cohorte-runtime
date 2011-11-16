@@ -64,7 +64,7 @@
                             "isolate":"isolate-cache",
                             "properties":{
                                 "cacheChannel":"cache-getItem",
-                                "channelEntryName":"id"
+                                "requestKeyName":"itemId"
                             }
                         }
                     ]
@@ -78,7 +78,7 @@
                             "isolate":"isolate-cache",
                             "properties":{
                                 "cacheChannel":"cache-getItem",
-                                "channelEntryName":"id",
+                                "requestKeyName":"itemId",
                                 "maxCacheAge":1000
                             },
                             "wires":{
@@ -91,7 +91,7 @@
                             "isolate":"isolate-cache",
                             "properties":{
                                 "cacheChannel":"cache-getItem",
-                                "channelEntryName":"id"
+                                "resultKeyName":"id"
                             },
                             "wires":{
                                 "next":"safeErpCaller"
@@ -222,6 +222,7 @@
                 {
                     "name":"serverEndpoint",
                     "type":"server-endpoint-getItemsStock",
+                    "isolate":"isolate-cache",
                     "wires":{
                         "normalizer":"resultNormalizer",
                         "next":"computeQueuedCarts"
@@ -229,7 +230,8 @@
                 },
                 {
                     "name":"resultNormalizer",
-                    "type":"normalizer-getItemsStock"
+                    "type":"normalizer-getItemsStock",
+                    "isolate":"isolate-cache"
                 },
                 {
                     "name":"computeQueuedCarts",
@@ -247,6 +249,7 @@
                 {
                     "name":"fallbackOnCache",
                     "type":"fall-back",
+                    "isolate":"isolate-cache",
                     "wires":{
                         "next":"erpChain.getCacheFirst",
                         "second":"fallback.getCache"
@@ -263,7 +266,7 @@
                             "isolate":"isolate-cache",
                             "properties":{
                                 "cacheChannel":"cache-getItemsStock",
-                                "channelEntryName":"ids"
+                                "requestKeyName":"itemIds"
                             }
                         }
                     ]
@@ -277,7 +280,7 @@
                             "isolate":"isolate-cache",
                             "properties":{
                                 "cacheChannel":"cache-getItemsStock",
-                                "channelEntryName":"ids",
+                                "requestKeyName":"itemIds",
                                 "maxCacheAge":1000
                             },
                             "wires":{
@@ -290,7 +293,6 @@
                             "isolate":"isolate-cache",
                             "properties":{
                                 "cacheChannel":"cache-getItemsStock",
-                                "channelEntryName":"ids"
                             },
                             "wires":{
                                 "next":"safeErpCaller"
@@ -304,6 +306,7 @@
                         {
                             "name":"safeErpCaller",
                             "type":"exception-catcher",
+                            "isolate":"isolate-cache",
                             "wires":{
                                 "next":"erpCaller"
                             }
@@ -311,6 +314,7 @@
                         {
                             "name":"erpCaller",
                             "type":"erp-caller",
+                            "isolate":"isolate-cache",
                             "properties":{
                                 "method":"getItemsStock"
                             },
