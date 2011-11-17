@@ -150,6 +150,14 @@ public abstract class CActivatorBase extends CXObjectBase implements
         return pContext;
     }
 
+    /**
+     * @return
+     */
+    protected IIsolateLoggerSvc getIsolateLoggerSvc() {
+
+        return pIsolateLoggerSvc;
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -174,9 +182,9 @@ public abstract class CActivatorBase extends CXObjectBase implements
     /**
      * @return
      */
-    private boolean hasIsolateLoggerSvc() {
+    protected boolean hasIsolateLoggerSvc() {
 
-        return pIsolateLoggerSvc != null;
+        return getIsolateLoggerSvc() != null;
     }
 
     /*
