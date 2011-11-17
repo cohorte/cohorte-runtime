@@ -17,7 +17,10 @@
         
         <requires field="pSvcAgent" optional="false" />
         
-        <requires field="pArchitectures" optional="false" />
+        <requires field="pArchitectures" optional="false" >
+            <callback type="bind" method="architectureBind" />
+            <callback type="unbind" method="architectureUnBind" />
+        </requires>
         
         <requires field="pSvcConfig" optional="false" />
         
