@@ -6,11 +6,6 @@
 package org.psem2m.composer.core.test.chain;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
@@ -41,6 +36,9 @@ public class GetCacheIfRecent extends CPojoBase implements IComponent {
     @Property(name = "cacheAgeEntry")
     private String pCacheAgeEntry = "__cache_age";
 
+    /** Utility cache methods */
+    private CacheCommons pCacheCommons;
+
     /** The channel factory service */
     @Requires
     private ICacheFactory pChannelFactory;
@@ -53,7 +51,7 @@ public class GetCacheIfRecent extends CPojoBase implements IComponent {
     @Property(name = "cacheChannelType")
     private String pChannelType;
 
-    /** The key in the request map that indicated the cache entry to retrieve */
+    /** The key in the request map that indicates the cache entry to retrieve */
     @Property(name = "requestKeyName")
     private String pEntryName;
 
@@ -81,20 +79,6 @@ public class GetCacheIfRecent extends CPojoBase implements IComponent {
         super();
     }
 
-    /**
-     * Tests if the given object has an acceptable age to be returned
-     * immediately
-     * 
-     * @param aCachedObject
-     *            The cached object to test
-     * @return True if the object can be returned immediately
-     */
-    protected boolean acceptableAge(final ICachedObject<?> aCachedObject) {
-
-        return !(aCachedObject == null || (System.currentTimeMillis() - aCachedObject
-                .getCacheAge()) > pMaxAge);
-    }
-
     /*
      * (non-Javadoc)
      * 
@@ -110,35 +94,13 @@ public class GetCacheIfRecent extends CPojoBase implements IComponent {
         aContext.getResults().clear();
 
         /* Try with the cache... */
-        boolean useCache = true;
-        Object cacheResult = findInCache(aContext.getRequest());
+        boolean useCache = false;
 
-        if (cacheResult != null && cacheResult.getClass().isArray()) {
-            // Convert arrays into iterable
-            cacheResult = Arrays.asList((Object[]) cacheResult);
-        }
-
-        if (cacheResult instanceof ICachedObject) {
-            // A single cache result has been found
-            handleFoundCachedObject(aContext, (ICachedObject<?>) cacheResult);
-
-        } else if (cacheResult instanceof Iterable) {
-            // Multiple data found
-
-            for (final Object cacheResultElement : (Iterable<?>) cacheResult) {
-
-                if (cacheResultElement instanceof ICachedObject) {
-                    handleFoundCachedObject(aContext,
-                            (ICachedObject<?>) cacheResultElement);
-
-                } else {
-                    pLogger.logInfo(this, "computeResult",
-                            "Unknown element in cache :", cacheResultElement);
-
-                    // An error occurred, do not use the cache
-                    useCache = false;
-                }
-            }
+        // Open the channel
+        final ICacheChannel<Serializable, Serializable> channel = pCacheCommons
+                .getChannel(pChannelFactory, pChannelName, pChannelType);
+        if (channel != null) {
+            useCache = getFromCache(aContext, channel);
         }
 
         if (useCache && aContext.hasResult()) {
@@ -153,245 +115,74 @@ public class GetCacheIfRecent extends CPojoBase implements IComponent {
         // IMPORTANT: Reset the context result
         aContext.getResults().clear();
 
-        // Not stored or too old data, call the next component
-        final IComponentContext result = pNext.computeResult(aContext);
-
-        final List<Map<String, Object>> resultsList = result.getResults();
-
-        // For each map in result, add the cache age information
-        // (set to -1 for "sync")
-        for (final Map<String, Object> resultMap : resultsList) {
-            resultMap.put(pCacheAgeEntry, Long.valueOf(-1));
-        }
-
-        return result;
+        return pNext.computeResult(aContext);
     }
 
     /**
-     * Tries to find a valid value in the cache
+     * Try to get the requested data using the cache. Returns false if the cache
+     * data is missing or too old. Clear the context results if this method
+     * returns false.
      * 
-     * @param aRequestData
-     *            The treatment request data
-     * @return The cached object, an array of cached object or null if it's too
-     *         old or not found
+     * @param aContext
+     *            The current component context
+     * @param channel
+     *            The cache channel to be used
+     * @return True if all requested cache data has been added to the context
+     *         results, False if at least one data is too old or missing.
      */
-    protected Object findInCache(final Map<String, Object> aRequest) {
+    protected boolean getFromCache(final IComponentContext aContext,
+            final ICacheChannel<Serializable, Serializable> channel) {
 
-        // Get the channel
-        final ICacheChannel<Serializable, Serializable> channel = getChannel();
-        if (channel == null) {
-            // Channel not found...
-            pLogger.logWarn(this, "findInCache", pName, ": Channel not found ",
-                    pChannelName);
-            return null;
-        }
+        // Clear the existing results
+        aContext.getResults().clear();
 
-        // Looking for a single element
-        if (aRequest.containsKey(IComponentContext.REQUEST_KEY)) {
+        final Object cacheResult = pCacheCommons.findInCache(channel,
+                aContext.getRequest());
 
-            // Get the object from the cache, if possible
-            final Object fromCache = getFromCache(channel,
-                    aRequest.get(IComponentContext.REQUEST_KEY));
+        if (cacheResult instanceof ICachedObject) {
+            // A single cache result has been found
+            final ICachedObject<?> cachedObject = (ICachedObject<?>) cacheResult;
 
-            pLogger.logInfo(this, "findInCache - KEY", "fromCache=", fromCache,
-                    "; key =", aRequest.get(IComponentContext.REQUEST_KEY));
+            if (cachedObject.isAcceptable(pMaxAge)) {
+                // Recent enought to be used
+                pCacheCommons.handleFoundCachedObject(aContext, cachedObject);
 
-            return fromCache;
-
-        } else if (aRequest.containsKey(IComponentContext.REQUEST_KEYS)) {
-            // Treat each keys
-            Object keys = aRequest.get(IComponentContext.REQUEST_KEYS);
-
-            if (keys != null && keys.getClass().isArray()) {
-                // Convert arrays to list
-                keys = Arrays.asList((Object[]) keys);
+            } else {
+                // Too old data
+                return false;
             }
 
-            if (keys instanceof Iterable) {
-                // Iterable keys
-                final List<Object> resultList = new ArrayList<Object>();
+        } else if (cacheResult instanceof Iterable) {
+            // Multiple data found
 
-                for (final Object key : (Iterable<?>) keys) {
+            for (final Object cacheResultElement : (Iterable<?>) cacheResult) {
 
-                    final Object fromCache = getFromCache(channel, key);
+                if (cacheResultElement instanceof ICachedObject) {
 
-                    pLogger.logInfo(this, "findInCache - KEYS", "fromCache=",
-                            fromCache, "; key =", key);
+                    // A single cache result has been found
+                    final ICachedObject<?> cachedObject = (ICachedObject<?>) cacheResultElement;
 
-                    if (fromCache == null) {
-                        // Object missing or too old
-                        return null;
+                    if (cachedObject.isAcceptable(pMaxAge)) {
+                        // Data acceptable
+                        pCacheCommons.handleFoundCachedObject(aContext,
+                                cachedObject);
+
+                    } else {
+                        // Too old data
+                        return false;
                     }
-
-                    // Add found object to the result list
-                    resultList.add(fromCache);
-                }
-
-                if (resultList.isEmpty()) {
-                    // Refuse empty lists
-                    return null;
-                }
-
-                return resultList;
-            }
-        }
-
-        pLogger.logWarn(this, "findInCache", pName,
-                "can't handle the request with keys=", aRequest.keySet());
-        return null;
-    }
-
-    /**
-     * Retrieves the cache key to use
-     * 
-     * @param aRequest
-     *            The request associated to the treatment
-     * @return The cache key to use, can be null
-     */
-    protected Object getCacheKey(final Object aRequest) {
-
-        if (aRequest == null) {
-            // No information in the request, maybe we must retrieve a constant
-            return pEntryName;
-
-        } else if (pEntryName == null || !(aRequest instanceof Map)) {
-            // The request is not a Map, or no map entry is given : use the
-            // complete request as a key
-            return aRequest;
-        }
-
-        // We have a map and a entry name
-        return ((Map<?, ?>) aRequest).get(pEntryName);
-    }
-
-    /**
-     * Retrieves the channel described by {@link #pChannelName}
-     * 
-     * @return The cache channel to use, null if not yet opened
-     */
-    protected ICacheChannel<Serializable, Serializable> getChannel() {
-
-        // Detect the channel type
-        final boolean isMapChannel = pChannelType == null
-                || pChannelType.isEmpty()
-                || pChannelType.equalsIgnoreCase(CHANNEL_TYPE_MAP);
-
-        if (isMapChannel && pChannelFactory.isChannelOpened(pChannelName)) {
-            // Standard mapped channel
-            return pChannelFactory.openChannel(pChannelName);
-        }
-
-        if (!isMapChannel
-                && pChannelFactory.isDequeueChannelOpened(pChannelName)) {
-            // The channel is queued one
-            return pChannelFactory.openDequeueChannel(pChannelName);
-        }
-
-        return null;
-    }
-
-    /**
-     * Tries to retrieve the cached object with the given key
-     * 
-     * @param aChannel
-     *            Channel to use
-     * @param aKey
-     *            Key of the object to retrieve
-     * @return The cached object, null if it is too old or not found
-     */
-    protected Object getFromCache(
-            final ICacheChannel<Serializable, Serializable> aChannel,
-            final Object aKey) {
-
-        // Find the configured key, if possible
-        final Object cacheKey = getCacheKey(aKey);
-
-        pLogger.logInfo(this, "getFromCache", "Key=", aKey, "; cacheKey=",
-                cacheKey);
-
-        if (!(cacheKey instanceof Serializable)) {
-            // Can't use the found key
-            return null;
-        }
-
-        // Get the object
-        final ICachedObject<?> cachedObject = aChannel
-                .get((Serializable) cacheKey);
-
-        pLogger.logInfo(this, "getFromCache", "cachedObject=", cachedObject);
-
-        if (!acceptableAge(cachedObject)) {
-            // Object too old
-            return null;
-        }
-
-        // OK to use
-        return cachedObject;
-    }
-
-    protected Map<String, Object> handleCachedMap(
-            final Map<String, Object> aCachedMap, final long aCacheAge) {
-
-        // Make a copy of the map
-        final Map<String, Object> resultMap = new HashMap<String, Object>(
-                aCachedMap);
-
-        // Inject the cache age
-        resultMap.put(pCacheAgeEntry, Long.valueOf(aCacheAge));
-
-        return resultMap;
-    }
-
-    @SuppressWarnings("unchecked")
-    protected void handleFoundCachedObject(final IComponentContext aContext,
-            final ICachedObject<?> aCachedObject) {
-
-        Object cacheResultContent = aCachedObject.getObject();
-        final long cacheAge = aCachedObject.getCacheAge();
-
-        if (cacheResultContent != null
-                && cacheResultContent.getClass().isArray()) {
-            // Make arrays iterable...
-            cacheResultContent = Arrays.asList((Object[]) cacheResultContent);
-        }
-
-        if (cacheResultContent instanceof Map) {
-            // Handle a single element
-            final Map<String, Object> preparedMap = handleCachedMap(
-                    (Map<String, Object>) cacheResultContent, cacheAge);
-
-            aContext.addResult(preparedMap);
-
-        } else if (cacheResultContent instanceof Iterable) {
-            // Handle a list of elements
-
-            for (final Object cacheResultElement : (Iterable<?>) cacheResultContent) {
-
-                if (cacheResultElement instanceof Map) {
-                    // List of map
-                    final Map<String, Object> preparedMap = handleCachedMap(
-                            (Map<String, Object>) cacheResultElement, cacheAge);
-
-                    aContext.addResult(preparedMap);
 
                 } else {
                     pLogger.logInfo(this, "computeResult",
-                            "Don't know how to handle sub-result",
-                            cacheResultElement);
+                            "Unknown element in cache :", cacheResultElement);
 
-                    aContext.addError(pName,
-                            "Don't know how to handle sub-result"
-                                    + cacheResultElement);
+                    // An error occurred, do not use the cache
+                    return false;
                 }
             }
-
-        } else {
-            pLogger.logInfo(this, "computeResult",
-                    "Don't know how to handle cache result", cacheResultContent);
-
-            aContext.addError(pName, "Don't know how to handle cache result"
-                    + cacheResultContent);
         }
+
+        return true;
     }
 
     /*
@@ -402,6 +193,8 @@ public class GetCacheIfRecent extends CPojoBase implements IComponent {
     @Override
     @Invalidate
     public void invalidatePojo() throws BundleException {
+
+        pCacheCommons = null;
 
         pLogger.logInfo(this, "invalidatePojo", "Component '" + pName
                 + "' Gone");
@@ -415,6 +208,11 @@ public class GetCacheIfRecent extends CPojoBase implements IComponent {
     @Override
     @Validate
     public void validatePojo() throws BundleException {
+
+        // Set up the utility instance
+        pCacheCommons = new CacheCommons(pName);
+        pCacheCommons.setEntryName(pEntryName);
+        pCacheCommons.setMaxAgeEntry(pCacheAgeEntry);
 
         pLogger.logInfo(this, "validatePojo", "Component '" + pName + "' Ready");
     }

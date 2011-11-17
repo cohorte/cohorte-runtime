@@ -36,6 +36,9 @@ import org.psem2m.isolates.base.activators.CPojoBase;
 @Provides(specifications = IComponent.class)
 public class StoreCache extends CPojoBase implements IComponent {
 
+    /** Utility cache methods */
+    private CacheCommons pCacheCommons;
+
     /** The channel factory service */
     @Requires
     private ICacheFactory pChannelFactory;
@@ -91,7 +94,9 @@ public class StoreCache extends CPojoBase implements IComponent {
         final IComponentContext result = pNext.computeResult(aContext);
 
         // Open the store channel
-        final ICacheChannel<Serializable, Serializable> channel = getChannel();
+        final ICacheChannel<Serializable, Serializable> channel = pCacheCommons
+                .getChannel(pChannelFactory, pChannelName, pChannelType);
+
         if (channel == null) {
             result.addError(pName, "Can't open channel : " + pChannelName);
             return result;
@@ -163,35 +168,6 @@ public class StoreCache extends CPojoBase implements IComponent {
     }
 
     /**
-     * Retrieves the channel described by {@link #pChannelName}
-     * 
-     * @return The cache channel to use, null if not yet opened
-     */
-    protected ICacheChannel<Serializable, Serializable> getChannel() {
-
-        // Detect the channel type
-        final boolean isMapChannel = pChannelType == null
-                || pChannelType.isEmpty()
-                || pChannelType.equalsIgnoreCase(CHANNEL_TYPE_MAP);
-
-        try {
-            if (isMapChannel) {
-                // Standard mapped channel
-                return pChannelFactory.openChannel(pChannelName);
-            }
-
-            // The channel is queued one
-            return pChannelFactory.openDequeueChannel(pChannelName);
-
-        } catch (final Exception e) {
-            pLogger.logWarn(this, "getChannel", "Error openning channel",
-                    pChannelName, e);
-        }
-
-        return null;
-    }
-
-    /**
      * Retrieves the object to be stored in cache
      * 
      * @param aData
@@ -241,6 +217,8 @@ public class StoreCache extends CPojoBase implements IComponent {
     @Override
     @Invalidate
     public void invalidatePojo() throws BundleException {
+
+        pCacheCommons = null;
 
         pLogger.logInfo(this, "invalidatePojo", "Component '" + pName
                 + "' Gone");
@@ -294,6 +272,9 @@ public class StoreCache extends CPojoBase implements IComponent {
     @Override
     @Validate
     public void validatePojo() throws BundleException {
+
+        // Set up the utility instance
+        pCacheCommons = new CacheCommons(pName);
 
         pLogger.logInfo(this, "validatePojo", "Component '" + pName + "' Ready");
     }

@@ -6,9 +6,6 @@
 package org.psem2m.composer.core.test.chain;
 
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
@@ -21,6 +18,7 @@ import org.psem2m.composer.test.api.IComponent;
 import org.psem2m.composer.test.api.IComponentContext;
 import org.psem2m.demo.data.cache.ICacheChannel;
 import org.psem2m.demo.data.cache.ICacheFactory;
+import org.psem2m.demo.data.cache.ICachedObject;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
 
@@ -33,6 +31,9 @@ import org.psem2m.isolates.base.activators.CPojoBase;
 @Component(name = "get-cache")
 @Provides(specifications = IComponent.class)
 public class GetCache extends CPojoBase implements IComponent {
+
+    /** Utility cache methods */
+    private CacheCommons pCacheCommons;
 
     /** The channel factory service */
     @Requires
@@ -71,117 +72,104 @@ public class GetCache extends CPojoBase implements IComponent {
      * 
      * @see org.psem2m.composer.test.api.IComponent#computeResult(java.util.Map)
      */
-    @SuppressWarnings("unchecked")
     @Override
     public IComponentContext computeResult(final IComponentContext aContext)
             throws Exception {
 
         // Get the channel
-        final ICacheChannel<Serializable, Serializable> channel = getChannel();
+        final ICacheChannel<Serializable, Serializable> channel = pCacheCommons
+                .getChannel(pChannelFactory, pChannelName, pChannelType);
         if (channel == null) {
             // Channel not found...
             aContext.addError(pName, "Channel not found : " + pChannelName);
             return aContext;
         }
 
-        // Get the key of the object to retrieve from the cache
-        Object cachedObjectKey = getCacheKey(aContext.getRequest());
+        // Clear the existing results
+        aContext.getResults().clear();
 
-        if (cachedObjectKey != null && cachedObjectKey.getClass().isArray()) {
-            // Convert arrays in lists, to pass the "instanceof" test
-            cachedObjectKey = Arrays.asList((Object[]) cachedObjectKey);
-        }
+        final Object cacheResult = pCacheCommons.findInCache(channel,
+                aContext.getRequest());
 
-        // Get the data
-        if (cachedObjectKey instanceof Iterable) {
-            // Special case : the found key is an array or a list of keys
-            final Map<String, Object> resultMap = new HashMap<String, Object>();
+        if (cacheResult instanceof ICachedObject) {
+            // A single cache result has been found
+            pCacheCommons.handleFoundCachedObject(aContext,
+                    (ICachedObject<?>) cacheResult);
 
-            // Loop on each keys
-            for (final Object key : (Iterable<?>) cachedObjectKey) {
+        } else if (cacheResult instanceof Iterable) {
+            // Multiple data found
 
-                if (key instanceof Serializable) {
-                    resultMap
-                            .put((String) key, channel.get((Serializable) key));
+            for (final Object cacheResultElement : (Iterable<?>) cacheResult) {
+
+                if (cacheResultElement instanceof ICachedObject) {
+
+                    // A single cache result has been found
+                    pCacheCommons.handleFoundCachedObject(aContext,
+                            (ICachedObject<?>) cacheResultElement);
+
+                } else {
+                    pLogger.logInfo(this, "computeResult",
+                            "Unknown element in cache :", cacheResultElement);
+
+                    // An error occurred, do not use the cache
+                    aContext.getResults().clear();
+                    aContext.addError(pName, "Unknown element in cache :"
+                            + cacheResultElement);
                 }
             }
-
-            // Set the result
-            aContext.setResult(resultMap);
-
-        } else if (cachedObjectKey instanceof Serializable) {
-            // Use the found key, directly
-            aContext.getResults().clear();
-
-            final Object cachedObject = channel
-                    .get((Serializable) cachedObjectKey);
-            if (cachedObject instanceof Map) {
-                aContext.getResults().add((Map<String, Object>) cachedObject);
-
-            } else {
-                aContext.addError(pName,
-                        "Don't know how to handle cached object '"
-                                + cachedObject + "' at key '" + cachedObjectKey
-                                + "'");
-            }
-
-        } else {
-            // Unresolved case
-            aContext.getResults().clear();
-            aContext.addError(pName, "No valid cache key found");
         }
 
         return aContext;
     }
 
     /**
-     * Retrieves the cache key to use
+     * Try to get the requested data using the cache. Returns false if the cache
+     * data is missing or too old. Clear the context results if this method
+     * returns false.
      * 
-     * @param aRequest
-     *            The request associated to the treatment
-     * @return The cache key to use, can be null
+     * @param aContext
+     *            The current component context
+     * @param channel
+     *            The cache channel to be used
+     * @return True if all requested cache data has been added to the context
+     *         results, False if at least one data is too old or missing.
      */
-    @SuppressWarnings("unchecked")
-    protected Object getCacheKey(final Object aRequest) {
+    protected boolean getFromCache(final IComponentContext aContext,
+            final ICacheChannel<Serializable, Serializable> channel) {
 
-        if (aRequest == null) {
-            // No information in the request, maybe we must retrieve a constant
-            return pEntryName;
+        // Clear the existing results
+        aContext.getResults().clear();
 
-        } else if (pEntryName == null || !(aRequest instanceof Map)) {
-            // The request is not a Map, or no map entry is given : use the
-            // complete request as a key
-            return aRequest;
+        final Object cacheResult = pCacheCommons.findInCache(channel,
+                aContext.getRequest());
+
+        if (cacheResult instanceof ICachedObject) {
+            // A single cache result has been found
+            pCacheCommons.handleFoundCachedObject(aContext,
+                    (ICachedObject<?>) cacheResult);
+
+        } else if (cacheResult instanceof Iterable) {
+            // Multiple data found
+
+            for (final Object cacheResultElement : (Iterable<?>) cacheResult) {
+
+                if (cacheResultElement instanceof ICachedObject) {
+
+                    // A single cache result has been found
+                    pCacheCommons.handleFoundCachedObject(aContext,
+                            (ICachedObject<?>) cacheResultElement);
+
+                } else {
+                    pLogger.logInfo(this, "computeResult",
+                            "Unknown element in cache :", cacheResultElement);
+
+                    // An error occurred, do not use the cache
+                    return false;
+                }
+            }
         }
 
-        // We have a map and a entry name
-        return ((Map<Object, Object>) aRequest).get(pEntryName);
-    }
-
-    /**
-     * Retrieves the channel described by {@link #pChannelName}
-     * 
-     * @return The cache channel to use, null if not yet opened
-     */
-    protected ICacheChannel<Serializable, Serializable> getChannel() {
-
-        // Detect the channel type
-        final boolean isMapChannel = pChannelType == null
-                || pChannelType.isEmpty()
-                || pChannelType.equalsIgnoreCase(CHANNEL_TYPE_MAP);
-
-        if (isMapChannel && pChannelFactory.isChannelOpened(pChannelName)) {
-            // Standard mapped channel
-            return pChannelFactory.openChannel(pChannelName);
-        }
-
-        if (!isMapChannel
-                && pChannelFactory.isDequeueChannelOpened(pChannelName)) {
-            // The channel is queued one
-            return pChannelFactory.openDequeueChannel(pChannelName);
-        }
-
-        return null;
+        return true;
     }
 
     /*
@@ -192,6 +180,8 @@ public class GetCache extends CPojoBase implements IComponent {
     @Override
     @Invalidate
     public void invalidatePojo() throws BundleException {
+
+        pCacheCommons = null;
 
         pLogger.logInfo(this, "invalidatePojo", "Component '" + pName
                 + "' Gone");
@@ -205,6 +195,10 @@ public class GetCache extends CPojoBase implements IComponent {
     @Override
     @Validate
     public void validatePojo() throws BundleException {
+
+        // Set up the utility instance
+        pCacheCommons = new CacheCommons(pName);
+        pCacheCommons.setEntryName(pEntryName);
 
         pLogger.logInfo(this, "validatePojo", "Component '" + pName + "' Ready");
     }
