@@ -12,15 +12,10 @@ package org.psem2m.isolates.demo.services.ui.viewer.impl;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.felix.ipojo.architecture.Architecture;
-import org.apache.felix.ipojo.architecture.InstanceDescription;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
@@ -67,12 +62,13 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
         @Override
         public void serviceChanged(final ServiceEvent event) {
 
-            if (hasFrameMain()
-                    && (event.getType() == ServiceEvent.REGISTERED || event
-                            .getType() == ServiceEvent.UNREGISTERING)) {
+            if (event.getType() == ServiceEvent.REGISTERED
+                    || event.getType() == ServiceEvent.UNREGISTERING) {
 
-                updateTableOfService(event.getServiceReference(),
-                        event.getType());
+                pIsolateLoggerSvc.logInfo(this, "serviceChanged",
+                        "service=[%s]", event.getServiceReference().toString());
+
+                updateServicsTable(event.getServiceReference(), event.getType());
             }
         }
 
@@ -84,7 +80,7 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
     /**
      * The window of the bundle
      */
-    private CFrameMain pFrameMain;
+    private CFrameMain pFrameMain = null;
 
     /**
      * Service reference managed by iPojo (see metadata.xml)
@@ -97,9 +93,6 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
      * Service reference managed by iPojo (see metadata.xml)
      **/
     private IPlatformDirsSvc pPlatformDirsSvc;
-
-    /** Scheduled executor */
-    private ScheduledExecutorService pScheduledExecutor;
 
     /**
      * Service reference managed by iPojo (see metadata.xml)
@@ -123,43 +116,30 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
     }
 
     /**
-     * @param arch
-     * @return
+     * Update the list of components each time an Architecture appears
+     * 
+     * @param aArch
      */
-    private Object[] buildComponentRowData(final Architecture arch) {
+    void architectureBind(final Architecture aArch) {
 
-        final InstanceDescription description = arch.getInstanceDescription();
+        pIsolateLoggerSvc.logInfo(this, "architectureBind", "component=[%s]",
+                aArch.getInstanceDescription().getName());
 
-        final String strState = description.getDescription().getAttribute(
-                "state");
+        updateComponentsTable(aArch, ServiceEvent.REGISTERED);
 
-        Object[] wRowData = new Object[4];
-        wRowData[CFrameMain.COMPONENT_COLUMN_IDX_NAME] = description.getName();
-        wRowData[CFrameMain.COMPONENT_COLUMN_IDX_FACTORY] = description
-                .getComponentDescription().getFactory().getName();
-        wRowData[CFrameMain.COMPONENT_COLUMN_IDX_BUNDLE] = String
-                .valueOf(description.getBundleId());
-        wRowData[CFrameMain.COMPONENT_COLUMN_IDX_STATE] = String.format(
-                "%1d %s", description.getState(), strState);
-        return wRowData;
     }
 
     /**
-     * Builds a component description text, according to iPOJO architecture
-     * services
+     * Update the list of components each time an Architecture desappears
      * 
-     * @return A iPOJO components description text
+     * @param aArch
      */
-    private List<Object[]> buildComponentsDescription() {
+    void architectureUnBind(final Architecture aArch) {
 
-        List<Object[]> wComponentsLines = new ArrayList<Object[]>();
+        pIsolateLoggerSvc.logInfo(this, "architectureUnBind", "component=[%s]",
+                aArch.getInstanceDescription().getName());
 
-        for (Architecture arch : pArchitectures) {
-
-            wComponentsLines.add(buildComponentRowData(arch));
-        }
-
-        return wComponentsLines;
+        updateComponentsTable(aArch, ServiceEvent.UNREGISTERING);
     }
 
     /**
@@ -305,10 +285,9 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
                 List<ServiceReference> wListOfServiceRef = CBundleUiActivator
                         .getInstance().getAllServiceReferences();
 
-                pFrameMain.setServiceTable(wListOfServiceRef);
+                pFrameMain.setServicesTable(wListOfServiceRef);
 
-                pFrameMain
-                        .setComponentsDescription(buildComponentsDescription());
+                pFrameMain.setComponentsTable(pArchitectures);
 
                 pIsolateLoggerSvc.logInfo(this, "initListOfService",
                         "add [%d] services : [%s]", wListOfServiceRef.size(),
@@ -349,9 +328,6 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
     @Override
     public void invalidatePojo() {
 
-        // Stop the scheduled executor
-        pScheduledExecutor.shutdownNow();
-
         // logs in the bundle output
         pIsolateLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
                 toDescription());
@@ -371,36 +347,35 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
     /**
      * Updates the UI with the new components state
      */
-    private void updateComponentsDescription() {
+    private void updateComponentsTable(final Architecture aArchitecture,
+            final int aComponentEvent) {
 
-        final List<Object[]> wComponentsRows = buildComponentsDescription();
-        String wState;
-        int wNbValid = 0;
-        for (Object[] wComponentRow : wComponentsRows) {
-            wState = (String) wComponentRow[CFrameMain.COMPONENT_COLUMN_IDX_STATE];
-            if (wState != null && wState.contains("invalid")) {
-                wNbValid++;
+        if (hasFrameMain()) {
+
+            Runnable wRunnable = new Runnable() {
+                @Override
+                public void run() {
+
+                    pIsolateLoggerSvc
+                            .logInfo(
+                                    this,
+                                    "updateComponentsTable",
+                                    "%s Component=[%s]",
+                                    aComponentEvent == ServiceEvent.REGISTERED ? "REGISTERED"
+                                            : "UNREGISTERING", aArchitecture
+                                            .getInstanceDescription().getName());
+
+                    pFrameMain
+                            .setComponentTable(aArchitecture, aComponentEvent);
+                }
+            };
+            try {
+                // gives the runnable to the UIExecutor
+                pUiExecutor.execute(wRunnable);
+            } catch (Exception e) {
+                pIsolateLoggerSvc.logSevere(this, "init", e);
             }
         }
-
-        // logs in the logger of the isolate
-        pIsolateLoggerSvc.logInfo(this, "updateComponentsDescription",
-                "nbValidDomponents=[%d]", wNbValid);
-
-        Runnable wRunnable = new Runnable() {
-            @Override
-            public void run() {
-
-                pFrameMain.setComponentsDescription(wComponentsRows);
-            }
-        };
-        try {
-            // gives the runnable to the UIExecutor
-            pUiExecutor.execute(wRunnable);
-        } catch (Exception e) {
-            pIsolateLoggerSvc.logSevere(this, "init", e);
-        }
-
     }
 
     /**
@@ -410,41 +385,35 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
      * @param aServiceReference
      * @param aServiceEvent
      */
-    private void updateTableOfService(final ServiceReference aServiceReference,
+    private void updateServicsTable(final ServiceReference aServiceReference,
             final int aServiceEvent) {
 
-        Runnable wRunnable = new Runnable() {
-            @Override
-            public void run() {
+        if (hasFrameMain()) {
 
-                CUiSvc.this.updateTableOfServiceExec(aServiceReference,
-                        aServiceEvent);
+            Runnable wRunnable = new Runnable() {
+                @Override
+                public void run() {
+
+                    pIsolateLoggerSvc
+                            .logInfo(
+                                    this,
+                                    "updateServicsTable",
+                                    "%s ServiceReference=[%s]",
+                                    aServiceEvent == ServiceEvent.REGISTERED ? "REGISTERED"
+                                            : "UNREGISTERING",
+                                    aServiceReference.toString());
+
+                    pFrameMain
+                            .setServiceTable(aServiceReference, aServiceEvent);
+                }
+            };
+            try {
+                // gives the runnable to the UIExecutor
+                pUiExecutor.execute(wRunnable);
+            } catch (Exception e) {
+                pIsolateLoggerSvc.logSevere(this, "init", e);
             }
-        };
-        try {
-            // gives the runnable to the UIExecutor
-            pUiExecutor.execute(wRunnable);
-        } catch (Exception e) {
-            pIsolateLoggerSvc.logSevere(this, "init", e);
         }
-    }
-
-    /**
-     * do the update the table of service with a service reference and a service
-     * event (REGISTERED or UNREGISTERING)
-     * 
-     * @param aServiceReference
-     * @param aEvent
-     */
-    private void updateTableOfServiceExec(
-            final ServiceReference aServiceReference, final int aEvent) {
-
-        pIsolateLoggerSvc.logInfo(this, "updateListOfServiceExec",
-                "%s ServiceReference=[%s]",
-                aEvent == ServiceEvent.REGISTERED ? "REGISTERED"
-                        : "UNREGISTERING", aServiceReference.toString());
-
-        pFrameMain.setServiceTable(aServiceReference, aEvent);
     }
 
     /*
@@ -454,9 +423,6 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
      */
     @Override
     public void validatePojo() {
-
-        // Prepare the scheduled executor
-        pScheduledExecutor = Executors.newScheduledThreadPool(1);
 
         // logs in the logger of the isolate
         pIsolateLoggerSvc.logInfo(this, "validatePojo", "VALIDATE",
@@ -475,14 +441,5 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
 
         }
 
-        // Register the components updater
-        pScheduledExecutor.scheduleAtFixedRate(new Runnable() {
-
-            @Override
-            public void run() {
-
-                updateComponentsDescription();
-            }
-        }, 1, 5, TimeUnit.SECONDS);
     }
 }

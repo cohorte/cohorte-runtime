@@ -48,6 +48,9 @@ public interface IJsonComposerConfigConstants {
     /** The components set contains only components sets */
     String COMPOSET_CONTENT_TYPE_SETS = "sets";
 
+    /** Inclusion keyword */
+    String COMPOSET_FROM = "from";
+
     /** Name of a components set */
     String COMPOSET_NAME = "name";
 }

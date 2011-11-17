@@ -16,14 +16,21 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
@@ -42,6 +49,11 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
+import org.apache.felix.ipojo.ComponentInstance;
+import org.apache.felix.ipojo.InstanceManager;
+import org.apache.felix.ipojo.InstanceStateListener;
+import org.apache.felix.ipojo.architecture.Architecture;
+import org.apache.felix.ipojo.architecture.InstanceDescription;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceReference;
 import org.psem2m.isolates.demo.services.ui.viewer.CBundleUiActivator;
@@ -59,6 +71,143 @@ import org.psem2m.utilities.CXStringUtils;
  * 
  */
 public class CFrameMain extends javax.swing.JFrame {
+
+    /**
+     * 
+     * By default a left mouse click on a JTable row will select that row, but
+     * it’s not the same for the right mouse button. It takes bit more work to
+     * get a JTable to select a row based on right mouse clicks. You might be
+     * able to do it by subclassing JTable or ListSelectionModel, but there’s an
+     * easier way.
+     * 
+     * 1. Use a MouseAdapter to detect right clicks on the JTable.
+     * 
+     * 2. Get the Point (X-Y coordinate) of the click.
+     * 
+     * 3. Find out what row contains that Point
+     * 
+     * 4. Get the ListSelectionModel of the JTable and 5. Tell the
+     * ListSelectionModel to select that row. Here’s what it looks like:
+     * 
+     * 
+     * @see http://www.stupidjavatricks.com/?p=12
+     * @author ogattaz
+     * 
+     */
+    class CClickComponentListener extends MouseAdapter {
+
+        private JPopupMenu createPopUp(final int aRowIndex) {
+
+            final String wName = String.valueOf(pComponentsTableModel
+                    .getValueAt(aRowIndex, COMPONENT_COLUMN_IDX_NAME));
+
+            final Architecture wArchitecture = pComponentsMap.get(wName);
+            final int wState = wArchitecture.getInstanceDescription()
+                    .getState();
+
+            final boolean wMustValidate = wState != ComponentInstance.VALID;
+
+            final String wAction = wMustValidate ? "Validate" : "Invalidate";
+
+            String wItemLib1 = String.format("%s %s", wAction, wName);
+
+            JMenuItem wMenuItem1 = new JMenuItem(wItemLib1);
+            wMenuItem1.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(final ActionEvent actionEvent) {
+
+                    if (CBundleUiActivator.getInstance().hasIsolateLoggerSvc()) {
+                        CBundleUiActivator
+                                .getInstance()
+                                .getIsolateLoggerSvc()
+                                .logInfo(this, "actionPerformed",
+                                        "rowIdx=[%d] action=[%s]", aRowIndex,
+                                        actionEvent.getActionCommand());
+                    }
+                    if (wMustValidate) {
+                        doValidateComponent(aRowIndex, wName, wArchitecture);
+                    } else {
+                        doInvalidateComponent(aRowIndex, wName, wArchitecture);
+                    }
+                }
+            });
+
+            String wItemLib2 = String.format("Stop %s", wName);
+
+            JMenuItem wMenuItem2 = new JMenuItem(wItemLib2);
+            wMenuItem2.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(final ActionEvent actionEvent) {
+
+                    if (CBundleUiActivator.getInstance().hasIsolateLoggerSvc()) {
+                        CBundleUiActivator
+                                .getInstance()
+                                .getIsolateLoggerSvc()
+                                .logInfo(this, "actionPerformed",
+                                        "rowIdx=[%d] action=[%s]", aRowIndex,
+                                        actionEvent.getActionCommand());
+                    }
+                    doStopComponent(aRowIndex, wName, wArchitecture);
+                }
+            });
+
+            JPopupMenu wJPopupMenu = new JPopupMenu();
+            wJPopupMenu.add(wMenuItem1);
+            wJPopupMenu.addSeparator();
+            wJPopupMenu.add(wMenuItem2);
+
+            return wJPopupMenu;
+        }
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see
+         * java.awt.event.MouseAdapter#mouseClicked(java.awt.event.MouseEvent)
+         */
+        @Override
+        public void mouseClicked(final MouseEvent e) {
+
+            // Left mouse click
+            if (SwingUtilities.isLeftMouseButton(e)) {
+                if (CBundleUiActivator.getInstance().hasIsolateLoggerSvc()) {
+                    CBundleUiActivator.getInstance().getIsolateLoggerSvc()
+                            .logInfo(this, "mouseClicked", "isLeftMouseButton");
+                }
+            }
+            // Right mouse click
+            else if (SwingUtilities.isRightMouseButton(e)) {
+                if (CBundleUiActivator.getInstance().hasIsolateLoggerSvc()) {
+                    CBundleUiActivator
+                            .getInstance()
+                            .getIsolateLoggerSvc()
+                            .logInfo(this, "mouseClicked", "isRightMouseButton");
+                }
+                rightClik(e);
+            }
+        }
+
+        public void rightClik(final MouseEvent e) {
+
+            int r = pComponentsTable.rowAtPoint(e.getPoint());
+            if (r >= 0 && r < pComponentsTable.getRowCount()) {
+                pComponentsTable.setRowSelectionInterval(r, r);
+            } else {
+                pComponentsTable.clearSelection();
+            }
+
+            int wRowIdx = pComponentsTable.getSelectedRow();
+            if (wRowIdx < 0) {
+                return;
+            }
+
+            // if sorted
+            wRowIdx = pComponentsTable.convertRowIndexToModel(wRowIdx);
+
+            createPopUp(wRowIdx).show(e.getComponent(), e.getX(), e.getY());
+
+        }
+    }
 
     /**
      * 
@@ -84,10 +233,47 @@ public class CFrameMain extends javax.swing.JFrame {
             setServiceNameCompaction(wCheckBox.isSelected());
 
             // reload the services
-            setServiceTable(CBundleUiActivator.getInstance()
+            setServicesTable(CBundleUiActivator.getInstance()
                     .getAllServiceReferences());
         }
 
+    }
+
+    /**
+     * @author ogattaz
+     * 
+     */
+    class CComponentInstanceStateListener implements InstanceStateListener {
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see
+         * org.apache.felix.ipojo.InstanceStateListener#stateChanged(org.apache
+         * .felix.ipojo.ComponentInstance, int)
+         */
+        @Override
+        public void stateChanged(final ComponentInstance arg0, final int arg1) {
+
+            final String wName = arg0.getInstanceDescription().getName();
+            final int wRowIdx = findComponentRow(wName);
+            final String wStrState = buildComponentState(arg0
+                    .getInstanceDescription());
+
+            if (CBundleUiActivator.getInstance().hasIsolateLoggerSvc()) {
+                CBundleUiActivator
+                        .getInstance()
+                        .getIsolateLoggerSvc()
+                        .logInfo(this, "stateChanged",
+                                "Name=[%s] RowIdx=[%d] NewState=[%s]", wName,
+                                wRowIdx, wStrState);
+            }
+            if (wRowIdx > -1) {
+                pComponentsTableModel.setValueAt(wStrState, wRowIdx,
+                        COMPONENT_COLUMN_IDX_STATE);
+            }
+
+        }
     }
 
     /**
@@ -105,7 +291,7 @@ public class CFrameMain extends javax.swing.JFrame {
             setServicesFilterKind(wSelectedFilterName);
 
             // reload the services
-            setServiceTable(CBundleUiActivator.getInstance()
+            setServicesTable(CBundleUiActivator.getInstance()
                     .getAllServiceReferences());
         }
     }
@@ -198,7 +384,29 @@ public class CFrameMain extends javax.swing.JFrame {
      * @author ogattaz
      * 
      */
-    class CServicesSelectionListener implements ListSelectionListener {
+    class CSelectComponnentListener implements ListSelectionListener {
+
+        @Override
+        public void valueChanged(final ListSelectionEvent aListSelectionEvent) {
+
+            int wRowIdx = pComponentsTable.getSelectionModel()
+                    .getLeadSelectionIndex();
+            if (wRowIdx > -1 && wRowIdx < pComponentsTableModel.getRowCount()) {
+                // if sorted
+                wRowIdx = pComponentsTable.convertRowIndexToModel(wRowIdx);
+                // set the text info of the service
+            }
+        }
+    }
+
+    /**
+     * Look at TableSelectionDemo.java from java tutorial to learn how work the
+     * JTable selection model
+     * 
+     * @author ogattaz
+     * 
+     */
+    class CSelectServiceListener implements ListSelectionListener {
 
         @Override
         public void valueChanged(final ListSelectionEvent aListSelectionEvent) {
@@ -208,6 +416,7 @@ public class CFrameMain extends javax.swing.JFrame {
             if (wRowIdx > -1 && wRowIdx < pServicesTableModel.getRowCount()) {
                 // if sorted
                 wRowIdx = pServicesTable.convertRowIndexToModel(wRowIdx);
+
                 // set the text info of the service
                 pServiceInfosTextArea.setText(buildServiceInfosText(wRowIdx));
             }
@@ -215,21 +424,19 @@ public class CFrameMain extends javax.swing.JFrame {
     }
 
     private final static boolean COMPACTION = true;
-
     final static int COMPONENT_COLUMN_IDX_BUNDLE = 2;
     final static int COMPONENT_COLUMN_IDX_FACTORY = 1;
     final static int COMPONENT_COLUMN_IDX_NAME = 0;
+
     final static int COMPONENT_COLUMN_IDX_STATE = 3;
 
     private final static String EMPTY = "";
-
     private final static String FILTER_All = "all services";
     private final static int FILTER_All_KIND = 2;
     private final static String FILTER_PSEM2M = "psem2m services";
     private final static int FILTER_PSEM2M_KIND = 1;
     private final static String FILTER_REMOTE = "remote services";
     private final static int FILTER_REMOTE_KIND = 0;
-
     private final static String FONT_NAME_TABLE = "Lucida Grande";
     private final static String FONT_NAME_TEXTAREA = "Courier New";
     private final static String FONT_SIZE_LARGE = "large";
@@ -237,6 +444,7 @@ public class CFrameMain extends javax.swing.JFrame {
     private final static String FONT_SIZE_NORMAL = "normal";
     private final static int FONT_SIZE_NORMAL_PT = 12;
     private final static String FONT_SIZE_SMALL = "small";
+
     private final static int FONT_SIZE_SMALL_PT = 10;
 
     /** the format of the title of the main Frame **/
@@ -244,12 +452,35 @@ public class CFrameMain extends javax.swing.JFrame {
 
     /** to be serialized ... **/
     private static final long serialVersionUID = -2939661125543649591L;
-
     final static int SERVICE_COLUMN_IDX_BUNDLE_ID = 4;
     final static int SERVICE_COLUMN_IDX_INTERFACE = 0;
     final static int SERVICE_COLUMN_IDX_NAME = 1;
     final static int SERVICE_COLUMN_IDX_REMOTE_INFO = 2;
+
     final static int SERVICE_COLUMN_IDX_SERVICE_ID = 3;
+
+    /**
+     * @param aInstanceDescription
+     * @return
+     * @throws SecurityException
+     * @throws NoSuchFieldException
+     * @throws IllegalArgumentException
+     * @throws IllegalAccessException
+     */
+    static ComponentInstance getComponentInstance(
+            final InstanceDescription aInstanceDescription) {
+
+        ComponentInstance wCI = null;
+        try {
+            Field wField = InstanceDescription.class
+                    .getDeclaredField("m_instance");
+            wField.setAccessible(true);
+            wCI = (ComponentInstance) wField.get(aInstanceDescription);
+        } catch (Exception e) {
+            // ...
+        }
+        return wCI;
+    }
 
     /**
      * Auto-generated main method to display this JFrame
@@ -271,6 +502,7 @@ public class CFrameMain extends javax.swing.JFrame {
     private JLabel lblNewLabel;
     private JLabel lblNewLabel_1;
     private JPanel panel;
+    private Map<String, Architecture> pComponentsMap = new HashMap<String, Architecture>();
     private JScrollPane pComponentsScrollPane;
     private JTable pComponentsTable;
     private DefaultTableModel pComponentsTableModel;
@@ -288,7 +520,9 @@ public class CFrameMain extends javax.swing.JFrame {
     private JCheckBox pServicesNameCompactionCheckBox;
     private JScrollPane pServicesScrollPane;
     private JSplitPane pServicesSplitPane;
+
     private JTable pServicesTable;
+
     private DefaultTableModel pServicesTableModel;
 
     /**
@@ -299,6 +533,41 @@ public class CFrameMain extends javax.swing.JFrame {
         super();
         pFrameConfig = new CFrameConfig();
         initGUI();
+
+        if (CBundleUiActivator.getInstance().hasIsolateLoggerSvc()) {
+            CBundleUiActivator.getInstance().getIsolateLoggerSvc()
+                    .logInfo(this, "<init>", "CFrameMain instanciated");
+        }
+    }
+
+    /**
+     * @param aDataRow
+     * @return
+     */
+    private boolean addOneComponentRow(final Architecture aArchitecture) {
+
+        pComponentsMap.put(aArchitecture.getInstanceDescription().getName(),
+                aArchitecture);
+
+        if (CBundleUiActivator.getInstance().hasIsolateLoggerSvc()) {
+            CBundleUiActivator
+                    .getInstance()
+                    .getIsolateLoggerSvc()
+                    .logInfo(
+                            this,
+                            "addOneComponentRow",
+                            "Architecture.class=[%s] InstanceDescription.class=[%s]",
+                            aArchitecture.getClass().getSimpleName(),
+                            aArchitecture.getInstanceDescription().getClass()
+                                    .getSimpleName());
+        }
+
+        pComponentsTableModel.addRow(buildComponentRowData(aArchitecture));
+
+        getComponentInstance(aArchitecture.getInstanceDescription())
+                .addInstanceStateListener(new CComponentInstanceStateListener());
+
+        return true;
     }
 
     /**
@@ -310,8 +579,8 @@ public class CFrameMain extends javax.swing.JFrame {
         if (pServicesFilterKind == FILTER_All_KIND
 
                 || pServicesFilterKind == FILTER_PSEM2M_KIND
-                && (aDataRow[SERVICE_COLUMN_IDX_NAME].toString().startsWith(
-                        "org.psem2m.") || aDataRow[SERVICE_COLUMN_IDX_NAME]
+                && (aDataRow[SERVICE_COLUMN_IDX_INTERFACE].toString()
+                        .startsWith("org.psem2m.") || aDataRow[SERVICE_COLUMN_IDX_INTERFACE]
                         .toString().startsWith("o.p."))
 
                 || pServicesFilterKind == FILTER_REMOTE_KIND
@@ -323,6 +592,36 @@ public class CFrameMain extends javax.swing.JFrame {
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param arch
+     * @return
+     */
+    private Object[] buildComponentRowData(final Architecture arch) {
+
+        final InstanceDescription wDescription = arch.getInstanceDescription();
+
+        String wStrState = buildComponentState(wDescription);
+
+        Object[] wRowData = new Object[4];
+        wRowData[CFrameMain.COMPONENT_COLUMN_IDX_NAME] = wDescription.getName();
+        wRowData[CFrameMain.COMPONENT_COLUMN_IDX_FACTORY] = wDescription
+                .getComponentDescription().getFactory().getName();
+        wRowData[CFrameMain.COMPONENT_COLUMN_IDX_BUNDLE] = String
+                .valueOf(wDescription.getBundleId());
+        wRowData[CFrameMain.COMPONENT_COLUMN_IDX_STATE] = wStrState;
+        return wRowData;
+    }
+
+    /**
+     * @param aDescription
+     * @return
+     */
+    private String buildComponentState(final InstanceDescription aDescription) {
+
+        return String.format("%1d %s", aDescription.getState(), aDescription
+                .getDescription().getAttribute("state"));
     }
 
     /**
@@ -381,7 +680,77 @@ public class CFrameMain extends javax.swing.JFrame {
     void clearServiceTable() {
 
         removeAllServicesRows();
-        fireUpdateTable();
+        fireUpdateServicesTable();
+    }
+
+    /**
+     * @param aRowIdx
+     * @throws IllegalAccessException
+     * @throws NoSuchFieldException
+     * @throws IllegalArgumentException
+     * @throws SecurityException
+     */
+    void doInvalidateComponent(final int aRowIdx, final String aName,
+            final Architecture aArchitecture) {
+
+        ComponentInstance wComponentInstance = getComponentInstance(aArchitecture
+                .getInstanceDescription());
+
+        if (CBundleUiActivator.getInstance().hasIsolateLoggerSvc()) {
+            CBundleUiActivator
+                    .getInstance()
+                    .getIsolateLoggerSvc()
+                    .logInfo(this, "doValidateComponent",
+                            "INVALID component=[%s] ",
+                            aArchitecture.getInstanceDescription().getName());
+        }
+
+        if (wComponentInstance instanceof InstanceManager) {
+            ((InstanceManager) wComponentInstance)
+                    .setState(ComponentInstance.INVALID);
+        }
+        // wComponentInstance.stop();
+    }
+
+    void doStopComponent(final int aRowIdx, final String aName,
+            final Architecture aArchitecture) {
+
+        ComponentInstance wComponentInstance = getComponentInstance(aArchitecture
+                .getInstanceDescription());
+
+        if (CBundleUiActivator.getInstance().hasIsolateLoggerSvc()) {
+            CBundleUiActivator
+                    .getInstance()
+                    .getIsolateLoggerSvc()
+                    .logInfo(this, "doStopComponent", "STOP component=[%s] ",
+                            aArchitecture.getInstanceDescription().getName());
+        }
+
+        wComponentInstance.stop();
+    }
+
+    /**
+     * @param aRowIdx
+     */
+    void doValidateComponent(final int aRowIdx, final String aName,
+            final Architecture aArchitecture) {
+
+        ComponentInstance wComponentInstance = getComponentInstance(aArchitecture
+                .getInstanceDescription());
+
+        if (CBundleUiActivator.getInstance().hasIsolateLoggerSvc()) {
+            CBundleUiActivator
+                    .getInstance()
+                    .getIsolateLoggerSvc()
+                    .logInfo(this, "doValidateComponent",
+                            "VALID component=[%s] ",
+                            aArchitecture.getInstanceDescription().getName());
+        }
+        if (wComponentInstance instanceof InstanceManager) {
+            ((InstanceManager) wComponentInstance)
+                    .setState(ComponentInstance.VALID);
+        }
+        // wComponentInstance.start();
     }
 
     /**
@@ -497,15 +866,24 @@ public class CFrameMain extends javax.swing.JFrame {
     }
 
     /**
-     * @param aServiceReference
+     * @param aArchitecture
      * @return
      */
-    private int findServiceRow(final ServiceReference aServiceReference) {
+    private int findComponentRow(final Architecture aArchitecture) {
 
-        String wServiceName = extractServiceInterfaceCleanedCompacted(aServiceReference);
-        for (int wI = 0; wI < pServicesTableModel.getRowCount(); wI++) {
-            if (wServiceName.equals(pServicesTableModel.getValueAt(wI,
-                    SERVICE_COLUMN_IDX_NAME))) {
+        return findComponentRow(aArchitecture.getInstanceDescription()
+                .getName());
+    }
+
+    /**
+     * @param wComponentName
+     * @return
+     */
+    private int findComponentRow(final String wComponentName) {
+
+        for (int wI = 0; wI < pComponentsTableModel.getRowCount(); wI++) {
+            if (wComponentName.equals(pComponentsTableModel.getValueAt(wI,
+                    COMPONENT_COLUMN_IDX_NAME))) {
                 return wI;
             }
         }
@@ -513,9 +891,35 @@ public class CFrameMain extends javax.swing.JFrame {
     }
 
     /**
- * 
- */
-    private void fireUpdateTable() {
+     * @param aServiceReference
+     * @return
+     */
+    private int findServiceRow(final ServiceReference aServiceReference) {
+
+        String wServiceId = extractServiceId(aServiceReference);
+        for (int wI = 0; wI < pServicesTableModel.getRowCount(); wI++) {
+            if (wServiceId.equals(pServicesTableModel.getValueAt(wI,
+                    SERVICE_COLUMN_IDX_SERVICE_ID))) {
+                return wI;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * 
+     */
+    private void fireUpdateComponentsTable() {
+
+        pComponentsTable
+                .tableChanged(new TableModelEvent(pComponentsTableModel));
+        pComponentsTable.updateUI();
+    }
+
+    /**
+     * 
+     */
+    private void fireUpdateServicesTable() {
 
         pServicesTable.tableChanged(new TableModelEvent(pServicesTableModel));
         pServicesTable.updateUI();
@@ -624,7 +1028,7 @@ public class CFrameMain extends javax.swing.JFrame {
                             // model
                             pServicesTable.getSelectionModel()
                                     .addListSelectionListener(
-                                            new CServicesSelectionListener());
+                                            new CSelectServiceListener());
 
                             setServicesTableFont(FONT_NAME_TABLE,
                                     FONT_SIZE_NORMAL_PT);
@@ -764,6 +1168,21 @@ public class CFrameMain extends javax.swing.JFrame {
                         setComponentsTableFont(FONT_NAME_TABLE,
                                 FONT_SIZE_NORMAL_PT);
 
+                        pComponentsTable
+                                .setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+                        pComponentsTable.setColumnSelectionAllowed(false);
+                        pComponentsTable.setRowSelectionAllowed(true);
+
+                        // Look at TableSelectionDemo.java from java
+                        // tutorial to learn how work the JTable selection
+                        // model
+                        pComponentsTable.getSelectionModel()
+                                .addListSelectionListener(
+                                        new CSelectComponnentListener());
+
+                        pComponentsTable
+                                .addMouseListener(new CClickComponentListener());
+
                         pComponentsScrollPane.setViewportView(pComponentsTable);
 
                         pMainTabbedPane.addTab("Components", null,
@@ -801,6 +1220,7 @@ public class CFrameMain extends javax.swing.JFrame {
         for (int wI = pComponentsTableModel.getRowCount() - 1; wI > -1; wI--) {
             pComponentsTableModel.removeRow(wI);
         }
+        pComponentsMap.clear();
     }
 
     /**
@@ -839,21 +1259,29 @@ public class CFrameMain extends javax.swing.JFrame {
     }
 
     /**
-     * Sets (replaces) the components text area content
+     * Sets (replaces) the components table content
      * 
      * @param aComponentsDescription
      *            The new content
      */
-    void setComponentsDescription(final List<Object[]> wComponentsRows) {
+    void setComponentsTable(final Architecture[] aArchitectures) {
 
         removeAllComponentsRows();
-        for (Object[] wDataRow : wComponentsRows) {
-            pComponentsTableModel.addRow(wDataRow);
+
+        boolean wAdded = false;
+        for (Architecture wArchitecture : aArchitectures) {
+            wAdded = wAdded | addOneComponentRow(wArchitecture);
+        }
+        if (wAdded) {
+            pComponentsTable.setRowSelectionInterval(0, 0);
+            fireUpdateComponentsTable();
         }
 
     }
 
     /**
+     * Sets the font of the components table
+     * 
      * @param aFontName
      * @param aSize
      */
@@ -865,6 +1293,33 @@ public class CFrameMain extends javax.swing.JFrame {
     }
 
     /**
+     * Adds or removes one component in the components table content
+     * 
+     * @param aArchitecture
+     * @param aComponentEvent
+     */
+    void setComponentTable(final Architecture aArchitecture,
+            final int aComponentEvent) {
+
+        if (aComponentEvent == ServiceEvent.REGISTERED) {
+            boolean wAdded = addOneComponentRow(aArchitecture);
+            if (wAdded) {
+                fireUpdateComponentsTable();
+            }
+        } else {
+            int wRow = findComponentRow(aArchitecture);
+            if (wRow > -1) {
+                pComponentsTableModel.removeRow(wRow);
+                pComponentsMap.remove(aArchitecture.getInstanceDescription()
+                        .getName());
+                fireUpdateComponentsTable();
+            }
+        }
+    }
+
+    /**
+     * Sets (replaces) the configuration text area content
+     * 
      * @param aText
      */
     void setConfigextArea(final String aText) {
@@ -873,6 +1328,9 @@ public class CFrameMain extends javax.swing.JFrame {
     }
 
     /**
+     * Sets the flag which control the compaction of the name of the service
+     * interface
+     * 
      * @param aCompaction
      */
     private void setServiceNameCompaction(final boolean aCompaction) {
@@ -881,6 +1339,8 @@ public class CFrameMain extends javax.swing.JFrame {
     }
 
     /**
+     * Sets the filter applied on the row of the services table
+     * 
      * @param aFilterName
      *            the name of the selected filter
      */
@@ -896,6 +1356,27 @@ public class CFrameMain extends javax.swing.JFrame {
     }
 
     /**
+     * Sets (replaces) the services table content
+     * 
+     * @param aListOfServiceRef
+     */
+    void setServicesTable(final List<ServiceReference> aListOfServiceRef) {
+
+        removeAllServicesRows();
+        boolean wAdded = false;
+        for (ServiceReference aServiceReference : aListOfServiceRef) {
+            wAdded = wAdded
+                    | addOneServiceRow(buildServiceRowData(aServiceReference));
+        }
+        if (wAdded) {
+            pServicesTable.setRowSelectionInterval(0, 0);
+            fireUpdateServicesTable();
+        }
+    }
+
+    /**
+     * Sets the services table font
+     * 
      * @param aFontName
      * @param aSize
      */
@@ -907,23 +1388,8 @@ public class CFrameMain extends javax.swing.JFrame {
     }
 
     /**
-     * @param aListOfServiceRef
-     */
-    void setServiceTable(final List<ServiceReference> aListOfServiceRef) {
-
-        removeAllServicesRows();
-        boolean wAdded = false;
-        for (ServiceReference aServiceReference : aListOfServiceRef) {
-            wAdded = wAdded
-                    | addOneServiceRow(buildServiceRowData(aServiceReference));
-        }
-        if (wAdded) {
-            pServicesTable.setRowSelectionInterval(0, 0);
-            fireUpdateTable();
-        }
-    }
-
-    /**
+     * Adds or removes one service in the services table content
+     * 
      * @param aServiceReference
      * @param aEvent
      */
@@ -933,13 +1399,13 @@ public class CFrameMain extends javax.swing.JFrame {
         if (aEvent == ServiceEvent.REGISTERED) {
             boolean wAdded = addOneServiceRow(buildServiceRowData(aServiceReference));
             if (wAdded) {
-                fireUpdateTable();
+                fireUpdateServicesTable();
             }
         } else {
             int wRow = findServiceRow(aServiceReference);
             if (wRow > -1) {
                 pServicesTableModel.removeRow(wRow);
-                fireUpdateTable();
+                fireUpdateServicesTable();
             }
         }
     }
