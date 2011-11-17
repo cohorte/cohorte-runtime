@@ -86,6 +86,13 @@ public class FallBack extends CPojoBase implements IComponent {
         }
 
         if (useFallback) {
+
+            // Reset context
+            result.getErrors().clear();
+            result.getResults().clear();
+
+            pLogger.logWarn(this, "fallback.computeResult", "Using fall-back");
+
             // Something went wrong, call the other guy
             result = pFallback.computeResult(aContext);
         }

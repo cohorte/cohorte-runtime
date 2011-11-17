@@ -266,7 +266,7 @@
                             "isolate":"isolate-cache",
                             "properties":{
                                 "cacheChannel":"cache-getItemsStock",
-                                "requestKeyName":"itemIds"
+                                "requestKeyName":"itemId"
                             }
                         }
                     ]
@@ -280,7 +280,7 @@
                             "isolate":"isolate-cache",
                             "properties":{
                                 "cacheChannel":"cache-getItemsStock",
-                                "requestKeyName":"itemIds",
+                                "requestKeyName":"itemId",
                                 "maxCacheAge":1000
                             },
                             "wires":{
@@ -292,7 +292,8 @@
                             "type":"store-cache",
                             "isolate":"isolate-cache",
                             "properties":{
-                                "cacheChannel":"cache-getItemsStock"
+                                "cacheChannel":"cache-getItemsStock",
+                                "resultKeyName":"id"
                             },
                             "wires":{
                                 "next":"safeErpCaller"

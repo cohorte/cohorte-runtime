@@ -16,9 +16,11 @@ package org.psem2m.demo.data.cache;
 public interface ICachedObject<T> {
 
     /**
-     * Retrieves the age of the cached object
+     * Retrieves the date of insertion of the cached object, i.e. the
+     * {@link System#currentTimeMillis()} value at the time of its insertion in
+     * the cache (in milliseconds).
      * 
-     * @return the age of the cached object
+     * @return the age of the cached object (in milliseconds)
      */
     long getCacheAge();
 
@@ -28,6 +30,19 @@ public interface ICachedObject<T> {
      * @return the cached object
      */
     T getObject();
+
+    /**
+     * Tests if this object has an acceptable age, according to the given
+     * maximum age.
+     * 
+     * Comparison is done with (System.currentTimeMillis() - getCacheAge()) &lt;
+     * aMaxAge.
+     * 
+     * @param aMaxAge
+     *            A maximum cache age (in milliseconds)
+     * @return True if the object is still acceptable
+     */
+    boolean isAcceptable(long aMaxAge);
 
     /**
      * Resets the cached object age

@@ -1,5 +1,7 @@
 package org.psem2m.utilities.logging;
 
+import java.util.Arrays;
+
 /**
  * 
  * Builds the text of a log line with an array of objects. <ul> <li>converts
@@ -63,6 +65,8 @@ public class CLogLineTextBuilder {
                 aObjects[wI] = CLogTools.LIB_NULL;
             } else if (wObj instanceof Throwable) {
                 aObjects[wI] = pToolsException.eInString((Throwable) wObj);
+            } else if (aObjects[wI].getClass().isArray()) {
+                aObjects[wI] = Arrays.toString((Object[]) wObj);
             }
         }
 
@@ -82,7 +86,7 @@ public class CLogLineTextBuilder {
         boolean wIsId = false;
         boolean wIsValue = false;
         String wStr;
-        int wMax = aObjects.length;
+        final int wMax = aObjects.length;
         for (int wI = 0; wI < wMax; wI++) {
             wIsValue = wIsId;
             wStr = String.valueOf(aObjects[wI]);
@@ -113,7 +117,7 @@ public class CLogLineTextBuilder {
      */
     public String formatLogLine(final Object... aObjects) {
 
-        StringBuilder wSB = new StringBuilder(128);
+        final StringBuilder wSB = new StringBuilder(128);
         addTextsInLogLine(wSB, aObjects);
         return wSB.toString();
     }

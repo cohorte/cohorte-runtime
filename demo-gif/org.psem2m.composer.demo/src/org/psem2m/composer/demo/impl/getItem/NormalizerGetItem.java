@@ -19,7 +19,7 @@ import org.osgi.framework.BundleException;
 import org.psem2m.composer.demo.DemoComponentsConstants;
 import org.psem2m.composer.test.api.IComponent;
 import org.psem2m.composer.test.api.IComponentContext;
-import org.psem2m.demo.data.cache.ICachedObject;
+import org.psem2m.demo.erp.api.beans.IQualityLevels;
 import org.psem2m.demo.erp.api.beans.QualityUtilities;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
@@ -32,6 +32,10 @@ import org.psem2m.isolates.base.activators.CPojoBase;
 @Component(name = DemoComponentsConstants.COMPONENT_NORMALIZER_GETITEM)
 @Provides(specifications = IComponent.class)
 public class NormalizerGetItem extends CPojoBase implements IComponent {
+
+    /** The key used in the result map to store the cache age */
+    @Property(name = "cacheAgeEntry")
+    private String pCacheAgeEntry = "__cache_age";
 
     /** Result keys translation map */
     private final Map<String, String> pKeyTranslationMap = new HashMap<String, String>();
@@ -73,51 +77,75 @@ public class NormalizerGetItem extends CPojoBase implements IComponent {
 
         final Map<String, Object> result = aContext.getResults().get(0);
 
+        /*
+         * Do this before the copy loop, to avoid keeping an internal value in
+         * the result
+         */
+        final int qualityLevel = extractCacheQualityLevel(result);
+
         // Result is a map, return it
         final Map<String, Object> itemMap = new HashMap<String, Object>();
-        long minAge = Integer.MAX_VALUE;
-
         for (final Entry<String, Object> entry : result.entrySet()) {
 
             final String key = entry.getKey();
             final Object entryValue = entry.getValue();
-            final Object storedObject;
-
-            if (entryValue instanceof ICachedObject) {
-
-                final ICachedObject<?> cachedObject = (ICachedObject<?>) entryValue;
-
-                // Compute minimum age
-                if (minAge > cachedObject.getCacheAge()) {
-                    minAge = cachedObject.getCacheAge();
-                }
-
-                storedObject = cachedObject.getObject();
-
-            } else {
-                // Raw storage...
-                storedObject = entryValue;
-            }
 
             // Translate the key, if needed
             final String translatedKey = pKeyTranslationMap.get(key);
             if (translatedKey == null) {
                 // No translation for this key
-                itemMap.put(key, storedObject);
+                itemMap.put(key, entryValue);
 
             } else if (!translatedKey.isEmpty()) {
                 // Not empty new key name : store it with a new name
-                itemMap.put(translatedKey, storedObject);
+                itemMap.put(translatedKey, entryValue);
             }
             // Empty translation = ignore the key
         }
 
-        // Get the worst quality level of the overall values
-        itemMap.put("qualityLevel",
-                QualityUtilities.computeCacheQuality(minAge));
+        // Set the quality level at last, to avoid to be erased by the map
+        // content
+        itemMap.put("qualityLevel", qualityLevel);
 
         aContext.setResult(itemMap);
         return aContext;
+    }
+
+    /**
+     * Extracts and removes the cache age entry in the given map and returns the
+     * corresponding quality level
+     * 
+     * @param aMap
+     *            Map to use
+     * @return The data quality level, {@link IQualityLevels#CACHE_LEVEL_SYNC}
+     *         by default
+     */
+    protected int extractCacheQualityLevel(final Map<String, Object> aMap) {
+
+        if (!aMap.containsKey(pCacheAgeEntry)) {
+            // Key missing : SYNC
+            return IQualityLevels.CACHE_LEVEL_SYNC;
+        }
+
+        // Get the cache age, if any ...
+        final Number cacheAge = (Number) aMap.get(pCacheAgeEntry);
+        final int qualityLevel;
+        if (cacheAge == null || cacheAge.longValue() <= 0) {
+
+            // Quality level 0, negative = SYNC
+            qualityLevel = IQualityLevels.CACHE_LEVEL_SYNC;
+
+        } else {
+
+            // Compute the quality according to the indicated age
+            qualityLevel = QualityUtilities.computeCacheQuality(cacheAge
+                    .longValue());
+        }
+
+        // ... then remove it
+        aMap.remove(pCacheAgeEntry);
+
+        return qualityLevel;
     }
 
     /*

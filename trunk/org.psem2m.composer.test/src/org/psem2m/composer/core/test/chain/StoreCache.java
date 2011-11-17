@@ -6,6 +6,9 @@
 package org.psem2m.composer.core.test.chain;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -32,6 +35,9 @@ import org.psem2m.isolates.base.activators.CPojoBase;
 @Component(name = "store-cache")
 @Provides(specifications = IComponent.class)
 public class StoreCache extends CPojoBase implements IComponent {
+
+    /** Utility cache methods */
+    private CacheCommons pCacheCommons;
 
     /** The channel factory service */
     @Requires
@@ -88,7 +94,9 @@ public class StoreCache extends CPojoBase implements IComponent {
         final IComponentContext result = pNext.computeResult(aContext);
 
         // Open the store channel
-        final ICacheChannel<Serializable, Serializable> channel = getChannel();
+        final ICacheChannel<Serializable, Serializable> channel = pCacheCommons
+                .getChannel(pChannelFactory, pChannelName, pChannelType);
+
         if (channel == null) {
             result.addError(pName, "Can't open channel : " + pChannelName);
             return result;
@@ -110,7 +118,13 @@ public class StoreCache extends CPojoBase implements IComponent {
         }
 
         /* Store the data */
-        final Serializable objectToStore = (Serializable) foundObject;
+        Serializable objectToStore = (Serializable) foundObject;
+
+        if (objectToStore.getClass().isArray()) {
+            // Make arrays iterable
+            objectToStore = (Serializable) Arrays
+                    .asList((Object[]) objectToStore);
+        }
 
         if (objectToStore instanceof Map) {
             // Special case : the object to be stored is a map
@@ -129,8 +143,15 @@ public class StoreCache extends CPojoBase implements IComponent {
                 if (subObjectToStore instanceof Map) {
                     // Store sub maps
                     final Map<String, Object> mapToStore = (Map<String, Object>) subObjectToStore;
+
                     storeMap(channel, mapToStore);
                     result.addResult(mapToStore);
+
+                } else {
+                    // Not what we were waiting for...
+                    pLogger.logInfo(this, "computeResult", "Not a map :",
+                            subObjectToStore);
+                    result.addError(pName, "Not a map : " + subObjectToStore);
                 }
             }
 
@@ -140,36 +161,10 @@ public class StoreCache extends CPojoBase implements IComponent {
                     + objectToStore);
         }
 
+        // Flush the cache
+        pChannelFactory.flush();
+
         return result;
-    }
-
-    /**
-     * Retrieves the channel described by {@link #pChannelName}
-     * 
-     * @return The cache channel to use, null if not yet opened
-     */
-    protected ICacheChannel<Serializable, Serializable> getChannel() {
-
-        // Detect the channel type
-        final boolean isMapChannel = pChannelType == null
-                || pChannelType.isEmpty()
-                || pChannelType.equalsIgnoreCase(CHANNEL_TYPE_MAP);
-
-        try {
-            if (isMapChannel) {
-                // Standard mapped channel
-                return pChannelFactory.openChannel(pChannelName);
-            }
-
-            // The channel is queued one
-            return pChannelFactory.openDequeueChannel(pChannelName);
-
-        } catch (final Exception e) {
-            pLogger.logWarn(this, "getChannel", "Error openning channel",
-                    pChannelName, e);
-        }
-
-        return null;
     }
 
     /**
@@ -183,11 +178,22 @@ public class StoreCache extends CPojoBase implements IComponent {
 
         if (!aContext.hasResult()) {
             // No result : nothing to store
+            pLogger.logInfo(this, "getObjectToStore", "No result to store");
             return null;
         }
 
-        // Data result value
+        if (aContext.getResults().size() > 1) {
+            // More than one item, return a copy the complete list
+            pLogger.logInfo(this, "getObjectToStore",
+                    "Multiple results to store :", aContext.getResults().size());
+
+            return new ArrayList<Map<String, Object>>(aContext.getResults());
+        }
+
+        // One result value
         final Map<String, Object> dataResult = aContext.getResults().get(0);
+
+        pLogger.logInfo(this, "getObjectToStore", "Only one result to store");
 
         if (pStoredKey != null) {
             // A stored key is given, try to find the corresponding value
@@ -199,8 +205,8 @@ public class StoreCache extends CPojoBase implements IComponent {
             }
         }
 
-        // No key given, store the complete result
-        return dataResult;
+        // No key given, store a copy of the complete result
+        return new HashMap<String, Object>(dataResult);
     }
 
     /*
@@ -211,6 +217,8 @@ public class StoreCache extends CPojoBase implements IComponent {
     @Override
     @Invalidate
     public void invalidatePojo() throws BundleException {
+
+        pCacheCommons = null;
 
         pLogger.logInfo(this, "invalidatePojo", "Component '" + pName
                 + "' Gone");
@@ -238,14 +246,21 @@ public class StoreCache extends CPojoBase implements IComponent {
                         "not found in ", aMapToStore);
             }
 
+            pLogger.logInfo(this, "STORE", "-----");
             // No entry name, store the map as is
             for (final Entry<String, Object> entry : aMapToStore.entrySet()) {
                 aChannel.put(entry.getKey(), (Serializable) entry.getValue());
+                pLogger.logInfo(this, "STORE", entry.getKey(), "=>",
+                        entry.getValue());
             }
+            pLogger.logInfo(this, "STORE", "-----");
 
         } else {
-            // We have a key to store the whole map
-            aChannel.put((Serializable) storeKey, (Serializable) aMapToStore);
+            // We have a key to store a copy of the whole map
+
+            final Map<String, Object> storedMap = new HashMap<String, Object>(
+                    aMapToStore);
+            aChannel.put((Serializable) storeKey, (Serializable) storedMap);
         }
     }
 
@@ -257,6 +272,9 @@ public class StoreCache extends CPojoBase implements IComponent {
     @Override
     @Validate
     public void validatePojo() throws BundleException {
+
+        // Set up the utility instance
+        pCacheCommons = new CacheCommons(pName);
 
         pLogger.logInfo(this, "validatePojo", "Component '" + pName + "' Ready");
     }

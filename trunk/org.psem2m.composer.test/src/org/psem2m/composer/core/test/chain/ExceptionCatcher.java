@@ -64,6 +64,8 @@ public class ExceptionCatcher extends CPojoBase implements IComponent {
 
         } catch (final Throwable th) {
 
+            pLogger.logDebug(this, pName, "Exception caught :", th);
+
             // Store the String
             aContext.addError(pName, "Exception caught", th);
         }

@@ -168,7 +168,7 @@ public class ServerExported extends CPojoBase implements IErpData {
      * @see org.psem2m.composer.demo.IErpData#getItemsStock(java.lang.String[])
      */
     @Override
-    public Map<String, Object> getItemsStock(final String[] aItemIds) {
+    public List<Map<String, Object>> getItemsStock(final String[] aItemIds) {
 
         try {
             // Prepare the key list of key maps
@@ -176,7 +176,7 @@ public class ServerExported extends CPojoBase implements IErpData {
 
             // Prepare the key maps
             Map<String, Object> wKeyMap;
-            for (String wItemId : aItemIds) {
+            for (final String wItemId : aItemIds) {
                 wKeyMap = new HashMap<String, Object>();
                 wKeyMap.put("itemId", wItemId);
                 wKeyList.add(wKeyMap);
@@ -190,8 +190,7 @@ public class ServerExported extends CPojoBase implements IErpData {
             final ComponentContextBean context = new ComponentContextBean();
             context.setRequest(requestMap);
 
-            return pChainGetItemsStock.computeResult(context).getResults()
-                    .get(0);
+            return pChainGetItemsStock.computeResult(context).getResults();
 
         } catch (final Exception ex) {
 
@@ -200,7 +199,9 @@ public class ServerExported extends CPojoBase implements IErpData {
                     "Error treating an getItemsStock request.", ex);
 
             // Return an error map
-            return makeErrorMap(ex);
+            final List<Map<String, Object>> errorList = new ArrayList<Map<String, Object>>();
+            errorList.add(makeErrorMap(ex));
+            return errorList;
         }
     }
 

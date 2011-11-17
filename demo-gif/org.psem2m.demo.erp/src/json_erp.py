@@ -71,13 +71,17 @@ class ErpProxy(object):
         """
         Calls erp.get_item_stock, for each given item
         """
-        result = {}
+        result = []
 
         # Virtual method, call the ERP for each item
         for item_id in items_ids:
             stock = self.erp.get_item_stock(item_id)
             if stock is not None:
-                result[item_id] = stock
+                item_result = {}
+                item_result["id"] = item_id
+                item_result["stock"] = stock
+
+                result.append(item_result)
 
         return self.result_to_jabsorb(result)
 
