@@ -102,73 +102,56 @@ public class GetCacheIfRecent extends CPojoBase implements IComponent {
      * org.psem2m.composer.test.api.IComponent#computeResult(org.psem2m.composer
      * .test.api.IComponentContext)
      */
-    @SuppressWarnings("unchecked")
     @Override
     public IComponentContext computeResult(final IComponentContext aContext)
             throws Exception {
 
+        // Just to be sure...
+        aContext.getResults().clear();
+
         /* Try with the cache... */
-        final Object cacheResult = tryUsingCache(aContext.getRequest());
+        boolean useCache = true;
+        Object cacheResult = findInCache(aContext.getRequest());
+
+        if (cacheResult != null && cacheResult.getClass().isArray()) {
+            // Convert arrays into iterable
+            cacheResult = Arrays.asList((Object[]) cacheResult);
+        }
+
         if (cacheResult instanceof ICachedObject) {
-            // Cache result has been found
-            aContext.getResults().clear();
+            // A single cache result has been found
+            handleFoundCachedObject(aContext, (ICachedObject<?>) cacheResult);
 
-            final ICachedObject<?> cachedObject = (ICachedObject<?>) cacheResult;
-            final Object cacheResultContent = cachedObject.getObject();
-            final long cacheAge = cachedObject.getCacheAge();
+        } else if (cacheResult instanceof Iterable) {
+            // Multiple data found
 
-            if (cacheResultContent instanceof Map) {
-                // Handle a single element
-                final Map<String, Object> preparedMap = handleCachedMap(
-                        (Map<String, Object>) cacheResultContent, cacheAge);
+            for (final Object cacheResultElement : (Iterable<?>) cacheResult) {
 
-                aContext.setResult(preparedMap);
+                if (cacheResultElement instanceof ICachedObject) {
+                    handleFoundCachedObject(aContext,
+                            (ICachedObject<?>) cacheResultElement);
 
-            } else if (cacheResultContent instanceof Iterable) {
-                // Handle a list of elements
+                } else {
+                    pLogger.logInfo(this, "computeResult",
+                            "Unknown element in cache :", cacheResultElement);
 
-                for (final Object cacheResultElement : (Iterable<?>) cacheResultContent) {
-
-                    if (cacheResultElement instanceof Map) {
-                        // List of map
-                        final Map<String, Object> preparedMap = handleCachedMap(
-                                (Map<String, Object>) cacheResultElement,
-                                cacheAge);
-
-                        aContext.addResult(preparedMap);
-
-                    } else {
-                        pLogger.logInfo(this, "computeResult",
-                                "Don't know how to handle sub-result",
-                                cacheResultElement);
-
-                        aContext.addError(pName,
-                                "Don't know how to handle sub-result"
-                                        + cacheResultElement);
-                    }
+                    // An error occurred, do not use the cache
+                    useCache = false;
                 }
-
-            } else {
-                pLogger.logInfo(this, "computeResult",
-                        "Don't know how to handle cache result", cacheResult);
-
-                aContext.addError(pName,
-                        "Don't know how to handle cache result" + cacheResult);
             }
+        }
 
-            if (aContext.hasResult()) {
-                // We have something to return...
-                return aContext;
-
-            } else {
-                pLogger.logInfo(this, "computeResult",
-                        "Cache failed to return a valid result.");
-            }
+        if (useCache && aContext.hasResult()) {
+            // We have something to return...
+            return aContext;
         }
 
         /* Call to the next component is needed */
         pLogger.logInfo(this, "get-cache-if-recent",
-                "Cache too old, calling ERP");
+                "Cache failed to return a valid or a recent value, calling ERP");
+
+        // IMPORTANT: Reset the context result
+        aContext.getResults().clear();
 
         // Not stored or too old data, call the next component
         final IComponentContext result = pNext.computeResult(aContext);
@@ -182,6 +165,80 @@ public class GetCacheIfRecent extends CPojoBase implements IComponent {
         }
 
         return result;
+    }
+
+    /**
+     * Tries to find a valid value in the cache
+     * 
+     * @param aRequestData
+     *            The treatment request data
+     * @return The cached object, an array of cached object or null if it's too
+     *         old or not found
+     */
+    protected Object findInCache(final Map<String, Object> aRequest) {
+
+        // Get the channel
+        final ICacheChannel<Serializable, Serializable> channel = getChannel();
+        if (channel == null) {
+            // Channel not found...
+            pLogger.logWarn(this, "findInCache", pName, ": Channel not found ",
+                    pChannelName);
+            return null;
+        }
+
+        // Looking for a single element
+        if (aRequest.containsKey(IComponentContext.REQUEST_KEY)) {
+
+            // Get the object from the cache, if possible
+            final Object fromCache = getFromCache(channel,
+                    aRequest.get(IComponentContext.REQUEST_KEY));
+
+            pLogger.logInfo(this, "findInCache - KEY", "fromCache=", fromCache,
+                    "; key =", aRequest.get(IComponentContext.REQUEST_KEY));
+
+            return fromCache;
+
+        } else if (aRequest.containsKey(IComponentContext.REQUEST_KEYS)) {
+            // Treat each keys
+            Object keys = aRequest.get(IComponentContext.REQUEST_KEYS);
+
+            if (keys != null && keys.getClass().isArray()) {
+                // Convert arrays to list
+                keys = Arrays.asList((Object[]) keys);
+            }
+
+            if (keys instanceof Iterable) {
+                // Iterable keys
+                final List<Object> resultList = new ArrayList<Object>();
+
+                for (final Object key : (Iterable<?>) keys) {
+
+                    final Object fromCache = getFromCache(channel, key);
+
+                    pLogger.logInfo(this, "findInCache - KEYS", "fromCache=",
+                            fromCache, "; key =", key);
+
+                    if (fromCache == null) {
+                        // Object missing or too old
+                        return null;
+                    }
+
+                    // Add found object to the result list
+                    resultList.add(fromCache);
+                }
+
+                if (resultList.isEmpty()) {
+                    // Refuse empty lists
+                    return null;
+                }
+
+                return resultList;
+            }
+        }
+
+        pLogger.logWarn(this, "findInCache", pName,
+                "can't handle the request with keys=", aRequest.keySet());
+        return null;
     }
 
     /**
@@ -285,6 +342,58 @@ public class GetCacheIfRecent extends CPojoBase implements IComponent {
         return resultMap;
     }
 
+    @SuppressWarnings("unchecked")
+    protected void handleFoundCachedObject(final IComponentContext aContext,
+            final ICachedObject<?> aCachedObject) {
+
+        Object cacheResultContent = aCachedObject.getObject();
+        final long cacheAge = aCachedObject.getCacheAge();
+
+        if (cacheResultContent != null
+                && cacheResultContent.getClass().isArray()) {
+            // Make arrays iterable...
+            cacheResultContent = Arrays.asList((Object[]) cacheResultContent);
+        }
+
+        if (cacheResultContent instanceof Map) {
+            // Handle a single element
+            final Map<String, Object> preparedMap = handleCachedMap(
+                    (Map<String, Object>) cacheResultContent, cacheAge);
+
+            aContext.addResult(preparedMap);
+
+        } else if (cacheResultContent instanceof Iterable) {
+            // Handle a list of elements
+
+            for (final Object cacheResultElement : (Iterable<?>) cacheResultContent) {
+
+                if (cacheResultElement instanceof Map) {
+                    // List of map
+                    final Map<String, Object> preparedMap = handleCachedMap(
+                            (Map<String, Object>) cacheResultElement, cacheAge);
+
+                    aContext.addResult(preparedMap);
+
+                } else {
+                    pLogger.logInfo(this, "computeResult",
+                            "Don't know how to handle sub-result",
+                            cacheResultElement);
+
+                    aContext.addError(pName,
+                            "Don't know how to handle sub-result"
+                                    + cacheResultElement);
+                }
+            }
+
+        } else {
+            pLogger.logInfo(this, "computeResult",
+                    "Don't know how to handle cache result", cacheResultContent);
+
+            aContext.addError(pName, "Don't know how to handle cache result"
+                    + cacheResultContent);
+        }
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -296,80 +405,6 @@ public class GetCacheIfRecent extends CPojoBase implements IComponent {
 
         pLogger.logInfo(this, "invalidatePojo", "Component '" + pName
                 + "' Gone");
-    }
-
-    /**
-     * Tries to find a valid value in the cache
-     * 
-     * @param aRequestData
-     *            The treatment request data
-     * @return The cached object, null if it's too old or not found
-     */
-    protected Object tryUsingCache(final Map<String, Object> aRequest) {
-
-        // Get the channel
-        final ICacheChannel<Serializable, Serializable> channel = getChannel();
-        if (channel == null) {
-            // Channel not found...
-            pLogger.logWarn(this, "tryUsingCache", pName,
-                    ": Channel not found ", pChannelName);
-            return null;
-        }
-
-        // Looking for a single element
-        if (aRequest.containsKey(IComponentContext.REQUEST_KEY)) {
-
-            // Get the object from the cache, if possible
-            final Object fromCache = getFromCache(channel,
-                    aRequest.get(IComponentContext.REQUEST_KEY));
-
-            pLogger.logInfo(this, "tryUsingCache - KEY", "fromCache=",
-                    fromCache, "; key =",
-                    aRequest.get(IComponentContext.REQUEST_KEY));
-
-            return fromCache;
-
-        } else if (aRequest.containsKey(IComponentContext.REQUEST_KEYS)) {
-            // Treat each keys
-            Object keys = aRequest.get(IComponentContext.REQUEST_KEYS);
-
-            if (keys != null && keys.getClass().isArray()) {
-                // Convert arrays to list
-                keys = Arrays.asList((Object[]) keys);
-            }
-
-            if (keys instanceof Iterable) {
-                // Iterable keys
-                final List<Object> resultList = new ArrayList<Object>();
-
-                for (final Object key : (Iterable<?>) keys) {
-
-                    final Object fromCache = getFromCache(channel, key);
-
-                    pLogger.logInfo(this, "tryUsingCache - KEY", "fromCache=",
-                            fromCache, "; key =", key);
-
-                    if (fromCache == null) {
-                        // Object missing or too old
-                        return null;
-                    }
-
-                    // Add found object to the result list
-                    resultList.add(fromCache);
-                }
-
-                if (resultList.isEmpty()) {
-                    // Refuse empty lists
-                    return null;
-                }
-
-                return resultList;
-            }
-        }
-
-        pLogger.logWarn(this, "tryUsingCache", pName,
-                "can't handle the request with keys=", aRequest.keySet());
-        return null;
     }
 
     /*
