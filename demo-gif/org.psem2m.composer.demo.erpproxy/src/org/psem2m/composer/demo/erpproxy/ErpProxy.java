@@ -169,11 +169,12 @@ public class ErpProxy extends CPojoBase implements IComponent {
         }
 
         // Call the ERP
-        final Map<String, Object> result = pProxy.getItems(category,
+        final List<Map<String, Object>> result = pProxy.getItems(category,
                 itemsCount, randomize, baseId);
 
         // Store the result
-        aContext.setResult(result);
+        aContext.getResults().clear();
+        aContext.getResults().addAll(result);
     }
 
     /**
