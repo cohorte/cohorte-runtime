@@ -100,6 +100,12 @@ public class GetCacheQuery extends CPojoBase implements IComponent {
 
         /* Get the cached query result */
         final ICachedObject<?> cachedIds = queryChannel.get(queryKey);
+        if (cachedIds == null) {
+            // Nothing in cache
+            aContext.addError(pName, "Nothing in cache for " + queryKey);
+            return aContext;
+        }
+
         final List<String> itemsIds = (List<String>) cachedIds.getObject();
 
         /* Grab all possible beans */
