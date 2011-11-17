@@ -142,7 +142,7 @@
                     "name":"fallbackOnCache",
                     "type":"fall-back",
                     "wires":{
-                        "next":"erpChain.getCacheFirst",
+                        "next":"erpChain.storeErpResult",
                         "second":"fallback.getCache"
                     }
                 }
@@ -153,11 +153,11 @@
                     "components":[
                         {
                             "name":"getCache",
-                            "type":"get-cache",
+                            "type":"get-cache-query",
                             "isolate":"isolate-cache",
                             "properties":{
-                                "cacheChannel":"cache-getItems",
-                                "channelEntryName":"ids"
+                                "queryChannelName":"cache-getItems",
+                                "itemsChannelName":"cache-getItem"
                             }
                         }
                     ]
@@ -166,25 +166,13 @@
                     "name":"erpChain",
                     "components":[
                         {
-                            "name":"getCacheFirst",
-                            "type":"get-cache-if-recent",
-                            "isolate":"isolate-cache",
-                            "properties":{
-                                "cacheChannel":"cache-getItems",
-                                "channelEntryName":"ids",
-                                "maxCacheAge":1000
-                            },
-                            "wires":{
-                                "next":"storeErpResult"
-                            }
-                        },
-                        {
                             "name":"storeErpResult",
-                            "type":"store-cache",
+                            "type":"store-cache-query",
                             "isolate":"isolate-cache",
                             "properties":{
-                                "cacheChannel":"cache-getItems",
-                                "channelEntryName":"ids"
+                                "queryChannelName":"cache-getItems",
+                                "itemsChannelName":"cache-getItem",
+                                "itemsIdKey":"id"
                             },
                             "wires":{
                                 "next":"safeErpCaller"
