@@ -170,6 +170,18 @@ public class ComponentContextBean implements IComponentContext {
     }
 
     /**
+     * @param aErrors
+     *            the errors to set
+     */
+    public void setErrors(final List<String> aErrors) {
+
+        pErrors.clear();
+        if (aErrors != null) {
+            pErrors.addAll(aErrors);
+        }
+    }
+
+    /**
      * @param aMetadata
      *            the metadata to set
      */
