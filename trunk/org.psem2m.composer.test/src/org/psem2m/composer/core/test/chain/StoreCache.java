@@ -6,6 +6,7 @@
 package org.psem2m.composer.core.test.chain;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -206,10 +207,11 @@ public class StoreCache extends CPojoBase implements IComponent {
         }
 
         if (aContext.getResults().size() > 1) {
-            // More than one item, return the complete list
+            // More than one item, return a copy the complete list
             pLogger.logInfo(this, "getObjectToStore",
                     "Multiple results to store :", aContext.getResults().size());
-            return aContext.getResults();
+
+            return new ArrayList<Map<String, Object>>(aContext.getResults());
         }
 
         // One result value
@@ -227,8 +229,8 @@ public class StoreCache extends CPojoBase implements IComponent {
             }
         }
 
-        // No key given, store the complete result
-        return dataResult;
+        // No key given, store a copy of the complete result
+        return new HashMap<String, Object>(dataResult);
     }
 
     /*
