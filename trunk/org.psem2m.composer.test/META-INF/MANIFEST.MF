@@ -116,31 +116,75 @@ iPOJO-Components: component { $classname="org.psem2m.composer.core.tes
  Cache" $return="boolean" $arguments="{org.psem2m.composer.test.api.IC
  omponentContext,org.psem2m.demo.data.cache.ICacheChannel}" }method { 
  $name="invalidatePojo" }method { $name="validatePojo" }}}component { 
- $classname="org.psem2m.composer.core.test.chain.StoreCache" $name="st
- ore-cache" $public="true" provides { $specifications="{org.psem2m.com
- poser.test.api.IComponent}" }requires { $field="pChannelFactory" }req
- uires { $field="pLogger" }requires { $field="pNext" $id="next" }prope
- rties { property { $name="cacheChannel" $field="pChannelName" }proper
- ty { $name="cacheChannelType" $field="pChannelType" }property { $name
- ="resultKeyName" $field="pEntryName" }property { $name="instance.name
- " $field="pName" }property { $name="storedDataKey" $field="pStoredKey
- " }}callback { $transition="invalidate" $method="invalidatePojo" }cal
- lback { $transition="validate" $method="validatePojo" }manipulation {
-  $super="org.psem2m.isolates.base.activators.CPojoBase" interface { $
- name="org.psem2m.composer.test.api.IComponent" }field { $name="pCache
- Commons" $type="org.psem2m.composer.core.test.chain.CacheCommons" }fi
- eld { $name="pChannelFactory" $type="org.psem2m.demo.data.cache.ICach
- eFactory" }field { $name="pChannelName" $type="java.lang.String" }fie
- ld { $name="pChannelType" $type="java.lang.String" }field { $name="pE
- ntryName" $type="java.lang.String" }field { $name="pLogger" $type="or
- g.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pName" $typ
- e="java.lang.String" }field { $name="pNext" $type="org.psem2m.compose
- r.test.api.IComponent" }field { $name="pStoredKey" $type="java.lang.S
- tring" }method { $name="computeResult" $return="org.psem2m.composer.t
- est.api.IComponentContext" $arguments="{org.psem2m.composer.test.api.
- IComponentContext}" }method { $name="getObjectToStore" $return="java.
- lang.Object" $arguments="{org.psem2m.composer.test.api.IComponentCont
- ext}" }method { $name="invalidatePojo" }method { $name="storeMap" $ar
- guments="{org.psem2m.demo.data.cache.ICacheChannel,java.util.Map}" }m
- ethod { $name="validatePojo" }}}
+ $classname="org.psem2m.composer.core.test.chain.GetCacheQuery" $name=
+ "get-cache-query" $public="true" provides { $specifications="{org.pse
+ m2m.composer.test.api.IComponent}" }properties { property { $name="ca
+ cheAgeEntry" $field="pCacheAgeEntry" }property { $name="itemsChannelN
+ ame" $field="pItemsChannelName" }property { $name="instance.name" $fi
+ eld="pName" }property { $name="queryChannelName" $field="pQueryResult
+ ChannelName" }}requires { $field="pChannelFactory" }requires { $field
+ ="pLogger" }callback { $transition="invalidate" $method="invalidatePo
+ jo" }callback { $transition="validate" $method="validatePojo" }manipu
+ lation { $super="org.psem2m.isolates.base.activators.CPojoBase" inter
+ face { $name="org.psem2m.composer.test.api.IComponent" }field { $name
+ ="pCacheAgeEntry" $type="java.lang.String" }field { $name="pCacheComm
+ ons" $type="org.psem2m.composer.core.test.chain.CacheCommons" }field 
+ { $name="pChannelFactory" $type="org.psem2m.demo.data.cache.ICacheFac
+ tory" }field { $name="pItemsChannelName" $type="java.lang.String" }fi
+ eld { $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerS
+ vc" }field { $name="pName" $type="java.lang.String" }field { $name="p
+ QueryResultChannelName" $type="java.lang.String" }method { $name="com
+ puteResult" $return="org.psem2m.composer.test.api.IComponentContext" 
+ $arguments="{org.psem2m.composer.test.api.IComponentContext}" }method
+  { $name="invalidatePojo" }method { $name="validatePojo" }}}component
+  { $classname="org.psem2m.composer.core.test.chain.StoreCache" $name=
+ "store-cache" $public="true" provides { $specifications="{org.psem2m.
+ composer.test.api.IComponent}" }requires { $field="pChannelFactory" }
+ requires { $field="pLogger" }requires { $field="pNext" $id="next" }pr
+ operties { property { $name="cacheChannel" $field="pChannelName" }pro
+ perty { $name="cacheChannelType" $field="pChannelType" }property { $n
+ ame="resultKeyName" $field="pEntryName" }property { $name="instance.n
+ ame" $field="pName" }property { $name="storedDataKey" $field="pStored
+ Key" }}callback { $transition="invalidate" $method="invalidatePojo" }
+ callback { $transition="validate" $method="validatePojo" }manipulatio
+ n { $super="org.psem2m.isolates.base.activators.CPojoBase" interface 
+ { $name="org.psem2m.composer.test.api.IComponent" }field { $name="pCa
+ cheCommons" $type="org.psem2m.composer.core.test.chain.CacheCommons" 
+ }field { $name="pChannelFactory" $type="org.psem2m.demo.data.cache.IC
+ acheFactory" }field { $name="pChannelName" $type="java.lang.String" }
+ field { $name="pChannelType" $type="java.lang.String" }field { $name=
+ "pEntryName" $type="java.lang.String" }field { $name="pLogger" $type=
+ "org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pName" $
+ type="java.lang.String" }field { $name="pNext" $type="org.psem2m.comp
+ oser.test.api.IComponent" }field { $name="pStoredKey" $type="java.lan
+ g.String" }method { $name="computeResult" $return="org.psem2m.compose
+ r.test.api.IComponentContext" $arguments="{org.psem2m.composer.test.a
+ pi.IComponentContext}" }method { $name="getObjectToStore" $return="ja
+ va.lang.Object" $arguments="{org.psem2m.composer.test.api.IComponentC
+ ontext}" }method { $name="invalidatePojo" }method { $name="storeMap" 
+ $arguments="{org.psem2m.demo.data.cache.ICacheChannel,java.util.Map}"
+  }method { $name="validatePojo" }}}component { $classname="org.psem2m
+ .composer.core.test.chain.StoreCacheQuery" $name="store-cache-query" 
+ $public="true" provides { $specifications="{org.psem2m.composer.test.
+ api.IComponent}" }requires { $field="pChannelFactory" }requires { $fi
+ eld="pLogger" }requires { $field="pNext" $id="next" }properties { pro
+ perty { $name="itemsChannelName" $field="pItemsChannelName" }property
+  { $name="instance.name" $field="pName" }property { $name="queryChann
+ elName" $field="pQueryResultChannelName" }property { $name="itemsIdKe
+ y" $field="pResultItemIdKey" }}callback { $transition="invalidate" $m
+ ethod="invalidatePojo" }callback { $transition="validate" $method="va
+ lidatePojo" }manipulation { $super="org.psem2m.isolates.base.activato
+ rs.CPojoBase" interface { $name="org.psem2m.composer.test.api.ICompon
+ ent" }field { $name="pCacheCommons" $type="org.psem2m.composer.core.t
+ est.chain.CacheCommons" }field { $name="pChannelFactory" $type="org.p
+ sem2m.demo.data.cache.ICacheFactory" }field { $name="pItemsChannelNam
+ e" $type="java.lang.String" }field { $name="pLogger" $type="org.psem2
+ m.isolates.base.IIsolateLoggerSvc" }field { $name="pName" $type="java
+ .lang.String" }field { $name="pNext" $type="org.psem2m.composer.test.
+ api.IComponent" }field { $name="pQueryResultChannelName" $type="java.
+ lang.String" }field { $name="pResultItemIdKey" $type="java.lang.Strin
+ g" }method { $name="computeResult" $return="org.psem2m.composer.test.
+ api.IComponentContext" $arguments="{org.psem2m.composer.test.api.ICom
+ ponentContext}" }method { $name="invalidatePojo" }method { $name="val
+ idatePojo" }}}
 
