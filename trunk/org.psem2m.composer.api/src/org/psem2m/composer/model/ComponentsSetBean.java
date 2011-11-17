@@ -244,10 +244,11 @@ public class ComponentsSetBean extends AbstractModelBean implements
      * 
      * @return the list of components sets
      */
-    public ComponentsSetBean[] getComponentSets() {
+    public List<ComponentsSetBean> getComponentSets() {
 
-        return pComponentSets.toArray(new ComponentsSetBean[pComponentSets
-                .size()]);
+        return pComponentSets;
+        // return pComponentSets.toArray(new
+        // ComponentsSetBean[pComponentSets.size()]);
     }
 
     /**

@@ -115,6 +115,8 @@ public class JsonComposerConfigReader extends CPojoBase implements
 
         // Parse the configuration
         try {
+            pLogger.logInfo(this, "load", "CompositionFileName=[%s]", aFileName);
+
             final JSONObject configRoot = readJsonObjectFile(aFileName);
             return parseComponentSet(null, configRoot);
 
@@ -145,13 +147,17 @@ public class JsonComposerConfigReader extends CPojoBase implements
     protected ComponentBean parseComponent(final String aParentName,
             final JSONObject aJsonObject) throws JSONException {
 
+        String wComponentName = aJsonObject
+                .getString(IJsonComposerConfigConstants.COMPONENT_NAME);
+
+        pLogger.logInfo(this, "parseComponent", "Name=[%s]", wComponentName);
+
         // Set up the bean
         final ComponentBean resultBean = new ComponentBean();
         resultBean.setParentName(aParentName);
 
         // Get the name
-        resultBean.setName(aJsonObject
-                .getString(IJsonComposerConfigConstants.COMPONENT_NAME));
+        resultBean.setName(wComponentName);
 
         // Get the type
         resultBean.setType(aJsonObject
@@ -232,29 +238,52 @@ public class JsonComposerConfigReader extends CPojoBase implements
      */
     protected ComponentsSetBean parseComponentSet(
             final ComponentsSetBean aParent, final JSONObject aComponentSetNode)
-            throws JSONException {
+            throws JSONException, FileNotFoundException {
 
         // Get the name
         final String compoSetName = aComponentSetNode
                 .getString(IJsonComposerConfigConstants.COMPOSET_NAME);
+
+        pLogger.logInfo(this, "parseComponentSet", "Name=[%s]", compoSetName);
 
         // Prepare the resulting component set
         final ComponentsSetBean resultSet = new ComponentsSetBean();
         resultSet.setName(compoSetName);
         resultSet.setParent(aParent);
 
-        // Get the components
-        final JSONArray components = aComponentSetNode
-                .optJSONArray(IJsonComposerConfigConstants.COMPOSET_COMPONENTS);
-        if (components != null) {
-            resultSet.setComponents(parseComponents(compoSetName, components));
+        // Gets the "from"
+        String wCompoSetFrom = null;
+        if (aComponentSetNode.has(IJsonComposerConfigConstants.COMPOSET_FROM)) {
+            wCompoSetFrom = aComponentSetNode
+                    .getString(IJsonComposerConfigConstants.COMPOSET_FROM);
         }
 
-        // Get the sub-sets
-        final JSONArray subsets = aComponentSetNode
-                .optJSONArray(IJsonComposerConfigConstants.COMPOSET_COMPOSETS);
-        if (subsets != null) {
-            resultSet.setComponentSets(parseComponentSets(resultSet, subsets));
+        if (wCompoSetFrom != null) {
+
+            // Read "distant" composet
+            ComponentsSetBean wComposet = parseComponentSet(aParent,
+                    readJsonObjectFile(wCompoSetFrom));
+
+            resultSet.setComponents(wComposet.getComponents());
+            resultSet.setComponentSets(wComposet.getComponentSets());
+
+        } else {
+
+            // Get the components
+            final JSONArray components = aComponentSetNode
+                    .optJSONArray(IJsonComposerConfigConstants.COMPOSET_COMPONENTS);
+            if (components != null) {
+                resultSet.setComponents(parseComponents(compoSetName,
+                        components));
+            }
+
+            // Get the sub-sets
+            final JSONArray subsets = aComponentSetNode
+                    .optJSONArray(IJsonComposerConfigConstants.COMPOSET_COMPOSETS);
+            if (subsets != null) {
+                resultSet.setComponentSets(parseComponentSets(resultSet,
+                        subsets));
+            }
         }
 
         if (!resultSet.isEmpty()) {
@@ -279,7 +308,7 @@ public class JsonComposerConfigReader extends CPojoBase implements
      */
     protected Collection<ComponentsSetBean> parseComponentSets(
             final ComponentsSetBean aParent, final JSONArray aJsonArray)
-            throws JSONException {
+            throws JSONException, FileNotFoundException {
 
         // Result list
         final List<ComponentsSetBean> resultList = new ArrayList<ComponentsSetBean>();
@@ -330,6 +359,9 @@ public class JsonComposerConfigReader extends CPojoBase implements
 
         // Use the first corresponding file
         confFile = foundFiles[0];
+
+        pLogger.logInfo(this, "readFile", "File=[%s]",
+                confFile.getAbsolutePath());
 
         // Add it to the stack (it will be the next read file)
         pIncludeStack.push(confFile.getAbsoluteFile());

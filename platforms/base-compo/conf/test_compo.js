@@ -353,37 +353,8 @@
             ]
         },
         {
-            "name":"CartsApplier",
-            "components":[
-                {
-                    "name":"scheduler",
-                    "type":"cache-queue-poller",
-                    "isolate":"isolate-cache",
-                    "properties":{
-                        "cacheChannel":"carts"
-                    },
-                    "wires":{
-                        "next":"safeErpCaller"
-                    }
-                },
-                {
-                    "name":"safeErpCaller",
-                    "type":"exception-catcher",
-                    "wires":{
-                        "next":"erpCaller"
-                    }
-                },
-                {
-                    "name":"erpCaller",
-                    "type":"erp-caller",
-                    "properties":{
-                        "method":"applyCart"
-                    },
-                    "wires":{
-                        "next":"erpProxy"
-                    }
-                }
-            ]
+            "name":"CartsApplier2",
+            "from":"test_compo_sub_cart_applier.js"
         }
     ]
 }
