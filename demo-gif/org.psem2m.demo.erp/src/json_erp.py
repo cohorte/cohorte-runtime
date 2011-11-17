@@ -60,11 +60,7 @@ class ErpProxy(object):
         # Call the ERP
         erp_result = self.erp.get_items(category, count, randomize, base_id)
 
-        dict_result = {}
-        for item in erp_result:
-            dict_result[item["id"]] = item
-
-        return self.result_to_jabsorb(dict_result)
+        return self.result_to_jabsorb(erp_result)
 
 
     def get_items_stock(self, items_ids):
