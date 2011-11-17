@@ -220,15 +220,18 @@ iPOJO-Components: component { $classname="org.psem2m.composer.demo.imp
  ame="validatePojo" }}}component { $classname="org.psem2m.composer.dem
  o.impl.getItemsStock.NormalizerGetItemsStock" $name="normalizer-getIt
  emsStock" $public="true" provides { $specifications="{org.psem2m.comp
- oser.test.api.IComponent}" }requires { $field="pLogger" }properties {
-  property { $name="instance.name" $field="pName" }}callback { $transi
- tion="invalidate" $method="invalidatePojo" }callback { $transition="v
- alidate" $method="validatePojo" }manipulation { $super="org.psem2m.is
- olates.base.activators.CPojoBase" interface { $name="org.psem2m.compo
- ser.test.api.IComponent" }field { $name="pLogger" $type="org.psem2m.i
- solates.base.IIsolateLoggerSvc" }field { $name="pName" $type="java.la
- ng.String" }method { $name="computeResult" $return="org.psem2m.compos
- er.test.api.IComponentContext" $arguments="{org.psem2m.composer.test.
- api.IComponentContext}" }method { $name="invalidatePojo" }method { $n
- ame="validatePojo" }}}
+ oser.test.api.IComponent}" }properties { property { $name="cacheAgeEn
+ try" $field="pCacheAgeEntry" }property { $name="instance.name" $field
+ ="pName" }}requires { $field="pLogger" }callback { $transition="inval
+ idate" $method="invalidatePojo" }callback { $transition="validate" $m
+ ethod="validatePojo" }manipulation { $super="org.psem2m.isolates.base
+ .activators.CPojoBase" interface { $name="org.psem2m.composer.test.ap
+ i.IComponent" }field { $name="pCacheAgeEntry" $type="java.lang.String
+ " }field { $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLo
+ ggerSvc" }field { $name="pName" $type="java.lang.String" }method { $n
+ ame="computeResult" $return="org.psem2m.composer.test.api.IComponentC
+ ontext" $arguments="{org.psem2m.composer.test.api.IComponentContext}"
+  }method { $name="extractCacheQualityLevel" $return="int" $arguments=
+ "{java.util.Map}" }method { $name="invalidatePojo" }method { $name="v
+ alidatePojo" }}}
 

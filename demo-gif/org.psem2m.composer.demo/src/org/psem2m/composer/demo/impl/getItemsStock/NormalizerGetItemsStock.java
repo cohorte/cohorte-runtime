@@ -5,11 +5,8 @@
  */
 package org.psem2m.composer.demo.impl.getItemsStock;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
@@ -21,7 +18,7 @@ import org.osgi.framework.BundleException;
 import org.psem2m.composer.demo.DemoComponentsConstants;
 import org.psem2m.composer.test.api.IComponent;
 import org.psem2m.composer.test.api.IComponentContext;
-import org.psem2m.demo.data.cache.ICachedObject;
+import org.psem2m.demo.erp.api.beans.IQualityLevels;
 import org.psem2m.demo.erp.api.beans.QualityUtilities;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
@@ -34,6 +31,10 @@ import org.psem2m.isolates.base.activators.CPojoBase;
 @Component(name = DemoComponentsConstants.COMPONENT_NORMALIZER_GETITEMSSTOCK)
 @Provides(specifications = IComponent.class)
 public class NormalizerGetItemsStock extends CPojoBase implements IComponent {
+
+    /** The key used in the result map to store the cache age */
+    @Property(name = "cacheAgeEntry")
+    private String pCacheAgeEntry = "__cache_age";
 
     /** The logger */
     @Requires
@@ -50,7 +51,6 @@ public class NormalizerGetItemsStock extends CPojoBase implements IComponent {
      * org.psem2m.composer.test.api.IComponent#computeResult(org.psem2m.composer
      * .test.api.IComponentContext)
      */
-    @SuppressWarnings("unchecked")
     @Override
     public IComponentContext computeResult(final IComponentContext aContext)
             throws Exception {
@@ -74,39 +74,56 @@ public class NormalizerGetItemsStock extends CPojoBase implements IComponent {
         pLogger.logInfo(this, "...Normalizer GetStocks.result",
                 aContext.getResults());
 
-        // Result is a Map, containing ICachedObject<Integer> instances
-        final Map<String, Object> result = aContext.getResults().get(0);
-        final List<Map<String, Object>> resultList = new ArrayList<Map<String, Object>>();
+        // Result is a List of Maps containing id, stock and __cache_age keys
+        for (final Map<String, Object> itemStockMap : aContext.getResults()) {
 
-        for (final Entry<String, Object> entry : result.entrySet()) {
+            // Get the quality level
+            final int qualityLevel = extractCacheQualityLevel(itemStockMap);
 
-            final Object entryValue = entry.getValue();
+            // No key translation needed.
 
-            if (entryValue instanceof ICachedObject) {
-
-                final ICachedObject<Integer> cachedObject = (ICachedObject<Integer>) entryValue;
-                final int qualityLevel = QualityUtilities
-                        .computeCacheQuality(cachedObject.getCacheAge());
-
-                final Map<String, Object> itemMap = new HashMap<String, Object>();
-                itemMap.put("id", entry.getKey());
-                itemMap.put("stock", cachedObject.getObject());
-                itemMap.put("qualityLevel", qualityLevel);
-
-                resultList.add(itemMap);
-
-            } else {
-                aContext.addError(pName, "Don't know how to handle : "
-                        + entryValue);
-            }
+            // Add it to the map
+            itemStockMap.put("qualityLevel", qualityLevel);
         }
 
-        final Map<String, Object> newMap = new HashMap<String, Object>();
-        newMap.put(KEY_RESULT, resultList.toArray());
-        aContext.setResult(newMap);
-
-        // Unknown result type, return the whole data
         return aContext;
+    }
+
+    /**
+     * Extracts and removes the cache age entry in the given map and returns the
+     * corresponding quality level
+     * 
+     * @param aMap
+     *            Map to use
+     * @return The data quality level, {@link IQualityLevels#CACHE_LEVEL_SYNC}
+     *         by default
+     */
+    protected int extractCacheQualityLevel(final Map<String, Object> aMap) {
+
+        if (!aMap.containsKey(pCacheAgeEntry)) {
+            // Key missing : SYNC
+            return IQualityLevels.CACHE_LEVEL_SYNC;
+        }
+
+        // Get the cache age, if any ...
+        final Number cacheAge = (Number) aMap.get(pCacheAgeEntry);
+        final int qualityLevel;
+        if (cacheAge == null || cacheAge.longValue() <= 0) {
+
+            // Quality level 0, negative = SYNC
+            qualityLevel = IQualityLevels.CACHE_LEVEL_SYNC;
+
+        } else {
+
+            // Compute the quality according to the indicated age
+            qualityLevel = QualityUtilities.computeCacheQuality(cacheAge
+                    .longValue());
+        }
+
+        // ... then remove it
+        aMap.remove(pCacheAgeEntry);
+
+        return qualityLevel;
     }
 
     /*
