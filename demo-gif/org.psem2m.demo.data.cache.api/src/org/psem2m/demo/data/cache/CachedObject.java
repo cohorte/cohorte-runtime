@@ -81,6 +81,17 @@ public class CachedObject<T extends Serializable> implements ICachedObject<T>,
         return pCachedObject;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.demo.data.cache.ICachedObject#isAcceptable(long)
+     */
+    @Override
+    public boolean isAcceptable(final long aMaxAge) {
+
+        return (System.currentTimeMillis() - pCacheAge) < aMaxAge;
+    }
+
     /**
      * Sets the cache age
      * 
