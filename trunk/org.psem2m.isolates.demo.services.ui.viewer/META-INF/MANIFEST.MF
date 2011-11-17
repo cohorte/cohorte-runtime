@@ -41,17 +41,19 @@ iPOJO-Components: instance { $component="psem2m-ui-viewer-factory" $na
  ce" }field { $name="pSvcAgent" $type="org.psem2m.isolates.slave.agent
  .ISvcAgent" }field { $name="pSvcConfig" $type="org.psem2m.isolates.se
  rvices.conf.ISvcConfig" }field { $name="pUiExecutor" $type="java.util
- .concurrent.Executor" }method { $name="buildComponentsDescription" $r
- eturn="java.lang.String" }method { $name="buildConfigDump" $return="j
- ava.lang.String" }method { $name="createFrameMainExec" }method { $nam
- e="destroy" }method { $name="getFrameMain" $return="org.psem2m.isolat
- es.demo.services.ui.viewer.impl.CFrameMain" }method { $name="hasFrame
- Main" $return="boolean" }method { $name="initFrameMainContent" }metho
- d { $name="initFrameMainContentExec" }method { $name="initFramMain" }
- method { $name="invalidatePojo" }method { $name="setFrameMain" $argum
- ents="{org.psem2m.isolates.demo.services.ui.viewer.impl.CFrameMain}" 
- }method { $name="updateComponentsDescription" }method { $name="update
- TableOfService" $arguments="{org.osgi.framework.ServiceReference,int}
- " }method { $name="updateTableOfServiceExec" $arguments="{org.osgi.fr
- amework.ServiceReference,int}" }method { $name="validatePojo" }}}
+ .concurrent.Executor" }method { $name="buildComponentRowData" $return
+ ="java.lang.Object[]" $arguments="{org.apache.felix.ipojo.architectur
+ e.Architecture}" }method { $name="buildComponentsDescription" $return
+ ="java.util.List" }method { $name="buildConfigDump" $return="java.lan
+ g.String" }method { $name="createFrameMainExec" }method { $name="dest
+ roy" }method { $name="getFrameMain" $return="org.psem2m.isolates.demo
+ .services.ui.viewer.impl.CFrameMain" }method { $name="hasFrameMain" $
+ return="boolean" }method { $name="initFrameMainContent" }method { $na
+ me="initFrameMainContentExec" }method { $name="initFramMain" }method 
+ { $name="invalidatePojo" }method { $name="setFrameMain" $arguments="{
+ org.psem2m.isolates.demo.services.ui.viewer.impl.CFrameMain}" }method
+  { $name="updateComponentsDescription" }method { $name="updateTableOf
+ Service" $arguments="{org.osgi.framework.ServiceReference,int}" }meth
+ od { $name="updateTableOfServiceExec" $arguments="{org.osgi.framework
+ .ServiceReference,int}" }method { $name="validatePojo" }}}
 

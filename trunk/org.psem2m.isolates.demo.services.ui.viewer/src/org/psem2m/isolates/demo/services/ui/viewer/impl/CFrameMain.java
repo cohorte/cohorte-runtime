@@ -131,21 +131,21 @@ public class CFrameMain extends javax.swing.JFrame {
             String wSize = (String) wCombo.getSelectedItem();
 
             if (FONT_SIZE_SMALL.equals(wSize)) {
-                adjustTableRow(FONT_NAME_TABLE, FONT_SIZE_SMALL_PT);
+                adjustServicesTableRow(FONT_NAME_TABLE, FONT_SIZE_SMALL_PT);
+                adjustComponentsTableRow(FONT_NAME_TABLE, FONT_SIZE_SMALL_PT);
                 setTextServiceFont(FONT_NAME_TEXTAREA, FONT_SIZE_SMALL_PT);
-                setTextComponentFont(FONT_NAME_TEXTAREA, FONT_SIZE_SMALL_PT);
                 setTextConfigFont(FONT_NAME_TEXTAREA, FONT_SIZE_SMALL_PT);
 
             } else if (FONT_SIZE_NORMAL.equals(wSize)) {
-                adjustTableRow(FONT_NAME_TABLE, FONT_SIZE_NORMAL_PT);
+                adjustServicesTableRow(FONT_NAME_TABLE, FONT_SIZE_NORMAL_PT);
+                adjustComponentsTableRow(FONT_NAME_TABLE, FONT_SIZE_NORMAL_PT);
                 setTextServiceFont(FONT_NAME_TEXTAREA, FONT_SIZE_NORMAL_PT);
-                setTextComponentFont(FONT_NAME_TEXTAREA, FONT_SIZE_NORMAL_PT);
                 setTextConfigFont(FONT_NAME_TEXTAREA, FONT_SIZE_NORMAL_PT);
 
             } else if (FONT_SIZE_LARGE.equals(wSize)) {
-                adjustTableRow(FONT_NAME_TABLE, FONT_SIZE_LARGE_PT);
+                adjustServicesTableRow(FONT_NAME_TABLE, FONT_SIZE_LARGE_PT);
+                adjustComponentsTableRow(FONT_NAME_TABLE, FONT_SIZE_LARGE_PT);
                 setTextServiceFont(FONT_NAME_TEXTAREA, FONT_SIZE_LARGE_PT);
-                setTextComponentFont(FONT_NAME_TEXTAREA, FONT_SIZE_LARGE_PT);
                 setTextConfigFont(FONT_NAME_TEXTAREA, FONT_SIZE_LARGE_PT);
             }
         }
@@ -154,9 +154,21 @@ public class CFrameMain extends javax.swing.JFrame {
          * @param aFontName
          * @param aSize
          */
-        private void adjustTableRow(final String aFontName, final int aSize) {
+        private void adjustComponentsTableRow(final String aFontName,
+                final int aSize) {
 
-            Font wNewFont = setTableFont(aFontName, aSize);
+            Font wNewFont = setComponentsTableFont(aFontName, aSize);
+            pComponentsTable.setRowHeight(calcRowHeight(wNewFont));
+        }
+
+        /**
+         * @param aFontName
+         * @param aSize
+         */
+        private void adjustServicesTableRow(final String aFontName,
+                final int aSize) {
+
+            Font wNewFont = setServicesTableFont(aFontName, aSize);
             pServicesTable.setRowHeight(calcRowHeight(wNewFont));
         }
 
@@ -204,6 +216,11 @@ public class CFrameMain extends javax.swing.JFrame {
 
     private final static boolean COMPACTION = true;
 
+    final static int COMPONENT_COLUMN_IDX_BUNDLE = 2;
+    final static int COMPONENT_COLUMN_IDX_FACTORY = 1;
+    final static int COMPONENT_COLUMN_IDX_NAME = 0;
+    final static int COMPONENT_COLUMN_IDX_STATE = 3;
+
     private final static String EMPTY = "";
 
     private final static String FILTER_All = "all services";
@@ -211,10 +228,9 @@ public class CFrameMain extends javax.swing.JFrame {
     private final static String FILTER_PSEM2M = "psem2m services";
     private final static int FILTER_PSEM2M_KIND = 1;
     private final static String FILTER_REMOTE = "remote services";
-
     private final static int FILTER_REMOTE_KIND = 0;
-    private final static String FONT_NAME_TABLE = "Lucida Grande";
 
+    private final static String FONT_NAME_TABLE = "Lucida Grande";
     private final static String FONT_NAME_TEXTAREA = "Courier New";
     private final static String FONT_SIZE_LARGE = "large";
     private final static int FONT_SIZE_LARGE_PT = 16;
@@ -228,6 +244,12 @@ public class CFrameMain extends javax.swing.JFrame {
 
     /** to be serialized ... **/
     private static final long serialVersionUID = -2939661125543649591L;
+
+    final static int SERVICE_COLUMN_IDX_BUNDLE_ID = 4;
+    final static int SERVICE_COLUMN_IDX_INTERFACE = 0;
+    final static int SERVICE_COLUMN_IDX_NAME = 1;
+    final static int SERVICE_COLUMN_IDX_REMOTE_INFO = 2;
+    final static int SERVICE_COLUMN_IDX_SERVICE_ID = 3;
 
     /**
      * Auto-generated main method to display this JFrame
@@ -246,18 +268,14 @@ public class CFrameMain extends javax.swing.JFrame {
         });
     }
 
-    private int COLUMN_IDX_BUNDLE_ID = 4;
-    private int COLUMN_IDX_INTERFACE = 0;
-    private int COLUMN_IDX_NAME = 1;
-    private int COLUMN_IDX_REMOTE_INFO = 2;
-    private int COLUMN_IDX_SERVICE_ID = 3;
-
     private JLabel lblNewLabel;
     private JLabel lblNewLabel_1;
     private JPanel panel;
     private JScrollPane pComponentsScrollPane;
-    private JTextArea pComponentsTextArea;
+    private JTable pComponentsTable;
+    private DefaultTableModel pComponentsTableModel;
     private JTextArea pConfigTextArea;
+    private JScrollPane pConfigurationScrollPane;
     private final CFrameConfig pFrameConfig;
     private JTabbedPane pMainTabbedPane;
     private JScrollPane pServiceInfosScrollPane;
@@ -271,10 +289,7 @@ public class CFrameMain extends javax.swing.JFrame {
     private JScrollPane pServicesScrollPane;
     private JSplitPane pServicesSplitPane;
     private JTable pServicesTable;
-
     private DefaultTableModel pServicesTableModel;
-
-    private JScrollPane scrollPane;
 
     /**
      * 
@@ -295,36 +310,19 @@ public class CFrameMain extends javax.swing.JFrame {
         if (pServicesFilterKind == FILTER_All_KIND
 
                 || pServicesFilterKind == FILTER_PSEM2M_KIND
-                && (aDataRow[COLUMN_IDX_NAME].toString().startsWith(
-                        "org.psem2m.") || aDataRow[COLUMN_IDX_NAME].toString()
-                        .startsWith("o.p."))
+                && (aDataRow[SERVICE_COLUMN_IDX_NAME].toString().startsWith(
+                        "org.psem2m.") || aDataRow[SERVICE_COLUMN_IDX_NAME]
+                        .toString().startsWith("o.p."))
 
                 || pServicesFilterKind == FILTER_REMOTE_KIND
-                && !aDataRow[COLUMN_IDX_REMOTE_INFO].toString().isEmpty()
+                && !aDataRow[SERVICE_COLUMN_IDX_REMOTE_INFO].toString()
+                        .isEmpty()
 
         ) {
             pServicesTableModel.addRow(aDataRow);
             return true;
         }
         return false;
-    }
-
-    /**
-     * Build the row data with a ServiceReference
-     * 
-     * @param aServiceReference
-     * @return
-     */
-    private Object[] buildRowData(final ServiceReference aServiceReference) {
-
-        Object[] wRowData = new Object[5];
-        wRowData[COLUMN_IDX_INTERFACE] = extractServiceInterfaceCleanedCompacted(aServiceReference);
-        wRowData[COLUMN_IDX_NAME] = extractServiceNameCleaned(aServiceReference);
-        wRowData[COLUMN_IDX_REMOTE_INFO] = extractRemoteInfo(aServiceReference);
-        wRowData[COLUMN_IDX_SERVICE_ID] = extractServiceId(aServiceReference);
-        wRowData[COLUMN_IDX_BUNDLE_ID] = aServiceReference.getBundle()
-                .getBundleId();
-        return wRowData;
     }
 
     /**
@@ -337,7 +335,7 @@ public class CFrameMain extends javax.swing.JFrame {
 
         try {
             Long wServiceId = Long.parseLong(pServicesTableModel.getValueAt(
-                    aRowIdx, COLUMN_IDX_SERVICE_ID).toString());
+                    aRowIdx, SERVICE_COLUMN_IDX_SERVICE_ID).toString());
 
             ServiceReference wServiceReference = CBundleUiActivator
                     .getInstance().getServiceReference(wServiceId);
@@ -359,11 +357,30 @@ public class CFrameMain extends javax.swing.JFrame {
     }
 
     /**
+     * Build the row data with a ServiceReference
+     * 
+     * @param aServiceReference
+     * @return
+     */
+    private Object[] buildServiceRowData(
+            final ServiceReference aServiceReference) {
+
+        Object[] wRowData = new Object[5];
+        wRowData[SERVICE_COLUMN_IDX_INTERFACE] = extractServiceInterfaceCleanedCompacted(aServiceReference);
+        wRowData[SERVICE_COLUMN_IDX_NAME] = extractServiceNameCleaned(aServiceReference);
+        wRowData[SERVICE_COLUMN_IDX_REMOTE_INFO] = extractRemoteInfo(aServiceReference);
+        wRowData[SERVICE_COLUMN_IDX_SERVICE_ID] = extractServiceId(aServiceReference);
+        wRowData[SERVICE_COLUMN_IDX_BUNDLE_ID] = aServiceReference.getBundle()
+                .getBundleId();
+        return wRowData;
+    }
+
+    /**
      * clear the table of the services
      */
     void clearServiceTable() {
 
-        removeAllRow();
+        removeAllServicesRows();
         fireUpdateTable();
     }
 
@@ -488,7 +505,7 @@ public class CFrameMain extends javax.swing.JFrame {
         String wServiceName = extractServiceInterfaceCleanedCompacted(aServiceReference);
         for (int wI = 0; wI < pServicesTableModel.getRowCount(); wI++) {
             if (wServiceName.equals(pServicesTableModel.getValueAt(wI,
-                    COLUMN_IDX_NAME))) {
+                    SERVICE_COLUMN_IDX_NAME))) {
                 return wI;
             }
         }
@@ -563,20 +580,26 @@ public class CFrameMain extends javax.swing.JFrame {
                                         return columnEditables[column];
                                     }
                                 });
-                                pServicesTable.getColumnModel()
-                                        .getColumn(COLUMN_IDX_INTERFACE)
+                                pServicesTable
+                                        .getColumnModel()
+                                        .getColumn(SERVICE_COLUMN_IDX_INTERFACE)
                                         .setPreferredWidth(150);
                                 pServicesTable.getColumnModel()
-                                        .getColumn(COLUMN_IDX_NAME)
+                                        .getColumn(SERVICE_COLUMN_IDX_NAME)
                                         .setPreferredWidth(200);
-                                pServicesTable.getColumnModel()
-                                        .getColumn(COLUMN_IDX_REMOTE_INFO)
+                                pServicesTable
+                                        .getColumnModel()
+                                        .getColumn(
+                                                SERVICE_COLUMN_IDX_REMOTE_INFO)
                                         .setPreferredWidth(10);
-                                pServicesTable.getColumnModel()
-                                        .getColumn(COLUMN_IDX_SERVICE_ID)
+                                pServicesTable
+                                        .getColumnModel()
+                                        .getColumn(
+                                                SERVICE_COLUMN_IDX_SERVICE_ID)
                                         .setPreferredWidth(30);
-                                pServicesTable.getColumnModel()
-                                        .getColumn(COLUMN_IDX_BUNDLE_ID)
+                                pServicesTable
+                                        .getColumnModel()
+                                        .getColumn(SERVICE_COLUMN_IDX_BUNDLE_ID)
                                         .setPreferredWidth(30);
                             }
                             pServicesTableModel = (DefaultTableModel) pServicesTable
@@ -586,7 +609,9 @@ public class CFrameMain extends javax.swing.JFrame {
                             pServicesTable.setRowSorter(wServicesSorter);
 
                             List<SortKey> wSortKeys = new ArrayList<SortKey>();
-                            wSortKeys.add(new SortKey(0, SortOrder.ASCENDING));
+                            wSortKeys.add(new SortKey(
+                                    SERVICE_COLUMN_IDX_INTERFACE,
+                                    SortOrder.ASCENDING));
                             wServicesSorter.setSortKeys(wSortKeys);
 
                             pServicesTable
@@ -601,7 +626,8 @@ public class CFrameMain extends javax.swing.JFrame {
                                     .addListSelectionListener(
                                             new CServicesSelectionListener());
 
-                            setTableFont(FONT_NAME_TABLE, FONT_SIZE_NORMAL_PT);
+                            setServicesTableFont(FONT_NAME_TABLE,
+                                    FONT_SIZE_NORMAL_PT);
 
                             pServicesScrollPane.setViewportView(pServicesTable);
                             pServicesSplitPane.add(pServicesScrollPane,
@@ -686,31 +712,77 @@ public class CFrameMain extends javax.swing.JFrame {
                         }
                     }
                 }
-
                 {
                     pComponentsScrollPane = new JScrollPane();
-                    pMainTabbedPane.addTab("Components", null,
-                            pComponentsScrollPane, null);
                     {
-                        pComponentsTextArea = new JTextArea();
-                        pComponentsTextArea.setText("iPOJO Components...");
-                        setTextComponentFont(FONT_NAME_TEXTAREA,
+                        pComponentsTable = new JTable();
+
+                        pComponentsTable.setModel(new DefaultTableModel(
+                                new Object[][] {}, new String[] {
+                                        "Component name", "Factory name",
+                                        "Bundle", "State" }) {
+                            boolean[] columnEditables = new boolean[] { false,
+                                    false, false, false };
+
+                            @Override
+                            public boolean isCellEditable(final int row,
+                                    final int column) {
+
+                                return columnEditables[column];
+                            }
+                        });
+
+                        pComponentsTable.getColumnModel()
+                                .getColumn(COMPONENT_COLUMN_IDX_NAME)
+                                .setPreferredWidth(200);
+                        pComponentsTable.getColumnModel()
+                                .getColumn(COMPONENT_COLUMN_IDX_FACTORY)
+                                .setPreferredWidth(200);
+                        pComponentsTable.getColumnModel()
+                                .getColumn(COMPONENT_COLUMN_IDX_BUNDLE)
+                                .setPreferredWidth(20);
+                        pComponentsTable.getColumnModel()
+                                .getColumn(COMPONENT_COLUMN_IDX_STATE)
+                                .setPreferredWidth(20);
+
+                        pComponentsTableModel = (DefaultTableModel) pComponentsTable
+                                .getModel();
+                        TableRowSorter<TableModel> wComponentsSorter = new TableRowSorter<TableModel>(
+                                pComponentsTableModel);
+                        pComponentsTable.setRowSorter(wComponentsSorter);
+
+                        List<SortKey> wSortKeys = new ArrayList<SortKey>();
+                        wSortKeys.add(new SortKey(COMPONENT_COLUMN_IDX_NAME,
+                                SortOrder.ASCENDING));
+                        wComponentsSorter.setSortKeys(wSortKeys);
+
+                        pComponentsTable
+                                .setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+                        pComponentsTable.setColumnSelectionAllowed(false);
+                        pComponentsTable.setRowSelectionAllowed(true);
+
+                        setComponentsTableFont(FONT_NAME_TABLE,
                                 FONT_SIZE_NORMAL_PT);
-                        pComponentsScrollPane
-                                .setViewportView(pComponentsTextArea);
+
+                        pComponentsScrollPane.setViewportView(pComponentsTable);
+
+                        pMainTabbedPane.addTab("Components", null,
+                                pComponentsScrollPane, null);
                     }
                 }
+
                 {
-                    scrollPane = new JScrollPane();
-                    pMainTabbedPane.addTab("Configuration", null, scrollPane,
-                            null);
+                    pConfigurationScrollPane = new JScrollPane();
+                    pMainTabbedPane.addTab("Configuration", null,
+                            pConfigurationScrollPane, null);
                     {
                         pConfigTextArea = new JTextArea();
                         setTextConfigFont(FONT_NAME_TEXTAREA,
                                 FONT_SIZE_NORMAL_PT);
 
                         pConfigTextArea.setText("XXX ...");
-                        scrollPane.setViewportView(pConfigTextArea);
+                        pConfigurationScrollPane
+                                .setViewportView(pConfigTextArea);
                     }
                 }
             }
@@ -724,7 +796,17 @@ public class CFrameMain extends javax.swing.JFrame {
     /**
      * 
      */
-    private void removeAllRow() {
+    private void removeAllComponentsRows() {
+
+        for (int wI = pComponentsTableModel.getRowCount() - 1; wI > -1; wI--) {
+            pComponentsTableModel.removeRow(wI);
+        }
+    }
+
+    /**
+     * 
+     */
+    private void removeAllServicesRows() {
 
         for (int wI = pServicesTableModel.getRowCount() - 1; wI > -1; wI--) {
             pServicesTableModel.removeRow(wI);
@@ -762,9 +844,24 @@ public class CFrameMain extends javax.swing.JFrame {
      * @param aComponentsDescription
      *            The new content
      */
-    void setComponentsDescription(final String aComponentsDescription) {
+    void setComponentsDescription(final List<Object[]> wComponentsRows) {
 
-        pComponentsTextArea.setText(aComponentsDescription);
+        removeAllComponentsRows();
+        for (Object[] wDataRow : wComponentsRows) {
+            pComponentsTableModel.addRow(wDataRow);
+        }
+
+    }
+
+    /**
+     * @param aFontName
+     * @param aSize
+     */
+    private Font setComponentsTableFont(final String aFontName, final int aSize) {
+
+        Font wNewFont = new Font(aFontName, Font.PLAIN, aSize);
+        pComponentsTable.setFont(wNewFont);
+        return wNewFont;
     }
 
     /**
@@ -799,14 +896,26 @@ public class CFrameMain extends javax.swing.JFrame {
     }
 
     /**
+     * @param aFontName
+     * @param aSize
+     */
+    private Font setServicesTableFont(final String aFontName, final int aSize) {
+
+        Font wNewFont = new Font(aFontName, Font.PLAIN, aSize);
+        pServicesTable.setFont(wNewFont);
+        return wNewFont;
+    }
+
+    /**
      * @param aListOfServiceRef
      */
     void setServiceTable(final List<ServiceReference> aListOfServiceRef) {
 
-        removeAllRow();
+        removeAllServicesRows();
         boolean wAdded = false;
         for (ServiceReference aServiceReference : aListOfServiceRef) {
-            wAdded = wAdded | addOneServiceRow(buildRowData(aServiceReference));
+            wAdded = wAdded
+                    | addOneServiceRow(buildServiceRowData(aServiceReference));
         }
         if (wAdded) {
             pServicesTable.setRowSelectionInterval(0, 0);
@@ -822,7 +931,7 @@ public class CFrameMain extends javax.swing.JFrame {
             final int aEvent) {
 
         if (aEvent == ServiceEvent.REGISTERED) {
-            boolean wAdded = addOneServiceRow(buildRowData(aServiceReference));
+            boolean wAdded = addOneServiceRow(buildServiceRowData(aServiceReference));
             if (wAdded) {
                 fireUpdateTable();
             }
@@ -838,21 +947,8 @@ public class CFrameMain extends javax.swing.JFrame {
     /**
      * @param aFontName
      * @param aSize
+     * @return
      */
-    private Font setTableFont(final String aFontName, final int aSize) {
-
-        Font wNewFont = new Font(aFontName, Font.PLAIN, aSize);
-        pServicesTable.setFont(wNewFont);
-        return wNewFont;
-    }
-
-    private Font setTextComponentFont(final String aFontName, final int aSize) {
-
-        Font wNewFont = new Font(aFontName, Font.PLAIN, aSize);
-        pComponentsTextArea.setFont(wNewFont);
-        return wNewFont;
-    }
-
     private Font setTextConfigFont(final String aFontName, final int aSize) {
 
         Font wNewFont = new Font(aFontName, Font.PLAIN, aSize);
