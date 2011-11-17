@@ -32,6 +32,10 @@ import org.psem2m.isolates.base.activators.CPojoBase;
 @Provides(specifications = IComponent.class)
 public class GetCache extends CPojoBase implements IComponent {
 
+    /** The key to use in the result map to store the cache age */
+    @Property(name = "cacheAgeEntry")
+    private String pCacheAgeEntry = CacheCommons.DEFAULT_CACHE_AGE_ENTRY;
+
     /** Utility cache methods */
     private CacheCommons pCacheCommons;
 
@@ -199,6 +203,7 @@ public class GetCache extends CPojoBase implements IComponent {
         // Set up the utility instance
         pCacheCommons = new CacheCommons(pName);
         pCacheCommons.setEntryName(pEntryName);
+        pCacheCommons.setCacheAgeEntry(pCacheAgeEntry);
 
         pLogger.logInfo(this, "validatePojo", "Component '" + pName + "' Ready");
     }

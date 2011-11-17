@@ -30,8 +30,11 @@ public class CacheCommons {
     /** Map channel */
     public static final String CHANNEL_TYPE_MAP = "map";
 
+    /** Default key name to store the cache entry age */
+    public static final String DEFAULT_CACHE_AGE_ENTRY = "__cache_age";
+
     /** The key to use in the result map to store the cache age */
-    private String pCacheMaxAgeEntry;
+    private String pCacheAgeEntry = DEFAULT_CACHE_AGE_ENTRY;
 
     /** The key in the request map that indicated the cache entry to retrieve */
     private String pEntryName;
@@ -61,7 +64,7 @@ public class CacheCommons {
     public Object arrayToIterable(final Object aObject) {
 
         if (aObject != null && aObject.getClass().isArray()) {
-            // Convert arrays into iterable
+            // Convert arrays into list
             return Arrays.asList((Object[]) aObject);
         }
 
@@ -225,7 +228,7 @@ public class CacheCommons {
                 aCachedMap);
 
         // Inject the cache age
-        resultMap.put(pCacheMaxAgeEntry, Long.valueOf(aCacheAge));
+        resultMap.put(pCacheAgeEntry, Long.valueOf(aCacheAge));
 
         return resultMap;
     }
@@ -284,6 +287,17 @@ public class CacheCommons {
     }
 
     /**
+     * Sets the key to use in the result map to store the cache age
+     * 
+     * @param aCacheAgeEntry
+     *            The key to store the age of the cache entry
+     */
+    public void setCacheAgeEntry(final String aCacheAgeEntry) {
+
+        pCacheAgeEntry = aCacheAgeEntry;
+    }
+
+    /**
      * Sets the key in the request map that indicates the cache entry to
      * retrieve
      * 
@@ -293,16 +307,5 @@ public class CacheCommons {
     public void setEntryName(final String aEntryName) {
 
         pEntryName = aEntryName;
-    }
-
-    /**
-     * Sets the key to use in the result map to store the cache age
-     * 
-     * @param aMaxAgeEntry
-     *            The key to store the cache
-     */
-    public void setMaxAgeEntry(final String aMaxAgeEntry) {
-
-        pCacheMaxAgeEntry = aMaxAgeEntry;
     }
 }
