@@ -12,12 +12,6 @@ package org.psem2m.composer.test.api;
  */
 public interface IComponent {
 
-    /** Queued channel */
-    String CHANNEL_TYPE_DEQUEUE = "queue";
-
-    /** Map channel */
-    String CHANNEL_TYPE_MAP = "map";
-
     /**
      * Data key to represent a error
      * 
