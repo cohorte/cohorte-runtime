@@ -317,6 +317,14 @@ class Erp(object):
             return int(self.__stocks[item_id])
 
 
+    def reset_stocks(self, new_stock):
+        """
+        Resets all stocks
+        """
+        for item in self.__stocks:
+            self.__stocks[item] = new_stock
+
+
     def set_item_stock(self, item_id, new_stock, update_stats=True):
         """
         Set the stock value for the given item
