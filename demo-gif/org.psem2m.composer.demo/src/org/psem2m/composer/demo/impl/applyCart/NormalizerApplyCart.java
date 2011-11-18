@@ -5,6 +5,9 @@
  */
 package org.psem2m.composer.demo.impl.applyCart;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Property;
@@ -27,13 +30,13 @@ import org.psem2m.isolates.base.activators.CPojoBase;
 @Provides(specifications = IComponent.class)
 public class NormalizerApplyCart extends CPojoBase implements IComponent {
 
-    /** The instance name */
-    @Property(name = DemoComponentsConstants.PROPERTY_INSTANCE_NAME)
-    private String pInstanceName;
-
     /** The logger */
     @Requires
     private IIsolateLoggerSvc pLogger;
+
+    /** The instance name */
+    @Property(name = DemoComponentsConstants.PROPERTY_INSTANCE_NAME)
+    private String pName;
 
     /*
      * (non-Javadoc)
@@ -43,6 +46,22 @@ public class NormalizerApplyCart extends CPojoBase implements IComponent {
     @Override
     public IComponentContext computeResult(final IComponentContext aContext)
             throws Exception {
+
+        if (aContext.hasError()) {
+            // Prepare a new map, with both result and error
+            final Map<String, Object> resultMap = new HashMap<String, Object>();
+            resultMap.put(KEY_ERROR, aContext.getErrors().toArray());
+            resultMap.put(KEY_RESULT, aContext.getResults().toArray());
+
+            aContext.setResult(resultMap);
+            return aContext;
+        }
+
+        if (!aContext.hasResult()) {
+            // No error and no result...
+            aContext.addError(pName, "No result found...");
+            return aContext;
+        }
 
         return aContext;
     }
@@ -56,8 +75,7 @@ public class NormalizerApplyCart extends CPojoBase implements IComponent {
     @Invalidate
     public void invalidatePojo() throws BundleException {
 
-        pLogger.logInfo(this, "invalidatePojo", "Component", pInstanceName,
-                "Gone");
+        pLogger.logInfo(this, "invalidatePojo", "Component", pName, "Gone");
     }
 
     /*
@@ -69,7 +87,6 @@ public class NormalizerApplyCart extends CPojoBase implements IComponent {
     @Validate
     public void validatePojo() throws BundleException {
 
-        pLogger.logInfo(this, "validatePojo", "Component", pInstanceName,
-                "Ready");
+        pLogger.logInfo(this, "validatePojo", "Component", pName, "Ready");
     }
 }

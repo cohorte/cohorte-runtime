@@ -71,9 +71,6 @@ public class NormalizerGetItemsStock extends CPojoBase implements IComponent {
             return aContext;
         }
 
-        pLogger.logInfo(this, "...Normalizer GetStocks.result",
-                aContext.getResults());
-
         // Result is a List of Maps containing id, stock and __cache_age keys
         for (final Map<String, Object> itemStockMap : aContext.getResults()) {
 
