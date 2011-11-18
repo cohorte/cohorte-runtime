@@ -196,45 +196,56 @@ class Item_model extends CI_Model {
         }
 
         $wData = $wJsonrpcClient->get_response_object();
-
-        /*
-         * 
-			>>> pprint(s.dataserver.getItem("mouse001"))
-			{u'javaClass': u'java.util.HashMap',
-			 u'map': {u'description': u"Aujourd'hui, pour se satisfaire ... essantes.\n\t\t",
-			          u'id': u'mouse001',
-			          u'name': u'Souris en Bambou',
-			          u'price': u'25.00',
-			          u'qualityLevel': 0}}
-         * 
-         * 
-			stdClass::__set_state(array(
-			   'id' => 'ID_988518742',
-			   'result' => 
-			  stdClass::__set_state(array(
-			     'map' => 
-			    stdClass::__set_state(array(
-			       'id' => 'mouse012',
-			       'price' => '15.50',
-			       'qualityLevel' => 0,
-			       'description' => 'Souris optique USB "For Business". Actus dicatur bonus qui est conformis legi et rationi ',
-			       'name' => 'Microsoft Basic Optical Mouse',
-			    )),
-			     'javaClass' => 'java.util.HashMap',
-			  )),
-			))
-         * 
-         */
         
-        $wItemBean = $wData->result->map;
-
         $wItem = array();
-        $wItem['id'] = $wItemBean->id;
-        $wItem['name'] = $wItemBean->name;
-        $wItem['price'] = $wItemBean->price;
-        $wItem['qualityLevel'] = $wItemBean->qualityLevel;
-        $wItem['description'] = $wItemBean->description;
+        
+        if(isset($wData->result->map->error)){
+        	
+        	$wErrorBean = $wData->result->map->error;
+        	$wItem['id'] = "00000";
+        	$wItem['name'] = $wErrorBean->message;
+        	$wItem['price'] = 0;
+        	$wItem['qualityLevel'] = 0;
+        	$wItem['description'] = $wErrorBean->javaClass;
+        }else{
 
+	        /*
+	         * 
+				>>> pprint(s.dataserver.getItem("mouse001"))
+				{u'javaClass': u'java.util.HashMap',
+				 u'map': {u'description': u"Aujourd'hui, pour se satisfaire ... essantes.\n\t\t",
+				          u'id': u'mouse001',
+				          u'name': u'Souris en Bambou',
+				          u'price': u'25.00',
+				          u'qualityLevel': 0}}
+	         * 
+	         * 
+				stdClass::__set_state(array(
+				   'id' => 'ID_988518742',
+				   'result' => 
+				  stdClass::__set_state(array(
+				     'map' => 
+				    stdClass::__set_state(array(
+				       'id' => 'mouse012',
+				       'price' => '15.50',
+				       'qualityLevel' => 0,
+				       'description' => 'Souris optique USB "For Business". Actus dicatur bonus qui est conformis legi et rationi ',
+				       'name' => 'Microsoft Basic Optical Mouse',
+				    )),
+				     'javaClass' => 'java.util.HashMap',
+				  )),
+				))
+	         * 
+	         */
+	        
+	        $wItemBean = $wData->result->map;
+	
+	        $wItem['id'] = $wItemBean->id;
+	        $wItem['name'] = $wItemBean->name;
+	        $wItem['price'] = $wItemBean->price;
+	        $wItem['qualityLevel'] = $wItemBean->qualityLevel;
+	        $wItem['description'] = $wItemBean->description;
+        }
         return $wItem;
     }
 
@@ -295,78 +306,133 @@ class Item_model extends CI_Model {
         }
 
         $wData = $wJsonrpcClient->get_response_object();
-
-        /*
-         * 
-			>>> pprint(s.dataserver.getItems("screens",2,False,""))
-			{u'javaClass': u'java.util.LinkedList',
-			 u'list': [{u'javaClass': u'java.util.HashMap',
-			            u'map': {u'description': u'21.5" (54.6 cm) - Full HD (1920x1080) - 5 ms - 250 cd/m - DVI-D\n\t\t\t/ VGA / Audio\n\t\t\tMoniteur Asus VE228T. Profitez d\'images plus ralistes\n\t\t\tgrce  la technologie\n\t\t\tLED en Full HD 1080p !\n\t\t',
-			                     u'id': u'screen001',
-			                     u'name': u'Asus - VE228T - LED',
-			                     u'price': u'118.30',
-			                     u'qualityLevel': 0}},
-			           {u'javaClass': u'java.util.HashMap',
-			            u'map': {u'description': u'21.5" - 1920 x 1080 (16/9) - 5 ms - VGA / DVI-D (HDCP)\n\t\t\tEcran\n\t\t\tHANNS G utilisant la technologie LCD/LED de 21.5". Rfrence :\n\t\t\tHL225DBB. Propose une connectique VGA et DVI-D (HDCP).\n\t\t',
-			                     u'id': u'screen002',
-			                     u'name': u'PROMO - HANNS G - LED - HL225DBB',
-			                     u'price': u'150.00',
-			                     u'qualityLevel': 0}}]}
-         *
-         * 
-			stdClass::__set_state(array(
-			   'id' => 'ID_988518742',
-			   'result' => 
-			  stdClass::__set_state(array(
-			     'javaClass' => 'java.util.LinkedList',
-			     'list' => 
-			    array (
-			      0 => 
-			      stdClass::__set_state(array(
-			         'map' => 
-			        stdClass::__set_state(array(
-			           'id' => 'screen001',
-			           'price' => '118.30',
-			           'qualityLevel' => 0,
-			           'description' => '21.5" (54.6 cm) - Full HD (1920x1080) - 5 ms - 250 cd/m - DVI-D....',
-			           'name' => 'Asus - VE228T - LED',
-			        )),
-			         'javaClass' => 'java.util.HashMap',
-			      )),
-			...
-			      5 => 
-			      stdClass::__set_state(array(
-			         'map' => 
-			        stdClass::__set_state(array(
-			           'id' => 'screen006',
-			           'price' => '165.50',
-			           'qualityLevel' => 0,
-			           'description' => '21.5" Full HD (1920x1080) - 2ms - D-Sub / HDMI...',
-			           'name' => 'Asus - ML228H - LED',
-			        )),
-			         'javaClass' => 'java.util.HashMap',
-			      )),
-			    ),
-			  )),
-			))
-         * 
-         */
-        $wItemBeans = $wData->result->list;
-
-
+        
         $wItems = array();
-
-        foreach ($wItemBeans as $wIdB=>$wItemBean) {
-            $wItemBeanContent = $wItemBean->map;
-            $wItem = array();
-            $wItem['id'] = $wItemBeanContent->id;
-            $wItem['name'] = $wItemBeanContent->name;
-            $wItem['price'] = $wItemBeanContent->price;
-            $wItem['qualityLevel'] = $wItemBeanContent->qualityLevel;
-            $wItem['description'] = $wItemBeanContent->description;
-            array_push($wItems,$wItem);
-        }
-
+        
+        
+        if(isset($wData->result->map->error)){
+        	
+        	/*
+        	 * 
+				stdClass::__set_state(array(
+				   'id' => 'ID_759847750',
+				   'result' => 
+				  stdClass::__set_state(array(
+				     'map' => 
+				    stdClass::__set_state(array(
+				       'error' => 
+				      stdClass::__set_state(array(
+				         'message' => 'Index: 0, Size: 0',
+				         'localizedMessage' => 'Index: 0, Size: 0',
+				         'cause' => NULL,
+				         'javaClass' => 'java.lang.IndexOutOfBoundsException',
+				         'stackTrace' => 
+				        array (
+				          0 => 
+				          stdClass::__set_state(array(
+				             'fileName' => 'LinkedList.java',
+				             'javaClass' => 'java.lang.StackTraceElement',
+				             'lineNumber' => 365,
+				             'className' => 'java.util.LinkedList',
+				             'methodName' => 'entry',
+				             'nativeMethod' => false,
+				          )),
+				
+				          32 => 
+				          stdClass::__set_state(array(
+				             'fileName' => 'QueuedThreadPool.java',
+				             'javaClass' => 'java.lang.StackTraceElement',
+				             'lineNumber' => 582,
+				             'className' => 'org.mortbay.thread.QueuedThreadPool$PoolThread',
+				             'methodName' => 'run',
+				             'nativeMethod' => false,
+				          )),
+				        ),
+				      )),
+				    )),
+				     'javaClass' => 'java.util.HashMap',
+				  )),
+				))          
+        	 * 
+        	 */
+        	$wErrorBean = $wData->result->map->error;
+        	$wItem = array();
+        	$wItem['id'] = "00000";
+        	$wItem['name'] = $wErrorBean->message;
+        	$wItem['price'] = 0;
+        	$wItem['qualityLevel'] = 0;
+        	$wItem['description'] = $wErrorBean->javaClass;
+        	array_push($wItems,$wItem);
+        	
+        } else{
+	        /*
+	         * 
+				>>> pprint(s.dataserver.getItems("screens",2,False,""))
+				{u'javaClass': u'java.util.LinkedList',
+				 u'list': [{u'javaClass': u'java.util.HashMap',
+				            u'map': {u'description': u'21.5" (54.6 cm) - Full HD (1920x1080) - 5 ms - 250 cd/m - DVI-D\n\t\t\t/ VGA / Audio\n\t\t\tMoniteur Asus VE228T. Profitez d\'images plus ralistes\n\t\t\tgrce  la technologie\n\t\t\tLED en Full HD 1080p !\n\t\t',
+				                     u'id': u'screen001',
+				                     u'name': u'Asus - VE228T - LED',
+				                     u'price': u'118.30',
+				                     u'qualityLevel': 0}},
+				           {u'javaClass': u'java.util.HashMap',
+				            u'map': {u'description': u'21.5" - 1920 x 1080 (16/9) - 5 ms - VGA / DVI-D (HDCP)\n\t\t\tEcran\n\t\t\tHANNS G utilisant la technologie LCD/LED de 21.5". Rfrence :\n\t\t\tHL225DBB. Propose une connectique VGA et DVI-D (HDCP).\n\t\t',
+				                     u'id': u'screen002',
+				                     u'name': u'PROMO - HANNS G - LED - HL225DBB',
+				                     u'price': u'150.00',
+				                     u'qualityLevel': 0}}]}
+	         *
+	         * 
+				stdClass::__set_state(array(
+				   'id' => 'ID_988518742',
+				   'result' => 
+				  stdClass::__set_state(array(
+				     'javaClass' => 'java.util.LinkedList',
+				     'list' => 
+				    array (
+				      0 => 
+				      stdClass::__set_state(array(
+				         'map' => 
+				        stdClass::__set_state(array(
+				           'id' => 'screen001',
+				           'price' => '118.30',
+				           'qualityLevel' => 0,
+				           'description' => '21.5" (54.6 cm) - Full HD (1920x1080) - 5 ms - 250 cd/m - DVI-D....',
+				           'name' => 'Asus - VE228T - LED',
+				        )),
+				         'javaClass' => 'java.util.HashMap',
+				      )),
+				...
+				      5 => 
+				      stdClass::__set_state(array(
+				         'map' => 
+				        stdClass::__set_state(array(
+				           'id' => 'screen006',
+				           'price' => '165.50',
+				           'qualityLevel' => 0,
+				           'description' => '21.5" Full HD (1920x1080) - 2ms - D-Sub / HDMI...',
+				           'name' => 'Asus - ML228H - LED',
+				        )),
+				         'javaClass' => 'java.util.HashMap',
+				      )),
+				    ),
+				  )),
+				))
+	         * 
+	         */
+	        $wItemBeans = $wData->result->list;
+	
+	        foreach ($wItemBeans as $wIdB=>$wItemBean) {
+	            $wItemBeanContent = $wItemBean->map;
+	            $wItem = array();
+	            $wItem['id'] = $wItemBeanContent->id;
+	            $wItem['name'] = $wItemBeanContent->name;
+	            $wItem['price'] = $wItemBeanContent->price;
+	            $wItem['qualityLevel'] = $wItemBeanContent->qualityLevel;
+	            $wItem['description'] = $wItemBeanContent->description;
+	            array_push($wItems,$wItem);
+	        }
+		}
         return $wItems;
     }
 
@@ -423,66 +489,76 @@ class Item_model extends CI_Model {
         }
 
         $wData = $wJsonrpcClient->get_response_object();
-
-        /*
-         * 
-			>>> pprint(s.dataserver.getItemsStock(["screen001","mouse001"]))
-			{u'javaClass': u'java.util.LinkedList',
-			 u'list': [{u'javaClass': u'java.util.HashMap',
-			            u'map': {u'id': u'screen001', u'qualityLevel': 0, u'stock': 149}},
-			           {u'javaClass': u'java.util.HashMap',
-			            u'map': {u'id': u'mouse001', u'qualityLevel': 0, u'stock': 195}}]}
-         * 
-         * 
-			stdClass::__set_state(array(
-			   'id' => 'ID_1002671583',
-			   'result' => 
-			  stdClass::__set_state(array(
-			     'javaClass' => 'java.util.LinkedList',
-			     'list' => 
-			    array (
-			      0 => 
-			      stdClass::__set_state(array(
-			         'map' => 
-			        stdClass::__set_state(array(
-			           'id' => 'screen001',
-			           'stock' => 149,
-			           'qualityLevel' => 0,
-			        )),
-			         'javaClass' => 'java.util.HashMap',
-			      )),
-			...
-			      5 => 
-			      stdClass::__set_state(array(
-			         'map' => 
-			        stdClass::__set_state(array(
-			           'id' => 'screen006',
-			           'stock' => 49,
-			           'qualityLevel' => 0,
-			        )),
-			         'javaClass' => 'java.util.HashMap',
-			      )),
-			    ),
-			  )),
-			))
-         * 
-         * 
-         */
-        $wItemBeans = $wData->result->list;
-
+        
         $wItems = array();
-
-        foreach ($wItemBeans as $wIdB=>$wItemBean) {
-
-            $wItemBeanContent = $wItemBean->map;
-
-            $wItem = array();
-            $wItem['id'] = $wItemBeanContent->id;
-            $wItem['stock'] = $wItemBeanContent->stock;
-            $wItem['qualityLevel'] = $wItemBeanContent->qualityLevel;
-            array_push($wItems,$wItem);
+        
+        if(isset($wData->result->map->error)){
+        	
+        	$wErrorBean = $wData->result->map->error;
+        	 
+        	$wItem = array();
+        	$wItem['id'] =  $wErrorBean->message;
+        	$wItem['stock'] = -1;
+        	$wItem['qualityLevel'] = -1;
+        	array_push($wItems,$wItem);
+        }else{
+	        /*
+	         * 
+				>>> pprint(s.dataserver.getItemsStock(["screen001","mouse001"]))
+				{u'javaClass': u'java.util.LinkedList',
+				 u'list': [{u'javaClass': u'java.util.HashMap',
+				            u'map': {u'id': u'screen001', u'qualityLevel': 0, u'stock': 149}},
+				           {u'javaClass': u'java.util.HashMap',
+				            u'map': {u'id': u'mouse001', u'qualityLevel': 0, u'stock': 195}}]}
+	         * 
+	         * 
+				stdClass::__set_state(array(
+				   'id' => 'ID_1002671583',
+				   'result' => 
+				  stdClass::__set_state(array(
+				     'javaClass' => 'java.util.LinkedList',
+				     'list' => 
+				    array (
+				      0 => 
+				      stdClass::__set_state(array(
+				         'map' => 
+				        stdClass::__set_state(array(
+				           'id' => 'screen001',
+				           'stock' => 149,
+				           'qualityLevel' => 0,
+				        )),
+				         'javaClass' => 'java.util.HashMap',
+				      )),
+				...
+				      5 => 
+				      stdClass::__set_state(array(
+				         'map' => 
+				        stdClass::__set_state(array(
+				           'id' => 'screen006',
+				           'stock' => 49,
+				           'qualityLevel' => 0,
+				        )),
+				         'javaClass' => 'java.util.HashMap',
+				      )),
+				    ),
+				  )),
+				))
+	         * 
+	         * 
+	         */
+	        $wItemBeans = $wData->result->list;
+	
+	        foreach ($wItemBeans as $wIdB=>$wItemBean) {
+	
+	            $wItemBeanContent = $wItemBean->map;
+	
+	            $wItem = array();
+	            $wItem['id'] = $wItemBeanContent->id;
+	            $wItem['stock'] = $wItemBeanContent->stock;
+	            $wItem['qualityLevel'] = $wItemBeanContent->qualityLevel;
+	            array_push($wItems,$wItem);
+	        }
         }
-
         return $wItems;
     }
 
