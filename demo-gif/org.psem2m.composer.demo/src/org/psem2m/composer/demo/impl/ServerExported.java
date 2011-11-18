@@ -129,7 +129,7 @@ public class ServerExported extends CPojoBase implements IErpData {
      * boolean, java.lang.String)
      */
     @Override
-    public Map<String, Object> getItems(final String aCategory,
+    public List<Map<String, Object>> getItems(final String aCategory,
             final int aItemsCount, final boolean aRandomize,
             final String aBaseId) {
 
@@ -149,7 +149,7 @@ public class ServerExported extends CPojoBase implements IErpData {
             final ComponentContextBean context = new ComponentContextBean();
             context.setRequest(requestMap);
 
-            return pChainGetItems.computeResult(context).getResults().get(0);
+            return pChainGetItems.computeResult(context).getResults();
 
         } catch (final Exception ex) {
 
@@ -158,7 +158,9 @@ public class ServerExported extends CPojoBase implements IErpData {
                     "Error treating an getItems request.", ex);
 
             // Return an error map
-            return makeErrorMap(ex);
+            final List<Map<String, Object>> errorList = new ArrayList<Map<String, Object>>();
+            errorList.add(makeErrorMap(ex));
+            return errorList;
         }
     }
 

@@ -65,7 +65,7 @@ public interface IErpData {
      * 
      * @return All elements of the category, or an empty array.
      */
-    Map<String, Object> getItems(String aCategory, int aItemsCount,
+    List<Map<String, Object>> getItems(String aCategory, int aItemsCount,
             boolean aRandomize, String aBaseId);
 
     /**

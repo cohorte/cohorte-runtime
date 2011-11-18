@@ -158,7 +158,7 @@ public class CacheCommons {
      * @param aChannelName
      *            A channel name
      * @param aChannelType
-     * @return Retrieves the requested channel, or null
+     * @return The requested channel, or null
      */
     public ICacheChannel<Serializable, Serializable> getChannel(
             final ICacheFactory aCache, final String aChannelName,
@@ -284,6 +284,58 @@ public class CacheCommons {
             aContext.addError(pName, "Don't know how to handle cache result"
                     + cacheResultContent);
         }
+    }
+
+    /**
+     * Tries to make a unique key based upon the object "content"
+     * 
+     * @param aObject
+     *            A key object
+     * @return A string representation of the object
+     */
+    public String makeKey(final Object aObject) {
+
+        if (aObject == null) {
+            // Null key
+            return null;
+        }
+
+        if (aObject.getClass().isArray()) {
+            // Array...
+            return Arrays.toString((Object[]) aObject);
+        }
+
+        // Standard conversion
+        return aObject.toString();
+    }
+
+    /**
+     * Retrieves the channel described with the given name and type. Opens it if
+     * needed.
+     * 
+     * @param aCache
+     *            A cache service
+     * @param aChannelName
+     *            A channel name
+     * @param aChannelType
+     * @return the requested channel
+     */
+    public ICacheChannel<Serializable, Serializable> openChannel(
+            final ICacheFactory aCache, final String aChannelName,
+            final String aChannelType) {
+
+        // Detect the channel type
+        final boolean isMapChannel = aChannelType == null
+                || aChannelType.isEmpty()
+                || aChannelType.equalsIgnoreCase(CHANNEL_TYPE_MAP);
+
+        if (isMapChannel) {
+            // Standard mapped channel
+            return aCache.openChannel(aChannelName);
+        }
+
+        // The channel is queued one
+        return aCache.openDequeueChannel(aChannelName);
     }
 
     /**

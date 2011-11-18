@@ -92,10 +92,15 @@ public class StoreCache extends CPojoBase implements IComponent {
 
         // Call the next component
         final IComponentContext result = pNext.computeResult(aContext);
+        if (!result.hasResult()) {
+            // Nothing to store
+            result.addError(pName, "No result to store in cache...");
+            return result;
+        }
 
         // Open the store channel
         final ICacheChannel<Serializable, Serializable> channel = pCacheCommons
-                .getChannel(pChannelFactory, pChannelName, pChannelType);
+                .openChannel(pChannelFactory, pChannelName, pChannelType);
 
         if (channel == null) {
             result.addError(pName, "Can't open channel : " + pChannelName);
