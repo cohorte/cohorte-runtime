@@ -33,8 +33,8 @@ import org.psem2m.isolates.base.activators.CPojoBase;
 public class NormalizerGetItemsStock extends CPojoBase implements IComponent {
 
     /** The key used in the result map to store the cache age */
-    @Property(name = "cacheAgeEntry")
-    private String pCacheAgeEntry = "__cache_age";
+    @Property(name = "cacheAgeEntry", value = "__cache_age")
+    private String pCacheAgeEntry;
 
     /** The logger */
     @Requires

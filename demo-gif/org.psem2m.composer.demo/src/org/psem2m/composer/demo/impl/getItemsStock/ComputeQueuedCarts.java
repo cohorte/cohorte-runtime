@@ -46,16 +46,16 @@ public class ComputeQueuedCarts extends CPojoBase implements IComponent {
     private String pCartChannelName;
 
     /** The item ID key in a cart line */
-    @Property(name = "cartItemIdKey")
-    private String pCartItemIdKey = "id";
+    @Property(name = "cartItemIdKey", value = "id")
+    private String pCartItemIdKey;
 
     /** The item quantity key in a cart line */
-    @Property(name = "cartItemQuantityKey")
-    private String pCartItemQuantitydKey = "quantity";
+    @Property(name = "cartItemQuantityKey", value = "quantity")
+    private String pCartItemQuantitydKey;
 
     /** The cart lines key */
-    @Property(name = "cartLinesKey")
-    private String pCartLinesKey = "lines";
+    @Property(name = "cartLinesKey", value = "lines")
+    private String pCartLinesKey;
 
     /** The logger */
     @Requires
@@ -70,7 +70,7 @@ public class ComputeQueuedCarts extends CPojoBase implements IComponent {
     private IComponent pNext;
 
     /** The stock value in the result map */
-    @Property(name = "resultStockKey")
+    @Property(name = "resultStockKey", value = "stock")
     private String pResultStockKey = "stock";
 
     /*

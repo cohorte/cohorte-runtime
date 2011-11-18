@@ -44,12 +44,12 @@ public class StoreInCacheQueue extends CPojoBase implements IComponent {
     private String pCacheChannelName;
 
     /** The cart ID key */
-    @Property(name = "cartIdKey")
-    private String pCartIdKey = "id";
+    @Property(name = "cartIdKey", value = "id")
+    private String pCartIdKey;
 
     /** The cart lines key */
-    @Property(name = "cartLinesKey")
-    private String pCartLinesKey = "lines";
+    @Property(name = "cartLinesKey", value = "lines")
+    private String pCartLinesKey;
 
     /** The logger */
     @Requires
