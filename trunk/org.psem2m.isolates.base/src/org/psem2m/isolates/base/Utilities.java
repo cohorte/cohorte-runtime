@@ -8,6 +8,7 @@ package org.psem2m.isolates.base;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -22,6 +23,24 @@ import org.osgi.framework.ServiceReference;
  * @author Thomas Calmant
  */
 public final class Utilities {
+
+    /**
+     * Returns a list if the given object is an array, else returns the given
+     * object.
+     * 
+     * @param aObject
+     *            An object, can be null
+     * @return A list if aObject is an array, else aObject
+     */
+    public static Object arrayToIterable(final Object aObject) {
+
+        if (aObject != null && aObject.getClass().isArray()) {
+            // Convert arrays into list
+            return Arrays.asList((Object[]) aObject);
+        }
+
+        return aObject;
+    }
 
     /**
      * Tries to load the given class by looking into all available bundles.
@@ -39,15 +58,15 @@ public final class Utilities {
             return null;
         }
 
-        for (Bundle bundle : aBundles) {
+        for (final Bundle bundle : aBundles) {
 
             // Only work with RESOLVED and ACTIVE bundles
-            int bundleState = bundle.getState();
+            final int bundleState = bundle.getState();
             if (bundleState == Bundle.ACTIVE || bundleState == Bundle.RESOLVED) {
                 try {
                     return bundle.loadClass(aClassName);
 
-                } catch (ClassNotFoundException e) {
+                } catch (final ClassNotFoundException e) {
                     // Class not found, try next bundle...
                 }
             }
@@ -79,10 +98,10 @@ public final class Utilities {
     public static Map<String, Object> getServiceProperties(
             final ServiceReference aServiceReference) {
 
-        Map<String, Object> serviceProperties = new HashMap<String, Object>();
+        final Map<String, Object> serviceProperties = new HashMap<String, Object>();
 
-        String[] propertyKeys = aServiceReference.getPropertyKeys();
-        for (String key : propertyKeys) {
+        final String[] propertyKeys = aServiceReference.getPropertyKeys();
+        for (final String key : propertyKeys) {
             serviceProperties.put(key, aServiceReference.getProperty(key));
         }
 
@@ -102,10 +121,10 @@ public final class Utilities {
     public static String join(final String aJoinSequence,
             final Object[] aJoinedObjects) {
 
-        StringBuilder builder = new StringBuilder();
+        final StringBuilder builder = new StringBuilder();
         boolean first = true;
 
-        for (Object object : aJoinedObjects) {
+        for (final Object object : aJoinedObjects) {
 
             if (!first) {
                 builder.append(aJoinSequence);
@@ -131,10 +150,10 @@ public final class Utilities {
     public static String join(final String aJoinSequence,
             final String... aJoinedStrings) {
 
-        StringBuilder builder = new StringBuilder();
+        final StringBuilder builder = new StringBuilder();
         boolean first = true;
 
-        for (String string : aJoinedStrings) {
+        for (final String string : aJoinedStrings) {
 
             if (!first) {
                 builder.append(aJoinSequence);
@@ -162,7 +181,7 @@ public final class Utilities {
     public static File makeDirectory(final CharSequence aPath)
             throws IOException {
 
-        File directory = new File(aPath.toString());
+        final File directory = new File(aPath.toString());
 
         if (!directory.exists()) {
             // Create directory if needed
@@ -201,11 +220,11 @@ public final class Utilities {
             return false;
         }
 
-        StringBuffer f = new StringBuffer();
+        final StringBuffer f = new StringBuffer();
 
-        for (StringTokenizer st = new StringTokenizer(aFilter, "?*", true); st
+        for (final StringTokenizer st = new StringTokenizer(aFilter, "?*", true); st
                 .hasMoreTokens();) {
-            String t = st.nextToken();
+            final String t = st.nextToken();
             if (t.equals("?")) {
                 f.append(".");
             } else if (t.equals("*")) {

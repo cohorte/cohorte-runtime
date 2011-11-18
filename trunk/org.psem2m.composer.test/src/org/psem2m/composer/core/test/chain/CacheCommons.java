@@ -16,6 +16,7 @@ import org.psem2m.composer.test.api.IComponentContext;
 import org.psem2m.demo.data.cache.ICacheChannel;
 import org.psem2m.demo.data.cache.ICacheFactory;
 import org.psem2m.demo.data.cache.ICachedObject;
+import org.psem2m.isolates.base.Utilities;
 
 /**
  * Utility class for class readers
@@ -54,24 +55,6 @@ public class CacheCommons {
     }
 
     /**
-     * Returns an a list if the given object is an array, else returns the given
-     * object.
-     * 
-     * @param aObject
-     *            An object, can be null
-     * @return A list if aObject is an array, else aObject
-     */
-    public Object arrayToIterable(final Object aObject) {
-
-        if (aObject != null && aObject.getClass().isArray()) {
-            // Convert arrays into list
-            return Arrays.asList((Object[]) aObject);
-        }
-
-        return aObject;
-    }
-
-    /**
      * Tries to find a valid value in the cache. If the found value is an array,
      * it is converted to a list with {@link Arrays#asList(Object...)}, to match
      * the "instanceof Iterable" conditions.
@@ -90,12 +73,12 @@ public class CacheCommons {
         if (aRequest.containsKey(IComponentContext.REQUEST_KEY)) {
 
             // Get the object from the cache, if possible
-            return arrayToIterable(getFromCache(channel,
+            return Utilities.arrayToIterable(getFromCache(channel,
                     aRequest.get(IComponentContext.REQUEST_KEY)));
 
         } else if (aRequest.containsKey(IComponentContext.REQUEST_KEYS)) {
             // Treat each keys
-            final Object keys = arrayToIterable(aRequest
+            final Object keys = Utilities.arrayToIterable(aRequest
                     .get(IComponentContext.REQUEST_KEYS));
 
             if (keys instanceof Iterable) {
