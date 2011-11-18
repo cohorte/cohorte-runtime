@@ -10,6 +10,7 @@ import random
 import threading
 import time
 import xml_item_parser
+import logging
 
 # ------------------------------------------------------------------------------
 
@@ -35,6 +36,8 @@ class Erp(object):
         """
         Prepares the ERP members
         """
+        # Some log...
+        logging.info("%s - %s ", "Erp", "<init>")
         # Prepare random stuffs
         random.seed()
 
