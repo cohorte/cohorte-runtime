@@ -189,7 +189,15 @@ public class ComposerCore extends CPojoBase implements IComposer,
         }
 
         // Prepare the components set model
-        prepareComponentsSet(aComposite);
+        if (!prepareComponentsSet(aComposite)) {
+            pLogger.logWarn(this, "instantiateComponentsSet",
+                    "It seems that some wires couldn't be linked in",
+                    aComposite.getName(), "; maybe they are optionnal...");
+        }
+
+        // Print a complete representation of the components set
+        pLogger.logDebug(this, "instantiateComponentsSet", "Model :",
+                aComposite.toCompleteString());
 
         // Add the component to the waiting list
         pWaitingComposites.add(new InstantiatingComposite(aComposite));
