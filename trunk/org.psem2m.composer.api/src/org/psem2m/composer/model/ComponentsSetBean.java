@@ -460,6 +460,62 @@ public class ComponentsSetBean extends AbstractModelBean implements
         }
     }
 
+    /**
+     * Generates a formatted string with more informations than a simple
+     * {@link #toString()}
+     * 
+     * @return A complete information string
+     */
+    public String toCompleteString() {
+
+        final StringBuilder builder = new StringBuilder();
+        toCompleteString(builder, "");
+
+        return builder.toString();
+    }
+
+    /**
+     * Generates a formatted string with more informations than a simple
+     * {@link #toString()}
+     * 
+     * @param aBuilder
+     *            A string builder to fill
+     * @param aPrefix
+     *            The current line prefix
+     */
+    private void toCompleteString(final StringBuilder aBuilder,
+            final String aPrefix) {
+
+        final String subPrefix = aPrefix + "  ";
+
+        aBuilder.append("\n").append(aPrefix);
+        aBuilder.append("Name : ").append(pName);
+
+        aBuilder.append("\n").append(aPrefix);
+        aBuilder.append("Components : [");
+        for (final ComponentBean component : pComponentBeans.values()) {
+            aBuilder.append("\n").append(subPrefix);
+            aBuilder.append("Name: ").append(component.getName());
+            aBuilder.append("\n").append(subPrefix);
+            aBuilder.append("Type: ").append(component.getType());
+            aBuilder.append("\n").append(subPrefix);
+            aBuilder.append("Properties: ").append(component.getProperties());
+            aBuilder.append("\n").append(subPrefix);
+            aBuilder.append("Filters: ").append(component.getFieldsFilters());
+            aBuilder.append("\n").append(subPrefix);
+            aBuilder.append("Wires: ").append(component.getWires());
+
+        }
+        aBuilder.append("\n").append(aPrefix).append("]");
+
+        aBuilder.append("\n").append(aPrefix);
+        aBuilder.append("Composets : [");
+        for (final ComponentsSetBean component : pComponentSets) {
+            component.toCompleteString(aBuilder, subPrefix);
+        }
+        aBuilder.append("\n").append(aPrefix).append("]\n");
+    }
+
     /*
      * (non-Javadoc)
      * 
