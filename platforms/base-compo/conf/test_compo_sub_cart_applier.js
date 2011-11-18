@@ -2,11 +2,14 @@
     "name":"CartsApplier",
     "components":[
         {
-            "name":"scheduler",
-            "type":"cache-queue-poller",
+            "name":"useCartQueue",
+            "type":"cache-queue-handler",
             "isolate":"isolate-cache",
             "properties":{
-                "cacheChannel":"carts"
+                "cacheChannel":"carts",
+                "cartIdKey":"id",
+                "cartLinesKey":"lines",
+                "timeout":3000
             },
             "wires":{
                 "next":"safeErpCaller"

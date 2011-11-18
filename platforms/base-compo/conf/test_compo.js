@@ -324,20 +324,12 @@
                     "type":"server-endpoint-applyCart",
                     "wires":{
                         "normalizer":"resultNormalizer",
-                        "next":"storeInQueue"
+                        "next":"useCartQueue"
                     }
                 },
                 {
                     "name":"resultNormalizer",
                     "type":"normalizer-applyCart"
-                },
-                {
-                    "name":"storeInQueue",
-                    "type":"store-cache-queue",
-                    "isolate":"isolate-cache",
-                    "properties":{
-                        "cacheChannel":"carts"
-                    }
                 }
             ]
         },
