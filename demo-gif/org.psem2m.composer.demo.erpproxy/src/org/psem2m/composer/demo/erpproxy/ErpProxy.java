@@ -216,16 +216,12 @@ public class ErpProxy extends CPojoBase implements IComponent {
 
         final String[] itemIds = wItemIds.toArray(new String[0]);
 
-        pLogger.logInfo(this, "getStocks", "IDS=", itemIds);
-
         // Call the ERP
         final List<Map<String, Object>> result = pProxy.getItemsStock(itemIds);
 
         // Store the result
         aContext.getResults().clear();
         aContext.getResults().addAll(result);
-
-        pLogger.logInfo(this, "getStocks", "result=", result.toArray());
     }
 
     /*
