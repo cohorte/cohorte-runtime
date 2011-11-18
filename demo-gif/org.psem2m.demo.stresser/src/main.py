@@ -4,7 +4,8 @@ Created on 13 oct. 2011
 @author: Thomas Calmant
 '''
 
-from erp.stresser import Stresser
+from erp.stresser_maps import Stresser
+
 from multiprocessing import Pool
 from optparse import OptionParser
 
