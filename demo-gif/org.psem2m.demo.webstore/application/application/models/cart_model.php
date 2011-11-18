@@ -76,7 +76,7 @@ class Cart_model extends CI_Model {
 		
 		$wJsonrpcClient->timeout(5);
 		
-		if(log_isOn('OFF')){
+		if(log_isOn('INFO')){
 			log_message('INFO', "** Item_model.rpcGetItem() : wJsonrpcClient=[". var_export($wJsonrpcClient,true)."]" );
 		}
 		
@@ -112,23 +112,40 @@ class Cart_model extends CI_Model {
 			return  array('status'=>$wErpActionError->code,'message'=>$wErpActionError->msg,'reasonInfos'=>'');
 		}
 		
-		
 		/*
-		*	stdClass::__set_state(array(
-				'id' => 'ID_834117402',
-				'result' =>
-						stdClass::__set_state(array(
-							'status' => 200,
-							'message' => 'xxxx',
-							'reasonInfos' => '',
-							'qualityLevel' => 0,
-							'javaClass' => 'org.psem2m.demo.erp.api.beans.CErpActionReport',
-						))
-				))
+		 * 
+			stdClass::__set_state(array(
+			   'id' => 'ID_979626130',
+			   'result' => 
+			  stdClass::__set_state(array(
+			     'map' => 
+			    stdClass::__set_state(array(
+			       'message' => 'Cart applied',
+			       'reason' => '',
+			       'code' => 200,
+			    )),
+			     'javaClass' => 'java.util.HashMap',
+			  )),
+			))
+		*
+		*
+			stdClass::__set_state(array(
+			   'id' => 'ID_1853053347',
+			   'result' => 
+			  stdClass::__set_state(array(
+			     'map' => 
+			    stdClass::__set_state(array(
+			       'message' => 'Insufficient stock',
+			       'reason' => 'Can\'t get 100mouse001',
+			       'code' => 500,
+			    )),
+			     'javaClass' => 'java.util.HashMap',
+			  )),
+			))		 
 		*/
-		$wErpActionReport = $wData->result;
+		$wErpActionReport = $wData->result->map;
 		
-		return  array('status'=>$wErpActionReport->status,'message'=>$wErpActionReport->message,'reasonInfos'=>$wErpActionReport->reasonInfos);
+		return  array('status'=>$wErpActionReport->code,'message'=>$wErpActionReport->message,'reasonInfos'=>$wErpActionReport->reason);
 	}
 	/**
 	 * 

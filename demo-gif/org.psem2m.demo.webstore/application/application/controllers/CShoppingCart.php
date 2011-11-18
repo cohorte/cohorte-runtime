@@ -106,30 +106,41 @@ class CShoppingCart extends MY_Controller {
 		$this->load->model('Cart_model');
 		
 		/*
-			Cart=[array (
-			  '7142441163b7d49b1efc67f9491af996' => 
-				  array (
-				    'rowid' => '7142441163b7d49b1efc67f9491af996',
-				    'id' => 'screen011',
-				    'qty' => '1',
-				    'price' => '179.00',
-				    'name' => 'XX Hyundai - T236LD - Ecran LED',
-				    'subtotal' => 179,
-				  ),
-			  'a5f646a4c959b70cf25870835c5e6460' => 
-				  array (
-				    'rowid' => 'a5f646a4c959b70cf25870835c5e6460',
-				    'id' => 'screen016',
-				    'qty' => '1',
-				    'price' => '281.00',
-				    'name' => 'XX LG - E2290V-SN - Ecran LED',
-				    'subtotal' => 281,
-				  ),
-			)]
+			wCartLines=[array (
+			  'javaClass' => 'java.util.HashMap',
+			  'map' => 
+			  array (
+			    'id' => 'e42ded08cb46d0b7c7319130f0275f1a',
+			    'lines' => 
+			    array (
+			      'javaClass' => 'java.util.ArrayList',
+			      'list' => 
+			      array (
+			        0 => 
+			        array (
+			          'javaClass' => 'java.util.HashMap',
+			          'map' => 
+			          array (
+			            'lineId' => '26452c697df8914161da09e8270c50d0',
+			            'id' => 'mouse001',
+			            'quantity' => '100',
+			          ),
+			        ),
+			        1 => 
+			        array (
+			          'javaClass' => 'java.util.HashMap',
+			          'map' => 
+			          array (
+			            'lineId' => 'e10d82304450987a85c4ea5f0f5c2f30',
+			            'id' => 'screen004',
+			            'quantity' => '10',
+			          ),
+			        ),
+			      ),
+			    ),
+			  ),
+			)
 		 */
-		
-		
-
 		
 		
 		$wCartLines = array();
@@ -138,24 +149,35 @@ class CShoppingCart extends MY_Controller {
 		foreach ($this->cart->contents() as $wRowId=>$wRowData) {
 			$wCartLine = array();
 			$wCartLine['lineId'] = $wRowId;
-			$wCartLine['itemId'] = $wRowData['id'];
+			$wCartLine['id'] = $wRowData['id'];
 			$wCartLine['quantity'] = $wRowData['qty'];
-			$wCartLine['javaClass'] = 'org.psem2m.demo.erp.api.beans.CCartLine';
-				
-			array_push($wCartLines,$wCartLine);
+			
+			$wCartLineMap = array();
+			$wCartLineMap['javaClass'] = 'java.util.HashMap';
+			$wCartLineMap['map'] = $wCartLine;
+			
+			array_push($wCartLines,$wCartLineMap);
 		}
+		
+		$wCartLinesMap = array();
+		$wCartLinesMap['javaClass'] = 'java.util.ArrayList';
+		$wCartLinesMap['list'] = $wCartLines;
 		
 		// We now need to create a unique identifier for the cart.
 		$wCartId = md5(microtime(false) );
 		
 		$wCart = array();
-		$wCart['cartId']= $wCartId;
-		$wCart['cartLines']= $wCartLines;
+		$wCart['id']= $wCartId;
+		$wCart['lines']= $wCartLinesMap;
 		
-		//log_message('INFO', "** CShoppingCart.applyCart() : wCartLines=[". var_export($wCartLines,true)."]" );
+		$wCartMap = array();
+		$wCartMap['javaClass'] = 'java.util.HashMap';
+		$wCartMap['map'] = $wCart;
+		
+		log_message('INFO', "** CShoppingCart.applyCart() : wCartLines=[". var_export($wCartMap,true)."]" );
 		
 		
-		$wErpResponse = $this->Cart_model->applyCart($wCart);
+		$wErpResponse = $this->Cart_model->applyCart($wCartMap);
 		
 		if(log_isOn('INFO')){
 			log_message('INFO', "** CShoppingCart.applyCart() : wErpResponse=[". var_export($wErpResponse,true)."]" );
