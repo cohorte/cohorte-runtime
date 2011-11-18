@@ -21,11 +21,11 @@ import org.osgi.framework.BundleException;
 import org.psem2m.composer.demo.DemoComponentsConstants;
 import org.psem2m.composer.test.api.IComponent;
 import org.psem2m.composer.test.api.IComponentContext;
-import org.psem2m.demo.data.cache.CachedObject;
 import org.psem2m.demo.data.cache.ICacheDequeueChannel;
 import org.psem2m.demo.data.cache.ICacheFactory;
 import org.psem2m.demo.data.cache.ICachedObject;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
+import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.base.activators.CPojoBase;
 
 /**
@@ -46,24 +46,32 @@ public class ComputeQueuedCarts extends CPojoBase implements IComponent {
     private String pCartChannelName;
 
     /** The item ID key in a cart line */
-    @Property(name = "cartItemId")
-    private String pCartItemIdKey;
+    @Property(name = "cartItemIdKey")
+    private String pCartItemIdKey = "id";
 
     /** The item quantity key in a cart line */
-    @Property(name = "cartItemQuantity")
-    private String pCartItemQuantitydKey;
+    @Property(name = "cartItemQuantityKey")
+    private String pCartItemQuantitydKey = "quantity";
 
-    /** The instance name */
-    @Property(name = DemoComponentsConstants.PROPERTY_INSTANCE_NAME)
-    private String pInstanceName;
+    /** The cart lines key */
+    @Property(name = "cartLinesKey")
+    private String pCartLinesKey = "lines";
 
     /** The logger */
     @Requires
     private IIsolateLoggerSvc pLogger;
 
+    /** The instance name */
+    @Property(name = DemoComponentsConstants.PROPERTY_INSTANCE_NAME)
+    private String pName;
+
     /** The next component of the chain */
     @Requires(id = DemoComponentsConstants.WIRE_NEXT)
     private IComponent pNext;
+
+    /** The stock value in the result map */
+    @Property(name = "resultStockKey")
+    private String pResultStockKey = "stock";
 
     /*
      * (non-Javadoc)
@@ -72,7 +80,6 @@ public class ComputeQueuedCarts extends CPojoBase implements IComponent {
      * org.psem2m.composer.test.api.IComponent#computeResult(org.psem2m.composer
      * .test.api.IComponentContext)
      */
-    @SuppressWarnings("unchecked")
     @Override
     public IComponentContext computeResult(final IComponentContext aContext)
             throws Exception {
@@ -87,41 +94,28 @@ public class ComputeQueuedCarts extends CPojoBase implements IComponent {
         for (final Map<String, Object> itemStockMap : computedResult
                 .getResults()) {
 
-            for (final String itemId : itemStockMap.keySet()) {
+            // Get the associated data (stock, quality, ...)
+            final String itemId = (String) itemStockMap.get(pCartItemIdKey);
+            final Number currentStock = (Number) itemStockMap
+                    .get(pResultStockKey);
+            if (currentStock == null) {
+                // Invalid stock
+                continue;
+            }
 
-                // Get the associated map (stock, quality, ...)
-                final Object mapValue = itemStockMap.get(itemId);
-
-                if (mapValue instanceof ICachedObject) {
-
-                    final ICachedObject<Integer> currentStock = (ICachedObject<Integer>) mapValue;
-
-                    if (currentStock == null
-                            || currentStock.getObject() == null) {
-                        // Invalid stock
-                        continue;
-                    }
-
-                    // Find the item ID in the cache
-                    final Integer reservedQuantity = reservedQuantities
-                            .get(itemId);
-                    if (reservedQuantity != null) {
-                        // Valid value, reduce the current item stock
-                        int newStock = currentStock.getObject().intValue()
-                                - reservedQuantity.intValue();
-                        if (newStock < 0) {
-                            // Something went wrong ?
-                            newStock = 0;
-                        }
-
-                        // Prepare a new "cached" object
-                        final CachedObject<Integer> newCachedStock = new CachedObject<Integer>(
-                                newStock);
-                        newCachedStock.setCacheAge(currentStock.getCacheAge());
-
-                        itemStockMap.put(itemId, newCachedStock);
-                    }
+            // Find the item ID in the cache
+            final Integer reservedQuantity = reservedQuantities.get(itemId);
+            if (reservedQuantity != null) {
+                // Valid value, reduce the current item stock
+                int newStock = currentStock.intValue()
+                        - reservedQuantity.intValue();
+                if (newStock < 0) {
+                    // Something went wrong ? Too old conflicting values ?
+                    newStock = 0;
                 }
+
+                // Prepare a new "cached" object
+                itemStockMap.put(pResultStockKey, Integer.valueOf(newStock));
             }
         }
 
@@ -154,17 +148,44 @@ public class ComputeQueuedCarts extends CPojoBase implements IComponent {
         // Get reserved quantities
         for (final ICachedObject<Serializable> cachedObject : queueCopy) {
 
-            final Map<String, Object> cartMap = (Map<String, Object>) cachedObject
+            // Get the cached applyCart request context
+            final IComponentContext cartContext = (IComponentContext) cachedObject
                     .getObject();
 
-            for (final Map<String, Object> cartLine : ((Map<String, Object>[]) cartMap
-                    .get("lines"))) {
+            // Get the lines (test if it's iterable)
+            final Object cartLines = Utilities.arrayToIterable(cartContext
+                    .getRequest().get(pCartLinesKey));
+            if (!(cartLines instanceof Iterable)) {
+                pLogger.logWarn(this, "getReservedQuantities",
+                        "Don't know  how to read cart :", cartLines);
+                continue;
+            }
 
+            for (final Map<String, Object> cartLine : ((Iterable<Map<String, Object>>) cartLines)) {
+
+                // Get line item data
                 final String itemId = (String) cartLine.get(pCartItemIdKey);
                 final Integer itemQuantity = (Integer) cartLine
                         .get(pCartItemQuantitydKey);
 
-                reservedQuantities.put(itemId, itemQuantity);
+                if (itemId == null || itemQuantity == null) {
+                    // Invalid data
+                    pLogger.logWarn(this, "getReservedQuantities",
+                            "Unreadable cart line :", cartLine);
+                    continue;
+                }
+
+                // Get reserved item stock
+                final Integer alreadyReservedQuantity = reservedQuantities
+                        .get(itemId);
+
+                // Compute new reservation
+                int toReserve = itemQuantity.intValue();
+                if (alreadyReservedQuantity != null) {
+                    toReserve += alreadyReservedQuantity.intValue();
+                }
+
+                reservedQuantities.put(itemId, Integer.valueOf(toReserve));
             }
         }
 
@@ -180,8 +201,7 @@ public class ComputeQueuedCarts extends CPojoBase implements IComponent {
     @Invalidate
     public void invalidatePojo() throws BundleException {
 
-        pLogger.logInfo(this, "invalidatePojo", "Component", pInstanceName,
-                "Gone");
+        pLogger.logInfo(this, "invalidatePojo", "Component", pName, "Gone");
     }
 
     /*
@@ -193,7 +213,6 @@ public class ComputeQueuedCarts extends CPojoBase implements IComponent {
     @Validate
     public void validatePojo() throws BundleException {
 
-        pLogger.logInfo(this, "validatePojo", "Component", pInstanceName,
-                "Ready");
+        pLogger.logInfo(this, "validatePojo", "Component", pName, "Ready");
     }
 }
