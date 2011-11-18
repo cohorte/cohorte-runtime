@@ -118,9 +118,28 @@ class Item_model extends CI_Model {
 
     /**
      * retrieve an Item asking the dataserver
-    *
-    * @param unknown_type $aItemId
-    */
+     * <pre>
+     * >>> pprint(s.dataserver.getItem("screen001"))
+     * {u'javaClass': u'java.util.HashMap',
+     *  u'map': {u'description': u'21.5" (54.6 cm) - Full HD (1920x1080) - 5 ms - 250 cd/m - DVI-D\n\t\t\t/ VGA / Audio\n\t\t\tMoniteur Asus VE228T. Profitez d\'images plus ralistes\n\t\t\tgrce  la technologie\n\t\t\tLED en Full HD 1080p !\n\t\t',
+     *           u'id': u'screen001',
+     *           u'name': u'Asus - VE228T - LED',
+     *           u'price': u'118.30',
+     *           u'qualityLevel': 4}}
+     * </pre>     
+     *                      
+     * <pre>    
+     * >>> pprint(s.dataserver.getItem("mouse001"))
+     * {u'javaClass': u'java.util.HashMap',
+     *  u'map': {u'description': u"Aujourd'hui, pour se satisfaire aux normes environnementales,\n\t\t\tnous nous devons de trouver de nouveaux matriaux pour la production.\n\t\t\tLe bambou est une de ces alternatives, avec des avantages cologiques\n\t\t\tprouvs tels que le recyclage facile et galement un tas de\n\t\t\tcaractristiques techniques intressantes.\n\t\t",
+     *           u'id': u'mouse001',
+     *           u'name': u'Souris en Bambou',
+     *           u'price': u'25.00',
+     *           u'qualityLevel': 4}}
+     * </pre>
+     *
+     * @param unknown_type $aItemId
+     */
     private function rpcGetItem($aItemId){
 
         /*
@@ -179,19 +198,34 @@ class Item_model extends CI_Model {
         $wData = $wJsonrpcClient->get_response_object();
 
         /*
-        *   stdClass::__set_state(array(
-                'id' => 'ID_834117402',
-                'result' =>
-                        stdClass::__set_state(array(
-                            'id' => 'mouse001',
-                            'price' => '25.00 EUR',
-                            'qualityLevel' => 0,
-                            'description' => 'Aujourd\'hui ',
-                            'name' => 'Souris en Bambou',
-                            'javaClass' => 'org.psem2m.demo.erp.api.beans.CachedItemBean',
-                        ))
-                ))
-        */
+         * 
+			>>> pprint(s.dataserver.getItem("mouse001"))
+			{u'javaClass': u'java.util.HashMap',
+			 u'map': {u'description': u"Aujourd'hui, pour se satisfaire ... essantes.\n\t\t",
+			          u'id': u'mouse001',
+			          u'name': u'Souris en Bambou',
+			          u'price': u'25.00',
+			          u'qualityLevel': 0}}
+         * 
+         * 
+			stdClass::__set_state(array(
+			   'id' => 'ID_988518742',
+			   'result' => 
+			  stdClass::__set_state(array(
+			     'map' => 
+			    stdClass::__set_state(array(
+			       'id' => 'mouse012',
+			       'price' => '15.50',
+			       'qualityLevel' => 0,
+			       'description' => 'Souris optique USB "For Business". Actus dicatur bonus qui est conformis legi et rationi ',
+			       'name' => 'Microsoft Basic Optical Mouse',
+			    )),
+			     'javaClass' => 'java.util.HashMap',
+			  )),
+			))
+         * 
+         */
+        
         $wItemBean = $wData->result->map;
 
         $wItem = array();
@@ -207,6 +241,22 @@ class Item_model extends CI_Model {
     /**
      * return an array of items asking the dataserver
      *
+     * <pre>
+			>>> pprint(s.dataserver.getItems("screens",2,False,""))
+			{u'javaClass': u'java.util.LinkedList',
+			 u'list': [{u'javaClass': u'java.util.HashMap',
+			            u'map': {u'description': u'21.5" (54.6 cm) - Full HD (1920x1080) - 5 ms - 250 cd/m - DVI-D\n\t\t\t/ VGA / Audio\n\t\t\tMoniteur Asus VE228T. Profitez d\'images plus ralistes\n\t\t\tgrce  la technologie\n\t\t\tLED en Full HD 1080p !\n\t\t',
+			                     u'id': u'screen001',
+			                     u'name': u'Asus - VE228T - LED',
+			                     u'price': u'118.30',
+			                     u'qualityLevel': 0}},
+			           {u'javaClass': u'java.util.HashMap',
+			            u'map': {u'description': u'21.5" - 1920 x 1080 (16/9) - 5 ms - VGA / DVI-D (HDCP)\n\t\t\tEcran\n\t\t\tHANNS G utilisant la technologie LCD/LED de 21.5". Rfrence :\n\t\t\tHL225DBB. Propose une connectique VGA et DVI-D (HDCP).\n\t\t',
+			                     u'id': u'screen002',
+			                     u'name': u'PROMO - HANNS G - LED - HL225DBB',
+			                     u'price': u'150.00',
+			                     u'qualityLevel': 0}}]}
+     * </pre>
      * @param String $aCategorie
      * @param Integer $aNbItems
      * @param boolean $aNb
@@ -240,38 +290,68 @@ class Item_model extends CI_Model {
             return null;
         }
 
-        if(log_isOn('OFF')){
+        if(log_isOn('INFO')){
             log_message('INFO', "** Item_model.rpcGetItems() : get_response_object=[". var_export($wJsonrpcClient->get_response_object(),true)."]" );
         }
 
         $wData = $wJsonrpcClient->get_response_object();
+
         /*
-         *  stdClass::__set_state(array(
-            'id' => 'ID_834117402',
-            'result' =>
-                array (
-                    0 =>
-                        stdClass::__set_state(array(
-                            'id' => 'mouse001',
-                            'price' => '25.00 EUR',
-                            'qualityLevel' => 0,
-                            'description' => 'Aujourd\'hui ',
-                            'name' => 'Souris en Bambou',
-                            'javaClass' => 'org.psem2m.demo.erp.api.beans.CachedItemBean',
-                        )),
-                    1 =>
-                        stdClass::__set_state(array(
-                           'id' => 'mouse002',
-                           'price' => '35.33 EUR',
-                           'qualityLevel' => 0,
-                           'description' => 'Souris sans fil',
-                           'name' => 'Advance Arty POP Flower Mouse',
-                           'javaClass' => 'org.psem2m.demo.erp.api.beans.CachedItemBean',
-                        )),
-                 ...
-            ))
-        */
-        $wItemBeans = $wData->result->map->list;
+         * 
+			>>> pprint(s.dataserver.getItems("screens",2,False,""))
+			{u'javaClass': u'java.util.LinkedList',
+			 u'list': [{u'javaClass': u'java.util.HashMap',
+			            u'map': {u'description': u'21.5" (54.6 cm) - Full HD (1920x1080) - 5 ms - 250 cd/m - DVI-D\n\t\t\t/ VGA / Audio\n\t\t\tMoniteur Asus VE228T. Profitez d\'images plus ralistes\n\t\t\tgrce  la technologie\n\t\t\tLED en Full HD 1080p !\n\t\t',
+			                     u'id': u'screen001',
+			                     u'name': u'Asus - VE228T - LED',
+			                     u'price': u'118.30',
+			                     u'qualityLevel': 0}},
+			           {u'javaClass': u'java.util.HashMap',
+			            u'map': {u'description': u'21.5" - 1920 x 1080 (16/9) - 5 ms - VGA / DVI-D (HDCP)\n\t\t\tEcran\n\t\t\tHANNS G utilisant la technologie LCD/LED de 21.5". Rfrence :\n\t\t\tHL225DBB. Propose une connectique VGA et DVI-D (HDCP).\n\t\t',
+			                     u'id': u'screen002',
+			                     u'name': u'PROMO - HANNS G - LED - HL225DBB',
+			                     u'price': u'150.00',
+			                     u'qualityLevel': 0}}]}
+         *
+         * 
+			stdClass::__set_state(array(
+			   'id' => 'ID_988518742',
+			   'result' => 
+			  stdClass::__set_state(array(
+			     'javaClass' => 'java.util.LinkedList',
+			     'list' => 
+			    array (
+			      0 => 
+			      stdClass::__set_state(array(
+			         'map' => 
+			        stdClass::__set_state(array(
+			           'id' => 'screen001',
+			           'price' => '118.30',
+			           'qualityLevel' => 0,
+			           'description' => '21.5" (54.6 cm) - Full HD (1920x1080) - 5 ms - 250 cd/m - DVI-D....',
+			           'name' => 'Asus - VE228T - LED',
+			        )),
+			         'javaClass' => 'java.util.HashMap',
+			      )),
+			...
+			      5 => 
+			      stdClass::__set_state(array(
+			         'map' => 
+			        stdClass::__set_state(array(
+			           'id' => 'screen006',
+			           'price' => '165.50',
+			           'qualityLevel' => 0,
+			           'description' => '21.5" Full HD (1920x1080) - 2ms - D-Sub / HDMI...',
+			           'name' => 'Asus - ML228H - LED',
+			        )),
+			         'javaClass' => 'java.util.HashMap',
+			      )),
+			    ),
+			  )),
+			))
+         * 
+         */
+        $wItemBeans = $wData->result->list;
 
 
         $wItems = array();
@@ -293,6 +373,23 @@ class Item_model extends CI_Model {
     /**
      *
      * return a array of item beans containing a stock quantity asking the data server
+     *
+     *
+     *
+     * <pre>
+     *  >>> pprint(s.dataserver.getItemsStock(["screen001","mouse001"]))
+     * 	{	u'javaClass': u'java.util.LinkedList',
+     * 		u'list': [	{	u'javaClass': u'java.util.HashMap',
+     * 	 					u'map': {	u'id': u'screen001', 
+     * 	 								u'qualityLevel': 0, 
+     * 	 								u'stock': 149}},
+     * 					{	u'javaClass': u'java.util.HashMap',
+     *  					u'map': {	u'id': u'mouse001', 
+     *  								u'qualityLevel': 0, 
+     * 									u'stock': 195}}]}
+     * 
+     * </pre>
+     *
      *
      * @param Array $aItemIds
      */
@@ -321,35 +418,57 @@ class Item_model extends CI_Model {
             return null;
         }
 
-        if(log_isOn('OFF')){
+        if(log_isOn('INFO')){
             log_message('INFO', "** Item_model.rpcGetItemsStock() : get_response_object=[". var_export($wJsonrpcClient->get_response_object(),true)."]" );
         }
 
         $wData = $wJsonrpcClient->get_response_object();
-        /*
-         *  stdClass::__set_state(array(
-            'id' => 'ID_834117402',
-            'result' =>
-                array (
-                    0 =>
-                        stdClass::__set_state(array(
-                            'id' => 'mouse001',
-                            'stock' => '22',
-                            'qualityLevel' => 0,
-                            'javaClass' => 'org.psem2m.demo.erp.api.beans.CachedItemStockBean',
-                        )),
-                    1 =>
-                        stdClass::__set_state(array(
-                           'id' => 'mouse002',
-                           'stock' => '100',
-                           'qualityLevel' => 0,
-                           'javaClass' => 'org.psem2m.demo.erp.api.beans.CachedItemStockBean',
-                        )),
-                 ...
-            ))
-        */
-        $wItemBeans = $wData->result->map->result;
 
+        /*
+         * 
+			>>> pprint(s.dataserver.getItemsStock(["screen001","mouse001"]))
+			{u'javaClass': u'java.util.LinkedList',
+			 u'list': [{u'javaClass': u'java.util.HashMap',
+			            u'map': {u'id': u'screen001', u'qualityLevel': 0, u'stock': 149}},
+			           {u'javaClass': u'java.util.HashMap',
+			            u'map': {u'id': u'mouse001', u'qualityLevel': 0, u'stock': 195}}]}
+         * 
+         * 
+			stdClass::__set_state(array(
+			   'id' => 'ID_1002671583',
+			   'result' => 
+			  stdClass::__set_state(array(
+			     'javaClass' => 'java.util.LinkedList',
+			     'list' => 
+			    array (
+			      0 => 
+			      stdClass::__set_state(array(
+			         'map' => 
+			        stdClass::__set_state(array(
+			           'id' => 'screen001',
+			           'stock' => 149,
+			           'qualityLevel' => 0,
+			        )),
+			         'javaClass' => 'java.util.HashMap',
+			      )),
+			...
+			      5 => 
+			      stdClass::__set_state(array(
+			         'map' => 
+			        stdClass::__set_state(array(
+			           'id' => 'screen006',
+			           'stock' => 49,
+			           'qualityLevel' => 0,
+			        )),
+			         'javaClass' => 'java.util.HashMap',
+			      )),
+			    ),
+			  )),
+			))
+         * 
+         * 
+         */
+        $wItemBeans = $wData->result->list;
 
         $wItems = array();
 
