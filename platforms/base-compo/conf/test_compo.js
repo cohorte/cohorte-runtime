@@ -6,8 +6,7 @@
             "type":"server-exported",
             "isolate":"isolate-1",
             "properties":{
-                "endpoint.name":"dataserver",
-                
+                "endpoint.name":"dataserver"
             },
             "wires":{
                 "applyCart":"ApplyCart.serverEndpoint",
@@ -227,8 +226,10 @@
                     "isolate":"isolate-cache",
                     "properties":{
                         "cartCacheChannel":"carts",
-                        "cartItemId":"itemId",
-                        "cartItemQuantity":"quantity"
+                        "cartLinesKey":"lines",
+                        "itemIdKey":"id",
+                        "itemQuantityKey":"quantity",
+                        "resultStockKey":"stock"
                     },
                     "wires":{
                         "next":"fallbackOnCache"
