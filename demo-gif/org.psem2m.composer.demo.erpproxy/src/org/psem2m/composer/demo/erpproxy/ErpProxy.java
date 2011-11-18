@@ -80,6 +80,22 @@ public class ErpProxy extends CPojoBase implements IComponent {
         pBundleContext = aContext;
     }
 
+    /**
+     * Calls the ERP
+     * 
+     * @param aContext
+     *            The chain component context
+     */
+    protected void applyCart(final IComponentContext aContext) {
+
+        // Call the ERP
+        final Map<String, Object> result = pProxy.applyCart(aContext
+                .getRequest());
+
+        // Store the result
+        aContext.setResult(result);
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -99,7 +115,10 @@ public class ErpProxy extends CPojoBase implements IComponent {
         }
 
         // Call the corresponding method
-        if (method.equals("getItem")) {
+        if (method.equals("applyCart")) {
+            applyCart(aContext);
+
+        } else if (method.equals("getItem")) {
             getItem(aContext);
 
         } else if (method.equals("getItems")) {
@@ -118,8 +137,8 @@ public class ErpProxy extends CPojoBase implements IComponent {
     /**
      * Calls the ERP
      * 
-     * @param aData
-     *            The chain component parameter
+     * @param aContext
+     *            The chain component context
      */
     protected void getItem(final IComponentContext aContext) {
 
@@ -141,8 +160,8 @@ public class ErpProxy extends CPojoBase implements IComponent {
     /**
      * Calls the ERP
      * 
-     * @param aData
-     *            The chain component parameter
+     * @param aContext
+     *            The chain component context
      */
     protected void getItems(final IComponentContext aContext) {
 
@@ -180,8 +199,8 @@ public class ErpProxy extends CPojoBase implements IComponent {
     /**
      * Calls the ERP
      * 
-     * @param aData
-     *            The chain component parameter
+     * @param aContext
+     *            The chain component context
      */
     protected void getItemsStock(final IComponentContext aContext) {
 

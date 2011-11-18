@@ -29,12 +29,14 @@ iPOJO-Components: component { $classname="org.psem2m.composer.demo.erp
   $name="pErpUri" $type="java.lang.String" }field { $name="pLogger" $t
  ype="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pNam
  e" $type="java.lang.String" }field { $name="pProxy" $type="org.psem2m
- .composer.demo.IErpData" }method { $name="computeResult" $return="org
- .psem2m.composer.test.api.IComponentContext" $arguments="{org.psem2m.
- composer.test.api.IComponentContext}" }method { $name="getItem" $argu
- ments="{org.psem2m.composer.test.api.IComponentContext}" }method { $n
- ame="getItems" $arguments="{org.psem2m.composer.test.api.IComponentCo
- ntext}" }method { $name="getItemsStock" $arguments="{org.psem2m.compo
- ser.test.api.IComponentContext}" }method { $name="invalidatePojo" }me
- thod { $name="prepareClient" }method { $name="validatePojo" }}}
+ .composer.demo.IErpData" }method { $name="applyCart" $arguments="{org
+ .psem2m.composer.test.api.IComponentContext}" }method { $name="comput
+ eResult" $return="org.psem2m.composer.test.api.IComponentContext" $ar
+ guments="{org.psem2m.composer.test.api.IComponentContext}" }method { 
+ $name="getItem" $arguments="{org.psem2m.composer.test.api.IComponentC
+ ontext}" }method { $name="getItems" $arguments="{org.psem2m.composer.
+ test.api.IComponentContext}" }method { $name="getItemsStock" $argumen
+ ts="{org.psem2m.composer.test.api.IComponentContext}" }method { $name
+ ="invalidatePojo" }method { $name="prepareClient" }method { $name="va
+ lidatePojo" }}}
 
