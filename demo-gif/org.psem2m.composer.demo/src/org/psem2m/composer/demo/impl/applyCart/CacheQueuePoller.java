@@ -19,6 +19,7 @@ import org.psem2m.composer.test.api.IComponent;
 import org.psem2m.composer.test.api.IComponentContext;
 import org.psem2m.demo.data.cache.ICacheDequeueChannel;
 import org.psem2m.demo.data.cache.ICacheFactory;
+import org.psem2m.demo.data.cache.ICachedObject;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
 
@@ -38,13 +39,13 @@ public class CacheQueuePoller extends CPojoBase implements Runnable {
     @Property(name = "cacheChannel")
     private String pCacheChannelName;
 
-    /** The instance name */
-    @Property(name = DemoComponentsConstants.PROPERTY_INSTANCE_NAME)
-    private String pInstanceName;
-
     /** The logger */
     @Requires
     private IIsolateLoggerSvc pLogger;
+
+    /** The instance name */
+    @Property(name = DemoComponentsConstants.PROPERTY_INSTANCE_NAME)
+    private String pName;
 
     /** The next component of the chain */
     @Requires(id = DemoComponentsConstants.WIRE_NEXT)
@@ -69,8 +70,7 @@ public class CacheQueuePoller extends CPojoBase implements Runnable {
         pRunning = false;
         pThread.interrupt();
 
-        pLogger.logInfo(this, "invalidatePojo", "Component", pInstanceName,
-                "Gone");
+        pLogger.logInfo(this, "invalidatePojo", "Component", pName, "Gone");
     }
 
     /*
@@ -89,18 +89,31 @@ public class CacheQueuePoller extends CPojoBase implements Runnable {
         try {
             while (pRunning) {
 
-                final IComponentContext content = (IComponentContext) channel
-                        .poll(500, TimeUnit.MILLISECONDS);
+                final ICachedObject<?> cachedObject = channel.poll(500,
+                        TimeUnit.MILLISECONDS);
 
-                if (content != null) {
-                    // Call the next component
-                    try {
-                        pNext.computeResult(content);
+                if (cachedObject != null) {
+                    // Something to work on...
+                    final Object cachedObjectContent = cachedObject.getObject();
 
-                    } catch (final Exception e) {
-                        pLogger.logSevere(this, "Polling Cache Queue",
-                                "Error handling a cached queue object", e);
+                    if (cachedObjectContent instanceof IComponentContext) {
+
+                        final IComponentContext context = (IComponentContext) cachedObjectContent;
+                        // Call the next component
+                        try {
+                            pNext.computeResult(context);
+
+                        } catch (final Exception e) {
+                            pLogger.logSevere(this, "Polling Cache Queue",
+                                    "Error handling a cached queue object", e);
+
+                            context.addError(pName,
+                                    "Error handling a cached queue object", e);
+                        }
+
+                        // TODO signal the end of treatment
                     }
+
                 }
             }
 
@@ -125,7 +138,6 @@ public class CacheQueuePoller extends CPojoBase implements Runnable {
         pRunning = true;
         pThread.start();
 
-        pLogger.logInfo(this, "validatePojo", "Component", pInstanceName,
-                "Ready");
+        pLogger.logInfo(this, "validatePojo", "Component", pName, "Ready");
     }
 }

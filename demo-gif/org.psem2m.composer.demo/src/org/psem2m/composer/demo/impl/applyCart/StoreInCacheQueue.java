@@ -6,6 +6,7 @@
 package org.psem2m.composer.demo.impl.applyCart;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,6 +23,7 @@ import org.psem2m.composer.test.api.IComponentContext;
 import org.psem2m.demo.data.cache.ICacheDequeueChannel;
 import org.psem2m.demo.data.cache.ICacheFactory;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
+import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.base.activators.CPojoBase;
 
 /**
@@ -40,6 +42,14 @@ public class StoreInCacheQueue extends CPojoBase implements IComponent {
     /** The name of the channel to poll */
     @Property(name = "cacheChannel")
     private String pCacheChannelName;
+
+    /** The cart ID key */
+    @Property(name = "cartIdKey")
+    private String pCartIdKey = "id";
+
+    /** The cart lines key */
+    @Property(name = "cartLinesKey")
+    private String pCartLinesKey = "lines";
 
     /** The logger */
     @Requires
@@ -62,15 +72,33 @@ public class StoreInCacheQueue extends CPojoBase implements IComponent {
 
         final Map<String, Object> cartMap = aContext.getRequest();
 
+        /* Test cart ID */
         if (cartMap == null) {
             aContext.addError(pName, "Null cart");
             return aContext;
         }
 
+        if (!cartMap.containsKey(pCartIdKey)) {
+            aContext.addError(pName, "Cart doesn't have an ID");
+            return aContext;
+        }
+
+        /* Test cart lines */
+        final Object cartLinesObject = Utilities.arrayToIterable(cartMap
+                .get(pCartLinesKey));
+
+        if (!(cartLinesObject instanceof Collection)
+                || ((Collection<?>) cartLinesObject).isEmpty()) {
+
+            aContext.addError(pName, "Empty cart or invalid lines");
+            return aContext;
+        }
+
+        /* Store the current context in the cache */
         final ICacheDequeueChannel<?, Serializable> channel = pCache
                 .openDequeueChannel(pCacheChannelName);
 
-        channel.add((Serializable) cartMap);
+        channel.add(aContext);
 
         // TODO: wait until we get a response
         final Map<String, Object> resultMap = new HashMap<String, Object>();
