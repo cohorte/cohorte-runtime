@@ -147,7 +147,7 @@ class Erp(object):
                     success = False
                     reason += "Can't set item '" + str(item_id)
                     reason += "' stock value to : " + str(new_stock) + "\n"
-                    return
+                    break
 
 
         if success:

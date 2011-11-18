@@ -105,7 +105,12 @@ class ErpProxy(object):
 
         # Call the ERP
         erp_result = self.erp.apply_cart(cart_id, cart_content)
-        return result_to_jabsorb(erp_result)
+
+        # Convert the result bean to a map
+        result_map = {"code": erp_result.code, "message": erp_result.message,
+                      "reason": erp_result.reason}
+
+        return result_to_jabsorb(result_map)
 
 
     def get_item(self, item_id):
