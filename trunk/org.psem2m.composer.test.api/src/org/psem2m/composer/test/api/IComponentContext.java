@@ -5,14 +5,16 @@
  */
 package org.psem2m.composer.test.api;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
 /**
- * @author Thomas Calmant
+ * Represent a chain treatment context
  * 
+ * @author Thomas Calmant
  */
-public interface IComponentContext {
+public interface IComponentContext extends Serializable {
 
     /**
      * RAW identifier : contains the RAW data sent by the caller

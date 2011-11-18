@@ -13,10 +13,14 @@ import java.util.Map;
 import org.psem2m.utilities.CXException;
 
 /**
- * @author Thomas Calmant
+ * Implementation of a treatment chain context
  * 
+ * @author Thomas Calmant
  */
 public class ComponentContextBean implements IComponentContext {
+
+    /** Serial version UID */
+    private static final long serialVersionUID = 1L;
 
     /** The errors list */
     private final List<String> pErrors = new LinkedList<String>();
