@@ -8,25 +8,38 @@
  * Contributors:
  *    ogattaz (isandlaTech) - initial API and implementation
  *******************************************************************************/
-package org.psem2m.isolates.demo.services.ui.viewer.impl;
+package org.psem2m.isolates.ui.admin.impl;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.List;
 import java.util.concurrent.Executor;
 
+import javax.swing.Icon;
+
+import org.apache.felix.ipojo.annotations.Bind;
+import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Instantiate;
+import org.apache.felix.ipojo.annotations.Invalidate;
+import org.apache.felix.ipojo.annotations.Provides;
+import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.ServiceController;
+import org.apache.felix.ipojo.annotations.Unbind;
+import org.apache.felix.ipojo.annotations.Validate;
 import org.apache.felix.ipojo.architecture.Architecture;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
-import org.psem2m.isolates.demo.services.ui.viewer.CBundleUiActivator;
-import org.psem2m.isolates.demo.services.ui.viewer.IUiSvc;
 import org.psem2m.isolates.services.conf.IBundleDescr;
 import org.psem2m.isolates.services.conf.ISvcConfig;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.isolates.slave.agent.ISvcAgent;
+import org.psem2m.isolates.ui.admin.CBundleUiActivator;
+import org.psem2m.isolates.ui.admin.api.IUiAdminPanel;
+import org.psem2m.isolates.ui.admin.api.IUiAdminPanelControler;
+import org.psem2m.isolates.ui.admin.api.IUiAdminSvc;
 import org.psem2m.utilities.CXListUtils;
 import org.psem2m.utilities.CXStringUtils;
 
@@ -34,7 +47,10 @@ import org.psem2m.utilities.CXStringUtils;
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
-public class CUiSvc extends CPojoBase implements IUiSvc {
+@Component(architecture = true, immediate = true, name = "psem2m-ui-admin-factory", propagation = true, publicFactory = false)
+@Instantiate(name = "psem2m-ui-admin")
+@Provides(specifications = IUiAdminSvc.class)
+public class CUiAdminSvc extends CPojoBase implements IUiAdminSvc {
 
     /**
      * The listener used to track all the service events
@@ -74,45 +90,65 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
 
     }
 
-    /** iPOJO Components architectures */
+    /**
+     * iPOJO Components architectures
+     * 
+     * @see the methodes "architectureBind" and "architectureUnBind" which are
+     *      called each time an architecture appeared or desapeared
+     */
+    @Requires
     private Architecture[] pArchitectures;
 
+    private CUiAdminPanels pCUiAdminPanels = null;
+
     /**
-     * The window of the bundle
+     * The window of the UiAdmin service
      */
     private CFrameMain pFrameMain = null;
 
+    /**
+     * True if window of the UiAdmin service is available
+     */
+    @ServiceController
+    private boolean pFrameMainAvailable = false;
     /**
      * Service reference managed by iPojo (see metadata.xml)
      * 
      * This service is the logger of the current bundle
      **/
+    @Requires
     private IIsolateLoggerSvc pIsolateLoggerSvc;
 
     /**
      * Service reference managed by iPojo (see metadata.xml)
      **/
+    @Requires
     private IPlatformDirsSvc pPlatformDirsSvc;
 
     /**
      * Service reference managed by iPojo (see metadata.xml)
      */
+    @Requires
     private ISvcAgent pSvcAgent;
 
     /** Configuration service */
+    @Requires
     private ISvcConfig pSvcConfig;
 
     /**
      * Service reference managed by iPojo (see metadata.xml)
      */
+    // <requires field="pUiExecutor" optional="false" filter="(thread=main)" />
+    @Requires(filter = "(thread=main)")
     private Executor pUiExecutor;
 
     /**
      * Explicit default constructor
      */
-    public CUiSvc() {
+    public CUiAdminSvc() {
 
         super();
+
     }
 
     /**
@@ -120,6 +156,7 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
      * 
      * @param aArch
      */
+    @Bind
     void architectureBind(final Architecture aArch) {
 
         pIsolateLoggerSvc.logInfo(this, "architectureBind", "component=[%s]",
@@ -134,6 +171,7 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
      * 
      * @param aArch
      */
+    @Unbind
     void architectureUnBind(final Architecture aArch) {
 
         pIsolateLoggerSvc.logInfo(this, "architectureUnBind", "component=[%s]",
@@ -231,6 +269,12 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
             getFrameMain().dispose();
             setFrameMain(null);
         }
+
+        if (pCUiAdminPanels != null) {
+            pCUiAdminPanels.destroy();
+            pCUiAdminPanels = null;
+        }
+
     }
 
     /**
@@ -242,11 +286,19 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
     }
 
     /**
+     * @return
+     */
+    private synchronized boolean getFrameMainAvailable() {
+
+        return pFrameMainAvailable;
+    }
+
+    /**
      * @return true if the main frame of the UISvc is available
      */
     private boolean hasFrameMain() {
 
-        return getFrameMain() != null;
+        return getFrameMainAvailable();
     }
 
     /**
@@ -259,7 +311,7 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
             @Override
             public void run() {
 
-                CUiSvc.this.initFrameMainContentExec();
+                CUiAdminSvc.this.initFrameMainContentExec();
             }
         };
         try {
@@ -280,14 +332,14 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
 
             try {
 
-                pFrameMain.setConfigextArea(buildConfigDump());
+                getFrameMain().setConfigextArea(buildConfigDump());
 
                 List<ServiceReference> wListOfServiceRef = CBundleUiActivator
                         .getInstance().getAllServiceReferences();
 
-                pFrameMain.setServicesTable(wListOfServiceRef);
+                getFrameMain().setServicesTable(wListOfServiceRef);
 
-                pFrameMain.setComponentsTable(pArchitectures);
+                getFrameMain().setComponentsTable(pArchitectures);
 
                 pIsolateLoggerSvc.logInfo(this, "initListOfService",
                         "add [%d] services : [%s]", wListOfServiceRef.size(),
@@ -309,7 +361,7 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
             @Override
             public void run() {
 
-                CUiSvc.this.createFrameMainExec();
+                CUiAdminSvc.this.createFrameMainExec();
             }
         };
         try {
@@ -326,6 +378,7 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
      * @see org.psem2m.isolates.osgi.CPojoBase#invalidatePojo()
      */
     @Override
+    @Invalidate
     public void invalidatePojo() {
 
         // logs in the bundle output
@@ -335,13 +388,61 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
         destroy();
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.ui.admin.api.IUiAdminSvc#newUiAdminPanel(java.lang
+     * .String, org.psem2m.isolates.ui.admin.api.IUiAdminPanelControler)
+     */
+    @Override
+    public IUiAdminPanel newUiAdminPanel(final String aName, final String aTip,
+            final Icon aIcon, final int aPanelIndex,
+            final IUiAdminPanelControler aControler) throws Exception {
+
+        if (!hasFrameMain()) {
+            throw new Exception(
+                    "Unable to create a new UIAdminpanel. The pFrameMain isn't available");
+        }
+        CUiAdminPanel wCUiAdminPanel = new CUiAdminPanel(this, aName, aTip,
+                aIcon, aControler);
+
+        getFrameMain().addUiAdminPanel(wCUiAdminPanel, aPanelIndex);
+
+        return wCUiAdminPanel;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.ui.admin.api.IUiAdminSvc#remove(org.psem2m.isolates
+     * .ui.admin.api.IUiAdminPanel)
+     */
+    @Override
+    public void removeUiAdminPanel(final IUiAdminPanel aUiAdminPanel) {
+
+        getFrameMain().removeUiAdminPanel(aUiAdminPanel);
+    }
+
     /**
      * @param aFrameMain
      *            store the reference of the main frame of the UISvc
      */
-    private synchronized void setFrameMain(final CFrameMain aFrameMain) {
+    private void setFrameMain(final CFrameMain aFrameMain) {
 
         pFrameMain = aFrameMain;
+        setFrameMainAvailable(pFrameMain != null);
+    }
+
+    /**
+     * @param aAvailable
+     */
+    private synchronized void setFrameMainAvailable(final boolean aAvailable) {
+
+        pFrameMainAvailable = aAvailable;
+        pIsolateLoggerSvc.logInfo(this, "setFrameMainAvailable",
+                "FrameMainAvailable=[%b]", pFrameMainAvailable);
     }
 
     /**
@@ -365,8 +466,8 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
                                             : "UNREGISTERING", aArchitecture
                                             .getInstanceDescription().getName());
 
-                    pFrameMain
-                            .setComponentTable(aArchitecture, aComponentEvent);
+                    getFrameMain().setComponentTable(aArchitecture,
+                            aComponentEvent);
                 }
             };
             try {
@@ -403,8 +504,8 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
                                             : "UNREGISTERING",
                                     aServiceReference.toString());
 
-                    pFrameMain
-                            .setServiceTable(aServiceReference, aServiceEvent);
+                    getFrameMain().setServiceTable(aServiceReference,
+                            aServiceEvent);
                 }
             };
             try {
@@ -422,6 +523,7 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
      * @see org.psem2m.isolates.osgi.CPojoBase#validatePojo()
      */
     @Override
+    @Validate
     public void validatePojo() {
 
         // logs in the logger of the isolate
@@ -431,6 +533,8 @@ public class CUiSvc extends CPojoBase implements IUiSvc {
         initFramMain();
 
         initFrameMainContent();
+
+        pCUiAdminPanels = new CUiAdminPanels(this);
 
         // put in place a service listener to setup the list of service
         try {

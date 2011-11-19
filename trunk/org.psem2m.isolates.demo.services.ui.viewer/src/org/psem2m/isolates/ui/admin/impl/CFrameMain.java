@@ -9,7 +9,7 @@
  *    ogattaz (isandlaTech) - initial API and implementation
  *******************************************************************************/
 
-package org.psem2m.isolates.demo.services.ui.viewer.impl;
+package org.psem2m.isolates.ui.admin.impl;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -56,7 +56,8 @@ import org.apache.felix.ipojo.architecture.Architecture;
 import org.apache.felix.ipojo.architecture.InstanceDescription;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceReference;
-import org.psem2m.isolates.demo.services.ui.viewer.CBundleUiActivator;
+import org.psem2m.isolates.ui.admin.CBundleUiActivator;
+import org.psem2m.isolates.ui.admin.api.IUiAdminPanel;
 import org.psem2m.utilities.CXException;
 import org.psem2m.utilities.CXStringUtils;
 
@@ -592,6 +593,36 @@ public class CFrameMain extends javax.swing.JFrame {
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param aCUiAdminPanel
+     * @throws Exception
+     */
+    void addUiAdminPanel(final CUiAdminPanel aCUiAdminPanel,
+            final int aPanelIndex) throws Exception {
+
+        JPanel wNewPanel = new JPanel();
+
+        aCUiAdminPanel.setFrameAndPanel(this, wNewPanel);
+
+        int wIdx = aPanelIndex;
+        if (wIdx < 0) {
+            wIdx = 0;
+        }
+        if (wIdx < pMainTabbedPane.getTabCount()) {
+            // public void insertTab(String title, Icon icon,Component
+            // component, String tip, int index)
+            pMainTabbedPane.insertTab(aCUiAdminPanel.getName(),
+                    aCUiAdminPanel.getIcon(), wNewPanel,
+                    aCUiAdminPanel.getTip(), wIdx);
+        } else {
+            // void javax.swing.JTabbedPane.addTab(String title, Icon icon,
+            // Component component, String tip)
+            pMainTabbedPane.addTab(aCUiAdminPanel.getName(),
+                    aCUiAdminPanel.getIcon(), wNewPanel,
+                    aCUiAdminPanel.getTip());
+        }
     }
 
     /**
@@ -1256,6 +1287,22 @@ public class CFrameMain extends javax.swing.JFrame {
             }
         }
         return wSB.toString();
+    }
+
+    /**
+     * @param aCUiAdminPanel
+     * @throws Exception
+     */
+    void removeUiAdminPanel(final IUiAdminPanel aCUiAdminPanel) {
+
+        int wMax = pMainTabbedPane.getTabCount();
+
+        for (int wI = 0; wI < wMax; wI++) {
+            if (pMainTabbedPane.getTitleAt(wI).equals(aCUiAdminPanel.getName())) {
+                pMainTabbedPane.removeTabAt(wI);
+                break;
+            }
+        }
     }
 
     /**

@@ -6,31 +6,36 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
- *    ogattaz (isandlaTech) - initial API and implementation
+ *    ogattaz  (isandlaTech) - 18 nov. 2011 - initial API and implementation
  *******************************************************************************/
-package org.psem2m.isolates.demo.services.ui.viewer.impl;
+package org.psem2m.isolates.ui.admin.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.psem2m.utilities.CXObjectBase;
+import org.psem2m.utilities.IXObjectBase;
 
 /**
  * @author ogattaz
  * 
  */
-public enum EDimension {
-    HORIZONTAL, VERTICAL;
+public class CUiAdminPanels extends CXObjectBase {
+
+    private List<CUiAdminPanel> pUiAdminPanels = new ArrayList<CUiAdminPanel>();
 
     /**
-     * @return true if this dimension is horizontal
+     * @param aParent
      */
-    public boolean isHorizontal() {
+    CUiAdminPanels(final IXObjectBase aParent) {
 
-        return this == HORIZONTAL;
+        super(aParent);
     }
 
-    /**
-     * @return true if this dimension is vertical
-     */
-    public boolean isVertical() {
+    @Override
+    public void destroy() {
 
-        return this == VERTICAL;
+        pUiAdminPanels.clear();
     }
 
 }

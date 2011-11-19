@@ -6,14 +6,14 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
- *    ogattaz (isandlaTech) - initial API and implementation
+ *    ogattaz  (isandlaTech) - 18 nov. 2011 - initial API and implementation
  *******************************************************************************/
-package org.psem2m.isolates.demo.services.ui.viewer;
+package org.psem2m.isolates.ui.admin.api;
 
 /**
- * @author isandlatech (www.isandlatech.com) - ogattaz
+ * @author ogattaz
  *
  */
-public interface IUiSvc {
+public interface IUiAdminPanelControler {
 
 }

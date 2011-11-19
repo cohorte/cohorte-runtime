@@ -6,10 +6,11 @@
 
 
     <!-- The UI service -->
-    <component classname="org.psem2m.isolates.demo.services.ui.viewer.impl.CUiSvc"
-        architecture="true" immediate="true" name="psem2m-ui-viewer-factory">
+    <!-- 
+    <component classname="org.psem2m.isolates.ui.admin.impl.CUiAdminSvc"
+        architecture="true" immediate="true" name="psem2m-ui-admin-factory">
 
-        <provides specifications="org.psem2m.isolates.demo.services.ui.viewer.IUiSvc" />
+        <provides specifications="org.psem2m.isolates.ui.admin.api.IUiAdminSvc" />
 
         <requires field="pIsolateLoggerSvc" optional="false" />
 
@@ -33,7 +34,7 @@
     </component>
 
 
-    <instance component="psem2m-ui-viewer-factory"
-        name="psem2m-ui-viewer" />
-
+    <instance component="psem2m-ui-admin-factory"
+        name="psem2m-ui-admin" />
+     -->
 </ipojo>

@@ -1,10 +1,9 @@
 Manifest-Version: 1.0
-Bundle-Activator: org.psem2m.isolates.demo.services.ui.viewer.CBundleU
- iActivator
+Bundle-Activator: org.psem2m.isolates.ui.admin.CBundleUiActivator
 Bundle-ManifestVersion: 2
-Bundle-Name: PSEM2M Demo UI viewer
+Bundle-Name: PSEM2M Demo UI Admin
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Bundle-SymbolicName: org.psem2m.isolates.demo.services.ui.viewer
+Bundle-SymbolicName: org.psem2m.isolates.ui.admin
 Bundle-Vendor: isandlaTech (www.isandlatech.com)
 Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
@@ -18,42 +17,63 @@ Import-Package: javax.swing, javax.swing.event, javax.swing.table, org
  services.conf;version=1.0.0, org.psem2m.isolates.services.dirs;versio
  n=1.0.0, org.psem2m.isolates.slave.agent, org.psem2m.utilities, org.p
  sem2m.utilities.logging
-iPOJO-Components: instance { $component="psem2m-ui-viewer-factory" $na
- me="psem2m-ui-viewer" }component { $classname="org.psem2m.isolates.de
- mo.services.ui.viewer.impl.CUiSvc" $architecture="true" $immediate="t
- rue" $name="psem2m-ui-viewer-factory" provides { $specifications="org
- .psem2m.isolates.demo.services.ui.viewer.IUiSvc" }requires { $field="
- pIsolateLoggerSvc" $optional="false" }requires { $field="pPlatformDir
- sSvc" $optional="false" }requires { $field="pSvcAgent" $optional="fal
- se" }requires { $field="pArchitectures" $optional="false" callback { 
- $type="bind" $method="architectureBind" }callback { $type="unbind" $m
- ethod="architectureUnBind" }}requires { $field="pSvcConfig" $optional
- ="false" }requires { $field="pUiExecutor" $optional="false" $filter="
- (thread=main)" }callback { $transition="validate" $method="validatePo
- jo" }callback { $transition="invalidate" $method="invalidatePojo" }ma
- nipulation { $super="org.psem2m.isolates.base.activators.CPojoBase" i
- nterface { $name="org.psem2m.isolates.demo.services.ui.viewer.IUiSvc"
-  }field { $name="pArchitectures" $type="org.apache.felix.ipojo.archit
- ecture.Architecture[]" }field { $name="pFrameMain" $type="org.psem2m.
- isolates.demo.services.ui.viewer.impl.CFrameMain" }field { $name="pIs
- olateLoggerSvc" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }f
- ield { $name="pPlatformDirsSvc" $type="org.psem2m.isolates.services.d
- irs.IPlatformDirsSvc" }field { $name="pSvcAgent" $type="org.psem2m.is
- olates.slave.agent.ISvcAgent" }field { $name="pSvcConfig" $type="org.
- psem2m.isolates.services.conf.ISvcConfig" }field { $name="pUiExecutor
- " $type="java.util.concurrent.Executor" }method { $name="architecture
- Bind" $arguments="{org.apache.felix.ipojo.architecture.Architecture}"
-  }method { $name="architectureUnBind" $arguments="{org.apache.felix.i
- pojo.architecture.Architecture}" }method { $name="buildConfigDump" $r
- eturn="java.lang.String" }method { $name="createFrameMainExec" }metho
- d { $name="destroy" }method { $name="getFrameMain" $return="org.psem2
- m.isolates.demo.services.ui.viewer.impl.CFrameMain" }method { $name="
- hasFrameMain" $return="boolean" }method { $name="initFrameMainContent
- " }method { $name="initFrameMainContentExec" }method { $name="initFra
- mMain" }method { $name="invalidatePojo" }method { $name="setFrameMain
- " $arguments="{org.psem2m.isolates.demo.services.ui.viewer.impl.CFram
- eMain}" }method { $name="updateComponentsTable" $arguments="{org.apac
- he.felix.ipojo.architecture.Architecture,int}" }method { $name="updat
- eServicsTable" $arguments="{org.osgi.framework.ServiceReference,int}"
-  }method { $name="validatePojo" }}}
+iPOJO-Components: instance { $component="org.psem2m.isolates.ui.admin.
+ impl.CUiAdminSvc" $name="psem2m-ui-admin" }instance { $component="org
+ .psem2m.isolates.ui.admin.panel.bundles.CUiAdminPanelBundles" $name="
+ psem2m-ui-admin-panel-bundles" }component { $classname="org.psem2m.is
+ olates.ui.admin.impl.CUiAdminSvc" $name="psem2m-ui-admin-factory" $pu
+ blic="false" $architecture="true" $immediate="true" properties { $pro
+ pagation="true" }provides { $specifications="{org.psem2m.isolates.ui.
+ admin.api.IUiAdminSvc}" controller { $field="pFrameMainAvailable" }}r
+ equires { $field="pArchitectures" }requires { $field="pIsolateLoggerS
+ vc" }requires { $field="pPlatformDirsSvc" }requires { $field="pSvcAge
+ nt" }requires { $field="pSvcConfig" }requires { $field="pUiExecutor" 
+ $filter="(thread=main)" }callback { $transition="invalidate" $method=
+ "invalidatePojo" }callback { $transition="validate" $method="validate
+ Pojo" }manipulation { $super="org.psem2m.isolates.base.activators.CPo
+ joBase" interface { $name="org.psem2m.isolates.ui.admin.api.IUiAdminS
+ vc" }field { $name="pArchitectures" $type="org.apache.felix.ipojo.arc
+ hitecture.Architecture[]" }field { $name="pCUiAdminPanels" $type="org
+ .psem2m.isolates.ui.admin.impl.CUiAdminPanels" }field { $name="pFrame
+ Main" $type="org.psem2m.isolates.ui.admin.impl.CFrameMain" }field { $
+ name="pFrameMainAvailable" $type="boolean" }field { $name="pIsolateLo
+ ggerSvc" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { 
+ $name="pPlatformDirsSvc" $type="org.psem2m.isolates.services.dirs.IPl
+ atformDirsSvc" }field { $name="pSvcAgent" $type="org.psem2m.isolates.
+ slave.agent.ISvcAgent" }field { $name="pSvcConfig" $type="org.psem2m.
+ isolates.services.conf.ISvcConfig" }field { $name="pUiExecutor" $type
+ ="java.util.concurrent.Executor" }method { $name="architectureBind" $
+ arguments="{org.apache.felix.ipojo.architecture.Architecture}" }metho
+ d { $name="architectureUnBind" $arguments="{org.apache.felix.ipojo.ar
+ chitecture.Architecture}" }method { $name="buildConfigDump" $return="
+ java.lang.String" }method { $name="createFrameMainExec" }method { $na
+ me="destroy" }method { $name="getFrameMain" $return="org.psem2m.isola
+ tes.ui.admin.impl.CFrameMain" }method { $name="getFrameMainAvailable"
+  $return="boolean" }method { $name="hasFrameMain" $return="boolean" }
+ method { $name="initFrameMainContent" }method { $name="initFrameMainC
+ ontentExec" }method { $name="initFramMain" }method { $name="invalidat
+ ePojo" }method { $name="newUiAdminPanel" $return="org.psem2m.isolates
+ .ui.admin.api.IUiAdminPanel" $arguments="{java.lang.String,java.lang.
+ String,javax.swing.Icon,int,org.psem2m.isolates.ui.admin.api.IUiAdmin
+ PanelControler}" }method { $name="removeUiAdminPanel" $arguments="{or
+ g.psem2m.isolates.ui.admin.api.IUiAdminPanel}" }method { $name="setFr
+ ameMain" $arguments="{org.psem2m.isolates.ui.admin.impl.CFrameMain}" 
+ }method { $name="setFrameMainAvailable" $arguments="{boolean}" }metho
+ d { $name="updateComponentsTable" $arguments="{org.apache.felix.ipojo
+ .architecture.Architecture,int}" }method { $name="updateServicsTable"
+  $arguments="{org.osgi.framework.ServiceReference,int}" }method { $na
+ me="validatePojo" }}}component { $classname="org.psem2m.isolates.ui.a
+ dmin.panel.bundles.CUiAdminPanelBundles" $name="psem2m-ui-admin-panel
+ -bundles-factory" $public="false" requires { $field="pLogger" }requir
+ es { $field="pUiAdminSvc" }callback { $transition="invalidate" $metho
+ d="invalidatePojo" }callback { $transition="validate" $method="valida
+ tePojo" }manipulation { $super="org.psem2m.isolates.base.activators.C
+ PojoBase" interface { $name="org.psem2m.isolates.ui.admin.api.IUiAdmi
+ nPanelControler" }field { $name="pJPanelBundles" $type="org.psem2m.is
+ olates.ui.admin.panel.bundles.CJPanelBundles" }field { $name="pLogger
+ " $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="
+ pUiAdminPanel" $type="org.psem2m.isolates.ui.admin.api.IUiAdminPanel"
+  }field { $name="pUiAdminSvc" $type="org.psem2m.isolates.ui.admin.api
+ .IUiAdminSvc" }method { $name="invalidatePojo" }method { $name="valid
+ atePojo" }}}
 

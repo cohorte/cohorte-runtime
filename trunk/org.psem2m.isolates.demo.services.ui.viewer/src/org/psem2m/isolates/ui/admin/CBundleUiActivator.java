@@ -8,7 +8,7 @@
  * Contributors:
  *    ogattaz (isandlaTech) - initial API and implementation
  *******************************************************************************/
-package org.psem2m.isolates.demo.services.ui.viewer;
+package org.psem2m.isolates.ui.admin;
 
 import org.osgi.framework.BundleContext;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;

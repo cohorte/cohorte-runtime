@@ -8,7 +8,7 @@
  * Contributors:
  *    ogattaz (isandlaTech) - initial API and implementation
  *******************************************************************************/
-package org.psem2m.isolates.demo.services.ui.viewer.impl;
+package org.psem2m.isolates.ui.admin.impl;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
