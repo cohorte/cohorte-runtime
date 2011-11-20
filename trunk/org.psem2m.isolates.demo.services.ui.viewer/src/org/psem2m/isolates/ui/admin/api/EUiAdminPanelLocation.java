@@ -6,7 +6,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
- *    ogattaz  (isandlaTech) - 18 nov. 2011 - initial API and implementation
+ *    ogattaz  (isandlaTech) - 20 nov. 2011 - initial API and implementation
  *******************************************************************************/
 package org.psem2m.isolates.ui.admin.api;
 
@@ -14,11 +14,21 @@ package org.psem2m.isolates.ui.admin.api;
  * @author ogattaz
  * 
  */
-public interface IUiAdminPanelControler {
+public enum EUiAdminPanelLocation {
+    ASCENDING, DESCENDING, FIRST, LAST;
 
-    /**
-     * @param aUiAdminFont
-     */
-    void setUiAdminFont(EUiAdminFont aUiAdminFont);
+    public boolean is(final EUiAdminPanelLocation aLocation) {
 
+        return this == aLocation;
+    }
+
+    public boolean isFIRST() {
+
+        return is(FIRST);
+    }
+
+    public boolean isLAST() {
+
+        return is(LAST);
+    }
 }

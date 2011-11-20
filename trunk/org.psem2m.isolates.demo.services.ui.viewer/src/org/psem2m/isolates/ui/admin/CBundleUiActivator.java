@@ -15,6 +15,10 @@ import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CActivatorBase;
 import org.psem2m.isolates.base.activators.IActivatorBase;
 
+/**
+ * @author ogattaz
+ * 
+ */
 public class CBundleUiActivator extends CActivatorBase implements
         IActivatorBase {
 

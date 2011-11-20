@@ -13,6 +13,9 @@ package org.psem2m.isolates.ui.admin.impl;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.psem2m.isolates.ui.admin.api.EUiAdminFont;
+import org.psem2m.isolates.ui.admin.api.IUiAdminPanel;
+import org.psem2m.isolates.ui.admin.api.IUiAdminPanelControler;
 import org.psem2m.utilities.CXObjectBase;
 import org.psem2m.utilities.IXObjectBase;
 
@@ -20,7 +23,8 @@ import org.psem2m.utilities.IXObjectBase;
  * @author ogattaz
  * 
  */
-public class CUiAdminPanels extends CXObjectBase {
+public class CUiAdminPanels extends CXObjectBase implements
+        IUiAdminPanelControler {
 
     private List<CUiAdminPanel> pUiAdminPanels = new ArrayList<CUiAdminPanel>();
 
@@ -32,10 +36,41 @@ public class CUiAdminPanels extends CXObjectBase {
         super(aParent);
     }
 
+    /**
+     * @param aUiAdminPanel
+     */
+    void add(final CUiAdminPanel aUiAdminPanel) {
+
+        pUiAdminPanels.add(aUiAdminPanel);
+    }
+
     @Override
     public void destroy() {
 
         pUiAdminPanels.clear();
+    }
+
+    /**
+     * @param aUiAdminPanel
+     */
+    void remove(final IUiAdminPanel aUiAdminPanel) {
+
+        pUiAdminPanels.remove(aUiAdminPanel);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.ui.admin.api.IUiAdminPanelControler#setUiAdminFont
+     * (org.psem2m.isolates.ui.admin.api.EUiAdminFont)
+     */
+    @Override
+    public void setUiAdminFont(final EUiAdminFont aUiAdminFont) {
+
+        for (CUiAdminPanel wUiAdminPanel : pUiAdminPanels) {
+            wUiAdminPanel.setUiAdminFont(aUiAdminFont);
+        }
     }
 
 }

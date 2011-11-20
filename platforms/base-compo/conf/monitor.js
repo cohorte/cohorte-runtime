@@ -7,7 +7,7 @@
     ],
     "bundles":[
         {
-            "symbolicName":"org.psem2m.isolates.demo.services.ui.viewer",
+            "symbolicName":"org.psem2m.isolates.ui.admin",
             "optional":true,
             "properties":{
                 "psem2m.demo.ui.viewer.top":"0scr",

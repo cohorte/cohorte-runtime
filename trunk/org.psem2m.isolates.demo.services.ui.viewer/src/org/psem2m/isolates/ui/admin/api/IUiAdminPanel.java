@@ -22,7 +22,7 @@ public interface IUiAdminPanel {
     /**
      * @return
      */
-    public IUiAdminPanelControler getConroler();
+    public IUiAdminPanelControler getControler();
 
     /**
      * @return

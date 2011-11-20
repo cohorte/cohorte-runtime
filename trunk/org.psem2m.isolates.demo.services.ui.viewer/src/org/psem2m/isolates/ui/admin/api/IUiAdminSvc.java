@@ -27,8 +27,8 @@ public interface IUiAdminSvc {
      * @return the instance of the added UiAdminPanel
      */
     public IUiAdminPanel newUiAdminPanel(final String aName, final String aTip,
-            final Icon icon, final int aPanelIndex,
-            IUiAdminPanelControler aControler) throws Exception;
+            final Icon icon, IUiAdminPanelControler aControler,
+            final EUiAdminPanelLocation aLocation) throws Exception;
 
     /**
      * @param aUiAdminPanel

@@ -14,6 +14,7 @@ import javax.swing.Icon;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+import org.psem2m.isolates.ui.admin.api.EUiAdminFont;
 import org.psem2m.isolates.ui.admin.api.IUiAdminPanel;
 import org.psem2m.isolates.ui.admin.api.IUiAdminPanelControler;
 import org.psem2m.utilities.CXObjectBase;
@@ -23,7 +24,8 @@ import org.psem2m.utilities.IXObjectBase;
  * @author ogattaz
  * 
  */
-public class CUiAdminPanel extends CXObjectBase implements IUiAdminPanel {
+public class CUiAdminPanel extends CXObjectBase implements IUiAdminPanel,
+        IUiAdminPanelControler {
 
     private final IUiAdminPanelControler pControler;
     private JFrame pFrame;
@@ -53,7 +55,7 @@ public class CUiAdminPanel extends CXObjectBase implements IUiAdminPanel {
      * @see org.psem2m.isolates.ui.admin.api.IUiAdminPanel#getConroler()
      */
     @Override
-    public IUiAdminPanelControler getConroler() {
+    public IUiAdminPanelControler getControler() {
 
         return pControler;
     }
@@ -110,7 +112,7 @@ public class CUiAdminPanel extends CXObjectBase implements IUiAdminPanel {
     @Override
     public boolean hasControler() {
 
-        return getConroler() != null;
+        return getControler() != null;
     }
 
     /*
@@ -142,6 +144,19 @@ public class CUiAdminPanel extends CXObjectBase implements IUiAdminPanel {
 
         pPanel = aPanel;
         pFrame = aFrame;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.ui.admin.api.IUiAdminPanelControler#setUiAdminFont
+     * (org.psem2m.isolates.ui.admin.api.EUiAdminFont)
+     */
+    @Override
+    public void setUiAdminFont(final EUiAdminFont aUiAdminFont) {
+
+        getControler().setUiAdminFont(aUiAdminFont);
     }
 
 }
