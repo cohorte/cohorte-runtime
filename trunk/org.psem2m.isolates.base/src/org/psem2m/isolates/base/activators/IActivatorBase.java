@@ -10,8 +10,6 @@
  *******************************************************************************/
 package org.psem2m.isolates.base.activators;
 
-import java.util.List;
-
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
@@ -22,9 +20,9 @@ import org.osgi.framework.ServiceReference;
 public interface IActivatorBase {
 
     /**
-     * @return aList of all the available service references.
+     * @return an array containing all the available service references.
      */
-    public List<ServiceReference> getAllServiceReferences();
+    public ServiceReference[] getAllServiceReferences();
 
     /**
      * @return

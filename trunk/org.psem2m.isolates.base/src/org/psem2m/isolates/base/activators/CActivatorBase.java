@@ -1,8 +1,5 @@
 package org.psem2m.isolates.base.activators;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
@@ -73,7 +70,7 @@ public abstract class CActivatorBase extends CXObjectBase implements
     private BundleContext pContext = null;
 
     /** the reference to the isolateLogger service **/
-    private IIsolateLoggerSvc pIsolateLoggerSvc;
+    private IIsolateLoggerSvc pLogger;
 
     /**
      * Explicit default constructor
@@ -103,29 +100,34 @@ public abstract class CActivatorBase extends CXObjectBase implements
      */
     private void bindIsolateLogerSvc(final IIsolateLoggerSvc aIsolateLogerSvc) {
 
-        pIsolateLoggerSvc = aIsolateLogerSvc;
+        pLogger = aIsolateLogerSvc;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.base.activators.IActivatorBase#getAllServiceReferences
+     * ()
+     */
     @Override
-    public List<ServiceReference> getAllServiceReferences() {
-
-        List<ServiceReference> wListOfServiceRef = new ArrayList<ServiceReference>();
+    public ServiceReference[] getAllServiceReferences() {
 
         try {
-            ServiceReference[] wServiceReferences = getContext()
-                    .getAllServiceReferences(null, null);
+            ServiceReference[] wSRs = getContext().getAllServiceReferences(
+                    null, null);
 
-            for (ServiceReference wServiceReference : wServiceReferences) {
-                wListOfServiceRef.add(wServiceReference);
-            }
+            pLogger.logInfo(this, "getAllServiceReferences",
+                    "NbServices=[%d]", wSRs.length);
+            return wSRs;
 
         } catch (InvalidSyntaxException e) {
             // can't throw an InvalidSyntaxException, the method
             // getAllServiceReferences uses no filter !
-            pIsolateLoggerSvc.logSevere(this, "getAllServiceReferences", e);
+            pLogger.logSevere(this, "getAllServiceReferences", e);
+            return new ServiceReference[0];
         }
 
-        return wListOfServiceRef;
     }
 
     /*
@@ -155,7 +157,7 @@ public abstract class CActivatorBase extends CXObjectBase implements
      */
     protected IIsolateLoggerSvc getIsolateLoggerSvc() {
 
-        return pIsolateLoggerSvc;
+        return pLogger;
     }
 
     /*
@@ -218,7 +220,7 @@ public abstract class CActivatorBase extends CXObjectBase implements
         }
 
         if (hasIsolateLoggerSvc()) {
-            pIsolateLoggerSvc.logInfo(this, "start", "START", toDescription());
+            pLogger.logInfo(this, "start", "START", toDescription());
         }
     }
 
@@ -232,7 +234,7 @@ public abstract class CActivatorBase extends CXObjectBase implements
     public void stop(final BundleContext bundleContext) throws Exception {
 
         if (hasIsolateLoggerSvc()) {
-            pIsolateLoggerSvc.logInfo(this, "stop", "STOP", toDescription());
+            pLogger.logInfo(this, "stop", "STOP", toDescription());
         }
         pContext = null;
     }
@@ -243,9 +245,9 @@ public abstract class CActivatorBase extends CXObjectBase implements
     public void unbindIsolateLogerSvc() {
 
         if (hasIsolateLoggerSvc()) {
-            pIsolateLoggerSvc.logInfo(this, "unbindLogService");
+            pLogger.logInfo(this, "unbindLogService");
         }
-        pIsolateLoggerSvc = null;
+        pLogger = null;
     }
 
 }
