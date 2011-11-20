@@ -412,7 +412,7 @@ public class CXStringUtils implements IConstants {
      */
     public static boolean isTrimable(final String aStr) {
 
-        return (hasContent(aStr)) ? isTrimable(aStr, 0, aStr.length()) : false;
+        return hasContent(aStr) ? isTrimable(aStr, 0, aStr.length()) : false;
     }
 
     /**
@@ -456,6 +456,33 @@ public class CXStringUtils implements IConstants {
     public static boolean isWordSeparatorChar(final char aChar) {
 
         return WORD_SPARATOR_CHARS.indexOf(aChar) != -1;
+    }
+
+    /**
+     * @param aChars
+     *            the set of char to be removed
+     * @param aValue
+     *            the string
+     * @return the given string without the chars
+     */
+    public static String removeChars(final String aChars, final String aValue) {
+
+        if (aValue == null || aValue.isEmpty() || aChars == null
+                || aChars.isEmpty()) {
+            return aValue;
+        }
+
+        StringBuilder wSB = new StringBuilder();
+
+        int wMaxVal = aValue.length();
+        char wCharVal;
+        for (int wI = 0; wI < wMaxVal; wI++) {
+            wCharVal = aValue.charAt(wI);
+            if (aChars.indexOf(wCharVal) == -1) {
+                wSB.append(wCharVal);
+            }
+        }
+        return wSB.toString();
     }
 
     /**
