@@ -31,13 +31,14 @@ public class ComponentsSetBean extends AbstractModelBean implements
     private final List<ComponentsSetBean> pComponentSets = new ArrayList<ComponentsSetBean>();
 
     /** The parent set */
-    private ComponentsSetBean pParent;
+    private ComponentsSetBean pParent = null;
 
     /**
      * Default constructor
      */
     public ComponentsSetBean() {
 
+        super();
         // Does nothing
     }
 
@@ -69,7 +70,7 @@ public class ComponentsSetBean extends AbstractModelBean implements
     @Override
     public void computeName() {
 
-        if (pParent != null) {
+        if (!isRoot()) {
             // Get the parent name
             final String parentName = pParent.getName();
 
@@ -251,6 +252,11 @@ public class ComponentsSetBean extends AbstractModelBean implements
         // ComponentsSetBean[pComponentSets.size()]);
     }
 
+    public ComponentsSetBean getParent() {
+
+        return pParent;
+    }
+
     /**
      * Tests if the set is empty
      * 
@@ -260,6 +266,11 @@ public class ComponentsSetBean extends AbstractModelBean implements
 
         // We have beans...
         return pComponentBeans.isEmpty() && pComponentSets.isEmpty();
+    }
+
+    public boolean isRoot() {
+
+        return getParent() == null;
     }
 
     /*

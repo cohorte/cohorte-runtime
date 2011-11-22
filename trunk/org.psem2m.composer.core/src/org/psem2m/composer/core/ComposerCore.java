@@ -20,7 +20,12 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
+import org.psem2m.composer.ComponentSnapshot;
+import org.psem2m.composer.ComponentsSetSnapshot;
+import org.psem2m.composer.CompositionSnapshot;
+import org.psem2m.composer.EComponentState;
 import org.psem2m.composer.IComposer;
+import org.psem2m.composer.ICompositionListener;
 import org.psem2m.composer.agent.ComposerAgentSignals;
 import org.psem2m.composer.config.IComposerConfigReader;
 import org.psem2m.composer.model.ComponentBean;
@@ -43,6 +48,8 @@ import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
 public class ComposerCore extends CPojoBase implements IComposer,
         ISignalListener {
 
+    private final List<ICompositionListener> pCompositionListeners = new ArrayList<ICompositionListener>();
+
     /** Composer configuration reader */
     @Requires
     private IComposerConfigReader pConfigReader;
@@ -59,6 +66,9 @@ public class ComposerCore extends CPojoBase implements IComposer,
     /** The logger */
     @Requires
     private IIsolateLoggerSvc pLogger;
+
+    /** the list of roots */
+    private final List<ComponentsSetBean> pRootsComponentsSetBean = new ArrayList<ComponentsSetBean>();
 
     /** The signals broadcaster */
     @Requires
@@ -95,6 +105,58 @@ public class ComposerCore extends CPojoBase implements IComposer,
                 "Bound to a signal receiver");
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.composer.IComposer#getCompositionSnapshot()
+     */
+    private ComponentsSetSnapshot buildComponentsSetSnapshot(
+            final ComponentsSetBean aComponentsSetBean) {
+
+        ComponentsSetSnapshot wComponentsSetSnapshot = new ComponentsSetSnapshot(
+                aComponentsSetBean);
+
+        // populate the list of children
+        for (ComponentsSetBean wChild : aComponentsSetBean.getComponentSets()) {
+
+            wComponentsSetSnapshot.addChild(buildComponentsSetSnapshot(wChild));
+        }
+        // populate the list of components
+        for (ComponentBean wComponent : aComponentsSetBean.getComponents()) {
+            wComponentsSetSnapshot.addComponent(new ComponentSnapshot(
+                    wComponent));
+        }
+        return wComponentsSetSnapshot;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.composer.IComposer#getCompositionSnapshot()
+     */
+    @Override
+    public synchronized List<CompositionSnapshot> getCompositionSnapshot() {
+
+        // TODO : set a list to keep all the events since the snapshots
+        // was created
+
+        List<CompositionSnapshot> wCompositionSnapshots = new ArrayList<CompositionSnapshot>();
+
+        for (ComponentsSetBean wComponentsSetBean : pRootsComponentsSetBean) {
+
+            wCompositionSnapshots.add(new CompositionSnapshot(
+                    buildComponentsSetSnapshot(wComponentsSetBean)));
+        }
+        return wCompositionSnapshots;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.composer.IComposer#instantiateComponentsSet(org.psem2m.composer
+     * .model.ComponentsSetBean)
+     */
     /*
      * (non-Javadoc)
      * 
@@ -170,17 +232,25 @@ public class ComposerCore extends CPojoBase implements IComposer,
      * .model.ComponentsSetBean)
      */
     @Override
-    public void instantiateComponentsSet(final ComponentsSetBean aComposite) {
+    public void instantiateComponentsSet(
+            final ComponentsSetBean aComponentsSetBean) {
 
-        if (aComposite == null) {
+        if (aComponentsSetBean == null) {
             // Invalid composite
             pLogger.logSevere(this, "instantiateComponentsSet",
                     "Null components set");
             return;
         }
 
+        if (!aComponentsSetBean.isRoot()) {
+            // Invalid composite
+            pLogger.logSevere(this, "instantiateComponentsSet",
+                    "Can't instantiate a ComponentsSet which is not root");
+            return;
+        }
+
         // Get the components
-        final ComponentBean[] components = aComposite.getComponents();
+        final ComponentBean[] components = aComponentsSetBean.getComponents();
         if (components == null || components.length == 0) {
             // Invalid components list
             pLogger.logSevere(this, "instantiateComponentsSet",
@@ -189,18 +259,25 @@ public class ComposerCore extends CPojoBase implements IComposer,
         }
 
         // Prepare the components set model
-        if (!prepareComponentsSet(aComposite)) {
+        if (!prepareComponentsSet(aComponentsSetBean)) {
             pLogger.logWarn(this, "instantiateComponentsSet",
                     "It seems that some wires couldn't be linked in",
-                    aComposite.getName(), "; maybe they are optionnal...");
+                    aComponentsSetBean.getName(),
+                    "; maybe they are optionnal...");
         }
 
         // Print a complete representation of the components set
         pLogger.logDebug(this, "instantiateComponentsSet", "Model :",
-                aComposite.toCompleteString());
+                aComponentsSetBean.toCompleteString());
 
         // Add the component to the waiting list
-        pWaitingComposites.add(new InstantiatingComposite(aComposite));
+        pWaitingComposites.add(new InstantiatingComposite(aComponentsSetBean));
+
+        // register the aComponentsSetBean in the list of roots
+        pRootsComponentsSetBean.add(aComponentsSetBean);
+
+        // TODO : send the event ECompositionEvent.ADD to the Composition
+        // listeners
 
         // Send a signal with all components in an array
         pSignalBroadcaster.sendData(
@@ -383,6 +460,76 @@ public class ComposerCore extends CPojoBase implements IComposer,
         notifyComponentsRegistration();
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.composer.IComposer#addCompositionListener(org.psem2m.composer
+     * .ICompositionListener, org.psem2m.composer.CompositionSnapshot)
+     */
+    @Override
+    public void registerCompositionListener(
+            final ICompositionListener aCompositionListener,
+            final long aTimeStamp) {
+
+        pCompositionListeners.add(aCompositionListener);
+
+        // send all states
+
+        synchronized (pInstantiatingComposites) {
+            synchronized (pFullComposites) {
+                synchronized (pWaitingComposites) {
+
+                    for (InstantiatingComposite wIC : pWaitingComposites) {
+                        aCompositionListener.conponentsSetStateChanged(
+                                wIC.getBean(), EComponentState.WAITING);
+                    }
+
+                    for (InstantiatingComposite wIC : pFullComposites.values()) {
+                        aCompositionListener.conponentsSetStateChanged(
+                                wIC.getBean(), EComponentState.COMPLETE);
+                    }
+                    for (InstantiatingComposite wIC : pInstantiatingComposites
+                            .values()) {
+                        aCompositionListener.conponentsSetStateChanged(
+                                wIC.getBean(), EComponentState.INSTANCIATING);
+                    }
+                }
+            }
+        }
+
+        // TODO : send all the events kept after the TimeStamp
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.composer.IComposer#removeComponentsSet(org.psem2m.composer
+     * .model.ComponentsSetBean)
+     */
+    @Override
+    public void removeComponentsSet(final ComponentsSetBean aComponentsSetBean)
+            throws Exception {
+
+        if (!aComponentsSetBean.isRoot()) {
+            // Invalid composite
+            pLogger.logSevere(this, "removeComponentsSet",
+                    "Can't instantiate a ComponentsSet which is not root");
+            return;
+        }
+
+        // register the aComponentsSetBean in the list of roots
+        pRootsComponentsSetBean.remove(aComponentsSetBean);
+
+        // TODO : clear the part of the composition correspondint to that root
+        // ComponentsSet ....
+
+        // TODO : send the event ECompositionEvent.REMOVE to the Composition
+        // listeners
+
+    }
+
     /**
      * Runs a simple test, using the given configuration file
      * 
@@ -455,6 +602,20 @@ public class ComposerCore extends CPojoBase implements IComposer,
             // Try to recompute a route for degraded composites
             notifyComponentsRegistration();
         }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.composer.IComposer#removeCompositionListener(org.psem2m.composer
+     * .ICompositionListener)
+     */
+    @Override
+    public void unregisterCompositionListener(
+            final ICompositionListener aCompositionListener) {
+
+        pCompositionListeners.remove(aCompositionListener);
     }
 
     /**
