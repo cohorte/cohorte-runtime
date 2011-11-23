@@ -74,8 +74,11 @@ public interface ComposerAgentSignals {
     /**
      * Asks the agent to stop the given components.
      * 
-     * Associated data : A Map <ul> <li>name (String) : The component name</li>
-     * <li>state (Integer) : The new component state</li> </ul>
+     * Associated data : A Map
+     * <ul>
+     * <li>name (String) : The component name</li>
+     * <li>state (ECompositionEvent) : The new component state</li>
+     * </ul>
      */
     String SIGNAL_COMPONENT_CHANGED = ComposerAgentSignals.SIGNAL_PREFIX
             + "/component-changed";

@@ -27,6 +27,7 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.apache.felix.ipojo.handlers.providedservice.ProvidedServiceHandler;
 import org.apache.felix.ipojo.metadata.Element;
 import org.osgi.framework.BundleException;
+import org.psem2m.composer.ECompositionEvent;
 import org.psem2m.composer.agent.ComposerAgentConstants;
 import org.psem2m.composer.agent.ComposerAgentSignals;
 import org.psem2m.composer.model.ComponentBean;
@@ -517,10 +518,34 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
             pComponentsInstances.remove(name);
         }
 
+        final ECompositionEvent newState;
+        switch (aState) {
+
+        case ComponentInstance.INVALID:
+            newState = ECompositionEvent.STOP;
+            break;
+
+        case ComponentInstance.DISPOSED:
+        case ComponentInstance.STOPPED:
+            newState = ECompositionEvent.REMOVE;
+            break;
+
+        case ComponentInstance.VALID:
+            newState = ECompositionEvent.START;
+            break;
+
+        default:
+            pLogger.logWarn(this, "Component-State-Changed",
+                    "Unknown new iPOJO state :", aState);
+            // Don't send signal when new state is unknown
+            return;
+        }
+
         // Notify composer core
         final HashMap<String, Serializable> resultMap = new HashMap<String, Serializable>();
         resultMap.put(ComposerAgentSignals.COMPONENT_CHANGED_KEY_NAME, name);
-        resultMap.put(ComposerAgentSignals.COMPONENT_CHANGED_KEY_STATE, aState);
+        resultMap.put(ComposerAgentSignals.COMPONENT_CHANGED_KEY_STATE,
+                newState);
 
         pSignalBroadcaster.sendData(
                 ISignalBroadcaster.EEmitterTargets.MONITORS,
