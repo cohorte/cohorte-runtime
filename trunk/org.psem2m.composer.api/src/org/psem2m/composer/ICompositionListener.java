@@ -24,6 +24,15 @@ import org.psem2m.composer.model.ComponentsSetBean;
 public interface ICompositionListener {
 
     /**
+     * @param aComponentsSetBean
+     *            the instance of ComponentsSetBean target of the change
+     * @param aState
+     *            the new state
+     */
+    void componentsSetStateChanged(final ComponentsSetBean aComponentsSetBean,
+            final EComponentState aState);
+
+    /**
      * @param aComponentBean
      *            the instance of ComponentBean target of the change
      * @param aState
@@ -33,18 +42,8 @@ public interface ICompositionListener {
             final EComponentState aState);
 
     /**
-     * @param aComponentsSetBean
-     *            the instance of ComponentsSetBean target of the change
-     * @param aState
-     *            the new state
-     */
-    void conponentsSetStateChanged(final ComponentsSetBean aComponentsSetBean,
-            final EComponentState aState);
-
-    /**
      * @param aCompositionEvent
      *            the event to be applied on the composition.
      */
-    void conpositionChanged(final CompositionEvent aCompositionEvent);
-
+    void compositionChanged(final CompositionEvent aCompositionEvent);
 }

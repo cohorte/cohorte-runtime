@@ -8,9 +8,12 @@ package org.psem2m.composer.core;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
@@ -22,8 +25,10 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.composer.ComponentSnapshot;
 import org.psem2m.composer.ComponentsSetSnapshot;
+import org.psem2m.composer.CompositionEvent;
 import org.psem2m.composer.CompositionSnapshot;
 import org.psem2m.composer.EComponentState;
+import org.psem2m.composer.ECompositionEvent;
 import org.psem2m.composer.IComposer;
 import org.psem2m.composer.ICompositionListener;
 import org.psem2m.composer.agent.ComposerAgentSignals;
@@ -48,11 +53,15 @@ import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
 public class ComposerCore extends CPojoBase implements IComposer,
         ISignalListener {
 
+    /** List of composition events listener */
     private final List<ICompositionListener> pCompositionListeners = new ArrayList<ICompositionListener>();
 
     /** Composer configuration reader */
     @Requires
     private IComposerConfigReader pConfigReader;
+
+    /** The events log, a Timestamp -&gt; Event sorted map */
+    private final SortedMap<Long, StoredEvent> pEvents = new TreeMap<Long, StoredEvent>();
 
     /** Composites fully-instantiated */
     private final Map<String, InstantiatingComposite> pFullComposites = new HashMap<String, InstantiatingComposite>();
@@ -62,6 +71,9 @@ public class ComposerCore extends CPojoBase implements IComposer,
 
     /** Maps isolates and components */
     private final Map<String, List<String>> pIsolatesCapabilities = new HashMap<String, List<String>>();
+
+    /** Flag to store events in the events map */
+    private boolean pLogEvents;
 
     /** The logger */
     @Requires
@@ -113,19 +125,23 @@ public class ComposerCore extends CPojoBase implements IComposer,
     private ComponentsSetSnapshot buildComponentsSetSnapshot(
             final ComponentsSetBean aComponentsSetBean) {
 
-        ComponentsSetSnapshot wComponentsSetSnapshot = new ComponentsSetSnapshot(
+        final ComponentsSetSnapshot wComponentsSetSnapshot = new ComponentsSetSnapshot(
                 aComponentsSetBean);
 
         // populate the list of children
-        for (ComponentsSetBean wChild : aComponentsSetBean.getComponentSets()) {
+        for (final ComponentsSetBean wChild : aComponentsSetBean
+                .getComponentSets()) {
 
             wComponentsSetSnapshot.addChild(buildComponentsSetSnapshot(wChild));
         }
+
         // populate the list of components
-        for (ComponentBean wComponent : aComponentsSetBean.getComponents()) {
+        for (final ComponentBean wComponent : aComponentsSetBean
+                .getComponents()) {
             wComponentsSetSnapshot.addComponent(new ComponentSnapshot(
                     wComponent));
         }
+
         return wComponentsSetSnapshot;
     }
 
@@ -137,16 +153,17 @@ public class ComposerCore extends CPojoBase implements IComposer,
     @Override
     public synchronized List<CompositionSnapshot> getCompositionSnapshot() {
 
-        // TODO : set a list to keep all the events since the snapshots
-        // was created
+        // Set up the flag to log incoming events
+        pLogEvents = true;
 
-        List<CompositionSnapshot> wCompositionSnapshots = new ArrayList<CompositionSnapshot>();
+        final List<CompositionSnapshot> wCompositionSnapshots = new ArrayList<CompositionSnapshot>();
 
-        for (ComponentsSetBean wComponentsSetBean : pRootsComponentsSetBean) {
+        for (final ComponentsSetBean wComponentsSetBean : pRootsComponentsSetBean) {
 
             wCompositionSnapshots.add(new CompositionSnapshot(
                     buildComponentsSetSnapshot(wComponentsSetBean)));
         }
+
         return wCompositionSnapshots;
     }
 
@@ -276,8 +293,9 @@ public class ComposerCore extends CPojoBase implements IComposer,
         // register the aComponentsSetBean in the list of roots
         pRootsComponentsSetBean.add(aComponentsSetBean);
 
-        // TODO : send the event ECompositionEvent.ADD to the Composition
+        // Send the event ECompositionEvent.ADD to the Composition
         // listeners
+        notifyCompositionEvent(ECompositionEvent.ADD, aComponentsSetBean);
 
         // Send a signal with all components in an array
         pSignalBroadcaster.sendData(
@@ -357,6 +375,77 @@ public class ComposerCore extends CPojoBase implements IComposer,
                 pWaitingComposites.remove(composite);
                 pInstantiatingComposites.put(composite.getName(), composite);
             }
+        }
+    }
+
+    /**
+     * Sends a "composition changed" event to all listeners.
+     * 
+     * @param aEvent
+     *            Event to be sent to all listeners
+     */
+    protected void notifyComponentStateEvent(final ComponentBean aComponent,
+            final EComponentState aState) {
+
+        if (pLogEvents) {
+            // Store the event if necessary
+            synchronized (pEvents) {
+                pEvents.put(System.currentTimeMillis(), new StoredEvent(
+                        aComponent, aState));
+            }
+        }
+
+        // Notify listeners
+        for (final ICompositionListener listener : pCompositionListeners) {
+
+            listener.componentStateChanged(aComponent, aState);
+        }
+    }
+
+    /**
+     * Sends a "composition changed" event to all listeners.
+     * 
+     * @param aEvent
+     *            Event to be sent to all listeners
+     */
+    protected void notifyCompositionEvent(final CompositionEvent aEvent) {
+
+        if (pLogEvents) {
+            // Store the event if necessary
+            synchronized (pEvents) {
+                pEvents.put(System.currentTimeMillis(), new StoredEvent(aEvent));
+            }
+        }
+
+        // Notify listeners
+        for (final ICompositionListener listener : pCompositionListeners) {
+
+            listener.compositionChanged(aEvent);
+        }
+    }
+
+    /**
+     * Sends a "composet changed" event to all listeners.
+     * 
+     * @param aEvent
+     *            Event to be sent to all listeners
+     */
+    protected void notifyCompositionEvent(final ECompositionEvent aEvent,
+            final ComponentsSetBean aComposet) {
+
+        final CompositionEvent event = new CompositionEvent(aEvent, aComposet);
+
+        if (pLogEvents) {
+            // Store the event if necessary
+            synchronized (pEvents) {
+                pEvents.put(System.currentTimeMillis(), new StoredEvent(event));
+            }
+        }
+
+        // Notify listeners
+        for (final ICompositionListener listener : pCompositionListeners) {
+
+            listener.compositionChanged(event);
         }
     }
 
@@ -480,25 +569,60 @@ public class ComposerCore extends CPojoBase implements IComposer,
             synchronized (pFullComposites) {
                 synchronized (pWaitingComposites) {
 
-                    for (InstantiatingComposite wIC : pWaitingComposites) {
-                        aCompositionListener.conponentsSetStateChanged(
+                    for (final InstantiatingComposite wIC : pWaitingComposites) {
+                        aCompositionListener.componentsSetStateChanged(
                                 wIC.getBean(), EComponentState.WAITING);
                     }
 
-                    for (InstantiatingComposite wIC : pFullComposites.values()) {
-                        aCompositionListener.conponentsSetStateChanged(
+                    for (final InstantiatingComposite wIC : pFullComposites
+                            .values()) {
+                        aCompositionListener.componentsSetStateChanged(
                                 wIC.getBean(), EComponentState.COMPLETE);
                     }
-                    for (InstantiatingComposite wIC : pInstantiatingComposites
+                    for (final InstantiatingComposite wIC : pInstantiatingComposites
                             .values()) {
-                        aCompositionListener.conponentsSetStateChanged(
+                        aCompositionListener.componentsSetStateChanged(
                                 wIC.getBean(), EComponentState.INSTANCIATING);
                     }
                 }
             }
         }
 
-        // TODO : send all the events kept after the TimeStamp
+        // Get all the events kept after the TimeStamp
+        final List<StoredEvent> eventsToSend;
+
+        synchronized (pEvents) {
+
+            // Get the events before the given time stamp
+            final SortedMap<Long, StoredEvent> headMap = pEvents
+                    .headMap(aTimeStamp);
+
+            // Get a copy of this events list
+            eventsToSend = new LinkedList<StoredEvent>(headMap.values());
+
+            // TODO verify that no one else needs those values
+            // Stop logging
+            pLogEvents = false;
+
+            // Remove treated values
+            pEvents.keySet().removeAll(headMap.keySet());
+        }
+
+        // Send'em all
+        for (final StoredEvent event : eventsToSend) {
+
+            switch (event.getType()) {
+            case COMPOSITION_EVENT:
+                aCompositionListener.compositionChanged(event
+                        .getCompositionEvent());
+                break;
+
+            case COMPONENT_EVENT:
+                aCompositionListener.componentStateChanged(
+                        event.getComponent(), event.getState());
+                break;
+            }
+        }
     }
 
     /*
@@ -522,12 +646,12 @@ public class ComposerCore extends CPojoBase implements IComposer,
         // register the aComponentsSetBean in the list of roots
         pRootsComponentsSetBean.remove(aComponentsSetBean);
 
-        // TODO : clear the part of the composition correspondint to that root
+        // TODO : clear the part of the composition corresponding to that root
         // ComponentsSet ....
 
-        // TODO : send the event ECompositionEvent.REMOVE to the Composition
+        // Send the event ECompositionEvent.REMOVE to the Composition
         // listeners
-
+        notifyCompositionEvent(ECompositionEvent.REMOVE, aComponentsSetBean);
     }
 
     /**
