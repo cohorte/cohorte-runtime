@@ -47,6 +47,11 @@ public class NormalizerApplyCart extends CPojoBase implements IComponent {
     public IComponentContext computeResult(final IComponentContext aContext)
             throws Exception {
 
+        if (!aContext.hasResult()) {
+            // No error and no result...
+            aContext.addError(pName, "No result found...");
+        }
+
         if (aContext.hasError()) {
             // Prepare a new map, with 'message' 'reason' and 'code'
             final Map<String, Object> resultMap = new HashMap<String, Object>();
@@ -69,8 +74,8 @@ public class NormalizerApplyCart extends CPojoBase implements IComponent {
             String wMessage = "no message !";
             String wReason = "no reason !";
             if (aContext.getErrors().size() > 0) {
-                String wInfos = aContext.getErrors().get(0);
-                String[] wParts = wInfos.split("\\|");
+                final String wInfos = aContext.getErrors().get(0);
+                final String[] wParts = wInfos.split("\\|");
                 if (wParts != null && wParts.length >= 2) {
                     wReason = wParts[0];
                     wMessage = wParts[1];
@@ -81,12 +86,6 @@ public class NormalizerApplyCart extends CPojoBase implements IComponent {
             resultMap.put("code", 500);
 
             aContext.setResult(resultMap);
-            return aContext;
-        }
-
-        if (!aContext.hasResult()) {
-            // No error and no result...
-            aContext.addError(pName, "No result found...");
             return aContext;
         }
 

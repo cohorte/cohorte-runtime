@@ -154,9 +154,12 @@ public class CacheQueueHandler extends CPojoBase implements IComponent,
                 context.setMetadata(aContext.getMetadata());
 
                 // Prepare a result message
-                final Map<String, Object> resultMap = new HashMap<String, Object>();
-                resultMap.put(KEY_RESULT, "Cart in queue...");
-                context.setResult(resultMap);
+                final Map<String, Object> statusMap = new HashMap<String, Object>();
+                statusMap.put("code", 300);
+                statusMap.put("message", "Cart in queue.");
+                statusMap.put("reason", "");
+
+                context.setResult(statusMap);
 
                 return context;
             }
@@ -200,8 +203,8 @@ public class CacheQueueHandler extends CPojoBase implements IComponent,
         try {
             while (pRunning) {
 
-                final ICachedObject<?> cachedObject = pChannel.poll(500,
-                        TimeUnit.MILLISECONDS);
+                final ICachedObject<Serializable> cachedObject = pChannel.poll(
+                        500, TimeUnit.MILLISECONDS);
 
                 if (cachedObject == null) {
                     continue;
@@ -212,6 +215,7 @@ public class CacheQueueHandler extends CPojoBase implements IComponent,
 
                 if (cachedObjectContent instanceof IComponentContext) {
 
+                    boolean needsReinjection = false;
                     IComponentContext resultContext = null;
 
                     final IComponentContext context = (IComponentContext) cachedObjectContent;
@@ -223,8 +227,21 @@ public class CacheQueueHandler extends CPojoBase implements IComponent,
                         pLogger.logSevere(this, "Polling Cache Queue",
                                 "Error handling a cached queue object", e);
 
-                        context.addError(pName,
-                                "Error handling a cached queue object", e);
+                        // Ask for cart re-injection
+                        needsReinjection = true;
+                    }
+
+                    if (needsReinjection
+                            || (resultContext.hasError() && !resultContext
+                                    .hasResult())) {
+                        // Something happened further in the chain : re-inject
+                        pChannel.addFirst(cachedObject);
+
+                        // Wait a little...
+                        Thread.sleep(1000);
+
+                        // Loop again
+                        continue;
                     }
 
                     // Signal the end of treatment
