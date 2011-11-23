@@ -165,14 +165,33 @@ public class ComputeQueuedCarts extends CPojoBase implements IComponent {
 
                 // Get line item data
                 final String itemId = (String) cartLine.get(pCartItemIdKey);
-                final Integer itemQuantity = (Integer) cartLine
+
+                final Number itemQuantity;
+                final Object quantityObject = cartLine
                         .get(pCartItemQuantitydKey);
 
-                if (itemId == null || itemQuantity == null) {
+                if (itemId == null || quantityObject == null) {
                     // Invalid data
                     pLogger.logWarn(this, "getReservedQuantities",
                             "Unreadable cart line :", cartLine);
                     continue;
+                }
+
+                if (quantityObject instanceof Number) {
+                    itemQuantity = (Number) quantityObject;
+
+                } else {
+                    // USe the object as a string
+                    try {
+                        itemQuantity = Integer.valueOf(String
+                                .valueOf(quantityObject));
+                    } catch (final Exception e) {
+                        // Oups
+                        pLogger.logWarn(this, "getReservedQuantities",
+                                "Error reading object", itemId,
+                                "reserved quantity :", quantityObject);
+                        continue;
+                    }
                 }
 
                 // Get reserved item stock

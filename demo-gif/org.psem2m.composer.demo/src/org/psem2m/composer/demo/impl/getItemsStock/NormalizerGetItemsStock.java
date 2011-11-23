@@ -55,6 +55,18 @@ public class NormalizerGetItemsStock extends CPojoBase implements IComponent {
     public IComponentContext computeResult(final IComponentContext aContext)
             throws Exception {
 
+        // Result is a List of Maps containing id, stock and __cache_age keys
+        for (final Map<String, Object> itemStockMap : aContext.getResults()) {
+
+            // Get the quality level
+            final int qualityLevel = extractCacheQualityLevel(itemStockMap);
+
+            // No key translation needed.
+
+            // Add it to the map
+            itemStockMap.put("qualityLevel", qualityLevel);
+        }
+
         if (aContext.hasError()) {
             // Prepare a new map, with both result and error
             final Map<String, Object> resultMap = new HashMap<String, Object>();
@@ -69,18 +81,6 @@ public class NormalizerGetItemsStock extends CPojoBase implements IComponent {
             // No error and no result...
             aContext.addError(pName, "No result found...");
             return aContext;
-        }
-
-        // Result is a List of Maps containing id, stock and __cache_age keys
-        for (final Map<String, Object> itemStockMap : aContext.getResults()) {
-
-            // Get the quality level
-            final int qualityLevel = extractCacheQualityLevel(itemStockMap);
-
-            // No key translation needed.
-
-            // Add it to the map
-            itemStockMap.put("qualityLevel", qualityLevel);
         }
 
         return aContext;
