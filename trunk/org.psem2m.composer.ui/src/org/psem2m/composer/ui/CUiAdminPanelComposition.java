@@ -117,8 +117,8 @@ public class CUiAdminPanelComposition extends CPojoBase implements
     @Override
     public void setUiAdminFont(final EUiAdminFont aUiAdminFont) {
 
-        // TODO Auto-generated method stub
-
+        pJPanel.setTextFont(aUiAdminFont);
+        pJPanel.setTreeFont(aUiAdminFont);
     }
 
     /*

@@ -23,8 +23,10 @@ import org.psem2m.isolates.ui.admin.api.EUiAdminFont;
  */
 public abstract class CJPanelTree extends CJPanel {
 
+    private static final long serialVersionUID = 2090135987172885272L;
+
     /**
-     * 
+     * Explicite default constructor
      */
     public CJPanelTree() {
 
@@ -42,6 +44,10 @@ public abstract class CJPanelTree extends CJPanel {
 
     }
 
+    /**
+     * @param aFont
+     * @return
+     */
     public abstract Font setTreeFont(final EUiAdminFont aFont);
 
 }

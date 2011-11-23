@@ -10,6 +10,8 @@
  *******************************************************************************/
 package org.psem2m.composer;
 
+import java.util.Map.Entry;
+
 import org.psem2m.composer.model.ComponentBean;
 import org.psem2m.utilities.CXException;
 import org.psem2m.utilities.CXStringUtils;
@@ -100,8 +102,33 @@ public class ComponentSnapshot extends AbstractSnapshot {
 
             CXStringUtils.appendFormatStrInBuff(wSB, "component.name=[%s]\n",
                     getQName());
+            CXStringUtils.appendFormatStrInBuff(wSB, "component.parent=[%s]\n",
+                    getComponent().getParentName());
             CXStringUtils.appendFormatStrInBuff(wSB,
                     "component.isolate=[%s]\n", getComponent().getIsolate());
+
+            for (Entry<String, String> wEntry : getComponent()
+                    .getFieldsFilters().entrySet()) {
+
+                CXStringUtils.appendFormatStrInBuff(wSB,
+                        "Filter   '%15s'=[%s]\n", wEntry.getKey(),
+                        wEntry.getValue());
+            }
+
+            for (Entry<String, String> wEntry : getComponent().getProperties()
+                    .entrySet()) {
+
+                CXStringUtils.appendFormatStrInBuff(wSB,
+                        "Property '%15s'=[%s]\n", wEntry.getKey(),
+                        wEntry.getValue());
+            }
+            for (Entry<String, String> wEntry : getComponent().getWires()
+                    .entrySet()) {
+
+                CXStringUtils.appendFormatStrInBuff(wSB,
+                        "Wire     '%15s'=[%s]\n", wEntry.getKey(),
+                        wEntry.getValue());
+            }
 
         } catch (Exception e) {
             wSB.append(CXException.eInString(e));
