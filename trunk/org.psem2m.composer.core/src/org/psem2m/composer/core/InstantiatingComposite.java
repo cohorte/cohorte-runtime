@@ -45,7 +45,7 @@ public class InstantiatingComposite {
         pComposite = aComposite;
 
         // Store components names
-        for (final ComponentBean component : pComposite.getComponents()) {
+        for (final ComponentBean component : pComposite.getAllComponents()) {
 
             pRemainingComponents.add(component.getName());
         }

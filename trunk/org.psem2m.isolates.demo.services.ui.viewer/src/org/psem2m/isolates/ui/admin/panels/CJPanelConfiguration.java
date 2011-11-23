@@ -19,6 +19,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
+import org.psem2m.isolates.ui.admin.api.CJPanel;
 import org.psem2m.isolates.ui.admin.api.EUiAdminFont;
 
 /**
@@ -60,7 +61,7 @@ public class CJPanelConfiguration extends CJPanel {
      * @see org.psem2m.isolates.ui.admin.panels.CJPanel#destroy()
      */
     @Override
-    void destroy() {
+    public void destroy() {
 
         // TODO Auto-generated method stub
 
@@ -72,7 +73,7 @@ public class CJPanelConfiguration extends CJPanel {
      * @see org.psem2m.isolates.ui.admin.panels.CJPanel#newGUI()
      */
     @Override
-    JPanel newGUI() {
+    public JPanel newGUI() {
 
         setLayout(new BorderLayout(0, 0));
         {
@@ -97,7 +98,7 @@ public class CJPanelConfiguration extends CJPanel {
      * org.psem2m.isolates.ui.admin.panels.CJPanel#setText(java.lang.String)
      */
     @Override
-    void setText(final String aText) {
+    public void setText(final String aText) {
 
         pConfigTextArea.setText(aText);
     }
@@ -110,7 +111,7 @@ public class CJPanelConfiguration extends CJPanel {
      * int)
      */
     @Override
-    Font setTextFont(final EUiAdminFont aUiAdminFont) {
+    public Font setTextFont(final EUiAdminFont aUiAdminFont) {
 
         pConfigTextArea.setFont(aUiAdminFont.getTextFont());
         return aUiAdminFont.getTextFont();

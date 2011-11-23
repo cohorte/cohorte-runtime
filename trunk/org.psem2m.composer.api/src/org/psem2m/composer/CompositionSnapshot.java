@@ -10,11 +10,14 @@
  *******************************************************************************/
 package org.psem2m.composer;
 
+import org.psem2m.utilities.CXException;
+import org.psem2m.utilities.CXStringUtils;
+
 /**
  * @author ogattaz
  * 
  */
-public class CompositionSnapshot {
+public class CompositionSnapshot extends AbstractSnapshot {
 
     private final ComponentsSetSnapshot pComponentsSetSnapshot;
     private final long pCreateTime = System.currentTimeMillis();
@@ -25,8 +28,30 @@ public class CompositionSnapshot {
     public CompositionSnapshot(
             final ComponentsSetSnapshot aComponentsSetSnapshot) {
 
-        super();
+        super(EComponentState.RESOLVED);
         pComponentsSetSnapshot = aComponentsSetSnapshot;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.composer.AbstractSnapshot#getChild(int)
+     */
+    @Override
+    public ComponentsSetSnapshot getChild(final int aIdx) {
+
+        return getComponentsSetSnapshot();
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.composer.AbstractSnapshot#getChildCount()
+     */
+    @Override
+    public int getChildCount() {
+
+        return 1;
     }
 
     /**
@@ -43,6 +68,50 @@ public class CompositionSnapshot {
     public long getCreateTime() {
 
         return pCreateTime;
+
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.composer.AbstractSnapshot#getIndexOfChild(org.psem2m.composer
+     * .AbstractSnapshot, org.psem2m.composer.AbstractSnapshot)
+     */
+    @Override
+    public int getIndexOfChild(final AbstractSnapshot aChild) {
+
+        return -1;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.composer.AbstractSnapshot#getQName()
+     */
+    @Override
+    public String getQName() {
+
+        return "composition test";
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.composer.AbstractSnapshot#getTextInfo()
+     */
+    @Override
+    public String getTextInfo() {
+
+        StringBuilder wSB = new StringBuilder();
+        try {
+
+            CXStringUtils.appendFormatStrInBuff(wSB,
+                    "compositiont.name=[%s]\n", getQName());
+
+        } catch (Exception e) {
+            wSB.append(CXException.eInString(e));
+        }
+        return wSB.toString();
+    }
 }

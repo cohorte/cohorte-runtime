@@ -268,7 +268,8 @@ public class ComposerCore extends CPojoBase implements IComposer,
         }
 
         // Get the components
-        final ComponentBean[] components = aComponentsSetBean.getComponents();
+        final ComponentBean[] components = aComponentsSetBean
+                .getAllComponents();
         if (components == null || components.length == 0) {
             // Invalid components list
             pLogger.logSevere(this, "instantiateComponentsSet",

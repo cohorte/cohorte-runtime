@@ -88,7 +88,6 @@ public class CUiAdminSvc extends CPojoBase implements IUiAdminSvc,
     public CUiAdminSvc() {
 
         super();
-
     }
 
     /**

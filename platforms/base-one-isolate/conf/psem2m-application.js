@@ -13,9 +13,9 @@
                    "optional":false,
                    "properties":{
                    	"psem2m.demo.ui.viewer.top":"0scr",
-                   	"psem2m.demo.ui.viewer.left":"0.25scr",
-                   	"psem2m.demo.ui.viewer.width":"0.50scr",
-                   	"psem2m.demo.ui.viewer.height":"0.5scr",
+                   	"psem2m.demo.ui.viewer.left":"0.16scr",
+                   	"psem2m.demo.ui.viewer.width":"0.66scr",
+                   	"psem2m.demo.ui.viewer.height":"0.66scr",
                    	"psem2m.demo.ui.viewer.color":"Moccasin"
                    }
                },
@@ -31,9 +31,20 @@
                 {
                     "symbolicName":"org.psem2m.isolates.forker"
                 },
-
                 {
                     "symbolicName":"org.psem2m.isolates.tracer"
+                },
+                {
+                    "symbolicName":"org.psem2m.composer.api"
+                },
+                {
+                    "symbolicName":"org.psem2m.composer.config"
+                },
+                {
+                    "symbolicName":"org.psem2m.composer.core"
+                },
+                {
+                    "symbolicName":"org.psem2m.composer.ui"
                 }
             ]
         }

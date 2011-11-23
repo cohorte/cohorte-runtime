@@ -17,4 +17,44 @@ package org.psem2m.composer;
 public enum EComponentState {
     COMPLETE, INSTANCIATING, RESOLVED, WAITING;
 
+    /**
+     * @param aState
+     * @return
+     */
+    public boolean is(final EComponentState aState) {
+
+        return this == aState;
+    }
+
+    /**
+     * @return
+     */
+    public boolean isComplete() {
+
+        return is(COMPLETE);
+    }
+
+    /**
+     * @return
+     */
+    public boolean isInstanciating() {
+
+        return is(INSTANCIATING);
+    }
+
+    /**
+     * @return
+     */
+    public boolean isResolved() {
+
+        return is(RESOLVED);
+    }
+
+    /**
+     * @return
+     */
+    public boolean isWaiting() {
+
+        return is(WAITING);
+    }
 }

@@ -169,6 +169,21 @@ public class ComponentsSetBean extends AbstractModelBean implements
     }
 
     /**
+     * Retrieves the list of all components (current set and sub-sets)
+     * 
+     * @return the list of components
+     */
+    public ComponentBean[] getAllComponents() {
+
+        final List<ComponentBean> allComponents = new ArrayList<ComponentBean>();
+
+        // Recursively populate the result list
+        getAllComponents(allComponents);
+
+        return allComponents.toArray(new ComponentBean[allComponents.size()]);
+    }
+
+    /**
      * Recursively populates the list with defined components
      * 
      * @param aComponents
@@ -226,18 +241,13 @@ public class ComponentsSetBean extends AbstractModelBean implements
     }
 
     /**
-     * Retrieves the list of all components (current set and sub-sets)
+     * Retrieves the list of the children components (current set only)
      * 
      * @return the list of components
      */
     public ComponentBean[] getComponents() {
 
-        final List<ComponentBean> allComponents = new ArrayList<ComponentBean>();
-
-        // Recursively populate the result list
-        getAllComponents(allComponents);
-
-        return allComponents.toArray(new ComponentBean[allComponents.size()]);
+        return pComponentBeans.values().toArray(new ComponentBean[0]);
     }
 
     /**

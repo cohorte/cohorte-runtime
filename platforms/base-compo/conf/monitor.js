@@ -18,6 +18,9 @@
             }
         },
         {
+            "symbolicName":"org.psem2m.composer.ui"
+        },
+        {
             "symbolicName":"org.apache.felix.shell"
         },
         {

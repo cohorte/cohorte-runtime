@@ -264,7 +264,7 @@ public class JsonComposerConfigReader extends CPojoBase implements
             ComponentsSetBean wComposet = parseComponentSet(aParent,
                     readJsonObjectFile(wCompoSetFrom));
 
-            resultSet.setComponents(wComposet.getComponents());
+            resultSet.setComponents(wComposet.getAllComponents());
             resultSet.setComponentSets(wComposet.getComponentSets());
 
         } else {

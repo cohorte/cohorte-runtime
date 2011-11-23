@@ -7,16 +7,17 @@ Bundle-SymbolicName: org.psem2m.isolates.ui.admin
 Bundle-Vendor: isandlaTech (www.isandlatech.com)
 Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
-Export-Package: javax.swing,javax.swing.table,javax.swing.event
+Export-Package: org.psem2m.isolates.ui.admin.api
 Import-Package: javax.swing, javax.swing.event, javax.swing.table, org
  .apache.felix.ipojo;version=1.8.0, org.apache.felix.ipojo.architectur
- e;version=1.8.0, org.apache.felix.ipojo.metadata;version=1.8.0, org.o
- sgi.framework;version=1.3.0, org.osgi.service.cm;version=1.2, org.osg
- i.service.log;version=1.3, org.psem2m.isolates.base;version=1.0.0, or
- g.psem2m.isolates.base.activators;version=1.0.0, org.psem2m.isolates.
- services.conf;version=1.0.0, org.psem2m.isolates.services.dirs;versio
- n=1.0.0, org.psem2m.isolates.slave.agent, org.psem2m.utilities, org.p
- sem2m.utilities.logging
+ e;version=1.8.0, org.apache.felix.ipojo.handlers.dependency;version=1
+ .8.1, org.apache.felix.ipojo.metadata;version=1.8.0, org.apache.felix
+ .ipojo.util;version=1.8.1, org.osgi.framework;version=1.3.0, org.osgi
+ .service.cm;version=1.2, org.osgi.service.log;version=1.3, org.psem2m
+ .isolates.base;version=1.0.0, org.psem2m.isolates.base.activators;ver
+ sion=1.0.0, org.psem2m.isolates.services.conf;version=1.0.0, org.psem
+ 2m.isolates.services.dirs;version=1.0.0, org.psem2m.isolates.slave.ag
+ ent, org.psem2m.utilities, org.psem2m.utilities.logging
 iPOJO-Components: instance { $component="org.psem2m.isolates.ui.admin.
  impl.CUiAdminSvc" $name="psem2m-ui-admin" }instance { $component="org
  .psem2m.isolates.ui.admin.panels.CUiAdminPanelBundles" $name="psem2m-

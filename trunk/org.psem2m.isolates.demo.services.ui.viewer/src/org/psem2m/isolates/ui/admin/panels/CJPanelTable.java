@@ -16,6 +16,7 @@ import java.util.concurrent.Executor;
 import javax.swing.JTable;
 
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
+import org.psem2m.isolates.ui.admin.api.CJPanel;
 import org.psem2m.isolates.ui.admin.api.EUiAdminFont;
 
 /**
@@ -24,12 +25,7 @@ import org.psem2m.isolates.ui.admin.api.EUiAdminFont;
  */
 public abstract class CJPanelTable<T> extends CJPanel {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 7749683299927125353L;
-
-    protected JTable pTable;
 
     /**
      * 
