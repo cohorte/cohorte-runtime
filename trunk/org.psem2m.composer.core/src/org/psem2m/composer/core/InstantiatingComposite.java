@@ -7,6 +7,7 @@ package org.psem2m.composer.core;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -131,6 +132,27 @@ public class InstantiatingComposite {
         pRemainingComponents.add(aComponentName);
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(final Object aObj) {
+
+        if (aObj instanceof ComponentsSetBean) {
+            // Components set equality
+            return aObj.equals(pComposite);
+
+        } else if (aObj instanceof InstantiatingComposite) {
+            // Members equality
+            return pComposite
+                    .equals(((InstantiatingComposite) aObj).pComposite);
+        }
+
+        return super.equals(aObj);
+    }
+
     /**
      * Retrieves the instantiating composite
      * 
@@ -149,6 +171,48 @@ public class InstantiatingComposite {
     public String getName() {
 
         return pComposite.getName();
+    }
+
+    /**
+     * Retrieves the list of the names of the components which are still waiting
+     * for instantiation or which are currently instantiating
+     * 
+     * @return the remaining components
+     */
+    public List<String> getRemainingComponents() {
+
+        return Collections.unmodifiableList(pRemainingComponents);
+    }
+
+    /**
+     * Retrieves a isolate -&gt; components names map
+     * 
+     * @return the running components map
+     */
+    public Map<String, List<String>> getRunningComponents() {
+
+        final Map<String, List<String>> resultMap = new HashMap<String, List<String>>();
+
+        for (final Entry<String, String> entry : pRunningComponents.entrySet()) {
+
+            final String compoName = entry.getKey();
+            final String isolate = entry.getValue();
+
+            // Prepare the components list
+            final List<String> isolateCompoList;
+            if (resultMap.containsKey(isolate)) {
+                isolateCompoList = resultMap.get(isolate);
+
+            } else {
+                isolateCompoList = new ArrayList<String>();
+                resultMap.put(isolate, isolateCompoList);
+            }
+
+            // Store the component
+            isolateCompoList.add(compoName);
+        }
+
+        return resultMap;
     }
 
     /**

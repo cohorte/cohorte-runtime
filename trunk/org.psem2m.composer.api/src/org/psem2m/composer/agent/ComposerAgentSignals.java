@@ -12,6 +12,12 @@ package org.psem2m.composer.agent;
  */
 public interface ComposerAgentSignals {
 
+    /** The name of the component that changed */
+    String COMPONENT_CHANGED_KEY_NAME = "name";
+
+    /** The new state of the component that changed */
+    String COMPONENT_CHANGED_KEY_STATE = "state";
+
     /** Filter that matches all request signals */
     String FILTER_ALL_REQUESTS = ComposerAgentSignals.SIGNAL_REQUEST_PREFIX
             + "/*";
@@ -42,6 +48,21 @@ public interface ComposerAgentSignals {
     String RESULT_KEY_INSTANTIATED = "instantiated";
 
     /**
+     * Successfully stopped components names key
+     * 
+     * Value type : String[]
+     */
+    String RESULT_KEY_STOPPED = "stopped";
+
+    /**
+     * Unknown components names key : can't handle these components because
+     * they're unknown.
+     * 
+     * Value type : String[]
+     */
+    String RESULT_KEY_UNKNOWN = "unknown";
+
+    /**
      * Asks the agent to reply with a signal containing a sub-set of the given
      * components array that can be executed in the agent isolate.
      * 
@@ -49,6 +70,15 @@ public interface ComposerAgentSignals {
      */
     String SIGNAL_CAN_HANDLE_COMPONENTS = ComposerAgentSignals.SIGNAL_REQUEST_PREFIX
             + "/can-handle-components";
+
+    /**
+     * Asks the agent to stop the given components.
+     * 
+     * Associated data : A Map <ul> <li>name (String) : The component name</li>
+     * <li>state (Integer) : The new component state</li> </ul>
+     */
+    String SIGNAL_COMPONENT_CHANGED = ComposerAgentSignals.SIGNAL_PREFIX
+            + "/component-changed";
 
     /** Prefix to factory state change signals */
     String SIGNAL_FACTORY_PREFIX = ComposerAgentSignals.SIGNAL_PREFIX
@@ -117,4 +147,12 @@ public interface ComposerAgentSignals {
     /** Response prefix */
     String SIGNAL_RESPONSE_PREFIX = ComposerAgentSignals.SIGNAL_PREFIX
             + "/response";
+
+    /**
+     * Asks the agent to stop the given components.
+     * 
+     * Associated data : An array of components
+     */
+    String SIGNAL_STOP_COMPONENTS = ComposerAgentSignals.SIGNAL_REQUEST_PREFIX
+            + "/stop-components";
 }

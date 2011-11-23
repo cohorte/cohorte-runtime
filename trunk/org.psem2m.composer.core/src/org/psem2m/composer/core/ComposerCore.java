@@ -38,6 +38,7 @@ import org.psem2m.composer.model.ComponentsSetBean;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
+import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster.EEmitterTargets;
 import org.psem2m.isolates.services.remote.signals.ISignalData;
 import org.psem2m.isolates.services.remote.signals.ISignalListener;
 import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
@@ -103,7 +104,7 @@ public class ComposerCore extends CPojoBase implements IComposer,
      * @param aSignalReceiver
      *            The bound service
      */
-    @Bind
+    @Bind(id = "signal-receiver")
     protected void bindSignalReceiver(final ISignalReceiver aSignalReceiver) {
 
         // Register to all composer agent signals
@@ -249,7 +250,7 @@ public class ComposerCore extends CPojoBase implements IComposer,
      * .model.ComponentsSetBean)
      */
     @Override
-    public void instantiateComponentsSet(
+    public synchronized void instantiateComponentsSet(
             final ComponentsSetBean aComponentsSetBean) {
 
         if (aComponentsSetBean == null) {
@@ -564,7 +565,6 @@ public class ComposerCore extends CPojoBase implements IComposer,
         pCompositionListeners.add(aCompositionListener);
 
         // send all states
-
         synchronized (pInstantiatingComposites) {
             synchronized (pFullComposites) {
                 synchronized (pWaitingComposites) {
@@ -594,18 +594,18 @@ public class ComposerCore extends CPojoBase implements IComposer,
         synchronized (pEvents) {
 
             // Get the events before the given time stamp
-            final SortedMap<Long, StoredEvent> headMap = pEvents
-                    .headMap(aTimeStamp);
+            final SortedMap<Long, StoredEvent> eventsMap = pEvents.subMap(
+                    aTimeStamp, System.currentTimeMillis());
 
             // Get a copy of this events list
-            eventsToSend = new LinkedList<StoredEvent>(headMap.values());
+            eventsToSend = new LinkedList<StoredEvent>(eventsMap.values());
 
             // TODO verify that no one else needs those values
             // Stop logging
             pLogEvents = false;
 
             // Remove treated values
-            pEvents.keySet().removeAll(headMap.keySet());
+            pEvents.keySet().removeAll(eventsMap.keySet());
         }
 
         // Send'em all
@@ -633,8 +633,8 @@ public class ComposerCore extends CPojoBase implements IComposer,
      * .model.ComponentsSetBean)
      */
     @Override
-    public void removeComponentsSet(final ComponentsSetBean aComponentsSetBean)
-            throws Exception {
+    public synchronized void removeComponentsSet(
+            final ComponentsSetBean aComponentsSetBean) throws Exception {
 
         if (!aComponentsSetBean.isRoot()) {
             // Invalid composite
@@ -643,11 +643,57 @@ public class ComposerCore extends CPojoBase implements IComposer,
             return;
         }
 
-        // register the aComponentsSetBean in the list of roots
+        final String composetName = aComponentsSetBean.getName();
+
+        // Remove the components set from the list of roots
         pRootsComponentsSetBean.remove(aComponentsSetBean);
 
-        // TODO : clear the part of the composition corresponding to that root
-        // ComponentsSet ....
+        // Try to find the corresponding InstantiatingComposite
+        final InstantiatingComposite composite;
+        if (pFullComposites.containsKey(composetName)) {
+            // Fully instantiated components set
+            composite = pFullComposites.get(composetName);
+            pFullComposites.remove(composetName);
+
+        } else if (pInstantiatingComposites.containsKey(composetName)) {
+            // Partially instantiated components set
+            composite = pInstantiatingComposites.get(composetName);
+            pInstantiatingComposites.remove(composite);
+
+        } else if (pWaitingComposites.contains(aComponentsSetBean)) {
+            // Waiting composite : no reason to use it...
+            pWaitingComposites.remove(aComponentsSetBean);
+            return;
+
+        } else {
+            pLogger.logWarn(this, "removeComponentsSet",
+                    "Unknown components set :", aComponentsSetBean);
+            return;
+        }
+
+        // Send signals to agents
+        final Map<String, List<String>> runningComponents = composite
+                .getRunningComponents();
+
+        for (final Entry<String, List<String>> entry : runningComponents
+                .entrySet()) {
+
+            final String isolate = entry.getKey();
+            final String[] components = entry.getValue().toArray(new String[0]);
+
+            // Tell the agent in the isolate to stop the given component
+            pSignalBroadcaster.sendData(isolate,
+                    ComposerAgentSignals.SIGNAL_STOP_COMPONENTS, components);
+        }
+
+        // Extra signals : tell all agents to stop remaining components
+        // Those ones may not even be running, so ignore errors...
+        final String[] remainingComponents = composite.getRemainingComponents()
+                .toArray(new String[0]);
+
+        pSignalBroadcaster.sendData(EEmitterTargets.ALL,
+                ComposerAgentSignals.SIGNAL_STOP_COMPONENTS,
+                remainingComponents);
 
         // Send the event ECompositionEvent.REMOVE to the Composition
         // listeners

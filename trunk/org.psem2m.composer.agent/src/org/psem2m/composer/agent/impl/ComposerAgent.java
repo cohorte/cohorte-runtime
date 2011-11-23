@@ -5,6 +5,7 @@
  */
 package org.psem2m.composer.agent.impl;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.Properties;
 import org.apache.felix.ipojo.ComponentInstance;
 import org.apache.felix.ipojo.Factory;
 import org.apache.felix.ipojo.InstanceManager;
+import org.apache.felix.ipojo.InstanceStateListener;
 import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
@@ -43,13 +45,17 @@ import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
  */
 @Component(name = "psem2m-composer-agent-factory", publicFactory = false)
 @Instantiate(name = "psem2m-composer-agent")
-public class ComposerAgent extends CPojoBase implements ISignalListener {
+public class ComposerAgent extends CPojoBase implements ISignalListener,
+        InstanceStateListener {
 
     /** iPOJO signal broadcaster dependency ID */
     private static final String IPOJO_ID_BROADCASTER = "signals-broadcaster";
 
     /** iPOJO factories dependency ID */
     private static final String IPOJO_ID_FACTORIES = "ipojo-factories";
+
+    /** Components instances */
+    private Map<String, ComponentInstance> pComponentsInstances = new HashMap<String, ComponentInstance>();
 
     /** Local factories */
     private final Map<String, Factory> pFactories = new HashMap<String, Factory>();
@@ -325,8 +331,28 @@ public class ComposerAgent extends CPojoBase implements ISignalListener {
                             (ComponentBean[]) signalContent);
 
                 } catch (final Exception e) {
-                    pLogger.logSevere(this, "handleReceivedSignal", e);
+                    pLogger.logSevere(this,
+                            "handleReceivedSignal : instantiateComponents", e);
                 }
+            }
+
+        } else if (ComposerAgentSignals.SIGNAL_STOP_COMPONENTS
+                .equals(aSignalName)) {
+            // Stop requested components
+
+            try {
+                if (signalContent instanceof String[]) {
+                    // Only names
+                    stopComponents((String[]) signalContent);
+
+                } else if (signalContent instanceof ComponentBean[]) {
+                    // Beans
+                    stopComponents((ComponentBean[]) signalContent);
+                }
+
+            } catch (final Exception e) {
+                pLogger.logSevere(this,
+                        "handleReceivedSignal : stopComponents", e);
             }
         }
     }
@@ -346,11 +372,13 @@ public class ComposerAgent extends CPojoBase implements ISignalListener {
         // Current isolate ID
         final String isolateId = pPlatformDirs.getIsolateId();
 
-        // List of the isolates that succeeded
-        final List<String> succeededComponents = new ArrayList<String>();
+        // List of the successfully started components
+        final List<String> succeededComponents = new ArrayList<String>(
+                aComponents.length);
 
-        // List of the isolates that failed
-        final List<String> failedComponents = new ArrayList<String>();
+        // List of the components that failed
+        final List<String> failedComponents = new ArrayList<String>(
+                aComponents.length);
 
         // Find the composite name from the first component
         String compositeName = null;
@@ -406,6 +434,12 @@ public class ComposerAgent extends CPojoBase implements ISignalListener {
                     }
                 }
 
+                // Register to the component events
+                compInst.addInstanceStateListener(this);
+
+                // Keep a reference to this component
+                pComponentsInstances.put(component.getName(), compInst);
+
                 succeededComponents.add(component.getName());
 
             } catch (final Exception e) {
@@ -413,8 +447,8 @@ public class ComposerAgent extends CPojoBase implements ISignalListener {
                 // Fail !
                 failedComponents.add(component.getName());
                 pLogger.logSevere(this, "instantiateComponents",
-                        "Error instantiating component '" + component.getName()
-                                + "'", e);
+                        "Error instantiating component '", component.getName(),
+                        "'", e);
             }
         }
 
@@ -450,6 +484,123 @@ public class ComposerAgent extends CPojoBase implements ISignalListener {
     public void invalidatePojo() throws BundleException {
 
         pLogger.logInfo(this, "invalidatePojo", "Composer agent Gone");
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.apache.felix.ipojo.InstanceStateListener#stateChanged(org.apache.
+     * felix.ipojo.ComponentInstance, int)
+     */
+    @Override
+    public void stateChanged(final ComponentInstance aComponentInstance,
+            final int aState) {
+
+        final String name = aComponentInstance.getInstanceName();
+        if (!pComponentsInstances.containsKey(name)) {
+            // Component is no more handled...
+
+            if (aState != ComponentInstance.DISPOSED
+                    && aState != ComponentInstance.STOPPED) {
+                // Incoherent state
+                pLogger.logWarn(this, "Component-State-Changed",
+                        "Received new status", aState, "for component", name,
+                        "which should no longer change...");
+            }
+
+            return;
+        }
+
+        if (aState == ComponentInstance.STOPPED) {
+            // Component stopped (disappeared)
+            pComponentsInstances.remove(name);
+        }
+
+        // Notify composer core
+        final HashMap<String, Serializable> resultMap = new HashMap<String, Serializable>();
+        resultMap.put(ComposerAgentSignals.COMPONENT_CHANGED_KEY_NAME, name);
+        resultMap.put(ComposerAgentSignals.COMPONENT_CHANGED_KEY_STATE, aState);
+
+        pSignalBroadcaster.sendData(
+                ISignalBroadcaster.EEmitterTargets.MONITORS,
+                ComposerAgentSignals.SIGNAL_COMPONENT_CHANGED, resultMap);
+    }
+
+    /**
+     * Tries to stop the given components in the current isolate, then sends a
+     * signal to the monitors with the result.
+     * 
+     * @param aComponents
+     *            Components to stop in the isolate
+     */
+    protected void stopComponents(final ComponentBean[] aComponents) {
+
+        final String[] componentsNames = new String[aComponents.length];
+
+        for (int i = 0; i < aComponents.length; i++) {
+            // Get names only
+            componentsNames[i] = aComponents[i].getName();
+        }
+
+        stopComponents(componentsNames);
+    }
+
+    /**
+     * Tries to stop the given components in the current isolate, then sends a
+     * signal to the monitors with the result.
+     * 
+     * @param aComponents
+     *            Names if the components to stop in the isolate
+     */
+    protected void stopComponents(final String[] aComponents) {
+
+        // List of the successfully stopped components
+        final List<String> stoppedComponents = new ArrayList<String>(
+                aComponents.length);
+
+        // List of unknown components
+        final List<String> unknownComponents = new ArrayList<String>(
+                aComponents.length);
+
+        // Try to instantiate each component
+        for (final String componentName : aComponents) {
+
+            pLogger.logInfo(this, "stopComponents", "Stopping component :",
+                    componentName, "...");
+
+            // Get the component instance
+            final ComponentInstance instance = pComponentsInstances
+                    .get(componentName);
+
+            if (instance == null) {
+                // Not found
+                unknownComponents.add(componentName);
+                continue;
+            }
+
+            instance.stop();
+            stoppedComponents.add(componentName);
+        }
+
+        // Set the composite name
+        final HashMap<String, Object> resultMap = new HashMap<String, Object>();
+
+        // Set the succeeded components names
+        final String[] succeededArray = stoppedComponents
+                .toArray(new String[stoppedComponents.size()]);
+        resultMap.put(ComposerAgentSignals.RESULT_KEY_STOPPED, succeededArray);
+
+        // Set the failed components names
+        final String[] failedArray = unknownComponents
+                .toArray(new String[unknownComponents.size()]);
+        resultMap.put(ComposerAgentSignals.RESULT_KEY_UNKNOWN, failedArray);
+
+        // Send the signal
+        pSignalBroadcaster.sendData(
+                ISignalBroadcaster.EEmitterTargets.MONITORS,
+                ComposerAgentSignals.SIGNAL_RESPONSE_INSTANTIATE_COMPONENTS,
+                resultMap);
     }
 
     /**
