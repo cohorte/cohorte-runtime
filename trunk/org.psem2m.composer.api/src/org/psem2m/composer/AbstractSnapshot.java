@@ -31,10 +31,41 @@ public abstract class AbstractSnapshot {
     /**
      * @return
      */
+    public abstract AbstractSnapshot getChild(final int aIdx);
+
+    /**
+     * @return
+     */
+    public abstract int getChildCount();
+
+    /**
+     * @param aParent
+     * @param aChaild
+     * @return
+     */
+    public abstract int getIndexOfChild(final AbstractSnapshot aChild);
+
+    public String getName() {
+
+        String wQName = getQName();
+        int wPos = wQName.lastIndexOf('.');
+        if (wPos > -1) {
+            wQName = wQName.substring(wPos);
+        }
+        return wQName;
+    }
+
+    public abstract String getQName();
+
+    /**
+     * @return
+     */
     public EComponentState getState() {
 
         return pState;
     }
+
+    public abstract String getTextInfo();
 
     /**
      * @param pState
@@ -44,4 +75,9 @@ public abstract class AbstractSnapshot {
         this.pState = aState;
     }
 
+    @Override
+    public String toString() {
+
+        return getName();
+    }
 }
