@@ -77,18 +77,18 @@ class Cart_model extends CI_Model {
 		$wJsonrpcClient->timeout(5);
 		
 		if(log_isOn('INFO')){
-			log_message('INFO', "** Item_model.rpcGetItem() : wJsonrpcClient=[". var_export($wJsonrpcClient,true)."]" );
+			log_message('INFO', "** Cart_model.rpcApplyCart() : wJsonrpcClient=[". var_export($wJsonrpcClient,true)."]" );
 		}
 		
 		$wJsonObject = $wJsonrpcClient->send_request();
 		
 		if ($wJsonObject != true){
-			log_message('ERROR', "** Item_model.rpcGetItem() : get_response_[". var_export($wJsonrpcClient->get_response(),true)."]" );
+			log_message('ERROR', "** Cart_model.rpcApplyCart() : get_response_[". var_export($wJsonrpcClient->get_response(),true)."]" );
 			return null;
 		}
 		
 		if(log_isOn('INFO')){
-			log_message('INFO', "** Item_model.rpcGetItem() : get_response_object=[". var_export($wJsonrpcClient->get_response_object(),true)."]" );
+			log_message('INFO', "** Cart_model.rpcApplyCart() : get_response_object=[". var_export($wJsonrpcClient->get_response_object(),true)."]" );
 		}
 
 		$wData = $wJsonrpcClient->get_response_object();
@@ -105,10 +105,48 @@ class Cart_model extends CI_Model {
 			  )),
 			))
 		 * 
+		 * 
+			stdClass::__set_state(array(
+			   'id' => 'ID_1010158050',
+			   'result' => 
+			  stdClass::__set_state(array(
+			     'map' => 
+			    stdClass::__set_state(array(
+			       'result' => 
+			      array (
+			      ),
+			       'error' => 
+			      array (
+			        0 => 'DataServerApplication.CartsApplier2.safeErpCaller : Exception caught
+			
+			class=[org.jabsorb.client.ErrorResponse]
+			mess(1)=[JSONRPC error code -32603:  | ErrorResponse | org.jabsorb.client.Client(processException:227)]
+			stack=[org.jabsorb.client.Client(processException:227)
+			org.jabsorb.client.Client(invoke:174)
+			org.jabsorb.client.Client(invoke:135)
+			$Proxy1(applyCart:-1)
+			org.psem2m.composer.demo.erpproxy.ErpProxy(__M_applyCart:92)
+			org.psem2m.composer.demo.erpproxy.ErpProxy(applyCart:-1)
+			org.psem2m.composer.demo.erpproxy.ErpProxy(__M_computeResult:119)
+			org.psem2m.composer.demo.erpproxy.ErpProxy(computeResult:-1)
+			org.psem2m.composer.test.api.IComponent$$Proxy(computeResult:-1)
+			org.psem2m.composer.demo.impl.ErpCaller(__M_computeResult:59)
+			org.psem2m.composer.demo.impl.ErpCaller(computeResult:-1)
+			org.psem2m.composer.test.api.IComponent$$Proxy(computeResult:-1)
+			org.psem2m.composer.core.test.chain.ExceptionCatcher(__M_computeResult:63)
+			org.psem2m.composer.core.test.chain.ExceptionCatcher(computeResult:-1)
+			',
+			      ),
+			    )),
+			     'javaClass' => 'java.util.HashMap',
+			  )),
+			))		 
+		 * 
+		 * 
 		 */
 		
-		if (isset($wData->error)){
-			$wErpActionError = $wData->error;
+		if (isset($wData->map->error)){
+			$wErpActionError = $wData->map->error;
 			return  array('status'=>$wErpActionError->code,'message'=>$wErpActionError->msg,'reasonInfos'=>'');
 		}
 		
@@ -155,7 +193,7 @@ class Cart_model extends CI_Model {
 	private function localApplyCart($aCartLines){
 	
 	
-		return  array('status'=>'501','message'=>'not implemented','reasonInfos'=>'localApplyCart() must be implemented');
+		return  array('status'=>'501','message'=>'not implemented','reasonInfos'=>'localApplyCart() is not implemented in theWebStore: must call the DataServer.');
 	}
 	
 }
