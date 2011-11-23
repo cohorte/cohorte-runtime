@@ -461,6 +461,9 @@ class ErpProxy(object):
         """
         Calls applyCart for Jabsorb
         """
+        if not self.erp.is_running():
+            raise Exception("Erp not running")
+        
         cart_map = request_from_jabsorb(cart_map)
 
         # Compute parameters
@@ -481,6 +484,9 @@ class ErpProxy(object):
         """
         Calls getItem for Jabsorb
         """
+        if not self.erp.is_running():
+            raise Exception("Erp not running")
+        
         # Call the ERP
         erp_result = self.erp.get_item(item_id)
 
@@ -491,6 +497,8 @@ class ErpProxy(object):
         """
         Calls getItems for Jabsorb
         """
+        if not self.erp.is_running():
+            raise Exception("Erp not running")
         # Call the ERP
         erp_result = self.erp.get_items(category, count, randomize, base_id)
 
@@ -501,6 +509,9 @@ class ErpProxy(object):
         """
         Calls erp.get_item_stock, for each given item
         """
+        if not self.erp.is_running():
+            raise Exception("Erp not running")
+        
         result = []
 
         # Virtual method, call the ERP for each item
