@@ -19,16 +19,13 @@ import java.awt.Font;
 public enum EUiAdminFont {
     LARGE("large", 16), NORMAL("normal", 12), SMALL("small", 10);
 
-    final static String FONT_NAME_TABLE = "Lucida Grande";
-    final static String FONT_NAME_TEXTAREA = "Courier New";
-
     /**
      * @param aLib
      * @return
      */
     public static EUiAdminFont fontFromLib(final String aLib) {
 
-        for (EUiAdminFont wKind : values()) {
+        for (final EUiAdminFont wKind : values()) {
             if (wKind.pLib.equals(aLib)) {
                 return wKind;
             }
@@ -41,9 +38,9 @@ public enum EUiAdminFont {
      */
     public static String[] getLibs() {
 
-        String[] wLibs = new String[values().length];
+        final String[] wLibs = new String[values().length];
         int wI = 0;
-        for (EUiAdminFont wKind : values()) {
+        for (final EUiAdminFont wKind : values()) {
             wLibs[wI] = wKind.getLib();
             wI++;
         }
@@ -62,8 +59,23 @@ public enum EUiAdminFont {
 
         pLib = aLib;
         pSize = aSize;
-        pTableFont = new Font(FONT_NAME_TABLE, Font.PLAIN, getSize());
-        pTextFont = new Font(FONT_NAME_TEXTAREA, Font.PLAIN, getSize());
+
+        /**
+         * The Java Platform defines five logical font names that every
+         * implementation must support: Serif, SansSerif, Monospaced, Dialog,
+         * and DialogInput. These logical font names are mapped to physical
+         * fonts in implementation dependent ways.
+         * 
+         * @see http 
+         *      ://docs.oracle.com/javase/6/docs/technotes/guides/intl/fontconfig
+         *      .html
+         * 
+         * @see http
+         *      ://stackoverflow.com/questions/221568/swt-os-agnostic-way-to-
+         *      get-monospaced-font
+         */
+        pTableFont = new Font(Font.SANS_SERIF, Font.PLAIN, getSize());
+        pTextFont = new Font(Font.MONOSPACED, Font.PLAIN, getSize());
     }
 
     /**
