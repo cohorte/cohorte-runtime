@@ -48,10 +48,37 @@ public class NormalizerApplyCart extends CPojoBase implements IComponent {
             throws Exception {
 
         if (aContext.hasError()) {
-            // Prepare a new map, with both result and error
+            // Prepare a new map, with 'message' 'reason' and 'code'
             final Map<String, Object> resultMap = new HashMap<String, Object>();
-            resultMap.put(KEY_ERROR, aContext.getErrors().toArray());
-            resultMap.put(KEY_RESULT, aContext.getResults().toArray());
+
+            /*
+             * 
+             * array ( 'status' => 500, 'message' =>
+             * 'DataServerApplication.CartsApplier2.safeErpCaller : Exception
+             * caught class=[org.jabsorb.client.ErrorResponse] mess(1)=[JSONRPC
+             * error code -32603: | ErrorResponse |
+             * org.jabsorb.client.Client(processException:227)]
+             * stack=[org.jabsorb.client.Client(processException:227)
+             * org.jabsorb.client.Client(invoke:174)
+             * org.jabsorb.client.Client(invoke:135) $Proxy1(applyCart:-1)
+             * org.psem2m.composer.demo.erpproxy.ErpProxy(__M_applyCart:92)
+             * org.psem2m.composer.demo.erpproxy.ErpProxy(applyCart:-1)
+             * org.psem2m.composer.demo.erpproxy.ErpProxy(__M_computeResult:119)
+             * org.psem2m.composer.demo.erpproxy.ErpProxy(computeResult:-1)
+             */
+            String wMessage = "no message !";
+            String wReason = "no reason !";
+            if (aContext.getErrors().size() > 0) {
+                String wInfos = aContext.getErrors().get(0);
+                String[] wParts = wInfos.split("\\|");
+                if (wParts != null && wParts.length >= 2) {
+                    wReason = wParts[0];
+                    wMessage = wParts[1];
+                }
+            }
+            resultMap.put("message", wMessage);
+            resultMap.put("reason", wReason);
+            resultMap.put("code", 500);
 
             aContext.setResult(resultMap);
             return aContext;
