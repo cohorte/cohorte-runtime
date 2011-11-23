@@ -226,10 +226,22 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
                 return;
             }
 
-            // if sorted
-            wRowIdx = pServicesTable.convertRowIndexToModel(wRowIdx);
+            try {
+                // if sorted
+                wRowIdx = pServicesTable.convertRowIndexToModel(wRowIdx);
 
-            createPopUp(wRowIdx).show(e.getComponent(), e.getX(), e.getY());
+                createPopUp(wRowIdx).show(e.getComponent(), e.getX(), e.getY());
+            } catch (ArrayIndexOutOfBoundsException e1) {
+                if (hasLogger()) {
+                    getLogger().logSevere(this, "rightClik",
+                            "ArrayIndexOutOfBoundsException !");
+                }
+            } catch (Exception e2) {
+                if (hasLogger()) {
+                    getLogger().logInfo(this, "rightClik", e2);
+                }
+            }
+
         }
     }
 
@@ -245,31 +257,42 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
         @Override
         public void valueChanged(final ListSelectionEvent aListSelectionEvent) {
 
-            int wRowIdx = pServicesTable.getSelectionModel()
-                    .getLeadSelectionIndex();
+            try {
+                int wRowIdx = pServicesTable.getSelectionModel()
+                        .getLeadSelectionIndex();
 
-            if (hasLogger()) {
-                getLogger().logInfo(this, "valueChanged", "RowIdx=[%d]",
-                        wRowIdx);
-            }
+                if (hasLogger()) {
+                    getLogger().logInfo(this, "valueChanged", "RowIdx=[%d]",
+                            wRowIdx);
+                }
 
-            if (wRowIdx > -1 && wRowIdx < pServicesTableModel.getRowCount()) {
-                // if sorted
-                final int wRealRowIdx = pServicesTable
-                        .convertRowIndexToModel(wRowIdx);
+                if (wRowIdx > -1 && wRowIdx < pServicesTableModel.getRowCount()) {
+                    // if sorted
+                    final int wRealRowIdx = pServicesTable
+                            .convertRowIndexToModel(wRowIdx);
 
-                execute(new Runnable() {
-                    @Override
-                    public void run() {
+                    execute(new Runnable() {
+                        @Override
+                        public void run() {
 
-                        if (hasLogger()) {
-                            getLogger().logInfo(this, "valueChanged",
-                                    "RealRowIdx=[%d]", wRealRowIdx);
+                            if (hasLogger()) {
+                                getLogger().logInfo(this, "valueChanged",
+                                        "RealRowIdx=[%d]", wRealRowIdx);
+                            }
+                            // set the text info of the service
+                            setText(buildTextInfos(wRealRowIdx));
                         }
-                        // set the text info of the service
-                        setText(buildTextInfos(wRealRowIdx));
-                    }
-                });
+                    });
+                }
+            } catch (ArrayIndexOutOfBoundsException e1) {
+                if (hasLogger()) {
+                    getLogger().logSevere(this, "stateChanged",
+                            "ArrayIndexOutOfBoundsException !");
+                }
+            } catch (Exception e2) {
+                if (hasLogger()) {
+                    getLogger().logSevere(this, "stateChanged", e2);
+                }
             }
         }
     }
@@ -335,7 +358,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
     @Override
     boolean addRow(final ServiceReference aServiceReference) {
 
-        String[] wDataRow = buildRowData(aServiceReference);
+        final String[] wDataRow = buildRowData(aServiceReference);
 
         if (pServicesFilterKind.isALL()
 
@@ -348,8 +371,24 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
                 && !wDataRow[COLUMN_IDX_REMOTE_INFO].toString().isEmpty()
 
         ) {
-            pServicesTableModel.addRow(wDataRow);
-            pServicesList.add(aServiceReference);
+
+            execute(new Runnable() {
+                @Override
+                public void run() {
+
+                    try {
+                        pServicesTableModel.addRow(wDataRow);
+                        pServicesTable.setRowSelectionInterval(0, 0);
+                        pServicesList.add(aServiceReference);
+                    } catch (Exception e) {
+                        if (hasLogger()) {
+                            getLogger().logSevere(this, "addRow",
+                                    CXException.eMiniInString(e));
+                        }
+                    }
+                }
+            });
+
             return true;
         }
         return false;
@@ -381,7 +420,6 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
                             aServiceReferences.length, wNbAdded);
                 }
 
-                pServicesTable.setRowSelectionInterval(0, 0);
                 fireUpdateTable();
             }
         }
@@ -455,7 +493,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
      * @see org.psem2m.isolates.ui.admin.panels.CJPanel#destroy()
      */
     @Override
-    void destroy() {
+    public void destroy() {
 
         super.destroy();
 
@@ -621,9 +659,11 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
                     pServicesTable.tableChanged(new TableModelEvent(
                             pServicesTableModel));
                     pServicesTable.updateUI();
+
                 } catch (Exception e) {
                     if (hasLogger()) {
-                        getLogger().logInfo(this, "fireUpdateTable", e);
+                        getLogger().logSevere(this, "fireUpdateTable",
+                                CXException.eMiniInString(e));
                     }
                 }
             }
@@ -652,7 +692,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
      * @see org.psem2m.isolates.ui.admin.panels.CJPanel#newGUI()
      */
     @Override
-    JPanel newGUI() {
+    public JPanel newGUI() {
 
         setLayout(new BorderLayout(0, 0));
 
@@ -767,9 +807,23 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
     @Override
     void removeAllRows() {
 
-        for (int wI = pServicesTableModel.getRowCount() - 1; wI > -1; wI--) {
-            pServicesTableModel.removeRow(wI);
-        }
+        execute(new Runnable() {
+            @Override
+            public void run() {
+
+                try {
+                    for (int wI = pServicesTableModel.getRowCount() - 1; wI > -1; wI--) {
+                        pServicesTableModel.removeRow(wI);
+                    }
+                    pServicesList.clear();
+                } catch (Exception e) {
+                    if (hasLogger()) {
+                        getLogger().logSevere(this, "removeAllRows",
+                                CXException.eMiniInString(e));
+                    }
+                }
+            }
+        });
     }
 
     /*
@@ -782,12 +836,25 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
     @Override
     void removeRow(final ServiceReference aServiceReference) {
 
-        int wRowIdx = findInTable(aServiceReference);
+        final int wRowIdx = findInTable(aServiceReference);
         if (wRowIdx != -1) {
-            pServicesTableModel.removeRow(wRowIdx);
-            pServicesList.remove(aServiceReference);
-        }
 
+            execute(new Runnable() {
+                @Override
+                public void run() {
+
+                    try {
+                        pServicesTableModel.removeRow(wRowIdx);
+                        pServicesList.remove(aServiceReference);
+                    } catch (Exception e) {
+                        if (hasLogger()) {
+                            getLogger().logSevere(this, "removeRow",
+                                    CXException.eMiniInString(e));
+                        }
+                    }
+                }
+            });
+        }
         fireUpdateTable();
     }
 
@@ -862,7 +929,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
      * org.psem2m.isolates.ui.admin.panels.CJPanel#setText(java.lang.String)
      */
     @Override
-    void setText(final String aText) {
+    public void setText(final String aText) {
 
         pServiceInfoTextArea.setText(aText);
     }
@@ -875,7 +942,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
      * int)
      */
     @Override
-    Font setTextFont(final EUiAdminFont aUiAdminFont) {
+    public Font setTextFont(final EUiAdminFont aUiAdminFont) {
 
         pServiceInfoTextArea.setFont(aUiAdminFont.getTextFont());
         return aUiAdminFont.getTextFont();

@@ -8,7 +8,7 @@
  * Contributors:
  *    ogattaz  (isandlaTech) - 20 nov. 2011 - initial API and implementation
  *******************************************************************************/
-package org.psem2m.isolates.ui.admin.panels;
+package org.psem2m.isolates.ui.admin.api;
 
 import java.awt.Font;
 import java.util.concurrent.Executor;
@@ -16,7 +16,6 @@ import java.util.concurrent.Executor;
 import javax.swing.JPanel;
 
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
-import org.psem2m.isolates.ui.admin.api.EUiAdminFont;
 
 /**
  * @author ogattaz
@@ -53,7 +52,7 @@ public abstract class CJPanel extends JPanel {
     /**
      * 
      */
-    void destroy() {
+    public void destroy() {
 
         pUiExecutor = null;
         pLogger = null;
@@ -62,7 +61,7 @@ public abstract class CJPanel extends JPanel {
     /**
      * @param aRunnable
      */
-    void execute(final Runnable aRunnable) {
+    public void execute(final Runnable aRunnable) {
 
         try {
             // gives the runnable to the UIExecutor
@@ -77,7 +76,7 @@ public abstract class CJPanel extends JPanel {
     /**
      * @return
      */
-    IIsolateLoggerSvc getLogger() {
+    public IIsolateLoggerSvc getLogger() {
 
         return pLogger;
     }
@@ -85,7 +84,7 @@ public abstract class CJPanel extends JPanel {
     /**
      * @return
      */
-    boolean hasLogger() {
+    public boolean hasLogger() {
 
         return getLogger() != null;
     }
@@ -93,12 +92,12 @@ public abstract class CJPanel extends JPanel {
     /**
      * @return
      */
-    abstract JPanel newGUI();
+    public abstract JPanel newGUI();
 
     /**
      * @param aText
      */
-    abstract void setText(final String aText);
+    public abstract void setText(final String aText);
 
     /**
      * Sets the font of the text
@@ -107,6 +106,6 @@ public abstract class CJPanel extends JPanel {
      * @param aSize
      * @return the new Font
      */
-    abstract Font setTextFont(final EUiAdminFont aFont);
+    public abstract Font setTextFont(final EUiAdminFont aFont);
 
 }

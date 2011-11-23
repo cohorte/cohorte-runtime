@@ -207,10 +207,21 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
                 return;
             }
 
-            // if sorted
-            wRowIdx = pBundlesTable.convertRowIndexToModel(wRowIdx);
+            try {
+                // if sorted
+                wRowIdx = pBundlesTable.convertRowIndexToModel(wRowIdx);
 
-            createPopUp(wRowIdx).show(e.getComponent(), e.getX(), e.getY());
+                createPopUp(wRowIdx).show(e.getComponent(), e.getX(), e.getY());
+            } catch (ArrayIndexOutOfBoundsException e1) {
+                if (hasLogger()) {
+                    getLogger().logSevere(this, "stateChanged",
+                            "ArrayIndexOutOfBoundsException !");
+                }
+            } catch (Exception e2) {
+                if (hasLogger()) {
+                    getLogger().logSevere(this, "stateChanged", e);
+                }
+            }
         }
     }
 
@@ -226,30 +237,42 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
         @Override
         public void valueChanged(final ListSelectionEvent aListSelectionEvent) {
 
-            int wRowIdx = pBundlesTable.getSelectionModel()
-                    .getLeadSelectionIndex();
+            try {
+                int wRowIdx = pBundlesTable.getSelectionModel()
+                        .getLeadSelectionIndex();
 
-            if (hasLogger()) {
-                getLogger().logInfo(this, "valueChanged", "RowIdx=[%d]",
-                        wRowIdx);
-            }
+                if (hasLogger()) {
+                    getLogger().logInfo(this, "valueChanged", "RowIdx=[%d]",
+                            wRowIdx);
+                }
 
-            if (wRowIdx > -1 && wRowIdx < pBundlesTableModel.getRowCount()) {
-                // if sorted
-                final int wRealRowIdx = pBundlesTable
-                        .convertRowIndexToModel(wRowIdx);
-                execute(new Runnable() {
-                    @Override
-                    public void run() {
+                if (wRowIdx > -1 && wRowIdx < pBundlesTableModel.getRowCount()) {
+                    // if sorted
+                    final int wRealRowIdx = pBundlesTable
+                            .convertRowIndexToModel(wRowIdx);
+                    execute(new Runnable() {
+                        @Override
+                        public void run() {
 
-                        if (hasLogger()) {
-                            getLogger().logInfo(this, "valueChanged",
-                                    "RealRowIdx=[%d]", wRealRowIdx);
+                            if (hasLogger()) {
+                                getLogger().logInfo(this, "valueChanged",
+                                        "RealRowIdx=[%d]", wRealRowIdx);
+                            }
+                            // set the text info of the service
+                            pBundleTextArea
+                                    .setText(buildTextInfos(wRealRowIdx));
                         }
-                        // set the text info of the service
-                        pBundleTextArea.setText(buildTextInfos(wRealRowIdx));
-                    }
-                });
+                    });
+                }
+            } catch (ArrayIndexOutOfBoundsException e1) {
+                if (hasLogger()) {
+                    getLogger().logSevere(this, "stateChanged",
+                            "ArrayIndexOutOfBoundsException !");
+                }
+            } catch (Exception e2) {
+                if (hasLogger()) {
+                    getLogger().logSevere(this, "stateChanged", e2);
+                }
             }
         }
     }
@@ -308,8 +331,25 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
     @Override
     boolean addRow(final Bundle aBundle) {
 
-        pBundlesTableModel.addRow(buildRowData(aBundle));
-        pBundlesList.add(aBundle);
+        execute(new Runnable() {
+            @Override
+            public void run() {
+
+                try {
+                    pBundlesTableModel.addRow(buildRowData(aBundle));
+                    pBundlesTable.setRowSelectionInterval(0, 0);
+
+                    pBundlesList.add(aBundle);
+
+                } catch (Exception e) {
+                    if (hasLogger()) {
+                        getLogger().logSevere(this, "addRow",
+                                CXException.eMiniInString(e));
+                    }
+                }
+            }
+        });
+
         return true;
     }
 
@@ -325,7 +365,6 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
             for (Bundle wBundle : aBundles) {
                 addRow(wBundle);
             }
-            pBundlesTable.setRowSelectionInterval(0, 0);
             fireUpdateTable();
         }
     }
@@ -406,7 +445,7 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
      * @see org.psem2m.isolates.ui.admin.panels.CJPanel#destroy()
      */
     @Override
-    void destroy() {
+    public void destroy() {
 
         super.destroy();
 
@@ -461,9 +500,11 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
                     pBundlesTable.tableChanged(new TableModelEvent(
                             pBundlesTableModel));
                     pBundlesTable.updateUI();
+
                 } catch (Exception e) {
                     if (hasLogger()) {
-                        getLogger().logInfo(this, "fireUpdateTable", e);
+                        getLogger().logSevere(this, "fireUpdateTable",
+                                CXException.eMiniInString(e));
                     }
                 }
             }
@@ -487,7 +528,7 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
      * @see org.psem2m.isolates.ui.admin.panels.CJPanel#newGUI()
      */
     @Override
-    JPanel newGUI() {
+    public JPanel newGUI() {
 
         setLayout(new BorderLayout(0, 0));
 
@@ -572,9 +613,24 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
     @Override
     void removeAllRows() {
 
-        for (int wI = pBundlesTableModel.getRowCount() - 1; wI > -1; wI--) {
-            pBundlesTableModel.removeRow(wI);
-        }
+        execute(new Runnable() {
+            @Override
+            public void run() {
+
+                try {
+                    for (int wI = pBundlesTableModel.getRowCount() - 1; wI > -1; wI--) {
+                        pBundlesTableModel.removeRow(wI);
+                    }
+                    pBundlesList.clear();
+                } catch (Exception e) {
+                    if (hasLogger()) {
+                        getLogger().logSevere(this, "removeAllRows",
+                                CXException.eMiniInString(e));
+                    }
+                }
+            }
+        });
+
     }
 
     /**
@@ -583,12 +639,25 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
     @Override
     void removeRow(final Bundle aBundle) {
 
-        int wRowIdx = findInTable(aBundle);
+        final int wRowIdx = findInTable(aBundle);
         if (wRowIdx != -1) {
-            pBundlesTableModel.removeRow(wRowIdx);
-            pBundlesList.remove(aBundle);
-        }
 
+            execute(new Runnable() {
+                @Override
+                public void run() {
+
+                    try {
+                        pBundlesTableModel.removeRow(wRowIdx);
+                        pBundlesList.remove(aBundle);
+                    } catch (Exception e) {
+                        if (hasLogger()) {
+                            getLogger().logSevere(this, "removeRow",
+                                    CXException.eMiniInString(e));
+                        }
+                    }
+                }
+            });
+        }
         fireUpdateTable();
     }
 
@@ -644,7 +713,7 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
      * org.psem2m.isolates.ui.admin.panels.CJPanel#setText(java.lang.String)
      */
     @Override
-    void setText(final String aText) {
+    public void setText(final String aText) {
 
         pBundleTextArea.setText(aText);
     }
@@ -657,7 +726,7 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
      * int)
      */
     @Override
-    Font setTextFont(final EUiAdminFont aUiAdminFont) {
+    public Font setTextFont(final EUiAdminFont aUiAdminFont) {
 
         pBundleTextArea.setFont(aUiAdminFont.getTextFont());
         return aUiAdminFont.getTextFont();

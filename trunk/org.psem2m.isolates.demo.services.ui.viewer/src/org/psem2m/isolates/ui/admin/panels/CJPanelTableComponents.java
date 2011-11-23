@@ -44,10 +44,14 @@ import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
 import org.apache.felix.ipojo.ComponentInstance;
+import org.apache.felix.ipojo.Handler;
 import org.apache.felix.ipojo.InstanceManager;
 import org.apache.felix.ipojo.InstanceStateListener;
 import org.apache.felix.ipojo.architecture.Architecture;
+import org.apache.felix.ipojo.architecture.HandlerDescription;
 import org.apache.felix.ipojo.architecture.InstanceDescription;
+import org.apache.felix.ipojo.handlers.dependency.Dependency;
+import org.apache.felix.ipojo.handlers.dependency.DependencyHandler;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.ui.admin.api.EUiAdminFont;
 import org.psem2m.utilities.CXException;
@@ -167,9 +171,14 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
                             }
                         });
                     }
-                } catch (Exception e) {
+                } catch (ArrayIndexOutOfBoundsException e1) {
                     if (hasLogger()) {
-                        getLogger().logInfo(this, "stateChanged", e);
+                        getLogger().logSevere(this, "stateChanged",
+                                "ArrayIndexOutOfBoundsException !");
+                    }
+                } catch (Exception e2) {
+                    if (hasLogger()) {
+                        getLogger().logSevere(this, "stateChanged", e2);
                     }
                 }
             }
@@ -429,20 +438,33 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
     @Override
     boolean addRow(final Architecture aArchitecture) {
 
-        pComponentsTableModel.addRow(buildRowData(aArchitecture));
-
-        CComponentBean wComponentBean = new CComponentBean();
+        final CComponentBean wComponentBean = new CComponentBean();
         wComponentBean.setArchitecture(aArchitecture);
 
         wComponentBean.setComponentInstance(getComponentInstance(aArchitecture
                 .getInstanceDescription()));
         wComponentBean.setInstanceStateListener(new CInstanceStateListener());
-
-        pComponentsMap.put(aArchitecture.getInstanceDescription().getName(),
-                wComponentBean);
-
         wComponentBean.getComponentInstance().addInstanceStateListener(
                 wComponentBean.getInstanceStateListener());
+
+        execute(new Runnable() {
+            @Override
+            public void run() {
+
+                try {
+                    pComponentsTableModel.addRow(buildRowData(aArchitecture));
+                    pComponentsTable.setRowSelectionInterval(0, 0);
+                    pComponentsMap.put(aArchitecture.getInstanceDescription()
+                            .getName(), wComponentBean);
+
+                } catch (Exception e) {
+                    if (hasLogger()) {
+                        getLogger().logSevere(this, "addRow",
+                                CXException.eMiniInString(e));
+                    }
+                }
+            }
+        });
 
         return true;
     }
@@ -459,7 +481,6 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
             for (Architecture wArchitecture : aArchitectures) {
                 addRow(wArchitecture);
             }
-            pComponentsTable.setRowSelectionInterval(0, 0);
             fireUpdateTable();
         }
     }
@@ -524,6 +545,37 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
             CXStringUtils.appendFormatStrInBuff(wSB, "bundle.id=[%d]\n",
                     wDescription.getBundleId());
 
+            HandlerDescription[] wHandlerDescriptions = aArchitecture
+                    .getInstanceDescription().getHandlers();
+
+            ComponentInstance wComponentInstance = getComponentInstance(aArchitecture
+                    .getInstanceDescription());
+
+            for (HandlerDescription wHandlerDescription : wHandlerDescriptions) {
+
+                Handler wHandler = ((InstanceManager) wComponentInstance)
+                        .getHandler(wHandlerDescription.getHandlerName());
+
+                CXStringUtils.appendFormatStrInBuff(wSB, "handler %s=[%b]\n",
+                        wHandlerDescription.getHandlerName(),
+                        wHandler.getValidity());
+
+                if (wHandler instanceof DependencyHandler) {
+                    Dependency[] wDependencies = ((DependencyHandler) wHandler)
+                            .getDependencies();
+
+                    for (Dependency wDependency : wDependencies) {
+
+                        CXStringUtils.appendFormatStrInBuff(wSB,
+                                " Dependency %s/%s=[%d]\n",
+                                wDependency.getField(), wDependency.getId(),
+                                wDependency.getState());
+                    }
+
+                }
+
+            }
+
         } catch (Exception e) {
             wSB.append(CXException.eInString(e));
         }
@@ -548,7 +600,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
      * @see org.psem2m.isolates.ui.admin.panels.CJPanel#destroy()
      */
     @Override
-    void destroy() {
+    public void destroy() {
 
         super.destroy();
 
@@ -711,7 +763,8 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
                     pComponentsTable.updateUI();
                 } catch (Exception e) {
                     if (hasLogger()) {
-                        getLogger().logInfo(this, "fireUpdateTable", e);
+                        getLogger().logSevere(this, "fireUpdateTable",
+                                CXException.eMiniInString(e));
                     }
                 }
             }
@@ -735,7 +788,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
      * @see org.psem2m.isolates.ui.admin.panels.CJPanel#newGUI()
      */
     @Override
-    JPanel newGUI() {
+    public JPanel newGUI() {
 
         setLayout(new BorderLayout(0, 0));
 
@@ -823,9 +876,23 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
     @Override
     void removeAllRows() {
 
-        for (int wI = pComponentsTableModel.getRowCount() - 1; wI > -1; wI--) {
-            pComponentsTableModel.removeRow(wI);
-        }
+        execute(new Runnable() {
+            @Override
+            public void run() {
+
+                try {
+                    for (int wI = pComponentsTableModel.getRowCount() - 1; wI > -1; wI--) {
+                        pComponentsTableModel.removeRow(wI);
+                    }
+                    pComponentsMap.clear();
+                } catch (Exception e) {
+                    if (hasLogger()) {
+                        getLogger().logSevere(this, "removeAllRows",
+                                CXException.eMiniInString(e));
+                    }
+                }
+            }
+        });
     }
 
     /*
@@ -838,13 +905,26 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
     @Override
     void removeRow(final Architecture aArchitecture) {
 
-        int wRowIdx = findInTable(aArchitecture);
+        final int wRowIdx = findInTable(aArchitecture);
         if (wRowIdx != -1) {
-            pComponentsTableModel.removeRow(wRowIdx);
-            pComponentsMap.remove(aArchitecture.getInstanceDescription()
-                    .getName());
-        }
 
+            execute(new Runnable() {
+                @Override
+                public void run() {
+
+                    try {
+                        pComponentsTableModel.removeRow(wRowIdx);
+                        pComponentsMap.remove(aArchitecture
+                                .getInstanceDescription().getName());
+                    } catch (Exception e) {
+                        if (hasLogger()) {
+                            getLogger().logSevere(this, "removeRow",
+                                    CXException.eMiniInString(e));
+                        }
+                    }
+                }
+            });
+        }
         fireUpdateTable();
     }
 
@@ -900,7 +980,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
      * org.psem2m.isolates.ui.admin.panels.CJPanel#setText(java.lang.String)
      */
     @Override
-    void setText(final String aText) {
+    public void setText(final String aText) {
 
         pComponentTextArea.setText(aText);
     }
@@ -913,7 +993,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
      * int)
      */
     @Override
-    Font setTextFont(final EUiAdminFont aUiAdminFont) {
+    public Font setTextFont(final EUiAdminFont aUiAdminFont) {
 
         pComponentTextArea.setFont(aUiAdminFont.getTextFont());
         return aUiAdminFont.getTextFont();
