@@ -186,6 +186,10 @@ public class CacheCommons {
             return null;
         }
 
+        if (cacheKey.equals("?")) {
+            return aChannel.getRandomObject();
+        }
+
         // Get the object
         final ICachedObject<?> cachedObject = aChannel
                 .get((Serializable) cacheKey);
