@@ -237,6 +237,35 @@ public final class Utilities {
     }
 
     /**
+     * Deletes the given directory recursively
+     * 
+     * @param aDirectory
+     *            Directory to delete
+     */
+    public static void removeDirectory(final File aWorkingDirectory) {
+
+        if (!aWorkingDirectory.isDirectory()) {
+            // Not a directory...
+            return;
+        }
+
+        for (final File subDir : aWorkingDirectory.listFiles()) {
+
+            if (subDir.isDirectory()) {
+                // Recursive call
+                removeDirectory(subDir);
+
+            } else {
+                // Delete the file
+                subDir.delete();
+            }
+        }
+
+        // Delete the directory
+        aWorkingDirectory.delete();
+    }
+
+    /**
      * Hide the constructor of a utility class
      */
     private Utilities() {
