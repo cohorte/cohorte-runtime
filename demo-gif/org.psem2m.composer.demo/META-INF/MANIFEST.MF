@@ -9,266 +9,126 @@ Created-By: iPOJO  1.8.0
 Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  .ipojo.architecture;version=1.8.0, org.osgi.framework;version=1.5.0, 
  org.osgi.service.cm;version=1.2, org.osgi.service.log;version=1.3, or
- g.psem2m.composer.demo, org.psem2m.composer.test.api, org.psem2m.demo
- .data.cache, org.psem2m.demo.erp.api.beans, org.psem2m.isolates.base;
- version=1.0.0, org.psem2m.isolates.base.activators;version=1.0.0, org
- .psem2m.utilities;version=1.0.0, org.psem2m.utilities.logging;version
- =1.0.0
+ g.psem2m.composer.demo, org.psem2m.demo.data.cache, org.psem2m.isolat
+ es.base;version=1.0.0, org.psem2m.isolates.base.activators;version=1.
+ 0.0, org.psem2m.utilities;version=1.0.0, org.psem2m.utilities.logging
+ ;version=1.0.0
 iPOJO-Components: component { $classname="org.psem2m.composer.demo.imp
- l.ErpCaller" $name="erp-caller" $public="true" provides { $specificat
- ions="{org.psem2m.composer.test.api.IComponent}" }properties { proper
- ty { $name="method" $field="pErpMethod" }property { $name="instance.n
- ame" $field="pName" }}requires { $field="pLogger" }requires { $field=
- "pNext" $id="next" }callback { $transition="invalidate" $method="inva
- lidatePojo" }callback { $transition="validate" $method="validatePojo"
-  }manipulation { $super="org.psem2m.isolates.base.activators.CPojoBas
- e" interface { $name="org.psem2m.composer.test.api.IComponent" }field
-  { $name="pErpMethod" $type="java.lang.String" }field { $name="pLogge
- r" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name=
- "pName" $type="java.lang.String" }field { $name="pNext" $type="org.ps
- em2m.composer.test.api.IComponent" }method { $name="computeResult" $r
- eturn="org.psem2m.composer.test.api.IComponentContext" $arguments="{o
- rg.psem2m.composer.test.api.IComponentContext}" }method { $name="inva
- lidatePojo" }method { $name="validatePojo" }}}component { $classname=
- "org.psem2m.composer.demo.impl.ServerExported" $name="server-exported
- " $public="true" provides { $specifications="{org.psem2m.composer.dem
- o.IErpData}" }requires { $field="pChainApplyCart" $id="applyCart" }re
- quires { $field="pChainGetItem" $id="getItem" }requires { $field="pCh
- ainGetItems" $id="getItems" }requires { $field="pChainGetItemsStock" 
- $id="getItemsStock" }requires { $field="pLogger" }properties { proper
- ty { $name="instance.name" $field="pName" }}callback { $transition="i
- nvalidate" $method="invalidatePojo" }callback { $transition="validate
- " $method="validatePojo" }manipulation { $super="org.psem2m.isolates.
- base.activators.CPojoBase" interface { $name="org.psem2m.composer.dem
- o.IErpData" }field { $name="pChainApplyCart" $type="org.psem2m.compos
- er.test.api.IComponent" }field { $name="pChainGetItem" $type="org.pse
- m2m.composer.test.api.IComponent" }field { $name="pChainGetItems" $ty
- pe="org.psem2m.composer.test.api.IComponent" }field { $name="pChainGe
- tItemsStock" $type="org.psem2m.composer.test.api.IComponent" }field {
-  $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }
- field { $name="pName" $type="java.lang.String" }method { $name="apply
- Cart" $return="java.util.Map" $arguments="{java.util.Map}" }method { 
- $name="getItem" $return="java.util.Map" $arguments="{java.lang.String
- }" }method { $name="getItems" $return="java.util.List" $arguments="{j
- ava.lang.String,int,boolean,java.lang.String}" }method { $name="getIt
- emsStock" $return="java.util.List" $arguments="{java.lang.String[]}" 
- }method { $name="invalidatePojo" }method { $name="makeErrorMap" $retu
- rn="java.util.Map" $arguments="{java.lang.Throwable}" }method { $name
- ="validatePojo" }}}component { $classname="org.psem2m.composer.demo.i
- mpl.applyCart.CacheQueueHandler" $name="cache-queue-handler" $public=
- "true" provides { $specifications="{org.psem2m.composer.test.api.ICom
- ponent}" }requires { $field="pCache" }requires { $field="pLogger" }re
- quires { $field="pNext" $id="next" }properties { property { $name="ca
- cheChannel" $field="pCacheChannelName" }property { $name="cartIdKey" 
- $field="pCartIdKey" $value="id" }property { $name="cartLinesKey" $fie
- ld="pCartLinesKey" $value="lines" }property { $name="instance.name" $
- field="pName" }property { $name="timeout" $field="pWaitTimeout" $valu
- e="0" }}callback { $transition="invalidate" $method="invalidatePojo" 
- }callback { $transition="validate" $method="validatePojo" }manipulati
- on { $super="org.psem2m.isolates.base.activators.CPojoBase" interface
-  { $name="org.psem2m.composer.test.api.IComponent" }interface { $name
- ="java.lang.Runnable" }field { $name="pCache" $type="org.psem2m.demo.
- data.cache.ICacheFactory" }field { $name="pCacheChannelName" $type="j
- ava.lang.String" }field { $name="pCartIdKey" $type="java.lang.String"
-  }field { $name="pCartLinesKey" $type="java.lang.String" }field { $na
- me="pChannel" $type="org.psem2m.demo.data.cache.ICacheDequeueChannel"
-  }field { $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLog
- gerSvc" }field { $name="pName" $type="java.lang.String" }field { $nam
- e="pNext" $type="org.psem2m.composer.test.api.IComponent" }field { $n
- ame="pRunning" $type="boolean" }field { $name="pSemaphores" $type="ja
- va.util.Map" }field { $name="pThread" $type="java.lang.Thread" }field
-  { $name="pWaitTimeout" $type="long" }method { $name="computeResult" 
- $return="org.psem2m.composer.test.api.IComponentContext" $arguments="
- {org.psem2m.composer.test.api.IComponentContext}" }method { $name="in
- validatePojo" }method { $name="run" }method { $name="validatePojo" }}
- }component { $classname="org.psem2m.composer.demo.impl.applyCart.Cach
- eQueuePoller" $name="cache-queue-poller" $public="true" requires { $f
- ield="pCache" }requires { $field="pLogger" }requires { $field="pNext"
-  $id="next" }properties { property { $name="cacheChannel" $field="pCa
- cheChannelName" }property { $name="instance.name" $field="pName" }}ca
- llback { $transition="invalidate" $method="invalidatePojo" }callback 
- { $transition="validate" $method="validatePojo" }manipulation { $supe
- r="org.psem2m.isolates.base.activators.CPojoBase" interface { $name="
- java.lang.Runnable" }field { $name="pCache" $type="org.psem2m.demo.da
- ta.cache.ICacheFactory" }field { $name="pCacheChannelName" $type="jav
- a.lang.String" }field { $name="pLogger" $type="org.psem2m.isolates.ba
- se.IIsolateLoggerSvc" }field { $name="pName" $type="java.lang.String"
-  }field { $name="pNext" $type="org.psem2m.composer.test.api.IComponen
- t" }field { $name="pRunning" $type="boolean" }field { $name="pThread"
-  $type="java.lang.Thread" }method { $name="invalidatePojo" }method { 
- $name="run" }method { $name="validatePojo" }}}component { $classname=
- "org.psem2m.composer.demo.impl.applyCart.EndpointApplyCart" $name="se
- rver-endpoint-applyCart" $public="true" provides { $specifications="{
- org.psem2m.composer.test.api.IComponent}" }properties { property { $n
- ame="instance.name" $field="pInstanceName" }}requires { $field="pLogg
- er" }requires { $field="pNext" $id="next" }requires { $field="pNormal
- izer" $id="normalizer" }callback { $transition="invalidate" $method="
- invalidatePojo" }callback { $transition="validate" $method="validateP
- ojo" }manipulation { $super="org.psem2m.isolates.base.activators.CPoj
- oBase" interface { $name="org.psem2m.composer.test.api.IComponent" }f
- ield { $name="pInstanceName" $type="java.lang.String" }field { $name=
- "pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field {
-  $name="pNext" $type="org.psem2m.composer.test.api.IComponent" }field
-  { $name="pNormalizer" $type="org.psem2m.composer.test.api.IComponent
- " }method { $name="computeResult" $return="org.psem2m.composer.test.a
- pi.IComponentContext" $arguments="{org.psem2m.composer.test.api.IComp
- onentContext}" }method { $name="invalidatePojo" }method { $name="vali
- datePojo" }}}component { $classname="org.psem2m.composer.demo.impl.ap
- plyCart.NormalizerApplyCart" $name="normalizer-applyCart" $public="tr
- ue" provides { $specifications="{org.psem2m.composer.test.api.ICompon
- ent}" }requires { $field="pLogger" }properties { property { $name="in
- stance.name" $field="pName" }}callback { $transition="invalidate" $me
- thod="invalidatePojo" }callback { $transition="validate" $method="val
- idatePojo" }manipulation { $super="org.psem2m.isolates.base.activator
- s.CPojoBase" interface { $name="org.psem2m.composer.test.api.ICompone
- nt" }field { $name="pLogger" $type="org.psem2m.isolates.base.IIsolate
- LoggerSvc" }field { $name="pName" $type="java.lang.String" }method { 
- $name="computeResult" $return="org.psem2m.composer.test.api.IComponen
- tContext" $arguments="{org.psem2m.composer.test.api.IComponentContext
- }" }method { $name="invalidatePojo" }method { $name="validatePojo" }}
- }component { $classname="org.psem2m.composer.demo.impl.applyCart.Stor
- eInCacheQueue" $name="store-cache-queue" $public="true" provides { $s
- pecifications="{org.psem2m.composer.test.api.IComponent}" }requires {
-  $field="pCache" }requires { $field="pLogger" }properties { property 
- { $name="cacheChannel" $field="pCacheChannelName" }property { $name="
- cartIdKey" $field="pCartIdKey" $value="id" }property { $name="cartLin
- esKey" $field="pCartLinesKey" $value="lines" }property { $name="insta
- nce.name" $field="pName" }}callback { $transition="invalidate" $metho
- d="invalidatePojo" }callback { $transition="validate" $method="valida
- tePojo" }manipulation { $super="org.psem2m.isolates.base.activators.C
- PojoBase" interface { $name="org.psem2m.composer.test.api.IComponent"
-  }field { $name="pCache" $type="org.psem2m.demo.data.cache.ICacheFact
- ory" }field { $name="pCacheChannelName" $type="java.lang.String" }fie
- ld { $name="pCartIdKey" $type="java.lang.String" }field { $name="pCar
- tLinesKey" $type="java.lang.String" }field { $name="pLogger" $type="o
- rg.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pName" $ty
- pe="java.lang.String" }method { $name="computeResult" $return="org.ps
- em2m.composer.test.api.IComponentContext" $arguments="{org.psem2m.com
- poser.test.api.IComponentContext}" }method { $name="invalidatePojo" }
- method { $name="validatePojo" }}}component { $classname="org.psem2m.c
- omposer.demo.impl.getItem.EndpointGetItem" $name="server-endpoint-get
- Item" $public="true" provides { $specifications="{org.psem2m.composer
- .test.api.IComponent}" }properties { property { $name="instance.name"
-  $field="pInstanceName" }}requires { $field="pLogger" }requires { $fi
- eld="pNext" $id="next" }requires { $field="pNormalizer" $id="normaliz
- er" }callback { $transition="invalidate" $method="invalidatePojo" }ca
- llback { $transition="validate" $method="validatePojo" }manipulation 
- { $super="org.psem2m.isolates.base.activators.CPojoBase" interface { 
- $name="org.psem2m.composer.test.api.IComponent" }field { $name="pInst
- anceName" $type="java.lang.String" }field { $name="pLogger" $type="or
- g.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pNext" $typ
- e="org.psem2m.composer.test.api.IComponent" }field { $name="pNormaliz
- er" $type="org.psem2m.composer.test.api.IComponent" }method { $name="
- computeResult" $return="org.psem2m.composer.test.api.IComponentContex
- t" $arguments="{org.psem2m.composer.test.api.IComponentContext}" }met
- hod { $name="invalidatePojo" }method { $name="validatePojo" }}}compon
- ent { $classname="org.psem2m.composer.demo.impl.getItem.NormalizerGet
- Item" $name="normalizer-getItem" $public="true" provides { $specifica
- tions="{org.psem2m.composer.test.api.IComponent}" }properties { prope
- rty { $name="cacheAgeEntry" $field="pCacheAgeEntry" $value="__cache_a
- ge" }property { $name="instance.name" $field="pName" }}requires { $fi
- eld="pLogger" }callback { $transition="invalidate" $method="invalidat
- ePojo" }callback { $transition="validate" $method="validatePojo" }man
- ipulation { $super="org.psem2m.isolates.base.activators.CPojoBase" in
- terface { $name="org.psem2m.composer.test.api.IComponent" }field { $n
- ame="pCacheAgeEntry" $type="java.lang.String" }field { $name="pKeyTra
- nslationMap" $type="java.util.Map" }field { $name="pLogger" $type="or
- g.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pName" $typ
- e="java.lang.String" }method { $name="computeResult" $return="org.pse
- m2m.composer.test.api.IComponentContext" $arguments="{org.psem2m.comp
- oser.test.api.IComponentContext}" }method { $name="extractCacheQualit
- yLevel" $return="int" $arguments="{java.util.Map}" }method { $name="i
- nvalidatePojo" }method { $name="validatePojo" }}}component { $classna
- me="org.psem2m.composer.demo.impl.getItems.EndpointGetItems" $name="s
- erver-endpoint-getItems" $public="true" provides { $specifications="{
- org.psem2m.composer.test.api.IComponent}" }requires { $field="pLogger
- " }requires { $field="pNext" $id="next" }requires { $field="pNormaliz
- er" $id="normalizer" }properties { property { $name="instance.name" $
- field="pName" }}callback { $transition="invalidate" $method="invalida
- tePojo" }callback { $transition="validate" $method="validatePojo" }ma
- nipulation { $super="org.psem2m.isolates.base.activators.CPojoBase" i
- nterface { $name="org.psem2m.composer.test.api.IComponent" }field { $
- name="pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }fi
- eld { $name="pName" $type="java.lang.String" }field { $name="pNext" $
- type="org.psem2m.composer.test.api.IComponent" }field { $name="pNorma
- lizer" $type="org.psem2m.composer.test.api.IComponent" }method { $nam
- e="computeResult" $return="org.psem2m.composer.test.api.IComponentCon
- text" $arguments="{org.psem2m.composer.test.api.IComponentContext}" }
+ l.ExceptionCatcher" $name="exception-catcher" $public="true" provides
+  { $specifications="{org.psem2m.composer.demo.IComponent}" }requires 
+ { $field="pLogger" }requires { $field="pNext" $id="next" }properties 
+ { property { $name="instance.name" $field="pName" }}callback { $trans
+ ition="invalidate" $method="invalidatePojo" }callback { $transition="
+ validate" $method="validatePojo" }manipulation { $super="org.psem2m.i
+ solates.base.activators.CPojoBase" interface { $name="org.psem2m.comp
+ oser.demo.IComponent" }field { $name="pLogger" $type="org.psem2m.isol
+ ates.base.IIsolateLoggerSvc" }field { $name="pName" $type="java.lang.
+ String" }field { $name="pNext" $type="org.psem2m.composer.demo.ICompo
+ nent" }method { $name="computeResult" $return="org.psem2m.composer.de
+ mo.IComponentContext" $arguments="{org.psem2m.composer.demo.IComponen
+ tContext}" }method { $name="invalidatePojo" }method { $name="validate
+ Pojo" }}}component { $classname="org.psem2m.composer.demo.impl.FallBa
+ ck" $name="fall-back" $public="true" provides { $specifications="{org
+ .psem2m.composer.demo.IComponent}" }requires { $field="pFallback" $id
+ ="second" }requires { $field="pLogger" }requires { $field="pNext" $op
+ tional="true" $nullable="false" $id="next" }properties { property { $
+ name="instance.name" $field="pName" }}callback { $transition="invalid
+ ate" $method="invalidatePojo" }callback { $transition="validate" $met
+ hod="validatePojo" }manipulation { $super="org.psem2m.isolates.base.a
+ ctivators.CPojoBase" interface { $name="org.psem2m.composer.demo.ICom
+ ponent" }field { $name="pFallback" $type="org.psem2m.composer.demo.IC
+ omponent" }field { $name="pLogger" $type="org.psem2m.isolates.base.II
+ solateLoggerSvc" }field { $name="pName" $type="java.lang.String" }fie
+ ld { $name="pNext" $type="org.psem2m.composer.demo.IComponent" }metho
+ d { $name="computeResult" $return="org.psem2m.composer.demo.IComponen
+ tContext" $arguments="{org.psem2m.composer.demo.IComponentContext}" }
  method { $name="invalidatePojo" }method { $name="validatePojo" }}}com
- ponent { $classname="org.psem2m.composer.demo.impl.getItems.Normalize
- rGetItems" $name="normalizer-getItems" $public="true" provides { $spe
- cifications="{org.psem2m.composer.test.api.IComponent}" }properties {
-  property { $name="cacheAgeEntry" $field="pCacheAgeEntry" $value="__c
- ache_age" }property { $name="instance.name" $field="pName" }}requires
-  { $field="pLogger" }callback { $transition="invalidate" $method="inv
- alidatePojo" }callback { $transition="validate" $method="validatePojo
- " }manipulation { $super="org.psem2m.isolates.base.activators.CPojoBa
- se" interface { $name="org.psem2m.composer.test.api.IComponent" }fiel
- d { $name="pCacheAgeEntry" $type="java.lang.String" }field { $name="p
- KeyTranslationMap" $type="java.util.Map" }field { $name="pLogger" $ty
- pe="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pName
- " $type="java.lang.String" }method { $name="computeResult" $return="o
- rg.psem2m.composer.test.api.IComponentContext" $arguments="{org.psem2
- m.composer.test.api.IComponentContext}" }method { $name="extractCache
- QualityLevel" $return="int" $arguments="{java.util.Map}" }method { $n
- ame="invalidatePojo" }method { $name="validatePojo" }}}component { $c
- lassname="org.psem2m.composer.demo.impl.getItemsStock.ComputeQueuedCa
- rts" $name="compute-queued-carts" $public="true" provides { $specific
- ations="{org.psem2m.composer.test.api.IComponent}" }requires { $field
- ="pCache" }requires { $field="pLogger" }requires { $field="pNext" $id
- ="next" }properties { property { $name="cartCacheChannel" $field="pCa
- rtChannelName" }property { $name="cartItemIdKey" $field="pCartItemIdK
- ey" $value="id" }property { $name="cartItemQuantityKey" $field="pCart
- ItemQuantitydKey" $value="quantity" }property { $name="cartLinesKey" 
- $field="pCartLinesKey" $value="lines" }property { $name="instance.nam
- e" $field="pName" }property { $name="resultStockKey" $field="pResultS
- tockKey" $value="stock" }}callback { $transition="invalidate" $method
- ="invalidatePojo" }callback { $transition="validate" $method="validat
- ePojo" }manipulation { $super="org.psem2m.isolates.base.activators.CP
- ojoBase" interface { $name="org.psem2m.composer.test.api.IComponent" 
- }field { $name="pCache" $type="org.psem2m.demo.data.cache.ICacheFacto
- ry" }field { $name="pCartChannelName" $type="java.lang.String" }field
-  { $name="pCartItemIdKey" $type="java.lang.String" }field { $name="pC
- artItemQuantitydKey" $type="java.lang.String" }field { $name="pCartLi
- nesKey" $type="java.lang.String" }field { $name="pLogger" $type="org.
- psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pName" $type=
- "java.lang.String" }field { $name="pNext" $type="org.psem2m.composer.
- test.api.IComponent" }field { $name="pResultStockKey" $type="java.lan
- g.String" }method { $name="computeResult" $return="org.psem2m.compose
- r.test.api.IComponentContext" $arguments="{org.psem2m.composer.test.a
- pi.IComponentContext}" }method { $name="getReservedQuantities" $retur
- n="java.util.Map" }method { $name="invalidatePojo" }method { $name="v
- alidatePojo" }}}component { $classname="org.psem2m.composer.demo.impl
- .getItemsStock.EndpointGetItemsStock" $name="server-endpoint-getItems
- Stock" $public="true" provides { $specifications="{org.psem2m.compose
- r.test.api.IComponent}" }requires { $field="pLogger" }requires { $fie
- ld="pNext" $id="next" }requires { $field="pNormalizer" $id="normalize
- r" }properties { property { $name="instance.name" $field="pName" }}ca
- llback { $transition="invalidate" $method="invalidatePojo" }callback 
- { $transition="validate" $method="validatePojo" }manipulation { $supe
- r="org.psem2m.isolates.base.activators.CPojoBase" interface { $name="
- org.psem2m.composer.test.api.IComponent" }field { $name="pLogger" $ty
- pe="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pName
- " $type="java.lang.String" }field { $name="pNext" $type="org.psem2m.c
- omposer.test.api.IComponent" }field { $name="pNormalizer" $type="org.
- psem2m.composer.test.api.IComponent" }method { $name="computeResult" 
- $return="org.psem2m.composer.test.api.IComponentContext" $arguments="
- {org.psem2m.composer.test.api.IComponentContext}" }method { $name="in
- validatePojo" }method { $name="validatePojo" }}}component { $classnam
- e="org.psem2m.composer.demo.impl.getItemsStock.NormalizerGetItemsStoc
- k" $name="normalizer-getItemsStock" $public="true" provides { $specif
- ications="{org.psem2m.composer.test.api.IComponent}" }properties { pr
- operty { $name="cacheAgeEntry" $field="pCacheAgeEntry" $value="__cach
- e_age" }property { $name="instance.name" $field="pName" }}requires { 
- $field="pLogger" }callback { $transition="invalidate" $method="invali
- datePojo" }callback { $transition="validate" $method="validatePojo" }
- manipulation { $super="org.psem2m.isolates.base.activators.CPojoBase"
-  interface { $name="org.psem2m.composer.test.api.IComponent" }field {
-  $name="pCacheAgeEntry" $type="java.lang.String" }field { $name="pLog
+ ponent { $classname="org.psem2m.composer.demo.impl.applyCart.Normaliz
+ erApplyCart" $name="normalizer-applyCart" $public="true" provides { $
+ specifications="{org.psem2m.composer.demo.IComponent}" }requires { $f
+ ield="pLogger" }properties { property { $name="instance.name" $field=
+ "pName" }}callback { $transition="invalidate" $method="invalidatePojo
+ " }callback { $transition="validate" $method="validatePojo" }manipula
+ tion { $super="org.psem2m.isolates.base.activators.CPojoBase" interfa
+ ce { $name="org.psem2m.composer.demo.IComponent" }field { $name="pLog
  ger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $nam
  e="pName" $type="java.lang.String" }method { $name="computeResult" $r
- eturn="org.psem2m.composer.test.api.IComponentContext" $arguments="{o
- rg.psem2m.composer.test.api.IComponentContext}" }method { $name="extr
- actCacheQualityLevel" $return="int" $arguments="{java.util.Map}" }met
- hod { $name="invalidatePojo" }method { $name="validatePojo" }}}
+ eturn="org.psem2m.composer.demo.IComponentContext" $arguments="{org.p
+ sem2m.composer.demo.IComponentContext}" }method { $name="invalidatePo
+ jo" }method { $name="validatePojo" }}}component { $classname="org.pse
+ m2m.composer.demo.impl.getItem.NormalizerGetItem" $name="normalizer-g
+ etItem" $public="true" provides { $specifications="{org.psem2m.compos
+ er.demo.IComponent}" }properties { property { $name="cacheAgeEntry" $
+ field="pCacheAgeEntry" $value="__cache_age" }property { $name="instan
+ ce.name" $field="pName" }}requires { $field="pLogger" }callback { $tr
+ ansition="invalidate" $method="invalidatePojo" }callback { $transitio
+ n="validate" $method="validatePojo" }manipulation { $super="org.psem2
+ m.isolates.base.activators.CPojoBase" interface { $name="org.psem2m.c
+ omposer.demo.IComponent" }field { $name="pCacheAgeEntry" $type="java.
+ lang.String" }field { $name="pKeyTranslationMap" $type="java.util.Map
+ " }field { $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLo
+ ggerSvc" }field { $name="pName" $type="java.lang.String" }method { $n
+ ame="computeResult" $return="org.psem2m.composer.demo.IComponentConte
+ xt" $arguments="{org.psem2m.composer.demo.IComponentContext}" }method
+  { $name="extractCacheQualityLevel" $return="int" $arguments="{java.u
+ til.Map}" }method { $name="invalidatePojo" }method { $name="validateP
+ ojo" }}}component { $classname="org.psem2m.composer.demo.impl.getItem
+ s.NormalizerGetItems" $name="normalizer-getItems" $public="true" prov
+ ides { $specifications="{org.psem2m.composer.demo.IComponent}" }prope
+ rties { property { $name="cacheAgeEntry" $field="pCacheAgeEntry" $val
+ ue="__cache_age" }property { $name="instance.name" $field="pName" }}r
+ equires { $field="pLogger" }callback { $transition="invalidate" $meth
+ od="invalidatePojo" }callback { $transition="validate" $method="valid
+ atePojo" }manipulation { $super="org.psem2m.isolates.base.activators.
+ CPojoBase" interface { $name="org.psem2m.composer.demo.IComponent" }f
+ ield { $name="pCacheAgeEntry" $type="java.lang.String" }field { $name
+ ="pKeyTranslationMap" $type="java.util.Map" }field { $name="pLogger" 
+ $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pN
+ ame" $type="java.lang.String" }method { $name="computeResult" $return
+ ="org.psem2m.composer.demo.IComponentContext" $arguments="{org.psem2m
+ .composer.demo.IComponentContext}" }method { $name="extractCacheQuali
+ tyLevel" $return="int" $arguments="{java.util.Map}" }method { $name="
+ invalidatePojo" }method { $name="validatePojo" }}}component { $classn
+ ame="org.psem2m.composer.demo.impl.getItemsStock.ComputeQueuedCarts" 
+ $name="compute-queued-carts" $public="true" provides { $specification
+ s="{org.psem2m.composer.demo.IComponent}" }requires { $field="pCache"
+  }requires { $field="pLogger" }requires { $field="pNext" $id="next" }
+ properties { property { $name="cartCacheChannel" $field="pCartChannel
+ Name" }property { $name="cartItemIdKey" $field="pCartItemIdKey" $valu
+ e="id" }property { $name="cartItemQuantityKey" $field="pCartItemQuant
+ itydKey" $value="quantity" }property { $name="cartLinesKey" $field="p
+ CartLinesKey" $value="lines" }property { $name="instance.name" $field
+ ="pName" }property { $name="resultStockKey" $field="pResultStockKey" 
+ $value="stock" }}callback { $transition="invalidate" $method="invalid
+ atePojo" }callback { $transition="validate" $method="validatePojo" }m
+ anipulation { $super="org.psem2m.isolates.base.activators.CPojoBase" 
+ interface { $name="org.psem2m.composer.demo.IComponent" }field { $nam
+ e="pCache" $type="org.psem2m.demo.data.cache.ICacheFactory" }field { 
+ $name="pCartChannelName" $type="java.lang.String" }field { $name="pCa
+ rtItemIdKey" $type="java.lang.String" }field { $name="pCartItemQuanti
+ tydKey" $type="java.lang.String" }field { $name="pCartLinesKey" $type
+ ="java.lang.String" }field { $name="pLogger" $type="org.psem2m.isolat
+ es.base.IIsolateLoggerSvc" }field { $name="pName" $type="java.lang.St
+ ring" }field { $name="pNext" $type="org.psem2m.composer.demo.ICompone
+ nt" }field { $name="pResultStockKey" $type="java.lang.String" }method
+  { $name="computeResult" $return="org.psem2m.composer.demo.IComponent
+ Context" $arguments="{org.psem2m.composer.demo.IComponentContext}" }m
+ ethod { $name="getReservedQuantities" $return="java.util.Map" }method
+  { $name="invalidatePojo" }method { $name="validatePojo" }}}component
+  { $classname="org.psem2m.composer.demo.impl.getItemsStock.Normalizer
+ GetItemsStock" $name="normalizer-getItemsStock" $public="true" provid
+ es { $specifications="{org.psem2m.composer.demo.IComponent}" }propert
+ ies { property { $name="cacheAgeEntry" $field="pCacheAgeEntry" $value
+ ="__cache_age" }property { $name="instance.name" $field="pName" }}req
+ uires { $field="pLogger" }callback { $transition="invalidate" $method
+ ="invalidatePojo" }callback { $transition="validate" $method="validat
+ ePojo" }manipulation { $super="org.psem2m.isolates.base.activators.CP
+ ojoBase" interface { $name="org.psem2m.composer.demo.IComponent" }fie
+ ld { $name="pCacheAgeEntry" $type="java.lang.String" }field { $name="
+ pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { 
+ $name="pName" $type="java.lang.String" }method { $name="computeResult
+ " $return="org.psem2m.composer.demo.IComponentContext" $arguments="{o
+ rg.psem2m.composer.demo.IComponentContext}" }method { $name="extractC
+ acheQualityLevel" $return="int" $arguments="{java.util.Map}" }method 
+ { $name="invalidatePojo" }method { $name="validatePojo" }}}
 

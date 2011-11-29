@@ -387,6 +387,9 @@ public class ComponentsSetBean extends AbstractModelBean implements
             }
         }
 
+        // TODO : add an output to help the user to make diagnoses
+        // System.out.println("==> UNRESOLVED : " + unresolvedComponents);
+
         return false;
     }
 

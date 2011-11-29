@@ -512,6 +512,10 @@ public class ComposerCore extends CPojoBase implements IComposer,
 
                     // Do the job
                     instantiateComponentsSet(composite, resolution);
+                } else {
+                    pLogger.logInfo(this, "notifyComponentsRegistration",
+                            "remaining=", composite.getRemainingComponents(),
+                            "requested=", composite.getRequestedComponents());
                 }
             }
 

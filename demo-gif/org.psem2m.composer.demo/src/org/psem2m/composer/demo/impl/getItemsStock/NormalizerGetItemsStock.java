@@ -16,10 +16,10 @@ import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.composer.demo.DemoComponentsConstants;
-import org.psem2m.composer.test.api.IComponent;
-import org.psem2m.composer.test.api.IComponentContext;
-import org.psem2m.demo.erp.api.beans.IQualityLevels;
-import org.psem2m.demo.erp.api.beans.QualityUtilities;
+import org.psem2m.composer.demo.IComponent;
+import org.psem2m.composer.demo.IComponentContext;
+import org.psem2m.composer.demo.IQualityLevels;
+import org.psem2m.composer.demo.QualityUtilities;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
 

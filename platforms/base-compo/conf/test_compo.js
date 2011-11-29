@@ -4,7 +4,7 @@
         {
             "name":"dataServer-Exported",
             "type":"server-exported",
-            "isolate":"isolate-1",
+            "isolate":"isolate-dataserver",
             "properties":{
                 "endpoint.name":"dataserver"
             },
@@ -18,7 +18,6 @@
         {
             "name":"erpProxy",
             "type":"erp-proxy-json-rpc",
-            "isolate":"isolate-1",
             "properties":{
                 "host":"localhost",
                 "port":8080
@@ -32,7 +31,7 @@
                 {
                     "name":"serverEndpoint",
                     "type":"server-endpoint-getItem",
-                    "isolate":"isolate-1",
+                    "isolate":"isolate-dataserver",
                     "wires":{
                         "normalizer":"resultNormalizer",
                         "next":"fallbackOnCache"
@@ -41,12 +40,12 @@
                 {
                     "name":"resultNormalizer",
                     "type":"normalizer-getItem",
-                    "isolate":"isolate-1"
+                    "isolate":"isolate-cache"
                 },
                 {
                     "name":"fallbackOnCache",
                     "type":"fall-back",
-                    "isolate":"isolate-1",
+                    "isolate":"isolate-cache",
                     "wires":{
                         "next":"erpChain.getCacheFirst",
                         "second":"fallback.getCache"
@@ -128,6 +127,7 @@
                 {
                     "name":"serverEndpoint",
                     "type":"server-endpoint-getItems",
+                    "isolate":"isolate-dataserver",
                     "wires":{
                         "normalizer":"resultNormalizer",
                         "next":"fallbackOnCache"
@@ -209,7 +209,7 @@
                 {
                     "name":"serverEndpoint",
                     "type":"server-endpoint-getItemsStock",
-                    "isolate":"isolate-cache",
+                    "isolate":"isolate-dataserver",
                     "wires":{
                         "normalizer":"resultNormalizer",
                         "next":"computeQueuedCarts"
@@ -296,7 +296,6 @@
                         {
                             "name":"safeErpCaller",
                             "type":"exception-catcher",
-                            "isolate":"isolate-cache",
                             "wires":{
                                 "next":"erpCaller"
                             }
@@ -304,7 +303,6 @@
                         {
                             "name":"erpCaller",
                             "type":"erp-caller",
-                            "isolate":"isolate-cache",
                             "properties":{
                                 "method":"getItemsStock"
                             },
@@ -322,6 +320,7 @@
                 {
                     "name":"serverEndpoint",
                     "type":"server-endpoint-applyCart",
+                    "isolate":"isolate-dataserver",
                     "wires":{
                         "normalizer":"resultNormalizer",
                         "next":"useCartQueue"

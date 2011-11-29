@@ -12,8 +12,8 @@
             "properties":{
                 "psem2m.demo.ui.viewer.top":"0scr",
                 "psem2m.demo.ui.viewer.left":"0scr",
-                "psem2m.demo.ui.viewer.width":"0.34scr",
-                "psem2m.demo.ui.viewer.height":"0.5scr",
+                "psem2m.demo.ui.viewer.width":"0.25scr",
+                "psem2m.demo.ui.viewer.height":"0.66scr",
                 "psem2m.demo.ui.viewer.color":"SkyBlue"
             }
         },
@@ -42,7 +42,10 @@
             "from":"rose-server.js"
         },
         {
-            "from":"remote-services.js"
+            "from":"remote-services.js",
+            "overriddenProperties":{
+                    "org.psem2m.remote.filters.exclude":"*.demo.*"
+            }
         },
         {
             "symbolicName":"org.psem2m.isolates.master.manager"
@@ -54,13 +57,13 @@
             "symbolicName":"org.psem2m.composer.api"
         },
         {
-            "symbolicName":"org.psem2m.composer.test.api"
-        },
-        {
             "symbolicName":"org.psem2m.composer.config"
         },
         {
             "symbolicName":"org.psem2m.composer.core"
-        }
+        },
+		{
+		    "symbolicName":"org.psem2m.composer.demo.api"
+		}
     ]
 }
