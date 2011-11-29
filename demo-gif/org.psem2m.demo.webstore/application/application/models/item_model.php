@@ -192,6 +192,9 @@ class Item_model extends CI_Model {
         }
 
         if(log_isOn('INFO')){
+        	if ($aItemId=="?"){
+        		log_message('INFO', "*** GETITEM  RANDOM ***" );
+        	}
             log_message('INFO', "** Item_model.rpcGetItem() : get_response_object=[". var_export($wJsonrpcClient->get_response_object(),true)."]" );
         }
 
@@ -302,6 +305,9 @@ class Item_model extends CI_Model {
         }
 
         if(log_isOn('INFO')){
+        	if ($aRandom==true){
+        		log_message('INFO', "*** GETITEMS RANDOM ***" );
+        	}
             log_message('INFO', "** Item_model.rpcGetItems() : get_response_object=[". var_export($wJsonrpcClient->get_response_object(),true)."]" );
         }
 
@@ -309,10 +315,49 @@ class Item_model extends CI_Model {
         
         $wItems = array();
         
-        
-        if(isset($wData->result->map->error)){
+        /*
+         * 
+stdClass::__set_state(array(
+   'id' => 'ID_154238874',
+   'result' => 
+  stdClass::__set_state(array(
+     'javaClass' => 'java.util.LinkedList',
+     'list' => 
+    array (
+      0 => 
+      stdClass::__set_state(array(
+         'map' => 
+        stdClass::__set_state(array(
+           'result' => 
+          array (
+          ),
+           'error' => 
+          array (
+            0 => 'DataServerApplication.GetItems.fallback.getCache : Nothing in cache for {randomize=false, category=screens, itemsCount=6, baseId=screen021}',
+          ),
+        )),
+         'javaClass' => 'java.util.HashMap',
+      )),
+    ),
+  )),
+))        
+         * 
+         * 
+         */
+        if(isset($wData->result->list[0]->map->error)){
+        	
+        	$wItem = array();
+        	$wItem['id'] = "screen001";
+        	$wItem['name'] = $wData->result->list[0]->map->error[0];
+        	$wItem['price'] = 0;
+        	$wItem['qualityLevel'] = 0;
+        	$wItem['description'] = "";
+        	array_push($wItems,$wItem);
+        	
+        }else if(isset($wData->result->map->error)){
         	
         	/*
+        	 * 
         	 * 
 				stdClass::__set_state(array(
 				   'id' => 'ID_759847750',
@@ -357,9 +402,9 @@ class Item_model extends CI_Model {
         	 */
         	$wErrorBean = $wData->result->map->error;
         	$wItem = array();
-        	$wItem['id'] = "00000";
+        	$wItem['id'] = "screen001";
         	$wItem['name'] = $wErrorBean->message;
-        	$wItem['price'] = 0;
+        	$wItem['price'] = 99;
         	$wItem['qualityLevel'] = 0;
         	$wItem['description'] = $wErrorBean->javaClass;
         	array_push($wItems,$wItem);
