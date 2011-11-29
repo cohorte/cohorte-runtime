@@ -387,6 +387,31 @@ public class InstantiatingComposite {
     }
 
     /**
+     * Updates the state of the requested components information. This method
+     * must be called any time one or more components instantiations are
+     * requested to an isolate.
+     * 
+     * @param aIsolateId
+     *            Request target
+     * @param aRequestedComponents
+     *            Requested components
+     */
+    public void notifyInstantiationRequest(final String aIsolateId,
+            final ComponentBean[] aRequestedComponents) {
+
+        final Set<String> compoNames = new HashSet<String>(
+                aRequestedComponents.length);
+
+        // Extract names
+        for (final ComponentBean component : aRequestedComponents) {
+
+            compoNames.add(component.getName());
+        }
+
+        notifyInstantiationRequest(aIsolateId, compoNames);
+    }
+
+    /**
      * Updates the state of the given component if its instantiation timed out.
      * 
      * @param aComponentName
