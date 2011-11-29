@@ -342,26 +342,39 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
                 @Override
                 public void run() {
 
-                    final int wRowIdx = pComponentsTable.getSelectionModel()
-                            .getLeadSelectionIndex();
+                    try {
+                        final int wRowIdx = pComponentsTable
+                                .getSelectionModel().getLeadSelectionIndex();
 
-                    if (hasLogger()) {
-                        getLogger().logInfo(this, "valueChanged",
-                                "RowIdx=[%d]", wRowIdx);
-                    }
+                        if (wRowIdx > -1
+                                && wRowIdx < pComponentsTableModel
+                                        .getRowCount()) {
 
-                    if (wRowIdx > -1
-                            && wRowIdx < pComponentsTableModel.getRowCount()) {
-                        // if sorted
-                        final int wRealRowIdx = pComponentsTable
-                                .convertRowIndexToModel(wRowIdx);
+                            if (hasLogger()) {
+                                getLogger().logInfo(this, "valueChanged",
+                                        "RowIdx=[%d]", wRowIdx);
+                            }
 
-                        if (hasLogger()) {
-                            getLogger().logInfo(this, "valueChanged",
-                                    "RealRowIdx=[%d]", wRealRowIdx);
+                            // if sorted
+                            final int wRealRowIdx = pComponentsTable
+                                    .convertRowIndexToModel(wRowIdx);
+
+                            if (hasLogger()) {
+                                getLogger().logInfo(this, "valueChanged",
+                                        "RealRowIdx=[%d]", wRealRowIdx);
+                            }
+                            // set the text info of the service
+                            setText(buildTextInfos(wRealRowIdx));
                         }
-                        // set the text info of the service
-                        setText(buildTextInfos(wRealRowIdx));
+                    } catch (final ArrayIndexOutOfBoundsException e1) {
+                        if (hasLogger()) {
+                            getLogger().logSevere(this, "valueChanged",
+                                    "ArrayIndexOutOfBoundsException !");
+                        }
+                    } catch (final Exception e2) {
+                        if (hasLogger()) {
+                            getLogger().logSevere(this, "valueChanged", e2);
+                        }
                     }
 
                 }

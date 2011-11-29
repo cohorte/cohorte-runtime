@@ -266,13 +266,13 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
                         final int wRowIdx = pServicesTable.getSelectionModel()
                                 .getLeadSelectionIndex();
 
-                        if (hasLogger()) {
-                            getLogger().logInfo(this, "valueChanged",
-                                    "RowIdx=[%d]", wRowIdx);
-                        }
-
                         if (wRowIdx > -1
                                 && wRowIdx < pServicesTableModel.getRowCount()) {
+
+                            if (hasLogger()) {
+                                getLogger().logInfo(this, "valueChanged",
+                                        "RowIdx=[%d]", wRowIdx);
+                            }
                             // if sorted
                             final int wRealRowIdx = pServicesTable
                                     .convertRowIndexToModel(wRowIdx);
@@ -286,12 +286,12 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
                         }
                     } catch (final ArrayIndexOutOfBoundsException e1) {
                         if (hasLogger()) {
-                            getLogger().logSevere(this, "stateChanged",
+                            getLogger().logSevere(this, "valueChanged",
                                     "ArrayIndexOutOfBoundsException !");
                         }
                     } catch (final Exception e2) {
                         if (hasLogger()) {
-                            getLogger().logSevere(this, "stateChanged", e2);
+                            getLogger().logSevere(this, "valueChanged", e2);
                         }
                     }
 
