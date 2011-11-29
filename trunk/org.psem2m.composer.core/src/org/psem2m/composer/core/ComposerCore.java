@@ -14,6 +14,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
@@ -80,8 +84,28 @@ public class ComposerCore extends CPojoBase implements IComposer,
     @Requires
     private IIsolateLoggerSvc pLogger;
 
-    /** the list of roots */
+    /** The resolution future */
+    private ScheduledFuture<?> pResolutionFuture;
+
+    /** The resolution runner */
+    private final Runnable pResolutionRunner = new Runnable() {
+
+        @Override
+        public void run() {
+
+            pLogger.logInfo(this, "RUN RUN RUN RUN", "FOREST !!");
+
+            // Call for a new resolution
+            notifyComponentsRegistration();
+        }
+    };
+
+    /** The list of roots */
     private final List<ComponentsSetBean> pRootsComponentsSetBean = new ArrayList<ComponentsSetBean>();
+
+    /** Scheduler executor for timeouts */
+    private final ScheduledExecutorService pScheduler = Executors
+            .newScheduledThreadPool(1);
 
     /** The signals broadcaster */
     @Requires
@@ -89,14 +113,6 @@ public class ComposerCore extends CPojoBase implements IComposer,
 
     /** Composites waiting for full instantiation */
     private final List<InstantiatingComposite> pWaitingComposites = new ArrayList<InstantiatingComposite>();
-
-    /**
-     * Default constructor
-     */
-    public ComposerCore() {
-
-        super();
-    }
 
     /**
      * Called by iPOJO when a signal receiver is bound
@@ -144,6 +160,21 @@ public class ComposerCore extends CPojoBase implements IComposer,
         }
 
         return wComponentsSetSnapshot;
+    }
+
+    /**
+     * (Re-)Delays the next resolution
+     */
+    protected synchronized void delayResolution() {
+
+        // Cancel current run
+        if (pResolutionFuture != null) {
+            pResolutionFuture.cancel(false);
+        }
+
+        // Run it again in 1 second
+        pResolutionFuture = pScheduler.schedule(pResolutionRunner, 5,
+                TimeUnit.SECONDS);
     }
 
     /*
@@ -220,7 +251,8 @@ public class ComposerCore extends CPojoBase implements IComposer,
         } else if (ComposerAgentSignals.SIGNAL_ISOLATE_FACTORIES_GONE
                 .equals(aSignalName)) {
             // An isolate agent is gone
-            pIsolatesCapabilities.remove(aSignalData.getIsolateSender());
+            unregisterComponentsForIsolate(signalSender, pIsolatesCapabilities
+                    .get(signalSender).toArray(new String[0]));
 
         } else if (ComposerAgentSignals.SIGNAL_ISOLATE_ADD_FACTORY
                 .equals(aSignalName)) {
@@ -353,7 +385,9 @@ public class ComposerCore extends CPojoBase implements IComposer,
      * Tests if a composite can be fully instantiated and does the job if
      * possible.
      */
-    protected void notifyComponentsRegistration() {
+    protected synchronized void notifyComponentsRegistration() {
+
+        pLogger.logInfo(this, "=====", "COMPUTE INSTANTIATION");
 
         synchronized (pWaitingComposites) {
 
@@ -508,8 +542,8 @@ public class ComposerCore extends CPojoBase implements IComposer,
             }
         }
 
-        // Time to try a new instantiation
-        notifyComponentsRegistration();
+        // Delay a new resolution run
+        delayResolution();
     }
 
     /**
@@ -547,8 +581,8 @@ public class ComposerCore extends CPojoBase implements IComposer,
             }
         }
 
-        // Time to try a new instantiation
-        notifyComponentsRegistration();
+        // Delay a new resolution run
+        delayResolution();
     }
 
     /*
@@ -721,6 +755,20 @@ public class ComposerCore extends CPojoBase implements IComposer,
         // Fire at will
         pLogger.logInfo(this, "test_conf", "Fire at will !");
         instantiateComponentsSet(compoSet);
+
+        // pScheduler.schedule(new Runnable() {
+        //
+        // @Override
+        // public void run() {
+        //
+        // try {
+        // removeComponentsSet(compoSet);
+        // } catch (final Exception e) {
+        // // TODO Auto-generated catch block
+        // e.printStackTrace();
+        // }
+        // }
+        // }, 10, TimeUnit.SECONDS);
     }
 
     /**
@@ -737,7 +785,7 @@ public class ComposerCore extends CPojoBase implements IComposer,
         final List<String> isolateComponents = pIsolatesCapabilities
                 .get(aIsolateId);
 
-        if (isolateComponents == null) {
+        if (isolateComponents == null || isolateComponents.isEmpty()) {
             // Nothing to do...
             return;
         }
@@ -767,11 +815,31 @@ public class ComposerCore extends CPojoBase implements IComposer,
                     needsNewResolution = true;
                 }
             }
+
+            // Update instantiating composites states
+            for (final InstantiatingComposite composite : pInstantiatingComposites
+                    .values()) {
+
+                composite.lostComponentTypes(aIsolateId, aComponentsTypes);
+
+                // Update the composite completion level if needed
+                if (!composite.isComplete()) {
+                    final String compositeName = composite.getName();
+                    pInstantiatingComposites.remove(compositeName);
+                    pWaitingComposites.add(composite);
+
+                    // A new resolution is needed
+                    needsNewResolution = true;
+                }
+            }
         }
 
         if (needsNewResolution) {
             // Try to recompute a route for degraded composites
-            notifyComponentsRegistration();
+            // notifyComponentsRegistration();
+
+            // Delay a new resolution run
+            delayResolution();
         }
     }
 
@@ -846,6 +914,9 @@ public class ComposerCore extends CPojoBase implements IComposer,
         pLogger.logWarn(this, "updateInstantiatingCompositeStatus",
                 "The following components couldn't be started :",
                 Arrays.toString(failedComponents));
+
+        // Ask for a new resolution
+        delayResolution();
     }
 
     /*
