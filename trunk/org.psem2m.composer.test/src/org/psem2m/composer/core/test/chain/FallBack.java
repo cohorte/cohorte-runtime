@@ -76,7 +76,8 @@ public class FallBack extends CPojoBase implements IComponent {
 
                 // Use fall back component if there is no result
                 // and if an error occurred
-                useFallback = !result.hasResult() && result.hasError();
+                useFallback = (result == null)
+                        || (!result.hasResult() && result.hasError());
 
             } catch (final Throwable error) {
                 // An error occurred
