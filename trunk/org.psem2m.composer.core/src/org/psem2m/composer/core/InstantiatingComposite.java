@@ -7,47 +7,51 @@ package org.psem2m.composer.core;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.psem2m.composer.model.ComponentBean;
 import org.psem2m.composer.model.ComponentsSetBean;
 
 /**
- * Represents an instantiating composite
+ * Represents an instantiating components set
  * 
  * @author Thomas Calmant
  */
 public class InstantiatingComposite {
 
-    /** The instantiating composite */
-    private final ComponentsSetBean pComposite;
+    /** The instantiating components set */
+    private final ComponentsSetBean pComposet;
 
     /** Components that still need to be started */
-    private final List<String> pRemainingComponents = new ArrayList<String>();
+    private final Map<String, InstantiatingComponent> pRemainingComponents = new HashMap<String, InstantiatingComponent>();
 
-    /** Started components -&gt; host isolate map */
-    private final Map<String, String> pRunningComponents = new HashMap<String, String>();
+    /** Requested (signal sent) components -&gt; host isolate map */
+    private final Map<String, InstantiatingComponent> pRequestedComponents = new HashMap<String, InstantiatingComponent>();
+
+    /** Started components list */
+    private final Map<String, InstantiatingComponent> pRunningComponents = new HashMap<String, InstantiatingComponent>();
 
     /**
      * Sets up members
      * 
-     * @param aComposite
-     *            A composite bean
+     * @param aComposet
+     *            A components set bean
      */
-    public InstantiatingComposite(final ComponentsSetBean aComposite) {
+    public InstantiatingComposite(final ComponentsSetBean aComposet) {
 
-        pComposite = aComposite;
+        pComposet = aComposet;
 
         // Store components names
-        for (final ComponentBean component : pComposite.getAllComponents()) {
+        for (final ComponentBean component : pComposet.getAllComponents()) {
 
-            pRemainingComponents.add(component.getName());
+            pRemainingComponents.put(component.getName(),
+                    new InstantiatingComponent(component));
         }
     }
 
@@ -63,11 +67,12 @@ public class InstantiatingComposite {
     public void componentStarted(final ComponentBean aComponentBean,
             final String aHostIsolate) {
 
-        if (aComponentBean == null) {
+        if (aComponentBean == null || aComponentBean.getParentName() == null) {
             return;
         }
 
-        if (!pComposite.getName().equals(aComponentBean.getParentName())) {
+        if (!aComponentBean.getParentName().startsWith(
+                pComposet.getName() + ".")) {
             // We're not the parent of the given composite
             return;
         }
@@ -88,8 +93,29 @@ public class InstantiatingComposite {
     public void componentStarted(final String aComponentName,
             final String aHostIsolate) {
 
-        pRemainingComponents.remove(aComponentName);
-        pRunningComponents.put(aComponentName, aHostIsolate);
+        final InstantiatingComponent component;
+
+        synchronized (pRequestedComponents) {
+            // Is this component requested ?
+            component = pRequestedComponents.get(aComponentName);
+
+            if (component != null) {
+                // Valid component
+                pRequestedComponents.remove(aComponentName);
+
+            } else {
+                // Unknown component
+                return;
+            }
+        }
+
+        synchronized (pRunningComponents) {
+            // This update may not be necessary...
+            component.setIsolate(aHostIsolate);
+
+            // Store it as running
+            pRunningComponents.put(aComponentName, component);
+        }
     }
 
     /**
@@ -105,7 +131,13 @@ public class InstantiatingComposite {
             return;
         }
 
-        if (!pComposite.getName().equals(aComponentBean.getParentName())) {
+        final String parentName = aComponentBean.getParentName();
+        if (parentName == null) {
+            return;
+        }
+
+        if (!pComposet.getName().equals(parentName)
+                && !parentName.startsWith(pComposet.getName() + ".")) {
             // We're not the parent of the given composite
             return;
         }
@@ -123,13 +155,26 @@ public class InstantiatingComposite {
      */
     public void componentStopped(final String aComponentName) {
 
-        if (aComponentName == null) {
-            return;
+        final InstantiatingComponent component;
+
+        synchronized (pRunningComponents) {
+            // Is the component really running ?
+            component = pRunningComponents.get(aComponentName);
+
+            if (component != null) {
+                // Component found : remove it from the running ones
+                pRunningComponents.remove(aComponentName);
+
+            } else {
+                // Unknown component
+                return;
+            }
         }
 
-        // Update composite state
-        pRunningComponents.remove(aComponentName);
-        pRemainingComponents.add(aComponentName);
+        synchronized (pRemainingComponents) {
+            // Update components set state
+            pRemainingComponents.put(aComponentName, component);
+        }
     }
 
     /*
@@ -142,12 +187,11 @@ public class InstantiatingComposite {
 
         if (aObj instanceof ComponentsSetBean) {
             // Components set equality
-            return aObj.equals(pComposite);
+            return aObj.equals(pComposet);
 
         } else if (aObj instanceof InstantiatingComposite) {
             // Members equality
-            return pComposite
-                    .equals(((InstantiatingComposite) aObj).pComposite);
+            return pComposet.equals(((InstantiatingComposite) aObj).pComposet);
         }
 
         return super.equals(aObj);
@@ -160,7 +204,7 @@ public class InstantiatingComposite {
      */
     public ComponentsSetBean getBean() {
 
-        return pComposite;
+        return pComposet;
     }
 
     /**
@@ -170,18 +214,29 @@ public class InstantiatingComposite {
      */
     public String getName() {
 
-        return pComposite.getName();
+        return pComposet.getName();
     }
 
     /**
      * Retrieves the list of the names of the components which are still waiting
-     * for instantiation or which are currently instantiating
+     * for instantiation
      * 
      * @return the remaining components
      */
-    public List<String> getRemainingComponents() {
+    public Set<String> getRemainingComponents() {
 
-        return Collections.unmodifiableList(pRemainingComponents);
+        return Collections.unmodifiableSet(pRemainingComponents.keySet());
+    }
+
+    /**
+     * Retrieves the list of the names of the components which are currently
+     * instantiating (request signal sent)
+     * 
+     * @return the requested components
+     */
+    public Set<String> getRequestedComponents() {
+
+        return Collections.unmodifiableSet(pRequestedComponents.keySet());
     }
 
     /**
@@ -193,36 +248,40 @@ public class InstantiatingComposite {
 
         final Map<String, List<String>> resultMap = new HashMap<String, List<String>>();
 
-        for (final Entry<String, String> entry : pRunningComponents.entrySet()) {
+        synchronized (pRunningComponents) {
 
-            final String compoName = entry.getKey();
-            final String isolate = entry.getValue();
+            for (final InstantiatingComponent component : pRunningComponents
+                    .values()) {
 
-            // Prepare the components list
-            final List<String> isolateCompoList;
-            if (resultMap.containsKey(isolate)) {
-                isolateCompoList = resultMap.get(isolate);
+                final String compoName = component.getComponent().getName();
+                final String isolate = component.getIsolate();
 
-            } else {
-                isolateCompoList = new ArrayList<String>();
-                resultMap.put(isolate, isolateCompoList);
+                // Prepare the components list
+                final List<String> isolateCompoList;
+                if (resultMap.containsKey(isolate)) {
+                    isolateCompoList = resultMap.get(isolate);
+
+                } else {
+                    isolateCompoList = new ArrayList<String>();
+                    resultMap.put(isolate, isolateCompoList);
+                }
+
+                // Store the component
+                isolateCompoList.add(compoName);
             }
-
-            // Store the component
-            isolateCompoList.add(compoName);
         }
 
         return resultMap;
     }
 
     /**
-     * Tests if all components of the composite are instantiated
+     * Tests if all components of the components set are instantiated
      * 
-     * @return True if the whole composite is instantiated
+     * @return True if the whole components set is instantiated
      */
     public boolean isComplete() {
 
-        return pRemainingComponents.isEmpty();
+        return pRemainingComponents.isEmpty() && pRequestedComponents.isEmpty();
     }
 
     /**
@@ -250,32 +309,135 @@ public class InstantiatingComposite {
         // List of lost elements
         final Set<String> lostComponents = new HashSet<String>();
 
-        // First loop : detect lost components
-        for (final Entry<String, String> entry : pRunningComponents.entrySet()) {
+        synchronized (pRunningComponents) {
 
-            if (!aIsolateId.equals(entry.getValue())) {
-                // The component is running on a different isolate
-                continue;
-            }
+            // First loop : detect lost components
+            for (final InstantiatingComponent instantiatingComponent : pRunningComponents
+                    .values()) {
 
-            final ComponentBean component = pComposite.getComponent(entry
-                    .getKey());
-            if (component == null) {
-                // Component not found, ignore it
-                continue;
-            }
+                if (!aIsolateId.equals(instantiatingComponent.getIsolate())) {
+                    // The component is running on a different isolate
+                    continue;
+                }
 
-            // Test the component type
-            final String componentType = component.getType();
-            if (lostTypesSet.contains(componentType)) {
-                // Lost component
-                lostComponents.add(component.getName());
+                final ComponentBean component = instantiatingComponent
+                        .getComponent();
+
+                // Test the component type
+                final String componentType = component.getType();
+                if (lostTypesSet.contains(componentType)) {
+                    // Lost component
+                    lostComponents.add(component.getName());
+                }
             }
         }
 
         // Second loop : remove them
         for (final String componentName : lostComponents) {
             componentStopped(componentName);
+        }
+    }
+
+    /**
+     * Updates the state of the requested components information. This method
+     * must be called any time one or more components instantiations are
+     * requested to an isolate.
+     * 
+     * @param aIsolateId
+     *            Request target
+     * @param aRequestedComponents
+     *            Requested components
+     */
+    public void notifyInstantiationRequest(final String aIsolateId,
+            final Collection<String> aRequestedComponents) {
+
+        if (aRequestedComponents == null) {
+            return;
+        }
+
+        // Temporary map
+        final Map<String, InstantiatingComponent> requestedComponents = new HashMap<String, InstantiatingComponent>(
+                aRequestedComponents.size());
+
+        synchronized (pRemainingComponents) {
+
+            // First loop : find known instantiating components
+            for (final String requestedCompoName : aRequestedComponents) {
+
+                final InstantiatingComponent component = pRemainingComponents
+                        .get(requestedCompoName);
+                if (component != null) {
+                    // The component was a remaining one
+                    pRemainingComponents.remove(requestedCompoName);
+
+                    // Prepare for next loop
+                    requestedComponents.put(requestedCompoName, component);
+
+                    // Update the requested component state
+                    component.setIsolate(aIsolateId);
+                    component.requestSent();
+                }
+            }
+        }
+
+        synchronized (pRequestedComponents) {
+            // Update the requested components map at once
+            pRequestedComponents.putAll(requestedComponents);
+        }
+    }
+
+    /**
+     * Updates the state of the requested components information. This method
+     * must be called any time one or more components instantiations are
+     * requested to an isolate.
+     * 
+     * @param aIsolateId
+     *            Request target
+     * @param aRequestedComponents
+     *            Requested components
+     */
+    public void notifyInstantiationRequest(final String aIsolateId,
+            final ComponentBean[] aRequestedComponents) {
+
+        final Set<String> compoNames = new HashSet<String>(
+                aRequestedComponents.length);
+
+        // Extract names
+        for (final ComponentBean component : aRequestedComponents) {
+
+            compoNames.add(component.getName());
+        }
+
+        notifyInstantiationRequest(aIsolateId, compoNames);
+    }
+
+    /**
+     * Updates the state of the given component if its instantiation timed out.
+     * 
+     * @param aComponentName
+     *            The requested component name
+     */
+    public void notifyInstantiationTimeout(final String aComponentName) {
+
+        final InstantiatingComponent component;
+
+        synchronized (pRequestedComponents) {
+
+            component = pRequestedComponents.get(aComponentName);
+
+            if (component != null) {
+                // Component found
+                pRequestedComponents.remove(aComponentName);
+
+            } else {
+                // Unknown component
+                return;
+            }
+        }
+
+        synchronized (pRemainingComponents) {
+            // Move it in the remaining components map
+            pRemainingComponents.put(aComponentName, component);
         }
     }
 
@@ -294,16 +456,18 @@ public class InstantiatingComposite {
 
         // Prepare the components beans list
         final List<ComponentBean> remainingComponentsBeans = new ArrayList<ComponentBean>();
-        for (final String componentName : pRemainingComponents) {
 
-            final ComponentBean bean = pComposite.getComponent(componentName);
-            if (bean != null) {
-                remainingComponentsBeans.add(bean);
+        synchronized (pRemainingComponents) {
+
+            for (final InstantiatingComponent component : pRemainingComponents
+                    .values()) {
+
+                remainingComponentsBeans.add(component.getComponent());
             }
         }
 
         // Resolve the remaining components
-        return pComposite.resolve(remainingComponentsBeans,
+        return pComposet.resolve(remainingComponentsBeans,
                 aIsolatesCapabilities, aResolution);
     }
 }

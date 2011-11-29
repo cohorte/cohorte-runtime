@@ -604,7 +604,8 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
                 continue;
             }
 
-            instance.stop();
+            // Dispose the instance and deletes the references to it
+            instance.getFactory().deleted(componentName);
             stoppedComponents.add(componentName);
         }
 

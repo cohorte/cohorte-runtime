@@ -14,11 +14,16 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
+import org.apache.felix.ipojo.annotations.Property;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
@@ -70,6 +75,10 @@ public class ComposerCore extends CPojoBase implements IComposer,
     /** Composites currently instantiating */
     private final Map<String, InstantiatingComposite> pInstantiatingComposites = new HashMap<String, InstantiatingComposite>();
 
+    /** The component instantiation time out (in milliseconds) */
+    @Property(name = "component-instantiation-timeout", value = "500")
+    private long pInstantiationTimeout;
+
     /** Maps isolates and components */
     private final Map<String, List<String>> pIsolatesCapabilities = new HashMap<String, List<String>>();
 
@@ -80,8 +89,36 @@ public class ComposerCore extends CPojoBase implements IComposer,
     @Requires
     private IIsolateLoggerSvc pLogger;
 
-    /** the list of roots */
+    /** The requests timeouts futures */
+    private Map<String, ScheduledFuture<?>> pRequestsTimeouts = new HashMap<String, ScheduledFuture<?>>();
+
+    /**
+     * The delay to wait after receiving a factory message before trying a new
+     * resolution (in milliseconds)
+     */
+    @Property(name = "resolution-delay", value = "200")
+    private long pResolutionDelay;
+
+    /** The resolution future */
+    private ScheduledFuture<?> pResolutionFuture;
+
+    /** The resolution runner */
+    private final Runnable pResolutionRunner = new Runnable() {
+
+        @Override
+        public void run() {
+
+            // Call for a new resolution
+            notifyComponentsRegistration();
+        }
+    };
+
+    /** The list of roots */
     private final List<ComponentsSetBean> pRootsComponentsSetBean = new ArrayList<ComponentsSetBean>();
+
+    /** Scheduler executor for timeouts */
+    private final ScheduledExecutorService pScheduler = Executors
+            .newScheduledThreadPool(1);
 
     /** The signals broadcaster */
     @Requires
@@ -89,14 +126,6 @@ public class ComposerCore extends CPojoBase implements IComposer,
 
     /** Composites waiting for full instantiation */
     private final List<InstantiatingComposite> pWaitingComposites = new ArrayList<InstantiatingComposite>();
-
-    /**
-     * Default constructor
-     */
-    public ComposerCore() {
-
-        super();
-    }
 
     /**
      * Called by iPOJO when a signal receiver is bound
@@ -146,6 +175,39 @@ public class ComposerCore extends CPojoBase implements IComposer,
         return wComponentsSetSnapshot;
     }
 
+    /**
+     * Cancels the timeout for the given component, if possible
+     * 
+     * @param aComponentName
+     *            A component name
+     */
+    protected void cancelTimeout(final String aComponentName) {
+
+        final ScheduledFuture<?> future = pRequestsTimeouts.get(aComponentName);
+        if (future != null) {
+            // Cancel it if it's not to late
+            future.cancel(false);
+
+            // Remove the timeout from the map
+            pRequestsTimeouts.remove(aComponentName);
+        }
+    }
+
+    /**
+     * (Re-)Delays the next resolution
+     */
+    protected synchronized void delayResolution() {
+
+        // Cancel current run
+        if (pResolutionFuture != null) {
+            pResolutionFuture.cancel(false);
+        }
+
+        // Schedule the next call
+        pResolutionFuture = pScheduler.schedule(pResolutionRunner,
+                pResolutionDelay, TimeUnit.MILLISECONDS);
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -168,13 +230,47 @@ public class ComposerCore extends CPojoBase implements IComposer,
         return wCompositionSnapshots;
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Handles a component changed signal
      * 
-     * @see
-     * org.psem2m.composer.IComposer#instantiateComponentsSet(org.psem2m.composer
-     * .model.ComponentsSetBean)
+     * @param aIsolateId
+     *            ID of the sender
+     * @param aStateMap
+     *            The signal content
      */
+    protected void handleComponentChangedSignal(final String aIsolateId,
+            final Map<String, Object> aStateMap) {
+
+        // Get the component name
+        final String componentName = (String) aStateMap
+                .get(ComposerAgentSignals.COMPONENT_CHANGED_KEY_NAME);
+
+        if (componentName == null || componentName.isEmpty()) {
+            // Invalid data
+            return;
+        }
+
+        // Get the new state
+        final ECompositionEvent event = (ECompositionEvent) aStateMap
+                .get(ComposerAgentSignals.COMPONENT_CHANGED_KEY_STATE);
+        if (event == null) {
+            // Invalid data
+            return;
+        }
+
+        switch (event) {
+        case ADD:
+        case START:
+            // The component has been added or started : stop the timeout run
+            cancelTimeout(componentName);
+            break;
+
+        default:
+            // Do nothing
+            break;
+        }
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -211,7 +307,7 @@ public class ComposerCore extends CPojoBase implements IComposer,
         } else if (ComposerAgentSignals.SIGNAL_RESPONSE_INSTANTIATE_COMPONENTS
                 .equals(aSignalName)) {
             // An isolate started some components
-            if (signalContent instanceof Map<?, ?>) {
+            if (signalContent instanceof Map) {
 
                 updateInstantiatingCompositeStatus(
                         (Map<String, Object>) signalContent, signalSender);
@@ -220,7 +316,8 @@ public class ComposerCore extends CPojoBase implements IComposer,
         } else if (ComposerAgentSignals.SIGNAL_ISOLATE_FACTORIES_GONE
                 .equals(aSignalName)) {
             // An isolate agent is gone
-            pIsolatesCapabilities.remove(aSignalData.getIsolateSender());
+            unregisterComponentsForIsolate(signalSender, pIsolatesCapabilities
+                    .get(signalSender).toArray(new String[0]));
 
         } else if (ComposerAgentSignals.SIGNAL_ISOLATE_ADD_FACTORY
                 .equals(aSignalName)) {
@@ -238,6 +335,15 @@ public class ComposerCore extends CPojoBase implements IComposer,
 
                 unregisterComponentsForIsolate(signalSender,
                         (String[]) signalContent);
+            }
+
+        } else if (ComposerAgentSignals.SIGNAL_COMPONENT_CHANGED
+                .equals(aSignalName)) {
+
+            // A component state changed
+            if (signalContent instanceof Map) {
+                handleComponentChangedSignal(signalSender,
+                        (Map<String, Object>) signalContent);
             }
         }
     }
@@ -307,14 +413,15 @@ public class ComposerCore extends CPojoBase implements IComposer,
 
     /**
      * Sends a signal to selected isolates to instantiate the components of the
-     * given composite
+     * given components set
      * 
-     * @param aComposite
-     *            The composite to instantiate
+     * @param aComposet
+     *            The components set to instantiate
      * @param aComponentsRepartition
      *            The computed components repartition
      */
-    protected void instantiateComponentsSet(final ComponentsSetBean aComposite,
+    protected void instantiateComponentsSet(
+            final InstantiatingComposite aComposet,
             final Map<String, ComponentBean[]> aComponentsRepartition) {
 
         for (final Entry<String, ComponentBean[]> isolateEntry : aComponentsRepartition
@@ -330,9 +437,46 @@ public class ComposerCore extends CPojoBase implements IComposer,
                 continue;
             }
 
+            // Prepare the timeouts calls
+            for (final ComponentBean component : isolateComponents) {
+
+                final String componentName = component.getName();
+
+                // Cancel the previous timeout, just in case
+                cancelTimeout(componentName);
+
+                // Prepare the future
+                final ScheduledFuture<?> future = pScheduler.schedule(
+                        new Runnable() {
+
+                            @Override
+                            public void run() {
+
+                                pLogger.logInfo(this,
+                                        "ComponentRequestTimeout",
+                                        componentName,
+                                        "instantiation request timed out.");
+
+                                // Notify the timeout
+                                aComposet
+                                        .notifyInstantiationTimeout(componentName);
+
+                                // Remove ourself from the map
+                                pRequestsTimeouts.remove(componentName);
+                            }
+                        }, pInstantiationTimeout, TimeUnit.MILLISECONDS);
+
+                // Store the future
+                pRequestsTimeouts.put(componentName, future);
+            }
+
+            // Send the instantiation signal
             pSignalBroadcaster.sendData(isolateId,
                     ComposerAgentSignals.SIGNAL_INSTANTIATE_COMPONENTS,
                     isolateComponents);
+
+            // Update the components set state
+            aComposet.notifyInstantiationRequest(isolateId, isolateComponents);
         }
     }
 
@@ -353,7 +497,7 @@ public class ComposerCore extends CPojoBase implements IComposer,
      * Tests if a composite can be fully instantiated and does the job if
      * possible.
      */
-    protected void notifyComponentsRegistration() {
+    protected synchronized void notifyComponentsRegistration() {
 
         synchronized (pWaitingComposites) {
 
@@ -367,7 +511,7 @@ public class ComposerCore extends CPojoBase implements IComposer,
                     resolvedComposites.add(composite);
 
                     // Do the job
-                    instantiateComponentsSet(composite.getBean(), resolution);
+                    instantiateComponentsSet(composite, resolution);
                 }
             }
 
@@ -508,8 +652,8 @@ public class ComposerCore extends CPojoBase implements IComposer,
             }
         }
 
-        // Time to try a new instantiation
-        notifyComponentsRegistration();
+        // Delay a new resolution run
+        delayResolution();
     }
 
     /**
@@ -547,8 +691,8 @@ public class ComposerCore extends CPojoBase implements IComposer,
             }
         }
 
-        // Time to try a new instantiation
-        notifyComponentsRegistration();
+        // Delay a new resolution run
+        delayResolution();
     }
 
     /*
@@ -721,6 +865,20 @@ public class ComposerCore extends CPojoBase implements IComposer,
         // Fire at will
         pLogger.logInfo(this, "test_conf", "Fire at will !");
         instantiateComponentsSet(compoSet);
+
+        // pScheduler.schedule(new Runnable() {
+        //
+        // @Override
+        // public void run() {
+        //
+        // try {
+        // removeComponentsSet(compoSet);
+        // } catch (final Exception e) {
+        // // TODO Auto-generated catch block
+        // e.printStackTrace();
+        // }
+        // }
+        // }, 10, TimeUnit.SECONDS);
     }
 
     /**
@@ -737,7 +895,7 @@ public class ComposerCore extends CPojoBase implements IComposer,
         final List<String> isolateComponents = pIsolatesCapabilities
                 .get(aIsolateId);
 
-        if (isolateComponents == null) {
+        if (isolateComponents == null || isolateComponents.isEmpty()) {
             // Nothing to do...
             return;
         }
@@ -767,11 +925,31 @@ public class ComposerCore extends CPojoBase implements IComposer,
                     needsNewResolution = true;
                 }
             }
+
+            // Update instantiating composites states
+            for (final InstantiatingComposite composite : pInstantiatingComposites
+                    .values()) {
+
+                composite.lostComponentTypes(aIsolateId, aComponentsTypes);
+
+                // Update the composite completion level if needed
+                if (!composite.isComplete()) {
+                    final String compositeName = composite.getName();
+                    pInstantiatingComposites.remove(compositeName);
+                    pWaitingComposites.add(composite);
+
+                    // A new resolution is needed
+                    needsNewResolution = true;
+                }
+            }
         }
 
         if (needsNewResolution) {
             // Try to recompute a route for degraded composites
-            notifyComponentsRegistration();
+            // notifyComponentsRegistration();
+
+            // Delay a new resolution run
+            delayResolution();
         }
     }
 
@@ -802,15 +980,15 @@ public class ComposerCore extends CPojoBase implements IComposer,
             final Map<String, Object> aAgentResult, final String aHostIsolate) {
 
         // Working composite
-        final String compositeName = (String) aAgentResult
+        final String composetName = (String) aAgentResult
                 .get(ComposerAgentSignals.RESULT_KEY_COMPOSITE);
 
-        // Get the corresponding composite
-        final InstantiatingComposite composite = pInstantiatingComposites
-                .get(compositeName);
+        // Get the corresponding components set
+        final InstantiatingComposite composet = pInstantiatingComposites
+                .get(composetName);
 
         // Unknown composite
-        if (composite == null) {
+        if (composet == null) {
             // Ignore it
             return;
         }
@@ -827,13 +1005,15 @@ public class ComposerCore extends CPojoBase implements IComposer,
         // Update the composite state
         for (final String componentName : instantiatedComponents) {
 
-            composite.componentStarted(componentName, aHostIsolate);
+            // Cancel the corresponding timeout
+            cancelTimeout(componentName);
+            composet.componentStarted(componentName, aHostIsolate);
         }
 
         // Composite status is good
-        if (composite.isComplete()) {
+        if (composet.isComplete()) {
 
-            pFullComposites.put(composite.getName(), composite);
+            pFullComposites.put(composet.getName(), composet);
 
             // Nothing more to do
             return;
@@ -843,9 +1023,17 @@ public class ComposerCore extends CPojoBase implements IComposer,
         final String[] failedComponents = (String[]) aAgentResult
                 .get(ComposerAgentSignals.RESULT_KEY_FAILED);
 
+        // Cancel their timeouts
+        for (final String failedComponentName : failedComponents) {
+            cancelTimeout(failedComponentName);
+        }
+
         pLogger.logWarn(this, "updateInstantiatingCompositeStatus",
                 "The following components couldn't be started :",
                 Arrays.toString(failedComponents));
+
+        // Ask for a new resolution
+        delayResolution();
     }
 
     /*

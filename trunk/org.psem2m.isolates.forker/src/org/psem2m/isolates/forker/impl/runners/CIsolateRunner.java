@@ -16,6 +16,7 @@ import java.util.Map;
 
 import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
+import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.base.bundles.BundleRef;
 import org.psem2m.isolates.base.bundles.IBundleFinderSvc;
@@ -93,15 +94,15 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
      */
     protected List<URL> bundlesToUrls(final BundleRef[] aBundles) {
 
-        List<URL> bundleURLs = new ArrayList<URL>();
+        final List<URL> bundleURLs = new ArrayList<URL>();
 
         // Loop on bundles
-        for (BundleRef bundleRef : aBundles) {
+        for (final BundleRef bundleRef : aBundles) {
             try {
-                URL bundleUrl = bundleRef.getUri().toURL();
+                final URL bundleUrl = bundleRef.getUri().toURL();
                 bundleURLs.add(bundleUrl);
 
-            } catch (MalformedURLException e) {
+            } catch (final MalformedURLException e) {
                 e.printStackTrace();
             }
         }
@@ -156,7 +157,7 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
     protected String makeBootstrapDefinition(final String aKey,
             final String aValue) {
 
-        StringBuilder bootstrapDef = new StringBuilder(aKey.length()
+        final StringBuilder bootstrapDef = new StringBuilder(aKey.length()
                 + aValue.length() + 1);
         bootstrapDef.append(aKey);
         bootstrapDef.append("=");
@@ -217,7 +218,7 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
         classpathArgument.add("-cp");
 
         // Don't forget the current directory as a classpath
-        StringBuilder classPath = new StringBuilder();
+        final StringBuilder classPath = new StringBuilder();
 
         // Find the framework main bundle
         BundleRef mainBundleRef;
@@ -272,7 +273,7 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
                 throw new NumberFormatException("Invalid port number");
             }
 
-        } catch (NumberFormatException ex) {
+        } catch (final NumberFormatException ex) {
 
             // Reset the port value, if needed
             pBaseDebugPort = -1;
@@ -321,7 +322,7 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
         pIsolateIndex++;
 
         // Find the bootstrap JAR file
-        File bootstrapFile = pBundleFinderSvc.getBootstrap();
+        final File bootstrapFile = pBundleFinderSvc.getBootstrap();
 
         // Add the class path argument
         javaOptions.addAll(prepareClasspathArgument(bootstrapFile,
@@ -340,11 +341,14 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
         javaOptions.addAll(prepareBootstrapArguments(aIsolateConfiguration));
 
         // Set up the working directory
-        File workingDirectory = pPlatformDirsSvc
+        final File workingDirectory = pPlatformDirsSvc
                 .getIsolateWorkingDir(aIsolateConfiguration.getId());
-        if (!workingDirectory.exists()) {
-            workingDirectory.mkdirs();
+
+        if (workingDirectory.exists()) {
+            Utilities.removeDirectory(workingDirectory);
         }
+
+        workingDirectory.mkdirs();
 
         // Run the bootstrap
         return pJavaRunnerSvc.runJava(javaOptions, null, workingDirectory);

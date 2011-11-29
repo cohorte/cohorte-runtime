@@ -15,28 +15,30 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  em2m.utilities.logging;version=1.0.0
 iPOJO-Components: component { $classname="org.psem2m.composer.demo.erp
  proxy.ErpProxy" $name="erp-proxy-json-rpc" $public="true" provides { 
- $specifications="{org.psem2m.composer.test.api.IComponent}" }properti
- es { property { $name="host" $field="pErpHost" }property { $name="por
- t" $field="pErpPort" }property { $name="uri" $field="pErpUri" }proper
- ty { $name="instance.name" $field="pName" }}requires { $field="pLogge
- r" }callback { $transition="invalidate" $method="invalidatePojo" }cal
- lback { $transition="validate" $method="validatePojo" }manipulation {
-  $super="org.psem2m.isolates.base.activators.CPojoBase" interface { $
- name="org.psem2m.composer.test.api.IComponent" }field { $name="pBundl
- eContext" $type="org.osgi.framework.BundleContext" }field { $name="pC
- lient" $type="org.jabsorb.client.Client" }field { $name="pErpHost" $t
- ype="java.lang.String" }field { $name="pErpPort" $type="int" }field {
-  $name="pErpUri" $type="java.lang.String" }field { $name="pLogger" $t
- ype="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pNam
- e" $type="java.lang.String" }field { $name="pProxy" $type="org.psem2m
- .composer.demo.IErpData" }method { $name="applyCart" $arguments="{org
- .psem2m.composer.test.api.IComponentContext}" }method { $name="comput
- eResult" $return="org.psem2m.composer.test.api.IComponentContext" $ar
- guments="{org.psem2m.composer.test.api.IComponentContext}" }method { 
- $name="getItem" $arguments="{org.psem2m.composer.test.api.IComponentC
- ontext}" }method { $name="getItems" $arguments="{org.psem2m.composer.
- test.api.IComponentContext}" }method { $name="getItemsStock" $argumen
- ts="{org.psem2m.composer.test.api.IComponentContext}" }method { $name
- ="invalidatePojo" }method { $name="prepareClient" }method { $name="va
- lidatePojo" }}}
+ $specifications="{org.psem2m.composer.test.api.IComponent}" }controll
+ er { $field="pController" }properties { property { $name="host" $fiel
+ d="pErpHost" }property { $name="port" $field="pErpPort" }property { $
+ name="uri" $field="pErpUri" }property { $name="instance.name" $field=
+ "pName" }}requires { $field="pLogger" }callback { $transition="invali
+ date" $method="invalidatePojo" }callback { $transition="validate" $me
+ thod="validatePojo" }manipulation { $super="org.psem2m.isolates.base.
+ activators.CPojoBase" interface { $name="org.psem2m.composer.test.api
+ .IComponent" }field { $name="pBundleContext" $type="org.osgi.framewor
+ k.BundleContext" }field { $name="pClient" $type="org.jabsorb.client.C
+ lient" }field { $name="pController" $type="boolean" }field { $name="p
+ ErpHost" $type="java.lang.String" }field { $name="pErpPort" $type="in
+ t" }field { $name="pErpUri" $type="java.lang.String" }field { $name="
+ pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { 
+ $name="pName" $type="java.lang.String" }field { $name="pPingThread" $
+ type="java.lang.Thread" }field { $name="pProxy" $type="org.psem2m.com
+ poser.demo.IErpData" }method { $name="applyCart" $arguments="{org.pse
+ m2m.composer.test.api.IComponentContext}" }method { $name="computeRes
+ ult" $return="org.psem2m.composer.test.api.IComponentContext" $argume
+ nts="{org.psem2m.composer.test.api.IComponentContext}" }method { $nam
+ e="getItem" $arguments="{org.psem2m.composer.test.api.IComponentConte
+ xt}" }method { $name="getItems" $arguments="{org.psem2m.composer.test
+ .api.IComponentContext}" }method { $name="getItemsStock" $arguments="
+ {org.psem2m.composer.test.api.IComponentContext}" }method { $name="in
+ validatePojo" }method { $name="ping" }method { $name="prepareClient" 
+ }method { $name="validatePojo" }}}
 

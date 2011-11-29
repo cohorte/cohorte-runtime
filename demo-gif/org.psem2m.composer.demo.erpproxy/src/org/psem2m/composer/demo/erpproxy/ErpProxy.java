@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Controller;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Property;
 import org.apache.felix.ipojo.annotations.Provides;
@@ -45,6 +46,10 @@ public class ErpProxy extends CPojoBase implements IComponent {
     /** The Jabsorb client */
     private Client pClient;
 
+    /** The component life cycle controller */
+    @Controller
+    private boolean pController;
+
     /** The ERP host name */
     @Property(name = "host")
     private String pErpHost;
@@ -64,6 +69,9 @@ public class ErpProxy extends CPojoBase implements IComponent {
     /** The instance name */
     @Property(name = DemoComponentsConstants.PROPERTY_INSTANCE_NAME)
     private String pName;
+
+    /** The ping thread */
+    private Thread pPingThread;
 
     /** The ERP proxy */
     private IErpData pProxy;
@@ -107,31 +115,44 @@ public class ErpProxy extends CPojoBase implements IComponent {
     public IComponentContext computeResult(final IComponentContext aContext)
             throws Exception {
 
-        // The ERP method to call
-        final String method = (String) aContext.getMetadata().get("erp-method");
-        if (method == null || method.isEmpty()) {
-            aContext.addError(pName, "No ERP method specified.");
+        try {
+
+            // The ERP method to call
+            final String method = (String) aContext.getMetadata().get(
+                    "erp-method");
+            if (method == null || method.isEmpty()) {
+                aContext.addError(pName, "No ERP method specified.");
+                return aContext;
+            }
+
+            // Call the corresponding method
+            if (method.equals("applyCart")) {
+                applyCart(aContext);
+
+            } else if (method.equals("getItem")) {
+                getItem(aContext);
+
+            } else if (method.equals("getItems")) {
+                getItems(aContext);
+
+            } else if (method.equals("getItemsStock")) {
+                getItemsStock(aContext);
+
+            } else {
+                aContext.addError(pName, "Method '" + method
+                        + "' not implemented");
+            }
+
             return aContext;
+
+        } catch (final Exception ex) {
+
+            // Stop the component
+            pController = false;
+
+            // Re-throw the exception
+            throw ex;
         }
-
-        // Call the corresponding method
-        if (method.equals("applyCart")) {
-            applyCart(aContext);
-
-        } else if (method.equals("getItem")) {
-            getItem(aContext);
-
-        } else if (method.equals("getItems")) {
-            getItems(aContext);
-
-        } else if (method.equals("getItemsStock")) {
-            getItemsStock(aContext);
-
-        } else {
-            aContext.addError(pName, "Method '" + method + "' not implemented");
-        }
-
-        return aContext;
     }
 
     /**
@@ -236,7 +257,68 @@ public class ErpProxy extends CPojoBase implements IComponent {
         pClient.closeProxy(pProxy);
         pProxy = null;
 
+        // Stop all thread if necessary
+        if (pPingThread != null) {
+            pPingThread.interrupt();
+        }
+
+        // Prepare the ping thread
+        pPingThread = new Thread() {
+
+            @Override
+            public void run() {
+
+                while (!isInterrupted() && !pController) {
+
+                    ping();
+
+                    if (!pController) {
+                        try {
+                            Thread.sleep(500);
+                        } catch (final InterruptedException e) {
+                            // Interrupted = stopped
+                            return;
+                        }
+                    }
+                }
+            }
+        };
+
+        // Start the ping thread
+        pPingThread.setDaemon(true);
+        pPingThread.start();
+
         pLogger.logInfo(this, "invalidatePojo", "ERP Proxy gone");
+    }
+
+    /**
+     * Sends a getItem("?") request to the ERP to test if it is alive
+     */
+    private void ping() {
+
+        try {
+            prepareClient();
+        } catch (final URISyntaxException e) {
+
+            pLogger.logSevere(this, "ping", "Can't ping", e);
+            return;
+        }
+
+        // Try to call the ERP
+        boolean newState;
+        try {
+            pProxy.getItem("?");
+            newState = true;
+
+        } catch (final Throwable th) {
+
+            // Stay stopped...
+            newState = false;
+        }
+
+        pClient.closeProxy(pProxy);
+
+        pController = newState;
     }
 
     /**
@@ -289,6 +371,12 @@ public class ErpProxy extends CPojoBase implements IComponent {
     @Override
     @Validate
     public void validatePojo() throws BundleException {
+
+        // Stop the ping thread, if any
+        if (pPingThread != null) {
+            pPingThread.interrupt();
+            pPingThread = null;
+        }
 
         try {
             prepareClient();

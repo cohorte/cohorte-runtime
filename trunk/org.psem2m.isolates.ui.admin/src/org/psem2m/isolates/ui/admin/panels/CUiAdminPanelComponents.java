@@ -38,13 +38,15 @@ import org.psem2m.isolates.ui.admin.api.IUiAdminSvc;
 public class CUiAdminPanelComponents extends CPojoBase implements
         IUiAdminPanelControler {
 
+    private static final String IPOJO_ID_ARCHITECTURES = "architectures";
+
     /**
      * iPOJO Components architectures
      * 
      * @see the methodes "architectureBind" and "architectureUnBind" which are
-     *      called each time an architecture appeared or desapeared
+     *      called each time an architecture appeared or disappears
      */
-    @Requires
+    @Requires(id = IPOJO_ID_ARCHITECTURES)
     private Architecture[] pArchitectures;
 
     /** the JPanel **/
@@ -72,28 +74,33 @@ public class CUiAdminPanelComponents extends CPojoBase implements
      * 
      * @param aArch
      */
-    @Bind
+    @Bind(id = IPOJO_ID_ARCHITECTURES, aggregate = true)
     void architectureBind(final Architecture aArch) {
 
-        pLogger.logInfo(this, "architectureBind", "component=[%s]", aArch
-                .getInstanceDescription().getName());
+        pLogger.logInfo(this, "architectureBind",
+                "component=[%s] - panel present=[%b]", aArch
+                        .getInstanceDescription().getName(), pJPanel != null);
 
-        pJPanel.setRow(aArch);
+        if (pJPanel != null) {
+            pJPanel.setRow(aArch);
+        }
 
     }
 
     /**
-     * Update the list of components each time an Architecture desappears
+     * Update the list of components each time an Architecture disappears
      * 
      * @param aArch
      */
-    @Unbind
+    @Unbind(id = IPOJO_ID_ARCHITECTURES, aggregate = true)
     void architectureUnBind(final Architecture aArch) {
 
         pLogger.logInfo(this, "architectureUnBind", "component=[%s]", aArch
                 .getInstanceDescription().getName());
 
-        pJPanel.removeRow(aArch);
+        if (pJPanel != null) {
+            pJPanel.removeRow(aArch);
+        }
     }
 
     /**
@@ -101,7 +108,7 @@ public class CUiAdminPanelComponents extends CPojoBase implements
      */
     private void initContent() {
 
-        Runnable wRunnable = new Runnable() {
+        final Runnable wRunnable = new Runnable() {
             @Override
             public void run() {
 
@@ -116,7 +123,7 @@ public class CUiAdminPanelComponents extends CPojoBase implements
         try {
             // gives the runnable to the UIExecutor
             pUiExecutor.execute(wRunnable);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             pLogger.logSevere(this, "init", e);
         }
     }
@@ -137,7 +144,7 @@ public class CUiAdminPanelComponents extends CPojoBase implements
 
             pUiAdminSvc.removeUiAdminPanel(pUiAdminPanel);
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             pLogger.logSevere(this, "invalidatePojo", e);
         }
     }
@@ -178,7 +185,7 @@ public class CUiAdminPanelComponents extends CPojoBase implements
 
             initContent();
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             pLogger.logSevere(this, "validatePojo", e);
         }
     }
