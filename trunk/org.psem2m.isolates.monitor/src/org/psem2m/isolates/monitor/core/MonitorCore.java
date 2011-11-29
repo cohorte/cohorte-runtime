@@ -156,7 +156,8 @@ public class MonitorCore extends CPojoBase implements
         final String currentIsolateId = System
                 .getProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID);
 
-        for (String isolateId : pConfiguration.getApplication().getIsolateIds()) {
+        for (final String isolateId : pConfiguration.getApplication()
+                .getIsolateIds()) {
 
             if (isolateId.equals(currentIsolateId)) {
                 // Do not start ourselves
@@ -254,6 +255,7 @@ public class MonitorCore extends CPojoBase implements
         if (aIsolateStatus == null) {
             // Contact lost with the isolate
             handleIsolateFailure(aSourceIsolateId);
+            return;
         }
 
         if (isStatusObsolete(aIsolateStatus)) {
@@ -415,7 +417,7 @@ public class MonitorCore extends CPojoBase implements
 
             // Kill remaining isolates
             if (pPropertyForkerPresent) {
-                for (String isolateId : pIsolatesToStop) {
+                for (final String isolateId : pIsolatesToStop) {
                     pLogger.log(LogService.LOG_INFO,
                             "Killing with the forker : " + isolateId);
                     pForkerSvc.stopIsolate(isolateId);
@@ -454,7 +456,7 @@ public class MonitorCore extends CPojoBase implements
 
         try {
             return Integer.parseInt(System.getProperty(aProperty));
-        } catch (NumberFormatException e) {
+        } catch (final NumberFormatException e) {
             return aDefaultValue;
         }
     }
@@ -563,7 +565,7 @@ public class MonitorCore extends CPojoBase implements
                     pStopSemaphore.tryAcquire(pStopPlatformTimeout,
                             TimeUnit.MILLISECONDS);
 
-                } catch (InterruptedException e) {
+                } catch (final InterruptedException e) {
                     // Pass through the semaphore on interruption
                 }
 
@@ -658,7 +660,7 @@ public class MonitorCore extends CPojoBase implements
             outputStream.write(accessUrl.getBytes());
             outputStream.close();
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             // Error reading the configuration, too bad, but not important
             e.printStackTrace();
         }

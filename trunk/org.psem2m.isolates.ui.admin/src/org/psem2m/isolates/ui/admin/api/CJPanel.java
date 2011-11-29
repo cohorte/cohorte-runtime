@@ -68,7 +68,7 @@ public abstract class CJPanel extends JPanel {
             if (pUiExecutor != null) {
                 pUiExecutor.execute(aRunnable);
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             pLogger.logSevere(this, "execute", e);
         }
     }

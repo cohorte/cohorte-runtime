@@ -138,51 +138,54 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
          * .felix.ipojo.ComponentInstance, int)
          */
         @Override
-        public void stateChanged(final ComponentInstance arg0, final int arg1) {
+        public void stateChanged(final ComponentInstance aInstance,
+                final int aNewState) {
 
-            final String wName = arg0.getInstanceDescription().getName();
-            final int wRowIdx = findComponentRow(wName);
-            final String wStrState = buildComponentState(arg0
-                    .getInstanceDescription());
+            execute(new Runnable() {
+                @Override
+                public void run() {
 
-            if (hasLogger()) {
-                getLogger().logInfo(this, "stateChanged",
-                        "Name=[%s] RowIdx=[%d] NewState=[%s]", wName, wRowIdx,
-                        wStrState);
-            }
-            if (wRowIdx > -1) {
-                pComponentsTableModel.setValueAt(wStrState, wRowIdx,
-                        COLUMN_IDX_STATE);
+                    final String wName = aInstance.getInstanceDescription()
+                            .getName();
+                    final int wRowIdx = findComponentRow(wName);
+                    final String wStrState = buildComponentState(aInstance
+                            .getInstanceDescription());
 
-                try {
-                    // if sorted
-                    final int wSelectedRowIdx = pComponentsTable
-                            .convertRowIndexToModel(pComponentsTable
-                                    .getSelectionModel()
-                                    .getLeadSelectionIndex());
+                    if (hasLogger()) {
+                        getLogger().logInfo(this, "stateChanged",
+                                "Name=[%s] RowIdx=[%d] NewState=[%s]", wName,
+                                wRowIdx, wStrState);
+                    }
+                    if (wRowIdx > -1) {
+                        pComponentsTableModel.setValueAt(wStrState, wRowIdx,
+                                COLUMN_IDX_STATE);
 
-                    if (wRowIdx == wSelectedRowIdx) {
-                        execute(new Runnable() {
-                            @Override
-                            public void run() {
+                        try {
+                            // if sorted
+                            final int wSelectedRowIdx = pComponentsTable
+                                    .convertRowIndexToModel(pComponentsTable
+                                            .getSelectionModel()
+                                            .getLeadSelectionIndex());
+
+                            if (wRowIdx == wSelectedRowIdx) {
 
                                 // set the text info of the service
                                 setText(buildTextInfos(wSelectedRowIdx));
                             }
-                        });
+                        } catch (final ArrayIndexOutOfBoundsException e1) {
+                            if (hasLogger()) {
+                                getLogger().logSevere(this, "stateChanged",
+                                        "ArrayIndexOutOfBoundsException !");
+                            }
+                        } catch (final Exception e2) {
+                            if (hasLogger()) {
+                                getLogger().logSevere(this, "stateChanged", e2);
+                            }
+                        }
                     }
-                } catch (ArrayIndexOutOfBoundsException e1) {
-                    if (hasLogger()) {
-                        getLogger().logSevere(this, "stateChanged",
-                                "ArrayIndexOutOfBoundsException !");
-                    }
-                } catch (Exception e2) {
-                    if (hasLogger()) {
-                        getLogger().logSevere(this, "stateChanged", e2);
-                    }
-                }
-            }
 
+                }
+            });
         }
     }
 
@@ -224,9 +227,9 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
 
             final String wAction = wMustValidate ? "Validate" : "Invalidate";
 
-            String wItemLib1 = String.format("%s %s", wAction, wName);
+            final String wItemLib1 = String.format("%s %s", wAction, wName);
 
-            JMenuItem wMenuItem1 = new JMenuItem(wItemLib1);
+            final JMenuItem wMenuItem1 = new JMenuItem(wItemLib1);
             wMenuItem1.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(final ActionEvent actionEvent) {
@@ -241,9 +244,9 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
                 }
             });
 
-            String wItemLib2 = String.format("Stop %s", wName);
+            final String wItemLib2 = String.format("Stop %s", wName);
 
-            JMenuItem wMenuItem2 = new JMenuItem(wItemLib2);
+            final JMenuItem wMenuItem2 = new JMenuItem(wItemLib2);
             wMenuItem2.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(final ActionEvent actionEvent) {
@@ -254,7 +257,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
                 }
             });
 
-            JPopupMenu wJPopupMenu = new JPopupMenu();
+            final JPopupMenu wJPopupMenu = new JPopupMenu();
             wJPopupMenu.add(wMenuItem1);
             wJPopupMenu.addSeparator();
             wJPopupMenu.add(wMenuItem2);
@@ -304,7 +307,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
 
         public void rightClik(final MouseEvent e) {
 
-            int r = pComponentsTable.rowAtPoint(e.getPoint());
+            final int r = pComponentsTable.rowAtPoint(e.getPoint());
             if (r >= 0 && r < pComponentsTable.getRowCount()) {
                 pComponentsTable.setRowSelectionInterval(r, r);
             } else {
@@ -335,21 +338,23 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
         @Override
         public void valueChanged(final ListSelectionEvent aListSelectionEvent) {
 
-            int wRowIdx = pComponentsTable.getSelectionModel()
-                    .getLeadSelectionIndex();
+            execute(new Runnable() {
+                @Override
+                public void run() {
 
-            if (hasLogger()) {
-                getLogger().logInfo(this, "valueChanged", "RowIdx=[%d]",
-                        wRowIdx);
-            }
+                    final int wRowIdx = pComponentsTable.getSelectionModel()
+                            .getLeadSelectionIndex();
 
-            if (wRowIdx > -1 && wRowIdx < pComponentsTableModel.getRowCount()) {
-                // if sorted
-                final int wRealRowIdx = pComponentsTable
-                        .convertRowIndexToModel(wRowIdx);
-                execute(new Runnable() {
-                    @Override
-                    public void run() {
+                    if (hasLogger()) {
+                        getLogger().logInfo(this, "valueChanged",
+                                "RowIdx=[%d]", wRowIdx);
+                    }
+
+                    if (wRowIdx > -1
+                            && wRowIdx < pComponentsTableModel.getRowCount()) {
+                        // if sorted
+                        final int wRealRowIdx = pComponentsTable
+                                .convertRowIndexToModel(wRowIdx);
 
                         if (hasLogger()) {
                             getLogger().logInfo(this, "valueChanged",
@@ -358,8 +363,9 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
                         // set the text info of the service
                         setText(buildTextInfos(wRealRowIdx));
                     }
-                });
-            }
+
+                }
+            });
         }
     }
 
@@ -383,11 +389,11 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
 
         ComponentInstance wCI = null;
         try {
-            Field wField = InstanceDescription.class
+            final Field wField = InstanceDescription.class
                     .getDeclaredField("m_instance");
             wField.setAccessible(true);
             wCI = (ComponentInstance) wField.get(aInstanceDescription);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             // ...
         }
         return wCI;
@@ -399,7 +405,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
             "Bundle", "State" };
     private JPanel pComponentInfoPanel;
 
-    private Map<String, CComponentBean> pComponentsMap = new HashMap<String, CComponentBean>();
+    private final Map<String, CComponentBean> pComponentsMap = new HashMap<String, CComponentBean>();
     private JSplitPane pComponentsSplitPane;
     private JTable pComponentsTable;
     private DefaultTableModel pComponentsTableModel;
@@ -457,7 +463,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
                     pComponentsMap.put(aArchitecture.getInstanceDescription()
                             .getName(), wComponentBean);
 
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     if (hasLogger()) {
                         getLogger().logSevere(this, "addRow",
                                 CXException.eMiniInString(e));
@@ -478,7 +484,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
     void addRows(final Architecture[] aArchitectures) {
 
         if (aArchitectures.length > 0) {
-            for (Architecture wArchitecture : aArchitectures) {
+            for (final Architecture wArchitecture : aArchitectures) {
                 addRow(wArchitecture);
             }
             fireUpdateTable();
@@ -505,7 +511,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
     @Override
     String[] buildRowData(final Architecture aArchitecture) {
 
-        String[] wRowData = new String[COLUMNS_TITLE.length];
+        final String[] wRowData = new String[COLUMNS_TITLE.length];
         final InstanceDescription wDescription = aArchitecture
                 .getInstanceDescription();
 
@@ -530,7 +536,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
     @Override
     String buildTextInfos(final Architecture aArchitecture) {
 
-        StringBuilder wSB = new StringBuilder();
+        final StringBuilder wSB = new StringBuilder();
         try {
             final InstanceDescription wDescription = aArchitecture
                     .getInstanceDescription();
@@ -545,15 +551,15 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
             CXStringUtils.appendFormatStrInBuff(wSB, "bundle.id=[%d]\n",
                     wDescription.getBundleId());
 
-            HandlerDescription[] wHandlerDescriptions = aArchitecture
+            final HandlerDescription[] wHandlerDescriptions = aArchitecture
                     .getInstanceDescription().getHandlers();
 
-            ComponentInstance wComponentInstance = getComponentInstance(aArchitecture
+            final ComponentInstance wComponentInstance = getComponentInstance(aArchitecture
                     .getInstanceDescription());
 
-            for (HandlerDescription wHandlerDescription : wHandlerDescriptions) {
+            for (final HandlerDescription wHandlerDescription : wHandlerDescriptions) {
 
-                Handler wHandler = ((InstanceManager) wComponentInstance)
+                final Handler wHandler = ((InstanceManager) wComponentInstance)
                         .getHandler(wHandlerDescription.getHandlerName());
 
                 CXStringUtils.appendFormatStrInBuff(wSB, "handler %s=[%b]\n",
@@ -561,10 +567,10 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
                         wHandler.getValidity());
 
                 if (wHandler instanceof DependencyHandler) {
-                    Dependency[] wDependencies = ((DependencyHandler) wHandler)
+                    final Dependency[] wDependencies = ((DependencyHandler) wHandler)
                             .getDependencies();
 
-                    for (Dependency wDependency : wDependencies) {
+                    for (final Dependency wDependency : wDependencies) {
 
                         CXStringUtils.appendFormatStrInBuff(wSB,
                                 " Dependency %s/%s=[%d]\n",
@@ -576,7 +582,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
 
             }
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             wSB.append(CXException.eInString(e));
         }
         // if (hasLogger()) {
@@ -612,15 +618,15 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
                     pSelectionListener);
         }
 
-        List<CComponentBean> wComponentBeans = new ArrayList<CComponentBean>();
+        final List<CComponentBean> wComponentBeans = new ArrayList<CComponentBean>();
         synchronized (pComponentsMap) {
-            Set<Entry<String, CComponentBean>> wEntries = pComponentsMap
+            final Set<Entry<String, CComponentBean>> wEntries = pComponentsMap
                     .entrySet();
-            for (Entry<String, CComponentBean> wEntry : wEntries) {
+            for (final Entry<String, CComponentBean> wEntry : wEntries) {
                 wComponentBeans.add(wEntry.getValue());
             }
         }
-        for (CComponentBean wComponentBean : wComponentBeans) {
+        for (final CComponentBean wComponentBean : wComponentBeans) {
             wComponentBean.getComponentInstance().removeInstanceStateListener(
                     wComponentBean.getInstanceStateListener());
         }
@@ -637,7 +643,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
             final Architecture aArchitecture) {
 
         try {
-            ComponentInstance wComponentInstance = getComponentInstance(aArchitecture
+            final ComponentInstance wComponentInstance = getComponentInstance(aArchitecture
                     .getInstanceDescription());
 
             if (hasLogger()) {
@@ -650,7 +656,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
                 ((InstanceManager) wComponentInstance)
                         .setState(ComponentInstance.INVALID);
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             if (hasLogger()) {
                 getLogger().logInfo(this, "doInvalidateComponent", e);
             }
@@ -661,7 +667,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
             final Architecture aArchitecture) {
 
         try {
-            ComponentInstance wComponentInstance = getComponentInstance(aArchitecture
+            final ComponentInstance wComponentInstance = getComponentInstance(aArchitecture
                     .getInstanceDescription());
 
             if (hasLogger()) {
@@ -671,7 +677,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
             }
 
             wComponentInstance.stop();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             if (hasLogger()) {
                 getLogger().logInfo(this, "doStopComponent", e);
             }
@@ -685,7 +691,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
             final Architecture aArchitecture) {
 
         try {
-            ComponentInstance wComponentInstance = getComponentInstance(aArchitecture
+            final ComponentInstance wComponentInstance = getComponentInstance(aArchitecture
                     .getInstanceDescription());
 
             if (hasLogger()) {
@@ -697,7 +703,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
                 ((InstanceManager) wComponentInstance)
                         .setState(ComponentInstance.VALID);
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             if (hasLogger()) {
                 getLogger().logInfo(this, "doValidateComponent", e);
             }
@@ -725,10 +731,16 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
      */
     Architecture findInList(final int aRowIdx) {
 
-        String wName = (String) pComponentsTableModel.getValueAt(aRowIdx,
+        final String wName = (String) pComponentsTableModel.getValueAt(aRowIdx,
                 COLUMN_IDX_NAME);
 
-        return pComponentsMap.get(wName).getArchitecture();
+        final CComponentBean componentBean = pComponentsMap.get(wName);
+        if (componentBean == null) {
+            System.out.println("NO COMPONENT BEAN CALLED : " + wName);
+            return null;
+        }
+
+        return componentBean.getArchitecture();
     }
 
     /**
@@ -737,8 +749,8 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
      */
     int findInTable(final Architecture aArchitecture) {
 
-        String wName = aArchitecture.getInstanceDescription().getName();
-        int wMax = pComponentsTableModel.getRowCount();
+        final String wName = aArchitecture.getInstanceDescription().getName();
+        final int wMax = pComponentsTableModel.getRowCount();
         for (int wI = 0; wI < wMax; wI++) {
             if (wName.equals(pComponentsTableModel.getValueAt(wI,
                     COLUMN_IDX_NAME))) {
@@ -761,7 +773,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
                     pComponentsTable.tableChanged(new TableModelEvent(
                             pComponentsTableModel));
                     pComponentsTable.updateUI();
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     if (hasLogger()) {
                         getLogger().logSevere(this, "fireUpdateTable",
                                 CXException.eMiniInString(e));
@@ -821,11 +833,11 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
             pComponentsTable.getColumnModel().getColumn(COLUMN_IDX_STATE)
                     .setPreferredWidth(20);
 
-            TableRowSorter<TableModel> wServicesSorter = new TableRowSorter<TableModel>(
+            final TableRowSorter<TableModel> wServicesSorter = new TableRowSorter<TableModel>(
                     pComponentsTableModel);
             pComponentsTable.setRowSorter(wServicesSorter);
 
-            List<SortKey> wSortKeys = new ArrayList<SortKey>();
+            final List<SortKey> wSortKeys = new ArrayList<SortKey>();
             wSortKeys.add(new SortKey(COLUMN_IDX_NAME, SortOrder.ASCENDING));
             wServicesSorter.setSortKeys(wSortKeys);
 
@@ -885,7 +897,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
                         pComponentsTableModel.removeRow(wI);
                     }
                     pComponentsMap.clear();
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     if (hasLogger()) {
                         getLogger().logSevere(this, "removeAllRows",
                                 CXException.eMiniInString(e));
@@ -905,26 +917,26 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
     @Override
     void removeRow(final Architecture aArchitecture) {
 
-        final int wRowIdx = findInTable(aArchitecture);
-        if (wRowIdx != -1) {
+        execute(new Runnable() {
+            @Override
+            public void run() {
 
-            execute(new Runnable() {
-                @Override
-                public void run() {
+                final int wRowIdx = findInTable(aArchitecture);
+                if (wRowIdx != -1) {
 
                     try {
                         pComponentsTableModel.removeRow(wRowIdx);
                         pComponentsMap.remove(aArchitecture
                                 .getInstanceDescription().getName());
-                    } catch (Exception e) {
+                    } catch (final Exception e) {
                         if (hasLogger()) {
                             getLogger().logSevere(this, "removeRow",
                                     CXException.eMiniInString(e));
                         }
                     }
                 }
-            });
-        }
+            }
+        });
         fireUpdateTable();
     }
 
@@ -937,7 +949,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
     @Override
     void setRow(final Architecture aArchitecture) {
 
-        int wRowIdx = findInTable(aArchitecture);
+        final int wRowIdx = findInTable(aArchitecture);
         if (wRowIdx == -1) {
             addRow(aArchitecture);
         } else {
@@ -1008,9 +1020,9 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
     @Override
     void updateRow(final int aRowIdx, final Architecture aArchitecture) {
 
-        String[] wRowData = buildRowData(aArchitecture);
+        final String[] wRowData = buildRowData(aArchitecture);
         int wI = 0;
-        for (String wColumnValue : wRowData) {
+        for (final String wColumnValue : wRowData) {
             pComponentsTableModel.setValueAt(wColumnValue, aRowIdx, wI);
             wI++;
         }

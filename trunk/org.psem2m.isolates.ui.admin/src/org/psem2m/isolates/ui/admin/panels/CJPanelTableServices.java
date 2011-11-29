@@ -73,7 +73,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
         public void actionPerformed(final ActionEvent aEvt) {
 
             // Perform action
-            JCheckBox wCheckBox = (JCheckBox) aEvt.getSource();
+            final JCheckBox wCheckBox = (JCheckBox) aEvt.getSource();
 
             // use state to set the comptaion flag
             setServiceNameCompaction(wCheckBox.isSelected());
@@ -100,8 +100,9 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
         @Override
         public void actionPerformed(final ActionEvent aActionEvent) {
 
-            JComboBox wCombo = (JComboBox) aActionEvent.getSource();
-            String wSelectedFilterName = (String) wCombo.getSelectedItem();
+            final JComboBox wCombo = (JComboBox) aActionEvent.getSource();
+            final String wSelectedFilterName = (String) wCombo
+                    .getSelectedItem();
 
             setServicesFilterKind(wSelectedFilterName);
 
@@ -153,7 +154,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
 
             // final ServiceReference wServiceReference = findInList(aRowIndex);
 
-            JMenuItem wMenuItem1 = new JMenuItem(String.format("%s %s",
+            final JMenuItem wMenuItem1 = new JMenuItem(String.format("%s %s",
                     "Service", wName));
             wMenuItem1.addActionListener(new ActionListener() {
                 @Override
@@ -166,7 +167,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
                 }
             });
 
-            JPopupMenu wJPopupMenu = new JPopupMenu();
+            final JPopupMenu wJPopupMenu = new JPopupMenu();
             wJPopupMenu.add(wMenuItem1);
 
             return wJPopupMenu;
@@ -214,7 +215,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
 
         public void rightClik(final MouseEvent e) {
 
-            int r = pServicesTable.rowAtPoint(e.getPoint());
+            final int r = pServicesTable.rowAtPoint(e.getPoint());
             if (r >= 0 && r < pServicesTable.getRowCount()) {
                 pServicesTable.setRowSelectionInterval(r, r);
             } else {
@@ -231,12 +232,12 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
                 wRowIdx = pServicesTable.convertRowIndexToModel(wRowIdx);
 
                 createPopUp(wRowIdx).show(e.getComponent(), e.getX(), e.getY());
-            } catch (ArrayIndexOutOfBoundsException e1) {
+            } catch (final ArrayIndexOutOfBoundsException e1) {
                 if (hasLogger()) {
                     getLogger().logSevere(this, "rightClik",
                             "ArrayIndexOutOfBoundsException !");
                 }
-            } catch (Exception e2) {
+            } catch (final Exception e2) {
                 if (hasLogger()) {
                     getLogger().logInfo(this, "rightClik", e2);
                 }
@@ -257,23 +258,24 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
         @Override
         public void valueChanged(final ListSelectionEvent aListSelectionEvent) {
 
-            try {
-                int wRowIdx = pServicesTable.getSelectionModel()
-                        .getLeadSelectionIndex();
+            execute(new Runnable() {
+                @Override
+                public void run() {
 
-                if (hasLogger()) {
-                    getLogger().logInfo(this, "valueChanged", "RowIdx=[%d]",
-                            wRowIdx);
-                }
+                    try {
+                        final int wRowIdx = pServicesTable.getSelectionModel()
+                                .getLeadSelectionIndex();
 
-                if (wRowIdx > -1 && wRowIdx < pServicesTableModel.getRowCount()) {
-                    // if sorted
-                    final int wRealRowIdx = pServicesTable
-                            .convertRowIndexToModel(wRowIdx);
+                        if (hasLogger()) {
+                            getLogger().logInfo(this, "valueChanged",
+                                    "RowIdx=[%d]", wRowIdx);
+                        }
 
-                    execute(new Runnable() {
-                        @Override
-                        public void run() {
+                        if (wRowIdx > -1
+                                && wRowIdx < pServicesTableModel.getRowCount()) {
+                            // if sorted
+                            final int wRealRowIdx = pServicesTable
+                                    .convertRowIndexToModel(wRowIdx);
 
                             if (hasLogger()) {
                                 getLogger().logInfo(this, "valueChanged",
@@ -282,18 +284,19 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
                             // set the text info of the service
                             setText(buildTextInfos(wRealRowIdx));
                         }
-                    });
+                    } catch (final ArrayIndexOutOfBoundsException e1) {
+                        if (hasLogger()) {
+                            getLogger().logSevere(this, "stateChanged",
+                                    "ArrayIndexOutOfBoundsException !");
+                        }
+                    } catch (final Exception e2) {
+                        if (hasLogger()) {
+                            getLogger().logSevere(this, "stateChanged", e2);
+                        }
+                    }
+
                 }
-            } catch (ArrayIndexOutOfBoundsException e1) {
-                if (hasLogger()) {
-                    getLogger().logSevere(this, "stateChanged",
-                            "ArrayIndexOutOfBoundsException !");
-                }
-            } catch (Exception e2) {
-                if (hasLogger()) {
-                    getLogger().logSevere(this, "stateChanged", e2);
-                }
-            }
+            });
         }
     }
 
@@ -380,7 +383,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
                         pServicesTableModel.addRow(wDataRow);
                         pServicesTable.setRowSelectionInterval(0, 0);
                         pServicesList.add(aServiceReference);
-                    } catch (Exception e) {
+                    } catch (final Exception e) {
                         if (hasLogger()) {
                             getLogger().logSevere(this, "addRow",
                                     CXException.eMiniInString(e));
@@ -406,7 +409,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
             int wNbAdded = 0;
             boolean wAdded = false;
             boolean wHasAdded = false;
-            for (ServiceReference wServiceReference : aServiceReferences) {
+            for (final ServiceReference wServiceReference : aServiceReferences) {
                 wAdded = addRow(wServiceReference);
                 if (wAdded) {
                     wNbAdded++;
@@ -435,7 +438,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
     @Override
     String[] buildRowData(final ServiceReference aServiceReference) {
 
-        String[] wRowData = new String[COLUMNS_TITLE.length];
+        final String[] wRowData = new String[COLUMNS_TITLE.length];
         wRowData[COLUMN_IDX_INTERFACE] = extractServiceInterfaceCleanedCompacted(aServiceReference);
         wRowData[COLUMN_IDX_NAME] = extractServiceNameCleaned(aServiceReference);
         wRowData[COLUMN_IDX_REMOTE_INFO] = extractRemoteInfo(aServiceReference);
@@ -464,7 +467,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
     @Override
     String buildTextInfos(final ServiceReference aServiceReference) {
 
-        StringBuilder wSB = new StringBuilder();
+        final StringBuilder wSB = new StringBuilder();
 
         try {
 
@@ -478,7 +481,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
             wSB.append(extractServiceFormatedProperties("\n  PROP: %s=[%s]",
                     aServiceReference));
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             wSB.append(CXException.eInString(e));
         }
         // if (hasLogger()) {
@@ -537,9 +540,9 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
     private String extractServiceFormatedProperties(final String aFormat,
             final ServiceReference aServiceReference) {
 
-        String[] wKeys = aServiceReference.getPropertyKeys();
+        final String[] wKeys = aServiceReference.getPropertyKeys();
 
-        StringBuilder wSB = new StringBuilder();
+        final StringBuilder wSB = new StringBuilder();
 
         for (int wI = 0; wI < wKeys.length; wI++) {
             wSB.append(String.format(aFormat, wKeys[wI], aServiceReference
@@ -579,7 +582,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
 
         String wName = extractServiceInterfaceCleaned(aServiceReference);
         if (pServiceNameCompaction) {
-            StringBuilder wSB = new StringBuilder();
+            final StringBuilder wSB = new StringBuilder();
             int wI = 0;
             for (String wPart : wName.split("\\.")) {
                 if (wI > 0) {
@@ -607,10 +610,10 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
             final ServiceReference aServiceReference) {
 
         String wName = "";
-        Object wProperty = aServiceReference.getProperty("instance.name");
+        final Object wProperty = aServiceReference.getProperty("instance.name");
         if (wProperty != null && wProperty instanceof String) {
             wName = (String) wProperty;
-            int wPos = wName.indexOf('.');
+            final int wPos = wName.indexOf('.');
             if (wPos > -1 && wPos + 1 < wName.length() - 1) {
                 wName = wName.substring(wPos + 1);
             }
@@ -636,7 +639,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
      */
     int findInTable(final ServiceReference aServiceReference) {
 
-        String wServiceId = extractServiceId(aServiceReference);
+        final String wServiceId = extractServiceId(aServiceReference);
         for (int wI = 0; wI < pServicesTableModel.getRowCount(); wI++) {
             if (wServiceId.equals(pServicesTableModel.getValueAt(wI,
                     COLUMN_IDX_SERVICE_ID))) {
@@ -660,7 +663,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
                             pServicesTableModel));
                     pServicesTable.updateUI();
 
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     if (hasLogger()) {
                         getLogger().logSevere(this, "fireUpdateTable",
                                 CXException.eMiniInString(e));
@@ -728,11 +731,11 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
             pServicesTable.getColumnModel().getColumn(COLUMN_IDX_BUNDLE_ID)
                     .setPreferredWidth(30);
 
-            TableRowSorter<TableModel> wServicesSorter = new TableRowSorter<TableModel>(
+            final TableRowSorter<TableModel> wServicesSorter = new TableRowSorter<TableModel>(
                     pServicesTableModel);
             pServicesTable.setRowSorter(wServicesSorter);
 
-            List<SortKey> wSortKeys = new ArrayList<SortKey>();
+            final List<SortKey> wSortKeys = new ArrayList<SortKey>();
             wSortKeys.add(new SortKey(COLUMN_IDX_NAME, SortOrder.ASCENDING));
             wServicesSorter.setSortKeys(wSortKeys);
 
@@ -816,7 +819,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
                         pServicesTableModel.removeRow(wI);
                     }
                     pServicesList.clear();
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     if (hasLogger()) {
                         getLogger().logSevere(this, "removeAllRows",
                                 CXException.eMiniInString(e));
@@ -836,25 +839,26 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
     @Override
     void removeRow(final ServiceReference aServiceReference) {
 
-        final int wRowIdx = findInTable(aServiceReference);
-        if (wRowIdx != -1) {
+        execute(new Runnable() {
+            @Override
+            public void run() {
 
-            execute(new Runnable() {
-                @Override
-                public void run() {
+                final int wRowIdx = findInTable(aServiceReference);
+                if (wRowIdx != -1) {
 
                     try {
                         pServicesTableModel.removeRow(wRowIdx);
                         pServicesList.remove(aServiceReference);
-                    } catch (Exception e) {
+                    } catch (final Exception e) {
                         if (hasLogger()) {
                             getLogger().logSevere(this, "removeRow",
                                     CXException.eMiniInString(e));
                         }
                     }
                 }
-            });
-        }
+            }
+        });
+
         fireUpdateTable();
     }
 
@@ -864,7 +868,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
     @Override
     void setRow(final ServiceReference aServiceReference) {
 
-        int wRowIdx = findInTable(aServiceReference);
+        final int wRowIdx = findInTable(aServiceReference);
         if (wRowIdx == -1) {
             addRow(aServiceReference);
         } else {
@@ -957,9 +961,9 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
     @Override
     void updateRow(final int aRowIdx, final ServiceReference aServiceReference) {
 
-        String[] wRowData = buildRowData(aServiceReference);
+        final String[] wRowData = buildRowData(aServiceReference);
         int wI = 0;
-        for (String wColumnValue : wRowData) {
+        for (final String wColumnValue : wRowData) {
             pServicesTableModel.setValueAt(wColumnValue, aRowIdx, wI);
             wI++;
         }
@@ -979,9 +983,9 @@ enum EFilterKind {
      */
     static String[] getLibs() {
 
-        String[] wLibs = new String[values().length];
+        final String[] wLibs = new String[values().length];
         int wI = 0;
-        for (EFilterKind wKind : values()) {
+        for (final EFilterKind wKind : values()) {
             wLibs[wI] = wKind.getLib();
             wI++;
         }
@@ -994,7 +998,7 @@ enum EFilterKind {
      */
     static EFilterKind kindFromLib(final String aLib) {
 
-        for (EFilterKind wKind : values()) {
+        for (final EFilterKind wKind : values()) {
             if (wKind.pLib.equals(aLib)) {
                 return wKind;
             }
@@ -1018,7 +1022,7 @@ enum EFilterKind {
     int getIdx() {
 
         int wIdx = 0;
-        for (EFilterKind wKind : values()) {
+        for (final EFilterKind wKind : values()) {
             if (is(wKind)) {
                 return wIdx;
             }
