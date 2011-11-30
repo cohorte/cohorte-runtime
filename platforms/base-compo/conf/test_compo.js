@@ -14,17 +14,22 @@
                 "getItems":"GetItems.serverEndpoint",
                 "getItemsStock":"GetItemsStock.serverEndpoint"
             }
-        },
-        {
-            "name":"erpProxy",
-            "type":"erp-proxy-json-rpc",
-            "properties":{
-                "host":"localhost",
-                "port":8080
-            }
         }
     ],
     "composets":[
+         {
+             "name":"ERP",
+             "components":[
+				{
+					"name":"erpProxy",
+					"type":"erp-proxy-json-rpc",
+					"properties":{
+						"host":"localhost",
+						"port":8080
+					 }
+				}
+			]
+        }, 
         {
             "name":"GetItem",
             "components":[
