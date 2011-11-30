@@ -7,15 +7,23 @@ import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.BundleListener;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.packageadmin.PackageAdmin;
@@ -43,7 +51,8 @@ import org.psem2m.isolates.slave.agent.ISvcAgent;
  * 
  * @author Thomas Calmant
  */
-public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener {
+public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
+        BundleListener {
 
     /** Bootstrap message sender */
     private IBootstrapMessageSender pBootstrapSender;
@@ -57,8 +66,8 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener {
     /** Configuration service, injected by iPOJO */
     private ISvcConfig pConfigurationSvc;
 
-    /** The bundle state monitoring thread */
-    private GuardianThread pGuardianThread;
+    /** The agent core critical section flag */
+    private AtomicBoolean pCriticalSection = new AtomicBoolean(false);
 
     /** Bundles installed by the agent : bundle ID -&gt; bundle description map */
     private final Map<Long, IBundleDescr> pInstalledBundles = new LinkedHashMap<Long, IBundleDescr>();
@@ -69,11 +78,17 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener {
     /** Platform directories service, injected by iPOJO */
     private IPlatformDirsSvc pPlatformDirsSvc;
 
+    /** The scheduler */
+    private ScheduledExecutorService pScheduler;
+
     /** Signal broadcaster */
     private ISignalBroadcaster pSignalBroadcaster;
 
     /** Signal receiver */
     private ISignalReceiver pSignalReceiver;
+
+    /** The update timeouts */
+    private final Map<Long, ScheduledFuture<?>> pUpdateTimeouts = new HashMap<Long, ScheduledFuture<?>>();
 
     /**
      * Sets up the agent (called by iPOJO)
@@ -85,6 +100,129 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener {
 
         super();
         pBundleContext = aBundleContext;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.osgi.framework.BundleListener#bundleChanged(org.osgi.framework.
+     * BundleEvent)
+     */
+    @Override
+    public void bundleChanged(final BundleEvent aBundleEvent) {
+
+        // Keep a reference to the bundle ID
+        final long bundleId = aBundleEvent.getBundle().getBundleId();
+
+        if (pCriticalSection.get()) {
+            // In critical section : ignore events, cancel timeouts
+            cancelTimeout(bundleId);
+            return;
+        }
+
+        final IBundleDescr bundleDescr;
+        synchronized (pInstalledBundles) {
+            // Find the monitored bundle description
+            bundleDescr = pInstalledBundles.get(bundleId);
+        }
+
+        if (bundleDescr == null) {
+            // Non-monitored bundle
+            return;
+        }
+
+        switch (aBundleEvent.getType()) {
+
+        case BundleEvent.STARTED:
+        case BundleEvent.UPDATED: {
+            /*
+             * An updated bundle has be (re)started, cancel the update timeout
+             */
+            cancelTimeout(bundleId);
+            break;
+        }
+
+        case BundleEvent.UNRESOLVED:
+        case BundleEvent.STOPPED: {
+            /*
+             * A bundle has stopped or unresolved. It can be for an update so
+             * wait a little
+             * 
+             * Prepare a ScheduledFuture based timeout
+             */
+            // Cancel previous timeout
+            cancelTimeout(bundleId);
+
+            // Prepare a new one
+            final ScheduledFuture<?> future = pScheduler.schedule(
+                    new Runnable() {
+
+                        @Override
+                        public void run() {
+
+                            // Remove ourself from the timeouts map
+                            pUpdateTimeouts.remove(bundleId);
+
+                            // Try to restart the bundle
+                            try {
+                                startBundle(bundleId);
+
+                            } catch (final Exception e) {
+                                pIsolateLoggerSvc.logSevere(this,
+                                        "bundleChanged",
+                                        "Can't restart bundle", bundleId, e);
+
+                                if (!bundleDescr.getOptional()) {
+                                    pIsolateLoggerSvc.logSevere(this,
+                                            "bundleChanged", "Failed bundle",
+                                            bundleId,
+                                            "is not optional : reset isolate.");
+
+                                    // Reset isolate on error
+                                    safeIsolateReset();
+                                }
+                            }
+                        }
+
+                    }, 1500, TimeUnit.MILLISECONDS);
+
+            pUpdateTimeouts.put(bundleId, future);
+            break;
+        }
+
+        case BundleEvent.UNINSTALLED: {
+            /*
+             * A bundle has been uninstalled, bad for us
+             */
+            cancelTimeout(bundleId);
+            handleUninstalledBundleEvent(bundleDescr);
+            break;
+        }
+
+        default:
+            // Ignore other cases, if any
+            break;
+        }
+    }
+
+    /**
+     * Cancels a bundle event timeout
+     * 
+     * @param aBundleId
+     *            Bundle ID
+     */
+    protected void cancelTimeout(final long aBundleId) {
+
+        final ScheduledFuture<?> future = pUpdateTimeouts.get(aBundleId);
+        if (future != null) {
+            final boolean cancelled = future.cancel(false);
+
+            pIsolateLoggerSvc.logDebug(this, "bundleChanged",
+                    "Bundle timeout cancellation=", cancelled);
+        }
+
+        // Remove it from the map
+        pUpdateTimeouts.remove(aBundleId);
     }
 
     /*
@@ -131,7 +269,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener {
             // Retrieve its URL
             return bundleRef.getUri().toURL().toString();
 
-        } catch (MalformedURLException ex) {
+        } catch (final MalformedURLException ex) {
             pIsolateLoggerSvc.logWarn(this, "findBundleURL",
                     "Error preparing bundle URL", ex);
         }
@@ -163,7 +301,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener {
      */
     public BundleInfo getBundleInfo(final long aBundleId) {
 
-        Bundle bundle = pBundleContext.getBundle(aBundleId);
+        final Bundle bundle = pBundleContext.getBundle(aBundleId);
         if (bundle == null) {
             return null;
         }
@@ -178,11 +316,11 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener {
      */
     public BundleInfo[] getBundlesState() {
 
-        Bundle[] bundles = pBundleContext.getBundles();
-        BundleInfo[] bundlesInfo = new BundleInfo[bundles.length];
+        final Bundle[] bundles = pBundleContext.getBundles();
+        final BundleInfo[] bundlesInfo = new BundleInfo[bundles.length];
 
         int i = 0;
-        for (Bundle bundle : bundles) {
+        for (final Bundle bundle : bundles) {
             bundlesInfo[i] = new BundleInfo(bundle);
             i++;
         }
@@ -218,9 +356,81 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener {
             pIsolateLoggerSvc.logInfo(this, "handleReceivedSignal",
                     "STOP signal received. Killing isolate.");
 
+            // Enter critical section
+            if (!pCriticalSection.compareAndSet(false, true)) {
+
+                pIsolateLoggerSvc.logSevere(this, "handle STOP signal",
+                        "Killing isolate while already in critical section !");
+
+                // Force value (just in case...)
+                pCriticalSection.set(true);
+            }
+
             // Kill ourselves
             killIsolate();
         }
+    }
+
+    /**
+     * Called when an UNINSTALLED signal has been triggered for a bundle
+     * 
+     * @param aBundle
+     *            The modified bundle
+     * @param aBundleDescr
+     *            The internal bundle description
+     */
+    protected void handleUninstalledBundleEvent(final IBundleDescr aBundleDescr) {
+
+        if (aBundleDescr.getOptional()) {
+            // Just log it
+            pIsolateLoggerSvc.logWarn(this, "handleUninstalledBundleEvent",
+                    "The optional bundle", aBundleDescr.getSymbolicName(),
+                    "has been uninstalled.");
+
+        } else {
+            // Very bad
+            pIsolateLoggerSvc.logSevere(this, "handleUninstalledBundleEvent",
+                    "The *mandatory* bundle", aBundleDescr.getSymbolicName(),
+                    "has been uninstalled.");
+
+            // Try to re-install it
+            boolean needsIsolateReset = true;
+            final String bundleFile = findBundleURL(aBundleDescr);
+            if (bundleFile != null && !bundleFile.isEmpty()) {
+                try {
+                    // Re-install the bundle (new ID)
+                    final long bundleId = installBundle(bundleFile);
+
+                    // Add it in the map
+                    pInstalledBundles.put(bundleId, aBundleDescr);
+
+                    // Start it (needs to have the description in the map)
+                    startBundle(bundleId);
+
+                    // All done
+                    needsIsolateReset = false;
+
+                } catch (final BundleException e) {
+                    pIsolateLoggerSvc.logSevere(this,
+                            "handleUninstalledBundleEvent",
+                            "Error trying to reinstall",
+                            aBundleDescr.getSymbolicName(), ": Reset isolate",
+                            e);
+                }
+
+            } else {
+                // No valid file path found
+                pIsolateLoggerSvc.logSevere(this,
+                        "handleUninstalledBundleEvent",
+                        "No bundle file found for",
+                        aBundleDescr.getSymbolicName(), ": Reset isolate");
+            }
+
+            if (needsIsolateReset) {
+                safeIsolateReset();
+            }
+        }
+
     }
 
     /**
@@ -245,17 +455,22 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener {
     @Override
     public void invalidatePojo() {
 
+        // Unregister the bundle listener
+        pBundleContext.removeBundleListener(this);
+
+        // Stop the scheduled timeouts
+        pScheduler.shutdownNow();
+        pScheduler = null;
+
+        pUpdateTimeouts.clear();
+
+        // Send the stop signal
         final IsolateStatus status = pBootstrapSender.sendStatus(
                 IsolateStatus.STATE_AGENT_STOPPED, 100);
 
         pSignalBroadcaster.sendData(
                 ISignalBroadcaster.EEmitterTargets.MONITORS,
                 ISignalsConstants.ISOLATE_STATUS_SIGNAL, status);
-
-        // Stop the guardian thread, if any
-        if (pGuardianThread != null && pGuardianThread.isAlive()) {
-            pGuardianThread.interrupt();
-        }
     }
 
     /**
@@ -289,7 +504,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener {
             // Stop the platform
             pBundleContext.getBundle(0).stop();
 
-        } catch (BundleException e) {
+        } catch (final BundleException e) {
             // Damn
             pIsolateLoggerSvc.logSevere(this, "validatePojo",
                     "Can't stop the framework", e);
@@ -298,7 +513,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener {
                 // Hara kiri
                 pBundleContext.getBundle().stop();
 
-            } catch (BundleException e1) {
+            } catch (final BundleException e1) {
                 pIsolateLoggerSvc.logSevere(this, "validatePojo",
                         "Agent suicide FAILED (you're in trouble)", e1);
             }
@@ -316,7 +531,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener {
         synchronized (pInstalledBundles) {
             // Synchronized map, to avoid messing with the guardian
 
-            List<Entry<Long, IBundleDescr>> wList = new ArrayList<Entry<Long, IBundleDescr>>(
+            final List<Entry<Long, IBundleDescr>> wList = new ArrayList<Entry<Long, IBundleDescr>>(
                     pInstalledBundles.entrySet());
 
             Long wBundleId;
@@ -328,7 +543,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener {
                             "BundleId=[%d]", wBundleId);
                     uninstallBundle(wBundleId);
 
-                } catch (BundleException ex) {
+                } catch (final BundleException ex) {
                     // Only log the error
                     pIsolateLoggerSvc.logWarn(this, "neutralizeIsolate",
                             "Error stopping bundle : ",
@@ -392,7 +607,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener {
             // Synchronized map, to avoid messing with the guardian
 
             // First loop : install bundles
-            for (IBundleDescr bundleDescr : isolateDescr.getBundles()) {
+            for (final IBundleDescr bundleDescr : isolateDescr.getBundles()) {
 
                 final String bundleName = bundleDescr.getSymbolicName();
                 final String bundleUrl = findBundleURL(bundleDescr);
@@ -408,12 +623,12 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener {
                         }
 
                         // Install bundle
-                        long bundleId = installBundle(bundleUrl);
+                        final long bundleId = installBundle(bundleUrl);
 
                         // Update the list of installed bundles
                         pInstalledBundles.put(bundleId, bundleDescr);
 
-                    } catch (BundleException ex) {
+                    } catch (final BundleException ex) {
 
                         switch (ex.getType()) {
                         case BundleException.DUPLICATE_BUNDLE_ERROR:
@@ -455,12 +670,12 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener {
             }
 
             // Second loop : start bundles
-            for (Long bundleId : pInstalledBundles.keySet()) {
+            for (final Long bundleId : pInstalledBundles.keySet()) {
 
                 try {
                     startBundle(bundleId);
 
-                } catch (BundleException ex) {
+                } catch (final BundleException ex) {
                     if (pInstalledBundles.get(bundleId).getOptional()) {
                         // Simply log
                         pIsolateLoggerSvc.logWarn(this, "prepareIsolate",
@@ -502,9 +717,9 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener {
         if (aBundleIdArray != null) {
             bundles = new Bundle[aBundleIdArray.length];
             int i = 0;
-            for (long bundleId : aBundleIdArray) {
+            for (final long bundleId : aBundleIdArray) {
 
-                Bundle bundle = pBundleContext.getBundle(bundleId);
+                final Bundle bundle = pBundleContext.getBundle(bundleId);
                 if (bundle != null) {
                     bundles[i++] = bundle;
                 }
@@ -512,13 +727,13 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener {
         }
 
         // Grab the service
-        ServiceReference svcRef = pBundleContext
+        final ServiceReference svcRef = pBundleContext
                 .getServiceReference(PackageAdmin.class.getName());
         if (svcRef == null) {
             return false;
         }
 
-        PackageAdmin packadmin = (PackageAdmin) pBundleContext
+        final PackageAdmin packadmin = (PackageAdmin) pBundleContext
                 .getService(svcRef);
         if (packadmin == null) {
             return false;
@@ -534,6 +749,41 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener {
         }
 
         return true;
+    }
+
+    /**
+     * Enters a critical section to reset the isolate.
+     * 
+     * In case of fatal error, kills the isolate.
+     */
+    protected void safeIsolateReset() {
+
+        // Enter critical section
+        if (pCriticalSection.compareAndSet(false, true)) {
+            try {
+
+                // Reset isolate
+                neutralizeIsolate();
+                prepareIsolate();
+
+            } catch (final Exception e) {
+                // An error at this level is fatal
+                pIsolateLoggerSvc.logSevere(this, "bundleChanged",
+                        "Error reseting isolate. Abandon.", e);
+
+                killIsolate();
+
+            } finally {
+                // End of critical section
+                pCriticalSection.set(false);
+            }
+
+        } else {
+            pIsolateLoggerSvc.logSevere(this, "bundleChanged - INCOHERENT",
+                    "Incoherent state : Can't start a critical section...");
+
+            killIsolate();
+        }
     }
 
     /**
@@ -559,7 +809,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener {
         try {
             isolateAccessUrl = new URL(isolateAccessStr);
 
-        } catch (MalformedURLException e) {
+        } catch (final MalformedURLException e) {
             pIsolateLoggerSvc.log(Level.WARNING, this, "setupHttpProperties",
                     "Invalid access URL '", isolateAccessStr, "' for ",
                     aIsolateDescr.getId());
@@ -573,7 +823,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener {
         }
 
         // Find the access port
-        int accessPort = isolateAccessUrl.getPort();
+        final int accessPort = isolateAccessUrl.getPort();
         if (accessPort == -1) {
             // No port defined, do nothing
             pIsolateLoggerSvc.log(Level.WARNING, this, "setupHttpProperties",
@@ -599,7 +849,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener {
      */
     public boolean startBundle(final long aBundleId) throws BundleException {
 
-        Bundle bundle = pBundleContext.getBundle(aBundleId);
+        final Bundle bundle = pBundleContext.getBundle(aBundleId);
         if (bundle == null) {
             return false;
         }
@@ -624,7 +874,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener {
      */
     public boolean stopBundle(final long aBundleId) throws BundleException {
 
-        Bundle bundle = pBundleContext.getBundle(aBundleId);
+        final Bundle bundle = pBundleContext.getBundle(aBundleId);
         if (bundle == null) {
             return false;
         }
@@ -644,7 +894,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener {
      */
     public boolean uninstallBundle(final long aBundleId) throws BundleException {
 
-        Bundle bundle = pBundleContext.getBundle(aBundleId);
+        final Bundle bundle = pBundleContext.getBundle(aBundleId);
         if (bundle == null) {
             return false;
         }
@@ -668,7 +918,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener {
      */
     public boolean updateBundle(final long aBundleId) throws BundleException {
 
-        Bundle bundle = pBundleContext.getBundle(aBundleId);
+        final Bundle bundle = pBundleContext.getBundle(aBundleId);
         if (bundle == null) {
             return false;
         }
@@ -685,18 +935,25 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener {
     @Override
     public void validatePojo() {
 
+        // Set up the scheduler, before the call to addBundleListener.
+        pScheduler = Executors.newScheduledThreadPool(1);
+
         // Register to the signal receiver for the STOP signal
         pSignalReceiver.registerListener(ISignalsConstants.ISOLATE_STOP_SIGNAL,
                 this);
 
         // Prepare the current isolate, nobody else can do it
         try {
+            pCriticalSection.set(true);
             prepareIsolate();
+            pCriticalSection.set(false);
 
-            // Start the guardian on success
-            pGuardianThread = new GuardianThread(this);
-            pGuardianThread.start();
+            /*
+             * Register to bundle events : replaces the guardian thread.
+             */
+            pBundleContext.addBundleListener(this);
 
+            // Send the signal to say we are good
             final IsolateStatus status = pBootstrapSender.sendStatus(
                     IsolateStatus.STATE_AGENT_DONE, 100);
 
@@ -705,7 +962,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener {
                     ISignalBroadcaster.EEmitterTargets.MONITORS,
                     ISignalsConstants.ISOLATE_STATUS_SIGNAL, status);
 
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
             System.err.println("Preparation error : " + ex);
             ex.printStackTrace();
 
