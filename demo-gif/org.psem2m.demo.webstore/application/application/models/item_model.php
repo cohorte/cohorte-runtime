@@ -537,10 +537,51 @@ stdClass::__set_state(array(
         
         $wItems = array();
         
-        if(isset($wData->result->map->error)){
-        	
+        /*
+         * 
+		stdClass::__set_state(array(
+		   'id' => 'ID_388527835',
+		   'result' => 
+		  stdClass::__set_state(array(
+		     'javaClass' => 'java.util.ArrayList',
+		     'list' => 
+		    array (
+		      0 => 
+		      stdClass::__set_state(array(
+		         'map' => 
+		        stdClass::__set_state(array(
+		           'error' => 
+		          stdClass::__set_state(array(
+		             'message' => 'JSONRPC error code 591: Caused by method with the requested number of arguments not found (session may have timed out)',
+		             'localizedMessage' => 'JSONRPC error code 591: Caused by method with the requested number of arguments not found (session may have timed out)',
+		             'cause' => NULL,
+		             'trace' => NULL,
+		             'javaClass' => 'org.jabsorb.client.ErrorResponse',
+		             'stackTrace' => 
+		 *
+		 *
+			stdClass::__set_state(array(
+			   'id' => 'ID_180416054',
+			   'error' => 
+			  stdClass::__set_state(array(
+			     'code' => 591,
+			     'msg' => 'method with the requested number of arguments not found (session may have timed out)',
+			  )),
+			))
+		 *
+         */
+        
+        $wErrorBean = null;
+        
+        if(isset($wData->result->list[0]->map->error)){
+        	$wErrorBean = $wData->result->list[0]->map->error;
+        }else if(isset($wData->result->map->error)){       	
         	$wErrorBean = $wData->result->map->error;
-        	 
+        }else if(isset($wData->error)){       	
+        	$wErrorBean = $wData->error;
+        }
+        
+        if ($wErrorBean!=null){
         	$wItem = array();
         	$wItem['id'] =  $wErrorBean->message;
         	$wItem['stock'] = -1;
