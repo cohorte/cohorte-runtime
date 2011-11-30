@@ -192,12 +192,10 @@ public class CacheQueueHandler extends CPojoBase implements IComponent,
     public void invalidatePojo() throws BundleException {
 
         // Stop running thread
-        pRunning = false;
-        pThread.interrupt();
+        threadStop();
 
         // Release references...
         pChannel = null;
-        pThread = null;
 
         pLogger.logInfo(this, "invalidatePojo", "component=[%s] Gone", pName);
     }
@@ -210,6 +208,9 @@ public class CacheQueueHandler extends CPojoBase implements IComponent,
 
         pLogger.logInfo(this, "nextBind", "component=[%s] next=[%s]", pName,
                 String.valueOf(aNext));
+
+        // Start the polling thread
+        threadStart();
     }
 
     /**
@@ -220,6 +221,9 @@ public class CacheQueueHandler extends CPojoBase implements IComponent,
 
         pLogger.logInfo(this, "nextUnbind", "component=[%s] next=[%s]", pName,
                 String.valueOf(aNext));
+
+        // Stop running thread
+        threadStop();
     }
 
     /*
@@ -253,36 +257,24 @@ public class CacheQueueHandler extends CPojoBase implements IComponent,
 
                     final IComponentContext context = (IComponentContext) cachedObjectContent;
 
-                    if (pLogger.isLogDebugOn()) {
-                        pLogger.logDebug(this, "run",
-                                "component=[%s] Next  available=[%b]", pName,
-                                pNext != null);
-                    }
+                    // Call the next component
+                    try {
+                        resultContext = pNext.computeResult(context);
 
-                    // if the next wire is not available (optionnal = true) ...
-                    if (pNext == null) {
+                        // if pNext is a Mock ( pNext is not null )
+                        needsReinjection = resultContext == null;
+
+                    } catch (final Exception e) {
+                        pLogger.logSevere(
+                                this,
+                                "run",
+                                "component=[%s] Polling Cache Queue ERROR : %s",
+                                pName, e);
 
                         // Ask for cart re-injection
                         needsReinjection = true;
-                    } else {
-                        // Call the next component
-                        try {
-                            resultContext = pNext.computeResult(context);
-
-                            // if pNext is a Mock ( pNext is not null )
-                            needsReinjection = resultContext == null;
-
-                        } catch (final Exception e) {
-                            pLogger.logSevere(
-                                    this,
-                                    "run",
-                                    "component=[%s] Polling Cache Queue ERROR : %s",
-                                    pName, e);
-
-                            // Ask for cart re-injection
-                            needsReinjection = true;
-                        }
                     }
+
                     if (pLogger.isLogDebugOn()) {
                         pLogger.logDebug(
                                 this,
@@ -299,6 +291,11 @@ public class CacheQueueHandler extends CPojoBase implements IComponent,
                             && !resultContext.hasResult()) {
                         // Something happened further in the chain : re-inject
                         pChannel.addFirst(cachedObject);
+
+                        if (pLogger.isLogDebugOn()) {
+                            pLogger.logDebug(this, "run",
+                                    "component=[%s] Reinjection OK", pName);
+                        }
 
                         // Wait a little...
                         Thread.sleep(1000);
@@ -347,6 +344,33 @@ public class CacheQueueHandler extends CPojoBase implements IComponent,
         pLogger.logDebug(this, "run", "component=[%s] Thread stopped", pName);
     }
 
+    /**
+     * 
+     */
+    private void threadStart() {
+
+        pLogger.logInfo(this, "threadStart", "component=[%s]", pName);
+
+        pRunning = true;
+        pThread = new Thread(this);
+        pThread.setDaemon(true);
+        pThread.start();
+    }
+
+    /**
+     * 
+     */
+    private void threadStop() {
+
+        pLogger.logInfo(this, "threadStop", "component=[%s]", pName);
+
+        pRunning = false;
+        if (pThread != null) {
+            pThread.interrupt();
+            pThread = null;
+        }
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -358,12 +382,6 @@ public class CacheQueueHandler extends CPojoBase implements IComponent,
 
         // Open the cart channel
         pChannel = pCache.openDequeueChannel(pCacheChannelName);
-
-        // Start the polling thread
-        pRunning = true;
-        pThread = new Thread(this);
-        pThread.setDaemon(true);
-        pThread.start();
 
         pLogger.logInfo(this, "validatePojo", "component=[%s] Ready", pName);
     }

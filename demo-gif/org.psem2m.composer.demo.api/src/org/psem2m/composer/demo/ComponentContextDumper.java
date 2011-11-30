@@ -76,7 +76,6 @@ public class ComponentContextDumper {
             }
 
         }
-
         return aSB;
     }
 }
