@@ -22,26 +22,17 @@ import org.psem2m.isolates.base.activators.IActivatorBase;
 public class CBundleUiActivator extends CActivatorBase implements
         IActivatorBase {
 
-    /** first instance **/
+    /** Current instance **/
     private static CBundleUiActivator sSingleton = null;
 
     /**
-     * @return
+     * Retrieves the current bundle instance
+     * 
+     * @return The bundle instance
      */
     public static CBundleUiActivator getInstance() {
 
         return sSingleton;
-    }
-
-    /**
-     * Explicit default constructor
-     */
-    public CBundleUiActivator() {
-
-        super();
-        if (sSingleton == null) {
-            sSingleton = this;
-        }
     }
 
     /*
@@ -83,8 +74,10 @@ public class CBundleUiActivator extends CActivatorBase implements
     @Override
     public void start(final BundleContext bundleContext) throws Exception {
 
+        // Store the singleton reference
+        sSingleton = this;
+
         super.start(bundleContext);
-        // ...
     }
 
     /*
@@ -97,7 +90,9 @@ public class CBundleUiActivator extends CActivatorBase implements
     public void stop(final BundleContext bundleContext) throws Exception {
 
         super.stop(bundleContext);
-        // ...
+
+        // Forget the singleton reference
+        sSingleton = null;
     }
 
 }
