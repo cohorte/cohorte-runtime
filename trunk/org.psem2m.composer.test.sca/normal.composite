@@ -1,38 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<csa:composite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:csa="http://docs.oasis-open.org/ns/opencsa/sca/200912"
-	xmlns:psem2m="http://www.psem2m.org/ns/psem2m-sca"
-	xsi:schemaLocation="http://www.psem2m.org/ns/psem2m-sca psem2m-sca.xsd http://docs.oasis-open.org/ns/opencsa/sca/200912 http://docs.oasis-open.org/opencsa/sca-assembly/sca-1.1-cd06.xsd"
-	name="normal" targetNamespace="app/normal">
-
-	<csa:component name="get-cache">
-		<csa:service name="IComponent">
-			<csa:interface.java interface="org.psem2m.composer.test.api.IComponent"></csa:interface.java>
-		</csa:service>
-		<csa:reference name="next" />
-		<csa:property name="channelName" value="testCache" />
-		<csa:property name="channelEntryName" value="toto" />
-		<csa:property name="maxCacheAge" value="5000" />
-		<csa:reference name="logger" />
-		<csa:reference name="cache" />
-		<psem2m:implementation.psem2m type="get-cache-if-recent"
-			isolate="isolate-1" />
-	</csa:component>
-	<csa:service name="IComponent" promote="get-cache/IComponent" />
-
-	<csa:component name="store-to-cache">
-		<csa:service name="IComponent">
-			<csa:interface.java interface="org.psem2m.composer.test.api.IComponent"></csa:interface.java>
-		</csa:service>
-		<csa:reference name="next" />
-		<csa:property name="channelName" value="testCache" />
-		<csa:property name="channelEntryName" value="toto" />
-		<csa:reference name="logger" />
-		<csa:reference name="cache" />
-		<psem2m:implementation.psem2m type="store-cache"
-			isolate="isolate-1" />
-	</csa:component>
-	<csa:reference name="next" promote="store-to-cache/next" />
-
-	<csa:wire source="get-cache/next" target="store-to-cache/IComponent" />
+<csa:composite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:csa="http://docs.oasis-open.org/ns/opencsa/sca/200912" xmlns:psem2m="http://www.psem2m.org/ns/psem2m-sca" xsi:schemaLocation="http://www.psem2m.org/ns/psem2m-sca psem2m-sca.xsd http://docs.oasis-open.org/ns/opencsa/sca/200912 http://docs.oasis-open.org/opencsa/sca-assembly/sca-1.1-cd06.xsd" name="normal" targetNamespace="app/normal">
+  <csa:component name="get-cache">
+    <csa:service name="IComponent">
+      <csa:interface.java interface="org.psem2m.composer.test.api.IComponent"/>
+    </csa:service>
+    <csa:reference name="next"/>
+    <csa:property name="channelName" value="testCache"/>
+    <csa:property name="channelEntryName" value="toto"/>
+    <csa:property name="maxCacheAge" value="5000"/>
+    <csa:reference name="logger"/>
+    <csa:reference name="cache"/>
+    <psem2m:implementation.psem2m type="get-cache-if-recent" isolate="isolate-1"/>
+  </csa:component>
+  <csa:service name="IComponent" promote="get-cache/IComponent"/>
+  <csa:component name="store-to-cache">
+    <csa:service name="IComponent">
+      <csa:interface.java interface="org.psem2m.composer.test.api.IComponent"/>
+    </csa:service>
+    <csa:reference name="next"/>
+    <csa:property name="channelName" value="testCache"/>
+    <csa:property name="channelEntryName" value="toto"/>
+    <csa:reference name="logger"/>
+    <csa:reference name="cache"/>
+    <psem2m:implementation.psem2m type="store-cache" isolate="isolate-1"/>
+  </csa:component>
+  <csa:reference name="next" promote="store-to-cache/next"/>
+  <csa:wire source="get-cache/next" target="store-to-cache/IComponent" source2="#get-cache/next" target2="#store-to-cache/IComponent"/>
 </csa:composite>

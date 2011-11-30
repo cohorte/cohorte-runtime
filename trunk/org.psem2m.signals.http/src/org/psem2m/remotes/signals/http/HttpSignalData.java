@@ -6,6 +6,7 @@
 package org.psem2m.remotes.signals.http;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.services.remote.signals.ISignalData;
@@ -105,6 +106,20 @@ public class HttpSignalData implements Serializable, ISignalData {
         pHostName = aHostName;
     }
 
+    /**
+     * return a human readable string
+     * 
+     * @return an instance of String
+     */
+    private String signalDataToString() {
+
+        if (pSignalData != null && pSignalData.getClass().isArray()) {
+            return Arrays.toString((Object[]) pSignalData);
+        } else {
+            return String.valueOf(pSignalData);
+        }
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -115,7 +130,7 @@ public class HttpSignalData implements Serializable, ISignalData {
 
         final StringBuilder builder = new StringBuilder("HttpSignalData(");
         builder.append("Sender: ").append(pIsolateSender);
-        builder.append(", Data: ").append(pSignalData);
+        builder.append(", Data: ").append(signalDataToString());
         builder.append(")");
 
         return builder.toString();

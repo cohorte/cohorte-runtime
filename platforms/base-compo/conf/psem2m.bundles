@@ -1,0 +1,47 @@
+# PSEM2M Base bundles
+#
+# Indicates which bundles must be installed to consider an isolate as neutral
+# and ready to roll.
+#
+# DO NOT use this file as an application provision file. Use JSON configuration
+# files for that.
+#
+
+# OSGi Compendium 4.2
+osgi.cmpn
+
+# Log Service
+# org.apache.felix.log
+
+# Basic constants and remote beans
+org.psem2m.isolates.constants
+
+# JMX Threads monitor
+#org.psem2m.isolates.jmx.monitor
+
+# Utility classes
+org.psem2m.isolates.utilities
+
+# Base services exports
+org.psem2m.isolates.base
+
+# iPOJO Stuffs
+include: ipojo.bundles
+
+# Signals Base (based on iPOJO)
+org.psem2m.signals
+
+# Shell stuffs
+org.apache.felix.shell
+#org.apache.felix.shell.remote
+org.apache.felix.ipojo.arch
+
+# PSEM2M Extra Log services
+org.psem2m.isolates.loggers
+
+# Configuration reader
+org.psem2m.isolates.config
+
+# Isolate agent (use the configuration to load the next bundles)
+# Should be the last bundle to be started by the bootstrap
+org.psem2m.isolates.slave.agent

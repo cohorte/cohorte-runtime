@@ -65,16 +65,22 @@ class MY_Controller extends CI_Controller {
 		foreach ($aItems as $wId=>$wItem) {
 			array_push($wItemIds,$wItem['id']);
 		}
+		
 
 		$wItemsStock= $this->Item_model->getItemsStock($wItemIds);
+		
+		$wMax = sizeof($wItemsStock);
+		//echo '<br/>$wMax'.$wMax;
 
 		//echo  '<br/>'.var_export($wItemsStock,true);
 
 		$wItems = array();
 		$wI=0;
 		foreach ($aItems as $wId=>$wItem) {
-			$wItem['stock'] = $wItemsStock[$wI]['stock'];
-			$wItem['stockQualityClass'] = $this->convertQualityToClass ($wItemsStock[$wI]['qualityLevel']);
+			
+			//echo '<br/>$$wI'.$wI;
+			$wItem['stock'] = ($wI<$wMax)? $wItemsStock[$wI]['stock']:-1;
+			$wItem['stockQualityClass'] =  ($wI<$wMax)? $this->convertQualityToClass( $wItemsStock[$wI]['qualityLevel']):'critical' ;
 			//echo  '<br/>'.var_export($wItemsStock[$wI]['stock'],true)."&nbsp;".var_export($wItemsStock[$wI]['stockquality'],true);
 			array_push($wItems,$wItem);
 			$wI++;
