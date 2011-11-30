@@ -382,11 +382,10 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
         }
     }
 
-    private final static int COLUMN_IDX_BUNDLE = 2;
-
+    private final static int COLUMN_IDX_BUNDLE = 3;
     private final static int COLUMN_IDX_FACTORY = 1;
     private final static int COLUMN_IDX_NAME = 0;
-    private final static int COLUMN_IDX_STATE = 3;
+    private final static int COLUMN_IDX_STATE = 2;
     private static final long serialVersionUID = -6506936458249187873L;
 
     /**
@@ -413,11 +412,11 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
     }
 
     private final boolean[] COLUMNS_EDITABLE = { false, false, false, false };
-
+    private final int[] COLUMNS_SIZE = { 150, 150, 20, 5 };
     private final String[] COLUMNS_TITLE = { "Component name", "Factory name",
-            "Bundle", "State" };
-    private JPanel pComponentInfoPanel;
+            "State", "Bndl" };
 
+    private JPanel pComponentInfoPanel;
     private final Map<String, CComponentBean> pComponentsMap = new HashMap<String, CComponentBean>();
     private JSplitPane pComponentsSplitPane;
     private JTable pComponentsTable;
@@ -840,11 +839,13 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
             pComponentsTable.setModel(pComponentsTableModel);
 
             pComponentsTable.getColumnModel().getColumn(COLUMN_IDX_NAME)
-                    .setPreferredWidth(200);
+                    .setPreferredWidth(COLUMNS_SIZE[COLUMN_IDX_NAME]);
             pComponentsTable.getColumnModel().getColumn(COLUMN_IDX_FACTORY)
-                    .setPreferredWidth(20);
+                    .setPreferredWidth(COLUMNS_SIZE[COLUMN_IDX_FACTORY]);
             pComponentsTable.getColumnModel().getColumn(COLUMN_IDX_STATE)
-                    .setPreferredWidth(20);
+                    .setPreferredWidth(COLUMNS_SIZE[COLUMN_IDX_STATE]);
+            pComponentsTable.getColumnModel().getColumn(COLUMN_IDX_BUNDLE)
+                    .setPreferredWidth(COLUMNS_SIZE[COLUMN_IDX_BUNDLE]);
 
             final TableRowSorter<TableModel> wServicesSorter = new TableRowSorter<TableModel>(
                     pComponentsTableModel);

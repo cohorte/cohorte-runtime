@@ -281,14 +281,15 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
         }
     }
 
-    private final static int COLUMN_IDX_ID = 1;
+    private final static int COLUMN_IDX_ID = 2;
     private final static int COLUMN_IDX_NAME = 0;
-    private final static int COLUMN_IDX_STATE = 2;
+    private final static int COLUMN_IDX_STATE = 1;
 
     private static final long serialVersionUID = -6506936458249187873L;
 
     private final boolean[] COLUMNS_EDITABLE = { false, false, false };
-    private final String[] COLUMNS_TITLE = { "Bundle name", "Id", "State" };
+    private final int[] COLUMNS_SIZE = { 200, 15, 5 };
+    private final String[] COLUMNS_TITLE = { "Bundle name", "State", "Bndl" };
 
     private JPanel pBundleInfoPanel;
     /**
@@ -559,11 +560,11 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
             pBundlesTable.setModel(pBundlesTableModel);
 
             pBundlesTable.getColumnModel().getColumn(COLUMN_IDX_NAME)
-                    .setPreferredWidth(200);
+                    .setPreferredWidth(COLUMNS_SIZE[COLUMN_IDX_NAME]);
             pBundlesTable.getColumnModel().getColumn(COLUMN_IDX_ID)
-                    .setPreferredWidth(20);
+                    .setPreferredWidth(COLUMNS_SIZE[COLUMN_IDX_ID]);
             pBundlesTable.getColumnModel().getColumn(COLUMN_IDX_STATE)
-                    .setPreferredWidth(20);
+                    .setPreferredWidth(COLUMNS_SIZE[COLUMN_IDX_STATE]);
 
             final TableRowSorter<TableModel> wServicesSorter = new TableRowSorter<TableModel>(
                     pBundlesTableModel);

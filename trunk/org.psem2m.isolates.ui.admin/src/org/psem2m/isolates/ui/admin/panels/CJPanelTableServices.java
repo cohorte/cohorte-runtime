@@ -88,7 +88,6 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
                 }
             });
         }
-
     }
 
     /**
@@ -312,8 +311,12 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
 
     private final boolean[] COLUMNS_EDITABLE = { false, false, false, false,
             false };
-    private final String[] COLUMNS_TITLE = { "Interface", "Name", "i/e",
-            "Service", "Bundle" };
+    private final int[] COLUMNS_SIZE = { 150, 150, 5, 5, 5 };
+    private final String[] COLUMNS_TIPS = { "Interface of the service.",
+            "Name of the service.", "Imported or Exported service.",
+            "Id of the service.", "Id of the bundle." };
+    private final String[] COLUMNS_TITLE = { "Interface", "Name", "i/e", "Svc",
+            "Bndl" };
 
     private CMouseListener pMouseListener = null;
     private CSelectionListener pSelectionListener = null;
@@ -720,16 +723,20 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
                 }
             };
             pServicesTable.setModel(pServicesTableModel);
-            pServicesTable.getColumnModel().getColumn(COLUMN_IDX_INTERFACE)
-                    .setPreferredWidth(150);
-            pServicesTable.getColumnModel().getColumn(COLUMN_IDX_NAME)
-                    .setPreferredWidth(150);
-            pServicesTable.getColumnModel().getColumn(COLUMN_IDX_REMOTE_INFO)
-                    .setPreferredWidth(10);
-            pServicesTable.getColumnModel().getColumn(COLUMN_IDX_SERVICE_ID)
-                    .setPreferredWidth(30);
-            pServicesTable.getColumnModel().getColumn(COLUMN_IDX_BUNDLE_ID)
-                    .setPreferredWidth(30);
+
+            for (int wI = 0; wI < COLUMNS_SIZE.length; wI++) {
+                pServicesTable.getColumnModel().getColumn(wI)
+                        .setPreferredWidth(COLUMNS_SIZE[wI]);
+            }
+
+            CColumnHeaderTips wColumnHeaderTips = new CColumnHeaderTips();
+            pServicesTable.getTableHeader().addMouseMotionListener(
+                    wColumnHeaderTips);
+
+            for (int wI = 0; wI < COLUMNS_TIPS.length; wI++) {
+                wColumnHeaderTips.setToolTip(pServicesTable.getColumnModel()
+                        .getColumn(wI), COLUMNS_TIPS[wI]);
+            }
 
             final TableRowSorter<TableModel> wServicesSorter = new TableRowSorter<TableModel>(
                     pServicesTableModel);
