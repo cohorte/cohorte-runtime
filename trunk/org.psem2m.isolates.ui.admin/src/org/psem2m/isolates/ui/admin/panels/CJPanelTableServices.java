@@ -37,8 +37,6 @@ import javax.swing.SortOrder;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.event.TableModelEvent;
-import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
@@ -83,6 +81,11 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
                 @Override
                 public void run() {
 
+                    if (hasLogger()) {
+                        getLogger().logInfo(this, "actionPerformed",
+                                "Compaction=[%b]", pServiceNameCompaction);
+                    }
+                    // reset the list !
                     setRows(CBundleUiActivator.getInstance()
                             .getAllServiceReferences());
                 }
@@ -114,7 +117,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
                         getLogger().logInfo(this, "actionPerformed",
                                 "Filter=[%s]", getServicesFilterKind().name());
                     }
-
+                    // reset the list !
                     setRows(CBundleUiActivator.getInstance()
                             .getAllServiceReferences());
                 }
@@ -146,28 +149,49 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
      */
     class CMouseListener extends MouseAdapter {
 
+        /**
+         * @param aRowIndex
+         * @return
+         */
         private JPopupMenu createPopUp(final int aRowIndex) {
 
-            final String wName = String.valueOf(pServicesTableModel.getValueAt(
-                    aRowIndex, COLUMN_IDX_NAME));
-
-            // final ServiceReference wServiceReference = findInList(aRowIndex);
-
-            final JMenuItem wMenuItem1 = new JMenuItem(String.format("%s %s",
-                    "Service", wName));
-            wMenuItem1.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(final ActionEvent actionEvent) {
-
-                    logAction(actionEvent, aRowIndex);
-
-                    // /
-
-                }
-            });
-
             final JPopupMenu wJPopupMenu = new JPopupMenu();
-            wJPopupMenu.add(wMenuItem1);
+            try {
+                final String wName = String.valueOf(pCTableModelServices
+                        .getValueAt(aRowIndex, COLUMN_IDX_NAME));
+
+                // final ServiceReference wServiceReference =
+                // pCTableModelServices
+                // .getEntity(aRowIndex);
+
+                final JMenuItem wMenuItem1 = new JMenuItem(String.format(
+                        "%s %s", "Service", wName));
+                wMenuItem1.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(final ActionEvent actionEvent) {
+
+                        logAction(actionEvent, aRowIndex);
+
+                        try {
+
+                            // ...
+                        } catch (final Exception e) {
+                            if (hasLogger()) {
+                                getLogger().logSevere(this, "actionPerformed",
+                                        "JMenuItem1", e);
+                            }
+                        }
+
+                    }
+                });
+
+                wJPopupMenu.add(wMenuItem1);
+
+            } catch (Exception e) {
+                if (hasLogger()) {
+                    getLogger().logSevere(this, "createPopUp", e);
+                }
+            }
 
             return wJPopupMenu;
         }
@@ -265,12 +289,11 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
                         final int wRowIdx = pServicesTable.getSelectionModel()
                                 .getLeadSelectionIndex();
 
-                        if (wRowIdx > -1
-                                && wRowIdx < pServicesTableModel.getRowCount()) {
+                        if (wRowIdx > -1) {
 
                             if (hasLogger()) {
                                 getLogger().logInfo(this, "valueChanged",
-                                        "RowIdx=[%d]", wRowIdx);
+                                        "SelectionRowIdx=[%d]", wRowIdx);
                             }
                             // if sorted
                             final int wRealRowIdx = pServicesTable
@@ -281,7 +304,8 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
                                         "RealRowIdx=[%d]", wRealRowIdx);
                             }
                             // set the text info of the service
-                            setText(buildTextInfos(wRealRowIdx));
+                            setText(pCTableModelServices
+                                    .buildTextInfos(wRealRowIdx));
                         }
                     } catch (final ArrayIndexOutOfBoundsException e1) {
                         if (hasLogger()) {
@@ -299,6 +323,26 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
         }
     }
 
+    /**
+     * @author ogattaz
+     * 
+     */
+    class CTableModelServices extends CTableModel<ServiceReference> {
+
+        private static final long serialVersionUID = -3735378518754175980L;
+
+        /**
+         * @param aNbCol
+         * @param aColKeyIdx
+         */
+        public CTableModelServices(final CJPanelTable<ServiceReference> aPanel,
+                final String[] aTitles, final int aColKeyIdx) {
+
+            super(aPanel, aTitles, aColKeyIdx);
+        }
+
+    }
+
     private final static int COLUMN_IDX_BUNDLE_ID = 4;
     private final static int COLUMN_IDX_INTERFACE = 0;
     private final static int COLUMN_IDX_NAME = 1;
@@ -309,8 +353,6 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
 
     private static final long serialVersionUID = -6506936458249187873L;
 
-    private final boolean[] COLUMNS_EDITABLE = { false, false, false, false,
-            false };
     private final int[] COLUMNS_SIZE = { 150, 150, 5, 5, 5 };
     private final String[] COLUMNS_TIPS = { "Interface of the service.",
             "Name of the service.", "Imported or Exported service.",
@@ -318,6 +360,8 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
     private final String[] COLUMNS_TITLE = { "Interface", "Name", "i/e", "Svc",
             "Bndl" };
 
+    private CTableModelServices pCTableModelServices = new CTableModelServices(
+            this, COLUMNS_TITLE, COLUMN_IDX_SERVICE_ID);
     private CMouseListener pMouseListener = null;
     private CSelectionListener pSelectionListener = null;
     private JPanel pServiceChoicesPanel;
@@ -327,11 +371,9 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
     private JTextArea pServiceInfoTextArea;
     private boolean pServiceNameCompaction = COMPACTION;
     private EFilterKind pServicesFilterKind = EFilterKind.ALL;
-    private List<ServiceReference> pServicesList = new ArrayList<ServiceReference>();
     private JCheckBox pServicesNameCompactionCheckBox;
     private JSplitPane pServicesSplitPane;
     private JTable pServicesTable;
-    private DefaultTableModel pServicesTableModel;
     private JScrollPane pServicesTablScrollPane;
     private JScrollPane pServiceTextAreaScrollPane;
 
@@ -359,14 +401,14 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.isolates.ui.admin.panels.CJPanelTable#addRow(java.lang.Object)
+     * org.psem2m.isolates.ui.admin.panels.CJPanelTable#acceptRow(java.lang.
+     * Object, java.lang.String[])
      */
     @Override
-    boolean addRow(final ServiceReference aServiceReference) {
+    boolean acceptRow(final ServiceReference aServiceReference,
+            final String[] wDataRow) {
 
-        final String[] wDataRow = buildRowData(aServiceReference);
-
-        if (pServicesFilterKind.isALL()
+        return pServicesFilterKind.isALL()
 
                 || pServicesFilterKind.isPSEM2M()
                 && (wDataRow[COLUMN_IDX_INTERFACE].toString().startsWith(
@@ -374,30 +416,20 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
                         .toString().startsWith("o.p."))
 
                 || pServicesFilterKind.isREMOTE()
-                && !wDataRow[COLUMN_IDX_REMOTE_INFO].toString().isEmpty()
+                && !wDataRow[COLUMN_IDX_REMOTE_INFO].toString().isEmpty();
+    }
 
-        ) {
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.ui.admin.panels.CJPanelTable#addRow(java.lang.Object)
+     */
+    @Override
+    boolean addRow(final ServiceReference aServiceReference) {
 
-            execute(new Runnable() {
-                @Override
-                public void run() {
+        return pCTableModelServices.addRow(aServiceReference);
 
-                    try {
-                        pServicesTableModel.addRow(wDataRow);
-                        pServicesTable.setRowSelectionInterval(0, 0);
-                        pServicesList.add(aServiceReference);
-                    } catch (final Exception e) {
-                        if (hasLogger()) {
-                            getLogger().logSevere(this, "addRow",
-                                    CXException.eMiniInString(e));
-                        }
-                    }
-                }
-            });
-
-            return true;
-        }
-        return false;
     }
 
     /*
@@ -408,27 +440,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
     @Override
     void addRows(final ServiceReference[] aServiceReferences) {
 
-        if (aServiceReferences != null && aServiceReferences.length > 0) {
-            int wNbAdded = 0;
-            boolean wAdded = false;
-            boolean wHasAdded = false;
-            for (final ServiceReference wServiceReference : aServiceReferences) {
-                wAdded = addRow(wServiceReference);
-                if (wAdded) {
-                    wNbAdded++;
-                }
-                wHasAdded = wHasAdded || wAdded;
-            }
-            if (wAdded) {
-                if (hasLogger()) {
-                    getLogger().logInfo(this, "addRows",
-                            "NbServices=[%d] nbAdded=[%s]",
-                            aServiceReferences.length, wNbAdded);
-                }
-
-                fireUpdateTable();
-            }
-        }
+        pCTableModelServices.addRows(aServiceReferences);
     }
 
     /*
@@ -446,18 +458,9 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
         wRowData[COLUMN_IDX_NAME] = extractServiceNameCleaned(aServiceReference);
         wRowData[COLUMN_IDX_REMOTE_INFO] = extractRemoteInfo(aServiceReference);
         wRowData[COLUMN_IDX_SERVICE_ID] = extractServiceId(aServiceReference);
-        wRowData[COLUMN_IDX_BUNDLE_ID] = String.valueOf(aServiceReference
-                .getBundle().getBundleId());
+        wRowData[COLUMN_IDX_BUNDLE_ID] = CXStringUtils.strAdjustRight(
+                aServiceReference.getBundle().getBundleId(), 3);
         return wRowData;
-    }
-
-    /**
-     * @param aRowIdx
-     * @return
-     */
-    private String buildTextInfos(final int aRowIdx) {
-
-        return buildTextInfos(findInList(aRowIdx));
     }
 
     /*
@@ -510,6 +513,10 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
             pServicesTable.getSelectionModel().removeListSelectionListener(
                     pSelectionListener);
         }
+        if (pCTableModelServices != null) {
+            pCTableModelServices.destroy();
+            pCTableModelServices = null;
+        }
     }
 
     /**
@@ -560,8 +567,10 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
      */
     private String extractServiceId(final ServiceReference aServiceReference) {
 
-        return aServiceReference.getProperty(
-                org.osgi.framework.Constants.SERVICE_ID).toString();
+        return CXStringUtils.strAdjustRight(
+                aServiceReference.getProperty(
+                        org.osgi.framework.Constants.SERVICE_ID).toString(), 3,
+                '0');
     }
 
     /**
@@ -625,57 +634,8 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
     }
 
     /**
-     * @param aRowIdx
      * @return
      */
-    ServiceReference findInList(final int aRowIdx) {
-
-        if (aRowIdx < 0 && aRowIdx >= pServicesList.size()) {
-            return null;
-        }
-        return pServicesList.get(aRowIdx);
-    }
-
-    /**
-     * @param aBundle
-     * @return
-     */
-    int findInTable(final ServiceReference aServiceReference) {
-
-        final String wServiceId = extractServiceId(aServiceReference);
-        for (int wI = 0; wI < pServicesTableModel.getRowCount(); wI++) {
-            if (wServiceId.equals(pServicesTableModel.getValueAt(wI,
-                    COLUMN_IDX_SERVICE_ID))) {
-                return wI;
-            }
-        }
-        return -1;
-    }
-
-    /**
-     * 
-     */
-    private void fireUpdateTable() {
-
-        execute(new Runnable() {
-            @Override
-            public void run() {
-
-                try {
-                    pServicesTable.tableChanged(new TableModelEvent(
-                            pServicesTableModel));
-                    pServicesTable.updateUI();
-
-                } catch (final Exception e) {
-                    if (hasLogger()) {
-                        getLogger().logSevere(this, "fireUpdateTable",
-                                CXException.eMiniInString(e));
-                    }
-                }
-            }
-        });
-    }
-
     EFilterKind getServicesFilterKind() {
 
         return pServicesFilterKind;
@@ -700,111 +660,112 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
     @Override
     public JPanel newGUI() {
 
-        setLayout(new BorderLayout(0, 0));
+        try {
+            setLayout(new BorderLayout(0, 0));
 
-        pServicesSplitPane = new JSplitPane();
-        pServicesSplitPane.setResizeWeight(0.5);
-        pServicesSplitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
-        add(pServicesSplitPane, BorderLayout.CENTER);
+            pServicesSplitPane = new JSplitPane();
+            pServicesSplitPane.setResizeWeight(0.5);
+            pServicesSplitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
+            add(pServicesSplitPane, BorderLayout.CENTER);
 
-        {
-            pServicesTablScrollPane = new JScrollPane();
-            pServicesSplitPane.add(pServicesTablScrollPane, JSplitPane.TOP);
-
-            pServicesTable = new JTable();
-            pServicesTableModel = new DefaultTableModel(new Object[][] {},
-                    COLUMNS_TITLE) {
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public boolean isCellEditable(final int row, final int column) {
-
-                    return COLUMNS_EDITABLE[column];
-                }
-            };
-            pServicesTable.setModel(pServicesTableModel);
-
-            for (int wI = 0; wI < COLUMNS_SIZE.length; wI++) {
-                pServicesTable.getColumnModel().getColumn(wI)
-                        .setPreferredWidth(COLUMNS_SIZE[wI]);
-            }
-
-            CColumnHeaderTips wColumnHeaderTips = new CColumnHeaderTips();
-            pServicesTable.getTableHeader().addMouseMotionListener(
-                    wColumnHeaderTips);
-
-            for (int wI = 0; wI < COLUMNS_TIPS.length; wI++) {
-                wColumnHeaderTips.setToolTip(pServicesTable.getColumnModel()
-                        .getColumn(wI), COLUMNS_TIPS[wI]);
-            }
-
-            final TableRowSorter<TableModel> wServicesSorter = new TableRowSorter<TableModel>(
-                    pServicesTableModel);
-            pServicesTable.setRowSorter(wServicesSorter);
-
-            final List<SortKey> wSortKeys = new ArrayList<SortKey>();
-            wSortKeys.add(new SortKey(COLUMN_IDX_NAME, SortOrder.ASCENDING));
-            wServicesSorter.setSortKeys(wSortKeys);
-
-            pServicesTable
-                    .setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
-            pServicesTable.setColumnSelectionAllowed(false);
-            pServicesTable.setRowSelectionAllowed(true);
-
-            // Look at TableSelectionDemo.java from java
-            // tutorial to learn how work the JTable selection
-            // model
-            pSelectionListener = new CSelectionListener();
-            pServicesTable.getSelectionModel().addListSelectionListener(
-                    pSelectionListener);
-            setTableFont(EUiAdminFont.NORMAL);
-
-            pMouseListener = new CMouseListener();
-            pServicesTable.addMouseListener(pMouseListener);
-            pServicesTablScrollPane.setViewportView(pServicesTable);
-        }
-        {
-            pServiceInfoPanel = new JPanel();
-            pServicesSplitPane.add(pServiceInfoPanel, JSplitPane.BOTTOM);
-            pServiceInfoPanel.setLayout(new BorderLayout(0, 0));
             {
-                pServiceTextAreaScrollPane = new JScrollPane();
-                pServiceInfoPanel.add(pServiceTextAreaScrollPane,
-                        BorderLayout.CENTER);
-                {
-                    pServiceInfoTextArea = new JTextArea();
-                    setText("Info...");
-                    pServiceTextAreaScrollPane
-                            .setViewportView(pServiceInfoTextArea);
-                    setTextFont(EUiAdminFont.NORMAL);
+                pServicesTablScrollPane = new JScrollPane();
+                pServicesSplitPane.add(pServicesTablScrollPane, JSplitPane.TOP);
+
+                pServicesTable = new JTable();
+
+                pServicesTable.setModel(pCTableModelServices);
+
+                for (int wI = 0; wI < COLUMNS_SIZE.length; wI++) {
+                    pServicesTable.getColumnModel().getColumn(wI)
+                            .setPreferredWidth(COLUMNS_SIZE[wI]);
                 }
+
+                CColumnHeaderTips wColumnHeaderTips = new CColumnHeaderTips();
+                pServicesTable.getTableHeader().addMouseMotionListener(
+                        wColumnHeaderTips);
+
+                for (int wI = 0; wI < COLUMNS_TIPS.length; wI++) {
+                    wColumnHeaderTips.setToolTip(pServicesTable
+                            .getColumnModel().getColumn(wI), COLUMNS_TIPS[wI]);
+                }
+
+                final TableRowSorter<TableModel> wServicesSorter = new TableRowSorter<TableModel>(
+                        pCTableModelServices);
+                pServicesTable.setRowSorter(wServicesSorter);
+
+                final List<SortKey> wSortKeys = new ArrayList<SortKey>();
+                wSortKeys
+                        .add(new SortKey(COLUMN_IDX_NAME, SortOrder.ASCENDING));
+                wServicesSorter.setSortKeys(wSortKeys);
+
+                pServicesTable
+                        .setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+                pServicesTable.setColumnSelectionAllowed(false);
+                pServicesTable.setRowSelectionAllowed(true);
+
+                // Look at TableSelectionDemo.java from java
+                // tutorial to learn how work the JTable selection
+                // model
+                pSelectionListener = new CSelectionListener();
+                pServicesTable.getSelectionModel().addListSelectionListener(
+                        pSelectionListener);
+                setTableFont(EUiAdminFont.NORMAL);
+
+                pMouseListener = new CMouseListener();
+                pServicesTable.addMouseListener(pMouseListener);
+                pServicesTablScrollPane.setViewportView(pServicesTable);
             }
             {
-                pServiceChoicesPanel = new JPanel();
-                pServiceInfoPanel.add(pServiceChoicesPanel, BorderLayout.NORTH);
+                pServiceInfoPanel = new JPanel();
+                pServicesSplitPane.add(pServiceInfoPanel, JSplitPane.BOTTOM);
+                pServiceInfoPanel.setLayout(new BorderLayout(0, 0));
                 {
-                    pServiceFilterLabel = new JLabel("filter");
-                    pServiceChoicesPanel.add(pServiceFilterLabel);
+                    pServiceTextAreaScrollPane = new JScrollPane();
+                    pServiceInfoPanel.add(pServiceTextAreaScrollPane,
+                            BorderLayout.CENTER);
+                    {
+                        pServiceInfoTextArea = new JTextArea();
+                        setText("Info...");
+                        pServiceTextAreaScrollPane
+                                .setViewportView(pServiceInfoTextArea);
+                        setTextFont(EUiAdminFont.NORMAL);
+                    }
                 }
                 {
-                    pServiceFilterComboBox = new JComboBox();
-                    pServiceChoicesPanel.add(pServiceFilterComboBox);
-                    pServiceFilterComboBox
-                            .addActionListener(new CFilterActionListener());
-                    pServiceFilterComboBox.setModel(new DefaultComboBoxModel(
-                            EFilterKind.getLibs()));
+                    pServiceChoicesPanel = new JPanel();
+                    pServiceInfoPanel.add(pServiceChoicesPanel,
+                            BorderLayout.NORTH);
+                    {
+                        pServiceFilterLabel = new JLabel("filter");
+                        pServiceChoicesPanel.add(pServiceFilterLabel);
+                    }
+                    {
+                        pServiceFilterComboBox = new JComboBox();
+                        pServiceChoicesPanel.add(pServiceFilterComboBox);
+                        pServiceFilterComboBox
+                                .addActionListener(new CFilterActionListener());
+                        pServiceFilterComboBox
+                                .setModel(new DefaultComboBoxModel(EFilterKind
+                                        .getLibs()));
 
-                    pServiceFilterComboBox.setSelectedIndex(EFilterKind.PSEM2M
-                            .getIdx());
-                }
-                {
-                    pServicesNameCompactionCheckBox = new JCheckBox("compact");
-                    pServicesNameCompactionCheckBox
-                            .addActionListener(new CCompactionActionListener());
-                    pServicesNameCompactionCheckBox.setSelected(COMPACTION);
-                    pServiceChoicesPanel.add(pServicesNameCompactionCheckBox);
+                        pServiceFilterComboBox
+                                .setSelectedIndex(EFilterKind.PSEM2M.getIdx());
+                    }
+                    {
+                        pServicesNameCompactionCheckBox = new JCheckBox(
+                                "compact");
+                        pServicesNameCompactionCheckBox
+                                .addActionListener(new CCompactionActionListener());
+                        pServicesNameCompactionCheckBox.setSelected(COMPACTION);
+                        pServiceChoicesPanel
+                                .add(pServicesNameCompactionCheckBox);
+                    }
                 }
             }
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
         return this;
     }
@@ -817,23 +778,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
     @Override
     void removeAllRows() {
 
-        execute(new Runnable() {
-            @Override
-            public void run() {
-
-                try {
-                    for (int wI = pServicesTableModel.getRowCount() - 1; wI > -1; wI--) {
-                        pServicesTableModel.removeRow(wI);
-                    }
-                    pServicesList.clear();
-                } catch (final Exception e) {
-                    if (hasLogger()) {
-                        getLogger().logSevere(this, "removeAllRows",
-                                CXException.eMiniInString(e));
-                    }
-                }
-            }
-        });
+        pCTableModelServices.removeAllRows();
     }
 
     /*
@@ -846,27 +791,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
     @Override
     void removeRow(final ServiceReference aServiceReference) {
 
-        execute(new Runnable() {
-            @Override
-            public void run() {
-
-                final int wRowIdx = findInTable(aServiceReference);
-                if (wRowIdx != -1) {
-
-                    try {
-                        pServicesTableModel.removeRow(wRowIdx);
-                        pServicesList.remove(aServiceReference);
-                    } catch (final Exception e) {
-                        if (hasLogger()) {
-                            getLogger().logSevere(this, "removeRow",
-                                    CXException.eMiniInString(e));
-                        }
-                    }
-                }
-            }
-        });
-
-        fireUpdateTable();
+        pCTableModelServices.removeRow(aServiceReference);
     }
 
     /**
@@ -875,13 +800,8 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
     @Override
     void setRow(final ServiceReference aServiceReference) {
 
-        final int wRowIdx = findInTable(aServiceReference);
-        if (wRowIdx == -1) {
-            addRow(aServiceReference);
-        } else {
-            updateRow(wRowIdx, aServiceReference);
-        }
-        fireUpdateTable();
+        pCTableModelServices.setRow(aServiceReference);
+
     }
 
     /*
@@ -892,9 +812,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
     @Override
     void setRows(final ServiceReference[] aServiceReferences) {
 
-        removeAllRows();
-        addRows(aServiceReferences);
-        fireUpdateTable();
+        pCTableModelServices.setRows(aServiceReferences);
     }
 
     /**
@@ -959,23 +877,6 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
         return aUiAdminFont.getTextFont();
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.ui.admin.panels.CJPanelTable#updateRow(int,
-     * java.lang.Object)
-     */
-    @Override
-    void updateRow(final int aRowIdx, final ServiceReference aServiceReference) {
-
-        final String[] wRowData = buildRowData(aServiceReference);
-        int wI = 0;
-        for (final String wColumnValue : wRowData) {
-            pServicesTableModel.setValueAt(wColumnValue, aRowIdx, wI);
-            wI++;
-        }
-        fireUpdateTable();
-    }
 }
 
 /**

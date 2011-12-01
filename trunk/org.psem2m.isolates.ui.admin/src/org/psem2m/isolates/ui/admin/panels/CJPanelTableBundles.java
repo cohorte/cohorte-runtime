@@ -33,8 +33,6 @@ import javax.swing.SortOrder;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.event.TableModelEvent;
-import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
@@ -76,79 +74,94 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
      */
     class CMouseListener extends MouseAdapter {
 
+        /**
+         * @param aRowIndex
+         * @return
+         */
         private JPopupMenu createPopUp(final int aRowIndex) {
 
-            final String wName = String.valueOf(pBundlesTableModel.getValueAt(
-                    aRowIndex, COLUMN_IDX_NAME));
-
-            final Bundle wBundle = findInList(aRowIndex);
-
-            final boolean wIsActive = Bundle.ACTIVE == wBundle.getState();
-
-            final String wAction = wIsActive ? "Stop" : "Start";
-
-            final JMenuItem wMenuItem1 = new JMenuItem(String.format("%s %s",
-                    wAction, wName));
-            wMenuItem1.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(final ActionEvent actionEvent) {
-
-                    logAction(actionEvent, aRowIndex);
-
-                    try {
-                        if (wIsActive) {
-                            wBundle.stop();
-                        } else {
-                            wBundle.start();
-                        }
-                    } catch (final BundleException e) {
-                        if (hasLogger()) {
-                            getLogger().logSevere(this, "actionPerformed", e);
-                        }
-                    }
-
-                }
-            });
-
-            final JMenuItem wMenuItem3 = new JMenuItem(String.format(
-                    "Uninstall %s", wName));
-            wMenuItem3.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(final ActionEvent actionEvent) {
-
-                    logAction(actionEvent, aRowIndex);
-                    try {
-                        wBundle.uninstall();
-                    } catch (final BundleException e) {
-                        if (hasLogger()) {
-                            getLogger().logSevere(this, "actionPerformed", e);
-                        }
-                    }
-                }
-            });
-
-            final JMenuItem wMenuItem4 = new JMenuItem(String.format(
-                    "Update %s", wName));
-            wMenuItem4.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(final ActionEvent actionEvent) {
-
-                    logAction(actionEvent, aRowIndex);
-                    try {
-                        wBundle.update();
-                    } catch (final BundleException e) {
-                        if (hasLogger()) {
-                            getLogger().logSevere(this, "actionPerformed", e);
-                        }
-                    }
-                }
-            });
-
             final JPopupMenu wJPopupMenu = new JPopupMenu();
-            wJPopupMenu.add(wMenuItem1);
-            wJPopupMenu.addSeparator();
-            wJPopupMenu.add(wMenuItem3);
-            wJPopupMenu.add(wMenuItem4);
+
+            try {
+                final String wName = String.valueOf(pCTableModelBundles
+                        .getValueAt(aRowIndex, COLUMN_IDX_NAME));
+
+                final Bundle wBundle = pCTableModelBundles.getEntity(aRowIndex);
+
+                final boolean wIsActive = Bundle.ACTIVE == wBundle.getState();
+
+                final String wAction = wIsActive ? "Stop" : "Start";
+
+                final JMenuItem wMenuItem1 = new JMenuItem(String.format(
+                        "%s %s", wAction, wName));
+                wMenuItem1.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(final ActionEvent actionEvent) {
+
+                        logAction(actionEvent, aRowIndex);
+
+                        try {
+                            if (wIsActive) {
+                                wBundle.stop();
+                            } else {
+                                wBundle.start();
+                            }
+                        } catch (final BundleException e) {
+                            if (hasLogger()) {
+                                getLogger().logSevere(this, "actionPerformed",
+                                        "JMenuItem1", e);
+                            }
+                        }
+
+                    }
+                });
+
+                final JMenuItem wMenuItem3 = new JMenuItem(String.format(
+                        "Uninstall %s", wName));
+                wMenuItem3.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(final ActionEvent actionEvent) {
+
+                        logAction(actionEvent, aRowIndex);
+                        try {
+                            wBundle.uninstall();
+                        } catch (final BundleException e) {
+                            if (hasLogger()) {
+                                getLogger().logSevere(this, "actionPerformed",
+                                        "JMenuItem3", e);
+                            }
+                        }
+                    }
+                });
+
+                final JMenuItem wMenuItem4 = new JMenuItem(String.format(
+                        "Update %s", wName));
+                wMenuItem4.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(final ActionEvent actionEvent) {
+
+                        logAction(actionEvent, aRowIndex);
+                        try {
+                            wBundle.update();
+                        } catch (final BundleException e) {
+                            if (hasLogger()) {
+                                getLogger().logSevere(this, "actionPerformed",
+                                        "JMenuItem4", e);
+                            }
+                        }
+                    }
+                });
+
+                wJPopupMenu.add(wMenuItem1);
+                wJPopupMenu.addSeparator();
+                wJPopupMenu.add(wMenuItem3);
+                wJPopupMenu.add(wMenuItem4);
+
+            } catch (Exception e) {
+                if (hasLogger()) {
+                    getLogger().logSevere(this, "createPopUp", e);
+                }
+            }
 
             return wJPopupMenu;
         }
@@ -245,12 +258,11 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
                         final int wRowIdx = pBundlesTable.getSelectionModel()
                                 .getLeadSelectionIndex();
 
-                        if (wRowIdx > -1
-                                && wRowIdx < pBundlesTableModel.getRowCount()) {
+                        if (wRowIdx > -1) {
 
                             if (hasLogger()) {
                                 getLogger().logInfo(this, "valueChanged",
-                                        "RowIdx=[%d]", wRowIdx);
+                                        "SelectionRowIdx=[%d]", wRowIdx);
                             }
 
                             // if sorted
@@ -262,8 +274,8 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
                                         "RealRowIdx=[%d]", wRealRowIdx);
                             }
                             // set the text info of the service
-                            pBundleTextArea
-                                    .setText(buildTextInfos(wRealRowIdx));
+                            pBundleTextArea.setText(pCTableModelBundles
+                                    .buildTextInfos(wRealRowIdx));
 
                         }
                     } catch (final ArrayIndexOutOfBoundsException e1) {
@@ -281,29 +293,45 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
         }
     }
 
+    /**
+     * @author ogattaz
+     * 
+     */
+    class CTableModelBundles extends CTableModel<Bundle> {
+
+        private static final long serialVersionUID = -3735378518754175980L;
+
+        /**
+         * @param aNbCol
+         * @param aColKeyIdx
+         */
+        public CTableModelBundles(final CJPanelTable<Bundle> aPanel,
+                final String[] aTitles, final int aColKeyIdx) {
+
+            super(aPanel, aTitles, aColKeyIdx);
+        }
+
+    }
+
     private final static int COLUMN_IDX_ID = 2;
     private final static int COLUMN_IDX_NAME = 0;
     private final static int COLUMN_IDX_STATE = 1;
 
     private static final long serialVersionUID = -6506936458249187873L;
 
-    private final boolean[] COLUMNS_EDITABLE = { false, false, false };
     private final int[] COLUMNS_SIZE = { 200, 15, 5 };
+    private final String[] COLUMNS_TIPS = { "Name of the bundle.",
+            "State of the bundle.", "Id of the bundle." };
     private final String[] COLUMNS_TITLE = { "Bundle name", "State", "Bndl" };
 
     private JPanel pBundleInfoPanel;
-    /**
-     * @param aRowIdx
-     * @return
-     */
-
-    private List<Bundle> pBundlesList = new ArrayList<Bundle>();
     private JSplitPane pBundlesSplitPane;
     private JTable pBundlesTable;
-    private DefaultTableModel pBundlesTableModel;
     private JScrollPane pBundlesTablScrollPane;
     private JTextArea pBundleTextArea;
     private JScrollPane pBundleTextAreaScrollPane;
+    private CTableModelBundles pCTableModelBundles = new CTableModelBundles(
+            this, COLUMNS_TITLE, COLUMN_IDX_NAME);
     private CMouseListener pMouseListener = null;
     private CSelectionListener pSelectionListener = null;
 
@@ -331,31 +359,26 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
      * (non-Javadoc)
      * 
      * @see
+     * org.psem2m.isolates.ui.admin.panels.CJPanelTable#acceptRow(java.lang.
+     * Object, java.lang.String[])
+     */
+    @Override
+    boolean acceptRow(final Bundle aEntity, final String[] aWDataRow) {
+
+        // all accepted
+        return true;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
      * org.psem2m.isolates.ui.admin.panels.CJPanelTable#addRow(java.lang.Object)
      */
     @Override
     boolean addRow(final Bundle aBundle) {
 
-        execute(new Runnable() {
-            @Override
-            public void run() {
-
-                try {
-                    pBundlesTableModel.addRow(buildRowData(aBundle));
-                    pBundlesTable.setRowSelectionInterval(0, 0);
-
-                    pBundlesList.add(aBundle);
-
-                } catch (final Exception e) {
-                    if (hasLogger()) {
-                        getLogger().logSevere(this, "addRow",
-                                CXException.eMiniInString(e));
-                    }
-                }
-            }
-        });
-
-        return true;
+        return pCTableModelBundles.addRow(aBundle);
     }
 
     /*
@@ -366,12 +389,7 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
     @Override
     void addRows(final Bundle[] aBundles) {
 
-        if (aBundles.length > 0) {
-            for (final Bundle wBundle : aBundles) {
-                addRow(wBundle);
-            }
-            fireUpdateTable();
-        }
+        pCTableModelBundles.addRows(aBundles);
     }
 
     /**
@@ -383,7 +401,8 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
 
         final String[] wRowData = new String[COLUMNS_TITLE.length];
         wRowData[COLUMN_IDX_NAME] = aBundle.getSymbolicName();
-        wRowData[COLUMN_IDX_ID] = String.valueOf(aBundle.getBundleId());
+        wRowData[COLUMN_IDX_ID] = String.valueOf(CXStringUtils.strAdjustRight(
+                aBundle.getBundleId(), 3));
         wRowData[COLUMN_IDX_STATE] = stateToString(aBundle.getState());
         return wRowData;
     }
@@ -435,15 +454,6 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
         return wSB.toString();
     }
 
-    /**
-     * @param aRowIdx
-     * @return
-     */
-    private String buildTextInfos(final int aRowIdx) {
-
-        return buildTextInfos(findInList(aRowIdx));
-    }
-
     /*
      * (non-Javadoc)
      * 
@@ -461,59 +471,6 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
             pBundlesTable.getSelectionModel().removeListSelectionListener(
                     pSelectionListener);
         }
-    }
-
-    /**
-     * @param aRowIdx
-     * @return
-     */
-    Bundle findInList(final int aRowIdx) {
-
-        if (aRowIdx < 0 && aRowIdx >= pBundlesList.size()) {
-            return null;
-        }
-        return pBundlesList.get(aRowIdx);
-    }
-
-    /**
-     * @param aBundle
-     * @return
-     */
-    int findInTable(final Bundle aBundle) {
-
-        final String wName = aBundle.getSymbolicName();
-        final int wMax = pBundlesTableModel.getRowCount();
-        for (int wI = 0; wI < wMax; wI++) {
-            if (wName
-                    .equals(pBundlesTableModel.getValueAt(wI, COLUMN_IDX_NAME))) {
-                return wI;
-            }
-        }
-        return -1;
-    }
-
-    /**
-     * 
-     */
-    private void fireUpdateTable() {
-
-        execute(new Runnable() {
-            @Override
-            public void run() {
-
-                try {
-                    pBundlesTable.tableChanged(new TableModelEvent(
-                            pBundlesTableModel));
-                    pBundlesTable.updateUI();
-
-                } catch (final Exception e) {
-                    if (hasLogger()) {
-                        getLogger().logSevere(this, "fireUpdateTable",
-                                CXException.eMiniInString(e));
-                    }
-                }
-            }
-        });
     }
 
     /*
@@ -547,27 +504,25 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
             pBundlesSplitPane.add(pBundlesTablScrollPane, JSplitPane.TOP);
 
             pBundlesTable = new JTable();
-            pBundlesTableModel = new DefaultTableModel(new Object[][] {},
-                    COLUMNS_TITLE) {
-                private static final long serialVersionUID = 1L;
 
-                @Override
-                public boolean isCellEditable(final int row, final int column) {
+            pBundlesTable.setModel(pCTableModelBundles);
 
-                    return COLUMNS_EDITABLE[column];
-                }
-            };
-            pBundlesTable.setModel(pBundlesTableModel);
+            for (int wI = 0; wI < COLUMNS_SIZE.length; wI++) {
+                pBundlesTable.getColumnModel().getColumn(wI)
+                        .setPreferredWidth(COLUMNS_SIZE[wI]);
+            }
 
-            pBundlesTable.getColumnModel().getColumn(COLUMN_IDX_NAME)
-                    .setPreferredWidth(COLUMNS_SIZE[COLUMN_IDX_NAME]);
-            pBundlesTable.getColumnModel().getColumn(COLUMN_IDX_ID)
-                    .setPreferredWidth(COLUMNS_SIZE[COLUMN_IDX_ID]);
-            pBundlesTable.getColumnModel().getColumn(COLUMN_IDX_STATE)
-                    .setPreferredWidth(COLUMNS_SIZE[COLUMN_IDX_STATE]);
+            CColumnHeaderTips wColumnHeaderTips = new CColumnHeaderTips();
+            pBundlesTable.getTableHeader().addMouseMotionListener(
+                    wColumnHeaderTips);
+
+            for (int wI = 0; wI < COLUMNS_TIPS.length; wI++) {
+                wColumnHeaderTips.setToolTip(pBundlesTable.getColumnModel()
+                        .getColumn(wI), COLUMNS_TIPS[wI]);
+            }
 
             final TableRowSorter<TableModel> wServicesSorter = new TableRowSorter<TableModel>(
-                    pBundlesTableModel);
+                    pCTableModelBundles);
             pBundlesTable.setRowSorter(wServicesSorter);
 
             final List<SortKey> wSortKeys = new ArrayList<SortKey>();
@@ -618,23 +573,7 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
     @Override
     void removeAllRows() {
 
-        execute(new Runnable() {
-            @Override
-            public void run() {
-
-                try {
-                    for (int wI = pBundlesTableModel.getRowCount() - 1; wI > -1; wI--) {
-                        pBundlesTableModel.removeRow(wI);
-                    }
-                    pBundlesList.clear();
-                } catch (final Exception e) {
-                    if (hasLogger()) {
-                        getLogger().logSevere(this, "removeAllRows",
-                                CXException.eMiniInString(e));
-                    }
-                }
-            }
-        });
+        pCTableModelBundles.removeAllRows();
 
     }
 
@@ -644,25 +583,7 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
     @Override
     void removeRow(final Bundle aBundle) {
 
-        execute(new Runnable() {
-            @Override
-            public void run() {
-
-                final int wRowIdx = findInTable(aBundle);
-                if (wRowIdx != -1) {
-                    try {
-                        pBundlesTableModel.removeRow(wRowIdx);
-                        pBundlesList.remove(aBundle);
-                    } catch (final Exception e) {
-                        if (hasLogger()) {
-                            getLogger().logSevere(this, "removeRow",
-                                    CXException.eMiniInString(e));
-                        }
-                    }
-                }
-            }
-        });
-        fireUpdateTable();
+        pCTableModelBundles.removeRow(aBundle);
     }
 
     /*
@@ -674,13 +595,7 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
     @Override
     void setRow(final Bundle aBundle) {
 
-        final int wRowIdx = findInTable(aBundle);
-        if (wRowIdx == -1) {
-            addRow(aBundle);
-        } else {
-            updateRow(wRowIdx, aBundle);
-        }
-        fireUpdateTable();
+        pCTableModelBundles.setRow(aBundle);
     }
 
     /*
@@ -691,9 +606,7 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
     @Override
     void setRows(final Bundle[] aBundles) {
 
-        removeAllRows();
-        addRows(aBundles);
-        fireUpdateTable();
+        pCTableModelBundles.setRows(aBundles);
     }
 
     /*
@@ -758,22 +671,6 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
         default:
             return String.format("%d ???", aBundleState);
         }
-    }
-
-    /**
-     * @param aRowIdx
-     * @param aBundle
-     */
-    @Override
-    void updateRow(final int aRowIdx, final Bundle aBundle) {
-
-        final String[] wRowData = buildRowData(aBundle);
-        int wI = 0;
-        for (final String wColumnValue : wRowData) {
-            pBundlesTableModel.setValueAt(wColumnValue, aRowIdx, wI);
-            wI++;
-        }
-        fireUpdateTable();
     }
 
 }
