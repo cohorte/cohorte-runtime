@@ -11,6 +11,7 @@
 package org.psem2m.isolates.ui.admin.panels;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -77,6 +78,9 @@ public abstract class CTableModel<T> extends AbstractTableModel {
         pPanel = aPanel;
         pTitles = aTitles;
         pColKeyIdx = aColKeyIdx;
+
+        traceDebug("%15s|  ColKeyIdx=[%d], Titles=[%s]", "<init>", pColKeyIdx,
+                Arrays.asList(pTitles));
     }
 
     /**

@@ -309,6 +309,9 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
                 final String[] aTitles, final int aColKeyIdx) {
 
             super(aPanel, aTitles, aColKeyIdx);
+            if (hasLogger()) {
+                getLogger().logInfo(this, "<init>", "OK");
+            }
         }
 
     }
@@ -330,8 +333,7 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
     private JScrollPane pBundlesTablScrollPane;
     private JTextArea pBundleTextArea;
     private JScrollPane pBundleTextAreaScrollPane;
-    private CTableModelBundles pCTableModelBundles = new CTableModelBundles(
-            this, COLUMNS_TITLE, COLUMN_IDX_NAME);
+    private CTableModelBundles pCTableModelBundles = null;
     private CMouseListener pMouseListener = null;
     private CSelectionListener pSelectionListener = null;
 
@@ -365,7 +367,7 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
     @Override
     boolean acceptRow(final Bundle aEntity, final String[] aWDataRow) {
 
-        // all accepted
+        // all rows are accepted
         return true;
     }
 
@@ -504,6 +506,9 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
             pBundlesSplitPane.add(pBundlesTablScrollPane, JSplitPane.TOP);
 
             pBundlesTable = new JTable();
+
+            pCTableModelBundles = new CTableModelBundles(this, COLUMNS_TITLE,
+                    COLUMN_IDX_NAME);
 
             pBundlesTable.setModel(pCTableModelBundles);
 

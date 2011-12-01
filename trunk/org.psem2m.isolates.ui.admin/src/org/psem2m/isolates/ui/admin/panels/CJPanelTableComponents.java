@@ -368,6 +368,9 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
                 final String[] aTitles, final int aColKeyIdx) {
 
             super(aPanel, aTitles, aColKeyIdx);
+            if (hasLogger()) {
+                getLogger().logInfo(this, "<init>", "OK");
+            }
         }
 
         @Override
@@ -432,8 +435,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
     private JScrollPane pComponentsTablScrollPane;
     private JTextArea pComponentTextArea;
     private JScrollPane pComponentTextAreaScrollPane;
-    private CTableModelComponents pCTableModelComponents = new CTableModelComponents(
-            this, COLUMNS_TITLE, COLUMN_IDX_NAME);
+    private CTableModelComponents pCTableModelComponents = null;
     private CMouseListener pMouseListener = null;
     private CSelectionListener pSelectionListener = null;
 
@@ -727,7 +729,8 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
             pComponentsSplitPane.add(pComponentsTablScrollPane, JSplitPane.TOP);
 
             pComponentsTable = new JTable();
-
+            pCTableModelComponents = new CTableModelComponents(this,
+                    COLUMNS_TITLE, COLUMN_IDX_NAME);
             pComponentsTable.setModel(pCTableModelComponents);
 
             for (int wI = 0; wI < COLUMNS_SIZE.length; wI++) {

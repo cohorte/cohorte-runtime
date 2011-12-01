@@ -339,6 +339,9 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
                 final String[] aTitles, final int aColKeyIdx) {
 
             super(aPanel, aTitles, aColKeyIdx);
+            if (hasLogger()) {
+                getLogger().logInfo(this, "<init>", "OK");
+            }
         }
 
     }
@@ -360,8 +363,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
     private final String[] COLUMNS_TITLE = { "Interface", "Name", "i/e", "Svc",
             "Bndl" };
 
-    private CTableModelServices pCTableModelServices = new CTableModelServices(
-            this, COLUMNS_TITLE, COLUMN_IDX_SERVICE_ID);
+    private CTableModelServices pCTableModelServices = null;
     private CMouseListener pMouseListener = null;
     private CSelectionListener pSelectionListener = null;
     private JPanel pServiceChoicesPanel;
@@ -673,7 +675,8 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
                 pServicesSplitPane.add(pServicesTablScrollPane, JSplitPane.TOP);
 
                 pServicesTable = new JTable();
-
+                pCTableModelServices = new CTableModelServices(this,
+                        COLUMNS_TITLE, COLUMN_IDX_SERVICE_ID);
                 pServicesTable.setModel(pCTableModelServices);
 
                 for (int wI = 0; wI < COLUMNS_SIZE.length; wI++) {
