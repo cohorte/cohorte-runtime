@@ -396,6 +396,9 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
     private final static int COLUMN_IDX_FACTORY = 1;
     private final static int COLUMN_IDX_NAME = 0;
     private final static int COLUMN_IDX_STATE = 2;
+
+    private final static int COLUMN_KEY_IDX = COLUMN_IDX_NAME;
+
     private static final long serialVersionUID = -6506936458249187873L;
 
     /**
@@ -517,18 +520,33 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
     String[] buildRowData(final Architecture aArchitecture) {
 
         final String[] wRowData = new String[COLUMNS_TITLE.length];
+
         final InstanceDescription wDescription = aArchitecture
                 .getInstanceDescription();
 
-        wRowData[COLUMN_IDX_NAME] = wDescription.getName();
+        // COLUMN_KEY_IDX
+        wRowData[COLUMN_IDX_NAME] = buildRowKey(aArchitecture);
         wRowData[COLUMN_IDX_FACTORY] = wDescription.getComponentDescription()
                 .getFactory().getName();
-
         wRowData[COLUMN_IDX_BUNDLE] = String.valueOf(CXStringUtils
                 .strAdjustRight(wDescription.getBundleId(), 3));
         wRowData[COLUMN_IDX_STATE] = buildComponentState(wDescription);
 
         return wRowData;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.ui.admin.panels.CJPanelTable#buildRowKey(java.lang
+     * .Object)
+     */
+    @Override
+    String buildRowKey(final Architecture aArchitecture) {
+
+        // COLUMN_KEY_IDX
+        return aArchitecture.getInstanceDescription().getName();
     }
 
     /*
@@ -730,7 +748,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
 
             pComponentsTable = new JTable();
             pCTableModelComponents = new CTableModelComponents(this,
-                    COLUMNS_TITLE, COLUMN_IDX_NAME);
+                    COLUMNS_TITLE, COLUMN_KEY_IDX);
             pComponentsTable.setModel(pCTableModelComponents);
 
             for (int wI = 0; wI < COLUMNS_SIZE.length; wI++) {

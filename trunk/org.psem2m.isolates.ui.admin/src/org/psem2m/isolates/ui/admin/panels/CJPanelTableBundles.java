@@ -320,6 +320,8 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
     private final static int COLUMN_IDX_NAME = 0;
     private final static int COLUMN_IDX_STATE = 1;
 
+    private final static int COLUMN_KEY_IDX = COLUMN_IDX_NAME;
+
     private static final long serialVersionUID = -6506936458249187873L;
 
     private final int[] COLUMNS_SIZE = { 200, 15, 5 };
@@ -402,11 +404,20 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
     String[] buildRowData(final Bundle aBundle) {
 
         final String[] wRowData = new String[COLUMNS_TITLE.length];
-        wRowData[COLUMN_IDX_NAME] = aBundle.getSymbolicName();
+
+        // COLUMN_KEY_IDX
+        wRowData[COLUMN_IDX_NAME] = buildRowKey(aBundle);
         wRowData[COLUMN_IDX_ID] = String.valueOf(CXStringUtils.strAdjustRight(
                 aBundle.getBundleId(), 3));
         wRowData[COLUMN_IDX_STATE] = stateToString(aBundle.getState());
         return wRowData;
+    }
+
+    @Override
+    String buildRowKey(final Bundle aBundle) {
+
+        // COLUMN_KEY_IDX
+        return aBundle.getSymbolicName();
     }
 
     /*
@@ -508,7 +519,7 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
             pBundlesTable = new JTable();
 
             pCTableModelBundles = new CTableModelBundles(this, COLUMNS_TITLE,
-                    COLUMN_IDX_NAME);
+                    COLUMN_KEY_IDX);
 
             pBundlesTable.setModel(pCTableModelBundles);
 
