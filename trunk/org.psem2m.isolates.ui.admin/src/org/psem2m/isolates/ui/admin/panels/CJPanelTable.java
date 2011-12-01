@@ -45,6 +45,8 @@ public abstract class CJPanelTable<T> extends CJPanel {
         super(aUiExecutor, aLogger);
     }
 
+    abstract boolean acceptRow(final T aEntity, final String[] wDataRow);
+
     /**
      * @param aEntity
      * @return
@@ -122,11 +124,5 @@ public abstract class CJPanelTable<T> extends CJPanel {
      * @return the new Font
      */
     abstract Font setTableFont(final EUiAdminFont aFont);
-
-    /**
-     * @param aRowIdx
-     * @param aEntity
-     */
-    abstract void updateRow(final int aRowIdx, final T aEntity);
 
 }
