@@ -390,11 +390,6 @@ public class Main {
             @Override
             public void execute(final Runnable command) {
 
-                // pMessageSender.sendMessage(Level.FINEST, "Main$Executor",
-                // "execute", String.format(
-                // "Executor enqueuing the new task [%s].",
-                // command.toString()));
-
                 // add() will throw an exception if the queue is full, which is
                 // what we want
                 pUiWorkQueue.add(command);
@@ -508,22 +503,23 @@ public class Main {
                     final Runnable work = pUiWorkQueue
                             .poll(3, TimeUnit.SECONDS);
                     if (work != null) {
-                        // pMessageSender
-                        // .sendMessage(
-                        // Level.FINEST,
-                        // "Main",
-                        // "run/Work-loop",
-                        // String.format(
-                        // "Main thread received the work task [%s], executing.",
-                        // work.toString()));
-
+                        // Get back to work !
                         work.run();
                     }
 
-                } catch (final InterruptedException e) {
+                } catch (final InterruptedException ex) {
+
                     pMessageSender.sendMessage(Level.FINEST, "UI-Executor",
                             "Work-loop",
-                            "Main thread interrupted. End of the world.");
+                            "Main thread interrupted. Stop UI worker.", ex);
+
+                    break;
+
+                } catch (final Throwable th) {
+
+                    pMessageSender.sendMessage(Level.WARNING, "UI-Executor",
+                            "Work-loop",
+                            "An exception was caught in the main thread.", th);
                 }
             }
 
@@ -536,8 +532,8 @@ public class Main {
 
         } catch (final Exception ex) {
 
-            pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
-                    "runBootstrap", "Can't start the framework thread", ex);
+            pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME, "run",
+                    "Exception while running the framework thread", ex);
 
             if (pFrameworkStarterThread != null) {
                 pFrameworkStarterThread.stopFramework();

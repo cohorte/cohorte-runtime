@@ -62,16 +62,15 @@ public class MessageSender implements IMessageSender {
         aBuilder.append(" :: ");
         aBuilder.append(aThrowable.getMessage());
         aBuilder.append("\n");
-        aThrowable.printStackTrace();
 
-        StackTraceElement[] stackTrace = aThrowable.getStackTrace();
-        for (StackTraceElement element : stackTrace) {
+        final StackTraceElement[] stackTrace = aThrowable.getStackTrace();
+        for (final StackTraceElement element : stackTrace) {
             aBuilder.append("\tat ");
             aBuilder.append(element);
             aBuilder.append("\n");
         }
 
-        Throwable cause = aThrowable.getCause();
+        final Throwable cause = aThrowable.getCause();
         if (cause != null) {
             appendThrowable(aBuilder, cause);
         }
@@ -86,7 +85,7 @@ public class MessageSender implements IMessageSender {
      */
     protected String formatRecord(final LogRecord aLogRecord) {
 
-        StringBuilder builder = new StringBuilder();
+        final StringBuilder builder = new StringBuilder();
         builder.append("[");
         builder.append(aLogRecord.getLoggerName());
         builder.append("][");
@@ -128,7 +127,7 @@ public class MessageSender implements IMessageSender {
                 ((ObjectOutputStream) pOutputStream).writeObject(aLogRecord);
             }
 
-        } catch (IOException e) {
+        } catch (final IOException e) {
             // Use a Java logger on error
             Logger.getLogger(LOGGER_NAME).log(aLogRecord);
         }
@@ -175,13 +174,13 @@ public class MessageSender implements IMessageSender {
             final CharSequence aSourceClass, final CharSequence aSourceMethod,
             final CharSequence aMessage, final Throwable aThrowable) {
 
-        String message = aMessage.toString();
+        final String message = aMessage.toString();
         if (message.trim().isEmpty()) {
             // Ignore empty messages
             return;
         }
 
-        LogRecord record = new LogRecord(aLevel, message);
+        final LogRecord record = new LogRecord(aLevel, message);
         record.setLoggerName("Bootstrap");
         record.setSourceClassName(aSourceClass.toString());
         record.setSourceMethodName(aSourceMethod.toString());
@@ -225,7 +224,7 @@ public class MessageSender implements IMessageSender {
                         .writeObject(aIsolateStatus);
             }
 
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             // Log a line on error
             Logger.getLogger(LOGGER_NAME).log(Level.SEVERE,
                     "Error sending isolate status", ex);
