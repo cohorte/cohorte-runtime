@@ -23,6 +23,9 @@ public abstract class AbstractModelBean implements IModelBean, Serializable {
     /** Name of the parent of the bean */
     protected String pParentName;
 
+    /** Name of the root parent of the hierarchy */
+    protected String pRootName;
+
     /*
      * (non-Javadoc)
      * 
@@ -91,6 +94,17 @@ public abstract class AbstractModelBean implements IModelBean, Serializable {
     /*
      * (non-Javadoc)
      * 
+     * @see org.psem2m.composer.model.IModelBean#getRootName()
+     */
+    @Override
+    public String getRootName() {
+
+        return pRootName;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.psem2m.composer.model.IModelBean#setName(java.lang.String)
      */
     @Override
@@ -110,5 +124,16 @@ public abstract class AbstractModelBean implements IModelBean, Serializable {
     public void setParentName(final String aParentName) {
 
         pParentName = aParentName;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.composer.model.IModelBean#setRootName(java.lang.String)
+     */
+    @Override
+    public void setRootName(final String aRootName) {
+
+        pRootName = aRootName;
     }
 }

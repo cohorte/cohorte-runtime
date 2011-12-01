@@ -78,6 +78,10 @@ public class ComponentsSetBean extends AbstractModelBean implements
             if (parentName != null) {
                 pName = parentName + "." + pName;
             }
+
+        } else {
+            // We are the root element
+            pRootName = pName;
         }
 
         synchronized (pComponentBeans) {
@@ -92,6 +96,7 @@ public class ComponentsSetBean extends AbstractModelBean implements
             // Update their name and re-populate the components map
             for (final ComponentBean bean : components) {
                 bean.setParentName(pName);
+                bean.setRootName(pRootName);
                 bean.computeName();
 
                 // Now mapped with the new component name
@@ -102,6 +107,7 @@ public class ComponentsSetBean extends AbstractModelBean implements
         // Propagate modification to sub-sets
         for (final ComponentsSetBean bean : pComponentSets) {
             bean.setParentName(pName);
+            bean.setRootName(pRootName);
             bean.computeName();
         }
     }

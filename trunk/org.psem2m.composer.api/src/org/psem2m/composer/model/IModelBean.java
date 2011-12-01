@@ -32,6 +32,14 @@ public interface IModelBean {
     String getParentName();
 
     /**
+     * Retrieves the name of the root component set in the hierarchy, i.e. the
+     * name of the whole component set
+     * 
+     * @return the name of the component set
+     */
+    String getRootName();
+
+    /**
      * Recursively asks the beans to link internal wires
      * 
      * @param aCallingParent
@@ -56,4 +64,13 @@ public interface IModelBean {
      *            the name of the parent of the bean
      */
     void setParentName(String aParentName);
+
+    /**
+     * Sets the name of the root component set in the hierarchy, i.e. the name
+     * of the whole component set
+     * 
+     * @param aRootName
+     *            the name of the component set
+     */
+    void setRootName(final String aRootName);
 }
