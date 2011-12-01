@@ -893,8 +893,8 @@ public class ComposerCore extends CPojoBase implements IComposer,
      * @param aComponentsTypes
      *            Component types no more supported by the isolate
      */
-    protected void unregisterComponentsForIsolate(final String aIsolateId,
-            final String[] aComponentsTypes) {
+    protected synchronized void unregisterComponentsForIsolate(
+            final String aIsolateId, final String[] aComponentsTypes) {
 
         final List<String> isolateComponents = pIsolatesCapabilities
                 .get(aIsolateId);
@@ -911,6 +911,13 @@ public class ComposerCore extends CPojoBase implements IComposer,
             // Unmaps each component type with the isolate
             for (final String type : aComponentsTypes) {
                 isolateComponents.remove(type);
+            }
+
+            // Update waiting composites states
+            for (final InstantiatingComposite composite : pWaitingComposites) {
+
+                // Update the components set types
+                composite.lostComponentTypes(aIsolateId, aComponentsTypes);
             }
 
             // Update complete composites states
