@@ -411,6 +411,7 @@ public abstract class CTableModel<T> extends AbstractTableModel {
      */
     private void traceDebug(final String aFormat, final Object... aArgs) {
 
-        // System.out.println(String.format(aFormat, aArgs));
+        System.out.println(String.format("[%25s] %s", pPanel.getClass()
+                .getSimpleName(), String.format(aFormat, aArgs)));
     }
 }
