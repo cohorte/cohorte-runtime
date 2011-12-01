@@ -10,7 +10,7 @@ package org.psem2m.composer.demo;
  * 
  * @author Thomas Calmant
  */
-public interface DemoComponentsConstants {
+public interface CComponentsConstants {
 
     /** The cache queue poller */
     String COMPONENT_CACHE_QUEUE_POLLER = "cache-queue-poller";

@@ -18,7 +18,8 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
-import org.psem2m.composer.demo.DemoComponentsConstants;
+import org.psem2m.composer.demo.CComponentPojo;
+import org.psem2m.composer.demo.CComponentsConstants;
 import org.psem2m.composer.demo.IComponent;
 import org.psem2m.composer.demo.IComponentContext;
 import org.psem2m.demo.data.cache.ICacheDequeueChannel;
@@ -26,16 +27,15 @@ import org.psem2m.demo.data.cache.ICacheFactory;
 import org.psem2m.demo.data.cache.ICachedObject;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.Utilities;
-import org.psem2m.isolates.base.activators.CPojoBase;
 
 /**
  * getItem treatment chain entry point
  * 
  * @author Thomas Calmant
  */
-@Component(name = DemoComponentsConstants.COMPONENT_COMPUTE_QUEUED_CARTS)
+@Component(name = CComponentsConstants.COMPONENT_COMPUTE_QUEUED_CARTS)
 @Provides(specifications = IComponent.class)
-public class ComputeQueuedCarts extends CPojoBase implements IComponent {
+public class ComputeQueuedCarts extends CComponentPojo implements IComponent {
 
     /** The cache factory */
     @Requires
@@ -62,11 +62,11 @@ public class ComputeQueuedCarts extends CPojoBase implements IComponent {
     private IIsolateLoggerSvc pLogger;
 
     /** The instance name */
-    @Property(name = DemoComponentsConstants.PROPERTY_INSTANCE_NAME)
+    @Property(name = CComponentsConstants.PROPERTY_INSTANCE_NAME)
     private String pName;
 
     /** The next component of the chain */
-    @Requires(id = DemoComponentsConstants.WIRE_NEXT)
+    @Requires(id = CComponentsConstants.WIRE_NEXT)
     private IComponent pNext;
 
     /** The stock value in the result map */
@@ -126,6 +126,17 @@ public class ComputeQueuedCarts extends CPojoBase implements IComponent {
         return computedResult;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.composer.demo.impl.CComposable#getName()
+     */
+    @Override
+    public String getName() {
+
+        return pName;
+    }
+
     /**
      * Computes the reserved quantity of each item referenced in carts
      * 
@@ -157,11 +168,12 @@ public class ComputeQueuedCarts extends CPojoBase implements IComponent {
                     .getRequest().get(pCartLinesKey));
             if (!(cartLines instanceof Iterable)) {
                 pLogger.logWarn(this, "getReservedQuantities",
-                        "Don't know  how to read cart :", cartLines);
+                        "cpnt=[%25s] Don't know  how to read cart :",
+                        getShortName(), cartLines);
                 continue;
             }
 
-            for (final Map<String, Object> cartLine : ((Iterable<Map<String, Object>>) cartLines)) {
+            for (final Map<String, Object> cartLine : (Iterable<Map<String, Object>>) cartLines) {
 
                 // Get line item data
                 final String itemId = (String) cartLine.get(pCartItemIdKey);
@@ -173,7 +185,8 @@ public class ComputeQueuedCarts extends CPojoBase implements IComponent {
                 if (itemId == null || quantityObject == null) {
                     // Invalid data
                     pLogger.logWarn(this, "getReservedQuantities",
-                            "Unreadable cart line :", cartLine);
+                            "cpnt=[%25s] Unreadable cart line :",
+                            getShortName(), cartLine);
                     continue;
                 }
 
@@ -187,9 +200,11 @@ public class ComputeQueuedCarts extends CPojoBase implements IComponent {
                                 .valueOf(quantityObject));
                     } catch (final Exception e) {
                         // Oups
-                        pLogger.logWarn(this, "getReservedQuantities",
-                                "Error reading object", itemId,
-                                "reserved quantity :", quantityObject);
+                        pLogger.logWarn(
+                                this,
+                                "getReservedQuantities",
+                                "cpnt=[%25s] Error reading object=[%s] reserved quantity : %s ",
+                                getShortName(), itemId, quantityObject);
                         continue;
                     }
                 }
@@ -220,7 +235,8 @@ public class ComputeQueuedCarts extends CPojoBase implements IComponent {
     @Invalidate
     public void invalidatePojo() throws BundleException {
 
-        pLogger.logInfo(this, "invalidatePojo", "Component", pName, "Gone");
+        pLogger.logInfo(this, "invalidatePojo", "cpnt=[%25s] Gone",
+                getShortName());
     }
 
     /*
@@ -232,6 +248,7 @@ public class ComputeQueuedCarts extends CPojoBase implements IComponent {
     @Validate
     public void validatePojo() throws BundleException {
 
-        pLogger.logInfo(this, "validatePojo", "Component", pName, "Ready");
+        pLogger.logInfo(this, "validatePojo", "cpnt=[%25s] Ready",
+                getShortName());
     }
 }

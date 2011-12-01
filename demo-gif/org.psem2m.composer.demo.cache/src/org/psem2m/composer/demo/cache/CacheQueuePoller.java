@@ -14,7 +14,7 @@ import org.apache.felix.ipojo.annotations.Property;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
-import org.psem2m.composer.demo.DemoComponentsConstants;
+import org.psem2m.composer.demo.CComponentsConstants;
 import org.psem2m.composer.demo.IComponent;
 import org.psem2m.composer.demo.IComponentContext;
 import org.psem2m.demo.data.cache.ICacheDequeueChannel;
@@ -28,7 +28,7 @@ import org.psem2m.isolates.base.activators.CPojoBase;
  * 
  * @author Thomas Calmant
  */
-@Component(name = DemoComponentsConstants.COMPONENT_CACHE_QUEUE_POLLER)
+@Component(name = CComponentsConstants.COMPONENT_CACHE_QUEUE_POLLER)
 public class CacheQueuePoller extends CPojoBase implements Runnable {
 
     /** The cache factory */
@@ -44,11 +44,11 @@ public class CacheQueuePoller extends CPojoBase implements Runnable {
     private IIsolateLoggerSvc pLogger;
 
     /** The instance name */
-    @Property(name = DemoComponentsConstants.PROPERTY_INSTANCE_NAME)
+    @Property(name = CComponentsConstants.PROPERTY_INSTANCE_NAME)
     private String pName;
 
     /** The next component of the chain */
-    @Requires(id = DemoComponentsConstants.WIRE_NEXT)
+    @Requires(id = CComponentsConstants.WIRE_NEXT)
     private IComponent pNext;
 
     /** The run/stop flag */

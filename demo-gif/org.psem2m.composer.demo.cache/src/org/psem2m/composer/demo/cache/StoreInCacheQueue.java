@@ -17,23 +17,23 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
-import org.psem2m.composer.demo.DemoComponentsConstants;
+import org.psem2m.composer.demo.CComponentPojo;
+import org.psem2m.composer.demo.CComponentsConstants;
 import org.psem2m.composer.demo.IComponent;
 import org.psem2m.composer.demo.IComponentContext;
 import org.psem2m.demo.data.cache.ICacheDequeueChannel;
 import org.psem2m.demo.data.cache.ICacheFactory;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.Utilities;
-import org.psem2m.isolates.base.activators.CPojoBase;
 
 /**
  * getItem treatment chain entry point
  * 
  * @author Thomas Calmant
  */
-@Component(name = DemoComponentsConstants.COMPONENT_STORE_IN_CACHE_QUEUE)
+@Component(name = CComponentsConstants.COMPONENT_STORE_IN_CACHE_QUEUE)
 @Provides(specifications = IComponent.class)
-public class StoreInCacheQueue extends CPojoBase implements IComponent {
+public class StoreInCacheQueue extends CComponentPojo implements IComponent {
 
     /** The cache factory */
     @Requires
@@ -56,7 +56,7 @@ public class StoreInCacheQueue extends CPojoBase implements IComponent {
     private IIsolateLoggerSvc pLogger;
 
     /** The instance name */
-    @Property(name = DemoComponentsConstants.PROPERTY_INSTANCE_NAME)
+    @Property(name = CComponentsConstants.PROPERTY_INSTANCE_NAME)
     private String pName;
 
     /*
@@ -75,11 +75,15 @@ public class StoreInCacheQueue extends CPojoBase implements IComponent {
         /* Test cart ID */
         if (cartMap == null) {
             aContext.addError(pName, "Null cart");
+            // log the error
+            logContextError(pLogger, aContext);
             return aContext;
         }
 
         if (!cartMap.containsKey(pCartIdKey)) {
             aContext.addError(pName, "Cart doesn't have an ID");
+            // log the error
+            logContextError(pLogger, aContext);
             return aContext;
         }
 
@@ -91,6 +95,8 @@ public class StoreInCacheQueue extends CPojoBase implements IComponent {
                 || ((Collection<?>) cartLinesObject).isEmpty()) {
 
             aContext.addError(pName, "Empty cart or invalid lines");
+            // log the error
+            logContextError(pLogger, aContext);
             return aContext;
         }
 
@@ -111,13 +117,25 @@ public class StoreInCacheQueue extends CPojoBase implements IComponent {
     /*
      * (non-Javadoc)
      * 
+     * @see org.psem2m.composer.demo.impl.CComposable#getName()
+     */
+    @Override
+    public String getName() {
+
+        return pName;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.psem2m.isolates.base.activators.CPojoBase#invalidatePojo()
      */
     @Override
     @Invalidate
     public void invalidatePojo() throws BundleException {
 
-        pLogger.logInfo(this, "invalidatePojo", "Component", pName, "Gone");
+        pLogger.logInfo(this, "invalidatePojo", "cpnt=[%25s] Gone",
+                getShortName());
     }
 
     /*
@@ -129,6 +147,7 @@ public class StoreInCacheQueue extends CPojoBase implements IComponent {
     @Validate
     public void validatePojo() throws BundleException {
 
-        pLogger.logInfo(this, "validatePojo", "Component", pName, "Ready");
+        pLogger.logInfo(this, "validatePojo", "cpnt=[%25s] Ready",
+                getShortName());
     }
 }

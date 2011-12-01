@@ -12,7 +12,7 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
-import org.psem2m.composer.demo.DemoComponentsConstants;
+import org.psem2m.composer.demo.CComponentsConstants;
 import org.psem2m.composer.demo.IComponent;
 import org.psem2m.composer.demo.IComponentContext;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
@@ -23,7 +23,7 @@ import org.psem2m.isolates.base.activators.CPojoBase;
  * 
  * @author Thomas Calmant
  */
-@Component(name = DemoComponentsConstants.COMPONENT_ERP_CALLER)
+@Component(name = CComponentsConstants.COMPONENT_ERP_CALLER)
 @Provides(specifications = IComponent.class)
 public class ErpCaller extends CPojoBase implements IComponent {
 
@@ -36,7 +36,7 @@ public class ErpCaller extends CPojoBase implements IComponent {
     private IIsolateLoggerSvc pLogger;
 
     /** The instance name */
-    @Property(name = DemoComponentsConstants.PROPERTY_INSTANCE_NAME)
+    @Property(name = CComponentsConstants.PROPERTY_INSTANCE_NAME)
     private String pName;
 
     /** The next component */

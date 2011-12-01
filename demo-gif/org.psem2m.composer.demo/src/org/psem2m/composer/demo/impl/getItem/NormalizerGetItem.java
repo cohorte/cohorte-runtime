@@ -16,22 +16,22 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
-import org.psem2m.composer.demo.DemoComponentsConstants;
+import org.psem2m.composer.demo.CComponentPojo;
+import org.psem2m.composer.demo.CComponentsConstants;
 import org.psem2m.composer.demo.IComponent;
 import org.psem2m.composer.demo.IComponentContext;
 import org.psem2m.composer.demo.IQualityLevels;
 import org.psem2m.composer.demo.QualityUtilities;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
-import org.psem2m.isolates.base.activators.CPojoBase;
 
 /**
  * getItem result normalizer
  * 
  * @author Thomas Calmant
  */
-@Component(name = DemoComponentsConstants.COMPONENT_NORMALIZER_GETITEM)
+@Component(name = CComponentsConstants.COMPONENT_NORMALIZER_GETITEM)
 @Provides(specifications = IComponent.class)
-public class NormalizerGetItem extends CPojoBase implements IComponent {
+public class NormalizerGetItem extends CComponentPojo implements IComponent {
 
     /** The key used in the result map to store the cache age */
     @Property(name = "cacheAgeEntry", value = "__cache_age")
@@ -45,7 +45,7 @@ public class NormalizerGetItem extends CPojoBase implements IComponent {
     private IIsolateLoggerSvc pLogger;
 
     /** The instance name */
-    @Property(name = DemoComponentsConstants.PROPERTY_INSTANCE_NAME)
+    @Property(name = CComponentsConstants.PROPERTY_INSTANCE_NAME)
     private String pName;
 
     /*
@@ -151,6 +151,17 @@ public class NormalizerGetItem extends CPojoBase implements IComponent {
     /*
      * (non-Javadoc)
      * 
+     * @see org.psem2m.composer.demo.impl.CComposable#getName()
+     */
+    @Override
+    public String getName() {
+
+        return pName;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.psem2m.isolates.base.activators.CPojoBase#invalidatePojo()
      */
     @Override
@@ -159,7 +170,8 @@ public class NormalizerGetItem extends CPojoBase implements IComponent {
 
         pKeyTranslationMap.clear();
 
-        pLogger.logInfo(this, "invalidatePojo", "Component", pName, "Gone");
+        pLogger.logInfo(this, "invalidatePojo", "cpnt=[%25s] Gone",
+                getShortName());
     }
 
     /*
@@ -175,6 +187,7 @@ public class NormalizerGetItem extends CPojoBase implements IComponent {
         pKeyTranslationMap.put("lib", "name");
         pKeyTranslationMap.put("text", "description");
 
-        pLogger.logInfo(this, "validatePojo", "Component", pName, "Ready");
+        pLogger.logInfo(this, "validatePojo", "cpnt=[%25s] Ready",
+                getShortName());
     }
 }

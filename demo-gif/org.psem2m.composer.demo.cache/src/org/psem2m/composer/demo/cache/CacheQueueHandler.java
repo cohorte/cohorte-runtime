@@ -21,9 +21,10 @@ import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Unbind;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
-import org.psem2m.composer.demo.ComponentContextBean;
-import org.psem2m.composer.demo.ComponentContextDumper;
-import org.psem2m.composer.demo.DemoComponentsConstants;
+import org.psem2m.composer.demo.CComponentPojo;
+import org.psem2m.composer.demo.CComponentContextBean;
+import org.psem2m.composer.demo.CComponentContextDumper;
+import org.psem2m.composer.demo.CComponentsConstants;
 import org.psem2m.composer.demo.IComponent;
 import org.psem2m.composer.demo.IComponentContext;
 import org.psem2m.demo.data.cache.ICacheDequeueChannel;
@@ -31,7 +32,6 @@ import org.psem2m.demo.data.cache.ICacheFactory;
 import org.psem2m.demo.data.cache.ICachedObject;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.Utilities;
-import org.psem2m.isolates.base.activators.CPojoBase;
 
 /**
  * @author Thomas Calmant
@@ -39,7 +39,7 @@ import org.psem2m.isolates.base.activators.CPojoBase;
  */
 @Component(name = "cache-queue-handler")
 @Provides(specifications = IComponent.class)
-public class CacheQueueHandler extends CPojoBase implements IComponent,
+public class CacheQueueHandler extends CComponentPojo implements IComponent,
         Runnable {
 
     /** The cache factory */
@@ -66,14 +66,14 @@ public class CacheQueueHandler extends CPojoBase implements IComponent,
     private IIsolateLoggerSvc pLogger;
 
     /** The instance name */
-    @Property(name = DemoComponentsConstants.PROPERTY_INSTANCE_NAME)
+    @Property(name = CComponentsConstants.PROPERTY_INSTANCE_NAME)
     private String pName;
 
     /**
      * The next component of the chain => nullable = false => no mock, pNext
      * could be null !
      */
-    @Requires(id = DemoComponentsConstants.WIRE_NEXT, nullable = false, optional = true)
+    @Requires(id = CComponentsConstants.WIRE_NEXT, nullable = false, optional = true)
     private IComponent pNext;
 
     /** The run/stop flag */
@@ -105,12 +105,16 @@ public class CacheQueueHandler extends CPojoBase implements IComponent,
         /* Test cart ID */
         if (cartMap == null) {
             aContext.addError(pName, "Null cart");
+            // log the error
+            logContextError(pLogger, aContext);
             return aContext;
         }
 
         final Object cartId = cartMap.get(pCartIdKey);
         if (cartId == null) {
             aContext.addError(pName, "Cart doesn't have an ID");
+            // log the error
+            logContextError(pLogger, aContext);
             return aContext;
         }
 
@@ -122,6 +126,8 @@ public class CacheQueueHandler extends CPojoBase implements IComponent,
                 || ((Collection<?>) cartLinesObject).isEmpty()) {
 
             aContext.addError(pName, "Empty cart or invalid lines");
+            // log the error
+            logContextError(pLogger, aContext);
             return aContext;
         }
 
@@ -131,14 +137,16 @@ public class CacheQueueHandler extends CPojoBase implements IComponent,
             pSemaphores.put(cartId, semaphore);
         }
 
-        pLogger.logInfo(this, "computeResult",
-                "component=[%s] Inserting cart in cache : %s", pName, cartMap);
+        pLogger.logDebug(this, "computeResult",
+                "cpnt=[%25s] Inserting cart in cache : %s", getShortName(),
+                cartMap);
 
         /* Store the current context in the cache */
         pChannel.add(aContext);
 
-        pLogger.logInfo(this, "computeResult",
-                "component=[%s] Waiting [%d] ms max.", pName, pWaitTimeout);
+        pLogger.logDebug(this, "computeResult",
+                "cpnt=[%25s] Waiting [%d] ms max.", getShortName(),
+                pWaitTimeout);
 
         // Wait for the semaphore
         final boolean semaphoreAcquired = semaphore.tryAcquire(pWaitTimeout,
@@ -150,16 +158,17 @@ public class CacheQueueHandler extends CPojoBase implements IComponent,
             // Clean the map in any case
             pSemaphores.remove(cartId);
 
-            pLogger.logInfo(this, "computeResult",
-                    "component=[%s] Acquired=[%b]", pName, semaphoreAcquired);
+            pLogger.logDebug(this, "computeResult",
+                    "cpnt=[%25s] Acquired=[%b]", getShortName(),
+                    semaphoreAcquired);
 
             if (!semaphoreAcquired) {
                 // Cart has not yet been treated, prepare a copy of the context
 
-                pLogger.logInfo(this, "computeResult",
-                        "component=[%s] So sad...", pName);
+                pLogger.logDebug(this, "computeResult",
+                        "cpnt=[%25s] So sad...", getShortName());
 
-                final ComponentContextBean context = new ComponentContextBean();
+                final CComponentContextBean context = new CComponentContextBean();
                 // context.setErrors(aContext.getErrors());
                 context.setMetadata(aContext.getMetadata());
 
@@ -175,11 +184,22 @@ public class CacheQueueHandler extends CPojoBase implements IComponent,
             }
         }
 
-        pLogger.logInfo(this, "computeResult",
-                "component=[%s] Good, cart sent !", pName);
+        pLogger.logInfo(this, "computeResult", "cpnt=[%25s] Good, cart sent !",
+                getShortName());
 
         // Return the current context
         return aContext;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.composer.demo.impl.CComposable#getName()
+     */
+    @Override
+    public String getName() {
+
+        return pName;
     }
 
     /*
@@ -197,7 +217,8 @@ public class CacheQueueHandler extends CPojoBase implements IComponent,
         // Release references...
         pChannel = null;
 
-        pLogger.logInfo(this, "invalidatePojo", "component=[%s] Gone", pName);
+        pLogger.logInfo(this, "invalidatePojo", "cpnt=[%25s] Gone",
+                getShortName());
     }
 
     /**
@@ -206,8 +227,8 @@ public class CacheQueueHandler extends CPojoBase implements IComponent,
     @Bind(id = NEXT_FIELD_ID)
     public void nextBind(final IComponent aNext) {
 
-        pLogger.logInfo(this, "nextBind", "component=[%s] next=[%s]", pName,
-                String.valueOf(aNext));
+        pLogger.logInfo(this, "nextBind", "cpnt=[%25s] next=[%s]",
+                getShortName(), String.valueOf(aNext));
 
         // Start the polling thread
         threadStart();
@@ -219,8 +240,8 @@ public class CacheQueueHandler extends CPojoBase implements IComponent,
     @Unbind(id = NEXT_FIELD_ID)
     public void nextUnbind(final IComponent aNext) {
 
-        pLogger.logInfo(this, "nextUnbind", "component=[%s] next=[%s]", pName,
-                String.valueOf(aNext));
+        pLogger.logInfo(this, "nextUnbind", "cpnt=[%25s] next=[%s]",
+                getShortName(), String.valueOf(aNext));
 
         // Stop running thread
         threadStop();
@@ -234,7 +255,8 @@ public class CacheQueueHandler extends CPojoBase implements IComponent,
     @Override
     public void run() {
 
-        pLogger.logDebug(this, "run", "component=[%s] Thread started", pName);
+        pLogger.logDebug(this, "run", "cpnt=[%25s] Thread started",
+                getShortName());
 
         // Get the first available object
         try {
@@ -265,11 +287,9 @@ public class CacheQueueHandler extends CPojoBase implements IComponent,
                         needsReinjection = resultContext == null;
 
                     } catch (final Exception e) {
-                        pLogger.logSevere(
-                                this,
-                                "run",
-                                "component=[%s] Polling Cache Queue ERROR : %s",
-                                pName, e);
+                        pLogger.logSevere(this, "run",
+                                "cpnt=[%25s] Polling Cache Queue ERROR : %s",
+                                getShortName(), e);
 
                         // Ask for cart re-injection
                         needsReinjection = true;
@@ -279,10 +299,10 @@ public class CacheQueueHandler extends CPojoBase implements IComponent,
                         pLogger.logDebug(
                                 this,
                                 "run",
-                                "component=[%s] needsReinjection=[%b] result=[%s]",
-                                pName,
+                                "cpnt=[%25s] needsReinjection=[%b] result=[%s]",
+                                getShortName(),
                                 needsReinjection,
-                                resultContext != null ? ComponentContextDumper
+                                resultContext != null ? CComponentContextDumper
                                         .dump(resultContext)
                                         : "resultContext is null");
                     }
@@ -294,7 +314,8 @@ public class CacheQueueHandler extends CPojoBase implements IComponent,
 
                         if (pLogger.isLogDebugOn()) {
                             pLogger.logDebug(this, "run",
-                                    "component=[%s] Reinjection OK", pName);
+                                    "cpnt=[%25s] Reinjection OK",
+                                    getShortName());
                         }
 
                         // Wait a little...
@@ -337,11 +358,13 @@ public class CacheQueueHandler extends CPojoBase implements IComponent,
             if (pRunning) {
                 // .. but not by this component...
                 pLogger.logInfo(this, "run",
-                        "component=[%s] Polling thread interrupted.", pName);
+                        "cpnt=[%25s] Polling thread interrupted.",
+                        getShortName());
             }
         }
 
-        pLogger.logDebug(this, "run", "component=[%s] Thread stopped", pName);
+        pLogger.logDebug(this, "run", "cpnt=[%25s] Thread stopped",
+                getShortName());
     }
 
     /**
@@ -349,7 +372,7 @@ public class CacheQueueHandler extends CPojoBase implements IComponent,
      */
     private void threadStart() {
 
-        pLogger.logInfo(this, "threadStart", "component=[%s]", pName);
+        pLogger.logInfo(this, "threadStart", "cpnt=[%25s]", getShortName());
 
         pRunning = true;
         pThread = new Thread(this);
@@ -362,7 +385,7 @@ public class CacheQueueHandler extends CPojoBase implements IComponent,
      */
     private void threadStop() {
 
-        pLogger.logInfo(this, "threadStop", "component=[%s]", pName);
+        pLogger.logInfo(this, "threadStop", "cpnt=[%25s]", getShortName());
 
         pRunning = false;
         if (pThread != null) {
@@ -383,6 +406,7 @@ public class CacheQueueHandler extends CPojoBase implements IComponent,
         // Open the cart channel
         pChannel = pCache.openDequeueChannel(pCacheChannelName);
 
-        pLogger.logInfo(this, "validatePojo", "component=[%s] Ready", pName);
+        pLogger.logInfo(this, "validatePojo", "cpnt=[%25s] Ready",
+                getShortName());
     }
 }

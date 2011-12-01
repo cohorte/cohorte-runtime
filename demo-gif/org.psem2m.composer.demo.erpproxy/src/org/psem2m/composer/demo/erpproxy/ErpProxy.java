@@ -23,7 +23,7 @@ import org.jabsorb.client.HTTPSession;
 import org.jabsorb.client.Session;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
-import org.psem2m.composer.demo.DemoComponentsConstants;
+import org.psem2m.composer.demo.CComponentsConstants;
 import org.psem2m.composer.demo.IComponent;
 import org.psem2m.composer.demo.IComponentContext;
 import org.psem2m.composer.demo.IErpData;
@@ -67,7 +67,7 @@ public class ErpProxy extends CPojoBase implements IComponent {
     private IIsolateLoggerSvc pLogger;
 
     /** The instance name */
-    @Property(name = DemoComponentsConstants.PROPERTY_INSTANCE_NAME)
+    @Property(name = CComponentsConstants.PROPERTY_INSTANCE_NAME)
     private String pName;
 
     /** The ping thread */
