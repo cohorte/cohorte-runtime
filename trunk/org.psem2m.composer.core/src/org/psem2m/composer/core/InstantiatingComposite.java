@@ -68,7 +68,6 @@ public class InstantiatingComposite {
             final String aHostIsolate) {
 
         if (aComponentBean == null || aComponentBean.getRootName() == null) {
-            System.out.println("No bean or root");
             return;
         }
 
@@ -93,9 +92,8 @@ public class InstantiatingComposite {
     public void componentStarted(final String aComponentName,
             final String aHostIsolate) {
 
-        // System.out.println("ComponentStarted : " + aComponentName);
-
-        final InstantiatingComponent component;
+        InstantiatingComponent component = null;
+        boolean wasTimedOut = false;
 
         synchronized (pRequestedComponents) {
             // Is this component requested ?
@@ -105,10 +103,28 @@ public class InstantiatingComposite {
                 // Valid component
                 pRequestedComponents.remove(aComponentName);
 
+            } else if (pRemainingComponents.containsKey(aComponentName)) {
+                // Timed-out component...
+                wasTimedOut = true;
+
             } else {
-                // Unknown component
-                // System.out.println("=> Unknown component");
+                // Totally unknown
                 return;
+            }
+        }
+
+        if (wasTimedOut) {
+            // If the component was timed out, it is now in the remaining map
+            synchronized (pRemainingComponents) {
+
+                // Get the timed-out component out of here
+                component = pRemainingComponents.get(aComponentName);
+                pRemainingComponents.remove(aComponentName);
+
+                if (component == null) {
+                    // Something moved - do nothing
+                    return;
+                }
             }
         }
 
@@ -152,8 +168,6 @@ public class InstantiatingComposite {
      */
     public void componentStopped(final String aComponentName) {
 
-        // System.out.println("ComponentStopped = " + aComponentName);
-
         final InstantiatingComponent component;
 
         synchronized (pRunningComponents) {
@@ -166,7 +180,6 @@ public class InstantiatingComposite {
 
             } else {
                 // Unknown component
-                // System.out.println("=> Unknown component");
                 return;
             }
         }

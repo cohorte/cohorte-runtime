@@ -76,7 +76,7 @@ public class ComposerCore extends CPojoBase implements IComposer,
     private final Map<String, InstantiatingComposite> pInstantiatingComposites = new HashMap<String, InstantiatingComposite>();
 
     /** The component instantiation time out (in milliseconds) */
-    @Property(name = "component-instantiation-timeout", value = "500")
+    @Property(name = "component-instantiation-timeout", value = "1000")
     private long pInstantiationTimeout;
 
     /** Maps isolates and components */
@@ -437,6 +437,9 @@ public class ComposerCore extends CPojoBase implements IComposer,
                 continue;
             }
 
+            // Update the components set state
+            aComposet.notifyInstantiationRequest(isolateId, isolateComponents);
+
             // Prepare the timeouts calls
             for (final ComponentBean component : isolateComponents) {
 
@@ -474,9 +477,6 @@ public class ComposerCore extends CPojoBase implements IComposer,
             pSignalBroadcaster.sendData(isolateId,
                     ComposerAgentSignals.SIGNAL_INSTANTIATE_COMPONENTS,
                     isolateComponents);
-
-            // Update the components set state
-            aComposet.notifyInstantiationRequest(isolateId, isolateComponents);
         }
     }
 
