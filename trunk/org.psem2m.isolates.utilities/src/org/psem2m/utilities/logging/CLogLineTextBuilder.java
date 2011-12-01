@@ -4,12 +4,17 @@ import java.util.Arrays;
 
 /**
  * 
- * Builds the text of a log line with an array of objects. <ul> <li>converts
- * null of Thowable to strings <li>if the first object is a format, the text is
- * the result of the String.format() method <li>builds the text by appending the
- * string value of each object. <ul> <li>if a string is endding by a character
- * equal, it is and the next string value is added with square brackets (eg:
- * "id=", "1258" => "id=[1258)]" ) </ul> </ul>
+ * Builds the text of a log line with an array of objects.
+ * 
+ * converts null of Thowable to strings
+ * 
+ * if the first object is a format, the text is the result of the
+ * String.format() method
+ * 
+ * builds the text by appending the string value of each object.
+ * 
+ * if a string is endding by a character equal, it is and the next string value
+ * is added with square brackets (eg: "id=", "1258" => "id=[1258)]" )
  * 
  * 
  * 
@@ -117,9 +122,7 @@ public class CLogLineTextBuilder {
      */
     public String formatLogLine(final Object... aObjects) {
 
-        final StringBuilder wSB = new StringBuilder(128);
-        addTextsInLogLine(wSB, aObjects);
-        return wSB.toString();
+        return addTextsInLogLine(new StringBuilder(128), aObjects).toString();
     }
 
     /**
