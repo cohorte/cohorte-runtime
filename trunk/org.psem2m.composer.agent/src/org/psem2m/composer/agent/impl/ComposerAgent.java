@@ -391,7 +391,13 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
                     "Instantiating component :", component, "...");
 
             if (compositeName == null) {
-                compositeName = component.getParentName();
+                compositeName = component.getRootName();
+                pLogger.logInfo(this, "instantiateComponents+++++",
+                        "Found components set name=", compositeName, "/ bean=",
+                        component);
+            } else {
+                pLogger.logInfo(this, "instantiateComponents+++++",
+                        "Already found set name=", compositeName);
             }
 
             // Get the factory
