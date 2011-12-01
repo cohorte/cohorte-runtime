@@ -92,7 +92,11 @@ public abstract class CTableModel<T> extends AbstractTableModel {
         String[] wData = pPanel.buildRowData(aEntity);
         if (pPanel.acceptRow(aEntity, wData)) {
             pList.add(wData);
-            pMap.put(getRowKey(wData), buildEntityBean(aEntity));
+            String wKey = getRowKey(wData);
+            pMap.put(wKey, buildEntityBean(aEntity));
+
+            traceDebug("%15s| adds row=[%s]", "addEntity", wKey);
+
             return pList.size() - 1;
         }
         return -1;
@@ -369,6 +373,8 @@ public abstract class CTableModel<T> extends AbstractTableModel {
                     wI++;
                 }
                 pMap.put(wKey, buildEntityBean(aEntity));
+
+                traceDebug("%15s| sets row=[%s]", "setRow", wKey);
             }
         }
         if (wRowIdx > -1) {

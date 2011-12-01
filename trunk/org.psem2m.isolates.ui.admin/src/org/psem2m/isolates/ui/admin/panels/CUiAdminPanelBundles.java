@@ -58,11 +58,21 @@ public class CUiAdminPanelBundles extends CPojoBase implements
             pLogger.logInfo(this, "bundleChanged", "BundleEvent=[%s]",
                     bundleEventToString(aBundleEvent.getType()));
 
-            if (BundleEvent.UNINSTALLED == aBundleEvent.getType()) {
-                pJPanel.removeRow(aBundleEvent.getBundle());
-            } else {
-                pJPanel.setRow(aBundleEvent.getBundle());
-            }
+            pUiExecutor.execute(new Runnable() {
+
+                @Override
+                public void run() {
+
+                    if (pJPanel != null) {
+                        if (BundleEvent.UNINSTALLED == aBundleEvent.getType()) {
+                            pJPanel.removeRow(aBundleEvent.getBundle());
+                        } else {
+                            pJPanel.setRow(aBundleEvent.getBundle());
+                        }
+                    }
+                }
+            });
+
         }
 
         /**
@@ -132,13 +142,21 @@ public class CUiAdminPanelBundles extends CPojoBase implements
             @Override
             public void run() {
 
+                pJPanel = new CJPanelTableBundles(pUiExecutor, pLogger,
+                        pUiAdminPanel.getPanel());
+
                 pLogger.logInfo(this, "initContent");
 
                 // put in place the list of all installed bundles.
-                pJPanel.addRows(CBundleUiActivator.getInstance().getContext()
+                pJPanel.setRows(CBundleUiActivator.getInstance().getContext()
                         .getBundles());
 
                 pUiAdminPanel.pack();
+
+                pBundleListener = new CBundleListener();
+
+                CBundleUiActivator.getInstance().getContext()
+                        .addBundleListener(pBundleListener);
             }
         };
         try {
@@ -167,7 +185,10 @@ public class CUiAdminPanelBundles extends CPojoBase implements
                         .removeBundleListener(pBundleListener);
             }
 
-            pJPanel.destroy();
+            if (pJPanel != null) {
+                pJPanel.destroy();
+                pJPanel = null;
+            }
 
             pUiAdminSvc.removeUiAdminPanel(pUiAdminPanel);
 
@@ -186,8 +207,10 @@ public class CUiAdminPanelBundles extends CPojoBase implements
     @Override
     public void setUiAdminFont(final EUiAdminFont aUiAdminFont) {
 
-        pJPanel.setTableFont(aUiAdminFont);
-        pJPanel.setTextFont(aUiAdminFont);
+        if (pJPanel != null) {
+            pJPanel.setTableFont(aUiAdminFont);
+            pJPanel.setTextFont(aUiAdminFont);
+        }
     }
 
     /*
@@ -207,15 +230,7 @@ public class CUiAdminPanelBundles extends CPojoBase implements
                     "Bundles list and managment.", null, this,
                     EUiAdminPanelLocation.FIRST);
 
-            pJPanel = new CJPanelTableBundles(pUiExecutor, pLogger,
-                    pUiAdminPanel.getPanel());
-
             initContent();
-
-            pBundleListener = new CBundleListener();
-
-            CBundleUiActivator.getInstance().getContext()
-                    .addBundleListener(pBundleListener);
 
         } catch (Exception e) {
             pLogger.logSevere(this, "validatePojo", e);

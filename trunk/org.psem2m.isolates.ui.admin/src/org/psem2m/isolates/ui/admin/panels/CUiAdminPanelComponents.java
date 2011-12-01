@@ -81,10 +81,16 @@ public class CUiAdminPanelComponents extends CPojoBase implements
                 "component=[%s] - panel present=[%b]", aArch
                         .getInstanceDescription().getName(), pJPanel != null);
 
-        if (pJPanel != null) {
-            pJPanel.setRow(aArch);
-        }
+        pUiExecutor.execute(new Runnable() {
 
+            @Override
+            public void run() {
+
+                if (pJPanel != null) {
+                    pJPanel.setRow(aArch);
+                }
+            }
+        });
     }
 
     /**
@@ -98,9 +104,16 @@ public class CUiAdminPanelComponents extends CPojoBase implements
         pLogger.logInfo(this, "architectureUnBind", "component=[%s]", aArch
                 .getInstanceDescription().getName());
 
-        if (pJPanel != null) {
-            pJPanel.removeRow(aArch);
-        }
+        pUiExecutor.execute(new Runnable() {
+
+            @Override
+            public void run() {
+
+                if (pJPanel != null) {
+                    pJPanel.removeRow(aArch);
+                }
+            }
+        });
     }
 
     /**
@@ -114,8 +127,11 @@ public class CUiAdminPanelComponents extends CPojoBase implements
 
                 pLogger.logInfo(this, "initContent");
 
+                pJPanel = new CJPanelTableComponents(pUiExecutor, pLogger,
+                        pUiAdminPanel.getPanel());
+
                 // put in place the list of all registered services.
-                pJPanel.addRows(pArchitectures);
+                pJPanel.setRows(pArchitectures);
 
                 pUiAdminPanel.pack();
             }
@@ -140,7 +156,10 @@ public class CUiAdminPanelComponents extends CPojoBase implements
         // logs in the bundle output
         pLogger.logInfo(this, "invalidatePojo", "INVALIDATE", toDescription());
         try {
-            pJPanel.destroy();
+            if (pJPanel != null) {
+                pJPanel.destroy();
+                pJPanel = null;
+            }
 
             pUiAdminSvc.removeUiAdminPanel(pUiAdminPanel);
 
@@ -159,8 +178,10 @@ public class CUiAdminPanelComponents extends CPojoBase implements
     @Override
     public void setUiAdminFont(final EUiAdminFont aUiAdminFont) {
 
-        pJPanel.setTableFont(aUiAdminFont);
-        pJPanel.setTextFont(aUiAdminFont);
+        if (pJPanel != null) {
+            pJPanel.setTableFont(aUiAdminFont);
+            pJPanel.setTextFont(aUiAdminFont);
+        }
     }
 
     /*
@@ -179,9 +200,6 @@ public class CUiAdminPanelComponents extends CPojoBase implements
             pUiAdminPanel = pUiAdminSvc.newUiAdminPanel("Components",
                     "Componnents list and managment.", null, this,
                     EUiAdminPanelLocation.FIRST);
-
-            pJPanel = new CJPanelTableComponents(pUiExecutor, pLogger,
-                    pUiAdminPanel.getPanel());
 
             initContent();
 

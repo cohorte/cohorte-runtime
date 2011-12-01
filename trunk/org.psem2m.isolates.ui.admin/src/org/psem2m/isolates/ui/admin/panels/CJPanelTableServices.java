@@ -460,8 +460,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
         wRowData[COLUMN_IDX_NAME] = extractServiceNameCleaned(aServiceReference);
         wRowData[COLUMN_IDX_REMOTE_INFO] = extractRemoteInfo(aServiceReference);
         wRowData[COLUMN_IDX_SERVICE_ID] = extractServiceId(aServiceReference);
-        wRowData[COLUMN_IDX_BUNDLE_ID] = CXStringUtils.strAdjustRight(
-                aServiceReference.getBundle().getBundleId(), 3);
+        wRowData[COLUMN_IDX_BUNDLE_ID] = extractBundleId(aServiceReference);
         return wRowData;
     }
 
@@ -519,6 +518,20 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
             pCTableModelServices.destroy();
             pCTableModelServices = null;
         }
+    }
+
+    /**
+     * @param aServiceReference
+     * @return
+     */
+    private String extractBundleId(final ServiceReference aServiceReference) {
+
+        if (aServiceReference == null || aServiceReference.getBundle() == null) {
+            return "null";
+        }
+        return CXStringUtils.strAdjustRight(aServiceReference.getBundle()
+                .getBundleId(), 3);
+
     }
 
     /**

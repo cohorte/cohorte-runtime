@@ -59,14 +59,24 @@ public class CUiAdminPanelServices extends CPojoBase implements
                     serviceEventToString(aServiceEvent.getType()),
                     aServiceEvent.getServiceReference().toString());
 
-            if (aServiceEvent.getType() == ServiceEvent.REGISTERED) {
+            pUiExecutor.execute(new Runnable() {
 
-                pJPanel.setRow(aServiceEvent.getServiceReference());
+                @Override
+                public void run() {
 
-            } else if (aServiceEvent.getType() == ServiceEvent.UNREGISTERING) {
+                    if (pJPanel != null) {
+                        if (aServiceEvent.getType() == ServiceEvent.REGISTERED) {
 
-                pJPanel.removeRow(aServiceEvent.getServiceReference());
-            }
+                            pJPanel.setRow(aServiceEvent.getServiceReference());
+                        } else if (aServiceEvent.getType() == ServiceEvent.UNREGISTERING) {
+
+                            pJPanel.removeRow(aServiceEvent
+                                    .getServiceReference());
+                        }
+                    }
+                }
+            });
+
         }
 
         private String serviceEventToString(final int aType) {
@@ -121,12 +131,19 @@ public class CUiAdminPanelServices extends CPojoBase implements
             @Override
             public void run() {
 
+                pJPanel = new CJPanelTableServices(pUiExecutor, pLogger,
+                        pUiAdminPanel.getPanel());
+
                 pLogger.logInfo(this, "initContent");
                 // put in place the list of all registered services.
-                pJPanel.addRows(CBundleUiActivator.getInstance()
+                pJPanel.setRows(CBundleUiActivator.getInstance()
                         .getAllServiceReferences());
 
                 pUiAdminPanel.pack();
+
+                pServiceListener = new CServiceListener();
+                CBundleUiActivator.getInstance().getContext()
+                        .addServiceListener(pServiceListener);
             }
         };
         try {
@@ -154,7 +171,11 @@ public class CUiAdminPanelServices extends CPojoBase implements
                         .removeServiceListener(pServiceListener);
                 pServiceListener = null;
             }
-            pJPanel.destroy();
+
+            if (pJPanel != null) {
+                pJPanel.destroy();
+                pJPanel = null;
+            }
 
             pUiAdminSvc.removeUiAdminPanel(pUiAdminPanel);
 
@@ -173,8 +194,10 @@ public class CUiAdminPanelServices extends CPojoBase implements
     @Override
     public void setUiAdminFont(final EUiAdminFont aUiAdminFont) {
 
-        pJPanel.setTableFont(aUiAdminFont);
-        pJPanel.setTextFont(aUiAdminFont);
+        if (pJPanel != null) {
+            pJPanel.setTableFont(aUiAdminFont);
+            pJPanel.setTextFont(aUiAdminFont);
+        }
     }
 
     /*
@@ -194,13 +217,7 @@ public class CUiAdminPanelServices extends CPojoBase implements
                     "Services list and managment.", null, this,
                     EUiAdminPanelLocation.FIRST);
 
-            pJPanel = new CJPanelTableServices(pUiExecutor, pLogger,
-                    pUiAdminPanel.getPanel());
-
             initContent();
-            pServiceListener = new CServiceListener();
-            CBundleUiActivator.getInstance().getContext()
-                    .addServiceListener(pServiceListener);
 
         } catch (Exception e) {
             pLogger.logSevere(this, "validatePojo", e);
