@@ -23,4 +23,7 @@ public interface IpojoConstants {
 
     /** Requires handler : from attribute */
     String REQUIRES_FROM = "requires.from";
+
+    /** Temporal handler : filter attribute */
+    String TEMPORAL_FILTERS = "temporal.filters";
 }
