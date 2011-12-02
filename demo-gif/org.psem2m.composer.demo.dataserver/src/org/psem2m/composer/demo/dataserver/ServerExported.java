@@ -17,22 +17,22 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
-import org.psem2m.composer.demo.ComponentContextBean;
-import org.psem2m.composer.demo.DemoComponentsConstants;
+import org.psem2m.composer.demo.CComponentPojo;
+import org.psem2m.composer.demo.CComponentContextBean;
+import org.psem2m.composer.demo.CComponentsConstants;
 import org.psem2m.composer.demo.IComponent;
 import org.psem2m.composer.demo.IComponentContext;
 import org.psem2m.composer.demo.IErpData;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
-import org.psem2m.isolates.base.activators.CPojoBase;
 
 /**
  * Exported data server service
  * 
  * @author Thomas Calmant
  */
-@Component(name = DemoComponentsConstants.COMPONENT_SERVER_EXPORTED)
+@Component(name = CComponentsConstants.COMPONENT_SERVER_EXPORTED)
 @Provides(specifications = IErpData.class)
-public class ServerExported extends CPojoBase implements IErpData {
+public class ServerExported extends CComponentPojo implements IErpData {
 
     /** applyCart treatment chain */
     @Requires(id = "applyCart")
@@ -55,7 +55,7 @@ public class ServerExported extends CPojoBase implements IErpData {
     private IIsolateLoggerSvc pLogger;
 
     /** The instance name */
-    @Property(name = DemoComponentsConstants.PROPERTY_INSTANCE_NAME)
+    @Property(name = CComponentsConstants.PROPERTY_INSTANCE_NAME)
     private String pName;
 
     /*
@@ -68,7 +68,7 @@ public class ServerExported extends CPojoBase implements IErpData {
 
         try {
             // Prepare the component context
-            final ComponentContextBean context = new ComponentContextBean();
+            final CComponentContextBean context = new CComponentContextBean();
             context.setRequest(aCart);
 
             return pChainApplyCart.computeResult(context).getResults().get(0);
@@ -92,7 +92,7 @@ public class ServerExported extends CPojoBase implements IErpData {
     @Override
     public Map<String, Object> getItem(final String aItemId) {
 
-        ComponentContextBean context = null;
+        CComponentContextBean context = null;
         try {
 
             // Prepare the key map
@@ -104,7 +104,7 @@ public class ServerExported extends CPojoBase implements IErpData {
             requestMap.put(IComponentContext.REQUEST_KEY, wKeyMap);
 
             // Prepare the component context
-            context = new ComponentContextBean();
+            context = new CComponentContextBean();
             context.setRequest(requestMap);
 
             return pChainGetItem.computeResult(context).getResults().get(0);
@@ -146,7 +146,7 @@ public class ServerExported extends CPojoBase implements IErpData {
             requestMap.put(IComponentContext.REQUEST_CRITERIA, wCriteriaMap);
 
             // Prepare the component context
-            final ComponentContextBean context = new ComponentContextBean();
+            final CComponentContextBean context = new CComponentContextBean();
             context.setRequest(requestMap);
 
             return pChainGetItems.computeResult(context).getResults();
@@ -155,7 +155,8 @@ public class ServerExported extends CPojoBase implements IErpData {
 
             // Log the error
             pLogger.logSevere(this, "getItems",
-                    "Error treating an getItems request.", ex);
+                    "cpnt=[%25s] Error treating an getItems request.",
+                    getShortName(), ex);
 
             // Return an error map
             final List<Map<String, Object>> errorList = new ArrayList<Map<String, Object>>();
@@ -189,7 +190,7 @@ public class ServerExported extends CPojoBase implements IErpData {
             requestMap.put(IComponentContext.REQUEST_KEYS, wKeyList);
 
             // Prepare the component context
-            final ComponentContextBean context = new ComponentContextBean();
+            final CComponentContextBean context = new CComponentContextBean();
             context.setRequest(requestMap);
 
             return pChainGetItemsStock.computeResult(context).getResults();
@@ -198,7 +199,8 @@ public class ServerExported extends CPojoBase implements IErpData {
 
             // Log the error
             pLogger.logSevere(this, "getItemsStock",
-                    "Error treating an getItemsStock request.", ex);
+                    "cpnt=[%25s] Error treating an getItemsStock request.",
+                    getShortName(), ex);
 
             // Return an error map
             final List<Map<String, Object>> errorList = new ArrayList<Map<String, Object>>();
@@ -210,13 +212,25 @@ public class ServerExported extends CPojoBase implements IErpData {
     /*
      * (non-Javadoc)
      * 
+     * @see org.psem2m.composer.demo.impl.CComposable#getName()
+     */
+    @Override
+    public String getName() {
+
+        return pName;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.psem2m.isolates.base.activators.CPojoBase#invalidatePojo()
      */
     @Override
     @Invalidate
     public void invalidatePojo() throws BundleException {
 
-        pLogger.logInfo(this, "invalidatePojo", "Component", pName, "Gone");
+        pLogger.logInfo(this, "invalidatePojo", "cpnt=[%25s] Gone",
+                getShortName());
     }
 
     /**
@@ -249,6 +263,7 @@ public class ServerExported extends CPojoBase implements IErpData {
     @Validate
     public void validatePojo() throws BundleException {
 
-        pLogger.logInfo(this, "validatePojo", "Component", pName, "Ready");
+        pLogger.logInfo(this, "validatePojo", "cpnt=[%25s] Ready",
+                getShortName());
     }
 }

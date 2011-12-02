@@ -338,8 +338,7 @@ public abstract class CTableModel<T> extends AbstractTableModel {
         traceDebug("%15s| NbExistingRows=[%d]", "removeRow", pList.size());
         final int wRowIdx;
         synchronized (this) {
-            String[] wData = pPanel.buildRowData(aEntity);
-            String wKey = getRowKey(wData);
+            String wKey = pPanel.buildRowKey(aEntity);
             wRowIdx = indexOf(wKey);
             if (wRowIdx > -1) {
                 pMap.remove(wKey);
@@ -421,7 +420,7 @@ public abstract class CTableModel<T> extends AbstractTableModel {
      */
     private void traceDebug(final String aFormat, final Object... aArgs) {
 
-        System.out.println(String.format("[%25s] %s", pPanel.getClass()
-                .getSimpleName(), String.format(aFormat, aArgs)));
+        // System.out.println(String.format("[%25s] %s", pPanel.getClass()
+        // .getSimpleName(), String.format(aFormat, aArgs)));
     }
 }

@@ -12,10 +12,10 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
+import org.psem2m.composer.demo.CComponentPojo;
 import org.psem2m.composer.demo.IComponent;
 import org.psem2m.composer.demo.IComponentContext;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
-import org.psem2m.isolates.base.activators.CPojoBase;
 
 /**
  * A standard component that catches exceptions and stores them in the "error"
@@ -25,7 +25,7 @@ import org.psem2m.isolates.base.activators.CPojoBase;
  */
 @Component(name = "exception-catcher")
 @Provides(specifications = IComponent.class)
-public class ExceptionCatcher extends CPojoBase implements IComponent {
+public class ExceptionCatcher extends CComponentPojo implements IComponent {
 
     /** The logger */
     @Requires
@@ -64,7 +64,10 @@ public class ExceptionCatcher extends CPojoBase implements IComponent {
 
         } catch (final Throwable th) {
 
-            pLogger.logDebug(this, pName, "Exception caught :", th);
+            if (pLogger.isLogSevereOn()) {
+                pLogger.logSevere(this, "computeResult",
+                        "cpnt=[%25s] Exception caught : %s", getShortName(), th);
+            }
 
             // Store the String
             aContext.addError(pName, "Exception caught", th);
@@ -76,14 +79,25 @@ public class ExceptionCatcher extends CPojoBase implements IComponent {
     /*
      * (non-Javadoc)
      * 
+     * @see org.psem2m.composer.demo.impl.CComposable#getName()
+     */
+    @Override
+    public String getName() {
+
+        return pName;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.psem2m.isolates.base.activators.CPojoBase#invalidatePojo()
      */
     @Override
     @Invalidate
     public void invalidatePojo() throws BundleException {
 
-        pLogger.logInfo(this, "invalidatePojo", "Component '" + pName
-                + "' Gone");
+        pLogger.logInfo(this, "invalidatePojo", "cpnt=[%25s] Gone",
+                getShortName());
     }
 
     /*
@@ -95,6 +109,7 @@ public class ExceptionCatcher extends CPojoBase implements IComponent {
     @Validate
     public void validatePojo() throws BundleException {
 
-        pLogger.logInfo(this, "validatePojo", "Component '" + pName + "' Ready");
+        pLogger.logInfo(this, "validatePojo", "cpnt=[%25s] Ready",
+                getShortName());
     }
 }

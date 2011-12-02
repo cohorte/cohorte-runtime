@@ -17,12 +17,12 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
+import org.psem2m.composer.demo.CComponentPojo;
 import org.psem2m.composer.demo.IComponent;
 import org.psem2m.composer.demo.IComponentContext;
 import org.psem2m.demo.data.cache.ICacheChannel;
 import org.psem2m.demo.data.cache.ICacheFactory;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
-import org.psem2m.isolates.base.activators.CPojoBase;
 
 /**
  * A standard component that store a query result, storing only result items IDs
@@ -32,7 +32,7 @@ import org.psem2m.isolates.base.activators.CPojoBase;
  */
 @Component(name = "store-cache-query")
 @Provides(specifications = IComponent.class)
-public class StoreCacheQuery extends CPojoBase implements IComponent {
+public class StoreCacheQuery extends CComponentPojo implements IComponent {
 
     /** Utility cache methods */
     private CacheCommons pCacheCommons;
@@ -81,6 +81,8 @@ public class StoreCacheQuery extends CPojoBase implements IComponent {
         if (!result.hasResult()) {
             // Nothing to store
             result.addError(pName, "No result to store in cache...");
+            // log the error
+            logContextError(pLogger, aContext);
             return result;
         }
 
@@ -92,6 +94,8 @@ public class StoreCacheQuery extends CPojoBase implements IComponent {
         if (queryChannel == null) {
             result.addError(pName, "Can't open channel : "
                     + pQueryResultChannelName);
+            // log the error
+            logContextError(pLogger, aContext);
             return result;
         }
 
@@ -101,6 +105,8 @@ public class StoreCacheQuery extends CPojoBase implements IComponent {
                         CacheCommons.CHANNEL_TYPE_MAP);
         if (itemsChannel == null) {
             result.addError(pName, "Can't open channel : " + pItemsChannelName);
+            // log the error
+            logContextError(pLogger, aContext);
             return result;
         }
 
@@ -138,6 +144,17 @@ public class StoreCacheQuery extends CPojoBase implements IComponent {
     /*
      * (non-Javadoc)
      * 
+     * @see org.psem2m.composer.demo.impl.CComposable#getName()
+     */
+    @Override
+    public String getName() {
+
+        return pName;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.psem2m.isolates.base.activators.CPojoBase#invalidatePojo()
      */
     @Override
@@ -146,8 +163,8 @@ public class StoreCacheQuery extends CPojoBase implements IComponent {
 
         pCacheCommons = null;
 
-        pLogger.logInfo(this, "invalidatePojo", "Component '" + pName
-                + "' Gone");
+        pLogger.logInfo(this, "invalidatePojo", "cpnt=[%25s] Gone",
+                getShortName());
     }
 
     /*
@@ -162,6 +179,7 @@ public class StoreCacheQuery extends CPojoBase implements IComponent {
         // Set up the utility instance
         pCacheCommons = new CacheCommons(pName);
 
-        pLogger.logInfo(this, "validatePojo", "Component '" + pName + "' Ready");
+        pLogger.logInfo(this, "validatePojo", "cpnt=[%25s] Ready",
+                getShortName());
     }
 }

@@ -17,7 +17,7 @@ import org.psem2m.utilities.CXException;
  * 
  * @author Thomas Calmant
  */
-public class ComponentContextBean implements IComponentContext {
+public class CComponentContextBean implements IComponentContext {
 
     /** Serial version UID */
     private static final long serialVersionUID = 1L;
@@ -37,7 +37,7 @@ public class ComponentContextBean implements IComponentContext {
     /**
      * Default constructor
      */
-    public ComponentContextBean() {
+    public CComponentContextBean() {
 
         // Do nothing
     }

@@ -19,7 +19,7 @@ import org.psem2m.utilities.CXStringUtils;
  * @author ogattaz
  * 
  */
-public class ComponentContextDumper {
+public class CComponentContextDumper {
 
     /**
      * @param aComponentContext

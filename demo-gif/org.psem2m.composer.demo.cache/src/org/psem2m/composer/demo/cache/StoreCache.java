@@ -19,12 +19,12 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
+import org.psem2m.composer.demo.CComponentPojo;
 import org.psem2m.composer.demo.IComponent;
 import org.psem2m.composer.demo.IComponentContext;
 import org.psem2m.demo.data.cache.ICacheChannel;
 import org.psem2m.demo.data.cache.ICacheFactory;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
-import org.psem2m.isolates.base.activators.CPojoBase;
 
 /**
  * A standard component that stores some data from the result of the next
@@ -34,7 +34,7 @@ import org.psem2m.isolates.base.activators.CPojoBase;
  */
 @Component(name = "store-cache")
 @Provides(specifications = IComponent.class)
-public class StoreCache extends CPojoBase implements IComponent {
+public class StoreCache extends CComponentPojo implements IComponent {
 
     /** Utility cache methods */
     private CacheCommons pCacheCommons;
@@ -95,6 +95,8 @@ public class StoreCache extends CPojoBase implements IComponent {
         if (!result.hasResult()) {
             // Nothing to store
             result.addError(pName, "No result to store in cache...");
+            // log the error
+            logContextError(pLogger, result);
             return result;
         }
 
@@ -104,6 +106,8 @@ public class StoreCache extends CPojoBase implements IComponent {
 
         if (channel == null) {
             result.addError(pName, "Can't open channel : " + pChannelName);
+            // log the error
+            logContextError(pLogger, result);
             return result;
         }
 
@@ -113,12 +117,16 @@ public class StoreCache extends CPojoBase implements IComponent {
             // No object to store...
             result.addError(pName,
                     "Object to store in cache not found or null.");
+            // log the error
+            logContextError(pLogger, result);
             return result;
 
         } else if (!(foundObject instanceof Serializable)) {
             // Can't store it...
             result.addError(pName, "The found value is not Serializable : "
                     + foundObject);
+            // log the error
+            logContextError(pLogger, result);
             return result;
         }
 
@@ -154,7 +162,8 @@ public class StoreCache extends CPojoBase implements IComponent {
 
                 } else {
                     // Not what we were waiting for...
-                    pLogger.logInfo(this, "computeResult", "Not a map :",
+                    pLogger.logSevere(this, "computeResult",
+                            "cpnt=[%25s] Not a map :", getShortName(),
                             subObjectToStore);
                     result.addError(pName, "Not a map : " + subObjectToStore);
                 }
@@ -164,12 +173,25 @@ public class StoreCache extends CPojoBase implements IComponent {
             // Don't know what to do...
             result.addError(pName, "Don't know how to store object : "
                     + objectToStore);
+            // log the error
+            logContextError(pLogger, result);
         }
 
         // Flush the cache
         pChannelFactory.flush();
 
         return result;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.composer.demo.impl.CComposable#getName()
+     */
+    @Override
+    public String getName() {
+
+        return pName;
     }
 
     /**
@@ -189,7 +211,7 @@ public class StoreCache extends CPojoBase implements IComponent {
 
         if (aContext.getResults().size() > 1) {
             // More than one item, return a copy the complete list
-            pLogger.logInfo(this, "getObjectToStore",
+            pLogger.logDebug(this, "getObjectToStore",
                     "Multiple results to store :", aContext.getResults().size());
 
             return new ArrayList<Map<String, Object>>(aContext.getResults());
@@ -198,7 +220,7 @@ public class StoreCache extends CPojoBase implements IComponent {
         // One result value
         final Map<String, Object> dataResult = aContext.getResults().get(0);
 
-        pLogger.logInfo(this, "getObjectToStore", "Only one result to store");
+        pLogger.logDebug(this, "getObjectToStore", "Only one result to store");
 
         if (pStoredKey != null) {
             // A stored key is given, try to find the corresponding value
@@ -225,8 +247,8 @@ public class StoreCache extends CPojoBase implements IComponent {
 
         pCacheCommons = null;
 
-        pLogger.logInfo(this, "invalidatePojo", "Component '" + pName
-                + "' Gone");
+        pLogger.logInfo(this, "invalidatePojo", "cpnt=[%25s] Gone",
+                getShortName());
     }
 
     /**
@@ -247,18 +269,19 @@ public class StoreCache extends CPojoBase implements IComponent {
         if (storeKey == null) {
 
             if (pEntryName != null) {
-                pLogger.logWarn(this, "storeMap", "Warning :", pEntryName,
-                        "not found in ", aMapToStore);
+                pLogger.logWarn(this, "storeMap",
+                        "cpnt=[%25s] Warning : %s not found in %s",
+                        getShortName(), pEntryName, aMapToStore);
             }
 
-            pLogger.logInfo(this, "STORE", "-----");
+            pLogger.logInfo(this, "storeMap", "STORE -----");
             // No entry name, store the map as is
             for (final Entry<String, Object> entry : aMapToStore.entrySet()) {
                 aChannel.put(entry.getKey(), (Serializable) entry.getValue());
-                pLogger.logInfo(this, "STORE", entry.getKey(), "=>",
-                        entry.getValue());
+                pLogger.logDebug(this, "storeMap", "cpnt=[%25s] %s => %s",
+                        getShortName(), entry.getKey(), entry.getValue());
             }
-            pLogger.logInfo(this, "STORE", "-----");
+            pLogger.logInfo(this, "storeMap", "STORE -----");
 
         } else {
             // We have a key to store a copy of the whole map
@@ -281,6 +304,7 @@ public class StoreCache extends CPojoBase implements IComponent {
         // Set up the utility instance
         pCacheCommons = new CacheCommons(pName);
 
-        pLogger.logInfo(this, "validatePojo", "Component '" + pName + "' Ready");
+        pLogger.logInfo(this, "validatePojo", "cpnt=[%25s] Ready",
+                getShortName());
     }
 }

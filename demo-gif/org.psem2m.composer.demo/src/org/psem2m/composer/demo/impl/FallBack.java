@@ -14,11 +14,11 @@ import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Unbind;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
-import org.psem2m.composer.demo.ComponentContextDumper;
+import org.psem2m.composer.demo.CComponentPojo;
+import org.psem2m.composer.demo.CComponentContextDumper;
 import org.psem2m.composer.demo.IComponent;
 import org.psem2m.composer.demo.IComponentContext;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
-import org.psem2m.isolates.base.activators.CPojoBase;
 
 /**
  * A component that use a preferred component if possible, but which can use a
@@ -28,7 +28,7 @@ import org.psem2m.isolates.base.activators.CPojoBase;
  */
 @Component(name = "fall-back")
 @Provides(specifications = IComponent.class)
-public class FallBack extends CPojoBase implements IComponent {
+public class FallBack extends CComponentPojo implements IComponent {
 
     /** The component to use if the first one is down */
     @Requires(id = "second")
@@ -74,8 +74,19 @@ public class FallBack extends CPojoBase implements IComponent {
 
         if (pNext != null) {
 
+            /*
+             * %[argument_index$][flags][width][.precision]conversion
+             * 
+             * The optional width is a non-negative decimal integer indicating
+             * the minimum number of characters to be written to the output.
+             * 
+             * The optional precision is a non-negative decimal integer usually
+             * used to restrict the number of characters. The specific behavior
+             * depends on the conversion.
+             */
+
             pLogger.logInfo(this, "fallback.computeResult",
-                    "component=[%s]  First choice seems present", pName);
+                    "cpnt=[%25s] First choice seems present", getShortName());
 
             try {
                 result = pNext.computeResult(aContext);
@@ -84,16 +95,16 @@ public class FallBack extends CPojoBase implements IComponent {
                 // and if an error occurred
                 useFallback = result == null || !result.hasResult()
                         && result.hasError();
-            } catch (RuntimeException wErr) {
-                // An error occurred
-                pLogger.logWarn(this, "fallback.computeResult",
-                        "component=[%s]  ERROR calling next component  : %s ",
-                        pName, wErr.getMessage());
+
             } catch (final Throwable error) {
+
                 // An error occurred
+                Object wError = error instanceof RuntimeException ? error
+                        .getMessage() : error;
+
                 pLogger.logWarn(this, "fallback.computeResult",
-                        "component=[%s] ERROR calling next component : ",
-                        pName, error);
+                        "cpnt=[%25s] ERROR calling next component : %s",
+                        getShortName(), wError);
             }
         }
 
@@ -108,18 +119,30 @@ public class FallBack extends CPojoBase implements IComponent {
                     result.getResults().clear();
                 }
             }
-            pLogger.logWarn(this, "fallback.computeResult", "Using fall-back");
+            pLogger.logDebug(this, "fallback.computeResult",
+                    "cpnt=[%25s] Using fall-back", getShortName());
 
             // Something went wrong, call the other guy
             result = pFallback.computeResult(aContext);
         }
 
         pLogger.logDebug(this, "fallback.computeResult",
-                "component=[%s] RESULT: %s", pName,
-                result != null ? ComponentContextDumper.dump(result)
+                "cpnt=[%25s] RESULT: %s", getShortName(),
+                result != null ? CComponentContextDumper.dump(result)
                         : "result is null");
 
         return result;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.composer.demo.impl.CComposable#getName()
+     */
+    @Override
+    public String getName() {
+
+        return pName;
     }
 
     /*
@@ -131,22 +154,22 @@ public class FallBack extends CPojoBase implements IComponent {
     @Invalidate
     public void invalidatePojo() throws BundleException {
 
-        pLogger.logInfo(this, "invalidatePojo", "Component '" + pName
-                + "' Gone");
+        pLogger.logInfo(this, "invalidatePojo", "cpnt=[%25s] Gone ",
+                getShortName());
     }
 
     @Bind(id = NEXT_FIELD_ID)
     public void nextBind(final IComponent aNext) {
 
-        pLogger.logInfo(this, "nextBind", "component=[%s] next=[%s]", pName,
-                String.valueOf(aNext));
+        pLogger.logInfo(this, "nextBind", "cpnt=[%25s] next=[%s]",
+                getShortName(), String.valueOf(aNext));
     }
 
     @Unbind(id = NEXT_FIELD_ID)
     public void nextUnbind(final IComponent aNext) {
 
-        pLogger.logInfo(this, "nextUnbind", "component=[%s] next=[%s]", pName,
-                String.valueOf(aNext));
+        pLogger.logInfo(this, "nextUnbind", "cpnt=[%25s] next=[%s]",
+                getShortName(), String.valueOf(aNext));
     }
 
     /*
@@ -158,6 +181,7 @@ public class FallBack extends CPojoBase implements IComponent {
     @Validate
     public void validatePojo() throws BundleException {
 
-        pLogger.logInfo(this, "validatePojo", "Component '" + pName + "' Ready");
+        pLogger.logInfo(this, "validatePojo", "cpnt=[%25s] Ready",
+                getShortName());
     }
 }

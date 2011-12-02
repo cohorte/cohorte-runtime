@@ -17,13 +17,13 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
+import org.psem2m.composer.demo.CComponentPojo;
 import org.psem2m.composer.demo.IComponent;
 import org.psem2m.composer.demo.IComponentContext;
 import org.psem2m.demo.data.cache.ICacheChannel;
 import org.psem2m.demo.data.cache.ICacheFactory;
 import org.psem2m.demo.data.cache.ICachedObject;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
-import org.psem2m.isolates.base.activators.CPojoBase;
 
 /**
  * A standard component that retrieves the cached result of a previous query.
@@ -32,7 +32,7 @@ import org.psem2m.isolates.base.activators.CPojoBase;
  */
 @Component(name = "get-cache-query")
 @Provides(specifications = IComponent.class)
-public class GetCacheQuery extends CPojoBase implements IComponent {
+public class GetCacheQuery extends CComponentPojo implements IComponent {
 
     /** The key to use in the result map to store the cache age */
     @Property(name = "cacheAgeEntry")
@@ -81,6 +81,8 @@ public class GetCacheQuery extends CPojoBase implements IComponent {
         if (queryChannel == null) {
             aContext.addError(pName, "Can't open channel : "
                     + pQueryResultChannelName);
+            // log the error
+            logContextError(pLogger, aContext);
             return aContext;
         }
 
@@ -91,6 +93,8 @@ public class GetCacheQuery extends CPojoBase implements IComponent {
         if (itemsChannel == null) {
             aContext.addError(pName, "Can't open channel : "
                     + pItemsChannelName);
+            // log the error
+            logContextError(pLogger, aContext);
             return aContext;
         }
 
@@ -103,6 +107,8 @@ public class GetCacheQuery extends CPojoBase implements IComponent {
         if (cachedIds == null) {
             // Nothing in cache
             aContext.addError(pName, "Nothing in cache for " + queryKey);
+            // log the error
+            logContextError(pLogger, aContext);
             return aContext;
         }
 
@@ -131,15 +137,25 @@ public class GetCacheQuery extends CPojoBase implements IComponent {
 
             } else {
                 // Problem
-                pLogger.logWarn(this, "computeResult", pName,
-                        ": Don't know how to handle item bean :", itemBean);
-
                 aContext.addError(pName,
                         "Don't know how to handle item bean : " + itemBean);
+                // log the error
+                logContextError(pLogger, aContext);
             }
         }
 
         return aContext;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.composer.demo.impl.CComposable#getName()
+     */
+    @Override
+    public String getName() {
+
+        return pName;
     }
 
     /*
@@ -153,8 +169,8 @@ public class GetCacheQuery extends CPojoBase implements IComponent {
 
         pCacheCommons = null;
 
-        pLogger.logInfo(this, "invalidatePojo", "Component '" + pName
-                + "' Gone");
+        pLogger.logInfo(this, "invalidatePojo", "cpnt=[%25s] Gone",
+                getShortName());
     }
 
     /*
@@ -169,6 +185,7 @@ public class GetCacheQuery extends CPojoBase implements IComponent {
         // Set up the utility instance
         pCacheCommons = new CacheCommons(pName);
 
-        pLogger.logInfo(this, "validatePojo", "Component '" + pName + "' Ready");
+        pLogger.logInfo(this, "validatePojo", "cpnt=[%25s] Ready",
+                getShortName());
     }
 }

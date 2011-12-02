@@ -352,6 +352,8 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
     private final static int COLUMN_IDX_REMOTE_INFO = 2;
     private final static int COLUMN_IDX_SERVICE_ID = 3;
 
+    private final static int COLUMN_KEY_IDX = COLUMN_IDX_SERVICE_ID;
+
     private final static boolean COMPACTION = true;
 
     private static final long serialVersionUID = -6506936458249187873L;
@@ -459,9 +461,24 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
         wRowData[COLUMN_IDX_INTERFACE] = extractServiceInterfaceCleanedCompacted(aServiceReference);
         wRowData[COLUMN_IDX_NAME] = extractServiceNameCleaned(aServiceReference);
         wRowData[COLUMN_IDX_REMOTE_INFO] = extractRemoteInfo(aServiceReference);
-        wRowData[COLUMN_IDX_SERVICE_ID] = extractServiceId(aServiceReference);
+        // COLUMN_KEY_IDX
+        wRowData[COLUMN_IDX_SERVICE_ID] = buildRowKey(aServiceReference);
         wRowData[COLUMN_IDX_BUNDLE_ID] = extractBundleId(aServiceReference);
         return wRowData;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.ui.admin.panels.CJPanelTable#buildRowKey(java.lang
+     * .Object)
+     */
+    @Override
+    String buildRowKey(final ServiceReference aServiceReference) {
+
+        // COLUMN_KEY_IDX !
+        return extractServiceId(aServiceReference);
     }
 
     /*
@@ -689,7 +706,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
 
                 pServicesTable = new JTable();
                 pCTableModelServices = new CTableModelServices(this,
-                        COLUMNS_TITLE, COLUMN_IDX_SERVICE_ID);
+                        COLUMNS_TITLE, COLUMN_KEY_IDX);
                 pServicesTable.setModel(pCTableModelServices);
 
                 for (int wI = 0; wI < COLUMNS_SIZE.length; wI++) {

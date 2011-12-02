@@ -14,13 +14,13 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
+import org.psem2m.composer.demo.CComponentPojo;
 import org.psem2m.composer.demo.IComponent;
 import org.psem2m.composer.demo.IComponentContext;
 import org.psem2m.demo.data.cache.ICacheChannel;
 import org.psem2m.demo.data.cache.ICacheFactory;
 import org.psem2m.demo.data.cache.ICachedObject;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
-import org.psem2m.isolates.base.activators.CPojoBase;
 
 /**
  * A standard component that retrieves the content of the given cache channel
@@ -30,7 +30,7 @@ import org.psem2m.isolates.base.activators.CPojoBase;
  */
 @Component(name = "get-cache-if-recent")
 @Provides(specifications = IComponent.class)
-public class GetCacheIfRecent extends CPojoBase implements IComponent {
+public class GetCacheIfRecent extends CComponentPojo implements IComponent {
 
     /** The key to use in the result map to store the cache age */
     @Property(name = "cacheAgeEntry")
@@ -173,8 +173,9 @@ public class GetCacheIfRecent extends CPojoBase implements IComponent {
                     }
 
                 } else {
-                    pLogger.logInfo(this, "computeResult",
-                            "Unknown element in cache :", cacheResultElement);
+                    pLogger.logSevere(this, "computeResult",
+                            "cpnt=[%25s] Unknown element in cache :",
+                            getShortName(), cacheResultElement);
 
                     // An error occurred, do not use the cache
                     return false;
@@ -188,6 +189,17 @@ public class GetCacheIfRecent extends CPojoBase implements IComponent {
     /*
      * (non-Javadoc)
      * 
+     * @see org.psem2m.composer.demo.impl.CComposable#getName()
+     */
+    @Override
+    public String getName() {
+
+        return pName;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.psem2m.isolates.base.activators.CPojoBase#invalidatePojo()
      */
     @Override
@@ -196,8 +208,8 @@ public class GetCacheIfRecent extends CPojoBase implements IComponent {
 
         pCacheCommons = null;
 
-        pLogger.logInfo(this, "invalidatePojo", "Component '" + pName
-                + "' Gone");
+        pLogger.logInfo(this, "invalidatePojo", "cpnt=[%25s] Gone",
+                getShortName());
     }
 
     /*
@@ -214,6 +226,7 @@ public class GetCacheIfRecent extends CPojoBase implements IComponent {
         pCacheCommons.setEntryName(pEntryName);
         pCacheCommons.setCacheAgeEntry(pCacheAgeEntry);
 
-        pLogger.logInfo(this, "validatePojo", "Component '" + pName + "' Ready");
+        pLogger.logInfo(this, "validatePojo", "cpnt=[%25s] Ready",
+                getShortName());
     }
 }

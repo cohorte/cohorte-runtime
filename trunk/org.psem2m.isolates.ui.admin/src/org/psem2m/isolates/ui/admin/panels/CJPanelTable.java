@@ -45,18 +45,33 @@ public abstract class CJPanelTable<T> extends CJPanel {
         super(aUiExecutor, aLogger);
     }
 
+    /**
+     * Return true if the row built with the entity must be added
+     * 
+     * @param aEntity
+     *            the source entity
+     * @param wDataRow
+     *            the row to add
+     * @return true if the row must be added
+     */
     abstract boolean acceptRow(final T aEntity, final String[] wDataRow);
 
     /**
+     * Add a new row built with the passed entity
+     * 
      * @param aEntity
+     *            the source entity
      * @return
      */
     abstract boolean addRow(final T aEntity);
 
     /**
-     * @param aEntity
+     * Add a new set of row built with the passed entities
+     * 
+     * @param aEntities
+     *            the table of source entities
      */
-    abstract void addRows(final T[] aEntity);
+    abstract void addRows(final T[] aEntities);
 
     /**
      * @param aFontName
@@ -74,6 +89,16 @@ public abstract class CJPanelTable<T> extends CJPanel {
      */
     abstract String[] buildRowData(final T aEntity);
 
+    /**
+     * @param aEntity
+     * @return
+     */
+    abstract String buildRowKey(final T aEntity);
+
+    /**
+     * @param aEntity
+     * @return
+     */
     abstract String buildTextInfos(final T aEntity);
 
     /**
