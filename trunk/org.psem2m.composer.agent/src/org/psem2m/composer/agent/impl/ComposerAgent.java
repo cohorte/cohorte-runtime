@@ -222,8 +222,27 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
 
         if (fieldIdMapping != null) {
             // Mapping available, use it
-            properties.put(IpojoConstants.REQUIRES_FILTERS,
-                    generateFieldsFilters(aComponent, fieldIdMapping));
+            final Properties fieldsFilters = generateFieldsFilters(aComponent,
+                    fieldIdMapping);
+
+            /*
+             * Convert fields filters to an array : it avoids an error in the
+             * log each time a component is created...
+             */
+            final String[] fieldsFiltersArray = new String[fieldsFilters.size() * 2];
+
+            int i = 0;
+            for (final Entry<?, ?> entry : fieldsFilters.entrySet()) {
+
+                fieldsFiltersArray[i++] = (String) entry.getKey();
+                fieldsFiltersArray[i++] = (String) entry.getValue();
+            }
+
+            // @Requires annotations
+            properties.put(IpojoConstants.REQUIRES_FILTERS, fieldsFiltersArray);
+
+            // @Temporal annotations
+            properties.put(IpojoConstants.TEMPORAL_FILTERS, fieldsFiltersArray);
         }
 
         return properties;
@@ -392,12 +411,6 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
 
             if (compositeName == null) {
                 compositeName = component.getRootName();
-                pLogger.logInfo(this, "instantiateComponents+++++",
-                        "Found components set name=", compositeName, "/ bean=",
-                        component);
-            } else {
-                pLogger.logInfo(this, "instantiateComponents+++++",
-                        "Already found set name=", compositeName);
             }
 
             // Get the factory
