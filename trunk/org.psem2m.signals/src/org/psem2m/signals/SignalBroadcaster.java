@@ -17,8 +17,9 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
-import org.osgi.service.log.LogService;
 import org.psem2m.isolates.base.activators.CPojoBase;
+import org.psem2m.isolates.loggers.ILogChannelSvc;
+import org.psem2m.isolates.loggers.ILogChannelsSvc;
 import org.psem2m.isolates.services.remote.signals.ISignalBroadcastProvider;
 import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
 import org.psem2m.isolates.services.remote.signals.ISignalData;
@@ -40,7 +41,11 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
 
     /** Log service */
     @Requires
-    private LogService pLogger;
+    // private LogService pLogger;
+    private ILogChannelsSvc pChannels;
+
+    /** Logger */
+    private ILogChannelSvc pLogger;
 
     /** Signal receiver (for local only communication) */
     @Requires
@@ -64,7 +69,7 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
 
         // Use it to send all of our stored signals
         synchronized (pStoredTargetedSignals) {
-            for (StoredSignal signal : pStoredTargetedSignals) {
+            for (final StoredSignal signal : pStoredTargetedSignals) {
                 // Multiple targets
                 aProvider.sendData(signal.getTargets(), signal.getSignalName(),
                         signal.getSignalData());
@@ -72,7 +77,7 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
         }
 
         synchronized (pStoredSpecificSignals) {
-            for (StoredSignal signal : pStoredSpecificSignals) {
+            for (final StoredSignal signal : pStoredSpecificSignals) {
                 // Specific isolate ID
                 aProvider.sendData(signal.getTargetId(),
                         signal.getSignalName(), signal.getSignalData());
@@ -100,7 +105,8 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
     @Invalidate
     public void invalidatePojo() throws BundleException {
 
-        pLogger.log(LogService.LOG_INFO, "Base Signal Broadcaster Gone");
+        pLogger.logInfo(this, "invalidatePojo", "Base Signal Broadcaster Gone");
+        pLogger = null;
     }
 
     /*
@@ -115,6 +121,9 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
     @Override
     public void sendData(final EEmitterTargets aTargets,
             final String aSignalName, final Serializable aData) {
+
+        pLogger.logInfo(this, "SEND TO TARGETS", "Signal=", aSignalName,
+                "- Target=", aTargets, "- Data=", aData);
 
         if (aTargets == EEmitterTargets.LOCAL) {
             // Only case to send signal directly to the receiver
@@ -132,7 +141,7 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
 
             } else {
                 // Use current providers
-                for (ISignalBroadcastProvider broadcaster : pBroadcasters) {
+                for (final ISignalBroadcastProvider broadcaster : pBroadcasters) {
                     broadcaster.sendData(aTargets, aSignalName, aData);
                 }
             }
@@ -150,6 +159,9 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
     public boolean sendData(final String aIsolateId, final String aSignalName,
             final Serializable aData) {
 
+        pLogger.logInfo(this, "SEND TO ISOLATE", "Signal=", aSignalName,
+                "- isolate=", aIsolateId, "- Data=", aData);
+
         if (pBroadcasters.length == 0) {
             // No providers, store the signal to emit
             synchronized (pStoredSpecificSignals) {
@@ -163,7 +175,7 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
             boolean atLeastOneSuccess = false;
 
             // Use current providers
-            for (ISignalBroadcastProvider broadcaster : pBroadcasters) {
+            for (final ISignalBroadcastProvider broadcaster : pBroadcasters) {
 
                 atLeastOneSuccess |= broadcaster.sendData(aIsolateId,
                         aSignalName, aData);
@@ -182,6 +194,12 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
     @Validate
     public void validatePojo() throws BundleException {
 
-        pLogger.log(LogService.LOG_INFO, "Base Signal Broadcaster Ready");
+        try {
+            pLogger = pChannels.getLogChannel("RemoteServices");
+        } catch (final Exception e) {
+            e.printStackTrace();
+        }
+
+        pLogger.logInfo(this, "validatePojo", "Base Signal Broadcaster Ready");
     }
 }

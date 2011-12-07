@@ -23,9 +23,10 @@ import org.apache.felix.ipojo.annotations.ServiceProperty;
 import org.apache.felix.ipojo.annotations.Unbind;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
-import org.osgi.service.log.LogService;
 import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.base.activators.CPojoBase;
+import org.psem2m.isolates.loggers.ILogChannelSvc;
+import org.psem2m.isolates.loggers.ILogChannelsSvc;
 import org.psem2m.isolates.services.remote.signals.ISignalData;
 import org.psem2m.isolates.services.remote.signals.ISignalListener;
 import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
@@ -42,12 +43,16 @@ import org.psem2m.isolates.services.remote.signals.ISignalReceptionProvider;
 public class SignalReceiver extends CPojoBase implements ISignalReceiver,
         ISignalListener {
 
+    /** Log service */
+    @Requires
+    // private LogService pLogger;
+    private ILogChannelsSvc pChannels;
+
     /** Signal listeners */
     private final Map<String, Set<ISignalListener>> pListeners = new HashMap<String, Set<ISignalListener>>();
 
-    /** Log service */
-    @Requires
-    private LogService pLogger;
+    /** Logger */
+    private ILogChannelSvc pLogger;
 
     /** Number of available providers */
     private int pNbProviders = 0;
@@ -105,15 +110,15 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver,
     public void handleReceivedSignal(final String aSignalName,
             final ISignalData aSignalData) {
 
-        pLogger.log(LogService.LOG_INFO, "Received signal '" + aSignalName
-                + "' : " + aSignalData);
+        pLogger.logInfo(this, "RECEIVED", "Signal=", aSignalName, "- Data=",
+                aSignalData);
 
         final Set<ISignalListener> signalListeners = new HashSet<ISignalListener>();
 
         // Get listeners set
         synchronized (pListeners) {
 
-            for (String signal : pListeners.keySet()) {
+            for (final String signal : pListeners.keySet()) {
                 // Take care of jokers ('*' and '?')
                 if (Utilities.matchFilter(aSignalName, signal)) {
                     signalListeners.addAll(pListeners.get(signal));
@@ -127,7 +132,7 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver,
             @Override
             public void run() {
 
-                for (ISignalListener listener : signalListeners) {
+                for (final ISignalListener listener : signalListeners) {
                     listener.handleReceivedSignal(aSignalName, aSignalData);
                 }
             }
@@ -144,7 +149,7 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver,
     public void invalidatePojo() throws BundleException {
 
         // Unregister from all providers
-        for (ISignalReceptionProvider provider : pReceivers) {
+        for (final ISignalReceptionProvider provider : pReceivers) {
             provider.unregisterListener(this);
         }
 
@@ -156,7 +161,8 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver,
         // Stop the executor
         pNotificationExecutor.shutdown();
 
-        pLogger.log(LogService.LOG_INFO, "Base Signal Receiver Gone");
+        pLogger.logInfo(this, "invalidatePojo", "Base Signal Receiver Gone");
+        pLogger = null;
     }
 
     /**
@@ -273,6 +279,12 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver,
         // Set up the thread pool
         pNotificationExecutor = Executors.newCachedThreadPool();
 
-        pLogger.log(LogService.LOG_INFO, "Base Signal Receiver Ready");
+        try {
+            pLogger = pChannels.getLogChannel("RemoteServices");
+        } catch (final Exception e) {
+            e.printStackTrace();
+        }
+
+        pLogger.logInfo(this, "validatePojo", "Base Signal Receiver Ready");
     }
 }
