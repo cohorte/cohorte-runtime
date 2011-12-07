@@ -8,51 +8,42 @@ Bundle-SymbolicName: org.psem2m.isolates.tool.restserver
 Bundle-Vendor: isandlaTech (www.isandlatech.com)
 Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
-Import-Package: org.apache.felix.ipojo;version="1.8.0",
- org.apache.felix.ipojo.architecture;version="1.8.0",
- org.osgi.framework;version="1.3.0",
- org.osgi.service.cm;version="1.2",
- org.osgi.service.log;version="1.3",
- org.psem2m.isolates.base;version="1.0.0",
- org.psem2m.isolates.base.activators;version="1.0.0",
- org.psem2m.isolates.loggers,
- org.psem2m.utilities,
- org.psem2m.utilities.logging
-iPOJO-Components: instance { $component="isolates-loggers-channel-fact
- ory" $name="isolates-restserver-logger-channel" property { $name="pCh
- annelName" $value="bundle-restserver" }}instance { $component="isolat
- es-restserver-isolatelogger-factory" $name="isolates-restserver-isola
- telogger" }instance { $component="isolates-restserver-restserver-fact
- ory" $name="isolates-restserver-restserver" }component { $immediate="
- true" $name="isolates-restserver-isolatelogger-factory" $classname="o
- rg.psem2m.isolates.tool.restserver.CBundleRestServerActivator" $facto
- ry-method="getInstance" $architecture="true" callback { $transition="
- validate" $method="validatePojo" }callback { $transition="invalidate"
-  $method="invalidatePojo" }provides { $specifications="org.psem2m.iso
- lates.base.IIsolateLoggerSvc" }manipulation { $super="org.psem2m.isol
- ates.base.CActivatorBase" field { $name="__Mdestroy" $type="boolean" 
- }field { $name="__Mstart$org_osgi_framework_BundleContext" $type="boo
- lean" }field { $name="__Mstop$org_osgi_framework_BundleContext" $type
- ="boolean" }method { $name="getInstance" $return="org.psem2m.isolates
- .tool.restserver.CBundleRestServerActivator" }method { $name="$init" 
- }method { $name="destroy" }method { $arguments="{org.osgi.framework.B
- undleContext}" $name="start" }method { $arguments="{org.osgi.framewor
- k.BundleContext}" $name="stop" }interface { $name="org.psem2m.isolate
- s.base.IActivatorBase" }interface { $name="org.psem2m.isolates.base.I
- IsolateLoggerSvc" }}}component { $immediate="true" $name="isolates-re
- stserver-restserver-factory" $classname="org.psem2m.isolates.tool.res
- tserver.impl.CRestServerSvc" $architecture="true" callback { $transit
- ion="validate" $method="validatePojo" }callback { $transition="invali
- date" $method="invalidatePojo" }provides { $specifications="org.psem2
- m.isolates.tool.restserver.IRestServerSvc" }manipulation { $super="or
- g.psem2m.isolates.base.CPojoBase" field { $name="pRestServerLoggerSvc
- " $type="org.psem2m.isolates.loggers.ILogChannelSvc" }field { $name="
- pIsolateLoggerSvc" $type="org.psem2m.isolates.base.IIsolateLoggerSvc"
-  }method { $name="$init" }method { $name="destroy" }method { $name="i
- nit" }method { $name="invalidatePojo" }method { $name="validatePojo" 
- }interface { $name="org.psem2m.isolates.tool.restserver.IRestServerSv
- c" }}requires { $field="pRestServerLoggerSvc" $optional="false" $from
- ="isolates-restserver-logger-channel" }requires { $field="pIsolateLog
- gerSvc" $optional="false" $from="isolates-restserver-isolatelogger" }
- }
+Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
+ .ipojo.architecture;version=1.8.0, org.osgi.framework;version=1.3.0, 
+ org.osgi.service.cm;version=1.2, org.osgi.service.log;version=1.3, or
+ g.psem2m.isolates.base;version=1.0.0, org.psem2m.isolates.base.activa
+ tors;version=1.0.0, org.psem2m.isolates.loggers, org.psem2m.utilities
+ , org.psem2m.utilities.logging
+iPOJO-Components: instance { $component="psem2m-loggers-channel-factor
+ y" $name="psem2m-restserver-logger-channel" property { $name="pChanne
+ lName" $value="bundle-restserver" }}instance { $component="psem2m-res
+ tserver-isolatelogger-factory" $name="psem2m-restserver-isolatelogger
+ " }instance { $component="psem2m-restserver-restserver-factory" $name
+ ="psem2m-restserver-restserver" }component { $classname="org.psem2m.i
+ solates.tool.restserver.CBundleRestServerActivator" $architecture="tr
+ ue" $immediate="true" $name="psem2m-restserver-isolatelogger-factory"
+  $factory-method="getInstance" provides { $specifications="org.psem2m
+ .isolates.base.activators.IIsolateLoggerSvc" }callback { $transition=
+ "validate" $method="validatePojo" }callback { $transition="invalidate
+ " $method="invalidatePojo" }manipulation { $super="org.psem2m.isolate
+ s.base.activators.CActivatorBase" interface { $name="org.psem2m.isola
+ tes.base.activators.IActivatorBase" }method { $name="getInstance" $re
+ turn="org.psem2m.isolates.tool.restserver.CBundleRestServerActivator"
+  }method { $name="destroy" }method { $name="start" $arguments="{org.o
+ sgi.framework.BundleContext}" }method { $name="stop" $arguments="{org
+ .osgi.framework.BundleContext}" }}}component { $classname="org.psem2m
+ .isolates.tool.restserver.impl.CRestServerSvc" $architecture="true" $
+ immediate="true" $name="psem2m-restserver-restserver-factory" provide
+ s { $specifications="org.psem2m.isolates.tool.restserver.IRestServerS
+ vc" }requires { $field="pRestServerLoggerSvc" $optional="false" $from
+ ="psem2m-restserver-logger-channel" }requires { $field="pIsolateLogge
+ rSvc" $optional="false" $from="psem2m-restserver-isolatelogger" }call
+ back { $transition="validate" $method="validatePojo" }callback { $tra
+ nsition="invalidate" $method="invalidatePojo" }manipulation { $super=
+ "org.psem2m.isolates.base.activators.CPojoBase" interface { $name="or
+ g.psem2m.isolates.tool.restserver.IRestServerSvc" }field { $name="pIs
+ olateLoggerSvc" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }f
+ ield { $name="pRestServerLoggerSvc" $type="org.psem2m.isolates.logger
+ s.ILogChannelSvc" }method { $name="destroy" }method { $name="init" }m
+ ethod { $name="invalidatePojo" }method { $name="validatePojo" }}}
 
