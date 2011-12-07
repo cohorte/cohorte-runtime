@@ -81,27 +81,32 @@ iPOJO-Components: component { $classname="org.psem2m.composer.demo.dat
  o" }method { $name="validatePojo" }}}component { $classname="org.psem
  2m.composer.demo.dataserver.ServerExported" $name="server-exported" $
  public="true" provides { $specifications="{org.psem2m.composer.demo.I
- ErpData}" }requires { $field="pChainApplyCart" $id="applyCart" }requi
- res { $field="pChainGetItem" $id="getItem" }requires { $field="pChain
- GetItems" $id="getItems" }requires { $field="pChainGetItemsStock" $id
- ="getItemsStock" }requires { $field="pLogger" }properties { property 
- { $name="instance.name" $field="pName" }}callback { $transition="inva
- lidate" $method="invalidatePojo" }callback { $transition="validate" $
- method="validatePojo" }manipulation { $super="org.psem2m.composer.dem
- o.CComponentPojo" interface { $name="org.psem2m.composer.demo.IErpDat
- a" }field { $name="pChainApplyCart" $type="org.psem2m.composer.demo.I
- Component" }field { $name="pChainGetItem" $type="org.psem2m.composer.
- demo.IComponent" }field { $name="pChainGetItems" $type="org.psem2m.co
- mposer.demo.IComponent" }field { $name="pChainGetItemsStock" $type="o
- rg.psem2m.composer.demo.IComponent" }field { $name="pLogger" $type="o
- rg.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pName" $ty
- pe="java.lang.String" }method { $name="applyCart" $return="java.util.
- Map" $arguments="{java.util.Map}" }method { $name="getItem" $return="
- java.util.Map" $arguments="{java.lang.String}" }method { $name="getIt
- ems" $return="java.util.List" $arguments="{java.lang.String,int,boole
- an,java.lang.String}" }method { $name="getItemsStock" $return="java.u
- til.List" $arguments="{java.lang.String[]}" }method { $name="getName"
-  $return="java.lang.String" }method { $name="invalidatePojo" }method 
- { $name="makeErrorMap" $return="java.util.Map" $arguments="{java.lang
- .Throwable}" }method { $name="validatePojo" }}}
+ ErpData}" }org.apache.felix.ipojo.handler.temporal:temporal { $field=
+ "pChainApplyCart" $id="applyCart" $timeout="10000" $ontimeout="null" 
+ }org.apache.felix.ipojo.handler.temporal:temporal { $field="pChainGet
+ Item" $id="getItem" $timeout="10000" $ontimeout="null" }org.apache.fe
+ lix.ipojo.handler.temporal:temporal { $field="pChainGetItems" $id="ge
+ tItems" $timeout="10000" $ontimeout="null" }org.apache.felix.ipojo.ha
+ ndler.temporal:temporal { $field="pChainGetItemsStock" $id="getItemsS
+ tock" $timeout="10000" $ontimeout="null" }requires { $field="pLogger"
+  }properties { property { $name="instance.name" $field="pName" }}call
+ back { $transition="invalidate" $method="invalidatePojo" }callback { 
+ $transition="validate" $method="validatePojo" }manipulation { $super=
+ "org.psem2m.composer.demo.CComponentPojo" interface { $name="org.psem
+ 2m.composer.demo.IErpData" }field { $name="pChainApplyCart" $type="or
+ g.psem2m.composer.demo.IComponent" }field { $name="pChainGetItem" $ty
+ pe="org.psem2m.composer.demo.IComponent" }field { $name="pChainGetIte
+ ms" $type="org.psem2m.composer.demo.IComponent" }field { $name="pChai
+ nGetItemsStock" $type="org.psem2m.composer.demo.IComponent" }field { 
+ $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }f
+ ield { $name="pName" $type="java.lang.String" }method { $name="applyC
+ art" $return="java.util.Map" $arguments="{java.util.Map}" }method { $
+ name="getItem" $return="java.util.Map" $arguments="{java.lang.String}
+ " }method { $name="getItems" $return="java.util.List" $arguments="{ja
+ va.lang.String,int,boolean,java.lang.String}" }method { $name="getIte
+ msStock" $return="java.util.List" $arguments="{java.lang.String[]}" }
+ method { $name="getName" $return="java.lang.String" }method { $name="
+ invalidatePojo" }method { $name="makeErrorMap" $return="java.util.Map
+ " $arguments="{java.lang.Throwable}" }method { $name="validatePojo" }
+ }}
 

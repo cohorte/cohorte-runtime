@@ -16,9 +16,10 @@ import org.apache.felix.ipojo.annotations.Property;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
+import org.apache.felix.ipojo.handler.temporal.Temporal;
 import org.osgi.framework.BundleException;
-import org.psem2m.composer.demo.CComponentPojo;
 import org.psem2m.composer.demo.CComponentContextBean;
+import org.psem2m.composer.demo.CComponentPojo;
 import org.psem2m.composer.demo.CComponentsConstants;
 import org.psem2m.composer.demo.IComponent;
 import org.psem2m.composer.demo.IComponentContext;
@@ -35,19 +36,19 @@ import org.psem2m.isolates.base.IIsolateLoggerSvc;
 public class ServerExported extends CComponentPojo implements IErpData {
 
     /** applyCart treatment chain */
-    @Requires(id = "applyCart")
+    @Temporal(id = "applyCart", timeout = 10000, onTimeout = "null")
     private IComponent pChainApplyCart;
 
     /** getItem treatment chain */
-    @Requires(id = "getItem")
+    @Temporal(id = "getItem", timeout = 10000, onTimeout = "null")
     private IComponent pChainGetItem;
 
     /** getItems treatment chain */
-    @Requires(id = "getItems")
+    @Temporal(id = "getItems", timeout = 10000, onTimeout = "null")
     private IComponent pChainGetItems;
 
     /** getItemsStock treatment chain */
-    @Requires(id = "getItemsStock")
+    @Temporal(id = "getItemsStock", timeout = 10000, onTimeout = "null")
     private IComponent pChainGetItemsStock;
 
     /** The logger */
