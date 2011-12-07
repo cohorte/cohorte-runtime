@@ -26,4 +26,13 @@ public interface ComposerAgentConstants {
 
     /** iPOJO Requires handler field ID attribute */
     String REQUIRES_ID = "id";
+
+    /** iPOJO temporal handler metadata element name (with namespace) */
+    String TEMPORAL_ELEMENT_NAME = "org.apache.felix.ipojo.handler.temporal:temporal";
+
+    /** iPOJO Requires handler field name attribute (same as Requires one) */
+    String TEMPORAL_FIELD = REQUIRES_FIELD;
+
+    /** iPOJO Requires handler Id name attribute (same as Requires one) */
+    String TEMPORAL_ID = REQUIRES_ID;
 }

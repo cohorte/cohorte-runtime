@@ -102,9 +102,10 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
 
         // Set up the map content
         final Element componentModel = aFactory.getComponentMetadata();
+
+        // @Requires elements IDs
         final Element[] requiresElems = componentModel
                 .getElements(ComposerAgentConstants.REQUIRES_ELEMENT_NAME);
-
         if (requiresElems != null) {
             for (final Element requires : requiresElems) {
 
@@ -114,6 +115,23 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
                     // The name is the most important part
                     final String id = requires
                             .getAttribute(ComposerAgentConstants.REQUIRES_ID);
+                    fieldIdMap.put(name, id);
+                }
+            }
+        }
+
+        // @Temporal elements IDs
+        final Element[] temporalElems = componentModel
+                .getElements(ComposerAgentConstants.TEMPORAL_ELEMENT_NAME);
+        if (temporalElems != null) {
+            for (final Element temporal : temporalElems) {
+
+                final String name = temporal
+                        .getAttribute(ComposerAgentConstants.TEMPORAL_FIELD);
+                if (name != null) {
+                    // The name is the most important part
+                    final String id = temporal
+                            .getAttribute(ComposerAgentConstants.TEMPORAL_ID);
                     fieldIdMap.put(name, id);
                 }
             }
@@ -267,14 +285,14 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
         // Set requires.filter property
         final Properties requiresFilterProperties = new Properties();
 
-        for (final Entry<String, String> pFieldIdEntry : aFieldIdMapping
+        for (final Entry<String, String> fieldIdEntry : aFieldIdMapping
                 .entrySet()) {
 
             // Field name is constant
-            final String fieldName = pFieldIdEntry.getKey();
+            final String fieldName = fieldIdEntry.getKey();
 
             // Use the field ID if possible, else the field name
-            String fieldId = pFieldIdEntry.getValue();
+            String fieldId = fieldIdEntry.getValue();
             if (fieldId == null) {
                 fieldId = fieldName;
             }
