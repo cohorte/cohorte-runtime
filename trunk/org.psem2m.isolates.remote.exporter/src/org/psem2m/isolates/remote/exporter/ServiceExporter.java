@@ -114,17 +114,17 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
 
         // Create end points
         final List<EndpointDescription> resultEndpoints = new ArrayList<EndpointDescription>();
-        for (IEndpointHandler handler : pEndpointHandlers) {
+        for (final IEndpointHandler handler : pEndpointHandlers) {
             try {
-                EndpointDescription[] newEndpoints = handler.createEndpoint(
-                        exportedInterface, aServiceReference);
+                final EndpointDescription[] newEndpoints = handler
+                        .createEndpoint(exportedInterface, aServiceReference);
 
                 // Store end points if they are valid
                 if (newEndpoints != null && newEndpoints.length != 0) {
                     resultEndpoints.addAll(Arrays.asList(newEndpoints));
                 }
 
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
                 // Log errors
                 pLogger.log(LogService.LOG_WARNING,
                         "Error creating an end point", t);
@@ -231,8 +231,6 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
 
         case ServiceEvent.MODIFIED:
             // Service properties have been modified
-            System.out.println("Modified - " + serviceReference + " - already="
-                    + isAlreadyExported(serviceReference));
             if (!isAlreadyExported(serviceReference)) {
                 // Export the service if it just matched our filter
                 exportService(serviceReference);
@@ -243,7 +241,6 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
 
         case ServiceEvent.REGISTERED:
             // Export service
-            System.out.println("Export - " + serviceReference);
             exportService(serviceReference);
             break;
 
@@ -252,9 +249,7 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
              * The service properties doesn't match anymore : it must not be
              * exported by now.
              */
-            System.out.println("END MATCH");
         case ServiceEvent.UNREGISTERING:
-            System.out.println("BYE");
             // Unregistering exported service
             unexportService(serviceReference);
             break;
@@ -285,7 +280,7 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
 
         // Grab end points list
         final List<EndpointDescription> serviceEndpoints = new ArrayList<EndpointDescription>();
-        for (IEndpointHandler handler : pEndpointHandlers) {
+        for (final IEndpointHandler handler : pEndpointHandlers) {
 
             // Get handler end points for this service
             final EndpointDescription[] handlerEndpoints = handler
@@ -325,12 +320,12 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
         }
 
         // Remove end points, after sending the broadcast event
-        for (IEndpointHandler handler : pEndpointHandlers) {
+        for (final IEndpointHandler handler : pEndpointHandlers) {
 
             try {
                 handler.destroyEndpoint(aServiceReference);
 
-            } catch (Exception ex) {
+            } catch (final Exception ex) {
                 // Log error
                 pLogger.log(LogService.LOG_WARNING,
                         "Can't remove endpoint from " + handler
@@ -352,16 +347,16 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
 
         // Handle already registered services
         try {
-            ServiceReference[] exportedServices = pBundleContext
+            final ServiceReference[] exportedServices = pBundleContext
                     .getAllServiceReferences(null, EXPORTED_SERVICE_FILTER);
 
             if (exportedServices != null) {
-                for (ServiceReference serviceRef : exportedServices) {
+                for (final ServiceReference serviceRef : exportedServices) {
                     exportService(serviceRef);
                 }
             }
 
-        } catch (InvalidSyntaxException ex) {
+        } catch (final InvalidSyntaxException ex) {
             ex.printStackTrace();
         }
 
@@ -369,7 +364,7 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
         try {
             pBundleContext.addServiceListener(this, EXPORTED_SERVICE_FILTER);
 
-        } catch (InvalidSyntaxException e) {
+        } catch (final InvalidSyntaxException e) {
 
             pLogger.log(LogService.LOG_ERROR,
                     "Error creating the service listener", e);
