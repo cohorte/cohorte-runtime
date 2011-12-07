@@ -9,7 +9,7 @@ Created on 8 nov. 2011
 from psem2m.composer import PSEM2M_XMLNS
 from psem2m.composer.scamodel import SCAComposite, SCAComponent
 from xml.dom.minidom import parse as xml_parse
-
+import copy
 
 XML_NS = "http://www.w3.org/2000/xmlns/"
 SCA_XMLNS = "http://docs.oasis-open.org/ns/opencsa/sca/200912"
@@ -278,10 +278,17 @@ class SCAConverter(object):
                     # Remove the component object
                     del composite.components[old_name]
 
-                    # Insert the composite object
-                    new_composite = self._sca_composites[child_ns]
+                    # Insert a copy of the composite object
+                    new_composite = copy.deepcopy(self._sca_composites[child_ns])
                     composite.components[name] = new_composite
                     new_composite.parent = composite
+
+                    # Propagate properties values
+                    for entry in old_component.properties:
+                        for new_component in new_composite.components.values():
+                            if entry in new_component.properties:
+                                new_component.properties[entry] = \
+                                                old_component.properties[entry]
 
                     assert isinstance(new_composite, SCAComposite)
 

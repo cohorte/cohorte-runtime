@@ -7,6 +7,7 @@ Created on 8 nov. 2011
 '''
 
 from psem2m.composer import CompoSet, Component
+import sys
 
 class SCAModelNode(object):
     """
@@ -114,6 +115,32 @@ class SCAComposite(SCAModelNode):
         self.references = {}
         self.services = {}
         self.wires = []
+
+
+    def copy(self):
+        """
+        Returns a copy of this element
+        """
+        copy = SCAComposite()
+        for entry in ("name", "fqname", "namespace"):
+            # Simple data
+            setattr(copy, entry, getattr(self, entry))
+
+        for entry in ("references", "services"):
+            # Simple dictionaries
+            setattr(copy, entry, dict(getattr(self, entry)))
+
+        # Deep copy components
+        compo_map = {}
+        for component in self.components.values():
+            # Copy sub-component
+            copy_compo = component.copy()
+            copy.components[copy_compo.name] = copy_compo
+
+            # Keep a mapping of converted names
+            compo_map[component.name] = copy_compo.name
+
+        # TODO Copy wires (be aware of components)
 
 
     def compute_fq_name(self):
@@ -327,7 +354,14 @@ class SCAComponent(SCAModelNode):
 
             # Wires found, only get the target fully-qualified name
             for ref_name in component_wires:
-                component.wires[ref_name] = component_wires[ref_name][0].fqname
+                try:
+                    component.wires[ref_name] = component_wires[ref_name][0].fqname
+
+                except Exception as ex:
+                    print >> sys.stderr, "ERROR\nComponent =", self.fqname, \
+                                "\nRef_name =", ref_name, \
+                                "\nwires[ref_name] =", component_wires[ref_name]
+                    raise ex
 
         return component
 
