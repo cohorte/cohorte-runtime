@@ -30,6 +30,7 @@ def read_parameters():
     
     * name : The compilation run name
     * root : The root projects directory
+    * extra_paths : An array of extra projects roots directories
     * target : The target platform path
     * ipojo.ant : The iPOJO Ant task definition file
     * ipojo.annotations : The iPOJO Annotations library
@@ -39,11 +40,16 @@ def read_parameters():
     """
     parser = OptionParser()
 
-    opt_help = "Sets the path of the root directory to recursively " \
-                + "search for Eclipse projects. " \
-                + "Uses the current directory by default."
+    opt_help = "Sets the path of the main root directory to recursively " \
+                + "search for Eclipse projects and to place the root "\
+                + "build.xml file. Uses the current directory by default."
     parser.add_option("-R", "--root-directory", dest="root_dir", \
                       metavar="DIR", help=opt_help)
+
+    opt_help = "Extra paths to recursively look for Eclipse project, " \
+                + "separated with " + os.pathsep
+    parser.add_option("-E", "--extra-directories", dest="extra_dirs", \
+                      metavar="DIR:DIR:...", help=opt_help)
 
     opt_help = "Sets the path of the product target platform (required)"
     parser.add_option("-T", "--target-platform", dest="target_platform",
@@ -100,7 +106,15 @@ def read_parameters():
                         "The given target platform directory is invalid : %s" \
                         % target_platform)
 
-    print "Target platform :", target_platform
+    # ... Extra directories
+    extra_dirs = []
+    if options.extra_dirs != None:
+        extra_paths = options.extra_dirs.split(os.pathsep)
+
+        for path in extra_paths:
+            if os.path.isdir(path):
+                extra_dirs.append(os.path.abspath(path))
+
 
     # ... iPOJO Ant file
     ipojo_ant_file = None
@@ -119,28 +133,29 @@ def read_parameters():
 
 
     return {"name": options.name, "root": root_dir, "target":target_platform, \
-            "ipojo.ant": ipojo_ant_file, \
+            "extra_paths": extra_dirs, "ipojo.ant": ipojo_ant_file, \
             "ipojo.annotations": ipojo_annotations_lib}
 
 
-def get_projects(root_directory):
+def get_projects(projects_roots):
     """
     Retrieves all Eclipse projects recursively
     
-    @param root_directory: Root directory for recursive search
+    @param projects_roots: Roots directories for recursive search
     """
-    pattern = os.path.normpath(root_directory + os.sep + "*" \
-                               + os.sep + ".project")
-
-    project_files = glob.glob(pattern)
     projects = []
 
-    for project_file in project_files:
-        try:
-            projects.append(eclipse_reader.read_project(project_file))
+    for root in projects_roots:
+        pattern = os.path.normpath(root + os.sep + "*" \
+                                   + os.sep + ".project")
+        project_files = glob.glob(pattern)
 
-        except:
-            logging.warn("Error reading file.", exc_info=True)
+        for project_file in project_files:
+            try:
+                projects.append(eclipse_reader.read_project(project_file))
+
+            except:
+                logging.warn("Error reading file.", exc_info=True)
 
     return projects
 
@@ -161,7 +176,9 @@ def main():
 
     try:
         print "--> Get Projects..."
-        projects = get_projects(params["root"])
+        projects_roots = [params["root"]]
+        projects_roots.extend(params["extra_paths"])
+        projects = get_projects(projects_roots)
 
         print "--> Resolve links..."
         for project in projects:

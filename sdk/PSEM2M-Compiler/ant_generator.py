@@ -131,9 +131,7 @@ class EclipseAntGenerator(object):
         """
         Generates Ant build.xml files using auto_builder
         
-        @param compilation_name: The compilation project name
-        @param root_directory: Root compilation directory
-        @param eclipse_projects: An array of EclipseProject objects
+        @param root_directory: Root generation directory
         @param libraries_paths: An array of string defining JAR libraries paths
         """
         # Resolve dependencies
