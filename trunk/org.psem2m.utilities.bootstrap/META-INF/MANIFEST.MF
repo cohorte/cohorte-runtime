@@ -8,3 +8,5 @@ Bundle-Version: 1.0.0.qualifier
 Created-By: isandlaTech
 Main-Class: org.psem2m.utilities.bootstrap.Main
 Export-Package: org.psem2m.utilities.bootstrap
+Import-Package: org.osgi.framework;version="1.5.0",
+ org.osgi.framework.launch;version="1.0.0"

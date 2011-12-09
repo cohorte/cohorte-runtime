@@ -18,7 +18,8 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  n=1.0.0, org.psem2m.isolates.services.conf;version=1.0.0, org.psem2m.
  isolates.services.dirs;version=1.0.0, org.psem2m.isolates.services.fo
  rker;version=1.0.0, org.psem2m.isolates.services.remote.signals;versi
- on=1.0.0, org.psem2m.utilities, org.psem2m.utilities.logging
+ on=1.0.0, org.psem2m.utilities, org.psem2m.utilities.bootstrap, org.p
+ sem2m.utilities.logging
 iPOJO-Components: instance { $component="psem2m-runner-java-factory" $
  name="psem2m-runner-java" }instance { $component="psem2m-runner-osgi-
  factory" $name="psem2m-runner-osgi" }instance { $component="psem2m-fo
