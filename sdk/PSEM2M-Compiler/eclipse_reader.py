@@ -108,10 +108,20 @@ class EclipseProject(object):
         self.to_remove = []
 
 
-    def clean(self):
+    def clean(self, remove_build_xml=False):
         """
         Deletes all created temporary files
+        
+        @param remove_build_xml: If True, the project build.xml file is also
+        removed
         """
+
+        if remove_build_xml:
+            build_xml = os.path.normpath(self.path + os.sep + "build.xml")
+            if os.path.isfile(build_xml):
+                os.remove(build_xml)
+
+        # Remove links
         for path in self.to_remove:
 
             if os.path.isfile(path) or os.path.islink(path):
