@@ -8,35 +8,27 @@ Bundle-SymbolicName: org.psem2m.isolates.utilities.test
 Bundle-Vendor: isandlaTech (www.isandlatech.com)
 Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
-Import-Package: junit.framework,
- org.apache.felix.ipojo;version="1.8.0",
- org.apache.felix.ipojo.architecture;version="1.8.0",
- org.osgi.framework;version="1.3.0",
- org.osgi.service.cm;version="1.2",
- org.osgi.service.log;version="1.3",
- org.psem2m.isolates.base.activators;version="1.0.0",
- org.psem2m.utilities,
- org.psem2m.utilities.files,
- org.psem2m.utilities.logging,
- org.psem2m.utilities.rsrc,
- org.psem2m.utilities.scripting,
- org.psem2m.utilities.system,
- org.psem2m.utilities.teststools
+Import-Package: junit.framework, org.apache.felix.ipojo;version=1.8.0,
+  org.apache.felix.ipojo.architecture;version=1.8.0, org.osgi.framewor
+ k;version=1.3.0, org.osgi.service.cm;version=1.2, org.osgi.service.lo
+ g;version=1.3, org.psem2m.isolates.base.activators;version=1.0.0, org
+ .psem2m.utilities, org.psem2m.utilities.files, org.psem2m.utilities.l
+ ogging, org.psem2m.utilities.rsrc, org.psem2m.utilities.scripting, or
+ g.psem2m.utilities.system, org.psem2m.utilities.teststools
 Test-Suite: org.psem2m.isolates.utilities.test.logging.CJUnitLogging, 
  org.psem2m.isolates.utilities.test.basic.CJUnitBasic
-iPOJO-Components: component { $immediate="true" $name="isolates-utilit
- iestest-isolatelogger-factory" $classname="org.psem2m.isolates.utilit
- ies.test.CBundleUtilitiesTestActivator" $factory-method="getInstance"
-  $architecture="true" callback { $transition="validate" $method="vali
- datePojo" }callback { $transition="invalidate" $method="invalidatePoj
- o" }provides { $specifications="org.psem2m.isolates.base.IIsolateLogg
- erSvc" }manipulation { $super="org.psem2m.isolates.base.CActivatorBas
- e" method { $name="getInstance" $return="org.psem2m.isolates.utilitie
- s.test.CBundleUtilitiesTestActivator" }method { $name="$init" }method
-  { $name="destroy" }method { $arguments="{org.osgi.framework.BundleCo
- ntext}" $name="start" }method { $arguments="{org.osgi.framework.Bundl
- eContext}" $name="stop" }interface { $name="org.psem2m.isolates.base.
- IActivatorBase" }interface { $name="org.psem2m.utilities.logging.IAct
- ivityLoggerBase" }}}instance { $component="isolates-utilitiestest-iso
- latelogger-factory" $name="isolates-utilitiestest-isolatelogger" }
+iPOJO-Components: instance { $component="psem2m-utilitiestest-isolatel
+ ogger-factory" $name="psem2m-utilitiestest-isolatelogger" }component 
+ { $classname="org.psem2m.isolates.utilities.test.CBundleUtilitiesTest
+ Activator" $architecture="true" $immediate="true" $name="psem2m-utili
+ tiestest-isolatelogger-factory" $factory-method="getInstance" provide
+ s { $specifications="org.psem2m.isolates.base.IIsolateLoggerSvc" }cal
+ lback { $transition="validate" $method="validatePojo" }callback { $tr
+ ansition="invalidate" $method="invalidatePojo" }manipulation { $super
+ ="org.psem2m.isolates.base.activators.CActivatorBase" interface { $na
+ me="org.psem2m.isolates.base.activators.IActivatorBase" }method { $na
+ me="getInstance" $return="org.psem2m.isolates.utilities.test.CBundleU
+ tilitiesTestActivator" }method { $name="destroy" }method { $name="sta
+ rt" $arguments="{org.osgi.framework.BundleContext}" }method { $name="
+ stop" $arguments="{org.osgi.framework.BundleContext}" }}}
 
