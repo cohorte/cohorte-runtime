@@ -139,6 +139,10 @@ def read_parameters():
         extra_paths = options.extra_dirs.split(os.pathsep)
 
         for path in extra_paths:
+            # Convert to real world paths
+            path = os.path.expanduser(path)
+            path = os.path.expandvars(path)
+
             if os.path.isdir(path):
                 extra_dirs.append(os.path.abspath(path))
 
