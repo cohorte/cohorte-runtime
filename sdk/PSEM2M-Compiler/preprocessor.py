@@ -204,6 +204,9 @@ def main():
 
     result = 0
 
+    # Compute root Ant file name
+    root_ant_file = os.path.normpath(params["root"] + os.sep + "build.xml")
+
     try:
         print "--> Get Projects..."
         projects_roots = [params["root"]]
@@ -224,8 +227,6 @@ def main():
             ant_generator.prepare_ant_files(params["root"], [params["target"]])
 
             print "--> Compile time !"
-            root_ant_file = os.path.normpath(params["root"] + os.sep + \
-                                             "build.xml")
             result = subprocess.call(["ant", "-f", root_ant_file, "package"])
 
     except:
@@ -234,8 +235,13 @@ def main():
 
     try:
         print "--> Clean up the mess"
+        clean_build_xml = params["clean"] or params["clean_after_build"]
+
         for project in projects:
-            project.clean(params["clean"] or params["clean_after_build"])
+            project.clean(clean_build_xml)
+
+        if clean_build_xml:
+            os.remove(root_ant_file)
 
     except:
         logging.warn("Error during cleanup.", exc_info=True)
