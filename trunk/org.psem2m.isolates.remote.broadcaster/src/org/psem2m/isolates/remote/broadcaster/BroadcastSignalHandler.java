@@ -99,7 +99,7 @@ public class BroadcastSignalHandler extends CPojoBase implements
                  * Multiple remote service events received, handle them one by
                  * one
                  */
-                for (RemoteServiceEvent event : (RemoteServiceEvent[]) signalContent) {
+                for (final RemoteServiceEvent event : (RemoteServiceEvent[]) signalContent) {
 
                     // Update its content and notify listeners
                     event.setSenderHostName(senderHostName);
@@ -111,8 +111,13 @@ public class BroadcastSignalHandler extends CPojoBase implements
                 .equals(aSignalName)) {
             // End point request
             handleRequestEndpoints(aSignalData.getIsolateSender());
-        }
 
+        } else if (ISignalsConstants.ISOLATE_LOST_SIGNAL.equals(aSignalName)) {
+            // Isolate lost : Notify all listeners
+            for (final IRemoteServiceEventListener listener : pRemoteEventsListeners) {
+                listener.handleIsolateLost((String) signalContent);
+            }
+        }
     }
 
     /**
@@ -124,7 +129,7 @@ public class BroadcastSignalHandler extends CPojoBase implements
     protected void handleRemoteEvent(final RemoteServiceEvent aEvent) {
 
         // Notify all listeners
-        for (IRemoteServiceEventListener listener : pRemoteEventsListeners) {
+        for (final IRemoteServiceEventListener listener : pRemoteEventsListeners) {
             listener.handleRemoteEvent(aEvent);
         }
     }
@@ -154,7 +159,7 @@ public class BroadcastSignalHandler extends CPojoBase implements
                 localRegistrations.length);
 
         // For each exported interface, create an event
-        for (RemoteServiceRegistration registration : localRegistrations) {
+        for (final RemoteServiceRegistration registration : localRegistrations) {
 
             final EndpointDescription[] endpoints = registration.getEndpoints();
             if (endpoints == null || endpoints.length == 0) {
@@ -202,6 +207,10 @@ public class BroadcastSignalHandler extends CPojoBase implements
         pSignalReceiver.registerListener(
                 ISignalsConstants.BROADCASTER_SIGNAL_NAME_PREFIX
                         + ISignalsConstants.MATCH_ALL, this);
+
+        // Register to "isolate lost" signal
+        pSignalReceiver.registerListener(ISignalsConstants.ISOLATE_LOST_SIGNAL,
+                this);
 
         pLogger.log(LogService.LOG_INFO, "RSB Handler Ready");
     }
