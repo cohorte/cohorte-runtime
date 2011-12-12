@@ -1,3 +1,4 @@
+#-- Content-Encoding: utf-8 --
 '''
 Created on 12 déc. 2011
 
@@ -92,6 +93,13 @@ class PSEM2MRunner(object):
         return framework_file
 
 
+    def is_running(self):
+        """
+        Tests if the platform is running
+        """
+        return self._utils.is_running()
+
+
     def print_base_configuration(self):
         """
         Prints the current base configuration on the standard output
@@ -141,6 +149,8 @@ Java      : %s
         # Write the PID in a file
         self._utils.write_monitor_pid(pid)
 
+        # TODO: wait for a signal or something to consider the launch success
+
         # Get back to the previous working directory
         os.chdir(current_dir)
         return 0
@@ -170,25 +180,12 @@ Java      : %s
         # Send a signal
         try:
             urllib.request.urlopen(access_url + runner.SIGNAL_STOP, b"")
+
+            # TODO: wait for monitor to really stop
+            # TODO: remove PID file on success
+
             return 0
 
         except URLError as ex:
             print("Error stopping platform :", ex, file=sys.stderr)
             return 1
-
-# ------------------------------------------------------------------------------
-
-def main():
-    """
-    Entry point
-    """
-    runner = PSEM2MRunner()
-    runner.start()
-
-    import time
-    time.sleep(10)
-
-    sys.exit(runner.stop())
-
-if __name__ == "__main__":
-    main()

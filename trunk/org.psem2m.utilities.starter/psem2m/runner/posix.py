@@ -6,6 +6,7 @@ Utility methods implementations for POSIX
 """
 
 from psem2m.runner.commons import OSSpecificUtils
+import errno
 import os
 import psem2m
 import psem2m.runner.commons as commons
@@ -57,6 +58,27 @@ class Utils(OSSpecificUtils):
                 return java
 
         return None
+
+
+    def is_process_running(self, pid):
+        """
+        Tests if the given process is running
+        
+        @param pid: PID of the process to test
+        """
+        if pid < 0:
+            # Invalid PID
+            return False
+
+        try:
+            os.kill(pid, 0)
+
+        except OSError as ex:
+            return ex.errno == errno.EPERM
+
+        else:
+            # No exception
+            return True
 
 
     def _test_java_path(self, java_home):

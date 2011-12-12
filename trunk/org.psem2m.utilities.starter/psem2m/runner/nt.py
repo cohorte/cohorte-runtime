@@ -10,7 +10,19 @@ import os
 import psem2m
 import psem2m.runner.commons as commons
 import sys
+import win32api
+import win32process
 import winreg
+
+# ------------------------------------------------------------------------------
+
+# From http://msdn.microsoft.com/en-us/library/ms684880%28v=VS.85%29.aspx
+PROCESS_QUERY_INFORMATION = 0x0400
+
+# From http://msdn.microsoft.com/en-us/library/ms683189%28v=VS.85%29.aspx
+STILL_ACTIVE = 259
+
+# ------------------------------------------------------------------------------
 
 def get_registry_java_home():
     """
@@ -89,6 +101,32 @@ class Utils(OSSpecificUtils):
             return java
 
         return None
+
+    def is_process_running(self, pid):
+        """
+        Tests if the given process is running
+        
+        @param pid: PID of the process to test
+        """
+        if pid < 0:
+            # Invalid PID
+            return False
+
+        # Windows loves handles
+        handle = win32api.OpenProcess(PROCESS_QUERY_INFORMATION, False, pid)
+        if not handle:
+            # OpenProcess failed
+            return False
+
+        # Look at the process state
+        exit_code = win32process.GetExitCodeProcess(handle)
+
+        # Clean the place before leaving
+        win32api.CloseHandle(handle)
+
+        # Return real state
+        return exit_code == STILL_ACTIVE
+
 
 
     def _test_java_path(self, java_home):

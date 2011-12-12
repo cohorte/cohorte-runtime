@@ -120,6 +120,15 @@ class OSSpecificUtils(object):
         raise NotImplementedError("This method must implemented by child class")
 
 
+    def is_process_running(self, pid):
+        """
+        Tests if the given process is running
+        
+        @param pid: PID of the process to test
+        """
+        raise NotImplementedError("This method must implemented by child class")
+
+
 # ------------------------------------------------------------------------------
 
 class PSEM2MUtils(object):
@@ -171,17 +180,6 @@ class PSEM2MUtils(object):
         return None
 
 
-    def write_monitor_pid(self, pid):
-        """
-        Writes the PID of the monitor in a file
-        
-        @param pid: PID of the monitor
-        """
-        pid_file_name = os.path.join(self.base, psem2m.runner.MONITOR_PID_FILE)
-
-        with open(pid_file_name, "w") as fp:
-            fp.write(str(pid))
-
     def find_java_exe(self):
         """
         Tries to get the path of the Java interpreter
@@ -209,6 +207,39 @@ class PSEM2MUtils(object):
             return jvm_dir
 
         return None
+
+
+    def is_running(self):
+        """
+        Tests if the monitor process is running
+        """
+        pid = self.read_monitor_pid()
+        if not pid:
+            # No PID file : not running
+            return False
+
+        return self._os_utils.is_process_running(pid)
+
+
+    def read_monitor_pid(self):
+        """
+        Reads the monitor PID file content, returns None if absent
+        """
+        pid_file_name = os.path.join(self.base, psem2m.runner.MONITOR_PID_FILE)
+
+        try:
+            with open(pid_file_name) as fp:
+                pid = int(fp.readline().strip())
+
+        except IOError:
+            # Something went wrong
+            return None
+
+        except ValueError:
+            # Invalid content ?
+            return None
+
+        return pid
 
 
     def run_java(self, java, main_class, classpath=[], arguments=[],
@@ -266,3 +297,15 @@ class PSEM2MUtils(object):
 
         # Return the process PID
         return process.pid
+
+
+    def write_monitor_pid(self, pid):
+        """
+        Writes the PID of the monitor in a file
+        
+        @param pid: PID of the monitor
+        """
+        pid_file_name = os.path.join(self.base, psem2m.runner.MONITOR_PID_FILE)
+
+        with open(pid_file_name, "w") as fp:
+            fp.write(str(pid))
