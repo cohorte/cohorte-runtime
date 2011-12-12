@@ -20,7 +20,7 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
 import org.psem2m.isolates.constants.IPlatformProperties;
-import org.psem2m.utilities.bootstrap.IBootstrapConstants;
+import org.psem2m.isolates.constants.boot.IBootstrapConstants;
 
 /**
  * Implements the bundle finder, using the platform directories service
@@ -34,57 +34,57 @@ public class FileFinder {
 
     public File find(final File[] aLookDirs, final String... aFilePossibleNames) {
 
-	// Look in each given directories
-	for (File lookDir : aLookDirs) {
+        // Look in each given directories
+        for (final File lookDir : aLookDirs) {
 
-	    if (!lookDir.exists() || !lookDir.isDirectory()) {
-		continue;
-	    }
+            if (!lookDir.exists() || !lookDir.isDirectory()) {
+                continue;
+            }
 
-	    // Look for each possible name
-	    for (String bundleName : aFilePossibleNames) {
+            // Look for each possible name
+            for (final String bundleName : aFilePossibleNames) {
 
-		File bundleFile = new File(lookDir, bundleName);
-		if (bundleFile.exists()) {
-		    // Stop on first bundle found
-		    return bundleFile;
-		}
-	    }
-	}
+                final File bundleFile = new File(lookDir, bundleName);
+                if (bundleFile.exists()) {
+                    // Stop on first bundle found
+                    return bundleFile;
+                }
+            }
+        }
 
-	// Bundle not found in repositories, tries the names as full ones
-	for (String fileName : aFilePossibleNames) {
+        // Bundle not found in repositories, tries the names as full ones
+        for (final String fileName : aFilePossibleNames) {
 
-	    // Try 'local' file
-	    File bundleFile = new File(fileName);
-	    if (bundleFile.exists()) {
-		// Stop on first bundle found
-		return bundleFile;
-	    }
+            // Try 'local' file
+            File bundleFile = new File(fileName);
+            if (bundleFile.exists()) {
+                // Stop on first bundle found
+                return bundleFile;
+            }
 
-	    // Try as a URI
-	    try {
-		URI bundleUri = new URI(fileName);
-		URL bundleUrl = bundleUri.toURL();
+            // Try as a URI
+            try {
+                final URI bundleUri = new URI(fileName);
+                final URL bundleUrl = bundleUri.toURL();
 
-		if (bundleUrl.getProtocol().equals("file")) {
+                if (bundleUrl.getProtocol().equals("file")) {
 
-		    bundleFile = new File(bundleUri.getPath());
-		    if (bundleFile.exists()) {
-			return bundleFile;
-		    }
-		}
+                    bundleFile = new File(bundleUri.getPath());
+                    if (bundleFile.exists()) {
+                        return bundleFile;
+                    }
+                }
 
-	    } catch (MalformedURLException e) {
-		// Do nothing, we're determining the kind of element
-	    } catch (URISyntaxException e) {
-		// Do nothing, we're determining the kind of element
-	    } catch (IllegalArgumentException e) {
-		// Do nothing, the URI is not absolute
-	    }
-	}
+            } catch (final MalformedURLException e) {
+                // Do nothing, we're determining the kind of element
+            } catch (final URISyntaxException e) {
+                // Do nothing, we're determining the kind of element
+            } catch (final IllegalArgumentException e) {
+                // Do nothing, the URI is not absolute
+            }
+        }
 
-	return null;
+        return null;
 
     }
 
@@ -94,13 +94,13 @@ public class FileFinder {
      */
     protected synchronized void findAllBundles() {
 
-	// Clear existing cache
-	pBundlesCache.clear();
+        // Clear existing cache
+        pBundlesCache.clear();
 
-	// Do the job
-	for (File repository : getRepositories()) {
-	    findAllBundles(repository);
-	}
+        // Do the job
+        for (final File repository : getRepositories()) {
+            findAllBundles(repository);
+        }
     }
 
     /**
@@ -111,26 +111,26 @@ public class FileFinder {
      */
     protected void findAllBundles(final File aRootDirectory) {
 
-	File[] repoFiles = aRootDirectory.listFiles();
-	if (repoFiles != null) {
+        final File[] repoFiles = aRootDirectory.listFiles();
+        if (repoFiles != null) {
 
-	    for (File file : repoFiles) {
+            for (final File file : repoFiles) {
 
-		if (file.isFile()
-			&& file.getName().toLowerCase().endsWith(".jar")) {
-		    // Try to read it
-		    String symbolicName = getBundleSymbolicName(file);
-		    if (symbolicName != null) {
-			// Store it
-			pBundlesCache.put(symbolicName, file);
-		    }
+                if (file.isFile()
+                        && file.getName().toLowerCase().endsWith(".jar")) {
+                    // Try to read it
+                    final String symbolicName = getBundleSymbolicName(file);
+                    if (symbolicName != null) {
+                        // Store it
+                        pBundlesCache.put(symbolicName, file);
+                    }
 
-		} else {
-		    // Recursive search
-		    findAllBundles(file);
-		}
-	    }
-	}
+                } else {
+                    // Recursive search
+                    findAllBundles(file);
+                }
+            }
+        }
     }
 
     /**
@@ -142,16 +142,16 @@ public class FileFinder {
      */
     public File findBundle(final String aSymbolicName) {
 
-	if (aSymbolicName == null) {
-	    return null;
-	}
+        if (aSymbolicName == null) {
+            return null;
+        }
 
-	// Be sure we have some files to look into
-	if (pBundlesCache.isEmpty()) {
-	    findAllBundles();
-	}
+        // Be sure we have some files to look into
+        if (pBundlesCache.isEmpty()) {
+            findAllBundles();
+        }
 
-	return pBundlesCache.get(aSymbolicName);
+        return pBundlesCache.get(aSymbolicName);
     }
 
     /**
@@ -162,7 +162,8 @@ public class FileFinder {
      * @return The first found file, or null
      */
     public File findInConfiguration(final String... aFilePossibleNames) {
-	return find(getConfigurationDirectories(), aFilePossibleNames);
+
+        return find(getConfigurationDirectories(), aFilePossibleNames);
     }
 
     /**
@@ -173,7 +174,8 @@ public class FileFinder {
      * @return The first found file, or null
      */
     public File findInRepositories(final String... aFilePossibleNames) {
-	return find(getRepositories(), aFilePossibleNames);
+
+        return find(getRepositories(), aFilePossibleNames);
     }
 
     /**
@@ -186,45 +188,45 @@ public class FileFinder {
      */
     public String getBundleSymbolicName(final File file) {
 
-	if (!file.exists() || !file.isFile()) {
-	    // Ignore invalid files
-	    return null;
-	}
+        if (!file.exists() || !file.isFile()) {
+            // Ignore invalid files
+            return null;
+        }
 
-	try {
-	    JarFile jarFile = new JarFile(file);
-	    Manifest jarManifest = jarFile.getManifest();
+        try {
+            final JarFile jarFile = new JarFile(file);
+            final Manifest jarManifest = jarFile.getManifest();
 
-	    if (jarManifest == null) {
-		// Ignore files without Manifest
-		return null;
-	    }
+            if (jarManifest == null) {
+                // Ignore files without Manifest
+                return null;
+            }
 
-	    Attributes attributes = jarManifest.getMainAttributes();
-	    if (attributes != null) {
+            final Attributes attributes = jarManifest.getMainAttributes();
+            if (attributes != null) {
 
-		// Handle symbolic name format
-		String symbolicName = attributes
-			.getValue(IBootstrapConstants.BUNDLE_SYMBOLIC_NAME);
-		if (symbolicName != null) {
+                // Handle symbolic name format
+                final String symbolicName = attributes
+                        .getValue(IBootstrapConstants.BUNDLE_SYMBOLIC_NAME);
+                if (symbolicName != null) {
 
-		    // Test if there is an extra information (version,
-		    // singleton, ...)
-		    int endOfName = symbolicName.indexOf(';');
-		    if (endOfName == -1) {
-			return symbolicName;
-		    }
+                    // Test if there is an extra information (version,
+                    // singleton, ...)
+                    final int endOfName = symbolicName.indexOf(';');
+                    if (endOfName == -1) {
+                        return symbolicName;
+                    }
 
-		    // Only return the symbolic name part
-		    return symbolicName.substring(0, endOfName);
-		}
-	    }
+                    // Only return the symbolic name part
+                    return symbolicName.substring(0, endOfName);
+                }
+            }
 
-	} catch (IOException ex) {
-	    // Ignore
-	}
+        } catch (final IOException ex) {
+            // Ignore
+        }
 
-	return null;
+        return null;
     }
 
     /**
@@ -234,51 +236,51 @@ public class FileFinder {
      */
     public File[] getConfigurationDirectories() {
 
-	final List<File> confDirs = new ArrayList<File>();
+        final List<File> confDirs = new ArrayList<File>();
 
-	final String platformBase = getPlatformBase();
-	final String platformHome = getPlatformHome();
+        final String platformBase = getPlatformBase();
+        final String platformHome = getPlatformHome();
 
-	File baseRepo = null;
-	File homeRepo = null;
+        File baseRepo = null;
+        File homeRepo = null;
 
-	// Current instance configuration directory
-	if (platformBase != null) {
-	    baseRepo = new File(getPlatformBase(),
-		    IBootstrapConstants.PLATFORM_CONFIGURATION_DIR);
-	    if (baseRepo.exists() && baseRepo.isDirectory()) {
-		confDirs.add(baseRepo);
-	    }
-	}
+        // Current instance configuration directory
+        if (platformBase != null) {
+            baseRepo = new File(getPlatformBase(),
+                    IBootstrapConstants.PLATFORM_CONFIGURATION_DIR);
+            if (baseRepo.exists() && baseRepo.isDirectory()) {
+                confDirs.add(baseRepo);
+            }
+        }
 
-	// Home configuration directory
-	if (platformHome != null) {
-	    homeRepo = new File(getPlatformHome(),
-		    IBootstrapConstants.PLATFORM_CONFIGURATION_DIR);
-	    if (!homeRepo.equals(baseRepo) && homeRepo.exists()
-		    && homeRepo.isDirectory()) {
-		confDirs.add(homeRepo);
-	    }
-	}
+        // Home configuration directory
+        if (platformHome != null) {
+            homeRepo = new File(getPlatformHome(),
+                    IBootstrapConstants.PLATFORM_CONFIGURATION_DIR);
+            if (!homeRepo.equals(baseRepo) && homeRepo.exists()
+                    && homeRepo.isDirectory()) {
+                confDirs.add(homeRepo);
+            }
+        }
 
-	// Base directory
-	if (platformBase != null) {
-	    baseRepo = new File(getPlatformBase());
-	    if (baseRepo.exists() && baseRepo.isDirectory()) {
-		confDirs.add(baseRepo);
-	    }
-	}
+        // Base directory
+        if (platformBase != null) {
+            baseRepo = new File(getPlatformBase());
+            if (baseRepo.exists() && baseRepo.isDirectory()) {
+                confDirs.add(baseRepo);
+            }
+        }
 
-	// Home directory
-	if (platformHome != null) {
-	    homeRepo = new File(getPlatformHome());
-	    if (!homeRepo.equals(baseRepo) && homeRepo.exists()
-		    && homeRepo.isDirectory()) {
-		confDirs.add(homeRepo);
-	    }
-	}
+        // Home directory
+        if (platformHome != null) {
+            homeRepo = new File(getPlatformHome());
+            if (!homeRepo.equals(baseRepo) && homeRepo.exists()
+                    && homeRepo.isDirectory()) {
+                confDirs.add(homeRepo);
+            }
+        }
 
-	return confDirs.toArray(new File[0]);
+        return confDirs.toArray(new File[0]);
     }
 
     /**
@@ -289,7 +291,8 @@ public class FileFinder {
      * @return
      */
     public String getPlatformBase() {
-	return System.getProperty(IPlatformProperties.PROP_PLATFORM_BASE);
+
+        return System.getProperty(IPlatformProperties.PROP_PLATFORM_BASE);
     }
 
     /**
@@ -300,7 +303,8 @@ public class FileFinder {
      * @return
      */
     public String getPlatformHome() {
-	return System.getProperty(IPlatformProperties.PROP_PLATFORM_HOME);
+
+        return System.getProperty(IPlatformProperties.PROP_PLATFORM_HOME);
     }
 
     /**
@@ -310,48 +314,48 @@ public class FileFinder {
      */
     public File[] getRepositories() {
 
-	final List<File> repositories = new ArrayList<File>();
+        final List<File> repositories = new ArrayList<File>();
 
-	final String platformBase = getPlatformBase();
-	final String platformHome = getPlatformHome();
+        final String platformBase = getPlatformBase();
+        final String platformHome = getPlatformHome();
 
-	File baseRepo = null;
-	File homeRepo = null;
+        File baseRepo = null;
+        File homeRepo = null;
 
-	// Current instance repository
-	if (platformBase != null) {
-	    baseRepo = new File(getPlatformBase(),
-		    IBootstrapConstants.PLATFORM_REPOSITORY_DIR);
-	    if (baseRepo.exists() && baseRepo.isDirectory()) {
-		repositories.add(baseRepo);
-	    }
-	}
+        // Current instance repository
+        if (platformBase != null) {
+            baseRepo = new File(getPlatformBase(),
+                    IBootstrapConstants.PLATFORM_REPOSITORY_DIR);
+            if (baseRepo.exists() && baseRepo.isDirectory()) {
+                repositories.add(baseRepo);
+            }
+        }
 
-	// Home repository
-	if (platformHome != null) {
-	    homeRepo = new File(getPlatformHome(),
-		    IBootstrapConstants.PLATFORM_REPOSITORY_DIR);
-	    if (!homeRepo.equals(baseRepo) && homeRepo.exists()
-		    && homeRepo.isDirectory()) {
-		repositories.add(homeRepo);
-	    }
-	}
+        // Home repository
+        if (platformHome != null) {
+            homeRepo = new File(getPlatformHome(),
+                    IBootstrapConstants.PLATFORM_REPOSITORY_DIR);
+            if (!homeRepo.equals(baseRepo) && homeRepo.exists()
+                    && homeRepo.isDirectory()) {
+                repositories.add(homeRepo);
+            }
+        }
 
-	if (platformBase != null) {
-	    baseRepo = new File(getPlatformBase());
-	    if (baseRepo.exists() && baseRepo.isDirectory()) {
-		repositories.add(baseRepo);
-	    }
-	}
+        if (platformBase != null) {
+            baseRepo = new File(getPlatformBase());
+            if (baseRepo.exists() && baseRepo.isDirectory()) {
+                repositories.add(baseRepo);
+            }
+        }
 
-	if (platformHome != null) {
-	    homeRepo = new File(getPlatformHome());
-	    if (!homeRepo.equals(baseRepo) && homeRepo.exists()
-		    && homeRepo.isDirectory()) {
-		repositories.add(homeRepo);
-	    }
-	}
+        if (platformHome != null) {
+            homeRepo = new File(getPlatformHome());
+            if (!homeRepo.equals(baseRepo) && homeRepo.exists()
+                    && homeRepo.isDirectory()) {
+                repositories.add(homeRepo);
+            }
+        }
 
-	return repositories.toArray(new File[0]);
+        return repositories.toArray(new File[0]);
     }
 }

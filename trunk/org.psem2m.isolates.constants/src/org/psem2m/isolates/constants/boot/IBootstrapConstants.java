@@ -3,7 +3,7 @@
  * Author: Thomas Calmant
  * Date:   6 juil. 2011
  */
-package org.psem2m.utilities.bootstrap;
+package org.psem2m.isolates.constants.boot;
 
 /**
  * Common bootstrap constants

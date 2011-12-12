@@ -26,6 +26,7 @@ import org.osgi.framework.launch.Framework;
 import org.osgi.framework.launch.FrameworkFactory;
 import org.psem2m.isolates.base.isolates.boot.IBootstrapMessageSender;
 import org.psem2m.isolates.constants.IPlatformProperties;
+import org.psem2m.isolates.constants.boot.IBootstrapConstants;
 
 /**
  * Bootstrap for OSGi frameworks
@@ -101,7 +102,7 @@ public class FrameworkStarter {
         if (!pFrameworkConfiguration.containsKey(Constants.FRAMEWORK_STORAGE)) {
 
             // Find an isolate ID
-            String isolateId = pFrameworkConfiguration
+            final String isolateId = pFrameworkConfiguration
                     .get(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID);
             if (isolateId == null) {
                 System.getProperty(
@@ -110,7 +111,7 @@ public class FrameworkStarter {
             }
 
             // Prepare the directory
-            File frameworkCacheDirectory = new File(System.getProperty(
+            final File frameworkCacheDirectory = new File(System.getProperty(
                     IPlatformProperties.PROP_PLATFORM_BASE, "."), "var/work/"
                     + isolateId);
 
@@ -143,7 +144,7 @@ public class FrameworkStarter {
                         + "; version=1.0.1");
 
         // Force the system properties
-        for (Entry<String, String> property : pFrameworkConfiguration
+        for (final Entry<String, String> property : pFrameworkConfiguration
                 .entrySet()) {
             System.setProperty(property.getKey(), property.getValue());
         }
@@ -169,7 +170,7 @@ public class FrameworkStarter {
             // Initializes the framework
             pFramework.init();
 
-        } catch (BundleException e) {
+        } catch (final BundleException e) {
             pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
                     "createFramework", "Framework inialization error", e);
 
@@ -211,7 +212,7 @@ public class FrameworkStarter {
 
                 String matchingFactory = null;
 
-                for (String visibleFactory : visibleFactories) {
+                for (final String visibleFactory : visibleFactories) {
 
                     // Be case insensitive
                     if (visibleFactory.toLowerCase().contains(
@@ -249,15 +250,15 @@ public class FrameworkStarter {
         try {
             return (FrameworkFactory) Class.forName(factoryName).newInstance();
 
-        } catch (InstantiationException e) {
+        } catch (final InstantiationException e) {
             pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
                     "getFrameworkFactory", "Can't create a new instance", e);
 
-        } catch (IllegalAccessException e) {
+        } catch (final IllegalAccessException e) {
             pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
                     "getFrameworkFactory", "Illegal class access", e);
 
-        } catch (ClassNotFoundException e) {
+        } catch (final ClassNotFoundException e) {
             pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
                     "getFrameworkFactory", "Factory class not found", e);
 
@@ -290,7 +291,7 @@ public class FrameworkStarter {
             visibleServiceFiles = classLoader
                     .getResources(SERVICE_FRAMEWORKFACTORY_RESOURCE);
 
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             pMessageSender.sendMessage(Level.WARNING, CLASS_LOG_NAME,
                     "getMetaInfFrameworkFactories",
                     "Can't load framework factory definitions", ex);
@@ -317,7 +318,7 @@ public class FrameworkStarter {
                     }
                 }
 
-            } catch (IOException ex) {
+            } catch (final IOException ex) {
                 // Should never happen
                 pMessageSender.sendMessage(Level.WARNING, CLASS_LOG_NAME,
                         "getMetaInfFrameworkFactories",
@@ -329,7 +330,7 @@ public class FrameworkStarter {
                     try {
                         rdr.close();
 
-                    } catch (IOException e) {
+                    } catch (final IOException e) {
                         // Ignore error at this level...
                     }
                 }
@@ -359,12 +360,12 @@ public class FrameworkStarter {
     public boolean installBundles(final URL[] aBundlesConfiguration) {
 
         boolean success = true;
-        for (URL url : aBundlesConfiguration) {
+        for (final URL url : aBundlesConfiguration) {
             try {
                 pInstalledBundles.add(pFramework.getBundleContext()
                         .installBundle(url.toString()));
 
-            } catch (BundleException e) {
+            } catch (final BundleException e) {
                 pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
                         "installBundles", "Error installing bundle '" + url
                                 + "'", e);
@@ -398,9 +399,9 @@ public class FrameworkStarter {
      */
     protected void removeDirectory(final File aDirectory) {
 
-        File[] files = aDirectory.listFiles();
+        final File[] files = aDirectory.listFiles();
 
-        for (File file : files) {
+        for (final File file : files) {
             if (file.isDirectory()) {
                 removeDirectory(file);
 
@@ -433,7 +434,7 @@ public class FrameworkStarter {
     public boolean startBundles() {
 
         boolean success = true;
-        for (Bundle bundle : pInstalledBundles) {
+        for (final Bundle bundle : pInstalledBundles) {
             try {
 
                 if (isFragment(bundle)) {
@@ -450,7 +451,7 @@ public class FrameworkStarter {
                     bundle.start();
                 }
 
-            } catch (BundleException e) {
+            } catch (final BundleException e) {
                 pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
                         "startBundles",
                         "Error starting bundle : '" + bundle.getSymbolicName()
@@ -475,7 +476,7 @@ public class FrameworkStarter {
             pFramework.start();
             return true;
 
-        } catch (BundleException e) {
+        } catch (final BundleException e) {
             pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
                     "startFramework", "Error starting the framework", e);
             e.printStackTrace();
@@ -496,7 +497,7 @@ public class FrameworkStarter {
             pFramework.stop();
             return true;
 
-        } catch (BundleException e) {
+        } catch (final BundleException e) {
             pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
                     "stopFramework", "Error stopping the framework", e);
 
@@ -513,7 +514,7 @@ public class FrameworkStarter {
      */
     public boolean waitForStop(final int aTimeout) throws InterruptedException {
 
-        FrameworkEvent event = pFramework.waitForStop(aTimeout);
+        final FrameworkEvent event = pFramework.waitForStop(aTimeout);
         return event.getType() != FrameworkEvent.WAIT_TIMEDOUT;
     }
 }

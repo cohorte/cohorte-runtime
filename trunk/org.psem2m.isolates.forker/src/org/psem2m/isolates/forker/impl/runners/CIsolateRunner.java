@@ -21,11 +21,11 @@ import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.base.bundles.BundleRef;
 import org.psem2m.isolates.base.bundles.IBundleFinderSvc;
 import org.psem2m.isolates.constants.IPlatformProperties;
+import org.psem2m.isolates.constants.boot.IBootstrapConstants;
 import org.psem2m.isolates.forker.IIsolateRunner;
 import org.psem2m.isolates.forker.IProcessRef;
 import org.psem2m.isolates.services.conf.IIsolateDescr;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
-import org.psem2m.utilities.bootstrap.IBootstrapConstants;
 
 /**
  * OSGi framework isolate runner

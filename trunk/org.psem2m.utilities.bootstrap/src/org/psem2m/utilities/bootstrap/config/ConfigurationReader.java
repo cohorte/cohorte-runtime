@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 
-import org.psem2m.utilities.bootstrap.IBootstrapConstants;
+import org.psem2m.isolates.constants.boot.IBootstrapConstants;
 import org.psem2m.utilities.bootstrap.IMessageSender;
 
 /**
@@ -49,7 +49,8 @@ public class ConfigurationReader {
      *            Log message sender
      */
     public ConfigurationReader(final IMessageSender aMessageSender) {
-	pMessageSender = aMessageSender;
+
+        pMessageSender = aMessageSender;
     }
 
     /**
@@ -62,20 +63,20 @@ public class ConfigurationReader {
      */
     protected FileInputStream getIncludedFileStream(final String aIncludeLine) {
 
-	try {
-	    String fileName = aIncludeLine.substring(INCLUDE_COMMAND.length())
-		    .trim();
+        try {
+            final String fileName = aIncludeLine.substring(
+                    INCLUDE_COMMAND.length()).trim();
 
-	    File file = pFileFinder.findInConfiguration(fileName);
-	    if (file != null) {
-		return new FileInputStream(file);
-	    }
+            final File file = pFileFinder.findInConfiguration(fileName);
+            if (file != null) {
+                return new FileInputStream(file);
+            }
 
-	    return null;
+            return null;
 
-	} catch (FileNotFoundException e) {
-	    return null;
-	}
+        } catch (final FileNotFoundException e) {
+            return null;
+        }
     }
 
     /**
@@ -86,22 +87,22 @@ public class ConfigurationReader {
      */
     public URL[] readConfiguration() throws IOException {
 
-	// Find bundle file
-	final File platformFile = pFileFinder
-		.findInConfiguration(IBootstrapConstants.FILE_PLATFORM_BUNDLES);
-	if (platformFile == null) {
-	    throw new IOException("Can't find the base file '"
-		    + IBootstrapConstants.FILE_PLATFORM_BUNDLES + "'");
-	}
+        // Find bundle file
+        final File platformFile = pFileFinder
+                .findInConfiguration(IBootstrapConstants.FILE_PLATFORM_BUNDLES);
+        if (platformFile == null) {
+            throw new IOException("Can't find the base file '"
+                    + IBootstrapConstants.FILE_PLATFORM_BUNDLES + "'");
+        }
 
-	// Parse them all
-	final String[] platformBundles = readStringLines(new FileInputStream(
-		platformFile));
+        // Parse them all
+        final String[] platformBundles = readStringLines(new FileInputStream(
+                platformFile));
 
-	// Linked set, to avoid duplication and keep order
-	final Set<URL> bundlesUrls = new LinkedHashSet<URL>();
-	bundlesUrls.addAll(stringsToURLs(platformBundles));
-	return bundlesUrls.toArray(new URL[0]);
+        // Linked set, to avoid duplication and keep order
+        final Set<URL> bundlesUrls = new LinkedHashSet<URL>();
+        bundlesUrls.addAll(stringsToURLs(platformBundles));
+        return bundlesUrls.toArray(new URL[0]);
     }
 
     /**
@@ -115,60 +116,60 @@ public class ConfigurationReader {
      */
     protected String[] readStringLines(final InputStream aInputStream) {
 
-	// Use a set to avoid duplications
-	final Set<String> linesSet = new LinkedHashSet<String>();
+        // Use a set to avoid duplications
+        final Set<String> linesSet = new LinkedHashSet<String>();
 
-	// Read from standard input
-	final BufferedReader reader = new BufferedReader(new InputStreamReader(
-		aInputStream));
+        // Read from standard input
+        final BufferedReader reader = new BufferedReader(new InputStreamReader(
+                aInputStream));
 
-	// One bundle URL per line
-	try {
-	    String readLine = reader.readLine();
+        // One bundle URL per line
+        try {
+            String readLine = reader.readLine();
 
-	    // readLine can be null if the end of file is reached
-	    while (readLine != null) {
+            // readLine can be null if the end of file is reached
+            while (readLine != null) {
 
-		// Trim the line
-		readLine = readLine.trim();
+                // Trim the line
+                readLine = readLine.trim();
 
-		// Test the comment marker
-		if (readLine.isEmpty() || readLine.startsWith(COMMENT_MARKER)) {
-		    // Do nothing (ignore the other commands
+                // Test the comment marker
+                if (readLine.isEmpty() || readLine.startsWith(COMMENT_MARKER)) {
+                    // Do nothing (ignore the other commands
 
-		} else if (readLine.startsWith(INCLUDE_COMMAND)) {
-		    // File include
-		    InputStream includedStream = getIncludedFileStream(readLine);
+                } else if (readLine.startsWith(INCLUDE_COMMAND)) {
+                    // File include
+                    final InputStream includedStream = getIncludedFileStream(readLine);
 
-		    if (includedStream != null) {
-			linesSet.addAll(Arrays
-				.asList(readStringLines(includedStream)));
+                    if (includedStream != null) {
+                        linesSet.addAll(Arrays
+                                .asList(readStringLines(includedStream)));
 
-		    } else {
+                    } else {
 
-			pMessageSender.sendMessage(
-				Level.WARNING,
-				"ConfigurationReader",
-				"readStringLines",
-				"Can't open file : "
-					+ readLine.substring(INCLUDE_COMMAND
-						.length()));
-		    }
+                        pMessageSender.sendMessage(
+                                Level.WARNING,
+                                "ConfigurationReader",
+                                "readStringLines",
+                                "Can't open file : "
+                                        + readLine.substring(INCLUDE_COMMAND
+                                                .length()));
+                    }
 
-		} else {
-		    // Consider the line as an URL
-		    linesSet.add(readLine);
-		}
+                } else {
+                    // Consider the line as an URL
+                    linesSet.add(readLine);
+                }
 
-		// Next step
-		readLine = reader.readLine();
-	    }
+                // Next step
+                readLine = reader.readLine();
+            }
 
-	} catch (IOException e) {
-	    e.printStackTrace();
-	}
+        } catch (final IOException e) {
+            e.printStackTrace();
+        }
 
-	return linesSet.toArray(new String[0]);
+        return linesSet.toArray(new String[0]);
     }
 
     /**
@@ -182,45 +183,45 @@ public class ConfigurationReader {
      *             A bundle file is missing
      */
     public Collection<URL> stringsToURLs(final String[] aStringArray)
-	    throws FileNotFoundException {
+            throws FileNotFoundException {
 
-	List<URL> result = new ArrayList<URL>(aStringArray.length);
+        final List<URL> result = new ArrayList<URL>(aStringArray.length);
 
-	for (String value : aStringArray) {
-	    URL valueUrl = null;
-	    try {
-		// Try a direct conversion
-		valueUrl = new URL(value);
+        for (final String value : aStringArray) {
+            URL valueUrl = null;
+            try {
+                // Try a direct conversion
+                valueUrl = new URL(value);
 
-	    } catch (MalformedURLException e) {
-		// Try the file name
-		File file = pFileFinder.findInRepositories(value);
+            } catch (final MalformedURLException e) {
+                // Try the file name
+                File file = pFileFinder.findInRepositories(value);
 
-		if (file == null) {
-		    // Try the symbolic name
-		    file = pFileFinder.findBundle(value);
-		}
+                if (file == null) {
+                    // Try the symbolic name
+                    file = pFileFinder.findBundle(value);
+                }
 
-		if (file != null) {
-		    try {
-			// Accept the URL in any case at this time
-			// File existence will be tested later
-			valueUrl = file.toURI().toURL();
+                if (file != null) {
+                    try {
+                        // Accept the URL in any case at this time
+                        // File existence will be tested later
+                        valueUrl = file.toURI().toURL();
 
-		    } catch (MalformedURLException ex) {
-			// Abandon this string
-		    }
+                    } catch (final MalformedURLException ex) {
+                        // Abandon this string
+                    }
 
-		} else {
-		    throw new FileNotFoundException(value);
-		}
-	    }
+                } else {
+                    throw new FileNotFoundException(value);
+                }
+            }
 
-	    if (valueUrl != null) {
-		result.add(valueUrl);
-	    }
-	}
+            if (valueUrl != null) {
+                result.add(valueUrl);
+            }
+        }
 
-	return result;
+        return result;
     }
 }

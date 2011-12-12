@@ -33,6 +33,7 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.SynchronousBundleListener;
 import org.osgi.framework.launch.Framework;
 import org.psem2m.isolates.constants.IPlatformProperties;
+import org.psem2m.isolates.constants.boot.IBootstrapConstants;
 import org.psem2m.utilities.bootstrap.config.ConfigurationReader;
 import org.psem2m.utilities.bootstrap.streams.MessageSender;
 import org.psem2m.utilities.bootstrap.streams.RedirectedOutputStream;
