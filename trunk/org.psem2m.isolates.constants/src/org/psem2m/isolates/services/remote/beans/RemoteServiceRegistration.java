@@ -35,6 +35,9 @@ public class RemoteServiceRegistration implements Serializable {
     /** Exported interfaces */
     private final String[] pExportedInterfaces;
 
+    /** The host isolate ID */
+    private final String pHostIsolate;
+
     /** An ID representing the service */
     private final String pServiceId;
 
@@ -80,6 +83,8 @@ public class RemoteServiceRegistration implements Serializable {
         final String sourceIsolate = System.getProperty(
                 IPlatformProperties.PROP_PLATFORM_ISOLATE_ID,
                 UNKNOWN_ISOLATE_ID);
+
+        pHostIsolate = sourceIsolate;
 
         // Generate a service ID
         final StringBuilder builder = new StringBuilder(sourceIsolate);
@@ -127,6 +132,16 @@ public class RemoteServiceRegistration implements Serializable {
     public String[] getExportedInterfaces() {
 
         return pExportedInterfaces;
+    }
+
+    /**
+     * Retrieves the ID of the isolate exporting the service
+     * 
+     * @return The ID of the host isolate
+     */
+    public String getHostIsolate() {
+
+        return pHostIsolate;
     }
 
     /**
@@ -180,7 +195,7 @@ public class RemoteServiceRegistration implements Serializable {
                 "RemoteServiceRegistration(");
         builder.append("serviceId = ").append(pServiceId);
         builder.append(", Endpoints : [");
-        for (EndpointDescription endpoint : pEndpoints) {
+        for (final EndpointDescription endpoint : pEndpoints) {
             builder.append(endpoint);
         }
         builder.append("])");
