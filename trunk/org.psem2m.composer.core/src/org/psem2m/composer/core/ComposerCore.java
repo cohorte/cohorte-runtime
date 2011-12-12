@@ -42,6 +42,7 @@ import org.psem2m.composer.model.ComponentBean;
 import org.psem2m.composer.model.ComponentsSetBean;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
+import org.psem2m.isolates.constants.ISignalsConstants;
 import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
 import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster.EEmitterTargets;
 import org.psem2m.isolates.services.remote.signals.ISignalData;
@@ -142,6 +143,10 @@ public class ComposerCore extends CPojoBase implements IComposer,
 
         aSignalReceiver.registerListener(
                 ComposerAgentSignals.SIGNAL_FACTORY_PREFIX + "/*", this);
+
+        // Register to isolate death signals
+        aSignalReceiver.registerListener(ISignalsConstants.ISOLATE_LOST_SIGNAL,
+                this);
 
         pLogger.logInfo(this, "bindSignalReceiver",
                 "Bound to a signal receiver");
@@ -316,8 +321,7 @@ public class ComposerCore extends CPojoBase implements IComposer,
         } else if (ComposerAgentSignals.SIGNAL_ISOLATE_FACTORIES_GONE
                 .equals(aSignalName)) {
             // An isolate agent is gone
-            unregisterComponentsForIsolate(signalSender, pIsolatesCapabilities
-                    .get(signalSender).toArray(new String[0]));
+            unregisterIsolate(signalSender);
 
         } else if (ComposerAgentSignals.SIGNAL_ISOLATE_ADD_FACTORY
                 .equals(aSignalName)) {
@@ -345,6 +349,12 @@ public class ComposerCore extends CPojoBase implements IComposer,
                 handleComponentChangedSignal(signalSender,
                         (Map<String, Object>) signalContent);
             }
+
+        } else if (ISignalsConstants.ISOLATE_LOST_SIGNAL.equals(aSignalName)
+                && signalContent instanceof CharSequence) {
+            // An isolate has been lost
+            unregisterIsolate((String) signalContent);
+
         }
     }
 
@@ -976,6 +986,18 @@ public class ComposerCore extends CPojoBase implements IComposer,
             final ICompositionListener aCompositionListener) {
 
         pCompositionListeners.remove(aCompositionListener);
+    }
+
+    /**
+     * Unregisters all components of the given isolate ID
+     * 
+     * @param aIsolateId
+     *            The unregistered isolate ID
+     */
+    protected void unregisterIsolate(final String aIsolateId) {
+
+        unregisterComponentsForIsolate(aIsolateId,
+                pIsolatesCapabilities.get(aIsolateId).toArray(new String[0]));
     }
 
     /**

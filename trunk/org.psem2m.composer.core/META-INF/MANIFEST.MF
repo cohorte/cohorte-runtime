@@ -12,9 +12,10 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  g.psem2m.composer;version=1.0.0, org.psem2m.composer.agent;version=1.
  0.0, org.psem2m.composer.config;version=1.0.0, org.psem2m.composer.mo
  del;version=1.0.0, org.psem2m.isolates.base;version=1.0.0, org.psem2m
- .isolates.base.activators;version=1.0.0, org.psem2m.isolates.services
- .remote.signals;version=1.0.0, org.psem2m.utilities;version=1.0.0, or
- g.psem2m.utilities.logging;version=1.0.0
+ .isolates.base.activators;version=1.0.0, org.psem2m.isolates.constant
+ s;version=1.0.0, org.psem2m.isolates.services.remote.signals;version=
+ 1.0.0, org.psem2m.utilities;version=1.0.0, org.psem2m.utilities.loggi
+ ng;version=1.0.0
 iPOJO-Components: instance { $component="org.psem2m.composer.core.Comp
  oserCore" $name="psem2m-composer-core" }component { $classname="org.p
  sem2m.composer.core.ComposerCore" $name="psem2m-composer-core-factory
@@ -76,7 +77,8 @@ iPOJO-Components: instance { $component="org.psem2m.composer.core.Comp
  va.lang.String}" }method { $name="unregisterComponentsForIsolate" $ar
  guments="{java.lang.String,java.lang.String[]}" }method { $name="unre
  gisterCompositionListener" $arguments="{org.psem2m.composer.IComposit
- ionListener}" }method { $name="updateInstantiatingCompositeStatus" $a
- rguments="{java.util.Map,java.lang.String}" }method { $name="validate
- Pojo" }}}
+ ionListener}" }method { $name="unregisterIsolate" $arguments="{java.l
+ ang.String}" }method { $name="updateInstantiatingCompositeStatus" $ar
+ guments="{java.util.Map,java.lang.String}" }method { $name="validateP
+ ojo" }}}
 
