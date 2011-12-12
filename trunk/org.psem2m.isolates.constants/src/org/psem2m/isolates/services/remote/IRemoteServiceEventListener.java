@@ -15,6 +15,14 @@ import org.psem2m.isolates.services.remote.beans.RemoteServiceEvent;
 public interface IRemoteServiceEventListener {
 
     /**
+     * Notifies the listener that an isolate has been lost
+     * 
+     * @param aIsolateId
+     *            The ID of the lost isolate
+     */
+    void handleIsolateLost(String aIsolateId);
+
+    /**
      * Notifies the listener that a remote event has been received.
      * 
      * @param aServiceEvent

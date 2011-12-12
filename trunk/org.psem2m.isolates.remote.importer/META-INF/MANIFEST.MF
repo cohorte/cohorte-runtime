@@ -33,17 +33,19 @@ iPOJO-Components: instance { $component="org.psem2m.isolates.remote.im
  sgi.framework.BundleContext" }field { $name="pClientHandlers" $type="
  org.psem2m.isolates.services.remote.IRemoteServiceClientHandler[]" }f
  ield { $name="pExcludeFilters" $type="java.util.Set" }field { $name="
- pIncludeFilters" $type="java.util.Set" }field { $name="pLogger" $type
- ="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pRegist
- eredServices" $type="java.util.Map" }method { $name="acceptInterface"
-  $return="boolean" $arguments="{java.lang.String}" }method { $name="d
- estroy" }method { $name="filterProperties" $return="java.util.Diction
- ary" $arguments="{java.util.Map}" }method { $name="handleRemoteEvent"
-  $arguments="{org.psem2m.isolates.services.remote.beans.RemoteService
- Event}" }method { $name="invalidatePojo" }method { $name="parseFilter
- " $arguments="{java.lang.String,java.util.Set}" }method { $name="prep
- areFilters" }method { $name="registerService" $arguments="{org.psem2m
- .isolates.services.remote.beans.RemoteServiceEvent}" }method { $name=
- "unregisterService" $arguments="{java.lang.String}" }method { $name="
- validatePojo" }}}
+ pIncludeFilters" $type="java.util.Set" }field { $name="pIsolatesServi
+ ces" $type="java.util.Map" }field { $name="pLogger" $type="org.psem2m
+ .isolates.base.IIsolateLoggerSvc" }field { $name="pRegisteredServices
+ " $type="java.util.Map" }method { $name="acceptInterface" $return="bo
+ olean" $arguments="{java.lang.String}" }method { $name="destroy" }met
+ hod { $name="filterProperties" $return="java.util.Dictionary" $argume
+ nts="{java.util.Map}" }method { $name="handleIsolateLost" $arguments=
+ "{java.lang.String}" }method { $name="handleRemoteEvent" $arguments="
+ {org.psem2m.isolates.services.remote.beans.RemoteServiceEvent}" }meth
+ od { $name="invalidatePojo" }method { $name="parseFilter" $arguments=
+ "{java.lang.String,java.util.Set}" }method { $name="prepareFilters" }
+ method { $name="registerService" $arguments="{org.psem2m.isolates.ser
+ vices.remote.beans.RemoteServiceEvent}" }method { $name="unregisterSe
+ rvice" $arguments="{java.lang.String,java.lang.String}" }method { $na
+ me="validatePojo" }}}
 

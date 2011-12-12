@@ -65,6 +65,9 @@ public class RemoteServiceAdapter extends CPojoBase implements
     /** The service interfaces include filters */
     private final Set<String> pIncludeFilters = new HashSet<String>();
 
+    /** Isolate ID -&gt; Services IDs mapping */
+    private final Map<String, Set<String>> pIsolatesServices = new HashMap<String, Set<String>>();
+
     /** Log service */
     @Requires
     private IIsolateLoggerSvc pLogger;
@@ -204,6 +207,41 @@ public class RemoteServiceAdapter extends CPojoBase implements
     /*
      * (non-Javadoc)
      * 
+     * @see org.psem2m.isolates.services.remote.IRemoteServiceEventListener#
+     * handleIsolateLost(java.lang.String)
+     */
+    @Override
+    public void handleIsolateLost(final String aIsolateId) {
+
+        final Set<String> services = pIsolatesServices.get(aIsolateId);
+        if (services == null) {
+            // Nothing to do
+            pLogger.logInfo(this, "/////////", "No services for", aIsolateId);
+            return;
+        }
+
+        synchronized (services) {
+
+            // Use an array, as the map will be modified by unregisterService
+            final String[] servicesIds = services.toArray(new String[0]);
+
+            // Unregister all corresponding services
+            for (final String serviceId : servicesIds) {
+                unregisterService(aIsolateId, serviceId);
+                pLogger.logInfo(this, "/////////", aIsolateId, "unregisters",
+                        serviceId);
+            }
+
+            // Clear the map list (just to be sure)
+            services.clear();
+        }
+
+        pLogger.logInfo(this, "/////////", aIsolateId, "done !");
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.psem2m.isolates.commons.remote.IRemoteServiceEventListener#
      * handleRemoteEvent(org.psem2m.isolates.commons.remote.RemoteServiceEvent)
      */
@@ -221,8 +259,11 @@ public class RemoteServiceAdapter extends CPojoBase implements
         }
 
         case UNREGISTERED: {
-            unregisterService(aServiceEvent.getServiceRegistration()
-                    .getServiceId());
+            final RemoteServiceRegistration registration = aServiceEvent
+                    .getServiceRegistration();
+
+            unregisterService(registration.getHostIsolate(),
+                    registration.getServiceId());
             break;
         }
         }
@@ -243,8 +284,14 @@ public class RemoteServiceAdapter extends CPojoBase implements
 
         // Unregister all exported services
         for (final String serviceId : servicesIds) {
-            unregisterService(serviceId);
+            unregisterService(null, serviceId);
         }
+
+        // Clear collections
+        pExcludeFilters.clear();
+        pIncludeFilters.clear();
+        pRegisteredServices.clear();
+        pIsolatesServices.clear();
 
         pLogger.logInfo(this, "invalidatePojo", "RemoteServiceAdapter Gone");
     }
@@ -376,7 +423,21 @@ public class RemoteServiceAdapter extends CPojoBase implements
         if (serviceReg != null) {
             final ProxyServiceInfo serviceInfo = new ProxyServiceInfo(
                     serviceReg, finalServiceProxy);
+
             pRegisteredServices.put(serviceId, serviceInfo);
+
+            // Map the service with its host isolate
+            final String isolateId = registration.getHostIsolate();
+            Set<String> isolateServices = pIsolatesServices.get(isolateId);
+            if (isolateServices == null) {
+                // Prepare a new list
+                isolateServices = new HashSet<String>();
+                pIsolatesServices.put(isolateId, isolateServices);
+            }
+
+            // Add the service ID to the list
+            isolateServices.add(serviceId);
+
         }
         // }
         // }).start();
@@ -385,16 +446,20 @@ public class RemoteServiceAdapter extends CPojoBase implements
     /**
      * Unregisters the given service and destroys its proxy
      * 
+     * @param aHostIsolate
+     *            The service host isolate
      * @param aServiceId
      *            The removed service ID
      */
-    protected synchronized void unregisterService(final String aServiceId) {
+    protected synchronized void unregisterService(final String aHostIsolate,
+            final String aServiceId) {
 
         // Retrieve the service registration
         final ProxyServiceInfo serviceInfo = pRegisteredServices
                 .get(aServiceId);
         if (serviceInfo == null) {
             // Unknown service
+            pLogger.logInfo(this, "++++++++++++++++", "NO service info");
             return;
         }
 
@@ -414,7 +479,18 @@ public class RemoteServiceAdapter extends CPojoBase implements
             }
         }
 
+        // Remove the informations
         pRegisteredServices.remove(aServiceId);
+
+        // Remove from the isolate mapping
+        final Set<String> isolateServices = pIsolatesServices.get(aHostIsolate);
+        if (isolateServices != null) {
+            synchronized (isolateServices) {
+                isolateServices.remove(aServiceId);
+            }
+        }
+
+        pLogger.logInfo(this, "++++++++++++++++", "DONE");
     }
 
     /*
