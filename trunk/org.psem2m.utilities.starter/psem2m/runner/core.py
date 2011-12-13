@@ -8,13 +8,35 @@ Created on 12 déc. 2011
 from psem2m import PSEM2MException
 from psem2m.runner.commons import PSEM2MUtils
 from urllib.error import URLError
+import json
 import os
 import psem2m
 import psem2m.runner as runner
 import psem2m.runner.commons as commons
 import shutil
 import sys
+import time
 import urllib.request
+
+
+def decode_bootstrap_line(line):
+    """
+    Decodes a bootstrap "human" (JSON) isolate status line
+    
+    @return: The IsolateStatus JSON dictionary, None if the line can be ignored
+    """
+    if "::" not in line:
+        # Not a valid bootstrap line, ignore it
+        return
+
+    line_parts = line.split("::")
+    if "Bootstrap.MessageSender.sendStatus" not in line_parts[0]:
+        # Not an isolate status line, ignore it
+        return
+
+    # Return the parsed status
+    return json.loads(line_parts[1])
+
 
 class PSEM2MRunner(object):
     """
@@ -139,21 +161,21 @@ Java      : %s
         os.chdir(self._base)
 
         # Wake up the beast
-        pid = self._utils.run_java(self._java, \
-                                   runner.BOOTSTRAP_MAIN_CLASS, \
-                                   [bootstrap, framework], \
-                                   # Human readable output
-                                   ["--human"], \
-                                   java_props)
+        pid, output = self._utils.run_java(self._java, \
+                                           runner.BOOTSTRAP_MAIN_CLASS, \
+                                           [bootstrap, framework], \
+                                           # Human readable output
+                                           ["--human"], \
+                                           java_props)
 
         # Write the PID in a file
         self._utils.write_monitor_pid(pid)
 
-        # TODO: wait for a signal or something to consider the launch success
-
         # Get back to the previous working directory
         os.chdir(current_dir)
-        return 0
+
+        # Wait for the monitor to be fully launched
+        return self.wait_monitor_start(output)
 
 
     def stop(self):
@@ -181,11 +203,58 @@ Java      : %s
         try:
             urllib.request.urlopen(access_url + runner.SIGNAL_STOP, b"")
 
-            # TODO: wait for monitor to really stop
-            # TODO: remove PID file on success
+            # Wait for monitor to really stop
+            wait_time = 0
+            max_wait = 5
+            poll_delay = .2
 
-            return 0
+            while wait_time < max_wait:
+
+                if not self._utils.is_running():
+                    # Monitor stopped, we're done
+                    return 0
+
+                # Wait for max_wait seconds max
+                time.sleep(poll_delay)
+                wait_time += poll_delay
+
+            else:
+                # If still there, do it the hard way
+                print("Error : Monitor is still here")
+                return 1
 
         except URLError as ex:
             print("Error stopping platform :", ex, file=sys.stderr)
-            return 1
+
+        # Something went wrong...
+        return 1
+
+
+    def wait_monitor_start(self, output):
+        """
+        Reads the given output with javaobj, to decode IsolateStatus
+        
+        @param output: Bootstrap output stream
+        """
+
+        for line in output:
+            status = decode_bootstrap_line(str(line, encoding="utf-8"))
+
+            if not status:
+                # Ignore line
+                continue
+
+            print("[Status] :", status)
+            state = int(status["state"])
+
+            if state == -1:
+                print("Isolate failed to start", file=sys.stderr)
+                return 1
+
+            elif state == 10:
+                print("Monitor started")
+                return 0
+
+            elif state > 90:
+                print("Monitor stopped directly")
+                return 2

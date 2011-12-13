@@ -293,10 +293,10 @@ class PSEM2MUtils(object):
 
 
         # Run the Java interpreter
-        process = subprocess.Popen(cmd_line, close_fds=True)
+        process = subprocess.Popen(cmd_line, stdout=subprocess.PIPE)
 
         # Return the process PID
-        return process.pid
+        return (process.pid, process.stdout)
 
 
     def write_monitor_pid(self, pid):
