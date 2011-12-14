@@ -9,12 +9,16 @@ from psem2m.runner.commons import OSSpecificUtils
 import os
 import psem2m
 import psem2m.runner.commons as commons
+import pywintypes
 import sys
 import win32api
 import win32process
 import winreg
 
 # ------------------------------------------------------------------------------
+
+# From http://msdn.microsoft.com/en-us/library/ms681382%28v=VS.85%29.aspx
+ERROR_INVALID_PARAMETER = 0x57
 
 # From http://msdn.microsoft.com/en-us/library/ms684880%28v=VS.85%29.aspx
 PROCESS_QUERY_INFORMATION = 0x0400
@@ -112,8 +116,18 @@ class Utils(OSSpecificUtils):
             # Invalid PID
             return False
 
-        # Windows loves handles
-        handle = win32api.OpenProcess(PROCESS_QUERY_INFORMATION, False, pid)
+        try:
+            # Windows loves handles
+            handle = win32api.OpenProcess(PROCESS_QUERY_INFORMATION, False, pid)
+
+        except pywintypes.error as ex:
+            # PID not in the system anymore
+            if ex.winerror == ERROR_INVALID_PARAMETER:
+                return False
+
+            # Other kind of exception
+            raise ex
+
         if not handle:
             # OpenProcess failed
             return False
