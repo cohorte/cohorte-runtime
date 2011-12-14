@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
@@ -53,16 +54,11 @@ public class HttpSignalSender extends CPojoBase implements
     private ExecutorService pExecutor;
 
     /** Log service, injected by iPOJO */
-    @Requires(nullable = false)
+    @Requires
     private LogService pLogger;
 
-    /**
-     * Default constructor
-     */
-    public HttpSignalSender() {
-
-        super();
-    }
+    /** Flag to indicate if the logger is accessible or not */
+    private AtomicBoolean pLoggerAccessible = new AtomicBoolean(false);
 
     /*
      * (non-Javadoc)
@@ -160,9 +156,8 @@ public class HttpSignalSender extends CPojoBase implements
 
         pExecutor.shutdown();
 
-        if (pLogger != null) {
-            pLogger.log(LogService.LOG_INFO, "HTTP Signal Sender Gone");
-        }
+        pLogger.log(LogService.LOG_INFO, "HTTP Signal Sender Gone");
+        pLoggerAccessible.set(false);
     }
 
     /**
@@ -266,7 +261,7 @@ public class HttpSignalSender extends CPojoBase implements
     protected void logSenderThreadError(final String aMessage,
             final Exception aException) {
 
-        if (pLogger != null) {
+        if (pLoggerAccessible.get()) {
             pLogger.log(LogService.LOG_WARNING, aMessage, aException);
         }
     }
@@ -402,6 +397,8 @@ public class HttpSignalSender extends CPojoBase implements
     public void validatePojo() throws BundleException {
 
         pExecutor = Executors.newCachedThreadPool();
+
+        pLoggerAccessible.set(true);
         pLogger.log(LogService.LOG_INFO, "HTTP Signal Sender Ready");
     }
 }
