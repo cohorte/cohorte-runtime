@@ -6,8 +6,9 @@ Common classes, methods and constants for the PSEM2M scripts
 @author: Thomas Calmant
 """
 
-import sys
 from psem2m.runner.core import PSEM2MRunner
+import inspect
+import sys
 
 # ------------------------------------------------------------------------------
 
@@ -23,12 +24,34 @@ class Main(object):
         self._runner = PSEM2MRunner()
 
 
-    def start(self):
+    def start(self, extra_args=None):
         """
         Starts the platform
         """
-        print("Starting...")
-        result = self._runner.start()
+        # Parse parameters
+        given_id = None
+        jvm_args = []
+
+        if extra_args != None:
+            for i in range(len(extra_args)):
+                arg = str(extra_args[i])
+
+                if arg.startswith("--id="):
+                    # Specified isolate ID
+                    given_id = arg.split("=")[1]
+
+                else:
+                    # Consider the rest as JVM arguments
+                    jvm_args.append(arg)
+
+        if not given_id:
+            print("Starting first monitor...")
+
+        else:
+            print("Starting isolate %s..." % given_id)
+
+        self._runner.set_isolate_id(given_id)
+        result = self._runner.start(jvm_args)
         print("Done :", result)
         return result
 
@@ -122,25 +145,40 @@ def print_usage():
 """ % sys.argv[0])
 
 
-if __name__ == "__main__":
+def main(argv):
     """
     Entry point
     """
-
-    if len(sys.argv) < 2:
+    if len(argv) < 2:
         print_usage()
         sys.exit(1)
 
     # Compute action name
-    action = sys.argv[1].strip().lower().replace("-", "_")
+    action = argv[1].strip().lower().replace("-", "_")
 
-    main = Main()
-    if not hasattr(main, action):
+    app = Main()
+    if not hasattr(app, action):
         # Unknown action
         print_usage()
         sys.exit(1)
 
-    # Run it
-    action_impl = getattr(main, action)
+    # Get the implementation
+    action_impl = getattr(app, action)
+    nb_action_args = len(inspect.getargspec(action_impl).args)
 
-    sys.exit(action_impl())
+    # Parse action arguments, if any
+    if nb_action_args == 2:
+        # Accepts an array of arguments
+        # 2 arguments : self + args
+        args = argv[2:]
+        sys.exit(action_impl(args))
+
+    elif nb_action_args == 1:
+        # No extra arguments or expects default values
+        # 1 argument : self
+        sys.exit(action_impl())
+
+
+if __name__ == "__main__":
+    main(sys.argv)
+

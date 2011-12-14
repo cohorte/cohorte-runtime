@@ -133,7 +133,20 @@ Java      : %s
         """ % (self._home, self._base, self._java))
 
 
-    def start(self):
+    def set_isolate_id(self, isolate_id):
+        """
+        Changes the ID of the isolate to start
+        
+        @param isolate_id: ID of the isolate to start
+        """
+        if not isolate_id:
+            self._isolate_id = runner.DEFAULT_ISOLATE_ID
+
+        else:
+            self._isolate_id = isolate_id
+
+
+    def start(self, jvm_args=[]):
         """
         Starts the monitor isolate
         """
@@ -166,7 +179,7 @@ Java      : %s
                                            [bootstrap, framework], \
                                            # Human readable output
                                            ["--human"], \
-                                           java_props)
+                                           java_props, jvm_args)
 
         # Write the PID in a file
         self._utils.write_monitor_pid(pid)
@@ -182,6 +195,11 @@ Java      : %s
         """
         Sends the stop signal to the monitor
         """
+
+        if not self._utils.is_running():
+            # Nothing to do
+            return 0
+
         access_file_name = os.path.join(self._base, runner.MONITOR_ACCESS_FILE)
 
         # Read the access file
