@@ -53,7 +53,7 @@ public class HttpSignalSender extends CPojoBase implements
     private ExecutorService pExecutor;
 
     /** Log service, injected by iPOJO */
-    @Requires
+    @Requires(nullable = false)
     private LogService pLogger;
 
     /**
@@ -85,7 +85,8 @@ public class HttpSignalSender extends CPojoBase implements
 
         final List<String> isolatesList = new ArrayList<String>();
 
-        for (String isolateId : pConfiguration.getApplication().getIsolateIds()) {
+        for (final String isolateId : pConfiguration.getApplication()
+                .getIsolateIds()) {
 
             if (isValidIsolate(isolateId)
                     && !isolateId
@@ -109,7 +110,8 @@ public class HttpSignalSender extends CPojoBase implements
 
         final List<String> monitorsList = new ArrayList<String>();
 
-        for (String isolateId : pConfiguration.getApplication().getIsolateIds()) {
+        for (final String isolateId : pConfiguration.getApplication()
+                .getIsolateIds()) {
 
             if (isValidIsolate(isolateId)
                     && isolateId
@@ -140,7 +142,7 @@ public class HttpSignalSender extends CPojoBase implements
         // Prepare the real signal data object
         final HttpSignalData sentObject = new HttpSignalData(aData);
 
-        for (URL targetUrl : aUrls) {
+        for (final URL targetUrl : aUrls) {
             // Use threads to parallelize the sending process
             pExecutor
                     .execute(new HttpSenderThread(this, targetUrl, sentObject));
@@ -157,7 +159,10 @@ public class HttpSignalSender extends CPojoBase implements
     public void invalidatePojo() throws BundleException {
 
         pExecutor.shutdown();
-        pLogger.log(LogService.LOG_INFO, "HTTP Signal Sender Gone");
+
+        if (pLogger != null) {
+            pLogger.log(LogService.LOG_INFO, "HTTP Signal Sender Gone");
+        }
     }
 
     /**
@@ -191,7 +196,7 @@ public class HttpSignalSender extends CPojoBase implements
             // Return the corresponding URL
             return new URL(urlBuilder.toString());
 
-        } catch (MalformedURLException e) {
+        } catch (final MalformedURLException e) {
             pLogger.log(
                     LogService.LOG_ERROR,
                     "Can't prepare access URL for isolate '" + aIsolateId + "'",
@@ -217,7 +222,7 @@ public class HttpSignalSender extends CPojoBase implements
         final List<URL> isolateUrls = new ArrayList<URL>(aIsolatesIds.length);
 
         // Compute isolates URL list
-        for (String isolateId : aIsolatesIds) {
+        for (final String isolateId : aIsolatesIds) {
             final URL isolateUrl = isolateIdToUrl(isolateId, aSignalName);
             if (isolateUrl != null) {
                 isolateUrls.add(isolateUrl);
@@ -261,7 +266,9 @@ public class HttpSignalSender extends CPojoBase implements
     protected void logSenderThreadError(final String aMessage,
             final Exception aException) {
 
-        pLogger.log(LogService.LOG_WARNING, aMessage, aException);
+        if (pLogger != null) {
+            pLogger.log(LogService.LOG_WARNING, aMessage, aException);
+        }
     }
 
     /*
@@ -282,7 +289,7 @@ public class HttpSignalSender extends CPojoBase implements
         try {
             targetsUrl = targetToUrl(aTargets, new URI(aSignalName));
 
-        } catch (URISyntaxException e) {
+        } catch (final URISyntaxException e) {
             pLogger.log(LogService.LOG_ERROR, "Invalid signal name '"
                     + aSignalName + "' for targets '" + aTargets + "'", e);
             return;
@@ -307,7 +314,7 @@ public class HttpSignalSender extends CPojoBase implements
         try {
             isolateUrl = isolateIdToUrl(aIsolateId, new URI(aSignalName));
 
-        } catch (URISyntaxException e) {
+        } catch (final URISyntaxException e) {
             pLogger.log(LogService.LOG_ERROR, "Invalid signal name '"
                     + aSignalName + "' for isolate '" + aIsolateId + "'", e);
             return false;
@@ -364,7 +371,7 @@ public class HttpSignalSender extends CPojoBase implements
                     .getIsolateIds();
             final Set<URL> allUrls = new HashSet<URL>(allIsolates.size());
 
-            for (String isolateId : allIsolates) {
+            for (final String isolateId : allIsolates) {
 
                 // Do not include the forker nor the current isolate
                 if (isValidIsolate(isolateId)) {
