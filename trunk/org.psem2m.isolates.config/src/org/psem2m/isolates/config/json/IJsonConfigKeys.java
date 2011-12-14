@@ -37,7 +37,7 @@ public interface IJsonConfigKeys {
     String CONFIG_ISOLATE_BUNDLES = "bundles";
 
     /** The HTTP server host */
-    String CONFIG_ISOLATE_HOST = "httpHost";
+    String CONFIG_ISOLATE_HOST = "host";
 
     /** Isolate ID (string, mandatory) */
     String CONFIG_ISOLATE_ID = "id";

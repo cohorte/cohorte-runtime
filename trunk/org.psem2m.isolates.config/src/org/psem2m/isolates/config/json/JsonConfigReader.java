@@ -19,6 +19,7 @@ import org.psem2m.isolates.base.conf.beans.ApplicationDescription;
 import org.psem2m.isolates.base.conf.beans.BundleDescription;
 import org.psem2m.isolates.base.conf.beans.IsolateDescription;
 import org.psem2m.isolates.config.IPlatformConfigurationConstants;
+import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.services.conf.IApplicationDescr;
 import org.psem2m.isolates.services.conf.IBundleDescr;
 import org.psem2m.isolates.services.conf.IConfigurationReader;
@@ -59,7 +60,7 @@ public class JsonConfigReader implements IConfigurationReader {
             final JSONObject aPropertiesJsonObject,
             final Properties aOverridingProperties) {
 
-        Properties overriddenProperties = parseProperties(aPropertiesJsonObject
+        final Properties overriddenProperties = parseProperties(aPropertiesJsonObject
                 .optJSONObject(IJsonConfigKeys.CONFIG_OVERRIDDEN_PROPERTIES));
 
         if (overriddenProperties == null) {
@@ -120,7 +121,7 @@ public class JsonConfigReader implements IConfigurationReader {
             final JSONObject configRoot = readJsonObjectFile(aFile);
 
             // Throws JSONException if key is not found
-            String applicationId = configRoot
+            final String applicationId = configRoot
                     .getString(IJsonConfigKeys.CONFIG_APP_ID);
 
             pApplication = new ApplicationDescription(applicationId);
@@ -131,11 +132,11 @@ public class JsonConfigReader implements IConfigurationReader {
 
             return true;
 
-        } catch (JSONException ex) {
+        } catch (final JSONException ex) {
             System.err.println("Error parsing a configuration file");
             ex.printStackTrace();
 
-        } catch (IOException e) {
+        } catch (final IOException e) {
             System.err.println("Can't access a configuration file");
             e.printStackTrace();
 
@@ -298,11 +299,34 @@ public class JsonConfigReader implements IConfigurationReader {
         }
 
         // Isolate HTTP communication host
-        String isolateHost = aIsolateObject
-                .optString(IJsonConfigKeys.CONFIG_ISOLATE_HOST);
-        if (isolateHost == null || isolateHost.isEmpty()) {
-            // Default to local host
-            isolateHost = "localhost";
+        if (isolateId
+                .startsWith(IPlatformProperties.SPECIAL_INTERNAL_ISOLATES_PREFIX)) {
+            // Host can be omitted for internal isolates
+            String isolateHost = aIsolateObject
+                    .optString(IJsonConfigKeys.CONFIG_ISOLATE_HOST);
+
+            if (isolateHost != null) {
+                isolateHost = isolateHost.trim();
+            }
+
+            if (isolateHost == null || isolateHost.isEmpty()) {
+                isolateDescription.setHostName("localhost");
+
+            } else {
+                isolateDescription.setHostName(isolateHost);
+            }
+
+        } else {
+
+            final String isolateHost = aIsolateObject.getString(
+                    IJsonConfigKeys.CONFIG_ISOLATE_HOST).trim();
+
+            if (isolateHost.isEmpty()) {
+                // Host is mandatory for other elements
+                throw new JSONException(isolateId
+                        + " : Isolate must have a valid host name");
+            }
+            isolateDescription.setHostName(isolateHost);
         }
 
         // Isolate HTTP communication port
@@ -317,7 +341,7 @@ public class JsonConfigReader implements IConfigurationReader {
         final StringBuilder accessUrl = new StringBuilder();
         // FIXME considers that the communication is HTTP only
         accessUrl.append("http://");
-        accessUrl.append(isolateHost);
+        accessUrl.append(isolateDescription.getHostName());
         accessUrl.append(":");
         accessUrl.append(isolatePort);
         isolateDescription.setAccessUrl(accessUrl.toString());
