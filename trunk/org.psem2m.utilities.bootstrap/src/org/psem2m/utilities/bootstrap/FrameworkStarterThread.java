@@ -7,8 +7,11 @@ package org.psem2m.utilities.bootstrap;
 
 import java.net.URL;
 import java.util.Map;
+import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 
+import org.osgi.framework.FrameworkEvent;
+import org.osgi.framework.FrameworkListener;
 import org.osgi.framework.launch.Framework;
 import org.psem2m.isolates.base.isolates.boot.IsolateStatus;
 
@@ -17,7 +20,7 @@ import org.psem2m.isolates.base.isolates.boot.IsolateStatus;
  * 
  * @author Thomas Calmant
  */
-public class FrameworkStarterThread extends Thread {
+public class FrameworkStarterThread extends Thread implements FrameworkListener {
 
     /** The class name in logs */
     private static final String CLASS_LOG_NAME = "FrameworkStarterThread";
@@ -37,6 +40,9 @@ public class FrameworkStarterThread extends Thread {
     /** The message sender */
     private IMessageSender pMessageSender;
 
+    /** The framework activity lock */
+    private Semaphore pSemaphore;
+
     /**
      * Sets up the framework starter
      * 
@@ -51,27 +57,54 @@ public class FrameworkStarterThread extends Thread {
      *             One of the parameters is null
      */
     public FrameworkStarterThread(final IMessageSender aMessageSender,
-	    final Map<String, String> aBootstrapConfig,
-	    final Map<String, String> aFrameworkConfig) throws Exception {
+            final Map<String, String> aBootstrapConfig,
+            final Map<String, String> aFrameworkConfig) throws Exception {
 
-	// Set up the thread
-	super(THREAD_NAME);
-	setDaemon(true);
+        // Set up the thread
+        super(THREAD_NAME);
+        setDaemon(true);
 
-	pMessageSender = aMessageSender;
-	if (pMessageSender == null) {
-	    throw new Exception("MessageSender can't be null");
-	}
+        pMessageSender = aMessageSender;
+        if (pMessageSender == null) {
+            throw new Exception("MessageSender can't be null");
+        }
 
-	pBootstrapConfiguration = aBootstrapConfig;
-	if (pBootstrapConfiguration == null) {
-	    throw new Exception("Bootstrap configuration can't be null");
-	}
+        pBootstrapConfiguration = aBootstrapConfig;
+        if (pBootstrapConfiguration == null) {
+            throw new Exception("Bootstrap configuration can't be null");
+        }
 
-	pFrameworkConfiguration = aFrameworkConfig;
-	if (pFrameworkConfiguration == null) {
-	    throw new Exception("Framework configuration can't be null");
-	}
+        pFrameworkConfiguration = aFrameworkConfig;
+        if (pFrameworkConfiguration == null) {
+            throw new Exception("Framework configuration can't be null");
+        }
+
+        // Prepare the semaphore (pre-locked)
+        pSemaphore = new Semaphore(0);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.osgi.framework.FrameworkListener#frameworkEvent(org.osgi.framework
+     * .FrameworkEvent)
+     */
+    @Override
+    public void frameworkEvent(final FrameworkEvent aEvent) {
+
+        if (aEvent.getBundle().getBundleId() != 0) {
+            // Only listen to system bundle
+            return;
+        }
+
+        switch (aEvent.getType()) {
+        case FrameworkEvent.ERROR:
+        case FrameworkEvent.STOPPED:
+            // Release semaphore on stop or error
+            pSemaphore.release();
+            break;
+        }
     }
 
     /**
@@ -81,23 +114,26 @@ public class FrameworkStarterThread extends Thread {
      */
     public Framework prepareFramework() {
 
-	// Prepare the bootstrap
-	pFrameworkStarter = new FrameworkStarter(pMessageSender,
-		pBootstrapConfiguration, pFrameworkConfiguration);
+        // Prepare the bootstrap
+        pFrameworkStarter = new FrameworkStarter(pMessageSender,
+                pBootstrapConfiguration, pFrameworkConfiguration);
 
-	pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME, "runBootstrap",
-		"Creating framework...");
-	pMessageSender.sendStatus(IsolateStatus.STATE_READ_CONF, 0);
+        pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME, "runBootstrap",
+                "Creating framework...");
+        pMessageSender.sendStatus(IsolateStatus.STATE_READ_CONF, 0);
 
-	// Initialize the framework
-	final Framework framework = pFrameworkStarter.createFramework();
-	if (framework == null) {
-	    pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
-		    "runBootstrap", "Can't create framework");
-	    pMessageSender.sendStatus(IsolateStatus.STATE_FAILURE, 0);
-	}
+        // Initialize the framework
+        final Framework framework = pFrameworkStarter.createFramework();
+        if (framework == null) {
+            pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
+                    "runBootstrap", "Can't create framework");
+            pMessageSender.sendStatus(IsolateStatus.STATE_FAILURE, 0);
+        }
 
-	return framework;
+        // Subscribe as a framework listener
+        framework.getBundleContext().addFrameworkListener(this);
+
+        return framework;
     }
 
     /*
@@ -108,19 +144,17 @@ public class FrameworkStarterThread extends Thread {
     @Override
     public void run() {
 
-	// Activity loop
-	try {
-	    do {
-		// Just sleep tight
-	    } while (!pFrameworkStarter.waitForStop(500));
+        // Framework termination wait thread...
+        try {
+            pSemaphore.acquire();
 
-	} catch (InterruptedException e) {
-	    // Thread interruption, stop the framework (finally block)
+        } catch (final InterruptedException e) {
+            // Thread interruption, stop the framework (finally block)
 
-	} finally {
-	    // Send stop informations
-	    stopFramework();
-	}
+        } finally {
+            // Send stop informations
+            stopFramework();
+        }
     }
 
     /**
@@ -130,57 +164,57 @@ public class FrameworkStarterThread extends Thread {
      */
     public boolean runBootstrap(final URL[] aBundlesConfiguration) {
 
-	pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME, "runBootstrap",
-		"Installing bundles...");
-	pMessageSender.sendStatus(IsolateStatus.STATE_FRAMEWORK_LOADED, 1);
+        pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME, "runBootstrap",
+                "Installing bundles...");
+        pMessageSender.sendStatus(IsolateStatus.STATE_FRAMEWORK_LOADED, 1);
 
-	// Install indicated bundles
-	if (!pFrameworkStarter.installBundles(aBundlesConfiguration)) {
-	    pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
-		    "runBootstrap", "Error installing bundles. Abandon");
-	    pMessageSender.sendStatus(IsolateStatus.STATE_FAILURE, 0);
-	    return false;
-	}
+        // Install indicated bundles
+        if (!pFrameworkStarter.installBundles(aBundlesConfiguration)) {
+            pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
+                    "runBootstrap", "Error installing bundles. Abandon");
+            pMessageSender.sendStatus(IsolateStatus.STATE_FAILURE, 0);
+            return false;
+        }
 
-	pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME, "runBootstrap",
-		"Starting framework...");
-	pMessageSender.sendStatus(IsolateStatus.STATE_BUNDLES_INSTALLED, 2);
+        pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME, "runBootstrap",
+                "Starting framework...");
+        pMessageSender.sendStatus(IsolateStatus.STATE_BUNDLES_INSTALLED, 2);
 
-	// Start the framework
-	if (!pFrameworkStarter.startFramework()) {
-	    pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
-		    "runBootstrap", "Error starting framework. Abandon");
-	    pMessageSender.sendStatus(IsolateStatus.STATE_FAILURE, 0);
-	    return false;
-	}
+        // Start the framework
+        if (!pFrameworkStarter.startFramework()) {
+            pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
+                    "runBootstrap", "Error starting framework. Abandon");
+            pMessageSender.sendStatus(IsolateStatus.STATE_FAILURE, 0);
+            return false;
+        }
 
-	pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME, "runBootstrap",
-		"Registering bootstrap services...");
-	pMessageSender.sendStatus(IsolateStatus.STATE_FRAMEWORK_STARTED, 2.5);
+        pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME, "runBootstrap",
+                "Registering bootstrap services...");
+        pMessageSender.sendStatus(IsolateStatus.STATE_FRAMEWORK_STARTED, 2.5);
 
-	// Install bootstrap service
-	pFrameworkStarter.installBootstrapService();
+        // Install bootstrap service
+        pFrameworkStarter.installBootstrapService();
 
-	pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME, "runBootstrap",
-		"Starting bundles...");
-	pMessageSender.sendStatus(IsolateStatus.STATE_FRAMEWORK_STARTED, 3);
+        pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME, "runBootstrap",
+                "Starting bundles...");
+        pMessageSender.sendStatus(IsolateStatus.STATE_FRAMEWORK_STARTED, 3);
 
-	// Start installed bundles
-	if (!pFrameworkStarter.startBundles()) {
-	    pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
-		    "runBootstrap", "Error starting bundles. Abandon");
-	    pMessageSender.sendStatus(IsolateStatus.STATE_FAILURE, 0);
+        // Start installed bundles
+        if (!pFrameworkStarter.startBundles()) {
+            pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
+                    "runBootstrap", "Error starting bundles. Abandon");
+            pMessageSender.sendStatus(IsolateStatus.STATE_FAILURE, 0);
 
-	    // Stop the framework "gracefully"
-	    pFrameworkStarter.stopFramework();
-	    return false;
-	}
+            // Stop the framework "gracefully"
+            pFrameworkStarter.stopFramework();
+            return false;
+        }
 
-	pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME, "runBootstrap",
-		"Running...");
-	pMessageSender.sendStatus(IsolateStatus.STATE_BUNDLES_STARTED, 4);
+        pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME, "runBootstrap",
+                "Running...");
+        pMessageSender.sendStatus(IsolateStatus.STATE_BUNDLES_STARTED, 4);
 
-	return true;
+        return true;
     }
 
     /**
@@ -188,20 +222,23 @@ public class FrameworkStarterThread extends Thread {
      */
     public void stopFramework() {
 
-	pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME, "runBootstrap",
-		"Stopping...");
-	pMessageSender.sendStatus(IsolateStatus.STATE_FRAMEWORK_STOPPING, 5);
+        pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME, "runBootstrap",
+                "Stopping...");
+        pMessageSender.sendStatus(IsolateStatus.STATE_FRAMEWORK_STOPPING, 5);
 
-	// Stop the framework
-	if (!pFrameworkStarter.stopFramework()) {
-	    pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
-		    "runBootstrap", "Error stopping the framework. Ignoring.");
+        // Stop the framework
+        if (!pFrameworkStarter.stopFramework()) {
+            pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME,
+                    "runBootstrap", "Error stopping the framework. Ignoring.");
 
-	} else {
-	    pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME,
-		    "runBootstrap", "Stopped");
-	}
+        } else {
+            pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME,
+                    "runBootstrap", "Stopped");
+        }
 
-	pMessageSender.sendStatus(IsolateStatus.STATE_FRAMEWORK_STOPPED, 6);
+        pMessageSender.sendStatus(IsolateStatus.STATE_FRAMEWORK_STOPPED, 6);
+
+        // Just to be sure...
+        pSemaphore.release();
     }
 }

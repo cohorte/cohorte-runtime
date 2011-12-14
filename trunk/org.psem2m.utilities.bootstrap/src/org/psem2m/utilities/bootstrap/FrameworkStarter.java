@@ -21,7 +21,6 @@ import java.util.logging.Level;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
-import org.osgi.framework.FrameworkEvent;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.launch.FrameworkFactory;
 import org.psem2m.isolates.base.isolates.boot.IBootstrapMessageSender;
@@ -505,16 +504,5 @@ public class FrameworkStarter {
         }
 
         return false;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.utilities.bootstrap.impl.ISvcBootstrap#waitForStop(int)
-     */
-    public boolean waitForStop(final int aTimeout) throws InterruptedException {
-
-        final FrameworkEvent event = pFramework.waitForStop(aTimeout);
-        return event.getType() != FrameworkEvent.WAIT_TIMEDOUT;
     }
 }
