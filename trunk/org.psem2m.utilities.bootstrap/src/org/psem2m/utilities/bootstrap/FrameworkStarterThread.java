@@ -10,8 +10,6 @@ import java.util.Map;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 
-import org.osgi.framework.FrameworkEvent;
-import org.osgi.framework.FrameworkListener;
 import org.osgi.framework.launch.Framework;
 import org.psem2m.isolates.base.isolates.boot.IsolateStatus;
 
@@ -20,7 +18,7 @@ import org.psem2m.isolates.base.isolates.boot.IsolateStatus;
  * 
  * @author Thomas Calmant
  */
-public class FrameworkStarterThread extends Thread implements FrameworkListener {
+public class FrameworkStarterThread extends Thread {
 
     /** The class name in logs */
     private static final String CLASS_LOG_NAME = "FrameworkStarterThread";
@@ -83,30 +81,6 @@ public class FrameworkStarterThread extends Thread implements FrameworkListener 
         pSemaphore = new Semaphore(0);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.osgi.framework.FrameworkListener#frameworkEvent(org.osgi.framework
-     * .FrameworkEvent)
-     */
-    @Override
-    public void frameworkEvent(final FrameworkEvent aEvent) {
-
-        if (aEvent.getBundle().getBundleId() != 0) {
-            // Only listen to system bundle
-            return;
-        }
-
-        switch (aEvent.getType()) {
-        case FrameworkEvent.ERROR:
-        case FrameworkEvent.STOPPED:
-            // Release semaphore on stop or error
-            pSemaphore.release();
-            break;
-        }
-    }
-
     /**
      * Prepares the OSGi framework (doesn't starts it nor install bundles)
      * 
@@ -130,10 +104,15 @@ public class FrameworkStarterThread extends Thread implements FrameworkListener 
             pMessageSender.sendStatus(IsolateStatus.STATE_FAILURE, 0);
         }
 
-        // Subscribe as a framework listener
-        framework.getBundleContext().addFrameworkListener(this);
-
         return framework;
+    }
+
+    /**
+     * Releases the semaphore waiting for the framework
+     */
+    public void releaseFramework() {
+
+        pSemaphore.release();
     }
 
     /*
@@ -220,7 +199,7 @@ public class FrameworkStarterThread extends Thread implements FrameworkListener 
     /**
      * Stops the framework
      */
-    public void stopFramework() {
+    private void stopFramework() {
 
         pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME, "runBootstrap",
                 "Stopping...");
@@ -237,8 +216,5 @@ public class FrameworkStarterThread extends Thread implements FrameworkListener 
         }
 
         pMessageSender.sendStatus(IsolateStatus.STATE_FRAMEWORK_STOPPED, 6);
-
-        // Just to be sure...
-        pSemaphore.release();
     }
 }

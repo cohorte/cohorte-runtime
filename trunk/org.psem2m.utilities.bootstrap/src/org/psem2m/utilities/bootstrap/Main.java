@@ -512,7 +512,7 @@ public class Main {
 
                     pMessageSender.sendMessage(Level.FINEST, "UI-Executor",
                             "Work-loop",
-                            "Main thread interrupted. Stop UI worker.", ex);
+                            "Main thread interrupted. Stop UI worker.");
 
                     break;
 
@@ -524,20 +524,23 @@ public class Main {
                 }
             }
 
-            // Interrupt the framework starter
+            // Release the framework thread
+            pFrameworkStarterThread.releaseFramework();
+
+            // Wait for it to stop
             pFrameworkStarterThread.join(5000);
 
             // Clear the interrupted state if it was uncaught during the above
             // loop
             Thread.interrupted();
 
-        } catch (final Exception ex) {
+        } catch (final Throwable ex) {
 
             pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME, "run",
-                    "Exception while running the framework thread", ex);
+                    "Exception while running the main thread", ex);
 
             if (pFrameworkStarterThread != null) {
-                pFrameworkStarterThread.stopFramework();
+                pFrameworkStarterThread.releaseFramework();
             }
         }
 
