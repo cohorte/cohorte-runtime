@@ -33,6 +33,13 @@ public interface IIsolateDescr extends Serializable {
     Set<IBundleDescr> getBundles();
 
     /**
+     * Retrieves the name of machine that must host the isolate
+     * 
+     * @return The isolate host name
+     */
+    String getHostName();
+
+    /**
      * Retrieves the isolate ID. Can't be null nor empty.
      * 
      * @return the isolate ID

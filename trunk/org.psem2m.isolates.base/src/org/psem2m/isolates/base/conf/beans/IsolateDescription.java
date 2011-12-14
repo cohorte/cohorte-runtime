@@ -29,6 +29,9 @@ public class IsolateDescription implements IIsolateDescr {
     /** Isolate bundles (can't be null) */
     private final Set<IBundleDescr> pBundles = new LinkedHashSet<IBundleDescr>();
 
+    /** The isolate host name */
+    private String pHostName;
+
     /** Isolate ID */
     private String pIsolateId;
 
@@ -76,6 +79,17 @@ public class IsolateDescription implements IIsolateDescr {
     public Set<IBundleDescr> getBundles() {
 
         return pBundles;
+    }
+
+    /**
+     * Retrieves the isolate host name
+     * 
+     * @return the host name
+     */
+    @Override
+    public String getHostName() {
+
+        return pHostName;
     }
 
     /*
@@ -132,6 +146,17 @@ public class IsolateDescription implements IIsolateDescr {
 
         pBundles.clear();
         pBundles.addAll(aBundles);
+    }
+
+    /**
+     * Sets the isolate host name
+     * 
+     * @param aHostName
+     *            the host name
+     */
+    public void setHostName(final String aHostName) {
+
+        pHostName = aHostName;
     }
 
     /**
