@@ -12,6 +12,8 @@
             "kind":"felix",
             "httpPort":9210,
             "vmArgs":[
+                "-Xms64M",
+                "-Xmx96M"
             ],
             "bundles":[
 				{
@@ -68,7 +70,8 @@
             "kind":"felix",
             "httpPort":9211,
             "vmArgs":[
-                
+                "-Xms64M",
+                "-Xmx512M"
             ],
             "bundles":[
                 {
@@ -134,6 +137,8 @@
             "kind":"felix",
             "httpPort":9212,
             "vmArgs":[
+                "-Xms64M",
+                "-Xmx96M"
             ],
             "bundles":[
                 {

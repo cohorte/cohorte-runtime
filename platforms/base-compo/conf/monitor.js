@@ -3,7 +3,8 @@
     "kind":"felix",
     "httpPort":9000,
     "vmArgs":[
-        
+        "-Xms32M",
+        "-Xmx64M"
     ],
     "bundles":[
         {

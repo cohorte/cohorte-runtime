@@ -3,7 +3,9 @@
     "kind":"felix",
     "httpPort":9001,
     "vmArgs":[
-              ],
+        "-Xms32M",
+        "-Xmx56M"
+    ],
     "bundles":[
         {
             "symbolicName":"org.apache.felix.shell"
