@@ -37,9 +37,16 @@ public interface IPlatformProperties {
     String PROP_PLATFORM_HOME = "org.psem2m.platform.home";
 
     /**
+     * Contains the name (or IP) of the current isolate host machine
+     */
+    String PROP_PLATFORM_HOST_NAME = "org.psem2m.platform.host.name";
+
+    /**
      * contains the id of the current isolates.
      * 
-     * <pre> -Dorg.psem2m.platform.isolate.id=development </pre>
+     * <pre>
+     * -Dorg.psem2m.platform.isolate.id=development
+     * </pre>
      */
     String PROP_PLATFORM_ISOLATE_ID = "org.psem2m.platform.isolate.id";
 
@@ -47,7 +54,9 @@ public interface IPlatformProperties {
      * if "true", allows the redirection of the output of the OSGi log service
      * in the logger of the current isolate.
      * 
-     * <pre> -Dorg.psem2m.platform.isolate.redirect.logservice=true </pre>
+     * <pre>
+     * -Dorg.psem2m.platform.isolate.redirect.logservice=true
+     * </pre>
      */
     String PROP_PLATFORM_REDIRECT_LOGSVC = "org.psem2m.platform.isolate.redirect.logservice";
 

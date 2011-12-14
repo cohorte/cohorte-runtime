@@ -9,6 +9,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -81,6 +83,9 @@ public class MonitorCore extends CPojoBase implements
     /** The forker service */
     @Requires(id = "forker-service", optional = true)
     private IForker pForkerSvc;
+
+    /** The current isolate host name */
+    private String pHostName;
 
     /** Stopped isolates (when platform is not running) */
     private final Set<String> pIsolatesToStop = new HashSet<String>();
@@ -196,6 +201,37 @@ public class MonitorCore extends CPojoBase implements
         // Subscribe to isolate status
         aSignalReceiver.registerListener(
                 ISignalsConstants.ISOLATE_STATUS_SIGNAL, this);
+    }
+
+    /**
+     * Computes the current host name, by using the system properties or socket
+     * information
+     */
+    protected void computeHostName() {
+
+        // Try with system property
+        pHostName = System
+                .getProperty(IPlatformProperties.PROP_PLATFORM_HOST_NAME);
+
+        if (pHostName == null) {
+            try {
+                // Try with local host name
+                pHostName = InetAddress.getLocalHost().getHostName();
+
+            } catch (final UnknownHostException e) {
+                pLogger.log(LogService.LOG_WARNING,
+                        "Can't determine the monitor host name");
+            }
+        }
+
+        if (pHostName == null) {
+            // Still null : use the standard local host name
+            pHostName = "localhost";
+        }
+
+        // Log the name
+        pLogger.log(LogService.LOG_DEBUG, "[Monitor-Core] Working on host '"
+                + pHostName + "'");
     }
 
     /*
@@ -499,6 +535,11 @@ public class MonitorCore extends CPojoBase implements
             return false;
         }
 
+        if (!pHostName.equals(isolateDescr.getHostName())) {
+            // Not for this host machine
+            return false;
+        }
+
         final EStartError result = pForkerSvc.startIsolate(isolateDescr);
 
         // Success if the isolate is running (even if we done nothing)
@@ -615,6 +656,9 @@ public class MonitorCore extends CPojoBase implements
     @Override
     @Validate
     public void validatePojo() throws BundleException {
+
+        // Compute the host name
+        computeHostName();
 
         // Clear the time stamps list
         pLastIsolatesStatusUID.clear();
