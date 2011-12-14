@@ -227,6 +227,10 @@ class PSEM2MUtils(object):
         """
         pid_file_name = os.path.join(self.base, psem2m.runner.MONITOR_PID_FILE)
 
+        # Test if file exists
+        if not os.path.exists(pid_file_name):
+            return None
+
         try:
             with open(pid_file_name) as fp:
                 pid = int(fp.readline().strip())
@@ -307,5 +311,11 @@ class PSEM2MUtils(object):
         """
         pid_file_name = os.path.join(self.base, psem2m.runner.MONITOR_PID_FILE)
 
+        # Make parent directories, if needed
+        pid_folder = os.path.dirname(pid_file_name)
+        if not os.path.exists(pid_folder):
+            os.makedirs(pid_folder)
+
+        # Write the file
         with open(pid_file_name, "w") as fp:
             fp.write(str(pid))
