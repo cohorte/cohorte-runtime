@@ -19,7 +19,6 @@ import org.psem2m.isolates.base.conf.beans.ApplicationDescription;
 import org.psem2m.isolates.base.conf.beans.BundleDescription;
 import org.psem2m.isolates.base.conf.beans.IsolateDescription;
 import org.psem2m.isolates.config.IPlatformConfigurationConstants;
-import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.services.conf.IApplicationDescr;
 import org.psem2m.isolates.services.conf.IBundleDescr;
 import org.psem2m.isolates.services.conf.IConfigurationReader;
@@ -298,34 +297,18 @@ public class JsonConfigReader implements IConfigurationReader {
             }
         }
 
-        // Isolate HTTP communication host
-        if (isolateId
-                .startsWith(IPlatformProperties.SPECIAL_INTERNAL_ISOLATES_PREFIX)) {
-            // Host can be omitted for internal isolates
-            String isolateHost = aIsolateObject
-                    .optString(IJsonConfigKeys.CONFIG_ISOLATE_HOST);
+        // Isolate host name (also HTTP communication host name)
+        String isolateHost = aIsolateObject
+                .optString(IJsonConfigKeys.CONFIG_ISOLATE_HOST);
+        if (isolateHost != null) {
+            isolateHost = isolateHost.trim();
+        }
 
-            if (isolateHost != null) {
-                isolateHost = isolateHost.trim();
-            }
-
-            if (isolateHost == null || isolateHost.isEmpty()) {
-                isolateDescription.setHostName("localhost");
-
-            } else {
-                isolateDescription.setHostName(isolateHost);
-            }
+        if (isolateHost == null || isolateHost.isEmpty()) {
+            // Invalid name
+            isolateDescription.setHostName("localhost");
 
         } else {
-
-            final String isolateHost = aIsolateObject.getString(
-                    IJsonConfigKeys.CONFIG_ISOLATE_HOST).trim();
-
-            if (isolateHost.isEmpty()) {
-                // Host is mandatory for other elements
-                throw new JSONException(isolateId
-                        + " : Isolate must have a valid host name");
-            }
             isolateDescription.setHostName(isolateHost);
         }
 
