@@ -6,8 +6,11 @@
 package org.psem2m.signals;
 
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
@@ -41,7 +44,6 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
 
     /** Log service */
     @Requires
-    // private LogService pLogger;
     private ILogChannelsSvc pChannels;
 
     /** Logger */
@@ -107,6 +109,37 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
 
         pLogger.logInfo(this, "invalidatePojo", "Base Signal Broadcaster Gone");
         pLogger = null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.services.remote.signals.ISignalBroadcaster#sendData
+     * (java.util.Collection, java.lang.String, java.io.Serializable)
+     */
+    @Override
+    public void sendData(final Collection<String> aIsolatesIds,
+            final String aSignalName, final Serializable aData) {
+
+        if (aIsolatesIds == null) {
+            // Nothing to do
+            return;
+        }
+
+        // Use a set, if necessary, to avoid IDs duplication
+        final Collection<String> idsSet;
+        if (aIsolatesIds instanceof Set) {
+            idsSet = aIsolatesIds;
+
+        } else {
+            idsSet = new HashSet<String>(aIsolatesIds);
+        }
+
+        // Send the signal to each isolate
+        for (final String isolateId : idsSet) {
+            sendData(isolateId, aSignalName, aData);
+        }
     }
 
     /*
