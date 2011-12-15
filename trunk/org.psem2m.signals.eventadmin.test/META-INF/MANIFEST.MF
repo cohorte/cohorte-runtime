@@ -1,0 +1,26 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: PSEM2M - EventAdmin Bridge Test
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-SymbolicName: org.psem2m.signals.eventadmin.test
+Bundle-Version: 1.0.0.qualifier
+Created-By: iPOJO  1.8.0
+Import-Package: javax.swing, org.apache.felix.ipojo;version=1.8.0, org
+ .apache.felix.ipojo.architecture;version=1.8.0, org.osgi.service.cm;v
+ ersion=1.2, org.osgi.service.event;version=1.2.0, org.osgi.service.lo
+ g;version=1.3, org.psem2m.isolates.constants;version=1.0.0
+iPOJO-Components: instance { $component="org.psem2m.signals.eventadmin
+ .test.TestReceiver" }instance { $component="org.psem2m.signals.eventa
+ dmin.test.TestSender" $name="psem2m-eventadmin-test-sender" }componen
+ t { $classname="org.psem2m.signals.eventadmin.test.TestReceiver" $nam
+ e="org.psem2m.signals.eventadmin.test.TestReceiver" $public="true" pr
+ ovides { $specifications="{org.osgi.service.event.EventHandler}" prop
+ erty { $name="event.topics" $type="String" $value="hello" }}manipulat
+ ion { interface { $name="org.osgi.service.event.EventHandler" }method
+  { $name="handleEvent" $arguments="{org.osgi.service.event.Event}" }}
+ }component { $classname="org.psem2m.signals.eventadmin.test.TestSende
+ r" $name="psem2m-eventadmin-test-sender-factory" $public="true" requi
+ res { $field="pEventAdmin" }callback { $transition="validate" $method
+ ="validate" }manipulation { field { $name="pEventAdmin" $type="org.os
+ gi.service.event.EventAdmin" }method { $name="validate" }}}
+
