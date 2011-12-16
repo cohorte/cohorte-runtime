@@ -30,17 +30,26 @@ public interface IPlatformDirsSvc extends IPlatformProperties {
     List<String> getForkerStartCommand();
 
     /**
-     * @return the id of the current isolate
+     * Retrieves the current isolate ID
+     * 
+     * @return the ID of the current isolate
      */
     String getIsolateId();
 
     /**
+     * Retrieves the specific log directory of the current isolate . Creates it
+     * if needed.
+     * 
      * @return the log directory of the current isolate
      * @throws Exception
+     *             An error occurred while preparing the log directory
      */
     File getIsolateLogDir() throws Exception;
 
     /**
+     * Retrieves the specific log directory of the given isolate. Creates it if
+     * needed.
+     * 
      * @param aIsolateId
      *            the id of an isolate
      * @return the log directory of the isolate
@@ -75,7 +84,8 @@ public interface IPlatformDirsSvc extends IPlatformProperties {
      * 
      * <pre>
      * -Dorg.psem2m.platform.base=${workspace_loc}/psem2m/platforms/felix.user
-     * .dir </pre>
+     * .dir
+     * </pre>
      * 
      * @return the base directory of the platform
      */
@@ -84,15 +94,20 @@ public interface IPlatformDirsSvc extends IPlatformProperties {
     /**
      * Retrieves the PSEM2M_HOME value
      * 
-     * <pre> -Dorg.psem2m.platform.home=/usr/share/psem2m </pre>
+     * <pre>
+     * -Dorg.psem2m.platform.home=/usr/share/psem2m
+     * </pre>
      * 
-     * @return
+     * @return the home directory of the platform
      */
     File getPlatformHomeDir();
 
     /**
+     * Retrieves the log directory file object. Creates the directory if needed.
+     * 
      * @return the log directory of the platform
      * @throws Exception
+     *             An error occurred while preparing the log directory
      */
     File getPlatformLogDir() throws Exception;
 

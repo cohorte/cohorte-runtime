@@ -34,8 +34,8 @@ public interface IThreadCpuUsageMonitor {
      * 
      * @param aThreadId
      *            A thread ID
-     * @return The thread average CPU usage, 0 if not computable, -1 if the
-     *         thread is unknown.
+     * @return The average CPU usage of the given thread, 0 if not computable,
+     *         -1 if the thread is unknown.
      */
     double getThreadAverageCpuUsage(final long aThreadId);
 
@@ -45,7 +45,9 @@ public interface IThreadCpuUsageMonitor {
      * never seen), 0 if the average CPU usage couldn't be computed.
      * 
      * @param aThreadId
-     * @return
+     *            A thread ID
+     * @return The average CPU usage of the given thread, 0 if not computable,
+     *         -1 if the thread is unknown.
      */
     double getThreadCpuUsage(final long aThreadId);
 

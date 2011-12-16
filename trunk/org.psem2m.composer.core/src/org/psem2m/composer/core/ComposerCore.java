@@ -539,10 +539,12 @@ public class ComposerCore extends CPojoBase implements IComposer,
     }
 
     /**
-     * Sends a "composition changed" event to all listeners.
+     * Sends a "component changed" event to all listeners.
      * 
-     * @param aEvent
-     *            Event to be sent to all listeners
+     * @param aComponent
+     *            The changed component
+     * @param aState
+     *            The new component state
      */
     protected void notifyComponentStateEvent(final ComponentBean aComponent,
             final EComponentState aState) {

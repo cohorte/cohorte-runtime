@@ -36,10 +36,10 @@ public class ForkerWatchThread extends Thread {
     /**
      * Sets up the forker watcher
      * 
-     * @param aForkerOutput
-     *            The forker output stream
      * @param aOutputListener
      *            Process output listener
+     * @param aForkerProcess
+     *            The forker isolate process
      * @throws IOException
      *             Invalid forker output format
      */
@@ -82,7 +82,7 @@ public class ForkerWatchThread extends Thread {
 
                 // Ignore other objects
 
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 // IO Exception are fatal : destroy the forker process
                 pForkerProcess.destroy();
                 pOutputListener.handleIsolateStatus(
@@ -90,7 +90,7 @@ public class ForkerWatchThread extends Thread {
 
                 return;
 
-            } catch (ClassNotFoundException e) {
+            } catch (final ClassNotFoundException e) {
                 // Print error
                 e.printStackTrace();
             }

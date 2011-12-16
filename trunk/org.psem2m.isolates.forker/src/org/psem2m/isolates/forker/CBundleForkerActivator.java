@@ -20,11 +20,13 @@ import org.psem2m.isolates.base.activators.CActivatorBase;
 public class CBundleForkerActivator extends CActivatorBase implements
         IBundleForkerActivator {
 
-    /** first instance **/
+    /** The current activator instance **/
     private static IBundleForkerActivator sBundleForkerActivator = null;
 
     /**
-     * @return
+     * Retrieves the forker activator instance
+     * 
+     * @return The Forker activator instance
      */
     public static IBundleForkerActivator getInstance() {
 
@@ -37,9 +39,6 @@ public class CBundleForkerActivator extends CActivatorBase implements
     public CBundleForkerActivator() {
 
         super();
-        if (sBundleForkerActivator == null) {
-            sBundleForkerActivator = this;
-        }
     }
 
     /*
@@ -74,6 +73,9 @@ public class CBundleForkerActivator extends CActivatorBase implements
     @Override
     public void start(final BundleContext aBundleContext) throws Exception {
 
+        // Always keep the version of the activator
+        sBundleForkerActivator = this;
+
         super.start(aBundleContext);
 
     }
@@ -88,5 +90,8 @@ public class CBundleForkerActivator extends CActivatorBase implements
     public void stop(final BundleContext aBundleContext) throws Exception {
 
         super.stop(aBundleContext);
+
+        // Remove the reference
+        sBundleForkerActivator = null;
     }
 }

@@ -458,7 +458,7 @@ public class ComponentsSetBean extends AbstractModelBean implements
     /**
      * Sets the components sets contained in this set
      * 
-     * @param aComponents
+     * @param aComponentSets
      *            The components sets under this set
      */
     public void setComponentSets(

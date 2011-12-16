@@ -223,6 +223,12 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver,
         }
     }
 
+    /**
+     * Called by iPOJO when a reception provider is gone
+     * 
+     * @param aProvider
+     *            A reception provider service
+     */
     @Unbind(id = "receivers", aggregate = true)
     protected void unbindProvider(final ISignalReceptionProvider aProvider) {
 

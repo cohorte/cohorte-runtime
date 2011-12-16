@@ -274,14 +274,14 @@ public final class Utilities {
      * @param aDirectory
      *            Directory to delete
      */
-    public static void removeDirectory(final File aWorkingDirectory) {
+    public static void removeDirectory(final File aDirectory) {
 
-        if (!aWorkingDirectory.isDirectory()) {
+        if (!aDirectory.isDirectory()) {
             // Not a directory...
             return;
         }
 
-        for (final File subDir : aWorkingDirectory.listFiles()) {
+        for (final File subDir : aDirectory.listFiles()) {
 
             if (subDir.isDirectory()) {
                 // Recursive call
@@ -294,7 +294,7 @@ public final class Utilities {
         }
 
         // Delete the directory
-        aWorkingDirectory.delete();
+        aDirectory.delete();
     }
 
     /**

@@ -32,6 +32,16 @@ public class FileFinder {
     /** Jar files list */
     private final Map<String, File> pBundlesCache = new HashMap<String, File>();
 
+    /**
+     * Finds the first file matching one of the possible names in the given
+     * directories
+     * 
+     * @param aLookDirs
+     *            Directories to search in
+     * @param aFilePossibleNames
+     *            Possible file names
+     * @return The first matching file, or null
+     */
     public File find(final File[] aLookDirs, final String... aFilePossibleNames) {
 
         // Look in each given directories
@@ -85,7 +95,6 @@ public class FileFinder {
         }
 
         return null;
-
     }
 
     /**
@@ -288,7 +297,7 @@ public class FileFinder {
      * org.psem2m.platform.base=[/Users/ogattaz/workspaces/psem2m/psem2m/platforms/felix.user.dir]
      * </pre>
      * 
-     * @return
+     * @return The platform base system property value (can be null)
      */
     public String getPlatformBase() {
 
@@ -300,7 +309,7 @@ public class FileFinder {
      * org.psem2m.platform.home=[/usr/share/psem2m]
      * </pre>
      * 
-     * @return
+     * @return The platform home system property value (can be null)
      */
     public String getPlatformHome() {
 

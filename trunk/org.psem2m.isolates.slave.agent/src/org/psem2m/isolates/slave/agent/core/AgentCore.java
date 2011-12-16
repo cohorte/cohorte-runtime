@@ -374,8 +374,6 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
     /**
      * Called when an UNINSTALLED signal has been triggered for a bundle
      * 
-     * @param aBundle
-     *            The modified bundle
      * @param aBundleDescr
      *            The internal bundle description
      */

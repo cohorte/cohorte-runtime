@@ -96,8 +96,11 @@ public class BundleDescription implements IBundleDescr {
     }
 
     /**
-     * @return an instance of Properties
+     * Retrieves the properties of the bundle
+     * 
+     * @return the properties of the bundle
      */
+    @Override
     public Properties getProperties() {
 
         return pProperties;
@@ -126,8 +129,11 @@ public class BundleDescription implements IBundleDescr {
     }
 
     /**
+     * Tests if the bundle has properties
+     * 
      * @return true if the bundle has a set of properties
      */
+    @Override
     public boolean hasProperties() {
 
         return pProperties != null;
@@ -158,8 +164,8 @@ public class BundleDescription implements IBundleDescr {
     /**
      * Set the properties of the bundle
      * 
-     * @param pProperties
-     *            an instance of Properties
+     * @param aProperties
+     *            the properties of the bundle
      */
     public void setProperties(final Properties aProperties) {
 

@@ -56,9 +56,10 @@ public class RemoteServiceRegistration implements Serializable {
      */
     public RemoteServiceRegistration(final String aExportedInterface,
             final Map<String, Object> aServiceProperties,
-            final EndpointDescription[] aArray) {
+            final EndpointDescription[] aEndpoints) {
 
-        this(new String[] { aExportedInterface }, aServiceProperties, aArray);
+        this(new String[] { aExportedInterface }, aServiceProperties,
+                aEndpoints);
     }
 
     /**

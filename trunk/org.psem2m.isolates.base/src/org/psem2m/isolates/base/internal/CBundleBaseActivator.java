@@ -103,6 +103,7 @@ public class CBundleBaseActivator extends CXObjectBase implements
     /** File finder service */
     private CFileFinderSvc pFileFinderSvc;
 
+    /** Log service */
     private CIsolateLoggerSvc pIsolateLoggerSvc;
 
     /** Internal log handler */
@@ -149,8 +150,11 @@ public class CBundleBaseActivator extends CXObjectBase implements
     }
 
     /**
-     * @return
+     * Retrieves the log service instance, creates it if needed
+     * 
+     * @return The log service instance
      * @throws Exception
+     *             An error occurred while preparing the logger
      */
     public CIsolateLoggerSvc getIsolateLoggerSvc() throws Exception {
 
@@ -174,10 +178,10 @@ public class CBundleBaseActivator extends CXObjectBase implements
         if (pActivityLogger == null) {
 
             // Be sure we have a valid platform service instance
-            IPlatformDirsSvc wPlatformDirsSvc = getPlatformDirs();
+            final IPlatformDirsSvc wPlatformDirsSvc = getPlatformDirs();
 
             // the name of the logger
-            String wLoggerName = "psem2m.isolate."
+            final String wLoggerName = "psem2m.isolate."
                     + wPlatformDirsSvc.getIsolateId();
 
             // the FilePathPattern of the logger
@@ -283,7 +287,7 @@ public class CBundleBaseActivator extends CXObjectBase implements
             getLogger().logInfo(this, "logServiceRegistering", "Service=",
                     aServiceName, aState + '=', true);
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             System.err.println("Can't log registration");
             e.printStackTrace();
         }
@@ -323,13 +327,13 @@ public class CBundleBaseActivator extends CXObjectBase implements
             final String aServiceName, final Object aService) {
 
         try {
-            ServiceRegistration registration = aBundleContext.registerService(
-                    aServiceName, aService, null);
+            final ServiceRegistration registration = aBundleContext
+                    .registerService(aServiceName, aService, null);
             pRegisteredServicesInfos.add(new CServiceInfos(registration,
                     aServiceName, aService));
             logServiceRegistration(aServiceName, aService);
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             System.err.format("Can't register the service [%s].", aServiceName);
             e.printStackTrace();
         }
@@ -348,7 +352,7 @@ public class CBundleBaseActivator extends CXObjectBase implements
 
         try {
             getLogger().logInfo(this, "start", "START", toDescription());
-        } catch (Exception e) {
+        } catch (final Exception e) {
             System.err.println("Can't log the begining of the start method");
             e.printStackTrace();
         }
@@ -361,7 +365,7 @@ public class CBundleBaseActivator extends CXObjectBase implements
             // LogService interface
             registerOneService(aBundleContext, LogService.class.getName(),
                     getLogServiceFactory());
-        } catch (Exception e) {
+        } catch (final Exception e) {
             System.err.println("Can't get the LogServiceFactory");
             e.printStackTrace();
         }
@@ -370,7 +374,7 @@ public class CBundleBaseActivator extends CXObjectBase implements
             registerOneService(aBundleContext,
                     LogReaderService.class.getName(),
                     getLogReaderServiceFactory());
-        } catch (Exception e) {
+        } catch (final Exception e) {
             System.err.println("Can't get the LogReaderServiceFactory");
             e.printStackTrace();
         }
@@ -378,7 +382,7 @@ public class CBundleBaseActivator extends CXObjectBase implements
             // IsolateLogger service
             registerOneService(aBundleContext,
                     IIsolateLoggerSvc.class.getName(), getIsolateLoggerSvc());
-        } catch (Exception e) {
+        } catch (final Exception e) {
             System.err.println("Can't get the IsolateLoggerSvc");
             e.printStackTrace();
 
@@ -405,13 +409,13 @@ public class CBundleBaseActivator extends CXObjectBase implements
 
         try {
             getLogger().logInfo(this, "stop", "STOP", toDescription());
-        } catch (Exception e) {
+        } catch (final Exception e) {
             System.err.println("Can't log the begining of the stop method");
             e.printStackTrace();
         }
 
         // Unregister all services
-        for (CServiceInfos wServiceInfos : pRegisteredServicesInfos) {
+        for (final CServiceInfos wServiceInfos : pRegisteredServicesInfos) {
             wServiceInfos.getServiceRegistration().unregister();
             logServiceUnregistration(wServiceInfos.getServiceName(),
                     wServiceInfos.getService());
@@ -422,7 +426,7 @@ public class CBundleBaseActivator extends CXObjectBase implements
         try {
             getLogger().logInfo(this, "stop", "STOP ENDED");
             getLogger().close();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             System.err.println("Can't log the begining of the stop method");
             e.printStackTrace();
         }

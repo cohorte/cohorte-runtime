@@ -40,14 +40,14 @@ public class BundleInfo implements Serializable {
      */
     public BundleInfo(final Bundle aBundle) {
 
-	if (aBundle != null) {
+        if (aBundle != null) {
 
-	    pId = aBundle.getBundleId();
-	    pName = aBundle.getSymbolicName();
-	    pState = aBundle.getState();
-	    pLocation = aBundle.getLocation();
-	    pVersion = aBundle.getVersion().toString();
-	}
+            pId = aBundle.getBundleId();
+            pName = aBundle.getSymbolicName();
+            pState = aBundle.getState();
+            pLocation = aBundle.getLocation();
+            pVersion = aBundle.getVersion().toString();
+        }
     }
 
     /**
@@ -65,13 +65,13 @@ public class BundleInfo implements Serializable {
      *            Bundle's version
      */
     public BundleInfo(final long aId, final String aName, final int aState,
-	    final String aLocation, final String aVersion) {
+            final String aLocation, final String aVersion) {
 
-	pId = aId;
-	pName = aName;
-	pState = aState;
-	pLocation = aLocation;
-	pVersion = aVersion;
+        pId = aId;
+        pName = aName;
+        pState = aState;
+        pLocation = aLocation;
+        pVersion = aVersion;
     }
 
     /**
@@ -80,7 +80,8 @@ public class BundleInfo implements Serializable {
      * @return The bundle's UID
      */
     public long getId() {
-	return pId;
+
+        return pId;
     }
 
     /**
@@ -89,7 +90,8 @@ public class BundleInfo implements Serializable {
      * @return the bundle's location
      */
     public String getLocation() {
-	return pLocation;
+
+        return pLocation;
     }
 
     /**
@@ -98,7 +100,8 @@ public class BundleInfo implements Serializable {
      * @return The bundle's state
      */
     public int getState() {
-	return pState;
+
+        return pState;
     }
 
     /**
@@ -108,7 +111,8 @@ public class BundleInfo implements Serializable {
      * @return The bundle's symbolic name
      */
     public String getSymbolicName() {
-	return pName;
+
+        return pName;
     }
 
     /**
@@ -117,7 +121,8 @@ public class BundleInfo implements Serializable {
      * @return The bundle's version
      */
     public String getVersion() {
-	return pVersion;
+
+        return pVersion;
     }
 
     /*
@@ -128,20 +133,20 @@ public class BundleInfo implements Serializable {
     @Override
     public String toString() {
 
-	StringBuilder builder = new StringBuilder();
+        final StringBuilder builder = new StringBuilder();
 
-	builder.append("BundleInfo(Id: ");
-	builder.append(pId);
-	builder.append(", Name: ");
-	builder.append(pName);
-	builder.append(", Version: ");
-	builder.append(pVersion);
-	builder.append(", State: ");
-	builder.append(pState);
-	builder.append(", Location: '");
-	builder.append(pLocation);
-	builder.append("')");
+        builder.append("BundleInfo(Id: ");
+        builder.append(pId);
+        builder.append(", Name: ");
+        builder.append(pName);
+        builder.append(", Version: ");
+        builder.append(pVersion);
+        builder.append(", State: ");
+        builder.append(pState);
+        builder.append(", Location: '");
+        builder.append(pLocation);
+        builder.append("')");
 
-	return builder.toString();
+        return builder.toString();
     }
 }

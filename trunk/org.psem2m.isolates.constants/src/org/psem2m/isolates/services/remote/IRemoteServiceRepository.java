@@ -72,7 +72,7 @@ public interface IRemoteServiceRepository {
      * Unregisters multiple local end points at once. Doesn't asks the RSB to
      * notify other isolates.
      * 
-     * @param aEndpointDescription
+     * @param aEndpointsDescriptions
      *            A list of end points descriptions
      */
     void unregisterEndpoints(

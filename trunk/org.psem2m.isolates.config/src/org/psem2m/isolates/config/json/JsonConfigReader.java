@@ -418,9 +418,9 @@ public class JsonConfigReader implements IConfigurationReader {
     /**
      * Reads the given file content
      * 
-     * @param aFile
-     *            File to read
-     * @return File content
+     * @param aFileName
+     *            Path to the file to read
+     * @return The file content
      * @throws FileNotFoundException
      *             File not found
      */

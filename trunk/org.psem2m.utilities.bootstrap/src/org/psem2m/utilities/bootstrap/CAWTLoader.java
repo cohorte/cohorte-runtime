@@ -21,7 +21,10 @@ import java.awt.Color;
 public class CAWTLoader {
 
     /**
-     * @return
+     * Retrieves the RGB value of {@link Color#BLACK}. This call forces AWT
+     * libraries to be loaded and avoids access problems on Mac OS.
+     * 
+     * @return The RGB value of {@link Color#BLACK}
      */
     public int getBlackRgb() {
 

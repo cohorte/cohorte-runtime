@@ -25,16 +25,16 @@ public class CLogServiceImpl implements LogService {
     /**
      * Sets up the logger service
      * 
-     * @param aLogger
+     * @param aLogInternal
      *            The underlying logger
      * @param aDefaultBundle
      *            Default bundle object when the log entries needs one
      */
     public CLogServiceImpl(final CLogInternal aLogInternal,
-	    final Bundle aDefaultBundle) {
+            final Bundle aDefaultBundle) {
 
-	pLogInternal = aLogInternal;
-	pDefaultLogBundle = aDefaultBundle;
+        pLogInternal = aLogInternal;
+        pDefaultLogBundle = aDefaultBundle;
     }
 
     /*
@@ -45,8 +45,8 @@ public class CLogServiceImpl implements LogService {
     @Override
     public void log(final int aLevel, final String aMessage) {
 
-	pLogInternal.addEntry(new CLogEntry(null, pDefaultLogBundle, aLevel,
-		aMessage, null));
+        pLogInternal.addEntry(new CLogEntry(null, pDefaultLogBundle, aLevel,
+                aMessage, null));
     }
 
     /*
@@ -57,10 +57,10 @@ public class CLogServiceImpl implements LogService {
      */
     @Override
     public void log(final int aLevel, final String aMessage,
-	    final Throwable aThrowable) {
+            final Throwable aThrowable) {
 
-	pLogInternal.addEntry(new CLogEntry(null, pDefaultLogBundle, aLevel,
-		aMessage, aThrowable));
+        pLogInternal.addEntry(new CLogEntry(null, pDefaultLogBundle, aLevel,
+                aMessage, aThrowable));
     }
 
     /*
@@ -72,10 +72,10 @@ public class CLogServiceImpl implements LogService {
      */
     @Override
     public void log(final ServiceReference aServiceReference, final int aLevel,
-	    final String aMessage) {
+            final String aMessage) {
 
-	pLogInternal.addEntry(new CLogEntry(aServiceReference,
-		pDefaultLogBundle, aLevel, aMessage, null));
+        pLogInternal.addEntry(new CLogEntry(aServiceReference,
+                pDefaultLogBundle, aLevel, aMessage, null));
     }
 
     /*
@@ -87,9 +87,9 @@ public class CLogServiceImpl implements LogService {
      */
     @Override
     public void log(final ServiceReference aServiceReference, final int aLevel,
-	    final String aMessage, final Throwable aThrowable) {
+            final String aMessage, final Throwable aThrowable) {
 
-	pLogInternal.addEntry(new CLogEntry(aServiceReference,
-		pDefaultLogBundle, aLevel, aMessage, aThrowable));
+        pLogInternal.addEntry(new CLogEntry(aServiceReference,
+                pDefaultLogBundle, aLevel, aMessage, aThrowable));
     }
 }

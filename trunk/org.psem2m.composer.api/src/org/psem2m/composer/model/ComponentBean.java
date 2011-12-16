@@ -71,9 +71,9 @@ public class ComponentBean extends AbstractModelBean implements Serializable {
     /**
      * Escapes special characters from the given LDAP filter
      * 
-     * Inspired from
-     * 
-     * {@link https://www.owasp.org/index.php/Preventing_LDAP_Injection_in_Java}
+     * Inspired from <a href=
+     * "https://www.owasp.org/index.php/Preventing_LDAP_Injection_in_Java"
+     * >Preventing LDAP Injection in Java</a>
      * 
      * @param aFilter
      *            LDAP filter to escape
