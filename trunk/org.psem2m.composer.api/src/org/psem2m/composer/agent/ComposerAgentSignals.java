@@ -29,21 +29,27 @@ public interface ComposerAgentSignals {
     /**
      * Composite name key in a component instantiation result
      * 
+     * <p>
      * Value type : String
+     * </p>
      */
     String RESULT_KEY_COMPOSITE = "composite";
 
     /**
      * Failed components names key in a component instantiation result
      * 
+     * <p>
      * Value type : String[]
+     * </p>
      */
     String RESULT_KEY_FAILED = "failed";
 
     /**
      * Instantiated components names key in a component instantiation result
      * 
+     * <p>
      * Value type : String[]
+     * </p>
      */
     String RESULT_KEY_INSTANTIATED = "instantiated";
 
@@ -58,7 +64,9 @@ public interface ComposerAgentSignals {
      * Unknown components names key : can't handle these components because
      * they're unknown.
      * 
+     * <p>
      * Value type : String[]
+     * </p>
      */
     String RESULT_KEY_UNKNOWN = "unknown";
 
@@ -66,7 +74,9 @@ public interface ComposerAgentSignals {
      * Asks the agent to reply with a signal containing a sub-set of the given
      * components array that can be executed in the agent isolate.
      * 
+     * <p>
      * Associated data : An array of components
+     * </p>
      */
     String SIGNAL_CAN_HANDLE_COMPONENTS = ComposerAgentSignals.SIGNAL_REQUEST_PREFIX
             + "/can-handle-components";
@@ -74,7 +84,9 @@ public interface ComposerAgentSignals {
     /**
      * Asks the agent to stop the given components.
      * 
+     * <p>
      * Associated data : A Map
+     * </p>
      * <ul>
      * <li>name (String) : The component name</li>
      * <li>state (ECompositionEvent) : The new component state</li>
@@ -90,7 +102,9 @@ public interface ComposerAgentSignals {
     /**
      * Asks the agent to start the given components.
      * 
+     * <p>
      * Associated data : An array of components
+     * </p>
      */
     String SIGNAL_INSTANTIATE_COMPONENTS = ComposerAgentSignals.SIGNAL_REQUEST_PREFIX
             + "/instantiate-components";
@@ -99,7 +113,9 @@ public interface ComposerAgentSignals {
      * Signal sent to notify monitors that an isolate can now handle the given
      * factories.
      * 
+     * <p>
      * Associated data : an array of factory names (string array)
+     * </p>
      */
     String SIGNAL_ISOLATE_ADD_FACTORY = ComposerAgentSignals.SIGNAL_FACTORY_PREFIX
             + "/added";
@@ -108,7 +124,9 @@ public interface ComposerAgentSignals {
      * Signal sent to notify monitors that an isolate agent is gone and to
      * forget all its factories
      * 
+     * <p>
      * Associated data : none
+     * </p>
      */
     String SIGNAL_ISOLATE_FACTORIES_GONE = ComposerAgentSignals.SIGNAL_FACTORY_PREFIX
             + "/all-gone";
@@ -117,7 +135,9 @@ public interface ComposerAgentSignals {
      * Signal sent to notify monitors that an isolate can't handle the given
      * factories anymore.
      * 
+     * <p>
      * Associated data : an array of factory names (string array)
+     * </p>
      */
     String SIGNAL_ISOLATE_REMOVE_FACTORY = ComposerAgentSignals.SIGNAL_FACTORY_PREFIX
             + "/removed";
@@ -133,7 +153,9 @@ public interface ComposerAgentSignals {
      * Answers a {@link #SIGNAL_CAN_HANDLE_COMPONENTS} from the composer core
      * with the components that can be started by this isolate.
      * 
+     * <p>
      * Associated data : An array of components
+     * </p>
      */
     String SIGNAL_RESPONSE_HANDLES_COMPONENTS = ComposerAgentSignals.SIGNAL_RESPONSE_PREFIX
             + "/can-handle-components";
@@ -142,7 +164,17 @@ public interface ComposerAgentSignals {
      * Answers a {@link #SIGNAL_INSTANTIATE_COMPONENTS} from the composer core
      * with the components that couldn't be instantiated.
      * 
-     * Associated data : An array of components
+     * <p>
+     * Associated data : A map :
+     * </p>
+     * <ul>
+     * <li>{@link #RESULT_KEY_COMPOSITE} : Name of the instantiating components
+     * set (String)</li>
+     * <li>
+     * {@link #RESULT_KEY_INSTANTIATED} : Names of successfully instantiated
+     * components (String[])</li>
+     * <li>{@link #RESULT_KEY_FAILED} : Names of failed components (String[])</li>
+     * </ul>
      */
     String SIGNAL_RESPONSE_INSTANTIATE_COMPONENTS = ComposerAgentSignals.SIGNAL_RESPONSE_PREFIX
             + "/instantiate-components";
@@ -154,7 +186,9 @@ public interface ComposerAgentSignals {
     /**
      * Asks the agent to stop the given components.
      * 
+     * <p>
      * Associated data : An array of components
+     * </p>
      */
     String SIGNAL_STOP_COMPONENTS = ComposerAgentSignals.SIGNAL_REQUEST_PREFIX
             + "/stop-components";
