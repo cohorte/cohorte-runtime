@@ -600,17 +600,23 @@ public class MonitorCore extends CPojoBase implements
         pPlatformRunning = false;
 
         // Stop the failure handler
-        pFailureHandler.stop();
+        if (pFailureHandler != null) {
+            pFailureHandler.stop();
+        }
 
         // Prepare the list of configured isolates.
         pIsolatesToStop.clear();
 
         // Only try to stop isolates that can be started by this monitor
-        for (final String isolateId : pConfiguration.getApplication()
-                .getIsolateIds()) {
+        if (pConfiguration.getApplication() != null
+                && pConfiguration.getApplication().getIsolateIds() != null) {
 
-            if (getIsolateDescription(isolateId) != null) {
-                pIsolatesToStop.add(isolateId);
+            for (final String isolateId : pConfiguration.getApplication()
+                    .getIsolateIds()) {
+
+                if (getIsolateDescription(isolateId) != null) {
+                    pIsolatesToStop.add(isolateId);
+                }
             }
         }
 
