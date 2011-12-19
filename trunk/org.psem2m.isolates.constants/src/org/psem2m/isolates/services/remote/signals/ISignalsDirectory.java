@@ -16,6 +16,13 @@ import java.util.Collection;
 public interface ISignalsDirectory {
 
     /**
+     * Retrieves the host isolate ID
+     * 
+     * @return The current isolate ID
+     */
+    String getCurrentIsolateId();
+
+    /**
      * Retrieves the access string to the given isolate. Returns null if the
      * isolate is unknown.
      * 

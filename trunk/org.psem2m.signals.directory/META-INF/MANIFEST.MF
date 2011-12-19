@@ -28,14 +28,15 @@ iPOJO-Components: instance { $component="org.psem2m.signals.directory.
  onf.ISvcConfig" }field { $name="pLogger" $type="org.psem2m.isolates.b
  ase.IIsolateLoggerSvc" }method { $name="getAllIsolates" $return="java
  .lang.String[]" }method { $name="getAllMonitors" $return="java.lang.S
- tring[]" }method { $name="getIsolate" $return="java.lang.String" $arg
- uments="{java.lang.String}" }method { $name="getIsolates" $return="ja
- va.lang.String[]" $arguments="{java.util.Collection}" }method { $name
- ="getIsolates" $return="java.lang.String[]" $arguments="{org.psem2m.i
- solates.services.remote.signals.ISignalBroadcaster$EEmitterTargets}" 
- }method { $name="getIsolates" $return="java.lang.String[]" $arguments
- ="{java.lang.String[]}" }method { $name="invalidatePojo" }method { $n
- ame="isValidIsolate" $return="boolean" $arguments="{java.lang.String}
- " }method { $name="reloadDirectory" $return="boolean" }method { $name
- ="validatePojo" }}}
+ tring[]" }method { $name="getCurrentIsolateId" $return="java.lang.Str
+ ing" }method { $name="getIsolate" $return="java.lang.String" $argumen
+ ts="{java.lang.String}" }method { $name="getIsolates" $return="java.l
+ ang.String[]" $arguments="{java.util.Collection}" }method { $name="ge
+ tIsolates" $return="java.lang.String[]" $arguments="{org.psem2m.isola
+ tes.services.remote.signals.ISignalBroadcaster$EEmitterTargets}" }met
+ hod { $name="getIsolates" $return="java.lang.String[]" $arguments="{j
+ ava.lang.String[]}" }method { $name="invalidatePojo" }method { $name=
+ "isValidIsolate" $return="boolean" $arguments="{java.lang.String}" }m
+ ethod { $name="reloadDirectory" $return="boolean" }method { $name="va
+ lidatePojo" }}}
 

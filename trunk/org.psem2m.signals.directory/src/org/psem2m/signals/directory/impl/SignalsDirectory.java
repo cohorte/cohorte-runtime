@@ -99,6 +99,19 @@ public class SignalsDirectory extends CPojoBase implements ISignalsDirectory {
     /*
      * (non-Javadoc)
      * 
+     * @see org.psem2m.isolates.services.remote.signals.ISignalsDirectory#
+     * getCurrentIsolateId()
+     */
+    @Override
+    public String getCurrentIsolateId() {
+
+        // Isolate ID can change on slave agent order
+        return System.getProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see
      * org.psem2m.isolates.services.remote.signals.ISignalsDirectory#getIsolate
      * (java.lang.String)
@@ -110,8 +123,7 @@ public class SignalsDirectory extends CPojoBase implements ISignalsDirectory {
                 .getIsolate(aIsolateId);
 
         if (isolate == null) {
-            pLogger.logInfo(this, "// getIsolate //", "Unknown isolate=",
-                    aIsolateId);
+            pLogger.logWarn(this, "getIsolate", "Unknown isolate=", aIsolateId);
             return null;
         }
 
@@ -129,7 +141,7 @@ public class SignalsDirectory extends CPojoBase implements ISignalsDirectory {
     public String[] getIsolates(final Collection<String> aIsolatesIds) {
 
         if (aIsolatesIds == null) {
-            pLogger.logInfo(this, "// getIsolates //", "Null collection");
+            pLogger.logWarn(this, "getIsolates", "Null collection");
             return null;
         }
 
@@ -154,7 +166,8 @@ public class SignalsDirectory extends CPojoBase implements ISignalsDirectory {
             // Special case : the forker
             final String accessStr = getIsolate(IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER);
             if (accessStr == null) {
-                pLogger.logInfo(this, "// getIsolates //", "No URL to forker");
+                pLogger.logWarn(this, "getIsolates",
+                        "No access URL to the forker");
                 return null;
             }
 
@@ -212,14 +225,16 @@ public class SignalsDirectory extends CPojoBase implements ISignalsDirectory {
         final List<String> isolates = new ArrayList<String>(aIsolatesIds.length);
 
         for (final String isolateId : aIsolatesIds) {
+
             final IIsolateDescr isolate = pConfiguration.getApplication()
                     .getIsolate(isolateId);
-            if (isolate != null) {
+
+            if (isolate != null && isValidIsolate(isolateId)) {
                 // Store the access URL, directly
                 isolates.add(isolate.getAccessUrl());
 
             } else {
-                pLogger.logInfo(this, "// getIsolates //", "Unknown isolate=",
+                pLogger.logWarn(this, "getIsolates", "Unknown isolate=",
                         isolateId);
             }
         }
@@ -254,18 +269,13 @@ public class SignalsDirectory extends CPojoBase implements ISignalsDirectory {
     protected boolean isValidIsolate(final String aIsolateId) {
 
         if (aIsolateId == null || aIsolateId.isEmpty()) {
-            pLogger.logInfo(this, "// isValidIsolate //", "Invalid isolate=",
-                    aIsolateId);
             return false;
         }
 
-        // Isolate ID can change on slave agent order
-        final String currentIsolateId = System
-                .getProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID);
-
+        // Neither current isolate nor forker
         return !aIsolateId
                 .equals(IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER)
-                && !aIsolateId.equals(currentIsolateId);
+                && !aIsolateId.equals(getCurrentIsolateId());
     }
 
     /*
