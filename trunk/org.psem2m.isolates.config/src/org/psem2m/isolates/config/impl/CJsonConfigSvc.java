@@ -28,6 +28,9 @@ import org.psem2m.utilities.CXListUtils;
  */
 public class CJsonConfigSvc extends CPojoBase implements ISvcConfig {
 
+    /** Minimum age of the configuration before a reload (in milliseconds) */
+    public static final long MINIMUM_AGE = 1000;
+
     /** Found configuration files */
     private final Set<File> pConfigurationFiles = new LinkedHashSet<File>();
 
@@ -36,6 +39,9 @@ public class CJsonConfigSvc extends CPojoBase implements ISvcConfig {
 
     /** Log service, injected by iPOJO */
     private IIsolateLoggerSvc pIsolateLoggerSvc;
+
+    /** Time stamp of the last configuration load */
+    private long pLastLoad;
 
     /** JSON Configuration reader */
     private final JsonConfigReader pReader = new JsonConfigReader();
@@ -81,9 +87,9 @@ public class CJsonConfigSvc extends CPojoBase implements ISvcConfig {
         }
 
         // Test configuration files existence
-        for (String folder : configFolders) {
+        for (final String folder : configFolders) {
 
-            File configFile = new File(folder,
+            final File configFile = new File(folder,
                     IPlatformConfigurationConstants.FILE_MAIN_CONF);
 
             if (configFile.isFile()) {
@@ -130,13 +136,13 @@ public class CJsonConfigSvc extends CPojoBase implements ISvcConfig {
 
         pIsolateLoggerSvc.logInfo(this, "logDumpConfig", "Application=",
                 getApplication().getApplicationId());
-        for (String wIsolateId : getApplication().getIsolateIds()) {
+        for (final String wIsolateId : getApplication().getIsolateIds()) {
 
             pIsolateLoggerSvc.logInfo(this, "logDumpConfig", " - IsolateId=",
                     wIsolateId);
 
-            for (IBundleDescr wIBundleDescr : getApplication().getIsolate(
-                    wIsolateId).getBundles()) {
+            for (final IBundleDescr wIBundleDescr : getApplication()
+                    .getIsolate(wIsolateId).getBundles()) {
 
                 pIsolateLoggerSvc.logInfo(this, "logDumpConfig",
                         "   - Bundle=", wIBundleDescr.getSymbolicName(),
@@ -162,6 +168,12 @@ public class CJsonConfigSvc extends CPojoBase implements ISvcConfig {
     @Override
     public boolean refresh() {
 
+        if (System.currentTimeMillis() - pLastLoad < MINIMUM_AGE) {
+            // Too soon
+            return false;
+        }
+
+        pLastLoad = System.currentTimeMillis();
         return pReader.load(IPlatformConfigurationConstants.FILE_MAIN_CONF,
                 pFileFinder);
     }

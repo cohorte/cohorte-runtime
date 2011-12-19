@@ -31,10 +31,11 @@ iPOJO-Components: instance { $component="psem2m-config-factory" $name=
  ationFiles" $type="java.util.Set" }field { $name="pFileFinder" $type=
  "org.psem2m.isolates.services.dirs.IFileFinderSvc" }field { $name="pI
  solateLoggerSvc" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }
- field { $name="pReader" $type="org.psem2m.isolates.config.json.JsonCo
- nfigReader" }method { $name="findConfigurationFiles" $return="boolean
- " }method { $name="getApplication" $return="org.psem2m.isolates.servi
- ces.conf.IApplicationDescr" }method { $name="invalidatePojo" }method 
- { $name="logDumpConfig" }method { $name="refresh" $return="boolean" }
- method { $name="validatePojo" }}}
+ field { $name="pLastLoad" $type="long" }field { $name="pReader" $type
+ ="org.psem2m.isolates.config.json.JsonConfigReader" }method { $name="
+ findConfigurationFiles" $return="boolean" }method { $name="getApplica
+ tion" $return="org.psem2m.isolates.services.conf.IApplicationDescr" }
+ method { $name="invalidatePojo" }method { $name="logDumpConfig" }meth
+ od { $name="refresh" $return="boolean" }method { $name="validatePojo"
+  }}}
 
