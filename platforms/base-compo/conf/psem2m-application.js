@@ -16,53 +16,49 @@
                 "-Xmx96M"
             ],
             "bundles":[
-				{
-				    "symbolicName":"org.psem2m.isolates.ui.admin",
-				    "optional":true,
-				    "properties":{
-				        "psem2m.demo.ui.viewer.top":"0scr",
-				        "psem2m.demo.ui.viewer.left":"0.25scr",
-				        "psem2m.demo.ui.viewer.width":"0.25scr",
-				        "psem2m.demo.ui.viewer.height":"0.66scr",
-				        "psem2m.demo.ui.viewer.color":"YellowGreen"
-				    }
-				},
-				{
-				    "symbolicName":"org.apache.felix.shell"
-				},
-				{
-				    "symbolicName":"org.apache.felix.shell.remote",
-				    "properties":{
-				        "osgi.shell.telnet.port":"6002"
-				    }
-				},
-				{
-				    "from":"signals-http.js"
-				},
-				{
-				    "from":"rose-core.js"
-				},
-				{
-				    "from":"rose-client.js"
-				},
-				{
-				    "from":"rose-server.js"
-				},
-				{
-				    "from":"remote-services.js"
-				},
-				{
-				    "symbolicName":"org.psem2m.composer.api"
-				},
-				{
-				    "symbolicName":"org.psem2m.composer.agent"
-				},
-				{
-				    "symbolicName":"org.psem2m.composer.demo.api"
-				},
-				{
-				    "symbolicName":"org.psem2m.composer.demo.dataserver"
-				}
+                {
+                    "symbolicName":"org.psem2m.isolates.ui.admin",
+                    "optional":true,
+                    "properties":{
+                        "psem2m.demo.ui.viewer.top":"0scr",
+                        "psem2m.demo.ui.viewer.left":"0.25scr",
+                        "psem2m.demo.ui.viewer.width":"0.25scr",
+                        "psem2m.demo.ui.viewer.height":"0.66scr",
+                        "psem2m.demo.ui.viewer.color":"YellowGreen"
+                    }
+                    
+                },
+                {
+                    "symbolicName":"org.apache.felix.shell"
+                },
+                {
+                    "symbolicName":"org.apache.felix.shell.remote",
+                    "properties":{
+                        "osgi.shell.telnet.port":"6002"
+                    }
+                    
+                },
+                {
+                    "from":"signals-http.js"
+                },
+                {
+                    "from":"jsonrpc.js"
+                },
+                {
+                    "from":"remote-services.js"
+                },
+                {
+                    "symbolicName":"org.psem2m.composer.api"
+                },
+                {
+                    "symbolicName":"org.psem2m.composer.agent"
+                },
+                {
+                    "symbolicName":"org.psem2m.composer.demo.api"
+                },
+                {
+                    "symbolicName":"org.psem2m.composer.demo.dataserver"
+                }
             ]
         },
         {
@@ -98,13 +94,7 @@
                     "from":"signals-http.js"
                 },
                 {
-                    "from":"rose-core.js"
-                },
-                {
-                    "from":"rose-client.js"
-                },
-                {
-                    "from":"rose-server.js"
+                    "from":"jsonrpc.js"
                 },
                 {
                     "from":"remote-services.js"
@@ -165,13 +155,7 @@
                     "from":"signals-http.js"
                 },
                 {
-                    "from":"rose-core.js"
-                },
-                {
-                    "from":"rose-client.js"
-                },
-                {
-                    "from":"rose-server.js"
+                    "from":"jsonrpc.js"
                 },
                 {
                     "from":"remote-services.js"
