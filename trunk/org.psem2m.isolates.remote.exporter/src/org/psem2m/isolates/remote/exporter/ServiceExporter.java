@@ -52,10 +52,10 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
      * the export.
      */
     public static final String EXPORTED_SERVICE_FILTER = "(&"
-    // PSEM2M flag
-            + "(|(!(psem2m.service.export=*))(psem2m.service.export=true))"
-            // OSGi properties
-            + "(|(service.exported.interfaces=*)(service.exported.configs=*)))";
+    /* PSEM2M flag */
+    + "(|(!(psem2m.service.export=*))(psem2m.service.export=true))"
+    /* OSGi properties */
+    + "(|(service.exported.interfaces=*)(service.exported.configs=*)))";
 
     /** Remote service broadcaster (RSB) */
     @Requires
@@ -134,17 +134,6 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
         return new RemoteServiceRegistration(exportedInterface,
                 Utilities.getServiceProperties(aServiceReference),
                 resultEndpoints.toArray(new EndpointDescription[0]));
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.utilities.CXObjectBase#destroy()
-     */
-    @Override
-    public void destroy() {
-
-        // ...
     }
 
     /**
@@ -343,8 +332,6 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
     @Validate
     public void validatePojo() throws BundleException {
 
-        pLogger.log(LogService.LOG_INFO, "validatePojo()");
-
         // Handle already registered services
         try {
             final ServiceReference[] exportedServices = pBundleContext
@@ -372,5 +359,7 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
             throw new BundleException(
                     "Error creating the service listener filter", e);
         }
+
+        pLogger.log(LogService.LOG_INFO, "PSEM2M Service Exporter Ready.");
     }
 }

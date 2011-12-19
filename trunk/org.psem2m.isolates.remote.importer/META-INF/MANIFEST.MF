@@ -37,15 +37,14 @@ iPOJO-Components: instance { $component="org.psem2m.isolates.remote.im
  ces" $type="java.util.Map" }field { $name="pLogger" $type="org.psem2m
  .isolates.base.IIsolateLoggerSvc" }field { $name="pRegisteredServices
  " $type="java.util.Map" }method { $name="acceptInterface" $return="bo
- olean" $arguments="{java.lang.String}" }method { $name="destroy" }met
- hod { $name="filterProperties" $return="java.util.Dictionary" $argume
- nts="{java.util.Map}" }method { $name="handleIsolateLost" $arguments=
- "{java.lang.String}" }method { $name="handleRemoteEvent" $arguments="
- {org.psem2m.isolates.services.remote.beans.RemoteServiceEvent}" }meth
- od { $name="invalidatePojo" }method { $name="parseFilter" $arguments=
- "{java.lang.String,java.util.Set}" }method { $name="prepareFilters" }
- method { $name="registerService" $arguments="{org.psem2m.isolates.ser
- vices.remote.beans.RemoteServiceEvent}" }method { $name="unregisterSe
- rvice" $arguments="{java.lang.String,java.lang.String}" }method { $na
- me="validatePojo" }}}
+ olean" $arguments="{java.lang.String}" }method { $name="filterPropert
+ ies" $return="java.util.Dictionary" $arguments="{java.util.Map}" }met
+ hod { $name="handleIsolateLost" $arguments="{java.lang.String}" }meth
+ od { $name="handleRemoteEvent" $arguments="{org.psem2m.isolates.servi
+ ces.remote.beans.RemoteServiceEvent}" }method { $name="invalidatePojo
+ " }method { $name="parseFilter" $arguments="{java.lang.String,java.ut
+ il.Set}" }method { $name="prepareFilters" }method { $name="registerSe
+ rvice" $arguments="{org.psem2m.isolates.services.remote.beans.RemoteS
+ erviceEvent}" }method { $name="unregisterService" $arguments="{java.l
+ ang.String,java.lang.String}" }method { $name="validatePojo" }}}
 
