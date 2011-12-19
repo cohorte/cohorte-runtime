@@ -42,6 +42,9 @@ org.psem2m.isolates.loggers
 # Configuration reader
 org.psem2m.isolates.config
 
+# Signals directory (based on configuration)
+org.psem2m.signals.directory
+
 # Isolate agent (use the configuration to load the next bundles)
 # Should be the last bundle to be started by the bootstrap
 org.psem2m.isolates.slave.agent
