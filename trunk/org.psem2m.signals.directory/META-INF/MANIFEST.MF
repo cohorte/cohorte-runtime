@@ -1,0 +1,41 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: PSEM2M :: Signals Directory
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-SymbolicName: org.psem2m.signals.directory
+Bundle-Vendor: isandlaTech.com
+Bundle-Version: 1.0.0.qualifier
+Created-By: iPOJO  1.8.0
+Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
+ .ipojo.architecture;version=1.8.0, org.osgi.framework;version=1.5.0, 
+ org.osgi.service.cm;version=1.2, org.osgi.service.log;version=1.3, or
+ g.psem2m.isolates.base;version=1.0.0, org.psem2m.isolates.base.activa
+ tors;version=1.0.0, org.psem2m.isolates.constants;version=1.0.0, org.
+ psem2m.isolates.services.conf;version=1.0.0, org.psem2m.isolates.serv
+ ices.remote.signals;version=1.0.0, org.psem2m.utilities;version=1.0.0
+ , org.psem2m.utilities.logging;version=1.0.0
+iPOJO-Components: instance { $component="org.psem2m.signals.directory.
+ impl.SignalsDirectory" $name="psem2m-signals-directory" }component { 
+ $classname="org.psem2m.signals.directory.impl.SignalsDirectory" $name
+ ="psem2m-signals-directory-factory" $public="false" provides { $speci
+ fications="{org.psem2m.isolates.services.remote.signals.ISignalsDirec
+ tory}" }requires { $field="pConfiguration" }requires { $field="pLogge
+ r" }callback { $transition="invalidate" $method="invalidatePojo" }cal
+ lback { $transition="validate" $method="validatePojo" }manipulation {
+  $super="org.psem2m.isolates.base.activators.CPojoBase" interface { $
+ name="org.psem2m.isolates.services.remote.signals.ISignalsDirectory" 
+ }field { $name="pConfiguration" $type="org.psem2m.isolates.services.c
+ onf.ISvcConfig" }field { $name="pLogger" $type="org.psem2m.isolates.b
+ ase.IIsolateLoggerSvc" }method { $name="getAllIsolates" $return="java
+ .lang.String[]" }method { $name="getAllMonitors" $return="java.lang.S
+ tring[]" }method { $name="getIsolate" $return="java.lang.String" $arg
+ uments="{java.lang.String}" }method { $name="getIsolates" $return="ja
+ va.lang.String[]" $arguments="{java.util.Collection}" }method { $name
+ ="getIsolates" $return="java.lang.String[]" $arguments="{org.psem2m.i
+ solates.services.remote.signals.ISignalBroadcaster$EEmitterTargets}" 
+ }method { $name="getIsolates" $return="java.lang.String[]" $arguments
+ ="{java.lang.String[]}" }method { $name="invalidatePojo" }method { $n
+ ame="isValidIsolate" $return="boolean" $arguments="{java.lang.String}
+ " }method { $name="reloadDirectory" $return="boolean" }method { $name
+ ="validatePojo" }}}
+
