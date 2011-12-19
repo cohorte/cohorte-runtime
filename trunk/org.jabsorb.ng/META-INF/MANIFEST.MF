@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Jabsorb.orn NG
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-SymbolicName: org.jabsorb.ng
+Bundle-Version: 1.0.0.qualifier
+Export-Package: org.jabsorb.ng,
+ org.jabsorb.ng.callback,
+ org.jabsorb.ng.client,
+ org.jabsorb.ng.localarg,
+ org.jabsorb.ng.logging,
+ org.jabsorb.ng.reflect,
+ org.jabsorb.ng.serializer,
+ org.json
+Bundle-Vendor: isandlaTech.com
+Import-Package: javax.servlet;version="2.5.0",
+ javax.servlet.http;version="2.5.0"
