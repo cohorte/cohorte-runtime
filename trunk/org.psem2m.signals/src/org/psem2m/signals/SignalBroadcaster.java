@@ -27,6 +27,7 @@ import org.psem2m.isolates.services.remote.signals.ISignalBroadcastProvider;
 import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
 import org.psem2m.isolates.services.remote.signals.ISignalData;
 import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
+import org.psem2m.isolates.services.remote.signals.ISignalsDirectory;
 
 /**
  * Base signal sender logic
@@ -45,6 +46,10 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
     /** Log service */
     @Requires
     private ILogChannelsSvc pChannels;
+
+    /** The directory service */
+    @Requires
+    private ISignalsDirectory pDirectory;
 
     /** Logger */
     private ILogChannelSvc pLogger;
@@ -90,25 +95,17 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.utilities.CXObjectBase#destroy()
-     */
-    @Override
-    public void destroy() {
-
-        // ...
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
      * @see org.psem2m.isolates.base.activators.CPojoBase#invalidatePojo()
      */
     @Override
     @Invalidate
     public void invalidatePojo() throws BundleException {
 
-        pLogger.logInfo(this, "invalidatePojo", "Base Signal Broadcaster Gone");
-        pLogger = null;
+        if (pLogger != null) {
+            pLogger.logInfo(this, "invalidatePojo",
+                    "Base Signal Broadcaster Gone");
+            pLogger = null;
+        }
     }
 
     /*
@@ -155,12 +152,15 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
     public void sendData(final EEmitterTargets aTargets,
             final String aSignalName, final Serializable aData) {
 
-        pLogger.logInfo(this, "SEND TO TARGETS", "Signal=", aSignalName,
-                "- Target=", aTargets, "- Data=", aData);
+        if (pLogger != null && pLogger.isLogDebugOn()) {
+            pLogger.logDebug(this, "SEND TO TARGETS", "Signal=", aSignalName,
+                    "- Target=", aTargets, "- Data=", aData);
+        }
 
         if (aTargets == EEmitterTargets.LOCAL) {
             // Only case to send signal directly to the receiver
-            final ISignalData signalData = new LocalSignalData(aData);
+            final ISignalData signalData = new LocalSignalData(
+                    pDirectory.getCurrentIsolateId(), aData);
             pReceiver.localReception(aSignalName, signalData);
 
         } else {
@@ -192,8 +192,10 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
     public boolean sendData(final String aIsolateId, final String aSignalName,
             final Serializable aData) {
 
-        pLogger.logInfo(this, "SEND TO ISOLATE", "Signal=", aSignalName,
-                "- isolate=", aIsolateId, "- Data=", aData);
+        if (pLogger != null && pLogger.isLogDebugOn()) {
+            pLogger.logDebug(this, "SEND TO ISOLATE", "Signal=", aSignalName,
+                    "- isolate=", aIsolateId, "- Data=", aData);
+        }
 
         if (pBroadcasters.length == 0) {
             // No providers, store the signal to emit
@@ -229,10 +231,12 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
 
         try {
             pLogger = pChannels.getLogChannel("RemoteServices");
+            pLogger.logInfo(this, "validatePojo",
+                    "Base Signal Broadcaster Ready");
+
         } catch (final Exception e) {
+            System.err.println("Can't open the signal broadcaster logger :");
             e.printStackTrace();
         }
-
-        pLogger.logInfo(this, "validatePojo", "Base Signal Broadcaster Ready");
     }
 }

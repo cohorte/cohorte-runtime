@@ -91,17 +91,6 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver,
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.utilities.CXObjectBase#destroy()
-     */
-    @Override
-    public void destroy() {
-
-        // ...
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
      * @see org.psem2m.isolates.services.remote.signals.ISignalListener#
      * handleReceivedSignal(java.lang.String,
      * org.psem2m.isolates.services.remote.signals.ISignalData)
@@ -110,8 +99,10 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver,
     public void handleReceivedSignal(final String aSignalName,
             final ISignalData aSignalData) {
 
-        pLogger.logInfo(this, "RECEIVED", "Signal=", aSignalName, "- Data=",
-                aSignalData);
+        if (pLogger != null && pLogger.isLogDebugOn()) {
+            pLogger.logDebug(this, "RECEIVED", "Signal=", aSignalName,
+                    "- Data=", aSignalData);
+        }
 
         final Set<ISignalListener> signalListeners = new HashSet<ISignalListener>();
 
@@ -287,10 +278,11 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver,
 
         try {
             pLogger = pChannels.getLogChannel("RemoteServices");
+            pLogger.logInfo(this, "validatePojo", "Base Signal Receiver Ready");
+
         } catch (final Exception e) {
+            System.err.println("Can't open the signal broadcaster logger :");
             e.printStackTrace();
         }
-
-        pLogger.logInfo(this, "validatePojo", "Base Signal Receiver Ready");
     }
 }
