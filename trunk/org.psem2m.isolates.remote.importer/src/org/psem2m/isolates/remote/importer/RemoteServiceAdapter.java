@@ -22,7 +22,6 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceRegistration;
-import org.ow2.chameleon.rose.RemoteConstants;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.base.activators.CPojoBase;
@@ -30,6 +29,7 @@ import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.services.remote.IRemoteServiceBroadcaster;
 import org.psem2m.isolates.services.remote.IRemoteServiceClientHandler;
 import org.psem2m.isolates.services.remote.IRemoteServiceEventListener;
+import org.psem2m.isolates.services.remote.IRemoteServicesConstants;
 import org.psem2m.isolates.services.remote.beans.RemoteServiceEvent;
 import org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration;
 
@@ -181,12 +181,14 @@ public class RemoteServiceAdapter extends CPojoBase implements
         }
 
         // Add "import" properties
-        filteredProperties.put(RemoteConstants.SERVICE_IMPORTED, "true");
+        filteredProperties.put(IRemoteServicesConstants.SERVICE_IMPORTED,
+                "true");
 
         final Object exportedProperty = aServiceProperties
-                .get(RemoteConstants.SERVICE_EXPORTED_CONFIGS);
+                .get(IRemoteServicesConstants.SERVICE_EXPORTED_CONFIGS);
         if (exportedProperty != null) {
-            filteredProperties.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS,
+            filteredProperties.put(
+                    IRemoteServicesConstants.SERVICE_IMPORTED_CONFIGS,
                     exportedProperty);
         }
 
