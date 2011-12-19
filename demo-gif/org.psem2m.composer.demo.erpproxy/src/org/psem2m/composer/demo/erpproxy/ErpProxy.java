@@ -5,7 +5,6 @@
  */
 package org.psem2m.composer.demo.erpproxy;
 
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,9 +17,9 @@ import org.apache.felix.ipojo.annotations.Property;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
-import org.jabsorb.client.Client;
-import org.jabsorb.client.HTTPSession;
-import org.jabsorb.client.Session;
+import org.jabsorb.ng.client.Client;
+import org.jabsorb.ng.client.ISession;
+import org.jabsorb.ng.client.TransportRegistry;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.psem2m.composer.demo.CComponentsConstants;
@@ -357,7 +356,8 @@ public class ErpProxy extends CPojoBase implements IComponent {
         }
 
         // Prepare the Jabsorb client
-        final Session session = new HTTPSession(new URI(builder.toString()));
+        final ISession session = TransportRegistry.i().createSession(
+                builder.toString());
 
         pClient = new Client(session, new BundlesClassLoader(pBundleContext));
         pProxy = (IErpData) pClient.openProxy(null, IErpData.class);
