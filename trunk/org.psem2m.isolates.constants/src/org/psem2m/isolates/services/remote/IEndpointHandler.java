@@ -15,6 +15,12 @@ import org.psem2m.isolates.services.remote.beans.EndpointDescription;
  */
 public interface IEndpointHandler {
 
+    /** Name of the interface to be exported */
+    String INTERFACE_NAME = "endpoint.interface.name";
+
+    /** End point service property name */
+    String PROP_ENDPOINT_NAME = "endpoint.name";
+
     /**
      * Create all end points needed for the specified service
      * 
