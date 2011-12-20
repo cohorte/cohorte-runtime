@@ -12,8 +12,14 @@ package org.psem2m.isolates.services.remote;
  */
 public interface IRemoteServicesConstants {
 
+    /** PSEM2M Force service export */
+    String PSEM2M_SERVICE_EXPORT = "psem2m.service.export";
+
     /** Exported service configurations */
     String SERVICE_EXPORTED_CONFIGS = "service.exported.configs";
+
+    /** Exported service interfaces */
+    String SERVICE_EXPORTED_INTERFACES = "service.exported.interfaces";
 
     /** Imported service flag */
     String SERVICE_IMPORTED = "service.imported";
