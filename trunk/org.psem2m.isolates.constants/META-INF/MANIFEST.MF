@@ -6,12 +6,12 @@ Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: isandlaTech
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Import-Package: org.osgi.framework;version="1.5.0"
-Export-Package: org.psem2m.isolates.constants;version="1.0.0",
+Export-Package: org.psem2m.isolates.constants;version="1.0.1",
  org.psem2m.isolates.constants.boot;version="1.0.0",
- org.psem2m.isolates.services.conf;version="1.0.0",
- org.psem2m.isolates.services.dirs;version="1.0.0",
- org.psem2m.isolates.services.forker;version="1.0.0",
- org.psem2m.isolates.services.monitoring;version="1.0.0",
- org.psem2m.isolates.services.remote;version="1.0.0",
- org.psem2m.isolates.services.remote.beans;version="1.0.0",
- org.psem2m.isolates.services.remote.signals;version="1.0.0"
+ org.psem2m.isolates.services.conf;version="1.0.1",
+ org.psem2m.isolates.services.dirs;version="1.0.1",
+ org.psem2m.isolates.services.forker;version="1.0.1",
+ org.psem2m.isolates.services.monitoring;version="1.0.1",
+ org.psem2m.isolates.services.remote;version="1.0.1",
+ org.psem2m.isolates.services.remote.beans;version="1.0.1",
+ org.psem2m.isolates.services.remote.signals;version="1.0.1"
