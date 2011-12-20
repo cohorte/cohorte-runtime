@@ -72,7 +72,8 @@ public class HttpSignalSender extends CPojoBase implements
         }
 
         // Prepare the real signal data object
-        final HttpSignalData sentObject = new HttpSignalData(aData);
+        final HttpSignalData sentObject = new HttpSignalData(
+                pDirectory.getCurrentIsolateId(), aData);
 
         for (final URL targetUrl : aUrls) {
             // Use threads to parallelize the sending process

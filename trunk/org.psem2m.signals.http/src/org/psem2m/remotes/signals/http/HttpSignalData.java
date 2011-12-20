@@ -8,7 +8,6 @@ package org.psem2m.remotes.signals.http;
 import java.io.Serializable;
 import java.util.Arrays;
 
-import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.services.remote.signals.ISignalData;
 
 /**
@@ -39,12 +38,10 @@ public class HttpSignalData implements Serializable, ISignalData {
      * @param aSignalData
      *            Embedded data (can be null)
      */
-    public HttpSignalData(final Serializable aSignalData) {
+    public HttpSignalData(final String aSender, final Serializable aSignalData) {
 
         pSignalData = aSignalData;
-        pIsolateSender = System
-                .getProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID);
-
+        pIsolateSender = aSender;
         pTimestamp = System.currentTimeMillis();
     }
 
