@@ -164,8 +164,6 @@ public class IsolateLogger extends CPojoBase implements IIsolateLoggerSvc {
         // Information
         logLine.append(pLineBuilder.formatLogLine(aInfos));
 
-        System.out.println(logLine);
-
         // Log it...
         pLogger.log(levelToLogService(aLevel), logLine.toString());
     }
