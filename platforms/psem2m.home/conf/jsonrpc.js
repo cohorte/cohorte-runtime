@@ -1,0 +1,11 @@
+[
+    {
+        "symbolicName":"org.apache.felix.http.bundle"
+    },
+    {
+        "symbolicName":"org.jabsorb.ng"
+    },
+    {
+        "symbolicName":"org.psem2m.remote.jsonrpc"
+    }
+]
