@@ -105,16 +105,16 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
 
         // @Requires elements IDs
         final Element[] requiresElems = componentModel
-                .getElements(ComposerAgentConstants.REQUIRES_ELEMENT_NAME);
+                .getElements(IpojoConstants.REQUIRES_ELEMENT_NAME);
         if (requiresElems != null) {
             for (final Element requires : requiresElems) {
 
                 final String name = requires
-                        .getAttribute(ComposerAgentConstants.REQUIRES_FIELD);
+                        .getAttribute(IpojoConstants.REQUIRES_FIELD);
                 if (name != null) {
                     // The name is the most important part
                     final String id = requires
-                            .getAttribute(ComposerAgentConstants.REQUIRES_ID);
+                            .getAttribute(IpojoConstants.REQUIRES_ID);
                     fieldIdMap.put(name, id);
                 }
             }
@@ -122,16 +122,16 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
 
         // @Temporal elements IDs
         final Element[] temporalElems = componentModel
-                .getElements(ComposerAgentConstants.TEMPORAL_ELEMENT_NAME);
+                .getElements(IpojoConstants.TEMPORAL_ELEMENT_NAME);
         if (temporalElems != null) {
             for (final Element temporal : temporalElems) {
 
                 final String name = temporal
-                        .getAttribute(ComposerAgentConstants.TEMPORAL_FIELD);
+                        .getAttribute(IpojoConstants.TEMPORAL_FIELD);
                 if (name != null) {
                     // The name is the most important part
                     final String id = temporal
-                            .getAttribute(ComposerAgentConstants.TEMPORAL_ID);
+                            .getAttribute(IpojoConstants.TEMPORAL_ID);
                     fieldIdMap.put(name, id);
                 }
             }
