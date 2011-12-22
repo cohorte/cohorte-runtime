@@ -7,6 +7,44 @@ PSEM2M Compiler est un outil se chargeant de compiler tout ou partie du code
 Java de la plateforme PSEM2M et de regrouper les fichiers JAR en résultant.
 
 
+Utilisation
+***********
+
+L'outil accepte les options suivantes :
+
++---------------------------------+----------------------------------------------+
+| Option                          | Description                                  |
++=================================+==============================================+
+| -h, --help                      | Affiche l'aide                               |
++---------------------------------+----------------------------------------------+
+| -n NAME, --name=NAME            | Indique le nom de la compilation (inutilisé) |
++---------------------------------+----------------------------------------------+
+| --clean                         | Supprime les fichiers *build.xml*            |
+|                                 | (ne compile pas)                             |
++---------------------------------+----------------------------------------------+
+| --clean-after-build             | Supprimer les fichiers *build.xml* après la  |
+|                                 | compilation                                  |
++---------------------------------+----------------------------------------------+
+| -R DIR, --root-directory=DIR    | Indique le répertoire racine de compilation. |
+|                                 | Dossier contenant le *build.xml* racine.     |
+|                                 | Recherche récursivement les dossiers         |
+|                                 | contenant des projets Eclipse.               |
++---------------------------------+----------------------------------------------+
+| -E DIR:DIR:...,                 | Repertoire supplémentaires où chercher des   |
+| --extra-directories=DIR:DIR:... | projets Eclipse                              |
++---------------------------------+----------------------------------------------+
+| -T DIR, --target-platform=DIR   | Indication de la *target platform*, dossier  |
+|                                 | contenant tous les JARs externes dont        |
+|                                 | dépend la compilation                        |
++---------------------------------+----------------------------------------------+
+| --ipojo-ant-file=FILE           | Indication du fichier JAR de la tâche Ant    |
+|                                 | de manipulation iPOJO                        |
++---------------------------------+----------------------------------------------+
+| --ipojo-annotations=FILE        | Indication du fichier JAR définissant les    |
+|                                 | annotations iPOJO                            |
++---------------------------------+----------------------------------------------+
+
+
 Fonctionnement
 **************
 
@@ -44,6 +82,8 @@ PSEM2M Compiler dépend de la bibliothèque
 générer des fichiers Ant pour compiler un ensemble de projets PDE, en fonction
 de leur fichier Manifest.
 
+Le programme nécessite l'interpréteur Python 2.6 ou 2.7 pour fonctionner.
+
 
 Perspectives
 ************
@@ -55,3 +95,11 @@ En plus de gérer les dossiers sources multiples, PSEM2M Compiler pourrait
 profiter de sa connaissance du fichier *classpath* utilisé par JDT afin
 d'ajouter les bibliothèques tierces dont dépend un projet aux paramètres de
 compilation.
+
+
+Passage à Python 3
+==================
+
+Afin de normaliser l'utilisation de Python 3 dans les développement Python
+d'isandlaTech, il peut être nécessaire de passer du temps pour convertir à la
+PSEM2M Compiler et sa dépendance, AutoBuilder, à Python 3.
