@@ -83,10 +83,59 @@ d'informations pour pouvoir être converti en un objet implémentant l'interface
 ``ISignalData``.
 
 
+Version synchrone du service
+============================
+
+Dans la spécification actuelle, les signaux sont considérés comme des
+transmissions asynchrone, sans garantie de réception des données.
+
+Une implémentation synchrone, permettant d'attendre la réception des données
+par la ou les cibles serait intéressant dans les cas de transmission d'ordre.
+
+Il faudrait alors renommer les méthodes actuelles ``sendData`` des émetteurs en
+``postData``, et définir une nouvelle sémantique pour les méthodes équivalentes
+nommées ``sendData``.
+
+* ``postData`` : les signaux sont émis immédiatement, sans attendre de réponse.
+  L'appel à cette méthode retourne immédiatement après que le signal soit mis en
+  file d'attente d'envoi.
+
+* ``sendData`` : les signaux sont émis immédiatement, mais l'appel ne retourne
+  pas avant que les destinataires aient répondu ou que l'envoi d'un signal ait
+  échoué.
+
+
+Modèle requête - réponse
+========================
+
+On peut diviser les cas d'usage du mécanisme des signaux en trois grandes
+catégories :
+
+* les signaux émis pour information, n'ayant pas forcément d'abonnés
+* les signaux émis comme ordres ou requêtes
+* les signaux émis en réponse à un ordre ou une requête
+
+Pour des simplification d'écriture de code et de standardisation du comportement
+des signaux, il serait intéressant de mettre en place une méthode du service
+émetteur permettant d'émettre un message et d'attendre la réponse du ou des
+destinataires.
+
+Plusieurs méthodes d'implémentation sont possibles :
+
+* Utilisation d'un domaine de signaux (URI) spécifique */request* et
+  */response*.
+
+* Appel d'une méthode spécifique pour traiter ce genre de signaux, renvoyant
+  une donnée à émettre en réponse
+
+* Conservation du modèle actuel avec ajout d'un *signal ID*, le traitement se
+  faisant au niveau du service de réception.
+
+
 Solution parallèle ou alternative ?
 ===================================
 
-Ce document décrit quelques possibilités d'implémentations de fournisseurs de
+Cette section décrit quelques possibilités d'implémentations de fournisseurs de
 signaux pouvant résoudre ce problème d'interopérabilité.
 
 On distinguera deux types de solutions :
@@ -101,7 +150,7 @@ On distinguera deux types de solutions :
 
 
 Service de conversion d'objets ISignalData
-==========================================
+------------------------------------------
 
 Afin de simplifier le travail des fournisseurs et de centraliser du code pouvant
 s'avérer redondant, il serait judicieux de définir un service se chargeant de
@@ -125,10 +174,10 @@ renvoyant un tableau d'objets String (``String[]``), indiquant les formats de
 donnés qu'il est capable de traiter.
 
 Solutions parallèles
-====================
+--------------------
 
 Extended HTTP Signals Provider
-------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Cette implémentation serait une extension du fournisseur HTTP basé sur
 ``ObjectInputStream`` et ``ObjectoutputStream``.
@@ -147,6 +196,6 @@ utilisables.
 
 
 Solutions alternatives
-======================
+----------------------
 
 Sans objet pour le moment.
