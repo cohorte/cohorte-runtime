@@ -46,6 +46,27 @@ def append_classpath_entries(ant_document, libraries):
         classpath_node.appendChild(lib_node)
 
 
+def setup_source_folders(ant_document, classpath):
+    """
+    Sets up the "src" Ant property to correspond to the project source
+    folders
+    
+    @param ant_document: Ant document
+    @param classpath: An Eclipse Java project class path
+    """
+
+    # Generate the property string
+    base_dir = "${basedir}/"
+    src_path = ";".join([base_dir + srcdir for srcdir in classpath.src])
+
+    # Find the property node
+    property_nodes = ant_document.getElementsByTagName("property")
+    for node in property_nodes:
+        if node.getAttribute("name") == "src":
+            # Found !
+            node.setAttribute("value", src_path)
+            break
+
 
 class EclipseAntGenerator(object):
     """
@@ -193,6 +214,10 @@ class EclipseAntGenerator(object):
             logging.warn("%s: Error reading build.xml.", eclipse_project.name, \
                          exc_info=True)
             return
+
+        # Setup the source folders
+        if eclipse_project.classpath != None:
+            setup_source_folders(ant_doc, eclipse_project.classpath)
 
         # Append class path entries
         append_classpath_entries(ant_doc, libraries)
