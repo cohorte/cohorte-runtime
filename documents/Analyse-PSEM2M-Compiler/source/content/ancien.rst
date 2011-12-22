@@ -1,10 +1,79 @@
-.. Problèmes potentiels
+.. Description des fonctionnalités
+
+Développement depuis zéro
+#########################
+
+Cette section reprend la définition de PSEM2M-Compiler telle qu'elle était
+initialement prévue.
+
+PSEM2M Compiler était alors imaginé comme un programme développé à partir de
+rien, permettant de générer des fichiers projets Maven purs.
+
+
+Fonctionnalités attendues
+*************************
+
+Programme autonome
+==================
+
+Le projet PSEM2M Compiler devra pouvoir être exécuté de manière autonome par un
+outil d'intégration continue tel que Jenkins.
+
+L'outil pouvant être installé sur la machine de compilation, un script peut
+préparer l'environnement d'exécution du cœur de PSEM2M Compiler.
+Par exemple, si le projet est écrit en Java, le script peut générer la liste
+des paramètres à passer au programme *java*, notamment le *classpath*.
+
+
+Préparation de la *Target Platform*
+===================================
+
+L'outil devra commencer le traitement d'une arborescence en détectant les
+archives JAR composant la *Target Platform* utilisée dans l'environnement de
+développement.
+
+Ces archives devront être installées dans le dépôt local Maven en suivant un
+ensemble de règles de noms d'artefacts Maven afin qu'ils ne puissent pas être
+confondus avec des éléments présents sur les dépôts Maven en ligne.
+
+
+Génération de fichiers projets Maven "purs"
+===========================================
+
+Le but de PSEM2M Compiler est de générer des fichiers *pom.xml*, c'est-à-dire
+des fichiers projets **Maven**, à partir d'un ensemble de projets Eclipse.
+
+Contrairement à **Tycho**, il ne s'agit pas de faire un plug-in pour **Maven**,
+mais bien de générer des projets utilisant les mécanismes de dépendances et les
+plug-ins **Maven** existant.
+De cette manière, nous pourrons compiler n'importe quel *bundle* développé avec
+Eclipse PDE, sans pour autant dépendre d'Equinox.
+
+La génération des fichiers *pom.xml* sera basée sur le contenu des fichiers
+*.project* et *.classpath* de chaque projet Eclipse indiqué.
+
+Un graphe de dépendance devra être généré lors du parcours des projets à
+préparer, afin de déterminer quelles dépendances indiquer dans le fichier
+*pom.xml*.
+
+
+Le cas iPOJO
+============
+
+L'outil PSEM2M Compiler devra être capable de gérer le cas particulier des
+projets utilisant iPOJO : leur manipulation devra être effectuée à l'aide du
+plug-in iPOJO pour **Maven**.
+
+Un projet Eclipse sera considéré comme nécessitant une manipulation iPOJO si
+son fichier *.project* indique la nature
+``org.ow2.chameleon.eclipse.ipojo.iPojoNature``, utilisée par le plug-in
+**iPOJO Nature** pour Eclipse.
 
 Points sensibles
-################
+****************
 
 Analyse des fichiers Manifest.mf
-********************************
+================================
 
 L'analyse du fichier Manifest.mf se fait en trois temps :
 
@@ -25,7 +94,7 @@ L'analyse du fichier Manifest.mf se fait en trois temps :
 
 
 Graphe de dépendances
-*********************
+=====================
 
 Le graphe de dépendance est un graphe orienté devant représenter les relations
 d'imports et d'exports entre les bundles.
@@ -55,7 +124,7 @@ Ce graphe se basera sur les entrées des fichiers Manifest suivantes :
 
 
 Gestion des cycles
-==================
+------------------
 
 Étant donné que l'outil n'a pas de contrôle complet sur ses entrées, il est
 possible que le graphe de dépendance généré contienne des cycles (boucles).
@@ -72,7 +141,7 @@ d'un algorithme de détection de cycle : ``org.jgrapht.alg.CycleDetector``.
 
 
 Gestion des numéros de version
-==============================
+------------------------------
 
 Trois cas description de version sont possibles lors de la validation d'un
 import :
@@ -103,7 +172,7 @@ comparer des numéros de version.
 
 
 Target Platform : Définition des artefacts Maven
-************************************************
+================================================
 
 Les JARs présents dans la *Target Platform* sont nécessaires à la compilation
 des bundles du projet.
@@ -145,7 +214,7 @@ L'impact du choix entre *bundle* et *jar* n'est pas connu.
 
 
 Hiérarchie et gestion des ressources (*build.properties*)
-*********************************************************
+=========================================================
 
 Dans les projets Eclipse, le fichier *build.properties* permet d'indiquer des
 fichiers à insérer dans le JAR final.
@@ -169,7 +238,7 @@ les projets Maven standards :
 
 
 Ré-utilisation ou génération du Manifest
-****************************************
+========================================
 
 Le plug-in de génération de bundle pour Maven est capable de générer un fichier
 Manifest à partir des propriétés indiquées dans le fichier *pom.xml*, mais il
@@ -189,7 +258,7 @@ Les instructions de configuration du traitement du Manifest sont décrites dans
 
 
 Instructions de génération de Manifest
-======================================
+--------------------------------------
 
 Toutes les propriétés du bloc ``<instructions>`` et dont le nom commence par
 une majuscule seront inscrite dans le Manifest généré.
@@ -211,7 +280,7 @@ une majuscule seront inscrite dans le Manifest généré.
 
 
 Instructions de réutilisation de Manifest
-=========================================
+-----------------------------------------
 
 La réutilisation se suffit à elle-même :
 
@@ -236,13 +305,13 @@ On peut également ajouter ou remplacer des entrées du Manifest existant :
 
 
 Modèle de fichier projet Maven
-******************************
+==============================
 
 Pour finir, voici à quoi devraient ressembler les fichiers *pom.xml* générés par
 PSEM2M Compiler.
 
 Projet Parent
-=============
+-------------
 
 .. literalinclude:: ../_static/pom-root.xml
    :language: xml
@@ -251,7 +320,7 @@ Projet Parent
 
 
 Modèle de base
-==============
+--------------
 
 .. literalinclude:: ../_static/pom-base.xml
    :language: xml
@@ -260,7 +329,7 @@ Modèle de base
 
 
 Modèle iPOJO
-============
+------------
 
 .. literalinclude:: ../_static/pom-ipojo.xml
    :language: xml
