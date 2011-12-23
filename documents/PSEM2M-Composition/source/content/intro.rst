@@ -32,7 +32,9 @@ Il est destiné :
 Organisation du document
 ************************
 
-Le document sera scindé en deux grandes parties :
+Le document sera scindé en quatre grandes parties :
 
 #. La définition d'une composition,
 #. Les techniques mises en œuvre pour déployer une composition à l'exécution.
+#. Les perspectives de développement
+#. Le comparatif avec le standard SCA

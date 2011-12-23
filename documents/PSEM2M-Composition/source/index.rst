@@ -11,6 +11,7 @@ PSEM2M Composer
    content/composition
    content/implem-ipojo
    content/perspectives
+   content/sca
 
 
 Versions
@@ -21,6 +22,8 @@ Versions
 +---------+------------+----------------+----------------------------------+
 | Version | Date       | Auteur         | Commentaire                      |
 +=========+============+================+==================================+
+| 2.1     | 23/12/2011 | Thomas Calmant | Ajout du comparatif SCA          |
++---------+------------+----------------+----------------------------------+
 | 2.0     | 16/12/2011 | Thomas Calmant | Définition plus complète,        |
 |         |            |                | Description de l'implémentation, |
 |         |            |                | Perspectives                     |
