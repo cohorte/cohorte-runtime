@@ -161,19 +161,6 @@ public class SignalsDirectory extends CPojoBase implements ISignalsDirectory {
     public String[] getIsolates(final EEmitterTargets aTargets) {
 
         switch (aTargets) {
-
-        case FORKER: {
-            // Special case : the forker
-            final String accessStr = getIsolate(IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER);
-            if (accessStr == null) {
-                pLogger.logWarn(this, "getIsolates",
-                        "No access URL to the forker");
-                return null;
-            }
-
-            return new String[] { accessStr };
-        }
-
         case ISOLATES:
             // Non-internal isolates
             return getIsolates(getAllIsolates());
@@ -201,6 +188,21 @@ public class SignalsDirectory extends CPojoBase implements ISignalsDirectory {
 
             return accessStrings.toArray(new String[accessStrings.size()]);
         }
+
+        case FORKER: {
+            // Special case : the forker
+            final String accessStr = getIsolate(IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER);
+            if (accessStr == null) {
+                pLogger.logWarn(this, "getIsolates",
+                        "No access URL to the forker");
+                return null;
+            }
+
+            return new String[] { accessStr };
+        }
+
+        case LOCAL:
+            return new String[] { getIsolate(getCurrentIsolateId()) };
         }
 
         // Unknown target
