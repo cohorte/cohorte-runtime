@@ -195,3 +195,15 @@ les annotations non gérées.
 | @Destroy                     | @Invalidate                       | Méthode appelée quand le composant est terminé   |
 +------------------------------+-----------------------------------+--------------------------------------------------+
 
+
+Références
+**********
+
+* `SCA Resources  <http://osoa.org/display/Main/SCA+Resources>`_
+
+  * `Introducing SCA <http://www.davidchappell.com/articles/Introducing_SCA.pdf>`_
+
+* `Service Component Architecture Specifications <http://osoa.org/display/Main/Service+Component+Architecture+Specifications>`_
+
+  * `SCA Assembly Model V1.00 <http://osoa.org/download/attachments/35/SCA_AssemblyModel_V100.pdf?version=1>`_
+  * `SCA Java Common Annotations and APIs V1.00 <http://osoa.org/download/attachments/35/SCA_JavaAnnotationsAndAPIs_V100.pdf?version=1>`_
