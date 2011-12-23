@@ -139,9 +139,13 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
 
         pFactories.put(factoryName, aFactory);
 
-        // Signal the arrival to monitors
-        pSignalBroadcaster.sendData(
-                ISignalBroadcaster.EEmitterTargets.MONITORS,
+        // Signal the arrival to others
+        pSignalBroadcaster.sendData(ISignalBroadcaster.EEmitterTargets.ALL,
+                ComposerAgentSignals.SIGNAL_ISOLATE_ADD_FACTORY,
+                new String[] { factoryName });
+
+        // ... and to me if I'm alone...
+        pSignalBroadcaster.sendData(ISignalBroadcaster.EEmitterTargets.LOCAL,
                 ComposerAgentSignals.SIGNAL_ISOLATE_ADD_FACTORY,
                 new String[] { factoryName });
 
@@ -381,11 +385,12 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
             try {
                 if (signalContent instanceof String[]) {
                     // Only names
-                    stopComponents((String[]) signalContent);
+                    stopComponents(signalSender, (String[]) signalContent);
 
                 } else if (signalContent instanceof ComponentBean[]) {
                     // Beans
-                    stopComponents((ComponentBean[]) signalContent);
+                    stopComponents(signalSender,
+                            (ComponentBean[]) signalContent);
                 }
 
             } catch (final Exception e) {
@@ -506,8 +511,7 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
         resultMap.put(ComposerAgentSignals.RESULT_KEY_FAILED, failedArray);
 
         // Send the signal
-        pSignalBroadcaster.sendData(
-                ISignalBroadcaster.EEmitterTargets.MONITORS,
+        pSignalBroadcaster.sendData(aIsolateId,
                 ComposerAgentSignals.SIGNAL_RESPONSE_INSTANTIATE_COMPONENTS,
                 resultMap);
     }
@@ -584,8 +588,11 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
         resultMap.put(ComposerAgentSignals.COMPONENT_CHANGED_KEY_STATE,
                 newState);
 
-        pSignalBroadcaster.sendData(
-                ISignalBroadcaster.EEmitterTargets.MONITORS,
+        // Send the signal
+        pSignalBroadcaster.sendData(ISignalBroadcaster.EEmitterTargets.ALL,
+                ComposerAgentSignals.SIGNAL_COMPONENT_CHANGED, resultMap);
+
+        pSignalBroadcaster.sendData(ISignalBroadcaster.EEmitterTargets.LOCAL,
                 ComposerAgentSignals.SIGNAL_COMPONENT_CHANGED, resultMap);
     }
 
@@ -593,10 +600,13 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
      * Tries to stop the given components in the current isolate, then sends a
      * signal to the monitors with the result.
      * 
+     * @param aIsolateId
+     *            The isolate that sent the stop request
      * @param aComponents
      *            Components to stop in the isolate
      */
-    protected void stopComponents(final ComponentBean[] aComponents) {
+    protected void stopComponents(final String aIsolateId,
+            final ComponentBean[] aComponents) {
 
         final String[] componentsNames = new String[aComponents.length];
 
@@ -605,17 +615,20 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
             componentsNames[i] = aComponents[i].getName();
         }
 
-        stopComponents(componentsNames);
+        stopComponents(aIsolateId, componentsNames);
     }
 
     /**
      * Tries to stop the given components in the current isolate, then sends a
-     * signal to the monitors with the result.
+     * signal to answer to the composer.
      * 
+     * @param aIsolateId
+     *            The isolate that sent the stop request
      * @param aComponents
      *            Names if the components to stop in the isolate
      */
-    protected void stopComponents(final String[] aComponents) {
+    protected void stopComponents(final String aIsolateId,
+            final String[] aComponents) {
 
         // List of the successfully stopped components
         final List<String> stoppedComponents = new ArrayList<String>(
@@ -660,8 +673,7 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
         resultMap.put(ComposerAgentSignals.RESULT_KEY_UNKNOWN, failedArray);
 
         // Send the signal
-        pSignalBroadcaster.sendData(
-                ISignalBroadcaster.EEmitterTargets.MONITORS,
+        pSignalBroadcaster.sendData(aIsolateId,
                 ComposerAgentSignals.SIGNAL_RESPONSE_INSTANTIATE_COMPONENTS,
                 resultMap);
     }
@@ -680,9 +692,12 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
         // Remove the factory from the map
         pFactories.remove(factoryName);
 
-        // Signal the removal to monitors
-        pSignalBroadcaster.sendData(
-                ISignalBroadcaster.EEmitterTargets.MONITORS,
+        // Signal the removal to others
+        pSignalBroadcaster.sendData(ISignalBroadcaster.EEmitterTargets.ALL,
+                ComposerAgentSignals.SIGNAL_ISOLATE_REMOVE_FACTORY,
+                new String[] { factoryName });
+
+        pSignalBroadcaster.sendData(ISignalBroadcaster.EEmitterTargets.LOCAL,
                 ComposerAgentSignals.SIGNAL_ISOLATE_REMOVE_FACTORY,
                 new String[] { factoryName });
     }
@@ -699,8 +714,10 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
             final ISignalBroadcaster aSignalBroadcaster) {
 
         // Send a last signal to monitors to forget this agent
-        pSignalBroadcaster.sendData(
-                ISignalBroadcaster.EEmitterTargets.MONITORS,
+        pSignalBroadcaster.sendData(ISignalBroadcaster.EEmitterTargets.ALL,
+                ComposerAgentSignals.SIGNAL_ISOLATE_FACTORIES_GONE, null);
+
+        pSignalBroadcaster.sendData(ISignalBroadcaster.EEmitterTargets.LOCAL,
                 ComposerAgentSignals.SIGNAL_ISOLATE_FACTORIES_GONE, null);
     }
 

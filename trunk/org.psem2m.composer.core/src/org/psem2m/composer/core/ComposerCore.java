@@ -416,8 +416,11 @@ public class ComposerCore extends CPojoBase implements IComposer,
         notifyCompositionEvent(ECompositionEvent.ADD, aComponentsSetBean);
 
         // Send a signal with all components in an array
-        pSignalBroadcaster.sendData(
-                ISignalBroadcaster.EEmitterTargets.ISOLATES,
+        pSignalBroadcaster.sendData(ISignalBroadcaster.EEmitterTargets.ALL,
+                ComposerAgentSignals.SIGNAL_CAN_HANDLE_COMPONENTS, components);
+
+        // Send a local signal, in the case we also have an agent
+        pSignalBroadcaster.sendData(ISignalBroadcaster.EEmitterTargets.LOCAL,
                 ComposerAgentSignals.SIGNAL_CAN_HANDLE_COMPONENTS, components);
     }
 
@@ -853,6 +856,10 @@ public class ComposerCore extends CPojoBase implements IComposer,
                 .toArray(new String[0]);
 
         pSignalBroadcaster.sendData(EEmitterTargets.ALL,
+                ComposerAgentSignals.SIGNAL_STOP_COMPONENTS,
+                remainingComponents);
+
+        pSignalBroadcaster.sendData(EEmitterTargets.LOCAL,
                 ComposerAgentSignals.SIGNAL_STOP_COMPONENTS,
                 remainingComponents);
 
