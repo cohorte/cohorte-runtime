@@ -179,6 +179,13 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
     public boolean sendData(final String aIsolateId, final String aSignalName,
             final Serializable aData) {
 
+        // Special case : local transmission
+        if (pDirectory.getCurrentIsolateId().equals(aIsolateId)) {
+            pReceiver.localReception(aSignalName, new LocalSignalData(
+                    aIsolateId, aData));
+            return true;
+        }
+
         if (pBroadcasters.length == 0) {
             // No providers, store the signal to emit
             synchronized (pStoredSpecificSignals) {
