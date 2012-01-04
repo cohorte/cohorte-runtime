@@ -226,14 +226,17 @@ Il peut être :
    suivante.
 
 
-Conversion automatisée
-**********************
+Conversion automatisée des classes Java
+***************************************
 
 Un projet possible de PSEM2M serait de convertir automatiquement des classes
 Java possédant des annotations SCA en composants iPOJO.
 
 Pour cela, il faudrait utiliser la table de conversion suivante, en ignorant
 les annotations non gérées.
+
+.. tabularcolumns:: |p{3cm}|p{3cm}|p{8cm}|
+
 
 +------------------------------+-----------------------------------+--------------------------------------------------+
 | Annotation SCA               | Annotation iPOJO                  | Commentaires                                     |
@@ -253,8 +256,304 @@ les annotations non gérées.
 +------------------------------+-----------------------------------+--------------------------------------------------+
 
 
+Lecture d'une composition SCA
+*****************************
+
+Cette section décrit des méthodes possibles pour charger une composition SCA.
+
+Le préfixe ``sca`` peut décrire l'un des espaces de nommage XML suivant, selon
+la version du standard SCA utilisée :
+
+.. tabularcolumns:: |p{4cm}|p{12cm}|
+
++---------+--------------------------------------------------+
+| SCA 1.0 | http://www.osoa.org/xmlns/sca/1.0                |
++---------+--------------------------------------------------+
+| SCA 1.1 | http://docs.oasis-open.org/ns/opencsa/sca/200912 |
++---------+--------------------------------------------------+
+
+La dernière partie de l'espace de nommage pour SCA 1.1 contenant une date,
+celle-ci peut varier en fonction de la période d'écriture du fichier source.
+
+
+Comment *parser* une composition SCA ?
+======================================
+
+La racine d'une composition SCA est un domaine, dans lequel sont déployés les
+*composites*.
+Un domaine peut être lui-même considéré comme un *composite* logique.
+
+
+Inclusion de *composites*
+-------------------------
+
+Dans les standard SCA, chaque *composite* est décrit dans un fichier XML qui
+lui est propre.
+Il est possible d'aggréger plusieurs fichiers *.composite* à l'aide de la balise
+``<sca:include name="xml_ns:Name" />``; tous les composants des fichiers
+inclus se retrouvent alors dans un même *composite* logique.
+
+
+Gestion des extensions XML
+--------------------------
+
+Le standard SCA se base sur les capacités d'extension des schémas XML pour
+autoriser la définition de nouveaux noeuds pour décrire de nouveaux types de :
+
+* binding, ayant pour type de base ``sca:Binding``
+* interface, ayant pour type de base ``sca:Interface``
+* implémentation, ayant pour type de base ``sca:Implementation``
+
+
+La lecture d'un fichier *.composite* doit se faire avec un *parser* supportant
+le standard DOM niveau 3.
+
+Celui-ci définit une méthode ``Element.getSchemaTypeInfo()``, renvoyant un objet
+de type ``TypeInfo`` qui permet de tester si le type de l'élément traité hérite
+d'un autre type XML, à l'aide de la méthode ``TypeInfo.isDerivedFrom()``.
+
+La bibliothèque Xerces, par exemple, gère le standard DOM niveau 3.
+
+
+Étapes de lecture
+=================
+
+Pour pouvoir lire une composition SCA, il est nécessaire de connaitre :
+
+* les dossiers sources : ces dossiers contiennent les fichiers *.composite*
+* le *composite* racine : c'est à partir de ce *composite* que sera chargé
+  la représentation SCA.
+
+
+La représentation d'une composition SCA doit être dynamique, principalement pour
+gérer les extensions XML, et doit conserver un maximum d'informations
+(type, *namespace* d'une balise ou d'un attribut...).
+
+Pour gagner en simplicité de représentation et d'implémentation, il serait
+intéressant de lire une réprésentation SCA en plusieurs étapes :
+
+#. Lire les fichiers *.composite* tels quel et préparer un annuaire conservant
+   le nom de chaque composite et celui des composants qu'il contient. Il peut
+   également être utile d'y conserver la liste des références et services
+   promus.
+
+#. Résoudre les liens entre fichiers (références, services, ...)
+
+#. Effectuer l'inclusion des composites (balise ``include``) et mettre à jour
+   les liens entre les fichiers.
+   Revenir à l'étape 2 si au moins une inclusion a été faite.
+
+#. Hiérarchisation de la composition :
+
+   Pour chaque composant du composite racine :
+
+      * Si son implémentation est un composite : hiérarchiser ce composite et
+        ses composants (récursion); remplacer ce composant par sa réprésentation
+        en composite.
+
+      * Sinon, conserver la réprésentation du composant
+
+#. Résolution des liens directs entre références et services dans un annuaire
+   à part, afin de ne pas modifier la réprésentation "pure" de la composition
+   SCA.
+
+
+La résolution des liens entre références et services doit prendre en compte les
+*wires* de chaque *composite*, ainsi que de l'attribut *target* de chaque
+référence.
+
+
+Modèles de données
+==================
+
+Modèle de données
+-----------------
+
+Il est nécessaire de conserver toutes les informations des noeuds XML décrivant
+les *composites* et les composants.
+De cette manière, il est toujours possible de retrouver des attributs non
+standards lors du traitement d'un noeud dont le type est une extension de SCA.
+
+Les types à représenter sont décrits ci après.
+
+
+Composite
+^^^^^^^^^
+
+.. tabularcolumns:: |p{3cm}|p{3cm}|p{9cm}|
+
++------------+-----------+---------------------------------------------+
+| Attribut   | Type      | Description                                 |
++============+===========+=============================================+
+| components | Liste     | Liste des composants du composite           |
++------------+-----------+---------------------------------------------+
+| composites | Liste     | Liste des sous-composites                   |
++------------+-----------+---------------------------------------------+
+| name       | String    | Nom du composite                            |
++------------+-----------+---------------------------------------------+
+| parent     | Composite | Composite père (nul pour la racine)         |
++------------+-----------+---------------------------------------------+
+| properties | Liste     | Liste des propriétés (valeurs par défaut)   |
++------------+-----------+---------------------------------------------+
+| references | Liste     | Liste des références promues                |
++------------+-----------+---------------------------------------------+
+| services   | Liste     | Liste des services promus                   |
++------------+-----------+---------------------------------------------+
+| wires      | Liste     | Liste des liens définis au niveau composite |
++------------+-----------+---------------------------------------------+
+| xmlElement | Element   | Element DOM décrivant le composant          |
++------------+-----------+---------------------------------------------+
+
+
+Composant
+^^^^^^^^^
+
+.. tabularcolumns:: |p{3cm}|p{3cm}|p{9cm}|
+
++----------------+----------------+-------------------------------------------+
+| Attribut       | Type           | Description                               |
++================+================+===========================================+
+| implementation | Implementation | Implémentation du composant               |
++----------------+----------------+-------------------------------------------+
+| name           | String         | Nom du composant                          |
++----------------+----------------+-------------------------------------------+
+| parent         | Composite      | Composite père                            |
++----------------+----------------+-------------------------------------------+
+| properties     | Liste          | Liste des propriétés (valeurs par défaut) |
++----------------+----------------+-------------------------------------------+
+| references     | Liste          | Liste des références promues              |
++----------------+----------------+-------------------------------------------+
+| services       | Liste          | Liste des services promus                 |
++----------------+----------------+-------------------------------------------+
+| xmlElement     | Element        | Element DOM décrivant le composant        |
++----------------+----------------+-------------------------------------------+
+
+
+Property
+^^^^^^^^
+
+La valeur d'une propriété peut être donnée dans le fichier XML, chargée depuis
+un fichier ou par un composite parent.
+
+.. tabularcolumns:: |p{3cm}|p{3cm}|p{9cm}|
+
++------------+---------+----------------------------------------+
+| Attribut   | Type    | Description                            |
++============+=========+========================================+
+| mustSupply | Boolean | Si vrai, la propriété doit être valuée |
+|            |         | pour que le composant soit valide      |
++------------+---------+----------------------------------------+
+| name       | String  | Nom de la propriété                    |
++------------+---------+----------------------------------------+
+| value      | String  | Valeur brute (*raw*) de la propriété   |
++------------+---------+----------------------------------------+
+| xmlElement | Element | Element DOM décrivant la propriété     |
++------------+---------+----------------------------------------+
+
+
+Reference
+^^^^^^^^^
+
+.. tabularcolumns:: |p{3cm}|p{3cm}|p{9cm}|
+
++--------------+---------------+----------------------------------------------+
+| Attribut     | Type          | Description                                  |
++==============+===============+==============================================+
+| bindings     | Liste         | Liste des bindings possibles pour accèder au |
+|              |               | service                                      |
++--------------+---------------+----------------------------------------------+
+| interface    | Interface     | Interface du service référencé               |
++--------------+---------------+----------------------------------------------+
+| multiplicity | EMultiplicity | Multiplicité de la référence                 |
++--------------+---------------+----------------------------------------------+
+| name         | String        | Nom de la référence                          |
++--------------+---------------+----------------------------------------------+
+| targets      | Liste         | Liste des cibles de la référence             |
++--------------+---------------+----------------------------------------------+
+| xmlElement   | Element       | Element DOM décrivant le composite           |
++--------------+---------------+----------------------------------------------+
+
+La multiplicité est valuée par une énumération ``EMultiplicity`` :
+
+* ``0_1`` : *0..1*
+* ``1_1`` : *1..1*
+* ``0_n`` : *0..n*
+* ``1_n`` : *1..n*
+
+
+Service
+^^^^^^^
+
+.. tabularcolumns:: |p{3cm}|p{3cm}|p{9cm}|
+
++------------+-----------+----------------------------------------------------+
+| Attribut   | Type      | Description                                        |
++============+===========+====================================================+
+| bindings   | Liste     | Liste des bindings permettant d'accèder au service |
++------------+-----------+----------------------------------------------------+
+| interface  | Interface | Interface du service                               |
++------------+-----------+----------------------------------------------------+
+| name       | String    | Nom du service                                     |
++------------+-----------+----------------------------------------------------+
+| xmlElement | Element   | Element DOM décrivant le composite                 |
++------------+-----------+----------------------------------------------------+
+
+
+Binding
+^^^^^^^
+
+Représente un binding, décrivant l'accès à un service.
+Peut être une extension du standard SCA.
+
+.. tabularcolumns:: |p{3cm}|p{3cm}|p{9cm}|
+
++------------+---------+----------------------------------------+
+| Attribut   | Type    | Description                            |
++============+=========+========================================+
+| kind       | String  | Nom de l'élément DOM (binding.ws, ...) |
++------------+---------+----------------------------------------+
+| xmlElement | Element | Element DOM décrivant le binding       |
++------------+---------+----------------------------------------+
+
+
+Implementation
+^^^^^^^^^^^^^^
+
+Représente une implémentation de composant, peut être une extension du
+standard SCA.
+
+.. tabularcolumns:: |p{3cm}|p{3cm}|p{9cm}|
+
++------------+---------+-------------------------------------------------+
+| Attribut   | Type    | Description                                     |
++============+=========+=================================================+
+| kind       | String  | Nom de l'élément DOM (implementation.java, ...) |
++------------+---------+-------------------------------------------------+
+| xmlElement | Element | Element DOM décrivant l'implémentation          |
++------------+---------+-------------------------------------------------+
+
+
+Interface
+^^^^^^^^^
+
+Représente une interface de service, peut être une extension du standard SCA.
+
+.. tabularcolumns:: |p{3cm}|p{3cm}|p{9cm}|
+
++------------+---------+--------------------------------------------+
+| Attribut   | Type    | Description                                |
++============+=========+============================================+
+| kind       | String  | Nom de l'élément DOM (interface.java, ...) |
++------------+---------+--------------------------------------------+
+| xmlElement | Element | Element DOM décrivant l'interface          |
++------------+---------+--------------------------------------------+
+
+
 Références
 **********
+
+SCA
+===
 
 * `SCA Resources  <http://osoa.org/display/Main/SCA+Resources>`_
 
@@ -264,3 +563,10 @@ Références
 
   * `SCA Assembly Model V1.00 <http://osoa.org/download/attachments/35/SCA_AssemblyModel_V100.pdf?version=1>`_
   * `SCA Java Common Annotations and APIs V1.00 <http://osoa.org/download/attachments/35/SCA_JavaAnnotationsAndAPIs_V100.pdf?version=1>`_
+
+
+XML
+===
+
+* `Create a complex type using XML Schema inheritance <http://www.techrepublic.com/blog/programming-and-development/create-a-complex-type-using-xml-schema-inheritance/759>`_
+* `XML DOM TypeInfo <http://xerces.apache.org/xerces2-j/javadocs/api/org/w3c/dom/TypeInfo.html>`_
