@@ -20,6 +20,8 @@ Versions
 +---------+------------+----------------+-----------------------------------+
 | Version | Date       | Auteur         | Commentaire                       |
 +=========+============+================+===================================+
+| 1.2     | 22/12/2011 | Thomas Calmant | Mise à jour du document           |
++---------+------------+----------------+-----------------------------------+
 | 1.1     | 14/10/2011 | Thomas Calmant | Proposition d'extensions pour des |
 |         |            |                | contenus autres que Java          |
 |         |            |                | ObjectOutputStream                |

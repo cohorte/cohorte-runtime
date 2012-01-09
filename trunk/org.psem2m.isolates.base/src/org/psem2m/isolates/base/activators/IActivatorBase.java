@@ -20,28 +20,35 @@ import org.osgi.framework.ServiceReference;
 public interface IActivatorBase {
 
     /**
+     * Retrieves all available service references
+     * 
      * @return an array containing all the available service references.
      */
     public ServiceReference[] getAllServiceReferences();
 
     /**
-     * @return
+     * Retrieves the bundle ID
+     * 
+     * @return The bundle ID
      */
     public String getBundleId();
 
     /**
-     * @return
+     * Retrieves the bundle context of the activator
+     * 
+     * @return The bundle context
      */
     public BundleContext getContext();
 
     /**
-     * retrieves the service reference of a service using the unique service id
+     * Retrieves the service reference of a service using the unique service id
      * 
      * @param aServiceId
      *            the unique service id
      * @return an instance of ServiceReference
      * 
      * @throws Exception
+     *             Something went wrong
      */
     public ServiceReference getServiceReference(Long aServiceId)
             throws Exception;

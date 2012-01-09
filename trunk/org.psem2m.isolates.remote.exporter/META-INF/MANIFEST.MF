@@ -32,14 +32,13 @@ iPOJO-Components: instance { $component="org.psem2m.isolates.remote.ex
  es.services.remote.IRemoteServiceRepository" }method { $name="createE
  ndpoints" $return="org.psem2m.isolates.services.remote.beans.RemoteSe
  rviceRegistration" $arguments="{org.osgi.framework.ServiceReference}"
-  }method { $name="destroy" }method { $name="exportService" $return="b
- oolean" $arguments="{org.osgi.framework.ServiceReference}" }method { 
- $name="invalidatePojo" }method { $name="isAlreadyExported" $return="b
- oolean" $arguments="{java.lang.Long}" }method { $name="isAlreadyExpor
- ted" $return="boolean" $arguments="{org.osgi.framework.ServiceReferen
- ce}" }method { $name="serviceChanged" $arguments="{org.osgi.framework
- .ServiceEvent}" }method { $name="setExported" $arguments="{org.osgi.f
- ramework.ServiceReference}" }method { $name="unexportService" $argume
- nts="{org.osgi.framework.ServiceReference}" }method { $name="validate
- Pojo" }}}
+  }method { $name="exportService" $return="boolean" $arguments="{org.o
+ sgi.framework.ServiceReference}" }method { $name="invalidatePojo" }me
+ thod { $name="isAlreadyExported" $return="boolean" $arguments="{java.
+ lang.Long}" }method { $name="isAlreadyExported" $return="boolean" $ar
+ guments="{org.osgi.framework.ServiceReference}" }method { $name="serv
+ iceChanged" $arguments="{org.osgi.framework.ServiceEvent}" }method { 
+ $name="setExported" $arguments="{org.osgi.framework.ServiceReference}
+ " }method { $name="unexportService" $arguments="{org.osgi.framework.S
+ erviceReference}" }method { $name="validatePojo" }}}
 

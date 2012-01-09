@@ -22,7 +22,6 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceRegistration;
-import org.ow2.chameleon.rose.RemoteConstants;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.base.activators.CPojoBase;
@@ -30,6 +29,7 @@ import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.services.remote.IRemoteServiceBroadcaster;
 import org.psem2m.isolates.services.remote.IRemoteServiceClientHandler;
 import org.psem2m.isolates.services.remote.IRemoteServiceEventListener;
+import org.psem2m.isolates.services.remote.IRemoteServicesConstants;
 import org.psem2m.isolates.services.remote.beans.RemoteServiceEvent;
 import org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration;
 
@@ -152,17 +152,6 @@ public class RemoteServiceAdapter extends CPojoBase implements
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.utilities.CXObjectBase#destroy()
-     */
-    @Override
-    public void destroy() {
-
-        // ...
-    }
-
     /**
      * Filters the given properties to remove service export ones
      * 
@@ -192,12 +181,14 @@ public class RemoteServiceAdapter extends CPojoBase implements
         }
 
         // Add "import" properties
-        filteredProperties.put(RemoteConstants.SERVICE_IMPORTED, "true");
+        filteredProperties.put(IRemoteServicesConstants.SERVICE_IMPORTED,
+                "true");
 
         final Object exportedProperty = aServiceProperties
-                .get(RemoteConstants.SERVICE_EXPORTED_CONFIGS);
+                .get(IRemoteServicesConstants.SERVICE_EXPORTED_CONFIGS);
         if (exportedProperty != null) {
-            filteredProperties.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS,
+            filteredProperties.put(
+                    IRemoteServicesConstants.SERVICE_IMPORTED_CONFIGS,
                     exportedProperty);
         }
 
@@ -216,7 +207,8 @@ public class RemoteServiceAdapter extends CPojoBase implements
         final Set<String> services = pIsolatesServices.get(aIsolateId);
         if (services == null) {
             // Nothing to do
-            pLogger.logInfo(this, "/////////", "No services for", aIsolateId);
+            pLogger.logDebug(this, "handleIsolateLost", "No services for",
+                    aIsolateId);
             return;
         }
 
@@ -228,15 +220,16 @@ public class RemoteServiceAdapter extends CPojoBase implements
             // Unregister all corresponding services
             for (final String serviceId : servicesIds) {
                 unregisterService(aIsolateId, serviceId);
-                pLogger.logInfo(this, "/////////", aIsolateId, "unregisters",
-                        serviceId);
+
+                pLogger.logDebug(this, "handleIsolateLost", aIsolateId,
+                        "unregisters", serviceId);
             }
 
             // Clear the map list (just to be sure)
             services.clear();
         }
 
-        pLogger.logInfo(this, "/////////", aIsolateId, "done !");
+        pLogger.logDebug(this, "handleIsolateLost", aIsolateId, "handled.");
     }
 
     /*
@@ -248,7 +241,7 @@ public class RemoteServiceAdapter extends CPojoBase implements
     @Override
     public void handleRemoteEvent(final RemoteServiceEvent aServiceEvent) {
 
-        pLogger.logInfo(this, "handleRemoteEvent",
+        pLogger.logDebug(this, "handleRemoteEvent",
                 "Handling remote service event :", aServiceEvent);
 
         switch (aServiceEvent.getEventType()) {
@@ -383,7 +376,6 @@ public class RemoteServiceAdapter extends CPojoBase implements
                 serviceProxy = clientHandler.getRemoteProxy(aServiceEvent);
 
             } catch (final ClassNotFoundException e) {
-                System.err.println("Class not found - " + e);
                 pLogger.logSevere(this, "registerService",
                         "Error looking for proxyfied class", e);
                 return;
@@ -459,7 +451,8 @@ public class RemoteServiceAdapter extends CPojoBase implements
                 .get(aServiceId);
         if (serviceInfo == null) {
             // Unknown service
-            pLogger.logInfo(this, "++++++++++++++++", "NO service info");
+            pLogger.logWarn(this, "unregisterService",
+                    "No service informations for", aServiceId);
             return;
         }
 
@@ -489,8 +482,6 @@ public class RemoteServiceAdapter extends CPojoBase implements
                 isolateServices.remove(aServiceId);
             }
         }
-
-        pLogger.logInfo(this, "++++++++++++++++", "DONE");
     }
 
     /*

@@ -35,8 +35,6 @@ public class MessageSender implements IMessageSender {
      * 
      * @param aOutputStream
      *            The output stream
-     * @param aHumanMode
-     *            Set human readable output mode
      */
     public MessageSender(final OutputStream aOutputStream) {
 

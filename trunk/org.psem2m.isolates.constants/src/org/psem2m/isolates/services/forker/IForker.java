@@ -23,12 +23,24 @@ public interface IForker {
      * @author Thomas Calmant
      */
     enum EProcessState {
-	ALIVE, DEAD, STUCK,
+        ALIVE, DEAD, STUCK,
     }
 
+    /**
+     * Describes the reason of a start failure
+     * 
+     * @author Thomas Calmant
+     */
     enum EStartError {
-	ALREADY_RUNNING, NO_PROCESS_REF, NO_WATCHER, RUNNER_EXCEPTION, SUCCESS, UNKNOWN_KIND
+        ALREADY_RUNNING, NO_PROCESS_REF, NO_WATCHER, RUNNER_EXCEPTION, SUCCESS, UNKNOWN_KIND
     }
+
+    /**
+     * Retrieves the name of the host machine of this forker
+     * 
+     * @return The name of the forker host
+     */
+    String getHostName();
 
     /**
      * Tests the given isolate state

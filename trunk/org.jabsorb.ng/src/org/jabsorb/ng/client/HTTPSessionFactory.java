@@ -6,7 +6,7 @@ import java.net.URI;
  * @author ogattaz
  * 
  */
-class HTTPSessionFactory implements ISessionFactory {
+public class HTTPSessionFactory implements ISessionFactory {
 
     private static IHTTPSessionProvider sHTTPSessionProvider = null;
 
@@ -22,7 +22,7 @@ class HTTPSessionFactory implements ISessionFactory {
      * @param aHTTPSessionProvider
      */
     public static void setHTTPSessionProvider(
-            IHTTPSessionProvider aHTTPSessionProvider) {
+            final IHTTPSessionProvider aHTTPSessionProvider) {
 
         sHTTPSessionProvider = aHTTPSessionProvider;
     }
@@ -52,7 +52,7 @@ class HTTPSessionFactory implements ISessionFactory {
     }
 
     @Override
-    public ISession newSession(URI uri) throws Exception {
+    public ISession newSession(final URI uri) throws Exception {
 
         if (!hasHTTPSessionProvider()) {
             throw new Exception(

@@ -96,14 +96,15 @@ iPOJO-Components: instance { $component="psem2m-runner-java-factory" $
  solateRunners" $type="org.psem2m.isolates.forker.IIsolateRunner[]" }f
  ield { $name="pRunningIsolates" $type="java.util.Map" }field { $name=
  "pSignalBroadcaster" $type="org.psem2m.isolates.services.remote.signa
- ls.ISignalBroadcaster" }method { $name="destroy" }method { $name="han
- dleIsolateLogRecord" $arguments="{java.lang.String,java.util.logging.
- LogRecord}" }method { $name="handleIsolateStatus" $arguments="{java.l
- ang.String,org.psem2m.isolates.base.isolates.boot.IsolateStatus}" }me
- thod { $name="invalidatePojo" }method { $name="ping" $return="org.pse
- m2m.isolates.services.forker.IForker$EProcessState" $arguments="{java
- .lang.String}" }method { $name="startIsolate" $return="org.psem2m.iso
- lates.services.forker.IForker$EStartError" $arguments="{org.psem2m.is
- olates.services.conf.IIsolateDescr}" }method { $name="stopIsolate" $a
- rguments="{java.lang.String}" }method { $name="validatePojo" }}}
+ ls.ISignalBroadcaster" }method { $name="destroy" }method { $name="get
+ HostName" $return="java.lang.String" }method { $name="handleIsolateLo
+ gRecord" $arguments="{java.lang.String,java.util.logging.LogRecord}" 
+ }method { $name="handleIsolateStatus" $arguments="{java.lang.String,o
+ rg.psem2m.isolates.base.isolates.boot.IsolateStatus}" }method { $name
+ ="invalidatePojo" }method { $name="ping" $return="org.psem2m.isolates
+ .services.forker.IForker$EProcessState" $arguments="{java.lang.String
+ }" }method { $name="startIsolate" $return="org.psem2m.isolates.servic
+ es.forker.IForker$EStartError" $arguments="{org.psem2m.isolates.servi
+ ces.conf.IIsolateDescr}" }method { $name="stopIsolate" $arguments="{j
+ ava.lang.String}" }method { $name="validatePojo" }}}
 

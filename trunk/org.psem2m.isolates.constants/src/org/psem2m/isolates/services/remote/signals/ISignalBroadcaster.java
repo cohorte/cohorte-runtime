@@ -6,6 +6,7 @@
 package org.psem2m.isolates.services.remote.signals;
 
 import java.io.Serializable;
+import java.util.Collection;
 
 /**
  * Represents a signal emitter service
@@ -35,6 +36,19 @@ public interface ISignalBroadcaster {
         /** All monitors (not the forker) */
         MONITORS,
     }
+
+    /**
+     * Sends the given data to the given isolates
+     * 
+     * @param aIsolateId
+     *            The target isolate ID
+     * @param aSignalName
+     *            Signal name (URI like string)
+     * @param aData
+     *            Signal content (can't be null)
+     */
+    void sendData(Collection<String> aIsolateId, String aSignalName,
+            Serializable aData);
 
     /**
      * Sends the given data to the given targets.

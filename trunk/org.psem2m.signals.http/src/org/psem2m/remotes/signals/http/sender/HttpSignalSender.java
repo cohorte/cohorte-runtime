@@ -11,11 +11,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
@@ -26,11 +25,9 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.osgi.service.log.LogService;
 import org.psem2m.isolates.base.activators.CPojoBase;
-import org.psem2m.isolates.constants.IPlatformProperties;
-import org.psem2m.isolates.services.conf.IIsolateDescr;
-import org.psem2m.isolates.services.conf.ISvcConfig;
 import org.psem2m.isolates.services.remote.signals.ISignalBroadcastProvider;
 import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
+import org.psem2m.isolates.services.remote.signals.ISignalsDirectory;
 import org.psem2m.remotes.signals.http.HttpSignalData;
 import org.psem2m.remotes.signals.http.IHttpSignalsConstants;
 
@@ -45,9 +42,9 @@ import org.psem2m.remotes.signals.http.IHttpSignalsConstants;
 public class HttpSignalSender extends CPojoBase implements
         ISignalBroadcastProvider {
 
-    /** Configuration service, injected by iPOJO */
+    /** Signal directory */
     @Requires
-    private ISvcConfig pConfiguration;
+    private ISignalsDirectory pDirectory;
 
     /** Thread pool */
     private ExecutorService pExecutor;
@@ -56,71 +53,8 @@ public class HttpSignalSender extends CPojoBase implements
     @Requires
     private LogService pLogger;
 
-    /**
-     * Default constructor
-     */
-    public HttpSignalSender() {
-
-        super();
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.utilities.CXObjectBase#destroy()
-     */
-    @Override
-    public void destroy() {
-
-        // ...
-    }
-
-    /**
-     * Retrieves the list of all non-internal isolates, testing whether the ID
-     * starts with {@link IPlatformProperties#SPECIAL_ISOLATE_ID_FORKER} or not.
-     * 
-     * @return All non-internal isolates ID (never null)
-     */
-    protected String[] getAllIsolates() {
-
-        final List<String> isolatesList = new ArrayList<String>();
-
-        for (String isolateId : pConfiguration.getApplication().getIsolateIds()) {
-
-            if (isValidIsolate(isolateId)
-                    && !isolateId
-                            .startsWith(IPlatformProperties.SPECIAL_INTERNAL_ISOLATES_PREFIX)) {
-                // The isolate ID doesn't have the internal prefix
-                isolatesList.add(isolateId);
-            }
-        }
-
-        return isolatesList.toArray(new String[0]);
-    }
-
-    /**
-     * Retrieves the list of all internal isolates, except the forker, testing
-     * whether the ID starts with
-     * {@link IPlatformProperties#SPECIAL_ISOLATE_ID_FORKER} or not.
-     * 
-     * @return All monitors isolates ID (never null)
-     */
-    protected String[] getAllMonitors() {
-
-        final List<String> monitorsList = new ArrayList<String>();
-
-        for (String isolateId : pConfiguration.getApplication().getIsolateIds()) {
-
-            if (isValidIsolate(isolateId)
-                    && isolateId
-                            .startsWith(IPlatformProperties.SPECIAL_INTERNAL_ISOLATES_PREFIX)) {
-
-                monitorsList.add(isolateId);
-            }
-        }
-
-        return monitorsList.toArray(new String[0]);
-    }
+    /** Flag to indicate if the logger is accessible or not */
+    private AtomicBoolean pLoggerAccessible = new AtomicBoolean(false);
 
     /**
      * Data sending core method. Starts as many threads as URLs to avoid time
@@ -138,9 +72,10 @@ public class HttpSignalSender extends CPojoBase implements
         }
 
         // Prepare the real signal data object
-        final HttpSignalData sentObject = new HttpSignalData(aData);
+        final HttpSignalData sentObject = new HttpSignalData(
+                pDirectory.getCurrentIsolateId(), aData);
 
-        for (URL targetUrl : aUrls) {
+        for (final URL targetUrl : aUrls) {
             // Use threads to parallelize the sending process
             pExecutor
                     .execute(new HttpSenderThread(this, targetUrl, sentObject));
@@ -157,7 +92,47 @@ public class HttpSignalSender extends CPojoBase implements
     public void invalidatePojo() throws BundleException {
 
         pExecutor.shutdown();
+
         pLogger.log(LogService.LOG_INFO, "HTTP Signal Sender Gone");
+        pLoggerAccessible.set(false);
+    }
+
+    /**
+     * Joins the isolate access string and the signal name and converts the
+     * result to an URL object.
+     * 
+     * @param aAccessString
+     *            An isolate access string
+     * @param aSignalName
+     *            A signal name
+     * @return The corresponding URL, null on error
+     */
+    protected URL isolateAccessToUrl(final String aAccessString,
+            final URI aSignalName) {
+
+        if (aAccessString == null || aSignalName == null) {
+            return null;
+        }
+
+        // Construct the URI behind the URL
+        final StringBuilder urlBuilder = new StringBuilder(aAccessString);
+
+        // Add the servlet alias URI
+        urlBuilder.append(IHttpSignalsConstants.RECEIVER_SERVLET_ALIAS);
+
+        // Add the signal name
+        urlBuilder.append(aSignalName.normalize());
+
+        try {
+            // Return the corresponding URL
+            return new URL(urlBuilder.toString());
+
+        } catch (final MalformedURLException e) {
+            pLogger.log(LogService.LOG_ERROR, "Can't prepare access URL '"
+                    + urlBuilder + "'", e);
+        }
+
+        return null;
     }
 
     /**
@@ -171,34 +146,13 @@ public class HttpSignalSender extends CPojoBase implements
      */
     protected URL isolateIdToUrl(final String aIsolateId, final URI aSignalName) {
 
-        final IIsolateDescr isolate = pConfiguration.getApplication()
-                .getIsolate(aIsolateId);
-        if (isolate == null || aSignalName == null) {
+        // Get the access string
+        final String isolateAccess = pDirectory.getIsolate(aIsolateId);
+        if (isolateAccess == null || isolateAccess.trim().isEmpty()) {
             return null;
         }
 
-        // Construct the URI behind the URL
-        final StringBuilder urlBuilder = new StringBuilder(
-                isolate.getAccessUrl());
-
-        // Add the servlet alias URI
-        urlBuilder.append(IHttpSignalsConstants.RECEIVER_SERVLET_ALIAS);
-
-        // Add the signal name
-        urlBuilder.append(aSignalName.normalize());
-
-        try {
-            // Return the corresponding URL
-            return new URL(urlBuilder.toString());
-
-        } catch (MalformedURLException e) {
-            pLogger.log(
-                    LogService.LOG_ERROR,
-                    "Can't prepare access URL for isolate '" + aIsolateId + "'",
-                    e);
-        }
-
-        return null;
+        return isolateAccessToUrl(isolateAccess, aSignalName);
     }
 
     /**
@@ -214,40 +168,21 @@ public class HttpSignalSender extends CPojoBase implements
     protected URL[] isolatesIdsToUrl(final String[] aIsolatesIds,
             final URI aSignalName) {
 
+        if (aIsolatesIds == null) {
+            return null; // new URL[0];
+        }
+
         final List<URL> isolateUrls = new ArrayList<URL>(aIsolatesIds.length);
 
         // Compute isolates URL list
-        for (String isolateId : aIsolatesIds) {
+        for (final String isolateId : aIsolatesIds) {
             final URL isolateUrl = isolateIdToUrl(isolateId, aSignalName);
             if (isolateUrl != null) {
                 isolateUrls.add(isolateUrl);
             }
         }
 
-        return isolateUrls.toArray(new URL[0]);
-    }
-
-    /**
-     * Tests if the given isolate ID can be used in a "getAllXXX" method.
-     * Returns false if the isolate ID is the current one or the forker one.
-     * 
-     * @param aIsolateId
-     *            The isolate ID
-     * @return True if the isolate ID can be used
-     */
-    protected boolean isValidIsolate(final String aIsolateId) {
-
-        if (aIsolateId == null || aIsolateId.isEmpty()) {
-            return false;
-        }
-
-        // Isolate ID can change on slave agent order
-        final String currentIsolateId = System
-                .getProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID);
-
-        return !aIsolateId
-                .equals(IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER)
-                && !aIsolateId.equals(currentIsolateId);
+        return isolateUrls.toArray(new URL[isolateUrls.size()]);
     }
 
     /**
@@ -261,7 +196,9 @@ public class HttpSignalSender extends CPojoBase implements
     protected void logSenderThreadError(final String aMessage,
             final Exception aException) {
 
-        pLogger.log(LogService.LOG_WARNING, aMessage, aException);
+        if (pLoggerAccessible.get()) {
+            pLogger.log(LogService.LOG_WARNING, aMessage, aException);
+        }
     }
 
     /*
@@ -280,9 +217,9 @@ public class HttpSignalSender extends CPojoBase implements
         // Find the URLs corresponding to targets
         final URL[] targetsUrl;
         try {
-            targetsUrl = targetToUrl(aTargets, new URI(aSignalName));
+            targetsUrl = targetsToUrl(aTargets, new URI(aSignalName));
 
-        } catch (URISyntaxException e) {
+        } catch (final URISyntaxException e) {
             pLogger.log(LogService.LOG_ERROR, "Invalid signal name '"
                     + aSignalName + "' for targets '" + aTargets + "'", e);
             return;
@@ -307,7 +244,7 @@ public class HttpSignalSender extends CPojoBase implements
         try {
             isolateUrl = isolateIdToUrl(aIsolateId, new URI(aSignalName));
 
-        } catch (URISyntaxException e) {
+        } catch (final URISyntaxException e) {
             pLogger.log(LogService.LOG_ERROR, "Invalid signal name '"
                     + aSignalName + "' for isolate '" + aIsolateId + "'", e);
             return false;
@@ -322,67 +259,42 @@ public class HttpSignalSender extends CPojoBase implements
     }
 
     /**
-     * Converts a target value into an access URLs array.
+     * Generates the signal URLs for the given predefined targets. Ignores
+     * errors of URL generation. Returns null if the parameters are invalid or
+     * if no isolate corresponds to the target.
      * 
      * @param aTargets
-     *            Signal targets
+     *            Predefined targets
      * @param aSignalName
-     *            Signal name
-     * @return Corresponding URLs, null on error
+     *            The signal name
+     * @return The generated URLs, null on error.
      */
-    protected URL[] targetToUrl(
+    protected URL[] targetsToUrl(
             final ISignalBroadcaster.EEmitterTargets aTargets,
             final URI aSignalName) {
 
-        switch (aTargets) {
+        if (aTargets == null || aSignalName == null) {
+            return null;
+        }
 
-        case FORKER: {
-            // Special case : the forker
-            final URL forkerUrl = isolateIdToUrl(
-                    IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER, aSignalName);
+        final String[] isolatesAccesses = pDirectory.getIsolates(aTargets);
+        if (isolatesAccesses == null) {
+            return null;
+        }
 
-            if (forkerUrl == null) {
-                pLogger.log(LogService.LOG_ERROR,
-                        "Can't compute the forker access URL.");
-                return null;
+        final List<URL> isolateUrls = new ArrayList<URL>();
+
+        // Prepare all URls
+        for (final String isolateAccess : isolatesAccesses) {
+
+            final URL isolateUrl = isolateAccessToUrl(isolateAccess,
+                    aSignalName);
+            if (isolateUrl != null) {
+                isolateUrls.add(isolateUrl);
             }
-
-            return new URL[] { forkerUrl };
         }
 
-        case ISOLATES:
-            // Non-internal isolates
-            return isolatesIdsToUrl(getAllIsolates(), aSignalName);
-
-        case MONITORS:
-            // All monitors
-            return isolatesIdsToUrl(getAllMonitors(), aSignalName);
-
-        case ALL: {
-            // Monitors and isolates
-            final Set<String> allIsolates = pConfiguration.getApplication()
-                    .getIsolateIds();
-            final Set<URL> allUrls = new HashSet<URL>(allIsolates.size());
-
-            for (String isolateId : allIsolates) {
-
-                // Do not include the forker nor the current isolate
-                if (isValidIsolate(isolateId)) {
-
-                    final URL isolateUrl = isolateIdToUrl(isolateId,
-                            aSignalName);
-                    if (isolateUrl != null) {
-                        allUrls.add(isolateUrl);
-                    }
-                }
-            }
-
-            return allUrls.toArray(new URL[0]);
-        }
-        }
-
-        // Unknown target
-        return null;
+        return isolateUrls.toArray(new URL[isolateUrls.size()]);
     }
 
     /*
@@ -395,6 +307,8 @@ public class HttpSignalSender extends CPojoBase implements
     public void validatePojo() throws BundleException {
 
         pExecutor = Executors.newCachedThreadPool();
+
+        pLoggerAccessible.set(true);
         pLogger.log(LogService.LOG_INFO, "HTTP Signal Sender Ready");
     }
 }

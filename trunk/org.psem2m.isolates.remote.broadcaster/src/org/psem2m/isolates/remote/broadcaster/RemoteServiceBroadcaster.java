@@ -42,24 +42,14 @@ public class RemoteServiceBroadcaster extends CPojoBase implements
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.utilities.CXObjectBase#destroy()
-     */
-    @Override
-    public void destroy() {
-
-        // ...
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
      * @see org.psem2m.isolates.base.activators.CPojoBase#invalidatePojo()
      */
     @Override
     @Invalidate
     public void invalidatePojo() throws BundleException {
 
-        pLogger.log(LogService.LOG_INFO, "RSB Gone");
+        pLogger.log(LogService.LOG_INFO,
+                "PSEM2M Remote Service Broadcaster Gone");
     }
 
     /*
@@ -98,6 +88,7 @@ public class RemoteServiceBroadcaster extends CPojoBase implements
     @Validate
     public void validatePojo() throws BundleException {
 
-        pLogger.log(LogService.LOG_INFO, "RSB Ready");
+        pLogger.log(LogService.LOG_INFO,
+                "PSEM2M Remote Service Broadcaster Ready");
     }
 }

@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: PSEM2M - Composer Agent
+Bundle-Name: PSEM2M - Composer Agent (iPOJO)
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: org.psem2m.composer.agent
 Bundle-Vendor: isandlaTech.com
@@ -52,10 +52,11 @@ iPOJO-Components: instance { $component="org.psem2m.composer.agent.imp
  stantiateComponents" $arguments="{java.lang.String,org.psem2m.compose
  r.model.ComponentBean[]}" }method { $name="invalidatePojo" }method { 
  $name="stateChanged" $arguments="{org.apache.felix.ipojo.ComponentIns
- tance,int}" }method { $name="stopComponents" $arguments="{org.psem2m.
- composer.model.ComponentBean[]}" }method { $name="stopComponents" $ar
- guments="{java.lang.String[]}" }method { $name="unbindFactory" $argum
- ents="{org.apache.felix.ipojo.Factory}" }method { $name="unbindSignal
- Broadcaster" $arguments="{org.psem2m.isolates.services.remote.signals
- .ISignalBroadcaster}" }method { $name="validatePojo" }}}
+ tance,int}" }method { $name="stopComponents" $arguments="{java.lang.S
+ tring,org.psem2m.composer.model.ComponentBean[]}" }method { $name="st
+ opComponents" $arguments="{java.lang.String,java.lang.String[]}" }met
+ hod { $name="unbindFactory" $arguments="{org.apache.felix.ipojo.Facto
+ ry}" }method { $name="unbindSignalBroadcaster" $arguments="{org.psem2
+ m.isolates.services.remote.signals.ISignalBroadcaster}" }method { $na
+ me="validatePojo" }}}
 

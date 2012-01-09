@@ -7,7 +7,9 @@ package org.psem2m.isolates.base;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,6 +18,7 @@ import java.util.regex.Pattern;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceReference;
+import org.psem2m.isolates.constants.IPlatformProperties;
 
 /**
  * Various utility methods
@@ -86,6 +89,35 @@ public final class Utilities {
 
         return aClass.getResource('/' + aClass.getName().replace('.', '/')
                 + ".class");
+    }
+
+    /**
+     * Computes the current host name, by using the system properties or socket
+     * information
+     */
+    public static String getHostName() {
+
+        // Try with system property
+        String hostName = System
+                .getProperty(IPlatformProperties.PROP_PLATFORM_HOST_NAME);
+
+        if (hostName == null || hostName.trim().isEmpty()) {
+            try {
+                // Try with local host name
+                hostName = InetAddress.getLocalHost().getHostName();
+
+            } catch (final UnknownHostException e) {
+
+                hostName = null;
+            }
+        }
+
+        if (hostName == null || hostName.trim().isEmpty()) {
+            // Still null : use the standard local host name
+            return "localhost";
+        }
+
+        return hostName;
     }
 
     /**
@@ -242,14 +274,14 @@ public final class Utilities {
      * @param aDirectory
      *            Directory to delete
      */
-    public static void removeDirectory(final File aWorkingDirectory) {
+    public static void removeDirectory(final File aDirectory) {
 
-        if (!aWorkingDirectory.isDirectory()) {
+        if (!aDirectory.isDirectory()) {
             // Not a directory...
             return;
         }
 
-        for (final File subDir : aWorkingDirectory.listFiles()) {
+        for (final File subDir : aDirectory.listFiles()) {
 
             if (subDir.isDirectory()) {
                 // Recursive call
@@ -262,7 +294,7 @@ public final class Utilities {
         }
 
         // Delete the directory
-        aWorkingDirectory.delete();
+        aDirectory.delete();
     }
 
     /**

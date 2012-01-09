@@ -59,7 +59,7 @@ public class JsonConfigReader implements IConfigurationReader {
             final JSONObject aPropertiesJsonObject,
             final Properties aOverridingProperties) {
 
-        Properties overriddenProperties = parseProperties(aPropertiesJsonObject
+        final Properties overriddenProperties = parseProperties(aPropertiesJsonObject
                 .optJSONObject(IJsonConfigKeys.CONFIG_OVERRIDDEN_PROPERTIES));
 
         if (overriddenProperties == null) {
@@ -120,7 +120,7 @@ public class JsonConfigReader implements IConfigurationReader {
             final JSONObject configRoot = readJsonObjectFile(aFile);
 
             // Throws JSONException if key is not found
-            String applicationId = configRoot
+            final String applicationId = configRoot
                     .getString(IJsonConfigKeys.CONFIG_APP_ID);
 
             pApplication = new ApplicationDescription(applicationId);
@@ -131,11 +131,11 @@ public class JsonConfigReader implements IConfigurationReader {
 
             return true;
 
-        } catch (JSONException ex) {
+        } catch (final JSONException ex) {
             System.err.println("Error parsing a configuration file");
             ex.printStackTrace();
 
-        } catch (IOException e) {
+        } catch (final IOException e) {
             System.err.println("Can't access a configuration file");
             e.printStackTrace();
 
@@ -297,12 +297,19 @@ public class JsonConfigReader implements IConfigurationReader {
             }
         }
 
-        // Isolate HTTP communication host
+        // Isolate host name (also HTTP communication host name)
         String isolateHost = aIsolateObject
                 .optString(IJsonConfigKeys.CONFIG_ISOLATE_HOST);
+        if (isolateHost != null) {
+            isolateHost = isolateHost.trim();
+        }
+
         if (isolateHost == null || isolateHost.isEmpty()) {
-            // Default to local host
-            isolateHost = "localhost";
+            // Invalid name
+            isolateDescription.setHostName("localhost");
+
+        } else {
+            isolateDescription.setHostName(isolateHost);
         }
 
         // Isolate HTTP communication port
@@ -317,7 +324,7 @@ public class JsonConfigReader implements IConfigurationReader {
         final StringBuilder accessUrl = new StringBuilder();
         // FIXME considers that the communication is HTTP only
         accessUrl.append("http://");
-        accessUrl.append(isolateHost);
+        accessUrl.append(isolateDescription.getHostName());
         accessUrl.append(":");
         accessUrl.append(isolatePort);
         isolateDescription.setAccessUrl(accessUrl.toString());
@@ -411,9 +418,9 @@ public class JsonConfigReader implements IConfigurationReader {
     /**
      * Reads the given file content
      * 
-     * @param aFile
-     *            File to read
-     * @return File content
+     * @param aFileName
+     *            Path to the file to read
+     * @return The file content
      * @throws FileNotFoundException
      *             File not found
      */

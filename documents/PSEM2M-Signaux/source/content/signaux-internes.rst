@@ -28,6 +28,7 @@ Les signaux utilisés pour la gestion des isolats sont les suivants :
   Le forker est arrêté en dernier afin de pouvoir tuer les isolats qui ne
   répondent plus.
 
+
 État des isolats
 ================
 
@@ -78,25 +79,3 @@ Cet objet contient les informations suivantes :
 * une information sur la progression du lancement de l'isolat. Cette information
   n'est là que pour pondérer le statut indiqué.
 
-
-Remote Services
-***************
-
-Le *Remote Services Broadcaster* (RSB) est utilisé par le
-*Remote Services Exporter* pour signaler qu'un service est désormais exporté
-par l'isolat courant.
-À leur reception, ces signaux sont pris en charge par le
-*Remote Service Importer* (RSI) afin de tenter d'importer les services distants
-dans l'isolat ayant reçu le message.
-
-Les signaux transmis sont les suivants :
-
-* */psem2m/remote-service-broadcaster/remote-event* : notification d'un
-  évènement de service : export ou arrêt d'export d'un service externe.
-  La donnée associée est un objet ou un tableau de ``RemoteServiceEvent``.
-
-* */psem2m/remote-service-broadcaster/request-endpoints* : signal utilisé pour
-  demander à un isolat quels services il exporte.
-  L'isolat recevant ce message répond par un tableau d'objets
-  ``RemoteServiceEvent`` dans un signal
-  */psem2m/remote-service-broadcaster/remote-event*.

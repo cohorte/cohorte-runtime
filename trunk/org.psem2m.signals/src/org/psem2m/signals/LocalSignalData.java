@@ -7,7 +7,6 @@ package org.psem2m.signals;
 
 import java.io.Serializable;
 
-import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.services.remote.signals.ISignalData;
 
 /**
@@ -24,6 +23,9 @@ public class LocalSignalData implements ISignalData {
     /** The data associated to the signal */
     private final Serializable pSignalData;
 
+    /** The signal source isolate */
+    private final String pSourceIsolate;
+
     /** Signal time stamp */
     private final long pTimestamp;
 
@@ -32,9 +34,11 @@ public class LocalSignalData implements ISignalData {
      * 
      * @param aData
      *            Signal content
+     * @param aData2
      */
-    public LocalSignalData(final Serializable aData) {
+    public LocalSignalData(final String aIsolateId, final Serializable aData) {
 
+        pSourceIsolate = aIsolateId;
         pSignalData = aData;
         pTimestamp = System.currentTimeMillis();
     }
@@ -49,8 +53,7 @@ public class LocalSignalData implements ISignalData {
     @Override
     public String getIsolateSender() {
 
-        return System.getProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID,
-                "<unknown>");
+        return pSourceIsolate;
     }
 
     /*

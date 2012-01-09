@@ -6,18 +6,20 @@ Introduction
 But du document
 ***************
 
-Ce document décrit l'étude des méthodes de mise en place d'un ensemble
-de composants génériques dans la cadre d'une composition.
+Ce document décrit le fonctionnement attendu et l'implémentation de l'outil
+PSEM2M Composer.
+Celui-ci permet de déployer des *composants* à travers l'ensemble des isolats
+d'une instance de la plateforme PSEM2M.
 
 Il s'agit principalement de définir comment décrire une composition et comment
-la mettre en place à l'exécution de la plateforme à l'aide d'iPOJO.
+la mettre en place à l'exécution de la plateforme.
 
 
 Portée du document
 ******************
 
-Ce document servira de base lors de l'implémentation du mécanisme de composition
-dans la plateforme PSEM2M.
+Ce document servira de base lors de l'implémentation, de la validation et des
+extensions du mécanisme de composition dans la plateforme PSEM2M.
 
 Il est destiné :
 
@@ -30,7 +32,9 @@ Il est destiné :
 Organisation du document
 ************************
 
-Le document sera scindé en deux grandes parties :
+Le document sera scindé en quatre grandes parties :
 
 #. La définition d'une composition,
-#. Les techniques de mise en œuvre d'une composition à l'exécution.
+#. Les techniques mises en œuvre pour déployer une composition à l'exécution.
+#. Les perspectives de développement
+#. Le comparatif avec le standard SCA

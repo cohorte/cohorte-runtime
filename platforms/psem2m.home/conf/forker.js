@@ -3,7 +3,9 @@
     "kind":"felix",
     "httpPort":9001,
     "vmArgs":[
-              ],
+        "-Xms32M",
+        "-Xmx56M"
+    ],
     "bundles":[
         {
             "symbolicName":"org.apache.felix.shell"
@@ -18,13 +20,7 @@
             "from":"signals-http.js"
         },
         {
-            "from":"rose-core.js"
-        },
-        {
-            "from":"rose-client.js"
-        },
-        {
-            "from":"rose-server.js"
+            "from":"jsonrpc.js"
         },
         {
             "from":"remote-services.js"

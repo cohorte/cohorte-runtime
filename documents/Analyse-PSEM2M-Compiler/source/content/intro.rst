@@ -34,5 +34,5 @@ Organisation du document
 
 Le document sera scindé en deux grandes parties :
 
-#. La définition des fonctionnalités attendues
-#. La description des problèmes potentiels
+#. La description de l'implémentation actuelle
+#. La définition précédente de PSEM2M Compiler et ses problèmes potentiels

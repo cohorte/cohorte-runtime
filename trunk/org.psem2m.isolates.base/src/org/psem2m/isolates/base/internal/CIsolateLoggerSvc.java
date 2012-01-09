@@ -25,13 +25,17 @@ import org.psem2m.utilities.logging.IActivityLoggerBase;
 public class CIsolateLoggerSvc extends CXObjectBase implements
         IIsolateLoggerSvc {
 
+    /** The logger presence key name */
     private final static String LIB_HAS_AL = "hasActivityLogger";
 
     /** reference to the activator **/
     private IActivityLoggerBase pActivityLoggerBase = null;
 
     /**
+     * Constructor
+     * 
      * @param aActivityLoggerBase
+     *            Reference to the activator
      */
     public CIsolateLoggerSvc(final IActivityLoggerBase aActivityLoggerBase) {
 
@@ -56,7 +60,9 @@ public class CIsolateLoggerSvc extends CXObjectBase implements
     }
 
     /**
-     * @return
+     * Tests if the reference to activity logger is valid
+     * 
+     * @return True if the reference is valid
      */
     public boolean hasActivityLogger() {
 

@@ -30,12 +30,13 @@ public class BundleRef {
      * @param aBundleName
      *            The bundle name
      * @param aBundleFile
-     *            The bundle file
+     *            The bundle file (can't be null)
      */
     public BundleRef(final String aBundleName, final File aBundleFile) {
-	pBundleFile = aBundleFile;
-	pBundleName = aBundleName;
-	pBundleUri = aBundleFile.toURI();
+
+        pBundleFile = aBundleFile;
+        pBundleName = aBundleName;
+        pBundleUri = aBundleFile.toURI();
     }
 
     /**
@@ -44,38 +45,42 @@ public class BundleRef {
      * @param aBundleName
      *            The bundle name
      * @param aBundleUri
-     *            The bundle URI
+     *            The bundle URI (can't be null)
      */
     public BundleRef(final String aBundleName, final URI aBundleUri) {
-	pBundleName = aBundleName;
-	pBundleUri = aBundleUri;
+
+        pBundleName = aBundleName;
+        pBundleUri = aBundleUri;
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Retrieves the bundle File (if any)
      * 
-     * @see org.psem2m.isolates.commons.IBundleRef#getFile()
+     * @return The bundle File, or null
      */
     public File getFile() {
-	return pBundleFile;
+
+        return pBundleFile;
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Retrieves the bundle name
      * 
-     * @see org.psem2m.isolates.commons.IBundleRef#getName()
+     * @return The bundle name
      */
     public String getName() {
-	return pBundleName;
+
+        return pBundleName;
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Retrieves the bundle URI
      * 
-     * @see org.psem2m.isolates.commons.IBundleRef#getUri()
+     * @return The bundle URI
      */
     public URI getUri() {
-	return pBundleUri;
+
+        return pBundleUri;
     }
 
     /*
@@ -85,6 +90,7 @@ public class BundleRef {
      */
     @Override
     public String toString() {
-	return pBundleUri.toString();
+
+        return pBundleUri.toString();
     }
 }

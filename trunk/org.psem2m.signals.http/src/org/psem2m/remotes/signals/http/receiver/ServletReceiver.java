@@ -126,15 +126,15 @@ public class ServletReceiver extends HttpServlet {
                 return;
             }
 
-        } catch (ClassNotFoundException e) {
+        } catch (final ClassNotFoundException e) {
             aResp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                     "Class not found : " + e);
             return;
 
-        } catch (EOFException e) {
+        } catch (final EOFException e) {
             // End Of File Exception : the POST body was empty
             // WARNING: the sender in the signal data will be invalid
-            signalData = new HttpSignalData(null);
+            signalData = new HttpSignalData(null, null);
             ((HttpSignalData) signalData).setHostName(aReq.getRemoteHost());
         }
 

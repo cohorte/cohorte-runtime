@@ -27,6 +27,7 @@ import org.apache.felix.ipojo.annotations.Unbind;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.osgi.service.log.LogService;
+import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.base.isolates.IForkerHandler;
 import org.psem2m.isolates.base.isolates.IIsolateStatusEventListener;
@@ -79,11 +80,16 @@ public class MonitorCore extends CPojoBase implements
     private IForkerHandler pForkerHandler;
 
     /** The forker service */
-    @Requires(id = "forker-service", optional = true)
     private IForker pForkerSvc;
+
+    /** The current isolate host name */
+    private String pHostName;
 
     /** Stopped isolates (when platform is not running) */
     private final Set<String> pIsolatesToStop = new HashSet<String>();
+
+    /** The thread launched during a StopPlatform event */
+    private Thread pKillerThread;
 
     /** Last isolate status time stamp for each isolate */
     private final Map<String, Long> pLastIsolatesStatusUID = new HashMap<String, Long>();
@@ -147,10 +153,20 @@ public class MonitorCore extends CPojoBase implements
      * @param aForker
      *            A forker service
      */
-    @Bind(id = "forker-service")
+    @Bind(id = "forker-service", optional = true, aggregate = true)
     protected void bindForkerService(final IForker aForker) {
 
+        if (pHostName == null) {
+            pHostName = Utilities.getHostName();
+        }
+
+        if (!pHostName.equals(aForker.getHostName())) {
+            // Forker from another machine, ignore it...
+            return;
+        }
+
         // Update the service state
+        pForkerSvc = aForker;
         pPropertyForkerPresent = true;
 
         // Get the current isolate ID, to avoid running ourselves
@@ -207,6 +223,41 @@ public class MonitorCore extends CPojoBase implements
     public void destroy() {
 
         // ...
+    }
+
+    /**
+     * Retrieves the description of the given isolate ID if and only if it can
+     * be started by the current monitor.
+     * 
+     * @return The isolate description, or null
+     */
+    public IIsolateDescr getIsolateDescription(final String aIsolateId) {
+
+        if (aIsolateId == null) {
+            // Invalid ID
+            return null;
+        }
+
+        final IIsolateDescr isolateDescr = pConfiguration.getApplication()
+                .getIsolate(aIsolateId);
+        if (isolateDescr == null) {
+            // Unknown isolate
+            return null;
+        }
+
+        final String isolateHostName = isolateDescr.getHostName();
+        if (isolateHostName == null) {
+            // No host name : refuse it
+            return null;
+        }
+
+        if (!isolateHostName.equals("localhost")
+                && !isolateHostName.equals(pHostName)) {
+            // Not of our business
+            return null;
+        }
+
+        return isolateDescr;
     }
 
     /**
@@ -332,7 +383,9 @@ public class MonitorCore extends CPojoBase implements
         } else if (aSignalName
                 .equals(ISignalsConstants.MONITOR_SIGNAL_STOP_PLATFORM)) {
             // Stop everything
-            stopPlatform();
+            if (pPlatformRunning && pStopSemaphore == null) {
+                stopPlatform();
+            }
         }
     }
 
@@ -351,6 +404,21 @@ public class MonitorCore extends CPojoBase implements
         // Stop the failure handler
         pFailureHandler.stop();
         pFailureHandler = null;
+
+        if (pKillerThread != null) {
+            try {
+                // Wait for the killer
+                pKillerThread.join();
+
+            } catch (final InterruptedException e) {
+                // Ignore...
+            }
+
+            pKillerThread = null;
+        }
+
+        // Clean up host name
+        pHostName = null;
 
         pLogger.log(LogService.LOG_INFO, "PSEM2M Monitor Core Gone");
     }
@@ -487,15 +555,9 @@ public class MonitorCore extends CPojoBase implements
             return false;
         }
 
-        if (aIsolateId == null) {
-            // Invalid ID
-            return false;
-        }
-
-        final IIsolateDescr isolateDescr = pConfiguration.getApplication()
-                .getIsolate(aIsolateId);
+        final IIsolateDescr isolateDescr = getIsolateDescription(aIsolateId);
         if (isolateDescr == null) {
-            // Unknown isolate
+            // The isolate can't be started by this monitor
             return false;
         }
 
@@ -538,11 +600,25 @@ public class MonitorCore extends CPojoBase implements
         pPlatformRunning = false;
 
         // Stop the failure handler
-        pFailureHandler.stop();
+        if (pFailureHandler != null) {
+            pFailureHandler.stop();
+        }
 
         // Prepare the list of configured isolates.
         pIsolatesToStop.clear();
-        pIsolatesToStop.addAll(pConfiguration.getApplication().getIsolateIds());
+
+        // Only try to stop isolates that can be started by this monitor
+        if (pConfiguration.getApplication() != null
+                && pConfiguration.getApplication().getIsolateIds() != null) {
+
+            for (final String isolateId : pConfiguration.getApplication()
+                    .getIsolateIds()) {
+
+                if (getIsolateDescription(isolateId) != null) {
+                    pIsolatesToStop.add(isolateId);
+                }
+            }
+        }
 
         // Prepare the end semaphore
         pStopSemaphore = new Semaphore(0);
@@ -554,14 +630,14 @@ public class MonitorCore extends CPojoBase implements
 
         // Kill other monitors (not including ourselves)
         pSignalSender.sendData(ISignalBroadcaster.EEmitterTargets.MONITORS,
-                ISignalsConstants.ISOLATE_STOP_SIGNAL, null);
+                ISignalsConstants.MONITOR_SIGNAL_STOP_PLATFORM, null);
 
         // Send a stop signal to isolates
-        pSignalSender.sendData(ISignalBroadcaster.EEmitterTargets.ISOLATES,
+        pSignalSender.sendData(pIsolatesToStop,
                 ISignalsConstants.ISOLATE_STOP_SIGNAL, null);
 
-        // Finish the jobn in a new thread
-        new Thread(new Runnable() {
+        // Finish the job in a new thread
+        pKillerThread = new Thread(new Runnable() {
 
             @Override
             public void run() {
@@ -578,7 +654,9 @@ public class MonitorCore extends CPojoBase implements
                 // Finish the job
                 killRemainingIsolates();
             }
-        }).start();
+        });
+
+        pKillerThread.start();
     }
 
     /**
@@ -600,11 +678,25 @@ public class MonitorCore extends CPojoBase implements
      * @param aForker
      *            A forker service
      */
-    @Unbind(id = "forker-service")
+    @Unbind(id = "forker-service", optional = true, aggregate = true)
     protected void unbindForkerService(final IForker aForker) {
 
+        // Get the host name
+        final String hostName;
+        if (pHostName == null) {
+            hostName = Utilities.getHostName();
+
+        } else {
+            hostName = pHostName;
+        }
+
+        if (!hostName.equals(aForker.getHostName())) {
+            // Ignore other forkers
+            return;
+        }
         // Update the service state
         pPropertyForkerPresent = false;
+        pForkerSvc = null;
     }
 
     /*
@@ -615,6 +707,11 @@ public class MonitorCore extends CPojoBase implements
     @Override
     @Validate
     public void validatePojo() throws BundleException {
+
+        // Compute the host name
+        if (pHostName == null) {
+            pHostName = Utilities.getHostName();
+        }
 
         // Clear the time stamps list
         pLastIsolatesStatusUID.clear();

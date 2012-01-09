@@ -23,10 +23,9 @@ import org.apache.felix.ipojo.annotations.ServiceProperty;
 import org.apache.felix.ipojo.annotations.Unbind;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
+import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.base.activators.CPojoBase;
-import org.psem2m.isolates.loggers.ILogChannelSvc;
-import org.psem2m.isolates.loggers.ILogChannelsSvc;
 import org.psem2m.isolates.services.remote.signals.ISignalData;
 import org.psem2m.isolates.services.remote.signals.ISignalListener;
 import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
@@ -43,16 +42,12 @@ import org.psem2m.isolates.services.remote.signals.ISignalReceptionProvider;
 public class SignalReceiver extends CPojoBase implements ISignalReceiver,
         ISignalListener {
 
-    /** Log service */
-    @Requires
-    // private LogService pLogger;
-    private ILogChannelsSvc pChannels;
-
     /** Signal listeners */
     private final Map<String, Set<ISignalListener>> pListeners = new HashMap<String, Set<ISignalListener>>();
 
-    /** Logger */
-    private ILogChannelSvc pLogger;
+    /** Log service */
+    @Requires
+    private IIsolateLoggerSvc pLogger;
 
     /** Number of available providers */
     private int pNbProviders = 0;
@@ -91,17 +86,6 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver,
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.utilities.CXObjectBase#destroy()
-     */
-    @Override
-    public void destroy() {
-
-        // ...
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
      * @see org.psem2m.isolates.services.remote.signals.ISignalListener#
      * handleReceivedSignal(java.lang.String,
      * org.psem2m.isolates.services.remote.signals.ISignalData)
@@ -109,9 +93,6 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver,
     @Override
     public void handleReceivedSignal(final String aSignalName,
             final ISignalData aSignalData) {
-
-        pLogger.logInfo(this, "RECEIVED", "Signal=", aSignalName, "- Data=",
-                aSignalData);
 
         final Set<ISignalListener> signalListeners = new HashSet<ISignalListener>();
 
@@ -162,7 +143,6 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver,
         pNotificationExecutor.shutdown();
 
         pLogger.logInfo(this, "invalidatePojo", "Base Signal Receiver Gone");
-        pLogger = null;
     }
 
     /**
@@ -223,6 +203,12 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver,
         }
     }
 
+    /**
+     * Called by iPOJO when a reception provider is gone
+     * 
+     * @param aProvider
+     *            A reception provider service
+     */
     @Unbind(id = "receivers", aggregate = true)
     protected void unbindProvider(final ISignalReceptionProvider aProvider) {
 
@@ -278,12 +264,6 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver,
 
         // Set up the thread pool
         pNotificationExecutor = Executors.newCachedThreadPool();
-
-        try {
-            pLogger = pChannels.getLogChannel("RemoteServices");
-        } catch (final Exception e) {
-            e.printStackTrace();
-        }
 
         pLogger.logInfo(this, "validatePojo", "Base Signal Receiver Ready");
     }

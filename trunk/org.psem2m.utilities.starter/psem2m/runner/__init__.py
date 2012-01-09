@@ -5,6 +5,8 @@ Common classes, methods and constants for the PSEM2M starter scripts
 @author: Thomas Calmant
 """
 
+import os
+
 # ------------------------------------------------------------------------------
 
 # Bootstrap JAR file name
@@ -16,10 +18,13 @@ BOOTSTRAP_MAIN_CLASS = "org.psem2m.utilities.bootstrap.Main"
 # ------------------------------------------------------------------------------
 
 # Monitor access file (relative to PSEM2M Base)
-MONITOR_ACCESS_FILE = "var/monitor.access"
+MONITOR_ACCESS_FILE = "var" + os.sep + "monitor.access"
 
 # Monitor PID file (relative to PSEM2M Base)
-MONITOR_PID_FILE = "var/monitor.pid"
+MONITOR_PID_FILE = "var" + os.sep + "monitor.pid"
+
+# Working directory
+WORKING_DIRECTORY = "var" + os.sep + "work"
 
 # ------------------------------------------------------------------------------
 
@@ -53,6 +58,3 @@ DEFAULT_ISOLATE_ID = "org.psem2m.internals.isolates.monitor-1"
 # Stop signal
 SIGNAL_STOP = "/psem2m-signal-receiver/psem2m/platform/stop"
 
-# ------------------------------------------------------------------------------
-
-WORKING_DIRECTORY = "var/work"

@@ -61,17 +61,6 @@ public class BroadcastSignalHandler extends CPojoBase implements
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.utilities.CXObjectBase#destroy()
-     */
-    @Override
-    public void destroy() {
-
-        // ...
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
      * @see org.psem2m.isolates.services.remote.signals.ISignalListener#
      * handleReceivedSignal(java.lang.String,
      * org.psem2m.isolates.services.remote.signals.ISignalData)
@@ -191,7 +180,8 @@ public class BroadcastSignalHandler extends CPojoBase implements
 
         // Unregister the listener
         pSignalReceiver.unregisterListener(ISignalsConstants.MATCH_ALL, this);
-        pLogger.log(LogService.LOG_INFO, "RSB Handler Gone");
+        pLogger.log(LogService.LOG_INFO,
+                "PSEM2M Remote Service Broadcaster Handler Gone");
     }
 
     /*
@@ -212,6 +202,7 @@ public class BroadcastSignalHandler extends CPojoBase implements
         pSignalReceiver.registerListener(ISignalsConstants.ISOLATE_LOST_SIGNAL,
                 this);
 
-        pLogger.log(LogService.LOG_INFO, "RSB Handler Ready");
+        pLogger.log(LogService.LOG_INFO,
+                "PSEM2M Remote Service Broadcaster Handler Ready");
     }
 }

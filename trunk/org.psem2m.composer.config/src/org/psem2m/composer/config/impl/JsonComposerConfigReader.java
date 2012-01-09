@@ -147,7 +147,7 @@ public class JsonComposerConfigReader extends CPojoBase implements
     protected ComponentBean parseComponent(final String aParentName,
             final JSONObject aJsonObject) throws JSONException {
 
-        String wComponentName = aJsonObject
+        final String wComponentName = aJsonObject
                 .getString(IJsonComposerConfigConstants.COMPONENT_NAME);
 
         pLogger.logInfo(this, "parseComponent", "Name=[%s]", wComponentName);
@@ -228,13 +228,15 @@ public class JsonComposerConfigReader extends CPojoBase implements
     /**
      * Parses the given component set JSON object
      * 
-     * @param aParentName
-     *            Name of the parent component set
+     * @param aParent
+     *            The parent component set
      * @param aComponentSetNode
      *            A component set representation
      * @return The ComponentsSetBean Java bean
      * @throws JSONException
      *             An error occurred while parsing the file
+     * @throws FileNotFoundException
+     *             A referenced file is missing
      */
     protected ComponentsSetBean parseComponentSet(
             final ComponentsSetBean aParent, final JSONObject aComponentSetNode)
@@ -261,7 +263,7 @@ public class JsonComposerConfigReader extends CPojoBase implements
         if (wCompoSetFrom != null) {
 
             // Read "distant" composet
-            ComponentsSetBean wComposet = parseComponentSet(aParent,
+            final ComponentsSetBean wComposet = parseComponentSet(aParent,
                     readJsonObjectFile(wCompoSetFrom));
 
             resultSet.setComponents(wComposet.getAllComponents());
@@ -297,14 +299,16 @@ public class JsonComposerConfigReader extends CPojoBase implements
     /**
      * Parses multiple component sets
      * 
-     * @param aParentName
-     *            Name of the parent component set
+     * @param aParent
+     *            The parent component set
      * @param aJsonArray
      *            A JSON array of component sets
      * 
      * @return The parsed component sets
      * @throws JSONException
      *             Error while parsing the file
+     * @throws FileNotFoundException
+     *             A referenced file is missing
      */
     protected Collection<ComponentsSetBean> parseComponentSets(
             final ComponentsSetBean aParent, final JSONArray aJsonArray)
@@ -331,8 +335,8 @@ public class JsonComposerConfigReader extends CPojoBase implements
     /**
      * Reads the given file content
      * 
-     * @param aFile
-     *            File to read
+     * @param aFileName
+     *            Path to the file to read
      * @return File content
      * @throws FileNotFoundException
      *             File not found

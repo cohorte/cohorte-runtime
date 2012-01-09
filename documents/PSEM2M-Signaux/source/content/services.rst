@@ -138,8 +138,8 @@ De cette manière, le récepteur peut se mettre en attente d'un nouveau signal
 alors que le traitement des précédents est toujours en cours.
 
 
-Interface des abonnées
-======================
+Interface des abonnés
+=====================
 
 Un abonné à un signal doit implémenter l'interface ``ISignalListener``,
 définissant une méthode :

@@ -23,6 +23,7 @@ import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
+import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.base.bundles.BundleRef;
 import org.psem2m.isolates.base.bundles.IBundleFinderSvc;
@@ -124,9 +125,9 @@ public class CForkerHandlerSvc extends CPojoBase implements IForkerHandler,
         final Set<BundleRef> bundlesRef = new LinkedHashSet<BundleRef>(
                 isolateBundles.size());
 
-        for (IBundleDescr bundleDescr : isolateBundles) {
+        for (final IBundleDescr bundleDescr : isolateBundles) {
 
-            BundleRef ref = pBundleFinderSvc.findBundle(bundleDescr
+            final BundleRef ref = pBundleFinderSvc.findBundle(bundleDescr
                     .getSymbolicName());
 
             if (ref != null) {
@@ -166,7 +167,7 @@ public class CForkerHandlerSvc extends CPojoBase implements IForkerHandler,
             final IsolateStatus aIsolateStatus) {
 
         // Notify listeners (let them take a decision)
-        for (IIsolateStatusEventListener listener : pIsolateListeners) {
+        for (final IIsolateStatusEventListener listener : pIsolateListeners) {
             listener.handleIsolateStatusEvent(aIsolateId, aIsolateStatus);
         }
     }
@@ -242,13 +243,18 @@ public class CForkerHandlerSvc extends CPojoBase implements IForkerHandler,
             forkerCommand.add(makeJavaProperty(
                     IPlatformProperties.PROP_PLATFORM_BASE, pPlatformDirsSvc
                             .getPlatformBaseDir().getAbsolutePath()));
+
+            // Same host name than this monitor
+            forkerCommand.add(makeJavaProperty(
+                    IPlatformProperties.PROP_PLATFORM_HOST_NAME,
+                    Utilities.getHostName()));
         }
 
         // The class path
         {
             forkerCommand.add("-cp");
 
-            StringBuilder cpBuilder = new StringBuilder();
+            final StringBuilder cpBuilder = new StringBuilder();
 
             // Bootstrap
             cpBuilder.append(bootstrapJar.getAbsolutePath());
@@ -268,7 +274,7 @@ public class CForkerHandlerSvc extends CPojoBase implements IForkerHandler,
         forkerCommand.add(IBundleFinderSvc.BOOTSTRAP_MAIN_CLASS);
 
         // Prepare the process builder
-        ProcessBuilder builder = new ProcessBuilder(forkerCommand);
+        final ProcessBuilder builder = new ProcessBuilder(forkerCommand);
 
         // Compute the working directory
         final File workingDir = pPlatformDirsSvc
@@ -370,7 +376,7 @@ public class CForkerHandlerSvc extends CPojoBase implements IForkerHandler,
                 throw new NumberFormatException("Invalid port number");
             }
 
-        } catch (NumberFormatException ex) {
+        } catch (final NumberFormatException ex) {
             pLoggerSvc.logWarn(this, "setupDebugMode",
                     "Can't activate Debug Mode, invalide port number : ",
                     debugPortStr);
@@ -412,7 +418,7 @@ public class CForkerHandlerSvc extends CPojoBase implements IForkerHandler,
                 return false;
             }
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             pLoggerSvc.logSevere(this, "startForker",
                     "Error starting forker process : ", e);
             return false;
@@ -422,7 +428,7 @@ public class CForkerHandlerSvc extends CPojoBase implements IForkerHandler,
         try {
             startWatcher();
 
-        } catch (IOException e) {
+        } catch (final IOException e) {
             pLoggerSvc.logWarn(this, "startForker",
                     "Forker has been started, but its watcher failed.");
         }

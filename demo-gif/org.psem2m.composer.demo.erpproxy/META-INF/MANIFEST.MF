@@ -7,12 +7,12 @@ Bundle-Vendor: isandlaTech.com
 Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
 Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
- .ipojo.architecture;version=1.8.0, org.jabsorb.client, org.osgi.frame
- work;version=1.5.0, org.osgi.service.cm;version=1.2, org.osgi.service
- .log;version=1.3, org.psem2m.composer.demo, org.psem2m.isolates.base;
- version=1.0.0, org.psem2m.isolates.base.activators;version=1.0.0, org
- .psem2m.utilities;version=1.0.0, org.psem2m.utilities.logging;version
- =1.0.0
+ .ipojo.architecture;version=1.8.0, org.jabsorb.ng.client, org.osgi.fr
+ amework;version=1.5.0, org.osgi.service.cm;version=1.2, org.osgi.serv
+ ice.log;version=1.3, org.psem2m.composer.demo, org.psem2m.isolates.ba
+ se;version=1.0.0, org.psem2m.isolates.base.activators;version=1.0.0, 
+ org.psem2m.utilities;version=1.0.0, org.psem2m.utilities.logging;vers
+ ion=1.0.0
 iPOJO-Components: component { $classname="org.psem2m.composer.demo.erp
  proxy.ErpCaller" $name="erp-caller" $public="true" provides { $specif
  ications="{org.psem2m.composer.demo.IComponent}" }properties { proper
@@ -39,21 +39,21 @@ iPOJO-Components: component { $classname="org.psem2m.composer.demo.erp
  date" $method="validatePojo" }manipulation { $super="org.psem2m.isola
  tes.base.activators.CPojoBase" interface { $name="org.psem2m.composer
  .demo.IComponent" }field { $name="pBundleContext" $type="org.osgi.fra
- mework.BundleContext" }field { $name="pClient" $type="org.jabsorb.cli
- ent.Client" }field { $name="pController" $type="boolean" }field { $na
- me="pErpHost" $type="java.lang.String" }field { $name="pErpPort" $typ
- e="int" }field { $name="pErpUri" $type="java.lang.String" }field { $n
- ame="pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }fie
- ld { $name="pName" $type="java.lang.String" }field { $name="pPingThre
- ad" $type="java.lang.Thread" }field { $name="pProxy" $type="org.psem2
- m.composer.demo.IErpData" }method { $name="applyCart" $arguments="{or
- g.psem2m.composer.demo.IComponentContext}" }method { $name="computeRe
- sult" $return="org.psem2m.composer.demo.IComponentContext" $arguments
- ="{org.psem2m.composer.demo.IComponentContext}" }method { $name="getI
- tem" $arguments="{org.psem2m.composer.demo.IComponentContext}" }metho
- d { $name="getItems" $arguments="{org.psem2m.composer.demo.IComponent
- Context}" }method { $name="getItemsStock" $arguments="{org.psem2m.com
- poser.demo.IComponentContext}" }method { $name="invalidatePojo" }meth
- od { $name="ping" }method { $name="prepareClient" }method { $name="va
- lidatePojo" }}}
+ mework.BundleContext" }field { $name="pClient" $type="org.jabsorb.ng.
+ client.Client" }field { $name="pController" $type="boolean" }field { 
+ $name="pErpHost" $type="java.lang.String" }field { $name="pErpPort" $
+ type="int" }field { $name="pErpUri" $type="java.lang.String" }field {
+  $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }
+ field { $name="pName" $type="java.lang.String" }field { $name="pPingT
+ hread" $type="java.lang.Thread" }field { $name="pProxy" $type="org.ps
+ em2m.composer.demo.IErpData" }method { $name="applyCart" $arguments="
+ {org.psem2m.composer.demo.IComponentContext}" }method { $name="comput
+ eResult" $return="org.psem2m.composer.demo.IComponentContext" $argume
+ nts="{org.psem2m.composer.demo.IComponentContext}" }method { $name="g
+ etItem" $arguments="{org.psem2m.composer.demo.IComponentContext}" }me
+ thod { $name="getItems" $arguments="{org.psem2m.composer.demo.ICompon
+ entContext}" }method { $name="getItemsStock" $arguments="{org.psem2m.
+ composer.demo.IComponentContext}" }method { $name="invalidatePojo" }m
+ ethod { $name="ping" }method { $name="prepareClient" }method { $name=
+ "validatePojo" }}}
 

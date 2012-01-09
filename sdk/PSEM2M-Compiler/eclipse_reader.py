@@ -96,6 +96,8 @@ class EclipseProject(object):
     Represents an Eclipse project
     """
 
+    __slots__ = ("path", "name", "natures", "links", "to_remove", "classpath")
+
     def __init__(self, path):
         """
         Constructor
@@ -106,6 +108,7 @@ class EclipseProject(object):
         self.natures = []
         self.links = []
         self.to_remove = []
+        self.classpath = None
 
 
     def clean(self, remove_build_xml=False):
@@ -216,6 +219,20 @@ class EclipseProject(object):
         return "Project(name='%s')" % self.name
 
 
+class EclipseClasspath(object):
+    """
+    Eclipse Java project class path file
+    """
+
+    __slots__ = ("src", "lib")
+
+    def __init__(self):
+        """
+        Constructor
+        """
+        self.src = []
+        self.lib = []
+
 
 def get_first_child_text(element, tag_name):
     """
@@ -284,5 +301,31 @@ def read_project(project_file):
 
         project.links.append(link)
 
+    # Try to read the associated class path
+    classpath_file = os.path.join(os.path.dirname(project_file), ".classpath")
+    if os.path.exists(classpath_file):
+        project.classpath = read_project_classpath(classpath_file)
+
     return project
 
+
+def read_project_classpath(classpath_file):
+    """
+    Parse the given class path file and returns its representation
+    """
+    # Parse the XML file
+    root = dom.parse(classpath_file).documentElement
+    if root.nodeName != "classpath":
+        raise Exception("Invalid classpath file : %s", classpath_file)
+
+    classpath = EclipseClasspath()
+
+    # Entries
+    entry_nodes = root.getElementsByTagName("classpathentry")
+    for entry in entry_nodes:
+        if entry.getAttribute("kind") == "src":
+            path = entry.getAttribute("path")
+            if path:
+                classpath.src.append(path)
+
+    return classpath

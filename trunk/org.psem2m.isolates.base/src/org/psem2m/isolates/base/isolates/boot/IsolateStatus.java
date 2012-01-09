@@ -92,6 +92,24 @@ public class IsolateStatus implements Serializable {
     }
 
     /**
+     * Adds the given name - value couple to the StringBuilder
+     * 
+     * @param aBuilder
+     *            A String builder
+     * @param aName
+     *            Field name
+     * @param aValue
+     *            Field value
+     */
+    private void addJsonField(final StringBuilder aBuilder, final String aName,
+            final Object aValue) {
+
+        aBuilder.append(toJsonString(aName));
+        aBuilder.append(":");
+        aBuilder.append(toJsonString(aValue));
+    }
+
+    /**
      * Retrieves the source isolate ID
      * 
      * @return The source isolate ID
@@ -141,6 +159,26 @@ public class IsolateStatus implements Serializable {
         return pTimestamp;
     }
 
+    /**
+     * Converts the given object to a JSON value (escapes quotes)
+     * 
+     * @param aValue
+     *            An object
+     * @return The JSON String corresponding to the value
+     */
+    private String toJsonString(final Object aValue) {
+
+        final String strValue = String.valueOf(aValue);
+
+        final StringBuilder builder = new StringBuilder(strValue.length());
+        builder.append('"');
+
+        builder.append(strValue.replace("\"", "\\\""));
+
+        builder.append('"');
+        return builder.toString();
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -149,13 +187,18 @@ public class IsolateStatus implements Serializable {
     @Override
     public String toString() {
 
-        StringBuilder builder = new StringBuilder("IsolateStatus(");
-        builder.append("isolate=").append(pIsolateId);
-        builder.append(", UID=").append(pStatusUID);
-        builder.append(", state=").append(pState);
-        builder.append(", progress=").append(pProgress);
-        builder.append(", timestamp=").append(pTimestamp);
-        builder.append(")");
+        final StringBuilder builder = new StringBuilder("{");
+
+        addJsonField(builder, "type", "IsolateStatus");
+        builder.append(", ");
+        addJsonField(builder, "UID", pStatusUID);
+        builder.append(", ");
+        addJsonField(builder, "state", pState);
+        builder.append(", ");
+        addJsonField(builder, "progress", pProgress);
+        builder.append(", ");
+        addJsonField(builder, "timestamp", pTimestamp);
+        builder.append("}");
 
         return builder.toString();
     }

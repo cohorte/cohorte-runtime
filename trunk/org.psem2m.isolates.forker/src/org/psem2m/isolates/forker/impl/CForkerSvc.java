@@ -11,6 +11,7 @@ import java.util.TreeMap;
 import java.util.logging.LogRecord;
 
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
+import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.base.isolates.IIsolateOutputListener;
 import org.psem2m.isolates.base.isolates.boot.IsolateStatus;
@@ -59,6 +60,17 @@ public class CForkerSvc extends CPojoBase implements IForker,
     public void destroy() {
 
         // ...
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.services.forker.IForker#getHostName()
+     */
+    @Override
+    public String getHostName() {
+
+        return Utilities.getHostName();
     }
 
     /*
@@ -138,7 +150,7 @@ public class CForkerSvc extends CPojoBase implements IForker,
     @Override
     public EProcessState ping(final String aIsolateId) {
 
-        IProcessRef process = pRunningIsolates.get(aIsolateId);
+        final IProcessRef process = pRunningIsolates.get(aIsolateId);
         if (process == null) {
             return EProcessState.DEAD;
         }
@@ -177,7 +189,7 @@ public class CForkerSvc extends CPojoBase implements IForker,
         IIsolateRunner isolateRunner = null;
 
         final String isolateKind = aIsolateConfiguration.getKind();
-        for (IIsolateRunner availableRunner : pIsolateRunners) {
+        for (final IIsolateRunner availableRunner : pIsolateRunners) {
             if (availableRunner.canRun(isolateKind)) {
                 isolateRunner = availableRunner;
                 break;
@@ -197,7 +209,7 @@ public class CForkerSvc extends CPojoBase implements IForker,
         try {
             isolateRef = isolateRunner.startIsolate(aIsolateConfiguration);
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
             return EStartError.RUNNER_EXCEPTION;
         }
@@ -217,7 +229,7 @@ public class CForkerSvc extends CPojoBase implements IForker,
                     this, isolateId, ((ProcessRef) isolateRef).getProcess());
             watcherThread.start();
 
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             pIsolateLoggerSvc.logWarn(this, "",
 
             "Can't start the watcher for :", isolateId, ex);
@@ -240,7 +252,7 @@ public class CForkerSvc extends CPojoBase implements IForker,
 
         aIsolateId);
 
-        IProcessRef process = pRunningIsolates.get(aIsolateId);
+        final IProcessRef process = pRunningIsolates.get(aIsolateId);
         if (process != null) {
             // TODO Do it a little more softly
             ((ProcessRef) process).getProcess().destroy();
