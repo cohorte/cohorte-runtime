@@ -12,4 +12,5 @@ Export-Package: org.psem2m.utilities;version="1.0.0",
  org.psem2m.utilities.rsrc;version="1.0.0",
  org.psem2m.utilities.scripting;version="1.0.0",
  org.psem2m.utilities.system;version="1.0.0"
-Import-Package: javax.script
+Import-Package: javax.net.ssl,
+ javax.script
