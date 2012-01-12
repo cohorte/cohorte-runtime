@@ -21,7 +21,7 @@ import org.psem2m.sca.converter.core.QName;
  * @author Thomas Calmant
  */
 public class Composite extends AbstractSCAElement<Composite> implements
-        IElementContainer {
+        IElementContainer, IAlias {
 
     /** Name to use in complete name after an inclusion */
     private String pAlias;
@@ -182,6 +182,7 @@ public class Composite extends AbstractSCAElement<Composite> implements
     /**
      * @return the alias
      */
+    @Override
     public String getAlias() {
 
         if (pAlias == null) {

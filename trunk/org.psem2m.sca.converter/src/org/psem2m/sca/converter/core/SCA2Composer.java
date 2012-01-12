@@ -18,6 +18,7 @@ import org.psem2m.sca.converter.model.Composite;
 import org.psem2m.sca.converter.model.Implementation;
 import org.psem2m.sca.converter.model.Property;
 import org.psem2m.sca.converter.model.Reference;
+import org.psem2m.sca.converter.model.Service;
 
 /**
  * Converts an SCA hierarchized composition model into a PSEM2M Composer model.
@@ -77,7 +78,19 @@ public class SCA2Composer {
             // FIXME handle all targets
             final AbstractSCAElement<?> target = ref.getTargets().iterator()
                     .next();
-            wires.put(fieldName, target.getCompleteName());
+
+            if (target instanceof Component) {
+                // Reference points to a component, get the component name
+                wires.put(fieldName, target.getCompleteAlias());
+
+            } else if (target instanceof Service) {
+                // Reference points to a service, get its container name
+                final AbstractSCAElement<?> container = (AbstractSCAElement<?>) target
+                        .getContainer();
+                if (container != null) {
+                    wires.put(fieldName, container.getCompleteAlias());
+                }
+            }
         }
         psem2mComponent.setWires(wires);
 

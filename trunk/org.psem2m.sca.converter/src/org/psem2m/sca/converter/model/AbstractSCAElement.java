@@ -31,6 +31,51 @@ public abstract class AbstractSCAElement<T> {
     public abstract T duplicate();
 
     /**
+     * Retrieves the complete alias of the current element
+     * 
+     * @return The complete alias
+     */
+    public String getCompleteAlias() {
+
+        final StringBuilder builder = new StringBuilder();
+        getCompleteAlias(builder);
+        return builder.toString();
+    }
+
+    /**
+     * Prepares the complete name of the current element, using aliases if
+     * possible
+     * 
+     * @param aBuilder
+     *            The complete name string builder
+     */
+    private void getCompleteAlias(final StringBuilder aBuilder) {
+
+        // Make parent name
+        if (pContainer instanceof AbstractSCAElement) {
+            ((AbstractSCAElement<?>) pContainer).getCompleteAlias(aBuilder);
+            aBuilder.append('.');
+        }
+
+        // Get the alias
+        final String alias;
+        if (this instanceof IAlias) {
+            alias = ((IAlias) this).getAlias();
+
+        } else {
+            alias = pQName.getLocalNameLastPart();
+        }
+
+        if (alias != null) {
+            aBuilder.append(alias);
+
+        } else {
+            // Can't tell
+            aBuilder.append("<null>");
+        }
+    }
+
+    /**
      * Retrieves the complete name of the current element
      * 
      * @return The complete name
