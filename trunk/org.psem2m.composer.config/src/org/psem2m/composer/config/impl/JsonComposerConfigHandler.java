@@ -101,7 +101,7 @@ public class JsonComposerConfigHandler extends CPojoBase implements
         // Wires
         final Map<String, String> wires = aComponent.getWires();
         if (!wires.isEmpty()) {
-            json.put(COMPONENT_FIELDS_FILTERS, wires);
+            json.put(COMPONENT_WIRES, wires);
         }
 
         return json;
