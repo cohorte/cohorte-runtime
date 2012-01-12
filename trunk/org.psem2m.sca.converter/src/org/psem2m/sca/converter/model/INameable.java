@@ -5,7 +5,7 @@
  */
 package org.psem2m.sca.converter.model;
 
-import org.psem2m.sca.converter.core.QName;
+import org.psem2m.sca.converter.utils.QName;
 
 /**
  * Represents an object which can have a qualified name (almost all SCA

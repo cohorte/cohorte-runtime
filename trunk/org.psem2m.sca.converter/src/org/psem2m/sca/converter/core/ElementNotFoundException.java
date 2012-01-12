@@ -6,6 +6,7 @@
 package org.psem2m.sca.converter.core;
 
 import org.psem2m.sca.converter.model.Composite;
+import org.psem2m.sca.converter.utils.QName;
 
 /**
  * @author Thomas Calmant

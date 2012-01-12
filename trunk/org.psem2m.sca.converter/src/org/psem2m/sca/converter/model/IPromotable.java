@@ -5,7 +5,7 @@
  */
 package org.psem2m.sca.converter.model;
 
-import org.psem2m.sca.converter.core.QName;
+import org.psem2m.sca.converter.utils.QName;
 
 /**
  * Represents a SCA element which can be promoted (reference, service...)

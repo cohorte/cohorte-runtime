@@ -10,6 +10,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.psem2m.composer.model.ComponentBean;
 import org.psem2m.composer.model.ComponentsSetBean;
@@ -20,6 +22,7 @@ import org.psem2m.sca.converter.model.Implementation;
 import org.psem2m.sca.converter.model.Property;
 import org.psem2m.sca.converter.model.Reference;
 import org.psem2m.sca.converter.model.Service;
+import org.psem2m.sca.converter.utils.QName;
 
 /**
  * Converts an SCA hierarchized composition model into a PSEM2M Composer model.
@@ -27,6 +30,9 @@ import org.psem2m.sca.converter.model.Service;
  * @author Thomas Calmant
  */
 public class SCA2Composer {
+
+    /** The logger */
+    private Logger pLogger;
 
     /**
      * Converts a SCA component into a PSEM2M Composer component. Only works
@@ -43,9 +49,14 @@ public class SCA2Composer {
 
         if (implem == null
                 || !SCAConstants.IMPLEMENTATION_PSEM2M.equals(implem.getKind())) {
+            final StringBuilder builder = new StringBuilder();
+            builder.append("Not a PSEM2M implementation '");
+            builder.append(implem);
+            builder.append("' for component ");
+            builder.append(aComponent.getQualifiedName());
+
             // Not a PSEM2M implementation
-            System.err.println("Not a PSEM2M implementation - " + implem
-                    + " - for " + aComponent.getQualifiedName());
+            log(Level.INFO, builder);
             return null;
         }
 
@@ -65,7 +76,7 @@ public class SCA2Composer {
 
             final QName refName = ref.getQualifiedName();
             if (refName == null) {
-                System.err.println("Reference without name : " + ref);
+                log(Level.WARNING, "Reference without name : " + ref);
                 continue;
             }
 
@@ -80,9 +91,9 @@ public class SCA2Composer {
             case ZERO_ONE:
                 // Reference to one element
                 if (ref.getTargets().size() > 1) {
-                    System.err
-                            .println("WARNING: only one target should be indicated for "
-                                    + ref.getQualifiedName());
+                    log(Level.WARNING,
+                            "Only one target should be indicated for : "
+                                    + refName);
                 }
 
                 // Use a wire (single target)
@@ -197,5 +208,12 @@ public class SCA2Composer {
         }
 
         return null;
+    }
+
+    private void log(final Level aLevel, final CharSequence aMessage) {
+
+        if (pLogger != null) {
+            pLogger.log(aLevel, aMessage.toString());
+        }
     }
 }

@@ -16,6 +16,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.psem2m.sca.converter.model.Binding;
 import org.psem2m.sca.converter.model.Component;
@@ -28,6 +30,9 @@ import org.psem2m.sca.converter.model.Property;
 import org.psem2m.sca.converter.model.Reference;
 import org.psem2m.sca.converter.model.Service;
 import org.psem2m.sca.converter.model.Wire;
+import org.psem2m.sca.converter.utils.DOM3Parser;
+import org.psem2m.sca.converter.utils.QName;
+import org.psem2m.sca.converter.utils.SimpleFileFilter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -40,6 +45,9 @@ import org.w3c.dom.TypeInfo;
  */
 public class SCAParser implements SCAConstants {
 
+    /** The logger */
+    private Logger pLogger;
+
     /** The parser */
     private DOM3Parser pParser;
 
@@ -51,9 +59,10 @@ public class SCAParser implements SCAConstants {
      */
     public SCAParser() throws Exception {
 
+        pLogger = Logger.getLogger("SCAParser");
+
         pParser = new DOM3Parser();
         pParser.init(null);
-        pParser.shutUp();
     }
 
     /**
@@ -88,8 +97,7 @@ public class SCAParser implements SCAConstants {
                 builder.append(wire.getSourceName());
                 builder.append("'.");
 
-                // throw new InvalidAttributeValueException(builder.toString());
-                System.err.println(builder);
+                pLogger.log(Level.WARNING, builder.toString());
                 continue;
             }
 
@@ -112,8 +120,7 @@ public class SCAParser implements SCAConstants {
                 builder.append(wire.getSourceName());
                 builder.append(").");
 
-                // throw new InvalidAttributeValueException(builder.toString());
-                System.err.println(builder);
+                pLogger.log(Level.WARNING, builder.toString());
                 continue;
             }
 
@@ -127,7 +134,7 @@ public class SCAParser implements SCAConstants {
 
                 if (prevRef.equals(ref)) {
                     throw new InvalidAttributeValueException(
-                            "INFINITE LOOP due to reference : "
+                            "Infinite loop due to reference : "
                                     + ref.getQualifiedName());
                 }
 
@@ -147,7 +154,7 @@ public class SCAParser implements SCAConstants {
 
                 if (prevSvc.equals(svc)) {
                     throw new InvalidAttributeValueException(
-                            "INFINITE LOOP due to service : "
+                            "Infinite loop due to service : "
                                     + svc.getQualifiedName());
                 }
 
@@ -517,7 +524,7 @@ public class SCAParser implements SCAConstants {
         // FIXME maybe use strings instead of File objects as keys
         final Map<File, Composite> compositesMap = parseFolder(aFolder);
         if (compositesMap == null) {
-            System.err.println("Error parsing folder : " + aFolder);
+            pLogger.log(Level.SEVERE, "Error parsing folder : " + aFolder);
             return null;
         }
 
@@ -645,8 +652,8 @@ public class SCAParser implements SCAConstants {
 
             if (!childNode.getNamespaceURI().equals(SCA_NS)) {
                 // Unknown node...
-                System.out
-                        .println("Ignoring node : " + childNode.getNodeName());
+                pLogger.log(Level.FINE,
+                        "Ignoring node : " + childNode.getNodeName());
                 continue;
             }
 
@@ -1087,7 +1094,8 @@ public class SCAParser implements SCAConstants {
             final String[] uriParts = aQName.splitLocalNameLastPart();
             if (uriParts == null) {
                 // Invalid URI ?
-                System.out.println("NO PARTS in " + aQName);
+                pLogger.log(Level.WARNING, "Can't split qualified name : "
+                        + aQName);
                 return null;
             }
 
@@ -1105,8 +1113,15 @@ public class SCAParser implements SCAConstants {
             final IReferenceContainer container = findContainer(composites,
                     parentName);
             if (container == null) {
-                System.out.println("NO CONTAINER found for " + aType.toString()
-                        + " - " + aQName + " => " + parentName);
+                final StringBuilder builder = new StringBuilder();
+                builder.append("No container found for ");
+                builder.append(aType.toString());
+                builder.append(" - QName : ");
+                builder.append(aQName);
+                builder.append(", parent : ");
+                builder.append(parentName);
+
+                pLogger.log(Level.WARNING, builder.toString());
                 return null;
             }
 
@@ -1127,5 +1142,21 @@ public class SCAParser implements SCAConstants {
 
         // No match or unknown element type
         return null;
+    }
+
+    /**
+     * Sets the logger
+     * 
+     * @param aLogger
+     *            A logger
+     */
+    public void setLogger(final Logger aLogger) {
+
+        if (aLogger != null) {
+            // The SCA parser doesn't accept null loggers
+            pLogger = aLogger;
+        }
+
+        pParser.setLogger(aLogger);
     }
 }

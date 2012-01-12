@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.psem2m.sca.converter.core.QName;
+import org.psem2m.sca.converter.utils.QName;
 
 /**
  * Represents an SCA component

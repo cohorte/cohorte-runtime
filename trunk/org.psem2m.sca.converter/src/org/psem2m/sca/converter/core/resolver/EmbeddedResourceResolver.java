@@ -26,7 +26,6 @@ public class EmbeddedResourceResolver implements LSResourceResolver {
     /** The current class loader */
     private ClassLoader pLoader;
 
-    /* TODO small map known NS => XSD */
     /** Known name spaces files */
     private final Map<String, String> pNamespaces;
 

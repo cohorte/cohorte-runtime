@@ -10,7 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.psem2m.sca.converter.core.QName;
+import org.psem2m.sca.converter.utils.QName;
 
 /**
  * Represents a SCA reference

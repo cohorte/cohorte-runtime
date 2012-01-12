@@ -3,7 +3,7 @@
  * Author: Thomas Calmant
  * Date:   10 janv. 2012
  */
-package org.psem2m.sca.converter.core;
+package org.psem2m.sca.converter.utils;
 
 import java.net.MalformedURLException;
 

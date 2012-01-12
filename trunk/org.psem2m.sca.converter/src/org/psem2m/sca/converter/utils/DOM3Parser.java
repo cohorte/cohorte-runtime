@@ -3,10 +3,12 @@
  * Author: Thomas Calmant
  * Date:   6 janv. 2012
  */
-package org.psem2m.sca.converter.core;
+package org.psem2m.sca.converter.utils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.psem2m.sca.converter.core.resolver.EmbeddedResourceResolver;
 import org.w3c.dom.DOMConfiguration;
@@ -25,9 +27,11 @@ import org.w3c.dom.ls.LSParser;
  */
 public class DOM3Parser implements DOMErrorHandler {
 
+    /** The logger */
+    private Logger pLogger = Logger.getLogger("DOM3Parser");
+
     /** The DOM3 DOM3Parser */
     private LSParser pParser;
-    private boolean pShutUp;
 
     /**
      * Called to prepare the configuration of the parser, at the end of
@@ -64,7 +68,8 @@ public class DOM3Parser implements DOMErrorHandler {
     @Override
     public boolean handleError(final DOMError aError) {
 
-        if (pShutUp) {
+        if (pLogger == null) {
+            // Don't work for nothing...
             return true;
         }
 
@@ -77,22 +82,27 @@ public class DOM3Parser implements DOMErrorHandler {
         }
 
         // Error level
+        final Level level;
         final StringBuilder builder = new StringBuilder("[DOM3-");
         switch (aError.getSeverity()) {
         case DOMError.SEVERITY_ERROR:
             builder.append("error");
+            level = Level.WARNING;
             break;
 
         case DOMError.SEVERITY_FATAL_ERROR:
             builder.append("FATAL");
+            level = Level.SEVERE;
             break;
 
         case DOMError.SEVERITY_WARNING:
             builder.append("warning");
+            level = Level.WARNING;
             break;
 
         default:
             builder.append("other");
+            level = Level.INFO;
             break;
         }
 
@@ -104,7 +114,9 @@ public class DOM3Parser implements DOMErrorHandler {
         builder.append(" : ").append(aError.getMessage());
 
         // Print it
-        System.err.println(builder);
+        if (pLogger != null) {
+            pLogger.log(level, builder.toString());
+        }
 
         // Always continue the process...
         return true;
@@ -161,8 +173,14 @@ public class DOM3Parser implements DOMErrorHandler {
         return pParser.parseURI(aFile.toURI().toString());
     }
 
-    protected void shutUp() {
+    /**
+     * Sets the logger
+     * 
+     * @param aLogger
+     *            A logger (can be null)
+     */
+    public void setLogger(final Logger aLogger) {
 
-        pShutUp = true;
+        pLogger = aLogger;
     }
 }
