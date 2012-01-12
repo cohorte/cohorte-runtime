@@ -37,7 +37,7 @@ import org.psem2m.composer.ECompositionEvent;
 import org.psem2m.composer.IComposer;
 import org.psem2m.composer.ICompositionListener;
 import org.psem2m.composer.agent.ComposerAgentSignals;
-import org.psem2m.composer.config.IComposerConfigReader;
+import org.psem2m.composer.config.IComposerConfigHandler;
 import org.psem2m.composer.model.ComponentBean;
 import org.psem2m.composer.model.ComponentsSetBean;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
@@ -65,7 +65,7 @@ public class ComposerCore extends CPojoBase implements IComposer,
 
     /** Composer configuration reader */
     @Requires
-    private IComposerConfigReader pConfigReader;
+    private IComposerConfigHandler pConfigReader;
 
     /** The events log, a Timestamp -&gt; Event sorted map */
     private final SortedMap<Long, StoredEvent> pEvents = new TreeMap<Long, StoredEvent>();

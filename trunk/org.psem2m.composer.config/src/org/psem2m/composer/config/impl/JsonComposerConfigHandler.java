@@ -1,13 +1,16 @@
 /**
- * File:   JsonComposerConfigReader.java
+ * File:   JsonComposerConfigHandler.java
  * Author: Thomas Calmant
  * Date:   3 nov. 2011
  */
 package org.psem2m.composer.config.impl;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -23,7 +26,7 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
-import org.psem2m.composer.config.IComposerConfigReader;
+import org.psem2m.composer.config.IComposerConfigHandler;
 import org.psem2m.composer.model.ComponentBean;
 import org.psem2m.composer.model.ComponentsSetBean;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
@@ -40,10 +43,10 @@ import org.psem2m.utilities.json.JSONObject;
  * @author Thomas Calmant
  */
 @Component(name = "psem2m-composer-config-json-factory", publicFactory = false)
-@Provides(specifications = IComposerConfigReader.class)
+@Provides(specifications = IComposerConfigHandler.class)
 @Instantiate(name = "psem2m-composer-config-json")
-public class JsonComposerConfigReader extends CPojoBase implements
-        IComposerConfigReader {
+public class JsonComposerConfigHandler extends CPojoBase implements
+        IComposerConfigHandler, IJsonComposerConfigConstants {
 
     /** The file finder */
     @Requires
@@ -57,11 +60,92 @@ public class JsonComposerConfigReader extends CPojoBase implements
     private IIsolateLoggerSvc pLogger;
 
     /**
-     * Default constructor
+     * Prepares the JSON representation of the given component
+     * 
+     * @param aComponent
+     *            The component to convert
+     * @return A JSON Object
+     * 
+     * @throws JSONException
+     *             An error occurred while preparing the JSON representation
      */
-    public JsonComposerConfigReader() {
+    protected JSONObject componentToJson(final ComponentBean aComponent)
+            throws JSONException {
 
-        super();
+        final JSONObject json = new JSONObject();
+
+        // Name
+        json.put(COMPONENT_NAME, aComponent.getName());
+
+        // Type
+        json.put(COMPONENT_TYPE, aComponent.getType());
+
+        // Host isolate, if any
+        final String isolate = aComponent.getIsolate();
+        if (isolate != null && !isolate.isEmpty()) {
+            json.put(COMPONENT_ISOLATE, isolate);
+        }
+
+        // Properties, if any
+        final Map<String, String> properties = aComponent.getProperties();
+        if (!properties.isEmpty()) {
+            json.put(COMPONENT_PROPERTIES, new JSONObject(properties));
+        }
+
+        // Filters
+        final Map<String, String> filters = aComponent.getFieldsFilters();
+        if (!filters.isEmpty()) {
+            json.put(COMPONENT_FIELDS_FILTERS, filters);
+        }
+
+        // Wires
+        final Map<String, String> wires = aComponent.getWires();
+        if (!wires.isEmpty()) {
+            json.put(COMPONENT_FIELDS_FILTERS, wires);
+        }
+
+        return json;
+    }
+
+    /**
+     * Prepares the JSON representation of the given components set
+     * 
+     * @param aComponentsSet
+     *            A root components set
+     * @return A JSON object
+     * @throws JSONException
+     *             An error occurred while preparing the JSON representation
+     */
+    protected JSONObject composetToJson(final ComponentsSetBean aComponentsSet)
+            throws JSONException {
+
+        final JSONObject json = new JSONObject();
+
+        // Name
+        json.put(COMPOSET_NAME, aComponentsSet.getName());
+
+        // Sub-components
+        final JSONArray components = new JSONArray();
+        for (final ComponentBean component : aComponentsSet.getComponents()) {
+            components.put(componentToJson(component));
+        }
+
+        if (components.length() != 0) {
+            json.put(COMPOSET_COMPONENTS, components);
+        }
+
+        // Sub-components sets
+        final JSONArray composets = new JSONArray();
+        for (final ComponentsSetBean composet : aComponentsSet
+                .getComponentSets()) {
+            composets.put(composetToJson(composet));
+        }
+
+        if (composets.length() != 0) {
+            json.put(COMPOSET_COMPOSETS, composets);
+        }
+
+        return json;
     }
 
     /*
@@ -147,8 +231,7 @@ public class JsonComposerConfigReader extends CPojoBase implements
     protected ComponentBean parseComponent(final String aParentName,
             final JSONObject aJsonObject) throws JSONException {
 
-        final String wComponentName = aJsonObject
-                .getString(IJsonComposerConfigConstants.COMPONENT_NAME);
+        final String wComponentName = aJsonObject.getString(COMPONENT_NAME);
 
         pLogger.logInfo(this, "parseComponent", "Name=[%s]", wComponentName);
 
@@ -160,30 +243,27 @@ public class JsonComposerConfigReader extends CPojoBase implements
         resultBean.setName(wComponentName);
 
         // Get the type
-        resultBean.setType(aJsonObject
-                .getString(IJsonComposerConfigConstants.COMPONENT_TYPE));
+        resultBean.setType(aJsonObject.getString(COMPONENT_TYPE));
 
         // Get the host isolate (optional)
-        resultBean.setIsolate(aJsonObject
-                .optString(IJsonComposerConfigConstants.COMPONENT_ISOLATE));
+        resultBean.setIsolate(aJsonObject.optString(COMPONENT_ISOLATE));
 
         // Get the properties (optional)
         final JSONObject jsonProperties = aJsonObject
-                .optJSONObject(IJsonComposerConfigConstants.COMPONENT_PROPERTIES);
+                .optJSONObject(COMPONENT_PROPERTIES);
         if (jsonProperties != null) {
             resultBean.setProperties(jsonObjectToMap(jsonProperties));
         }
 
         // Get the filters
         final JSONObject jsonFilters = aJsonObject
-                .optJSONObject(IJsonComposerConfigConstants.COMPONENT_FIELDS_FILTERS);
+                .optJSONObject(COMPONENT_FIELDS_FILTERS);
         if (jsonFilters != null) {
             resultBean.setFieldsFilters(jsonObjectToMap(jsonFilters));
         }
 
         // Get the wires
-        final JSONObject jsonWires = aJsonObject
-                .optJSONObject(IJsonComposerConfigConstants.COMPONENT_WIRES);
+        final JSONObject jsonWires = aJsonObject.optJSONObject(COMPONENT_WIRES);
         if (jsonWires != null) {
             resultBean.setWires(jsonObjectToMap(jsonWires));
         }
@@ -243,8 +323,7 @@ public class JsonComposerConfigReader extends CPojoBase implements
             throws JSONException, FileNotFoundException {
 
         // Get the name
-        final String compoSetName = aComponentSetNode
-                .getString(IJsonComposerConfigConstants.COMPOSET_NAME);
+        final String compoSetName = aComponentSetNode.getString(COMPOSET_NAME);
 
         pLogger.logInfo(this, "parseComponentSet", "Name=[%s]", compoSetName);
 
@@ -255,9 +334,8 @@ public class JsonComposerConfigReader extends CPojoBase implements
 
         // Gets the "from"
         String wCompoSetFrom = null;
-        if (aComponentSetNode.has(IJsonComposerConfigConstants.COMPOSET_FROM)) {
-            wCompoSetFrom = aComponentSetNode
-                    .getString(IJsonComposerConfigConstants.COMPOSET_FROM);
+        if (aComponentSetNode.has(COMPOSET_FROM)) {
+            wCompoSetFrom = aComponentSetNode.getString(COMPOSET_FROM);
         }
 
         if (wCompoSetFrom != null) {
@@ -273,7 +351,7 @@ public class JsonComposerConfigReader extends CPojoBase implements
 
             // Get the components
             final JSONArray components = aComponentSetNode
-                    .optJSONArray(IJsonComposerConfigConstants.COMPOSET_COMPONENTS);
+                    .optJSONArray(COMPOSET_COMPONENTS);
             if (components != null) {
                 resultSet.setComponents(parseComponents(compoSetName,
                         components));
@@ -281,7 +359,7 @@ public class JsonComposerConfigReader extends CPojoBase implements
 
             // Get the sub-sets
             final JSONArray subsets = aComponentSetNode
-                    .optJSONArray(IJsonComposerConfigConstants.COMPOSET_COMPOSETS);
+                    .optJSONArray(COMPOSET_COMPOSETS);
             if (subsets != null) {
                 resultSet.setComponentSets(parseComponentSets(resultSet,
                         subsets));
@@ -419,5 +497,64 @@ public class JsonComposerConfigReader extends CPojoBase implements
 
         pLogger.logInfo(this, "validatePojo",
                 "JSON Composer Configuration Reader Ready");
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.composer.config.IComposerConfigHandler#write(org.psem2m.composer
+     * .model.ComponentsSetBean, java.lang.String)
+     */
+    @Override
+    public void write(final ComponentsSetBean aComponentsSet,
+            final String aFileName) throws IOException {
+
+        if (aComponentsSet == null || aFileName == null) {
+            // Invalid parameters : can't work
+            return;
+        }
+
+        // Convert the components set
+        final String fileContent;
+        try {
+            final JSONObject jsonFormat = composetToJson(aComponentsSet);
+            fileContent = jsonFormat.toString(2);
+
+        } catch (final JSONException e) {
+            throw new IOException("Error preparing the file content", e);
+        }
+
+        // Prepare the file
+        final File outputFile = new File(aFileName).getAbsoluteFile();
+        if (!outputFile.exists()) {
+            // The file doesn't exist yet, create it
+            final File parentFile = outputFile.getParentFile();
+            if (!parentFile.exists()) {
+                // Create parent directories
+                parentFile.mkdirs();
+            }
+            outputFile.createNewFile();
+
+        } else if (!outputFile.isFile()) {
+            // Something with this name already exists and is not a file
+            throw new IOException("The path '" + aFileName
+                    + "' exists and doesn't point to file.");
+        }
+
+        // Write in the file
+        BufferedWriter writer = null;
+
+        try {
+            writer = new BufferedWriter(new OutputStreamWriter(
+                    new FileOutputStream(outputFile)));
+
+            writer.write(fileContent);
+
+        } finally {
+            if (writer != null) {
+                writer.close();
+            }
+        }
     }
 }
