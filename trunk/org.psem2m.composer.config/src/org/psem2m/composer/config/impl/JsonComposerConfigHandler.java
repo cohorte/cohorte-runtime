@@ -59,6 +59,20 @@ public class JsonComposerConfigHandler extends CPojoBase implements
     @Requires
     private IIsolateLoggerSvc pLogger;
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.composer.config.IComposerConfigHandler#canHandle(java.lang
+     * .String)
+     */
+    @Override
+    public boolean canHandle(final String aFileName) {
+
+        final String filename = aFileName.toLowerCase();
+        return filename.endsWith(".js") || filename.endsWith(".json");
+    }
+
     /**
      * Prepares the JSON representation of the given component
      * 

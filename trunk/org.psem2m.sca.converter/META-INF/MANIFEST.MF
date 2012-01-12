@@ -27,9 +27,10 @@ iPOJO-Components: instance { $component="org.psem2m.sca.converter.core
  .IComposerConfigHandler" }field { $name="pConverter" $type="org.psem2
  m.sca.converter.core.SCAConverter" }field { $name="pLogger" $type="or
  g.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pParser" $t
- ype="org.psem2m.sca.converter.core.SCAParser" }method { $name="invali
- datePojo" }method { $name="load" $return="org.psem2m.composer.model.C
- omponentsSetBean" $arguments="{java.lang.String}" }method { $name="va
- lidatePojo" }method { $name="write" $arguments="{org.psem2m.composer.
- model.ComponentsSetBean,java.lang.String}" }}}
+ ype="org.psem2m.sca.converter.core.SCAParser" }method { $name="canHan
+ dle" $return="boolean" $arguments="{java.lang.String}" }method { $nam
+ e="invalidatePojo" }method { $name="load" $return="org.psem2m.compose
+ r.model.ComponentsSetBean" $arguments="{java.lang.String}" }method { 
+ $name="validatePojo" }method { $name="write" $arguments="{org.psem2m.
+ composer.model.ComponentsSetBean,java.lang.String}" }}}
 

@@ -17,6 +17,15 @@ import org.psem2m.composer.model.ComponentsSetBean;
 public interface IComposerConfigHandler {
 
     /**
+     * Tests if the configuration service can handle the given file name
+     * 
+     * @param aFileName
+     *            A configuration file name
+     * @return True if this service can handle this configuration file name
+     */
+    boolean canHandle(String aFileName);
+
+    /**
      * Finds and loads the first file found in the platform directories matching
      * the given name.
      * 

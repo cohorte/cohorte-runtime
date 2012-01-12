@@ -45,6 +45,20 @@ public class ScaConverterService extends CPojoBase implements
     /*
      * (non-Javadoc)
      * 
+     * @see
+     * org.psem2m.composer.config.IComposerConfigHandler#canHandle(java.lang
+     * .String)
+     */
+    @Override
+    public boolean canHandle(final String aFileName) {
+
+        // Accept all files ending with ".composite"
+        return aFileName.toLowerCase().endsWith(".composite");
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.psem2m.isolates.base.activators.CPojoBase#invalidatePojo()
      */
     @Override

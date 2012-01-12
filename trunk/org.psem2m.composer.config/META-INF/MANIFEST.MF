@@ -29,28 +29,29 @@ iPOJO-Components: instance { $component="org.psem2m.composer.config.im
  ants" }field { $name="pFileFinder" $type="org.psem2m.isolates.service
  s.dirs.IFileFinderSvc" }field { $name="pIncludeStack" $type="java.uti
  l.Stack" }field { $name="pLogger" $type="org.psem2m.isolates.base.IIs
- olateLoggerSvc" }method { $name="componentToJson" $return="org.psem2m
- .utilities.json.JSONObject" $arguments="{org.psem2m.composer.model.Co
- mponentBean}" }method { $name="composetToJson" $return="org.psem2m.ut
- ilities.json.JSONObject" $arguments="{org.psem2m.composer.model.Compo
- nentsSetBean}" }method { $name="invalidatePojo" }method { $name="json
- ObjectToMap" $return="java.util.Map" $arguments="{org.psem2m.utilitie
- s.json.JSONObject}" }method { $name="load" $return="org.psem2m.compos
- er.model.ComponentsSetBean" $arguments="{java.lang.String}" }method {
-  $name="parseComponent" $return="org.psem2m.composer.model.ComponentB
- ean" $arguments="{java.lang.String,org.psem2m.utilities.json.JSONObje
- ct}" }method { $name="parseComponents" $return="java.util.Collection"
-  $arguments="{java.lang.String,org.psem2m.utilities.json.JSONArray}" 
- }method { $name="parseComponentSet" $return="org.psem2m.composer.mode
- l.ComponentsSetBean" $arguments="{org.psem2m.composer.model.Component
- sSetBean,org.psem2m.utilities.json.JSONObject}" }method { $name="pars
- eComponentSets" $return="java.util.Collection" $arguments="{org.psem2
- m.composer.model.ComponentsSetBean,org.psem2m.utilities.json.JSONArra
- y}" }method { $name="readFile" $return="java.lang.String" $arguments=
- "{java.lang.String}" }method { $name="readJsonArrayFile" $return="org
- .psem2m.utilities.json.JSONArray" $arguments="{java.lang.String}" }me
- thod { $name="readJsonObjectFile" $return="org.psem2m.utilities.json.
- JSONObject" $arguments="{java.lang.String}" }method { $name="validate
- Pojo" }method { $name="write" $arguments="{org.psem2m.composer.model.
- ComponentsSetBean,java.lang.String}" }}}
+ olateLoggerSvc" }method { $name="canHandle" $return="boolean" $argume
+ nts="{java.lang.String}" }method { $name="componentToJson" $return="o
+ rg.psem2m.utilities.json.JSONObject" $arguments="{org.psem2m.composer
+ .model.ComponentBean}" }method { $name="composetToJson" $return="org.
+ psem2m.utilities.json.JSONObject" $arguments="{org.psem2m.composer.mo
+ del.ComponentsSetBean}" }method { $name="invalidatePojo" }method { $n
+ ame="jsonObjectToMap" $return="java.util.Map" $arguments="{org.psem2m
+ .utilities.json.JSONObject}" }method { $name="load" $return="org.psem
+ 2m.composer.model.ComponentsSetBean" $arguments="{java.lang.String}" 
+ }method { $name="parseComponent" $return="org.psem2m.composer.model.C
+ omponentBean" $arguments="{java.lang.String,org.psem2m.utilities.json
+ .JSONObject}" }method { $name="parseComponents" $return="java.util.Co
+ llection" $arguments="{java.lang.String,org.psem2m.utilities.json.JSO
+ NArray}" }method { $name="parseComponentSet" $return="org.psem2m.comp
+ oser.model.ComponentsSetBean" $arguments="{org.psem2m.composer.model.
+ ComponentsSetBean,org.psem2m.utilities.json.JSONObject}" }method { $n
+ ame="parseComponentSets" $return="java.util.Collection" $arguments="{
+ org.psem2m.composer.model.ComponentsSetBean,org.psem2m.utilities.json
+ .JSONArray}" }method { $name="readFile" $return="java.lang.String" $a
+ rguments="{java.lang.String}" }method { $name="readJsonArrayFile" $re
+ turn="org.psem2m.utilities.json.JSONArray" $arguments="{java.lang.Str
+ ing}" }method { $name="readJsonObjectFile" $return="org.psem2m.utilit
+ ies.json.JSONObject" $arguments="{java.lang.String}" }method { $name=
+ "validatePojo" }method { $name="write" $arguments="{org.psem2m.compos
+ er.model.ComponentsSetBean,java.lang.String}" }}}
 
