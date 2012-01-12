@@ -20,14 +20,20 @@ import org.psem2m.sca.converter.model.Property;
 import org.psem2m.sca.converter.model.Reference;
 
 /**
- * @author Thomas Calmant
+ * Converts an SCA hierarchized composition model into a PSEM2M Composer model.
  * 
+ * @author Thomas Calmant
  */
 public class SCA2Composer {
 
     /**
+     * Converts a SCA component into a PSEM2M Composer component. Only works
+     * with PSEM2M implemented SCA component (with the
+     * <em>implementation.psem2m</em> implementation tag.
+     * 
      * @param aComponent
-     * @return
+     *            A SCA component
+     * @return The PSEM2M representation of the component
      */
     protected ComponentBean convertComponent(final Component aComponent) {
 
@@ -79,8 +85,12 @@ public class SCA2Composer {
         final Map<String, String> properties = new HashMap<String, String>();
         for (final Property scaProperty : aComponent.getProperties()) {
 
-            properties.put(scaProperty.getQualifiedName().getLocalName(),
-                    scaProperty.getValue());
+            final String value = scaProperty.getValue();
+            if (value != null && !value.isEmpty()) {
+                // Only store meaningful values
+                properties.put(scaProperty.getQualifiedName()
+                        .getLocalNameLastPart(), value);
+            }
         }
         psem2mComponent.setProperties(properties);
 
@@ -88,8 +98,11 @@ public class SCA2Composer {
     }
 
     /**
+     * Converts a SCA composite into a PSEM2M Composer components set
+     * 
      * @param aScaComposite
-     * @return
+     *            A SCA composite
+     * @return The PSEM2M representation of the composite
      */
     protected ComponentsSetBean convertComposite(
             final ComponentsSetBean aParent, final Composite aScaComposite) {
@@ -119,9 +132,12 @@ public class SCA2Composer {
     }
 
     /**
+     * Converts the given SCA composition root (a composite) into a PSEM2M
+     * composition root.
      * 
      * @param aScaComposite
-     * @return
+     *            The root SCA composite
+     * @return The corresponding PSEM2M Composer representation
      */
     public ComponentsSetBean convertToComposer(final Composite aScaComposite) {
 
