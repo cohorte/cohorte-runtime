@@ -7,13 +7,15 @@ package org.psem2m.sca.converter.core;
 
 import java.io.File;
 
+import org.psem2m.composer.config.IComposerConfigHandler;
 import org.psem2m.composer.config.impl.JsonComposerConfigHandler;
 import org.psem2m.composer.model.ComponentsSetBean;
 import org.psem2m.sca.converter.model.Composite;
 
 /**
- * @author Thomas Calmant
+ * Converter entry point (for stand-alone execution mode)
  * 
+ * @author Thomas Calmant
  */
 public class Core {
 
@@ -28,56 +30,48 @@ public class Core {
     public static final String TUSCANY_ROOT = "store.composite";
 
     /**
-     * @param args
+     * Converter entry point
+     * 
+     * @param aArgs
+     *            Arguments
      */
-    public static void main(final String[] args) throws Exception {
+    public static void main(final String[] aArgs) throws Exception {
 
-        final boolean tuscany = true;
+        if (aArgs.length < 2) {
+            System.out
+                    .println("Usage : converter root_file.composite [folder]");
+            return;
+        }
 
-        final File sca_folder;
-        final File root_file;
-        if (tuscany) {
-            sca_folder = new File(TUSCANY_FOLDER);
-            root_file = new File(sca_folder, TUSCANY_ROOT);
+        // Given folder or root file ones
+        final File rootFolder;
+        if (aArgs.length >= 2) {
+            rootFolder = new File(aArgs[1]);
+            if (!rootFolder.isDirectory()) {
+                System.err.println("Invalid directory : " + rootFolder);
+                return;
+            }
 
         } else {
-            sca_folder = new File(PSEM2M_FOLDER);
-            root_file = new File(sca_folder, PSEM2M_ROOT);
+            // Use the file parent as root folder
+            rootFolder = new File(".").getAbsoluteFile();
         }
+
+        // Root file
+        final File rootCompositeFile = new File(rootFolder, aArgs[0]);
 
         final SCAParser parser = new SCAParser();
         final SCA2Composer converter = new SCA2Composer();
 
         // Parse the document
-        System.out.println("Parse : " + sca_folder);
-        final Composite scaComposite = parser.parse(sca_folder, root_file);
-        System.err.flush();
-        System.out.flush();
-
-        System.out.println("To PSEM2M...");
-        System.out.flush();
-        System.err.flush();
+        System.out.println("Parse : " + rootFolder);
+        final Composite scaComposite = parser.parse(rootFolder,
+                rootCompositeFile);
 
         final ComponentsSetBean composet = converter
                 .convertToComposer(scaComposite);
 
-        System.err.flush();
-
-        System.out.println("------------  SCA  ---------------------------");
-        System.out.println(scaComposite);
-
-        System.out.println("------------  PSEM2M  ------------------------");
-        System.out.println(composet.toCompleteString());
-
-        File file;
-        if (tuscany) {
-            file = new File(OUTPUT_FOLDER, OUTPUT_TUSCANY);
-
-        } else {
-            file = new File(OUTPUT_FOLDER, OUTPUT_PSEM2M);
-        }
-
-        final JsonComposerConfigHandler config = new JsonComposerConfigHandler();
-        config.write(composet, file.getAbsolutePath());
+        final IComposerConfigHandler config = new JsonComposerConfigHandler();
+        config.write(composet, null);
     }
 }
