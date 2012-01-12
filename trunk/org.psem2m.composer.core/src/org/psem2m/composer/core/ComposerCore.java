@@ -63,11 +63,11 @@ public class ComposerCore extends CPojoBase implements IComposer,
     /** List of composition events listener */
     private final List<ICompositionListener> pCompositionListeners = new ArrayList<ICompositionListener>();
 
-    /** Composer configuration reader */
+    /** Composer configuration readers */
     @Requires
-    private IComposerConfigHandler pConfigReader;
+    private IComposerConfigHandler[] pConfigReaders;
 
-    /** The events log, a Timestamp -&gt; Event sorted map */
+    /** The events log, a time stamp -&gt; Event sorted map */
     private final SortedMap<Long, StoredEvent> pEvents = new TreeMap<Long, StoredEvent>();
 
     /** Composites fully-instantiated */
@@ -876,8 +876,23 @@ public class ComposerCore extends CPojoBase implements IComposer,
      */
     protected void test_conf(final String aFileName) {
 
-        pLogger.logInfo(this, "test_conf", "Running test...");
-        final ComponentsSetBean compoSet = pConfigReader.load(aFileName);
+        IComposerConfigHandler configReader = null;
+
+        for (final IComposerConfigHandler reader : pConfigReaders) {
+            if (reader.canHandle(aFileName)) {
+                configReader = reader;
+                break;
+            }
+        }
+
+        if (configReader == null) {
+            pLogger.logWarn(this, "", "Can't find a configuration reader for",
+                    aFileName);
+            return;
+        }
+
+        pLogger.logInfo(this, "test_conf", "Running test on", aFileName);
+        final ComponentsSetBean compoSet = configReader.load(aFileName);
 
         pLogger.logInfo(this, "test_conf", "Result=", compoSet);
         if (compoSet == null) {
@@ -888,20 +903,6 @@ public class ComposerCore extends CPojoBase implements IComposer,
         // Fire at will
         pLogger.logInfo(this, "test_conf", "Fire at will !");
         instantiateComponentsSet(compoSet);
-
-        // pScheduler.schedule(new Runnable() {
-        //
-        // @Override
-        // public void run() {
-        //
-        // try {
-        // removeComponentsSet(compoSet);
-        // } catch (final Exception e) {
-        // // TODO Auto-generated catch block
-        // e.printStackTrace();
-        // }
-        // }
-        // }, 10, TimeUnit.SECONDS);
     }
 
     /**
