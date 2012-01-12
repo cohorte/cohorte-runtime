@@ -9,7 +9,7 @@ package org.psem2m.sca.converter.model;
  * @author Thomas Calmant
  * 
  */
-public class Binding extends AbstractExtensibleSCAElement<Binding> {
+public class Binding extends AbstractExtensibleSCAElement {
 
     /*
      * (non-Javadoc)

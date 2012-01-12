@@ -17,11 +17,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
-import org.psem2m.sca.converter.model.AbstractSCAElement;
 import org.psem2m.sca.converter.model.Binding;
 import org.psem2m.sca.converter.model.Component;
 import org.psem2m.sca.converter.model.Composite;
-import org.psem2m.sca.converter.model.IElementContainer;
+import org.psem2m.sca.converter.model.INameable;
+import org.psem2m.sca.converter.model.IReferenceContainer;
 import org.psem2m.sca.converter.model.Implementation;
 import org.psem2m.sca.converter.model.Interface;
 import org.psem2m.sca.converter.model.Property;
@@ -93,7 +93,7 @@ public class SCAParser implements SCAConstants {
                 continue;
             }
 
-            AbstractSCAElement<?> svc = resolveQName(null, aRootComposite,
+            INameable svc = resolveQName(null, aRootComposite,
                     wire.getTargetName(), EElementType.SERVICE);
             if (svc == null) {
                 // Second chance, try to find a component
@@ -135,7 +135,7 @@ public class SCAParser implements SCAConstants {
             }
 
             // Resolve the service promotions
-            AbstractSCAElement<?> prevSvc = svc;
+            INameable prevSvc = svc;
             while (svc instanceof Service && ((Service) svc).isPromotion()) {
 
                 final QName promotedName = ((Service) svc)
@@ -193,7 +193,7 @@ public class SCAParser implements SCAConstants {
      *            A URI to the component
      * @return The first component found
      */
-    protected IElementContainer findContainer(
+    protected IReferenceContainer findContainer(
             final Collection<Composite> aComposites, final QName aQName) {
 
         // Split the URI
@@ -202,7 +202,7 @@ public class SCAParser implements SCAConstants {
         if (uriParts.length == 1) {
             // Only got the component name (one level)
             for (final Composite composite : aComposites) {
-                final IElementContainer container = composite
+                final IReferenceContainer container = composite
                         .getReferenceContainer(aQName);
                 if (container != null) {
                     // Found !
@@ -258,17 +258,13 @@ public class SCAParser implements SCAConstants {
             final QName componentName = aQName
                     .createNSQName(uriParts[uriParts.length - 1]);
 
-            System.out.println("Component name to match : " + componentName);
-
             for (final Composite composite : matching) {
-                final IElementContainer container = composite
+                final IReferenceContainer container = composite
                         .getReferenceContainer(componentName);
                 if (container != null) {
                     return container;
                 }
             }
-
-            System.out.println("No container found");
         }
 
         // No match
@@ -439,7 +435,7 @@ public class SCAParser implements SCAConstants {
     }
 
     /**
-     * Transform the SCA plain-model to a hierachized one
+     * Transform the SCA plain-model to a hierarchized one
      * 
      * @param aKnownComposites
      *            The known composites
@@ -1046,7 +1042,7 @@ public class SCAParser implements SCAConstants {
      *            The type of SCA element to look for
      * @return The found SCA element, or null
      */
-    protected AbstractSCAElement<?> resolveQName(
+    protected INameable resolveQName(
             final Collection<Composite> aKnownComposites,
             final Composite aComposite, final QName aQName,
             final EElementType aType) {
@@ -1084,7 +1080,7 @@ public class SCAParser implements SCAConstants {
 
         case COMPONENT:
             // Looking for a component or its composite implementation
-            return (AbstractSCAElement<?>) findContainer(composites, aQName);
+            return findContainer(composites, aQName);
 
         case REFERENCE:
         case SERVICE:
@@ -1103,11 +1099,10 @@ public class SCAParser implements SCAConstants {
 
             if (parentName == null || parentName.isEmpty()) {
                 // No parent, we are referring to a top level component
-                return (AbstractSCAElement<?>) findContainer(knownComposites,
-                        aQName);
+                return findContainer(knownComposites, aQName);
             }
 
-            final IElementContainer container = findContainer(composites,
+            final IReferenceContainer container = findContainer(composites,
                     parentName);
             if (container == null) {
                 System.out.println("NO CONTAINER found for " + aType.toString()
@@ -1115,8 +1110,7 @@ public class SCAParser implements SCAConstants {
                 return null;
             }
 
-            final QName containerName = ((AbstractSCAElement<?>) container)
-                    .getQualifiedName();
+            final QName containerName = container.getQualifiedName();
             final QName refName = containerName.createSubQName(uriParts[1]);
 
             if (aType == EElementType.REFERENCE) {

@@ -20,8 +20,8 @@ import org.psem2m.sca.converter.core.QName;
  * 
  * @author Thomas Calmant
  */
-public class Composite extends AbstractSCAElement<Composite> implements
-        IElementContainer, IAlias {
+public class Composite extends AbstractNameableSCAElement implements
+        IReferenceContainer, IAlias {
 
     /** Name to use in complete name after an inclusion */
     private String pAlias;
@@ -219,6 +219,50 @@ public class Composite extends AbstractSCAElement<Composite> implements
     }
 
     /**
+     * Retrieves the complete alias of the current element
+     * 
+     * @return The complete alias
+     */
+    @Override
+    public String getCompleteAlias() {
+
+        final StringBuilder builder = new StringBuilder();
+        getCompleteAlias(builder);
+        return builder.toString();
+    }
+
+    /**
+     * Prepares the complete name of the current element, using aliases if
+     * possible
+     * 
+     * @param aBuilder
+     *            The complete name string builder
+     */
+    private void getCompleteAlias(final StringBuilder aBuilder) {
+
+        // Make parent name
+        if (pContainer instanceof Composite) {
+            // Another composite (standard case)
+            ((Composite) pContainer).getCompleteAlias(aBuilder);
+            aBuilder.append('.');
+
+        } else if (pContainer instanceof INameable) {
+            // Other kind of container
+            aBuilder.append(((INameable) pContainer).getCompleteName());
+            aBuilder.append('.');
+        }
+
+        if (pAlias != null) {
+            // Alias set
+            aBuilder.append(pAlias);
+
+        } else {
+            // No alias
+            aBuilder.append(pQName.getLocalNameLastPart());
+        }
+    }
+
+    /**
      * Retrieves the first direct component found with the given name. Returns
      * null if no component matches
      * 
@@ -296,7 +340,7 @@ public class Composite extends AbstractSCAElement<Composite> implements
      *            A component name
      * @return The composite or component found, or null
      */
-    public IElementContainer getReferenceContainer(final QName aComponentName) {
+    public IReferenceContainer getReferenceContainer(final QName aComponentName) {
 
         // Try with components replaced by a composite
         if (pCompositeImplementations.containsKey(aComponentName)) {
@@ -313,7 +357,7 @@ public class Composite extends AbstractSCAElement<Composite> implements
         // Try with composites
         for (final Composite composite : pComposites) {
 
-            final IElementContainer container = composite
+            final IReferenceContainer container = composite
                     .getReferenceContainer(aComponentName);
             if (container != null) {
                 return container;
@@ -494,7 +538,7 @@ public class Composite extends AbstractSCAElement<Composite> implements
         aBuilder.append(aPrefix);
         aBuilder.append("Composite(name=").append(pQName).append(",\n");
 
-        final LinkedHashMap<String, List<? extends AbstractSCAElement<?>>> toPrint = new LinkedHashMap<String, List<? extends AbstractSCAElement<?>>>();
+        final Map<String, List<? extends AbstractSCAElement>> toPrint = new LinkedHashMap<String, List<? extends AbstractSCAElement>>();
         toPrint.put("composites", pComposites);
         toPrint.put("components", pComponents);
         toPrint.put("properties", pProperties);
@@ -502,12 +546,12 @@ public class Composite extends AbstractSCAElement<Composite> implements
         toPrint.put("services", pServices);
         toPrint.put("wires", pWires);
 
-        for (final Entry<String, List<? extends AbstractSCAElement<?>>> entry : toPrint
+        for (final Entry<String, List<? extends AbstractSCAElement>> entry : toPrint
                 .entrySet()) {
 
             aBuilder.append(subPrefix).append(entry.getKey()).append("=[\n");
 
-            for (final AbstractSCAElement<?> element : entry.getValue()) {
+            for (final AbstractSCAElement element : entry.getValue()) {
                 element.toString(aBuilder, subSubPrefix);
                 aBuilder.append(",\n");
             }

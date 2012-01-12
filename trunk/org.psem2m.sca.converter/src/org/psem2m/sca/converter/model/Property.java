@@ -9,7 +9,7 @@ package org.psem2m.sca.converter.model;
  * @author Thomas Calmant
  * 
  */
-public class Property extends AbstractSCAElement<Property> {
+public class Property extends AbstractNameableSCAElement {
 
     /** Property must be supplied for a component to be valid */
     private boolean pMustSupply;

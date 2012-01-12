@@ -8,6 +8,7 @@ package org.psem2m.sca.converter.model;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import org.psem2m.sca.converter.core.QName;
@@ -17,8 +18,8 @@ import org.psem2m.sca.converter.core.QName;
  * 
  * @author Thomas Calmant
  */
-public class Component extends AbstractSCAElement<Component> implements
-        IElementContainer {
+public class Component extends AbstractNameableSCAElement implements
+        IReferenceContainer {
 
     /** Component implementation */
     private Implementation pImplementation;
@@ -221,17 +222,17 @@ public class Component extends AbstractSCAElement<Component> implements
             aBuilder.append("\n");
         }
 
-        final LinkedHashMap<String, List<? extends AbstractSCAElement<?>>> toPrint = new LinkedHashMap<String, List<? extends AbstractSCAElement<?>>>();
+        final Map<String, List<? extends AbstractSCAElement>> toPrint = new LinkedHashMap<String, List<? extends AbstractSCAElement>>();
         toPrint.put("properties", pProperties);
         toPrint.put("references", pReferences);
         toPrint.put("services", pServices);
 
-        for (final Entry<String, List<? extends AbstractSCAElement<?>>> entry : toPrint
+        for (final Entry<String, List<? extends AbstractSCAElement>> entry : toPrint
                 .entrySet()) {
 
             aBuilder.append(subPrefix).append(entry.getKey()).append("=[\n");
 
-            for (final AbstractSCAElement<?> element : entry.getValue()) {
+            for (final AbstractSCAElement element : entry.getValue()) {
                 element.toString(aBuilder, subSubPrefix);
                 aBuilder.append(",\n");
             }

@@ -10,7 +10,7 @@ package org.psem2m.sca.converter.model;
  * 
  * @author Thomas Calmant
  */
-public interface IAlias {
+public interface IAlias extends INameable {
 
     /**
      * Retrieves the alias of this element, or the local part of its local name

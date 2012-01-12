@@ -8,7 +8,7 @@ package org.psem2m.sca.converter.model;
 /**
  * @author Thomas Calmant
  */
-public class Interface extends AbstractExtensibleSCAElement<Interface> {
+public class Interface extends AbstractExtensibleSCAElement {
 
     /*
      * (non-Javadoc)

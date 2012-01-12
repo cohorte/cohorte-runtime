@@ -8,10 +8,11 @@ package org.psem2m.sca.converter.model;
 import org.psem2m.sca.converter.core.QName;
 
 /**
- * @author Thomas Calmant
+ * Represents a SCA wire
  * 
+ * @author Thomas Calmant
  */
-public class Wire extends AbstractSCAElement<Wire> {
+public class Wire extends AbstractSCAElement {
 
     /** The wire source reference */
     private Reference pSource;
@@ -20,7 +21,7 @@ public class Wire extends AbstractSCAElement<Wire> {
     private QName pSourceName;
 
     /** The wire target */
-    private AbstractSCAElement<?> pTarget;
+    private INameable pTarget;
 
     /** The wire target name */
     private QName pTargetName;
@@ -63,7 +64,7 @@ public class Wire extends AbstractSCAElement<Wire> {
     /**
      * @return the target
      */
-    public AbstractSCAElement<?> getTarget() {
+    public INameable getTarget() {
 
         return pTarget;
     }
@@ -98,7 +99,7 @@ public class Wire extends AbstractSCAElement<Wire> {
      * @param target
      *            the target to set
      */
-    public void setTarget(final AbstractSCAElement<?> target) {
+    public void setTarget(final INameable target) {
 
         pTarget = target;
     }

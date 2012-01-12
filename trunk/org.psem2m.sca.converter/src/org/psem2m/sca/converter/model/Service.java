@@ -12,7 +12,7 @@ import java.util.List;
  * @author Thomas Calmant
  * 
  */
-public class Service extends AbstractPromotableSCAElement<Service> {
+public class Service extends AbstractPromotableSCAElement {
 
     /** Service bindings */
     private final List<Binding> pBindings = new ArrayList<Binding>();

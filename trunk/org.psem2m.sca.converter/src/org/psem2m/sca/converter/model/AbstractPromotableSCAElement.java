@@ -8,11 +8,12 @@ package org.psem2m.sca.converter.model;
 import org.psem2m.sca.converter.core.QName;
 
 /**
- * @author Thomas Calmant
+ * Basic implementation of an {@link IPromotable} class
  * 
+ * @author Thomas Calmant
  */
-public abstract class AbstractPromotableSCAElement<T> extends
-        AbstractSCAElement<T> {
+public abstract class AbstractPromotableSCAElement extends
+        AbstractNameableSCAElement implements IPromotable {
 
     /** The promoted service name */
     protected QName pPromotedElementName;
@@ -20,35 +21,48 @@ public abstract class AbstractPromotableSCAElement<T> extends
     /** This service promotes another */
     protected boolean pPromotes;
 
-    /**
-     * @return the promotedElementName
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.sca.converter.model.IPromotable#getPromotedElementName()
      */
+    @Override
     public QName getPromotedElementName() {
 
         return pPromotedElementName;
     }
 
-    /**
-     * @return the promotes
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.sca.converter.model.IPromotable#isPromotion()
      */
+    @Override
     public boolean isPromotion() {
 
         return pPromotes;
     }
 
-    /**
-     * @param aPromotedElementName
-     *            the promotedElementName to set
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.sca.converter.model.IPromotable#setPromotedElementName(org
+     * .psem2m.sca.converter.core.QName)
      */
+    @Override
     public void setPromotedElementName(final QName aPromotedElementName) {
 
         pPromotedElementName = aPromotedElementName;
+        pPromotes = pPromotedElementName != null;
     }
 
-    /**
-     * @param aPromotes
-     *            the promotes to set
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.sca.converter.model.IPromotable#setPromotes(boolean)
      */
+    @Override
     public void setPromotes(final boolean aPromotes) {
 
         pPromotes = aPromotes;

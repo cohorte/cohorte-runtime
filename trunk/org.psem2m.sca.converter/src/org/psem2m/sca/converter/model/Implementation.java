@@ -11,8 +11,7 @@ import org.psem2m.sca.converter.core.SCAConstants;
  * @author Thomas Calmant
  * 
  */
-public class Implementation extends
-        AbstractExtensibleSCAElement<Implementation> {
+public class Implementation extends AbstractExtensibleSCAElement {
 
     /*
      * (non-Javadoc)

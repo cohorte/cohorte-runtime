@@ -5,7 +5,6 @@
  */
 package org.psem2m.sca.converter.model;
 
-import org.psem2m.sca.converter.core.QName;
 import org.w3c.dom.Element;
 
 /**
@@ -13,120 +12,28 @@ import org.w3c.dom.Element;
  * 
  * @author Thomas Calmant
  */
-public abstract class AbstractSCAElement<T> {
+public abstract class AbstractSCAElement {
 
     /** Indentation */
     public static final String PREFIX_INDENT = "  ";
 
     /** The element container */
-    protected IElementContainer pContainer;
-
-    /** The element qualified name */
-    protected QName pQName;
+    protected IReferenceContainer pContainer;
 
     /** The XML element representing the SCA element */
     protected Element pXmlElement;
 
-    /** Clones the current object */
-    public abstract T duplicate();
-
-    /**
-     * Retrieves the complete alias of the current element
-     * 
-     * @return The complete alias
-     */
-    public String getCompleteAlias() {
-
-        final StringBuilder builder = new StringBuilder();
-        getCompleteAlias(builder);
-        return builder.toString();
-    }
-
-    /**
-     * Prepares the complete name of the current element, using aliases if
-     * possible
-     * 
-     * @param aBuilder
-     *            The complete name string builder
-     */
-    private void getCompleteAlias(final StringBuilder aBuilder) {
-
-        // Make parent name
-        if (pContainer instanceof AbstractSCAElement) {
-            ((AbstractSCAElement<?>) pContainer).getCompleteAlias(aBuilder);
-            aBuilder.append('.');
-        }
-
-        // Get the alias
-        final String alias;
-        if (this instanceof IAlias) {
-            alias = ((IAlias) this).getAlias();
-
-        } else {
-            alias = pQName.getLocalNameLastPart();
-        }
-
-        if (alias != null) {
-            aBuilder.append(alias);
-
-        } else {
-            // Can't tell
-            aBuilder.append("<null>");
-        }
-    }
-
-    /**
-     * Retrieves the complete name of the current element
-     * 
-     * @return The complete name
-     */
-    public String getCompleteName() {
-
-        final StringBuilder builder = new StringBuilder();
-        getCompleteName(builder);
-        return builder.toString();
-    }
-
-    /**
-     * Fills the builder with the complete name of the element
-     * 
-     * @param aBuilder
-     *            A string builder
-     */
-    private void getCompleteName(final StringBuilder aBuilder) {
-
-        if (pContainer instanceof AbstractSCAElement) {
-            ((AbstractSCAElement<?>) pContainer).getCompleteName(aBuilder);
-            aBuilder.append('.');
-        }
-
-        final String localName = pQName.getLocalNameLastPart();
-        if (localName != null) {
-            aBuilder.append(localName);
-
-        } else {
-            aBuilder.append("<null>");
-        }
-    }
+    /** Duplicates this object */
+    public abstract AbstractSCAElement duplicate();
 
     /**
      * Retrieves the element container
      * 
      * @return the element container
      */
-    public IElementContainer getContainer() {
+    public IReferenceContainer getContainer() {
 
         return pContainer;
-    }
-
-    /**
-     * Retrieves the qualified name of this element
-     * 
-     * @return A qualified name, or null
-     */
-    public QName getQualifiedName() {
-
-        return pQName;
     }
 
     /**
@@ -184,20 +91,9 @@ public abstract class AbstractSCAElement<T> {
      * @param aContainer
      *            A container
      */
-    protected void setContainer(final IElementContainer aContainer) {
+    protected void setContainer(final IReferenceContainer aContainer) {
 
         pContainer = aContainer;
-    }
-
-    /**
-     * Sets the qualified name of this object
-     * 
-     * @param aQualifiedName
-     *            A qualified name
-     */
-    public void setQualifiedName(final QName aQualifiedName) {
-
-        pQName = aQualifiedName;
     }
 
     /**

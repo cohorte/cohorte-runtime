@@ -9,14 +9,15 @@ package org.psem2m.sca.converter.model;
  * @author Thomas Calmant
  * 
  */
-public abstract class AbstractExtensibleSCAElement<T> extends
-        AbstractSCAElement<T> {
+public abstract class AbstractExtensibleSCAElement extends AbstractSCAElement
+        implements IExtensible {
 
     /**
      * Returns the kind of extension, i.e. the tag name
      * 
      * @return the kind of extension
      */
+    @Override
     public String getKind() {
 
         return pXmlElement.getLocalName();

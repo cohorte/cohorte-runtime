@@ -12,9 +12,9 @@ import java.util.Map;
 
 import org.psem2m.composer.model.ComponentBean;
 import org.psem2m.composer.model.ComponentsSetBean;
-import org.psem2m.sca.converter.model.AbstractSCAElement;
 import org.psem2m.sca.converter.model.Component;
 import org.psem2m.sca.converter.model.Composite;
+import org.psem2m.sca.converter.model.INameable;
 import org.psem2m.sca.converter.model.Implementation;
 import org.psem2m.sca.converter.model.Property;
 import org.psem2m.sca.converter.model.Reference;
@@ -76,8 +76,7 @@ public class SCA2Composer {
 
             // FIXME make an LDAP filter
             // FIXME handle all targets
-            final AbstractSCAElement<?> target = ref.getTargets().iterator()
-                    .next();
+            final INameable target = ref.getTargets().iterator().next();
 
             if (target instanceof Component) {
                 // Reference points to a component, get the component name
@@ -85,8 +84,7 @@ public class SCA2Composer {
 
             } else if (target instanceof Service) {
                 // Reference points to a service, get its container name
-                final AbstractSCAElement<?> container = (AbstractSCAElement<?>) target
-                        .getContainer();
+                final INameable container = ((Service) target).getContainer();
                 if (container != null) {
                     wires.put(fieldName, container.getCompleteAlias());
                 }

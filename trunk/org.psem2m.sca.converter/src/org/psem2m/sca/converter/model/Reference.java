@@ -16,7 +16,7 @@ import org.psem2m.sca.converter.core.QName;
  * @author Thomas Calmant
  * 
  */
-public class Reference extends AbstractPromotableSCAElement<Reference> {
+public class Reference extends AbstractPromotableSCAElement {
 
     /** Reference bindings */
     private final List<Binding> pBindings = new ArrayList<Binding>();
@@ -28,7 +28,7 @@ public class Reference extends AbstractPromotableSCAElement<Reference> {
     private EMultiplicity pMultiplicity;
 
     /** Reference targets */
-    private final Set<AbstractSCAElement<?>> pTargets = new HashSet<AbstractSCAElement<?>>();
+    private final Set<INameable> pTargets = new HashSet<INameable>();
 
     /** Reference targets names */
     private final Set<QName> pTargetsNames = new HashSet<QName>();
@@ -49,7 +49,7 @@ public class Reference extends AbstractPromotableSCAElement<Reference> {
      *            A target element.
      * @return True on success
      */
-    public boolean addTarget(final AbstractSCAElement<?> aTarget) {
+    public boolean addTarget(final INameable aTarget) {
 
         if (aTarget instanceof Component || aTarget instanceof Service) {
             pTargets.add(aTarget);
@@ -124,7 +124,7 @@ public class Reference extends AbstractPromotableSCAElement<Reference> {
     /**
      * @return the targets
      */
-    public Set<AbstractSCAElement<?>> getTargets() {
+    public Set<INameable> getTargets() {
 
         return pTargets;
     }
@@ -250,7 +250,7 @@ public class Reference extends AbstractPromotableSCAElement<Reference> {
         aBuilder.append("targetsNames=").append(pTargetsNames).append("\n");
         aBuilder.append(subPrefix);
         aBuilder.append("targets=[");
-        for (final AbstractSCAElement<?> target : pTargets) {
+        for (final INameable target : pTargets) {
             aBuilder.append(target.getCompleteName()).append(", ");
         }
         aBuilder.append("]\n");
