@@ -1,4 +1,5 @@
 Manifest-Version: 1.0
+Bundle-ClassPath: .,lib/xml-apis.jar,lib/xercesImpl.jar
 Bundle-ManifestVersion: 2
 Bundle-Name: PSEM2M - Composer : SCA Converter
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
@@ -6,6 +7,7 @@ Bundle-SymbolicName: org.psem2m.sca.converter
 Bundle-Vendor: isandlatech.com
 Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
+Export-Package: org.w3c.dom,org.w3c.dom.bootstrap,org.w3c.dom.ls
 Import-Package: org.apache.felix.ipojo;version=1.8.1, org.apache.felix
  .ipojo.architecture;version=1.8.0, org.osgi.framework;version=1.5.0, 
  org.osgi.service.cm;version=1.2, org.osgi.service.log;version=1.3, or
@@ -13,7 +15,7 @@ Import-Package: org.apache.felix.ipojo;version=1.8.1, org.apache.felix
  sion=1.0.0, org.psem2m.isolates.base;version=1.0.0, org.psem2m.isolat
  es.base.activators, org.psem2m.utilities;version=1.0.0, org.psem2m.ut
  ilities.files;version=1.0.0, org.psem2m.utilities.logging;version=1.0
- .0
+ .0, org.w3c.dom, org.w3c.dom.bootstrap, org.w3c.dom.ls
 Main-Class: org.psem2m.sca.converter.standalone.Main
 iPOJO-Components: instance { $component="org.psem2m.sca.converter.core
  .ScaConverterService" $name="psem2m-composer-sca-converter-factory" }
