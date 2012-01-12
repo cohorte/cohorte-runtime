@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: PSEM2M - Composer : SCA Converter
+Bundle-SymbolicName: org.psem2m.sca.converter
+Bundle-Version: 1.0.0.qualifier
+Bundle-Vendor: isandlatech.com
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Import-Package: org.psem2m.composer.model;version="1.0.0",
+ org.psem2m.utilities.files;version="1.0.0"
