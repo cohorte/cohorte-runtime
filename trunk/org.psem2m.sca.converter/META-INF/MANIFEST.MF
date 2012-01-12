@@ -5,5 +5,7 @@ Bundle-SymbolicName: org.psem2m.sca.converter
 Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: isandlatech.com
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Import-Package: org.psem2m.composer.model;version="1.0.0",
+Import-Package: org.apache.felix.ipojo;version="1.8.1",
+ org.psem2m.composer.model;version="1.0.0",
+ org.psem2m.isolates.base.activators,
  org.psem2m.utilities.files;version="1.0.0"

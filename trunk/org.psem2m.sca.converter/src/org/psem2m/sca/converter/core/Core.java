@@ -7,6 +7,7 @@ package org.psem2m.sca.converter.core;
 
 import java.io.File;
 
+import org.psem2m.composer.config.impl.JsonComposerConfigHandler;
 import org.psem2m.composer.model.ComponentsSetBean;
 import org.psem2m.sca.converter.model.Composite;
 
@@ -15,6 +16,10 @@ import org.psem2m.sca.converter.model.Composite;
  * 
  */
 public class Core {
+
+    public static final String OUTPUT_FOLDER = "/home/tcalmant/Bureau/";
+    public static final String OUTPUT_PSEM2M = "psem2m.js";
+    public static final String OUTPUT_TUSCANY = "tuscany.js";
 
     public static final String PSEM2M_FOLDER = "/home/tcalmant/programmation/workspaces/jvm-forker/org.psem2m.composer.demo.sca/src.old/";
     public static final String PSEM2M_ROOT = "application.composite";
@@ -60,9 +65,19 @@ public class Core {
 
         System.out.println("------------  SCA  ---------------------------");
         System.out.println(scaComposite);
-        //
+
         System.out.println("------------  PSEM2M  ------------------------");
         System.out.println(composet.toCompleteString());
 
+        File file;
+        if (tuscany) {
+            file = new File(OUTPUT_FOLDER, OUTPUT_TUSCANY);
+
+        } else {
+            file = new File(OUTPUT_FOLDER, OUTPUT_PSEM2M);
+        }
+
+        final JsonComposerConfigHandler config = new JsonComposerConfigHandler();
+        config.write(composet, file.getAbsolutePath());
     }
 }
