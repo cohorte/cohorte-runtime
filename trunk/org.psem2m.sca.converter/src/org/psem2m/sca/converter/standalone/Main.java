@@ -1,15 +1,17 @@
 /**
- * File:   Core.java
+ * File:   Main.java
  * Author: Thomas Calmant
  * Date:   4 janv. 2012
  */
-package org.psem2m.sca.converter.core;
+package org.psem2m.sca.converter.standalone;
 
 import java.io.File;
 
 import org.psem2m.composer.config.IComposerConfigHandler;
 import org.psem2m.composer.config.impl.JsonComposerConfigHandler;
 import org.psem2m.composer.model.ComponentsSetBean;
+import org.psem2m.sca.converter.core.SCA2Composer;
+import org.psem2m.sca.converter.core.SCAParser;
 import org.psem2m.sca.converter.model.Composite;
 
 /**
@@ -17,17 +19,7 @@ import org.psem2m.sca.converter.model.Composite;
  * 
  * @author Thomas Calmant
  */
-public class Core {
-
-    public static final String OUTPUT_FOLDER = "/home/tcalmant/Bureau/";
-    public static final String OUTPUT_PSEM2M = "psem2m.js";
-    public static final String OUTPUT_TUSCANY = "tuscany.js";
-
-    public static final String PSEM2M_FOLDER = "/home/tcalmant/programmation/workspaces/jvm-forker/org.psem2m.composer.demo.sca/src.old/";
-    public static final String PSEM2M_ROOT = "application.composite";
-
-    public static final String TUSCANY_FOLDER = "/home/tcalmant/Téléchargements/tuscany-sca-2.0-Beta3-src/samples/applications/store/src/main/resources/";
-    public static final String TUSCANY_ROOT = "store.composite";
+public class Main {
 
     /**
      * Converter entry point

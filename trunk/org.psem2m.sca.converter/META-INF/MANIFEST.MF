@@ -10,3 +10,4 @@ Import-Package: org.apache.felix.ipojo;version="1.8.1",
  org.psem2m.composer.model;version="1.0.0",
  org.psem2m.isolates.base.activators,
  org.psem2m.utilities.files;version="1.0.0"
+Main-Class: org.psem2m.sca.converter.standalone.Main
