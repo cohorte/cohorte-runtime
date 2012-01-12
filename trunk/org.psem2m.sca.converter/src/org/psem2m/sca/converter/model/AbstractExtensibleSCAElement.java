@@ -6,8 +6,9 @@
 package org.psem2m.sca.converter.model;
 
 /**
- * @author Thomas Calmant
+ * Basic class for extensible SCA elements
  * 
+ * @author Thomas Calmant
  */
 public abstract class AbstractExtensibleSCAElement extends AbstractSCAElement
         implements IExtensible {

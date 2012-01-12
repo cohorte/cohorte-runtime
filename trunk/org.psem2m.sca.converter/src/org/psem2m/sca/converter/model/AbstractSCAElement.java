@@ -23,13 +23,31 @@ public abstract class AbstractSCAElement {
     /** The XML element representing the SCA element */
     protected Element pXmlElement;
 
-    /** Duplicates this object */
-    public abstract AbstractSCAElement duplicate();
+    /**
+     * Top level implementation of the duplication of an SCA element
+     * 
+     * This method should be overridden by children, and called using
+     * <em>super</em>.
+     * 
+     * @return The new SCA element
+     */
+    public AbstractSCAElement duplicate() {
+
+        final AbstractSCAElement copy = newInstance();
+
+        // Copy container reference
+        copy.pContainer = pContainer;
+
+        // Copy XML element reference
+        copy.pXmlElement = pXmlElement;
+
+        return copy;
+    }
 
     /**
-     * Retrieves the element container
+     * Retrieves the container of this SCA element
      * 
-     * @return the element container
+     * @return the container
      */
     public IReferenceContainer getContainer() {
 
@@ -83,6 +101,25 @@ public abstract class AbstractSCAElement {
     public Element getXmlElement() {
 
         return pXmlElement;
+    }
+
+    /**
+     * Creates a new instance of an object of the same type than this one
+     * 
+     * @return
+     */
+    protected AbstractSCAElement newInstance() {
+
+        try {
+            return getClass().getConstructor((Class<?>[]) null).newInstance(
+                    (Object[]) null);
+
+        } catch (final Exception e) {
+            e.printStackTrace();
+        }
+
+        // Return null on error...
+        return null;
     }
 
     /**

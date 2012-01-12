@@ -143,11 +143,8 @@ public class Composite extends AbstractNameableSCAElement implements
     @Override
     public Composite duplicate() {
 
-        final Composite copy = new Composite();
+        final Composite copy = (Composite) super.duplicate();
         copy.pAlias = pAlias;
-        copy.pContainer = pContainer;
-        copy.pQName = pQName;
-        copy.pXmlElement = pXmlElement;
 
         copy.pCompositeImplementations.putAll(pCompositeImplementations);
         copy.pIncludedCompositesNames.addAll(pIncludedCompositesNames);

@@ -13,8 +13,9 @@ import java.util.Set;
 import org.psem2m.sca.converter.core.QName;
 
 /**
- * @author Thomas Calmant
+ * Represents a SCA reference
  * 
+ * @author Thomas Calmant
  */
 public class Reference extends AbstractPromotableSCAElement {
 
@@ -77,19 +78,21 @@ public class Reference extends AbstractPromotableSCAElement {
     @Override
     public Reference duplicate() {
 
-        final Reference copy = new Reference();
-        copy.pQName = pQName;
-        copy.pPromotes = pPromotes;
-        copy.pPromotedElementName = pPromotedElementName;
-        copy.pContainer = pContainer;
-        copy.pMultiplicity = pMultiplicity;
-        copy.pTargetsNames.addAll(pTargetsNames);
-        copy.pXmlElement = pXmlElement;
+        final Reference copy = (Reference) super.duplicate();
 
+        // Multiplicity
+        copy.pMultiplicity = pMultiplicity;
+
+        // Interface
         if (pInterface != null) {
             copy.pInterface = pInterface.duplicate();
         }
 
+        // Same targets
+        copy.pTargetsNames.addAll(pTargetsNames);
+        copy.pTargets.addAll(pTargets);
+
+        // Bindings
         for (final Binding binding : pBindings) {
             copy.addBinding(binding.duplicate());
         }

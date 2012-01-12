@@ -6,8 +6,9 @@
 package org.psem2m.sca.converter.model;
 
 /**
- * @author Thomas Calmant
+ * Represents a basic SCA binding
  * 
+ * @author Thomas Calmant
  */
 public class Binding extends AbstractExtensibleSCAElement {
 
@@ -19,9 +20,6 @@ public class Binding extends AbstractExtensibleSCAElement {
     @Override
     public Binding duplicate() {
 
-        final Binding copy = new Binding();
-        copy.pContainer = pContainer;
-        copy.pXmlElement = pXmlElement;
-        return copy;
+        return (Binding) super.duplicate();
     }
 }

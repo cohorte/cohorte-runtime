@@ -8,7 +8,7 @@ package org.psem2m.sca.converter.model;
 import org.psem2m.sca.converter.core.QName;
 
 /**
- * Represent a SCA element which can contain references and services
+ * Represents a SCA element which can contain references and services
  * 
  * @author Thomas Calmant
  */

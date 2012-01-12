@@ -9,8 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author Thomas Calmant
+ * Represents a SCA service
  * 
+ * @author Thomas Calmant
  */
 public class Service extends AbstractPromotableSCAElement {
 
@@ -36,12 +37,7 @@ public class Service extends AbstractPromotableSCAElement {
     @Override
     public Service duplicate() {
 
-        final Service copy = new Service();
-        copy.pQName = pQName;
-        copy.pContainer = pContainer;
-        copy.pPromotes = pPromotes;
-        copy.pPromotedElementName = pPromotedElementName;
-        copy.pXmlElement = pXmlElement;
+        final Service copy = (Service) super.duplicate();
 
         if (pInterface != null) {
             copy.pInterface = pInterface.duplicate();

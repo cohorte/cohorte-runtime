@@ -8,8 +8,9 @@ package org.psem2m.sca.converter.model;
 import org.psem2m.sca.converter.core.SCAConstants;
 
 /**
- * @author Thomas Calmant
+ * Represents an SCA implementation
  * 
+ * @author Thomas Calmant
  */
 public class Implementation extends AbstractExtensibleSCAElement {
 
@@ -21,10 +22,7 @@ public class Implementation extends AbstractExtensibleSCAElement {
     @Override
     public Implementation duplicate() {
 
-        final Implementation copy = new Implementation();
-        copy.pContainer = pContainer;
-        copy.pXmlElement = pXmlElement;
-        return copy;
+        return (Implementation) super.duplicate();
     }
 
     /**

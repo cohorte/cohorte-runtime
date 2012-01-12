@@ -6,8 +6,9 @@
 package org.psem2m.sca.converter.model;
 
 /**
- * @author Thomas Calmant
+ * Represents a SCA property
  * 
+ * @author Thomas Calmant
  */
 public class Property extends AbstractNameableSCAElement {
 
@@ -25,13 +26,9 @@ public class Property extends AbstractNameableSCAElement {
     @Override
     public Property duplicate() {
 
-        final Property copy = new Property();
-        copy.pContainer = pContainer;
+        final Property copy = (Property) super.duplicate();
         copy.pMustSupply = pMustSupply;
-        copy.pQName = pQName;
         copy.pValue = pValue;
-        copy.pXmlElement = pXmlElement;
-
         return copy;
     }
 

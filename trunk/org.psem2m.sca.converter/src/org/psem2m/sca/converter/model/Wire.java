@@ -34,13 +34,11 @@ public class Wire extends AbstractSCAElement {
     @Override
     public Wire duplicate() {
 
-        final Wire copy = new Wire();
-        copy.pContainer = pContainer;
+        final Wire copy = (Wire) super.duplicate();
         copy.pSource = pSource;
         copy.pTarget = pTarget;
         copy.pSourceName = pSourceName;
         copy.pTargetName = pTargetName;
-        copy.pXmlElement = pXmlElement;
 
         return copy;
     }

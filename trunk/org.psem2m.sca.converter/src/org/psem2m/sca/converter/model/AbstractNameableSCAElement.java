@@ -21,6 +21,21 @@ public abstract class AbstractNameableSCAElement extends AbstractSCAElement
     /*
      * (non-Javadoc)
      * 
+     * @see org.psem2m.sca.converter.model.AbstractSCAElement#duplicate()
+     */
+    @Override
+    public AbstractNameableSCAElement duplicate() {
+
+        final AbstractNameableSCAElement copy = (AbstractNameableSCAElement) super
+                .duplicate();
+
+        copy.pQName = pQName;
+        return copy;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.psem2m.sca.converter.model.INameable#getCompleteAlias()
      */
     @Override

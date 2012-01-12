@@ -6,6 +6,8 @@
 package org.psem2m.sca.converter.model;
 
 /**
+ * Represents an SCA interface
+ * 
  * @author Thomas Calmant
  */
 public class Interface extends AbstractExtensibleSCAElement {
@@ -18,9 +20,6 @@ public class Interface extends AbstractExtensibleSCAElement {
     @Override
     public Interface duplicate() {
 
-        final Interface copy = new Interface();
-        copy.pContainer = pContainer;
-        copy.pXmlElement = pXmlElement;
-        return copy;
+        return (Interface) super.duplicate();
     }
 }

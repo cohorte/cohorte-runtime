@@ -77,10 +77,7 @@ public class Component extends AbstractNameableSCAElement implements
     @Override
     public Component duplicate() {
 
-        final Component copy = new Component();
-        copy.pQName = pQName;
-        copy.pContainer = pContainer;
-        copy.pXmlElement = pXmlElement;
+        final Component copy = (Component) super.duplicate();
 
         if (pImplementation != null) {
             copy.pImplementation = pImplementation.duplicate();

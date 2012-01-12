@@ -24,6 +24,24 @@ public abstract class AbstractPromotableSCAElement extends
     /*
      * (non-Javadoc)
      * 
+     * @see
+     * org.psem2m.sca.converter.model.AbstractNameableSCAElement#duplicate()
+     */
+    @Override
+    public AbstractPromotableSCAElement duplicate() {
+
+        final AbstractPromotableSCAElement copy = (AbstractPromotableSCAElement) super
+                .duplicate();
+
+        copy.pPromotedElementName = pPromotedElementName;
+        copy.pPromotes = pPromotes;
+
+        return copy;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.psem2m.sca.converter.model.IPromotable#getPromotedElementName()
      */
     @Override
