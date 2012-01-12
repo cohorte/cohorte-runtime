@@ -276,6 +276,21 @@ public class ComponentBean extends AbstractModelBean implements Serializable {
     }
 
     /**
+     * Sets a component field wire
+     * 
+     * @param aFieldName
+     *            A source field name
+     * @param aWireTarget
+     *            A wire target
+     */
+    public void setWire(final String aFieldName, final String aWireTarget) {
+
+        if (aFieldName != null && aWireTarget != null) {
+            pWires.put(aFieldName, aWireTarget);
+        }
+    }
+
+    /**
      * Sets the component wires
      * 
      * @param aWires
