@@ -71,7 +71,12 @@ public class EmbeddedResourceResolver implements LSResourceResolver {
         }
 
         // Extract the file name from the URI
-        final StringBuilder fileName = new StringBuilder("xml-schemas/");
+        final StringBuilder fileName = new StringBuilder();
+
+        // Try to get the schema
+        fileName.append(EmbeddedResourceResolver.class.getPackage().getName()
+                .replace('.', '/'));
+        fileName.append("/schemas/");
 
         final int lastSlash = systemId.lastIndexOf('/') + 1;
         if (lastSlash == 0) {
@@ -81,9 +86,6 @@ public class EmbeddedResourceResolver implements LSResourceResolver {
             fileName.append(systemId.substring(lastSlash));
         }
 
-        // Try to get the file...
-
-        // ... in the JAR file
         InputStream schemaStream = pLoader.getResourceAsStream(fileName
                 .toString());
 
