@@ -524,8 +524,8 @@ public class SCAParser implements SCAConstants {
         // FIXME maybe use strings instead of File objects as keys
         final Map<File, Composite> compositesMap = parseFolder(aFolder);
         if (compositesMap == null) {
-            pLogger.log(Level.SEVERE, "Error parsing folder : " + aFolder);
-            return null;
+            throw new FileNotFoundException("No composite found in folder : "
+                    + aFolder);
         }
 
         // Find the root composite

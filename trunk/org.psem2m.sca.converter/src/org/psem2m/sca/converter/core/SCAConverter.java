@@ -1,5 +1,5 @@
 /**
- * File:   SCA2Composer.java
+ * File:   SCAConverter.java
  * Author: Thomas Calmant
  * Date:   11 janv. 2012
  */
@@ -29,7 +29,7 @@ import org.psem2m.sca.converter.utils.QName;
  * 
  * @author Thomas Calmant
  */
-public class SCA2Composer {
+public class SCAConverter {
 
     /** The logger */
     private Logger pLogger;

@@ -10,7 +10,7 @@ import java.io.File;
 import org.psem2m.composer.config.IComposerConfigHandler;
 import org.psem2m.composer.config.impl.JsonComposerConfigHandler;
 import org.psem2m.composer.model.ComponentsSetBean;
-import org.psem2m.sca.converter.core.SCA2Composer;
+import org.psem2m.sca.converter.core.SCAConverter;
 import org.psem2m.sca.converter.core.SCAParser;
 import org.psem2m.sca.converter.model.Composite;
 
@@ -53,7 +53,7 @@ public class Main {
         final File rootCompositeFile = new File(rootFolder, aArgs[0]);
 
         final SCAParser parser = new SCAParser();
-        final SCA2Composer converter = new SCA2Composer();
+        final SCAConverter converter = new SCAConverter();
 
         // Parse the document
         System.out.println("Parse : " + rootFolder);

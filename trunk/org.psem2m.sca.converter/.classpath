@@ -6,5 +6,6 @@
 	<classpathentry kind="lib" path="lib/xercesImpl.jar"/>
 	<classpathentry kind="lib" path="lib/xml-apis.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/org.psem2m.composer.config"/>
+	<classpathentry kind="con" path="org.ow2.chameleon.ipojo.CLASSPATH_CONTAINER"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
