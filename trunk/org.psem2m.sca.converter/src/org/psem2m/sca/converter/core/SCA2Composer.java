@@ -7,6 +7,7 @@ package org.psem2m.sca.converter.core;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -53,44 +54,62 @@ public class SCA2Composer {
         psem2mComponent.setType(implem.getXmlAttribute("type"));
         psem2mComponent.setIsolate(implem.getXmlAttribute("isolate"));
 
-        // Wires
-        final Map<String, String> wires = new HashMap<String, String>();
+        // Wires and filters
+        final StringBuilder filter = new StringBuilder();
         for (final Reference ref : aComponent.getReferences()) {
 
-            if (ref.getQualifiedName() == null) {
+            // Empty targets list
+            if (ref.getTargets().isEmpty()) {
+                continue;
+            }
+
+            final QName refName = ref.getQualifiedName();
+            if (refName == null) {
                 System.err.println("Reference without name : " + ref);
                 continue;
             }
 
-            final String fieldName = ref.getQualifiedName()
-                    .getLocalNameLastPart();
+            // The reference field name
+            final String fieldName = refName.getLocalNameLastPart();
 
-            if (ref.getTargets().size() > 1) {
-                System.out
-                        .println("WARNING: only single target references are handled");
+            // The targets iterator
+            final Iterator<INameable> iterator = ref.getTargets().iterator();
 
-            } else if (ref.getTargets().isEmpty()) {
-                // No target
-                continue;
-            }
-
-            // FIXME make an LDAP filter
-            // FIXME handle all targets
-            final INameable target = ref.getTargets().iterator().next();
-
-            if (target instanceof Component) {
-                // Reference points to a component, get the component name
-                wires.put(fieldName, target.getCompleteAlias());
-
-            } else if (target instanceof Service) {
-                // Reference points to a service, get its container name
-                final INameable container = ((Service) target).getContainer();
-                if (container != null) {
-                    wires.put(fieldName, container.getCompleteAlias());
+            switch (ref.getMultiplicity()) {
+            case ONE_ONE:
+            case ZERO_ONE:
+                // Reference to one element
+                if (ref.getTargets().size() > 1) {
+                    System.err
+                            .println("WARNING: only one target should be indicated for "
+                                    + ref.getQualifiedName());
                 }
+
+                // Use a wire (single target)
+                psem2mComponent.setWire(fieldName,
+                        getTargetCompleteName(iterator.next()));
+                break;
+
+            case ONE_N:
+            case ZERO_N:
+                // Reference to multiple elements
+
+                // Reset the builder
+                filter.setLength(0);
+
+                filter.append("(|");
+                while (iterator.hasNext()) {
+                    // FIXME iPOJO style...
+                    filter.append("(instance.name=");
+                    filter.append(getTargetCompleteName(iterator.next()));
+                    filter.append(')');
+                }
+                filter.append(')');
+
+                psem2mComponent.setFieldFilter(fieldName, filter.toString());
+                break;
             }
         }
-        psem2mComponent.setWires(wires);
 
         // Properties
         final Map<String, String> properties = new HashMap<String, String>();
@@ -153,5 +172,30 @@ public class SCA2Composer {
     public ComponentsSetBean convertToComposer(final Composite aScaComposite) {
 
         return convertComposite(null, aScaComposite);
+    }
+
+    /**
+     * Retrieves the complete aliased name of the targeted component. Returns
+     * null if the component can't be computed.
+     * 
+     * @param aTarget
+     *            A component or a service targeted by a reference
+     * @return The complete aliased name of the component, or null.
+     */
+    protected String getTargetCompleteName(final INameable aTarget) {
+
+        if (aTarget instanceof Component) {
+            // Reference points to a component, get the component name
+            return aTarget.getCompleteAlias();
+
+        } else if (aTarget instanceof Service) {
+            // Reference points to a service, get its container name
+            final INameable container = ((Service) aTarget).getContainer();
+            if (container != null) {
+                return container.getCompleteAlias();
+            }
+        }
+
+        return null;
     }
 }

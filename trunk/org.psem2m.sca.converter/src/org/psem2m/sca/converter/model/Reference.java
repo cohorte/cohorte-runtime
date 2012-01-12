@@ -24,8 +24,8 @@ public class Reference extends AbstractPromotableSCAElement {
     /** Referenced interface */
     private Interface pInterface;
 
-    /** The reference multiplicity */
-    private EMultiplicity pMultiplicity;
+    /** The reference multiplicity (default : {@link EMultiplicity#ONE_ONE} */
+    private EMultiplicity pMultiplicity = EMultiplicity.ONE_ONE;
 
     /** Reference targets */
     private final Set<INameable> pTargets = new HashSet<INameable>();
