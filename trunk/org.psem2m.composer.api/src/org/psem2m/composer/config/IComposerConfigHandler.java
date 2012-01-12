@@ -28,12 +28,13 @@ public interface IComposerConfigHandler {
 
     /**
      * Writes the composition model configuration into the given file. Creates
-     * the file and parent folders if needed
+     * the file and parent folders if needed. If the given file name is null,
+     * the handler should write the result in the standard output.
      * 
      * @param aComponentsSet
      *            A components set
      * @param aFileName
-     *            An output file name
+     *            An output file name, can be null
      * 
      * @throws IOException
      *             An error occurred while writing the configuration file

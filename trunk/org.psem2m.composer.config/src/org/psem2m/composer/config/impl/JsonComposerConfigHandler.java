@@ -510,8 +510,8 @@ public class JsonComposerConfigHandler extends CPojoBase implements
     public void write(final ComponentsSetBean aComponentsSet,
             final String aFileName) throws IOException {
 
-        if (aComponentsSet == null || aFileName == null) {
-            // Invalid parameters : can't work
+        if (aComponentsSet == null) {
+            // Invalid parameter : can't work
             return;
         }
 
@@ -525,36 +525,43 @@ public class JsonComposerConfigHandler extends CPojoBase implements
             throw new IOException("Error preparing the file content", e);
         }
 
-        // Prepare the file
-        final File outputFile = new File(aFileName).getAbsoluteFile();
-        if (!outputFile.exists()) {
-            // The file doesn't exist yet, create it
-            final File parentFile = outputFile.getParentFile();
-            if (!parentFile.exists()) {
-                // Create parent directories
-                parentFile.mkdirs();
-            }
-            outputFile.createNewFile();
+        // The writer
+        final BufferedWriter writer;
 
-        } else if (!outputFile.isFile()) {
-            // Something with this name already exists and is not a file
-            throw new IOException("The path '" + aFileName
-                    + "' exists and doesn't point to file.");
+        if (aFileName == null) {
+            // No file name given, use standard output
+            writer = new BufferedWriter(new OutputStreamWriter(System.out));
+
+        } else {
+
+            // Prepare the file
+            final File outputFile = new File(aFileName).getAbsoluteFile();
+            if (!outputFile.exists()) {
+                // The file doesn't exist yet, create it
+                final File parentFile = outputFile.getParentFile();
+                if (!parentFile.exists()) {
+                    // Create parent directories
+                    parentFile.mkdirs();
+                }
+                outputFile.createNewFile();
+
+            } else if (!outputFile.isFile()) {
+                // Something with this name already exists and is not a file
+                throw new IOException("The path '" + aFileName
+                        + "' exists and doesn't point to file.");
+            }
+
+            writer = new BufferedWriter(new OutputStreamWriter(
+                    new FileOutputStream(outputFile)));
         }
 
         // Write in the file
-        BufferedWriter writer = null;
-
         try {
-            writer = new BufferedWriter(new OutputStreamWriter(
-                    new FileOutputStream(outputFile)));
-
             writer.write(fileContent);
 
         } finally {
-            if (writer != null) {
-                writer.close();
-            }
+            // Be nice
+            writer.close();
         }
     }
 }
