@@ -52,7 +52,10 @@
             "symbolicName":"org.psem2m.composer.api"
         },
         {
-            "symbolicName":"org.psem2m.composer.config"
+            "symbolicName":"org.psem2m.libs.xerces"
+        },
+        {
+            "symbolicName":"org.psem2m.sca.converter"
         },
         {
             "symbolicName":"org.psem2m.composer.core"

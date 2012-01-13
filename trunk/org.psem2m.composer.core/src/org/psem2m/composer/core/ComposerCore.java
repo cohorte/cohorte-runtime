@@ -886,8 +886,8 @@ public class ComposerCore extends CPojoBase implements IComposer,
         }
 
         if (configReader == null) {
-            pLogger.logWarn(this, "", "Can't find a configuration reader for",
-                    aFileName);
+            pLogger.logWarn(this, "test_conf",
+                    "Can't find a configuration reader for", aFileName);
             return;
         }
 
@@ -1091,7 +1091,8 @@ public class ComposerCore extends CPojoBase implements IComposer,
         pLogger.logInfo(this, "validatePojo", "Composer Core Ready");
 
         try {
-            test_conf("test_compo.js");
+            test_conf("/home/tcalmant/programmation/workspaces/jvm-forker/org.psem2m.composer.demo.sca/src.old/application.composite");
+            // test_conf("test_compo.js");
         } catch (final Throwable e) {
             pLogger.logSevere(this, "", "Something went wrong\n", e);
         }
