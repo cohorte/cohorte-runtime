@@ -8,7 +8,6 @@ package org.psem2m.sca.converter.standalone;
 import java.io.File;
 
 import org.psem2m.composer.config.IComposerConfigHandler;
-import org.psem2m.composer.config.impl.JsonComposerConfigHandler;
 import org.psem2m.composer.model.ComponentsSetBean;
 import org.psem2m.sca.converter.core.SCAConverter;
 import org.psem2m.sca.converter.core.SCAParser;
@@ -28,6 +27,14 @@ public class Main {
      *            Arguments
      */
     public static void main(final String[] aArgs) throws Exception {
+
+        // Load the class (may throw an error)
+        final Class<?> clazz = Class
+                .forName("org.psem2m.composer.config.impl.JsonComposerConfigHandler");
+
+        // Prepare the writer (may throw an error)
+        final IComposerConfigHandler config = (IComposerConfigHandler) clazz
+                .getConstructor((Class<?>[]) null).newInstance((Object[]) null);
 
         if (aArgs.length < 2) {
             System.out
@@ -63,7 +70,6 @@ public class Main {
         final ComponentsSetBean composet = converter
                 .convertToComposer(scaComposite);
 
-        final IComposerConfigHandler config = new JsonComposerConfigHandler();
         config.write(composet, null);
     }
 }
