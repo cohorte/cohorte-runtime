@@ -26,6 +26,7 @@ import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
 import org.psem2m.isolates.services.remote.signals.ISignalData;
 import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
 import org.psem2m.isolates.services.remote.signals.ISignalsDirectory;
+import org.psem2m.isolates.services.remote.signals.UnsendableDataException;
 
 /**
  * Base signal sender logic
@@ -73,16 +74,30 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
         synchronized (pStoredTargetedSignals) {
             for (final StoredSignal signal : pStoredTargetedSignals) {
                 // Multiple targets
-                aProvider.sendData(signal.getTargets(), signal.getSignalName(),
-                        signal.getSignalData());
+                try {
+                    aProvider.sendData(signal.getTargets(),
+                            signal.getSignalName(), signal.getSignalData());
+
+                } catch (final UnsendableDataException e) {
+                    // Log error
+                    pLogger.logWarn(this, "sendData",
+                            "Can't sent signal data :", e);
+                }
             }
         }
 
         synchronized (pStoredSpecificSignals) {
             for (final StoredSignal signal : pStoredSpecificSignals) {
                 // Specific isolate ID
-                aProvider.sendData(signal.getTargetId(),
-                        signal.getSignalName(), signal.getSignalData());
+                try {
+                    aProvider.sendData(signal.getTargetId(),
+                            signal.getSignalName(), signal.getSignalData());
+
+                } catch (final UnsendableDataException e) {
+                    // Log error
+                    pLogger.logWarn(this, "sendData",
+                            "Can't sent signal data :", e);
+                }
             }
         }
     }
@@ -161,7 +176,14 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
             } else {
                 // Use current providers
                 for (final ISignalBroadcastProvider broadcaster : pBroadcasters) {
-                    broadcaster.sendData(aTargets, aSignalName, aData);
+                    try {
+                        broadcaster.sendData(aTargets, aSignalName, aData);
+
+                    } catch (final UnsendableDataException e) {
+                        // Log error
+                        pLogger.logWarn(this, "sendData",
+                                "Can't sent signal data :", e);
+                    }
                 }
             }
         }
@@ -200,8 +222,15 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
             // Use current providers
             for (final ISignalBroadcastProvider broadcaster : pBroadcasters) {
 
-                atLeastOneSuccess |= broadcaster.sendData(aIsolateId,
-                        aSignalName, aData);
+                try {
+                    atLeastOneSuccess |= broadcaster.sendData(aIsolateId,
+                            aSignalName, aData);
+
+                } catch (final UnsendableDataException e) {
+                    // Log error
+                    pLogger.logWarn(this, "sendData",
+                            "Can't sent signal data :", e);
+                }
             }
 
             return atLeastOneSuccess;
