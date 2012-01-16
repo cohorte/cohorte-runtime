@@ -253,6 +253,11 @@
 			<locationURI>PARENT-1-PROJECT_LOC/org.psem2m.isolates.constants/src/org/psem2m/isolates/services/remote/signals/ISignalData.java</locationURI>
 		</link>
 		<link>
+			<name>linked-src/org/psem2m/isolates/services/remote/signals/ISignalDataSerializer.java</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/org.psem2m.isolates.constants/src/org/psem2m/isolates/services/remote/signals/ISignalDataSerializer.java</locationURI>
+		</link>
+		<link>
 			<name>linked-src/org/psem2m/isolates/services/remote/signals/ISignalListener.java</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/org.psem2m.isolates.constants/src/org/psem2m/isolates/services/remote/signals/ISignalListener.java</locationURI>
@@ -268,9 +273,24 @@
 			<locationURI>PARENT-1-PROJECT_LOC/org.psem2m.isolates.constants/src/org/psem2m/isolates/services/remote/signals/ISignalReceptionProvider.java</locationURI>
 		</link>
 		<link>
+			<name>linked-src/org/psem2m/isolates/services/remote/signals/ISignalRequestReader.java</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/org.psem2m.isolates.constants/src/org/psem2m/isolates/services/remote/signals/ISignalRequestReader.java</locationURI>
+		</link>
+		<link>
 			<name>linked-src/org/psem2m/isolates/services/remote/signals/ISignalsDirectory.java</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/org.psem2m.isolates.constants/src/org/psem2m/isolates/services/remote/signals/ISignalsDirectory.java</locationURI>
+		</link>
+		<link>
+			<name>linked-src/org/psem2m/isolates/services/remote/signals/InvalidDataException.java</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/org.psem2m.isolates.constants/src/org/psem2m/isolates/services/remote/signals/InvalidDataException.java</locationURI>
+		</link>
+		<link>
+			<name>linked-src/org/psem2m/isolates/services/remote/signals/UnsendableDataException.java</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/org.psem2m.isolates.constants/src/org/psem2m/isolates/services/remote/signals/UnsendableDataException.java</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
