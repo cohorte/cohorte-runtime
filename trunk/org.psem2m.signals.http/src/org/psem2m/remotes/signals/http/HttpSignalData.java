@@ -20,17 +20,17 @@ public class HttpSignalData implements Serializable, ISignalData {
     /** Serial version UID */
     private static final long serialVersionUID = 1L;
 
-    /** The sender host name (default: localhost) */
+    /** The sender host name (default: local host) */
     private String pHostName = "localhost";
 
     /** ID of the source isolate */
-    private final String pIsolateSender;
+    private String pIsolateSender;
 
     /** Signal data */
-    private final Object pSignalData;
+    private Object pSignalData;
 
     /** Signal time stamp */
-    private final long pTimestamp;
+    private long pTimestamp;
 
     /**
      * Sets up the signal data
@@ -101,6 +101,39 @@ public class HttpSignalData implements Serializable, ISignalData {
     public void setHostName(final String aHostName) {
 
         pHostName = aHostName;
+    }
+
+    /**
+     * Sets the sender
+     * 
+     * @param aIsolateSender
+     *            An isolate ID
+     */
+    public void setIsolateSender(final String aIsolateSender) {
+
+        pIsolateSender = aIsolateSender;
+    }
+
+    /**
+     * Sets the signal data
+     * 
+     * @param aSignalData
+     *            the signal data
+     */
+    public void setSignalData(final Object aSignalData) {
+
+        pSignalData = aSignalData;
+    }
+
+    /**
+     * Sets the signal time stamp
+     * 
+     * @param aTimestamp
+     *            the signal time stamp
+     */
+    public void setTimestamp(final long aTimestamp) {
+
+        pTimestamp = aTimestamp;
     }
 
     /**

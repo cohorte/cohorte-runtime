@@ -11,6 +11,8 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -26,7 +28,9 @@ import org.osgi.service.log.LogService;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.services.remote.signals.ISignalBroadcastProvider;
 import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
+import org.psem2m.isolates.services.remote.signals.ISignalDataSerializer;
 import org.psem2m.isolates.services.remote.signals.ISignalsDirectory;
+import org.psem2m.isolates.services.remote.signals.UnsendableDataException;
 import org.psem2m.remotes.signals.http.HttpSignalData;
 import org.psem2m.remotes.signals.http.IHttpSignalsConstants;
 
@@ -55,6 +59,10 @@ public class HttpSignalSender extends CPojoBase implements
     /** Flag to indicate if the logger is accessible or not */
     private AtomicBoolean pLoggerAccessible = new AtomicBoolean(false);
 
+    /** Signal data serializers */
+    @Requires
+    private ISignalDataSerializer[] pSerializers;
+
     /**
      * Data sending core method. Starts as many threads as URLs to avoid time
      * outs, etc
@@ -63,8 +71,11 @@ public class HttpSignalSender extends CPojoBase implements
      *            Target URLs
      * @param aData
      *            Signal content
+     * @throws UnsendableDataException
+     *             The given data can't be sent
      */
-    protected void internalSendData(final URL[] aUrls, final Object aData) {
+    protected void internalSendData(final URL[] aUrls, final Object aData)
+            throws UnsendableDataException {
 
         if (aUrls == null) {
             return;
@@ -74,10 +85,62 @@ public class HttpSignalSender extends CPojoBase implements
         final HttpSignalData sentObject = new HttpSignalData(
                 pDirectory.getCurrentIsolateId(), aData);
 
+        // The really sent data
+        byte[] sentData = null;
+
+        // The sent data content type
+        String contentType = null;
+
+        final SortedMap<Number, ISignalDataSerializer> pSortedSerializers = new TreeMap<Number, ISignalDataSerializer>();
+
+        // Find the serializers that can handle this object
+        for (final ISignalDataSerializer serializer : pSerializers) {
+
+            if (serializer.canSerialize(aData)
+                    && serializer.canSerialize(sentObject)) {
+                // Valid serializer found
+                pSortedSerializers.put(serializer.getPriority(), serializer);
+            }
+        }
+
+        // Make the conversion
+        for (final ISignalDataSerializer serializer : pSortedSerializers
+                .values()) {
+
+            try {
+                sentData = serializer.serializeData(sentObject);
+                contentType = serializer.getContentType();
+
+                // We're good
+                break;
+
+            } catch (final UnsendableDataException ex) {
+                /*
+                 * Can't serialize the data with this serializer, do nothing
+                 * special and try another one
+                 */
+            }
+        }
+
+        // No serialization done
+        if (sentData == null) {
+            final StringBuilder builder = new StringBuilder();
+            builder.append("No serializer found to prepare a signal with an instance of ");
+
+            if (aData != null) {
+                builder.append(aData.getClass());
+
+            } else {
+                builder.append("<null>");
+            }
+
+            throw new UnsendableDataException(builder.toString());
+        }
+
         for (final URL targetUrl : aUrls) {
             // Use threads to parallelize the sending process
-            pExecutor
-                    .execute(new HttpSenderThread(this, targetUrl, sentObject));
+            pExecutor.execute(new HttpSenderThread(this, targetUrl, sentData,
+                    contentType));
         }
     }
 
@@ -211,7 +274,7 @@ public class HttpSignalSender extends CPojoBase implements
      */
     @Override
     public void sendData(final ISignalBroadcaster.EEmitterTargets aTargets,
-            final String aSignalName, final Object aData) {
+            final String aSignalName, final Object aData) throws UnsendableDataException {
 
         // Find the URLs corresponding to targets
         final URL[] targetsUrl;
@@ -237,7 +300,7 @@ public class HttpSignalSender extends CPojoBase implements
      */
     @Override
     public boolean sendData(final String aIsolateId, final String aSignalName,
-            final Object aData) {
+            final Object aData) throws UnsendableDataException {
 
         final URL isolateUrl;
         try {
