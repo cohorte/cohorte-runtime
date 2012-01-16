@@ -16,7 +16,9 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.jabsorb.ng.JSONSerializer;
 import org.jabsorb.ng.serializer.MarshallException;
 import org.jabsorb.ng.serializer.UnmarshallException;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.psem2m.isolates.base.BundlesClassLoader;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.services.remote.signals.ISignalDataSerializer;
@@ -43,12 +45,26 @@ public class JsonSignalSerializer extends CPojoBase implements
     /** Default error code */
     protected final int DEFAULT_ERROR_CODE = 505;
 
+    /** The bundle context */
+    private BundleContext pBundleContext;
+
     /** The logger */
     @Requires(optional = true)
     private IIsolateLoggerSvc pLogger;
 
     /** The JSON Serializer (Jabsorb) */
     private JSONSerializer pSerializer;
+
+    /**
+     * Sets up the serializer
+     * 
+     * @param aBundleContext
+     *            The bundle context
+     */
+    public JsonSignalSerializer(final BundleContext aBundleContext) {
+
+        pBundleContext = aBundleContext;
+    }
 
     /*
      * (non-Javadoc)
@@ -58,11 +74,6 @@ public class JsonSignalSerializer extends CPojoBase implements
      */
     @Override
     public boolean canHandleType(final String aContentType) {
-
-        if (aContentType == null || aContentType.isEmpty()) {
-            // Accept invalid content type
-            return true;
-        }
 
         // Accept proper content type
         return aContentType.equals(CONTENT_TYPE_JSON);
@@ -126,7 +137,8 @@ public class JsonSignalSerializer extends CPojoBase implements
      * serializeData(java.lang.Object)
      */
     @Override
-    public byte[] serializeData(final Object aObject) throws UnsendableDataException {
+    public byte[] serializeData(final Object aObject)
+            throws UnsendableDataException {
 
         if (aObject == null) {
             // Null object, return an empty byte array
@@ -184,7 +196,7 @@ public class JsonSignalSerializer extends CPojoBase implements
     public void validatePojo() throws BundleException {
 
         // Set up the serializer
-        pSerializer = new JSONSerializer();
+        pSerializer = new JSONSerializer(new BundlesClassLoader(pBundleContext));
         try {
             pSerializer.registerDefaultSerializers();
 

@@ -23,14 +23,16 @@ iPOJO-Components: instance { $component="org.psem2m.signals.serializer
   { $transition="validate" $method="validatePojo" }manipulation { $sup
  er="org.psem2m.isolates.base.activators.CPojoBase" interface { $name=
  "org.psem2m.isolates.services.remote.signals.ISignalDataSerializer" }
- field { $name="DEFAULT_ERROR_CODE" $type="int" }field { $name="pLogge
- r" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name=
- "pSerializer" $type="org.jabsorb.ng.JSONSerializer" }method { $name="
- canHandleType" $return="boolean" $arguments="{java.lang.String}" }met
- hod { $name="canSerialize" $return="boolean" $arguments="{java.lang.O
- bject}" }method { $name="getContentType" $return="java.lang.String" }
- method { $name="getPriority" $return="int" }method { $name="invalidat
- ePojo" }method { $name="serializeData" $return="byte[]" $arguments="{
- java.lang.Object}" }method { $name="unserializeData" $return="java.la
- ng.Object" $arguments="{byte[]}" }method { $name="validatePojo" }}}
+ field { $name="DEFAULT_ERROR_CODE" $type="int" }field { $name="pBundl
+ eContext" $type="org.osgi.framework.BundleContext" }field { $name="pL
+ ogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $n
+ ame="pSerializer" $type="org.jabsorb.ng.JSONSerializer" }method { $na
+ me="canHandleType" $return="boolean" $arguments="{java.lang.String}" 
+ }method { $name="canSerialize" $return="boolean" $arguments="{java.la
+ ng.Object}" }method { $name="getContentType" $return="java.lang.Strin
+ g" }method { $name="getPriority" $return="int" }method { $name="inval
+ idatePojo" }method { $name="serializeData" $return="byte[]" $argument
+ s="{java.lang.Object}" }method { $name="unserializeData" $return="jav
+ a.lang.Object" $arguments="{byte[]}" }method { $name="validatePojo" }
+ }}
 
