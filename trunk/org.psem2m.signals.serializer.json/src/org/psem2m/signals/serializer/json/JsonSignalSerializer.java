@@ -86,12 +86,30 @@ public class JsonSignalSerializer extends CPojoBase implements
     @Override
     public boolean canSerialize(final Object aObject) {
 
-        try {
-            aObject.getClass().getConstructor((Class<?>[]) null);
+        if (aObject != null) {
 
-        } catch (final Exception e) {
-            // No default constructor accessible
-            return false;
+            // Try to serialize it (hard core...)
+            // FIXME: be nicer ? use cache for successes ?
+            try {
+                pSerializer.toJSON(aObject);
+
+            } catch (final Exception e) {
+                // Can't do
+                e.printStackTrace();
+                return false;
+            }
+
+            final Class<?> clazz = aObject.getClass();
+            if (!clazz.isArray()) {
+                try {
+                    // Test default constructor
+                    clazz.getConstructor((Class<?>[]) null);
+
+                } catch (final Exception e) {
+                    // No default constructor accessible
+                    return false;
+                }
+            }
         }
 
         return true;
