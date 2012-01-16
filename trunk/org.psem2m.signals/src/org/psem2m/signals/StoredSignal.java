@@ -5,8 +5,6 @@
  */
 package org.psem2m.signals;
 
-import java.io.Serializable;
-
 import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
 
 /**
@@ -17,7 +15,7 @@ import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
 public class StoredSignal {
 
     /** Signal data */
-    private final Serializable pSignalData;
+    private final Object pSignalData;
 
     /** Signal name */
     private final String pSignalName;
@@ -39,7 +37,7 @@ public class StoredSignal {
      *            Signal content
      */
     public StoredSignal(final ISignalBroadcaster.EEmitterTargets aTargets,
-            final String aSignalName, final Serializable aSignalData) {
+            final String aSignalName, final Object aSignalData) {
 
         pTargets = aTargets;
         pSignalName = aSignalName;
@@ -60,7 +58,7 @@ public class StoredSignal {
      *            The signal content
      */
     public StoredSignal(final String aTargetIsolateId,
-            final String aSignalName, final Serializable aSignalData) {
+            final String aSignalName, final Object aSignalData) {
 
         pTargetId = aTargetIsolateId;
         pSignalName = aSignalName;
@@ -75,7 +73,7 @@ public class StoredSignal {
      * 
      * @return the signal content
      */
-    public Serializable getSignalData() {
+    public Object getSignalData() {
 
         return pSignalData;
     }

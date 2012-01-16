@@ -5,7 +5,6 @@
  */
 package org.psem2m.signals;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -109,7 +108,7 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
      */
     @Override
     public void sendData(final Collection<String> aIsolatesIds,
-            final String aSignalName, final Serializable aData) {
+            final String aSignalName, final Object aData) {
 
         if (aIsolatesIds == null) {
             // Nothing to do
@@ -142,7 +141,7 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
      */
     @Override
     public void sendData(final EEmitterTargets aTargets,
-            final String aSignalName, final Serializable aData) {
+            final String aSignalName, final Object aData) {
 
         if (aTargets == EEmitterTargets.LOCAL) {
             // Only case to send signal directly to the receiver
@@ -177,7 +176,7 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
      */
     @Override
     public boolean sendData(final String aIsolateId, final String aSignalName,
-            final Serializable aData) {
+            final Object aData) {
 
         // Special case : local transmission
         if (pDirectory.getCurrentIsolateId().equals(aIsolateId)) {

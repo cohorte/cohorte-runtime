@@ -27,7 +27,7 @@ public class HttpSignalData implements Serializable, ISignalData {
     private final String pIsolateSender;
 
     /** Signal data */
-    private final Serializable pSignalData;
+    private final Object pSignalData;
 
     /** Signal time stamp */
     private final long pTimestamp;
@@ -38,7 +38,7 @@ public class HttpSignalData implements Serializable, ISignalData {
      * @param aSignalData
      *            Embedded data (can be null)
      */
-    public HttpSignalData(final String aSender, final Serializable aSignalData) {
+    public HttpSignalData(final String aSender, final Object aSignalData) {
 
         pSignalData = aSignalData;
         pIsolateSender = aSender;
@@ -75,7 +75,7 @@ public class HttpSignalData implements Serializable, ISignalData {
      * @see org.psem2m.remotes.signals.http.ISignalData#getSignalData()
      */
     @Override
-    public Serializable getSignalContent() {
+    public Object getSignalContent() {
 
         return pSignalData;
     }

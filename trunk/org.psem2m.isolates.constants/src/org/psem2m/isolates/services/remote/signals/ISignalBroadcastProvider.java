@@ -5,8 +5,6 @@
  */
 package org.psem2m.isolates.services.remote.signals;
 
-import java.io.Serializable;
-
 import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster.EEmitterTargets;
 
 /**
@@ -26,8 +24,7 @@ public interface ISignalBroadcastProvider {
      * @param aData
      *            Signal content (can't be null)
      */
-    void sendData(EEmitterTargets aTargets, String aSignalName,
-            Serializable aData);
+    void sendData(EEmitterTargets aTargets, String aSignalName, Object aData);
 
     /**
      * Sends the given data to the given isolate
@@ -41,5 +38,5 @@ public interface ISignalBroadcastProvider {
      * 
      * @return True if the isolate ID exists, else false
      */
-    boolean sendData(String aIsolateId, String aSignalName, Serializable aData);
+    boolean sendData(String aIsolateId, String aSignalName, Object aData);
 }

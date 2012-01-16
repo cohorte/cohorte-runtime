@@ -5,7 +5,6 @@
  */
 package org.psem2m.remotes.signals.http.sender;
 
-import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -65,7 +64,7 @@ public class HttpSignalSender extends CPojoBase implements
      * @param aData
      *            Signal content
      */
-    protected void internalSendData(final URL[] aUrls, final Serializable aData) {
+    protected void internalSendData(final URL[] aUrls, final Object aData) {
 
         if (aUrls == null) {
             return;
@@ -212,7 +211,7 @@ public class HttpSignalSender extends CPojoBase implements
      */
     @Override
     public void sendData(final ISignalBroadcaster.EEmitterTargets aTargets,
-            final String aSignalName, final Serializable aData) {
+            final String aSignalName, final Object aData) {
 
         // Find the URLs corresponding to targets
         final URL[] targetsUrl;
@@ -238,7 +237,7 @@ public class HttpSignalSender extends CPojoBase implements
      */
     @Override
     public boolean sendData(final String aIsolateId, final String aSignalName,
-            final Serializable aData) {
+            final Object aData) {
 
         final URL isolateUrl;
         try {

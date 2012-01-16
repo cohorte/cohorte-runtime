@@ -5,8 +5,6 @@
  */
 package org.psem2m.signals;
 
-import java.io.Serializable;
-
 import org.psem2m.isolates.services.remote.signals.ISignalData;
 
 /**
@@ -21,7 +19,7 @@ import org.psem2m.isolates.services.remote.signals.ISignalData;
 public class LocalSignalData implements ISignalData {
 
     /** The data associated to the signal */
-    private final Serializable pSignalData;
+    private final Object pSignalData;
 
     /** The signal source isolate */
     private final String pSourceIsolate;
@@ -36,7 +34,7 @@ public class LocalSignalData implements ISignalData {
      *            Signal content
      * @param aData2
      */
-    public LocalSignalData(final String aIsolateId, final Serializable aData) {
+    public LocalSignalData(final String aIsolateId, final Object aData) {
 
         pSourceIsolate = aIsolateId;
         pSignalData = aData;
@@ -77,7 +75,7 @@ public class LocalSignalData implements ISignalData {
      * ()
      */
     @Override
-    public Serializable getSignalContent() {
+    public Object getSignalContent() {
 
         return pSignalData;
     }

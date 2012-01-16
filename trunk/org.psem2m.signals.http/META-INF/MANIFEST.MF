@@ -55,18 +55,18 @@ iPOJO-Components: instance { $component="org.psem2m.remotes.signals.ht
  torService" }field { $name="pLogger" $type="org.osgi.service.log.LogS
  ervice" }field { $name="pLoggerAccessible" $type="java.util.concurren
  t.atomic.AtomicBoolean" }method { $name="internalSendData" $arguments
- ="{java.net.URL[],java.io.Serializable}" }method { $name="invalidateP
- ojo" }method { $name="isolateAccessToUrl" $return="java.net.URL" $arg
- uments="{java.lang.String,java.net.URI}" }method { $name="isolateIdTo
- Url" $return="java.net.URL" $arguments="{java.lang.String,java.net.UR
- I}" }method { $name="isolatesIdsToUrl" $return="java.net.URL[]" $argu
- ments="{java.lang.String[],java.net.URI}" }method { $name="logSenderT
- hreadError" $arguments="{java.lang.String,java.lang.Exception}" }meth
- od { $name="sendData" $arguments="{org.psem2m.isolates.services.remot
- e.signals.ISignalBroadcaster$EEmitterTargets,java.lang.String,java.io
- .Serializable}" }method { $name="sendData" $return="boolean" $argumen
- ts="{java.lang.String,java.lang.String,java.io.Serializable}" }method
-  { $name="targetsToUrl" $return="java.net.URL[]" $arguments="{org.pse
- m2m.isolates.services.remote.signals.ISignalBroadcaster$EEmitterTarge
- ts,java.net.URI}" }method { $name="validatePojo" }}}
+ ="{java.net.URL[],java.lang.Object}" }method { $name="invalidatePojo"
+  }method { $name="isolateAccessToUrl" $return="java.net.URL" $argumen
+ ts="{java.lang.String,java.net.URI}" }method { $name="isolateIdToUrl"
+  $return="java.net.URL" $arguments="{java.lang.String,java.net.URI}" 
+ }method { $name="isolatesIdsToUrl" $return="java.net.URL[]" $argument
+ s="{java.lang.String[],java.net.URI}" }method { $name="logSenderThrea
+ dError" $arguments="{java.lang.String,java.lang.Exception}" }method {
+  $name="sendData" $arguments="{org.psem2m.isolates.services.remote.si
+ gnals.ISignalBroadcaster$EEmitterTargets,java.lang.String,java.lang.O
+ bject}" }method { $name="sendData" $return="boolean" $arguments="{jav
+ a.lang.String,java.lang.String,java.lang.Object}" }method { $name="ta
+ rgetsToUrl" $return="java.net.URL[]" $arguments="{org.psem2m.isolates
+ .services.remote.signals.ISignalBroadcaster$EEmitterTargets,java.net.
+ URI}" }method { $name="validatePojo" }}}
 

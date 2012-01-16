@@ -5,7 +5,6 @@
  */
 package org.psem2m.isolates.services.remote.signals;
 
-import java.io.Serializable;
 import java.util.Collection;
 
 /**
@@ -48,7 +47,7 @@ public interface ISignalBroadcaster {
      *            Signal content (can't be null)
      */
     void sendData(Collection<String> aIsolateId, String aSignalName,
-            Serializable aData);
+            Object aData);
 
     /**
      * Sends the given data to the given targets.
@@ -60,8 +59,7 @@ public interface ISignalBroadcaster {
      * @param aData
      *            Signal content (can't be null)
      */
-    void sendData(EEmitterTargets aTargets, String aSignalName,
-            Serializable aData);
+    void sendData(EEmitterTargets aTargets, String aSignalName, Object aData);
 
     /**
      * Sends the given data to the given isolate
@@ -75,5 +73,5 @@ public interface ISignalBroadcaster {
      * 
      * @return True if the isolate ID exists, else false
      */
-    boolean sendData(String aIsolateId, String aSignalName, Serializable aData);
+    boolean sendData(String aIsolateId, String aSignalName, Object aData);
 }
