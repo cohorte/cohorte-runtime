@@ -114,7 +114,6 @@ def read_parameters():
         if not only_clean:
             raise InvalidParameterException(\
                         "A target platform directory must be given")
-            return
 
     elif os.path.isdir(target_platform):
         # The given target platform path is a valid
