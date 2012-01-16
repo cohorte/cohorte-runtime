@@ -5,8 +5,6 @@
  */
 package org.psem2m.signals.serializer.json;
 
-import java.io.Serializable;
-
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
@@ -80,13 +78,21 @@ public class JsonSignalSerializer extends CPojoBase implements
     }
 
     /**
-     * Accepts the object if it is null or if it implements {@link Serializable}
+     * Accepts the object if it seems to be usable with Jabsorb
      * 
      * @see org.psem2m.isolates.services.remote.signals.ISignalDataSerializer#
      *      canSerialize(java.lang.Object)
      */
     @Override
     public boolean canSerialize(final Object aObject) {
+
+        try {
+            aObject.getClass().getConstructor((Class<?>[]) null);
+
+        } catch (final Exception e) {
+            // No default constructor accessible
+            return false;
+        }
 
         return true;
     }
