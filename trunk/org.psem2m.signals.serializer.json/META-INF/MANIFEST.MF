@@ -14,9 +14,9 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  em2m.isolates.services.remote.signals;version=1.0.0, org.psem2m.utili
  ties;version=1.0.0, org.psem2m.utilities.logging;version=1.0.0
 iPOJO-Components: instance { $component="org.psem2m.signals.serializer
- .json.JsonSignalSerializer" $name="psem2m-signals-data-java" }compone
+ .json.JsonSignalSerializer" $name="psem2m-signals-data-json" }compone
  nt { $classname="org.psem2m.signals.serializer.json.JsonSignalSeriali
- zer" $name="psem2m-signals-data-java-factory" $public="false" provide
+ zer" $name="psem2m-signals-data-json-factory" $public="false" provide
  s { $specifications="{org.psem2m.isolates.services.remote.signals.ISi
  gnalDataSerializer}" }requires { $field="pLogger" $optional="true" }c
  allback { $transition="invalidate" $method="invalidatePojo" }callback

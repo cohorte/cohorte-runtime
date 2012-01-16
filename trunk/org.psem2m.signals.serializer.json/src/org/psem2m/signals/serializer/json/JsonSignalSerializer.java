@@ -30,9 +30,9 @@ import org.psem2m.isolates.services.remote.signals.UnsendableDataException;
  * 
  * @author Thomas Calmant
  */
-@Component(name = "psem2m-signals-data-java-factory", publicFactory = false)
+@Component(name = "psem2m-signals-data-json-factory", publicFactory = false)
 @Provides(specifications = ISignalDataSerializer.class)
-@Instantiate(name = "psem2m-signals-data-java")
+@Instantiate(name = "psem2m-signals-data-json")
 public class JsonSignalSerializer extends CPojoBase implements
         ISignalDataSerializer {
 
