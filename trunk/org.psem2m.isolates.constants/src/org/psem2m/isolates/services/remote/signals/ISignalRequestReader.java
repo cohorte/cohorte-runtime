@@ -5,13 +5,12 @@
  */
 package org.psem2m.isolates.services.remote.signals;
 
-
 /**
  * Definition of a signal request handler
  * 
  * @author Thomas Calmant
  */
-public interface ISignalRequestReader {
+public interface ISignalRequestReader extends ISignalListener {
 
     /**
      * Uses serializers to read the given byte array
@@ -27,5 +26,4 @@ public interface ISignalRequestReader {
      */
     ISignalData handleSignalRequest(String aContentType, byte[] aData)
             throws InvalidDataException;
-
 }

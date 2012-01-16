@@ -37,41 +37,43 @@ iPOJO-Components: instance { $component="org.psem2m.remotes.signals.ht
  .Set" }field { $name="pLogger" $type="org.osgi.service.log.LogService
  " }field { $name="pPropertyReady" $type="boolean" }field { $name="pSe
  rializers" $type="org.psem2m.isolates.services.remote.signals.ISignal
- DataSerializer[]" }method { $name="handleSignalRequest" $return="org.
- psem2m.isolates.services.remote.signals.ISignalData" $arguments="{jav
- a.lang.String,byte[]}" }method { $name="invalidatePojo" }method { $na
- me="isReady" $return="boolean" }method { $name="registerListener" $ar
- guments="{org.psem2m.isolates.services.remote.signals.ISignalListener
- }" }method { $name="unregisterListener" $arguments="{org.psem2m.isola
- tes.services.remote.signals.ISignalListener}" }method { $name="valida
- tePojo" }}}component { $classname="org.psem2m.remotes.signals.http.se
- nder.HttpSignalSender" $name="psem2m-remote-signal-sender-http-factor
- y" $public="false" provides { $specifications="{org.psem2m.isolates.s
- ervices.remote.signals.ISignalBroadcastProvider}" }requires { $field=
- "pDirectory" }requires { $field="pLogger" }requires { $field="pSerial
- izers" }callback { $transition="invalidate" $method="invalidatePojo" 
- }callback { $transition="validate" $method="validatePojo" }manipulati
- on { $super="org.psem2m.isolates.base.activators.CPojoBase" interface
-  { $name="org.psem2m.isolates.services.remote.signals.ISignalBroadcas
- tProvider" }field { $name="pDirectory" $type="org.psem2m.isolates.ser
- vices.remote.signals.ISignalsDirectory" }field { $name="pExecutor" $t
- ype="java.util.concurrent.ExecutorService" }field { $name="pLogger" $
- type="org.osgi.service.log.LogService" }field { $name="pLoggerAccessi
- ble" $type="java.util.concurrent.atomic.AtomicBoolean" }field { $name
- ="pSerializers" $type="org.psem2m.isolates.services.remote.signals.IS
- ignalDataSerializer[]" }method { $name="internalSendData" $arguments=
- "{java.net.URL[],java.lang.Object}" }method { $name="invalidatePojo" 
- }method { $name="isolateAccessToUrl" $return="java.net.URL" $argument
- s="{java.lang.String,java.net.URI}" }method { $name="isolateIdToUrl" 
- $return="java.net.URL" $arguments="{java.lang.String,java.net.URI}" }
- method { $name="isolatesIdsToUrl" $return="java.net.URL[]" $arguments
- ="{java.lang.String[],java.net.URI}" }method { $name="logSenderThread
- Error" $arguments="{java.lang.String,java.lang.Exception}" }method { 
- $name="sendData" $arguments="{org.psem2m.isolates.services.remote.sig
- nals.ISignalBroadcaster$EEmitterTargets,java.lang.String,java.lang.Ob
- ject}" }method { $name="sendData" $return="boolean" $arguments="{java
- .lang.String,java.lang.String,java.lang.Object}" }method { $name="tar
- getsToUrl" $return="java.net.URL[]" $arguments="{org.psem2m.isolates.
- services.remote.signals.ISignalBroadcaster$EEmitterTargets,java.net.U
- RI}" }method { $name="validatePojo" }}}
+ DataSerializer[]" }method { $name="handleReceivedSignal" $arguments="
+ {java.lang.String,org.psem2m.isolates.services.remote.signals.ISignal
+ Data}" }method { $name="handleSignalRequest" $return="org.psem2m.isol
+ ates.services.remote.signals.ISignalData" $arguments="{java.lang.Stri
+ ng,byte[]}" }method { $name="invalidatePojo" }method { $name="isReady
+ " $return="boolean" }method { $name="registerListener" $arguments="{o
+ rg.psem2m.isolates.services.remote.signals.ISignalListener}" }method 
+ { $name="unregisterListener" $arguments="{org.psem2m.isolates.service
+ s.remote.signals.ISignalListener}" }method { $name="validatePojo" }}}
+ component { $classname="org.psem2m.remotes.signals.http.sender.HttpSi
+ gnalSender" $name="psem2m-remote-signal-sender-http-factory" $public=
+ "false" provides { $specifications="{org.psem2m.isolates.services.rem
+ ote.signals.ISignalBroadcastProvider}" }requires { $field="pDirectory
+ " }requires { $field="pLogger" }requires { $field="pSerializers" }cal
+ lback { $transition="invalidate" $method="invalidatePojo" }callback {
+  $transition="validate" $method="validatePojo" }manipulation { $super
+ ="org.psem2m.isolates.base.activators.CPojoBase" interface { $name="o
+ rg.psem2m.isolates.services.remote.signals.ISignalBroadcastProvider" 
+ }field { $name="pDirectory" $type="org.psem2m.isolates.services.remot
+ e.signals.ISignalsDirectory" }field { $name="pExecutor" $type="java.u
+ til.concurrent.ExecutorService" }field { $name="pLogger" $type="org.o
+ sgi.service.log.LogService" }field { $name="pLoggerAccessible" $type=
+ "java.util.concurrent.atomic.AtomicBoolean" }field { $name="pSerializ
+ ers" $type="org.psem2m.isolates.services.remote.signals.ISignalDataSe
+ rializer[]" }method { $name="internalSendData" $arguments="{java.net.
+ URL[],java.lang.Object}" }method { $name="invalidatePojo" }method { $
+ name="isolateAccessToUrl" $return="java.net.URL" $arguments="{java.la
+ ng.String,java.net.URI}" }method { $name="isolateIdToUrl" $return="ja
+ va.net.URL" $arguments="{java.lang.String,java.net.URI}" }method { $n
+ ame="isolatesIdsToUrl" $return="java.net.URL[]" $arguments="{java.lan
+ g.String[],java.net.URI}" }method { $name="logSenderThreadError" $arg
+ uments="{java.lang.String,java.lang.Exception}" }method { $name="send
+ Data" $arguments="{org.psem2m.isolates.services.remote.signals.ISigna
+ lBroadcaster$EEmitterTargets,java.lang.String,java.lang.Object}" }met
+ hod { $name="sendData" $return="boolean" $arguments="{java.lang.Strin
+ g,java.lang.String,java.lang.Object}" }method { $name="targetsToUrl" 
+ $return="java.net.URL[]" $arguments="{org.psem2m.isolates.services.re
+ mote.signals.ISignalBroadcaster$EEmitterTargets,java.net.URI}" }metho
+ d { $name="validatePojo" }}}
 

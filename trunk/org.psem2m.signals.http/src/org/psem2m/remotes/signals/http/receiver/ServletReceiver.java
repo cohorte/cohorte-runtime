@@ -41,9 +41,6 @@ public class ServletReceiver extends HttpServlet {
     /** Signal reception listener */
     private final ISignalRequestReader pSignalRequestHandler;
 
-    /** Valid signals caught */
-    private int pSignalsCaughtCount;
-
     /**
      * Sets up the servlet
      * 
@@ -77,9 +74,8 @@ public class ServletReceiver extends HttpServlet {
 
         writer.println("<html><head><title>HTTP Signal Receiver</title></head>");
         writer.println("<body><h1>HTTP Signal Receiver</h1><ul>");
-        writer.println("<li>Main signal listener : <pre>"
+        writer.println("<li>Main signal handler : <pre>"
                 + pSignalRequestHandler + "</pre></li>");
-        writer.println("<li>Signals caugth : " + pSignalsCaughtCount + "</li>");
         writer.println("</ul></body></html>");
     }
 
@@ -138,6 +134,9 @@ public class ServletReceiver extends HttpServlet {
         // Return success
         aResp.setStatus(HttpServletResponse.SC_OK);
         aResp.getWriter().println("SUCCESS");
+
+        // Notify listeners
+        pSignalRequestHandler.handleReceivedSignal(signalName, signalData);
     }
 
     /**

@@ -76,6 +76,26 @@ public class HttpSignalReceiver extends CPojoBase implements
     /*
      * (non-Javadoc)
      * 
+     * @see org.psem2m.isolates.services.remote.signals.ISignalListener#
+     * handleReceivedSignal(java.lang.String,
+     * org.psem2m.isolates.services.remote.signals.ISignalData)
+     */
+    @Override
+    public void handleReceivedSignal(final String aSignalName,
+            final ISignalData aSignalData) {
+
+        // Get listeners set
+        synchronized (pListeners) {
+            // Notify listeners
+            for (final ISignalListener listener : pListeners) {
+                listener.handleReceivedSignal(aSignalName, aSignalData);
+            }
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.psem2m.remotes.signals.http.receiver.ISignalRequestHandler#
      * handleSignalRequest(java.lang.String, byte[])
      */

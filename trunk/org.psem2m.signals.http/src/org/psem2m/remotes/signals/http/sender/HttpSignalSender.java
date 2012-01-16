@@ -274,7 +274,8 @@ public class HttpSignalSender extends CPojoBase implements
      */
     @Override
     public void sendData(final ISignalBroadcaster.EEmitterTargets aTargets,
-            final String aSignalName, final Object aData) throws UnsendableDataException {
+            final String aSignalName, final Object aData)
+            throws UnsendableDataException {
 
         // Find the URLs corresponding to targets
         final URL[] targetsUrl;
