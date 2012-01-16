@@ -18,8 +18,10 @@ import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
+import org.psem2m.isolates.base.OsgiObjectInputStream;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.services.remote.signals.ISignalDataSerializer;
 import org.psem2m.isolates.services.remote.signals.InvalidDataException;
@@ -39,12 +41,29 @@ public class JavaSignalSerializer extends CPojoBase implements
     /** Java Serializable HTTP Content type */
     public static final String CONTENT_TYPE_SERIALIZABLE = "application/x-java-serialized-object";
 
+    /** Default POST content type */
+    protected static final String DEFAULT_POST_CONTENT_TYPE = "application/x-www-form-urlencoded";
+
     /** Default error code */
     protected final int DEFAULT_ERROR_CODE = 505;
+
+    /** The bundles context */
+    private BundleContext pBundleContext;
 
     /** The logger */
     @Requires(optional = true)
     private IIsolateLoggerSvc pLogger;
+
+    /**
+     * Sets up the serializer
+     * 
+     * @param aBundleContext
+     *            The bundle context
+     */
+    public JavaSignalSerializer(final BundleContext aBundleContext) {
+
+        pBundleContext = aBundleContext;
+    }
 
     /*
      * (non-Javadoc)
@@ -55,8 +74,9 @@ public class JavaSignalSerializer extends CPojoBase implements
     @Override
     public boolean canHandleType(final String aContentType) {
 
-        if (aContentType == null || aContentType.isEmpty()) {
-            // Accept invalid content type
+        if (aContentType == null || aContentType.isEmpty()
+                || aContentType.equals(DEFAULT_POST_CONTENT_TYPE)) {
+            // Accept invalid / default content type
             return true;
         }
 
@@ -120,7 +140,8 @@ public class JavaSignalSerializer extends CPojoBase implements
      * serializeData(java.lang.Object)
      */
     @Override
-    public byte[] serializeData(final Object aObject) throws UnsendableDataException {
+    public byte[] serializeData(final Object aObject)
+            throws UnsendableDataException {
 
         final ByteArrayOutputStream outArray = new ByteArrayOutputStream();
         ObjectOutputStream objectStream = null;
@@ -129,7 +150,8 @@ public class JavaSignalSerializer extends CPojoBase implements
             objectStream.writeObject(aObject);
 
         } catch (final IOException e) {
-            throw new UnsendableDataException("Can't serialize the sent object", e);
+            throw new UnsendableDataException(
+                    "Can't serialize the sent object", e);
 
         } finally {
             // Be nice, clean up the stream
@@ -164,7 +186,7 @@ public class JavaSignalSerializer extends CPojoBase implements
         final ByteArrayInputStream inArray = new ByteArrayInputStream(aBytes);
         ObjectInputStream objectStream = null;
         try {
-            objectStream = new ObjectInputStream(inArray);
+            objectStream = new OsgiObjectInputStream(pBundleContext, inArray);
             return objectStream.readObject();
 
         } catch (final IOException e) {

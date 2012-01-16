@@ -23,13 +23,15 @@ iPOJO-Components: instance { $component="org.psem2m.signals.serializer
   { $transition="validate" $method="validatePojo" }manipulation { $sup
  er="org.psem2m.isolates.base.activators.CPojoBase" interface { $name=
  "org.psem2m.isolates.services.remote.signals.ISignalDataSerializer" }
- field { $name="DEFAULT_ERROR_CODE" $type="int" }field { $name="pLogge
- r" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }method { $name
- ="canHandleType" $return="boolean" $arguments="{java.lang.String}" }m
- ethod { $name="canSerialize" $return="boolean" $arguments="{java.lang
- .Object}" }method { $name="getContentType" $return="java.lang.String"
-  }method { $name="getPriority" $return="int" }method { $name="invalid
- atePojo" }method { $name="serializeData" $return="byte[]" $arguments=
- "{java.lang.Object}" }method { $name="unserializeData" $return="java.
- lang.Object" $arguments="{byte[]}" }method { $name="validatePojo" }}}
+ field { $name="DEFAULT_ERROR_CODE" $type="int" }field { $name="pBundl
+ eContext" $type="org.osgi.framework.BundleContext" }field { $name="pL
+ ogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }method { $
+ name="canHandleType" $return="boolean" $arguments="{java.lang.String}
+ " }method { $name="canSerialize" $return="boolean" $arguments="{java.
+ lang.Object}" }method { $name="getContentType" $return="java.lang.Str
+ ing" }method { $name="getPriority" $return="int" }method { $name="inv
+ alidatePojo" }method { $name="serializeData" $return="byte[]" $argume
+ nts="{java.lang.Object}" }method { $name="unserializeData" $return="j
+ ava.lang.Object" $arguments="{byte[]}" }method { $name="validatePojo"
+  }}}
 
