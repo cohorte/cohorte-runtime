@@ -33,6 +33,14 @@ public class HttpSignalData implements Serializable, ISignalData {
     private long pTimestamp;
 
     /**
+     * Default constructor
+     */
+    public HttpSignalData() {
+
+        // Does nothing
+    }
+
+    /**
      * Sets up the signal data
      * 
      * @param aSignalData
