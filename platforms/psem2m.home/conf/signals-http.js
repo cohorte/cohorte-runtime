@@ -4,8 +4,5 @@
     },
     {
         "symbolicName":"org.psem2m.signals.http"
-    },
-    {
-        "symbolicName":"org.psem2m.signals.serializer.json"
     }
 ]
