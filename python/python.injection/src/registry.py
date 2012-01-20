@@ -40,6 +40,7 @@ class Instance:
         self.factory = self.instance._ipopo_factory_name
         self.depends_on = []
 
+
 class _Registry:
     """
     The iPOPO Component registry singleton
@@ -152,6 +153,9 @@ def instantiate(factory_name, name, properties={}):
     # Try to validate components
     _try_validation()
 
+    # Second try to bind optional dependencies
+    _try_bind_incompletes()
+
     return instance
 
 
@@ -168,6 +172,85 @@ def get_instance_by_name(name):
     except KeyError:
         # Not found
         return None
+
+
+def _try_bind_incompletes():
+    """
+    Tries to bind optional dependencies to "incomplete" instances
+    """
+
+    for comp_instance in _Registry.running:
+
+        # Get the requirement, or an empty dictionary
+        requirements = getattr(comp_instance.instance, IPOPO_REQUIREMENTS, None)
+        if not requirements:
+            # No requirements : do nothing
+            _logger.debug("No requirements")
+            continue
+
+        for field, requires in requirements.items():
+            # For each field
+
+            if not requires.optional:
+                # Not an optional field, don't care
+                _logger.debug("Not a optional dependency : %s" % field)
+                continue
+
+            current_value = getattr(comp_instance.instance, field, None)
+            if not requires.aggregate and current_value is not None:
+                # A dependency is already injected
+                _logger.debug("Already bound : %s" % field)
+                continue
+
+            # Find possible link(s)
+            link = _find_requirement(requires)
+
+            if not link:
+                _logger.debug("No link found : %s" % field)
+                continue
+
+            # Set the field value
+            if isinstance(link, list):
+                # Aggregation
+                if not isinstance(current_value, list):
+                    # Injected field as the right type
+                    _logger.error("In '%s', field '%s' must be a list", \
+                                  comp_instance.name, field)
+                    continue
+
+                # Special case for a list : we must remove already injected
+                # references
+                for element in link:
+                    if element.instance in current_value:
+                        link.remove(element)
+
+                if not link:
+                    # Nothing to add, ignore this field
+                    continue
+
+                # Prepare the injected value
+                injected = [comp_inst.instance for comp_inst in link]
+
+                # Set the field
+                setattr(comp_instance.instance, field, injected)
+
+                # Add dependency marker
+                comp_instance.depends_on.extend(link)
+
+                # Call the bind callback
+                for dependency in injected:
+                    _callback(comp_instance, IPOPO_CALLBACK_BIND, dependency)
+
+            else:
+                # Normal field
+                # Set the instance
+                setattr(comp_instance.instance, field, link.instance)
+
+                # Add dependency marker
+                comp_instance.depends_on.append(link)
+
+                # Call the bind callback
+                _callback(comp_instance, IPOPO_CALLBACK_BIND, link.instance)
 
 
 def _try_validation():
@@ -193,8 +276,13 @@ def _try_validation():
             for field, requires in requirements.items():
                 # For each field...
                 link = _find_requirement(requires)
-                if not link and not requires.optional:
-                    # Mission requirement
+                if not link:
+
+                    if requires.optional:
+                        # Optional dependency, ignore
+                        continue
+
+                    # Missing requirement
                     can_validate = False
                     _logger.debug("'%s': no link for %s" \
                                   % (comp_instance.name, field))
@@ -208,7 +296,7 @@ def _try_validation():
                         # Prepare the injected value
                         injected = [comp_inst.instance for comp_inst in link]
 
-                        # Extract instances
+                        # Set the field
                         setattr(comp_instance.instance, field, injected)
 
                         # Add dependency marker
@@ -216,8 +304,8 @@ def _try_validation():
 
                         # Call the bind callback
                         for dependency in injected:
-                            _callback(comp_instance, IPOPO_CALLBACK_BIND, \
-                                      dependency)
+                            _safe_callback(comp_instance, IPOPO_CALLBACK_BIND, \
+                                           dependency)
 
                     else:
                         # Set the instance
@@ -227,8 +315,8 @@ def _try_validation():
                         comp_instance.depends_on.append(link)
 
                         # Call the bind callback
-                        _callback(comp_instance, IPOPO_CALLBACK_BIND, \
-                                  link.instance)
+                        _safe_callback(comp_instance, IPOPO_CALLBACK_BIND, \
+                                       link.instance)
 
 
             if can_validate:
@@ -277,6 +365,10 @@ def _find_requirement(requirement):
             else:
                 links.append(running_instance)
 
+    if not links:
+        # Don't return an empty list
+        return None
+
     return links
 
 
@@ -287,12 +379,19 @@ def _callback(comp_instance, event, *args, **kwargs):
     component = comp_instance.instance
     callbacks = component._ipopo_callbacks
     if event in callbacks:
-        try:
-            callbacks[event](component, *args, **kwargs)
+        callbacks[event](component, *args, **kwargs)
 
-        except Exception:
-            _logger.exception("Error calling back component '%s' " \
-                              "for the %s event" % (comp_instance.name, event))
+
+def _safe_callback(comp_instance, event, *args, **kwargs):
+    """
+    Calls the component callback method and logs raised exceptions
+    """
+    try:
+        _callback(comp_instance, event, *args, **kwargs)
+
+    except Exception:
+        _logger.exception("Component '%s' : error calling callback method for" \
+                          " event %s" % (comp_instance.name, event))
 
 
 def _instance_invalidation(comp_instance):
@@ -343,7 +442,7 @@ def _unregistration_loop(factory_name):
             _Registry.waitings.append(running)
 
             # Calls its unbind method
-            _callback(running, IPOPO_CALLBACK_UNBIND, instance.instance)
+            _safe_callback(running, IPOPO_CALLBACK_UNBIND, instance.instance)
 
 
         all_to_rebind.extend(to_rebind)
@@ -358,7 +457,7 @@ def _unregistration_loop(factory_name):
             _logger.warning("'%s' not rebound" % running.name)
 
             # Callback
-            _callback(running, IPOPO_CALLBACK_INVALIDATE)
+            _safe_callback(running, IPOPO_CALLBACK_INVALIDATE)
 
             # Clean up the instance
             _instance_invalidation(running)
@@ -367,5 +466,5 @@ def _unregistration_loop(factory_name):
     # Call the invalidate method of all instances, 
     # after dependencies invalidation
     for instance_tuple in to_remove:
-        _callback(instance_tuple[1], IPOPO_CALLBACK_INVALIDATE)
+        _safe_callback(instance_tuple[1], IPOPO_CALLBACK_INVALIDATE)
         del instance_tuple[1].instance

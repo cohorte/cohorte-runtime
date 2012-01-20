@@ -32,7 +32,7 @@ class IHello:
 
 @ComponentFactory(name=CONSUMER_FACTORY)
 @Property(field="id", value=42)
-@Requires(field="toto", specification=IHello)
+@Requires(field="toto", specification=IHello, optional=True)
 class Test:
 
     def __init__(self):
@@ -46,7 +46,7 @@ class Test:
         """
         print("!!! Component is started !!!")
         # Toto is injected by Requires, just before calling this method
-        self.toto.sayHello()
+
 
     @Invalidate
     def stop(self):
@@ -59,6 +59,7 @@ class Test:
     @Bind
     def bind(self, svc):
         print(">>> Bound to", svc)
+        self.toto.sayHello()
 
     @Unbind
     def unbind(self, svc):
@@ -86,12 +87,14 @@ class HelloImpl:
 # ------------------------------------------------------------------------------
 
 print("-- Test --")
-hell = instantiate(HELLO_IMPL_FACTORY, "HelloInstance")
-cons = instantiate(CONSUMER_FACTORY, "Consumer")
-hell = instantiate(HELLO_IMPL_FACTORY, "HelloInstance2")
-cons2 = instantiate(CONSUMER_FACTORY, "Consumer2")
+
+instantiate(CONSUMER_FACTORY, "Consumer")
+import time
+time.sleep(1)
+
+instantiate(HELLO_IMPL_FACTORY, "HelloInstance")
+
+time.sleep(1)
 
 print("--- INVALIDATE ---")
 registry.unregister_factory(HELLO_IMPL_FACTORY)
-
-cons.test()
