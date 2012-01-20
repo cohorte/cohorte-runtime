@@ -2,7 +2,8 @@
 #-- Content-Encoding: UTF-8 --
 
 from registry import instantiate
-from decorators import ComponentFactory, Property, Validate, Invalidate, Provides, Requires
+from decorators import ComponentFactory, Property, Validate, Invalidate, Provides, Requires, \
+    Bind, Unbind
 import logging
 import registry
 
@@ -53,6 +54,15 @@ class Test:
         Component stops
         """
         print("!!! Component is stopped !!!")
+
+
+    @Bind
+    def bind(self, svc):
+        print(">>> Bound to", svc)
+
+    @Unbind
+    def unbind(self, svc):
+        print("<<< Unbound of", svc)
 
 
     def test(self):

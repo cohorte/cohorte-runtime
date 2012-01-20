@@ -7,7 +7,8 @@ Created on 18 janv. 2012
 import logging
 
 from constants import IPOPO_CALLBACK_VALIDATE, IPOPO_REQUIREMENTS, \
-    IPOPO_PROVIDES, IPOPO_CALLBACK_INVALIDATE
+    IPOPO_PROVIDES, IPOPO_CALLBACK_INVALIDATE, IPOPO_CALLBACK_BIND, \
+    IPOPO_CALLBACK_UNBIND
 
 _logger = logging.getLogger("ipopo.registry")
 
@@ -200,14 +201,23 @@ def _try_validation():
 
                 else:
                     # TODO: make a Nullable proxy if link is None
+
                     # Set the field value
                     if isinstance(link, list):
+
+                        # Prepare the injected value
+                        injected = [comp_inst.instance for comp_inst in link]
+
                         # Extract instances
-                        setattr(comp_instance.instance, field, \
-                                [instance.instance for instance in link])
+                        setattr(comp_instance.instance, field, injected)
 
                         # Add dependency marker
                         comp_instance.depends_on.extend(link)
+
+                        # Call the bind callback
+                        for dependency in injected:
+                            _callback(comp_instance, IPOPO_CALLBACK_BIND, \
+                                      dependency)
 
                     else:
                         # Set the instance
@@ -216,8 +226,10 @@ def _try_validation():
                         # Add dependency marker
                         comp_instance.depends_on.append(link)
 
-                    _logger.debug("'%s : field '%s' bound to '%s'" \
-                                  % (comp_instance.name, field, link.name))
+                        # Call the bind callback
+                        _callback(comp_instance, IPOPO_CALLBACK_BIND, \
+                                  link.instance)
+
 
             if can_validate:
                 # Component can be validated
@@ -229,7 +241,7 @@ def _try_validation():
         for comp_instance in validated:
 
             try:
-                _callback(comp_instance.instance, IPOPO_CALLBACK_VALIDATE)
+                _callback(comp_instance, IPOPO_CALLBACK_VALIDATE)
 
             except Exception as ex:
                 # Something wrong occurred
@@ -268,13 +280,20 @@ def _find_requirement(requirement):
     return links
 
 
-def _callback(component, event):
+def _callback(comp_instance, event, *args, **kwargs):
     """
     Calls the component callback method
     """
+    component = comp_instance.instance
     callbacks = component._ipopo_callbacks
     if event in callbacks:
-        return callbacks[event](component)
+        try:
+            callbacks[event](component, *args, **kwargs)
+
+        except Exception:
+            _logger.exception("Error calling back component '%s'" \
+                              " for the %s event" \
+                              % (comp_instance.name, event.__name__))
 
 
 def _instance_invalidation(comp_instance):
@@ -315,12 +334,18 @@ def _unregistration_loop(factory_name):
         to_rebind = []
 
         for running in _Registry.running:
+            # Found a depending component
             if instance in running.depends_on:
                 to_rebind.append(running)
 
         for running in to_rebind:
+            # Change the component state in the registry 
             _Registry.running.remove(running)
             _Registry.waitings.append(running)
+
+            # Calls its unbind method
+            _callback(running, IPOPO_CALLBACK_UNBIND, instance.instance)
+
 
         all_to_rebind.extend(to_rebind)
 
@@ -334,7 +359,7 @@ def _unregistration_loop(factory_name):
             _logger.warning("'%s' not rebound" % running.name)
 
             # Callback
-            _callback(running.instance, IPOPO_CALLBACK_INVALIDATE)
+            _callback(running, IPOPO_CALLBACK_INVALIDATE)
 
             # Clean up the instance
             _instance_invalidation(running)
@@ -342,6 +367,6 @@ def _unregistration_loop(factory_name):
 
     # Call the invalidate method of all instances, 
     # after dependencies invalidation
-    for instance in to_remove:
-        _callback(instance[1].instance, IPOPO_CALLBACK_INVALIDATE)
-        del instance[1].instance
+    for instance_tuple in to_remove:
+        _callback(instance_tuple[1], IPOPO_CALLBACK_INVALIDATE)
+        del instance_tuple[1].instance

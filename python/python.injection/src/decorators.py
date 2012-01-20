@@ -66,24 +66,6 @@ def _ipopo_setup_callback(cls):
     setattr(cls, IPOPO_METHOD_CALLBACKS, callbacks)
 
 
-
-def _ipopo_get_properties(self, property_name):
-    """
-    Retrieves the requested iPOPO property
-    
-    @param property_name: The name of the property to retrieve
-    @return: The property value
-    @raise KeyError: The property doesn't exist
-    """
-    try:
-        properties = getattr(self, IPOPO_PROPERTIES)
-
-    except AttributeError:
-        raise KeyError("The object %d has no properties" % id(self))
-
-    return properties[property_name]
-
-
 def _append_object_entry(obj, list_name, entry):
     """
     Appends the given entry in the given object list.
@@ -201,7 +183,6 @@ class ComponentFactory:
         factory_class._ipopo_factory_name = read_only(self.__factory_name)
 
         # Add iPOPO properties methods
-        factory_class._ipopo_get_property = _ipopo_get_properties
         factory_class._ipopo_update_properties = _ipopo_update_properties
 
         # Callbacks
@@ -333,6 +314,38 @@ class Requires:
         return clazz
 
 # ------------------------------------------------------------------------------
+
+def Bind(method):
+    """
+    @Bind decorator
+    
+    Called when a component is bound to a dependency
+    
+    @param method: The decorated method
+    @raise TypeError: The decorated element is not a function
+    """
+    if type(method) is not types.FunctionType:
+        raise TypeError("@Bind can only be applied on functions")
+
+    _append_object_entry(method, IPOPO_METHOD_CALLBACKS, IPOPO_CALLBACK_BIND)
+    return method
+
+
+def Unbind(method):
+    """
+    @Unbind decorator
+    
+    Called when a component dependency is unbound
+    
+    @param method: The decorated method
+    @raise TypeError: The decorated element is not a function
+    """
+    if type(method) is not types.FunctionType:
+        raise TypeError("@Unbind can only be applied on functions")
+
+    _append_object_entry(method, IPOPO_METHOD_CALLBACKS, IPOPO_CALLBACK_UNBIND)
+    return method
+
 
 def Validate(method):
     """
