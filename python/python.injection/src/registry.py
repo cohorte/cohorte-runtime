@@ -291,9 +291,8 @@ def _callback(comp_instance, event, *args, **kwargs):
             callbacks[event](component, *args, **kwargs)
 
         except Exception:
-            _logger.exception("Error calling back component '%s'" \
-                              " for the %s event" \
-                              % (comp_instance.name, event.__name__))
+            _logger.exception("Error calling back component '%s' " \
+                              "for the %s event" % (comp_instance.name, event))
 
 
 def _instance_invalidation(comp_instance):
