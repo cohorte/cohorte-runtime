@@ -21,13 +21,13 @@ class _Registry:
     # Factories : Name -> Factory class
     factories = {}
 
-    # All instances : Name -> StoredInstance
+    # All instances : Name -> _StoredInstance
     instances = {}
 
-    # Instances waiting for validation (StoredInstance objects)
+    # Instances waiting for validation (_StoredInstance objects)
     waitings = []
 
-    # Running instances (StoredInstance objects)
+    # Running instances (_StoredInstance objects)
     running = []
 
     def __init__(self):
@@ -65,12 +65,12 @@ class Requirement:
 
     def matches(self, stored_instance):
         """
-        Tests if the given StoredInstance matches this requirement
+        Tests if the given _StoredInstance matches this requirement
         
         @param stored_instance: The instance to be tested
         @return: True if the instance matches this requirement
         """
-        assert(isinstance(stored_instance, StoredInstance))
+        assert(isinstance(stored_instance, _StoredInstance))
 
         provides = getattr(stored_instance.instance, \
                            constants.IPOPO_PROVIDES, [])
@@ -87,7 +87,7 @@ class Requirement:
 
 # ------------------------------------------------------------------------------
 
-class StoredInstance:
+class _StoredInstance:
     """
     Represents a component instance
     """
@@ -114,18 +114,29 @@ class StoredInstance:
         self.used_by = []
 
 
-    def get_properties(self):
+    def __clean_up_dependency(self, dependency):
         """
-        Retrieves the component properties values
+        Removes the given dependency from all instance fields
         
-        @return: The component properties, or an empty dictionary
+        @param dependency: An instance this one doesn't depend on anymore
         """
-        properties = getattr(self.instance, constants.IPOPO_PROPERTIES, {})
-        if isinstance(properties, dict):
-            return properties
+        dependency_instance = dependency.instance
 
-        # Never return None
-        return dict()
+        for field, requires in self.get_requirements().items():
+            value = getattr(self.instance, field, None)
+
+            if value is None:
+                # Useless field
+                continue
+
+            elif value is dependency_instance:
+                # Direct value, set it to None
+                setattr(self.instance, field, None)
+
+            elif requires.aggregate and isinstance(value, list) \
+            and dependency_instance in value:
+                # Aggregation
+                remove_all_occurrences(value, dependency_instance)
 
 
     def get_requirements(self):
@@ -142,6 +153,32 @@ class StoredInstance:
 
         assert(isinstance(requirements, dict))
         return requirements
+
+
+    def invalidate(self):
+        """
+        Sets to None all instances references
+        """
+        # Tell the others that this instance is going
+        for dependent in self.used_by:
+            # TODO: test if the dependency must then be invalidated
+            dependent.unset_dependency(self)
+
+        # Call invalidate()
+        _safe_callback(self, constants.IPOPO_CALLBACK_INVALIDATE)
+
+        # Get the requirement, or an empty dictionary
+        requirements = getattr(self.instance, constants.IPOPO_REQUIREMENTS, {})
+
+        # Merge optional and non-optional dependencies lists
+        dependencies = set(self.depends_on) ^ set(self.depends_on_optional)
+        for dependency in dependencies:
+            # Remove the dependency
+            self.unset_dependency(dependency)
+
+        # Set all fields to None
+        for field in requirements:
+            setattr(self.instance, field, None)
 
 
     def update_bindings(self):
@@ -235,7 +272,7 @@ class StoredInstance:
         @param dependency: An instance this one depends on
         @param optional: Flag set up if the dependency is optional
         """
-        if isinstance(dependency, StoredInstance):
+        if isinstance(dependency, _StoredInstance):
 
                 # Self depends on dependency
             if optional:
@@ -261,11 +298,15 @@ class StoredInstance:
         
         @param dependency: An instance this one doesn't depend on anymore
         """
-        if isinstance(dependency, StoredInstance):
+        if isinstance(dependency, _StoredInstance):
             # Remove self and dependency from lists
             remove_all_occurrences(self.depends_on, dependency)
             remove_all_occurrences(self.depends_on_optional, dependency)
             remove_all_occurrences(dependency.used_by, self)
+
+            # Call the unbind callback
+            _safe_callback(self, constants.IPOPO_CALLBACK_UNBIND, \
+                           dependency.instance)
 
             # Clean up fields
             self.__clean_up_dependency(dependency)
@@ -275,30 +316,9 @@ class StoredInstance:
             for dependency_instance in dependency:
                 self.unset_dependency(dependency_instance)
 
-
-    def __clean_up_dependency(self, dependency):
-        """
-        Removes the given dependency from all instance fields
-        
-        @param dependency: An instance this one doesn't depend on anymore
-        """
-        dependency_instance = dependency.instance
-
-        for field, requires in self.get_requirements().items():
-            value = getattr(self.instance, field, None)
-
-            if value is None:
-                # Useless field
-                continue
-
-            elif value is dependency_instance:
-                # Direct value, set it to None
-                setattr(self.instance, field, None)
-
-            elif requires.aggregate and isinstance(value, list) \
-            and dependency_instance in value:
-                # Aggregation
-                remove_all_occurrences(value, dependency_instance)
+        else:
+            _logger.warning("Unhandled dependency type : %s", \
+                            type(dependency).__name__)
 
 
     def update_properties(self, properties):
@@ -426,7 +446,7 @@ def instantiate(factory_name, name, properties={}):
                         % (factory_name, name))
 
     # Store the instance
-    stored_instance = StoredInstance(factory_name, name, instance)
+    stored_instance = _StoredInstance(factory_name, name, instance)
     stored_instance.update_properties(properties)
 
     # Store the instance
@@ -442,6 +462,36 @@ def instantiate(factory_name, name, properties={}):
     _try_new_bindings()
 
     return instance
+
+
+def invalidate(name):
+    """
+    Invalidates the given component
+    
+    @param name: Name of the component to invalidate
+    """
+    if not name:
+        raise ValueError("Invalid component name")
+
+    if name not in _Registry.instances:
+        raise ValueError("Unknown instance name '%s'" % name)
+
+    # Get the stored instance
+    stored_instance = _Registry.instances[name]
+
+    # Remove it from lists
+    remove_all_occurrences(_Registry.instances, stored_instance)
+    remove_all_occurrences(_Registry.waitings, stored_instance)
+    remove_all_occurrences(_Registry.running, stored_instance)
+
+    # Invalidate it
+    stored_instance.invalidate()
+
+    # Try to re-validate dependencies
+    _try_validation()
+
+    # Second try to bind optional dependencies
+    _try_new_bindings()
 
 # ------------------------------------------------------------------------------
 
@@ -462,10 +512,10 @@ def get_instance_by_name(name):
 
 def get_stored_instance(component_instance):
     """
-    Retrieves the StoredInstance corresponding to the given component instance
+    Retrieves the _StoredInstance corresponding to the given component instance
     
     @param component_instance: A component instance
-    @return: The corresponding StoredInstance object, None if not found
+    @return: The corresponding _StoredInstance object, None if not found
     """
     if component_instance is None:
         # Invalid parameter
@@ -574,30 +624,6 @@ def _safe_callback(comp_instance, event, *args, **kwargs):
 
 # ------------------------------------------------------------------------------
 
-def _instance_invalidation(comp_instance):
-    """
-    Sets to None all instances references
-    """
-    # Get the requirement, or an empty dictionary
-    requirements = getattr(comp_instance.instance, \
-                           constants.IPOPO_REQUIREMENTS, {})
-
-    dependencies = set(comp_instance.depends_on) ^ set(comp_instance.depends_on_optional)
-
-
-    for dependency in dependencies:
-        # Call unbind()
-        _safe_callback(comp_instance, constants.IPOPO_CALLBACK_UNBIND,
-                       dependency.instance)
-
-        # Remove the dependency
-        comp_instance.unset_dependency(dependency)
-
-    # Set all fields to None
-    for field in requirements:
-        setattr(comp_instance.instance, field, None)
-
-
 def _unregistration_loop(factory_name):
     """
     Invalidates all instances of the given factory
@@ -635,20 +661,13 @@ def _unregistration_loop(factory_name):
 
             # Found a depending component
             if instance in running.depends_on:
-                # Non optional dependency : invalidate the component
-                _safe_callback(running, constants.IPOPO_CALLBACK_INVALIDATE)
-
-                # Calls unbind() and unsert_dependency() methods
-                _instance_invalidation(running)
+                # Calls invalidate() and unset_dependency() methods
+                running.invalidate()
 
                 # Prepare it to be revalidated
                 to_revalidate.append(running)
 
             elif instance in running.depends_on_optional:
-                # Calls its unbind method
-                _safe_callback(running, constants.IPOPO_CALLBACK_UNBIND, \
-                               instance.instance)
-
                 # Remove the dependency
                 running.unset_dependency(instance)
 
@@ -674,19 +693,7 @@ def _unregistration_loop(factory_name):
     # Try to make more bindings
     _try_new_bindings()
 
-    # Invalidate not re-linked elements
-    for running in all_to_revalidate:
-        if running in _Registry.waitings:
-            # Not rebound...
-            _logger.warning("'%s' not rebound" % running.name)
-
-            # Callback & clean up
-            _safe_callback(running, constants.IPOPO_CALLBACK_INVALIDATE)
-            _instance_invalidation(running)
-
-
     # Call the invalidate method of all instances, 
     # after dependencies invalidation
     for instance_tuple in to_remove:
-        _safe_callback(instance_tuple[1], constants.IPOPO_CALLBACK_INVALIDATE)
-        del instance_tuple[1].instance
+        instance_tuple[1].invalidate()

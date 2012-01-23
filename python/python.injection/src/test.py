@@ -34,6 +34,11 @@ class IHello:
         Prints "Good bye !"
         """
 
+    def getName(self):
+        """
+        Get the component name
+        """
+
 # ------------------------------------------------------------------------------
 
 @ComponentFactory(name=CONSUMER_FACTORY)
@@ -64,12 +69,12 @@ class Test:
 
     @Bind
     def bind(self, svc):
-        print(">>> Bound to", svc)
+        print(">>> Bound to", svc.getName())
         svc.sayHello()
 
     @Unbind
     def unbind(self, svc):
-        print("<<< Unbound of", svc)
+        print("<<< Unbound of", svc.getName())
         svc.sayBye()
 
 
@@ -83,6 +88,7 @@ class Test:
 
 @ComponentFactory(name=HELLO_IMPL_FACTORY)
 @Provides(specification=IHello)
+@Property(field="name", name=IPOPO_INSTANCE_NAME)
 @Property(field="_to", name="To", value="World")
 @Property(field="_count", name="Count")
 class HelloImpl:
@@ -91,12 +97,18 @@ class HelloImpl:
     def validate(self):
         self._count = 0
 
+
+    def getName(self):
+        return self.name
+
+
     def sayHello(self):
         """
         Says hello
         """
         self._count += 1
         print("Hello, %s ! (%d)" % (self._to, self._count))
+
 
     def sayBye(self):
         """
@@ -118,4 +130,5 @@ instantiate(HELLO_IMPL_FACTORY, "HelloInstance", {"To": "Master"})
 time.sleep(1)
 
 print("--- INVALIDATE ---")
-registry.unregister_factory(HELLO_IMPL_FACTORY)
+# registry.unregister_factory(HELLO_IMPL_FACTORY)
+registry.invalidate("HelloInstance")
