@@ -42,15 +42,48 @@ class Requirement:
     """
     Represents a component requirement
     """
-    def __init__(self, specification="", aggregate=False, optional=False, \
+    def __init__(self, specification=None, aggregate=False, optional=False, \
                  spec_filter=None):
         """
         Sets up the requirement
+        
+        @param specification: The requirement specification (can't be None)
+        @param aggregate: If true, this requirement represents a list
+        @param optional: If true, this requirement is optional
+        @param spec_filter: A filter to select dependencies
+        
+        @raise TypeError: A parameter has an invalid type
         """
+        if not isinstance(specification, type):
+            raise TypeError("The requirement specification must be a type")
+
         self.aggregate = aggregate
         self.specification = specification
         self.optional = optional
         self.filter = spec_filter
+
+
+    def matches(self, stored_instance):
+        """
+        Tests if the given StoredInstance matches this requirement
+        
+        @param stored_instance: The instance to be tested
+        @return: True if the instance matches this requirement
+        """
+        assert(isinstance(stored_instance, StoredInstance))
+
+        provides = getattr(stored_instance.instance, \
+                           constants.IPOPO_PROVIDES, [])
+
+        if self.specification not in provides:
+            # The instance doesn't provide the required specification
+            return False
+
+        # TODO: add the filter test
+
+        # All tests passed
+        return True
+
 
 # ------------------------------------------------------------------------------
 
@@ -497,16 +530,12 @@ def _find_requirement(requirement):
     Tries to find links for the given requirement
     """
     links = []
-    required_spec = requirement.specification
     aggregate = requirement.aggregate
 
     for running_instance in _Registry.running:
 
-        provides = getattr(running_instance.instance, \
-                           constants.IPOPO_PROVIDES, [])
-        if required_spec in provides:
-            # Required specification found
-            # TODO: test filter
+        if requirement.matches(running_instance):
+            # Valid dependency found
             if not aggregate:
                 # Single instance required
                 return running_instance
