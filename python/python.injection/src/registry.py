@@ -230,16 +230,42 @@ class StoredInstance:
         """
         if isinstance(dependency, StoredInstance):
             # Remove self and dependency from lists
-            self.depends_on.remove(dependency)
-            self.depends_on_optional.remove(dependency)
-            dependency.used_by.remove(self)
+            remove_all_occurrences(self.depends_on, dependency)
+            remove_all_occurrences(self.depends_on_optional, dependency)
+            remove_all_occurrences(dependency.used_by, self)
 
-            # TODO: Clean up fields
+            # Clean up fields
+            self.__clean_up_dependency(dependency)
 
         elif isinstance(dependency, list):
             # Multiple dependencies to handle
             for dependency_instance in dependency:
                 self.unset_dependency(dependency_instance)
+
+
+    def __clean_up_dependency(self, dependency):
+        """
+        Removes the given dependency from all instance fields
+        
+        @param dependency: An instance this one doesn't depend on anymore
+        """
+        dependency_instance = dependency.instance
+
+        for field, requires in self.get_requirements().items():
+            value = getattr(self.instance, field, None)
+
+            if value is None:
+                # Useless field
+                continue
+
+            elif value is dependency_instance:
+                # Direct value, set it to None
+                setattr(self.instance, field, None)
+
+            elif requires.aggregate and isinstance(value, list) \
+            and dependency_instance in value:
+                # Aggregation
+                remove_all_occurrences(value, dependency_instance)
 
 
     def update_properties(self, properties):
@@ -255,6 +281,21 @@ class StoredInstance:
 
         # Update component dictionary
         self.instance._ipopo_update_properties(properties)
+
+# ------------------------------------------------------------------------------
+
+def remove_all_occurrences(sequence, item):
+    """
+    Removes all occurrences of item in the given sequence
+    
+    @param sequence: The items list
+    @param item: The item to be removed
+    """
+    if sequence is None:
+        return
+
+    while item in sequence:
+        sequence.remove(item)
 
 # ------------------------------------------------------------------------------
 
@@ -512,7 +553,10 @@ def _instance_invalidation(comp_instance):
     requirements = getattr(comp_instance.instance, \
                            constants.IPOPO_REQUIREMENTS, {})
 
-    for dependency in comp_instance.depends_on_optional:
+    dependencies = set(comp_instance.depends_on) ^ set(comp_instance.depends_on_optional)
+
+
+    for dependency in dependencies:
         # Call unbind()
         _safe_callback(comp_instance, constants.IPOPO_CALLBACK_UNBIND,
                        dependency.instance)
@@ -546,12 +590,20 @@ def _unregistration_loop(factory_name):
 
     # Update/Invalidate dependencies
     all_to_rebind = []
+    all_to_revalidate = []
+
     for instance_tuple in to_remove:
 
         instance = instance_tuple[1]
         to_rebind = []
+        to_revalidate = []
 
         for running in _Registry.running:
+
+            if running in to_revalidate or running in all_to_revalidate:
+                # Already invalidated
+                continue
+
             # Found a depending component
             if instance in running.depends_on:
                 # Non optional dependency : invalidate the component
@@ -560,8 +612,8 @@ def _unregistration_loop(factory_name):
                 # Calls unbind() and unsert_dependency() methods
                 _instance_invalidation(running)
 
-                # Prepare it to be rebound
-                to_rebind.append(running)
+                # Prepare it to be revalidated
+                to_revalidate.append(running)
 
             elif instance in running.depends_on_optional:
                 # Calls its unbind method
@@ -572,20 +624,29 @@ def _unregistration_loop(factory_name):
                 running.unset_dependency(instance)
 
                 # Prepare it to be rebound
-                to_rebind.append(running)
+                if running not in to_rebind:
+                    to_rebind.append(running)
 
-        for running in to_rebind:
+        for running in to_revalidate:
             # Change the component state in the registry 
             _Registry.running.remove(running)
             _Registry.waitings.append(running)
 
+            # Make the instance appear only once
+            if running in to_rebind or running in all_to_rebind:
+                remove_all_occurrences(to_rebind, running)
+
         all_to_rebind.extend(to_rebind)
+        all_to_revalidate.extend(to_revalidate)
 
     # Try to change links
     _try_validation()
 
+    # Try to make more bindings
+    _try_new_bindings()
+
     # Invalidate not re-linked elements
-    for running in all_to_rebind:
+    for running in all_to_revalidate:
         if running in _Registry.waitings:
             # Not rebound...
             _logger.warning("'%s' not rebound" % running.name)
