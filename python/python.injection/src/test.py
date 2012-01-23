@@ -125,9 +125,12 @@ instantiate(CONSUMER_FACTORY, "Consumer")
 import time
 time.sleep(1)
 
-instantiate(HELLO_IMPL_FACTORY, "HelloInstance", {"To": "Master"})
+hello = instantiate(HELLO_IMPL_FACTORY, "HelloInstance", {"To": "Master"})
 
-time.sleep(1)
+time.sleep(.5)
+
+print("--- PROPERTY   ---")
+hello._to = "World"
 
 print("--- INVALIDATE ---")
 # registry.unregister_factory(HELLO_IMPL_FACTORY)

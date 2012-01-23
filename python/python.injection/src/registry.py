@@ -114,13 +114,17 @@ class _StoredInstance:
         self.used_by = []
 
 
-    def __clean_up_dependency(self, dependency):
+    def changed_dependency(self, stored_instance, name, old_value, new_value):
         """
-        Removes the given dependency from all instance fields
+        Called when a dependency property changed
         
-        @param dependency: An instance this one doesn't depend on anymore
+        @param stored_instance: The changed component context
+        @param name: The name of the modified property
+        @param old_value: The previous property value
+        @param new_value: The new property value
         """
-        dependency_instance = dependency.instance
+        component = stored_instance.instance
+        lost_dependency = False
 
         for field, requires in self.get_requirements().items():
             value = getattr(self.instance, field, None)
@@ -129,14 +133,46 @@ class _StoredInstance:
                 # Useless field
                 continue
 
-            elif value is dependency_instance:
+            elif value is component:
+                # Direct value, test it
+                if not requires.matches(stored_instance):
+                    # We lost it
+                    lost_dependency = True
+
+            elif requires.aggregate and isinstance(value, list) \
+            and component in value:
+                # Aggregation
+                if not requires.matches(stored_instance):
+                    # We lost it
+                    lost_dependency = True
+
+        if lost_dependency:
+            self.unset_dependency(stored_instance, True)
+
+
+    def __clean_up_dependency(self, dependency):
+        """
+        Removes the given dependency from all instance fields
+        
+        @param dependency: An instance this one doesn't depend on anymore
+        """
+        component = dependency.instance
+
+        for field, requires in self.get_requirements().items():
+            value = getattr(self.instance, field, None)
+
+            if value is None:
+                # Useless field
+                continue
+
+            elif value is component:
                 # Direct value, set it to None
                 setattr(self.instance, field, None)
 
             elif requires.aggregate and isinstance(value, list) \
-            and dependency_instance in value:
+            and component in value:
                 # Aggregation
-                remove_all_occurrences(value, dependency_instance)
+                remove_all_occurrences(value, component)
 
 
     def get_requirements(self):
@@ -179,83 +215,6 @@ class _StoredInstance:
         # Set all fields to None
         for field in requirements:
             setattr(self.instance, field, None)
-
-
-    def update_bindings(self):
-        """
-        Updates the bindings of the given component
-        
-        @return: True if the component can be validated
-        """
-        # Get the requirement, or an empty dictionary
-        requirements = self.get_requirements()
-        if not requirements:
-            # No requirements : do nothing
-            return True
-
-        all_bound = True
-        component = self.instance
-
-        for field, requires in requirements.items():
-            # For each field
-
-            current_value = getattr(component, field, None)
-            if not requires.aggregate and current_value is not None:
-                # A dependency is already injected
-                _logger.debug("%s: Field '%s' already bound", self.name, field)
-                continue
-
-            # Find possible link(s)
-            link = _find_requirement(requires)
-
-            if not link:
-                if not requires.optional:
-                    # Required link not found
-                    _logger.debug("%s: Missing requirement : %s", \
-                                  self.name, field)
-                    all_bound = False
-
-                continue
-
-            # Set the field value
-            if isinstance(link, list):
-                # Aggregation
-                if not isinstance(current_value, list):
-                    # Injected field as the right type
-                    _logger.error("%s: field '%s' must be a list", self.name, \
-                                  field)
-
-                    all_bound = False
-                    continue
-
-                # Special case for a list : we must remove already injected
-                # references
-                for element in link:
-                    if element.instance in current_value:
-                        link.remove(element)
-
-                if not link:
-                    # Nothing to add, ignore this field
-                    continue
-
-                # Prepare the injected value
-                injected = [comp_inst.instance for comp_inst in link]
-
-                # Set the field
-                setattr(component, field, injected)
-
-                # Add dependency marker
-                self.set_dependency(link, requires.optional)
-
-            else:
-                # Normal field
-                # Set the instance
-                setattr(component, field, link.instance)
-
-                # Add dependency marker
-                self.set_dependency(link, requires.optional)
-
-        return all_bound
 
 
     def set_dependency(self, dependency, optional=False):
@@ -333,6 +292,82 @@ class _StoredInstance:
         return False
 
 
+    def update_bindings(self):
+        """
+        Updates the bindings of the given component
+        
+        @return: True if the component can be validated
+        """
+        # Get the requirement, or an empty dictionary
+        requirements = self.get_requirements()
+        if not requirements:
+            # No requirements : do nothing
+            return True
+
+        all_bound = True
+        component = self.instance
+
+        for field, requires in requirements.items():
+            # For each field
+            current_value = getattr(component, field, None)
+            if not requires.aggregate and current_value is not None:
+                # A dependency is already injected
+                _logger.debug("%s: Field '%s' already bound", self.name, field)
+                continue
+
+            # Find possible link(s)
+            link = _find_requirement(requires)
+
+            if not link:
+                if not requires.optional:
+                    # Required link not found
+                    _logger.debug("%s: Missing requirement : %s", \
+                                  self.name, field)
+                    all_bound = False
+
+                continue
+
+            # Set the field value
+            if isinstance(link, list):
+                # Aggregation
+                if not isinstance(current_value, list):
+                    # Injected field as the right type
+                    _logger.error("%s: field '%s' must be a list", self.name, \
+                                  field)
+
+                    all_bound = False
+                    continue
+
+                # Special case for a list : we must remove already injected
+                # references
+                for element in link:
+                    if element.instance in current_value:
+                        link.remove(element)
+
+                if not link:
+                    # Nothing to add, ignore this field
+                    continue
+
+                # Prepare the injected value
+                injected = [comp_inst.instance for comp_inst in link]
+
+                # Set the field
+                setattr(component, field, injected)
+
+                # Add dependency marker
+                self.set_dependency(link, requires.optional)
+
+            else:
+                # Normal field
+                # Set the instance
+                setattr(component, field, link.instance)
+
+                # Add dependency marker
+                self.set_dependency(link, requires.optional)
+
+        return all_bound
+
+
     def update_properties(self, properties):
         """
         Updates the component properties
@@ -374,10 +409,24 @@ def handle_property_changed(changed_component, name, old_value, new_value):
     @param new_value: The new property value 
     """
     # Get a reference to the changed component
-    stored_instance = get_stored_instance(changed_component)
+    changed_instance = get_stored_instance(changed_component)
 
-    # TODO: test all filters again
+    # Test all dependencies again
+    to_update = []
 
+    for stored_instance in _Registry.running:
+        if stored_instance in changed_instance.used_by:
+            # Instance to be updated
+            to_update.append(stored_instance)
+
+    # Use another loop, to avoid some mess
+    for stored_instance in to_update:
+        stored_instance.changed_dependency(changed_instance, name, old_value, \
+                                           new_value)
+
+    # Try new validations and bindings
+    _try_validation()
+    _try_new_bindings()
 
 
 # ------------------------------------------------------------------------------
@@ -572,17 +621,24 @@ def _try_validation():
         # Validation loop
         for stored_instance in validated:
 
+            # Remove it from the waiting list
+            # Avoids an infinite loop if the property modifications occurs
+            # during the validation call-back method
+            remove_all_occurrences(_Registry.waitings, stored_instance)
+
             try:
                 _callback(stored_instance, constants.IPOPO_CALLBACK_VALIDATE)
 
             except Exception:
-                # Something wrong occurred
+                # Something wrong occurred, get back to the waiting list
+                _Registry.waitings.append(stored_instance)
+
+                # Log the error
                 _logger.error("Error validating '%s'", stored_instance.name, \
                               exc_info=True)
 
             else:
-                # Remove it from the waiting list
-                remove_all_occurrences(_Registry.waitings, stored_instance)
+                # Validation succeeded
                 _Registry.running.append(stored_instance)
                 at_least_one_validation = True
 
