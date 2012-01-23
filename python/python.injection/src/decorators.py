@@ -26,60 +26,6 @@ def read_only(value):
     return property(lambda cls: value)
 
 
-def get_field_property(component, field):
-    """
-    Retrieves the value of the field property
-    """
-    if component is None:
-        return None
-
-    # Get fields
-    fields = getattr(component, constants.IPOPO_PROPERTIES_FIELDS, None)
-    if not isinstance(fields, dict):
-        return None
-
-    if field not in fields:
-        # Unknown field
-        return None
-
-    # Get properties
-    properties = getattr(component, constants.IPOPO_PROPERTIES, None)
-    if not isinstance(properties, dict):
-        return None
-
-    property_name = fields[field]
-    if property_name not in properties:
-        # Unknown property
-        return None
-
-    return properties[property_name]
-
-
-def set_field_property(component, field, value):
-    """
-    Sets the property value associated to the given field
-    """
-    if component is None:
-        return None
-
-    # Get fields
-    fields = getattr(component, constants.IPOPO_PROPERTIES_FIELDS, None)
-    if not isinstance(fields, dict):
-        return
-
-    if field not in fields:
-        # Unknown field
-        return
-
-    # Get properties
-    properties = getattr(component, constants.IPOPO_PROPERTIES, None)
-    if not isinstance(properties, dict):
-        return
-
-    # Set the property value
-    properties[fields[field]] = value
-
-
 def ipopo_field_property(field, name, value):
     """
     Sets up an iPOPO field property, using Python property() capabilities
@@ -105,6 +51,7 @@ def ipopo_field_property(field, name, value):
 
     return property(get_value, set_value)
 
+# ------------------------------------------------------------------------------
 
 def _ipopo_setup_callback(cls):
     """
@@ -145,6 +92,7 @@ def _ipopo_setup_callback(cls):
     # Set the class attribute
     setattr(cls, constants.IPOPO_METHOD_CALLBACKS, callbacks)
 
+# ------------------------------------------------------------------------------
 
 def _append_object_entry(obj, list_name, entry):
     """
@@ -204,17 +152,58 @@ def _put_object_entry(obj, dict_name, entry, value):
 
 # ------------------------------------------------------------------------------
 
-def _ipopo_class_init(self, *args, **kwargs):
+def get_field_property(component, field):
     """
-    Class initializer replacement
-
-    Sets up iPOPO information after base class initialization
+    Retrieves the value of the field property
     """
-    # Parent previous __init__
-    self._ipopo_oldinit(*args, **kwargs)
+    if component is None:
+        return None
 
-    # Set up properties fields
-    self._ipopo_update_properties()
+    # Get fields
+    fields = getattr(component, constants.IPOPO_PROPERTIES_FIELDS, None)
+    if not isinstance(fields, dict):
+        return None
+
+    if field not in fields:
+        # Unknown field
+        return None
+
+    # Get properties
+    properties = getattr(component, constants.IPOPO_PROPERTIES, None)
+    if not isinstance(properties, dict):
+        return None
+
+    property_name = fields[field]
+    if property_name not in properties:
+        # Unknown property
+        return None
+
+    return properties[property_name]
+
+
+def set_field_property(component, field, value):
+    """
+    Sets the property value associated to the given field
+    """
+    if component is None:
+        return None
+
+    # Get fields
+    fields = getattr(component, constants.IPOPO_PROPERTIES_FIELDS, None)
+    if not isinstance(fields, dict):
+        return
+
+    if field not in fields:
+        # Unknown field
+        return
+
+    # Get properties
+    properties = getattr(component, constants.IPOPO_PROPERTIES, None)
+    if not isinstance(properties, dict):
+        return
+
+    # Set the property value
+    properties[fields[field]] = value
 
 
 def _ipopo_update_properties(self, new_values={}):
@@ -235,21 +224,7 @@ def _ipopo_update_properties(self, new_values={}):
             # Update or insert properties
             properties[key] = value
 
-# Not needed anymore : iPOPO properties are calls to ipopo_field_property
-#
-#    fields = getattr(self, constants.IPOPO_PROPERTIES_FIELDS, None)
-#    if not fields:
-#        # Nothing to do
-#        return
-#
-#    assert(isinstance(properties, dict))
-#    assert(isinstance(fields, dict))
-#
-#    for field, property_name in fields.items():
-#        if property_name in properties:
-#            # Valid property, set the field value
-#            setattr(self, field, properties[property_name])
-
+# ------------------------------------------------------------------------------
 
 class ComponentFactory:
     """
@@ -272,10 +247,6 @@ class ComponentFactory:
         if not isinstance(factory_class, type):
             raise TypeError("@ComponentFactory can decorate only classes, " \
                             "not '%s'" % type(factory_class).__name__)
-
-        # Replace the __init__ method
-        # factory_class._ipopo_oldinit = factory_class.__init__
-        # factory_class.__init__ = _ipopo_class_init
 
         # Read only property (factory name)
         factory_class._ipopo_factory_name = read_only(self.__factory_name)
@@ -342,7 +313,6 @@ class Property:
                           self.__field, self.__name)
 
         # Add the field to the class
-        # setattr(clazz, self.__field, self.__value)
         setattr(clazz, self.__field, \
                 ipopo_field_property(self.__field, self.__name, self.__value))
         return clazz
