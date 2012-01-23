@@ -43,7 +43,7 @@ class IHello:
 
 @ComponentFactory(name=CONSUMER_FACTORY)
 @Property(field="name", name=IPOPO_INSTANCE_NAME)
-@Requires(field="service", specification=IHello, optional=True)
+@Requires(field="service", specification=IHello, optional=False)
 class Test:
 
     def __init__(self):
@@ -69,12 +69,12 @@ class Test:
 
     @Bind
     def bind(self, svc):
-        print(">>> Bound to", svc.getName())
+        # print(">>> Bound to", svc.getName())
         svc.sayHello()
 
     @Unbind
     def unbind(self, svc):
-        print("<<< Unbound of", svc.getName())
+        # print("<<< Unbound of", svc.getName())
         svc.sayBye()
 
 

@@ -161,8 +161,8 @@ class _StoredInstance:
         """
         # Tell the others that this instance is going
         for dependent in self.used_by:
-            # TODO: test if the dependency must then be invalidated
-            dependent.unset_dependency(self)
+            # ... this can invalidate the dependency
+            dependent.unset_dependency(self, True)
 
         # Call invalidate()
         _safe_callback(self, constants.IPOPO_CALLBACK_INVALIDATE)
@@ -174,7 +174,7 @@ class _StoredInstance:
         dependencies = set(self.depends_on) ^ set(self.depends_on_optional)
         for dependency in dependencies:
             # Remove the dependency
-            self.unset_dependency(dependency)
+            self.unset_dependency(dependency, False)
 
         # Set all fields to None
         for field in requirements:
@@ -188,13 +188,13 @@ class _StoredInstance:
         @return: True if the component can be validated
         """
         # Get the requirement, or an empty dictionary
-        component = self.instance
         requirements = self.get_requirements()
         if not requirements:
             # No requirements : do nothing
             return True
 
         all_bound = True
+        component = self.instance
 
         for field, requires in requirements.items():
             # For each field
@@ -209,10 +209,10 @@ class _StoredInstance:
             link = _find_requirement(requires)
 
             if not link:
-                _logger.debug("%s: No link found : %s", self.name, field)
-
                 if not requires.optional:
                     # Required link not found
+                    _logger.debug("%s: Missing requirement : %s", \
+                                  self.name, field)
                     all_bound = False
 
                 continue
@@ -247,10 +247,6 @@ class _StoredInstance:
                 # Add dependency marker
                 self.set_dependency(link, requires.optional)
 
-                # Call the bind callback
-                for dependency in injected:
-                    _callback(self, constants.IPOPO_CALLBACK_BIND, dependency)
-
             else:
                 # Normal field
                 # Set the instance
@@ -258,9 +254,6 @@ class _StoredInstance:
 
                 # Add dependency marker
                 self.set_dependency(link, requires.optional)
-
-                # Call the bind callback
-                _callback(self, constants.IPOPO_CALLBACK_BIND, link.instance)
 
         return all_bound
 
@@ -274,7 +267,7 @@ class _StoredInstance:
         """
         if isinstance(dependency, _StoredInstance):
 
-                # Self depends on dependency
+            # Self depends on dependency
             if optional:
                 if dependency not in self.depends_on_optional:
                     self.depends_on_optional.append(dependency)
@@ -286,39 +279,58 @@ class _StoredInstance:
                 # Dependency is used by self
                 dependency.used_by.append(self)
 
+            # Call the bind() method
+            _safe_callback(self, constants.IPOPO_CALLBACK_BIND, \
+                           dependency.instance)
+
         elif isinstance(dependency, list):
             # Multiple dependencies to handle
             for dependency_instance in dependency:
                 self.set_dependency(dependency_instance)
 
 
-    def unset_dependency(self, dependency):
+    def unset_dependency(self, dependency, cause_invalidate=True):
         """
-        Opposite of set_dependency()
+        Removes a dependency. Invalidates the component if needed.
+        Calls back the component unbind() method.
         
         @param dependency: An instance this one doesn't depend on anymore
+        @param cause_invalidate: If True, this call can call invalidate()
+        @return: True if the component has been invalidated
         """
         if isinstance(dependency, _StoredInstance):
-            # Remove self and dependency from lists
-            remove_all_occurrences(self.depends_on, dependency)
-            remove_all_occurrences(self.depends_on_optional, dependency)
-            remove_all_occurrences(dependency.used_by, self)
 
-            # Call the unbind callback
-            _safe_callback(self, constants.IPOPO_CALLBACK_UNBIND, \
-                           dependency.instance)
+            if cause_invalidate and dependency in self.depends_on:
+                # A required dependency is gone, we must be invalidated
+                self.invalidate()
+                return True
 
-            # Clean up fields
-            self.__clean_up_dependency(dependency)
+            else:
+                # Remove self and dependency from lists
+                remove_all_occurrences(self.depends_on, dependency)
+                remove_all_occurrences(self.depends_on_optional, dependency)
+                remove_all_occurrences(dependency.used_by, self)
+
+                # Call the unbind callback
+                _safe_callback(self, constants.IPOPO_CALLBACK_UNBIND, \
+                               dependency.instance)
+
+                # Clean up fields
+                self.__clean_up_dependency(dependency)
+                return False
 
         elif isinstance(dependency, list):
             # Multiple dependencies to handle
             for dependency_instance in dependency:
-                self.unset_dependency(dependency_instance)
+                if self.unset_dependency(dependency_instance, cause_invalidate):
+                    # Component has been invalidated
+                    return True
 
         else:
             _logger.warning("Unhandled dependency type : %s", \
                             type(dependency).__name__)
+
+        return False
 
 
     def update_properties(self, properties):
@@ -495,7 +507,7 @@ def invalidate(name):
 
 # ------------------------------------------------------------------------------
 
-def get_instance_by_name(name):
+def get_component(name):
     """
     Retrieves the component instance with the given name, if any
     
@@ -570,7 +582,7 @@ def _try_validation():
 
             else:
                 # Remove it from the waiting list
-                _Registry.waitings.remove(stored_instance)
+                remove_all_occurrences(_Registry.waitings, stored_instance)
                 _Registry.running.append(stored_instance)
                 at_least_one_validation = True
 
@@ -627,21 +639,24 @@ def _safe_callback(comp_instance, event, *args, **kwargs):
 def _unregistration_loop(factory_name):
     """
     Invalidates all instances of the given factory
+    
+    Optimized method : avoid to try to revalidate or rebind dependent components
+    while the factory components are deleted 
     """
-    to_remove = [(name, instance) \
-                 for (name, instance) in _Registry.instances.items() \
-                 if instance.factory == factory_name]
+    to_remove = [(name, stored_instance) \
+                 for (name, stored_instance) in _Registry.instances.items() \
+                 if stored_instance.factory == factory_name]
 
     # Remove instances from the registry: avoids dependencies update to link
     # against a component from this factory again.
-    for name, instance in to_remove:
+    for name, stored_instance in to_remove:
 
         if name in _Registry.instances:
             del _Registry.instances[name]
 
         for storage in (_Registry.running, _Registry.waitings):
-            if instance in storage:
-                storage.remove(instance)
+            if stored_instance in storage:
+                storage.remove(stored_instance)
 
     # Update/Invalidate dependencies
     all_to_rebind = []
@@ -649,7 +664,7 @@ def _unregistration_loop(factory_name):
 
     for instance_tuple in to_remove:
 
-        instance = instance_tuple[1]
+        stored_instance = instance_tuple[1]
         to_rebind = []
         to_revalidate = []
 
@@ -659,21 +674,18 @@ def _unregistration_loop(factory_name):
                 # Already invalidated
                 continue
 
-            # Found a depending component
-            if instance in running.depends_on:
-                # Calls invalidate() and unset_dependency() methods
-                running.invalidate()
+            optional_dependency = False
+            if stored_instance in running.depends_on_optional:
+                # Optional dependency detected
+                optional_dependency = True
 
-                # Prepare it to be revalidated
+            if running.unset_dependency(stored_instance):
+                # Component has been invalidated
                 to_revalidate.append(running)
 
-            elif instance in running.depends_on_optional:
-                # Remove the dependency
-                running.unset_dependency(instance)
-
-                # Prepare it to be rebound
-                if running not in to_rebind:
-                    to_rebind.append(running)
+            elif optional_dependency and running not in to_rebind:
+                # Only an optional dependency, the link can be rebound
+                to_rebind.append(running)
 
         for running in to_revalidate:
             # Change the component state in the registry 
@@ -683,6 +695,7 @@ def _unregistration_loop(factory_name):
             # Make the instance appear only once
             if running in to_rebind or running in all_to_rebind:
                 remove_all_occurrences(to_rebind, running)
+                remove_all_occurrences(all_to_rebind, running)
 
         all_to_rebind.extend(to_rebind)
         all_to_revalidate.extend(to_revalidate)
