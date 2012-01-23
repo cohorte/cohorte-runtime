@@ -6,6 +6,7 @@ from decorators import ComponentFactory, Property, Validate, Invalidate, Provide
     Bind, Unbind
 import logging
 import registry
+from constants import IPOPO_INSTANCE_NAME
 
 # ------------------------------------------------------------------------------
 
@@ -28,11 +29,16 @@ class IHello:
         Prints "Hello, world !"
         """
 
+    def sayBye(self):
+        """
+        Prints "Good bye !"
+        """
+
 # ------------------------------------------------------------------------------
 
 @ComponentFactory(name=CONSUMER_FACTORY)
-@Property(field="id", value=42)
-@Requires(field="toto", specification=IHello, optional=True)
+@Property(field="name", name=IPOPO_INSTANCE_NAME)
+@Requires(field="service", specification=IHello, optional=True)
 class Test:
 
     def __init__(self):
@@ -44,7 +50,7 @@ class Test:
         """
         Component starts
         """
-        print("!!! Component is started !!!")
+        print("!!! Component '%s' is started !!!" % self.name)
         # Toto is injected by Requires, just before calling this method
 
 
@@ -53,36 +59,51 @@ class Test:
         """
         Component stops
         """
-        print("!!! Component is stopped !!!")
+        print("!!! Component '%s' is stopped !!!" % self.name)
 
 
     @Bind
     def bind(self, svc):
         print(">>> Bound to", svc)
-        self.toto.sayHello()
+        svc.sayHello()
 
     @Unbind
     def unbind(self, svc):
         print("<<< Unbound of", svc)
+        svc.sayBye()
 
 
     def test(self):
-        if not self.toto:
+        if not self.service:
             print(">> Required service is missing <<")
         else:
-            self.toto.sayHello()
+            self.service.sayHello()
 
 # ------------------------------------------------------------------------------
 
 @ComponentFactory(name=HELLO_IMPL_FACTORY)
 @Provides(specification=IHello)
+@Property(field="_to", name="To", value="World")
+@Property(field="_count", name="Count")
 class HelloImpl:
+
+    @Validate
+    def validate(self):
+        self._count = 0
 
     def sayHello(self):
         """
         Says hello
         """
-        print("Hello, World !")
+        self._count += 1
+        print("Hello, %s ! (%d)" % (self._to, self._count))
+
+    def sayBye(self):
+        """
+        Says bye
+        """
+        self._count -= 1
+        print("Good bye, %s ! (%d)" % (self._to, self._count))
 
 # ------------------------------------------------------------------------------
 
@@ -92,7 +113,7 @@ instantiate(CONSUMER_FACTORY, "Consumer")
 import time
 time.sleep(1)
 
-instantiate(HELLO_IMPL_FACTORY, "HelloInstance")
+instantiate(HELLO_IMPL_FACTORY, "HelloInstance", {"To": "Master"})
 
 time.sleep(1)
 

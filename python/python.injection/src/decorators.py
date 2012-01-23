@@ -9,7 +9,7 @@ import inspect
 import logging
 import types
 
-from constants import *
+import constants
 import registry
 
 # ------------------------------------------------------------------------------
@@ -26,6 +26,86 @@ def read_only(value):
     return property(lambda cls: value)
 
 
+def get_field_property(component, field):
+    """
+    Retrieves the value of the field property
+    """
+    if component is None:
+        return None
+
+    # Get fields
+    fields = getattr(component, constants.IPOPO_PROPERTIES_FIELDS, None)
+    if not isinstance(fields, dict):
+        return None
+
+    if field not in fields:
+        # Unknown field
+        return None
+
+    # Get properties
+    properties = getattr(component, constants.IPOPO_PROPERTIES, None)
+    if not isinstance(properties, dict):
+        return None
+
+    property_name = fields[field]
+    if property_name not in properties:
+        # Unknown property
+        return None
+
+    return properties[property_name]
+
+
+def set_field_property(component, field, value):
+    """
+    Sets the property value associated to the given field
+    """
+    if component is None:
+        return None
+
+    # Get fields
+    fields = getattr(component, constants.IPOPO_PROPERTIES_FIELDS, None)
+    if not isinstance(fields, dict):
+        return
+
+    if field not in fields:
+        # Unknown field
+        return
+
+    # Get properties
+    properties = getattr(component, constants.IPOPO_PROPERTIES, None)
+    if not isinstance(properties, dict):
+        return
+
+    # Set the property value
+    properties[fields[field]] = value
+
+
+def ipopo_field_property(field, name, value):
+    """
+    Sets up an iPOPO field property, using Python property() capabilities
+    """
+
+    def get_value(self):
+        """
+        Retrieves the property value, from the iPOPO dictionaries
+        
+        @return: The property value
+        """
+        return get_field_property(self, field)
+
+    def set_value(self, new_value):
+        """
+        Sets the property value and trigger an update event
+        
+        @param new_valuie: The new property value
+        """
+        # old_value = get_field_property(self, field)
+        set_field_property(self, field, new_value)
+        # TODO: trigger an update event
+
+    return property(get_value, set_value)
+
+
 def _ipopo_setup_callback(cls):
     """
     Sets up the class _callback dictionary
@@ -37,20 +117,20 @@ def _ipopo_setup_callback(cls):
 
     for name, function in functions:
 
-        if not hasattr(function, IPOPO_METHOD_CALLBACKS):
+        if not hasattr(function, constants.IPOPO_METHOD_CALLBACKS):
             # No attribute, get the next member
             continue
 
-        method_callbacks = getattr(function, IPOPO_METHOD_CALLBACKS)
+        method_callbacks = getattr(function, constants.IPOPO_METHOD_CALLBACKS)
 
         if not isinstance(method_callbacks, list):
             # Invalid content
             _logger.warning("Invalid attribute %s in %s", \
-                            IPOPO_METHOD_CALLBACKS, name)
+                            constants.IPOPO_METHOD_CALLBACKS, name)
             continue
 
         # Maybe remove the attribute of the function ?
-        delattr(function, IPOPO_METHOD_CALLBACKS)
+        delattr(function, constants.IPOPO_METHOD_CALLBACKS)
 
         # Store the callbacks
         for _callback in method_callbacks:
@@ -63,7 +143,7 @@ def _ipopo_setup_callback(cls):
             callbacks[_callback] = function
 
     # Set the class attribute
-    setattr(cls, IPOPO_METHOD_CALLBACKS, callbacks)
+    setattr(cls, constants.IPOPO_METHOD_CALLBACKS, callbacks)
 
 
 def _append_object_entry(obj, list_name, entry):
@@ -133,24 +213,42 @@ def _ipopo_class_init(self, *args, **kwargs):
     # Parent previous __init__
     self._ipopo_oldinit(*args, **kwargs)
 
-    # Set up properties values
+    # Set up properties fields
     self._ipopo_update_properties()
 
 
-def _ipopo_update_properties(self):
+def _ipopo_update_properties(self, new_values={}):
     """
     Sets the properties fields values
+    
+    @param new_values: New properties values, in case of a value update
     """
-    properties = getattr(self, IPOPO_PROPERTIES, None)
+    properties = getattr(self, constants.IPOPO_PROPERTIES, None)
     if not properties:
         # Nothing to do
+        _logger.debug("No properties for %s", self)
         return
 
-    assert(isinstance(properties, dict))
+    # Update instance properties
+    if isinstance(new_values, dict):
+        for key, value in new_values.items():
+            # Update or insert properties
+            properties[key] = value
 
-    for field in properties:
-        # Value is the second part of the property tuple
-        setattr(self, field, properties[field][1])
+# Not needed anymore : iPOPO properties are calls to ipopo_field_property
+#
+#    fields = getattr(self, constants.IPOPO_PROPERTIES_FIELDS, None)
+#    if not fields:
+#        # Nothing to do
+#        return
+#
+#    assert(isinstance(properties, dict))
+#    assert(isinstance(fields, dict))
+#
+#    for field, property_name in fields.items():
+#        if property_name in properties:
+#            # Valid property, set the field value
+#            setattr(self, field, properties[property_name])
 
 
 class ComponentFactory:
@@ -176,8 +274,8 @@ class ComponentFactory:
                             "not '%s'" % type(factory_class).__name__)
 
         # Replace the __init__ method
-        factory_class._ipopo_oldinit = factory_class.__init__
-        factory_class.__init__ = _ipopo_class_init
+        # factory_class._ipopo_oldinit = factory_class.__init__
+        # factory_class.__init__ = _ipopo_class_init
 
         # Read only property (factory name)
         factory_class._ipopo_factory_name = read_only(self.__factory_name)
@@ -236,11 +334,17 @@ class Property:
                             % type(clazz).__name__)
 
         # Set up the property in the class
-        _put_object_entry(clazz, IPOPO_PROPERTIES, self.__field, \
-                          (self.__name, self.__value))
+        _put_object_entry(clazz, constants.IPOPO_PROPERTIES, self.__name, \
+                          self.__value)
+
+        # Associate the field to the property name
+        _put_object_entry(clazz, constants.IPOPO_PROPERTIES_FIELDS, \
+                          self.__field, self.__name)
 
         # Add the field to the class
-        setattr(clazz, self.__field, self.__value)
+        # setattr(clazz, self.__field, self.__value)
+        setattr(clazz, self.__field, \
+                ipopo_field_property(self.__field, self.__name, self.__value))
         return clazz
 
 # ------------------------------------------------------------------------------
@@ -255,7 +359,7 @@ class Provides:
         """
         Sets up the specification
         
-        @param specification: The provided interface name (can't be None nor empty)
+        @param specification: The provided interface name (can't be empty)
         @raise ValueError: If the name if None or empty
         """
         if not specification:
@@ -277,7 +381,8 @@ class Provides:
                             % type(clazz).__name__)
 
         # Set up the property in the class
-        _append_object_entry(clazz, IPOPO_PROVIDES, self.__specification)
+        _append_object_entry(clazz, constants.IPOPO_PROVIDES, \
+                             self.__specification)
         return clazz
 
 # ------------------------------------------------------------------------------
@@ -309,7 +414,7 @@ class Requires:
                             % type(clazz).__name__)
 
         # Set up the property in the class
-        _put_object_entry(clazz, IPOPO_REQUIREMENTS, self.__field, \
+        _put_object_entry(clazz, constants.IPOPO_REQUIREMENTS, self.__field, \
                           self.__requirement)
         return clazz
 
@@ -327,7 +432,8 @@ def Bind(method):
     if type(method) is not types.FunctionType:
         raise TypeError("@Bind can only be applied on functions")
 
-    _append_object_entry(method, IPOPO_METHOD_CALLBACKS, IPOPO_CALLBACK_BIND)
+    _append_object_entry(method, constants.IPOPO_METHOD_CALLBACKS, \
+                         constants.IPOPO_CALLBACK_BIND)
     return method
 
 
@@ -343,7 +449,8 @@ def Unbind(method):
     if type(method) is not types.FunctionType:
         raise TypeError("@Unbind can only be applied on functions")
 
-    _append_object_entry(method, IPOPO_METHOD_CALLBACKS, IPOPO_CALLBACK_UNBIND)
+    _append_object_entry(method, constants.IPOPO_METHOD_CALLBACKS, \
+                         constants.IPOPO_CALLBACK_UNBIND)
     return method
 
 
@@ -360,8 +467,8 @@ def Validate(method):
     if type(method) is not types.FunctionType:
         raise TypeError("@Validate can only be applied on functions")
 
-    _append_object_entry(method, IPOPO_METHOD_CALLBACKS, \
-                         IPOPO_CALLBACK_VALIDATE)
+    _append_object_entry(method, constants.IPOPO_METHOD_CALLBACKS, \
+                         constants.IPOPO_CALLBACK_VALIDATE)
     return method
 
 
@@ -379,6 +486,6 @@ def Invalidate(method):
     if type(method) is not types.FunctionType:
         raise TypeError("@Invalidate can only be applied on functions")
 
-    _append_object_entry(method, IPOPO_METHOD_CALLBACKS, \
-                         IPOPO_CALLBACK_INVALIDATE)
+    _append_object_entry(method, constants.IPOPO_METHOD_CALLBACKS, \
+                         constants.IPOPO_CALLBACK_INVALIDATE)
     return method

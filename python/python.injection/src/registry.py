@@ -8,38 +8,13 @@ import logging
 
 from constants import IPOPO_CALLBACK_VALIDATE, IPOPO_REQUIREMENTS, \
     IPOPO_PROVIDES, IPOPO_CALLBACK_INVALIDATE, IPOPO_CALLBACK_BIND, \
-    IPOPO_CALLBACK_UNBIND
+    IPOPO_CALLBACK_UNBIND, IPOPO_INSTANCE_NAME, IPOPO_PROPERTIES
+
+# ------------------------------------------------------------------------------
 
 _logger = logging.getLogger("ipopo.registry")
 
-class Requirement:
-    """
-    Represents a component requirement
-    """
-    def __init__(self, specification="", aggregate=False, optional=False, \
-                 spec_filter=None):
-        """
-        Sets up the requirement
-        """
-        self.aggregate = aggregate
-        self.specification = specification
-        self.optional = optional
-        self.filter = spec_filter
-
-
-class Instance:
-    """
-    Represents a component instance
-    """
-    def __init__(self, name, instance, properties):
-        """
-        Sets up the instance object
-        """
-        self.name = name
-        self.instance = instance
-        self.factory = self.instance._ipopo_factory_name
-        self.depends_on = []
-
+# ------------------------------------------------------------------------------
 
 class _Registry:
     """
@@ -63,6 +38,67 @@ class _Registry:
         """
         raise RuntimeError("The _Registry constructor must never be called")
 
+# ------------------------------------------------------------------------------
+
+class Requirement:
+    """
+    Represents a component requirement
+    """
+    def __init__(self, specification="", aggregate=False, optional=False, \
+                 spec_filter=None):
+        """
+        Sets up the requirement
+        """
+        self.aggregate = aggregate
+        self.specification = specification
+        self.optional = optional
+        self.filter = spec_filter
+
+# ------------------------------------------------------------------------------
+
+class StoredInstance:
+    """
+    Represents a component instance
+    """
+    def __init__(self, name, instance):
+        """
+        Sets up the instance object
+        """
+        self.name = name
+        self.instance = instance
+        self.factory = self.instance._ipopo_factory_name
+        self.depends_on = []
+
+
+    def get_properties(self):
+        """
+        Retrieves the component properties values
+        
+        @return: The component properties, or an empty dictionary
+        """
+        properties = getattr(self.instance, IPOPO_PROPERTIES, {})
+        if isinstance(properties, dict):
+            return properties
+
+        # Never return None
+        return dict()
+
+
+    def update_properties(self, properties):
+        """
+        Updates the component properties
+        """
+        if not isinstance(properties, dict):
+            # Be sure we get a dictionary
+            properties = {}
+
+        # Always indicate the instance name
+        properties[IPOPO_INSTANCE_NAME] = self.name
+
+        # Update component dictionary
+        self.instance._ipopo_update_properties(properties)
+
+# ------------------------------------------------------------------------------
 
 def register_factory(factory_name, factory):
     """
@@ -85,7 +121,7 @@ def register_factory(factory_name, factory):
                         factory_name)
 
     _Registry.factories[factory_name] = factory
-    _logger.info("Factory '%s' registered" % factory_name)
+    _logger.info("Factory '%s' registered", factory_name)
 
 
 def unregister_factory(factory_name):
@@ -101,8 +137,9 @@ def unregister_factory(factory_name):
         # Invalidate and delete all components of this factory
         _unregistration_loop(factory_name)
         del _Registry.factories[factory_name]
-        _logger.info("Factory '%s' removed" % factory_name)
+        _logger.info("Factory '%s' removed", factory_name)
 
+# ------------------------------------------------------------------------------
 
 def instantiate(factory_name, name, properties={}):
     """
@@ -139,7 +176,8 @@ def instantiate(factory_name, name, properties={}):
                         % (factory_name, name))
 
     # Store the instance
-    stored_instance = Instance(name, instance, properties)
+    stored_instance = StoredInstance(name, instance)
+    stored_instance.update_properties(properties)
 
     # Store the instance
     _Registry.instances[name] = stored_instance
@@ -155,6 +193,7 @@ def instantiate(factory_name, name, properties={}):
 
     return instance
 
+# ------------------------------------------------------------------------------
 
 def get_instance_by_name(name):
     """
@@ -170,6 +209,8 @@ def get_instance_by_name(name):
         # Not found
         return None
 
+
+# ------------------------------------------------------------------------------
 
 def _update_bindings(stored_instance):
     """
@@ -330,6 +371,7 @@ def _find_requirement(requirement):
 
     return links
 
+# ------------------------------------------------------------------------------
 
 def _callback(comp_instance, event, *args, **kwargs):
     """
@@ -352,6 +394,7 @@ def _safe_callback(comp_instance, event, *args, **kwargs):
         _logger.exception("Component '%s' : error calling callback method for" \
                           " event %s" % (comp_instance.name, event))
 
+# ------------------------------------------------------------------------------
 
 def _instance_invalidation(comp_instance):
     """
