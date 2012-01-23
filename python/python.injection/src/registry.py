@@ -98,7 +98,7 @@ def unregister_factory(factory_name):
         return
 
     if factory_name in _Registry.factories:
-        # TODO: invalidate and delete all components of this factory
+        # Invalidate and delete all components of this factory
         _unregistration_loop(factory_name)
         del _Registry.factories[factory_name]
         _logger.info("Factory '%s' removed" % factory_name)
@@ -141,9 +141,6 @@ def instantiate(factory_name, name, properties={}):
     # Store the instance
     stored_instance = Instance(name, instance, properties)
 
-    # FIXME: Update component properties
-    # instance._ipopo_update_properties(properties)
-
     # Store the instance
     _Registry.instances[name] = stored_instance
 
@@ -154,7 +151,7 @@ def instantiate(factory_name, name, properties={}):
     _try_validation()
 
     # Second try to bind optional dependencies
-    _try_bind_incompletes()
+    _try_new_bindings()
 
     return instance
 
@@ -174,83 +171,99 @@ def get_instance_by_name(name):
         return None
 
 
-def _try_bind_incompletes():
+def _update_bindings(stored_instance):
     """
-    Tries to bind optional dependencies to "incomplete" instances
+    Updates the bindings of the given component
+    
+    @param stored_instance: A stored component instance
+    @return: True if the component can be validated
     """
+    # Get the requirement, or an empty dictionary
+    component = stored_instance.instance
+    requirements = getattr(component, IPOPO_REQUIREMENTS, None)
+    if not requirements:
+        # No requirements : do nothing
+        _logger.debug("No requirements")
+        return True
 
-    for comp_instance in _Registry.running:
+    all_bound = True
 
-        # Get the requirement, or an empty dictionary
-        requirements = getattr(comp_instance.instance, IPOPO_REQUIREMENTS, None)
-        if not requirements:
-            # No requirements : do nothing
-            _logger.debug("No requirements")
+    for field, requires in requirements.items():
+        # For each field
+
+        current_value = getattr(component, field, None)
+        if not requires.aggregate and current_value is not None:
+            # A dependency is already injected
+            _logger.debug("%s: Field '%s' already bound", \
+                          stored_instance.name, field)
             continue
 
-        for field, requires in requirements.items():
-            # For each field
+        # Find possible link(s)
+        link = _find_requirement(requires)
+
+        if not link:
+            _logger.debug("%s: No link found : %s", stored_instance.name, field)
 
             if not requires.optional:
-                # Not an optional field, don't care
-                _logger.debug("Not a optional dependency : %s" % field)
+                # Required link not found
+                all_bound = False
+
+            continue
+
+        # Set the field value
+        if isinstance(link, list):
+            # Aggregation
+            if not isinstance(current_value, list):
+                # Injected field as the right type
+                _logger.error("%s: field '%s' must be a list", \
+                              stored_instance.name, field)
+
+                all_bound = False
                 continue
 
-            current_value = getattr(comp_instance.instance, field, None)
-            if not requires.aggregate and current_value is not None:
-                # A dependency is already injected
-                _logger.debug("Already bound : %s" % field)
-                continue
-
-            # Find possible link(s)
-            link = _find_requirement(requires)
+            # Special case for a list : we must remove already injected
+            # references
+            for element in link:
+                if element.instance in current_value:
+                    link.remove(element)
 
             if not link:
-                _logger.debug("No link found : %s" % field)
+                # Nothing to add, ignore this field
                 continue
 
-            # Set the field value
-            if isinstance(link, list):
-                # Aggregation
-                if not isinstance(current_value, list):
-                    # Injected field as the right type
-                    _logger.error("In '%s', field '%s' must be a list", \
-                                  comp_instance.name, field)
-                    continue
+            # Prepare the injected value
+            injected = [comp_inst.instance for comp_inst in link]
 
-                # Special case for a list : we must remove already injected
-                # references
-                for element in link:
-                    if element.instance in current_value:
-                        link.remove(element)
+            # Set the field
+            setattr(component, field, injected)
 
-                if not link:
-                    # Nothing to add, ignore this field
-                    continue
+            # Add dependency marker
+            stored_instance.depends_on.extend(link)
 
-                # Prepare the injected value
-                injected = [comp_inst.instance for comp_inst in link]
+            # Call the bind callback
+            for dependency in injected:
+                _callback(stored_instance, IPOPO_CALLBACK_BIND, dependency)
 
-                # Set the field
-                setattr(comp_instance.instance, field, injected)
+        else:
+            # Normal field
+            # Set the instance
+            setattr(component, field, link.instance)
 
-                # Add dependency marker
-                comp_instance.depends_on.extend(link)
+            # Add dependency marker
+            stored_instance.depends_on.append(link)
 
-                # Call the bind callback
-                for dependency in injected:
-                    _callback(comp_instance, IPOPO_CALLBACK_BIND, dependency)
+            # Call the bind callback
+            _callback(stored_instance, IPOPO_CALLBACK_BIND, link.instance)
 
-            else:
-                # Normal field
-                # Set the instance
-                setattr(comp_instance.instance, field, link.instance)
+    return all_bound
 
-                # Add dependency marker
-                comp_instance.depends_on.append(link)
 
-                # Call the bind callback
-                _callback(comp_instance, IPOPO_CALLBACK_BIND, link.instance)
+def _try_new_bindings():
+    """
+    Tries to bind new dependencies to running instances
+    """
+    for stored_instance in _Registry.running:
+        _update_bindings(stored_instance)
 
 
 def _try_validation():
@@ -265,82 +278,28 @@ def _try_validation():
         at_least_one_validation = False
         validated = []
 
-        for comp_instance in _Registry.waitings:
-            # For each comp_instance...
-            can_validate = True
-
-            # Get the requirement, or an empty dictionary
-            requirements = getattr(comp_instance.instance, \
-                                   IPOPO_REQUIREMENTS, {})
-
-            for field, requires in requirements.items():
-                # For each field...
-                link = _find_requirement(requires)
-                if not link:
-
-                    if requires.optional:
-                        # Optional dependency, ignore
-                        continue
-
-                    # Missing requirement
-                    can_validate = False
-                    _logger.debug("'%s': no link for %s" \
-                                  % (comp_instance.name, field))
-
-                else:
-                    # TODO: make a Nullable proxy if link is None
-
-                    # Set the field value
-                    if isinstance(link, list):
-
-                        # Prepare the injected value
-                        injected = [comp_inst.instance for comp_inst in link]
-
-                        # Set the field
-                        setattr(comp_instance.instance, field, injected)
-
-                        # Add dependency marker
-                        comp_instance.depends_on.extend(link)
-
-                        # Call the bind callback
-                        for dependency in injected:
-                            _safe_callback(comp_instance, IPOPO_CALLBACK_BIND, \
-                                           dependency)
-
-                    else:
-                        # Set the instance
-                        setattr(comp_instance.instance, field, link.instance)
-
-                        # Add dependency marker
-                        comp_instance.depends_on.append(link)
-
-                        # Call the bind callback
-                        _safe_callback(comp_instance, IPOPO_CALLBACK_BIND, \
-                                       link.instance)
-
-
-            if can_validate:
+        for stored_instance in _Registry.waitings:
+            if _update_bindings(stored_instance):
                 # Component can be validated
-                _logger.info("'%s' can be validated" % comp_instance.name)
-                validated.append(comp_instance)
+                _logger.info("%s can be validated" % stored_instance.name)
+                validated.append(stored_instance)
 
 
         # Validation loop
-        for comp_instance in validated:
+        for stored_instance in validated:
 
             try:
-                _callback(comp_instance, IPOPO_CALLBACK_VALIDATE)
+                _callback(stored_instance, IPOPO_CALLBACK_VALIDATE)
 
-            except Exception as ex:
+            except Exception:
                 # Something wrong occurred
-                _logger.error("Error validating '%s'" % comp_instance.name, \
+                _logger.error("Error validating '%s'", stored_instance.name, \
                               exc_info=True)
-                raise ex
 
             else:
                 # Remove it from the waiting list
-                _Registry.waitings.remove(comp_instance)
-                _Registry.running.append(comp_instance)
+                _Registry.waitings.remove(stored_instance)
+                _Registry.running.append(stored_instance)
                 at_least_one_validation = True
 
 
