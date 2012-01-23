@@ -19,40 +19,6 @@ _logger = logging.getLogger("ipopo.decorators")
 
 # ------------------------------------------------------------------------------
 
-def read_only(value):
-    """
-    Makes a read-only property that always returns the given value
-    """
-    return property(lambda cls: value)
-
-
-def ipopo_field_property(field, name, value):
-    """
-    Sets up an iPOPO field property, using Python property() capabilities
-    """
-
-    def get_value(self):
-        """
-        Retrieves the property value, from the iPOPO dictionaries
-        
-        @return: The property value
-        """
-        return get_field_property(self, field)
-
-    def set_value(self, new_value):
-        """
-        Sets the property value and trigger an update event
-        
-        @param new_valuie: The new property value
-        """
-        # old_value = get_field_property(self, field)
-        set_field_property(self, field, new_value)
-        # TODO: trigger an update event
-
-    return property(get_value, set_value)
-
-# ------------------------------------------------------------------------------
-
 def _ipopo_setup_callback(cls):
     """
     Sets up the class _callback dictionary
@@ -152,11 +118,15 @@ def _put_object_entry(obj, dict_name, entry, value):
 
 # ------------------------------------------------------------------------------
 
-def get_field_property(component, field):
+def get_field_property_name(component, field):
     """
-    Retrieves the value of the field property
+    Retrieves the name of the property associated to the given field
+    
+    @param component: A component instance
+    @param field: A field name
+    @return: The property name, or None
     """
-    if component is None:
+    if component is None or field is None:
         return None
 
     # Get fields
@@ -173,20 +143,44 @@ def get_field_property(component, field):
     if not isinstance(properties, dict):
         return None
 
-    property_name = fields[field]
-    if property_name not in properties:
+    return fields[field]
+
+
+def _get_field_property(component, field):
+    """
+    Retrieves the value of the field property
+    
+    @param component: A component instance
+    @param field: A field name
+    @return: The property value, or None
+    """
+    if component is None or field is None:
+        return None
+
+    # Get properties
+    properties = getattr(component, constants.IPOPO_PROPERTIES, None)
+    if not isinstance(properties, dict):
+        return None
+
+    property_name = get_field_property_name(component, field)
+    if property_name is None or property_name not in properties:
         # Unknown property
         return None
 
     return properties[property_name]
 
 
-def set_field_property(component, field, value):
+def _set_field_property(component, field, value):
     """
-    Sets the property value associated to the given field
+    Sets the property value associated to the given field. Does nothing if the
+    field is unknown.
+    
+    @param component: A component instance
+    @param field: A field name
+    @param value: The new property value
     """
-    if component is None:
-        return None
+    if component is None or field is None:
+        return
 
     # Get fields
     fields = getattr(component, constants.IPOPO_PROPERTIES_FIELDS, None)
@@ -224,6 +218,43 @@ def _ipopo_update_properties(self, new_values={}):
             # Update or insert properties
             properties[key] = value
 
+
+def _ipopo_field_property(field, name, value):
+    """
+    Sets up an iPOPO field property, using Python property() capabilities
+    """
+
+    def get_value(self):
+        """
+        Retrieves the property value, from the iPOPO dictionaries
+        
+        @return: The property value
+        """
+        return _get_field_property(self, field)
+
+
+    def set_value(self, new_value):
+        """
+        Sets the property value and trigger an update event
+        
+        @param new_valuie: The new property value
+        """
+        old_value = _get_field_property(self, field)
+        name = get_field_property_name(self, field)
+        _set_field_property(self, field, new_value)
+
+        # Trigger an update event
+        registry.handle_property_changed(self, name, old_value, new_value)
+
+    return property(get_value, set_value)
+
+
+def read_only_property(value):
+    """
+    Makes a read-only property that always returns the given value
+    """
+    return property(lambda cls: value)
+
 # ------------------------------------------------------------------------------
 
 class ComponentFactory:
@@ -249,7 +280,7 @@ class ComponentFactory:
                             "not '%s'" % type(factory_class).__name__)
 
         # Read only property (factory name)
-        factory_class._ipopo_factory_name = read_only(self.__factory_name)
+        factory_class._ipopo_factory_name = read_only_property(self.__factory_name)
 
         # Add iPOPO properties methods
         factory_class._ipopo_update_properties = _ipopo_update_properties
@@ -314,7 +345,7 @@ class Property:
 
         # Add the field to the class
         setattr(clazz, self.__field, \
-                ipopo_field_property(self.__field, self.__name, self.__value))
+                _ipopo_field_property(self.__field, self.__name, self.__value))
         return clazz
 
 # ------------------------------------------------------------------------------
