@@ -8,9 +8,12 @@ import array
 
 # ------------------------------------------------------------------------------
 
-# Escaped characters
+# Escape character
 ESCAPE_CHARACTER = '\\'
-ESCAPED_CHARACTERS = "()*"
+
+# Escaped characters (do not insert the ESCAPE CHARACTER here)
+# See http://www.ldapexplorer.com/en/manual/109010000-ldap-filter-syntax.htm)
+ESCAPED_CHARACTERS = "()&|=<>~*/"
 
 # ------------------------------------------------------------------------------
 
