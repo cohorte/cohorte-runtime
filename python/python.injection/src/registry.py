@@ -7,6 +7,7 @@ Created on 18 janv. 2012
 import logging
 
 import constants
+import ldapfilter
 
 # ------------------------------------------------------------------------------
 
@@ -60,7 +61,7 @@ class Requirement:
         self.aggregate = aggregate
         self.specification = specification
         self.optional = optional
-        self.filter = spec_filter
+        self.filter = ldapfilter.parse_LDAP(spec_filter)
 
 
     def matches(self, stored_instance):
@@ -79,7 +80,10 @@ class Requirement:
             # The instance doesn't provide the required specification
             return False
 
-        # TODO: add the filter test
+        # Properties filter test
+        if self.filter is not None:
+            if not self.filter.matches(stored_instance.get_properties()):
+                return False
 
         # All tests passed
         return True
@@ -173,6 +177,22 @@ class _StoredInstance:
             and component in value:
                 # Aggregation
                 remove_all_occurrences(value, component)
+
+
+    def get_properties(self):
+        """
+        Retrieves the properties dictionary, or an empty dictionary
+        
+        @return: The properties dictionary
+        """
+        properties = getattr(self.instance, constants.IPOPO_PROPERTIES, {})
+
+        if properties is None:
+            # Member forced to None, correct it
+            return dict()
+
+        assert(isinstance(properties, dict))
+        return properties
 
 
     def get_requirements(self):

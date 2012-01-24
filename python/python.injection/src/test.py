@@ -43,7 +43,7 @@ class IHello:
 
 @ComponentFactory(name=CONSUMER_FACTORY)
 @Property(field="name", name=IPOPO_INSTANCE_NAME)
-@Requires(field="service", specification=IHello, optional=False)
+@Requires(field="service", specification=IHello, optional=False, spec_filter=("(To=Master)"))
 class Test:
 
     def __init__(self):
