@@ -326,6 +326,14 @@ def read_project_classpath(classpath_file):
         if entry.getAttribute("kind") == "src":
             path = entry.getAttribute("path")
             if path:
-                classpath.src.append(path)
+
+                if path[0] == '/':
+                    # FIXME: Depends on a project in the workspace...
+                    raise NotImplementedError("Don't known how to handle "
+                                              "projects in the classpath.")
+
+                else:
+                    # Source folder...
+                    classpath.src.append(path)
 
     return classpath

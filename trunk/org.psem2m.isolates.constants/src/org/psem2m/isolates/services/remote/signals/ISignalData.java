@@ -5,7 +5,6 @@
  */
 package org.psem2m.isolates.services.remote.signals;
 
-import java.io.Serializable;
 
 /**
  * Represents the object associated to a signal
@@ -33,7 +32,7 @@ public interface ISignalData {
      * 
      * @return the signal data
      */
-    Serializable getSignalContent();
+    Object getSignalContent();
 
     /**
      * Retrieves the time stamp of the signal creation

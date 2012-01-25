@@ -21,8 +21,11 @@ import org.osgi.service.http.HttpService;
 import org.osgi.service.log.LogService;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.services.remote.signals.ISignalData;
+import org.psem2m.isolates.services.remote.signals.ISignalDataSerializer;
 import org.psem2m.isolates.services.remote.signals.ISignalListener;
 import org.psem2m.isolates.services.remote.signals.ISignalReceptionProvider;
+import org.psem2m.isolates.services.remote.signals.ISignalRequestReader;
+import org.psem2m.isolates.services.remote.signals.InvalidDataException;
 import org.psem2m.remotes.signals.http.IHttpSignalsConstants;
 
 /**
@@ -34,7 +37,7 @@ import org.psem2m.remotes.signals.http.IHttpSignalsConstants;
 @Provides(specifications = ISignalReceptionProvider.class)
 @Instantiate(name = "psem2m-remote-signal-http-receiver")
 public class HttpSignalReceiver extends CPojoBase implements
-        ISignalReceptionProvider, ISignalListener {
+        ISignalReceptionProvider, ISignalRequestReader {
 
     /** The bundle context */
     private final BundleContext pBundleContext;
@@ -50,8 +53,13 @@ public class HttpSignalReceiver extends CPojoBase implements
     @Requires
     private LogService pLogger;
 
+    /** A service flag to indicate that the servlet is ready */
     @ServiceProperty(name = ISignalReceptionProvider.PROPERTY_READY, value = "false", mandatory = true)
     private boolean pPropertyReady;
+
+    /** The signal data serializers */
+    @Requires
+    private ISignalDataSerializer[] pSerializers;
 
     /**
      * Sets up the signal receiver
@@ -68,17 +76,6 @@ public class HttpSignalReceiver extends CPojoBase implements
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.utilities.CXObjectBase#destroy()
-     */
-    @Override
-    public void destroy() {
-
-        // ...
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
      * @see org.psem2m.isolates.services.remote.signals.ISignalListener#
      * handleReceivedSignal(java.lang.String,
      * org.psem2m.isolates.services.remote.signals.ISignalData)
@@ -90,10 +87,57 @@ public class HttpSignalReceiver extends CPojoBase implements
         // Get listeners set
         synchronized (pListeners) {
             // Notify listeners
-            for (ISignalListener listener : pListeners) {
+            for (final ISignalListener listener : pListeners) {
                 listener.handleReceivedSignal(aSignalName, aSignalData);
             }
         }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.remotes.signals.http.receiver.ISignalRequestHandler#
+     * handleSignalRequest(java.lang.String, byte[])
+     */
+    @Override
+    public ISignalData handleSignalRequest(final String aContentType,
+            final byte[] aData) throws InvalidDataException {
+
+        // Try to de-serialize
+        for (final ISignalDataSerializer serializer : pSerializers) {
+
+            if (serializer.canHandleType(aContentType)) {
+                // Content-Type understood by serializer
+                final Object object;
+                try {
+                    object = serializer.unserializeData(aData);
+
+                } catch (final Exception e) {
+                    // Error during de-serialization
+                    pLogger.log(LogService.LOG_WARNING,
+                            "Error during de-serialization", e);
+                    continue;
+                }
+
+                if (object instanceof ISignalData) {
+                    // We're good
+                    return (ISignalData) object;
+
+                } else {
+                    pLogger.log(LogService.LOG_INFO,
+                            "Received something that is not an ISignalData");
+                }
+            }
+        }
+
+        final StringBuilder builder = new StringBuilder();
+        builder.append("Can't de-serialize data (content-type: ");
+        builder.append(aContentType);
+        builder.append(')');
+        pLogger.log(LogService.LOG_INFO, builder.toString());
+
+        // No de-serializer found
+        return null;
     }
 
     /*
@@ -193,7 +237,7 @@ public class HttpSignalReceiver extends CPojoBase implements
 
             pLogger.log(LogService.LOG_INFO, "HTTP Signal Receiver Ready");
 
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
             pLogger.log(LogService.LOG_ERROR,
                     "Can't register the HTTP Signal Receiver servlet", ex);
         }

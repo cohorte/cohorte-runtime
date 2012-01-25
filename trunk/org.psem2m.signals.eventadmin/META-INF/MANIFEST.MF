@@ -35,17 +35,15 @@ iPOJO-Components: instance { $component="org.psem2m.signals.eventadmin
  ethod { $name="validatePojo" }}}component { $classname="org.psem2m.si
  gnals.eventadmin.EventNotifier" $name="psem2m-eventadmin-signals-noti
  fier-factory" $public="false" requires { $field="pEventAdmin" }requir
- es { $field="pLogger" }requires { $id="SignalReceiver" callback { $me
- thod="bindSignalReceiver" $type="bind" }}callback { $transition="inva
- lidate" $method="invalidatePojo" }callback { $transition="validate" $
- method="validatePojo" }manipulation { $super="org.psem2m.isolates.bas
- e.activators.CPojoBase" interface { $name="org.psem2m.isolates.servic
- es.remote.signals.ISignalListener" }field { $name="pEventAdmin" $type
- ="org.osgi.service.event.EventAdmin" }field { $name="pLogger" $type="
- org.psem2m.isolates.base.IIsolateLoggerSvc" }method { $name="bindSign
- alReceiver" $arguments="{org.psem2m.isolates.services.remote.signals.
- ISignalReceiver}" }method { $name="handleReceivedSignal" $arguments="
- {java.lang.String,org.psem2m.isolates.services.remote.signals.ISignal
- Data}" }method { $name="invalidatePojo" }method { $name="validatePojo
- " }}}
+ es { $field="pLogger" }callback { $transition="invalidate" $method="i
+ nvalidatePojo" }callback { $transition="validate" $method="validatePo
+ jo" }manipulation { $super="org.psem2m.isolates.base.activators.CPojo
+ Base" interface { $name="org.psem2m.isolates.services.remote.signals.
+ ISignalListener" }field { $name="pEventAdmin" $type="org.osgi.service
+ .event.EventAdmin" }field { $name="pLogger" $type="org.psem2m.isolate
+ s.base.IIsolateLoggerSvc" }method { $name="bindSignalReceiver" $argum
+ ents="{org.psem2m.isolates.services.remote.signals.ISignalReceiver}" 
+ }method { $name="handleReceivedSignal" $arguments="{java.lang.String,
+ org.psem2m.isolates.services.remote.signals.ISignalData}" }method { $
+ name="invalidatePojo" }method { $name="validatePojo" }}}
 

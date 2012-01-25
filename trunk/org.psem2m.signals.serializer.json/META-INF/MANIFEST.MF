@@ -1,0 +1,38 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: PSEM2M - Signals - JSON Serializer
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-SymbolicName: org.psem2m.signals.serializer.json
+Bundle-Vendor: isandlaTech.com
+Bundle-Version: 1.0.0.qualifier
+Created-By: iPOJO  1.8.0
+Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
+ .ipojo.architecture;version=1.8.0, org.jabsorb.ng, org.jabsorb.ng.ser
+ ializer, org.osgi.framework;version=1.5.0, org.osgi.service.cm;versio
+ n=1.2, org.osgi.service.log;version=1.3, org.psem2m.isolates.base;ver
+ sion=1.0.0, org.psem2m.isolates.base.activators;version=1.0.0, org.ps
+ em2m.isolates.services.remote.signals;version=1.0.0, org.psem2m.utili
+ ties;version=1.0.0, org.psem2m.utilities.logging;version=1.0.0
+iPOJO-Components: instance { $component="org.psem2m.signals.serializer
+ .json.JsonSignalSerializer" $name="psem2m-signals-data-json" }compone
+ nt { $classname="org.psem2m.signals.serializer.json.JsonSignalSeriali
+ zer" $name="psem2m-signals-data-json-factory" $public="false" provide
+ s { $specifications="{org.psem2m.isolates.services.remote.signals.ISi
+ gnalDataSerializer}" }requires { $field="pLogger" $optional="true" }c
+ allback { $transition="invalidate" $method="invalidatePojo" }callback
+  { $transition="validate" $method="validatePojo" }manipulation { $sup
+ er="org.psem2m.isolates.base.activators.CPojoBase" interface { $name=
+ "org.psem2m.isolates.services.remote.signals.ISignalDataSerializer" }
+ field { $name="DEFAULT_ERROR_CODE" $type="int" }field { $name="pBundl
+ eContext" $type="org.osgi.framework.BundleContext" }field { $name="pL
+ ogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $n
+ ame="pSerializer" $type="org.jabsorb.ng.JSONSerializer" }method { $na
+ me="canHandleType" $return="boolean" $arguments="{java.lang.String}" 
+ }method { $name="canSerialize" $return="boolean" $arguments="{java.la
+ ng.Object}" }method { $name="getContentType" $return="java.lang.Strin
+ g" }method { $name="getPriority" $return="int" }method { $name="inval
+ idatePojo" }method { $name="serializeData" $return="byte[]" $argument
+ s="{java.lang.Object}" }method { $name="unserializeData" $return="jav
+ a.lang.Object" $arguments="{byte[]}" }method { $name="validatePojo" }
+ }}
+

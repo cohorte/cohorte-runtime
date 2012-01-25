@@ -8,7 +8,6 @@ package org.psem2m.isolates.monitor.core;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -359,7 +358,7 @@ public class MonitorCore extends CPojoBase implements
             final ISignalData aSignalData) {
 
         // Get the signal content (can be null)
-        final Serializable signalContent = aSignalData.getSignalContent();
+        final Object signalContent = aSignalData.getSignalContent();
 
         // Signal status
         if (aSignalName.equals(ISignalsConstants.ISOLATE_STATUS_SIGNAL)) {

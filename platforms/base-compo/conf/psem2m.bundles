@@ -37,6 +37,9 @@ org.psem2m.signals.directory
 # Signals Base (based on iPOJO)
 org.psem2m.signals
 
+# Java Signals serializer
+org.psem2m.signals.serializer.java
+
 # PSEM2M Extra Log services
 org.psem2m.isolates.loggers
 

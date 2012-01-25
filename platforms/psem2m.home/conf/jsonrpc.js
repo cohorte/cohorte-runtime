@@ -6,6 +6,9 @@
         "symbolicName":"org.jabsorb.ng"
     },
     {
+        "symbolicName":"org.psem2m.signals.serializer.json"
+    },
+    {
         "symbolicName":"org.psem2m.remote.jsonrpc"
     }
 ]

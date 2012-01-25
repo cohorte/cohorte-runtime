@@ -6,11 +6,12 @@
 package org.psem2m.remotes.signals.http.sender;
 
 import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+
+import org.psem2m.remotes.signals.http.IHttpSignalsConstants;
 
 /**
  * HTTP POST request sender
@@ -19,11 +20,14 @@ import java.net.URLConnection;
  */
 public class HttpSenderThread extends Thread {
 
+    /** The POST content type */
+    private String pContentType;
+
     /** Parent HTTP sender */
     private HttpSignalSender pParentSender;
 
     /** Data to send in request */
-    private Serializable pRequestData;
+    private byte[] pRequestData;
 
     /** Target URL */
     private URL pTargetUrl;
@@ -39,12 +43,13 @@ public class HttpSenderThread extends Thread {
      *            Request content
      */
     public HttpSenderThread(final HttpSignalSender aHttpSignalSender,
-            final URL aTargetUrl, final Serializable aData) {
+            final URL aTargetUrl, final byte[] aData, final String aContentType) {
 
         super();
         pParentSender = aHttpSignalSender;
         pTargetUrl = aTargetUrl;
         pRequestData = aData;
+        pContentType = aContentType;
     }
 
     /*
@@ -76,20 +81,30 @@ public class HttpSenderThread extends Thread {
                     httpConnection.setDoInput(true);
                     httpConnection.setDoOutput(true);
 
-                    // Raw content-type
-                    httpConnection.setRequestProperty("Content-Type",
-                            "application/octet-stream");
+                    // Content-type, if any
+                    if (pContentType != null) {
+                        httpConnection.setRequestProperty(
+                                IHttpSignalsConstants.HEADER_CONTENT_TYPE,
+                                pContentType);
+                    }
 
                     // After fields, before content
                     httpConnection.connect();
 
                     // Write the event in the request body, if any
-                    final ObjectOutputStream objectStream = new ObjectOutputStream(
-                            httpConnection.getOutputStream());
+                    if (pRequestData != null) {
+                        final OutputStream outStream = httpConnection
+                                .getOutputStream();
 
-                    objectStream.writeObject(pRequestData);
-                    objectStream.flush();
-                    objectStream.close();
+                        try {
+                            outStream.write(pRequestData);
+                            outStream.flush();
+
+                        } finally {
+                            // Always be nice...
+                            outStream.close();
+                        }
+                    }
 
                     // Flush the request
                     final int responseCode = httpConnection.getResponseCode();
@@ -117,7 +132,7 @@ public class HttpSenderThread extends Thread {
                 }
             }
 
-        } catch (IOException e) {
+        } catch (final IOException e) {
 
             if (pParentSender != null) {
                 // Only care about the error if the parent is valid

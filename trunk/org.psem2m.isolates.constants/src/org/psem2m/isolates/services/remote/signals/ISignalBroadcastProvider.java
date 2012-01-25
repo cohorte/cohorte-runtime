@@ -5,8 +5,6 @@
  */
 package org.psem2m.isolates.services.remote.signals;
 
-import java.io.Serializable;
-
 import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster.EEmitterTargets;
 
 /**
@@ -25,9 +23,12 @@ public interface ISignalBroadcastProvider {
      *            Signal name (URI like string)
      * @param aData
      *            Signal content (can't be null)
+     * 
+     * @throws UnsendableDataException
+     *             The given data can't be sent using signals
      */
-    void sendData(EEmitterTargets aTargets, String aSignalName,
-            Serializable aData);
+    void sendData(EEmitterTargets aTargets, String aSignalName, Object aData)
+            throws UnsendableDataException;
 
     /**
      * Sends the given data to the given isolate
@@ -40,6 +41,10 @@ public interface ISignalBroadcastProvider {
      *            Signal content (can't be null)
      * 
      * @return True if the isolate ID exists, else false
+     * 
+     * @throws UnsendableDataException
+     *             The given data can't be sent using signals
      */
-    boolean sendData(String aIsolateId, String aSignalName, Serializable aData);
+    boolean sendData(String aIsolateId, String aSignalName, Object aData)
+            throws UnsendableDataException;
 }
