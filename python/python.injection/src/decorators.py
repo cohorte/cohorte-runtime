@@ -11,6 +11,7 @@ import types
 
 import constants
 import registry
+from utilities import read_only_property
 
 # ------------------------------------------------------------------------------
 
@@ -248,13 +249,6 @@ def _ipopo_field_property(field, name, value):
 
     return property(get_value, set_value)
 
-
-def read_only_property(value):
-    """
-    Makes a read-only property that always returns the given value
-    """
-    return property(lambda cls: value)
-
 # ------------------------------------------------------------------------------
 
 class ComponentFactory:
@@ -280,7 +274,8 @@ class ComponentFactory:
                             "not '%s'" % type(factory_class).__name__)
 
         # Read only property (factory name)
-        factory_class._ipopo_factory_name = read_only_property(self.__factory_name)
+        factory_class._ipopo_factory_name = \
+                            read_only_property(self.__factory_name)
 
         # Add iPOPO properties methods
         factory_class._ipopo_update_properties = _ipopo_update_properties

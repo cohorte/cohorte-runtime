@@ -1,12 +1,13 @@
 #!/usr/bin/python3
 #-- Content-Encoding: UTF-8 --
 
-from registry import instantiate
-from decorators import ComponentFactory, Property, Validate, Invalidate, Provides, Requires, \
-    Bind, Unbind
-import logging
-import registry
 from constants import IPOPO_INSTANCE_NAME
+from decorators import ComponentFactory, Property, Validate, Invalidate, \
+    Provides, Requires, Bind, Unbind
+from registry import instantiate, invalidate
+
+import logging
+from utilities import SynchronizedClassMethod
 
 # ------------------------------------------------------------------------------
 
@@ -86,6 +87,8 @@ class Test:
 
 # ------------------------------------------------------------------------------
 
+import threading
+
 @ComponentFactory(name=HELLO_IMPL_FACTORY)
 @Provides(specification=IHello)
 @Property(field="name", name=IPOPO_INSTANCE_NAME)
@@ -95,13 +98,14 @@ class HelloImpl:
 
     @Validate
     def validate(self):
+        self.lock = threading.RLock()
         self._count = 0
 
 
     def getName(self):
         return self.name
 
-
+    @SynchronizedClassMethod('lock')
     def sayHello(self):
         """
         Says hello
@@ -134,4 +138,4 @@ hello._to = "World"
 
 print("--- INVALIDATE ---")
 # registry.unregister_factory(HELLO_IMPL_FACTORY)
-registry.invalidate("HelloInstance")
+invalidate("HelloInstance")
