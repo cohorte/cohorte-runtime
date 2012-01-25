@@ -1,13 +1,13 @@
 #!/usr/bin/python3
 #-- Content-Encoding: UTF-8 --
 
-from constants import IPOPO_INSTANCE_NAME
-from decorators import ComponentFactory, Property, Validate, Invalidate, \
-    Provides, Requires, Bind, Unbind
-from registry import instantiate, invalidate
+from psem2m.component.constants import IPOPO_INSTANCE_NAME
+from psem2m.component.decorators import ComponentFactory, Property, Validate, \
+    Invalidate, Provides, Requires, Bind, Unbind
+from psem2m.component.registry import instantiate, invalidate
+from psem2m.utilities import SynchronizedClassMethod
 
 import logging
-from utilities import SynchronizedClassMethod
 
 # ------------------------------------------------------------------------------
 

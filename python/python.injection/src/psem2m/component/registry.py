@@ -6,8 +6,8 @@ Created on 18 janv. 2012
 
 import logging
 
-import constants
-import ldapfilter
+import psem2m.component.constants as constants
+import psem2m.ldapfilter as ldapfilter
 
 # ------------------------------------------------------------------------------
 

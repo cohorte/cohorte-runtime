@@ -9,9 +9,9 @@ import inspect
 import logging
 import types
 
-import constants
-import registry
-from utilities import read_only_property
+from psem2m.utilities import read_only_property
+import psem2m.component.constants as constants
+import psem2m.component.registry as registry
 
 # ------------------------------------------------------------------------------
 
