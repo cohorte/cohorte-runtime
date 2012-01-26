@@ -14,7 +14,7 @@ import logging
 # ------------------------------------------------------------------------------
 
 # Prepare the module logger
-__logger = logging.getLogger("ipopo.core")
+_logger = logging.getLogger("ipopo.core")
 
 # ------------------------------------------------------------------------------
 
@@ -42,7 +42,7 @@ class FactoryContext:
     """
 
     # Try to reduce memory footprint (stored instances)
-    __slots__ = ('bundle_context', 'callback', 'properties', \
+    __slots__ = ('bundle_context', 'callbacks', 'factory_name', 'properties', \
                  'properties_fields', 'provides', 'requirements')
 
     def __init__(self, bundle_context):
@@ -55,7 +55,7 @@ class FactoryContext:
         self.callbacks = {}
         self.properties = {}
         self.properties_fields = {}
-        self.provides = {}
+        self.provides = []
         self.requirements = {}
 
 
@@ -78,6 +78,7 @@ class ComponentContext:
         assert isinstance(properties, dict)
 
         self.__factory_context = factory_context
+        self.name = name
 
         # Force the instance name property
         properties[constants.IPOPO_INSTANCE_NAME] = name
@@ -121,8 +122,8 @@ class _StoredInstance:
     """
 
     # Try to reduce memory footprint (stored instances)
-    __slot__ = ('bindings', 'context', 'factory', 'instance', 'registration', \
-                'state')
+    __slot__ = ('bindings', 'context', 'factory', 'instance', 'name', \
+                'registration', 'state')
 
     INVALID = 0
     """ This component has been invalidated """
@@ -143,6 +144,9 @@ class _StoredInstance:
         # Component context
         self.context = context
 
+        # The instance name
+        self.name = self.context.name
+
         # Factory name
         self.factory = factory_name
 
@@ -162,6 +166,20 @@ class _StoredInstance:
         self.context.get_bundle_context().add_service_listener(self)
 
 
+    def __repr(self):
+        """
+        String representation
+        """
+        return self.__str__()
+
+
+    def __str__(self):
+        """
+        String representation
+        """
+        return "StoredInstance(%s, %d)" % (self.name, self.state)
+
+
     def callback(self, event, *args, **kwargs):
         """
         Calls the registered method in the component for the given event
@@ -170,13 +188,13 @@ class _StoredInstance:
         @return: The callback result, or None
         @raise Exception: Something went wrong
         """
-        callback = self.context.get_callback(event)
-        if not callback:
+        comp_callback = self.context.get_callback(event)
+        if not comp_callback:
             # No registered callback
             return None
 
         # Call it
-        return callback(self.instance, *args, **kwargs)
+        return comp_callback(self.instance, *args, **kwargs)
 
 
     def kill(self):
@@ -189,7 +207,7 @@ class _StoredInstance:
         self.state = _StoredInstance.KILLED
 
         # Clean up members
-        del self.bindings[:]
+        self.bindings.clear()
         del self.context
         del self.instance
 
@@ -225,12 +243,13 @@ class _StoredInstance:
             return None
 
         try:
-            return callback(self.instance, *args, **kwargs)
+            return self.callback(event, *args, **kwargs)
 
         except:
-            __logger.exception("Component '%s' : error calling callback " \
+            _logger.exception("Component '%s' : error calling callback " \
                                "method for event %s" % (self.name, event))
-            return None
+            # return None
+            raise
 
 
     def __set_binding(self, field, requirement, reference):
@@ -248,8 +267,8 @@ class _StoredInstance:
             if current_value is not None:
                 if not isinstance(current_value, list):
                     # Invalid field content
-                    __logger.error("%s : The injected field %s must be a " \
-                                   "list, not %s", self.context.name, field, \
+                    _logger.error("%s : The injected field %s must be a " \
+                                   "list, not %s", self.name, field, \
                                    type(current_value).__name__)
                     return
 
@@ -297,8 +316,8 @@ class _StoredInstance:
 
         if requirement.aggregate and not isinstance(current_value, list):
             # Aggregation, but invalid field content
-            __logger.error("%s : The injected field %s must be a " \
-                           "list, not %s", self.context.name, field, \
+            _logger.error("%s : The injected field %s must be a " \
+                           "list, not %s", self.name, field, \
                            type(current_value).__name__)
             return
 
@@ -317,10 +336,11 @@ class _StoredInstance:
             setattr(self.instance, field, None)
 
         # Remove the binding information
-        remove_all_occurrences(self.bindings[field], service)
-        if len(self.bindings[field]) == 0:
-            # Don't keep empty lists
-            del self.bindings[field]
+        if field in self.bindings:
+            remove_all_occurrences(self.bindings[field], service)
+            if len(self.bindings[field]) == 0:
+                # Don't keep empty lists
+                del self.bindings[field]
 
 
     def update_bindings(self):
@@ -344,7 +364,8 @@ class _StoredInstance:
             current_value = getattr(component, field, None)
             if not requires.aggregate and current_value is not None:
                 # A dependency is already injected
-                __logger.debug("%s: Field '%s' already bound", self.name, field)
+                _logger.debug("%s: Field '%s' already bound", \
+                              self.name, field)
                 continue
 
             # Find possible services
@@ -354,7 +375,7 @@ class _StoredInstance:
             if not refs:
                 if not requires.optional:
                     # Required link not found
-                    __logger.debug("%s: Missing requirement for field %s", \
+                    _logger.debug("%s: Missing requirement for field %s", \
                                   self.name, field)
                     all_bound = False
 
@@ -365,8 +386,8 @@ class _StoredInstance:
                 if current_value is not None and \
                 not isinstance(current_value, list):
                     # Injected field as the right type
-                    __logger.error("%s: field '%s' must be a list", self.name, \
-                                  field)
+                    _logger.error("%s: field '%s' must be a list", \
+                                  self.name, field)
 
                     all_bound = False
                     continue
@@ -410,6 +431,19 @@ class _StoredInstance:
         return all_bound
 
 
+    def update_property(self, name, old_value, new_value):
+        """
+        Handles a property changed event
+        
+        @param name: The changed property name
+        @param old_value: The previous property value
+        @param new_value: The new property value 
+        """
+        if self.registration is not None:
+            # use the registration to trigger the service event
+            self.registration.set_properties({name: new_value})
+
+
     def validate(self):
         """
         Ends the component validation, registering services
@@ -442,15 +476,15 @@ class _StoredInstance:
         
         @param event: A ServiceEvent object
         """
-        kind = event.get_kind()
+        kind = event.get_type()
         reference = event.get_service_reference()
         bundle_context = self.context.get_bundle_context()
 
         if kind == ServiceEvent.REGISTERED:
             # Maybe a new dependency...
-            can_validate = not self.active
+            can_validate = (self.state != _StoredInstance.VALID)
 
-            for field, requires in self.context.get_requirements():
+            for field, requires in self.context.get_requirements().items():
 
                 if reference in self.bindings.get(field, []):
                     # Reference already known, ignore it
@@ -462,9 +496,9 @@ class _StoredInstance:
                     # Field already injected
                     continue
 
-                if requires.matches(reference.get_properties):
+                if requires.matches(reference.get_properties()):
                     # Inject the service
-                    self.__set_binding(field, reference)
+                    self.__set_binding(field, requires, reference)
 
                 elif can_validate and not requires.optional \
                 and field_value is None:
@@ -481,7 +515,7 @@ class _StoredInstance:
             # A dependency may be gone...
             invalidate = False
 
-            for field, binding in self.bindings:
+            for field, binding in self.bindings.items():
                 if reference in binding:
                     # We were using this dependency
                     service = bundle_context.get_service(reference)
@@ -493,8 +527,7 @@ class _StoredInstance:
                             # Last reference for a required field : invalidate
                             invalidate = True
                             self.safe_callback(\
-                                    constants.IPOPO_CALLBACK_INVALIDATE, \
-                                    service)
+                                        constants.IPOPO_CALLBACK_INVALIDATE)
 
                     # Remove the entry
                     self.__unset_binding(field, requirement, reference, service)
@@ -516,7 +549,7 @@ class _StoredInstance:
             # Modified service property
             invalidate = False
 
-            for field, binding in self.bindings:
+            for field, binding in self.bindings.items():
                 if reference in binding:
                     # We are using this dependency
                     requirement = self.context.get_requirements()[field]
@@ -534,8 +567,7 @@ class _StoredInstance:
                             # Last reference for a required field : invalidate
                             invalidate = True
                             self.safe_callback(\
-                                    constants.IPOPO_CALLBACK_INVALIDATE, \
-                                    service)
+                                        constants.IPOPO_CALLBACK_INVALIDATE)
 
                     # Remove the entry
                     self.__unset_binding(field, requirement, reference, service)
@@ -631,11 +663,11 @@ def register_factory(factory_name, factory):
 
 
     if factory_name in _Registry.factories:
-        __logger.warning("The factory %s has already been registered",
+        _logger.warning("The factory %s has already been registered",
                         factory_name)
 
     _Registry.factories[factory_name] = factory
-    __logger.info("Factory '%s' registered", factory_name)
+    _logger.info("Factory '%s' registered", factory_name)
 
 
 def unregister_factory(factory_name):
@@ -651,7 +683,7 @@ def unregister_factory(factory_name):
         # Invalidate and delete all components of this factory
         _unregistration_loop(factory_name)
         del _Registry.factories[factory_name]
-        __logger.info("Factory '%s' removed", factory_name)
+        _logger.info("Factory '%s' removed", factory_name)
 
 # ------------------------------------------------------------------------------
 
@@ -703,13 +735,10 @@ def instantiate(factory_name, name, properties={}):
     setattr(instance, constants.IPOPO_COMPONENT_CONTEXT, component_context)
 
     # Prepare the stored instance
-    stored_instance = _StoredInstance(factory_name, name, instance)
+    stored_instance = _StoredInstance(factory_name, component_context, instance)
 
     # Store the instance
     _Registry.instances[name] = stored_instance
-
-    # Add the instance in the waiting queue
-    _Registry.waitings.append(stored_instance)
 
     # Try to validate it
     if stored_instance.update_bindings():
@@ -721,7 +750,7 @@ def instantiate(factory_name, name, properties={}):
 
         except Exception:
             # Log the error
-            __logger.exception("Error validating '%s'", stored_instance.name)
+            _logger.exception("Error validating '%s'", stored_instance.name)
 
     return instance
 
@@ -777,10 +806,50 @@ def __pop_instance(name):
     stored_instance = _Registry.instances[name]
 
     # Remove it from lists
-    del _Registry.instances[stored_instance]
+    del _Registry.instances[name]
 
     # Return it
     return stored_instance
+
+# ------------------------------------------------------------------------------
+
+def get_stored_instance(component_instance):
+    """
+    Retrieves the _StoredInstance corresponding to the given component instance
+    
+    @param component_instance: A component instance
+    @return: The corresponding _StoredInstance object, None if not found
+    """
+    if component_instance is None:
+        # Invalid parameter
+        return None
+
+    for stored_instance in _Registry.instances.values():
+        if stored_instance.instance is component_instance:
+            return stored_instance
+
+    # Not found
+    return None
+
+
+def handle_property_changed(changed_component, name, old_value, new_value):
+    """
+    Handles a property changed event
+    
+    @param changed_component: The modified component
+    @param name: The changed property name
+    @param old_value: The previous property value
+    @param new_value: The new property value 
+    """
+    # Get a reference to the changed component
+    stored_instance = get_stored_instance(changed_component)
+
+    if not stored_instance:
+        # Not of out business...
+        return
+
+    stored_instance.update_property(name, old_value, new_value)
+
 
 # ------------------------------------------------------------------------------
 

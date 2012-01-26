@@ -9,9 +9,9 @@ import inspect
 import logging
 import types
 
-from psem2m.utilities import read_only_property
-import psem2m.component.constants as constants
-import psem2m.component.registry as registry
+from psem2m.component import constants, ipopo
+from psem2m.component.ipopo import FactoryContext, ComponentContext
+from psem2m.services import pelix
 
 # ------------------------------------------------------------------------------
 
@@ -20,12 +20,46 @@ _logger = logging.getLogger("ipopo.decorators")
 
 # ------------------------------------------------------------------------------
 
-def _ipopo_setup_callback(cls):
+
+def _get_factory_context(cls):
+    """
+    Retrieves the factory context object associated to a factory. Creates it
+    if needed
+    
+    @param cls: The factory class
+    @return: The factory class context
+    @raise RuntimeException: Not called in a Pelix framework context
+    """
+    context = getattr(cls, constants.IPOPO_FACTORY_CONTEXT, None)
+    if context is None:
+        # Get the framework
+        framework = pelix.FrameworkFactory.get_framework()
+
+        bundle = framework.get_bundle_by_name(cls.__module__)
+        if bundle is None:
+            raise RuntimeError("Not in a Pelix framework context")
+
+        bundle_context = bundle.get_bundle_context()
+        if bundle_context is None:
+            raise RuntimeError("Invalid bundle context for bundle %s" \
+                               % bundle.get_symbolic_name())
+
+        context = ipopo.FactoryContext(bundle_context)
+        setattr(cls, constants.IPOPO_FACTORY_CONTEXT, context)
+
+    return context
+
+
+def _ipopo_setup_callback(cls, context):
     """
     Sets up the class _callback dictionary
     
     @param cls: The class to handle
+    @param context: The factory class context
     """
+    assert isinstance(cls, type)
+    assert isinstance(context, FactoryContext)
+
     callbacks = {}
     functions = inspect.getmembers(cls, inspect.isfunction)
 
@@ -56,8 +90,9 @@ def _ipopo_setup_callback(cls):
 
             callbacks[_callback] = function
 
-    # Set the class attribute
-    setattr(cls, constants.IPOPO_METHOD_CALLBACKS, callbacks)
+    # Update the factory context
+    context.callbacks.clear()
+    context.callbacks.update(callbacks)
 
 # ------------------------------------------------------------------------------
 
@@ -89,34 +124,6 @@ def _append_object_entry(obj, list_name, entry):
     if entry not in obj_list:
         obj_list.append(entry)
 
-
-def _put_object_entry(obj, dict_name, entry, value):
-    """
-    Puts an entry in an object dictionary
-    Creates the dictionary field if needed.
-
-    @param obj: The object that contains the dictionary
-    @param dict_name: The name of the dictionary member in *obj*
-    @param entry: The name of the entry to add
-    @param value: The value of the entry
-    """
-    # Get the dictionary
-    try:
-        dictionary = getattr(obj, dict_name)
-        if not dictionary:
-            # Prepare a new dictionary dictionary
-            dictionary = {}
-
-    except AttributeError:
-        # We'll have to create it
-        dictionary = {}
-        setattr(obj, dict_name, dictionary)
-
-    assert(isinstance(dictionary, dict))
-
-    # Set up the property
-    dictionary[entry] = value
-
 # ------------------------------------------------------------------------------
 
 def get_field_property_name(component, field):
@@ -130,21 +137,16 @@ def get_field_property_name(component, field):
     if component is None or field is None:
         return None
 
-    # Get fields
-    fields = getattr(component, constants.IPOPO_PROPERTIES_FIELDS, None)
-    if not isinstance(fields, dict):
-        return None
+    # Get the factory context
+    factory_context = getattr(component, constants.IPOPO_FACTORY_CONTEXT, None)
+    if factory_context is None:
+        # Can't work
+        return
 
-    if field not in fields:
-        # Unknown field
-        return None
+    assert isinstance(factory_context, FactoryContext)
 
-    # Get properties
-    properties = getattr(component, constants.IPOPO_PROPERTIES, None)
-    if not isinstance(properties, dict):
-        return None
-
-    return fields[field]
+    # Get the name associated to the field
+    return factory_context.properties_fields.get(field, None)
 
 
 def _get_field_property(component, field):
@@ -158,17 +160,21 @@ def _get_field_property(component, field):
     if component is None or field is None:
         return None
 
-    # Get properties
-    properties = getattr(component, constants.IPOPO_PROPERTIES, None)
-    if not isinstance(properties, dict):
-        return None
+    # Also get the component context
+    component_context = getattr(component, constants.IPOPO_COMPONENT_CONTEXT, \
+                                None)
+    if component_context is None:
+        # Can't work
+        return
 
+    assert isinstance(component_context, ComponentContext)
+
+    # Get the property name
     property_name = get_field_property_name(component, field)
-    if property_name is None or property_name not in properties:
-        # Unknown property
-        return None
 
-    return properties[property_name]
+    # Retrieve the property value
+    value = component_context.properties.get(property_name, None)
+    return value
 
 
 def _set_field_property(component, field, value):
@@ -183,22 +189,23 @@ def _set_field_property(component, field, value):
     if component is None or field is None:
         return
 
-    # Get fields
-    fields = getattr(component, constants.IPOPO_PROPERTIES_FIELDS, None)
-    if not isinstance(fields, dict):
+    # Get the property name
+    property_name = get_field_property_name(component, field)
+    if not property_name:
+        # Invalid property name
         return
 
-    if field not in fields:
-        # Unknown field
+    # Also get the component context
+    component_context = getattr(component, constants.IPOPO_COMPONENT_CONTEXT, \
+                                None)
+    if component_context is None:
+        # Can't work
         return
 
-    # Get properties
-    properties = getattr(component, constants.IPOPO_PROPERTIES, None)
-    if not isinstance(properties, dict):
-        return
+    assert isinstance(component_context, ComponentContext)
 
     # Set the property value
-    properties[fields[field]] = value
+    component_context.properties[property_name] = value
 
 
 def _ipopo_update_properties(self, new_values={}):
@@ -240,12 +247,14 @@ def _ipopo_field_property(field, name, value):
         
         @param new_valuie: The new property value
         """
-        old_value = _get_field_property(self, field)
         name = get_field_property_name(self, field)
+        old_value = _get_field_property(self, field)
         _set_field_property(self, field, new_value)
 
         # Trigger an update event
-        registry.handle_property_changed(self, name, old_value, new_value)
+        ipopo.handle_property_changed(self, name, old_value, new_value)
+
+        return new_value
 
     return property(get_value, set_value)
 
@@ -273,18 +282,21 @@ class ComponentFactory:
             raise TypeError("@ComponentFactory can decorate only classes, " \
                             "not '%s'" % type(factory_class).__name__)
 
-        # Read only property (factory name)
-        factory_class._ipopo_factory_name = \
-                            read_only_property(self.__factory_name)
+        # Get the factory context
+        context = _get_factory_context(factory_class)
 
-        # Add iPOPO properties methods
+        # Find callbacks
+        _ipopo_setup_callback(factory_class, context)
+
+        # Add the component context field (set it to None)
+        setattr(factory_class, constants.IPOPO_COMPONENT_CONTEXT, None)
+
+        # Add iPOPO properties update method
         factory_class._ipopo_update_properties = _ipopo_update_properties
 
-        # Callbacks
-        _ipopo_setup_callback(factory_class)
-
         # Register the factory class
-        registry.register_factory(self.__factory_name, factory_class)
+        ipopo.register_factory(self.__factory_name, factory_class)
+
         return factory_class
 
 # ------------------------------------------------------------------------------
@@ -330,17 +342,19 @@ class Property:
             raise TypeError("@Property can decorate only classes, not '%s'" \
                             % type(clazz).__name__)
 
+        # Get the factory context
+        context = _get_factory_context(clazz)
+
         # Set up the property in the class
-        _put_object_entry(clazz, constants.IPOPO_PROPERTIES, self.__name, \
-                          self.__value)
+        context.properties[self.__name] = self.__value
 
         # Associate the field to the property name
-        _put_object_entry(clazz, constants.IPOPO_PROPERTIES_FIELDS, \
-                          self.__field, self.__name)
+        context.properties_fields[self.__field] = self.__name
 
-        # Add the field to the class
+        # Add the field to the class -> it becomes a property
         setattr(clazz, self.__field, \
                 _ipopo_field_property(self.__field, self.__name, self.__value))
+
         return clazz
 
 # ------------------------------------------------------------------------------
@@ -351,17 +365,29 @@ class Provides:
     
     Defines an interface exported by a component.
     """
-    def __init__(self, specification=None):
+    def __init__(self, specifications=None):
         """
-        Sets up the specification
+        Sets up the specifications
         
-        @param specification: The provided interface name (can't be empty)
+        @param specifications: A list of provided interface(s) name(s)
+        (can't be empty)
         @raise ValueError: If the name if None or empty
         """
-        if not specification:
+        if not specifications:
             raise ValueError("Provided interface name can't be empty")
 
-        self.__specification = specification
+        if isinstance(specifications, type):
+            self.__specifications = [specifications.__name__]
+
+        elif isinstance(specifications, str):
+            self.__specifications = [specifications]
+
+        elif not isinstance(specifications, list):
+            raise ValueError("Unhandled @Provides specifications type : %s" \
+                             % type(specifications).__name__)
+
+        else:
+            self.__specification = specifications
 
 
     def __call__(self, clazz):
@@ -372,13 +398,19 @@ class Provides:
         @param clazz: The decorated class
         @raise TypeError: If *clazz* is not a type
         """
+
         if not isinstance(clazz, type):
             raise TypeError("@Provides can decorate only classes, not '%s'" \
                             % type(clazz).__name__)
 
-        # Set up the property in the class
-        _append_object_entry(clazz, constants.IPOPO_PROVIDES, \
-                             self.__specification)
+        # Get the factory context
+        context = _get_factory_context(clazz)
+
+        for spec in self.__specifications:
+            if spec not in context.provides:
+                # Avoid duplicates
+                context.provides.append(spec)
+
         return clazz
 
 # ------------------------------------------------------------------------------
@@ -393,10 +425,19 @@ class Requires:
                  optional=False, spec_filter=None):
         """
         Sets up the requirement
+        
+        @param field: The injected field
+        @param specification: The injected service specification
+        @param aggregate: If true, injects a list
+        @param optional: If true, this injection is optional
+        @param spec_filter: An LDAP query to filter injected services upon their
+        properties
+        @raise TypeError: A parameter has an invalid type
+        @raise ValueError: An error occurred while parsing the filter
         """
         self.__field = field
-        self.__requirement = registry.Requirement(specification, aggregate, \
-                                                  optional, spec_filter)
+        self.__requirement = ipopo.Requirement(specification, aggregate, \
+                                               optional, spec_filter)
 
     def __call__(self, clazz):
         """
@@ -410,8 +451,9 @@ class Requires:
                             % type(clazz).__name__)
 
         # Set up the property in the class
-        _put_object_entry(clazz, constants.IPOPO_REQUIREMENTS, self.__field, \
-                          self.__requirement)
+        context = _get_factory_context(clazz)
+        context.requirements[self.__field] = self.__requirement
+
         return clazz
 
 # ------------------------------------------------------------------------------

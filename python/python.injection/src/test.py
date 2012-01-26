@@ -4,10 +4,12 @@
 from psem2m.component.constants import IPOPO_INSTANCE_NAME
 from psem2m.component.decorators import ComponentFactory, Property, Validate, \
     Invalidate, Provides, Requires, Bind, Unbind
-from psem2m.component.registry import instantiate, invalidate
+from psem2m.component.ipopo import instantiate, kill
 from psem2m.utilities import SynchronizedClassMethod
 
 import logging
+from psem2m.services import pelix
+from psem2m.services.pelix import Framework
 
 # ------------------------------------------------------------------------------
 
@@ -17,6 +19,12 @@ CONSUMER_FACTORY = "ConsumerFactory"
 
 # Set logging level
 logging.basicConfig(level=logging.DEBUG)
+
+# Start Pelix here !
+framework = pelix.FrameworkFactory.get_framework({'debug': True})
+assert isinstance(framework, Framework)
+
+framework.get_bundle_context().install_bundle(__name__)
 
 # ------------------------------------------------------------------------------
 
@@ -87,10 +95,10 @@ class Test:
 
 # ------------------------------------------------------------------------------
 
-import threading
+# import threading
 
 @ComponentFactory(name=HELLO_IMPL_FACTORY)
-@Provides(specification=IHello)
+@Provides(specifications=IHello)
 @Property(field="name", name=IPOPO_INSTANCE_NAME)
 @Property(field="_to", name="To", value="World")
 @Property(field="_count", name="Count")
@@ -98,14 +106,14 @@ class HelloImpl:
 
     @Validate
     def validate(self):
-        self.lock = threading.RLock()
+        # self.lock = threading.RLock()
         self._count = 0
 
 
     def getName(self):
         return self.name
 
-    @SynchronizedClassMethod('lock')
+    # @SynchronizedClassMethod('lock')
     def sayHello(self):
         """
         Says hello
@@ -137,5 +145,4 @@ print("--- PROPERTY   ---")
 hello._to = "World"
 
 print("--- INVALIDATE ---")
-# registry.unregister_factory(HELLO_IMPL_FACTORY)
-invalidate("HelloInstance")
+kill("HelloInstance")

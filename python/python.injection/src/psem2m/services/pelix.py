@@ -37,7 +37,7 @@ class BundleException(Exception):
         """
         Sets up the exception
         """
-        Exception.__init__(str(content))
+        Exception.__init__(self, content)
 
 
 # ------------------------------------------------------------------------------
@@ -270,7 +270,7 @@ class Bundle:
 
 # ------------------------------------------------------------------------------
 
-def __add_listener(listeners_registry, listener):
+def _add_listener(listeners_registry, listener):
     """
     Adds a listener in the registry, if it is not yet in
     
@@ -283,7 +283,7 @@ def __add_listener(listeners_registry, listener):
     return True
 
 
-def __remove_listener(listeners_registry, listener):
+def _remove_listener(listeners_registry, listener):
     """
     Removes a listener from the registry
     
@@ -296,18 +296,19 @@ def __remove_listener(listeners_registry, listener):
     return False
 
 
-class __Framework(Bundle):
+class Framework(Bundle):
     """
-    The Pelix framework (main) class
+    The Pelix framework (main) class. It must be instantiated using
+    FrameworkFactory
     """
     def __init__(self, properties={}):
         """
-        Sets up the framework
+        Sets up the framework.
         
         @param properties: The framework properties
         """
         # Framework
-        Bundle.__init__(self, 0, sys.modules[__name__])
+        Bundle.__init__(self, self, 0, sys.modules[__name__])
 
         # Framework context
         self.set_context(BundleContext(self, self))
@@ -343,7 +344,7 @@ class __Framework(Bundle):
         
         @param listener: The bundle listener
         """
-        __add_listener(self.__bundle_listeners, listener)
+        _add_listener(self.__bundle_listeners, listener)
 
 
     def add_service_listener(self, listener, ldap_filter=None):
@@ -353,7 +354,7 @@ class __Framework(Bundle):
         @param listener: The service listener
         @param ldap_filter: Listener
         """
-        if __add_listener(self.__service_listeners, listener):
+        if _add_listener(self.__service_listeners, listener):
             # Set the associated filter
             try:
                 self.__service_listeners_filters[listener] = \
@@ -361,7 +362,7 @@ class __Framework(Bundle):
 
             except ValueError:
                 # Invalid filter
-                __remove_listener(self.__service_listeners, listener)
+                _remove_listener(self.__service_listeners, listener)
                 _logger.exception("Invalid service listener filter")
                 return
 
@@ -396,7 +397,7 @@ class __Framework(Bundle):
 
         # Parse the filter
         try:
-            new_filter = ldapfilter.parse_LDAP(ldap_filter)
+            new_filter = ldapfilter.parse_LDAP(new_filter)
 
         except ValueError as ex:
             raise BundleException(ex)
@@ -446,7 +447,7 @@ class __Framework(Bundle):
         previous = None
         endmatch_event = None
 
-        if event.get_kind() == ServiceEvent.MODIFIED:
+        if event.get_type() == ServiceEvent.MODIFIED:
             # Modified service event : prepare the end match event
             previous = event.get_previous_properties()
             endmatch_event = ServiceEvent(ServiceEvent.MODIFIED_ENDMATCH, \
@@ -482,12 +483,32 @@ class __Framework(Bundle):
 
     def get_bundle_by_id(self, bundle_id):
         """
-        Retrieves the bundle with the given id
+        Retrieves the bundle with the given ID
+        
+        @param id: ID of an installed bundle
+        @return: The requested bundle
+        @raise BundleException: The ID is invalid
         """
         if bundle_id not in self.__bundles:
             raise BundleException("Invalid bundle ID %d" % bundle_id)
 
         return self.__bundles[bundle_id]
+
+
+    def get_bundle_by_name(self, bundle_name):
+        """
+        Retrieves the bundle with the given name
+        
+        @param name: Name of the bundle to look for
+        @return: The requested bundle, None if not found
+        """
+        for bundle in self.__bundles.values():
+            if bundle_name == bundle.get_symbolic_name():
+                # Found !
+                return bundle
+
+        # Not found...
+        return None
 
 
     def get_bundles(self):
@@ -570,6 +591,9 @@ class __Framework(Bundle):
         bundle = Bundle(self, bundle_id, module)
         bundle.set_context(BundleContext(self, bundle))
 
+        # Store the bundle
+        self.__bundles[bundle_id] = bundle
+
         return bundle_id
 
 
@@ -632,7 +656,7 @@ class __Framework(Bundle):
         
         @param listener: The bundle listener
         """
-        __remove_listener(self.__bundle_listeners, listener)
+        _remove_listener(self.__bundle_listeners, listener)
 
 
     def remove_service_listener(self, listener):
@@ -641,7 +665,7 @@ class __Framework(Bundle):
         
         @param listener: The service listener
         """
-        __remove_listener(self.__service_listeners, listener)
+        _remove_listener(self.__service_listeners, listener)
 
         if listener in self.__service_listeners_filters:
             del self.__service_listeners_filters[listener]
@@ -928,6 +952,13 @@ class ServiceReference:
         self.__using_bundles = []
 
 
+    def __hash__(self):
+        """
+        Returns the service hash
+        """
+        return self.__properties.get(SERVICE_ID, -1)
+
+
     def __cmp__(self, other):
         """
         ServiceReference comparison
@@ -962,6 +993,40 @@ class ServiceReference:
         else:
             return -1
 
+
+    def __eq__(self, other):
+        """
+        Equal to other
+        """
+        return self.__cmp__(other) == 0
+
+
+    def __ge__(self, other):
+        """
+        Greater or equal
+        """
+        return self.__cmp__(other) >= 0
+
+
+    def __gt__(self, other):
+        """
+        Greater than other
+        """
+        return self.__cmp__(other) > 0
+
+
+    def __le__(self, other):
+        """
+        Lesser or equal
+        """
+        return self.__cmp__(other) <= 0
+
+
+    def __lt__(self, other):
+        """
+        Lesser than other
+        """
+        return self.__cmp__(other) < 0
 
 
     def get_bundle(self):
@@ -1240,6 +1305,9 @@ class FrameworkFactory:
         @return: A Pelix instance
         """
         if FrameworkFactory.__singleton is None:
-            FrameworkFactory.__singleton = __Framework(properties)
+            FrameworkFactory.__singleton = Framework(properties)
 
         return FrameworkFactory.__singleton
+
+if __name__ == "__main__":
+    FrameworkFactory.get_framework()

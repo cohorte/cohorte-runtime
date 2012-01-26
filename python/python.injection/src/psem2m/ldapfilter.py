@@ -38,9 +38,17 @@ class LDAPFilter:
         self.__subfilters = []
         self.__operator = operator
 
+
     def __repr__(self):
         """
         String representation
+        """
+        return "(%s %s)" % (operator2str(self.__operator), self.__subfilters)
+
+
+    def __str__(self):
+        """
+        String description
         """
         return "Filter(%s, %s)" % (operator2str(self.__operator), \
                                    self.__subfilters)
@@ -112,11 +120,21 @@ class LDAPCriteria:
         self.value = value
         self.comparator = comparator
 
+
     def __repr__(self):
         """
         String representation
         """
-        return "Criteria(%s, %s, %s)" % (self.name, self.comparator, self.value)
+        comparator = comparator2str(self.comparator)
+        return "(%s%s%s)" % (self.name, comparator, self.value)
+
+
+    def __str__(self):
+        """
+        String description
+        """
+        comparator = comparator2str(self.comparator)
+        return "Criteria(%s, %s, %s)" % (self.name, comparator, self.value)
 
 
     def matches(self, properties):
@@ -134,6 +152,23 @@ class LDAPCriteria:
         return self.comparator(self.value, properties[self.name])
 
 # ------------------------------------------------------------------------------
+
+def comparator2str(comparator):
+    """
+    Converts an operator method to a string
+    """
+    if comparator == __comparator_approximate:
+        return "~="
+
+    elif comparator == __comparator_eq:
+        return "="
+
+    elif comparator == __comparator_le:
+        return "<="
+
+    elif comparator == __comparator_ge:
+        return ">="
+
 
 def operator2str(operator):
     """
@@ -436,8 +471,9 @@ def _parse_LDAP_criteria(ldap_filter, startidx, endidx):
     comparator = _compute_comparator(ldap_filter, i)
     if comparator is None:
         # Unknown comparator
-        raise ValueError("Unknown comparator in '%s' - %s" \
-                         % (ldap_filter[startidx:endidx], ldap_filter[i]))
+        raise ValueError("Unknown comparator in '%s' - %s\nFilter : %s" \
+                         % (ldap_filter[startidx:endidx], ldap_filter[i], \
+                            ldap_filter))
 
     # The attribute name can be extracted directly
     attribute_name = ldap_filter[startidx:i].strip()
@@ -532,7 +568,8 @@ def parse_LDAP(ldap_filter):
                         root = ended_filter
 
                 else:
-                    print("Too many end of parenthesis @%d: %s" % (idx, ldap_filter[idx:]))
+                    raise ValueError("Too many end of parenthesis @%d: %s" % \
+                                     (idx, ldap_filter[idx:]))
                     return
 
             elif ldap_filter[idx] == '\\':
