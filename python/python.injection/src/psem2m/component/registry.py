@@ -8,6 +8,7 @@ import logging
 
 import psem2m.component.constants as constants
 import psem2m.ldapfilter as ldapfilter
+from psem2m.utilities import remove_all_occurrences
 
 # ------------------------------------------------------------------------------
 
@@ -404,21 +405,6 @@ class _StoredInstance:
 
 # ------------------------------------------------------------------------------
 
-def remove_all_occurrences(sequence, item):
-    """
-    Removes all occurrences of item in the given sequence
-    
-    @param sequence: The items list
-    @param item: The item to be removed
-    """
-    if sequence is None:
-        return
-
-    while item in sequence:
-        sequence.remove(item)
-
-# ------------------------------------------------------------------------------
-
 def handle_property_changed(changed_component, name, old_value, new_value):
     """
     Handles a property changed event
@@ -460,8 +446,8 @@ def register_factory(factory_name, factory):
     @raise ValueError: The factory name is invalid
     @raise TypeError: The factory object is invalid
     """
-    if not factory_name:
-        raise ValueError("Factory factory_name can't be null")
+    if not factory_name or not isinstance(factory_name, str):
+        raise ValueError("Factory name must be a non-empty string")
 
     if factory is None or not isinstance(factory, type):
         raise TypeError("The factory '%s' must be a type" % factory_name)

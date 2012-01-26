@@ -296,7 +296,7 @@ def __remove_listener(listeners_registry, listener):
     return False
 
 
-class Framework(Bundle):
+class __Framework(Bundle):
     """
     The Pelix framework (main) class
     """
@@ -1220,3 +1220,26 @@ class ServiceEvent:
         Retrieves the kind of service event
         """
         return self.__kind
+
+# ------------------------------------------------------------------------------
+
+class FrameworkFactory:
+    """
+    A framework factory
+    """
+
+    __singleton = None
+    """ The framework singleton """
+
+    @staticmethod
+    def get_framework(properties={}):
+        """
+        If it doesn't exist yet, creates a framework with the given properties,
+        else returns the current framework instance.
+        
+        @return: A Pelix instance
+        """
+        if FrameworkFactory.__singleton is None:
+            FrameworkFactory.__singleton = __Framework(properties)
+
+        return FrameworkFactory.__singleton

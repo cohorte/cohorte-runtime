@@ -117,3 +117,17 @@ def read_only_property(value):
     """
     return property(lambda cls: value)
 
+# ------------------------------------------------------------------------------
+
+def remove_all_occurrences(sequence, item):
+    """
+    Removes all occurrences of item in the given sequence
+    
+    @param sequence: The items list
+    @param item: The item to be removed
+    """
+    if sequence is None:
+        return
+
+    while item in sequence:
+        sequence.remove(item)

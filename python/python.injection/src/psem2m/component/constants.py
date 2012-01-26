@@ -12,6 +12,9 @@ IPOPO_PROPERTIES_FIELDS = "_ipopo_properties_fields"
 IPOPO_PROVIDES = "_ipopo_provides"
 IPOPO_REQUIREMENTS = "_ipopo_requirements"
 
+IPOPO_FACTORY_CONTEXT = "__ipopo_factory_context__"
+IPOPO_COMPONENT_CONTEXT = "__ipopo_component_context__"
+
 # Callbacks
 IPOPO_CALLBACK_BIND = "BIND"
 IPOPO_CALLBACK_UNBIND = "UNBIND"
