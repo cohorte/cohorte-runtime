@@ -208,25 +208,6 @@ def _set_field_property(component, field, value):
     component_context.properties[property_name] = value
 
 
-def _ipopo_update_properties(self, new_values={}):
-    """
-    Sets the properties fields values
-    
-    @param new_values: New properties values, in case of a value update
-    """
-    properties = getattr(self, constants.IPOPO_PROPERTIES, None)
-    if not properties:
-        # Nothing to do
-        _logger.debug("No properties for %s", self)
-        return
-
-    # Update instance properties
-    if isinstance(new_values, dict):
-        for key, value in new_values.items():
-            # Update or insert properties
-            properties[key] = value
-
-
 def _ipopo_field_property(field, name, value):
     """
     Sets up an iPOPO field property, using Python property() capabilities
@@ -290,9 +271,6 @@ class ComponentFactory:
 
         # Add the component context field (set it to None)
         setattr(factory_class, constants.IPOPO_COMPONENT_CONTEXT, None)
-
-        # Add iPOPO properties update method
-        factory_class._ipopo_update_properties = _ipopo_update_properties
 
         # Register the factory class
         ipopo.register_factory(self.__factory_name, factory_class)

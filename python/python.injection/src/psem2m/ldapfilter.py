@@ -43,7 +43,8 @@ class LDAPFilter:
         """
         String representation
         """
-        return "(%s %s)" % (operator2str(self.__operator), self.__subfilters)
+        return "(%s %s)" % (operator2str(self.__operator), \
+               "".join([repr(subfilter) for subfilter in self.__subfilters]))
 
 
     def __str__(self):
@@ -51,7 +52,7 @@ class LDAPFilter:
         String description
         """
         return "Filter(%s, %s)" % (operator2str(self.__operator), \
-                                   self.__subfilters)
+               ", ".join([str(subfilter) for subfilter in self.__subfilters]))
 
 
     def append(self, ldap_filter):
@@ -65,7 +66,8 @@ class LDAPFilter:
         """
         if not isinstance(ldap_filter, LDAPFilter) \
         and not isinstance(ldap_filter, LDAPCriteria):
-            raise TypeError("Invalid filter")
+            raise TypeError("Invalid filter type : %s" \
+                  % (type(ldap_filter).__name__))
 
         if len(self.__subfilters) >= 1 and self.__operator == LDAPFilter.NOT:
             raise ValueError("Not operator only handles one child")
@@ -90,7 +92,7 @@ class LDAPFilter:
 
             else:
                 result = True
-
+                
                 if self.__operator == LDAPFilter.OR:
                     # At least one match in a "OR" test : short cut
                     break
@@ -100,6 +102,22 @@ class LDAPFilter:
             return not result
 
         return result
+
+
+    def normalize(self):
+        """
+        Returns the first meaningful object in this filter.
+        """
+        size = len(self.__subfilters)
+        if size > 1:
+            return self
+        
+        elif size == 1:
+            # Return the only child
+            return self.__subfilters[0].normalize()
+        
+        # Empty filter
+        return None
 
 
 class LDAPCriteria:
@@ -150,6 +168,13 @@ class LDAPCriteria:
 
         # Use the comparator
         return self.comparator(self.value, properties[self.name])
+    
+    
+    def normalize(self):
+        """
+        Returns this criteria
+        """
+        return self
 
 # ------------------------------------------------------------------------------
 
@@ -493,7 +518,7 @@ def _parse_LDAP_criteria(ldap_filter, startidx, endidx):
                         comparator)
 
 
-def parse_LDAP(ldap_filter):
+def _parse_LDAP(ldap_filter):
     """
     Parses the given LDAP filter string
     
@@ -584,4 +609,75 @@ def parse_LDAP(ldap_filter):
         idx += 1
 
     # Return the root of the filter
-    return root
+    return root.normalize()
+
+
+def get_ldap_filter(ldap_filter):
+    """
+    Retrieves the LDAP filter object corresponding to the given filter.
+    Parses it the argument if it is an LDAPFilter instance
+    
+    @param ldap_filter: An LDAP filter (LDAPFilter or string)
+    @return: The corresponding filter, can be None
+    @raise ValueError: Invalid filter string found
+    @raise TypeError: Unknown filter type
+    """
+    if ldap_filter is None:
+        return None
+    
+    if isinstance(ldap_filter, LDAPFilter) \
+    or isinstance(ldap_filter, LDAPCriteria):
+        # No conversion needed
+        return ldap_filter
+    
+    elif isinstance(ldap_filter, str):
+        # Parse the filter
+        return _parse_LDAP(ldap_filter)
+    
+    # Unknown type
+    raise TypeError("Unhandled filter type %s" % type(ldap_filter).__name__)
+
+
+def combine_filters(filters, operator=LDAPFilter.AND):
+    """
+    Combines two LDAP filters, which can be strings or LDAPFilter objects
+    
+    @param filters: Filters to combine
+    @param operator: The operator for combination
+    @return: The combined filter, can be None if all filters are None
+    @raise ValueError: Invalid filter string found
+    @raise TypeError: Unknown filter type
+    """
+    if not filters:
+        return None
+    
+    if not isinstance(filters, list):
+        raise TypeError("Filters argument must be a list")
+    
+    # Remove None filters and convert others
+    ldap_filters = []
+    for sub_filter in filters:
+        if sub_filter is None:
+            # Ignore None filters
+            continue
+        
+        ldap_filter = get_ldap_filter(sub_filter)
+        if ldap_filter is not None:
+            # Valid filter
+            ldap_filters.append(ldap_filter)
+
+    if len(ldap_filters) == 0:
+        # Do nothing
+        return None
+    
+    elif len(ldap_filters) == 1:
+        # Only one filter, return it
+        return ldap_filters[0]
+    
+    new_filter = LDAPFilter(operator)
+    
+    for sub_filter in ldap_filters:
+        # Direct combination
+        new_filter.append(sub_filter)
+    
+    return new_filter.normalize()

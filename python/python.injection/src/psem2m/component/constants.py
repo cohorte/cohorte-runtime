@@ -7,11 +7,6 @@ Defines the iPOPO constants
 
 # Injected class fields
 IPOPO_METHOD_CALLBACKS = "_ipopo_callbacks"
-IPOPO_PROPERTIES = "_ipopo_properties"
-IPOPO_PROPERTIES_FIELDS = "_ipopo_properties_fields"
-IPOPO_PROVIDES = "_ipopo_provides"
-IPOPO_REQUIREMENTS = "_ipopo_requirements"
-
 IPOPO_FACTORY_CONTEXT = "__ipopo_factory_context__"
 IPOPO_COMPONENT_CONTEXT = "__ipopo_component_context__"
 

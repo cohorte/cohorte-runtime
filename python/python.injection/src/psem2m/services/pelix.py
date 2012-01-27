@@ -358,7 +358,7 @@ class Framework(Bundle):
             # Set the associated filter
             try:
                 self.__service_listeners_filters[listener] = \
-                                            ldapfilter.parse_LDAP(ldap_filter)
+                                    ldapfilter.get_ldap_filter(ldap_filter)
 
             except ValueError:
                 # Invalid filter
@@ -393,14 +393,20 @@ class Framework(Bundle):
 
         else:
             # Combine filter with a AND operator
-            new_filter = "(&(%s=%s)%s)" % (OBJECTCLASS, clazz, ldap_filter)
+            new_filter = ldapfilter.combine_filters(\
+                                    ["(%s=%s)" % (OBJECTCLASS, clazz), \
+                                     ldap_filter])
 
         # Parse the filter
         try:
-            new_filter = ldapfilter.parse_LDAP(new_filter)
+            new_filter = ldapfilter.get_ldap_filter(new_filter)
 
         except ValueError as ex:
             raise BundleException(ex)
+        
+        if new_filter is None:
+            # Normalized filter is None : return everything
+            return sorted(self.__registry.keys())
 
         # Find a reference that matches
         result = []
@@ -597,13 +603,14 @@ class Framework(Bundle):
         return bundle_id
 
 
-    def register_service(self, bundle, clazz, service, properties):
+    def register_service(self, bundle, clazz, service, properties, send_event):
         """
         Registers a service and calls the listeners
         
         @param bundle: The bundle registering the service
         @param clazz: Name(s) of the interface(s) implemented by service
         @param properties: Service properties
+        @param send_event: If not, doesn't trigger a service registered event
         @return: A ServiceRegistration object
         @raise BundleException: An error occurred while registering the service
         """
@@ -643,9 +650,10 @@ class Framework(Bundle):
         # Store it in the bundle registry
         bundle.store_registration(registration)
 
-        # Call the listeners
-        event = ServiceEvent(ServiceEvent.REGISTERED, ref)
-        self.fire_service_event(event)
+        if send_event:
+            # Call the listeners
+            event = ServiceEvent(ServiceEvent.REGISTERED, ref)
+            self.fire_service_event(event)
 
         return registration
 
@@ -892,18 +900,20 @@ class BundleContext:
         return self.__framework.install_bundle(location)
 
 
-    def register_service(self, clazz, service, properties):
+    def register_service(self, clazz, service, properties, send_event=True):
         """
         Registers a service
         
         @param clazz: Class or Classes (list) implemented by this service
         @param service: The service instance
         @param properties: The services properties (dictionary)
+        @param send_event: If not, doesn't trigger a service registered event
         @return: A ServiceRegistration object
         @raise BundleException: An error occurred while registering the service
         """
         return self.__framework.register_service(self.__bundle, clazz, \
-                                                 service, properties)
+                                                 service, properties, \
+                                                 send_event)
 
 
     def remove_bundle_listener(self, listener):
@@ -943,13 +953,26 @@ class ServiceReference:
         @param properties: The service properties
         @raise BundleException: The properties doesn't contain mandatory entries
         """
-        if SERVICE_ID not in properties:
-            raise BundleException("A Service must at least have a '%s' entry" \
-                                  % SERVICE_ID)
+        
+        for mandatory in (SERVICE_ID, OBJECTCLASS):
+            if mandatory not in properties:
+                raise BundleException( \
+                            "A Service must at least have a '%s' entry" \
+                            % mandatory)
 
         self.__bundle = bundle
         self.__properties = properties
         self.__using_bundles = []
+    
+    
+    def __str__(self):
+        """
+        String representation
+        """
+        return "ServiceReference(%s, %d, %s)" \
+                % (self.__properties[SERVICE_ID], \
+                   self.__bundle.get_bundle_id(), \
+                   self.__properties[OBJECTCLASS])
 
 
     def __hash__(self):
@@ -1142,10 +1165,14 @@ class ServiceRegistration:
             if forbidden_key in properties:
                 del properties[forbidden_key]
 
+        to_delete = []
         for key, value in properties.items():
             if self.__properties.get(key, None) == value:
                 # No update
-                del properties[key]
+                to_delete.append(key)
+        
+        for key in to_delete:
+            del properties[key]
 
         if not properties:
             # Nothing to do
@@ -1263,6 +1290,14 @@ class ServiceEvent:
             previous_properties = {}
 
         self.__previous_properties = previous_properties
+
+
+    def __str__(self):
+        """
+        String representation
+        """
+        return "ServiceEvent(%s, %s)" % (self.__kind, \
+                                         str(self.__reference))
 
 
     def get_previous_properties(self):

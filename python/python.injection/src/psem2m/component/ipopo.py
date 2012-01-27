@@ -83,7 +83,7 @@ class ComponentContext:
         # Force the instance name property
         properties[constants.IPOPO_INSTANCE_NAME] = name
 
-        self.properties = factory_context.properties
+        self.properties = factory_context.properties.copy()
         self.properties.update(properties)
 
 
@@ -197,21 +197,6 @@ class _StoredInstance:
         return comp_callback(self.instance, *args, **kwargs)
 
 
-    def kill(self):
-        """
-        This instance is killed : invalidate it if needed, clean up all members
-        """
-        self.invalidate()
-
-        # Change the state
-        self.state = _StoredInstance.KILLED
-
-        # Clean up members
-        self.bindings.clear()
-        del self.context
-        del self.instance
-
-
     def invalidate(self):
         """
         Does the post-invalidation job. Unregisters the provided service(s), if
@@ -227,6 +212,21 @@ class _StoredInstance:
         if self.registration is not None:
             self.registration.unregister()
             self.registration = None
+
+
+    def kill(self):
+        """
+        This instance is killed : invalidate it if needed, clean up all members
+        """
+        self.invalidate()
+
+        # Change the state
+        self.state = _StoredInstance.KILLED
+
+        # Clean up members
+        self.bindings.clear()
+        del self.context
+        del self.instance
 
 
     def safe_callback(self, event, *args, **kwargs):
@@ -248,8 +248,7 @@ class _StoredInstance:
         except:
             _logger.exception("Component '%s' : error calling callback " \
                                "method for event %s" % (self.name, event))
-            # return None
-            raise
+            return None
 
 
     def __set_binding(self, field, requirement, reference):
@@ -268,8 +267,8 @@ class _StoredInstance:
                 if not isinstance(current_value, list):
                     # Invalid field content
                     _logger.error("%s : The injected field %s must be a " \
-                                   "list, not %s", self.name, field, \
-                                   type(current_value).__name__)
+                                  "list, not %s", self.name, field, \
+                                  type(current_value).__name__)
                     return
 
             else:
@@ -290,7 +289,7 @@ class _StoredInstance:
 
         # Keep track of the bound reference
         if field in self.bindings:
-            self.bindings.append(reference)
+            self.bindings[field].append(reference)
 
         else:
             # Create the list if the needed
@@ -298,6 +297,70 @@ class _StoredInstance:
 
         # Call the component back
         self.safe_callback(constants.IPOPO_CALLBACK_BIND, service)
+
+
+    def __set_multiple_binding(self, field, current_value, requirement, \
+                               references):
+        """
+        Injects multiple services in a field in one time. Only works with
+        aggregations.
+        
+        @param field: The field where to inject the services
+        @param current_value: Current field value (should be None or a list)
+        @param requirement: Dependency description
+        @param references: Injected services references (must be a list)
+        """
+        if not requirement.aggregate:
+            # Not an aggregation...
+            _logger.error("%s: field '%s' is not an aggregation", \
+                          self.name, field)
+            return
+        
+        if not isinstance(references, list):
+            # Bad references
+            _logger.error("%s: Invalid references list type %s", \
+                          self.name, type(references).__name__)
+        
+        if current_value is not None and not isinstance(current_value, list):
+            # Injected field as the right type
+            _logger.error("%s: field '%s' must be a list", \
+                          self.name, field)
+
+            return
+
+        # Special case for a list : we must ignore already injected
+        # references
+        if field in self.bindings:
+            refs = [reference for reference in refs \
+                    if reference not in self.bindings[field]]
+
+        if not refs:
+            # Nothing to add, ignore this field
+            return
+
+        # Prepare the injected value
+        if current_value is not None:
+            injected = current_value
+            
+        else:
+            injected = []
+
+        # Compute the bound services
+        bound = [bundle_context.get_service(reference) for reference in refs]
+
+        # Set the field
+        setattr(component, field, injected)
+        
+        # Add dependency marker
+        bindings = self.bindings.get(field, [])
+        bindings.extend(refs)
+        
+        for service in bound:
+            # Inject the service
+            injected.append(service)
+            
+            # Call Bind
+            self.safe_callback(constants.IPOPO_CALLBACK_BIND, service)
 
 
     def __unset_binding(self, field, requirement, reference, service):
@@ -335,13 +398,6 @@ class _StoredInstance:
             # Set single references to None
             setattr(self.instance, field, None)
 
-        # Remove the binding information
-        if field in self.bindings:
-            remove_all_occurrences(self.bindings[field], service)
-            if len(self.bindings[field]) == 0:
-                # Don't keep empty lists
-                del self.bindings[field]
-
 
     def update_bindings(self):
         """
@@ -368,9 +424,9 @@ class _StoredInstance:
                               self.name, field)
                 continue
 
-            # Find possible services
-            refs = bundle_context.get_all_service_references(\
-                                        requires.specification, requires.filter)
+            # Find possible services (specification test is already in filter
+            refs = bundle_context.get_all_service_references(None, \
+                                                             requires.filter)
 
             if not refs:
                 if not requires.optional:
@@ -383,50 +439,11 @@ class _StoredInstance:
 
             if requires.aggregate:
                 # Aggregation
-                if current_value is not None and \
-                not isinstance(current_value, list):
-                    # Injected field as the right type
-                    _logger.error("%s: field '%s' must be a list", \
-                                  self.name, field)
-
-                    all_bound = False
-                    continue
-
-                # Special case for a list : we must ignore already injected
-                # references
-                if field in self.bindings:
-                    refs = [reference for reference in refs \
-                            if reference not in self.bindings[field]]
-
-                if not refs:
-                    # Nothing to add, ignore this field
-                    continue
-
-                # Prepare the injected value
-                if current_value is not None:
-                    injected = current_value
-                else:
-                    injected = []
-
-                injected.extend([bundle_context.get_service(reference) \
-                                 for reference in refs])
-
-                # Set the field
-                setattr(component, field, injected)
-
-                # Add dependency marker
-                bindings = self.bindings.get(field, [])
-                bindings.extend(refs)
+                self.__set_multiple_binding(field, current_value, requires, refs)
 
             else:
-                # Normal field, get the first reference
-                reference = refs[0]
-
-                # Set the instance
-                setattr(component, field, bundle_context.get_service(reference))
-
-                # Add dependency marker (as a list)
-                self.bindings[field] = [reference]
+                # Normal field, bind the first reference
+                self.__set_binding(field, requires, refs[0])
 
         return all_bound
 
@@ -450,11 +467,18 @@ class _StoredInstance:
         
         @raise RuntimeError: You try to awake a dead component
         """
+        if self.state == _StoredInstance.VALID:
+            # No work to do
+            return
+        
         if self.state == _StoredInstance.KILLED:
             raise RuntimeError("%s: Zombies !" % self.context.name)
 
         bundle_context = self.context.get_bundle_context()
         provides = self.context.get_provides()
+        
+        # All good
+        self.state = _StoredInstance.VALID
 
         if not provides:
             # Nothing registered
@@ -464,10 +488,8 @@ class _StoredInstance:
             self.registration = bundle_context.register_service(\
                                                 self.context.get_provides(), \
                                                 self.instance, \
-                                                self.context.properties.copy())
-
-        # All good
-        self.state = _StoredInstance.VALID
+                                                self.context.properties.copy(), \
+                                                True)
 
 
     def service_changed(self, event):
@@ -483,7 +505,7 @@ class _StoredInstance:
         if kind == ServiceEvent.REGISTERED:
             # Maybe a new dependency...
             can_validate = (self.state != _StoredInstance.VALID)
-
+            
             for field, requires in self.context.get_requirements().items():
 
                 if reference in self.bindings.get(field, []):
@@ -509,7 +531,6 @@ class _StoredInstance:
                 # ... even a validating dependency
                 self.safe_callback(constants.IPOPO_CALLBACK_VALIDATE)
                 self.validate()
-
 
         elif kind == ServiceEvent.UNREGISTERING:
             # A dependency may be gone...
@@ -548,7 +569,8 @@ class _StoredInstance:
         elif kind == ServiceEvent.MODIFIED:
             # Modified service property
             invalidate = False
-
+            
+            to_remove = []
             for field, binding in self.bindings.items():
                 if reference in binding:
                     # We are using this dependency
@@ -571,9 +593,18 @@ class _StoredInstance:
 
                     # Remove the entry
                     self.__unset_binding(field, requirement, reference, service)
+                    
+                    to_remove.append((field, service))
 
                     # Free the reference to the service
                     bundle_context.unget_service(reference)
+            
+            # Finish the removal
+            for field, service in to_remove:
+                remove_all_occurrences(self.bindings[field], service)
+                if len(self.bindings[field]) == 0:
+                    # Don't keep empty lists
+                    del self.bindings[field]
 
             # Finish the invalidation
             if invalidate:
@@ -622,10 +653,10 @@ class Requirement:
 
         if isinstance(spec_filter, str) and len(spec_filter) > 0:
             # String given
-            ldap_filter = "(&%s%s)" % (ldap_filter, spec_filter)
+            ldap_filter = ldapfilter.combine_filters([ldap_filter, spec_filter])
 
         # Parse the filter
-        self.filter = ldapfilter.parse_LDAP(ldap_filter)
+        self.filter = ldapfilter.get_ldap_filter(ldap_filter)
 
 
     def matches(self, properties):

@@ -52,20 +52,19 @@ class IHello:
 
 @ComponentFactory(name=CONSUMER_FACTORY)
 @Property(field="name", name=IPOPO_INSTANCE_NAME)
-@Requires(field="service", specification=IHello, optional=False, spec_filter=("(To=Master)"))
+@Requires(field="service", specification=IHello, optional=False, spec_filter=("(To=World)"))
 class Test:
 
     def __init__(self):
         # Will be overridden by @Property
-        self.id = 12
+        self.name = "Me"
 
     @Validate
     def start(self):
         """
         Component starts
         """
-        print("!!! Component '%s' is started !!!" % self.name)
-        # Toto is injected by Requires, just before calling this method
+        print("VALIDATE: Component %s validated" % self.name)
 
 
     @Invalidate
@@ -73,17 +72,17 @@ class Test:
         """
         Component stops
         """
-        print("!!! Component '%s' is stopped !!!" % self.name)
+        print("INVALIDATE: Component %s invalidated" % self.name)
 
 
     @Bind
     def bind(self, svc):
-        # print(">>> Bound to", svc.getName())
+        print("BIND")
         svc.sayHello()
 
     @Unbind
     def unbind(self, svc):
-        # print("<<< Unbound of", svc.getName())
+        print("UNBIND")
         svc.sayBye()
 
 
@@ -137,7 +136,9 @@ instantiate(CONSUMER_FACTORY, "Consumer")
 import time
 time.sleep(1)
 
+print("---> Instantiation...")
 hello = instantiate(HELLO_IMPL_FACTORY, "HelloInstance", {"To": "Master"})
+print("---> Done")
 
 time.sleep(.5)
 
