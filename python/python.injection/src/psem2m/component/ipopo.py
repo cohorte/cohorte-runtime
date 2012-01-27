@@ -8,8 +8,9 @@ from psem2m import ldapfilter
 from psem2m.component import constants
 from psem2m.services import pelix
 from psem2m.services.pelix import BundleContext, ServiceEvent
-from psem2m.utilities import remove_all_occurrences
+from psem2m.utilities import remove_all_occurrences, SynchronizedClassMethod
 import logging
+import threading
 
 # ------------------------------------------------------------------------------
 
@@ -123,7 +124,7 @@ class _StoredInstance:
 
     # Try to reduce memory footprint (stored instances)
     __slot__ = ('bindings', 'context', 'factory', 'instance', 'name', \
-                'registration', 'state')
+                'registration', 'state', '_lock')
 
     INVALID = 0
     """ This component has been invalidated """
@@ -140,6 +141,9 @@ class _StoredInstance:
         Sets up the instance object
         """
         assert isinstance(context, ComponentContext)
+
+        # The lock
+        self._lock = threading.RLock()
 
         # Component context
         self.context = context
@@ -166,7 +170,7 @@ class _StoredInstance:
         self.context.get_bundle_context().add_service_listener(self)
 
 
-    def __repr(self):
+    def __repr__(self):
         """
         String representation
         """
@@ -180,6 +184,7 @@ class _StoredInstance:
         return "StoredInstance(%s, %d)" % (self.name, self.state)
 
 
+    @SynchronizedClassMethod('_lock')
     def callback(self, event, *args, **kwargs):
         """
         Calls the registered method in the component for the given event
@@ -197,6 +202,7 @@ class _StoredInstance:
         return comp_callback(self.instance, *args, **kwargs)
 
 
+    @SynchronizedClassMethod('_lock')
     def invalidate(self):
         """
         Does the post-invalidation job. Unregisters the provided service(s), if
@@ -214,6 +220,7 @@ class _StoredInstance:
             self.registration = None
 
 
+    @SynchronizedClassMethod('_lock')
     def kill(self):
         """
         This instance is killed : invalidate it if needed, clean up all members
@@ -229,6 +236,7 @@ class _StoredInstance:
         del self.instance
 
 
+    @SynchronizedClassMethod('_lock')
     def safe_callback(self, event, *args, **kwargs):
         """
         Calls the registered method in the component for the given event,
@@ -251,6 +259,7 @@ class _StoredInstance:
             return None
 
 
+    @SynchronizedClassMethod('_lock')
     def __set_binding(self, field, requirement, reference):
         """
         Injects the given service into the given field
@@ -299,6 +308,7 @@ class _StoredInstance:
         self.safe_callback(constants.IPOPO_CALLBACK_BIND, service)
 
 
+    @SynchronizedClassMethod('_lock')
     def __set_multiple_binding(self, field, current_value, requirement, \
                                references):
         """
@@ -315,12 +325,12 @@ class _StoredInstance:
             _logger.error("%s: field '%s' is not an aggregation", \
                           self.name, field)
             return
-        
+
         if not isinstance(references, list):
             # Bad references
             _logger.error("%s: Invalid references list type %s", \
                           self.name, type(references).__name__)
-        
+
         if current_value is not None and not isinstance(current_value, list):
             # Injected field as the right type
             _logger.error("%s: field '%s' must be a list", \
@@ -331,7 +341,7 @@ class _StoredInstance:
         # Special case for a list : we must ignore already injected
         # references
         if field in self.bindings:
-            refs = [reference for reference in refs \
+            refs = [reference for reference in references \
                     if reference not in self.bindings[field]]
 
         if not refs:
@@ -341,28 +351,30 @@ class _StoredInstance:
         # Prepare the injected value
         if current_value is not None:
             injected = current_value
-            
+
         else:
             injected = []
 
         # Compute the bound services
+        bundle_context = self.context.get_bundle_context()
         bound = [bundle_context.get_service(reference) for reference in refs]
 
         # Set the field
-        setattr(component, field, injected)
-        
+        setattr(self.instance, field, injected)
+
         # Add dependency marker
         bindings = self.bindings.get(field, [])
         bindings.extend(refs)
-        
+
         for service in bound:
             # Inject the service
             injected.append(service)
-            
+
             # Call Bind
             self.safe_callback(constants.IPOPO_CALLBACK_BIND, service)
 
 
+    @SynchronizedClassMethod('_lock')
     def __unset_binding(self, field, requirement, reference, service):
         """
         Remove the given service from the given field
@@ -399,6 +411,7 @@ class _StoredInstance:
             setattr(self.instance, field, None)
 
 
+    @SynchronizedClassMethod('_lock')
     def update_bindings(self):
         """
         Updates the bindings of the given component
@@ -447,7 +460,7 @@ class _StoredInstance:
 
         return all_bound
 
-
+    @SynchronizedClassMethod('_lock')
     def update_property(self, name, old_value, new_value):
         """
         Handles a property changed event
@@ -461,6 +474,7 @@ class _StoredInstance:
             self.registration.set_properties({name: new_value})
 
 
+    @SynchronizedClassMethod('_lock')
     def validate(self):
         """
         Ends the component validation, registering services
@@ -470,13 +484,13 @@ class _StoredInstance:
         if self.state == _StoredInstance.VALID:
             # No work to do
             return
-        
+
         if self.state == _StoredInstance.KILLED:
             raise RuntimeError("%s: Zombies !" % self.context.name)
 
         bundle_context = self.context.get_bundle_context()
         provides = self.context.get_provides()
-        
+
         # All good
         self.state = _StoredInstance.VALID
 
@@ -492,6 +506,7 @@ class _StoredInstance:
                                                 True)
 
 
+    @SynchronizedClassMethod('_lock')
     def service_changed(self, event):
         """
         Called by Pelix when some service properties changes
@@ -505,7 +520,7 @@ class _StoredInstance:
         if kind == ServiceEvent.REGISTERED:
             # Maybe a new dependency...
             can_validate = (self.state != _StoredInstance.VALID)
-            
+
             for field, requires in self.context.get_requirements().items():
 
                 if reference in self.bindings.get(field, []):
@@ -569,7 +584,7 @@ class _StoredInstance:
         elif kind == ServiceEvent.MODIFIED:
             # Modified service property
             invalidate = False
-            
+
             to_remove = []
             for field, binding in self.bindings.items():
                 if reference in binding:
@@ -593,12 +608,12 @@ class _StoredInstance:
 
                     # Remove the entry
                     self.__unset_binding(field, requirement, reference, service)
-                    
+
                     to_remove.append((field, service))
 
                     # Free the reference to the service
                     bundle_context.unget_service(reference)
-            
+
             # Finish the removal
             for field, service in to_remove:
                 remove_all_occurrences(self.bindings[field], service)
