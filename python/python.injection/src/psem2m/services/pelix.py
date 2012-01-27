@@ -12,6 +12,8 @@ import os
 import sys
 
 from psem2m import ldapfilter
+import threading
+from psem2m.utilities import SynchronizedClassMethod
 
 ACTIVATOR = "activator"
 
@@ -74,6 +76,9 @@ class Bundle:
         @param bundle_id: The bundle ID in the host framework
         @param module: A Python module object (the 'bundle')
         """
+        # A reentrant lock for synchronization
+        self._lock = threading.RLock()
+
         # Bundle
         self.__context = None
         self.__framework = framework
@@ -146,6 +151,8 @@ class Bundle:
     def set_context(self, context):
         """
         Sets the bundle context. Does nothing if a context has already been set.
+        This method is first called in the Framework::install_bundle() method
+        and then is ignored, so it doesn't need to be synchronized.
         
         @param context: The bundle context
         """
@@ -153,6 +160,7 @@ class Bundle:
             self.__context = context
 
 
+    @SynchronizedClassMethod('_lock')
     def start(self):
         """
         Starts the bundle
@@ -179,6 +187,7 @@ class Bundle:
         self.__fire_bundle_event(BundleEvent.STARTED)
 
 
+    @SynchronizedClassMethod('_lock')
     def stop(self):
         """
         Stops the bundle
@@ -205,6 +214,7 @@ class Bundle:
         self.__fire_bundle_event(BundleEvent.STOPPED)
 
 
+    @SynchronizedClassMethod('_lock')
     def store_registration(self, registration):
         """
         Stores a service reference
@@ -216,6 +226,7 @@ class Bundle:
             self.__registered_services.append(registration)
 
 
+    @SynchronizedClassMethod('_lock')
     def uninstall(self):
         """
         Uninstall the bundle
@@ -234,6 +245,7 @@ class Bundle:
         self.__framework.uninstall_bundle(self)
 
 
+    @SynchronizedClassMethod('_lock')
     def update(self):
         """
         Updates the bundle
@@ -248,6 +260,7 @@ class Bundle:
         self.start()
 
 
+    @SynchronizedClassMethod('_lock')
     def unuses_service(self, reference):
         """
         The bundle doesn't use the given service reference anymore
@@ -258,6 +271,7 @@ class Bundle:
             self.__imported_services.remove(reference)
 
 
+    @SynchronizedClassMethod('_lock')
     def uses_service(self, reference):
         """
         The bundle uses the given service reference
@@ -338,6 +352,7 @@ class Framework(Bundle):
         self.__registry = {}
 
 
+    @SynchronizedClassMethod('_lock')
     def add_bundle_listener(self, listener):
         """
         Registers a bundle listener
@@ -347,6 +362,7 @@ class Framework(Bundle):
         _add_listener(self.__bundle_listeners, listener)
 
 
+    @SynchronizedClassMethod('_lock')
     def add_service_listener(self, listener, ldap_filter=None):
         """
         Registers a service listener
@@ -367,6 +383,7 @@ class Framework(Bundle):
                 return
 
 
+    @SynchronizedClassMethod('_lock')
     def find_service_references(self, clazz=None, ldap_filter=None):
         """
         Finds all services references matching the given filter.
@@ -403,7 +420,7 @@ class Framework(Bundle):
 
         except ValueError as ex:
             raise BundleException(ex)
-        
+
         if new_filter is None:
             # Normalized filter is None : return everything
             return sorted(self.__registry.keys())
@@ -423,6 +440,7 @@ class Framework(Bundle):
         return result
 
 
+    @SynchronizedClassMethod('_lock')
     def fire_bundle_event(self, event):
         """
         Fires a Bundle event
@@ -440,6 +458,7 @@ class Framework(Bundle):
                                   "bundle listeners")
 
 
+    @SynchronizedClassMethod('_lock')
     def fire_service_event(self, event):
         """
         Fires a service event
@@ -487,6 +506,7 @@ class Framework(Bundle):
                                   "service listeners")
 
 
+    @SynchronizedClassMethod('_lock')
     def get_bundle_by_id(self, bundle_id):
         """
         Retrieves the bundle with the given ID
@@ -501,6 +521,7 @@ class Framework(Bundle):
         return self.__bundles[bundle_id]
 
 
+    @SynchronizedClassMethod('_lock')
     def get_bundle_by_name(self, bundle_name):
         """
         Retrieves the bundle with the given name
@@ -517,16 +538,18 @@ class Framework(Bundle):
         return None
 
 
+    @SynchronizedClassMethod('_lock')
     def get_bundles(self):
         """
         Returns a list of all installed bundles
         """
-        return self.__bundles.values()
+        return self.__bundles.values()[:]
 
 
     def get_property(self, name):
         """
-        Retrieves a framework or system property
+        Retrieves a framework or system property. As framework properties don't
+        change while it's running, this method don't need to be protected.
         
         @param name: The property name
         """
@@ -536,6 +559,7 @@ class Framework(Bundle):
         return os.getenv(name)
 
 
+    @SynchronizedClassMethod('_lock')
     def get_service(self, bundle, reference):
         """
         Retrieves the service corresponding to the given reference
@@ -575,6 +599,7 @@ class Framework(Bundle):
         return "org.psem2m.pelix"
 
 
+    @SynchronizedClassMethod('_lock')
     def install_bundle(self, location):
         """
         Installs the bundle from the given location
@@ -603,6 +628,7 @@ class Framework(Bundle):
         return bundle_id
 
 
+    @SynchronizedClassMethod('_lock')
     def register_service(self, bundle, clazz, service, properties, send_event):
         """
         Registers a service and calls the listeners
@@ -658,6 +684,7 @@ class Framework(Bundle):
         return registration
 
 
+    @SynchronizedClassMethod('_lock')
     def remove_bundle_listener(self, listener):
         """
         Unregisters a bundle listener
@@ -667,6 +694,7 @@ class Framework(Bundle):
         _remove_listener(self.__bundle_listeners, listener)
 
 
+    @SynchronizedClassMethod('_lock')
     def remove_service_listener(self, listener):
         """
         Unregisters a service listener
@@ -679,6 +707,7 @@ class Framework(Bundle):
             del self.__service_listeners_filters[listener]
 
 
+    @SynchronizedClassMethod('_lock')
     def start(self):
         """
         Starts the framework
@@ -690,6 +719,7 @@ class Framework(Bundle):
             bundle.start()
 
 
+    @SynchronizedClassMethod('_lock')
     def stop(self):
         """
         Stops the framework
@@ -724,6 +754,7 @@ class Framework(Bundle):
         raise BundleException("A framework can't be uninstalled")
 
 
+    @SynchronizedClassMethod('_lock')
     def uninstall_bundle(self, bundle):
         """
         Ends the uninstallation of the given bundle (must be called by Bundle)
@@ -756,6 +787,7 @@ class Framework(Bundle):
                 reference.unused_by(bundle)
 
 
+    @SynchronizedClassMethod('_lock')
     def unregister_service(self, reference):
         """
         Unregisters the given service
@@ -774,6 +806,7 @@ class Framework(Bundle):
         del self.__registry[reference]
 
 
+    @SynchronizedClassMethod('_lock')
     def update(self):
         """
         Stops and starts the framework
@@ -934,9 +967,10 @@ class BundleContext:
         """
         Disables a reference to the service
         """
-        # Lose the dependency
-        self.__bundle.unuses_service(reference)
-        reference.unused_by(self.__bundle)
+        with reference._lock:
+            # Lose the dependency
+            self.__bundle.unuses_service(reference)
+            reference.unused_by(self.__bundle)
 
 
 # ------------------------------------------------------------------------------
@@ -953,18 +987,19 @@ class ServiceReference:
         @param properties: The service properties
         @raise BundleException: The properties doesn't contain mandatory entries
         """
-        
+
         for mandatory in (SERVICE_ID, OBJECTCLASS):
             if mandatory not in properties:
-                raise BundleException( \
+                raise BundleException(\
                             "A Service must at least have a '%s' entry" \
                             % mandatory)
 
+        self._lock = threading.RLock()
         self.__bundle = bundle
         self.__properties = properties
         self.__using_bundles = []
-    
-    
+
+
     def __str__(self):
         """
         String representation
@@ -1066,6 +1101,7 @@ class ServiceReference:
         return self.__using_bundles
 
 
+    @SynchronizedClassMethod('_lock')
     def get_properties(self):
         """
         Retrieves a copy of the service properties
@@ -1073,6 +1109,7 @@ class ServiceReference:
         return self.__properties.copy()
 
 
+    @SynchronizedClassMethod('_lock')
     def get_property(self, name):
         """
         Retrieves the property value for the given name
@@ -1085,6 +1122,7 @@ class ServiceReference:
         return self.__properties[name]
 
 
+    @SynchronizedClassMethod('_lock')
     def get_property_keys(self):
         """
         Returns an array of the keys in the properties of the service
@@ -1094,6 +1132,7 @@ class ServiceReference:
         return self.__properties.keys()
 
 
+    @SynchronizedClassMethod('_lock')
     def unused_by(self, bundle):
         """
         Indicates that this reference is not being used anymore by the given 
@@ -1109,6 +1148,7 @@ class ServiceReference:
             self.__using_bundles.remove(bundle)
 
 
+    @SynchronizedClassMethod('_lock')
     def used_by(self, bundle):
         """
         Indicates that this reference is being used by the given bundle
@@ -1136,6 +1176,7 @@ class ServiceRegistration:
         @param reference: A service reference
         @param properties: A reference to the service properties dictionary
         """
+        self._lock = threading.RLock()
         self.__framework = framework
         self.__reference = reference
         self.__properties = properties
@@ -1148,6 +1189,7 @@ class ServiceRegistration:
         return self.__reference
 
 
+    @SynchronizedClassMethod('_lock')
     def set_properties(self, properties):
         """
         Updates the service properties
@@ -1170,7 +1212,7 @@ class ServiceRegistration:
             if self.__properties.get(key, None) == value:
                 # No update
                 to_delete.append(key)
-        
+
         for key in to_delete:
             del properties[key]
 
