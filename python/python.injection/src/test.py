@@ -5,7 +5,6 @@ from psem2m.component.constants import IPOPO_INSTANCE_NAME
 from psem2m.component.decorators import ComponentFactory, Property, Validate, \
     Invalidate, Provides, Requires, Bind, Unbind
 from psem2m.component.ipopo import instantiate, kill
-from psem2m.utilities import SynchronizedClassMethod
 
 import logging
 from psem2m.services import pelix
@@ -77,12 +76,12 @@ class Test:
 
     @Bind
     def bind(self, svc):
-        print("BIND")
+        print("BIND: %s gets a service" % self.name)
         svc.sayHello()
 
     @Unbind
     def unbind(self, svc):
-        print("UNBIND")
+        print("UNBIND: %s lost a service" % self.name)
         svc.sayBye()
 
 
@@ -94,8 +93,6 @@ class Test:
 
 # ------------------------------------------------------------------------------
 
-# import threading
-
 @ComponentFactory(name=HELLO_IMPL_FACTORY)
 @Provides(specifications=IHello)
 @Property(field="name", name=IPOPO_INSTANCE_NAME)
@@ -104,21 +101,33 @@ class Test:
 class HelloImpl:
 
     @Validate
-    def validate(self):
-        # self.lock = threading.RLock()
+    def start(self):
+        """
+        Component starts
+        """
         self._count = 0
+        print("VALIDATE: Component %s validated" % self.name)
+
+
+    @Invalidate
+    def stop(self):
+        """
+        Component stops
+        """
+        print("INVALIDATE: Component %s invalidated" % self.name)
 
 
     def getName(self):
         return self.name
 
-    # @SynchronizedClassMethod('lock')
+
     def sayHello(self):
         """
         Says hello
         """
         self._count += 1
-        print("Hello, %s ! (%d)" % (self._to, self._count))
+        print("CALL (%s) : Hello, %s ! (%d)" \
+              % (self.name, self._to, self._count))
 
 
     def sayBye(self):
@@ -126,7 +135,8 @@ class HelloImpl:
         Says bye
         """
         self._count -= 1
-        print("Good bye, %s ! (%d)" % (self._to, self._count))
+        print("CALL (%s) : Good bye, %s ! (%d)" \
+              % (self.name, self._to, self._count))
 
 # ------------------------------------------------------------------------------
 
@@ -134,16 +144,19 @@ print("-- Test --")
 
 instantiate(CONSUMER_FACTORY, "Consumer")
 import time
-time.sleep(1)
+time.sleep(.8)
 
 print("---> Instantiation...")
 hello = instantiate(HELLO_IMPL_FACTORY, "HelloInstance", {"To": "Master"})
 print("---> Done")
 
-time.sleep(.5)
+time.sleep(.8)
 
 print("--- PROPERTY   ---")
 hello._to = "World"
 
+time.sleep(.8)
+
 print("--- INVALIDATE ---")
 kill("HelloInstance")
+print("--- DONE ---")

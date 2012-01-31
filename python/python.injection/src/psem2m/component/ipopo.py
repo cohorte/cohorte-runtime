@@ -24,16 +24,177 @@ class _Registry:
     The iPOPO Component registry singleton
     """
     # Factories : Name -> Factory class
-    factories = {}
+    __factories = {}
+
+    # The factories registry lock
+    __factories_lock = threading.RLock()
 
     # All instances : Name -> _StoredInstance
-    instances = {}
+    __instances = {}
+
+    # The factories registry lock    
+    __instances_lock = threading.RLock()
+
 
     def __init__(self):
         """
         Constructor that **must never be called**
         """
         raise RuntimeError("The _Registry constructor must never be called")
+
+
+    # Static methods to work on the registry of factories (add/get/remove)
+    @classmethod
+    def get_factory(cls, factory_name):
+        """
+        Retrieves the factory with the given.
+        
+        @param factory_name: The name of the factory to retrieve
+        @raise ValueError: The factory is unknown
+        """
+        with cls.__factories_lock:
+
+            if factory_name not in cls.__factories:
+                raise ValueError("Unknown factory '%s'" % factory_name)
+
+            return cls.__factories[factory_name]
+
+
+    @classmethod
+    def register_factory(cls, factory_name, factory, override=True):
+        """
+        Registers a component factory
+        
+        @param factory_name: The name of the factory
+        @param factory: The factory class object
+        @param override: If true, previous factory is overridden, else an
+        exception is risen if a previous factory with that name already exists
+        @raise ValueError: The factory name already exists
+        """
+        with cls.__factories_lock:
+            if factory_name in cls.__factories:
+                if override:
+                    _logger.info("Overriding factory '%s'", factory_name)
+
+                else:
+                    raise ValueError("'%s' factory already exist" \
+                                     % factory_name)
+
+            cls.__factories[factory_name] = factory
+
+
+    @classmethod
+    def unregister_factory(cls, factory_name):
+        """
+        Unregisters the given component factory
+        
+        @param factory_name: Name of the factory to unregister
+        @return: True the factory has been removed, False if the factory is
+        unknown
+        """
+        if not factory_name:
+            # Empty name
+            return False
+
+        with cls.__factories_lock:
+            if factory_name not in cls.__factories:
+                # Unknown factory
+                return False
+
+            # Invalidate and delete all components of this factory
+            # FIXME: maybe lock the instances too
+            _unregistration_loop(factory_name)
+            del cls.__factories[factory_name]
+            return True
+
+
+    # Static methods to work on the registry of instances
+    @classmethod
+    def get_stored_instances_by_factory(cls, factory_name):
+        """
+        Retrieves the list of all stored instances of the given factory name
+        """
+        with cls.__instances_lock:
+            return [name \
+                    for (name, stored_instance) in cls.__instances.items() \
+                    if stored_instance.factory == factory_name]
+
+
+    @classmethod
+    def get_stored_instance(cls, component_instance):
+        """
+        Retrieves the _StoredInstance corresponding to the given component instance
+        
+        @param component_instance: A component instance
+        @return: The corresponding _StoredInstance object, None if not found
+        """
+        if component_instance is None:
+            # Invalid parameter
+            return None
+
+        with cls.__instances_lock:
+            for stored_instance in cls.__instances.values():
+                if stored_instance.instance is component_instance:
+                    return stored_instance
+
+        # Not found
+        return None
+
+
+    @classmethod
+    def is_registered_instance(cls, name):
+        """
+        Tests if the given name is registered in the instances registry
+        
+        @param name: A name to test
+        """
+        return name in cls.__instances
+
+
+    @classmethod
+    def pop_instance(cls, name):
+        """
+        Removes the instance with the given name from the registry and returns
+        its stored instance
+        
+        @param name: An instance name
+        @return: The popped instance
+        @raise ValueError: Invalid component name 
+        """
+        if not name:
+            raise ValueError("Empty component name")
+
+        with cls.__instances_lock:
+            if name not in cls.__instances:
+                raise ValueError("Unknown instance name '%s'" % name)
+
+            # Get the stored instance
+            stored_instance = cls.__instances[name]
+
+            # Remove it from lists
+            del cls.__instances[name]
+
+            # Return it
+            return stored_instance
+
+
+    @classmethod
+    def register_instance(cls, name, stored_instance):
+        """
+        Registers a component factory
+        
+        @param name: The name of the instance
+        @param stored_instance: The stored instance manager
+        @raise ValueError: The factory name already exists
+        """
+        with cls.__instances_lock:
+            if name in cls.__instances:
+                raise ValueError("'%s' instance already exist" % name)
+
+            cls.__instances[name] = stored_instance
+
+
+    # TODO: instantiate, invalidate and kill should be here 
 
 # ------------------------------------------------------------------------------
 
@@ -452,7 +613,8 @@ class _StoredInstance:
 
             if requires.aggregate:
                 # Aggregation
-                self.__set_multiple_binding(field, current_value, requires, refs)
+                self.__set_multiple_binding(field, current_value, requires, \
+                                            refs)
 
             else:
                 # Normal field, bind the first reference
@@ -707,12 +869,7 @@ def register_factory(factory_name, factory):
     if factory is None or not isinstance(factory, type):
         raise TypeError("The factory '%s' must be a type" % factory_name)
 
-
-    if factory_name in _Registry.factories:
-        _logger.warning("The factory %s has already been registered",
-                        factory_name)
-
-    _Registry.factories[factory_name] = factory
+    _Registry.register_factory(factory_name, factory, True)
     _logger.info("Factory '%s' registered", factory_name)
 
 
@@ -725,11 +882,11 @@ def unregister_factory(factory_name):
     if not factory_name:
         return
 
-    if factory_name in _Registry.factories:
-        # Invalidate and delete all components of this factory
-        _unregistration_loop(factory_name)
-        del _Registry.factories[factory_name]
+    if _Registry.unregister_factory(factory_name):
         _logger.info("Factory '%s' removed", factory_name)
+
+    else:
+        _logger.info("Unknown factory '%s' can't be removed", factory_name)
 
 # ------------------------------------------------------------------------------
 
@@ -741,23 +898,22 @@ def instantiate(factory_name, name, properties={}):
     @param name: Name of the instance to be started
     @return: The component instance
     @raise TypeError: The given factory is unknown
-    @raise ValueError: The given name or factory name is invalid
+    @raise ValueError: The given name or factory name is invalid, or an
+    instance with the given name already exists
     @raise Exception: Something wrong occurred in the factory
     """
     # Test parameters
     if not factory_name:
         raise ValueError("Invalid factory name")
 
-    if factory_name not in _Registry.factories:
-        raise TypeError("Unknown factory '%s'" % factory_name)
-
     if not name:
         raise ValueError("Invalid component name")
 
-    if name in _Registry.instances:
+    if _Registry.is_registered_instance(name):
         raise ValueError("'%s' is an already running instance name" % name)
 
-    factory = _Registry.factories[factory_name]
+    # Can raise a ValueError exception
+    factory = _Registry.get_factory(factory_name)
     if factory is None:
         raise TypeError("Null factory registered '%s'" % factory_name)
 
@@ -784,7 +940,7 @@ def instantiate(factory_name, name, properties={}):
     stored_instance = _StoredInstance(factory_name, component_context, instance)
 
     # Store the instance
-    _Registry.instances[name] = stored_instance
+    _Registry.register_instance(name, stored_instance)
 
     # Try to validate it
     if stored_instance.update_bindings():
@@ -808,7 +964,7 @@ def invalidate(name):
     @param name: Name of the component to invalidate
     @raise ValueError: Invalid component name
     """
-    stored_instance = __pop_instance(name)
+    stored_instance = _Registry.pop_instance(name)
 
     # Call the invalidate method (if any), ignoring errors
     stored_instance.safe_callback(constants.IPOPO_CALLBACK_INVALIDATE)
@@ -824,7 +980,7 @@ def kill(name):
     @param name: Name of the component to kill
     @raise ValueError: Invalid component name
     """
-    stored_instance = __pop_instance(name)
+    stored_instance = _Registry.pop_instance(name)
 
     # Call the invalidate method (if any), ignoring errors
     stored_instance.safe_callback(constants.IPOPO_CALLBACK_INVALIDATE)
@@ -832,51 +988,7 @@ def kill(name):
     # Kill it
     stored_instance.kill()
 
-
-def __pop_instance(name):
-    """
-    Retrieves the _StoredInstance object with the given name and removes it
-    from all lists
-    
-    @param name: Name of the component to pop
-    @return: The popped instance
-    @raise ValueError: Invalid component name 
-    """
-    if not name:
-        raise ValueError("Invalid component name")
-
-    if name not in _Registry.instances:
-        raise ValueError("Unknown instance name '%s'" % name)
-
-    # Get the stored instance
-    stored_instance = _Registry.instances[name]
-
-    # Remove it from lists
-    del _Registry.instances[name]
-
-    # Return it
-    return stored_instance
-
-# ------------------------------------------------------------------------------
-
-def get_stored_instance(component_instance):
-    """
-    Retrieves the _StoredInstance corresponding to the given component instance
-    
-    @param component_instance: A component instance
-    @return: The corresponding _StoredInstance object, None if not found
-    """
-    if component_instance is None:
-        # Invalid parameter
-        return None
-
-    for stored_instance in _Registry.instances.values():
-        if stored_instance.instance is component_instance:
-            return stored_instance
-
-    # Not found
-    return None
-
+# ------------------------------------------------------------------------------s
 
 def handle_property_changed(changed_component, name, old_value, new_value):
     """
@@ -888,7 +1000,7 @@ def handle_property_changed(changed_component, name, old_value, new_value):
     @param new_value: The new property value 
     """
     # Get a reference to the changed component
-    stored_instance = get_stored_instance(changed_component)
+    stored_instance = _Registry.get_stored_instance(changed_component)
 
     if not stored_instance:
         # Not of out business...
@@ -907,9 +1019,7 @@ def _unregistration_loop(factory_name):
     while the factory components are deleted 
     """
     # Compute the list of instances to remove
-    to_remove = [name \
-                 for (name, stored_instance) in _Registry.instances.items() \
-                 if stored_instance.factory == factory_name]
+    to_remove = _Registry.get_stored_instances_by_factory(factory_name)
 
     if not to_remove:
         # Nothing to do

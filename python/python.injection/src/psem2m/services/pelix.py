@@ -350,6 +350,7 @@ class Framework(Bundle):
 
         # ServiceReference -> service instance
         self.__registry = {}
+        self.__unregistering_services = {}
 
 
     @SynchronizedClassMethod('_lock')
@@ -576,16 +577,22 @@ class Framework(Bundle):
         if not isinstance(reference, ServiceReference):
             raise TypeError("A ServiceReference object must be given")
 
-        if reference not in self.__registry:
+        # Be sure to have the instance
+        if reference in self.__registry:
+            service = self.__registry[reference]
+
+            # Indicate the dependency
+            bundle.uses_service(reference)
+            reference.used_by(bundle)
+
+        elif reference in self.__unregistering_services:
+            # Unregistering service, just give it
+            return self.__unregistering_services[reference]
+
+        else:
+            # Not found
             raise BundleException("Service not found (reference: %s)" \
                                   % reference)
-
-        # Be sure to have the instance
-        service = self.__registry[reference]
-
-        # Indicate the dependency
-        bundle.uses_service(reference)
-        reference.used_by(bundle)
 
         return service
 
@@ -798,12 +805,18 @@ class Framework(Bundle):
         if reference not in self.__registry:
             raise BundleException("Invalid service reference")
 
-        # Call the listeners **first**
+        # Keep a track of the unregistering reference
+        self.__unregistering_services[reference] = self.__registry[reference]
+
+        # Remove it from the main registry
+        del self.__registry[reference]
+
+        # Call the listeners (blocking call)
         event = ServiceEvent(ServiceEvent.UNREGISTERING, reference)
         self.fire_service_event(event)
 
-        # Remove it from the registry
-        del self.__registry[reference]
+        # Remove the unregistering reference
+        del self.__unregistering_services[reference]
 
 
     @SynchronizedClassMethod('_lock')
