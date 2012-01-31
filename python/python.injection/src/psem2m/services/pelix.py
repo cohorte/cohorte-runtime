@@ -68,13 +68,12 @@ class Bundle:
     """ The bundle is now running """
 
 
-    def __init__(self, framework, bundle_id, module):
+    def __init__(self, framework, bundle_id, location):
         """
         Sets up the bundle descriptor
         
         @param framework: The host framework
         @param bundle_id: The bundle ID in the host framework
-        @param module: A Python module object (the 'bundle')
         """
         # A reentrant lock for synchronization
         self._lock = threading.RLock()
@@ -83,8 +82,9 @@ class Bundle:
         self.__context = None
         self.__framework = framework
         self.__id = bundle_id
-        self.__module = module
+        self.__module = None
         self.__state = Bundle.RESOLVED
+        self.__name = location
 
         # Services
         self.__registered_services = []
@@ -136,7 +136,7 @@ class Bundle:
         """
         Retrieves the bundle symbolic name
         """
-        return self.__module.__name__
+        return self.__name
 
 
     def get_version(self):
@@ -158,6 +158,17 @@ class Bundle:
         """
         if self.__context is None:
             self.__context = context
+
+
+    def set_module(self, module):
+        """
+        Sets the bundle module. Does nothing if a module has already been set.
+        
+        @param module: A Python module object (the 'bundle')
+        """
+        if self.__module is None:
+            self.__module = module
+            self.__name = module.__name__
 
 
     @SynchronizedClassMethod('_lock')
@@ -337,6 +348,9 @@ class Framework(Bundle):
 
         # bundle ID -> Bundle object
         self.__bundles = {}
+
+        # Currently registering bundle...
+        self.__registering_bundle = None
 
         # Listeners
         self.__bundle_listeners = []
@@ -530,6 +544,11 @@ class Framework(Bundle):
         @param name: Name of the bundle to look for
         @return: The requested bundle, None if not found
         """
+        if self.__registering_bundle is not None \
+        and bundle_name == self.__registering_bundle.get_symbolic_name():
+            # Request for the installing bundle...
+            return self.__registering_bundle
+
         for bundle in self.__bundles.values():
             if bundle_name == bundle.get_symbolic_name():
                 # Found !
@@ -544,7 +563,7 @@ class Framework(Bundle):
         """
         Returns a list of all installed bundles
         """
-        return self.__bundles.values()[:]
+        return list(self.__bundles.values())
 
 
     def get_property(self, name):
@@ -615,22 +634,37 @@ class Framework(Bundle):
         @return: The installed bundle ID
         @raise BundleException: Something happened
         """
+        # Compute the futue bundle ID
+        bundle_id = self.__next_bundle_id
+
+        # Prepare the bundle object and its context
+        bundle = Bundle(self, bundle_id, location)
+        bundle.set_context(BundleContext(self, bundle))
+
+        self.__registering_bundle = bundle
+
         # Load the module
         try:
             module = __import__(location)
+
         except ImportError as ex:
+            # Error importing the module
+            self.__registering_bundle = None
             raise BundleException(ex)
 
-        # Compute the bundle ID
-        bundle_id = self.__next_bundle_id
+        # The bundle is now registered
+        self.__registering_bundle = None
+
+        # Update the bundle ID counter
         self.__next_bundle_id += 1
 
-        # Prepare the bundle and its context
-        bundle = Bundle(self, bundle_id, module)
-        bundle.set_context(BundleContext(self, bundle))
+        # Set the bundle module
+        bundle.set_module(module)
 
         # Store the bundle
         self.__bundles[bundle_id] = bundle
+
+        print("Installed bundle %s - %d (%d)" % (bundle.get_symbolic_name(), bundle_id, len(self.__bundles)))
 
         return bundle_id
 
