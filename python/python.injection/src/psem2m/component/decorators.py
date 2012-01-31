@@ -37,7 +37,8 @@ def _get_factory_context(cls):
 
         bundle = framework.get_bundle_by_name(cls.__module__)
         if bundle is None:
-            raise RuntimeError("Not in a Pelix framework context")
+            raise RuntimeError("Not in a Pelix framework context (module %s)" \
+                               % cls.__module__)
 
         bundle_context = bundle.get_bundle_context()
         if bundle_context is None:
