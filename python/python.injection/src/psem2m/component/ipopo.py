@@ -502,10 +502,10 @@ class _StoredInstance:
         # Special case for a list : we must ignore already injected
         # references
         if field in self.bindings:
-            refs = [reference for reference in references \
-                    if reference not in self.bindings[field]]
+            references = [reference for reference in references \
+                          if reference not in self.bindings[field]]
 
-        if not refs:
+        if not references:
             # Nothing to add, ignore this field
             return
 
@@ -518,14 +518,15 @@ class _StoredInstance:
 
         # Compute the bound services
         bundle_context = self.context.get_bundle_context()
-        bound = [bundle_context.get_service(reference) for reference in refs]
+        bound = [bundle_context.get_service(reference) \
+                 for reference in references]
 
         # Set the field
         setattr(self.instance, field, injected)
 
         # Add dependency marker
         bindings = self.bindings.get(field, [])
-        bindings.extend(refs)
+        bindings.extend(references)
 
         for service in bound:
             # Inject the service
@@ -798,12 +799,12 @@ class Requirement:
     """
     Represents a component requirement
     """
-    def __init__(self, specification=None, aggregate=False, optional=False, \
+    def __init__(self, specifications=None, aggregate=False, optional=False, \
                  spec_filter=None):
         """
         Sets up the requirement
         
-        @param specification: The requirement specification (can't be None)
+        @param specifications: The requirement specification (can't be None)
         @param aggregate: If true, this requirement represents a list
         @param optional: If true, this requirement is optional
         @param spec_filter: A filter to select dependencies
@@ -811,22 +812,42 @@ class Requirement:
         @raise TypeError: A parameter has an invalid type
         @raise ValueError: An error occurred while parsing the filter
         """
-        if isinstance(specification, type):
-            specification = specification.__name__
-
-        if not specification:
+        if not specifications:
             raise TypeError("A specification must be given")
 
-        if not isinstance(specification, str):
-            raise TypeError("The requirement specification must be a string")
+        if isinstance(specifications, str):
+            # Convert specification into a list
+            specifications = [specifications]
+
+        if not isinstance(specifications, list):
+            raise TypeError("The requirement specification must be a string " \
+                            "or a list of string")
+
+        converted_specs = []
+        ldap_criteria = []
+        for spec in specifications:
+
+            if isinstance(spec, str):
+                spec_str = spec
+
+            elif isinstance(spec, type):
+                spec_str = spec.__name__
+
+            else:
+                raise TypeError("The requirement specification must be a " \
+                                "string or a list of string")
+
+            converted_specs.append(spec_str)
+            ldap_criteria.append("(%s=%s)" \
+                                 % (pelix.OBJECTCLASS, \
+                                    ldapfilter.escape_LDAP(spec)))
 
         self.aggregate = aggregate
         self.optional = optional
-        self.specification = specification
+        self.specification = converted_specs
 
         # Make the filter, escaping the specification name
-        ldap_filter = "(%s=%s)" % (pelix.OBJECTCLASS, \
-                                   ldapfilter.escape_LDAP(specification))
+        ldap_filter = "(|%s)" % "".join(ldap_criteria)
 
         if isinstance(spec_filter, str) and len(spec_filter) > 0:
             # String given
