@@ -386,15 +386,20 @@ class _StoredInstance:
         """
         This instance is killed : invalidate it if needed, clean up all members
         """
-        self.invalidate()
+        try:
+            self.invalidate()
+
+        except:
+            _logger.exception("%s: Error invalidating the instance", self.name)
+
 
         # Change the state
         self.state = _StoredInstance.KILLED
 
         # Clean up members
         self.bindings.clear()
-        del self.context
-        del self.instance
+        self.context = None
+        self.instance = None
 
 
     @SynchronizedClassMethod('_lock')
@@ -525,8 +530,15 @@ class _StoredInstance:
         setattr(self.instance, field, injected)
 
         # Add dependency marker
-        bindings = self.bindings.get(field, [])
-        bindings.extend(references)
+        bindings_value = self.bindings.get(field, None)
+
+        if bindings_value is not None:
+            # Extend the existing list
+            bindings_value.extend(references)
+
+        else:
+            # Add bindings, copying the list
+            self.bindings[field] = list(references)
 
         for service in bound:
             # Inject the service
@@ -743,7 +755,6 @@ class _StoredInstance:
                 self.safe_callback(constants.IPOPO_CALLBACK_VALIDATE)
                 self.validate()
 
-
         elif kind == ServiceEvent.MODIFIED:
             # Modified service property
             invalidate = False
@@ -815,13 +826,9 @@ class Requirement:
         if not specifications:
             raise TypeError("A specification must be given")
 
-        if isinstance(specifications, str):
+        if not isinstance(specifications, list):
             # Convert specification into a list
             specifications = [specifications]
-
-        if not isinstance(specifications, list):
-            raise TypeError("The requirement specification must be a string " \
-                            "or a list of string")
 
         converted_specs = []
         ldap_criteria = []
@@ -840,7 +847,7 @@ class Requirement:
             converted_specs.append(spec_str)
             ldap_criteria.append("(%s=%s)" \
                                  % (pelix.OBJECTCLASS, \
-                                    ldapfilter.escape_LDAP(spec)))
+                                    ldapfilter.escape_LDAP(spec_str)))
 
         self.aggregate = aggregate
         self.optional = optional
