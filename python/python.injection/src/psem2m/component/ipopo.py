@@ -7,7 +7,7 @@ Created on 26 janv. 2012
 from psem2m import ldapfilter
 from psem2m.component import constants
 from psem2m.services import pelix
-from psem2m.services.pelix import BundleContext, ServiceEvent
+from psem2m.services.pelix import BundleContext, ServiceEvent, BundleEvent
 from psem2m.utilities import remove_all_occurrences, SynchronizedClassMethod
 import logging
 import threading
@@ -327,8 +327,10 @@ class _StoredInstance:
         # Set the instance state
         self.state = _StoredInstance.INVALID
 
-        # Register to the service events
-        self.context.get_bundle_context().add_service_listener(self)
+        # Register to the events
+        bundle_context = self.context.get_bundle_context()
+        bundle_context.add_service_listener(self)
+        bundle_context.add_bundle_listener(self)
 
 
     def __repr__(self):
@@ -364,14 +366,21 @@ class _StoredInstance:
 
 
     @SynchronizedClassMethod('_lock')
-    def invalidate(self):
+    def invalidate(self, callback=True):
         """
         Does the post-invalidation job. Unregisters the provided service(s), if
         any
+        
+        @param callback: If True, call back the component before the 
+        invalidation
         """
         if self.state != _StoredInstance.VALID:
             # Instance is not running...
             return
+
+        # Call the component
+        if callback:
+            self.safe_callback(constants.IPOPO_CALLBACK_INVALIDATE)
 
         # Change the state
         self.state = _StoredInstance.INVALID
@@ -386,12 +395,24 @@ class _StoredInstance:
         """
         This instance is killed : invalidate it if needed, clean up all members
         """
+        # Already dead...
+        if self.state == _StoredInstance.KILLED:
+            return
+
+        # Unregister from service events
+        bundle_context = self.context.get_bundle_context()
+        bundle_context.remove_service_listener(self)
+        bundle_context.remove_bundle_listener(self)
+
         try:
-            self.invalidate()
+            self.invalidate(True)
 
         except:
             _logger.exception("%s: Error invalidating the instance", self.name)
 
+        # Clean up the registry
+        if _Registry.is_registered_instance(self.name):
+            _Registry.pop_instance(self.name)
 
         # Change the state
         self.state = _StoredInstance.KILLED
@@ -411,6 +432,10 @@ class _StoredInstance:
         @param event: An event (IPOPO_CALLBACK_VALIDATE, ...)
         @return: The callback result, or None
         """
+        if self.state == _StoredInstance.KILLED:
+            # Invalid state
+            return None
+
         callback = self.context.get_callback(event)
         if not callback:
             # No registered callback
@@ -682,6 +707,26 @@ class _StoredInstance:
 
 
     @SynchronizedClassMethod('_lock')
+    def bundle_changed(self, event):
+        """
+        Called by Pelix when a bundle state changed
+        
+        @param event: A BundleEvent object
+        """
+        bundle = event.get_bundle()
+        self_bundle = self.context.get_bundle_context().get_bundle()
+
+        if bundle is not self_bundle:
+            # Not of our business..
+            return
+
+        kind = event.get_kind()
+        if kind == BundleEvent.STOPPING:
+            # Bundle is stopping, we have to kill ourselves
+            self.kill()
+
+
+    @SynchronizedClassMethod('_lock')
     def service_changed(self, event):
         """
         Called by Pelix when some service properties changes
@@ -748,7 +793,7 @@ class _StoredInstance:
 
             # Finish the invalidation
             if invalidate:
-                self.invalidate()
+                self.invalidate(False)
 
             # Ask for a new chance...
             if self.update_bindings() and invalidate:
@@ -797,7 +842,8 @@ class _StoredInstance:
 
             # Finish the invalidation
             if invalidate:
-                self.invalidate()
+                # The call back method has already been called
+                self.invalidate(False)
 
             # Ask for a new chance...
             if self.update_bindings() and invalidate:
@@ -994,11 +1040,8 @@ def invalidate(name):
     """
     stored_instance = _Registry.pop_instance(name)
 
-    # Call the invalidate method (if any), ignoring errors
-    stored_instance.safe_callback(constants.IPOPO_CALLBACK_INVALIDATE)
-
     # Finish the invalidation (unregister services may trigger events)
-    stored_instance.invalidate()
+    stored_instance.invalidate(True)
 
 
 def kill(name):
