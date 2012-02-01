@@ -265,16 +265,22 @@ class Bundle:
         """
         Unregisters all bundle services
         """
-        # Remove all services
-        for registration in self.__registered_services:
+        # Copy the services list, as it will be modified during the process
+        registered_services = self.__registered_services[:]
+        for registration in registered_services:
             try:
+                _logger.info("Unregister service : %s", \
+                             registration.get_reference().get_properties())
                 registration.unregister()
 
             except:
                 _logger.exception("%s: Error unregistering service", \
                                   self.__name)
 
-        # Clear the dictionary
+        if len(self.__registered_services) != 0:
+            _logger.warning("Not all services have been unregistered...")
+
+        # Clear the list, just to be clean
         del self.__registered_services[:]
 
 
@@ -298,6 +304,9 @@ class Bundle:
         """
         Updates the bundle
         """
+        # Was it active ?
+        restart = self.__state == Bundle.ACTIVE
+
         # Stop the bundle
         self.stop()
 
@@ -305,7 +314,8 @@ class Bundle:
         imp.reload(self.__module)
 
         # Re-start the bundle
-        self.start()
+        if restart:
+            self.start()
 
 
     @SynchronizedClassMethod('_lock')
@@ -511,7 +521,10 @@ class Framework(Bundle):
         """
         assert isinstance(event, BundleEvent)
 
-        for listener in self.__bundle_listeners:
+        # Use a copy of the list, as a listener could be unregistered during 
+        # the loop 
+        listeners = self.__bundle_listeners[:]
+        for listener in listeners:
             try:
                 listener.bundle_changed(event)
 
@@ -541,7 +554,10 @@ class Framework(Bundle):
                                           event.get_service_reference(), \
                                           previous)
 
-        for listener in self.__service_listeners:
+        # Use a copy of the list, as a listener could be unregistered during 
+        # the loop
+        listeners = self.__service_listeners[:]
+        for listener in listeners:
 
             # Default event to send : the one we received
             sent_event = event
