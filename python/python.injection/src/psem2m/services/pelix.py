@@ -7,6 +7,7 @@ Pelix is a Python framework that aims to act as OSGi as much as possible
 """
 
 import imp
+import importlib
 import logging
 import os
 import sys
@@ -176,6 +177,10 @@ class Bundle:
         """
         Starts the bundle
         """
+        if self.__state == Bundle.ACTIVE:
+            # Already started bundle
+            return
+
         # Starting...
         self.__state = Bundle.STARTING
         self.__fire_bundle_event(BundleEvent.STARTING)
@@ -203,6 +208,10 @@ class Bundle:
         """
         Stops the bundle
         """
+        if self.__state != Bundle.ACTIVE:
+            # Invalid state
+            return
+
         # Stopping...
         self.__state = Bundle.STOPPING
         self.__fire_bundle_event(BundleEvent.STOPPING)
@@ -219,6 +228,9 @@ class Bundle:
             except Exception as ex:
                 _logger.exception("Error calling the activator")
                 raise BundleException(ex)
+
+        # Remove remaining services
+        self.__unregister_services()
 
         # Bundle is now stopped
         self.__state = Bundle.RESOLVED
@@ -238,16 +250,41 @@ class Bundle:
 
 
     @SynchronizedClassMethod('_lock')
+    def remove_registration(self, registration):
+        """
+        Removes a service reference from the local store
+        
+        @param registration: A service registration
+        """
+        if registration in self.__registered_services:
+            self.__registered_services.remove(registration)
+
+
+    @SynchronizedClassMethod('_lock')
+    def __unregister_services(self):
+        """
+        Unregisters all bundle services
+        """
+        # Remove all services
+        for registration in self.__registered_services:
+            try:
+                registration.unregister()
+
+            except:
+                _logger.exception("%s: Error unregistering service", \
+                                  self.__name)
+
+        # Clear the dictionary
+        del self.__registered_services[:]
+
+
+    @SynchronizedClassMethod('_lock')
     def uninstall(self):
         """
         Uninstall the bundle
         """
-        # Remove all services
-        for registration in self.__registered_services:
-            registration.unregister()
-
-        # Clear the dictionary
-        del self.__registered_services[:]
+        if self.__state == Bundle.ACTIVE:
+            self.stop()
 
         # Change the bundle state
         self.__state = Bundle.UNINSTALLED
@@ -373,8 +410,9 @@ class Framework(Bundle):
         Registers a bundle listener
         
         @param listener: The bundle listener
+        @return: True if the listener has been registered
         """
-        _add_listener(self.__bundle_listeners, listener)
+        return _add_listener(self.__bundle_listeners, listener)
 
 
     @SynchronizedClassMethod('_lock')
@@ -391,11 +429,15 @@ class Framework(Bundle):
                 self.__service_listeners_filters[listener] = \
                                     ldapfilter.get_ldap_filter(ldap_filter)
 
+                return True
+
             except ValueError:
                 # Invalid filter
                 _remove_listener(self.__service_listeners, listener)
                 _logger.exception("Invalid service listener filter")
-                return
+                return False
+
+        return False
 
 
     @SynchronizedClassMethod('_lock')
@@ -412,8 +454,13 @@ class Framework(Bundle):
             # Return a sorted copy of the keys list
             return sorted(self.__registry.keys())
 
-        # Escape the class name
-        clazz = ldapfilter.escape_LDAP(clazz)
+        if isinstance(clazz, type):
+            # Escape the type name
+            clazz = ldapfilter.escape_LDAP(clazz.__name__)
+
+        elif isinstance(clazz, str):
+            # Escape the class name
+            clazz = ldapfilter.escape_LDAP(clazz)
 
         if clazz is None:
             # Directly use the given filter
@@ -462,7 +509,7 @@ class Framework(Bundle):
         
         @param event: The sent event
         """
-        assert(isinstance(event, BundleEvent))
+        assert isinstance(event, BundleEvent)
 
         for listener in self.__bundle_listeners:
             try:
@@ -634,7 +681,7 @@ class Framework(Bundle):
         @return: The installed bundle ID
         @raise BundleException: Something happened
         """
-        # Compute the futue bundle ID
+        # Compute the bundle ID
         bundle_id = self.__next_bundle_id
 
         # Prepare the bundle object and its context
@@ -645,12 +692,17 @@ class Framework(Bundle):
 
         # Load the module
         try:
-            module = __import__(location)
+            # module = __import__(location) -> package level
+            # import_module -> Nested module
+            module = importlib.import_module(location)
 
         except ImportError as ex:
             # Error importing the module
             self.__registering_bundle = None
             raise BundleException(ex)
+
+        # Set the bundle module
+        bundle.set_module(module)
 
         # The bundle is now registered
         self.__registering_bundle = None
@@ -658,13 +710,12 @@ class Framework(Bundle):
         # Update the bundle ID counter
         self.__next_bundle_id += 1
 
-        # Set the bundle module
-        bundle.set_module(module)
-
         # Store the bundle
         self.__bundles[bundle_id] = bundle
 
-        print("Installed bundle %s - %d (%d)" % (bundle.get_symbolic_name(), bundle_id, len(self.__bundles)))
+        # Fire the bundle installed event
+        event = BundleEvent(BundleEvent.INSTALLED, bundle)
+        self.fire_bundle_event(event)
 
         return bundle_id
 
@@ -690,19 +741,30 @@ class Framework(Bundle):
 
         # Prepare the class specification
         if not isinstance(clazz, list):
-            if not isinstance(clazz, str):
-                # Invalid class name
-                raise BundleException("Invalid class name : %s" % clazz)
+            # Make a list from the single class
+            clazz = [clazz]
 
-            else:
-                # Make it a list
-                clazz = [clazz]
+        # Test the list content
+        object_class = []
+        for svc_clazz in clazz:
+
+            if isinstance(svc_clazz, type):
+                # Keep the type name
+                svc_clazz = svc_clazz.__name__
+
+            if not svc_clazz or not isinstance(svc_clazz, str):
+                # Invalid class name
+                raise BundleException("Invalid class name : %s" % svc_clazz)
+
+            # Class OK
+            object_class.append(svc_clazz)
+
 
         # Prepare properties
         service_id = self.__next_service_id
         self.__next_service_id += 1
 
-        properties[OBJECTCLASS] = clazz
+        properties[OBJECTCLASS] = object_class
         properties[SERVICE_ID] = service_id
 
         # Make the service reference
@@ -807,6 +869,9 @@ class Framework(Bundle):
             # Do nothing
             return
 
+        # Stop the bundle first
+        bundle.stop()
+
         bundle_id = bundle.get_bundle_id()
         if bundle_id not in self.__bundles:
             raise BundleException("Invalid bundle %s" % bundle)
@@ -817,25 +882,22 @@ class Framework(Bundle):
         # Remove it from the dictionary
         del self.__bundles[bundle_id]
 
-        # Clean up services from this bundle
-        for reference in self.__registry:
-            if reference.get_bundle() is bundle:
-                # Unregister this remaining service
-                self.unregister_service(reference)
-
-            elif bundle in reference.get_using_bundles():
-                # Bundle referenced this service, but not anymore
-                reference.unused_by(bundle)
+        # Remove it from the system => avoid unintended behaviors and forces
+        # a complete module reload if it is re-installed
+        del sys.modules[bundle.get_symbolic_name()]
 
 
     @SynchronizedClassMethod('_lock')
-    def unregister_service(self, reference):
+    def unregister_service(self, registration):
         """
         Unregisters the given service
         
-        @param reference: Reference to the service to unregister
+        @param reference: A ServiceRegistration to the service to unregister
         @raise BundleException: Invalid reference
         """
+        assert(isinstance(registration, ServiceRegistration))
+
+        reference = registration.get_reference()
         if reference not in self.__registry:
             raise BundleException("Invalid service reference")
 
@@ -848,6 +910,9 @@ class Framework(Bundle):
         # Call the listeners (blocking call)
         event = ServiceEvent(ServiceEvent.UNREGISTERING, reference)
         self.fire_service_event(event)
+
+        # Remove the registration from the parent bundle
+        reference.get_bundle().remove_registration(registration)
 
         # Remove the unregistering reference
         del self.__unregistering_services[reference]
@@ -881,15 +946,21 @@ class BundleContext:
     def add_bundle_listener(self, listener):
         """
         Registers a bundle listener
+        
+        @param listener: The listener to register
+        @return: True if the listener has been successfully registered
         """
-        self.__framework.add_bundle_listener(listener)
+        return self.__framework.add_bundle_listener(listener)
 
 
     def add_service_listener(self, listener):
         """
         Registers a service listener
+        
+        @param listener: The listener to register
+        @return: True if the listener has been successfully registered
         """
-        self.__framework.add_service_listener(listener)
+        return self.__framework.add_service_listener(listener)
 
 
     def get_all_service_references(self, clazz, ldap_filter):
@@ -941,16 +1012,17 @@ class BundleContext:
         return self.__framework.get_service(self.__bundle, reference)
 
 
-    def get_service_reference(self, clazz):
+    def get_service_reference(self, clazz, ldap_filter=None):
         """
         Returns a ServiceReference object for a service that implements and \
         was registered under the specified class
         
         @param clazz: The class name with which the service was registered.
+        @param ldap_filter: A filter on service properties
         @return: A service reference, None if not found
         """
-        refs = self.__framework.find_service_references(clazz, None)
-        if len(refs) != 0:
+        refs = self.__framework.find_service_references(clazz, ldap_filter)
+        if refs is not None and len(refs) > 0:
             return refs[0]
 
         return None
@@ -960,8 +1032,10 @@ class BundleContext:
         """
         Returns the service references for services that were registered under
         the specified class by this bundle and matching the given filter
+        
+        @param ldap_filter: A filter on service properties
         """
-        refs = self.__framework.find_service_references(clazz, None)
+        refs = self.__framework.find_service_references(clazz, ldap_filter)
         for ref in refs:
             if ref.get_bundle() is not self.__bundle:
                 refs.remove(ref)
@@ -1281,7 +1355,7 @@ class ServiceRegistration:
         """
         Unregisters the service
         """
-        self.__framework.unregister_service(self.__reference)
+        self.__framework.unregister_service(self)
 
 # ------------------------------------------------------------------------------
 
@@ -1292,9 +1366,6 @@ class BundleEvent:
 
     INSTALLED = 1
     """The bundle has been installed."""
-
-    RESOLVED = 32
-    """The bundle has been resolved."""
 
     STARTED = 2
     """The bundle has been started."""
@@ -1310,9 +1381,6 @@ class BundleEvent:
 
     UNINSTALLED = 16
     """The bundle has been uninstalled."""
-
-    UNRESOLVED = 64
-    """The bundle has been unresolved."""
 
     UPDATED = 8
     """The bundle has been updated."""
@@ -1420,18 +1488,39 @@ class FrameworkFactory:
     __singleton = None
     """ The framework singleton """
 
-    @staticmethod
-    def get_framework(properties={}):
+    @classmethod
+    def get_framework(cls, properties={}):
         """
         If it doesn't exist yet, creates a framework with the given properties,
         else returns the current framework instance.
         
         @return: A Pelix instance
         """
-        if FrameworkFactory.__singleton is None:
-            FrameworkFactory.__singleton = Framework(properties)
+        if cls.__singleton is None:
+            cls.__singleton = Framework(properties)
 
-        return FrameworkFactory.__singleton
+        return cls.__singleton
+
+
+    @classmethod
+    def delete_framework(cls, framework):
+        """
+        Removes the framework singleton
+        
+        @return: True on success, else False
+        """
+        if cls.__singleton is framework:
+
+            try:
+                framework.stop()
+
+            except:
+                _logger.exception("Error stopping the framework")
+
+            cls.__singleton = None
+            return True
+
+        return False
 
 if __name__ == "__main__":
     FrameworkFactory.get_framework()
