@@ -13,6 +13,7 @@ __version__ = (1, 0, 0)
 registered = False
 unregistered = False
 service = None
+unregister = True
 
 class ServiceTest(IEchoService):
     """
@@ -31,6 +32,13 @@ class ServiceTest(IEchoService):
         Returns the given value
         """
         return value
+
+
+    def modify(self, new_props):
+        """
+        Changes the service properties
+        """
+        self.registration.set_properties(new_props)
 
 
 class ActivatorService:
@@ -55,9 +63,9 @@ class ActivatorService:
 
         # Register the service
         self.svc = ServiceTest()
-        self.svc.registration = context.register_service(IEchoService, \
-                                                         self.svc, \
-                                                         {"test": True})
+        self.svc.registration = \
+                context.register_service(IEchoService, self.svc, \
+                                         {"test": True, "answer": 0})
 
         global service
         service = self.svc
@@ -68,7 +76,10 @@ class ActivatorService:
         Bundle stopped
         """
         assert isinstance(context, BundleContext)
-        self.svc.registration.unregister()
+
+        if unregister:
+            # To test auto-unregistration...
+            self.svc.registration.unregister()
 
 
 

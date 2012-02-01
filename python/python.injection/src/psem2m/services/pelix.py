@@ -953,14 +953,15 @@ class BundleContext:
         return self.__framework.add_bundle_listener(listener)
 
 
-    def add_service_listener(self, listener):
+    def add_service_listener(self, listener, ldap_filter=None):
         """
         Registers a service listener
         
         @param listener: The listener to register
+        @param ldap_filter: An LDAP filter on the service properties
         @return: True if the listener has been successfully registered
         """
-        return self.__framework.add_service_listener(listener)
+        return self.__framework.add_service_listener(listener, ldap_filter)
 
 
     def get_all_service_references(self, clazz, ldap_filter):

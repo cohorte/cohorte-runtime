@@ -7,17 +7,18 @@ Created on 1 févr. 2012
 """
 
 from psem2m.services.pelix import FrameworkFactory, Bundle, BundleException, \
-    BundleContext, BundleEvent
+    BundleContext, BundleEvent, ServiceEvent
 from tests.interfaces import IEchoService
 import logging
 import unittest
 
 # ------------------------------------------------------------------------------
 
+__version__ = (1, 0, 0)
+
 # Set logging level
 logging.basicConfig(level=logging.DEBUG)
 
-__version__ = (1, 0, 0)
 # ------------------------------------------------------------------------------
 
 def get_module(bundle):
@@ -213,6 +214,26 @@ class BundleEventTest(unittest.TestCase):
         del self.received[:]
 
 
+    def bundle_changed(self, event):
+        """
+        Called by the framework when a bundle event is triggered
+        
+        @param event: The BundleEvent
+        """
+        assert isinstance(event, BundleEvent)
+
+        bundle = event.get_bundle()
+        kind = event.get_kind()
+        if self.bundle is not None \
+        and kind == BundleEvent.INSTALLED:
+            # Bundle is not yet locally known...
+            self.assertIs(self.bundle, bundle, \
+                          "Received an event for an other bundle.")
+
+        self.assertNotIn(kind, self.received, "Event received twice")
+        self.received.append(kind)
+
+
     def testBundleEvents(self):
         """
         Tests if the signals are correctly received
@@ -247,7 +268,6 @@ class BundleEventTest(unittest.TestCase):
                           self.received, "Received %s" % self.received)
         self.reset_state()
 
-
         # Uninstall the bundle
         bundle.uninstall()
         # Assert the events have been received
@@ -255,32 +275,8 @@ class BundleEventTest(unittest.TestCase):
                           self.received, "Received %s" % self.received)
         self.reset_state()
 
-
         # Unregister from events
         context.remove_bundle_listener(self)
-
-
-    def bundle_changed(self, event):
-        """
-        Called by the framework when a bundle event is triggered
-        
-        @param event: The BundleEvent
-        """
-        assert isinstance(event, BundleEvent)
-
-        bundle = event.get_bundle()
-        kind = event.get_kind()
-        if self.bundle is not None \
-        and kind == BundleEvent.INSTALLED:
-            # Bundle is not yet locally known...
-            self.assertIs(self.bundle, bundle, \
-                          "Received an event for an other bundle.")
-
-        self.assertNotIn(kind, self.received, "Event received twice")
-        self.received.append(kind)
-
-
-
 
 # ------------------------------------------------------------------------------
 
@@ -385,7 +381,8 @@ class ServicesTest(unittest.TestCase):
         self.assertIsNone(refs, "get_all_service_reference found : %s" % refs)
 
         refs = context.get_all_service_references(IEchoService, svc_filter)
-        self.assertIsNone(refs, "get_all_service_reference, filtered found : %s" \
+        self.assertIsNone(refs, \
+                          "get_all_service_reference, filtered found : %s" \
                           % refs)
 
         # --- Start it (registers a service) ---
@@ -404,14 +401,16 @@ class ServicesTest(unittest.TestCase):
 
         refs = context.get_all_service_references(IEchoService, None)
         # Assert we found only one reference
-        self.assertIsNotNone(refs, "get_all_service_reference filtered found nothing")
+        self.assertIsNotNone(refs, "get_all_service_reference found nothing")
 
         refs = context.get_all_service_references(IEchoService, svc_filter)
         # Assert we found only one reference
-        self.assertIsNotNone(refs, "get_all_service_reference filtered, filtered found nothing")
+        self.assertIsNotNone(refs, \
+                             "get_all_service_reference filtered found nothing")
 
         # Assert that the first found reference is the first of "all" references
-        self.assertIs(ref1, refs[0], "Not the same references through get and get_all")
+        self.assertIs(ref1, refs[0], \
+                      "Not the same references through get and get_all")
 
         # Get the service
         svc = context.get_service(ref1)
@@ -435,7 +434,8 @@ class ServicesTest(unittest.TestCase):
         self.assertIsNone(refs, "get_all_service_reference found : %s" % refs)
 
         refs = context.get_all_service_references(IEchoService, svc_filter)
-        self.assertIsNone(refs, "get_all_service_reference, filtered found : %s" \
+        self.assertIsNone(refs, \
+                          "get_all_service_reference, filtered found : %s" \
                           % refs)
 
         # --- Uninstall it ---
@@ -470,6 +470,215 @@ class ServicesTest(unittest.TestCase):
         # The service should be deleted
         ref = context.get_service_reference(IEchoService)
         self.assertIsNone(ref, "get_service_reference found : %s" % ref)
+
+# ------------------------------------------------------------------------------
+
+class ServiceEventTest(unittest.TestCase):
+    """
+    Pelix bundle event tests
+    """
+
+    def setUp(self):
+        """
+        Called before each test. Initiates a framework.
+        """
+        self.framework = FrameworkFactory.get_framework()
+        self.test_bundle_name = "tests.service_bundle"
+
+        self.bundle = None
+        self.received = []
+
+
+    def tearDown(self):
+        """
+        Called after each test
+        """
+        self.framework.stop()
+        FrameworkFactory.delete_framework(self.framework)
+
+
+    def reset_state(self):
+        """
+        Resets the flags
+        """
+        del self.received[:]
+
+
+    def service_changed(self, event):
+        """
+        Called by the framework when a service event is triggered
+        
+        @param event: The ServiceEvent
+        """
+        assert isinstance(event, ServiceEvent)
+
+        ref = event.get_service_reference()
+        self.assertIsNotNone(ref, "Invalid service reference in the event")
+
+        kind = event.get_type()
+
+        if kind == ServiceEvent.MODIFIED \
+        or kind == ServiceEvent.MODIFIED_ENDMATCH:
+            # Properties have been modified
+            self.assertNotEquals(ref.get_properties(), \
+                                 event.get_previous_properties(), \
+                                 "Modified event for unchanged properties")
+
+        self.assertNotIn(kind, self.received, "Event received twice")
+        self.received.append(kind)
+
+
+    def testServiceEventsNormal(self):
+        """
+        Tests if the signals are correctly received
+        """
+        context = self.framework.get_bundle_context()
+        assert isinstance(context, BundleContext)
+
+        # Register to events
+        self.assertTrue(context.add_service_listener(self), \
+                        "Can't register the service listener")
+
+        # Install the bundle
+        bid = context.install_bundle(self.test_bundle_name)
+        self.bundle = bundle = context.get_bundle(bid)
+        assert isinstance(bundle, Bundle)
+        # Assert the Install events has been received
+        self.assertEqual([], self.received, "Received %s" % self.received)
+        self.reset_state()
+
+        # Start the bundle
+        bundle.start()
+        # Assert the events have been received
+        self.assertEqual([ServiceEvent.REGISTERED], \
+                          self.received, "Received %s" % self.received)
+        self.reset_state()
+
+        # Stop the bundle
+        bundle.stop()
+        # Assert the events have been received
+        self.assertEqual([ServiceEvent.UNREGISTERING], \
+                          self.received, "Received %s" % self.received)
+        self.reset_state()
+
+        # Uninstall the bundle
+        bundle.uninstall()
+        # Assert the events have been received
+        self.assertEqual([], self.received, "Received %s" % self.received)
+        self.reset_state()
+
+        # Unregister from events
+        context.remove_service_listener(self)
+
+
+    def testServiceEventsNoStop(self):
+        """
+        Tests if the signals are correctly received, even if the service is not
+        correctly removed
+        """
+        context = self.framework.get_bundle_context()
+        assert isinstance(context, BundleContext)
+
+        # Register to events
+        self.assertTrue(context.add_service_listener(self), \
+                        "Can't register the service listener")
+
+        # Install the bundle
+        bid = context.install_bundle(self.test_bundle_name)
+        self.bundle = bundle = context.get_bundle(bid)
+        assert isinstance(bundle, Bundle)
+        # Assert the Install events has been received
+        self.assertEqual([], self.received, "Received %s" % self.received)
+        self.reset_state()
+
+        # Start the bundle
+        bundle.start()
+        # Assert the events have been received
+        self.assertEqual([ServiceEvent.REGISTERED], \
+                          self.received, "Received %s" % self.received)
+        self.reset_state()
+
+        # Uninstall the bundle, without unregistering the service
+        module = get_module(bundle)
+        module.unregister = False
+        bundle.uninstall()
+
+        # Assert the events have been received
+        self.assertEqual([ServiceEvent.UNREGISTERING], \
+                          self.received, "Received %s" % self.received)
+        self.reset_state()
+
+        # Unregister from events
+        context.remove_service_listener(self)
+
+
+    def testServiceModified(self):
+        """
+        Tests the service modified event
+        """
+        context = self.framework.get_bundle_context()
+        assert isinstance(context, BundleContext)
+
+        # Register to events
+        self.assertTrue(context.add_service_listener(self, "(test=True)"), \
+                        "Can't register the service listener")
+
+        # Install the bundle
+        bid = context.install_bundle(self.test_bundle_name)
+        self.bundle = bundle = context.get_bundle(bid)
+        assert isinstance(bundle, Bundle)
+
+        # Start the bundle
+        bundle.start()
+        # Assert the events have been received
+        self.assertEqual([ServiceEvent.REGISTERED], \
+                          self.received, "Received %s" % self.received)
+        self.reset_state()
+
+        # Get the service
+        ref = context.get_service_reference(IEchoService)
+        self.assertIsNotNone(ref, "ServiceReference not found")
+
+        svc = context.get_service(ref)
+        self.assertIsNotNone(ref, "Invalid service instance")
+
+        # Modify the service => Simple modification
+        svc.modify({"answer": 42})
+        self.assertEqual([ServiceEvent.MODIFIED], \
+                          self.received, "Received %s" % self.received)
+        self.reset_state()
+
+        # Set the same value => No event should be sent
+        svc.modify({"answer": 42})
+        self.assertEqual([], self.received, "Received %s" % self.received)
+        self.reset_state()
+
+        # Modify the service => Ends the filter match
+        svc.modify({"test": False})
+        # Assert the events have been received
+        self.assertEqual([ServiceEvent.MODIFIED_ENDMATCH], \
+                          self.received, "Received %s" % self.received)
+        self.reset_state()
+
+        # Modify the service => the filter matches again
+        svc.modify({"test": True})
+        # Assert the events have been received
+        self.assertEqual([ServiceEvent.MODIFIED], \
+                          self.received, "Received %s" % self.received)
+        self.reset_state()
+
+        # Stop the bundle
+        bundle.stop()
+        # Assert the events have been received
+        self.assertEqual([ServiceEvent.UNREGISTERING], \
+                          self.received, "Received %s" % self.received)
+        self.reset_state()
+
+        # Uninstall the bundle
+        bundle.uninstall()
+
+        # Unregister from events
+        context.remove_service_listener(self)
 
 # ------------------------------------------------------------------------------
 
