@@ -126,6 +126,13 @@ class Bundle:
         return getattr(self.__module, '__file__', "")
 
 
+    def get_module(self):
+        """
+        Retrieves the bundle module
+        """
+        return self.__module
+
+
     def get_state(self):
         """
         Retrieves the bundle state
@@ -269,8 +276,6 @@ class Bundle:
         registered_services = self.__registered_services[:]
         for registration in registered_services:
             try:
-                _logger.info("Unregister service : %s", \
-                             registration.get_reference().get_properties())
                 registration.unregister()
 
             except:
@@ -710,7 +715,17 @@ class Framework(Bundle):
         try:
             # module = __import__(location) -> package level
             # import_module -> Nested module
-            module = importlib.import_module(location)
+
+            # Special case : __main__ module
+            if location == "__main__":
+                try:
+                    module = sys.modules[location]
+
+                except KeyError:
+                    raise BundleException("Error reloading the __main__ module")
+
+            else:
+                module = importlib.import_module(location)
 
         except ImportError as ex:
             # Error importing the module
@@ -1533,6 +1548,15 @@ class FrameworkFactory:
 
             except:
                 _logger.exception("Error stopping the framework")
+
+
+            bundles = framework.get_bundles()
+            for bundle in bundles:
+                try:
+                    bundle.uninstall()
+                except:
+                    _logger.exception("Error uninstalling bundle %s", \
+                                      bundle.get_symbolic_name())
 
             cls.__singleton = None
             return True
