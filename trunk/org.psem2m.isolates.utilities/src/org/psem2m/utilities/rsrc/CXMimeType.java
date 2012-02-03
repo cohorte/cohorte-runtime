@@ -169,7 +169,7 @@ public class CXMimeType {
     private static HashMap<String, CXMimeType> sMimeTypes = new HashMap<String, CXMimeType>(
             200);
 
-    private static boolean sTest = true;
+    private static boolean sTest = false;
     // LOADING
     static {
         try {
