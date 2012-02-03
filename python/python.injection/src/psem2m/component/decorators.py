@@ -61,7 +61,12 @@ def _ipopo_setup_callback(cls, context):
     assert isinstance(cls, type)
     assert isinstance(context, FactoryContext)
 
-    callbacks = {}
+    if context.callbacks is not None:
+        callbacks = context.callbacks.copy()
+
+    else:
+        callbacks = {}
+
     functions = inspect.getmembers(cls, inspect.isfunction)
 
     for name, function in functions:
@@ -78,8 +83,10 @@ def _ipopo_setup_callback(cls, context):
                             constants.IPOPO_METHOD_CALLBACKS, name)
             continue
 
-        # Maybe remove the attribute of the function ?
-        delattr(function, constants.IPOPO_METHOD_CALLBACKS)
+        # FIXME: Maybe remove the attribute of the function ?
+        # Keeping it allows inheritance : by removing it, only the first
+        # child will see the attribute
+        # delattr(function, constants.IPOPO_METHOD_CALLBACKS)
 
         # Store the callbacks
         for _callback in method_callbacks:
