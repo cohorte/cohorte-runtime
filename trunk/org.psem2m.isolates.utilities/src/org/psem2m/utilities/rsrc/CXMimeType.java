@@ -183,9 +183,13 @@ public class CXMimeType {
                     log("ResourceId=[%s]", wResourceId);
                 }
 
+                ClassLoader wClassLoader = getCallerClassLoader(CXMimeType.class);
+                if (sTest) {
+                    log("wClassLoader=[%s]", wClassLoader.toString());
+                }
+
                 ResourceBundle wBndl = ResourceBundle.getBundle(wResourceId,
-                        Locale.getDefault(),
-                        getCallerClassLoader(CXMimeType.class));
+                        Locale.getDefault(), wClassLoader);
 
                 if (sTest) {
                     log("ResourceBundleLoaded=[%b]", (wBndl != null));
