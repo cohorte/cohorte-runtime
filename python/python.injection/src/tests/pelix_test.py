@@ -342,9 +342,6 @@ class ServicesTest(unittest.TestCase):
         fw_context = self.framework.get_bundle_context()
         assert isinstance(fw_context, BundleContext)
 
-        # Install local bundle in framework (for service installation & co)
-        fw_context.install_bundle(__name__)
-
 
     def tearDown(self):
         """
