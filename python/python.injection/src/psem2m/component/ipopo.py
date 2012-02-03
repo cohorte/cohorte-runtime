@@ -152,6 +152,28 @@ class _Registry:
 
 
     @classmethod
+    def get_instance(cls, name):
+        """
+        Retrieves the stored instance with the given name from the registry
+        
+        @param name: An instance name
+        @return: The stored instance
+        @raise ValueError: Invalid component name 
+        """
+        assert isinstance(name, str)
+
+        if not name:
+            raise ValueError("Empty component name")
+
+        with cls.__instances_lock:
+            if name not in cls.__instances:
+                raise ValueError("Unknown instance name '%s'" % name)
+
+            # Get the stored instance
+            return cls.__instances[name]
+
+
+    @classmethod
     def pop_instance(cls, name):
         """
         Removes the instance with the given name from the registry and returns
@@ -161,6 +183,8 @@ class _Registry:
         @return: The popped instance
         @raise ValueError: Invalid component name 
         """
+        assert isinstance(name, str)
+
         if not name:
             raise ValueError("Empty component name")
 
@@ -195,6 +219,43 @@ class _Registry:
 
 
     # TODO: instantiate, invalidate and kill should be here 
+
+# ------------------------------------------------------------------------------
+
+class IPopoEvent:
+    """
+    An event object for iPOPO
+    """
+
+    REGISTERED = 1
+    """ A component factory has been registered """
+
+    INSTANTIATED = 2
+    """ A component has been instantiated, but not yet validated """
+
+    VALIDATED = 3
+    """ A component has been validated """
+
+    INVALIDATED = 4
+    """ A component has been invalidated """
+
+    BOUND = 5
+    """ A reference has been injected in the component """
+
+    UNBOUND = 6
+    """ A reference has been removed from the component """
+
+    UNREGISTERED = 10
+    """ A component factory has been unregistered """
+
+    def __init__(self, stored_instance):
+        """
+        Sets up the iPOPO event
+        """
+        assert isinstance(stored_instance, _StoredInstance)
+
+        self.context = stored_instance.context
+        self.component = self.context.component
 
 # ------------------------------------------------------------------------------
 
@@ -380,7 +441,8 @@ class _StoredInstance:
 
         # Call the component
         if callback:
-            self.safe_callback(constants.IPOPO_CALLBACK_INVALIDATE)
+            self.safe_callback(constants.IPOPO_CALLBACK_INVALIDATE, \
+                               self.context.get_bundle_context())
 
         # Change the state
         self.state = _StoredInstance.INVALID
@@ -414,6 +476,23 @@ class _StoredInstance:
         if _Registry.is_registered_instance(self.name):
             _Registry.pop_instance(self.name)
 
+        # Unbind all references
+        for field, requirement in self.context.get_requirements().items():
+
+            field_value = getattr(self.instance, field, None)
+            if field_value is None:
+                # Ignore unbound fields
+                continue
+
+            if not requirement.aggregate:
+                # Simple case : only one binding
+                self.__unset_binding(field, requirement, field_value)
+
+            else:
+                # Multiple bindings
+                for service in field_value:
+                    self.__unset_binding(field, requirement, service)
+
         # Change the state
         self.state = _StoredInstance.KILLED
 
@@ -434,11 +513,6 @@ class _StoredInstance:
         """
         if self.state == _StoredInstance.KILLED:
             # Invalid state
-            return None
-
-        callback = self.context.get_callback(event)
-        if not callback:
-            # No registered callback
             return None
 
         try:
@@ -574,13 +648,12 @@ class _StoredInstance:
 
 
     @SynchronizedClassMethod('_lock')
-    def __unset_binding(self, field, requirement, reference, service):
+    def __unset_binding(self, field, requirement, service):
         """
         Remove the given service from the given field
         
         @param field: The field where the service is injected
         @param requirement: The field requirement description
-        @param reference: The injected service reference
         @param service: The injected service instance
         """
         current_value = getattr(self.instance, field, None)
@@ -764,7 +837,8 @@ class _StoredInstance:
 
             if can_validate:
                 # ... even a validating dependency
-                self.safe_callback(constants.IPOPO_CALLBACK_VALIDATE)
+                self.safe_callback(constants.IPOPO_CALLBACK_VALIDATE, \
+                                   self.context.get_bundle_context())
                 self.validate()
 
         elif kind == ServiceEvent.UNREGISTERING:
@@ -783,10 +857,11 @@ class _StoredInstance:
                             # Last reference for a required field : invalidate
                             invalidate = True
                             self.safe_callback(\
-                                        constants.IPOPO_CALLBACK_INVALIDATE)
+                                        constants.IPOPO_CALLBACK_INVALIDATE, \
+                                        self.context.get_bundle_context())
 
                     # Remove the entry
-                    self.__unset_binding(field, requirement, reference, service)
+                    self.__unset_binding(field, requirement, service)
 
                     # Free the reference to the service
                     bundle_context.unget_service(reference)
@@ -797,7 +872,8 @@ class _StoredInstance:
 
             # Ask for a new chance...
             if self.update_bindings() and invalidate:
-                self.safe_callback(constants.IPOPO_CALLBACK_VALIDATE)
+                self.safe_callback(constants.IPOPO_CALLBACK_VALIDATE, \
+                                   self.context.get_bundle_context())
                 self.validate()
 
         elif kind == ServiceEvent.MODIFIED:
@@ -823,10 +899,11 @@ class _StoredInstance:
                             # Last reference for a required field : invalidate
                             invalidate = True
                             self.safe_callback(\
-                                        constants.IPOPO_CALLBACK_INVALIDATE)
+                                        constants.IPOPO_CALLBACK_INVALIDATE, \
+                                        self.context.get_bundle_context())
 
                     # Remove the entry
-                    self.__unset_binding(field, requirement, reference, service)
+                    self.__unset_binding(field, requirement, service)
 
                     to_remove.append((field, service))
 
@@ -847,7 +924,8 @@ class _StoredInstance:
 
             # Ask for a new chance...
             if self.update_bindings() and invalidate:
-                self.safe_callback(constants.IPOPO_CALLBACK_VALIDATE)
+                self.safe_callback(constants.IPOPO_CALLBACK_VALIDATE, \
+                                   self.context.get_bundle_context())
                 self.validate()
 
 # ------------------------------------------------------------------------------
@@ -1019,7 +1097,8 @@ def instantiate(factory_name, name, properties={}):
     # Try to validate it
     if stored_instance.update_bindings():
         try:
-            stored_instance.callback(constants.IPOPO_CALLBACK_VALIDATE)
+            stored_instance.callback(constants.IPOPO_CALLBACK_VALIDATE, \
+                                     component_context.get_bundle_context())
 
             # End the validation on success...
             stored_instance.validate()
@@ -1027,6 +1106,9 @@ def instantiate(factory_name, name, properties={}):
         except Exception:
             # Log the error
             _logger.exception("Error validating '%s'", stored_instance.name)
+
+            kill(name)
+            return None
 
     return instance
 
@@ -1038,7 +1120,7 @@ def invalidate(name):
     @param name: Name of the component to invalidate
     @raise ValueError: Invalid component name
     """
-    stored_instance = _Registry.pop_instance(name)
+    stored_instance = _Registry.get_instance(name)
 
     # Finish the invalidation (unregister services may trigger events)
     stored_instance.invalidate(True)
@@ -1052,9 +1134,6 @@ def kill(name):
     @raise ValueError: Invalid component name
     """
     stored_instance = _Registry.pop_instance(name)
-
-    # Call the invalidate method (if any), ignoring errors
-    stored_instance.safe_callback(constants.IPOPO_CALLBACK_INVALIDATE)
 
     # Kill it
     stored_instance.kill()
