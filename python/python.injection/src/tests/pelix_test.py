@@ -21,14 +21,6 @@ logging.basicConfig(level=logging.DEBUG)
 
 # ------------------------------------------------------------------------------
 
-def get_module(bundle):
-    """
-    Retrieves the internal member __module of a bundle
-    """
-    return getattr(bundle, "_Bundle__module")
-
-# ------------------------------------------------------------------------------
-
 class BundlesTest(unittest.TestCase):
     """
     Pelix bundle registry tests
@@ -68,7 +60,7 @@ class BundlesTest(unittest.TestCase):
         assert isinstance(bundle, Bundle)
 
         # Get the internal module
-        module = get_module(bundle)
+        module = bundle.get_module()
 
         # Assert initial state
         self.assertFalse(module.started, "Bundle should not be started yet")
@@ -120,7 +112,7 @@ class BundlesTest(unittest.TestCase):
         assert isinstance(bundle, Bundle)
 
         # Get the internal module
-        module = get_module(bundle)
+        module = bundle.get_module()
 
         # Validate the bundle name
         self.assertEquals(bundle.get_symbolic_name(), self.test_bundle_name, \
@@ -364,7 +356,7 @@ class ServicesTest(unittest.TestCase):
         # Install the service bundle
         bid = context.install_bundle(self.test_bundle_name)
         bundle = context.get_bundle(bid)
-        module = get_module(bundle)
+        module = bundle.get_module()
 
         # Assert we can't access the service
         ref1 = context.get_service_reference(IEchoService)
@@ -450,7 +442,7 @@ class ServicesTest(unittest.TestCase):
         # Install the service bundle
         bid = context.install_bundle(self.test_bundle_name)
         bundle = context.get_bundle(bid)
-        module = get_module(bundle)
+        module = bundle.get_module()
 
         # --- Start it (registers a service) ---
         bundle.start()
@@ -596,7 +588,7 @@ class ServiceEventTest(unittest.TestCase):
         self.reset_state()
 
         # Uninstall the bundle, without unregistering the service
-        module = get_module(bundle)
+        module = bundle.get_module()
         module.unregister = False
         bundle.uninstall()
 
