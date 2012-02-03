@@ -59,7 +59,7 @@ class Test:
         self.name = "Me"
 
     @Validate
-    def start(self):
+    def start(self, context):
         """
         Component starts
         """
@@ -67,7 +67,7 @@ class Test:
 
 
     @Invalidate
-    def stop(self):
+    def stop(self, context):
         """
         Component stops
         """
@@ -101,7 +101,7 @@ class Test:
 class HelloImpl:
 
     @Validate
-    def start(self):
+    def start(self, context):
         """
         Component starts
         """
@@ -110,7 +110,7 @@ class HelloImpl:
 
 
     @Invalidate
-    def stop(self):
+    def stop(self, context):
         """
         Component stops
         """
