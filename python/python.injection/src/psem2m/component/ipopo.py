@@ -11,6 +11,7 @@ from psem2m.services.pelix import BundleContext, ServiceEvent, BundleEvent
 from psem2m.utilities import remove_all_occurrences, SynchronizedClassMethod
 import logging
 import threading
+from psem2m.ldapfilter import LDAPFilter, LDAPCriteria
 
 # ------------------------------------------------------------------------------
 
@@ -288,7 +289,7 @@ class ComponentContext:
     """
 
     # Try to reduce memory footprint (stored instances)
-    __slots__ = ('__factory_context', 'name', 'properties')
+    __slots__ = ('__factory_context', 'name', 'properties', 'requirements')
 
     def __init__(self, factory_context, name, properties):
         """
@@ -308,6 +309,29 @@ class ComponentContext:
 
         self.properties = factory_context.properties.copy()
         self.properties.update(properties)
+
+        requires_filters = self.properties.get(\
+                                        constants.IPOPO_REQUIRES_FILTERS, None)
+
+        if not requires_filters or not isinstance(requires_filters, dict):
+            # No explicit filter configured
+            self.requirements = factory_context.requirements
+
+        else:
+            # We need to change a part of the requirements
+            self.requirements = {}
+            for field, requirement in factory_context.requirements.items():
+
+                if field not in requires_filters:
+                    # No information for this one, keep the factory requirement
+                    self.requirements[field] = requirement
+
+                else:
+                    # Make a copy of the requirement
+                    requirement_copy = requirement.copy()
+                    requirement_copy.set_filter(requires_filters[field])
+
+                    self.requirements[field] = requirement_copy
 
 
     def get_bundle_context(self):
@@ -336,7 +360,7 @@ class ComponentContext:
         """
         Retrieves the component requirements
         """
-        return self.__factory_context.requirements
+        return self.requirements
 
 
 class _StoredInstance:
@@ -879,6 +903,7 @@ class _StoredInstance:
         elif kind == ServiceEvent.MODIFIED:
             # Modified service property
             invalidate = False
+            can_validate = (self.state != _StoredInstance.VALID)
 
             to_remove = []
             for field, binding in self.bindings.items():
@@ -923,7 +948,7 @@ class _StoredInstance:
                 self.invalidate(False)
 
             # Ask for a new chance...
-            if self.update_bindings() and invalidate:
+            if self.update_bindings() and (invalidate or can_validate):
                 self.safe_callback(constants.IPOPO_CALLBACK_VALIDATE, \
                                    self.context.get_bundle_context())
                 self.validate()
@@ -934,7 +959,7 @@ class Requirement:
     """
     Represents a component requirement
     """
-    def __init__(self, specifications=None, aggregate=False, optional=False, \
+    def __init__(self, specifications, aggregate=False, optional=False, \
                  spec_filter=None):
         """
         Sets up the requirement
@@ -955,7 +980,6 @@ class Requirement:
             specifications = [specifications]
 
         converted_specs = []
-        ldap_criteria = []
         for spec in specifications:
 
             if isinstance(spec, str):
@@ -969,23 +993,21 @@ class Requirement:
                                 "string or a list of string")
 
             converted_specs.append(spec_str)
-            ldap_criteria.append("(%s=%s)" \
-                                 % (pelix.OBJECTCLASS, \
-                                    ldapfilter.escape_LDAP(spec_str)))
 
         self.aggregate = aggregate
         self.optional = optional
         self.specification = converted_specs
 
-        # Make the filter, escaping the specification name
-        ldap_filter = "(|%s)" % "".join(ldap_criteria)
+        # Set up the requirement filter (after setting up self.specification)
+        self.set_filter(spec_filter)
 
-        if isinstance(spec_filter, str) and len(spec_filter) > 0:
-            # String given
-            ldap_filter = ldapfilter.combine_filters([ldap_filter, spec_filter])
 
-        # Parse the filter
-        self.filter = ldapfilter.get_ldap_filter(ldap_filter)
+    def copy(self):
+        """
+        Returns a copy of this instance
+        """
+        return Requirement(self.specification, self.aggregate, self.optional, \
+                           self.filter)
 
 
     def matches(self, properties):
@@ -1003,6 +1025,37 @@ class Requirement:
 
         # Properties filter test
         return self.filter.matches(properties)
+
+
+    def set_filter(self, spec_filter):
+        """
+        Changes the current filter for the given one
+        
+        @param spec_filter: The new requirement filter
+        @raise TypeError: Unknown filter type
+        """
+        if spec_filter is not None and not isinstance(spec_filter, str) \
+        and not isinstance(spec_filter, LDAPFilter) \
+        and not isinstance(spec_filter, LDAPCriteria):
+            # Unknown type
+            raise TypeError("Invalid filter type %s" \
+                            % type(spec_filter).__name__)
+
+        ldap_criteria = []
+        for spec in self.specification:
+            ldap_criteria.append("(%s=%s)" \
+                                 % (pelix.OBJECTCLASS, \
+                                    ldapfilter.escape_LDAP(spec)))
+
+        # Make the filter, escaping the specification name
+        ldap_filter = "(|%s)" % "".join(ldap_criteria)
+
+        if spec_filter is not None:
+            # String given
+            ldap_filter = ldapfilter.combine_filters([ldap_filter, spec_filter])
+
+        # Parse the filter
+        self.filter = ldapfilter.get_ldap_filter(ldap_filter)
 
 # ------------------------------------------------------------------------------
 

@@ -18,3 +18,4 @@ IPOPO_CALLBACK_INVALIDATE = "INVALIDATE"
 
 # Properties
 IPOPO_INSTANCE_NAME = "instance.name"
+IPOPO_REQUIRES_FILTERS = "requires.filters"

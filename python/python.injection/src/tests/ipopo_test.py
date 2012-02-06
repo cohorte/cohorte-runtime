@@ -11,7 +11,7 @@ import unittest
 from psem2m.services.pelix import FrameworkFactory, BundleContext
 from psem2m.component.ipopo import instantiate, IPopoEvent, kill, invalidate
 from tests.interfaces import IEchoService
-from psem2m.component import ipopo
+from psem2m.component import ipopo, constants
 
 # ------------------------------------------------------------------------------
 
@@ -305,6 +305,48 @@ class RequirementTest(unittest.TestCase):
                 except:
                     pass
 
+
+    def testConfiguredInstance(self):
+        """
+        Tests if the filter can be overridden by instance properties
+        """
+        module = install_bundle(self.framework)
+
+        compoA = None
+        compoB = None
+
+        # The module filter
+        properties_b = {constants.IPOPO_REQUIRES_FILTERS: \
+                        {"service": "(%s=True)" % module.PROP_USABLE}}
+
+        try:
+            # Instantiate A (validated)
+            compoA = instantiate(module.FACTORY_A, NAME_A)
+
+            # Set A unusable
+            compoA.change(False)
+
+            # Instantiate B (must not be bound)
+            compoB = instantiate(module.FACTORY_B, NAME_B, properties_b)
+            self.assertEqual([IPopoEvent.INSTANTIATED], compoB.states, \
+                             "Invalid component states : %s" % compoB.states)
+            compoB.reset()
+
+            # Set A usable
+            compoA.change(True)
+
+            # B must be bound and validated
+            self.assertEqual([IPopoEvent.BOUND, IPopoEvent.VALIDATED], \
+                             compoB.states, \
+                             "Invalid component states : %s" % compoB.states)
+            compoB.reset()
+
+        finally:
+            for compo in (NAME_A, NAME_B):
+                try:
+                    kill(compo)
+                except:
+                    pass
 
 # ------------------------------------------------------------------------------
 
