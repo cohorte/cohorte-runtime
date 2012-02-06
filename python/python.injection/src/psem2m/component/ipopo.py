@@ -327,11 +327,16 @@ class ComponentContext:
                     self.requirements[field] = requirement
 
                 else:
-                    # Make a copy of the requirement
-                    requirement_copy = requirement.copy()
-                    requirement_copy.set_filter(requires_filters[field])
+                    try:
+                        # Use a copy of the requirement
+                        requirement_copy = requirement.copy()
+                        requirement_copy.set_filter(requires_filters[field])
 
-                    self.requirements[field] = requirement_copy
+                        self.requirements[field] = requirement_copy
+
+                    except (TypeError, ValueError):
+                        # Invalid filter, use the factory requirement
+                        self.requirements[field] = requirement
 
 
     def get_bundle_context(self):
