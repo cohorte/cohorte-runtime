@@ -11,7 +11,7 @@ from generator import AntGenerator, FileWriter
 import logging
 import os.path
 import xml.dom.minidom as dom
-from xml.dom.minidom import Element, Document
+from xml.dom.minidom import Document
 
 # ------------------------------------------------------------------------------
 
@@ -73,27 +73,30 @@ def get_ant_target_node(ant_document, target_name):
     return None
 
 
-def setup_source_folders(ant_document, classpath):
+def setup_source_folders(ant_document, eclipse_project):
     """
     Sets up the "src" Ant property to correspond to the project source
     folders
     
     @param ant_document: Ant document
-    @param classpath: An Eclipse Java project class path
+    @param eclipse_project: An Eclipse Java project
     """
     assert isinstance(ant_document, Document)
+    assert isinstance(eclipse_project, EclipseProject)
 
     # Generate the property string
     base_dir = "${basedir}/"
 
     # Find the "src" property node
-    src_property = None
     property_nodes = ant_document.getElementsByTagName("property")
     for node in property_nodes:
         if node.getAttribute("name") == "src":
             # Found !
             src_property = node.getAttribute("value")
             break
+    else:
+        # Not found...
+        src_property = None
 
     compile_node = get_ant_target_node(ant_document, "compile")
     if compile_node is None:
@@ -108,7 +111,8 @@ def setup_source_folders(ant_document, classpath):
     # Get the node
     javac_node = javac_node[0]
 
-    if not classpath.src:
+    classpath = eclipse_project.classpath
+    if classpath is None or not classpath.src:
         # No classpath given, look for the src property
         if not src_property:
             # Nothing given in the source property -> remove the javac task
@@ -313,7 +317,7 @@ class EclipseAntGenerator(object):
             return
 
         # Setup the source folders
-        setup_source_folders(ant_doc, eclipse_project.classpath)
+        setup_source_folders(ant_doc, eclipse_project)
 
         # Append class path entries
         append_classpath_entries(ant_doc, libraries)
