@@ -15,12 +15,19 @@ import os
 import subprocess
 import sys
 
+# ------------------------------------------------------------------------------
+
+logger = logging.getLogger("psem2m.compiler.main")
+
+# ------------------------------------------------------------------------------
+
 class InvalidParameterException(Exception):
     """
     Exception thrown when an invalid parameter is found
     """
     pass
 
+# ------------------------------------------------------------------------------
 
 def read_parameters():
     """
@@ -188,7 +195,8 @@ def get_projects(projects_roots):
                 projects.append(eclipse_reader.read_project(project_file))
 
             except:
-                logging.warn("Error reading file.", exc_info=True)
+                logger.warn("Error reading project file %s.", project_file, \
+                            exc_info=True)
 
     return projects
 
@@ -202,7 +210,7 @@ def main():
         params = read_parameters()
 
     except InvalidParameterException as ex:
-        print >> sys.stderr, "Error reading parameters :", ex
+        logger.error("Error reading parameters : %s", ex)
         return 1
 
     result = 0
@@ -211,33 +219,33 @@ def main():
     root_ant_file = os.path.normpath(params["root"] + os.sep + "build.xml")
 
     try:
-        print "--> Get Projects..."
+        logger.info("--> Get Projects...")
         projects_roots = [params["root"]]
         projects_roots.extend(params["extra_paths"])
         projects = get_projects(projects_roots)
 
         if not params["clean"]:
 
-            print "--> Resolve links..."
+            logger.info("--> Resolve links...")
             for project in projects:
                 project.resolve_links(projects)
 
-            print "--> Generate Ant files..."
+            logger.info("--> Generate Ant files...")
             ant_generator = EclipseAntGenerator(projects, params["name"], \
                                                 params["ipojo.annotations"], \
                                                 params["ipojo.ant"])
 
             ant_generator.prepare_ant_files(params["root"], [params["target"]])
 
-            print "--> Compile time !"
+            logger.info("--> Compile time !")
             result = subprocess.call(["ant", "-f", root_ant_file, "package"])
 
     except:
-        logging.error("Error during treatment.", exc_info=True)
+        logger.error("Error during treatment.", exc_info=True)
         result = 1
 
     try:
-        print "--> Clean up the mess"
+        logger.info("--> Clean up the mess")
         clean_build_xml = params["clean"] or params["clean_after_build"]
 
         for project in projects:
@@ -247,11 +255,11 @@ def main():
             os.remove(root_ant_file)
 
     except:
-        logging.warn("Error during cleanup.", exc_info=True)
+        logger.warn("Error during cleanup.", exc_info=True)
 
     return result
 
 
 if __name__ == '__main__':
-    logging.basicConfig()
+    logging.basicConfig(level=logging.DEBUG)
     sys.exit(main())
