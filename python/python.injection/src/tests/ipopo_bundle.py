@@ -4,12 +4,12 @@ Created on 3 févr. 2012
 
 @author: Thomas Calmant
 """
-from psem2m.services.pelix import BundleContext
+from psem2m.component.constants import IPOPO_INSTANCE_NAME
 from psem2m.component.decorators import ComponentFactory, Property, Provides, \
     Requires, Validate, Invalidate, Unbind, Bind
-from psem2m.component.constants import IPOPO_INSTANCE_NAME
-from tests.interfaces import IEchoService
 from psem2m.component.ipopo import IPopoEvent
+from psem2m.services.pelix import BundleContext
+from tests.interfaces import IEchoService
 
 # ------------------------------------------------------------------------------
 

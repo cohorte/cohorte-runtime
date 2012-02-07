@@ -6,12 +6,12 @@ Created on 3 févr. 2012
 @author: Thomas Calmant
 """
 
+from psem2m.component import constants
+from psem2m.component.ipopo import IPopoEvent
+from psem2m.services.pelix import FrameworkFactory, BundleContext
+from tests.interfaces import IEchoService
 import logging
 import unittest
-from psem2m.services.pelix import FrameworkFactory, BundleContext
-from psem2m.component.ipopo import instantiate, IPopoEvent, kill, invalidate
-from tests.interfaces import IEchoService
-from psem2m.component import ipopo, constants
 
 # ------------------------------------------------------------------------------
 
@@ -26,16 +26,44 @@ NAME_B = "componentB"
 # ------------------------------------------------------------------------------
 
 def install_bundle(framework, bundle_name="tests.ipopo_bundle"):
-        """
-        Installs the test bundle and returns its module
-        """
-        context = framework.get_bundle_context()
+    """
+    Installs and starts the test bundle and returns its module
+    
+    @param framework: A Pelix framework instance
+    @param bundle_name: A bundle name
+    @return: The installed bundle Python module
+    """
+    context = framework.get_bundle_context()
 
-        bid = context.install_bundle(bundle_name)
-        bundle = context.get_bundle(bid)
+    bid = context.install_bundle(bundle_name)
+    bundle = context.get_bundle(bid)
+    bundle.start()
 
-        return bundle.get_module()
+    return bundle.get_module()
 
+
+def install_ipopo(framework):
+    """
+    Installs and starts the iPOPO bundle. Returns the iPOPO service
+    
+    @param framework: A Pelix framework instance
+    @return: The iPOPO service
+    @raise Exception: The iPOPO service cannot be found
+    """
+    context = framework.get_bundle_context()
+    assert isinstance(context, BundleContext)
+
+    # Install & start the bundle
+    bid = context.install_bundle("psem2m.component.ipopo")
+    bundle = context.get_bundle(bid)
+    bundle.start()
+
+    # Get the service
+    ref = context.get_service_reference(constants.IPOPO_SERVICE_SPECIFICATION)
+    if ref is None:
+        raise Exception("iPOPO Service not found")
+
+    return context.get_service(ref)
 
 # ------------------------------------------------------------------------------
 
@@ -48,6 +76,7 @@ class LifeCycleTest(unittest.TestCase):
         Called before each test. Initiates a framework.
         """
         self.framework = FrameworkFactory.get_framework()
+        self.ipopo = install_ipopo(self.framework)
         self.module = install_bundle(self.framework)
 
     def tearDown(self):
@@ -63,39 +92,39 @@ class LifeCycleTest(unittest.TestCase):
         Test a single component life cycle
         """
         # Assert it is not yet in the registry
-        self.assertFalse(ipopo._Registry.is_registered_instance(NAME_A), \
+        self.assertFalse(self.ipopo.is_registered_instance(NAME_A), \
                         "Instance is already in the registry")
 
         # Instantiate the component
-        compoA = instantiate(self.module.FACTORY_A, NAME_A)
+        compoA = self.ipopo.instantiate(self.module.FACTORY_A, NAME_A)
         self.assertEqual([IPopoEvent.INSTANTIATED, IPopoEvent.VALIDATED], \
                          compoA.states, \
                          "Invalid component states : %s" % compoA.states)
         compoA.reset()
 
         # Assert it is in the registry
-        self.assertTrue(ipopo._Registry.is_registered_instance(NAME_A), \
+        self.assertTrue(self.ipopo.is_registered_instance(NAME_A), \
                         "Instance is not in the registry")
 
         # Invalidate the component
-        invalidate(NAME_A)
+        self.ipopo.invalidate(NAME_A)
         self.assertEqual([IPopoEvent.INVALIDATED], compoA.states, \
                          "Invalid component states : %s" % compoA.states)
         compoA.reset()
 
         # Assert it is still in the registry
-        self.assertTrue(ipopo._Registry.is_registered_instance(NAME_A), \
+        self.assertTrue(self.ipopo.is_registered_instance(NAME_A), \
                         "Instance is not in the registry")
 
         # Kill (remove) the component
-        kill(NAME_A)
+        self.ipopo.kill(NAME_A)
 
         # No event
         self.assertEqual([], compoA.states, \
                          "Invalid component states : %s" % compoA.states)
 
         # Assert it has been removed of the registry
-        self.assertFalse(ipopo._Registry.is_registered_instance(NAME_A), \
+        self.assertFalse(self.ipopo.is_registered_instance(NAME_A), \
                         "Instance is still in the registry")
 
 
@@ -104,28 +133,28 @@ class LifeCycleTest(unittest.TestCase):
         Test a single component life cycle
         """
         # Assert it is not yet in the registry
-        self.assertFalse(ipopo._Registry.is_registered_instance(NAME_A), \
+        self.assertFalse(self.ipopo.is_registered_instance(NAME_A), \
                         "Instance is already in the registry")
 
         # Instantiate the component
-        compoA = instantiate(self.module.FACTORY_A, NAME_A)
+        compoA = self.ipopo.instantiate(self.module.FACTORY_A, NAME_A)
         self.assertEqual([IPopoEvent.INSTANTIATED, IPopoEvent.VALIDATED], \
                          compoA.states, \
                          "Invalid component states : %s" % compoA.states)
         compoA.reset()
 
         # Assert it is in the registry
-        self.assertTrue(ipopo._Registry.is_registered_instance(NAME_A), \
+        self.assertTrue(self.ipopo.is_registered_instance(NAME_A), \
                         "Instance is not in the registry")
 
         # Kill the component without invalidating it
-        kill(NAME_A)
+        self.ipopo.kill(NAME_A)
         self.assertEqual([IPopoEvent.INVALIDATED], compoA.states, \
                          "Invalid component states : %s" % compoA.states)
         compoA.reset()
 
         # Assert it has been removed of the registry
-        self.assertFalse(ipopo._Registry.is_registered_instance(NAME_A), \
+        self.assertFalse(self.ipopo.is_registered_instance(NAME_A), \
                         "Instance is still in the registry")
 
 
@@ -141,6 +170,7 @@ class ProvidesTest(unittest.TestCase):
         Called before each test. Initiates a framework.
         """
         self.framework = FrameworkFactory.get_framework()
+        self.ipopo = install_ipopo(self.framework)
 
     def tearDown(self):
         """
@@ -163,7 +193,7 @@ class ProvidesTest(unittest.TestCase):
                           "Service is already registered")
 
         # Instantiate the component
-        compoA = instantiate(module.FACTORY_A, NAME_A)
+        compoA = self.ipopo.instantiate(module.FACTORY_A, NAME_A)
 
         try:
             # Service should be there
@@ -177,7 +207,7 @@ class ProvidesTest(unittest.TestCase):
             svc = None
 
             # Invalidate the component
-            invalidate(NAME_A)
+            self.ipopo.invalidate(NAME_A)
 
             # Service should not be there anymore
             self.assertIsNone(context.get_service_reference(IEchoService), \
@@ -185,7 +215,7 @@ class ProvidesTest(unittest.TestCase):
 
         finally:
             try:
-                kill(NAME_A)
+                self.ipopo.kill(NAME_A)
             except:
                 pass
 
@@ -201,6 +231,7 @@ class RequirementTest(unittest.TestCase):
         Called before each test. Initiates a framework.
         """
         self.framework = FrameworkFactory.get_framework()
+        self.ipopo = install_ipopo(self.framework)
 
     def tearDown(self):
         """
@@ -222,39 +253,39 @@ class RequirementTest(unittest.TestCase):
 
         try:
             # Instantiate A (validated)
-            compoA = instantiate(module.FACTORY_A, NAME_A)
+            compoA = self.ipopo.instantiate(module.FACTORY_A, NAME_A)
             self.assertEqual([IPopoEvent.INSTANTIATED, IPopoEvent.VALIDATED], \
                              compoA.states, \
                              "Invalid component states : %s" % compoA.states)
             compoA.reset()
 
             # Instantiate B (bound then validated)
-            compoB = instantiate(module.FACTORY_B, NAME_B)
+            compoB = self.ipopo.instantiate(module.FACTORY_B, NAME_B)
             self.assertEqual([IPopoEvent.INSTANTIATED, IPopoEvent.BOUND, \
                               IPopoEvent.VALIDATED], compoB.states, \
                              "Invalid component states : %s" % compoB.states)
             compoB.reset()
 
             # Invalidate B
-            invalidate(NAME_B)
+            self.ipopo.invalidate(NAME_B)
             self.assertEqual([IPopoEvent.INVALIDATED], compoB.states, \
                              "Invalid component states : %s" % compoB.states)
             compoB.reset()
 
             # Uninstantiate B
-            kill(NAME_B)
+            self.ipopo.kill(NAME_B)
             self.assertEqual([IPopoEvent.UNBOUND], compoB.states, \
                              "Invalid component states : %s" % compoB.states)
 
             # Uninstantiate A
-            kill(NAME_A)
+            self.ipopo.kill(NAME_A)
             self.assertEqual([IPopoEvent.INVALIDATED], compoA.states, \
                              "Invalid component states : %s" % compoA.states)
 
         finally:
             for compo in (NAME_A, NAME_B):
                 try:
-                    kill(compo)
+                    self.ipopo.kill(compo)
                 except:
                     pass
 
@@ -270,21 +301,21 @@ class RequirementTest(unittest.TestCase):
 
         try:
             # Instantiate A (validated)
-            compoA = instantiate(module.FACTORY_A, NAME_A)
+            compoA = self.ipopo.instantiate(module.FACTORY_A, NAME_A)
             self.assertEqual([IPopoEvent.INSTANTIATED, IPopoEvent.VALIDATED], \
                              compoA.states, \
                              "Invalid component states : %s" % compoA.states)
             compoA.reset()
 
             # Instantiate B (bound then validated)
-            compoB = instantiate(module.FACTORY_B, NAME_B)
+            compoB = self.ipopo.instantiate(module.FACTORY_B, NAME_B)
             self.assertEqual([IPopoEvent.INSTANTIATED, IPopoEvent.BOUND, \
                               IPopoEvent.VALIDATED], compoB.states, \
                              "Invalid component states : %s" % compoA.states)
             compoB.reset()
 
             # Uninstantiate A
-            kill(NAME_A)
+            self.ipopo.kill(NAME_A)
             self.assertEqual([IPopoEvent.INVALIDATED], compoA.states, \
                              "Invalid component states : %s" % compoA.states)
 
@@ -294,14 +325,14 @@ class RequirementTest(unittest.TestCase):
             compoB.reset()
 
             # Uninstantiate B
-            kill(NAME_B)
+            self.ipopo.kill(NAME_B)
             self.assertEqual([], compoB.states, \
                              "Invalid component states : %s" % compoA.states)
 
         finally:
             for compo in (NAME_A, NAME_B):
                 try:
-                    kill(compo)
+                    self.ipopo.kill(compo)
                 except:
                     pass
 
@@ -321,13 +352,14 @@ class RequirementTest(unittest.TestCase):
 
         try:
             # Instantiate A (validated)
-            compoA = instantiate(module.FACTORY_A, NAME_A)
+            compoA = self.ipopo.instantiate(module.FACTORY_A, NAME_A)
 
             # Set A unusable
             compoA.change(False)
 
             # Instantiate B (must not be bound)
-            compoB = instantiate(module.FACTORY_B, NAME_B, properties_b)
+            compoB = self.ipopo.instantiate(module.FACTORY_B, NAME_B, \
+                                            properties_b)
             self.assertEqual([IPopoEvent.INSTANTIATED], compoB.states, \
                              "Invalid component states : %s" % compoB.states)
             compoB.reset()
@@ -344,7 +376,7 @@ class RequirementTest(unittest.TestCase):
         finally:
             for compo in (NAME_A, NAME_B):
                 try:
-                    kill(compo)
+                    self.ipopo.kill(compo)
                 except:
                     pass
 
