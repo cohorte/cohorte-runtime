@@ -454,10 +454,7 @@ class _StoredInstance:
 
         # Register to the events
         self.bundle_context = self.context.get_bundle_context()
-        assert isinstance(self.bundle_context, BundleContext)
-
         self.bundle_context.add_service_listener(self)
-        self.bundle_context.add_bundle_listener(self)
 
 
     def __repr__(self):
@@ -532,7 +529,6 @@ class _StoredInstance:
 
         # Unregister from service events
         self.bundle_context.remove_service_listener(self)
-        self.bundle_context.remove_bundle_listener(self)
 
         try:
             self.invalidate(True)
@@ -843,27 +839,6 @@ class _StoredInstance:
                                             self.context.properties.copy(), \
                                             True)
 
-
-    @SynchronizedClassMethod('_lock')
-    def bundle_changed(self, event):
-        """
-        Called by Pelix when a bundle state changed
-        
-        @param event: A BundleEvent object
-        """
-        bundle = event.get_bundle()
-        self_bundle = self.bundle_context.get_bundle()
-
-        if bundle is not self_bundle:
-            # Not of our business..
-            return
-
-        kind = event.get_kind()
-        if kind == BundleEvent.STOPPING:
-            # Bundle is stopping, we have to kill ourselves
-            self.kill()
-
-
     @SynchronizedClassMethod('_lock')
     def service_changed(self, event):
         """
@@ -1057,6 +1032,9 @@ def _field_property_generator(stored_instance):
         @param name: The property name
         @return: The property value
         """
+        if stored_instance.context is None:
+            return None
+
         return stored_instance.context.properties.get(name, None)
 
 
@@ -1067,6 +1045,9 @@ def _field_property_generator(stored_instance):
         @param name: The property name
         @param new_value: The new property value
         """
+        if stored_instance.context is None:
+            return None
+
         # Get the previous value
         old_value = stored_instance.context.properties.get(name, None)
 
