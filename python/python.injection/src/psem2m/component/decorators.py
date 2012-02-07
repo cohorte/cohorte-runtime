@@ -5,13 +5,12 @@ Defines the iPOPO decorators classes and utility methods
 @author: Thomas Calmant
 """
 
+from psem2m.component import constants
+from psem2m.component.ipopo import FactoryContext, Requirement
 import inspect
 import logging
 import types
-
-from psem2m.component import constants, ipopo
-from psem2m.component.ipopo import FactoryContext, ComponentContext
-from psem2m.services import pelix
+import threading
 
 # ------------------------------------------------------------------------------
 
@@ -28,25 +27,11 @@ def _get_factory_context(cls):
     
     @param cls: The factory class
     @return: The factory class context
-    @raise RuntimeException: Not called in a Pelix framework context
     """
-    context = getattr(cls, constants.IPOPO_FACTORY_CONTEXT, None)
+    context = getattr(cls, constants.IPOPO_FACTORY_CONTEXT_DATA, None)
     if context is None:
-        # Get the framework
-        framework = pelix.FrameworkFactory.get_framework()
-
-        bundle = framework.get_bundle_by_name(cls.__module__)
-        if bundle is None:
-            raise RuntimeError("Not in a Pelix framework context (module %s)" \
-                               % cls.__module__)
-
-        bundle_context = bundle.get_bundle_context()
-        if bundle_context is None:
-            raise RuntimeError("Invalid bundle context for bundle %s" \
-                               % bundle.get_symbolic_name())
-
-        context = ipopo.FactoryContext(bundle_context)
-        setattr(cls, constants.IPOPO_FACTORY_CONTEXT, context)
+        context = FactoryContext()
+        setattr(cls, constants.IPOPO_FACTORY_CONTEXT_DATA, context)
 
     return context
 
@@ -83,10 +68,8 @@ def _ipopo_setup_callback(cls, context):
                             constants.IPOPO_METHOD_CALLBACKS, name)
             continue
 
-        # FIXME: Maybe remove the attribute of the function ?
         # Keeping it allows inheritance : by removing it, only the first
-        # child will see the attribute
-        # delattr(function, constants.IPOPO_METHOD_CALLBACKS)
+        # child will see the attribute -> Don't remove it
 
         # Store the callbacks
         for _callback in method_callbacks:
@@ -134,92 +117,12 @@ def _append_object_entry(obj, list_name, entry):
 
 # ------------------------------------------------------------------------------
 
-def get_field_property_name(component, field):
-    """
-    Retrieves the name of the property associated to the given field
-    
-    @param component: A component instance
-    @param field: A field name
-    @return: The property name, or None
-    """
-    if component is None or field is None:
-        return None
-
-    # Get the factory context
-    factory_context = getattr(component, constants.IPOPO_FACTORY_CONTEXT, None)
-    if factory_context is None:
-        # Can't work
-        return
-
-    assert isinstance(factory_context, FactoryContext)
-
-    # Get the name associated to the field
-    return factory_context.properties_fields.get(field, None)
-
-
-def _get_field_property(component, field):
-    """
-    Retrieves the value of the field property
-    
-    @param component: A component instance
-    @param field: A field name
-    @return: The property value, or None
-    """
-    if component is None or field is None:
-        return None
-
-    # Also get the component context
-    component_context = getattr(component, constants.IPOPO_COMPONENT_CONTEXT, \
-                                None)
-    if component_context is None:
-        # Can't work
-        return
-
-    assert isinstance(component_context, ComponentContext)
-
-    # Get the property name
-    property_name = get_field_property_name(component, field)
-
-    # Retrieve the property value
-    value = component_context.properties.get(property_name, None)
-    return value
-
-
-def _set_field_property(component, field, value):
-    """
-    Sets the property value associated to the given field. Does nothing if the
-    field is unknown.
-    
-    @param component: A component instance
-    @param field: A field name
-    @param value: The new property value
-    """
-    if component is None or field is None:
-        return
-
-    # Get the property name
-    property_name = get_field_property_name(component, field)
-    if not property_name:
-        # Invalid property name
-        return
-
-    # Also get the component context
-    component_context = getattr(component, constants.IPOPO_COMPONENT_CONTEXT, \
-                                None)
-    if component_context is None:
-        # Can't work
-        return
-
-    assert isinstance(component_context, ComponentContext)
-
-    # Set the property value
-    component_context.properties[property_name] = value
-
-
-def _ipopo_field_property(field, name, value):
+def _ipopo_class_field_property(name, value):
     """
     Sets up an iPOPO field property, using Python property() capabilities
     """
+    # The property lock
+    lock = threading.RLock()
 
     def get_value(self):
         """
@@ -227,7 +130,12 @@ def _ipopo_field_property(field, name, value):
         
         @return: The property value
         """
-        return _get_field_property(self, field)
+        getter = getattr(self, constants.IPOPO_PROPERTY_GETTER, None)
+        if getter is not None:
+            with lock:
+                return getter(self, name)
+
+        return value
 
 
     def set_value(self, new_value):
@@ -236,12 +144,10 @@ def _ipopo_field_property(field, name, value):
         
         @param new_valuie: The new property value
         """
-        name = get_field_property_name(self, field)
-        old_value = _get_field_property(self, field)
-        _set_field_property(self, field, new_value)
-
-        # Trigger an update event
-        ipopo.handle_property_changed(self, name, old_value, new_value)
+        setter = getattr(self, constants.IPOPO_PROPERTY_SETTER, None)
+        if setter is not None:
+            with lock:
+                return setter(self, name, new_value)
 
         return new_value
 
@@ -274,14 +180,22 @@ class ComponentFactory:
         # Get the factory context
         context = _get_factory_context(factory_class)
 
+        # Set the factory name
+        context.name = self.__factory_name
+
         # Find callbacks
         _ipopo_setup_callback(factory_class, context)
 
         # Add the component context field (set it to None)
         setattr(factory_class, constants.IPOPO_COMPONENT_CONTEXT, None)
 
-        # Register the factory class
-        ipopo.register_factory(self.__factory_name, factory_class)
+        # Add the factory context field (set it to None)
+        setattr(factory_class, constants.IPOPO_FACTORY_CONTEXT, None)
+
+        # Store a dictionary form of the factory context in the class
+        # -> Avoids "class version" problems
+        setattr(factory_class, constants.IPOPO_FACTORY_CONTEXT_DATA, \
+                context.to_dictionary_form())
 
         return factory_class
 
@@ -337,9 +251,10 @@ class Property:
         # Associate the field to the property name
         context.properties_fields[self.__field] = self.__name
 
-        # Add the field to the class -> it becomes a property
+        # Inject a property in the class. The property will call an instance
+        # level getter / setter, injected by iPOPO after the instance creation
         setattr(clazz, self.__field, \
-                _ipopo_field_property(self.__field, self.__name, self.__value))
+                _ipopo_class_field_property(self.__name, self.__value))
 
         return clazz
 
@@ -422,7 +337,7 @@ class Requires:
         @raise ValueError: An error occurred while parsing the filter
         """
         self.__field = field
-        self.__requirement = ipopo.Requirement(specification, aggregate, \
+        self.__requirement = Requirement(specification, aggregate, \
                                                optional, spec_filter)
 
     def __call__(self, clazz):

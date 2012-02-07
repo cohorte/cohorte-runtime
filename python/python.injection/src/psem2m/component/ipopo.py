@@ -1,3 +1,4 @@
+#-- Content-Encoding: utf-8 --
 """
 Created on 26 janv. 2012
 
@@ -6,220 +7,19 @@ Created on 26 janv. 2012
 
 from psem2m import ldapfilter
 from psem2m.component import constants
+from psem2m.ldapfilter import LDAPFilter, LDAPCriteria
 from psem2m.services import pelix
-from psem2m.services.pelix import BundleContext, ServiceEvent, BundleEvent
+from psem2m.services.pelix import BundleContext, ServiceEvent, BundleEvent, \
+    Bundle
 from psem2m.utilities import remove_all_occurrences, SynchronizedClassMethod
+import inspect
 import logging
 import threading
-from psem2m.ldapfilter import LDAPFilter, LDAPCriteria
 
 # ------------------------------------------------------------------------------
 
 # Prepare the module logger
 _logger = logging.getLogger("ipopo.core")
-
-# ------------------------------------------------------------------------------
-
-class _Registry:
-    """
-    The iPOPO Component registry singleton
-    """
-    # Factories : Name -> Factory class
-    __factories = {}
-
-    # The factories registry lock
-    __factories_lock = threading.RLock()
-
-    # All instances : Name -> _StoredInstance
-    __instances = {}
-
-    # The factories registry lock    
-    __instances_lock = threading.RLock()
-
-
-    def __init__(self):
-        """
-        Constructor that **must never be called**
-        """
-        raise RuntimeError("The _Registry constructor must never be called")
-
-
-    # Static methods to work on the registry of factories (add/get/remove)
-    @classmethod
-    def get_factory(cls, factory_name):
-        """
-        Retrieves the factory with the given.
-        
-        @param factory_name: The name of the factory to retrieve
-        @raise ValueError: The factory is unknown
-        """
-        with cls.__factories_lock:
-
-            if factory_name not in cls.__factories:
-                raise ValueError("Unknown factory '%s'" % factory_name)
-
-            return cls.__factories[factory_name]
-
-
-    @classmethod
-    def register_factory(cls, factory_name, factory, override=True):
-        """
-        Registers a component factory
-        
-        @param factory_name: The name of the factory
-        @param factory: The factory class object
-        @param override: If true, previous factory is overridden, else an
-        exception is risen if a previous factory with that name already exists
-        @raise ValueError: The factory name already exists
-        """
-        with cls.__factories_lock:
-            if factory_name in cls.__factories:
-                if override:
-                    _logger.info("Overriding factory '%s'", factory_name)
-
-                else:
-                    raise ValueError("'%s' factory already exist" \
-                                     % factory_name)
-
-            cls.__factories[factory_name] = factory
-
-
-    @classmethod
-    def unregister_factory(cls, factory_name):
-        """
-        Unregisters the given component factory
-        
-        @param factory_name: Name of the factory to unregister
-        @return: True the factory has been removed, False if the factory is
-        unknown
-        """
-        if not factory_name:
-            # Empty name
-            return False
-
-        with cls.__factories_lock:
-            if factory_name not in cls.__factories:
-                # Unknown factory
-                return False
-
-            # Invalidate and delete all components of this factory
-            # FIXME: maybe lock the instances too
-            _unregistration_loop(factory_name)
-            del cls.__factories[factory_name]
-            return True
-
-
-    # Static methods to work on the registry of instances
-    @classmethod
-    def get_stored_instances_by_factory(cls, factory_name):
-        """
-        Retrieves the list of all stored instances of the given factory name
-        """
-        with cls.__instances_lock:
-            return [name \
-                    for (name, stored_instance) in cls.__instances.items() \
-                    if stored_instance.factory == factory_name]
-
-
-    @classmethod
-    def get_stored_instance(cls, component_instance):
-        """
-        Retrieves the _StoredInstance corresponding to the given component instance
-        
-        @param component_instance: A component instance
-        @return: The corresponding _StoredInstance object, None if not found
-        """
-        if component_instance is None:
-            # Invalid parameter
-            return None
-
-        with cls.__instances_lock:
-            for stored_instance in cls.__instances.values():
-                if stored_instance.instance is component_instance:
-                    return stored_instance
-
-        # Not found
-        return None
-
-
-    @classmethod
-    def is_registered_instance(cls, name):
-        """
-        Tests if the given name is registered in the instances registry
-        
-        @param name: A name to test
-        """
-        return name in cls.__instances
-
-
-    @classmethod
-    def get_instance(cls, name):
-        """
-        Retrieves the stored instance with the given name from the registry
-        
-        @param name: An instance name
-        @return: The stored instance
-        @raise ValueError: Invalid component name 
-        """
-        assert isinstance(name, str)
-
-        if not name:
-            raise ValueError("Empty component name")
-
-        with cls.__instances_lock:
-            if name not in cls.__instances:
-                raise ValueError("Unknown instance name '%s'" % name)
-
-            # Get the stored instance
-            return cls.__instances[name]
-
-
-    @classmethod
-    def pop_instance(cls, name):
-        """
-        Removes the instance with the given name from the registry and returns
-        its stored instance
-        
-        @param name: An instance name
-        @return: The popped instance
-        @raise ValueError: Invalid component name 
-        """
-        assert isinstance(name, str)
-
-        if not name:
-            raise ValueError("Empty component name")
-
-        with cls.__instances_lock:
-            if name not in cls.__instances:
-                raise ValueError("Unknown instance name '%s'" % name)
-
-            # Get the stored instance
-            stored_instance = cls.__instances[name]
-
-            # Remove it from lists
-            del cls.__instances[name]
-
-            # Return it
-            return stored_instance
-
-
-    @classmethod
-    def register_instance(cls, name, stored_instance):
-        """
-        Registers a component factory
-        
-        @param name: The name of the instance
-        @param stored_instance: The stored instance manager
-        @raise ValueError: The factory name already exists
-        """
-        with cls.__instances_lock:
-            if name in cls.__instances:
-                raise ValueError("'%s' instance already exist" % name)
-
-            cls.__instances[name] = stored_instance
-
-
-    # TODO: instantiate, invalidate and kill should be here 
 
 # ------------------------------------------------------------------------------
 
@@ -260,27 +60,253 @@ class IPopoEvent:
 
 # ------------------------------------------------------------------------------
 
+class Requirement:
+    """
+    Represents a component requirement
+    """
+    # The dictionary form fields
+    __stored_fields__ = ('specifications', 'aggregate', 'optional', 'filter')
+
+    def __init__(self, specifications, aggregate=False, optional=False, \
+                 spec_filter=None):
+        """
+        Sets up the requirement
+        
+        @param specifications: The requirement specification (can't be None)
+        @param aggregate: If true, this requirement represents a list
+        @param optional: If true, this requirement is optional
+        @param spec_filter: A filter to select dependencies
+        
+        @raise TypeError: A parameter has an invalid type
+        @raise ValueError: An error occurred while parsing the filter
+        """
+        if not specifications:
+            raise TypeError("A specification must be given")
+
+        if not isinstance(specifications, list):
+            # Convert specification into a list
+            specifications = [specifications]
+
+        converted_specs = []
+        for spec in specifications:
+
+            if isinstance(spec, str):
+                spec_str = spec
+
+            elif isinstance(spec, type):
+                spec_str = spec.__name__
+
+            else:
+                raise TypeError("The requirement specification must be a " \
+                                "string or a list of string")
+
+            converted_specs.append(spec_str)
+
+        self.aggregate = aggregate
+        self.optional = optional
+        self.specifications = converted_specs
+
+        # Set up the requirement filter (after setting up self.specification)
+        self.set_filter(spec_filter)
+
+
+    def copy(self):
+        """
+        Returns a copy of this instance
+        """
+        return Requirement(self.specifications, self.aggregate, self.optional, \
+                           self.filter)
+
+
+    @classmethod
+    def from_dictionary_form(cls, dictionary):
+        """
+        Sets up an instance with the given dictionary form
+        
+        @param dictionary: The dictionary form
+        @return: A configured requirement instance
+        @raise ValueError: An attribute is missing in the dictionary form
+        @raise TypeError: Invalid form type (only dictionaries are accepted)
+        """
+        if not isinstance(dictionary, dict):
+            raise TypeError("Invalid form type '%s'" \
+                            % type(dictionary).__name__)
+
+        if not "specifications" in dictionary:
+            raise ValueError("Missing specifications in the dictionary form")
+
+        specs = dictionary["specifications"]
+        aggregate = dictionary.get("aggregate", False)
+        optional = dictionary.get("optional", False)
+        spec_filter = ldapfilter.get_ldap_filter(dictionary.get("filter", \
+                                                                None))
+
+        return cls(specs, aggregate, optional, spec_filter)
+
+
+    def matches(self, properties):
+        """
+        Tests if the given _StoredInstance matches this requirement
+        
+        @param properties: Service properties
+        @return: True if the instance matches this requirement
+        """
+        if properties is None:
+            # No properties : invalid service
+            return False
+
+        assert(isinstance(properties, dict))
+
+        # Properties filter test
+        return self.filter.matches(properties)
+
+
+    def set_filter(self, spec_filter):
+        """
+        Changes the current filter for the given one
+        
+        @param spec_filter: The new requirement filter
+        @raise TypeError: Unknown filter type
+        """
+        if spec_filter is not None and not isinstance(spec_filter, str) \
+        and not isinstance(spec_filter, LDAPFilter) \
+        and not isinstance(spec_filter, LDAPCriteria):
+            # Unknown type
+            raise TypeError("Invalid filter type %s" \
+                            % type(spec_filter).__name__)
+
+        ldap_criteria = []
+        for spec in self.specifications:
+            ldap_criteria.append("(%s=%s)" \
+                                 % (pelix.OBJECTCLASS, \
+                                    ldapfilter.escape_LDAP(spec)))
+
+        # Make the filter, escaping the specification name
+        ldap_filter = "(|%s)" % "".join(ldap_criteria)
+
+        if spec_filter is not None:
+            # String given
+            ldap_filter = ldapfilter.combine_filters([ldap_filter, spec_filter])
+
+        # Parse the filter
+        self.filter = ldapfilter.get_ldap_filter(ldap_filter)
+
+
+    def to_dictionary_form(self):
+        """
+        Returns a dictionary form of the current object
+        
+        @raise AttributeError: A field to store is missing in the instance
+        """
+        result = {}
+        for field in self.__stored_fields__:
+            result[field] = getattr(self, field)
+        return result
+
+# ------------------------------------------------------------------------------
+
 class FactoryContext:
     """
     Represents the data stored in a component factory (class)
     """
 
-    # Try to reduce memory footprint (stored instances)
-    __slots__ = ('bundle_context', 'callbacks', 'factory_name', 'properties', \
-                 'properties_fields', 'provides', 'requirements')
+    __basic_fields = ('callbacks', 'name', 'properties', 'properties_fields', \
+                      'provides')
 
-    def __init__(self, bundle_context):
+    def __init__(self):
         """
         Sets up the factory context
         """
-        assert isinstance(bundle_context, BundleContext)
+        # Factory bundle context
+        self.bundle_context = None
 
-        self.bundle_context = bundle_context
+        # Callbacks : Kind -> callback method
         self.callbacks = {}
+
+        # The factory name
+        self.name = None
+
+        # Properties : Name -> Value
         self.properties = {}
+
+        # Properties fields : Field name -> Property name
         self.properties_fields = {}
+
+        # Provided specifications (array of strings)
         self.provides = []
+
+        # Requirements : Field name -> Requirement object
         self.requirements = {}
+
+
+    @classmethod
+    def from_dictionary_form(cls, dictionary):
+        """
+        Sets up this instance with the given dictionary form
+        
+        @param dictionary: The dictionary form
+        @raise ValueError: An attribute is missing in the dictionary form
+        @raise TypeError: Invalid form type (only dictionaries are accepted)
+        """
+        # Prepare the instance, initializing it
+        instance = cls()
+
+        if not isinstance(dictionary, dict):
+            raise TypeError("Invalid form type '%s'" \
+                            % type(dictionary).__name__)
+
+        # Basic fields
+        for field in cls.__basic_fields:
+
+            if field not in dictionary:
+                raise ValueError("Incomplete dictionary form : " \
+                                 "missing '%s'" % field)
+
+            setattr(instance, field, dictionary[field])
+
+        # Requirements field
+        if 'requirements' not in dictionary:
+            raise ValueError("Incomplete dictionary form : " \
+                             "missing 'requirements'")
+
+        requirements = dictionary['requirements']
+        if not isinstance(requirements, dict):
+            raise TypeError("Only dictionaries are handled for 'requirements'")
+
+        for field, requirement_dict in requirements.items():
+            instance.requirements[field] = Requirement.from_dictionary_form(\
+                                                            requirement_dict)
+
+        return instance
+
+
+    def set_bundle_context(self, bundle_context):
+        """
+        Sets up the bundle context associated to this factory context
+        """
+        assert isinstance(bundle_context, BundleContext)
+        self.bundle_context = bundle_context
+
+
+    def to_dictionary_form(self):
+        """
+        Returns a dictionary form of the current object
+        
+        @raise AttributeError: A field to store in missing in the instance
+        """
+        result = {}
+
+        # Fields with standard Python types (no conversion needed)
+        for entry in self.__basic_fields:
+            result[entry] = getattr(self, entry)
+
+        # Requirements field
+        requirements = {}
+        for field, requirement in self.requirements.items():
+            requirements[field] = requirement.to_dictionary_form()
+
+        result['requirements'] = requirements
+        return result
 
 
 class ComponentContext:
@@ -288,8 +314,8 @@ class ComponentContext:
     Represents the data stored in a component instance
     """
 
-    # Try to reduce memory footprint (stored instances)
-    __slots__ = ('__factory_context', 'name', 'properties', 'requirements')
+    # Try to reduce memory footprint (stored __instances)
+    __slots__ = ('factory_context', 'name', 'properties', 'requirements')
 
     def __init__(self, factory_context, name, properties):
         """
@@ -301,7 +327,7 @@ class ComponentContext:
         assert isinstance(factory_context, FactoryContext)
         assert isinstance(properties, dict)
 
-        self.__factory_context = factory_context
+        self.factory_context = factory_context
         self.name = name
 
         # Force the instance name property
@@ -343,7 +369,7 @@ class ComponentContext:
         """
         Retrieves the bundle context
         """
-        return self.__factory_context.bundle_context
+        return self.factory_context.bundle_context
 
 
     def get_callback(self, event):
@@ -351,21 +377,22 @@ class ComponentContext:
         Retrieves the registered method for the given event. Returns None if not
         found
         """
-        return self.__factory_context.callbacks.get(event, None)
+        return self.factory_context.callbacks.get(event, None)
+
+
+    def get_factory_name(self):
+        """
+        Retrieves the component factory name
+        """
+        return self.factory_context.name
 
 
     def get_provides(self):
         """
         Retrieves the services that this component provides
         """
-        return self.__factory_context.provides
+        return self.factory_context.provides
 
-
-    def get_requirements(self):
-        """
-        Retrieves the component requirements
-        """
-        return self.requirements
 
 
 class _StoredInstance:
@@ -373,9 +400,9 @@ class _StoredInstance:
     Represents a component instance
     """
 
-    # Try to reduce memory footprint (stored instances)
-    __slot__ = ('bindings', 'context', 'factory', 'instance', 'name', \
-                'registration', 'state', '_lock')
+    # Try to reduce memory footprint (stored __instances)
+    __slot__ = ('bindings', 'bundle_context', 'context', 'factory_name', \
+                'instance', 'name', 'registration', 'state', '_lock')
 
     INVALID = 0
     """ This component has been invalidated """
@@ -387,14 +414,22 @@ class _StoredInstance:
     """ This component has been killed """
 
 
-    def __init__(self, factory_name, context, instance):
+    def __init__(self, ipopo_service, context, instance):
         """
         Sets up the instance object
+        
+        @param ipopo_service: The iPOPO service that instantiated this component
+        @param factory_name: Name of the component factory
+        @param context: The component context
+        @param instance: The component instance
         """
         assert isinstance(context, ComponentContext)
 
         # The lock
         self._lock = threading.RLock()
+
+        # The iPOPO service
+        self._ipopo_service = ipopo_service
 
         # Component context
         self.context = context
@@ -403,7 +438,7 @@ class _StoredInstance:
         self.name = self.context.name
 
         # Factory name
-        self.factory = factory_name
+        self.factory_name = self.context.get_factory_name()
 
         # Component instance
         self.instance = instance
@@ -418,9 +453,11 @@ class _StoredInstance:
         self.state = _StoredInstance.INVALID
 
         # Register to the events
-        bundle_context = self.context.get_bundle_context()
-        bundle_context.add_service_listener(self)
-        bundle_context.add_bundle_listener(self)
+        self.bundle_context = self.context.get_bundle_context()
+        assert isinstance(self.bundle_context, BundleContext)
+
+        self.bundle_context.add_service_listener(self)
+        self.bundle_context.add_bundle_listener(self)
 
 
     def __repr__(self):
@@ -471,7 +508,7 @@ class _StoredInstance:
         # Call the component
         if callback:
             self.safe_callback(constants.IPOPO_CALLBACK_INVALIDATE, \
-                               self.context.get_bundle_context())
+                               self.bundle_context)
 
         # Change the state
         self.state = _StoredInstance.INVALID
@@ -485,15 +522,17 @@ class _StoredInstance:
     def kill(self):
         """
         This instance is killed : invalidate it if needed, clean up all members
+        
+        When this method is called, this _StoredInstance object must have 
+        been removed from the registry
         """
         # Already dead...
         if self.state == _StoredInstance.KILLED:
             return
 
         # Unregister from service events
-        bundle_context = self.context.get_bundle_context()
-        bundle_context.remove_service_listener(self)
-        bundle_context.remove_bundle_listener(self)
+        self.bundle_context.remove_service_listener(self)
+        self.bundle_context.remove_bundle_listener(self)
 
         try:
             self.invalidate(True)
@@ -501,12 +540,11 @@ class _StoredInstance:
         except:
             _logger.exception("%s: Error invalidating the instance", self.name)
 
-        # Clean up the registry
-        if _Registry.is_registered_instance(self.name):
-            _Registry.pop_instance(self.name)
+        # Now that we are nearly clean, be sure we were in a good registry state
+        assert not self._ipopo_service.is_registered_instance(self.name)
 
         # Unbind all references
-        for field, requirement in self.context.get_requirements().items():
+        for field, requirement in self.context.requirements.items():
 
             field_value = getattr(self.instance, field, None)
             if field_value is None:
@@ -529,6 +567,7 @@ class _StoredInstance:
         self.bindings.clear()
         self.context = None
         self.instance = None
+        self._ipopo_service = None
 
 
     @SynchronizedClassMethod('_lock')
@@ -579,7 +618,7 @@ class _StoredInstance:
                 current_value = []
 
         # Get the service instance
-        service = self.context.get_bundle_context().get_service(reference)
+        service = self.bundle_context.get_service(reference)
 
         if requirement.aggregate:
             # Append the service to the list and inject the whole list
@@ -650,8 +689,7 @@ class _StoredInstance:
             injected = []
 
         # Compute the bound services
-        bundle_context = self.context.get_bundle_context()
-        bound = [bundle_context.get_service(reference) \
+        bound = [self.bundle_context.get_service(reference) \
                  for reference in references]
 
         # Set the field
@@ -720,14 +758,13 @@ class _StoredInstance:
         @return: True if the component can be validated
         """
         # Get the requirement, or an empty dictionary
-        requirements = self.context.get_requirements()
+        requirements = self.context.requirements
         if not requirements:
             # No requirements : nothing to do
             return True
 
         all_bound = True
         component = self.instance
-        bundle_context = self.context.get_bundle_context()
 
         for field, requires in requirements.items():
             # For each field
@@ -739,8 +776,8 @@ class _StoredInstance:
                 continue
 
             # Find possible services (specification test is already in filter
-            refs = bundle_context.get_all_service_references(None, \
-                                                             requires.filter)
+            refs = self.bundle_context.get_all_service_references(None, \
+                                                            requires.filter)
 
             if not refs:
                 if not requires.optional:
@@ -790,7 +827,6 @@ class _StoredInstance:
         if self.state == _StoredInstance.KILLED:
             raise RuntimeError("%s: Zombies !" % self.context.name)
 
-        bundle_context = self.context.get_bundle_context()
         provides = self.context.get_provides()
 
         # All good
@@ -801,11 +837,11 @@ class _StoredInstance:
             self.registration = None
 
         else:
-            self.registration = bundle_context.register_service(\
-                                                self.context.get_provides(), \
-                                                self.instance, \
-                                                self.context.properties.copy(), \
-                                                True)
+            self.registration = self.bundle_context.register_service(\
+                                            self.context.get_provides(), \
+                                            self.instance, \
+                                            self.context.properties.copy(), \
+                                            True)
 
 
     @SynchronizedClassMethod('_lock')
@@ -816,7 +852,7 @@ class _StoredInstance:
         @param event: A BundleEvent object
         """
         bundle = event.get_bundle()
-        self_bundle = self.context.get_bundle_context().get_bundle()
+        self_bundle = self.bundle_context.get_bundle()
 
         if bundle is not self_bundle:
             # Not of our business..
@@ -837,13 +873,12 @@ class _StoredInstance:
         """
         kind = event.get_type()
         reference = event.get_service_reference()
-        bundle_context = self.context.get_bundle_context()
 
         if kind == ServiceEvent.REGISTERED:
             # Maybe a new dependency...
             can_validate = (self.state != _StoredInstance.VALID)
 
-            for field, requires in self.context.get_requirements().items():
+            for field, requires in self.context.requirements.items():
 
                 if reference in self.bindings.get(field, []):
                     # Reference already known, ignore it
@@ -867,7 +902,7 @@ class _StoredInstance:
             if can_validate:
                 # ... even a validating dependency
                 self.safe_callback(constants.IPOPO_CALLBACK_VALIDATE, \
-                                   self.context.get_bundle_context())
+                                   self.bundle_context)
                 self.validate()
 
         elif kind == ServiceEvent.UNREGISTERING:
@@ -877,9 +912,9 @@ class _StoredInstance:
             for field, binding in self.bindings.items():
                 if reference in binding:
                     # We were using this dependency
-                    service = bundle_context.get_service(reference)
+                    service = self.bundle_context.get_service(reference)
                     field_value = getattr(self.instance, field)
-                    requirement = self.context.get_requirements()[field]
+                    requirement = self.context.requirements[field]
 
                     if not invalidate and not requirement.optional:
                         if not requirement.aggregate or len(field_value) == 1:
@@ -887,13 +922,13 @@ class _StoredInstance:
                             invalidate = True
                             self.safe_callback(\
                                         constants.IPOPO_CALLBACK_INVALIDATE, \
-                                        self.context.get_bundle_context())
+                                        self.bundle_context)
 
                     # Remove the entry
                     self.__unset_binding(field, requirement, service)
 
                     # Free the reference to the service
-                    bundle_context.unget_service(reference)
+                    self.bundle_context.unget_service(reference)
 
             # Finish the invalidation
             if invalidate:
@@ -902,7 +937,7 @@ class _StoredInstance:
             # Ask for a new chance...
             if self.update_bindings() and invalidate:
                 self.safe_callback(constants.IPOPO_CALLBACK_VALIDATE, \
-                                   self.context.get_bundle_context())
+                                   self.bundle_context)
                 self.validate()
 
         elif kind == ServiceEvent.MODIFIED:
@@ -914,14 +949,14 @@ class _StoredInstance:
             for field, binding in self.bindings.items():
                 if reference in binding:
                     # We are using this dependency
-                    requirement = self.context.get_requirements()[field]
+                    requirement = self.context.requirements[field]
 
                     if requirement.matches(reference.get_properties()):
                         # The service still corresponds to the field, ignore
                         continue
 
                     # We lost it... (yeah, same as above, I know)
-                    service = bundle_context.get_service(reference)
+                    service = self.bundle_context.get_service(reference)
                     field_value = getattr(self.instance, field)
 
                     if not invalidate and not requirement.optional:
@@ -930,7 +965,7 @@ class _StoredInstance:
                             invalidate = True
                             self.safe_callback(\
                                         constants.IPOPO_CALLBACK_INVALIDATE, \
-                                        self.context.get_bundle_context())
+                                        self.bundle_context)
 
                     # Remove the entry
                     self.__unset_binding(field, requirement, service)
@@ -938,7 +973,7 @@ class _StoredInstance:
                     to_remove.append((field, service))
 
                     # Free the reference to the service
-                    bundle_context.unget_service(reference)
+                    self.bundle_context.unget_service(reference)
 
             # Finish the removal
             for field, service in to_remove:
@@ -955,285 +990,470 @@ class _StoredInstance:
             # Ask for a new chance...
             if self.update_bindings() and (invalidate or can_validate):
                 self.safe_callback(constants.IPOPO_CALLBACK_VALIDATE, \
-                                   self.context.get_bundle_context())
+                                   self.bundle_context)
                 self.validate()
 
 # ------------------------------------------------------------------------------
 
-class Requirement:
+def _load_bundle_factories(bundle):
     """
-    Represents a component requirement
+    Retrieves a list of pairs (FactoryContext, factory class) with all
+    readable manipulated classes found in the bundle.
     """
-    def __init__(self, specifications, aggregate=False, optional=False, \
-                 spec_filter=None):
+    result = []
+
+    # Get the Python module
+    module = bundle.get_module()
+
+    # Get the bundle context
+    bundle_context = bundle.get_bundle_context()
+
+    # Get all classes defined in the module
+    for inspect_member in inspect.getmembers(module, inspect.isclass):
+
+        # Get the class in the result tuple
+        factory_class = inspect_member[1]
+
+        # Try to get the context dictionary (built using decorators)
+        context_dict = getattr(factory_class, \
+                               constants.IPOPO_FACTORY_CONTEXT_DATA, None)
+
+        if not isinstance(context_dict, dict):
+            # The class has not been manipulated, or too badly
+            continue
+
+        # Try to load the stored data
+        try:
+            context = FactoryContext.from_dictionary_form(context_dict)
+
+        except (TypeError, ValueError):
+            _logger.exception("Invalid data in manipulated class '%s'", \
+                              factory_class.__name__)
+            # Work on the next class
+            continue
+
+        # Setup the context
+        context.set_bundle_context(bundle_context)
+
+        # Inject the constructed object
+        setattr(factory_class, constants.IPOPO_FACTORY_CONTEXT, context)
+
+        result.append((context, factory_class))
+
+    return result
+
+# ------------------------------------------------------------------------------
+
+def _field_property_generator(stored_instance):
+    """
+    Generates the methods called by the injected class properties
+
+    @param stored_instance: A stored component instance
+    """
+    def get_value(self, name):
         """
-        Sets up the requirement
+        Retrieves the property value, from the iPOPO dictionaries
+
+        @param name: The property name
+        @return: The property value
+        """
+        return stored_instance.context.properties.get(name, None)
+
+
+    def set_value(self, name, new_value):
+        """
+        Sets the property value and trigger an update event
         
-        @param specifications: The requirement specification (can't be None)
-        @param aggregate: If true, this requirement represents a list
-        @param optional: If true, this requirement is optional
-        @param spec_filter: A filter to select dependencies
+        @param name: The property name
+        @param new_value: The new property value
+        """
+        # Get the previous value
+        old_value = stored_instance.context.properties.get(name, None)
+
+        # Change the property
+        stored_instance.context.properties[name] = new_value
+
+        if new_value != old_value:
+            # New value is different of the old one, trigger an event
+            stored_instance.update_property(name, old_value, new_value)
+
+        return new_value
+
+    return (get_value, set_value)
+
+
+def _manipulate_component(instance, stored_instance):
+    """
+    Manipulates the component instance to inject missing elements.
+    
+    Injects the properties handling
+    """
+    assert instance is not None
+    assert isinstance(stored_instance, _StoredInstance)
+
+    getter, setter = _field_property_generator(stored_instance)
+
+    # Inject the getter and setter at the instance level
+    setattr(instance, constants.IPOPO_PROPERTY_GETTER, getter)
+    setattr(instance, constants.IPOPO_PROPERTY_SETTER, setter)
+
+# ------------------------------------------------------------------------------
+
+class _IPopoService(constants.IIPopoService):
+    """
+    The iPOPO registry and service
+    """
+
+    def __init__(self):
+        """
+        Sets up the iPOPO registry
+        """
+        # Factories registry : name -> factory class
+        self.__factories = {}
+
+        # Instances registry : name -> _StoredInstance object
+        self.__instances = {}
+
+        # Registries locks
+        self.__factories_lock = threading.RLock()
+        self.__instances_lock = threading.RLock()
+
+
+    def __get_stored_instances_by_factory(self, factory_name):
+        """
+        Retrieves the list of all stored instances objects corresponding to
+        the given factory name
+        """
+        with self.__instances_lock:
+            return [stored_instance \
+                    for stored_instance in self.__instances.values() \
+                    if stored_instance.factory_name == factory_name]
+
+
+    def _register_bundle_factories(self, bundle):
+        """
+        Registers all factories found in the given bundle
         
-        @raise TypeError: A parameter has an invalid type
-        @raise ValueError: An error occurred while parsing the filter
+        @param bundle: A bundle
         """
-        if not specifications:
-            raise TypeError("A specification must be given")
+        assert isinstance(bundle, Bundle)
 
-        if not isinstance(specifications, list):
-            # Convert specification into a list
-            specifications = [specifications]
+        # Load the bundle factories
+        factories = _load_bundle_factories(bundle)
 
-        converted_specs = []
-        for spec in specifications:
-
-            if isinstance(spec, str):
-                spec_str = spec
-
-            elif isinstance(spec, type):
-                spec_str = spec.__name__
-
-            else:
-                raise TypeError("The requirement specification must be a " \
-                                "string or a list of string")
-
-            converted_specs.append(spec_str)
-
-        self.aggregate = aggregate
-        self.optional = optional
-        self.specification = converted_specs
-
-        # Set up the requirement filter (after setting up self.specification)
-        self.set_filter(spec_filter)
+        for context, factory_class in factories:
+            # Register each found factory
+            self._register_factory(context.name, factory_class, True)
 
 
-    def copy(self):
+    def _register_factory(self, factory_name, factory, override=True):
         """
-        Returns a copy of this instance
-        """
-        return Requirement(self.specification, self.aggregate, self.optional, \
-                           self.filter)
-
-
-    def matches(self, properties):
-        """
-        Tests if the given _StoredInstance matches this requirement
+        Registers a component factory
         
-        @param properties: Service properties
-        @return: True if the instance matches this requirement
+        @param factory_name: The name of the factory
+        @param factory: The factory class object
+        @param override: If true, previous factory is overridden, else an
+        exception is risen if a previous factory with that name already exists
+        @raise ValueError: The factory name already exists or is invalid
+        @raise TypeError: Invalid factory type
         """
-        if properties is None:
-            # No properties : invalid service
+        if not factory_name or not isinstance(factory_name, str):
+            raise ValueError("A factory name must be a non-empty string")
+
+        if not isinstance(factory, type):
+            raise TypeError("Invalid factory class '%s'" \
+                            % type(factory).__name__)
+
+        with self.__factories_lock:
+            if factory_name in self.__factories:
+                if override:
+                    _logger.info("Overriding factory '%s'", factory_name)
+
+                else:
+                    raise ValueError("'%s' factory already exist" \
+                                     % factory_name)
+
+            self.__factories[factory_name] = factory
+            _logger.debug("Factory '%s' registered", factory_name)
+
+
+    def _unregister_all_factories(self):
+        """
+        Unregisters all factories. This method should be called only after the
+        iPOPO service has been unregistered (that's why it's not locked)
+        """
+        factories = list(self.__factories.keys())
+
+        for factory_name in factories:
+            self._unregister_factory(factory_name)
+
+
+    def _unregister_bundle_factories(self, bundle):
+        """
+        Unregisters all factories of the given bundle
+        
+        @param bundle: A bundle
+        """
+        assert isinstance(bundle, Bundle)
+
+        with self.__factories_lock:
+            # Find out which factories must be removed
+            to_remove = []
+
+            for name, factory in self.__factories.items():
+                # Bundle Context is stored in the Factory Context
+                factory_context = getattr(factory, \
+                                          constants.IPOPO_FACTORY_CONTEXT)
+
+                if factory_context.bundle_context.get_bundle() is bundle:
+                    # Found
+                    to_remove.append(name)
+
+            # Remove all of them
+            for factory in to_remove:
+                self._unregister_factory(factory)
+
+
+    def _unregister_factory(self, factory_name):
+        """
+        Unregisters the given component factory
+        
+        @param factory_name: Name of the factory to unregister
+        @return: True the factory has been removed, False if the factory is
+        unknown
+        """
+        if not factory_name:
+            # Empty name
             return False
 
-        assert(isinstance(properties, dict))
+        with self.__factories_lock:
+            if factory_name not in self.__factories:
+                # Unknown factory
+                return False
 
-        # Properties filter test
-        return self.filter.matches(properties)
+            # Invalidate and delete all components of this factory
+            with self.__instances_lock:
+                # Compute the list of __instances to remove
+                to_remove = self.__get_stored_instances_by_factory(factory_name)
+
+                # Remove instances from the registry: avoids dependencies \
+                # update to link against a component from this factory again.
+                for instance in to_remove:
+                    self.kill(instance.name)
+
+            # Remove the factory from the registry
+            del self.__factories[factory_name]
+            _logger.debug("Factory '%s' unregistered", factory_name)
+
+        return True
 
 
-    def set_filter(self, spec_filter):
+    def instantiate(self, factory_name, name, properties=None):
         """
-        Changes the current filter for the given one
+        Instantiates a component from the given factory, with the given name
         
-        @param spec_filter: The new requirement filter
-        @raise TypeError: Unknown filter type
+        @param factory_name: Name of the component factory
+        @param name: Name of the instance to be started
+        @return: The component instance
+        @raise TypeError: The given factory is unknown
+        @raise ValueError: The given name or factory name is invalid, or an
+        instance with the given name already exists
+        @raise Exception: Something wrong occurred in the factory
         """
-        if spec_filter is not None and not isinstance(spec_filter, str) \
-        and not isinstance(spec_filter, LDAPFilter) \
-        and not isinstance(spec_filter, LDAPCriteria):
-            # Unknown type
-            raise TypeError("Invalid filter type %s" \
-                            % type(spec_filter).__name__)
+        # Test parameters
+        if not factory_name:
+            raise ValueError("Invalid factory name")
 
-        ldap_criteria = []
-        for spec in self.specification:
-            ldap_criteria.append("(%s=%s)" \
-                                 % (pelix.OBJECTCLASS, \
-                                    ldapfilter.escape_LDAP(spec)))
+        if not name:
+            raise ValueError("Invalid component name")
 
-        # Make the filter, escaping the specification name
-        ldap_filter = "(|%s)" % "".join(ldap_criteria)
+        with self.__instances_lock:
+            if name in self.__instances:
+                raise ValueError("'%s' is an already running instance name" \
+                                 % name)
 
-        if spec_filter is not None:
-            # String given
-            ldap_filter = ldapfilter.combine_filters([ldap_filter, spec_filter])
+            with self.__factories_lock:
+                # Can raise a ValueError exception
+                factory = self.__factories.get(factory_name, None)
+                if factory is None:
+                    raise TypeError("Unknown factory '%s'" % factory_name)
 
-        # Parse the filter
-        self.filter = ldapfilter.get_ldap_filter(ldap_filter)
+                # Get the factory context
+                factory_context = getattr(factory, \
+                                          constants.IPOPO_FACTORY_CONTEXT, None)
+                if factory_context is None:
+                    raise TypeError("Factory context missing in '%s'" \
+                                    % factory_name)
 
-# ------------------------------------------------------------------------------
+            # Create component instance
+            try:
+                instance = factory()
 
-def register_factory(factory_name, factory):
-    """
-    Registers a component factory
-    
-    @param factory_name: The name of the factory
-    @param factory: The factory class object
-    @raise ValueError: The factory name is invalid
-    @raise TypeError: The factory object is invalid
-    """
-    if not factory_name or not isinstance(factory_name, str):
-        raise ValueError("Factory name must be a non-empty string")
+            except:
+                _logger.exception("Error creating the instance '%s' " \
+                                  "from factory '%s'", name, factory_name)
 
-    if factory is None or not isinstance(factory, type):
-        raise TypeError("The factory '%s' must be a type" % factory_name)
+                raise TypeError("Factory '%s' failed to create '%s'" \
+                                % (factory_name, name))
 
-    _Registry.register_factory(factory_name, factory, True)
-    _logger.info("Factory '%s' registered", factory_name)
+            # Normalize given properties
+            if properties is None or not isinstance(properties, dict):
+                properties = {}
 
+            # Set the instance context
+            component_context = ComponentContext(factory_context, name, \
+                                                 properties)
+            setattr(instance, constants.IPOPO_COMPONENT_CONTEXT, \
+                    component_context)
 
-def unregister_factory(factory_name):
-    """
-    Unregisters the given component factory
-    
-    @param factory_name: Name of the factory to unregister
-    """
-    if not factory_name:
-        return
+            # Prepare the stored instance
+            stored_instance = _StoredInstance(self, component_context, instance)
 
-    if _Registry.unregister_factory(factory_name):
-        _logger.info("Factory '%s' removed", factory_name)
+            # Manipulate the properties
+            _manipulate_component(instance, stored_instance)
 
-    else:
-        _logger.info("Unknown factory '%s' can't be removed", factory_name)
+            # Store the instance
+            self.__instances[name] = stored_instance
 
-# ------------------------------------------------------------------------------
+        # Try to validate it
+        if stored_instance.update_bindings():
+            try:
+                stored_instance.callback(constants.IPOPO_CALLBACK_VALIDATE, \
+                                         component_context.get_bundle_context())
 
-def instantiate(factory_name, name, properties={}):
-    """
-    Instantiates a component from the given factory, with the given name
-    
-    @param factory_name: Name of the component factory
-    @param name: Name of the instance to be started
-    @return: The component instance
-    @raise TypeError: The given factory is unknown
-    @raise ValueError: The given name or factory name is invalid, or an
-    instance with the given name already exists
-    @raise Exception: Something wrong occurred in the factory
-    """
-    # Test parameters
-    if not factory_name:
-        raise ValueError("Invalid factory name")
+                # End the validation on success...
+                stored_instance.validate()
 
-    if not name:
-        raise ValueError("Invalid component name")
+            except Exception:
+                # Log the error
+                _logger.exception("Error validating '%s'", stored_instance.name)
 
-    if _Registry.is_registered_instance(name):
-        raise ValueError("'%s' is an already running instance name" % name)
+                # Kill the component
+                self.kill(name)
+                return None
 
-    # Can raise a ValueError exception
-    factory = _Registry.get_factory(factory_name)
-    if factory is None:
-        raise TypeError("Null factory registered '%s'" % factory_name)
-
-    # Get the factory context
-    factory_context = getattr(factory, constants.IPOPO_FACTORY_CONTEXT, None)
-    if factory_context is None:
-        raise TypeError("Factory context missing in '%s'" % factory_name)
-
-    # Create component instance
-    instance = factory()
-    if instance is None:
-        raise TypeError("Factory '%s' failed to create '%s'" \
-                        % (factory_name, name))
-
-    # Normalize given properties
-    if properties is None or not isinstance(properties, dict):
-        properties = {}
-
-    # Set the instance context
-    component_context = ComponentContext(factory_context, name, properties)
-    setattr(instance, constants.IPOPO_COMPONENT_CONTEXT, component_context)
-
-    # Prepare the stored instance
-    stored_instance = _StoredInstance(factory_name, component_context, instance)
-
-    # Store the instance
-    _Registry.register_instance(name, stored_instance)
-
-    # Try to validate it
-    if stored_instance.update_bindings():
-        try:
-            stored_instance.callback(constants.IPOPO_CALLBACK_VALIDATE, \
-                                     component_context.get_bundle_context())
-
-            # End the validation on success...
-            stored_instance.validate()
-
-        except Exception:
-            # Log the error
-            _logger.exception("Error validating '%s'", stored_instance.name)
-
-            kill(name)
-            return None
-
-    return instance
+        return instance
 
 
-def invalidate(name):
-    """
-    Invalidates the given component
-    
-    @param name: Name of the component to invalidate
-    @raise ValueError: Invalid component name
-    """
-    stored_instance = _Registry.get_instance(name)
+    def invalidate(self, name):
+        """
+        Invalidates the given component
+        
+        @param name: Name of the component to invalidate
+        @raise ValueError: Invalid component name
+        """
+        with self.__instances_lock:
+            if name not in self.__instances:
+                raise ValueError("Unknown component instance '%s'" % name)
 
-    # Finish the invalidation (unregister services may trigger events)
-    stored_instance.invalidate(True)
+            stored_instance = self.__instances[name]
+
+            # Call back the component during the invalidation
+            stored_instance.invalidate(True)
 
 
-def kill(name):
-    """
-    Kills the given component
-    
-    @param name: Name of the component to kill
-    @raise ValueError: Invalid component name
-    """
-    stored_instance = _Registry.pop_instance(name)
+    def is_registered_instance(self, name):
+        """
+        Tests if the given name is in the instance registry
+        
+        @param name: A component name to be tested
+        """
+        with self.__instances_lock:
+            return name in self.__instances
 
-    # Kill it
-    stored_instance.kill()
 
-# ------------------------------------------------------------------------------s
+    def kill(self, name):
+        """
+        Kills the given component
+        
+        @param name: Name of the component to kill
+        @raise ValueError: Invalid component name
+        """
+        if not name:
+            raise ValueError("Name can't be None or empty")
 
-def handle_property_changed(changed_component, name, old_value, new_value):
-    """
-    Handles a property changed event
-    
-    @param changed_component: The modified component
-    @param name: The changed property name
-    @param old_value: The previous property value
-    @param new_value: The new property value 
-    """
-    # Get a reference to the changed component
-    stored_instance = _Registry.get_stored_instance(changed_component)
+        with self.__instances_lock:
+            if name not in self.__instances:
+                raise ValueError("Unknown component instance '%s'" % name)
 
-    if not stored_instance:
-        # Not of out business...
-        return
+            stored_instance = self.__instances.pop(name)
 
-    stored_instance.update_property(name, old_value, new_value)
-
+            # Kill it
+            stored_instance.kill()
 
 # ------------------------------------------------------------------------------
 
-def _unregistration_loop(factory_name):
+class _IPopoActivator:
     """
-    Invalidates all instances of the given factory
-    
-    Optimized method : avoid to try to revalidate or rebind dependent components
-    while the factory components are deleted 
+    The iPOPO bundle activator for Pelix
     """
-    # Compute the list of instances to remove
-    to_remove = _Registry.get_stored_instances_by_factory(factory_name)
 
-    if not to_remove:
-        # Nothing to do
-        return
+    def __init__(self):
+        """
+        Sets up the activator
+        """
+        self.registration = None
+        self.service = None
 
-    # Remove instances from the registry: avoids dependencies update to link
-    # against a component from this factory again.
-    for name in to_remove:
-        kill(name)
+
+    def start(self, context):
+        """
+        The bundle has started
+        """
+        assert isinstance(context, BundleContext)
+
+        # Register the iPOPO service
+        self.service = _IPopoService()
+        self.registration = context.register_service(\
+                                        constants.IPOPO_SERVICE_SPECIFICATION, \
+                                        self.service, {})
+
+        # Register as a bundle listener
+        context.add_bundle_listener(self)
+
+        # Get all factories
+        for bundle in context.get_bundles():
+            if bundle.get_state() == Bundle.ACTIVE:
+                # Bundle is active, register its factories
+                self.service._register_bundle_factories(bundle)
+
+
+    def stop(self, context):
+        """
+        The bundle has stopped
+        """
+        assert isinstance(context, BundleContext)
+
+        # Unregister the listener
+        context.remove_bundle_listener(self)
+
+        # Unregister the iPOPO service
+        self.registration.unregister()
+
+        # Clean up the service
+        self.service._unregister_all_factories()
+
+
+    def bundle_changed(self, event):
+        """
+        A bundle event has been triggered
+        
+        @param event: The bundle event
+        """
+        assert isinstance(event, BundleEvent)
+
+        kind = event.get_kind()
+        bundle = event.get_bundle()
+
+        if kind == BundleEvent.STOPPED:
+            # A bundle is gone, remove its __factories
+            self.service._unregister_bundle_factories(bundle)
+
+        elif kind == BundleEvent.STARTING:
+            # A bundle is activating, register its __factories
+            self.service._register_bundle_factories(bundle)
+
+# ------------------------------------------------------------------------------
+
+# The activator instance
+activator = _IPopoActivator()
