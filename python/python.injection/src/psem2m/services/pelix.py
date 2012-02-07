@@ -275,12 +275,7 @@ class Bundle:
         # Copy the services list, as it will be modified during the process
         registered_services = self.__registered_services[:]
         for registration in registered_services:
-            try:
-                registration.unregister()
-
-            except:
-                _logger.exception("%s: Error unregistering service", \
-                                  self.__name)
+            registration.unregister(False)
 
         if len(self.__registered_services) != 0:
             _logger.warning("Not all services have been unregistered...")
@@ -919,18 +914,24 @@ class Framework(Bundle):
 
 
     @SynchronizedClassMethod('_lock')
-    def unregister_service(self, registration):
+    def unregister_service(self, registration, raise_error=True):
         """
         Unregisters the given service
         
         @param reference: A ServiceRegistration to the service to unregister
+        @param raise_error: If True the error is reported raising an error, else
+        by returning False
         @raise BundleException: Invalid reference
         """
         assert(isinstance(registration, ServiceRegistration))
 
         reference = registration.get_reference()
         if reference not in self.__registry:
-            raise BundleException("Invalid service reference")
+            # FIXME: race condition with iPOPO unregistering component services
+            if raise_error:
+                raise BundleException("Invalid service reference")
+            else:
+                return False
 
         # Keep a track of the unregistering reference
         self.__unregistering_services[reference] = self.__registry[reference]
@@ -947,6 +948,8 @@ class Framework(Bundle):
 
         # Remove the unregistering reference
         del self.__unregistering_services[reference]
+
+        return True
 
 
     @SynchronizedClassMethod('_lock')
@@ -1383,11 +1386,11 @@ class ServiceRegistration:
                                      previous))
 
 
-    def unregister(self):
+    def unregister(self, raise_error=True):
         """
         Unregisters the service
         """
-        self.__framework.unregister_service(self)
+        self.__framework.unregister_service(self, raise_error)
 
 # ------------------------------------------------------------------------------
 

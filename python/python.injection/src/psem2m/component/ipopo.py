@@ -511,7 +511,9 @@ class _StoredInstance:
         self.state = _StoredInstance.INVALID
 
         if self.registration is not None:
-            self.registration.unregister()
+            # Ignore error
+            # FIXME: race condition with Pelix unregistering bundle services
+            self.registration.unregister(False)
             self.registration = None
 
 
