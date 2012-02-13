@@ -106,7 +106,7 @@ public class HttpSignalData implements Serializable, ISignalData {
      * @param aHostName
      *            The signal sender host name
      */
-    public void setHostName(final String aHostName) {
+    public void setSenderHostName(final String aHostName) {
 
         pHostName = aHostName;
     }
@@ -128,7 +128,7 @@ public class HttpSignalData implements Serializable, ISignalData {
      * @param aSignalData
      *            the signal data
      */
-    public void setSignalData(final Object aSignalData) {
+    public void setSignalContent(final Object aSignalData) {
 
         pSignalData = aSignalData;
     }

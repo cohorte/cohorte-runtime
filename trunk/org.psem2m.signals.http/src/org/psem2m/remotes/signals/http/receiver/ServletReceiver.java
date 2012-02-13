@@ -128,7 +128,7 @@ public class ServletReceiver extends HttpServlet {
         // Special case : HTTP signal data needs to known the remote host name
         if (signalData instanceof HttpSignalData) {
             // Set the sender if we can
-            ((HttpSignalData) signalData).setHostName(aReq.getRemoteHost());
+            ((HttpSignalData) signalData).setSenderHostName(aReq.getRemoteHost());
         }
 
         // Return success
@@ -199,7 +199,7 @@ public class ServletReceiver extends HttpServlet {
 
                 if (signalData instanceof HttpSignalData) {
                     // Set the sender if we can
-                    ((HttpSignalData) signalData).setHostName(aRemoteHost);
+                    ((HttpSignalData) signalData).setSenderHostName(aRemoteHost);
                 }
 
             } else {
@@ -218,7 +218,7 @@ public class ServletReceiver extends HttpServlet {
             // End Of File Exception : the POST body was empty
             // WARNING: the sender in the signal data will be invalid
             signalData = new HttpSignalData(null, null);
-            ((HttpSignalData) signalData).setHostName(aRemoteHost);
+            ((HttpSignalData) signalData).setSenderHostName(aRemoteHost);
 
         } catch (final IOException e) {
             // Other I/O Exceptions
