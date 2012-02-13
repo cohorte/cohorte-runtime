@@ -114,7 +114,14 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver,
             public void run() {
 
                 for (final ISignalListener listener : signalListeners) {
-                    listener.handleReceivedSignal(aSignalName, aSignalData);
+
+                    try {
+                        listener.handleReceivedSignal(aSignalName, aSignalData);
+
+                    } catch (final Throwable throwable) {
+                        pLogger.logWarn(this, "handleReceivedSignal",
+                                "Error notifying a signal listener", throwable);
+                    }
                 }
             }
         });
