@@ -1,14 +1,15 @@
 #!/usr/bin/python3
 #-- Content-Encoding: UTF-8 --
 
+from psem2m.component import constants
 from psem2m.component.constants import IPOPO_INSTANCE_NAME
 from psem2m.component.decorators import ComponentFactory, Property, Validate, \
     Invalidate, Provides, Requires, Bind, Unbind
-from psem2m.component.ipopo import instantiate, kill
-
-import logging
 from psem2m.services import pelix
 from psem2m.services.pelix import Framework
+import logging
+import time
+
 
 # ------------------------------------------------------------------------------
 
@@ -18,12 +19,6 @@ CONSUMER_FACTORY = "ConsumerFactory"
 
 # Set logging level
 logging.basicConfig(level=logging.DEBUG)
-
-# Start Pelix here !
-framework = pelix.FrameworkFactory.get_framework({'debug': True})
-assert isinstance(framework, Framework)
-
-framework.get_bundle_context().install_bundle(__name__)
 
 # ------------------------------------------------------------------------------
 
@@ -140,23 +135,75 @@ class HelloImpl:
 
 # ------------------------------------------------------------------------------
 
-print("-- Test --")
+class Activator:
+    """
+    The bundle activator
+    """
+    def __init__(self):
+        """
+        Constructor
+        """
+        self.ref = None
+        self.ipopo = None
 
-instantiate(CONSUMER_FACTORY, "Consumer")
-import time
-time.sleep(.8)
+    def start(self, bundle_context):
+        """
+        The bundle is started
+        """
+        self.ref = bundle_context.get_service_reference(\
+                                        constants.IPOPO_SERVICE_SPECIFICATION)
 
-print("---> Instantiation...")
-hello = instantiate(HELLO_IMPL_FACTORY, "HelloInstance", {"To": "Master"})
-print("---> Done")
+        if self.ref is not None:
+            self.ipopo = bundle_context.get_service(self.ref)
 
-time.sleep(.8)
+        print("-- Test --")
+        self.ipopo.instantiate(CONSUMER_FACTORY, "Consumer")
+        time.sleep(.8)
 
-print("--- PROPERTY   ---")
-hello._to = "World"
+        print("---> Instantiation...")
+        hello = self.ipopo.instantiate(HELLO_IMPL_FACTORY, "HelloInstance", \
+                                       {"To": "Master"})
+        print("---> Done")
 
-time.sleep(.8)
+        time.sleep(.8)
 
-print("--- INVALIDATE ---")
-kill("HelloInstance")
-print("--- DONE ---")
+        print("--- PROPERTY   ---")
+        hello._to = "World"
+
+        time.sleep(.8)
+
+        print("--- INVALIDATE ---")
+        self.ipopo.kill("HelloInstance")
+        print("--- DONE ---")
+
+
+
+    def stop(self, bundle_context):
+        """
+        The bundle is stopped
+        """
+        if self.ref is not None:
+            bundle_context.unget_service(self.ref)
+
+# ------------------------------------------------------------------------------
+
+def setup_framework():
+    """
+    Prepares a framework and installs iPOPO and the current module
+    """
+    # Start Pelix here !
+    framework = pelix.FrameworkFactory.get_framework({'debug': True})
+    assert isinstance(framework, Framework)
+
+    # Install iPOPO
+    bid = framework.get_bundle_context().install_bundle("psem2m.component.ipopo")
+    framework.get_bundle_by_id(bid).start()
+
+    # Install the current module
+    bid = framework.get_bundle_context().install_bundle(__name__)
+    framework.get_bundle_by_id(bid).start()
+
+# ------------------------------------------------------------------------------
+
+activator = Activator()
+setup_framework()
