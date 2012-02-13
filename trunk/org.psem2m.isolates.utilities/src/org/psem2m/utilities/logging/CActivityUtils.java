@@ -2,49 +2,59 @@ package org.psem2m.utilities.logging;
 
 import java.util.logging.Level;
 
+import org.psem2m.utilities.CXException;
+
+/**
+ * @author ogattaz
+ * 
+ */
 public class CActivityUtils {
 
-	private static final Level[] LEVELS = { Level.OFF, Level.SEVERE,
-			Level.WARNING, Level.INFO, Level.CONFIG, Level.FINE, Level.FINER,
-			Level.FINEST, Level.ALL };
+    // to be shure that the CActivityLevel class is loaded
+    static {
+        CActivityLevel.getSortedLevels();
+    }
 
-	/**
-	 * @param aLevelName
-	 * @return
-	 */
-	private static String cleanLevelName(String aLevelName) {
-		if (aLevelName != null && aLevelName.length() > 0) {
-			int wMax = aLevelName.length();
-			StringBuilder wSB = new StringBuilder(wMax);
-			char wChar;
-			int wI = 0;
-			while (wI < wMax) {
-				wChar = aLevelName.charAt(wI);
-				if (Character.isLetter(wChar))
-					wSB.append(wChar);
-				wI++;
-			}
+    /**
+     * @param aLevelName
+     * @return
+     */
+    private static String cleanLevelName(String aLevelName) {
 
-			aLevelName = wSB.toString();
-		}
-		return aLevelName;
-	}
+        if (aLevelName != null && aLevelName.length() > 0) {
+            int wMax = aLevelName.length();
+            StringBuilder wSB = new StringBuilder(wMax);
+            char wChar;
+            int wI = 0;
+            while (wI < wMax) {
+                wChar = aLevelName.charAt(wI);
+                if (Character.isLetter(wChar)) {
+                    wSB.append(wChar);
+                }
+                wI++;
+            }
 
-	/**
-	 * @param aLevel
-	 * @return
-	 */
-	static Level levelToLevel(String aLevelName) {
-		aLevelName = cleanLevelName(aLevelName);
-		if (aLevelName != null) {
-			int wMax = LEVELS.length;
-			int wI = 0;
-			while (wI < wMax) {
-				if (LEVELS[wI].getName().equalsIgnoreCase(aLevelName))
-					return LEVELS[wI];
-				wI++;
-			}
-		}
-		return Level.OFF;
-	}
+            aLevelName = wSB.toString().toUpperCase();
+        }
+        return aLevelName;
+    }
+
+    /**
+     * @param aLevel
+     * @return
+     */
+    static Level levelToLevel(String aLevelName) {
+
+        aLevelName = cleanLevelName(aLevelName);
+        if (aLevelName == null) {
+            return Level.OFF;
+        }
+
+        try {
+            return CActivityLevel.parse(aLevelName);
+        } catch (Throwable e) {
+            System.out.println(CXException.eInString(e));
+            return Level.OFF;
+        }
+    }
 }

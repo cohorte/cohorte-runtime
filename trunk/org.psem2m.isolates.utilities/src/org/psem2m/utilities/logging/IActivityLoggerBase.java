@@ -11,90 +11,95 @@ import org.psem2m.utilities.IXDescriber;
  */
 public interface IActivityLoggerBase extends IXDescriber {
 
-	public static final String ALL = Level.ALL.getName();
+    // Level.ALL => "ALL", Integer.MIN_VALUE
+    public static final String ALL = CActivityLevel.ALL.getName();
+    // Level.CONFIG => "CONFIG", 700,
+    public static final String CONFIG = CActivityLevel.CONFIG.getName();
+    // Same as Level.FINE
+    public static final String DEBUG = CActivityLevel.DEBUG.getName();
+    // Same as Level.SEVERE
+    public static final String ERROR = CActivityLevel.ERROR.getName();
+    // Level.FINE => "FINE", 500
+    public static final String FINE = CActivityLevel.FINE.getName();
+    // Level.FINER => "FINER", 400
+    public static final String FINER = CActivityLevel.FINER.getName();
+    // Level.FINEST => "FINEST", 300
+    public static final String FINEST = CActivityLevel.FINEST.getName();
+    // Level.INFO => "INFO", 800
+    public static final String INFO = CActivityLevel.INFO.getName();
+    // Level.OFF => "OFF", Integer.MAX_VALUE
+    public static final String OFF = CActivityLevel.OFF.getName();
+    // Level.SEVERE => "SEVERE", 1000
+    public static final String SEVERE = CActivityLevel.SEVERE.getName();
+    // Level.WARNING => "WARNING", 900
+    public static final String WARNING = CActivityLevel.WARNING.getName();
 
-	public static final String CONFIG = Level.CONFIG.getName();
+    /**
+     * @return
+     */
+    public boolean isLogDebugOn();
 
-	public static final String FINE = Level.FINE.getName();
+    /**
+     * @param aLevel
+     * @return
+     */
+    public boolean isLoggable(Level aLevel);
 
-	public static final String FINER = Level.FINER.getName();
+    /**
+     * @return
+     */
+    public boolean isLogInfoOn();
 
-	public static final String FINEST = Level.FINEST.getName();
+    /**
+     * @return
+     */
+    public boolean isLogSevereOn();
 
-	public static final String INFO = Level.INFO.getName();
+    /**
+     * @return
+     */
+    public boolean isLogWarningOn();
 
-	public static final String OFF = Level.OFF.getName();
+    /**
+     * @param aLevel
+     * @param aWho
+     * @param aWhat
+     * @param aLine
+     */
+    public void log(Level aLevel, Object aWho, CharSequence aWhat,
+            Object... aInfos);
 
-	public static final String SEVERE = Level.SEVERE.getName();
+    /**
+     * @param record
+     */
+    public void log(LogRecord record);
 
-	public static final String WARNING = Level.WARNING.getName();
+    /**
+     * @param aWho
+     * @param aWhat
+     * @param aInfos
+     */
+    public void logDebug(Object aWho, CharSequence aWhat, Object... aInfos);
 
-	/**
-	 * @return
-	 */
-	public boolean isLogDebugOn();
+    /**
+     * @param aWho
+     * @param aWhat
+     * @param aInfos
+     */
+    public void logInfo(Object aWho, CharSequence aWhat, Object... aInfos);
 
-	/**
-	 * @param aLevel
-	 * @return
-	 */
-	public boolean isLoggable(Level aLevel);
+    /**
+     * @param aWho
+     * @param aWhat
+     * @param aInfos
+     */
+    public void logSevere(Object aWho, CharSequence aWhat, Object... aInfos);
 
-	/**
-	 * @return
-	 */
-	public boolean isLogInfoOn();
-
-	/**
-	 * @return
-	 */
-	public boolean isLogSevereOn();
-
-	/**
-	 * @return
-	 */
-	public boolean isLogWarningOn();
-
-	/**
-	 * @param aLevel
-	 * @param aWho
-	 * @param aWhat
-	 * @param aLine
-	 */
-	public void log(Level aLevel, Object aWho, CharSequence aWhat,
-			Object... aInfos);
-
-	/**
-	 * @param record
-	 */
-	public void log(LogRecord record);
-
-	/**
-	 * @param aWho
-	 * @param aWhat
-	 * @param aInfos
-	 */
-	public void logDebug(Object aWho, CharSequence aWhat, Object... aInfos);
-
-	/**
-	 * @param aWho
-	 * @param aWhat
-	 * @param aInfos
-	 */
-	public void logInfo(Object aWho, CharSequence aWhat, Object... aInfos);
-
-	/**
-	 * @param aWho
-	 * @param aWhat
-	 * @param aInfos
-	 */
-	public void logSevere(Object aWho, CharSequence aWhat, Object... aInfos);
-
-	/**
-	 * @param aWho
-	 * @param aWhat
-	 * @param aInfos
-	 */
-	public void logWarn(Object aWho, CharSequence aWhat, Object... aInfos);
+    /**
+     * @param aWho
+     * @param aWhat
+     * @param aInfos
+     */
+    public void logWarn(Object aWho, CharSequence aWhat, Object... aInfos);
 
 }
