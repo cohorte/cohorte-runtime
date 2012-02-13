@@ -7,6 +7,7 @@ package org.psem2m.isolates.base;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.net.InetAddress;
 import java.net.URL;
 import java.net.UnknownHostException;
@@ -43,6 +44,51 @@ public final class Utilities {
         }
 
         return aObject;
+    }
+
+    /**
+     * Tries to convert the object into a typed array. Works only if the given
+     * object is an array containing only objects of the given type.
+     * 
+     * @param aObject
+     *            A potential object array
+     * @param aClass
+     *            The requested return type
+     * 
+     * @return The typed array or null
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T[] arrayToTypedArray(final Object aObject,
+            final Class<T> aClass) {
+
+        if (aObject instanceof Object[]) {
+            // Handled special case : the string array
+            final Object[] objectArray = (Object[]) aObject;
+
+            for (final Object obj : objectArray) {
+
+                if (obj != null && !aClass.isAssignableFrom(obj.getClass())) {
+                    /*
+                     * The entry is not of the requested type, so we can't
+                     * convert the whole array
+                     */
+                    return null;
+                }
+            }
+
+            // Convert the array
+            final T[] resultArray = (T[]) Array.newInstance(aClass,
+                    objectArray.length);
+
+            int i = 0;
+            for (final Object obj : objectArray) {
+                resultArray[i++] = (T) obj;
+            }
+
+            return resultArray;
+        }
+
+        return null;
     }
 
     /**
