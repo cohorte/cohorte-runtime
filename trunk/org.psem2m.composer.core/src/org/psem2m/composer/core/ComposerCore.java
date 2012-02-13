@@ -41,6 +41,7 @@ import org.psem2m.composer.config.IComposerConfigHandler;
 import org.psem2m.composer.model.ComponentBean;
 import org.psem2m.composer.model.ComponentsSetBean;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
+import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.constants.ISignalsConstants;
 import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
@@ -292,21 +293,26 @@ public class ComposerCore extends CPojoBase implements IComposer,
         final String signalSender = aSignalData.getIsolateSender();
         final Object signalContent = aSignalData.getSignalContent();
 
+        // For Jabsorb results...
+        final String[] stringContent = Utilities.arrayToTypedArray(
+                signalContent, String.class);
+        final ComponentBean[] componentsArray = Utilities.arrayToTypedArray(
+                signalContent, ComponentBean.class);
+
         if (ComposerAgentSignals.SIGNAL_RESPONSE_HANDLES_COMPONENTS
                 .equals(aSignalName)) {
             // An isolate can handle some components
 
-            if (signalContent instanceof ComponentBean[]) {
+            if (componentsArray != null) {
                 // We have something that looks like an answer
 
-                final ComponentBean[] components = (ComponentBean[]) signalContent;
-                if (components.length == 0) {
+                if (componentsArray.length == 0) {
                     // We were wrong...
                     return;
                 }
 
                 // Register components capacities
-                registerComponentsForIsolate(signalSender, components);
+                registerComponentsForIsolate(signalSender, componentsArray);
             }
 
         } else if (ComposerAgentSignals.SIGNAL_RESPONSE_INSTANTIATE_COMPONENTS
@@ -326,19 +332,17 @@ public class ComposerCore extends CPojoBase implements IComposer,
         } else if (ComposerAgentSignals.SIGNAL_ISOLATE_ADD_FACTORY
                 .equals(aSignalName)) {
             // An isolate has some new capacities
-            if (signalContent instanceof String[]) {
+            if (stringContent != null) {
 
-                registerComponentsForIsolate(signalSender,
-                        (String[]) signalContent);
+                registerComponentsForIsolate(signalSender, stringContent);
             }
 
         } else if (ComposerAgentSignals.SIGNAL_ISOLATE_REMOVE_FACTORY
                 .equals(aSignalName)) {
             // An isolate lost some capacities
-            if (signalContent instanceof String[]) {
+            if (stringContent != null) {
 
-                unregisterComponentsForIsolate(signalSender,
-                        (String[]) signalContent);
+                unregisterComponentsForIsolate(signalSender, stringContent);
             }
 
         } else if (ComposerAgentSignals.SIGNAL_COMPONENT_CHANGED
@@ -468,10 +472,12 @@ public class ComposerCore extends CPojoBase implements IComposer,
                             @Override
                             public void run() {
 
-                                pLogger.logInfo(this,
+                                pLogger.logInfo(
+                                        this,
                                         "ComponentRequestTimeout",
                                         componentName,
-                                        "instantiation request timed out.");
+                                        "Instantiation request timed out on isolate",
+                                        isolateId);
 
                                 // Notify the timeout
                                 aComposet
@@ -525,6 +531,7 @@ public class ComposerCore extends CPojoBase implements IComposer,
 
                     // Do the job
                     instantiateComponentsSet(composite, resolution);
+
                 } else {
                     pLogger.logInfo(this, "notifyComponentsRegistration",
                             "remaining=", composite.getRemainingComponents(),
@@ -1091,8 +1098,8 @@ public class ComposerCore extends CPojoBase implements IComposer,
         pLogger.logInfo(this, "validatePojo", "Composer Core Ready");
 
         try {
-            test_conf("/home/tcalmant/programmation/workspaces/jvm-forker/org.psem2m.composer.demo.sca/src.old/application.composite");
-            // test_conf("test_compo.js");
+            // test_conf("/home/tcalmant/programmation/workspaces/jvm-forker/org.psem2m.composer.demo.sca/src.old/application.composite");
+            test_conf("test_compo.js");
         } catch (final Throwable e) {
             pLogger.logSevere(this, "", "Something went wrong\n", e);
         }

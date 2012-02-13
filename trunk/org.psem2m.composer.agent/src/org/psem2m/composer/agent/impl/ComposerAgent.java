@@ -32,6 +32,7 @@ import org.psem2m.composer.agent.ComposerAgentConstants;
 import org.psem2m.composer.agent.ComposerAgentSignals;
 import org.psem2m.composer.model.ComponentBean;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
+import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
@@ -353,24 +354,27 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
         final String signalSender = aSignalData.getIsolateSender();
         final Object signalContent = aSignalData.getSignalContent();
 
+        // For Jabsorb results...
+        final String[] stringContent = Utilities.arrayToTypedArray(
+                signalContent, String.class);
+        final ComponentBean[] componentsArray = Utilities.arrayToTypedArray(
+                signalContent, ComponentBean.class);
+
         if (ComposerAgentSignals.SIGNAL_CAN_HANDLE_COMPONENTS
                 .equals(aSignalName)) {
             // Test if the isolate can instantiate the given components
-            if (signalContent instanceof ComponentBean[]) {
+            if (componentsArray != null) {
 
-                canHandleComponents(signalSender,
-                        (ComponentBean[]) signalContent);
+                canHandleComponents(signalSender, componentsArray);
             }
 
         } else if (ComposerAgentSignals.SIGNAL_INSTANTIATE_COMPONENTS
                 .equals(aSignalName)) {
             // Instantiate requested components
-
-            if (signalContent instanceof ComponentBean[]) {
+            if (componentsArray != null) {
 
                 try {
-                    instantiateComponents(signalSender,
-                            (ComponentBean[]) signalContent);
+                    instantiateComponents(signalSender, componentsArray);
 
                 } catch (final Exception e) {
                     pLogger.logSevere(this,
@@ -383,14 +387,13 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
             // Stop requested components
 
             try {
-                if (signalContent instanceof String[]) {
+                if (stringContent != null) {
                     // Only names
-                    stopComponents(signalSender, (String[]) signalContent);
+                    stopComponents(signalSender, stringContent);
 
-                } else if (signalContent instanceof ComponentBean[]) {
+                } else if (componentsArray != null) {
                     // Beans
-                    stopComponents(signalSender,
-                            (ComponentBean[]) signalContent);
+                    stopComponents(signalSender, componentsArray);
                 }
 
             } catch (final Exception e) {
