@@ -851,6 +851,11 @@ class _StoredInstance:
         kind = event.get_type()
         reference = event.get_service_reference()
 
+        if self.registration is not None \
+        and reference is self.registration.get_reference():
+            # Ignore the events we triggered
+            return
+
         if kind == ServiceEvent.REGISTERED:
             # Maybe a new dependency...
             can_validate = (self.state != _StoredInstance.VALID)
@@ -1286,8 +1291,6 @@ class _IPopoService(constants.IIPopoService):
             # Set the instance context
             component_context = ComponentContext(factory_context, name, \
                                                  properties)
-            setattr(instance, constants.IPOPO_COMPONENT_CONTEXT, \
-                    component_context)
 
             # Prepare the stored instance
             stored_instance = _StoredInstance(self, component_context, instance)
