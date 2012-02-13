@@ -178,6 +178,11 @@ public class FileFinder {
             findAllBundles();
         }
 
+        if (!pBundlesCache.containsKey(aSymbolicName)) {
+            // Unknown file
+            return null;
+        }
+
         return new File(pBundlesCache.get(aSymbolicName));
     }
 
@@ -237,9 +242,6 @@ public class FileFinder {
 
         // Erase builder content (re-use it)
         builder.setLength(0);
-
-        System.out.println("Working on : " + infoFile + " / "
-                + infoFile.exists());
 
         if (infoFile.exists() && readNameFromInfo(jarFile, infoFile, builder)) {
             // Info file up to date, read it
