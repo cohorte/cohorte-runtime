@@ -153,6 +153,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>linked-src/org/psem2m/utilities/logging/CActivityLevel.java</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/org.psem2m.isolates.utilities/src/org/psem2m/utilities/logging/CActivityLevel.java</locationURI>
+		</link>
+		<link>
 			<name>linked-src/org/psem2m/utilities/logging/CLogLineTextBuilder.java</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/org.psem2m.isolates.utilities/src/org/psem2m/utilities/logging/CLogLineTextBuilder.java</locationURI>
