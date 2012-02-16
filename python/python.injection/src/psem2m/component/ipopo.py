@@ -5,13 +5,14 @@ Created on 26 janv. 2012
 @author: Thomas Calmant
 """
 
-from psem2m import ldapfilter
+from psem2m import ldapfilter, is_string
 from psem2m.component import constants
 from psem2m.ldapfilter import LDAPFilter, LDAPCriteria
 from psem2m.services import pelix
 from psem2m.services.pelix import BundleContext, ServiceEvent, BundleEvent, \
     Bundle
 from psem2m.utilities import remove_all_occurrences, SynchronizedClassMethod
+
 import inspect
 import logging
 import threading
@@ -90,7 +91,7 @@ class Requirement:
         converted_specs = []
         for spec in specifications:
 
-            if isinstance(spec, str):
+            if is_string(spec):
                 spec_str = spec
 
             elif inspect.isclass(spec):
@@ -168,7 +169,7 @@ class Requirement:
         @param spec_filter: The new requirement filter
         @raise TypeError: Unknown filter type
         """
-        if spec_filter is not None and not isinstance(spec_filter, str) \
+        if spec_filter is not None and not is_string(spec_filter) \
         and not isinstance(spec_filter, LDAPFilter) \
         and not isinstance(spec_filter, LDAPCriteria):
             # Unknown type
@@ -1145,7 +1146,7 @@ class _IPopoService(constants.IIPopoService):
         @raise ValueError: The factory name already exists or is invalid
         @raise TypeError: Invalid factory type
         """
-        if not factory_name or not isinstance(factory_name, str):
+        if not factory_name or not is_string(factory_name):
             raise ValueError("A factory name must be a non-empty string")
 
         if not inspect.isclass(factory):
@@ -1162,7 +1163,6 @@ class _IPopoService(constants.IIPopoService):
                                      % factory_name)
 
             self.__factories[factory_name] = factory
-            _logger.debug("Factory '%s' registered", factory_name)
 
 
     def _unregister_all_factories(self):
@@ -1231,7 +1231,6 @@ class _IPopoService(constants.IIPopoService):
 
             # Remove the factory from the registry
             del self.__factories[factory_name]
-            _logger.debug("Factory '%s' unregistered", factory_name)
 
         return True
 
@@ -1312,7 +1311,7 @@ class _IPopoService(constants.IIPopoService):
 
             except Exception:
                 # Log the error
-                _logger.exception("Error validating '%s'", stored_instance.name)
+                _logger.exception("Error validating '%s'", name)
 
                 # Kill the component
                 self.kill(name)

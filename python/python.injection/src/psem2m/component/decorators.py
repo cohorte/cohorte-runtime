@@ -5,12 +5,14 @@ Defines the iPOPO decorators classes and utility methods
 @author: Thomas Calmant
 """
 
+from psem2m import is_string
 from psem2m.component import constants
 from psem2m.component.ipopo import FactoryContext, Requirement
+
 import inspect
 import logging
-import types
 import threading
+import types
 
 # ------------------------------------------------------------------------------
 
@@ -18,7 +20,6 @@ import threading
 _logger = logging.getLogger("ipopo.decorators")
 
 # ------------------------------------------------------------------------------
-
 
 def _get_factory_context(cls):
     """
@@ -34,6 +35,20 @@ def _get_factory_context(cls):
         setattr(cls, constants.IPOPO_FACTORY_CONTEXT_DATA, context)
 
     return context
+
+
+def _is_method_or_function(tested):
+        """
+        Tests if the given object is function or a method using the inspect
+        module
+        
+        In Python 2.x classes, class functions are methods
+        In Python 3.x classes, there are functions
+        
+        @param tested: An object to be tested
+        @return: True if the tested object is a function or a method
+        """
+        return inspect.isfunction(tested) or inspect.ismethod(tested)
 
 
 def _ipopo_setup_callback(cls, context):
@@ -52,7 +67,7 @@ def _ipopo_setup_callback(cls, context):
     else:
         callbacks = {}
 
-    functions = inspect.getmembers(cls, inspect.isfunction)
+    functions = inspect.getmembers(cls, _is_method_or_function)
 
     for name, function in functions:
 
@@ -280,7 +295,7 @@ class Provides:
         if inspect.isclass(specifications):
             self.__specifications = [specifications.__name__]
 
-        elif isinstance(specifications, str):
+        elif is_string(specifications):
             self.__specifications = [specifications]
 
         elif not isinstance(specifications, list):

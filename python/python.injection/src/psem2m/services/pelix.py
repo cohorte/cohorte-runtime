@@ -6,7 +6,7 @@ Pelix is a Python framework that aims to act as OSGi as much as possible
 @author: Thomas Calmant
 """
 
-from psem2m import ldapfilter
+from psem2m import ldapfilter, is_string
 from psem2m.utilities import SynchronizedClassMethod
 
 import imp
@@ -469,7 +469,7 @@ class Framework(Bundle):
             # Escape the type name
             clazz = ldapfilter.escape_LDAP(clazz.__name__)
 
-        elif isinstance(clazz, str):
+        elif is_string(clazz):
             # Escape the class name
             clazz = ldapfilter.escape_LDAP(clazz)
 
@@ -779,7 +779,7 @@ class Framework(Bundle):
                 # Keep the type name
                 svc_clazz = svc_clazz.__name__
 
-            if not svc_clazz or not isinstance(svc_clazz, str):
+            if not svc_clazz or not is_string(svc_clazz):
                 # Invalid class name
                 raise BundleException("Invalid class name : %s" % svc_clazz)
 
