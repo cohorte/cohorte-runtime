@@ -233,7 +233,7 @@ def escape_LDAP(ldap_string):
     if ldap_string is None:
         return None
 
-    assert isinstance(ldap_string, str)
+    assert _is_string(ldap_string)
 
     # Protect escape character previously in the string
     ldap_string = ldap_string.replace(ESCAPE_CHARACTER, \
@@ -256,7 +256,17 @@ def unescape_LDAP(ldap_string):
     if ldap_string is None:
         return None
 
-    assert isinstance(ldap_string, str)
+    assert _is_string(ldap_string)
+
+    # Small trick for Python 2.x & 3.x compatibility from :
+    # http://hacks-galore.org/aleix/blog/archives/2010/10/14/bitpacket-python-2-x-and-3-0-compatibility
+    try:
+        # Python 2.x : strings must be converted with the unicode method
+        u_str = unicode
+
+    except NameError:
+        # Python 3.x, "str" returns a unicode string
+        u_str = str
 
     i = 0
     escaped = False
@@ -270,7 +280,8 @@ def unescape_LDAP(ldap_string):
 
         else:
             escaped = False
-            output.write(ldap_string[i])
+            # Convert the sub-string to unicode if needed 
+            output.write(u_str(ldap_string[i]))
 
         i += 1
 
@@ -298,7 +309,7 @@ def __comparator_star(filter_value, tested_value):
             # Presence validated
             return True
 
-    if not isinstance(tested_value, str):
+    if not _is_string(tested_value):
         # Unhandled value type...
         return False
 
@@ -352,7 +363,7 @@ def __comparator_eq(filter_value, tested_value):
         for value in tested_value:
 
             # Try with the string conversion
-            if not isinstance(value, str):
+            if not _is_string(value):
                 value_str = repr(value)
             else:
                 value_str = value
@@ -369,7 +380,7 @@ def __comparator_eq(filter_value, tested_value):
         return __comparator_star(filter_value, tested_value)
 
     # Standard comparison
-    if not isinstance(tested_value, str):
+    if not _is_string(tested_value):
         return filter_value == repr(tested_value)
 
     return filter_value == tested_value
@@ -382,13 +393,13 @@ def __comparator_approximate(filter_value, tested_value):
     If the tested value is a string or an array of string, it compares their
     lower case forms
     """
-    if isinstance(tested_value, str):
+    if _is_string(tested_value):
         return __comparator_eq(filter_value.lower(), tested_value.lower())
 
     elif isinstance(tested_value, list):
 
         new_tested = [value.lower() for value in tested_value \
-                      if isinstance(value, str)]
+                      if _is_string(value)]
 
         if len(new_tested) != len(tested_value):
             # Not strings, use the basic comparison
@@ -418,7 +429,7 @@ def __comparator_lt(filter_value, tested_value):
     
     tested_value < filter_value
     """
-    if isinstance(filter_value, str):
+    if _is_string(filter_value):
         try:
             # Try a conversion
             filter_value = type(tested_value)(filter_value)
@@ -445,7 +456,7 @@ def __comparator_gt(filter_value, tested_value):
     
     tested_value > filter_value
     """
-    if isinstance(filter_value, str):
+    if _is_string(filter_value):
         try:
             # Try a conversion
             filter_value = type(tested_value)(filter_value)
@@ -456,6 +467,18 @@ def __comparator_gt(filter_value, tested_value):
     return tested_value > filter_value
 
 # ------------------------------------------------------------------------------
+
+def _is_string(string):
+    """
+    Tests if the given parameter is a string (Python 2.x, 3.x) or a
+    unicode (Python 2.x) object
+    """
+    try:
+        return isinstance(string, str) or isinstance(string, unicode)
+
+    except NameError:
+        return False
+
 
 def _compute_comparator(string, idx):
     """
@@ -637,7 +660,7 @@ def _parse_LDAP(ldap_filter):
     if not ldap_filter:
         return None
 
-    assert(isinstance(ldap_filter, str))
+    assert _is_string(ldap_filter)
 
     # Beginning of the filter
     idx = _skip_spaces(ldap_filter, 0)
@@ -738,7 +761,7 @@ def get_ldap_filter(ldap_filter):
         # No conversion needed
         return ldap_filter
 
-    elif isinstance(ldap_filter, str):
+    elif _is_string(ldap_filter):
         # Parse the filter
         return _parse_LDAP(ldap_filter)
 
