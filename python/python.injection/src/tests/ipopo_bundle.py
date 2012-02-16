@@ -21,7 +21,7 @@ PROP_USABLE = "usable"
 
 # ------------------------------------------------------------------------------
 
-class TestComponentFactory:
+class TestComponentFactory(object):
     """
     Parent class of components
     """
