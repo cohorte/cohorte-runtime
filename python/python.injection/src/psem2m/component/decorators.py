@@ -43,7 +43,7 @@ def _ipopo_setup_callback(cls, context):
     @param cls: The class to handle
     @param context: The factory class context
     """
-    assert isinstance(cls, type)
+    assert inspect.isclass(cls)
     assert isinstance(context, FactoryContext)
 
     if context.callbacks is not None:
@@ -173,7 +173,7 @@ class ComponentFactory:
 
         @param factory_class: The decorated class
         """
-        if not isinstance(factory_class, type):
+        if not inspect.isclass(factory_class):
             raise TypeError("@ComponentFactory can decorate only classes, " \
                             "not '%s'" % type(factory_class).__name__)
 
@@ -238,7 +238,7 @@ class Property:
         @param clazz: The decorated class
         @raise TypeError: If *clazz* is not a type
         """
-        if not isinstance(clazz, type):
+        if not inspect.isclass(clazz):
             raise TypeError("@Property can decorate only classes, not '%s'" \
                             % type(clazz).__name__)
 
@@ -277,7 +277,7 @@ class Provides:
         if not specifications:
             raise ValueError("Provided interface name can't be empty")
 
-        if isinstance(specifications, type):
+        if inspect.isclass(specifications):
             self.__specifications = [specifications.__name__]
 
         elif isinstance(specifications, str):
@@ -300,7 +300,7 @@ class Provides:
         @raise TypeError: If *clazz* is not a type
         """
 
-        if not isinstance(clazz, type):
+        if not inspect.isclass(clazz):
             raise TypeError("@Provides can decorate only classes, not '%s'" \
                             % type(clazz).__name__)
 
@@ -347,7 +347,7 @@ class Requires:
         @param clazz: The decorated class
         @raise TypeError: If *clazz* is not a type
         """
-        if not isinstance(clazz, type):
+        if not inspect.isclass(clazz):
             raise TypeError("@Provides can decorate only classes, not '%s'" \
                             % type(clazz).__name__)
 

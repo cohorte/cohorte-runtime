@@ -93,7 +93,7 @@ class Requirement:
             if isinstance(spec, str):
                 spec_str = spec
 
-            elif isinstance(spec, type):
+            elif inspect.isclass(spec):
                 spec_str = spec.__name__
 
             else:
@@ -1148,7 +1148,7 @@ class _IPopoService(constants.IIPopoService):
         if not factory_name or not isinstance(factory_name, str):
             raise ValueError("A factory name must be a non-empty string")
 
-        if not isinstance(factory, type):
+        if not inspect.isclass(factory):
             raise TypeError("Invalid factory class '%s'" \
                             % type(factory).__name__)
 

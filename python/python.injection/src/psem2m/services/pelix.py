@@ -6,15 +6,16 @@ Pelix is a Python framework that aims to act as OSGi as much as possible
 @author: Thomas Calmant
 """
 
+from psem2m import ldapfilter
+from psem2m.utilities import SynchronizedClassMethod
+
 import imp
 import importlib
+import inspect
 import logging
 import os
 import sys
-
-from psem2m import ldapfilter
 import threading
-from psem2m.utilities import SynchronizedClassMethod
 
 ACTIVATOR = "activator"
 
@@ -464,7 +465,7 @@ class Framework(Bundle):
             # Return a sorted copy of the keys list
             return sorted(self.__registry.keys())
 
-        if isinstance(clazz, type):
+        if inspect.isclass(clazz):
             # Escape the type name
             clazz = ldapfilter.escape_LDAP(clazz.__name__)
 
@@ -774,7 +775,7 @@ class Framework(Bundle):
         object_class = []
         for svc_clazz in clazz:
 
-            if isinstance(svc_clazz, type):
+            if inspect.isclass(svc_clazz):
                 # Keep the type name
                 svc_clazz = svc_clazz.__name__
 
