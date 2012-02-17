@@ -92,7 +92,7 @@ public class CBundleFinderSvc implements IBundleFinderSvc {
                 // Only work with not already read JAR files
                 if (file.isFile()
                         && file.getName().toLowerCase().endsWith(".jar")
-                        && !pBundlesCache.containsValue(file)) {
+                        && !pBundlesCache.containsValue(file.getAbsolutePath())) {
 
                     // Try to read it
                     final String symbolicName = getBundleSymbolicName(file
