@@ -72,12 +72,12 @@ class Requirement:
                  spec_filter=None):
         """
         Sets up the requirement
-        
+
         @param specifications: The requirement specification (can't be None)
         @param aggregate: If true, this requirement represents a list
         @param optional: If true, this requirement is optional
         @param spec_filter: A filter to select dependencies
-        
+
         @raise TypeError: A parameter has an invalid type
         @raise ValueError: An error occurred while parsing the filter
         """
@@ -123,7 +123,7 @@ class Requirement:
     def from_dictionary_form(cls, dictionary):
         """
         Sets up an instance with the given dictionary form
-        
+
         @param dictionary: The dictionary form
         @return: A configured requirement instance
         @raise ValueError: An attribute is missing in the dictionary form
@@ -148,7 +148,7 @@ class Requirement:
     def matches(self, properties):
         """
         Tests if the given _StoredInstance matches this requirement
-        
+
         @param properties: Service properties
         @return: True if the instance matches this requirement
         """
@@ -165,7 +165,7 @@ class Requirement:
     def set_filter(self, spec_filter):
         """
         Changes the current filter for the given one
-        
+
         @param spec_filter: The new requirement filter
         @raise TypeError: Unknown filter type
         """
@@ -196,7 +196,7 @@ class Requirement:
     def to_dictionary_form(self):
         """
         Returns a dictionary form of the current object
-        
+
         @raise AttributeError: A field to store is missing in the instance
         """
         result = {}
@@ -244,7 +244,7 @@ class FactoryContext:
     def from_dictionary_form(cls, dictionary):
         """
         Sets up this instance with the given dictionary form
-        
+
         @param dictionary: The dictionary form
         @raise ValueError: An attribute is missing in the dictionary form
         @raise TypeError: Invalid form type (only dictionaries are accepted)
@@ -292,7 +292,7 @@ class FactoryContext:
     def to_dictionary_form(self):
         """
         Returns a dictionary form of the current object
-        
+
         @raise AttributeError: A field to store in missing in the instance
         """
         result = {}
@@ -321,7 +321,7 @@ class ComponentContext:
     def __init__(self, factory_context, name, properties):
         """
         Sets up the context
-        
+
         @param factory_context: The parent factory context
         @param properties: The component properties
         """
@@ -418,7 +418,7 @@ class _StoredInstance:
     def __init__(self, ipopo_service, context, instance):
         """
         Sets up the instance object
-        
+
         @param ipopo_service: The iPOPO service that instantiated this component
         @param factory_name: Name of the component factory
         @param context: The component context
@@ -431,6 +431,9 @@ class _StoredInstance:
 
         # The iPOPO service
         self._ipopo_service = ipopo_service
+
+        # Injected service references set
+        self._injected_references = set()
 
         # Component context
         self.context = context
@@ -476,7 +479,7 @@ class _StoredInstance:
     def callback(self, event, *args, **kwargs):
         """
         Calls the registered method in the component for the given event
-        
+
         @param event: An event (IPOPO_CALLBACK_VALIDATE, ...)
         @return: The callback result, or None
         @raise Exception: Something went wrong
@@ -495,17 +498,17 @@ class _StoredInstance:
         """
         Does the post-invalidation job. Unregisters the provided service(s), if
         any
-        
-        @param callback: If True, call back the component before the 
+
+        @param callback: If True, call back the component before the
         invalidation
         """
         if self.state != _StoredInstance.VALID:
             # Instance is not running...
             return
-        
+
         # Change the state
         self.state = _StoredInstance.INVALID
-        
+
         if self.registration is not None:
             # Ignore error
             # FIXME: race condition with Pelix unregistering bundle services
@@ -522,8 +525,8 @@ class _StoredInstance:
     def kill(self):
         """
         This instance is killed : invalidate it if needed, clean up all members
-        
-        When this method is called, this _StoredInstance object must have 
+
+        When this method is called, this _StoredInstance object must have
         been removed from the registry
         """
         # Already dead...
@@ -574,7 +577,7 @@ class _StoredInstance:
         """
         Calls the registered method in the component for the given event,
         ignoring raised exceptions
-        
+
         @param event: An event (IPOPO_CALLBACK_VALIDATE, ...)
         @return: The callback result, or None
         """
@@ -595,7 +598,7 @@ class _StoredInstance:
     def __set_binding(self, field, requirement, reference):
         """
         Injects the given service into the given field
-        
+
         @param field: The field where the service is injected
         @param requirement: The field requirement description
         @param reference: The injected service reference
@@ -636,6 +639,9 @@ class _StoredInstance:
             # Create the list if the needed
             self.bindings[field] = [reference]
 
+        # Keep a track of the injected reference
+        self._injected_references.add(reference)
+
         # Call the component back
         self.safe_callback(constants.IPOPO_CALLBACK_BIND, service)
 
@@ -646,7 +652,7 @@ class _StoredInstance:
         """
         Injects multiple services in a field in one time. Only works with
         aggregations.
-        
+
         @param field: The field where to inject the services
         @param current_value: Current field value (should be None or a list)
         @param requirement: Dependency description
@@ -688,8 +694,13 @@ class _StoredInstance:
             injected = []
 
         # Compute the bound services
-        bound = [self.bundle_context.get_service(reference) \
-                 for reference in references]
+        bound = []
+
+        for reference in references:
+            bound.append(self.bundle_context.get_service(reference))
+
+            # Store the references usage
+            self._injected_references.add(reference)
 
         # Set the field
         setattr(self.instance, field, injected)
@@ -717,7 +728,7 @@ class _StoredInstance:
     def __unset_binding(self, field, requirement, service):
         """
         Remove the given service from the given field
-        
+
         @param field: The field where the service is injected
         @param requirement: The field requirement description
         @param service: The injected service instance
@@ -753,7 +764,7 @@ class _StoredInstance:
     def update_bindings(self):
         """
         Updates the bindings of the given component
-        
+
         @return: True if the component can be validated
         """
         # Get the requirement, or an empty dictionary
@@ -802,10 +813,10 @@ class _StoredInstance:
     def update_property(self, name, old_value, new_value):
         """
         Handles a property changed event
-        
+
         @param name: The changed property name
         @param old_value: The previous property value
-        @param new_value: The new property value 
+        @param new_value: The new property value
         """
         if self.registration is not None:
             # use the registration to trigger the service event
@@ -816,7 +827,7 @@ class _StoredInstance:
     def validate(self):
         """
         Ends the component validation, registering services
-        
+
         @raise RuntimeError: You try to awake a dead component
         """
         if self.state == _StoredInstance.VALID:
@@ -846,7 +857,7 @@ class _StoredInstance:
     def service_changed(self, event):
         """
         Called by Pelix when some service properties changes
-        
+
         @param event: A ServiceEvent object
         """
         kind = event.get_type()
@@ -889,6 +900,13 @@ class _StoredInstance:
                 self.validate()
 
         elif kind == ServiceEvent.UNREGISTERING:
+            if reference not in self._injected_references:
+                # Unused dependency, ignore it
+                return
+
+            # Remove the dependency from the set
+            self._injected_references.remove(reference)
+
             # A dependency may be gone...
             invalidate = False
 
@@ -1049,7 +1067,7 @@ def _field_property_generator(stored_instance):
     def set_value(self, name, new_value):
         """
         Sets the property value and trigger an update event
-        
+
         @param name: The property name
         @param new_value: The new property value
         """
@@ -1074,7 +1092,7 @@ def _field_property_generator(stored_instance):
 def _manipulate_component(instance, stored_instance):
     """
     Manipulates the component instance to inject missing elements.
-    
+
     Injects the properties handling
     """
     assert instance is not None
@@ -1122,7 +1140,7 @@ class _IPopoService(constants.IIPopoService):
     def _register_bundle_factories(self, bundle):
         """
         Registers all factories found in the given bundle
-        
+
         @param bundle: A bundle
         """
         assert isinstance(bundle, Bundle)
@@ -1138,7 +1156,7 @@ class _IPopoService(constants.IIPopoService):
     def _register_factory(self, factory_name, factory, override=True):
         """
         Registers a component factory
-        
+
         @param factory_name: The name of the factory
         @param factory: The factory class object
         @param override: If true, previous factory is overridden, else an
@@ -1179,7 +1197,7 @@ class _IPopoService(constants.IIPopoService):
     def _unregister_bundle_factories(self, bundle):
         """
         Unregisters all factories of the given bundle
-        
+
         @param bundle: A bundle
         """
         assert isinstance(bundle, Bundle)
@@ -1205,7 +1223,7 @@ class _IPopoService(constants.IIPopoService):
     def _unregister_factory(self, factory_name):
         """
         Unregisters the given component factory
-        
+
         @param factory_name: Name of the factory to unregister
         @return: True the factory has been removed, False if the factory is
         unknown
@@ -1238,7 +1256,7 @@ class _IPopoService(constants.IIPopoService):
     def instantiate(self, factory_name, name, properties=None):
         """
         Instantiates a component from the given factory, with the given name
-        
+
         @param factory_name: Name of the component factory
         @param name: Name of the instance to be started
         @return: The component instance
@@ -1323,7 +1341,7 @@ class _IPopoService(constants.IIPopoService):
     def invalidate(self, name):
         """
         Invalidates the given component
-        
+
         @param name: Name of the component to invalidate
         @raise ValueError: Invalid component name
         """
@@ -1340,7 +1358,7 @@ class _IPopoService(constants.IIPopoService):
     def is_registered_instance(self, name):
         """
         Tests if the given name is in the instance registry
-        
+
         @param name: A component name to be tested
         """
         with self.__instances_lock:
@@ -1350,7 +1368,7 @@ class _IPopoService(constants.IIPopoService):
     def kill(self, name):
         """
         Kills the given component
-        
+
         @param name: Name of the component to kill
         @raise ValueError: Invalid component name
         """
@@ -1422,7 +1440,7 @@ class _IPopoActivator:
     def bundle_changed(self, event):
         """
         A bundle event has been triggered
-        
+
         @param event: The bundle event
         """
         assert isinstance(event, BundleEvent)
