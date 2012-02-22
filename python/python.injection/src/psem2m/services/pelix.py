@@ -450,7 +450,6 @@ class Framework(Bundle):
 
         return False
 
-
     @SynchronizedClassMethod('_lock')
     def find_service_references(self, clazz=None, ldap_filter=None):
         """
@@ -499,10 +498,9 @@ class Framework(Bundle):
             return sorted(self.__registry.keys())
 
         # Find a reference that matches
-        result = []
-        for ref in self.__registry:
-            if new_filter.matches(ref.get_properties()):
-                result.append(ref)
+        result = [ref
+                  for ref in self.__registry.keys()
+                  if new_filter.matches(ref.get_properties())]
 
         if not result:
             # No result found
@@ -1155,6 +1153,7 @@ class ServiceReference:
         self.__bundle = bundle
         self.__properties = properties
         self.__using_bundles = []
+        self.__service_id = properties[SERVICE_ID]
 
 
     def __str__(self):
@@ -1162,7 +1161,7 @@ class ServiceReference:
         String representation
         """
         return "ServiceReference(%s, %d, %s)" \
-                % (self.__properties[SERVICE_ID], \
+                % (self.__service_id, \
                    self.__bundle.get_bundle_id(), \
                    self.__properties[OBJECTCLASS])
 
@@ -1171,7 +1170,7 @@ class ServiceReference:
         """
         Returns the service hash
         """
-        return self.__properties.get(SERVICE_ID, -1)
+        return self.__service_id
 
 
     def __cmp__(self, other):
@@ -1180,14 +1179,14 @@ class ServiceReference:
         
         See : http://www.osgi.org/javadoc/r4v43/org/osgi/framework/ServiceReference.html#compareTo%28java.lang.Object%29
         """
+        if self is other:
+            return 0
+
         if not isinstance(other, ServiceReference):
             # Not comparable => "equals"
             return 0
 
-        service_id = int(self.__properties.get(SERVICE_ID, 0))
-        other_id = int(other.__properties.get(SERVICE_ID, 0))
-
-        if service_id == other_id:
+        if self.__service_id == other.__service_id:
             # Same ID, same service
             return 0
 
@@ -1196,7 +1195,7 @@ class ServiceReference:
 
         if service_rank == other_rank:
             # Same rank, ID discriminates (greater ID, lesser reference)
-            if service_id > other_id:
+            if self.__service_id > other.__service_id:
                 return -1
             else:
                 return 1
@@ -1213,7 +1212,15 @@ class ServiceReference:
         """
         Equal to other
         """
-        return self.__cmp__(other) == 0
+        if self is other:
+            # Same object
+            return True
+
+        if not isinstance(other, ServiceReference):
+            # Not a service reference
+            return False
+
+        return self.__service_id == other.__service_id
 
 
     def __ge__(self, other):
@@ -1273,10 +1280,7 @@ class ServiceReference:
         
         @return: The property value, None if not found
         """
-        if name not in self.__properties:
-            return None
-
-        return self.__properties[name]
+        return self.__properties.get(name, None)
 
 
     @SynchronizedClassMethod('_lock')
