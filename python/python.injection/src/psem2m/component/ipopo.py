@@ -502,20 +502,20 @@ class _StoredInstance:
         if self.state != _StoredInstance.VALID:
             # Instance is not running...
             return
-
-        # Call the component
-        if callback:
-            self.safe_callback(constants.IPOPO_CALLBACK_INVALIDATE, \
-                               self.bundle_context)
-
+        
         # Change the state
         self.state = _StoredInstance.INVALID
-
+        
         if self.registration is not None:
             # Ignore error
             # FIXME: race condition with Pelix unregistering bundle services
             self.registration.unregister(False)
             self.registration = None
+
+        # Call the component
+        if callback:
+            self.safe_callback(constants.IPOPO_CALLBACK_INVALIDATE, \
+                               self.bundle_context)
 
 
     @SynchronizedClassMethod('_lock')
