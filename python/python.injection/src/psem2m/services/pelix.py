@@ -403,6 +403,7 @@ class Framework(Bundle):
         # Listeners
         self.__bundle_listeners = []
         self.__service_listeners = []
+        self.__framework_listeners = []
 
         # Listener -> filter (LDAPFilter)
         self.__service_listeners_filters = {}
@@ -424,6 +425,18 @@ class Framework(Bundle):
         @return: True if the listener has been registered
         """
         return _add_listener(self.__bundle_listeners, listener)
+
+
+    @SynchronizedClassMethod('_lock')
+    def add_framework_stop_listener(self, listener):
+        """
+        Registers a listener that will be called back right before the framework
+        stops
+        
+        @param listener: The framework stop listener
+        @return: True if the listener has been registered
+        """
+        return _add_listener(self.__framework_listeners, listener)
 
 
     @SynchronizedClassMethod('_lock')
@@ -512,6 +525,21 @@ class Framework(Bundle):
 
 
     @SynchronizedClassMethod('_lock')
+    def fire_framework_stopping(self):
+        """
+        Calls all framework listeners, telling them that the framework is
+        stopping
+        """
+        listeners = self.__framework_listeners[:]
+        for listener in listeners:
+            try:
+                listener.framework_stopping()
+            except:
+                _logger.exception("An error occurred calling one of the " \
+                                  "framework stop listeners")
+
+
+    @SynchronizedClassMethod('_lock')
     def fire_bundle_event(self, event):
         """
         Fires a Bundle event
@@ -592,6 +620,10 @@ class Framework(Bundle):
         @return: The requested bundle
         @raise BundleException: The ID is invalid
         """
+        if bundle_id == 0:
+            # "System bundle"
+            return self
+
         if bundle_id not in self.__bundles:
             raise BundleException("Invalid bundle ID %d" % bundle_id)
 
@@ -823,6 +855,16 @@ class Framework(Bundle):
 
 
     @SynchronizedClassMethod('_lock')
+    def remove_framework_stop_listener(self, listener):
+        """
+        Unregisters a framework stop listener
+        
+        @param listener: The framework stop listener
+        """
+        _remove_listener(self.__framework_listeners, listener)
+
+
+    @SynchronizedClassMethod('_lock')
     def remove_service_listener(self, listener):
         """
         Unregisters a service listener
@@ -852,6 +894,8 @@ class Framework(Bundle):
         """
         Stops the framework
         """
+        # Notify listeners that the bundle is stopping
+        self.fire_framework_stopping()
 
         i = self.__next_bundle_id
         while i > 0:
@@ -986,6 +1030,17 @@ class BundleContext:
         return self.__framework.add_bundle_listener(listener)
 
 
+    def add_framework_stop_listener(self, listener):
+        """
+        Registers a listener that will be called back right before the framework
+        stops
+        
+        @param listener: The framework stop listener
+        @return: True if the listener has been registered
+        """
+        return self.__framework.add_framework_stop_listener(listener)
+
+
     def add_service_listener(self, listener, ldap_filter=None):
         """
         Registers a service listener
@@ -1109,6 +1164,15 @@ class BundleContext:
         Unregisters a bundle listener
         """
         self.__framework.remove_bundle_listener(listener)
+
+
+    def remove_framework_stop_listener(self, listener):
+        """
+        Unregisters a framework stop listener
+        
+        @param listener: The framework stop listener
+        """
+        self.__framework.remove_framework_stop_listener(listener)
 
 
     def remove_service_listener(self, listener):
