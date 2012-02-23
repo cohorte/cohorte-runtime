@@ -865,10 +865,29 @@ class _StoredInstance:
 
         if self.registration is not None \
         and reference is self.registration.get_reference():
-            # Ignore the events we triggered
-            return
+            # The event is about the service provided by this component
 
-        if kind == ServiceEvent.REGISTERED:
+            if kind == ServiceEvent.UNREGISTERING \
+            and self.state == _StoredInstance.VALID:
+                # Our service is being unregistered by someone else,
+                # e.g. the framework
+
+                # 1/ The registration is no more valid
+                self.registration = None
+
+                # 2/ Invalidate this component (with the call back)
+                self.invalidate(True)
+
+            else:
+                # Ignore other events
+                return
+
+        elif kind == ServiceEvent.REGISTERED:
+
+            # Ignore the event if iPOPO is not running.
+            if not self._ipopo_service.is_running():
+                return
+
             # Maybe a new dependency...
             can_validate = (self.state != _StoredInstance.VALID)
 
@@ -936,12 +955,15 @@ class _StoredInstance:
                 self.invalidate(False)
 
             # Ask for a new chance...
-            if self.update_bindings() and invalidate:
+            # Ask for a new chance, if iPOPO is running... 
+            if self._ipopo_service.is_running() \
+            and self.update_bindings() and invalidate:
                 self.safe_callback(constants.IPOPO_CALLBACK_VALIDATE, \
                                    self.bundle_context)
                 self.validate()
 
         elif kind == ServiceEvent.MODIFIED:
+
             # Modified service property
             invalidate = False
             can_validate = (self.state != _StoredInstance.VALID)
@@ -988,8 +1010,9 @@ class _StoredInstance:
                 # The call back method has already been called
                 self.invalidate(False)
 
-            # Ask for a new chance...
-            if self.update_bindings() and (invalidate or can_validate):
+            # Ask for a new chance, if iPOPO is running... 
+            if self._ipopo_service.is_running() \
+            and self.update_bindings() and (invalidate or can_validate):
                 self.safe_callback(constants.IPOPO_CALLBACK_VALIDATE, \
                                    self.bundle_context)
                 self.validate()
@@ -1120,6 +1143,9 @@ class _IPopoService(constants.IIPopoService):
 
         # Instances registry : name -> _StoredInstance object
         self.__instances = {}
+
+        # Service state
+        self.__running = False
 
         # Registries locks
         self.__factories_lock = threading.RLock()
@@ -1365,6 +1391,16 @@ class _IPopoService(constants.IIPopoService):
             return name in self.__instances
 
 
+    def is_running(self):
+        """
+        Tests if the current framework in the "run" mode. If not, instance
+        managers should not try to inject dependencies anymore.
+        
+        @return: True if the service is running, else False
+        """
+        return self.__running
+
+
     def kill(self, name):
         """
         Kills the given component
@@ -1397,6 +1433,7 @@ class _IPopoActivator:
         """
         self.registration = None
         self.service = None
+        self.__running = False
 
 
     def start(self, context):
@@ -1414,6 +1451,12 @@ class _IPopoActivator:
         # Register as a bundle listener
         context.add_bundle_listener(self)
 
+        # Register as a framework stop listener
+        context.add_framework_stop_listener(self)
+
+        # Service enters in "run" mode
+        self.__running = True
+
         # Get all factories
         for bundle in context.get_bundles():
             if bundle.get_state() == Bundle.ACTIVE:
@@ -1427,8 +1470,14 @@ class _IPopoActivator:
         """
         assert isinstance(context, BundleContext)
 
+        # The service is not in the "run" mode anymore
+        self.__running = False
+
         # Unregister the listener
         context.remove_bundle_listener(self)
+
+        # Unregister the framework stop listener
+        context.remove_framework_stop_listener(self)
 
         # Unregister the iPOPO service
         self.registration.unregister()
@@ -1455,6 +1504,14 @@ class _IPopoActivator:
         elif kind == BundleEvent.STARTING:
             # A bundle is activating, register its __factories
             self.service._register_bundle_factories(bundle)
+
+
+    def framework_stopping(self):
+        """
+        Called when the framework is stopping
+        """
+        # Avoid new injections, as all bundles will be stopped
+        self.__running = False
 
 # ------------------------------------------------------------------------------
 
