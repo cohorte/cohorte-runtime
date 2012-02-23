@@ -25,6 +25,7 @@ class Synchronized:
         else:
             self.__lock = lock
 
+
     def __call__(self, method):
         """
         Sets up the decorated method
@@ -41,7 +42,6 @@ class Synchronized:
                 return method(*args, **kwargs)
 
         return wrapped
-
 
 
 def SynchronizedClassMethod(lock_attr_name):
@@ -65,7 +65,9 @@ def SynchronizedClassMethod(lock_attr_name):
         @raise AttributeError: The given attribute name doesn't exist
         """
         def synchronized(self, *args, **kwargs):
-
+            """
+            Calls the wrapped method with a lock
+            """
             # Raises an AttributeError if needed
             lock = getattr(self, lock_attr_name)
 

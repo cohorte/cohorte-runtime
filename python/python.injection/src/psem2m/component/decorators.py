@@ -38,17 +38,17 @@ def _get_factory_context(cls):
 
 
 def _is_method_or_function(tested):
-        """
-        Tests if the given object is function or a method using the inspect
-        module
-        
-        In Python 2.x classes, class functions are methods
-        In Python 3.x classes, there are functions
-        
-        @param tested: An object to be tested
-        @return: True if the tested object is a function or a method
-        """
-        return inspect.isfunction(tested) or inspect.ismethod(tested)
+    """
+    Tests if the given object is function or a method using the inspect
+    module
+    
+    In Python 2.x classes, class functions are methods
+    In Python 3.x classes, there are functions
+    
+    @param tested: An object to be tested
+    @return: True if the tested object is a function or a method
+    """
+    return inspect.isfunction(tested) or inspect.ismethod(tested)
 
 
 def _ipopo_setup_callback(cls, context):

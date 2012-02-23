@@ -26,7 +26,7 @@ class IIPopoService:
         instance with the given name already exists
         @raise Exception: Something wrong occurred in the factory
         """
-        raise NotImplemented
+        raise NotImplementedError
 
 
     def invalidate(self, name):
@@ -36,7 +36,7 @@ class IIPopoService:
         @param name: Name of the component to invalidate
         @raise ValueError: Invalid component name
         """
-        raise NotImplemented
+        raise NotImplementedError
 
 
     def kill(self, name):
@@ -46,7 +46,7 @@ class IIPopoService:
         @param name: Name of the component to kill
         @raise ValueError: Invalid component name
         """
-        raise NotImplemented
+        raise NotImplementedError
 
 # ------------------------------------------------------------------------------
 

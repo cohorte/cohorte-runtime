@@ -18,7 +18,7 @@ ESCAPED_CHARACTERS = "()&|=<>~*/"
 
 # ------------------------------------------------------------------------------
 
-class LDAPFilter:
+class LDAPFilter(object):
     """
     Represents an LDAP filter
     """
@@ -127,7 +127,7 @@ class LDAPFilter:
         return None
 
 
-class LDAPCriteria:
+class LDAPCriteria(object):
     """
     Represents an LDAP criteria
     """
@@ -708,7 +708,6 @@ def _parse_LDAP(ldap_filter):
                 else:
                     raise ValueError("Too many end of parenthesis @%d: %s" % \
                                      (idx, ldap_filter[idx:]))
-                    return
 
             elif ldap_filter[idx] == '\\':
                 # Next character must be ignored
