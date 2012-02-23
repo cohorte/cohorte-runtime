@@ -10,7 +10,7 @@ from psem2m.component import constants
 from psem2m.ldapfilter import LDAPFilter, LDAPCriteria
 from psem2m.services import pelix
 from psem2m.services.pelix import BundleContext, ServiceEvent, BundleEvent, \
-    Bundle
+    Bundle, BundleException
 from psem2m.utilities import remove_all_occurrences, SynchronizedClassMethod
 
 import inspect
@@ -24,7 +24,7 @@ _logger = logging.getLogger("ipopo.core")
 
 # ------------------------------------------------------------------------------
 
-class IPopoEvent:
+class IPopoEvent(object):
     """
     An event object for iPOPO
     """
@@ -61,7 +61,7 @@ class IPopoEvent:
 
 # ------------------------------------------------------------------------------
 
-class Requirement:
+class Requirement(object):
     """
     Represents a component requirement
     """
@@ -108,6 +108,7 @@ class Requirement:
         self.specifications = converted_specs
 
         # Set up the requirement filter (after setting up self.specification)
+        self.filter = None
         self.set_filter(spec_filter)
 
 
@@ -206,7 +207,7 @@ class Requirement:
 
 # ------------------------------------------------------------------------------
 
-class FactoryContext:
+class FactoryContext(object):
     """
     Represents the data stored in a component factory (class)
     """
@@ -310,7 +311,7 @@ class FactoryContext:
         return result
 
 
-class ComponentContext:
+class ComponentContext(object):
     """
     Represents the data stored in a component instance
     """
@@ -396,7 +397,7 @@ class ComponentContext:
 
 
 
-class _StoredInstance:
+class _StoredInstance(object):
     """
     Represents a component instance
     """
@@ -511,8 +512,13 @@ class _StoredInstance:
 
         if self.registration is not None:
             # Ignore error
-            # FIXME: race condition with Pelix unregistering bundle services
-            self.registration.unregister(False)
+            try:
+                self.registration.unregister()
+
+            except BundleException:
+                # Ignore error at this level
+                pass
+
             self.registration = None
 
         # Call the component
@@ -866,7 +872,6 @@ class _StoredInstance:
         if self.registration is not None \
         and reference is self.registration.get_reference():
             # The event is about the service provided by this component
-
             if kind == ServiceEvent.UNREGISTERING \
             and self.state == _StoredInstance.VALID:
                 # Our service is being unregistered by someone else,
@@ -885,7 +890,7 @@ class _StoredInstance:
         elif kind == ServiceEvent.REGISTERED:
 
             # Ignore the event if iPOPO is not running.
-            if not self._ipopo_service.is_running():
+            if not self._ipopo_service.running:
                 return
 
             # Maybe a new dependency...
@@ -956,7 +961,7 @@ class _StoredInstance:
 
             # Ask for a new chance...
             # Ask for a new chance, if iPOPO is running... 
-            if self._ipopo_service.is_running() \
+            if self._ipopo_service.running \
             and self.update_bindings() and invalidate:
                 self.safe_callback(constants.IPOPO_CALLBACK_VALIDATE, \
                                    self.bundle_context)
@@ -1011,7 +1016,7 @@ class _StoredInstance:
                 self.invalidate(False)
 
             # Ask for a new chance, if iPOPO is running... 
-            if self._ipopo_service.is_running() \
+            if self._ipopo_service.running \
             and self.update_bindings() and (invalidate or can_validate):
                 self.safe_callback(constants.IPOPO_CALLBACK_VALIDATE, \
                                    self.bundle_context)
@@ -1129,7 +1134,7 @@ def _manipulate_component(instance, stored_instance):
 
 # ------------------------------------------------------------------------------
 
-class _IPopoService(constants.IIPopoService):
+class _IPopoService(constants.IIPopoService, object):
     """
     The iPOPO registry and service
     """
@@ -1145,7 +1150,7 @@ class _IPopoService(constants.IIPopoService):
         self.__instances = {}
 
         # Service state
-        self.__running = False
+        self.running = False
 
         # Registries locks
         self.__factories_lock = threading.RLock()
@@ -1391,16 +1396,6 @@ class _IPopoService(constants.IIPopoService):
             return name in self.__instances
 
 
-    def is_running(self):
-        """
-        Tests if the current framework in the "run" mode. If not, instance
-        managers should not try to inject dependencies anymore.
-        
-        @return: True if the service is running, else False
-        """
-        return self.__running
-
-
     def kill(self, name):
         """
         Kills the given component
@@ -1422,7 +1417,7 @@ class _IPopoService(constants.IIPopoService):
 
 # ------------------------------------------------------------------------------
 
-class _IPopoActivator:
+class _IPopoActivator(object):
     """
     The iPOPO bundle activator for Pelix
     """
@@ -1433,7 +1428,6 @@ class _IPopoActivator:
         """
         self.registration = None
         self.service = None
-        self.__running = False
 
 
     def start(self, context):
@@ -1455,7 +1449,7 @@ class _IPopoActivator:
         context.add_framework_stop_listener(self)
 
         # Service enters in "run" mode
-        self.__running = True
+        self.service.running = True
 
         # Get all factories
         for bundle in context.get_bundles():
@@ -1471,7 +1465,7 @@ class _IPopoActivator:
         assert isinstance(context, BundleContext)
 
         # The service is not in the "run" mode anymore
-        self.__running = False
+        self.service.running = False
 
         # Unregister the listener
         context.remove_bundle_listener(self)
@@ -1511,7 +1505,7 @@ class _IPopoActivator:
         Called when the framework is stopping
         """
         # Avoid new injections, as all bundles will be stopped
-        self.__running = False
+        self.service.running = False
 
 # ------------------------------------------------------------------------------
 
