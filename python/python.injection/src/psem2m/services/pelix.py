@@ -46,7 +46,7 @@ class BundleException(Exception):
 
 # ------------------------------------------------------------------------------
 
-class Bundle:
+class Bundle(object):
     """
     Represents a "bundle" in Pelix
     """
@@ -276,7 +276,12 @@ class Bundle:
         # Copy the services list, as it will be modified during the process
         registered_services = self.__registered_services[:]
         for registration in registered_services:
-            registration.unregister(False)
+            try:
+                registration.unregister()
+
+            except BundleException:
+                # Ignore errors at this level
+                pass
 
         if len(self.__registered_services) != 0:
             _logger.warning("Not all services have been unregistered...")
@@ -374,7 +379,7 @@ class Framework(Bundle):
     The Pelix framework (main) class. It must be instantiated using
     FrameworkFactory
     """
-    def __init__(self, properties={}):
+    def __init__(self, properties=None):
         """
         Sets up the framework.
         
@@ -534,6 +539,7 @@ class Framework(Bundle):
         for listener in listeners:
             try:
                 listener.framework_stopping()
+
             except:
                 _logger.exception("An error occurred calling one of the " \
                                   "framework stop listeners")
@@ -957,24 +963,18 @@ class Framework(Bundle):
 
 
     @SynchronizedClassMethod('_lock')
-    def unregister_service(self, registration, raise_error=True):
+    def unregister_service(self, registration):
         """
         Unregisters the given service
         
         @param reference: A ServiceRegistration to the service to unregister
-        @param raise_error: If True the error is reported raising an error, else
-        by returning False
         @raise BundleException: Invalid reference
         """
         assert(isinstance(registration, ServiceRegistration))
 
         reference = registration.get_reference()
         if reference not in self.__registry:
-            # FIXME: race condition with iPOPO unregistering component services
-            if raise_error:
-                raise BundleException("Invalid service reference")
-            else:
-                return False
+            raise BundleException("Invalid service reference")
 
         # Keep a track of the unregistering reference
         self.__unregistering_services[reference] = self.__registry[reference]
@@ -1005,7 +1005,7 @@ class Framework(Bundle):
 
 # ------------------------------------------------------------------------------
 
-class BundleContext:
+class BundleContext(object):
     """
     Represents a bundle context
     """
@@ -1194,7 +1194,7 @@ class BundleContext:
 
 # ------------------------------------------------------------------------------
 
-class ServiceReference:
+class ServiceReference(object):
     """
     Represents a reference to a service
     """
@@ -1389,7 +1389,7 @@ class ServiceReference:
 
 # ------------------------------------------------------------------------------
 
-class ServiceRegistration:
+class ServiceRegistration(object):
     """
     Represents a service registration object
     """
@@ -1455,15 +1455,15 @@ class ServiceRegistration:
                                      previous))
 
 
-    def unregister(self, raise_error=True):
+    def unregister(self):
         """
         Unregisters the service
         """
-        self.__framework.unregister_service(self, raise_error)
+        self.__framework.unregister_service(self)
 
 # ------------------------------------------------------------------------------
 
-class BundleEvent:
+class BundleEvent(object):
     """
     Represents a bundle event
     """
@@ -1513,7 +1513,7 @@ class BundleEvent:
 
 # ------------------------------------------------------------------------------
 
-class ServiceEvent:
+class ServiceEvent(object):
     """
     Represents a service event
     """
@@ -1584,7 +1584,7 @@ class ServiceEvent:
 
 # ------------------------------------------------------------------------------
 
-class FrameworkFactory:
+class FrameworkFactory(object):
     """
     A framework factory
     """
@@ -1593,7 +1593,7 @@ class FrameworkFactory:
     """ The framework singleton """
 
     @classmethod
-    def get_framework(cls, properties={}):
+    def get_framework(cls, properties=None):
         """
         If it doesn't exist yet, creates a framework with the given properties,
         else returns the current framework instance.
