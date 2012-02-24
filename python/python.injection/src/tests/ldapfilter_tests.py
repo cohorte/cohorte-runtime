@@ -7,6 +7,7 @@ Created on 7 févr. 2012
 """
 
 from psem2m.ldapfilter import get_ldap_filter
+import psem2m.ldapfilter
 import unittest
 
 # ------------------------------------------------------------------------------
@@ -39,6 +40,103 @@ def applyTest(self, filters, key):
             self.assertFalse(ldap_filter.matches(props), \
                     "Filter '%s' should not match %s" \
                     % (ldap_filter, props))
+
+# ------------------------------------------------------------------------------
+
+class LDAPUtilitiesTest(unittest.TestCase):
+    """
+    Tests for LDAP utility methods
+    """
+
+    def testComparator2str(self):
+        """
+        Tests comparator2str()
+        """
+        for comparator in ('=', '<', '<=', '>', '>=', '=', '~='):
+            # Parse a criteria with that comparator
+            ldap_filter = get_ldap_filter("(a%s1)" % comparator)
+
+            # Get the string version of the parsed comparator
+            str_comparator = psem2m.ldapfilter.comparator2str(\
+                                                        ldap_filter.comparator)
+
+            self.assertEquals(str_comparator, comparator,
+                              "Bad string for comparator '%s' : '%s'"
+                              % (comparator, str_comparator))
+
+        # Invalid comparators
+        for comparator in (None, str, str(), int()):
+            str_comparator = psem2m.ldapfilter.comparator2str(comparator)
+            self.assertEquals(str_comparator, "??",
+                          "Bad string for comparator '%s' : '%s'"
+                          % (comparator, str_comparator))
+
+
+    def testOperator2str(self):
+        """
+        Tests operator2str()
+        """
+        operators = {psem2m.ldapfilter.LDAPFilter.AND: "&",
+                     psem2m.ldapfilter.LDAPFilter.OR: "|",
+                     psem2m.ldapfilter.LDAPFilter.NOT: "!"}
+
+        for operator, str_operator in operators.items():
+            conv_operator = psem2m.ldapfilter.operator2str(operator)
+            self.assertEquals(str_operator, conv_operator,
+                              "Invalid operator conversion '%s' : '%s'"
+                              % (str_operator, conv_operator))
+
+        for operator in (None, str, int, str(), "AND", "OR", "NOT", 42):
+            conv_operator = psem2m.ldapfilter.operator2str(operator)
+            self.assertEquals("<unknown>", conv_operator,
+                              "Invalid operator conversion '%s' : '%s'"
+                              % (str_operator, conv_operator))
+
+
+    def testEscapeLDAP(self):
+        """
+        Tests escape_LDAP() and unescape_LDAP()
+        
+        Tested values from :
+        https://www.owasp.org/index.php/Preventing_LDAP_Injection_in_Java
+        """
+        # Tested values : normal -> escaped
+        tested_values = {
+                         # None -> None:
+                         None: None,
+
+                         # No escape needed
+                         "Helloé": "Helloé",
+
+                         # Sharp escape
+                         "# Helloé": "\\# Helloé",
+
+                         # Space escapes
+                         " Helloé": "\\ Helloé",
+                         "Helloé ": "Helloé\\ ",
+                         "Hello é": "Hello é",
+
+                         # Only spaces
+                         "   ": "\\  \\ ",
+
+                         # Complex
+                         ' Hello\\ + , "World" ; ':
+                                    '\\ Hello\\\\ \\+ \\, \\"World\\" \\;\\ ',
+                         }
+
+        for normal, escaped in tested_values.items():
+            # Escape
+            ldap_escape = psem2m.ldapfilter.escape_LDAP(normal)
+            self.assertEquals(escaped, ldap_escape,
+                              "Invalid escape '%s' should be '%s'"
+                              % (ldap_escape, escaped))
+
+            # Un-escape
+            ldap_unescape = psem2m.ldapfilter.unescape_LDAP(ldap_escape)
+            self.assertEquals(escaped, ldap_escape,
+                              "Invalid un-escape '%s' should be '%s'"
+                              % (ldap_unescape, normal))
+
 
 # ------------------------------------------------------------------------------
 
@@ -212,6 +310,44 @@ class LDAPFilterTest(unittest.TestCase):
     """
     Tests for the LDAP filter behavior
     """
+
+    def testRepr(self):
+        """
+        Test repr() -> eval() transformation
+        """
+        # String filter : no spaces between operators nor operands
+        # => allows direct str() results tests
+        str_filter = "(&(test=False)(test2=True))"
+
+        # Make the filter
+        ldap_filter = get_ldap_filter(str_filter)
+
+        # Assert strings representations are equals
+        self.assertEquals(str_filter, str(ldap_filter))
+
+        # Conversion
+        repr_filter = repr(ldap_filter)
+        self.assertIn(str_filter, repr_filter, \
+                      "The representation must contain the filter string")
+
+        # Evaluation
+        eval_filter = eval(repr_filter)
+
+        # Equality based on the string form
+        self.assertEquals(str_filter, str(eval_filter), "Invalid evaluation")
+
+        # Match test
+        for test_value in (True, False):
+            for test2_value in (True, False):
+                for test3_value in (None, True, False, 42, "string"):
+                    properties = {"test": test_value, "test2": test2_value, \
+                                  "test3": test3_value}
+
+                    self.assertEquals(ldap_filter.matches(properties), \
+                                      eval_filter.matches(properties), \
+                                      "Different result found for %s" \
+                                      % properties)
+
 
     def testNot(self):
         """

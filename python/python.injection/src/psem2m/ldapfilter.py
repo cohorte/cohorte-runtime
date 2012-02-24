@@ -14,7 +14,7 @@ ESCAPE_CHARACTER = '\\'
 
 # Escaped characters (do not insert the ESCAPE CHARACTER here)
 # See http://www.ldapexplorer.com/en/manual/109010000-ldap-filter-syntax.htm)
-ESCAPED_CHARACTERS = "()&|=<>~*/"
+ESCAPED_CHARACTERS = "()&|=<>~*+#,;'\""
 
 # ------------------------------------------------------------------------------
 
@@ -36,24 +36,23 @@ class LDAPFilter(object):
         """
         Initializer
         """
-        self.__subfilters = []
-        self.__operator = operator
+        self.subfilters = []
+        self.operator = operator
 
 
     def __repr__(self):
         """
-        String representation
+        String description
         """
-        return "(%s %s)" % (operator2str(self.__operator), \
-               "".join([repr(subfilter) for subfilter in self.__subfilters]))
+        return "%s.get_ldap_filter(%s)" % (__name__, repr(self.__str__()))
 
 
     def __str__(self):
         """
-        String description
+        String representation
         """
-        return "Filter(%s, %s)" % (operator2str(self.__operator), \
-               ", ".join([str(subfilter) for subfilter in self.__subfilters]))
+        return "(%s%s)" % (operator2str(self.operator), \
+               "".join([str(subfilter) for subfilter in self.subfilters]))
 
 
     def append(self, ldap_filter):
@@ -70,10 +69,10 @@ class LDAPFilter(object):
             raise TypeError("Invalid filter type : %s" \
                   % (type(ldap_filter).__name__))
 
-        if len(self.__subfilters) >= 1 and self.__operator == LDAPFilter.NOT:
+        if len(self.subfilters) >= 1 and self.operator == LDAPFilter.NOT:
             raise ValueError("Not operator only handles one child")
 
-        self.__subfilters.append(ldap_filter)
+        self.subfilters.append(ldap_filter)
 
 
     def matches(self, properties):
@@ -85,20 +84,20 @@ class LDAPFilter(object):
         """
         result = False
 
-        for criteria in self.__subfilters:
+        for criteria in self.subfilters:
             if not criteria.matches(properties):
-                if self.__operator == LDAPFilter.AND:
+                if self.operator == LDAPFilter.AND:
                     # A criteria doesn't match in an "AND" test : short cut
                     result = False
                     break
 
             else:
                 result = True
-                if self.__operator == LDAPFilter.OR:
+                if self.operator == LDAPFilter.OR:
                     # At least one match in a "OR" test : short cut
                     break
 
-        if self.__operator == LDAPFilter.NOT:
+        if self.operator == LDAPFilter.NOT:
             # Revert result
             return not result
 
@@ -109,19 +108,19 @@ class LDAPFilter(object):
         """
         Returns the first meaningful object in this filter.
         """
-        size = len(self.__subfilters)
+        size = len(self.subfilters)
         if size > 1:
             return self
 
         elif size == 1:
 
-            if self.__operator == LDAPFilter.NOT:
+            if self.operator == LDAPFilter.NOT:
                 # NOT is the only operator to accept 1 operand
                 return self
 
             else:
                 # Return the only child
-                return self.__subfilters[0].normalize()
+                return self.subfilters[0].normalize()
 
         # Empty filter
         return None
@@ -150,16 +149,15 @@ class LDAPCriteria(object):
         """
         String representation
         """
-        comparator = comparator2str(self.comparator)
-        return "Criteria(%s, %s, %s)" % (self.name, comparator, self.value)
+        return '%s.get_ldap_filter(%s)' % (__name__, repr(self.__str__()))
 
 
     def __str__(self):
         """
         String description
         """
-        comparator = comparator2str(self.comparator)
-        return "(%s%s%s)" % (self.name, comparator, self.value)
+        return "(%s%s%s)" % (self.name, comparator2str(self.comparator), \
+                             self.value)
 
 
     def matches(self, properties):
@@ -189,23 +187,25 @@ def comparator2str(comparator):
     """
     Converts an operator method to a string
     """
-    if comparator == __comparator_approximate:
+    if comparator == _comparator_approximate:
         return "~="
 
-    elif comparator == __comparator_eq:
+    elif comparator == _comparator_eq:
         return "="
 
-    elif comparator == __comparator_le:
+    elif comparator == _comparator_le:
         return "<="
 
-    elif comparator == __comparator_lt:
+    elif comparator == _comparator_lt:
         return "<"
 
-    elif comparator == __comparator_ge:
+    elif comparator == _comparator_ge:
         return ">="
 
-    elif comparator == __comparator_gt:
+    elif comparator == _comparator_gt:
         return ">"
+
+    return "??"
 
 
 def operator2str(operator):
@@ -239,6 +239,14 @@ def escape_LDAP(ldap_string):
     # Protect escape character previously in the string
     ldap_string = ldap_string.replace(ESCAPE_CHARACTER, \
                                       ESCAPE_CHARACTER + ESCAPE_CHARACTER)
+
+    # Leading space
+    if ldap_string.startswith(" "):
+        ldap_string = "\\ %s" % ldap_string[1:]
+
+    # Trailing space
+    if ldap_string.endswith(" "):
+        ldap_string = "%s\\ " % ldap_string[:-1]
 
     # Escape other characters
     for escaped in ESCAPED_CHARACTERS:
@@ -285,7 +293,7 @@ def unescape_LDAP(ldap_string):
 
 # ------------------------------------------------------------------------------
 
-def __comparator_star(filter_value, tested_value):
+def _comparator_star(filter_value, tested_value):
     """
     Tests a filter with a joker  
     """
@@ -339,7 +347,7 @@ def __comparator_star(filter_value, tested_value):
     return True
 
 
-def __comparator_eq(filter_value, tested_value):
+def _comparator_eq(filter_value, tested_value):
     """
     Tests if the filter value is equal to the tested value 
     """
@@ -349,7 +357,7 @@ def __comparator_eq(filter_value, tested_value):
         if '*' in filter_value:
             # Special case : jokers (stars) in the filter
             for value in tested_value:
-                if __comparator_star(filter_value, value):
+                if _comparator_star(filter_value, value):
                     # One match
                     return True
 
@@ -371,7 +379,7 @@ def __comparator_eq(filter_value, tested_value):
 
     elif '*' in filter_value:
         # Special case : jokers (stars) in the filter
-        return __comparator_star(filter_value, tested_value)
+        return _comparator_star(filter_value, tested_value)
 
     # Standard comparison
     if not is_string(tested_value):
@@ -380,7 +388,7 @@ def __comparator_eq(filter_value, tested_value):
     return filter_value == tested_value
 
 
-def __comparator_approximate(filter_value, tested_value):
+def _comparator_approximate(filter_value, tested_value):
     """
     Tests if the filter value is nearly equal to the tested value.
     
@@ -388,7 +396,7 @@ def __comparator_approximate(filter_value, tested_value):
     lower case forms
     """
     if is_string(tested_value):
-        return __comparator_eq(filter_value.lower(), tested_value.lower())
+        return _comparator_eq(filter_value.lower(), tested_value.lower())
 
     elif isinstance(tested_value, list):
 
@@ -397,27 +405,27 @@ def __comparator_approximate(filter_value, tested_value):
 
         if len(new_tested) != len(tested_value):
             # Not strings, use the basic comparison
-            return __comparator_eq(filter_value, tested_value)
+            return _comparator_eq(filter_value, tested_value)
 
         else:
             # Compare converted values
-            return __comparator_eq(filter_value.lower(), new_tested)
+            return _comparator_eq(filter_value.lower(), new_tested)
 
     else:
-        return __comparator_eq(filter_value, tested_value)
+        return _comparator_eq(filter_value, tested_value)
 
 
-def __comparator_le(filter_value, tested_value):
+def _comparator_le(filter_value, tested_value):
     """
     Tests if the filter value is greater than the tested value
     
     tested_value <= filter_value
     """
-    return __comparator_lt(filter_value, tested_value) \
-        or __comparator_eq(filter_value, tested_value)
+    return _comparator_lt(filter_value, tested_value) \
+        or _comparator_eq(filter_value, tested_value)
 
 
-def __comparator_lt(filter_value, tested_value):
+def _comparator_lt(filter_value, tested_value):
     """
     Tests if the filter value is strictly greater than the tested value
     
@@ -434,17 +442,17 @@ def __comparator_lt(filter_value, tested_value):
     return tested_value < filter_value
 
 
-def __comparator_ge(filter_value, tested_value):
+def _comparator_ge(filter_value, tested_value):
     """
     Tests if the filter value is lesser than the tested value
     
     tested_value >= filter_value
     """
-    return __comparator_gt(filter_value, tested_value) \
-        or __comparator_eq(filter_value, tested_value)
+    return _comparator_gt(filter_value, tested_value) \
+        or _comparator_eq(filter_value, tested_value)
 
 
-def __comparator_gt(filter_value, tested_value):
+def _comparator_gt(filter_value, tested_value):
     """
     Tests if the filter value is strictly lesser than the tested value
     
@@ -480,7 +488,7 @@ def _compute_comparator(string, idx):
     part1 = string[idx]
     if part1 == '=':
         # Equality
-        return __comparator_eq
+        return _comparator_eq
 
     elif len(string) < idx + 2:
         # Too short string
@@ -490,11 +498,11 @@ def _compute_comparator(string, idx):
         # It's a "strict" operator
         if part1 == '<':
             # Strictly lesser
-            return __comparator_lt
+            return _comparator_lt
 
         elif part1 == '>':
             # Strictly greater
-            return __comparator_gt
+            return _comparator_gt
 
         else:
             # Invalid operator
@@ -502,15 +510,15 @@ def _compute_comparator(string, idx):
 
     if part1 == '<':
         # Less or equal
-        return __comparator_le
+        return _comparator_le
 
     elif part1 == '>':
         # Greater or equal
-        return __comparator_ge
+        return _comparator_ge
 
     elif part1 == '~':
         # Approximate equality
-        return __comparator_approximate
+        return _comparator_approximate
 
     return None
 
