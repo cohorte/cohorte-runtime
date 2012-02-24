@@ -10,6 +10,7 @@ __version__ = (1, 0, 0)
 
 started = False
 stopped = False
+raiser = False
 
 class ActivatorTest:
     """
@@ -30,6 +31,9 @@ class ActivatorTest:
         assert isinstance(context, BundleContext)
         self.context = context
 
+        if raiser:
+            raise Exception("Some exception")
+
         global started
         started = True
 
@@ -40,6 +44,9 @@ class ActivatorTest:
         """
         assert isinstance(context, BundleContext)
         assert self.context is context
+
+        if raiser:
+            raise Exception("Some exception")
 
         global stopped
         stopped = True

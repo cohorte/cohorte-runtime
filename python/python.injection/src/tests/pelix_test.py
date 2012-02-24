@@ -9,6 +9,7 @@ Created on 1 févr. 2012
 from psem2m.services.pelix import FrameworkFactory, Bundle, BundleException, \
     BundleContext, BundleEvent, ServiceEvent
 from tests.interfaces import IEchoService
+import os.path
 import logging
 import unittest
 
@@ -32,6 +33,8 @@ class BundlesTest(unittest.TestCase):
         """
         self.framework = FrameworkFactory.get_framework()
         self.test_bundle_name = "tests.simple_bundle"
+        # File path, without extension
+        self.test_bundle_loc = os.path.abspath(self.test_bundle_name.replace('.', os.sep))
 
 
     def tearDown(self):
@@ -45,7 +48,7 @@ class BundlesTest(unittest.TestCase):
     def testLifeCycle(self, test_bundle_id=False):
         """
         Tests a bundle installation + start + stop
-        
+
         @param test_bundle_id: If True, also tests if the test bundle ID is 1
         """
         # Install the bundle
@@ -82,13 +85,126 @@ class BundlesTest(unittest.TestCase):
         bundle.uninstall()
 
 
+    def testLifeCycleRecalls(self):
+        """
+        Tests a bundle installation + start + stop
+
+        @param test_bundle_id: If True, also tests if the test bundle ID is 1
+        """
+        # Install the bundle
+        context = self.framework.get_bundle_context()
+        assert isinstance(context, BundleContext)
+
+        bid = context.install_bundle(self.test_bundle_name)
+        bundle = context.get_bundle(bid)
+        assert isinstance(bundle, Bundle)
+
+        # Get the internal module
+        module = bundle.get_module()
+
+        # Assert initial state
+        self.assertFalse(module.started, "Bundle should not be started yet")
+        self.assertFalse(module.stopped, "Bundle should not be stopped yet")
+
+        # Activator
+        bundle.start()
+
+        self.assertEquals(bundle.get_state(), Bundle.ACTIVE, \
+                          "Bundle should be considered active")
+
+        self.assertTrue(module.started, "Bundle should be started now")
+        self.assertFalse(module.stopped, "Bundle should not be stopped yet")
+
+        # Recall activator
+        module.started = False
+        bundle.start()
+        self.assertFalse(module.started, "Bundle shouldn't be started twice")
+
+        # Reset to previous state
+        module.started = True
+
+        # De-activate
+        bundle.stop()
+
+        self.assertNotEquals(bundle.get_state(), Bundle.ACTIVE, \
+                             "Bundle shouldn't be considered active")
+
+        self.assertTrue(module.started, "Bundle should be changed")
+        self.assertTrue(module.stopped, "Bundle should be stopped now")
+
+        # Recall activator
+        module.stopped = False
+        bundle.stop()
+        self.assertFalse(module.stopped, "Bundle shouldn't be stopped twice")
+
+        # Uninstall (validated in another test)
+        bundle.uninstall()
+
+        self.assertEquals(bundle.get_state(), Bundle.UNINSTALLED, \
+                          "Bundle should be considered uninstalled")
+
+
+    def testLifeCycleExceptions(self):
+        """
+        Tests a bundle installation + start + stop
+
+        @param test_bundle_id: If True, also tests if the test bundle ID is 1
+        """
+        # Install the bundle
+        context = self.framework.get_bundle_context()
+        assert isinstance(context, BundleContext)
+
+        bid = context.install_bundle(self.test_bundle_name)
+        bundle = context.get_bundle(bid)
+        assert isinstance(bundle, Bundle)
+
+        # Get the internal module
+        module = bundle.get_module()
+
+        # Assert initial state
+        self.assertFalse(module.started, "Bundle should not be started yet")
+        self.assertFalse(module.stopped, "Bundle should not be stopped yet")
+
+        # Activator with exception
+        module.raiser = True
+        self.assertRaises(BundleException, bundle.start)
+
+        # Assert post-exception state
+        self.assertNotEquals(bundle.get_state(), Bundle.ACTIVE, \
+                             "Bundle shouldn't be considered active")
+        self.assertFalse(module.started, "Bundle should not be started yet")
+        self.assertFalse(module.stopped, "Bundle should not be stopped yet")
+
+        # Activator, without exception
+        module.raiser = False
+        bundle.start()
+
+        self.assertEquals(bundle.get_state(), Bundle.ACTIVE, \
+                          "Bundle should be considered active")
+
+        self.assertTrue(module.started, "Bundle should be started now")
+        self.assertFalse(module.stopped, "Bundle should not be stopped yet")
+
+        # De-activate with exception
+        module.raiser = True
+        self.assertRaises(BundleException, bundle.stop)
+
+        self.assertNotEquals(bundle.get_state(), Bundle.ACTIVE, \
+                             "Bundle shouldn't be considered active")
+        self.assertTrue(module.started, "Bundle should be changed")
+        self.assertFalse(module.stopped, "Bundle should be stopped now")
+
+        # Uninstall (validated in another test)
+        bundle.uninstall()
+
+
     def testUninstallInstall(self):
         """
         Runs the life-cycle test twice.
-        
+
         The bundle is installed then un-installed twice. started and stopped
         values of the bundle should be reset to False.
-        
+
         Keeping two separate calls instead of using a loop allows to see at
         which pass the test have failed
         """
@@ -116,8 +232,14 @@ class BundlesTest(unittest.TestCase):
 
         # Validate the bundle name
         self.assertEquals(bundle.get_symbolic_name(), self.test_bundle_name, \
-                          "Location and name are different (%s / %s)" \
+                          "Names are different (%s / %s)" \
                           % (bundle.get_symbolic_name(), self.test_bundle_name))
+
+        # Validate get_location()
+        bundle_without_ext = os.path.splitext(bundle.get_location())[0]
+        self.assertEquals(bundle_without_ext, self.test_bundle_loc, \
+                          "Not the same location %s -> %s" \
+                          % (self.test_bundle_loc, bundle_without_ext))
 
         # Validate the version number
         self.assertEqual(bundle.get_version(), module.__version__, \
@@ -209,7 +331,7 @@ class BundleEventTest(unittest.TestCase):
     def bundle_changed(self, event):
         """
         Called by the framework when a bundle event is triggered
-        
+
         @param event: The BundleEvent
         """
         assert isinstance(event, BundleEvent)
@@ -299,22 +421,32 @@ class LocalBundleTest(unittest.TestCase):
         assert isinstance(fw_context, BundleContext)
 
         # Install local bundle in framework (for service installation & co)
-        self.bid = fw_context.install_bundle(__name__)
+        bid = fw_context.install_bundle(__name__)
 
         # Get a reference to the bundle
-        self.bundle = fw_context.get_bundle(self.bid)
+        bundle = fw_context.get_bundle(bid)
 
         # Validate the symbolic name
-        self.assertEquals(self.bundle.get_symbolic_name(), __name__, \
+        self.assertEquals(bundle.get_symbolic_name(), __name__, \
                           "Bundle (%s) and module (%s) are different" \
-                          % (self.bundle.get_symbolic_name(), __name__))
+                          % (bundle.get_symbolic_name(), __name__))
 
         # Validate get_bundle() via bundle context
-        context_bundle = self.bundle.get_bundle_context().get_bundle()
-        self.assertIs(self.bundle, context_bundle, \
+        context_bundle = bundle.get_bundle_context().get_bundle()
+        self.assertIs(bundle, context_bundle, \
                       "Not the same bundle :\n%d / %s\n%d / %s" \
-                      % (id(self.bundle), self.bundle, \
+                      % (id(bundle), bundle, \
                          id(context_bundle), context_bundle))
+
+        # Validate get_version()
+        self.assertEquals(bundle.get_version(), __version__, \
+                          "Not the same version %s -> %s" \
+                          % (__version__, bundle.get_version()))
+
+        # Validate get_location()
+        self.assertEquals(bundle.get_location(), __file__, \
+                          "Not the same location %s -> %s" \
+                          % (__file__, bundle.get_location()))
 
 # ------------------------------------------------------------------------------
 
@@ -496,7 +628,7 @@ class ServiceEventTest(unittest.TestCase):
     def service_changed(self, event):
         """
         Called by the framework when a service event is triggered
-        
+
         @param event: The ServiceEvent
         """
         assert isinstance(event, ServiceEvent)
