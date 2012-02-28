@@ -118,9 +118,6 @@ class DecoratorsTest(unittest.TestCase):
             for bad in bad_types:
                 self.assertRaises(TypeError, decorator, bad)
 
-    def testPropertyChanges(self):
-        # TODO
-
 # ------------------------------------------------------------------------------
 
 class LifeCycleTest(unittest.TestCase):
