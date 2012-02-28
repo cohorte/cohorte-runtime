@@ -7,8 +7,9 @@ Created on 1 févr. 2012
 """
 
 from psem2m.services.pelix import FrameworkFactory, Bundle, BundleException, \
-    BundleContext, BundleEvent, ServiceEvent
+    BundleContext, BundleEvent, ServiceEvent, ServiceReference
 from tests.interfaces import IEchoService
+import psem2m.services.pelix as pelix
 import os.path
 import logging
 import unittest
@@ -34,7 +35,8 @@ class BundlesTest(unittest.TestCase):
         self.framework = FrameworkFactory.get_framework()
         self.test_bundle_name = "tests.simple_bundle"
         # File path, without extension
-        self.test_bundle_loc = os.path.abspath(self.test_bundle_name.replace('.', os.sep))
+        self.test_bundle_loc = os.path.abspath(self.test_bundle_name.replace(
+                                                                '.', os.sep))
 
 
     def tearDown(self):
@@ -43,6 +45,16 @@ class BundlesTest(unittest.TestCase):
         """
         self.framework.stop()
         FrameworkFactory.delete_framework(self.framework)
+
+
+    def testImportError(self):
+        """
+        Tries to install an invalid bundle
+        """
+        # Try to install the bundle
+        context = self.framework.get_bundle_context()
+        self.assertRaises(BundleException, context.install_bundle,
+                          "//Invalid Name\\\\")
 
 
     def testLifeCycle(self, test_bundle_id=False):
@@ -215,41 +227,6 @@ class BundlesTest(unittest.TestCase):
         self.testLifeCycle(False)
 
 
-    def testVersion(self):
-        """
-        Tests if the version is correctly read from the bundle
-        """
-        # Install the bundle
-        bid = self.framework.install_bundle(self.test_bundle_name)
-        self.assertEqual(bid, 1, "Invalid first bundle ID '%d'" % bid)
-
-        # Get the bundle
-        bundle = self.framework.get_bundle_context().get_bundle(bid)
-        assert isinstance(bundle, Bundle)
-
-        # Get the internal module
-        module = bundle.get_module()
-
-        # Validate the bundle name
-        self.assertEquals(bundle.get_symbolic_name(), self.test_bundle_name, \
-                          "Names are different (%s / %s)" \
-                          % (bundle.get_symbolic_name(), self.test_bundle_name))
-
-        # Validate get_location()
-        bundle_without_ext = os.path.splitext(bundle.get_location())[0]
-        self.assertEquals(bundle_without_ext, self.test_bundle_loc, \
-                          "Not the same location %s -> %s" \
-                          % (self.test_bundle_loc, bundle_without_ext))
-
-        # Validate the version number
-        self.assertEqual(bundle.get_version(), module.__version__, \
-                         "Different versions found (%s / %s)" \
-                         % (bundle.get_version(), module.__version__))
-
-        # Remove the bundle
-        bundle.uninstall()
-
-
     def testUninstallWithStartStop(self):
         """
         Tests if a bundle is correctly uninstalled and if it is really
@@ -293,6 +270,106 @@ class BundlesTest(unittest.TestCase):
         found_bundle = self.framework.get_bundle_by_name(self.test_bundle_name)
         self.assertIsNone(found_bundle, "Bundle is still accessible by name " \
                           "through the framework")
+
+
+    def testUpdate(self):
+        """
+        Tests a bundle update
+        """
+        bundle_content = """#!/usr/bin/python
+# Auto-generated bundle, for Pelix tests
+__version__ = "{version}"
+test_var = {test}
+
+def test_fct():
+    return {test}
+"""
+        bundle_name = "generated_bundle"
+
+        # 0/ Clean up existing files
+        for ext in ("py", "pyc"):
+            path = "./%s.%s" % (bundle_name, ext)
+            if os.path.exists(path):
+                os.remove(path)
+
+        # 1/ Prepare the bundle, test variable is set to False
+        f = open("./%s.py" % bundle_name, "w")
+        f.write(bundle_content.format(version="1.0.0", test=False))
+        f.close()
+
+        # 2/ Install the bundle and get its variable
+        context = self.framework.get_bundle_context()
+        bid = context.install_bundle(bundle_name)
+        bundle = context.get_bundle(bid)
+        module = bundle.get_module()
+
+        # Also start the bundle
+        bundle.start()
+
+        self.assertFalse(module.test_var, "Test variable should be False")
+
+        # 3/ Change the bundle file
+        f = open("./%s.py" % bundle_name, "w")
+        f.write(bundle_content.format(version="1.0.1", test=True))
+        f.close()
+
+        # 4/ Update, keeping the module reference
+        bundle.update()
+        self.assertIs(module, bundle.get_module(), "Module has changed")
+        self.assertTrue(module.test_var, "Test variable should be True")
+
+        # 5/ Change the bundle file, make it erroneous
+        f = open("./%s.py" % bundle_name, "w")
+        f.write(bundle_content.format(version="1.0.2", test="\n"))
+        f.close()
+
+        # No error must be raised...
+        bundle.update()
+
+        # ... but the state of the module shouldn't have changed
+        self.assertTrue(module.test_var, "Test variable should still be True")
+
+        # Finally, change the test file to be a valid module
+        # -> Used by coverage for its report
+        f = open("./%s.py" % bundle_name, "w")
+        f.write(bundle_content.format(version="1.0.0", test=False))
+        f.close()
+
+
+
+    def testVersion(self):
+        """
+        Tests if the version is correctly read from the bundle
+        """
+        # Install the bundle
+        bid = self.framework.install_bundle(self.test_bundle_name)
+        self.assertEqual(bid, 1, "Invalid first bundle ID '%d'" % bid)
+
+        # Get the bundle
+        bundle = self.framework.get_bundle_context().get_bundle(bid)
+        assert isinstance(bundle, Bundle)
+
+        # Get the internal module
+        module = bundle.get_module()
+
+        # Validate the bundle name
+        self.assertEquals(bundle.get_symbolic_name(), self.test_bundle_name, \
+                          "Names are different (%s / %s)" \
+                          % (bundle.get_symbolic_name(), self.test_bundle_name))
+
+        # Validate get_location()
+        bundle_without_ext = os.path.splitext(bundle.get_location())[0]
+        self.assertEquals(bundle_without_ext, self.test_bundle_loc, \
+                          "Not the same location %s -> %s" \
+                          % (self.test_bundle_loc, bundle_without_ext))
+
+        # Validate the version number
+        self.assertEqual(bundle.get_version(), module.__version__, \
+                         "Different versions found (%s / %s)" \
+                         % (bundle.get_version(), module.__version__))
+
+        # Remove the bundle
+        bundle.uninstall()
 
 
 # ------------------------------------------------------------------------------
@@ -394,6 +471,137 @@ class BundleEventTest(unittest.TestCase):
 
 # ------------------------------------------------------------------------------
 
+class FrameworkTest(unittest.TestCase):
+    """
+    Tests the framework factory properties
+    """
+
+    def setUp(self):
+        """
+        Sets up tests variables
+        """
+        self.stopping = False
+
+
+    def testBundleZero(self):
+        """
+        Tests if bundle 0 is the framework
+        """
+        framework = FrameworkFactory.get_framework()
+
+        self.assertIsNone(framework.get_bundle_by_name(None), \
+                          "None name is not bundle 0")
+
+        self.assertIs(framework, framework.get_bundle_by_id(0),
+                      "Invalid bundle 0")
+
+        pelix_name = framework.get_symbolic_name()
+        self.assertIs(framework, framework.get_bundle_by_name(pelix_name),
+                      "Invalid system bundle name")
+
+        FrameworkFactory.delete_framework(framework)
+
+
+    def testPropertiesWithPreset(self):
+        """
+        Test framework properties
+        """
+        pelix_test_name = "PELIX_TEST"
+        pelix_test = "42"
+        pelix_test_2 = "421"
+
+        # Test with pre-set properties
+        props = {pelix_test_name: pelix_test}
+        framework = FrameworkFactory.get_framework(props)
+
+        self.assertEquals(framework.get_property(pelix_test_name), pelix_test, \
+                          "Invalid property value")
+
+        # Pre-set property has priority
+        os.environ[pelix_test_name] = pelix_test_2
+        self.assertEquals(framework.get_property(pelix_test_name), pelix_test, \
+                          "Invalid property value")
+        del os.environ[pelix_test_name]
+
+        FrameworkFactory.delete_framework(framework)
+
+
+    def testPropertiesWithoutPreset(self):
+        """
+        Test framework properties
+        """
+        pelix_test_name = "PELIX_TEST"
+        pelix_test = "42"
+
+        # Test without pre-set properties
+        framework = FrameworkFactory.get_framework()
+
+        self.assertIsNone(framework.get_property(pelix_test_name), \
+                          "Magic property value")
+
+        os.environ[pelix_test_name] = pelix_test
+        self.assertEquals(framework.get_property(pelix_test_name), pelix_test, \
+                          "Invalid property value")
+        del os.environ[pelix_test_name]
+
+        FrameworkFactory.delete_framework(framework)
+
+
+    def framework_stopping(self):
+        """
+        Called when framework is stopping
+        """
+        self.stopping = True
+
+
+    def testStopListener(self):
+        """
+        Test the framework stop event
+        """
+        # Set up a framework
+        framework = FrameworkFactory.get_framework()
+        context = framework.get_bundle_context()
+
+        # Assert initial state
+        self.assertFalse(self.stopping, "Invalid initial state")
+
+        # Register the stop listener
+        self.assertTrue(context.add_framework_stop_listener(self),
+                        "Can't register the stop listener")
+
+        self.assertFalse(context.add_framework_stop_listener(self),
+                         "Stop listener registered twice")
+
+        # Assert running state
+        self.assertFalse(self.stopping, "Invalid running state")
+
+        # Stop the framework
+        framework.stop()
+
+        # Assert the listener has been called
+        self.assertTrue(self.stopping, "Stop listener hasn't been called")
+
+        # Unregister the listener
+        self.assertTrue(context.remove_framework_stop_listener(self),
+                        "Can't unregister the stop listener")
+
+        self.assertFalse(context.remove_framework_stop_listener(self),
+                         "Stop listener unregistered twice")
+
+        FrameworkFactory.delete_framework(framework)
+
+
+    def testUninstall(self):
+        """
+        Tests if the framework raises an exception if uninstall is called on it
+        """
+        # Set up a framework
+        framework = FrameworkFactory.get_framework()
+        self.assertRaises(BundleException, framework.uninstall)
+        FrameworkFactory.delete_framework(framework)
+
+# ------------------------------------------------------------------------------
+
 class LocalBundleTest(unittest.TestCase):
     """
     Tests the installation of the __main__ bundle
@@ -425,6 +633,12 @@ class LocalBundleTest(unittest.TestCase):
 
         # Get a reference to the bundle
         bundle = fw_context.get_bundle(bid)
+
+        # Get a reference to the bundle, by name
+        bundle_2 = fw_context.get_bundle(0).get_bundle_by_name(__name__)
+
+        self.assertIs(bundle, bundle_2, \
+                      "Different bundle returned by ID and by name")
 
         # Validate the symbolic name
         self.assertEquals(bundle.get_symbolic_name(), __name__, \
@@ -540,6 +754,9 @@ class ServicesTest(unittest.TestCase):
         # Validate the reference
         self.assertIs(svc, module.service, "Not the same service instance...")
 
+        # Unget the service
+        context.unget_service(ref1)
+
         # --- Stop it (unregisters a service) ---
         bundle.stop()
 
@@ -591,6 +808,72 @@ class ServicesTest(unittest.TestCase):
         # The service should be deleted
         ref = context.get_service_reference(IEchoService)
         self.assertIsNone(ref, "get_service_reference found : %s" % ref)
+
+
+    def testServiceReferencesCmp(self):
+        """
+        Tests service references comparisons
+        """
+
+        # Invalid references...
+        # ... empty properties
+        self.assertRaises(BundleException, ServiceReference, self.framework, {})
+        # ... no service ID
+        self.assertRaises(BundleException, ServiceReference, self.framework,
+                          {pelix.OBJECTCLASS: "a"})
+        # ... no object class
+        self.assertRaises(BundleException, ServiceReference, self.framework,
+                          {pelix.SERVICE_ID: "b"})
+
+        ref1b = ServiceReference(self.framework, {pelix.OBJECTCLASS: "ref1_b",
+                                                 pelix.SERVICE_ID: 1,
+                                                 pelix.SERVICE_RANKING:0})
+
+        ref1 = ServiceReference(self.framework, {pelix.OBJECTCLASS: "ref1",
+                                                 pelix.SERVICE_ID: 1})
+
+        ref2 = ServiceReference(self.framework, {pelix.OBJECTCLASS: "ref2",
+                                                 pelix.SERVICE_ID: 2})
+
+        ref3 = ServiceReference(self.framework, {pelix.OBJECTCLASS: "ref3",
+                                                 pelix.SERVICE_ID: 3,
+                                                 pelix.SERVICE_RANKING:-20})
+
+        ref4 = ServiceReference(self.framework, {pelix.OBJECTCLASS: "ref4",
+                                                 pelix.SERVICE_ID: 4,
+                                                 pelix.SERVICE_RANKING: 128})
+
+        # Tests
+        self.assertEquals(ref1, ref1, "ID1 == ID1")
+        self.assertEquals(ref1.__cmp__(ref1), 0, "Equality per __cmp__()")
+
+        self.assertEquals(ref1.__cmp__("titi"), -1,
+                          "Lesser than unknown with  __cmp__()")
+        self.assertNotEquals(ref1, "titi", "Not equal to unknown with __eq__()")
+        self.assertLess(ref1, "titi", "Lesser than unknown with  __lt__()")
+        self.assertLessEqual(ref1, "titi", "Lesser than unknown with  __le__()")
+
+        self.assertEquals(ref1, ref1b, "ID1 == ID1.0")
+        self.assertGreaterEqual(ref1, ref1b, "ID1 >= ID1.0")
+
+        # ID comparison
+        self.assertLess(ref2, ref1, "ID2 < ID1")
+        self.assertLessEqual(ref2, ref1, "ID2 <= ID1")
+        self.assertGreater(ref1, ref2, "ID2 > ID1")
+        self.assertGreaterEqual(ref1, ref2, "ID1 >= ID2")
+
+        # Ranking comparison
+        self.assertGreater(ref4, ref3, "ID4.128 > ID3.-20")
+        self.assertGreaterEqual(ref4, ref3, "ID4.128 >= ID3.-20")
+        self.assertLess(ref3, ref4, "ID3.-20 < ID4.128")
+        self.assertLessEqual(ref3, ref4, "ID3.-20 <= ID4.128")
+
+        # Ensure that comparison is not based on ID
+        self.assertLess(ref3, ref1, "ID3.-20 < ID1.0")
+        self.assertGreater(ref1, ref3, "ID3.-20 > ID1.0")
+
+        # Mixed comparison
+
 
 # ------------------------------------------------------------------------------
 
@@ -647,6 +930,40 @@ class ServiceEventTest(unittest.TestCase):
 
         self.assertNotIn(kind, self.received, "Event received twice")
         self.received.append(kind)
+
+
+    def testDoubleListener(self):
+        """
+        Tests double registration / unregistration
+        """
+        context = self.framework.get_bundle_context()
+        assert isinstance(context, BundleContext)
+
+        # Double registration
+        self.assertTrue(context.add_service_listener(self), \
+                        "Can't register the service listener")
+        self.assertFalse(context.add_service_listener(self), \
+                        "Service listener registered twice")
+
+        # Double unregistration
+        self.assertTrue(context.remove_service_listener(self), \
+                        "Can't unregister the service listener")
+        self.assertFalse(context.remove_service_listener(self), \
+                        "Service listener unregistered twice")
+
+
+    def testInvalidFilterListener(self):
+        """
+        Tests invalid filter listener registration
+        """
+        context = self.framework.get_bundle_context()
+        assert isinstance(context, BundleContext)
+
+        self.assertFalse(context.add_service_listener(self, "Invalid"), \
+                         "Invalid filter registered")
+
+        self.assertFalse(context.remove_service_listener(self), \
+                         "Invalid filter was registered anyway")
 
 
     def testServiceEventsNormal(self):
