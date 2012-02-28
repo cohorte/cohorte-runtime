@@ -42,7 +42,7 @@ class BundleException(Exception):
         Sets up the exception
         """
         if isinstance(content, Exception):
-            Exception.__init__(self, content.message)
+            Exception.__init__(self, str(content))
 
         else:
             Exception.__init__(self, content)
@@ -232,6 +232,7 @@ class Bundle(object):
         activator = getattr(self.__module, ACTIVATOR, None)
         stopper = getattr(activator, 'stop', None)
 
+        exception = None
         if stopper is not None:
             try:
                 # Call the start method
@@ -241,10 +242,6 @@ class Bundle(object):
                 _logger.exception("Error calling the activator")
                 # Store the exception (raised after service clean up)
                 exception = BundleException(ex)
-
-            else:
-                # All went fine
-                exception = None
 
         # Remove remaining services
         self.__unregister_services()
@@ -328,6 +325,12 @@ class Bundle(object):
 
         # Stop the bundle
         self.stop()
+
+        # Change the source file age
+        module_file = getattr(self.__module, "__file__", None)
+        if module_file is not None and os.path.isfile(module_file):
+            st = os.stat(module_file)
+            os.utime(module_file, (st.st_atime, st.st_mtime + 1))
 
         # Reload the module
         imp.reload(self.__module)
@@ -657,6 +660,14 @@ class Framework(Bundle):
         @param name: Name of the bundle to look for
         @return: The requested bundle, None if not found
         """
+        if bundle_name is None:
+            # Nothing to do
+            return None
+
+        if bundle_name is self.get_symbolic_name():
+            # System bundle requested
+            return self
+
         if self.__registering_bundle is not None \
         and bundle_name == self.__registering_bundle.get_symbolic_name():
             # Request for the installing bundle...
@@ -869,8 +880,9 @@ class Framework(Bundle):
         Unregisters a bundle listener
 
         @param listener: The bundle listener
+        @return: True if the listener has been unregistered
         """
-        _remove_listener(self.__bundle_listeners, listener)
+        return _remove_listener(self.__bundle_listeners, listener)
 
 
     @SynchronizedClassMethod('_lock')
@@ -879,8 +891,9 @@ class Framework(Bundle):
         Unregisters a framework stop listener
 
         @param listener: The framework stop listener
+        @return: True if the listener has been unregistered
         """
-        _remove_listener(self.__framework_listeners, listener)
+        return _remove_listener(self.__framework_listeners, listener)
 
 
     @SynchronizedClassMethod('_lock')
@@ -889,11 +902,16 @@ class Framework(Bundle):
         Unregisters a service listener
 
         @param listener: The service listener
+        @return: True if the listener has been unregistered
         """
-        _remove_listener(self.__service_listeners, listener)
+        # Remove the listener from the list
+        result = _remove_listener(self.__service_listeners, listener)
 
         if listener in self.__service_listeners_filters:
+            # Also delete the associated filter
             del self.__service_listeners_filters[listener]
+
+        return result
 
 
     @SynchronizedClassMethod('_lock')
@@ -1175,8 +1193,11 @@ class BundleContext(object):
     def remove_bundle_listener(self, listener):
         """
         Unregisters a bundle listener
+        
+        @param listener: The bundle listener
+        @return: True if the listener has been unregistered
         """
-        self.__framework.remove_bundle_listener(listener)
+        return self.__framework.remove_bundle_listener(listener)
 
 
     def remove_framework_stop_listener(self, listener):
@@ -1184,15 +1205,19 @@ class BundleContext(object):
         Unregisters a framework stop listener
 
         @param listener: The framework stop listener
+        @return: True if the listener has been unregistered
         """
-        self.__framework.remove_framework_stop_listener(listener)
+        return self.__framework.remove_framework_stop_listener(listener)
 
 
     def remove_service_listener(self, listener):
         """
         Unregisters a service listener
+        
+        @param listener: The service listener
+        @return: True if the listener has been unregistered
         """
-        self.__framework.remove_service_listener(listener)
+        return self.__framework.remove_service_listener(listener)
 
 
     def unget_service(self, reference):
@@ -1260,8 +1285,8 @@ class ServiceReference(object):
             return 0
 
         if not isinstance(other, ServiceReference):
-            # Not comparable => "equals"
-            return 0
+            # Not comparable => lesser
+            return -1
 
         if self.__service_id == other.__service_id:
             # Same ID, same service
@@ -1278,11 +1303,11 @@ class ServiceReference(object):
                 return 1
 
         elif service_rank < other_rank:
-            # Lesser rank value, greater reference
-            return 1
+            # Lesser rank value, lesser reference
+            return -1
 
         else:
-            return -1
+            return 1
 
 
     def __eq__(self, other):
