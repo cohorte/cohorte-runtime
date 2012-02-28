@@ -248,46 +248,36 @@ class RequirementTest(unittest.TestCase):
         """
         module = install_bundle(self.framework)
 
-        compoA = None
-        compoB = None
+        # Instantiate A (validated)
+        compoA = self.ipopo.instantiate(module.FACTORY_A, NAME_A)
+        self.assertEqual([IPopoEvent.INSTANTIATED, IPopoEvent.VALIDATED], \
+                         compoA.states, \
+                         "Invalid component states : %s" % compoA.states)
+        compoA.reset()
 
-        try:
-            # Instantiate A (validated)
-            compoA = self.ipopo.instantiate(module.FACTORY_A, NAME_A)
-            self.assertEqual([IPopoEvent.INSTANTIATED, IPopoEvent.VALIDATED], \
-                             compoA.states, \
-                             "Invalid component states : %s" % compoA.states)
-            compoA.reset()
+        # Instantiate B (bound then validated)
+        compoB = self.ipopo.instantiate(module.FACTORY_B, NAME_B)
+        self.assertEqual([IPopoEvent.INSTANTIATED, IPopoEvent.BOUND, \
+                          IPopoEvent.VALIDATED], compoB.states, \
+                         "Invalid component states : %s" % compoB.states)
+        compoB.reset()
 
-            # Instantiate B (bound then validated)
-            compoB = self.ipopo.instantiate(module.FACTORY_B, NAME_B)
-            self.assertEqual([IPopoEvent.INSTANTIATED, IPopoEvent.BOUND, \
-                              IPopoEvent.VALIDATED], compoB.states, \
-                             "Invalid component states : %s" % compoB.states)
-            compoB.reset()
+        # Invalidate B
+        self.ipopo.invalidate(NAME_B)
+        self.assertEqual([IPopoEvent.INVALIDATED], compoB.states, \
+                         "Invalid component states : %s" % compoB.states)
+        compoB.reset()
 
-            # Invalidate B
-            self.ipopo.invalidate(NAME_B)
-            self.assertEqual([IPopoEvent.INVALIDATED], compoB.states, \
-                             "Invalid component states : %s" % compoB.states)
-            compoB.reset()
+        # Uninstantiate B
+        self.ipopo.kill(NAME_B)
+        self.assertEqual([IPopoEvent.UNBOUND], compoB.states, \
+                         "Invalid component states : %s" % compoB.states)
 
-            # Uninstantiate B
-            self.ipopo.kill(NAME_B)
-            self.assertEqual([IPopoEvent.UNBOUND], compoB.states, \
-                             "Invalid component states : %s" % compoB.states)
+        # Uninstantiate A
+        self.ipopo.kill(NAME_A)
+        self.assertEqual([IPopoEvent.INVALIDATED], compoA.states, \
+                         "Invalid component states : %s" % compoA.states)
 
-            # Uninstantiate A
-            self.ipopo.kill(NAME_A)
-            self.assertEqual([IPopoEvent.INVALIDATED], compoA.states, \
-                             "Invalid component states : %s" % compoA.states)
-
-        finally:
-            for compo in (NAME_A, NAME_B):
-                try:
-                    self.ipopo.kill(compo)
-                except:
-                    pass
 
     def testCycleOuterEnd(self):
         """
@@ -296,45 +286,77 @@ class RequirementTest(unittest.TestCase):
         """
         module = install_bundle(self.framework)
 
-        compoA = None
-        compoB = None
+        # Instantiate A (validated)
+        compoA = self.ipopo.instantiate(module.FACTORY_A, NAME_A)
+        self.assertEqual([IPopoEvent.INSTANTIATED, IPopoEvent.VALIDATED], \
+                         compoA.states, \
+                         "Invalid component states : %s" % compoA.states)
+        compoA.reset()
 
-        try:
-            # Instantiate A (validated)
-            compoA = self.ipopo.instantiate(module.FACTORY_A, NAME_A)
-            self.assertEqual([IPopoEvent.INSTANTIATED, IPopoEvent.VALIDATED], \
-                             compoA.states, \
-                             "Invalid component states : %s" % compoA.states)
-            compoA.reset()
+        # Instantiate B (bound then validated)
+        compoB = self.ipopo.instantiate(module.FACTORY_B, NAME_B)
+        self.assertEqual([IPopoEvent.INSTANTIATED, IPopoEvent.BOUND, \
+                          IPopoEvent.VALIDATED], compoB.states, \
+                         "Invalid component states : %s" % compoA.states)
+        compoB.reset()
 
-            # Instantiate B (bound then validated)
-            compoB = self.ipopo.instantiate(module.FACTORY_B, NAME_B)
-            self.assertEqual([IPopoEvent.INSTANTIATED, IPopoEvent.BOUND, \
-                              IPopoEvent.VALIDATED], compoB.states, \
-                             "Invalid component states : %s" % compoA.states)
-            compoB.reset()
+        # Uninstantiate A
+        self.ipopo.kill(NAME_A)
+        self.assertEqual([IPopoEvent.INVALIDATED], compoA.states, \
+                         "Invalid component states : %s" % compoA.states)
 
-            # Uninstantiate A
-            self.ipopo.kill(NAME_A)
-            self.assertEqual([IPopoEvent.INVALIDATED], compoA.states, \
-                             "Invalid component states : %s" % compoA.states)
+        self.assertEqual([IPopoEvent.INVALIDATED, IPopoEvent.UNBOUND], \
+                         compoB.states, \
+                         "Invalid component states : %s" % compoB.states)
+        compoB.reset()
 
-            self.assertEqual([IPopoEvent.INVALIDATED, IPopoEvent.UNBOUND], \
-                             compoB.states, \
-                             "Invalid component states : %s" % compoB.states)
-            compoB.reset()
+        # Uninstantiate B
+        self.ipopo.kill(NAME_B)
+        self.assertEqual([], compoB.states, \
+                         "Invalid component states : %s" % compoA.states)
 
-            # Uninstantiate B
-            self.ipopo.kill(NAME_B)
-            self.assertEqual([], compoB.states, \
-                             "Invalid component states : %s" % compoA.states)
 
-        finally:
-            for compo in (NAME_A, NAME_B):
-                try:
-                    self.ipopo.kill(compo)
-                except:
-                    pass
+    def testCycleOuterStart(self):
+        """
+        Tests if the required service is correctly bound after the component
+        instantiation
+        """
+        module = install_bundle(self.framework)
+
+        # Instantiate B (no requirement present)
+        compoB = self.ipopo.instantiate(module.FACTORY_B, NAME_B)
+        self.assertEqual([IPopoEvent.INSTANTIATED], compoB.states, \
+                         "Invalid component states : %s" % compoB.states)
+        compoB.reset()
+
+        # Instantiate A (validated)
+        compoA = self.ipopo.instantiate(module.FACTORY_A, NAME_A)
+        self.assertEqual([IPopoEvent.INSTANTIATED, IPopoEvent.VALIDATED], \
+                         compoA.states, \
+                         "Invalid component states : %s" % compoA.states)
+        compoA.reset()
+
+        # B must have been validated
+        self.assertEqual([IPopoEvent.BOUND, IPopoEvent.VALIDATED], \
+                         compoB.states, \
+                         "Invalid component states : %s" % compoB.states)
+        compoB.reset()
+
+        # Invalidate B
+        self.ipopo.invalidate(NAME_B)
+        self.assertEqual([IPopoEvent.INVALIDATED], compoB.states, \
+                         "Invalid component states : %s" % compoB.states)
+        compoB.reset()
+
+        # Uninstantiate B
+        self.ipopo.kill(NAME_B)
+        self.assertEqual([IPopoEvent.UNBOUND], compoB.states, \
+                         "Invalid component states : %s" % compoB.states)
+
+        # Uninstantiate A
+        self.ipopo.kill(NAME_A)
+        self.assertEqual([IPopoEvent.INVALIDATED], compoA.states, \
+                         "Invalid component states : %s" % compoA.states)
 
 
     def testConfiguredInstance(self):
@@ -343,42 +365,31 @@ class RequirementTest(unittest.TestCase):
         """
         module = install_bundle(self.framework)
 
-        compoA = None
-        compoB = None
-
         # The module filter
         properties_b = {constants.IPOPO_REQUIRES_FILTERS: \
                         {"service": "(%s=True)" % module.PROP_USABLE}}
 
-        try:
-            # Instantiate A (validated)
-            compoA = self.ipopo.instantiate(module.FACTORY_A, NAME_A)
+        # Instantiate A (validated)
+        compoA = self.ipopo.instantiate(module.FACTORY_A, NAME_A)
 
-            # Set A unusable
-            compoA.change(False)
+        # Set A unusable
+        compoA.change(False)
 
-            # Instantiate B (must not be bound)
-            compoB = self.ipopo.instantiate(module.FACTORY_B, NAME_B, \
-                                            properties_b)
-            self.assertEqual([IPopoEvent.INSTANTIATED], compoB.states, \
-                             "Invalid component states : %s" % compoB.states)
-            compoB.reset()
+        # Instantiate B (must not be bound)
+        compoB = self.ipopo.instantiate(module.FACTORY_B, NAME_B, \
+                                        properties_b)
+        self.assertEqual([IPopoEvent.INSTANTIATED], compoB.states, \
+                         "Invalid component states : %s" % compoB.states)
+        compoB.reset()
 
-            # Set A usable
-            compoA.change(True)
+        # Set A usable
+        compoA.change(True)
 
-            # B must be bound and validated
-            self.assertEqual([IPopoEvent.BOUND, IPopoEvent.VALIDATED], \
-                             compoB.states, \
-                             "Invalid component states : %s" % compoB.states)
-            compoB.reset()
-
-        finally:
-            for compo in (NAME_A, NAME_B):
-                try:
-                    self.ipopo.kill(compo)
-                except:
-                    pass
+        # B must be bound and validated
+        self.assertEqual([IPopoEvent.BOUND, IPopoEvent.VALIDATED], \
+                         compoB.states, \
+                         "Invalid component states : %s" % compoB.states)
+        compoB.reset()
 
 # ------------------------------------------------------------------------------
 

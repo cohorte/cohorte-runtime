@@ -9,12 +9,14 @@ rm -fr htmldoc 2>/dev/null
 echo "Run..."
 
 files=(ldapfilter pelix ipopo)
-
 for i in ${files[@]}
 do
 	echo "Working on $i"
 	coverage run --parallel-mode tests/${i}_test.py || exit 1
 done
+
+echo "Run C test..."
+coverage run --parallel-mode ./run_c_test.py
 
 echo "Combine..."
 coverage combine
