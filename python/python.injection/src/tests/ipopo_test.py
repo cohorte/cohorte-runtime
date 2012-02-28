@@ -6,7 +6,7 @@ Created on 3 févr. 2012
 @author: Thomas Calmant
 """
 
-from psem2m.component import constants
+from psem2m.component import constants, decorators
 from psem2m.component.ipopo import IPopoEvent
 from psem2m.services.pelix import FrameworkFactory, BundleContext
 from tests.interfaces import IEchoService
@@ -28,7 +28,7 @@ NAME_B = "componentB"
 def install_bundle(framework, bundle_name="tests.ipopo_bundle"):
     """
     Installs and starts the test bundle and returns its module
-    
+
     @param framework: A Pelix framework instance
     @param bundle_name: A bundle name
     @return: The installed bundle Python module
@@ -45,7 +45,7 @@ def install_bundle(framework, bundle_name="tests.ipopo_bundle"):
 def install_ipopo(framework):
     """
     Installs and starts the iPOPO bundle. Returns the iPOPO service
-    
+
     @param framework: A Pelix framework instance
     @return: The iPOPO service
     @raise Exception: The iPOPO service cannot be found
@@ -64,6 +64,62 @@ def install_ipopo(framework):
         raise Exception("iPOPO Service not found")
 
     return context.get_service(ref)
+
+# ------------------------------------------------------------------------------
+
+class DecoratorsTest(unittest.TestCase):
+    """
+    Tests the iPOPO decorators
+    """
+
+    def testCallbacks(self):
+        """
+        Tests callbacks definitions
+        """
+        # Define what the method should contain
+        callbacks = {
+                    decorators.Bind: constants.IPOPO_CALLBACK_BIND,
+                    decorators.Unbind: constants.IPOPO_CALLBACK_UNBIND,
+                    decorators.Validate: constants.IPOPO_CALLBACK_VALIDATE,
+                    decorators.Invalidate: constants.IPOPO_CALLBACK_INVALIDATE
+                    }
+
+        # Define some non decorable types
+        class BadClass:
+            pass
+
+        bad_types = (None, 12, "Bad", BadClass)
+
+        # Define a decorable method
+        def empty_method():
+            """
+            Dummy method
+            """
+            pass
+
+        self.assertFalse(hasattr(empty_method, \
+                                 constants.IPOPO_METHOD_CALLBACKS), \
+                         "The method is already tagged")
+
+        for decorator, callback in callbacks.items():
+
+            # Decorate the method
+            decorated = decorator(empty_method)
+
+            # Assert the method is the same
+            self.assertIs(decorated, empty_method, "Method ID changed")
+
+            # Assert the decoration has been done
+            self.assertIn(callback, getattr(empty_method, \
+                                            constants.IPOPO_METHOD_CALLBACKS), \
+                          "Decoration failed")
+
+            # Assert that the decorator raises a TypeError on invalid elements
+            for bad in bad_types:
+                self.assertRaises(TypeError, decorator, bad)
+
+    def testPropertyChanges(self):
+        # TODO
 
 # ------------------------------------------------------------------------------
 
