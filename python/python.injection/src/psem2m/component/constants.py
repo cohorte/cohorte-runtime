@@ -54,7 +54,6 @@ class IIPopoService:
 IPOPO_METHOD_CALLBACKS = "_ipopo_callbacks"
 IPOPO_FACTORY_CONTEXT = "__ipopo_factory_context__"
 IPOPO_FACTORY_CONTEXT_DATA = "__ipopo_factory_context_data__"
-IPOPO_COMPONENT_CONTEXT = "__ipopo_component_context__"
 
 # Method called by the injected property (must be injected in the instance)
 IPOPO_PROPERTY_GETTER = "_ipopo_property_getter"
@@ -72,3 +71,23 @@ IPOPO_CALLBACK_INVALIDATE = "INVALIDATE"
 IPOPO_INSTANCE_NAME = "instance.name"
 IPOPO_REQUIRES_FILTERS = "requires.filters"
 
+# ------------------------------------------------------------------------------
+
+def get_ipopo_svc_ref(bundle_context):
+    """
+    Retrieves a tuple containing the service reference to iPOPO and the service
+    itself
+    
+    @param bundle_context: The calling bundle context
+    @return: The reference to the iPOPO service and the service itself,
+    None if not available
+    """
+    ref = bundle_context.get_service_reference(IPOPO_SERVICE_SPECIFICATION)
+    if ref is None:
+        return None
+
+    svc = bundle_context.get_service(ref)
+    if svc is None:
+        return None
+
+    return (ref, svc)

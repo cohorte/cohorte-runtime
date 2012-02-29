@@ -174,13 +174,14 @@ class ComponentFactory:
     """
     Decorator that sets up a component factory class
     """
-    def __init__(self, name=""):
+    def __init__(self, name=None):
         """
         Sets up the decorator
 
         @param name: Name of the component factory
         """
         self.__factory_name = name
+
 
     def __call__(self, factory_class):
         """
@@ -196,13 +197,13 @@ class ComponentFactory:
         context = _get_factory_context(factory_class)
 
         # Set the factory name
+        if not self.__factory_name:
+            self.__factory_name = factory_class.__name__ + "Factory"
+
         context.name = self.__factory_name
 
         # Find callbacks
         _ipopo_setup_callback(factory_class, context)
-
-        # Add the component context field (set it to None)
-        setattr(factory_class, constants.IPOPO_COMPONENT_CONTEXT, None)
 
         # Add the factory context field (set it to None)
         setattr(factory_class, constants.IPOPO_FACTORY_CONTEXT, None)
