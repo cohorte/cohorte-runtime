@@ -338,6 +338,9 @@ class Bundle(object):
         can_change = module_file is not None and os.path.isfile(module_file)
         if can_change:
             st = os.stat(module_file)
+
+            # Change modification time to bypass weak time resolution of the
+            # underlying file system
             os.utime(module_file, (st.st_atime, st.st_mtime + 1))
 
         # Reload the module

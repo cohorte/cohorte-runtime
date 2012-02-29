@@ -1391,6 +1391,16 @@ class _IPopoService(constants.IIPopoService, object):
             stored_instance.invalidate(True)
 
 
+    def is_registered_factory(self, name):
+        """
+        Tests if the given name is in the factory registry
+
+        @param name: A factory name to be tested
+        """
+        with self.__factories_lock:
+            return name in self.__factories
+
+
     def is_registered_instance(self, name):
         """
         Tests if the given name is in the instance registry
