@@ -97,6 +97,13 @@ class Bundle(object):
         self.__imported_services = []
 
 
+    def __str__(self):
+        """
+        String representation
+        """
+        return "Bundle(%d, %s)" % (self.__id, self.__name)
+
+
     def __fire_bundle_event(self, kind):
         """
         Fires a bundle event of the given kind
@@ -328,12 +335,17 @@ class Bundle(object):
 
         # Change the source file age
         module_file = getattr(self.__module, "__file__", None)
-        if module_file is not None and os.path.isfile(module_file):
+        can_change = module_file is not None and os.path.isfile(module_file)
+        if can_change:
             st = os.stat(module_file)
             os.utime(module_file, (st.st_atime, st.st_mtime + 1))
 
         # Reload the module
         imp.reload(self.__module)
+
+        if can_change:
+            # Reset times
+            os.utime(module_file, (st.st_atime, st.st_mtime))
 
         # Re-start the bundle
         if restart:
