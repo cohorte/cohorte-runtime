@@ -1183,6 +1183,11 @@ class _IPopoService(constants.IIPopoService, object):
             # Register each found factory
             self._register_factory(context.name, factory_class, True)
 
+            instances = getattr(factory_class, constants.IPOPO_INSTANCES, None)
+            if isinstance(instances, dict):
+                for name, properties in instances.items():
+                    self.instantiate(context.name, name, properties)
+
 
     def _register_factory(self, factory_name, factory, override=True):
         """

@@ -170,6 +170,58 @@ def _ipopo_class_field_property(name, value):
 
 # ------------------------------------------------------------------------------
 
+class Instantiate:
+    """
+    Decorator that sets up a future instance of a component
+    """
+    def __init__(self, name, properties=None):
+        """
+        Sets up the decorator
+        
+        @param name: Instance name
+        @param properties: Instance properties
+        """
+        if not isinstance(name, str):
+            raise TypeError("Instance name must be a string")
+
+        if properties is not None and not isinstance(properties, dict):
+            raise TypeError("Instance properties must be a dictionary or None")
+
+        if not name:
+            raise ValueError("Invalid instance name '%s'", name)
+
+        self.__name = name
+        self.__properties = properties
+
+
+    def __call__(self, factory_class):
+        """
+        Sets up and registers the instances descriptions
+        
+        @param factory_class: The decorated class
+        """
+        if not inspect.isclass(factory_class):
+            raise TypeError("@ComponentFactory can decorate only classes, " \
+                            "not '%s'" % type(factory_class).__name__)
+
+        if hasattr(factory_class, constants.IPOPO_INSTANCES):
+            instances = getattr(factory_class, constants.IPOPO_INSTANCES)
+
+        else:
+            instances = {}
+            setattr(factory_class, constants.IPOPO_INSTANCES, instances)
+
+        if self.__name in instances:
+            _logger.warn("Component '%s' defined twice, new definition ignored",
+                         self.__name)
+
+        else:
+            instances[self.__name] = self.__properties
+
+        return factory_class
+
+# ------------------------------------------------------------------------------
+
 class ComponentFactory:
     """
     Decorator that sets up a component factory class

@@ -54,6 +54,7 @@ class IIPopoService:
 IPOPO_METHOD_CALLBACKS = "_ipopo_callbacks"
 IPOPO_FACTORY_CONTEXT = "__ipopo_factory_context__"
 IPOPO_FACTORY_CONTEXT_DATA = "__ipopo_factory_context_data__"
+IPOPO_INSTANCES = "__ipopo_instances__"
 
 # Method called by the injected property (must be injected in the instance)
 IPOPO_PROPERTY_GETTER = "_ipopo_property_getter"
