@@ -205,6 +205,17 @@ public class JsonSignalSerializer extends CPojoBase implements
             return pSerializer.fromJSON(new String(aBytes));
 
         } catch (final UnmarshallException e) {
+
+            if (pLogger.isLogDebugOn()) {
+                // Trace the complete exception when debugging
+                Throwable ex = e;
+                while (ex != null) {
+                    pLogger.logDebug(this, "JSON.unserializeData",
+                            "Error while reading JSON :\n", ex);
+                    ex = ex.getCause();
+                }
+            }
+
             throw new InvalidDataException("Error reading the JSON string",
                     DEFAULT_ERROR_CODE, e);
         }
