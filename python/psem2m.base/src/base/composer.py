@@ -13,17 +13,30 @@ _logger = logging.getLogger(__name__)
 # ------------------------------------------------------------------------------
 
 from psem2m.component.decorators import ComponentFactory, Provides, Requires, \
-    Validate, Invalidate, Instantiate
+    Validate, Invalidate, Instantiate, Property
 import psem2m.component.constants
 
 # ------------------------------------------------------------------------------
 
 @ComponentFactory("erp-proxy-json-rpc")
+@Instantiate("DummyCompo")
+@Provides("org.psem2m.tests.Dummy")
+@Property("__export", "service.exported.interfaces", "*")
 class Dummy(object):
+
+    def test(self):
+        return "Hello, World !"
+
+    def hello(self, name):
+        return "Hello, %s !" % name
 
     @Validate
     def validate(self, context):
         _logger.warn("HERE AT THE WALL ! " * 3)
+
+    @Invalidate
+    def invalidate(self, context):
+        _logger.warn("GONE")
 
 
 @ComponentFactory("ComposerAgentFactory")
