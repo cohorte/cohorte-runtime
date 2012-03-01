@@ -23,6 +23,72 @@ import psem2m.services.pelix as pelix
 # ------------------------------------------------------------------------------
 
 EXPORTED_SERVICE_FILTER = "(|(service.exported.interfaces=*)(service.exported.configs=*))"
+JAVA_CLASS = u"javaClass"
+
+# ------------------------------------------------------------------------------
+
+def result_to_jabsorb(result):
+    """
+    Adds informations for Jabsorb, if needed
+    """
+    converted_result = {}
+
+    # Map ?
+    if isinstance(result, dict):
+        converted_result["map"] = {}
+
+        for key in result.keys():
+            converted_result["map"][key] = result_to_jabsorb(result[key])
+
+        converted_result[JAVA_CLASS] = "java.util.HashMap"
+
+    # List ?
+    elif isinstance(result, list):
+        converted_result[JAVA_CLASS] = "java.util.ArrayList"
+        converted_result["list"] = []
+
+        for item in result:
+            converted_result["list"].append(result_to_jabsorb(item))
+
+    # Other ?
+    else:
+        converted_result = result
+
+    return converted_result
+
+
+def request_from_jabsorb(request):
+    """
+    Removes informations from jabsorb
+    """
+    if not isinstance(request, dict):
+        # Raw element
+        return request
+
+    java_class = str(request[JAVA_CLASS])
+
+    # Map ?
+    if java_class.endswith("Map"):
+        result = {}
+
+        for key in request["map"]:
+            result[key] = request_from_jabsorb(request["map"][key])
+
+        return result
+
+    # List ?
+    elif java_class.endswith("List"):
+        result = []
+
+        for element in request["list"]:
+            result.append(request_from_jabsorb(element))
+
+        return result
+
+    # Other ?
+    return request
+
+# ------------------------------------------------------------------------------
 
 @ComponentFactory("ServiceExporterFactory")
 @Instantiate("ServiceExporter")
@@ -67,13 +133,15 @@ class ServiceExporter(object):
         # Get the service
         svc = self._endpoints[found][1]
 
-        # TODO: transform params from Jabsorb
+        # Convert parameters from Jabsorb
+        converted_params = []
+        for param in params:
+            converted_params.append(request_from_jabsorb(param))
 
-        result = getattr(svc, method_name)(*params)
+        result = getattr(svc, method_name)(*converted_params)
 
-        # TODO: transform result to Jabsorb
-
-        return result
+        # Transform result to Jabsorb
+        return result_to_jabsorb(result)
 
 
     def _export_service(self, reference):
@@ -142,13 +210,13 @@ class ServiceExporter(object):
 
         if kind == pelix.ServiceEvent.REGISTERED or \
                 (kind == pelix.ServiceEvent.MODIFIED \
-                and ref not in self._exported_references):
+                 and ref not in self._exported_references):
             # Matching registering or updated service
             self._export_service(ref)
 
-        elif kind == pelix.ServiceEvent.UNREGISTERING or \
-                (kind == pelix.ServiceEvent.MODIFIED_ENDMATCH \
-                 and ref in self._exported_references):
+        elif ref in self._exported_references and\
+                (kind == pelix.ServiceEvent.UNREGISTERING or \
+                 kind == pelix.ServiceEvent.MODIFIED_ENDMATCH):
             # Service is updated or unregistering
             self._unexport_service(ref)
 
@@ -162,7 +230,8 @@ class ServiceExporter(object):
         self.context = context
 
         # Set up the JSON-RPC server
-        self.server = SimpleJSONRPCServer(("localhost", self.port))
+        self.server = SimpleJSONRPCServer(("localhost", self.port),
+                                          logRequests=False)
 
         # The service exporter is the only RPC instance
         self.server.register_instance(self)
