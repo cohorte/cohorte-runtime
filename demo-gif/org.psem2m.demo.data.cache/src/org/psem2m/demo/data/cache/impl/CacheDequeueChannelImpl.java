@@ -79,7 +79,7 @@ public class CacheDequeueChannelImpl<K extends Serializable, V extends Serializa
             return null;
         }
 
-        final int randomIndex = (int) Math.random() * nbObjects;
+        final int randomIndex = (int) (Math.random() * nbObjects);
 
         // Get the ID at the selected index
         final Iterator<ICachedObject<V>> iterator = iterator();

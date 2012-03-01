@@ -64,7 +64,7 @@ public class CacheChannelImpl<K extends Serializable, V extends Serializable>
             return null;
         }
 
-        final int randomIndex = (int) Math.random() * nbObjects;
+        final int randomIndex = (int) (Math.random() * nbObjects);
 
         // Get the ID at the selected index
         final Iterator<CachedObject<V>> iterator = pCacheMap.values()
