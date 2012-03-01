@@ -49,6 +49,11 @@ bid = framework.install_bundle("base.composer")
 b_compo = context.get_bundle(bid)
 b_compo.start()
 
+logging.info("-- Install Remote Services --")
+bid = framework.install_bundle("base.remoteservices")
+b_rs = context.get_bundle(bid)
+b_rs.start()
+
 def stop():
     logging.info("--- Stop Pelix ---")
     framework.stop()
