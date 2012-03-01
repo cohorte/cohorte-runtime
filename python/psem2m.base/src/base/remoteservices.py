@@ -25,6 +25,9 @@ import psem2m.services.pelix as pelix
 EXPORTED_SERVICE_FILTER = "(|(service.exported.interfaces=*)(service.exported.configs=*))"
 JAVA_CLASS = u"javaClass"
 
+SIGNAL_REMOTE_EVENT = "/psem2m/remote-service-broadcaster/remote-event"
+SIGNAL_REQUEST_ENDPOINTS = "/psem2m/remote-service-broadcaster/request-endpoints"
+
 # ------------------------------------------------------------------------------
 
 def result_to_jabsorb(result):
@@ -35,12 +38,21 @@ def result_to_jabsorb(result):
 
     # Map ?
     if isinstance(result, dict):
-        converted_result["map"] = {}
 
-        for key in result.keys():
-            converted_result["map"][key] = result_to_jabsorb(result[key])
+        if JAVA_CLASS not in result:
+            # Needs the whole transformation
+            converted_result[JAVA_CLASS] = "java.util.HashMap"
 
-        converted_result[JAVA_CLASS] = "java.util.HashMap"
+            map_pairs = {}
+            for key, value in result.items():
+                map_pairs[key] = result_to_jabsorb(value)
+
+            converted_result["map"] = map_pairs
+
+        else:
+            # Bean representation
+            for key, value in result.items():
+                converted_result[key] = result_to_jabsorb(value)
 
     # List ?
     elif isinstance(result, list):
@@ -61,7 +73,7 @@ def request_from_jabsorb(request):
     """
     Removes informations from jabsorb
     """
-    if not isinstance(request, dict):
+    if not isinstance(request, dict) or JAVA_CLASS not in request:
         # Raw element
         return request
 
@@ -93,6 +105,7 @@ def request_from_jabsorb(request):
 @ComponentFactory("ServiceExporterFactory")
 @Instantiate("ServiceExporter")
 @Requires("sender", "org.psem2m.SignalSender")
+@Requires("directory", "org.psem2m.IsolateDirectory")
 @Property("port", "jsonrpc.port", 10001)
 class ServiceExporter(object):
     """
@@ -102,12 +115,21 @@ class ServiceExporter(object):
         """
         Constructor
         """
+        # Server
         self.server = None
         self.port = 8080
+        self._thread = None
+
+        # Bundle context
         self.context = None
+
+        # Signal sender
+        self.directory = None
+        self.sender = None
+
+        # Exported services
         self._exported_references = []
         self._endpoints = {}
-        self._thread = None
 
 
     def _dispatch(self, method, params):
@@ -175,7 +197,45 @@ class ServiceExporter(object):
 
         _logger.debug("> Exported: %s", endpoint_name)
 
-        # TODO: send signal
+        specifications = reference.get_property("objectClass")
+        if isinstance(specifications, str):
+            specifications = tuple([specifications])
+        else:
+            specifications = tuple(specifications)
+
+        exported_config = reference.get_property("service.exported.configs")
+        if exported_config is None:
+            exported_config = "*"
+
+        properties = reference.get_properties()
+
+        # Send registration signal
+        remote_event = {
+            JAVA_CLASS: "org.psem2m.isolates.services.remote.beans.RemoteServiceEvent",
+            "eventType": {
+                "javaClass":"org.psem2m.isolates.services.remote.beans.RemoteServiceEvent$ServiceEventType",
+                "enumValue":"REGISTERED"
+            },
+            "senderHostName": "localhost",
+            "serviceRegistration": {
+                JAVA_CLASS: "org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration",
+                "endpoints": ({
+                        JAVA_CLASS: "org.psem2m.isolates.services.remote.beans.EndpointDescription",
+                        "endpointName": endpoint_name,
+                        "endpointUri": "/",
+                        "exportedConfig": exported_config,
+                        "host": "localhost",
+                        "port": self.port,
+                        "protocol": "http"
+                    },),
+                "exportedInterfaces": specifications,
+                "hostIsolate": self.directory.get_current_isolate_id(),
+                "serviceProperties": properties
+            }
+        }
+
+        remote_event = result_to_jabsorb(remote_event)
+        self.sender.send_data("*", SIGNAL_REMOTE_EVENT, remote_event)
 
 
     def _unexport_service(self, reference):
@@ -197,7 +257,33 @@ class ServiceExporter(object):
         # Remove the reference from the list
         self._exported_references.remove(reference)
 
-        # TODO: Send signals
+        # Send signal
+        specifications = reference.get_property("objectClass")
+        if isinstance(specifications, str):
+            specifications = tuple([specifications])
+        else:
+            specifications = tuple(specifications)
+
+        properties = reference.get_properties()
+
+        remote_event = {
+            JAVA_CLASS: "org.psem2m.isolates.services.remote.beans.RemoteServiceEvent",
+            "eventType": {
+                "javaClass":"org.psem2m.isolates.services.remote.beans.RemoteServiceEvent$ServiceEventType",
+                "enumValue":"UNREGISTERED"
+            },
+            "senderHostName": "localhost",
+            "serviceRegistration": {
+                JAVA_CLASS: "org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration",
+                "endpoints": None,
+                "exportedInterfaces": specifications,
+                "hostIsolate": self.directory.get_current_isolate_id(),
+                "serviceProperties": properties
+            }
+        }
+
+        remote_event = result_to_jabsorb(remote_event)
+        self.sender.send_data("*", SIGNAL_REMOTE_EVENT, remote_event)
 
 
 
