@@ -54,6 +54,10 @@ class IsolateDirectory(object):
         result = []
 
         for isolate in isolates_ids:
+            if isolate == "*":
+                # Retrieve all isolates at once
+                return self.config.values()
+
             url = self.get_isolate(isolate)
             if url is not None:
                 result.append(url)
@@ -260,7 +264,7 @@ class SignalSender(object):
             try:
 
                 if url == "{local}":
-                    self.local_recv.handle_signal(signal)
+                    self.local_recv.handle_received_signal(name, signal)
 
                 else:
                     # 1 second timeout, to avoid useless waits
@@ -278,7 +282,7 @@ class SignalSender(object):
                                      response.reason)
 
             except:
-                _logger.exception("Error sending signal")
+                _logger.exception("Error sending signal %s to %s", name, url)
 
 
     def send_data(self, target, name, data):
