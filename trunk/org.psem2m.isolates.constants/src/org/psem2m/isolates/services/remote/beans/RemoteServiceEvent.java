@@ -35,13 +35,21 @@ public class RemoteServiceEvent implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /** Service event type */
-    private final ServiceEventType pEventType;
+    private ServiceEventType pEventType;
 
     /** Remote service event sender (default : "localhost") */
     private String pSenderHostName = "localhost";
 
     /** Remote service registration (with end points) */
-    private final RemoteServiceRegistration pServiceRegistration;
+    private RemoteServiceRegistration pServiceRegistration;
+
+    /**
+     * Default constructor
+     */
+    public RemoteServiceEvent() {
+
+        // Do nothing
+    }
 
     /**
      * Sets up the service event
@@ -89,6 +97,15 @@ public class RemoteServiceEvent implements Serializable {
     }
 
     /**
+     * @param aEventType
+     *            the eventType to set
+     */
+    public void setEventType(final ServiceEventType aEventType) {
+
+        pEventType = aEventType;
+    }
+
+    /**
      * Sets the event sender host name. This method should be called only when
      * an event is received.
      * 
@@ -98,6 +115,16 @@ public class RemoteServiceEvent implements Serializable {
     public void setSenderHostName(final String aSenderHostName) {
 
         pSenderHostName = aSenderHostName;
+    }
+
+    /**
+     * @param aServiceRegistration
+     *            the serviceRegistration to set
+     */
+    public void setServiceRegistration(
+            final RemoteServiceRegistration aServiceRegistration) {
+
+        pServiceRegistration = aServiceRegistration;
     }
 
     /*

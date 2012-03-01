@@ -30,19 +30,27 @@ public class RemoteServiceRegistration implements Serializable {
     public static final String UNKNOWN_ISOLATE_ID = "unknown";
 
     /** Remote service end points */
-    private final Set<EndpointDescription> pEndpoints = new HashSet<EndpointDescription>();
+    private Set<EndpointDescription> pEndpoints = new HashSet<EndpointDescription>();
 
     /** Exported interfaces */
-    private final String[] pExportedInterfaces;
+    private String[] pExportedInterfaces;
 
     /** The host isolate ID */
-    private final String pHostIsolate;
+    private String pHostIsolate;
 
     /** An ID representing the service */
-    private final String pServiceId;
+    private String pServiceId;
 
     /** Service properties copy */
-    private final Map<String, Object> pServiceProperties = new HashMap<String, Object>();
+    private Map<String, Object> pServiceProperties = new HashMap<String, Object>();
+
+    /**
+     * Default constructor
+     */
+    public RemoteServiceRegistration() {
+
+        // Do nothing
+    }
 
     /**
      * Stores a remote service registration description.
@@ -181,6 +189,77 @@ public class RemoteServiceRegistration implements Serializable {
             synchronized (pEndpoints) {
                 pEndpoints.removeAll(Arrays.asList(aEndpoints));
             }
+        }
+    }
+
+    /**
+     * @param aEndpoints
+     *            the endpoints to set
+     */
+    public void setEndpoints(final EndpointDescription[] aEndpoints) {
+
+        pEndpoints.clear();
+
+        if (aEndpoints == null) {
+            return;
+        }
+
+        for (final EndpointDescription endpoint : aEndpoints) {
+            pEndpoints.add(endpoint);
+        }
+    }
+
+    /**
+     * @param aExportedInterfaces
+     *            the exportedInterfaces to set
+     */
+    public void setExportedInterfaces(final String[] aExportedInterfaces) {
+
+        pExportedInterfaces = aExportedInterfaces;
+    }
+
+    /**
+     * @param aHostIsolate
+     *            the hostIsolate to set
+     */
+    public void setHostIsolate(final String aHostIsolate) {
+
+        pHostIsolate = aHostIsolate;
+
+        if (!pServiceProperties.isEmpty()) {
+            final StringBuilder builder = new StringBuilder(pHostIsolate);
+            builder.append(".");
+            builder.append(pServiceProperties.get(Constants.SERVICE_ID));
+
+            pServiceId = builder.toString();
+        }
+    }
+
+    /**
+     * @param aServiceId
+     *            the serviceId to set
+     */
+    public void setServiceId(final String aServiceId) {
+
+        pServiceId = aServiceId;
+    }
+
+    /**
+     * @param aServiceProperties
+     *            the serviceProperties to set
+     */
+    public void setServiceProperties(
+            final Map<String, Object> aServiceProperties) {
+
+        pServiceProperties.clear();
+        pServiceProperties.putAll(aServiceProperties);
+
+        if (pHostIsolate != null) {
+            final StringBuilder builder = new StringBuilder(pHostIsolate);
+            builder.append(".");
+            builder.append(pServiceProperties.get(Constants.SERVICE_ID));
+
+            pServiceId = builder.toString();
         }
     }
 

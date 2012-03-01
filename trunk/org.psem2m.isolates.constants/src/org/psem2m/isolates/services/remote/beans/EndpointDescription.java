@@ -20,22 +20,30 @@ public class EndpointDescription implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /** End point name, as in service properties (can be null) */
-    private final String pEndpointName;
+    private String pEndpointName;
 
     /** Complete end point URI, if needed (e.g. /JSON-RPC/endpointname) */
-    private final String pEndpointUri;
+    private String pEndpointUri;
 
     /** Associated "service.exported.configs" value */
-    private final String pExportedConfig;
+    private String pExportedConfig;
 
     /** End point host */
     private String pHost;
 
     /** Port to join the end point */
-    private final int pPort;
+    private int pPort;
 
     /** End point access protocol (http, ...) */
-    private final String pProtocol;
+    private String pProtocol;
+
+    /**
+     * Default constructor
+     */
+    public EndpointDescription() {
+
+        // Do nothing
+    }
 
     /**
      * Sets up the end point description
@@ -74,11 +82,11 @@ public class EndpointDescription implements Serializable {
     public String computeURI() {
 
         try {
-            URI uri = new URI(pProtocol, null, pHost, pPort, pEndpointUri,
-                    null, null);
+            final URI uri = new URI(pProtocol, null, pHost, pPort,
+                    pEndpointUri, null, null);
             return uri.toString();
 
-        } catch (URISyntaxException ex) {
+        } catch (final URISyntaxException ex) {
             ex.printStackTrace();
             return null;
         }
@@ -199,6 +207,33 @@ public class EndpointDescription implements Serializable {
     }
 
     /**
+     * @param aEndpointName
+     *            the endpointName to set
+     */
+    public void setEndpointName(final String aEndpointName) {
+
+        pEndpointName = aEndpointName;
+    }
+
+    /**
+     * @param aEndpointUri
+     *            the endpointUri to set
+     */
+    public void setEndpointUri(final String aEndpointUri) {
+
+        pEndpointUri = aEndpointUri;
+    }
+
+    /**
+     * @param aExportedConfig
+     *            the exportedConfig to set
+     */
+    public void setExportedConfig(final String aExportedConfig) {
+
+        pExportedConfig = aExportedConfig;
+    }
+
+    /**
      * Sets the end point host. Only modifiable value : it may be updated when
      * received by a discoverer
      * 
@@ -210,6 +245,24 @@ public class EndpointDescription implements Serializable {
         pHost = aHost;
     }
 
+    /**
+     * @param aPort
+     *            the port to set
+     */
+    public void setPort(final int aPort) {
+
+        pPort = aPort;
+    }
+
+    /**
+     * @param aProtocol
+     *            the protocol to set
+     */
+    public void setProtocol(final String aProtocol) {
+
+        pProtocol = aProtocol;
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -218,7 +271,7 @@ public class EndpointDescription implements Serializable {
     @Override
     public String toString() {
 
-        StringBuilder builder = new StringBuilder();
+        final StringBuilder builder = new StringBuilder();
         builder.append("EndpointDescription(");
         builder.append("protocol=").append(pProtocol);
         builder.append(", port=").append(pPort);
