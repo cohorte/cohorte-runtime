@@ -365,3 +365,48 @@ class ServiceExporter(object):
 
         # Remove the reference to the context
         self.context = None
+
+# ------------------------------------------------------------------------------
+
+@ComponentFactory("ServiceImporterFactory")
+@Instantiate("ServiceImporter")
+@Requires("sender", "org.psem2m.SignalSender")
+@Requires("receiver", "org.psem2m.SignalReceiver")
+@Requires("directory", "org.psem2m.IsolateDirectory")
+class ServiceImporter(object):
+    """
+    PSEM2M Remote Services importer
+    """
+    def __init__(self):
+        """
+        Constructor
+        """
+        pass
+
+
+    def handle_received_signal(self, name, signal_data):
+        """
+        Called when a remote services signal is received
+        """
+        # TODO: handle remote services signals
+        # TODO: handle isolate lost signal
+
+
+    @Validate
+    def validate(self, context):
+        """
+        Component validated
+        """
+        # TODO: register remote services signals
+        # TODO: send "request endpoints" signal
+        pass
+
+
+    @Invalidate
+    def invalidate(self, context):
+        """
+        Component invalidated
+        """
+        # TODO: unregister remote services signals
+        # TODO: unregister import services
+        pass
