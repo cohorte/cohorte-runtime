@@ -7,7 +7,8 @@ Pelix is a Python framework that aims to act as OSGi as much as possible
 """
 
 from psem2m import ldapfilter, is_string
-from psem2m.utilities import SynchronizedClassMethod
+from psem2m.utilities import SynchronizedClassMethod, add_listener, \
+    remove_listener
 
 import imp
 import importlib
@@ -379,32 +380,6 @@ class Bundle(object):
 
 # ------------------------------------------------------------------------------
 
-def _add_listener(listeners_registry, listener):
-    """
-    Adds a listener in the registry, if it is not yet in
-
-    @return: True if the listener has been added
-    """
-    if listener is None or listener in listeners_registry:
-        return False
-
-    listeners_registry.append(listener)
-    return True
-
-
-def _remove_listener(listeners_registry, listener):
-    """
-    Removes a listener from the registry
-
-    @return: True if the listener was in the list
-    """
-    if listener is not None and listener in listeners_registry:
-        listeners_registry.remove(listener)
-        return True
-
-    return False
-
-
 class Framework(Bundle):
     """
     The Pelix framework (main) class. It must be instantiated using
@@ -460,7 +435,7 @@ class Framework(Bundle):
         @param listener: The bundle listener
         @return: True if the listener has been registered
         """
-        return _add_listener(self.__bundle_listeners, listener)
+        return add_listener(self.__bundle_listeners, listener)
 
 
     @SynchronizedClassMethod('_lock')
@@ -472,7 +447,7 @@ class Framework(Bundle):
         @param listener: The framework stop listener
         @return: True if the listener has been registered
         """
-        return _add_listener(self.__framework_listeners, listener)
+        return add_listener(self.__framework_listeners, listener)
 
 
     @SynchronizedClassMethod('_lock')
@@ -483,7 +458,7 @@ class Framework(Bundle):
         @param listener: The service listener
         @param ldap_filter: Listener
         """
-        if _add_listener(self.__service_listeners, listener):
+        if add_listener(self.__service_listeners, listener):
             # Set the associated filter
             try:
                 self.__service_listeners_filters[listener] = \
@@ -493,7 +468,7 @@ class Framework(Bundle):
 
             except ValueError:
                 # Invalid filter
-                _remove_listener(self.__service_listeners, listener)
+                remove_listener(self.__service_listeners, listener)
                 _logger.exception("Invalid service listener filter")
                 return False
 
@@ -897,7 +872,7 @@ class Framework(Bundle):
         @param listener: The bundle listener
         @return: True if the listener has been unregistered
         """
-        return _remove_listener(self.__bundle_listeners, listener)
+        return remove_listener(self.__bundle_listeners, listener)
 
 
     @SynchronizedClassMethod('_lock')
@@ -908,7 +883,7 @@ class Framework(Bundle):
         @param listener: The framework stop listener
         @return: True if the listener has been unregistered
         """
-        return _remove_listener(self.__framework_listeners, listener)
+        return remove_listener(self.__framework_listeners, listener)
 
 
     @SynchronizedClassMethod('_lock')
@@ -920,7 +895,7 @@ class Framework(Bundle):
         @return: True if the listener has been unregistered
         """
         # Remove the listener from the list
-        result = _remove_listener(self.__service_listeners, listener)
+        result = remove_listener(self.__service_listeners, listener)
 
         if listener in self.__service_listeners_filters:
             # Also delete the associated filter
@@ -1020,7 +995,7 @@ class Framework(Bundle):
 
         reference = registration.get_reference()
         if reference not in self.__registry:
-            raise BundleException("Invalid service reference")
+            raise BundleException("Invalid reference %s" % str(reference))
 
         # Keep a track of the unregistering reference
         self.__unregistering_services[reference] = self.__registry[reference]

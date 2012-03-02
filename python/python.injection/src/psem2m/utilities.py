@@ -133,3 +133,34 @@ def remove_all_occurrences(sequence, item):
 
     while item in sequence:
         sequence.remove(item)
+
+# ------------------------------------------------------------------------------
+
+def add_listener(registry, listener):
+    """
+    Adds a listener in the registry, if it is not yet in
+
+    @param registry: A registry (a list)
+    @param listener: The listener to register
+    @return: True if the listener has been added
+    """
+    if listener is None or listener in registry:
+        return False
+
+    registry.append(listener)
+    return True
+
+
+def remove_listener(registry, listener):
+    """
+    Removes a listener from the registry
+
+    @param registry: A registry (a list)
+    @param listener: The listener to remove
+    @return: True if the listener was in the list
+    """
+    if listener is not None and listener in registry:
+        registry.remove(listener)
+        return True
+
+    return False
