@@ -1066,6 +1066,13 @@ class BundleContext(object):
         self.__framework = framework
 
 
+    def __str__(self):
+        """
+        String representation
+        """
+        return "BundleContext(%s)" % str(self.__bundle)
+
+
     def add_bundle_listener(self, listener):
         """
         Registers a bundle listener
@@ -1460,6 +1467,13 @@ class ServiceRegistration(object):
         self.__properties = properties
 
 
+    def __str__(self):
+        """
+        String representation
+        """
+        return "ServiceRegistration(%s)" % str(self.__reference)
+
+
     def get_reference(self):
         """
         Retrieves the reference associated to this registration
@@ -1549,6 +1563,13 @@ class BundleEvent(object):
         """
         self.__kind = kind
         self.__bundle = bundle
+
+
+    def __str__(self):
+        """
+        String representation
+        """
+        return "BundleEvent(%d, %s)" % (self.__kind, str(self.__bundle))
 
 
     def get_bundle(self):
