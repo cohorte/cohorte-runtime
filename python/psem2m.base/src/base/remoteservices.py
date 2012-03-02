@@ -666,7 +666,8 @@ class ServiceImporter(object):
         Component invalidated
         """
         # Unregister remote services signals
-        self.receiver.unregister_listener(BROADCASTER_SIGNAL_NAME_PREFIX, self)
+        self.receiver.unregister_listener(BROADCASTER_SIGNAL_NAME_PREFIX + "/*",
+                                          self)
         self.receiver.unregister_listener(ISOLATE_LOST_SIGNAL, self)
 
         # Unregister imported services (in a single loop)
