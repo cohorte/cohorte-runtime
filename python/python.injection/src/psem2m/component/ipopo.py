@@ -11,7 +11,8 @@ from psem2m.ldapfilter import LDAPFilter, LDAPCriteria
 from psem2m.services import pelix
 from psem2m.services.pelix import BundleContext, ServiceEvent, BundleEvent, \
     Bundle, BundleException
-from psem2m.utilities import remove_all_occurrences, SynchronizedClassMethod
+from psem2m.utilities import remove_all_occurrences, SynchronizedClassMethod, \
+    add_listener, remove_listener
 
 import inspect
 import logging
@@ -50,14 +51,40 @@ class IPopoEvent(object):
     UNREGISTERED = 10
     """ A component factory has been unregistered """
 
-    def __init__(self, stored_instance):
+
+    def __init__(self, kind, factory_name, component_name):
         """
         Sets up the iPOPO event
+        
+        @param kind: Kind of event
+        @param factory_name: Name of the factory associated to the event
+        @param component_name: Name of the component instance associated to the
+        event
         """
-        assert isinstance(stored_instance, _StoredInstance)
+        self.__kind = kind
+        self.__factory_name = factory_name
+        self.__component_name = component_name
 
-        self.context = stored_instance.context
-        self.component = self.context.component
+
+    def get_component_name(self):
+        """
+        Retrieves the name of the component associated to the event
+        """
+        return self.__component_name
+
+
+    def get_factory_name(self):
+        """
+        Retrieves the name of the factory associated to the event
+        """
+        return self.__factory_name
+
+
+    def get_kind(self):
+        """
+        Retrieves the kind of event
+        """
+        return self.__kind
 
 # ------------------------------------------------------------------------------
 
@@ -526,6 +553,10 @@ class _StoredInstance(object):
             self.safe_callback(constants.IPOPO_CALLBACK_INVALIDATE, \
                                self.bundle_context)
 
+            # Trigger an "Invalidated" event
+            self._ipopo_service._fire_ipopo_event(IPopoEvent.INVALIDATED,
+                                                  self.factory_name, self.name)
+
 
     @SynchronizedClassMethod('_lock')
     def kill(self):
@@ -830,7 +861,7 @@ class _StoredInstance(object):
 
 
     @SynchronizedClassMethod('_lock')
-    def validate(self):
+    def validate(self, safe_callback=True):
         """
         Ends the component validation, registering services
 
@@ -842,6 +873,10 @@ class _StoredInstance(object):
 
         if self.state == _StoredInstance.KILLED:
             raise RuntimeError("%s: Zombies !" % self.context.name)
+
+        if safe_callback:
+            self.safe_callback(constants.IPOPO_CALLBACK_VALIDATE, \
+                               self.bundle_context)
 
         provides = self.context.get_provides()
 
@@ -858,6 +893,12 @@ class _StoredInstance(object):
                                             self.instance, \
                                             self.context.properties.copy(), \
                                             True)
+
+        # Trigger the iPOPO event (after the service registration)
+        self._ipopo_service._fire_ipopo_event(IPopoEvent.VALIDATED, \
+                                              self.factory_name, self.name)
+
+
 
     @SynchronizedClassMethod('_lock')
     def service_changed(self, event):
@@ -919,9 +960,7 @@ class _StoredInstance(object):
 
             if can_validate:
                 # ... even a validating dependency
-                self.safe_callback(constants.IPOPO_CALLBACK_VALIDATE, \
-                                   self.bundle_context)
-                self.validate()
+                self.validate(True)
 
         elif kind == ServiceEvent.UNREGISTERING:
             if reference not in self._injected_references:
@@ -959,13 +998,10 @@ class _StoredInstance(object):
             if invalidate:
                 self.invalidate(False)
 
-            # Ask for a new chance...
             # Ask for a new chance, if iPOPO is running... 
-            if self._ipopo_service.running \
-            and self.update_bindings() and invalidate:
-                self.safe_callback(constants.IPOPO_CALLBACK_VALIDATE, \
-                                   self.bundle_context)
-                self.validate()
+            if self._ipopo_service.running and self.update_bindings() \
+            and invalidate:
+                self.validate(True)
 
         elif kind == ServiceEvent.MODIFIED:
 
@@ -1016,11 +1052,9 @@ class _StoredInstance(object):
                 self.invalidate(False)
 
             # Ask for a new chance, if iPOPO is running... 
-            if self._ipopo_service.running \
-            and self.update_bindings() and (invalidate or can_validate):
-                self.safe_callback(constants.IPOPO_CALLBACK_VALIDATE, \
-                                   self.bundle_context)
-                self.validate()
+            if self._ipopo_service.running and self.update_bindings() \
+            and (invalidate or can_validate):
+                self.validate(True)
 
 # ------------------------------------------------------------------------------
 
@@ -1149,12 +1183,16 @@ class _IPopoService(constants.IIPopoService, object):
         # Instances registry : name -> _StoredInstance object
         self.__instances = {}
 
+        # Event listeners
+        self.__listeners = []
+
         # Service state
         self.running = False
 
         # Registries locks
         self.__factories_lock = threading.RLock()
         self.__instances_lock = threading.RLock()
+        self.__listeners_lock = threading.RLock()
 
 
     def __get_stored_instances_by_factory(self, factory_name):
@@ -1166,6 +1204,28 @@ class _IPopoService(constants.IIPopoService, object):
             return [stored_instance \
                     for stored_instance in self.__instances.values() \
                     if stored_instance.factory_name == factory_name]
+
+
+    def _fire_ipopo_event(self, kind, factory_name, component_name=None):
+        """
+        Triggers an iPOPO event
+        
+        @param kind: Kind of event
+        @param factory_name: Name of the factory associated to the event
+        @param component_name: Name of the component instance associated to the
+        event
+        """
+        with self.__listeners_lock:
+            # Use a copy of the list of listeners
+            listeners = self.__listeners[:]
+
+            for listener in listeners:
+                try:
+                    listener.handle_ipopo_event(IPopoEvent(kind, factory_name,
+                                                           component_name))
+
+                except:
+                    _logger.exception("Error in an iPOPO event handler")
 
 
     def _register_bundle_factories(self, bundle):
@@ -1361,7 +1421,7 @@ class _IPopoService(constants.IIPopoService, object):
                                          component_context.get_bundle_context())
 
                 # End the validation on success...
-                stored_instance.validate()
+                stored_instance.validate(False)
 
             except Exception:
                 # Log the error
@@ -1429,6 +1489,31 @@ class _IPopoService(constants.IIPopoService, object):
 
             # Kill it
             stored_instance.kill()
+
+
+    def add_listener(self, listener):
+        """
+        Register an iPOPO event listener.
+        The listener must have a handle_ipopo_event(event) method, where event
+        is an IPopoEvent object.
+        
+        @param listener: The listener to register
+        @return: True if the listener has been added to the registry
+        """
+        with self.__listeners_lock:
+            return add_listener(self.__listeners, listener)
+
+
+    def remove_listener(self, listener):
+        """
+        Unregister an iPOPO event listener.
+        
+        @param listener: The listener to register
+        @return: True if the listener has been removed from the registry
+        """
+        with self.__listeners_lock:
+            return remove_listener(self.__listeners, listener)
+
 
 # ------------------------------------------------------------------------------
 
