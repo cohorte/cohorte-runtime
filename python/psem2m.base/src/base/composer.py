@@ -18,6 +18,17 @@ import psem2m.component.constants
 
 # ------------------------------------------------------------------------------
 
+SIGNAL_REQUEST_PATTERN = "/psem2m-composer-agent/request/*"
+SIGNAL_CAN_HANDLE_COMPONENTS = "/psem2m-composer-agent/request/can-handle-components"
+SIGNAL_INSTANTIATE_COMPONENTS = "/psem2m-composer-agent/request/instantiate-components"
+SIGNAL_STOP_COMPONENTS = "/psem2m-composer-agent/request/stop-components"
+
+SIGNAL_RESPONSE_HANDLES_COMPONENTS = "/psem2m-composer-agent/response/can-handle-components"
+SIGNAL_RESPONSE_INSTANTIATE_COMPONENTS = "/psem2m-composer-agent/response/instantiate-components"
+SIGNAL_RESPONSE_STOP_COMPONENTS = "/psem2m-composer-agent/response/stop-components"
+
+# ------------------------------------------------------------------------------
+
 @ComponentFactory("ComposerAgentFactory")
 @Instantiate("ComposerAgent")
 @Provides("org.psem2m.composer.Agent")
@@ -29,18 +40,8 @@ class ComposerAgent(object):
     """
     Python Composer agent
     """
-    SIGNAL_REQUEST_PATTERN = "/psem2m-composer-agent/request/*"
-    SIGNAL_CAN_HANDLE_COMPONENTS = "/psem2m-composer-agent/request/can-handle-components"
-    SIGNAL_INSTANTIATE_COMPONENTS = "/psem2m-composer-agent/request/instantiate-components"
-    SIGNAL_STOP_COMPONENTS = "/psem2m-composer-agent/request/stop-components"
-
-    SIGNAL_RESPONSE_HANDLES_COMPONENTS = "/psem2m-composer-agent/response/can-handle-components"
-    SIGNAL_RESPONSE_INSTANTIATE_COMPONENTS = "/psem2m-composer-agent/response/instantiate-components"
-    SIGNAL_RESPONSE_STOP_COMPONENTS = "/psem2m-composer-agent/response/stop-components"
-
     COMPOSITE_NAME = "org.psem2m.composer.composite.name"
     HOST_ISOLATE = "org.psem2m.composer.isolate"
-
 
     def __init__(self):
         """
@@ -62,13 +63,13 @@ class ComposerAgent(object):
         sender = signal_data["isolateSender"]
         data = signal_data["signalContent"]
 
-        if name == ComposerAgent.SIGNAL_CAN_HANDLE_COMPONENTS:
+        if name == SIGNAL_CAN_HANDLE_COMPONENTS:
             self.can_handle_components(sender, data)
 
-        elif name == ComposerAgent.SIGNAL_INSTANTIATE_COMPONENTS:
+        elif name == SIGNAL_INSTANTIATE_COMPONENTS:
             self.instantiate_components(sender, data)
 
-        elif name == ComposerAgent.SIGNAL_STOP_COMPONENTS:
+        elif name == SIGNAL_STOP_COMPONENTS:
             self.kill_components(sender, data)
 
 
@@ -100,8 +101,7 @@ class ComposerAgent(object):
         if not handled:
             handled = None
 
-        self.sender.send_data(sender,
-                              ComposerAgent.SIGNAL_RESPONSE_HANDLES_COMPONENTS,
+        self.sender.send_data(sender, SIGNAL_RESPONSE_HANDLES_COMPONENTS,
                               handled)
 
 
@@ -159,9 +159,8 @@ class ComposerAgent(object):
                 }
             }
 
-        self.sender.send_data(sender,
-                        ComposerAgent.SIGNAL_RESPONSE_INSTANTIATE_COMPONENTS,
-                        result_map)
+        self.sender.send_data(sender, SIGNAL_RESPONSE_INSTANTIATE_COMPONENTS,
+                              result_map)
 
 
     def kill_components(self, sender, data):
@@ -189,9 +188,8 @@ class ComposerAgent(object):
                 }
             }
 
-        self.sender.send_data(sender,
-                        ComposerAgent.SIGNAL_RESPONSE_STOP_COMPONENTS,
-                        result_map)
+        self.sender.send_data(sender, SIGNAL_RESPONSE_STOP_COMPONENTS,
+                              result_map)
 
 
     @Validate
@@ -200,8 +198,7 @@ class ComposerAgent(object):
         Component validated
         """
         self.instances.clear()
-        self.receiver.register_listener(ComposerAgent.SIGNAL_REQUEST_PATTERN,
-                                        self)
+        self.receiver.register_listener(SIGNAL_REQUEST_PATTERN, self)
 
 
     @Invalidate
@@ -209,8 +206,7 @@ class ComposerAgent(object):
         """
         Component invalidated
         """
-        self.receiver.unregister_listener(ComposerAgent.SIGNAL_REQUEST_PATTERN,
-                                          self)
+        self.receiver.unregister_listener(SIGNAL_REQUEST_PATTERN, self)
 
         # Kill active components
         if len(self.instances) > 0:
