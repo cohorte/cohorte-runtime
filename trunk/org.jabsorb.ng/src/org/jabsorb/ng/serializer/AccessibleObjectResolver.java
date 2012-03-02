@@ -63,12 +63,12 @@ public class AccessibleObjectResolver {
      * overloading a method. Eg, with a(int x) and a(float x), a(1) should call
      * a(int x).
      */
-    private static final Map primitiveRankings;
+    private static final Map<String, Integer> primitiveRankings;
 
     static {
         // Ranks the primitives
         int counter = 0;
-        primitiveRankings = new HashMap();
+        primitiveRankings = new HashMap<String, Integer>();
         primitiveRankings.put("byte", new Integer(counter++));
         primitiveRankings.put("short", new Integer(counter++));
         primitiveRankings.put("int", new Integer(counter++));
@@ -89,16 +89,16 @@ public class AccessibleObjectResolver {
      */
     private static String argSignature(final AccessibleObject accessibleObject) {
 
-        Class[] param;
+        Class<?>[] param;
         if (accessibleObject instanceof Method) {
             param = ((Method) accessibleObject).getParameterTypes();
         } else
         // if(accessibleObject instanceof Constructor)
         {
-            param = ((Constructor) accessibleObject).getParameterTypes();
+            param = ((Constructor<?>) accessibleObject).getParameterTypes();
         }
 
-        StringBuffer buf = new StringBuffer();
+        final StringBuffer buf = new StringBuffer();
         for (int i = 0; i < param.length; i++) {
             if (i > 0) {
                 buf.append(",");
@@ -117,7 +117,7 @@ public class AccessibleObjectResolver {
      */
     private static String argSignature(final JSONArray arguments) {
 
-        StringBuffer buf = new StringBuffer();
+        final StringBuffer buf = new StringBuffer();
         for (int i = 0; i < arguments.length(); i += 1) {
             if (i > 0) {
                 buf.append(",");
@@ -126,7 +126,7 @@ public class AccessibleObjectResolver {
 
             try {
                 jso = arguments.get(i);
-            } catch (JSONException e) {
+            } catch (final JSONException e) {
                 throw (NoSuchElementException) new NoSuchElementException(
                         e.getMessage()).initCause(e);
             }
@@ -159,22 +159,22 @@ public class AccessibleObjectResolver {
             final AccessibleObjectCandidate methodCandidate,
             final AccessibleObjectCandidate methodCandidate1) {
 
-        final Class[] parameters = methodCandidate.getParameterTypes();
-        final Class[] parameters1 = methodCandidate1.getParameterTypes();
+        final Class<?>[] parameters = methodCandidate.getParameterTypes();
+        final Class<?>[] parameters1 = methodCandidate1.getParameterTypes();
 
         int c = 0, c1 = 0;
         for (int i = 0; i < parameters.length; i++) {
-            final Class parameterClass = parameters[i];
-            final Class parameterClass1 = parameters1[i];
+            final Class<?> parameterClass = parameters[i];
+            final Class<?> parameterClass1 = parameters1[i];
             if (parameterClass != parameterClass1) {
                 // We need to do a special check first between the classes,
                 // because
                 // isAssignableFrom() doesn't work between primitives.
                 if (parameterClass.isPrimitive()
                         && parameterClass1.isPrimitive()) {
-                    if (((Integer) primitiveRankings.get(parameterClass
-                            .getName())).intValue() < ((Integer) primitiveRankings
-                            .get(parameterClass1.getName())).intValue()) {
+                    if (primitiveRankings.get(parameterClass.getName())
+                            .intValue() < primitiveRankings.get(
+                            parameterClass1.getName()).intValue()) {
                         c++;
                     } else {
                         c1++;
@@ -239,15 +239,15 @@ public class AccessibleObjectResolver {
                             + argSignature(accessibleObject) + ")");
                 } else {
                     log.debug("invoking "
-                            + ((Constructor) accessibleObject).getName() + " "
-                            + "(" + argSignature(accessibleObject) + ")");
+                            + ((Constructor<?>) accessibleObject).getName()
+                            + " " + "(" + argSignature(accessibleObject) + ")");
                 }
             }
 
-            final Class[] parameterTypes;
+            final Class<?>[] parameterTypes;
 
             if (isConstructor) {
-                parameterTypes = ((Constructor) accessibleObject)
+                parameterTypes = ((Constructor<?>) accessibleObject)
                         .getParameterTypes();
             } else {
                 parameterTypes = ((Method) accessibleObject)
@@ -269,7 +269,7 @@ public class AccessibleObjectResolver {
             // Invoke the method
             final Object returnObj;
             if (isConstructor) {
-                returnObj = ((Constructor) accessibleObject)
+                returnObj = ((Constructor<?>) accessibleObject)
                         .newInstance(javaArgs);
             } else {
                 returnObj = ((Method) accessibleObject).invoke(
@@ -292,7 +292,7 @@ public class AccessibleObjectResolver {
 
             // Handle exceptions creating exception results and
             // calling error callbacks
-        } catch (UnmarshallException e) {
+        } catch (final UnmarshallException e) {
             if (cbc != null) {
                 for (int i = 0; i < context.length; i++) {
                     cbc.errorCallback(context[i], javascriptObject,
@@ -304,7 +304,7 @@ public class AccessibleObjectResolver {
 
             result = new JSONRPCResult(JSONRPCResult.CODE_ERR_UNMARSHALL,
                     requestId, e.getMessage());
-        } catch (MarshallException e) {
+        } catch (final MarshallException e) {
             if (cbc != null) {
                 for (int i = 0; i < context.length; i++) {
                     cbc.errorCallback(context[i], javascriptObject,
@@ -338,14 +338,17 @@ public class AccessibleObjectResolver {
     }
 
     /**
-     * Resolve which method the caller is requesting <p/> If a method with the
-     * requested number of arguments does not exist at all, null will be
-     * returned. <p/> If the object or class (for static methods) being invoked
-     * contains more than one overloaded methods that match the method key
-     * signature, find the closest matching method to invoke according to the
-     * JSON arguments being passed in.
+     * Resolve which method the caller is requesting
+     * <p/>
+     * If a method with the requested number of arguments does not exist at all,
+     * null will be returned.
+     * <p/>
+     * If the object or class (for static methods) being invoked contains more
+     * than one overloaded methods that match the method key signature, find the
+     * closest matching method to invoke according to the JSON arguments being
+     * passed in.
      * 
-     * @param methodMap
+     * @param aMethodMap
      *            Map keyed by MethodKey objects and the values will be either a
      *            Method object, or an array of Method objects, if there is more
      *            than one possible method that can be invoked matching the
@@ -359,7 +362,8 @@ public class AccessibleObjectResolver {
      * @return the Method that most closely matches the call signature, or null
      *         if there is not a match.
      */
-    public static AccessibleObject resolveMethod(final Map methodMap,
+    public static AccessibleObject resolveMethod(
+            final Map<AccessibleObjectKey, List<? extends AccessibleObject>> aMethodMap,
             final String methodName, final JSONArray arguments,
             final JSONSerializer serializer) {
 
@@ -370,14 +374,15 @@ public class AccessibleObjectResolver {
         // if there are multiple matches, fall through to the second matching
         // phase
         // below
-        AccessibleObjectKey mk = new AccessibleObjectKey(methodName,
+        final AccessibleObjectKey mk = new AccessibleObjectKey(methodName,
                 arguments.length());
         // of AccessibleObject
-        List accessibleObjects = (List) methodMap.get(mk);
+        final List<? extends AccessibleObject> accessibleObjects = aMethodMap
+                .get(mk);
         if (accessibleObjects == null || accessibleObjects.size() == 0) {
             return null;
         } else if (accessibleObjects.size() == 1) {
-            return (AccessibleObject) accessibleObjects.get(0);
+            return accessibleObjects.get(0);
         } else {
             // second matching phase: there were overloaded methods on the
             // object
@@ -388,20 +393,20 @@ public class AccessibleObjectResolver {
             // try and unmarshall the arguments against each candidate method
             // to determine which one matches the best
 
-            List candidate = new ArrayList();
+            final List<AccessibleObjectCandidate> candidate = new ArrayList<AccessibleObjectCandidate>();
             if (log.isDebugEnabled()) {
                 log.debug("looking for method " + methodName + "("
                         + argSignature(arguments) + ")");
             }
             for (int i = 0; i < accessibleObjects.size(); i++) {
-                AccessibleObject accessibleObject = (AccessibleObject) accessibleObjects
+                final AccessibleObject accessibleObject = accessibleObjects
                         .get(i);
-                Class[] parameterTypes = null;
+                Class<?>[] parameterTypes = null;
                 if (accessibleObject instanceof Method) {
                     parameterTypes = ((Method) accessibleObject)
                             .getParameterTypes();
                 } else if (accessibleObject instanceof Constructor) {
-                    parameterTypes = ((Constructor) accessibleObject)
+                    parameterTypes = ((Constructor<?>) accessibleObject)
                             .getParameterTypes();
                 }
 
@@ -413,7 +418,7 @@ public class AccessibleObjectResolver {
                                 + methodName + "("
                                 + argSignature(accessibleObject) + ")");
                     }
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     if (log.isDebugEnabled()) {
                         log.debug("xxx " + e.getMessage() + " in " + methodName
                                 + "(" + argSignature(accessibleObject) + ")");
@@ -424,8 +429,7 @@ public class AccessibleObjectResolver {
             // the json arguments the closest
             AccessibleObjectCandidate best = null;
             for (int i = 0; i < candidate.size(); i++) {
-                AccessibleObjectCandidate c = (AccessibleObjectCandidate) candidate
-                        .get(i);
+                final AccessibleObjectCandidate c = candidate.get(i);
                 if (best == null) {
                     best = c;
                     continue;
@@ -439,7 +443,7 @@ public class AccessibleObjectResolver {
                 }
             }
             if (best != null) {
-                AccessibleObject ao = best.getAccessibleObject();
+                final AccessibleObject ao = best.getAccessibleObject();
                 if (log.isDebugEnabled()) {
                     log.debug("found method " + methodName + "("
                             + argSignature(ao) + ")");
@@ -468,15 +472,15 @@ public class AccessibleObjectResolver {
      */
     private static AccessibleObjectCandidate tryUnmarshallArgs(
             final AccessibleObject accessibleObject, final JSONArray arguments,
-            final Class[] parameterTypes, final JSONSerializer serializer)
+            final Class<?>[] parameterTypes, final JSONSerializer serializer)
             throws UnmarshallException {
 
         int i = 0;
-        ObjectMatch[] matches = new ObjectMatch[parameterTypes.length];
+        final ObjectMatch[] matches = new ObjectMatch[parameterTypes.length];
         try {
             int nonLocalArgIndex = 0;
             for (; i < parameterTypes.length; i++) {
-                SerializerState serialiserState = new SerializerState();
+                final SerializerState serialiserState = new SerializerState();
                 if (LocalArgController.isLocalArg(parameterTypes[i])) {
                     // TODO: do this on the actual candidate?
                     matches[i] = ObjectMatch.OKAY;
@@ -486,14 +490,14 @@ public class AccessibleObjectResolver {
                             arguments.get(nonLocalArgIndex++));
                 }
             }
-        } catch (JSONException e) {
+        } catch (final JSONException e) {
             throw (NoSuchElementException) new NoSuchElementException(
                     e.getMessage()).initCause(e);
-        } catch (UnmarshallException e) {
+        } catch (final UnmarshallException e) {
             throw new UnmarshallException("arg " + (i + 1) + " "
                     + e.getMessage(), e);
         }
-        AccessibleObjectCandidate candidate = new AccessibleObjectCandidate(
+        final AccessibleObjectCandidate candidate = new AccessibleObjectCandidate(
                 accessibleObject, parameterTypes, matches);
 
         return candidate;
@@ -520,14 +524,14 @@ public class AccessibleObjectResolver {
      *             if there is a problem unmarshalling the arguments.
      */
     private static Object[] unmarshallArgs(final Object context[],
-            final Class[] param, final JSONArray arguments,
+            final Class<?>[] param, final JSONArray arguments,
             final JSONSerializer serializer) throws UnmarshallException {
 
-        Object javaArgs[] = new Object[param.length];
+        final Object javaArgs[] = new Object[param.length];
         int i = 0, j = 0;
         try {
             for (; i < param.length; i++) {
-                SerializerState serializerState = new SerializerState();
+                final SerializerState serializerState = new SerializerState();
                 if (LocalArgController.isLocalArg(param[i])) {
                     javaArgs[i] = LocalArgController.resolveLocalArg(context,
                             param[i]);
@@ -536,10 +540,10 @@ public class AccessibleObjectResolver {
                             param[i], arguments.get(j++));
                 }
             }
-        } catch (JSONException e) {
+        } catch (final JSONException e) {
             throw (NoSuchElementException) new NoSuchElementException(
                     e.getMessage()).initCause(e);
-        } catch (UnmarshallException e) {
+        } catch (final UnmarshallException e) {
             throw new UnmarshallException("arg " + (i + 1)
                     + " could not unmarshall", e);
         }

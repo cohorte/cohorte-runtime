@@ -27,15 +27,16 @@ package org.jabsorb.ng.client;
  * A class to wrap client exception. Derives from RuntimeException to allow
  * InvokationHandler handle it.
  */
-public class ClientError extends RuntimeException
-{
-  public ClientError(String message)
-  {
-    super(message);
-  }
+public class ClientError extends RuntimeException {
+    private static final long serialVersionUID = 1L;
 
-  public ClientError(Throwable ex)
-  {
-    super(ex);
-  }
+    public ClientError(final String message) {
+
+        super(message);
+    }
+
+    public ClientError(final Throwable ex) {
+
+        super(ex);
+    }
 }

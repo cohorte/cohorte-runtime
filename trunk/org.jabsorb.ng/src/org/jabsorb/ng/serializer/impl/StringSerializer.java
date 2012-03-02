@@ -35,102 +35,91 @@ import org.jabsorb.ng.serializer.UnmarshallException;
 /**
  * Serialises String values
  */
-public class StringSerializer extends AbstractSerializer
-{
-  /**
-   * Unique serialisation id.
-   */
-  private final static long serialVersionUID = 2;
+public class StringSerializer extends AbstractSerializer {
+    /**
+     * Classes that this can serialise to.
+     */
+    private static Class<?>[] _JSONClasses = new Class<?>[] { String.class,
+            Integer.class };
 
-  /**
-   * Classes that this can serialise.
-   */
-  private static Class[] _serializableClasses = new Class[] { String.class,
-      char.class, Character.class, byte[].class, char[].class };
+    /**
+     * Classes that this can serialise.
+     */
+    private static Class<?>[] _serializableClasses = new Class<?>[] {
+            String.class, char.class, Character.class, byte[].class,
+            char[].class };
 
-  /**
-   * Classes that this can serialise to.
-   */
-  private static Class[] _JSONClasses = new Class[] { String.class,
-      Integer.class };
+    /**
+     * Unique serialisation id.
+     */
+    private final static long serialVersionUID = 2;
 
-  public Class[] getJSONClasses()
-  {
-    return _JSONClasses;
-  }
+    @Override
+    public Class<?>[] getJSONClasses() {
 
-  public Class[] getSerializableClasses()
-  {
-    return _serializableClasses;
-  }
+        return _JSONClasses;
+    }
 
-  public Object marshall(SerializerState state, Object p, Object o)
-      throws MarshallException
-  {
-    if (o instanceof Character)
-    {
-      return o.toString();
-    }
-    else if (o instanceof byte[])
-    {
-      return new String((byte[]) o);
-    }
-    else if (o instanceof char[])
-    {
-      return new String((char[]) o);
-    }
-    else
-    {
-      return o;
-    }
-  }
+    @Override
+    public Class<?>[] getSerializableClasses() {
 
-  public ObjectMatch tryUnmarshall(SerializerState state, Class clazz,
-      Object jso) throws UnmarshallException
-  {
-    //For some reason getClass can be String but getClasses will return an 
-    //empty array. This catches this.
-    if(jso.getClass().equals(String.class))
-    {
-      return ObjectMatch.OKAY;
+        return _serializableClasses;
     }
-    Class classes[] = jso.getClass().getClasses();
-    for(int i=0;i<classes.length;i++)
-    {
-      if(classes[i].equals(String.class))
-      {
-        state.setSerialized(jso, ObjectMatch.OKAY);
-        return ObjectMatch.OKAY;
-      }
-    }
-    
-    state.setSerialized(jso, ObjectMatch.SIMILAR);
-    return ObjectMatch.SIMILAR;
-  }
 
-  public Object unmarshall(SerializerState state, Class clazz, Object jso)
-      throws UnmarshallException
-  {
-    Object returnValue;
-    String val = jso instanceof String ? (String) jso : jso.toString();
-    if (clazz == char.class)
-    {
-      returnValue = new Character(val.charAt(0));
+    @Override
+    public Object marshall(final SerializerState state, final Object p,
+            final Object o) throws MarshallException {
+
+        if (o instanceof Character) {
+            return o.toString();
+        } else if (o instanceof byte[]) {
+            return new String((byte[]) o);
+        } else if (o instanceof char[]) {
+            return new String((char[]) o);
+        } else {
+            return o;
+        }
     }
-    else if (clazz == byte[].class)
-    {
-      returnValue = val.getBytes();
+
+    @Override
+    public ObjectMatch tryUnmarshall(final SerializerState state,
+            final Class<?> clazz, final Object jso) throws UnmarshallException {
+
+        // For some reason getClass can be String but getClasses will return an
+        // empty array. This catches this.
+        if (jso.getClass().equals(String.class)) {
+            return ObjectMatch.OKAY;
+        }
+        final Class<?> classes[] = jso.getClass().getClasses();
+        for (int i = 0; i < classes.length; i++) {
+            if (classes[i].equals(String.class)) {
+                state.setSerialized(jso, ObjectMatch.OKAY);
+                return ObjectMatch.OKAY;
+            }
+        }
+
+        state.setSerialized(jso, ObjectMatch.SIMILAR);
+        return ObjectMatch.SIMILAR;
     }
-    else if (clazz == char[].class)
-    {
-      returnValue = val.toCharArray();
+
+    @Override
+    public Object unmarshall(final SerializerState state, final Class<?> clazz,
+            final Object jso) throws UnmarshallException {
+
+        Object returnValue;
+        final String val = jso instanceof String ? (String) jso : jso
+                .toString();
+        if (clazz == char.class) {
+            returnValue = new Character(val.charAt(0));
+        } else if (clazz == byte[].class) {
+            returnValue = val.getBytes();
+        } else if (clazz == char[].class) {
+            returnValue = val.toCharArray();
+        } else {
+            returnValue = val;
+        }
+        state.setSerialized(jso, returnValue);
+        return returnValue;
     }
-    else
-    {
-      returnValue = val;
-    }
-    state.setSerialized(jso, returnValue);
-    return returnValue;
-  }
 
 }

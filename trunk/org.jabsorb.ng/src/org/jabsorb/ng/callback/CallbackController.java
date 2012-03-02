@@ -39,168 +39,169 @@ import org.jabsorb.ng.logging.LoggerFactory;
  * Class that is instantiated per bridge to maintain the list of callbacks and
  * provides an interface to invoke them.
  */
-public class CallbackController implements Serializable
-{
-  /**
-   * Generated version id.
-   */
-  private final static long serialVersionUID = 3;
+public class CallbackController implements Serializable {
+    /**
+     * The log used for this class.
+     */
+    private final static ILogger log = LoggerFactory
+            .getLogger(CallbackController.class);
 
-  /**
-   * The log used for this class.
-   */
-  private final static ILogger log = LoggerFactory
-    .getLogger(CallbackController.class);
+    /**
+     * Generated version id.
+     */
+    private final static long serialVersionUID = 3;
 
-  /**
-   * Holds all callbacks registered with this controller. Type: CallbackData
-   */
-  private Set callbackSet;
+    /**
+     * Holds all callbacks registered with this controller. Type: CallbackData
+     */
+    private Set<CallbackData> callbackSet;
 
-  /**
-   * Default constructor.
-   */
-  public CallbackController()
-  {
-    callbackSet = new HashSet();
-  }
+    /**
+     * Default constructor.
+     */
+    public CallbackController() {
 
-  /**
-   * Calls the 'invocation Error' callback handler.
-   * 
-   * @param context The transport context (the HttpServletRequest object in the
-   *          case of the HTTP transport).
-   * @param instance The object instance or null if it is a static method.
-   * @param accessibleObject Method/constructor that failed the invocation.
-   * @param error Error resulting from the invocation.
-   */
-  public void errorCallback(Object context, Object instance,
-      AccessibleObject accessibleObject, Throwable error)
-  {
-    synchronized (callbackSet)
-    {
-      Iterator i = callbackSet.iterator();
-      while (i.hasNext())
-      {
-        CallbackData cbdata = (CallbackData) i.next();
-        if (cbdata.understands(context)
-            && (cbdata.getCallback() instanceof ErrorInvocationCallback))
-        {
-          ErrorInvocationCallback ecb = (ErrorInvocationCallback) cbdata
-              .getCallback();
-          try
-          {
-            ecb.invocationError(context, instance, accessibleObject, error);
-          }
-          catch (Throwable th)
-          {
-            // Ignore all errors in callback, don't want
-            // event listener to bring everything to its knees.
-          }
+        callbackSet = new HashSet<CallbackData>();
+    }
+
+    /**
+     * Calls the 'invocation Error' callback handler.
+     * 
+     * @param context
+     *            The transport context (the HttpServletRequest object in the
+     *            case of the HTTP transport).
+     * @param instance
+     *            The object instance or null if it is a static method.
+     * @param accessibleObject
+     *            Method/constructor that failed the invocation.
+     * @param error
+     *            Error resulting from the invocation.
+     */
+    public void errorCallback(final Object context, final Object instance,
+            final AccessibleObject accessibleObject, final Throwable error) {
+
+        synchronized (callbackSet) {
+            final Iterator<CallbackData> i = callbackSet.iterator();
+            while (i.hasNext()) {
+                final CallbackData cbdata = i.next();
+                if (cbdata.understands(context)
+                        && (cbdata.getCallback() instanceof ErrorInvocationCallback)) {
+                    final ErrorInvocationCallback ecb = (ErrorInvocationCallback) cbdata
+                            .getCallback();
+                    try {
+                        ecb.invocationError(context, instance,
+                                accessibleObject, error);
+                    } catch (final Throwable th) {
+                        // Ignore all errors in callback, don't want
+                        // event listener to bring everything to its knees.
+                    }
+                }
+            }
         }
-      }
     }
-  }
 
-  /**
-   * Calls the 'postInvoke' callback handler.
-   * 
-   * @param context The transport context (the HttpServletRequest object in the
-   *          case of the HTTP transport).
-   * @param instance The object instance or null if it is a static method.
-   * @param accessibleObject The method/constructor that was just called.
-   * @param result The object that was returned.
-   * @throws Exception if postInvoke fails
-   */
-  public void postInvokeCallback(Object context, Object instance,
-      AccessibleObject accessibleObject, Object result) throws Exception
-  {
-    synchronized (callbackSet)
-    {
-      Iterator i = callbackSet.iterator();
-      while (i.hasNext())
-      {
-        CallbackData cbdata = (CallbackData) i.next();
-        if (cbdata.understands(context))
-        {
-          cbdata.getCallback().postInvoke(context, instance, accessibleObject,
-              result);
+    /**
+     * Calls the 'postInvoke' callback handler.
+     * 
+     * @param context
+     *            The transport context (the HttpServletRequest object in the
+     *            case of the HTTP transport).
+     * @param instance
+     *            The object instance or null if it is a static method.
+     * @param accessibleObject
+     *            The method/constructor that was just called.
+     * @param result
+     *            The object that was returned.
+     * @throws Exception
+     *             if postInvoke fails
+     */
+    public void postInvokeCallback(final Object context, final Object instance,
+            final AccessibleObject accessibleObject, final Object result)
+            throws Exception {
+
+        synchronized (callbackSet) {
+            final Iterator<CallbackData> i = callbackSet.iterator();
+            while (i.hasNext()) {
+                final CallbackData cbdata = i.next();
+                if (cbdata.understands(context)) {
+                    cbdata.getCallback().postInvoke(context, instance,
+                            accessibleObject, result);
+                }
+            }
         }
-      }
     }
-  }
 
-  /**
-   * Calls the 'preInvoke' callback handler.
-   * 
-   * @param context The transport context (the HttpServletRequest object in the
-   *          case of the HTTP transport).
-   * @param instance The object instance or null if it is a static method.
-   * @param accessibleObject The method/constructor that is about to be called.
-   * @param arguments The argements to be passed to the method.
-   * @throws Exception If preInvoke fails
-   */
-  public void preInvokeCallback(Object context, Object instance,
-      AccessibleObject accessibleObject, Object arguments[]) throws Exception
-  {
-    synchronized (callbackSet)
-    {
-      Iterator i = callbackSet.iterator();
-      while (i.hasNext())
-      {
-        CallbackData cbdata = (CallbackData) i.next();
-        if (cbdata.understands(context))
-        {
-          cbdata.getCallback().preInvoke(context, instance, accessibleObject,
-              arguments);
+    /**
+     * Calls the 'preInvoke' callback handler.
+     * 
+     * @param context
+     *            The transport context (the HttpServletRequest object in the
+     *            case of the HTTP transport).
+     * @param instance
+     *            The object instance or null if it is a static method.
+     * @param accessibleObject
+     *            The method/constructor that is about to be called.
+     * @param arguments
+     *            The argements to be passed to the method.
+     * @throws Exception
+     *             If preInvoke fails
+     */
+    public void preInvokeCallback(final Object context, final Object instance,
+            final AccessibleObject accessibleObject, final Object arguments[])
+            throws Exception {
+
+        synchronized (callbackSet) {
+            final Iterator<CallbackData> i = callbackSet.iterator();
+            while (i.hasNext()) {
+                final CallbackData cbdata = i.next();
+                if (cbdata.understands(context)) {
+                    cbdata.getCallback().preInvoke(context, instance,
+                            accessibleObject, arguments);
+                }
+            }
         }
-      }
     }
-  }
 
-  /**
-   * Registers a callback to be called before and after method invocation
-   * 
-   * @param callback The object implementing the InvocationCallback Interface
-   * @param contextInterface The type of transport Context interface the
-   *          callback is interested in eg. HttpServletRequest.class for the
-   *          servlet transport.
-   */
-  public void registerCallback(InvocationCallback callback,
-      Class contextInterface)
-  {
+    /**
+     * Registers a callback to be called before and after method invocation
+     * 
+     * @param callback
+     *            The object implementing the InvocationCallback Interface
+     * @param contextInterface
+     *            The type of transport Context interface the callback is
+     *            interested in eg. HttpServletRequest.class for the servlet
+     *            transport.
+     */
+    public void registerCallback(final InvocationCallback callback,
+            final Class<?> contextInterface) {
 
-    synchronized (callbackSet)
-    {
-      callbackSet.add(new CallbackData(callback, contextInterface));
+        synchronized (callbackSet) {
+            callbackSet.add(new CallbackData(callback, contextInterface));
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("registered callback " + callback.getClass().getName()
+                    + " with context interface " + contextInterface.getName());
+        }
     }
-    if (log.isDebugEnabled())
-    {
-      log.debug("registered callback " + callback.getClass().getName()
-          + " with context interface " + contextInterface.getName());
-    }
-  }
 
-  /**
-   * Unregisters a callback
-   * 
-   * @param callback The previously registered InvocationCallback object
-   * @param contextInterface The previously registered transport Context
-   *          interface.
-   */
-  public void unregisterCallback(InvocationCallback callback,
-      Class contextInterface)
-  {
+    /**
+     * Unregisters a callback
+     * 
+     * @param callback
+     *            The previously registered InvocationCallback object
+     * @param contextInterface
+     *            The previously registered transport Context interface.
+     */
+    public void unregisterCallback(final InvocationCallback callback,
+            final Class<?> contextInterface) {
 
-    synchronized (callbackSet)
-    {
-      callbackSet.remove(new CallbackData(callback, contextInterface));
+        synchronized (callbackSet) {
+            callbackSet.remove(new CallbackData(callback, contextInterface));
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("unregistered callback " + callback.getClass().getName()
+                    + " with context " + contextInterface.getName());
+        }
     }
-    if (log.isDebugEnabled())
-    {
-      log.debug("unregistered callback " + callback.getClass().getName()
-          + " with context " + contextInterface.getName());
-    }
-  }
 
 }

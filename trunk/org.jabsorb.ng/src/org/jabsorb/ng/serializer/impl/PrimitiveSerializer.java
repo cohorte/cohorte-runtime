@@ -35,181 +35,164 @@ import org.jabsorb.ng.serializer.UnmarshallException;
 /**
  * Serializes primitive Java values
  */
-public class PrimitiveSerializer extends AbstractSerializer
-{
-  /**
-   * Unique serialisation id.
-   */
-  private final static long serialVersionUID = 2;
+public class PrimitiveSerializer extends AbstractSerializer {
+    /**
+     * Classes that this can serialise to.
+     */
+    private static Class<?>[] _JSONClasses = new Class<?>[] { Integer.class,
+            Byte.class, Short.class, Long.class, Float.class, Double.class,
+            String.class };
 
-  /**
-   * Classes that this can serialise.
-   */
-  private static Class[] _serializableClasses = new Class[] { int.class,
-      byte.class, short.class, long.class, float.class, double.class };
+    /**
+     * Classes that this can serialise.
+     */
+    private static Class<?>[] _serializableClasses = new Class<?>[] {
+            int.class, byte.class, short.class, long.class, float.class,
+            double.class };
 
-  /**
-   * Classes that this can serialise to.
-   */
-  private static Class[] _JSONClasses = new Class[] { Integer.class,
-      Byte.class, Short.class, Long.class, Float.class, Double.class,
-      String.class };
+    /**
+     * Unique serialisation id.
+     */
+    private final static long serialVersionUID = 2;
 
-  public Class[] getSerializableClasses()
-  {
-    return _serializableClasses;
-  }
+    @Override
+    public Class<?>[] getJSONClasses() {
 
-  public Class[] getJSONClasses()
-  {
-    return _JSONClasses;
-  }
+        return _JSONClasses;
+    }
 
-  /**
-   * Converts a javascript object to a Java object
-   * 
-   * @param clazz The class of the Java object that it should be converted to
-   * @param jso The javascript object
-   * @return A Java primitive type in its java.lang wrapper.
-   * @throws NumberFormatException If clazz is numeric and jso does not parse
-   *           into a number.
-   */
-  public Object toPrimitive(Class clazz, Object jso)
-      throws NumberFormatException
-  {
-    // TODO: is there a better way of doing this instead of all the if elses?
-    if (int.class.equals(clazz))
-    {
-      //TODO: Should something be done about these early returns?
-      if (jso instanceof String)
-      {
-        return new Integer((String) jso);
-      }
-      //Handle it if it is out of the range of the number
-      Number n = (Number) jso;
-      if(n.longValue()!=n.intValue())
-      {
-        throw new NumberFormatException("number is too large for an int");
-      }
-      if(n.floatValue()!=n.intValue())
-      {
-        throw new NumberFormatException("number is not an integer");
-      }
-      return new Integer(n.intValue());
-    }
-    else if (long.class.equals(clazz))
-    {
-      if (jso instanceof String)
-      {
-        return new Long((String) jso);
-      }
-      Number n = (Number) jso;
-      if(n.floatValue()!=n.longValue())
-      {
-        throw new NumberFormatException("number is not an integer");
-      }
-      return new Long(n.longValue());
-    }
-    else if (short.class.equals(clazz))
-    {
-      if (jso instanceof String)
-      {
-        return new Short((String) jso);
-      }
-      //Handle it if it is out of the range of the number
-      Number n = (Number) jso;
-      if(n.longValue()!=n.shortValue())
-      {
-        //TODO: is appropriate to throw?
-        throw new NumberFormatException("number is too large for an short");
-      }
-      if(n.floatValue()!=n.shortValue())
-      {
-        throw new NumberFormatException("number is not an integer");
-      }
-      return new Short(n.shortValue());
-    }
-    else if (byte.class.equals(clazz))
-    {
-      if (jso instanceof String)
-      {
-        return new Byte((String) jso);
-      }
-      //Handle it if it is out of the range of the number
-      Number n = (Number) jso;
-      if(n.longValue()!=n.byteValue())
-      {
-        //TODO: is appropriate to throw?
-        throw new NumberFormatException("number is too large for an short");
-      }
-      if(n.floatValue()!=n.byteValue())
-      {
-        throw new NumberFormatException("number is not an integer");
-      }
-      return new Byte(n.byteValue());
-    }
-    else if (float.class.equals(clazz))
-    {
-      if (jso instanceof String)
-      {
-        return new Float((String) jso);
-      }
-      Number n = (Number) jso;
-      if((n.floatValue()>Float.MAX_VALUE)||(n.floatValue()<-Float.MAX_VALUE))
-      {
-        throw new NumberFormatException("number is too large for a float");
-      }
-      return new Float(((Number) jso).floatValue());
-    }
-    else if (double.class.equals(clazz))
-    {
-      if (jso instanceof String)
-      {
-        return new Double((String) jso);
-      }
-      return new Double(((Number) jso).doubleValue());
-    }
-    
-    return null;
-  }
+    @Override
+    public Class<?>[] getSerializableClasses() {
 
-  public ObjectMatch tryUnmarshall(SerializerState state, Class clazz,
-      Object jso) throws UnmarshallException
-  {
-    try
-    {
-      //TODO: This should really check the return instead of just waiting for 
-      //an exception. If it returns null, it should fail!
-      toPrimitive(clazz, jso);
+        return _serializableClasses;
     }
-    catch (NumberFormatException e)
-    {
-      throw new UnmarshallException("not a primitive", e);
-    }
-    state.setSerialized(jso, ObjectMatch.OKAY);
-    return ObjectMatch.OKAY;
-  }
 
-  public Object unmarshall(SerializerState state, Class clazz, Object jso)
-      throws UnmarshallException
-  {
-    try
-    {
-      Object primitive = toPrimitive(clazz, jso);
-      state.setSerialized(jso, primitive);
-      return primitive;
-    }
-    catch (NumberFormatException e)
-    {
-      throw new UnmarshallException("cannot convert object " + jso
-          + " to type " + clazz.getName(), e);
-    }
-  }
+    @Override
+    public Object marshall(final SerializerState state, final Object p,
+            final Object o) throws MarshallException {
 
-  public Object marshall(SerializerState state, Object p, Object o)
-      throws MarshallException
-  {
-    return o;
-  }
+        return o;
+    }
+
+    /**
+     * Converts a javascript object to a Java object
+     * 
+     * @param clazz
+     *            The class of the Java object that it should be converted to
+     * @param jso
+     *            The javascript object
+     * @return A Java primitive type in its java.lang wrapper.
+     * @throws NumberFormatException
+     *             If clazz is numeric and jso does not parse into a number.
+     */
+    public Object toPrimitive(final Class<?> clazz, final Object jso)
+            throws NumberFormatException {
+
+        // TODO: is there a better way of doing this instead of all the if
+        // elses?
+        if (int.class.equals(clazz)) {
+            // TODO: Should something be done about these early returns?
+            if (jso instanceof String) {
+                return new Integer((String) jso);
+            }
+            // Handle it if it is out of the range of the number
+            final Number n = (Number) jso;
+            if (n.longValue() != n.intValue()) {
+                throw new NumberFormatException(
+                        "number is too large for an int");
+            }
+            if (n.floatValue() != n.intValue()) {
+                throw new NumberFormatException("number is not an integer");
+            }
+            return new Integer(n.intValue());
+        } else if (long.class.equals(clazz)) {
+            if (jso instanceof String) {
+                return new Long((String) jso);
+            }
+            final Number n = (Number) jso;
+            if (n.floatValue() != n.longValue()) {
+                throw new NumberFormatException("number is not an integer");
+            }
+            return new Long(n.longValue());
+        } else if (short.class.equals(clazz)) {
+            if (jso instanceof String) {
+                return new Short((String) jso);
+            }
+            // Handle it if it is out of the range of the number
+            final Number n = (Number) jso;
+            if (n.longValue() != n.shortValue()) {
+                // TODO: is appropriate to throw?
+                throw new NumberFormatException(
+                        "number is too large for an short");
+            }
+            if (n.floatValue() != n.shortValue()) {
+                throw new NumberFormatException("number is not an integer");
+            }
+            return new Short(n.shortValue());
+        } else if (byte.class.equals(clazz)) {
+            if (jso instanceof String) {
+                return new Byte((String) jso);
+            }
+            // Handle it if it is out of the range of the number
+            final Number n = (Number) jso;
+            if (n.longValue() != n.byteValue()) {
+                // TODO: is appropriate to throw?
+                throw new NumberFormatException(
+                        "number is too large for an short");
+            }
+            if (n.floatValue() != n.byteValue()) {
+                throw new NumberFormatException("number is not an integer");
+            }
+            return new Byte(n.byteValue());
+        } else if (float.class.equals(clazz)) {
+            if (jso instanceof String) {
+                return new Float((String) jso);
+            }
+            final Number n = (Number) jso;
+            if ((n.floatValue() > Float.MAX_VALUE)
+                    || (n.floatValue() < -Float.MAX_VALUE)) {
+                throw new NumberFormatException(
+                        "number is too large for a float");
+            }
+            return new Float(((Number) jso).floatValue());
+        } else if (double.class.equals(clazz)) {
+            if (jso instanceof String) {
+                return new Double((String) jso);
+            }
+            return new Double(((Number) jso).doubleValue());
+        }
+
+        return null;
+    }
+
+    @Override
+    public ObjectMatch tryUnmarshall(final SerializerState state,
+            final Class<?> clazz, final Object jso) throws UnmarshallException {
+
+        try {
+            // TODO: This should really check the return instead of just waiting
+            // for
+            // an exception. If it returns null, it should fail!
+            toPrimitive(clazz, jso);
+        } catch (final NumberFormatException e) {
+            throw new UnmarshallException("not a primitive", e);
+        }
+        state.setSerialized(jso, ObjectMatch.OKAY);
+        return ObjectMatch.OKAY;
+    }
+
+    @Override
+    public Object unmarshall(final SerializerState state, final Class<?> clazz,
+            final Object jso) throws UnmarshallException {
+
+        try {
+            final Object primitive = toPrimitive(clazz, jso);
+            state.setSerialized(jso, primitive);
+            return primitive;
+        } catch (final NumberFormatException e) {
+            throw new UnmarshallException("cannot convert object " + jso
+                    + " to type " + clazz.getName(), e);
+        }
+    }
 
 }

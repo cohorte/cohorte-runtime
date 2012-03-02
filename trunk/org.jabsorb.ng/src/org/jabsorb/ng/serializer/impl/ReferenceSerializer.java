@@ -41,147 +41,142 @@ import org.json.JSONObject;
  * Serialises classes that have been registered on the bridge as references or
  * callable references.
  */
-public class ReferenceSerializer extends AbstractSerializer
-{
-  /**
-   * Unique serialisation id.
-   */
-  private final static long serialVersionUID = 2;
+public class ReferenceSerializer extends AbstractSerializer {
+    /**
+     * Classes that this can serialise to.
+     */
+    private static Class<?>[] _JSONClasses = new Class<?>[] {};
 
-  /**
-   * The logger for this class
-   */
-  private final static ILogger log = LoggerFactory
-      .getLogger(ReferenceSerializer.class);
+    /**
+     * Classes that this can serialise.
+     */
+    private static Class<?>[] _serializableClasses = new Class<?>[] {};
 
-  /**
-   * Classes that this can serialise.
-   */
-  private static Class[] _serializableClasses = new Class[] {};
+    /**
+     * The logger for this class
+     */
+    private final static ILogger log = LoggerFactory
+            .getLogger(ReferenceSerializer.class);
 
-  /**
-   * Classes that this can serialise to.
-   */
-  private static Class[] _JSONClasses = new Class[] {};
+    /**
+     * Unique serialisation id.
+     */
+    private final static long serialVersionUID = 2;
 
-  /**
-   * A reference to the bridge
-   */
-  private JSONRPCBridge bridge;
+    /**
+     * A reference to the bridge
+     */
+    private JSONRPCBridge bridge;
 
-  /**
-   * Creates a new ReferenceSerializer
-   * 
-   * @param bridge The bridge to determine if a class is a reference.
-   * 
-   * TODO: Should reference detection be abstracted out into another class?
-   */
-  public ReferenceSerializer(JSONRPCBridge bridge)
-  {
-    this.bridge = bridge;
-  }
+    /**
+     * Creates a new ReferenceSerializer
+     * 
+     * @param bridge
+     *            The bridge to determine if a class is a reference.
+     * 
+     *            TODO: Should reference detection be abstracted out into
+     *            another class?
+     */
+    public ReferenceSerializer(final JSONRPCBridge bridge) {
 
-  public boolean canSerialize(Class clazz, Class jsonClazz)
-  {
-    return (!clazz.isArray() && !clazz.isPrimitive() && !clazz.isInterface()
-        && (bridge.isReference(clazz) || bridge.isCallableReference(clazz)) && (jsonClazz == null || jsonClazz == JSONObject.class));
-  }
-
-  public Class[] getJSONClasses()
-  {
-    return _JSONClasses;
-  }
-
-  public Class[] getSerializableClasses()
-  {
-    return _serializableClasses;
-  }
-
-  public Object marshall(SerializerState state, Object p, Object o)
-      throws MarshallException
-  {
-    Class clazz = o.getClass();
-    Integer identity = new Integer(System.identityHashCode(o));
-    if (bridge.isReference(clazz))
-    {
-      if (log.isDebugEnabled())
-      {
-        log.debug("marshalling reference to object " + identity + " of class "
-            + clazz.getName());
-      }
-      bridge.addReference(o);
-      JSONObject jso = new JSONObject();
-      try
-      {
-        jso.put("JSONRPCType", "Reference");
-        jso.put("javaClass", clazz.getName());
-        jso.put("objectID", identity);
-      }
-      catch (JSONException e)
-      {
-        throw new MarshallException(e.getMessage(), e);
-      }
-      return jso;
+        this.bridge = bridge;
     }
-    else if (bridge.isCallableReference(clazz))
-    {
-      if (log.isDebugEnabled())
-      {
-        log.debug("marshalling callable reference to object " + identity
-            + " of class " + clazz.getName());
-      }
-      bridge.registerObject(identity, o);
-      bridge.addReference(o);
-      
-      JSONObject jso = new JSONObject();
-      try
-      {
-        jso.put("JSONRPCType", "CallableReference");
-        jso.put("javaClass", clazz.getName());
-        jso.put("objectID", identity);
-      }
-      catch (JSONException e)
-      {
-        throw new MarshallException(e.getMessage(), e);
-      }
 
-      return jso;
-    }
-    return null;
-  }
+    @Override
+    public boolean canSerialize(final Class<?> clazz, final Class<?> jsonClazz) {
 
-  public ObjectMatch tryUnmarshall(SerializerState state, Class clazz, Object o)
-      throws UnmarshallException
-  {
-    state.setSerialized(o, ObjectMatch.OKAY);
-    return ObjectMatch.OKAY;
-  }
+        return (!clazz.isArray()
+                && !clazz.isPrimitive()
+                && !clazz.isInterface()
+                && (bridge.isReference(clazz) || bridge
+                        .isCallableReference(clazz)) && (jsonClazz == null || jsonClazz == JSONObject.class));
+    }
 
-  public Object unmarshall(SerializerState state, Class clazz, Object o)
-      throws UnmarshallException
-  {
-    JSONObject jso = (JSONObject) o;
-    Object ref = null;
-    String json_type;
-    int object_id;
-    try
-    {
-      json_type = jso.getString("JSONRPCType");
-      object_id = jso.getInt("objectID");
+    @Override
+    public Class<?>[] getJSONClasses() {
+
+        return _JSONClasses;
     }
-    catch (JSONException e)
-    {
-      throw new UnmarshallException(e.getMessage(), e);
+
+    @Override
+    public Class<?>[] getSerializableClasses() {
+
+        return _serializableClasses;
     }
-    if (json_type != null)
-    {
-      if((json_type.equals("Reference"))||(json_type.equals("CallableReference")))
-      {
-        ref = bridge.getReference(object_id);
-      }
+
+    @Override
+    public Object marshall(final SerializerState state, final Object p,
+            final Object o) throws MarshallException {
+
+        final Class<?> clazz = o.getClass();
+        final Integer identity = new Integer(System.identityHashCode(o));
+        if (bridge.isReference(clazz)) {
+            if (log.isDebugEnabled()) {
+                log.debug("marshalling reference to object " + identity
+                        + " of class " + clazz.getName());
+            }
+            bridge.addReference(o);
+            final JSONObject jso = new JSONObject();
+            try {
+                jso.put("JSONRPCType", "Reference");
+                jso.put("javaClass", clazz.getName());
+                jso.put("objectID", identity);
+            } catch (final JSONException e) {
+                throw new MarshallException(e.getMessage(), e);
+            }
+            return jso;
+        } else if (bridge.isCallableReference(clazz)) {
+            if (log.isDebugEnabled()) {
+                log.debug("marshalling callable reference to object "
+                        + identity + " of class " + clazz.getName());
+            }
+            bridge.registerObject(identity, o);
+            bridge.addReference(o);
+
+            final JSONObject jso = new JSONObject();
+            try {
+                jso.put("JSONRPCType", "CallableReference");
+                jso.put("javaClass", clazz.getName());
+                jso.put("objectID", identity);
+            } catch (final JSONException e) {
+                throw new MarshallException(e.getMessage(), e);
+            }
+
+            return jso;
+        }
+        return null;
     }
-    state.setSerialized(o, ref);
-    return ref;
-  }
+
+    @Override
+    public ObjectMatch tryUnmarshall(final SerializerState state,
+            final Class<?> clazz, final Object o) throws UnmarshallException {
+
+        state.setSerialized(o, ObjectMatch.OKAY);
+        return ObjectMatch.OKAY;
+    }
+
+    @Override
+    public Object unmarshall(final SerializerState state, final Class<?> clazz,
+            final Object o) throws UnmarshallException {
+
+        final JSONObject jso = (JSONObject) o;
+        Object ref = null;
+        String json_type;
+        int object_id;
+        try {
+            json_type = jso.getString("JSONRPCType");
+            object_id = jso.getInt("objectID");
+        } catch (final JSONException e) {
+            throw new UnmarshallException(e.getMessage(), e);
+        }
+        if (json_type != null) {
+            if ((json_type.equals("Reference"))
+                    || (json_type.equals("CallableReference"))) {
+                ref = bridge.getReference(object_id);
+            }
+        }
+        state.setSerialized(o, ref);
+        return ref;
+    }
 
 }

@@ -25,12 +25,12 @@ public class EnumSerializer extends AbstractSerializer {
     /**
      * Classes that this can serialise to.
      */
-    private static final Class[] JSON_CLASSES = new Class[] { JSONObject.class };
+    private static final Class<?>[] JSON_CLASSES = new Class<?>[] { JSONObject.class };
 
     /**
      * Classes that this can serialise.
      */
-    private static final Class[] SERIALIZABLE_CLASSES = new Class[] { Enum.class };
+    private static final Class<?>[] SERIALIZABLE_CLASSES = new Class<?>[] { Enum.class };
 
     /** Serial Version UID */
     private static final long serialVersionUID = 1L;
@@ -42,10 +42,10 @@ public class EnumSerializer extends AbstractSerializer {
      * java.lang.Class)
      */
     @Override
-    public boolean canSerialize(final Class aClazz, final Class aJsonClazz) {
+    public boolean canSerialize(final Class<?> aClazz, final Class<?> aJsonClazz) {
 
-	return (aClazz.isEnum())
-		&& (aJsonClazz == null || aJsonClazz == JSONObject.class);
+        return (aClazz.isEnum())
+                && (aJsonClazz == null || aJsonClazz == JSONObject.class);
     }
 
     /*
@@ -53,8 +53,10 @@ public class EnumSerializer extends AbstractSerializer {
      * 
      * @see org.jabsorb.serializer.Serializer#getJSONClasses()
      */
-    public Class[] getJSONClasses() {
-	return JSON_CLASSES;
+    @Override
+    public Class<?>[] getJSONClasses() {
+
+        return JSON_CLASSES;
     }
 
     /*
@@ -62,8 +64,10 @@ public class EnumSerializer extends AbstractSerializer {
      * 
      * @see org.jabsorb.serializer.Serializer#getSerializableClasses()
      */
-    public Class[] getSerializableClasses() {
-	return SERIALIZABLE_CLASSES;
+    @Override
+    public Class<?>[] getSerializableClasses() {
+
+        return SERIALIZABLE_CLASSES;
     }
 
     /*
@@ -72,31 +76,32 @@ public class EnumSerializer extends AbstractSerializer {
      * @see org.jabsorb.serializer.Serializer#marshall(org.jabsorb.serializer.
      * SerializerState, java.lang.Object, java.lang.Object)
      */
+    @Override
     public Object marshall(final SerializerState aState, final Object aParent,
-	    final Object aObject) throws MarshallException {
+            final Object aObject) throws MarshallException {
 
-	if (!(aObject instanceof Enum)) {
-	    throw new MarshallException("Invalid Enum class : "
-		    + aObject.getClass().getName());
-	}
+        if (!(aObject instanceof Enum)) {
+            throw new MarshallException("Invalid Enum class : "
+                    + aObject.getClass().getName());
+        }
 
-	JSONObject val = new JSONObject();
+        final JSONObject val = new JSONObject();
 
-	// Set the class name
-	try {
-	    if (ser.getMarshallClassHints()) {
-		// Store the type
-		val.put("javaClass", aObject.getClass().getName());
-	    }
+        // Set the class name
+        try {
+            if (ser.getMarshallClassHints()) {
+                // Store the type
+                val.put("javaClass", aObject.getClass().getName());
+            }
 
-	    // Store the value
-	    val.put(ENUM_VALUE, aObject.toString());
+            // Store the value
+            val.put(ENUM_VALUE, aObject.toString());
 
-	} catch (JSONException e) {
-	    throw new MarshallException("JSONException: " + e.getMessage(), e);
-	}
+        } catch (final JSONException e) {
+            throw new MarshallException("JSONException: " + e.getMessage(), e);
+        }
 
-	return val;
+        return val;
     }
 
     /*
@@ -106,23 +111,25 @@ public class EnumSerializer extends AbstractSerializer {
      * org.jabsorb.serializer.Serializer#tryUnmarshall(org.jabsorb.serializer
      * .SerializerState, java.lang.Class, java.lang.Object)
      */
+    @Override
     public ObjectMatch tryUnmarshall(final SerializerState aState,
-	    final Class aClazz, final Object aJson) throws UnmarshallException {
+            final Class<?> aClazz, final Object aJson)
+            throws UnmarshallException {
 
-	JSONObject json = (JSONObject) aJson;
+        final JSONObject json = (JSONObject) aJson;
 
-	if (!(aClazz.isEnum())) {
-	    throw new UnmarshallException(aClazz.getName()
-		    + " is not an enumeration");
-	}
+        if (!(aClazz.isEnum())) {
+            throw new UnmarshallException(aClazz.getName()
+                    + " is not an enumeration");
+        }
 
-	// Try to find the value
-	if (!json.has(ENUM_VALUE)) {
-	    throw new UnmarshallException("JSONObject has no " + ENUM_VALUE
-		    + " field");
-	}
+        // Try to find the value
+        if (!json.has(ENUM_VALUE)) {
+            throw new UnmarshallException("JSONObject has no " + ENUM_VALUE
+                    + " field");
+        }
 
-	return ObjectMatch.OKAY;
+        return ObjectMatch.OKAY;
     }
 
     /*
@@ -131,25 +138,27 @@ public class EnumSerializer extends AbstractSerializer {
      * @see org.jabsorb.serializer.Serializer#unmarshall(org.jabsorb.serializer.
      * SerializerState, java.lang.Class, java.lang.Object)
      */
-    public Object unmarshall(final SerializerState aState, final Class aClazz,
-	    final Object aJson) throws UnmarshallException {
+    @Override
+    public Object unmarshall(final SerializerState aState,
+            final Class<?> aClazz, final Object aJson)
+            throws UnmarshallException {
 
-	JSONObject json = (JSONObject) aJson;
-	String enumValue;
+        final JSONObject json = (JSONObject) aJson;
+        String enumValue;
 
-	try {
-	    enumValue = json.get(ENUM_VALUE).toString();
+        try {
+            enumValue = json.get(ENUM_VALUE).toString();
 
-	} catch (JSONException e) {
-	    throw new UnmarshallException("JSONException: " + e.getMessage(), e);
-	}
+        } catch (final JSONException e) {
+            throw new UnmarshallException("JSONException: " + e.getMessage(), e);
+        }
 
-	try {
-	    return Enum.valueOf(aClazz, enumValue);
+        try {
+            return Enum.valueOf((Class<Enum>) aClazz, enumValue);
 
-	} catch (IllegalArgumentException e) {
-	    throw new UnmarshallException("EnumException : " + enumValue
-		    + " is not a correct value for " + aClazz.getName());
-	}
+        } catch (final IllegalArgumentException e) {
+            throw new UnmarshallException("EnumException : " + enumValue
+                    + " is not a correct value for " + aClazz.getName());
+        }
     }
 }

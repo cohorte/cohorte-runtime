@@ -52,13 +52,13 @@ public class MapSerializer extends AbstractSerializer {
     /**
      * Classes that this can serialise to.
      */
-    private static Class[] _JSONClasses = new Class[] { JSONObject.class };
+    private static Class<?>[] _JSONClasses = new Class<?>[] { JSONObject.class };
 
     /**
      * Classes that this can serialise.
      */
-    private static Class[] _serializableClasses = new Class[] { Map.class,
-            HashMap.class, TreeMap.class, LinkedHashMap.class };
+    private static Class<?>[] _serializableClasses = new Class<?>[] {
+            Map.class, HashMap.class, TreeMap.class, LinkedHashMap.class };
 
     /**
      * Unique serialisation id.
@@ -66,52 +66,56 @@ public class MapSerializer extends AbstractSerializer {
     private final static long serialVersionUID = 2;
 
     @Override
-    public boolean canSerialize(final Class clazz, final Class jsonClazz) {
+    public boolean canSerialize(final Class<?> clazz, final Class<?> jsonClazz) {
 
         return (super.canSerialize(clazz, jsonClazz) || ((jsonClazz == null || jsonClazz == JSONObject.class) && Map.class
                 .isAssignableFrom(clazz)));
     }
 
-    public Class[] getJSONClasses() {
+    @Override
+    public Class<?>[] getJSONClasses() {
 
         return _JSONClasses;
     }
 
-    public Class[] getSerializableClasses() {
+    @Override
+    public Class<?>[] getSerializableClasses() {
 
         return _serializableClasses;
     }
 
+    @Override
     public Object marshall(final SerializerState state, final Object p,
             final Object o) throws MarshallException {
 
-        Map map = (Map) o;
-        JSONObject obj = new JSONObject();
-        JSONObject mapdata = new JSONObject();
+        final Map map = (Map) o;
+        final JSONObject obj = new JSONObject();
+        final JSONObject mapdata = new JSONObject();
         if (ser.getMarshallClassHints()) {
             try {
                 obj.put("javaClass", o.getClass().getName());
-            } catch (JSONException e) {
+            } catch (final JSONException e) {
                 throw new MarshallException("javaClass not found!", e);
             }
         }
         try {
             obj.put("map", mapdata);
             state.push(o, mapdata, "map");
-        } catch (JSONException e) {
+        } catch (final JSONException e) {
             throw new MarshallException("Could not add map to object: "
                     + e.getMessage(), e);
         }
         Object key = null;
         try {
-            Iterator i = map.entrySet().iterator();
+            final Iterator i = map.entrySet().iterator();
             while (i.hasNext()) {
-                Map.Entry ent = (Map.Entry) i.next();
+                final Map.Entry ent = (Map.Entry) i.next();
                 key = ent.getKey();
-                String keyString = key.toString(); // only support String keys
+                final String keyString = key.toString(); // only support String
+                                                         // keys
 
-                Object json = ser.marshall(state, mapdata, ent.getValue(),
-                        keyString);
+                final Object json = ser.marshall(state, mapdata,
+                        ent.getValue(), keyString);
 
                 // omit the object entirely if it's a circular reference or
                 // duplicate
@@ -120,10 +124,10 @@ public class MapSerializer extends AbstractSerializer {
                     mapdata.put(keyString, json);
                 }
             }
-        } catch (MarshallException e) {
+        } catch (final MarshallException e) {
             throw new MarshallException(
                     "map key " + key + " " + e.getMessage(), e);
-        } catch (JSONException e) {
+        } catch (final JSONException e) {
             throw new MarshallException(
                     "map key " + key + " " + e.getMessage(), e);
         } finally {
@@ -132,14 +136,15 @@ public class MapSerializer extends AbstractSerializer {
         return obj;
     }
 
+    @Override
     public ObjectMatch tryUnmarshall(final SerializerState state,
-            final Class clazz, final Object o) throws UnmarshallException {
+            final Class<?> clazz, final Object o) throws UnmarshallException {
 
-        JSONObject jso = (JSONObject) o;
+        final JSONObject jso = (JSONObject) o;
         String java_class;
         try {
             java_class = jso.getString("javaClass");
-        } catch (JSONException e) {
+        } catch (final JSONException e) {
             throw new UnmarshallException("Could not read javaClass", e);
         }
         if (java_class == null) {
@@ -157,15 +162,15 @@ public class MapSerializer extends AbstractSerializer {
         JSONObject jsonmap;
         try {
             jsonmap = jso.getJSONObject("map");
-        } catch (JSONException e) {
+        } catch (final JSONException e) {
             throw new UnmarshallException("Could not read map: "
                     + e.getMessage(), e);
         }
         if (jsonmap == null) {
             throw new UnmarshallException("map missing");
         }
-        ObjectMatch m = new ObjectMatch(-1);
-        Iterator i = jsonmap.keys();
+        final ObjectMatch m = new ObjectMatch(-1);
+        final Iterator i = jsonmap.keys();
         String key = null;
         state.setSerialized(o, m);
         try {
@@ -174,24 +179,25 @@ public class MapSerializer extends AbstractSerializer {
                 m.setMismatch(ser.tryUnmarshall(state, null, jsonmap.get(key))
                         .max(m).getMismatch());
             }
-        } catch (UnmarshallException e) {
+        } catch (final UnmarshallException e) {
             throw new UnmarshallException("key " + key + " " + e.getMessage(),
                     e);
-        } catch (JSONException e) {
+        } catch (final JSONException e) {
             throw new UnmarshallException("key " + key + " " + e.getMessage(),
                     e);
         }
         return m;
     }
 
-    public Object unmarshall(final SerializerState state, final Class clazz,
+    @Override
+    public Object unmarshall(final SerializerState state, final Class<?> clazz,
             final Object o) throws UnmarshallException {
 
-        JSONObject jso = (JSONObject) o;
+        final JSONObject jso = (JSONObject) o;
         String java_class;
         try {
             java_class = jso.getString("javaClass");
-        } catch (JSONException e) {
+        } catch (final JSONException e) {
             throw new UnmarshallException("Could not read javaClass", e);
         }
         if (java_class == null) {
@@ -214,7 +220,7 @@ public class MapSerializer extends AbstractSerializer {
         JSONObject jsonmap;
         try {
             jsonmap = jso.getJSONObject("map");
-        } catch (JSONException e) {
+        } catch (final JSONException e) {
             throw new UnmarshallException("Could not read map: "
                     + e.getMessage(), e);
         }
@@ -222,17 +228,17 @@ public class MapSerializer extends AbstractSerializer {
             throw new UnmarshallException("map missing");
         }
         state.setSerialized(o, abmap);
-        Iterator i = jsonmap.keys();
+        final Iterator i = jsonmap.keys();
         String key = null;
         try {
             while (i.hasNext()) {
                 key = (String) i.next();
                 abmap.put(key, ser.unmarshall(state, null, jsonmap.get(key)));
             }
-        } catch (UnmarshallException e) {
+        } catch (final UnmarshallException e) {
             throw new UnmarshallException("key " + key + " " + e.getMessage(),
                     e);
-        } catch (JSONException e) {
+        } catch (final JSONException e) {
             throw new UnmarshallException("key " + key + " " + e.getMessage(),
                     e);
         }

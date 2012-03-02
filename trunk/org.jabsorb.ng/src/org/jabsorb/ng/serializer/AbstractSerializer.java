@@ -32,64 +32,62 @@ import org.jabsorb.ng.JSONSerializer;
  * Convenience class for implementing Serializers providing default setOwner and
  * canSerialize implementations.
  */
-public abstract class AbstractSerializer implements Serializer
-{
+public abstract class AbstractSerializer implements Serializer {
 
-  /**
-   * Main serialiser
-   */
-  protected JSONSerializer ser;
+    private static final long serialVersionUID = 1L;
 
-  /**
-   * Default check that simply tests the given serializeable class arrays to
-   * determine if the pair of classes can be serialized/deserialized from this
-   * Serializer.
-   * 
-   * @param clazz Java type to check if this Serializer can handle.
-   * @param jsonClazz JSON type to check this Serializer can handle.
-   * 
-   * @return true If this Serializer can serialize/deserialize the given
-   *         java,json pair.
-   */
-  public boolean canSerialize(Class clazz, Class jsonClazz)
-  {
-    boolean canJava = false, canJSON = false;
+    /**
+     * Main serialiser
+     */
+    protected JSONSerializer ser;
 
-    Class serializableClasses[] = getSerializableClasses();
-    for (int i = 0; i < serializableClasses.length; i++)
-    {
-      if (clazz == serializableClasses[i])
-      {
-        canJava = true;
-      }
-    }
+    /**
+     * Default check that simply tests the given serializeable class arrays to
+     * determine if the pair of classes can be serialized/deserialized from this
+     * Serializer.
+     * 
+     * @param clazz
+     *            Java type to check if this Serializer can handle.
+     * @param jsonClazz
+     *            JSON type to check this Serializer can handle.
+     * 
+     * @return true If this Serializer can serialize/deserialize the given
+     *         java,json pair.
+     */
+    public boolean canSerialize(final Class<?> clazz, final Class<?> jsonClazz) {
 
-    if (jsonClazz == null)
-    {
-      canJSON = true;
-    }
-    else
-    {
-      Class jsonClasses[] = getJSONClasses();
-      for (int i = 0; i < jsonClasses.length; i++)
-      {
-        if (jsonClazz == jsonClasses[i])
-        {
-          canJSON = true;
+        boolean canJava = false, canJSON = false;
+
+        final Class<?> serializableClasses[] = getSerializableClasses();
+        for (int i = 0; i < serializableClasses.length; i++) {
+            if (clazz == serializableClasses[i]) {
+                canJava = true;
+            }
         }
-      }
+
+        if (jsonClazz == null) {
+            canJSON = true;
+        } else {
+            final Class<?> jsonClasses[] = getJSONClasses();
+            for (int i = 0; i < jsonClasses.length; i++) {
+                if (jsonClazz == jsonClasses[i]) {
+                    canJSON = true;
+                }
+            }
+        }
+
+        return (canJava && canJSON);
     }
 
-    return (canJava && canJSON);
-  }
+    /**
+     * Set the JSONSerialiser that spawned this object.
+     * 
+     * @param ser
+     *            The parent serialiser.
+     */
+    @Override
+    public void setOwner(final JSONSerializer ser) {
 
-  /**
-   * Set the JSONSerialiser that spawned this object.
-   * 
-   * @param ser The parent serialiser.
-   */
-  public void setOwner(JSONSerializer ser)
-  {
-    this.ser = ser;
-  }
+        this.ser = ser;
+    }
 }

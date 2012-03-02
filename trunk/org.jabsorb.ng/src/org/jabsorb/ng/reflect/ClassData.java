@@ -26,7 +26,10 @@
 
 package org.jabsorb.ng.reflect;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -34,99 +37,107 @@ import java.util.Map;
  * itself. This is produced by the ClassAnalyzer and used in the JSONRPCBridge
  * for resolving classes and methods to invoke through json-rpc.
  */
-public class ClassData
-{
-  /**
-   * The class that this ClassData maps.
-   */
-  private final Class clazz;
+public class ClassData {
+    /**
+     * The class that this ClassData maps.
+     */
+    private final Class<?> clazz;
 
-  /**
-   * Map of public instance methods. Key is a AccessibleObjectKey object, value
-   * is an List of Method.
-   */
-  private final Map methodMap;
+    /**
+     * Map of public constructors. Key is a AccessibleObjectKey object, value is
+     * an List of Constructor.
+     */
+    private final Map<AccessibleObjectKey, List<Constructor<?>>> constructorMap;
 
-  /**
-   * Map of public static methods. Key is a AccessibleObjectKey object, value is
-   * an List of Method.
-   */
-  private final Map staticMethodMap;
+    /**
+     * Map of public instance methods. Key is a AccessibleObjectKey object,
+     * value is an List of Method.
+     */
+    private final Map<AccessibleObjectKey, List<Method>> methodMap;
 
-  /**
-   * Map of public constructors. Key is a AccessibleObjectKey object, value is
-   * an List of Constructor.
-   */
-  private final Map constructorMap;
+    /**
+     * Map of public static methods. Key is a AccessibleObjectKey object, value
+     * is an List of Method.
+     */
+    private final Map<AccessibleObjectKey, List<Method>> staticMethodMap;
 
-  /**
-   * Creates a new ClassData
-   * 
-   * @param clazz The class that this ClassData maps.
-   * @param methodMap Map of public instance methods. Static methods do not go
-   *          here. Key is a AccessibleObjectKey object, value is an List of
-   *          Method.
-   * @param staticMethodMap Map of public static methods. Key is a
-   *          AccessibleObjectKey object, value is an List of Method.
-   * @param constructorMap Map of public constructors. Key is a
-   *          AccessibleObjectKey object, value is an List of Constructor.
-   */
-  public ClassData(Class clazz, Map methodMap, Map staticMethodMap,
-      Map constructorMap)
-  {
-    this.clazz = clazz;
-    this.methodMap = new HashMap(methodMap);
-    this.methodMap.putAll(staticMethodMap);
-    this.staticMethodMap = new HashMap(staticMethodMap);
-    this.constructorMap = new HashMap(constructorMap);
-  }
+    /**
+     * Creates a new ClassData
+     * 
+     * @param clazz
+     *            The class that this ClassData maps.
+     * @param methodMap
+     *            Map of public instance methods. Static methods do not go here.
+     *            Key is a AccessibleObjectKey object, value is an List of
+     *            Method.
+     * @param staticMethodMap
+     *            Map of public static methods. Key is a AccessibleObjectKey
+     *            object, value is an List of Method.
+     * @param constructorMap
+     *            Map of public constructors. Key is a AccessibleObjectKey
+     *            object, value is an List of Constructor.
+     */
+    public ClassData(final Class<?> clazz,
+            final Map<AccessibleObjectKey, List<Method>> methodMap,
+            final Map<AccessibleObjectKey, List<Method>> staticMethodMap,
+            final Map<AccessibleObjectKey, List<Constructor<?>>> constructorMap) {
 
-  /**
-   * Get the class that this ClassData maps.
-   * 
-   * @return the class that this ClassData maps.
-   */
-  public Class getClazz()
-  {
-    return clazz;
-  }
+        this.clazz = clazz;
+        this.methodMap = new HashMap<AccessibleObjectKey, List<Method>>(
+                methodMap);
+        this.methodMap.putAll(staticMethodMap);
+        this.staticMethodMap = new HashMap<AccessibleObjectKey, List<Method>>(
+                staticMethodMap);
+        this.constructorMap = new HashMap<AccessibleObjectKey, List<Constructor<?>>>(
+                constructorMap);
+    }
 
-  /**
-   * Get the Map of public constructors that can be invoked for the class. The
-   * key of the Map is a AccessibleObjectKey object and the value is a list of
-   * Constructor objects.
-   * 
-   * @return Map of static methods that can be invoked for the class.
-   */
-  public Map getConstructorMap()
-  {
-    return constructorMap;
-  }
+    /**
+     * Get the class that this ClassData maps.
+     * 
+     * @return the class that this ClassData maps.
+     */
+    public Class<?> getClazz() {
 
-  /**
-   * Get the Map of public methods (both static and non-static) that can be
-   * invoked for the class. This is *NOT* just the method map that was passed in
-   * the constructor, but is concatenated with the static methods as well. The
-   * keys of the Map will be AccessibleObjectKey objects and the values will be
-   * a List of Method objects.
-   * 
-   * @return Map of public instance methods which can be invoked for the class.
-   *         this ClassData.
-   */
-  public Map getMethodMap()
-  {
-    return methodMap;
-  }
+        return clazz;
+    }
 
-  /**
-   * Get the Map of public static methods that can be invoked for the class. The
-   * key of the Map is a AccessibleObjectKey object and the value is a list of
-   * Method objects.
-   * 
-   * @return Map of static methods that can be invoked for the class.
-   */
-  public Map getStaticMethodMap()
-  {
-    return staticMethodMap;
-  }
+    /**
+     * Get the Map of public constructors that can be invoked for the class. The
+     * key of the Map is a AccessibleObjectKey object and the value is a list of
+     * Constructor objects.
+     * 
+     * @return Map of static methods that can be invoked for the class.
+     */
+    public Map<AccessibleObjectKey, List<Constructor<?>>> getConstructorMap() {
+
+        return constructorMap;
+    }
+
+    /**
+     * Get the Map of public methods (both static and non-static) that can be
+     * invoked for the class. This is *NOT* just the method map that was passed
+     * in the constructor, but is concatenated with the static methods as well.
+     * The keys of the Map will be AccessibleObjectKey objects and the values
+     * will be a List of Method objects.
+     * 
+     * @return Map of public instance methods which can be invoked for the
+     *         class. this ClassData.
+     */
+    public Map<AccessibleObjectKey, List<Method>> getMethodMap() {
+
+        return methodMap;
+    }
+
+    /**
+     * Get the Map of public static methods that can be invoked for the class.
+     * The key of the Map is a AccessibleObjectKey object and the value is a
+     * list of Method objects.
+     * 
+     * @return Map of static methods that can be invoked for the class.
+     */
+    public Map<AccessibleObjectKey, List<Method>> getStaticMethodMap() {
+
+        return staticMethodMap;
+    }
 }

@@ -35,94 +35,86 @@ import org.jabsorb.ng.serializer.UnmarshallException;
 /**
  * Serialiess Boolean values
  */
-public class BooleanSerializer extends AbstractSerializer
-{
-  /**
-   * Unique serialisation id.
-   */
-  private final static long serialVersionUID = 2;
+public class BooleanSerializer extends AbstractSerializer {
+    /**
+     * Classes that this can serialise to.
+     */
+    private static Class<?>[] _JSONClasses = new Class<?>[] { Boolean.class,
+            String.class };
 
-  /**
-   * Classes that this can serialise.
-   */
-  private static Class[] _serializableClasses = new Class[] { boolean.class,
-      Boolean.class };
+    /**
+     * Classes that this can serialise.
+     */
+    private static Class<?>[] _serializableClasses = new Class<?>[] {
+            boolean.class, Boolean.class };
 
-  /**
-   * Classes that this can serialise to.
-   */
-  private static Class[] _JSONClasses = new Class[] { Boolean.class,
-      String.class };
+    /**
+     * Unique serialisation id.
+     */
+    private final static long serialVersionUID = 2;
 
-  public Class[] getJSONClasses()
-  {
-    return _JSONClasses;
-  }
+    @Override
+    public Class<?>[] getJSONClasses() {
 
-  public Class[] getSerializableClasses()
-  {
-    return _serializableClasses;
-  }
-
-  public Object marshall(SerializerState state, Object p, Object o)
-      throws MarshallException
-  {
-    return o;
-  }
-
-  public ObjectMatch tryUnmarshall(SerializerState state, Class clazz,
-      Object jso) throws UnmarshallException
-  {
-    final ObjectMatch toReturn;
-    if (jso instanceof String)
-    {
-      // TODO: Boolean parses stuff as ignoreCase(x)=="true" as true or
-      // anything else as false. I'm pretty sure in this case it this should
-      // only be javascript true or false strings, because otherwise
-      // this will catch string passed to it.
-      if (jso.equals("true") || jso.equals("false"))
-      {
-        toReturn = ObjectMatch.OKAY;
-      }
-      else
-      {
-        toReturn = ObjectMatch.ROUGHLY_SIMILAR;
-      }
-    }
-    else if (jso instanceof Boolean)
-    {
-      toReturn = ObjectMatch.OKAY;
-    }
-    else
-    {
-      toReturn = ObjectMatch.ROUGHLY_SIMILAR;
-    }
-    state.setSerialized(jso, toReturn);
-    return toReturn;
-  }
-
-  public Object unmarshall(SerializerState state, Class clazz, Object jso)
-      throws UnmarshallException
-  {
-    Boolean returnValue = Boolean.FALSE;
-
-    if (jso instanceof String)
-    {
-      try
-      {
-        returnValue = new Boolean((String) jso);
-      }
-      catch (Exception e)
-      {
-        throw new UnmarshallException("Cannot convert " + jso + " to Boolean", e);
-      }
-    }
-    else if (jso instanceof Boolean || clazz == boolean.class)
-    {
-      returnValue = (Boolean) jso;
+        return _JSONClasses;
     }
 
-    state.setSerialized(jso, returnValue);
-    return returnValue;
-  }
+    @Override
+    public Class<?>[] getSerializableClasses() {
+
+        return _serializableClasses;
+    }
+
+    @Override
+    public Object marshall(final SerializerState state, final Object p,
+            final Object o) throws MarshallException {
+
+        return o;
+    }
+
+    @Override
+    public ObjectMatch tryUnmarshall(final SerializerState state,
+            final Class<?> clazz, final Object jso) throws UnmarshallException {
+
+        final ObjectMatch toReturn;
+        if (jso instanceof String) {
+            // TODO: Boolean parses stuff as ignoreCase(x)=="true" as true or
+            // anything else as false. I'm pretty sure in this case it this
+            // should
+            // only be javascript true or false strings, because otherwise
+            // this will catch string passed to it.
+            if (jso.equals("true") || jso.equals("false")) {
+                toReturn = ObjectMatch.OKAY;
+            } else {
+                toReturn = ObjectMatch.ROUGHLY_SIMILAR;
+            }
+        } else if (jso instanceof Boolean) {
+            toReturn = ObjectMatch.OKAY;
+        } else {
+            toReturn = ObjectMatch.ROUGHLY_SIMILAR;
+        }
+        state.setSerialized(jso, toReturn);
+        return toReturn;
+    }
+
+    @Override
+    public Object unmarshall(final SerializerState state, final Class<?> clazz,
+            final Object jso) throws UnmarshallException {
+
+        Boolean returnValue = Boolean.FALSE;
+
+        if (jso instanceof String) {
+            try {
+                returnValue = new Boolean((String) jso);
+            } catch (final Exception e) {
+                throw new UnmarshallException("Cannot convert " + jso
+                        + " to Boolean", e);
+            }
+        } else if (jso instanceof Boolean || clazz == boolean.class) {
+            returnValue = (Boolean) jso;
+        }
+
+        state.setSerialized(jso, returnValue);
+        return returnValue;
+    }
 }

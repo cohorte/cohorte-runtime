@@ -31,8 +31,6 @@ import java.util.Iterator;
 import org.jabsorb.ng.JSONRPCBridge;
 import org.jabsorb.ng.JSONRPCResult;
 import org.jabsorb.ng.JSONSerializer;
-import org.jabsorb.ng.logging.ILogger;
-import org.jabsorb.ng.logging.LoggerFactory;
 import org.jabsorb.ng.serializer.FixUp;
 import org.jabsorb.ng.serializer.SerializerState;
 import org.json.JSONArray;
@@ -45,17 +43,14 @@ import org.json.JSONObject;
  */
 public class Client implements InvocationHandler {
     /** Manual instantiation of HashMap<String, Object> */
-    private static class ProxyMap extends HashMap {
-	public String getString(final Object key) {
-	    return (String) super.get(key);
-	}
+    private static class ProxyMap extends HashMap<Object, String> {
+        private static final long serialVersionUID = 1L;
 
-	public Object putString(final String key, final Object value) {
-	    return super.put(key, value);
-	}
+        public String getString(final Object key) {
+
+            return super.get(key);
+        }
     }
-
-    private static ILogger log = LoggerFactory.getLogger(Client.class);
 
     /**
      * Maintain a unique id for each message
@@ -74,7 +69,8 @@ public class Client implements InvocationHandler {
      *            -- transport session to use for this connection
      */
     public Client(final ISession session) {
-	this(session, null);
+
+        this(session, null);
     }
 
     /**
@@ -86,13 +82,14 @@ public class Client implements InvocationHandler {
      *            -- Serializer class loader
      */
     public Client(final ISession session, final ClassLoader classLoader) {
-	try {
-	    this.session = session;
-	    serializer = new JSONSerializer(classLoader);
-	    serializer.registerDefaultSerializers();
-	} catch (Exception e) {
-	    throw new ClientError(e);
-	}
+
+        try {
+            this.session = session;
+            serializer = new JSONSerializer(classLoader);
+            serializer.registerDefaultSerializers();
+        } catch (final Exception e) {
+            throw new ClientError(e);
+        }
     }
 
     /**
@@ -101,11 +98,13 @@ public class Client implements InvocationHandler {
      * @param proxy
      */
     public void closeProxy(final Object proxy) {
-	proxyMap.remove(proxy);
+
+        proxyMap.remove(proxy);
     }
 
     private synchronized int getId() {
-	return id++;
+
+        return id++;
     }
 
     /**
@@ -114,87 +113,92 @@ public class Client implements InvocationHandler {
      * @return The serializer for this class
      */
     public JSONSerializer getSerializer() {
-	return serializer;
+
+        return serializer;
     }
 
     /**
      * This method is public because of the inheritance from the
      * InvokationHandler -- should never be called directly.
      */
+    @Override
     public Object invoke(final Object proxyObj, final Method method,
-	    final Object[] args) throws Exception {
-	String methodName = method.getName();
-	if (methodName.equals("hashCode")) {
-	    return new Integer(System.identityHashCode(proxyObj));
-	} else if (methodName.equals("equals")) {
-	    return (proxyObj == args[0] ? Boolean.TRUE : Boolean.FALSE);
-	} else if (methodName.equals("toString")) {
-	    return proxyObj.getClass().getName() + '@'
-		    + Integer.toHexString(proxyObj.hashCode());
-	}
-	return invoke(proxyMap.getString(proxyObj), method.getName(), args,
-		method.getReturnType());
+            final Object[] args) throws Exception {
+
+        final String methodName = method.getName();
+        if (methodName.equals("hashCode")) {
+            return new Integer(System.identityHashCode(proxyObj));
+        } else if (methodName.equals("equals")) {
+            return (proxyObj == args[0] ? Boolean.TRUE : Boolean.FALSE);
+        } else if (methodName.equals("toString")) {
+            return proxyObj.getClass().getName() + '@'
+                    + Integer.toHexString(proxyObj.hashCode());
+        }
+        return invoke(proxyMap.getString(proxyObj), method.getName(), args,
+                method.getReturnType());
     }
 
     private Object invoke(final String objectTag, final String methodName,
-	    final Object[] args, final Class returnType) throws Exception {
-	final int id = getId();
-	JSONObject message = new JSONObject();
-	String methodTag = objectTag == null ? "" : objectTag + ".";
-	methodTag += methodName;
-	message.put("method", methodTag);
+            final Object[] args, final Class<?> returnType) throws Exception {
 
-	{
-	    SerializerState state = new SerializerState();
+        final int id = getId();
+        final JSONObject message = new JSONObject();
+        String methodTag = objectTag == null ? "" : objectTag + ".";
+        methodTag += methodName;
+        message.put("method", methodTag);
 
-	    if (args != null) {
+        {
+            final SerializerState state = new SerializerState();
 
-		JSONArray params = (JSONArray) serializer.marshall(state, /* parent */
-		null, args, "params");
+            if (args != null) {
 
-		if ((state.getFixUps() != null)
-			&& (state.getFixUps().size() > 0)) {
-		    JSONArray fixups = new JSONArray();
-		    for (Iterator i = state.getFixUps().iterator(); i.hasNext();) {
-			FixUp fixup = (FixUp) i.next();
-			fixups.put(fixup.toJSONArray());
-		    }
-		    message.put("fixups", fixups);
-		}
-		message.put("params", params);
-	    } else {
-		message.put("params", new JSONArray());
-	    }
-	}
-	message.put("id", id);
+                final JSONArray params = (JSONArray) serializer.marshall(state, /* parent */
+                        null, args, "params");
 
-	JSONObject responseMessage = session.sendAndReceive(message);
+                if ((state.getFixUps() != null)
+                        && (state.getFixUps().size() > 0)) {
+                    final JSONArray fixups = new JSONArray();
+                    for (final Iterator<FixUp> i = state.getFixUps().iterator(); i
+                            .hasNext();) {
+                        final FixUp fixup = i.next();
+                        fixups.put(fixup.toJSONArray());
+                    }
+                    message.put("fixups", fixups);
+                }
+                message.put("params", params);
+            } else {
+                message.put("params", new JSONArray());
+            }
+        }
+        message.put("id", id);
 
-	if (!responseMessage.has("result")) {
-	    processException(responseMessage);
-	}
-	Object rawResult = responseMessage.get("result");
-	if (rawResult == null) {
-	    processException(responseMessage);
-	}
-	if (returnType.equals(Void.TYPE)) {
-	    return null;
-	}
+        final JSONObject responseMessage = session.sendAndReceive(message);
 
-	{
-	    JSONArray fixups = responseMessage.optJSONArray("fixups");
+        if (!responseMessage.has("result")) {
+            processException(responseMessage);
+        }
+        final Object rawResult = responseMessage.get("result");
+        if (rawResult == null) {
+            processException(responseMessage);
+        }
+        if (returnType.equals(Void.TYPE)) {
+            return null;
+        }
 
-	    if (fixups != null) {
-		for (int i = 0; i < fixups.length(); i++) {
-		    JSONArray assignment = fixups.getJSONArray(i);
-		    JSONArray fixup = assignment.getJSONArray(0);
-		    JSONArray original = assignment.getJSONArray(1);
-		    JSONRPCBridge.applyFixup(rawResult, fixup, original);
-		}
-	    }
-	}
-	return serializer.unmarshall(new SerializerState(), returnType,
-		rawResult);
+        {
+            final JSONArray fixups = responseMessage.optJSONArray("fixups");
+
+            if (fixups != null) {
+                for (int i = 0; i < fixups.length(); i++) {
+                    final JSONArray assignment = fixups.getJSONArray(i);
+                    final JSONArray fixup = assignment.getJSONArray(0);
+                    final JSONArray original = assignment.getJSONArray(1);
+                    JSONRPCBridge.applyFixup(rawResult, fixup, original);
+                }
+            }
+        }
+        return serializer.unmarshall(new SerializerState(), returnType,
+                rawResult);
     }
 
     /**
@@ -206,29 +210,41 @@ public class Client implements InvocationHandler {
      *            the class of the interface the remote object should adhere to
      * @return created proxy
      */
-    public Object openProxy(final String key, final Class klass) {
-	Object result = java.lang.reflect.Proxy.newProxyInstance(
-		klass.getClassLoader(), new Class[] { klass }, this);
-	proxyMap.put(result, key);
-	return result;
+    public Object openProxy(final String key, final Class<?> klass) {
+
+        final Object result = java.lang.reflect.Proxy.newProxyInstance(
+                klass.getClassLoader(), new Class[] { klass }, this);
+        proxyMap.put(result, key);
+        return result;
     }
 
     /**
      * Generate and throw exception based on the data in the 'responseMessage'
      */
     protected void processException(final JSONObject responseMessage)
-	    throws JSONException {
-	JSONObject error = (JSONObject) responseMessage.get("error");
-	if (error != null) {
-	    Integer code = new Integer(error.has("code") ? error.getInt("code")
-		    : 0);
-	    String trace = error.has("trace") ? error.getString("trace") : null;
-	    String msg = error.has("msg") ? error.getString("msg") : null;
-	    throw new ErrorResponse(code, msg, trace);
-	} else {
-	    throw new ErrorResponse(new Integer(JSONRPCResult.CODE_ERR_PARSE),
-		    "Unknown response:" + responseMessage.toString(2), null);
-	}
+            throws JSONException {
+
+        final JSONObject error = (JSONObject) responseMessage.get("error");
+        if (error != null) {
+            final Integer code = new Integer(
+                    error.has("code") ? error.getInt("code") : 0);
+            final String trace = error.has("trace") ? error.getString("trace")
+                    : null;
+
+            String msg;
+            if (error.has("message")) {
+                msg = error.getString("message");
+            } else if (error.has("msg")) {
+                msg = error.getString("msg");
+            } else {
+                msg = null;
+            }
+
+            throw new ErrorResponse(code, msg, trace);
+        } else {
+            throw new ErrorResponse(new Integer(JSONRPCResult.CODE_ERR_PARSE),
+                    "Unknown response:" + responseMessage.toString(2), null);
+        }
     }
 
 }
