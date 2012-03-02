@@ -258,7 +258,7 @@ class SignalSender(object):
         json_signal = json.dumps(signal)
         headers = {"Content-Type": "application/json"}
 
-        _logger.warning("OUTPUT :\n%s\n\n", json_signal)
+        _logger.warning("OUTPUT : %s\n%s\n\n", name, json_signal)
 
         for url in urls:
             try:
@@ -282,7 +282,14 @@ class SignalSender(object):
                                      response.reason)
 
             except:
-                _logger.exception("Error sending signal %s to %s", name, url)
+                _logger.error("Error sending signal %s to %s", name, url)
+
+
+    def get_current_isolate_id(self):
+        """
+        Retrieves the current isolate ID
+        """
+        return self.directory.get_current_isolate_id()
 
 
     def send_data(self, target, name, data):
