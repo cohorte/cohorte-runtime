@@ -1,0 +1,6 @@
+.metadata
+pom.xml
+*.pyc
+__pycache__/
+RemoteSystemsTempFiles/
+*.tar.gz
