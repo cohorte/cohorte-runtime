@@ -25,8 +25,17 @@ import psem2m.services.pelix as pelix
 EXPORTED_SERVICE_FILTER = "(|(service.exported.interfaces=*)(service.exported.configs=*))"
 JAVA_CLASS = u"javaClass"
 
-SIGNAL_REMOTE_EVENT = "/psem2m/remote-service-broadcaster/remote-event"
-SIGNAL_REQUEST_ENDPOINTS = "/psem2m/remote-service-broadcaster/request-endpoints"
+ISOLATE_LOST_SIGNAL = "/psem2m/isolate/lost"
+
+BROADCASTER_SIGNAL_NAME_PREFIX = "/psem2m/remote-service-broadcaster"
+SIGNAL_REMOTE_EVENT = "%s/remote-event" % BROADCASTER_SIGNAL_NAME_PREFIX
+SIGNAL_REQUEST_ENDPOINTS = "%s/request-endpoints" % BROADCASTER_SIGNAL_NAME_PREFIX
+
+SERVICE_EXPORTED_PREFIX = "service.exported."
+SERVICE_EXPORTED_CONFIGS = "service.exported.configs"
+SERVICE_EXPORTED_INTERFACES = "service.exported.interfaces"
+SERVICE_IMPORTED = "service.imported"
+SERVICE_IMPORTED_CONFIGS = "service.imported.configs"
 
 # ------------------------------------------------------------------------------
 
@@ -368,6 +377,63 @@ class ServiceExporter(object):
 
 # ------------------------------------------------------------------------------
 
+def _filter_export_properties(properties):
+    """
+    Filters imported service properties. Makes a new dictionary
+
+    @param properties: Imported service properties
+    @return: A filtered dictionary
+    """
+    if properties is None:
+        return None
+
+    result = {}
+
+    # Remove export properties
+    for key, value in properties.items():
+        if not key.startswith(SERVICE_EXPORTED_PREFIX):
+            result[key] = value
+
+    # Add import properties
+    result[SERVICE_IMPORTED] = "True"
+
+    if SERVICE_EXPORTED_CONFIGS in properties:
+        result[SERVICE_IMPORTED_CONFIGS] = properties[SERVICE_EXPORTED_CONFIGS]
+
+    return result
+
+
+class _JSON_proxy(object):
+    """
+    JSON-RPC proxy
+    """
+    def __init__(self, endpoint):
+        """
+        Constructor
+        """
+        self.server = jsonrpclib.Server(endpoint)
+
+
+    def __getattr__(self, name):
+        """
+        Proxy core
+        """
+        return getattr(self.server, name)
+
+
+    def __stop__(self):
+        """
+        Stops the proxy
+        """
+        # TODO: close ? (pas de doc)
+        try:
+            self.server.close()
+            self.server = None
+
+        except:
+            _logger.exception("Error stopping the proxy")
+
+
 @ComponentFactory("ServiceImporterFactory")
 @Instantiate("ServiceImporter")
 @Requires("sender", "org.psem2m.SignalSender")
@@ -381,15 +447,176 @@ class ServiceImporter(object):
         """
         Constructor
         """
-        pass
+        self.sender = None
+        self.receiver = None
+        self.directory = None
+
+        # Isolate ID -> [Service ID]
+        self._services = {}
 
 
     def handle_received_signal(self, name, signal_data):
         """
         Called when a remote services signal is received
         """
-        # TODO: handle remote services signals
-        # TODO: handle isolate lost signal
+        sender = signal_data["isolateSender"]
+        if sender == self.directory.get_current_isolate_id():
+            # Ignore local events
+            return
+
+        # Get the raw signal content
+        data = signal_data["signalContent"]
+
+        if name == SIGNAL_REMOTE_EVENT:
+            # Remote service event
+            if isinstance(data, list):
+                # Multiple events in one signal
+                for event in data:
+                    try:
+                        self._handle_remote_event(sender, event)
+                    except:
+                        _logger.exception("Error reading RemoteServiceEvent")
+
+            else:
+                # Single event
+                self._handle_remote_event(sender, data)
+
+        elif name == ISOLATE_LOST_SIGNAL and isinstance(data, str):
+            # Isolate lost (data : isolate name)
+            self._handle_isolate_lost(data)
+
+
+    def _handle_remote_event(self, sender, remote_event):
+        """
+        Handle a remote service event.
+
+        @param remote_event: Raw remote service event dictionary
+        """
+        event_type = remote_event["eventType"]["enumValue"]
+
+        if event_type == "REGISTERED":
+            self._import_service(remote_event)
+
+        elif event_type == "UNREGISTERED":
+            self._unimport_service(sender,
+                            remote_event["serviceRegistration"]["serviceId"])
+
+
+    def _handle_isolate_lost(self, isolate_name):
+        """
+        Handle an isolate lost signal
+
+        @param isolate_name: Name of the lost isolate
+        """
+        services = self._services.get(isolate_name, None)
+        if not services:
+            # No service registered for this isolate
+            return
+
+        services_copy = services[:]
+        for service_id in services_copy:
+            # Cancel the import
+            self._unimport_service(isolate_name, service_id)
+
+        # Clean up the isolate services list
+        del services[:]
+
+
+    def _import_service(self, remote_event):
+        """
+        Import the given remote service
+        """
+        remote_reg = remote_event["remoteRegistration"]
+
+        # Store remote service ID
+        service_id = remote_reg["serviceId"]
+        if service_id in self._registered_services:
+            # Already registered service
+            return
+
+        # TODO: add service filter
+
+        # Select the end point
+        endpoints = remote_reg["endpoints"]
+        if not endpoints:
+            # No end point
+            _logger.error("No end point given")
+            return
+
+        # TODO: select it upon available proxies
+        endpoint = endpoints[0]
+
+        # Extract end point information
+        protocol = endpoint.get("protocol", "http")
+        host = endpoint.get("host", "localhost")
+        port = int(endpoint.get("port", 80))
+        uri = endpoint.get("endpointUri", "/")
+
+        # Create the proxy (select the factory according to export config)
+        endpoint_url = "%s://%s:%d%s" % (protocol, host, port, uri)
+        proxy = _JSON_proxy(endpoint_url)
+        if proxy is None:
+            _logger.error("Remote service proxy not created")
+            return
+
+        # Filter properties
+        properties = _filter_export_properties(remote_reg["serviceProperties"]
+                                                          ["map"])
+
+        # Register the service
+        try:
+            reg = self.context.register_service(
+                        remote_reg["exportedInterfaces"], proxy, properties)
+
+        except BundleException:
+            _logger.exception("Error registering the proxy service")
+            reg = None
+
+        if reg is None:
+            # Error creating the proxy
+            proxy.__stop__()
+            return
+
+        # Store information
+        self._registered_services[service_id] = (proxy, reg)
+
+        services = self._services.get(isolate_name, None)
+        if services is None:
+            services = []
+            self._services[isolate_name] = services
+
+        services.append(service_id)
+
+
+    def _unimport_service(self, isolate_name, service_id):
+        """
+        Cancel the import of the given service
+        """
+        service = self._registered_services.get(service_id, None)
+        if not service:
+            # Unknown service
+            return
+
+        # Extract service registration and proxy instance
+        reg, proxy = service
+
+        try:
+            # Unregister the service from Pelix
+            reg.unregister()
+
+        except pelix.BundleException:
+            _logger.exception("Error unregistering the imported service %s",
+                              service_id)
+
+        # Stop the proxy
+        proxy.__stop__()
+
+        # Delete the references to this service
+        del self._registered_services[service_id]
+
+        isolate_services = self._services.get(isolate_name, None)
+        if isolate_services is not None and service_id in isolate_services:
+            isolate_services.remove(service_id)
 
 
     @Validate
@@ -397,9 +624,15 @@ class ServiceImporter(object):
         """
         Component validated
         """
-        # TODO: register remote services signals
+        # Clean up a little, just in case
+        self._services.clear()
+        self._registered_services.clear()
+
+        # Register remote services signals
+        self.receiver.register_listener(BROADCASTER_SIGNAL_NAME_PREFIX, self)
+        self.receiver.register_listener(ISOLATE_LOST_SIGNAL, self)
+
         # TODO: send "request endpoints" signal
-        pass
 
 
     @Invalidate
@@ -407,6 +640,28 @@ class ServiceImporter(object):
         """
         Component invalidated
         """
-        # TODO: unregister remote services signals
-        # TODO: unregister import services
-        pass
+        # Unregister remote services signals
+        self.receiver.unregister_listener(BROADCASTER_SIGNAL_NAME_PREFIX, self)
+        self.receiver.unregister_listener(ISOLATE_LOST_SIGNAL, self)
+
+        # Unregister imported services (in a single loop)
+        for imported_service in self._registered_services.values():
+            if imported_sevice is None:
+                continue
+
+            proxy, reg = imported_service
+            try;
+                # Unregister the service
+                if reg is not None:
+                    reg.unregister()
+
+            except BundleException:
+                _logger.exception("Error unregistering service")
+
+            if proxy is not None:
+                # Stop the proxy
+                proxy.__stop__()
+
+        # Clean up the collections
+        self._services.clear()
+        self._registered_services.clear()
