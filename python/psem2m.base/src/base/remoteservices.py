@@ -28,8 +28,11 @@ JAVA_CLASS = u"javaClass"
 ISOLATE_LOST_SIGNAL = "/psem2m/isolate/lost"
 
 BROADCASTER_SIGNAL_NAME_PREFIX = "/psem2m/remote-service-broadcaster"
+BROADCASTER_SIGNAL_REQUEST_ENDPOINTS = "%s/request-endpoints"
+                                        % BROADCASTER_SIGNAL_NAME_PREFIX
 SIGNAL_REMOTE_EVENT = "%s/remote-event" % BROADCASTER_SIGNAL_NAME_PREFIX
-SIGNAL_REQUEST_ENDPOINTS = "%s/request-endpoints" % BROADCASTER_SIGNAL_NAME_PREFIX
+SIGNAL_REQUEST_ENDPOINTS = "%s/request-endpoints"
+                                        % BROADCASTER_SIGNAL_NAME_PREFIX
 
 SERVICE_EXPORTED_PREFIX = "service.exported."
 SERVICE_EXPORTED_CONFIGS = "service.exported.configs"
@@ -632,7 +635,8 @@ class ServiceImporter(object):
         self.receiver.register_listener(BROADCASTER_SIGNAL_NAME_PREFIX, self)
         self.receiver.register_listener(ISOLATE_LOST_SIGNAL, self)
 
-        # TODO: send "request endpoints" signal
+        # Send "request endpoints" signal
+        self.sender.send_data("*", BROADCASTER_SIGNAL_REQUEST_ENDPOINTS, None)
 
 
     @Invalidate
