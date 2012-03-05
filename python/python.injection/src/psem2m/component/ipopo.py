@@ -2,11 +2,13 @@
 """
 Core iPOPO implementation
 
-@author: Thomas Calmant
-@copyright: Copyright 2012, isandlaTech
-@license: GPLv3
-@version: 0.2
-@status: Alpha
+:author: Thomas Calmant
+:copyright: Copyright 2012, isandlaTech
+:license: GPLv3
+:version: 0.2
+:status: Alpha
+
+..
 
     This file is part of iPOPO.
 
@@ -38,6 +40,9 @@ import logging
 import threading
 
 # ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
 
 # Prepare the module logger
 _logger = logging.getLogger("ipopo.core")
@@ -75,10 +80,10 @@ class IPopoEvent(object):
         """
         Sets up the iPOPO event
         
-        @param kind: Kind of event
-        @param factory_name: Name of the factory associated to the event
-        @param component_name: Name of the component instance associated to the
-        event
+        :param kind: Kind of event
+        :param factory_name: Name of the factory associated to the event
+        :param component_name: Name of the component instance associated to the
+                               event
         """
         self.__kind = kind
         self.__factory_name = factory_name
@@ -119,13 +124,13 @@ class Requirement(object):
         """
         Sets up the requirement
 
-        @param specifications: The requirement specification (can't be None)
-        @param aggregate: If true, this requirement represents a list
-        @param optional: If true, this requirement is optional
-        @param spec_filter: A filter to select dependencies
+        :param specifications: The requirement specification (can't be None)
+        :param aggregate: If true, this requirement represents a list
+        :param optional: If true, this requirement is optional
+        :param spec_filter: A filter to select dependencies
 
-        @raise TypeError: A parameter has an invalid type
-        @raise ValueError: An error occurred while parsing the filter
+        :raise TypeError: A parameter has an invalid type
+        :raise ValueError: An error occurred while parsing the filter
         """
         if not specifications:
             raise TypeError("A specification must be given")
@@ -171,10 +176,10 @@ class Requirement(object):
         """
         Sets up an instance with the given dictionary form
 
-        @param dictionary: The dictionary form
-        @return: A configured requirement instance
-        @raise ValueError: An attribute is missing in the dictionary form
-        @raise TypeError: Invalid form type (only dictionaries are accepted)
+        :param dictionary: The dictionary form
+        :return: A configured requirement instance
+        :raise ValueError: An attribute is missing in the dictionary form
+        :raise TypeError: Invalid form type (only dictionaries are accepted)
         """
         if not isinstance(dictionary, dict):
             raise TypeError("Invalid form type '%s'" \
@@ -196,8 +201,8 @@ class Requirement(object):
         """
         Tests if the given _StoredInstance matches this requirement
 
-        @param properties: Service properties
-        @return: True if the instance matches this requirement
+        :param properties: Service properties
+        :return: True if the instance matches this requirement
         """
         if properties is None:
             # No properties : invalid service
@@ -213,8 +218,8 @@ class Requirement(object):
         """
         Changes the current filter for the given one
 
-        @param spec_filter: The new requirement filter
-        @raise TypeError: Unknown filter type
+        :param spec_filter: The new requirement filter
+        :raise TypeError: Unknown filter type
         """
         if spec_filter is not None and not is_string(spec_filter) \
         and not isinstance(spec_filter, LDAPFilter) \
@@ -244,7 +249,7 @@ class Requirement(object):
         """
         Returns a dictionary form of the current object
 
-        @raise AttributeError: A field to store is missing in the instance
+        :raise AttributeError: A field to store is missing in the instance
         """
         result = {}
         for field in self.__stored_fields__:
@@ -292,9 +297,9 @@ class FactoryContext(object):
         """
         Sets up this instance with the given dictionary form
 
-        @param dictionary: The dictionary form
-        @raise ValueError: An attribute is missing in the dictionary form
-        @raise TypeError: Invalid form type (only dictionaries are accepted)
+        :param dictionary: The dictionary form
+        :raise ValueError: An attribute is missing in the dictionary form
+        :raise TypeError: Invalid form type (only dictionaries are accepted)
         """
         # Prepare the instance, initializing it
         instance = cls()
@@ -340,7 +345,7 @@ class FactoryContext(object):
         """
         Returns a dictionary form of the current object
 
-        @raise AttributeError: A field to store in missing in the instance
+        :raise AttributeError: A field to store in missing in the instance
         """
         result = {}
 
@@ -369,8 +374,8 @@ class ComponentContext(object):
         """
         Sets up the context
 
-        @param factory_context: The parent factory context
-        @param properties: The component properties
+        :param factory_context: The parent factory context
+        :param properties: The component properties
         """
         assert isinstance(factory_context, FactoryContext)
         assert isinstance(properties, dict)
@@ -466,10 +471,9 @@ class _StoredInstance(object):
         """
         Sets up the instance object
 
-        @param ipopo_service: The iPOPO service that instantiated this component
-        @param factory_name: Name of the component factory
-        @param context: The component context
-        @param instance: The component instance
+        :param ipopo_service: The iPOPO service that instantiated this component
+        :param context: The component context
+        :param instance: The component instance
         """
         assert isinstance(context, ComponentContext)
 
@@ -527,9 +531,9 @@ class _StoredInstance(object):
         """
         Calls the registered method in the component for the given event
 
-        @param event: An event (IPOPO_CALLBACK_VALIDATE, ...)
-        @return: The callback result, or None
-        @raise Exception: Something went wrong
+        :param event: An event (IPOPO_CALLBACK_VALIDATE, ...)
+        :return: The callback result, or None
+        :raise Exception: Something went wrong
         """
         comp_callback = self.context.get_callback(event)
         if not comp_callback:
@@ -546,7 +550,7 @@ class _StoredInstance(object):
         Does the post-invalidation job. Unregisters the provided service(s), if
         any
 
-        @param callback: If True, call back the component before the
+        :param callback: If True, call back the component before the
         invalidation
         """
         if self.state != _StoredInstance.VALID:
@@ -634,8 +638,8 @@ class _StoredInstance(object):
         Calls the registered method in the component for the given event,
         ignoring raised exceptions
 
-        @param event: An event (IPOPO_CALLBACK_VALIDATE, ...)
-        @return: The callback result, or None
+        :param event: An event (IPOPO_CALLBACK_VALIDATE, ...)
+        :return: The callback result, or None
         """
         if self.state == _StoredInstance.KILLED:
             # Invalid state
@@ -655,9 +659,9 @@ class _StoredInstance(object):
         """
         Injects the given service into the given field
 
-        @param field: The field where the service is injected
-        @param requirement: The field requirement description
-        @param reference: The injected service reference
+        :param field: The field where the service is injected
+        :param requirement: The field requirement description
+        :param reference: The injected service reference
         """
         current_value = getattr(self.instance, field, None)
 
@@ -709,10 +713,10 @@ class _StoredInstance(object):
         Injects multiple services in a field in one time. Only works with
         aggregations.
 
-        @param field: The field where to inject the services
-        @param current_value: Current field value (should be None or a list)
-        @param requirement: Dependency description
-        @param references: Injected services references (must be a list)
+        :param field: The field where to inject the services
+        :param current_value: Current field value (should be None or a list)
+        :param requirement: Dependency description
+        :param references: Injected services references (must be a list)
         """
         if not requirement.aggregate:
             # Not an aggregation...
@@ -785,9 +789,9 @@ class _StoredInstance(object):
         """
         Remove the given service from the given field
 
-        @param field: The field where the service is injected
-        @param requirement: The field requirement description
-        @param service: The injected service instance
+        :param field: The field where the service is injected
+        :param requirement: The field requirement description
+        :param service: The injected service instance
         """
         current_value = getattr(self.instance, field, None)
         if current_value is None:
@@ -821,7 +825,7 @@ class _StoredInstance(object):
         """
         Updates the bindings of the given component
 
-        @return: True if the component can be validated
+        :return: True if the component can be validated
         """
         # Get the requirement, or an empty dictionary
         requirements = self.context.requirements
@@ -870,9 +874,9 @@ class _StoredInstance(object):
         """
         Handles a property changed event
 
-        @param name: The changed property name
-        @param old_value: The previous property value
-        @param new_value: The new property value
+        :param name: The changed property name
+        :param old_value: The previous property value
+        :param new_value: The new property value
         """
         if self.registration is not None:
             # use the registration to trigger the service event
@@ -884,7 +888,7 @@ class _StoredInstance(object):
         """
         Ends the component validation, registering services
 
-        @raise RuntimeError: You try to awake a dead component
+        :raise RuntimeError: You try to awake a dead component
         """
         if self.state == _StoredInstance.VALID:
             # No work to do
@@ -924,7 +928,7 @@ class _StoredInstance(object):
         """
         Called by Pelix when some service properties changes
 
-        @param event: A ServiceEvent object
+        :param event: A ServiceEvent object
         """
         kind = event.get_type()
         reference = event.get_service_reference()
@@ -1130,14 +1134,14 @@ def _field_property_generator(stored_instance):
     """
     Generates the methods called by the injected class properties
 
-    @param stored_instance: A stored component instance
+    :param stored_instance: A stored component instance
     """
     def get_value(self, name):
         """
         Retrieves the property value, from the iPOPO dictionaries
 
-        @param name: The property name
-        @return: The property value
+        :param name: The property name
+        :return: The property value
         """
         if stored_instance.context is None:
             return None
@@ -1149,8 +1153,8 @@ def _field_property_generator(stored_instance):
         """
         Sets the property value and trigger an update event
 
-        @param name: The property name
-        @param new_value: The new property value
+        :param name: The property name
+        :param new_value: The new property value
         """
         if stored_instance.context is None:
             return None
@@ -1229,10 +1233,10 @@ class _IPopoService(constants.IIPopoService, object):
         """
         Triggers an iPOPO event
         
-        @param kind: Kind of event
-        @param factory_name: Name of the factory associated to the event
-        @param component_name: Name of the component instance associated to the
-        event
+        :param kind: Kind of event
+        :param factory_name: Name of the factory associated to the event
+        :param component_name: Name of the component instance associated to the
+                               event
         """
         with self.__listeners_lock:
             # Use a copy of the list of listeners
@@ -1251,7 +1255,7 @@ class _IPopoService(constants.IIPopoService, object):
         """
         Registers all factories found in the given bundle
 
-        @param bundle: A bundle
+        :param bundle: A bundle
         """
         assert isinstance(bundle, Bundle)
 
@@ -1272,12 +1276,13 @@ class _IPopoService(constants.IIPopoService, object):
         """
         Registers a component factory
 
-        @param factory_name: The name of the factory
-        @param factory: The factory class object
-        @param override: If true, previous factory is overridden, else an
-        exception is risen if a previous factory with that name already exists
-        @raise ValueError: The factory name already exists or is invalid
-        @raise TypeError: Invalid factory type
+        :param factory_name: The name of the factory
+        :param factory: The factory class object
+        :param override: If true, previous factory is overridden, else an
+                         exception is risen if a previous factory with that name
+                         already exists
+        :raise ValueError: The factory name already exists or is invalid
+        :raise TypeError: Invalid factory type
         """
         if not factory_name or not is_string(factory_name):
             raise ValueError("A factory name must be a non-empty string")
@@ -1313,7 +1318,7 @@ class _IPopoService(constants.IIPopoService, object):
         """
         Unregisters all factories of the given bundle
 
-        @param bundle: A bundle
+        :param bundle: A bundle
         """
         assert isinstance(bundle, Bundle)
 
@@ -1339,9 +1344,9 @@ class _IPopoService(constants.IIPopoService, object):
         """
         Unregisters the given component factory
 
-        @param factory_name: Name of the factory to unregister
-        @return: True the factory has been removed, False if the factory is
-        unknown
+        :param factory_name: Name of the factory to unregister
+        :return: True the factory has been removed, False if the factory is
+                 unknown
         """
         if not factory_name:
             # Empty name
@@ -1372,13 +1377,13 @@ class _IPopoService(constants.IIPopoService, object):
         """
         Instantiates a component from the given factory, with the given name
 
-        @param factory_name: Name of the component factory
-        @param name: Name of the instance to be started
-        @return: The component instance
-        @raise TypeError: The given factory is unknown
-        @raise ValueError: The given name or factory name is invalid, or an
-        instance with the given name already exists
-        @raise Exception: Something wrong occurred in the factory
+        :param factory_name: Name of the component factory
+        :param name: Name of the instance to be started
+        :return: The component instance
+        :raise TypeError: The given factory is unknown
+        :raise ValueError: The given name or factory name is invalid, or an
+                           instance with the given name already exists
+        :raise Exception: Something wrong occurred in the factory
         """
         # Test parameters
         if not factory_name:
@@ -1457,8 +1462,8 @@ class _IPopoService(constants.IIPopoService, object):
         """
         Invalidates the given component
 
-        @param name: Name of the component to invalidate
-        @raise ValueError: Invalid component name
+        :param name: Name of the component to invalidate
+        :raise ValueError: Invalid component name
         """
         with self.__instances_lock:
             if name not in self.__instances:
@@ -1474,7 +1479,7 @@ class _IPopoService(constants.IIPopoService, object):
         """
         Tests if the given name is in the factory registry
 
-        @param name: A factory name to be tested
+        :param name: A factory name to be tested
         """
         with self.__factories_lock:
             return name in self.__factories
@@ -1484,7 +1489,7 @@ class _IPopoService(constants.IIPopoService, object):
         """
         Tests if the given name is in the instance registry
 
-        @param name: A component name to be tested
+        :param name: A component name to be tested
         """
         with self.__instances_lock:
             return name in self.__instances
@@ -1494,8 +1499,8 @@ class _IPopoService(constants.IIPopoService, object):
         """
         Kills the given component
 
-        @param name: Name of the component to kill
-        @raise ValueError: Invalid component name
+        :param name: Name of the component to kill
+        :raise ValueError: Invalid component name
         """
         if not name:
             raise ValueError("Name can't be None or empty")
@@ -1516,8 +1521,8 @@ class _IPopoService(constants.IIPopoService, object):
         The listener must have a handle_ipopo_event(event) method, where event
         is an IPopoEvent object.
         
-        @param listener: The listener to register
-        @return: True if the listener has been added to the registry
+        :param listener: The listener to register
+        :return: True if the listener has been added to the registry
         """
         with self.__listeners_lock:
             return add_listener(self.__listeners, listener)
@@ -1527,8 +1532,8 @@ class _IPopoService(constants.IIPopoService, object):
         """
         Unregister an iPOPO event listener.
         
-        @param listener: The listener to register
-        @return: True if the listener has been removed from the registry
+        :param listener: The listener to register
+        :return: True if the listener has been removed from the registry
         """
         with self.__listeners_lock:
             return remove_listener(self.__listeners, listener)
@@ -1603,7 +1608,7 @@ class _IPopoActivator(object):
         """
         A bundle event has been triggered
 
-        @param event: The bundle event
+        :param event: The bundle event
         """
         assert isinstance(event, BundleEvent)
 

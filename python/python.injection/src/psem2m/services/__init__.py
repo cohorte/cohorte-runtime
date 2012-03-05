@@ -1,11 +1,13 @@
 """
 Pelix is a SOA framework for Python, inspired from OSGi
 
-@author: Thomas Calmant
-@copyright: Copyright 2012, isandlaTech
-@license: GPLv3
-@version: 0.2
-@status: Alpha
+:author: Thomas Calmant
+:copyright: Copyright 2012, isandlaTech
+:license: GPLv3
+:version: 0.2
+:status: Alpha
+
+..
 
     This file is part of iPOPO.
 
@@ -22,3 +24,8 @@ Pelix is a SOA framework for Python, inspired from OSGi
     You should have received a copy of the GNU General Public License
     along with iPOPO. If not, see <http://www.gnu.org/licenses/>.
 """
+
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"

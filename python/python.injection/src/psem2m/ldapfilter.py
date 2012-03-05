@@ -1,11 +1,13 @@
 """
 Dependency-less LDAP filter parser for Python
 
-@author: Thomas Calmant
-@copyright: Copyright 2012, isandlaTech
-@license: GPLv3
-@version: 0.2
-@status: Alpha
+:author: Thomas Calmant
+:copyright: Copyright 2012, isandlaTech
+:license: GPLv3
+:version: 0.2
+:status: Alpha
+
+..
 
     This file is part of iPOPO.
 
@@ -24,6 +26,11 @@ Dependency-less LDAP filter parser for Python
 """
 
 from psem2m import is_string
+
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
 
 # ------------------------------------------------------------------------------
 
@@ -77,9 +84,9 @@ class LDAPFilter(object):
         """
         Appends a filter or a criteria to this filter
         
-        @param ldap_filter: An LDAP filter or criteria
-        @raise TypeError: If the parameter is not of a known type
-        @raise ValueError: If the more than one filter is associated to a
+        :param ldap_filter: An LDAP filter or criteria
+        :raise TypeError: If the parameter is not of a known type
+        :raise ValueError: If the more than one filter is associated to a
         NOT operator
         """
         if not isinstance(ldap_filter, LDAPFilter) \
@@ -97,8 +104,8 @@ class LDAPFilter(object):
         """
         Tests if the given properties matches this LDAP filter and its children
         
-        @param properties: A dictionary of properties
-        @return: True if the properties matches this filter, else False
+        :param properties: A dictionary of properties
+        :return: True if the properties matches this filter, else False
         """
         result = False
 
@@ -152,7 +159,7 @@ class LDAPCriteria(object):
         """
         Sets up the criteria
         
-        @raise ValueError: If one of the parameters is empty
+        :raise ValueError: If one of the parameters is empty
         """
         if not name or not value or not comparator:
             raise ValueError("Invalid criteria parameter (%s, %s, %s)" \
@@ -182,8 +189,8 @@ class LDAPCriteria(object):
         """
         Tests if the given criteria matches this LDAP criteria
         
-        @param properties: A dictionary of properties
-        @return: True if the properties matches this criteria, else False
+        :param properties: A dictionary of properties
+        :return: True if the properties matches this criteria, else False
         """
         if self.name not in properties:
             # Property is not even is the property
@@ -246,8 +253,8 @@ def escape_LDAP(ldap_string):
     """
     Escape a string to let it go in an LDAP filter
     
-    @param ldap_string: The string to escape
-    @return: The protected string
+    :param ldap_string: The string to escape
+    :return: The protected string
     """
     if ldap_string is None:
         return None
@@ -277,8 +284,8 @@ def unescape_LDAP(ldap_string):
     """
     Unespaces an LDAP string
     
-    @param ldap_string: The string to unescape
-    @return: The unprotected string
+    :param ldap_string: The string to unescape
+    :return: The unprotected string
     """
     if ldap_string is None:
         return None
@@ -493,9 +500,9 @@ def _compute_comparator(string, idx):
     * >= : greater than
     * ~= : approximate
     
-    @param string: A LDAP filter string
-    @param idx: An index in the given string
-    @return: The corresponding operator, None if unknown
+    :param string: A LDAP filter string
+    :param idx: An index in the given string
+    :return: The corresponding operator, None if unknown
     """
     part1 = string[idx]
     if part1 == '=':
@@ -545,9 +552,9 @@ def _compute_operation(string, idx):
     * | : OR
     * ! : NOT
     
-    @param string: A LDAP filter string
-    @param idx: An index in the given string
-    @return: The corresponding operator (AND, OR or NOT)
+    :param string: A LDAP filter string
+    :param idx: An index in the given string
+    :return: The corresponding operator (AND, OR or NOT)
     """
     operator = string[idx]
 
@@ -567,9 +574,9 @@ def _skip_spaces(string, idx):
     """
     Retrieves the next non-space character after idx index in the given string
     
-    @param string: The string to look into
-    @param idx: The base search index
-    @return: The next non-space character index, -1 if not found
+    :param string: The string to look into
+    :param idx: The base search index
+    :return: The next non-space character index, -1 if not found
     """
     i = idx
     size = len(string)
@@ -587,11 +594,11 @@ def _parse_LDAP_criteria(ldap_filter, startidx, endidx):
     """
     Parses an LDAP sub filter (criteria)
     
-    @param ldap_filter: An LDAP filter string
-    @param startidx: Sub-filter start index
-    @param endidx: Sub-filter end index
-    @return: The LDAP sub-filter
-    @raise ValueError: Invalid sub-filter
+    :param ldap_filter: An LDAP filter string
+    :param startidx: Sub-filter start index
+    :param endidx: Sub-filter end index
+    :return: The LDAP sub-filter
+    :raise ValueError: Invalid sub-filter
     """
     comparators = "=<>~"
 
@@ -655,9 +662,9 @@ def _parse_LDAP(ldap_filter):
     """
     Parses the given LDAP filter string
     
-    @param ldap_filter: An LDAP filter string
-    @return: An LDAPFilter object, None if the filter was empty
-    @raise ValueError: The LDAP filter string is invalid
+    :param ldap_filter: An LDAP filter string
+    :return: An LDAPFilter object, None if the filter was empty
+    :raise ValueError: The LDAP filter string is invalid
     """
     if not ldap_filter:
         return None
@@ -726,7 +733,7 @@ def _parse_LDAP(ldap_filter):
                         root = ended_filter
 
                 else:
-                    raise ValueError("Too many end of parenthesis @%d: %s" % \
+                    raise ValueError("Too many end of parenthesis :%d: %s" % \
                                      (idx, ldap_filter[idx:]))
 
             elif ldap_filter[idx] == '\\':
@@ -753,10 +760,10 @@ def get_ldap_filter(ldap_filter):
     Retrieves the LDAP filter object corresponding to the given filter.
     Parses it the argument if it is an LDAPFilter instance
     
-    @param ldap_filter: An LDAP filter (LDAPFilter or string)
-    @return: The corresponding filter, can be None
-    @raise ValueError: Invalid filter string found
-    @raise TypeError: Unknown filter type
+    :param ldap_filter: An LDAP filter (LDAPFilter or string)
+    :return: The corresponding filter, can be None
+    :raise ValueError: Invalid filter string found
+    :raise TypeError: Unknown filter type
     """
     if ldap_filter is None:
         return None
@@ -778,11 +785,11 @@ def combine_filters(filters, operator=LDAPFilter.AND):
     """
     Combines two LDAP filters, which can be strings or LDAPFilter objects
     
-    @param filters: Filters to combine
-    @param operator: The operator for combination
-    @return: The combined filter, can be None if all filters are None
-    @raise ValueError: Invalid filter string found
-    @raise TypeError: Unknown filter type
+    :param filters: Filters to combine
+    :param operator: The operator for combination
+    :return: The combined filter, can be None if all filters are None
+    :raise ValueError: Invalid filter string found
+    :raise TypeError: Unknown filter type
     """
     if not filters:
         return None

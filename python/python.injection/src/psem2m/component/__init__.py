@@ -3,14 +3,16 @@ iPOPO package
 
 iPOPO is a component-based application framework
 
-@author: Thomas Calmant
-@copyright: Copyright 2012, isandlaTech
-@license: GPLv3
-@version: 0.2
-@status: Alpha
+:author: Thomas Calmant
+:copyright: Copyright 2012, isandlaTech
+:license: GPLv3
+:version: 0.2
+:status: Alpha
+
+..
 
     This file is part of iPOPO.
-
+    
     iPOPO is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -24,3 +26,8 @@ iPOPO is a component-based application framework
     You should have received a copy of the GNU General Public License
     along with iPOPO. If not, see <http://www.gnu.org/licenses/>.
 """
+
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"

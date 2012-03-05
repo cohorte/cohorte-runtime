@@ -3,11 +3,13 @@ Core module for Pelix.
 
 Pelix is a Python framework that aims to act as OSGi as much as possible
 
-@author: Thomas Calmant
-@copyright: Copyright 2012, isandlaTech
-@license: GPLv3
-@version: 0.2
-@status: Alpha
+:author: Thomas Calmant
+:copyright: Copyright 2012, isandlaTech
+:license: GPLv3
+:version: 0.2
+:status: Alpha
+
+..
 
     This file is part of iPOPO.
 
@@ -44,6 +46,9 @@ SERVICE_ID = "service.id"
 SERVICE_RANKING = "service.ranking"
 
 # ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
 
 # Module version
 __version__ = (1, 0, 0)
@@ -98,8 +103,8 @@ class Bundle(object):
         """
         Sets up the bundle descriptor
 
-        @param framework: The host framework
-        @param bundle_id: The bundle ID in the host framework
+        :param framework: The host framework
+        :param bundle_id: The bundle ID in the host framework
         """
         # A reentrant lock for synchronization
         self._lock = threading.RLock()
@@ -128,7 +133,7 @@ class Bundle(object):
         """
         Fires a bundle event of the given kind
 
-        @param kind: Kind of event
+        :param kind: Kind of event
         """
         self.__framework.fire_bundle_event(BundleEvent(kind, self))
 
@@ -144,7 +149,7 @@ class Bundle(object):
         """
         Retrieves the bundle ID
 
-        @return: The bundle ID
+        :return: The bundle ID
         """
         return self.__id
 
@@ -153,7 +158,7 @@ class Bundle(object):
         """
         Retrieves the location of this module
 
-        @return: The location of the Pelix module, or an empty string
+        :return: The location of the Pelix module, or an empty string
         """
         return getattr(self.__module, '__file__', "")
 
@@ -183,7 +188,7 @@ class Bundle(object):
         """
         Retrieves the bundle version
 
-        @return: The bundle version, (0,0,0) by default
+        :return: The bundle version, (0,0,0) by default
         """
         return getattr(self.__module, "__version__", (0, 0, 0))
 
@@ -194,7 +199,7 @@ class Bundle(object):
         This method is first called in the Framework::install_bundle() method
         and then is ignored, so it doesn't need to be synchronized.
 
-        @param context: The bundle context
+        :param context: The bundle context
         """
         if self.__context is None:
             self.__context = context
@@ -204,7 +209,7 @@ class Bundle(object):
         """
         Sets the bundle module. Does nothing if a module has already been set.
 
-        @param module: A Python module object (the 'bundle')
+        :param module: A Python module object (the 'bundle')
         """
         if self.__module is None:
             self.__module = module
@@ -287,7 +292,7 @@ class Bundle(object):
         """
         Stores a service reference
 
-        @param registration: A service registration
+        :param registration: A service registration
         """
         if isinstance(registration, ServiceRegistration) \
         and registration not in self.__registered_services:
@@ -299,7 +304,7 @@ class Bundle(object):
         """
         Removes a service reference from the local store
 
-        @param registration: A service registration
+        :param registration: A service registration
         """
         if registration in self.__registered_services:
             self.__registered_services.remove(registration)
@@ -380,7 +385,7 @@ class Bundle(object):
         """
         The bundle doesn't use the given service reference anymore
 
-        @param reference: A service reference
+        :param reference: A service reference
         """
         if reference in self.__imported_services:
             self.__imported_services.remove(reference)
@@ -391,7 +396,7 @@ class Bundle(object):
         """
         The bundle uses the given service reference
 
-        @param reference: A service reference
+        :param reference: A service reference
         """
         if reference not in self.__imported_services:
             self.__imported_services.append(reference)
@@ -408,7 +413,7 @@ class Framework(Bundle):
         """
         Sets up the framework.
 
-        @param properties: The framework properties
+        :param properties: The framework properties
         """
         # Framework
         Bundle.__init__(self, self, 0, sys.modules[__name__])
@@ -450,9 +455,19 @@ class Framework(Bundle):
     def add_bundle_listener(self, listener):
         """
         Registers a bundle listener
+        
+        The bundle listener must have a method with the following prototype :
+        
+        .. python::
+        
+           def bundle_changed(self, bundle_event):
+               '''
+               :param bundle_event: A BundleEvent object
+               '''
+               # ... 
 
-        @param listener: The bundle listener
-        @return: True if the listener has been registered
+        :param listener: The bundle listener
+        :return: True if the listener has been registered
         """
         return add_listener(self.__bundle_listeners, listener)
 
@@ -463,8 +478,8 @@ class Framework(Bundle):
         Registers a listener that will be called back right before the framework
         stops
 
-        @param listener: The framework stop listener
-        @return: True if the listener has been registered
+        :param listener: The framework stop listener
+        :return: True if the listener has been registered
         """
         return add_listener(self.__framework_listeners, listener)
 
@@ -474,8 +489,8 @@ class Framework(Bundle):
         """
         Registers a service listener
 
-        @param listener: The service listener
-        @param ldap_filter: Listener
+        :param listener: The service listener
+        :param ldap_filter: Listener
         """
         if add_listener(self.__service_listeners, listener):
             # Set the associated filter
@@ -498,10 +513,10 @@ class Framework(Bundle):
         """
         Finds all services references matching the given filter.
 
-        @param clazz: Class implemented by the service
-        @param ldap_filter: Service filter
-        @return: A list of found reference, or None
-        @raise BundleException: An error occurred looking for service references
+        :param clazz: Class implemented by the service
+        :param ldap_filter: Service filter
+        :return: A list of found reference, or None
+        :raise BundleException: An error occurred looking for service references
         """
         if clazz is None and ldap_filter is None:
             # Return a sorted copy of the keys list
@@ -575,7 +590,7 @@ class Framework(Bundle):
         """
         Fires a Bundle event
 
-        @param event: The sent event
+        :param event: The sent event
         """
         assert isinstance(event, BundleEvent)
 
@@ -596,7 +611,7 @@ class Framework(Bundle):
         """
         Fires a service event
 
-        @param event: The sent event
+        :param event: The sent event
         """
         assert(isinstance(event, ServiceEvent))
 
@@ -647,9 +662,9 @@ class Framework(Bundle):
         """
         Retrieves the bundle with the given ID
 
-        @param id: ID of an installed bundle
-        @return: The requested bundle
-        @raise BundleException: The ID is invalid
+        :param id: ID of an installed bundle
+        :return: The requested bundle
+        :raise BundleException: The ID is invalid
         """
         if bundle_id == 0:
             # "System bundle"
@@ -666,8 +681,8 @@ class Framework(Bundle):
         """
         Retrieves the bundle with the given name
 
-        @param name: Name of the bundle to look for
-        @return: The requested bundle, None if not found
+        :param name: Name of the bundle to look for
+        :return: The requested bundle, None if not found
         """
         if bundle_name is None:
             # Nothing to do
@@ -704,7 +719,7 @@ class Framework(Bundle):
         Retrieves a framework or system property. As framework properties don't
         change while it's running, this method don't need to be protected.
 
-        @param name: The property name
+        :param name: The property name
         """
         if name in self.__properties:
             return self.__properties[name]
@@ -717,11 +732,11 @@ class Framework(Bundle):
         """
         Retrieves the service corresponding to the given reference
 
-        @param bundle: The bundle requiring the service
-        @param reference: A service reference
-        @return: The requested service
-        @raise BundleException: The service could not be found
-        @raise TypeError: The argument is not a ServiceReference object
+        :param bundle: The bundle requiring the service
+        :param reference: A service reference
+        :return: The requested service
+        :raise BundleException: The service could not be found
+        :raise TypeError: The argument is not a ServiceReference object
         """
         if not isinstance(bundle, Bundle):
             raise TypeError("A Bundle object must be given")
@@ -753,7 +768,7 @@ class Framework(Bundle):
         """
         Retrieves the framework symbolic name
 
-        @return: Always "org.psem2m.pelix"
+        :return: Always "org.psem2m.pelix"
         """
         return "org.psem2m.pelix"
 
@@ -763,9 +778,9 @@ class Framework(Bundle):
         """
         Installs the bundle from the given location
 
-        @param location: A bundle location
-        @return: The installed bundle ID
-        @raise BundleException: Something happened
+        :param location: A bundle location
+        :return: The installed bundle ID
+        :raise BundleException: Something happened
         """
         # Compute the bundle ID
         bundle_id = self.__next_bundle_id
@@ -821,12 +836,12 @@ class Framework(Bundle):
         """
         Registers a service and calls the listeners
 
-        @param bundle: The bundle registering the service
-        @param clazz: Name(s) of the interface(s) implemented by service
-        @param properties: Service properties
-        @param send_event: If not, doesn't trigger a service registered event
-        @return: A ServiceRegistration object
-        @raise BundleException: An error occurred while registering the service
+        :param bundle: The bundle registering the service
+        :param clazz: Name(s) of the interface(s) implemented by service
+        :param properties: Service properties
+        :param send_event: If not, doesn't trigger a service registered event
+        :return: A ServiceRegistration object
+        :raise BundleException: An error occurred while registering the service
         """
         if bundle is None or service is None or not clazz:
             raise BundleException("Invalid registration parameters")
@@ -888,8 +903,8 @@ class Framework(Bundle):
         """
         Unregisters a bundle listener
 
-        @param listener: The bundle listener
-        @return: True if the listener has been unregistered
+        :param listener: The bundle listener
+        :return: True if the listener has been unregistered
         """
         return remove_listener(self.__bundle_listeners, listener)
 
@@ -899,8 +914,8 @@ class Framework(Bundle):
         """
         Unregisters a framework stop listener
 
-        @param listener: The framework stop listener
-        @return: True if the listener has been unregistered
+        :param listener: The framework stop listener
+        :return: True if the listener has been unregistered
         """
         return remove_listener(self.__framework_listeners, listener)
 
@@ -910,8 +925,8 @@ class Framework(Bundle):
         """
         Unregisters a service listener
 
-        @param listener: The service listener
-        @return: True if the listener has been unregistered
+        :param listener: The service listener
+        :return: True if the listener has been unregistered
         """
         # Remove the listener from the list
         result = remove_listener(self.__service_listeners, listener)
@@ -928,7 +943,7 @@ class Framework(Bundle):
         """
         Starts the framework
 
-        @raise BundleException: A bundle failed to start
+        :raise BundleException: A bundle failed to start
         """
         # Start all registered bundles
         for bundle in self.__bundles.values():
@@ -967,7 +982,7 @@ class Framework(Bundle):
         """
         A framework can't be uninstalled
 
-        @raise BundleException: This method must not be called
+        :raise BundleException: This method must not be called
         """
         raise BundleException("A framework can't be uninstalled")
 
@@ -977,8 +992,8 @@ class Framework(Bundle):
         """
         Ends the uninstallation of the given bundle (must be called by Bundle)
 
-        @param bundle: The bundle to uninstall
-        @raise BundleException: Invalid bundle
+        :param bundle: The bundle to uninstall
+        :raise BundleException: Invalid bundle
         """
         if bundle is None:
             # Do nothing
@@ -1007,8 +1022,8 @@ class Framework(Bundle):
         """
         Unregisters the given service
 
-        @param reference: A ServiceRegistration to the service to unregister
-        @raise BundleException: Invalid reference
+        :param reference: A ServiceRegistration to the service to unregister
+        :raise BundleException: Invalid reference
         """
         assert(isinstance(registration, ServiceRegistration))
 
@@ -1053,8 +1068,8 @@ class BundleContext(object):
         """
         Sets up the bundle context
 
-        @param framework: Hosting framework
-        @param bundle: The associated bundle
+        :param framework: Hosting framework
+        :param bundle: The associated bundle
         """
         self.__bundle = bundle
         self.__framework = framework
@@ -1071,8 +1086,18 @@ class BundleContext(object):
         """
         Registers a bundle listener
 
-        @param listener: The listener to register
-        @return: True if the listener has been successfully registered
+        The bundle listener must have a method with the following prototype :
+
+        .. python::
+
+           def bundle_changed(self, bundle_event):
+               '''
+               :param bundle_event: A BundleEvent object
+               '''
+               # ... 
+
+        :param listener: The bundle listener
+        :return: True if the listener has been registered
         """
         return self.__framework.add_bundle_listener(listener)
 
@@ -1082,8 +1107,8 @@ class BundleContext(object):
         Registers a listener that will be called back right before the framework
         stops
 
-        @param listener: The framework stop listener
-        @return: True if the listener has been registered
+        :param listener: The framework stop listener
+        :return: True if the listener has been registered
         """
         return self.__framework.add_framework_stop_listener(listener)
 
@@ -1092,9 +1117,9 @@ class BundleContext(object):
         """
         Registers a service listener
 
-        @param listener: The listener to register
-        @param ldap_filter: An LDAP filter on the service properties
-        @return: True if the listener has been successfully registered
+        :param listener: The listener to register
+        :param ldap_filter: An LDAP filter on the service properties
+        :return: True if the listener has been successfully registered
         """
         return self.__framework.add_service_listener(listener, ldap_filter)
 
@@ -1113,9 +1138,9 @@ class BundleContext(object):
         """
         Retrieves the bundle with the given ID. If no ID is given (None).
 
-        @param bundle_id: A bundle ID
-        @return: The requested bundle
-        @raise BundleException: The given ID is invalid
+        :param bundle_id: A bundle ID
+        :return: The requested bundle
+        :raise BundleException: The given ID is invalid
         """
         if bundle_id is None:
             # Current bundle
@@ -1136,7 +1161,7 @@ class BundleContext(object):
         Returns the value of a property of the framework, else returns the OS
         environment value.
 
-        @param name: A property name
+        :param name: A property name
         """
         return self.__framework.get_property(name)
 
@@ -1153,9 +1178,9 @@ class BundleContext(object):
         Returns a ServiceReference object for a service that implements and \
         was registered under the specified class
 
-        @param clazz: The class name with which the service was registered.
-        @param ldap_filter: A filter on service properties
-        @return: A service reference, None if not found
+        :param clazz: The class name with which the service was registered.
+        :param ldap_filter: A filter on service properties
+        :return: A service reference, None if not found
         """
         refs = self.__framework.find_service_references(clazz, ldap_filter)
         if refs is not None and len(refs) > 0:
@@ -1169,7 +1194,7 @@ class BundleContext(object):
         Returns the service references for services that were registered under
         the specified class by this bundle and matching the given filter
 
-        @param ldap_filter: A filter on service properties
+        :param ldap_filter: A filter on service properties
         """
         refs = self.__framework.find_service_references(clazz, ldap_filter)
         for ref in refs:
@@ -1183,9 +1208,9 @@ class BundleContext(object):
         """
         Installs the bundle at the given location
 
-        @param location: Location of the bundle to install
-        @return: The installed bundle ID
-        @raise BundleException: An error occurred while installing the bundle
+        :param location: Location of the bundle to install
+        :return: The installed bundle ID
+        :raise BundleException: An error occurred while installing the bundle
         """
         return self.__framework.install_bundle(location)
 
@@ -1194,12 +1219,12 @@ class BundleContext(object):
         """
         Registers a service
 
-        @param clazz: Class or Classes (list) implemented by this service
-        @param service: The service instance
-        @param properties: The services properties (dictionary)
-        @param send_event: If not, doesn't trigger a service registered event
-        @return: A ServiceRegistration object
-        @raise BundleException: An error occurred while registering the service
+        :param clazz: Class or Classes (list) implemented by this service
+        :param service: The service instance
+        :param properties: The services properties (dictionary)
+        :param send_event: If not, doesn't trigger a service registered event
+        :return: A ServiceRegistration object
+        :raise BundleException: An error occurred while registering the service
         """
         return self.__framework.register_service(self.__bundle, clazz, \
                                                  service, properties, \
@@ -1210,8 +1235,8 @@ class BundleContext(object):
         """
         Unregisters a bundle listener
         
-        @param listener: The bundle listener
-        @return: True if the listener has been unregistered
+        :param listener: The bundle listener
+        :return: True if the listener has been unregistered
         """
         return self.__framework.remove_bundle_listener(listener)
 
@@ -1220,8 +1245,8 @@ class BundleContext(object):
         """
         Unregisters a framework stop listener
 
-        @param listener: The framework stop listener
-        @return: True if the listener has been unregistered
+        :param listener: The framework stop listener
+        :return: True if the listener has been unregistered
         """
         return self.__framework.remove_framework_stop_listener(listener)
 
@@ -1230,8 +1255,8 @@ class BundleContext(object):
         """
         Unregisters a service listener
         
-        @param listener: The service listener
-        @return: True if the listener has been unregistered
+        :param listener: The service listener
+        :return: True if the listener has been unregistered
         """
         return self.__framework.remove_service_listener(listener)
 
@@ -1256,9 +1281,9 @@ class ServiceReference(object):
         """
         Sets up the service reference
 
-        @param bundle: The bundle registering the service
-        @param properties: The service properties
-        @raise BundleException: The properties doesn't contain mandatory entries
+        :param bundle: The bundle registering the service
+        :param properties: The service properties
+        :raise BundleException: The properties doesn't contain mandatory entries
         """
 
         for mandatory in (SERVICE_ID, OBJECTCLASS):
@@ -1396,7 +1421,7 @@ class ServiceReference(object):
         """
         Retrieves the property value for the given name
 
-        @return: The property value, None if not found
+        :return: The property value, None if not found
         """
         return self.__properties.get(name, None)
 
@@ -1406,7 +1431,7 @@ class ServiceReference(object):
         """
         Returns an array of the keys in the properties of the service
 
-        @return: An array of property keys.
+        :return: An array of property keys.
         """
         return self.__properties.keys()
 
@@ -1417,7 +1442,7 @@ class ServiceReference(object):
         Indicates that this reference is not being used anymore by the given
         bundle
 
-        @param bundle: A bundle that used this reference
+        :param bundle: A bundle that used this reference
         """
         if bundle is None or bundle is self.__bundle:
             # Ignore
@@ -1432,7 +1457,7 @@ class ServiceReference(object):
         """
         Indicates that this reference is being used by the given bundle
 
-        @param bundle: A bundle using this reference
+        :param bundle: A bundle using this reference
         """
         if bundle is None or bundle is self.__bundle:
             # Ignore
@@ -1451,9 +1476,9 @@ class ServiceRegistration(object):
         """
         Sets up the service registration object
 
-        @param framework: The host framework
-        @param reference: A service reference
-        @param properties: A reference to the service properties dictionary
+        :param framework: The host framework
+        :param reference: A service reference
+        :param properties: A reference to the service properties dictionary
         """
         self._lock = threading.RLock()
         self.__framework = framework
@@ -1480,8 +1505,8 @@ class ServiceRegistration(object):
         """
         Updates the service properties
 
-        @param properties: The new properties
-        @raise TypeError: The argument is not a dictionary
+        :param properties: The new properties
+        :raise TypeError: The argument is not a dictionary
         """
         if not isinstance(properties, dict):
             raise TypeError("Waiting for dictionary")
@@ -1605,10 +1630,10 @@ class ServiceEvent(object):
         """
         Sets up the event
 
-        @param kind: Kind of event
-        @param reference: Reference to the modified service
-        @param previous_properties: Previous service properties (for MODIFIED
-        and MODIFIED_ENDMATCH events)
+        :param kind: Kind of event
+        :param reference: Reference to the modified service
+        :param previous_properties: Previous service properties (for MODIFIED
+                                    and MODIFIED_ENDMATCH events)
         """
         self.__kind = kind
         self.__reference = reference
@@ -1666,7 +1691,7 @@ class FrameworkFactory(object):
         If it doesn't exist yet, creates a framework with the given properties,
         else returns the current framework instance.
 
-        @return: A Pelix instance
+        :return: A Pelix instance
         """
         if cls.__singleton is None:
             cls.__singleton = Framework(properties)
@@ -1679,7 +1704,7 @@ class FrameworkFactory(object):
         """
         Removes the framework singleton
 
-        @return: True on success, else False
+        :return: True on success, else False
         """
         if cls.__singleton is framework:
 

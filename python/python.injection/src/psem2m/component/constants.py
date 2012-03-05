@@ -2,14 +2,16 @@
 """
 Defines some iPOPO constants
 
-@author: Thomas Calmant
-@copyright: Copyright 2012, isandlaTech
-@license: GPLv3
-@version: 0.2
-@status: Alpha
+:author: Thomas Calmant
+:copyright: Copyright 2012, isandlaTech
+:license: GPLv3
+:version: 0.2
+:status: Alpha
+
+..
 
     This file is part of iPOPO.
-
+    
     iPOPO is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -26,8 +28,10 @@ Defines some iPOPO constants
 
 # ------------------------------------------------------------------------------
 
-# iPOPO service
-IPOPO_SERVICE_SPECIFICATION = "psem2m.component.ipopo"
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# ------------------------------------------------------------------------------
 
 class IIPopoService:
     """
@@ -37,13 +41,13 @@ class IIPopoService:
         """
         Instantiates a component from the given factory, with the given name
         
-        @param factory_name: Name of the component factory
-        @param name: Name of the instance to be started
-        @return: The component instance
-        @raise TypeError: The given factory is unknown
-        @raise ValueError: The given name or factory name is invalid, or an
-        instance with the given name already exists
-        @raise Exception: Something wrong occurred in the factory
+        :param factory_name: Name of the component factory
+        :param name: Name of the instance to be started
+        :return: The component instance
+        :raise TypeError: The given factory is unknown
+        :raise ValueError: The given name or factory name is invalid, or an
+                           instance with the given name already exists
+        :raise Exception: Something wrong occurred in the factory
         """
         raise NotImplementedError
 
@@ -52,8 +56,8 @@ class IIPopoService:
         """
         Invalidates the given component
         
-        @param name: Name of the component to invalidate
-        @raise ValueError: Invalid component name
+        :param name: Name of the component to invalidate
+        :raise ValueError: Invalid component name
         """
         raise NotImplementedError
 
@@ -62,10 +66,15 @@ class IIPopoService:
         """
         Kills the given component
         
-        @param name: Name of the component to kill
-        @raise ValueError: Invalid component name
+        :param name: Name of the component to kill
+        :raise ValueError: Invalid component name
         """
         raise NotImplementedError
+
+# ------------------------------------------------------------------------------
+
+# iPOPO service specification string
+IPOPO_SERVICE_SPECIFICATION = "psem2m.component.ipopo"
 
 # ------------------------------------------------------------------------------
 
@@ -98,9 +107,9 @@ def get_ipopo_svc_ref(bundle_context):
     Retrieves a tuple containing the service reference to iPOPO and the service
     itself
     
-    @param bundle_context: The calling bundle context
-    @return: The reference to the iPOPO service and the service itself,
-    None if not available
+    :param bundle_context: The calling bundle context
+    :return: The reference to the iPOPO service and the service itself,
+             None if not available
     """
     ref = bundle_context.get_service_reference(IPOPO_SERVICE_SPECIFICATION)
     if ref is None:

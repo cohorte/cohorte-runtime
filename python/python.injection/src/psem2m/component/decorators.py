@@ -2,11 +2,13 @@
 """
 Defines the iPOPO decorators classes to manipulate component factory classes
 
-@author: Thomas Calmant
-@copyright: Copyright 2012, isandlaTech
-@license: GPLv3
-@version: 0.2
-@status: Alpha
+:author: Thomas Calmant
+:copyright: Copyright 2012, isandlaTech
+:license: GPLv3
+:version: 0.2
+:status: Alpha
+
+..
 
     This file is part of iPOPO.
 
@@ -35,6 +37,9 @@ import types
 
 # ------------------------------------------------------------------------------
 
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
 # Prepare the module logger
 _logger = logging.getLogger("ipopo.decorators")
 
@@ -45,8 +50,8 @@ def _get_factory_context(cls):
     Retrieves the factory context object associated to a factory. Creates it
     if needed
     
-    @param cls: The factory class
-    @return: The factory class context
+    :param cls: The factory class
+    :return: The factory class context
     """
     context = getattr(cls, constants.IPOPO_FACTORY_CONTEXT_DATA, None)
     if context is None:
@@ -64,8 +69,8 @@ def _is_method_or_function(tested):
     In Python 2.x classes, class functions are methods
     In Python 3.x classes, there are functions
     
-    @param tested: An object to be tested
-    @return: True if the tested object is a function or a method
+    :param tested: An object to be tested
+    :return: True if the tested object is a function or a method
     """
     return inspect.isfunction(tested) or inspect.ismethod(tested)
 
@@ -74,8 +79,8 @@ def _ipopo_setup_callback(cls, context):
     """
     Sets up the class _callback dictionary
     
-    @param cls: The class to handle
-    @param context: The factory class context
+    :param cls: The class to handle
+    :param context: The factory class context
     """
     assert inspect.isclass(cls)
     assert isinstance(context, FactoryContext)
@@ -126,9 +131,9 @@ def _append_object_entry(obj, list_name, entry):
     Appends the given entry in the given object list.
     Creates the list field if needed.
     
-    @param obj: The object that contains the list
-    @param list_name: The name of the list member in *obj*
-    @param entry: The entry to be added to the list
+    :param obj: The object that contains the list
+    :param list_name: The name of the list member in *obj*
+    :param entry: The entry to be added to the list
     """
     # Get the list
     try:
@@ -162,7 +167,7 @@ def _ipopo_class_field_property(name, value):
         """
         Retrieves the property value, from the iPOPO dictionaries
         
-        @return: The property value
+        :return: The property value
         """
         getter = getattr(self, constants.IPOPO_PROPERTY_GETTER, None)
         if getter is not None:
@@ -176,7 +181,7 @@ def _ipopo_class_field_property(name, value):
         """
         Sets the property value and trigger an update event
         
-        @param new_valuie: The new property value
+        :param new_valuie: The new property value
         """
         setter = getattr(self, constants.IPOPO_PROPERTY_SETTER, None)
         if setter is not None:
@@ -197,8 +202,8 @@ class Instantiate:
         """
         Sets up the decorator
         
-        @param name: Instance name
-        @param properties: Instance properties
+        :param name: Instance name
+        :param properties: Instance properties
         """
         if not isinstance(name, str):
             raise TypeError("Instance name must be a string")
@@ -217,7 +222,7 @@ class Instantiate:
         """
         Sets up and registers the instances descriptions
         
-        @param factory_class: The decorated class
+        :param factory_class: The decorated class
         """
         if not inspect.isclass(factory_class):
             raise TypeError("@ComponentFactory can decorate only classes, " \
@@ -249,7 +254,7 @@ class ComponentFactory:
         """
         Sets up the decorator
 
-        @param name: Name of the component factory
+        :param name: Name of the component factory
         """
         self.__factory_name = name
 
@@ -258,7 +263,7 @@ class ComponentFactory:
         """
         Sets up and registers the factory class
 
-        @param factory_class: The decorated class
+        :param factory_class: The decorated class
         """
         if not inspect.isclass(factory_class):
             raise TypeError("@ComponentFactory can decorate only classes, " \
@@ -298,10 +303,10 @@ class Property:
         """
         Sets up the property
         
-        @param field: The property field in the class (can't be None nor empty)
-        @param name: The property name (if None, this will be the field name)
-        @param value: The property value
-        @raise ValueError: If The name if None or empty
+        :param field: The property field in the class (can't be None nor empty)
+        :param name: The property name (if None, this will be the field name)
+        :param value: The property value
+        :raise ValueError: If The name if None or empty
         """
 
         if not field:
@@ -322,8 +327,8 @@ class Property:
         Adds the property to the class iPOPO properties field.
         Creates the field if needed.
         
-        @param clazz: The decorated class
-        @raise TypeError: If *clazz* is not a type
+        :param clazz: The decorated class
+        :raise TypeError: If *clazz* is not a type
         """
         if not inspect.isclass(clazz):
             raise TypeError("@Property can decorate only classes, not '%s'" \
@@ -357,9 +362,9 @@ class Provides:
         """
         Sets up the specifications
         
-        @param specifications: A list of provided interface(s) name(s)
-        (can't be empty)
-        @raise ValueError: If the name if None or empty
+        :param specifications: A list of provided interface(s) name(s)
+                               (can't be empty)
+        :raise ValueError: If the name if None or empty
         """
         if not specifications:
             raise ValueError("Provided interface name can't be empty")
@@ -383,8 +388,8 @@ class Provides:
         Adds the interface to the class iPOPO field.
         Creates the field if needed.
         
-        @param clazz: The decorated class
-        @raise TypeError: If *clazz* is not a type
+        :param clazz: The decorated class
+        :raise TypeError: If *clazz* is not a type
         """
 
         if not inspect.isclass(clazz):
@@ -414,14 +419,14 @@ class Requires:
         """
         Sets up the requirement
         
-        @param field: The injected field
-        @param specification: The injected service specification
-        @param aggregate: If true, injects a list
-        @param optional: If true, this injection is optional
-        @param spec_filter: An LDAP query to filter injected services upon their
-        properties
-        @raise TypeError: A parameter has an invalid type
-        @raise ValueError: An error occurred while parsing the filter
+        :param field: The injected field
+        :param specification: The injected service specification
+        :param aggregate: If true, injects a list
+        :param optional: If true, this injection is optional
+        :param spec_filter: An LDAP query to filter injected services upon their
+                            properties
+        :raise TypeError: A parameter has an invalid type
+        :raise ValueError: An error occurred while parsing the filter
         """
         self.__field = field
         self.__requirement = Requirement(specification, aggregate, \
@@ -431,8 +436,8 @@ class Requires:
         """
         Adds the requirement to the class iPOPO field
         
-        @param clazz: The decorated class
-        @raise TypeError: If *clazz* is not a type
+        :param clazz: The decorated class
+        :raise TypeError: If *clazz* is not a type
         """
         if not inspect.isclass(clazz):
             raise TypeError("@Provides can decorate only classes, not '%s'" \
@@ -448,12 +453,26 @@ class Requires:
 
 def Bind(method):
     """
-    @Bind decorator
+    Bind callback decorator, called when a component is bound to a dependency.
     
-    Called when a component is bound to a dependency
+    The decorated method must have the following prototype :
     
-    @param method: The decorated method
-    @raise TypeError: The decorated element is not a function
+    .. python::
+       def bind_method(self, injected_instance):
+           '''
+           Method called when a service is bound to the component
+           
+           :param injected_instance: The injected service instance.
+           '''
+           # ...
+    
+    If the service is a required one, the bind callback is called **before** the
+    component is validated.
+    
+    Exceptions raised by an unbind callback are ignored.
+    
+    :param method: The decorated method
+    :raise TypeError: The decorated element is not a function
     """
     if type(method) is not types.FunctionType:
         raise TypeError("@Bind can only be applied on functions")
@@ -465,12 +484,26 @@ def Bind(method):
 
 def Unbind(method):
     """
-    @Unbind decorator
+    Unbind callback decorator, called when a component dependency is unbound.
     
-    Called when a component dependency is unbound
+    The decorated method must have the following prototype :
     
-    @param method: The decorated method
-    @raise TypeError: The decorated element is not a function
+    .. python::
+       def unbind_method(self, injected_instance):
+           '''
+           Method called when a service is bound to the component
+           
+           :param injected_instance: The injected service instance.
+           '''
+           # ...
+    
+    If the service is a required one, the unbind callback is called **after**
+    the component has been invalidated.
+    
+    Exceptions raised by an unbind callback are ignored.
+    
+    :param method: The decorated method
+    :raise TypeError: The decorated element is not a function
     """
     if type(method) is not types.FunctionType:
         raise TypeError("@Unbind can only be applied on functions")
@@ -482,13 +515,28 @@ def Unbind(method):
 
 def Validate(method):
     """
-    @Validate decorator
+    Validation callback decorator, called when a component becomes valid,
+    i.e. if all of its required dependencies has been injected.
     
-    Called when a component becomes valid, i.e. if all of its required
-    dependencies has been injected
+    The decorated method must have the following prototype :
     
-    @param method: The decorated method
-    @raise TypeError: The decorated element is not a function
+    .. python::
+       def validation_method(self, bundle_context):
+           '''
+           Method called when the component is validated
+           
+           :param bundle_context: The component's bundle context
+           '''
+           # ...
+    
+    If the validation callback raises an exception, the component is considered
+    not validated.
+    
+    If the component provides a service, the validation method is called before
+    the provided service is registered to the framework.
+    
+    :param method: The decorated method
+    :raise TypeError: The decorated element is not a function
     """
     if type(method) is not types.FunctionType:
         raise TypeError("@Validate can only be applied on functions")
@@ -500,13 +548,27 @@ def Validate(method):
 
 def Invalidate(method):
     """
-    @Validate decorator
+    Invalidation callback decorator, called when a component becomes invalid,
+    i.e. if one of its required dependencies disappeared
     
-    Called when a component becomes invalid, i.e. if one of its required
-    dependencies disappeared
+    The decorated method must have the following prototype :
     
-    @param method: The decorated method
-    @raise TypeError: The decorated element is not a function
+    .. python::
+       def invalidation_method(self, bundle_context):
+           '''
+           Method called when the component is invalidated
+           
+           :param bundle_context: The component's bundle context
+           '''
+           # ...
+    
+    Exceptions raised by an invalidation callback are ignored.
+    
+    If the component provides a service, the invalidation method is called after
+    the provided service has been unregistered to the framework.
+    
+    :param method: The decorated method
+    :raise TypeError: The decorated element is not a function
     """
 
     if type(method) is not types.FunctionType:

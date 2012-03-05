@@ -1,11 +1,11 @@
 """
 Utility methods and decorators
 
-@author: Thomas Calmant
-@copyright: Copyright 2012, isandlaTech
-@license: GPLv3
-@version: 0.2
-@status: Alpha
+:author: Thomas Calmant
+:copyright: Copyright 2012, isandlaTech
+:license: GPLv3
+:version: 0.2
+:status: Alpha
 
     This file is part of iPOPO.
 
@@ -24,6 +24,12 @@ Utility methods and decorators
 """
 
 import threading
+from functools import wraps
+
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
 
 # ------------------------------------------------------------------------------
 
@@ -36,7 +42,7 @@ class Synchronized:
         Sets up the decorator. If 'lock' is None, an RLock() is created for
         this decorator.
         
-        @param lock: The lock to be used for synchronization (can be None)
+        :param lock: The lock to be used for synchronization (can be None)
         """
         if not is_lock(lock):
             self.__lock = threading.RLock()
@@ -49,10 +55,11 @@ class Synchronized:
         """
         Sets up the decorated method
         
-        @param method: The decorated method
-        @return: The wrapped method
+        :param method: The decorated method
+        :return: The wrapped method
         """
 
+        @wraps(method)
         def wrapped(*args, **kwargs):
             """
             The wrapping method
@@ -68,9 +75,9 @@ def SynchronizedClassMethod(lock_attr_name):
     A synchronizer decorator for class methods. An AttributeError can be raised
     at runtime if the given lock attribute doesn't exist or if it is None.
     
-    @param lock_attr_name: The lock attribute name to be used for
-    synchronization
-    @return: The decorator method, surrounded with the lock 
+    :param lock_attr_name: The lock attribute name to be used for
+                           synchronization
+    :return: The decorator method, surrounded with the lock 
     """
     if not lock_attr_name:
         raise ValueError("The lock name can't be empty")
@@ -79,10 +86,11 @@ def SynchronizedClassMethod(lock_attr_name):
         """
         The wrapping method
         
-        @param method: The wrapped method
-        @return: The wrapped method
-        @raise AttributeError: The given attribute name doesn't exist
+        :param method: The wrapped method
+        :return: The wrapped method
+        :raise AttributeError: The given attribute name doesn't exist
         """
+        @wraps(method)
         def synchronized(self, *args, **kwargs):
             """
             Calls the wrapped method with a lock
@@ -144,8 +152,8 @@ def remove_all_occurrences(sequence, item):
     """
     Removes all occurrences of item in the given sequence
     
-    @param sequence: The items list
-    @param item: The item to be removed
+    :param sequence: The items list
+    :param item: The item to be removed
     """
     if sequence is None:
         return
@@ -159,9 +167,9 @@ def add_listener(registry, listener):
     """
     Adds a listener in the registry, if it is not yet in
 
-    @param registry: A registry (a list)
-    @param listener: The listener to register
-    @return: True if the listener has been added
+    :param registry: A registry (a list)
+    :param listener: The listener to register
+    :return: True if the listener has been added
     """
     if listener is None or listener in registry:
         return False
@@ -174,9 +182,9 @@ def remove_listener(registry, listener):
     """
     Removes a listener from the registry
 
-    @param registry: A registry (a list)
-    @param listener: The listener to remove
-    @return: True if the listener was in the list
+    :param registry: A registry (a list)
+    :param listener: The listener to remove
+    :return: True if the listener was in the list
     """
     if listener is not None and listener in registry:
         registry.remove(listener)
