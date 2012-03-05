@@ -141,6 +141,8 @@ class Bundle(object):
     def get_bundle_context(self):
         """
         Retrieves the bundle context
+        
+        :return: The bundle context
         """
         return self.__context
 
@@ -165,7 +167,9 @@ class Bundle(object):
 
     def get_module(self):
         """
-        Retrieves the bundle module
+        Retrieves the Python module corresponding to the bundle
+        
+        :return: The Python module
         """
         return self.__module
 
@@ -173,13 +177,17 @@ class Bundle(object):
     def get_state(self):
         """
         Retrieves the bundle state
+        
+        :return: The bundle state
         """
         return self.__state
 
 
     def get_symbolic_name(self):
         """
-        Retrieves the bundle symbolic name
+        Retrieves the bundle symbolic name (its Python module name)
+        
+        :return: The bundle symbolic name
         """
         return self.__name
 
@@ -477,6 +485,16 @@ class Framework(Bundle):
         """
         Registers a listener that will be called back right before the framework
         stops
+        
+        The framework listener must have a method with the following prototype :
+        
+        .. python::
+        
+           def framework_stopping(self):
+               '''
+               No parameter given
+               '''
+               # ... 
 
         :param listener: The framework stop listener
         :return: True if the listener has been registered
@@ -488,6 +506,18 @@ class Framework(Bundle):
     def add_service_listener(self, listener, ldap_filter=None):
         """
         Registers a service listener
+        
+        The service listener must have a method with the following prototype :
+        
+        .. python::
+        
+           def service_changed(self, event):
+               '''
+               Called by Pelix when some service properties changes
+        
+               :param event: A ServiceEvent object
+               '''
+               # ... 
 
         :param listener: The service listener
         :param ldap_filter: Listener
@@ -1106,6 +1136,16 @@ class BundleContext(object):
         """
         Registers a listener that will be called back right before the framework
         stops
+        
+        The framework listener must have a method with the following prototype :
+        
+        .. python::
+        
+           def framework_stopping(self):
+               '''
+               No parameter given
+               '''
+               # ... 
 
         :param listener: The framework stop listener
         :return: True if the listener has been registered
@@ -1116,6 +1156,18 @@ class BundleContext(object):
     def add_service_listener(self, listener, ldap_filter=None):
         """
         Registers a service listener
+        
+        The service listener must have a method with the following prototype :
+        
+        .. python::
+        
+           def service_changed(self, event):
+               '''
+               Called by Pelix when some service properties changes
+        
+               :param event: A ServiceEvent object
+               '''
+               # ... 
 
         :param listener: The listener to register
         :param ldap_filter: An LDAP filter on the service properties

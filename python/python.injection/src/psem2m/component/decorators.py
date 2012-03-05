@@ -159,6 +159,10 @@ def _append_object_entry(obj, list_name, entry):
 def _ipopo_class_field_property(name, value):
     """
     Sets up an iPOPO field property, using Python property() capabilities
+    
+    :param name: The property name
+    :param value: The property default value
+    :return: A generated Python property()
     """
     # The property lock
     lock = threading.RLock()
@@ -181,7 +185,8 @@ def _ipopo_class_field_property(name, value):
         """
         Sets the property value and trigger an update event
         
-        :param new_valuie: The new property value
+        :param new_value: The new property value
+        :return: The new value
         """
         setter = getattr(self, constants.IPOPO_PROPERTY_SETTER, None)
         if setter is not None:

@@ -93,6 +93,8 @@ class IPopoEvent(object):
     def get_component_name(self):
         """
         Retrieves the name of the component associated to the event
+        
+        :return: the name of the component
         """
         return self.__component_name
 
@@ -100,6 +102,8 @@ class IPopoEvent(object):
     def get_factory_name(self):
         """
         Retrieves the name of the factory associated to the event
+        
+        :return: the name of the component factory
         """
         return self.__factory_name
 
@@ -107,6 +111,8 @@ class IPopoEvent(object):
     def get_kind(self):
         """
         Retrieves the kind of event
+        
+        :return: the kind of event
         """
         return self.__kind
 
@@ -166,6 +172,8 @@ class Requirement(object):
     def copy(self):
         """
         Returns a copy of this instance
+        
+        :return: A copy of this instance
         """
         return Requirement(self.specifications, self.aggregate, self.optional, \
                            self.filter)
@@ -336,9 +344,12 @@ class FactoryContext(object):
     def set_bundle_context(self, bundle_context):
         """
         Sets up the bundle context associated to this factory context
+        
+        :param bundle_context: The factory bundle context
         """
-        assert isinstance(bundle_context, BundleContext)
-        self.bundle_context = bundle_context
+        if self.bundle_context is None:
+            assert isinstance(bundle_context, BundleContext)
+            self.bundle_context = bundle_context
 
 
     def to_dictionary_form(self):
@@ -421,6 +432,8 @@ class ComponentContext(object):
     def get_bundle_context(self):
         """
         Retrieves the bundle context
+        
+        :return: The component bundle context
         """
         return self.factory_context.bundle_context
 
@@ -429,6 +442,9 @@ class ComponentContext(object):
         """
         Retrieves the registered method for the given event. Returns None if not
         found
+        
+        :param event: A component life cycle event
+        :return: The callback associated to the given event
         """
         return self.factory_context.callbacks.get(event, None)
 
@@ -436,6 +452,8 @@ class ComponentContext(object):
     def get_factory_name(self):
         """
         Retrieves the component factory name
+        
+        :return: The component factory name
         """
         return self.factory_context.name
 
@@ -443,6 +461,8 @@ class ComponentContext(object):
     def get_provides(self):
         """
         Retrieves the services that this component provides
+        
+        :return: The services provided by this component
         """
         return self.factory_context.provides
 
@@ -1085,6 +1105,9 @@ def _load_bundle_factories(bundle):
     """
     Retrieves a list of pairs (FactoryContext, factory class) with all
     readable manipulated classes found in the bundle.
+    
+    :param bundle: A Bundle object
+    :return: The list of factories loaded from the bundle
     """
     result = []
 
@@ -1222,6 +1245,9 @@ class _IPopoService(constants.IIPopoService, object):
         """
         Retrieves the list of all stored instances objects corresponding to
         the given factory name
+        
+        :param factory_name: A factory name
+        :return: All components instantiated from the given factory
         """
         with self.__instances_lock:
             return [stored_instance \
@@ -1557,6 +1583,8 @@ class _IPopoActivator(object):
     def start(self, context):
         """
         The bundle has started
+        
+        :param context: The bundle context
         """
         assert isinstance(context, BundleContext)
 
@@ -1585,6 +1613,8 @@ class _IPopoActivator(object):
     def stop(self, context):
         """
         The bundle has stopped
+        
+        :param context: The bundle context
         """
         assert isinstance(context, BundleContext)
 
