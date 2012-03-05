@@ -1550,8 +1550,16 @@ class _IPopoService(constants.IIPopoService, object):
     def add_listener(self, listener):
         """
         Register an iPOPO event listener.
-        The listener must have a handle_ipopo_event(event) method, where event
-        is an IPopoEvent object.
+        
+        The event listener must have a method with the following prototype :
+        
+        .. python::
+        
+           def handle_ipopo_event(self, event):
+               '''
+               :param event: A IPopoEvent object
+               '''
+               # ... 
         
         :param listener: The listener to register
         :return: True if the listener has been added to the registry
