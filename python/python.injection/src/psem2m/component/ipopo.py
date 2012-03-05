@@ -1328,6 +1328,9 @@ class _IPopoService(constants.IIPopoService, object):
 
             self.__factories[factory_name] = factory
 
+            # Trigger an event
+            self._fire_ipopo_event(IPopoEvent.REGISTERED, factory_name)
+
 
     def _unregister_all_factories(self):
         """
@@ -1382,6 +1385,9 @@ class _IPopoService(constants.IIPopoService, object):
             if factory_name not in self.__factories:
                 # Unknown factory
                 return False
+
+            # Trigger an event
+            self._fire_ipopo_event(IPopoEvent.UNREGISTERED, factory_name)
 
             # Invalidate and delete all components of this factory
             with self.__instances_lock:
