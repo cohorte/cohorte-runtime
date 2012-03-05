@@ -23,8 +23,7 @@ Dependency-less LDAP filter parser for Python
     along with iPOPO. If not, see <http://www.gnu.org/licenses/>.
 """
 
-import io
-from psem2m import is_string, get_unicode_creator
+from psem2m import is_string
 
 # ------------------------------------------------------------------------------
 
@@ -286,13 +285,10 @@ def unescape_LDAP(ldap_string):
 
     assert is_string(ldap_string)
 
-    # Prepare the unicode string constructor
-    u_str = get_unicode_creator()
-
     i = 0
     escaped = False
+    result = ""
 
-    output = io.StringIO()
     while i < len(ldap_string):
 
         if not escaped and ldap_string[i] == ESCAPE_CHARACTER:
@@ -301,13 +297,10 @@ def unescape_LDAP(ldap_string):
 
         else:
             escaped = False
-            # Convert the sub-string to unicode if needed 
-            output.write(u_str(ldap_string[i]))
+            result += ldap_string[i]
 
         i += 1
 
-    result = output.getvalue()
-    output.close()
     return result
 
 # ------------------------------------------------------------------------------
