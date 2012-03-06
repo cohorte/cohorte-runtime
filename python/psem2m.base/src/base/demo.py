@@ -13,12 +13,11 @@ _logger = logging.getLogger(__name__)
 # ------------------------------------------------------------------------------
 
 from psem2m.component.decorators import ComponentFactory, Provides, \
-    Validate, Invalidate, Instantiate, Property
+    Validate, Invalidate, Property
 
 # ------------------------------------------------------------------------------
 
 @ComponentFactory("erp-proxy-json-rpc")
-@Instantiate("PythonErpProxy")
 @Provides("org.psem2m.composer.demo.IComponent")
 @Property("__export", "service.exported.interfaces", "*")
 class ErpProxy(object):

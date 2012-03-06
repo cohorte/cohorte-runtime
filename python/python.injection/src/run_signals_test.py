@@ -54,6 +54,11 @@ bid = framework.install_bundle("base.remoteservices")
 b_rs = context.get_bundle(bid)
 b_rs.start()
 
+logging.info("-- Install demo components --")
+bid = framework.install_bundle("base.demo")
+b_demo = context.get_bundle(bid)
+b_demo.start()
+
 def stop():
     logging.info("--- Stop Pelix ---")
     framework.stop()
