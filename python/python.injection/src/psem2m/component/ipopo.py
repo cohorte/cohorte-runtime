@@ -1659,11 +1659,11 @@ class _IPopoActivator(object):
         kind = event.get_kind()
         bundle = event.get_bundle()
 
-        if kind == BundleEvent.STOPPED:
+        if kind == BundleEvent.STOPPING:
             # A bundle is gone, remove its __factories
             self.service._unregister_bundle_factories(bundle)
 
-        elif kind == BundleEvent.STARTING:
+        elif kind == BundleEvent.STARTED:
             # A bundle is activating, register its __factories
             self.service._register_bundle_factories(bundle)
 
