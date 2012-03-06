@@ -18,13 +18,13 @@ import jsonrpclib
 
 from psem2m.component.decorators import ComponentFactory, Requires, Validate, \
     Invalidate, Instantiate, Property
+from base.javautils import to_jabsorb, from_jabsorb, JAVA_CLASS
 
 import psem2m.services.pelix as pelix
 
 # ------------------------------------------------------------------------------
 
 EXPORTED_SERVICE_FILTER = "(|(service.exported.interfaces=*)(service.exported.configs=*))"
-JAVA_CLASS = u"javaClass"
 
 ISOLATE_LOST_SIGNAL = "/psem2m/isolate/lost"
 
@@ -40,78 +40,6 @@ SERVICE_EXPORTED_CONFIGS = "service.exported.configs"
 SERVICE_EXPORTED_INTERFACES = "service.exported.interfaces"
 SERVICE_IMPORTED = "service.imported"
 SERVICE_IMPORTED_CONFIGS = "service.imported.configs"
-
-# ------------------------------------------------------------------------------
-
-def result_to_jabsorb(result):
-    """
-    Adds informations for Jabsorb, if needed
-    """
-    converted_result = {}
-
-    # Map ?
-    if isinstance(result, dict):
-
-        if JAVA_CLASS not in result:
-            # Needs the whole transformation
-            converted_result[JAVA_CLASS] = "java.util.HashMap"
-
-            map_pairs = {}
-            for key, value in result.items():
-                map_pairs[key] = result_to_jabsorb(value)
-
-            converted_result["map"] = map_pairs
-
-        else:
-            # Bean representation
-            for key, value in result.items():
-                converted_result[key] = result_to_jabsorb(value)
-
-    # List ?
-    elif isinstance(result, list):
-        converted_result[JAVA_CLASS] = "java.util.ArrayList"
-        converted_result["list"] = []
-
-        for item in result:
-            converted_result["list"].append(result_to_jabsorb(item))
-
-    # Other ?
-    else:
-        converted_result = result
-
-    return converted_result
-
-
-def request_from_jabsorb(request):
-    """
-    Removes informations from jabsorb
-    """
-    if not isinstance(request, dict) or JAVA_CLASS not in request:
-        # Raw element
-        return request
-
-    java_class = str(request[JAVA_CLASS])
-
-    # Map ?
-    if java_class.endswith("Map"):
-        result = {}
-
-        for key in request["map"]:
-            result[key] = request_from_jabsorb(request["map"][key])
-
-        return result
-
-    # List ?
-    elif java_class.endswith("List"):
-        result = []
-
-        for element in request["list"]:
-            result.append(request_from_jabsorb(element))
-
-        return result
-
-    # Other ?
-    return request
 
 # ------------------------------------------------------------------------------
 
@@ -171,12 +99,12 @@ class ServiceExporter(object):
         # Convert parameters from Jabsorb
         converted_params = []
         for param in params:
-            converted_params.append(request_from_jabsorb(param))
+            converted_params.append(from_jabsorb(param))
 
         result = getattr(svc, method_name)(*converted_params)
 
         # Transform result to Jabsorb
-        return result_to_jabsorb(result)
+        return to_jabsorb(result)
 
 
     def _export_service(self, reference):
@@ -247,7 +175,6 @@ class ServiceExporter(object):
             }
         }
 
-        remote_event = result_to_jabsorb(remote_event)
         self.sender.send_data("*", SIGNAL_REMOTE_EVENT, remote_event)
 
 
@@ -295,9 +222,7 @@ class ServiceExporter(object):
             }
         }
 
-        remote_event = result_to_jabsorb(remote_event)
         self.sender.send_data("*", SIGNAL_REMOTE_EVENT, remote_event)
-
 
 
     def service_changed(self, event):
@@ -415,7 +340,6 @@ class _JSON_proxy(object):
         """
         Constructor
         """
-        _logger.warn("Create proxy for %s - %s", endpoint_name, endpoint)
         self.server = jsonrpclib.Server(endpoint)
         self.endpoint = endpoint_name
 
@@ -424,8 +348,26 @@ class _JSON_proxy(object):
         """
         Proxy core
         """
-        _logger.warn("Remote call to %s.%s", self.endpoint, name)
-        return self.server.__getattr__("%s.%s" % (self.endpoint, name))
+
+        def wrapped_call(*args, **kwargs):
+            """
+            Wrapped call
+            """
+            method_name = "%s.%s" % (self.endpoint, name)
+            _logger.debug("Remote call to %s", method_name)
+
+            method = self.server.__getattr__(method_name)
+            if args:
+                args = [to_jabsorb(arg) for arg in args]
+
+            if kwargs:
+                kwargs = dict([(key, to_jabsorb(value))
+                               for key, value in kwargs.items()])
+
+            result = method(*args, **kwargs)
+            return from_jabsorb(result)
+
+        return wrapped_call
 
 
     def __stop__(self):
@@ -466,12 +408,9 @@ class ServiceImporter(object):
         """
         Called when a remote services signal is received
         """
-        _logger.debug("Received signal %s", name)
-
         sender = signal_data["isolateSender"]
         if sender == self.sender.get_current_isolate_id():
             # Ignore local events
-            _logger.debug("> local signal")
             return
 
         # Get the raw signal content
@@ -536,16 +475,13 @@ class ServiceImporter(object):
         """
         Import the given remote service
         """
-        _logger.debug("Remote Service event...")
-
         remote_reg = remote_event["serviceRegistration"]
 
         # Store remote service ID
         service_id = remote_reg["serviceId"]
-        _logger.debug("> Service ID = %s", service_id)
         if service_id in self._registered_services:
             # Already registered service
-            _logger.debug("> Service ID already registered")
+            _logger.debug("Service ID already registered")
             return
 
         # TODO: add service filter
@@ -559,8 +495,6 @@ class ServiceImporter(object):
 
         # TODO: select it upon available proxies
         endpoint = endpoints[0]
-
-        _logger.debug("> Endpoint = %s", endpoint)
 
         # Extract end point information
         protocol = endpoint.get("protocol", "http")
@@ -597,7 +531,8 @@ class ServiceImporter(object):
         # Store information
         self._registered_services[service_id] = (proxy, reg)
 
-        _logger.debug("Registered '%s' as '%s'", endpoint_name, str(reg))
+        _logger.debug("Registered '%s' - '%s' as '%s'", endpoint_name,
+                      endpoint_url, str(reg))
 
         isolate_name = remote_reg["hostIsolate"]
         services = self._services.get(isolate_name, None)
@@ -614,11 +549,12 @@ class ServiceImporter(object):
         """
         service = self._registered_services.get(service_id, None)
         if not service:
+            _logger.debug("Unknown service - %s", service_id)
             # Unknown service
             return
 
         # Extract service registration and proxy instance
-        reg, proxy = service
+        proxy, reg = service
 
         try:
             # Unregister the service from Pelix
@@ -656,7 +592,6 @@ class ServiceImporter(object):
         self.receiver.register_listener(ISOLATE_LOST_SIGNAL, self)
 
         # Send "request endpoints" signal
-        _logger.debug("Sending ALL Endpoints request")
         self.sender.send_data("*", BROADCASTER_SIGNAL_REQUEST_ENDPOINTS, None)
 
 
