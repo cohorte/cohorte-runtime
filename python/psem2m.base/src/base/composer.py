@@ -8,6 +8,7 @@ Created on 29 févr. 2012
 # ------------------------------------------------------------------------------
 
 import logging
+from psem2m.component.ipopo import IPopoEvent
 _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
@@ -18,14 +19,27 @@ import psem2m.component.constants
 
 # ------------------------------------------------------------------------------
 
-SIGNAL_REQUEST_PATTERN = "/psem2m-composer-agent/request/*"
-SIGNAL_CAN_HANDLE_COMPONENTS = "/psem2m-composer-agent/request/can-handle-components"
-SIGNAL_INSTANTIATE_COMPONENTS = "/psem2m-composer-agent/request/instantiate-components"
-SIGNAL_STOP_COMPONENTS = "/psem2m-composer-agent/request/stop-components"
+SIGNAL_PREFIX = "/psem2m-composer-agent"
+SIGNAL_REQUEST_PREFIX = "%s/request" % SIGNAL_PREFIX
+SIGNAL_RESPONSE_PREFIX = "%s/response" % SIGNAL_PREFIX
+SIGNAL_FACTORY_PREFIX = "%s/factory-state" % SIGNAL_PREFIX
 
-SIGNAL_RESPONSE_HANDLES_COMPONENTS = "/psem2m-composer-agent/response/can-handle-components"
-SIGNAL_RESPONSE_INSTANTIATE_COMPONENTS = "/psem2m-composer-agent/response/instantiate-components"
-SIGNAL_RESPONSE_STOP_COMPONENTS = "/psem2m-composer-agent/response/stop-components"
+SIGNAL_REQUEST_PATTERN = "%s/*" % SIGNAL_REQUEST_PREFIX
+SIGNAL_CAN_HANDLE_COMPONENTS = "%s/can-handle-components" \
+                               % SIGNAL_REQUEST_PREFIX
+SIGNAL_INSTANTIATE_COMPONENTS = "%s/instantiate-components" \
+                                % SIGNAL_REQUEST_PREFIX
+SIGNAL_STOP_COMPONENTS = "%s/stop-components" % SIGNAL_REQUEST_PREFIX
+
+SIGNAL_RESPONSE_HANDLES_COMPONENTS = "%s/can-handle-components" \
+                                     % SIGNAL_RESPONSE_PREFIX
+SIGNAL_RESPONSE_INSTANTIATE_COMPONENTS = "%s/instantiate-components" \
+                                         % SIGNAL_RESPONSE_PREFIX
+SIGNAL_RESPONSE_STOP_COMPONENTS = "%s/stop-components" % SIGNAL_RESPONSE_PREFIX
+
+SIGNAL_ISOLATE_ADD_FACTORY = "%s/added" % SIGNAL_FACTORY_PREFIX
+SIGNAL_ISOLATE_REMOVE_FACTORY = "%s/removed" % SIGNAL_FACTORY_PREFIX
+SIGNAL_ISOLATE_FACTORIES_GONE = "%s/all-gone" % SIGNAL_FACTORY_PREFIX
 
 # ------------------------------------------------------------------------------
 
@@ -57,6 +71,9 @@ class ComposerAgent(object):
     def handle_received_signal(self, name, signal_data):
         """
         Called when a composer signal is received
+        
+        :param name: The signal name
+        :param data: The signal data object
         """
         _logger.info("Composer Signal: %s", name)
 
@@ -78,7 +95,8 @@ class ComposerAgent(object):
         Sends a signal to the given isolate to indicate which components can be
         instantiated here.
         
-        @param data: An array of ComponentBean objects
+        :param sender: The isolate that sent the request signal
+        :param data: An array of ComponentBean objects
         """
         current_isolate = self.directory.get_current_isolate_id()
         handled = []
@@ -93,7 +111,7 @@ class ComposerAgent(object):
 
             factory = component["type"]
             if self.ipopo.is_registered_factory(factory):
-                _logger.debug("%s can be handled here", name)
+                _logger.debug("%s can be handled here (%s)", name, factory)
                 handled.append(component)
 
 
@@ -108,6 +126,9 @@ class ComposerAgent(object):
     def instantiate_components(self, sender, data):
         """
         Instantiates the given components
+        
+        :param sender: The isolate requesting the instantiation
+        :param data: The signal content
         """
         current_isolate = self.directory.get_current_isolate_id()
 
@@ -151,14 +172,7 @@ class ComposerAgent(object):
                 _logger.exception("EPIC FAIL !")
                 failure.append(name)
 
-        result_map = {
-            "javaClass": "java.util.HashMap",
-            "map": {
-                    "instantiated": success,
-                    "failed": failure
-                }
-            }
-
+        result_map = {"instantiated": success, "failed": failure}
         self.sender.send_data(sender, SIGNAL_RESPONSE_INSTANTIATE_COMPONENTS,
                               result_map)
 
@@ -166,6 +180,9 @@ class ComposerAgent(object):
     def kill_components(self, sender, data):
         """
         Kills given components
+        
+        :param sender: The isolate requesting the destruction of a component
+        :param data: The signal content
         """
         killed = []
         unknown = []
@@ -180,33 +197,54 @@ class ComposerAgent(object):
             else:
                 unknown.append(name)
 
-        result_map = {
-            "javaClass": "java.util.HashMap",
-            "map": {
-                    "stopped": killed,
-                    "unknown": unknown
-                }
-            }
-
+        result_map = {"stopped": killed, "unknown": unknown}
         self.sender.send_data(sender, SIGNAL_RESPONSE_STOP_COMPONENTS,
                               result_map)
+
+
+    def handle_ipopo_event(self, event):
+        """
+        Handles an iPOPO event
+        
+        :param event: An iPOPO event
+        """
+        kind = event.get_kind()
+        factory = event.get_factory_name()
+
+        if kind == IPopoEvent.REGISTERED:
+            # Factory registered
+            self.sender.send_data("*", SIGNAL_ISOLATE_ADD_FACTORY, (factory,))
+
+        elif kind == IPopoEvent.UNREGISTERED:
+            # Factory gone
+            self.sender.send_data("*", SIGNAL_ISOLATE_REMOVE_FACTORY,
+                                  (factory,))
 
 
     @Validate
     def validate(self, context):
         """
         Component validated
+        
+        :param context: The bundle context
         """
         self.instances.clear()
         self.receiver.register_listener(SIGNAL_REQUEST_PATTERN, self)
+        self.ipopo.add_listener(self)
 
 
     @Invalidate
     def invalidate(self, context):
         """
         Component invalidated
+        
+        :param context: The bundle context
         """
+        self.ipopo.remove_listener(self)
         self.receiver.unregister_listener(SIGNAL_REQUEST_PATTERN, self)
+
+        # Send a signal to tell others that all our factories are gone
+        self.sender.send_data("*", SIGNAL_ISOLATE_FACTORIES_GONE, None)
 
         # Kill active components
         if len(self.instances) > 0:
