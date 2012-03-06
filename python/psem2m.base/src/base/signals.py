@@ -26,6 +26,8 @@ except ImportError:
 from psem2m.component.decorators import ComponentFactory, Provides, Requires, \
     Validate, Invalidate, Instantiate
 
+from base.javautils import to_jabsorb, from_jabsorb, JAVA_CLASS
+
 # ------------------------------------------------------------------------------
 
 @ComponentFactory("IsolateDirectoryFactory")
@@ -158,7 +160,7 @@ class SignalReceiver(object):
 
         # Handle it
         try:
-            signal_data = json.loads(read_post_body(handler))
+            signal_data = from_jabsorb(json.loads(read_post_body(handler)))
             self.handle_received_signal(signal_name, signal_data)
 
         except:
@@ -248,17 +250,17 @@ class SignalSender(object):
         Sends the data
         """
         signal = {
-            "javaClass": "org.psem2m.remotes.signals.http.HttpSignalData",
+            JAVA_CLASS: "org.psem2m.remotes.signals.http.HttpSignalData",
             "isolateSender": self.directory.get_current_isolate_id(),
             "senderHostName": "localhost",
             "signalContent": data,
             "timestamp": int(time.time() * 1000)
             }
 
-        json_signal = json.dumps(signal)
-        headers = {"Content-Type": "application/json"}
 
-        _logger.warning("OUTPUT : %s\n%s\n\n", name, json_signal)
+        # Make a JSON form of a Jabsorb signal content
+        json_signal = json.dumps(to_jabsorb(signal))
+        headers = {"Content-Type": "application/json"}
 
         for url in urls:
             try:
