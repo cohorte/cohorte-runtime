@@ -156,7 +156,7 @@ class ErpUserInterface(SimpleJSONRPCRequestHandler):
                 # lets the parent class to do the job
                 SimpleJSONRPCRequestHandler.do_POST(self)
 
-        except Exception, ex:
+        except Exception as ex:
 
             logging.error("%s - %s - %s", "ErpUserInterface", "do_POST", pformat(ex))
             # File doesn't exist
@@ -196,7 +196,7 @@ class ErpUserInterface(SimpleJSONRPCRequestHandler):
                 # File sent, nothing else to do
                 return
 
-            except Exception, ex:
+            except Exception as ex:
                 # File doesn't exist
                 self.__send_response(404, str(ex))
                 return
@@ -341,7 +341,7 @@ class ErpUserInterface(SimpleJSONRPCRequestHandler):
 
             return post_body
 
-        except Exception, ex:
+        except Exception as ex:
             print >> sys.stderr, "Error reading POST body :", ex
             return ""
 
@@ -463,7 +463,7 @@ class ErpProxy(object):
         """
         if not self.erp.is_running():
             raise Exception("Erp not running")
-        
+
         cart_map = request_from_jabsorb(cart_map)
 
         # Compute parameters
@@ -486,7 +486,7 @@ class ErpProxy(object):
         """
         if not self.erp.is_running():
             raise Exception("Erp not running")
-        
+
         # Call the ERP
         erp_result = self.erp.get_item(item_id)
 
@@ -511,7 +511,7 @@ class ErpProxy(object):
         """
         if not self.erp.is_running():
             raise Exception("Erp not running")
-        
+
         result = []
 
         # Virtual method, call the ERP for each item

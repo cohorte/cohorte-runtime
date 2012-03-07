@@ -50,7 +50,7 @@ class XmlItemParser(object):
         try:
             parser.Parse(xml_data)
 
-        except xml.parsers.expat.ExpatError, ex:
+        except xml.parsers.expat.ExpatError as ex:
             print >> sys.stderr, "Error reading XML data :", ex
 
         if XmlItemParser.__has_children_entry in self.__root:

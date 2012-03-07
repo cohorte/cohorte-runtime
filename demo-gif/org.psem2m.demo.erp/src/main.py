@@ -193,7 +193,7 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
                 cart_content.append({"id": item_node["itemId"], \
                                      "quantity": quantity})
 
-        except Exception, ex:
+        except Exception as ex:
             # An error occurred while reading the request
             self.__send_response(400, "Invalid request content\n" + str(ex), \
                                "text/plain")
@@ -276,7 +276,7 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
             count = int(criteria["count"])
             randomize = (criteria["randomize"].lower() == "true")
 
-        except Exception, ex:
+        except Exception as ex:
             # An error occurred while reading the request
             self.__send_response(400, "Invalid request content\n" + str(ex), \
                                "text/plain")
@@ -332,7 +332,7 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
                 result_items.append(item_stock_dict)
 
-            except KeyError, ex:
+            except KeyError as ex:
                 print >> sys.stderr, "Error looking for node :", ex
 
         # Prepare the XML response file
@@ -492,11 +492,11 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
 #            try:
 #                self._handlers[self.parsed_url.path]()
 #
-#            except socket.error, ex:
+#            except socket.error as ex:
 #                print "Socket error ", ex
 #                traceback.print_exc()
 #
-#            except Exception, ex:
+#            except Exception as ex:
 #                traceback.print_exc()
 #                self.__send_response(500, str(ex), "text/plain")
 
@@ -514,7 +514,7 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
                 # File sent, nothing else to do
                 return
 
-            except Exception, ex:
+            except Exception as ex:
                 # File doesn't exist
                 self.__send_response(404, str(ex))
                 return
@@ -549,7 +549,7 @@ class ErpHttpServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
             return post_body
 
-        except Exception, ex:
+        except Exception as ex:
             print >> sys.stderr, "Error reading POST body :", ex
             return ""
 
@@ -614,7 +614,7 @@ def main():
         # Ignore index error (use defaults)
         pass
 
-    except ValueError, ex:
+    except ValueError as ex:
         print >> sys.stderr, "Error reading port :", ex
 
     # Prepare the "random" module
