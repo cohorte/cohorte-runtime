@@ -8,6 +8,7 @@ import code
 import logging
 import os.path
 import sys
+from psem2m.component import constants
 
 # ------------------------------------------------------------------------------
 
@@ -33,6 +34,10 @@ logging.info("-- Install iPOPO --")
 bid = framework.install_bundle("psem2m.component.ipopo")
 b_ipopo = context.get_bundle(bid)
 b_ipopo.start()
+
+ref = context.get_service_reference(constants.IPOPO_SERVICE_SPECIFICATION)
+ipopo = context.get_service(ref)
+del ref
 
 logging.info("-- Install HTTP Service --")
 bid = framework.install_bundle("base.httpsvc")
