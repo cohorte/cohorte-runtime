@@ -136,7 +136,7 @@ class ServiceExporter(object):
         self._exported_references.append(reference)
         self._endpoints[endpoint_name] = (reference, svc)
 
-        _logger.debug("> Exported: %s", endpoint_name)
+        _logger.debug("> Exported: %s (%s)", endpoint_name, str(reference))
 
         specifications = reference.get_property("objectClass")
         if isinstance(specifications, str):
@@ -154,7 +154,7 @@ class ServiceExporter(object):
         remote_event = {
             JAVA_CLASS: "org.psem2m.isolates.services.remote.beans.RemoteServiceEvent",
             "eventType": {
-                "javaClass":"org.psem2m.isolates.services.remote.beans.RemoteServiceEvent$ServiceEventType",
+                JAVA_CLASS:"org.psem2m.isolates.services.remote.beans.RemoteServiceEvent$ServiceEventType",
                 "enumValue":"REGISTERED"
             },
             "senderHostName": "localhost",
@@ -209,7 +209,7 @@ class ServiceExporter(object):
         remote_event = {
             JAVA_CLASS: "org.psem2m.isolates.services.remote.beans.RemoteServiceEvent",
             "eventType": {
-                "javaClass":"org.psem2m.isolates.services.remote.beans.RemoteServiceEvent$ServiceEventType",
+                JAVA_CLASS:"org.psem2m.isolates.services.remote.beans.RemoteServiceEvent$ServiceEventType",
                 "enumValue":"UNREGISTERED"
             },
             "senderHostName": "localhost",
@@ -441,7 +441,11 @@ class ServiceImporter(object):
 
         @param remote_event: Raw remote service event dictionary
         """
-        event_type = remote_event["eventType"]["enumValue"]
+        try:
+            event_type = remote_event["eventType"]["enumValue"]
+        except:
+            _logger.exception("Invalid RemoteEvent object\n%s", remote_event)
+            return
 
         if event_type == "REGISTERED":
             self._import_service(remote_event)
@@ -511,8 +515,7 @@ class ServiceImporter(object):
             return
 
         # Filter properties
-        properties = _filter_export_properties(remote_reg["serviceProperties"]
-                                                          ["map"])
+        properties = _filter_export_properties(remote_reg["serviceProperties"])
 
         # Register the service
         try:
@@ -530,9 +533,6 @@ class ServiceImporter(object):
 
         # Store information
         self._registered_services[service_id] = (proxy, reg)
-
-        _logger.debug("Registered '%s' - '%s' as '%s'", endpoint_name,
-                      endpoint_url, str(reg))
 
         isolate_name = remote_reg["hostIsolate"]
         services = self._services.get(isolate_name, None)

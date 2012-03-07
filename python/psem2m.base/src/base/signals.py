@@ -165,7 +165,7 @@ class SignalReceiver(object):
 
         except:
             # Error
-            _logger.error("Error reading signal %s", signal_name)
+            _logger.exception("Error reading signal %s", signal_name)
             handler.send_response(500)
 
         else:
