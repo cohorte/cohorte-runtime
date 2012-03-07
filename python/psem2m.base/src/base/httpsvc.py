@@ -9,6 +9,7 @@ Created on 29 févr. 2012
 
 import threading
 import logging
+import os
 _logger = logging.getLogger(__name__)
 
 try:
@@ -111,7 +112,7 @@ class RequestHandler(BaseHTTPRequestHandler):
 
 
 @ComponentFactory(name="HttpServiceFactory")
-@Instantiate("HttpService", {"http.port": 10000})
+@Instantiate("HttpService", {"http.port": int(os.getenv("HTTP_PORT", 10000))})
 @Provides(specifications="HttpService")
 @Property("port", "http.port", 8080)
 class HttpService(object):

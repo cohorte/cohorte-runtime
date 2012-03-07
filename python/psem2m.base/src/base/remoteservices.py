@@ -9,6 +9,7 @@ Created on 1 mars 2012
 
 import logging
 import threading
+import os
 _logger = logging.getLogger(__name__)
 
 from jsonrpclib.SimpleJSONRPCServer import SimpleJSONRPCServer
@@ -47,7 +48,7 @@ SERVICE_IMPORTED_CONFIGS = "service.imported.configs"
 @Instantiate("ServiceExporter")
 @Requires("sender", "org.psem2m.SignalSender")
 @Requires("directory", "org.psem2m.IsolateDirectory")
-@Property("port", "jsonrpc.port", 10001)
+@Property("port", "jsonrpc.port", int(os.getenv("RPC_PORT", 10001)))
 class ServiceExporter(object):
     """
     PSEM2M Remote Services exporter
