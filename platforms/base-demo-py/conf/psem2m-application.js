@@ -1,0 +1,23 @@
+{
+    "appId":"development-app",
+    "isolates":[
+        {
+            "from":"monitor.js"
+        },
+        {
+            "from":"forker.js"
+        },
+        {
+            "id":"isolate-listener",
+            "kind":"python",
+            "httpPort":10000,
+            "bundles":[]
+        },
+        {
+            "id":"isolate-wrapper",
+            "kind":"python",
+            "httpPort":10010,
+            "bundles":[]
+        },
+    ]
+}
