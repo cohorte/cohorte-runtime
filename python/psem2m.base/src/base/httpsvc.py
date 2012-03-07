@@ -103,7 +103,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         # Send headers
         self.send_response(404)
         self.send_header("content-type", "text/html")
-        self.send_header("content-lenth", len(page))
+        self.send_header("content-length", len(page))
         self.end_headers()
 
         # Send content
