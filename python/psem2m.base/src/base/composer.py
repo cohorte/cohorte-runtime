@@ -15,7 +15,7 @@ _logger = logging.getLogger(__name__)
 
 from psem2m.component.decorators import ComponentFactory, Provides, Requires, \
     Validate, Invalidate, Instantiate
-import psem2m.component.constants
+import psem2m.component.constants as constants
 
 # ------------------------------------------------------------------------------
 
@@ -46,7 +46,7 @@ SIGNAL_ISOLATE_FACTORIES_GONE = "%s/all-gone" % SIGNAL_FACTORY_PREFIX
 @ComponentFactory("ComposerAgentFactory")
 @Instantiate("ComposerAgent")
 @Provides("org.psem2m.composer.Agent")
-@Requires("ipopo", psem2m.component.constants.IPOPO_SERVICE_SPECIFICATION)
+@Requires("ipopo", constants.IPOPO_SERVICE_SPECIFICATION)
 @Requires("directory", "org.psem2m.IsolateDirectory")
 @Requires("sender", "org.psem2m.SignalSender")
 @Requires("receiver", "org.psem2m.SignalReceiver")
@@ -114,7 +114,6 @@ class ComposerAgent(object):
                 _logger.debug("%s can be handled here (%s)", name, factory)
                 handled.append(component)
 
-
         # Send the result
         if not handled:
             handled = None
@@ -150,7 +149,7 @@ class ComposerAgent(object):
 
             # Get the properties
             try:
-                properties = component["properties"]["map"]
+                properties = component["properties"]
             except:
                 properties = {}
 
@@ -161,6 +160,11 @@ class ComposerAgent(object):
             properties[ComposerAgent.COMPOSITE_NAME] = component["parentName"]
             properties[ComposerAgent.HOST_ISOLATE] = current_isolate
             properties["service.exported.interfaces"] = "*"
+
+            # Get field filters (if any)
+            fields_filters = component["fieldsFilters"]
+            if fields_filters:
+                properties[constants.IPOPO_REQUIRES_FILTERS] = fields_filters
 
             try:
                 instance = self.ipopo.instantiate(factory, name, properties)
