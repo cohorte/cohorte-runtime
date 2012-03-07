@@ -49,6 +49,12 @@ def to_jabsorb(result):
         for item in result:
             converted_result["list"].append(to_jabsorb(item))
 
+    # Tuple ? (used as array, except if it is empty)
+    elif isinstance(result, tuple):
+        converted_result = []
+        for element in result:
+            converted_result.append(to_jabsorb(element))
+
     # Other ?
     else:
         converted_result = result
@@ -64,22 +70,30 @@ def from_jabsorb(request):
     :param request: Data coming from Jabsorb
     :return: A Python representation of the given data
     """
+    if isinstance(request, list):
+        # Special case : JSON arrays (Python lists)
+        converted_list = []
+        for element in request:
+            converted_list.append(from_jabsorb(element))
+
+        return converted_list
+
     if not isinstance(request, dict) or JAVA_CLASS not in request:
         # Raw element
         return request
 
     java_class = str(request[JAVA_CLASS])
 
-    # Map ?
+    # Java Map ?
     if java_class.endswith("Map"):
         result = {}
 
-        for key in request["map"]:
-            result[key] = from_jabsorb(request["map"][key])
+        for key, value in request["map"].items():
+            result[key] = from_jabsorb(value)
 
         return result
 
-    # List ?
+    # Java List ?
     elif java_class.endswith("List"):
         result = []
 
@@ -88,5 +102,10 @@ def from_jabsorb(request):
 
         return result
 
-    # Other ?
-    return request
+    else:
+        # Other ?
+        converted_request = {}
+        for key, value in request.items():
+            converted_request[key] = from_jabsorb(value)
+
+        return converted_request
