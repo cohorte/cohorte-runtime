@@ -10,6 +10,7 @@ Created on 29 févr. 2012
 import fnmatch
 import logging
 import json
+import os
 import time
 _logger = logging.getLogger(__name__)
 
@@ -45,7 +46,7 @@ class IsolateDirectory(object):
 
 
     def get_current_isolate_id(self):
-        return "isolate-python"
+        return os.getenv("PSEM2M_ISOLATE_ID", "<unknown>")
 
 
     def get_isolate(self, isolate_id):
@@ -76,12 +77,10 @@ class IsolateDirectory(object):
         Component validation
         """
         self.config = {
-           self.get_current_isolate_id(): "{local}",
+           "isolate-wrapper": "localhost:10010",
+           "isolate-listener": "localhost:10000",
            "org.psem2m.internals.isolates.monitor-1": "localhost:9000",
            "org.psem2m.internals.isolates.forker": "localhost:9001",
-           "isolate-dataserver": "localhost:9210",
-           "isolate-cache": "localhost:9211",
-           "isolate-erpproxy": "localhost:9212",
                        }
 
     @Invalidate
@@ -284,7 +283,7 @@ class SignalSender(object):
                                      response.reason)
 
             except:
-                _logger.error("Error sending signal %s to %s", name, url)
+                _logger.exception("Error sending signal %s to %s", name, url)
 
 
     def get_current_isolate_id(self):
