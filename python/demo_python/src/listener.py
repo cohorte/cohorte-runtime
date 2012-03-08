@@ -7,7 +7,11 @@
 from psem2m.component.decorators import ComponentFactory, Provides, Requires, \
     Property, Validate, Invalidate
 from psem2m.utilities import SynchronizedClassMethod
+
+import logging
 import threading
+
+_logger = logging.getLogger(__name__)
 
 @ComponentFactory("SensorListener")
 @Requires("http", "HttpService")
@@ -25,6 +29,7 @@ class SensorListener(object):
         self.errors = []
         self.max_lines = 100
         self.lock = threading.Lock()
+        _logger.debug("SensorListener instantiated")
 
 
     @Validate
@@ -33,9 +38,11 @@ class SensorListener(object):
         """
         Component validated
         """
-        self.http.register_servlet("/stat", self)
         del self.lines[:]
         del self.errors[:]
+
+        self.http.register_servlet("/stat", self)
+        _logger.debug("SensorListener validated")
 
 
     @Invalidate
@@ -48,12 +55,16 @@ class SensorListener(object):
         del self.lines[:]
         del self.errors[:]
 
+        _logger.debug("SensorListener invalidated")
+
 
     @SynchronizedClassMethod('lock')
     def notify(self, sensor_id, message, new_state, old_state):
         """
         Listener implementation
         """
+        _logger.debug("SensorListener Notified")
+
         line = "From %s: %s (%d -> %d)" % (sensor_id, message, old_state,
                                            new_state)
         self.lines.insert(0, line)
@@ -66,6 +77,8 @@ class SensorListener(object):
         """
         Listener implementation
         """
+        _logger.debug("SensorListener Notified of error")
+
         line = "From %s: %s (Code: %d)" % (sensor_id, message, error_code)
         self.errors.insert(0, line)
         while len(self.errors) > int(self.max_lines):

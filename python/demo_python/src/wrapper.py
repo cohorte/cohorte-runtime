@@ -9,8 +9,11 @@ from psem2m.component.decorators import ComponentFactory, Provides, Requires, \
 from psem2m.utilities import SynchronizedClassMethod
 
 import ctypes
+import logging
 import threading
 import time
+
+_logger = logging.getLogger(__name__)
 
 @ComponentFactory("Sensor")
 @Provides("demo.sensor")
@@ -34,7 +37,9 @@ class SensorWrapper(object):
         self.filename = None
         self.listeners = None
         self.old_state = -1
+        self.error = 0
         self.lock = threading.RLock()
+        _logger.debug("SensorWrapper instantiated")
 
 
     @Validate
@@ -47,6 +52,10 @@ class SensorWrapper(object):
         self.lib = ctypes.cdll.LoadLibrary(self.lib_name)
         self.running = True
         self.thread = threading.Thread(target=self.run)
+        self.thread.start()
+
+        _logger.debug("%s: Validated", self.id)
+
 
 
     @Invalidate
@@ -59,6 +68,8 @@ class SensorWrapper(object):
         self.thread = None
         self.lib = None
         self.old_state = -1
+
+        _logger.debug("%s: Invalidated", self.id)
 
 
     def run(self):
@@ -77,13 +88,21 @@ class SensorWrapper(object):
         """
         Notify state modifications
         """
+        _logger.debug("Read state : %d", new_state)
+
         if new_state < 0:
-            self.notify("Error", new_state, True)
+            if self.error != new_state:
+                self.error = new_state
+                self.send("Error", new_state, True)
 
         elif new_state != self.old_state:
-            self.notify("Changed state : %s -> %s" % (self.old_state, new_state),
+            self.error = 0
+            self.send("Changed state : %s -> %s" % (self.old_state, new_state),
                       new_state)
             self.old_state = new_state
+
+        else:
+            self.error = 0
 
 
     @SynchronizedClassMethod('lock')
@@ -92,6 +111,7 @@ class SensorWrapper(object):
         Sends a message to all listeners
         """
         if not self.listeners:
+            _logger.debug("%s: No listeners to notify", self.id)
             return
 
         for listener in self.listeners:
