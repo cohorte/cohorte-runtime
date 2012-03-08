@@ -149,7 +149,12 @@ class ServiceExporter(object):
         if exported_config is None:
             exported_config = "*"
 
+        # Get the service properties
         properties = reference.get_properties()
+
+        # Generate the service ID
+        service_id = "%s.%s" % (self.directory.get_current_isolate_id(),
+                                properties.get(pelix.SERVICE_ID))
 
         # Send registration signal
         remote_event = {
@@ -172,7 +177,8 @@ class ServiceExporter(object):
                     },),
                 "exportedInterfaces": specifications,
                 "hostIsolate": self.directory.get_current_isolate_id(),
-                "serviceProperties": properties
+                "serviceProperties": properties,
+                "serviceId": service_id
             }
         }
 
@@ -205,7 +211,12 @@ class ServiceExporter(object):
         else:
             specifications = tuple(specifications)
 
+        # Get the service properties
         properties = reference.get_properties()
+
+        # Generate the service ID
+        service_id = "%s.%s" % (self.directory.get_current_isolate_id(),
+                                properties.get(pelix.SERVICE_ID))
 
         remote_event = {
             JAVA_CLASS: "org.psem2m.isolates.services.remote.beans.RemoteServiceEvent",
@@ -219,7 +230,8 @@ class ServiceExporter(object):
                 "endpoints": None,
                 "exportedInterfaces": specifications,
                 "hostIsolate": self.directory.get_current_isolate_id(),
-                "serviceProperties": properties
+                "serviceProperties": properties,
+                "serviceId": service_id
             }
         }
 
