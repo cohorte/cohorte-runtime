@@ -26,14 +26,14 @@ int read_state(char* file_name)
 	if(fread(&state, sizeof(char), 1, fd) == sizeof(state))
 	{
 		state_val = (int) state - '0';
-		if(state_val < 0 || state_val > 5) {
-			return -2;
-		}
-
-		return state_val;
+		if(state_val < 0 || state_val > 5)
+			state_val = -2;
 	}
+	else
+		state_val = -3;
 
-	return -3;
+	fclose(fd);
+	return state_val;
 }
 
 #else
@@ -59,18 +59,15 @@ int read_state(char* file_name)
 	if(fread(state, fd_len, 1, fd) >= 0)
 	{
 		sscanf(state, "%d", &state_val);
-		free(state);
-
-		if(state_val < 0 || state_val > 100) {
-			return -2;
-		}
-
-		return state_val;
+		if(state_val < 0 || state_val > 100)
+			state_val = -2;
 	}
 	else
-		free(state);
+		state_val = -3;
 
-	return -3;
+	fclose(fd);
+	free(state);
+	return state_val;
 }
 
 #endif
