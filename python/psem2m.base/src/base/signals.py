@@ -12,6 +12,7 @@ import logging
 import json
 import os
 import time
+import threading
 _logger = logging.getLogger(__name__)
 
 try:
@@ -31,6 +32,11 @@ from base.javautils import to_jabsorb, from_jabsorb, JAVA_CLASS
 
 # ------------------------------------------------------------------------------
 
+SPECIAL_INTERNAL_ISOLATES_PREFIX = "org.psem2m.internals.isolates."
+SPECIAL_ISOLATE_ID_FORKER = "%s%s" \
+                                % (SPECIAL_INTERNAL_ISOLATES_PREFIX, "forker")
+
+
 @ComponentFactory("IsolateDirectoryFactory")
 @Instantiate("SignalDirectory")
 @Provides("org.psem2m.IsolateDirectory")
@@ -45,25 +51,98 @@ class IsolateDirectory(object):
         self.config = None
 
 
+    def is_valid_isolate(self, isolate_id):
+        """
+        Tests if the given isolate ID can be used in a "getAllXXX" method.
+        Returns false if the isolate ID is the current one or the forker one.
+    
+        :param isolate_id: The isolate ID
+        :return: True if the isolate ID can be used"
+        """
+        if not isolate_id:
+            return None
+
+        return isolate_id != SPECIAL_ISOLATE_ID_FORKER \
+            and isolate_id != self.get_current_isolate_id()
+
+
+    def _get_all_isolates(self):
+        """
+        Retrieves the list of all non-internal isolates, testing whether the ID
+        starts with SPECIAL_ISOLATE_ID_FORKER or not.
+        
+        :return: All non-internal isolates ID (never null)
+        """
+        return [isolate_id
+                for isolate_id in self.config.keys()
+                if self.is_valid_isolate(isolate_id) \
+                and not isolate_id.startswith(SPECIAL_INTERNAL_ISOLATES_PREFIX)]
+
+
+    def _get_all_monitors(self):
+        """
+        Retrieves the list of all internal isolates, except the forker, testing
+        whether the ID starts with SPECIAL_ISOLATE_ID_FORKER or not.
+        """
+        return [isolate_id
+                for isolate_id in self.config.keys()
+                if self.is_valid_isolate(isolate_id) \
+                and isolate_id.startswith(SPECIAL_INTERNAL_ISOLATES_PREFIX)]
+
+
+
     def get_current_isolate_id(self):
+        """
+        Retrieves the host isolate ID
+        
+        :return: The current isolate ID
+        """
         return os.getenv("PSEM2M_ISOLATE_ID", "<unknown>")
 
 
     def get_isolate(self, isolate_id):
+        """
+        Retrieves the access string to the given isolate. Returns null if the
+        isolate is unknown. Access to the current isolate and the forker can be
+        returned by this method.
+        
+        :param isolate_id: An isolate ID
+        :return: The access string to the isolate, or null.
+        """
         return self.config.get(isolate_id, None)
 
 
     def get_isolates(self, isolates_ids):
+        """
+        Retrieves the access string of each of the given isolates. Unknown
+        isolates are ignored. Returns null if all given isolates are unknown.
+        Current isolate and the forker (in PSEM2M) access URLs **must not**
+        be returned by this method.
+
+        :param isolates_ids: An array of isolate IDs
+        :return: Access strings to the known isolates, null if none is known.
+        """
         result = []
 
         for isolate in isolates_ids:
-            if isolate == "*":
+            if isolate == "*" or isolate == "ALL":
                 # Retrieve all isolates at once
-                return self.config.values()
+                return self.get_isolates(set(self._get_all_isolates())\
+                                         .union(self._get_all_monitors()))
 
-            url = self.get_isolate(isolate)
-            if url is not None:
-                result.append(url)
+            elif isolate == "MONITORS":
+                # Retrieve all monitors
+                return self.get_isolates(set(self._get_all_monitors()))
+
+            elif isolate == "ISOLATES":
+                # Retrieve all non-internal isolates
+                return self.get_isolates(set(self._get_all_isolates()))
+
+            else:
+                # Standard work
+                url = self.get_isolate(isolate)
+                if url is not None:
+                    result.append(url)
 
         if len(result) == 0:
             return None
@@ -77,10 +156,10 @@ class IsolateDirectory(object):
         Component validation
         """
         self.config = {
-           "isolate-wrapper": "localhost:10010",
-           "isolate-listener": "localhost:10000",
-           "org.psem2m.internals.isolates.monitor-1": "localhost:9000",
-           "org.psem2m.internals.isolates.forker": "localhost:9001",
+           "isolate-wrapper": "127.0.0.1:10010",
+           "isolate-listener": "127.0.0.1:10000",
+           "org.psem2m.internals.isolates.monitor-1": "127.0.0.1:9000",
+           "org.psem2m.internals.isolates.forker": "127.0.0.1:9001",
                        }
 
     @Invalidate
@@ -154,24 +233,25 @@ class SignalReceiver(object):
         if content_type not in (None, 'application/json',
                                 'application/x-www-form-urlencoded'):
             handler.send_response(500)
-            handler.end_headers()
-            return
-
-        # Handle it
-        try:
-            signal_data = from_jabsorb(json.loads(read_post_body(handler)))
-            self.handle_received_signal(signal_name, signal_data)
-
-        except:
-            # Error
-            _logger.exception("Error reading signal %s", signal_name)
-            handler.send_response(500)
 
         else:
-            # OK
-            handler.send_response(200)
+            # Handle it
+            try:
+                signal_data = from_jabsorb(json.loads(read_post_body(handler)))
+                self.handle_received_signal(signal_name, signal_data)
+
+            except:
+                # Error
+                _logger.exception("Error reading signal %s", signal_name)
+                handler.send_response(500)
+
+            else:
+                # OK
+                handler.send_response(200)
 
         # Send headers
+        handler.send_header('Content-type', 'application/x-www-form-urlencoded')
+        handler.send_header('Content-length', '0')
         handler.end_headers()
 
 
@@ -259,6 +339,17 @@ class SignalSender(object):
 
         # Make a JSON form of a Jabsorb signal content
         json_signal = json.dumps(to_jabsorb(signal))
+
+        # Start a new thread to send the signal
+        thread = threading.Thread(target=self.__threaded_send,
+                                  args=(urls, name, signal, json_signal))
+        thread.start()
+
+
+    def __threaded_send(self, urls, name, signal, json_signal):
+        """
+        Sends the data, in a separate thread
+        """
         headers = {"Content-Type": "application/json"}
 
         for url in urls:
