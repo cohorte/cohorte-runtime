@@ -47,6 +47,7 @@ SERVICE_IMPORTED_CONFIGS = "service.imported.configs"
 @ComponentFactory("ServiceExporterFactory")
 @Instantiate("ServiceExporter")
 @Requires("sender", "org.psem2m.SignalSender")
+@Requires("receiver", "org.psem2m.SignalReceiver")
 @Requires("directory", "org.psem2m.IsolateDirectory")
 @Property("port", "jsonrpc.port", int(os.getenv("RPC_PORT", 10001)))
 class ServiceExporter(object):
@@ -72,6 +73,7 @@ class ServiceExporter(object):
         # Exported services
         self._exported_references = []
         self._endpoints = {}
+        self._registrations = {}
 
 
     def _dispatch(self, method, params):
@@ -156,6 +158,27 @@ class ServiceExporter(object):
         service_id = "%s.%s" % (self.directory.get_current_isolate_id(),
                                 properties.get(pelix.SERVICE_ID))
 
+        # Create the registration map
+        registration = {
+            JAVA_CLASS: "org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration",
+            "endpoints": ({
+                    JAVA_CLASS: "org.psem2m.isolates.services.remote.beans.EndpointDescription",
+                    "endpointName": endpoint_name,
+                    "endpointUri": "/",
+                    "exportedConfig": exported_config,
+                    "host": "localhost",
+                    "port": self.port,
+                    "protocol": "http"
+                },),
+            "exportedInterfaces": specifications,
+            "hostIsolate": self.directory.get_current_isolate_id(),
+            "serviceProperties": properties,
+            "serviceId": service_id
+        }
+
+        # Store it
+        self._registrations[reference] = registration
+
         # Send registration signal
         remote_event = {
             JAVA_CLASS: "org.psem2m.isolates.services.remote.beans.RemoteServiceEvent",
@@ -164,22 +187,7 @@ class ServiceExporter(object):
                 "enumValue":"REGISTERED"
             },
             "senderHostName": "localhost",
-            "serviceRegistration": {
-                JAVA_CLASS: "org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration",
-                "endpoints": ({
-                        JAVA_CLASS: "org.psem2m.isolates.services.remote.beans.EndpointDescription",
-                        "endpointName": endpoint_name,
-                        "endpointUri": "/",
-                        "exportedConfig": exported_config,
-                        "host": "localhost",
-                        "port": self.port,
-                        "protocol": "http"
-                    },),
-                "exportedInterfaces": specifications,
-                "hostIsolate": self.directory.get_current_isolate_id(),
-                "serviceProperties": properties,
-                "serviceId": service_id
-            }
+            "serviceRegistration": registration
         }
 
         self.sender.send_data("*", SIGNAL_REMOTE_EVENT, remote_event)
@@ -204,20 +212,10 @@ class ServiceExporter(object):
         # Remove the reference from the list
         self._exported_references.remove(reference)
 
+        # Pop the registration object
+        registration = self._registrations.pop(reference)
+
         # Send signal
-        specifications = reference.get_property("objectClass")
-        if isinstance(specifications, str):
-            specifications = tuple([specifications])
-        else:
-            specifications = tuple(specifications)
-
-        # Get the service properties
-        properties = reference.get_properties()
-
-        # Generate the service ID
-        service_id = "%s.%s" % (self.directory.get_current_isolate_id(),
-                                properties.get(pelix.SERVICE_ID))
-
         remote_event = {
             JAVA_CLASS: "org.psem2m.isolates.services.remote.beans.RemoteServiceEvent",
             "eventType": {
@@ -225,14 +223,7 @@ class ServiceExporter(object):
                 "enumValue":"UNREGISTERED"
             },
             "senderHostName": "localhost",
-            "serviceRegistration": {
-                JAVA_CLASS: "org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration",
-                "endpoints": None,
-                "exportedInterfaces": specifications,
-                "hostIsolate": self.directory.get_current_isolate_id(),
-                "serviceProperties": properties,
-                "serviceId": service_id
-            }
+            "serviceRegistration": registration
         }
 
         self.sender.send_data("*", SIGNAL_REMOTE_EVENT, remote_event)
@@ -256,6 +247,34 @@ class ServiceExporter(object):
                  kind == pelix.ServiceEvent.MODIFIED_ENDMATCH):
             # Service is updated or unregistering
             self._unexport_service(ref)
+
+
+    def handle_received_signal(self, name, signal_data):
+        """
+        Called when a remote services signal is received
+        """
+        if name != BROADCASTER_SIGNAL_REQUEST_ENDPOINTS:
+            # Never happens... in theory...
+            return
+
+        sender = signal_data["isolateSender"]
+        if sender == self.sender.get_current_isolate_id():
+            # Ignore local events
+            return
+
+        events = [
+                  {
+                   JAVA_CLASS: "org.psem2m.isolates.services.remote.beans.RemoteServiceEvent",
+                   "eventType": {
+                                 JAVA_CLASS:"org.psem2m.isolates.services.remote.beans.RemoteServiceEvent$ServiceEventType",
+                                 "enumValue":"REGISTERED"
+                                 },
+                   "senderHostName": "localhost",
+                   "serviceRegistration": registration
+                   }
+                  for registration in self._registrations.values()]
+
+        self.sender.send_data(sender, SIGNAL_REMOTE_EVENT, events)
 
 
     @Validate
@@ -284,6 +303,10 @@ class ServiceExporter(object):
         # Register a service listener, to update the exported services state
         context.add_service_listener(self, EXPORTED_SERVICE_FILTER)
 
+        # Register to the REQUEST_ALL_ENDPOINTS signal
+        self.receiver.register_listener(BROADCASTER_SIGNAL_REQUEST_ENDPOINTS,
+                                        self)
+
         # Start the RPC thread
         self.thread = threading.Thread(target=self.server.serve_forever)
         self.thread.start()
@@ -294,6 +317,10 @@ class ServiceExporter(object):
         """
         Component invalidated
         """
+        # Unregister to the REQUEST_ALL_ENDPOINTS signal
+        self.receiver.unregister_listener(BROADCASTER_SIGNAL_REQUEST_ENDPOINTS,
+                                          self)
+
         # Stop the server
         self.server.shutdown()
         self.server.socket.close()
