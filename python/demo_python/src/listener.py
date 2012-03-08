@@ -41,6 +41,7 @@ class SensorListener(object):
         del self.lines[:]
         del self.errors[:]
 
+        self.msg_count = 0
         self.http.register_servlet("/stat", self)
         _logger.debug("SensorListener validated")
 
@@ -54,6 +55,7 @@ class SensorListener(object):
         self.http.unregister_servlet(self)
         del self.lines[:]
         del self.errors[:]
+        self.msg_count = 0
 
         _logger.debug("SensorListener invalidated")
 
@@ -65,8 +67,10 @@ class SensorListener(object):
         """
         _logger.debug("SensorListener Notified")
 
-        line = "From %s: %s (%d -> %d)" % (sensor_id, message, old_state,
-                                           new_state)
+        self.msg_count += 1
+
+        line = "[%03d] From %s: %s (%d -> %d)" \
+                    % (self.msg_count, sensor_id, message, old_state, new_state)
         self.lines.insert(0, line)
         while len(self.lines) > int(self.max_lines):
             self.lines.pop()
@@ -79,7 +83,10 @@ class SensorListener(object):
         """
         _logger.debug("SensorListener Notified of error")
 
-        line = "From %s: %s (Code: %d)" % (sensor_id, message, error_code)
+        self.msg_count += 1
+
+        line = "[%03d] From %s: %s (Code: %d)" \
+                    % (self.msg_count, sensor_id, message, error_code)
         self.errors.insert(0, line)
         while len(self.errors) > int(self.max_lines):
             self.errors.pop()
@@ -97,6 +104,7 @@ class SensorListener(object):
 
         content = """<html>
 <head>
+<meta http-equiv="refresh" content="2" />
 <title>Demo Python</title>
 </head>
 <body>
