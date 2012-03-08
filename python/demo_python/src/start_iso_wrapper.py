@@ -4,19 +4,16 @@
 @author: Thomas Calmant
 """
 
-from psem2m.services import pelix
-from psem2m.services.pelix import Framework, BundleContext
 import readline
 import code
 import logging
 import os.path
 import sys
-from psem2m.component import constants
 
 # ------------------------------------------------------------------------------
 
 # Set logging level
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 # ------------------------------------------------------------------------------
 
@@ -28,10 +25,20 @@ os.environ["PSEM2M_ISOLATE_ID"] = "isolate-wrapper"
 logging.info("--- Extending sys.path ---")
 sys.path.append(os.getcwd())
 
-for other in ("../../psem2m.base/src", "../../python.injection/src"):
+for other in ("../../psem2m.base/src", "../../python.injection/src", '.'):
     other_path = os.path.abspath(os.path.join(os.getcwd(), other))
     logging.info("Adding : %s", other_path)
     sys.path.append(other_path)
+
+# ------------------------------------------------------------------------------
+
+logging.info("--- Import Pelix ---")
+
+import psem2m.services.pelix as pelix
+from psem2m.services.pelix import Framework, BundleContext
+from psem2m.component import constants
+
+# ------------------------------------------------------------------------------
 
 logging.info("--- Start Pelix ---")
 framework = pelix.FrameworkFactory.get_framework({'debug': True})
