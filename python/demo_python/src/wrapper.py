@@ -5,13 +5,14 @@
 """
 
 from psem2m.component.decorators import ComponentFactory, Provides, Requires, \
-    Property, Validate, Invalidate
+    Property, Validate, Invalidate, Bind, Unbind
 from psem2m.utilities import SynchronizedClassMethod
 
 import ctypes
 import logging
 import threading
 import time
+import sys
 
 _logger = logging.getLogger(__name__)
 
@@ -42,6 +43,26 @@ class SensorWrapper(object):
         _logger.debug("SensorWrapper instantiated")
 
 
+    @Bind
+    @SynchronizedClassMethod('lock')
+    def bind(self, svc):
+        """
+        Called when a listener is bound
+        """
+        if self.error != 0:
+            svc.error(self.id, "Welcome (error)", -self.error)
+        else:
+            svc.notify(self.id, "Welcome", self.old_state, self.old_state)
+
+    @Unbind
+    @SynchronizedClassMethod('lock')
+    def unbind(self, svc):
+        """
+        Called when a listener is unbound
+        """
+        svc.notify(self.id, "Bye !", -1, self.old_state)
+
+
     @Validate
     @SynchronizedClassMethod('lock')
     def validate(self, context):
@@ -66,7 +87,15 @@ class SensorWrapper(object):
         """
         self.running = False
         self.thread = None
+
+        if sys.platform == "win32":
+            ctypes.cdll.kernel32.FreeLibrary(self.lib._handle)
+        else:
+            libdl = ctypes.CDLL("libdl.so")
+            libdl.dlclose(self.lib._handle)
+
         self.lib = None
+
         self.old_state = -1
 
         _logger.debug("%s: Invalidated", self.id)
@@ -88,8 +117,6 @@ class SensorWrapper(object):
         """
         Notify state modifications
         """
-        _logger.debug("Read state : %d", new_state)
-
         if new_state < 0:
             if self.error != new_state:
                 self.error = new_state
