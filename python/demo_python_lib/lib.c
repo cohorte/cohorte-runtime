@@ -21,10 +21,7 @@ int read_state(char* file_name)
 
 	fd = fopen(file_name, "r");
 	if(!fd)
-	{
-		printf("Can't read file (%s)", file_name);
 		return -1;
-	}
 
 	if(fread(&state, sizeof(char), 1, fd) == sizeof(state))
 	{
@@ -50,10 +47,7 @@ int read_state(char* file_name)
 
 	fd = fopen(file_name, "r");
 	if(!fd)
-	{
-		printf("Can't read file (%s)", file_name);
 		return -1;
-	}
 
 	fseek(fd, 0, SEEK_END);
 	fd_len = ftell(fd);
@@ -62,7 +56,7 @@ int read_state(char* file_name)
 	state = (char*) malloc(fd_len + 1);
 	memset(state, 0, fd_len + 1);
 
-	if(fread(state, fd_len, 1, fd) == fd_len)
+	if(fread(state, fd_len, 1, fd) >= 0)
 	{
 		sscanf(state, "%d", &state_val);
 		free(state);
