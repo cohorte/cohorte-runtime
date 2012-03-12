@@ -27,15 +27,13 @@ iPOJO-Components: instance { $component="psem2m-config-factory" $name=
  back { $transition="validate" $method="validatePojo" }callback { $tra
  nsition="invalidate" $method="invalidatePojo" }manipulation { $super=
  "org.psem2m.isolates.base.activators.CPojoBase" interface { $name="or
- g.psem2m.isolates.services.conf.ISvcConfig" }field { $name="pConfigur
- ationFiles" $type="java.util.Set" }field { $name="pFileFinder" $type=
- "org.psem2m.isolates.services.dirs.IFileFinderSvc" }field { $name="pI
- solateLoggerSvc" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }
- field { $name="pLastLoad" $type="long" }field { $name="pReader" $type
- ="org.psem2m.isolates.config.json.JsonConfigReader" }method { $name="
- findConfigurationFiles" $return="boolean" }method { $name="getApplica
- tion" $return="org.psem2m.isolates.services.conf.IApplicationDescr" }
- method { $name="invalidatePojo" }method { $name="logDumpConfig" }meth
- od { $name="refresh" $return="boolean" }method { $name="validatePojo"
-  }}}
+ g.psem2m.isolates.services.conf.ISvcConfig" }field { $name="pFileFind
+ er" $type="org.psem2m.isolates.services.dirs.IFileFinderSvc" }field {
+  $name="pIsolateLoggerSvc" $type="org.psem2m.isolates.base.IIsolateLo
+ ggerSvc" }field { $name="pLastLoad" $type="long" }field { $name="pRea
+ der" $type="org.psem2m.isolates.config.json.JsonConfigReader" }method
+  { $name="getApplication" $return="org.psem2m.isolates.services.conf.
+ IApplicationDescr" }method { $name="invalidatePojo" }method { $name="
+ logDumpConfig" }method { $name="refresh" $return="boolean" }method { 
+ $name="validatePojo" }}}
 

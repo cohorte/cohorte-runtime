@@ -5,11 +5,6 @@
  */
 package org.psem2m.isolates.config.impl;
 
-import java.io.File;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
@@ -31,9 +26,6 @@ public class CJsonConfigSvc extends CPojoBase implements ISvcConfig {
     /** Minimum age of the configuration before a reload (in milliseconds) */
     public static final long MINIMUM_AGE = 1000;
 
-    /** Found configuration files */
-    private final Set<File> pConfigurationFiles = new LinkedHashSet<File>();
-
     /** File finder service, injected by iPOJO */
     private IFileFinderSvc pFileFinder;
 
@@ -52,52 +44,6 @@ public class CJsonConfigSvc extends CPojoBase implements ISvcConfig {
     public CJsonConfigSvc() {
 
         super();
-    }
-
-    /**
-     * Tries to find all possible configuration files, in priority-descending
-     * order
-     * 
-     * @return True if at least one configuration file has been found
-     */
-    protected boolean findConfigurationFiles() {
-
-        // Clear old values
-        pConfigurationFiles.clear();
-
-        final Set<String> configFolders = new LinkedHashSet<String>();
-
-        // Add extra "standard" configuration folders
-        configFolders.addAll(Arrays
-                .asList(IPlatformConfigurationConstants.EXTRA_CONF_FOLDERS));
-
-        // Get the home then base folders, if they exist
-        String platformDir = System
-                .getProperty(IPlatformConfigurationConstants.SYSTEM_PSEM2M_HOME);
-        if (platformDir != null && !platformDir.isEmpty()) {
-            configFolders.add(platformDir + File.separator
-                    + IPlatformConfigurationConstants.SUBDIR_CONF);
-        }
-
-        platformDir = System
-                .getProperty(IPlatformConfigurationConstants.SYSTEM_PSEM2M_BASE);
-        if (platformDir != null && !platformDir.isEmpty()) {
-            configFolders.add(platformDir + File.separator
-                    + IPlatformConfigurationConstants.SUBDIR_CONF);
-        }
-
-        // Test configuration files existence
-        for (final String folder : configFolders) {
-
-            final File configFile = new File(folder,
-                    IPlatformConfigurationConstants.FILE_MAIN_CONF);
-
-            if (configFile.isFile()) {
-                pConfigurationFiles.add(configFile);
-            }
-        }
-
-        return !pConfigurationFiles.isEmpty();
     }
 
     /*
@@ -155,7 +101,6 @@ public class CJsonConfigSvc extends CPojoBase implements ISvcConfig {
                                     .PropertiesToString(wIBundleDescr
                                             .getProperties()));
                 }
-
             }
         }
     }
