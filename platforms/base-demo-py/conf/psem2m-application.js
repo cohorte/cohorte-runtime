@@ -18,6 +18,6 @@
             "kind":"python",
             "httpPort":10010,
             "bundles":[]
-        },
+        }
     ]
 }
