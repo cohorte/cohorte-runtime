@@ -39,6 +39,11 @@ ref = context.get_service_reference(constants.IPOPO_SERVICE_SPECIFICATION)
 ipopo = context.get_service(ref)
 del ref
 
+logging.info("-- Install HTTP Config --")
+bid = framework.install_bundle("base.config")
+b_conf = context.get_bundle(bid)
+b_conf.start()
+
 logging.info("-- Install HTTP Service --")
 bid = framework.install_bundle("base.httpsvc")
 b_http = context.get_bundle(bid)

@@ -40,6 +40,7 @@ SPECIAL_ISOLATE_ID_FORKER = "%s%s" \
 @ComponentFactory("IsolateDirectoryFactory")
 @Instantiate("SignalDirectory")
 @Provides("org.psem2m.IsolateDirectory")
+@Requires("config", "org.psem2m.isolates.services.conf.ISvcConfig")
 class IsolateDirectory(object):
     """
     Isolate directory
@@ -71,12 +72,13 @@ class IsolateDirectory(object):
         Retrieves the list of all non-internal isolates, testing whether the ID
         starts with SPECIAL_ISOLATE_ID_FORKER or not.
         
-        :return: All non-internal isolates ID (never null)
+        :return: All non-internal isolates ID (never None)
         """
-        return [isolate_id
-                for isolate_id in self.config.keys()
-                if self.is_valid_isolate(isolate_id) \
-                and not isolate_id.startswith(SPECIAL_INTERNAL_ISOLATES_PREFIX)]
+        return set([isolate_id
+            for isolate_id
+            in self.config.get_application().get_isolate_ids()
+            if self.is_valid_isolate(isolate_id) \
+            and not isolate_id.startswith(SPECIAL_INTERNAL_ISOLATES_PREFIX)])
 
 
     def _get_all_monitors(self):
@@ -84,10 +86,11 @@ class IsolateDirectory(object):
         Retrieves the list of all internal isolates, except the forker, testing
         whether the ID starts with SPECIAL_ISOLATE_ID_FORKER or not.
         """
-        return [isolate_id
-                for isolate_id in self.config.keys()
+        return set((isolate_id
+                for isolate_id
+                in self.config.get_application().get_isolate_ids()
                 if self.is_valid_isolate(isolate_id) \
-                and isolate_id.startswith(SPECIAL_INTERNAL_ISOLATES_PREFIX)]
+                and isolate_id.startswith(SPECIAL_INTERNAL_ISOLATES_PREFIX)))
 
 
 
@@ -107,47 +110,66 @@ class IsolateDirectory(object):
         returned by this method.
         
         :param isolate_id: An isolate ID
-        :return: The access string to the isolate, or null.
+        :return: The access string to the isolate, or None.
         """
-        return self.config.get(isolate_id, None)
+        isolate = self.config.get_application().get_isolate(isolate_id)
+        if isolate is not None:
+            return isolate.get_access_url()
+
+        return None
 
 
     def get_isolates(self, isolates_ids):
         """
-        Retrieves the access string of each of the given isolates. Unknown
-        isolates are ignored. Returns null if all given isolates are unknown.
+        Retrieves the access string of each of the given isolates.
+        The parameter can be an array of isolate IDs or one of :
+        
+        * "*" or "ALL" : target monitors and isolates
+        * "MONITORS" : target monitors only
+        * "ISOLATES" : target isolates only
+        
+        Unknown isolates are ignored.
+        Returns None if all given isolates are unknown.
+        
         Current isolate and the forker (in PSEM2M) access URLs **must not**
         be returned by this method.
 
-        :param isolates_ids: An array of isolate IDs
+        :param isolates_ids: An array of isolate IDs or a target name
         :return: Access strings to the known isolates, null if none is known.
         """
-        result = []
-
-        for isolate in isolates_ids:
-            if isolate == "*" or isolate == "ALL":
+        if isinstance(isolates_ids, str):
+            # Targets
+            if isolates_ids == "*" or isolates_ids == "ALL":
                 # Retrieve all isolates at once
-                return self.get_isolates(set(self._get_all_isolates())\
-                                         .union(self._get_all_monitors()))
+                return self.get_isolates(set((isolate for isolate
+                            in self.config.get_application().get_isolate_ids()
+                            if self.is_valid_isolate(isolate))))
 
-            elif isolate == "MONITORS":
+            elif isolates_ids == "MONITORS":
                 # Retrieve all monitors
-                return self.get_isolates(set(self._get_all_monitors()))
+                return self.get_isolates(self._get_all_monitors())
 
-            elif isolate == "ISOLATES":
+            elif isolates_ids == "ISOLATES":
                 # Retrieve all non-internal isolates
-                return self.get_isolates(set(self._get_all_isolates()))
+                return self.get_isolates(self._get_all_isolates())
 
-            else:
+            # Isolate
+            return [self.get_isolate(isolates_ids)]
+
+        else:
+            result = []
+
+            for isolate in isolates_ids:
                 # Standard work
-                url = self.get_isolate(isolate)
-                if url is not None:
-                    result.append(url)
+                if self.is_valid_isolate(isolate):
+                    url = self.get_isolate(isolate)
+                    if url is not None:
+                        result.append(url)
 
-        if len(result) == 0:
-            return None
+            if len(result) == 0:
+                return None
 
-        return result
+            return result
 
 
     @Validate
@@ -155,19 +177,15 @@ class IsolateDirectory(object):
         """
         Component validation
         """
-        self.config = {
-           "isolate-wrapper": "127.0.0.1:10010",
-           "isolate-listener": "127.0.0.1:10000",
-           "org.psem2m.internals.isolates.monitor-1": "127.0.0.1:9000",
-           "org.psem2m.internals.isolates.forker": "127.0.0.1:9001",
-                       }
+        # Be sure that the configuration is fresh enough
+        self.config.refresh()
+
 
     @Invalidate
     def invalidate(self, context):
         """
         Component invalidation
         """
-        self.config.clear()
         self.config = None
 
 
@@ -354,7 +372,6 @@ class SignalSender(object):
 
         for url in urls:
             try:
-
                 if url == "{local}":
                     self.local_recv.handle_received_signal(name, signal)
 
@@ -366,6 +383,7 @@ class SignalSender(object):
                         name = name[1:]
 
                     signal_url = "%s%s" % (SignalReceiver.SERVLET_PATH, name)
+
                     conn.request("POST", signal_url, json_signal, headers)
                     response = conn.getresponse()
                     if response.status != 200:
@@ -395,15 +413,6 @@ class SignalSender(object):
         if target is None:
             _logger.warn("No target given")
             return
-
-        if target == "monitors":
-            target = "org.psem2m.internals.isolates.monitor-1"
-
-        elif target == "forker":
-            target = "org.psem2m.internals.isolates.forker"
-
-        if not isinstance(target, list):
-            target = [target]
 
         urls = self.directory.get_isolates(target)
         if urls is None:
