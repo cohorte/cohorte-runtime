@@ -345,8 +345,7 @@ class JsonConfig(object):
 
         # Set up the access URL
         isolate.url = "http://{host}:{port}".format(
-                                        host=host,
-                                        port=isolate_object.get("port", "8080"))
+                        host=host, port=isolate_object.get("httpPort", "8080"))
 
         return isolate
 
