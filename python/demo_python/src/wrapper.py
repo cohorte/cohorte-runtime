@@ -92,7 +92,7 @@ class SensorWrapper(object):
             ctypes.cdll.kernel32.FreeLibrary(self.lib._handle)
         else:
             libdl = ctypes.CDLL("libdl.so")
-            libdl.dlclose(self.lib._handle)
+            libdl.dlclose(ctypes.c_void_p(self.lib._handle))
 
         self.lib = None
 
