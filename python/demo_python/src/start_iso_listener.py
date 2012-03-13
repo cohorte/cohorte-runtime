@@ -22,6 +22,9 @@ os.environ["HTTP_PORT"] = "10000"
 os.environ["RPC_PORT"] = "10001"
 os.environ["PSEM2M_ISOLATE_ID"] = "isolate-listener"
 
+os.environ["PSEM2M_HOME"] = "../../../platforms/psem2m.home"
+os.environ["PSEM2M_BASE"] = "../../../platforms/base-demo-py"
+
 logging.info("--- Extending sys.path ---")
 sys.path.append(os.getcwd())
 
@@ -54,6 +57,11 @@ b_ipopo.start()
 ref = context.get_service_reference(constants.IPOPO_SERVICE_SPECIFICATION)
 ipopo = context.get_service(ref)
 del ref
+
+logging.info("-- Install Config --")
+bid = framework.install_bundle("base.config")
+b_conf = context.get_bundle(bid)
+b_conf.start()
 
 logging.info("-- Install HTTP Service --")
 bid = framework.install_bundle("base.httpsvc")
