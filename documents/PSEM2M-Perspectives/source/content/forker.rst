@@ -224,8 +224,57 @@ Inconvénients
   faite dans un langage différent du moniteur (Java <-> Python, Java <-> C, ...)
 
 
-Adhérences au système d'exploitation
-************************************
+Adhérence au système d'exploitation
+***********************************
+
+On peut considérer quatre niveaux d'adhérence au système d'exploitation hôte :
+
+* Aucune : l'implémentation utilise la bibliothèque standard du langage utilisé
+  pour démarrer un nouvel isolat.
+  Par exemple, le module ``subprocess`` en Python permet d'exécuter une méthode
+  dans un nouvel interpréteur, sans que le code ait à démarrer un processus.
+
+  L'intérêt est évident : *code once, run everywhere*; mais le forker n'a qu'un
+  très faible contrôle sur l'exécution de l'isolat
+
+* Faible : la bibliothèque du langage utilisé permet de démarrer un processus
+  de la même manière quelque soit l'OS hôte, mais il est nécessaire de connaitre
+  le chemin de l'exécutable à démarrer.
+  Ce chemin est généralement dépendant de l'OS hôte (séparateurs,
+  extension, ...).
+
+  C'est le cas de l'implémentation actuelle, en isolat Java. Le contrôle de
+  l'isolat lancé est faible, mais seule la recherche de l'exécutable est
+  dépendante de l'OS hôte.
+
+* Forte : la recherche de l'exécutable peut être générique (variables
+  d'environnement, chemins relatifs...), mais l'exécution se fait selon des
+  mécanismes utilitaires dépendant de l'OS hôte (``ShellExecute`` sous Windows,
+  ...). Ce niveau d'adhérence implique un implémentation pour chaque *famille*
+  d'OS (Windows, POSIX, ...).
+
+  Faisable en Java avec JNA ou JNI, en Python avec ``pywin32``, ``os`` ou
+  ``ctypes``. Cette technique permet d'avoir un contrôle un peu plus fin sur
+  le démarrage d'une application. Il permet également de récupérer un
+  identifiant (*PID* ou *handle*) et donc d'utiliser des méthodes spécifiques à
+  l'OS hôte pour connaitre l'état des isolats.
+
+  L'aspect *intermédiaire* de cette méthode peut impliquer une bibliothèque
+  d'adaptation dans un langage de plus bas niveau, comme le C, afin de
+  simplifier le développement du forker, quelque soit son langage.
+
+* Extrème : comme *Forte*, mais en utilisant des mécanismes de bas niveau du
+  système hôte (``CreateProcess`` sous Windows, ``fork`` et ``exec*`` sous
+  POSIX).
+
+  Non recommandé en Java, le comportement après un ``fork`` restant incertain,
+  et faisable avec ``pywin32`` et ``os`` en Python. L'avantage ici est la
+  nécessité franche d'avoir une implémentation par *famille* d'OS, permettant
+  d'utiliser tous les outils à disposition sur le système hôte pour exécuter,
+  gérer et tuer un isolat.
+
 
 Récapitulatif
 *************
+
+
