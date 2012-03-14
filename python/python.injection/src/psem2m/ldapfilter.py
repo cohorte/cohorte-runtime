@@ -25,7 +25,7 @@ Dependency-less LDAP filter parser for Python
     along with iPOPO. If not, see <http://www.gnu.org/licenses/>.
 """
 
-from psem2m import is_string
+from psem2m.utilities import is_string
 
 # ------------------------------------------------------------------------------
 

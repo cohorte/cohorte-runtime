@@ -26,14 +26,16 @@ Core iPOPO implementation
     along with iPOPO. If not, see <http://www.gnu.org/licenses/>.
 """
 
-from psem2m import ldapfilter, is_string
-from psem2m.component import constants
-from psem2m.ldapfilter import LDAPFilter, LDAPCriteria
-from psem2m.services import pelix
 from psem2m.services.pelix import BundleContext, ServiceEvent, BundleEvent, \
     Bundle, BundleException
 from psem2m.utilities import remove_all_occurrences, SynchronizedClassMethod, \
-    add_listener, remove_listener
+    add_listener, remove_listener, is_string
+
+import psem2m.component.constants as constants
+import psem2m.services.pelix as pelix
+import psem2m.ldapfilter as ldapfilter
+
+# ------------------------------------------------------------------------------
 
 import inspect
 import logging
@@ -230,8 +232,8 @@ class Requirement(object):
         :raise TypeError: Unknown filter type
         """
         if spec_filter is not None and not is_string(spec_filter) \
-        and not isinstance(spec_filter, LDAPFilter) \
-        and not isinstance(spec_filter, LDAPCriteria):
+        and not isinstance(spec_filter, ldapfilter.LDAPFilter) \
+        and not isinstance(spec_filter, ldapfilter.LDAPCriteria):
             # Unknown type
             raise TypeError("Invalid filter type %s" \
                             % type(spec_filter).__name__)

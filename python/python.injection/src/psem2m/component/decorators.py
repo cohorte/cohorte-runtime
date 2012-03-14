@@ -26,9 +26,12 @@ Defines the iPOPO decorators classes to manipulate component factory classes
     along with iPOPO. If not, see <http://www.gnu.org/licenses/>.
 """
 
-from psem2m import is_string
-from psem2m.component import constants
+from psem2m.utilities import is_string
 from psem2m.component.ipopo import FactoryContext, Requirement
+
+import psem2m.component.constants as constants
+
+# ------------------------------------------------------------------------------
 
 import inspect
 import logging
