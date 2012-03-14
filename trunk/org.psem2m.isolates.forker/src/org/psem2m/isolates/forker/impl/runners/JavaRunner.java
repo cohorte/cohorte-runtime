@@ -11,8 +11,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Instantiate;
+import org.apache.felix.ipojo.annotations.Invalidate;
+import org.apache.felix.ipojo.annotations.Provides;
+import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
+import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.forker.IProcessRef;
@@ -26,27 +33,24 @@ import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
  * 
  * @author Thomas Calmant
  */
+@Component(name = "psem2m-runner-java-factory", publicFactory = false)
+@Provides(specifications = IJavaRunner.class)
+@Instantiate(name = "psem2m-runner-java")
 public class JavaRunner extends CPojoBase implements IJavaRunner {
 
     /** Supported isolate kind */
     public static final String SUPPORTED_ISOLATE_KIND = "java";
 
     /** The logger service, injected by iPOJO */
+    @Requires
     private IIsolateLoggerSvc pIsolateLoggerSvc;
 
     /** The Java executable */
     private String pJavaExecutable;
 
     /** The platform directory service */
+    @Requires
     private IPlatformDirsSvc pPlatformDirsSvc;
-
-    /**
-     * Default constructor
-     */
-    public JavaRunner() {
-
-        super();
-    }
 
     /*
      * (non-Javadoc)
@@ -57,17 +61,6 @@ public class JavaRunner extends CPojoBase implements IJavaRunner {
     public boolean canRun(final String aIsolateKind) {
 
         return SUPPORTED_ISOLATE_KIND.equals(aIsolateKind);
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.utilities.CXObjectBase#destroy()
-     */
-    @Override
-    public void destroy() {
-
-        // ...
     }
 
     /**
@@ -88,6 +81,7 @@ public class JavaRunner extends CPojoBase implements IJavaRunner {
      * @see org.psem2m.isolates.base.CPojoBase#invalidatePojo()
      */
     @Override
+    @Invalidate
     public void invalidatePojo() throws BundleException {
 
         // logs in the bundle logger
@@ -135,7 +129,7 @@ public class JavaRunner extends CPojoBase implements IJavaRunner {
             final Map<String, String> aEnvironment, final File aWorkingDirectory)
             throws IOException {
 
-        IProcessRunner runner = getProcessRunner();
+        final IProcessRunner runner = getProcessRunner();
 
         return runner.runProcess(pJavaExecutable,
                 aArguments.toArray(new String[0]), aEnvironment,
@@ -166,7 +160,7 @@ public class JavaRunner extends CPojoBase implements IJavaRunner {
             throws IOException {
 
         // Prepare the Java interpreter JAR indication
-        List<String> arguments = new ArrayList<String>();
+        final List<String> arguments = new ArrayList<String>();
 
         // JVM options
         if (aJavaOptions != null) {
@@ -179,13 +173,13 @@ public class JavaRunner extends CPojoBase implements IJavaRunner {
 
         // Append JAR program arguments
         if (aJarArguments != null) {
-            for (String jarArgument : aJarArguments) {
+            for (final String jarArgument : aJarArguments) {
                 arguments.add(jarArgument);
             }
         }
 
         // Run it
-        IProcessRunner runner = getProcessRunner();
+        final IProcessRunner runner = getProcessRunner();
         return runner.runProcess(pJavaExecutable,
                 arguments.toArray(new String[0]), aEnvironment,
                 aWorkingDirectory);
@@ -221,8 +215,14 @@ public class JavaRunner extends CPojoBase implements IJavaRunner {
                         .getPlatformBaseDir().getAbsolutePath()));
 
         // Working directory
-        File workingDirectory = pPlatformDirsSvc
+        final File workingDirectory = pPlatformDirsSvc
                 .getIsolateWorkingDir(aIsolateConfiguration.getId());
+
+        // Create the working directory
+        if (workingDirectory.exists()) {
+            Utilities.removeDirectory(workingDirectory);
+        }
+        workingDirectory.mkdirs();
 
         // Run the isolate
         return runJava(javaArguments, null, workingDirectory);
@@ -234,6 +234,7 @@ public class JavaRunner extends CPojoBase implements IJavaRunner {
      * @see org.psem2m.isolates.base.CPojoBase#validatePojo()
      */
     @Override
+    @Validate
     public void validatePojo() throws BundleException {
 
         // Store the Java executable path

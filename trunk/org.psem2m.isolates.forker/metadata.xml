@@ -3,58 +3,6 @@
 	xsi:schemaLocation="org.apache.felix.ipojo http://felix.apache.org/ipojo/schemas/CURRENT/core.xsd"
 	xmlns="org.apache.felix.ipojo" xmlns:jmx="org.apache.felix.ipojo.handlers.jmx">
 
-
-
-	<!-- Java Runner -->
-	<component classname="org.psem2m.isolates.forker.impl.runners.JavaRunner"
-		architecture="true" immediate="true" name="psem2m-runner-java-factory"
-		public="false">
-
-		<provides specifications="org.psem2m.isolates.forker.impl.runners.IJavaRunner" />
-
-		<requires field="pIsolateLoggerSvc" optional="false" />
-		<requires field="pPlatformDirsSvc" optional="false" />
-
-		<callback transition="validate" method="validatePojo" />
-		<callback transition="invalidate" method="invalidatePojo" />
-	</component>
-	<instance component="psem2m-runner-java-factory" name="psem2m-runner-java" />
-
-	<!-- OSGi Runner -->
-	<component classname="org.psem2m.isolates.forker.impl.runners.CIsolateRunner"
-		architecture="true" immediate="true" name="psem2m-runner-osgi-factory"
-		public="false">
-
-		<provides specifications="org.psem2m.isolates.forker.IIsolateRunner" />
-
-		<requires field="pIsolateLoggerSvc" optional="false" />
-		<requires field="pPlatformDirsSvc" optional="false" />
-		<requires field="pBundleFinderSvc" optional="false" />
-		<requires field="pJavaRunnerSvc" optional="false" />
-
-		<callback transition="validate" method="validatePojo" />
-		<callback transition="invalidate" method="invalidatePojo" />
-	</component>
-	<instance component="psem2m-runner-osgi-factory" name="psem2m-runner-osgi" />
-
-
-	<!-- Forker -->
-	<component classname="org.psem2m.isolates.forker.impl.CForkerSvc"
-		architecture="true" immediate="true" name="psem2m-forker-factory"
-		public="false">
-		<provides specifications="org.psem2m.isolates.services.forker.IForker" />
-
-		<!-- Needed to export instance properties -->
-		<properties propagation="true" />
-
-		<requires field="pIsolateLoggerSvc" optional="false" />
-		<requires field="pIsolateRunners" optional="false" />
-		<requires field="pSignalBroadcaster" optional="false" />
-
-		<callback transition="validate" method="validatePojo" />
-		<callback transition="invalidate" method="invalidatePojo" />
-	</component>
-
 	<!-- Exported instance -->
 	<instance component="psem2m-forker-factory" name="psem2m-forker">
 		<property name="service.exported.interfaces" value="*" />

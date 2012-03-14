@@ -10,6 +10,11 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.LogRecord;
 
+import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Invalidate;
+import org.apache.felix.ipojo.annotations.Provides;
+import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.Validate;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.base.activators.CPojoBase;
@@ -28,39 +33,25 @@ import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
  * 
  * @author Thomas Calmant
  */
+@Component(name = "psem2m-forker-factory", publicFactory = false, propagation = true)
+@Provides(specifications = IForker.class)
 public class CForkerSvc extends CPojoBase implements IForker,
         IIsolateOutputListener {
 
     /** The logger service, injected by iPOJO */
+    @Requires
     private IIsolateLoggerSvc pIsolateLoggerSvc;
 
     /** Isolate runners, injected by iPOJO */
+    @Requires
     private IIsolateRunner[] pIsolateRunners;
 
     /** Isolate <-> Process association */
     private final Map<String, IProcessRef> pRunningIsolates = new TreeMap<String, IProcessRef>();
 
     /** Inter-isolates signal broadcaster */
+    @Requires
     private ISignalBroadcaster pSignalBroadcaster;
-
-    /**
-     * Default constructor
-     */
-    public CForkerSvc() {
-
-        super();
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.utilities.CXObjectBase#destroy()
-     */
-    @Override
-    public void destroy() {
-
-        // ...
-    }
 
     /*
      * (non-Javadoc)
@@ -135,6 +126,7 @@ public class CForkerSvc extends CPojoBase implements IForker,
      * @see org.psem2m.isolates.base.CPojoBase#invalidatePojo()
      */
     @Override
+    @Invalidate
     public void invalidatePojo() {
 
         // logs in the bundle logger
@@ -267,6 +259,7 @@ public class CForkerSvc extends CPojoBase implements IForker,
      * @see org.psem2m.isolates.base.CPojoBase#validatePojo()
      */
     @Override
+    @Validate
     public void validatePojo() {
 
         // logs in the bundle logger

@@ -14,6 +14,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Instantiate;
+import org.apache.felix.ipojo.annotations.Invalidate;
+import org.apache.felix.ipojo.annotations.Provides;
+import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.Utilities;
@@ -32,6 +38,9 @@ import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
  * 
  * @author Thomas Calmant
  */
+@Component(name = "psem2m-runner-osgi-factory", publicFactory = false)
+@Provides(specifications = IIsolateRunner.class)
+@Instantiate(name = "psem2m-runner-osgi")
 public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
 
     /** Equinox framework names */
@@ -62,27 +71,23 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
     private int pBaseDebugPort = -1;
 
     /** Bundle finder service, injected by iPOJO */
+    @Requires
     private IBundleFinderSvc pBundleFinderSvc;
 
     /** Launched isolate index */
     private int pIsolateIndex = 0;
 
     /** The logger service, injected by iPOJO */
+    @Requires
     private IIsolateLoggerSvc pIsolateLoggerSvc;
 
     /** Java isolate runner service, injected by iPOJO */
+    @Requires
     private IJavaRunner pJavaRunnerSvc;
 
     /** The platform directory service, injected by iPOJO */
+    @Requires
     private IPlatformDirsSvc pPlatformDirsSvc;
-
-    /**
-     * Default constructor
-     */
-    public CIsolateRunner() {
-
-        super();
-    }
 
     /**
      * Converts an array of bundle references to an URL list. Ignores invalid
@@ -124,20 +129,10 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.utilities.CXObjectBase#destroy()
-     */
-    @Override
-    public void destroy() {
-
-        // ...
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
      * @see org.psem2m.isolates.base.CPojoBase#invalidatePojo()
      */
     @Override
+    @Invalidate
     public void invalidatePojo() throws BundleException {
 
         // logs in the bundle logger
@@ -234,10 +229,11 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
         }
 
         mainBundleRef = pBundleFinderSvc.findBundle(mainBundleNames);
-        if (mainBundleRef == null) {
+        if (mainBundleRef == null || mainBundleRef.getFile() == null) {
             pIsolateLoggerSvc.logSevere(this, "prepareClasspathArgument",
                     "Can't find an OSGi framework file, searching for : "
                             + Arrays.toString(mainBundleNames));
+            return null;
         }
 
         // Add the bootstrap JAR
@@ -325,8 +321,14 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
         final File bootstrapFile = pBundleFinderSvc.getBootstrap();
 
         // Add the class path argument
-        javaOptions.addAll(prepareClasspathArgument(bootstrapFile,
-                aIsolateConfiguration.getKind()));
+        final List<String> classpath = prepareClasspathArgument(bootstrapFile,
+                aIsolateConfiguration.getKind());
+        if (classpath == null) {
+            // Error preparing the classpath argument
+            return null;
+        }
+
+        javaOptions.addAll(classpath);
 
         // Set debug mode, if needed
         setupDebugMode(javaOptions);
@@ -344,10 +346,10 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
         final File workingDirectory = pPlatformDirsSvc
                 .getIsolateWorkingDir(aIsolateConfiguration.getId());
 
+        // Create the working directory
         if (workingDirectory.exists()) {
             Utilities.removeDirectory(workingDirectory);
         }
-
         workingDirectory.mkdirs();
 
         // Run the bootstrap
@@ -360,6 +362,7 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
      * @see org.psem2m.isolates.base.CPojoBase#validatePojo()
      */
     @Override
+    @Validate
     public void validatePojo() throws BundleException {
 
         // Read debug properties
