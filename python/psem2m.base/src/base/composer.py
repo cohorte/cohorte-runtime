@@ -176,7 +176,9 @@ class ComposerAgent(object):
                 _logger.exception("EPIC FAIL !")
                 failure.append(name)
 
-        result_map = {"instantiated": success, "failed": failure}
+        result_map = {"composite": composite_name, "instantiated": success,
+                      "failed": failure}
+
         self.sender.send_data(sender, SIGNAL_RESPONSE_INSTANTIATE_COMPONENTS,
                               result_map)
 
