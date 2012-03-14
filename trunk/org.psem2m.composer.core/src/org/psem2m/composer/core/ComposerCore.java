@@ -294,9 +294,9 @@ public class ComposerCore extends CPojoBase implements IComposer,
         final Object signalContent = aSignalData.getSignalContent();
 
         // For Jabsorb results...
-        final String[] stringContent = Utilities.arrayToTypedArray(
-                signalContent, String.class);
-        final ComponentBean[] componentsArray = Utilities.arrayToTypedArray(
+        final String[] stringContent = Utilities.getArray(signalContent,
+                String.class);
+        final ComponentBean[] componentsArray = Utilities.getArray(
                 signalContent, ComponentBean.class);
 
         if (ComposerAgentSignals.SIGNAL_RESPONSE_HANDLES_COMPONENTS
@@ -1013,8 +1013,11 @@ public class ComposerCore extends CPojoBase implements IComposer,
      */
     protected void unregisterIsolate(final String aIsolateId) {
 
-        unregisterComponentsForIsolate(aIsolateId,
-                pIsolatesCapabilities.get(aIsolateId).toArray(new String[0]));
+        final List<String> isolateCaps = pIsolatesCapabilities.get(aIsolateId);
+        if (isolateCaps != null) {
+            unregisterComponentsForIsolate(aIsolateId,
+                    isolateCaps.toArray(new String[0]));
+        }
     }
 
     /**
@@ -1040,15 +1043,20 @@ public class ComposerCore extends CPojoBase implements IComposer,
         // Unknown composite
         if (composet == null) {
             // Ignore it
+            pLogger.logDebug(this, "updateInstantiatingCompositeStatus",
+                    "No known composet given, composet=", composetName);
             return;
         }
 
         // Succeeded component instantiations
-        final String[] instantiatedComponents = (String[]) aAgentResult
-                .get(ComposerAgentSignals.RESULT_KEY_INSTANTIATED);
+        final String[] instantiatedComponents = Utilities.getArray(
+                aAgentResult.get(ComposerAgentSignals.RESULT_KEY_INSTANTIATED),
+                String.class);
 
         if (instantiatedComponents == null) {
             // Nothing to do
+            pLogger.logDebug(this, "updateInstantiatingCompositeStatus",
+                    "No instantiated component");
             return;
         }
 
@@ -1070,17 +1078,23 @@ public class ComposerCore extends CPojoBase implements IComposer,
         }
 
         // Failed instantiations
-        final String[] failedComponents = (String[]) aAgentResult
-                .get(ComposerAgentSignals.RESULT_KEY_FAILED);
+        final String[] failedComponents = Utilities.getArray(
+                aAgentResult.get(ComposerAgentSignals.RESULT_KEY_FAILED),
+                String.class);
 
         // Cancel their timeouts
         for (final String failedComponentName : failedComponents) {
             cancelTimeout(failedComponentName);
         }
 
-        pLogger.logWarn(this, "updateInstantiatingCompositeStatus",
-                "The following components couldn't be started :",
-                Arrays.toString(failedComponents));
+        if (failedComponents.length != 0) {
+            pLogger.logWarn(this, "updateInstantiatingCompositeStatus",
+                    "The following components couldn't be started :",
+                    Arrays.toString(failedComponents));
+        } else {
+            pLogger.logDebug(this, "updateInstantiatingCompositeStatus",
+                    "All components of", composetName, " have been started");
+        }
 
         // Ask for a new resolution
         delayResolution();

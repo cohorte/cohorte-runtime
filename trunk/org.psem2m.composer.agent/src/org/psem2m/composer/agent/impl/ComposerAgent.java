@@ -355,9 +355,9 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
         final Object signalContent = aSignalData.getSignalContent();
 
         // For Jabsorb results...
-        final String[] stringContent = Utilities.arrayToTypedArray(
-                signalContent, String.class);
-        final ComponentBean[] componentsArray = Utilities.arrayToTypedArray(
+        final String[] stringContent = Utilities.getArray(signalContent,
+                String.class);
+        final ComponentBean[] componentsArray = Utilities.getArray(
                 signalContent, ComponentBean.class);
 
         if (ComposerAgentSignals.SIGNAL_CAN_HANDLE_COMPONENTS

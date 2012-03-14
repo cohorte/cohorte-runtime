@@ -11,8 +11,11 @@ import java.lang.reflect.Array;
 import java.net.InetAddress;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.regex.Pattern;
@@ -44,51 +47,6 @@ public final class Utilities {
         }
 
         return aObject;
-    }
-
-    /**
-     * Tries to convert the object into a typed array. Works only if the given
-     * object is an array containing only objects of the given type.
-     * 
-     * @param aObject
-     *            A potential object array
-     * @param aClass
-     *            The requested return type
-     * 
-     * @return The typed array or null
-     */
-    @SuppressWarnings("unchecked")
-    public static <T> T[] arrayToTypedArray(final Object aObject,
-            final Class<T> aClass) {
-
-        if (aObject instanceof Object[]) {
-            // Handled special case : the string array
-            final Object[] objectArray = (Object[]) aObject;
-
-            for (final Object obj : objectArray) {
-
-                if (obj != null && !aClass.isAssignableFrom(obj.getClass())) {
-                    /*
-                     * The entry is not of the requested type, so we can't
-                     * convert the whole array
-                     */
-                    return null;
-                }
-            }
-
-            // Convert the array
-            final T[] resultArray = (T[]) Array.newInstance(aClass,
-                    objectArray.length);
-
-            int i = 0;
-            for (final Object obj : objectArray) {
-                resultArray[i++] = (T) obj;
-            }
-
-            return resultArray;
-        }
-
-        return null;
     }
 
     /**
@@ -138,6 +96,77 @@ public final class Utilities {
     }
 
     /**
+     * Tries to convert the given array or collection into an array of the given
+     * type.
+     * 
+     * If the conversion can't be done, the method returns null.
+     * 
+     * @param aObject
+     *            An array or a collection to be converted
+     * @param aRequestedClass
+     *            The requested result array content type
+     * @return The typed array, null if the conversion is impossible
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T[] getArray(final Object aObject,
+            final Class<T> aRequestedClass) {
+
+        if (aObject == null || aRequestedClass == null) {
+            // Bad arguments
+            return null;
+        }
+
+        final Class<?> objClass = aObject.getClass();
+        if (objClass.isArray()) {
+            // Got an array
+            if (aRequestedClass.isAssignableFrom(objClass.getComponentType())) {
+                // Direct match
+                return (T[]) aObject;
+
+            } else {
+                // Try a conversion
+                final Object[] array = (Object[]) aObject;
+                final T[] resultArray = (T[]) Array.newInstance(
+                        aRequestedClass, array.length);
+                int i = 0;
+
+                for (final Object element : array) {
+
+                    if (element == null) {
+                        // Null object, nothing to do
+                        resultArray[i++] = null;
+
+                    } else if (aRequestedClass.isAssignableFrom(element
+                            .getClass())) {
+                        // Compatible type
+                        resultArray[i++] = (T) element;
+
+                    } else {
+                        // Invalid type, abandon
+                        return null;
+                    }
+                }
+
+                return resultArray;
+            }
+
+        } else if (aObject instanceof Collection) {
+            // Got a collection, let Java do the job
+            try {
+                return ((Collection<?>) aObject).toArray((T[]) Array
+                        .newInstance(aRequestedClass, 0));
+
+            } catch (final ArrayStoreException e) {
+                // Invalid content type
+                return null;
+            }
+        }
+
+        // Can't convert
+        return null;
+    }
+
+    /**
      * Computes the current host name, by using the system properties or socket
      * information
      */
@@ -164,6 +193,75 @@ public final class Utilities {
         }
 
         return hostName;
+    }
+
+    /**
+     * Tries to convert the given array or collection into a list of the given
+     * type.
+     * 
+     * If the conversion can't be done, the method returns null.
+     * 
+     * @param aObject
+     *            An array or a collection to be converted
+     * @param aRequestedClass
+     *            The requested result list content type
+     * @return The type-validated list, null if the conversion is impossible
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> List<T> getList(final Object aObject,
+            final Class<T> aContentType) {
+
+        if (aObject == null || aContentType == null) {
+            // Invalid args
+            return null;
+        }
+
+        final Class<?> objectClass = aObject.getClass();
+        if (objectClass.isArray()) {
+            // Convert to an array
+            final Object[] array = (Object[]) aObject;
+            final List<T> result = new ArrayList<T>(array.length);
+
+            for (final Object element : array) {
+                if (element == null) {
+                    // Nothing to do
+                    result.add(null);
+
+                } else if (aContentType.isAssignableFrom(element.getClass())) {
+                    // Compatible type
+                    result.add((T) element);
+
+                } else {
+                    // Type error, abandon
+                    return null;
+                }
+            }
+
+        } else if (aObject instanceof Collection) {
+            // Collection
+            final Collection<?> collection = (Collection<?>) aObject;
+
+            // Type validation loop
+            for (final Object element : collection) {
+                if (element != null
+                        && !aContentType.isAssignableFrom(element.getClass())) {
+                    // Found an incompatible element, abandon
+                    return null;
+                }
+            }
+
+            if (aObject instanceof List) {
+                // No container conversion needed
+                return (List<T>) aObject;
+
+            } else {
+                // The result must be a list
+                return new ArrayList<T>((Collection<T>) aObject);
+            }
+        }
+
+        // Can't work
+        return null;
     }
 
     /**
