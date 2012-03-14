@@ -7,13 +7,22 @@ Created on 29 févr. 2012
 
 # ------------------------------------------------------------------------------
 
+from psem2m.component.decorators import ComponentFactory, Provides, Requires, \
+    Validate, Invalidate, Instantiate
+
+from base.javautils import to_jabsorb, from_jabsorb, JAVA_CLASS
+
+import psem2m.utilities as utilities
+
+# ------------------------------------------------------------------------------
+
 import fnmatch
 import logging
 import json
 import os
+import socket
 import time
 import threading
-_logger = logging.getLogger(__name__)
 
 try:
     # Python 3
@@ -25,17 +34,13 @@ except ImportError:
 
 # ------------------------------------------------------------------------------
 
-from psem2m.component.decorators import ComponentFactory, Provides, Requires, \
-    Validate, Invalidate, Instantiate
-
-from base.javautils import to_jabsorb, from_jabsorb, JAVA_CLASS
-
-# ------------------------------------------------------------------------------
+_logger = logging.getLogger(__name__)
 
 SPECIAL_INTERNAL_ISOLATES_PREFIX = "org.psem2m.internals.isolates."
 SPECIAL_ISOLATE_ID_FORKER = "%s%s" \
                                 % (SPECIAL_INTERNAL_ISOLATES_PREFIX, "forker")
 
+# ------------------------------------------------------------------------------
 
 @ComponentFactory("IsolateDirectoryFactory")
 @Instantiate("SignalDirectory")
@@ -105,16 +110,16 @@ class IsolateDirectory(object):
 
     def get_isolate(self, isolate_id):
         """
-        Retrieves the access string to the given isolate. Returns null if the
-        isolate is unknown. Access to the current isolate and the forker can be
-        returned by this method.
+        Retrieves the (host, port) access tuple to the given isolate. Returns
+        None if the isolate is unknown. Access to the current isolate and the
+        forker can be returned by this method.
         
         :param isolate_id: An isolate ID
-        :return: The access string to the isolate, or None.
+        :return: The (host, port) tuple to access the isolate, or None
         """
         isolate = self.config.get_application().get_isolate(isolate_id)
         if isolate is not None:
-            return isolate.get_access_url()
+            return isolate.get_access()
 
         return None
 
@@ -137,7 +142,11 @@ class IsolateDirectory(object):
         :param isolates_ids: An array of isolate IDs or a target name
         :return: Access strings to the known isolates, null if none is known.
         """
-        if isinstance(isolates_ids, str):
+        if not isolates_ids:
+            # Don't work for nothing
+            return None
+
+        if utilities.is_string(isolates_ids):
             # Targets
             if isolates_ids == "*" or isolates_ids == "ALL":
                 # Retrieve all isolates at once
@@ -154,7 +163,11 @@ class IsolateDirectory(object):
                 return self.get_isolates(self._get_all_isolates())
 
             # Isolate
-            return [self.get_isolate(isolates_ids)]
+            url = self.get_isolate(isolates_ids)
+            if url is not None:
+                return [url]
+
+            return None
 
         else:
             result = []
@@ -370,14 +383,21 @@ class SignalSender(object):
         """
         headers = {"Content-Type": "application/json"}
 
-        for url in urls:
+        for access in urls:
+
+            if not access:
+                continue
+
+            host, port = access
+
             try:
-                if url == "{local}":
+                if host == "{local}":
+                    _logger.debug("Local signal: %s", name)
                     self.local_recv.handle_received_signal(name, signal)
 
                 else:
                     # 1 second timeout, to avoid useless waits
-                    conn = httplib.HTTPConnection(url, timeout=1)
+                    conn = httplib.HTTPConnection(host, port, timeout=1)
 
                     if name[0] == '/':
                         name = name[1:]
@@ -391,8 +411,14 @@ class SignalSender(object):
                                      signal_url, response.status,
                                      response.reason)
 
+            except socket.error as ex:
+                # Socket error
+                _logger.error("Error sending signal %s to %s : %s", name,
+                              access, str(ex))
+
             except:
-                _logger.exception("Error sending signal %s to %s", name, url)
+                # Other error...
+                _logger.exception("Error sending signal %s to %s", name, access)
 
 
     def get_current_isolate_id(self):
@@ -416,7 +442,7 @@ class SignalSender(object):
 
         urls = self.directory.get_isolates(target)
         if urls is None:
-            _logger.warn("Unknown target(s)")
+            _logger.warn("Unknown target(s) - '%s'", target)
             return
 
         self._internal_send(urls, name, data)
