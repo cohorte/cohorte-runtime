@@ -209,7 +209,18 @@ class _IsolateDescription(object):
         self.host = None
         self.id = isolate_id
         self.kind = ""
-        self.url = None
+        self.port = 8080
+
+
+
+    def get_access(self):
+        """
+        Retrieves the tuple (host, port), string host and integer port, to
+        access the isolate signal receiver.
+        
+        :return: The (host, port) tuple
+        """
+        return (self.host, self.port)
 
 
     def get_access_url(self):
@@ -219,7 +230,7 @@ class _IsolateDescription(object):
         
         :return: The URL to access the isolate
         """
-        return self.url
+        return "http://%s:%s" % (self.host, self.port)
 
 
     def get_bundles(self):
@@ -343,9 +354,26 @@ class JsonConfig(object):
         if not host:
             host = "localhost"
 
-        # Set up the access URL
-        isolate.url = "{host}:{port}".format(host=host,
-                                    port=isolate_object.get("httpPort", "8080"))
+        # Get the isolate port
+        port_str = isolate_object.get("httpPort", 8080)
+        if isinstance(port_str, int):
+            # Integer read directly from the JSON file
+            port = port_str
+
+        else:
+            # The port is not an integer, try to get the port from a service
+            # name
+            import socket
+            try:
+                port = socket.getservbyname(port_str)
+            except socket.error:
+                # Unreadable port
+                raise ValueError("Invalid port '%s' for isolate '%s'" \
+                                 % (port_str, isolate.get_id()))
+
+        # Store data
+        isolate.host = host
+        isolate.port = port
 
         return isolate
 
