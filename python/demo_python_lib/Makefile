@@ -21,6 +21,8 @@ OUT=$(OUT_2)
 CFLAGS+=-DUPDATED
 endif
 
+all: normal updated
+
 # Compile
 %.o: %.c
 	@$(CC) $(CFLAGS) -o "$@" "$<"
@@ -28,12 +30,13 @@ endif
 $(OUT): lib.o
 	@$(CC) -shared -o "$(OUT)" $<
 
-link:
-	@rm -f "$(OUT_LINK)"
-	@ln -s "$(OUT)" "$(OUT_LINK)"
-
 # Other
-all: $(OUT)
+build: $(OUT)
+
+normal: clean build
+
+updated:
+	@make UPDATED=1 normal
 
 clean:
 	@rm -f *.o
@@ -42,3 +45,4 @@ mrproper: clean
 	@rm -f "$(OUT_1)"
 	@rm -f "$(OUT_2)"
 	@rm -f "$(OUT_LINK)"
+
