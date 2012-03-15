@@ -10,15 +10,17 @@ Created on 29 févr. 2012
 import threading
 import logging
 import os
+import sys
+
 _logger = logging.getLogger(__name__)
 
-try:
+if sys.version_info >= (3, 0):
     # Python 3
     import urllib.parse as urlparse
     from http.server import HTTPServer
     from http.server import BaseHTTPRequestHandler
 
-except ImportError:
+else:
     # Python 2
     import urlparse
     from BaseHTTPServer import HTTPServer

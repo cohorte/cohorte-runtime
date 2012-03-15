@@ -23,14 +23,31 @@ import os
 import socket
 import time
 import threading
+import sys
 
-try:
+if sys.version_info >= (3, 0):
     # Python 3
-    import httplib.client as httplib
+    import http.client as httplib
 
-except ImportError:
+    def _to_string(data, encoding="UTF-8"):
+        """
+        Converts the given bytes array to a string
+        """
+        if type(data) is str:
+            # Nothing to do
+            return data
+
+        return str(data, encoding)
+
+else:
     # Python 2
     import httplib
+
+    def _to_string(data, encoding="UTF-8"):
+        """
+        Converts the given bytes array to a string
+        """
+        return data.encode(encoding)
 
 # ------------------------------------------------------------------------------
 
@@ -61,7 +78,7 @@ class IsolateDirectory(object):
         """
         Tests if the given isolate ID can be used in a "getAllXXX" method.
         Returns false if the isolate ID is the current one or the forker one.
-    
+
         :param isolate_id: The isolate ID
         :return: True if the isolate ID can be used"
         """
@@ -209,8 +226,8 @@ def read_post_body(request_handler):
     Reads the body of a POST request, returns an empty string on error
     """
     try :
-        content_len = int(request_handler.headers.getheader('content-length'))
-        return request_handler.rfile.read(content_len)
+        content_len = int(request_handler.headers.get('content-length'))
+        return _to_string(request_handler.rfile.read(content_len))
 
     except:
         _logger.exception("Error reading POST body")
@@ -260,7 +277,7 @@ class SignalReceiver(object):
         # Read the request
         signal_name = handler.path[len(SignalReceiver.SERVLET_PATH) - 1:]
 
-        content_type = handler.headers.getheader('content-type')
+        content_type = handler.headers.get('content-type')
         if content_type not in (None, 'application/json',
                                 'application/x-www-form-urlencoded'):
             handler.send_response(500)
