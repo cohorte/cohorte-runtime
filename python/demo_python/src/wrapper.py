@@ -9,12 +9,28 @@ from psem2m.component.decorators import ComponentFactory, Provides, Requires, \
 from psem2m.utilities import SynchronizedClassMethod
 
 import ctypes
+import _ctypes
 import logging
 import threading
 import time
 import sys
 
 _logger = logging.getLogger(__name__)
+
+if sys.version_info >= (3, 0):
+    def _to_bytes(string):
+        """
+        Converts a string to bytes
+        """
+        return bytes(string, "UTF-8")
+
+else:
+    def _to_bytes(string):
+        """
+        Converts a string to bytes
+        """
+        return string
+
 
 @ComponentFactory("Sensor")
 @Provides("demo.sensor")
@@ -40,7 +56,6 @@ class SensorWrapper(object):
         self.old_state = -1
         self.error = 0
         self.lock = threading.RLock()
-        _logger.debug("SensorWrapper instantiated")
 
 
     @Bind
@@ -78,7 +93,6 @@ class SensorWrapper(object):
         _logger.debug("%s: Validated", self.id)
 
 
-
     @Invalidate
     @SynchronizedClassMethod('lock')
     def invalidate(self, context):
@@ -88,13 +102,13 @@ class SensorWrapper(object):
         self.running = False
         self.thread = None
 
-        if sys.platform == "win32":
-            ctypes.cdll.kernel32.FreeLibrary(self.lib._handle)
-        else:
-            libdl = ctypes.CDLL("libdl.so")
-            libdl.dlclose(ctypes.c_void_p(self.lib._handle))
-
+        handle = self.lib._handle
         self.lib = None
+
+        if sys.platform == "win32":
+            _ctypes.FreeLibrary(handle)
+        else:
+            _ctypes.dlclose(handle)
 
         self.old_state = -1
 
@@ -108,7 +122,7 @@ class SensorWrapper(object):
         while self.running:
             with self.lock:
                 if self.lib:
-                    new_state = self.lib.read_state(self.filename)
+                    new_state = self.lib.read_state(_to_bytes(self.filename))
                     self.trigger(new_state)
                     time.sleep(.2)
 
