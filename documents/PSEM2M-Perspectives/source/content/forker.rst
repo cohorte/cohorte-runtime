@@ -274,7 +274,28 @@ On peut considérer quatre niveaux d'adhérence au système d'exploitation hôte
   gérer et tuer un isolat.
 
 
-Récapitulatif
-*************
+Solution retenue
+****************
 
+La solution retenue est l'utilisation d'un isolat complet Python, principalement
+pour les raisons suivantes :
 
+* Séparation du moniteur et du forker (surveillance mutuelle de l'un par
+  l'autre)
+
+* Ré-utilisation de PSEM2M Base (Signaux, ...) assurant l'interopérabilité du
+  forker avec le reste des isolats.
+
+L'isolat Python utilisera le *package* standard ``subprocess`` pour démarrer les
+isolats et se lier à leur entrées / sorties standard.
+
+La détection de la mort d'un isolat peut se faire de deux manière :
+
+#. Attendre une exception en scrutant sa sortie standard. Cette technique est
+   dangereuse car elle peut ne pas détecter la mort d'un isolat tout en
+   conservant un descripteur de fichier ouvert
+
+#. Attendre la mort du processus avec ``os.waitpid(pid)``. Cependant, cette
+   méthode peut ne pas fonctionner si ``pid`` n'a pas été démarré par cette
+   instance de forker (redémarrage de forker...) et peut ainsi bloquer un
+   thread.
