@@ -551,6 +551,7 @@ class FrameworkTest(unittest.TestCase):
         """
         Called when framework is stopping
         """
+        print("Stopping !")
         self.stopping = True
 
 
@@ -560,6 +561,7 @@ class FrameworkTest(unittest.TestCase):
         """
         # Set up a framework
         framework = FrameworkFactory.get_framework()
+        framework.start()
         context = framework.get_bundle_context()
 
         # Assert initial state

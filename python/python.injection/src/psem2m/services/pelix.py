@@ -117,7 +117,7 @@ class Bundle(object):
         self.__framework = framework
         self.__id = bundle_id
         self.__module = None
-        self.__state = Bundle.RESOLVED
+        self._state = Bundle.RESOLVED
         self.__name = location
 
         # Services
@@ -132,7 +132,7 @@ class Bundle(object):
         return "Bundle(%d, %s)" % (self.__id, self.__name)
 
 
-    def __fire_bundle_event(self, kind):
+    def _fire_bundle_event(self, kind):
         """
         Fires a bundle event of the given kind
 
@@ -183,7 +183,7 @@ class Bundle(object):
         
         :return: The bundle state
         """
-        return self.__state
+        return self._state
 
 
     def get_symbolic_name(self):
@@ -232,13 +232,13 @@ class Bundle(object):
         """
         Starts the bundle
         """
-        if self.__state == Bundle.ACTIVE:
+        if self._state == Bundle.ACTIVE:
             # Already started bundle
             return
 
         # Starting...
-        self.__state = Bundle.STARTING
-        self.__fire_bundle_event(BundleEvent.STARTING)
+        self._state = Bundle.STARTING
+        self._fire_bundle_event(BundleEvent.STARTING)
 
         # Call the activator, if any
         activator = getattr(self.__module, ACTIVATOR, None)
@@ -254,8 +254,8 @@ class Bundle(object):
                 raise BundleException(ex)
 
         # Bundle is now active
-        self.__state = Bundle.ACTIVE
-        self.__fire_bundle_event(BundleEvent.STARTED)
+        self._state = Bundle.ACTIVE
+        self._fire_bundle_event(BundleEvent.STARTED)
 
 
     @SynchronizedClassMethod('_lock')
@@ -263,13 +263,13 @@ class Bundle(object):
         """
         Stops the bundle
         """
-        if self.__state != Bundle.ACTIVE:
+        if self._state != Bundle.ACTIVE:
             # Invalid state
             return
 
         # Stopping...
-        self.__state = Bundle.STOPPING
-        self.__fire_bundle_event(BundleEvent.STOPPING)
+        self._state = Bundle.STOPPING
+        self._fire_bundle_event(BundleEvent.STOPPING)
 
         # Call the activator, if any
         activator = getattr(self.__module, ACTIVATOR, None)
@@ -290,8 +290,8 @@ class Bundle(object):
         self.__unregister_services()
 
         # Bundle is now stopped
-        self.__state = Bundle.RESOLVED
-        self.__fire_bundle_event(BundleEvent.STOPPED)
+        self._state = Bundle.RESOLVED
+        self._fire_bundle_event(BundleEvent.STOPPED)
 
         # Raise the exception, if any
         if exception is not None:
@@ -348,11 +348,11 @@ class Bundle(object):
         """
         Uninstall the bundle
         """
-        if self.__state == Bundle.ACTIVE:
+        if self._state == Bundle.ACTIVE:
             self.stop()
 
         # Change the bundle state
-        self.__state = Bundle.UNINSTALLED
+        self._state = Bundle.UNINSTALLED
 
         # Call the framework
         self.__framework.uninstall_bundle(self)
@@ -364,7 +364,7 @@ class Bundle(object):
         Updates the bundle
         """
         # Was it active ?
-        restart = self.__state == Bundle.ACTIVE
+        restart = self._state == Bundle.ACTIVE
 
         # Stop the bundle
         self.stop()
@@ -461,6 +461,9 @@ class Framework(Bundle):
         self.__registry = {}
         self.__unregistering_services = {}
 
+        # The wait_for_stop condition
+        self._condition = threading.Condition()
+
 
     @SynchronizedClassMethod('_lock')
     def add_bundle_listener(self, listener):
@@ -540,6 +543,7 @@ class Framework(Bundle):
                 return False
 
         return False
+
 
     @SynchronizedClassMethod('_lock')
     def find_service_references(self, clazz=None, ldap_filter=None):
@@ -978,9 +982,20 @@ class Framework(Bundle):
 
         :raise BundleException: A bundle failed to start
         """
+        if self._state == Bundle.ACTIVE:
+            # Already started framework
+            return
+
+        # Starting...
+        self._state = Bundle.STARTING
+        self._fire_bundle_event(BundleEvent.STARTING)
+
         # Start all registered bundles
         for bundle in self.__bundles.values():
             bundle.start()
+
+        # Bundle is now active
+        self._state = Bundle.ACTIVE
 
 
     @SynchronizedClassMethod('_lock')
@@ -988,6 +1003,14 @@ class Framework(Bundle):
         """
         Stops the framework
         """
+        if self._state != Bundle.ACTIVE:
+            # Invalid state
+            return
+
+        # Stopping...
+        self._state = Bundle.STOPPING
+        self._fire_bundle_event(BundleEvent.STOPPING)
+
         # Notify listeners that the bundle is stopping
         self.fire_framework_stopping()
 
@@ -1009,6 +1032,16 @@ class Framework(Bundle):
                 _logger.exception("Error stopping bundle %s" \
                                   % bundle.get_symbolic_name())
 
+        # Framework is now stopped
+        self._state = Bundle.RESOLVED
+        self._fire_bundle_event(BundleEvent.STOPPED)
+
+        # All bundles have been stopped, release "wait_for_stop"
+        _logger.warning(">>>> STOPPING : enter")
+        with self._condition:
+            _logger.warning(">>>> STOPPING : in")
+            self._condition.notify_all()
+            _logger.warning(">>>> STOPPING : after")
 
 
     def uninstall(self):
@@ -1090,6 +1123,20 @@ class Framework(Bundle):
         """
         self.stop()
         self.start()
+
+
+    def wait_for_stop(self):
+        """
+        Waits for the framework to stop.
+        
+        Uses a threading.Condition object
+        """
+        _logger.warning(">>>> WAIT FOR STOP : enter")
+        with self._condition:
+            _logger.warning(">>>> WAIT FOR STOP : in")
+            self._condition.wait()
+
+        _logger.warning(">>>> WAIT FOR STOP : after")
 
 # ------------------------------------------------------------------------------
 
