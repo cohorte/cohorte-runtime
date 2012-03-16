@@ -4,8 +4,6 @@
 @author: Thomas Calmant
 """
 
-import readline
-import code
 import logging
 import os.path
 import sys
@@ -93,10 +91,6 @@ def stop():
     framework.stop()
 
 logging.info("Ready to roll...")
-
-try:
-    # Run shell
-    code.InteractiveConsole(globals()).interact()
-finally:
-    stop()
+framework.wait_for_stop()
+logging.info("Framework stopped.")
 
