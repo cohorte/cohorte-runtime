@@ -12,6 +12,7 @@ from psem2m.component.decorators import ComponentFactory, Provides, Requires, \
 
 from base.javautils import to_jabsorb, from_jabsorb, JAVA_CLASS
 
+import psem2m.services.pelix as pelix
 import psem2m.utilities as utilities
 
 # ------------------------------------------------------------------------------
@@ -305,7 +306,7 @@ class SignalReceiver(object):
 
     def handle_received_signal(self, name, data):
         """
-        Handle a received signal
+        Handles a received signal
         """
         for pattern in self._listeners:
             if fnmatch.fnmatch(name, pattern):
@@ -463,3 +464,55 @@ class SignalSender(object):
             return
 
         self._internal_send(urls, name, data)
+
+
+@ComponentFactory("SlaveAgentFactory")
+@Instantiate("SlaveAgent")
+@Requires("_receiver", "org.psem2m.SignalReceiver")
+class MiniSlaveAgent(object):
+    """
+    Mini slave agent implementation : stops the framework when the stop signal
+    has been received
+    """
+    ISOLATE_STOP_SIGNAL = "/psem2m/isolate/stop"
+
+    def __init__(self):
+        """
+        Constructor
+        """
+        self._receiver = None
+        self.context = None
+
+
+    def handle_received_signal(self, name, data):
+        """
+        Handles a received signal
+        """
+        try:
+            self.context.get_bundle(0).stop()
+        except pelix.BundleException:
+            _logger.exception("Error stopping the framework")
+
+
+    @Validate
+    def validate(self, context):
+        """
+        Component validated
+        
+        :param context: The bundle context
+        """
+        self._receiver.register_listener(MiniSlaveAgent.ISOLATE_STOP_SIGNAL,
+                                         self)
+        self.context = context
+
+
+    @Invalidate
+    def invalidate(self, context):
+        """
+        Component invalidated
+        
+        :param context: The bundle context
+        """
+        self._receiver.unregister_listener(MiniSlaveAgent.ISOLATE_STOP_SIGNAL,
+                                           self)
+        self.context = None
