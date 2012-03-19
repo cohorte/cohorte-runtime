@@ -6,6 +6,7 @@
 package org.psem2m.isolates.remote.broadcaster;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.apache.felix.ipojo.annotations.Component;
@@ -89,7 +90,20 @@ public class BroadcastSignalHandler extends CPojoBase implements
                  * one
                  */
                 for (final RemoteServiceEvent event : (RemoteServiceEvent[]) signalContent) {
+                    // Update its content and notify listeners
+                    event.setSenderHostName(senderHostName);
+                    handleRemoteEvent(event);
+                }
 
+            } else if (signalContent instanceof Collection) {
+                /*
+                 * Multiple remote service events received, handle them one by
+                 * one
+                 */
+                @SuppressWarnings("unchecked")
+                final Collection<RemoteServiceEvent> collection = (Collection<RemoteServiceEvent>) signalContent;
+
+                for (final RemoteServiceEvent event : collection) {
                     // Update its content and notify listeners
                     event.setSenderHostName(senderHostName);
                     handleRemoteEvent(event);

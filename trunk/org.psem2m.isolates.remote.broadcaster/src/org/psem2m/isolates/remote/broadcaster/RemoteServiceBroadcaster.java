@@ -14,7 +14,9 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.osgi.service.log.LogService;
 import org.psem2m.isolates.base.activators.CPojoBase;
+import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.constants.ISignalsConstants;
+import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.isolates.services.remote.IRemoteServiceBroadcaster;
 import org.psem2m.isolates.services.remote.beans.RemoteServiceEvent;
 import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
@@ -34,6 +36,10 @@ public class RemoteServiceBroadcaster extends CPojoBase implements
     /** Log service, injected by iPOJO */
     @Requires
     private LogService pLogger;
+
+    /** Platform properties */
+    @Requires
+    private IPlatformDirsSvc pPlatformDirsSvc;
 
     /** Signal sender service, inject by iPOJO */
     @Requires
@@ -61,8 +67,20 @@ public class RemoteServiceBroadcaster extends CPojoBase implements
     @Override
     public void requestAllEndpoints() {
 
+        // Ask for monitors and isolates services
         pSignalEmitter.sendData(EEmitterTargets.ALL,
                 ISignalsConstants.BROADCASTER_SIGNAL_REQUEST_ENDPOINTS, null);
+
+        // Internal isolates also request for forker services
+        final String isolateId = pPlatformDirsSvc.getIsolateId();
+        if (isolateId != null
+                && isolateId
+                        .startsWith(IPlatformProperties.SPECIAL_INTERNAL_ISOLATES_PREFIX)) {
+            // Send the signal
+            pSignalEmitter.sendData(EEmitterTargets.FORKER,
+                    ISignalsConstants.BROADCASTER_SIGNAL_REQUEST_ENDPOINTS,
+                    null);
+        }
     }
 
     /*
