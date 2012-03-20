@@ -1037,11 +1037,8 @@ class Framework(Bundle):
         self._fire_bundle_event(BundleEvent.STOPPED)
 
         # All bundles have been stopped, release "wait_for_stop"
-        _logger.warning(">>>> STOPPING : enter")
         with self._condition:
-            _logger.warning(">>>> STOPPING : in")
             self._condition.notify_all()
-            _logger.warning(">>>> STOPPING : after")
 
 
     def uninstall(self):
@@ -1131,12 +1128,8 @@ class Framework(Bundle):
         
         Uses a threading.Condition object
         """
-        _logger.warning(">>>> WAIT FOR STOP : enter")
         with self._condition:
-            _logger.warning(">>>> WAIT FOR STOP : in")
             self._condition.wait()
-
-        _logger.warning(">>>> WAIT FOR STOP : after")
 
 # ------------------------------------------------------------------------------
 
