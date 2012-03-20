@@ -11,6 +11,7 @@ import threading
 import logging
 import os
 import sys
+import select
 
 _logger = logging.getLogger(__name__)
 
@@ -129,20 +130,6 @@ class HttpService(object):
         self.servlets = {}
         self.thread = None
 
-    @Validate
-    def validate(self, context):
-        """
-        Component validation
-        """
-        _logger.info("Starting HTTP server (%d)...", self.port)
-
-        self.server = HTTPServer(('', self.port), \
-                                 lambda * x : RequestHandler(self, *x))
-
-        self.thread = threading.Thread(target=self.server.serve_forever)
-        self.thread.start()
-
-        _logger.info("HTTP server started (%d)", self.port)
 
     def register_servlet(self, path, handler):
         """
@@ -168,6 +155,22 @@ class HttpService(object):
                 del self.servlets[path]
 
 
+    @Validate
+    def validate(self, context):
+        """
+        Component validation
+        """
+        _logger.info("Starting HTTP server (%d)...", self.port)
+
+        self.server = HTTPServer(('', self.port), \
+                                 lambda * x : RequestHandler(self, *x))
+
+        self.thread = threading.Thread(target=self.server.serve_forever)
+        self.thread.start()
+
+        _logger.info("HTTP server started (%d)", self.port)
+
+
     @Invalidate
     def invalidate(self, context):
         """
@@ -175,12 +178,13 @@ class HttpService(object):
         """
         _logger.info("Shutting down HTTP server (%d)...", self.port)
         # Shutdown connections
-        self.server.shutdown()
+        # self.server.shutdown()
 
         # Wait for the thread to stop...
-        self.thread.join(2)
-        self.thread = None
+        # self.thread.join(2)
+        # self.thread = None
 
         # Force the socket to be closed
         self.server.socket.close()
+
         _logger.info("HTTP server down (%d)", self.port)
