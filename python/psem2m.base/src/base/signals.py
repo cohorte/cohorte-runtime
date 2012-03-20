@@ -308,10 +308,10 @@ class SignalReceiver(object):
         """
         Handles a received signal
         """
-        for pattern in self._listeners:
+        for pattern in self._listeners.copy():
             if fnmatch.fnmatch(name, pattern):
                 # Signal name matches the pattern
-                listeners = self._listeners[pattern]
+                listeners = self._listeners[pattern][:]
                 for listener in listeners:
                     try:
                         # Notify the listener
