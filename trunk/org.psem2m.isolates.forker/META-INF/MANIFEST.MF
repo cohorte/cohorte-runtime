@@ -48,80 +48,78 @@ iPOJO-Components: instance { $component="psem2m-forker-factory" $name=
  {java.lang.String,java.util.logging.LogRecord}" }method { $name="hand
  leIsolateStatus" $arguments="{java.lang.String,org.psem2m.isolates.ba
  se.isolates.boot.IsolateStatus}" }method { $name="invalidatePojo" }me
- thod { $name="ping" $return="org.psem2m.isolates.services.forker.IFor
- ker$EProcessState" $arguments="{java.lang.String}" }method { $name="s
- tartIsolate" $return="org.psem2m.isolates.services.forker.IForker$ESt
- artError" $arguments="{org.psem2m.isolates.services.conf.IIsolateDesc
- r}" }method { $name="stopIsolate" $arguments="{java.lang.String}" }me
- thod { $name="validatePojo" }}}component { $classname="org.psem2m.iso
- lates.forker.impl.runners.CIsolateRunner" $name="psem2m-runner-osgi-f
- actory" $public="false" provides { $specifications="{org.psem2m.isola
- tes.forker.IIsolateRunner}" }requires { $field="pBundleFinderSvc" }re
- quires { $field="pIsolateLoggerSvc" }requires { $field="pJavaRunnerSv
- c" }requires { $field="pPlatformDirsSvc" }callback { $transition="inv
- alidate" $method="invalidatePojo" }callback { $transition="validate" 
- $method="validatePojo" }manipulation { $super="org.psem2m.isolates.ba
- se.activators.CPojoBase" interface { $name="org.psem2m.isolates.forke
- r.IIsolateRunner" }field { $name="pBaseDebugPort" $type="int" }field 
- { $name="pBundleFinderSvc" $type="org.psem2m.isolates.base.bundles.IB
- undleFinderSvc" }field { $name="pIsolateIndex" $type="int" }field { $
- name="pIsolateLoggerSvc" $type="org.psem2m.isolates.base.IIsolateLogg
- erSvc" }field { $name="pJavaRunnerSvc" $type="org.psem2m.isolates.for
- ker.impl.runners.IJavaRunner" }field { $name="pPlatformDirsSvc" $type
- ="org.psem2m.isolates.services.dirs.IPlatformDirsSvc" }method { $name
- ="bundlesToUrls" $return="java.util.List" $arguments="{org.psem2m.iso
- lates.base.bundles.BundleRef[]}" }method { $name="canRun" $return="bo
- olean" $arguments="{java.lang.String}" }method { $name="invalidatePoj
- o" }method { $name="makeBootstrapDefinition" $return="java.lang.Strin
- g" $arguments="{java.lang.String,java.lang.String}" }method { $name="
- prepareBootstrapArguments" $return="java.util.List" $arguments="{org.
- psem2m.isolates.services.conf.IIsolateDescr}" }method { $name="prepar
- eClasspathArgument" $return="java.util.List" $arguments="{java.io.Fil
- e,java.lang.String}" }method { $name="prepareDebugMode" }method { $na
- me="setupDebugMode" $arguments="{java.util.List}" }method { $name="st
- artIsolate" $return="org.psem2m.isolates.forker.IProcessRef" $argumen
- ts="{org.psem2m.isolates.services.conf.IIsolateDescr}" }method { $nam
- e="validatePojo" }}}component { $classname="org.psem2m.isolates.forke
- r.impl.runners.JavaRunner" $name="psem2m-runner-java-factory" $public
- ="false" provides { $specifications="{org.psem2m.isolates.forker.impl
- .runners.IJavaRunner}" }requires { $field="pIsolateLoggerSvc" }requir
- es { $field="pPlatformDirsSvc" }callback { $transition="invalidate" $
- method="invalidatePojo" }callback { $transition="validate" $method="v
- alidatePojo" }manipulation { $super="org.psem2m.isolates.base.activat
- ors.CPojoBase" interface { $name="org.psem2m.isolates.forker.impl.run
- ners.IJavaRunner" }field { $name="pIsolateLoggerSvc" $type="org.psem2
- m.isolates.base.IIsolateLoggerSvc" }field { $name="pJavaExecutable" $
- type="java.lang.String" }field { $name="pPlatformDirsSvc" $type="org.
- psem2m.isolates.services.dirs.IPlatformDirsSvc" }method { $name="canR
- un" $return="boolean" $arguments="{java.lang.String}" }method { $name
- ="getProcessRunner" $return="org.psem2m.isolates.forker.IProcessRunne
- r" }method { $name="invalidatePojo" }method { $name="makeJavaProperty
- " $return="java.lang.String" $arguments="{java.lang.String,java.lang.
- String}" }method { $name="runJava" $return="org.psem2m.isolates.forke
- r.IProcessRef" $arguments="{java.util.List,java.util.Map,java.io.File
- }" }method { $name="runJavaJar" $return="org.psem2m.isolates.forker.I
- ProcessRef" $arguments="{java.io.File,java.util.List,java.util.List,j
- ava.util.Map,java.io.File}" }method { $name="startIsolate" $return="o
- rg.psem2m.isolates.forker.IProcessRef" $arguments="{org.psem2m.isolat
- es.services.conf.IIsolateDescr}" }method { $name="validatePojo" }}}co
- mponent { $classname="org.psem2m.isolates.forker.impl.runners.PythonR
- unner" $name="psem2m-runner-python-factory" $public="false" provides 
- { $specifications="{org.psem2m.isolates.forker.IIsolateRunner}" }requ
- ires { $field="pLogger" }requires { $field="pPlatformDirsSvc" }callba
- ck { $transition="invalidate" $method="invalidatePojo" }callback { $t
- ransition="validate" $method="validatePojo" }manipulation { $super="o
- rg.psem2m.isolates.base.activators.CPojoBase" interface { $name="org.
- psem2m.isolates.forker.IIsolateRunner" }field { $name="pLogger" $type
- ="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pPlatfo
- rmDirsSvc" $type="org.psem2m.isolates.services.dirs.IPlatformDirsSvc"
-  }field { $name="pPython2Interpreter" $type="java.lang.String" }field
-  { $name="pPython3Interpreter" $type="java.lang.String" }method { $na
- me="canRun" $return="boolean" $arguments="{java.lang.String}" }method
-  { $name="findPythonInterpreters" }method { $name="getInterpreter" $r
- eturn="java.lang.String" $arguments="{java.lang.String}" }method { $n
- ame="getProcessRunner" $return="org.psem2m.isolates.forker.IProcessRu
- nner" }method { $name="invalidatePojo" }method { $name="startIsolate"
-  $return="org.psem2m.isolates.forker.IProcessRef" $arguments="{org.ps
- em2m.isolates.services.conf.IIsolateDescr}" }method { $name="validate
- Pojo" }}}
+ thod { $name="ping" $return="int" $arguments="{java.lang.String}" }me
+ thod { $name="startIsolate" $return="int" $arguments="{org.psem2m.iso
+ lates.services.conf.IIsolateDescr}" }method { $name="stopIsolate" $ar
+ guments="{java.lang.String}" }method { $name="validatePojo" }}}compon
+ ent { $classname="org.psem2m.isolates.forker.impl.runners.CIsolateRun
+ ner" $name="psem2m-runner-osgi-factory" $public="false" provides { $s
+ pecifications="{org.psem2m.isolates.forker.IIsolateRunner}" }requires
+  { $field="pBundleFinderSvc" }requires { $field="pIsolateLoggerSvc" }
+ requires { $field="pJavaRunnerSvc" }requires { $field="pPlatformDirsS
+ vc" }callback { $transition="invalidate" $method="invalidatePojo" }ca
+ llback { $transition="validate" $method="validatePojo" }manipulation 
+ { $super="org.psem2m.isolates.base.activators.CPojoBase" interface { 
+ $name="org.psem2m.isolates.forker.IIsolateRunner" }field { $name="pBa
+ seDebugPort" $type="int" }field { $name="pBundleFinderSvc" $type="org
+ .psem2m.isolates.base.bundles.IBundleFinderSvc" }field { $name="pIsol
+ ateIndex" $type="int" }field { $name="pIsolateLoggerSvc" $type="org.p
+ sem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pJavaRunnerSvc
+ " $type="org.psem2m.isolates.forker.impl.runners.IJavaRunner" }field 
+ { $name="pPlatformDirsSvc" $type="org.psem2m.isolates.services.dirs.I
+ PlatformDirsSvc" }method { $name="bundlesToUrls" $return="java.util.L
+ ist" $arguments="{org.psem2m.isolates.base.bundles.BundleRef[]}" }met
+ hod { $name="canRun" $return="boolean" $arguments="{java.lang.String}
+ " }method { $name="invalidatePojo" }method { $name="makeBootstrapDefi
+ nition" $return="java.lang.String" $arguments="{java.lang.String,java
+ .lang.String}" }method { $name="prepareBootstrapArguments" $return="j
+ ava.util.List" $arguments="{org.psem2m.isolates.services.conf.IIsolat
+ eDescr}" }method { $name="prepareClasspathArgument" $return="java.uti
+ l.List" $arguments="{java.io.File,java.lang.String}" }method { $name=
+ "prepareDebugMode" }method { $name="setupDebugMode" $arguments="{java
+ .util.List}" }method { $name="startIsolate" $return="org.psem2m.isola
+ tes.forker.IProcessRef" $arguments="{org.psem2m.isolates.services.con
+ f.IIsolateDescr}" }method { $name="validatePojo" }}}component { $clas
+ sname="org.psem2m.isolates.forker.impl.runners.JavaRunner" $name="pse
+ m2m-runner-java-factory" $public="false" provides { $specifications="
+ {org.psem2m.isolates.forker.impl.runners.IJavaRunner}" }requires { $f
+ ield="pIsolateLoggerSvc" }requires { $field="pPlatformDirsSvc" }callb
+ ack { $transition="invalidate" $method="invalidatePojo" }callback { $
+ transition="validate" $method="validatePojo" }manipulation { $super="
+ org.psem2m.isolates.base.activators.CPojoBase" interface { $name="org
+ .psem2m.isolates.forker.impl.runners.IJavaRunner" }field { $name="pIs
+ olateLoggerSvc" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }f
+ ield { $name="pJavaExecutable" $type="java.lang.String" }field { $nam
+ e="pPlatformDirsSvc" $type="org.psem2m.isolates.services.dirs.IPlatfo
+ rmDirsSvc" }method { $name="canRun" $return="boolean" $arguments="{ja
+ va.lang.String}" }method { $name="getProcessRunner" $return="org.psem
+ 2m.isolates.forker.IProcessRunner" }method { $name="invalidatePojo" }
+ method { $name="makeJavaProperty" $return="java.lang.String" $argumen
+ ts="{java.lang.String,java.lang.String}" }method { $name="runJava" $r
+ eturn="org.psem2m.isolates.forker.IProcessRef" $arguments="{java.util
+ .List,java.util.Map,java.io.File}" }method { $name="runJavaJar" $retu
+ rn="org.psem2m.isolates.forker.IProcessRef" $arguments="{java.io.File
+ ,java.util.List,java.util.List,java.util.Map,java.io.File}" }method {
+  $name="startIsolate" $return="org.psem2m.isolates.forker.IProcessRef
+ " $arguments="{org.psem2m.isolates.services.conf.IIsolateDescr}" }met
+ hod { $name="validatePojo" }}}component { $classname="org.psem2m.isol
+ ates.forker.impl.runners.PythonRunner" $name="psem2m-runner-python-fa
+ ctory" $public="false" provides { $specifications="{org.psem2m.isolat
+ es.forker.IIsolateRunner}" }requires { $field="pLogger" }requires { $
+ field="pPlatformDirsSvc" }callback { $transition="invalidate" $method
+ ="invalidatePojo" }callback { $transition="validate" $method="validat
+ ePojo" }manipulation { $super="org.psem2m.isolates.base.activators.CP
+ ojoBase" interface { $name="org.psem2m.isolates.forker.IIsolateRunner
+ " }field { $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLo
+ ggerSvc" }field { $name="pPlatformDirsSvc" $type="org.psem2m.isolates
+ .services.dirs.IPlatformDirsSvc" }field { $name="pPython2Interpreter"
+  $type="java.lang.String" }field { $name="pPython3Interpreter" $type=
+ "java.lang.String" }method { $name="canRun" $return="boolean" $argume
+ nts="{java.lang.String}" }method { $name="findPythonInterpreters" }me
+ thod { $name="getInterpreter" $return="java.lang.String" $arguments="
+ {java.lang.String}" }method { $name="getProcessRunner" $return="org.p
+ sem2m.isolates.forker.IProcessRunner" }method { $name="invalidatePojo
+ " }method { $name="startIsolate" $return="org.psem2m.isolates.forker.
+ IProcessRef" $arguments="{org.psem2m.isolates.services.conf.IIsolateD
+ escr}" }method { $name="validatePojo" }}}
 

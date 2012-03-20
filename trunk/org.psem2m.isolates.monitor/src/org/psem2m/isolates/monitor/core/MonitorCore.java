@@ -38,7 +38,6 @@ import org.psem2m.isolates.services.conf.IIsolateDescr;
 import org.psem2m.isolates.services.conf.ISvcConfig;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.isolates.services.forker.IForker;
-import org.psem2m.isolates.services.forker.IForker.EStartError;
 import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
 import org.psem2m.isolates.services.remote.signals.ISignalData;
 import org.psem2m.isolates.services.remote.signals.ISignalListener;
@@ -143,7 +142,7 @@ public class MonitorCore extends CPojoBase implements
         aForkerHandler.registerIsolateEventListener(this);
 
         // Immediately try to start the forker
-        aForkerHandler.startForker();
+        // aForkerHandler.startForker();
     }
 
     /**
@@ -560,11 +559,9 @@ public class MonitorCore extends CPojoBase implements
             return false;
         }
 
-        final EStartError result = pForkerSvc.startIsolate(isolateDescr);
-
-        // Success if the isolate is running (even if we done nothing)
-        return result == EStartError.SUCCESS
-                || result == EStartError.ALREADY_RUNNING;
+        final int result = pForkerSvc.startIsolate(isolateDescr);
+        // Success if the isolate is running (even if we done nothing) return
+        return result == IForker.SUCCESS || result == IForker.ALREADY_RUNNING;
     }
 
     /**
@@ -594,6 +591,8 @@ public class MonitorCore extends CPojoBase implements
      */
     @Override
     public void stopPlatform() {
+
+        pLogger.log(LogService.LOG_INFO, "Stopping platform...");
 
         // Deactivate startIsolate()
         pPlatformRunning = false;

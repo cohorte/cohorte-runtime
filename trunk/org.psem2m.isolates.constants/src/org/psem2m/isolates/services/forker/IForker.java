@@ -5,9 +5,6 @@
  */
 package org.psem2m.isolates.services.forker;
 
-import java.io.IOException;
-import java.security.InvalidParameterException;
-
 import org.psem2m.isolates.services.conf.IIsolateDescr;
 
 /**
@@ -17,23 +14,32 @@ import org.psem2m.isolates.services.conf.IIsolateDescr;
  */
 public interface IForker {
 
-    /**
-     * Describes a process state
-     * 
-     * @author Thomas Calmant
-     */
-    enum EProcessState {
-        ALIVE, DEAD, STUCK,
-    }
+    /** Isolate is alive */
+    int ALIVE = 0;
 
-    /**
-     * Describes the reason of a start failure
-     * 
-     * @author Thomas Calmant
-     */
-    enum EStartError {
-        ALREADY_RUNNING, NO_PROCESS_REF, NO_WATCHER, RUNNER_EXCEPTION, SUCCESS, UNKNOWN_KIND
-    }
+    /** The isolate is already running */
+    int ALREADY_RUNNING = 1;
+
+    /** Process is dead (not running) */
+    int DEAD = 1;
+
+    /** No reference to the isolate process, unknown state */
+    int NO_PROCESS_REF = 2;
+
+    /** No isolate watcher could be started (active isolate waiter) */
+    int NO_WATCHER = 3;
+
+    /** An error occurred calling the runner */
+    int RUNNER_EXCEPTION = 4;
+
+    /** Process is stuck (running, but not responding) */
+    int STUCK = 2;
+
+    /** Successful operation */
+    int SUCCESS = 0;
+
+    /** Unknown kind of isolate */
+    int UNKNOWN_KIND = 5;
 
     /**
      * Retrieves the name of the host machine of this forker
@@ -49,7 +55,7 @@ public interface IForker {
      *            The isolate ID
      * @return The isolate process state
      */
-    EProcessState ping(String aIsolateId);
+    int ping(String aIsolateId);
 
     /**
      * Starts a process according to the given configuration
@@ -57,18 +63,9 @@ public interface IForker {
      * @param aIsolateConfiguration
      *            The configuration of the isolate to start
      * 
-     * @return The isolate process
-     * 
-     * @throws IOException
-     *             An error occurred while starting the process
-     * @throws InvalidParameterException
-     *             An isolate with the given isolate ID is already running.
-     * @throws Exception
-     *             An error occurred while preparing or starting the isolate
+     * @return The starter error code
      */
-    EStartError startIsolate(IIsolateDescr aIsolateConfiguration);
-
-    // throws IOException, InvalidParameterException, Exception;
+    int startIsolate(IIsolateDescr aIsolateConfiguration);
 
     /**
      * Kills the process with the given isolate ID

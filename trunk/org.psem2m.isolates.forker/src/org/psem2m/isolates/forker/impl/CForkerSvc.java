@@ -75,7 +75,6 @@ public class CForkerSvc extends CPojoBase implements IForker,
             final LogRecord aLogRecord) {
 
         pIsolateLoggerSvc.log(aLogRecord);
-
     }
 
     /*
@@ -140,16 +139,16 @@ public class CForkerSvc extends CPojoBase implements IForker,
      * @see org.psem2m.isolates.commons.forker.IForker#ping(java.lang.String)
      */
     @Override
-    public EProcessState ping(final String aIsolateId) {
+    public int ping(final String aIsolateId) {
 
         final IProcessRef process = pRunningIsolates.get(aIsolateId);
         if (process == null) {
-            return EProcessState.DEAD;
+            return DEAD;
         }
 
         // TODO ping process
 
-        return EProcessState.ALIVE;
+        return ALIVE;
     }
 
     /*
@@ -160,21 +159,17 @@ public class CForkerSvc extends CPojoBase implements IForker,
      * .base.conf.IIsolateDescr)
      */
     @Override
-    public final EStartError startIsolate(
-            final IIsolateDescr aIsolateConfiguration) {
+    public final int startIsolate(final IIsolateDescr aIsolateConfiguration) {
 
         final String isolateId = aIsolateConfiguration.getId();
-        pIsolateLoggerSvc.logInfo(this, "startIsolate", "Trying to launch =",
+        pIsolateLoggerSvc.logInfo(this, "startIsolate", "Trying to launch",
                 isolateId);
 
         // Test if the isolate is already running
         if (pRunningIsolates.containsKey(isolateId)) {
-            // throw new Exception("The isolate '" + isolateId
-            // + "' is already running");
-
             pIsolateLoggerSvc.logInfo(this, "startIsolate",
                     "Already running =", isolateId);
-            return EStartError.ALREADY_RUNNING;
+            return ALREADY_RUNNING;
         }
 
         // Find the runner for this isolate
@@ -190,9 +185,7 @@ public class CForkerSvc extends CPojoBase implements IForker,
 
         // Fail if no runner was found
         if (isolateRunner == null) {
-            // throw new Exception("No runner for : "
-            // + aIsolateConfiguration.getKind());
-            return EStartError.UNKNOWN_KIND;
+            return UNKNOWN_KIND;
         }
 
         // Run it
@@ -203,13 +196,11 @@ public class CForkerSvc extends CPojoBase implements IForker,
 
         } catch (final Exception e) {
             e.printStackTrace();
-            return EStartError.RUNNER_EXCEPTION;
+            return RUNNER_EXCEPTION;
         }
 
         if (isolateRef == null) {
-            // throw new
-            // Exception("No reference to the isolate process. Abort.");
-            return EStartError.NO_PROCESS_REF;
+            return NO_PROCESS_REF;
         }
 
         // Store it
@@ -222,13 +213,12 @@ public class CForkerSvc extends CPojoBase implements IForker,
             watcherThread.start();
 
         } catch (final IOException ex) {
-            pIsolateLoggerSvc.logWarn(this, "",
-
-            "Can't start the watcher for :", isolateId, ex);
-            return EStartError.NO_WATCHER;
+            pIsolateLoggerSvc.logWarn(this, "startIsolate",
+                    "Can't start the watcher for :", isolateId, ex);
+            return NO_WATCHER;
         }
 
-        return EStartError.SUCCESS;
+        return SUCCESS;
     }
 
     /*
@@ -240,9 +230,8 @@ public class CForkerSvc extends CPojoBase implements IForker,
     @Override
     public void stopIsolate(final String aIsolateId) {
 
-        pIsolateLoggerSvc.logInfo(this, "stopIsolate", "Trying to kill =",
-
-        aIsolateId);
+        pIsolateLoggerSvc.logInfo(this, "stopIsolate", "Trying to kill",
+                aIsolateId);
 
         final IProcessRef process = pRunningIsolates.get(aIsolateId);
         if (process != null) {
