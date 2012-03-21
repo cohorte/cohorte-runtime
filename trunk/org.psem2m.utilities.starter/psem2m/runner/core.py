@@ -7,7 +7,6 @@ Created on 12 déc. 2011
 
 from psem2m import PSEM2MException
 from psem2m.runner.commons import PSEM2MUtils
-from urllib.error import URLError
 import json
 import os
 import psem2m
@@ -16,7 +15,14 @@ import psem2m.runner.commons as commons
 import shutil
 import sys
 import time
-import urllib.request
+
+if sys.version_info >= (3, 0):
+    # Python 3
+    import urllib.request as urlrequest
+
+else:
+    # Python 2
+    import urllib as urlrequest
 
 
 def decode_bootstrap_line(line):
@@ -219,7 +225,7 @@ Java      : %s
 
         # Send a signal
         try:
-            urllib.request.urlopen(access_url + runner.SIGNAL_STOP, b"")
+            urlrequest.urlopen(access_url + runner.SIGNAL_STOP, b"")
 
             # Wait for monitor to really stop
             wait_time = 0
@@ -241,7 +247,7 @@ Java      : %s
                 print("Error : Monitor is still here")
                 return 1
 
-        except URLError as ex:
+        except IOError as ex:
             print("Error stopping platform :", ex, file=sys.stderr)
 
         # Something went wrong...

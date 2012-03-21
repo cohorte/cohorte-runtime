@@ -2,12 +2,14 @@
 """
 Utility class default implementation
 
-@author: Thomas Calmant
+:author: Thomas Calmant
 """
 
 from psem2m import PSEM2MException
-import os
 import psem2m.runner
+
+import os
+import psutil
 import subprocess
 
 # ------------------------------------------------------------------------------
@@ -23,6 +25,28 @@ def find_file_recursive(file_name, root_directory):
 
     # File not found
     return None
+
+
+def find_in_path(file_name):
+    """
+    Searches for file in the directories of the PATH environment variable
+    
+    :param file_name: The file to look for
+    :return The first found file, or None
+    """
+    if not file_name:
+        # Nothing to do
+        return None
+
+    if file_name[0] == '/':
+        # Remove the starting separator
+        file_name = file_name[1:]
+
+    paths = os.getenv("PATH", "").split(os.pathsep)
+    for path in paths:
+        file_path = os.path.join(path, file_name)
+        if is_file(file_path):
+            return file_path
 
 
 def get_os_utils(psem2m_utils):
@@ -46,6 +70,24 @@ def get_os_utils(psem2m_utils):
     utils = module.Utils(psem2m_utils)
     assert isinstance(utils, OSSpecificUtils)
     return utils
+
+
+def get_working_directory(isolate_id):
+    """
+    Retrieves the path to the isolate working directory.
+    
+    Doesn't create nor clean up the directory.
+    
+    :param isolate_id: The ID of an isolate
+    :return: The isolate working directory
+    """
+    base = os.getenv(psem2m.PSEM2M_BASE,
+                     os.getenv(psem2m.PSEM2M_HOME, os.getcwd()))
+
+    # Replace path separators with underscores
+    escaped_id = isolate_id.replace(os.sep, "_")
+
+    return os.path.abspath(os.path.join(base, "var", "work", escaped_id))
 
 
 def is_dir(path):
@@ -81,8 +123,8 @@ def read_framework_file(file_name):
     Reads the first non-commented and non-empty line of a framework file.
     Framework files contains the file name of an OSGi framework JAR main file;
     
-    @param file_name: Name of the framework file to read
-    @return: The framework file content, None if not found
+    :param file_name: Name of the framework file to read
+    :return: The framework file content, None if not found
     """
     with open(file_name) as fp:
         for line in fp:
@@ -115,19 +157,28 @@ class OSSpecificUtils(object):
         """
         Finds the Java interpreter, in the given Java Home if possible
         
-        @param java_home: The preferred Java home
+        :param java_home: The preferred Java home
+        :return: The path to the first Java interpreter found, or None
         """
         raise NotImplementedError("This method must implemented by child class")
 
 
-    def is_process_running(self, pid):
+    def find_python2_interpreter(self):
         """
-        Tests if the given process is running
+        Finds a Python 2 interpreter
         
-        @param pid: PID of the process to test
+        :return: The path to the first Python 2 interpreter found, or None
         """
         raise NotImplementedError("This method must implemented by child class")
 
+
+    def find_python3_interpreter(self):
+        """
+        Finds a Python 3 interpreter
+        
+        :return: The path to the first Python 3 interpreter found, or None
+        """
+        raise NotImplementedError("This method must implemented by child class")
 
 # ------------------------------------------------------------------------------
 
@@ -140,8 +191,8 @@ class PSEM2MUtils(object):
         """
         Sets up the utility class
         
-        @param psem2m_home: PSEM2M home directory
-        @param psem2m_base: PSEM2M base directory
+        :param psem2m_home: PSEM2M home directory
+        :param psem2m_base: PSEM2M base directory
         """
         self.home = psem2m_home
         self.base = psem2m_base
@@ -151,6 +202,9 @@ class PSEM2MUtils(object):
     def find_bundle_file(self, bundle_name):
         """
         Search for the given file in PSEM2M local repositories
+        
+        :param bundle_name: A bundle file name
+        :return: The first found file in a repo directory
         """
         return self.find_file(bundle_name, ["repo"])
 
@@ -158,6 +212,9 @@ class PSEM2MUtils(object):
     def find_conf_file(self, file_name):
         """
         Search for the given file in PSEM2M configuration directories
+        
+        :param file_name: A file name
+        :return: The first found file in a conf directory
         """
         return self.find_file(file_name, ["conf"])
 
@@ -165,6 +222,10 @@ class PSEM2MUtils(object):
     def find_file(self, file_name, sub_dirs=["."]):
         """
         Finds the given file name in the given PSEM2M sub-directory
+        
+        :param file_name: A file name
+        :param sub_dirs: Possible sub-directories
+        :return: The first found file, or None
         """
         for prefix in [self.base, self.home, os.getcwd()]:
             # Compute the absolute file path
@@ -184,7 +245,8 @@ class PSEM2MUtils(object):
         """
         Tries to get the path of the Java interpreter
         
-        @raise PSEM2MException: The Java interpreter could not be found
+        :return: The Java interpreter executable
+        :raise PSEM2MException: The Java interpreter could not be found
         """
         java_home = self.get_embedded_jvm()
         if not java_home:
@@ -201,6 +263,8 @@ class PSEM2MUtils(object):
         """
         Retrieves the path to the Java Virtual Machine embedded with PSEM2M,
         None if not available
+        
+        :return: The path to the PSEM2M JVM, or None
         """
         jvm_dir = os.path.join(self.home, "java")
         if is_dir(jvm_dir):
@@ -209,9 +273,11 @@ class PSEM2MUtils(object):
         return None
 
 
-    def is_running(self):
+    def is_monitor_running(self):
         """
         Tests if the monitor process is running
+        
+        :return: True if the monitor is running
         """
         pid = self.read_monitor_pid()
         if not pid:
@@ -224,6 +290,8 @@ class PSEM2MUtils(object):
     def read_monitor_pid(self):
         """
         Reads the monitor PID file content, returns None if absent
+        
+        :return: The monitor PID, or None
         """
         pid_file_name = os.path.join(self.base, psem2m.runner.MONITOR_PID_FILE)
 
@@ -251,14 +319,14 @@ class PSEM2MUtils(object):
         """
         Runs the Java interpreter with the given class path
         
-        @param java: Path to the Java interpreter executable
-        @param main_class: Java main class to execute
-        @param classpath: Java class path (strings array)
-        @param arguments: Main class arguments (strings array)
-        @param java_system_props: Java system properties (dictionary)
-        @param jvm_args: JVM level arguments
-        
-        @return: The PID of the child process
+        :param java: Path to the Java interpreter executable
+        :param main_class: Java main class to execute
+        :param classpath: Java class path (strings array)
+        :param arguments: Main class arguments (strings array)
+        :param java_system_props: Java system properties (dictionary)
+        :param jvm_args: JVM level arguments
+        :return: A psutil.Popen object
+        :raise PSEM2MException: Error preparing the run
         """
         if not java:
             raise PSEM2MException("No Java interpreter given")
@@ -297,17 +365,17 @@ class PSEM2MUtils(object):
 
 
         # Run the Java interpreter
-        process = subprocess.Popen(cmd_line, stdout=subprocess.PIPE)
+        process = psutil.Popen(cmd_line, stdout=subprocess.PIPE)
 
-        # Return the process PID
-        return (process.pid, process.stdout)
+        # Return the process object
+        return process
 
 
     def write_monitor_pid(self, pid):
         """
         Writes the PID of the monitor in a file
         
-        @param pid: PID of the monitor
+        :param pid: PID of the monitor
         """
         pid_file_name = os.path.join(self.base, psem2m.runner.MONITOR_PID_FILE)
 
