@@ -7,7 +7,6 @@ iPOPO Benchmark : benchmark starter
 """
 
 import logging
-import sys
 import timeit
 
 logging.basicConfig(level=logging.INFO)
@@ -71,4 +70,4 @@ def main(loops=10 ** 6):
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    main()
