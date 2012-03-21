@@ -1103,6 +1103,43 @@ class _StoredInstance(object):
 
 # ------------------------------------------------------------------------------
 
+def _set_factory_context(factory_class, bundle_context):
+    """
+    Transforms the context data dictionary into its FactoryContext object form.
+    
+    :param factory_class: A manipulated class
+    :param bundle_context: The class bundle context
+    :return: The factory context, None on error
+    """
+    if not hasattr(factory_class, constants.IPOPO_FACTORY_CONTEXT_DATA):
+        # The class has not been manipulated, or too badly
+        return None
+
+    # Try to get the context dictionary (built using decorators)
+    context_dict = getattr(factory_class, constants.IPOPO_FACTORY_CONTEXT_DATA)
+
+    if not isinstance(context_dict, dict):
+        # We got another form of context
+        return None
+
+    # Try to load the stored data
+    try:
+        context = FactoryContext.from_dictionary_form(context_dict)
+
+    except (TypeError, ValueError):
+        _logger.exception("Invalid data in manipulated class '%s'", \
+                          factory_class.__name__)
+        # Work on the next class
+        return None
+
+    # Setup the context
+    context.set_bundle_context(bundle_context)
+
+    # Inject the constructed object
+    setattr(factory_class, constants.IPOPO_FACTORY_CONTEXT, context)
+    return context
+
+
 def _load_bundle_factories(bundle):
     """
     Retrieves a list of pairs (FactoryContext, factory class) with all
@@ -1125,29 +1162,11 @@ def _load_bundle_factories(bundle):
         # Get the class in the result tuple
         factory_class = inspect_member[1]
 
-        # Try to get the context dictionary (built using decorators)
-        context_dict = getattr(factory_class, \
-                               constants.IPOPO_FACTORY_CONTEXT_DATA, None)
+        context = _set_factory_context(factory_class, bundle_context)
 
-        if not isinstance(context_dict, dict):
-            # The class has not been manipulated, or too badly
+        if context is None:
+            # Error setting up the factory context
             continue
-
-        # Try to load the stored data
-        try:
-            context = FactoryContext.from_dictionary_form(context_dict)
-
-        except (TypeError, ValueError):
-            _logger.exception("Invalid data in manipulated class '%s'", \
-                              factory_class.__name__)
-            # Work on the next class
-            continue
-
-        # Setup the context
-        context.set_bundle_context(bundle_context)
-
-        # Inject the constructed object
-        setattr(factory_class, constants.IPOPO_FACTORY_CONTEXT, context)
 
         result.append((context, factory_class))
 
@@ -1547,6 +1566,28 @@ class _IPopoService(constants.IIPopoService, object):
 
             # Kill it
             stored_instance.kill()
+
+
+    def register_factory(self, bundle_context, factory):
+        """
+        Registers a manually created factory, using decorators programmatically
+        
+        :param bundle_context: The factory bundle context
+        :param factory: A manipulated class
+        :return: True if the factory has been registered
+        :raise ValueError: Invalid parameter, or factory already registered
+        :raise TypeError: Invalid factory type
+        """
+        if factory is None or bundle_context is None:
+            # Invalid parameter, to nothing
+            raise ValueError("Invalid parameter")
+
+        context = _set_factory_context(factory, bundle_context)
+        if not context:
+            return False
+
+        self._register_factory(context.name, factory, False)
+        return True
 
 
     def add_listener(self, listener):

@@ -57,8 +57,15 @@ def _get_factory_context(cls):
     :return: The factory class context
     """
     context = getattr(cls, constants.IPOPO_FACTORY_CONTEXT_DATA, None)
+
     if context is None:
+        # Class not yet manipulated
         context = FactoryContext()
+        setattr(cls, constants.IPOPO_FACTORY_CONTEXT_DATA, context)
+
+    elif isinstance(context, dict):
+        # Already manipulated and stored class
+        context = FactoryContext.from_dictionary_form(context)
         setattr(cls, constants.IPOPO_FACTORY_CONTEXT_DATA, context)
 
     return context
