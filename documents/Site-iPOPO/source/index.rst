@@ -29,6 +29,21 @@ Download
 The latest version of iPOPO can be downloaded here :
 `<http://ipopo.coderxpress.net/dl/ipopo-0.2.zip>`_.
 
+We are planning to use a public forge, like SourceForge, Google Code or Github,
+to publish the iPOPO repository.
+
+
+Discussions
+***********
+
+Feedback and proposals are really appreciated, so feel free to send a message on
+the iPOPO Google groups :
+
+* `Users group <http://groups.google.com/group/ipopo-users>`_ :
+  for questions about the usage of iPOPO
+* `Developers group <http://groups.google.com/group/ipopo-dev>`_ :
+  for questions about the iPOPO implementation, extensions, ...
+
 
 License
 *******
