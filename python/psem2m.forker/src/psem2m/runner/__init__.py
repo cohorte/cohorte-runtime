@@ -6,9 +6,12 @@ Runners package
 :author: Thomas Calmant
 """
 
-import os
 import psem2m
+import psem2m.utils
+
 import psutil
+
+import os
 import shutil
 
 # ------------------------------------------------------------------------------
@@ -38,8 +41,7 @@ class Runner(object):
         """
         Constructor
         """
-        # TODO: instantiate a runner.OSSpecificUtils or let iPOPO inject one 
-        self._utils = None
+        self._utils = psem2m.utils.get_os_utils()
 
 
     def can_handle(self, kind):
@@ -120,7 +122,8 @@ class Runner(object):
             return None
 
         # Normalize the dictionary (only strings are allowed)
-        return {((str(key), str(value)) for (key, value) in env.items())}
+        return dict((str(key), str(value))
+                    for key, value in env.items())
 
 
     def _make_working_directory(self, isolate_id):

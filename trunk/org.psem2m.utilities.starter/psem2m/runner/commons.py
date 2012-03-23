@@ -130,8 +130,8 @@ def read_framework_file(file_name):
         for line in fp:
             line = line.strip()
 
-            if len(line) != 0 and not line.startswith("#"):
-                # Not a comment not an empty line
+            if len(line) > 0 and not line.startswith("#"):
+                # Not a comment and not an empty line
                 return line
 
     # No valid line found

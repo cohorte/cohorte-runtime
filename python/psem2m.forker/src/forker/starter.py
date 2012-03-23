@@ -11,6 +11,7 @@ import psem2m.services.pelix as pelix
 
 import logging
 import os
+import sys
 
 _logger = logging.getLogger(__name__)
 
@@ -79,18 +80,24 @@ def run_isolate(required_bundles):
 
 # ------------------------------------------------------------------------------
 
-if __name__ == "__main__":
+def main():
     # Test environment
     missing = validate_state()
     if missing is not None:
         # Missing environment variable(s)
         _logger.error("Can't start the forker. " \
                       "Missing environment variables :\n%s", missing)
-        return
+        return 1
 
     # Required bundles list
     required_bundles = ('psem2m.component.ipopo', 'base.config',
-                        'base.httpsvc', 'base.signals')
+                        'base.httpsvc', 'base.signals', 'base.remoteservices',
+                        'forker.core', 'forker.basic_runners')
 
     # Start the forker framework
     run_isolate(required_bundles)
+    return 0
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    sys.exit(main())

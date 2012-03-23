@@ -6,8 +6,6 @@ Common classes, methods and constants for the PSEM2M scripts
 :author: Thomas Calmant
 """
 
-import sys
-
 # ------------------------------------------------------------------------------
 
 # Java home directory environment variable
@@ -33,10 +31,3 @@ SIGNAL_PLATFORM_STOP = "/psem2m/platform/stop"
 # Stop isolate signal
 SIGNAL_ISOLATE_STOP = "/psem2m/isolate/stop"
 
-# ------------------------------------------------------------------------------
-
-class PSEM2MException(Exception):
-    """
-    Base class for PSEM2M exceptions
-    """
-    pass

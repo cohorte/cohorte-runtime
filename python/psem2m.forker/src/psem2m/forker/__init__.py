@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #-- Content-Encoding: utf-8 --
 """
-Runners package
+Forker core package
 
 :author: Thomas Calmant
 """

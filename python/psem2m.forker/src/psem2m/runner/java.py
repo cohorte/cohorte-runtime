@@ -183,27 +183,39 @@ class OsgiRunner(JavaRunner):
         return kind in ("felix", "equinox") and self._path is not None
 
 
-    def _get_framework_file_name(self, kind):
+    def _get_framework_file_name(self, isolate_descr):
         """
         Retrieves the path to the OSGi framework JAR file according to the
-        isolate kind or the framework configuration file.
+        isolate description or the framework configuration file.
         
-        Tries to find the framework file name corresponding to the given kind,
-        or uses the framework described in the platform.framework file.
+        Tries to find the framework file name corresponding to the given
+        description, or uses the framework described in the platform.framework
+        file.
         
-        :param kind: The kind of isolate
+        :param isolate_descr: The description of an isolate
         :return: The path to the framework JAR file
         :raise OSError: Framework file not found
         """
-        # Get the kind framework, if any
-        framework_name = self._kind_frameworks.get(kind, None)
-        if framework_name is not None:
-            bundle = self._utils.find_bundle_file(framework_name)
-            if bundle is not None:
-                # File found
-                return bundle
+        kind = isolate_descr["kind"]
 
-        # Framework configuration file
+        # Set up the list of possible names
+        config_names = [# Explicit OSGi framework file
+                        isolate_descr.get("osgiFramework", None),
+
+                        # Default name for this kind
+                        self._kind_frameworks.get(kind, None)
+                        ]
+
+
+        # Try to find those files
+        for framework_name in config_names:
+            if framework_name is not None:
+                bundle = self._utils.find_bundle_file(framework_name)
+                if bundle is not None:
+                    # File found, use it
+                    return bundle
+
+        # No configuration hint, use the framework configuration file
         framework_conf = self._utils.find_conf_file(PLATFORM_FRAMEWORK_FILENAME)
         if not framework_conf:
             raise OSError("Framework file can't be found (%s)" \
