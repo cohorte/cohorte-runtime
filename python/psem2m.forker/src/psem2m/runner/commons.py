@@ -139,7 +139,7 @@ class Runner(object):
         """
         # Get the base directory
         base = os.getenv(psem2m.PSEM2M_BASE,
-                         os.getenv(psem2m.PSEM2M_HOME), os.getcwd())
+                         os.getenv(psem2m.PSEM2M_HOME, os.getcwd()))
 
         # Replace path separators by '_' in the isolate ID
         escaped_id = isolate_id.replace(os.sep, "_")

@@ -26,7 +26,7 @@ ISOLATE_HTTP_PORT = "HTTP_PORT"
 
 @ComponentFactory("psem2m-runner-python")
 @Instantiate("PythonRunner")
-@Provides("org.psem2m.forker.IsolateRunner")
+@Provides("org.psem2m.isolates.forker.IIsolateRunner")
 class PythonRunner(runner.Runner):
     """
     Python 2 and Python 3 isolate runner
@@ -97,7 +97,7 @@ class PythonRunner(runner.Runner):
         :return: The isolate environment variables
         """
         # Call the parent method
-        env = super(PythonRunner, self)._make_env(self, isolate_descr)
+        env = super(PythonRunner, self)._make_env(isolate_descr)
         if env is None:
             # Parent did nothing
             env = {}

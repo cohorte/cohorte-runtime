@@ -49,7 +49,7 @@ BOOTSTRAP_MAIN_CLASS = "org.psem2m.utilities.bootstrap.Main"
 
 @ComponentFactory("psem2m-runner-java")
 @Instantiate("JavaRunner")
-@Provides("org.psem2m.forker.IsolateRunner")
+@Provides("org.psem2m.isolates.forker.IIsolateRunner")
 class JavaRunner(runner.Runner):
     """
     Java isolate runner
@@ -157,7 +157,7 @@ class JavaRunner(runner.Runner):
 
 @ComponentFactory("psem2m-runner-osgi")
 @Instantiate("OsgiRunner")
-@Provides("org.psem2m.forker.IsolateRunner")
+@Provides("org.psem2m.isolates.forker.IIsolateRunner")
 class OsgiRunner(JavaRunner):
     """
     OSGi isolate runner
@@ -263,4 +263,4 @@ class OsgiRunner(JavaRunner):
         new_descr["app_args"] = (BOOTSTRAP_MAIN_CLASS, "--human")
 
         # Call the parent class
-        return super(OsgiRunner, self)._make_args(self, new_descr)
+        return super(OsgiRunner, self)._make_args(new_descr)
