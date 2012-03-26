@@ -48,6 +48,32 @@ _logger = logging.getLogger("ipopo.decorators")
 
 # ------------------------------------------------------------------------------
 
+def _is_from_parent(cls, attribute_name):
+    """
+    Tests if the current attribute value is shared by a parent of the given
+    class.
+    
+    Returns None if the attribute value is None.
+    
+    :param cls: Child class with the requested attribute
+    :param attribute_name: Name of the attribute to be tested
+    :return: True if the attribute value is shared with a parent class
+    """
+    value = getattr(cls, attribute_name, None)
+    if value is None:
+        # No need to go further
+        return False
+
+    for base in cls.__bases__:
+        base_value = getattr(base, attribute_name, None)
+        if base_value is value:
+            # Found !
+            return True
+
+    # Attribute value not found in parent classes
+    return False
+
+
 def _get_factory_context(cls):
     """
     Retrieves the factory context object associated to a factory. Creates it
@@ -63,10 +89,21 @@ def _get_factory_context(cls):
         context = FactoryContext()
         setattr(cls, constants.IPOPO_FACTORY_CONTEXT_DATA, context)
 
-    elif isinstance(context, dict):
-        # Already manipulated and stored class
-        context = FactoryContext.from_dictionary_form(context)
-        setattr(cls, constants.IPOPO_FACTORY_CONTEXT_DATA, context)
+    else:
+        if _is_from_parent(cls, constants.IPOPO_FACTORY_CONTEXT_DATA):
+            # The context comes from a parent, copy it using a temporary
+            # dictionary form
+            if isinstance(context, dict):
+                context = FactoryContext.from_dictionary_form(context)
+
+            context = context.copy()
+            setattr(cls, constants.IPOPO_FACTORY_CONTEXT_DATA, context)
+
+        # We have a context of our own, make sure we have a FactoryContext
+        if isinstance(context, dict):
+            # Already manipulated and stored class
+            context = FactoryContext.from_dictionary_form(context)
+            setattr(cls, constants.IPOPO_FACTORY_CONTEXT_DATA, context)
 
     return context
 
@@ -120,13 +157,14 @@ def _ipopo_setup_callback(cls, context):
         # Keeping it allows inheritance : by removing it, only the first
         # child will see the attribute -> Don't remove it
 
-        # Store the callbacks
+        # Store the call backs
         for _callback in method_callbacks:
             if _callback in callbacks:
-                _logger.warning("Redefining the _callback %s in '%s'. " \
-                                "Previous _callback : '%s'.", \
-                                _callback, name, \
-                                callbacks[_callback].__name__)
+                _logger.debug("Redefining the _callback %s in '%s'. " \
+                              "Previous _callback : '%s' (%s). " \
+                              "New callback : %s", \
+                              _callback, name, callbacks[_callback].__name__, \
+                              callbacks[_callback], function)
 
             callbacks[_callback] = function
 
@@ -243,10 +281,11 @@ class Instantiate:
             raise TypeError("@ComponentFactory can decorate only classes, " \
                             "not '%s'" % type(factory_class).__name__)
 
-        if hasattr(factory_class, constants.IPOPO_INSTANCES):
-            instances = getattr(factory_class, constants.IPOPO_INSTANCES)
+        instances = getattr(factory_class, constants.IPOPO_INSTANCES, None)
 
-        else:
+        if instances is None or \
+            _is_from_parent(factory_class, constants.IPOPO_INSTANCES):
+            # No instances for this particular class
             instances = {}
             setattr(factory_class, constants.IPOPO_INSTANCES, instances)
 
@@ -265,6 +304,10 @@ class ComponentFactory:
     """
     Decorator that sets up a component factory class
     """
+
+    # Non inheritable fields, to clean up during manipulation if needed
+    NON_INHERITABLE_FIELDS = (constants.IPOPO_INSTANCES,)
+
     def __init__(self, name=None):
         """
         Sets up the decorator
@@ -295,6 +338,12 @@ class ComponentFactory:
 
         # Find callbacks
         _ipopo_setup_callback(factory_class, context)
+
+        # Clean up inherited fields, to avoid weird behavior
+        for field in ComponentFactory.NON_INHERITABLE_FIELDS:
+            if _is_from_parent(factory_class, field):
+                # Set inherited fields to None
+                setattr(factory_class, field, None)
 
         # Add the factory context field (set it to None)
         setattr(factory_class, constants.IPOPO_FACTORY_CONTEXT, None)

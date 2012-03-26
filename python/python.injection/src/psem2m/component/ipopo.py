@@ -302,6 +302,40 @@ class FactoryContext(object):
         self.requirements = {}
 
 
+    def copy(self):
+        """
+        Returns a copy of the current FactoryContext instance
+        """
+        context = FactoryContext()
+
+        direct = ("bundle_context", "name")
+        copied = ("callbacks", "properties", "properties_fields",
+                  "requirements")
+        lists = ("provides",)
+
+        # Direct copy of primitive values
+        for entry in direct:
+            setattr(context, entry, getattr(self, entry))
+
+        # Copy "complex" values
+        for entry in copied:
+            value = getattr(self, entry)
+            if value is not None:
+                value = value.copy()
+
+            setattr(context, entry, value)
+
+        # Copy lists
+        for entry in lists:
+            value = getattr(self, entry)
+            if value is not None:
+                value = value[:]
+
+            setattr(context, entry, value)
+
+        return context
+
+
     @classmethod
     def from_dictionary_form(cls, dictionary):
         """
