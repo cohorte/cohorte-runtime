@@ -6,8 +6,10 @@ OS specific utilities package
 :author: Thomas Calmant
 """
 
-import os
 import psem2m
+
+import importlib
+import os
 
 # ------------------------------------------------------------------------------
 
@@ -20,7 +22,9 @@ def get_os_utils():
     """
     module_name = "%s.%s" % (__name__, os.name)
     try:
-        module = __import__(__name__, globals(), {}, [os.name])
+        # Do not use the __import__ statement, as it would return the package,
+        # not the module
+        module = importlib.import_module(module_name)
 
     except ImportError as ex:
         raise ImportError("Can't import Utilities for OS : %s (%s) - %s" \
@@ -28,7 +32,7 @@ def get_os_utils():
 
     utils = getattr(module, "OSUtils", None)
     if not utils:
-        raise ImportError("No Utils implementation found for %s (%s)" \
+        raise ImportError("No OS utilities implementation found for %s (%s)" \
                           % (os.name, module_name))
 
     return utils()

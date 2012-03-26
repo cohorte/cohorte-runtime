@@ -10,7 +10,7 @@ from psem2m.component.decorators import ComponentFactory, Invalidate, Validate, 
 
 # ------------------------------------------------------------------------------
 
-import psem2m.runner as runner
+import psem2m.runner.commons as runner
 
 # ------------------------------------------------------------------------------
 
@@ -35,7 +35,7 @@ class PythonRunner(runner.Runner):
         """
         Constructor
         """
-        super(PythonRunner, self).__init__(self)
+        runner.Runner.__init__(self)
         self._python2_path = None
         self._python3_path = None
 

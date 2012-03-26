@@ -5,18 +5,19 @@ Python 2, Python 3 and Java runners
 @author: Thomas Calmant
 """
 
-from psem2m.component.decorators import ComponentFactory, Invalidate, Validate, \
-    Provides, Instantiate
+from psem2m.component.decorators import ComponentFactory, Invalidate, \
+    Provides, Instantiate, Validate
 
 # ------------------------------------------------------------------------------
 
-import psem2m.runner as runner
+import psem2m
+import psem2m.runner.commons as runner
 
 # ------------------------------------------------------------------------------
 
 import logging
 import os
-import psem2m
+
 _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
@@ -57,7 +58,7 @@ class JavaRunner(runner.Runner):
         """
         Constructor
         """
-        super(OsgiRunner, self).__init__(self)
+        runner.Runner.__init__(self)
         self._path = None
 
 
@@ -140,7 +141,7 @@ class JavaRunner(runner.Runner):
         
         :param context: The bundle context
         """
-        self._path = self._utils.find_java_interpreter()
+        self._path = self._utils.find_java_interpreter(None)
 
 
     @Invalidate
@@ -165,7 +166,7 @@ class OsgiRunner(JavaRunner):
         """
         Constructor
         """
-        super(OsgiRunner, self).__init__(self)
+        JavaRunner.__init__(self)
         self._kind_frameworks = {
                             # TODO: remove version numbers
                             "felix": "org.apache.felix.main-3.2.2.jar",

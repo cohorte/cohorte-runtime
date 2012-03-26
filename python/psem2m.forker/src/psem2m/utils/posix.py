@@ -6,7 +6,7 @@ Utility methods implementations for POSIX
 """
 
 import psem2m
-import psem2m.runner.utils as utils
+import psem2m.utils as utils
 
 import os
 import sys

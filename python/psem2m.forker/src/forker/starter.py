@@ -92,7 +92,8 @@ def main():
     # Required bundles list
     required_bundles = ('psem2m.component.ipopo', 'base.config',
                         'base.httpsvc', 'base.signals', 'base.remoteservices',
-                        'forker.core', 'forker.basic_runners')
+                        'psem2m.forker.core', 'psem2m.runner.java',
+                        'psem2m.runner.python')
 
     # Start the forker framework
     run_isolate(required_bundles)
