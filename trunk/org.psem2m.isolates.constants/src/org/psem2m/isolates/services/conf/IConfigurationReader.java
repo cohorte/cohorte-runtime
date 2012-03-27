@@ -5,6 +5,7 @@
  */
 package org.psem2m.isolates.services.conf;
 
+import org.psem2m.isolates.services.conf.beans.ApplicationDescription;
 import org.psem2m.isolates.services.dirs.IFileFinderSvc;
 
 /**
@@ -22,7 +23,7 @@ public interface IConfigurationReader {
      *            An available application ID
      * @return A description of an application
      */
-    IApplicationDescr getApplication(String aApplicationId);
+    ApplicationDescription getApplication(String aApplicationId);
 
     /**
      * Retrieves all available application IDs

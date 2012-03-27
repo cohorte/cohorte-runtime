@@ -15,7 +15,6 @@ Export-Package: org.psem2m.isolates.base;version="1.0.1";
    org.psem2m.utilities",
  org.psem2m.isolates.base.activators;version="1.0.1",
  org.psem2m.isolates.base.bundles;version="1.0.0";uses:="org.osgi.framework,org.psem2m.utilities.files",
- org.psem2m.isolates.base.conf.beans;version="1.0.0",
  org.psem2m.isolates.base.isolates;version="1.0.0",
  org.psem2m.isolates.base.isolates.boot;version="1.0.0"
 Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix

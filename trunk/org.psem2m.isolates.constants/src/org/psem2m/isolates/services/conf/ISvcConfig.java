@@ -5,6 +5,7 @@
  */
 package org.psem2m.isolates.services.conf;
 
+import org.psem2m.isolates.services.conf.beans.ApplicationDescription;
 
 /**
  * PSEM2M Configuration service
@@ -18,7 +19,7 @@ public interface ISvcConfig {
      * 
      * @return Current application description
      */
-    IApplicationDescr getApplication();
+    ApplicationDescription getApplication();
 
     /**
      * Reload configuration

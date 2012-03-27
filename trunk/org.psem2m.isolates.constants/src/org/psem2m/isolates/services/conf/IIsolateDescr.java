@@ -6,8 +6,6 @@
 package org.psem2m.isolates.services.conf;
 
 import java.io.Serializable;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Describes an isolate configuration
@@ -17,49 +15,69 @@ import java.util.Set;
 public interface IIsolateDescr extends Serializable {
 
     /**
-     * Retrieves the URL, in a string form, to access the isolate signal
-     * receiver.
-     * 
-     * @return The URL to access the isolate
+     * Application arguments, mainly for non-OSGi Java isolates (name of the
+     * Main class...) : List of strings (can be absent, null or empty)
      */
-    String getAccessUrl();
+    String ISOLATE_APP_ARGS = "appArgs";
 
     /**
-     * Retrieves the list of bundles to be installed in the isolate. Can't be
-     * null and should'nt be empty.
+     * Multiple meanings for this one :
      * 
-     * @return The list of bundles of the isolate
+     * <ul>
+     * <li>List of bundles to be installed in a Java OSGi isolate : List of
+     * Strings (bundle symbolic names)</li>
+     * <li>Name of the Python module to run (according to the PYTHONPATH
+     * environment variable) : List of strings (module names). <strong>Only the
+     * first entry is taken into account</string></li>
+     * </ul>
      */
-    Set<IBundleDescr> getBundles();
+    String ISOLATE_BUNDLES = "bundles";
 
     /**
-     * Retrieves the name of machine that must host the isolate
-     * 
-     * @return The isolate host name
+     * The isolate class path, mainly for Java isolates : List of string (can be
+     * absent, null or empty)
      */
-    String getHostName();
+    String ISOLATE_CLASSPATH = "classpath";
 
     /**
-     * Retrieves the isolate ID. Can't be null nor empty.
-     * 
-     * @return the isolate ID
+     * Defines the environment variables to
+     * <em>add or replace to the current variables</em> : Map String -&gt;
+     * String (or null). Can be absent, null or empty.
      */
-    String getId();
+    String ISOLATE_ENVIRONMENT = "environment";
+
+    /** Isolate ID : String (never null nor empty) */
+    String ISOLATE_ID = "id";
+
+    /** Isolate kind : String (never empty, can be null) */
+    String ISOLATE_KIND = "kind";
 
     /**
-     * Retrieves the kind of isolate. Must be a kind handled by the bootstrap,
-     * namely "equinox" or "felix". Never returns null, can return an empty
-     * string.
+     * The OSGi framework JAR file name, to be used in the Java isolate class
+     * path : String (can be absent or null)
      * 
-     * @return The kind of isolate
+     * The OSGi framework resolution goes as follow :
+     * <ol>
+     * <li>File given in this entry (osgiFramework)</li>
+     * <li>The default framework file name (internal constant) for the given
+     * kind of isolate</li>
+     * <li>The file stated in the platform.framework file, in the configuration
+     * directory</li>
+     * </ol>
+     * 
+     * If no framework JAR file can be found, the launch fails.
      */
-    String getKind();
+    String ISOLATE_OSGI_FRAMEWORK = "osgiFramework";
+
+    /** The socket host to access the signals receiver of the isolate */
+    String ISOLATE_SIGNALS_HOST = "host";
+
+    /** The socket port to access the signals receiver of the isolate */
+    String ISOLATE_SIGNALS_PORT = "httpPort";
 
     /**
-     * Retrieves the list of Java Virtual Machine arguments to be used when
-     * starting the isolate process. Can be null.
-     * 
-     * @return The isolate JVM arguments
+     * Virtual machine / interpreter arguments : List of strings (can be absent,
+     * null or empty)
      */
-    List<String> getVMArgs();
+    String ISOLATE_VM_ARGS = "vmArgs";
 }

@@ -3,8 +3,12 @@
  * Author: "Thomas Calmant"
  * Date:   2 sept. 2011
  */
-package org.psem2m.isolates.base.conf.beans;
+package org.psem2m.isolates.services.conf.beans;
 
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.psem2m.isolates.services.conf.IBundleDescr;
@@ -14,7 +18,7 @@ import org.psem2m.isolates.services.conf.IBundleDescr;
  * 
  * @author Thomas Calmant
  */
-public class BundleDescription implements IBundleDescr {
+public class BundleDescription implements Serializable {
 
     /** Serializable version */
     private static final long serialVersionUID = 1L;
@@ -25,6 +29,7 @@ public class BundleDescription implements IBundleDescr {
     /** True if the bundle is optional */
     private boolean pOptional;
 
+    /** Bundle properties, if any */
     private Properties pProperties = null;
 
     /** Bundle symbolic name, mandatory */
@@ -38,7 +43,55 @@ public class BundleDescription implements IBundleDescr {
      */
     public BundleDescription() {
 
-        // Do nothing
+        // Does nothing
+    }
+
+    /**
+     * Sets up the bean with the given map representation
+     * 
+     * @param aMapRepresentation
+     *            A map representation
+     */
+    public BundleDescription(final Map<String, Object> aMapRepresentation) {
+
+        pFile = (String) aMapRepresentation.get(IBundleDescr.BUNDLE_FILE);
+        pSymbolicName = (String) aMapRepresentation
+                .get(IBundleDescr.BUNDLE_NAME);
+        pVersion = (String) aMapRepresentation.get(IBundleDescr.BUNDLE_VERSION);
+
+        if (aMapRepresentation.get(IBundleDescr.BUNDLE_OPTIONAL) instanceof Boolean) {
+            pOptional = (Boolean) aMapRepresentation
+                    .get(IBundleDescr.BUNDLE_OPTIONAL);
+
+        } else {
+            pOptional = false;
+        }
+
+        if (aMapRepresentation.get(IBundleDescr.BUNDLE_PROPERTIES) instanceof Map) {
+            // Copy properties manually, to avoid exceptions
+            pProperties = new Properties();
+
+            final Map<?, ?> map = (Map<?, ?>) aMapRepresentation
+                    .get(IBundleDescr.BUNDLE_PROPERTIES);
+            for (final Entry<?, ?> entry : map.entrySet()) {
+
+                // Only accept strings keys
+                final String key = (String) entry.getKey();
+                if (key == null) {
+                    // Reject null keys
+                    continue;
+                }
+
+                // Only accept strings values
+                final String value = (String) entry.getValue();
+                if (value == null) {
+                    // Reject null values
+                    continue;
+                }
+
+                pProperties.put(key, value);
+            }
+        }
     }
 
     /**
@@ -73,23 +126,21 @@ public class BundleDescription implements IBundleDescr {
         pOptional = aOptional;
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Retrieves the path to the bundle
      * 
-     * @see org.psem2m.isolates.config.json.IBundleDescr#getFile()
+     * @return the path to the bundle
      */
-    @Override
     public String getFile() {
 
         return pFile;
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Returns True if the bundle is optional in the configuration
      * 
-     * @see org.psem2m.isolates.config.json.IBundleDescr#getOptional()
+     * @return True if the bundle is optional
      */
-    @Override
     public boolean getOptional() {
 
         return pOptional;
@@ -100,29 +151,26 @@ public class BundleDescription implements IBundleDescr {
      * 
      * @return the properties of the bundle
      */
-    @Override
     public Properties getProperties() {
 
         return pProperties;
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Retrieves the bundle symbolic name
      * 
-     * @see org.psem2m.isolates.config.json.IBundleDescr#getSymbolicName()
+     * @return the bundle symbolic name
      */
-    @Override
     public String getSymbolicName() {
 
         return pSymbolicName;
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Retrieves the requested bundle version
      * 
-     * @see org.psem2m.isolates.config.json.IBundleDescr#getVersion()
+     * @return the requested bundle version
      */
-    @Override
     public String getVersion() {
 
         return pVersion;
@@ -133,7 +181,6 @@ public class BundleDescription implements IBundleDescr {
      * 
      * @return true if the bundle has a set of properties
      */
-    @Override
     public boolean hasProperties() {
 
         return pProperties != null;
@@ -192,5 +239,23 @@ public class BundleDescription implements IBundleDescr {
     public void setVersion(final String aVersion) {
 
         pVersion = aVersion;
+    }
+
+    /**
+     * Converts this description into its map representation
+     * 
+     * @return The map representation of this object
+     */
+    public Map<String, Object> toMap() {
+
+        final Map<String, Object> map = new HashMap<String, Object>();
+
+        map.put(IBundleDescr.BUNDLE_FILE, pFile);
+        map.put(IBundleDescr.BUNDLE_NAME, pSymbolicName);
+        map.put(IBundleDescr.BUNDLE_OPTIONAL, pOptional);
+        map.put(IBundleDescr.BUNDLE_PROPERTIES, pProperties);
+        map.put(IBundleDescr.BUNDLE_VERSION, pVersion);
+
+        return map;
     }
 }

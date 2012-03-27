@@ -5,7 +5,7 @@
  */
 package org.psem2m.isolates.services.forker;
 
-import org.psem2m.isolates.services.conf.IIsolateDescr;
+import java.util.Map;
 
 /**
  * Description of the Forker service
@@ -65,7 +65,7 @@ public interface IForker {
      * 
      * @return The starter error code
      */
-    int startIsolate(IIsolateDescr aIsolateConfiguration);
+    int startIsolate(Map<String, Object> aIsolateConfiguration);
 
     /**
      * Kills the process with the given isolate ID

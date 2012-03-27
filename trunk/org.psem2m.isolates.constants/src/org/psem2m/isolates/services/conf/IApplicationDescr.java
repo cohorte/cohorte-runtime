@@ -6,7 +6,6 @@
 package org.psem2m.isolates.services.conf;
 
 import java.io.Serializable;
-import java.util.Set;
 
 /**
  * Description of a PSEM2M application
@@ -16,25 +15,13 @@ import java.util.Set;
 public interface IApplicationDescr extends Serializable {
 
     /**
-     * Retrieves the application ID
-     * 
-     * @return The application ID
+     * The application ID : String (can't be null nor empty)
      */
-    String getApplicationId();
+    String APPLICATION_ID = "id";
 
     /**
-     * Retrieves the description of the given isolate, null if not found
-     * 
-     * @param aId
-     *            An isolate ID
-     * @return The isolate description or null
+     * The applications isolates : Map String (isolate ID) -&gt; Map String
+     * (entry) -&gt; Object (value). Shouldn't be empty.
      */
-    IIsolateDescr getIsolate(String aId);
-
-    /**
-     * Retrieves the list of the found isolate IDs
-     * 
-     * @return The list of isolate IDs
-     */
-    Set<String> getIsolateIds();
+    String APPLICATION_ISOLATES = "isolates";
 }

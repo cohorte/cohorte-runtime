@@ -6,7 +6,6 @@
 package org.psem2m.isolates.services.conf;
 
 import java.io.Serializable;
-import java.util.Properties;
 
 /**
  * Describes a bundle
@@ -16,46 +15,31 @@ import java.util.Properties;
 public interface IBundleDescr extends Serializable {
 
     /**
-     * Retrieves the file path indicated in the configuration file. Can be null.
-     * 
-     * @return The bundle file path, or null
-     */
-    String getFile();
-
-    /**
-     * Tests if the bundle is declared optional in the configuration file. If
-     * true, the isolate state is valid even if this bundle is not present.
-     * 
-     * @return True if the bundle is optional
-     */
-    boolean getOptional();
-
-    /**
-     * Retrieves the set of properties declared in the bundle description.
-     * 
-     * @return an instance of Properties else null.
-     */
-    Properties getProperties();
-
-    /**
-     * Retrieves the bundle symbolic name. Can't be null.
-     * 
-     * @return The bundle symbolic name
-     */
-    String getSymbolicName();
-
-    /**
-     * Retrieves the bundle version indicated in the configuration file. Can be
+     * The file path as indicated in the configuration file : String. Can be
      * null.
-     * 
-     * @return The bundle version
      */
-    String getVersion();
+    String BUNDLE_FILE = "file";
 
     /**
-     * Tests if the bundle has a set of properties.
-     * 
-     * @return true if the bundle description has a set of properties
+     * The bundle symbolic name : String
      */
-    boolean hasProperties();
+    String BUNDLE_NAME = "symbolicName";
+
+    /**
+     * If true, the isolate state is valid even if this bundle is not present :
+     * Boolean False by default.
+     */
+    String BUNDLE_OPTIONAL = "optional";
+
+    /**
+     * The set of properties declared in the bundle description. (Map String
+     * -&gt; String)
+     */
+    String BUNDLE_PROPERTIES = "properties";
+
+    /**
+     * The bundle version as indicated in the configuration file : String. Can
+     * be null.
+     */
+    String BUNDLE_VERSION = "version";
 }
