@@ -33,8 +33,17 @@ public interface IJsonConfigKeys {
     /** Inclusion keyword */
     String CONFIG_FROM = "from";
 
+    /** Application arguments (string array, optional) */
+    String CONFIG_ISOLATE_APP_ARGS = "appArgs";
+
     /** Isolate bundles array (array, mandatory) */
     String CONFIG_ISOLATE_BUNDLES = "bundles";
+
+    /** Isolate class path (array, optional) */
+    String CONFIG_ISOLATE_CLASSPATH = "classpath";
+
+    /** The isolate process environment variables (map, optional) */
+    String CONFIG_ISOLATE_ENVIRONMENT = "environment";
 
     /** The HTTP server host */
     String CONFIG_ISOLATE_HOST = "host";
@@ -44,6 +53,9 @@ public interface IJsonConfigKeys {
 
     /** Isolate kind (to be handled by the forker and the bootstrap) */
     String CONFIG_ISOLATE_KIND = "kind";
+
+    /** The OSGi framework JAR file (string, optional) */
+    String CONFIG_ISOLATE_OSGI_FRAMEWORK = "osgiFramework";
 
     /** The HTTP server port (used for Jetty and Signals-HTTP */
     String CONFIG_ISOLATE_PORT = "httpPort";
