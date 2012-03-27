@@ -33,10 +33,9 @@ import org.psem2m.isolates.base.isolates.IIsolateStatusEventListener;
 import org.psem2m.isolates.base.isolates.boot.IsolateStatus;
 import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.constants.ISignalsConstants;
-import org.psem2m.isolates.services.conf.IApplicationDescr;
-import org.psem2m.isolates.services.conf.IBundleDescr;
-import org.psem2m.isolates.services.conf.IIsolateDescr;
 import org.psem2m.isolates.services.conf.ISvcConfig;
+import org.psem2m.isolates.services.conf.beans.BundleDescription;
+import org.psem2m.isolates.services.conf.beans.IsolateDescription;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
 
@@ -84,25 +83,6 @@ public class CForkerHandlerSvc extends CPojoBase implements IForkerHandler,
     private ISignalBroadcaster pSignalSender;
 
     /**
-     * Default constructor
-     */
-    public CForkerHandlerSvc() {
-
-        super();
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.utilities.CXObjectBase#destroy()
-     */
-    @Override
-    public void destroy() {
-
-        // ...
-    }
-
-    /**
      * Reads the bundles list for the given isolate and returns it as an array
      * of bundle references
      * 
@@ -112,10 +92,8 @@ public class CForkerHandlerSvc extends CPojoBase implements IForkerHandler,
      */
     protected BundleRef[] getBundlesRef(final String aIsolateId) {
 
-        final IApplicationDescr application = pConfigurationSvc
-                .getApplication();
-        final Set<IBundleDescr> isolateBundles = application.getIsolate(
-                aIsolateId).getBundles();
+        final Set<BundleDescription> isolateBundles = pConfigurationSvc
+                .getApplication().getIsolate(aIsolateId).getBundles();
 
         if (isolateBundles == null || isolateBundles.isEmpty()) {
             // Ignore empty list
@@ -125,7 +103,7 @@ public class CForkerHandlerSvc extends CPojoBase implements IForkerHandler,
         final Set<BundleRef> bundlesRef = new LinkedHashSet<BundleRef>(
                 isolateBundles.size());
 
-        for (final IBundleDescr bundleDescr : isolateBundles) {
+        for (final BundleDescription bundleDescr : isolateBundles) {
 
             final BundleRef ref = pBundleFinderSvc.findBundle(bundleDescr
                     .getSymbolicName());
@@ -184,8 +162,9 @@ public class CForkerHandlerSvc extends CPojoBase implements IForkerHandler,
     protected Process internalStartForker() throws Exception {
 
         // Get the forker configuration
-        final IIsolateDescr forkerDescr = pConfigurationSvc.getApplication()
-                .getIsolate(IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER);
+        final IsolateDescription forkerDescr = pConfigurationSvc
+                .getApplication().getIsolate(
+                        IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER);
         if (forkerDescr == null) {
             throw new Exception("No configuration found to start the forker.");
         }
@@ -227,7 +206,7 @@ public class CForkerHandlerSvc extends CPojoBase implements IForkerHandler,
         // Defines properties
         {
             // Isolate VM arguments
-            forkerCommand.addAll(forkerDescr.getVMArgs());
+            forkerCommand.addAll(forkerDescr.getVmArgs());
 
             // Isolate ID
             forkerCommand.add(makeJavaProperty(

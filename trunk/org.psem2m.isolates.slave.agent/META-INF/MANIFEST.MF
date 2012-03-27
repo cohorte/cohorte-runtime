@@ -17,9 +17,10 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  psem2m.isolates.base.bundles;version=1.0.0, org.psem2m.isolates.base.
  isolates.boot, org.psem2m.isolates.constants;version=1.0.0, org.psem2
  m.isolates.services.conf;version=1.0.0, org.psem2m.isolates.services.
- dirs;version=1.0.0, org.psem2m.isolates.services.monitoring;version=1
- .0.0, org.psem2m.isolates.services.remote.signals;version=1.0.0, org.
- psem2m.utilities.logging
+ conf.beans;version=1.0.0, org.psem2m.isolates.services.dirs;version=1
+ .0.0, org.psem2m.isolates.services.monitoring;version=1.0.0, org.psem
+ 2m.isolates.services.remote.signals;version=1.0.0, org.psem2m.utiliti
+ es.logging
 iPOJO-Components: instance { $component="psem2m-slave-agent-core-facto
  ry" $name="psem2m-slave-agent-core" }instance { $component="org.psem2
  m.isolates.slave.agent.monitor.ThreadsMonitor" $name="psem2m-threads-
@@ -72,41 +73,42 @@ iPOJO-Components: instance { $component="psem2m-slave-agent-core-facto
  a.util.Map" }method { $name="bundleChanged" $arguments="{org.osgi.fra
  mework.BundleEvent}" }method { $name="cancelTimeout" $arguments="{lon
  g}" }method { $name="destroy" }method { $name="findBundleURL" $return
- ="java.lang.String" $arguments="{org.psem2m.isolates.services.conf.IB
- undleDescr}" }method { $name="getBundle" $return="org.osgi.framework.
- Bundle" $arguments="{long}" }method { $name="getBundleInfo" $return="
- org.psem2m.isolates.base.bundles.BundleInfo" $arguments="{long}" }met
- hod { $name="getBundlesState" $return="org.psem2m.isolates.base.bundl
- es.BundleInfo[]" }method { $name="getInstalledBundles" $return="java.
- util.Map" }method { $name="handleReceivedSignal" $arguments="{java.la
- ng.String,org.psem2m.isolates.services.remote.signals.ISignalData}" }
- method { $name="handleUninstalledBundleEvent" $arguments="{org.psem2m
- .isolates.services.conf.IBundleDescr}" }method { $name="installBundle
- " $return="long" $arguments="{java.lang.String}" }method { $name="inv
- alidatePojo" }method { $name="isFragment" $return="boolean" $argument
- s="{org.osgi.framework.Bundle}" }method { $name="killIsolate" }method
-  { $name="neutralizeIsolate" }method { $name="prepareIsolate" }method
-  { $name="prepareIsolate" $arguments="{java.lang.String}" }method { $
- name="refreshPackages" $return="boolean" $arguments="{long[]}" }metho
- d { $name="safeIsolateReset" }method { $name="setupHttpProperties" $a
- rguments="{org.psem2m.isolates.services.conf.IIsolateDescr}" }method 
- { $name="startBundle" $return="boolean" $arguments="{long}" }method {
-  $name="stopBundle" $return="boolean" $arguments="{long}" }method { $
- name="uninstallBundle" $return="boolean" $arguments="{long}" }method 
- { $name="updateBundle" $return="boolean" $arguments="{long}" }method 
- { $name="validatePojo" }}}component { $classname="org.psem2m.isolates
- .slave.agent.monitor.ThreadsMonitor" $name="psem2m-threads-monitor-fa
- ctory" $public="true" requires { $field="pLogger" }requires { $field=
- "pMonitor" }callback { $transition="invalidate" $method="invalidatePo
- jo" }callback { $transition="validate" $method="validatePojo" }manipu
- lation { $super="org.psem2m.isolates.base.activators.CPojoBase" field
-  { $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc"
-  }field { $name="pMonitor" $type="org.psem2m.isolates.services.monito
- ring.IThreadCpuUsageMonitor" }field { $name="pScheduledExecutor" $typ
- e="java.util.concurrent.ScheduledExecutorService" }method { $name="en
- umerateThreadGroup" $arguments="{java.util.Map,java.lang.ThreadGroup}
- " }method { $name="findThreadStarter" $return="java.lang.String" $arg
- uments="{java.lang.Thread}" }method { $name="getAllThreads" $return="
- java.util.Map" }method { $name="invalidatePojo" }method { $name="upda
- teMonitor" }method { $name="validatePojo" }}}
+ ="java.lang.String" $arguments="{org.psem2m.isolates.services.conf.be
+ ans.BundleDescription}" }method { $name="getBundle" $return="org.osgi
+ .framework.Bundle" $arguments="{long}" }method { $name="getBundleInfo
+ " $return="org.psem2m.isolates.base.bundles.BundleInfo" $arguments="{
+ long}" }method { $name="getBundlesState" $return="org.psem2m.isolates
+ .base.bundles.BundleInfo[]" }method { $name="getInstalledBundles" $re
+ turn="java.util.Map" }method { $name="handleReceivedSignal" $argument
+ s="{java.lang.String,org.psem2m.isolates.services.remote.signals.ISig
+ nalData}" }method { $name="handleUninstalledBundleEvent" $arguments="
+ {org.psem2m.isolates.services.conf.beans.BundleDescription}" }method 
+ { $name="installBundle" $return="long" $arguments="{java.lang.String}
+ " }method { $name="invalidatePojo" }method { $name="isFragment" $retu
+ rn="boolean" $arguments="{org.osgi.framework.Bundle}" }method { $name
+ ="killIsolate" }method { $name="neutralizeIsolate" }method { $name="p
+ repareIsolate" }method { $name="prepareIsolate" $arguments="{java.lan
+ g.String}" }method { $name="refreshPackages" $return="boolean" $argum
+ ents="{long[]}" }method { $name="safeIsolateReset" }method { $name="s
+ etupHttpProperties" $arguments="{org.psem2m.isolates.services.conf.be
+ ans.IsolateDescription}" }method { $name="startBundle" $return="boole
+ an" $arguments="{long}" }method { $name="stopBundle" $return="boolean
+ " $arguments="{long}" }method { $name="uninstallBundle" $return="bool
+ ean" $arguments="{long}" }method { $name="updateBundle" $return="bool
+ ean" $arguments="{long}" }method { $name="validatePojo" }}}component 
+ { $classname="org.psem2m.isolates.slave.agent.monitor.ThreadsMonitor"
+  $name="psem2m-threads-monitor-factory" $public="true" requires { $fi
+ eld="pLogger" }requires { $field="pMonitor" }callback { $transition="
+ invalidate" $method="invalidatePojo" }callback { $transition="validat
+ e" $method="validatePojo" }manipulation { $super="org.psem2m.isolates
+ .base.activators.CPojoBase" field { $name="pLogger" $type="org.psem2m
+ .isolates.base.IIsolateLoggerSvc" }field { $name="pMonitor" $type="or
+ g.psem2m.isolates.services.monitoring.IThreadCpuUsageMonitor" }field 
+ { $name="pScheduledExecutor" $type="java.util.concurrent.ScheduledExe
+ cutorService" }method { $name="enumerateThreadGroup" $arguments="{jav
+ a.util.Map,java.lang.ThreadGroup}" }method { $name="findThreadStarter
+ " $return="java.lang.String" $arguments="{java.lang.Thread}" }method 
+ { $name="getAllThreads" $return="java.util.Map" }method { $name="inva
+ lidatePojo" }method { $name="updateMonitor" }method { $name="validate
+ Pojo" }}}
 

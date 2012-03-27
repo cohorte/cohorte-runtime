@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -26,7 +27,7 @@ import org.psem2m.isolates.forker.IIsolateRunner;
 import org.psem2m.isolates.forker.IProcessRef;
 import org.psem2m.isolates.forker.IProcessRunner;
 import org.psem2m.isolates.forker.impl.processes.ProcessBuilderRunner;
-import org.psem2m.isolates.services.conf.IIsolateDescr;
+import org.psem2m.isolates.services.conf.beans.IsolateDescription;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 
 /**
@@ -47,6 +48,9 @@ public class PythonRunner extends CPojoBase implements IIsolateRunner {
 
     /** Platform home environment variable */
     public static final String ENV_PLATFORM_HOME = "PSEM2M_HOME";
+
+    /** The Python class path environment variable */
+    public static final String ENV_PYTHONPATH = "PYTHONPATH";
 
     /** Python 2 isolate kind */
     public static final String SUPPORTED_PYTHON_2 = "python";
@@ -191,8 +195,8 @@ public class PythonRunner extends CPojoBase implements IIsolateRunner {
      * .services.conf.IIsolateDescr)
      */
     @Override
-    public IProcessRef startIsolate(final IIsolateDescr aIsolateConfiguration)
-            throws Exception {
+    public IProcessRef startIsolate(
+            final IsolateDescription aIsolateConfiguration) throws Exception {
 
         /* Get the runner */
         final IProcessRunner runner = getProcessRunner();
@@ -208,8 +212,13 @@ public class PythonRunner extends CPojoBase implements IIsolateRunner {
             return null;
         }
 
+        // Get the isolate ID
+        final String isolateId = aIsolateConfiguration.getId();
+
         /* Process environment */
-        final Map<String, String> environment = new HashMap<String, String>();
+        final Map<String, String> environment = new HashMap<String, String>(
+                aIsolateConfiguration.getEnvironment());
+
         // PSEM2M Home
         environment.put(ENV_PLATFORM_HOME, pPlatformDirsSvc
                 .getPlatformHomeDir().getAbsolutePath());
@@ -219,15 +228,41 @@ public class PythonRunner extends CPojoBase implements IIsolateRunner {
                 .getPlatformBaseDir().getAbsolutePath());
 
         // Isolate ID
-        environment.put(ENV_ISOLATE_ID, aIsolateConfiguration.getId());
+        environment.put(ENV_ISOLATE_ID, isolateId);
+
+        // Class path
+        if (!environment.containsKey(ENV_PYTHONPATH)
+                && !aIsolateConfiguration.getClasspath().isEmpty()) {
+
+            final StringBuilder builder = new StringBuilder();
+            final Iterator<String> iter = aIsolateConfiguration.getClasspath()
+                    .iterator();
+
+            while (iter.hasNext()) {
+
+                final String path = iter.next();
+                if (path != null && !path.isEmpty()) {
+                    // Add the path
+                    builder.append(path);
+
+                    // Add the path delimiter, if needed
+                    if (iter.hasNext()) {
+                        builder.append(File.pathSeparator);
+                    }
+                }
+            }
+
+            environment.put(ENV_PYTHONPATH, builder.toString());
+        }
 
         /* Interpreter arguments */
         final List<String> arguments = new ArrayList<String>();
-        arguments.addAll(aIsolateConfiguration.getVMArgs());
+        arguments.addAll(aIsolateConfiguration.getVmArgs());
+        arguments.addAll(aIsolateConfiguration.getAppArgs());
 
         /* Working directory */
         final File workingDirectory = pPlatformDirsSvc
-                .getIsolateWorkingDir(aIsolateConfiguration.getId());
+                .getIsolateWorkingDir(isolateId);
 
         // Create the working directory
         if (workingDirectory.exists()) {

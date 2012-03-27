@@ -30,7 +30,7 @@ import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.constants.boot.IBootstrapConstants;
 import org.psem2m.isolates.forker.IIsolateRunner;
 import org.psem2m.isolates.forker.IProcessRef;
-import org.psem2m.isolates.services.conf.IIsolateDescr;
+import org.psem2m.isolates.services.conf.beans.IsolateDescription;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 
 /**
@@ -171,7 +171,7 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
      * @return The bootstrap arguments, never null
      */
     protected List<String> prepareBootstrapArguments(
-            final IIsolateDescr aIsolateConfiguration) {
+            final IsolateDescription aIsolateConfiguration) {
 
         final List<String> bootstrapArguments = new ArrayList<String>();
 
@@ -309,8 +309,8 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
      * .base.conf.IIsolateDescr)
      */
     @Override
-    public IProcessRef startIsolate(final IIsolateDescr aIsolateConfiguration)
-            throws Exception {
+    public IProcessRef startIsolate(
+            final IsolateDescription aIsolateConfiguration) throws Exception {
 
         final List<String> javaOptions = new ArrayList<String>();
 
@@ -334,7 +334,7 @@ public class CIsolateRunner extends CPojoBase implements IIsolateRunner {
         setupDebugMode(javaOptions);
 
         // Add isolate VM arguments
-        javaOptions.addAll(aIsolateConfiguration.getVMArgs());
+        javaOptions.addAll(aIsolateConfiguration.getVmArgs());
 
         // Add the Bootstrap main class name
         javaOptions.add(IBundleFinderSvc.BOOTSTRAP_MAIN_CLASS);

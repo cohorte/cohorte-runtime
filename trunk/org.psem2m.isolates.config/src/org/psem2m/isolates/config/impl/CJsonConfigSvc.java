@@ -10,9 +10,9 @@ import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.config.IPlatformConfigurationConstants;
 import org.psem2m.isolates.config.json.JsonConfigReader;
-import org.psem2m.isolates.services.conf.IApplicationDescr;
-import org.psem2m.isolates.services.conf.IBundleDescr;
 import org.psem2m.isolates.services.conf.ISvcConfig;
+import org.psem2m.isolates.services.conf.beans.ApplicationDescription;
+import org.psem2m.isolates.services.conf.beans.BundleDescription;
 import org.psem2m.isolates.services.dirs.IFileFinderSvc;
 import org.psem2m.utilities.CXListUtils;
 
@@ -52,7 +52,7 @@ public class CJsonConfigSvc extends CPojoBase implements ISvcConfig {
      * @see org.psem2m.isolates.config.ISvcConfig#getApplication()
      */
     @Override
-    public IApplicationDescr getApplication() {
+    public ApplicationDescription getApplication() {
 
         final String[] appIds = pReader.getApplicationIds();
         if (appIds == null || appIds.length < 1) {
@@ -87,7 +87,7 @@ public class CJsonConfigSvc extends CPojoBase implements ISvcConfig {
             pIsolateLoggerSvc.logInfo(this, "logDumpConfig", " - IsolateId=",
                     wIsolateId);
 
-            for (final IBundleDescr wIBundleDescr : getApplication()
+            for (final BundleDescription wIBundleDescr : getApplication()
                     .getIsolate(wIsolateId).getBundles()) {
 
                 pIsolateLoggerSvc.logInfo(this, "logDumpConfig",

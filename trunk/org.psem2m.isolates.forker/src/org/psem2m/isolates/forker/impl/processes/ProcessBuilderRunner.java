@@ -29,7 +29,8 @@ public class ProcessBuilderRunner implements IProcessRunner {
      */
     @Override
     public void killProcess(final IProcessRef aProcessReference) {
-	// Do nothing
+
+        // Do nothing
     }
 
     /*
@@ -41,28 +42,28 @@ public class ProcessBuilderRunner implements IProcessRunner {
      */
     @Override
     public IProcessRef runProcess(final String aExecutable,
-	    final String[] aArguments, final Map<String, String> aEnvironment,
-	    final File aWorkingDirectory) throws IOException {
+            final String[] aArguments, final Map<String, String> aEnvironment,
+            final File aWorkingDirectory) throws IOException {
 
-	// Prepare the command line
-	List<String> commandLine = new ArrayList<String>();
-	commandLine.add(aExecutable);
+        // Prepare the command line
+        final List<String> commandLine = new ArrayList<String>();
+        commandLine.add(aExecutable);
 
-	if (aArguments != null) {
-	    for (String argument : aArguments) {
-		commandLine.add(argument);
-	    }
-	}
+        if (aArguments != null) {
+            for (final String argument : aArguments) {
+                commandLine.add(argument);
+            }
+        }
 
-	// Set up the process builder
-	ProcessBuilder builder = new ProcessBuilder(commandLine);
-	builder.directory(aWorkingDirectory);
+        // Set up the process builder
+        final ProcessBuilder builder = new ProcessBuilder(commandLine);
+        builder.directory(aWorkingDirectory);
 
-	if (aEnvironment != null) {
-	    builder.environment().putAll(aEnvironment);
-	}
+        if (aEnvironment != null && !aEnvironment.isEmpty()) {
+            builder.environment().putAll(aEnvironment);
+        }
 
-	Process javaRuntimeProcess = builder.start();
-	return new ProcessRef(-1, javaRuntimeProcess);
+        final Process javaRuntimeProcess = builder.start();
+        return new ProcessRef(-1, javaRuntimeProcess);
     }
 }

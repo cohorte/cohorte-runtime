@@ -10,7 +10,7 @@ import java.util.Map.Entry;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
-import org.psem2m.isolates.services.conf.IBundleDescr;
+import org.psem2m.isolates.services.conf.beans.BundleDescription;
 
 /**
  * Guardian thread, monitoring bundles installed by the agent
@@ -52,17 +52,18 @@ public class GuardianThread extends Thread {
 
         while (!isInterrupted()) {
 
-            final Map<Long, IBundleDescr> bundles = pAgentCore
+            final Map<Long, BundleDescription> bundles = pAgentCore
                     .getInstalledBundles();
 
             synchronized (bundles) {
                 // Synchronized, to avoid problems
 
                 // Test'em all
-                for (Entry<Long, IBundleDescr> entry : bundles.entrySet()) {
+                for (final Entry<Long, BundleDescription> entry : bundles
+                        .entrySet()) {
 
                     final long bundleId = entry.getKey();
-                    final IBundleDescr bundleDescr = entry.getValue();
+                    final BundleDescription bundleDescr = entry.getValue();
 
                     // Test if the bundle is valid
                     final Bundle osgiBundle = pAgentCore.getBundle(bundleId);
@@ -82,7 +83,7 @@ public class GuardianThread extends Thread {
                                 // Try to wake it up
                                 pAgentCore.startBundle(bundleId);
 
-                            } catch (BundleException e) {
+                            } catch (final BundleException e) {
                                 if (!bundleDescr.getOptional()) {
                                     // TODO handle this case
                                     System.err.println("INVALID STATE BUNDLE: "
@@ -104,7 +105,7 @@ public class GuardianThread extends Thread {
             // FIXME for debug purpose : slow down
             try {
                 Thread.sleep(1000);
-            } catch (InterruptedException e1) {
+            } catch (final InterruptedException e1) {
                 // Ignore sleep errors
             }
         }

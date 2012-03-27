@@ -34,8 +34,9 @@ import org.psem2m.isolates.base.isolates.boot.IsolateStatus;
 import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.constants.ISignalsConstants;
 import org.psem2m.isolates.monitor.IPlatformMonitor;
-import org.psem2m.isolates.services.conf.IIsolateDescr;
 import org.psem2m.isolates.services.conf.ISvcConfig;
+import org.psem2m.isolates.services.conf.beans.ApplicationDescription;
+import org.psem2m.isolates.services.conf.beans.IsolateDescription;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.isolates.services.forker.IForker;
 import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
@@ -122,14 +123,6 @@ public class MonitorCore extends CPojoBase implements
     private Semaphore pStopSemaphore;
 
     /**
-     * Default constructor
-     */
-    public MonitorCore() {
-
-        super();
-    }
-
-    /**
      * Called by iPOJO when a forker handler is bound
      * 
      * @param aForkerHandler
@@ -212,31 +205,20 @@ public class MonitorCore extends CPojoBase implements
                 ISignalsConstants.ISOLATE_STATUS_SIGNAL, this);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.utilities.CXObjectBase#destroy()
-     */
-    @Override
-    public void destroy() {
-
-        // ...
-    }
-
     /**
      * Retrieves the description of the given isolate ID if and only if it can
      * be started by the current monitor.
      * 
      * @return The isolate description, or null
      */
-    public IIsolateDescr getIsolateDescription(final String aIsolateId) {
+    public IsolateDescription getIsolateDescription(final String aIsolateId) {
 
         if (aIsolateId == null) {
             // Invalid ID
             return null;
         }
 
-        final IIsolateDescr isolateDescr = pConfiguration.getApplication()
+        final IsolateDescription isolateDescr = pConfiguration.getApplication()
                 .getIsolate(aIsolateId);
         if (isolateDescr == null) {
             // Unknown isolate
@@ -553,13 +535,13 @@ public class MonitorCore extends CPojoBase implements
             return false;
         }
 
-        final IIsolateDescr isolateDescr = getIsolateDescription(aIsolateId);
+        final IsolateDescription isolateDescr = getIsolateDescription(aIsolateId);
         if (isolateDescr == null) {
             // The isolate can't be started by this monitor
             return false;
         }
 
-        final int result = pForkerSvc.startIsolate(isolateDescr);
+        final int result = pForkerSvc.startIsolate(isolateDescr.toMap());
         // Success if the isolate is running (even if we done nothing) return
         return result == IForker.SUCCESS || result == IForker.ALREADY_RUNNING;
     }
@@ -606,11 +588,11 @@ public class MonitorCore extends CPojoBase implements
         pIsolatesToStop.clear();
 
         // Only try to stop isolates that can be started by this monitor
-        if (pConfiguration.getApplication() != null
-                && pConfiguration.getApplication().getIsolateIds() != null) {
+        final ApplicationDescription application = pConfiguration
+                .getApplication();
+        if (application.getIsolateIds() != null) {
 
-            for (final String isolateId : pConfiguration.getApplication()
-                    .getIsolateIds()) {
+            for (final String isolateId : application.getIsolateIds()) {
 
                 if (getIsolateDescription(isolateId) != null) {
                     pIsolatesToStop.add(isolateId);

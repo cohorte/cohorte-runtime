@@ -25,7 +25,7 @@ import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.forker.IProcessRef;
 import org.psem2m.isolates.forker.IProcessRunner;
 import org.psem2m.isolates.forker.impl.processes.ProcessBuilderRunner;
-import org.psem2m.isolates.services.conf.IIsolateDescr;
+import org.psem2m.isolates.services.conf.beans.IsolateDescription;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 
 /**
@@ -193,11 +193,12 @@ public class JavaRunner extends CPojoBase implements IJavaRunner {
      * .base.conf.IIsolateDescr)
      */
     @Override
-    public IProcessRef startIsolate(final IIsolateDescr aIsolateConfiguration)
-            throws Exception {
+    public IProcessRef startIsolate(
+            final IsolateDescription aIsolateConfiguration) throws Exception {
 
         // Java arguments list
-        final List<String> javaArguments = new ArrayList<String>();
+        final List<String> javaArguments = new ArrayList<String>(
+                aIsolateConfiguration.getVmArgs());
 
         // Isolate ID
         javaArguments.add(makeJavaProperty(
@@ -218,6 +219,9 @@ public class JavaRunner extends CPojoBase implements IJavaRunner {
         final File workingDirectory = pPlatformDirsSvc
                 .getIsolateWorkingDir(aIsolateConfiguration.getId());
 
+        // Application arguments
+        javaArguments.addAll(aIsolateConfiguration.getAppArgs());
+
         // Create the working directory
         if (workingDirectory.exists()) {
             Utilities.removeDirectory(workingDirectory);
@@ -225,7 +229,8 @@ public class JavaRunner extends CPojoBase implements IJavaRunner {
         workingDirectory.mkdirs();
 
         // Run the isolate
-        return runJava(javaArguments, null, workingDirectory);
+        return runJava(javaArguments, aIsolateConfiguration.getEnvironment(),
+                workingDirectory);
     }
 
     /*

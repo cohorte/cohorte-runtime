@@ -24,7 +24,7 @@ import org.psem2m.isolates.constants.ISignalsConstants;
 import org.psem2m.isolates.forker.IIsolateRunner;
 import org.psem2m.isolates.forker.IProcessRef;
 import org.psem2m.isolates.forker.impl.processes.ProcessRef;
-import org.psem2m.isolates.services.conf.IIsolateDescr;
+import org.psem2m.isolates.services.conf.beans.IsolateDescription;
 import org.psem2m.isolates.services.forker.IForker;
 import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
 
@@ -38,13 +38,13 @@ import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
 public class CForkerSvc extends CPojoBase implements IForker,
         IIsolateOutputListener {
 
-    /** The logger service, injected by iPOJO */
-    @Requires
-    private IIsolateLoggerSvc pIsolateLoggerSvc;
-
     /** Isolate runners, injected by iPOJO */
     @Requires
     private IIsolateRunner[] pIsolateRunners;
+
+    /** The logger service, injected by iPOJO */
+    @Requires
+    private IIsolateLoggerSvc pLogger;
 
     /** Isolate <-> Process association */
     private final Map<String, IProcessRef> pRunningIsolates = new TreeMap<String, IProcessRef>();
@@ -74,7 +74,7 @@ public class CForkerSvc extends CPojoBase implements IForker,
     public void handleIsolateLogRecord(final String aSourceIsolateId,
             final LogRecord aLogRecord) {
 
-        pIsolateLoggerSvc.log(aLogRecord);
+        pLogger.log(aLogRecord);
     }
 
     /*
@@ -97,8 +97,8 @@ public class CForkerSvc extends CPojoBase implements IForker,
                     ISignalBroadcaster.EEmitterTargets.MONITORS,
                     ISignalsConstants.ISOLATE_LOST_SIGNAL, aSourceIsolateId);
 
-            pIsolateLoggerSvc.logInfo(this, "handleIsolateStatus",
-                    "Contact lost with", aSourceIsolateId);
+            pLogger.logInfo(this, "handleIsolateStatus", "Contact lost with",
+                    aSourceIsolateId);
             return;
         }
 
@@ -115,7 +115,7 @@ public class CForkerSvc extends CPojoBase implements IForker,
                 ISignalBroadcaster.EEmitterTargets.MONITORS,
                 ISignalsConstants.ISOLATE_STATUS_SIGNAL, aIsolateStatus);
 
-        pIsolateLoggerSvc.logInfo(this, "handleIsolateStatus", "Read from",
+        pLogger.logInfo(this, "handleIsolateStatus", "Read from",
                 aSourceIsolateId, ":", aIsolateStatus);
     }
 
@@ -129,8 +129,7 @@ public class CForkerSvc extends CPojoBase implements IForker,
     public void invalidatePojo() {
 
         // logs in the bundle logger
-        pIsolateLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
-                toDescription());
+        pLogger.logInfo(this, "invalidatePojo", "INVALIDATE", toDescription());
     }
 
     /*
@@ -155,27 +154,34 @@ public class CForkerSvc extends CPojoBase implements IForker,
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.isolates.commons.forker.IForker#startIsolate(org.psem2m.isolates
-     * .base.conf.IIsolateDescr)
+     * org.psem2m.isolates.services.forker.IForker#startIsolate(java.util.Map)
      */
     @Override
-    public final int startIsolate(final IIsolateDescr aIsolateConfiguration) {
+    public final int startIsolate(
+            final Map<String, Object> aIsolateConfiguration) {
 
-        final String isolateId = aIsolateConfiguration.getId();
-        pIsolateLoggerSvc.logInfo(this, "startIsolate", "Trying to launch",
-                isolateId);
+        final IsolateDescription isolateDesc = new IsolateDescription(
+                aIsolateConfiguration);
+
+        final String isolateId = isolateDesc.getId();
+        pLogger.logInfo(this, "startIsolate", "Trying to launch", isolateId);
+
+        if (isolateId == null || isolateId.isEmpty()) {
+            pLogger.logSevere(this, "startIsolate",
+                    "Can't start an isolate with an empty ID");
+        }
 
         // Test if the isolate is already running
         if (pRunningIsolates.containsKey(isolateId)) {
-            pIsolateLoggerSvc.logInfo(this, "startIsolate",
-                    "Already running =", isolateId);
+            pLogger.logInfo(this, "startIsolate", "Already running =",
+                    isolateId);
             return ALREADY_RUNNING;
         }
 
         // Find the runner for this isolate
-        IIsolateRunner isolateRunner = null;
+        final String isolateKind = isolateDesc.getKind();
 
-        final String isolateKind = aIsolateConfiguration.getKind();
+        IIsolateRunner isolateRunner = null;
         for (final IIsolateRunner availableRunner : pIsolateRunners) {
             if (availableRunner.canRun(isolateKind)) {
                 isolateRunner = availableRunner;
@@ -192,7 +198,7 @@ public class CForkerSvc extends CPojoBase implements IForker,
         final IProcessRef isolateRef;
 
         try {
-            isolateRef = isolateRunner.startIsolate(aIsolateConfiguration);
+            isolateRef = isolateRunner.startIsolate(isolateDesc);
 
         } catch (final Exception e) {
             e.printStackTrace();
@@ -213,7 +219,7 @@ public class CForkerSvc extends CPojoBase implements IForker,
             watcherThread.start();
 
         } catch (final IOException ex) {
-            pIsolateLoggerSvc.logWarn(this, "startIsolate",
+            pLogger.logWarn(this, "startIsolate",
                     "Can't start the watcher for :", isolateId, ex);
             return NO_WATCHER;
         }
@@ -230,8 +236,7 @@ public class CForkerSvc extends CPojoBase implements IForker,
     @Override
     public void stopIsolate(final String aIsolateId) {
 
-        pIsolateLoggerSvc.logInfo(this, "stopIsolate", "Trying to kill",
-                aIsolateId);
+        pLogger.logInfo(this, "stopIsolate", "Trying to kill", aIsolateId);
 
         final IProcessRef process = pRunningIsolates.get(aIsolateId);
         if (process != null) {
@@ -252,7 +257,7 @@ public class CForkerSvc extends CPojoBase implements IForker,
     public void validatePojo() {
 
         // logs in the bundle logger
-        pIsolateLoggerSvc.logInfo(this, "validatePojo", "VALIDATE",
+        pLogger.logInfo(this, "validatePojo", "VALIDATE",
 
         toDescription());
     }

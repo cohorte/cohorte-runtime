@@ -15,14 +15,11 @@ import java.util.Properties;
 import java.util.Scanner;
 import java.util.Stack;
 
-import org.psem2m.isolates.base.conf.beans.ApplicationDescription;
-import org.psem2m.isolates.base.conf.beans.BundleDescription;
-import org.psem2m.isolates.base.conf.beans.IsolateDescription;
 import org.psem2m.isolates.config.IPlatformConfigurationConstants;
-import org.psem2m.isolates.services.conf.IApplicationDescr;
-import org.psem2m.isolates.services.conf.IBundleDescr;
 import org.psem2m.isolates.services.conf.IConfigurationReader;
-import org.psem2m.isolates.services.conf.IIsolateDescr;
+import org.psem2m.isolates.services.conf.beans.ApplicationDescription;
+import org.psem2m.isolates.services.conf.beans.BundleDescription;
+import org.psem2m.isolates.services.conf.beans.IsolateDescription;
 import org.psem2m.isolates.services.dirs.IFileFinderSvc;
 import org.psem2m.utilities.json.JSONArray;
 import org.psem2m.utilities.json.JSONException;
@@ -83,7 +80,7 @@ public class JsonConfigReader implements IConfigurationReader {
      * .String)
      */
     @Override
-    public IApplicationDescr getApplication(final String aApplicationId) {
+    public ApplicationDescription getApplication(final String aApplicationId) {
 
         if (pApplication.getApplicationId().equals(aApplicationId)) {
             return pApplication;
@@ -159,7 +156,7 @@ public class JsonConfigReader implements IConfigurationReader {
      * @throws JSONException
      *             The bundle entry is invalid
      */
-    protected IBundleDescr parseBundle(final JSONObject aBundleObject,
+    protected BundleDescription parseBundle(final JSONObject aBundleObject,
             final Properties aOverridenProperties) throws JSONException {
 
         // Get the symbolic name
@@ -264,7 +261,7 @@ public class JsonConfigReader implements IConfigurationReader {
      * @throws FileNotFoundException
      *             An imported file wasn't found
      */
-    protected IIsolateDescr parseIsolate(final JSONObject aIsolateObject,
+    protected IsolateDescription parseIsolate(final JSONObject aIsolateObject,
             final Properties aOverridingProperties) throws JSONException,
             FileNotFoundException {
 
@@ -288,7 +285,7 @@ public class JsonConfigReader implements IConfigurationReader {
         if (vmArgsArray != null) {
 
             final List<String> isolateVmArgsList = isolateDescription
-                    .getVMArgs();
+                    .getVmArgs();
 
             final int vmArgsCount = vmArgsArray.length();
             for (int i = 0; i < vmArgsCount; i++) {
@@ -358,7 +355,7 @@ public class JsonConfigReader implements IConfigurationReader {
         final int isolatesCount = aJsonArray.length();
         for (int i = 0; i < isolatesCount; i++) {
 
-            final IIsolateDescr isolateDescription;
+            final IsolateDescription isolateDescription;
             final JSONObject isolateObject = aJsonArray.getJSONObject(i);
 
             // Compute overriding properties

@@ -15,7 +15,7 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.psem2m.isolates.base.bundles.BundleRef;
 import org.psem2m.isolates.base.bundles.IBundleFinderSvc;
-import org.psem2m.isolates.base.conf.beans.IsolateDescription;
+import org.psem2m.isolates.services.conf.beans.IsolateDescription;
 import org.psem2m.isolates.services.forker.IForker;
 import org.psem2m.utilities.logging.CLogToolsException;
 import org.psem2m.utilities.teststools.CConsoleTester;
@@ -36,13 +36,14 @@ public class CForkerTester extends CConsoleTester {
      * @param args
      */
     public static void main(final String[] args) {
-	try {
-	    CConsoleTester.main(new CForkerTester(args));
-	} catch (Throwable e) {
-	    System.out.println("main(): EXCEPTION\n");
-	    System.out.println(CLogToolsException.getInstance().eInString(e));
-	    System.exit(1);
-	}
+
+        try {
+            CConsoleTester.main(new CForkerTester(args));
+        } catch (final Throwable e) {
+            System.out.println("main(): EXCEPTION\n");
+            System.out.println(CLogToolsException.getInstance().eInString(e));
+            System.exit(1);
+        }
     }
 
     /** The Felix forker service */
@@ -58,21 +59,23 @@ public class CForkerTester extends CConsoleTester {
      * @throws Exception
      */
     public CForkerTester(final String[] aArgs) throws Exception {
-	super(aArgs);
+
+        super(aArgs);
     }
 
     @Override
     protected void buildHelp(final StringBuilder aHelp) {
-	addHelpTitle(aHelp, "Forker Tester");
 
-	addHelpLine(aHelp, FORK_JAVA_COMMAND + " [args]");
-	addHelpSubLine(aHelp, "launches the java interpreter "
-		+ "with the given arguments ('args')");
+        addHelpTitle(aHelp, "Forker Tester");
 
-	addHelpLine(aHelp, FORK_FELIX_COMMAND
-		+ "bundle1 [bundle2 [...]] (INCOMPLETE)");
-	addHelpSubLine(aHelp,
-		"launches the felix forker with the given bundles");
+        addHelpLine(aHelp, FORK_JAVA_COMMAND + " [args]");
+        addHelpSubLine(aHelp, "launches the java interpreter "
+                + "with the given arguments ('args')");
+
+        addHelpLine(aHelp, FORK_FELIX_COMMAND
+                + "bundle1 [bundle2 [...]] (INCOMPLETE)");
+        addHelpSubLine(aHelp,
+                "launches the felix forker with the given bundles");
     }
 
     /**
@@ -84,31 +87,31 @@ public class CForkerTester extends CConsoleTester {
      */
     protected boolean doForkFelix(final String aCommandLine) throws Exception {
 
-	String[] elements = aCommandLine.split(" ");
+        final String[] elements = aCommandLine.split(" ");
 
-	if (elements.length < 2) {
-	    throw new InvalidParameterException("Missing arguments");
-	}
+        if (elements.length < 2) {
+            throw new InvalidParameterException("Missing arguments");
+        }
 
-	IBundleFinderSvc bundleFinder = getBundleFinder();
-	if (bundleFinder == null) {
-	    throw new Exception("Test requires a bundle finder service");
-	}
+        final IBundleFinderSvc bundleFinder = getBundleFinder();
+        if (bundleFinder == null) {
+            throw new Exception("Test requires a bundle finder service");
+        }
 
-	List<BundleRef> bundles = new ArrayList<BundleRef>();
-	for (int i = 1; i < elements.length; i++) {
+        final List<BundleRef> bundles = new ArrayList<BundleRef>();
+        for (int i = 1; i < elements.length; i++) {
 
-	    BundleRef bundleRef = bundleFinder.findBundle(elements[i]);
-	    bundles.add(bundleRef);
-	}
+            final BundleRef bundleRef = bundleFinder.findBundle(elements[i]);
+            bundles.add(bundleRef);
+        }
 
-	IsolateDescription isolateConfig = new IsolateDescription(
-		"isolat-felix");
-	isolateConfig.setKind("felix");
+        final IsolateDescription isolateConfig = new IsolateDescription(
+                "isolat-felix");
+        isolateConfig.setKind("felix");
 
-	IForker forker = getForker();
-	forker.startIsolate(isolateConfig);
-	return true;
+        final IForker forker = getForker();
+        forker.startIsolate(isolateConfig.toMap());
+        return true;
     }
 
     /**
@@ -120,24 +123,25 @@ public class CForkerTester extends CConsoleTester {
      */
     protected boolean doForkJava(final String aCommandLine) throws Exception {
 
-	String[] elements = aCommandLine.split(" ");
+        final String[] elements = aCommandLine.split(" ");
 
-	String[] cmdArray = null;
-	if (elements.length > 1) {
-	    cmdArray = new String[elements.length - 1];
+        String[] cmdArray = null;
+        if (elements.length > 1) {
+            cmdArray = new String[elements.length - 1];
 
-	    for (int i = 1; i < elements.length; i++) {
-		cmdArray[i - 1] = elements[i];
-	    }
-	}
+            for (int i = 1; i < elements.length; i++) {
+                cmdArray[i - 1] = elements[i];
+            }
+        }
 
-	IsolateDescription isolateConfig = new IsolateDescription("isolat-java");
-	isolateConfig.setKind("java");
+        final IsolateDescription isolateConfig = new IsolateDescription(
+                "isolat-java");
+        isolateConfig.setKind("java");
 
-	IForker forker = getForker();
-	forker.startIsolate(isolateConfig);
+        final IForker forker = getForker();
+        forker.startIsolate(isolateConfig.toMap());
 
-	return true;
+        return true;
     }
 
     /**
@@ -147,22 +151,22 @@ public class CForkerTester extends CConsoleTester {
      */
     protected IBundleFinderSvc getBundleFinder() {
 
-	BundleContext context = CBundleForkerTestActivator.getInstance()
-		.getContext();
-	try {
-	    ServiceReference[] refs = context.getServiceReferences(
-		    IBundleFinderSvc.class.getName(), null);
+        final BundleContext context = CBundleForkerTestActivator.getInstance()
+                .getContext();
+        try {
+            final ServiceReference[] refs = context.getServiceReferences(
+                    IBundleFinderSvc.class.getName(), null);
 
-	    if (refs != null && refs.length != 0) {
-		return (IBundleFinderSvc) context.getService(refs[0]);
-	    }
+            if (refs != null && refs.length != 0) {
+                return (IBundleFinderSvc) context.getService(refs[0]);
+            }
 
-	} catch (InvalidSyntaxException e) {
-	    logInfo("Error searching for a bundle finder : ");
-	    logInfo(e);
-	}
+        } catch (final InvalidSyntaxException e) {
+            logInfo("Error searching for a bundle finder : ");
+            logInfo(e);
+        }
 
-	return null;
+        return null;
     }
 
     /**
@@ -172,22 +176,22 @@ public class CForkerTester extends CConsoleTester {
      */
     protected IForker getForker() {
 
-	BundleContext context = CBundleForkerTestActivator.getInstance()
-		.getContext();
-	try {
-	    ServiceReference[] refs = context.getServiceReferences(
-		    IForker.class.getName(), null);
+        final BundleContext context = CBundleForkerTestActivator.getInstance()
+                .getContext();
+        try {
+            final ServiceReference[] refs = context.getServiceReferences(
+                    IForker.class.getName(), null);
 
-	    if (refs != null && refs.length != 0) {
-		return (IForker) context.getService(refs[0]);
-	    }
+            if (refs != null && refs.length != 0) {
+                return (IForker) context.getService(refs[0]);
+            }
 
-	} catch (InvalidSyntaxException e) {
-	    logInfo("Error searching for a forker : ");
-	    logInfo(e);
-	}
+        } catch (final InvalidSyntaxException e) {
+            logInfo("Error searching for a forker : ");
+            logInfo(e);
+        }
 
-	return null;
+        return null;
     }
 
     /*
@@ -199,15 +203,15 @@ public class CForkerTester extends CConsoleTester {
      */
     @Override
     public boolean monitorCommand(final String aCommand, final String aLine,
-	    final StringTokenizer aST) throws Exception {
+            final StringTokenizer aST) throws Exception {
 
-	if (aCommand.equals(FORK_JAVA_COMMAND)) {
-	    return doForkJava(aLine);
+        if (aCommand.equals(FORK_JAVA_COMMAND)) {
+            return doForkJava(aLine);
 
-	} else if (aCommand.equals(FORK_FELIX_COMMAND)) {
-	    return doForkFelix(aLine);
-	}
+        } else if (aCommand.equals(FORK_FELIX_COMMAND)) {
+            return doForkFelix(aLine);
+        }
 
-	return false;
+        return false;
     }
 }

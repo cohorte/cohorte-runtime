@@ -22,8 +22,8 @@ import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.constants.IPlatformProperties;
-import org.psem2m.isolates.services.conf.IIsolateDescr;
 import org.psem2m.isolates.services.conf.ISvcConfig;
+import org.psem2m.isolates.services.conf.beans.IsolateDescription;
 import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
 import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster.EEmitterTargets;
 import org.psem2m.isolates.services.remote.signals.ISignalsDirectory;
@@ -119,7 +119,7 @@ public class SignalsDirectory extends CPojoBase implements ISignalsDirectory {
     @Override
     public String getIsolate(final String aIsolateId) {
 
-        final IIsolateDescr isolate = pConfiguration.getApplication()
+        final IsolateDescription isolate = pConfiguration.getApplication()
                 .getIsolate(aIsolateId);
 
         if (isolate == null) {
@@ -178,8 +178,8 @@ public class SignalsDirectory extends CPojoBase implements ISignalsDirectory {
 
             for (final String isolateId : allIsolates) {
 
-                final IIsolateDescr isolate = pConfiguration.getApplication()
-                        .getIsolate(isolateId);
+                final IsolateDescription isolate = pConfiguration
+                        .getApplication().getIsolate(isolateId);
 
                 if (isolate != null && isValidIsolate(isolateId)) {
                     accessStrings.add(isolate.getAccessUrl());
@@ -228,7 +228,7 @@ public class SignalsDirectory extends CPojoBase implements ISignalsDirectory {
 
         for (final String isolateId : aIsolatesIds) {
 
-            final IIsolateDescr isolate = pConfiguration.getApplication()
+            final IsolateDescription isolate = pConfiguration.getApplication()
                     .getIsolate(isolateId);
 
             if (isolate != null && isValidIsolate(isolateId)) {

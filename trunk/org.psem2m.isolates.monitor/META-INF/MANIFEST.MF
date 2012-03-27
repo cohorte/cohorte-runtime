@@ -13,10 +13,11 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  tors;version=1.0.0, org.psem2m.isolates.base.isolates;version=1.0.0, 
  org.psem2m.isolates.base.isolates.boot;version=1.0.0, org.psem2m.isol
  ates.constants;version=1.0.0, org.psem2m.isolates.services.conf;versi
- on=1.0.0, org.psem2m.isolates.services.dirs;version=1.0.0, org.psem2m
- .isolates.services.forker;version=1.0.0, org.psem2m.isolates.services
- .remote.signals;version=1.0.0, org.psem2m.isolates.slave.agent, org.p
- sem2m.utilities, org.psem2m.utilities.logging
+ on=1.0.0, org.psem2m.isolates.services.conf.beans;version=1.0.0, org.
+ psem2m.isolates.services.dirs;version=1.0.0, org.psem2m.isolates.serv
+ ices.forker;version=1.0.0, org.psem2m.isolates.services.remote.signal
+ s;version=1.0.0, org.psem2m.isolates.slave.agent, org.psem2m.utilitie
+ s, org.psem2m.utilities.logging
 iPOJO-Components: instance { $component="org.psem2m.isolates.monitor.c
  ore.MonitorCore" $name="psem2m-monitor-core" }component { $classname=
  "org.psem2m.isolates.monitor.core.MonitorCore" $name="psem2m-monitor-
@@ -59,25 +60,25 @@ iPOJO-Components: instance { $component="org.psem2m.isolates.monitor.c
  m.isolates.base.isolates.IForkerHandler}" }method { $name="bindForker
  Service" $arguments="{org.psem2m.isolates.services.forker.IForker}" }
  method { $name="bindSignalReceiver" $arguments="{org.psem2m.isolates.
- services.remote.signals.ISignalReceiver}" }method { $name="destroy" }
- method { $name="getIsolateDescription" $return="org.psem2m.isolates.s
- ervices.conf.IIsolateDescr" $arguments="{java.lang.String}" }method {
-  $name="handleForkerStatus" $arguments="{org.psem2m.isolates.base.iso
- lates.boot.IsolateStatus}" }method { $name="handleIsolateFailure" $ar
- guments="{java.lang.String}" }method { $name="handleIsolateStatusEven
- t" $arguments="{java.lang.String,org.psem2m.isolates.base.isolates.bo
- ot.IsolateStatus}" }method { $name="handleReceivedSignal" $arguments=
- "{java.lang.String,org.psem2m.isolates.services.remote.signals.ISigna
- lData}" }method { $name="invalidatePojo" }method { $name="isolateStop
- ped" $arguments="{java.lang.String}" }method { $name="isStatusObsolet
- e" $return="boolean" $arguments="{org.psem2m.isolates.base.isolates.b
- oot.IsolateStatus}" }method { $name="killRemainingIsolates" }method {
-  $name="readIntSystemProperty" $return="int" $arguments="{java.lang.S
- tring,int}" }method { $name="startIsolate" $return="boolean" $argumen
- ts="{java.lang.String}" }method { $name="stopIsolate" $return="boolea
- n" $arguments="{java.lang.String}" }method { $name="stopPlatform" }me
- thod { $name="unbindForkerHandler" $arguments="{org.psem2m.isolates.b
- ase.isolates.IForkerHandler}" }method { $name="unbindForkerService" $
- arguments="{org.psem2m.isolates.services.forker.IForker}" }method { $
- name="validatePojo" }method { $name="writeAccessFile" }}}
+ services.remote.signals.ISignalReceiver}" }method { $name="getIsolate
+ Description" $return="org.psem2m.isolates.services.conf.beans.Isolate
+ Description" $arguments="{java.lang.String}" }method { $name="handleF
+ orkerStatus" $arguments="{org.psem2m.isolates.base.isolates.boot.Isol
+ ateStatus}" }method { $name="handleIsolateFailure" $arguments="{java.
+ lang.String}" }method { $name="handleIsolateStatusEvent" $arguments="
+ {java.lang.String,org.psem2m.isolates.base.isolates.boot.IsolateStatu
+ s}" }method { $name="handleReceivedSignal" $arguments="{java.lang.Str
+ ing,org.psem2m.isolates.services.remote.signals.ISignalData}" }method
+  { $name="invalidatePojo" }method { $name="isolateStopped" $arguments
+ ="{java.lang.String}" }method { $name="isStatusObsolete" $return="boo
+ lean" $arguments="{org.psem2m.isolates.base.isolates.boot.IsolateStat
+ us}" }method { $name="killRemainingIsolates" }method { $name="readInt
+ SystemProperty" $return="int" $arguments="{java.lang.String,int}" }me
+ thod { $name="startIsolate" $return="boolean" $arguments="{java.lang.
+ String}" }method { $name="stopIsolate" $return="boolean" $arguments="
+ {java.lang.String}" }method { $name="stopPlatform" }method { $name="u
+ nbindForkerHandler" $arguments="{org.psem2m.isolates.base.isolates.IF
+ orkerHandler}" }method { $name="unbindForkerService" $arguments="{org
+ .psem2m.isolates.services.forker.IForker}" }method { $name="validateP
+ ojo" }method { $name="writeAccessFile" }}}
 

@@ -36,9 +36,9 @@ import org.psem2m.isolates.base.isolates.boot.IBootstrapMessageSender;
 import org.psem2m.isolates.base.isolates.boot.IsolateStatus;
 import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.constants.ISignalsConstants;
-import org.psem2m.isolates.services.conf.IBundleDescr;
-import org.psem2m.isolates.services.conf.IIsolateDescr;
 import org.psem2m.isolates.services.conf.ISvcConfig;
+import org.psem2m.isolates.services.conf.beans.BundleDescription;
+import org.psem2m.isolates.services.conf.beans.IsolateDescription;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
 import org.psem2m.isolates.services.remote.signals.ISignalData;
@@ -70,7 +70,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
     private AtomicBoolean pCriticalSection = new AtomicBoolean(false);
 
     /** Bundles installed by the agent : bundle ID -&gt; bundle description map */
-    private final Map<Long, IBundleDescr> pInstalledBundles = new LinkedHashMap<Long, IBundleDescr>();
+    private final Map<Long, BundleDescription> pInstalledBundles = new LinkedHashMap<Long, BundleDescription>();
 
     /** Isolate logger, injected by iPOJO */
     private IIsolateLoggerSvc pIsolateLoggerSvc;
@@ -120,7 +120,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
             return;
         }
 
-        final IBundleDescr bundleDescr;
+        final BundleDescription bundleDescr;
         synchronized (pInstalledBundles) {
             // Find the monitored bundle description
             bundleDescr = pInstalledBundles.get(bundleId);
@@ -244,7 +244,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
      *            A description of the bundle to install
      * @return The install URL of the bundle, null on error.
      */
-    public String findBundleURL(final IBundleDescr aBundleDescr) {
+    public String findBundleURL(final BundleDescription aBundleDescr) {
 
         final String bundleFileName = aBundleDescr.getFile();
         BundleRef bundleRef = null;
@@ -334,7 +334,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
      * 
      * @return The installed bundles.
      */
-    public Map<Long, IBundleDescr> getInstalledBundles() {
+    public Map<Long, BundleDescription> getInstalledBundles() {
 
         return pInstalledBundles;
     }
@@ -377,7 +377,8 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
      * @param aBundleDescr
      *            The internal bundle description
      */
-    protected void handleUninstalledBundleEvent(final IBundleDescr aBundleDescr) {
+    protected void handleUninstalledBundleEvent(
+            final BundleDescription aBundleDescr) {
 
         if (aBundleDescr.getOptional()) {
             // Just log it
@@ -529,7 +530,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
         synchronized (pInstalledBundles) {
             // Synchronized map, to avoid messing with the guardian
 
-            final List<Entry<Long, IBundleDescr>> wList = new ArrayList<Entry<Long, IBundleDescr>>(
+            final List<Entry<Long, BundleDescription>> wList = new ArrayList<Entry<Long, BundleDescription>>(
                     pInstalledBundles.entrySet());
 
             Long wBundleId;
@@ -587,8 +588,8 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
     public void prepareIsolate(final String aIsolateId) throws Exception {
 
         // Read the configuration
-        final IIsolateDescr isolateDescr = pConfigurationSvc.getApplication()
-                .getIsolate(aIsolateId);
+        final IsolateDescription isolateDescr = pConfigurationSvc
+                .getApplication().getIsolate(aIsolateId);
         if (isolateDescr == null) {
             throw new IllegalArgumentException("Isolate '" + aIsolateId
                     + "' is not defined in the configuration.");
@@ -605,7 +606,8 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
             // Synchronized map, to avoid messing with the guardian
 
             // First loop : install bundles
-            for (final IBundleDescr bundleDescr : isolateDescr.getBundles()) {
+            for (final BundleDescription bundleDescr : isolateDescr
+                    .getBundles()) {
 
                 final String bundleName = bundleDescr.getSymbolicName();
                 final String bundleUrl = findBundleURL(bundleDescr);
@@ -792,7 +794,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
      * @param aIsolateDescr
      *            The description of the new isolate configuration
      */
-    protected void setupHttpProperties(final IIsolateDescr aIsolateDescr) {
+    protected void setupHttpProperties(final IsolateDescription aIsolateDescr) {
 
         // Get the configured URL
         final String isolateAccessStr = aIsolateDescr.getAccessUrl();

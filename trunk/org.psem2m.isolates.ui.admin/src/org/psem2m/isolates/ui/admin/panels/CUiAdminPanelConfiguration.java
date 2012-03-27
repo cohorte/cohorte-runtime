@@ -20,8 +20,8 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
-import org.psem2m.isolates.services.conf.IBundleDescr;
 import org.psem2m.isolates.services.conf.ISvcConfig;
+import org.psem2m.isolates.services.conf.beans.BundleDescription;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.isolates.ui.admin.api.EUiAdminFont;
 import org.psem2m.isolates.ui.admin.api.EUiAdminPanelLocation;
@@ -74,25 +74,26 @@ public class CUiAdminPanelConfiguration extends CPojoBase implements
      */
     private String buildConfigDump() {
 
-        StringBuilder wSB = new StringBuilder();
+        final StringBuilder wSB = new StringBuilder();
 
         CXStringUtils.appendKeyValInBuff(wSB, "Application", pSvcConfig
                 .getApplication().getApplicationId());
 
         pSvcConfig.getApplication().getIsolate(pPlatformDirsSvc.getIsolateId());
 
-        for (String wIsolateId : pSvcConfig.getApplication().getIsolateIds()) {
+        for (final String wIsolateId : pSvcConfig.getApplication()
+                .getIsolateIds()) {
 
             CXStringUtils.appendKeyValInBuff(wSB, "\n - IsolateId", wIsolateId);
         }
 
-        String wCurrentIsolateId = pPlatformDirsSvc.getIsolateId();
+        final String wCurrentIsolateId = pPlatformDirsSvc.getIsolateId();
 
         CXStringUtils.appendKeyValInBuff(wSB, "\nCurrentIsolateId",
                 wCurrentIsolateId);
 
-        for (IBundleDescr wIBundleDescr : pSvcConfig.getApplication()
-                .getIsolate(wCurrentIsolateId).getBundles()) {
+        for (final BundleDescription wIBundleDescr : pSvcConfig
+                .getApplication().getIsolate(wCurrentIsolateId).getBundles()) {
 
             CXStringUtils.appendKeyValInBuff(wSB, "\n  - Bundle",
                     wIBundleDescr.getSymbolicName());
@@ -117,7 +118,7 @@ public class CUiAdminPanelConfiguration extends CPojoBase implements
      */
     private void initContent() {
 
-        Runnable wRunnable = new Runnable() {
+        final Runnable wRunnable = new Runnable() {
             @Override
             public void run() {
 
@@ -132,7 +133,7 @@ public class CUiAdminPanelConfiguration extends CPojoBase implements
         try {
             // gives the runnable to the UIExecutor
             pUiExecutor.execute(wRunnable);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             pLogger.logSevere(this, "init", e);
         }
     }
@@ -153,7 +154,7 @@ public class CUiAdminPanelConfiguration extends CPojoBase implements
 
             pUiAdminSvc.removeUiAdminPanel(pUiAdminPanel);
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             pLogger.logSevere(this, "invalidatePojo", e);
         }
     }
@@ -193,7 +194,7 @@ public class CUiAdminPanelConfiguration extends CPojoBase implements
 
             initContent();
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             pLogger.logSevere(this, "validatePojo", e);
         }
     }

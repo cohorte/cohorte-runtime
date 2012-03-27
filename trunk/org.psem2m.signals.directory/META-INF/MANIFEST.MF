@@ -12,8 +12,9 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  g.psem2m.isolates.base;version=1.0.0, org.psem2m.isolates.base.activa
  tors;version=1.0.0, org.psem2m.isolates.constants;version=1.0.0, org.
  psem2m.isolates.services.conf;version=1.0.0, org.psem2m.isolates.serv
- ices.remote.signals;version=1.0.0, org.psem2m.utilities;version=1.0.0
- , org.psem2m.utilities.logging;version=1.0.0
+ ices.conf.beans;version=1.0.0, org.psem2m.isolates.services.remote.si
+ gnals;version=1.0.0, org.psem2m.utilities;version=1.0.0, org.psem2m.u
+ tilities.logging;version=1.0.0
 iPOJO-Components: instance { $component="org.psem2m.signals.directory.
  impl.SignalsDirectory" $name="psem2m-signals-directory" }component { 
  $classname="org.psem2m.signals.directory.impl.SignalsDirectory" $name

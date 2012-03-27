@@ -5,7 +5,7 @@
  */
 package org.psem2m.isolates.forker;
 
-import org.psem2m.isolates.services.conf.IIsolateDescr;
+import org.psem2m.isolates.services.conf.beans.IsolateDescription;
 
 /**
  * Describes an isolate runner
@@ -33,6 +33,6 @@ public interface IIsolateRunner {
      * @throws Exception
      *             An error occurred while preparing or starting the isolate
      */
-    IProcessRef startIsolate(IIsolateDescr aIsolateConfiguration)
-	    throws Exception;
+    IProcessRef startIsolate(IsolateDescription aIsolateConfiguration)
+            throws Exception;
 }

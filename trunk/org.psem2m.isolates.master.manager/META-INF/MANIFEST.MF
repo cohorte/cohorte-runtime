@@ -17,9 +17,9 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  rg.psem2m.isolates.base.isolates;version=1.0.0, org.psem2m.isolates.b
  ase.isolates.boot;version=1.0.0, org.psem2m.isolates.constants;versio
  n=1.0.0, org.psem2m.isolates.services.conf;version=1.0.0, org.psem2m.
- isolates.services.dirs;version=1.0.0, org.psem2m.isolates.services.re
- mote.signals;version=1.0.0, org.psem2m.utilities, org.psem2m.utilitie
- s.logging
+ isolates.services.conf.beans;version=1.0.0, org.psem2m.isolates.servi
+ ces.dirs;version=1.0.0, org.psem2m.isolates.services.remote.signals;v
+ ersion=1.0.0, org.psem2m.utilities, org.psem2m.utilities.logging
 iPOJO-Components: instance { $component="org.psem2m.isolates.master.ma
  nager.impl.CForkerHandlerSvc" $name="psem2m-master-manager" }componen
  t { $classname="org.psem2m.isolates.master.manager.impl.CForkerHandle
@@ -42,20 +42,20 @@ iPOJO-Components: instance { $component="org.psem2m.isolates.master.ma
  es.base.IIsolateLoggerSvc" }field { $name="pPlatformDirsSvc" $type="o
  rg.psem2m.isolates.services.dirs.IPlatformDirsSvc" }field { $name="pS
  ignalSender" $type="org.psem2m.isolates.services.remote.signals.ISign
- alBroadcaster" }method { $name="destroy" }method { $name="getBundlesR
- ef" $return="org.psem2m.isolates.base.bundles.BundleRef[]" $arguments
- ="{java.lang.String}" }method { $name="handleIsolateLogRecord" $argum
- ents="{java.lang.String,java.util.logging.LogRecord}" }method { $name
- ="handleIsolateStatus" $arguments="{java.lang.String,org.psem2m.isola
- tes.base.isolates.boot.IsolateStatus}" }method { $name="internalStart
- Forker" $return="java.lang.Process" }method { $name="invalidatePojo" 
- }method { $name="makeJavaProperty" $return="java.lang.String" $argume
- nts="{java.lang.String,java.lang.String}" }method { $name="registerIs
- olateEventListener" $arguments="{org.psem2m.isolates.base.isolates.II
- solateStatusEventListener}" }method { $name="setupDebugMode" $return=
- "java.util.List" }method { $name="startForker" $return="boolean" }met
- hod { $name="startWatcher" }method { $name="stopForker" $return="bool
- ean" }method { $name="stopWatcher" }method { $name="unregisterIsolate
- EventListener" $arguments="{org.psem2m.isolates.base.isolates.IIsolat
- eStatusEventListener}" }method { $name="validatePojo" }}}
+ alBroadcaster" }method { $name="getBundlesRef" $return="org.psem2m.is
+ olates.base.bundles.BundleRef[]" $arguments="{java.lang.String}" }met
+ hod { $name="handleIsolateLogRecord" $arguments="{java.lang.String,ja
+ va.util.logging.LogRecord}" }method { $name="handleIsolateStatus" $ar
+ guments="{java.lang.String,org.psem2m.isolates.base.isolates.boot.Iso
+ lateStatus}" }method { $name="internalStartForker" $return="java.lang
+ .Process" }method { $name="invalidatePojo" }method { $name="makeJavaP
+ roperty" $return="java.lang.String" $arguments="{java.lang.String,jav
+ a.lang.String}" }method { $name="registerIsolateEventListener" $argum
+ ents="{org.psem2m.isolates.base.isolates.IIsolateStatusEventListener}
+ " }method { $name="setupDebugMode" $return="java.util.List" }method {
+  $name="startForker" $return="boolean" }method { $name="startWatcher"
+  }method { $name="stopForker" $return="boolean" }method { $name="stop
+ Watcher" }method { $name="unregisterIsolateEventListener" $arguments=
+ "{org.psem2m.isolates.base.isolates.IIsolateStatusEventListener}" }me
+ thod { $name="validatePojo" }}}
 
