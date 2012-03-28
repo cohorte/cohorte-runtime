@@ -1,6 +1,18 @@
+# Eclipse
 .metadata
+RemoteSystemsTempFiles/
+
+# Binaires
+*.tar.gz
+bin/
+
+# Maven (tests)
 pom.xml
+
+# Python
 *.pyc
 __pycache__/
-RemoteSystemsTempFiles/
-*.tar.gz
+
+# Coverage (Python)
+.coverage
+htmlcov/
