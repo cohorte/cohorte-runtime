@@ -542,6 +542,15 @@ public class MonitorCore extends CPojoBase implements
         }
 
         final int result = pForkerSvc.startIsolate(isolateDescr.toMap());
+
+        // Log the result
+        final StringBuilder builder = new StringBuilder();
+        builder.append("Result calling forker to start '");
+        builder.append(aIsolateId);
+        builder.append("' : ");
+        builder.append(result);
+        pLogger.log(LogService.LOG_INFO, builder.toString());
+
         // Success if the isolate is running (even if we done nothing) return
         return result == IForker.SUCCESS || result == IForker.ALREADY_RUNNING;
     }
