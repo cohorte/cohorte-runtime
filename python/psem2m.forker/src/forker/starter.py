@@ -2,7 +2,7 @@
 """
 Starts and populates the Pelix framework instance for the forker isolate
 
-@author: Thomas Calmant
+:author: Thomas Calmant
 """
 
 import psem2m.services.pelix as pelix
@@ -16,6 +16,26 @@ import sys
 _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
+
+def run_debug_console(framework):
+    """
+    Runs a debug interactive console
+    
+    :param framework: A Pelix framework instance
+    """
+    import psem2m.component.constants
+
+    import readline
+    import code
+
+    context = framework.get_bundle_context()
+
+    cons_vars = {"framework": framework,
+                 "context": context,
+                 "ipopo": psem2m.component.constants.get_ipopo_svc_ref(context)[1]}
+
+    code.InteractiveConsole(cons_vars).interact("FORKER DEBUG CONSOLE")
+
 
 def validate_state():
     """
@@ -41,12 +61,14 @@ def validate_state():
     return missing
 
 
-def run_isolate(required_bundles):
+def run_isolate(required_bundles, debug=False):
     """
     Starts and populates the Pelix framework for the forker, then waits for
     it to stop
     
     :param required_bundles: The list of the isolate 4required bundles
+    :param debug: If True, sets up a console before waiting for the framework to
+                  stop
     """
     # Start a framework
     framework = pelix.FrameworkFactory.get_framework()
@@ -72,6 +94,10 @@ def run_isolate(required_bundles):
         framework.stop()
         return
 
+    if debug:
+        _logger.debug("Debug mode ON")
+        run_debug_console(framework)
+
     # All went well, wait for the framework to stop
     _logger.debug("Waiting for the framework to stop")
     framework.wait_for_stop()
@@ -80,7 +106,7 @@ def run_isolate(required_bundles):
 
 # ------------------------------------------------------------------------------
 
-def main():
+def main(debug=False):
     # Test environment
     missing = validate_state()
     if missing is not None:
@@ -96,7 +122,7 @@ def main():
                         'psem2m.runner.python')
 
     # Start the forker framework
-    run_isolate(required_bundles)
+    run_isolate(required_bundles, debug)
     return 0
 
 if __name__ == "__main__":

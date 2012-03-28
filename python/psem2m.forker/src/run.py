@@ -39,4 +39,4 @@ for path in ("../../python.injection/src", "../../psem2m.base/src"):
 # ------------------------------------------------------------------------------
 
 import forker.starter
-forker.starter.main()
+forker.starter.main(True)
