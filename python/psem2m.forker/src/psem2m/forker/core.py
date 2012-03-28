@@ -76,7 +76,7 @@ class Forker(object):
         :param isolate_id: The ID of the isolate to test
         :return: The isolate process state
         """
-        process = self._isolates_processes.get(isolate_id, None)
+        process = self._isolates.get(isolate_id, None)
 
         if process is None:
             # No PID for this ID
@@ -134,6 +134,9 @@ class Forker(object):
         :return: The start error code
         """
         isolate_id = isolate_descr.get("id", None)
+
+        _logger.debug("START ISOLATE : %s\n%s\n", isolate_id, isolate_descr)
+
         if not isolate_id:
             # Consider the lack of ID as a runner exception
             return 3
@@ -154,7 +157,7 @@ class Forker(object):
         # Stop at the first runner that succeed to start the isolate
         for runner in runners:
             try:
-                process = self._runners.run_isolate(self, isolate_descr)
+                process = runner.run_isolate(isolate_descr)
                 if process is not None:
                     # Success !
                     self._isolates[isolate_id] = process
@@ -185,13 +188,13 @@ class Forker(object):
                         (in seconds)
         """
         # Get the isolate PID
-        process = self._isolates_processes.get(isolate_id, None)
+        process = self._isolates.get(isolate_id, None)
         if process is None:
             # Unknown isolate
             return
 
         # Send the stop signal (stop softly)
-        self.sender.send_data(isolate_id, psem2m.SIGNAL_ISOLATE_STOP, None)
+        self._sender.send_data(isolate_id, psem2m.SIGNAL_ISOLATE_STOP, None)
 
         try:
             # Wait a little (psutil API)
@@ -202,4 +205,4 @@ class Forker(object):
             process.kill()
 
         # Remove references to the isolate
-        del self._isolates_processes[isolate_id]
+        del self._isolates[isolate_id]
