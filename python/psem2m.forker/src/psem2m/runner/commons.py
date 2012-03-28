@@ -96,8 +96,10 @@ class Runner(object):
         env[psem2m.PSEM2M_BASE] = os.getenv(psem2m.PSEM2M_BASE, home)
         env[psem2m.PSEM2M_ISOLATE_ID] = isolate_id
 
-        # Prepare the interpreter arguments
-        args = self._make_args(isolate_descr)
+        # Prepare the interpreter arguments, the first argument **must** be
+        # the interpreter
+        args = [executable]
+        args.extend(self._make_args(isolate_descr))
 
         # Run the process and return its reference
         return psutil.Popen(args, executable=executable, env=env,

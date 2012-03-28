@@ -246,16 +246,17 @@ class OsgiRunner(JavaRunner):
         :raise ValueError: Error preparing the arguments
         """
         # Find the bootstrap file
-        bootstrap = self.utils.find_bundle_file(BOOTSTRAP_FILENAME)
+        bootstrap = self._utils.find_bundle_file(BOOTSTRAP_FILENAME)
         if not bootstrap:
             raise OSError("Can't find the bootstrap file %s"
                           % BOOTSTRAP_FILENAME)
 
         # Find the OSGi framework file
-        framework = self._get_framework_file_name()
+        framework = self._get_framework_file_name(isolate_descr)
 
         # Set up a new description, with OSGi specific entries
         new_descr = isolate_descr.copy()
+
         # ... class path
         new_descr["classpath"] = (bootstrap, framework)
 
