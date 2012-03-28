@@ -82,7 +82,7 @@ class PythonRunner(runner.Runner):
                              " configuration list")
 
         # Get the name of the module to run
-        module = bundles[0]
+        module = bundles[0]["symbolicName"]
         if not module:
             raise ValueError("Empty module name")
 

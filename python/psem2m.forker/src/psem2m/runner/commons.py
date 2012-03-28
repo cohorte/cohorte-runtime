@@ -6,7 +6,6 @@ Runners package
 :author: Thomas Calmant
 """
 
-import psem2m
 import psem2m.utils
 
 import psutil

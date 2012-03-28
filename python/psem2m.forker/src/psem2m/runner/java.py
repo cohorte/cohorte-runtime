@@ -126,7 +126,7 @@ class JavaRunner(runner.Runner):
             args.append(os.pathsep.join(classpath))
 
         # Application argument
-        extra_args = isolate_descr.get("app_args", None)
+        extra_args = isolate_descr.get("appArgs", None)
         if hasattr(classpath, "__iter__"):
             # Got an iterable object
             args.extend(extra_args)
@@ -260,7 +260,7 @@ class OsgiRunner(JavaRunner):
         new_descr["classpath"] = (bootstrap, framework)
 
         # ... Java arguments : the main class and its arguments
-        new_descr["app_args"] = (BOOTSTRAP_MAIN_CLASS, "--human")
+        new_descr["appArgs"] = (BOOTSTRAP_MAIN_CLASS, "--human")
 
         # Call the parent class
         return super(OsgiRunner, self)._make_args(new_descr)
