@@ -1,9 +1,10 @@
-#Fri Mar 23 16:33:11 CET 2012
+#Mon Mar 26 12:20:15 CEST 2012
 eclipse.preferences.version=1
 encoding//src/psem2m/__init__.py=utf-8
 encoding//src/psem2m/forker/__init__.py=utf-8
 encoding//src/psem2m/forker/core.py=utf-8
 encoding//src/psem2m/runner/__init__.py=utf-8
+encoding//src/psem2m/runner/commons.py=utf-8
 encoding//src/psem2m/utils/__init__.py=utf-8
 encoding//src/psem2m/utils/nt.py=utf-8
 encoding//src/psem2m/utils/posix.py=utf-8

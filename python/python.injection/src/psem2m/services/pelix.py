@@ -1124,10 +1124,15 @@ class Framework(Bundle):
 
     def wait_for_stop(self):
         """
-        Waits for the framework to stop.
+        Waits for the framework to stop. Does nothing if the framework bundle
+        is not in ACTIVE state.
         
         Uses a threading.Condition object
         """
+        if self._state != Bundle.ACTIVE:
+            # Inactive framework, ignore the call
+            return
+
         with self._condition:
             self._condition.wait()
 
