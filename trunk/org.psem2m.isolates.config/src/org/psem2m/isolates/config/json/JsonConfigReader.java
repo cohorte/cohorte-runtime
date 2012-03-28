@@ -8,8 +8,11 @@ package org.psem2m.isolates.config.json;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Scanner;
@@ -98,6 +101,82 @@ public class JsonConfigReader implements IConfigurationReader {
     public String[] getApplicationIds() {
 
         return new String[] { pApplication.getApplicationId() };
+    }
+
+    /**
+     * Converts the given JSONArray into a list of strings
+     * 
+     * @param aJsonArray
+     *            A JSON array
+     * @param aReturnNull
+     *            If True, the method can return null
+     * @return The converted list, or null
+     * @throws JSONException
+     *             Error reading the array
+     */
+    protected List<String> jsonArrayToStringList(final JSONArray aJsonArray,
+            final boolean aReturnNull) throws JSONException {
+
+        if (aJsonArray == null) {
+
+            if (aReturnNull) {
+                // Return null
+                return null;
+
+            } else {
+                // Return an empty list
+                return new ArrayList<String>();
+            }
+        }
+
+        final int len = aJsonArray.length();
+        final List<String> list = new ArrayList<String>(len);
+
+        for (int i = 0; i < len; i++) {
+            list.add(aJsonArray.getString(i));
+        }
+
+        return list;
+    }
+
+    /**
+     * Converts the given JSON object into a map string -&gt; string.
+     * 
+     * @param aJsonObject
+     *            A JSON object
+     * @param aReturnNull
+     *            If true, the method can return null
+     * @return The map, or null
+     */
+    protected Map<String, String> jsonObjectToMap(final JSONObject aJsonObject,
+            final boolean aReturnNull) {
+
+        if (aJsonObject == null) {
+
+            if (aReturnNull) {
+                // Return null
+                return null;
+
+            } else {
+                // null value is forbidden
+                return new HashMap<String, String>();
+            }
+        }
+
+        // Copy all entries
+        final Map<String, String> map = new HashMap<String, String>(
+                aJsonObject.length());
+
+        final Iterator<Entry<String, Object>> iterator = aJsonObject.entries();
+        while (iterator.hasNext()) {
+
+            final Entry<String, Object> entry = iterator.next();
+            if (entry != null) {
+                map.put(entry.getKey(), (String) entry.getValue());
+            }
+        }
+
+        return map;
     }
 
     /*
@@ -280,19 +359,7 @@ public class JsonConfigReader implements IConfigurationReader {
         // Isolate VM Args
         final JSONArray vmArgsArray = aIsolateObject
                 .optJSONArray(IJsonConfigKeys.CONFIG_ISOLATE_VMARGS);
-
-        // Add the JSONArray content to the vmArgs
-        if (vmArgsArray != null) {
-
-            final List<String> isolateVmArgsList = isolateDescription
-                    .getVmArgs();
-
-            final int vmArgsCount = vmArgsArray.length();
-            for (int i = 0; i < vmArgsCount; i++) {
-                // Add all string to the list
-                isolateVmArgsList.add(vmArgsArray.getString(i));
-            }
-        }
+        isolateDescription.setVMArgs(jsonArrayToStringList(vmArgsArray, true));
 
         // Isolate host name (also HTTP communication host name)
         String isolateHost = aIsolateObject
@@ -310,21 +377,34 @@ public class JsonConfigReader implements IConfigurationReader {
         }
 
         // Isolate HTTP communication port
-        String isolatePort = aIsolateObject
-                .optString(IJsonConfigKeys.CONFIG_ISOLATE_PORT);
-        if (isolatePort == null) {
+        int isolatePort = aIsolateObject
+                .optInt(IJsonConfigKeys.CONFIG_ISOLATE_PORT);
+        if (isolatePort <= 0 || isolatePort > 65535) {
             // Default port : 8080
-            isolatePort = "8080";
+            isolatePort = 8080;
         }
+        isolateDescription.setPort(isolatePort);
 
-        // Compute the isolate access URL
-        final StringBuilder accessUrl = new StringBuilder();
-        // FIXME considers that the communication is HTTP only
-        accessUrl.append("http://");
-        accessUrl.append(isolateDescription.getHostName());
-        accessUrl.append(":");
-        accessUrl.append(isolatePort);
-        isolateDescription.setAccessUrl(accessUrl.toString());
+        // Application arguments
+        final JSONArray appArgsArray = aIsolateObject
+                .optJSONArray(IJsonConfigKeys.CONFIG_ISOLATE_APP_ARGS);
+        isolateDescription.setVMArgs(jsonArrayToStringList(appArgsArray, true));
+
+        // Class path
+        final JSONArray classpathArray = aIsolateObject
+                .optJSONArray(IJsonConfigKeys.CONFIG_ISOLATE_CLASSPATH);
+        isolateDescription.setClasspath(jsonArrayToStringList(classpathArray,
+                true));
+
+        // Environment variables
+        final JSONObject environmentObject = aIsolateObject
+                .optJSONObject(IJsonConfigKeys.CONFIG_ISOLATE_ENVIRONMENT);
+        isolateDescription.setEnvironment(jsonObjectToMap(environmentObject,
+                true));
+
+        // OSGi Framework
+        isolateDescription.setOsgiFramework(aIsolateObject
+                .optString(IJsonConfigKeys.CONFIG_ISOLATE_OSGI_FRAMEWORK));
 
         // Parse overridden system properties
         final Properties overridingProperties = computeOverriddenProperties(

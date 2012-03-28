@@ -86,7 +86,6 @@ public class IsolateDescription implements Serializable {
         // "Special" fields
         setHostName((String) aDescriptionMap
                 .get(IIsolateDescr.ISOLATE_SIGNALS_HOST));
-        setAccessUrl("http://" + getHostName() + ":" + pPort);
         setKind((String) aDescriptionMap.get(IIsolateDescr.ISOLATE_KIND));
 
         // Application arguments
@@ -298,7 +297,11 @@ public class IsolateDescription implements Serializable {
     }
 
     /**
-     * Sets the bundle access URL
+     * Sets the bundle access URL. <strong>This method should only be used by
+     * libraries based on beans (Jabsorb, ...)</strong>.
+     * 
+     * The access URL is automatically updated when calling
+     * {@link #setHostName(String)} or {@link #setPort(int)}.
      * 
      * @param aUrl
      *            The access URL
@@ -371,6 +374,9 @@ public class IsolateDescription implements Serializable {
         } else {
             pHostName = "localhost";
         }
+
+        // Update the access URL
+        updateAccessUrl();
     }
 
     /**
@@ -418,6 +424,9 @@ public class IsolateDescription implements Serializable {
     public void setPort(final int aPort) {
 
         pPort = aPort;
+
+        // Update the access URL
+        updateAccessUrl();
     }
 
     /**
@@ -463,5 +472,19 @@ public class IsolateDescription implements Serializable {
         map.put(IIsolateDescr.ISOLATE_BUNDLES, bundlesMap);
 
         return map;
+    }
+
+    /**
+     * Sets up the access URL, according to the current host name and port
+     */
+    protected void updateAccessUrl() {
+
+        final StringBuilder builder = new StringBuilder();
+        builder.append("http://");
+        builder.append(getHostName());
+        builder.append(":");
+        builder.append(pPort);
+
+        pAccessUrl = builder.toString();
     }
 }
