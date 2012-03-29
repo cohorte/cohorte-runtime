@@ -27,6 +27,8 @@
 package org.jabsorb.ng.serializer.impl;
 
 import java.lang.reflect.Array;
+import java.util.Arrays;
+import java.util.List;
 
 import org.jabsorb.ng.JSONSerializer;
 import org.jabsorb.ng.serializer.AbstractSerializer;
@@ -64,10 +66,9 @@ public class ArraySerializer extends AbstractSerializer {
     @Override
     public boolean canSerialize(final Class<?> clazz, final Class<?> jsonClazz) {
 
-        final Class<?> cc = clazz.getComponentType();
         return (super.canSerialize(clazz, jsonClazz)
                 || ((jsonClazz == null || jsonClazz == JSONArray.class) && (clazz
-                        .isArray() && !cc.isPrimitive())) || (clazz == java.lang.Object.class && jsonClazz == JSONArray.class));
+                        .isArray() || List.class.isAssignableFrom(clazz))) || (clazz == java.lang.Object.class && jsonClazz == JSONArray.class));
     }
 
     @Override
@@ -183,6 +184,7 @@ public class ArraySerializer extends AbstractSerializer {
         final JSONArray jso = (JSONArray) o;
         final Class<?> cc = clazz.getComponentType();
         int i = 0;
+
         try {
             // TODO: Is there a nicer way of doing this without all the ifs?
             if (clazz == int[].class) {
@@ -249,14 +251,19 @@ public class ArraySerializer extends AbstractSerializer {
                 }
                 return arr;
             } else {
-                final Object arr[] = (Object[]) Array
-                        .newInstance(
-                                clazz == java.lang.Object.class ? java.lang.Object.class
-                                        : cc, jso.length());
+                final Object arr[] = (Object[]) Array.newInstance(
+                        cc != null ? cc : java.lang.Object.class, jso.length());
                 state.setSerialized(o, arr);
                 for (; i < jso.length(); i++) {
                     arr[i] = ser.unmarshall(state, cc, jso.get(i));
                 }
+
+                if (List.class.isAssignableFrom(clazz)) {
+                    // List requested
+                    return Arrays.asList(arr);
+                }
+
+                // Array requested
                 return arr;
             }
         } catch (final UnmarshallException e) {

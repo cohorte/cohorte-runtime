@@ -244,7 +244,9 @@ public class JSONSerializer implements Serializable {
         if (o instanceof JSONArray) {
             final JSONArray arr = (JSONArray) o;
             if (arr.length() == 0) {
-                throw new UnmarshallException("no type for empty array");
+                // Use an empty list if the type is unknown
+                return ArrayList.class;
+                // throw new UnmarshallException("no type for empty array");
             }
             // return type of first element
             Class<?> compClazz;
