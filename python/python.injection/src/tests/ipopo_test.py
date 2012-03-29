@@ -97,20 +97,34 @@ class DecoratorsTest(unittest.TestCase):
             """
             pass
 
+        def correct_method(self, *args):
+            """
+            Dummy method
+            """
+            pass
+
+
         self.assertFalse(hasattr(empty_method, \
                                  constants.IPOPO_METHOD_CALLBACKS), \
-                         "The method is already tagged")
+                                 "The method is already tagged")
+
+        self.assertFalse(hasattr(correct_method, \
+                                 constants.IPOPO_METHOD_CALLBACKS), \
+                                 "The method is already tagged")
 
         for decorator, callback in callbacks.items():
 
+            # Ensure that the empty  method will fail being decorated
+            self.assertRaises(TypeError, decorator, empty_method)
+
             # Decorate the method
-            decorated = decorator(empty_method)
+            decorated = decorator(correct_method)
 
             # Assert the method is the same
-            self.assertIs(decorated, empty_method, "Method ID changed")
+            self.assertIs(decorated, correct_method, "Method ID changed")
 
             # Assert the decoration has been done
-            self.assertIn(callback, getattr(empty_method, \
+            self.assertIn(callback, getattr(correct_method, \
                                             constants.IPOPO_METHOD_CALLBACKS), \
                           "Decoration failed")
 

@@ -759,7 +759,7 @@ class _StoredInstance(object):
         self._injected_references.add(reference)
 
         # Call the component back
-        self.safe_callback(constants.IPOPO_CALLBACK_BIND, service)
+        self.safe_callback(constants.IPOPO_CALLBACK_BIND, service, reference)
 
 
     @SynchronizedClassMethod('_lock')
@@ -837,7 +837,8 @@ class _StoredInstance(object):
             injected.append(service)
 
             # Call Bind
-            self.safe_callback(constants.IPOPO_CALLBACK_BIND, service)
+            self.safe_callback(constants.IPOPO_CALLBACK_BIND, service,
+                               reference)
 
 
     @SynchronizedClassMethod('_lock')

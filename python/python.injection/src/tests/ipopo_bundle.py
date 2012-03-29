@@ -84,7 +84,7 @@ class ComponentFactoryB(TestComponentFactory):
     Sample Component B
     """
     @Bind
-    def bind(self, svc):
+    def bind(self, svc, svc_ref):
         """
         Bound
         """

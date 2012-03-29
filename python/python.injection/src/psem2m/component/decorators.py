@@ -74,6 +74,60 @@ def _is_from_parent(cls, attribute_name):
     return False
 
 
+def _get_method_description(method):
+    """
+    Retrieves a description of the given method. If possible, the description
+    contains the source file name and line.
+    
+    :param method: A method
+    :return: A description of the method (at least its name)
+    """
+    if hasattr(method, "func_code"):
+        return "'{method}' ({file}:{line})".format(method=method.__name__,
+                                        file=method.func_code.co_filename,
+                                        line=method.func_code.co_firstlineno)
+
+    return "'%s'" % method.__name__
+
+
+def _validate_method_arity(method, *needed_args):
+    """
+    Tests if the decorated method has a sufficient number of parameters.
+    
+    :param method: The method to be tested
+    :param needed_args: The name (for description only) of the needed arguments,
+                        without "self".
+    :return: Nothing
+    :raise TypeError: Invalid number of parameter
+    """
+    nb_needed_args = len(needed_args) + 1
+
+    # Test the number of parameters
+    argspec = inspect.getargspec(method)
+    method_args = argspec.args
+
+    if len(method_args) == 0:
+        # No argument at all
+        raise TypeError("Decorated method %s must have at least the 'self' "
+                        "parameter" % _get_method_description(method))
+
+    if argspec.varargs is not None:
+        # Variable arguments
+        if len(method_args) != 1 or method_args[0] != "self":
+            # Other arguments detected
+            raise TypeError("When using '*args', the decorated %s method must "
+                        "only accept the 'self' argument"
+                        % _get_method_description(method))
+
+    elif len(method_args) != nb_needed_args or method_args[0] != 'self':
+        # "Normal" arguments
+        raise TypeError("The decorated method %s must accept exactly %d "
+                        "parameters : (self, %s)"
+                        % (_get_method_description(method), nb_needed_args,
+                           ", ".join(needed_args)))
+
+# ------------------------------------------------------------------------------
+
 def _get_factory_context(cls):
     """
     Retrieves the factory context object associated to a factory. Creates it
@@ -522,24 +576,30 @@ def Bind(method):
     The decorated method must have the following prototype :
     
     .. python::
-       def bind_method(self, injected_instance):
+       def bind_method(self, injected_service, service_reference):
            '''
            Method called when a service is bound to the component
            
-           :param injected_instance: The injected service instance.
+           :param injected_service: The injected service instance.
+           :param service_reference: The injected service ServiceReference
            '''
            # ...
     
     If the service is a required one, the bind callback is called **before** the
     component is validated.
     
-    Exceptions raised by an unbind callback are ignored.
+    The service reference can be stored *if its reference is deleted on unbind*.
+    
+    Exceptions raised by a bind callback are ignored.
     
     :param method: The decorated method
-    :raise TypeError: The decorated element is not a function
+    :raise TypeError: The decorated element is not a valid function
     """
     if type(method) is not types.FunctionType:
         raise TypeError("@Bind can only be applied on functions")
+
+    # Tests the number of parameters
+    _validate_method_arity(method, "service", "service_reference")
 
     _append_object_entry(method, constants.IPOPO_METHOD_CALLBACKS, \
                          constants.IPOPO_CALLBACK_BIND)
@@ -567,10 +627,13 @@ def Unbind(method):
     Exceptions raised by an unbind callback are ignored.
     
     :param method: The decorated method
-    :raise TypeError: The decorated element is not a function
+    :raise TypeError: The decorated element is not a valid function
     """
     if type(method) is not types.FunctionType:
         raise TypeError("@Unbind can only be applied on functions")
+
+    # Tests the number of parameters
+    _validate_method_arity(method, "service")
 
     _append_object_entry(method, constants.IPOPO_METHOD_CALLBACKS, \
                          constants.IPOPO_CALLBACK_UNBIND)
@@ -600,10 +663,13 @@ def Validate(method):
     the provided service is registered to the framework.
     
     :param method: The decorated method
-    :raise TypeError: The decorated element is not a function
+    :raise TypeError: The decorated element is not a valid function
     """
     if type(method) is not types.FunctionType:
         raise TypeError("@Validate can only be applied on functions")
+
+    # Tests the number of parameters
+    _validate_method_arity(method, "bundle_context")
 
     _append_object_entry(method, constants.IPOPO_METHOD_CALLBACKS, \
                          constants.IPOPO_CALLBACK_VALIDATE)
@@ -638,6 +704,10 @@ def Invalidate(method):
     if type(method) is not types.FunctionType:
         raise TypeError("@Invalidate can only be applied on functions")
 
+    # Tests the number of parameters
+    _validate_method_arity(method, "bundle_context")
+
     _append_object_entry(method, constants.IPOPO_METHOD_CALLBACKS, \
                          constants.IPOPO_CALLBACK_INVALIDATE)
     return method
+
