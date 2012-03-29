@@ -166,6 +166,7 @@ class HttpService(object):
                                  lambda * x : RequestHandler(self, *x))
 
         self.thread = threading.Thread(target=self.server.serve_forever)
+        self.thread.daemon = True
         self.thread.start()
 
         _logger.info("HTTP server started (%d)", self.port)
