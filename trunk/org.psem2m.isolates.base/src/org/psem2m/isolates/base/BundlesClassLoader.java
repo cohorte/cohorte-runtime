@@ -26,8 +26,8 @@ public class BundlesClassLoader extends ClassLoader {
      */
     public BundlesClassLoader(final BundleContext aBundleContext) {
 
-	super();
-	pBundleContext = aBundleContext;
+        super();
+        pBundleContext = aBundleContext;
     }
 
     /**
@@ -46,22 +46,33 @@ public class BundlesClassLoader extends ClassLoader {
     @Override
     public Class<?> loadClass(final String aName) throws ClassNotFoundException {
 
-	// Try the "local" class loader first
-	try {
-	    return Class.forName(aName);
-	} catch (ClassNotFoundException ex) {
-	    // Ignore it
-	}
+        // Try the "local" class loader first
+        try {
+            return Class.forName(aName);
 
-	// Try the bundles loaders
-	Class<?> foundClass = Utilities.findClassInBundles(
-		pBundleContext.getBundles(), aName);
+        } catch (final ClassNotFoundException ex) {
+            /*
+             * The class has not been found in the current class loader, look
+             * somewhere else
+             */
 
-	if (foundClass == null) {
-	    throw new ClassNotFoundException("Class not found : " + aName);
-	}
+        } catch (final LinkageError e) {
+            /*
+             * The class exists in the current class loader, but the OSGi
+             * framework forbids to load it or one of its dependencies. Try
+             * another one.
+             */
+        }
 
-	return foundClass;
+        // Try the bundles loaders
+        final Class<?> foundClass = Utilities.findClassInBundles(
+                pBundleContext.getBundles(), aName);
+
+        if (foundClass == null) {
+            throw new ClassNotFoundException("Class not found : " + aName);
+        }
+
+        return foundClass;
     }
 
     /*
@@ -71,6 +82,7 @@ public class BundlesClassLoader extends ClassLoader {
      */
     @Override
     public String toString() {
-	return "BundleLoader(" + super.toString() + ")";
+
+        return "BundleLoader(" + super.toString() + ")";
     }
 }
