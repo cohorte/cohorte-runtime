@@ -12,6 +12,7 @@ import psutil
 
 import os
 import shutil
+import subprocess
 
 # ------------------------------------------------------------------------------
 
@@ -103,7 +104,8 @@ class Runner(object):
 
         # Run the process and return its reference
         return psutil.Popen(args, executable=executable, env=env,
-                            cwd=working_dir)
+                            cwd=working_dir, stdin=subprocess.PIPE,
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 
     def _make_env(self, isolate_descr):
