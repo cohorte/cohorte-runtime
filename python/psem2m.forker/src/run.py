@@ -1,5 +1,5 @@
 #!/usr/bin/python
-#-- Content-Encoding: utf-8 --
+#-- Content-Encoding: UTF-8 --
 
 import logging
 import os
@@ -20,23 +20,68 @@ def get_abs_path(path):
     """
     return os.path.abspath(os.path.join(os.getcwd(), path))
 
+
+def store_pid(base):
+    """
+    Stores the current PID to the forker.pid file
+    
+    :param base: The PSEM2M instance base
+    """
+    pid_file = os.path.join(base, "var", "forker.pid")
+
+    if not os.path.exists(pid_file):
+        # Prepare the parent directories
+        parent = os.path.dirname(pid_file)
+        if not os.path.isdir(parent):
+            os.makedirs(parent)
+
+    with open(pid_file, "w") as fp:
+        # Write the PID
+        fp.write(str(os.getpid()))
+        fp.write("\n")
+
+
+def main():
+    """
+    Forker utility entry point
+    
+    Be sure that psem2m and forker.start packages are accessible before
+    calling this method
+    """
+
+    # Import PSEM2M modules
+    import psem2m
+    import forker.starter
+
+    # Run !
+    # Set up environment variables
+    os.environ[psem2m.PSEM2M_HOME] = os.getenv(psem2m.PSEM2M_HOME, \
+                            get_abs_path("../../../platforms/psem2m.home"))
+
+    base = os.environ[psem2m.PSEM2M_BASE] = os.getenv(psem2m.PSEM2M_BASE, \
+                            get_abs_path("../../../platforms/base-compo"))
+
+    os.environ[psem2m.PSEM2M_ISOLATE_ID] = os.getenv(psem2m.PSEM2M_ISOLATE_ID,
+                            "org.psem2m.internals.isolates.forker")
+
+    # Should be read from configuration...
+    os.environ["HTTP_PORT"] = "9001"
+    os.environ["RPC_PORT"] = "9002"
+
+    # Store the process PID
+    store_pid(base)
+
+    # Run !
+    forker.starter.main()
+
 # ------------------------------------------------------------------------------
 
-# Set up environment variables
-os.environ["PSEM2M_HOME"] = get_abs_path("../../../platforms/psem2m.home")
-os.environ["PSEM2M_BASE"] = get_abs_path("../../../platforms/base-demo-py")
-os.environ["PSEM2M_ISOLATE_ID"] = "org.psem2m.internals.isolates.forker"
-os.environ["HTTP_PORT"] = "9001"
-os.environ["RPC_PORT"] = "9002"
+if __name__ == "__main__":
 
-# ------------------------------------------------------------------------------
+    # Set up Python path
+    sys.path.append(os.getcwd())
+    for path in ("../../python.injection/src", "../../psem2m.base/src"):
+        sys.path.append(get_abs_path(path))
 
-# Set up Python path
-sys.path.append(os.getcwd())
-for path in ("../../python.injection/src", "../../psem2m.base/src"):
-    sys.path.append(get_abs_path(path))
-
-# ------------------------------------------------------------------------------
-
-import forker.starter
-forker.starter.main(True)
+    # Run !
+    main()
