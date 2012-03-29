@@ -57,19 +57,27 @@ public class IsolateStatus implements Serializable {
     public static final int STATE_READ_CONF = 0;
 
     /** The source isolate ID */
-    private final String pIsolateId;
+    private String pIsolateId;
 
     /** Isolate start progress */
-    private final double pProgress;
+    private double pProgress;
 
     /** Isolate state */
-    private final int pState;
+    private int pState;
 
     /** Status object Unique ID */
-    private final long pStatusUID;
+    private long pStatusUID;
 
     /** Time stamp (set in constructor) */
-    private final long pTimestamp;
+    private long pTimestamp;
+
+    /**
+     * Default constructor
+     */
+    public IsolateStatus() {
+
+        // Do nothing
+    }
 
     /**
      * Sets up the bean
@@ -157,6 +165,51 @@ public class IsolateStatus implements Serializable {
     public long getTimestamp() {
 
         return pTimestamp;
+    }
+
+    /**
+     * @param aIsolateId
+     *            the isolateId to set
+     */
+    public void setIsolateId(final String aIsolateId) {
+
+        pIsolateId = aIsolateId;
+    }
+
+    /**
+     * @param aProgress
+     *            the progress to set
+     */
+    public void setProgress(final double aProgress) {
+
+        pProgress = aProgress;
+    }
+
+    /**
+     * @param aState
+     *            the state to set
+     */
+    public void setState(final int aState) {
+
+        pState = aState;
+    }
+
+    /**
+     * @param aStatusUID
+     *            the statusUID to set
+     */
+    public void setStatusUID(final long aStatusUID) {
+
+        pStatusUID = aStatusUID;
+    }
+
+    /**
+     * @param aTimestamp
+     *            the timestamp to set
+     */
+    public void setTimestamp(final long aTimestamp) {
+
+        pTimestamp = aTimestamp;
     }
 
     /**
