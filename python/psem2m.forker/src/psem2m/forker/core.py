@@ -7,7 +7,7 @@ Core of the PSEM2M Forker
 """
 
 from psem2m.component.decorators import ComponentFactory, Provides, Requires, \
-    Property, Instantiate
+    Property, Instantiate, Validate, Invalidate
 
 # ------------------------------------------------------------------------------
 
@@ -16,7 +16,14 @@ import socket
 
 import logging
 import psem2m
+import threading
+import json
 _logger = logging.getLogger(__name__)
+
+# ------------------------------------------------------------------------------
+
+ISOLATE_LOST_SIGNAL = "/psem2m/isolate/lost"
+ISOLATE_STATUS_SIGNAL = "/psem2m/isolate/status"
 
 # ------------------------------------------------------------------------------
 
@@ -46,6 +53,9 @@ class Forker(object):
 
         # Isolate ID -> process object
         self._isolates = {}
+
+        # List of watching threads Isolate ID -> Thread
+        self._threads = {}
 
 
     def getHostName(self):
@@ -134,9 +144,6 @@ class Forker(object):
         :return: The start error code
         """
         isolate_id = isolate_descr.get("id", None)
-
-        _logger.debug("START ISOLATE : %s\n%s\n", isolate_id, isolate_descr)
-
         if not isolate_id:
             # Consider the lack of ID as a runner exception
             return 3
@@ -172,6 +179,26 @@ class Forker(object):
             # No runner succeeded
             return 3
 
+        # Start the watching thread
+        thread = self._threads[isolate_id] = threading.Thread(
+                                name="watcher-%s-%d"
+                                % (isolate_id, process.pid),
+                                target=self.__process_wait_watcher,
+                                args=(isolate_id, process, 1))
+
+        thread.daemon = True
+        thread.start()
+
+        thread = self._threads[isolate_id + "-reader"] = threading.Thread(
+                                name="reader-%s-%d"
+                                % (isolate_id, process.pid),
+                                target=self.__process_io_watcher,
+                                args=(isolate_id, process, 1))
+
+        thread.daemon = True
+        thread.start()
+
+
         # Success
         return 0
 
@@ -206,3 +233,108 @@ class Forker(object):
 
         # Remove references to the isolate
         del self._isolates[isolate_id]
+
+
+    def __process_io_watcher(self, isolate_id, process, timeout=0):
+        """
+        Thread redirecting isolate I/O to monitors
+        
+        :param isolate_id: ID of the watched isolate
+        :param process: A psutil.Process object
+        :param timeout: Wait time out (in seconds)
+        """
+        if timeout <= 0:
+            timeout = 1
+
+        logger = logging.getLogger(isolate_id)
+
+        for line in iter(process.stdout.readline, b''):
+
+            parts = str(line).split("::")
+            if len(parts) != 2:
+                # Unknown format, ignore line
+                continue
+
+            if "Bootstrap.MessageSender.sendStatus" not in parts[0]:
+                # Not a status, ignore
+                continue
+
+            # Get the status content (JSON)
+            try:
+                status_json = json.loads(parts[1])
+                if status_json.get("type", None) != "IsolateStatus":
+                    # Not a known status
+                    continue
+
+                status_bean = {
+                               "javaClass": "org.psem2m.isolates.base.isolates.boot.IsolateStatus",
+                               "isolateId": isolate_id,
+                               "progress": float(status_json["progress"]),
+                               "state": status_json["state"],
+                               "statusUID": status_json["UID"],
+                               "timestamp": status_json["timestamp"]
+                               }
+
+                self._sender.send_data("MONITORS", ISOLATE_STATUS_SIGNAL,
+                                       status_bean)
+
+            except:
+                logger.exception("Error reading isolate status line")
+
+        logger.debug("%s ISOLATE GONE %s", '<' * 10, '>' * 10)
+
+
+    def __process_wait_watcher(self, isolate_id, process, timeout):
+        """
+        Thread monitoring a psutil.Process, waiting for its death
+        
+        :param isolate_id: ID of the watched isolate
+        :param process: A psutil.Process object
+        :param timeout: Wait time out (in seconds)
+        """
+        if timeout <= 0:
+            timeout = 1
+
+        while self._watchers_running:
+            try:
+                process.wait(timeout)
+
+                # Being here means that the process ended
+                # -> send a signal to monitors
+                self._sender.send_data("MONITORS", ISOLATE_LOST_SIGNAL,
+                                       isolate_id)
+                break
+
+            except psutil.TimeoutExpired:
+                # Time out expired : process is still there, continue the loop
+                pass
+
+
+    @Validate
+    def validate(self, context):
+        """
+        Component validated
+        
+        :param context: The bundle context
+        """
+        self._watchers_running = True
+
+
+    @Invalidate
+    def invalidate(self, context):
+        """
+        Component invalidated
+        
+        :param context: The bundle context
+        """
+        self._watchers_running = False
+
+        for isolate_id, thread in self._threads.items():
+            thread.join(2)
+            if thread.is_alive():
+                _logger.warning("Thread watching %s is still running...",
+                                isolate_id)
+
+            else:
+                # Remove the entry if the thread was gone
+                del self._threads[isolate_id]
