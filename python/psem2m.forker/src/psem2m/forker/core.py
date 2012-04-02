@@ -253,7 +253,7 @@ class Forker(object):
 
         for line in iter(process.stdout.readline, b''):
 
-            parts = str(line).split("::")
+            parts = line.decode("UTF-8").split("::")
             if len(parts) != 2:
                 # Unknown format, ignore line
                 continue
@@ -282,7 +282,8 @@ class Forker(object):
                                        status_bean)
 
             except:
-                logger.exception("Error reading isolate status line")
+                logger.exception("Error reading isolate status line :\n====\n%s\n====",
+                                 parts[1])
 
         logger.debug("%s ISOLATE GONE %s", '<' * 10, '>' * 10)
 
@@ -386,6 +387,9 @@ class Forker(object):
         self._watchers_running = False
         self._start_monitor = False
 
+        # Isolates to be removed from thread dictionary
+        to_remove = []
+
         for isolate_id, thread in self._threads.items():
             thread.join(2)
             if thread.is_alive():
@@ -394,4 +398,10 @@ class Forker(object):
 
             else:
                 # Remove the entry if the thread was gone
-                del self._threads[isolate_id]
+                to_remove.append(isolate_id)
+
+        # Remove entries
+        for isolate_id in to_remove:
+            del self._threads[isolate_id]
+
+        del to_remove[:]
