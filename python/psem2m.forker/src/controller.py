@@ -1,10 +1,20 @@
 #!/usr/bin/python3
-#-- Content-Encoding: utf-8 --
+#-- Content-Encoding: UTF-8 --
 """
-Common classes, methods and constants for the PSEM2M scripts
+PSEM2M Forker control script (could be used as an init.d script)
 
-@author: Thomas Calmant
+:author: Thomas Calmant
 """
+
+# ------------------------------------------------------------------------------
+# 
+# You should modify those constants. None value means environment value.
+#
+
+PSEM2M_HOME = "/home/tcalmant/programmation/workspaces/psem2m/platforms/psem2m.home"
+PSEM2M_BASE = "/home/tcalmant/programmation/workspaces/psem2m/platforms/base-compo"
+
+# ------------------------------------------------------------------------------
 
 import psutil
 
@@ -25,7 +35,24 @@ else:
     # Python 2
     import httplib
 
+# ------------------------------------------------------------------------------
+
+# Setup the logger
 _logger = logging.getLogger("PSEM2M Controller")
+
+# Set up the environment variables
+if PSEM2M_HOME is not None:
+    # Override the home directory
+    os.environ["PSEM2M_HOME"] = PSEM2M_HOME
+
+if PSEM2M_BASE is not None:
+    # Override the base directory
+    os.environ["PSEM2M_BASE"] = PSEM2M_BASE
+
+else:
+    # Use HOME as BASE by default
+    os.environ["PSEM2M_BASE"] = os.getenv("PSEM2M_BASE",
+                                          os.getenv("PSEM2M_HOME"))
 
 # ------------------------------------------------------------------------------
 
@@ -173,6 +200,9 @@ def send_cmd_signal(base, cmd):
                          signal_url, response.status,
                          response.reason)
 
+        else:
+            return True
+
     except socket.error as ex:
         # Socket error
         _logger.error("Error sending command to %s : %s", signal_url, str(ex))
@@ -180,6 +210,8 @@ def send_cmd_signal(base, cmd):
     except:
         # Other error...
         _logger.exception("Error sending command to %s", signal_url)
+
+    return False
 
 # ------------------------------------------------------------------------------
 
@@ -203,6 +235,8 @@ class Main(object):
         if not self.base:
             raise ValueError("Invalid PSEM2M_BASE")
 
+        print("HOME = %s\nBASE = %s\n" % (self.home, self.base))
+
 
     def start(self, extra_args=None):
         """
@@ -211,7 +245,7 @@ class Main(object):
         if self._is_running():
             # Name tests have been done, use the process directly
             process = get_forker_process(self.base)
-            print("Forker is already running, PID: %d", process.pid)
+            print("Forker is already running, PID: %d" % process.pid)
             return 1
 
         # Forker and monitor need to be started
