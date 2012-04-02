@@ -7,11 +7,11 @@ Created on 29 févr. 2012
 
 # ------------------------------------------------------------------------------
 
-import threading
 import logging
 import os
+import socket
 import sys
-import select
+import threading
 
 _logger = logging.getLogger(__name__)
 
@@ -126,9 +126,28 @@ class HttpService(object):
         """
         Constructor
         """
+        self.port = 8080
         self.server = None
         self.servlets = {}
         self.thread = None
+
+
+    def get_hostname(self):
+        """
+        Retrieves the server host name
+        
+        :return: The host name
+        """
+        return socket.gethostname()
+
+
+    def get_port(self):
+        """
+        Retrieves the port that this server listens to
+        
+        :return: The port this server listens to
+        """
+        return self.port
 
 
     def register_servlet(self, path, handler):

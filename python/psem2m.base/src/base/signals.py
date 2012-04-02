@@ -304,6 +304,15 @@ class SignalReceiver(object):
         handler.end_headers()
 
 
+    def get_access_info(self):
+        """
+        Retrieves the (host, port) tuple to access this signal receiver
+        
+        :return: An (host, port) tuple
+        """
+        return (self.http.get_hostname(), self.http.get_port())
+
+
     def handle_received_signal(self, name, data):
         """
         Handles a received signal
