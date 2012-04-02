@@ -111,7 +111,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
         # Send content
-        self.wfile.write(page)
+        self.wfile.write(page.encode())
 
 
 @ComponentFactory(name="HttpServiceFactory")
@@ -199,6 +199,7 @@ class HttpService(object):
         _logger.info("Shutting down HTTP server (%d)...", self.port)
         # Shutdown connections
         # self.server.shutdown()
+        self.server.socket.shutdown(socket.SHUT_RD)
 
         # Wait for the thread to stop...
         # self.thread.join(2)
