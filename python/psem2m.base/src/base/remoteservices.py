@@ -8,11 +8,9 @@ Created on 1 mars 2012
 # ------------------------------------------------------------------------------
 
 import logging
-import threading
-import os
-_logger = logging.getLogger(__name__)
+import traceback
 
-from jsonrpclib.SimpleJSONRPCServer import SimpleJSONRPCServer
+from jsonrpclib.SimpleJSONRPCServer import SimpleJSONRPCDispatcher
 import jsonrpclib
 
 # ------------------------------------------------------------------------------
@@ -24,6 +22,8 @@ from base.javautils import to_jabsorb, from_jabsorb, JAVA_CLASS
 import psem2m.services.pelix as pelix
 
 # ------------------------------------------------------------------------------
+
+_logger = logging.getLogger(__name__)
 
 EXPORTED_SERVICE_FILTER = "(|(service.exported.interfaces=*)(service.exported.configs=*))"
 
@@ -44,12 +44,61 @@ SERVICE_IMPORTED_CONFIGS = "service.imported.configs"
 
 # ------------------------------------------------------------------------------
 
+class _JsonRpcServlet(SimpleJSONRPCDispatcher):
+    """
+    A JSON-RPC servlet, replacing the SimpelJSONRPCServer from jsonrpclib.
+    """
+    def __init__(self, encoding=None):
+        """
+        Constructor
+        """
+        SimpleJSONRPCDispatcher.__init__(self, encoding)
+
+
+    def do_POST(self, handler):
+        """
+        Handle a post request
+        
+        :param handler: The basic RequestHandler that received the request
+        """
+        try:
+            max_chunk_size = 10 * 1024 * 1024
+            size_remaining = int(handler.headers["content-length"])
+            L = []
+            while size_remaining:
+                chunk_size = min(size_remaining, max_chunk_size)
+                L.append(handler.rfile.read(chunk_size).decode())
+                size_remaining -= len(L[-1])
+            data = ''.join(L)
+            response = self._marshaled_dispatch(data)
+            handler.send_response(200)
+
+        except Exception:
+            handler.send_response(500)
+            err_lines = traceback.format_exc().splitlines()
+            trace_string = '%s | %s' % (err_lines[-3], err_lines[-1])
+            fault = jsonrpclib.Fault(-32603, 'Server error: %s' % trace_string)
+            response = fault.response()
+
+        if response is None:
+            response = ''
+
+        handler.send_header("Content-type", "application/json-rpc")
+        handler.send_header("Content-length", str(len(response)))
+        handler.end_headers()
+        handler.wfile.write(response.encode())
+        handler.wfile.flush()
+        handler.connection.shutdown(1)
+
+# ------------------------------------------------------------------------------
+
 @ComponentFactory("ServiceExporterFactory")
 @Instantiate("ServiceExporter")
 @Requires("sender", "org.psem2m.SignalSender")
 @Requires("receiver", "org.psem2m.SignalReceiver")
 @Requires("directory", "org.psem2m.IsolateDirectory")
-@Property("port", "jsonrpc.port", int(os.getenv("RPC_PORT", 10001)))
+@Requires("http", "HttpService")
+@Property("servlet_path", "jsonrpc.servlet.path", "/JSON-RPC")
 class ServiceExporter(object):
     """
     PSEM2M Remote Services exporter
@@ -58,10 +107,11 @@ class ServiceExporter(object):
         """
         Constructor
         """
-        # Server
+        # HTTP Service
+        self.http = None
+
+        # The JSON-RPC servlet
         self.server = None
-        self.port = 8080
-        self._thread = None
 
         # Bundle context
         self.context = None
@@ -164,10 +214,10 @@ class ServiceExporter(object):
             "endpoints": ({
                     JAVA_CLASS: "org.psem2m.isolates.services.remote.beans.EndpointDescription",
                     "endpointName": endpoint_name,
-                    "endpointUri": "/",
+                    "endpointUri": self.servlet_path,
                     "exportedConfig": exported_config,
-                    "host": "localhost",
-                    "port": self.port,
+                    "host": self.http.get_hostname(),
+                    "port": self.http.get_port(),
                     "protocol": "http"
                 },),
             "exportedInterfaces": specifications,
@@ -285,12 +335,12 @@ class ServiceExporter(object):
         # Store the bundle context
         self.context = context
 
-        # Set up the JSON-RPC server
-        self.server = SimpleJSONRPCServer(("localhost", self.port),
-                                          logRequests=False)
-
-        # The service exporter is the only RPC instance
+        # Create the servlet
+        self.server = _JsonRpcServlet()
         self.server.register_instance(self)
+
+        # Register the servlet
+        self.http.register_servlet(self.servlet_path, self.server)
 
         # Export existing services
         existing_ref = context.get_all_service_references(None,
@@ -307,10 +357,6 @@ class ServiceExporter(object):
         self.receiver.register_listener(BROADCASTER_SIGNAL_REQUEST_ENDPOINTS,
                                         self)
 
-        # Start the RPC thread
-        self.thread = threading.Thread(target=self.server.serve_forever)
-        self.thread.start()
-
 
     @Invalidate
     def invalidate(self, context):
@@ -321,13 +367,9 @@ class ServiceExporter(object):
         self.receiver.unregister_listener(BROADCASTER_SIGNAL_REQUEST_ENDPOINTS,
                                           self)
 
-        # Stop the server
-        self.server.shutdown()
-        self.server.socket.close()
-
-        # Wait a little for the thread
-        self.thread.join(1)
-        self.thread = None
+        # Unregister the servlet
+        self.http.unregister_servlet(self.server)
+        self.server = None
 
         # Unregister the service listener
         context.remove_service_listener(self)
