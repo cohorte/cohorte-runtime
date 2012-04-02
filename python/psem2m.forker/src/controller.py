@@ -15,6 +15,7 @@ import os
 import socket
 import subprocess
 import sys
+import time
 
 if sys.version_info >= (3, 0):
     # Python 3
@@ -46,7 +47,7 @@ def read_file_line(base, filename):
         return None
 
     # Get the file path
-    data_file = os.path.join(base, "var", "forker.pid")
+    data_file = os.path.join(base, "var", filename)
     if not os.path.isfile(data_file):
         # File not found
         return None
@@ -96,6 +97,31 @@ def get_forker_process(base):
         # Process not found
         return None
 
+
+def has_forker_cmd_line(executable, argv):
+    """
+    Tests if the given executable and arguments can correspond to the forker
+    
+    :param executable: The name of an executable
+    :param argv: A list of arguments
+    :return: True if given parameters corresponds to a forker
+    """
+    if "python" not in executable:
+        # Not a Python process, ignore it
+        return False
+
+    if not argv:
+        return False
+
+    for arg in argv:
+        if "psem2m.forker" in arg:
+            # The "forker" string was found in parameters
+            return True
+
+    else:
+        # Not a forker
+        return False
+
 # ------------------------------------------------------------------------------
 
 SERVLET_PATH = "/psem2m-signal-receiver"
@@ -112,15 +138,24 @@ def send_cmd_signal(base, cmd):
     # Get the forker access info
     access_info = read_file_line(base, "forker.access")
     if not access_info:
+        _logger.warning("No 'forker.access' file found")
         return False
 
     # Read the access info line
     access_info = json.loads(access_info)
+
     host = access_info["host"]
     port = access_info["port"]
 
     # Set up the signal content
-    json_signal = json.dumps(cmd)
+    signal = {
+            "javaClass": "org.psem2m.remotes.signals.http.HttpSignalData",
+            "isolateSender": "<Controller>",
+            "senderHostName": "localhost",
+            "signalContent": {"cmd": cmd, "args": None},
+            "timestamp": int(time.time() * 1000)
+            }
+    json_signal = json.dumps(signal)
 
     # Prepare request content
     headers = {"Content-Type": "application/json"}
@@ -179,11 +214,11 @@ class Main(object):
             print("Forker is already running, PID: %d", process.pid)
             return 1
 
-        # Forker needs to be started...
+        # Forker and monitor need to be started
         # FIXME: update the name of the runner...
-        args = [sys.executable, "-m", "psem2m.forker.run"]
+        args = [sys.executable, "-m", "psem2m.forker.run", "--start-monitor"]
 
-        # Set up environment
+        # Set up environment (home and base are already there)
         env = os.environ.copy()
         env["PSEM2M_ISOLATE_ID"] = ISOLATE_FORKER_ID
 
@@ -195,13 +230,14 @@ class Main(object):
         try:
             # TODO: change user before Popen
             subprocess.Popen(args, executable=args[0], env=env, close_fds=True)
-            return 0
+
         except:
             _logger.exception("Error starting the forker")
             return 1
 
         # TODO: wait a little, then send the order to start the monitor ...
         # ... or add a parameter to the forker to detect if it must be started
+        return 0
 
 
     def stop(self):
@@ -211,7 +247,7 @@ class Main(object):
         process = get_forker_process(self.base)
         if process is not None:
             # A process with the same PID is running (refreshed PID ?)
-            if "python" in process.executable and "forker" in process.cmdline:
+            if has_forker_cmd_line(process.exe, process.cmdline):
                 # Forker is running
                 if send_cmd_signal(self.base, "stop"):
                     # Signal sent
@@ -245,7 +281,7 @@ class Main(object):
 
         if process is not None:
             # A process with the same PID is running (refreshed PID ?)
-            if "python" in process.executable and "forker" in process.cmdline:
+            if has_forker_cmd_line(process.exe, process.cmdline):
                 # Forker is running
                 return True
 
@@ -364,5 +400,6 @@ def main(argv):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     main(sys.argv)
 

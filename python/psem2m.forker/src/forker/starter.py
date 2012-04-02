@@ -61,17 +61,19 @@ def validate_state():
     return missing
 
 
-def run_isolate(required_bundles, debug=False):
+def run_isolate(required_bundles, properties):
     """
     Starts and populates the Pelix framework for the forker, then waits for
-    it to stop
+    it to stop.
+    If start_monitor is True, the forker will try to start the first monitor 
+    found in the configuration files as soon as possible.
     
     :param required_bundles: The list of the isolate 4required bundles
-    :param debug: If True, sets up a console before waiting for the framework to
-                  stop
+    :param properties: The Pelix framework properties
+    :return: An integer, 0 for success, 1 for an error starting the framework
     """
     # Start a framework
-    framework = pelix.FrameworkFactory.get_framework()
+    framework = pelix.FrameworkFactory.get_framework(properties)
 
     # Get its context
     context = framework.get_bundle_context()
@@ -92,21 +94,25 @@ def run_isolate(required_bundles, debug=False):
         # Abandon on error at this level
         _logger.exception("Error starting the forker framework bundles.")
         framework.stop()
-        return
-
-    if debug:
-        _logger.debug("Debug mode ON")
-        run_debug_console(framework)
+        return 1
 
     # All went well, wait for the framework to stop
     _logger.debug("Waiting for the framework to stop")
     framework.wait_for_stop()
-    _logger.debug("Bye !")
-
+    return 0
 
 # ------------------------------------------------------------------------------
 
-def main(debug=False):
+def main(start_monitor, debug=False):
+    """
+    Starts and populates the forker Pelix framework. Waits for it to stop before
+    returning.
+    
+    :param start_monitor: If True, the forker must try to start a PSEM2M monitor
+    :param debug: If True, sets up a console before waiting for the framework to
+                  stop
+    :return: An integer, 0 for success, 1 for an error starting the framework
+    """
     # Test environment
     missing = validate_state()
     if missing is not None:
@@ -119,11 +125,14 @@ def main(debug=False):
     required_bundles = ('psem2m.component.ipopo', 'base.config',
                         'base.httpsvc', 'base.signals', 'base.remoteservices',
                         'psem2m.forker.core', 'psem2m.runner.java',
-                        'psem2m.runner.python')
+                        'psem2m.runner.python', 'psem2m.forker.cmd_agent')
+
+    # Framework properties
+    properties = {"pelix.debug": debug,
+                  "psem2m.forker.start_monitor": start_monitor}
 
     # Start the forker framework
-    run_isolate(required_bundles, debug)
-    return 0
+    return run_isolate(required_bundles, properties)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
