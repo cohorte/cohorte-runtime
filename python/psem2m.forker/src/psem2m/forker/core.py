@@ -7,7 +7,7 @@ Core of the PSEM2M Forker
 """
 
 from psem2m.component.decorators import ComponentFactory, Provides, Requires, \
-    Property, Instantiate, Validate, Invalidate
+    Property, Instantiate, Validate, Invalidate, Bind
 
 # ------------------------------------------------------------------------------
 
@@ -25,6 +25,9 @@ _logger = logging.getLogger(__name__)
 ISOLATE_LOST_SIGNAL = "/psem2m/isolate/lost"
 ISOLATE_STATUS_SIGNAL = "/psem2m/isolate/status"
 
+MONITOR_PREFIX = "org.psem2m.internals.isolates.monitor"
+PROPERTY_START_MONITOR = "psem2m.forker.start_monitor"
+
 # ------------------------------------------------------------------------------
 
 @ComponentFactory("psem2m-forker-factory")
@@ -35,7 +38,6 @@ ISOLATE_STATUS_SIGNAL = "/psem2m/isolate/status"
 @Requires("_config", "org.psem2m.isolates.services.conf.ISvcConfig",
           optional=True)
 @Requires("_sender", "org.psem2m.SignalSender")
-@Requires("_receiver", "org.psem2m.SignalReceiver")
 @Requires("_runners", "org.psem2m.isolates.forker.IIsolateRunner",
           aggregate=True)
 class Forker(object):
@@ -47,9 +49,11 @@ class Forker(object):
         Constructor
         """
         self._config = None
-        self._receiver = None
         self._runners = None
         self._sender = None
+
+        # The forker may have to start the monitor
+        self._start_monitor = False
 
         # Isolate ID -> process object
         self._isolates = {}
@@ -118,11 +122,11 @@ class Forker(object):
             return 6
 
         descr = self._config.get_application().get_isolate(isolate_id)
-        if descr is None:
+        if descr is None or descr.get_raw() is None:
             return 7
 
         # Call the main start method
-        return self.startIsolate(descr)
+        return self.startIsolate(descr.get_raw())
 
 
     def startIsolate(self, isolate_descr):
@@ -197,7 +201,6 @@ class Forker(object):
 
         thread.daemon = True
         thread.start()
-
 
         # Success
         return 0
@@ -310,6 +313,48 @@ class Forker(object):
                 pass
 
 
+    def start_monitor(self):
+        """
+        Starts a monitor, if none is already running
+        
+        :return: The result of startIsolate(), or -1 if no monitor was found in
+                 the configuration.
+        """
+        app = self._config.get_application()
+        for isolate_id in app.get_isolate_ids():
+            if isolate_id.startswith(MONITOR_PREFIX):
+                # TODO: test if the monitor is running
+
+                # Start the first found monitor
+                isolate_descr = app.get_isolate(isolate_id).get_raw()
+                if isolate_descr is not None:
+                    _logger.debug("Starting monitor : %s", isolate_id)
+                    return self.startIsolate(isolate_descr)
+
+        else:
+            # No monitor found
+            _logger.warning("No monitor configuration found")
+            return -1
+
+
+    @Bind
+    def bind(self, service, reference):
+        """
+        Called by iPOPO when a service is bound to the component
+        
+        :param service: The injected service
+        :param reference: The corresponding ServiceReference object
+        """
+        if "org.psem2m.isolates.forker.IIsolateRunner" in \
+           reference.get_property("objectClass"):
+            # Runner bound
+            if self._start_monitor:
+                # Monitor must be started
+                if self.start_monitor() in (0, 1):
+                    # Success !
+                    self._start_monitor = False
+
+
     @Validate
     def validate(self, context):
         """
@@ -318,6 +363,17 @@ class Forker(object):
         :param context: The bundle context
         """
         self._watchers_running = True
+
+        if context.get_property(PROPERTY_START_MONITOR) is True:
+            # A monitor must be started
+            if self.start_monitor() not in (0, 1):
+                # Monitor has not been started or is not yet running,
+                # try with each bound runner
+                self._start_monitor = True
+
+            else:
+                # Monitor started
+                self._start_monitor = False
 
 
     @Invalidate
@@ -328,6 +384,7 @@ class Forker(object):
         :param context: The bundle context
         """
         self._watchers_running = False
+        self._start_monitor = False
 
         for isolate_id, thread in self._threads.items():
             thread.join(2)
