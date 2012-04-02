@@ -195,11 +195,12 @@ class _IsolateDescription(object):
     """
     Description of an isolate configuration
     """
-    def __init__(self, isolate_id):
+    def __init__(self, isolate_id, raw_dictionary):
         """
         Constructor
         
         :param isolate_id: The isolate ID (non empty string)
+        :param raw_dictionary: The raw configuration file dictionary
         :raise ValueError: Invalid isolate ID
         """
         if not isolate_id:
@@ -210,6 +211,14 @@ class _IsolateDescription(object):
         self.id = isolate_id
         self.kind = ""
         self.port = 8080
+
+        if isinstance(raw_dictionary, dict):
+            # Raw dictionary given by the reader
+            self.__raw_dictionary = raw_dictionary
+
+        else:
+            # Invalid dictionary
+            self.__raw_dictionary = {}
 
 
 
@@ -270,6 +279,15 @@ class _IsolateDescription(object):
         :return: The kind of isolate
         """
         return self.kind
+
+
+    def get_raw(self):
+        """
+        Retrieves the raw isolate description found in the configuration file.
+        
+        :return: The dictionary read from the configuration 
+        """
+        return self.__raw_dictionary
 
 # ------------------------------------------------------------------------------
 
@@ -344,7 +362,7 @@ class JsonConfig(object):
         
         :return: The description of the isolate
         """
-        isolate = _IsolateDescription(isolate_object["id"])
+        isolate = _IsolateDescription(isolate_object["id"], isolate_object)
 
         # The isolate kind can be empty, not None
         isolate.kind = isolate_object.get("kind", "")
