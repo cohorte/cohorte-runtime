@@ -1,0 +1,169 @@
+#!/usr/bin/python
+#-- Content-Encoding: UTF-8 --
+"""
+The bootstrap for PSEM2M Python isolate.
+
+This module may be installed in a Pelix instance after iPOPO and PSEM2M base
+configuration.
+
+:author: Thomas Calmant
+"""
+
+from psem2m.component.decorators import ComponentFactory, Instantiate, \
+    Requires, Validate, Invalidate
+
+# ------------------------------------------------------------------------------
+
+import psem2m.services.pelix as pelix
+
+import logging
+_logger = logging.getLogger(__name__)
+
+# ------------------------------------------------------------------------------
+
+@ComponentFactory("psem2m-bootstrap-factory")
+@Instantiate("psem2m-bootstrap")
+@Requires("_config", "org.psem2m.isolates.services.conf.ISvcConfig")
+class Bootstrap(object):
+    """
+    Bootstrap for PSEM2M Python isolates
+    """
+    def __init__(self):
+        """
+        Constructor
+        """
+        self._config = None
+        self.context = None
+
+        # Installed bundles list
+        self._bundles = []
+
+
+    def _configure(self, isolate_descr):
+        """
+        Installs the bundles according to the given isolate description.
+        
+        The description must be an object compatible with
+        base.config._IsolateDescription and inner bundles with
+        base.config._BundleDescription. 
+        
+        If an error occurs during a bundle installation, and if the bundle is
+        not optional, the isolate is automatically reset.
+        
+        :param isolate_descr: Description of the current isolate
+        :return: True on success, else False
+        """
+        print("To install :", isolate_descr.get_bundles())
+
+        for bundle in isolate_descr.get_bundles():
+            # Install the bundle
+            try:
+                print(">>> INSTALLING", bundle.name)
+
+                bid = self.context.install_bundle(bundle.name)
+                bnd = self.context.get_bundle(bid)
+
+                print(">>> INSTALLING", bundle.name, "DONE")
+
+                # Store the installed bundle
+                self._bundles.append(bnd)
+
+            except pelix.BundleException:
+                if not bundle.optional:
+                    # Reset isolate on error
+                    self.reset()
+                    return False
+
+        # Start bundles
+        for bundle in self._bundles:
+            try:
+                print(">>> STARTING", bundle.get_symbolic_name())
+                bundle.start()
+                print(">>> STARTING", bundle.get_symbolic_name(), "DONE")
+
+            except pelix.BundleException:
+                if not bundle.optional:
+                    # Reset isolate on error
+                    self.reset()
+                    return False
+
+        return True
+
+
+    def setup_isolate(self):
+        """
+        Configures the current isolate according to the configuration for the
+        isolate ID indicated in the framework property ``psem2m.isolate.id``.
+        
+        :return: True on success, False on error
+        """
+        isolate_id = self.context.get_property("psem2m.isolate.id")
+        if isolate_id is None:
+            # No isolate ID found, do nothing
+            return False
+
+        # Get the isolate configuration
+        app = self._config.get_application()
+        isolate_descr = app.get_isolate(isolate_id)
+        if isolate_descr is None:
+            # No description for this isolate
+            return False
+
+        # Reset isolate
+        self.reset()
+
+        # Install required bundles
+        return self._configure(isolate_descr)
+
+
+    def reset(self):
+        """
+        Uninstalls all bundles installed by this component.
+        
+        Ignores bundles exceptions.
+        """
+        for bundle in self._bundles:
+            try:
+                # Uninstall each bundle
+                bundle.uninstall()
+
+            except pelix.BundleException:
+                # Only log errors
+                _logger.exception("Error uninstalling %s",
+                                  bundle.get_symbolic_name())
+
+        # Clean up the list
+        del self._bundles[:]
+
+
+    @Validate
+    def validate(self, context):
+        """
+        Component validation
+        
+        :param context: The bundle context
+        """
+        print(">>> VALIDATE ALL !!<<<")
+
+        self.context = context
+
+        if not self.setup_isolate():
+            # An error occurred, stop the framework
+            context.get_bundle(0).stop()
+
+        print(">>> VALIDATE DONE !!<<<")
+
+    @Invalidate
+    def invalidate(self, context):
+        """
+        Component invalidation
+        
+        :param context: The bundle context
+        """
+        print(">>> INVALIDATE ALL !!<<<")
+
+        # Uninstall bundles
+        self.reset()
+        self.context = None
+
+        print(">>> INVALIDATE DONE !!<<<")
