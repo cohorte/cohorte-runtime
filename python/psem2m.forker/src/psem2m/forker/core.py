@@ -37,8 +37,7 @@ PROPERTY_START_MONITOR = "psem2m.forker.start_monitor"
 @Provides("org.psem2m.isolates.services.forker.IForker")
 @Property("__export_itf", "service.exported.interfaces", "*")
 @Property("__export_conf", "service.exported.configs", "*")
-@Requires("_config", "org.psem2m.isolates.services.conf.ISvcConfig",
-          optional=True)
+@Requires("_config", "org.psem2m.isolates.services.conf.ISvcConfig")
 @Requires("_sender", "org.psem2m.SignalSender")
 @Requires("_runners", "org.psem2m.isolates.forker.IIsolateRunner",
           aggregate=True)

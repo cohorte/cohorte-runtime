@@ -5,6 +5,7 @@ Starts and populates the Pelix framework instance for the forker isolate
 :author: Thomas Calmant
 """
 
+import psem2m
 import psem2m.services.pelix as pelix
 
 # ------------------------------------------------------------------------------
@@ -17,26 +18,6 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
-def run_debug_console(framework):
-    """
-    Runs a debug interactive console
-    
-    :param framework: A Pelix framework instance
-    """
-    import psem2m.component.constants
-
-    import readline
-    import code
-
-    context = framework.get_bundle_context()
-
-    cons_vars = {"framework": framework,
-                 "context": context,
-                 "ipopo": psem2m.component.constants.get_ipopo_svc_ref(context)[1]}
-
-    code.InteractiveConsole(cons_vars).interact("FORKER DEBUG CONSOLE")
-
-
 def validate_state():
     """
     Returns the missing environment variables, needed to start the forker.
@@ -47,7 +28,7 @@ def validate_state():
     :return: The list of missing variables, None if all are present
     """
     needed_env = ("PSEM2M_HOME", "PSEM2M_BASE", "PSEM2M_ISOLATE_ID",
-                  "HTTP_PORT", "RPC_PORT")
+                  "HTTP_PORT")
 
     missing = []
 
@@ -123,13 +104,12 @@ def main(start_monitor, debug=False):
 
     # Required bundles list
     required_bundles = ('psem2m.component.ipopo', 'base.config',
-                        'base.httpsvc', 'base.signals', 'base.remoteservices',
-                        'psem2m.forker.core', 'psem2m.runner.java',
-                        'psem2m.runner.python', 'psem2m.forker.cmd_agent')
+                        'psem2m.forker.bootstrap')
 
     # Framework properties
     properties = {"pelix.debug": debug,
-                  "psem2m.forker.start_monitor": start_monitor}
+                  "psem2m.forker.start_monitor": start_monitor,
+                  "psem2m.isolate.id": os.getenv(psem2m.PSEM2M_ISOLATE_ID)}
 
     # Start the forker framework
     return run_isolate(required_bundles, properties)
