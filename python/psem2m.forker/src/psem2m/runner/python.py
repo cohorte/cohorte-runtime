@@ -5,8 +5,8 @@ Python 2, Python 3 and Java runners
 @author: Thomas Calmant
 """
 
-from psem2m.component.decorators import ComponentFactory, Invalidate, Validate, \
-    Provides, Instantiate
+from psem2m.component.decorators import ComponentFactory, Invalidate, \
+    Validate, Provides, Instantiate
 
 # ------------------------------------------------------------------------------
 

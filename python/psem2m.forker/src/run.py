@@ -67,7 +67,6 @@ def main(start_monitor):
 
     # FIXME: Should be read from configuration...
     os.environ["HTTP_PORT"] = "9001"
-    os.environ["RPC_PORT"] = "9002"
 
     # Store the process PID
     store_pid(base)
@@ -80,8 +79,8 @@ def main(start_monitor):
 if __name__ == "__main__":
     # Set up Python path
     sys.path.append(os.getcwd())
-    for path in ("../../python.injection/src", "../../psem2m.base/src"):
-        sys.path.append(get_abs_path(path))
+    for python_path in ("../../python.injection/src", "../../psem2m.base/src"):
+        sys.path.append(get_abs_path(python_path))
 
     # Arguments...
     start_monitor = "--start-monitor" in sys.argv
