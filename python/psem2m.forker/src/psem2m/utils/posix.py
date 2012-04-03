@@ -13,7 +13,7 @@ import sys
 
 # ------------------------------------------------------------------------------
 
-class OSUtils(utils._BaseOSUtils):
+class OSUtils(utils.BaseOSUtils):
     """
     Utility class implementation for POSIX
     """

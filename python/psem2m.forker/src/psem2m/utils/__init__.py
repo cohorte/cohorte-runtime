@@ -136,7 +136,7 @@ def read_framework_file(file_name):
 
 # ------------------------------------------------------------------------------
 
-class _BaseOSUtils(object):
+class BaseOSUtils(object):
     """
     Abstract OS-specific utility class
     """

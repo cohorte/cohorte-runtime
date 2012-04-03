@@ -15,6 +15,21 @@ import sys
 _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
+# Windows specific modules
+
+import pywintypes
+import win32api
+import win32process
+
+if sys.version_info >= (3, 0):
+    # Python 3
+    import winreg
+
+else:
+    # Python 2
+    import _winreg as winreg
+
+# ------------------------------------------------------------------------------
 
 # From http://msdn.microsoft.com/en-us/library/ms681382%28v=VS.85%29.aspx
 ERROR_INVALID_PARAMETER = 0x57
@@ -57,12 +72,12 @@ def get_registry_java_home():
         # Value found
         return utils.remove_quotes(value[0])
 
-    except WindowsError as ex:
+    except WindowsError:
         _logger.exception("Error looking for the Java path in the registry")
         return None
 
 
-class OSUtils(utils._BaseOSUtils):
+class OSUtils(utils.BaseOSUtils):
     """
     Utility class implementation for Win32
     """
