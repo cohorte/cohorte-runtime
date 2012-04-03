@@ -991,7 +991,7 @@ class Framework(Bundle):
         self._fire_bundle_event(BundleEvent.STARTING)
 
         # Start all registered bundles
-        for bundle in self.__bundles.values():
+        for bundle in self.__bundles.copy().values():
             bundle.start()
 
         # Bundle is now active
