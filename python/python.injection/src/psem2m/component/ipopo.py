@@ -964,6 +964,7 @@ class _StoredInstance(object):
 
         if safe_callback or not self.state == _StoredInstance.VALIDATION_PASSED:
             # Safe call back needed and not yet passed
+            self.state = _StoredInstance.VALIDATING
             self.safe_callback(constants.IPOPO_CALLBACK_VALIDATE, \
                                self.bundle_context)
 
