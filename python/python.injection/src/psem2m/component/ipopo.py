@@ -522,6 +522,14 @@ class _StoredInstance(object):
     KILLED = 2
     """ This component has been killed """
 
+    VALIDATING = 3
+    """ This component is currently validating """
+
+    VALIDATION_PASSED = 4
+    """
+    The component validation callback passed, the component validation can end
+    """
+
 
     def __init__(self, ipopo_service, context, instance):
         """
@@ -947,14 +955,15 @@ class _StoredInstance(object):
 
         :raise RuntimeError: You try to awake a dead component
         """
-        if self.state == _StoredInstance.VALID:
-            # No work to do
+        if self.state in (_StoredInstance.VALID, _StoredInstance.VALIDATING):
+            # No work to do (yet)
             return
 
         if self.state == _StoredInstance.KILLED:
             raise RuntimeError("%s: Zombies !" % self.context.name)
 
-        if safe_callback:
+        if safe_callback or not self.state == _StoredInstance.VALIDATION_PASSED:
+            # Safe call back needed and not yet passed
             self.safe_callback(constants.IPOPO_CALLBACK_VALIDATE, \
                                self.bundle_context)
 
@@ -1529,8 +1538,14 @@ class _IPopoService(constants.IIPopoService, object):
         # Try to validate it
         if stored_instance.update_bindings():
             try:
+                # Set in validating mode
+                stored_instance.state = _StoredInstance.VALIDATING
+
                 stored_instance.callback(constants.IPOPO_CALLBACK_VALIDATE, \
                                          component_context.get_bundle_context())
+
+                # Validation passed
+                stored_instance.state = _StoredInstance.VALIDATION_PASSED
 
                 # End the validation on success...
                 stored_instance.validate(False)
