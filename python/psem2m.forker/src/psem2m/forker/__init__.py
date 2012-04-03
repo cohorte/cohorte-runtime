@@ -1,5 +1,5 @@
 #!/usr/bin/python
-#-- Content-Encoding: utf-8 --
+#-- Content-Encoding: UTF-8 --
 """
 Forker core package
 

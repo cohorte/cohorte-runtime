@@ -1,5 +1,5 @@
 #!/usr/bin/python
-#-- Content-Encoding: utf-8 --
+#-- Content-Encoding: UTF-8 --
 """
 Forker command agent.
 
@@ -8,8 +8,8 @@ Transforms controller orders to signals sent to monitors.
 :author: Thomas Calmant
 """
 
-from psem2m.component.decorators import ComponentFactory, Instantiate, Requires, \
-    Validate, Invalidate
+from psem2m.component.decorators import ComponentFactory, Instantiate, \
+    Requires, Validate, Invalidate
 
 # ------------------------------------------------------------------------------
 
@@ -42,6 +42,9 @@ class ForkerCmdAgent(object):
         """
         self._sender = None
         self._receiver = None
+
+        # The PSEM2M base directory
+        self.base = None
 
 
     def handle_received_signal(self, name, signal_data):
@@ -79,11 +82,8 @@ class ForkerCmdAgent(object):
         
         :return: the path to the access file, or None
         """
-        # Get the BASE directory
-        base_path = os.getenv(psem2m.PSEM2M_BASE, os.getenv(psem2m.PSEM2M_HOME,
-                                                            os.getcwd()))
         # Prepare the access file path
-        access_file = os.path.join(base_path, "var", ACCESS_FILE)
+        access_file = os.path.join(self.base, "var", ACCESS_FILE)
 
         # Make parent directories if needed
         try:
@@ -106,6 +106,10 @@ class ForkerCmdAgent(object):
         
         :param context: The bundle context
         """
+        # Get the base directory
+        self.base = os.getenv(psem2m.PSEM2M_BASE, os.getenv(psem2m.PSEM2M_HOME,
+                                                            os.getcwd()))
+
         self._receiver.register_listener(SIGNAL_FORKER_COMMAND, self)
 
         # Get access information
@@ -117,9 +121,9 @@ class ForkerCmdAgent(object):
         access_file = self._get_access_file()
         if access_file is not None:
             # Write to it
-            with open(access_file, "w") as fp:
-                fp.write(json_access_info)
-                fp.write("\n")
+            with open(access_file, "w") as access_fp:
+                access_fp.write(json_access_info)
+                access_fp.write("\n")
 
 
     @Invalidate
@@ -135,3 +139,5 @@ class ForkerCmdAgent(object):
         access_file = self._get_access_file()
         if access_file is not None and os.path.isfile(access_file):
             os.remove(access_file)
+
+        self.base = None
