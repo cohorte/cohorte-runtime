@@ -22,6 +22,8 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+ISOLATE_STATUS_CLASS = "org.psem2m.isolates.base.isolates.boot.IsolateStatus"
+
 ISOLATE_LOST_SIGNAL = "/psem2m/isolate/lost"
 ISOLATE_STATUS_SIGNAL = "/psem2m/isolate/status"
 
@@ -60,6 +62,9 @@ class Forker(object):
 
         # List of watching threads Isolate ID -> Thread
         self._threads = {}
+
+        # Loop control of thread watching isolates
+        self._watchers_running = False
 
 
     def getHostName(self):
@@ -270,7 +275,7 @@ class Forker(object):
                     continue
 
                 status_bean = {
-                               "javaClass": "org.psem2m.isolates.base.isolates.boot.IsolateStatus",
+                               "javaClass": ISOLATE_STATUS_CLASS,
                                "isolateId": isolate_id,
                                "progress": float(status_json["progress"]),
                                "state": status_json["state"],
@@ -278,14 +283,13 @@ class Forker(object):
                                "timestamp": status_json["timestamp"]
                                }
 
+                # Re-transmit the isolate status
                 self._sender.send_data("MONITORS", ISOLATE_STATUS_SIGNAL,
                                        status_bean)
 
             except:
-                logger.exception("Error reading isolate status line :\n====\n%s\n====",
+                logger.exception("Error reading isolate status line :\n%s\n",
                                  parts[1])
-
-        logger.debug("%s ISOLATE GONE %s", '<' * 10, '>' * 10)
 
 
     def __process_wait_watcher(self, isolate_id, process, timeout):
@@ -304,14 +308,30 @@ class Forker(object):
                 process.wait(timeout)
 
                 # Being here means that the process ended
-                # -> send a signal to monitors
-                self._sender.send_data("MONITORS", ISOLATE_LOST_SIGNAL,
-                                       isolate_id)
+                self.__handle_lost_isolate(isolate_id)
                 break
 
             except psutil.TimeoutExpired:
                 # Time out expired : process is still there, continue the loop
                 pass
+
+
+
+    def __handle_lost_isolate(self, isolate_id):
+        """
+        Handle the loss of an isolate.
+        If the isolate is a monitor, it must be restarted immediately.
+        If not, a lost isolate signal is sent to monitors.
+        
+        :param isolate_id: The ID of the lost isolate
+        """
+        if isolate_id.startswith("org.psem2m.internals."):
+            # Internal isolate : restart it immediately
+            self.start_isolate_id(isolate_id)
+
+        else:
+            # Send a signal to monitors
+            self._sender.send_data("MONITORS", ISOLATE_LOST_SIGNAL, isolate_id)
 
 
     def start_monitor(self):
