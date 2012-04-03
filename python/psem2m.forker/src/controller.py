@@ -11,8 +11,10 @@ PSEM2M Forker control script (could be used as an init.d script)
 # You should modify those constants. None value means environment value.
 #
 
-PSEM2M_HOME = "/home/tcalmant/programmation/workspaces/psem2m/platforms/psem2m.home"
-PSEM2M_BASE = "/home/tcalmant/programmation/workspaces/psem2m/platforms/base-compo"
+PSEM2M_GIT = "/home/tcalmant/programmation/workspaces/psem2m"
+
+PSEM2M_HOME = "%s/platforms/psem2m.home" % PSEM2M_GIT
+PSEM2M_BASE = "%s/platforms/base-compo" % PSEM2M_GIT
 
 # ------------------------------------------------------------------------------
 
@@ -80,10 +82,10 @@ def read_file_line(base, filename):
         return None
 
     # Read it
-    with open(data_file) as fp:
+    with open(data_file) as data_fp:
         while True:
             # Read the line
-            line = fp.readline()
+            line = data_fp.readline()
             if not line:
                 # Empty line : end of file
                 return None
@@ -112,7 +114,7 @@ def get_forker_process(base):
     try:
         pid = int(pid_line)
 
-    except Exception as ex:
+    except ValueError as ex:
         print("Error reading the forker PID file : %s" % ex)
         return None
 
@@ -269,8 +271,6 @@ class Main(object):
             _logger.exception("Error starting the forker")
             return 1
 
-        # TODO: wait a little, then send the order to start the monitor ...
-        # ... or add a parameter to the forker to detect if it must be started
         return 0
 
 
