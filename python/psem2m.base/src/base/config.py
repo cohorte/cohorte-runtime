@@ -9,6 +9,7 @@ from psem2m.component.decorators import ComponentFactory, Provides, Validate, \
 
 import json
 import os.path
+import socket
 
 # ------------------------------------------------------------------------------
 
@@ -191,6 +192,67 @@ class _ApplicationDescription(object):
 
 # ------------------------------------------------------------------------------
 
+class _BundleDescription(object):
+    """
+    Description of a bundle configuration
+    """
+    def __init__(self, raw_dictionary):
+        """
+        Constructor
+        
+        :param raw_dictionary: The raw configuration file dictionary
+        """
+        self.name = None
+        self.optional = False
+        self.properties = None
+
+        if isinstance(raw_dictionary, dict):
+            # Raw dictionary given by the reader
+            self.__raw_dictionary = raw_dictionary
+
+        else:
+            # Invalid dictionary
+            self.__raw_dictionary = {}
+
+
+    def get_properties(self):
+        """
+        Retrieves the bundle properties, or None
+        
+        :return: The bundle properties
+        """
+        return self.properties
+
+
+    def get_raw(self):
+        """
+        Returns the raw bundle description dictionary
+        
+        :return: the raw bundle description dictionary
+        """
+        return self.__raw_dictionary
+
+
+    def get_symbolic_name(self):
+        """
+        Returns the bundle symbolic name
+        
+        :return: the bundle symbolic name
+        """
+        return self.name
+
+
+    def is_optional(self):
+        """
+        Tests if the bundle is optional
+        
+        :return: True if the bundle is optional
+        """
+        return self.optional
+
+
+# ------------------------------------------------------------------------------
+
 class _IsolateDescription(object):
     """
     Description of an isolate configuration
@@ -206,7 +268,7 @@ class _IsolateDescription(object):
         if not isolate_id:
             raise ValueError("Empty isolate ID")
 
-        self.bundles = set()
+        self.bundles = []
         self.host = None
         self.id = isolate_id
         self.kind = ""
@@ -220,6 +282,19 @@ class _IsolateDescription(object):
             # Invalid dictionary
             self.__raw_dictionary = {}
 
+
+    def add_bundle(self, bundle):
+        """
+        Adds the bundle in the bundles list if it is not yet there
+        
+        :param bundle: The bundle to be added
+        :return: True on success, False if the bundle was already there
+        """
+        if bundle is None or bundle in self.bundles:
+            return False
+
+        self.bundles.append(bundle)
+        return True
 
 
     def get_access(self):
@@ -352,6 +427,22 @@ class JsonConfig(object):
             return json.load(fp)
 
 
+    def _parse_bundle(self, bundle_object):
+        """
+        Parses a bundle entry
+        
+        :param bundle_object: A JSON object describing a bundle
+        :return: The description of the bundle
+        """
+        bundle = _BundleDescription(bundle_object)
+
+        bundle.name = bundle_object.get("symbolicName")
+        bundle.optional = bundle_object.get("optional", False)
+        bundle.properties = bundle_object.get("properties", None)
+
+        return bundle
+
+
     def _parse_isolate(self, isolate_object, overriding_props):
         """
         Parses an isolate entry
@@ -370,7 +461,7 @@ class JsonConfig(object):
         # Get the isolate host (string)
         host = isolate_object.get("host", "").strip()
         if not host:
-            host = "localhost"
+            host = socket.gethostname()
 
         # Get the isolate port
         port_str = isolate_object.get("httpPort", 8080)
@@ -381,7 +472,6 @@ class JsonConfig(object):
         else:
             # The port is not an integer, try to get the port from a service
             # name
-            import socket
             try:
                 port = socket.getservbyname(port_str)
             except socket.error:
@@ -392,6 +482,10 @@ class JsonConfig(object):
         # Store data
         isolate.host = host
         isolate.port = port
+
+        # Get the isolate bundles
+        for bundle_descr in isolate_object.get("bundles"):
+            isolate.add_bundle(self._parse_bundle(bundle_descr))
 
         return isolate
 
