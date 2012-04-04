@@ -1,9 +1,9 @@
 #!/usr/bin/python
 #-- Content-Encoding: UTF-8 --
 """
-The bootstrap for PSEM2M Python isolate.
+The isolate loader for PSEM2M Python.
 
-This module may be installed in a Pelix instance after iPOPO and PSEM2M base
+This module shall be installed in a Pelix instance after iPOPO and PSEM2M base
 configuration.
 
 :author: Thomas Calmant
@@ -21,12 +21,12 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
-@ComponentFactory("psem2m-bootstrap-factory")
-@Instantiate("psem2m-bootstrap")
+@ComponentFactory("psem2m-isolate-loader-factory")
+@Instantiate("psem2m-isolate-loader")
 @Requires("_config", "org.psem2m.isolates.services.conf.ISvcConfig")
-class Bootstrap(object):
+class IsolateLoader(object):
     """
-    Bootstrap for PSEM2M Python isolates
+    Bundle loader for PSEM2M Python isolates
     """
     def __init__(self):
         """
@@ -53,17 +53,11 @@ class Bootstrap(object):
         :param isolate_descr: Description of the current isolate
         :return: True on success, else False
         """
-        print("To install :", isolate_descr.get_bundles())
-
         for bundle in isolate_descr.get_bundles():
             # Install the bundle
             try:
-                print(">>> INSTALLING", bundle.name)
-
                 bid = self.context.install_bundle(bundle.name)
                 bnd = self.context.get_bundle(bid)
-
-                print(">>> INSTALLING", bundle.name, "DONE")
 
                 # Store the installed bundle
                 self._bundles.append(bnd)
@@ -77,9 +71,7 @@ class Bootstrap(object):
         # Start bundles
         for bundle in self._bundles:
             try:
-                print(">>> STARTING", bundle.get_symbolic_name())
                 bundle.start()
-                print(">>> STARTING", bundle.get_symbolic_name(), "DONE")
 
             except pelix.BundleException:
                 if not bundle.optional:
@@ -143,15 +135,11 @@ class Bootstrap(object):
         
         :param context: The bundle context
         """
-        print(">>> VALIDATE ALL !!<<<")
-
         self.context = context
 
         if not self.setup_isolate():
             # An error occurred, stop the framework
             context.get_bundle(0).stop()
-
-        print(">>> VALIDATE DONE !!<<<")
 
     @Invalidate
     def invalidate(self, context):
@@ -160,10 +148,6 @@ class Bootstrap(object):
         
         :param context: The bundle context
         """
-        print(">>> INVALIDATE ALL !!<<<")
-
         # Uninstall bundles
         self.reset()
         self.context = None
-
-        print(">>> INVALIDATE DONE !!<<<")

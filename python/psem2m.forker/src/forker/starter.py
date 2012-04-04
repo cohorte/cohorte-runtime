@@ -104,7 +104,7 @@ def main(start_monitor, debug=False):
 
     # Required bundles list
     required_bundles = ('psem2m.component.ipopo', 'base.config',
-                        'psem2m.forker.bootstrap')
+                        'psem2m.forker.loader')
 
     # Framework properties
     properties = {"pelix.debug": debug,
