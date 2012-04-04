@@ -115,7 +115,7 @@ class RequestHandler(BaseHTTPRequestHandler):
 
 
 @ComponentFactory(name="HttpServiceFactory")
-@Instantiate("HttpService", {"http.port": int(os.getenv("HTTP_PORT", 10000))})
+@Instantiate("HttpService")
 @Provides(specifications="HttpService")
 @Property("port", "http.port", 8080)
 class HttpService(object):
