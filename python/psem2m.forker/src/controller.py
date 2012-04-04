@@ -217,8 +217,6 @@ def send_cmd_signal(base, cmd):
 
 # ------------------------------------------------------------------------------
 
-ISOLATE_FORKER_ID = "org.psem2m.internals.isolates.forker"
-
 class Main(object):
     """
     Entry point class
@@ -251,15 +249,23 @@ class Main(object):
             return 1
 
         # Forker and monitor need to be started
-        # FIXME: update the name of the runner...
-        args = [sys.executable, "-m", "psem2m.forker.run", "--start-monitor"]
+        args = [sys.executable, "-m", "psem2m.forker.boot",
+                "--start-forker", "--with-monitor"]
 
         # Set up environment (home and base are already there)
         env = os.environ.copy()
-        env["PSEM2M_ISOLATE_ID"] = ISOLATE_FORKER_ID
 
-        # TODO: setup the Python path
-        # env["PYTHONPATH"] = os.sep.join(self.home, self.base) ...
+        # FIXME: setup the Python path using non-development variables
+        python_path = []
+
+        # Working directory
+        python_path.append(os.getcwd())
+
+        # Libraries directory
+        for path in ("python/python.injection/src", "python/psem2m.base/src"):
+            python_path.append(os.path.join(PSEM2M_GIT, path))
+
+        env["PYTHONPATH"] = os.pathsep.join(python_path)
 
         # Run !
         print("Starting forker...")
