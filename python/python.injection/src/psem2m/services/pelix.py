@@ -432,10 +432,14 @@ class Framework(Bundle):
         # Framework context
         self.set_context(BundleContext(self, self))
 
+        # Framework properties
         if not isinstance(properties, dict):
             self.__properties = {}
         else:
             self.__properties = properties
+
+        # Properties lock
+        self.__properties_lock = threading.Lock()
 
         # Bundles
         self.__next_bundle_id = 1
@@ -543,6 +547,27 @@ class Framework(Bundle):
                 return False
 
         return False
+
+
+    def add_property(self, name, value):
+        """
+        Adds a property to the framework **if it is not yet set**.
+        
+        If the property already exists (same name), then nothing is done.
+        Properties can't be updated.
+        
+        :param name: The property name
+        :param value: The value to set
+        :return: True if the property was stored, else False
+        """
+        with self.__properties_lock:
+
+            if name in self.__properties:
+                # Already stored property
+                return False
+
+            self.__properties[name] = value
+            return True
 
 
     @SynchronizedClassMethod('_lock')
@@ -758,8 +783,9 @@ class Framework(Bundle):
 
         :param name: The property name
         """
-        if name in self.__properties:
-            return self.__properties[name]
+        with self.__properties_lock:
+            if name in self.__properties:
+                return self.__properties[name]
 
         return os.getenv(name)
 
