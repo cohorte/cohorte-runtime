@@ -6,6 +6,11 @@ OS specific utilities package
 :author: Thomas Calmant
 """
 
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# ------------------------------------------------------------------------------
+
 import psem2m
 
 import importlib
@@ -60,7 +65,7 @@ def find_in_path(file_name):
     Searches for file in the directories of the PATH environment variable
     
     :param file_name: The file to look for
-    :return The first found file, or None
+    :return: The first found file, or None
     """
     if not file_name:
         # Nothing to do

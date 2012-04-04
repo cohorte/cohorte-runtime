@@ -8,6 +8,11 @@ Transforms controller orders to signals sent to monitors.
 :author: Thomas Calmant
 """
 
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# ------------------------------------------------------------------------------
+
 from psem2m.component.decorators import ComponentFactory, Instantiate, \
     Requires, Validate, Invalidate
 

@@ -2,8 +2,13 @@
 """
 Python 2, Python 3 and Java runners
 
-@author: Thomas Calmant
+:author: Thomas Calmant
 """
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# ------------------------------------------------------------------------------
 
 from psem2m.component.decorators import ComponentFactory, Invalidate, \
     Validate, Provides, Instantiate
@@ -19,8 +24,8 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
-# Python isolate HTTP Port
 ISOLATE_HTTP_PORT = "HTTP_PORT"
+""" Python isolate HTTP Port environment variable """
 
 # ------------------------------------------------------------------------------
 

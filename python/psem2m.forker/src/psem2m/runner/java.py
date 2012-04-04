@@ -2,8 +2,13 @@
 """
 Python 2, Python 3 and Java runners
 
-@author: Thomas Calmant
+:author: Thomas Calmant
 """
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# ------------------------------------------------------------------------------
 
 from psem2m.component.decorators import ComponentFactory, Invalidate, \
     Provides, Instantiate, Validate
@@ -22,28 +27,28 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
-# PSEM2M Base directory Java property
 PROP_PLATFORM_BASE = "org.psem2m.platform.base"
+""" PSEM2M Base directory Java property """
 
-# PSEM2M Home directory Java property
 PROP_PLATFORM_HOME = "org.psem2m.platform.home"
+""" PSEM2M Home directory Java property """
 
-# PSEM2M Isolate ID Java property
 PROP_PLATFORM_ISOLATE_ID = "org.psem2m.platform.isolate.id"
+""" PSEM2M Isolate ID Java property """
 
-# PSEM2M debug port Java property
 PROP_PLATFORM_DEBUG_PORT = "org.psem2m.debug.port"
+""" PSEM2M debug port Java property """
 
 # ------------------------------------------------------------------------------
 
-# OSGi framework definition file
 PLATFORM_FRAMEWORK_FILENAME = "platform.framework"
+""" OSGi framework definition file """
 
-# Bootstrap JAR file name
 BOOTSTRAP_FILENAME = "org.psem2m.utilities.bootstrap.jar"
+""" Bootstrap JAR file name """
 
-# Bootstrap main class name
 BOOTSTRAP_MAIN_CLASS = "org.psem2m.utilities.bootstrap.Main"
+""" Bootstrap main class name """
 
 # ------------------------------------------------------------------------------
 

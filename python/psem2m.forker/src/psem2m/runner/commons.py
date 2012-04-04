@@ -6,6 +6,11 @@ Runners package
 :author: Thomas Calmant
 """
 
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# ------------------------------------------------------------------------------
+
 import psem2m.utils
 
 import psutil

@@ -5,6 +5,11 @@ Utility methods implementations for Win32
 :author: Thomas Calmant
 """
 
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# ------------------------------------------------------------------------------
+
 import psem2m
 import psem2m.utils as utils
 

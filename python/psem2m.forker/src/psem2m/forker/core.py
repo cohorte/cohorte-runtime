@@ -6,6 +6,11 @@ Core of the PSEM2M Forker
 :author: Thomas Calmant
 """
 
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# ------------------------------------------------------------------------------
+
 from psem2m.component.decorators import ComponentFactory, Provides, Requires, \
     Property, Instantiate, Validate, Invalidate, Bind
 
@@ -86,6 +91,7 @@ class Forker(object):
         Implementation of ``org.psem2m.isolates.services.forker.IForker``
         
         The result can be one of :
+        
         * 0: ALIVE, the isolate is running
         * 1: DEAD, the isolate is not running (or unknown)
         * 2: STUCK, the isolate is running but doesn't answer to the forker
@@ -140,6 +146,7 @@ class Forker(object):
         Implementation of ``org.psem2m.isolates.services.forker.IForker``
         
         The result can be one of :
+        
         * 0: SUCCESS, the isolate has been successfully started
         * 1: ALREADY_RUNNING, the isolate is already running
         * 2: NO_PROCESS_REF, the process couldn't be started (no reference to
