@@ -1,3 +1,4 @@
+#!/usr/bin/python
 #-- Content-Encoding: UTF-8 --
 """
 Defines the iPOPO decorators classes to manipulate component factory classes
@@ -329,7 +330,9 @@ class Instantiate:
         """
         Sets up and registers the instances descriptions
         
-        :param factory_class: The decorated class
+        :param factory_class: The factory class to instantiate
+        :return: The decorated factory class
+        :raise TypeError: The given object is not a class
         """
         if not inspect.isclass(factory_class):
             raise TypeError("@ComponentFactory can decorate only classes, " \
@@ -375,7 +378,9 @@ class ComponentFactory:
         """
         Sets up and registers the factory class
 
-        :param factory_class: The decorated class
+        :param factory_class: The class to decorate
+        :return: The decorated class
+        :raise TypeError: The given object is not a class
         """
         if not inspect.isclass(factory_class):
             raise TypeError("@ComponentFactory can decorate only classes, " \
@@ -445,7 +450,8 @@ class Property:
         Adds the property to the class iPOPO properties field.
         Creates the field if needed.
         
-        :param clazz: The decorated class
+        :param clazz: The class to decorate
+        :return: The decorated class
         :raise TypeError: If *clazz* is not a type
         """
         if not inspect.isclass(clazz):
@@ -506,7 +512,8 @@ class Provides:
         Adds the interface to the class iPOPO field.
         Creates the field if needed.
         
-        :param clazz: The decorated class
+        :param clazz: The class to decorate
+        :return: The decorated class
         :raise TypeError: If *clazz* is not a type
         """
 
@@ -554,7 +561,8 @@ class Requires:
         """
         Adds the requirement to the class iPOPO field
         
-        :param clazz: The decorated class
+        :param clazz: The class to decorate
+        :return: The decorated class
         :raise TypeError: If *clazz* is not a type
         """
         if not inspect.isclass(clazz):
