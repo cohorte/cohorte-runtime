@@ -9,6 +9,11 @@ configuration.
 :author: Thomas Calmant
 """
 
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# ------------------------------------------------------------------------------
+
 from psem2m.component.decorators import ComponentFactory, Instantiate, \
     Requires, Validate, Invalidate
 
@@ -67,6 +72,11 @@ class IsolateLoader(object):
                     # Reset isolate on error
                     self.reset()
                     return False
+
+        # Special thing before starting bundle : set up the HTTP port property
+        port = isolate_descr.get_access()[1]
+        framework = self.context.get_bundle(0)
+        framework.add_property("http.port", port)
 
         # Start bundles
         for bundle in self._bundles:
