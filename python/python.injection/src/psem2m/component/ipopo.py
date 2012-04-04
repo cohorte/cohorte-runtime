@@ -1,4 +1,5 @@
-#-- Content-Encoding: utf-8 --
+#!/usr/bin/python
+#-- Content-Encoding: UTF-8 --
 """
 Core iPOPO implementation
 
@@ -1285,10 +1286,15 @@ class _IPopoService(constants.IIPopoService, object):
     The iPOPO registry and service
     """
 
-    def __init__(self):
+    def __init__(self, bundle_context):
         """
         Sets up the iPOPO registry
+        
+        :param bundle_context: The iPOPO bundle context 
         """
+        # Store the bundle context
+        self.__context = bundle_context
+
         # Factories registry : name -> factory class
         self.__factories = {}
 
@@ -1523,6 +1529,17 @@ class _IPopoService(constants.IIPopoService, object):
             if properties is None or not isinstance(properties, dict):
                 properties = {}
 
+
+            # Use framework properties to fill missing ones
+            framework = self.__context.get_bundle(0)
+            for property_name in factory_context.properties:
+                if property_name not in properties:
+                    # Missing property
+                    value = framework.get_property(property_name)
+                    if value is not None:
+                        # Set the property value
+                        properties[property_name] = value
+
             # Set the instance context
             component_context = ComponentContext(factory_context, name, \
                                                  properties)
@@ -1697,7 +1714,7 @@ class _IPopoActivator(object):
         assert isinstance(context, BundleContext)
 
         # Register the iPOPO service
-        self.service = _IPopoService()
+        self.service = _IPopoService(context)
         self.registration = context.register_service(\
                                         constants.IPOPO_SERVICE_SPECIFICATION, \
                                         self.service, {})
