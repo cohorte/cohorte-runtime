@@ -6,7 +6,7 @@ Core iPOPO implementation
 :author: Thomas Calmant
 :copyright: Copyright 2012, isandlaTech
 :license: GPLv3
-:version: 0.2
+:version: 0.3
 :status: Alpha
 
 ..
@@ -907,8 +907,6 @@ class _StoredInstance(object):
             current_value = getattr(component, field, None)
             if not requires.aggregate and current_value is not None:
                 # A dependency is already injected
-                _logger.debug("%s: Field '%s' already bound", \
-                              self.name, field)
                 continue
 
             # Find possible services (specification test is already in filter
@@ -918,8 +916,6 @@ class _StoredInstance(object):
             if not refs:
                 if not requires.optional:
                     # Required link not found
-                    _logger.debug("%s: Missing requirement for field %s", \
-                                  self.name, field)
                     all_bound = False
 
                 continue
@@ -1281,7 +1277,7 @@ def _manipulate_component(instance, stored_instance):
 
 # ------------------------------------------------------------------------------
 
-class _IPopoService(constants.IIPopoService, object):
+class _IPopoService(object):
     """
     The iPOPO registry and service
     """
@@ -1770,12 +1766,16 @@ class _IPopoActivator(object):
         kind = event.get_kind()
         bundle = event.get_bundle()
 
-        if kind == BundleEvent.STOPPING:
-            # A bundle is gone, remove its __factories
+        if kind == BundleEvent.STOPPING_PRECLEAN:
+            # A bundle is gone, remove its factories after the deactivator has
+            # been called. That way, the deactivator can kill manually started
+            # components.
             self.service._unregister_bundle_factories(bundle)
 
-        elif kind == BundleEvent.STARTED:
-            # A bundle is activating, register its __factories
+        elif kind == BundleEvent.STARTING:
+            # A bundle is staring, register its factories before its activator
+            # is called. That way, the activator can use the registered
+            # factories.
             self.service._register_bundle_factories(bundle)
 
 
