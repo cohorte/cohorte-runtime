@@ -12,7 +12,7 @@ files=(ldapfilter pelix ipopo)
 for i in ${files[@]}
 do
 	echo "Working on $i"
-	coverage run --parallel-mode tests/${i}_test.py || exit 1
+	coverage run --source psem2m --parallel-mode tests/${i}_test.py || exit 1
 done
 
 echo "Run C test..."

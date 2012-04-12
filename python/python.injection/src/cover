@@ -7,7 +7,7 @@ coverage erase
 rm -fr htmldoc 2>/dev/null
 
 echo "Run..."
-coverage run tests/$1_test.py || exit 1
+coverage run --source psem2m tests/$1_test.py || exit 1
 
 echo "HTML..."
 coverage html
