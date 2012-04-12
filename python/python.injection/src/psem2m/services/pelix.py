@@ -227,71 +227,89 @@ class Bundle(object):
             self.__name = module.__name__
 
 
-    @SynchronizedClassMethod('_lock')
     def start(self):
         """
-        Starts the bundle
+        Starts the bundle. Does nothing if the bundle is already starting or
+        active.
+        
+        :raise BundleException: The framework is not yet started or the bundle
+                                activator failed.
         """
-        if self._state == Bundle.ACTIVE:
-            # Already started bundle
-            return
+        if self.__framework._state != Bundle.ACTIVE:
+            # Framework is not runnning
+            raise BundleException("Framework must be started before its "
+                                  "bundles")
 
-        # Starting...
-        self._state = Bundle.STARTING
-        self._fire_bundle_event(BundleEvent.STARTING)
+        with self._lock:
+            if self._state in (Bundle.ACTIVE, Bundle.STARTING):
+                # Already started bundle, do nothing
+                return
 
-        # Call the activator, if any
-        activator = getattr(self.__module, ACTIVATOR, None)
-        starter = getattr(activator, 'start', None)
+            # Store the bundle current state
+            previous_state = self._state
 
-        if starter is not None:
-            try:
-                # Call the start method
-                starter(self.__context)
+            # Starting...
+            self._state = Bundle.STARTING
+            self._fire_bundle_event(BundleEvent.STARTING)
 
-            except Exception as ex:
-                _logger.exception("Error calling the activator")
-                raise BundleException(ex)
+            # Call the activator, if any
+            activator = getattr(self.__module, ACTIVATOR, None)
+            starter = getattr(activator, 'start', None)
 
-        # Bundle is now active
-        self._state = Bundle.ACTIVE
-        self._fire_bundle_event(BundleEvent.STARTED)
+            if starter is not None:
+                try:
+                    # Call the start method
+                    starter(self.__context)
+
+                except Exception as ex:
+                    # Restore previous state
+                    self._state = previous_state
+
+                    # Raise the error
+                    _logger.exception("Error calling the activator")
+                    raise BundleException(ex)
+
+            # Bundle is now active
+            self._state = Bundle.ACTIVE
+            self._fire_bundle_event(BundleEvent.STARTED)
 
 
-    @SynchronizedClassMethod('_lock')
     def stop(self):
         """
-        Stops the bundle
+        Stops the bundle. Does nothing if the bundle is already stopped.
+        
+        :raise BundleException: The bundle activator failed.
         """
         if self._state != Bundle.ACTIVE:
             # Invalid state
             return
 
-        # Stopping...
-        self._state = Bundle.STOPPING
-        self._fire_bundle_event(BundleEvent.STOPPING)
+        with self._lock:
+            # Stopping...
+            self._state = Bundle.STOPPING
+            self._fire_bundle_event(BundleEvent.STOPPING)
 
-        # Call the activator, if any
-        activator = getattr(self.__module, ACTIVATOR, None)
-        stopper = getattr(activator, 'stop', None)
+            # Call the activator, if any
+            activator = getattr(self.__module, ACTIVATOR, None)
+            stopper = getattr(activator, 'stop', None)
 
-        exception = None
-        if stopper is not None:
-            try:
-                # Call the start method
-                stopper(self.__context)
+            exception = None
+            if stopper is not None:
+                try:
+                    # Call the start method
+                    stopper(self.__context)
 
-            except Exception as ex:
-                _logger.exception("Error calling the activator")
-                # Store the exception (raised after service clean up)
-                exception = BundleException(ex)
+                except Exception as ex:
+                    _logger.exception("Error calling the activator")
+                    # Store the exception (raised after service clean up)
+                    exception = BundleException(ex)
 
-        # Remove remaining services
-        self.__unregister_services()
+            # Remove remaining services
+            self.__unregister_services()
 
-        # Bundle is now stopped
-        self._state = Bundle.RESOLVED
-        self._fire_bundle_event(BundleEvent.STOPPED)
+            # Bundle is now stopped
+            self._state = Bundle.RESOLVED
+            self._fire_bundle_event(BundleEvent.STOPPED)
 
         # Raise the exception, if any
         if exception is not None:
