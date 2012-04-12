@@ -132,11 +132,12 @@ def is_lock(lock):
     lock_api = ('acquire', 'release', '__enter__', '__exit__')
 
     for attr in lock_api:
-        if hasattr(lock, attr):
-            # Same API as a lock
-            return True
+        if not hasattr(lock, attr):
+            # Missing something
+            return False
 
-    return False
+    # Same API as a lock
+    return True
 
 # ------------------------------------------------------------------------------
 
