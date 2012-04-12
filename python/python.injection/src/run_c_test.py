@@ -5,6 +5,7 @@ from psem2m.services import pelix
 from psem2m.services.pelix import Framework
 import logging
 import time
+import threading
 
 # ------------------------------------------------------------------------------
 
@@ -15,6 +16,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 logging.info("--- Start Pelix ---")
 framework = pelix.FrameworkFactory.get_framework({'debug': True})
+framework.start()
 assert isinstance(framework, Framework)
 
 logging.info("-- Install iPOPO --")
@@ -43,3 +45,9 @@ stop()
 end = time.time()
 
 logging.info("--- Time to stop the framework : %.2f sec", (end - start))
+
+while threading.active_count() > 1:
+    logging.info("Waiting for threads to stop...")
+    time.sleep(.2)
+
+logging.info("Bye !")

@@ -8,11 +8,16 @@ Created on 1 févr. 2012
 
 from psem2m.services.pelix import FrameworkFactory, Bundle, BundleException, \
     BundleContext, BundleEvent, ServiceEvent, ServiceReference
+
+from tests import log_on, log_off
 from tests.interfaces import IEchoService
+
 import psem2m.services.pelix as pelix
-import os.path
+import os
 import logging
 import unittest
+import threading
+import time
 
 # ------------------------------------------------------------------------------
 
@@ -33,6 +38,8 @@ class BundlesTest(unittest.TestCase):
         Called before each test. Initiates a framework.
         """
         self.framework = FrameworkFactory.get_framework()
+        self.framework.start()
+
         self.test_bundle_name = "tests.simple_bundle"
         # File path, without extension
         self.test_bundle_loc = os.path.abspath(self.test_bundle_name.replace(
@@ -179,7 +186,10 @@ class BundlesTest(unittest.TestCase):
 
         # Activator with exception
         module.raiser = True
+
+        log_off()
         self.assertRaises(BundleException, bundle.start)
+        log_on()
 
         # Assert post-exception state
         self.assertNotEquals(bundle.get_state(), Bundle.ACTIVE, \
@@ -199,7 +209,10 @@ class BundlesTest(unittest.TestCase):
 
         # De-activate with exception
         module.raiser = True
+
+        log_off()
         self.assertRaises(BundleException, bundle.stop)
+        log_on()
 
         self.assertNotEquals(bundle.get_state(), Bundle.ACTIVE, \
                              "Bundle shouldn't be considered active")
@@ -384,6 +397,8 @@ class BundleEventTest(unittest.TestCase):
         Called before each test. Initiates a framework.
         """
         self.framework = FrameworkFactory.get_framework()
+        self.framework.start()
+
         self.test_bundle_name = "tests.simple_bundle"
 
         self.bundle = None
@@ -455,8 +470,9 @@ class BundleEventTest(unittest.TestCase):
         # Stop the bundle
         bundle.stop()
         # Assert the events have been received
-        self.assertEqual([BundleEvent.STOPPING, BundleEvent.STOPPED], \
-                          self.received, "Received %s" % self.received)
+        self.assertEqual([BundleEvent.STOPPING, BundleEvent.STOPPING_PRECLEAN,
+                          BundleEvent.STOPPED], self.received,
+                         "Received %s" % self.received)
         self.reset_state()
 
         # Uninstall the bundle
@@ -470,6 +486,17 @@ class BundleEventTest(unittest.TestCase):
         context.remove_bundle_listener(self)
 
 # ------------------------------------------------------------------------------
+
+def _framework_killer(framework, wait_time):
+    """
+    Waits *time* seconds before calling framework.stop().
+    
+    :param framework: Framework to stop
+    :param wait_time: Time to wait (seconds) before stopping the framework
+    """
+    time.sleep(wait_time)
+    framework.stop()
+
 
 class FrameworkTest(unittest.TestCase):
     """
@@ -502,6 +529,145 @@ class FrameworkTest(unittest.TestCase):
         FrameworkFactory.delete_framework(framework)
 
 
+    def testBundleStart(self):
+        """
+        Tests if a bundle can be started before the framework itself
+        """
+        framework = FrameworkFactory.get_framework()
+        context = framework.get_bundle_context()
+        assert isinstance(context, BundleContext)
+
+        # Install a bundle
+        bid = context.install_bundle("tests.simple_bundle")
+        bundle = context.get_bundle(bid)
+
+        self.assertEquals(bundle.get_state(), Bundle.RESOLVED,
+                          "Bundle should be in RESOLVED state")
+
+        # Starting the bundle now should fail
+        self.assertRaises(BundleException, bundle.start)
+        self.assertEquals(bundle.get_state(), Bundle.RESOLVED,
+                          "Bundle should be in RESOLVED state")
+
+        # Start the framework
+        framework.start()
+
+        # Bundle should have been started now
+        self.assertEquals(bundle.get_state(), Bundle.ACTIVE,
+                          "Bundle should be in ACTIVE state")
+
+        # Stop the framework
+        framework.stop()
+
+        self.assertEquals(bundle.get_state(), Bundle.RESOLVED,
+                          "Bundle should be in RESOLVED state")
+
+        # Try to start the bundle again (must fail)
+        self.assertRaises(BundleException, bundle.start)
+        self.assertEquals(bundle.get_state(), Bundle.RESOLVED,
+                          "Bundle should be in RESOLVED state")
+
+        FrameworkFactory.delete_framework(framework)
+
+
+    def testFrameworkDoubleStart(self):
+        """
+        Tests double calls to start and stop
+        """
+        framework = FrameworkFactory.get_framework()
+        context = framework.get_bundle_context()
+
+        # Register the stop listener
+        context.add_framework_stop_listener(self)
+
+        self.assertTrue(framework.start(), "Framework couldn't be started")
+        self.assertFalse(framework.start(), "Framework started twice")
+
+        # Stop the framework
+        self.assertTrue(framework.stop(), "Framework couldn't be stopped")
+        self.assertTrue(self.stopping, "Stop listener not called")
+        self.stopping = False
+
+        self.assertFalse(framework.stop(), "Framework stopped twice")
+        self.assertFalse(self.stopping, "Stop listener called twice")
+
+        FrameworkFactory.delete_framework(framework)
+
+
+    def testFrameworkRestart(self):
+        """
+        Tests call to Framework.update(), that restarts the framework
+        """
+        framework = FrameworkFactory.get_framework()
+        context = framework.get_bundle_context()
+
+        # Register the stop listener
+        context.add_framework_stop_listener(self)
+
+        # Calling update while the framework is stopped should do nothing
+        framework.update()
+        self.assertFalse(self.stopping, "Stop listener called")
+
+        # Start and update the framework
+        self.assertTrue(framework.start(), "Framework couldn't be started")
+        framework.update()
+
+        # The framework must have been stopped and must be active
+        self.assertTrue(self.stopping, "Stop listener not called")
+        self.assertEquals(framework.get_state(), Bundle.ACTIVE,
+                          "Framework hasn't been restarted")
+
+        framework.stop()
+        FrameworkFactory.delete_framework(framework)
+
+
+    def testFrameworkStartRaiser(self):
+        """
+        Tests framework start and stop with a bundle raising exception
+        """
+        framework = FrameworkFactory.get_framework()
+        context = framework.get_bundle_context()
+
+        # Register the stop listener
+        context.add_framework_stop_listener(self)
+
+        # Install the bundle
+        bid = context.install_bundle("tests.simple_bundle")
+        bundle = context.get_bundle(bid)
+        module = bundle.get_module()
+
+        # Set module in raiser mode
+        module.raiser = True
+
+        # Framework can't start
+        log_off()
+        self.assertRaises(BundleException, framework.start)
+        log_on()
+
+        self.assertEquals(framework.get_state(), Bundle.RESOLVED,
+                          "Framework should be in RESOLVED state")
+
+        # Remove raiser mode
+        module.raiser = False
+
+        # Framework can start
+        self.assertTrue(framework.start(), "Framework couldn't be started")
+        self.assertEquals(framework.get_state(), Bundle.ACTIVE,
+                          "Framework should be in ACTIVE state")
+
+        # Set module in raiser mode
+        module.raiser = True
+
+        # Stop the framework
+        log_off()
+        self.assertTrue(framework.stop(), "Framework couldn't be stopped")
+        log_on()
+
+        self.assertTrue(self.stopping, "Stop listener not called")
+
+        FrameworkFactory.delete_framework(framework)
+
+
     def testPropertiesWithPreset(self):
         """
         Test framework properties
@@ -515,12 +681,12 @@ class FrameworkTest(unittest.TestCase):
         framework = FrameworkFactory.get_framework(props)
 
         self.assertEquals(framework.get_property(pelix_test_name), pelix_test, \
-                          "Invalid property value")
+                          "Invalid property value (preset value not set)")
 
         # Pre-set property has priority
         os.environ[pelix_test_name] = pelix_test_2
         self.assertEquals(framework.get_property(pelix_test_name), pelix_test, \
-                          "Invalid property value")
+                          "Invalid property value (preset has priority)")
         del os.environ[pelix_test_name]
 
         FrameworkFactory.delete_framework(framework)
@@ -547,11 +713,41 @@ class FrameworkTest(unittest.TestCase):
         FrameworkFactory.delete_framework(framework)
 
 
+    def testAddedProperty(self):
+        """
+        Tests the add_property method
+        """
+        pelix_test_name = "PELIX_TEST"
+        pelix_test = "42"
+        pelix_test_2 = "123"
+
+        # Test without pre-set properties
+        framework = FrameworkFactory.get_framework()
+
+        self.assertIsNone(framework.get_property(pelix_test_name), \
+                          "Magic property value")
+
+        # Add the property
+        self.assertTrue(framework.add_property(pelix_test_name, pelix_test),
+                        "add_property shouldn't fail on first call")
+
+        self.assertEquals(framework.get_property(pelix_test_name), pelix_test, \
+                          "Invalid property value")
+
+        # Update the property (must fail)
+        self.assertFalse(framework.add_property(pelix_test_name, pelix_test_2),
+                        "add_property must fail on second call")
+
+        self.assertEquals(framework.get_property(pelix_test_name), pelix_test, \
+                          "Invalid property value")
+
+        FrameworkFactory.delete_framework(framework)
+
+
     def framework_stopping(self):
         """
         Called when framework is stopping
         """
-        print("Stopping !")
         self.stopping = True
 
 
@@ -595,11 +791,84 @@ class FrameworkTest(unittest.TestCase):
 
     def testUninstall(self):
         """
-        Tests if the framework raises an exception if uninstall is called on it
+        Tests if the framework raises an exception if uninstall() is called
         """
         # Set up a framework
         framework = FrameworkFactory.get_framework()
         self.assertRaises(BundleException, framework.uninstall)
+
+        # Even once started...
+        framework.start()
+        self.assertRaises(BundleException, framework.uninstall)
+        framework.stop()
+
+        FrameworkFactory.delete_framework(framework)
+
+
+    def testWaitForStop(self):
+        """
+        Tests the wait_for_stop() method
+        """
+        # Set up a framework
+        framework = FrameworkFactory.get_framework()
+
+        # No need to wait for the framework...
+        self.assertTrue(framework.wait_for_stop(),
+                        "wait_for_stop() must return True on stopped framework")
+
+        # Start the framework
+        framework.start()
+
+        # Start the framework killer
+        threading.Thread(target=_framework_killer,
+                         args=(framework, 0.5)).start()
+
+        # Wait for stop
+        start = time.time()
+        self.assertTrue(framework.wait_for_stop(),
+                        "wait_for_stop(None) should return True")
+        end = time.time()
+        self.assertLess(end - start, 1, "Wait should be less than 1 sec")
+
+        FrameworkFactory.delete_framework(framework)
+
+
+    def testWaitForStopTimeout(self):
+        """
+        Tests the wait_for_stop() method
+        """
+        # Set up a framework
+        framework = FrameworkFactory.get_framework()
+        framework.start()
+
+        # Start the framework killer
+        threading.Thread(target=_framework_killer,
+                         args=(framework, 0.5)).start()
+
+        # Wait for stop (timeout not raised)
+        start = time.time()
+        self.assertTrue(framework.wait_for_stop(1),
+                        "wait_for_stop() should return True")
+        end = time.time()
+        self.assertLess(end - start, 1, "Wait should be less than 1 sec")
+
+        # Restart framework
+        framework.start()
+
+        # Start the framework killer
+        threading.Thread(target=_framework_killer,
+                         args=(framework, 2)).start()
+
+        # Wait for stop (timeout raised)
+        start = time.time()
+        self.assertFalse(framework.wait_for_stop(1),
+                        "wait_for_stop() should return False")
+        end = time.time()
+        self.assertLess(end - start, 1.2, "Wait should be less than 1.2 sec")
+
+        # Wait for framework to really stop
+        framework.wait_for_stop()
+
         FrameworkFactory.delete_framework(framework)
 
 # ------------------------------------------------------------------------------
@@ -614,6 +883,7 @@ class LocalBundleTest(unittest.TestCase):
         Called before each test. Initiates a framework.
         """
         self.framework = FrameworkFactory.get_framework()
+        self.framework.start()
 
     def tearDown(self):
         """
@@ -679,6 +949,8 @@ class ServicesTest(unittest.TestCase):
         self.test_bundle_name = "tests.service_bundle"
 
         self.framework = FrameworkFactory.get_framework()
+        self.framework.start()
+
         fw_context = self.framework.get_bundle_context()
         assert isinstance(fw_context, BundleContext)
 
@@ -704,6 +976,7 @@ class ServicesTest(unittest.TestCase):
         # Install the service bundle
         bid = context.install_bundle(self.test_bundle_name)
         bundle = context.get_bundle(bid)
+        bundle_context = bundle.get_bundle_context()
         module = bundle.get_module()
 
         # Assert we can't access the service
@@ -736,11 +1009,14 @@ class ServicesTest(unittest.TestCase):
         # Assert we found the same references
         self.assertIs(ref1, ref2, "References are not the same")
 
+        # Get all IEchoServices
         refs = context.get_all_service_references(IEchoService, None)
+
         # Assert we found only one reference
         self.assertIsNotNone(refs, "get_all_service_reference found nothing")
 
         refs = context.get_all_service_references(IEchoService, svc_filter)
+
         # Assert we found only one reference
         self.assertIsNotNone(refs, \
                              "get_all_service_reference filtered found nothing")
@@ -748,6 +1024,31 @@ class ServicesTest(unittest.TestCase):
         # Assert that the first found reference is the first of "all" references
         self.assertIs(ref1, refs[0], \
                       "Not the same references through get and get_all")
+
+
+        # Assert that the bundle can find its own services
+        self.assertListEqual(refs,
+                             bundle_context.get_service_references(IEchoService,
+                                                                   None),
+                             "The bundle can't find its own services")
+
+        self.assertListEqual(refs,
+                             bundle_context.get_service_references(IEchoService,
+                                                                   svc_filter),
+                             "The bundle can't find its own filtered services")
+
+        # Assert that the framework bundle context can't find the bundle
+        # services
+        self.assertListEqual([],
+                             context.get_service_references(IEchoService, None),
+                             "Framework bundle shoudln't get the echo service")
+
+        self.assertListEqual([],
+                             context.get_service_references(IEchoService,
+                                                            svc_filter),
+                             "Framework bundle shoudln't get the filtered "
+                             "echo service")
+
 
         # Get the service
         svc = context.get_service(ref1)
@@ -874,7 +1175,97 @@ class ServicesTest(unittest.TestCase):
         self.assertLess(ref3, ref1, "ID3.-20 < ID1.0")
         self.assertGreater(ref1, ref3, "ID3.-20 > ID1.0")
 
-        # Mixed comparison
+
+    def testServiceRegistrationUpdate(self):
+        """
+        Try to update service properties
+        """
+        context = self.framework.get_bundle_context()
+
+        # Register service
+        base_props = {pelix.OBJECTCLASS: "titi",
+                      pelix.SERVICE_ID:-1,
+                      "test": 42}
+
+        reg = context.register_service("class", self, base_props)
+        ref = reg.get_reference()
+
+        # Ensure that reserved properties have been overridden
+        object_class = ref.get_property(pelix.OBJECTCLASS)
+        self.assertListEqual(object_class, ["class"],
+                          "Invalid objectClass property '%s'" % object_class)
+
+        svc_id = ref.get_property(pelix.SERVICE_ID)
+        self.assertGreater(svc_id, 0,
+                           "Invalid service ID")
+
+        # Ensure the reference uses a copy of the properties
+        base_props["test"] = 21
+        self.assertEquals(ref.get_property("test"), 42,
+                          "Property updated by the dictionary reference")
+
+        # Update the properties
+        update_props = {pelix.OBJECTCLASS: "ref2",
+                      pelix.SERVICE_ID: 20,
+                      "test": 21}
+
+        reg.set_properties(update_props)
+
+        # Ensure that reserved properties have been kept
+        self.assertListEqual(ref.get_property(pelix.OBJECTCLASS), object_class,
+                          "Modified objectClass property")
+
+        self.assertEquals(ref.get_property(pelix.SERVICE_ID), svc_id,
+                           "Modified service ID")
+
+        self.assertEquals(ref.get_property("test"), 21,
+                          "Extra property not updated")
+
+
+    def testGetAllReferences(self):
+        """
+        Tests get_all_service_references() method
+        """
+        context = self.framework.get_bundle_context()
+        assert isinstance(context, BundleContext)
+
+        # Get all references count
+        all_refs = context.get_all_service_references(None, None)
+        self.assertIsNotNone(all_refs, "All references result must not be None")
+        self.assertEquals(len(all_refs), 0, "Services list should be empty")
+
+        # Install the service bundle
+        bid = context.install_bundle(self.test_bundle_name)
+        bundle = context.get_bundle(bid)
+
+        # No services yet
+        all_refs = context.get_all_service_references(None, None)
+        self.assertIsNotNone(all_refs, "All references result must not be None")
+        self.assertEquals(len(all_refs), 0, "Services list should be empty")
+
+        # Start the bundle
+        bundle.start()
+
+        all_refs = context.get_all_service_references(None, None)
+        self.assertIsNotNone(all_refs, "All references result must not be None")
+        self.assertGreater(len(all_refs), 0, "Services list shouldn't be empty")
+
+        # Try with an empty filter (lists should be equal)
+        all_refs_2 = context.get_all_service_references(None, "")
+        self.assertListEqual(all_refs, all_refs_2,
+                             "References lists should be equals")
+
+        # Assert that the registered service is in the list
+        ref = context.get_service_reference(IEchoService)
+        self.assertIsNotNone(ref, "get_service_reference found nothing")
+        self.assertIn(ref, all_refs, "Echo service should be the complete list")
+
+        # Remove the bundle
+        bundle.uninstall()
+
+        # Test an invalid filter
+        self.assertRaises(BundleException, context.get_all_service_references,
+                          None, "/// Invalid Filter ///")
 
 
 # ------------------------------------------------------------------------------
@@ -889,6 +1280,8 @@ class ServiceEventTest(unittest.TestCase):
         Called before each test. Initiates a framework.
         """
         self.framework = FrameworkFactory.get_framework()
+        self.framework.start()
+
         self.test_bundle_name = "tests.service_bundle"
 
         self.bundle = None
@@ -961,8 +1354,10 @@ class ServiceEventTest(unittest.TestCase):
         context = self.framework.get_bundle_context()
         assert isinstance(context, BundleContext)
 
+        log_off()
         self.assertFalse(context.add_service_listener(self, "Invalid"), \
                          "Invalid filter registered")
+        log_on()
 
         self.assertFalse(context.remove_service_listener(self), \
                          "Invalid filter was registered anyway")

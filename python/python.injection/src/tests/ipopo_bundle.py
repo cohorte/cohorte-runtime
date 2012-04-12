@@ -6,7 +6,7 @@ Created on 3 févr. 2012
 """
 from psem2m.component.constants import IPOPO_INSTANCE_NAME
 from psem2m.component.decorators import ComponentFactory, Property, Provides, \
-    Requires, Validate, Invalidate, Unbind, Bind
+    Requires, Validate, Invalidate, Unbind, Bind, Instantiate
 from psem2m.component.ipopo import IPopoEvent
 from psem2m.services.pelix import BundleContext
 from tests.interfaces import IEchoService
@@ -21,6 +21,41 @@ PROP_USABLE = "usable"
 
 # ------------------------------------------------------------------------------
 
+# Auto-instantiated component (tests the decorator)
+@ComponentFactory("basic-component-factory")
+@Instantiate("basic-component")
+@Provides("basic-component-svc")
+class BasicComponent(object):
+    """
+    Dummy instantiated component
+    """
+    def __init__(self):
+        """
+        Constructor
+        """
+        self.states = []
+        self.states.append(IPopoEvent.INSTANTIATED)
+
+
+    @Validate
+    def validate(self, context):
+        """
+        Validation
+        """
+        self.states.append(IPopoEvent.VALIDATED)
+
+
+    @Invalidate
+    def invalidate(self, context):
+        """
+        Invalidation
+        """
+        self.states.append(IPopoEvent.INVALIDATED)
+
+# ------------------------------------------------------------------------------
+
+# Inherited property 
+@Property("name", IPOPO_INSTANCE_NAME)
 class TestComponentFactory(object):
     """
     Parent class of components
@@ -29,6 +64,7 @@ class TestComponentFactory(object):
         """
         Constructor
         """
+        self.name = None
         self.states = []
         self.states.append(IPopoEvent.INSTANTIATED)
 
@@ -56,7 +92,6 @@ class TestComponentFactory(object):
 # ------------------------------------------------------------------------------
 
 @ComponentFactory(name=FACTORY_A)
-@Property("name", IPOPO_INSTANCE_NAME)
 @Property("usable", PROP_USABLE, True)
 @Provides(specifications=IEchoService)
 class ComponentFactoryA(TestComponentFactory, IEchoService):

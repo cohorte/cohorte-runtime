@@ -8,7 +8,7 @@ Created on 7 févr. 2012
 
 from psem2m.ldapfilter import get_ldap_filter
 import psem2m.ldapfilter
-import tests
+
 import unittest
 
 # ------------------------------------------------------------------------------

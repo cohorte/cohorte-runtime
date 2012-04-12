@@ -4,7 +4,26 @@ Test package for Pelix
 @author: Thomas Calmant
 """
 
+import logging
 import unittest
+
+# ------------------------------------------------------------------------------
+
+def log_on():
+    """
+    Activates the logging
+    """
+    root = logging.getLogger()
+    root.setLevel(logging.DEBUG)
+
+def log_off():
+    """
+    Activates the logging
+    """
+    root = logging.getLogger()
+    root.setLevel(logging.CRITICAL)
+
+# ------------------------------------------------------------------------------
 
 # Small trick to add missing assertions in Python 2.6
 def assertIn(self, member, container, msg=None):

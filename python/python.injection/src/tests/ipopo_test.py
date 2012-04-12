@@ -12,6 +12,7 @@ from psem2m.services.pelix import FrameworkFactory, BundleContext
 from tests.interfaces import IEchoService
 import logging
 import unittest
+import os
 
 # ------------------------------------------------------------------------------
 
@@ -71,6 +72,21 @@ class DecoratorsTest(unittest.TestCase):
     """
     Tests the iPOPO decorators
     """
+    def setUp(self):
+        """
+        Called before each test. Initiates a framework.
+        """
+        self.framework = FrameworkFactory.get_framework()
+        self.framework.start()
+        self.ipopo = install_ipopo(self.framework)
+
+    def tearDown(self):
+        """
+        Called after each test
+        """
+        self.framework.stop()
+        FrameworkFactory.delete_framework(self.framework)
+
 
     def testCallbacks(self):
         """
@@ -132,6 +148,74 @@ class DecoratorsTest(unittest.TestCase):
             for bad in bad_types:
                 self.assertRaises(TypeError, decorator, bad)
 
+
+    def testInstantiate(self):
+        """
+        Tests the @Instantiate decorator
+        """
+        factory = "basic-component-factory"
+        name = "basic-component"
+        svc_spec = "basic-component-svc"
+        bundle_name = "tests.ipopo_bundle"
+
+        # Assert the framework is clean
+        self.assertFalse(self.ipopo.is_registered_factory(factory),
+                         "Factory already registered")
+
+        self.assertFalse(self.ipopo.is_registered_instance(name),
+                         "Instance already registered")
+
+        # Install the bundle
+        context = self.framework.get_bundle_context()
+        bid = context.install_bundle(bundle_name)
+        bundle = context.get_bundle(bid)
+
+        # Bundle is installed, assert that the framework is still clean
+        self.assertFalse(self.ipopo.is_registered_factory(factory),
+                         "Factory registered while the bundle is stopped")
+
+        self.assertFalse(self.ipopo.is_registered_instance(name),
+                         "Instance registered while the bundle is stopped")
+
+        # Start the bundle
+        bundle.start()
+
+        # Assert the component has been registered
+        self.assertTrue(self.ipopo.is_registered_factory(factory),
+                         "Factory not registered while the bundle is started")
+
+        self.assertTrue(self.ipopo.is_registered_instance(name),
+                         "Instance not registered while the bundle is started")
+
+        # Assert it has been validated
+        ref = context.get_service_reference(svc_spec)
+        compo = context.get_service(ref)
+
+        self.assertEquals(compo.states, [IPopoEvent.INSTANTIATED,
+                                         IPopoEvent.VALIDATED],
+                          "@Instantiate component should have been validated")
+        del compo.states[:]
+
+        # Stop the bundle
+        bundle.stop()
+
+        # Assert the component has been invalidated
+        self.assertEquals(compo.states, [IPopoEvent.INVALIDATED],
+                          "@Instantiate component should have been invalidated")
+
+        # Assert the framework has been cleaned up
+        self.assertFalse(self.ipopo.is_registered_factory(factory),
+                         "Factory registered while the bundle has been stopped")
+
+        self.assertFalse(self.ipopo.is_registered_instance(name),
+                         "Instance registered while the bundle has been "
+                         "stopped")
+
+        # Ensure the service has been unregistered properly
+        self.assertIsNone(context.get_service_reference(svc_spec),
+                          "@Instantiate service is still there")
+
+
 # ------------------------------------------------------------------------------
 
 class LifeCycleTest(unittest.TestCase):
@@ -143,6 +227,7 @@ class LifeCycleTest(unittest.TestCase):
         Called before each test. Initiates a framework.
         """
         self.framework = FrameworkFactory.get_framework()
+        self.framework.start()
         self.ipopo = install_ipopo(self.framework)
         self.module = install_bundle(self.framework)
 
@@ -237,6 +322,7 @@ class ProvidesTest(unittest.TestCase):
         Called before each test. Initiates a framework.
         """
         self.framework = FrameworkFactory.get_framework()
+        self.framework.start()
         self.ipopo = install_ipopo(self.framework)
 
     def tearDown(self):
@@ -298,6 +384,7 @@ class RequirementTest(unittest.TestCase):
         Called before each test. Initiates a framework.
         """
         self.framework = FrameworkFactory.get_framework()
+        self.framework.start()
         self.ipopo = install_ipopo(self.framework)
 
     def tearDown(self):
@@ -457,6 +544,80 @@ class RequirementTest(unittest.TestCase):
                          compoB.states, \
                          "Invalid component states : %s" % compoB.states)
         compoB.reset()
+
+        # Set A unusable (again)
+        compoA.change(False)
+
+        # B must have been invalidated
+        self.assertEqual([IPopoEvent.INVALIDATED, IPopoEvent.UNBOUND], \
+                         compoB.states, \
+                         "Invalid component states : %s" % compoB.states)
+
+# ------------------------------------------------------------------------------
+
+class SimpleTests(unittest.TestCase):
+    """
+    Tests the component life cyle
+    """
+    def setUp(self):
+        """
+        Called before each test. Initiates a framework.
+        """
+        self.framework = FrameworkFactory.get_framework()
+        self.framework.start()
+        self.context = self.framework.get_bundle_context()
+
+
+    def tearDown(self):
+        """
+        Called after each test
+        """
+        self.framework.stop()
+        FrameworkFactory.delete_framework(self.framework)
+
+
+    def testConstantGetReference(self):
+        """
+        Tests the ipopo.constants.get_service_reference() method
+        """
+        # Try without the bundle
+        self.assertIsNone(constants.get_ipopo_svc_ref(self.context),
+                          "iPOPO service found while not installed.")
+
+        # Install the iPOPO bundle
+        ipopo_svc = install_ipopo(self.framework)
+
+        # Test the method result
+        ref, svc = constants.get_ipopo_svc_ref(self.context)
+        self.assertIsNotNone(ref, "Invalid service reference")
+        self.assertIs(svc, ipopo_svc, "Found a different service.")
+
+        # Stop the iPOPO bundle
+        ref.get_bundle().stop()
+
+        # Ensure the service is not accessible anymore
+        self.assertIsNone(constants.get_ipopo_svc_ref(self.context),
+                          "iPOPO service found while stopped.")
+
+
+    def testGetMethodDescription(self):
+        """
+        Tests the ipopo.decorators.get_method_description() method
+        """
+        bundle_name = "tests.simple_bundle"
+        bundle = install_bundle(self.framework, bundle_name)
+        descr = decorators.get_method_description(bundle.ActivatorTest.start)
+
+        # Assert we found sufficient data
+        self.assertTrue(descr.startswith("'start'"), "Method name not found")
+        self.assertIn(bundle_name.replace(".", os.sep) + ".py", descr,
+                      "File couldn't determined")
+
+        # Some methods are unreadable
+        self.assertEquals("'getpid'",
+                          decorators.get_method_description(os.getpid),
+                          "Invalid description of getpid()")
+
 
 # ------------------------------------------------------------------------------
 
