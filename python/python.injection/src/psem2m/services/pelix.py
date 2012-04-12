@@ -6,7 +6,7 @@ Pelix is a Python framework that aims to act as OSGi as much as possible
 :author: Thomas Calmant
 :copyright: Copyright 2012, isandlaTech
 :license: GPLv3
-:version: 0.2
+:version: 0.3
 :status: Alpha
 
 ..
@@ -235,7 +235,7 @@ class Bundle(object):
         :raise BundleException: The framework is not yet started or the bundle
                                 activator failed.
         """
-        if self.__framework._state != Bundle.ACTIVE:
+        if self.__framework._state not in (Bundle.STARTING, Bundle.ACTIVE):
             # Framework is not runnning
             raise BundleException("Framework must be started before its "
                                   "bundles")
@@ -304,10 +304,14 @@ class Bundle(object):
                     # Store the exception (raised after service clean up)
                     exception = BundleException(ex)
 
-            # Remove remaining services
+            # Intermediate bundle event : activator should have cleaned up
+            # everything, but some element could stay (iPOPO components, ...)
+            self._fire_bundle_event(BundleEvent.STOPPING_PRECLEAN)
+
+            # Remove remaining services (the hard way)
             self.__unregister_services()
 
-            # Bundle is now stopped
+            # Bundle is now stopped and all its services have been unregistered
             self._state = Bundle.RESOLVED
             self._fire_bundle_event(BundleEvent.STOPPED)
 
@@ -931,6 +935,10 @@ class Framework(Bundle):
             # Be sure we have a valid dictionary
             properties = {}
 
+        else:
+            # Use a copy of the given properties
+            properties = properties.copy()
+
         # Prepare the class specification
         if not isinstance(clazz, list):
             # Make a list from the single class
@@ -1024,9 +1032,11 @@ class Framework(Bundle):
         """
         Starts the framework
 
+        :return: True if the bundle has been started, False if it was already
+                 running
         :raise BundleException: A bundle failed to start
         """
-        if self._state == Bundle.ACTIVE:
+        if self._state in (Bundle.STARTING, Bundle.ACTIVE):
             # Already started framework
             return
 
@@ -1035,21 +1045,32 @@ class Framework(Bundle):
         self._fire_bundle_event(BundleEvent.STARTING)
 
         # Start all registered bundles
-        for bundle in self.__bundles.copy().values():
-            bundle.start()
+        try:
+            for bundle in self.__bundles.copy().values():
+                bundle.start()
+
+        except BundleException:
+            # A bundle failed to start : reset the framework state
+            self._state = Bundle.RESOLVED
+
+            # Re-raise the error
+            raise
 
         # Bundle is now active
         self._state = Bundle.ACTIVE
+        return True
 
 
     @SynchronizedClassMethod('_lock')
     def stop(self):
         """
         Stops the framework
+        
+        :return: True if the framework stopped, False it wasn't running
         """
         if self._state != Bundle.ACTIVE:
             # Invalid state
-            return
+            return False
 
         # Stopping...
         self._state = Bundle.STOPPING
@@ -1083,6 +1104,8 @@ class Framework(Bundle):
         # All bundles have been stopped, release "wait_for_stop"
         with self._condition:
             self._condition.notify_all()
+
+        return True
 
 
     def uninstall(self):
@@ -1162,23 +1185,31 @@ class Framework(Bundle):
         """
         Stops and starts the framework
         """
-        self.stop()
-        self.start()
+        if self._state == Bundle.ACTIVE:
+            self.stop()
+            self.start()
 
 
-    def wait_for_stop(self):
+    def wait_for_stop(self, timeout=None):
         """
         Waits for the framework to stop. Does nothing if the framework bundle
         is not in ACTIVE state.
         
         Uses a threading.Condition object
+        
+        :param timeout: The maximum time to wait (in seconds)
+        :return: True if the framework has stopped, False if the timeout raised
         """
         if self._state != Bundle.ACTIVE:
             # Inactive framework, ignore the call
-            return
+            return True
 
         with self._condition:
-            self._condition.wait()
+            self._condition.wait(timeout)
+
+        with self._lock:
+            # If the timeout raised, we should be in another state
+            return self._state == Bundle.RESOLVED
 
 # ------------------------------------------------------------------------------
 
@@ -1708,10 +1739,17 @@ class BundleEvent(object):
     """The bundle is about to be activated."""
 
     STOPPED = 4
-    """The bundle has been stopped."""
+    """
+    The bundle has been stopped. All of its services have been unregistered.
+    """
 
     STOPPING = 256
     """The bundle is about to deactivated."""
+
+    STOPPING_PRECLEAN = 512
+    """
+    The bundle has been deactivated, but some of its services may still remain.
+    """
 
     UNINSTALLED = 16
     """The bundle has been uninstalled."""
