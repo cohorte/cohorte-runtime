@@ -5,7 +5,7 @@ Defines some iPOPO constants
 :author: Thomas Calmant
 :copyright: Copyright 2012, isandlaTech
 :license: GPLv3
-:version: 0.2
+:version: 0.3
 :status: Alpha
 
 ..
@@ -25,51 +25,12 @@ Defines some iPOPO constants
     You should have received a copy of the GNU General Public License
     along with iPOPO. If not, see <http://www.gnu.org/licenses/>.
 """
+from psem2m.services.pelix import BundleException
 
 # ------------------------------------------------------------------------------
 
 # Documentation strings format
 __docformat__ = "restructuredtext en"
-
-# ------------------------------------------------------------------------------
-
-class IIPopoService:
-    """
-    Defines the iPOPO service interface
-    """
-    def instantiate(self, factory_name, name, properties={}):
-        """
-        Instantiates a component from the given factory, with the given name
-        
-        :param factory_name: Name of the component factory
-        :param name: Name of the instance to be started
-        :return: The component instance
-        :raise TypeError: The given factory is unknown
-        :raise ValueError: The given name or factory name is invalid, or an
-                           instance with the given name already exists
-        :raise Exception: Something wrong occurred in the factory
-        """
-        raise NotImplementedError
-
-
-    def invalidate(self, name):
-        """
-        Invalidates the given component
-        
-        :param name: Name of the component to invalidate
-        :raise ValueError: Invalid component name
-        """
-        raise NotImplementedError
-
-
-    def kill(self, name):
-        """
-        Kills the given component
-        
-        :param name: Name of the component to kill
-        :raise ValueError: Invalid component name
-        """
-        raise NotImplementedError
 
 # ------------------------------------------------------------------------------
 
@@ -115,8 +76,11 @@ def get_ipopo_svc_ref(bundle_context):
     if ref is None:
         return None
 
-    svc = bundle_context.get_service(ref)
-    if svc is None:
+    try:
+        svc = bundle_context.get_service(ref)
+
+    except BundleException:
+        # Service reference has been invalidated
         return None
 
     return (ref, svc)

@@ -6,7 +6,7 @@ Defines the iPOPO decorators classes to manipulate component factory classes
 :author: Thomas Calmant
 :copyright: Copyright 2012, isandlaTech
 :license: GPLv3
-:version: 0.2
+:version: 0.3
 :status: Alpha
 
 ..
@@ -49,7 +49,7 @@ _logger = logging.getLogger("ipopo.decorators")
 
 # ------------------------------------------------------------------------------
 
-def _is_from_parent(cls, attribute_name):
+def is_from_parent(cls, attribute_name):
     """
     Tests if the current attribute value is shared by a parent of the given
     class.
@@ -75,7 +75,7 @@ def _is_from_parent(cls, attribute_name):
     return False
 
 
-def _get_method_description(method):
+def get_method_description(method):
     """
     Retrieves a description of the given method. If possible, the description
     contains the source file name and line.
@@ -83,15 +83,24 @@ def _get_method_description(method):
     :param method: A method
     :return: A description of the method (at least its name)
     """
-    if hasattr(method, "func_code"):
+    try:
+        try:
+            line_no = inspect.getsourcelines(method)[1]
+
+        except IOError:
+            # Error reading the source file
+            line_no = -1
+
         return "'{method}' ({file}:{line})".format(method=method.__name__,
-                                        file=method.func_code.co_filename,
-                                        line=method.func_code.co_firstlineno)
+                                        file=inspect.getfile(method),
+                                        line=line_no)
 
-    return "'%s'" % method.__name__
+    except TypeError:
+        # Method can't be inspected
+        return "'%s'" % method.__name__
 
 
-def _validate_method_arity(method, *needed_args):
+def validate_method_arity(method, *needed_args):
     """
     Tests if the decorated method has a sufficient number of parameters.
     
@@ -110,7 +119,7 @@ def _validate_method_arity(method, *needed_args):
     if len(method_args) == 0:
         # No argument at all
         raise TypeError("Decorated method %s must have at least the 'self' "
-                        "parameter" % _get_method_description(method))
+                        "parameter" % get_method_description(method))
 
     if argspec.varargs is not None:
         # Variable arguments
@@ -118,13 +127,13 @@ def _validate_method_arity(method, *needed_args):
             # Other arguments detected
             raise TypeError("When using '*args', the decorated %s method must "
                         "only accept the 'self' argument"
-                        % _get_method_description(method))
+                        % get_method_description(method))
 
     elif len(method_args) != nb_needed_args or method_args[0] != 'self':
         # "Normal" arguments
         raise TypeError("The decorated method %s must accept exactly %d "
                         "parameters : (self, %s)"
-                        % (_get_method_description(method), nb_needed_args,
+                        % (get_method_description(method), nb_needed_args,
                            ", ".join(needed_args)))
 
 # ------------------------------------------------------------------------------
@@ -145,7 +154,7 @@ def _get_factory_context(cls):
         setattr(cls, constants.IPOPO_FACTORY_CONTEXT_DATA, context)
 
     else:
-        if _is_from_parent(cls, constants.IPOPO_FACTORY_CONTEXT_DATA):
+        if is_from_parent(cls, constants.IPOPO_FACTORY_CONTEXT_DATA):
             # The context comes from a parent, copy it using a temporary
             # dictionary form
             if isinstance(context, dict):
@@ -341,7 +350,7 @@ class Instantiate:
         instances = getattr(factory_class, constants.IPOPO_INSTANCES, None)
 
         if instances is None or \
-            _is_from_parent(factory_class, constants.IPOPO_INSTANCES):
+            is_from_parent(factory_class, constants.IPOPO_INSTANCES):
             # No instances for this particular class
             instances = {}
             setattr(factory_class, constants.IPOPO_INSTANCES, instances)
@@ -400,7 +409,7 @@ class ComponentFactory:
 
         # Clean up inherited fields, to avoid weird behavior
         for field in ComponentFactory.NON_INHERITABLE_FIELDS:
-            if _is_from_parent(factory_class, field):
+            if is_from_parent(factory_class, field):
                 # Set inherited fields to None
                 setattr(factory_class, field, None)
 
@@ -607,7 +616,7 @@ def Bind(method):
         raise TypeError("@Bind can only be applied on functions")
 
     # Tests the number of parameters
-    _validate_method_arity(method, "service", "service_reference")
+    validate_method_arity(method, "service", "service_reference")
 
     _append_object_entry(method, constants.IPOPO_METHOD_CALLBACKS, \
                          constants.IPOPO_CALLBACK_BIND)
@@ -641,7 +650,7 @@ def Unbind(method):
         raise TypeError("@Unbind can only be applied on functions")
 
     # Tests the number of parameters
-    _validate_method_arity(method, "service")
+    validate_method_arity(method, "service")
 
     _append_object_entry(method, constants.IPOPO_METHOD_CALLBACKS, \
                          constants.IPOPO_CALLBACK_UNBIND)
@@ -677,7 +686,7 @@ def Validate(method):
         raise TypeError("@Validate can only be applied on functions")
 
     # Tests the number of parameters
-    _validate_method_arity(method, "bundle_context")
+    validate_method_arity(method, "bundle_context")
 
     _append_object_entry(method, constants.IPOPO_METHOD_CALLBACKS, \
                          constants.IPOPO_CALLBACK_VALIDATE)
@@ -713,7 +722,7 @@ def Invalidate(method):
         raise TypeError("@Invalidate can only be applied on functions")
 
     # Tests the number of parameters
-    _validate_method_arity(method, "bundle_context")
+    validate_method_arity(method, "bundle_context")
 
     _append_object_entry(method, constants.IPOPO_METHOD_CALLBACKS, \
                          constants.IPOPO_CALLBACK_INVALIDATE)
