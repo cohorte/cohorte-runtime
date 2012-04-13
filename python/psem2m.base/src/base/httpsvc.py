@@ -1,21 +1,21 @@
+#!/usr/bin/env python
 #-- Content-Encoding: UTF-8 --
 """
 Created on 29 févr. 2012
 
-@author: Thomas Calmant
+:author: Thomas Calmant
 """
 
 # ------------------------------------------------------------------------------
 
 import logging
-import os
 import socket
 import sys
 import threading
 
 _logger = logging.getLogger(__name__)
 
-if sys.version_info >= (3, 0):
+if sys.version_info[0] == 3:
     # Python 3
     import urllib.parse as urlparse
     from http.server import HTTPServer
@@ -29,7 +29,7 @@ else:
 
 # ------------------------------------------------------------------------------
 
-from psem2m.component.decorators import ComponentFactory, Provides, Validate, \
+from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
     Invalidate, Property, Instantiate
 
 # ------------------------------------------------------------------------------

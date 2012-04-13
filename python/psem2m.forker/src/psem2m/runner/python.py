@@ -10,7 +10,7 @@ __docformat__ = "restructuredtext en"
 
 # ------------------------------------------------------------------------------
 
-from psem2m.component.decorators import ComponentFactory, Invalidate, \
+from pelix.ipopo.decorators import ComponentFactory, Invalidate, \
     Validate, Provides, Instantiate
 
 # ------------------------------------------------------------------------------

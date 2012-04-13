@@ -14,12 +14,12 @@ __docformat__ = "restructuredtext en"
 
 # ------------------------------------------------------------------------------
 
-from psem2m.component.decorators import ComponentFactory, Instantiate, \
+from pelix.ipopo.decorators import ComponentFactory, Instantiate, \
     Requires, Validate, Invalidate
 
 # ------------------------------------------------------------------------------
 
-import psem2m.services.pelix as pelix
+import pelix.framework as pelix
 
 import logging
 _logger = logging.getLogger(__name__)

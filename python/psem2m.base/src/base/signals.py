@@ -2,18 +2,18 @@
 """
 Created on 29 févr. 2012
 
-@author: Thomas Calmant
+:author: Thomas Calmant
 """
 
 # ------------------------------------------------------------------------------
 
-from psem2m.component.decorators import ComponentFactory, Provides, Requires, \
+from pelix.ipopo.decorators import ComponentFactory, Provides, Requires, \
     Validate, Invalidate, Instantiate
 
 from base.javautils import to_jabsorb, from_jabsorb, JAVA_CLASS
 
-import psem2m.services.pelix as pelix
-import psem2m.utilities as utilities
+import pelix.framework as pelix
+import pelix.utilities as utilities
 
 # ------------------------------------------------------------------------------
 
@@ -26,7 +26,7 @@ import time
 import threading
 import sys
 
-if sys.version_info >= (3, 0):
+if sys.version_info[0] == 3:
     # Python 3
     import http.client as httplib
 

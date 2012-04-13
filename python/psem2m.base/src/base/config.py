@@ -1,10 +1,11 @@
+#!/usr/bin/env python
 #-- Content-Encoding: UTF-8 --
 """
 Created on 9 mars 2012
 
-@author: Thomas Calmant
+:author: Thomas Calmant
 """
-from psem2m.component.decorators import ComponentFactory, Provides, Validate, \
+from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
     Invalidate, Instantiate, Requires
 
 import json

@@ -1,8 +1,9 @@
+#!/usr/bin/env python
 #-- Content-Encoding: UTF-8 --
 """
 Created on 1 mars 2012
 
-@author: Thomas Calmant
+:author: Thomas Calmant
 """
 
 # ------------------------------------------------------------------------------
@@ -15,11 +16,11 @@ import jsonrpclib
 
 # ------------------------------------------------------------------------------
 
-from psem2m.component.decorators import ComponentFactory, Requires, Validate, \
+from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
     Invalidate, Instantiate, Property
 from base.javautils import to_jabsorb, from_jabsorb, JAVA_CLASS
 
-import psem2m.services.pelix as pelix
+import pelix.framework as pelix
 
 # ------------------------------------------------------------------------------
 

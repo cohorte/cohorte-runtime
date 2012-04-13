@@ -1,8 +1,9 @@
+#!/usr/bin/env python
 #-- Content-Encoding: UTF-8 --
 """
 Created on 06 mars 2012
 
-@author: Thomas Calmant
+:author: Thomas Calmant
 """
 
 # ------------------------------------------------------------------------------

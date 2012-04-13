@@ -18,7 +18,7 @@ __docformat__ = "restructuredtext en"
 # ------------------------------------------------------------------------------
 
 import psem2m
-import psem2m.services.pelix as pelix
+import pelix.framework as pelix
 
 # ------------------------------------------------------------------------------
 
@@ -177,7 +177,7 @@ def start_isolate(isolate_id, properties=None):
     properties.update(overridden_props)
 
     # Required bundles list (using the loader)
-    required_bundles = ('psem2m.component.ipopo', 'base.config',
+    required_bundles = ('pelix.ipopo.core', 'base.config',
                         'psem2m.forker.loader')
 
     # Run the isolate (do not return until it's stopped

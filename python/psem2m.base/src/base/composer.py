@@ -1,21 +1,22 @@
+#!/usr/bin/env python
 #-- Content-Encoding: UTF-8 --
 """
 Created on 29 févr. 2012
 
-@author: Thomas Calmant
+:author: Thomas Calmant
 """
 
 # ------------------------------------------------------------------------------
 
 import logging
-from psem2m.component.ipopo import IPopoEvent
+from pelix.ipopo.core import IPopoEvent
 _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
-from psem2m.component.decorators import ComponentFactory, Provides, Requires, \
+from pelix.ipopo.decorators import ComponentFactory, Provides, Requires, \
     Validate, Invalidate, Instantiate
-import psem2m.component.constants as constants
+import pelix.ipopo.constants as constants
 
 # ------------------------------------------------------------------------------
 
