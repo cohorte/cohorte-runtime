@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+#-- Content-Encoding: UTF-8 --
 """
 PSEM2M Python package
 

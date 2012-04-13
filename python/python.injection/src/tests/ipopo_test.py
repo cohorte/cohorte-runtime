@@ -1,18 +1,19 @@
-#!/usr/bin/python3
-#-- Content-Encoding: utf-8 --
+#!/usr/bin/env python
+#-- Content-Encoding: UTF-8 --
 """
 Created on 3 févr. 2012
 
-@author: Thomas Calmant
+:author: Thomas Calmant
 """
 
-from psem2m.component import constants, decorators
-from psem2m.component.ipopo import IPopoEvent
-from psem2m.services.pelix import FrameworkFactory, BundleContext
+from pelix.ipopo import constants, decorators
+from pelix.ipopo.core import IPopoEvent
+from pelix.framework import FrameworkFactory, BundleContext
 from tests.interfaces import IEchoService
+
 import logging
-import unittest
 import os
+import unittest
 
 # ------------------------------------------------------------------------------
 
@@ -55,7 +56,7 @@ def install_ipopo(framework):
     assert isinstance(context, BundleContext)
 
     # Install & start the bundle
-    bid = context.install_bundle("psem2m.component.ipopo")
+    bid = context.install_bundle("pelix.ipopo.core")
     bundle = context.get_bundle(bid)
     bundle.start()
 

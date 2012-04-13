@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+#-- Content-Encoding: UTF-8 --
 """
 Core module for Pelix.
 
@@ -27,10 +29,10 @@ Pelix is a Python framework that aims to act as OSGi as much as possible
     along with iPOPO. If not, see <http://www.gnu.org/licenses/>.
 """
 
-from psem2m.utilities import SynchronizedClassMethod, add_listener, \
+from pelix.utilities import SynchronizedClassMethod, add_listener, \
     remove_listener, is_string
 
-import psem2m.ldapfilter as ldapfilter
+import pelix.ldapfilter as ldapfilter
 
 # ------------------------------------------------------------------------------
 

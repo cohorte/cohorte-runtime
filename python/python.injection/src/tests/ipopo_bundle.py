@@ -1,14 +1,15 @@
-#-- Content-Encoding: utf-8 --
+#!/usr/bin/env python
+#-- Content-Encoding: UTF-8 --
 """
 Created on 3 févr. 2012
 
-@author: Thomas Calmant
+:author: Thomas Calmant
 """
-from psem2m.component.constants import IPOPO_INSTANCE_NAME
-from psem2m.component.decorators import ComponentFactory, Property, Provides, \
+from pelix.ipopo.constants import IPOPO_INSTANCE_NAME
+from pelix.ipopo.decorators import ComponentFactory, Property, Provides, \
     Requires, Validate, Invalidate, Unbind, Bind, Instantiate
-from psem2m.component.ipopo import IPopoEvent
-from psem2m.services.pelix import BundleContext
+from pelix.ipopo.core import IPopoEvent
+from pelix.framework import BundleContext
 from tests.interfaces import IEchoService
 
 # ------------------------------------------------------------------------------

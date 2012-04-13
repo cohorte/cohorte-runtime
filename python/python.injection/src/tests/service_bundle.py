@@ -1,11 +1,12 @@
-#-- Content-Encoding: utf-8 --
+#!/usr/bin/env python
+#-- Content-Encoding: UTF-8 --
 """
 Created on 1 févr. 2012
 
-@author: Thomas Calmant
+:author: Thomas Calmant
 """
 
-from psem2m.services.pelix import BundleContext
+from pelix.framework import BundleContext
 from tests.interfaces import IEchoService
 
 __version__ = (1, 0, 0)

@@ -1,8 +1,11 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #-- Content-Encoding: UTF-8 --
+"""
+Runs the PSEM2M signals test
+"""
 
 from psem2m.services import pelix
-from psem2m.services.pelix import Framework, BundleContext
+from pelix.framework import Framework, BundleContext
 import readline
 import code
 import logging
@@ -31,7 +34,7 @@ context = framework.get_bundle_context()
 assert isinstance(context, BundleContext)
 
 logging.info("-- Install iPOPO --")
-bid = framework.install_bundle("psem2m.component.ipopo")
+bid = framework.install_bundle("pelix.ipopo.core")
 b_ipopo = context.get_bundle(bid)
 b_ipopo.start()
 

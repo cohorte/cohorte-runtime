@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #-- Content-Encoding: UTF-8 --
 """
 Defines some iPOPO constants
@@ -25,7 +26,8 @@ Defines some iPOPO constants
     You should have received a copy of the GNU General Public License
     along with iPOPO. If not, see <http://www.gnu.org/licenses/>.
 """
-from psem2m.services.pelix import BundleException
+
+from pelix.framework import BundleException
 
 # ------------------------------------------------------------------------------
 
@@ -35,7 +37,7 @@ __docformat__ = "restructuredtext en"
 # ------------------------------------------------------------------------------
 
 # iPOPO service specification string
-IPOPO_SERVICE_SPECIFICATION = "psem2m.component.ipopo"
+IPOPO_SERVICE_SPECIFICATION = "pelix.ipopo.core"
 
 # ------------------------------------------------------------------------------
 

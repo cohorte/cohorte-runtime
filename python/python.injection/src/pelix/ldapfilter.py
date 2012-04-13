@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+#-- Content-Encoding: UTF-8 --
 """
 Dependency-less LDAP filter parser for Python
 
@@ -25,7 +27,7 @@ Dependency-less LDAP filter parser for Python
     along with iPOPO. If not, see <http://www.gnu.org/licenses/>.
 """
 
-from psem2m.utilities import is_string
+from pelix.utilities import is_string
 
 # ------------------------------------------------------------------------------
 

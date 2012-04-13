@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+#-- Content-Encoding: UTF-8 --
 """
 Utility methods and decorators
 
@@ -23,13 +25,17 @@ Utility methods and decorators
     along with iPOPO. If not, see <http://www.gnu.org/licenses/>.
 """
 
-import threading
 from functools import wraps
+import sys
+import threading
 
 # ------------------------------------------------------------------------------
 
 # Documentation strings format
 __docformat__ = "restructuredtext en"
+
+# Using Python 3
+PYTHON_3 = (sys.version_info[0] == 3)
 
 # ------------------------------------------------------------------------------
 
@@ -204,11 +210,13 @@ def is_string(string):
     :return: True if the given object is a string object or a Python 2.6
              unicode object 
     """
-    try:
-        return isinstance(string, str) or isinstance(string, unicode)
+    if PYTHON_3:
+        # Python 3 only have the str string type
+        return isinstance(string, str)
 
-    except NameError:
-        return False
+    else:
+        # Python 2 also have unicode
+        return isinstance(string, str) or isinstance(string, unicode)
 
 
 def get_unicode_creator():
@@ -221,10 +229,10 @@ def get_unicode_creator():
     
     :return: The unicode string constructor
     """
-    try:
-        # Python 2.x : strings must be converted with the unicode method
-        return unicode
-
-    except NameError:
+    if PYTHON_3:
         # Python 3.x, "str" returns a unicode string
         return str
+
+    else:
+        # Python 2.x : strings must be converted with the unicode method
+        return unicode

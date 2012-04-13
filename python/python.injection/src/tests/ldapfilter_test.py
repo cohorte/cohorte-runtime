@@ -1,13 +1,13 @@
-#!/usr/bin/python3
-#-- Content-Encoding: utf-8 --
+#!/usr/bin/env python
+#-- Content-Encoding: UTF-8 --
 """
 Created on 7 févr. 2012
 
-@author: Thomas Calmant
+:author: Thomas Calmant
 """
 
-from psem2m.ldapfilter import get_ldap_filter
-import psem2m.ldapfilter
+from pelix.ldapfilter import get_ldap_filter
+import pelix.ldapfilter as ldapfilter
 
 import unittest
 
@@ -58,7 +58,7 @@ class LDAPUtilitiesTest(unittest.TestCase):
             ldap_filter = get_ldap_filter("(a%s1)" % comparator)
 
             # Get the string version of the parsed comparator
-            str_comparator = psem2m.ldapfilter.comparator2str(\
+            str_comparator = ldapfilter.comparator2str(\
                                                         ldap_filter.comparator)
 
             self.assertEquals(str_comparator, comparator,
@@ -67,7 +67,7 @@ class LDAPUtilitiesTest(unittest.TestCase):
 
         # Invalid comparators
         for comparator in (None, str, str(), int()):
-            str_comparator = psem2m.ldapfilter.comparator2str(comparator)
+            str_comparator = ldapfilter.comparator2str(comparator)
             self.assertEquals(str_comparator, "??",
                           "Bad string for comparator '%s' : '%s'"
                           % (comparator, str_comparator))
@@ -77,18 +77,18 @@ class LDAPUtilitiesTest(unittest.TestCase):
         """
         Tests operator2str()
         """
-        operators = {psem2m.ldapfilter.LDAPFilter.AND: "&",
-                     psem2m.ldapfilter.LDAPFilter.OR: "|",
-                     psem2m.ldapfilter.LDAPFilter.NOT: "!"}
+        operators = {ldapfilter.LDAPFilter.AND: "&",
+                     ldapfilter.LDAPFilter.OR: "|",
+                     ldapfilter.LDAPFilter.NOT: "!"}
 
         for operator, str_operator in operators.items():
-            conv_operator = psem2m.ldapfilter.operator2str(operator)
+            conv_operator = ldapfilter.operator2str(operator)
             self.assertEquals(str_operator, conv_operator,
                               "Invalid operator conversion '%s' : '%s'"
                               % (str_operator, conv_operator))
 
         for operator in (None, str, int, str(), "AND", "OR", "NOT", 42):
-            conv_operator = psem2m.ldapfilter.operator2str(operator)
+            conv_operator = ldapfilter.operator2str(operator)
             self.assertEquals("<unknown>", conv_operator,
                               "Invalid operator conversion '%s' : '%s'"
                               % (str_operator, conv_operator))
@@ -127,13 +127,13 @@ class LDAPUtilitiesTest(unittest.TestCase):
 
         for normal, escaped in tested_values.items():
             # Escape
-            ldap_escape = psem2m.ldapfilter.escape_LDAP(normal)
+            ldap_escape = ldapfilter.escape_LDAP(normal)
             self.assertEquals(escaped, ldap_escape,
                               "Invalid escape '%s' should be '%s'"
                               % (ldap_escape, escaped))
 
             # Un-escape
-            ldap_unescape = psem2m.ldapfilter.unescape_LDAP(ldap_escape)
+            ldap_unescape = ldapfilter.unescape_LDAP(ldap_escape)
             self.assertEquals(escaped, ldap_escape,
                               "Invalid un-escape '%s' should be '%s'"
                               % (ldap_unescape, normal))

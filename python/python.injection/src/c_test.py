@@ -1,15 +1,19 @@
-#!/usr/bin/python3
+#!/usr/bin/env python
 #-- Content-Encoding: UTF-8 --
+"""
+Bundle wrapping a test shared library
+"""
 
-from psem2m.component.constants import IPOPO_INSTANCE_NAME
-from psem2m.component.decorators import ComponentFactory, Property, Validate, \
+from pelix.framework import BundleException
+from pelix.ipopo.constants import IPOPO_INSTANCE_NAME
+from pelix.ipopo.decorators import ComponentFactory, Property, Validate, \
     Invalidate, Provides, Requires
+import pelix.ipopo.constants as constants
+
 import ctypes
 import logging
 import threading
 import time
-from psem2m.component import constants
-from psem2m.services.pelix import BundleException
 
 # ------------------------------------------------------------------------------
 

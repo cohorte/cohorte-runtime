@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #-- Content-Encoding: UTF-8 --
 """
 Core iPOPO implementation
@@ -27,14 +27,14 @@ Core iPOPO implementation
     along with iPOPO. If not, see <http://www.gnu.org/licenses/>.
 """
 
-from psem2m.services.pelix import BundleContext, ServiceEvent, BundleEvent, \
+from pelix.framework import BundleContext, ServiceEvent, BundleEvent, \
     Bundle, BundleException
-from psem2m.utilities import remove_all_occurrences, SynchronizedClassMethod, \
+from pelix.utilities import remove_all_occurrences, SynchronizedClassMethod, \
     add_listener, remove_listener, is_string
 
-import psem2m.component.constants as constants
-import psem2m.services.pelix as pelix
-import psem2m.ldapfilter as ldapfilter
+import pelix.ipopo.constants as constants
+import pelix.framework as pelix
+import pelix.ldapfilter as ldapfilter
 
 # ------------------------------------------------------------------------------
 

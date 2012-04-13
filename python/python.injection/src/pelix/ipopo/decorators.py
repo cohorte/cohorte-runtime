@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #-- Content-Encoding: UTF-8 --
 """
 Defines the iPOPO decorators classes to manipulate component factory classes
@@ -27,10 +27,10 @@ Defines the iPOPO decorators classes to manipulate component factory classes
     along with iPOPO. If not, see <http://www.gnu.org/licenses/>.
 """
 
-from psem2m.utilities import is_string
-from psem2m.component.ipopo import FactoryContext, Requirement
+from pelix.utilities import is_string
+from pelix.ipopo.core import FactoryContext, Requirement
 
-import psem2m.component.constants as constants
+import pelix.ipopo.constants as constants
 
 # ------------------------------------------------------------------------------
 

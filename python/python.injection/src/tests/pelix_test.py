@@ -1,18 +1,18 @@
-#!/usr/bin/python3
-#-- Content-Encoding: utf-8 --
+#!/usr/bin/env python
+#-- Content-Encoding: UTF-8 --
 """
 Created on 1 févr. 2012
 
-@author: Thomas Calmant
+:author: Thomas Calmant
 """
 
-from psem2m.services.pelix import FrameworkFactory, Bundle, BundleException, \
+from pelix.framework import FrameworkFactory, Bundle, BundleException, \
     BundleContext, BundleEvent, ServiceEvent, ServiceReference
 
 from tests import log_on, log_off
 from tests.interfaces import IEchoService
 
-import psem2m.services.pelix as pelix
+import pelix.framework as pelix
 import os
 import logging
 import unittest

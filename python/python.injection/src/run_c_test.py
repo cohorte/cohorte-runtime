@@ -1,8 +1,11 @@
-#!/usr/bin/python3
+#!/usr/bin/env python
 #-- Content-Encoding: UTF-8 --
+"""
+Starts a framework to run the c_test bundle 
+"""
 
-from psem2m.services import pelix
-from psem2m.services.pelix import Framework
+from pelix.framework import Framework, FrameworkFactory
+
 import logging
 import time
 import threading
@@ -15,12 +18,12 @@ logging.basicConfig(level=logging.DEBUG)
 # ------------------------------------------------------------------------------
 
 logging.info("--- Start Pelix ---")
-framework = pelix.FrameworkFactory.get_framework({'debug': True})
+framework = FrameworkFactory.get_framework({'debug': True})
 framework.start()
 assert isinstance(framework, Framework)
 
 logging.info("-- Install iPOPO --")
-bid = framework.install_bundle("psem2m.component.ipopo")
+bid = framework.install_bundle("pelix.ipopo.core")
 bundle = framework.get_bundle_by_id(bid)
 bundle.start()
 
