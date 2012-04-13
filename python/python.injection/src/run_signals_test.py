@@ -11,7 +11,7 @@ import code
 import logging
 import os.path
 import sys
-from psem2m.component import constants
+from pelix.ipopo import constants
 
 # ------------------------------------------------------------------------------
 

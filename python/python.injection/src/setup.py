@@ -1,16 +1,17 @@
 #!/usr/bin/env python
+#-- Content-Encoding: UTF-8 --
 
 from distutils.core import setup
 
 setup(name='iPOPO',
-      version='0.2',
+      version='0.3',
       license='GPLv3',
       description='A component model framework',
       author='Thomas Calmant',
       author_email='thomas.calmant@gmail.com',
       url='http://ipopo.coderxpress.net/',
-      download_url='http://ipopo.coderxpress.net/ipopo-0.2.zip',
-      packages=['psem2m', 'psem2m.services', 'psem2m.component'],
+      download_url='http://ipopo.coderxpress.net/ipopo-0.3.zip',
+      packages=['pelix', 'pelix.ipopo'],
       classifiers=[
             'Development Status :: 3 - Alpha',
             'Environment :: Console',
