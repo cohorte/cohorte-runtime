@@ -15,19 +15,19 @@ iPOPO is a simple bundle that has to be installed in a Pelix framework instance.
 .. code-block:: python
 
    >>> # Import the Pelix module
-   >>> import psem2m.services.pelix as pelix
+   >>> import pelix.framework as pelix
    >>> # Start the framework
    >>> framework = pelix.FrameworkFactory.get_framework()   
    >>> # Get the bundle context
    >>> context = framework.get_bundle_context()
    
    >>> # Install and start the bundle
-   >>> bundle_id = context.install_bundle("psem2m.component.ipopo")
+   >>> bundle_id = context.install_bundle("pelix.ipopo.core")
    >>> bundle = context.get_bundle(bundle_id)
    >>> bundle.start()
    
    >>> # Get the iPOPO service
-   >>> from psem2m.component.constants import IPOPO_SERVICE_SPECIFICATION
+   >>> from pelix.ipopo.constants import IPOPO_SERVICE_SPECIFICATION
    >>> ipopo_ref = context.get_service_reference(IPOPO_SERVICE_SPECIFICATION)
    >>> ipopo = context.get_service(ipopo_ref)
 
@@ -42,8 +42,8 @@ Here is a sample factory class:
 
 .. code-block:: python
 
-     from psem2m.component.decorators import *
-     import psem2m.component.constants as constants
+     from pelix.ipopo.decorators import *
+     import pelix.ipopo.constants as constants
 
      # The component manipulator
      @ComponentFactory(name="MyIncrementerFactory")

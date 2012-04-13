@@ -37,7 +37,7 @@ same framework instance.
 .. code-block:: python
    
    >>> # Import the Pelix module
-   >>> import psem2m.services.pelix as pelix
+   >>> import pelix.framework as pelix
    >>> # Start the framework with the given properties
    >>> framework = pelix.FrameworkFactory.get_framework({'debug': True})
    >>> # Stop the framework
@@ -112,7 +112,7 @@ Python path, then it can be loaded in Pelix with the following snippet :
 .. code-block:: python
 
    >>> # Import the Pelix module
-   >>> import psem2m.services.pelix as pelix
+   >>> import pelix.framework as pelix
    >>> # Start the framework with the given properties
    >>> framework = pelix.FrameworkFactory.get_framework({'debug': True})
    
@@ -245,7 +245,7 @@ using the ``unget_service()`` method of its bundle context.
 .. code-block:: python
 
    >>> # Import the Pelix module
-   >>> import psem2m.services.pelix as pelix
+   >>> import pelix.framework as pelix
    >>> # Start the framework
    >>> framework = pelix.FrameworkFactory.get_framework()
    >>> context = framework.get_bundle_context()
@@ -294,5 +294,5 @@ using the ``unget_service()`` method of its bundle context.
    >>> # references can't be accessed after this point
    >>> framework.stop()
    >>> svc = context.get_service(refs[1])
-   psem2m.services.pelix.BundleException: Service not found
+   pelix.framework.BundleException: Service not found
    (reference: ServiceReference(1, 1, ['my.incrementer']))

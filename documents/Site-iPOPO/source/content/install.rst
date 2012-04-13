@@ -27,7 +27,8 @@ Set up iPOPO
 
 The installation process is based on Python setup tools.
 
-#. Download iPOPO v0.2 `here <http://ipopo.coderxpress.net/dl/ipopo-0.2.zip>`_
+#. Download the latest version of iPOPO
+   `here <http://ipopo.coderxpress.net/dl/ipopo-latest.zip>`_
 #. Extract the content and go into *ipopo-dist* directory
 #. Run the *setup.py* file :
 
@@ -38,7 +39,7 @@ The installation process is based on Python setup tools.
    .. code-block:: python
 
       $ python
-      >>> import psem2m.ipopo
+      >>> import pelix
       >>>
 
 #. Start playing with iPOPO with the :ref:`samples`.
@@ -49,58 +50,31 @@ Unit tests
 **********
 
 Unit tests are in a different distribution file :
-`unit tests <http://ipopo.coderxpress.net/dl/ipopo-0.2-tests.zip>`_.
+`unit tests <http://ipopo.coderxpress.net/dl/ipopo-latest-tests.zip>`_.
 
-To apply the tests, just run the following commands. Printed errors and warnings
-are results of the validation of exceptions.
+To apply the tests, just run the following modules :
 
+* tests.utilities_test : Tests the utility module, namely the synchonization
+  decorators.
+* tests.ldapfilter_test : Tests the LDAP filter module
+* tests.pelix_test : Tests the Pelix framework, bundles, services and events
+* tests.ipopo_test : Tests the iPOPO component manager and decorators
+
+For example :
 
 .. code-block:: bash
    
    $ export PYTHONPATH=.
-   $ python tests/ldapfilter_test.py
+   $ python -m tests.ldapfilter_test
    ..............
    ----------------------------------------------------------------------
    Ran 14 tests in 0.002s
 
    OK
-   
-   $ python tests/pelix_test.py
-   ...ERROR:pelix.main:Error calling the activator
-   Traceback (most recent call last):
-     File "/psem2m/services/pelix.py", line 234, in start
-       starter(self.__context)
-     File "/tests/simple_bundle.py", line 35, in start
-       raise Exception("Some exception")
-   Exception: Some exception
-   ERROR:pelix.main:Error calling the activator
-   Traceback (most recent call last):
-     File "/psem2m/services/pelix.py", line 266, in stop
-       stopper(self.__context)
-     File "/tests/simple_bundle.py", line 49, in stop
-       raise Exception("Some exception")
-   Exception: Some exception
-   .............ERROR:pelix.main:Invalid service listener filter
-   Traceback (most recent call last):
-     File "/psem2m/services/pelix.py", line 484, in add_service_listener
-       ldapfilter.get_ldap_filter(ldap_filter)
-     File "/psem2m/ldapfilter.py", line 771, in get_ldap_filter
-       return _parse_LDAP(ldap_filter)
-     File "/psem2m/ldapfilter.py", line 745, in _parse_LDAP
-       raise ValueError("Invalid filter string")
-   ValueError: Invalid filter string
-   =================================
-   ----------------------------------------------------------------------
-   Ran 23 tests in 0.009s
-   
-   OK
 
    $ python tests/ipopo_test.py
-   ....DEBUG:ipopo.core:componentB: Missing requirement for field service
-   ..DEBUG:ipopo.core:componentB: Missing requirement for field service
-   .DEBUG:ipopo.core:componentB: Missing requirement for field service
-   .
+   ...........
    ----------------------------------------------------------------------
-   Ran 8 tests in 0.015s
+   Ran 11 tests in 0.027s
 
    OK

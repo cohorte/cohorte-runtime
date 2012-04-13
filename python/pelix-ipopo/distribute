@@ -22,13 +22,18 @@ HTML_ZIP="ipopo-$VERSION-doc-html.zip"
 PDF_FILE="ipopo-$VERSION-doc.pdf"
 PDF_ZIP="ipopo-$VERSION-doc-pdf.zip"
 
+LATEST_DIST_LINK="ipopo-latest.zip"
+LATEST_TEST_LINK="ipopo-latest-tests.zip"
+LATEST_HTML_LINK="ipopo-latest-doc-html.zip"
+LATEST_PDF_LINK="ipopo-latest-doc-pdf.zip"
+
 # Generate the API
 echo "API..."
 echo "... HTML ..."
-epydoc --html psem2m -o "$API_HTML" || exit 1
+epydoc --html pelix -o "$API_HTML" || exit 1
 
 echo "... PDF ..."
-epydoc --pdf psem2m -o "$API_PDF" || exit 1
+epydoc --pdf pelix -o "$API_PDF" || exit 1
 
 # Compress API files
 echo "API Compression..."
@@ -97,6 +102,13 @@ pushd $REMOTE_DIR
 echo "Replacing API..."
 rm -fr "$API_HTML"
 unzip "dl/$HTML_ZIP"
+
+echo "Making latest links..."
+cd dl
+ln -sf $DIST_ZIP $LATEST_DIST_LINK
+ln -sf $TEST_ZIP $LATEST_TEST_LINK
+ln -sf $HTML_ZIP $LATEST_HTML_LINK
+ln -sf $PDF_ZIP $LATEST_PDF_LINK
 popd
 END
 

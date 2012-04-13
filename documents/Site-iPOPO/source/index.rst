@@ -19,18 +19,23 @@ API Documentation
 The API documentation is available in different formats :
 
 * HTML : `online <http://ipopo.coderxpress.net/api/>`_,
-  `archive (zip) <http://ipopo.coderxpress.net/dl/ipopo-0.2-doc-html.zip>`_
-* `PDF (zip) <http://ipopo.coderxpress.net/dl/ipopo-0.2-doc-pdf.zip>`_
+  `archive (zip) <http://ipopo.coderxpress.net/dl/ipopo-latest-doc-html.zip>`_
+* `PDF (zip) <http://ipopo.coderxpress.net/dl/ipopo-latest-doc-pdf.zip>`_
+
+Older versions of the API can be downloaded here :
+`<http://ipopo.coderxpress.net/dl/>`_.
 
 
 Download
 ********
 
-The latest version of iPOPO can be downloaded here :
-`<http://ipopo.coderxpress.net/dl/ipopo-0.2.zip>`_.
+The latest version of iPOPO (|release|) can be downloaded here :
+`<http://ipopo.coderxpress.net/dl/ipopo-latest.zip>`_.
 
-We are planning to use a public forge, like SourceForge, Google Code or Github,
-to publish the iPOPO repository.
+Older versions are available here :
+`<http://ipopo.coderxpress.net/dl/>`_.
+
+We are planning to use a public forge, Github, to publish the iPOPO repository.
 
 
 Discussions
@@ -48,7 +53,7 @@ the iPOPO Google groups :
 License
 *******
 
-The first public version of iPOPO, 0.2, is published under the
+Since its first public version of iPOPO, 0.2, the project is published under the
 `GPLv3 <http://www.gnu.org/licenses/gpl-3.0.txt>`_ license.
 Future versions *may* be published under the
 `Apache license <http://www.apache.org/licenses/LICENSE-2.0.html>`_.
