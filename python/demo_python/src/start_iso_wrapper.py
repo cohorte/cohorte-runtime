@@ -1,5 +1,5 @@
 #!/usr/bin/python
-#-- Content-encoding: utf-8 --
+#-- Content-encoding: UTF-8 --
 """
 @author: Thomas Calmant
 """
@@ -37,20 +37,19 @@ for other in ("../../psem2m.base/src", "../../python.injection/src", '.'):
 
 logging.info("--- Import Pelix ---")
 
-import psem2m.services.pelix as pelix
-from psem2m.services.pelix import Framework, BundleContext
-from psem2m.component import constants
+from pelix.framework import FrameworkFactory, Framework, BundleContext
+import pelix.ipopo.constants as constants
 
 # ------------------------------------------------------------------------------
 
 logging.info("--- Start Pelix ---")
-framework = pelix.FrameworkFactory.get_framework({'debug': True})
+framework = FrameworkFactory.get_framework({'debug': True})
 assert isinstance(framework, Framework)
 context = framework.get_bundle_context()
 assert isinstance(context, BundleContext)
 
 logging.info("-- Install iPOPO --")
-bid = framework.install_bundle("psem2m.component.ipopo")
+bid = framework.install_bundle("pelix.ipopo.core")
 b_ipopo = context.get_bundle(bid)
 b_ipopo.start()
 

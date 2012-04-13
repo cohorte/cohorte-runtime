@@ -1,5 +1,5 @@
 #!/usr/bin/python
-#-- Content-Encoding: utf-8 --
+#-- Content-Encoding: UTF-8 --
 """
 iPOPO Benchmark : normal Python implementation
 
@@ -10,9 +10,10 @@ iPOPO Benchmark : normal Python implementation
 import normal
 
 # Import pelix and iPOPO
-from psem2m.component.decorators import ComponentFactory, Requires, Provides
-import psem2m.component.constants as constants
-import psem2m.services.pelix as pelix
+from pelix.framework import FrameworkFactory
+
+from pelix.ipopo.decorators import ComponentFactory, Requires, Provides
+import pelix.ipopo.constants as constants
 
 import logging
 logger = logging.getLogger("bench.ipopo")
@@ -64,10 +65,10 @@ def prepare_module():
     """
     global _ipopo, _framework
     # Start Pelix and get the reference to iPOPO
-    _framework = pelix.FrameworkFactory.get_framework()
+    _framework = FrameworkFactory.get_framework()
     context = _framework.get_bundle_context()
 
-    bid = _framework.install_bundle("psem2m.component.ipopo")
+    bid = _framework.install_bundle("pelix.ipopo.core")
     b_ipopo = context.get_bundle(bid)
     b_ipopo.start()
 
@@ -95,5 +96,5 @@ def clear_module():
     """
     if _framework is not None:
         _framework.stop()
-        pelix.FrameworkFactory.delete_framework(_framework)
+        FrameworkFactory.delete_framework(_framework)
 

@@ -1,12 +1,12 @@
 #!/usr/bin/python
-#-- Content-encoding: utf-8 --
+#-- Content-encoding: UTF-8 --
 """
 @author: Thomas Calmant
 """
 
-from psem2m.component.decorators import ComponentFactory, Provides, Requires, \
+from pelix.ipopo.decorators import ComponentFactory, Provides, Requires, \
     Property, Validate, Invalidate, Bind, Unbind
-from psem2m.utilities import SynchronizedClassMethod
+from pelix.utilities import SynchronizedClassMethod
 
 import ctypes
 import _ctypes
