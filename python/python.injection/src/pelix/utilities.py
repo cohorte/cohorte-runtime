@@ -43,7 +43,7 @@ class Synchronized:
     """
     A synchronizer for global methods
     """
-    def __init__(self, lock):
+    def __init__(self, lock=None):
         """
         Sets up the decorator. If 'lock' is None, an RLock() is created for
         this decorator.
@@ -119,6 +119,10 @@ def SynchronizedClassMethod(lock_attr_name):
     return wrapped
 
 
+# Compute lock types only once (in is_lock)
+_LOCK_TYPES = None
+""" Lock types tuple, computed on first call to is_lock() """
+
 def is_lock(lock):
     """
     Tests if the given lock is an instance of a lock class
@@ -127,13 +131,18 @@ def is_lock(lock):
         # Don't do useless tests
         return False
 
-    lock_types = (threading.Lock, threading.RLock, threading.Semaphore,
-                  threading.Condition)
+    global _LOCK_TYPES
+    if _LOCK_TYPES is None:
+        # Lock creators are methods, so we have to create a lock to have its
+        # type
+        _LOCK_TYPES = tuple(type(lock) for lock in (threading.Lock(),
+                                                    threading.RLock(),
+                                                    threading.Semaphore(),
+                                                    threading.Condition()))
 
-    for lock_type in lock_types:
-        if isinstance(lock, lock_type):
-            # Known type
-            return True
+    if isinstance(lock, _LOCK_TYPES):
+        # Known type
+        return True
 
     lock_api = ('acquire', 'release', '__enter__', '__exit__')
 
@@ -217,22 +226,3 @@ def is_string(string):
     else:
         # Python 2 also have unicode
         return isinstance(string, str) or isinstance(string, unicode)
-
-
-def get_unicode_creator():
-    """
-    Returns the unicode string constructor, according to the running Python
-    version.
-    
-    Utility for Python 2.x & 3.x compatibility from :
-    http://hacks-galore.org/aleix/blog/archives/2010/10/14/bitpacket-python-2-x-and-3-0-compatibility
-    
-    :return: The unicode string constructor
-    """
-    if PYTHON_3:
-        # Python 3.x, "str" returns a unicode string
-        return str
-
-    else:
-        # Python 2.x : strings must be converted with the unicode method
-        return unicode
