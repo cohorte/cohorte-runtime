@@ -45,20 +45,21 @@ ESCAPED_CHARACTERS = "()&|=<>~*+#,;'\""
 
 # ------------------------------------------------------------------------------
 
+AND = 0
+""" 'And' LDAP operation """
+
+OR = 1
+""" 'Or' LDAP operation """
+
+NOT = 2
+""" 'Not' LDAP operation """
+
+# ------------------------------------------------------------------------------
+
 class LDAPFilter(object):
     """
     Represents an LDAP filter
     """
-
-    AND = 0
-    """ 'And' LDAP operation """
-
-    OR = 1
-    """ 'Or' LDAP operation """
-
-    NOT = 2
-    """ 'Not' LDAP operation """
-
     def __init__(self, operator):
         """
         Initializer
@@ -96,7 +97,7 @@ class LDAPFilter(object):
             raise TypeError("Invalid filter type : %s" \
                   % (type(ldap_filter).__name__))
 
-        if len(self.subfilters) >= 1 and self.operator == LDAPFilter.NOT:
+        if len(self.subfilters) >= 1 and self.operator == NOT:
             raise ValueError("Not operator only handles one child")
 
         self.subfilters.append(ldap_filter)
@@ -113,18 +114,18 @@ class LDAPFilter(object):
 
         for criteria in self.subfilters:
             if not criteria.matches(properties):
-                if self.operator == LDAPFilter.AND:
+                if self.operator == AND:
                     # A criteria doesn't match in an "AND" test : short cut
                     result = False
                     break
 
             else:
                 result = True
-                if self.operator == LDAPFilter.OR:
+                if self.operator == OR:
                     # At least one match in a "OR" test : short cut
                     break
 
-        if self.operator == LDAPFilter.NOT:
+        if self.operator == NOT:
             # Revert result
             return not result
 
@@ -141,7 +142,7 @@ class LDAPFilter(object):
 
         elif size == 1:
 
-            if self.operator == LDAPFilter.NOT:
+            if self.operator == NOT:
                 # NOT is the only operator to accept 1 operand
                 return self
 
@@ -239,13 +240,13 @@ def operator2str(operator):
     """
     Converts an operator value to a string
     """
-    if operator == LDAPFilter.AND:
+    if operator == AND:
         return '&'
 
-    elif operator == LDAPFilter.OR:
+    elif operator == OR:
         return '|'
 
-    elif operator == LDAPFilter.NOT:
+    elif operator == NOT:
         return '!'
 
     return '<unknown>'
@@ -561,13 +562,13 @@ def _compute_operation(string, idx):
     operator = string[idx]
 
     if operator == '&':
-        return LDAPFilter.AND
+        return AND
 
     elif operator == '|':
-        return LDAPFilter.OR
+        return OR
 
     elif operator == '!':
-        return LDAPFilter.NOT
+        return NOT
 
     return None
 
@@ -718,7 +719,7 @@ def _parse_LDAP(ldap_filter):
                     else:
                         # No parent : filter contains only one criteria
                         # Make a parent to stay homogeneous
-                        root = LDAPFilter(LDAPFilter.AND)
+                        root = LDAPFilter(AND)
                         root.append(criteria)
 
                 elif len(stack) != 0:
@@ -783,7 +784,7 @@ def get_ldap_filter(ldap_filter):
     raise TypeError("Unhandled filter type %s" % type(ldap_filter).__name__)
 
 
-def combine_filters(filters, operator=LDAPFilter.AND):
+def combine_filters(filters, operator=AND):
     """
     Combines two LDAP filters, which can be strings or LDAPFilter objects
     

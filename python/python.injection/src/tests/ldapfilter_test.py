@@ -7,7 +7,7 @@ Created on 7 févr. 2012
 """
 
 from pelix.ldapfilter import get_ldap_filter
-import pelix.ldapfilter as ldapfilter
+import pelix.ldapfilter
 
 import unittest
 
@@ -58,7 +58,7 @@ class LDAPUtilitiesTest(unittest.TestCase):
             ldap_filter = get_ldap_filter("(a%s1)" % comparator)
 
             # Get the string version of the parsed comparator
-            str_comparator = ldapfilter.comparator2str(\
+            str_comparator = pelix.ldapfilter.comparator2str(\
                                                         ldap_filter.comparator)
 
             self.assertEquals(str_comparator, comparator,
@@ -67,7 +67,7 @@ class LDAPUtilitiesTest(unittest.TestCase):
 
         # Invalid comparators
         for comparator in (None, str, str(), int()):
-            str_comparator = ldapfilter.comparator2str(comparator)
+            str_comparator = pelix.ldapfilter.comparator2str(comparator)
             self.assertEquals(str_comparator, "??",
                           "Bad string for comparator '%s' : '%s'"
                           % (comparator, str_comparator))
@@ -77,18 +77,18 @@ class LDAPUtilitiesTest(unittest.TestCase):
         """
         Tests operator2str()
         """
-        operators = {ldapfilter.LDAPFilter.AND: "&",
-                     ldapfilter.LDAPFilter.OR: "|",
-                     ldapfilter.LDAPFilter.NOT: "!"}
+        operators = {pelix.ldapfilter.AND: "&",
+                     pelix.ldapfilter.OR: "|",
+                     pelix.ldapfilter.NOT: "!"}
 
         for operator, str_operator in operators.items():
-            conv_operator = ldapfilter.operator2str(operator)
+            conv_operator = pelix.ldapfilter.operator2str(operator)
             self.assertEquals(str_operator, conv_operator,
                               "Invalid operator conversion '%s' : '%s'"
                               % (str_operator, conv_operator))
 
         for operator in (None, str, int, str(), "AND", "OR", "NOT", 42):
-            conv_operator = ldapfilter.operator2str(operator)
+            conv_operator = pelix.ldapfilter.operator2str(operator)
             self.assertEquals("<unknown>", conv_operator,
                               "Invalid operator conversion '%s' : '%s'"
                               % (str_operator, conv_operator))
@@ -127,13 +127,13 @@ class LDAPUtilitiesTest(unittest.TestCase):
 
         for normal, escaped in tested_values.items():
             # Escape
-            ldap_escape = ldapfilter.escape_LDAP(normal)
+            ldap_escape = pelix.ldapfilter.escape_LDAP(normal)
             self.assertEquals(escaped, ldap_escape,
                               "Invalid escape '%s' should be '%s'"
                               % (ldap_escape, escaped))
 
             # Un-escape
-            ldap_unescape = ldapfilter.unescape_LDAP(ldap_escape)
+            ldap_unescape = pelix.ldapfilter.unescape_LDAP(ldap_escape)
             self.assertEquals(escaped, ldap_escape,
                               "Invalid un-escape '%s' should be '%s'"
                               % (ldap_unescape, normal))
