@@ -6,7 +6,7 @@ Utility methods and decorators
 :author: Thomas Calmant
 :copyright: Copyright 2012, isandlaTech
 :license: GPLv3
-:version: 0.2
+:version: 0.3
 :status: Alpha
 
     This file is part of iPOPO.

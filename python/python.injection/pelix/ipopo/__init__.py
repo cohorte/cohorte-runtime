@@ -8,7 +8,7 @@ iPOPO is a component-based application framework
 :author: Thomas Calmant
 :copyright: Copyright 2012, isandlaTech
 :license: GPLv3
-:version: 0.2
+:version: 0.3
 :status: Alpha
 
 ..
