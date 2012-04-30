@@ -44,7 +44,7 @@ master_doc = u'index'
 
 
 # General information about the project.
-project = u'PSEM2M-ManuelUtilisateur'
+project = u'PSEM2M - Manuel Utilisateur'
 
 copyright = u'2011, Thomas Calmant'
 
@@ -190,7 +190,7 @@ latex_font_size = u'10pt'
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
-latex_documents = [('index', 'PSEM2M-ManuelUtilisateur.tex', u'PSEM2M-ManuelUtilisateur Documentation', u'Thomas Calmant', 'manual')]
+latex_documents = [('index', 'PSEM2M-ManuelUtilisateur.tex', u'PSEM2M - Manuel Utilisateur', u'Thomas Calmant', 'manual')]
 
 
 # A dictionary that contains LaTeX snippets that override those Sphinx usually 
@@ -227,7 +227,7 @@ latex_use_parts = False
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [('index', 'PSEM2M-ManuelUtilisateur', u'PSEM2M-ManuelUtilisateur Documentation', [u'Thomas Calmant'], 1)]
+man_pages = [('index', 'PSEM2M-ManuelUtilisateur', u'PSEM2M - Manuel Utilisateur', [u'Thomas Calmant'], 1)]
 
 
 # -- Additional options --------------------------------------------------------
