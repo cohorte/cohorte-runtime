@@ -73,7 +73,7 @@ suivante :
 Exemple
 =======
 
-.. code-block:: 
+.. code-block:: bash
    :linenos:
    
    # ...
@@ -119,7 +119,7 @@ nom du fichier framework à utiliser.
 Exemple
 =======
 
-.. code-block::
+.. code-block:: bash
    :linenos:
    
    org.apache.felix.main-3.2.2.jar
