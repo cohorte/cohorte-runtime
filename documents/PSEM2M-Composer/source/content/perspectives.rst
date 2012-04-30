@@ -10,6 +10,23 @@ Le modèle de PSEM2M Composer a été conçu pour une architecture de démonstra
 particulière. Certains points doivent être revus et corrigés.
 
 
+Amélioration de la dynamicité
+=============================
+
+PSEM2M Composer devrait être capable de gérer l'arrêt et la mise à jour de tout
+ou partie d'une composition instanciée.
+
+Il devrait également pouvoir gérer l'arrivée de nouveau composant possédant
+les propriétés nécessaires à son inscription dans une instance de composition
+en cours d'exécution.
+De cette manière, il serait possible de gérer une composition où les composants
+sont instanciés par un élément extérieur à PSEM2M Composer de la même manière
+que ceux gérer selon la configuration interne de PSEM2M.
+Par exemple, ceci permettrait la gestion de composants instanciés au démarrage
+d'un périphérique accessible par le réseau, ne possédant qu'une couche de
+compatibilité avec PSEM2M Composer.
+
+
 Renommages de certains termes
 =============================
 
@@ -55,7 +72,8 @@ Les modifications à apporter seront alors les suivantes :
 Implémentations d'agents
 ************************
 
-Actuellement, seul un agent reposant sur iPOJO a été implémenté.
+Actuellement, seul les agents reposant sur iPOJO (en Java) et iPOPO (en Python)
+ont été implémentés.
 
 Plusieurs nouveaux agents devraient être développés pour les standards ou
 langages suivants.
@@ -66,10 +84,6 @@ Gestion de nouveaux langages
 
 * Javascript : un agent basé sur `H-Ubu <http://akquinet.github.com/hubu/>`_
   pourrait intéresser certaines entreprises.
-
-* Python : dans le cadre du développement d'un isolat hybride ou intégralement
-  développé en Python, il faudra être capable de décrire un composant en
-  Python et de le gérer de manière transparente avec le compositeur.
 
 
 Gestion de standards / technologies OSGi
@@ -89,4 +103,3 @@ Gestion de standards / technologies OSGi
 .. important:: Il sera certainement nécessaire de modifier les informations
    contenues dans le modèle de composition pour que de nouveaux agents puissent
    être développés.
-   

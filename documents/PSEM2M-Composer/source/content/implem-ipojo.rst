@@ -1,7 +1,7 @@
 .. Implémentation iPOJO
 
-Agent basé sur iPOJO
-####################
+Agent basé sur iPOJO (Java)
+###########################
 
 Instanciation de composants avec iPOJO
 **************************************

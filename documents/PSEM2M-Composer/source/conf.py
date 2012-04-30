@@ -54,7 +54,7 @@ copyright = u'2011, Thomas Calmant'
 # built documents.
 #
 # The short X.Y version.
-version = u'2.1'
+version = u'2.2'
 
 # The full version, including alpha/beta/rc tags.
 release = version

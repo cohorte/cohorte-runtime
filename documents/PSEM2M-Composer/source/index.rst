@@ -10,6 +10,7 @@ PSEM2M Composer
    content/intro
    content/composition
    content/implem-ipojo
+   content/implem-ipopo
    content/perspectives
    content/sca
 
@@ -22,6 +23,8 @@ Versions
 +---------+------------+----------------+----------------------------------+
 | Version | Date       | Auteur         | Commentaire                      |
 +=========+============+================+==================================+
+| 2.2     | 30/04/2012 | Thomas Calmant | Ajout de iPOPO                   |
++---------+------------+----------------+----------------------------------+
 | 2.1     | 23/12/2011 | Thomas Calmant | Ajout du comparatif SCA          |
 +---------+------------+----------------+----------------------------------+
 | 2.0     | 16/12/2011 | Thomas Calmant | Définition plus complète,        |
