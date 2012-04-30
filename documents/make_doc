@@ -1,45 +1,90 @@
 #!/bin/bash
 
-OUTPUT=`readlink -f $1`
+WORKDIR=$(pwd)
+OUTPUT=$(readlink -f $1)
 
-SPHINX_TARGET=latexpdf
-SPHINX_OUTPUT=build/latex
+SPHINX_TARGET="latexpdf html"
+SPHINX_HTML_OUTPUT="build/html"
+SPHINX_LATEX_OUTPUT="build/latex"
 
-PROJECTS=`find . -maxdepth 1 -type d -name "PSEM2M-*"`
+declare -a PROJECTS_NAMES
+OUTPUT_INDEX="$OUTPUT/index.html"
 
-mkdir --parents $OUTPUT
+# Make / Clean the output directory
+mkdir --parents "$OUTPUT"
+find "$OUTPUT" -mindepth 1 | xargs rm -fr
+
+# Find PSEM2M projects
+PROJECTS=$(find . -maxdepth 1 -type d -name "PSEM2M-*")
 
 for doc_dir in $PROJECTS
 do
-    file_name=`basename $doc_dir`
+    project_name=$(basename $doc_dir)
 
     # Do nothing if no makefile is present
-    if [ ! -f $doc_dir/Makefile ]
+    if [ ! -f "$doc_dir/Makefile" ]
     then
-        echo "$file_name doesn't contain a Makefile"
+        echo "$project_name doesn't contain a Makefile"
         continue
     fi
 
-    cd $doc_dir
-    echo "Producing $file_name"
+    pushd "$doc_dir" >/dev/null
+    echo "Producing $project_name"
 
-    # Make the PDF
-    make $SPHINX_TARGET > ../log.txt 2>&1
+    # Run sphinx (makes a pdf and the html output)
+    make $SPHINX_TARGET > "$WORKDIR/log.txt" 2>&1
     if [ $? -ne 0 ]
     then
-        cat ../log.txt
+        cat "$WORKDIR/log.txt"
         echo "Sphinx error. Abandon"
         exit 1
     fi
 
-    # Move it
-    mv $SPHINX_OUTPUT/$file_name.pdf $OUTPUT/$file_name.pdf
+    # Move the PDF output
+    mv "$SPHINX_LATEX_OUTPUT/$project_name.pdf" "$OUTPUT/$project_name.pdf"
+
+    # Move the HTML output
+    mv "$SPHINX_HTML_OUTPUT" "$OUTPUT/$project_name"
+
+    # Store the project name
+    PROJECTS_NAMES=("${PROJECTS_NAMES[@]}" "$project_name")
 
     # Clean the directory
-    rm -fr $SPHINX_OUTPUT
-    rm ../log.txt
+    rm -fr "$SPHINX_OUTPUT"
+    rm "$WORKDIR/log.txt"
 
-    cd ..
+    popd >/dev/null
 done
+
+echo "Preparing output index HTML file..."
+cat >"$OUTPUT_INDEX" <<EOF
+<html>
+<head>
+<title>Documentation PSEM2M</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="stylesheet" href="./style.css" type="text/css" media="screen" />
+</head>
+<body>
+<h1>Documentation PSEM2M</h1>
+<ul>
+EOF
+
+for project_name in ${PROJECTS_NAMES[@]}
+do
+    project_escaped=$(echo "$project_name" | sed 's/ /%20/g')
+    html_link="<a href=\"./$project_escaped/index.html\">$project_name</a>"
+    pdf_link="<a href=\"./$project_name.pdf\">pdf</a>"
+    echo "    <li>$html_link ($pdf_link)</li>" >>"$OUTPUT_INDEX"
+done
+
+cat >>"$OUTPUT_INDEX" <<EOF
+</ul>
+</body>
+</html>
+EOF
+
+echo "Copying HTML style files..."
+cp "$WORKDIR/style.css" "$OUTPUT"
+cp "$WORKDIR/background.jpg" "$OUTPUT"
 
 echo "Done."
