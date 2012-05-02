@@ -83,7 +83,7 @@ correspondre aux dossiers à utiliser :
 
 .. note:: Dans l'état actuel de développement de la plateforme, le script
    *init.d* est le script Python permettant le démarrage direct de la
-   plateforme, *$PSEM2M_HOME/bin/starter.py*. 
+   plateforme, *$PSEM2M_HOME/bin/controller.py*. 
 
 
 Sous Windows

@@ -22,6 +22,8 @@ catégories :
    * nécessite l'installation de PSEM2M Composer Core et Agent
 
 
+.. _emplacement-config:
+
 Emplacements de configuration
 *****************************
 
@@ -145,21 +147,134 @@ Format
 
 C'est un fichier au format JSON en UTF-8, contenant les clés suivantes :
 
-+----------+--------------------------------------------------------+
-| Clé      | Description                                            |
-+==========+========================================================+
-| appId    | Indique le nom de l'application (chaîne de caractères) |
-+----------+--------------------------------------------------------+
-| isolates | Tableau de configuration des isolats                   |
-+----------+--------------------------------------------------------+
++----------+---------------------------------------------------------------+
+| Clé      | Description                                                   |
++==========+===============================================================+
+| appId    | Indique le nom de l'application (chaîne de caractères)        |
++----------+---------------------------------------------------------------+
+| isolates | Tableau de configuration des isolats (décrite dans la section |
+|          | :ref:`config-isolats`)                                        |
++----------+---------------------------------------------------------------+
 
-La configuration des isolats est décrite dans le paragraphe suivant.
+Le fichier *psem2m-application.js* supporte le champ ``from`` dans les champs
+``isolates`` et ``bundles``, décrits ci-dessous.
+Ce champ permet d'importer directement le contenu d'un autre fichier JSON à cet
+emplacement, afin de réutiliser des portions de configuration communes.
+Il prend pour valeur le nom du fichier à importer, sous forme de chaîne de
+caractères JSON; celui-ci sera résolu comme décrit en section
+:ref:`emplacement-config`.
+
+
+.. _config-isolats:
 
 Configuration des isolats
 -------------------------
 
-Exemple
-=======
+Chaque isolat est décrit par un identifiant, unique pour une application, un
+type, un port de communication et une liste de modules.
+
+Les champs à utiliser pour configurer un isolat sont les suivants :
+
+id (**obligatoire**)
+
+   L'identifiant de l'isolat, tel qu'il sera utilisé dans la plateforme.
+   Cet identifiant sera utilisé pour définir les noms des fichiers journaux et
+   du répertoire de travail de l'isolat, il est donc recommandé qu'il ne
+   contienne pas de caractères spéciaux.
+
+   Les identifiants commençant par ``org.psem2m.internals.`` sont réservés à la
+   plateforme.
+
+   La valeur de ce champ est une chaîne de caractères JSON.
+
+kind (**obligatoire**)
+
+   Le type de l'isolat, déterminant quelle technique utiliser pour le démarrer
+   et le peupler.
+
+   La valeur de ce champ est une chaîne de caractères JSON.
+
+   Les types actuellement supportés sont les suivants :
+
+   +---------+---------------------------------------------------------------+
+   | Type    | Description                                                   |
+   +=========+===============================================================+
+   | felix   | Isolat Java/OSGi utilisant Felix                              |
+   +---------+---------------------------------------------------------------+
+   | equinox | Isolat Java/OSGi utilisant Equinox (mal supporté, voir        |
+   |         | :ref:`pb-equinox`)                                            |
+   +---------+---------------------------------------------------------------+
+   | python  | Isolat Python 2.x, le premier bundle est exécuté comme module |
+   +---------+---------------------------------------------------------------+
+   | python3 | Isolat Python 3.x, le premier bundle est exécuté comme module |
+   +---------+---------------------------------------------------------------+
+
+   Les spécificités de configuration de chaque type d'isolat sont décrites dans
+   les sections correspondantes :
+
+   * Java : :ref:`java-config`
+   * Python : :ref:`python-config`
+
+host (*optionnel*)
+
+   Le nom d'hôte indique le nom d'hôte ou l'IP à utiliser pour se connecter à
+   cet isolat.
+   Il est préférable d'utiliser un nom d'hôte plutôt qu'une adresse IP, afin
+   que chaque isolat utilise la même configuration.
+   Ce champ de configuration n'est utile que dans les applications PSEM2M
+   réparties sur plusieurs machines.
+
+   La valeur de ce champ est une chaîne de caractères JSON.
+
+httpPort (**obligatoire**)
+
+   Le port de communication principal de l'isolat. Ce port est utilisé pour la
+   transmission de signaux entre isolats d'une même application, ainsi que
+   pour les appels de services distants entre isolats.
+   Chaque isolat travaille sur un port dédié.
+
+   La valeur de ce champ est un entier.
+
+
+vmArgs (*optionnel*)
+
+   Les arguments à passer à la machine virtuelle Java ou à l'interpréteur
+   Python. Ces arguments seront donnés avant ceux correspondant au démarrage de
+   l'isolat.
+
+   La valeur de ce champ est une liste de chaînes de caractères JSON.
+
+appArgs (*optionnel*)
+
+   Les arguments à passer à l'isolat. Ces arguments seront donnés après ceux
+   correspondant au démarrage de l'isolat.
+
+   La valeur de ce champ est une liste de chaînes de caractères JSON.
+
+environment (*optionnel*)
+
+   Les variables à ajouter à l'environnement d'exécution de l'isolat.
+   Les variables d'environnement réservées à PSEM2M ne seront pas prises en
+   compte.
+
+   La valeur de ce champ est un objet JSON, ayant des chaînes de caractères
+   pour clés et valeurs.
+
+bundles (**obligatoire**, peut être une liste vide)
+
+   La liste des modules à importer dans un isolat.
+
+   La valeur de ce champ est une liste de définitions de modules, décrites dans
+   la section :ref:`config-bundles`.
+
+.. _config-bundles:
+
+Configuration des modules
+=========================
+
+
+Exemples
+========
 
 Configuration des compositions
 ******************************
