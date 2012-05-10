@@ -175,6 +175,20 @@ type, un port de communication et une liste de modules.
 
 Les champs à utiliser pour configurer un isolat sont les suivants :
 
+from (**alternatif**)
+
+   Indique un fichier de configuration où trouver un tableau JSON contenant des
+   configurations d'isolats.
+   Ce fichier peut également en inclure d'autres.
+
+   .. attention:: Les cycles dans les imports de fichiers de configuration ne
+      sont pas surveillés: ils entraineront l'arrêt de l'application.
+
+   Lorsque *from* est utilisé, aucune autre entrée n'est nécessaire.
+
+   La valeur de ce champ est une chaîne de caractère JSON contenant un nom ou
+   un chemin (relatif ou absolu) vers un fichier.
+
 id (**obligatoire**)
 
    L'identifiant de l'isolat, tel qu'il sera utilisé dans la plateforme.
@@ -215,6 +229,23 @@ kind (**obligatoire**)
    * Java : :ref:`java-config`
    * Python : :ref:`python-config`
 
+bundles (**obligatoire**, peut être une liste vide)
+
+   La liste des modules à importer dans un isolat. Ceux-ci seront installés
+   dans l'ordre indiqué dans le fichier.
+
+   La valeur de ce champ est une liste de définitions de modules, décrites dans
+   la section :ref:`config-bundles`.
+
+httpPort (**obligatoire**)
+
+   Le port de communication principal de l'isolat. Ce port est utilisé pour la
+   transmission de signaux entre isolats d'une même application, ainsi que
+   pour les appels de services distants entre isolats.
+   Chaque isolat travaille sur un port dédié.
+
+   La valeur de ce champ est un numéro de port entier.
+
 host (*optionnel*)
 
    Le nom d'hôte indique le nom d'hôte ou l'IP à utiliser pour se connecter à
@@ -225,16 +256,6 @@ host (*optionnel*)
    réparties sur plusieurs machines.
 
    La valeur de ce champ est une chaîne de caractères JSON.
-
-httpPort (**obligatoire**)
-
-   Le port de communication principal de l'isolat. Ce port est utilisé pour la
-   transmission de signaux entre isolats d'une même application, ainsi que
-   pour les appels de services distants entre isolats.
-   Chaque isolat travaille sur un port dédié.
-
-   La valeur de ce champ est un entier.
-
 
 vmArgs (*optionnel*)
 
@@ -260,21 +281,247 @@ environment (*optionnel*)
    La valeur de ce champ est un objet JSON, ayant des chaînes de caractères
    pour clés et valeurs.
 
-bundles (**obligatoire**, peut être une liste vide)
-
-   La liste des modules à importer dans un isolat.
-
-   La valeur de ce champ est une liste de définitions de modules, décrites dans
-   la section :ref:`config-bundles`.
-
 .. _config-bundles:
 
 Configuration des modules
 =========================
 
+Les modules (*bundles*) peuvent avoir diverses significations, selon le type de
+l'isolat auquel ils appartiennent.
 
-Exemples
-========
+Les champs à utiliser pour configurer un module sont les suivants :
 
-Configuration des compositions
-******************************
+from (**alternatif**)
+
+   Indique un fichier de configuration où trouver un tableau JSON contenant des
+   configurations d'isolats.
+   Ce fichier peut également en inclure d'autres.
+
+   .. attention:: Les cycles dans les imports de fichiers de configuration ne
+      sont pas surveillés: ils entraineront l'arrêt de l'application.
+
+   Lorsque *from* est utilisé, seul les entrées *overriddenProperties* et
+   *override* sont prises en compte.
+
+   La valeur de ce champ est une chaîne de caractère JSON contenant un nom ou
+   un chemin (relatif ou absolu) vers un fichier.
+
+symbolicName (**obligatoire**)
+
+   Le nom symbolique du module à installer.
+   Dans le cas des isolats OSGi (Java), il correspond au nom symbolique du
+   bundle à installer.
+   Dans le cas des isolats Pelix (Python), il correspond à un nom de module
+   accessible depuis l'interpréteur.
+
+   La valeur de ce champ est une chaîne de caractère, généralement ne contenant
+   pas de caractères d'espacement.
+
+optional (*optionnel*)
+
+   Drapeau indiquant si la présence de ce module est absolument nécessaire à
+   l'exécution de l'isolat.
+   Si le drapeau vaut *vrai* (*true*), l'isolat continuera de fonctionner si ce
+   module est absent ou s'il disparait. Le module sera ré-installé dès que
+   possible.
+
+   La valeur de ce champ est un booléen.
+
+properties (*optionnel*)
+
+   Un ensemble de propriétés associées au module.
+   Techniquement, ces propriétés sont attribuées à la plateforme hôte, les
+   bundles les retrouvant par le mécanisme standard de la plateforme ou par
+   héritage des propriétés.
+
+   La valeur de ce champ est un objet JSON, ayant des chaînes de caractères
+   pour clés et valeurs.
+
+overriddenProperties (*optionnel*)
+
+   Un ensemble de propriétés associées au module, mettant à jour celles
+   indiquées dans les modules chargés à l'aide de *from*.
+   Les propriétés ajoutées à ce niveau sont ignorées, seules les propriétés
+   définies avec le module peuvent être mise à jour.
+   Ce champ n'a aucun effet s'il est utilisé autrement qu'avec *from*.
+
+   La valeur de ce champ est un objet JSON, ayant des chaînes de caractères
+   pour clés et valeurs.
+
+
+override (*optionnel*)
+
+   Ce champ permet de remplacer la définition de tout ou partie des modules
+   importés par *from*.
+   Il permet notamment de remplacer l'intégralité des propriétés d'un
+   module défini dans le fichier importé.
+   Ce champ n'a aucun effet s'il est utilisé autrement qu'avec *from*.
+
+   Le contenu de ce champ est un tableau JSON de définitions de modules.
+
+
+Exemple : Configuration du moniteur
+===================================
+
+L'exemple le plus complet est la configuration du moniteur Java de PSEM2M.
+Le premier fichier à voir est *psem2m-application.js*, qui est la racine de la
+configuration d'une instance PSEM2M.
+
+Fichier *psem2m-application.js*
+-------------------------------
+
+Ce fichier sera lu par le service de configuration du démarreur PSEM2M.
+Étant donné qu'il configure une instance de la plateforme PSEM2M, il est
+recommandé de placer ce fichier dans le dossier **$PSEM2M_BASE/conf**.
+
+.. code-block:: javascript
+   :linenos:
+   
+   {
+    "appId":"sample-app",
+    "isolates":[
+        {
+            "from":"monitor.js"
+        },
+        {
+            "from":"forker.js"
+        },
+        {
+            "from":"data-server.js",
+            "overriddenProperties":{
+                "org.psem2m.remote.filters.include":"org.psem2m.demo.*"
+            }
+        }
+    ]
+   }
+
+La configuration ci-dessus indique que :
+
+* le nom de l'application, c'est-à-dire de l'instance de PSEM2M est *sample-app*
+* les isolats moniteur et forker sont déclarés dans des fichiers à part
+* l'isolat data-server est également déclaré dans un fichier à part, mais sa
+  propriété *org.psem2m.remote.filters.include* est ajoutée ou remplacée.
+
+Un fichier décrivant un isolat est décrit dans la section suivante.
+
+
+Fichier *monitor.js*
+--------------------
+
+Le fichier *monitor.js* décrit, généralement, la configuration du moniteur
+central d'une instance PSEM2M.
+Une version utilisable par défaut est présente dans le dossier
+**$PSEM2M_HOME/conf**, mais il est tout à fait possible d'utiliser une version
+spécifique à une instance en la plaçant dans le dossier **PSEM2M_BASE/conf**.
+Il est également possible de décrire cet isolat dans n'importe quel autre
+fichier.
+
+.. code-block:: javascript
+   :linenos:
+
+   {
+    "id":"org.psem2m.internals.isolates.monitor-1",
+    "kind":"felix",
+    "httpPort":9000,
+    "vmArgs":[
+        "-Xms32M",
+        "-Xmx64M"
+    ],
+    "bundles":[
+        {
+            "symbolicName":"org.psem2m.isolates.ui.admin",
+            "optional":true,
+            "properties":{
+                "psem2m.demo.ui.viewer.top":"0scr",
+                "psem2m.demo.ui.viewer.left":"0scr",
+                "psem2m.demo.ui.viewer.width":"0.25scr",
+                "psem2m.demo.ui.viewer.height":"0.66scr",
+                "psem2m.demo.ui.viewer.color":"SkyBlue"
+            }
+        },
+        {
+            "symbolicName":"org.apache.felix.shell.remote",
+            "properties":{
+                "osgi.shell.telnet.port":"6000"
+            }
+        },
+        {
+            "from":"signals-http.js"
+        },
+        {
+            "from":"jsonrpc.js"
+        },
+        {
+            "from":"remote-services.js",
+            "overriddenProperties":{
+                    "org.psem2m.remote.filters.exclude":"*demo.*"
+            },
+            "override":[{
+               "symbolicName":"org.psem2m.isolates.remote.importer",
+               "properties":{
+                    "org.psem2m.isolates.remote.importer.excludes":"org.psem2m.demo.*"
+                }
+            }]
+        }
+    ]
+   }
+
+La configuration ci-dessus indique que le moniteur est :
+
+* un isolat interne : son identifiant commence par *org.psem2m.internals*,
+* de type *felix* : c'est un isolat Java/OSGi basé sur la plateforme d'Apache,
+* en écoute sur le port TCP 9000,
+
+On voit également que l'entrée *vmArgs* est utilisée pour contrôler la
+consommation mémoire de la machine virtuelle Java.
+
+Vient ensuite (une partie de) la liste des modules à installer dans l'isolat.
+
+* Le *bundle* contenant l'interface graphique d'administration est déclaré
+  optionnel : toute erreur lors de son installation ou de son démarrage sera
+  ignorée. De cette manière, cette configuration peut être utilisée sans
+  modification sur des machines sans interface graphique.
+* Une propriété est associée à la console distante, indiquant sont port d'écoute
+* Les modules apportant les couches de signalisation et de services distants
+  PSEM2M sont définis dans d'autres fichiers :
+
+  * *signals-http.js* indique les modules à installer pour utiliser
+    l'implémentation HTTP du service de signalisation (voir la document
+    développeur pour plus d'informations)
+  * *jsonrpc.js* contient la liste des modules gérant la sérialisation et la
+    dé-sérialisation d'objets Java en JSON.
+  * *remote-services.js* ajoute les modules implémentant la spécification
+    Remote Services d'OSGi.
+    Sa propriété permet d'exclure l'export des services contenant le mode *demo*
+    dans leur spécification.
+    L'entrée *override* permet d'ajouter une propriété d'exclusion dans le
+    module d'import de service, alors qu'elle n'est pas définie dans le fichier
+    *remote-services.js*.
+
+
+Pour terminer cet exemple, la section suivante montre le contenu d'un fichier
+de modules importé.
+
+
+Fichier *signals-http.js*
+-------------------------
+
+Les fichiers décrivant les modules sont de simples tableaux d'objets JSON.
+L'intérêt est de pouvoir indiquer, dans un même fichier centralisé, l'ordre
+nécessaire pour réussir l'installation. d'un module et ses dépendances.
+
+.. code-block:: javascript
+   :linenos:
+   
+   [
+    {
+        "symbolicName":"org.apache.felix.http.bundle"
+    },
+    {
+        "symbolicName":"org.psem2m.signals.http"
+    }
+   ]
+
+Dans ce fichier, deux modules sont importés : le service HTTP de Felix et
+l'implémentation des signaux HTTP de PSEM2M.
+
