@@ -247,6 +247,7 @@ hiérarchie suivante :
 .. todo:: Utiliser graphviz pour Sphinx..
 
 .. code-block:: javascript
+   :linenos:
 
    {
     "name":"sample_app",
@@ -315,23 +316,225 @@ c'est-à-dire son *cousin*, ``sample_app.hello-world-provider.hello-provider``.
 Format SCA
 ==========
 
-Le standard SCA est défini par l'`OASIS <http://www.oasis-open.org/>`_.
+Une composition SCA est décrite par un ensemble de fichiers XML portant
+l'extension *.composite*. Les liens entre les fichiers se font à travers
+les espaces de noms XML.
+
+Le standard SCA a été défini l'`OSOA <http://www.osoa.org/>`_ puis par
+l'`OASIS <http://www.oasis-open.org/>`_.
 
 .. note:: La spécification du modèle SCA **était** disponible sur le site de
    l'OSOA jusque février 2012.
    À l'heure de la rédaction de ce document, le site de
-   l'`OSOA <http://www.osoa.org/>`_ a disparu au profit de l'OASIS, mais la
-   spécification du modèle n'est plus disponible.
+   l'`OSOA <http://www.osoa.org/>`_ a disparu et redirige automatiquement vers
+   le site de l'OASIS, qui est encore incomplet.
 
-.. todo:: Décrire les extensions SCA de PSEM2M
+La spécification SCA est disponible sur le site de l'OASIS :
+`OASIS Service Component Architecture <http://www.oasis-open.org/committees/tc_home.php?wg_abbrev=sca-assembly>`_
+
+Le convertisseur SCA vers PSEM2M Composer est capable de gérer une composition
+hiérarchisée, c'est-à-dire contenant des *composites*, ainsi que de résoudre
+les liens décrits par des promotions de services et de références.
+
+Extensions SCA PSEM2M
+---------------------
+
+Les extensions SCA sont définies dans l'espace de nom XML
+``http://www.psem2m.org/ns/psem2m-sca``.
+
+Actuellement, un seul élément a été ajouté aux types du standard SCA :
+
+``implementation.psem2m``
+
+   Indique que l'implémentation du composant SCA décrit est un composant que
+   doit gérer PSEM2M.
+
+   Les attributs de cette extension sont :
+
+   +------------------------+--------+-------------------------------------+
+   | Attribut               | Type   | Description                         |
+   +========================+========+=====================================+
+   | type (**obligatoire**) | string | Indique le type du composant à      |
+   |                        |        | instancier (la fabrique dans le cas |
+   |                        |        | d'iPOJO ou iPOPO)                   |
+   +------------------------+--------+-------------------------------------+
+   | isolate (*optionnel*)  | string | Indique dans quel isolat devra être |
+   |                        |        | instancié le composant              |
+   +------------------------+--------+-------------------------------------+
+
+
+Exemple
+-------
+
+Les extraits suivants montrent la racine d'une composition SCA et un fichier
+décrivant l'un des *composites*.
+
+Le composant *entry* est implémenté par un *composite*, et ses références
+``next`` et ``second`` doivent être reliées à ``normal`` et ``fallback``,
+respectivement.
+
+Dans le cas présenté, il n'est pas nécessaire d'utiliser les extensions SCA dans
+le fichier racine, car il ne décrit aucun composant implémenté autrement que par
+un composite standard.
+
+À l'inverse, le *composite* ``entry`` décrit deux composants :
+
+* ``entry-point`` est implémenté par un composant PSEM2M de type ``test-entry``
+  et doit s'exécuter sur l'isolat 2.
+  Le composant est configuré à l'aide des propriétés SCA (``nbIterations``).
+
+* ``obi-wan_Kenobi`` est également implémenté par un composant PSEM2M,
+  de type ``fall-back``, et doit s'exécuter sur l'isolat 1.
+
+Les liens entre composants sont définis par des références (*csa:reference*) ou
+des liens directs (*csa:wire*) vers des services exportés par des composants
+ou promus pour être visibles sur le *composite* parent.
+
+Fichier racine *application.composite* :
+
+.. code-block:: xml
+   :linenos:
+   
+   <?xml version="1.0" encoding="UTF-8"?>
+   <csa:composite xmlns:csa="http://docs.oasis-open.org/ns/opencsa/sca/200912"
+    xmlns:entry="app/entry" xmlns:erp-caller="app/erp-caller"
+    xmlns:fallback="app/fallback"
+    xmlns:normal="app/normal"
+    name="application"
+    targetNamespace="http://eclipse.org/sca/src/application">
+     <csa:component name="entry">
+       <csa:implementation.composite name="entry:entry"/>
+       <csa:service name="IComponent"/>
+       <csa:reference name="next"/>
+       <csa:reference name="second"/>
+     </csa:component>
+     <csa:component name="normal">
+       <csa:implementation.composite name="normal:normal"/>
+       <csa:service name="IComponent"/>
+       <csa:reference name="next"/>
+     </csa:component>
+     <csa:component name="fallback">
+       <csa:implementation.composite name="fallback:fallback"/>
+       <csa:service name="IComponent"/>
+     </csa:component>
+     <csa:component name="erp-caller">
+       <csa:implementation.composite name="erp-caller:erp-caller"/>
+       <csa:service name="IComponent"/>
+     </csa:component>
+     <csa:service name="IComponent" promote="entry/IComponent"/>
+     <csa:wire source="entry/next" target="normal/IComponent" />
+     <csa:wire source="entry/second" target="fallback/IComponent" />
+     <csa:wire source="normal/next" target="erp-caller/IComponent" />
+   </csa:composite>
+
+
+Fichier *entry.composite* :
+
+.. code-block:: xml
+   :linenos:
+   
+   <?xml version="1.0" encoding="UTF-8"?>
+   <csa:composite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:csa="http://docs.oasis-open.org/ns/opencsa/sca/200912"
+    xmlns:psem2m="http://www.psem2m.org/ns/psem2m-sca"
+    name="entry"
+    targetNamespace="app/entry">
+     <csa:component name="entry-point">
+       <csa:service name="IComponent">
+         <csa:interface.java interface="org.psem2m.composer.test.api.IComponent"/>
+       </csa:service>
+       <csa:reference name="next"/>
+       <csa:reference name="logger"/>
+       <csa:property name="nbIterations" value="20"/>
+       <psem2m:implementation.psem2m type="test-entry" isolate="isolate-2"/>
+     </csa:component>
+     <csa:service name="IComponent" promote="entry-point/IComponent"/>
+     <csa:component name="obi-wan_Kenobi">
+       <csa:service name="IComponent">
+         <csa:interface.java interface="org.psem2m.composer.test.api.IComponent"/>
+       </csa:service>
+       <csa:reference name="next"/>
+       <csa:reference name="second"/>
+       <psem2m:implementation.psem2m type="fall-back" isolate="isolate-1"/>
+     </csa:component>
+     <csa:reference name="next" multiplicity="1..1" promote="obi-wan_Kenobi/next"/>
+     <csa:reference name="second" multiplicity="1..1" promote="obi-wan_Kenobi/second"/>
+     <csa:wire source="entry-point/next" target="obi-wan_Kenobi/IComponent"/>
+   </csa:composite>
 
 
 Utilisation du Composer
 ***********************
 
-.. todo:: Expliquer rapidement comment utiliser le service Composer :
+Chargement d'une composition
+============================
 
-   * chargement de configuration
+Service de configuration
+------------------------
+
+Le chargement d'une composition s'effectue en dehors du Composer Core, à l'aide
+des implémentations de la spécification
+``org.psem2m.composer.config.IComposerConfigHandler``, ayant l'API suivante :
+
++---------------------+-------------------------------------------------------+
+| Méthode             | Description                                           |
++=====================+=======================================================+
+| canHandle(*String*) | Teste si le nom de fichier donné peut être chargé     |
++---------------------+-------------------------------------------------------+
+| load(*String*)      | Retourne la composition décrite dans le fichier donné |
++---------------------+-------------------------------------------------------+
+
+
+Exemple
+-------
+
+Pour rappel, les services du Composer Core ne sont implémentés qu'en Java, et ne
+sont accessibles que dans l'isolat dans lequel ils sont installés.
+
+L'exemple suivant permet de charger un fichier indiqué dans la variable
+``aFileName``, du moment qu'un chargeur puisse le gérer.
+
+.. code-block:: java
+   :linenos:
+   
+   IComposerConfigHandler configReader = null;
+   for (final IComposerConfigHandler reader : pConfigReaders) {
+       if (reader.canHandle(aFileName)) {
+           // Un lecteur de configuration a été trouvé pour ce fichier
+           configReader = reader;
+           break;
+       }
+   }
+
+   if (configReader == null) {
+       /* Aucun lecteur trouvé pour ce fichier */
+       return;
+   }
+
+   // Chargement de la composition
+   final ComponentsSetBean compoSet = configReader.load(aFileName);
+   if (compoSet == null) {
+       /* Erreur à la lecture du fichier */
+       return;
+   }
+
+   // Enregistrement de la composition 
+   instantiateComponentsSet(compoSet);
+
+
+Cycle de vie d'une composition
+==============================
+
+La prémière étape pour utiliser le Composer est de récupérer une référence vers
+le service exposé par Composer Core. Celui a pour spécification
+``org.psem2m.composer.IComposer`` (voir la JavaDoc pour avoir une description
+complète de l'API du service).
+Le service n'est pas exporté et n'est donc accessible que dans l'isolat où est
+il est déployé. Un module tiers peut être développé facilement pour diffuser
+le service à tous les isolats d'une instance PSEM2M.
+
+.. todo:: Expliquer rapidement comment utiliser le service Composer pour :
+
    * démarrage de composition
    * arrêt de composition (pas encore fait)
    * mise à jour de composition (pas encore fait)
