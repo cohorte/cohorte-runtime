@@ -161,10 +161,12 @@ class Forker(object):
         isolate_id = isolate_descr.get("id", None)
         if not isolate_id:
             # Consider the lack of ID as a runner exception
+            _logger.debug("Invalid ID")
             return 3
 
         if self.ping(isolate_id) == 0:
             # Isolate is already running
+            _logger.debug("'%s' is already running", isolate_id)
             return 1
 
         # Find compatible runners
@@ -174,6 +176,7 @@ class Forker(object):
 
         if not runners:
             # Un-handled kind
+            _logger.debug("'%s': unknown kind '%s'", isolate_id, kind)
             return 5
 
         # Stop at the first runner that succeed to start the isolate
@@ -183,6 +186,7 @@ class Forker(object):
                 if process is not None:
                     # Success !
                     self._isolates[isolate_id] = process
+                    _logger.debug("'%s': isolate started", isolate_id)
                     break
 
             except:
@@ -192,6 +196,8 @@ class Forker(object):
 
         else:
             # No runner succeeded
+            _logger.debug("'%s': all runners failed to start isolate",
+                          isolate_id)
             return 3
 
         # Start the watching thread
