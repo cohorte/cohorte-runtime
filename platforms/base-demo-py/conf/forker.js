@@ -1,0 +1,34 @@
+{
+    "id":"org.psem2m.internals.isolates.forker",
+    "kind":"pelix",
+    "httpPort":9001,
+    "bundles":[
+		{
+		    "symbolicName":"psem2m.utils.posix"
+		},
+        {
+            "symbolicName":"psem2m.runner.commons"
+        },
+        {
+            "symbolicName":"psem2m.runner.python"
+        },
+        {
+            "symbolicName":"psem2m.runner.java"
+        },
+        {
+            "symbolicName":"base.httpsvc"
+        },
+        {
+            "symbolicName":"base.signals"
+        },
+        {
+            "symbolicName":"base.remoteservices"
+        },
+        {
+            "symbolicName":"psem2m.forker.core"
+        },
+        {
+            "symbolicName":"psem2m.forker.cmd_agent"
+        }
+    ]
+}
