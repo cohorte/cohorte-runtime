@@ -5,6 +5,7 @@ RemoteSystemsTempFiles/
 # Binaires
 *.tar.gz
 bin/
+*.dat
 
 # Maven (tests)
 pom.xml
