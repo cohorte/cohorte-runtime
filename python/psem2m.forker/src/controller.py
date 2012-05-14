@@ -13,8 +13,8 @@ PSEM2M Forker control script (could be used as an init.d script)
 
 PSEM2M_GIT = "/home/tcalmant/programmation/workspaces/psem2m"
 
-PSEM2M_HOME = "%s/platforms/psem2m.home" % PSEM2M_GIT
-PSEM2M_BASE = "%s/platforms/base-compo" % PSEM2M_GIT
+DEFAULT_PSEM2M_HOME = "%s/platforms/psem2m.home" % PSEM2M_GIT
+DEFAULT_PSEM2M_BASE = "%s/platforms/base-compo" % PSEM2M_GIT
 
 # ------------------------------------------------------------------------------
 
@@ -41,6 +41,9 @@ else:
 
 # Setup the logger
 _logger = logging.getLogger("PSEM2M Controller")
+
+PSEM2M_HOME = os.environ.get("PSEM2M_HOME", DEFAULT_PSEM2M_HOME)
+PSEM2M_BASE = os.environ.get("PSEM2M_BASE", DEFAULT_PSEM2M_BASE)
 
 # Set up the environment variables
 if PSEM2M_HOME is not None:
@@ -251,6 +254,10 @@ class Main(object):
         # Forker and monitor need to be started
         args = [sys.executable, "-m", "psem2m.forker.boot",
                 "--start-forker", "--with-monitor"]
+        
+        # Activate debug mode
+        if '-d' in extra_args:
+            args.append('--debug')
 
         # Set up environment (home and base are already there)
         env = os.environ.copy()
@@ -265,6 +272,11 @@ class Main(object):
         for path in ("python/python.injection/src", "python/psem2m.base/src"):
             python_path.append(os.path.join(PSEM2M_GIT, path))
 
+        existing_path = os.environ.get("PYTHONPATH")
+        if existing_path:
+            # Keep current path
+            python_path.append(existing_path)
+            
         env["PYTHONPATH"] = os.pathsep.join(python_path)
 
         # Run !
@@ -374,12 +386,28 @@ class Main(object):
         """
 
         if self._is_running():
-            print("Platform is running")
+            process = get_forker_process(self.base)
+            print("Platform is running (forker PID: %d)" % process.pid)
             return 0
 
         else:
             print("Platform seems to be stopped")
             return 3
+    
+    
+    def force_stop(self):
+        """
+        Forces the forker to stop (kills it)
+        """
+        if not self._is_running():
+            print("Platform seems to be stopped")
+            return 3
+        
+        else:
+            process = get_forker_process(self.base)
+            process.kill()
+            print("SIGKILL signal sent to the forker")
+            return 0
 
 # ------------------------------------------------------------------------------
 
