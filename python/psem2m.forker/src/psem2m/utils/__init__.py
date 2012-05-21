@@ -128,8 +128,8 @@ def read_framework_file(file_name):
     :param file_name: Name of the framework file to read
     :return: The framework file content, None if not found
     """
-    with open(file_name) as fp:
-        for line in fp:
+    with open(file_name) as framework_fp:
+        for line in framework_fp:
             line = line.strip()
 
             if len(line) > 0 and not line.startswith("#"):

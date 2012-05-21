@@ -64,10 +64,10 @@ def _store_forker_pid(base):
         if not os.path.isdir(parent):
             os.makedirs(parent)
 
-    with open(pid_file, "w") as fp:
+    with open(pid_file, "w") as pid_fp:
         # Write the PID
-        fp.write(str(os.getpid()))
-        fp.write("\n")
+        pid_fp.write(str(os.getpid()))
+        pid_fp.write("\n")
 
 
 def validate_env():

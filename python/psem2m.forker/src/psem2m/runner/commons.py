@@ -113,6 +113,32 @@ class Runner(object):
                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
 
+    def _get_executable(self, isolate_descr):
+        """
+        Retrieves the path to the executable to run for that isolate
+        
+        **TO BE IMPLEMENTED BY SUBCLASSES**
+        
+        :param isolate_descr: A dictionary describing the isolate
+        :return: The path to the executable, or None
+        """
+        raise NotImplementedError("Runner should implement _get_executable()")
+
+
+    def _make_args(self, isolate_descr):
+        """
+        Prepares the isolate executable arguments.
+        
+        **TO BE IMPLEMENTED BY SUBCLASSES**
+        
+        :param isolate_descr: A dictionary describing the isolate
+        :return: The parameters to give to the interpreter (array)
+        :raise OSError: File not found
+        :raise ValueError: Error preparing the arguments
+        """
+        raise NotImplementedError("Runner should implement _make_args()")
+
+
     def _make_env(self, isolate_descr):
         """
         Retrieves the process environment variables to be set.

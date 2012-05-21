@@ -96,7 +96,7 @@ class JavaRunner(runner.Runner):
         * ``classpath``: A list of Java class path entries
         * ``app_args``: A list of arguments following the JVM specific
           arguments. Typically, it may contain the name of a class to execute
-          and its paramaters.
+          and its parameters.
         
         :param isolate_descr: A dictionary describing the isolate
         :return: The parameters to give to the interpreter (array)
@@ -243,7 +243,7 @@ class OsgiRunner(JavaRunner):
 
     def _make_args(self, isolate_descr):
         """
-        Prepares the Python interpreter arguments
+        Prepares the Java virtual machine arguments
         
         :param isolate_descr: A dictionary describing the isolate
         :return: The parameters to give to the interpreter (array)
