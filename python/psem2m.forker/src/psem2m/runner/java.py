@@ -1,6 +1,6 @@
 #-- Content-Encoding: UTF-8 --
 """
-Python 2, Python 3 and Java runners
+Java and OSGi runners
 
 :author: Thomas Calmant
 """

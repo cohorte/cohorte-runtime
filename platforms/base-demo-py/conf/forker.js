@@ -16,6 +16,9 @@
             "symbolicName":"psem2m.runner.java"
         },
         {
+            "symbolicName":"psem2m.runner.exe"
+        },
+        {
             "symbolicName":"base.httpsvc"
         },
         {
