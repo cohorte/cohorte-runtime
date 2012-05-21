@@ -388,7 +388,8 @@ public class JsonConfigReader implements IConfigurationReader {
         // Application arguments
         final JSONArray appArgsArray = aIsolateObject
                 .optJSONArray(IJsonConfigKeys.CONFIG_ISOLATE_APP_ARGS);
-        isolateDescription.setVMArgs(jsonArrayToStringList(appArgsArray, true));
+        isolateDescription
+                .setAppArgs(jsonArrayToStringList(appArgsArray, true));
 
         // Class path
         final JSONArray classpathArray = aIsolateObject
