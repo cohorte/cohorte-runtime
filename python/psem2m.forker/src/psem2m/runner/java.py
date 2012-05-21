@@ -132,7 +132,7 @@ class JavaRunner(runner.Runner):
 
         # Application argument
         extra_args = isolate_descr.get("appArgs", None)
-        if hasattr(classpath, "__iter__"):
+        if hasattr(extra_args, "__iter__"):
             # Got an iterable object
             args.extend(extra_args)
 

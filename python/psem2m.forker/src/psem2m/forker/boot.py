@@ -179,7 +179,7 @@ def start_isolate(isolate_id, properties=None):
     # Required bundles list (using the loader)
     required_bundles = ('pelix.ipopo.core', 'base.config',
                         'psem2m.forker.loader')
-    
+
     _logger.debug("Starting isolate '%s'", isolate_id)
 
     # Run the isolate (do not return until it's stopped

@@ -110,7 +110,7 @@ class Runner(object):
         # Run the process and return its reference
         return psutil.Popen(args, executable=executable, env=env,
                             cwd=working_dir, stdin=subprocess.PIPE,
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
 
     def _make_env(self, isolate_descr):
@@ -166,3 +166,5 @@ class Runner(object):
 
         # (Re-)Make the directory
         os.makedirs(working_dir)
+
+        return working_dir

@@ -91,8 +91,26 @@ class PythonRunner(runner.Runner):
         if not module:
             raise ValueError("Empty module name")
 
-        # Return the interpreter parameter
-        return ["-m", module]
+        # Prepare arguments
+        args = []
+
+        # Interpreter arguments from user (-m is forbidden)
+        interpreter_args = isolate_descr.get("vmArgs", None)
+        if hasattr(interpreter_args, "__iter__") \
+        and "-m" not in interpreter_args:
+            args.extend(interpreter_args)
+
+        # The module to load
+        args.append("-m")
+        args.append(module)
+
+        # Module argument
+        extra_args = isolate_descr.get("appArgs", None)
+        if hasattr(extra_args, "__iter__"):
+            # Got an iterable object
+            args.extend(extra_args)
+
+        return args
 
 
     def _make_env(self, isolate_descr):
@@ -131,3 +149,72 @@ class PythonRunner(runner.Runner):
         """
         self._python2_path = None
         self._python3_path = None
+
+# ------------------------------------------------------------------------------
+
+@ComponentFactory("psem2m-runner-pelix")
+@Instantiate("PelixRunner")
+@Provides("org.psem2m.isolates.forker.IIsolateRunner")
+class PelixRunner(PythonRunner):
+    """
+    A runner for Python/Pelix isolates based on ``psem2m.forker.boot``
+    """
+
+    PELIX_LOADER_MODULE = "psem2m.forker.boot"
+    """ The Pelix isolate loader module """
+
+    def can_handle(self, kind):
+        """
+        Tests if this runner can start an isolate of the given kind
+        
+        :param kind: Kind of the isolate to run
+        :return: True if the isolate can be started by this runner
+        """
+        return kind in ("pelix", "pelix_py3")
+
+
+    def _get_executable(self, isolate_descr):
+        """
+        Retrieves the path to the executable to run for that isolate
+        
+        :param isolate_descr: The configuration of the isolate to run
+        :return: The path to the executable, or None
+        """
+        kind = isolate_descr["kind"]
+
+        if kind == "pelix":
+            return self._python2_path
+
+        elif kind == "pelix_py3":
+            return self._python3_path
+
+        return None
+
+
+    def _make_args(self, isolate_descr):
+        """
+        Prepares the Python interpreter arguments
+        
+        :param isolate_descr: A dictionary describing the isolate
+        :return: The parameters to give to the interpreter (array)
+        """
+        # Arguments list
+        args = []
+
+        # Interpreter arguments from user (-m is forbidden)
+        interpreter_args = isolate_descr.get("vmArgs", None)
+        if interpreter_args is not None and "-m" not in interpreter_args:
+            args.extend(interpreter_args)
+
+        # Isolate loader module
+        args.append("-m")
+        args.append(PelixRunner.PELIX_LOADER_MODULE)
+
+        # Loader arguments
+        args.append("--start-isolate")
+        args.append(isolate_descr["id"])
+
+        # TODO: Debug mode, if needed
+        args.append("-d")
+
+        return args

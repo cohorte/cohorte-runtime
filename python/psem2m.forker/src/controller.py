@@ -48,11 +48,11 @@ PSEM2M_BASE = os.environ.get("PSEM2M_BASE", DEFAULT_PSEM2M_BASE)
 # Set up the environment variables
 if PSEM2M_HOME is not None:
     # Override the home directory
-    os.environ["PSEM2M_HOME"] = PSEM2M_HOME
+    os.environ["PSEM2M_HOME"] = os.path.abspath(PSEM2M_HOME)
 
 if PSEM2M_BASE is not None:
     # Override the base directory
-    os.environ["PSEM2M_BASE"] = PSEM2M_BASE
+    os.environ["PSEM2M_BASE"] = os.path.abspath(PSEM2M_BASE)
 
 else:
     # Use HOME as BASE by default
@@ -254,7 +254,7 @@ class Main(object):
         # Forker and monitor need to be started
         args = [sys.executable, "-m", "psem2m.forker.boot",
                 "--start-forker", "--with-monitor"]
-        
+
         # Activate debug mode
         if '-d' in extra_args:
             args.append('--debug')
@@ -276,7 +276,7 @@ class Main(object):
         if existing_path:
             # Keep current path
             python_path.append(existing_path)
-            
+
         env["PYTHONPATH"] = os.pathsep.join(python_path)
 
         # Run !
@@ -393,8 +393,8 @@ class Main(object):
         else:
             print("Platform seems to be stopped")
             return 3
-    
-    
+
+
     def force_stop(self):
         """
         Forces the forker to stop (kills it)
@@ -402,7 +402,7 @@ class Main(object):
         if not self._is_running():
             print("Platform seems to be stopped")
             return 3
-        
+
         else:
             process = get_forker_process(self.base)
             process.kill()
