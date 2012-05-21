@@ -134,7 +134,7 @@ public class CJPanelComposition extends CJPanelTree {
 
 			final Object lastSelected = pTree.getLastSelectedPathComponent();
 
-			if (!(lastSelected instanceof ComponentsSetSnapshot)) {
+			if (!(lastSelected instanceof AbstractSnapshot)) {
 				// Nothing selected, or root selected
 				return;
 			}

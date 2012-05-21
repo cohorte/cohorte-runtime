@@ -37,6 +37,7 @@ import org.psem2m.composer.model.ComponentBean;
 import org.psem2m.composer.model.ComponentsSetBean;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
+import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.ui.admin.api.EUiAdminFont;
 import org.psem2m.isolates.ui.admin.api.EUiAdminPanelLocation;
 import org.psem2m.isolates.ui.admin.api.IUiAdminPanel;
@@ -50,248 +51,253 @@ import org.psem2m.isolates.ui.admin.api.IUiAdminSvc;
 @Component(name = "psem2m-composer-ui-admin-factory", publicFactory = false)
 @Instantiate(name = "psem2m-composer-ui-admin")
 public class CUiAdminPanelComposition extends CPojoBase implements
-		IUiAdminPanelControler, ICompositionListener {
+        IUiAdminPanelControler, ICompositionListener {
 
-	/** The Composer service */
-	@Requires
-	private IComposer pComposer;
+    /** The Composer service */
+    @Requires
+    private IComposer pComposer;
 
-	/** Composition tree (UI) */
-	private CCompositionTreeModel pCompositionTreeModel = null;
+    /** Composition tree (UI) */
+    private CCompositionTreeModel pCompositionTreeModel = null;
 
-	/** The logger */
-	@Requires
-	private IIsolateLoggerSvc pLogger;
+    /** The logger */
+    @Requires
+    private IIsolateLoggerSvc pLogger;
 
-	/** the JPanel **/
-	private CJPanelComposition pTreePanel = null;
+    /** the JPanel **/
+    private CJPanelComposition pTreePanel = null;
 
-	/** the UiAdminPanel returned by the IUiAdminScv */
-	private IUiAdminPanel pUiAdminPanel = null;
+    /** the UiAdminPanel returned by the IUiAdminScv */
+    private IUiAdminPanel pUiAdminPanel = null;
 
-	/** the IUiAdminScv */
-	@Requires
-	private IUiAdminSvc pUiAdminSvc;
+    /** the IUiAdminScv */
+    @Requires
+    private IUiAdminSvc pUiAdminSvc;
 
-	/**
-	 * Service reference managed by iPojo (see metadata.xml)
-	 */
-	@Requires(filter = "(thread=main)")
-	private Executor pUiExecutor;
+    /**
+     * Service reference managed by iPojo (see metadata.xml)
+     */
+    @Requires(filter = "(thread=main)")
+    private Executor pUiExecutor;
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.psem2m.composer.ICompositionListener#componentsSetStateChanged(org
-	 * .psem2m.composer.model.ComponentsSetBean,
-	 * org.psem2m.composer.EComponentState)
-	 */
-	@Override
-	public void componentsSetStateChanged(
-			final ComponentsSetBean aComponentsSetBean,
-			final EComponentState aState) {
-		updateModel();
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.composer.ICompositionListener#componentsSetStateChanged(org
+     * .psem2m.composer.model.ComponentsSetBean,
+     * org.psem2m.composer.EComponentState)
+     */
+    @Override
+    public void componentsSetStateChanged(
+            final ComponentsSetBean aComponentsSetBean,
+            final EComponentState aState) {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.psem2m.composer.ICompositionListener#componentStateChanged(org.psem2m
-	 * .composer.model.ComponentBean, org.psem2m.composer.EComponentState)
-	 */
-	@Override
-	public void componentStateChanged(final ComponentBean aComponentBean,
-			final EComponentState aState) {
-		updateModel();
-	}
+        updateModel();
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.psem2m.composer.ICompositionListener#compositionChanged(org.psem2m
-	 * .composer.CompositionEvent)
-	 */
-	@Override
-	public void compositionChanged(final CompositionEvent aCompositionEvent) {
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.composer.ICompositionListener#componentStateChanged(org.psem2m
+     * .composer.model.ComponentBean, org.psem2m.composer.EComponentState)
+     */
+    @Override
+    public void componentStateChanged(final ComponentBean aComponentBean,
+            final EComponentState aState) {
 
-		updateModel();
-	}
+        updateModel();
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.isolates.base.activators.CPojoBase#invalidatePojo()
-	 */
-	@Override
-	@Invalidate
-	public void invalidatePojo() throws BundleException {
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.composer.ICompositionListener#compositionChanged(org.psem2m
+     * .composer.CompositionEvent)
+     */
+    @Override
+    public void compositionChanged(final CompositionEvent aCompositionEvent) {
 
-		// logs in the bundle output
-		pLogger.logInfo(this, "invalidatePojo", "INVALIDATE", toDescription());
+        updateModel();
+    }
 
-		// Unregister listener
-		pComposer.unregisterCompositionListener(this);
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.base.activators.CPojoBase#invalidatePojo()
+     */
+    @Override
+    @Invalidate
+    public void invalidatePojo() throws BundleException {
 
-		try {
-			if (pCompositionTreeModel != null) {
-				pCompositionTreeModel.destroy();
-				pCompositionTreeModel = null;
-			}
-			if (pTreePanel != null) {
+        // logs in the bundle output
+        pLogger.logInfo(this, "invalidatePojo", "INVALIDATE", toDescription());
 
-				pTreePanel.destroy();
-				pTreePanel = null;
-			}
-			pUiAdminSvc.removeUiAdminPanel(pUiAdminPanel);
+        // Unregister listener
+        pComposer.unregisterCompositionListener(this);
 
-		} catch (final Exception e) {
-			pLogger.logSevere(this, "invalidatePojo", e);
-		}
-	}
+        try {
+            if (pCompositionTreeModel != null) {
+                pCompositionTreeModel.destroy();
+                pCompositionTreeModel = null;
+            }
+            if (pTreePanel != null) {
 
-	/**
-	 * Pops up a file selection dialog and call the composer to load it
-	 */
-	protected void loadComposition() {
+                pTreePanel.destroy();
+                pTreePanel = null;
+            }
+            pUiAdminSvc.removeUiAdminPanel(pUiAdminPanel);
 
-		// Open a file chooser
-		final JFileChooser chooser = new JFileChooser();
-		chooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
+        } catch (final Exception e) {
+            pLogger.logSevere(this, "invalidatePojo", e);
+        }
+    }
 
-		final int returnVal = chooser.showOpenDialog(pTreePanel);
-		if (returnVal != JFileChooser.APPROVE_OPTION) {
-			// Nothing to do
-			return;
-		}
+    /**
+     * Pops up a file selection dialog and call the composer to load it
+     */
+    protected void loadComposition() {
 
-		// Load the selected file
-		final String filename = chooser.getSelectedFile().getAbsolutePath();
-		final ComponentsSetBean composet = pComposer
-				.loadCompositionFile(filename);
+        // Open a file chooser
+        final JFileChooser chooser = new JFileChooser();
+        chooser.setCurrentDirectory(new File(System
+                .getProperty(IPlatformProperties.PROP_PLATFORM_BASE)));
 
-		if (composet == null) {
-			JOptionPane.showMessageDialog(pTreePanel,
-					"Error loading composition file :\n" + filename,
-					"Composer", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
+        final int returnVal = chooser.showOpenDialog(pTreePanel);
+        if (returnVal != JFileChooser.APPROVE_OPTION) {
+            // Nothing to do
+            return;
+        }
 
-		// Instantiate the composet
-		pComposer.instantiateComponentsSet(composet);
-		JOptionPane.showMessageDialog(pTreePanel,
-				"Composition '" + composet.getName() + "' loaded.", "Composer",
-				JOptionPane.INFORMATION_MESSAGE);
-	}
+        // Load the selected file
+        final String filename = chooser.getSelectedFile().getAbsolutePath();
+        final ComponentsSetBean composet = pComposer
+                .loadCompositionFile(filename);
 
-	/**
-	 * Removes the currently selected composition
-	 */
-	protected void removeComposition() {
+        if (composet == null) {
+            JOptionPane.showMessageDialog(pTreePanel,
+                    "Error loading composition file :\n" + filename,
+                    "Composer", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
-		// Retrieve the selected composition
-		final List<ComponentsSetBean> composets = pTreePanel
-				.getSelectedComposets();
+        // Instantiate the composet
+        pComposer.instantiateComponentsSet(composet);
+        JOptionPane.showMessageDialog(pTreePanel,
+                "Composition '" + composet.getName() + "' loaded.", "Composer",
+                JOptionPane.INFORMATION_MESSAGE);
+    }
 
-		// Tell the composer to stop it
-		for (final ComponentsSetBean composet : composets) {
-			try {
-				pComposer.removeComponentsSet(composet);
+    /**
+     * Removes the currently selected composition
+     */
+    protected void removeComposition() {
 
-			} catch (final Exception ex) {
-				JOptionPane.showMessageDialog(pTreePanel,
-						"Error removing composition '" + composet.getName()
-								+ "':\n" + ex, "Composer",
-						JOptionPane.ERROR_MESSAGE);
-			}
-		}
-	}
+        // Retrieve the selected composition
+        final List<ComponentsSetBean> composets = pTreePanel
+                .getSelectedComposets();
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.psem2m.isolates.ui.admin.api.IUiAdminPanelControler#setUiAdminFont
-	 * (org.psem2m.isolates.ui.admin.api.EUiAdminFont)
-	 */
-	@Override
-	public void setUiAdminFont(final EUiAdminFont aUiAdminFont) {
+        // Tell the composer to stop it
+        for (final ComponentsSetBean composet : composets) {
+            try {
+                pComposer.removeComponentsSet(composet);
 
-		pTreePanel.setTextFont(aUiAdminFont);
-		pTreePanel.setTreeFont(aUiAdminFont);
-	}
+            } catch (final Exception ex) {
+                JOptionPane.showMessageDialog(pTreePanel,
+                        "Error removing composition '" + composet.getName()
+                                + "':\n" + ex, "Composer",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
 
-	/**
-	 * Updates the tree model (changes it)
-	 */
-	protected void updateModel() {
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.ui.admin.api.IUiAdminPanelControler#setUiAdminFont
+     * (org.psem2m.isolates.ui.admin.api.EUiAdminFont)
+     */
+    @Override
+    public void setUiAdminFont(final EUiAdminFont aUiAdminFont) {
 
-		final List<ComponentsSetSnapshot> compositionSnapshots = pComposer
-				.getCompositionSnapshot();
+        pTreePanel.setTextFont(aUiAdminFont);
+        pTreePanel.setTreeFont(aUiAdminFont);
+    }
 
-		pCompositionTreeModel.update(compositionSnapshots);
-		pTreePanel.updateTree();
-		pTreePanel.updateUI();
+    /**
+     * Updates the tree model (changes it)
+     */
+    protected void updateModel() {
 
-		System.out.println("Model updated...");
-	}
+        final List<ComponentsSetSnapshot> compositionSnapshots = pComposer
+                .getCompositionSnapshot();
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.isolates.base.activators.CPojoBase#validatePojo()
-	 */
-	@Override
-	@Validate
-	public void validatePojo() throws BundleException {
+        pCompositionTreeModel.update(compositionSnapshots);
+        pTreePanel.updateTree();
+        pTreePanel.updateUI();
 
-		// logs in the bundle output
-		pLogger.logInfo(this, "invalidatePojo", "VALIDATE", toDescription());
+        System.out.println("Model updated...");
+    }
 
-		try {
-			/* The parent panel */
-			pUiAdminPanel = pUiAdminSvc.newUiAdminPanel("Composition",
-					"Bundles list and managment.", null, this,
-					EUiAdminPanelLocation.FIRST);
-			final JPanel parentPanel = pUiAdminPanel.getPanel();
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.base.activators.CPojoBase#validatePojo()
+     */
+    @Override
+    @Validate
+    public void validatePojo() throws BundleException {
 
-			/* The tree panel */
-			pCompositionTreeModel = new CCompositionTreeModel(
-					pComposer.getCompositionSnapshot());
+        // logs in the bundle output
+        pLogger.logInfo(this, "invalidatePojo", "VALIDATE", toDescription());
 
-			pTreePanel = new CJPanelComposition(pUiExecutor, pLogger,
-					parentPanel, pCompositionTreeModel);
+        try {
+            /* The parent panel */
+            pUiAdminPanel = pUiAdminSvc.newUiAdminPanel("Composition",
+                    "Bundles list and managment.", null, this,
+                    EUiAdminPanelLocation.FIRST);
+            final JPanel parentPanel = pUiAdminPanel.getPanel();
 
-			pComposer.registerCompositionListener(this, 0);
+            /* The tree panel */
+            pCompositionTreeModel = new CCompositionTreeModel(
+                    pComposer.getCompositionSnapshot());
 
-			/* The button panel */
-			final JPanel btnPanel = new JPanel();
-			parentPanel.add(btnPanel, BorderLayout.SOUTH);
+            pTreePanel = new CJPanelComposition(pUiExecutor, pLogger,
+                    parentPanel, pCompositionTreeModel);
 
-			final JButton btnAdd = new JButton("Load");
-			btnPanel.add(btnAdd);
-			btnAdd.addActionListener(new ActionListener() {
+            pComposer.registerCompositionListener(this, 0);
 
-				@Override
-				public void actionPerformed(final ActionEvent aEvent) {
-					loadComposition();
-				}
-			});
+            /* The button panel */
+            final JPanel btnPanel = new JPanel();
+            parentPanel.add(btnPanel, BorderLayout.SOUTH);
 
-			final JButton btnRemove = new JButton("Remove");
-			btnPanel.add(btnRemove);
-			btnRemove.addActionListener(new ActionListener() {
+            final JButton btnAdd = new JButton("Load");
+            btnPanel.add(btnAdd);
+            btnAdd.addActionListener(new ActionListener() {
 
-				@Override
-				public void actionPerformed(final ActionEvent aEvent) {
-					removeComposition();
-				}
-			});
+                @Override
+                public void actionPerformed(final ActionEvent aEvent) {
 
-		} catch (final Exception e) {
-			pLogger.logSevere(this, "validatePojo", e);
-		}
-	}
+                    loadComposition();
+                }
+            });
+
+            final JButton btnRemove = new JButton("Remove");
+            btnPanel.add(btnRemove);
+            btnRemove.addActionListener(new ActionListener() {
+
+                @Override
+                public void actionPerformed(final ActionEvent aEvent) {
+
+                    removeComposition();
+                }
+            });
+
+        } catch (final Exception e) {
+            pLogger.logSevere(this, "validatePojo", e);
+        }
+    }
 }

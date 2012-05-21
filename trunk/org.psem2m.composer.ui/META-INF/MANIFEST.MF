@@ -12,8 +12,9 @@ Import-Package: javax.swing, javax.swing.event, javax.swing.tree, org.
  ;version=1.2, org.osgi.service.log;version=1.3, org.psem2m.composer;v
  ersion=1.0.0, org.psem2m.composer.model;version=1.0.0, org.psem2m.iso
  lates.base;version=1.0.0, org.psem2m.isolates.base.activators;version
- =1.0.0, org.psem2m.isolates.ui.admin.api, org.psem2m.utilities;versio
- n=1.0.0, org.psem2m.utilities.logging;version=1.0.0
+ =1.0.0, org.psem2m.isolates.constants;version=1.0.1, org.psem2m.isola
+ tes.ui.admin.api, org.psem2m.utilities;version=1.0.0, org.psem2m.util
+ ities.logging;version=1.0.0
 iPOJO-Components: instance { $component="org.psem2m.composer.ui.CUiAdm
  inPanelComposition" $name="psem2m-composer-ui-admin" }component { $cl
  assname="org.psem2m.composer.ui.CUiAdminPanelComposition" $name="psem
