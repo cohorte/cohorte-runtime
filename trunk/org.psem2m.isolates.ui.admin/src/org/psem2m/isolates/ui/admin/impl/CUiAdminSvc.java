@@ -98,7 +98,7 @@ public class CUiAdminSvc extends CPojoBase implements IUiAdminSvc,
         try {
             pLogger.logInfo(this, "initFrame", "Create the frame [%s]",
                     pPlatformDirsSvc.getIsolateId());
-            CFrameMain wFrameMain = new CFrameMain(this);
+            final CFrameMain wFrameMain = new CFrameMain(this);
 
             pLogger.logInfo(this, "initFrame", "FrameConfig : %s", wFrameMain
                     .getFrameMainConfig().toDescription());
@@ -117,7 +117,7 @@ public class CUiAdminSvc extends CPojoBase implements IUiAdminSvc,
             // store the reference of the FrameMain (synchronized)
             setFrameMain(wFrameMain);
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             pLogger.logSevere(this, "init", e);
         }
     }
@@ -181,7 +181,7 @@ public class CUiAdminSvc extends CPojoBase implements IUiAdminSvc,
      */
     private void initFramMain() {
 
-        Runnable wRunnable = new Runnable() {
+        final Runnable wRunnable = new Runnable() {
             @Override
             public void run() {
 
@@ -191,7 +191,7 @@ public class CUiAdminSvc extends CPojoBase implements IUiAdminSvc,
         try {
             // gives the runnable to the UIExecutor
             pUiExecutor.execute(wRunnable);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             pLogger.logSevere(this, "init", e);
         }
     }
@@ -212,7 +212,7 @@ public class CUiAdminSvc extends CPojoBase implements IUiAdminSvc,
 
             destroy();
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             pLogger.logSevere(this, "invalidatePojo", e);
         }
     }
@@ -233,8 +233,8 @@ public class CUiAdminSvc extends CPojoBase implements IUiAdminSvc,
             throw new Exception(
                     "Unable to create a new UIAdminpanel. The pFrameMain isn't available");
         }
-        CUiAdminPanel wCUiAdminPanel = new CUiAdminPanel(this, aName, aTip,
-                aIcon, aControler);
+        final CUiAdminPanel wCUiAdminPanel = new CUiAdminPanel(this, aName,
+                aTip, aIcon, aControler);
 
         pCUiAdminPanels.add(wCUiAdminPanel);
 
@@ -262,18 +262,11 @@ public class CUiAdminSvc extends CPojoBase implements IUiAdminSvc,
      * @param aFrameMain
      *            store the reference of the main frame of the UISvc
      */
-    private void setFrameMain(final CFrameMain aFrameMain) {
+    private synchronized void setFrameMain(final CFrameMain aFrameMain) {
 
         pFrameMain = aFrameMain;
-        setFrameMainAvailable(pFrameMain != null);
-    }
+        pFrameMainAvailable = (pFrameMain != null);
 
-    /**
-     * @param aAvailable
-     */
-    private synchronized void setFrameMainAvailable(final boolean aAvailable) {
-
-        pFrameMainAvailable = aAvailable;
         pLogger.logInfo(this, "setFrameMainAvailable",
                 "FrameMainAvailable=[%b]", pFrameMainAvailable);
     }
@@ -297,7 +290,7 @@ public class CUiAdminSvc extends CPojoBase implements IUiAdminSvc,
                     pCUiAdminPanels.setUiAdminFont(aUiAdminFont);
                 }
             });
-        } catch (Exception e) {
+        } catch (final Exception e) {
             pLogger.logSevere(this, "setUiAdminFont", e);
         }
     }

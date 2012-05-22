@@ -157,7 +157,7 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
                 wJPopupMenu.add(wMenuItem3);
                 wJPopupMenu.add(wMenuItem4);
 
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 if (hasLogger()) {
                     getLogger().logSevere(this, "createPopUp", e);
                 }
@@ -382,7 +382,9 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
     @Override
     boolean addRow(final Bundle aBundle) {
 
-        return pCTableModelBundles.addRow(aBundle);
+        final boolean result = pCTableModelBundles.addRow(aBundle);
+        pBundlesTable.updateUI();
+        return result;
     }
 
     /*
@@ -394,6 +396,7 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
     void addRows(final Bundle[] aBundles) {
 
         pCTableModelBundles.addRows(aBundles);
+        pBundlesTable.updateUI();
     }
 
     /**
@@ -528,7 +531,7 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
                         .setPreferredWidth(COLUMNS_SIZE[wI]);
             }
 
-            CColumnHeaderTips wColumnHeaderTips = new CColumnHeaderTips();
+            final CColumnHeaderTips wColumnHeaderTips = new CColumnHeaderTips();
             pBundlesTable.getTableHeader().addMouseMotionListener(
                     wColumnHeaderTips);
 
@@ -590,7 +593,7 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
     void removeAllRows() {
 
         pCTableModelBundles.removeAllRows();
-
+        pBundlesTable.updateUI();
     }
 
     /**
@@ -600,6 +603,7 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
     void removeRow(final Bundle aBundle) {
 
         pCTableModelBundles.removeRow(aBundle);
+        pBundlesTable.updateUI();
     }
 
     /*
@@ -612,6 +616,7 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
     void setRow(final Bundle aBundle) {
 
         pCTableModelBundles.setRow(aBundle);
+        pBundlesTable.updateUI();
     }
 
     /*
@@ -623,6 +628,7 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
     void setRows(final Bundle[] aBundles) {
 
         pCTableModelBundles.setRows(aBundles);
+        pBundlesTable.updateUI();
     }
 
     /*

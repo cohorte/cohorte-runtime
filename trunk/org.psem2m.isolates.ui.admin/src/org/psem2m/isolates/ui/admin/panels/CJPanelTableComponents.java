@@ -376,7 +376,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
         @Override
         CEntityBean<Architecture> buildEntityBean(final Architecture aEntity) {
 
-            CEntityBeanComponent wCEntityBeanComponent = new CEntityBeanComponent(
+            final CEntityBeanComponent wCEntityBeanComponent = new CEntityBeanComponent(
                     aEntity);
 
             wCEntityBeanComponent
@@ -485,7 +485,9 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
     @Override
     boolean addRow(final Architecture aArchitecture) {
 
-        return pCTableModelComponents.addRow(aArchitecture);
+        final boolean result = pCTableModelComponents.addRow(aArchitecture);
+        pComponentsTable.updateUI();
+        return result;
     }
 
     /*
@@ -497,6 +499,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
     void addRows(final Architecture[] aArchitectures) {
 
         pCTableModelComponents.addRows(aArchitectures);
+        pComponentsTable.updateUI();
     }
 
     /**
@@ -756,7 +759,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
                         .setPreferredWidth(COLUMNS_SIZE[wI]);
             }
 
-            CColumnHeaderTips wColumnHeaderTips = new CColumnHeaderTips();
+            final CColumnHeaderTips wColumnHeaderTips = new CColumnHeaderTips();
             pComponentsTable.getTableHeader().addMouseMotionListener(
                     wColumnHeaderTips);
 
@@ -821,6 +824,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
     void removeAllRows() {
 
         pCTableModelComponents.removeAllRows();
+        pComponentsTable.updateUI();
     }
 
     /*
@@ -834,6 +838,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
     void removeRow(final Architecture aArchitecture) {
 
         pCTableModelComponents.removeRow(aArchitecture);
+        pComponentsTable.updateUI();
     }
 
     /*
@@ -846,6 +851,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
     void setRow(final Architecture aArchitecture) {
 
         pCTableModelComponents.setRow(aArchitecture);
+        pComponentsTable.updateUI();
     }
 
     /*
@@ -857,7 +863,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
     void setRows(final Architecture[] aArchitectures) {
 
         pCTableModelComponents.setRows(aArchitectures);
-
+        pComponentsTable.updateUI();
     }
 
     /*

@@ -17,6 +17,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executor;
 
@@ -40,6 +41,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
+import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.ui.admin.CBundleUiActivator;
@@ -187,7 +189,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
 
                 wJPopupMenu.add(wMenuItem1);
 
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 if (hasLogger()) {
                     getLogger().logSevere(this, "createPopUp", e);
                 }
@@ -432,8 +434,9 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
     @Override
     boolean addRow(final ServiceReference aServiceReference) {
 
-        return pCTableModelServices.addRow(aServiceReference);
-
+        final boolean result = pCTableModelServices.addRow(aServiceReference);
+        pServicesTable.updateUI();
+        return result;
     }
 
     /*
@@ -445,6 +448,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
     void addRows(final ServiceReference[] aServiceReferences) {
 
         pCTableModelServices.addRows(aServiceReferences);
+        pServicesTable.updateUI();
     }
 
     /*
@@ -614,7 +618,10 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
     private String extractServiceInterfaceCleaned(
             final ServiceReference aServiceReference) {
 
-        return CXStringUtils.removeChars("[]", aServiceReference.toString());
+        final String[] interfaces = (String[]) aServiceReference
+                .getProperty(Constants.OBJECTCLASS);
+
+        return CXStringUtils.removeChars("[]", Arrays.toString(interfaces));
     }
 
     /**
@@ -714,7 +721,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
                             .setPreferredWidth(COLUMNS_SIZE[wI]);
                 }
 
-                CColumnHeaderTips wColumnHeaderTips = new CColumnHeaderTips();
+                final CColumnHeaderTips wColumnHeaderTips = new CColumnHeaderTips();
                 pServicesTable.getTableHeader().addMouseMotionListener(
                         wColumnHeaderTips);
 
@@ -796,7 +803,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
                     }
                 }
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
@@ -812,6 +819,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
     void removeAllRows() {
 
         pCTableModelServices.removeAllRows();
+        pServicesTable.updateUI();
     }
 
     /*
@@ -825,6 +833,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
     void removeRow(final ServiceReference aServiceReference) {
 
         pCTableModelServices.removeRow(aServiceReference);
+        pServicesTable.updateUI();
     }
 
     /**
@@ -834,7 +843,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
     void setRow(final ServiceReference aServiceReference) {
 
         pCTableModelServices.setRow(aServiceReference);
-
+        pServicesTable.updateUI();
     }
 
     /*
@@ -846,6 +855,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
     void setRows(final ServiceReference[] aServiceReferences) {
 
         pCTableModelServices.setRows(aServiceReferences);
+        pServicesTable.updateUI();
     }
 
     /**

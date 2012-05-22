@@ -59,88 +59,87 @@ iPOJO-Components: instance { $component="org.psem2m.isolates.ui.admin.
  ntroler,org.psem2m.isolates.ui.admin.api.EUiAdminPanelLocation}" }met
  hod { $name="removeUiAdminPanel" $arguments="{org.psem2m.isolates.ui.
  admin.api.IUiAdminPanel}" }method { $name="setFrameMain" $arguments="
- {org.psem2m.isolates.ui.admin.impl.CFrameMain}" }method { $name="setF
- rameMainAvailable" $arguments="{boolean}" }method { $name="setUiAdmin
+ {org.psem2m.isolates.ui.admin.impl.CFrameMain}" }method { $name="setU
+ iAdminFont" $arguments="{org.psem2m.isolates.ui.admin.api.EUiAdminFon
+ t}" }method { $name="validatePojo" }}}component { $classname="org.pse
+ m2m.isolates.ui.admin.panels.CUiAdminPanelBundles" $name="psem2m-ui-a
+ dmin-panel-bundles-factory" $public="false" requires { $field="pLogge
+ r" }requires { $field="pUiAdminSvc" }requires { $field="pUiExecutor" 
+ $filter="(thread=main)" }callback { $transition="invalidate" $method=
+ "invalidatePojo" }callback { $transition="validate" $method="validate
+ Pojo" }manipulation { $super="org.psem2m.isolates.base.activators.CPo
+ joBase" interface { $name="org.psem2m.isolates.ui.admin.api.IUiAdminP
+ anelControler" }field { $name="pBundleListener" $type="org.psem2m.iso
+ lates.ui.admin.panels.CUiAdminPanelBundles$CBundleListener" }field { 
+ $name="pJPanel" $type="org.psem2m.isolates.ui.admin.panels.CJPanelTab
+ leBundles" }field { $name="pLogger" $type="org.psem2m.isolates.base.I
+ IsolateLoggerSvc" }field { $name="pUiAdminPanel" $type="org.psem2m.is
+ olates.ui.admin.api.IUiAdminPanel" }field { $name="pUiAdminSvc" $type
+ ="org.psem2m.isolates.ui.admin.api.IUiAdminSvc" }field { $name="pUiEx
+ ecutor" $type="java.util.concurrent.Executor" }method { $name="initCo
+ ntent" }method { $name="invalidatePojo" }method { $name="setUiAdminFo
+ nt" $arguments="{org.psem2m.isolates.ui.admin.api.EUiAdminFont}" }met
+ hod { $name="validatePojo" }}}component { $classname="org.psem2m.isol
+ ates.ui.admin.panels.CUiAdminPanelComponents" $name="psem2m-ui-admin-
+ panel-components-factory" $public="false" requires { $field="pArchite
+ ctures" $id="architectures" $aggregate="true" callback { $method="arc
+ hitectureBind" $type="bind" }callback { $method="architectureUnBind" 
+ $type="unbind" }}requires { $field="pLogger" }requires { $field="pUiA
+ dminSvc" }requires { $field="pUiExecutor" $filter="(thread=main)" }ca
+ llback { $transition="invalidate" $method="invalidatePojo" }callback 
+ { $transition="validate" $method="validatePojo" }manipulation { $supe
+ r="org.psem2m.isolates.base.activators.CPojoBase" interface { $name="
+ org.psem2m.isolates.ui.admin.api.IUiAdminPanelControler" }field { $na
+ me="pArchitectures" $type="org.apache.felix.ipojo.architecture.Archit
+ ecture[]" }field { $name="pJPanel" $type="org.psem2m.isolates.ui.admi
+ n.panels.CJPanelTableComponents" }field { $name="pLogger" $type="org.
+ psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pUiAdminPanel
+ " $type="org.psem2m.isolates.ui.admin.api.IUiAdminPanel" }field { $na
+ me="pUiAdminSvc" $type="org.psem2m.isolates.ui.admin.api.IUiAdminSvc"
+  }field { $name="pUiExecutor" $type="java.util.concurrent.Executor" }
+ method { $name="architectureBind" $arguments="{org.apache.felix.ipojo
+ .architecture.Architecture}" }method { $name="architectureUnBind" $ar
+ guments="{org.apache.felix.ipojo.architecture.Architecture}" }method 
+ { $name="initContent" }method { $name="invalidatePojo" }method { $nam
+ e="setUiAdminFont" $arguments="{org.psem2m.isolates.ui.admin.api.EUiA
+ dminFont}" }method { $name="validatePojo" }}}component { $classname="
+ org.psem2m.isolates.ui.admin.panels.CUiAdminPanelConfiguration" $name
+ ="psem2m-ui-admin-panel-configuration-factory" $public="false" requir
+ es { $field="pLogger" }requires { $field="pPlatformDirsSvc" }requires
+  { $field="pSvcConfig" }requires { $field="pUiAdminSvc" }requires { $
+ field="pUiExecutor" $filter="(thread=main)" }callback { $transition="
+ invalidate" $method="invalidatePojo" }callback { $transition="validat
+ e" $method="validatePojo" }manipulation { $super="org.psem2m.isolates
+ .base.activators.CPojoBase" interface { $name="org.psem2m.isolates.ui
+ .admin.api.IUiAdminPanelControler" }field { $name="pJPanel" $type="or
+ g.psem2m.isolates.ui.admin.panels.CJPanelConfiguration" }field { $nam
+ e="pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field
+  { $name="pPlatformDirsSvc" $type="org.psem2m.isolates.services.dirs.
+ IPlatformDirsSvc" }field { $name="pSvcConfig" $type="org.psem2m.isola
+ tes.services.conf.ISvcConfig" }field { $name="pUiAdminPanel" $type="o
+ rg.psem2m.isolates.ui.admin.api.IUiAdminPanel" }field { $name="pUiAdm
+ inSvc" $type="org.psem2m.isolates.ui.admin.api.IUiAdminSvc" }field { 
+ $name="pUiExecutor" $type="java.util.concurrent.Executor" }method { $
+ name="buildConfigDump" $return="java.lang.String" }method { $name="in
+ itContent" }method { $name="invalidatePojo" }method { $name="setUiAdm
+ inFont" $arguments="{org.psem2m.isolates.ui.admin.api.EUiAdminFont}" 
+ }method { $name="validatePojo" }}}component { $classname="org.psem2m.
+ isolates.ui.admin.panels.CUiAdminPanelServices" $name="psem2m-ui-admi
+ n-panel-services-factory" $public="false" requires { $field="pLogger"
+  }requires { $field="pUiAdminSvc" }requires { $field="pUiExecutor" $f
+ ilter="(thread=main)" }callback { $transition="invalidate" $method="i
+ nvalidatePojo" }callback { $transition="validate" $method="validatePo
+ jo" }manipulation { $super="org.psem2m.isolates.base.activators.CPojo
+ Base" interface { $name="org.psem2m.isolates.ui.admin.api.IUiAdminPan
+ elControler" }field { $name="pJPanel" $type="org.psem2m.isolates.ui.a
+ dmin.panels.CJPanelTableServices" }field { $name="pLogger" $type="org
+ .psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pServiceList
+ ener" $type="org.psem2m.isolates.ui.admin.panels.CUiAdminPanelService
+ s$CServiceListener" }field { $name="pUiAdminPanel" $type="org.psem2m.
+ isolates.ui.admin.api.IUiAdminPanel" }field { $name="pUiAdminSvc" $ty
+ pe="org.psem2m.isolates.ui.admin.api.IUiAdminSvc" }field { $name="pUi
+ Executor" $type="java.util.concurrent.Executor" }method { $name="init
+ Content" }method { $name="invalidatePojo" }method { $name="setUiAdmin
  Font" $arguments="{org.psem2m.isolates.ui.admin.api.EUiAdminFont}" }m
- ethod { $name="validatePojo" }}}component { $classname="org.psem2m.is
- olates.ui.admin.panels.CUiAdminPanelBundles" $name="psem2m-ui-admin-p
- anel-bundles-factory" $public="false" requires { $field="pLogger" }re
- quires { $field="pUiAdminSvc" }requires { $field="pUiExecutor" $filte
- r="(thread=main)" }callback { $transition="invalidate" $method="inval
- idatePojo" }callback { $transition="validate" $method="validatePojo" 
- }manipulation { $super="org.psem2m.isolates.base.activators.CPojoBase
- " interface { $name="org.psem2m.isolates.ui.admin.api.IUiAdminPanelCo
- ntroler" }field { $name="pBundleListener" $type="org.psem2m.isolates.
- ui.admin.panels.CUiAdminPanelBundles$CBundleListener" }field { $name=
- "pJPanel" $type="org.psem2m.isolates.ui.admin.panels.CJPanelTableBund
- les" }field { $name="pLogger" $type="org.psem2m.isolates.base.IIsolat
- eLoggerSvc" }field { $name="pUiAdminPanel" $type="org.psem2m.isolates
- .ui.admin.api.IUiAdminPanel" }field { $name="pUiAdminSvc" $type="org.
- psem2m.isolates.ui.admin.api.IUiAdminSvc" }field { $name="pUiExecutor
- " $type="java.util.concurrent.Executor" }method { $name="initContent"
-  }method { $name="invalidatePojo" }method { $name="setUiAdminFont" $a
- rguments="{org.psem2m.isolates.ui.admin.api.EUiAdminFont}" }method { 
- $name="validatePojo" }}}component { $classname="org.psem2m.isolates.u
- i.admin.panels.CUiAdminPanelComponents" $name="psem2m-ui-admin-panel-
- components-factory" $public="false" requires { $field="pArchitectures
- " $id="architectures" $aggregate="true" callback { $method="architect
- ureBind" $type="bind" }callback { $method="architectureUnBind" $type=
- "unbind" }}requires { $field="pLogger" }requires { $field="pUiAdminSv
- c" }requires { $field="pUiExecutor" $filter="(thread=main)" }callback
-  { $transition="invalidate" $method="invalidatePojo" }callback { $tra
- nsition="validate" $method="validatePojo" }manipulation { $super="org
- .psem2m.isolates.base.activators.CPojoBase" interface { $name="org.ps
- em2m.isolates.ui.admin.api.IUiAdminPanelControler" }field { $name="pA
- rchitectures" $type="org.apache.felix.ipojo.architecture.Architecture
- []" }field { $name="pJPanel" $type="org.psem2m.isolates.ui.admin.pane
- ls.CJPanelTableComponents" }field { $name="pLogger" $type="org.psem2m
- .isolates.base.IIsolateLoggerSvc" }field { $name="pUiAdminPanel" $typ
- e="org.psem2m.isolates.ui.admin.api.IUiAdminPanel" }field { $name="pU
- iAdminSvc" $type="org.psem2m.isolates.ui.admin.api.IUiAdminSvc" }fiel
- d { $name="pUiExecutor" $type="java.util.concurrent.Executor" }method
-  { $name="architectureBind" $arguments="{org.apache.felix.ipojo.archi
- tecture.Architecture}" }method { $name="architectureUnBind" $argument
- s="{org.apache.felix.ipojo.architecture.Architecture}" }method { $nam
- e="initContent" }method { $name="invalidatePojo" }method { $name="set
- UiAdminFont" $arguments="{org.psem2m.isolates.ui.admin.api.EUiAdminFo
- nt}" }method { $name="validatePojo" }}}component { $classname="org.ps
- em2m.isolates.ui.admin.panels.CUiAdminPanelConfiguration" $name="psem
- 2m-ui-admin-panel-configuration-factory" $public="false" requires { $
- field="pLogger" }requires { $field="pPlatformDirsSvc" }requires { $fi
- eld="pSvcConfig" }requires { $field="pUiAdminSvc" }requires { $field=
- "pUiExecutor" $filter="(thread=main)" }callback { $transition="invali
- date" $method="invalidatePojo" }callback { $transition="validate" $me
- thod="validatePojo" }manipulation { $super="org.psem2m.isolates.base.
- activators.CPojoBase" interface { $name="org.psem2m.isolates.ui.admin
- .api.IUiAdminPanelControler" }field { $name="pJPanel" $type="org.psem
- 2m.isolates.ui.admin.panels.CJPanelConfiguration" }field { $name="pLo
- gger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $na
- me="pPlatformDirsSvc" $type="org.psem2m.isolates.services.dirs.IPlatf
- ormDirsSvc" }field { $name="pSvcConfig" $type="org.psem2m.isolates.se
- rvices.conf.ISvcConfig" }field { $name="pUiAdminPanel" $type="org.pse
- m2m.isolates.ui.admin.api.IUiAdminPanel" }field { $name="pUiAdminSvc"
-  $type="org.psem2m.isolates.ui.admin.api.IUiAdminSvc" }field { $name=
- "pUiExecutor" $type="java.util.concurrent.Executor" }method { $name="
- buildConfigDump" $return="java.lang.String" }method { $name="initCont
- ent" }method { $name="invalidatePojo" }method { $name="setUiAdminFont
- " $arguments="{org.psem2m.isolates.ui.admin.api.EUiAdminFont}" }metho
- d { $name="validatePojo" }}}component { $classname="org.psem2m.isolat
- es.ui.admin.panels.CUiAdminPanelServices" $name="psem2m-ui-admin-pane
- l-services-factory" $public="false" requires { $field="pLogger" }requ
- ires { $field="pUiAdminSvc" }requires { $field="pUiExecutor" $filter=
- "(thread=main)" }callback { $transition="invalidate" $method="invalid
- atePojo" }callback { $transition="validate" $method="validatePojo" }m
- anipulation { $super="org.psem2m.isolates.base.activators.CPojoBase" 
- interface { $name="org.psem2m.isolates.ui.admin.api.IUiAdminPanelCont
- roler" }field { $name="pJPanel" $type="org.psem2m.isolates.ui.admin.p
- anels.CJPanelTableServices" }field { $name="pLogger" $type="org.psem2
- m.isolates.base.IIsolateLoggerSvc" }field { $name="pServiceListener" 
- $type="org.psem2m.isolates.ui.admin.panels.CUiAdminPanelServices$CSer
- viceListener" }field { $name="pUiAdminPanel" $type="org.psem2m.isolat
- es.ui.admin.api.IUiAdminPanel" }field { $name="pUiAdminSvc" $type="or
- g.psem2m.isolates.ui.admin.api.IUiAdminSvc" }field { $name="pUiExecut
- or" $type="java.util.concurrent.Executor" }method { $name="initConten
- t" }method { $name="invalidatePojo" }method { $name="setUiAdminFont" 
- $arguments="{org.psem2m.isolates.ui.admin.api.EUiAdminFont}" }method 
- { $name="validatePojo" }}}
+ ethod { $name="validatePojo" }}}
 
