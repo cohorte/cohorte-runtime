@@ -270,6 +270,9 @@ class Forker(object):
 
         for line in iter(process.stdout.readline, b''):
 
+            # In debug mode, print the raw output
+            _logger.debug("FROM %s : %r", isolate_id, line)
+
             parts = line.decode("UTF-8").split("::")
             if len(parts) != 2:
                 # Unknown format, ignore line

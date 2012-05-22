@@ -175,7 +175,8 @@ class OsgiRunner(JavaRunner):
         self._kind_frameworks = {
                             # TODO: remove version numbers
                             "felix": "org.apache.felix.main-3.2.2.jar",
-                            "equinox":"org.eclipse.osgi_3.7.0.v20110613.jar"
+                            # "equinox":"org.eclipse.osgi_3.7.0.v20110613.jar"
+                            "equinox":"org.eclipse.osgi_3.7.2.v20120110-1415.jar"
                         }
 
 
@@ -267,6 +268,28 @@ class OsgiRunner(JavaRunner):
 
         # ... Java arguments : the main class and its arguments
         new_descr["appArgs"] = (BOOTSTRAP_MAIN_CLASS, "--human")
+
+        # Setup Jetty using VM arguments
+        # This must be done here, as Equinox doesn't support System.setProperty,
+        # used by the PSEM2M Slave Agent
+        vm_args = new_descr.get("vmArgs", None)
+        if not hasattr(vm_args, "__iter__"):
+            vm_args = []
+
+        vm_properties = {# Enable Jetty
+                         "org.apache.felix.http.jettyEnabled":"true",
+                         # Enable the HTTP port
+                         "org.apache.felix.http.enable":"true",
+                         "org.osgi.service.http.port":new_descr["httpPort"],
+                         # Disable the HTTPS ports
+                         "org.apache.felix.https.enable":"false",
+                         "org.osgi.service.https.port":-1,
+                         }
+
+        for key, value in vm_properties.items():
+            vm_args.append("-D%s=%s" % (key, value))
+
+        new_descr["vmArgs"] = vm_args
 
         # Call the parent class
         return super(OsgiRunner, self)._make_args(new_descr)
