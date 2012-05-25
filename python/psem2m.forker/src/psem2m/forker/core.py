@@ -37,13 +37,38 @@ PROPERTY_START_MONITOR = "psem2m.forker.start_monitor"
 
 # ------------------------------------------------------------------------------
 
+# The order ID request key
+CMD_ID = "requestToken"
+
+# The order result key
+RESULT_CODE = "result"
+
+# The signals prefix
+SIGNAL_PREFIX = "/psem2m/internals/forkers/"
+
+# The ping isolate signal
+SIGNAL_PING_ISOLATE = SIGNAL_PREFIX + "ping"
+
+# The signal match string
+SIGNAL_PREFIX_MATCH_ALL = SIGNAL_PREFIX + "*"
+
+# The response signal
+SIGNAL_RESPONSE = SIGNAL_PREFIX + "response"
+
+# The start isolate signal
+SIGNAL_START_ISOLATE = SIGNAL_PREFIX + "start"
+
+# The stop isolate signal
+SIGNAL_STOP_ISOLATE = SIGNAL_PREFIX + "stop"
+
+# ------------------------------------------------------------------------------
+
 @ComponentFactory("psem2m-forker-factory")
 @Instantiate("Forker")
 @Provides("org.psem2m.isolates.services.forker.IForker")
-@Property("__export_itf", "service.exported.interfaces", "*")
-@Property("__export_conf", "service.exported.configs", "*")
 @Requires("_config", "org.psem2m.isolates.services.conf.ISvcConfig")
 @Requires("_sender", "org.psem2m.SignalSender")
+@Requires("_receiver", "org.psem2m.SignalReceiver")
 @Requires("_runners", "org.psem2m.isolates.forker.IIsolateRunner",
           aggregate=True)
 class Forker(object):
@@ -57,6 +82,7 @@ class Forker(object):
         self._config = None
         self._runners = None
         self._sender = None
+        self._receiver = None
 
         # The forker may have to start the monitor
         self._start_monitor = False
@@ -373,6 +399,39 @@ class Forker(object):
             return -1
 
 
+    def handle_received_signal(self, name, signal_data):
+        """
+        Called when a remote services signal is received
+        
+        :param name: Signal name
+        :param signal_data: Signal content
+        """
+        sender = signal_data["isolateSender"]
+        signal_content = signal_data["signalContent"]
+
+        cmd_id = signal_content[CMD_ID]
+        result = -300
+
+        try:
+            if name == SIGNAL_PING_ISOLATE:
+                result = self.ping(signal_content["isolateId"])
+
+            elif name == SIGNAL_START_ISOLATE:
+                result = self.startIsolate(signal_content["isolateDescr"])
+
+            elif name == SIGNAL_STOP_ISOLATE:
+                result = self.stopIsolate(signal_content["isolateId"])
+
+        except:
+            # Error
+            _logger.exception("Error treating signal %s\n%s", name, signal_data)
+            result = -500
+
+        # Send the result
+        self._sender.send_data(sender, SIGNAL_RESPONSE, {RESULT_CODE: result,
+                                                         CMD_ID: cmd_id})
+
+
     @Bind
     def bind(self, service, reference):
         """
@@ -381,8 +440,9 @@ class Forker(object):
         :param service: The injected service
         :param reference: The corresponding ServiceReference object
         """
-        if "org.psem2m.isolates.forker.IIsolateRunner" in \
-           reference.get_property("objectClass"):
+        specifications = reference.get_property("objectClass")
+
+        if "org.psem2m.isolates.forker.IIsolateRunner" in specifications:
             # Runner bound
             if self._start_monitor:
                 # Monitor must be started
@@ -399,6 +459,8 @@ class Forker(object):
         :param context: The bundle context
         """
         self._watchers_running = True
+
+        self._receiver.register_listener(SIGNAL_PREFIX_MATCH_ALL, self)
 
         if context.get_property(PROPERTY_START_MONITOR) is True:
             # A monitor must be started
@@ -421,6 +483,8 @@ class Forker(object):
         """
         self._watchers_running = False
         self._start_monitor = False
+
+        self._receiver.unregister_listener(SIGNAL_PREFIX_MATCH_ALL, self)
 
         # Isolates to be removed from thread dictionary
         to_remove = []
