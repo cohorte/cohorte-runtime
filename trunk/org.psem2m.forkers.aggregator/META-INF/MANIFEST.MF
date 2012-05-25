@@ -1,0 +1,70 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: PSEM2M Forkers Aggregator
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-SymbolicName: org.psem2m.forkers.aggregator
+Bundle-Vendor: isandlaTech.com
+Bundle-Version: 1.0.0.qualifier
+Created-By: iPOJO  1.8.0
+Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
+ .ipojo.architecture;version=1.8.0, org.json, org.osgi.service.cm;vers
+ ion=1.2, org.osgi.service.log;version=1.3, org.psem2m.isolates.base;v
+ ersion=1.0.1, org.psem2m.isolates.constants;version=1.0.1, org.psem2m
+ .isolates.services.dirs;version=1.0.1, org.psem2m.isolates.services.f
+ orker;version=1.0.1, org.psem2m.isolates.services.remote.signals;vers
+ ion=1.0.1, org.psem2m.utilities;version=1.0.0, org.psem2m.utilities.l
+ ogging;version=1.0.0
+iPOJO-Components: instance { $component="org.psem2m.forkers.aggregator
+ .impl.ForkerAggregator" $name="psem2m-forker-aggregator" }instance { 
+ $component="org.psem2m.forkers.aggregator.impl.InternalSignalsDirecto
+ ry" $name="psem2m-signals-internal-directory" }component { $classname
+ ="org.psem2m.forkers.aggregator.impl.ForkerAggregator" $name="psem2m-
+ forker-aggregator-factory" $public="false" provides { $specifications
+ ="{org.psem2m.isolates.services.forker.IForker}" }requires { $field="
+ pInternalDirectory" }requires { $field="pLogger" }requires { $field="
+ pSender" }callback { $transition="invalidate" $method="invalidate" }m
+ anipulation { interface { $name="org.psem2m.isolates.services.forker.
+ IForker" }interface { $name="org.psem2m.isolates.services.remote.sign
+ als.ISignalListener" }field { $name="pInternalDirectory" $type="org.p
+ sem2m.forkers.aggregator.impl.IInternalSignalsDirectory" }field { $na
+ me="pIsolateForkers" $type="java.util.Map" }field { $name="pLogger" $
+ type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pRe
+ sults" $type="java.util.Map" }field { $name="pSender" $type="org.psem
+ 2m.isolates.services.remote.signals.ISignalBroadcaster" }field { $nam
+ e="pWaiters" $type="java.util.Map" }method { $name="bindSignalReceive
+ r" $arguments="{org.psem2m.isolates.services.remote.signals.ISignalRe
+ ceiver}" }method { $name="getHostName" $return="java.lang.String" }me
+ thod { $name="handleReceivedSignal" $arguments="{java.lang.String,org
+ .psem2m.isolates.services.remote.signals.ISignalData}" }method { $nam
+ e="invalidate" }method { $name="ping" $return="int" $arguments="{java
+ .lang.String}" }method { $name="sendOrder" $return="int" $arguments="
+ {java.lang.String,java.lang.String,java.util.Map}" }method { $name="s
+ tartIsolate" $return="int" $arguments="{java.util.Map}" }method { $na
+ me="stopIsolate" $arguments="{java.lang.String}" }method { $name="wai
+ tForResult" $return="java.lang.Integer" $arguments="{int,long}" }}}co
+ mponent { $classname="org.psem2m.forkers.aggregator.impl.InternalSign
+ alsDirectory" $name="psem2m-signals-internal-directory-factory" $publ
+ ic="false" provides { $specifications="{org.psem2m.isolates.services.
+ remote.signals.ISignalsDirectory,org.psem2m.forkers.aggregator.impl.I
+ InternalSignalsDirectory}" }requires { $field="pFinder" }requires { $
+ field="pLogger" }callback { $transition="invalidate" $method="invalid
+ ate" }callback { $transition="validate" $method="validate" }manipulat
+ ion { interface { $name="org.psem2m.isolates.services.remote.signals.
+ ISignalsDirectory" }interface { $name="org.psem2m.forkers.aggregator.
+ impl.IInternalSignalsDirectory" }field { $name="pFinder" $type="org.p
+ sem2m.isolates.services.dirs.IFileFinderSvc" }field { $name="pLogger"
+  $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="p
+ Reader" $type="org.psem2m.forkers.aggregator.impl.JsonDirectoryReader
+ " }method { $name="getCurrentIsolateId" $return="java.lang.String" }m
+ ethod { $name="getForkerForHost" $return="java.lang.String" $argument
+ s="{java.lang.String}" }method { $name="getIsolate" $return="java.lan
+ g.String" $arguments="{java.lang.String}" }method { $name="getIsolate
+ s" $return="java.lang.String[]" $arguments="{java.util.Collection}" }
+ method { $name="getIsolates" $return="java.lang.String[]" $arguments=
+ "{org.psem2m.isolates.services.remote.signals.ISignalBroadcaster$EEmi
+ tterTargets}" }method { $name="getIsolates" $return="java.lang.String
+ []" $arguments="{java.lang.String}" }method { $name="getIsolates" $re
+ turn="java.lang.String[]" $arguments="{java.lang.String[]}" }method {
+  $name="invalidate" }method { $name="reloadDirectory" $return="boolea
+ n" }method { $name="validate" }}}
+
