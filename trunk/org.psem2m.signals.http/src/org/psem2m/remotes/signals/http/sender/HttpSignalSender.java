@@ -45,9 +45,9 @@ import org.psem2m.remotes.signals.http.IHttpSignalsConstants;
 public class HttpSignalSender extends CPojoBase implements
         ISignalBroadcastProvider {
 
-    /** Signal directory */
+    /** Signal directories */
     @Requires
-    private ISignalsDirectory pDirectory;
+    private ISignalsDirectory[] pDirectories;
 
     /** Thread pool */
     private ExecutorService pExecutor;
@@ -81,9 +81,12 @@ public class HttpSignalSender extends CPojoBase implements
             return;
         }
 
+        // FIXME: use a better method ?
+        final String currentIsolateId = pDirectories[0].getCurrentIsolateId();
+
         // Prepare the real signal data object
-        final HttpSignalData sentObject = new HttpSignalData(
-                pDirectory.getCurrentIsolateId(), aData);
+        final HttpSignalData sentObject = new HttpSignalData(currentIsolateId,
+                aData);
 
         // The really sent data
         byte[] sentData = null;
@@ -208,13 +211,19 @@ public class HttpSignalSender extends CPojoBase implements
      */
     protected URL isolateIdToUrl(final String aIsolateId, final URI aSignalName) {
 
-        // Get the access string
-        final String isolateAccess = pDirectory.getIsolate(aIsolateId);
-        if (isolateAccess == null || isolateAccess.trim().isEmpty()) {
-            return null;
+        for (final ISignalsDirectory directory : pDirectories) {
+
+            // Get the access string
+            final String isolateAccess = directory.getIsolate(aIsolateId);
+
+            if (isolateAccess != null && !isolateAccess.trim().isEmpty()) {
+                // Use the first access found
+                return isolateAccessToUrl(isolateAccess, aSignalName);
+            }
         }
 
-        return isolateAccessToUrl(isolateAccess, aSignalName);
+        // Unknown isolate
+        return null;
     }
 
     /**
@@ -340,24 +349,30 @@ public class HttpSignalSender extends CPojoBase implements
             return null;
         }
 
-        final String[] isolatesAccesses = pDirectory.getIsolates(aTargets);
-        if (isolatesAccesses == null) {
-            return null;
-        }
+        for (final ISignalsDirectory directory : pDirectories) {
 
-        final List<URL> isolateUrls = new ArrayList<URL>();
-
-        // Prepare all URls
-        for (final String isolateAccess : isolatesAccesses) {
-
-            final URL isolateUrl = isolateAccessToUrl(isolateAccess,
-                    aSignalName);
-            if (isolateUrl != null) {
-                isolateUrls.add(isolateUrl);
+            final String[] isolatesAccesses = directory.getIsolates(aTargets);
+            if (isolatesAccesses == null) {
+                // Unknown targets for this directory
+                continue;
             }
+
+            final List<URL> isolateUrls = new ArrayList<URL>();
+
+            // Prepare all URls
+            for (final String isolateAccess : isolatesAccesses) {
+
+                final URL isolateUrl = isolateAccessToUrl(isolateAccess,
+                        aSignalName);
+                if (isolateUrl != null) {
+                    isolateUrls.add(isolateUrl);
+                }
+            }
+
+            return isolateUrls.toArray(new URL[isolateUrls.size()]);
         }
 
-        return isolateUrls.toArray(new URL[isolateUrls.size()]);
+        return null;
     }
 
     /*

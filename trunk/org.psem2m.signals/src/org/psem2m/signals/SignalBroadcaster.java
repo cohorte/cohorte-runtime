@@ -42,7 +42,7 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
     @Requires(id = "providers", optional = true)
     private ISignalBroadcastProvider[] pBroadcasters;
 
-    /** The directory service */
+    /** A directory service */
     @Requires
     private ISignalsDirectory pDirectory;
 

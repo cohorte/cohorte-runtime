@@ -49,31 +49,31 @@ iPOJO-Components: instance { $component="org.psem2m.remotes.signals.ht
  component { $classname="org.psem2m.remotes.signals.http.sender.HttpSi
  gnalSender" $name="psem2m-remote-signal-sender-http-factory" $public=
  "false" provides { $specifications="{org.psem2m.isolates.services.rem
- ote.signals.ISignalBroadcastProvider}" }requires { $field="pDirectory
- " }requires { $field="pLogger" }requires { $field="pSerializers" }cal
- lback { $transition="invalidate" $method="invalidatePojo" }callback {
-  $transition="validate" $method="validatePojo" }manipulation { $super
- ="org.psem2m.isolates.base.activators.CPojoBase" interface { $name="o
- rg.psem2m.isolates.services.remote.signals.ISignalBroadcastProvider" 
- }field { $name="pDirectory" $type="org.psem2m.isolates.services.remot
- e.signals.ISignalsDirectory" }field { $name="pExecutor" $type="java.u
- til.concurrent.ExecutorService" }field { $name="pLogger" $type="org.o
- sgi.service.log.LogService" }field { $name="pLoggerAccessible" $type=
- "java.util.concurrent.atomic.AtomicBoolean" }field { $name="pSerializ
- ers" $type="org.psem2m.isolates.services.remote.signals.ISignalDataSe
- rializer[]" }method { $name="internalSendData" $arguments="{java.net.
- URL[],java.lang.Object}" }method { $name="invalidatePojo" }method { $
- name="isolateAccessToUrl" $return="java.net.URL" $arguments="{java.la
- ng.String,java.net.URI}" }method { $name="isolateIdToUrl" $return="ja
- va.net.URL" $arguments="{java.lang.String,java.net.URI}" }method { $n
- ame="isolatesIdsToUrl" $return="java.net.URL[]" $arguments="{java.lan
- g.String[],java.net.URI}" }method { $name="logSenderThreadError" $arg
- uments="{java.lang.String,java.lang.Exception}" }method { $name="send
- Data" $arguments="{org.psem2m.isolates.services.remote.signals.ISigna
- lBroadcaster$EEmitterTargets,java.lang.String,java.lang.Object}" }met
- hod { $name="sendData" $return="boolean" $arguments="{java.lang.Strin
- g,java.lang.String,java.lang.Object}" }method { $name="targetsToUrl" 
- $return="java.net.URL[]" $arguments="{org.psem2m.isolates.services.re
- mote.signals.ISignalBroadcaster$EEmitterTargets,java.net.URI}" }metho
- d { $name="validatePojo" }}}
+ ote.signals.ISignalBroadcastProvider}" }requires { $field="pDirectori
+ es" }requires { $field="pLogger" }requires { $field="pSerializers" }c
+ allback { $transition="invalidate" $method="invalidatePojo" }callback
+  { $transition="validate" $method="validatePojo" }manipulation { $sup
+ er="org.psem2m.isolates.base.activators.CPojoBase" interface { $name=
+ "org.psem2m.isolates.services.remote.signals.ISignalBroadcastProvider
+ " }field { $name="pDirectories" $type="org.psem2m.isolates.services.r
+ emote.signals.ISignalsDirectory[]" }field { $name="pExecutor" $type="
+ java.util.concurrent.ExecutorService" }field { $name="pLogger" $type=
+ "org.osgi.service.log.LogService" }field { $name="pLoggerAccessible" 
+ $type="java.util.concurrent.atomic.AtomicBoolean" }field { $name="pSe
+ rializers" $type="org.psem2m.isolates.services.remote.signals.ISignal
+ DataSerializer[]" }method { $name="internalSendData" $arguments="{jav
+ a.net.URL[],java.lang.Object}" }method { $name="invalidatePojo" }meth
+ od { $name="isolateAccessToUrl" $return="java.net.URL" $arguments="{j
+ ava.lang.String,java.net.URI}" }method { $name="isolateIdToUrl" $retu
+ rn="java.net.URL" $arguments="{java.lang.String,java.net.URI}" }metho
+ d { $name="isolatesIdsToUrl" $return="java.net.URL[]" $arguments="{ja
+ va.lang.String[],java.net.URI}" }method { $name="logSenderThreadError
+ " $arguments="{java.lang.String,java.lang.Exception}" }method { $name
+ ="sendData" $arguments="{org.psem2m.isolates.services.remote.signals.
+ ISignalBroadcaster$EEmitterTargets,java.lang.String,java.lang.Object}
+ " }method { $name="sendData" $return="boolean" $arguments="{java.lang
+ .String,java.lang.String,java.lang.Object}" }method { $name="targetsT
+ oUrl" $return="java.net.URL[]" $arguments="{org.psem2m.isolates.servi
+ ces.remote.signals.ISignalBroadcaster$EEmitterTargets,java.net.URI}" 
+ }method { $name="validatePojo" }}}
 
