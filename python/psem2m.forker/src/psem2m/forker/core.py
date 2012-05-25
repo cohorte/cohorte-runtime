@@ -12,7 +12,7 @@ __docformat__ = "restructuredtext en"
 # ------------------------------------------------------------------------------
 
 from pelix.ipopo.decorators import ComponentFactory, Provides, Requires, \
-    Property, Instantiate, Validate, Invalidate, Bind
+    Instantiate, Validate, Invalidate, Bind
 
 # ------------------------------------------------------------------------------
 

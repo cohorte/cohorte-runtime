@@ -1,10 +1,11 @@
 {
     "id":"org.psem2m.internals.isolates.monitor-1",
-    "kind":"felix",
+    "kind":"equinox",
     "httpPort":9000,
     "vmArgs":[
         "-Xms32M",
-        "-Xmx64M"
+        "-Xmx64M",
+        "-Dosgi.shell.telnet.port=6000"
     ],
     "bundles":[
         {
@@ -65,6 +66,9 @@
         },
 		{
 		    "symbolicName":"org.psem2m.composer.demo.api"
-		}
+		},
+		{
+            "symbolicName":"org.psem2m.forkers.aggregator"
+        }
     ]
 }
