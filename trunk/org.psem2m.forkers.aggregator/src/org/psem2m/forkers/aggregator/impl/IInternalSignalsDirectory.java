@@ -1,16 +1,17 @@
 /**
  * File:   IInternalSignalsDirectory.java
- * Author: "Thomas Calmant"
+ * Author: Thomas Calmant
  * Date:   25 mai 2012
  */
 package org.psem2m.forkers.aggregator.impl;
 
 /**
- * @author Thomas Calmant
+ * Interface implemented by internal directories
  * 
+ * @author Thomas Calmant
  */
 public interface IInternalSignalsDirectory {
 
     /** Get the forker ID for the given host name */
-    public String getForkerForHost(String aHostName);
+    String getForkerForHost(String aHostName);
 }

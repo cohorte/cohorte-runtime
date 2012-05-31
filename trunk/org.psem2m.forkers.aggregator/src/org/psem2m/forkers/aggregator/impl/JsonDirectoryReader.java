@@ -19,7 +19,7 @@ import org.json.JSONObject;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 
 /**
- * The JSON directory reader
+ * The JSON directory file reader
  * 
  * @author Thomas Calmant
  */

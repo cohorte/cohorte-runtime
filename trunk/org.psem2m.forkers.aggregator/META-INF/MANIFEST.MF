@@ -22,49 +22,50 @@ iPOJO-Components: instance { $component="org.psem2m.forkers.aggregator
  forker-aggregator-factory" $public="false" provides { $specifications
  ="{org.psem2m.isolates.services.forker.IForker}" }requires { $field="
  pInternalDirectory" }requires { $field="pLogger" }requires { $field="
- pSender" }callback { $transition="invalidate" $method="invalidate" }m
- anipulation { interface { $name="org.psem2m.isolates.services.forker.
- IForker" }interface { $name="org.psem2m.isolates.services.remote.sign
- als.ISignalListener" }field { $name="pInternalDirectory" $type="org.p
- sem2m.forkers.aggregator.impl.IInternalSignalsDirectory" }field { $na
- me="pIsolateForkers" $type="java.util.Map" }field { $name="pLogger" $
- type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pRe
- sults" $type="java.util.Map" }field { $name="pSender" $type="org.psem
- 2m.isolates.services.remote.signals.ISignalBroadcaster" }field { $nam
- e="pWaiters" $type="java.util.Map" }method { $name="bindSignalReceive
- r" $arguments="{org.psem2m.isolates.services.remote.signals.ISignalRe
- ceiver}" }method { $name="getHostName" $return="java.lang.String" }me
- thod { $name="handleReceivedSignal" $arguments="{java.lang.String,org
- .psem2m.isolates.services.remote.signals.ISignalData}" }method { $nam
- e="invalidate" }method { $name="ping" $return="int" $arguments="{java
- .lang.String}" }method { $name="sendOrder" $return="int" $arguments="
- {java.lang.String,java.lang.String,java.util.Map}" }method { $name="s
- tartIsolate" $return="int" $arguments="{java.util.Map}" }method { $na
- me="stopIsolate" $arguments="{java.lang.String}" }method { $name="wai
- tForResult" $return="java.lang.Integer" $arguments="{int,long}" }}}co
- mponent { $classname="org.psem2m.forkers.aggregator.impl.InternalSign
- alsDirectory" $name="psem2m-signals-internal-directory-factory" $publ
- ic="false" provides { $specifications="{org.psem2m.isolates.services.
- remote.signals.ISignalsDirectory,org.psem2m.forkers.aggregator.impl.I
- InternalSignalsDirectory}" }requires { $field="pFinder" }requires { $
- field="pLogger" }callback { $transition="invalidate" $method="invalid
- ate" }callback { $transition="validate" $method="validate" }manipulat
- ion { interface { $name="org.psem2m.isolates.services.remote.signals.
- ISignalsDirectory" }interface { $name="org.psem2m.forkers.aggregator.
- impl.IInternalSignalsDirectory" }field { $name="pFinder" $type="org.p
- sem2m.isolates.services.dirs.IFileFinderSvc" }field { $name="pLogger"
-  $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="p
- Reader" $type="org.psem2m.forkers.aggregator.impl.JsonDirectoryReader
- " }method { $name="getCurrentIsolateId" $return="java.lang.String" }m
- ethod { $name="getForkerForHost" $return="java.lang.String" $argument
- s="{java.lang.String}" }method { $name="getIsolate" $return="java.lan
- g.String" $arguments="{java.lang.String}" }method { $name="getIsolate
- s" $return="java.lang.String[]" $arguments="{java.util.Collection}" }
- method { $name="getIsolates" $return="java.lang.String[]" $arguments=
- "{org.psem2m.isolates.services.remote.signals.ISignalBroadcaster$EEmi
- tterTargets}" }method { $name="getIsolates" $return="java.lang.String
- []" $arguments="{java.lang.String}" }method { $name="getIsolates" $re
- turn="java.lang.String[]" $arguments="{java.lang.String[]}" }method {
-  $name="invalidate" }method { $name="reloadDirectory" $return="boolea
- n" }method { $name="validate" }}}
+ pSender" }requires { $id="SignalReceiver" callback { $method="bindSig
+ nalReceiver" $type="bind" }}callback { $transition="invalidate" $meth
+ od="invalidate" }manipulation { interface { $name="org.psem2m.isolate
+ s.services.forker.IForker" }interface { $name="org.psem2m.isolates.se
+ rvices.remote.signals.ISignalListener" }field { $name="pInternalDirec
+ tory" $type="org.psem2m.forkers.aggregator.impl.IInternalSignalsDirec
+ tory" }field { $name="pIsolateForkers" $type="java.util.Map" }field {
+  $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }
+ field { $name="pResults" $type="java.util.Map" }field { $name="pSende
+ r" $type="org.psem2m.isolates.services.remote.signals.ISignalBroadcas
+ ter" }field { $name="pWaiters" $type="java.util.Map" }method { $name=
+ "bindSignalReceiver" $arguments="{org.psem2m.isolates.services.remote
+ .signals.ISignalReceiver}" }method { $name="getHostName" $return="jav
+ a.lang.String" }method { $name="handleReceivedSignal" $arguments="{ja
+ va.lang.String,org.psem2m.isolates.services.remote.signals.ISignalDat
+ a}" }method { $name="invalidate" }method { $name="ping" $return="int"
+  $arguments="{java.lang.String}" }method { $name="sendOrder" $return=
+ "int" $arguments="{java.lang.String,java.lang.String,java.util.Map}" 
+ }method { $name="startIsolate" $return="int" $arguments="{java.util.M
+ ap}" }method { $name="stopIsolate" $arguments="{java.lang.String}" }m
+ ethod { $name="waitForResult" $return="java.lang.Integer" $arguments=
+ "{int,long}" }}}component { $classname="org.psem2m.forkers.aggregator
+ .impl.InternalSignalsDirectory" $name="psem2m-signals-internal-direct
+ ory-factory" $public="false" provides { $specifications="{org.psem2m.
+ isolates.services.remote.signals.ISignalsDirectory,org.psem2m.forkers
+ .aggregator.impl.IInternalSignalsDirectory}" }requires { $field="pFin
+ der" }requires { $field="pLogger" }callback { $transition="invalidate
+ " $method="invalidate" }callback { $transition="validate" $method="va
+ lidate" }manipulation { interface { $name="org.psem2m.isolates.servic
+ es.remote.signals.ISignalsDirectory" }interface { $name="org.psem2m.f
+ orkers.aggregator.impl.IInternalSignalsDirectory" }field { $name="pFi
+ nder" $type="org.psem2m.isolates.services.dirs.IFileFinderSvc" }field
+  { $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc"
+  }field { $name="pReader" $type="org.psem2m.forkers.aggregator.impl.J
+ sonDirectoryReader" }method { $name="getCurrentIsolateId" $return="ja
+ va.lang.String" }method { $name="getForkerForHost" $return="java.lang
+ .String" $arguments="{java.lang.String}" }method { $name="getIsolate"
+  $return="java.lang.String" $arguments="{java.lang.String}" }method {
+  $name="getIsolates" $return="java.lang.String[]" $arguments="{java.u
+ til.Collection}" }method { $name="getIsolates" $return="java.lang.Str
+ ing[]" $arguments="{org.psem2m.isolates.services.remote.signals.ISign
+ alBroadcaster$EEmitterTargets}" }method { $name="getIsolates" $return
+ ="java.lang.String[]" $arguments="{java.lang.String}" }method { $name
+ ="getIsolates" $return="java.lang.String[]" $arguments="{java.lang.St
+ ring[]}" }method { $name="invalidate" }method { $name="reloadDirector
+ y" $return="boolean" }method { $name="validate" }}}
 

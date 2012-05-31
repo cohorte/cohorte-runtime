@@ -26,6 +26,10 @@ import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster.EEmitterTa
 import org.psem2m.isolates.services.remote.signals.ISignalsDirectory;
 
 /**
+ * A simple internal directory provider.
+ * 
+ * Uses a JSON configuration file. Handles aliases.
+ * 
  * @author Thomas Calmant
  */
 @Component(name = "psem2m-signals-internal-directory-factory", publicFactory = false)
