@@ -203,6 +203,7 @@ public class InternalSignalsDirectory implements ISignalsDirectory,
     public void invalidate() {
 
         pReader.reset();
+        pReader.setLogger(null);
         pReader = null;
     }
 
@@ -247,7 +248,7 @@ public class InternalSignalsDirectory implements ISignalsDirectory,
     public void validate() {
 
         pReader = new JsonDirectoryReader();
-        pReader.pLogger = pLogger;
+        pReader.setLogger(pLogger);
         reloadDirectory();
     }
 }

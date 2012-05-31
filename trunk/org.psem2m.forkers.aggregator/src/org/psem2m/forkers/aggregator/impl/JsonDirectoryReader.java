@@ -25,14 +25,20 @@ import org.psem2m.isolates.base.IIsolateLoggerSvc;
  */
 public class JsonDirectoryReader {
 
+    /** Local host alias */
+    public static final String LOCALHOST_NAME = "localhost";
+
+    /** Aliases */
+    private final Map<String, String> pAliases = new HashMap<String, String>();
+
     /** The directory : ID -&gt; Access */
     private final Map<String, String> pDirectory = new HashMap<String, String>();
 
     /** Host -&gt; IDs */
     private final Map<String, List<String>> pHosts = new HashMap<String, List<String>>();
 
-    /** FIXME */
-    public IIsolateLoggerSvc pLogger;
+    /** The logger (can be null) */
+    private IIsolateLoggerSvc pLogger;
 
     /**
      * Retrieves a copy of the current directory
@@ -47,6 +53,24 @@ public class JsonDirectoryReader {
     }
 
     /**
+     * Returns the real host name for the given one, dereferencing aliases.
+     * 
+     * @param aHostName
+     *            A host name (alias or not)
+     * @return The unaliased host name
+     */
+    protected String getHostName(final String aHostName) {
+
+        synchronized (pAliases) {
+            if (pAliases.containsKey(aHostName)) {
+                return pAliases.get(aHostName);
+            }
+        }
+
+        return aHostName;
+    }
+
+    /**
      * Retrieves the access URL of the given isolate ID
      * 
      * @param aIsolateId
@@ -55,7 +79,9 @@ public class JsonDirectoryReader {
      */
     public String getIsolateAccess(final String aIsolateId) {
 
-        return pDirectory.get(aIsolateId);
+        synchronized (pDirectory) {
+            return pDirectory.get(aIsolateId);
+        }
     }
 
     /**
@@ -65,7 +91,9 @@ public class JsonDirectoryReader {
      */
     public String[] getIsolates() {
 
-        return pDirectory.keySet().toArray(new String[0]);
+        synchronized (pDirectory) {
+            return pDirectory.keySet().toArray(new String[0]);
+        }
     }
 
     /**
@@ -77,7 +105,7 @@ public class JsonDirectoryReader {
      */
     public String[] getIsolatesForHost(final String aHostName) {
 
-        final List<String> isolates = pHosts.get(aHostName);
+        final List<String> isolates = pHosts.get(getHostName(aHostName));
         if (isolates == null) {
             return null;
         }
@@ -105,58 +133,80 @@ public class JsonDirectoryReader {
         final String fileContent = new Scanner(aFile).useDelimiter("\\Z")
                 .next();
 
-        pLogger.logDebug(this, "loadFile", "Read :\n", fileContent);
-
         synchronized (pDirectory) {
-            try {
-                final JSONObject conf = new JSONObject(fileContent);
-
-                @SuppressWarnings("unchecked")
-                final Iterator<String> hosts = conf.keys();
-                while (hosts.hasNext()) {
-                    // Get the host name
-                    final String host = hosts.next();
-                    final List<String> hostIsolates = new ArrayList<String>();
-
-                    pLogger.logDebug(this, "loadFile", "host=", host);
-
-                    // Get the directory for the host
-                    final JSONObject directory = conf.getJSONObject(host);
+            synchronized (pAliases) {
+                try {
+                    final JSONObject conf = new JSONObject(fileContent);
 
                     @SuppressWarnings("unchecked")
-                    final Iterator<String> isolates = directory.keys();
-                    while (isolates.hasNext()) {
-                        final String isolate = isolates.next();
+                    final Iterator<String> hosts = conf.keys();
+                    while (hosts.hasNext()) {
 
-                        // Get the access port
-                        final int port = directory.getInt(isolate);
+                        // Get the host name
+                        final String host = hosts.next();
 
-                        final StringBuilder access = new StringBuilder();
-                        access.append("http://");
-                        access.append(host);
-                        access.append(":");
-                        access.append(port);
+                        // Get the raw object
+                        final Object hostContent = conf.get(host);
+                        if (hostContent instanceof String) {
+                            // It's an alias
+                            pAliases.put(host, (String) hostContent);
 
-                        pLogger.logDebug(this, "loadFile", "host=", host,
-                                ", access=", access);
+                        } else if (hostContent instanceof JSONObject) {
 
-                        pDirectory.put(isolate, access.toString());
-                        hostIsolates.add(isolate);
+                            // Get the directory for the host
+                            final JSONObject directory = (JSONObject) hostContent;
+
+                            final List<String> hostIsolates = new ArrayList<String>();
+
+                            @SuppressWarnings("unchecked")
+                            final Iterator<String> isolates = directory.keys();
+                            while (isolates.hasNext()) {
+                                final String isolate = isolates.next();
+
+                                // Get the access port
+                                final int port = directory.getInt(isolate);
+
+                                final StringBuilder access = new StringBuilder();
+                                access.append("http://");
+                                access.append(host);
+                                access.append(":");
+                                access.append(port);
+
+                                pDirectory.put(isolate, access.toString());
+                                hostIsolates.add(isolate);
+                            }
+
+                            if (!hostIsolates.isEmpty()) {
+                                pHosts.put(host, hostIsolates);
+                            }
+
+                        } else {
+                            // Invalid content
+                            final StringBuilder builder = new StringBuilder();
+                            builder.append("Invalid content type for '");
+                            builder.append(host);
+                            builder.append(": ");
+
+                            if (hostContent == null) {
+                                builder.append("<null>");
+
+                            } else {
+                                builder.append(hostContent.getClass()
+                                        .getSimpleName());
+                            }
+
+                            throw new JSONException(builder.toString());
+                        }
                     }
 
-                    if (!hostIsolates.isEmpty()) {
-                        pHosts.put(host, hostIsolates);
+                } catch (final JSONException ex) {
+                    if (pLogger != null) {
+                        pLogger.logSevere(this, "loadFile", "Error:", ex);
                     }
+                    return false;
                 }
-
-            } catch (final JSONException ex) {
-                pLogger.logSevere(this, "loadFile", "Error:", ex);
-                return false;
             }
         }
-
-        pLogger.logDebug(this, "loadFile", "RESULT=\n", pHosts, "\n",
-                pDirectory);
 
         // File read
         return true;
@@ -174,8 +224,7 @@ public class JsonDirectoryReader {
     public boolean loadFile(final String aFileName)
             throws FileNotFoundException {
 
-        final File file = new File(aFileName);
-        return loadFile(file);
+        return loadFile(new File(aFileName));
     }
 
     /**
@@ -183,8 +232,27 @@ public class JsonDirectoryReader {
      */
     public void reset() {
 
+        synchronized (pHosts) {
+            pHosts.clear();
+        }
+
         synchronized (pDirectory) {
             pDirectory.clear();
         }
+
+        synchronized (pAliases) {
+            pAliases.clear();
+        }
+    }
+
+    /**
+     * Sets the logger to be used by this directory reader
+     * 
+     * @param aLogger
+     *            A logger (can be null)
+     */
+    public void setLogger(final IIsolateLoggerSvc aLogger) {
+
+        pLogger = aLogger;
     }
 }
