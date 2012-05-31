@@ -1,0 +1,28 @@
+{
+    "id":"org.psem2m.internals.isolates.forker",
+    "kind":"pelix",
+    "httpPort":9001,
+    "bundles":[
+        {
+            "symbolicName":"base.httpsvc"
+        },
+        {
+            "symbolicName":"base.signals"
+        },
+        {
+            "symbolicName":"psem2m.forker.core"
+        },
+        {
+            "symbolicName":"psem2m.runner.java"
+        },
+        {
+            "symbolicName":"psem2m.runner.python"
+        },
+        {
+            "symbolicName":"psem2m.runner.exe"
+        },
+        {
+            "symbolicName":"psem2m.forker.cmd_agent"
+        }
+    ]
+}

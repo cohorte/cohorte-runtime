@@ -1,0 +1,15 @@
+{
+    "localhost":"phenomtwo3000",
+    "phenomtwo3000":{
+        "org.psem2m.internals.isolates.monitor-1":9000,
+        "org.psem2m.internals.isolates.forker":9001
+    },
+    "snowball":"10.130.1.91",
+    "10.130.1.91":{
+        "org.psem2m.internals.isolates.forker.snowball":9001
+    },
+    "plugy":"10.130.1.100",
+    "10.130.1.100":{
+        "org.psem2m.internals.isolates.forker.plugy":9001
+    }
+}
