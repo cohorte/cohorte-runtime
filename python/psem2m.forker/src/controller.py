@@ -253,11 +253,15 @@ class Main(object):
 
         # Forker and monitor need to be started
         args = [sys.executable, "-m", "psem2m.forker.boot",
-                "--start-forker", "--with-monitor"]
+                "--start-forker"]
 
         # Activate debug mode
-        if '-d' in extra_args:
+        if '-d' in extra_args or '--debug' in extra_args:
             args.append('--debug')
+
+        # Start the monitor except if told otherwise
+        if '-s' not in extra_args and '--single' not in extra_args:
+            args.append("--with-monitor")
 
         # Set up environment (home and base are already there)
         env = os.environ.copy()
