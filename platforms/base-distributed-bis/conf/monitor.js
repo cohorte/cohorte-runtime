@@ -39,6 +39,9 @@
             "from":"jsonrpc.js"
         },
         {
+            "symbolicName":"org.psem2m.forkers.aggregator"
+        },
+        {
             "from":"remote-services.js",
             "overriddenProperties":{
                     "org.psem2m.remote.filters.exclude":"*.demo.*"
@@ -67,9 +70,6 @@
         },
 		{
 		    "symbolicName":"org.psem2m.composer.demo.api"
-		},
-		{
-            "symbolicName":"org.psem2m.forkers.aggregator"
-        }
+		}
     ]
 }

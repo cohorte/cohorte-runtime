@@ -3,6 +3,25 @@
     "isolates":[
         {
             "from":"forker.js"
+        },
+        {
+            "id":"demo.snowball",
+            "kind":"pelix",
+            "httpPort":9100,
+            "bundles":[
+                {
+                    "symbolicName":"base.httpsvc"
+                },
+                {
+                    "symbolicName":"base.signals"
+                },
+                {
+                    "symbolicName":"base.remoteservices"
+                },
+                {
+                    "symbolicName":"consumer"
+                }
+            ]
         }
     ]
 }

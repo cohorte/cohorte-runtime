@@ -24,10 +24,13 @@
                 {
                     "symbolicName":"provider"
                 }
-            ]
+            ],
+            "environment":{
+                "PYTHONPATH":"/home/tcalmant/programmation/workspaces/psem2m/platforms/base-distributed-bis/bin"
+            }
         },
         {
-            "id":"demo.central",
+            "id":"demo.snowball",
             "kind":"pelix",
             "host":"10.130.1.91",
             "httpPort":9100,
