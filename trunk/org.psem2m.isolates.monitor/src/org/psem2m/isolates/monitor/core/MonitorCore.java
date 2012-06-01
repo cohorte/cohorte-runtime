@@ -172,8 +172,8 @@ public class MonitorCore extends CPojoBase implements
                 continue;
 
             } else if (isolateId
-                    .equals(IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER)) {
-                // Do not start the forker that way
+                    .startsWith(IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER)) {
+                // Do not start a forker that way
                 continue;
 
             } else {
@@ -228,12 +228,6 @@ public class MonitorCore extends CPojoBase implements
         final String isolateHostName = isolateDescr.getHostName();
         if (isolateHostName == null) {
             // No host name : refuse it
-            return null;
-        }
-
-        if (!isolateHostName.equals("localhost")
-                && !isolateHostName.equals(pHostName)) {
-            // Not of our business
             return null;
         }
 
