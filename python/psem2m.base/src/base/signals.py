@@ -222,6 +222,162 @@ class IsolateDirectory(object):
 
 # ------------------------------------------------------------------------------
 
+@ComponentFactory("InternalDirectoryFactory")
+@Instantiate("InternalSignalDirectory")
+@Provides("org.psem2m.IsolateDirectory")
+@Requires("finder", "org.psem2m.isolates.services.dirs.IFileFinderSvc")
+class InternalDirectory(object):
+    """
+    Reads the internal-directory.js file
+    """
+    def __init__(self):
+        """
+        Constructor
+        """
+        self.finder = None
+        self._aliases = {}
+        self._directory = {}
+        self._hosts = {}
+
+
+    def get_current_isolate_id(self):
+        """
+        Retrieves the host isolate ID
+        
+        :return: The current isolate ID
+        """
+        return os.getenv("PSEM2M_ISOLATE_ID", "<unknown>")
+
+
+    def get_isolate(self, isolate_id):
+        """
+        Retrieves the (host, port) access tuple to the given isolate. Returns
+        None if the isolate is unknown. Access to the current isolate and the
+        forker can be returned by this method.
+        
+        :param isolate_id: An isolate ID
+        :return: The (host, port) tuple to access the isolate, or None
+        """
+        return self._directory.get(isolate_id, None)
+
+
+    def get_isolates(self, isolates_ids):
+        """
+        Retrieves the access string of each of the given isolates.
+        The parameter can be an array of isolate IDs or one of :
+        
+        * "*" or "ALL" : target monitors and isolates
+        * "MONITORS" : target monitors only
+        * "ISOLATES" : target isolates only
+        
+        Unknown isolates are ignored.
+        Returns None if all given isolates are unknown.
+        
+        Current isolate and the forker (in PSEM2M) access URLs **must not**
+        be returned by this method.
+
+        :param isolates_ids: An array of isolate IDs or a target name
+        :return: Access strings to the known isolates, null if none is known.
+        """
+        if not isolates_ids:
+            # Don't work for nothing
+            return None
+
+        if utilities.is_string(isolates_ids):
+            # Targets
+            if isolates_ids == "*" or isolates_ids == "ALL":
+                # Retrieve all isolates at once
+                return self.get_isolates(set((isolate for isolate
+                            in self._directory.keys()
+                            if not isolate.startswith("org.psem2m.internals"))))
+
+            elif isolates_ids == "MONITORS":
+                # Retrieve all monitors
+                return self.get_isolates(set((isolate for isolate
+                            in self._directory.keys()
+                            if isolate.startswith("org.psem2m.internals.isolates.monitor"))))
+
+            # Isolate
+            url = self.get_isolate(isolates_ids)
+            if url is not None:
+                return [url]
+
+            return None
+
+        else:
+            result = []
+
+            for isolate in isolates_ids:
+                # Standard work
+                if not isolate.startswith("org.psem2m.internals"):
+                    url = self.get_isolate(isolate)
+                    if url is not None:
+                        result.append(url)
+
+            if len(result) == 0:
+                return None
+
+            return result
+
+
+    def __load_directory(self, filename):
+        """
+        Loads the internal directory
+        """
+        self._aliases.clear()
+        self._directory.clear()
+        self._hosts.clear()
+
+        dirfile = self.finder.find(filename)
+        if not dirfile:
+            _logger.warn("No internal directory file found")
+            return
+
+        try:
+            with open(dirfile[0], "r") as dirfp:
+                root = json.load(dirfp)
+
+        except IOError:
+            _logger.exception("Error reading directory '%s'", dirfile)
+            return
+
+        for host in root:
+            host_content = root[host]
+
+            if utilities.is_string(host_content):
+                # Alias
+                self._aliases[host] = host_content
+
+            else:
+                # Isolates
+                host_isolates = []
+
+                for isolate in host_content:
+                    self._directory[isolate] = (host, host_content[isolate])
+                    host_isolates.append(isolate)
+
+                self._hosts[host] = host_isolates
+
+    @Validate
+    def validate(self, context):
+        """
+        Component validation
+        """
+        self.__load_directory("conf/internal-directory.js")
+
+
+    @Invalidate
+    def invalidate(self, context):
+        """
+        Component invalidation
+        """
+        self._aliases.clear()
+        self._directory.clear()
+        self._hosts.clear()
+
+
+# ------------------------------------------------------------------------------
+
 def read_post_body(request_handler):
     """
     Reads the body of a POST request, returns an empty string on error
@@ -369,7 +525,7 @@ class SignalReceiver(object):
 @ComponentFactory("SignalSenderFactory")
 @Instantiate("SignalSender")
 @Provides("org.psem2m.SignalSender")
-@Requires("directory", "org.psem2m.IsolateDirectory")
+@Requires("directories", "org.psem2m.IsolateDirectory", aggregate=True)
 @Requires("local_recv", "org.psem2m.SignalReceiver")
 class SignalSender(object):
     """
@@ -379,7 +535,7 @@ class SignalSender(object):
         """
         Constructor
         """
-        self.directory = None
+        self.directories = []
 
 
     def _internal_send(self, urls, name, data):
@@ -388,7 +544,7 @@ class SignalSender(object):
         """
         signal = {
             JAVA_CLASS: "org.psem2m.remotes.signals.http.HttpSignalData",
-            "isolateSender": self.directory.get_current_isolate_id(),
+            "isolateSender": self.directories[0].get_current_isolate_id(),
             "senderHostName": "localhost",
             "signalContent": data,
             "timestamp": int(time.time() * 1000)
@@ -452,7 +608,7 @@ class SignalSender(object):
         """
         Retrieves the current isolate ID
         """
-        return self.directory.get_current_isolate_id()
+        return self.directories[0].get_current_isolate_id()
 
 
     def send_data(self, target, name, data):
@@ -467,12 +623,14 @@ class SignalSender(object):
             _logger.warn("No target given")
             return
 
-        urls = self.directory.get_isolates(target)
-        if urls is None:
-            _logger.warn("Unknown target(s) - '%s'", target)
-            return
+        for directory in self.directories:
+            urls = directory.get_isolates(target)
+            if urls is not None:
+                self._internal_send(urls, name, data)
+                break
 
-        self._internal_send(urls, name, data)
+        else:
+            _logger.warn("Unknown target(s) - '%s'", target)
 
 
 @ComponentFactory("SlaveAgentFactory")
