@@ -16,4 +16,10 @@ public interface IInternalSignalsDirectory extends ISignalsDirectory {
 
     /** Get the forker ID for the given host name */
     String getForkerForHost(String aHostName);
+
+    /** Get all forkers IDs */
+    String[] getForkers();
+
+    /** Get all monitors IDs */
+    String[] getMonitors();
 }

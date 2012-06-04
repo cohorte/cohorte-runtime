@@ -55,6 +55,36 @@ public class InternalSignalsDirectory implements IInternalSignalsDirectory {
     /** The configuration reader */
     private JsonDirectoryReader pReader;
 
+    /**
+     * Retrieves all isolates IDs that starts with the given prefix.
+     * 
+     * @param aPrefix
+     *            A string prefix
+     * @return All matching isolates, or null
+     */
+    public String[] getAllPrefixedIds(final String aPrefix) {
+
+        final String[] isolates = pReader.getIsolates();
+        if (isolates == null) {
+            // Nothing to do
+            return null;
+        }
+
+        final List<String> matching = new ArrayList<String>();
+        for (final String isolate : isolates) {
+            if (isolate.startsWith(aPrefix)) {
+                matching.add(isolate);
+            }
+        }
+
+        if (matching.isEmpty()) {
+            // Nothing to return
+            return null;
+        }
+
+        return matching.toArray(new String[0]);
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -91,6 +121,18 @@ public class InternalSignalsDirectory implements IInternalSignalsDirectory {
 
         // Not found
         return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.forkers.aggregator.impl.IInternalSignalsDirectory#getForkers()
+     */
+    @Override
+    public String[] getForkers() {
+
+        return getAllPrefixedIds(FORKER_PREFIX);
     }
 
     /*
@@ -137,7 +179,7 @@ public class InternalSignalsDirectory implements IInternalSignalsDirectory {
         switch (aTargets) {
 
         case MONITORS:
-            return getIsolates("org.psem2m.internals.monitor");
+            return getIsolates(MONITOR_PREFIX);
 
         case FORKER:
             return getIsolates(FORKER_PREFIX);
@@ -197,6 +239,19 @@ public class InternalSignalsDirectory implements IInternalSignalsDirectory {
         }
 
         return isolates.toArray(new String[0]);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.forkers.aggregator.impl.IInternalSignalsDirectory#getMonitors
+     * ()
+     */
+    @Override
+    public String[] getMonitors() {
+
+        return getAllPrefixedIds(MONITOR_PREFIX);
     }
 
     /**

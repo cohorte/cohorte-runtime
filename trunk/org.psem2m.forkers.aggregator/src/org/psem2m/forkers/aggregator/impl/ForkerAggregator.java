@@ -21,7 +21,6 @@ import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.services.forker.IForker;
 import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
-import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster.EEmitterTargets;
 import org.psem2m.isolates.services.remote.signals.ISignalData;
 import org.psem2m.isolates.services.remote.signals.ISignalListener;
 import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
@@ -206,8 +205,7 @@ public class ForkerAggregator implements IForker, ISignalListener {
     @Override
     public void setPlatformStopping() {
 
-        final String[] forkers = pInternalDirectory
-                .getIsolates(EEmitterTargets.FORKER);
+        final String[] forkers = pInternalDirectory.getForkers();
         if (forkers == null) {
             return;
         }

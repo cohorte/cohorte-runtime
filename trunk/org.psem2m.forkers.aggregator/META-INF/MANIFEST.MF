@@ -55,17 +55,20 @@ iPOJO-Components: instance { $component="org.psem2m.forkers.aggregator
  ory" }field { $name="pFinder" $type="org.psem2m.isolates.services.dir
  s.IFileFinderSvc" }field { $name="pLogger" $type="org.psem2m.isolates
  .base.IIsolateLoggerSvc" }field { $name="pReader" $type="org.psem2m.f
- orkers.aggregator.impl.JsonDirectoryReader" }method { $name="getCurre
- ntIsolateId" $return="java.lang.String" }method { $name="getForkerFor
- Host" $return="java.lang.String" $arguments="{java.lang.String}" }met
- hod { $name="getIsolate" $return="java.lang.String" $arguments="{java
- .lang.String}" }method { $name="getIsolates" $return="java.lang.Strin
- g[]" $arguments="{java.util.Collection}" }method { $name="getIsolates
- " $return="java.lang.String[]" $arguments="{org.psem2m.isolates.servi
- ces.remote.signals.ISignalBroadcaster$EEmitterTargets}" }method { $na
- me="getIsolates" $return="java.lang.String[]" $arguments="{java.lang.
- String}" }method { $name="getIsolates" $return="java.lang.String[]" $
- arguments="{java.lang.String[]}" }method { $name="invalidate" }method
-  { $name="reloadDirectory" $return="boolean" }method { $name="validat
- e" }}}
+ orkers.aggregator.impl.JsonDirectoryReader" }method { $name="getAllPr
+ efixedIds" $return="java.lang.String[]" $arguments="{java.lang.String
+ }" }method { $name="getCurrentIsolateId" $return="java.lang.String" }
+ method { $name="getForkerForHost" $return="java.lang.String" $argumen
+ ts="{java.lang.String}" }method { $name="getForkers" $return="java.la
+ ng.String[]" }method { $name="getIsolate" $return="java.lang.String" 
+ $arguments="{java.lang.String}" }method { $name="getIsolates" $return
+ ="java.lang.String[]" $arguments="{java.util.Collection}" }method { $
+ name="getIsolates" $return="java.lang.String[]" $arguments="{org.psem
+ 2m.isolates.services.remote.signals.ISignalBroadcaster$EEmitterTarget
+ s}" }method { $name="getIsolates" $return="java.lang.String[]" $argum
+ ents="{java.lang.String}" }method { $name="getIsolates" $return="java
+ .lang.String[]" $arguments="{java.lang.String[]}" }method { $name="ge
+ tMonitors" $return="java.lang.String[]" }method { $name="invalidate" 
+ }method { $name="reloadDirectory" $return="boolean" }method { $name="
+ validate" }}}
 
