@@ -273,8 +273,7 @@ class Main(object):
         python_path.append(os.getcwd())
 
         # Libraries directory
-        for path in (os.path.join("python", "python.injection", "src"), \
-                     os.path.join("python", "psem2m.base", "src")):
+        for path in (os.path.join("python", "psem2m.base", "src"),):
             python_path.append(os.path.join(PSEM2M_GIT, path))
 
         for root in (PSEM2M_BASE, PSEM2M_HOME):
