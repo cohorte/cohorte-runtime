@@ -289,7 +289,7 @@ class InternalDirectory(object):
                 # Retrieve all isolates at once
                 return self.get_isolates(set((isolate for isolate
                             in self._directory.keys()
-                            if not isolate.startswith("org.psem2m.internals"))))
+                            if not isolate.startswith("org.psem2m.internals.forker"))))
 
             elif isolates_ids == "MONITORS":
                 # Retrieve all monitors
@@ -309,7 +309,7 @@ class InternalDirectory(object):
 
             for isolate in isolates_ids:
                 # Standard work
-                if not isolate.startswith("org.psem2m.internals"):
+                if not isolate.startswith("org.psem2m.internals.forker"):
                     url = self.get_isolate(isolate)
                     if url is not None:
                         result.append(url)
@@ -623,11 +623,17 @@ class SignalSender(object):
             _logger.warn("No target given")
             return
 
+        all_urls = []
+
         for directory in self.directories:
             urls = directory.get_isolates(target)
             if urls is not None:
-                self._internal_send(urls, name, data)
-                break
+                all_urls.extend(urls)
+
+        if len(all_urls) > 0:
+            # Remove duplicates
+            all_urls = set(all_urls)
+            self._internal_send(all_urls, name, data)
 
         else:
             _logger.warn("Unknown target(s) - '%s'", target)
