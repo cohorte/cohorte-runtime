@@ -57,7 +57,7 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
     private static final String IPOJO_ID_FACTORIES = "ipojo-factories";
 
     /** Components instances */
-    private Map<String, ComponentInstance> pComponentsInstances = new HashMap<String, ComponentInstance>();
+    private final Map<String, ComponentInstance> pComponentsInstances = new HashMap<String, ComponentInstance>();
 
     /** Local factories */
     private final Map<String, Factory> pFactories = new HashMap<String, Factory>();
@@ -165,6 +165,11 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
         // Register to all composer agent signals
         aSignalReceiver.registerListener(
                 ComposerAgentSignals.FILTER_ALL_REQUESTS, this);
+
+        // Indicate all our factories
+        pSignalBroadcaster.sendData(ISignalBroadcaster.EEmitterTargets.ALL,
+                ComposerAgentSignals.SIGNAL_ISOLATE_ADD_FACTORY, pFactories
+                        .keySet().toArray(new String[0]));
 
         pLogger.logInfo(this, "bindSignalReceiver",
                 "Bound to a signal receiver");
