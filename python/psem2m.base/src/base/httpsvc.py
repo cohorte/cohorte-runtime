@@ -113,6 +113,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         # Send content
         self.wfile.write(page.encode())
 
+# ------------------------------------------------------------------------------
 
 @ComponentFactory(name="HttpServiceFactory")
 @Instantiate("HttpService")

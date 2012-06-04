@@ -68,6 +68,9 @@ class IsolateLoader(object):
                 self._bundles.append(bnd)
 
             except pelix.BundleException:
+                _logger.exception("Error installing bundle %s",
+                                  bundle.get_symbolic_name())
+
                 if not bundle.optional:
                     # Reset isolate on error
                     self.reset()
@@ -78,12 +81,17 @@ class IsolateLoader(object):
         framework = self.context.get_bundle(0)
         framework.add_property("http.port", port)
 
+        _logger.debug("HTTP Port set to %d", port)
+
         # Start bundles
         for bundle in self._bundles:
             try:
                 bundle.start()
 
             except pelix.BundleException:
+                _logger.exception("Error starting bundle %s",
+                                  bundle.get_symbolic_name())
+
                 if not bundle.optional:
                     # Reset isolate on error
                     self.reset()
@@ -149,6 +157,7 @@ class IsolateLoader(object):
 
         if not self.setup_isolate():
             # An error occurred, stop the framework
+            _logger.error("An error occurred starting the bundle: Abandon.")
             context.get_bundle(0).stop()
 
     @Invalidate
