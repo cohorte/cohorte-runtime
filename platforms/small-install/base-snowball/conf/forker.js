@@ -10,6 +10,9 @@
             "symbolicName":"base.signals"
         },
         {
+            "symbolicName":"psem2m.forker.config_broker"
+        },
+        {
             "symbolicName":"psem2m.forker.core"
         },
         {
