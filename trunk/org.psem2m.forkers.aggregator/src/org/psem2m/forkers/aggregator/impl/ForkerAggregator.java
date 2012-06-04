@@ -21,6 +21,7 @@ import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.services.forker.IForker;
 import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
+import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster.EEmitterTargets;
 import org.psem2m.isolates.services.remote.signals.ISignalData;
 import org.psem2m.isolates.services.remote.signals.ISignalListener;
 import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
@@ -33,37 +34,8 @@ import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
 @Instantiate(name = "psem2m-forker-aggregator")
 public class ForkerAggregator implements IForker, ISignalListener {
 
-    /** The order ID request key */
-    public static final String CMD_ID = "requestToken";
-
-    /** The order result key */
-    public static final String RESULT_CODE = "result";
-
-    /** The order ID generator */
+    /** The command ID generator */
     private static final AtomicInteger sCmdId = new AtomicInteger();
-
-    /** The ping isolate signal */
-    public static final String SIGNAL_PING_ISOLATE = ForkerAggregator.SIGNAL_PREFIX
-            + "ping";
-
-    /** The signals prefix */
-    public static final String SIGNAL_PREFIX = "/psem2m/internals/forkers/";
-
-    /** The signal match string */
-    public static final String SIGNAL_PREFIX_MATCH_ALL = ForkerAggregator.SIGNAL_PREFIX
-            + "*";
-
-    /** The response signal */
-    public static final String SIGNAL_RESPONSE = ForkerAggregator.SIGNAL_PREFIX
-            + "response";
-
-    /** The start isolate signal */
-    public static final String SIGNAL_START_ISOLATE = ForkerAggregator.SIGNAL_PREFIX
-            + "start";
-
-    /** The stop isolate signal */
-    public static final String SIGNAL_STOP_ISOLATE = ForkerAggregator.SIGNAL_PREFIX
-            + "stop";
 
     /** The forkers directory */
     @Requires
@@ -95,7 +67,7 @@ public class ForkerAggregator implements IForker, ISignalListener {
     @Bind
     protected void bindSignalReceiver(final ISignalReceiver aReceiver) {
 
-        aReceiver.registerListener(SIGNAL_PREFIX_MATCH_ALL, this);
+        aReceiver.registerListener(IForkerOrders.SIGNAL_PREFIX_MATCH_ALL, this);
     }
 
     /*
@@ -120,19 +92,20 @@ public class ForkerAggregator implements IForker, ISignalListener {
     public void handleReceivedSignal(final String aSignalName,
             final ISignalData aSignalData) {
 
-        if (SIGNAL_RESPONSE.equals(aSignalName)) {
+        if (IForkerOrders.SIGNAL_RESPONSE.equals(aSignalName)) {
 
             final Object rawData = aSignalData.getSignalContent();
             if (rawData instanceof Map) {
 
                 final Map<?, ?> data = (Map<?, ?>) rawData;
-                final Integer cmdId = (Integer) data.get(CMD_ID);
+                final Integer cmdId = (Integer) data.get(IForkerOrders.CMD_ID);
                 if (cmdId == null) {
                     // Unusable data
                     return;
                 }
 
-                pResults.put(cmdId, (Integer) data.get(RESULT_CODE));
+                pResults.put(cmdId,
+                        (Integer) data.get(IForkerOrders.RESULT_CODE));
 
                 final Semaphore cmdWaiter = pWaiters.get(cmdId);
                 if (cmdWaiter != null) {
@@ -174,7 +147,8 @@ public class ForkerAggregator implements IForker, ISignalListener {
         order.put("isolateId", aIsolateId);
 
         // Send the order (don't care about the result)
-        final int cmdId = sendOrder(forker, SIGNAL_PING_ISOLATE, order);
+        final int cmdId = sendOrder(forker, IForkerOrders.SIGNAL_PING_ISOLATE,
+                order);
 
         // Wait a second...
         Integer result;
@@ -212,7 +186,7 @@ public class ForkerAggregator implements IForker, ISignalListener {
 
         // Prepare the command id
         final int cmdId = sCmdId.incrementAndGet();
-        aOrder.put(CMD_ID, cmdId);
+        aOrder.put(IForkerOrders.CMD_ID, cmdId);
 
         // Set up the waiter
         final Semaphore waiter = new Semaphore(0);
@@ -222,6 +196,26 @@ public class ForkerAggregator implements IForker, ISignalListener {
         pSender.sendData(aIsolate, aOrderName, aOrder);
 
         return cmdId;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.services.forker.IForker#setPlatformStopping()
+     */
+    @Override
+    public void setPlatformStopping() {
+
+        final String[] forkers = pInternalDirectory
+                .getIsolates(EEmitterTargets.FORKER);
+        if (forkers == null) {
+            return;
+        }
+
+        for (final String forker : forkers) {
+            pSender.sendData(forker, IForkerOrders.SIGNAL_PLATFORM_STOPPING,
+                    null);
+        }
     }
 
     /*
@@ -253,7 +247,8 @@ public class ForkerAggregator implements IForker, ISignalListener {
         pIsolateForkers.put((String) aIsolateConfiguration.get("id"), forker);
 
         // Send the order
-        final int cmdId = sendOrder(forker, SIGNAL_START_ISOLATE, order);
+        final int cmdId = sendOrder(forker, IForkerOrders.SIGNAL_START_ISOLATE,
+                order);
 
         // Wait a second...
         Integer result;
@@ -297,7 +292,7 @@ public class ForkerAggregator implements IForker, ISignalListener {
         order.put("isolateId", aIsolateId);
 
         // Send the order (don't care about the result)
-        sendOrder(forker, SIGNAL_STOP_ISOLATE, order);
+        sendOrder(forker, IForkerOrders.SIGNAL_STOP_ISOLATE, order);
     }
 
     /**

@@ -40,32 +40,32 @@ iPOJO-Components: instance { $component="org.psem2m.forkers.aggregator
  a}" }method { $name="invalidate" }method { $name="ping" $return="int"
   $arguments="{java.lang.String}" }method { $name="sendOrder" $return=
  "int" $arguments="{java.lang.String,java.lang.String,java.util.Map}" 
- }method { $name="startIsolate" $return="int" $arguments="{java.util.M
- ap}" }method { $name="stopIsolate" $arguments="{java.lang.String}" }m
- ethod { $name="waitForResult" $return="java.lang.Integer" $arguments=
- "{int,long}" }}}component { $classname="org.psem2m.forkers.aggregator
- .impl.InternalSignalsDirectory" $name="psem2m-signals-internal-direct
- ory-factory" $public="false" provides { $specifications="{org.psem2m.
- isolates.services.remote.signals.ISignalsDirectory,org.psem2m.forkers
- .aggregator.impl.IInternalSignalsDirectory}" }requires { $field="pFin
- der" }requires { $field="pLogger" }callback { $transition="invalidate
- " $method="invalidate" }callback { $transition="validate" $method="va
- lidate" }manipulation { interface { $name="org.psem2m.isolates.servic
- es.remote.signals.ISignalsDirectory" }interface { $name="org.psem2m.f
- orkers.aggregator.impl.IInternalSignalsDirectory" }field { $name="pFi
- nder" $type="org.psem2m.isolates.services.dirs.IFileFinderSvc" }field
-  { $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc"
-  }field { $name="pReader" $type="org.psem2m.forkers.aggregator.impl.J
- sonDirectoryReader" }method { $name="getCurrentIsolateId" $return="ja
- va.lang.String" }method { $name="getForkerForHost" $return="java.lang
- .String" $arguments="{java.lang.String}" }method { $name="getIsolate"
-  $return="java.lang.String" $arguments="{java.lang.String}" }method {
-  $name="getIsolates" $return="java.lang.String[]" $arguments="{java.u
- til.Collection}" }method { $name="getIsolates" $return="java.lang.Str
- ing[]" $arguments="{org.psem2m.isolates.services.remote.signals.ISign
- alBroadcaster$EEmitterTargets}" }method { $name="getIsolates" $return
- ="java.lang.String[]" $arguments="{java.lang.String}" }method { $name
- ="getIsolates" $return="java.lang.String[]" $arguments="{java.lang.St
- ring[]}" }method { $name="invalidate" }method { $name="reloadDirector
- y" $return="boolean" }method { $name="validate" }}}
+ }method { $name="setPlatformStopping" }method { $name="startIsolate" 
+ $return="int" $arguments="{java.util.Map}" }method { $name="stopIsola
+ te" $arguments="{java.lang.String}" }method { $name="waitForResult" $
+ return="java.lang.Integer" $arguments="{int,long}" }}}component { $cl
+ assname="org.psem2m.forkers.aggregator.impl.InternalSignalsDirectory"
+  $name="psem2m-signals-internal-directory-factory" $public="false" pr
+ ovides { $specifications="{org.psem2m.isolates.services.remote.signal
+ s.ISignalsDirectory,org.psem2m.forkers.aggregator.impl.IInternalSigna
+ lsDirectory}" }requires { $field="pFinder" }requires { $field="pLogge
+ r" }callback { $transition="invalidate" $method="invalidate" }callbac
+ k { $transition="validate" $method="validate" }manipulation { interfa
+ ce { $name="org.psem2m.forkers.aggregator.impl.IInternalSignalsDirect
+ ory" }field { $name="pFinder" $type="org.psem2m.isolates.services.dir
+ s.IFileFinderSvc" }field { $name="pLogger" $type="org.psem2m.isolates
+ .base.IIsolateLoggerSvc" }field { $name="pReader" $type="org.psem2m.f
+ orkers.aggregator.impl.JsonDirectoryReader" }method { $name="getCurre
+ ntIsolateId" $return="java.lang.String" }method { $name="getForkerFor
+ Host" $return="java.lang.String" $arguments="{java.lang.String}" }met
+ hod { $name="getIsolate" $return="java.lang.String" $arguments="{java
+ .lang.String}" }method { $name="getIsolates" $return="java.lang.Strin
+ g[]" $arguments="{java.util.Collection}" }method { $name="getIsolates
+ " $return="java.lang.String[]" $arguments="{org.psem2m.isolates.servi
+ ces.remote.signals.ISignalBroadcaster$EEmitterTargets}" }method { $na
+ me="getIsolates" $return="java.lang.String[]" $arguments="{java.lang.
+ String}" }method { $name="getIsolates" $return="java.lang.String[]" $
+ arguments="{java.lang.String[]}" }method { $name="invalidate" }method
+  { $name="reloadDirectory" $return="boolean" }method { $name="validat
+ e" }}}
 

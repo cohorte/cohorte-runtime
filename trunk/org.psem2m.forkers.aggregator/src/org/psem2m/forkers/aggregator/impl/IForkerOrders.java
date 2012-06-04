@@ -22,6 +22,10 @@ public interface IForkerOrders {
     /** The ping isolate signal */
     String SIGNAL_PING_ISOLATE = IForkerOrders.SIGNAL_PREFIX + "ping";
 
+    /** The platform stopping signal */
+    String SIGNAL_PLATFORM_STOPPING = IForkerOrders.SIGNAL_PREFIX
+            + "platform-stopping";
+
     /** The signals prefix */
     String SIGNAL_PREFIX = "/psem2m/internals/forkers/";
 

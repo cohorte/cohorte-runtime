@@ -153,6 +153,18 @@ public class CForkerSvc extends CPojoBase implements IForker,
     /*
      * (non-Javadoc)
      * 
+     * @see org.psem2m.isolates.services.forker.IForker#setPlatformStopping()
+     */
+    @Override
+    public void setPlatformStopping() {
+
+        // TODO Auto-generated method stub
+
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see
      * org.psem2m.isolates.services.forker.IForker#startIsolate(java.util.Map)
      */

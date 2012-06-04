@@ -36,8 +36,7 @@ import org.psem2m.isolates.services.remote.signals.ISignalsDirectory;
 @Provides(specifications = { ISignalsDirectory.class,
         IInternalSignalsDirectory.class })
 @Instantiate(name = "psem2m-signals-internal-directory")
-public class InternalSignalsDirectory implements ISignalsDirectory,
-        IInternalSignalsDirectory {
+public class InternalSignalsDirectory implements IInternalSignalsDirectory {
 
     /** Forkers ID prefix */
     public static final String FORKER_PREFIX = "org.psem2m.internals.isolates.forker";

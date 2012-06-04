@@ -61,6 +61,9 @@ SIGNAL_START_ISOLATE = SIGNAL_PREFIX + "start"
 # The stop isolate signal
 SIGNAL_STOP_ISOLATE = SIGNAL_PREFIX + "stop"
 
+# The platform is stopping
+SIGNAL_PLATFORM_STOPPING = SIGNAL_PREFIX + "platform-stopping"
+
 # ------------------------------------------------------------------------------
 
 @ComponentFactory("psem2m-forker-factory")
@@ -83,6 +86,9 @@ class Forker(object):
         self._runners = None
         self._sender = None
         self._receiver = None
+
+        # Platform is not yet stopped
+        self._platform_stopping = False
 
         # The forker may have to start the monitor
         self._start_monitor = False
@@ -366,6 +372,10 @@ class Forker(object):
         
         :param isolate_id: The ID of the lost isolate
         """
+        if self._platform_stopping:
+            # Platform stopping : do nothing
+            return
+
         if isolate_id.startswith("org.psem2m.internals."):
             # Internal isolate : restart it immediately
             self.start_isolate_id(isolate_id)
@@ -421,6 +431,11 @@ class Forker(object):
 
             elif name == SIGNAL_STOP_ISOLATE:
                 result = self.stopIsolate(signal_content["isolateId"])
+
+            elif name == SIGNAL_PLATFORM_STOPPING:
+                self._platform_stopping = True
+                # Nothing to send back
+                return
 
         except:
             # Error

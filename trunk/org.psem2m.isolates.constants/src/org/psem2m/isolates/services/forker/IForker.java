@@ -58,6 +58,12 @@ public interface IForker {
     int ping(String aIsolateId);
 
     /**
+     * Sets the forkers in platform stopping mode : they must not start new
+     * isolaes.
+     */
+    void setPlatformStopping();
+
+    /**
      * Starts a process according to the given configuration
      * 
      * @param aIsolateConfiguration

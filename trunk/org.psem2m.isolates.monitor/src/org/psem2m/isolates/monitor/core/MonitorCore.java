@@ -582,6 +582,9 @@ public class MonitorCore extends CPojoBase implements
         // Deactivate startIsolate()
         pPlatformRunning = false;
 
+        // Tell the forkers we don't need them to start isolates anymore
+        pForkerSvc.setPlatformStopping();
+
         // Stop the failure handler
         if (pFailureHandler != null) {
             pFailureHandler.stop();
