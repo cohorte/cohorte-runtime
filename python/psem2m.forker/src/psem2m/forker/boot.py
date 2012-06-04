@@ -235,6 +235,11 @@ def main():
                               dest="start_forker", default=False,
                               help="Start the forker isolate")
 
+    parser.add_argument("-u", "--configuration-url", action="store",
+                        dest="config_url", default=None,
+                        metavar="URL",
+                        help="URL to a configuration broker")
+
     parser.add_argument("-m", "--with-monitor", action="store_true",
                               dest="with_monitor", default=False,
                               help="The forker must start a monitor")
@@ -262,7 +267,9 @@ def main():
 
     elif args.isolate_id is not None:
         # Run the isolate
-        return start_isolate(args.isolate_id, {"pelix.debug": args.debug})
+        return start_isolate(args.isolate_id,
+                             {"pelix.debug": args.debug,
+                              "psem2m.configuration.broker": args.config_url})
 
     else:
         # Nothing to do

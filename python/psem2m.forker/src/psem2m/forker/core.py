@@ -74,6 +74,7 @@ SIGNAL_PLATFORM_STOPPING = SIGNAL_PREFIX + "platform-stopping"
 @Requires("_receiver", "org.psem2m.SignalReceiver")
 @Requires("_runners", "org.psem2m.isolates.forker.IIsolateRunner",
           aggregate=True)
+@Requires("_config_broker", "org.psem2m.forker.configuration.store")
 class Forker(object):
     """
     The forker component
@@ -86,6 +87,7 @@ class Forker(object):
         self._runners = None
         self._sender = None
         self._receiver = None
+        self._config_broker = None
 
         # Platform is not yet stopped
         self._platform_stopping = False
@@ -211,6 +213,15 @@ class Forker(object):
             _logger.debug("'%s': unknown kind '%s'", isolate_id, kind)
             return 5
 
+        # A runner can handle this kind of isolate : store the configuration
+        # in the broker
+        self._config_broker.store_configuration(isolate_id,
+                                                json.dumps(isolate_descr))
+
+        # Store the access URL to the broker
+        isolate_descr["psem2m.configuration.broker"] = \
+                                            self._config_broker.get_access_url()
+
         # Stop at the first runner that succeed to start the isolate
         for runner in runners:
             try:
@@ -230,6 +241,9 @@ class Forker(object):
             # No runner succeeded
             _logger.debug("'%s': all runners failed to start isolate",
                           isolate_id)
+
+            # Forget the configuration
+            self._config_broker.delete_configuration(isolate_id)
             return 3
 
         # Start the watching thread
@@ -419,20 +433,21 @@ class Forker(object):
         sender = signal_data["isolateSender"]
         signal_content = signal_data["signalContent"]
 
-        cmd_id = signal_content[CMD_ID]
-        result = -300
-
         try:
             if name == SIGNAL_PING_ISOLATE:
+                # Ping the isolate with the given ID
                 result = self.ping(signal_content["isolateId"])
 
             elif name == SIGNAL_START_ISOLATE:
+                # Start an isolate with the given description
                 result = self.startIsolate(signal_content["isolateDescr"])
 
             elif name == SIGNAL_STOP_ISOLATE:
+                # Stop the isolate with the given ID
                 result = self.stopIsolate(signal_content["isolateId"])
 
             elif name == SIGNAL_PLATFORM_STOPPING:
+                # Platform is stopping: do not start new isolates
                 self._platform_stopping = True
                 # Nothing to send back
                 return
@@ -443,6 +458,7 @@ class Forker(object):
             result = -500
 
         # Send the result
+        cmd_id = signal_content[CMD_ID]
         self._sender.send_data(sender, SIGNAL_RESPONSE, {RESULT_CODE: result,
                                                          CMD_ID: cmd_id})
 

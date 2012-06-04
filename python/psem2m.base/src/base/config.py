@@ -55,9 +55,9 @@ class FileFinder(object):
             file_name = file_name[1:]
 
         possible_names = (os.path.join(root, file_name) for root in self.roots)
-        
+
         found_files = []
-        
+
         for filename in possible_names:
             if filename not in found_files and os.path.exists(filename):
                 found_files.append(filename)
@@ -459,8 +459,13 @@ class JsonConfig(object):
         :return: The description of the isolate
         """
         isolate = _IsolateDescription(isolate_object["id"], isolate_object)
-        
-        _logger.debug("Reading '%s' from '%s'", isolate.id, self._include_stack[-1])
+
+        if self._include_stack is not None:
+            _logger.debug("Reading '%s' from '%s'", isolate.id,
+                          self._include_stack[-1])
+
+        else:
+            _logger.debug("Reading '%s' from nowhere", isolate.id)
 
         # The isolate kind can be empty, not None
         isolate.kind = isolate_object.get("kind", "")
@@ -531,6 +536,24 @@ class JsonConfig(object):
         :return: the current application description
         """
         return self.application
+
+
+    def parse_isolate(self, isolate_config):
+        """
+        Tries to parse the given isolate configuration. Returns None if the
+        configuration format is unknown.
+        
+        :param isolate_config: An isolate configuration
+        :return The isolate description object, or None.
+        """
+        if not isolate_config:
+            return None
+
+        try:
+            return self._parse_isolate(isolate_config, None)
+
+        except ValueError:
+            return None
 
 
     def refresh(self):

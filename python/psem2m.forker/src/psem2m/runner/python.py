@@ -214,6 +214,12 @@ class PelixRunner(PythonRunner):
         args.append("--start-isolate")
         args.append(isolate_descr["id"])
 
+        # TODO: Configuration Broker URL
+        broker_url = isolate_descr.get("psem2m.configuration.broker", None)
+        if broker_url is not None:
+            args.append("--configuration-url")
+            args.append(broker_url)
+
         # TODO: Debug mode, if needed
         args.append("-d")
 
