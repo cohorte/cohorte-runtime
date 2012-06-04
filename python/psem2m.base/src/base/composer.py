@@ -237,7 +237,13 @@ class ComposerAgent(object):
         """
         self.instances.clear()
         self.receiver.register_listener(SIGNAL_REQUEST_PATTERN, self)
+
+        # Register to iPOPO events
         self.ipopo.add_listener(self)
+
+        # Send registered iPOPO factories
+        self.sender.send_data("*", SIGNAL_ISOLATE_ADD_FACTORY,
+                              tuple(self.ipopo.get_registered_factories()))
 
 
     @Invalidate
