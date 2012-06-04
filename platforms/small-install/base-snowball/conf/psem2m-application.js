@@ -19,6 +19,9 @@
                     "symbolicName":"base.remoteservices"
                 },
                 {
+                    "symbolicName":"base.composer"
+                },
+                {
                     "symbolicName":"consumer"
                 }
             ]
