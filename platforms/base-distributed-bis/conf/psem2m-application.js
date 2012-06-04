@@ -22,6 +22,9 @@
                     "symbolicName":"base.remoteservices"
                 },
                 {
+                    "symbolicName":"base.composer"
+                },
+                {
                     "symbolicName":"provider"
                 }
             ],
@@ -43,6 +46,9 @@
                 },
                 {
                     "symbolicName":"base.remoteservices"
+                },
+                {
+                    "symbolicName":"base.composer"
                 },
                 {
                     "symbolicName":"consumer"
