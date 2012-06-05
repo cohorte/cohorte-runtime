@@ -6,9 +6,14 @@ RemoteSystemsTempFiles/
 *.tar.gz
 bin/
 *.dat
+small-install.zip
 
 # Maven (tests)
 pom.xml
+
+# C
+*.o
+*~
 
 # Python
 *.pyc
