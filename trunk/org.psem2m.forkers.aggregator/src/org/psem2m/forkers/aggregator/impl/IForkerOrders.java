@@ -19,6 +19,12 @@ public interface IForkerOrders {
     /** The order result key */
     String RESULT_CODE = "result";
 
+    /** The forker heart beat */
+    String SIGNAL_HEART_BEAT = IForkerOrders.SIGNAL_PREFIX + "heart-beat";
+
+    /** The signal match string */
+    String SIGNAL_MATCH_ALL = IForkerOrders.SIGNAL_PREFIX + "*";
+
     /** The ping isolate signal */
     String SIGNAL_PING_ISOLATE = IForkerOrders.SIGNAL_PREFIX + "ping";
 
@@ -28,9 +34,6 @@ public interface IForkerOrders {
 
     /** The signals prefix */
     String SIGNAL_PREFIX = "/psem2m/internals/forkers/";
-
-    /** The signal match string */
-    String SIGNAL_PREFIX_MATCH_ALL = IForkerOrders.SIGNAL_PREFIX + "*";
 
     /** The response signal */
     String SIGNAL_RESPONSE = IForkerOrders.SIGNAL_PREFIX + "response";

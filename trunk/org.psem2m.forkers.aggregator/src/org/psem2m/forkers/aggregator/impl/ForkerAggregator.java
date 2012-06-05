@@ -5,7 +5,9 @@
  */
 package org.psem2m.forkers.aggregator.impl;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -20,6 +22,8 @@ import org.apache.felix.ipojo.annotations.Requires;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.services.forker.IForker;
+import org.psem2m.isolates.services.forker.IForkerEventListener;
+import org.psem2m.isolates.services.forker.IForkerEventListener.EForkerEventType;
 import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
 import org.psem2m.isolates.services.remote.signals.ISignalData;
 import org.psem2m.isolates.services.remote.signals.ISignalListener;
@@ -36,12 +40,18 @@ public class ForkerAggregator implements IForker, ISignalListener {
     /** The command ID generator */
     private static final AtomicInteger sCmdId = new AtomicInteger();
 
+    /** Forkers ID -&gt; Time To Live (TTL) */
+    private final Map<String, AtomicInteger> pForkersTTL = new HashMap<String, AtomicInteger>();
+
     /** The forkers directory */
     @Requires
     private IInternalSignalsDirectory pInternalDirectory;
 
     /** Isolate -&gt; Associated forker map */
     private final Map<String, String> pIsolateForkers = new HashMap<String, String>();
+
+    /** The forker events listeners */
+    private final List<IForkerEventListener> pListeners = new ArrayList<IForkerEventListener>();
 
     /** The logger */
     @Requires
@@ -66,7 +76,34 @@ public class ForkerAggregator implements IForker, ISignalListener {
     @Bind
     protected void bindSignalReceiver(final ISignalReceiver aReceiver) {
 
-        aReceiver.registerListener(IForkerOrders.SIGNAL_PREFIX_MATCH_ALL, this);
+        aReceiver.registerListener(IForkerOrders.SIGNAL_MATCH_ALL, this);
+    }
+
+    /**
+     * Notifies listeners of a forker event
+     * 
+     * @param aEventType
+     *            The kind of event
+     * @param aForkerId
+     *            The forker isolate ID
+     * @param aForkerHost
+     *            The forker host
+     */
+    protected void fireForkerEvent(final EForkerEventType aEventType,
+            final String aForkerId, final String aForkerHost) {
+
+        synchronized (pListeners) {
+            for (final IForkerEventListener listener : pListeners) {
+                try {
+                    listener.handleForkerEvent(aEventType, aForkerId,
+                            aForkerHost);
+                } catch (final Exception e) {
+                    // A listener failed
+                    pLogger.logSevere(this, "fireForkerEvent",
+                            "A forker event listener failed:\n", e);
+                }
+            }
+        }
     }
 
     /*
@@ -78,6 +115,43 @@ public class ForkerAggregator implements IForker, ISignalListener {
     public String getHostName() {
 
         return Utilities.getHostName();
+    }
+
+    /**
+     * Handles a forker heart beat
+     * 
+     * @param aSignalData
+     *            The heart beat signal data (content and meta data)
+     */
+    protected void handleHeartBeat(final ISignalData aSignalData) {
+
+        // The current forker ID is the one used to send the signal
+        final String forkerId = aSignalData.getIsolateSender();
+
+        // Registration flag
+        boolean needsRegistration = false;
+
+        synchronized (pForkersTTL) {
+            if (pForkersTTL.containsKey(forkerId)) {
+                // Get the current TTL
+                final AtomicInteger forkerTTL = pForkersTTL.get(forkerId);
+
+                // Add 5 seconds to the TTL
+                forkerTTL.addAndGet(5);
+
+            } else {
+                // Set up a new TTL
+                final AtomicInteger forkerTTL = new AtomicInteger(5);
+                pForkersTTL.put(forkerId, forkerTTL);
+
+                needsRegistration = true;
+            }
+        }
+
+        if (needsRegistration) {
+            // Register the forker in the internal directory
+            registerForker(aSignalData);
+        }
     }
 
     /*
@@ -92,7 +166,7 @@ public class ForkerAggregator implements IForker, ISignalListener {
             final ISignalData aSignalData) {
 
         if (IForkerOrders.SIGNAL_RESPONSE.equals(aSignalName)) {
-
+            // A forker answers a request
             final Object rawData = aSignalData.getSignalContent();
             if (rawData instanceof Map) {
 
@@ -112,6 +186,10 @@ public class ForkerAggregator implements IForker, ISignalListener {
                     cmdWaiter.release();
                 }
             }
+
+        } else if (IForkerOrders.SIGNAL_HEART_BEAT.equals(aSignalName)) {
+            // A forker heart beat has been received
+            handleHeartBeat(aSignalData);
         }
     }
 
@@ -167,6 +245,68 @@ public class ForkerAggregator implements IForker, ISignalListener {
         }
 
         return result;
+    }
+
+    /**
+     * Registers a forker in the internal directory, using a heart beat signal
+     * data, and notitfies listeners on success.
+     * 
+     * @param aSignalData
+     *            A heart beat signal data
+     */
+    protected void registerForker(final ISignalData aSignalData) {
+
+        // Extract the signal content
+        final Object rawSignalContent = aSignalData.getSignalContent();
+        if (!(rawSignalContent instanceof Map)) {
+            // Invalid signal
+            return;
+        }
+
+        // Cast the signal content
+        final Map<?, ?> signalContent = (Map<?, ?>) rawSignalContent;
+
+        // Extract signal data
+        final String forkerId = aSignalData.getIsolateSender();
+        final String forkerSignalHost = aSignalData.getSenderHostName();
+        final String forkerContentHost = (String) signalContent.get("host");
+        final Integer forkerContentPort = (Integer) signalContent.get("port");
+
+        // Validate the given host names
+        if (forkerSignalHost == null || forkerContentHost == null) {
+            pLogger.logSevere(this, "registerForker",
+                    "Invalid host name for forker=", forkerId,
+                    "found in signal: signal=", forkerSignalHost, "content=",
+                    forkerContentHost);
+        }
+
+        if (!forkerSignalHost.equals(forkerContentHost)) {
+            // Different host names found
+            pLogger.logWarn(this, "registerForker",
+                    "Different host names found in the heart beat: sender=",
+                    forkerSignalHost, "content=", forkerContentHost,
+                    "for forker=", forkerId, "Using the content host.");
+        }
+
+        // Get the access port
+        int port;
+        if (forkerContentPort == null) {
+            // Default port
+            port = 8080;
+            pLogger.logWarn(this, "registerForker",
+                    "Port information missing for forker=", forkerId,
+                    "Using default port=", port);
+
+        } else {
+            port = forkerContentPort.intValue();
+        }
+
+        // Register the forker
+        if (pInternalDirectory.addIsolate(forkerId, forkerContentHost, port)) {
+            // Notify listeners
+            fireForkerEvent(EForkerEventType.REGISTERED, forkerId,
+                    forkerContentHost);
+        }
     }
 
     /**
@@ -291,6 +431,25 @@ public class ForkerAggregator implements IForker, ISignalListener {
 
         // Send the order (don't care about the result)
         sendOrder(forker, IForkerOrders.SIGNAL_STOP_ISOLATE, order);
+    }
+
+    /**
+     * Unregisters the given forker and notifies listeners on success
+     * 
+     * @param aForkerId
+     *            The ID of the forker to unregister
+     */
+    protected void unregisterForker(final String aForkerId) {
+
+        // Get the forker host
+        final String forkerHost = pInternalDirectory
+                .getHostForIsolate(aForkerId);
+
+        if (pInternalDirectory.removeIsolate(aForkerId)) {
+            // Forker has been removed
+            fireForkerEvent(EForkerEventType.UNREGISTERED, aForkerId,
+                    forkerHost);
+        }
     }
 
     /**

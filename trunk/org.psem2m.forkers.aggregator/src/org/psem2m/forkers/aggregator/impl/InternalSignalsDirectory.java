@@ -9,9 +9,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
@@ -48,12 +50,66 @@ public class InternalSignalsDirectory implements IInternalSignalsDirectory {
     @Requires
     private IFileFinderSvc pFinder;
 
+    /** Alias -&gt; Host registry */
+    private final Map<String, String> pHostAliases = new HashMap<String, String>();
+
+    /** Host -&gt; Isolates registry */
+    private final Map<String, Set<String>> pHostIsolates = new HashMap<String, Set<String>>();
+
+    /** Isolate -&gt; Access URL registry */
+    private final Map<String, String> pIsolateAccesses = new HashMap<String, String>();
+
+    /** Isolate -&gt; Host registry */
+    private final Map<String, String> pIsolatesHost = new HashMap<String, String>();
+
     /** The logger */
     @Requires
     private IIsolateLoggerSvc pLogger;
 
-    /** The configuration reader */
-    private JsonDirectoryReader pReader;
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.forkers.aggregator.impl.IInternalSignalsDirectory#addIsolate
+     * (java.lang.String, java.lang.String, int)
+     */
+    @Override
+    public synchronized boolean addIsolate(final String aIsolateId,
+            final String aHostName, final int aPort) {
+
+        if (aIsolateId == null || aIsolateId.isEmpty() || aHostName == null
+                || aHostName.isEmpty()) {
+
+            // Invalid parameters
+            pLogger.logSevere(this, "addIsolate", "Can't register isolate id=",
+                    aIsolateId, "hostname=", aHostName);
+            return false;
+        }
+
+        // Forge the access URL
+        final StringBuilder builder = new StringBuilder();
+        builder.append("http://");
+        builder.append(aHostName);
+        builder.append(":");
+        builder.append(aPort);
+
+        // Store the isolate
+        final String realHostName = getRealHost(aHostName);
+
+        pIsolatesHost.put(aIsolateId, realHostName);
+        pIsolateAccesses.put(aIsolateId, builder.toString());
+
+        Set<String> hostList = pHostIsolates.get(realHostName);
+        if (hostList == null) {
+            // Create the list if needed
+            hostList = new HashSet<String>();
+            pHostIsolates.put(aHostName, hostList);
+        }
+
+        hostList.add(aIsolateId);
+
+        return true;
+    }
 
     /**
      * Retrieves all isolates IDs that starts with the given prefix.
@@ -62,16 +118,11 @@ public class InternalSignalsDirectory implements IInternalSignalsDirectory {
      *            A string prefix
      * @return All matching isolates, or null
      */
-    public String[] getAllPrefixedIds(final String aPrefix) {
-
-        final String[] isolates = pReader.getIsolates();
-        if (isolates == null) {
-            // Nothing to do
-            return null;
-        }
+    public synchronized String[] getAllPrefixedIds(final String aPrefix) {
 
         final List<String> matching = new ArrayList<String>();
-        for (final String isolate : isolates) {
+
+        for (final String isolate : pIsolateAccesses.keySet()) {
             if (isolate.startsWith(aPrefix)) {
                 matching.add(isolate);
             }
@@ -106,9 +157,9 @@ public class InternalSignalsDirectory implements IInternalSignalsDirectory {
      * (java.lang.String)
      */
     @Override
-    public String getForkerForHost(final String aHostName) {
+    public synchronized String getForkerForHost(final String aHostName) {
 
-        final String[] isolates = pReader.getIsolatesForHost(aHostName);
+        final Set<String> isolates = pHostIsolates.get(getRealHost(aHostName));
         if (isolates == null) {
             return null;
         }
@@ -138,6 +189,18 @@ public class InternalSignalsDirectory implements IInternalSignalsDirectory {
     /*
      * (non-Javadoc)
      * 
+     * @see org.psem2m.forkers.aggregator.impl.IInternalSignalsDirectory#
+     * getHostForIsolate(java.lang.String)
+     */
+    @Override
+    public String getHostForIsolate(final String aIsolateId) {
+
+        return getRealHost(pIsolatesHost.get(aIsolateId));
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see
      * org.psem2m.isolates.services.remote.signals.ISignalsDirectory#getIsolate
      * (java.lang.String)
@@ -145,7 +208,7 @@ public class InternalSignalsDirectory implements IInternalSignalsDirectory {
     @Override
     public String getIsolate(final String aIsolateId) {
 
-        return pReader.getIsolateAccess(aIsolateId);
+        return pIsolateAccesses.get(aIsolateId);
     }
 
     /*
@@ -179,40 +242,14 @@ public class InternalSignalsDirectory implements IInternalSignalsDirectory {
         switch (aTargets) {
 
         case MONITORS:
-            return getIsolates(MONITOR_PREFIX);
+            return getAllPrefixedIds(MONITOR_PREFIX);
 
         case FORKER:
-            return getIsolates(FORKER_PREFIX);
+            return getAllPrefixedIds(FORKER_PREFIX);
         }
 
         // Ignore others
         return null;
-    }
-
-    /**
-     * Retrieves the accesses to all isolates starting with the given prefix
-     * 
-     * @param aPrefix
-     *            A prefix
-     * @return All corresponding isolates, or null
-     */
-    protected String[] getIsolates(final String aPrefix) {
-
-        final List<String> result = new ArrayList<String>();
-        final Map<String, String> directory = pReader.getDirectoryCopy();
-
-        for (final Entry<String, String> entry : directory.entrySet()) {
-
-            if (entry.getKey().startsWith(aPrefix)) {
-                result.add(entry.getValue());
-            }
-        }
-
-        if (result.isEmpty()) {
-            return null;
-        }
-
-        return result.toArray(new String[0]);
     }
 
     /*
@@ -223,7 +260,7 @@ public class InternalSignalsDirectory implements IInternalSignalsDirectory {
      * (java.lang.String[])
      */
     @Override
-    public String[] getIsolates(final String[] aIsolatesIds) {
+    public synchronized String[] getIsolates(final String[] aIsolatesIds) {
 
         if (aIsolatesIds == null) {
             return null;
@@ -232,7 +269,7 @@ public class InternalSignalsDirectory implements IInternalSignalsDirectory {
         final List<String> isolates = new ArrayList<String>(aIsolatesIds.length);
 
         for (final String isolateId : aIsolatesIds) {
-            final String access = pReader.getIsolateAccess(isolateId);
+            final String access = getIsolate(isolateId);
             if (access != null) {
                 isolates.add(access);
             }
@@ -255,14 +292,39 @@ public class InternalSignalsDirectory implements IInternalSignalsDirectory {
     }
 
     /**
+     * Retrieves the real name of the given host, as it could be an alias
+     * 
+     * @param aHostName
+     *            A host name
+     * @return The real host name
+     */
+    protected String getRealHost(final String aHostName) {
+
+        synchronized (pHostAliases) {
+            final String host = pHostAliases.get(aHostName);
+            if (host != null) {
+                // Recursive aliases resolution
+                return getRealHost(host);
+            }
+        }
+
+        return aHostName;
+    }
+
+    /**
      * Component invalidation
      */
     @Invalidate
     public void invalidate() {
 
-        pReader.reset();
-        pReader.setLogger(null);
-        pReader = null;
+        // Clear registries
+        synchronized (pHostAliases) {
+            pHostAliases.clear();
+        }
+
+        pHostIsolates.clear();
+        pIsolateAccesses.clear();
+        pIsolatesHost.clear();
     }
 
     /*
@@ -273,19 +335,19 @@ public class InternalSignalsDirectory implements IInternalSignalsDirectory {
      * ()
      */
     @Override
-    public boolean reloadDirectory() {
+    public synchronized boolean reloadDirectory() {
+
+        final JsonDirectoryReader reader = new JsonDirectoryReader(this,
+                pLogger);
 
         boolean result = false;
 
         final File[] confFiles = pFinder.find("conf/internal-directory.js");
-
-        pLogger.logSevere(this, "reloadDir", "confFiles=", confFiles);
-
         if (confFiles != null) {
 
             for (final File confFile : confFiles) {
                 try {
-                    result |= pReader.loadFile(confFile);
+                    result |= reader.loadFile(confFile);
 
                 } catch (final FileNotFoundException ex) {
                     // Ignore this error
@@ -299,14 +361,61 @@ public class InternalSignalsDirectory implements IInternalSignalsDirectory {
         return result;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.forkers.aggregator.impl.IInternalSignalsDirectory#removeForker
+     * (java.lang.String)
+     */
+    @Override
+    public synchronized boolean removeIsolate(final String aForkerId) {
+
+        if (aForkerId == null) {
+            return false;
+        }
+
+        boolean success = false;
+
+        // Store the isolate host
+        final String host = pIsolatesHost.get(aForkerId);
+
+        // Unregister isolate
+        if (pIsolateAccesses.remove(aForkerId) != null) {
+            // Isolate was known at least here
+            success = true;
+        }
+
+        if (pIsolatesHost.remove(aForkerId) != null) {
+            // Isolate was known at least here
+            success = true;
+        }
+
+        final Set<String> hostIsolates = pHostIsolates.get(host);
+        if (hostIsolates != null) {
+            hostIsolates.remove(aForkerId);
+
+            // Isolate was known at least here
+            success = true;
+        }
+
+        return success;
+    }
+
+    @Override
+    public void setHostAlias(final String aHost, final String aAlias) {
+
+        synchronized (pHostAliases) {
+            pHostAliases.put(aAlias, getRealHost(aHost));
+        }
+    }
+
     /**
      * Component validation
      */
     @Validate
     public void validate() {
 
-        pReader = new JsonDirectoryReader();
-        pReader.setLogger(pLogger);
         reloadDirectory();
     }
 }
