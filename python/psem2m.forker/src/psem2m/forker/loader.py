@@ -136,6 +136,7 @@ class IsolateLoader(object):
         port = isolate_descr.get_access()[1]
         framework = self.context.get_bundle(0)
         framework.add_property("http.port", port)
+        framework.add_property("psem2m.isolate.id", isolate_descr.get_id())
 
         _logger.debug("HTTP Port set to %d", port)
 
@@ -214,6 +215,31 @@ class IsolateLoader(object):
         return isolate_descr
 
 
+    def _find_configuration(self, isolate_id, is_forker=False):
+        """
+        Tries to find the isolate configuration
+        """
+        # Try using the broker
+        isolate_conf = self.get_broker_configuration(isolate_id)
+        if isolate_conf is not None:
+            # Parse the configuration
+            return self._config.parse_isolate(isolate_conf)
+
+        # Get the isolate from the local configuration
+        app = self._config.get_application()
+        isolate_descr = app.get_isolate(isolate_id)
+
+        if isolate_descr is None and is_forker:
+            # Configuration not found, but we look for a forker
+            for isolate in app.get_isolate_ids():
+                if isolate.startswith("org.psem2m.internals.isolates.forker"):
+                    # Forker configuration found
+                    isolate_descr = app.get_isolate(isolate)
+                    break
+
+        return isolate_descr
+
+
     def setup_isolate(self):
         """
         Configures the current isolate according to the configuration for the
@@ -221,37 +247,17 @@ class IsolateLoader(object):
         
         :return: True on success, False on error
         """
+        is_forker = self.context.get_property("psem2m.forker")
         isolate_id = self.context.get_property("psem2m.isolate.id")
-        if isolate_id is None:
-            # No isolate ID found, do nothing
+        if isolate_id is None and not is_forker:
+            # No isolate ID found and not a forker: do nothing
             return False
 
-        # Try to get a configuration from the broker
-        isolate_conf = self.get_broker_configuration(isolate_id)
-        if isolate_conf is not None:
-            # Parse the configuration
-            isolate_descr = self._config.parse_isolate(isolate_conf)
-
-        else:
-            isolate_descr = None
-
+        isolate_descr = self._find_configuration(isolate_id, is_forker)
         if isolate_descr is None:
-            # Get the isolate from the local configuration
-            app = self._config.get_application()
-            isolate_descr = app.get_isolate(isolate_id)
-
-            if isolate_descr is None:
-                # No description for this isolate
-                _logger.info("No configuration found for '%s'", isolate_id)
-                return False
-
-            else:
-                _logger.info("Configuration of '%s' retrieved from local file",
-                             isolate_id)
-
-        else:
-            _logger.info("Configuration of '%s' retrieved from the broker",
-                         isolate_id)
+            # No description for this isolate
+            _logger.info("No configuration found for '%s'", isolate_id)
+            return False
 
         # Reset isolate
         self.reset()

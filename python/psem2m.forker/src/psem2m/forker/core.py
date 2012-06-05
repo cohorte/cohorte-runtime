@@ -452,6 +452,10 @@ class Forker(object):
                 # Nothing to send back
                 return
 
+            else:
+                # Unhandled message
+                return
+
         except:
             # Error
             _logger.exception("Error treating signal %s\n%s", name, signal_data)

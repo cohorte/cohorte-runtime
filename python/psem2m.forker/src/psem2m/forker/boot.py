@@ -176,11 +176,18 @@ def start_isolate(isolate_id, properties=None):
 
     properties.update(overridden_props)
 
+    if properties.get("psem2m.forker"):
+        # We have a forker : do not set up the isolate id
+        del properties["psem2m.isolate.id"]
+
     # Required bundles list (using the loader)
     required_bundles = ('pelix.ipopo.core', 'base.config',
                         'psem2m.forker.loader')
 
-    _logger.debug("Starting isolate '%s'", isolate_id)
+    if properties.get("psem2m.forker"):
+        _logger.debug("Starting a forker")
+    else:
+        _logger.debug("Starting isolate '%s'", isolate_id)
 
     # Run the isolate (do not return until it's stopped
     return _run_isolate(required_bundles, properties, True)
@@ -198,16 +205,15 @@ def start_forker(start_monitor, debug_mode):
     # Forker specific properties
     properties = {
                   "pelix.debug": debug_mode,
+                  "psem2m.forker": True,
                   "psem2m.forker.start_monitor": start_monitor
                   }
-
-    # Special isolate ID
-    forker_id = "org.psem2m.internals.isolates.forker"
 
     # Store the process PID
     _store_forker_pid(os.getenv(psem2m.PSEM2M_BASE))
 
-    return start_isolate(forker_id, properties)
+    # Do not set the ID there, or it will freeze the isolate ID
+    return start_isolate(None, properties)
 
 # ------------------------------------------------------------------------------
 
