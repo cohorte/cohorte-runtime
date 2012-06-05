@@ -66,8 +66,8 @@ class Heart(object):
             # Send the heart beat
             self._sender.send_data("MONITORS", SIGNAL_HEARTBEAT, server_info)
 
-            # Wait 5 seconds before next loop
-            self._event.wait(5)
+            # Wait 3 seconds before next loop
+            self._event.wait(3)
 
 
     @Validate
