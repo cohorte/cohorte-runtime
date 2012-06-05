@@ -281,6 +281,23 @@ public class InternalSignalsDirectory implements IInternalSignalsDirectory {
     /*
      * (non-Javadoc)
      * 
+     * @see org.psem2m.forkers.aggregator.impl.IInternalSignalsDirectory#
+     * getIsolatesForHost(java.lang.String)
+     */
+    @Override
+    public String[] getIsolatesForHost(final String aHost) {
+
+        final Set<String> isolates = pHostIsolates.get(getRealHost(aHost));
+        if (isolates == null || isolates.isEmpty()) {
+            return null;
+        }
+
+        return isolates.toArray(new String[0]);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see
      * org.psem2m.forkers.aggregator.impl.IInternalSignalsDirectory#getMonitors
      * ()
@@ -402,6 +419,13 @@ public class InternalSignalsDirectory implements IInternalSignalsDirectory {
         return success;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.forkers.aggregator.impl.IInternalSignalsDirectory#setHostAlias
+     * (java.lang.String, java.lang.String)
+     */
     @Override
     public void setHostAlias(final String aHost, final String aAlias) {
 

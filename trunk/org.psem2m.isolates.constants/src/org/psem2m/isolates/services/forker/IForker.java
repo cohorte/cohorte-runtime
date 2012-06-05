@@ -49,6 +49,21 @@ public interface IForker {
     String getHostName();
 
     /**
+     * Tests if the given forker is on the given host.
+     * 
+     * This method is needed to bypass aliases problem. For example, an isolate
+     * can be registered for "localhost" whereas the forker uses the local host
+     * network name.
+     * 
+     * @param aForkerId
+     *            A forker ID
+     * @param aHostName
+     *            The host name
+     * @return True if the given forker is on the given host
+     */
+    boolean isOnHost(String aForkerId, String aHostName);
+
+    /**
      * Tests the given isolate state
      * 
      * @param aIsolateId
@@ -56,6 +71,15 @@ public interface IForker {
      * @return The isolate process state
      */
     int ping(String aIsolateId);
+
+    /**
+     * Registers a forker event listener
+     * 
+     * @param aListener
+     *            A forker event listener
+     * @return True if the listener has been registered
+     */
+    boolean registerListener(IForkerEventListener aListener);
 
     /**
      * Sets the forkers in platform stopping mode : they must not start new
@@ -80,4 +104,13 @@ public interface IForker {
      *            The ID of the isolate to kill
      */
     void stopIsolate(String aIsolateId);
+
+    /**
+     * Unregisters a forker event listener
+     * 
+     * @param aListener
+     *            A forker event listener
+     * @return True if the listener has been unregistered
+     */
+    boolean unregisterListener(IForkerEventListener aListener);
 }

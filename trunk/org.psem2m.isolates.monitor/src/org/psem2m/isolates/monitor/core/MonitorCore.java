@@ -39,6 +39,7 @@ import org.psem2m.isolates.services.conf.beans.ApplicationDescription;
 import org.psem2m.isolates.services.conf.beans.IsolateDescription;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.isolates.services.forker.IForker;
+import org.psem2m.isolates.services.forker.IForkerEventListener;
 import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
 import org.psem2m.isolates.services.remote.signals.ISignalData;
 import org.psem2m.isolates.services.remote.signals.ISignalListener;
@@ -53,7 +54,8 @@ import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
 @Provides(specifications = IPlatformMonitor.class)
 @Instantiate(name = "psem2m-monitor-core")
 public class MonitorCore extends CPojoBase implements
-        IIsolateStatusEventListener, ISignalListener, IPlatformMonitor {
+        IIsolateStatusEventListener, ISignalListener, IPlatformMonitor,
+        IForkerEventListener {
 
     /** Maximum launch tries in a streak */
     public static final String PROPERTY_MAX_TRIES_STREAK = "org.psem2m.monitor.isolates.triesMaxStreak";
@@ -133,9 +135,6 @@ public class MonitorCore extends CPojoBase implements
 
         pPropertyForkerHandlerPresent = true;
         aForkerHandler.registerIsolateEventListener(this);
-
-        // Immediately try to start the forker
-        // aForkerHandler.startForker();
     }
 
     /**
@@ -160,27 +159,29 @@ public class MonitorCore extends CPojoBase implements
         pForkerSvc = aForker;
         pPropertyForkerPresent = true;
 
+        pForkerSvc.registerListener(this);
+
         // Get the current isolate ID, to avoid running ourselves
-        final String currentIsolateId = System
-                .getProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID);
-
-        for (final String isolateId : pConfiguration.getApplication()
-                .getIsolateIds()) {
-
-            if (isolateId.equals(currentIsolateId)) {
-                // Do not start ourselves
-                continue;
-
-            } else if (isolateId
-                    .startsWith(IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER)) {
-                // Do not start a forker that way
-                continue;
-
-            } else {
-                // Start the damn thing
-                startIsolate(isolateId);
-            }
-        }
+        // final String currentIsolateId = System
+        // .getProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID);
+        //
+        // for (final String isolateId : pConfiguration.getApplication()
+        // .getIsolateIds()) {
+        //
+        // if (isolateId.equals(currentIsolateId)) {
+        // // Do not start ourselves
+        // continue;
+        //
+        // } else if (isolateId
+        // .startsWith(IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER)) {
+        // // Do not start a forker that way
+        // continue;
+        //
+        // } else {
+        // // Start the damn thing
+        // startIsolate(isolateId);
+        // }
+        // }
     }
 
     /**
@@ -232,6 +233,62 @@ public class MonitorCore extends CPojoBase implements
         }
 
         return isolateDescr;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.services.forker.IForkerEventListener#handleForkerEvent
+     * (
+     * org.psem2m.isolates.services.forker.IForkerEventListener.EForkerEventType
+     * , java.lang.String, java.lang.String)
+     */
+    @Override
+    public void handleForkerEvent(final EForkerEventType aEventType,
+            final String aForkerId, final String aHost) {
+
+        // Get the current isolate ID
+        final String currentIsolateId = pPlatformDirsSvc.getIsolateId();
+
+        // Get the description of the application
+        final ApplicationDescription appDescr = pConfiguration.getApplication();
+
+        // Forker registered for an host, start all corresponding isolates
+        for (final String isolateId : appDescr.getIsolateIds()) {
+
+            final IsolateDescription isolateDescr = appDescr
+                    .getIsolate(isolateId);
+
+            if (pForkerSvc.isOnHost(aForkerId, isolateDescr.getHostName())) {
+
+                // Same host as the new forker
+                switch (aEventType) {
+                case REGISTERED:
+                    if (isolateId.equals(currentIsolateId)) {
+                        // Do not start ourselves
+                        continue;
+
+                    } else if (isolateId
+                            .startsWith(IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER)) {
+                        // Do not start a forker that way
+                        continue;
+
+                    } else {
+                        // Start the isolate...
+                        startIsolate(isolateId);
+                    }
+                    break;
+
+                case UNREGISTERED:
+                    // Consider lost all isolates of this host
+                    pSignalSender.sendData(
+                            ISignalBroadcaster.EEmitterTargets.ALL,
+                            ISignalsConstants.ISOLATE_LOST_SIGNAL, isolateId);
+                    break;
+                }
+            }
+        }
     }
 
     /**
@@ -371,6 +428,8 @@ public class MonitorCore extends CPojoBase implements
     @Override
     @Invalidate
     public void invalidatePojo() throws BundleException {
+
+        pForkerSvc.unregisterListener(this);
 
         // Clear the time stamps list
         pLastIsolatesStatusUID.clear();

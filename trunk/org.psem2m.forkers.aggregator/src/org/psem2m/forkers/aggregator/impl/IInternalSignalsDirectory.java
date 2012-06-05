@@ -42,6 +42,15 @@ public interface IInternalSignalsDirectory extends ISignalsDirectory {
      */
     String getHostForIsolate(String aIsolateId);
 
+    /**
+     * Retrieves all isolates corresponding to the given host
+     * 
+     * @param aHost
+     *            A host name
+     * @return All isolates corresponding to the given host, or null
+     */
+    String[] getIsolatesForHost(String aHost);
+
     /** Get all monitors IDs */
     String[] getMonitors();
 
