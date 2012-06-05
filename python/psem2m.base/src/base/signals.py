@@ -73,6 +73,7 @@ class IsolateDirectory(object):
         Constructor
         """
         self.config = None
+        self._context = None
 
 
     def is_valid_isolate(self, isolate_id):
@@ -86,7 +87,7 @@ class IsolateDirectory(object):
         if not isolate_id:
             return None
 
-        return isolate_id != SPECIAL_ISOLATE_ID_FORKER \
+        return not isolate_id.startswith(SPECIAL_ISOLATE_ID_FORKER) \
             and isolate_id != self.get_current_isolate_id()
 
 
@@ -123,7 +124,11 @@ class IsolateDirectory(object):
         
         :return: The current isolate ID
         """
-        return os.getenv("PSEM2M_ISOLATE_ID", "<unknown>")
+        isolate_id = self._context.get_property("psem2m.isolate.id")
+        if not isolate_id:
+            return os.getenv("PSEM2M_ISOLATE_ID", "<unknown>")
+
+        return isolate_id
 
 
     def get_isolate(self, isolate_id):
@@ -208,6 +213,8 @@ class IsolateDirectory(object):
         """
         Component validation
         """
+        self._context = context
+
         # Be sure that the configuration is fresh enough
         self.config.refresh()
 
@@ -218,6 +225,7 @@ class IsolateDirectory(object):
         Component invalidation
         """
         self.config = None
+        self._context = None
 
 
 # ------------------------------------------------------------------------------
@@ -235,6 +243,8 @@ class InternalDirectory(object):
         Constructor
         """
         self.finder = None
+        self._context = None
+
         self._aliases = {}
         self._directory = {}
         self._hosts = {}
@@ -246,7 +256,7 @@ class InternalDirectory(object):
         
         :return: The current isolate ID
         """
-        return os.getenv("PSEM2M_ISOLATE_ID", "<unknown>")
+        return self._context.get_property("psem2m.isolate.id")
 
 
     def get_isolate(self, isolate_id):
@@ -363,6 +373,7 @@ class InternalDirectory(object):
         """
         Component validation
         """
+        self._context = context
         self.__load_directory("conf/internal-directory.js")
 
 
@@ -374,6 +385,8 @@ class InternalDirectory(object):
         self._aliases.clear()
         self._directory.clear()
         self._hosts.clear()
+
+        self._context = None
 
 
 # ------------------------------------------------------------------------------
@@ -549,7 +562,6 @@ class SignalSender(object):
             "signalContent": data,
             "timestamp": int(time.time() * 1000)
             }
-
 
         # Make a JSON form of a Jabsorb signal content
         json_signal = json.dumps(to_jabsorb(signal))
