@@ -1,5 +1,5 @@
 {
-    "id":"org.psem2m.internals.isolates.forker",
+    "id":"org.psem2m.internals.isolates.forker.snowball",
     "kind":"pelix",
     "httpPort":9001,
     "bundles":[
@@ -20,6 +20,9 @@
         },
         {
             "symbolicName":"psem2m.runner.exe"
+        },
+        {
+            "symbolicName":"psem2m.forker.heartbeat"
         }
     ]
 }

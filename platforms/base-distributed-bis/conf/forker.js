@@ -25,6 +25,9 @@
             "symbolicName":"psem2m.runner.exe"
         },
         {
+            "symbolicName":"psem2m.forker.heartbeat"
+        },
+        {
             "symbolicName":"psem2m.forker.cmd_agent"
         }
     ]
