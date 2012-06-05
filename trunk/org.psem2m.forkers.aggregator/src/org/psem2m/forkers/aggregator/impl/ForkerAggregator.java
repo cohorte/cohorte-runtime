@@ -5,10 +5,11 @@
  */
 package org.psem2m.forkers.aggregator.impl;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -19,6 +20,7 @@ import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.Validate;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.services.forker.IForker;
@@ -30,18 +32,26 @@ import org.psem2m.isolates.services.remote.signals.ISignalListener;
 import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
 
 /**
+ * The forker aggregator
+ * 
+ * Provides the forker interface and sends signals to real forkers to start/stop
+ * isolates.
+ * 
  * @author Thomas Calmant
  */
 @Component(name = "psem2m-forker-aggregator-factory", publicFactory = false)
 @Provides(specifications = IForker.class)
 @Instantiate(name = "psem2m-forker-aggregator")
-public class ForkerAggregator implements IForker, ISignalListener {
+public class ForkerAggregator implements IForker, ISignalListener, Runnable {
+
+    /** Maximum time without forker notification : 5 seconds */
+    public static final long FORKER_TTL = 5000;
 
     /** The command ID generator */
     private static final AtomicInteger sCmdId = new AtomicInteger();
 
-    /** Forkers ID -&gt; Time To Live (TTL) */
-    private final Map<String, AtomicInteger> pForkersTTL = new HashMap<String, AtomicInteger>();
+    /** Forkers ID -&gt; Last seen time (LST) */
+    private final Map<String, Long> pForkersLST = new HashMap<String, Long>();
 
     /** The forkers directory */
     @Requires
@@ -51,7 +61,7 @@ public class ForkerAggregator implements IForker, ISignalListener {
     private final Map<String, String> pIsolateForkers = new HashMap<String, String>();
 
     /** The forker events listeners */
-    private final List<IForkerEventListener> pListeners = new ArrayList<IForkerEventListener>();
+    private final Set<IForkerEventListener> pListeners = new HashSet<IForkerEventListener>();
 
     /** The logger */
     @Requires
@@ -63,6 +73,12 @@ public class ForkerAggregator implements IForker, ISignalListener {
     /** The signal sender */
     @Requires
     private ISignalBroadcaster pSender;
+
+    /** The TTL thread */
+    private Thread pThread;
+
+    /** The thread stopper */
+    private boolean pThreadRunning = false;
 
     /** Signal response waiters */
     private final Map<Integer, Semaphore> pWaiters = new HashMap<Integer, Semaphore>();
@@ -129,23 +145,14 @@ public class ForkerAggregator implements IForker, ISignalListener {
         final String forkerId = aSignalData.getIsolateSender();
 
         // Registration flag
-        boolean needsRegistration = false;
+        final boolean needsRegistration;
 
-        synchronized (pForkersTTL) {
-            if (pForkersTTL.containsKey(forkerId)) {
-                // Get the current TTL
-                final AtomicInteger forkerTTL = pForkersTTL.get(forkerId);
+        synchronized (pForkersLST) {
+            // Test if it's a new forker
+            needsRegistration = !pForkersLST.containsKey(forkerId);
 
-                // Add 5 seconds to the TTL
-                forkerTTL.addAndGet(5);
-
-            } else {
-                // Set up a new TTL
-                final AtomicInteger forkerTTL = new AtomicInteger(5);
-                pForkersTTL.put(forkerId, forkerTTL);
-
-                needsRegistration = true;
-            }
+            // Update the Last Seen Time
+            pForkersLST.put(forkerId, System.currentTimeMillis());
         }
 
         if (needsRegistration) {
@@ -199,9 +206,43 @@ public class ForkerAggregator implements IForker, ISignalListener {
     @Invalidate
     public void invalidate() {
 
+        // Clear all collections
+        pForkersLST.clear();
         pWaiters.clear();
         pResults.clear();
         pIsolateForkers.clear();
+
+        // Wait a second for the thread to stop
+        pThreadRunning = false;
+        try {
+            pThread.join(1000);
+
+        } catch (final InterruptedException e) {
+            // Join interrupted
+        }
+
+        if (pThread.isAlive()) {
+            // Force interruption if necessary
+            pThread.interrupt();
+        }
+        pThread = null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.services.forker.IForker#isOnHost(java.lang.String,
+     * java.lang.String)
+     */
+    @Override
+    public boolean isOnHost(final String aForkerId, final String aHostName) {
+
+        if (aForkerId == null) {
+            return false;
+        }
+
+        return aForkerId.equals(pInternalDirectory.getForkerForHost(aHostName));
     }
 
     /*
@@ -277,15 +318,16 @@ public class ForkerAggregator implements IForker, ISignalListener {
             pLogger.logSevere(this, "registerForker",
                     "Invalid host name for forker=", forkerId,
                     "found in signal: signal=", forkerSignalHost, "content=",
-                    forkerContentHost);
+                    forkerContentHost, "-> Forker not registered");
+            return;
         }
 
         if (!forkerSignalHost.equals(forkerContentHost)) {
             // Different host names found
-            pLogger.logWarn(this, "registerForker",
+            pLogger.logDebug(this, "registerForker",
                     "Different host names found in the heart beat: sender=",
                     forkerSignalHost, "content=", forkerContentHost,
-                    "for forker=", forkerId, "Using the content host.");
+                    "for forker=", forkerId, "-> Using the content host.");
         }
 
         // Get the access port
@@ -295,7 +337,7 @@ public class ForkerAggregator implements IForker, ISignalListener {
             port = 8080;
             pLogger.logWarn(this, "registerForker",
                     "Port information missing for forker=", forkerId,
-                    "Using default port=", port);
+                    "-> Using the default port.");
 
         } else {
             port = forkerContentPort.intValue();
@@ -303,9 +345,62 @@ public class ForkerAggregator implements IForker, ISignalListener {
 
         // Register the forker
         if (pInternalDirectory.addIsolate(forkerId, forkerContentHost, port)) {
+
+            pLogger.logInfo(this, "registerForker", "Registered forker ID=",
+                    forkerId, "Host=", forkerContentHost, "Port=", port);
+
             // Notify listeners
             fireForkerEvent(EForkerEventType.REGISTERED, forkerId,
                     forkerContentHost);
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.services.forker.IForker#registerListener(org.psem2m
+     * .isolates.services.forker.IForkerEventListener)
+     */
+    @Override
+    public boolean registerListener(final IForkerEventListener aListener) {
+
+        return pListeners.add(aListener);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Runnable#run()
+     */
+    @Override
+    public void run() {
+
+        while (pThreadRunning) {
+
+            synchronized (pForkersLST) {
+                for (final Entry<String, Long> entry : pForkersLST.entrySet()) {
+
+                    final String forkerId = entry.getKey();
+                    final long lastSeen = entry.getValue();
+
+                    if (System.currentTimeMillis() - lastSeen > FORKER_TTL) {
+                        // TTL reached
+                        pForkersLST.remove(forkerId);
+
+                        // Unregister the forker
+                        unregisterForker(forkerId);
+                    }
+                }
+            }
+
+            try {
+                Thread.sleep(1000);
+
+            } catch (final InterruptedException e) {
+                // Interrupted
+                return;
+            }
         }
     }
 
@@ -439,17 +534,62 @@ public class ForkerAggregator implements IForker, ISignalListener {
      * @param aForkerId
      *            The ID of the forker to unregister
      */
-    protected void unregisterForker(final String aForkerId) {
+    protected synchronized void unregisterForker(final String aForkerId) {
 
         // Get the forker host
         final String forkerHost = pInternalDirectory
                 .getHostForIsolate(aForkerId);
+
+        pLogger.logDebug(this, "unregisterForker", "Unregistering forker=",
+                aForkerId, "for host=", forkerHost);
 
         if (pInternalDirectory.removeIsolate(aForkerId)) {
             // Forker has been removed
             fireForkerEvent(EForkerEventType.UNREGISTERED, aForkerId,
                     forkerHost);
         }
+
+        // Clean up corresponding isolates
+        final String[] isolates = pInternalDirectory
+                .getIsolatesForHost(forkerHost);
+        if (isolates != null) {
+
+            for (final String isolate : isolates) {
+                // Forget this isolate
+                pIsolateForkers.remove(isolate);
+                pInternalDirectory.removeIsolate(isolate);
+            }
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.services.forker.IForker#registerListener(org.psem2m
+     * .isolates.services.forker.IForkerEventListener)
+     */
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.services.forker.IForker#unregisterListener(org.psem2m
+     * .isolates.services.forker.IForkerEventListener)
+     */
+    @Override
+    public boolean unregisterListener(final IForkerEventListener aListener) {
+
+        return pListeners.remove(aListener);
+    }
+
+    /** Component validation */
+    @Validate
+    public void validate() {
+
+        // Start the TTL thread
+        pThreadRunning = true;
+        pThread = new Thread(this);
+        pThread.start();
     }
 
     /**
