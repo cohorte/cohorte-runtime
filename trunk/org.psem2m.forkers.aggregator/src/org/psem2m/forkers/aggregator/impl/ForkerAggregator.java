@@ -5,8 +5,10 @@
  */
 package org.psem2m.forkers.aggregator.impl;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -226,6 +228,8 @@ public class ForkerAggregator implements IForker, ISignalListener, Runnable {
             pThread.interrupt();
         }
         pThread = null;
+
+        pLogger.logInfo(this, "invalidate", "Forker Aggregator invalidated");
     }
 
     /*
@@ -301,6 +305,8 @@ public class ForkerAggregator implements IForker, ISignalListener, Runnable {
         final Object rawSignalContent = aSignalData.getSignalContent();
         if (!(rawSignalContent instanceof Map)) {
             // Invalid signal
+            pLogger.logWarn(this, "registerForker",
+                    "Invalid forker heart beat content");
             return;
         }
 
@@ -322,14 +328,6 @@ public class ForkerAggregator implements IForker, ISignalListener, Runnable {
             return;
         }
 
-        if (!forkerSignalHost.equals(forkerContentHost)) {
-            // Different host names found
-            pLogger.logDebug(this, "registerForker",
-                    "Different host names found in the heart beat: sender=",
-                    forkerSignalHost, "content=", forkerContentHost,
-                    "for forker=", forkerId, "-> Using the content host.");
-        }
-
         // Get the access port
         int port;
         if (forkerContentPort == null) {
@@ -343,15 +341,27 @@ public class ForkerAggregator implements IForker, ISignalListener, Runnable {
             port = forkerContentPort.intValue();
         }
 
+        // Register the alias if different host names given in the signal
+        if (!forkerSignalHost.equals(forkerContentHost)) {
+            pLogger.logDebug(this, "registerForker",
+                    "Different host names found in the heart beat: sender=",
+                    forkerSignalHost, "content=", forkerContentHost,
+                    "for forker=", forkerId,
+                    "-> Using the content host as an alias.");
+
+            pInternalDirectory
+                    .setHostAlias(forkerSignalHost, forkerContentHost);
+        }
+
         // Register the forker
-        if (pInternalDirectory.addIsolate(forkerId, forkerContentHost, port)) {
+        if (pInternalDirectory.addIsolate(forkerId, forkerSignalHost, port)) {
 
             pLogger.logInfo(this, "registerForker", "Registered forker ID=",
-                    forkerId, "Host=", forkerContentHost, "Port=", port);
+                    forkerId, "Host=", forkerSignalHost, "Port=", port);
 
             // Notify listeners
             fireForkerEvent(EForkerEventType.REGISTERED, forkerId,
-                    forkerContentHost);
+                    forkerSignalHost);
         }
     }
 
@@ -376,23 +386,30 @@ public class ForkerAggregator implements IForker, ISignalListener, Runnable {
     @Override
     public void run() {
 
+        final List<String> toDelete = new ArrayList<String>();
+
         while (pThreadRunning) {
 
             synchronized (pForkersLST) {
                 for (final Entry<String, Long> entry : pForkersLST.entrySet()) {
-
+                    // First loop to detect forkers to delete
                     final String forkerId = entry.getKey();
                     final long lastSeen = entry.getValue();
 
                     if (System.currentTimeMillis() - lastSeen > FORKER_TTL) {
                         // TTL reached
-                        pForkersLST.remove(forkerId);
-
-                        // Unregister the forker
-                        unregisterForker(forkerId);
+                        toDelete.add(forkerId);
                     }
                 }
+
+                for (final String forkerId : toDelete) {
+                    // Unregister the forker
+                    pForkersLST.remove(forkerId);
+                    unregisterForker(forkerId);
+                }
             }
+
+            toDelete.clear();
 
             try {
                 Thread.sleep(1000);
@@ -590,6 +607,8 @@ public class ForkerAggregator implements IForker, ISignalListener, Runnable {
         pThreadRunning = true;
         pThread = new Thread(this);
         pThread.start();
+
+        pLogger.logInfo(this, "validate", "Forker Aggregator validated");
     }
 
     /**

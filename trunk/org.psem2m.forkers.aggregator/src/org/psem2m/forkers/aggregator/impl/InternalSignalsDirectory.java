@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.felix.ipojo.annotations.Component;
@@ -57,7 +58,7 @@ public class InternalSignalsDirectory implements IInternalSignalsDirectory {
     private final Map<String, Set<String>> pHostIsolates = new HashMap<String, Set<String>>();
 
     /** Isolate -&gt; Access URL registry */
-    private final Map<String, String> pIsolateAccesses = new HashMap<String, String>();
+    private final Map<String, String> pIsolatesAccesses = new HashMap<String, String>();
 
     /** Isolate -&gt; Host registry */
     private final Map<String, String> pIsolatesHost = new HashMap<String, String>();
@@ -97,7 +98,7 @@ public class InternalSignalsDirectory implements IInternalSignalsDirectory {
         final String realHostName = getRealHost(aHostName);
 
         pIsolatesHost.put(aIsolateId, realHostName);
-        pIsolateAccesses.put(aIsolateId, builder.toString());
+        pIsolatesAccesses.put(aIsolateId, builder.toString());
 
         Set<String> hostList = pHostIsolates.get(realHostName);
         if (hostList == null) {
@@ -107,7 +108,6 @@ public class InternalSignalsDirectory implements IInternalSignalsDirectory {
         }
 
         hostList.add(aIsolateId);
-
         return true;
     }
 
@@ -122,7 +122,7 @@ public class InternalSignalsDirectory implements IInternalSignalsDirectory {
 
         final List<String> matching = new ArrayList<String>();
 
-        for (final String isolate : pIsolateAccesses.keySet()) {
+        for (final String isolate : pIsolatesAccesses.keySet()) {
             if (isolate.startsWith(aPrefix)) {
                 matching.add(isolate);
             }
@@ -208,7 +208,7 @@ public class InternalSignalsDirectory implements IInternalSignalsDirectory {
     @Override
     public String getIsolate(final String aIsolateId) {
 
-        return pIsolateAccesses.get(aIsolateId);
+        return pIsolatesAccesses.get(aIsolateId);
     }
 
     /*
@@ -237,15 +237,30 @@ public class InternalSignalsDirectory implements IInternalSignalsDirectory {
      * EEmitterTargets)
      */
     @Override
-    public String[] getIsolates(final EEmitterTargets aTargets) {
+    public synchronized String[] getIsolates(final EEmitterTargets aTargets) {
 
         switch (aTargets) {
 
         case MONITORS:
-            return getAllPrefixedIds(MONITOR_PREFIX);
+            return getIsolates(getAllPrefixedIds(MONITOR_PREFIX));
 
         case FORKER:
-            return getAllPrefixedIds(FORKER_PREFIX);
+            return getIsolates(getAllPrefixedIds(FORKER_PREFIX));
+
+        case ALL:
+            // Send all accesses, except for forkers
+            final Set<String> isolates = new HashSet<String>();
+            for (final Entry<String, String> entry : pIsolatesAccesses
+                    .entrySet()) {
+                if (!entry.getKey().startsWith(FORKER_PREFIX)) {
+                    isolates.add(entry.getValue());
+                }
+            }
+
+            if (isolates.isEmpty()) {
+                return null;
+            }
+            return isolates.toArray(new String[isolates.size()]);
         }
 
         // Ignore others
@@ -340,7 +355,7 @@ public class InternalSignalsDirectory implements IInternalSignalsDirectory {
         }
 
         pHostIsolates.clear();
-        pIsolateAccesses.clear();
+        pIsolatesAccesses.clear();
         pIsolatesHost.clear();
     }
 
@@ -398,7 +413,7 @@ public class InternalSignalsDirectory implements IInternalSignalsDirectory {
         final String host = pIsolatesHost.get(aForkerId);
 
         // Unregister isolate
-        if (pIsolateAccesses.remove(aForkerId) != null) {
+        if (pIsolatesAccesses.remove(aForkerId) != null) {
             // Isolate was known at least here
             success = true;
         }
@@ -429,8 +444,25 @@ public class InternalSignalsDirectory implements IInternalSignalsDirectory {
     @Override
     public void setHostAlias(final String aHost, final String aAlias) {
 
+        if (aHost.equals(aAlias)) {
+            // Do nothing if the alias is the host name itself
+            return;
+        }
+
         synchronized (pHostAliases) {
-            pHostAliases.put(aAlias, getRealHost(aHost));
+
+            final String host = getRealHost(aHost);
+
+            if (pHostIsolates.containsKey(aAlias)) {
+                /*
+                 * The new alias was considered as a real host. We have to move
+                 * the registry content to the new "real host".
+                 */
+                pHostIsolates.put(host, pHostIsolates.get(aAlias));
+                pHostIsolates.remove(aAlias);
+            }
+
+            pHostAliases.put(aAlias, host);
         }
     }
 
