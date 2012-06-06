@@ -285,6 +285,11 @@ public class MonitorCore extends CPojoBase implements
                     pSignalSender.sendData(
                             ISignalBroadcaster.EEmitterTargets.ALL,
                             ISignalsConstants.ISOLATE_LOST_SIGNAL, isolateId);
+
+                    // Send to all means without the current isolate
+                    pSignalSender.sendData(
+                            ISignalBroadcaster.EEmitterTargets.LOCAL,
+                            ISignalsConstants.ISOLATE_LOST_SIGNAL, isolateId);
                     break;
                 }
             }
