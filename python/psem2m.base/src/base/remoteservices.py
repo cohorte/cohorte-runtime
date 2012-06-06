@@ -20,6 +20,7 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
     Invalidate, Instantiate, Property
 from base.javautils import to_jabsorb, from_jabsorb, JAVA_CLASS
 
+import pelix.utilities as utilities
 import pelix.framework as pelix
 
 # ------------------------------------------------------------------------------
@@ -513,7 +514,7 @@ class ServiceImporter(object):
                 # Single event
                 self._handle_remote_event(sender, data)
 
-        elif name == ISOLATE_LOST_SIGNAL and isinstance(data, str):
+        elif name == ISOLATE_LOST_SIGNAL and utilities.is_string(data):
             # Isolate lost (data : isolate name)
             self._handle_isolate_lost(data)
 
