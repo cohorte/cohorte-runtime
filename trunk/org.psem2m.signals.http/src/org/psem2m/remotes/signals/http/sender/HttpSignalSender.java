@@ -10,7 +10,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
@@ -57,7 +59,7 @@ public class HttpSignalSender extends CPojoBase implements
     private LogService pLogger;
 
     /** Flag to indicate if the logger is accessible or not */
-    private AtomicBoolean pLoggerAccessible = new AtomicBoolean(false);
+    private final AtomicBoolean pLoggerAccessible = new AtomicBoolean(false);
 
     /** Signal data serializers */
     @Requires
@@ -349,6 +351,7 @@ public class HttpSignalSender extends CPojoBase implements
             return null;
         }
 
+        final Set<URL> isolatesUrls = new HashSet<URL>();
         for (final ISignalsDirectory directory : pDirectories) {
 
             final String[] isolatesAccesses = directory.getIsolates(aTargets);
@@ -357,22 +360,23 @@ public class HttpSignalSender extends CPojoBase implements
                 continue;
             }
 
-            final List<URL> isolateUrls = new ArrayList<URL>();
-
             // Prepare all URls
             for (final String isolateAccess : isolatesAccesses) {
 
                 final URL isolateUrl = isolateAccessToUrl(isolateAccess,
                         aSignalName);
                 if (isolateUrl != null) {
-                    isolateUrls.add(isolateUrl);
+                    isolatesUrls.add(isolateUrl);
                 }
             }
-
-            return isolateUrls.toArray(new URL[isolateUrls.size()]);
         }
 
-        return null;
+        if (isolatesUrls.isEmpty()) {
+            // Nothing to return
+            return null;
+        }
+
+        return isolatesUrls.toArray(new URL[isolatesUrls.size()]);
     }
 
     /*
