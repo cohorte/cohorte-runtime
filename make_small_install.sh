@@ -13,9 +13,9 @@ SMALL_INSTALL_NAME="small-install"
 SMALL_HOME="small.home"
 
 BASE_MODULE="base"
-BASE_SRC="$PSEM2M_ROOT/python/psem2m.base/src"
+BASE_SRC="$PSEM2M_ROOT/trunk/python/psem2m.base/src"
 FORKER_MODULE="psem2m"
-FORKER_SRC="$PSEM2M_ROOT/python/psem2m.forker/src"
+FORKER_SRC="$PSEM2M_ROOT/trunk/python/psem2m.forker/src"
 
 # - Script -
 echo "Mise à jour de Small-Install..."
