@@ -1,14 +1,14 @@
 [
     {
-        "symbolicName":"org.psem2m.isolates.remote.repository"
+        "symbolicName":"org.psem2m.remote.repository"
     },
     {
-        "symbolicName":"org.psem2m.isolates.remote.broadcaster"
+        "symbolicName":"org.psem2m.remote.broadcaster"
     },
     {
-        "symbolicName":"org.psem2m.isolates.remote.importer"
+        "symbolicName":"org.psem2m.remote.importer"
     },
     {
-        "symbolicName":"org.psem2m.isolates.remote.exporter"
+        "symbolicName":"org.psem2m.remote.exporter"
     }
 ]

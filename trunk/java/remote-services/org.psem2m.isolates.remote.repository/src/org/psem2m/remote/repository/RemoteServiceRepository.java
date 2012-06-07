@@ -3,7 +3,7 @@
  * Author: Thomas Calmant
  * Date:   19 sept. 2011
  */
-package org.psem2m.isolates.remote.repository;
+package org.psem2m.remote.repository;
 
 import java.util.Collection;
 import java.util.HashSet;

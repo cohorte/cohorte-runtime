@@ -1,32 +1,34 @@
 {
     "id":"org.psem2m.internals.isolates.forker",
-    "kind":"felix",
+    "kind":"pelix",
     "httpPort":9001,
-    "vmArgs":[
-        "-Xms32M",
-        "-Xmx56M"
-    ],
     "bundles":[
         {
-            "symbolicName":"org.apache.felix.shell"
+            "symbolicName":"base.httpsvc"
         },
         {
-            "symbolicName":"org.apache.felix.shell.remote",
-            "properties":{
-            	"osgi.shell.telnet.port":"6001"
-            }
+            "symbolicName":"base.signals"
         },
         {
-            "from":"signals-http.js"
+            "symbolicName":"psem2m.forker.config_broker"
         },
         {
-            "from":"jsonrpc.js"
+            "symbolicName":"psem2m.forker.core"
         },
         {
-            "from":"remote-services.js"
+            "symbolicName":"psem2m.runner.java"
         },
         {
-            "symbolicName":"org.psem2m.isolates.forker"
+            "symbolicName":"psem2m.runner.python"
+        },
+        {
+            "symbolicName":"psem2m.runner.exe"
+        },
+        {
+            "symbolicName":"psem2m.forker.heartbeat"
+        },
+        {
+            "symbolicName":"psem2m.forker.cmd_agent"
         }
     ]
 }

@@ -1,4 +1,4 @@
-package org.psem2m.isolates.remote.importer;
+package org.psem2m.remote.importer;
 
 import org.osgi.framework.ServiceRegistration;
 

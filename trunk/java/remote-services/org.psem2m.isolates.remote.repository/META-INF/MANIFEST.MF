@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: PSEM2M Remote Services Repository
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Bundle-SymbolicName: org.psem2m.isolates.remote.repository
+Bundle-SymbolicName: org.psem2m.remote.repository
 Bundle-Vendor: isandlaTech.com
 Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
@@ -12,28 +12,28 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  org.psem2m.isolates.base.activators;version=1.0.0, org.psem2m.isolate
  s.services.remote;version=1.0.0, org.psem2m.isolates.services.remote.
  beans;version=1.0.0, org.psem2m.utilities;version=1.0.0
-iPOJO-Components: instance { $component="org.psem2m.isolates.remote.re
- pository.RemoteServiceRepository" $name="psem2m-remote-rsr" }componen
- t { $classname="org.psem2m.isolates.remote.repository.RemoteServiceRe
- pository" $name="psem2m-remote-rsr-factory" $public="false" provides 
- { $specifications="{org.psem2m.isolates.services.remote.IRemoteServic
- eRepository}" }requires { $field="pLogger" }callback { $transition="i
- nvalidate" $method="invalidatePojo" }callback { $transition="validate
- " $method="validatePojo" }manipulation { $super="org.psem2m.isolates.
- base.activators.CPojoBase" interface { $name="org.psem2m.isolates.ser
- vices.remote.IRemoteServiceRepository" }field { $name="pListeners" $t
- ype="java.util.Set" }field { $name="pLogger" $type="org.osgi.service.
- log.LogService" }field { $name="pRegistrations" $type="java.util.Set"
-  }method { $name="addListener" $arguments="{org.psem2m.isolates.servi
- ces.remote.IRemoteServiceEventListener}" }method { $name="destroy" }m
- ethod { $name="getLocalRegistrations" $return="org.psem2m.isolates.se
- rvices.remote.beans.RemoteServiceRegistration[]" }method { $name="inv
- alidatePojo" }method { $name="registerExportedService" $arguments="{o
- rg.psem2m.isolates.services.remote.beans.RemoteServiceRegistration}" 
- }method { $name="registerExportedServices" $arguments="{java.util.Col
- lection}" }method { $name="removeListener" $arguments="{org.psem2m.is
- olates.services.remote.IRemoteServiceEventListener}" }method { $name=
- "unregisterEndpoint" $arguments="{org.psem2m.isolates.services.remote
- .beans.EndpointDescription}" }method { $name="unregisterEndpoints" $a
- rguments="{java.util.Collection}" }method { $name="validatePojo" }}}
+iPOJO-Components: instance { $component="org.psem2m.remote.repository.
+ RemoteServiceRepository" $name="psem2m-remote-rsr" }component { $clas
+ sname="org.psem2m.remote.repository.RemoteServiceRepository" $name="p
+ sem2m-remote-rsr-factory" $public="false" provides { $specifications=
+ "{org.psem2m.isolates.services.remote.IRemoteServiceRepository}" }req
+ uires { $field="pLogger" }callback { $transition="invalidate" $method
+ ="invalidatePojo" }callback { $transition="validate" $method="validat
+ ePojo" }manipulation { $super="org.psem2m.isolates.base.activators.CP
+ ojoBase" interface { $name="org.psem2m.isolates.services.remote.IRemo
+ teServiceRepository" }field { $name="pListeners" $type="java.util.Set
+ " }field { $name="pLogger" $type="org.osgi.service.log.LogService" }f
+ ield { $name="pRegistrations" $type="java.util.Set" }method { $name="
+ addListener" $arguments="{org.psem2m.isolates.services.remote.IRemote
+ ServiceEventListener}" }method { $name="destroy" }method { $name="get
+ LocalRegistrations" $return="org.psem2m.isolates.services.remote.bean
+ s.RemoteServiceRegistration[]" }method { $name="invalidatePojo" }meth
+ od { $name="registerExportedService" $arguments="{org.psem2m.isolates
+ .services.remote.beans.RemoteServiceRegistration}" }method { $name="r
+ egisterExportedServices" $arguments="{java.util.Collection}" }method 
+ { $name="removeListener" $arguments="{org.psem2m.isolates.services.re
+ mote.IRemoteServiceEventListener}" }method { $name="unregisterEndpoin
+ t" $arguments="{org.psem2m.isolates.services.remote.beans.EndpointDes
+ cription}" }method { $name="unregisterEndpoints" $arguments="{java.ut
+ il.Collection}" }method { $name="validatePojo" }}}
 

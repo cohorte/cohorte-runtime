@@ -3,7 +3,7 @@
  * Author: Thomas Calmant
  * Date:   26 juil. 2011
  */
-package org.psem2m.isolates.remote.exporter;
+package org.psem2m.remote.exporter;
 
 import java.util.ArrayList;
 import java.util.Arrays;

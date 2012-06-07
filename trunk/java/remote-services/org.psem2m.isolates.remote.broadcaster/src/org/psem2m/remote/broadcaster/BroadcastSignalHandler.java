@@ -3,7 +3,7 @@
  * Author: Thomas Calmant
  * Date:   21 sept. 2011
  */
-package org.psem2m.isolates.remote.broadcaster;
+package org.psem2m.remote.broadcaster;
 
 import java.util.ArrayList;
 import java.util.Collection;

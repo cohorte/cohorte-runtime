@@ -3,7 +3,7 @@
  * Author: Thomas Calmant
  * Date:   19 sept. 2011
  */
-package org.psem2m.isolates.remote.broadcaster;
+package org.psem2m.remote.broadcaster;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;

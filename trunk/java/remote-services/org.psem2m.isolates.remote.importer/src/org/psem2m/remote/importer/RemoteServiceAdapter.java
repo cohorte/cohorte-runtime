@@ -3,7 +3,7 @@
  * Author: Thomas Calmant
  * Date:   26 juil. 2011
  */
-package org.psem2m.isolates.remote.importer;
+package org.psem2m.remote.importer;
 
 import java.util.Dictionary;
 import java.util.HashMap;

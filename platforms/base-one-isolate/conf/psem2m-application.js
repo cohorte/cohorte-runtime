@@ -27,10 +27,7 @@
                 },
                 {
                     "symbolicName":"org.apache.felix.shell.tui"
-                },
-                {
-                    "symbolicName":"org.psem2m.isolates.forker"
-                },
+                }
                 {
                     "symbolicName":"org.psem2m.isolates.tracer"
                 },
