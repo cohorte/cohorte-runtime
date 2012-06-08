@@ -120,27 +120,6 @@ def remove_quotes(path):
 
 # ------------------------------------------------------------------------------
 
-def read_framework_file(file_name):
-    """
-    Reads the first non-commented and non-empty line of a framework file.
-    Framework files contains the file name of an OSGi framework JAR main file;
-    
-    :param file_name: Name of the framework file to read
-    :return: The framework file content, None if not found
-    """
-    with open(file_name) as framework_fp:
-        for line in framework_fp:
-            line = line.strip()
-
-            if len(line) > 0 and not line.startswith("#"):
-                # Not a comment and not an empty line
-                return line
-
-    # No valid line found
-    return None
-
-# ------------------------------------------------------------------------------
-
 class BaseOSUtils(object):
     """
     Abstract OS-specific utility class
@@ -225,3 +204,23 @@ class BaseOSUtils(object):
         :return: The path to the first Python 3 interpreter found, or None
         """
         raise NotImplementedError("This method must implemented by child class")
+
+
+    def read_framework_file(self, file_name):
+        """
+        Reads the first non-commented and non-empty line of a framework file.
+        Framework files contains the file name of an OSGi framework JAR main file;
+        
+        :param file_name: Name of the framework file to read
+        :return: The framework file content, None if not found
+        """
+        with open(file_name) as framework_fp:
+            for line in framework_fp:
+                line = line.strip()
+
+                if len(line) > 0 and not line.startswith("#"):
+                    # Not a comment and not an empty line
+                    return line
+
+        # No valid line found
+        return None

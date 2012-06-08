@@ -6,6 +6,19 @@ PSEM2M Forker control script (could be used as an init.d script)
 :author: Thomas Calmant
 """
 
+import logging
+import os
+import sys
+
+# ------------------------------------------------------------------------------
+
+# Computation of the path of this file, to be able to make relative paths
+
+CONTROLLER_PATH = os.path.dirname(__file__)
+if not CONTROLLER_PATH:
+    # Directory name not found
+    CONTROLLER_PATH = os.getcwd()
+
 # ------------------------------------------------------------------------------
 # 
 # You should modify those constants. None value means environment value.
@@ -22,11 +35,8 @@ import psutil
 
 import inspect
 import json
-import logging
-import os
 import socket
 import subprocess
-import sys
 import time
 
 if sys.version_info >= (3, 0):
@@ -220,6 +230,22 @@ def send_cmd_signal(base, cmd):
 
 # ------------------------------------------------------------------------------
 
+def append_unique(appendable, value):
+    """
+    Appends the given value to the given list if it not yet in there
+    """
+    if not hasattr(appendable, "__in__") and not hasattr(appendable, "append"):
+        # Unusable list
+        raise TypeError("{0} is not handled".format(type(appendable).__name__))
+
+    if value in appendable:
+        return False
+
+    appendable.append(value)
+    return True
+
+# ------------------------------------------------------------------------------
+
 class Main(object):
     """
     Entry point class
@@ -266,19 +292,26 @@ class Main(object):
         # Set up environment (home and base are already there)
         env = os.environ.copy()
 
-        # FIXME: setup the Python path using non-development variables
+        # Setup the Python path
         python_path = []
 
         # Working directory
-        python_path.append(os.getcwd())
+        append_unique(python_path, os.getcwd())
 
-        # Libraries directory
-        for path in (os.path.join("python", "psem2m.base", "src"),):
-            python_path.append(os.path.join(PSEM2M_GIT, path))
-
+        # PSEM2M Home/base binaries and Python repository
         for root in (PSEM2M_BASE, PSEM2M_HOME):
             for path in ("bin", "python"):
-                python_path.append(os.path.join(root, path))
+                append_unique(python_path, os.path.abspath(os.path.join(root,
+                                                                        path)))
+
+        # Controller directory
+        append_unique(python_path, os.path.abspath(os.path.dirname(__file__)))
+
+        # Development libraries directory
+        # FIXME: PSEM2M_GIT shouldn't be used
+        append_unique(python_path, os.path.abspath(os.path.join(
+                                                PSEM2M_GIT, "trunk", "python",
+                                                "psem2m.base", "src")))
 
         existing_path = os.environ.get("PYTHONPATH")
         if existing_path:
