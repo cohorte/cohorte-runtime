@@ -30,7 +30,7 @@ echo "> Mise à jour de PSEM2M forker..."
 rm -fr "psem2m"
 cp -r "$FORKER_SRC/$FORKER_MODULE" .
 
-echo "> Suppression des fichiers .pyc"
+echo "> Suppression des fichiers .pyc..."
 find . -name "*.pyc" -exec rm -f {} \;
 popd >/dev/null
 
@@ -38,7 +38,7 @@ echo "Suppression de l'archive précédente..."
 rm -f "$ZIP_FILE"
 
 echo "Création de l'archive..."
-zip -r "$PSEM2M_ROOT/$ZIP_FILE" "$SMALL_INSTALL_NAME" || exit 1
+zip -q -r "$PSEM2M_ROOT/$ZIP_FILE" "$SMALL_INSTALL_NAME" || exit 1
 popd >/dev/null
 
 echo "Copie de l'archive dans le dossier personnel..."
