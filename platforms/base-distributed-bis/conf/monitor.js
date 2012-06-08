@@ -48,7 +48,8 @@
             }
         },
         {
-            "symbolicName":"org.psem2m.isolates.master.manager"
+            "symbolicName":"org.psem2m.isolates.master.manager",
+            "optional":true
         },
         {
             "symbolicName":"org.psem2m.isolates.monitor"
@@ -60,16 +61,14 @@
             "symbolicName":"org.psem2m.libs.xerces"
         },
         {
-            "symbolicName":"org.psem2m.sca.converter"
+            "symbolicName":"org.psem2m.sca.converter",
+            "optional":true
         },
         {
             "symbolicName":"org.psem2m.composer.config"
         },
         {
             "symbolicName":"org.psem2m.composer.core"
-        },
-		{
-		    "symbolicName":"org.psem2m.composer.demo.api"
-		}
+        }
     ]
 }

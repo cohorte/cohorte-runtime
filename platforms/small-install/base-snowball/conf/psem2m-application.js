@@ -2,12 +2,9 @@
     "appId":"distributed-app",
     "isolates":[
         {
-            "from":"forker.js"
-        },
-        {
-            "id":"demo.snowball",
+            "id":"org.psem2m.internals.isolates.forker.snowball",
             "kind":"pelix",
-            "httpPort":9100,
+            "httpPort":9001,
             "bundles":[
                 {
                     "symbolicName":"base.httpsvc"
@@ -16,13 +13,19 @@
                     "symbolicName":"base.signals"
                 },
                 {
-                    "symbolicName":"base.remoteservices"
+                    "symbolicName":"psem2m.forker.config_broker"
                 },
                 {
-                    "symbolicName":"base.composer"
+                    "symbolicName":"psem2m.forker.core"
                 },
                 {
-                    "symbolicName":"consumer"
+                    "symbolicName":"psem2m.runner.python"
+                },
+                {
+                    "symbolicName":"psem2m.runner.exe"
+                },
+                {
+                    "symbolicName":"psem2m.forker.heartbeat"
                 }
             ]
         }
