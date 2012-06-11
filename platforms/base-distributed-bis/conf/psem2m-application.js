@@ -1,5 +1,6 @@
 {
     "appId":"distributed-app",
+    "multicast":"ff15::42",
     "isolates":[
         {
             "from":"monitor.js"
@@ -17,6 +18,9 @@
                 },
                 {
                     "symbolicName":"base.signals"
+                },
+                {
+                    "symbolicName":"base.multicast_agent"
                 },
                 {
                     "symbolicName":"base.remoteservices"

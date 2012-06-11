@@ -151,11 +151,13 @@ class _ApplicationDescription(object):
     """
     Application configuration description
     """
-    def __init__(self, app_id):
+    def __init__(self, app_id, multicast_address):
         """
         Constructor
         
         :param app_id: The application ID (non empty string)
+        :param multicast_address: The multicast address for UDP messages
+                                  (non empty string)
         :raise ValueError: Invalid application ID
         """
         if not app_id:
@@ -163,6 +165,9 @@ class _ApplicationDescription(object):
 
         # Application ID
         self.id = app_id
+
+        # Multicast address
+        self.multicast = multicast_address
 
         # Isolates : ID -> Description
         self.isolates = {}
@@ -194,6 +199,15 @@ class _ApplicationDescription(object):
         :return: The list of isolate IDs
         """
         return self.isolates.keys()
+
+
+    def get_multicast(self):
+        """
+        Retrieves the multicast address to use for UDP messages
+        
+        :return: the multicast address to use for UDP messages
+        """
+        return self.multicast
 
 # ------------------------------------------------------------------------------
 
@@ -567,7 +581,8 @@ class JsonConfig(object):
         try:
             # Parse the configuration file
             config_root = self._parse_file(FILE_MAIN_CONF)
-            self.application = _ApplicationDescription(config_root["appId"])
+            self.application = _ApplicationDescription(config_root["appId"],
+                                                       config_root["multicast"])
             self._parse_isolates(config_root["isolates"])
             return True
 

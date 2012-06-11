@@ -29,6 +29,9 @@
         },
         {
             "symbolicName":"psem2m.forker.cmd_agent"
+        },
+        {
+            "symbolicName":"base.multicast_agent"
         }
     ]
 }
