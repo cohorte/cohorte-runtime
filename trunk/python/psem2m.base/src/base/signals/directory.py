@@ -54,15 +54,6 @@ class SignalsDirectory(object):
         self.unregisterIsolate = self.unregister_isolate
 
 
-    def get_isolate_id(self):
-        """
-        Retrieves the current isolate ID
-        
-        :return: the current isolate ID
-        """
-        return self._context.get_property('psem2m.isolate.id')
-
-
     def get_group_accesses(self, group_name):
         """
         Retrieves an Isolate ID -> (host, port) map, containing all known
@@ -109,6 +100,24 @@ class SignalsDirectory(object):
             return self._accesses.get(isolate_id, None)
 
 
+    def get_isolate_id(self):
+        """
+        Retrieves the current isolate ID
+        
+        :return: the current isolate ID
+        """
+        return self._context.get_property('psem2m.isolate.id')
+
+
+    def get_isolate_node(self):
+        """
+        Retrieves the current isolate ID
+        
+        :return: the current isolate ID
+        """
+        return self._context.get_property('psem2m.isolate.node')
+
+
     def get_node_isolates(self, node):
         """
         Retrieves the IDs of the isolates on the given node, or None
@@ -134,6 +143,7 @@ class SignalsDirectory(object):
             # Use the lock, as some consumer may still be there
             self._accesses.clear()
             self._groups.clear()
+            self._nodes.clear()
 
         self._context = None
 
@@ -182,6 +192,9 @@ class SignalsDirectory(object):
             # Store the isolate in all groups
             if groups:
                 for group in groups:
+                    # Lower case for case-insensitivity
+                    group = group.lower()
+
                     isolates = self._groups.get(group, None)
                     if isolates is None:
                         # Create the group if needed
@@ -215,8 +228,15 @@ class SignalsDirectory(object):
                 del self._accesses[isolate_id]
                 result = True
 
-            for group in self._groups:
-                isolates = self._groups[group]
+            # Remove references in nodes
+            for isolates in self._nodes.values():
+                if isolate_id in isolates:
+                    # The isolate belongs to the group
+                    isolates.remove(isolate_id)
+                    result = True
+
+            # Remove references in groups
+            for isolates in self._groups.values():
                 if isolate_id in isolates:
                     # The isolate belongs to the group
                     isolates.remove(isolate_id)
@@ -233,4 +253,4 @@ class SignalsDirectory(object):
         self._context = context
 
         # Special access for local isolate
-        self.accesses[self.get_current_isolate_id()] = "{local}"
+        self.accesses[self.get_isolate_id()] = "{local}"

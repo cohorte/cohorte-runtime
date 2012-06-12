@@ -6,11 +6,9 @@
 package org.psem2m.signals.directory.impl;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
@@ -22,11 +20,8 @@ import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.constants.IPlatformProperties;
-import org.psem2m.isolates.services.conf.ISvcConfig;
-import org.psem2m.isolates.services.conf.beans.IsolateDescription;
-import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
-import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster.EEmitterTargets;
-import org.psem2m.isolates.services.remote.signals.ISignalsDirectory;
+import org.psem2m.signals.HostAccess;
+import org.psem2m.signals.ISignalDirectory;
 
 /**
  * Simple implementation of the PSEM2M Signals isolates directory, based on the
@@ -35,75 +30,80 @@ import org.psem2m.isolates.services.remote.signals.ISignalsDirectory;
  * @author Thomas Calmant
  */
 @Component(name = "psem2m-signals-directory-factory", publicFactory = false)
-@Provides(specifications = ISignalsDirectory.class)
+@Provides(specifications = ISignalDirectory.class)
 @Instantiate(name = "psem2m-signals-directory")
-public class SignalsDirectory extends CPojoBase implements ISignalsDirectory {
+public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
 
-    /** The configuration service */
-    @Requires
-    private ISvcConfig pConfiguration;
+    /** Isolate ID -&gt; Access */
+    private final Map<String, HostAccess> pAccesses = new HashMap<String, HostAccess>();
+
+    /** Group name -&gt; Isolate IDs */
+    private final Map<String, List<String>> pGroups = new HashMap<String, List<String>>();
 
     /** The logger */
     @Requires
     private IIsolateLoggerSvc pLogger;
 
-    /**
-     * Retrieves the list of all non-internal isolates, testing whether the ID
-     * starts with {@link IPlatformProperties#SPECIAL_ISOLATE_ID_FORKER} or not.
+    /** Node name -&gt; Isolate IDs */
+    private final Map<String, List<String>> pNodes = new HashMap<String, List<String>>();
+
+    /*
+     * (non-Javadoc)
      * 
-     * @return All non-internal isolates ID (never null)
+     * @see
+     * org.psem2m.signals.ISignalDirectory#getGroupAccesses(java.lang.String)
      */
-    protected String[] getAllIsolates() {
+    @Override
+    public synchronized Map<String, HostAccess> getGroupAccesses(
+            final String aGroupName) {
 
-        final List<String> isolatesList = new ArrayList<String>();
+        if (aGroupName == null) {
+            // Empty name
+            return null;
+        }
 
-        for (final String isolateId : pConfiguration.getApplication()
-                .getIsolateIds()) {
+        final List<String> isolates = pGroups.get(aGroupName.toLowerCase());
+        if (isolates == null) {
+            // Unknown group
+            return null;
+        }
 
-            if (isValidIsolate(isolateId)
-                    && !isolateId
-                            .startsWith(IPlatformProperties.SPECIAL_INTERNAL_ISOLATES_PREFIX)) {
-                // The isolate ID doesn't have the internal prefix
-                isolatesList.add(isolateId);
+        final Map<String, HostAccess> accesses = new HashMap<String, HostAccess>();
+        for (final String isolate : isolates) {
+            // Find all accesses for this group
+            final HostAccess access = pAccesses.get(isolate);
+            if (access != null) {
+                accesses.put(isolate, access);
             }
         }
 
-        return isolatesList.toArray(new String[isolatesList.size()]);
-    }
-
-    /**
-     * Retrieves the list of all internal isolates, except the forker, testing
-     * whether the ID starts with
-     * {@link IPlatformProperties#SPECIAL_ISOLATE_ID_FORKER} or not.
-     * 
-     * @return All monitors isolates ID (never null)
-     */
-    protected String[] getAllMonitors() {
-
-        final List<String> monitorsList = new ArrayList<String>();
-
-        for (final String isolateId : pConfiguration.getApplication()
-                .getIsolateIds()) {
-
-            if (isValidIsolate(isolateId)
-                    && isolateId
-                            .startsWith(IPlatformProperties.SPECIAL_INTERNAL_ISOLATES_PREFIX)) {
-
-                monitorsList.add(isolateId);
-            }
+        if (accesses.isEmpty()) {
+            // Nothing found, consider the group unknown
+            return null;
         }
 
-        return monitorsList.toArray(new String[monitorsList.size()]);
+        return accesses;
     }
 
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.services.remote.signals.ISignalsDirectory#
-     * getCurrentIsolateId()
+     * @see
+     * org.psem2m.signals.ISignalDirectory#getIsolateAccess(java.lang.String)
      */
     @Override
-    public String getCurrentIsolateId() {
+    public synchronized HostAccess getIsolateAccess(final String aIsolateId) {
+
+        return pAccesses.get(aIsolateId);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.signals.ISignalDirectory# getCurrentIsolateId()
+     */
+    @Override
+    public String getIsolateId() {
 
         // Isolate ID can change on slave agent order
         return System.getProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID);
@@ -112,140 +112,31 @@ public class SignalsDirectory extends CPojoBase implements ISignalsDirectory {
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * org.psem2m.isolates.services.remote.signals.ISignalsDirectory#getIsolate
-     * (java.lang.String)
+     * @see org.psem2m.signals.ISignalDirectory#getIsolateNode()
      */
     @Override
-    public String getIsolate(final String aIsolateId) {
+    public String getIsolateNode() {
 
-        final IsolateDescription isolate = pConfiguration.getApplication()
-                .getIsolate(aIsolateId);
-
-        if (isolate == null) {
-            pLogger.logWarn(this, "getIsolate", "Unknown isolate=", aIsolateId);
-            return null;
-        }
-
-        return isolate.getAccessUrl();
+        return System
+                .getProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_NODE);
     }
 
     /*
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.isolates.services.remote.signals.ISignalsDirectory#getIsolates
-     * (java.util.Collection)
+     * org.psem2m.signals.ISignalDirectory#getNodeIsolates(java.lang.String)
      */
     @Override
-    public String[] getIsolates(final Collection<String> aIsolatesIds) {
+    public synchronized List<String> getNodeIsolates(final String aNodeName) {
 
-        if (aIsolatesIds == null) {
-            pLogger.logWarn(this, "getIsolates", "Null collection");
-            return null;
+        final List<String> isolates = pNodes.get(aNodeName);
+        if (isolates != null) {
+            // Return a copy of the list
+            return new ArrayList<String>(isolates);
         }
 
-        return getIsolates(aIsolatesIds
-                .toArray(new String[aIsolatesIds.size()]));
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.psem2m.isolates.services.remote.signals.ISignalsDirectory#getIsolates
-     * (org.psem2m.isolates.services.remote.signals.ISignalBroadcaster.
-     * EEmitterTargets)
-     */
-    @Override
-    public String[] getIsolates(final EEmitterTargets aTargets) {
-
-        switch (aTargets) {
-        case ISOLATES:
-            // Non-internal isolates
-            return getIsolates(getAllIsolates());
-
-        case MONITORS:
-            // All monitors
-            return getIsolates(getAllMonitors());
-
-        case ALL: {
-            // Monitors and isolates
-            final Set<String> allIsolates = pConfiguration.getApplication()
-                    .getIsolateIds();
-            final Set<String> accessStrings = new HashSet<String>(
-                    allIsolates.size());
-
-            for (final String isolateId : allIsolates) {
-
-                final IsolateDescription isolate = pConfiguration
-                        .getApplication().getIsolate(isolateId);
-
-                if (isolate != null && isValidIsolate(isolateId)) {
-                    accessStrings.add(isolate.getAccessUrl());
-                }
-            }
-
-            return accessStrings.toArray(new String[accessStrings.size()]);
-        }
-
-        case FORKER: {
-            // Special case : the forker
-            final String accessStr = getIsolate(IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER);
-            if (accessStr == null) {
-                pLogger.logWarn(this, "getIsolates",
-                        "No access URL to the forker");
-                return null;
-            }
-
-            return new String[] { accessStr };
-        }
-
-        case LOCAL:
-            return new String[] { getIsolate(getCurrentIsolateId()) };
-        }
-
-        // Unknown target
         return null;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.psem2m.isolates.services.remote.signals.ISignalsDirectory#getIsolates
-     * (java.lang.String[])
-     */
-    @Override
-    public String[] getIsolates(final String[] aIsolatesIds) {
-
-        if (aIsolatesIds == null) {
-            pLogger.logInfo(this, "// getIsolates //", "Null array");
-            return null;
-        }
-
-        final List<String> isolates = new ArrayList<String>(aIsolatesIds.length);
-
-        for (final String isolateId : aIsolatesIds) {
-
-            final IsolateDescription isolate = pConfiguration.getApplication()
-                    .getIsolate(isolateId);
-
-            if (isolate != null && isValidIsolate(isolateId)) {
-                // Store the access URL, directly
-                isolates.add(isolate.getAccessUrl());
-
-            } else {
-                pLogger.logWarn(this, "getIsolates", "Unknown isolate=",
-                        isolateId);
-            }
-        }
-
-        if (isolates.isEmpty()) {
-            return null;
-        }
-
-        return isolates.toArray(new String[isolates.size()]);
     }
 
     /*
@@ -257,67 +148,122 @@ public class SignalsDirectory extends CPojoBase implements ISignalsDirectory {
     @Override
     public void invalidatePojo() throws BundleException {
 
+        pAccesses.clear();
+        pGroups.clear();
+        pNodes.clear();
+
         pLogger.logInfo(this, "invalidatePojo", "Signals directory gone");
-    }
-
-    /**
-     * Tests if the given isolate ID can be used in a "getAllXXX" method.
-     * Returns false if the isolate ID is the current one or the forker one.
-     * 
-     * @param aIsolateId
-     *            The isolate ID
-     * @return True if the isolate ID can be used
-     */
-    protected boolean isValidIsolate(final String aIsolateId) {
-
-        if (aIsolateId == null || aIsolateId.isEmpty()) {
-            return false;
-        }
-
-        // Neither current isolate nor forker
-        return !aIsolateId
-                .equals(IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER)
-                && !aIsolateId.equals(getCurrentIsolateId());
     }
 
     /*
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.isolates.services.remote.signals.ISignalsDirectory#reloadDirectory
-     * ()
+     * org.psem2m.signals.ISignalDirectory#registerIsolate(java.lang.String,
+     * java.lang.String, java.lang.String, int, java.lang.String[])
      */
     @Override
-    public boolean reloadDirectory() {
+    public synchronized void registerIsolate(final String aIsolateId,
+            final String aNode, final String aHostAddress, final int aPort,
+            final String... aGroups) throws IllegalArgumentException {
 
-        final boolean firstLoad = (pConfiguration.getApplication() == null);
+        if (aIsolateId == null || aIsolateId.isEmpty()) {
+            throw new IllegalArgumentException("Empty isolate ID : '"
+                    + aIsolateId + "'");
+        }
 
-        // Store previous isolates access strings
-        final String[] oldAccesses;
+        if (aNode == null || aNode.isEmpty()) {
+            throw new IllegalArgumentException("Empty node name for isolate '"
+                    + aIsolateId + "'");
+        }
 
-        if (!firstLoad) {
-            oldAccesses = getIsolates(ISignalBroadcaster.EEmitterTargets.ALL);
-            Arrays.sort(oldAccesses);
+        if (aHostAddress == null || aHostAddress.isEmpty()) {
+            throw new IllegalArgumentException("Empty host for isolate '"
+                    + aIsolateId + "'");
+        }
+
+        if (aIsolateId.equals(getIsolateId())) {
+            // Ignore our own registration
+            return;
+        }
+
+        // Store the access
+        pAccesses.put(aIsolateId, new HostAccess(aHostAddress, aPort));
+
+        // Store the node
+        List<String> isolates = pNodes.get(aNode);
+        if (isolates == null) {
+            // Create the node entry
+            isolates = new ArrayList<String>();
+            pNodes.put(aNode, isolates);
+        }
+
+        if (!isolates.contains(aIsolateId)) {
+            isolates.add(aIsolateId);
+        }
+
+        // Store the groups
+        if (aGroups != null) {
+            for (final String group : aGroups) {
+                // Lower case for case insensitivity
+                final String lowerGroup = group.toLowerCase();
+
+                isolates = pGroups.get(lowerGroup);
+                if (isolates == null) {
+                    // Create the group
+                    isolates = new ArrayList<String>();
+                    pGroups.put(lowerGroup, isolates);
+                }
+
+                if (!isolates.contains(aIsolateId)) {
+                    isolates.add(aIsolateId);
+                }
+            }
 
         } else {
-            // First load : can't compare with the previous content...
-            oldAccesses = null;
+            pLogger.logWarn(this, "registerIsolate", "Isolate ID=", aIsolateId,
+                    "has no group");
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.signals.ISignalDirectory#unregisterIsolate(java.lang.String)
+     */
+    @Override
+    public synchronized boolean unregisterIsolate(final String aIsolateId) {
+
+        if (aIsolateId == null || aIsolateId.isEmpty()) {
+            // Nothing to do
+            return false;
         }
 
-        // Reload the configuration
-        pConfiguration.refresh();
+        boolean result = false;
 
-        if (firstLoad) {
-            // Stop here on first load
-            return pConfiguration.getApplication() != null;
+        if (pAccesses.remove(aIsolateId) != null) {
+            // Isolate access removed
+            result = true;
         }
 
-        // Get new access strings
-        final String[] newAccesses = getIsolates(ISignalBroadcaster.EEmitterTargets.ALL);
-        Arrays.sort(newAccesses);
+        // Remove references in nodes
+        for (final List<String> isolates : pNodes.values()) {
+            if (isolates.contains(aIsolateId)) {
+                isolates.remove(aIsolateId);
+                result = true;
+            }
+        }
 
-        // Compare *sorted* arrays
-        return Arrays.equals(newAccesses, oldAccesses);
+        // Remove references in groups
+        for (final List<String> isolates : pGroups.values()) {
+            if (isolates.contains(aIsolateId)) {
+                isolates.remove(aIsolateId);
+                result = true;
+            }
+        }
+
+        return result;
     }
 
     /*
@@ -329,7 +275,9 @@ public class SignalsDirectory extends CPojoBase implements ISignalsDirectory {
     @Override
     public void validatePojo() throws BundleException {
 
-        reloadDirectory();
+        // Register the local isolate
+        pAccesses.put(getIsolateId(), new HostAccess(null, 0));
+
         pLogger.logInfo(this, "validatePojo", "Signals directory ready");
     }
 }

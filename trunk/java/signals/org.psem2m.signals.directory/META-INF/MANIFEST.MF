@@ -12,32 +12,29 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  g.psem2m.isolates.base;version=1.0.0, org.psem2m.isolates.base.activa
  tors;version=1.0.0, org.psem2m.isolates.constants;version=1.0.0, org.
  psem2m.isolates.services.conf;version=1.0.0, org.psem2m.isolates.serv
- ices.conf.beans;version=1.0.0, org.psem2m.isolates.services.remote.si
- gnals;version=1.0.0, org.psem2m.utilities;version=1.0.0, org.psem2m.u
- tilities.logging;version=1.0.0
+ ices.conf.beans;version=1.0.0, org.psem2m.signals;version=1.0.0, org.
+ psem2m.utilities;version=1.0.0, org.psem2m.utilities.logging;version=
+ 1.0.0
 iPOJO-Components: instance { $component="org.psem2m.signals.directory.
  impl.SignalsDirectory" $name="psem2m-signals-directory" }component { 
  $classname="org.psem2m.signals.directory.impl.SignalsDirectory" $name
  ="psem2m-signals-directory-factory" $public="false" provides { $speci
- fications="{org.psem2m.isolates.services.remote.signals.ISignalsDirec
- tory}" }requires { $field="pConfiguration" }requires { $field="pLogge
- r" }callback { $transition="invalidate" $method="invalidatePojo" }cal
- lback { $transition="validate" $method="validatePojo" }manipulation {
-  $super="org.psem2m.isolates.base.activators.CPojoBase" interface { $
- name="org.psem2m.isolates.services.remote.signals.ISignalsDirectory" 
- }field { $name="pConfiguration" $type="org.psem2m.isolates.services.c
- onf.ISvcConfig" }field { $name="pLogger" $type="org.psem2m.isolates.b
- ase.IIsolateLoggerSvc" }method { $name="getAllIsolates" $return="java
- .lang.String[]" }method { $name="getAllMonitors" $return="java.lang.S
- tring[]" }method { $name="getCurrentIsolateId" $return="java.lang.Str
- ing" }method { $name="getIsolate" $return="java.lang.String" $argumen
- ts="{java.lang.String}" }method { $name="getIsolates" $return="java.l
- ang.String[]" $arguments="{java.util.Collection}" }method { $name="ge
- tIsolates" $return="java.lang.String[]" $arguments="{org.psem2m.isola
- tes.services.remote.signals.ISignalBroadcaster$EEmitterTargets}" }met
- hod { $name="getIsolates" $return="java.lang.String[]" $arguments="{j
- ava.lang.String[]}" }method { $name="invalidatePojo" }method { $name=
- "isValidIsolate" $return="boolean" $arguments="{java.lang.String}" }m
- ethod { $name="reloadDirectory" $return="boolean" }method { $name="va
- lidatePojo" }}}
+ fications="{org.psem2m.signals.ISignalDirectory}" }requires { $field=
+ "pLogger" }callback { $transition="invalidate" $method="invalidatePoj
+ o" }callback { $transition="validate" $method="validatePojo" }manipul
+ ation { $super="org.psem2m.isolates.base.activators.CPojoBase" interf
+ ace { $name="org.psem2m.signals.ISignalDirectory" }field { $name="pAc
+ cesses" $type="java.util.Map" }field { $name="pGroups" $type="java.ut
+ il.Map" }field { $name="pLogger" $type="org.psem2m.isolates.base.IIso
+ lateLoggerSvc" }field { $name="pNodes" $type="java.util.Map" }method 
+ { $name="getGroupAccesses" $return="java.util.Map" $arguments="{java.
+ lang.String}" }method { $name="getIsolateAccess" $return="org.psem2m.
+ signals.HostAccess" $arguments="{java.lang.String}" }method { $name="
+ getIsolateId" $return="java.lang.String" }method { $name="getIsolateN
+ ode" $return="java.lang.String" }method { $name="getNodeIsolates" $re
+ turn="java.util.List" $arguments="{java.lang.String}" }method { $name
+ ="invalidatePojo" }method { $name="registerIsolate" $arguments="{java
+ .lang.String,java.lang.String,java.lang.String,int,java.lang.String[]
+ }" }method { $name="unregisterIsolate" $return="boolean" $arguments="
+ {java.lang.String}" }method { $name="validatePojo" }}}
 
