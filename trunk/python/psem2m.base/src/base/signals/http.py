@@ -451,7 +451,7 @@ class SignalSender(object):
             return None
 
         # Only return reached isolates
-        return result[0]
+        return result[0].keys()
 
 
     def get_current_isolate_id(self):
@@ -599,14 +599,12 @@ class SignalSender(object):
         """
         signal_content = {
             # We need that to talk to Java isolates
-            JAVA_CLASS: "org.psem2m.remotes.signals.http.HttpSignalData",
-            "isolateSender": self.context.get_property('psem2m.isolate.id'),
+            JAVA_CLASS: "org.psem2m.signals.impl.SignalData",
+            "isolateId": self.context.get_property('psem2m.isolate.id'),
             # FIXME: set up the node name
-            "nodeName": self.context.get_property('psem2m.isolate.node'),
+            "isolateNode": self.context.get_property('psem2m.isolate.node'),
             "timestamp": int(time.time() * 1000),
-            "signalContent": content,
-            # FIXME: remove this entry as soon as possible
-            "senderHostName": "<DEPRECATED>",
+            "signalContent": content
             }
 
         # Make a JSON form of a Jabsorb signal content
