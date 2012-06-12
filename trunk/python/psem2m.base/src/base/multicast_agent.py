@@ -160,10 +160,18 @@ def close_multicast_socket(sock, address):
 
 PSEM2M_MULTICAST_PORT = 42000
 
+SIGNAL_PREFIX = "/psem2m-multicast-agent"
+SIGNAL_MATCH_ALL = "%s/*" % SIGNAL_PREFIX
+SIGNAL_CONFIRM_BEAT = "%s/confirm" % SIGNAL_PREFIX
+
+PACKET_REGISTER = 1
+
 @ComponentFactory("psem2m-multicast-agent-factory")
-@Instantiate("MulticastAgent")
+@Instantiate("psem2m-multicast-agent")
 @Requires("_config", "org.psem2m.isolates.services.conf.ISvcConfig")
-@Requires("_directory", "org.psem2m.IsolateDirectory")
+@Requires("_directory", "org.psem2m.signals.ISignalDirectory")
+@Requires("_receiver", "org.psem2m.signals.ISignalReceiver")
+@Requires("_sender", "org.psem2m.signals.ISignalsBroadcaster")
 class MulticastAgent(object):
     """
     An UDP v4/v6 multicast agent for PSEM2M
@@ -174,6 +182,8 @@ class MulticastAgent(object):
         """
         self._config = None
         self._directory = None
+        self._receiver = None
+        self._sender = None
 
         self._target = None
         self._socket = None
@@ -182,14 +192,38 @@ class MulticastAgent(object):
         self._thread_running = False
 
 
-    def run(self):
+    def handle_received_signal(self, name, data):
         """
-        Thread listening to the multicast socket
+        Handles a received signal
+        
+        :param name: Signal name
+        :param data: Complete signal data (meta-data + content)
+        :return: Data to send to the requester, or None
         """
-        while self._thread_running:
-            data, sender = self._socket.recvfrom(1500)
-            _logger.info("Received %r from %s", data, sender)
-            # TODO: send a signal to (sender[0], content["port"])
+        if name == SIGNAL_CONFIRM_BEAT:
+            # Beat confirmation
+            # FIXME: setup groups from the configuration service
+            return {'id': self._directory.get_isolate_id(),
+                    'node': self._directory.get_isolate_node(),
+                    'groups': ["isolates"]}
+
+
+    @Invalidate
+    def invalidate(self, context):
+        """
+        Component invalidated
+        
+        :param context: The bundle context
+        """
+        self._thread_running = False
+
+        # Unregister to the signals
+        self._receiver.unregister_listener(SIGNAL_MATCH_ALL, self)
+
+        # Close the socket
+        close_multicast_socket(self._socket, self._target[0])
+        self._target = None
+        self._socket = None
 
 
     @Validate
@@ -209,24 +243,63 @@ class MulticastAgent(object):
 
         # Start the reading thread
         self._thread_running = True
-        self._thread = threading.Thread(target=self.run, name="MulticastAgent")
+        self._thread = threading.Thread(target=self._run, name="MulticastAgent")
         self._thread.start()
 
+        # Register to signals
+        self._receiver.register_listener(SIGNAL_MATCH_ALL, self)
+
         # Send the registration packet
-        # TODO: send isolate information (port)
-        self._socket.sendto("Hello, World !\n".encode(), 0, self._target)
+        self._send_beat()
 
 
-    @Invalidate
-    def invalidate(self, context):
+    def _run(self):
         """
-        Component invalidated
-        
-        :param context: The bundle context
+        Thread listening to the multicast socket
         """
-        self._thread_running = False
+        while self._thread_running:
+            data, sender = self._socket.recvfrom(1500)
+            _logger.info("Received %r from %s", data, sender)
 
-        # Close the socket
-        close_multicast_socket(self._socket, self._target[0])
-        self._target = None
-        self._socket = None
+            # Get the content
+            if data[0] == PACKET_REGISTER:
+                # Send a signal to (sender[0], content["port"])
+                host = sender[0]
+                port = struct.unpack("<H", data[1:])[0]
+
+                try:
+                    result = self._sender.send_to(SIGNAL_CONFIRM_BEAT, None,
+                                                  host, port)
+
+                    if result:
+                        # We got something
+                        # Register the isolate, considering the first result
+                        isolate_id = result['id']
+                        node = result['node']
+                        groups = result['groups']
+
+                        if self._directory is not None:
+                            # Directory can be None in the end of the instance
+                            self._directory.register_isolate(isolate_id, node,
+                                                             host, port, groups)
+
+                    else:
+                        _logger.error("The isolate at %s:%d didn't confirmed "
+                                      "its existence", host, port)
+
+                except:
+                    _logger.exception("Error confirming an agent beat "
+                                      "from %s:%d", host, port)
+
+
+    def _send_beat(self):
+        """
+        Forges and sends the registration packet
+        """
+        port = self._receiver.get_access_info[1]
+
+        # Prepare the packet
+        packet = struct.pack("<BH", PACKET_REGISTER, port)
+
+        # Send over the network
+        self._socket.sendto(packet, 0, self._target)

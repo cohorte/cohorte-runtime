@@ -44,8 +44,12 @@ class SignalsDirectory(object):
         # Group Name -> [isolates]
         self._groups = {}
 
+        # Node name -> [isolates]
+        self._nodes = {}
+
         # Java API compliance (if possible)
         self.getIsolateId = self.get_isolate_id
+        self.getNodeIsolates = self.get_node_isolates
         self.registerIsolate = self.register_isolate
         self.unregisterIsolate = self.unregister_isolate
 
@@ -100,13 +104,25 @@ class SignalsDirectory(object):
         :param isolate_id: An isolate ID
         :return: A (host, port) tuple or None if the isolate is unknown
         """
-        if not isolate_id:
-            # Empty isolate ID
-            return None
-
         with self._lock:
             # An ID is case-sensitive
             return self._accesses.get(isolate_id, None)
+
+
+    def get_node_isolates(self, node):
+        """
+        Retrieves the IDs of the isolates on the given node, or None
+        
+        :param node: The name of a node
+        :return: A list of IDs, or None
+        """
+        with self._lock:
+            isolates = self._nodes.get(node, None)
+            if isolates is not None:
+                # Return a copy, to avoid unwanted modifications
+                return isolates[:]
+
+            return None
 
 
     @Invalidate
@@ -122,11 +138,12 @@ class SignalsDirectory(object):
         self._context = None
 
 
-    def register_isolate(self, isolate_id, host, port, *groups):
+    def register_isolate(self, isolate_id, node, host, port, *groups):
         """
         Registers an isolate in the directory.
         
         :param isolate_id: The ID of the isolate to register
+        :param node: The name of the node the isolate is running on
         :param host: The host of the isolate
         :param port: The port to access the isolate
         :param groups: All groups of the isolate
@@ -134,6 +151,10 @@ class SignalsDirectory(object):
         """
         if not isolate_id:
             raise ValueError("Invalid IsolateID : '%s'" % isolate_id)
+
+        if not node:
+            raise ValueError("Invalid node name for '%s' : '%s'" \
+                             % (isolate_id, node))
 
         if not host:
             raise ValueError("Invalid host for isolate '%s' : '%s'" \
@@ -146,6 +167,17 @@ class SignalsDirectory(object):
         with self._lock:
             # Store the isolate access
             self._accesses[isolate_id] = (host, port)
+
+            # Store the node
+            node_isolates = self._nodes.get(node, None)
+            if node_isolates is None:
+                # Create the node entry
+                node_isolates = []
+                self._nodes[node] = node_isolates
+
+            if isolate_id not in node_isolates:
+                node_isolates.append(isolate_id)
+
 
             # Store the isolate in all groups
             if groups:
