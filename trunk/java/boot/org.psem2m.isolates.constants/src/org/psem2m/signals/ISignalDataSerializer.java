@@ -3,7 +3,7 @@
  * Author: Thomas Calmant
  * Date:   16 janv. 2012
  */
-package org.psem2m.isolates.services.remote.signals;
+package org.psem2m.signals;
 
 /**
  * Handles the convertion between a signal data object and its stream

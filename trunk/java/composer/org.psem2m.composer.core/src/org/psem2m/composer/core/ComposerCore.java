@@ -43,11 +43,10 @@ import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.constants.ISignalsConstants;
-import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
-import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster.EEmitterTargets;
-import org.psem2m.isolates.services.remote.signals.ISignalData;
-import org.psem2m.isolates.services.remote.signals.ISignalListener;
-import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
+import org.psem2m.signals.ISignalBroadcaster;
+import org.psem2m.signals.ISignalData;
+import org.psem2m.signals.ISignalListener;
+import org.psem2m.signals.ISignalReceiver;
 
 /**
  * PSEM2M Composer core agent
@@ -279,17 +278,16 @@ public class ComposerCore extends CPojoBase implements IComposer,
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.services.remote.signals.ISignalListener#
-     * handleReceivedSignal(java.lang.String,
-     * org.psem2m.isolates.services.remote.signals.ISignalData)
+     * @see org.psem2m.signals.ISignalListener#
+     * handleReceivedSignal(java.lang.String, org.psem2m.signals.ISignalData)
      */
     @SuppressWarnings("unchecked")
     @Override
-    public void handleReceivedSignal(final String aSignalName,
+    public Object handleReceivedSignal(final String aSignalName,
             final ISignalData aSignalData) {
 
         // Extract the signal information
-        final String signalSender = aSignalData.getIsolateSender();
+        final String signalSender = aSignalData.getIsolateId();
         final Object signalContent = aSignalData.getSignalContent();
 
         // For Jabsorb results...
@@ -307,7 +305,7 @@ public class ComposerCore extends CPojoBase implements IComposer,
 
                 if (componentsArray.length == 0) {
                     // We were wrong...
-                    return;
+                    return null;
                 }
 
                 // Register components capacities
@@ -358,6 +356,8 @@ public class ComposerCore extends CPojoBase implements IComposer,
             // An isolate has been lost
             unregisterIsolate((String) signalContent);
         }
+
+        return null;
     }
 
     /*
@@ -418,12 +418,13 @@ public class ComposerCore extends CPojoBase implements IComposer,
         notifyCompositionEvent(ECompositionEvent.ADD, aComponentsSetBean);
 
         // Send a signal with all components in an array
-        pSignalBroadcaster.sendData(ISignalBroadcaster.EEmitterTargets.ALL,
-                ComposerAgentSignals.SIGNAL_CAN_HANDLE_COMPONENTS, components);
+        pSignalBroadcaster.fireGroup(
+                ComposerAgentSignals.SIGNAL_CAN_HANDLE_COMPONENTS, components,
+                "ALL");
 
-        // Send a local signal, in the case we also have an agent
-        pSignalBroadcaster.sendData(ISignalBroadcaster.EEmitterTargets.LOCAL,
-                ComposerAgentSignals.SIGNAL_CAN_HANDLE_COMPONENTS, components);
+        pSignalBroadcaster.fire(
+                ComposerAgentSignals.SIGNAL_CAN_HANDLE_COMPONENTS, components,
+                "{local}");
     }
 
     /**
@@ -491,9 +492,9 @@ public class ComposerCore extends CPojoBase implements IComposer,
             }
 
             // Send the instantiation signal
-            pSignalBroadcaster.sendData(isolateId,
+            pSignalBroadcaster.fire(
                     ComposerAgentSignals.SIGNAL_INSTANTIATE_COMPONENTS,
-                    isolateComponents);
+                    isolateComponents, isolateId);
         }
     }
 
@@ -893,8 +894,9 @@ public class ComposerCore extends CPojoBase implements IComposer,
             final String[] components = entry.getValue().toArray(new String[0]);
 
             // Tell the agent in the isolate to stop the given component
-            pSignalBroadcaster.sendData(isolate,
-                    ComposerAgentSignals.SIGNAL_STOP_COMPONENTS, components);
+            pSignalBroadcaster.fire(
+                    ComposerAgentSignals.SIGNAL_STOP_COMPONENTS, components,
+                    isolate);
         }
 
         // Extra signals : tell all agents to stop remaining components
@@ -902,13 +904,12 @@ public class ComposerCore extends CPojoBase implements IComposer,
         final String[] remainingComponents = composite.getRemainingComponents()
                 .toArray(new String[0]);
 
-        pSignalBroadcaster.sendData(EEmitterTargets.ALL,
+        pSignalBroadcaster.fireGroup(
                 ComposerAgentSignals.SIGNAL_STOP_COMPONENTS,
-                remainingComponents);
+                remainingComponents, "ALL");
 
-        pSignalBroadcaster.sendData(EEmitterTargets.LOCAL,
-                ComposerAgentSignals.SIGNAL_STOP_COMPONENTS,
-                remainingComponents);
+        pSignalBroadcaster.fire(ComposerAgentSignals.SIGNAL_STOP_COMPONENTS,
+                remainingComponents, "{local}");
 
         // Send the event ECompositionEvent.REMOVE to the Composition
         // listeners

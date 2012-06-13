@@ -3,7 +3,7 @@
  * Author: "Thomas Calmant"
  * Date:   23 sept. 2011
  */
-package org.psem2m.isolates.services.remote.signals;
+package org.psem2m.signals;
 
 /**
  * Represents a signal reception provider.
@@ -20,18 +20,30 @@ public interface ISignalReceptionProvider {
     String PROPERTY_READY = "signal.provider.ready";
 
     /**
-     * Registers the given listener to all received signal
+     * Retrieves the (host, port) couple to access this signal reception
+     * provider. The result can be null, if the provider doesn't declare itself
+     * as an access point.
      * 
-     * @param aListener
-     *            Signal listener
+     * @return An (host, port) couple
      */
-    void registerListener(ISignalListener aListener);
+    HostAccess getAccessInfo();
 
     /**
-     * Unregisters the given listener
+     * Registers the given receiver all received signal. Does nothing if a
+     * receiver as already been set.
      * 
      * @param aListener
-     *            Signal listener
+     *            A signal receiver service
+     * @return True if the receiver has been set
      */
-    void unregisterListener(ISignalListener aListener);
+    boolean setReceiver(ISignalReceiver aReceiver);
+
+    /**
+     * Unregisters the given receiver. Does nothing if it wasn't the current
+     * receiver.
+     * 
+     * @param aListener
+     *            A signal receiver service
+     */
+    void unsetReceiver(ISignalReceiver aReceiver);
 }

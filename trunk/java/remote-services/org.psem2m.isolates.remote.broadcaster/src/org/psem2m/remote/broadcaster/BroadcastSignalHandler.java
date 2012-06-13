@@ -24,10 +24,10 @@ import org.psem2m.isolates.services.remote.beans.EndpointDescription;
 import org.psem2m.isolates.services.remote.beans.RemoteServiceEvent;
 import org.psem2m.isolates.services.remote.beans.RemoteServiceEvent.ServiceEventType;
 import org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration;
-import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
-import org.psem2m.isolates.services.remote.signals.ISignalData;
-import org.psem2m.isolates.services.remote.signals.ISignalListener;
-import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
+import org.psem2m.signals.ISignalBroadcaster;
+import org.psem2m.signals.ISignalData;
+import org.psem2m.signals.ISignalListener;
+import org.psem2m.signals.ISignalReceiver;
 
 /**
  * Broadcast signals listener
@@ -62,16 +62,15 @@ public class BroadcastSignalHandler extends CPojoBase implements
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.services.remote.signals.ISignalListener#
-     * handleReceivedSignal(java.lang.String,
-     * org.psem2m.isolates.services.remote.signals.ISignalData)
+     * @see org.psem2m.signals.ISignalListener#
+     * handleReceivedSignal(java.lang.String, org.psem2m.signals.ISignalData)
      */
     @Override
-    public void handleReceivedSignal(final String aSignalName,
+    public Object handleReceivedSignal(final String aSignalName,
             final ISignalData aSignalData) {
 
         final Object signalContent = aSignalData.getSignalContent();
-        final String senderHostName = aSignalData.getSenderHostName();
+        final String senderNodeName = aSignalData.getIsolateNode();
 
         if (ISignalsConstants.BROADCASTER_SIGNAL_REMOTE_EVENT
                 .equals(aSignalName)) {
@@ -80,7 +79,7 @@ public class BroadcastSignalHandler extends CPojoBase implements
             if (signalContent instanceof RemoteServiceEvent) {
                 // Valid signal content, handle it
                 final RemoteServiceEvent event = (RemoteServiceEvent) signalContent;
-                event.setSenderHostName(senderHostName);
+                event.setSenderHostName(senderNodeName);
 
                 handleRemoteEvent(event);
 
@@ -91,7 +90,7 @@ public class BroadcastSignalHandler extends CPojoBase implements
                  */
                 for (final RemoteServiceEvent event : (RemoteServiceEvent[]) signalContent) {
                     // Update its content and notify listeners
-                    event.setSenderHostName(senderHostName);
+                    event.setSenderHostName(senderNodeName);
                     handleRemoteEvent(event);
                 }
 
@@ -105,7 +104,7 @@ public class BroadcastSignalHandler extends CPojoBase implements
 
                 for (final RemoteServiceEvent event : collection) {
                     // Update its content and notify listeners
-                    event.setSenderHostName(senderHostName);
+                    event.setSenderHostName(senderNodeName);
                     handleRemoteEvent(event);
                 }
             }
@@ -113,7 +112,7 @@ public class BroadcastSignalHandler extends CPojoBase implements
         } else if (ISignalsConstants.BROADCASTER_SIGNAL_REQUEST_ENDPOINTS
                 .equals(aSignalName)) {
             // End point request
-            handleRequestEndpoints(aSignalData.getIsolateSender());
+            handleRequestEndpoints(aSignalData.getIsolateId());
 
         } else if (ISignalsConstants.ISOLATE_LOST_SIGNAL.equals(aSignalName)) {
             // Isolate lost : Notify all listeners
@@ -121,6 +120,8 @@ public class BroadcastSignalHandler extends CPojoBase implements
                 listener.handleIsolateLost((String) signalContent);
             }
         }
+
+        return null;
     }
 
     /**
@@ -178,9 +179,10 @@ public class BroadcastSignalHandler extends CPojoBase implements
         }
 
         // Use the signal sender to reply to the isolate
-        pSignalEmitter.sendData(aRequestingIsolateId,
-                ISignalsConstants.BROADCASTER_SIGNAL_REMOTE_EVENT,
-                events.toArray(new RemoteServiceEvent[0]));
+        pSignalEmitter
+                .fire(ISignalsConstants.BROADCASTER_SIGNAL_REMOTE_EVENT,
+                        events.toArray(new RemoteServiceEvent[0]),
+                        aRequestingIsolateId);
     }
 
     /*

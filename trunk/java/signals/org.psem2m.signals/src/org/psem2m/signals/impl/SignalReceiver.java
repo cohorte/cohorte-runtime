@@ -3,11 +3,13 @@
  * Author: Thomas Calmant
  * Date:   23 sept. 2011
  */
-package org.psem2m.signals;
+package org.psem2m.signals.impl;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -26,10 +28,13 @@ import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.base.activators.CPojoBase;
-import org.psem2m.isolates.services.remote.signals.ISignalData;
-import org.psem2m.isolates.services.remote.signals.ISignalListener;
-import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
-import org.psem2m.isolates.services.remote.signals.ISignalReceptionProvider;
+import org.psem2m.signals.HostAccess;
+import org.psem2m.signals.ISignalBroadcaster;
+import org.psem2m.signals.ISignalData;
+import org.psem2m.signals.ISignalListener;
+import org.psem2m.signals.ISignalReceiver;
+import org.psem2m.signals.ISignalReceptionProvider;
+import org.psem2m.signals.SignalResult;
 
 /**
  * Base signal receiver logic
@@ -39,8 +44,7 @@ import org.psem2m.isolates.services.remote.signals.ISignalReceptionProvider;
 @Component(name = "psem2m-signal-receiver-factory", publicFactory = false)
 @Provides(specifications = ISignalReceiver.class)
 @Instantiate(name = "psem2m-signal-receiver")
-public class SignalReceiver extends CPojoBase implements ISignalReceiver,
-        ISignalListener {
+public class SignalReceiver extends CPojoBase implements ISignalReceiver {
 
     /** Signal listeners */
     private final Map<String, Set<ISignalListener>> pListeners = new HashMap<String, Set<ISignalListener>>();
@@ -74,7 +78,10 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver,
     protected void bindProvider(final ISignalReceptionProvider aProvider) {
 
         // Register to the provider
-        aProvider.registerListener(this);
+        if (!aProvider.setReceiver(this)) {
+            pLogger.logInfo(this, "bindProvider",
+                    "Error registering to the reception provider=", aProvider);
+        }
 
         // Increase the number of available providers
         pNbProviders++;
@@ -86,45 +93,81 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver,
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.services.remote.signals.ISignalListener#
-     * handleReceivedSignal(java.lang.String,
-     * org.psem2m.isolates.services.remote.signals.ISignalData)
+     * @see org.psem2m.signals.impl.ISignalReceiver#getAccessInfo()
      */
     @Override
-    public void handleReceivedSignal(final String aSignalName,
-            final ISignalData aSignalData) {
+    public HostAccess getAccessInfo() {
 
-        final Set<ISignalListener> signalListeners = new HashSet<ISignalListener>();
+        for (final ISignalReceptionProvider receiver : pReceivers) {
 
-        // Get listeners set
-        synchronized (pListeners) {
-
-            for (final String signal : pListeners.keySet()) {
-                // Take care of jokers ('*' and '?')
-                if (Utilities.matchFilter(aSignalName, signal)) {
-                    signalListeners.addAll(pListeners.get(signal));
-                }
+            final HostAccess access = receiver.getAccessInfo();
+            if (access != null) {
+                // Return the first one
+                return access;
             }
         }
 
-        // Notify listeners in another thread
-        pNotificationExecutor.execute(new Runnable() {
+        // No valid access found
+        return null;
+    }
 
-            @Override
-            public void run() {
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.signals.ISignalReceiver#handleReceivedSignal(java.lang.String,
+     * org.psem2m.signals.ISignalData, java.lang.String)
+     */
+    @Override
+    public SignalResult handleReceivedSignal(final String aSignalName,
+            final ISignalData aSignalData, final String aMode) {
 
-                for (final ISignalListener listener : signalListeners) {
+        if (ISignalBroadcaster.MODE_SEND.equalsIgnoreCase(aMode)) {
+            // Standard mode
+            return notifyListeners(aSignalName, aSignalData);
 
-                    try {
-                        listener.handleReceivedSignal(aSignalName, aSignalData);
+        } else if (ISignalBroadcaster.MODE_FORGET.equalsIgnoreCase(aMode)) {
+            /*
+             * Signal V1 mode. Fire and forget mode : the client doesn't want a
+             * result -> Start a thread to notify listener and return
+             * immediately
+             */
+            notifyListenersInThread(aSignalName, aSignalData);
+            return new SignalResult(200, "Signal thread started");
 
-                    } catch (final Throwable throwable) {
-                        pLogger.logWarn(this, "handleReceivedSignal",
-                                "Error notifying a signal listener", throwable);
+        } else if (ISignalBroadcaster.MODE_ACK.equalsIgnoreCase(aMode)) {
+
+            SignalResult result = null;
+
+            // Test if at least one listener will be notified
+            synchronized (pListeners) {
+                for (final String signal : pListeners.keySet()) {
+                    // Take care of jokers ('*' and '?')
+                    if (Utilities.matchFilter(aSignalName, signal)) {
+                        result = new SignalResult(200,
+                                "At least one listener found");
+                        break;
                     }
                 }
             }
-        });
+
+            if (result != null) {
+                /*
+                 * Start the treatment in another thread, as at least one
+                 * listener was found
+                 */
+                notifyListenersInThread(aSignalName, aSignalData);
+                return result;
+
+            } else {
+                // No listener found
+                return new SignalResult(404, "No listener found for "
+                        + aSignalName);
+            }
+        }
+
+        // Unknown mode
+        return new SignalResult(501, "Unknown mode '" + aMode + "'");
     }
 
     /*
@@ -138,7 +181,7 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver,
 
         // Unregister from all providers
         for (final ISignalReceptionProvider provider : pReceivers) {
-            provider.unregisterListener(this);
+            provider.unsetReceiver(this);
         }
 
         // Clear listeners
@@ -165,25 +208,89 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver,
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * org.psem2m.isolates.services.remote.signals.ISignalReceiver#localReception
-     * (java.lang.String,
-     * org.psem2m.isolates.services.remote.signals.ISignalData)
+     * @see org.psem2m.signals.ISignalReceiver#localReception(java.lang.String,
+     * org.psem2m.signals.ISignalData, java.lang.String)
      */
     @Override
-    public void localReception(final String aSignalName, final ISignalData aData) {
+    public SignalResult localReception(final String aSignalName,
+            final ISignalData aData, final String aMode) {
 
         // Simulate a normal reception
-        handleReceivedSignal(aSignalName, aData);
+        return handleReceivedSignal(aSignalName, aData, aMode);
+    }
+
+    /**
+     * Listeners notification loop
+     * 
+     * @param aSignalName
+     *            A signal name
+     * @param aSignalData
+     *            The signal data
+     * @return A (code, listeners results) couple
+     */
+    protected SignalResult notifyListeners(final String aSignalName,
+            final ISignalData aSignalData) {
+
+        final Set<ISignalListener> signalListeners = new HashSet<ISignalListener>();
+
+        // Get listeners set
+        synchronized (pListeners) {
+
+            for (final String signal : pListeners.keySet()) {
+                // Take care of jokers ('*' and '?')
+                if (Utilities.matchFilter(aSignalName, signal)) {
+                    signalListeners.addAll(pListeners.get(signal));
+                }
+            }
+        }
+
+        // Notify listeners
+        final List<Object> results = new ArrayList<Object>(pListeners.size());
+        for (final ISignalListener listener : signalListeners) {
+
+            try {
+                final Object result = listener.handleReceivedSignal(
+                        aSignalName, aSignalData);
+                if (result != null) {
+                    results.add(result);
+                }
+
+            } catch (final Throwable throwable) {
+                pLogger.logWarn(this, "handleReceivedSignal",
+                        "Error notifying a signal listener", throwable);
+            }
+        }
+
+        return new SignalResult(200, results);
+    }
+
+    /**
+     * Starts a new thread to call {@link #notifyListeners(String, ISignalData)}
+     * 
+     * @param aSignalName
+     *            A signal name
+     * @param aSignalData
+     *            The signal data
+     */
+    private void notifyListenersInThread(final String aSignalName,
+            final ISignalData aSignalData) {
+
+        new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+
+                // Don't care about the result
+                notifyListeners(aSignalName, aSignalData);
+            }
+        }).start();
     }
 
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * org.psem2m.isolates.services.remote.signals.ISignalReceiver#registerListener
-     * (java.lang.String,
-     * org.psem2m.isolates.services.remote.signals.ISignalListener)
+     * @see org.psem2m.signals.impl.ISignalReceiver#registerListener
+     * (java.lang.String, org.psem2m.signals.impl.ISignalListener)
      */
     @Override
     public void registerListener(final String aSignalName,
@@ -219,7 +326,7 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver,
     @Unbind(id = "receivers", aggregate = true)
     protected void unbindProvider(final ISignalReceptionProvider aProvider) {
 
-        aProvider.unregisterListener(this);
+        aProvider.unsetReceiver(this);
 
         // Decrease the number of available providers
         pNbProviders--;
@@ -233,9 +340,9 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver,
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.services.remote.signals.ISignalReceiver#
+     * @see org.psem2m.signals.impl.ISignalReceiver#
      * unregisterListener(java.lang.String,
-     * org.psem2m.isolates.services.remote.signals.ISignalListener)
+     * org.psem2m.signals.impl.ISignalListener)
      */
     @Override
     public void unregisterListener(final String aSignalName,

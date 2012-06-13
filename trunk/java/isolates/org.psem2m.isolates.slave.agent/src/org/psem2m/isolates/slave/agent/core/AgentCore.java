@@ -40,11 +40,11 @@ import org.psem2m.isolates.services.conf.ISvcConfig;
 import org.psem2m.isolates.services.conf.beans.BundleDescription;
 import org.psem2m.isolates.services.conf.beans.IsolateDescription;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
-import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
-import org.psem2m.isolates.services.remote.signals.ISignalData;
-import org.psem2m.isolates.services.remote.signals.ISignalListener;
-import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
 import org.psem2m.isolates.slave.agent.ISvcAgent;
+import org.psem2m.signals.ISignalBroadcaster;
+import org.psem2m.signals.ISignalData;
+import org.psem2m.signals.ISignalListener;
+import org.psem2m.signals.ISignalReceiver;
 
 /**
  * Implementation of the isolate Agent
@@ -58,7 +58,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
     private IBootstrapMessageSender pBootstrapSender;
 
     /** Agent bundle context */
-    private BundleContext pBundleContext;
+    private final BundleContext pBundleContext;
 
     /** Bundle finder, injected by iPOJO */
     private IBundleFinderSvc pBundleFinderSvc;
@@ -67,7 +67,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
     private ISvcConfig pConfigurationSvc;
 
     /** The agent core critical section flag */
-    private AtomicBoolean pCriticalSection = new AtomicBoolean(false);
+    private final AtomicBoolean pCriticalSection = new AtomicBoolean(false);
 
     /** Bundles installed by the agent : bundle ID -&gt; bundle description map */
     private final Map<Long, BundleDescription> pInstalledBundles = new LinkedHashMap<Long, BundleDescription>();
@@ -342,12 +342,11 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.services.remote.signals.ISignalListener#
-     * handleReceivedSignal(java.lang.String,
-     * org.psem2m.isolates.services.remote.signals.ISignalData)
+     * @see org.psem2m.signals.ISignalListener#
+     * handleReceivedSignal(java.lang.String, org.psem2m.signals.ISignalData)
      */
     @Override
-    public void handleReceivedSignal(final String aSignalName,
+    public Object handleReceivedSignal(final String aSignalName,
             final ISignalData aSignalData) {
 
         if (aSignalName.equals(ISignalsConstants.ISOLATE_STOP_SIGNAL)) {
@@ -369,6 +368,8 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
             // Kill ourselves
             killIsolate();
         }
+
+        return null;
     }
 
     /**
@@ -467,9 +468,8 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
         final IsolateStatus status = pBootstrapSender.sendStatus(
                 IsolateStatus.STATE_AGENT_STOPPED, 100);
 
-        pSignalBroadcaster.sendData(
-                ISignalBroadcaster.EEmitterTargets.MONITORS,
-                ISignalsConstants.ISOLATE_STATUS_SIGNAL, status);
+        pSignalBroadcaster.sendGroup(ISignalsConstants.ISOLATE_STATUS_SIGNAL,
+                status, "MONITORS");
     }
 
     /**
@@ -958,9 +958,9 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
                     IsolateStatus.STATE_AGENT_DONE, 100);
 
             // Broadcast the same isolate status (same time stamp)
-            pSignalBroadcaster.sendData(
-                    ISignalBroadcaster.EEmitterTargets.MONITORS,
-                    ISignalsConstants.ISOLATE_STATUS_SIGNAL, status);
+            pSignalBroadcaster
+                    .sendGroup(ISignalsConstants.ISOLATE_STATUS_SIGNAL, status,
+                            "MONITORS");
 
         } catch (final Exception ex) {
             System.err.println("Preparation error : " + ex);
@@ -970,9 +970,9 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
                     IsolateStatus.STATE_FAILURE, -1);
 
             // Broadcast the same isolate status (same time stamp)
-            pSignalBroadcaster.sendData(
-                    ISignalBroadcaster.EEmitterTargets.MONITORS,
-                    ISignalsConstants.ISOLATE_STATUS_SIGNAL, status);
+            pSignalBroadcaster
+                    .sendGroup(ISignalsConstants.ISOLATE_STATUS_SIGNAL, status,
+                            "MONITORS");
 
             // Log the error
             pIsolateLoggerSvc.logSevere(this, "validatePojo",

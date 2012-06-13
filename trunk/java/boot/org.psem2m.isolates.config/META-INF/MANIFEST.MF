@@ -33,7 +33,9 @@ iPOJO-Components: instance { $component="psem2m-config-factory" $name=
  ggerSvc" }field { $name="pLastLoad" $type="long" }field { $name="pRea
  der" $type="org.psem2m.isolates.config.json.JsonConfigReader" }method
   { $name="getApplication" $return="org.psem2m.isolates.services.conf.
- beans.ApplicationDescription" }method { $name="invalidatePojo" }metho
- d { $name="logDumpConfig" }method { $name="refresh" $return="boolean"
-  }method { $name="validatePojo" }}}
+ beans.ApplicationDescription" }method { $name="getCurrentIsolate" $re
+ turn="org.psem2m.isolates.services.conf.beans.IsolateDescription" }me
+ thod { $name="invalidatePojo" }method { $name="logDumpConfig" }method
+  { $name="refresh" $return="boolean" }method { $name="validatePojo" }
+ }}
 

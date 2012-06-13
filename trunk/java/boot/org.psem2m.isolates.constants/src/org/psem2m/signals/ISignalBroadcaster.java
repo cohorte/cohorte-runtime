@@ -3,75 +3,42 @@
  * Author: Thomas Calmant
  * Date:   19 sept. 2011
  */
-package org.psem2m.isolates.services.remote.signals;
+package org.psem2m.signals;
 
-import java.util.Collection;
+import java.util.concurrent.Future;
 
 /**
- * Represents a signal emitter service
+ * Represents a signal broadcast service
  * 
  * @author Thomas Calmant
  */
 public interface ISignalBroadcaster {
 
-    /**
-     * Predefined signal targets
-     * 
-     * @author Thomas Calmant
-     */
-    enum EEmitterTargets {
-        /** All isolates and monitors (except forker) */
-        ALL,
+    /** Signals request mode ACK : at least one listener must be there */
+    String MODE_ACK = "ack";
 
-        /** The forker (only value to access to it) */
-        FORKER,
+    /** Signals request mode FORGET : return immediately */
+    String MODE_FORGET = "forget";
 
-        /** All isolates (neither monitor nor forker) */
-        ISOLATES,
+    /** Signals request mode SEND : wait for all listeners to return */
+    String MODE_SEND = "send";
 
-        /** Local isolate only (doesn't use signal providers) */
-        LOCAL,
+    String[] fire(String aSignalName, Object aContent, String... aIsolates);
 
-        /** All monitors (not the forker) */
-        MONITORS,
-    }
+    String[] fireGroup(String aSignalName, Object aContent, String... aGroups);
 
-    /**
-     * Sends the given data to the given isolates
-     * 
-     * @param aIsolateId
-     *            The target isolate ID
-     * @param aSignalName
-     *            Signal name (URI like string)
-     * @param aData
-     *            Signal content (can't be null)
-     */
-    void sendData(Collection<String> aIsolateId, String aSignalName,
-            Object aData);
+    Future<ISignalSendResult> post(String aSignalName, Object aContent,
+            String... aIsolates);
 
-    /**
-     * Sends the given data to the given targets.
-     * 
-     * @param aTargets
-     *            Signal targets
-     * @param aSignalName
-     *            Signal name (URI like string)
-     * @param aData
-     *            Signal content (can't be null)
-     */
-    void sendData(EEmitterTargets aTargets, String aSignalName, Object aData);
+    Future<ISignalSendResult> postGroup(String aSignalName, Object aContent,
+            String... aGroups);
 
-    /**
-     * Sends the given data to the given isolate
-     * 
-     * @param aIsolateId
-     *            The target isolate ID
-     * @param aSignalName
-     *            Signal name (URI like string)
-     * @param aData
-     *            Signal content (can't be null)
-     * 
-     * @return True if the isolate ID exists, else false
-     */
-    boolean sendData(String aIsolateId, String aSignalName, Object aData);
+    ISignalSendResult send(String aSignalName, Object aContent,
+            String... aIsolates);
+
+    ISignalSendResult sendGroup(String aSignalName, Object aContent,
+            String... aGroups);
+
+    Object[] sendTo(String aSignalName, Object aContent, String aHost, int aPort)
+            throws Exception;
 }

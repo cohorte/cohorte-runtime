@@ -51,6 +51,15 @@ public interface IPlatformProperties {
     String PROP_PLATFORM_ISOLATE_ID = "org.psem2m.platform.isolate.id";
 
     /**
+     * contains the node of the current isolates.
+     * 
+     * <pre>
+     * -Dorg.psem2m.platform.isolate.id=development
+     * </pre>
+     */
+    String PROP_PLATFORM_ISOLATE_NODE = "org.psem2m.platform.isolate.node";
+
+    /**
      * if "true", allows the redirection of the output of the OSGi log service
      * in the logger of the current isolate.
      * 

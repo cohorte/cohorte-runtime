@@ -19,8 +19,7 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  m.isolates.services.conf;version=1.0.0, org.psem2m.isolates.services.
  conf.beans;version=1.0.0, org.psem2m.isolates.services.dirs;version=1
  .0.0, org.psem2m.isolates.services.monitoring;version=1.0.0, org.psem
- 2m.isolates.services.remote.signals;version=1.0.0, org.psem2m.utiliti
- es.logging
+ 2m.signals;version=1.0.0, org.psem2m.utilities.logging
 iPOJO-Components: instance { $component="psem2m-slave-agent-core-facto
  ry" $name="psem2m-slave-agent-core" }instance { $component="org.psem2
  m.isolates.slave.agent.monitor.ThreadsMonitor" $name="psem2m-threads-
@@ -53,62 +52,61 @@ iPOJO-Components: instance { $component="psem2m-slave-agent-core-facto
  jo.handlers.jmx:method { $name="updateBundle" $description="Updates t
  he bundle with the given UID" }}manipulation { $super="org.psem2m.iso
  lates.base.activators.CPojoBase" interface { $name="org.psem2m.isolat
- es.slave.agent.ISvcAgent" }interface { $name="org.psem2m.isolates.ser
- vices.remote.signals.ISignalListener" }interface { $name="org.osgi.fr
- amework.BundleListener" }field { $name="pBootstrapSender" $type="org.
- psem2m.isolates.base.isolates.boot.IBootstrapMessageSender" }field { 
- $name="pBundleContext" $type="org.osgi.framework.BundleContext" }fiel
- d { $name="pBundleFinderSvc" $type="org.psem2m.isolates.base.bundles.
- IBundleFinderSvc" }field { $name="pConfigurationSvc" $type="org.psem2
- m.isolates.services.conf.ISvcConfig" }field { $name="pCriticalSection
- " $type="java.util.concurrent.atomic.AtomicBoolean" }field { $name="p
- InstalledBundles" $type="java.util.Map" }field { $name="pIsolateLogge
- rSvc" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $na
- me="pPlatformDirsSvc" $type="org.psem2m.isolates.services.dirs.IPlatf
- ormDirsSvc" }field { $name="pScheduler" $type="java.util.concurrent.S
- cheduledExecutorService" }field { $name="pSignalBroadcaster" $type="o
- rg.psem2m.isolates.services.remote.signals.ISignalBroadcaster" }field
-  { $name="pSignalReceiver" $type="org.psem2m.isolates.services.remote
- .signals.ISignalReceiver" }field { $name="pUpdateTimeouts" $type="jav
- a.util.Map" }method { $name="bundleChanged" $arguments="{org.osgi.fra
- mework.BundleEvent}" }method { $name="cancelTimeout" $arguments="{lon
- g}" }method { $name="destroy" }method { $name="findBundleURL" $return
- ="java.lang.String" $arguments="{org.psem2m.isolates.services.conf.be
- ans.BundleDescription}" }method { $name="getBundle" $return="org.osgi
- .framework.Bundle" $arguments="{long}" }method { $name="getBundleInfo
- " $return="org.psem2m.isolates.base.bundles.BundleInfo" $arguments="{
- long}" }method { $name="getBundlesState" $return="org.psem2m.isolates
- .base.bundles.BundleInfo[]" }method { $name="getInstalledBundles" $re
- turn="java.util.Map" }method { $name="handleReceivedSignal" $argument
- s="{java.lang.String,org.psem2m.isolates.services.remote.signals.ISig
- nalData}" }method { $name="handleUninstalledBundleEvent" $arguments="
- {org.psem2m.isolates.services.conf.beans.BundleDescription}" }method 
- { $name="installBundle" $return="long" $arguments="{java.lang.String}
- " }method { $name="invalidatePojo" }method { $name="isFragment" $retu
- rn="boolean" $arguments="{org.osgi.framework.Bundle}" }method { $name
- ="killIsolate" }method { $name="neutralizeIsolate" }method { $name="p
- repareIsolate" }method { $name="prepareIsolate" $arguments="{java.lan
- g.String}" }method { $name="refreshPackages" $return="boolean" $argum
- ents="{long[]}" }method { $name="safeIsolateReset" }method { $name="s
- etupHttpProperties" $arguments="{org.psem2m.isolates.services.conf.be
- ans.IsolateDescription}" }method { $name="startBundle" $return="boole
- an" $arguments="{long}" }method { $name="stopBundle" $return="boolean
- " $arguments="{long}" }method { $name="uninstallBundle" $return="bool
- ean" $arguments="{long}" }method { $name="updateBundle" $return="bool
- ean" $arguments="{long}" }method { $name="validatePojo" }}}component 
- { $classname="org.psem2m.isolates.slave.agent.monitor.ThreadsMonitor"
-  $name="psem2m-threads-monitor-factory" $public="true" requires { $fi
- eld="pLogger" }requires { $field="pMonitor" }callback { $transition="
- invalidate" $method="invalidatePojo" }callback { $transition="validat
- e" $method="validatePojo" }manipulation { $super="org.psem2m.isolates
- .base.activators.CPojoBase" field { $name="pLogger" $type="org.psem2m
- .isolates.base.IIsolateLoggerSvc" }field { $name="pMonitor" $type="or
- g.psem2m.isolates.services.monitoring.IThreadCpuUsageMonitor" }field 
- { $name="pScheduledExecutor" $type="java.util.concurrent.ScheduledExe
- cutorService" }method { $name="enumerateThreadGroup" $arguments="{jav
- a.util.Map,java.lang.ThreadGroup}" }method { $name="findThreadStarter
- " $return="java.lang.String" $arguments="{java.lang.Thread}" }method 
- { $name="getAllThreads" $return="java.util.Map" }method { $name="inva
- lidatePojo" }method { $name="updateMonitor" }method { $name="validate
- Pojo" }}}
+ es.slave.agent.ISvcAgent" }interface { $name="org.psem2m.signals.ISig
+ nalListener" }interface { $name="org.osgi.framework.BundleListener" }
+ field { $name="pBootstrapSender" $type="org.psem2m.isolates.base.isol
+ ates.boot.IBootstrapMessageSender" }field { $name="pBundleContext" $t
+ ype="org.osgi.framework.BundleContext" }field { $name="pBundleFinderS
+ vc" $type="org.psem2m.isolates.base.bundles.IBundleFinderSvc" }field 
+ { $name="pConfigurationSvc" $type="org.psem2m.isolates.services.conf.
+ ISvcConfig" }field { $name="pCriticalSection" $type="java.util.concur
+ rent.atomic.AtomicBoolean" }field { $name="pInstalledBundles" $type="
+ java.util.Map" }field { $name="pIsolateLoggerSvc" $type="org.psem2m.i
+ solates.base.IIsolateLoggerSvc" }field { $name="pPlatformDirsSvc" $ty
+ pe="org.psem2m.isolates.services.dirs.IPlatformDirsSvc" }field { $nam
+ e="pScheduler" $type="java.util.concurrent.ScheduledExecutorService" 
+ }field { $name="pSignalBroadcaster" $type="org.psem2m.signals.ISignal
+ Broadcaster" }field { $name="pSignalReceiver" $type="org.psem2m.signa
+ ls.ISignalReceiver" }field { $name="pUpdateTimeouts" $type="java.util
+ .Map" }method { $name="bundleChanged" $arguments="{org.osgi.framework
+ .BundleEvent}" }method { $name="cancelTimeout" $arguments="{long}" }m
+ ethod { $name="destroy" }method { $name="findBundleURL" $return="java
+ .lang.String" $arguments="{org.psem2m.isolates.services.conf.beans.Bu
+ ndleDescription}" }method { $name="getBundle" $return="org.osgi.frame
+ work.Bundle" $arguments="{long}" }method { $name="getBundleInfo" $ret
+ urn="org.psem2m.isolates.base.bundles.BundleInfo" $arguments="{long}"
+  }method { $name="getBundlesState" $return="org.psem2m.isolates.base.
+ bundles.BundleInfo[]" }method { $name="getInstalledBundles" $return="
+ java.util.Map" }method { $name="handleReceivedSignal" $return="java.l
+ ang.Object" $arguments="{java.lang.String,org.psem2m.signals.ISignalD
+ ata}" }method { $name="handleUninstalledBundleEvent" $arguments="{org
+ .psem2m.isolates.services.conf.beans.BundleDescription}" }method { $n
+ ame="installBundle" $return="long" $arguments="{java.lang.String}" }m
+ ethod { $name="invalidatePojo" }method { $name="isFragment" $return="
+ boolean" $arguments="{org.osgi.framework.Bundle}" }method { $name="ki
+ llIsolate" }method { $name="neutralizeIsolate" }method { $name="prepa
+ reIsolate" }method { $name="prepareIsolate" $arguments="{java.lang.St
+ ring}" }method { $name="refreshPackages" $return="boolean" $arguments
+ ="{long[]}" }method { $name="safeIsolateReset" }method { $name="setup
+ HttpProperties" $arguments="{org.psem2m.isolates.services.conf.beans.
+ IsolateDescription}" }method { $name="startBundle" $return="boolean" 
+ $arguments="{long}" }method { $name="stopBundle" $return="boolean" $a
+ rguments="{long}" }method { $name="uninstallBundle" $return="boolean"
+  $arguments="{long}" }method { $name="updateBundle" $return="boolean"
+  $arguments="{long}" }method { $name="validatePojo" }}}component { $c
+ lassname="org.psem2m.isolates.slave.agent.monitor.ThreadsMonitor" $na
+ me="psem2m-threads-monitor-factory" $public="true" requires { $field=
+ "pLogger" }requires { $field="pMonitor" }callback { $transition="inva
+ lidate" $method="invalidatePojo" }callback { $transition="validate" $
+ method="validatePojo" }manipulation { $super="org.psem2m.isolates.bas
+ e.activators.CPojoBase" field { $name="pLogger" $type="org.psem2m.iso
+ lates.base.IIsolateLoggerSvc" }field { $name="pMonitor" $type="org.ps
+ em2m.isolates.services.monitoring.IThreadCpuUsageMonitor" }field { $n
+ ame="pScheduledExecutor" $type="java.util.concurrent.ScheduledExecuto
+ rService" }method { $name="enumerateThreadGroup" $arguments="{java.ut
+ il.Map,java.lang.ThreadGroup}" }method { $name="findThreadStarter" $r
+ eturn="java.lang.String" $arguments="{java.lang.Thread}" }method { $n
+ ame="getAllThreads" $return="java.util.Map" }method { $name="invalida
+ tePojo" }method { $name="updateMonitor" }method { $name="validatePojo
+ " }}}
 

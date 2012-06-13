@@ -3,14 +3,42 @@
  * Author: Thomas Calmant
  * Date:   16 janv. 2012
  */
-package org.psem2m.isolates.services.remote.signals;
+package org.psem2m.signals;
 
 /**
  * Definition of a signal request handler
  * 
  * @author Thomas Calmant
  */
-public interface ISignalRequestReader extends ISignalListener {
+public interface ISignalRequestReader {
+
+    /**
+     * Handles the received signal
+     * 
+     * @param aSignalName
+     *            The received signal name
+     * @param aSignalData
+     *            Signal data (result of
+     *            {@link #unserializeSignalContent(String, byte[])})
+     * @param aMode
+     *            Request mode
+     * @return The central signal receiver result
+     */
+    SignalResult handleSignal(String aSignalName,
+            ISignalData aSignalData, String aMode);
+
+    /**
+     * Serializes the given result. Tries the preferred content type first.
+     * 
+     * @param aPreferredContentType
+     *            The preferred serialization format
+     * @param aResult
+     *            The result of
+     *            {@link #handleSignal(String, ISignalData, String)}
+     * @return The serialized result, or null
+     */
+    SignalContent serializeSignalResult(String aPreferredContentType,
+            SignalResult aResult);
 
     /**
      * Uses serializers to read the given byte array
@@ -24,6 +52,6 @@ public interface ISignalRequestReader extends ISignalListener {
      * @throws InvalidDataException
      *             The given data array can't be understood
      */
-    ISignalData handleSignalRequest(String aContentType, byte[] aData)
+    ISignalData unserializeSignalContent(String aContentType, byte[] aData)
             throws InvalidDataException;
 }

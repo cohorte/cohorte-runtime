@@ -5,14 +5,14 @@
  */
 package org.psem2m.forkers.aggregator.impl;
 
-import org.psem2m.isolates.services.remote.signals.ISignalsDirectory;
+import org.psem2m.signals.ISignalDirectory;
 
 /**
  * Interface implemented by internal directories
  * 
  * @author Thomas Calmant
  */
-public interface IInternalSignalsDirectory extends ISignalsDirectory {
+public interface IInternalSignalsDirectory extends ISignalDirectory {
 
     /**
      * Adds an isolate to the internal directory

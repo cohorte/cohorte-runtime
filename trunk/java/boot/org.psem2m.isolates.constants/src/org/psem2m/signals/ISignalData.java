@@ -3,8 +3,7 @@
  * Author: Thomas Calmant
  * Date:   21 sept. 2011
  */
-package org.psem2m.isolates.services.remote.signals;
-
+package org.psem2m.signals;
 
 /**
  * Represents the object associated to a signal
@@ -18,14 +17,14 @@ public interface ISignalData {
      * 
      * @return the ID of the sender
      */
-    String getIsolateSender();
+    String getIsolateId();
 
     /**
-     * Retrieves the signal sender host name, null if unusable.
+     * Retrieves the node of the isolate which sent the signal
      * 
-     * @return The sender host name
+     * @return the node hosting the sender
      */
-    String getSenderHostName();
+    String getIsolateNode();
 
     /**
      * Retrieves the data associated to the signal (can be null)

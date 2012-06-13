@@ -3,9 +3,8 @@
  * Author: Thomas Calmant
  * Date:   23 sept. 2011
  */
-package org.psem2m.isolates.services.remote.signals;
+package org.psem2m.signals;
 
-import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster.EEmitterTargets;
 
 /**
  * Represents a signal broadcast provider
@@ -15,36 +14,23 @@ import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster.EEmitterTa
 public interface ISignalBroadcastProvider {
 
     /**
-     * Sends the given data to the given targets.
+     * Sends the given data to the given access point
      * 
-     * @param aTargets
-     *            Signal targets
+     * @param aAccess
+     *            The access to use to communicate
+     * @param aMode
+     *            The request mode
      * @param aSignalName
      *            Signal name (URI like string)
      * @param aData
-     *            Signal content (can't be null)
+     *            Complete signal content (can't be null)
      * 
+     * @return The response returned by the target, or null
      * @throws UnsendableDataException
      *             The given data can't be sent using signals
+     * @throws Exception
+     *             Something wrong happened
      */
-    void sendData(EEmitterTargets aTargets, String aSignalName, Object aData)
-            throws UnsendableDataException;
-
-    /**
-     * Sends the given data to the given isolate
-     * 
-     * @param aIsolateId
-     *            The target isolate ID
-     * @param aSignalName
-     *            Signal name (URI like string)
-     * @param aData
-     *            Signal content (can't be null)
-     * 
-     * @return True if the isolate ID exists, else false
-     * 
-     * @throws UnsendableDataException
-     *             The given data can't be sent using signals
-     */
-    boolean sendData(String aIsolateId, String aSignalName, Object aData)
-            throws UnsendableDataException;
+    Object[] sendSignal(HostAccess aAccess, String aMode, String aSignalName,
+            ISignalData aData) throws UnsendableDataException;
 }

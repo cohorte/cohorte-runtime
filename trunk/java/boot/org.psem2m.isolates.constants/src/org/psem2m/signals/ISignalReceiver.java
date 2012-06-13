@@ -3,7 +3,7 @@
  * Author: Thomas Calmant
  * Date:   19 sept. 2011
  */
-package org.psem2m.isolates.services.remote.signals;
+package org.psem2m.signals;
 
 /**
  * Defines a signal receiver.
@@ -29,14 +29,41 @@ public interface ISignalReceiver {
     String PROPERTY_ONLINE = "signal-receiver-online";
 
     /**
+     * Retrieves the (host, port) couple to access this signal receiver.
+     * 
+     * <b>WARNING:</b> The host might often be "localhost"
+     * 
+     * @return An (host, port) couple
+     */
+    HostAccess getAccessInfo();
+
+    /**
+     * Reception of a signal by a provider
+     * 
+     * @param aSignalName
+     *            Signal name
+     * @param aData
+     *            Signal content
+     * @param aMode
+     *            The request mode
+     * @return The result of all listeners and a result code
+     */
+    SignalResult handleReceivedSignal(String aSignalName,
+            ISignalData aData, String aMode);
+
+    /**
      * Reception of a locally sent message, without using a reception provider
      * 
      * @param aSignalName
      *            Signal name
      * @param aData
      *            Signal content
+     * @param aMode
+     *            The request mode
+     * @return The result of all listeners and a result code
      */
-    void localReception(String aSignalName, ISignalData aData);
+    SignalResult localReception(String aSignalName, ISignalData aData,
+            String aMode);
 
     /**
      * Registers the given listener to the given signal

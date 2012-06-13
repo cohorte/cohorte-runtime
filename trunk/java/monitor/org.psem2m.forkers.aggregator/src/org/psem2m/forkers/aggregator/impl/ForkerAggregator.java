@@ -28,10 +28,10 @@ import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.services.forker.IForker;
 import org.psem2m.isolates.services.forker.IForkerEventListener;
 import org.psem2m.isolates.services.forker.IForkerEventListener.EForkerEventType;
-import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
-import org.psem2m.isolates.services.remote.signals.ISignalData;
-import org.psem2m.isolates.services.remote.signals.ISignalListener;
-import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
+import org.psem2m.signals.ISignalBroadcaster;
+import org.psem2m.signals.ISignalData;
+import org.psem2m.signals.ISignalListener;
+import org.psem2m.signals.ISignalReceiver;
 
 /**
  * The forker aggregator
@@ -144,7 +144,7 @@ public class ForkerAggregator implements IForker, ISignalListener, Runnable {
     protected void handleHeartBeat(final ISignalData aSignalData) {
 
         // The current forker ID is the one used to send the signal
-        final String forkerId = aSignalData.getIsolateSender();
+        final String forkerId = aSignalData.getIsolateId();
 
         // Registration flag
         final boolean needsRegistration;
@@ -166,12 +166,11 @@ public class ForkerAggregator implements IForker, ISignalListener, Runnable {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.services.remote.signals.ISignalListener#
-     * handleReceivedSignal(java.lang.String,
-     * org.psem2m.isolates.services.remote.signals.ISignalData)
+     * @see org.psem2m.signals.ISignalListener#
+     * handleReceivedSignal(java.lang.String, org.psem2m.signals.ISignalData)
      */
     @Override
-    public void handleReceivedSignal(final String aSignalName,
+    public Object handleReceivedSignal(final String aSignalName,
             final ISignalData aSignalData) {
 
         if (IForkerOrders.SIGNAL_RESPONSE.equals(aSignalName)) {
@@ -183,7 +182,7 @@ public class ForkerAggregator implements IForker, ISignalListener, Runnable {
                 final Integer cmdId = (Integer) data.get(IForkerOrders.CMD_ID);
                 if (cmdId == null) {
                     // Unusable data
-                    return;
+                    return null;
                 }
 
                 pResults.put(cmdId,
@@ -200,6 +199,8 @@ public class ForkerAggregator implements IForker, ISignalListener, Runnable {
             // A forker heart beat has been received
             handleHeartBeat(aSignalData);
         }
+
+        return null;
     }
 
     /**
@@ -314,17 +315,17 @@ public class ForkerAggregator implements IForker, ISignalListener, Runnable {
         final Map<?, ?> signalContent = (Map<?, ?>) rawSignalContent;
 
         // Extract signal data
-        final String forkerId = aSignalData.getIsolateSender();
-        final String forkerSignalHost = aSignalData.getSenderHostName();
-        final String forkerContentHost = (String) signalContent.get("host");
+        final String forkerId = aSignalData.getIsolateId();
+        final String forkerSignalNode = aSignalData.getIsolateNode();
+        final String forkerContentNode = (String) signalContent.get("node");
         final Integer forkerContentPort = (Integer) signalContent.get("port");
 
         // Validate the given host names
-        if (forkerSignalHost == null || forkerContentHost == null) {
+        if (forkerSignalNode == null || forkerContentNode == null) {
             pLogger.logSevere(this, "registerForker",
-                    "Invalid host name for forker=", forkerId,
-                    "found in signal: signal=", forkerSignalHost, "content=",
-                    forkerContentHost, "-> Forker not registered");
+                    "Invalid node name for forker=", forkerId,
+                    "found in signal: signal=", forkerSignalNode, "content=",
+                    forkerContentNode, "-> Forker not registered");
             return;
         }
 
@@ -342,26 +343,26 @@ public class ForkerAggregator implements IForker, ISignalListener, Runnable {
         }
 
         // Register the alias if different host names given in the signal
-        if (!forkerSignalHost.equals(forkerContentHost)) {
+        if (!forkerSignalNode.equals(forkerContentNode)) {
             pLogger.logDebug(this, "registerForker",
-                    "Different host names found in the heart beat: sender=",
-                    forkerSignalHost, "content=", forkerContentHost,
+                    "Different node names found in the heart beat: sender=",
+                    forkerSignalNode, "content=", forkerContentNode,
                     "for forker=", forkerId,
-                    "-> Using the content host as an alias.");
+                    "-> Using the content node as an alias.");
 
             pInternalDirectory
-                    .setHostAlias(forkerSignalHost, forkerContentHost);
+                    .setHostAlias(forkerSignalNode, forkerContentNode);
         }
 
         // Register the forker
-        if (pInternalDirectory.addIsolate(forkerId, forkerSignalHost, port)) {
+        if (pInternalDirectory.addIsolate(forkerId, forkerSignalNode, port)) {
 
             pLogger.logInfo(this, "registerForker", "Registered forker ID=",
-                    forkerId, "Host=", forkerSignalHost, "Port=", port);
+                    forkerId, "Node=", forkerSignalNode, "Port=", port);
 
             // Notify listeners
             fireForkerEvent(EForkerEventType.REGISTERED, forkerId,
-                    forkerSignalHost);
+                    forkerSignalNode);
         }
     }
 
@@ -444,7 +445,7 @@ public class ForkerAggregator implements IForker, ISignalListener, Runnable {
         pWaiters.put(cmdId, waiter);
 
         // Send the signal
-        pSender.sendData(aIsolate, aOrderName, aOrder);
+        pSender.fire(aOrderName, aOrder, aIsolate);
 
         return cmdId;
     }
@@ -463,8 +464,7 @@ public class ForkerAggregator implements IForker, ISignalListener, Runnable {
         }
 
         for (final String forker : forkers) {
-            pSender.sendData(forker, IForkerOrders.SIGNAL_PLATFORM_STOPPING,
-                    null);
+            pSender.fire(IForkerOrders.SIGNAL_PLATFORM_STOPPING, null, forker);
         }
     }
 

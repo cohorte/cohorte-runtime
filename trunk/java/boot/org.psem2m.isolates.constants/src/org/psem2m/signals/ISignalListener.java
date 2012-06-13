@@ -3,7 +3,7 @@
  * Author: Thomas Calmant
  * Date:   19 sept. 2011
  */
-package org.psem2m.isolates.services.remote.signals;
+package org.psem2m.signals;
 
 /**
  * Represents a signal listener
@@ -19,6 +19,7 @@ public interface ISignalListener {
      *            Received signal name
      * @param aSignalData
      *            Signal data
+     * @return Any result sendable over signals or null
      */
-    void handleReceivedSignal(String aSignalName, ISignalData aSignalData);
+    Object handleReceivedSignal(String aSignalName, ISignalData aSignalData);
 }

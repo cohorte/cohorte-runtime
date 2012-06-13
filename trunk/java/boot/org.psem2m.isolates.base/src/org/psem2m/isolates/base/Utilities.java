@@ -5,8 +5,10 @@
  */
 package org.psem2m.isolates.base;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Array;
 import java.net.InetAddress;
 import java.net.URL;
@@ -282,6 +284,38 @@ public final class Utilities {
         }
 
         return serviceProperties;
+    }
+
+    /**
+     * Converts an input stream into a byte array
+     * 
+     * @param aInputStream
+     *            An input stream
+     * @return The input stream content, null on error
+     * @throws IOException
+     *             Something went wrong
+     */
+    public static byte[] inputStreamToBytes(final InputStream aInputStream)
+            throws IOException {
+
+        if (aInputStream == null) {
+            return null;
+        }
+
+        final ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+        final byte[] buffer = new byte[8192];
+        int read = 0;
+
+        do {
+            read = aInputStream.read(buffer);
+            if (read > 0) {
+                outStream.write(buffer, 0, read);
+            }
+
+        } while (read > 0);
+
+        outStream.close();
+        return outStream.toByteArray();
     }
 
     /**

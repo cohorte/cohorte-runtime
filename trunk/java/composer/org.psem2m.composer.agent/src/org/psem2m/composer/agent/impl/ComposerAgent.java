@@ -35,10 +35,10 @@ import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
-import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
-import org.psem2m.isolates.services.remote.signals.ISignalData;
-import org.psem2m.isolates.services.remote.signals.ISignalListener;
-import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
+import org.psem2m.signals.ISignalBroadcaster;
+import org.psem2m.signals.ISignalData;
+import org.psem2m.signals.ISignalListener;
+import org.psem2m.signals.ISignalReceiver;
 
 /**
  * Implementation of a composer agent
@@ -141,14 +141,13 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
         pFactories.put(factoryName, aFactory);
 
         // Signal the arrival to others
-        pSignalBroadcaster.sendData(ISignalBroadcaster.EEmitterTargets.ALL,
+        pSignalBroadcaster.fireGroup(
                 ComposerAgentSignals.SIGNAL_ISOLATE_ADD_FACTORY,
-                new String[] { factoryName });
+                new String[] { factoryName }, "ALL");
 
-        // ... and to me if I'm alone...
-        pSignalBroadcaster.sendData(ISignalBroadcaster.EEmitterTargets.LOCAL,
+        pSignalBroadcaster.fire(
                 ComposerAgentSignals.SIGNAL_ISOLATE_ADD_FACTORY,
-                new String[] { factoryName });
+                new String[] { factoryName }, "{local}");
 
         pLogger.logInfo(this, "bindFactory", "Factory bound :", factoryName);
     }
@@ -167,9 +166,9 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
                 ComposerAgentSignals.FILTER_ALL_REQUESTS, this);
 
         // Indicate all our factories
-        pSignalBroadcaster.sendData(ISignalBroadcaster.EEmitterTargets.ALL,
+        pSignalBroadcaster.fireGroup(
                 ComposerAgentSignals.SIGNAL_ISOLATE_ADD_FACTORY, pFactories
-                        .keySet().toArray(new String[0]));
+                        .keySet().toArray(new String[0]), "ALL");
 
         pLogger.logInfo(this, "bindSignalReceiver",
                 "Bound to a signal receiver");
@@ -216,9 +215,9 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
         final ComponentBean[] resultArray = handledComponents
                 .toArray(new ComponentBean[handledComponents.size()]);
 
-        pSignalBroadcaster.sendData(aIsolateId,
+        pSignalBroadcaster.fire(
                 ComposerAgentSignals.SIGNAL_RESPONSE_HANDLES_COMPONENTS,
-                resultArray);
+                resultArray, aIsolateId);
     }
 
     /**
@@ -348,15 +347,14 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.services.remote.signals.ISignalListener#
-     * handleReceivedSignal(java.lang.String,
-     * org.psem2m.isolates.services.remote.signals.ISignalData)
+     * @see org.psem2m.signals.ISignalListener#
+     * handleReceivedSignal(java.lang.String, org.psem2m.signals.ISignalData)
      */
     @Override
-    public void handleReceivedSignal(final String aSignalName,
+    public Object handleReceivedSignal(final String aSignalName,
             final ISignalData aSignalData) {
 
-        final String signalSender = aSignalData.getIsolateSender();
+        final String signalSender = aSignalData.getIsolateId();
         final Object signalContent = aSignalData.getSignalContent();
 
         // For Jabsorb results...
@@ -406,6 +404,8 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
                         "handleReceivedSignal : stopComponents", e);
             }
         }
+
+        return null;
     }
 
     /**
@@ -519,9 +519,9 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
         resultMap.put(ComposerAgentSignals.RESULT_KEY_FAILED, failedArray);
 
         // Send the signal
-        pSignalBroadcaster.sendData(aIsolateId,
+        pSignalBroadcaster.fire(
                 ComposerAgentSignals.SIGNAL_RESPONSE_INSTANTIATE_COMPONENTS,
-                resultMap);
+                resultMap, aIsolateId);
     }
 
     /*
@@ -597,11 +597,12 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
                 newState);
 
         // Send the signal
-        pSignalBroadcaster.sendData(ISignalBroadcaster.EEmitterTargets.ALL,
-                ComposerAgentSignals.SIGNAL_COMPONENT_CHANGED, resultMap);
+        pSignalBroadcaster
+                .fireGroup(ComposerAgentSignals.SIGNAL_COMPONENT_CHANGED,
+                        resultMap, "ALL");
 
-        pSignalBroadcaster.sendData(ISignalBroadcaster.EEmitterTargets.LOCAL,
-                ComposerAgentSignals.SIGNAL_COMPONENT_CHANGED, resultMap);
+        pSignalBroadcaster.fire(ComposerAgentSignals.SIGNAL_COMPONENT_CHANGED,
+                resultMap, "{local}");
     }
 
     /**
@@ -681,9 +682,9 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
         resultMap.put(ComposerAgentSignals.RESULT_KEY_UNKNOWN, failedArray);
 
         // Send the signal
-        pSignalBroadcaster.sendData(aIsolateId,
+        pSignalBroadcaster.fire(
                 ComposerAgentSignals.SIGNAL_RESPONSE_INSTANTIATE_COMPONENTS,
-                resultMap);
+                resultMap, aIsolateId);
     }
 
     /**
@@ -701,13 +702,13 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
         pFactories.remove(factoryName);
 
         // Signal the removal to others
-        pSignalBroadcaster.sendData(ISignalBroadcaster.EEmitterTargets.ALL,
+        pSignalBroadcaster.fireGroup(
                 ComposerAgentSignals.SIGNAL_ISOLATE_REMOVE_FACTORY,
-                new String[] { factoryName });
+                new String[] { factoryName }, "ALL");
 
-        pSignalBroadcaster.sendData(ISignalBroadcaster.EEmitterTargets.LOCAL,
+        pSignalBroadcaster.fire(
                 ComposerAgentSignals.SIGNAL_ISOLATE_REMOVE_FACTORY,
-                new String[] { factoryName });
+                new String[] { factoryName }, "{local}");
     }
 
     /**
@@ -722,11 +723,13 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
             final ISignalBroadcaster aSignalBroadcaster) {
 
         // Send a last signal to monitors to forget this agent
-        pSignalBroadcaster.sendData(ISignalBroadcaster.EEmitterTargets.ALL,
-                ComposerAgentSignals.SIGNAL_ISOLATE_FACTORIES_GONE, null);
+        pSignalBroadcaster
+                .fireGroup(ComposerAgentSignals.SIGNAL_ISOLATE_FACTORIES_GONE,
+                        null, "ALL");
 
-        pSignalBroadcaster.sendData(ISignalBroadcaster.EEmitterTargets.LOCAL,
-                ComposerAgentSignals.SIGNAL_ISOLATE_FACTORIES_GONE, null);
+        pSignalBroadcaster.fire(
+                ComposerAgentSignals.SIGNAL_ISOLATE_FACTORIES_GONE, null,
+                "{local}");
     }
 
     /*

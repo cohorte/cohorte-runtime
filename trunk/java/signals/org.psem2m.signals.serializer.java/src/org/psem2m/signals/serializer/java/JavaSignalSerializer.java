@@ -23,9 +23,9 @@ import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.OsgiObjectInputStream;
 import org.psem2m.isolates.base.activators.CPojoBase;
-import org.psem2m.isolates.services.remote.signals.ISignalDataSerializer;
-import org.psem2m.isolates.services.remote.signals.InvalidDataException;
-import org.psem2m.isolates.services.remote.signals.UnsendableDataException;
+import org.psem2m.signals.ISignalDataSerializer;
+import org.psem2m.signals.InvalidDataException;
+import org.psem2m.signals.UnsendableDataException;
 
 /**
  * Java Serializable object serializer for PSEM2M Signals
@@ -68,7 +68,7 @@ public class JavaSignalSerializer extends CPojoBase implements
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.services.remote.signals.ISignalDataSerializer#
+     * @see org.psem2m.signals.ISignalDataSerializer#
      * canHandleType(java.lang.String)
      */
     @Override
@@ -87,7 +87,7 @@ public class JavaSignalSerializer extends CPojoBase implements
     /**
      * Accepts the object if it is null or if it implements {@link Serializable}
      * 
-     * @see org.psem2m.isolates.services.remote.signals.ISignalDataSerializer#
+     * @see org.psem2m.signals.ISignalDataSerializer#
      *      canSerialize(java.lang.Object)
      */
     @Override
@@ -99,7 +99,7 @@ public class JavaSignalSerializer extends CPojoBase implements
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.services.remote.signals.ISignalDataSerializer#
+     * @see org.psem2m.signals.ISignalDataSerializer#
      * getContentType()
      */
     @Override
@@ -111,7 +111,7 @@ public class JavaSignalSerializer extends CPojoBase implements
     /**
      * Returns {@link Integer#MAX_VALUE}, as this is the default serializer
      * 
-     * @see org.psem2m.isolates.services.remote.signals.ISignalDataSerializer#getPriority
+     * @see org.psem2m.signals.ISignalDataSerializer#getPriority
      *      ()
      */
     @Override
@@ -136,7 +136,7 @@ public class JavaSignalSerializer extends CPojoBase implements
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.services.remote.signals.ISignalDataSerializer#
+     * @see org.psem2m.signals.ISignalDataSerializer#
      * serializeData(java.lang.Object)
      */
     @Override
@@ -171,7 +171,7 @@ public class JavaSignalSerializer extends CPojoBase implements
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.services.remote.signals.ISignalDataSerializer#
+     * @see org.psem2m.signals.ISignalDataSerializer#
      * unserializeData(byte[])
      */
     @Override

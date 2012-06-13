@@ -5,8 +5,8 @@
  */
 package org.psem2m.remotes.signals.http.receiver;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
@@ -18,15 +18,19 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.service.http.HttpService;
-import org.osgi.service.log.LogService;
+import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
-import org.psem2m.isolates.services.remote.signals.ISignalData;
-import org.psem2m.isolates.services.remote.signals.ISignalDataSerializer;
-import org.psem2m.isolates.services.remote.signals.ISignalListener;
-import org.psem2m.isolates.services.remote.signals.ISignalReceptionProvider;
-import org.psem2m.isolates.services.remote.signals.ISignalRequestReader;
-import org.psem2m.isolates.services.remote.signals.InvalidDataException;
+import org.psem2m.isolates.services.conf.ISvcConfig;
 import org.psem2m.remotes.signals.http.IHttpSignalsConstants;
+import org.psem2m.signals.HostAccess;
+import org.psem2m.signals.ISignalData;
+import org.psem2m.signals.ISignalDataSerializer;
+import org.psem2m.signals.ISignalReceiver;
+import org.psem2m.signals.ISignalReceptionProvider;
+import org.psem2m.signals.ISignalRequestReader;
+import org.psem2m.signals.InvalidDataException;
+import org.psem2m.signals.SignalContent;
+import org.psem2m.signals.SignalResult;
 
 /**
  * Implementation of a signal receiver. Uses an HTTP servlet to do the job.
@@ -42,20 +46,24 @@ public class HttpSignalReceiver extends CPojoBase implements
     /** The bundle context */
     private final BundleContext pBundleContext;
 
+    /** Configuration service */
+    @Requires
+    private ISvcConfig pConfig;
+
     /** HTTP service, injected by iPOJO */
     @Requires(filter = "(org.osgi.service.http.port=*)")
     private HttpService pHttpService;
 
-    /** Signal listeners */
-    private final Set<ISignalListener> pListeners = new HashSet<ISignalListener>();
-
     /** Log service, injected by iPOJO */
     @Requires
-    private LogService pLogger;
+    private IIsolateLoggerSvc pLogger;
 
     /** A service flag to indicate that the servlet is ready */
     @ServiceProperty(name = ISignalReceptionProvider.PROPERTY_READY, value = "false", mandatory = true)
     private boolean pPropertyReady;
+
+    /** Main signals receiver */
+    private ISignalReceiver pReceiver;
 
     /** The signal data serializers */
     @Requires
@@ -76,67 +84,39 @@ public class HttpSignalReceiver extends CPojoBase implements
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.services.remote.signals.ISignalListener#
-     * handleReceivedSignal(java.lang.String,
-     * org.psem2m.isolates.services.remote.signals.ISignalData)
+     * @see org.psem2m.signals.ISignalReceptionProvider#getAccessInfo()
      */
     @Override
-    public void handleReceivedSignal(final String aSignalName,
-            final ISignalData aSignalData) {
+    public HostAccess getAccessInfo() {
 
-        // Get listeners set
-        synchronized (pListeners) {
-            // Notify listeners
-            for (final ISignalListener listener : pListeners) {
-                listener.handleReceivedSignal(aSignalName, aSignalData);
-            }
+        try {
+            return new HostAccess(InetAddress.getLocalHost().getHostName(),
+                    pConfig.getCurrentIsolate().getPort());
+
+        } catch (final UnknownHostException ex) {
+            pLogger.logWarn(this, "", "Could not get local host name, ex=", ex);
+            return null;
         }
     }
 
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.remotes.signals.http.receiver.ISignalRequestHandler#
-     * handleSignalRequest(java.lang.String, byte[])
+     * @see
+     * org.psem2m.signals.ISignalRequestReader#handleSignal(java.lang.String,
+     * org.psem2m.signals.ISignalData, java.lang.String)
      */
     @Override
-    public ISignalData handleSignalRequest(final String aContentType,
-            final byte[] aData) throws InvalidDataException {
+    public SignalResult handleSignal(final String aSignalName,
+            final ISignalData aSignalData, final String aMode) {
 
-        // Try to de-serialize
-        for (final ISignalDataSerializer serializer : pSerializers) {
-
-            if (serializer.canHandleType(aContentType)) {
-                // Content-Type understood by serializer
-                final Object object;
-                try {
-                    object = serializer.unserializeData(aData);
-
-                } catch (final Exception e) {
-                    // Error during de-serialization
-                    pLogger.log(LogService.LOG_WARNING,
-                            "Error during de-serialization", e);
-                    continue;
-                }
-
-                if (object instanceof ISignalData) {
-                    // We're good
-                    return (ISignalData) object;
-
-                } else {
-                    pLogger.log(LogService.LOG_INFO,
-                            "Received something that is not an ISignalData");
-                }
+        synchronized (pReceiver) {
+            if (pReceiver != null) {
+                return pReceiver.handleReceivedSignal(aSignalName, aSignalData,
+                        aMode);
             }
         }
 
-        final StringBuilder builder = new StringBuilder();
-        builder.append("Can't de-serialize data (content-type: ");
-        builder.append(aContentType);
-        builder.append(')');
-        pLogger.log(LogService.LOG_INFO, builder.toString());
-
-        // No de-serializer found
         return null;
     }
 
@@ -156,11 +136,9 @@ public class HttpSignalReceiver extends CPojoBase implements
         pHttpService.unregister(IHttpSignalsConstants.RECEIVER_SERVLET_ALIAS);
 
         // Clear listeners
-        synchronized (pListeners) {
-            pListeners.clear();
-        }
+        pReceiver = null;
 
-        pLogger.log(LogService.LOG_INFO, "HTTP Signal Sender Gone");
+        pLogger.logInfo(this, "invalidatePojo", "HTTP Signal Sender Gone");
     }
 
     /**
@@ -177,20 +155,77 @@ public class HttpSignalReceiver extends CPojoBase implements
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.isolates.services.remote.signals.ISignalReceptionProvider#
-     * registerListener
-     * (org.psem2m.isolates.services.remote.signals.ISignalListener)
+     * org.psem2m.signals.ISignalRequestReader#serializeSignalResult(java.lang
+     * .String, org.psem2m.signals.SignalResult)
      */
     @Override
-    public void registerListener(final ISignalListener aListener) {
+    public SignalContent serializeSignalResult(
+            final String aPreferredContentType, final SignalResult aResult) {
 
-        if (aListener == null) {
-            // Invalid call
-            return;
+        byte[] rawData = null;
+        String contentType = null;
+
+        // Try to serialize with the preferred type
+        for (final ISignalDataSerializer serializer : pSerializers) {
+
+            if (serializer.canHandleType(aPreferredContentType)) {
+                // Content-Type understood by serializer
+                try {
+                    rawData = serializer.serializeData(aResult.getResult());
+
+                } catch (final Exception e) {
+                    // Error during serialization, ignore
+                    pLogger.logDebug(this, "serializeSignalResult",
+                            "Error serializing data, ex=", e);
+                    continue;
+                }
+
+                if (rawData != null) {
+                    // Sucess...
+                    contentType = serializer.getContentType();
+                    break;
+                }
+            }
         }
 
-        synchronized (pListeners) {
-            pListeners.add(aListener);
+        if (rawData == null) {
+            // Couldn't use the preferred content type
+            pLogger.logWarn(
+                    this,
+                    "serializeSignalResult",
+                    "Coudln't use a serializer for the preferred content-type=",
+                    aPreferredContentType);
+
+            // Try to serialize with the preferred type
+            for (final ISignalDataSerializer serializer : pSerializers) {
+                if (!serializer.canHandleType(aPreferredContentType)) {
+                    // We already tested the preferred Content-Type, use others
+                    try {
+                        rawData = serializer.serializeData(aResult.getResult());
+
+                    } catch (final Exception e) {
+                        // Error during serialization, ignore
+                        pLogger.logDebug(this, "serializeSignalResult",
+                                "Error serializing data, ex=", e);
+                        continue;
+                    }
+
+                    if (rawData != null) {
+                        // Sucess...
+                        contentType = serializer.getContentType();
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (rawData != null) {
+            return new SignalContent(contentType, rawData);
+
+        } else {
+            pLogger.logWarn(this, "serializeSignalResult",
+                    "Coudln't serialize data");
+            return null;
         }
     }
 
@@ -198,20 +233,81 @@ public class HttpSignalReceiver extends CPojoBase implements
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.isolates.services.remote.signals.ISignalReceptionProvider#
-     * unregisterListener
-     * (org.psem2m.isolates.services.remote.signals.ISignalListener)
+     * org.psem2m.signals.ISignalReceptionProvider#setReceiver(org.psem2m.signals
+     * .ISignalReceiver)
      */
     @Override
-    public void unregisterListener(final ISignalListener aListener) {
+    public boolean setReceiver(final ISignalReceiver aReceiver) {
 
-        if (aListener == null) {
-            // Invalid call
-            return;
+        synchronized (pReceiver) {
+
+            if (pReceiver == null && aReceiver != null) {
+                pReceiver = aReceiver;
+                return true;
+            }
         }
 
-        synchronized (pListeners) {
-            pListeners.remove(aListener);
+        return false;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.remotes.signals.http.receiver.ISignalRequestHandler#
+     * handleSignalRequest(java.lang.String, byte[])
+     */
+    @Override
+    public ISignalData unserializeSignalContent(final String aContentType,
+            final byte[] aData) throws InvalidDataException {
+
+        // Try to de-serialize
+        for (final ISignalDataSerializer serializer : pSerializers) {
+
+            if (serializer.canHandleType(aContentType)) {
+                // Content-Type understood by serializer
+                final Object object;
+                try {
+                    object = serializer.unserializeData(aData);
+
+                } catch (final Exception e) {
+                    // Error during de-serialization
+                    pLogger.logWarn(this, "unserializeSignalContent",
+                            "Error during de-serialization : ex=", e);
+                    continue;
+                }
+
+                if (object instanceof ISignalData) {
+                    // We're good
+                    return (ISignalData) object;
+
+                } else {
+                    pLogger.logWarn(this, "unserializeSignalContent",
+                            "Received something that is not an ISignalData");
+                }
+            }
+        }
+
+        pLogger.logWarn(this, "unserializeSignalContent",
+                "Can't de-serialize data, content-type=", aContentType);
+
+        // No de-serializer found
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.signals.ISignalReceptionProvider#unsetReceiver(org.psem2m.
+     * signals.ISignalReceiver)
+     */
+    @Override
+    public void unsetReceiver(final ISignalReceiver aReceiver) {
+
+        synchronized (pReceiver) {
+            if (pReceiver != null && pReceiver.equals(aReceiver)) {
+                pReceiver = null;
+            }
         }
     }
 
@@ -235,11 +331,11 @@ public class HttpSignalReceiver extends CPojoBase implements
             // Ready to work
             pPropertyReady = true;
 
-            pLogger.log(LogService.LOG_INFO, "HTTP Signal Receiver Ready");
+            pLogger.logInfo(this, "validatePojo", "HTTP Signal Receiver Ready");
 
         } catch (final Exception ex) {
-            pLogger.log(LogService.LOG_ERROR,
-                    "Can't register the HTTP Signal Receiver servlet", ex);
+            pLogger.logSevere(this, "validatePojo",
+                    "Can't register the HTTP Signal Receiver servlet ex=", ex);
         }
     }
 }

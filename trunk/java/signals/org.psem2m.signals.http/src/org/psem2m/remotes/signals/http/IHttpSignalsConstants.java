@@ -12,8 +12,14 @@ package org.psem2m.remotes.signals.http;
  */
 public interface IHttpSignalsConstants {
 
-    /** HTTP Header : Content-Type */
+    /** HTTP Header: Content-Length */
+    String HEADER_CONTENT_LENGTH = "Content-Length";
+
+    /** HTTP Header: Content-Type */
     String HEADER_CONTENT_TYPE = "Content-Type";
+
+    /** HTTP Header: Signal request mode */
+    String HEADER_SIGNAL_MODE = "psem2m-mode";
 
     /** HTTP Servlet alias */
     String RECEIVER_SERVLET_ALIAS = "/psem2m-signal-receiver";

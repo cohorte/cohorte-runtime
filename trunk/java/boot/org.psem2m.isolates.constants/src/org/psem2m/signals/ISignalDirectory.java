@@ -1,11 +1,13 @@
 /**
- * File:   ISignalsDirectory.java
+ * File:   ISignalDirectory.java
  * Author: Thomas Calmant
  * Date:   19 déc. 2011
  */
-package org.psem2m.isolates.services.remote.signals;
+package org.psem2m.signals;
 
-import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
 
 /**
  * Defines a directory for the PSEM2M Signals services. Provides access strings
@@ -13,78 +15,76 @@ import java.util.Collection;
  * 
  * @author Thomas Calmant
  */
-public interface ISignalsDirectory {
+public interface ISignalDirectory {
 
     /**
-     * Retrieves the host isolate ID
+     * Retrieves an Isolate Id -&gt; (host, port) map, containing all known
+     * isolates that belong to given group.
+     * 
+     * @param aGroupName
+     *            A group name
+     * @return An ID -&gt; (host, port) map, null if the group is unknown
+     */
+    Map<String, HostAccess> getGroupAccesses(String aGroupName);
+
+    /**
+     * Retrieves the (host, port) tuple to access the given isolate, or null
+     * 
+     * @param aIsolateId
+     *            The ID of an isolate
+     * @return A (host, port) object, or null if the isolate is unknown
+     */
+    HostAccess getIsolateAccess(String aIsolateId);
+
+    /**
+     * Retrieves the current isolate ID
      * 
      * @return The current isolate ID
      */
-    String getCurrentIsolateId();
+    String getIsolateId();
 
     /**
-     * Retrieves the access string to the given isolate. Returns null if the
-     * isolate is unknown. Access to the current isolate and the forker can be
-     * returned by this method.
+     * Retrieves the name of the current node
+     * 
+     * @return the name of the current node
+     */
+    String getIsolateNode();
+
+    /**
+     * Retrieves the IDs of the isolates on the given node
+     * 
+     * @param aNodeName
+     *            A node name
+     * @return The list of isolates on the given node, null if there is no
+     *         isolate
+     */
+    List<String> getNodeIsolates(String aNodeName);
+
+    /**
+     * Registers an isolate in the directory.
      * 
      * @param aIsolateId
-     *            An isolate ID
-     * @return The access string to the isolate, or null.
+     *            The ID of the isolate to register
+     * @param aNode
+     *            The node hosting the isolate
+     * @param aHostAddress
+     *            The host of the isolate
+     * @param aPort
+     *            The port to access the isolate
+     * @param aGroups
+     *            All groups of the isolate
+     * @throws IllegalArgumentException
+     *             An argument is invalid
      */
-    String getIsolate(String aIsolateId);
+    void registerIsolate(String aIsolateId, String aNode, String aHostAddress,
+            int aPort, String... aGroups) throws IllegalArgumentException;
 
     /**
-     * Retrieves the access string of each of the given isolates. Unknown
-     * isolates are ignored. Returns null if all given isolates are unknown.
-     * Current isolate and the forker (in PSEM2M) access URLs <strong>must
-     * not</strong> be returned by this method.
+     * Unregisters the given isolate of the directory
      * 
-     * @param aIsolatesIds
-     *            A collection of isolate IDs
-     * @return Access strings to the known isolates, null if none is known.
+     * @param aIsolateId
+     *            The ID of the isolate to unregister
+     * @return True if the isolate has been unregistered
      */
-    String[] getIsolates(Collection<String> aIsolatesIds);
-
-    /**
-     * Retrieves the access string of each isolate corresponding to the given
-     * target. Returns null if the predefined targets value is unknown.
-     * 
-     * <p>
-     * Targets can be :
-     * </p>
-     * <ul>
-     * <li>ALL : Returns isolates and monitors access URLs, except the forker
-     * (in PSEM2M) and the current isolate</li>
-     * <li>ISOLATES : Returns isolates access URLs, except the current one</li>
-     * <li>MONITORS : Returns monitors access URLs, excluding the forker and the
-     * current isolate.</li>
-     * <li>FORKER : Returns the forker access URL (in PSEM2M)</li>
-     * <li>LOCAL : Returns the current isolate access URL (for information only)
-     * </li>
-     * </ul>
-     * 
-     * @param aTargets
-     *            Predefined targets
-     * @return Access strings to the targets, null if the value is unknown.
-     */
-    String[] getIsolates(ISignalBroadcaster.EEmitterTargets aTargets);
-
-    /**
-     * Retrieves the access string of each of the given isolates. Unknown
-     * isolates are ignored. Returns null if all given isolates are unknown.
-     * Current isolate and the forker (in PSEM2M) access URLs <strong>must
-     * not</strong> be returned by this method.
-     * 
-     * @param aIsolatesIds
-     *            An array of isolate IDs
-     * @return Access strings to the known isolates, null if none is known.
-     */
-    String[] getIsolates(String[] aIsolatesIds);
-
-    /**
-     * Asks the directory to refresh or reload its content.
-     * 
-     * @return True if the directory changed
-     */
-    boolean reloadDirectory();
+    boolean unregisterIsolate(String aIsolateId);
 }

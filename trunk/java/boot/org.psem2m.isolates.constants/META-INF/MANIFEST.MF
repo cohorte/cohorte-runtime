@@ -15,4 +15,4 @@ Export-Package: org.psem2m.isolates.constants;version="1.0.1",
  org.psem2m.isolates.services.monitoring;version="1.0.1",
  org.psem2m.isolates.services.remote;version="1.0.1",
  org.psem2m.isolates.services.remote.beans;version="1.0.1",
- org.psem2m.isolates.services.remote.signals;version="1.0.1"
+ org.psem2m.signals;version="1.0.1"

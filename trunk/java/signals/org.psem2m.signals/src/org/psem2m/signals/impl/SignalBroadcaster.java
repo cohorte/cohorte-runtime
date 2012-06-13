@@ -32,6 +32,8 @@ import org.psem2m.signals.ISignalData;
 import org.psem2m.signals.ISignalDirectory;
 import org.psem2m.signals.ISignalReceiver;
 import org.psem2m.signals.ISignalSendResult;
+import org.psem2m.signals.SignalData;
+import org.psem2m.signals.SignalResult;
 
 /**
  * Base signal sender logic
@@ -215,7 +217,14 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
 
         if (aAccess.getAddress() == null && aAccess.getPort() == 0) {
             // Special case : local signal
-            return pReceiver.localReception(aSignalName, aSignalData);
+            final SignalResult localResult = pReceiver.localReception(
+                    aSignalName, aSignalData, aMode);
+
+            if (localResult != null) {
+                return localResult.getResults();
+            }
+
+            return null;
         }
 
         final List<Object> results = new ArrayList<Object>();

@@ -5,19 +5,13 @@
  */
 package org.psem2m.remotes.signals.http.sender;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
@@ -26,15 +20,17 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
-import org.osgi.service.log.LogService;
+import org.psem2m.isolates.base.IIsolateLoggerSvc;
+import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.base.activators.CPojoBase;
-import org.psem2m.isolates.services.remote.signals.ISignalBroadcastProvider;
-import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
-import org.psem2m.isolates.services.remote.signals.ISignalDataSerializer;
-import org.psem2m.isolates.services.remote.signals.ISignalsDirectory;
-import org.psem2m.isolates.services.remote.signals.UnsendableDataException;
-import org.psem2m.remotes.signals.http.HttpSignalData;
 import org.psem2m.remotes.signals.http.IHttpSignalsConstants;
+import org.psem2m.signals.HostAccess;
+import org.psem2m.signals.ISignalBroadcastProvider;
+import org.psem2m.signals.ISignalData;
+import org.psem2m.signals.ISignalDataSerializer;
+import org.psem2m.signals.InvalidDataException;
+import org.psem2m.signals.SignalContent;
+import org.psem2m.signals.UnsendableDataException;
 
 /**
  * Implementation of a signal sender. Uses HTTP Sender Thread to do the job.
@@ -47,48 +43,40 @@ import org.psem2m.remotes.signals.http.IHttpSignalsConstants;
 public class HttpSignalSender extends CPojoBase implements
         ISignalBroadcastProvider {
 
-    /** Signal directories */
-    @Requires
-    private ISignalsDirectory[] pDirectories;
-
-    /** Thread pool */
-    private ExecutorService pExecutor;
-
     /** Log service, injected by iPOJO */
     @Requires
-    private LogService pLogger;
-
-    /** Flag to indicate if the logger is accessible or not */
-    private final AtomicBoolean pLoggerAccessible = new AtomicBoolean(false);
+    private IIsolateLoggerSvc pLogger;
 
     /** Signal data serializers */
     @Requires
     private ISignalDataSerializer[] pSerializers;
 
-    /**
-     * Data sending core method. Starts as many threads as URLs to avoid time
-     * outs, etc
+    /*
+     * (non-Javadoc)
      * 
-     * @param aUrls
-     *            Target URLs
-     * @param aData
-     *            Signal content
-     * @throws UnsendableDataException
-     *             The given data can't be sent
+     * @see org.psem2m.isolates.base.activators.CPojoBase#invalidatePojo()
      */
-    protected void internalSendData(final URL[] aUrls, final Object aData)
+    @Override
+    @Invalidate
+    public void invalidatePojo() throws BundleException {
+
+        pLogger.logInfo(this, "invalidatePojo", "HTTP Signal Sender Gone");
+    }
+
+    /**
+     * Converts the given ISignalData object to a byte array, ready to be
+     * written in a POST request body.
+     * 
+     * The result map contains only one entry
+     * 
+     * @param aData
+     *            A signal complete content
+     * @return Content-Type -&gt; Raw content map
+     * @throws UnsendableDataException
+     *             The given signal content can't be serialized
+     */
+    protected SignalContent makeRequestBody(final ISignalData aData)
             throws UnsendableDataException {
-
-        if (aUrls == null) {
-            return;
-        }
-
-        // FIXME: use a better method ?
-        final String currentIsolateId = pDirectories[0].getCurrentIsolateId();
-
-        // Prepare the real signal data object
-        final HttpSignalData sentObject = new HttpSignalData(currentIsolateId,
-                aData);
 
         // The really sent data
         byte[] sentData = null;
@@ -102,7 +90,7 @@ public class HttpSignalSender extends CPojoBase implements
         for (final ISignalDataSerializer serializer : pSerializers) {
 
             if (serializer.canSerialize(aData)
-                    && serializer.canSerialize(sentObject)) {
+                    && serializer.canSerialize(aData)) {
                 // Valid serializer found
                 pSortedSerializers.put(serializer.getPriority(), serializer);
             }
@@ -113,7 +101,7 @@ public class HttpSignalSender extends CPojoBase implements
                 .values()) {
 
             try {
-                sentData = serializer.serializeData(sentObject);
+                sentData = serializer.serializeData(aData);
                 contentType = serializer.getContentType();
 
                 // We're good
@@ -142,241 +130,155 @@ public class HttpSignalSender extends CPojoBase implements
             throw new UnsendableDataException(builder.toString());
         }
 
-        for (final URL targetUrl : aUrls) {
-            // Use threads to parallelize the sending process
-            pExecutor.execute(new HttpSenderThread(this, targetUrl, sentData,
-                    contentType));
-        }
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.base.activators.CPojoBase#invalidatePojo()
-     */
-    @Override
-    @Invalidate
-    public void invalidatePojo() throws BundleException {
-
-        pExecutor.shutdown();
-
-        pLogger.log(LogService.LOG_INFO, "HTTP Signal Sender Gone");
-        pLoggerAccessible.set(false);
-    }
-
-    /**
-     * Joins the isolate access string and the signal name and converts the
-     * result to an URL object.
-     * 
-     * @param aAccessString
-     *            An isolate access string
-     * @param aSignalName
-     *            A signal name
-     * @return The corresponding URL, null on error
-     */
-    protected URL isolateAccessToUrl(final String aAccessString,
-            final URI aSignalName) {
-
-        if (aAccessString == null || aSignalName == null) {
-            return null;
-        }
-
-        // Construct the URI behind the URL
-        final StringBuilder urlBuilder = new StringBuilder(aAccessString);
-
-        // Add the servlet alias URI
-        urlBuilder.append(IHttpSignalsConstants.RECEIVER_SERVLET_ALIAS);
-
-        // Add the signal name
-        urlBuilder.append(aSignalName.normalize());
-
-        try {
-            // Return the corresponding URL
-            return new URL(urlBuilder.toString());
-
-        } catch (final MalformedURLException e) {
-            pLogger.log(LogService.LOG_ERROR, "Can't prepare access URL '"
-                    + urlBuilder + "'", e);
-        }
-
-        return null;
-    }
-
-    /**
-     * Retrieves the access URL of the given isolate
-     * 
-     * @param aIsolateId
-     *            Target isolate ID
-     * @param aSignalName
-     *            A signal name
-     * @return The isolate access URL, null if not found
-     */
-    protected URL isolateIdToUrl(final String aIsolateId, final URI aSignalName) {
-
-        for (final ISignalsDirectory directory : pDirectories) {
-
-            // Get the access string
-            final String isolateAccess = directory.getIsolate(aIsolateId);
-
-            if (isolateAccess != null && !isolateAccess.trim().isEmpty()) {
-                // Use the first access found
-                return isolateAccessToUrl(isolateAccess, aSignalName);
-            }
-        }
-
-        // Unknown isolate
-        return null;
-    }
-
-    /**
-     * Retrieves all computable access URLs corresponding to the given isolates
-     * IDs.
-     * 
-     * @param aIsolatesIds
-     *            Isolates IDs
-     * @param aSignalName
-     *            Signal name
-     * @return The corresponding access URLs
-     */
-    protected URL[] isolatesIdsToUrl(final String[] aIsolatesIds,
-            final URI aSignalName) {
-
-        if (aIsolatesIds == null) {
-            return null; // new URL[0];
-        }
-
-        final List<URL> isolateUrls = new ArrayList<URL>(aIsolatesIds.length);
-
-        // Compute isolates URL list
-        for (final String isolateId : aIsolatesIds) {
-            final URL isolateUrl = isolateIdToUrl(isolateId, aSignalName);
-            if (isolateUrl != null) {
-                isolateUrls.add(isolateUrl);
-            }
-        }
-
-        return isolateUrls.toArray(new URL[isolateUrls.size()]);
-    }
-
-    /**
-     * Lets the sending thread access to the logger
-     * 
-     * @param aMessage
-     *            Error message
-     * @param aException
-     *            Cause of the error, if any
-     */
-    protected void logSenderThreadError(final String aMessage,
-            final Exception aException) {
-
-        if (pLoggerAccessible.get()) {
-            pLogger.log(LogService.LOG_WARNING, aMessage, aException);
-        }
+        // Use a map to return the result...
+        return new SignalContent(contentType, sentData);
     }
 
     /*
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.isolates.services.remote.signals.ISignalBroadcaster#sendData
-     * (org
-     * .psem2m.isolates.services.remote.signals.ISignalEmitter.EEmitterTargets,
-     * java.lang.String, java.io.Serializable)
+     * org.psem2m.signals.ISignalBroadcastProvider#sendSignal(org.psem2m.signals
+     * .HostAccess, java.lang.String, java.lang.String,
+     * org.psem2m.signals.ISignalData)
      */
     @Override
-    public void sendData(final ISignalBroadcaster.EEmitterTargets aTargets,
-            final String aSignalName, final Object aData)
+    public Object[] sendSignal(final HostAccess aAccess, final String aMode,
+            final String aSignalName, final ISignalData aData)
             throws UnsendableDataException {
 
-        // Find the URLs corresponding to targets
-        final URL[] targetsUrl;
+        // Prepare the request content
+        final SignalContent content = makeRequestBody(aData);
+
+        // Forge the URL
+        final StringBuilder signalUri = new StringBuilder(
+                IHttpSignalsConstants.RECEIVER_SERVLET_ALIAS);
+        signalUri.append(aSignalName);
+
+        final URL url;
         try {
-            targetsUrl = targetsToUrl(aTargets, new URI(aSignalName));
+            url = new URL("http", aAccess.getAddress(), aAccess.getPort(),
+                    signalUri.toString());
 
-        } catch (final URISyntaxException e) {
-            pLogger.log(LogService.LOG_ERROR, "Invalid signal name '"
-                    + aSignalName + "' for targets '" + aTargets + "'", e);
-            return;
-        }
-
-        // Send all
-        internalSendData(targetsUrl, aData);
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.psem2m.isolates.services.remote.signals.ISignalBroadcaster#sendData
-     * (java .lang.String, java.lang.String, java.io.Serializable)
-     */
-    @Override
-    public boolean sendData(final String aIsolateId, final String aSignalName,
-            final Object aData) throws UnsendableDataException {
-
-        final URL isolateUrl;
-        try {
-            isolateUrl = isolateIdToUrl(aIsolateId, new URI(aSignalName));
-
-        } catch (final URISyntaxException e) {
-            pLogger.log(LogService.LOG_ERROR, "Invalid signal name '"
-                    + aSignalName + "' for isolate '" + aIsolateId + "'", e);
-            return false;
-        }
-
-        if (isolateUrl == null) {
-            return false;
-        }
-
-        internalSendData(new URL[] { isolateUrl }, aData);
-        return true;
-    }
-
-    /**
-     * Generates the signal URLs for the given predefined targets. Ignores
-     * errors of URL generation. Returns null if the parameters are invalid or
-     * if no isolate corresponds to the target.
-     * 
-     * @param aTargets
-     *            Predefined targets
-     * @param aSignalName
-     *            The signal name
-     * @return The generated URLs, null on error.
-     */
-    protected URL[] targetsToUrl(
-            final ISignalBroadcaster.EEmitterTargets aTargets,
-            final URI aSignalName) {
-
-        if (aTargets == null || aSignalName == null) {
+        } catch (final MalformedURLException ex) {
+            pLogger.logSevere(this, "sendSignal",
+                    "Error forging URL for access=", aAccess, "signal=",
+                    aSignalName, "exception=", ex);
             return null;
         }
 
-        final Set<URL> isolatesUrls = new HashSet<URL>();
-        for (final ISignalsDirectory directory : pDirectories) {
+        // Open the connection
+        HttpURLConnection httpConnection = null;
 
-            final String[] isolatesAccesses = directory.getIsolates(aTargets);
-            if (isolatesAccesses == null) {
-                // Unknown targets for this directory
-                continue;
+        try {
+            httpConnection = (HttpURLConnection) url.openConnection();
+
+            // POST message
+            httpConnection.setRequestMethod("POST");
+            httpConnection.setUseCaches(false);
+            httpConnection.setDoInput(true);
+            httpConnection.setDoOutput(true);
+
+            // Headers
+            httpConnection.setRequestProperty(
+                    IHttpSignalsConstants.HEADER_CONTENT_TYPE,
+                    content.getType());
+            httpConnection.setRequestProperty(
+                    IHttpSignalsConstants.HEADER_CONTENT_LENGTH,
+                    Integer.toString(content.getLength()));
+            httpConnection.setRequestProperty(
+                    IHttpSignalsConstants.HEADER_SIGNAL_MODE, aMode);
+
+            // After fields, before content
+            httpConnection.connect();
+
+            // Write the event in the request body, if any
+            if (content.getContent() != null) {
+                final OutputStream outStream = httpConnection.getOutputStream();
+
+                try {
+                    outStream.write(content.getContent());
+                    outStream.flush();
+
+                } finally {
+                    // Always be nice...
+                    outStream.close();
+                }
             }
 
-            // Prepare all URls
-            for (final String isolateAccess : isolatesAccesses) {
+            // Flush the request
+            final int responseCode = httpConnection.getResponseCode();
+            if (responseCode != 200) {
+                pLogger.logWarn(this, "sendSignal",
+                        "Incorrect response for signal=", aSignalName,
+                        "access=", aAccess, "code=", responseCode);
+            }
 
-                final URL isolateUrl = isolateAccessToUrl(isolateAccess,
-                        aSignalName);
-                if (isolateUrl != null) {
-                    isolatesUrls.add(isolateUrl);
+            // Get the result content type
+            final String resultType = httpConnection
+                    .getHeaderField(IHttpSignalsConstants.HEADER_CONTENT_TYPE);
+
+            // Read the result
+            final byte[] rawResult = Utilities
+                    .inputStreamToBytes(httpConnection.getInputStream());
+
+            // Un-serialize the result
+            final Object result = unserializeData(resultType, rawResult);
+            if (result != null && result.getClass().isArray()) {
+                // We have an array
+                return (Object[]) result;
+            }
+
+            // Unknown result
+            pLogger.logDebug(this, "sendSignal", "Unknown result for signal=",
+                    aSignalName, "access=", aAccess, "result=", result);
+
+        } catch (final IOException ex) {
+            pLogger.logSevere(this, "sendSignal", "Error sending signal=",
+                    aSignalName, "to access=", aAccess, "exception=", ex);
+
+        } finally {
+            // Clean up
+            if (httpConnection != null) {
+                httpConnection.disconnect();
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Uses the known serialization services to un-serialize the given data
+     * 
+     * @param aContentType
+     *            Content type
+     * @param aData
+     *            RAW data
+     * @return The un-serialized data, or null
+     */
+    protected Object unserializeData(final String aContentType,
+            final byte[] aData) {
+
+        if (aData == null) {
+            // Nothing to do
+            return null;
+        }
+
+        for (final ISignalDataSerializer serializer : pSerializers) {
+
+            if (serializer.canHandleType(aContentType)) {
+                // Handled content type
+                try {
+                    return serializer.unserializeData(aData);
+                } catch (final InvalidDataException e) {
+                    pLogger.logDebug(this, "",
+                            "Invalid data found with content-type=",
+                            aContentType);
                 }
             }
         }
 
-        if (isolatesUrls.isEmpty()) {
-            // Nothing to return
-            return null;
-        }
-
-        return isolatesUrls.toArray(new URL[isolatesUrls.size()]);
+        return null;
     }
 
     /*
@@ -388,9 +290,6 @@ public class HttpSignalSender extends CPojoBase implements
     @Validate
     public void validatePojo() throws BundleException {
 
-        pExecutor = Executors.newCachedThreadPool();
-
-        pLoggerAccessible.set(true);
-        pLogger.log(LogService.LOG_INFO, "HTTP Signal Sender Ready");
+        pLogger.logInfo(this, "validatePojo", "HTTP Signal Sender Ready");
     }
 }

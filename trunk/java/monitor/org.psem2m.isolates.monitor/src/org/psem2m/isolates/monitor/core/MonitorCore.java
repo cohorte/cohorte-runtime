@@ -40,10 +40,10 @@ import org.psem2m.isolates.services.conf.beans.IsolateDescription;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.isolates.services.forker.IForker;
 import org.psem2m.isolates.services.forker.IForkerEventListener;
-import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
-import org.psem2m.isolates.services.remote.signals.ISignalData;
-import org.psem2m.isolates.services.remote.signals.ISignalListener;
-import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
+import org.psem2m.signals.ISignalBroadcaster;
+import org.psem2m.signals.ISignalData;
+import org.psem2m.signals.ISignalListener;
+import org.psem2m.signals.ISignalReceiver;
 
 /**
  * Core monitor logic, based on IForkerStarter and IForker
@@ -282,14 +282,12 @@ public class MonitorCore extends CPojoBase implements
 
                 case UNREGISTERED:
                     // Consider lost all isolates of this host
-                    pSignalSender.sendData(
-                            ISignalBroadcaster.EEmitterTargets.ALL,
-                            ISignalsConstants.ISOLATE_LOST_SIGNAL, isolateId);
+                    pSignalSender.fireGroup(
+                            ISignalsConstants.ISOLATE_LOST_SIGNAL, isolateId,
+                            "ALL");
 
-                    // Send to all means without the current isolate
-                    pSignalSender.sendData(
-                            ISignalBroadcaster.EEmitterTargets.LOCAL,
-                            ISignalsConstants.ISOLATE_LOST_SIGNAL, isolateId);
+                    pSignalSender.fire(ISignalsConstants.ISOLATE_LOST_SIGNAL,
+                            isolateId, "{local}");
                     break;
                 }
             }
@@ -386,12 +384,11 @@ public class MonitorCore extends CPojoBase implements
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.services.remote.signals.ISignalListener#
-     * handleReceivedSignal(java.lang.String,
-     * org.psem2m.isolates.services.remote.signals.ISignalData)
+     * @see org.psem2m.signals.ISignalListener#
+     * handleReceivedSignal(java.lang.String, org.psem2m.signals.ISignalData)
      */
     @Override
-    public void handleReceivedSignal(final String aSignalName,
+    public Object handleReceivedSignal(final String aSignalName,
             final ISignalData aSignalData) {
 
         // Get the signal content (can be null)
@@ -410,8 +407,8 @@ public class MonitorCore extends CPojoBase implements
             if (signalContent instanceof CharSequence) {
 
                 // Forward message to isolates
-                pSignalSender.sendData(ISignalBroadcaster.EEmitterTargets.ALL,
-                        ISignalsConstants.ISOLATE_LOST_SIGNAL, signalContent);
+                pSignalSender.fire(ISignalsConstants.ISOLATE_LOST_SIGNAL,
+                        signalContent, "ALL");
 
                 handleIsolateFailure(String.valueOf(signalContent));
             }
@@ -423,6 +420,8 @@ public class MonitorCore extends CPojoBase implements
                 stopPlatform();
             }
         }
+
+        return null;
     }
 
     /*
@@ -544,13 +543,13 @@ public class MonitorCore extends CPojoBase implements
 
         } else {
             // Else, use the stop signal
-            pSignalSender.sendData(ISignalBroadcaster.EEmitterTargets.FORKER,
-                    ISignalsConstants.ISOLATE_STOP_SIGNAL, null);
+            pSignalSender.fireGroup(ISignalsConstants.ISOLATE_STOP_SIGNAL,
+                    null, "FORKERS");
         }
 
         // Last man standing...
-        pSignalSender.sendData(ISignalBroadcaster.EEmitterTargets.LOCAL,
-                ISignalsConstants.ISOLATE_STOP_SIGNAL, null);
+        pSignalSender.fire(ISignalsConstants.ISOLATE_STOP_SIGNAL, null,
+                "{local}");
     }
 
     /**
@@ -679,12 +678,12 @@ public class MonitorCore extends CPojoBase implements
                 .getProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID));
 
         // Kill other monitors (not including ourselves)
-        pSignalSender.sendData(ISignalBroadcaster.EEmitterTargets.MONITORS,
-                ISignalsConstants.MONITOR_SIGNAL_STOP_PLATFORM, null);
+        pSignalSender.fireGroup(ISignalsConstants.MONITOR_SIGNAL_STOP_PLATFORM,
+                null, "MONITORS");
 
         // Send a stop signal to isolates
-        pSignalSender.sendData(pIsolatesToStop,
-                ISignalsConstants.ISOLATE_STOP_SIGNAL, null);
+        pSignalSender.fire(ISignalsConstants.ISOLATE_STOP_SIGNAL, null,
+                pIsolatesToStop.toArray(new String[0]));
 
         // Finish the job in a new thread
         pKillerThread = new Thread(new Runnable() {

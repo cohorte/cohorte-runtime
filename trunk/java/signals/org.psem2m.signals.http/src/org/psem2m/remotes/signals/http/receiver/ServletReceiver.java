@@ -5,7 +5,6 @@
  */
 package org.psem2m.remotes.signals.http.receiver;
 
-import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,11 +18,15 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.osgi.framework.BundleContext;
 import org.psem2m.isolates.base.OsgiObjectInputStream;
-import org.psem2m.isolates.services.remote.signals.ISignalData;
-import org.psem2m.isolates.services.remote.signals.ISignalRequestReader;
-import org.psem2m.isolates.services.remote.signals.InvalidDataException;
-import org.psem2m.remotes.signals.http.HttpSignalData;
+import org.psem2m.isolates.base.Utilities;
 import org.psem2m.remotes.signals.http.IHttpSignalsConstants;
+import org.psem2m.signals.ISignalBroadcaster;
+import org.psem2m.signals.ISignalData;
+import org.psem2m.signals.ISignalRequestReader;
+import org.psem2m.signals.InvalidDataException;
+import org.psem2m.signals.SignalContent;
+import org.psem2m.signals.SignalData;
+import org.psem2m.signals.SignalResult;
 
 /**
  * HTTP signal receiver servlet
@@ -100,18 +103,26 @@ public class ServletReceiver extends HttpServlet {
             return;
         }
 
+        // Get the request mode
+        String requestMode = aReq
+                .getHeader(IHttpSignalsConstants.HEADER_SIGNAL_MODE);
+        if (requestMode == null) {
+            // Default mode
+            requestMode = ISignalBroadcaster.MODE_SEND;
+        }
+
         // Get the content type (allow null content type)
         final String contentType = aReq
                 .getHeader(IHttpSignalsConstants.HEADER_CONTENT_TYPE);
 
         // Get the content
-        final byte[] data = inputStreamToBytes(aReq.getInputStream());
+        final byte[] data = Utilities.inputStreamToBytes(aReq.getInputStream());
 
         ISignalData signalData;
         try {
-            // Try to de-serialize the message
-            signalData = pSignalRequestHandler.handleSignalRequest(contentType,
-                    data);
+            // Try to un-serialize the message
+            signalData = pSignalRequestHandler.unserializeSignalContent(
+                    contentType, data);
 
         } catch (final InvalidDataException e) {
             // Exception thrown...
@@ -122,53 +133,32 @@ public class ServletReceiver extends HttpServlet {
         if (signalData == null) {
             // No content, prepare an empty signal data
             // WARNING: the sender in the signal data will be invalid
-            signalData = new HttpSignalData(null, null);
+            signalData = new SignalData();
         }
-
-        // Special case : HTTP signal data needs to known the remote host name
-        if (signalData instanceof HttpSignalData) {
-            // Set the sender if we can
-            ((HttpSignalData) signalData).setSenderHostName(aReq.getRemoteHost());
-        }
-
-        // Return success
-        aResp.setStatus(HttpServletResponse.SC_OK);
-        aResp.getWriter().println("SUCCESS");
 
         // Notify listeners
-        pSignalRequestHandler.handleReceivedSignal(signalName, signalData);
-    }
+        final SignalResult result = pSignalRequestHandler.handleSignal(
+                signalName, signalData, requestMode);
 
-    /**
-     * Converts an input stream into a byte array
-     * 
-     * @param aInputStream
-     *            An input stream
-     * @return The input stream content, null on error
-     * @throws IOException
-     *             Something went wrong
-     */
-    protected byte[] inputStreamToBytes(final InputStream aInputStream)
-            throws IOException {
+        // Return the result
+        aResp.setStatus(result.getCode());
 
-        if (aInputStream == null) {
-            return null;
+        // Convert the result
+        final SignalContent responseContent = pSignalRequestHandler
+                .serializeSignalResult(contentType, result);
+
+        if (responseContent != null) {
+            // Send headers
+            aResp.setContentLength(responseContent.getLength());
+            aResp.setContentType(responseContent.getType());
+
+            // Write data
+            aResp.getOutputStream().write(responseContent.getContent());
+
+        } else {
+            // No result
+            aResp.setContentLength(0);
         }
-
-        final ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-        final byte[] buffer = new byte[8192];
-        int read = 0;
-
-        do {
-            read = aInputStream.read(buffer);
-            if (read > 0) {
-                outStream.write(buffer, 0, read);
-            }
-
-        } while (read > 0);
-
-        outStream.close();
-        return outStream.toByteArray();
     }
 
     /**
@@ -197,11 +187,6 @@ public class ServletReceiver extends HttpServlet {
                 // Valid object found
                 signalData = (ISignalData) readData;
 
-                if (signalData instanceof HttpSignalData) {
-                    // Set the sender if we can
-                    ((HttpSignalData) signalData).setSenderHostName(aRemoteHost);
-                }
-
             } else {
                 // Bad content
                 throw new InvalidDataException(
@@ -217,8 +202,7 @@ public class ServletReceiver extends HttpServlet {
         } catch (final EOFException e) {
             // End Of File Exception : the POST body was empty
             // WARNING: the sender in the signal data will be invalid
-            signalData = new HttpSignalData(null, null);
-            ((HttpSignalData) signalData).setSenderHostName(aRemoteHost);
+            signalData = new SignalData();
 
         } catch (final IOException e) {
             // Other I/O Exceptions

@@ -25,8 +25,8 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.services.dirs.IFileFinderSvc;
-import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster.EEmitterTargets;
-import org.psem2m.isolates.services.remote.signals.ISignalsDirectory;
+import org.psem2m.signals.ISignalDirectory;
+import org.psem2m.signals.ISignalBroadcaster.EEmitterTargets;
 
 /**
  * A simple internal directory provider.
@@ -36,7 +36,7 @@ import org.psem2m.isolates.services.remote.signals.ISignalsDirectory;
  * @author Thomas Calmant
  */
 @Component(name = "psem2m-signals-internal-directory-factory", publicFactory = false)
-@Provides(specifications = { ISignalsDirectory.class,
+@Provides(specifications = { ISignalDirectory.class,
         IInternalSignalsDirectory.class })
 @Instantiate(name = "psem2m-signals-internal-directory")
 public class InternalSignalsDirectory implements IInternalSignalsDirectory {
@@ -139,7 +139,7 @@ public class InternalSignalsDirectory implements IInternalSignalsDirectory {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.services.remote.signals.ISignalsDirectory#
+     * @see org.psem2m.signals.ISignalDirectory#
      * getCurrentIsolateId()
      */
     @Override
@@ -202,7 +202,7 @@ public class InternalSignalsDirectory implements IInternalSignalsDirectory {
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.isolates.services.remote.signals.ISignalsDirectory#getIsolate
+     * org.psem2m.signals.ISignalDirectory#getIsolate
      * (java.lang.String)
      */
     @Override
@@ -215,7 +215,7 @@ public class InternalSignalsDirectory implements IInternalSignalsDirectory {
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.isolates.services.remote.signals.ISignalsDirectory#getIsolates
+     * org.psem2m.signals.ISignalDirectory#getIsolates
      * (java.util.Collection)
      */
     @Override
@@ -232,8 +232,8 @@ public class InternalSignalsDirectory implements IInternalSignalsDirectory {
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.isolates.services.remote.signals.ISignalsDirectory#getIsolates
-     * (org.psem2m.isolates.services.remote.signals.ISignalBroadcaster.
+     * org.psem2m.signals.ISignalDirectory#getIsolates
+     * (org.psem2m.signals.ISignalBroadcaster.
      * EEmitterTargets)
      */
     @Override
@@ -271,7 +271,7 @@ public class InternalSignalsDirectory implements IInternalSignalsDirectory {
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.isolates.services.remote.signals.ISignalsDirectory#getIsolates
+     * org.psem2m.signals.ISignalDirectory#getIsolates
      * (java.lang.String[])
      */
     @Override
@@ -363,7 +363,7 @@ public class InternalSignalsDirectory implements IInternalSignalsDirectory {
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.isolates.services.remote.signals.ISignalsDirectory#reloadDirectory
+     * org.psem2m.signals.ISignalDirectory#reloadDirectory
      * ()
      */
     @Override
