@@ -36,6 +36,9 @@ PROP_PLATFORM_HOME = "org.psem2m.platform.home"
 PROP_PLATFORM_ISOLATE_ID = "org.psem2m.platform.isolate.id"
 """ PSEM2M Isolate ID Java property """
 
+PROP_PLATFORM_ISOLATE_NODE = "org.psem2m.platform.isolate.node"
+""" PSEM2M Isolate Node Java property """
+
 PROP_PLATFORM_DEBUG_PORT = "org.psem2m.debug.port"
 """ PSEM2M debug port Java property """
 
@@ -116,7 +119,8 @@ class JavaRunner(runner.Runner):
         java_props = {
                       PROP_PLATFORM_HOME: home,
                       PROP_PLATFORM_BASE: os.getenv(psem2m.PSEM2M_BASE, home),
-                      PROP_PLATFORM_ISOLATE_ID: isolate_descr["id"]
+                      PROP_PLATFORM_ISOLATE_ID: isolate_descr["id"],
+                      PROP_PLATFORM_ISOLATE_NODE: isolate_descr["node"]
                       }
 
         for key, value in java_props.items():
