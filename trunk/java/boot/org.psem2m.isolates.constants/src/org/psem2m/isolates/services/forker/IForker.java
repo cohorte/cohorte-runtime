@@ -46,22 +46,18 @@ public interface IForker {
      * 
      * @return The name of the forker host
      */
-    String getHostName();
+    String getNodeName();
 
     /**
-     * Tests if the given forker is on the given host.
-     * 
-     * This method is needed to bypass aliases problem. For example, an isolate
-     * can be registered for "localhost" whereas the forker uses the local host
-     * network name.
+     * Tests if the given forker is on the given node.
      * 
      * @param aForkerId
      *            A forker ID
-     * @param aHostName
-     *            The host name
-     * @return True if the given forker is on the given host
+     * @param aNodeName
+     *            The node name
+     * @return True if the given forker is on the given node
      */
-    boolean isOnHost(String aForkerId, String aHostName);
+    boolean isOnNode(String aForkerId, String aNodeName);
 
     /**
      * Tests the given isolate state
