@@ -288,7 +288,7 @@ class _IsolateDescription(object):
             raise ValueError("Empty isolate ID")
 
         self.bundles = []
-        self.host = None
+        self.node = None
         self.id = isolate_id
         self.kind = ""
         self.port = 8080
@@ -316,26 +316,6 @@ class _IsolateDescription(object):
         return True
 
 
-    def get_access(self):
-        """
-        Retrieves the tuple (host, port), string host and integer port, to
-        access the isolate signal receiver.
-        
-        :return: The (host, port) tuple
-        """
-        return (self.host, self.port)
-
-
-    def get_access_url(self):
-        """
-        Retrieves the URL, in a string form, to access the isolate signal
-        receiver.
-        
-        :return: The URL to access the isolate
-        """
-        return "http://%s:%s" % (self.host, self.port)
-
-
     def get_bundles(self):
         """
         Retrieves the list of bundles to be installed in the isolate. Can't be
@@ -344,15 +324,6 @@ class _IsolateDescription(object):
         :return: The list of bundles of the isolate
         """
         return self.bundles
-
-
-    def get_host_name(self):
-        """
-        Retrieves the name of machine that must host the isolate
-        
-        :return: The isolate host name
-        """
-        return self.host
 
 
     def get_id(self):
@@ -373,6 +344,24 @@ class _IsolateDescription(object):
         :return: The kind of isolate
         """
         return self.kind
+
+
+    def get_node(self):
+        """
+        Retrieves the name of the node hosting the isolate
+        
+        :return: The node name
+        """
+        return self.node
+
+
+    def get_port(self):
+        """
+        Retrieves the access port
+        
+        :return: The port to access the isolate
+        """
+        return self.port
 
 
     def get_raw(self):
@@ -473,6 +462,7 @@ class JsonConfig(object):
         :return: The description of the isolate
         """
         isolate = _IsolateDescription(isolate_object["id"], isolate_object)
+        isolate.node = isolate_object.get('node', None)
 
         if self._include_stack is not None:
             _logger.debug("Reading '%s' from '%s'", isolate.id,
@@ -483,11 +473,6 @@ class JsonConfig(object):
 
         # The isolate kind can be empty, not None
         isolate.kind = isolate_object.get("kind", "")
-
-        # Get the isolate host (string)
-        host = isolate_object.get("host", "").strip()
-        if not host:
-            host = socket.gethostname()
 
         # Get the isolate port
         port_str = isolate_object.get("httpPort", 8080)
@@ -506,7 +491,6 @@ class JsonConfig(object):
                                  % (port_str, isolate.get_id()))
 
         # Store data
-        isolate.host = host
         isolate.port = port
 
         # Get the isolate bundles
