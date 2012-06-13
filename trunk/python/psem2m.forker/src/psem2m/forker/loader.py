@@ -133,10 +133,11 @@ class IsolateLoader(object):
                     return False
 
         # Special thing before starting bundle : set up the HTTP port property
-        port = isolate_descr.get_access()[1]
+        port = isolate_descr.get_port()
         framework = self.context.get_bundle(0)
         framework.add_property("http.port", port)
         framework.add_property("psem2m.isolate.id", isolate_descr.get_id())
+        framework.add_property("psem2m.isolate.node", isolate_descr.get_node())
 
         _logger.debug("HTTP Port set to %d", port)
 
@@ -259,6 +260,10 @@ class IsolateLoader(object):
             _logger.info("No configuration found for '%s'", isolate_id)
             return False
 
+        if not isolate_descr.get_node():
+            _logger.warning("No node given for isolate '%s'", isolate_id)
+            return False
+
         # Reset isolate
         self.reset()
 
@@ -298,6 +303,8 @@ class IsolateLoader(object):
         if not self.setup_isolate():
             # An error occurred, stop the framework
             _logger.error("An error occurred starting the bundle: Abandon.")
+
+            # FIXME: Pelix should stop there
             context.get_bundle(0).stop()
 
     @Invalidate

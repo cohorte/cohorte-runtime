@@ -171,7 +171,7 @@ def start_isolate(isolate_id, properties=None):
     overridden_props = {
                         "psem2m.home": os.getenv(psem2m.PSEM2M_HOME),
                         "psem2m.base": os.getenv(psem2m.PSEM2M_BASE),
-                        "psem2m.isolate.id": isolate_id
+                        "psem2m.isolate.id": isolate_id,
                         }
 
     properties.update(overridden_props)
@@ -238,8 +238,8 @@ def main():
                         help="Starts the isolate ISOLATE_ID")
 
     group.add_argument("-f", "--start-forker", action="store_true",
-                              dest="start_forker", default=False,
-                              help="Start the forker isolate")
+                       dest="start_forker", default=False,
+                       help="Start the forker isolate")
 
     parser.add_argument("-u", "--configuration-url", action="store",
                         dest="config_url", default=None,
@@ -247,8 +247,8 @@ def main():
                         help="URL to a configuration broker")
 
     parser.add_argument("-m", "--with-monitor", action="store_true",
-                              dest="with_monitor", default=False,
-                              help="The forker must start a monitor")
+                        dest="with_monitor", default=False,
+                        help="The forker must start a monitor")
 
     parser.add_argument("-d", "--debug-mode", action="store_true",
                         dest="debug", default=False,
