@@ -96,7 +96,7 @@ class _JsonRpcServlet(SimpleJSONRPCDispatcher):
 
 @ComponentFactory("ServiceExporterFactory")
 @Instantiate("ServiceExporter")
-@Requires("sender", "org.psem2m.SignalSender")
+@Requires("sender", "org.psem2m.signals.ISignalBroadcaster")
 @Requires("receiver", "org.psem2m.SignalReceiver")
 @Requires("directory", "org.psem2m.IsolateDirectory")
 @Requires("http", "HttpService")
@@ -242,7 +242,7 @@ class ServiceExporter(object):
             "serviceRegistration": registration
         }
 
-        self.sender.send_data("*", SIGNAL_REMOTE_EVENT, remote_event)
+        self.sender.send(SIGNAL_REMOTE_EVENT, remote_event, groups=["ALL"])
 
 
     def _unexport_service(self, reference):
@@ -278,7 +278,7 @@ class ServiceExporter(object):
             "serviceRegistration": registration
         }
 
-        self.sender.send_data("*", SIGNAL_REMOTE_EVENT, remote_event)
+        self.sender.send(SIGNAL_REMOTE_EVENT, remote_event, groups=["ALL"])
 
 
     def service_changed(self, event):
@@ -310,7 +310,7 @@ class ServiceExporter(object):
             return
 
         sender = signal_data["isolateSender"]
-        if sender == self.sender.get_current_isolate_id():
+        if sender == self.sender.get_isolate_id():
             # Ignore local events
             return
 
@@ -326,7 +326,7 @@ class ServiceExporter(object):
                    }
                   for registration in self._registrations.values()]
 
-        self.sender.send_data(sender, SIGNAL_REMOTE_EVENT, events)
+        self.sender.send(SIGNAL_REMOTE_EVENT, events, isolate=sender)
 
 
     @Validate
@@ -464,7 +464,7 @@ class _JSON_proxy(object):
 
 @ComponentFactory("ServiceImporterFactory")
 @Instantiate("ServiceImporter")
-@Requires("sender", "org.psem2m.SignalSender")
+@Requires("sender", "org.psem2m.signals.ISignalBroadcaster")
 @Requires("receiver", "org.psem2m.SignalReceiver")
 class ServiceImporter(object):
     """
@@ -493,7 +493,7 @@ class ServiceImporter(object):
         Called when a remote services signal is received
         """
         sender = signal_data["isolateSender"]
-        if sender == self.sender.get_current_isolate_id():
+        if sender == self.sender.get_isolate_id():
             # Ignore local events
             return
 
@@ -676,7 +676,8 @@ class ServiceImporter(object):
         self.receiver.register_listener(ISOLATE_LOST_SIGNAL, self)
 
         # Send "request endpoints" signal
-        self.sender.send_data("*", BROADCASTER_SIGNAL_REQUEST_ENDPOINTS, None)
+        self.sender.send(BROADCASTER_SIGNAL_REQUEST_ENDPOINTS, None,
+                         groups=["ALL"])
 
 
     @Invalidate

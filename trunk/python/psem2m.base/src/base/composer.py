@@ -49,7 +49,7 @@ SIGNAL_ISOLATE_FACTORIES_GONE = "%s/all-gone" % SIGNAL_FACTORY_PREFIX
 @Provides("org.psem2m.composer.Agent")
 @Requires("ipopo", constants.IPOPO_SERVICE_SPECIFICATION)
 @Requires("directory", "org.psem2m.IsolateDirectory")
-@Requires("sender", "org.psem2m.SignalSender")
+@Requires("sender", "org.psem2m.signals.ISignalBroadcaster")
 @Requires("receiver", "org.psem2m.SignalReceiver")
 class ComposerAgent(object):
     """
@@ -119,8 +119,8 @@ class ComposerAgent(object):
         if not handled:
             handled = None
 
-        self.sender.send_data(sender, SIGNAL_RESPONSE_HANDLES_COMPONENTS,
-                              handled)
+        self.sender.send(SIGNAL_RESPONSE_HANDLES_COMPONENTS, handled,
+                         isolate=sender)
 
 
     def instantiate_components(self, sender, data):
@@ -180,8 +180,8 @@ class ComposerAgent(object):
         result_map = {"composite": composite_name, "instantiated": success,
                       "failed": failure}
 
-        self.sender.send_data(sender, SIGNAL_RESPONSE_INSTANTIATE_COMPONENTS,
-                              result_map)
+        self.sender.send(SIGNAL_RESPONSE_INSTANTIATE_COMPONENTS, result_map,
+                         isolate=sender)
 
 
     def kill_components(self, sender, data):
@@ -205,8 +205,8 @@ class ComposerAgent(object):
                 unknown.append(name)
 
         result_map = {"stopped": killed, "unknown": unknown}
-        self.sender.send_data(sender, SIGNAL_RESPONSE_STOP_COMPONENTS,
-                              result_map)
+        self.sender.send(SIGNAL_RESPONSE_STOP_COMPONENTS, result_map,
+                         isolate=sender)
 
 
     def handle_ipopo_event(self, event):
@@ -220,12 +220,13 @@ class ComposerAgent(object):
 
         if kind == IPopoEvent.REGISTERED:
             # Factory registered
-            self.sender.send_data("*", SIGNAL_ISOLATE_ADD_FACTORY, (factory,))
+            self.sender.send(SIGNAL_ISOLATE_ADD_FACTORY, (factory,),
+                             groups=["ALL"])
 
         elif kind == IPopoEvent.UNREGISTERED:
             # Factory gone
-            self.sender.send_data("*", SIGNAL_ISOLATE_REMOVE_FACTORY,
-                                  (factory,))
+            self.sender.send(SIGNAL_ISOLATE_REMOVE_FACTORY, (factory,),
+                             groups=["ALL"])
 
 
     @Validate
@@ -242,8 +243,10 @@ class ComposerAgent(object):
         self.ipopo.add_listener(self)
 
         # Send registered iPOPO factories
-        self.sender.send_data("*", SIGNAL_ISOLATE_ADD_FACTORY,
-                              tuple(self.ipopo.get_registered_factories()))
+        self.sender.send(SIGNAL_ISOLATE_ADD_FACTORY,
+                        tuple(self.ipopo.get_registered_factories()),
+                        groups=["ALL"])
+
 
 
     @Invalidate
@@ -257,7 +260,7 @@ class ComposerAgent(object):
         self.receiver.unregister_listener(SIGNAL_REQUEST_PATTERN, self)
 
         # Send a signal to tell others that all our factories are gone
-        self.sender.send_data("*", SIGNAL_ISOLATE_FACTORIES_GONE, None)
+        self.sender.send(SIGNAL_ISOLATE_FACTORIES_GONE, None, groups=["ALL"])
 
         # Kill active components
         if len(self.instances) > 0:

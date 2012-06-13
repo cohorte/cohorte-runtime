@@ -64,7 +64,7 @@ HEADER_SIGNAL_MODE = "psem2m-mode"
 
 # ------------------------------------------------------------------------------
 
-def _make_json_result(code, message):
+def _make_json_result(code, message="", results=None):
     """
     An utility method to prepare a JSON result string, usable by the
     SignalReceiver
@@ -72,7 +72,9 @@ def _make_json_result(code, message):
     :param code: A HTTP Code
     :param message: An associated message
     """
-    return code, json.dumps({'code': code, 'message': message})
+    return code, json.dumps({'code': code,
+                             'message': message,
+                             'results': json.dumps(to_jabsorb(results))})
 
 
 def read_post_body(request_handler):
@@ -117,38 +119,43 @@ class SignalReceiver(object):
         """
         Called when a POST request has been received
         """
-        # Read the request
-        signal_name = handler.path[len(SignalReceiver.SERVLET_PATH) - 1:]
-
         # Default code and content
         code = 501
         content = ""
 
-        content_type = handler.headers.get('content-type')
-        if content_type not in (None, 'application/json',
-                                'application/x-www-form-urlencoded'):
-            # Unknown content type
-            code, content = _make_json_result(500, "Unknown content type")
+        # Read the request
+        signal_name = handler.path[len(SignalReceiver.SERVLET_PATH) - 1:]
+        if not signal_name:
+            code, content = _make_json_result(404, "No signal name in URI")
 
         else:
-            # Get the signal mode, or the default one
-            mode = handler.headers.get(HEADER_SIGNAL_MODE, DEFAULT_MODE)
+            content_type = handler.headers.get('content-type')
+            if content_type not in (None, 'application/json',
+                                    'application/x-www-form-urlencoded'):
+                # Unknown content type
+                code, content = _make_json_result(500, "Unknown content type")
 
-            try:
-                # Decode the JSON content
-                signal_data = from_jabsorb(json.loads(read_post_body(handler)))
+            else:
+                # Get the signal mode, or the default one
+                mode = handler.headers.get(HEADER_SIGNAL_MODE, DEFAULT_MODE)
 
-                # Handle the signal
-                code, content = self.handle_received_signal(signal_name,
-                                                            signal_data,
-                                                            mode)
-            except:
-                # Error
-                _logger.exception("Error reading signal %s", signal_name)
-                code, content = _make_json_result(500, "Error parsing signal")
+                try:
+                    # Decode the JSON content
+                    signal_data = from_jabsorb(json.loads(
+                                                    read_post_body(handler)))
 
-        # Convert content (Python 3)
-        content = _to_string(content)
+                    # Handle the signal
+                    code, content = self.handle_received_signal(signal_name,
+                                                                signal_data,
+                                                                mode)
+                except:
+                    # Error
+                    _logger.exception("Error reading signal %s", signal_name)
+                    code, content = _make_json_result(500,
+                                                      "Error parsing signal")
+
+            # Convert content (Python 3)
+            content = _to_string(content)
 
         if code != 200:
             # Something wrong occurred
@@ -187,8 +194,8 @@ class SignalReceiver(object):
         """
         if mode == MODE_SEND:
             # Standard mode
-            result = to_jabsorb(self._notify_listeners(name, data))
-            return 200, json.dumps(result)
+            code, result = self._notify_listeners(name, data)
+            return _make_json_result(code, results=result)
 
         elif mode == MODE_FORGET:
             # Signal v1 mode
@@ -202,7 +209,7 @@ class SignalReceiver(object):
 
         elif mode == MODE_ACK:
             with self._listeners_lock:
-                # Test if at least listener will be notified
+                # Test if at least one listener will be notified
                 for pattern in self._listeners:
                     if fnmatch.fnmatch(name, pattern):
                         # Found one !
@@ -210,13 +217,12 @@ class SignalReceiver(object):
                                                  "At least one listener found")
                         break
                 else:
-                    # No match found
-                    result = _make_json_result(404, "No listener found")
+                    # No match found, return immediately
+                    return _make_json_result(404, "No listener found")
 
-            # Start the treatment in another thread
+            # Start the treatment in another thread, if necessary
             threading.Thread(target=self._notify_listeners,
                              args=(name, data)).start()
-
             return result
 
         # Unknown mode (not implemented error)
@@ -599,7 +605,7 @@ class SignalSender(object):
         """
         signal_content = {
             # We need that to talk to Java isolates
-            JAVA_CLASS: "org.psem2m.signals.impl.SignalData",
+            JAVA_CLASS: "org.psem2m.signals.SignalData",
             "isolateId": self.context.get_property('psem2m.isolate.id'),
             # FIXME: set up the node name
             "isolateNode": self.context.get_property('psem2m.isolate.node'),
@@ -656,7 +662,7 @@ class SignalSender(object):
         :param signal: The name of the signal
         :param content: The complete signal content (meta-data + content)
         :param mode: The signal sending mode
-        :return: A (code, response) tuple
+        :return: The isolate response, or None
         :raise ValueError: Invalid access or signal name
         :raise: Exception raised sending the signal
         """
@@ -711,7 +717,7 @@ class SignalSender(object):
                 # Be sure to have a None value
                 result = None
 
-            return (response.status, result)
+            return result
 
         finally:
             # Be nice...

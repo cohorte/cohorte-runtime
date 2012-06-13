@@ -36,7 +36,7 @@ SIGNAL_HEARTBEAT = "/psem2m/internals/forkers/heart-beat"
 @Requires("_forker", "org.psem2m.isolates.services.forker.IForker")
 # To retrieve access information
 @Requires("_http", "HttpService")
-@Requires("_sender", "org.psem2m.SignalSender")
+@Requires("_sender", "org.psem2m.signals.ISignalBroadcaster")
 class Heart(object):
     """
     The heart beat sender
@@ -49,8 +49,9 @@ class Heart(object):
         self._http = None
         self._sender = None
 
-        self._thread = None
+        self._context = None
         self._event = None
+        self._thread = None
 
 
     def _run(self):
@@ -58,13 +59,14 @@ class Heart(object):
         Heart beat sender
         """
         # Prepare the access information according to the HTTP service
-        server_info = {"host": self._http.get_hostname(),
+        server_info = {"node": self._context.get_property('psem2m.isolate.node'),
                        "port": self._http.get_port()
                        }
 
         while not self._event.is_set():
             # Send the heart beat
-            self._sender.send_data("MONITORS", SIGNAL_HEARTBEAT, server_info)
+            self._sender.send(SIGNAL_HEARTBEAT, server_info,
+                              groups=["MONITORS"])
 
             # Wait 3 seconds before next loop
             self._event.wait(3)
@@ -75,6 +77,8 @@ class Heart(object):
         """
         Component validated
         """
+        self._context = context
+
         # Prepare the thread controls
         self._event = threading.Event()
 
@@ -94,5 +98,6 @@ class Heart(object):
         self._thread.join(1)
 
         # Clean up
-        self._thread = None
+        self._context = None
         self._event = None
+        self._thread = None

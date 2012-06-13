@@ -27,7 +27,7 @@ if not CONTROLLER_PATH:
 PSEM2M_GIT = "/home/tcalmant/programmation/workspaces/psem2m"
 
 DEFAULT_PSEM2M_HOME = "%s/platforms/psem2m.home" % PSEM2M_GIT
-DEFAULT_PSEM2M_BASE = "%s/platforms/base-compo" % PSEM2M_GIT
+DEFAULT_PSEM2M_BASE = "%s/platforms/base-distributed-bis" % PSEM2M_GIT
 
 # ------------------------------------------------------------------------------
 

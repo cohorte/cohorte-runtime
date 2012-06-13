@@ -70,7 +70,7 @@ SIGNAL_PLATFORM_STOPPING = SIGNAL_PREFIX + "platform-stopping"
 @Instantiate("Forker")
 @Provides("org.psem2m.isolates.services.forker.IForker")
 @Requires("_config", "org.psem2m.isolates.services.conf.ISvcConfig")
-@Requires("_sender", "org.psem2m.SignalSender")
+@Requires("_sender", "org.psem2m.signals.ISignalBroadcaster")
 @Requires("_receiver", "org.psem2m.SignalReceiver")
 @Requires("_runners", "org.psem2m.isolates.forker.IIsolateRunner",
           aggregate=True)
@@ -287,7 +287,7 @@ class Forker(object):
             return
 
         # Send the stop signal (stop softly)
-        self._sender.send_data(isolate_id, psem2m.SIGNAL_ISOLATE_STOP, None)
+        self._sender.send(psem2m.SIGNAL_ISOLATE_STOP, None, isolate=isolate_id)
 
         try:
             # Wait a little (psutil API)
@@ -345,8 +345,8 @@ class Forker(object):
                                }
 
                 # Re-transmit the isolate status
-                self._sender.send_data("MONITORS", ISOLATE_STATUS_SIGNAL,
-                                       status_bean)
+                self._sender.send(ISOLATE_STATUS_SIGNAL, status_bean,
+                                  groups=["MONITORS"])
 
             except:
                 logger.exception("Error reading isolate status line :\n%s\n",
@@ -396,7 +396,8 @@ class Forker(object):
 
         else:
             # Send a signal to monitors
-            self._sender.send_data("MONITORS", ISOLATE_LOST_SIGNAL, isolate_id)
+            self._sender.send(ISOLATE_LOST_SIGNAL, isolate_id,
+                              groups=["MONITORS"])
 
 
     def start_monitor(self):
@@ -463,8 +464,9 @@ class Forker(object):
 
         # Send the result
         cmd_id = signal_content[CMD_ID]
-        self._sender.send_data(sender, SIGNAL_RESPONSE, {RESULT_CODE: result,
-                                                         CMD_ID: cmd_id})
+        self._sender.send(SIGNAL_RESPONSE, {RESULT_CODE: result,
+                                            CMD_ID: cmd_id},
+                          isolate=sender)
 
 
     @Bind

@@ -35,7 +35,7 @@ ACCESS_FILE = "forker.access"
 
 @ComponentFactory("psem2m-forker-cmd-agent-factory")
 @Instantiate("psem2m-forker-cmd-agent")
-@Requires("_sender", "org.psem2m.SignalSender")
+@Requires("_sender", "org.psem2m.signals.ISignalBroadcaster")
 @Requires("_receiver", "org.psem2m.SignalReceiver")
 class ForkerCmdAgent(object):
     """
@@ -77,7 +77,7 @@ class ForkerCmdAgent(object):
         :param args: Possible arguments
         """
         # Send the stop platform signal to all monitors
-        self._sender.send_data("MONITORS", SIGNAL_STOP_PLATFORM, None)
+        self._sender.send(SIGNAL_STOP_PLATFORM, None, groups=["MONITORS"])
 
 
     def _get_access_file(self):
