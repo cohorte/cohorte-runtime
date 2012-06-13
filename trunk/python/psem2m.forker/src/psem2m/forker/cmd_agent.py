@@ -36,7 +36,7 @@ ACCESS_FILE = "forker.access"
 @ComponentFactory("psem2m-forker-cmd-agent-factory")
 @Instantiate("psem2m-forker-cmd-agent")
 @Requires("_sender", "org.psem2m.signals.ISignalBroadcaster")
-@Requires("_receiver", "org.psem2m.SignalReceiver")
+@Requires("_receiver", "org.psem2m.signals.ISignalReceiver")
 class ForkerCmdAgent(object):
     """
     Forker controller command agent

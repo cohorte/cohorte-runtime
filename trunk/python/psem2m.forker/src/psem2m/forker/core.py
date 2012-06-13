@@ -71,7 +71,7 @@ SIGNAL_PLATFORM_STOPPING = SIGNAL_PREFIX + "platform-stopping"
 @Provides("org.psem2m.isolates.services.forker.IForker")
 @Requires("_config", "org.psem2m.isolates.services.conf.ISvcConfig")
 @Requires("_sender", "org.psem2m.signals.ISignalBroadcaster")
-@Requires("_receiver", "org.psem2m.SignalReceiver")
+@Requires("_receiver", "org.psem2m.signals.ISignalReceiver")
 @Requires("_runners", "org.psem2m.isolates.forker.IIsolateRunner",
           aggregate=True)
 @Requires("_config_broker", "org.psem2m.forker.configuration.store")

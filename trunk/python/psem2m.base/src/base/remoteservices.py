@@ -97,7 +97,7 @@ class _JsonRpcServlet(SimpleJSONRPCDispatcher):
 @ComponentFactory("ServiceExporterFactory")
 @Instantiate("ServiceExporter")
 @Requires("sender", "org.psem2m.signals.ISignalBroadcaster")
-@Requires("receiver", "org.psem2m.SignalReceiver")
+@Requires("receiver", "org.psem2m.signals.ISignalReceiver")
 @Requires("directory", "org.psem2m.IsolateDirectory")
 @Requires("http", "HttpService")
 @Property("servlet_path", "jsonrpc.servlet.path", "/JSON-RPC")
@@ -465,7 +465,7 @@ class _JSON_proxy(object):
 @ComponentFactory("ServiceImporterFactory")
 @Instantiate("ServiceImporter")
 @Requires("sender", "org.psem2m.signals.ISignalBroadcaster")
-@Requires("receiver", "org.psem2m.SignalReceiver")
+@Requires("receiver", "org.psem2m.signals.ISignalReceiver")
 class ServiceImporter(object):
     """
     PSEM2M Remote Services importer
