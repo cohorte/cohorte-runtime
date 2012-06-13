@@ -27,9 +27,6 @@ public class IsolateDescription implements Serializable {
     /** Serializable version */
     private static final long serialVersionUID = 1L;
 
-    /** The isolate access URL */
-    private String pAccessUrl;
-
     /** Application arguments */
     private List<String> pAppArgs = new ArrayList<String>();
 
@@ -37,19 +34,19 @@ public class IsolateDescription implements Serializable {
     private final Set<BundleDescription> pBundles = new LinkedHashSet<BundleDescription>();
 
     /** The isolate VM class path (mainly for Java) */
-    private List<String> pClasspath = new ArrayList<String>();
+    private final List<String> pClasspath = new ArrayList<String>();
 
     /** The isolate process environment variables */
-    private Map<String, String> pEnvironment = new HashMap<String, String>();
-
-    /** The isolate host name */
-    private String pHostName;
+    private final Map<String, String> pEnvironment = new HashMap<String, String>();
 
     /** Isolate ID */
     private String pIsolateId;
 
     /** Isolate kind, must never be null */
     private String pIsolateKind = "";
+
+    /** The node hosting the isolate */
+    private String pNode;
 
     /** The OSGi framework JAR file path, if any */
     private String pOsgiFramework;
@@ -78,14 +75,16 @@ public class IsolateDescription implements Serializable {
 
         // Standard fields
         pIsolateId = (String) aDescriptionMap.get(IIsolateDescr.ISOLATE_ID);
+
+        pNode = (String) aDescriptionMap.get(IIsolateDescr.ISOLATE_NODE);
+
         pPort = (Integer) aDescriptionMap
                 .get(IIsolateDescr.ISOLATE_SIGNALS_PORT);
+
         pOsgiFramework = (String) aDescriptionMap
                 .get(IIsolateDescr.ISOLATE_OSGI_FRAMEWORK);
 
         // "Special" fields
-        setHostName((String) aDescriptionMap
-                .get(IIsolateDescr.ISOLATE_SIGNALS_HOST));
         setKind((String) aDescriptionMap.get(IIsolateDescr.ISOLATE_KIND));
 
         // Application arguments
@@ -187,16 +186,6 @@ public class IsolateDescription implements Serializable {
     }
 
     /**
-     * Retrieves the forged access URL to the isolate signal receiver
-     * 
-     * @return The URL to the isolate signal receiver
-     */
-    public String getAccessUrl() {
-
-        return pAccessUrl;
-    }
-
-    /**
      * Retrieves the application argumens
      * 
      * @return the application arguments
@@ -237,16 +226,6 @@ public class IsolateDescription implements Serializable {
     }
 
     /**
-     * Retrieves the isolate host name
-     * 
-     * @return the host name
-     */
-    public String getHostName() {
-
-        return pHostName;
-    }
-
-    /**
      * Retrieves the ID of this isolate
      * 
      * @return The isolate ID
@@ -264,6 +243,16 @@ public class IsolateDescription implements Serializable {
     public String getKind() {
 
         return pIsolateKind;
+    }
+
+    /**
+     * Retrieves the isolate node name
+     * 
+     * @return the node name
+     */
+    public String getNode() {
+
+        return pNode;
     }
 
     /**
@@ -294,21 +283,6 @@ public class IsolateDescription implements Serializable {
     public List<String> getVmArgs() {
 
         return pVmArguments;
-    }
-
-    /**
-     * Sets the bundle access URL. <strong>This method should only be used by
-     * libraries based on beans (Jabsorb, ...)</strong>.
-     * 
-     * The access URL is automatically updated when calling
-     * {@link #setHostName(String)} or {@link #setPort(int)}.
-     * 
-     * @param aUrl
-     *            The access URL
-     */
-    public void setAccessUrl(final String aUrl) {
-
-        pAccessUrl = aUrl;
     }
 
     /**
@@ -361,25 +335,6 @@ public class IsolateDescription implements Serializable {
     }
 
     /**
-     * Sets the isolate host name
-     * 
-     * @param aHostName
-     *            the host name
-     */
-    public void setHostName(final String aHostName) {
-
-        if (aHostName != null) {
-            pHostName = aHostName;
-
-        } else {
-            pHostName = "localhost";
-        }
-
-        // Update the access URL
-        updateAccessUrl();
-    }
-
-    /**
      * Sets the isolate ID
      * 
      * @param aIsolateId
@@ -409,6 +364,17 @@ public class IsolateDescription implements Serializable {
     }
 
     /**
+     * Sets up the isolate node name
+     * 
+     * @param aNode
+     *            the node
+     */
+    public void setNode(final String aNode) {
+
+        pNode = aNode;
+    }
+
+    /**
      * @param aOsgiFramework
      *            the osgiFramework to set
      */
@@ -424,9 +390,6 @@ public class IsolateDescription implements Serializable {
     public void setPort(final int aPort) {
 
         pPort = aPort;
-
-        // Update the access URL
-        updateAccessUrl();
     }
 
     /**
@@ -459,7 +422,7 @@ public class IsolateDescription implements Serializable {
         map.put(IIsolateDescr.ISOLATE_ID, pIsolateId);
         map.put(IIsolateDescr.ISOLATE_KIND, pIsolateKind);
         map.put(IIsolateDescr.ISOLATE_OSGI_FRAMEWORK, pOsgiFramework);
-        map.put(IIsolateDescr.ISOLATE_SIGNALS_HOST, pHostName);
+        map.put(IIsolateDescr.ISOLATE_NODE, pNode);
         map.put(IIsolateDescr.ISOLATE_SIGNALS_PORT, pPort);
         map.put(IIsolateDescr.ISOLATE_VM_ARGS, pVmArguments);
 
@@ -472,19 +435,5 @@ public class IsolateDescription implements Serializable {
         map.put(IIsolateDescr.ISOLATE_BUNDLES, bundlesMap);
 
         return map;
-    }
-
-    /**
-     * Sets up the access URL, according to the current host name and port
-     */
-    protected void updateAccessUrl() {
-
-        final StringBuilder builder = new StringBuilder();
-        builder.append("http://");
-        builder.append(getHostName());
-        builder.append(":");
-        builder.append(pPort);
-
-        pAccessUrl = builder.toString();
     }
 }

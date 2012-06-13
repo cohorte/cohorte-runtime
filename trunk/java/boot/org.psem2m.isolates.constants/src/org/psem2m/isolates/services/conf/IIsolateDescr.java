@@ -52,6 +52,9 @@ public interface IIsolateDescr extends Serializable {
     /** Isolate kind : String (never empty, can be null) */
     String ISOLATE_KIND = "kind";
 
+    /** The node where to instanciate the isolate */
+    String ISOLATE_NODE = "node";
+
     /**
      * The OSGi framework JAR file name, to be used in the Java isolate class
      * path : String (can be absent or null)
@@ -68,9 +71,6 @@ public interface IIsolateDescr extends Serializable {
      * If no framework JAR file can be found, the launch fails.
      */
     String ISOLATE_OSGI_FRAMEWORK = "osgiFramework";
-
-    /** The socket host to access the signals receiver of the isolate */
-    String ISOLATE_SIGNALS_HOST = "host";
 
     /** The socket port to access the signals receiver of the isolate */
     String ISOLATE_SIGNALS_PORT = "httpPort";

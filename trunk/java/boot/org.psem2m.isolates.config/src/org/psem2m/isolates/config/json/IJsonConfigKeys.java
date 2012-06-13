@@ -45,14 +45,14 @@ public interface IJsonConfigKeys {
     /** The isolate process environment variables (map, optional) */
     String CONFIG_ISOLATE_ENVIRONMENT = "environment";
 
-    /** The HTTP server host */
-    String CONFIG_ISOLATE_HOST = "host";
-
     /** Isolate ID (string, mandatory) */
     String CONFIG_ISOLATE_ID = "id";
 
     /** Isolate kind (to be handled by the forker and the bootstrap) */
     String CONFIG_ISOLATE_KIND = "kind";
+
+    /** The node where to execute the isolate */
+    String CONFIG_ISOLATE_NODE = "node";
 
     /** The OSGi framework JAR file (string, optional) */
     String CONFIG_ISOLATE_OSGI_FRAMEWORK = "osgiFramework";

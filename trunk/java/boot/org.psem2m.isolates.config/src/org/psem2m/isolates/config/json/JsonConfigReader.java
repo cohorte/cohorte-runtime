@@ -352,6 +352,11 @@ public class JsonConfigReader implements IConfigurationReader {
         final IsolateDescription isolateDescription = new IsolateDescription(
                 isolateId);
 
+        // Isolate Node
+        final String isolateNode = aIsolateObject
+                .getString(IJsonConfigKeys.CONFIG_ISOLATE_NODE);
+        isolateDescription.setNode(isolateNode);
+
         // Isolate kind
         isolateDescription.setKind(aIsolateObject
                 .optString(IJsonConfigKeys.CONFIG_ISOLATE_KIND));
@@ -360,21 +365,6 @@ public class JsonConfigReader implements IConfigurationReader {
         final JSONArray vmArgsArray = aIsolateObject
                 .optJSONArray(IJsonConfigKeys.CONFIG_ISOLATE_VMARGS);
         isolateDescription.setVMArgs(jsonArrayToStringList(vmArgsArray, true));
-
-        // Isolate host name (also HTTP communication host name)
-        String isolateHost = aIsolateObject
-                .optString(IJsonConfigKeys.CONFIG_ISOLATE_HOST);
-        if (isolateHost != null) {
-            isolateHost = isolateHost.trim();
-        }
-
-        if (isolateHost == null || isolateHost.isEmpty()) {
-            // Invalid name
-            isolateDescription.setHostName("localhost");
-
-        } else {
-            isolateDescription.setHostName(isolateHost);
-        }
 
         // Isolate HTTP communication port
         int isolatePort = aIsolateObject
