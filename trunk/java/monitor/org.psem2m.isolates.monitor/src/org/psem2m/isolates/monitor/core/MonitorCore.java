@@ -150,7 +150,7 @@ public class MonitorCore extends CPojoBase implements
             pHostName = Utilities.getHostName();
         }
 
-        if (!pHostName.equals(aForker.getHostName())) {
+        if (!pHostName.equals(aForker.getNodeName())) {
             // Forker from another machine, ignore it...
             return;
         }
@@ -226,9 +226,9 @@ public class MonitorCore extends CPojoBase implements
             return null;
         }
 
-        final String isolateHostName = isolateDescr.getHostName();
-        if (isolateHostName == null) {
-            // No host name : refuse it
+        final String isolateNode = isolateDescr.getNode();
+        if (isolateNode == null) {
+            // No node name : refuse it
             return null;
         }
 
@@ -260,7 +260,7 @@ public class MonitorCore extends CPojoBase implements
             final IsolateDescription isolateDescr = appDescr
                     .getIsolate(isolateId);
 
-            if (pForkerSvc.isOnHost(aForkerId, isolateDescr.getHostName())) {
+            if (pForkerSvc.isOnNode(aForkerId, isolateDescr.getNode())) {
 
                 // Same host as the new forker
                 switch (aEventType) {
@@ -739,7 +739,7 @@ public class MonitorCore extends CPojoBase implements
             hostName = pHostName;
         }
 
-        if (!hostName.equals(aForker.getHostName())) {
+        if (!hostName.equals(aForker.getNodeName())) {
             // Ignore other forkers
             return;
         }
@@ -795,9 +795,10 @@ public class MonitorCore extends CPojoBase implements
 
         try {
             // Get the monitor access URL
-            final String isolateId = pPlatformDirsSvc.getIsolateId();
-            final String accessUrl = pConfiguration.getApplication()
-                    .getIsolate(isolateId).getAccessUrl();
+            final IsolateDescription isolateDescr = pConfiguration
+                    .getCurrentIsolate();
+            final String accessUrl = "http://localhost:"
+                    + isolateDescr.getPort();
 
             // Create the file
             final File accessFile = new File(

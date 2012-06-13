@@ -5,7 +5,6 @@ package org.psem2m.isolates.slave.agent.core;
 
 import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -17,7 +16,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -796,41 +794,8 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
      */
     protected void setupHttpProperties(final IsolateDescription aIsolateDescr) {
 
-        // Get the configured URL
-        final String isolateAccessStr = aIsolateDescr.getAccessUrl();
-        if (isolateAccessStr == null || isolateAccessStr.isEmpty()) {
-            pIsolateLoggerSvc.log(Level.WARNING, this, "setupHttpProperties",
-                    "No access URL defined for ", aIsolateDescr.getId());
-            return;
-        }
-
-        // Make a real URL to extract information
-        final URL isolateAccessUrl;
-        try {
-            isolateAccessUrl = new URL(isolateAccessStr);
-
-        } catch (final MalformedURLException e) {
-            pIsolateLoggerSvc.log(Level.WARNING, this, "setupHttpProperties",
-                    "Invalid access URL '", isolateAccessStr, "' for ",
-                    aIsolateDescr.getId());
-            return;
-        }
-
-        // Test the access protocol
-        if (!"http".equals(isolateAccessUrl.getProtocol())) {
-            // Ignore non-HTTP access URL
-            return;
-        }
-
-        // Find the access port
-        final int accessPort = isolateAccessUrl.getPort();
-        if (accessPort == -1) {
-            // No port defined, do nothing
-            pIsolateLoggerSvc.log(Level.WARNING, this, "setupHttpProperties",
-                    "No port defined in URL '", isolateAccessStr, "' for ",
-                    aIsolateDescr.getId());
-            return;
-        }
+        // Get the access port
+        final int accessPort = aIsolateDescr.getPort();
 
         // Everything is OK, set up the properties
         System.setProperty("org.osgi.service.http.port",
