@@ -3,9 +3,7 @@
  * Author: Thomas Calmant
  * Date:   12 juin 2012
  */
-package org.psem2m.signals.impl;
-
-import org.psem2m.signals.ISignalData;
+package org.psem2m.signals;
 
 /**
  * Basic implementation of a signal data bean
@@ -25,6 +23,14 @@ public class SignalData implements ISignalData {
 
     /** Signal time stamp */
     private long pTimestamp;
+
+    /**
+     * Default constructor (sets up the time stamp to now)
+     */
+    public SignalData() {
+
+        pTimestamp = System.currentTimeMillis();
+    }
 
     /*
      * (non-Javadoc)

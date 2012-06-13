@@ -1,16 +1,16 @@
 /**
- * File:   RequestContent.java
+ * File:   SignalContent.java
  * Author: "Thomas Calmant"
  * Date:   12 juin 2012
  */
-package org.psem2m.remotes.signals.http.sender;
+package org.psem2m.signals;
 
 /**
  * Represents the content of a request
  * 
  * @author Thomas Calmant
  */
-public class RequestContent {
+public class SignalContent {
 
     /** The RAW content */
     private final byte[] pContent;
@@ -26,7 +26,7 @@ public class RequestContent {
      * @param aContent
      *            RAW content
      */
-    public RequestContent(final String aType, final byte[] aContent) {
+    public SignalContent(final String aType, final byte[] aContent) {
 
         pContent = aContent;
         pContentType = aType;
