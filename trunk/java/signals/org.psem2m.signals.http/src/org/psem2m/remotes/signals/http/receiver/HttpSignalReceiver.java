@@ -15,7 +15,6 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.ServiceProperty;
 import org.apache.felix.ipojo.annotations.Validate;
-import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.service.http.HttpService;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
@@ -43,9 +42,6 @@ import org.psem2m.signals.SignalResult;
 public class HttpSignalReceiver extends CPojoBase implements
         ISignalReceptionProvider, ISignalRequestReader {
 
-    /** The bundle context */
-    private final BundleContext pBundleContext;
-
     /** Configuration service */
     @Requires
     private ISvcConfig pConfig;
@@ -68,18 +64,6 @@ public class HttpSignalReceiver extends CPojoBase implements
     /** The signal data serializers */
     @Requires
     private ISignalDataSerializer[] pSerializers;
-
-    /**
-     * Sets up the signal receiver
-     * 
-     * @param aBundleContext
-     *            The bundle context
-     */
-    public HttpSignalReceiver(final BundleContext aBundleContext) {
-
-        super();
-        pBundleContext = aBundleContext;
-    }
 
     /*
      * (non-Javadoc)
@@ -321,8 +305,7 @@ public class HttpSignalReceiver extends CPojoBase implements
     public void validatePojo() throws BundleException {
 
         // Prepare and register the servlet
-        final ServletReceiver servlet = new ServletReceiver(pBundleContext,
-                this);
+        final ServletReceiver servlet = new ServletReceiver(this);
         try {
             pHttpService.registerServlet(
                     IHttpSignalsConstants.RECEIVER_SERVLET_ALIAS, servlet,

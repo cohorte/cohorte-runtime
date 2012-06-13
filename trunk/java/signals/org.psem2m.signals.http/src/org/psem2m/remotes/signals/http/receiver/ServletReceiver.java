@@ -5,10 +5,7 @@
  */
 package org.psem2m.remotes.signals.http.receiver;
 
-import java.io.EOFException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
 import java.io.PrintWriter;
 
 import javax.servlet.ServletException;
@@ -16,8 +13,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.osgi.framework.BundleContext;
-import org.psem2m.isolates.base.OsgiObjectInputStream;
 import org.psem2m.isolates.base.Utilities;
 import org.psem2m.remotes.signals.http.IHttpSignalsConstants;
 import org.psem2m.signals.ISignalBroadcaster;
@@ -38,25 +33,18 @@ public class ServletReceiver extends HttpServlet {
     /** Serial version UID */
     private static final long serialVersionUID = 1L;
 
-    /** The bundle context */
-    private final BundleContext pBundleContext;
-
     /** Signal reception listener */
     private final ISignalRequestReader pSignalRequestHandler;
 
     /**
      * Sets up the servlet
      * 
-     * @param aBundleContext
-     *            The bundle context
      * @param aHandler
      *            Main signal reception listener
      */
-    public ServletReceiver(final BundleContext aBundleContext,
-            final ISignalRequestReader aHandler) {
+    public ServletReceiver(final ISignalRequestReader aHandler) {
 
         super();
-        pBundleContext = aBundleContext;
         pSignalRequestHandler = aHandler;
     }
 
@@ -136,6 +124,11 @@ public class ServletReceiver extends HttpServlet {
             signalData = new SignalData();
         }
 
+        if (signalData instanceof SignalData) {
+            // Set up the sender address now
+            ((SignalData) signalData).setSignalSender(aReq.getRemoteAddr());
+        }
+
         // Notify listeners
         final SignalResult result = pSignalRequestHandler.handleSignal(
                 signalName, signalData, requestMode);
@@ -159,57 +152,5 @@ public class ServletReceiver extends HttpServlet {
             // No result
             aResp.setContentLength(0);
         }
-    }
-
-    /**
-     * Reads a serialized stream content
-     * 
-     * @param aRemoteHost
-     *            The host that sent the signal
-     * @param aInputStream
-     *            An input stream
-     * @return The read data
-     * @throws InvalidDataException
-     *             The request body is invalid
-     */
-    protected ISignalData readSerialized(final String aRemoteHost,
-            final InputStream aInputStream) throws InvalidDataException {
-
-        ISignalData signalData;
-
-        try {
-            final ObjectInputStream inputStream = new OsgiObjectInputStream(
-                    pBundleContext, aInputStream);
-
-            final Object readData = inputStream.readObject();
-
-            if (readData instanceof ISignalData) {
-                // Valid object found
-                signalData = (ISignalData) readData;
-
-            } else {
-                // Bad content
-                throw new InvalidDataException(
-                        "Bad request content. Only ISignalData objects are allowed.",
-                        HttpServletResponse.SC_BAD_REQUEST);
-            }
-
-        } catch (final ClassNotFoundException e) {
-            throw new InvalidDataException("Class not found : "
-                    + e.getMessage(),
-                    HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
-
-        } catch (final EOFException e) {
-            // End Of File Exception : the POST body was empty
-            // WARNING: the sender in the signal data will be invalid
-            signalData = new SignalData();
-
-        } catch (final IOException e) {
-            // Other I/O Exceptions
-            throw new InvalidDataException("Error reading the request body",
-                    HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
-        }
-
-        return signalData;
     }
 }
