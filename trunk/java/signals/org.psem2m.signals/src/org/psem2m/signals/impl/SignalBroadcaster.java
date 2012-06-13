@@ -100,9 +100,8 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
         // Forge the signal content
         final SignalData signalData = new SignalData();
         signalData.setIsolateId(pDirectory.getIsolateId());
-        signalData.setIsolateNode(pDirectory.getIsolateNode());
+        signalData.setIsolateNode(pDirectory.getLocalNode());
         signalData.setSignalContent(aContent);
-        signalData.setTimestamp(System.currentTimeMillis());
 
         // Send the signal
         return sendLoop(accesses, aSignalName, signalData, aMode);
@@ -143,9 +142,8 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
         // Forge the signal content
         final SignalData signalData = new SignalData();
         signalData.setIsolateId(pDirectory.getIsolateId());
-        signalData.setIsolateNode(pDirectory.getIsolateNode());
+        signalData.setIsolateNode(pDirectory.getLocalNode());
         signalData.setSignalContent(aContent);
-        signalData.setTimestamp(System.currentTimeMillis());
 
         // Send the signal
         return sendLoop(accesses, aSignalName, signalData, aMode);
@@ -387,7 +385,7 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
         // Prepare the signal data
         final SignalData signalData = new SignalData();
         signalData.setIsolateId(pDirectory.getIsolateId());
-        signalData.setIsolateNode(pDirectory.getIsolateNode());
+        signalData.setIsolateNode(pDirectory.getLocalNode());
         signalData.setSignalContent(aContent);
         signalData.setTimestamp(System.currentTimeMillis());
 

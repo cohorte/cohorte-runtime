@@ -20,75 +20,76 @@ iPOJO-Components: instance { $component="org.psem2m.forkers.aggregator
  ="org.psem2m.forkers.aggregator.impl.ForkerAggregator" $name="psem2m-
  forker-aggregator-factory" $public="false" provides { $specifications
  ="{org.psem2m.isolates.services.forker.IForker}" }requires { $field="
- pInternalDirectory" }requires { $field="pLogger" }requires { $field="
- pSender" }requires { $id="SignalReceiver" callback { $method="bindSig
- nalReceiver" $type="bind" }}callback { $transition="invalidate" $meth
- od="invalidate" }callback { $transition="validate" $method="validate"
-  }manipulation { interface { $name="org.psem2m.isolates.services.fork
- er.IForker" }interface { $name="org.psem2m.signals.ISignalListener" }
- interface { $name="java.lang.Runnable" }field { $name="pForkersLST" $
- type="java.util.Map" }field { $name="pInternalDirectory" $type="org.p
- sem2m.forkers.aggregator.impl.IInternalSignalsDirectory" }field { $na
- me="pIsolateForkers" $type="java.util.Map" }field { $name="pListeners
- " $type="java.util.Set" }field { $name="pLogger" $type="org.psem2m.is
- olates.base.IIsolateLoggerSvc" }field { $name="pResults" $type="java.
- util.Map" }field { $name="pSender" $type="org.psem2m.signals.ISignalB
- roadcaster" }field { $name="pThread" $type="java.lang.Thread" }field 
- { $name="pThreadRunning" $type="boolean" }field { $name="pWaiters" $t
- ype="java.util.Map" }method { $name="bindSignalReceiver" $arguments="
- {org.psem2m.signals.ISignalReceiver}" }method { $name="fireForkerEven
- t" $arguments="{org.psem2m.isolates.services.forker.IForkerEventListe
- ner$EForkerEventType,java.lang.String,java.lang.String}" }method { $n
- ame="getHostName" $return="java.lang.String" }method { $name="handleH
- eartBeat" $arguments="{org.psem2m.signals.ISignalData}" }method { $na
- me="handleReceivedSignal" $return="java.lang.Object" $arguments="{jav
- a.lang.String,org.psem2m.signals.ISignalData}" }method { $name="inval
- idate" }method { $name="isOnHost" $return="boolean" $arguments="{java
- .lang.String,java.lang.String}" }method { $name="ping" $return="int" 
- $arguments="{java.lang.String}" }method { $name="registerForker" $arg
- uments="{org.psem2m.signals.ISignalData}" }method { $name="registerLi
- stener" $return="boolean" $arguments="{org.psem2m.isolates.services.f
- orker.IForkerEventListener}" }method { $name="run" }method { $name="s
- endOrder" $return="int" $arguments="{java.lang.String,java.lang.Strin
- g,java.util.Map}" }method { $name="setPlatformStopping" }method { $na
- me="startIsolate" $return="int" $arguments="{java.util.Map}" }method 
- { $name="stopIsolate" $arguments="{java.lang.String}" }method { $name
- ="unregisterForker" $arguments="{java.lang.String}" }method { $name="
- unregisterListener" $return="boolean" $arguments="{org.psem2m.isolate
- s.services.forker.IForkerEventListener}" }method { $name="validate" }
- method { $name="waitForResult" $return="java.lang.Integer" $arguments
- ="{int,long}" }}}component { $classname="org.psem2m.forkers.aggregato
- r.impl.InternalSignalsDirectory" $name="psem2m-signals-internal-direc
- tory-factory" $public="false" provides { $specifications="{org.psem2m
- .signals.ISignalDirectory,org.psem2m.forkers.aggregator.impl.IInterna
- lSignalsDirectory}" }requires { $field="pFinder" }requires { $field="
- pLogger" }callback { $transition="invalidate" $method="invalidate" }c
- allback { $transition="validate" $method="validate" }manipulation { i
- nterface { $name="org.psem2m.forkers.aggregator.impl.IInternalSignals
- Directory" }field { $name="pFinder" $type="org.psem2m.isolates.servic
- es.dirs.IFileFinderSvc" }field { $name="pHostAliases" $type="java.uti
- l.Map" }field { $name="pHostIsolates" $type="java.util.Map" }field { 
- $name="pIsolatesAccesses" $type="java.util.Map" }field { $name="pIsol
- atesHost" $type="java.util.Map" }field { $name="pLogger" $type="org.p
- sem2m.isolates.base.IIsolateLoggerSvc" }method { $name="addIsolate" $
- return="boolean" $arguments="{java.lang.String,java.lang.String,int}"
-  }method { $name="getAllPrefixedIds" $return="java.lang.String[]" $ar
- guments="{java.lang.String}" }method { $name="getCurrentIsolateId" $r
- eturn="java.lang.String" }method { $name="getForkerForHost" $return="
- java.lang.String" $arguments="{java.lang.String}" }method { $name="ge
- tForkers" $return="java.lang.String[]" }method { $name="getHostForIso
- late" $return="java.lang.String" $arguments="{java.lang.String}" }met
- hod { $name="getIsolate" $return="java.lang.String" $arguments="{java
- .lang.String}" }method { $name="getIsolates" $return="java.lang.Strin
- g[]" $arguments="{java.util.Collection}" }method { $name="getIsolates
- " $return="java.lang.String[]" $arguments="{EEmitterTargets}" }method
-  { $name="getIsolates" $return="java.lang.String[]" $arguments="{java
- .lang.String[]}" }method { $name="getIsolatesForHost" $return="java.l
- ang.String[]" $arguments="{java.lang.String}" }method { $name="getMon
- itors" $return="java.lang.String[]" }method { $name="getRealHost" $re
- turn="java.lang.String" $arguments="{java.lang.String}" }method { $na
- me="invalidate" }method { $name="reloadDirectory" $return="boolean" }
- method { $name="removeIsolate" $return="boolean" $arguments="{java.la
- ng.String}" }method { $name="setHostAlias" $arguments="{java.lang.Str
- ing,java.lang.String}" }method { $name="validate" }}}
+ pDirectory" }requires { $field="pLogger" }requires { $field="pSender"
+  }requires { $id="SignalReceiver" callback { $method="bindSignalRecei
+ ver" $type="bind" }}callback { $transition="invalidate" $method="inva
+ lidate" }callback { $transition="validate" $method="validate" }manipu
+ lation { interface { $name="org.psem2m.isolates.services.forker.IFork
+ er" }interface { $name="org.psem2m.signals.ISignalListener" }interfac
+ e { $name="java.lang.Runnable" }field { $name="pDirectory" $type="org
+ .psem2m.signals.ISignalDirectory" }field { $name="pForkersLST" $type=
+ "java.util.Map" }field { $name="pIsolateForkers" $type="java.util.Map
+ " }field { $name="pListeners" $type="java.util.Set" }field { $name="p
+ Logger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $
+ name="pResults" $type="java.util.Map" }field { $name="pSender" $type=
+ "org.psem2m.signals.ISignalBroadcaster" }field { $name="pThread" $typ
+ e="java.lang.Thread" }field { $name="pThreadRunning" $type="boolean" 
+ }field { $name="pWaiters" $type="java.util.Map" }method { $name="bind
+ SignalReceiver" $arguments="{org.psem2m.signals.ISignalReceiver}" }me
+ thod { $name="fireForkerEvent" $arguments="{org.psem2m.isolates.servi
+ ces.forker.IForkerEventListener$EForkerEventType,java.lang.String,jav
+ a.lang.String}" }method { $name="getForkerForNode" $return="java.lang
+ .String" $arguments="{java.lang.String}" }method { $name="getNodeName
+ " $return="java.lang.String" }method { $name="handleHeartBeat" $argum
+ ents="{org.psem2m.signals.ISignalData}" }method { $name="handleReceiv
+ edSignal" $return="java.lang.Object" $arguments="{java.lang.String,or
+ g.psem2m.signals.ISignalData}" }method { $name="invalidate" }method {
+  $name="isOnNode" $return="boolean" $arguments="{java.lang.String,jav
+ a.lang.String}" }method { $name="ping" $return="int" $arguments="{jav
+ a.lang.String}" }method { $name="registerForker" $arguments="{org.pse
+ m2m.signals.ISignalData}" }method { $name="registerListener" $return=
+ "boolean" $arguments="{org.psem2m.isolates.services.forker.IForkerEve
+ ntListener}" }method { $name="run" }method { $name="sendOrder" $retur
+ n="int" $arguments="{java.lang.String,java.lang.String,java.util.Map}
+ " }method { $name="setPlatformStopping" }method { $name="startIsolate
+ " $return="int" $arguments="{java.util.Map}" }method { $name="stopIso
+ late" $arguments="{java.lang.String}" }method { $name="unregisterFork
+ er" $arguments="{java.lang.String}" }method { $name="unregisterListen
+ er" $return="boolean" $arguments="{org.psem2m.isolates.services.forke
+ r.IForkerEventListener}" }method { $name="validate" }method { $name="
+ waitForResult" $return="java.lang.Integer" $arguments="{int,long}" }}
+ }component { $classname="org.psem2m.forkers.aggregator.impl.InternalS
+ ignalsDirectory" $name="psem2m-signals-internal-directory-factory" $p
+ ublic="false" provides { $specifications="{org.psem2m.signals.ISignal
+ Directory,org.psem2m.forkers.aggregator.impl.IInternalSignalsDirector
+ y}" }requires { $field="pFinder" }requires { $field="pLogger" }callba
+ ck { $transition="invalidate" $method="invalidate" }callback { $trans
+ ition="validate" $method="validate" }manipulation { interface { $name
+ ="org.psem2m.forkers.aggregator.impl.IInternalSignalsDirectory" }fiel
+ d { $name="pFinder" $type="org.psem2m.isolates.services.dirs.IFileFin
+ derSvc" }field { $name="pHostAliases" $type="java.util.Map" }field { 
+ $name="pHostIsolates" $type="java.util.Map" }field { $name="pIsolates
+ Accesses" $type="java.util.Map" }field { $name="pIsolatesHost" $type=
+ "java.util.Map" }field { $name="pLogger" $type="org.psem2m.isolates.b
+ ase.IIsolateLoggerSvc" }method { $name="addIsolate" $return="boolean"
+  $arguments="{java.lang.String,java.lang.String,int}" }method { $name
+ ="getAllPrefixedIds" $return="java.lang.String[]" $arguments="{java.l
+ ang.String}" }method { $name="getCurrentIsolateId" $return="java.lang
+ .String" }method { $name="getForkerForHost" $return="java.lang.String
+ " $arguments="{java.lang.String}" }method { $name="getForkers" $retur
+ n="java.lang.String[]" }method { $name="getHostForIsolate" $return="j
+ ava.lang.String" $arguments="{java.lang.String}" }method { $name="get
+ Isolate" $return="java.lang.String" $arguments="{java.lang.String}" }
+ method { $name="getIsolates" $return="java.lang.String[]" $arguments=
+ "{java.util.Collection}" }method { $name="getIsolates" $return="java.
+ lang.String[]" $arguments="{EEmitterTargets}" }method { $name="getIso
+ lates" $return="java.lang.String[]" $arguments="{java.lang.String[]}"
+  }method { $name="getIsolatesForHost" $return="java.lang.String[]" $a
+ rguments="{java.lang.String}" }method { $name="getMonitors" $return="
+ java.lang.String[]" }method { $name="getRealHost" $return="java.lang.
+ String" $arguments="{java.lang.String}" }method { $name="invalidate" 
+ }method { $name="reloadDirectory" $return="boolean" }method { $name="
+ removeIsolate" $return="boolean" $arguments="{java.lang.String}" }met
+ hod { $name="setHostAlias" $arguments="{java.lang.String,java.lang.St
+ ring}" }method { $name="validate" }}}
 

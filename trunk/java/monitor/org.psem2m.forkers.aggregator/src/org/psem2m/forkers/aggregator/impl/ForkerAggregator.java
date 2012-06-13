@@ -24,12 +24,13 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
-import org.psem2m.isolates.base.Utilities;
+import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.services.forker.IForker;
 import org.psem2m.isolates.services.forker.IForkerEventListener;
 import org.psem2m.isolates.services.forker.IForkerEventListener.EForkerEventType;
 import org.psem2m.signals.ISignalBroadcaster;
 import org.psem2m.signals.ISignalData;
+import org.psem2m.signals.ISignalDirectory;
 import org.psem2m.signals.ISignalListener;
 import org.psem2m.signals.ISignalReceiver;
 
@@ -52,12 +53,12 @@ public class ForkerAggregator implements IForker, ISignalListener, Runnable {
     /** The command ID generator */
     private static final AtomicInteger sCmdId = new AtomicInteger();
 
+    /** The isolates directory */
+    @Requires
+    private ISignalDirectory pDirectory;
+
     /** Forkers ID -&gt; Last seen time (LST) */
     private final Map<String, Long> pForkersLST = new HashMap<String, Long>();
-
-    /** The forkers directory */
-    @Requires
-    private IInternalSignalsDirectory pInternalDirectory;
 
     /** Isolate -&gt; Associated forker map */
     private final Map<String, String> pIsolateForkers = new HashMap<String, String>();
@@ -124,15 +125,41 @@ public class ForkerAggregator implements IForker, ISignalListener, Runnable {
         }
     }
 
+    /**
+     * Finds the first isolate with a forker ID on the given node
+     * 
+     * @param aNodeName
+     *            The name of a node
+     * @return The first forker found on the node, or null
+     */
+    protected String getForkerForNode(final String aNodeName) {
+
+        final String[] isolates = pDirectory.getIsolatesOnNode(aNodeName);
+        if (isolates == null) {
+            return null;
+        }
+
+        for (final String isolate : isolates) {
+            if (isolate
+                    .startsWith(IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER)) {
+                // Node forker found
+                return isolate;
+            }
+        }
+
+        return null;
+    }
+
     /*
      * (non-Javadoc)
      * 
      * @see org.psem2m.isolates.services.forker.IForker#getHostName()
      */
     @Override
-    public String getHostName() {
+    public String getNodeName() {
 
-        return Utilities.getHostName();
+        return System
+                .getProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_NODE);
     }
 
     /**
@@ -241,13 +268,26 @@ public class ForkerAggregator implements IForker, ISignalListener, Runnable {
      * java.lang.String)
      */
     @Override
-    public boolean isOnHost(final String aForkerId, final String aHostName) {
+    public boolean isOnNode(final String aForkerId, final String aNodeName) {
 
         if (aForkerId == null) {
+            // Invalid ID
             return false;
         }
 
-        return aForkerId.equals(pInternalDirectory.getForkerForHost(aHostName));
+        final String[] nodeIsolates = pDirectory.getIsolatesOnNode(aNodeName);
+        if (nodeIsolates == null) {
+            // No isolates on this node
+            return false;
+        }
+
+        for (final String isolate : nodeIsolates) {
+            if (aForkerId.equals(isolate)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /*
@@ -295,7 +335,7 @@ public class ForkerAggregator implements IForker, ISignalListener, Runnable {
 
     /**
      * Registers a forker in the internal directory, using a heart beat signal
-     * data, and notitfies listeners on success.
+     * data, and notifies listeners on success.
      * 
      * @param aSignalData
      *            A heart beat signal data
@@ -316,53 +356,31 @@ public class ForkerAggregator implements IForker, ISignalListener, Runnable {
 
         // Extract signal data
         final String forkerId = aSignalData.getIsolateId();
-        final String forkerSignalNode = aSignalData.getIsolateNode();
-        final String forkerContentNode = (String) signalContent.get("node");
+        final String forkerNode = aSignalData.getIsolateNode();
+        final String forkerHost = aSignalData.getSignalSender();
         final Integer forkerContentPort = (Integer) signalContent.get("port");
 
-        // Validate the given host names
-        if (forkerSignalNode == null || forkerContentNode == null) {
-            pLogger.logSevere(this, "registerForker",
-                    "Invalid node name for forker=", forkerId,
-                    "found in signal: signal=", forkerSignalNode, "content=",
-                    forkerContentNode, "-> Forker not registered");
+        // Validate the port
+        if (forkerContentPort == null) {
+            pLogger.logWarn(this, "registerForker",
+                    "No port given to register forker=", forkerId,
+                    "from node=", forkerNode);
             return;
         }
 
-        // Get the access port
-        int port;
-        if (forkerContentPort == null) {
-            // Default port
-            port = 8080;
-            pLogger.logWarn(this, "registerForker",
-                    "Port information missing for forker=", forkerId,
-                    "-> Using the default port.");
-
-        } else {
-            port = forkerContentPort.intValue();
-        }
-
-        // Register the alias if different host names given in the signal
-        if (!forkerSignalNode.equals(forkerContentNode)) {
-            pLogger.logDebug(this, "registerForker",
-                    "Different node names found in the heart beat: sender=",
-                    forkerSignalNode, "content=", forkerContentNode,
-                    "for forker=", forkerId,
-                    "-> Using the content node as an alias.");
-
-            pInternalDirectory
-                    .setHostAlias(forkerSignalNode, forkerContentNode);
-        }
+        // Set the node host
+        pDirectory.setNodeAddress(forkerNode, forkerHost);
 
         // Register the forker
-        if (pInternalDirectory.addIsolate(forkerId, forkerSignalNode, port)) {
+        if (pDirectory.registerIsolate(forkerId, forkerNode,
+                forkerContentPort.intValue(), "FORKERS")) {
 
             pLogger.logInfo(this, "registerForker", "Registered forker ID=",
-                    forkerId, "Node=", forkerSignalNode, "Port=", port);
+                    forkerId, "Node=", forkerNode, "Port=",
+                    forkerContentPort.intValue());
 
             // Notify listeners
-            fireForkerEvent(EForkerEventType.REGISTERED, forkerId,
-                    forkerSignalNode);
+            fireForkerEvent(EForkerEventType.REGISTERED, forkerId, forkerNode);
         }
     }
 
@@ -458,7 +476,8 @@ public class ForkerAggregator implements IForker, ISignalListener, Runnable {
     @Override
     public void setPlatformStopping() {
 
-        final String[] forkers = pInternalDirectory.getForkers();
+        final String[] forkers = pDirectory
+                .getAllIsolates(IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER);
         if (forkers == null) {
             return;
         }
@@ -477,12 +496,12 @@ public class ForkerAggregator implements IForker, ISignalListener, Runnable {
     @Override
     public int startIsolate(final Map<String, Object> aIsolateConfiguration) {
 
-        String hostName = (String) aIsolateConfiguration.get("host");
+        String hostName = (String) aIsolateConfiguration.get("node");
         if (hostName == null || hostName.isEmpty()) {
-            hostName = getHostName();
+            hostName = getNodeName();
         }
 
-        final String forker = pInternalDirectory.getForkerForHost(hostName);
+        final String forker = getForkerForNode(hostName);
         if (forker == null) {
             pLogger.logSevere(this, "startIsolate",
                     "No forker known for host=", hostName);
@@ -554,27 +573,25 @@ public class ForkerAggregator implements IForker, ISignalListener, Runnable {
     protected synchronized void unregisterForker(final String aForkerId) {
 
         // Get the forker host
-        final String forkerHost = pInternalDirectory
-                .getHostForIsolate(aForkerId);
+        final String forkerNode = pDirectory.getIsolateNode(aForkerId);
 
         pLogger.logDebug(this, "unregisterForker", "Unregistering forker=",
-                aForkerId, "for host=", forkerHost);
+                aForkerId, "for node=", forkerNode);
 
-        if (pInternalDirectory.removeIsolate(aForkerId)) {
+        if (pDirectory.unregisterIsolate(aForkerId)) {
             // Forker has been removed
             fireForkerEvent(EForkerEventType.UNREGISTERED, aForkerId,
-                    forkerHost);
+                    forkerNode);
         }
 
         // Clean up corresponding isolates
-        final String[] isolates = pInternalDirectory
-                .getIsolatesForHost(forkerHost);
+        final String[] isolates = pDirectory.getIsolatesOnNode(forkerNode);
         if (isolates != null) {
 
             for (final String isolate : isolates) {
                 // Forget this isolate
                 pIsolateForkers.remove(isolate);
-                pInternalDirectory.removeIsolate(isolate);
+                pDirectory.unregisterIsolate(isolate);
             }
         }
     }

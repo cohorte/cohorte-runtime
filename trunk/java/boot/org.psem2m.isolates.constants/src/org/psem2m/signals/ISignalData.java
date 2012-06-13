@@ -34,6 +34,13 @@ public interface ISignalData {
     Object getSignalContent();
 
     /**
+     * Retrieves the sender address
+     * 
+     * @return the sender address
+     */
+    String getSignalSender();
+
+    /**
      * Retrieves the time stamp of the signal creation
      * 
      * @return The signal creation time stamp

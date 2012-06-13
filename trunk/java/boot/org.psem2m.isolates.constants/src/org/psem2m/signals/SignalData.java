@@ -18,6 +18,9 @@ public class SignalData implements ISignalData {
     /** The source isolate node */
     private String pNode;
 
+    /** The sender host/address */
+    private String pSender;
+
     /** The data associated to the signal */
     private Object pSignalData;
 
@@ -68,6 +71,17 @@ public class SignalData implements ISignalData {
     /*
      * (non-Javadoc)
      * 
+     * @see org.psem2m.signals.ISignalData#getSender()
+     */
+    @Override
+    public String getSignalSender() {
+
+        return pSender;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.psem2m.signals.impl.ISignalData#getTimestamp()
      */
     @Override
@@ -107,6 +121,17 @@ public class SignalData implements ISignalData {
     public void setSignalContent(final Object aSignalData) {
 
         pSignalData = aSignalData;
+    }
+
+    /**
+     * Sets up the sender address
+     * 
+     * @param aSender
+     *            the sender address
+     */
+    public void setSignalSender(final String aSender) {
+
+        pSender = aSender;
     }
 
     /**

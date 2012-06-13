@@ -26,15 +26,22 @@ iPOJO-Components: instance { $component="org.psem2m.signals.directory.
  ace { $name="org.psem2m.signals.ISignalDirectory" }field { $name="pAc
  cesses" $type="java.util.Map" }field { $name="pGroups" $type="java.ut
  il.Map" }field { $name="pLogger" $type="org.psem2m.isolates.base.IIso
- lateLoggerSvc" }field { $name="pNodes" $type="java.util.Map" }method 
- { $name="getGroupAccesses" $return="java.util.Map" $arguments="{java.
- lang.String}" }method { $name="getIsolateAccess" $return="org.psem2m.
- signals.HostAccess" $arguments="{java.lang.String}" }method { $name="
- getIsolateId" $return="java.lang.String" }method { $name="getIsolateN
- ode" $return="java.lang.String" }method { $name="getNodeIsolates" $re
- turn="java.util.List" $arguments="{java.lang.String}" }method { $name
- ="invalidatePojo" }method { $name="registerIsolate" $arguments="{java
- .lang.String,java.lang.String,java.lang.String,int,java.lang.String[]
- }" }method { $name="unregisterIsolate" $return="boolean" $arguments="
- {java.lang.String}" }method { $name="validatePojo" }}}
+ lateLoggerSvc" }field { $name="pNodesHost" $type="java.util.Map" }fie
+ ld { $name="pNodesIsolates" $type="java.util.Map" }method { $name="ge
+ tAllIsolates" $return="java.lang.String[]" $arguments="{java.lang.Str
+ ing}" }method { $name="getGroupAccesses" $return="java.util.Map" $arg
+ uments="{java.lang.String}" }method { $name="getHostForNode" $return=
+ "java.lang.String" $arguments="{java.lang.String}" }method { $name="g
+ etIsolateAccess" $return="org.psem2m.signals.HostAccess" $arguments="
+ {java.lang.String}" }method { $name="getIsolateId" $return="java.lang
+ .String" }method { $name="getIsolateNode" $return="java.lang.String" 
+ $arguments="{java.lang.String}" }method { $name="getIsolatesOnNode" $
+ return="java.lang.String[]" $arguments="{java.lang.String}" }method {
+  $name="getLocalNode" $return="java.lang.String" }method { $name="inv
+ alidatePojo" }method { $name="registerIsolate" $return="boolean" $arg
+ uments="{java.lang.String,java.lang.String,int,java.lang.String[]}" }
+ method { $name="setNodeAddress" $return="java.lang.String" $arguments
+ ="{java.lang.String,java.lang.String}" }method { $name="unregisterIso
+ late" $return="boolean" $arguments="{java.lang.String}" }method { $na
+ me="validatePojo" }}}
 

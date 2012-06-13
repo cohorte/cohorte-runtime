@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
@@ -34,7 +35,7 @@ import org.psem2m.signals.ISignalDirectory;
 @Instantiate(name = "psem2m-signals-directory")
 public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
 
-    /** Isolate ID -&gt; Access */
+    /** Isolate ID -&gt; (Node, Port) */
     private final Map<String, HostAccess> pAccesses = new HashMap<String, HostAccess>();
 
     /** Group name -&gt; Isolate IDs */
@@ -44,8 +45,44 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
     @Requires
     private IIsolateLoggerSvc pLogger;
 
+    /** Node name -&gt; Host address */
+    private final Map<String, String> pNodesHost = new HashMap<String, String>();
+
     /** Node name -&gt; Isolate IDs */
-    private final Map<String, List<String>> pNodes = new HashMap<String, List<String>>();
+    private final Map<String, List<String>> pNodesIsolates = new HashMap<String, List<String>>();
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.signals.ISignalDirectory#getAllIsolates(java.lang.String)
+     */
+    @Override
+    public synchronized String[] getAllIsolates(final String aPrefix) {
+
+        if (pAccesses.isEmpty()) {
+            // Nothing to return
+            return null;
+        }
+
+        if (aPrefix == null || aPrefix.isEmpty()) {
+            // No filter, return all IDs
+            return pAccesses.keySet().toArray(new String[0]);
+        }
+
+        final List<String> matching = new ArrayList<String>();
+        for (final String isolate : pAccesses.keySet()) {
+            if (isolate.startsWith(aPrefix)) {
+                matching.add(isolate);
+            }
+        }
+
+        if (matching.isEmpty()) {
+            // Nothing to return
+            return null;
+        }
+
+        return matching.toArray(new String[0]);
+    }
 
     /*
      * (non-Javadoc)
@@ -71,7 +108,7 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
         final Map<String, HostAccess> accesses = new HashMap<String, HostAccess>();
         for (final String isolate : isolates) {
             // Find all accesses for this group
-            final HostAccess access = pAccesses.get(isolate);
+            final HostAccess access = getIsolateAccess(isolate);
             if (access != null) {
                 accesses.put(isolate, access);
             }
@@ -88,13 +125,38 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
     /*
      * (non-Javadoc)
      * 
+     * @see org.psem2m.signals.ISignalDirectory#getHostForNode(java.lang.String)
+     */
+    @Override
+    public synchronized String getHostForNode(final String aNodeName) {
+
+        return pNodesHost.get(aNodeName);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see
      * org.psem2m.signals.ISignalDirectory#getIsolateAccess(java.lang.String)
      */
     @Override
     public synchronized HostAccess getIsolateAccess(final String aIsolateId) {
 
-        return pAccesses.get(aIsolateId);
+        final HostAccess nodeAccess = pAccesses.get(aIsolateId);
+        if (nodeAccess == null) {
+            // Unknown isolate
+            return null;
+        }
+
+        final String nodeHost = pNodesHost.get(nodeAccess.getAddress());
+        if (nodeHost == null) {
+            // Unknown host
+            pLogger.logWarn(this, "getIsolateAccess", "Unknown node=",
+                    nodeHost, "for isolate=", aIsolateId);
+            return null;
+        }
+
+        return new HostAccess(nodeHost, nodeAccess.getPort());
     }
 
     /*
@@ -112,31 +174,51 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.signals.ISignalDirectory#getIsolateNode()
+     * @see org.psem2m.signals.ISignalDirectory#getLocalNode()
      */
     @Override
-    public String getIsolateNode() {
+    public synchronized String getIsolateNode(final String aIsolateId) {
 
-        return System
-                .getProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_NODE);
+        for (final Entry<String, List<String>> entry : pNodesIsolates
+                .entrySet()) {
+            final List<String> isolates = entry.getValue();
+            if (isolates != null && isolates.contains(aIsolateId)) {
+                // Found !
+                return entry.getKey();
+            }
+        }
+
+        return null;
     }
 
     /*
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.signals.ISignalDirectory#getNodeIsolates(java.lang.String)
+     * org.psem2m.signals.ISignalDirectory#getIsolatesOnNode(java.lang.String)
      */
     @Override
-    public synchronized List<String> getNodeIsolates(final String aNodeName) {
+    public synchronized String[] getIsolatesOnNode(final String aNodeName) {
 
-        final List<String> isolates = pNodes.get(aNodeName);
-        if (isolates != null) {
+        final List<String> isolates = pNodesIsolates.get(aNodeName);
+        if (isolates != null && !isolates.isEmpty()) {
             // Return a copy of the list
-            return new ArrayList<String>(isolates);
+            return isolates.toArray(new String[0]);
         }
 
         return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.signals.ISignalDirectory#getLocalNode()
+     */
+    @Override
+    public String getLocalNode() {
+
+        return System
+                .getProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_NODE);
     }
 
     /*
@@ -150,7 +232,8 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
 
         pAccesses.clear();
         pGroups.clear();
-        pNodes.clear();
+        pNodesHost.clear();
+        pNodesIsolates.clear();
 
         pLogger.logInfo(this, "invalidatePojo", "Signals directory gone");
     }
@@ -163,9 +246,9 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
      * java.lang.String, java.lang.String, int, java.lang.String[])
      */
     @Override
-    public synchronized void registerIsolate(final String aIsolateId,
-            final String aNode, final String aHostAddress, final int aPort,
-            final String... aGroups) throws IllegalArgumentException {
+    public synchronized boolean registerIsolate(final String aIsolateId,
+            final String aNode, final int aPort, final String... aGroups)
+            throws IllegalArgumentException {
 
         if (aIsolateId == null || aIsolateId.isEmpty()) {
             throw new IllegalArgumentException("Empty isolate ID : '"
@@ -177,25 +260,27 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
                     + aIsolateId + "'");
         }
 
-        if (aHostAddress == null || aHostAddress.isEmpty()) {
-            throw new IllegalArgumentException("Empty host for isolate '"
-                    + aIsolateId + "'");
-        }
-
         if (aIsolateId.equals(getIsolateId())) {
             // Ignore our own registration
-            return;
+            return false;
+        }
+
+        if (pAccesses.containsKey(aIsolateId)) {
+            // Already known isolate
+            pLogger.logDebug(this, "registerIsolate", "Already known isolate=",
+                    aIsolateId);
+            return false;
         }
 
         // Store the access
-        pAccesses.put(aIsolateId, new HostAccess(aHostAddress, aPort));
+        pAccesses.put(aIsolateId, new HostAccess(aNode, aPort));
 
         // Store the node
-        List<String> isolates = pNodes.get(aNode);
+        List<String> isolates = pNodesIsolates.get(aNode);
         if (isolates == null) {
             // Create the node entry
             isolates = new ArrayList<String>();
-            pNodes.put(aNode, isolates);
+            pNodesIsolates.put(aNode, isolates);
         }
 
         if (!isolates.contains(aIsolateId)) {
@@ -224,6 +309,25 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
             pLogger.logWarn(this, "registerIsolate", "Isolate ID=", aIsolateId,
                     "has no group");
         }
+
+        return true;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.signals.ISignalDirectory#setNodeAddress(java.lang.String,
+     * java.lang.String)
+     */
+    @Override
+    public synchronized String setNodeAddress(final String aNodeName,
+            final String aHostAddress) {
+
+        if (aHostAddress == null || aHostAddress.isEmpty()) {
+            return pNodesHost.get(aNodeName);
+        }
+
+        return pNodesHost.put(aNodeName, aHostAddress);
     }
 
     /*
@@ -248,7 +352,7 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
         }
 
         // Remove references in nodes
-        for (final List<String> isolates : pNodes.values()) {
+        for (final List<String> isolates : pNodesIsolates.values()) {
             if (isolates.contains(aIsolateId)) {
                 isolates.remove(aIsolateId);
                 result = true;
