@@ -179,10 +179,15 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
     @Override
     public synchronized String getIsolateNode(final String aIsolateId) {
 
+        if (aIsolateId == null || aIsolateId.isEmpty()) {
+            // No need to loop
+            return null;
+        }
+
         for (final Entry<String, List<String>> entry : pNodesIsolates
                 .entrySet()) {
             final List<String> isolates = entry.getValue();
-            if (isolates != null && isolates.contains(aIsolateId)) {
+            if (isolates.contains(aIsolateId)) {
                 // Found !
                 return entry.getKey();
             }
@@ -327,6 +332,13 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
             return pNodesHost.get(aNodeName);
         }
 
+        if (aHostAddress.equals("{LOCAL}")) {
+            pLogger.logWarn(this, "setNodeAddress",
+                    "Trying to override the {local} shortcut by address=",
+                    aHostAddress);
+            return pNodesHost.get(aNodeName);
+        }
+
         return pNodesHost.put(aNodeName, aHostAddress);
     }
 
@@ -380,7 +392,8 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
     public void validatePojo() throws BundleException {
 
         // Register the local isolate
-        pAccesses.put(getIsolateId(), new HostAccess(null, 0));
+        pNodesHost.put(getLocalNode(), "{LOCAL}");
+        registerIsolate(getIsolateId(), getLocalNode(), -1, "LOCAL");
 
         pLogger.logInfo(this, "validatePojo", "Signals directory ready");
     }

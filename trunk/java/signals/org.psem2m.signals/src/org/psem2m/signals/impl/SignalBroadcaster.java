@@ -213,7 +213,7 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
             final String aSignalName, final ISignalData aSignalData,
             final String aMode) throws Exception {
 
-        if (aAccess.getAddress() == null && aAccess.getPort() == 0) {
+        if ("{LOCAL}".equals(aAccess.getAddress())) {
             // Special case : local signal
             final SignalResult localResult = pReceiver.localReception(
                     aSignalName, aSignalData, aMode);
