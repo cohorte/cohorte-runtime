@@ -1,7 +1,7 @@
 {
     "id":"org.psem2m.internals.isolates.monitor-1",
     "kind":"felix",
-    "host":"phenomtwo3000",
+    "node":"central",
     "httpPort":9000,
     "vmArgs":[
         "-Xms32M",

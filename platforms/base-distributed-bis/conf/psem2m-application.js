@@ -11,13 +11,17 @@
         {
             "id":"demo.central",
             "kind":"pelix",
+            "node":"central",
             "httpPort":9100,
             "bundles":[
                 {
                     "symbolicName":"base.httpsvc"
                 },
                 {
-                    "symbolicName":"base.signals"
+                    "symbolicName":"base.signals.directory"
+                },
+                {
+                    "symbolicName":"base.signals.http"
                 },
                 {
                     "symbolicName":"base.multicast_agent"
@@ -39,14 +43,17 @@
         {
             "id":"demo.snowball",
             "kind":"pelix",
-            "host":"10.130.1.91",
+            "node":"snowball",
             "httpPort":9100,
             "bundles":[
                 {
                     "symbolicName":"base.httpsvc"
                 },
                 {
-                    "symbolicName":"base.signals"
+                    "symbolicName":"base.signals.directory"
+                },
+                {
+                    "symbolicName":"base.signals.http"
                 },
                 {
                     "symbolicName":"base.remoteservices"

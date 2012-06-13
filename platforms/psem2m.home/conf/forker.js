@@ -2,12 +2,16 @@
     "id":"org.psem2m.internals.isolates.forker",
     "kind":"pelix",
     "httpPort":9001,
+    "node":"central",
     "bundles":[
         {
             "symbolicName":"base.httpsvc"
         },
         {
-            "symbolicName":"base.signals"
+            "symbolicName":"base.signals.directory"
+        },
+        {
+            "symbolicName":"base.signals.http"
         },
         {
             "symbolicName":"psem2m.forker.config_broker"
