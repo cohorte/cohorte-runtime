@@ -31,6 +31,17 @@ if sys.version_info[0] == 3:
     # Python 3
     import http.client as httplib
 
+    def _to_bytes(data, encoding="UTF-8"):
+        """
+        Converts the given string to a bytes array
+        """
+        if type(data) is bytes:
+            # Nothing to do
+            return data
+
+        return data.encode(encoding)
+
+
     def _to_string(data, encoding="UTF-8"):
         """
         Converts the given bytes array to a string
@@ -45,11 +56,26 @@ else:
     # Python 2
     import httplib
 
+    def _to_bytes(data, encoding="UTF-8"):
+        """
+        Converts the given string to a bytes array
+        """
+        if type(data) is str:
+            # Nothing to do
+            return data
+
+        return data.encode(encoding)
+
+
     def _to_string(data, encoding="UTF-8"):
         """
         Converts the given bytes array to a string
         """
-        return data.encode(encoding)
+        if type(data) is unicode:
+            # Nothing to do
+            return data
+
+        return data.decode(encoding)
 
 # ------------------------------------------------------------------------------
 
@@ -154,9 +180,6 @@ class SignalReceiver(object):
                     code, content = _make_json_result(500,
                                                       "Error parsing signal")
 
-            # Convert content (Python 3)
-            content = _to_string(content)
-
         if code != 200:
             # Something wrong occurred
             _logger.debug("Signal: %s - Result: %s", signal_name, content)
@@ -168,6 +191,9 @@ class SignalReceiver(object):
         handler.end_headers()
 
         if content:
+            # Convert content (Python 3)
+            content = _to_bytes(content)
+
             # Write result
             handler.wfile.write(content)
 
@@ -281,9 +307,7 @@ class SignalReceiver(object):
         """
         Component validated
         """
-        with self._listeners_lock:
-            self._listeners.clear()
-
+        self._listeners.clear()
         self.http.register_servlet(SignalReceiver.SERVLET_PATH, self)
 
 
@@ -544,7 +568,7 @@ class SignalSender(object):
                           signal, host, port, ex)
 
 
-    def _get_groups_accesses(self, *groups):
+    def _get_groups_accesses(self, groups):
         """
         Retrieves an array of (host, port) tuples to access the isolates of the
         given groups
@@ -570,7 +594,7 @@ class SignalSender(object):
         return accesses
 
 
-    def _get_isolates_accesses(self, *isolates):
+    def _get_isolates_accesses(self, isolates):
         """
         Retrieves an array of (host, port) tuples to access the given isolates.
         The result contains only known isolates. Unknown ones are ignored.
@@ -669,15 +693,15 @@ class SignalSender(object):
         if not signal:
             raise ValueError("A signal must have a name")
 
-        if access == "{local}":
-            # Special case : local signals don't have to go through the network
-            return self._local_recv.handle_received_signal(signal, content)
-
         try:
             host, port = access
 
         except (TypeError, ValueError):
             raise ValueError("Invalid access tuple : '%s'" % access)
+
+        if host == "{LOCAL}":
+            # Special case : local signals don't have to go through the network
+            return self._local_recv.handle_received_signal(signal, content)
 
         # Prepare the signal URL
         if signal[0] == '/':
