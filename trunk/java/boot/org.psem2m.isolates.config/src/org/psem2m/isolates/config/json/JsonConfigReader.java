@@ -200,6 +200,8 @@ public class JsonConfigReader implements IConfigurationReader {
                     .getString(IJsonConfigKeys.CONFIG_APP_ID);
 
             pApplication = new ApplicationDescription(applicationId);
+            pApplication.setMulticast(configRoot
+                    .getString(IJsonConfigKeys.CONFIG_APP_MULTICAST));
 
             // Throws JSONException if key is not found
             parseIsolates(configRoot

@@ -26,6 +26,9 @@ public class ApplicationDescription implements Serializable {
     /** Isolates ID -> Configuration map */
     private Map<String, IsolateDescription> pIsolates = new HashMap<String, IsolateDescription>();
 
+    /** The multicast address */
+    private String pMulticast;
+
     /**
      * Default constructor
      */
@@ -89,6 +92,16 @@ public class ApplicationDescription implements Serializable {
     }
 
     /**
+     * Retrieves the application multicast address
+     * 
+     * @return the application multicast address
+     */
+    public String getMulticast() {
+
+        return pMulticast;
+    }
+
+    /**
      * @param aApplicationId
      *            the applicationId to set
      */
@@ -104,5 +117,16 @@ public class ApplicationDescription implements Serializable {
     public void setIsolates(final Map<String, IsolateDescription> aIsolates) {
 
         pIsolates = aIsolates;
+    }
+
+    /**
+     * Sets up the application multicast address
+     * 
+     * @param aMulticast
+     *            the application multicast address
+     */
+    public void setMulticast(final String aMulticast) {
+
+        pMulticast = aMulticast;
     }
 }

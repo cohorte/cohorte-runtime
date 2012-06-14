@@ -15,6 +15,9 @@ public interface IJsonConfigKeys {
     /** The application ID (string, mandatory) */
     String CONFIG_APP_ID = "appId";
 
+    /** Multicast communication group */
+    String CONFIG_APP_MULTICAST = "multicast";
+
     /** Bundle file path (string, optional) */
     String CONFIG_BUNDLE_FILE = "file";
 
