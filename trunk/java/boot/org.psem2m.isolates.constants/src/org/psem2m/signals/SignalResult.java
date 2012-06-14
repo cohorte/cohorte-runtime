@@ -5,7 +5,6 @@
  */
 package org.psem2m.signals;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,6 +15,15 @@ import java.util.Map;
  * @author Thomas Calmant
  */
 public class SignalResult {
+
+    /** Result map key : result code (int) */
+    public static final String KEY_CODE = "code";
+
+    /** Result map key : message (String) */
+    public static final String KEY_MESSAGE = "message";
+
+    /** Result map key : results (Object[]) */
+    public static final String KEY_RESULTS = "results";
 
     /** The result code */
     private final int pCode;
@@ -34,7 +42,13 @@ public class SignalResult {
     public SignalResult(final int aCode, final Collection<Object> aResults) {
 
         pCode = aCode;
-        makeMap("", aResults);
+
+        if (aResults != null) {
+            makeMap("", aResults.toArray());
+
+        } else {
+            makeMap("", null);
+        }
     }
 
     /**
@@ -48,7 +62,7 @@ public class SignalResult {
     public SignalResult(final int aCode, final Object[] aResults) {
 
         pCode = aCode;
-        makeMap("", Arrays.asList(aResults));
+        makeMap("", aResults);
     }
 
     /**
@@ -110,22 +124,11 @@ public class SignalResult {
     /**
      * Retrieves the listeners results
      * 
-     * @return The listeners results
+     * @return The listeners results (can be null)
      */
     public Object[] getResults() {
 
-        final Object results = pResult.get("results");
-        if (results instanceof Object[]) {
-            // Array
-            return (Object[]) results;
-
-        } else if (results instanceof Collection) {
-            // Collection
-            return ((Collection<?>) results).toArray();
-        }
-
-        // Unknown type
-        return null;
+        return (Object[]) pResult.get("results");
     }
 
     /**
@@ -136,11 +139,10 @@ public class SignalResult {
      * @param aResults
      *            The listeners results
      */
-    private void makeMap(final String aMessage,
-            final Collection<Object> aResults) {
+    private void makeMap(final String aMessage, final Object[] aResults) {
 
-        pResult.put("code", pCode);
-        pResult.put("message", aMessage);
-        pResult.put("results", pResult);
+        pResult.put(KEY_CODE, pCode);
+        pResult.put(KEY_MESSAGE, aMessage);
+        pResult.put(KEY_RESULTS, aResults);
     }
 }

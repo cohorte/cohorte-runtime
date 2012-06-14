@@ -89,8 +89,14 @@ public interface IPlatformProperties {
     String SPECIAL_INTERNAL_ISOLATES_PREFIX = "org.psem2m.internals.isolates.";
 
     /**
-     * Forker isolate ID
+     * Forkers isolate ID prefix
      */
     String SPECIAL_ISOLATE_ID_FORKER = SPECIAL_INTERNAL_ISOLATES_PREFIX
             + "forker";
+
+    /**
+     * Monitors isolate ID prefix
+     */
+    String SPECIAL_ISOLATE_ID_MONITOR = SPECIAL_INTERNAL_ISOLATES_PREFIX
+            + "monitor";
 }
