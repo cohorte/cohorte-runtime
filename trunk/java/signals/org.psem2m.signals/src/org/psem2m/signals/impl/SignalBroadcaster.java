@@ -46,7 +46,7 @@ import org.psem2m.signals.SignalResult;
 public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
 
     /** Broadcast providers */
-    @Requires(id = "providers")
+    @Requires(id = "providers", optional = true)
     private ISignalBroadcastProvider[] pBroadcasters;
 
     /** A directory service */
@@ -225,6 +225,11 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
             return null;
         }
 
+        if (pBroadcasters.length == 0) {
+            pLogger.logWarn(this, "internalSend", "No signals broadcasters yet");
+            return null;
+        }
+
         final List<Object> results = new ArrayList<Object>();
         for (final ISignalBroadcastProvider broadcaster : pBroadcasters) {
             // Call all broadcasters
@@ -387,7 +392,17 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
         signalData.setIsolateId(pDirectory.getIsolateId());
         signalData.setIsolateNode(pDirectory.getLocalNode());
         signalData.setSignalContent(aContent);
-        signalData.setTimestamp(System.currentTimeMillis());
+
+        if (aHost.equals("{LOCAL}")) {
+            // Special case
+            return new Object[] { pReceiver.localReception(aSignalName,
+                    signalData, MODE_SEND) };
+        }
+
+        if (pBroadcasters.length == 0) {
+            pLogger.logWarn(this, "internalSend", "No signals broadcasters yet");
+            return null;
+        }
 
         // Use all broadcasters
         final List<Object> results = new ArrayList<Object>();
