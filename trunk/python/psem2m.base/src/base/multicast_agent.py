@@ -158,20 +158,23 @@ def close_multicast_socket(sock, address):
 
 # ------------------------------------------------------------------------------
 
+# FIXME: It should set up by the configuration service
 PSEM2M_MULTICAST_PORT = 42000
+""" The PSEM2M multicast port """
 
 SIGNAL_PREFIX = "/psem2m-multicast-agent"
 SIGNAL_MATCH_ALL = "%s/*" % SIGNAL_PREFIX
 SIGNAL_CONFIRM_BEAT = "%s/confirm" % SIGNAL_PREFIX
 
 PACKET_REGISTER = 1
+""" Packet type 'Register' : for isolate first registration """
 
 @ComponentFactory("psem2m-multicast-agent-factory")
 @Instantiate("psem2m-multicast-agent")
 @Requires("_config", "org.psem2m.isolates.services.conf.ISvcConfig")
 @Requires("_directory", "org.psem2m.signals.ISignalDirectory")
 @Requires("_receiver", "org.psem2m.signals.ISignalReceiver")
-@Requires("_sender", "org.psem2m.signals.ISignalsBroadcaster")
+@Requires("_sender", "org.psem2m.signals.ISignalBroadcaster")
 class MulticastAgent(object):
     """
     An UDP v4/v6 multicast agent for PSEM2M
@@ -202,10 +205,27 @@ class MulticastAgent(object):
         """
         if name == SIGNAL_CONFIRM_BEAT:
             # Beat confirmation
+            isolate_id = self._directory.get_isolate_id()
+
             # FIXME: setup groups from the configuration service
-            return {'id': self._directory.get_isolate_id(),
-                    'node': self._directory.get_isolate_node(),
-                    'groups': ["isolates"]}
+            # FIXME: the virtual group ALL should be computed by the directory
+            groups = ["ALL"]
+
+            if isolate_id.startswith("org.psem2m.internals.isolates.forker"):
+                # Forkers can only be forkers
+                groups.append("FORKERS")
+
+            else:
+                # A forker can't be an isolate and vice versa
+                groups.append("ISOLATES")
+
+            if isolate_id.startswith("org.psem2m.internals.isolates.monitor"):
+                # A monitor is a special isolate
+                groups.append("MONITORS")
+
+            return {'id': isolate_id,
+                    'node': self._directory.get_local_node(),
+                    'groups': groups}
 
 
     @Invalidate
@@ -253,50 +273,70 @@ class MulticastAgent(object):
         self._send_beat()
 
 
+    def _handle_registration(self, data, host):
+        """
+        Handles the registration of an isolate
+        """
+        try:
+            # Little endian
+            port = struct.unpack("<H", data[1:])[0]
+
+            # Ask for a confirmation
+            response = self._sender.send_to(SIGNAL_CONFIRM_BEAT, None,
+                                            host, port)
+
+            if response and response.get('results', None):
+                # We got at least one result.
+                # Register the isolate, considering the first result only
+                results = response['results'][0]
+
+                isolate_id = results['id']
+                node = results['node']
+                groups = results['groups']
+
+                if self._directory is not None:
+                    # Directory can be None in the end of the instance
+                    self._directory.register_isolate(isolate_id, node,
+                                                     host, port, groups)
+
+            else:
+                _logger.error("The isolate at [%s]:%d didn't confirmed "
+                              "its existence", host, port)
+
+        except:
+            _logger.exception("Error confirming an agent beat "
+                              "from [%s]:%d", host, port)
+
     def _run(self):
         """
         Thread listening to the multicast socket
         """
         while self._thread_running:
-            data, sender = self._socket.recvfrom(1500)
-            _logger.info("Received %r from %s", data, sender)
+            try:
+                _logger.debug("WAITING FOR DATA....")
+                data, sender = self._socket.recvfrom(1500)
+                _logger.debug("GOT DATA from '%s' - '%r'", sender, data)
 
-            # Get the content
-            if data[0] == PACKET_REGISTER:
-                # Send a signal to (sender[0], content["port"])
-                host = sender[0]
-                port = struct.unpack("<H", data[1:])[0]
+                # Get the content
+                if data[0] == PACKET_REGISTER:
+                    # Send a signal to (sender[0], content["port"])
+                    host = sender[0]
 
-                try:
-                    result = self._sender.send_to(SIGNAL_CONFIRM_BEAT, None,
-                                                  host, port)
+                    # Register in a new thread
+                    threading.Thread(target=self._handle_registration,
+                                     args=(data, host)).start()
 
-                    if result:
-                        # We got something
-                        # Register the isolate, considering the first result
-                        isolate_id = result['id']
-                        node = result['node']
-                        groups = result['groups']
-
-                        if self._directory is not None:
-                            # Directory can be None in the end of the instance
-                            self._directory.register_isolate(isolate_id, node,
-                                                             host, port, groups)
-
-                    else:
-                        _logger.error("The isolate at %s:%d didn't confirmed "
-                                      "its existence", host, port)
-
-                except:
-                    _logger.exception("Error confirming an agent beat "
-                                      "from %s:%d", host, port)
+            except:
+                if self._thread_running:
+                    # Only log if it's a "live" error
+                    _logger.exception("Error reading multicast socket")
 
 
     def _send_beat(self):
         """
         Forges and sends the registration packet
         """
-        port = self._receiver.get_access_info[1]
+        port = self._receiver.get_access_info()[1]
 
         # Prepare the packet
         packet = struct.pack("<BH", PACKET_REGISTER, port)
