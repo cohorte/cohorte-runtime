@@ -100,7 +100,7 @@ def _make_json_result(code, message="", results=None):
     """
     return code, json.dumps({'code': code,
                              'message': message,
-                             'results': json.dumps(to_jabsorb(results))})
+                             'results': results})
 
 
 def read_post_body(request_handler):
@@ -220,8 +220,7 @@ class SignalReceiver(object):
         """
         if mode == MODE_SEND:
             # Standard mode
-            code, result = self._notify_listeners(name, data)
-            return _make_json_result(code, results=result)
+            return self._notify_listeners(name, data)
 
         elif mode == MODE_FORGET:
             # Signal v1 mode
@@ -338,7 +337,7 @@ class SignalReceiver(object):
                         except:
                             _logger.exception("Error notifying a listener")
 
-        return _make_json_result(200, results)
+        return _make_json_result(200, results=results)
 
 # ------------------------------------------------------------------------------
 
@@ -447,9 +446,6 @@ class SignalSender(object):
         # Bundle context
         self._context = None
 
-        # The sending thread pool
-        self._send_pool = None
-
         # Java API compatibility
         self.getCurrentIsolateId = self.get_current_isolate_id
         self.sendTo = self.send_to
@@ -488,7 +484,15 @@ class SignalSender(object):
         """
         Retrieves the current isolate ID
         """
-        return self.context.get_property("psem2m.isolate.id")
+        return self._context.get_property("psem2m.isolate.id")
+
+
+    @Invalidate
+    def invalidate(self, context):
+        """
+        Component invalidated
+        """
+        self._context = None
 
 
     def post(self, signal, content, isolate=None, isolates=None, groups=None):
@@ -544,28 +548,34 @@ class SignalSender(object):
         :param content: Signal content
         :param host: Target host name or IP
         :param port: Target port
-        :return: The signal result (None or a the listeners results array)
-        :raise IOError: Error sending the signal
+        :return: The signal result (None or a listeners results array)
+        :raise Exception: Error sending the signal
         """
         complete_content = self._make_content(content)
 
         try:
-            code, result = self.__internal_send((host, port), signal,
-                                                complete_content, MODE_SEND)
+            result = self.__internal_send((host, port), signal,
+                                          complete_content, MODE_SEND)
 
-            if code == 200:
-                # OK
-                return result
+            if result is None:
+                # No result...
+                _logger.warning("No result for signal %s to (%s, %d)",
+                                signal, host, port)
 
-            else:
-                # Not OK, return None
-                _logger.warning("Signal %s to (%s, %d) result code : %d",
-                                signal, host, port, code)
-                return None
+            return result
 
         except Exception as ex:
-            raise IOError("Error sending signal %s to (%s, %s) : %s",
-                          signal, host, port, ex)
+            _logger.exception("Error sending signal %s to (%s, %s) : %s",
+                              signal, host, port, ex)
+            raise
+
+
+    @Validate
+    def validate(self, context):
+        """
+        Component validated
+        """
+        self._context = context
 
 
     def _get_groups_accesses(self, groups):
@@ -630,9 +640,9 @@ class SignalSender(object):
         signal_content = {
             # We need that to talk to Java isolates
             JAVA_CLASS: "org.psem2m.signals.SignalData",
-            "isolateId": self.context.get_property('psem2m.isolate.id'),
+            "isolateId": self._context.get_property('psem2m.isolate.id'),
             # FIXME: set up the node name
-            "isolateNode": self.context.get_property('psem2m.isolate.node'),
+            "isolateNode": self._context.get_property('psem2m.isolate.node'),
             "timestamp": int(time.time() * 1000),
             "signalContent": content
             }
@@ -686,7 +696,7 @@ class SignalSender(object):
         :param signal: The name of the signal
         :param content: The complete signal content (meta-data + content)
         :param mode: The signal sending mode
-        :return: The isolate response, or None
+        :return: The isolate response or None
         :raise ValueError: Invalid access or signal name
         :raise: Exception raised sending the signal
         """
@@ -731,11 +741,11 @@ class SignalSender(object):
             if result:
                 try:
                     # Try to convert the result from JSON
-                    result = from_jabsorb(json.loads(result))
+                    result = from_jabsorb(json.loads(_to_string(result)))
 
                 except:
                     # Unreadable reponse
-                    _logger.debug("Couldn't read response: '%s'", result)
+                    _logger.exception("Couldn't read response: '%s'", result)
                     result = None
             else:
                 # Be sure to have a None value
