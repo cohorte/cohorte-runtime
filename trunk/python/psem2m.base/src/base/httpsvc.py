@@ -115,6 +115,21 @@ class RequestHandler(BaseHTTPRequestHandler):
 
 # ------------------------------------------------------------------------------
 
+class _HttpServerFamily(HTTPServer):
+    """
+    A small modification to have a HTTP Server with a custom address family
+    
+    Inspired from:
+    http://www.arcfn.com/2011/02/ipv6-web-serving-with-arc-or-python.html
+    """
+    def __init__(self, address_family, *args, **kwargs):
+        """
+        Proxy constructor
+        """
+        self.address_family = address_family
+        HTTPServer.__init__(self, *args, **kwargs)
+
+
 @ComponentFactory(name="HttpServiceFactory")
 @Instantiate("HttpService")
 @Provides(specifications="HttpService")
@@ -182,8 +197,8 @@ class HttpService(object):
         """
         _logger.info("Starting HTTP server (%d)...", self.port)
 
-        self.server = HTTPServer(('', self.port), \
-                                 lambda * x : RequestHandler(self, *x))
+        self.server = _HttpServerFamily(socket.AF_INET6, ('::', self.port), \
+                                        lambda * x : RequestHandler(self, *x))
 
         self.thread = threading.Thread(target=self.server.serve_forever)
         self.thread.daemon = True
