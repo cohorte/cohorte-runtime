@@ -94,8 +94,8 @@ public class HttpSignalReceiver extends CPojoBase implements
     public SignalResult handleSignal(final String aSignalName,
             final ISignalData aSignalData, final String aMode) {
 
-        synchronized (pReceiver) {
-            if (pReceiver != null) {
+        if (pReceiver != null) {
+            synchronized (pReceiver) {
                 return pReceiver.handleReceivedSignal(aSignalName, aSignalData,
                         aMode);
             }
@@ -149,13 +149,21 @@ public class HttpSignalReceiver extends CPojoBase implements
         byte[] rawData = null;
         String contentType = null;
 
+        // Object to serialize
+        final Object toSerialize;
+        if (aResult != null) {
+            toSerialize = aResult.getResult();
+        } else {
+            toSerialize = null;
+        }
+
         // Try to serialize with the preferred type
         for (final ISignalDataSerializer serializer : pSerializers) {
 
             if (serializer.canHandleType(aPreferredContentType)) {
                 // Content-Type understood by serializer
                 try {
-                    rawData = serializer.serializeData(aResult.getResult());
+                    rawData = serializer.serializeData(toSerialize);
 
                 } catch (final Exception e) {
                     // Error during serialization, ignore
@@ -185,7 +193,7 @@ public class HttpSignalReceiver extends CPojoBase implements
                 if (!serializer.canHandleType(aPreferredContentType)) {
                     // We already tested the preferred Content-Type, use others
                     try {
-                        rawData = serializer.serializeData(aResult.getResult());
+                        rawData = serializer.serializeData(toSerialize);
 
                     } catch (final Exception e) {
                         // Error during serialization, ignore
@@ -204,6 +212,7 @@ public class HttpSignalReceiver extends CPojoBase implements
         }
 
         if (rawData != null) {
+            // Done
             return new SignalContent(contentType, rawData);
 
         } else {
@@ -223,12 +232,9 @@ public class HttpSignalReceiver extends CPojoBase implements
     @Override
     public boolean setReceiver(final ISignalReceiver aReceiver) {
 
-        synchronized (pReceiver) {
-
-            if (pReceiver == null && aReceiver != null) {
-                pReceiver = aReceiver;
-                return true;
-            }
+        if (pReceiver == null && aReceiver != null) {
+            pReceiver = aReceiver;
+            return true;
         }
 
         return false;
