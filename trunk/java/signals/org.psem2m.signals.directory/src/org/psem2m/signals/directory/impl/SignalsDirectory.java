@@ -328,8 +328,16 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
     public synchronized String setNodeAddress(final String aNodeName,
             final String aHostAddress) {
 
+        // Get the previous address
+        final String oldAddress = pNodesHost.get(aNodeName);
+
         if (aHostAddress == null || aHostAddress.isEmpty()) {
-            return pNodesHost.get(aNodeName);
+            return oldAddress;
+        }
+
+        if (aHostAddress.equals(oldAddress)) {
+            // No modification intended
+            return oldAddress;
         }
 
         if (aHostAddress.equals("{LOCAL}")) {
@@ -338,6 +346,9 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
                     aHostAddress);
             return pNodesHost.get(aNodeName);
         }
+
+        pLogger.logInfo(this, "setNodeAddress", "Address of node=", aNodeName,
+                "updated: previous=", oldAddress, "new=", aHostAddress);
 
         return pNodesHost.put(aNodeName, aHostAddress);
     }
