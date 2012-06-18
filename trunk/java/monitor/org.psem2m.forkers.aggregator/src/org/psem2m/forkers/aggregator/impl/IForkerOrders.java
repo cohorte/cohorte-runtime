@@ -19,9 +19,6 @@ public interface IForkerOrders {
     /** The order result key */
     String RESULT_CODE = "result";
 
-    /** The forker heart beat */
-    String SIGNAL_HEART_BEAT = IForkerOrders.SIGNAL_PREFIX + "heart-beat";
-
     /** The signal match string */
     String SIGNAL_MATCH_ALL = IForkerOrders.SIGNAL_PREFIX + "*";
 

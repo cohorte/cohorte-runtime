@@ -5,6 +5,14 @@
  */
 package org.psem2m.forkers.aggregator.impl;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.DatagramPacket;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.BufferUnderflowException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,6 +33,7 @@ import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.constants.IPlatformProperties;
+import org.psem2m.isolates.services.conf.ISvcConfig;
 import org.psem2m.isolates.services.forker.IForker;
 import org.psem2m.isolates.services.forker.IForkerEventListener;
 import org.psem2m.isolates.services.forker.IForkerEventListener.EForkerEventType;
@@ -45,13 +54,21 @@ import org.psem2m.signals.ISignalReceiver;
 @Component(name = "psem2m-forker-aggregator-factory", publicFactory = false)
 @Provides(specifications = IForker.class)
 @Instantiate(name = "psem2m-forker-aggregator")
-public class ForkerAggregator implements IForker, ISignalListener, Runnable {
+public class ForkerAggregator implements IForker, ISignalListener,
+        IPacketListener, Runnable {
 
     /** Maximum time without forker notification : 5 seconds */
     public static final long FORKER_TTL = 5000;
 
+    /** UDP Packet: Forker heart beat */
+    public static final byte PACKET_FORKER_HEARTBEAT = 1;
+
     /** The command ID generator */
     private static final AtomicInteger sCmdId = new AtomicInteger();
+
+    /** The configuration service */
+    @Requires
+    private ISvcConfig pConfig;
 
     /** The isolates directory */
     @Requires
@@ -69,6 +86,9 @@ public class ForkerAggregator implements IForker, ISignalListener, Runnable {
     /** The logger */
     @Requires
     private IIsolateLoggerSvc pLogger;
+
+    /** The multicast receiver */
+    private MulticastReceiver pMulticast;
 
     /** Order results */
     private final Map<Integer, Integer> pResults = new HashMap<Integer, Integer>();
@@ -96,6 +116,39 @@ public class ForkerAggregator implements IForker, ISignalListener, Runnable {
     protected void bindSignalReceiver(final ISignalReceiver aReceiver) {
 
         aReceiver.registerListener(IForkerOrders.SIGNAL_MATCH_ALL, this);
+    }
+
+    /**
+     * Extracts a string from the given buffer
+     * 
+     * @param aBuffer
+     *            A bytes buffer
+     * @return The read string, or null
+     */
+    protected String extractString(final ByteBuffer aBuffer) {
+
+        // Get the length
+        final int length = aBuffer.getShort();
+
+        // Get the bytes
+        final byte[] buffer = new byte[length];
+
+        try {
+            aBuffer.get(buffer);
+
+        } catch (final BufferUnderflowException e) {
+            pLogger.logSevere(this, "extractString", "Missing data:", e);
+            return null;
+        }
+
+        // Return the string form
+        try {
+            return new String(buffer, "UTF-8");
+
+        } catch (final UnsupportedEncodingException ex) {
+            pLogger.logSevere(this, "extractString", "Unknown encoding:", ex);
+            return null;
+        }
     }
 
     /**
@@ -162,20 +215,46 @@ public class ForkerAggregator implements IForker, ISignalListener, Runnable {
                 .getProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_NODE);
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.forkers.aggregator.impl.IPacketListener#handleError(java.lang
+     * .Exception)
+     */
+    @Override
+    public boolean handleError(final Exception aException) {
+
+        pLogger.logWarn(this, "handleError",
+                "Error while receiving a UDP packet:", aException);
+
+        // Continue...
+        return true;
+    }
+
     /**
      * Handles a forker heart beat
      * 
-     * @param aSignalData
-     *            The heart beat signal data (content and meta data)
+     * @param aSenderAddress
+     *            The packet sender address
+     * @param aData
+     *            The packet content decoder
      */
-    protected void handleHeartBeat(final ISignalData aSignalData) {
+    protected void handleHeartBeat(final String aSenderAddress,
+            final ByteBuffer aData) {
 
-        // The current forker ID is the one used to send the signal
-        final String forkerId = aSignalData.getIsolateId();
+        /* Extract packet content */
+        // ... the port (2 bytes)
+        final int port = aData.getShort();
+
+        // ... the isolate ID (string)
+        final String forkerId = extractString(aData);
+
+        // ... the node ID (string)
+        final String nodeId = extractString(aData);
 
         // Registration flag
         final boolean needsRegistration;
-
         synchronized (pForkersLST) {
             // Test if it's a new forker
             needsRegistration = !pForkersLST.containsKey(forkerId);
@@ -185,8 +264,39 @@ public class ForkerAggregator implements IForker, ISignalListener, Runnable {
         }
 
         if (needsRegistration) {
+            // TODO: use pSender.postTo() to test the access
+
             // Register the forker in the internal directory
-            registerForker(aSignalData);
+            registerForker(forkerId, nodeId, aSenderAddress, port);
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.forkers.aggregator.impl.IPacketListener#handlePacket(java.
+     * net.DatagramPacket)
+     */
+    @Override
+    public void handlePacket(final DatagramPacket aPacket) {
+
+        // Get the content
+        final byte[] data = aPacket.getData();
+
+        // Make a little endian byte array reader, to extract the packet content
+        final ByteBuffer buffer = ByteBuffer.wrap(data, 1, data.length - 1);
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+
+        switch (data[0]) {
+        case PACKET_FORKER_HEARTBEAT:
+            handleHeartBeat(aPacket.getAddress().getHostAddress(), buffer);
+            break;
+
+        default:
+            pLogger.logInfo(this, "handlePacket", "Unknown packet type=",
+                    data[0]);
+            break;
         }
     }
 
@@ -221,10 +331,6 @@ public class ForkerAggregator implements IForker, ISignalListener, Runnable {
                     cmdWaiter.release();
                 }
             }
-
-        } else if (IForkerOrders.SIGNAL_HEART_BEAT.equals(aSignalName)) {
-            // A forker heart beat has been received
-            handleHeartBeat(aSignalData);
         }
 
         return null;
@@ -241,6 +347,19 @@ public class ForkerAggregator implements IForker, ISignalListener, Runnable {
         pWaiters.clear();
         pResults.clear();
         pIsolateForkers.clear();
+
+        // Stop the multicast listener
+        if (pMulticast != null) {
+            try {
+                pMulticast.stop();
+
+            } catch (final IOException ex) {
+                pLogger.logWarn(this, "invalidate",
+                        "Error stopping the multicast listener:", ex);
+            }
+
+            pMulticast = null;
+        }
 
         // Wait a second for the thread to stop
         pThreadRunning = false;
@@ -337,50 +456,30 @@ public class ForkerAggregator implements IForker, ISignalListener, Runnable {
      * Registers a forker in the internal directory, using a heart beat signal
      * data, and notifies listeners on success.
      * 
-     * @param aSignalData
-     *            A heart beat signal data
+     * @param aForkerId
+     *            The forker isolate ID
+     * @param aForkerNode
+     *            The node hosting the forker
+     * @param aHost
+     *            The node host address
+     * @param aPort
+     *            The forker signals access port
      */
-    protected void registerForker(final ISignalData aSignalData) {
-
-        // Extract the signal content
-        final Object rawSignalContent = aSignalData.getSignalContent();
-        if (!(rawSignalContent instanceof Map)) {
-            // Invalid signal
-            pLogger.logWarn(this, "registerForker",
-                    "Invalid forker heart beat content");
-            return;
-        }
-
-        // Cast the signal content
-        final Map<?, ?> signalContent = (Map<?, ?>) rawSignalContent;
-
-        // Extract signal data
-        final String forkerId = aSignalData.getIsolateId();
-        final String forkerNode = aSignalData.getIsolateNode();
-        final String forkerHost = aSignalData.getSignalSender();
-        final Integer forkerContentPort = (Integer) signalContent.get("port");
-
-        // Validate the port
-        if (forkerContentPort == null) {
-            pLogger.logWarn(this, "registerForker",
-                    "No port given to register forker=", forkerId,
-                    "from node=", forkerNode);
-            return;
-        }
+    protected void registerForker(final String aForkerId,
+            final String aForkerNode, final String aHost, final int aPort) {
 
         // Set the node host
-        pDirectory.setNodeAddress(forkerNode, forkerHost);
+        pDirectory.setNodeAddress(aForkerNode, aHost);
 
         // Register the forker
-        if (pDirectory.registerIsolate(forkerId, forkerNode,
-                forkerContentPort.intValue(), "FORKERS")) {
+        if (pDirectory
+                .registerIsolate(aForkerId, aForkerNode, aPort, "FORKERS")) {
 
             pLogger.logInfo(this, "registerForker", "Registered forker ID=",
-                    forkerId, "Node=", forkerNode, "Port=",
-                    forkerContentPort.intValue());
+                    aForkerId, "Node=", aForkerNode, "Port=", aPort);
 
             // Notify listeners
-            fireForkerEvent(EForkerEventType.REGISTERED, forkerId, forkerNode);
+            fireForkerEvent(EForkerEventType.REGISTERED, aForkerId, aForkerNode);
         }
     }
 
@@ -619,6 +718,42 @@ public class ForkerAggregator implements IForker, ISignalListener, Runnable {
     /** Component validation */
     @Validate
     public void validate() {
+
+        // Start the UDP heart beat listener
+        // Get the multicast group and port
+        final InetAddress group;
+        final int port = pConfig.getApplication().getMulticastPort();
+        try {
+            group = InetAddress.getByName(pConfig.getApplication()
+                    .getMulticastGroup());
+
+        } catch (final UnknownHostException ex) {
+            pLogger.logSevere(this, "validate",
+                    "Couldn't read the multicast group=", pConfig
+                            .getApplication().getMulticastGroup());
+            return;
+        }
+
+        // Create the multicast receiver
+        try {
+            pMulticast = new MulticastReceiver(this, group, port);
+            pMulticast.start();
+
+        } catch (final IOException ex) {
+            try {
+                // Clean up
+                pMulticast.stop();
+
+            } catch (final IOException e) {
+                // Ignore
+            }
+
+            pMulticast = null;
+            pLogger.logSevere(this, "validate",
+                    "Couldn't start the multicast receiver for group=", group,
+                    ex);
+            return;
+        }
 
         // Start the TTL thread
         pThreadRunning = true;
