@@ -57,6 +57,12 @@ public class MonitorCore extends CPojoBase implements
         IIsolateStatusEventListener, ISignalListener, IPlatformMonitor,
         IForkerEventListener {
 
+    /** The forker handler dependency ID */
+    private static final String FORKER_HANDLER_ID = "forker-handler";
+
+    /** The forker service dependency ID */
+    private static final String FORKER_ID = "forker-service";
+
     /** Maximum launch tries in a streak */
     public static final String PROPERTY_MAX_TRIES_STREAK = "org.psem2m.monitor.isolates.triesMaxStreak";
 
@@ -77,10 +83,11 @@ public class MonitorCore extends CPojoBase implements
     private IsolateFailureHandler pFailureHandler;
 
     /** Forker starter service */
-    @Requires(id = "forker-handler", optional = true)
+    @Requires(id = FORKER_HANDLER_ID, optional = true)
     private IForkerHandler pForkerHandler;
 
     /** The forker service */
+    @Requires(id = FORKER_ID, optional = true)
     private IForker pForkerSvc;
 
     /** The current isolate host name */
@@ -130,7 +137,7 @@ public class MonitorCore extends CPojoBase implements
      * @param aForkerHandler
      *            The bound forker handler
      */
-    @Bind(id = "forker-handler")
+    @Bind(id = FORKER_HANDLER_ID)
     protected void bindForkerHandler(final IForkerHandler aForkerHandler) {
 
         pPropertyForkerHandlerPresent = true;
@@ -143,45 +150,14 @@ public class MonitorCore extends CPojoBase implements
      * @param aForker
      *            A forker service
      */
-    @Bind(id = "forker-service", optional = true, aggregate = true)
+    @Bind(id = FORKER_ID)
     protected void bindForkerService(final IForker aForker) {
 
-        if (pHostName == null) {
-            pHostName = Utilities.getHostName();
-        }
-
-        if (!pHostName.equals(aForker.getNodeName())) {
-            // Forker from another machine, ignore it...
-            return;
-        }
-
-        // Update the service state
-        pForkerSvc = aForker;
-        pPropertyForkerPresent = true;
-
+        // Register to the forker events
         pForkerSvc.registerListener(this);
 
-        // Get the current isolate ID, to avoid running ourselves
-        // final String currentIsolateId = System
-        // .getProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID);
-        //
-        // for (final String isolateId : pConfiguration.getApplication()
-        // .getIsolateIds()) {
-        //
-        // if (isolateId.equals(currentIsolateId)) {
-        // // Do not start ourselves
-        // continue;
-        //
-        // } else if (isolateId
-        // .startsWith(IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER)) {
-        // // Do not start a forker that way
-        // continue;
-        //
-        // } else {
-        // // Start the damn thing
-        // startIsolate(isolateId);
-        // }
-        // }
+        // Update the service state
+        pPropertyForkerPresent = true;
     }
 
     /**
@@ -714,7 +690,7 @@ public class MonitorCore extends CPojoBase implements
      * @param aForkerHandler
      *            A forker handler
      */
-    @Unbind(id = "forker-handler")
+    @Unbind(id = FORKER_HANDLER_ID)
     protected void unbindForkerHandler(final IForkerHandler aForkerHandler) {
 
         pPropertyForkerHandlerPresent = false;
@@ -727,25 +703,14 @@ public class MonitorCore extends CPojoBase implements
      * @param aForker
      *            A forker service
      */
-    @Unbind(id = "forker-service", optional = true, aggregate = true)
+    @Unbind(id = FORKER_ID)
     protected void unbindForkerService(final IForker aForker) {
 
-        // Get the host name
-        final String hostName;
-        if (pHostName == null) {
-            hostName = Utilities.getHostName();
+        // Unregister...
+        pForkerSvc.unregisterListener(this);
 
-        } else {
-            hostName = pHostName;
-        }
-
-        if (!hostName.equals(aForker.getNodeName())) {
-            // Ignore other forkers
-            return;
-        }
         // Update the service state
         pPropertyForkerPresent = false;
-        pForkerSvc = null;
     }
 
     /*
