@@ -621,7 +621,7 @@ class SignalSender(object):
 
         for isolate_id in isolates:
             for directory in self._directories:
-                access = directory.get_isolate(isolate_id)
+                access = directory.get_isolate_access(isolate_id)
                 if access is not None:
                     # Isolate found !
                     result[isolate_id] = access

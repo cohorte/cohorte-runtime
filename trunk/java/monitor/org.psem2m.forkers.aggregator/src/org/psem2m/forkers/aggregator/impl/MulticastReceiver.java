@@ -9,10 +9,8 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 
 /**
  * A multicast receiver
@@ -127,14 +125,14 @@ public class MulticastReceiver {
      */
     protected void receivePackets() {
 
-        // Set up the buffer
-        final byte[] buffer = new byte[1500];
-        final DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-
         while (pThreadRun) {
 
-            // Clear the buffer
-            Arrays.fill(buffer, (byte) 0);
+            // Set up the buffer
+            final byte[] buffer = new byte[1500];
+
+            // Use a new buffer each time, or it will be erased on next packet
+            final DatagramPacket packet = new DatagramPacket(buffer,
+                    buffer.length);
 
             try {
                 // Wait for a packet (blocking)

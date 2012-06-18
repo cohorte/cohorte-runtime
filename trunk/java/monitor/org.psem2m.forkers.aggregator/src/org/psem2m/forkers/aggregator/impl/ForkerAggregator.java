@@ -285,17 +285,18 @@ public class ForkerAggregator implements IForker, ISignalListener,
         final byte[] data = aPacket.getData();
 
         // Make a little endian byte array reader, to extract the packet content
-        final ByteBuffer buffer = ByteBuffer.wrap(data, 1, data.length - 1);
+        final ByteBuffer buffer = ByteBuffer.wrap(data, 0, data.length);
         buffer.order(ByteOrder.LITTLE_ENDIAN);
 
-        switch (data[0]) {
+        final byte packetType = buffer.get();
+        switch (packetType) {
         case PACKET_FORKER_HEARTBEAT:
             handleHeartBeat(aPacket.getAddress().getHostAddress(), buffer);
             break;
 
         default:
             pLogger.logInfo(this, "handlePacket", "Unknown packet type=",
-                    data[0]);
+                    packetType);
             break;
         }
     }

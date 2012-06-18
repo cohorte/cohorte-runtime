@@ -287,7 +287,7 @@ public class ComposerCore extends CPojoBase implements IComposer,
             final ISignalData aSignalData) {
 
         // Extract the signal information
-        final String signalSender = aSignalData.getIsolateId();
+        final String signalSender = aSignalData.getSenderId();
         final Object signalContent = aSignalData.getSignalContent();
 
         // For Jabsorb results...

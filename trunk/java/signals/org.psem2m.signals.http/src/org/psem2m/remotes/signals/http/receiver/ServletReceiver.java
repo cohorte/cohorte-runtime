@@ -126,7 +126,7 @@ public class ServletReceiver extends HttpServlet {
 
         if (signalData instanceof SignalData) {
             // Set up the sender address now
-            ((SignalData) signalData).setSignalSender(aReq.getRemoteAddr());
+            ((SignalData) signalData).setSenderAddress(aReq.getRemoteAddr());
         }
 
         // Notify listeners

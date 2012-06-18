@@ -431,7 +431,7 @@ class Forker(object):
         :param name: Signal name
         :param signal_data: Signal content
         """
-        sender = signal_data["isolateSender"]
+        sender = signal_data["senderId"]
         signal_content = signal_data["signalContent"]
 
         try:

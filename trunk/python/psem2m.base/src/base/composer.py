@@ -78,7 +78,7 @@ class ComposerAgent(object):
         """
         _logger.info("Composer Signal: %s", name)
 
-        sender = signal_data["isolateSender"]
+        sender = signal_data["senderId"]
         data = signal_data["signalContent"]
 
         if name == SIGNAL_CAN_HANDLE_COMPONENTS:

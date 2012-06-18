@@ -70,7 +70,7 @@ public class BroadcastSignalHandler extends CPojoBase implements
             final ISignalData aSignalData) {
 
         final Object signalContent = aSignalData.getSignalContent();
-        final String senderNodeName = aSignalData.getIsolateNode();
+        final String senderNodeName = aSignalData.getSenderNode();
 
         if (ISignalsConstants.BROADCASTER_SIGNAL_REMOTE_EVENT
                 .equals(aSignalName)) {
@@ -112,7 +112,7 @@ public class BroadcastSignalHandler extends CPojoBase implements
         } else if (ISignalsConstants.BROADCASTER_SIGNAL_REQUEST_ENDPOINTS
                 .equals(aSignalName)) {
             // End point request
-            handleRequestEndpoints(aSignalData.getIsolateId());
+            handleRequestEndpoints(aSignalData.getSenderId());
 
         } else if (ISignalsConstants.ISOLATE_LOST_SIGNAL.equals(aSignalName)) {
             // Isolate lost : Notify all listeners

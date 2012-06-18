@@ -354,7 +354,7 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
     public Object handleReceivedSignal(final String aSignalName,
             final ISignalData aSignalData) {
 
-        final String signalSender = aSignalData.getIsolateId();
+        final String signalSender = aSignalData.getSenderId();
         final Object signalContent = aSignalData.getSignalContent();
 
         // For Jabsorb results...

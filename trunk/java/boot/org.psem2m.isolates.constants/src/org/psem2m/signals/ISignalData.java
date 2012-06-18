@@ -17,14 +17,14 @@ public interface ISignalData {
      * 
      * @return the ID of the sender
      */
-    String getIsolateId();
+    String getSenderId();
 
     /**
      * Retrieves the node of the isolate which sent the signal
      * 
      * @return the node hosting the sender
      */
-    String getIsolateNode();
+    String getSenderNode();
 
     /**
      * Retrieves the data associated to the signal (can be null)
@@ -38,7 +38,7 @@ public interface ISignalData {
      * 
      * @return the sender address
      */
-    String getSignalSender();
+    String getSenderAddress();
 
     /**
      * Retrieves the time stamp of the signal creation

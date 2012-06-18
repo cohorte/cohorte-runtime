@@ -38,10 +38,21 @@ public class SignalData implements ISignalData {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.signals.impl.ISignalData#getIsolateId()
+     * @see org.psem2m.signals.ISignalData#getSenderAddress()
      */
     @Override
-    public String getIsolateId() {
+    public String getSenderAddress() {
+
+        return pSender;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.signals.ISignalData#getSenderId()
+     */
+    @Override
+    public String getSenderId() {
 
         return pIsolate;
     }
@@ -49,10 +60,10 @@ public class SignalData implements ISignalData {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.signals.impl.ISignalData#getIsolateNode()
+     * @see org.psem2m.signals.ISignalData#getSenderNode()
      */
     @Override
-    public String getIsolateNode() {
+    public String getSenderNode() {
 
         return pNode;
     }
@@ -71,17 +82,6 @@ public class SignalData implements ISignalData {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.signals.ISignalData#getSender()
-     */
-    @Override
-    public String getSignalSender() {
-
-        return pSender;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
      * @see org.psem2m.signals.impl.ISignalData#getTimestamp()
      */
     @Override
@@ -91,12 +91,23 @@ public class SignalData implements ISignalData {
     }
 
     /**
+     * Sets up the sender address
+     * 
+     * @param aSender
+     *            the sender address
+     */
+    public void setSenderAddress(final String aSender) {
+
+        pSender = aSender;
+    }
+
+    /**
      * Sets up the sender ID
      * 
      * @param aIsolateId
      *            An isolate Id
      */
-    public void setIsolateId(final String aIsolateId) {
+    public void setSenderId(final String aIsolateId) {
 
         pIsolate = aIsolateId;
     }
@@ -107,7 +118,7 @@ public class SignalData implements ISignalData {
      * @param aNode
      *            An isolate node
      */
-    public void setIsolateNode(final String aNode) {
+    public void setSenderNode(final String aNode) {
 
         pNode = aNode;
     }
@@ -121,17 +132,6 @@ public class SignalData implements ISignalData {
     public void setSignalContent(final Object aSignalData) {
 
         pSignalData = aSignalData;
-    }
-
-    /**
-     * Sets up the sender address
-     * 
-     * @param aSender
-     *            the sender address
-     */
-    public void setSignalSender(final String aSender) {
-
-        pSender = aSender;
     }
 
     /**

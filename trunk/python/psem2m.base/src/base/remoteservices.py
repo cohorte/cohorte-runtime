@@ -309,7 +309,7 @@ class ServiceExporter(object):
             # Never happens... in theory...
             return
 
-        sender = signal_data["isolateSender"]
+        sender = signal_data["senderId"]
         if sender == self.sender.get_isolate_id():
             # Ignore local events
             return
@@ -492,7 +492,7 @@ class ServiceImporter(object):
         """
         Called when a remote services signal is received
         """
-        sender = signal_data["isolateSender"]
+        sender = signal_data["senderId"]
         if sender == self.sender.get_isolate_id():
             # Ignore local events
             return

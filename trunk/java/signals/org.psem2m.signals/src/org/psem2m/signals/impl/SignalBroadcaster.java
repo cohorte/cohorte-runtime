@@ -99,8 +99,8 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
 
         // Forge the signal content
         final SignalData signalData = new SignalData();
-        signalData.setIsolateId(pDirectory.getIsolateId());
-        signalData.setIsolateNode(pDirectory.getLocalNode());
+        signalData.setSenderId(pDirectory.getIsolateId());
+        signalData.setSenderNode(pDirectory.getLocalNode());
         signalData.setSignalContent(aContent);
 
         // Send the signal
@@ -141,8 +141,8 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
 
         // Forge the signal content
         final SignalData signalData = new SignalData();
-        signalData.setIsolateId(pDirectory.getIsolateId());
-        signalData.setIsolateNode(pDirectory.getLocalNode());
+        signalData.setSenderId(pDirectory.getIsolateId());
+        signalData.setSenderNode(pDirectory.getLocalNode());
         signalData.setSignalContent(aContent);
 
         // Send the signal
@@ -389,8 +389,8 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
 
         // Prepare the signal data
         final SignalData signalData = new SignalData();
-        signalData.setIsolateId(pDirectory.getIsolateId());
-        signalData.setIsolateNode(pDirectory.getLocalNode());
+        signalData.setSenderId(pDirectory.getIsolateId());
+        signalData.setSenderNode(pDirectory.getLocalNode());
         signalData.setSignalContent(aContent);
 
         if (aHost.equals("{LOCAL}")) {
