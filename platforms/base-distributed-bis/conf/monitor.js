@@ -39,9 +39,6 @@
             "from":"jsonrpc.js"
         },
         {
-            "symbolicName":"org.psem2m.signals.multicast"
-        },
-        {
             "symbolicName":"org.psem2m.forkers.aggregator"
         },
         {

@@ -21,10 +21,10 @@
                     "symbolicName":"base.signals.directory"
                 },
                 {
-                    "symbolicName":"base.signals.http"
+                    "symbolicName":"base.signals.directory_updater"
                 },
                 {
-                    "symbolicName":"base.multicast_agent"
+                    "symbolicName":"base.signals.http"
                 },
                 {
                     "symbolicName":"base.remoteservices"

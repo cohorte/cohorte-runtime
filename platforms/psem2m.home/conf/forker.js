@@ -11,6 +11,9 @@
             "symbolicName":"base.signals.directory"
         },
         {
+            "symbolicName":"base.signals.directory_updater"
+        },
+        {
             "symbolicName":"base.signals.http"
         },
         {
@@ -33,9 +36,6 @@
         },
         {
             "symbolicName":"psem2m.forker.cmd_agent"
-        },
-        {
-            "symbolicName":"base.multicast_agent"
         }
     ]
 }
