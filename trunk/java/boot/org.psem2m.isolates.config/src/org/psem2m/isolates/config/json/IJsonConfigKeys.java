@@ -18,6 +18,9 @@ public interface IJsonConfigKeys {
     /** Multicast communication group */
     String CONFIG_APP_MULTICAST = "multicast";
 
+    /** Multicast communication port */
+    String CONFIG_APP_MULTICAST_PORT = "multicastPort";
+
     /** Bundle file path (string, optional) */
     String CONFIG_BUNDLE_FILE = "file";
 

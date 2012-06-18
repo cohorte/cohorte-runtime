@@ -29,6 +29,9 @@ public class ApplicationDescription implements Serializable {
     /** The multicast address */
     private String pMulticast;
 
+    /** The application multicast port (default: 42000) */
+    private int pMulticastPort = 42000;
+
     /**
      * Default constructor
      */
@@ -96,9 +99,19 @@ public class ApplicationDescription implements Serializable {
      * 
      * @return the application multicast address
      */
-    public String getMulticast() {
+    public String getMulticastGroup() {
 
         return pMulticast;
+    }
+
+    /**
+     * Retrieves the application multicast port
+     * 
+     * @return the application multicast port
+     */
+    public int getMulticastPort() {
+
+        return pMulticastPort;
     }
 
     /**
@@ -125,8 +138,21 @@ public class ApplicationDescription implements Serializable {
      * @param aMulticast
      *            the application multicast address
      */
-    public void setMulticast(final String aMulticast) {
+    public void setMulticastGroup(final String aMulticast) {
 
         pMulticast = aMulticast;
+    }
+
+    /**
+     * Sets up the application multicast port
+     * 
+     * @param aMulticastPort
+     *            the application multicast port
+     */
+    public void setMulticastPort(final int aMulticastPort) {
+
+        if (aMulticastPort > 0) {
+            pMulticastPort = aMulticastPort;
+        }
     }
 }
