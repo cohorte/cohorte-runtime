@@ -290,6 +290,10 @@ class OsgiRunner(JavaRunner):
                          "org.osgi.service.https.port":-1,
                          }
 
+        # Directory dumper signals port
+        vm_properties["psem2m.directory.dumper.port"] = \
+                                    new_descr["psem2m.directory.dumper.port"]
+
         for key, value in vm_properties.items():
             vm_args.append("-D%s=%s" % (key, value))
 
