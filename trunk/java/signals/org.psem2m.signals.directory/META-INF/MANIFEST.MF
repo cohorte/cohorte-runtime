@@ -38,10 +38,11 @@ iPOJO-Components: instance { $component="org.psem2m.signals.directory.
  $arguments="{java.lang.String}" }method { $name="getIsolatesOnNode" $
  return="java.lang.String[]" $arguments="{java.lang.String}" }method {
   $name="getLocalNode" $return="java.lang.String" }method { $name="inv
- alidatePojo" }method { $name="registerIsolate" $return="boolean" $arg
- uments="{java.lang.String,java.lang.String,int,java.lang.String[]}" }
- method { $name="setNodeAddress" $return="java.lang.String" $arguments
- ="{java.lang.String,java.lang.String}" }method { $name="unregisterIso
- late" $return="boolean" $arguments="{java.lang.String}" }method { $na
- me="validatePojo" }}}
+ alidatePojo" }method { $name="isRegistered" $return="boolean" $argume
+ nts="{java.lang.String}" }method { $name="registerIsolate" $return="b
+ oolean" $arguments="{java.lang.String,java.lang.String,int,java.lang.
+ String[]}" }method { $name="setNodeAddress" $return="java.lang.String
+ " $arguments="{java.lang.String,java.lang.String}" }method { $name="u
+ nregisterIsolate" $return="boolean" $arguments="{java.lang.String}" }
+ method { $name="validatePojo" }}}
 

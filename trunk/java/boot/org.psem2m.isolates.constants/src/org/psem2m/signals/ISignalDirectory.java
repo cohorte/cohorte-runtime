@@ -89,6 +89,15 @@ public interface ISignalDirectory {
     String getLocalNode();
 
     /**
+     * Tests if the given isolate ID is registered in the directory
+     * 
+     * @param aIsolateId
+     *            An isolate ID
+     * @return True if the ID is known, else false
+     */
+    boolean isRegistered(String aIsolateId);
+
+    /**
      * Registers an isolate in the directory if it is not yet known
      * 
      * @param aIsolateId

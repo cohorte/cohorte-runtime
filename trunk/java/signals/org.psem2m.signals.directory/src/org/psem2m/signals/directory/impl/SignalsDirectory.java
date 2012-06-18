@@ -246,6 +246,17 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
     /*
      * (non-Javadoc)
      * 
+     * @see org.psem2m.signals.ISignalDirectory#isRegistered(java.lang.String)
+     */
+    @Override
+    public boolean isRegistered(final String aIsolateId) {
+
+        return pAccesses.containsKey(aIsolateId);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see
      * org.psem2m.signals.ISignalDirectory#registerIsolate(java.lang.String,
      * java.lang.String, java.lang.String, int, java.lang.String[])
