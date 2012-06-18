@@ -66,7 +66,7 @@ class SignalsDirectory(object):
         """
         Returns a snapshot of the directory.
         
-        The result is a map with 4 entries :
+        The result is a map with 3 entries :
         
         * 'accesses': Isolate ID -> {'node' -> Node Name, 'port' -> Port}
         * 'groups': Group Name -> [Isolates IDs]

@@ -16,6 +16,21 @@ import java.util.Map;
 public interface ISignalDirectory {
 
     /**
+     * Returns a snapshot of the directory.
+     * 
+     * The result is a map with 4 entries :
+     * <ul>
+     * <li>'accesses': Isolate ID -&gt; {'node' -&gt; Node Name, 'port' -&gt;
+     * Port}</li>
+     * <li>'groups': Group Name -&gt; [Isolates IDs]</li>
+     * <li>'nodes_host': Node Name -&gt; Host Address</li>
+     * </ul>
+     * 
+     * @return A snapshot of the directory
+     */
+    Map<String, Object> dump();
+
+    /**
      * Retrieves all known isolates which ID begins with the given prefix. If
      * the prefix is null or empty, returns all known isolates.
      * 
@@ -114,6 +129,16 @@ public interface ISignalDirectory {
      */
     boolean registerIsolate(String aIsolateId, String aNode, int aPort,
             String... aGroups) throws IllegalArgumentException;
+
+    /**
+     * Registers the local isolate in the registry
+     * 
+     * @param aPort
+     *            The port to access the signals
+     * @param aGroups
+     *            The local isolate groups
+     */
+    void registerLocal(int aPort, String... aGroups);
 
     /**
      * Sets up the address to access the given node. Overrides the previous

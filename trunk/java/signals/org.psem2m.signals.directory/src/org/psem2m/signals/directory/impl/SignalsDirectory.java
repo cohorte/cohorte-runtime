@@ -54,6 +54,39 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
     /*
      * (non-Javadoc)
      * 
+     * @see org.psem2m.signals.ISignalDirectory#dump()
+     */
+    @Override
+    public synchronized Map<String, Object> dump() {
+
+        // Compute accesses...
+        final Map<String, Object> accesses = new HashMap<String, Object>();
+        for (final Entry<String, HostAccess> entry : pAccesses.entrySet()) {
+            // Prepare the access map
+            final HostAccess access = entry.getValue();
+            final Map<String, Object> isolateAccessMap = new HashMap<String, Object>();
+            isolateAccessMap.put("node", access.getAddress());
+            isolateAccessMap.put("port", access.getPort());
+
+            // Store the access map
+            accesses.put(entry.getKey(), isolateAccessMap);
+        }
+
+        final Map<String, Object> result = new HashMap<String, Object>();
+        result.put("accesses", accesses);
+
+        // Groups...
+        result.put("groups", new HashMap<String, Object>(pGroups));
+
+        // Hosts...
+        result.put("nodes_host", new HashMap<String, Object>(pNodesHost));
+
+        return result;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.psem2m.signals.ISignalDirectory#getAllIsolates(java.lang.String)
      */
     @Override
@@ -327,6 +360,54 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
         }
 
         return true;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.signals.ISignalDirectory#registerLocal(int,
+     * java.lang.String[])
+     */
+    @Override
+    public synchronized void registerLocal(final int aPort,
+            final String... aGroups) {
+
+        final String isolateId = getIsolateId();
+        final String node = getLocalNode();
+
+        // Store the access...
+        pAccesses.put(isolateId, new HostAccess(node, aPort));
+
+        // Store the node
+        List<String> isolates = pNodesIsolates.get(node);
+        if (isolates == null) {
+            // Create the node entry
+            isolates = new ArrayList<String>();
+            pNodesIsolates.put(node, isolates);
+        }
+
+        if (!isolates.contains(isolateId)) {
+            isolates.add(isolateId);
+        }
+
+        // Store the groups
+        if (aGroups != null) {
+            for (final String group : aGroups) {
+                // Lower case for case insensitivity
+                final String lowerGroup = group.toLowerCase();
+
+                isolates = pGroups.get(lowerGroup);
+                if (isolates == null) {
+                    // Create the group
+                    isolates = new ArrayList<String>();
+                    pGroups.put(lowerGroup, isolates);
+                }
+
+                if (!isolates.contains(isolateId)) {
+                    isolates.add(isolateId);
+                }
+            }
+        }
     }
 
     /*
