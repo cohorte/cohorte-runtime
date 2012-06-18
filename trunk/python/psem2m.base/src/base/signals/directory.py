@@ -62,6 +62,33 @@ class SignalsDirectory(object):
         self.unregisterIsolate = self.unregister_isolate
 
 
+    def dump(self):
+        """
+        Returns a snapshot of the directory.
+        
+        The result is a map with 4 entries :
+        
+        * 'accesses': Isolate ID -> {'node' -> Node Name, 'port' -> Port}
+        * 'groups': Group Name -> [Isolates IDs]
+        * 'nodes_host': Node Name -> Host Address
+        
+        :return: A snapshot of the directory
+        """
+        result = {}
+        with self._lock:
+            # Isolate accesses, converted into a map
+            result["accesses"] = {}
+            for isolate_id, access in self._accesses.items():
+                result["accesses"][isolate_id] = {"node": access[0],
+                                                  "port": access[1]}
+
+            for registry in ('groups', 'nodes_host'):
+                # Prefix with an underscore to get the member
+                result[registry] = getattr(self, '_{0}'.format(registry)).copy()
+
+        return result
+
+
     def get_all_isolates(self, prefix):
         """
         Retrieves all known isolates which ID begins with the given prefix. If 
@@ -288,6 +315,47 @@ class SignalsDirectory(object):
         return True
 
 
+    def register_local(self, port, *groups):
+        """
+        Registers the local isolate in the registry
+        
+        :param port: The port to access the signals
+        :param groups: The local isolate groups
+        """
+        isolate_id = self.get_isolate_id()
+        node = self.get_local_node()
+
+        with self._lock:
+            # Store the isolate access
+            self._accesses[isolate_id] = (node, port)
+
+            # Store the node
+            node_isolates = self._nodes_isolates.get(node, None)
+            if node_isolates is None:
+                # Create the node entry
+                node_isolates = []
+                self._nodes_isolates[node] = node_isolates
+
+            if isolate_id not in node_isolates:
+                node_isolates.append(isolate_id)
+
+            # Store the isolate in all groups
+            if groups:
+                for group in groups:
+                    # Lower case for case-insensitivity
+                    group = group.lower()
+
+                    isolates = self._groups.get(group, None)
+                    if isolates is None:
+                        # Create the group if needed
+                        isolates = []
+                        self._groups[group] = isolates
+
+                    if isolate_id not in isolates:
+                        # Store the isolate
+                        isolates.append(isolate_id)
+
+
     def set_node_address(self, node, address):
         """
         Sets up the address to access the given node. Overrides the previous
@@ -302,11 +370,12 @@ class SignalsDirectory(object):
         """
         with self._lock:
             old = self._nodes_host.get(node, None)
-            if not address:
+            if not address or address == old:
+                # Nothing to do
                 return old
 
             if address == "{LOCAL}":
-                _logger.warning("Trying to override {local} with address=%s",
+                _logger.warning("Trying to override {LOCAL} with address=%s",
                                 address)
                 return old
 
@@ -360,5 +429,6 @@ class SignalsDirectory(object):
 
         # Special access for local isolate
         self._nodes_host[self.get_local_node()] = "{LOCAL}"
-        self.register_isolate(self.get_isolate_id(), self.get_local_node(), -1,
-                              "LOCAL")
+
+        # Dummy registration, for the local loop
+        self.register_local(-1, "LOCAL")

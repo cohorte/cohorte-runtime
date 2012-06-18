@@ -120,6 +120,7 @@ def read_post_body(request_handler):
 @Instantiate("psem2m-signals-receiver")
 @Provides("org.psem2m.signals.ISignalReceiver")
 @Requires("http", "HttpService")
+@Requires("_directory", "org.psem2m.signals.ISignalDirectory")
 class SignalReceiver(object):
     """
     PSEM2M Signals receiver
@@ -239,7 +240,7 @@ class SignalReceiver(object):
                     if fnmatch.fnmatch(name, pattern):
                         # Found one !
                         result = _make_json_result(200,
-                                                 "At least one listener found")
+                                                  "At least one listener found")
                         break
                 else:
                     # No match found, return immediately
@@ -308,6 +309,9 @@ class SignalReceiver(object):
         """
         self._listeners.clear()
         self.http.register_servlet(SignalReceiver.SERVLET_PATH, self)
+
+        # Register ourselves in the directory
+        self._directory.register_local(self.http.get_port(), "LOCAL")
 
 
     def _notify_listeners(self, name, data):
@@ -640,9 +644,9 @@ class SignalSender(object):
         signal_content = {
             # We need that to talk to Java isolates
             JAVA_CLASS: "org.psem2m.signals.SignalData",
-            "isolateId": self._context.get_property('psem2m.isolate.id'),
-            # FIXME: set up the node name
-            "isolateNode": self._context.get_property('psem2m.isolate.node'),
+            "senderId": self._context.get_property('psem2m.isolate.id'),
+            # Set up the node name
+            "senderNode": self._context.get_property('psem2m.isolate.node'),
             "timestamp": int(time.time() * 1000),
             "signalContent": content
             }
