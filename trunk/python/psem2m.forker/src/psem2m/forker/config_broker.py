@@ -57,30 +57,33 @@ def send_response(handler, code, data, content_type='text/html'):
         handler.wfile.write(str(data).encode())
 
 
-def send_unknown_isolate(handler, isolate_id):
+def send_error(handler, code=404, title=None, message=None):
     """
-    Sends an "Unknown isolate" error page
+    Sends a HTML error page
     
     :param handler: The request handler
-    :param isolate_id: The unknown isolate ID
+    :param code: The response code
+    :param title: The error title (page title and h1 title)
+    :param message: Small message under the error title (in a paragraph)
     """
-    send_response(handler, 404, """<html>
+    send_response(handler, code, """<html>
 <head>
-<title>Unknown isolate</title>
+<title>{title}</title>
 </head>
 <body>
-<h1>Error 404: Unknown isolate</h1>
-<p>Unknown isolate {id}.</p>
+<h1>Error {code}: {title}</h1>
+<p>{message}</p>
 </body>
 </html>
-""".format(id=isolate_id))
+""".format(code=code, title=title, message=message), "text/html")
 
 # ------------------------------------------------------------------------------
 
 @ComponentFactory("psem2m-forker-configuration-broker-factory")
 @Instantiate("psem2m-forker-configuration-broker")
 @Provides("org.psem2m.forker.configuration.store")
-@Requires("http", "HttpService")
+@Requires("_directory", "org.psem2m.signals.ISignalDirectory")
+@Requires("_http", "HttpService")
 @Property("_servlet_path", "servlet.path", "/configuration")
 class ConfigBroker(object):
     """
@@ -90,7 +93,7 @@ class ConfigBroker(object):
         """
         Constructor
         """
-        self.http = None
+        self._http = None
         self._servlet_path = None
 
         # Configurations : Isolate ID -> JSON string
@@ -100,7 +103,7 @@ class ConfigBroker(object):
         self.__config_lock = threading.Lock()
 
 
-    def _extract_isolate_id(self, url):
+    def _extract_parameters(self, url):
         """
         Extracts the isolate ID contained in the given URL, if any
         """
@@ -119,8 +122,8 @@ class ConfigBroker(object):
             # No parameters
             return
 
-        # We only take care of the first argument : the isolate ID
-        return parts[0]
+        # Return all found parts
+        return parts
 
 
     def do_GET(self, handler):
@@ -129,22 +132,39 @@ class ConfigBroker(object):
         
         :param handler: The request handler
         """
-        isolate_id = self._extract_isolate_id(handler.path)
+        params = self._extract_parameters(handler.path)
+        if not params:
+            send_error(handler, 400, "Missing parameters", "No parameter given")
+            return
 
-        if isolate_id:
-            with self.__config_lock:
-                json_config = self._configurations.get(isolate_id)
+        cmd = params[0]
+        if cmd == "configuration":
+            # Configuration
+            if len(params) != 2:
+                send_error(handler, 400, "Invalid request",
+                           "The 'configuration' command needs an Isolate ID")
+                return
+
+            isolate_id = params[1]
+            if isolate_id:
+                with self.__config_lock:
+                    json_config = self._configurations.get(isolate_id)
+
+            else:
+                json_config = None
+
+            if not json_config:
+                # Send a File not found error
+                send_error(handler, 404, "Unknown Isolate",
+                           "Unknown isolate {id}".format(id=isolate_id))
+
+            else:
+                # Send the configuration
+                send_response(handler, 200, json_config, 'application/json')
 
         else:
-            json_config = None
-
-        if not json_config:
-            # Send a File not found error
-            send_unknown_isolate(handler, isolate_id)
-
-        else:
-            # Send the configuration
-            send_response(handler, 200, json_config, 'application/json')
+            send_error(handler, 404, "Unknown command",
+                       "Unknown command: {0}".format(cmd))
 
 
     def do_DELETE(self, handler):
@@ -153,17 +173,29 @@ class ConfigBroker(object):
         
         :param handler: The request handler
         """
-        isolate_id = self._extract_isolate_id(handler.path)
+        params = self._extract_parameters(handler.path)
 
-        if self.delete_configuration(isolate_id):
-            send_response(handler, 200,
-                          '{"result":true, "message":"Configuration deleted"}',
+        if not params or len(params) != 2:
+            send_response(handler, 404,
+                          '{"result":false, "message":"Isolate ID not found"}',
+                          'application/json')
+
+        elif params[0] != "configuration":
+            send_response(handler, 404,
+                          '{"result":false, "message":"Unknown command"}',
                           'application/json')
 
         else:
-            send_response(handler, 404,
-                          '{"result":false, "message":"Unknown isolate"}',
-                          'application/json')
+            isolate_id = params[1]
+            if self.delete_configuration(isolate_id):
+                send_response(handler, 200,
+                            '{"result":true,"message":"Configuration deleted"}',
+                            'application/json')
+
+            else:
+                send_response(handler, 404,
+                              '{"result":false, "message":"Unknown isolate"}',
+                              'application/json')
 
 
     def get_access_url(self):
@@ -173,8 +205,8 @@ class ConfigBroker(object):
         :return: A string URL to access this broker
         """
         return "http://{host}:{port}{path}".format(
-                        host=self.http.get_hostname(),
-                        port=self.http.get_port(),
+                        host=self._http.get_hostname(),
+                        port=self._http.get_port(),
                         path=self._servlet_path)
 
 
@@ -223,7 +255,7 @@ class ConfigBroker(object):
         Component validated
         """
         self._configurations.clear()
-        self.http.register_servlet(self._servlet_path, self)
+        self._http.register_servlet(self._servlet_path, self)
 
 
     @Invalidate
@@ -231,7 +263,7 @@ class ConfigBroker(object):
         """
         Component invalidated
         """
-        self.http.unregister_servlet(self)
+        self._http.unregister_servlet(self)
 
         with self.__config_lock:
             self._configurations.clear()

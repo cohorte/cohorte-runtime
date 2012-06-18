@@ -74,11 +74,12 @@ def _setup_broker_url(broker_url, isolate_id):
     # The isolate configuration URL
     if url.path[-1] != '/':
         # Add a trailing slash if needed
-        isolate_url = '{base}/{id}'
+        isolate_url = '{base}/{cmd}/{id}'
     else:
-        isolate_url = '{base}{id}'
+        isolate_url = '{base}{cmd}/{id}'
 
-    return (host, port, isolate_url.format(base=url.path, id=isolate_id))
+    return (host, port, isolate_url.format(base=url.path, cmd="configuration",
+                                           id=isolate_id))
 
 # ------------------------------------------------------------------------------
 
