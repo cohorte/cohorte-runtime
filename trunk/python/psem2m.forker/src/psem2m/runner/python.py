@@ -214,11 +214,17 @@ class PelixRunner(PythonRunner):
         args.append("--start-isolate")
         args.append(isolate_descr["id"])
 
-        # TODO: Configuration Broker URL
+        # Configuration Broker URL
         broker_url = isolate_descr.get("psem2m.configuration.broker", None)
         if broker_url is not None:
             args.append("--configuration-url")
             args.append(broker_url)
+
+        # Directory dumper signals port
+        dumper_port = isolate_descr.get("psem2m.directory.dumper.port", None)
+        if dumper_port is not None:
+            args.append("--directory-dumper-port")
+            args.append(str(dumper_port))
 
         # TODO: Debug mode, if needed
         args.append("-d")

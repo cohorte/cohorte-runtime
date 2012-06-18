@@ -193,21 +193,20 @@ def start_isolate(isolate_id, properties=None):
     return _run_isolate(required_bundles, properties, True)
 
 
-def start_forker(start_monitor, debug_mode):
+def start_forker(start_monitor, base_properties):
     """
     Starts a PSEM2M Python forker based on Pelix.
     
     :param start_monitor: If True, the forker must start a monitor as soon as
                           it can
-    :param debug_mode: Sets the ``pelix.debug`` framework property value
+    :param base_properties: Base properties for the framework
     :return: An integer error code, 0 for success (see start_isolate())
     """
+    properties = base_properties or {}
+
     # Forker specific properties
-    properties = {
-                  "pelix.debug": debug_mode,
-                  "psem2m.forker": True,
-                  "psem2m.forker.start_monitor": start_monitor
-                  }
+    properties["psem2m.forker"] = True
+    properties["psem2m.forker.start_monitor"] = start_monitor
 
     # Store the process PID
     _store_forker_pid(os.getenv(psem2m.PSEM2M_BASE))
@@ -246,6 +245,11 @@ def main():
                         metavar="URL",
                         help="URL to a configuration broker")
 
+    parser.add_argument("--directory-dumper-port", action="store",
+                        dest="dumper_port", default=None,
+                        metavar="PORT",
+                        help="PORT to send a signal to the local directory dumper")
+
     parser.add_argument("-m", "--with-monitor", action="store_true",
                         dest="with_monitor", default=False,
                         help="The forker must start a monitor")
@@ -267,15 +271,18 @@ def main():
     else:
         logging.basicConfig(level=logging.INFO)
 
+    # Prepare the framework properties
+    base_properties = {"pelix.debug": args.debug,
+                       "psem2m.configuration.broker": args.config_url,
+                       "psem2m.directory.dumper.port": args.dumper_port}
+
     if args.start_forker:
         # Run the forker
-        return start_forker(args.with_monitor, args.debug)
+        return start_forker(args.with_monitor, base_properties)
 
     elif args.isolate_id is not None:
         # Run the isolate
-        return start_isolate(args.isolate_id,
-                             {"pelix.debug": args.debug,
-                              "psem2m.configuration.broker": args.config_url})
+        return start_isolate(args.isolate_id, base_properties)
 
     else:
         # Nothing to do

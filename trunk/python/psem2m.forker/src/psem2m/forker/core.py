@@ -222,6 +222,10 @@ class Forker(object):
         isolate_descr["psem2m.configuration.broker"] = \
                                             self._config_broker.get_access_url()
 
+        # Store the access port to the forker signals
+        isolate_descr["psem2m.directory.dumper.port"] = \
+                                            self._receiver.get_access_info()[1]
+
         # Stop at the first runner that succeed to start the isolate
         for runner in runners:
             try:
