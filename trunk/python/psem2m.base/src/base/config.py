@@ -151,13 +151,12 @@ class _ApplicationDescription(object):
     """
     Application configuration description
     """
-    def __init__(self, app_id, multicast_address):
+    def __init__(self, app_id, multicast_group):
         """
         Constructor
         
         :param app_id: The application ID (non empty string)
-        :param multicast_address: The multicast address for UDP messages
-                                  (non empty string)
+        :param multicast_group: Multicast (address, port) tuple for UDP messages
         :raise ValueError: Invalid application ID
         """
         if not app_id:
@@ -167,7 +166,8 @@ class _ApplicationDescription(object):
         self.id = app_id
 
         # Multicast address
-        self.multicast = multicast_address
+        self.multicast = multicast_group[0]
+        self.multicast_port = multicast_group[1]
 
         # Isolates : ID -> Description
         self.isolates = {}
@@ -201,13 +201,22 @@ class _ApplicationDescription(object):
         return self.isolates.keys()
 
 
-    def get_multicast(self):
+    def get_multicast_group(self):
         """
         Retrieves the multicast address to use for UDP messages
         
         :return: the multicast address to use for UDP messages
         """
         return self.multicast
+
+
+    def get_multicast_port(self):
+        """
+        Retrieves the multicast port to use for UDP messages
+        
+        :return: the multicast port to use for UDP messages
+        """
+        return self.multicast_port
 
 # ------------------------------------------------------------------------------
 
@@ -565,8 +574,12 @@ class JsonConfig(object):
         try:
             # Parse the configuration file
             config_root = self._parse_file(FILE_MAIN_CONF)
+
+            multicast_group = (config_root["multicast"],
+                               config_root.get("multicastPort", 42000))
+
             self.application = _ApplicationDescription(config_root["appId"],
-                                                       config_root["multicast"])
+                                                       multicast_group)
             self._parse_isolates(config_root["isolates"])
             return True
 
