@@ -8,6 +8,7 @@ package org.psem2m.signals.impl;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -35,8 +36,10 @@ import org.psem2m.signals.ISignalData;
 import org.psem2m.signals.ISignalDirectory;
 import org.psem2m.signals.ISignalReceiver;
 import org.psem2m.signals.ISignalSendResult;
+import org.psem2m.signals.IWaitingSignalListener;
 import org.psem2m.signals.SignalData;
 import org.psem2m.signals.SignalResult;
+import org.psem2m.signals.WaitingSignal;
 
 /**
  * Base signal sender logic
@@ -76,6 +79,15 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
     /** Signal receiver (for local only communication) */
     @Requires
     private ISignalReceiver pReceiver;
+
+    /** The list of all signals waiting to be sent */
+    private final List<WaitingSignal> pWaitingList = new ArrayList<WaitingSignal>();
+
+    /** The thread that handles the waiting queue */
+    private Thread pWaitingThread;
+
+    /** The loop control of the waiting queue thread */
+    private boolean pWaitingThreadRun;
 
     /**
      * Method called by iPOJO when a broadcast provider is bound
@@ -178,6 +190,27 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
         return sendLoop(accesses, aSignalName, signalData, aMode);
     }
 
+    /**
+     * Common code to add a signal to the waiting list
+     * 
+     * @param aWaitingSignal
+     *            The waiting signal...
+     * @return A future signal result
+     */
+    protected boolean commonStackHandling(final WaitingSignal aWaitingSignal) {
+
+        if (aWaitingSignal == null) {
+            return false;
+        }
+
+        synchronized (pWaitingList) {
+            // Add the
+            pWaitingList.add(aWaitingSignal);
+        }
+
+        return true;
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -221,6 +254,108 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
 
         // Only return reached isolates
         return result.getResults().keySet().toArray(new String[0]);
+    }
+
+    /**
+     * Sends a signal from the waiting list
+     * 
+     * @param aSignal
+     *            A waiting signal
+     * @return True if the signal has been sent by at least one isolate
+     */
+    protected boolean handleWaitingSignal(final WaitingSignal aSignal) {
+
+        final String name = aSignal.getName();
+        final Object content = aSignal.getContent();
+        final HostAccess access = aSignal.getAccess();
+        final String[] isolates = aSignal.getIsolates();
+        final String[] groups = aSignal.getGroups();
+
+        switch (aSignal.getMode()) {
+        case SEND: {
+            // send, sendGroup, sendTo
+            if (access != null) {
+                // Send to
+                Object[] results = null;
+                try {
+                    results = sendTo(name, content, access.getAddress(),
+                            access.getPort());
+
+                } catch (final Exception e) {
+                    // Ignore errors (try later)
+                }
+
+                pLogger.logDebug(this, "handleWaitingSignal", "signal=",
+                        aSignal, "results=", results);
+
+                if (results != null) {
+                    // Success
+                    aSignal.setSendToResult(results);
+                    return true;
+                }
+
+            } else {
+                ISignalSendResult result = null;
+                if (isolates != null) {
+                    // Send
+                    result = send(name, content, isolates);
+
+                } else if (groups != null) {
+                    // Send group
+                    result = sendGroup(name, content, groups);
+                }
+
+                if (result != null) {
+                    // Success
+                    aSignal.setSendResult(result);
+                    return true;
+                }
+            }
+            break;
+        }
+
+        case POST: {
+            // post, postGroup
+            Future<ISignalSendResult> result = null;
+            if (isolates != null) {
+                // Post
+                result = post(name, content, isolates);
+
+            } else if (groups != null) {
+                // Post group
+                result = postGroup(name, content, groups);
+            }
+
+            if (result != null) {
+                // Success
+                aSignal.setPostResult(result);
+                return true;
+            }
+            break;
+        }
+
+        case FIRE: {
+            // Fire, fireGroup
+            String[] result = null;
+            if (isolates != null) {
+                // Fire
+                result = fire(name, content, isolates);
+
+            } else if (groups != null) {
+                // Fire group
+                result = fireGroup(name, content, groups);
+            }
+
+            if (result != null) {
+                // Success
+                aSignal.setFireResult(result);
+                return true;
+            }
+            break;
+        }
+        }
+
+        return false;
     }
 
     /**
@@ -281,8 +416,29 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
     @Invalidate
     public void invalidatePojo() throws BundleException {
 
-        pExecutor.shutdown();
+        // Stop the sending thread
+        pExecutor.shutdownNow();
         pExecutor = null;
+
+        // Stop the waiting queue thread
+        pWaitingThreadRun = false;
+
+        synchronized (pWaitingList) {
+            // Clear the list
+            pWaitingList.clear();
+        }
+
+        // Wait for the thread
+        try {
+            pWaitingThread.join(500);
+
+        } catch (final InterruptedException ex) {
+            // Ignore
+        }
+
+        // Interrupt it if necessary
+        pWaitingThread.interrupt();
+        pWaitingThread = null;
 
         pLogger.logInfo(this, "invalidatePojo", "Base Signal Broadcaster Gone");
     }
@@ -457,6 +613,57 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
         return results.toArray();
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.signals.ISignalBroadcaster#stack(java.lang.String,
+     * java.lang.Object, org.psem2m.signals.IWaitingSignalListener,
+     * org.psem2m.signals.ISignalBroadcaster.ESendMode, long,
+     * org.psem2m.signals.HostAccess)
+     */
+    @Override
+    public boolean stack(final String aSignalName, final Object aContent,
+            final IWaitingSignalListener aListener, final ESendMode aMode,
+            final long aTTL, final HostAccess aAccess) {
+
+        return commonStackHandling(new WaitingSignal(aSignalName, aContent,
+                aListener, aMode, aTTL, aAccess, null, null));
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.signals.ISignalBroadcaster#stack(java.lang.String,
+     * java.lang.Object, org.psem2m.signals.IWaitingSignalListener,
+     * org.psem2m.signals.ISignalBroadcaster.ESendMode, long,
+     * java.lang.String[])
+     */
+    @Override
+    public boolean stack(final String aSignalName, final Object aContent,
+            final IWaitingSignalListener aListener, final ESendMode aMode,
+            final long aTTL, final String... aIsolates) {
+
+        return commonStackHandling(new WaitingSignal(aSignalName, aContent,
+                aListener, aMode, aTTL, null, aIsolates, null));
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.signals.ISignalBroadcaster#stackGroup(java.lang.String,
+     * java.lang.Object, org.psem2m.signals.IWaitingSignalListener,
+     * org.psem2m.signals.ISignalBroadcaster.ESendMode, long,
+     * java.lang.String[])
+     */
+    @Override
+    public boolean stackGroup(final String aSignalName, final Object aContent,
+            final IWaitingSignalListener aListener, final ESendMode aMode,
+            final long aTTL, final String... aGroups) {
+
+        return commonStackHandling(new WaitingSignal(aSignalName, aContent,
+                aListener, aMode, aTTL, null, null, aGroups));
+    }
+
     /**
      * Called by iPOJO when a broadcast provider is gone
      * 
@@ -484,7 +691,62 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
     @Validate
     public void validatePojo() throws BundleException {
 
+        // Start the signal sender thread pool
         pExecutor = Executors.newCachedThreadPool();
+
+        // Start the waiting queue thread
+        pWaitingThread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+
+                waitingListThread();
+            }
+        }, "broadcaster-waiting-list");
+
+        pWaitingThreadRun = true;
+        pWaitingThread.start();
+
         pLogger.logInfo(this, "validatePojo", "Base Signal Broadcaster Ready");
+    }
+
+    /**
+     * Waiting list handling loop
+     */
+    protected void waitingListThread() {
+
+        while (pWaitingThreadRun) {
+
+            synchronized (pWaitingList) {
+                // Use an iterator, do be able to remove items during the loop
+                final Iterator<WaitingSignal> iter = pWaitingList.iterator();
+
+                while (iter.hasNext()) {
+                    final WaitingSignal signal = iter.next();
+                    if (handleWaitingSignal(signal)) {
+                        // Signal sent
+                        iter.remove();
+
+                        // Call back the owner
+                        signal.fireSuccessEvent();
+
+                    } else if (signal.decreaseTTL(1)) {
+                        // TTL expired
+                        iter.remove();
+
+                        // Call back the owner
+                        signal.fireTimeoutEvent();
+                    }
+                }
+            }
+
+            try {
+                Thread.sleep(1000);
+
+            } catch (final InterruptedException ex) {
+                // Thread interrupted, go away
+                return;
+            }
+        }
     }
 }

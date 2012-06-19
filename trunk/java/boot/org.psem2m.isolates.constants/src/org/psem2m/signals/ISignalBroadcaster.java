@@ -14,6 +14,15 @@ import java.util.concurrent.Future;
  */
 public interface ISignalBroadcaster {
 
+    /**
+     * Signal sending mode
+     * 
+     * @author Thomas Calmant
+     */
+    public enum ESendMode {
+        FIRE, POST, SEND,
+    }
+
     /** Signals request mode ACK : at least one listener must be there */
     String MODE_ACK = "ack";
 
@@ -73,7 +82,7 @@ public interface ISignalBroadcaster {
      *            The signal content
      * @param aIsolates
      *            A list of isolate IDs
-     * @return A Future result, that will content the signal results
+     * @return A Future result, that will contain the signal results
      */
     Future<ISignalSendResult> post(String aSignalName, Object aContent,
             String... aIsolates);
@@ -91,7 +100,7 @@ public interface ISignalBroadcaster {
      *            The signal content
      * @param aGroups
      *            A list of isolates groups names
-     * @return A Future result, that will content the signal results (reached
+     * @return A Future result, that will contain the signal results (reached
      *         isolates results and failed isolates)
      */
     Future<ISignalSendResult> postGroup(String aSignalName, Object aContent,
@@ -154,4 +163,80 @@ public interface ISignalBroadcaster {
      */
     Object[] sendTo(String aSignalName, Object aContent, String aHost, int aPort)
             throws Exception;
+
+    /**
+     * Adds a signal in a broadcast waiting list.
+     * 
+     * The signal will be sent in a specific thread when possible. It will be
+     * held in the waiting list until a valid serializer is found and when at
+     * list one isolate will receive it, or until its TTL expired.
+     * 
+     * @param aSignalName
+     *            The signal name
+     * @param aContent
+     *            The signal content
+     * @param aListener
+     *            The waiting signal listener
+     * @param aMode
+     *            The signal sending mode
+     * @param aTTL
+     *            The signal Time To Live before being forgotten
+     * @param aIsolates
+     *            A list of isolate IDs
+     * @return True if the signal has been added to the waiting list
+     */
+    boolean stack(String aSignalName, Object aContent,
+            IWaitingSignalListener aListener, ESendMode aMode, long aTTL,
+            HostAccess aAccess);
+
+    /**
+     * Adds a signal in a broadcast waiting list.
+     * 
+     * The signal will be sent in a specific thread when possible. It will be
+     * held in the waiting list until a valid serializer is found and when at
+     * list one isolate will receive it, or until its TTL expired.
+     * 
+     * @param aSignalName
+     *            The signal name
+     * @param aContent
+     *            The signal content
+     * @param aListener
+     *            The waiting signal listener
+     * @param aMode
+     *            The signal sending mode
+     * @param aTTL
+     *            The signal Time To Live before being forgotten
+     * 
+     * @param aIsolates
+     *            A list of isolate IDs
+     * @return True if the signal has been added to the waiting list
+     */
+    boolean stack(String aSignalName, Object aContent,
+            IWaitingSignalListener aListener, ESendMode aMode, long aTTL,
+            String... aIsolates);
+
+    /**
+     * Adds a signal in a broadcast waiting list.
+     * 
+     * The signal will be sent in a specific thread when possible. It will be
+     * held in the waiting list until a valid serializer is found and when at
+     * list one isolate will receive it, or until its TTL expired.
+     * 
+     * @param aSignalName
+     *            The signal name
+     * @param aContent
+     *            The signal content
+     * @param aListener
+     *            The waiting signal listener
+     * @param aMode
+     *            The signal sending mode
+     * @param aTTL
+     *            The signal Time To Live before being forgotten
+     * @param aGroups
+     *            A list of isolates groups names
+     * @return True if the signal has been added to the waiting list
+     */
+    boolean stackGroup(String aSignalName, Object aContent,
+            IWaitingSignalListener aListener, ESendMode aMode, long aTTL,
+            String... aGroups);
 }
