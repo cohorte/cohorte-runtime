@@ -46,6 +46,9 @@ import org.psem2m.signals.SignalResult;
 @Instantiate(name = "psem2m-signal-receiver")
 public class SignalReceiver extends CPojoBase implements ISignalReceiver {
 
+    /** Receivers dependency ID */
+    private static final String ID_RECEIVERS = "receivers";
+
     /** Signal listeners */
     private final Map<String, Set<ISignalListener>> pListeners = new HashMap<String, Set<ISignalListener>>();
 
@@ -64,7 +67,7 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver {
     private boolean pPropertyOnline;
 
     /** Reception providers */
-    @Requires(id = "receivers", optional = true)
+    @Requires(id = ID_RECEIVERS, optional = true)
     private ISignalReceptionProvider[] pReceivers;
 
     /**
@@ -73,7 +76,7 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver {
      * @param aProvider
      *            The new provider
      */
-    @Bind(id = "receivers", aggregate = true, filter = "("
+    @Bind(id = ID_RECEIVERS, aggregate = true, filter = "("
             + ISignalReceptionProvider.PROPERTY_READY + "=true)")
     protected void bindProvider(final ISignalReceptionProvider aProvider) {
 
@@ -323,7 +326,7 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver {
      * @param aProvider
      *            A reception provider service
      */
-    @Unbind(id = "receivers", aggregate = true)
+    @Unbind(id = ID_RECEIVERS, aggregate = true)
     protected void unbindProvider(final ISignalReceptionProvider aProvider) {
 
         aProvider.unsetReceiver(this);

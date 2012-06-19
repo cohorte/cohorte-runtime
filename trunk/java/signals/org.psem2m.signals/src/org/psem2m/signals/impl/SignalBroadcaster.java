@@ -16,11 +16,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.ServiceProperty;
+import org.apache.felix.ipojo.annotations.Unbind;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
@@ -45,8 +48,11 @@ import org.psem2m.signals.SignalResult;
 @Instantiate(name = "psem2m-signal-broadcaster")
 public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
 
+    /** Receivers dependency ID */
+    private static final String ID_PROVIDERS = "providers";
+
     /** Broadcast providers */
-    @Requires(id = "providers", optional = true)
+    @Requires(id = ID_PROVIDERS, optional = true)
     private ISignalBroadcastProvider[] pBroadcasters;
 
     /** A directory service */
@@ -60,9 +66,32 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
     @Requires
     private IIsolateLoggerSvc pLogger;
 
+    /** Number of available providers */
+    private int pNbProviders = 0;
+
+    /** On-line service property */
+    @ServiceProperty(name = ISignalBroadcaster.PROPERTY_ONLINE, value = "false", mandatory = true)
+    private boolean pPropertyOnline;
+
     /** Signal receiver (for local only communication) */
     @Requires
     private ISignalReceiver pReceiver;
+
+    /**
+     * Method called by iPOJO when a broadcast provider is bound
+     * 
+     * @param aProvider
+     *            The new provider
+     */
+    @Bind(id = ID_PROVIDERS, aggregate = true)
+    protected void bindProvider(final ISignalBroadcastProvider aProvider) {
+
+        // Increase the number of available providers
+        pNbProviders++;
+
+        // We're now on-line
+        pPropertyOnline = true;
+    }
 
     /**
      * Common code to send a signal to groups : accesses resolution, signal
@@ -258,6 +287,16 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
         pLogger.logInfo(this, "invalidatePojo", "Base Signal Broadcaster Gone");
     }
 
+    /**
+     * Tests if the broadcaster is on line.
+     * 
+     * @return True if the broadcaster is on-line
+     */
+    public boolean isOnline() {
+
+        return pPropertyOnline;
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -416,6 +455,24 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
         }
 
         return results.toArray();
+    }
+
+    /**
+     * Called by iPOJO when a broadcast provider is gone
+     * 
+     * @param aProvider
+     *            A broadcast provider service
+     */
+    @Unbind(id = ID_PROVIDERS, aggregate = true)
+    protected void unbindProvider(final ISignalBroadcastProvider aProvider) {
+
+        // Decrease the number of available providers
+        pNbProviders--;
+
+        if (pNbProviders == 0) {
+            // No more provider, we're not on-line anymore
+            pPropertyOnline = false;
+        }
     }
 
     /*
