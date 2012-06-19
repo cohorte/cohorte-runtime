@@ -153,9 +153,11 @@ class DirectoryUpdater(object):
         :param name: Signal name
         :param signal_data: Signal content
         """
+        _logger.debug("Received Signal '%s' from '%s'", name,
+                      signal_data["senderId"])
+
         if name == SIGNAL_DUMP:
             # Dump the directory
-            _logger.debug("DUMP REQUESTED...")
             return self._directory.dump()
 
         elif name == SIGNAL_REGISTER:

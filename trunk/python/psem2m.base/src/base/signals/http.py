@@ -98,9 +98,9 @@ def _make_json_result(code, message="", results=None):
     :param code: A HTTP Code
     :param message: An associated message
     """
-    return code, json.dumps({'code': code,
-                             'message': message,
-                             'results': results})
+    return code, json.dumps(to_jabsorb({'code': code,
+                                        'message': message,
+                                        'results': results}))
 
 
 def read_post_body(request_handler):
