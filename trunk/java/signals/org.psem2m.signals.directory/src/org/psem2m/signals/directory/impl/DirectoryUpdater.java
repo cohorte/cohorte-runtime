@@ -22,10 +22,13 @@ import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.signals.HostAccess;
 import org.psem2m.signals.ISignalBroadcaster;
+import org.psem2m.signals.ISignalBroadcaster.ESendMode;
 import org.psem2m.signals.ISignalData;
 import org.psem2m.signals.ISignalDirectory;
 import org.psem2m.signals.ISignalListener;
 import org.psem2m.signals.ISignalReceiver;
+import org.psem2m.signals.IWaitingSignal;
+import org.psem2m.signals.IWaitingSignalListener;
 
 /**
  * Java implementation of the directory updater
@@ -34,7 +37,8 @@ import org.psem2m.signals.ISignalReceiver;
  */
 @Component(name = "psem2m-signals-directory-updater-factory", publicFactory = false)
 @Instantiate(name = "psem2m-signals-directory-updater")
-public class DirectoryUpdater implements ISignalListener {
+public class DirectoryUpdater implements ISignalListener,
+        IWaitingSignalListener {
 
     /**
      * A small information storage
@@ -81,33 +85,23 @@ public class DirectoryUpdater implements ISignalListener {
     @Requires
     private IIsolateLoggerSvc pLogger;
 
-    /** The signal receiver */
-    @Requires
+    /** The signal receiver (it must be accessible) */
+    @Requires(filter = "(" + ISignalReceiver.PROPERTY_ONLINE + "=true)")
     private ISignalReceiver pReceiver;
 
-    /** The signal sender */
-    @Requires
+    /** The signal sender (it must be usable) */
+    @Requires(filter = "(" + ISignalBroadcaster.PROPERTY_ONLINE + "=true)")
     private ISignalBroadcaster pSender;
 
     /**
-     * Sends a directory dump signal to the given port on local host.
+     * Tries to find the directory dump in the results then stores it
      * 
-     * @param aDumpPort
-     *            The signal receiver port
+     * @param aResults
+     *            The signal results
      */
-    protected void grabDirectory(final int aDumpPort) {
+    protected void handleDumpedDirectory(final Object[] aResults) {
 
-        final Object[] results;
-        try {
-            results = pSender.sendTo(SIGNAL_DUMP, null, "localhost", aDumpPort);
-
-        } catch (final Exception e) {
-            pLogger.logWarn(this, "grabDirectory",
-                    "Error requested for a directory dump:", e);
-            return;
-        }
-
-        if (results == null || results.length == 0) {
+        if (aResults == null || aResults.length == 0) {
             // No result...
             pLogger.logWarn(this, "grabDirectory",
                     "Nothing returned by the directory dumper");
@@ -115,85 +109,27 @@ public class DirectoryUpdater implements ISignalListener {
         }
 
         // Get the first map result only
-        if (results.length != 1) {
+        if (aResults.length != 1) {
             pLogger.logWarn(this, "grabDirectory",
                     "More than one result found. Ignoring others.");
         }
 
         Map<?, ?> dump = null;
-        for (final Object result : results) {
+        for (final Object result : aResults) {
             if (result instanceof Map) {
                 dump = (Map<?, ?>) result;
                 break;
             }
         }
 
-        if (dump == null) {
+        if (dump != null) {
+            // All good, store it
+            storeDirectory(dump);
+
+        } else {
             // Nothing found
             pLogger.logWarn(this, "grabDirectory",
                     "No readable result in the dump");
-            return;
-        }
-
-        // 1. Setup nodes hosts
-        final Map<?, ?> nodesHost = (Map<?, ?>) dump.get("nodes_host");
-        for (final Entry<?, ?> entry : nodesHost.entrySet()) {
-            pDirectory.setNodeAddress((String) entry.getKey(),
-                    (String) entry.getValue());
-        }
-
-        // 2. Prepare isolates information
-        final Map<String, IsolateInfo> isolates = new HashMap<String, DirectoryUpdater.IsolateInfo>();
-
-        final Map<?, ?> accesses = (Map<?, ?>) dump.get("accesses");
-        for (final Entry<?, ?> entry : accesses.entrySet()) {
-            // Cast entry
-            final String isolateId = (String) entry.getKey();
-            final Map<?, ?> access = (Map<?, ?>) entry.getValue();
-
-            // Create the information bean
-            final IsolateInfo info = new IsolateInfo();
-            info.id = isolateId;
-            info.node = (String) access.get("node");
-            info.port = (Integer) access.get("port");
-
-            isolates.put(isolateId, info);
-        }
-
-        final Map<?, ?> groups = (Map<?, ?>) dump.get("groups");
-        for (final Entry<?, ?> entry : groups.entrySet()) {
-
-            final String group = (String) entry.getKey();
-            final Object rawGroupIsolates = entry.getValue();
-            Collection<?> groupIsolates = null;
-
-            if (rawGroupIsolates instanceof Collection) {
-                // Collection...
-                groupIsolates = (Collection<?>) rawGroupIsolates;
-
-            } else if (rawGroupIsolates instanceof Object[]) {
-                // Array...
-                groupIsolates = Arrays.asList((Object[]) rawGroupIsolates);
-            }
-
-            if (groupIsolates != null) {
-                for (final Object isolate : groupIsolates) {
-                    final IsolateInfo info = isolates.get(isolate);
-                    if (info != null) {
-                        info.groups.add(group);
-                    }
-                }
-
-            } else {
-                pLogger.logWarn(this, "grabDirectory", "Unreadable groups=",
-                        rawGroupIsolates.getClass().getName());
-            }
-        }
-
-        // 3. Register all new isolates
-        for (final IsolateInfo info : isolates.values()) {
-            pDirectory.registerIsolate(info.id, info.node, info.port,
-                    info.groups.toArray(new String[0]));
         }
     }
 
@@ -297,37 +233,83 @@ public class DirectoryUpdater implements ISignalListener {
         content.put("id", isolateId);
         content.put("node", pDirectory.getLocalNode());
         content.put("groups", groups.toArray(new String[0]));
+        content.put("port", pReceiver.getAccessInfo().getPort());
 
-        // Wait in a thread for a valid access
-        new Thread(new Runnable() {
+        // Send the signal (don't wait for a result)
+        // pSender.fireGroup(SIGNAL_REGISTER, content, "ALL");
+        pSender.stackGroup(SIGNAL_REGISTER, content, this, ESendMode.SEND,
+                Integer.MAX_VALUE, "ALL");
+    }
 
-            @Override
-            public void run() {
+    /**
+     * Stores the content of the given directory dump
+     * 
+     * @param aDumpedDirectory
+     *            A directory dump
+     */
+    protected void storeDirectory(final Map<?, ?> aDumpedDirectory) {
 
-                final HostAccess access = pReceiver.getAccessInfo();
-                if (access == null) {
-                    pLogger.logSevere(this, "sendRegistration",
-                            "NULL access information");
+        // 1. Setup nodes hosts
+        final Map<?, ?> nodesHost = (Map<?, ?>) aDumpedDirectory
+                .get("nodes_host");
+        for (final Entry<?, ?> entry : nodesHost.entrySet()) {
+            pDirectory.setNodeAddress((String) entry.getKey(),
+                    (String) entry.getValue());
+        }
 
-                    // Wait a little
-                    try {
-                        Thread.sleep(100);
+        // 2. Prepare isolates information
+        final Map<String, IsolateInfo> isolates = new HashMap<String, DirectoryUpdater.IsolateInfo>();
 
-                    } catch (final InterruptedException e) {
-                        // We must stop there
-                        return;
+        final Map<?, ?> accesses = (Map<?, ?>) aDumpedDirectory.get("accesses");
+        for (final Entry<?, ?> entry : accesses.entrySet()) {
+            // Cast entry
+            final String isolateId = (String) entry.getKey();
+            final Map<?, ?> access = (Map<?, ?>) entry.getValue();
+
+            // Create the information bean
+            final IsolateInfo info = new IsolateInfo();
+            info.id = isolateId;
+            info.node = (String) access.get("node");
+            info.port = (Integer) access.get("port");
+
+            isolates.put(isolateId, info);
+        }
+
+        final Map<?, ?> groups = (Map<?, ?>) aDumpedDirectory.get("groups");
+        for (final Entry<?, ?> entry : groups.entrySet()) {
+
+            final String group = (String) entry.getKey();
+            final Object rawGroupIsolates = entry.getValue();
+            Collection<?> groupIsolates = null;
+
+            if (rawGroupIsolates instanceof Collection) {
+                // Collection...
+                groupIsolates = (Collection<?>) rawGroupIsolates;
+
+            } else if (rawGroupIsolates instanceof Object[]) {
+                // Array...
+                groupIsolates = Arrays.asList((Object[]) rawGroupIsolates);
+            }
+
+            if (groupIsolates != null) {
+                for (final Object isolate : groupIsolates) {
+                    final IsolateInfo info = isolates.get(isolate);
+                    if (info != null) {
+                        info.groups.add(group);
                     }
                 }
 
-                pLogger.logSevere(this, "sendRegistration",
-                        "Access information found !");
-
-                content.put("port", access.getPort());
-
-                // Send the signal (don't wait for a result)
-                pSender.fireGroup(SIGNAL_REGISTER, content, "ALL");
+            } else {
+                pLogger.logWarn(this, "grabDirectory", "Unreadable groups=",
+                        rawGroupIsolates.getClass().getName());
             }
-        }).start();
+        }
+
+        // 3. Register all new isolates
+        for (final IsolateInfo info : isolates.values()) {
+            pDirectory.registerIsolate(info.id, info.node, info.port,
+                    info.groups.toArray(new String[0]));
+        }
     }
 
     /**
@@ -335,6 +317,8 @@ public class DirectoryUpdater implements ISignalListener {
      */
     @Validate
     public void validate() {
+
+        pLogger.logInfo(this, "validate", "Directory Updater started");
 
         final String dumpPortStr = System.getProperty(PROP_DUMPER_PORT);
         int dumpPort = -1;
@@ -352,13 +336,59 @@ public class DirectoryUpdater implements ISignalListener {
 
         } else {
             // Retrieve the directory
-            grabDirectory(dumpPort);
+            pLogger.logDebug(this, "validate", "Grabbing directory from port=",
+                    dumpPort);
+
+            // Stack the signal...
+            pSender.stack(SIGNAL_DUMP, null, this, ESendMode.SEND,
+                    Integer.MAX_VALUE, new HostAccess("localhost", dumpPort));
         }
 
         // Send our registration
+        pLogger.logDebug(this, "validate", "Sending registration");
         sendRegistration();
 
         // Register to signals
+        pLogger.logDebug(this, "validate", "Registering to the receiver...");
         pReceiver.registerListener(SIGNAL_PREFIX_MATCH_ALL, this);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.signals.IWaitingSignalListener#waitingSignalSent(org.psem2m
+     * .signals.IWaitingSignal)
+     */
+    @Override
+    public void waitingSignalSent(final IWaitingSignal aSignal) {
+
+        if (SIGNAL_DUMP.equals(aSignal.getName())) {
+            // Found
+            pLogger.logDebug(this, "waitingSignalSent",
+                    "Dump directory signal sent");
+
+            // Call the handling code
+            handleDumpedDirectory(aSignal.getSendToResult());
+
+        } else {
+            // Ingored result
+            pLogger.logDebug(this, "waitingSignalSent", "Signal name=",
+                    aSignal.getName(), "sent.");
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.signals.IWaitingSignalListener#waitingSignalTimeout(org.psem2m
+     * .signals.IWaitingSignal)
+     */
+    @Override
+    public void waitingSignalTimeout(final IWaitingSignal aSignal) {
+
+        pLogger.logWarn(this, "waitingSignalTimeout", "Signal name=",
+                aSignal.getName(), "timed out");
     }
 }

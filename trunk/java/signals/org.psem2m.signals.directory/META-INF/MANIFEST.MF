@@ -21,46 +21,52 @@ iPOJO-Components: instance { $component="org.psem2m.signals.directory.
  " $name="psem2m-signals-directory" }component { $classname="org.psem2
  m.signals.directory.impl.DirectoryUpdater" $name="psem2m-signals-dire
  ctory-updater-factory" $public="false" requires { $field="pDirectory"
-  }requires { $field="pLogger" }requires { $field="pReceiver" }require
- s { $field="pSender" }callback { $transition="invalidate" $method="in
- validate" }callback { $transition="validate" $method="validate" }mani
- pulation { interface { $name="org.psem2m.signals.ISignalListener" }fi
- eld { $name="pDirectory" $type="org.psem2m.signals.ISignalDirectory" 
- }field { $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLogg
- erSvc" }field { $name="pReceiver" $type="org.psem2m.signals.ISignalRe
- ceiver" }field { $name="pSender" $type="org.psem2m.signals.ISignalBro
- adcaster" }method { $name="grabDirectory" $arguments="{int}" }method 
- { $name="handleReceivedSignal" $return="java.lang.Object" $arguments=
- "{java.lang.String,org.psem2m.signals.ISignalData}" }method { $name="
- invalidate" }method { $name="sendRegistration" }method { $name="valid
- ate" }}}component { $classname="org.psem2m.signals.directory.impl.Sig
- nalsDirectory" $name="psem2m-signals-directory-factory" $public="fals
- e" provides { $specifications="{org.psem2m.signals.ISignalDirectory}"
-  }requires { $field="pLogger" }callback { $transition="invalidate" $m
- ethod="invalidatePojo" }callback { $transition="validate" $method="va
- lidatePojo" }manipulation { $super="org.psem2m.isolates.base.activato
- rs.CPojoBase" interface { $name="org.psem2m.signals.ISignalDirectory"
-  }field { $name="pAccesses" $type="java.util.Map" }field { $name="pGr
- oups" $type="java.util.Map" }field { $name="pLogger" $type="org.psem2
- m.isolates.base.IIsolateLoggerSvc" }field { $name="pNodesHost" $type=
- "java.util.Map" }field { $name="pNodesIsolates" $type="java.util.Map"
-  }method { $name="dump" $return="java.util.Map" }method { $name="getA
- llIsolates" $return="java.lang.String[]" $arguments="{java.lang.Strin
- g}" }method { $name="getGroupAccesses" $return="java.util.Map" $argum
- ents="{java.lang.String}" }method { $name="getHostForNode" $return="j
- ava.lang.String" $arguments="{java.lang.String}" }method { $name="get
- IsolateAccess" $return="org.psem2m.signals.HostAccess" $arguments="{j
- ava.lang.String}" }method { $name="getIsolateId" $return="java.lang.S
- tring" }method { $name="getIsolateNode" $return="java.lang.String" $a
- rguments="{java.lang.String}" }method { $name="getIsolatesOnNode" $re
- turn="java.lang.String[]" $arguments="{java.lang.String}" }method { $
- name="getLocalNode" $return="java.lang.String" }method { $name="inval
- idatePojo" }method { $name="isRegistered" $return="boolean" $argument
- s="{java.lang.String}" }method { $name="registerIsolate" $return="boo
- lean" $arguments="{java.lang.String,java.lang.String,int,java.lang.St
- ring[]}" }method { $name="registerLocal" $arguments="{int,java.lang.S
- tring[]}" }method { $name="setNodeAddress" $return="java.lang.String"
-  $arguments="{java.lang.String,java.lang.String}" }method { $name="un
- registerIsolate" $return="boolean" $arguments="{java.lang.String}" }m
- ethod { $name="validatePojo" }}}
+  }requires { $field="pLogger" }requires { $field="pReceiver" $filter=
+ "(signal-receiver-online=true)" }requires { $field="pSender" $filter=
+ "(signal-receiver-online=true)" }callback { $transition="invalidate" 
+ $method="invalidate" }callback { $transition="validate" $method="vali
+ date" }manipulation { interface { $name="org.psem2m.signals.ISignalLi
+ stener" }interface { $name="org.psem2m.signals.IWaitingSignalListener
+ " }field { $name="pDirectory" $type="org.psem2m.signals.ISignalDirect
+ ory" }field { $name="pLogger" $type="org.psem2m.isolates.base.IIsolat
+ eLoggerSvc" }field { $name="pReceiver" $type="org.psem2m.signals.ISig
+ nalReceiver" }field { $name="pSender" $type="org.psem2m.signals.ISign
+ alBroadcaster" }method { $name="handleDumpedDirectory" $arguments="{j
+ ava.lang.Object[]}" }method { $name="handleReceivedSignal" $return="j
+ ava.lang.Object" $arguments="{java.lang.String,org.psem2m.signals.ISi
+ gnalData}" }method { $name="invalidate" }method { $name="sendRegistra
+ tion" }method { $name="storeDirectory" $arguments="{java.util.Map}" }
+ method { $name="validate" }method { $name="waitingSignalSent" $argume
+ nts="{org.psem2m.signals.IWaitingSignal}" }method { $name="waitingSig
+ nalTimeout" $arguments="{org.psem2m.signals.IWaitingSignal}" }}}compo
+ nent { $classname="org.psem2m.signals.directory.impl.SignalsDirectory
+ " $name="psem2m-signals-directory-factory" $public="false" provides {
+  $specifications="{org.psem2m.signals.ISignalDirectory}" }requires { 
+ $field="pLogger" }callback { $transition="invalidate" $method="invali
+ datePojo" }callback { $transition="validate" $method="validatePojo" }
+ manipulation { $super="org.psem2m.isolates.base.activators.CPojoBase"
+  interface { $name="org.psem2m.signals.ISignalDirectory" }field { $na
+ me="pAccesses" $type="java.util.Map" }field { $name="pGroups" $type="
+ java.util.Map" }field { $name="pLogger" $type="org.psem2m.isolates.ba
+ se.IIsolateLoggerSvc" }field { $name="pNodesHost" $type="java.util.Ma
+ p" }field { $name="pNodesIsolates" $type="java.util.Map" }method { $n
+ ame="dump" $return="java.util.Map" }method { $name="getAllIsolates" $
+ return="java.lang.String[]" $arguments="{java.lang.String}" }method {
+  $name="getGroupAccesses" $return="java.util.Map" $arguments="{java.l
+ ang.String}" }method { $name="getHostForNode" $return="java.lang.Stri
+ ng" $arguments="{java.lang.String}" }method { $name="getIsolateAccess
+ " $return="org.psem2m.signals.HostAccess" $arguments="{java.lang.Stri
+ ng}" }method { $name="getIsolateId" $return="java.lang.String" }metho
+ d { $name="getIsolateNode" $return="java.lang.String" $arguments="{ja
+ va.lang.String}" }method { $name="getIsolatesOnNode" $return="java.la
+ ng.String[]" $arguments="{java.lang.String}" }method { $name="getLoca
+ lNode" $return="java.lang.String" }method { $name="invalidatePojo" }m
+ ethod { $name="isRegistered" $return="boolean" $arguments="{java.lang
+ .String}" }method { $name="registerIsolate" $return="boolean" $argume
+ nts="{java.lang.String,java.lang.String,int,java.lang.String[]}" }met
+ hod { $name="registerLocal" $arguments="{int,java.lang.String[]}" }me
+ thod { $name="setNodeAddress" $return="java.lang.String" $arguments="
+ {java.lang.String,java.lang.String}" }method { $name="unregisterIsola
+ te" $return="boolean" $arguments="{java.lang.String}" }method { $name
+ ="validatePojo" }}}
 
