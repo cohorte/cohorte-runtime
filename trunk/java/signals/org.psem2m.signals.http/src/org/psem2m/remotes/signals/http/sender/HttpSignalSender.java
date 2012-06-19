@@ -10,6 +10,8 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collection;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -224,9 +226,33 @@ public class HttpSignalSender extends CPojoBase implements
 
             // Un-serialize the result
             final Object result = unserializeData(resultType, rawResult);
-            if (result != null && result.getClass().isArray()) {
-                // We have an array
-                return (Object[]) result;
+            if (result != null) {
+                if (result instanceof Map) {
+                    // We have a map
+                    final Object rawResults = ((Map<?, ?>) result)
+                            .get("results");
+                    if (rawResults instanceof Collection) {
+                        // List
+                        return ((Collection<?>) rawResults).toArray();
+
+                    } else if (rawResults instanceof Object[]) {
+                        // Array
+                        return (Object[]) rawResults;
+
+                    } else if (rawResults == null) {
+                        // Nothing
+                        return null;
+
+                    } else {
+                        pLogger.logWarn(this, "sendSignal",
+                                "Unknown result type=", rawResults.getClass()
+                                        .getName());
+                    }
+
+                } else if (result.getClass().isArray()) {
+                    // We have an array (old case)
+                    return (Object[]) result;
+                }
             }
 
             // Unknown result

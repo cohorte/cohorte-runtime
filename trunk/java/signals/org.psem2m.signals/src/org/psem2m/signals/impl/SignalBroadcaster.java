@@ -283,6 +283,7 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
 
                 } catch (final Exception e) {
                     // Ignore errors (try later)
+                    pLogger.logDebug(this, "handleWaitingSignal", e);
                 }
 
                 pLogger.logDebug(this, "handleWaitingSignal", "signal=",
