@@ -98,7 +98,7 @@ class _JsonRpcServlet(SimpleJSONRPCDispatcher):
 @Instantiate("ServiceExporter")
 @Requires("sender", "org.psem2m.signals.ISignalBroadcaster")
 @Requires("receiver", "org.psem2m.signals.ISignalReceiver")
-@Requires("directory", "org.psem2m.IsolateDirectory")
+@Requires("directory", "org.psem2m.signals.ISignalDirectory")
 @Requires("http", "HttpService")
 @Property("servlet_path", "jsonrpc.servlet.path", "/JSON-RPC")
 class ServiceExporter(object):
@@ -120,6 +120,7 @@ class ServiceExporter(object):
 
         # Signal sender
         self.directory = None
+        self.receiver = None
         self.sender = None
 
         # Exported services
@@ -207,8 +208,8 @@ class ServiceExporter(object):
         properties = reference.get_properties()
 
         # Generate the service ID
-        service_id = "%s.%s" % (self.directory.get_current_isolate_id(),
-                                properties.get(pelix.SERVICE_ID))
+        isolate_id = self.directory.get_isolate_id()
+        service_id = "%s.%s" % (isolate_id, properties.get(pelix.SERVICE_ID))
 
         # Create the registration map
         registration = {
@@ -223,7 +224,7 @@ class ServiceExporter(object):
                     "protocol": "http"
                 },),
             "exportedInterfaces": specifications,
-            "hostIsolate": self.directory.get_current_isolate_id(),
+            "hostIsolate": isolate_id,
             "serviceProperties": properties,
             "serviceId": service_id
         }
@@ -310,7 +311,7 @@ class ServiceExporter(object):
             return
 
         sender = signal_data["senderId"]
-        if sender == self.sender.get_isolate_id():
+        if sender == self.directory.get_isolate_id():
             # Ignore local events
             return
 
@@ -464,8 +465,9 @@ class _JSON_proxy(object):
 
 @ComponentFactory("ServiceImporterFactory")
 @Instantiate("ServiceImporter")
-@Requires("sender", "org.psem2m.signals.ISignalBroadcaster")
+@Requires("directory", "org.psem2m.signals.ISignalDirectory")
 @Requires("receiver", "org.psem2m.signals.ISignalReceiver")
+@Requires("sender", "org.psem2m.signals.ISignalBroadcaster")
 class ServiceImporter(object):
     """
     PSEM2M Remote Services importer
@@ -493,7 +495,7 @@ class ServiceImporter(object):
         Called when a remote services signal is received
         """
         sender = signal_data["senderId"]
-        if sender == self.sender.get_isolate_id():
+        if sender == self.directory.get_isolate_id():
             # Ignore local events
             return
 

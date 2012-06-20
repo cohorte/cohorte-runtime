@@ -99,6 +99,9 @@ class DirectoryUpdater(object):
             self._directory.register_isolate(isolate_id, info["node"],
                                              info["port"], info["groups"])
 
+        # Now, we can send our registration signal
+        self._send_registration()
+
 
     def _register_isolate(self, signal_data):
         """
@@ -183,9 +186,6 @@ class DirectoryUpdater(object):
 
         else:
             self._grab_directory(int(dump_port))
-
-        # Send our registration signal
-        self._send_registration()
 
         # Register to isolate registration signals
         self._receiver.register_listener(SIGNAL_PREFIX_MATCH_ALL, self)
