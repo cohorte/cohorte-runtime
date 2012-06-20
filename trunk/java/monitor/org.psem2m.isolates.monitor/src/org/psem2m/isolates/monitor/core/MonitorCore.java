@@ -523,7 +523,7 @@ public class MonitorCore extends CPojoBase implements
 
         // Last man standing...
         pSignalSender.fireGroup(ISignalsConstants.ISOLATE_STOP_SIGNAL, null,
-                EBaseGroup.LOCAL);
+                EBaseGroup.CURRENT);
     }
 
     /**

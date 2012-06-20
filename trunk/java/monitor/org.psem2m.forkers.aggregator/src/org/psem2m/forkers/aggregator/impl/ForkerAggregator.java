@@ -469,19 +469,17 @@ public class ForkerAggregator implements IForker, ISignalListener,
     protected void registerForker(final String aForkerId,
             final String aForkerNode, final String aHost, final int aPort) {
 
-        // Set the node host
+        // Update the node host
         pDirectory.setNodeAddress(aForkerNode, aHost);
 
-        // Register the forker
-        if (pDirectory
-                .registerIsolate(aForkerId, aForkerNode, aPort, "FORKERS")) {
+        // Register the forker (it can already be in the directory)
+        pDirectory.registerIsolate(aForkerId, aForkerNode, aPort, "FORKERS");
 
-            pLogger.logInfo(this, "registerForker", "Registered forker ID=",
-                    aForkerId, "Node=", aForkerNode, "Port=", aPort);
+        pLogger.logInfo(this, "registerForker", "Registered forker ID=",
+                aForkerId, "Node=", aForkerNode, "Port=", aPort);
 
-            // Notify listeners
-            fireForkerEvent(EForkerEventType.REGISTERED, aForkerId, aForkerNode);
-        }
+        // Notify listeners
+        fireForkerEvent(EForkerEventType.REGISTERED, aForkerId, aForkerNode);
     }
 
     /*
