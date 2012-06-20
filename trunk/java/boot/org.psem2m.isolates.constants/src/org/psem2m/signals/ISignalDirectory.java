@@ -41,6 +41,11 @@ public interface ISignalDirectory {
     }
 
     /**
+     * Represents the access to the local isolate
+     */
+    HostAccess LOCAL_ACCESS = new HostAccess(null, -1);
+
+    /**
      * Returns a snapshot of the directory.
      * 
      * The result is a map with 4 entries :

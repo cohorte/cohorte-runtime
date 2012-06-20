@@ -32,6 +32,35 @@ public class HostAccess {
         pPort = aPort;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(final Object aObj) {
+
+        if (aObj instanceof HostAccess) {
+            final HostAccess other = (HostAccess) aObj;
+
+            // Addresses must be equals
+            if (pAddress != null) {
+                if (!pAddress.equals(other.pAddress)) {
+                    return false;
+                }
+            } else {
+                if (other.pAddress != null) {
+                    return false;
+                }
+            }
+
+            return pPort == other.pPort;
+        }
+
+        // Invalid type
+        return false;
+    }
+
     /**
      * Retrieves the host address
      * 
