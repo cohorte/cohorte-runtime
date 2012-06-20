@@ -25,6 +25,7 @@ import org.psem2m.signals.ISignalBroadcaster;
 import org.psem2m.signals.ISignalBroadcaster.ESendMode;
 import org.psem2m.signals.ISignalData;
 import org.psem2m.signals.ISignalDirectory;
+import org.psem2m.signals.ISignalDirectory.EBaseGroup;
 import org.psem2m.signals.ISignalListener;
 import org.psem2m.signals.ISignalReceiver;
 import org.psem2m.signals.IWaitingSignal;
@@ -125,6 +126,10 @@ public class DirectoryUpdater implements ISignalListener,
         if (dump != null) {
             // All good, store it
             storeDirectory(dump);
+
+            // Send our registration, one we have the directory...
+            pLogger.logDebug(this, "validate", "Sending registration");
+            sendRegistration();
 
         } else {
             // Nothing found
@@ -236,9 +241,7 @@ public class DirectoryUpdater implements ISignalListener,
         content.put("port", pReceiver.getAccessInfo().getPort());
 
         // Send the signal (don't wait for a result)
-        // pSender.fireGroup(SIGNAL_REGISTER, content, "ALL");
-        pSender.stackGroup(SIGNAL_REGISTER, content, this, ESendMode.SEND,
-                Integer.MAX_VALUE, "ALL");
+        pSender.sendGroup(SIGNAL_REGISTER, content, EBaseGroup.OTHERS);
     }
 
     /**
@@ -307,6 +310,9 @@ public class DirectoryUpdater implements ISignalListener,
 
         // 3. Register all new isolates
         for (final IsolateInfo info : isolates.values()) {
+            pLogger.logDebug(this, "storeDirectory", "Registering id=",
+                    info.id, "node=", info.node, "port=", info.port);
+
             pDirectory.registerIsolate(info.id, info.node, info.port,
                     info.groups.toArray(new String[0]));
         }
@@ -343,10 +349,6 @@ public class DirectoryUpdater implements ISignalListener,
             pSender.stack(SIGNAL_DUMP, null, this, ESendMode.SEND,
                     Integer.MAX_VALUE, new HostAccess("localhost", dumpPort));
         }
-
-        // Send our registration
-        pLogger.logDebug(this, "validate", "Sending registration");
-        sendRegistration();
 
         // Register to signals
         pLogger.logDebug(this, "validate", "Registering to the receiver...");
