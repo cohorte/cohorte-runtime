@@ -8,6 +8,7 @@ package org.psem2m.signals;
 import java.util.concurrent.Future;
 
 import org.psem2m.signals.ISignalBroadcaster.ESendMode;
+import org.psem2m.signals.ISignalDirectory.EBaseGroup;
 
 /**
  * Represents a signal in the waiting list
@@ -18,6 +19,9 @@ public class WaitingSignal implements IWaitingSignal {
 
     /** Access for sendTo() */
     private final HostAccess pAccess;
+
+    /** A directory base group */
+    private final EBaseGroup pBaseGroup;
 
     /** The raw signal content */
     private final Object pContent;
@@ -67,17 +71,12 @@ public class WaitingSignal implements IWaitingSignal {
      *            The signal sending mode
      * @param aTTL
      *            Time to live in the waiting list (in seconds)
-     * @param aAccess
-     *            An access to one isolate (implies a call to sendTo())
-     * @param aIsolates
-     *            Target isolates
-     * @param aGroups
-     *            Target groups
+     * @param aGroup
+     *            A directory base group
      */
     public WaitingSignal(final String aSignalName, final Object aContent,
             final IWaitingSignalListener aListener, final ESendMode aMode,
-            final long aTTL, final HostAccess aAccess,
-            final String[] aIsolates, final String[] aGroups) {
+            final long aTTL, final EBaseGroup aGroup) {
 
         pName = aSignalName;
         pContent = aContent;
@@ -85,18 +84,84 @@ public class WaitingSignal implements IWaitingSignal {
         pMode = aMode;
         pTTL = aTTL;
 
-        if (aAccess != null) {
-            pAccess = aAccess;
-            pGroups = null;
-            pIsolates = null;
+        pAccess = null;
+        pBaseGroup = aGroup;
+        pGroups = null;
+        pIsolates = null;
+    }
 
-        } else if (aGroups != null) {
-            pAccess = null;
+    /**
+     * Sets up the signal bean.
+     * 
+     * Only one of aAccess, aIsolates or aGroups must be given.
+     * 
+     * @param aSignalName
+     *            Signal name
+     * @param aContent
+     *            Raw signal content
+     * @param aListener
+     *            The waiting signal listener
+     * @param aMode
+     *            The signal sending mode
+     * @param aTTL
+     *            Time to live in the waiting list (in seconds)
+     * @param aAccess
+     *            An access to one isolate (implies a call to sendTo())
+     */
+    public WaitingSignal(final String aSignalName, final Object aContent,
+            final IWaitingSignalListener aListener, final ESendMode aMode,
+            final long aTTL, final HostAccess aAccess) {
+
+        pName = aSignalName;
+        pContent = aContent;
+        pListener = aListener;
+        pMode = aMode;
+        pTTL = aTTL;
+
+        pAccess = aAccess;
+        pBaseGroup = null;
+        pGroups = null;
+        pIsolates = null;
+    }
+
+    /**
+     * Sets up the signal bean.
+     * 
+     * Only one of aAccess, aIsolates or aGroups must be given.
+     * 
+     * @param aSignalName
+     *            Signal name
+     * @param aContent
+     *            Raw signal content
+     * @param aListener
+     *            The waiting signal listener
+     * @param aMode
+     *            The signal sending mode
+     * @param aTTL
+     *            Time to live in the waiting list (in seconds)
+     * @param aIsolates
+     *            Target isolates
+     * @param aGroups
+     *            Target groups
+     */
+    public WaitingSignal(final String aSignalName, final Object aContent,
+            final IWaitingSignalListener aListener, final ESendMode aMode,
+            final long aTTL, final String[] aIsolates, final String[] aGroups) {
+
+        pName = aSignalName;
+        pContent = aContent;
+        pListener = aListener;
+        pMode = aMode;
+        pTTL = aTTL;
+
+        pAccess = null;
+        pBaseGroup = null;
+
+        if (aGroups != null) {
             pGroups = aGroups;
             pIsolates = null;
 
         } else {
-            pAccess = null;
             pGroups = null;
             pIsolates = aIsolates;
         }
@@ -165,6 +230,17 @@ public class WaitingSignal implements IWaitingSignal {
     public String[] getFireResult() {
 
         return pFireResult;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.signals.IWaitingSignal#getGroup()
+     */
+    @Override
+    public EBaseGroup getGroup() {
+
+        return pBaseGroup;
     }
 
     /*

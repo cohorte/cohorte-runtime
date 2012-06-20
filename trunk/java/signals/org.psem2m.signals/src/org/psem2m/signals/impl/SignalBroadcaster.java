@@ -34,6 +34,7 @@ import org.psem2m.signals.ISignalBroadcastProvider;
 import org.psem2m.signals.ISignalBroadcaster;
 import org.psem2m.signals.ISignalData;
 import org.psem2m.signals.ISignalDirectory;
+import org.psem2m.signals.ISignalDirectory.EBaseGroup;
 import org.psem2m.signals.ISignalReceiver;
 import org.psem2m.signals.ISignalSendResult;
 import org.psem2m.signals.IWaitingSignalListener;
@@ -115,6 +116,43 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
      *            Signal content
      * @param aMode
      *            Signal request mode
+     * @param aGroup
+     *            Target directory group
+     * @return A SignalSendResult object per reached isolate, null on error
+     */
+    protected ISignalSendResult commonGroupSignalHandling(
+            final String aSignalName, final Object aContent,
+            final String aMode, final EBaseGroup aGroup) {
+
+        final Map<String, HostAccess> accesses = pDirectory
+                .getGroupAccesses(aGroup);
+        if (accesses == null || accesses.isEmpty()) {
+            // No known isolate found
+            pLogger.logDebug(this, "commonGroupSignalHandling",
+                    "No access found for groups=", aGroup);
+            return null;
+        }
+
+        // Forge the signal content
+        final SignalData signalData = new SignalData();
+        signalData.setSenderId(pDirectory.getIsolateId());
+        signalData.setSenderNode(pDirectory.getLocalNode());
+        signalData.setSignalContent(aContent);
+
+        // Send the signal
+        return sendLoop(accesses, aSignalName, signalData, aMode);
+    }
+
+    /**
+     * Common code to send a signal to groups : accesses resolution, signal
+     * content forge...
+     * 
+     * @param aSignalName
+     *            Name of the signal
+     * @param aContent
+     *            Signal content
+     * @param aMode
+     *            Signal request mode
      * @param aGroups
      *            Target groups
      * @return A SignalSendResult object per reached isolate, null on error
@@ -135,6 +173,8 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
 
         if (accesses.isEmpty()) {
             // No known isolate found
+            pLogger.logDebug(this, "commonGroupSignalHandling",
+                    "No access found for groups=", Arrays.toString(aGroups));
             return null;
         }
 
@@ -223,7 +263,27 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
 
         final ISignalSendResult result = commonSignalHandling(aSignalName,
                 aContent, MODE_FORGET, aIsolates);
+        if (result == null) {
+            // Unknown targets
+            return null;
+        }
 
+        // Only return reached isolates
+        return result.getResults().keySet().toArray(new String[0]);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.signals.ISignalBroadcaster#fireGroup(java.lang.String,
+     * java.lang.Object, org.psem2m.signals.ISignalDirectory.EBaseGroup)
+     */
+    @Override
+    public String[] fireGroup(final String aSignalName, final Object aContent,
+            final EBaseGroup aGroup) {
+
+        final ISignalSendResult result = commonGroupSignalHandling(aSignalName,
+                aContent, MODE_FORGET, aGroup);
         if (result == null) {
             // Unknown targets
             return null;
@@ -246,7 +306,6 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
 
         final ISignalSendResult result = commonGroupSignalHandling(aSignalName,
                 aContent, MODE_FORGET, aGroups);
-
         if (result == null) {
             // Unknown targets
             return null;
@@ -269,6 +328,7 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
         final Object content = aSignal.getContent();
         final HostAccess access = aSignal.getAccess();
         final String[] isolates = aSignal.getIsolates();
+        final EBaseGroup baseGroup = aSignal.getGroup();
         final String[] groups = aSignal.getGroups();
 
         switch (aSignal.getMode()) {
@@ -301,6 +361,10 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
                     // Send
                     result = send(name, content, isolates);
 
+                } else if (baseGroup != null) {
+                    // Send group
+                    result = sendGroup(name, content, baseGroup);
+
                 } else if (groups != null) {
                     // Send group
                     result = sendGroup(name, content, groups);
@@ -322,6 +386,10 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
                 // Post
                 result = post(name, content, isolates);
 
+            } else if (baseGroup != null) {
+                // Send group
+                result = postGroup(name, content, baseGroup);
+
             } else if (groups != null) {
                 // Post group
                 result = postGroup(name, content, groups);
@@ -341,6 +409,10 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
             if (isolates != null) {
                 // Fire
                 result = fire(name, content, isolates);
+
+            } else if (baseGroup != null) {
+                // Send group
+                result = fireGroup(name, content, baseGroup);
 
             } else if (groups != null) {
                 // Fire group
@@ -469,8 +541,32 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
             @Override
             public ISignalSendResult call() throws Exception {
 
-                return commonSignalHandling(aSignalName, aContent, MODE_SEND,
-                        aIsolates);
+                // Re-use existing code...
+                return send(aSignalName, aContent, aIsolates);
+            }
+        };
+
+        // Submit the operation
+        return pExecutor.submit(method);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.signals.ISignalBroadcaster#postGroup(java.lang.String,
+     * java.lang.Object, org.psem2m.signals.ISignalDirectory.EBaseGroup)
+     */
+    @Override
+    public Future<ISignalSendResult> postGroup(final String aSignalName,
+            final Object aContent, final EBaseGroup aGroup) {
+
+        final Callable<ISignalSendResult> method = new Callable<ISignalSendResult>() {
+
+            @Override
+            public ISignalSendResult call() throws Exception {
+
+                // Re-use existing code...
+                return sendGroup(aSignalName, aContent, aGroup);
             }
         };
 
@@ -494,8 +590,32 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
             @Override
             public ISignalSendResult call() throws Exception {
 
-                return commonGroupSignalHandling(aSignalName, aContent,
-                        MODE_SEND, aGroups);
+                // Re-use existing code...
+                return sendGroup(aSignalName, aContent, aGroups);
+            }
+        };
+
+        // Submit the operation
+        return pExecutor.submit(method);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.signals.ISignalBroadcaster#postTo(java.lang.String,
+     * java.lang.Object, java.lang.String, int)
+     */
+    @Override
+    public Future<Object[]> postTo(final String aSignalName,
+            final Object aContent, final String aHost, final int aPort) {
+
+        final Callable<Object[]> method = new Callable<Object[]>() {
+
+            @Override
+            public Object[] call() throws Exception {
+
+                // Use existing code...
+                return sendTo(aSignalName, aContent, aHost, aPort);
             }
         };
 
@@ -514,6 +634,20 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
             final Object aContent, final String... aIsolates) {
 
         return commonSignalHandling(aSignalName, aContent, MODE_SEND, aIsolates);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.signals.ISignalBroadcaster#sendGroup(java.lang.String,
+     * java.lang.Object, org.psem2m.signals.ISignalDirectory.EBaseGroup)
+     */
+    @Override
+    public ISignalSendResult sendGroup(final String aSignalName,
+            final Object aContent, final EBaseGroup aGroup) {
+
+        return commonGroupSignalHandling(aSignalName, aContent, MODE_SEND,
+                aGroup);
     }
 
     /*
@@ -628,7 +762,7 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
             final long aTTL, final HostAccess aAccess) {
 
         return commonStackHandling(new WaitingSignal(aSignalName, aContent,
-                aListener, aMode, aTTL, aAccess, null, null));
+                aListener, aMode, aTTL, aAccess));
     }
 
     /*
@@ -645,7 +779,24 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
             final long aTTL, final String... aIsolates) {
 
         return commonStackHandling(new WaitingSignal(aSignalName, aContent,
-                aListener, aMode, aTTL, null, aIsolates, null));
+                aListener, aMode, aTTL, aIsolates, null));
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.signals.ISignalBroadcaster#stackGroup(java.lang.String,
+     * java.lang.Object, org.psem2m.signals.IWaitingSignalListener,
+     * org.psem2m.signals.ISignalBroadcaster.ESendMode, long,
+     * org.psem2m.signals.ISignalDirectory.EBaseGroup)
+     */
+    @Override
+    public boolean stackGroup(final String aSignalName, final Object aContent,
+            final IWaitingSignalListener aListener, final ESendMode aMode,
+            final long aTTL, final EBaseGroup aGroup) {
+
+        return commonStackHandling(new WaitingSignal(aSignalName, aContent,
+                aListener, aMode, aTTL, aGroup));
     }
 
     /*
@@ -662,7 +813,7 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
             final long aTTL, final String... aGroups) {
 
         return commonStackHandling(new WaitingSignal(aSignalName, aContent,
-                aListener, aMode, aTTL, null, null, aGroups));
+                aListener, aMode, aTTL, null, aGroups));
     }
 
     /**

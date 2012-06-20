@@ -8,6 +8,7 @@ package org.psem2m.signals;
 import java.util.concurrent.Future;
 
 import org.psem2m.signals.ISignalBroadcaster.ESendMode;
+import org.psem2m.signals.ISignalDirectory.EBaseGroup;
 
 /**
  * Represents a waiting signal
@@ -45,6 +46,13 @@ public interface IWaitingSignal {
      * @return the result of a call to fire()
      */
     String[] getFireResult();
+
+    /**
+     * Retrieves the targeted directory base group
+     * 
+     * @return the directory base group
+     */
+    EBaseGroup getGroup();
 
     /**
      * Retrieves the target groups
