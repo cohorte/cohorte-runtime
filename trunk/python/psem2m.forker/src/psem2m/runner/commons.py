@@ -89,12 +89,11 @@ class Runner(object):
         working_dir = self._make_working_directory(isolate_id)
 
         # Prepare the environment...
-        env = os.environ.copy()
-
         # ... use configuration values
-        iso_env = self._make_env(isolate_descr)
-        if iso_env is not None:
-            env.update(iso_env)
+        env = self._make_env(isolate_descr, os.environ.copy())
+        if env is None:
+            # ... or start with a fresh environment
+            env = {}
 
         # ... set up constants values
         home = os.getenv(psem2m.PSEM2M_HOME, os.getcwd())
@@ -139,25 +138,32 @@ class Runner(object):
         raise NotImplementedError("Runner should implement _make_args()")
 
 
-    def _make_env(self, isolate_descr):
+    def _make_env(self, isolate_descr, base_env):
         """
         Retrieves the process environment variables to be set.
         
         The result must only contain strings keys and string values.
         
         Default implementation: returns the normalized content of
-        isolate_descr["environment"].
+        isolate_descr["environment"] overriding the base environment.
+        
+        :param isolate_descr: Isolate description
+        :param base_env: Current environment variables
         
         :return: The isolate environment variables
         """
         env = isolate_descr.get("environment", None)
         if not env or type(env) is not dict:
             # Nothing to do or to understand...
-            return None
+            return base_env
 
         # Normalize the dictionary (only strings are allowed)
-        return dict((str(key), str(value))
-                    for key, value in env.items())
+        norm_dict = dict((str(key), str(value))
+                         for key, value in env.items())
+
+        # Update the base_environment
+        base_env.update(norm_dict)
+        return base_env
 
 
     def _make_working_directory(self, isolate_id):

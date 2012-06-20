@@ -22,6 +22,8 @@ import psem2m.runner.commons as runner
 import logging
 _logger = logging.getLogger(__name__)
 
+import os
+
 # ------------------------------------------------------------------------------
 
 ISOLATE_HTTP_PORT = "HTTP_PORT"
@@ -113,20 +115,42 @@ class PythonRunner(runner.Runner):
         return args
 
 
-    def _make_env(self, isolate_descr):
+    def _make_env(self, isolate_descr, base_env):
         """
         Retrieves the process environment variables to be set.
         
+        :param isolate_descr: Isolate description
+        :param base_env: Current environment variables
+        
         :return: The isolate environment variables
         """
-        # Call the parent method
-        env = super(PythonRunner, self)._make_env(isolate_descr)
+        # Copy the existing Python path
+        python_path = base_env.get("PYTHONPATH", None)
+
+        # Call the parent method (will override environment values)
+        env = super(PythonRunner, self)._make_env(isolate_descr, base_env)
         if env is None:
             # Parent did nothing
             env = {}
 
         # Set up Python specific values
-        env[ISOLATE_HTTP_PORT] = isolate_descr["httpPort"]
+        env[ISOLATE_HTTP_PORT] = str(isolate_descr["httpPort"])
+
+        # Update the Python path
+        if python_path:
+            current_path = env.get("PYTHONPATH", None)
+            if not current_path:
+                # Python path erased, reset it
+                env["PYTHONPATH"] = python_path
+
+            else:
+                # Merge elements
+                path = set(current_path.split(os.pathsep))
+                path |= set(python_path.split(os.pathsep))
+
+                env["PYTHONPATH"] = os.pathsep.join(path)
+
+        return env
 
 
     @Validate

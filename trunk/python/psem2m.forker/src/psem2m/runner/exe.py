@@ -90,17 +90,21 @@ class ExecutableRunner(runner.Runner):
         return args
 
 
-    def _make_env(self, isolate_descr):
+    def _make_env(self, isolate_descr, base_env):
         """
         Retrieves the process environment variables to be set.
+        
+        :param isolate_descr: Isolate description
+        :param base_env: Current environment variables
         
         :return: The isolate environment variables
         """
         # Call the parent method
-        env = super(ExecutableRunner, self)._make_env(isolate_descr)
+        env = super(ExecutableRunner, self)._make_env(isolate_descr, base_env)
         if env is None:
             # Parent did nothing
             env = {}
 
         # Set up the PSEM2M Signals port variable, just in case
         env[ISOLATE_HTTP_PORT] = isolate_descr["httpPort"]
+        return env
