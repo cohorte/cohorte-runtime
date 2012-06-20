@@ -171,6 +171,10 @@ class SignalReceiver(object):
                     signal_data = from_jabsorb(json.loads(
                                                     read_post_body(handler)))
 
+                    if signal_data:
+                        # Complete the signal information: client IP
+                        signal_data["senderAddress"] = handler.client_address[0]
+
                     # Handle the signal
                     code, content = self.handle_received_signal(signal_name,
                                                                 signal_data,
@@ -311,7 +315,7 @@ class SignalReceiver(object):
         self.http.register_servlet(SignalReceiver.SERVLET_PATH, self)
 
         # Register ourselves in the directory
-        self._directory.register_local(self.http.get_port(), "LOCAL")
+        self._directory.register_local(self.http.get_port(), ["ALL", "LOCAL"])
 
 
     def _notify_listeners(self, name, data):
@@ -451,7 +455,6 @@ class SignalSender(object):
         self._context = None
 
         # Java API compatibility
-        self.getCurrentIsolateId = self.get_current_isolate_id
         self.sendTo = self.send_to
         self.fireGroup = lambda s, c, g : self.fire(s, c, groups=g)
         self.postGroup = lambda s, c, g : self.post(s, c, groups=g)
@@ -482,13 +485,6 @@ class SignalSender(object):
 
         # Only return reached isolates
         return result[0].keys()
-
-
-    def get_current_isolate_id(self):
-        """
-        Retrieves the current isolate ID
-        """
-        return self._context.get_property("psem2m.isolate.id")
 
 
     @Invalidate
