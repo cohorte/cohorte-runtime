@@ -50,6 +50,9 @@ class SignalsDirectory(object):
         # Node name -> host
         self._nodes_host = {}
 
+        # Current isolate access port
+        self._current_isolate_port = -1
+
         # Java API compliance (if possible)
         self.getAllIsolates = self.get_all_isolates
         self.getHostForNode = self.get_host_for_node
@@ -79,6 +82,11 @@ class SignalsDirectory(object):
             # Isolate accesses, converted into a map
             result["accesses"] = {}
             for isolate_id, access in self._accesses.items():
+
+                if access[0] is None:
+                    # Special case: current isolate
+                    access = (self.get_local_node(), self._current_isolate_port)
+
                 result["accesses"][isolate_id] = {"node": access[0],
                                                   "port": access[1]}
 
@@ -251,7 +259,7 @@ class SignalsDirectory(object):
         self._context = None
 
 
-    def register_isolate(self, isolate_id, node, port, *groups):
+    def register_isolate(self, isolate_id, node, port, groups):
         """
         Registers an isolate in the directory.
         
@@ -296,6 +304,10 @@ class SignalsDirectory(object):
             # Store the isolate in all groups
             if groups:
                 for group in groups:
+                    if not group:
+                        # Ignore empty names
+                        continue
+
                     # Lower case for case-insensitivity
                     group = group.lower()
 
@@ -315,7 +327,7 @@ class SignalsDirectory(object):
         return True
 
 
-    def register_local(self, port, *groups):
+    def register_local(self, port, groups):
         """
         Registers the local isolate in the registry
         
@@ -326,8 +338,8 @@ class SignalsDirectory(object):
         node = self.get_local_node()
 
         with self._lock:
-            # Store the isolate access
-            self._accesses[isolate_id] = (node, port)
+            # Store the isolate access port
+            self._current_isolate_port = port
 
             # Store the node
             node_isolates = self._nodes_isolates.get(node, None)
@@ -342,6 +354,10 @@ class SignalsDirectory(object):
             # Store the isolate in all groups
             if groups:
                 for group in groups:
+                    # Empty names are ignored
+                    if not group:
+                        continue
+
                     # Lower case for case-insensitivity
                     group = group.lower()
 
@@ -372,11 +388,6 @@ class SignalsDirectory(object):
             old = self._nodes_host.get(node, None)
             if not address or address == old:
                 # Nothing to do
-                return old
-
-            if address == "{LOCAL}":
-                _logger.warning("Trying to override {LOCAL} with address=%s",
-                                address)
                 return old
 
             # Update the address if neither None nor empty
@@ -427,8 +438,7 @@ class SignalsDirectory(object):
         """
         self._context = context
 
-        # Special access for local isolate
-        self._nodes_host[self.get_local_node()] = "{LOCAL}"
-
-        # Dummy registration, for the local loop
-        self.register_local(-1, "LOCAL")
+        # Special registration for the current isolate
+        self._accesses[self.get_isolate_id()] = (None, -1)
+        self._nodes_host[self.get_local_node()] = "localhost"
+        self.register_local(-1, None)

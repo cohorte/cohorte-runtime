@@ -97,7 +97,7 @@ class DirectoryUpdater(object):
         # 3. Register all new isolates
         for isolate_id, info in new_isolates.items():
             self._directory.register_isolate(isolate_id, info["node"],
-                                             info["port"], *info["groups"])
+                                             info["port"], info["groups"])
 
 
     def _register_isolate(self, signal_data):
@@ -153,9 +153,6 @@ class DirectoryUpdater(object):
         :param name: Signal name
         :param signal_data: Signal content
         """
-        _logger.debug("Received Signal '%s' from '%s'", name,
-                      signal_data["senderId"])
-
         if name == SIGNAL_DUMP:
             # Dump the directory
             return self._directory.dump()

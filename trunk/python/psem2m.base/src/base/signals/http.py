@@ -713,7 +713,7 @@ class SignalSender(object):
         except (TypeError, ValueError):
             raise ValueError("Invalid access tuple : '%s'" % access)
 
-        if host == "{LOCAL}":
+        if host == None:
             # Special case : local signals don't have to go through the network
             return self._local_recv.handle_received_signal(signal, content)
 
