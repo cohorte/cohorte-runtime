@@ -5,7 +5,9 @@
  */
 package org.psem2m.signals.impl;
 
+import java.util.Arrays;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.psem2m.signals.ISignalSendResult;
 
@@ -57,5 +59,36 @@ public class SignalSendResult implements ISignalSendResult {
     public Map<String, Object[]> getResults() {
 
         return pResults;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+
+        final StringBuilder builder = new StringBuilder();
+        builder.append("SignalSendResults(Results=");
+
+        if (pResults == null) {
+            builder.append("null");
+
+        } else {
+            builder.append("{");
+            for (final Entry<String, Object[]> entry : pResults.entrySet()) {
+                builder.append(entry.getKey());
+                builder.append("=");
+                builder.append(Arrays.toString(entry.getValue()));
+            }
+            builder.append("}");
+        }
+
+        builder.append("; Failed=");
+        builder.append(Arrays.toString(pFailed));
+        builder.append(")");
+
+        return builder.toString();
     }
 }
