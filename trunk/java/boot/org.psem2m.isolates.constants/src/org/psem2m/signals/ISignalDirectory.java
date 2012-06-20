@@ -16,6 +16,31 @@ import java.util.Map;
 public interface ISignalDirectory {
 
     /**
+     * Constants to handle base groups, computed by the directory itself
+     * 
+     * @author Thomas Calmant
+     */
+    public enum EBaseGroup {
+        /** All isolates, including the current one */
+        ALL,
+        /** All forkers, including the current isolate if it is a forker */
+        FORKERS,
+        /**
+         * All isolates, including monitors and the current one, excluding
+         * forkers. If the current isolate is a forker, it is excluded.
+         */
+        ISOLATES,
+        /** Current isolate */
+        LOCAL,
+        /** All monitors, including the current isolate if it is a monitor */
+        MONITORS,
+        /** All isolates on the current node, excluding the current one */
+        NODE,
+        /** All isolates, with monitors and forkers, but this one */
+        OTHERS,
+    }
+
+    /**
      * Returns a snapshot of the directory.
      * 
      * The result is a map with 4 entries :
@@ -38,9 +63,21 @@ public interface ISignalDirectory {
      * 
      * @param aPrefix
      *            An optional prefix filter
+     * @param aIncludeCurrent
+     *            If true, include the current isolate in the result
      * @return All known isolates beginning with prefix, or null
      */
-    String[] getAllIsolates(String aPrefix);
+    String[] getAllIsolates(String aPrefix, boolean aIncludeCurrent);
+
+    /**
+     * Retrieves an Isolate Id -&gt; (host, port) map, containing all known
+     * isolates that belong to given group.
+     * 
+     * @param aGroup
+     *            A base group
+     * @return An ID -&gt; (host, port) map, null if the group is unknown
+     */
+    Map<String, HostAccess> getGroupAccesses(EBaseGroup aGroup);
 
     /**
      * Retrieves an Isolate Id -&gt; (host, port) map, containing all known

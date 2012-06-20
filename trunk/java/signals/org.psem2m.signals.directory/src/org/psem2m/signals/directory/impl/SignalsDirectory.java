@@ -6,10 +6,14 @@
 package org.psem2m.signals.directory.impl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
@@ -87,34 +91,150 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.signals.ISignalDirectory#getAllIsolates(java.lang.String)
+     * @see org.psem2m.signals.ISignalDirectory#getAllIsolates(java.lang.String,
+     * boolean)
      */
     @Override
-    public synchronized String[] getAllIsolates(final String aPrefix) {
+    public synchronized String[] getAllIsolates(final String aPrefix,
+            final boolean aIncludeCurrent) {
 
         if (pAccesses.isEmpty()) {
             // Nothing to return
             return null;
         }
 
+        // Get the current isolate ID
+        final String currentId = getIsolateId();
+
+        final Set<String> resultSet;
         if (aPrefix == null || aPrefix.isEmpty()) {
             // No filter, return all IDs
-            return pAccesses.keySet().toArray(new String[0]);
-        }
+            resultSet = new HashSet<String>(pAccesses.keySet());
 
-        final List<String> matching = new ArrayList<String>();
-        for (final String isolate : pAccesses.keySet()) {
-            if (isolate.startsWith(aPrefix)) {
-                matching.add(isolate);
+        } else {
+            // Filter IDs
+            resultSet = new HashSet<String>();
+            for (final String isolate : pAccesses.keySet()) {
+                if (isolate.startsWith(aPrefix)) {
+                    resultSet.add(isolate);
+                }
             }
         }
 
-        if (matching.isEmpty()) {
+        if (!aIncludeCurrent) {
+            // Remove current isolate if needed
+            resultSet.remove(currentId);
+        }
+
+        if (resultSet.isEmpty()) {
             // Nothing to return
             return null;
         }
 
-        return matching.toArray(new String[0]);
+        return resultSet.toArray(new String[0]);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.signals.ISignalDirectory#getGroupAccesses(org.psem2m.signals
+     * .ISignalDirectory.EBaseGroup)
+     */
+    @Override
+    public Map<String, HostAccess> getGroupAccesses(final EBaseGroup aGroup) {
+
+        // Current ID
+        final String currentId = getIsolateId();
+
+        // Filtered IDs
+        String[] matchingIsolates = null;
+
+        switch (aGroup) {
+        case ALL:
+            // Return all isolates, including the current one
+            matchingIsolates = getAllIsolates(null, true);
+            break;
+
+        case OTHERS:
+            // Return all isolates, excluding the current one
+            matchingIsolates = getAllIsolates(null, false);
+            break;
+
+        case FORKERS:
+            // Return only forkers, including the current one
+            matchingIsolates = getAllIsolates(
+                    IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER, true);
+            break;
+
+        case MONITORS:
+            // Return only monitors, including the current one
+            matchingIsolates = getAllIsolates(
+                    IPlatformProperties.SPECIAL_ISOLATE_ID_MONITOR, true);
+            break;
+
+        case ISOLATES:
+            // Return all isolates but the forkers
+            matchingIsolates = getAllIsolates(null, true);
+            if (matchingIsolates != null) {
+                // Use a temporary set
+                final Set<String> set = new HashSet<String>(
+                        Arrays.asList(matchingIsolates));
+
+                final Iterator<String> iter = set.iterator();
+                while (iter.hasNext()) {
+                    // Filter IDs
+                    final String isolate = iter.next();
+                    if (isolate
+                            .startsWith(IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER)) {
+                        // Remove forkers
+                        iter.remove();
+                    }
+                }
+
+                matchingIsolates = set.toArray(new String[0]);
+            }
+            break;
+
+        case LOCAL:
+            // Only the current isolate
+            matchingIsolates = new String[] { currentId };
+            break;
+
+        case NODE:
+            // All isolates from the current node, excluding the current one
+            matchingIsolates = getIsolatesOnNode(getLocalNode());
+            if (matchingIsolates != null) {
+                // Use a temporary set
+                final Set<String> set = new HashSet<String>(
+                        Arrays.asList(matchingIsolates));
+
+                // Remove the current ID
+                set.remove(currentId);
+                matchingIsolates = set.toArray(new String[0]);
+            }
+            break;
+
+        default:
+            matchingIsolates = null;
+            break;
+        }
+
+        if (matchingIsolates == null || matchingIsolates.length == 0) {
+            // No IDs found
+            return null;
+        }
+
+        final Map<String, HostAccess> accesses = new HashMap<String, HostAccess>();
+        for (final String isolate : matchingIsolates) {
+            // Find all accesses for this group
+            final HostAccess access = getIsolateAccess(isolate);
+            if (access != null) {
+                accesses.put(isolate, access);
+            }
+        }
+
+        return accesses;
     }
 
     /*

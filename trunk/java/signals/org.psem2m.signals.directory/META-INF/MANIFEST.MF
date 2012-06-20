@@ -51,22 +51,24 @@ iPOJO-Components: instance { $component="org.psem2m.signals.directory.
  se.IIsolateLoggerSvc" }field { $name="pNodesHost" $type="java.util.Ma
  p" }field { $name="pNodesIsolates" $type="java.util.Map" }method { $n
  ame="dump" $return="java.util.Map" }method { $name="getAllIsolates" $
- return="java.lang.String[]" $arguments="{java.lang.String}" }method {
-  $name="getGroupAccesses" $return="java.util.Map" $arguments="{java.l
- ang.String}" }method { $name="getHostForNode" $return="java.lang.Stri
- ng" $arguments="{java.lang.String}" }method { $name="getIsolateAccess
- " $return="org.psem2m.signals.HostAccess" $arguments="{java.lang.Stri
- ng}" }method { $name="getIsolateId" $return="java.lang.String" }metho
- d { $name="getIsolateNode" $return="java.lang.String" $arguments="{ja
- va.lang.String}" }method { $name="getIsolatesOnNode" $return="java.la
- ng.String[]" $arguments="{java.lang.String}" }method { $name="getLoca
- lNode" $return="java.lang.String" }method { $name="invalidatePojo" }m
- ethod { $name="isRegistered" $return="boolean" $arguments="{java.lang
- .String}" }method { $name="registerIsolate" $return="boolean" $argume
- nts="{java.lang.String,java.lang.String,int,java.lang.String[]}" }met
- hod { $name="registerLocal" $arguments="{int,java.lang.String[]}" }me
- thod { $name="setNodeAddress" $return="java.lang.String" $arguments="
- {java.lang.String,java.lang.String}" }method { $name="unregisterIsola
- te" $return="boolean" $arguments="{java.lang.String}" }method { $name
- ="validatePojo" }}}
+ return="java.lang.String[]" $arguments="{java.lang.String,boolean}" }
+ method { $name="getGroupAccesses" $return="java.util.Map" $arguments=
+ "{org.psem2m.signals.ISignalDirectory$EBaseGroup}" }method { $name="g
+ etGroupAccesses" $return="java.util.Map" $arguments="{java.lang.Strin
+ g}" }method { $name="getHostForNode" $return="java.lang.String" $argu
+ ments="{java.lang.String}" }method { $name="getIsolateAccess" $return
+ ="org.psem2m.signals.HostAccess" $arguments="{java.lang.String}" }met
+ hod { $name="getIsolateId" $return="java.lang.String" }method { $name
+ ="getIsolateNode" $return="java.lang.String" $arguments="{java.lang.S
+ tring}" }method { $name="getIsolatesOnNode" $return="java.lang.String
+ []" $arguments="{java.lang.String}" }method { $name="getLocalNode" $r
+ eturn="java.lang.String" }method { $name="invalidatePojo" }method { $
+ name="isRegistered" $return="boolean" $arguments="{java.lang.String}"
+  }method { $name="registerIsolate" $return="boolean" $arguments="{jav
+ a.lang.String,java.lang.String,int,java.lang.String[]}" }method { $na
+ me="registerLocal" $arguments="{int,java.lang.String[]}" }method { $n
+ ame="setNodeAddress" $return="java.lang.String" $arguments="{java.lan
+ g.String,java.lang.String}" }method { $name="unregisterIsolate" $retu
+ rn="boolean" $arguments="{java.lang.String}" }method { $name="validat
+ ePojo" }}}
 
