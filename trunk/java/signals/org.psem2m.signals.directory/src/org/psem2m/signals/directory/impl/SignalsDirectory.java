@@ -42,6 +42,9 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
     /** Isolate ID -&gt; (Node, Port) */
     private final Map<String, HostAccess> pAccesses = new HashMap<String, HostAccess>();
 
+    /** Special information: local isolate port */
+    private int pCurrentIsolatePort;
+
     /** Group name -&gt; Isolate IDs */
     private final Map<String, List<String>> pGroups = new HashMap<String, List<String>>();
 
@@ -69,8 +72,16 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
             // Prepare the access map
             final HostAccess access = entry.getValue();
             final Map<String, Object> isolateAccessMap = new HashMap<String, Object>();
-            isolateAccessMap.put("node", access.getAddress());
-            isolateAccessMap.put("port", access.getPort());
+
+            if (ISignalDirectory.LOCAL_ACCESS.equals(access)) {
+                // Special treatment for the local isolate
+                isolateAccessMap.put("node", getLocalNode());
+                isolateAccessMap.put("port", pCurrentIsolatePort);
+
+            } else {
+                isolateAccessMap.put("node", access.getAddress());
+                isolateAccessMap.put("port", access.getPort());
+            }
 
             // Store the access map
             accesses.put(entry.getKey(), isolateAccessMap);
@@ -301,6 +312,11 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
             return null;
         }
 
+        if (getIsolateId().equals(aIsolateId)) {
+            // Special case
+            return ISignalDirectory.LOCAL_ACCESS;
+        }
+
         final String nodeHost = pNodesHost.get(nodeAccess.getAddress());
         if (nodeHost == null) {
             // Unknown host
@@ -495,8 +511,8 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
         final String isolateId = getIsolateId();
         final String node = getLocalNode();
 
-        // Store the access...
-        pAccesses.put(isolateId, new HostAccess(node, aPort));
+        // Store the access port...
+        pCurrentIsolatePort = aPort;
 
         // Store the node
         List<String> isolates = pNodesIsolates.get(node);
@@ -543,20 +559,10 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
         // Get the previous address
         final String oldAddress = pNodesHost.get(aNodeName);
 
-        if (aHostAddress == null || aHostAddress.isEmpty()) {
+        if (aHostAddress == null || aHostAddress.isEmpty()
+                || aHostAddress.equals(oldAddress)) {
+            // No modification
             return oldAddress;
-        }
-
-        if (aHostAddress.equals(oldAddress)) {
-            // No modification intended
-            return oldAddress;
-        }
-
-        if (aHostAddress.equals("{LOCAL}")) {
-            pLogger.logWarn(this, "setNodeAddress",
-                    "Trying to override the {local} shortcut by address=",
-                    aHostAddress);
-            return pNodesHost.get(aNodeName);
         }
 
         pLogger.logInfo(this, "setNodeAddress", "Address of node=", aNodeName,
@@ -614,9 +620,10 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
     @Override
     public void validatePojo() throws BundleException {
 
-        // Register the local isolate
-        pNodesHost.put(getLocalNode(), "{LOCAL}");
-        registerIsolate(getIsolateId(), getLocalNode(), -1, "LOCAL");
+        // Register the local isolate, without access port nor group
+        pAccesses.put(getIsolateId(), ISignalDirectory.LOCAL_ACCESS);
+        pNodesHost.put(getLocalNode(), "localhost");
+        registerLocal(-1, (String[]) null);
 
         pLogger.logInfo(this, "validatePojo", "Signals directory ready");
     }

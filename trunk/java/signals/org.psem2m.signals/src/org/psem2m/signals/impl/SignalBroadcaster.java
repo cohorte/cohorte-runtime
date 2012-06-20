@@ -289,8 +289,14 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
             return null;
         }
 
+        final Map<String, Object[]> results = result.getResults();
+        if (results == null || results.isEmpty()) {
+            // No valid results
+            return null;
+        }
+
         // Only return reached isolates
-        return result.getResults().keySet().toArray(new String[0]);
+        return results.keySet().toArray(new String[0]);
     }
 
     /*
@@ -345,9 +351,6 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
                     // Ignore errors (try later)
                     pLogger.logDebug(this, "handleWaitingSignal", e);
                 }
-
-                pLogger.logDebug(this, "handleWaitingSignal", "signal=",
-                        aSignal, "results=", results);
 
                 if (results != null) {
                     // Success
@@ -450,8 +453,8 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
             final String aSignalName, final ISignalData aSignalData,
             final String aMode) throws Exception {
 
-        if ("{LOCAL}".equals(aAccess.getAddress())) {
-            // Special case : local signal
+        if (ISignalDirectory.LOCAL_ACCESS.equals(aAccess)) {
+            // Special case : signal for the local isolate
             final SignalResult localResult = pReceiver.localReception(
                     aSignalName, aSignalData, aMode);
 
@@ -722,12 +725,6 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
         signalData.setSenderId(pDirectory.getIsolateId());
         signalData.setSenderNode(pDirectory.getLocalNode());
         signalData.setSignalContent(aContent);
-
-        if (aHost.equals("{LOCAL}")) {
-            // Special case
-            return new Object[] { pReceiver.localReception(aSignalName,
-                    signalData, MODE_SEND) };
-        }
 
         if (pBroadcasters.length == 0) {
             pLogger.logWarn(this, "internalSend", "No signals broadcasters yet");
