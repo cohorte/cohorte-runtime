@@ -43,14 +43,17 @@
         {
             "id":"demo.snowball",
             "kind":"pelix",
-            "node":"snowball",
-            "httpPort":9100,
+            "node":"central",
+            "httpPort":9101,
             "bundles":[
                 {
                     "symbolicName":"base.httpsvc"
                 },
                 {
                     "symbolicName":"base.signals.directory"
+                },
+                {
+                    "symbolicName":"base.signals.directory_updater"
                 },
                 {
                     "symbolicName":"base.signals.http"
@@ -64,7 +67,10 @@
                 {
                     "symbolicName":"consumer"
                 }
-            ]
+            ],
+            "environment":{
+                "PYTHONPATH":"/home/tcalmant/programmation/workspaces/psem2m/platforms/small-install/small.home/bin"
+            }
         }
     ]
 }
