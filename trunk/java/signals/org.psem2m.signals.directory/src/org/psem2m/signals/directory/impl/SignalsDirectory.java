@@ -207,12 +207,12 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
             }
             break;
 
-        case LOCAL:
+        case CURRENT:
             // Only the current isolate
             matchingIsolates = new String[] { currentId };
             break;
 
-        case NODE:
+        case NEIGHBOURS:
             // All isolates from the current node, excluding the current one
             matchingIsolates = getIsolatesOnNode(getLocalNode());
             if (matchingIsolates != null) {

@@ -31,11 +31,11 @@ public interface ISignalDirectory {
          */
         ISOLATES,
         /** Current isolate */
-        LOCAL,
+        CURRENT,
         /** All monitors, including the current isolate if it is a monitor */
         MONITORS,
         /** All isolates on the current node, excluding the current one */
-        NODE,
+        NEIGHBOURS,
         /** All isolates, with monitors and forkers, but this one */
         OTHERS,
     }
