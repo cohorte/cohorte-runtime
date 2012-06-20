@@ -45,6 +45,7 @@ import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.constants.ISignalsConstants;
 import org.psem2m.signals.ISignalBroadcaster;
 import org.psem2m.signals.ISignalData;
+import org.psem2m.signals.ISignalDirectory.EBaseGroup;
 import org.psem2m.signals.ISignalListener;
 import org.psem2m.signals.ISignalReceiver;
 
@@ -420,11 +421,7 @@ public class ComposerCore extends CPojoBase implements IComposer,
         // Send a signal with all components in an array
         pSignalBroadcaster.fireGroup(
                 ComposerAgentSignals.SIGNAL_CAN_HANDLE_COMPONENTS, components,
-                "ALL");
-
-        pSignalBroadcaster.fire(
-                ComposerAgentSignals.SIGNAL_CAN_HANDLE_COMPONENTS, components,
-                "{local}");
+                EBaseGroup.ALL);
     }
 
     /**
@@ -906,10 +903,7 @@ public class ComposerCore extends CPojoBase implements IComposer,
 
         pSignalBroadcaster.fireGroup(
                 ComposerAgentSignals.SIGNAL_STOP_COMPONENTS,
-                remainingComponents, "ALL");
-
-        pSignalBroadcaster.fire(ComposerAgentSignals.SIGNAL_STOP_COMPONENTS,
-                remainingComponents, "{local}");
+                remainingComponents, EBaseGroup.ALL);
 
         // Send the event ECompositionEvent.REMOVE to the Composition
         // listeners

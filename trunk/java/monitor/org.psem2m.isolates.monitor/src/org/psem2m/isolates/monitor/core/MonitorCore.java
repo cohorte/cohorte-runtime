@@ -42,6 +42,7 @@ import org.psem2m.isolates.services.forker.IForker;
 import org.psem2m.isolates.services.forker.IForkerEventListener;
 import org.psem2m.signals.ISignalBroadcaster;
 import org.psem2m.signals.ISignalData;
+import org.psem2m.signals.ISignalDirectory.EBaseGroup;
 import org.psem2m.signals.ISignalListener;
 import org.psem2m.signals.ISignalReceiver;
 
@@ -260,10 +261,7 @@ public class MonitorCore extends CPojoBase implements
                     // Consider lost all isolates of this host
                     pSignalSender.fireGroup(
                             ISignalsConstants.ISOLATE_LOST_SIGNAL, isolateId,
-                            "ALL");
-
-                    pSignalSender.fire(ISignalsConstants.ISOLATE_LOST_SIGNAL,
-                            isolateId, "{local}");
+                            EBaseGroup.ALL);
                     break;
                 }
             }
@@ -520,12 +518,12 @@ public class MonitorCore extends CPojoBase implements
         } else {
             // Else, use the stop signal
             pSignalSender.fireGroup(ISignalsConstants.ISOLATE_STOP_SIGNAL,
-                    null, "FORKERS");
+                    null, EBaseGroup.FORKERS);
         }
 
         // Last man standing...
-        pSignalSender.fire(ISignalsConstants.ISOLATE_STOP_SIGNAL, null,
-                "{local}");
+        pSignalSender.fireGroup(ISignalsConstants.ISOLATE_STOP_SIGNAL, null,
+                EBaseGroup.LOCAL);
     }
 
     /**
@@ -655,7 +653,7 @@ public class MonitorCore extends CPojoBase implements
 
         // Kill other monitors (not including ourselves)
         pSignalSender.fireGroup(ISignalsConstants.MONITOR_SIGNAL_STOP_PLATFORM,
-                null, "MONITORS");
+                null, EBaseGroup.MONITORS);
 
         // Send a stop signal to isolates
         pSignalSender.fire(ISignalsConstants.ISOLATE_STOP_SIGNAL, null,

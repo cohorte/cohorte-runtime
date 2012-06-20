@@ -18,6 +18,7 @@ import org.psem2m.isolates.constants.ISignalsConstants;
 import org.psem2m.isolates.services.remote.IRemoteServiceBroadcaster;
 import org.psem2m.isolates.services.remote.beans.RemoteServiceEvent;
 import org.psem2m.signals.ISignalBroadcaster;
+import org.psem2m.signals.ISignalDirectory.EBaseGroup;
 
 /**
  * Implementation of an RSB
@@ -63,7 +64,7 @@ public class RemoteServiceBroadcaster extends CPojoBase implements
         // Ask for monitors and isolates services
         pSignalEmitter.sendGroup(
                 ISignalsConstants.BROADCASTER_SIGNAL_REQUEST_ENDPOINTS, null,
-                "ALL");
+                EBaseGroup.OTHERS);
     }
 
     /*
@@ -78,7 +79,7 @@ public class RemoteServiceBroadcaster extends CPojoBase implements
 
         pSignalEmitter.sendGroup(
                 ISignalsConstants.BROADCASTER_SIGNAL_REMOTE_EVENT, aEvent,
-                "ALL");
+                EBaseGroup.OTHERS);
     }
 
     /*

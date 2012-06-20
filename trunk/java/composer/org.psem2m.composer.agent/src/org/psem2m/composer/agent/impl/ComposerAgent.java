@@ -37,6 +37,7 @@ import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.signals.ISignalBroadcaster;
 import org.psem2m.signals.ISignalData;
+import org.psem2m.signals.ISignalDirectory.EBaseGroup;
 import org.psem2m.signals.ISignalListener;
 import org.psem2m.signals.ISignalReceiver;
 
@@ -143,11 +144,7 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
         // Signal the arrival to others
         pSignalBroadcaster.fireGroup(
                 ComposerAgentSignals.SIGNAL_ISOLATE_ADD_FACTORY,
-                new String[] { factoryName }, "ALL");
-
-        pSignalBroadcaster.fire(
-                ComposerAgentSignals.SIGNAL_ISOLATE_ADD_FACTORY,
-                new String[] { factoryName }, "{local}");
+                new String[] { factoryName }, EBaseGroup.ALL);
 
         pLogger.logInfo(this, "bindFactory", "Factory bound :", factoryName);
     }
@@ -168,7 +165,7 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
         // Indicate all our factories
         pSignalBroadcaster.fireGroup(
                 ComposerAgentSignals.SIGNAL_ISOLATE_ADD_FACTORY, pFactories
-                        .keySet().toArray(new String[0]), "ALL");
+                        .keySet().toArray(new String[0]), EBaseGroup.ALL);
 
         pLogger.logInfo(this, "bindSignalReceiver",
                 "Bound to a signal receiver");
@@ -597,12 +594,9 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
                 newState);
 
         // Send the signal
-        pSignalBroadcaster
-                .fireGroup(ComposerAgentSignals.SIGNAL_COMPONENT_CHANGED,
-                        resultMap, "ALL");
-
-        pSignalBroadcaster.fire(ComposerAgentSignals.SIGNAL_COMPONENT_CHANGED,
-                resultMap, "{local}");
+        pSignalBroadcaster.fireGroup(
+                ComposerAgentSignals.SIGNAL_COMPONENT_CHANGED, resultMap,
+                EBaseGroup.ALL);
     }
 
     /**
@@ -704,11 +698,7 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
         // Signal the removal to others
         pSignalBroadcaster.fireGroup(
                 ComposerAgentSignals.SIGNAL_ISOLATE_REMOVE_FACTORY,
-                new String[] { factoryName }, "ALL");
-
-        pSignalBroadcaster.fire(
-                ComposerAgentSignals.SIGNAL_ISOLATE_REMOVE_FACTORY,
-                new String[] { factoryName }, "{local}");
+                new String[] { factoryName }, EBaseGroup.ALL);
     }
 
     /**
@@ -723,13 +713,9 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
             final ISignalBroadcaster aSignalBroadcaster) {
 
         // Send a last signal to monitors to forget this agent
-        pSignalBroadcaster
-                .fireGroup(ComposerAgentSignals.SIGNAL_ISOLATE_FACTORIES_GONE,
-                        null, "ALL");
-
-        pSignalBroadcaster.fire(
+        pSignalBroadcaster.fireGroup(
                 ComposerAgentSignals.SIGNAL_ISOLATE_FACTORIES_GONE, null,
-                "{local}");
+                EBaseGroup.ALL);
     }
 
     /*

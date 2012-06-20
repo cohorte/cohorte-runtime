@@ -41,6 +41,7 @@ import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.isolates.slave.agent.ISvcAgent;
 import org.psem2m.signals.ISignalBroadcaster;
 import org.psem2m.signals.ISignalData;
+import org.psem2m.signals.ISignalDirectory.EBaseGroup;
 import org.psem2m.signals.ISignalListener;
 import org.psem2m.signals.ISignalReceiver;
 
@@ -467,7 +468,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
                 IsolateStatus.STATE_AGENT_STOPPED, 100);
 
         pSignalBroadcaster.sendGroup(ISignalsConstants.ISOLATE_STATUS_SIGNAL,
-                status, "MONITORS");
+                status, EBaseGroup.MONITORS);
     }
 
     /**
@@ -923,9 +924,9 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
                     IsolateStatus.STATE_AGENT_DONE, 100);
 
             // Broadcast the same isolate status (same time stamp)
-            pSignalBroadcaster
-                    .sendGroup(ISignalsConstants.ISOLATE_STATUS_SIGNAL, status,
-                            "MONITORS");
+            pSignalBroadcaster.sendGroup(
+                    ISignalsConstants.ISOLATE_STATUS_SIGNAL, status,
+                    EBaseGroup.MONITORS);
 
         } catch (final Exception ex) {
             System.err.println("Preparation error : " + ex);
@@ -935,9 +936,9 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
                     IsolateStatus.STATE_FAILURE, -1);
 
             // Broadcast the same isolate status (same time stamp)
-            pSignalBroadcaster
-                    .sendGroup(ISignalsConstants.ISOLATE_STATUS_SIGNAL, status,
-                            "MONITORS");
+            pSignalBroadcaster.sendGroup(
+                    ISignalsConstants.ISOLATE_STATUS_SIGNAL, status,
+                    EBaseGroup.MONITORS);
 
             // Log the error
             pIsolateLoggerSvc.logSevere(this, "validatePojo",

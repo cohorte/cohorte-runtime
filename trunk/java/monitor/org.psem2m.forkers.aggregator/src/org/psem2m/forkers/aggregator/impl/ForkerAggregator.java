@@ -576,8 +576,8 @@ public class ForkerAggregator implements IForker, ISignalListener,
     @Override
     public void setPlatformStopping() {
 
-        final String[] forkers = pDirectory
-                .getAllIsolates(IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER);
+        final String[] forkers = pDirectory.getAllIsolates(
+                IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER, true);
         if (forkers == null) {
             return;
         }
