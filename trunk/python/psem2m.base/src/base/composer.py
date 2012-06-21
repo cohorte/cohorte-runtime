@@ -48,9 +48,9 @@ SIGNAL_ISOLATE_FACTORIES_GONE = "%s/all-gone" % SIGNAL_FACTORY_PREFIX
 @Instantiate("ComposerAgent")
 @Provides("org.psem2m.composer.Agent")
 @Requires("ipopo", constants.IPOPO_SERVICE_SPECIFICATION)
-@Requires("directory", "org.psem2m.IsolateDirectory")
+@Requires("directory", "org.psem2m.signals.ISignalDirectory")
 @Requires("sender", "org.psem2m.signals.ISignalBroadcaster")
-@Requires("receiver", "org.psem2m.SignalReceiver")
+@Requires("receiver", "org.psem2m.signals.ISignalReceiver")
 class ComposerAgent(object):
     """
     Python Composer agent
@@ -99,7 +99,7 @@ class ComposerAgent(object):
         :param sender: The isolate that sent the request signal
         :param data: An array of ComponentBean objects
         """
-        current_isolate = self.directory.get_current_isolate_id()
+        current_isolate = self.directory.get_isolate_id()
         handled = []
 
         # Find all instantiable components
@@ -130,7 +130,7 @@ class ComposerAgent(object):
         :param sender: The isolate requesting the instantiation
         :param data: The signal content
         """
-        current_isolate = self.directory.get_current_isolate_id()
+        current_isolate = self.directory.get_isolate_id()
 
         success = []
         failure = []
@@ -246,7 +246,6 @@ class ComposerAgent(object):
         self.sender.send(SIGNAL_ISOLATE_ADD_FACTORY,
                         tuple(self.ipopo.get_registered_factories()),
                         groups=["ALL"])
-
 
 
     @Invalidate
