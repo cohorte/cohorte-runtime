@@ -29,6 +29,15 @@ public interface IForker {
     /** No isolate watcher could be started (active isolate waiter) */
     int NO_WATCHER = 3;
 
+    /** Error sending the request */
+    int REQUEST_ERROR = -3;
+
+    /** Forker didn't returned any result */
+    int REQUEST_NO_RESULT = -2;
+
+    /** Forker timed out */
+    int REQUEST_TIMEOUT = -1;
+
     /** An error occurred calling the runner */
     int RUNNER_EXCEPTION = 4;
 

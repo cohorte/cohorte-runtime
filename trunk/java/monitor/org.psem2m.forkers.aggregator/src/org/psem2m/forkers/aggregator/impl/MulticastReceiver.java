@@ -145,7 +145,13 @@ public class MulticastReceiver {
                         @Override
                         public void run() {
 
-                            pListener.handlePacket(packet);
+                            try {
+                                pListener.handlePacket(packet);
+
+                            } catch (final Exception e) {
+                                // Let the listener handle its own exception
+                                pListener.handleError(e);
+                            }
                         }
                     });
                 }

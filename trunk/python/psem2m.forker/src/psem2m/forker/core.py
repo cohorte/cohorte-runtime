@@ -435,42 +435,37 @@ class Forker(object):
         :param name: Signal name
         :param signal_data: Signal content
         """
-        sender = signal_data["senderId"]
         signal_content = signal_data["signalContent"]
 
         try:
             if name == SIGNAL_PING_ISOLATE:
                 # Ping the isolate with the given ID
-                result = self.ping(signal_content["isolateId"])
+                return self.ping(signal_content["isolateId"])
 
             elif name == SIGNAL_START_ISOLATE:
                 # Start an isolate with the given description
-                result = self.startIsolate(signal_content["isolateDescr"])
+                return self.startIsolate(signal_content["isolateDescr"])
 
             elif name == SIGNAL_STOP_ISOLATE:
                 # Stop the isolate with the given ID
-                result = self.stopIsolate(signal_content["isolateId"])
+                return self.stopIsolate(signal_content["isolateId"])
 
             elif name == SIGNAL_PLATFORM_STOPPING:
                 # Platform is stopping: do not start new isolates
                 self._platform_stopping = True
+
                 # Nothing to send back
                 return
 
             else:
                 # Unhandled message
+                _logger.warning("Received unknown signal: %s", name)
                 return
 
         except:
             # Error
             _logger.exception("Error treating signal %s\n%s", name, signal_data)
-            result = -500
-
-        # Send the result
-        cmd_id = signal_content[CMD_ID]
-        self._sender.send(SIGNAL_RESPONSE, {RESULT_CODE: result,
-                                            CMD_ID: cmd_id},
-                          isolate=sender)
+            return
 
 
     @Bind

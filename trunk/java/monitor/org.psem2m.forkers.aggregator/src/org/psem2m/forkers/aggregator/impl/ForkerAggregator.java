@@ -20,11 +20,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.TimeoutException;
 
-import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
@@ -38,10 +38,10 @@ import org.psem2m.isolates.services.forker.IForker;
 import org.psem2m.isolates.services.forker.IForkerEventListener;
 import org.psem2m.isolates.services.forker.IForkerEventListener.EForkerEventType;
 import org.psem2m.signals.ISignalBroadcaster;
-import org.psem2m.signals.ISignalData;
 import org.psem2m.signals.ISignalDirectory;
-import org.psem2m.signals.ISignalListener;
+import org.psem2m.signals.ISignalDirectoryConstants;
 import org.psem2m.signals.ISignalReceiver;
+import org.psem2m.signals.ISignalSendResult;
 
 /**
  * The forker aggregator
@@ -54,17 +54,13 @@ import org.psem2m.signals.ISignalReceiver;
 @Component(name = "psem2m-forker-aggregator-factory", publicFactory = false)
 @Provides(specifications = IForker.class)
 @Instantiate(name = "psem2m-forker-aggregator")
-public class ForkerAggregator implements IForker, ISignalListener,
-        IPacketListener, Runnable {
+public class ForkerAggregator implements IForker, IPacketListener, Runnable {
 
     /** Maximum time without forker notification : 5 seconds */
     public static final long FORKER_TTL = 5000;
 
     /** UDP Packet: Forker heart beat */
     public static final byte PACKET_FORKER_HEARTBEAT = 1;
-
-    /** The command ID generator */
-    private static final AtomicInteger sCmdId = new AtomicInteger();
 
     /** The configuration service */
     @Requires
@@ -90,6 +86,10 @@ public class ForkerAggregator implements IForker, ISignalListener,
     /** The multicast receiver */
     private MulticastReceiver pMulticast;
 
+    /** The signal receiver, it must be online to retrieve its access point */
+    @Requires(filter = "(" + ISignalReceiver.PROPERTY_ONLINE + "=true)")
+    private ISignalReceiver pReceiver;
+
     /** Order results */
     private final Map<Integer, Integer> pResults = new HashMap<Integer, Integer>();
 
@@ -102,21 +102,6 @@ public class ForkerAggregator implements IForker, ISignalListener,
 
     /** The thread stopper */
     private boolean pThreadRunning = false;
-
-    /** Signal response waiters */
-    private final Map<Integer, Semaphore> pWaiters = new HashMap<Integer, Semaphore>();
-
-    /**
-     * Called when the signal service is up
-     * 
-     * @param aReceiver
-     *            The signal service
-     */
-    @Bind
-    protected void bindSignalReceiver(final ISignalReceiver aReceiver) {
-
-        aReceiver.registerListener(IForkerOrders.SIGNAL_MATCH_ALL, this);
-    }
 
     /**
      * Extracts a string from the given buffer
@@ -201,6 +186,81 @@ public class ForkerAggregator implements IForker, ISignalListener,
         }
 
         return null;
+    }
+
+    /**
+     * Posts an order to the given forker and waits for the result. Returns
+     * {@link IForker#REQUEST_TIMEOUT} if the time out expires before.
+     * 
+     * @param aForkerId
+     *            ID of the forker to contact
+     * @param aSignalName
+     *            Signal name
+     * @param aContent
+     *            Signal content
+     * @param aTimeout
+     *            Maximum time to wait for an answer (in milliseconds)
+     * @return The forker result (&ge;0) or an error code (&lt;0) (see
+     *         {@link IForker})
+     */
+    protected int getForkerIntResult(final String aForkerId,
+            final String aSignalName, final Object aContent, final long aTimeout) {
+
+        // Send the order
+        final Future<ISignalSendResult> waiter = pSender.post(aSignalName,
+                aContent, aForkerId);
+
+        try {
+            // Wait a little...
+            final ISignalSendResult result = waiter.get(aTimeout,
+                    TimeUnit.MILLISECONDS);
+
+            final Map<String, Object[]> results = result.getResults();
+            if (results == null) {
+                // No results at all
+                pLogger.logWarn(this, "startIsolate", "No results from forker");
+                return IForker.REQUEST_NO_RESULT;
+            }
+
+            final Object[] forkerResults = results.get(aForkerId);
+            if (forkerResults == null || forkerResults.length != 1) {
+                pLogger.logWarn(this, "startIsolate", "Unreadable result=",
+                        forkerResults);
+                return IForker.REQUEST_NO_RESULT;
+            }
+
+            if (forkerResults[0] instanceof Number) {
+                // Retrieve the forker result
+                return ((Number) forkerResults[0]).intValue();
+
+            } else {
+                // Bad result
+                pLogger.logWarn(this, "startIsolate", "Invalid result=",
+                        forkerResults[0]);
+                return IForker.REQUEST_NO_RESULT;
+            }
+
+        } catch (final InterruptedException ex) {
+            // Thread interrupted (end of the monitor ?), consider a time out
+            pLogger.logDebug(this, "startIsolate",
+                    "Interrupted while waiting for an answer of forker=",
+                    aForkerId, "sending signal=", aSignalName);
+
+            return IForker.REQUEST_TIMEOUT;
+
+        } catch (final TimeoutException e) {
+            // Forker timed out
+            pLogger.logWarn(this, "startIsolate", "Forker=", aForkerId,
+                    "timed out sending signal=", aSignalName);
+
+            return IForker.REQUEST_TIMEOUT;
+
+        } catch (final ExecutionException e) {
+            // Error sending the request
+            pLogger.logSevere(this, "startIsolate", "Error sending signal=",
+                    aSignalName, "to=", aForkerId, ":", e);
+            return IForker.REQUEST_ERROR;
+        }
     }
 
     /*
@@ -301,42 +361,6 @@ public class ForkerAggregator implements IForker, ISignalListener,
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.signals.ISignalListener#
-     * handleReceivedSignal(java.lang.String, org.psem2m.signals.ISignalData)
-     */
-    @Override
-    public Object handleReceivedSignal(final String aSignalName,
-            final ISignalData aSignalData) {
-
-        if (IForkerOrders.SIGNAL_RESPONSE.equals(aSignalName)) {
-            // A forker answers a request
-            final Object rawData = aSignalData.getSignalContent();
-            if (rawData instanceof Map) {
-
-                final Map<?, ?> data = (Map<?, ?>) rawData;
-                final Integer cmdId = (Integer) data.get(IForkerOrders.CMD_ID);
-                if (cmdId == null) {
-                    // Unusable data
-                    return null;
-                }
-
-                pResults.put(cmdId,
-                        (Integer) data.get(IForkerOrders.RESULT_CODE));
-
-                final Semaphore cmdWaiter = pWaiters.get(cmdId);
-                if (cmdWaiter != null) {
-                    // Release the waiter
-                    cmdWaiter.release();
-                }
-            }
-        }
-
-        return null;
-    }
-
     /**
      * Component invalidation
      */
@@ -345,7 +369,6 @@ public class ForkerAggregator implements IForker, ISignalListener,
 
         // Clear all collections
         pForkersLST.clear();
-        pWaiters.clear();
         pResults.clear();
         pIsolateForkers.clear();
 
@@ -429,28 +452,8 @@ public class ForkerAggregator implements IForker, ISignalListener,
         final Map<String, Object> order = new HashMap<String, Object>();
         order.put("isolateId", aIsolateId);
 
-        // Send the order (don't care about the result)
-        final int cmdId = sendOrder(forker, IForkerOrders.SIGNAL_PING_ISOLATE,
-                order);
-
-        // Wait a second...
-        Integer result;
-        try {
-            result = waitForResult(cmdId, 1000);
-
-        } catch (final InterruptedException e) {
-            // Time out
-            pLogger.logWarn(this, "ping", "Forker didn't respond in time");
-            return -21;
-        }
-
-        if (result == null) {
-            // No result
-            pLogger.logWarn(this, "ping", "Forker didn't respond");
-            return -22;
-        }
-
-        return result;
+        return getForkerIntResult(forker, IForkerOrders.SIGNAL_PING_ISOLATE,
+                order, 1000);
     }
 
     /**
@@ -470,10 +473,18 @@ public class ForkerAggregator implements IForker, ISignalListener,
             final String aForkerNode, final String aHost, final int aPort) {
 
         // Update the node host
-        pDirectory.setNodeAddress(aForkerNode, aHost);
+        if (!pDirectory.getLocalNode().equals(aForkerNode)) {
+            // Don't update our node
+            pDirectory.setNodeAddress(aForkerNode, aHost);
+        }
 
         // Register the forker (it can already be in the directory)
-        pDirectory.registerIsolate(aForkerId, aForkerNode, aPort, "FORKERS");
+        if (pDirectory
+                .registerIsolate(aForkerId, aForkerNode, aPort, "FORKERS")) {
+            // Fresh forker: we can send it a contact signal as someone else
+            // may not known it
+            sendContactSignal(aHost, aPort);
+        }
 
         pLogger.logInfo(this, "registerForker", "Registered forker ID=",
                 aForkerId, "Node=", aForkerNode, "Port=", aPort);
@@ -521,6 +532,8 @@ public class ForkerAggregator implements IForker, ISignalListener,
 
                 for (final String forkerId : toDelete) {
                     // Unregister the forker
+                    pLogger.logInfo(this, "run", "Forker=", forkerId,
+                            "reached TTL");
                     pForkersLST.remove(forkerId);
                     unregisterForker(forkerId);
                 }
@@ -539,31 +552,38 @@ public class ForkerAggregator implements IForker, ISignalListener,
     }
 
     /**
-     * Sends an order to the given isolate
+     * Sends a CONTACT signal to the given access point.
      * 
-     * @param aIsolate
-     *            The target isolate ID
-     * @param aOrderName
-     *            The order signal name
-     * @param aOrder
-     *            The order content
-     * @return The request ID
+     * @param aHost
+     *            A host address
+     * @param aPort
+     *            A signal access port
      */
-    protected int sendOrder(final String aIsolate, final String aOrderName,
-            final Map<String, Object> aOrder) {
+    protected void sendContactSignal(final String aHost, final int aPort) {
 
-        // Prepare the command id
-        final int cmdId = sCmdId.incrementAndGet();
-        aOrder.put(IForkerOrders.CMD_ID, cmdId);
+        try {
+            // Set up the signal content
+            final Map<String, Object> content = new HashMap<String, Object>();
 
-        // Set up the waiter
-        final Semaphore waiter = new Semaphore(0);
-        pWaiters.put(cmdId, waiter);
+            // Local access port
+            content.put("port", pReceiver.getAccessInfo().getPort());
 
-        // Send the signal
-        pSender.fire(aOrderName, aOrder, aIsolate);
+            // Send the signal
+            final Object[] results = pSender.sendTo(
+                    ISignalDirectoryConstants.SIGNAL_CONTACT, content, aHost,
+                    aPort);
+            if (results == null) {
+                // No response...
+                pLogger.logWarn(this, "sendContactSignal",
+                        "No response from host=", aHost, "port=", aPort);
+            }
 
-        return cmdId;
+        } catch (final Exception e) {
+            // Log...
+            pLogger.logWarn(this, "sendContactSignal",
+                    "Error sending the contact signal to host=", aHost,
+                    "port=", aPort, ":", e);
+        }
     }
 
     /*
@@ -606,36 +626,18 @@ public class ForkerAggregator implements IForker, ISignalListener,
             return -20;
         }
 
+        // Get the started isolate ID
+        final String isolateId = (String) aIsolateConfiguration.get("id");
+
         // Prepare the order
         final Map<String, Object> order = new HashMap<String, Object>();
         order.put("isolateDescr", aIsolateConfiguration);
 
         // Associate the isolate to the found forker
-        pIsolateForkers.put((String) aIsolateConfiguration.get("id"), forker);
+        pIsolateForkers.put(isolateId, forker);
 
-        // Send the order
-        final int cmdId = sendOrder(forker, IForkerOrders.SIGNAL_START_ISOLATE,
-                order);
-
-        // Wait a second...
-        Integer result;
-        try {
-            result = waitForResult(cmdId, 1000);
-
-        } catch (final InterruptedException e) {
-            // Time out
-            pLogger.logWarn(this, "startIsolate",
-                    "Forker didn't respond in time");
-            return -21;
-        }
-
-        if (result == null) {
-            // No result
-            pLogger.logWarn(this, "startIsolate", "Forker didn't respond");
-            return -22;
-        }
-
-        return result;
+        return getForkerIntResult(forker, IForkerOrders.SIGNAL_START_ISOLATE,
+                order, 1000);
     }
 
     /*
@@ -659,7 +661,7 @@ public class ForkerAggregator implements IForker, ISignalListener,
         order.put("isolateId", aIsolateId);
 
         // Send the order (don't care about the result)
-        sendOrder(forker, IForkerOrders.SIGNAL_STOP_ISOLATE, order);
+        pSender.fire(IForkerOrders.SIGNAL_STOP_ISOLATE, order, forker);
     }
 
     /**
@@ -760,40 +762,5 @@ public class ForkerAggregator implements IForker, ISignalListener,
         pThread.start();
 
         pLogger.logInfo(this, "validate", "Forker Aggregator validated");
-    }
-
-    /**
-     * Waits for the result of the given command
-     * 
-     * @param aCmdId
-     *            A command ID
-     * @param aTimeout
-     *            A wait timeout in milliseconds
-     * @return The command result, or null
-     * @throws InterruptedException
-     *             Timeout raised
-     */
-    protected Integer waitForResult(final int aCmdId, final long aTimeout)
-            throws InterruptedException {
-
-        final Semaphore waiter = pWaiters.get(aCmdId);
-
-        if (waiter == null) {
-            return pResults.get(aCmdId);
-        }
-
-        if (!waiter.tryAcquire(aTimeout, TimeUnit.MILLISECONDS)) {
-            // Failed to acquire the semaphore before timeout
-            throw new InterruptedException("Timeout raised");
-        }
-
-        // Store the result
-        final Integer result = pResults.get(aCmdId);
-
-        // Now, we can clean up
-        pWaiters.remove(aCmdId);
-        pResults.remove(aCmdId);
-
-        return result;
     }
 }
