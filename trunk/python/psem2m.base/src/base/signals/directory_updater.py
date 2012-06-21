@@ -51,14 +51,15 @@ class DirectoryUpdater(object):
         self._receiver = None
         self._sender = None
 
+        self._dumper_port = 0
 
-    def _grab_directory(self, port):
+
+    def _grab_directory(self):
         """
-        Sends a directory dump signal to the given port on local host.
-        
-        :param port: The signal receiver port
+        Sends a directory dump signal to the dumper on local host.
         """
-        sig_results = self._sender.send_to(SIGNAL_DUMP, None, "localhost", port)
+        sig_results = self._sender.send_to(SIGNAL_DUMP, None, "localhost",
+                                           self._dumper_port)
         if not sig_results or not sig_results["results"]:
             _logger.warning("Nothing returned by the directory dumper")
             return
@@ -96,10 +97,12 @@ class DirectoryUpdater(object):
 
         # 3. Register all new isolates
         for isolate_id, info in new_isolates.items():
+            _logger.debug("GOT: %s", isolate_id)
             self._directory.register_isolate(isolate_id, info["node"],
                                              info["port"], info["groups"])
 
         # Now, we can send our registration signal
+        _logger.debug("SEND REGISTRATION: %s", isolate_id)
         self._send_registration()
 
 
@@ -109,13 +112,28 @@ class DirectoryUpdater(object):
         """
         content = signal_data["signalContent"]
 
+        isolate_id = content["id"]
+        if isolate_id == self._directory.get_isolate_id():
+            # Ignore self-registration
+            return
+
         # 1. Update the node host
         self._directory.set_node_address(content["node"],
                                          signal_data["senderAddress"])
 
         # 2. Register the isolate
-        self._directory.register_isolate(content["id"], content["node"],
+        self._directory.register_isolate(isolate_id, content["node"],
                                          content["port"], content["groups"])
+
+        _logger.debug("REGISTERED: %s", isolate_id)
+
+        # 3. Propagate the registration, if needed
+        if content["propagate"]:
+            # Propagate only once...
+            content["propagate"] = False
+
+            _logger.debug("PROPAGATE %s...", isolate_id)
+            self._sender.fire(SIGNAL_REGISTER, content, dir_group="OTHERS")
 
 
     def _send_registration(self):
@@ -144,9 +162,15 @@ class DirectoryUpdater(object):
         content = {"id": isolate_id,
                    "node": self._directory.get_local_node(),
                    "port": self._receiver.get_access_info()[1],
-                   "groups": groups}
+                   "groups": groups,
+                   "propagate": True}
 
-        self._sender.fire(SIGNAL_REGISTER, content, groups=["ALL"])
+        # Send the registration to the directory dumper
+        sig_results = self._sender.send_to(SIGNAL_REGISTER, content,
+                                           "localhost", self._dumper_port)
+        if not sig_results:
+            _logger.warning("Nothing returned during registration")
+            return
 
 
     def handle_received_signal(self, name, signal_data):
@@ -185,7 +209,8 @@ class DirectoryUpdater(object):
             _logger.warning("No local dumper port found.")
 
         else:
-            self._grab_directory(int(dump_port))
+            self._dumper_port = int(dump_port)
+            self._grab_directory()
 
         # Register to isolate registration signals
         self._receiver.register_listener(SIGNAL_PREFIX_MATCH_ALL, self)

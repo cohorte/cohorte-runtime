@@ -461,7 +461,8 @@ class SignalSender(object):
         self.sendGroup = lambda s, c, g : self.send(s, c, groups=g)
 
 
-    def fire(self, signal, content, isolate=None, isolates=None, groups=None):
+    def fire(self, signal, content, isolate=None, isolates=None,
+             dir_group=None, groups=None):
         """
         Sends a signal to the given target, without waiting for the result.
         Returns the list of successfully reached isolates, which may not have
@@ -471,14 +472,14 @@ class SignalSender(object):
         :param content: The signal content
         :param isolate: The ID of the target isolate
         :param isolates: A list of isolate IDs
+        :param dir_group: The name of a group computed by the directory
         :param groups: A list of isolates groups names
         :return: The list of reached isolates, None if there is no isolate to
                  send the signal to.
         """
         # Send the signal
         result = self.__common_handling(signal, content, isolate, isolates,
-                                        groups, MODE_FORGET)
-
+                                        dir_group, groups, MODE_FORGET)
         if result is None:
             # Unknown targets
             return None
@@ -495,7 +496,8 @@ class SignalSender(object):
         self._context = None
 
 
-    def post(self, signal, content, isolate=None, isolates=None, groups=None):
+    def post(self, signal, content, isolate=None, isolates=None,
+             dir_group=None, groups=None):
         """
         Sends a signal to the given target in a different thread.
         See send(signal, content, isolate, isolates, groups) for more details.
@@ -507,17 +509,18 @@ class SignalSender(object):
         :param content: The signal content
         :param isolate: The ID of the target isolate
         :param isolates: A list of isolate IDs
+        :param dir_group: The name of a group computed by the directory
         :param groups: A list of isolates groups names
         :return: A FutureResult object
         """
         future = FutureResult()
         future.execute(self.__common_handling, signal, content, isolate,
-                       isolates, groups, MODE_SEND)
-
+                       isolates, dir_group, groups, MODE_SEND)
         return future
 
 
-    def send(self, signal, content, isolate=None, isolates=None, groups=None):
+    def send(self, signal, content, isolate=None, isolates=None,
+             dir_group=None, groups=None):
         """
         Sends a signal to the given target.
         
@@ -531,13 +534,14 @@ class SignalSender(object):
         :param content: The signal content
         :param isolate: The ID of the target isolate
         :param isolates: A list of isolate IDs
+        :param dir_group: The name of a group computed by the directory
         :param groups: A list of isolates groups names
         :return: A (map Isolate ID -> results array, failed isolates) tuple,
                  None if there is no isolate to send the signal to.
         """
         # Standard behavior
         return self.__common_handling(signal, content, isolate, isolates,
-                                      groups, MODE_SEND)
+                                      dir_group, groups, MODE_SEND)
 
 
     def send_to(self, signal, content, host, port):
@@ -578,20 +582,44 @@ class SignalSender(object):
         self._context = context
 
 
+    def _get_directory_group_accesses(self, dir_group):
+        """
+        Retrieves a map of (host, port) couples to access the isolates of the
+        group computed by the directory
+        
+        :param groups: A list of group names
+        :return: An isolate ID -> (host, port) map, empty no isolate is known 
+        """
+        # Isolate ID -> (host, port) map
+        accesses = {}
+
+        if not dir_group:
+            # Nothing to do
+            return accesses
+
+        for directory in self._directories:
+            group_accesses = directory.get_computed_group_accesses(dir_group)
+            if group_accesses is not None:
+                    # Expend the group accesses
+                    accesses.update(group_accesses)
+
+        return accesses
+
+
     def _get_groups_accesses(self, groups):
         """
-        Retrieves an array of (host, port) tuples to access the isolates of the
+        Retrieves a map of (host, port) couples to access the isolates of the
         given groups
         
         :param groups: A list of group names
         :return: An isolate ID -> (host, port) map, empty no isolate is known
         """
+        # Isolate ID -> (host, port) map
+        accesses = {}
+
         if not groups:
             # Nothing to do
-            return None
-
-        # Use a set, as an isolate may be part of many groups
-        accesses = {}
+            return accesses
 
         for group in groups:
             # Compute the isolates of the group according to all directories
@@ -606,28 +634,28 @@ class SignalSender(object):
 
     def _get_isolates_accesses(self, isolates):
         """
-        Retrieves an array of (host, port) tuples to access the given isolates.
+        Retrieves a map of (host, port) couples to access the given isolates.
         The result contains only known isolates. Unknown ones are ignored.
         
         :param isolates: A list of isolate IDs
         :return: An isolate ID -> (host, port) map, empty no isolate is known
         """
         # Isolate ID -> (host, port) map
-        result = {}
+        accesses = {}
 
         if not isolates:
             # Nothing to do
-            return result
+            return accesses
 
         for isolate_id in isolates:
             for directory in self._directories:
                 access = directory.get_isolate_access(isolate_id)
                 if access is not None:
                     # Isolate found !
-                    result[isolate_id] = access
+                    accesses[isolate_id] = access
                     break
 
-        return result
+        return accesses
 
 
     def _make_content(self, content):
@@ -651,8 +679,8 @@ class SignalSender(object):
         return json.dumps(to_jabsorb(signal_content))
 
 
-    def __common_handling(self, signal, content, isolate, isolates, groups,
-                          mode):
+    def __common_handling(self, signal, content, isolate, isolates,
+                          dir_group, groups, mode):
         """
         All multiple targets methods shares the same code : compute accesses,
         use the loop and handle the results
@@ -661,6 +689,7 @@ class SignalSender(object):
         :param content: The signal content
         :param isolate: The ID of the target isolate
         :param isolates: A list of isolate IDs
+        :param dir_group: The name of a group computed by the directory
         :param groups: A list of isolates groups names
         :return: A (map Isolate ID -> results array, failed isolates) tuple,
                  None if there is no isolate to send the signal to.
@@ -669,13 +698,16 @@ class SignalSender(object):
 
         # Compute accesses...
         if isolate:
-            accesses.update(self._get_isolates_accesses(isolate))
+            accesses.update(self._get_isolates_accesses([isolate]))
 
         if isolates:
             accesses.update(self._get_isolates_accesses(isolates))
 
         if groups:
             accesses.update(self._get_groups_accesses(groups))
+
+        if dir_group:
+            accesses.update(self._get_directory_group_accesses(dir_group))
 
         if not accesses:
             # No isolates to access
