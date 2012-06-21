@@ -10,17 +10,49 @@ Created on 12 juin 2012
 
 # ------------------------------------------------------------------------------
 
-import logging
-import threading
-
-# ------------------------------------------------------------------------------
-
 from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
     Invalidate, Instantiate
 
 # ------------------------------------------------------------------------------
 
+import logging
 _logger = logging.getLogger(__name__)
+
+import threading
+
+# ------------------------------------------------------------------------------
+
+ALL = "ALL"
+""" All isolates, including the current one """
+
+FORKERS = "FORKERS"
+""" All forkers, including the current isolate if it is a forker """
+
+ISOLATES = "FORKERS"
+"""
+All isolates, including monitors and the current one, excluding forkers.
+If the current isolate is a forker, it is excluded.
+"""
+
+CURRENT = "CURRENT"
+""" Current isolate """
+
+MONITORS = "MONITORS"
+""" All monitors, including the current isolate if it is a monitor """
+
+NEIGHBOURS = "NEIGHBOURS"
+""" All isolates on the current node, excluding the current one """
+
+OTHERS = "OTHERS"
+""" All isolates, with monitors and forkers, but this one """
+
+FORKER_ID_PREFIX = "org.psem2m.internals.isolates.forker"
+""" Forkers isolate ID prefix """
+
+MONITOR_ID_PREFIX = "org.psem2m.internals.isolates.monitor"
+""" Monitors isolate ID prefix """
+
+# ------------------------------------------------------------------------------
 
 @ComponentFactory("psem2m-signals-directory-factory")
 @Instantiate("psem2m-signals-directory")
@@ -97,7 +129,7 @@ class SignalsDirectory(object):
         return result
 
 
-    def get_all_isolates(self, prefix):
+    def get_all_isolates(self, prefix, include_current):
         """
         Retrieves all known isolates which ID begins with the given prefix. If 
         the prefix is null or empty, returns all known isolates.
@@ -105,7 +137,9 @@ class SignalsDirectory(object):
         Returns None if no isolate matched the prefix.
         
         :param prefix: An optional prefix filter
-        :return: All known isolates beginning with prefix, or None
+        :param include_current: If true, include the current isolate in the
+                                result
+        :return: A tuple of all known isolates beginning with prefix, or None
         """
         if not self._accesses:
             # Nothing to return
@@ -113,25 +147,109 @@ class SignalsDirectory(object):
 
         with self._lock:
             if not prefix:
-                # No prefix, return everything
-                return tuple(self._accesses.keys())
+                # No prefix, use a copy of the known IDs
+                matching = set(self._accesses.keys())
 
-            matching = []
-            for isolate in self._accesses:
-                if isolate.startswith(prefix):
-                    matching.append(isolate)
+            else:
+                # Construct the set
+                matching = set()
+                for isolate in self._accesses:
+                    if isolate.startswith(prefix):
+                        matching.add(isolate)
+
+            if not include_current:
+                # Remove the current isolate ID
+                matching.remove(self.get_isolate_id())
 
             if not matching:
                 # No isolate found
                 return None
 
+            # Return a tuple
             return tuple(matching)
+
+
+    def get_computed_group_accesses(self, group_name):
+        """
+        Retrieves an Isolate ID -> (host, port) map, containing all known
+        isolates that belong to the computed group
+        
+        Valid group names are:
+        * ALL: all isolates, including the current one
+        * FORKERS: All forkers, including the current isolate if it is a forker
+        * ISOLATES: All isolates, including monitors and the current one,
+          excluding forkers. If the current isolate is a forker, it is excluded.
+        * CURRENT: Current isolate 
+        * MONITORS: All monitors, including the current isolate if it is a
+          monitor
+        * NEIGHBOURS: All isolates on the current node, excluding the current
+          one
+        * OTHERS: All isolates, with monitors and forkers, excluding this one
+        
+        :param group_name: Name of the group to compute
+        :return: An ID -> (host, port) map, None if the group is unknown.
+        """
+        isolate_id = self.get_isolate_id()
+        matching = None
+
+        with self._lock:
+            if group_name == ALL:
+                # Return all isolates, including the current one
+                matching = self.get_all_isolates(None, True)
+
+            elif group_name == OTHERS:
+                # Return all isolates, excluding the current one
+                matching = self.get_all_isolates(None, False)
+
+            elif group_name == CURRENT:
+                # Only the current isolate
+                matching = [isolate_id]
+
+            elif group_name == FORKERS:
+                # Return only forkers, including the current one
+                matching = self.get_all_isolates(FORKER_ID_PREFIX, True)
+
+            elif group_name == MONITORS:
+                # Return only monitors, including the current one
+                matching = self.get_all_isolates(MONITOR_ID_PREFIX, True)
+
+            elif group_name == ISOLATES:
+                # Return all isolates but the forkers
+                matching = self.get_all_isolates(None, True)
+                if matching:
+                    # Filter the list
+                    matching = [isolate for isolate in matching
+                                if not isolate.startswith(FORKER_ID_PREFIX)]
+
+            elif group_name == NEIGHBOURS:
+                # Return all isolates but the forkers
+                matching = self.get_isolates_on_node(self.get_local_node())
+                if matching:
+                    matching.remove(isolate_id)
+
+            else:
+                # Unknown
+                _logger.warning("Unknown directory group '%s'", group_name)
+                matching = None
+
+            if not matching:
+                # No match found
+                return None
+
+            accesses = {}
+            for isolate in matching:
+                # Compute all accesses
+                access = self.get_isolate_access(isolate)
+                if access is not None:
+                    accesses[isolate] = access
+
+        return accesses
 
 
     def get_group_accesses(self, group_name):
         """
         Retrieves an Isolate ID -> (host, port) map, containing all known
-        isolates that belong to given group
+        isolates that belong to the given group
         
         :param group_name: A group name
         :return: An ID -> (host, port) map, None if the group is unknown.
