@@ -26,6 +26,7 @@ import org.psem2m.signals.ISignalBroadcaster.ESendMode;
 import org.psem2m.signals.ISignalData;
 import org.psem2m.signals.ISignalDirectory;
 import org.psem2m.signals.ISignalDirectory.EBaseGroup;
+import org.psem2m.signals.ISignalDirectoryConstants;
 import org.psem2m.signals.ISignalListener;
 import org.psem2m.signals.ISignalReceiver;
 import org.psem2m.signals.IWaitingSignal;
@@ -60,29 +61,14 @@ public class DirectoryUpdater implements ISignalListener,
         int port;
     }
 
-    /** The dumper port system property */
-    public static final String PROP_DUMPER_PORT = "psem2m.directory.dumper.port";
-
-    /** Directory dump request */
-    private static final String SIGNAL_DUMP = DirectoryUpdater.SIGNAL_PREFIX
-            + "/dump";
-
-    /** Prefix of all directory updater signals */
-    private static final String SIGNAL_PREFIX = "/psem2m-directory-updater";
-
-    /** Pattern to match all directory updater signals */
-    private static final String SIGNAL_PREFIX_MATCH_ALL = DirectoryUpdater.SIGNAL_PREFIX
-            + "/*";
-
-    /** Isolate registration notification */
-    private static final String SIGNAL_REGISTER = DirectoryUpdater.SIGNAL_PREFIX
-            + "/register";
-
     /** The signals directory */
     @Requires
     private ISignalDirectory pDirectory;
 
-    /** The port to access the directory dumper */
+    /**
+     * The port to access the directory dumper. The member shall not be changed
+     * after component validation
+     */
     private int pDumperPort;
 
     /** The logger */
@@ -98,12 +84,79 @@ public class DirectoryUpdater implements ISignalListener,
     private ISignalBroadcaster pSender;
 
     /**
+     * Retrieves the directory of a remote isolate.
+     * 
+     * This method is called after a CONTACT signal has been received from a
+     * monitor.
+     * 
+     * @param aSignalData
+     *            The received contact signal
+     */
+    protected void grabRemoteDirectory(final ISignalData aSignalData) {
+
+        // Only monitors can send us this kind of signal
+        final String remoteId = aSignalData.getSenderId();
+        if (!remoteId
+                .startsWith(IPlatformProperties.SPECIAL_ISOLATE_ID_MONITOR)) {
+            // Log & Ignore
+            pLogger.logWarn(this, "grabRemoteDirectory",
+                    "Contacts must be made by monitors only, sender=", remoteId);
+            return;
+        }
+
+        // Get information on the sender
+        final String remoteAddress = aSignalData.getSenderAddress();
+        final String remoteNode = aSignalData.getSenderNode();
+        final Object rawContent = aSignalData.getSignalContent();
+        if (!(rawContent instanceof Map)) {
+            pLogger.logWarn(this, "grabRemoteDirectory", "Unreadable content=",
+                    rawContent);
+            return;
+        }
+
+        // Get the dumper port
+        final Map<?, ?> content = (Map<?, ?>) rawContent;
+        final Integer remotePort = (Integer) content.get("port");
+        if (remotePort == null) {
+            pLogger.logWarn(this, "grabRemoteDirectory", "No access port given");
+            return;
+        }
+
+        // Store the node information
+        pDirectory.setNodeAddress(remoteNode, remoteAddress);
+
+        // Grab the directory
+        try {
+            final Object[] results = pSender.sendTo(
+                    ISignalDirectoryConstants.SIGNAL_DUMP, null, remoteAddress,
+                    remotePort);
+
+            // Store the dumped directory
+            handleDumpedDirectory(results, remoteNode);
+
+            // Send our registration signal
+            sendRegistration(remoteAddress, remotePort);
+
+        } catch (final Exception e) {
+            pLogger.logSevere(this, "grabRemoteDirectory",
+                    "Error grabbing the directory of host=", remoteAddress,
+                    "port=", remotePort, "id=", remoteId, ":", e);
+        }
+    }
+
+    /**
      * Tries to find the directory dump in the results then stores it
+     * 
+     * If aIgnoredNode is not null, the address corresponding to it in the
+     * dumped directory won't be stored.
      * 
      * @param aResults
      *            The signal results
+     * @param aIgnoredNode
+     *            The address for this node must be ignored
      */
-    protected void handleDumpedDirectory(final Object[] aResults) {
+    protected void handleDumpedDirectory(final Object[] aResults,
+            final String aIgnoredNode) {
 
         if (aResults == null || aResults.length == 0) {
             // No result...
@@ -118,6 +171,7 @@ public class DirectoryUpdater implements ISignalListener,
                     "More than one result found. Ignoring others.");
         }
 
+        // Type conversion...
         Map<?, ?> dump = null;
         for (final Object result : aResults) {
             if (result instanceof Map) {
@@ -128,11 +182,11 @@ public class DirectoryUpdater implements ISignalListener,
 
         if (dump != null) {
             // All good, store it
-            storeDirectory(dump);
+            storeDirectory(dump, aIgnoredNode);
 
             // Send our registration, one we have the directory...
             pLogger.logDebug(this, "validate", "Sending registration");
-            sendRegistration();
+            sendRegistration("localhost", pDumperPort);
 
         } else {
             // Nothing found
@@ -152,11 +206,12 @@ public class DirectoryUpdater implements ISignalListener,
     public Object handleReceivedSignal(final String aSignalName,
             final ISignalData aSignalData) {
 
-        if (SIGNAL_DUMP.equals(aSignalName)) {
+        if (ISignalDirectoryConstants.SIGNAL_DUMP.equals(aSignalName)) {
             // Dump the directory
             return pDirectory.dump();
 
-        } else if (SIGNAL_REGISTER.equals(aSignalName)) {
+        } else if (ISignalDirectoryConstants.SIGNAL_REGISTER
+                .equals(aSignalName)) {
             // Isolate registration
             registerIsolate(aSignalData);
         }
@@ -172,7 +227,8 @@ public class DirectoryUpdater implements ISignalListener,
     public void invalidate() {
 
         // Unregister signals
-        pReceiver.unregisterListener(SIGNAL_PREFIX_MATCH_ALL, this);
+        pReceiver.unregisterListener(
+                ISignalDirectoryConstants.SIGNAL_PREFIX_MATCH_ALL, this);
     }
 
     /**
@@ -198,9 +254,9 @@ public class DirectoryUpdater implements ISignalListener,
         final Integer port = (Integer) content.get("port");
         final Boolean propagate = (Boolean) content.get("propagate");
 
+        // Get the group
         final Object rawGroups = content.get("groups");
         String[] groups;
-
         if (rawGroups instanceof Collection) {
             // Collection...
             groups = ((Collection<?>) rawGroups).toArray(new String[0]);
@@ -222,6 +278,12 @@ public class DirectoryUpdater implements ISignalListener,
             groups = new String[] { "ALL", "ISOLATES" };
         }
 
+        // 0. Get the address
+        String address = (String) content.get("address");
+        if (address == null || address.isEmpty()) {
+            address = aSignalData.getSenderAddress();
+        }
+
         // 1. Update the node address
         pDirectory.setNodeAddress(node, aSignalData.getSenderAddress());
 
@@ -232,14 +294,26 @@ public class DirectoryUpdater implements ISignalListener,
         if (propagate.booleanValue()) {
             // Stop propagation
             content.put("propagate", Boolean.FALSE);
-            pSender.sendGroup(SIGNAL_REGISTER, content, EBaseGroup.OTHERS);
+
+            // Store the address we used
+            content.put("address", address);
+
+            pSender.sendGroup(ISignalDirectoryConstants.SIGNAL_REGISTER,
+                    content, EBaseGroup.OTHERS);
         }
     }
 
     /**
-     * Sends the registration signal to all known isolates
+     * Sends the registration signal the given isolate (that will propagate the
+     * signal once)
+     * 
+     * @param aRemoteAddress
+     *            The target address
+     * @param aRemotePort
+     *            The target port
      */
-    protected void sendRegistration() {
+    protected void sendRegistration(final String aRemoteAddress,
+            final int aRemotePort) {
 
         final String isolateId = pDirectory.getIsolateId();
 
@@ -263,6 +337,8 @@ public class DirectoryUpdater implements ISignalListener,
         // Prepare content
         final Map<String, Object> content = new HashMap<String, Object>();
         content.put("id", isolateId);
+        // Let the receiver compute our address
+        content.put("address", null);
         content.put("node", pDirectory.getLocalNode());
         content.put("groups", groups.toArray(new String[0]));
         content.put("port", pReceiver.getAccessInfo().getPort());
@@ -270,34 +346,49 @@ public class DirectoryUpdater implements ISignalListener,
 
         // Send the signal (don't wait for a result)
         try {
-            pSender.sendTo(SIGNAL_REGISTER, content, "localhost", pDumperPort);
+            pSender.sendTo(ISignalDirectoryConstants.SIGNAL_REGISTER, content,
+                    aRemoteAddress, aRemotePort);
+
         } catch (final Exception e) {
             // Error ?
-            pLogger.logWarn(
-                    this,
-                    "sendRegistration",
-                    "Error sending registration signal to the directory dumper.",
+            pLogger.logWarn(this, "sendRegistration",
+                    "Error sending registration signal to host=",
+                    aRemoteAddress, "port=", aRemotePort,
                     "Sending to all known isolates");
 
             // Try with others...
-            pSender.sendGroup(SIGNAL_REGISTER, content, EBaseGroup.OTHERS);
+            pSender.sendGroup(ISignalDirectoryConstants.SIGNAL_REGISTER,
+                    content, EBaseGroup.OTHERS);
         }
     }
 
     /**
      * Stores the content of the given directory dump
      * 
+     * If aIgnoredNode is not null, the address corresponding to it in the
+     * dumped directory won't be stored.
+     * 
      * @param aDumpedDirectory
      *            A directory dump
+     * @param aIgnoredNode
+     *            The address for this node must be ignored
      */
-    protected void storeDirectory(final Map<?, ?> aDumpedDirectory) {
+    protected void storeDirectory(final Map<?, ?> aDumpedDirectory,
+            final String aIgnoredNode) {
+
+        // Local information
+        final String localId = pDirectory.getIsolateId();
+        final String localNode = pDirectory.getLocalNode();
 
         // 1. Setup nodes hosts
         final Map<?, ?> nodesHost = (Map<?, ?>) aDumpedDirectory
                 .get("nodes_host");
         for (final Entry<?, ?> entry : nodesHost.entrySet()) {
-            pDirectory.setNodeAddress((String) entry.getKey(),
-                    (String) entry.getValue());
+            final String node = (String) entry.getKey();
+            if (!node.equals(localNode) && !node.equals(aIgnoredNode)) {
+                // Node passed the filter
+                pDirectory.setNodeAddress(node, (String) entry.getValue());
+            }
         }
 
         // 2. Prepare isolates information
@@ -308,6 +399,11 @@ public class DirectoryUpdater implements ISignalListener,
             // Cast entry
             final String isolateId = (String) entry.getKey();
             final Map<?, ?> access = (Map<?, ?>) entry.getValue();
+
+            if (localId.equals(isolateId)) {
+                // Ignore current isolate
+                continue;
+            }
 
             // Create the information bean
             final IsolateInfo info = new IsolateInfo();
@@ -366,7 +462,8 @@ public class DirectoryUpdater implements ISignalListener,
 
         pLogger.logInfo(this, "validate", "Directory Updater started");
 
-        final String dumpPortStr = System.getProperty(PROP_DUMPER_PORT);
+        final String dumpPortStr = System
+                .getProperty(ISignalDirectoryConstants.PROP_DUMPER_PORT);
         pDumperPort = -1;
         try {
             pDumperPort = Integer.parseInt(dumpPortStr);
@@ -386,13 +483,15 @@ public class DirectoryUpdater implements ISignalListener,
                     pDumperPort);
 
             // Stack the signal...
-            pSender.stack(SIGNAL_DUMP, null, this, ESendMode.SEND,
-                    Integer.MAX_VALUE, new HostAccess("localhost", pDumperPort));
+            pSender.stack(ISignalDirectoryConstants.SIGNAL_DUMP, null, this,
+                    ESendMode.SEND, Integer.MAX_VALUE, new HostAccess(
+                            "localhost", pDumperPort));
         }
 
         // Register to signals
         pLogger.logDebug(this, "validate", "Registering to the receiver...");
-        pReceiver.registerListener(SIGNAL_PREFIX_MATCH_ALL, this);
+        pReceiver.registerListener(
+                ISignalDirectoryConstants.SIGNAL_PREFIX_MATCH_ALL, this);
     }
 
     /*
@@ -405,13 +504,13 @@ public class DirectoryUpdater implements ISignalListener,
     @Override
     public void waitingSignalSent(final IWaitingSignal aSignal) {
 
-        if (SIGNAL_DUMP.equals(aSignal.getName())) {
+        if (ISignalDirectoryConstants.SIGNAL_DUMP.equals(aSignal.getName())) {
             // Found
             pLogger.logDebug(this, "waitingSignalSent",
-                    "Dump directory signal sent");
+                    "Dump directory signal response received");
 
             // Call the handling code
-            handleDumpedDirectory(aSignal.getSendToResult());
+            handleDumpedDirectory(aSignal.getSendToResult(), null);
 
         } else {
             // Ingored result
