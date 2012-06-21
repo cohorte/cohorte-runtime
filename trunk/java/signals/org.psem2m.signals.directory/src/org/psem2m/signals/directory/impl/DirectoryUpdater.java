@@ -82,6 +82,9 @@ public class DirectoryUpdater implements ISignalListener,
     @Requires
     private ISignalDirectory pDirectory;
 
+    /** The port to access the directory dumper */
+    private int pDumperPort;
+
     /** The logger */
     @Requires
     private IIsolateLoggerSvc pLogger;
@@ -155,44 +158,7 @@ public class DirectoryUpdater implements ISignalListener,
 
         } else if (SIGNAL_REGISTER.equals(aSignalName)) {
             // Isolate registration
-            final Map<?, ?> content = (Map<?, ?>) aSignalData
-                    .getSignalContent();
-
-            // Extract information
-            final String isolateId = (String) content.get("id");
-            final String node = (String) content.get("node");
-            final Integer port = (Integer) content.get("port");
-
-            final Object rawGroups = content.get("groups");
-            String[] groups;
-
-            if (rawGroups instanceof Collection) {
-                // Collection...
-                groups = ((Collection<?>) rawGroups).toArray(new String[0]);
-
-            } else if (rawGroups instanceof String[]) {
-                // Best case
-                groups = (String[]) rawGroups;
-
-            } else if (rawGroups instanceof Object[]) {
-                // Simple array...
-                groups = Arrays.asList((Object[]) rawGroups).toArray(
-                        new String[0]);
-
-            } else {
-                // Default
-                pLogger.logWarn(this, "handleReceivedSignal",
-                        "Unreadable isolate groups, class=", rawGroups
-                                .getClass().getName());
-
-                groups = new String[] { "ALL", "ISOLATES" };
-            }
-
-            // Update the node address
-            pDirectory.setNodeAddress(node, aSignalData.getSenderAddress());
-
-            // Register the isolate
-            pDirectory.registerIsolate(isolateId, node, port, groups);
+            registerIsolate(aSignalData);
         }
 
         // No result
@@ -207,6 +173,67 @@ public class DirectoryUpdater implements ISignalListener,
 
         // Unregister signals
         pReceiver.unregisterListener(SIGNAL_PREFIX_MATCH_ALL, this);
+    }
+
+    /**
+     * Handles an isolate registration signal
+     * 
+     * @param aSignalData
+     *            The signal data
+     */
+    protected void registerIsolate(final ISignalData aSignalData) {
+
+        // Extract information
+        @SuppressWarnings("unchecked")
+        final Map<String, Object> content = (Map<String, Object>) aSignalData
+                .getSignalContent();
+
+        final String isolateId = (String) content.get("id");
+        if (pDirectory.getIsolateId().equals(isolateId)) {
+            // Ignore self-registration
+            return;
+        }
+
+        final String node = (String) content.get("node");
+        final Integer port = (Integer) content.get("port");
+        final Boolean propagate = (Boolean) content.get("propagate");
+
+        final Object rawGroups = content.get("groups");
+        String[] groups;
+
+        if (rawGroups instanceof Collection) {
+            // Collection...
+            groups = ((Collection<?>) rawGroups).toArray(new String[0]);
+
+        } else if (rawGroups instanceof String[]) {
+            // Best case
+            groups = (String[]) rawGroups;
+
+        } else if (rawGroups instanceof Object[]) {
+            // Simple array...
+            groups = Arrays.asList((Object[]) rawGroups).toArray(new String[0]);
+
+        } else {
+            // Default
+            pLogger.logWarn(this, "handleReceivedSignal",
+                    "Unreadable isolate groups, class=", rawGroups.getClass()
+                            .getName());
+
+            groups = new String[] { "ALL", "ISOLATES" };
+        }
+
+        // 1. Update the node address
+        pDirectory.setNodeAddress(node, aSignalData.getSenderAddress());
+
+        // 2. Register the isolate
+        pDirectory.registerIsolate(isolateId, node, port, groups);
+
+        // 3. Propagate the registration if needed
+        if (propagate.booleanValue()) {
+            // Stop propagation
+            content.put("propagate", Boolean.FALSE);
+            pSender.sendGroup(SIGNAL_REGISTER, content, EBaseGroup.OTHERS);
+        }
     }
 
     /**
@@ -239,9 +266,22 @@ public class DirectoryUpdater implements ISignalListener,
         content.put("node", pDirectory.getLocalNode());
         content.put("groups", groups.toArray(new String[0]));
         content.put("port", pReceiver.getAccessInfo().getPort());
+        content.put("propagate", true);
 
         // Send the signal (don't wait for a result)
-        pSender.sendGroup(SIGNAL_REGISTER, content, EBaseGroup.OTHERS);
+        try {
+            pSender.sendTo(SIGNAL_REGISTER, content, "localhost", pDumperPort);
+        } catch (final Exception e) {
+            // Error ?
+            pLogger.logWarn(
+                    this,
+                    "sendRegistration",
+                    "Error sending registration signal to the directory dumper.",
+                    "Sending to all known isolates");
+
+            // Try with others...
+            pSender.sendGroup(SIGNAL_REGISTER, content, EBaseGroup.OTHERS);
+        }
     }
 
     /**
@@ -327,15 +367,15 @@ public class DirectoryUpdater implements ISignalListener,
         pLogger.logInfo(this, "validate", "Directory Updater started");
 
         final String dumpPortStr = System.getProperty(PROP_DUMPER_PORT);
-        int dumpPort = -1;
+        pDumperPort = -1;
         try {
-            dumpPort = Integer.parseInt(dumpPortStr);
+            pDumperPort = Integer.parseInt(dumpPortStr);
 
         } catch (final NumberFormatException e) {
             // Ignore
         }
 
-        if (dumpPort <= 0) {
+        if (pDumperPort <= 0) {
             // Bad port
             pLogger.logWarn(this, "validate", "Unreadable dumper port=",
                     dumpPortStr);
@@ -343,11 +383,11 @@ public class DirectoryUpdater implements ISignalListener,
         } else {
             // Retrieve the directory
             pLogger.logDebug(this, "validate", "Grabbing directory from port=",
-                    dumpPort);
+                    pDumperPort);
 
             // Stack the signal...
             pSender.stack(SIGNAL_DUMP, null, this, ESendMode.SEND,
-                    Integer.MAX_VALUE, new HostAccess("localhost", dumpPort));
+                    Integer.MAX_VALUE, new HostAccess("localhost", pDumperPort));
         }
 
         // Register to signals

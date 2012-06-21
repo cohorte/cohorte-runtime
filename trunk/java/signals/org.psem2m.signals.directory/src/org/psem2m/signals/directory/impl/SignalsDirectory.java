@@ -172,6 +172,11 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
             matchingIsolates = getAllIsolates(null, false);
             break;
 
+        case CURRENT:
+            // Only the current isolate
+            matchingIsolates = new String[] { currentId };
+            break;
+
         case FORKERS:
             // Return only forkers, including the current one
             matchingIsolates = getAllIsolates(
@@ -205,11 +210,6 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
 
                 matchingIsolates = set.toArray(new String[0]);
             }
-            break;
-
-        case CURRENT:
-            // Only the current isolate
-            matchingIsolates = new String[] { currentId };
             break;
 
         case NEIGHBOURS:
