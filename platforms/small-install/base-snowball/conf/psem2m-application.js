@@ -1,16 +1,24 @@
 {
     "appId":"distributed-app",
+    "multicast":"239.0.0.1",
     "isolates":[
         {
             "id":"org.psem2m.internals.isolates.forker.snowball",
             "kind":"pelix",
             "httpPort":9001,
+            "node":"snowball",
             "bundles":[
                 {
                     "symbolicName":"base.httpsvc"
                 },
                 {
-                    "symbolicName":"base.signals"
+                    "symbolicName":"base.signals.directory"
+                },
+                {
+                    "symbolicName":"base.signals.directory_updater"
+                },
+                {
+                    "symbolicName":"base.signals.http"
                 },
                 {
                     "symbolicName":"psem2m.forker.config_broker"

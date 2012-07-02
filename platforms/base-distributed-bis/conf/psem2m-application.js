@@ -1,6 +1,6 @@
 {
     "appId":"distributed-app",
-    "multicast":"ff15::42",
+    "multicast":"239.0.0.1",
     "isolates":[
         {
             "from":"monitor.js"
@@ -43,7 +43,7 @@
         {
             "id":"demo.snowball",
             "kind":"pelix",
-            "node":"central",
+            "node":"snowball",
             "httpPort":9101,
             "bundles":[
                 {

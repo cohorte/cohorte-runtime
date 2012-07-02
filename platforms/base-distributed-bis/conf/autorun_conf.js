@@ -4,15 +4,7 @@
         {
             "name":"snowball-compo",
             "type":"demo.consumer",
-            "isolate":"snowball",
-            "wires":{
-                "provider":"central-compo"
-            }
-        },
-        {
-            "name":"stratus-compo",
-            "type":"demo.consumer",
-            "isolate":"stratus",
+            "isolate":"demo.snowball",
             "wires":{
                 "provider":"central-compo"
             }
