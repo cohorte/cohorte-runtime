@@ -191,10 +191,11 @@ def send_cmd_signal(base, cmd):
 
     # Set up the signal content
     signal = {
-            "javaClass": "org.psem2m.remotes.signals.http.HttpSignalData",
-            "isolateSender": "<Controller>",
-            "senderHostName": "localhost",
-            "signalContent": {"cmd": cmd, "args": None},
+            "javaClass": "org.psem2m.signals.SignalData",
+            "senderId": "<Controller>",
+            "senderNode": "<Controller-Node>",
+            "signalContent": {"javaClass": "java.util.HashMap",
+                              "map":{"cmd": cmd, "args": None}},
             "timestamp": int(time.time() * 1000)
             }
     json_signal = json.dumps(signal)
