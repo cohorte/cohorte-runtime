@@ -390,18 +390,14 @@ class Forker(object):
         
         :param isolate_id: The ID of the lost isolate
         """
-        if self._platform_stopping:
-            # Platform stopping : do nothing
-            return
-
-        if isolate_id.startswith("org.psem2m.internals."):
+        if not self._platform_stopping \
+        and isolate_id.startswith("org.psem2m.internals."):
             # Internal isolate : restart it immediately
             self.start_isolate_id(isolate_id)
+            return
 
-        else:
-            # Send a signal to monitors
-            self._sender.send(ISOLATE_LOST_SIGNAL, isolate_id,
-                              groups=["MONITORS"])
+        # Send a signal to monitors
+        self._sender.send(ISOLATE_LOST_SIGNAL, isolate_id, dir_group="MONITORS")
 
 
     def start_monitor(self):
