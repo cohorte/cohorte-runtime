@@ -68,7 +68,7 @@ class SignalsDirectory(object):
         self._context = None
 
         # The big lock
-        self._lock = threading.Lock()
+        self._lock = threading.RLock()
 
         # Isolate ID -> (node, port)
         self._accesses = {}
