@@ -462,7 +462,7 @@ class SignalSender(object):
 
 
     def fire(self, signal, content, isolate=None, isolates=None,
-             dir_group=None, groups=None):
+             dir_group=None, groups=None, excluded=None):
         """
         Sends a signal to the given target, without waiting for the result.
         Returns the list of successfully reached isolates, which may not have
@@ -474,18 +474,52 @@ class SignalSender(object):
         :param isolates: A list of isolate IDs
         :param dir_group: The name of a group computed by the directory
         :param groups: A list of isolates groups names
+        :param excluded: Excluded isolates (only when using groups)
         :return: The list of reached isolates, None if there is no isolate to
                  send the signal to.
         """
         # Send the signal
         result = self.__common_handling(signal, content, isolate, isolates,
-                                        dir_group, groups, MODE_FORGET)
+                                        dir_group, groups, excluded,
+                                        MODE_FORGET)
+
         if result is None:
             # Unknown targets
             return None
 
         # Only return reached isolates
         return result[0].keys()
+
+
+    def fire_to(self, signal, content, host, port):
+        """
+        Sends a signal to the given end point
+        
+        :param signal: Signal name
+        :param content: Signal content
+        :param host: Target host name or IP
+        :param port: Target port
+        :return: True if the isolate has been reached
+        :raise Exception: Error sending the signal
+        """
+        complete_content = self._make_content(content)
+
+        try:
+            result = self.__internal_send((host, port), signal,
+                                          complete_content, MODE_FORGET)
+
+            if result is None:
+                # No result...
+                _logger.warning("No result for signal %s to (%s, %d)",
+                                signal, host, port)
+                return False
+
+            return True
+
+        except Exception as ex:
+            _logger.exception("Error sending signal %s to (%s, %s) : %s",
+                              signal, host, port, ex)
+            raise
 
 
     @Invalidate
@@ -497,7 +531,7 @@ class SignalSender(object):
 
 
     def post(self, signal, content, isolate=None, isolates=None,
-             dir_group=None, groups=None):
+             dir_group=None, groups=None, excluded=None):
         """
         Sends a signal to the given target in a different thread.
         See send(signal, content, isolate, isolates, groups) for more details.
@@ -511,16 +545,33 @@ class SignalSender(object):
         :param isolates: A list of isolate IDs
         :param dir_group: The name of a group computed by the directory
         :param groups: A list of isolates groups names
+        :param excluded: Excluded isolates (only when using groups)
         :return: A FutureResult object
         """
         future = FutureResult()
-        future.execute(self.__common_handling, signal, content, isolate,
-                       isolates, dir_group, groups, MODE_SEND)
+        future.execute(self.send, signal, content, isolate, isolates,
+                       dir_group, groups, excluded)
+        return future
+
+
+    def post_to(self, signal, content, host, port):
+        """
+        Sends a signal to the given end point
+        
+        :param signal: Signal name
+        :param content: Signal content
+        :param host: Target host name or IP
+        :param port: Target port
+        :return: The signal result (None or a listeners results array)
+        :raise Exception: Error sending the signal
+        """
+        future = FutureResult()
+        future.execute(self.send_to, signal, content, host, port)
         return future
 
 
     def send(self, signal, content, isolate=None, isolates=None,
-             dir_group=None, groups=None):
+             dir_group=None, groups=None, excluded=None):
         """
         Sends a signal to the given target.
         
@@ -536,12 +587,13 @@ class SignalSender(object):
         :param isolates: A list of isolate IDs
         :param dir_group: The name of a group computed by the directory
         :param groups: A list of isolates groups names
+        :param excluded: Excluded isolates (only when using groups)
         :return: A (map Isolate ID -> results array, failed isolates) tuple,
                  None if there is no isolate to send the signal to.
         """
         # Standard behavior
         return self.__common_handling(signal, content, isolate, isolates,
-                                      dir_group, groups, MODE_SEND)
+                                      dir_group, groups, excluded, MODE_SEND)
 
 
     def send_to(self, signal, content, host, port):
@@ -680,7 +732,7 @@ class SignalSender(object):
 
 
     def __common_handling(self, signal, content, isolate, isolates,
-                          dir_group, groups, mode):
+                          dir_group, groups, excluded, mode):
         """
         All multiple targets methods shares the same code : compute accesses,
         use the loop and handle the results
@@ -691,6 +743,8 @@ class SignalSender(object):
         :param isolates: A list of isolate IDs
         :param dir_group: The name of a group computed by the directory
         :param groups: A list of isolates groups names
+        :param excluded: Excluded isolates (only when using groups)
+        :param mode: Signal sending mode
         :return: A (map Isolate ID -> results array, failed isolates) tuple,
                  None if there is no isolate to send the signal to.
         """
@@ -708,6 +762,12 @@ class SignalSender(object):
 
         if dir_group:
             accesses.update(self._get_directory_group_accesses(dir_group))
+
+        if excluded:
+            for excluded_isolate in excluded:
+                # Remove excluded isolates, if any
+                if excluded_isolate in accesses:
+                    del accesses[excluded_isolate]
 
         if not accesses:
             # No isolates to access
