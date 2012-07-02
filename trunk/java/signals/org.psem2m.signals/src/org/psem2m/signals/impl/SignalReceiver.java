@@ -31,6 +31,7 @@ import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.signals.HostAccess;
 import org.psem2m.signals.ISignalBroadcaster;
 import org.psem2m.signals.ISignalData;
+import org.psem2m.signals.ISignalDirectory;
 import org.psem2m.signals.ISignalListener;
 import org.psem2m.signals.ISignalReceiver;
 import org.psem2m.signals.ISignalReceptionProvider;
@@ -48,6 +49,10 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver {
 
     /** Receivers dependency ID */
     private static final String ID_RECEIVERS = "receivers";
+
+    /** The signals directory */
+    @Requires
+    private ISignalDirectory pDirectory;
 
     /** Signal listeners */
     private final Map<String, Set<ISignalListener>> pListeners = new HashMap<String, Set<ISignalListener>>();
@@ -89,8 +94,14 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver {
         // Increase the number of available providers
         pNbProviders++;
 
-        // We're now on-line
-        pPropertyOnline = true;
+        final HostAccess access = getAccessInfo();
+        if (access != null) {
+            // Register the access
+            pDirectory.registerLocal(access.getPort(), "ALL");
+
+            // We're now on-line
+            pPropertyOnline = true;
+        }
     }
 
     /*
@@ -334,7 +345,7 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver {
         // Decrease the number of available providers
         pNbProviders--;
 
-        if (pNbProviders == 0) {
+        if (pNbProviders == 0 || getAccessInfo() == null) {
             // No more provider, we're not on-line anymore
             pPropertyOnline = false;
         }
