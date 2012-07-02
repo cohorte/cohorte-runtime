@@ -20,12 +20,14 @@ if sys.version_info[0] == 3:
     import urllib.parse as urlparse
     from http.server import HTTPServer
     from http.server import BaseHTTPRequestHandler
+    from socketserver import ThreadingMixIn
 
 else:
     # Python 2
     import urlparse
     from BaseHTTPServer import HTTPServer
     from BaseHTTPServer import BaseHTTPRequestHandler
+    from SocketServer import ThreadingMixIn
 
 # ------------------------------------------------------------------------------
 
@@ -42,7 +44,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         """
         Constructor
         """
-        self.service = http_svc
+        self._service = http_svc
         BaseHTTPRequestHandler.__init__(self, *args, **kwargs)
 
 
@@ -60,18 +62,16 @@ class RequestHandler(BaseHTTPRequestHandler):
         if parsed_path[0] != '/':
             parsed_path = "/%s" % parsed_path
 
-        for path in self.service.servlets:
-            if path in parsed_path:
-                # Found a corresponding servlet
-                servlet = self.service.servlets[path]
+        servlet = self._service.get_servlet(parsed_path)
+        if servlet is not None:
+            # Found a corresponding servlet
+            if hasattr(servlet, name):
+                # Create a wrapper to pass the handler to the servlet
+                def wrapper():
+                    return getattr(servlet, name)(self)
 
-                if hasattr(servlet, name):
-                    # Create a wrapper to pass the handler to the servlet
-                    def wrapper():
-                        return getattr(servlet, name)(self)
-
-                    # Return it
-                    return wrapper
+                # Return it
+                return wrapper
 
         # Return the super implementation if needed
         return self.send_default_response
@@ -115,9 +115,10 @@ class RequestHandler(BaseHTTPRequestHandler):
 
 # ------------------------------------------------------------------------------
 
-class _HttpServerFamily(HTTPServer):
+class _HttpServerFamily(ThreadingMixIn, HTTPServer):
     """
-    A small modification to have a HTTP Server with a custom address family
+    A small modification to have a threaded HTTP Server with a custom address
+    family
     
     Inspired from:
     http://www.arcfn.com/2011/02/ipv6-web-serving-with-arc-or-python.html
@@ -133,7 +134,7 @@ class _HttpServerFamily(HTTPServer):
 @ComponentFactory(name="HttpServiceFactory")
 @Instantiate("HttpService")
 @Provides(specifications="HttpService")
-@Property("port", "http.port", 8080)
+@Property("_port", "http.port", 8080)
 class HttpService(object):
     """
     HTTP Service
@@ -142,10 +143,14 @@ class HttpService(object):
         """
         Constructor
         """
-        self.port = 8080
-        self.server = None
-        self.servlets = {}
-        self.thread = None
+        self._port = 8080
+
+        # Servlets registries lock
+        self._lock = threading.Lock()
+        self._servlets = {}
+
+        self._server = None
+        self._thread = None
 
 
     def get_hostname(self):
@@ -163,31 +168,79 @@ class HttpService(object):
         
         :return: The port this server listens to
         """
-        return self.port
+        return self._port
+
+
+    def get_servlet(self, path):
+        """
+        Retrieves the servlet matching the given path
+        
+        :param path: A request URI
+        :return: The associated servlet or None
+        """
+        if not path:
+            # No path, nothing to return
+            _logger.debug("No path given")
+            return None
+
+        # Use lower case for comparison
+        path = path.lower()
+
+        with self._lock:
+            for servlet_path, handler in self._servlets.items():
+                if path.startswith(servlet_path):
+                    # Found a corresponding servlet
+                    return handler
+
+        # Nothing found
+        return None
 
 
     def register_servlet(self, path, handler):
         """
         Registers a servlet
+        
+        :param path: Prefix that must match a URI
+        :param handler: The request handler
+        :return: True if the servlet has been registered, False if one is only
+                 registered for this exact path
+        :raise ValueError: Invalid path or handler
         """
-        self.servlets[path] = handler
+        if handler is None:
+            raise ValueError("Invalid handler")
+
+        if not path:
+            raise ValueError("No path given to register the servlet")
+
+        # Use lower-case paths
+        path = path.lower()
+
+        with self._lock:
+            self._servlets[path] = handler
 
 
     def unregister_servlet(self, handler, path=None):
         """
         Unregisters a servlet
+        
+        :param handler: The handler to unregister
+        :param path: If given, the handler is unregistered for this path only.
         """
-        if path is not None:
-            if self.servlets.get(path, None) == handler:
-                del self.servlets[path]
+        with self._lock:
+            if path:
+                # Use lower-case paths
+                path = path.lower()
 
-        else:
-            paths = [path
-                     for (path, path_handler) in self.servlets.items()
-                     if path_handler == handler]
+                if self._servlets.get(path, None) == handler:
+                    del self._servlets[path]
 
-            for path in paths:
-                del self.servlets[path]
+            else:
+                paths = [path
+                         for (path, path_handler) in self._servlets.items()
+                         if path_handler == handler]
+
+                for path in paths:
+                    del self._servlets[path]
 
 
     @Validate
@@ -195,16 +248,16 @@ class HttpService(object):
         """
         Component validation
         """
-        _logger.info("Starting HTTP server (%d)...", self.port)
+        _logger.info("Starting HTTP server (%d)...", self._port)
 
-        self.server = _HttpServerFamily(socket.AF_INET6, ('::', self.port), \
-                                        lambda * x : RequestHandler(self, *x))
+        self._server = _HttpServerFamily(socket.AF_INET6, ('::', self._port), \
+                                         lambda * x : RequestHandler(self, *x))
 
-        self.thread = threading.Thread(target=self.server.serve_forever)
-        self.thread.daemon = True
-        self.thread.start()
+        self._thread = threading.Thread(target=self._server.serve_forever)
+        self._thread.daemon = True
+        self._thread.start()
 
-        _logger.info("HTTP server started (%d)", self.port)
+        _logger.info("HTTP server started (%d)", self._port)
 
 
     @Invalidate
@@ -212,16 +265,16 @@ class HttpService(object):
         """
         Component invalidation
         """
-        _logger.info("Shutting down HTTP server (%d)...", self.port)
+        _logger.info("Shutting down HTTP server (%d)...", self._port)
         # Shutdown connections
-        # self.server.shutdown()
-        self.server.socket.shutdown(socket.SHUT_RD)
+        # self._server.shutdown()
+        self._server.socket.shutdown(socket.SHUT_RD)
 
         # Wait for the thread to stop...
-        # self.thread.join(2)
-        # self.thread = None
+        # self._thread.join(2)
+        # self._thread = None
 
         # Force the socket to be closed
-        self.server.socket.close()
+        self._server.socket.close()
 
-        _logger.info("HTTP server down (%d)", self.port)
+        _logger.info("HTTP server down (%d)", self._port)
