@@ -63,6 +63,7 @@ class ForkerCmdAgent(object):
         handler = getattr(self, "do_%s" % action, None)
         if handler is None:
             # No handler found
+            _logger.error("Unknown command: %s", action)
             return None
 
         # Call the handler
@@ -77,7 +78,7 @@ class ForkerCmdAgent(object):
         :param args: Possible arguments
         """
         # Send the stop platform signal to all monitors
-        self._sender.send(SIGNAL_STOP_PLATFORM, None, groups=["MONITORS"])
+        self._sender.send(SIGNAL_STOP_PLATFORM, None, dir_group="MONITORS")
 
 
     def _get_access_file(self):
