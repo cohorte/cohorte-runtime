@@ -72,6 +72,26 @@ public interface ISignalBroadcaster {
     String[] fireGroup(String aSignalName, Object aContent, EBaseGroup aGroup);
 
     /**
+     * Sends a signal to the computed group, without waiting for the result.
+     * 
+     * Returns the list of successfully reached isolates, which may not have a
+     * listener for this signal.
+     * 
+     * @param aSignalName
+     *            The signal name
+     * @param aContent
+     *            The signal content
+     * @param aGroup
+     *            The base group to compute
+     * @param aExcluded
+     *            Excluded isolates
+     * @return The list of reached isolates, None if there is no isolate to send
+     *         the signal to.
+     */
+    String[] fireGroup(String aSignalName, Object aContent, EBaseGroup aGroup,
+            String... aExcluded);
+
+    /**
      * Sends a signal to the given target, without waiting for the result.
      * 
      * Returns the list of successfully reached isolates, which may not have a
@@ -87,6 +107,48 @@ public interface ISignalBroadcaster {
      *         the signal to.
      */
     String[] fireGroup(String aSignalName, Object aContent, String... aGroups);
+
+    /**
+     * Sends a signal to the given target, without waiting for the result.
+     * 
+     * Returns the list of successfully reached isolates, which may not have a
+     * listener for this signal.
+     * 
+     * @param aSignalName
+     *            The signal name
+     * @param aContent
+     *            The signal content
+     * @param aGroups
+     *            A list of isolates groups names
+     * @param aExcluded
+     *            Excluded isolates
+     * @return The list of reached isolates, None if there is no isolate to send
+     *         the signal to.
+     */
+    String[] fireGroup(String aSignalName, Object aContent, String[] aGroups,
+            String[] aExcluded);
+
+    /**
+     * Sends a signal to the given target, described by a host name and a port,
+     * without waiting for the result.
+     * 
+     * Returns true if the target has been reached, which may not have a
+     * listener for this signal.
+     * 
+     * @param aSignalName
+     *            The signal name
+     * @param aContent
+     *            The signal content
+     * @param aHost
+     *            Target host name or IP
+     * @param aPort
+     *            Target port
+     * @return True if the target has been reached, else false
+     * @throws Exception
+     *             Error sending the signal
+     */
+    boolean fireTo(final String aSignalName, final Object aContent,
+            final String aHost, final int aPort) throws Exception;
 
     /**
      * Sends a signal to the given target in a different thread. See
@@ -136,6 +198,27 @@ public interface ISignalBroadcaster {
      *            The signal name
      * @param aContent
      *            The signal content
+     * @param aGroup
+     *            A group to be computed by the directory
+     * @param aExcluded
+     *            Excluded isolates
+     * @return A Future result, that will contain the signal results (reached
+     *         isolates results and failed isolates)
+     */
+    Future<ISignalSendResult> postGroup(String aSignalName, Object aContent,
+            EBaseGroup aGroup, String... aExcluded);
+
+    /**
+     * Sends a signal to the given target in a different thread. See
+     * send(signal, content, isolate, isolates, groups) for more details.
+     * 
+     * The result is a future object, allowing to wait for and to retrieve the
+     * result of the signal.
+     * 
+     * @param aSignalName
+     *            The signal name
+     * @param aContent
+     *            The signal content
      * @param aGroups
      *            A list of isolates groups names
      * @return A Future result, that will contain the signal results (reached
@@ -143,6 +226,27 @@ public interface ISignalBroadcaster {
      */
     Future<ISignalSendResult> postGroup(String aSignalName, Object aContent,
             String... aGroups);
+
+    /**
+     * Sends a signal to the given target in a different thread. See
+     * send(signal, content, isolate, isolates, groups) for more details.
+     * 
+     * The result is a future object, allowing to wait for and to retrieve the
+     * result of the signal.
+     * 
+     * @param aSignalName
+     *            The signal name
+     * @param aContent
+     *            The signal content
+     * @param aGroups
+     *            A list of isolates groups names
+     * @param aExcluded
+     *            Excluded isolates
+     * @return A Future result, that will contain the signal results (reached
+     *         isolates results and failed isolates)
+     */
+    Future<ISignalSendResult> postGroup(String aSignalName, Object aContent,
+            String[] aGroups, String[] aExcluded);
 
     /**
      * Posts a signal to the given end point
@@ -215,12 +319,36 @@ public interface ISignalBroadcaster {
      *            The signal name
      * @param aContent
      *            The signal content
-     * @param aGroups
-     *            A list of isolates groups names
+     * @param aGroup
+     *            A group to be computed by the directory
+     * @param aExcluded
+     *            Excluded isolates
      * @return The signal results (reached isolates results and failed isolates)
      */
     ISignalSendResult sendGroup(String aSignalName, Object aContent,
-            String... aGroups);
+            EBaseGroup aGroup, String... aExcluded);
+
+    /**
+     * Sends a signal to the given target.
+     * 
+     * The target can be either the ID of an isolate, a list of group of
+     * isolates or a list of isolates.
+     * 
+     * The result is a map, with an entry for each reached isolate. The
+     * associated result can be empty.
+     * 
+     * @param aSignalName
+     *            The signal name
+     * @param aContent
+     *            The signal content
+     * @param aGroups
+     *            A list of isolates groups names
+     * @param aExcluded
+     *            Excluded isolates
+     * @return The signal results (reached isolates results and failed isolates)
+     */
+    ISignalSendResult sendGroup(String aSignalName, Object aContent,
+            String[] aGroups, String[] aExcluded);
 
     /**
      * Sends a signal to the given end point
