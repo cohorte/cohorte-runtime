@@ -29,38 +29,39 @@ iPOJO-Components: instance { $component="org.psem2m.forkers.aggregator
  gregator.impl.IPacketListener" }interface { $name="java.lang.Runnable
  " }field { $name="pConfig" $type="org.psem2m.isolates.services.conf.I
  SvcConfig" }field { $name="pDirectory" $type="org.psem2m.signals.ISig
- nalDirectory" }field { $name="pForkersLST" $type="java.util.Map" }fie
- ld { $name="pIsolateForkers" $type="java.util.Map" }field { $name="pL
- isteners" $type="java.util.Set" }field { $name="pLogger" $type="org.p
- sem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pMulticast" $t
- ype="org.psem2m.forkers.aggregator.impl.MulticastReceiver" }field { $
- name="pReceiver" $type="org.psem2m.signals.ISignalReceiver" }field { 
- $name="pResults" $type="java.util.Map" }field { $name="pSender" $type
- ="org.psem2m.signals.ISignalBroadcaster" }field { $name="pThread" $ty
- pe="java.lang.Thread" }field { $name="pThreadRunning" $type="boolean"
-  }method { $name="extractString" $return="java.lang.String" $argument
- s="{java.nio.ByteBuffer}" }method { $name="fireForkerEvent" $argument
- s="{org.psem2m.isolates.services.forker.IForkerEventListener$EForkerE
- ventType,java.lang.String,java.lang.String}" }method { $name="getFork
- erForNode" $return="java.lang.String" $arguments="{java.lang.String}"
-  }method { $name="getForkerIntResult" $return="int" $arguments="{java
- .lang.String,java.lang.String,java.lang.Object,long}" }method { $name
- ="getNodeName" $return="java.lang.String" }method { $name="handleErro
- r" $return="boolean" $arguments="{java.lang.Exception}" }method { $na
- me="handleHeartBeat" $arguments="{java.lang.String,java.nio.ByteBuffe
- r}" }method { $name="handlePacket" $arguments="{java.net.DatagramPack
- et}" }method { $name="invalidate" }method { $name="isOnNode" $return=
- "boolean" $arguments="{java.lang.String,java.lang.String}" }method { 
- $name="ping" $return="int" $arguments="{java.lang.String}" }method { 
- $name="registerForker" $arguments="{java.lang.String,java.lang.String
- ,java.lang.String,int}" }method { $name="registerListener" $return="b
- oolean" $arguments="{org.psem2m.isolates.services.forker.IForkerEvent
- Listener}" }method { $name="run" }method { $name="sendContactSignal" 
- $arguments="{java.lang.String,int}" }method { $name="setPlatformStopp
- ing" }method { $name="startIsolate" $return="int" $arguments="{java.u
- til.Map}" }method { $name="stopIsolate" $arguments="{java.lang.String
- }" }method { $name="unregisterForker" $arguments="{java.lang.String}"
-  }method { $name="unregisterListener" $return="boolean" $arguments="{
- org.psem2m.isolates.services.forker.IForkerEventListener}" }method { 
- $name="validate" }}}
+ nalDirectory" }field { $name="pEventExecutor" $type="java.util.concur
+ rent.ExecutorService" }field { $name="pForkersLST" $type="java.util.M
+ ap" }field { $name="pIsolateForkers" $type="java.util.Map" }field { $
+ name="pListeners" $type="java.util.Set" }field { $name="pLogger" $typ
+ e="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pMulti
+ cast" $type="org.psem2m.forkers.aggregator.impl.MulticastReceiver" }f
+ ield { $name="pReceiver" $type="org.psem2m.signals.ISignalReceiver" }
+ field { $name="pResults" $type="java.util.Map" }field { $name="pSende
+ r" $type="org.psem2m.signals.ISignalBroadcaster" }field { $name="pThr
+ ead" $type="java.lang.Thread" }field { $name="pThreadRunning" $type="
+ boolean" }method { $name="extractString" $return="java.lang.String" $
+ arguments="{java.nio.ByteBuffer}" }method { $name="fireForkerEvent" $
+ arguments="{org.psem2m.isolates.services.forker.IForkerEventListener$
+ EForkerEventType,java.lang.String,java.lang.String}" }method { $name=
+ "getForkerForNode" $return="java.lang.String" $arguments="{java.lang.
+ String}" }method { $name="getForkerIntResult" $return="int" $argument
+ s="{java.lang.String,java.lang.String,java.lang.Object,long}" }method
+  { $name="getNodeName" $return="java.lang.String" }method { $name="ha
+ ndleError" $return="boolean" $arguments="{java.lang.Exception}" }meth
+ od { $name="handleHeartBeat" $arguments="{java.lang.String,java.nio.B
+ yteBuffer}" }method { $name="handlePacket" $arguments="{java.net.Data
+ gramPacket}" }method { $name="invalidate" }method { $name="isOnNode" 
+ $return="boolean" $arguments="{java.lang.String,java.lang.String}" }m
+ ethod { $name="ping" $return="int" $arguments="{java.lang.String}" }m
+ ethod { $name="registerForker" $arguments="{java.lang.String,java.lan
+ g.String,java.lang.String,int}" }method { $name="registerListener" $r
+ eturn="boolean" $arguments="{org.psem2m.isolates.services.forker.IFor
+ kerEventListener}" }method { $name="run" }method { $name="sendContact
+ Signal" $arguments="{java.lang.String,int}" }method { $name="setPlatf
+ ormStopping" }method { $name="startIsolate" $return="int" $arguments=
+ "{java.util.Map}" }method { $name="stopIsolate" $arguments="{java.lan
+ g.String}" }method { $name="unregisterForker" $arguments="{java.lang.
+ String}" }method { $name="unregisterListener" $return="boolean" $argu
+ ments="{org.psem2m.isolates.services.forker.IForkerEventListener}" }m
+ ethod { $name="validate" }}}
 

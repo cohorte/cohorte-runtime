@@ -21,6 +21,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -39,6 +41,7 @@ import org.psem2m.isolates.services.forker.IForkerEventListener;
 import org.psem2m.isolates.services.forker.IForkerEventListener.EForkerEventType;
 import org.psem2m.signals.ISignalBroadcaster;
 import org.psem2m.signals.ISignalDirectory;
+import org.psem2m.signals.ISignalDirectory.EBaseGroup;
 import org.psem2m.signals.ISignalDirectoryConstants;
 import org.psem2m.signals.ISignalReceiver;
 import org.psem2m.signals.ISignalSendResult;
@@ -69,6 +72,9 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
     /** The isolates directory */
     @Requires
     private ISignalDirectory pDirectory;
+
+    /** Fixed thread pool for event listeners execution */
+    private ExecutorService pEventExecutor;
 
     /** Forkers ID -&gt; Last seen time (LST) */
     private final Map<String, Long> pForkersLST = new HashMap<String, Long>();
@@ -149,18 +155,26 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
     protected void fireForkerEvent(final EForkerEventType aEventType,
             final String aForkerId, final String aForkerHost) {
 
-        synchronized (pListeners) {
-            for (final IForkerEventListener listener : pListeners) {
-                try {
-                    listener.handleForkerEvent(aEventType, aForkerId,
-                            aForkerHost);
-                } catch (final Exception e) {
-                    // A listener failed
-                    pLogger.logSevere(this, "fireForkerEvent",
-                            "A forker event listener failed:\n", e);
+        pEventExecutor.submit(new Runnable() {
+
+            @Override
+            public void run() {
+
+                synchronized (pListeners) {
+                    for (final IForkerEventListener listener : pListeners) {
+                        try {
+                            listener.handleForkerEvent(aEventType, aForkerId,
+                                    aForkerHost);
+
+                        } catch (final Exception e) {
+                            // A listener failed
+                            pLogger.logSevere(this, "fireForkerEvent",
+                                    "A forker event listener failed:\n", e);
+                        }
+                    }
                 }
             }
-        }
+        });
     }
 
     /**
@@ -366,6 +380,10 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
      */
     @Invalidate
     public void invalidate() {
+
+        // Stop the event thread
+        pEventExecutor.shutdownNow();
+        pEventExecutor = null;
 
         // Clear all collections
         pForkersLST.clear();
@@ -594,15 +612,8 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
     @Override
     public void setPlatformStopping() {
 
-        final String[] forkers = pDirectory.getAllIsolates(
-                IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER, true);
-        if (forkers == null) {
-            return;
-        }
-
-        for (final String forker : forkers) {
-            pSender.fire(IForkerOrders.SIGNAL_PLATFORM_STOPPING, null, forker);
-        }
+        pSender.fireGroup(IForkerOrders.SIGNAL_PLATFORM_STOPPING, null,
+                EBaseGroup.FORKERS);
     }
 
     /*
@@ -719,6 +730,9 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
     /** Component validation */
     @Validate
     public void validate() {
+
+        // Start the event thread
+        pEventExecutor = Executors.newFixedThreadPool(1);
 
         // Start the UDP heart beat listener
         // Get the multicast group and port
