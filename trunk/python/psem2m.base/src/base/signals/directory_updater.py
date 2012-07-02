@@ -175,20 +175,26 @@ class DirectoryUpdater(object):
             # Ignore self-registration
             return
 
-        # 0. Get the isolate address (indicated or found)
-        address = content.get("address", None)
-        if not address:
+        node = content["node"]
+        if node == signal_data["senderNode"]:
+            # If both the registered and the registrar are on the same node,
+            # use the sender address to update the node access
             address = signal_data["senderAddress"]
 
+        else:
+            # Else: use the address indicated in the signal, or use the sender
+            # address
+            address = content.get("address", None)
+            if not address:
+                # Address could be empty, so don't use the dict.get() parameter
+                address = signal_data["senderAddress"]
+
         # 1. Update the node host
-        self._directory.set_node_address(content["node"],
-                                         address)
+        self._directory.set_node_address(node, address)
 
         # 2. Register the isolate
-        self._directory.register_isolate(isolate_id, content["node"],
-                                         content["port"], content["groups"])
-
-        _logger.debug("REGISTERED << %s", isolate_id)
+        self._directory.register_isolate(isolate_id, node, content["port"],
+                                         content["groups"])
 
         # 3. Propagate the registration, if needed
         if content["propagate"]:
@@ -198,7 +204,8 @@ class DirectoryUpdater(object):
             # Indicate the address we used for the registration
             content["address"] = address
 
-            self._sender.fire(SIGNAL_REGISTER, content, dir_group="OTHERS")
+            self._sender.fire(SIGNAL_REGISTER, content, dir_group="OTHERS",
+                              excluded=[isolate_id])
 
 
     def _send_registration(self, host, port):
@@ -266,6 +273,7 @@ class DirectoryUpdater(object):
         elif name == SIGNAL_CONTACT:
             # A contact has been signal, ask for a remote directory dump
             self._grab_remote_directory(signal_data)
+
 
     @Invalidate
     def invalidate(self, context):

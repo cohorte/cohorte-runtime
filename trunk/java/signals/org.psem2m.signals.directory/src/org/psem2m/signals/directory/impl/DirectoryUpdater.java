@@ -271,21 +271,34 @@ public class DirectoryUpdater implements ISignalListener,
 
         } else {
             // Default
-            pLogger.logWarn(this, "handleReceivedSignal",
+            pLogger.logWarn(this, "registerIsolate",
                     "Unreadable isolate groups, class=", rawGroups.getClass()
                             .getName());
 
             groups = new String[] { "ALL", "ISOLATES" };
         }
 
-        // 0. Get the address
-        String address = (String) content.get("address");
-        if (address == null || address.isEmpty()) {
+        String address;
+        if (aSignalData.getSenderNode().equals(node)) {
+            /*
+             * If both the registered and the registrar are on the same node,
+             * use the sender address to update the node access
+             */
             address = aSignalData.getSenderAddress();
+
+        } else {
+            /*
+             * Else use the address indicated in the signal, or use the sender
+             * address
+             */
+            address = (String) content.get("address");
+            if (address == null || address.isEmpty()) {
+                address = aSignalData.getSenderAddress();
+            }
         }
 
         // 1. Update the node address
-        pDirectory.setNodeAddress(node, aSignalData.getSenderAddress());
+        pDirectory.setNodeAddress(node, address);
 
         // 2. Register the isolate
         pDirectory.registerIsolate(isolateId, node, port, groups);
@@ -298,8 +311,8 @@ public class DirectoryUpdater implements ISignalListener,
             // Store the address we used
             content.put("address", address);
 
-            pSender.sendGroup(ISignalDirectoryConstants.SIGNAL_REGISTER,
-                    content, EBaseGroup.OTHERS);
+            pSender.fireGroup(ISignalDirectoryConstants.SIGNAL_REGISTER,
+                    content, EBaseGroup.OTHERS, isolateId);
         }
     }
 
