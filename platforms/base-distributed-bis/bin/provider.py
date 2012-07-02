@@ -49,7 +49,7 @@ class DemoProvider(object):
         sentence = "Hello from %s, %s ! You are the visitor %03d" \
                     % (self._name, name, self._count)
 
-        _logger.info(sentence)
+        # _logger.info(sentence)
         return sentence
 
     @Validate

@@ -48,9 +48,9 @@ class DemoConsumer(object):
         Thread loop
         """
         while self.provider is not None and self._thread_run:
-            _logger.info("Calling Provider.echo('%s')", self._name)
+            # _logger.info("Calling Provider.echo('%s')", self._name)
             result = self.provider.echo(self._name)
-            _logger.info("Provider.echo('%s') = %s", self._name, result)
+            # _logger.info("Provider.echo('%s') = %s", self._name, result)
 
             time.sleep(.5)
 
