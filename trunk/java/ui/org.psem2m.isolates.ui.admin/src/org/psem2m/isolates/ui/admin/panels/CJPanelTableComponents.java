@@ -114,6 +114,11 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
             execute(new Runnable() {
                 @Override
                 public void run() {
+                    
+                    if(pCTableModelComponents == null) {
+                        // No more table
+                        return;
+                    }
 
                     final String wName = aInstance.getInstanceDescription()
                             .getName();
