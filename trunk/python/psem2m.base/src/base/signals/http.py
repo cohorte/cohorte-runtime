@@ -810,7 +810,7 @@ class SignalSender(object):
             signal = signal[1:]
         signal_url = "%s%s" % (SignalReceiver.SERVLET_PATH, signal)
 
-        conn = httplib.HTTPConnection(host, port)
+        conn = httplib.HTTPConnection(host, port, timeout=4)
         try:
             # Open a new HTTP Connection
             conn.connect()
