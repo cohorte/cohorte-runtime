@@ -267,12 +267,14 @@ class HttpService(object):
         """
         _logger.info("Shutting down HTTP server (%d)...", self._port)
         # Shutdown connections
-        # self._server.shutdown()
+        self._server.shutdown()
+        _logger.info("Shutting down HTTP socket (%d)...", self._port)
         self._server.socket.shutdown(socket.SHUT_RD)
 
         # Wait for the thread to stop...
-        # self._thread.join(2)
-        # self._thread = None
+        _logger.info("Waiting HTTP server (%d) thread to stop...", self._port)
+        self._thread.join(2)
+        self._thread = None
 
         # Force the socket to be closed
         self._server.socket.close()
