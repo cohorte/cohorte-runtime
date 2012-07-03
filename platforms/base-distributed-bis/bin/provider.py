@@ -46,11 +46,8 @@ class DemoProvider(object):
         Says hello locally and returns the hello sentence
         """
         self._count += 1
-        sentence = "Hello from %s, %s ! You are the visitor %03d" \
-                    % (self._name, name, self._count)
-
-        # _logger.info(sentence)
-        return sentence
+        return "Hello from %s, %s ! You are the visitor %03d" \
+            % (self._name, name, self._count)
 
     @Validate
     def validate(self, context):

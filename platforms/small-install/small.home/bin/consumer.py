@@ -27,7 +27,6 @@ SPEC_PROVIDER = "org.psem2m.dist.demo.provider"
 
 @ComponentFactory("demo.consumer")
 @Property("_name", constants.IPOPO_INSTANCE_NAME)
-@Property("__export", "service.exported.interfaces", "*")
 @Requires("provider", SPEC_PROVIDER)
 class DemoConsumer(object):
     """
@@ -48,10 +47,8 @@ class DemoConsumer(object):
         Thread loop
         """
         while self.provider is not None and self._thread_run:
-            # _logger.info("Calling Provider.echo('%s')", self._name)
-            result = self.provider.echo(self._name)
+            self.provider.echo(self._name)
             # _logger.info("Provider.echo('%s') = %s", self._name, result)
-
             time.sleep(.5)
 
     @Validate
