@@ -113,28 +113,46 @@ def _run_isolate(required_bundles, properties, wait_for_stop):
     context = framework.get_bundle_context()
 
     try:
-        for bundle_name in required_bundles:
-            # Install and start bundles
-            _logger.debug("Installing %s...", bundle_name)
-            bid = context.install_bundle(bundle_name)
-            context.get_bundle(bid)
-            _logger.debug("%s installed", bundle_name)
-
         _logger.debug("Starting framework...")
         framework.start()
         _logger.debug("Framework started")
 
+        for bundle_name in required_bundles:
+            # Install...
+            _logger.debug("Installing %s...", bundle_name)
+            bid = context.install_bundle(bundle_name)
+            bundle = context.get_bundle(bid)
+            _logger.debug("%s installed: %s", bundle_name, bundle)
+
+            # Start...
+            bundle.start()
+            _logger.debug("%s started", bundle_name)
+
     except:
         # Abandon on error at this level
         _logger.exception("Error starting the forker framework bundles.")
+        # Clean up
         framework.stop()
         pelix.FrameworkFactory.delete_framework(framework)
         return 1
+
+    if framework.get_state() != pelix.Bundle.ACTIVE:
+        # The framework has not been started
+        _logger.error("Framework has not been started correctly. Abandon.")
+
+        # Clean up
+        framework.stop()
+        pelix.FrameworkFactory.delete_framework(framework)
+        return 1
+
 
     if wait_for_stop:
         # All went well, wait for the framework to stop
         _logger.debug("Waiting for the framework to stop")
         framework.wait_for_stop()
+
+        # Clean up
+        pelix.FrameworkFactory.delete_framework(framework)
 
     return 0
 

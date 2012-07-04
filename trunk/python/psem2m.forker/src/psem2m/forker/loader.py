@@ -306,7 +306,8 @@ class IsolateLoader(object):
             _logger.error("An error occurred starting the bundle: Abandon.")
 
             # FIXME: Pelix should stop there
-            context.get_bundle(0).stop()
+            raise pelix.FrameworkException("Loader had to stop the framework",
+                                           True)
 
     @Invalidate
     def invalidate(self, context):
