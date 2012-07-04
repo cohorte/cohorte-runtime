@@ -232,14 +232,15 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
             final Map<String, Object[]> results = result.getResults();
             if (results == null) {
                 // No results at all
-                pLogger.logWarn(this, "startIsolate", "No results from forker");
+                pLogger.logWarn(this, "getForkerIntResult",
+                        "No results from forker");
                 return IForker.REQUEST_NO_RESULT;
             }
 
             final Object[] forkerResults = results.get(aForkerId);
             if (forkerResults == null || forkerResults.length != 1) {
-                pLogger.logWarn(this, "startIsolate", "Unreadable result=",
-                        forkerResults);
+                pLogger.logWarn(this, "getForkerIntResult",
+                        "Unreadable result=", forkerResults);
                 return IForker.REQUEST_NO_RESULT;
             }
 
@@ -249,14 +250,14 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
 
             } else {
                 // Bad result
-                pLogger.logWarn(this, "startIsolate", "Invalid result=",
+                pLogger.logWarn(this, "getForkerIntResult", "Invalid result=",
                         forkerResults[0]);
                 return IForker.REQUEST_NO_RESULT;
             }
 
         } catch (final InterruptedException ex) {
             // Thread interrupted (end of the monitor ?), consider a time out
-            pLogger.logDebug(this, "startIsolate",
+            pLogger.logDebug(this, "getForkerIntResult",
                     "Interrupted while waiting for an answer of forker=",
                     aForkerId, "sending signal=", aSignalName);
 
@@ -264,15 +265,16 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
 
         } catch (final TimeoutException e) {
             // Forker timed out
-            pLogger.logWarn(this, "startIsolate", "Forker=", aForkerId,
+            pLogger.logWarn(this, "getForkerIntResult", "Forker=", aForkerId,
                     "timed out sending signal=", aSignalName);
 
             return IForker.REQUEST_TIMEOUT;
 
         } catch (final ExecutionException e) {
             // Error sending the request
-            pLogger.logSevere(this, "startIsolate", "Error sending signal=",
-                    aSignalName, "to=", aForkerId, ":", e);
+            pLogger.logSevere(this, "getForkerIntResult",
+                    "Error sending signal=", aSignalName, "to=", aForkerId,
+                    ":", e);
             return IForker.REQUEST_ERROR;
         }
     }

@@ -338,7 +338,7 @@ class SignalReceiver(object):
                         try:
                             # Notify the listener
                             result = listener.handle_received_signal(name, data)
-                            if result:
+                            if result is not None:
                                 # Store the result
                                 results.append(result)
 
