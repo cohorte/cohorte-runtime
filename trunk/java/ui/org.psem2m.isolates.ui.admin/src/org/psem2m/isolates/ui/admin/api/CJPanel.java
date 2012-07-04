@@ -11,9 +11,9 @@
 package org.psem2m.isolates.ui.admin.api;
 
 import java.awt.Font;
-import java.util.concurrent.Executor;
 
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 
@@ -28,7 +28,6 @@ public abstract class CJPanel extends JPanel {
      */
     private static final long serialVersionUID = -7983409430415340261L;
     private IIsolateLoggerSvc pLogger = null;
-    private Executor pUiExecutor;
 
     /**
      * Explicit constructor
@@ -41,10 +40,9 @@ public abstract class CJPanel extends JPanel {
     /**
      * Create the panel.
      */
-    public CJPanel(final Executor aUiExecutor, final IIsolateLoggerSvc aLogger) {
+    public CJPanel(final IIsolateLoggerSvc aLogger) {
 
         super();
-        pUiExecutor = aUiExecutor;
         pLogger = aLogger;
 
     }
@@ -54,7 +52,6 @@ public abstract class CJPanel extends JPanel {
      */
     public void destroy() {
 
-        pUiExecutor = null;
         pLogger = null;
     }
 
@@ -63,14 +60,8 @@ public abstract class CJPanel extends JPanel {
      */
     public void execute(final Runnable aRunnable) {
 
-        try {
-            // gives the runnable to the UIExecutor
-            if (pUiExecutor != null) {
-                pUiExecutor.execute(aRunnable);
-            }
-        } catch (final Exception e) {
-            pLogger.logSevere(this, "execute", e);
-        }
+        // gives the runnable to the UIExecutor
+        SwingUtilities.invokeLater(aRunnable);
     }
 
     /**

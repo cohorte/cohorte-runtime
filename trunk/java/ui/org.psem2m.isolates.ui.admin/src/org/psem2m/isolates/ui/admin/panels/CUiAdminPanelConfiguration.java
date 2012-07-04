@@ -10,7 +10,7 @@
  *******************************************************************************/
 package org.psem2m.isolates.ui.admin.panels;
 
-import java.util.concurrent.Executor;
+import javax.swing.SwingUtilities;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
@@ -62,12 +62,6 @@ public class CUiAdminPanelConfiguration extends CPojoBase implements
 
     @Requires
     private IUiAdminSvc pUiAdminSvc;
-
-    /**
-     * Service reference managed by iPojo (see metadata.xml)
-     */
-    @Requires(filter = "(thread=main)")
-    private Executor pUiExecutor;
 
     /**
      * log a dump of the config
@@ -130,12 +124,8 @@ public class CUiAdminPanelConfiguration extends CPojoBase implements
                 pUiAdminPanel.pack();
             }
         };
-        try {
-            // gives the runnable to the UIExecutor
-            pUiExecutor.execute(wRunnable);
-        } catch (final Exception e) {
-            pLogger.logSevere(this, "init", e);
-        }
+
+        SwingUtilities.invokeLater(wRunnable);
     }
 
     /*
@@ -150,9 +140,12 @@ public class CUiAdminPanelConfiguration extends CPojoBase implements
         // logs in the bundle output
         pLogger.logInfo(this, "invalidatePojo", "INVALIDATE", toDescription());
         try {
-            pJPanel.destroy();
-
             pUiAdminSvc.removeUiAdminPanel(pUiAdminPanel);
+
+            if (pJPanel != null) {
+                pJPanel.destroy();
+                pJPanel = null;
+            }
 
         } catch (final Exception e) {
             pLogger.logSevere(this, "invalidatePojo", e);
@@ -189,7 +182,7 @@ public class CUiAdminPanelConfiguration extends CPojoBase implements
                     "Application config.", null, this,
                     EUiAdminPanelLocation.FIRST);
 
-            pJPanel = new CJPanelConfiguration(pUiExecutor, pLogger,
+            pJPanel = new CJPanelConfiguration(pLogger,
                     pUiAdminPanel.getPanel());
 
             initContent();

@@ -10,7 +10,7 @@
  *******************************************************************************/
 package org.psem2m.isolates.ui.admin.panels;
 
-import java.util.concurrent.Executor;
+import javax.swing.SwingUtilities;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
@@ -58,7 +58,7 @@ public class CUiAdminPanelBundles extends CPojoBase implements
             pLogger.logInfo(this, "bundleChanged", "BundleEvent=[%s]",
                     bundleEventToString(aBundleEvent.getType()));
 
-            pUiExecutor.execute(new Runnable() {
+            SwingUtilities.invokeLater(new Runnable() {
 
                 @Override
                 public void run() {
@@ -125,24 +125,18 @@ public class CUiAdminPanelBundles extends CPojoBase implements
 
     /** the IUiAdminScv */
     @Requires
-    IUiAdminSvc pUiAdminSvc;
-
-    /**
-     * Service reference managed by iPojo (see metadata.xml)
-     */
-    @Requires(filter = "(thread=main)")
-    private Executor pUiExecutor;
+    private IUiAdminSvc pUiAdminSvc;
 
     /**
      * 
      */
     private void initContent() {
 
-        Runnable wRunnable = new Runnable() {
+        final Runnable wRunnable = new Runnable() {
             @Override
             public void run() {
 
-                pJPanel = new CJPanelTableBundles(pUiExecutor, pLogger,
+                pJPanel = new CJPanelTableBundles(pLogger,
                         pUiAdminPanel.getPanel());
 
                 pLogger.logInfo(this, "initContent");
@@ -159,12 +153,9 @@ public class CUiAdminPanelBundles extends CPojoBase implements
                         .addBundleListener(pBundleListener);
             }
         };
-        try {
-            // gives the runnable to the UIExecutor
-            pUiExecutor.execute(wRunnable);
-        } catch (Exception e) {
-            pLogger.logSevere(this, "init", e);
-        }
+
+        // gives the runnable to the UIExecutor
+        SwingUtilities.invokeLater(wRunnable);
     }
 
     /*
@@ -180,6 +171,8 @@ public class CUiAdminPanelBundles extends CPojoBase implements
         pLogger.logInfo(this, "invalidatePojo", "INVALIDATE", toDescription());
 
         try {
+            pUiAdminSvc.removeUiAdminPanel(pUiAdminPanel);
+
             if (pBundleListener != null) {
                 CBundleUiActivator.getInstance().getContext()
                         .removeBundleListener(pBundleListener);
@@ -190,9 +183,7 @@ public class CUiAdminPanelBundles extends CPojoBase implements
                 pJPanel = null;
             }
 
-            pUiAdminSvc.removeUiAdminPanel(pUiAdminPanel);
-
-        } catch (Exception e) {
+        } catch (final Exception e) {
             pLogger.logSevere(this, "invalidatePojo", e);
         }
     }
@@ -232,7 +223,7 @@ public class CUiAdminPanelBundles extends CPojoBase implements
 
             initContent();
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             pLogger.logSevere(this, "validatePojo", e);
         }
     }

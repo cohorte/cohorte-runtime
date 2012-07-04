@@ -12,9 +12,9 @@ package org.psem2m.isolates.ui.admin.impl;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.concurrent.Executor;
 
 import javax.swing.Icon;
+import javax.swing.SwingUtilities;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
@@ -37,7 +37,7 @@ import org.psem2m.isolates.ui.admin.api.IUiAdminSvc;
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
-@Component(architecture = true, immediate = true, name = "psem2m-ui-admin-factory", propagation = true, publicFactory = false)
+@Component(name = "psem2m-ui-admin-factory", publicFactory = false)
 @Instantiate(name = "psem2m-ui-admin")
 @Provides(specifications = IUiAdminSvc.class)
 public class CUiAdminSvc extends CPojoBase implements IUiAdminSvc,
@@ -74,13 +74,6 @@ public class CUiAdminSvc extends CPojoBase implements IUiAdminSvc,
      */
     @Requires
     private ISvcAgent pSvcAgent;
-
-    /**
-     * Service reference managed by iPojo (see metadata.xml)
-     */
-    // <requires field="pUiExecutor" optional="false" filter="(thread=main)" />
-    @Requires(filter = "(thread=main)")
-    private Executor pUiExecutor;
 
     /**
      * Explicit default constructor
@@ -133,15 +126,15 @@ public class CUiAdminSvc extends CPojoBase implements IUiAdminSvc,
         pLogger.logInfo(this, "destroy", "hasFrame=[%b]", hasFrameMain());
 
         if (hasFrameMain()) {
-            getFrameMain().destroy();
+            final CFrameMain main = getFrameMain();
             setFrameMain(null);
+            main.destroy();
         }
 
         if (pCUiAdminPanels != null) {
             pCUiAdminPanels.destroy();
             pCUiAdminPanels = null;
         }
-
     }
 
     /**
@@ -181,19 +174,14 @@ public class CUiAdminSvc extends CPojoBase implements IUiAdminSvc,
      */
     private void initFramMain() {
 
-        final Runnable wRunnable = new Runnable() {
+        // gives the runnable to the UIExecutor
+        SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
 
                 CUiAdminSvc.this.createFrameMainExec();
             }
-        };
-        try {
-            // gives the runnable to the UIExecutor
-            pUiExecutor.execute(wRunnable);
-        } catch (final Exception e) {
-            pLogger.logSevere(this, "init", e);
-        }
+        });
     }
 
     /*
@@ -233,12 +221,30 @@ public class CUiAdminSvc extends CPojoBase implements IUiAdminSvc,
             throw new Exception(
                     "Unable to create a new UIAdminpanel. The pFrameMain isn't available");
         }
+
+        // This part doesn't use the UI...
         final CUiAdminPanel wCUiAdminPanel = new CUiAdminPanel(this, aName,
                 aTip, aIcon, aControler);
 
-        pCUiAdminPanels.add(wCUiAdminPanel);
+        // Run everything that uses the UI in the Swing thread ...
+        final Runnable wRunnable = new Runnable() {
 
-        getFrameMain().addUiAdminPanel(wCUiAdminPanel, aLocation);
+            @Override
+            public void run() {
+
+                pCUiAdminPanels.add(wCUiAdminPanel);
+                getFrameMain().addUiAdminPanel(wCUiAdminPanel, aLocation);
+            }
+        };
+
+        if (SwingUtilities.isEventDispatchThread()) {
+            // ... we already are in the UI thread
+            wRunnable.run();
+
+        } else {
+            // ... we are somewhere else: use a blocking call
+            SwingUtilities.invokeAndWait(wRunnable);
+        }
 
         return wCUiAdminPanel;
     }
@@ -253,9 +259,27 @@ public class CUiAdminSvc extends CPojoBase implements IUiAdminSvc,
     @Override
     public void removeUiAdminPanel(final IUiAdminPanel aUiAdminPanel) {
 
-        getFrameMain().removeUiAdminPanel(aUiAdminPanel);
-        pCUiAdminPanels.remove(aUiAdminPanel);
+        final Runnable wRunnable = new Runnable() {
 
+            @Override
+            public void run() {
+
+                getFrameMain().removeUiAdminPanel(aUiAdminPanel);
+                pCUiAdminPanels.remove(aUiAdminPanel);
+            }
+        };
+
+        if (SwingUtilities.isEventDispatchThread()) {
+            wRunnable.run();
+
+        } else {
+            try {
+                SwingUtilities.invokeAndWait(wRunnable);
+
+            } catch (final Exception ex) {
+                pLogger.logSevere(this, "", "Error :", ex);
+            }
+        }
     }
 
     /**
@@ -281,18 +305,14 @@ public class CUiAdminSvc extends CPojoBase implements IUiAdminSvc,
     @Override
     public void setUiAdminFont(final EUiAdminFont aUiAdminFont) {
 
-        try {
-            // gives the runnable to the UIExecutor
-            pUiExecutor.execute(new Runnable() {
-                @Override
-                public void run() {
+        // gives the runnable to the UIExecutor
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
 
-                    pCUiAdminPanels.setUiAdminFont(aUiAdminFont);
-                }
-            });
-        } catch (final Exception e) {
-            pLogger.logSevere(this, "setUiAdminFont", e);
-        }
+                pCUiAdminPanels.setUiAdminFont(aUiAdminFont);
+            }
+        });
     }
 
     /*

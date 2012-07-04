@@ -19,7 +19,6 @@ import java.awt.event.MouseEvent;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executor;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -114,8 +113,8 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
             execute(new Runnable() {
                 @Override
                 public void run() {
-                    
-                    if(pCTableModelComponents == null) {
+
+                    if (pCTableModelComponents == null) {
                         // No more table
                         return;
                     }
@@ -135,31 +134,32 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
                         pCTableModelComponents.setValueAt(wStrState, wRowIdx,
                                 COLUMN_IDX_STATE);
 
-                        try {
-                            // if sorted
-                            final int wSelectedRowIdx = pComponentsTable
-                                    .convertRowIndexToModel(pComponentsTable
-                                            .getSelectionModel()
-                                            .getLeadSelectionIndex());
+                        final int wSelectionIndex = pComponentsTable
+                                .getSelectionModel().getLeadSelectionIndex();
+                        if (wSelectionIndex > -1) {
 
-                            if (wRowIdx == wSelectedRowIdx) {
-
-                                // set the text info of the service
-                                setText(pCTableModelComponents
-                                        .buildTextInfos(wSelectedRowIdx));
-                            }
-                        } catch (final ArrayIndexOutOfBoundsException e1) {
-                            if (hasLogger()) {
-                                getLogger().logSevere(this, "stateChanged",
-                                        "ArrayIndexOutOfBoundsException !");
-                            }
-                        } catch (final Exception e2) {
-                            if (hasLogger()) {
-                                getLogger().logSevere(this, "stateChanged", e2);
+                            try {
+                                // if sorted
+                                final int wSelectedRowIdx = pComponentsTable
+                                        .convertRowIndexToModel(wSelectionIndex);
+                                if (wRowIdx == wSelectedRowIdx) {
+                                    // set the text info of the service
+                                    setText(pCTableModelComponents
+                                            .buildTextInfos(wSelectedRowIdx));
+                                }
+                            } catch (final IndexOutOfBoundsException e1) {
+                                if (hasLogger()) {
+                                    getLogger().logSevere(this, "stateChanged",
+                                            "IndexOutOfBoundsException !");
+                                }
+                            } catch (final Exception e2) {
+                                if (hasLogger()) {
+                                    getLogger().logSevere(this, "stateChanged",
+                                            e2);
+                                }
                             }
                         }
                     }
-
                 }
             });
         }
@@ -429,7 +429,6 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
         return wCI;
     }
 
-    private final boolean[] COLUMNS_EDITABLE = { false, false, false, false };
     private final int[] COLUMNS_SIZE = { 150, 150, 20, 5 };
     private final String[] COLUMNS_TIPS = { "Name of the component.",
             "Factory of the component.", "component of the component.",
@@ -459,10 +458,10 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
     /**
      * Create the panel.
      */
-    public CJPanelTableComponents(final Executor aUiExecutor,
-            final IIsolateLoggerSvc aLogger, final JPanel aPanel) {
+    public CJPanelTableComponents(final IIsolateLoggerSvc aLogger,
+            final JPanel aPanel) {
 
-        super(aUiExecutor, aLogger);
+        super(aLogger);
         aPanel.setLayout(new BorderLayout(0, 0));
         aPanel.add(newGUI(), BorderLayout.CENTER);
     }
@@ -488,7 +487,11 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
      * org.psem2m.isolates.ui.admin.panels.CJPanelTable#addRow(java.lang.Object)
      */
     @Override
-    boolean addRow(final Architecture aArchitecture) {
+    synchronized boolean addRow(final Architecture aArchitecture) {
+
+        if (pCTableModelComponents == null) {
+            return false;
+        }
 
         final boolean result = pCTableModelComponents.addRow(aArchitecture);
         pComponentsTable.updateUI();
@@ -501,10 +504,12 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
      * @see org.psem2m.isolates.ui.admin.panels.CJPanelTable#addRows(T[])
      */
     @Override
-    void addRows(final Architecture[] aArchitectures) {
+    synchronized void addRows(final Architecture[] aArchitectures) {
 
-        pCTableModelComponents.addRows(aArchitectures);
-        pComponentsTable.updateUI();
+        if (pCTableModelComponents != null) {
+            pCTableModelComponents.addRows(aArchitectures);
+            pComponentsTable.updateUI();
+        }
     }
 
     /**
@@ -513,8 +518,15 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
      */
     private String buildComponentState(final InstanceDescription aDescription) {
 
-        return String.format("%1d %s", aDescription.getState(), aDescription
-                .getDescription().getAttribute("state"));
+        try {
+            return String.format("%1d %s", aDescription.getState(),
+                    aDescription.getDescription().getAttribute("state"));
+
+        } catch (final IllegalStateException ex) {
+            // This exception happens when the framework is stopping: the bundle
+            // context might have been disabled
+            return String.format("<illegal state: %s>", ex.getMessage());
+        }
     }
 
     /*
@@ -630,20 +642,23 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
     @Override
     public void destroy() {
 
-        super.destroy();
-
         if (pMouseListener != null) {
-            pComponentsTable.addMouseListener(pMouseListener);
+            pComponentsTable.removeMouseListener(pMouseListener);
+            pMouseListener = null;
         }
+
         if (pSelectionListener != null) {
             pComponentsTable.getSelectionModel().removeListSelectionListener(
                     pSelectionListener);
+            pSelectionListener = null;
         }
+
         if (pCTableModelComponents != null) {
             pCTableModelComponents.destroy();
             pCTableModelComponents = null;
         }
 
+        super.destroy();
     }
 
     /**
@@ -826,10 +841,12 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
      * @see org.psem2m.isolates.ui.admin.panels.CJPanelTable#removeAllRows()
      */
     @Override
-    void removeAllRows() {
+    synchronized void removeAllRows() {
 
-        pCTableModelComponents.removeAllRows();
-        pComponentsTable.updateUI();
+        if (pCTableModelComponents != null) {
+            pCTableModelComponents.removeAllRows();
+            pComponentsTable.updateUI();
+        }
     }
 
     /*
@@ -840,10 +857,12 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
      * Object)
      */
     @Override
-    void removeRow(final Architecture aArchitecture) {
+    synchronized void removeRow(final Architecture aArchitecture) {
 
-        pCTableModelComponents.removeRow(aArchitecture);
-        pComponentsTable.updateUI();
+        if (pCTableModelComponents != null) {
+            pCTableModelComponents.removeRow(aArchitecture);
+            pComponentsTable.updateUI();
+        }
     }
 
     /*
@@ -853,10 +872,12 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
      * org.psem2m.isolates.ui.admin.panels.CJPanelTable#setRow(java.lang.Object)
      */
     @Override
-    void setRow(final Architecture aArchitecture) {
+    synchronized void setRow(final Architecture aArchitecture) {
 
-        pCTableModelComponents.setRow(aArchitecture);
-        pComponentsTable.updateUI();
+        if (pCTableModelComponents != null) {
+            pCTableModelComponents.setRow(aArchitecture);
+            pComponentsTable.updateUI();
+        }
     }
 
     /*
@@ -865,10 +886,12 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
      * @see org.psem2m.isolates.ui.admin.panels.CJPanelTable#setRows(T[])
      */
     @Override
-    void setRows(final Architecture[] aArchitectures) {
+    synchronized void setRows(final Architecture[] aArchitectures) {
 
-        pCTableModelComponents.setRows(aArchitectures);
-        pComponentsTable.updateUI();
+        if (pCTableModelComponents != null) {
+            pCTableModelComponents.setRows(aArchitectures);
+            pComponentsTable.updateUI();
+        }
     }
 
     /*
@@ -910,5 +933,4 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
         pComponentTextArea.setFont(aUiAdminFont.getTextFont());
         return aUiAdminFont.getTextFont();
     }
-
 }

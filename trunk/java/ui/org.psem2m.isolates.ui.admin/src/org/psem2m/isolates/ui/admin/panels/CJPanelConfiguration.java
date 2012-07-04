@@ -12,7 +12,6 @@ package org.psem2m.isolates.ui.admin.panels;
 
 import java.awt.BorderLayout;
 import java.awt.Font;
-import java.util.concurrent.Executor;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -44,13 +43,12 @@ public class CJPanelConfiguration extends CJPanel {
     }
 
     /**
-     * @param aUiExecutor
      * @param aLogger
      */
-    public CJPanelConfiguration(final Executor aUiExecutor,
-            final IIsolateLoggerSvc aLogger, final JPanel aPanel) {
+    public CJPanelConfiguration(final IIsolateLoggerSvc aLogger,
+            final JPanel aPanel) {
 
-        super(aUiExecutor, aLogger);
+        super(aLogger);
         aPanel.setLayout(new BorderLayout(0, 0));
         aPanel.add(newGUI(), BorderLayout.CENTER);
     }

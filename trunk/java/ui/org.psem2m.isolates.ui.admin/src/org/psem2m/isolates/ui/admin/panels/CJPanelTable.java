@@ -11,7 +11,6 @@
 package org.psem2m.isolates.ui.admin.panels;
 
 import java.awt.Font;
-import java.util.concurrent.Executor;
 
 import javax.swing.JTable;
 
@@ -36,13 +35,11 @@ public abstract class CJPanelTable<T> extends CJPanel {
     }
 
     /**
-     * @param aUiExecutor
      * @param aLogger
      */
-    public CJPanelTable(final Executor aUiExecutor,
-            final IIsolateLoggerSvc aLogger) {
+    public CJPanelTable(final IIsolateLoggerSvc aLogger) {
 
-        super(aUiExecutor, aLogger);
+        super(aLogger);
     }
 
     /**
@@ -79,7 +76,7 @@ public abstract class CJPanelTable<T> extends CJPanel {
      */
     void adjustTableRowHeight(final EUiAdminFont aUiAdminFont) {
 
-        Font wNewFont = setTableFont(aUiAdminFont);
+        final Font wNewFont = setTableFont(aUiAdminFont);
         getTable().setRowHeight(calcRowHeight(wNewFont));
     }
 

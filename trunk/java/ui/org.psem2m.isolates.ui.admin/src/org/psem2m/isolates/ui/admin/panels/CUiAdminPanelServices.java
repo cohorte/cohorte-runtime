@@ -10,7 +10,7 @@
  *******************************************************************************/
 package org.psem2m.isolates.ui.admin.panels;
 
-import java.util.concurrent.Executor;
+import javax.swing.SwingUtilities;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
@@ -59,19 +59,21 @@ public class CUiAdminPanelServices extends CPojoBase implements
                     serviceEventToString(aServiceEvent.getType()),
                     aServiceEvent.getServiceReference().toString());
 
-            pUiExecutor.execute(new Runnable() {
+            SwingUtilities.invokeLater(new Runnable() {
 
                 @Override
                 public void run() {
 
                     if (pJPanel != null) {
-                        if (aServiceEvent.getType() == ServiceEvent.REGISTERED) {
-
+                        switch (aServiceEvent.getType()) {
+                        case ServiceEvent.REGISTERED:
                             pJPanel.setRow(aServiceEvent.getServiceReference());
-                        } else if (aServiceEvent.getType() == ServiceEvent.UNREGISTERING) {
+                            break;
 
+                        case ServiceEvent.UNREGISTERING:
                             pJPanel.removeRow(aServiceEvent
                                     .getServiceReference());
+                            break;
                         }
                     }
                 }
@@ -106,13 +108,7 @@ public class CUiAdminPanelServices extends CPojoBase implements
 
     /** the IUiAdminScv **/
     @Requires
-    IUiAdminSvc pUiAdminSvc;
-
-    /**
-     * Service reference managed by iPojo (see metadata.xml)
-     */
-    @Requires(filter = "(thread=main)")
-    private Executor pUiExecutor;
+    private IUiAdminSvc pUiAdminSvc;
 
     /**
      * Explicit constructor
@@ -127,11 +123,11 @@ public class CUiAdminPanelServices extends CPojoBase implements
      */
     private void initContent() {
 
-        Runnable wRunnable = new Runnable() {
+        final Runnable wRunnable = new Runnable() {
             @Override
             public void run() {
 
-                pJPanel = new CJPanelTableServices(pUiExecutor, pLogger,
+                pJPanel = new CJPanelTableServices(pLogger,
                         pUiAdminPanel.getPanel());
 
                 pLogger.logInfo(this, "initContent");
@@ -148,8 +144,9 @@ public class CUiAdminPanelServices extends CPojoBase implements
         };
         try {
             // gives the runnable to the UIExecutor
-            pUiExecutor.execute(wRunnable);
-        } catch (Exception e) {
+            SwingUtilities.invokeLater(wRunnable);
+
+        } catch (final Exception e) {
             pLogger.logSevere(this, "init", e);
         }
     }
@@ -166,6 +163,8 @@ public class CUiAdminPanelServices extends CPojoBase implements
         // logs in the bundle output
         pLogger.logInfo(this, "invalidatePojo", "INVALIDATE", toDescription());
         try {
+            pUiAdminSvc.removeUiAdminPanel(pUiAdminPanel);
+
             if (pServiceListener != null) {
                 CBundleUiActivator.getInstance().getContext()
                         .removeServiceListener(pServiceListener);
@@ -177,9 +176,7 @@ public class CUiAdminPanelServices extends CPojoBase implements
                 pJPanel = null;
             }
 
-            pUiAdminSvc.removeUiAdminPanel(pUiAdminPanel);
-
-        } catch (Exception e) {
+        } catch (final Exception e) {
             pLogger.logSevere(this, "invalidatePojo", e);
         }
     }
@@ -219,7 +216,7 @@ public class CUiAdminPanelServices extends CPojoBase implements
 
             initContent();
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             pLogger.logSevere(this, "validatePojo", e);
         }
     }

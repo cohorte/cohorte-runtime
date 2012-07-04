@@ -60,11 +60,11 @@ public class CFrameMain extends javax.swing.JFrame {
         @Override
         public void actionPerformed(final ActionEvent aActionEvent) {
 
-            JComboBox wCombo = (JComboBox) aActionEvent.getSource();
+            final JComboBox wCombo = (JComboBox) aActionEvent.getSource();
 
-            String wUiAdminFontLib = (String) wCombo.getSelectedItem();
+            final String wUiAdminFontLib = (String) wCombo.getSelectedItem();
 
-            EUiAdminFont wUiAdminFont = EUiAdminFont
+            final EUiAdminFont wUiAdminFont = EUiAdminFont
                     .fontFromLib(wUiAdminFontLib);
 
             if (hasLogger()) {
@@ -95,7 +95,7 @@ public class CFrameMain extends javax.swing.JFrame {
             @Override
             public void run() {
 
-                CFrameMain inst = new CFrameMain();
+                final CFrameMain inst = new CFrameMain();
                 inst.setLocationRelativeTo(null);
                 inst.setVisible(true);
 
@@ -147,9 +147,9 @@ public class CFrameMain extends javax.swing.JFrame {
      * @throws Exception
      */
     void addUiAdminPanel(final CUiAdminPanel aCUiAdminPanel,
-            final EUiAdminPanelLocation aLocation) throws Exception {
+            final EUiAdminPanelLocation aLocation) {
 
-        JPanel wNewPanel = new JPanel();
+        final JPanel wNewPanel = new JPanel();
 
         aCUiAdminPanel.setFrameAndPanel(this, wNewPanel);
 
@@ -170,7 +170,6 @@ public class CFrameMain extends javax.swing.JFrame {
                 aCUiAdminPanel.getIcon(), wNewPanel, aCUiAdminPanel.getTip(),
                 wIdx);
         pMainTabbedPane.setSelectedIndex(wIdx);
-
     }
 
     /**
@@ -178,10 +177,10 @@ public class CFrameMain extends javax.swing.JFrame {
      */
     void destroy() {
 
+        dispose();
+
         pLogger = null;
         pUiAdminSvc = null;
-
-        dispose();
     }
 
     /**
@@ -236,7 +235,7 @@ public class CFrameMain extends javax.swing.JFrame {
                         {
                             pPreferencesChoices = new JPanel();
                             pPreferencesPanel.add(pPreferencesChoices);
-                            GridBagLayout gbl_pPreferencesChoices = new GridBagLayout();
+                            final GridBagLayout gbl_pPreferencesChoices = new GridBagLayout();
                             gbl_pPreferencesChoices.columnWidths = new int[] {
                                     199, 26, 100, 0 };
                             gbl_pPreferencesChoices.rowHeights = new int[] {
@@ -250,7 +249,7 @@ public class CFrameMain extends javax.swing.JFrame {
                             {
                                 pPreferenceLabelReadability = new JLabel(
                                         "Readability");
-                                GridBagConstraints gbc_pPreferenceLabelReadability = new GridBagConstraints();
+                                final GridBagConstraints gbc_pPreferenceLabelReadability = new GridBagConstraints();
                                 gbc_pPreferenceLabelReadability.insets = new Insets(
                                         0, 0, 5, 5);
                                 gbc_pPreferenceLabelReadability.gridx = 0;
@@ -261,7 +260,7 @@ public class CFrameMain extends javax.swing.JFrame {
                             }
                             {
                                 pPreferencesFontLabel = new JLabel("Font");
-                                GridBagConstraints gbc_PreferencesFontLabel = new GridBagConstraints();
+                                final GridBagConstraints gbc_PreferencesFontLabel = new GridBagConstraints();
                                 gbc_PreferencesFontLabel.anchor = GridBagConstraints.WEST;
                                 gbc_PreferencesFontLabel.insets = new Insets(0,
                                         0, 0, 5);
@@ -271,7 +270,7 @@ public class CFrameMain extends javax.swing.JFrame {
                                         gbc_PreferencesFontLabel);
                             }
                             pPreferencesFontSizeComboBox = new JComboBox();
-                            GridBagConstraints gbc_PreferencesFontSizeComboBox = new GridBagConstraints();
+                            final GridBagConstraints gbc_PreferencesFontSizeComboBox = new GridBagConstraints();
                             gbc_PreferencesFontSizeComboBox.anchor = GridBagConstraints.NORTHWEST;
                             gbc_PreferencesFontSizeComboBox.gridx = 2;
                             gbc_PreferencesFontSizeComboBox.gridy = 2;
@@ -344,7 +343,7 @@ public class CFrameMain extends javax.swing.JFrame {
             }
 
             pack();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
         }
     }
@@ -355,10 +354,10 @@ public class CFrameMain extends javax.swing.JFrame {
      */
     void removeUiAdminPanel(final IUiAdminPanel aCUiAdminPanel) {
 
-        int wMax = pMainTabbedPane.getTabCount();
-
+        final String panelName = aCUiAdminPanel.getName();
+        final int wMax = pMainTabbedPane.getTabCount();
         for (int wI = 0; wI < wMax; wI++) {
-            if (pMainTabbedPane.getTitleAt(wI).equals(aCUiAdminPanel.getName())) {
+            if (pMainTabbedPane.getTitleAt(wI).equals(panelName)) {
                 pMainTabbedPane.removeTabAt(wI);
                 break;
             }
@@ -375,7 +374,7 @@ public class CFrameMain extends javax.swing.JFrame {
         if (aIsolateName == null || aIsolateName.isEmpty()) {
             wId = "no id";
         } else {
-            int wPos = aIsolateName.lastIndexOf('.');
+            final int wPos = aIsolateName.lastIndexOf('.');
             wId = wPos > -1 && wPos + 1 < aIsolateName.length() - 1 ? aIsolateName
                     .substring(wPos + 1) : aIsolateName;
         }

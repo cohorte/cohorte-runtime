@@ -19,7 +19,6 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Executor;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
@@ -395,10 +394,10 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
     /**
      * Create the panel.
      */
-    public CJPanelTableServices(final Executor aUiExecutor,
-            final IIsolateLoggerSvc aLogger, final JPanel aPanel) {
+    public CJPanelTableServices(final IIsolateLoggerSvc aLogger,
+            final JPanel aPanel) {
 
-        super(aUiExecutor, aLogger);
+        super(aLogger);
         aPanel.setLayout(new BorderLayout(0, 0));
         aPanel.add(newGUI(), BorderLayout.CENTER);
     }
@@ -526,19 +525,23 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
     @Override
     public void destroy() {
 
-        super.destroy();
-
         if (pMouseListener != null) {
-            pServicesTable.addMouseListener(pMouseListener);
+            pServicesTable.removeMouseListener(pMouseListener);
+            pMouseListener = null;
         }
+
         if (pSelectionListener != null) {
             pServicesTable.getSelectionModel().removeListSelectionListener(
                     pSelectionListener);
+            pSelectionListener = null;
         }
+
         if (pCTableModelServices != null) {
             pCTableModelServices.destroy();
             pCTableModelServices = null;
         }
+
+        super.destroy();
     }
 
     /**

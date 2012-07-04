@@ -18,7 +18,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executor;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -351,10 +350,10 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
     /**
      * Create the panel.
      */
-    public CJPanelTableBundles(final Executor aUiExecutor,
-            final IIsolateLoggerSvc aLogger, final JPanel aPanel) {
+    public CJPanelTableBundles(final IIsolateLoggerSvc aLogger,
+            final JPanel aPanel) {
 
-        super(aUiExecutor, aLogger);
+        super(aLogger);
         aPanel.setLayout(new BorderLayout(0, 0));
         aPanel.add(newGUI(), BorderLayout.CENTER);
     }
@@ -478,15 +477,19 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
     @Override
     public void destroy() {
 
-        super.destroy();
-
         if (pMouseListener != null) {
-            pBundlesTable.addMouseListener(pMouseListener);
+            pBundlesTable.removeMouseListener(pMouseListener);
+            pMouseListener = null;
         }
+
         if (pSelectionListener != null) {
             pBundlesTable.getSelectionModel().removeListSelectionListener(
                     pSelectionListener);
+
+            pSelectionListener = null;
         }
+
+        super.destroy();
     }
 
     /*

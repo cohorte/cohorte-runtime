@@ -11,7 +11,6 @@
 package org.psem2m.composer.ui;
 
 import java.awt.Font;
-import java.util.concurrent.Executor;
 
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.ui.admin.api.CJPanel;
@@ -26,7 +25,7 @@ public abstract class CJPanelTree extends CJPanel {
     private static final long serialVersionUID = 2090135987172885272L;
 
     /**
-     * Explicite default constructor
+     * Explicit default constructor
      */
     public CJPanelTree() {
 
@@ -34,13 +33,11 @@ public abstract class CJPanelTree extends CJPanel {
     }
 
     /**
-     * @param aUiExecutor
      * @param aLogger
      */
-    public CJPanelTree(final Executor aUiExecutor,
-            final IIsolateLoggerSvc aLogger) {
+    public CJPanelTree(final IIsolateLoggerSvc aLogger) {
 
-        super(aUiExecutor, aLogger);
+        super(aLogger);
 
     }
 

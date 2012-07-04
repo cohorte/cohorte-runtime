@@ -26,13 +26,12 @@ public interface IUiAdminSvc {
      * @param aControler
      * @return the instance of the added UiAdminPanel
      */
-    public IUiAdminPanel newUiAdminPanel(final String aName, final String aTip,
-            final Icon icon, IUiAdminPanelControler aControler,
-            final EUiAdminPanelLocation aLocation) throws Exception;
+    IUiAdminPanel newUiAdminPanel(String aName, String aTip, Icon icon,
+            IUiAdminPanelControler aControler, EUiAdminPanelLocation aLocation)
+            throws Exception;
 
     /**
      * @param aUiAdminPanel
      */
-    public void removeUiAdminPanel(IUiAdminPanel aUiAdminPanel);
-
+    void removeUiAdminPanel(IUiAdminPanel aUiAdminPanel);
 }

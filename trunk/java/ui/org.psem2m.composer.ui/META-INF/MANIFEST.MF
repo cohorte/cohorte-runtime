@@ -20,27 +20,26 @@ iPOJO-Components: instance { $component="org.psem2m.composer.ui.CUiAdm
  assname="org.psem2m.composer.ui.CUiAdminPanelComposition" $name="psem
  2m-composer-ui-admin-factory" $public="false" requires { $field="pCom
  poser" }requires { $field="pLogger" }requires { $field="pUiAdminSvc" 
- }requires { $field="pUiExecutor" $filter="(thread=main)" }callback { 
- $transition="invalidate" $method="invalidatePojo" }callback { $transi
- tion="validate" $method="validatePojo" }manipulation { $super="org.ps
- em2m.isolates.base.activators.CPojoBase" interface { $name="org.psem2
- m.isolates.ui.admin.api.IUiAdminPanelControler" }interface { $name="o
- rg.psem2m.composer.ICompositionListener" }field { $name="pComposer" $
- type="org.psem2m.composer.IComposer" }field { $name="pCompositionTree
- Model" $type="org.psem2m.composer.ui.CCompositionTreeModel" }field { 
- $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }f
- ield { $name="pTreePanel" $type="org.psem2m.composer.ui.CJPanelCompos
- ition" }field { $name="pUiAdminPanel" $type="org.psem2m.isolates.ui.a
- dmin.api.IUiAdminPanel" }field { $name="pUiAdminSvc" $type="org.psem2
- m.isolates.ui.admin.api.IUiAdminSvc" }field { $name="pUiExecutor" $ty
- pe="java.util.concurrent.Executor" }method { $name="componentsSetStat
- eChanged" $arguments="{org.psem2m.composer.model.ComponentsSetBean,or
- g.psem2m.composer.EComponentState}" }method { $name="componentStateCh
- anged" $arguments="{org.psem2m.composer.model.ComponentBean,org.psem2
- m.composer.EComponentState}" }method { $name="compositionChanged" $ar
- guments="{org.psem2m.composer.CompositionEvent}" }method { $name="inv
- alidatePojo" }method { $name="loadComposition" }method { $name="remov
- eComposition" }method { $name="setUiAdminFont" $arguments="{org.psem2
- m.isolates.ui.admin.api.EUiAdminFont}" }method { $name="updateModel" 
- }method { $name="validatePojo" }}}
+ }callback { $transition="invalidate" $method="invalidatePojo" }callba
+ ck { $transition="validate" $method="validatePojo" }manipulation { $s
+ uper="org.psem2m.isolates.base.activators.CPojoBase" interface { $nam
+ e="org.psem2m.isolates.ui.admin.api.IUiAdminPanelControler" }interfac
+ e { $name="org.psem2m.composer.ICompositionListener" }field { $name="
+ pComposer" $type="org.psem2m.composer.IComposer" }field { $name="pCom
+ positionTreeModel" $type="org.psem2m.composer.ui.CCompositionTreeMode
+ l" }field { $name="pLogger" $type="org.psem2m.isolates.base.IIsolateL
+ oggerSvc" }field { $name="pTreePanel" $type="org.psem2m.composer.ui.C
+ JPanelComposition" }field { $name="pUiAdminPanel" $type="org.psem2m.i
+ solates.ui.admin.api.IUiAdminPanel" }field { $name="pUiAdminSvc" $typ
+ e="org.psem2m.isolates.ui.admin.api.IUiAdminSvc" }method { $name="com
+ ponentsSetStateChanged" $arguments="{org.psem2m.composer.model.Compon
+ entsSetBean,org.psem2m.composer.EComponentState}" }method { $name="co
+ mponentStateChanged" $arguments="{org.psem2m.composer.model.Component
+ Bean,org.psem2m.composer.EComponentState}" }method { $name="compositi
+ onChanged" $arguments="{org.psem2m.composer.CompositionEvent}" }metho
+ d { $name="initContent" }method { $name="invalidatePojo" }method { $n
+ ame="loadComposition" }method { $name="removeComposition" }method { $
+ name="setUiAdminFont" $arguments="{org.psem2m.isolates.ui.admin.api.E
+ UiAdminFont}" }method { $name="updateModel" }method { $name="validate
+ Pojo" }}}
 

@@ -62,8 +62,8 @@ public abstract class CTableModel<T> extends AbstractTableModel {
     private static final long serialVersionUID = -3434843033520198107L;
 
     private final int pColKeyIdx;
-    private List<String[]> pList = new ArrayList<String[]>();
-    private Map<String, CEntityBean<T>> pMap = new HashMap<String, CEntityBean<T>>();
+    private final List<String[]> pList = new ArrayList<String[]>();
+    private final Map<String, CEntityBean<T>> pMap = new HashMap<String, CEntityBean<T>>();
     private final CJPanelTable<T> pPanel;
     private final String[] pTitles;
 
@@ -89,10 +89,10 @@ public abstract class CTableModel<T> extends AbstractTableModel {
      */
     private int addEntity(final T aEntity) {
 
-        String[] wData = pPanel.buildRowData(aEntity);
+        final String[] wData = pPanel.buildRowData(aEntity);
         if (pPanel.acceptRow(aEntity, wData)) {
             pList.add(wData);
-            String wKey = getRowKey(wData);
+            final String wKey = getRowKey(wData);
             pMap.put(wKey, buildEntityBean(aEntity));
 
             traceDebug("%15s| adds row=[%s]", "addEntity", wKey);
@@ -105,7 +105,7 @@ public abstract class CTableModel<T> extends AbstractTableModel {
     /**
      * @param aEntity
      */
-    public boolean addRow(final T aEntity) {
+    public synchronized boolean addRow(final T aEntity) {
 
         if (aEntity == null) {
             return false;
@@ -135,7 +135,7 @@ public abstract class CTableModel<T> extends AbstractTableModel {
     /**
      * @param aEntities
      */
-    public boolean addRows(final T[] aEntities) {
+    public synchronized boolean addRows(final T[] aEntities) {
 
         if (aEntities == null || aEntities.length == 0) {
             return false;
@@ -149,8 +149,8 @@ public abstract class CTableModel<T> extends AbstractTableModel {
         int wNbAdded = 0;
         synchronized (this) {
             wFirstRow = pList.size();
-            for (T wEntity : aEntities) {
-                int wNewRowIdx = addEntity(wEntity);
+            for (final T wEntity : aEntities) {
+                final int wNewRowIdx = addEntity(wEntity);
                 if (wNewRowIdx != -1) {
                     wLastRow = wNewRowIdx;
                     wNbAdded++;
@@ -195,12 +195,10 @@ public abstract class CTableModel<T> extends AbstractTableModel {
     /**
      * 
      */
-    public void destroy() {
+    public synchronized void destroy() {
 
-        synchronized (this) {
-            pMap.clear();
-            pList.clear();
-        }
+        pMap.clear();
+        pList.clear();
     }
 
     /*
@@ -249,11 +247,9 @@ public abstract class CTableModel<T> extends AbstractTableModel {
      * @see javax.swing.table.TableModel#getRowCount()
      */
     @Override
-    public int getRowCount() {
+    public synchronized int getRowCount() {
 
-        synchronized (this) {
-            return pList.size();
-        }
+        return pList.size();
     }
 
     /**
@@ -271,26 +267,31 @@ public abstract class CTableModel<T> extends AbstractTableModel {
      * @see javax.swing.table.TableModel#getValueAt(int, int)
      */
     @Override
-    public Object getValueAt(final int row, final int col) {
+    public synchronized Object getValueAt(final int row, final int col) {
 
         // traceDebug("%15s| NbExistingRows=[%d] row=[%d] col=[%d]",
         // "getValueAt",
         // pList.size(), row, col);
 
-        synchronized (this) {
-            return pList.get(row)[col];
+        if (row > -1 && row < pList.size()) {
+            final String[] rowContent = pList.get(row);
+            if (rowContent != null && col > -1 && col < rowContent.length) {
+                return rowContent[col];
+            }
         }
+
+        return null;
     }
 
     /**
      * @param aKey
      * @return
      */
-    int indexOf(final String aKey) {
+    synchronized int indexOf(final String aKey) {
 
         int wRowIdx = -1;
         int wI = 0;
-        for (String[] wRowData : pList) {
+        for (final String[] wRowData : pList) {
             if (wRowData[pColKeyIdx].equals(aKey)) {
                 wRowIdx = wI;
                 break;
@@ -318,8 +319,8 @@ public abstract class CTableModel<T> extends AbstractTableModel {
 
         traceDebug("%15s| NbExistingRows=[%d]", "removeAllRows", pList.size());
         if (pList.size() > 0) {
-            int wFirstRow = 0;
-            int wLastRow = pList.size() - 1;
+            final int wFirstRow = 0;
+            final int wLastRow = pList.size() - 1;
             pMap.clear();
             pList.clear();
 
@@ -333,12 +334,12 @@ public abstract class CTableModel<T> extends AbstractTableModel {
     /**
      * @param row
      */
-    public void removeRow(final T aEntity) {
+    public synchronized void removeRow(final T aEntity) {
 
         traceDebug("%15s| NbExistingRows=[%d]", "removeRow", pList.size());
         final int wRowIdx;
         synchronized (this) {
-            String wKey = pPanel.buildRowKey(aEntity);
+            final String wKey = pPanel.buildRowKey(aEntity);
             wRowIdx = indexOf(wKey);
             if (wRowIdx > -1) {
                 pMap.remove(wKey);
@@ -356,18 +357,18 @@ public abstract class CTableModel<T> extends AbstractTableModel {
     /**
      * @param aEntity
      */
-    public void setRow(final T aEntity) {
+    public synchronized void setRow(final T aEntity) {
 
         traceDebug("%15s| NbExistingRows=[%d]", "setRow", pList.size());
 
         int wRowIdx = -1;
         synchronized (this) {
-            String[] wData = pPanel.buildRowData(aEntity);
-            String wKey = getRowKey(wData);
+            final String[] wData = pPanel.buildRowData(aEntity);
+            final String wKey = getRowKey(wData);
             wRowIdx = indexOf(wKey);
             if (wRowIdx > -1) {
                 int wI = 0;
-                for (String wCellData : wData) {
+                for (final String wCellData : wData) {
                     pList.get(wRowIdx)[wI] = wCellData;
                     wI++;
                 }
@@ -389,7 +390,7 @@ public abstract class CTableModel<T> extends AbstractTableModel {
     /**
      * @param aEntities
      */
-    public void setRows(final T[] aEntities) {
+    public synchronized void setRows(final T[] aEntities) {
 
         traceDebug("%15s| NbExistingRows=[%d]", "setRows", pList.size());
 
@@ -406,9 +407,11 @@ public abstract class CTableModel<T> extends AbstractTableModel {
      * int, int)
      */
     @Override
-    public void setValueAt(final Object value, final int row, final int col) {
+    public synchronized void setValueAt(final Object value, final int row,
+            final int col) {
 
-        synchronized (this) {
+        final String[] rowContent = pList.get(row);
+        if (rowContent != null && col > -1 && col < rowContent.length) {
             pList.get(row)[col] = (String) value;
             fireTableCellUpdated(row, col);
         }

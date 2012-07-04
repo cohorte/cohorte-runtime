@@ -15,12 +15,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.List;
-import java.util.concurrent.Executor;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
@@ -74,12 +74,6 @@ public class CUiAdminPanelComposition extends CPojoBase implements
     @Requires
     private IUiAdminSvc pUiAdminSvc;
 
-    /**
-     * Service reference managed by iPojo (see metadata.xml)
-     */
-    @Requires(filter = "(thread=main)")
-    private Executor pUiExecutor;
-
     /*
      * (non-Javadoc)
      * 
@@ -123,6 +117,66 @@ public class CUiAdminPanelComposition extends CPojoBase implements
         updateModel();
     }
 
+    private void initContent() {
+
+        final Runnable wRunnable = new Runnable() {
+
+            @Override
+            public void run() {
+
+                try {
+                    /* The parent panel */
+                    pUiAdminPanel = pUiAdminSvc.newUiAdminPanel("Composition",
+                            "Bundles list and managment.", null,
+                            CUiAdminPanelComposition.this,
+                            EUiAdminPanelLocation.FIRST);
+                    final JPanel parentPanel = pUiAdminPanel.getPanel();
+
+                    /* The tree panel */
+                    pCompositionTreeModel = new CCompositionTreeModel(
+                            pComposer.getCompositionSnapshot());
+
+                    pTreePanel = new CJPanelComposition(pLogger, parentPanel,
+                            pCompositionTreeModel);
+
+                    pComposer.registerCompositionListener(
+                            CUiAdminPanelComposition.this, 0);
+
+                    /* The button panel */
+                    final JPanel btnPanel = new JPanel();
+                    parentPanel.add(btnPanel, BorderLayout.SOUTH);
+
+                    final JButton btnAdd = new JButton("Load");
+                    btnPanel.add(btnAdd);
+                    btnAdd.addActionListener(new ActionListener() {
+
+                        @Override
+                        public void actionPerformed(final ActionEvent aEvent) {
+
+                            loadComposition();
+                        }
+                    });
+
+                    final JButton btnRemove = new JButton("Remove");
+                    btnPanel.add(btnRemove);
+                    btnRemove.addActionListener(new ActionListener() {
+
+                        @Override
+                        public void actionPerformed(final ActionEvent aEvent) {
+
+                            removeComposition();
+                        }
+                    });
+
+                } catch (final Exception e) {
+                    pLogger.logSevere(this, "initContent", e);
+                }
+            }
+        };
+
+        SwingUtilities.invokeLater(wRunnable);
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -139,16 +193,17 @@ public class CUiAdminPanelComposition extends CPojoBase implements
         pComposer.unregisterCompositionListener(this);
 
         try {
+            pUiAdminSvc.removeUiAdminPanel(pUiAdminPanel);
+
             if (pCompositionTreeModel != null) {
                 pCompositionTreeModel.destroy();
                 pCompositionTreeModel = null;
             }
-            if (pTreePanel != null) {
 
+            if (pTreePanel != null) {
                 pTreePanel.destroy();
                 pTreePanel = null;
             }
-            pUiAdminSvc.removeUiAdminPanel(pUiAdminPanel);
 
         } catch (final Exception e) {
             pLogger.logSevere(this, "invalidatePojo", e);
@@ -254,50 +309,7 @@ public class CUiAdminPanelComposition extends CPojoBase implements
         // logs in the bundle output
         pLogger.logInfo(this, "invalidatePojo", "VALIDATE", toDescription());
 
-        try {
-            /* The parent panel */
-            pUiAdminPanel = pUiAdminSvc.newUiAdminPanel("Composition",
-                    "Bundles list and managment.", null, this,
-                    EUiAdminPanelLocation.FIRST);
-            final JPanel parentPanel = pUiAdminPanel.getPanel();
-
-            /* The tree panel */
-            pCompositionTreeModel = new CCompositionTreeModel(
-                    pComposer.getCompositionSnapshot());
-
-            pTreePanel = new CJPanelComposition(pUiExecutor, pLogger,
-                    parentPanel, pCompositionTreeModel);
-
-            pComposer.registerCompositionListener(this, 0);
-
-            /* The button panel */
-            final JPanel btnPanel = new JPanel();
-            parentPanel.add(btnPanel, BorderLayout.SOUTH);
-
-            final JButton btnAdd = new JButton("Load");
-            btnPanel.add(btnAdd);
-            btnAdd.addActionListener(new ActionListener() {
-
-                @Override
-                public void actionPerformed(final ActionEvent aEvent) {
-
-                    loadComposition();
-                }
-            });
-
-            final JButton btnRemove = new JButton("Remove");
-            btnPanel.add(btnRemove);
-            btnRemove.addActionListener(new ActionListener() {
-
-                @Override
-                public void actionPerformed(final ActionEvent aEvent) {
-
-                    removeComposition();
-                }
-            });
-
-        } catch (final Exception e) {
-            pLogger.logSevere(this, "validatePojo", e);
-        }
+        // Set up GUI in a thread
+        initContent();
     }
 }

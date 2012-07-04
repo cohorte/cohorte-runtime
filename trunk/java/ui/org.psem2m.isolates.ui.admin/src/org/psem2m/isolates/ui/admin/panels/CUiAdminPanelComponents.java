@@ -10,7 +10,7 @@
  *******************************************************************************/
 package org.psem2m.isolates.ui.admin.panels;
 
-import java.util.concurrent.Executor;
+import javax.swing.SwingUtilities;
 
 import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
@@ -61,13 +61,7 @@ public class CUiAdminPanelComponents extends CPojoBase implements
 
     /** the IUiAdminScv **/
     @Requires
-    IUiAdminSvc pUiAdminSvc;
-
-    /**
-     * Service reference managed by iPojo (see metadata.xml)
-     */
-    @Requires(filter = "(thread=main)")
-    private Executor pUiExecutor;
+    private IUiAdminSvc pUiAdminSvc;
 
     /**
      * Update the list of components each time an Architecture appears
@@ -81,7 +75,7 @@ public class CUiAdminPanelComponents extends CPojoBase implements
                 "component=[%s] - panel present=[%b]", aArch
                         .getInstanceDescription().getName(), pJPanel != null);
 
-        pUiExecutor.execute(new Runnable() {
+        SwingUtilities.invokeLater(new Runnable() {
 
             @Override
             public void run() {
@@ -104,7 +98,7 @@ public class CUiAdminPanelComponents extends CPojoBase implements
         pLogger.logInfo(this, "architectureUnBind", "component=[%s]", aArch
                 .getInstanceDescription().getName());
 
-        pUiExecutor.execute(new Runnable() {
+        SwingUtilities.invokeLater(new Runnable() {
 
             @Override
             public void run() {
@@ -127,7 +121,7 @@ public class CUiAdminPanelComponents extends CPojoBase implements
 
                 pLogger.logInfo(this, "initContent");
 
-                pJPanel = new CJPanelTableComponents(pUiExecutor, pLogger,
+                pJPanel = new CJPanelTableComponents(pLogger,
                         pUiAdminPanel.getPanel());
 
                 // put in place the list of all registered services.
@@ -136,12 +130,9 @@ public class CUiAdminPanelComponents extends CPojoBase implements
                 pUiAdminPanel.pack();
             }
         };
-        try {
-            // gives the runnable to the UIExecutor
-            pUiExecutor.execute(wRunnable);
-        } catch (final Exception e) {
-            pLogger.logSevere(this, "init", e);
-        }
+
+        // gives the runnable to the UIExecutor
+        SwingUtilities.invokeLater(wRunnable);
     }
 
     /*
@@ -156,12 +147,12 @@ public class CUiAdminPanelComponents extends CPojoBase implements
         // logs in the bundle output
         pLogger.logInfo(this, "invalidatePojo", "INVALIDATE", toDescription());
         try {
+            pUiAdminSvc.removeUiAdminPanel(pUiAdminPanel);
+
             if (pJPanel != null) {
                 pJPanel.destroy();
                 pJPanel = null;
             }
-
-            pUiAdminSvc.removeUiAdminPanel(pUiAdminPanel);
 
         } catch (final Exception e) {
             pLogger.logSevere(this, "invalidatePojo", e);
