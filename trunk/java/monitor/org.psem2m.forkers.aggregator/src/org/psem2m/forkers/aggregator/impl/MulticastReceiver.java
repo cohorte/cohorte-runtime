@@ -157,8 +157,9 @@ public class MulticastReceiver {
                 }
 
             } catch (final Exception ex) {
-                // Call the listener...
-                if (pListener != null && !pListener.handleError(ex)) {
+                // Call the listener only if the thread is still running...
+                if (pThreadRun && pListener != null
+                        && !pListener.handleError(ex)) {
                     // Listener told us to stop
                     break;
                 }
@@ -193,6 +194,7 @@ public class MulticastReceiver {
             stopThread();
         }
 
+        // Prepare the thread object
         pThread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -220,14 +222,6 @@ public class MulticastReceiver {
         // Stop the thread
         stopThread();
 
-        // Wait for it a little
-        try {
-            pThread.join(500);
-
-        } catch (final InterruptedException e) {
-            // Ignore
-        }
-
         // Stop the notifying thread
         pExecutor.shutdownNow();
         pExecutor = null;
@@ -244,5 +238,16 @@ public class MulticastReceiver {
 
         pThreadRun = false;
         pThread.interrupt();
+
+        // Wait for it a little
+        try {
+            pThread.join(500);
+
+        } catch (final InterruptedException e) {
+            // Ignore
+        }
+
+        // Delete the reference
+        pThread = null;
     }
 }
