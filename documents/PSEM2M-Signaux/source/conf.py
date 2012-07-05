@@ -46,7 +46,7 @@ master_doc = u'index'
 # General information about the project.
 project = u'PSEM2M-Signaux'
 
-copyright = u'2011, Thomas Calmant'
+copyright = u'2012, Thomas Calmant'
 
 
 # The version info for the project you're documenting, acts as replacement for
@@ -54,7 +54,7 @@ copyright = u'2011, Thomas Calmant'
 # built documents.
 #
 # The short X.Y version.
-version = u'1.2'
+version = u'2.0'
 
 # The full version, including alpha/beta/rc tags.
 release = version

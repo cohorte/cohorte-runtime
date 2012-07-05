@@ -5,10 +5,12 @@ PSEM2M Utilisation des signaux
 
 .. toctree::
    :maxdepth: 2
+   :numbered:
    
    content/intro
+   content/definition
    content/services
-   content/providers
+   content/implementation-http
    content/signaux-internes
 
 
@@ -20,6 +22,9 @@ Versions
 +---------+------------+----------------+-----------------------------------+
 | Version | Date       | Auteur         | Commentaire                       |
 +=========+============+================+===================================+
+| 2.0     | 05/07/2012 | Thomas Calmant | Mise à jour du document pour      |
+|         |            |                | Signals V2                        |
++---------+------------+----------------+-----------------------------------+
 | 1.2     | 22/12/2011 | Thomas Calmant | Mise à jour du document           |
 +---------+------------+----------------+-----------------------------------+
 | 1.1     | 14/10/2011 | Thomas Calmant | Proposition d'extensions pour des |
