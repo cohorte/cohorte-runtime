@@ -16,13 +16,14 @@ from pelix.ipopo.decorators import ComponentFactory, Provides, Requires, \
 
 # ------------------------------------------------------------------------------
 
-import psutil
-import socket
+import psem2m
+import psem2m.utils as utils
 
 import logging
-import psem2m
+import socket
 import threading
 import json
+
 _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
@@ -89,6 +90,9 @@ class Forker(object):
         self._receiver = None
         self._config_broker = None
 
+        # Get OS specific methods
+        self._utils = utils.get_os_utils()
+
         # Platform is not yet stopped
         self._platform_stopping = False
 
@@ -141,7 +145,7 @@ class Forker(object):
             return 1
 
         # Poll the process and wait for an answer
-        if not process.is_running():
+        if not self._utils.is_process_running(process.pid):
             # FIXME: current implementation can't test if a process is stuck
             return 1
 
@@ -294,10 +298,10 @@ class Forker(object):
         self._sender.send(psem2m.SIGNAL_ISOLATE_STOP, None, isolate=isolate_id)
 
         try:
-            # Wait a little (psutil API)
-            process.wait(timeout)
+            # Wait a little
+            self._utils.wait_pid(process.pid, timeout)
 
-        except psutil.TimeoutExpired:
+        except utils.TimeoutExpired:
             # The isolate didn't stop -> kill the process
             process.kill()
 
@@ -310,7 +314,7 @@ class Forker(object):
         Thread redirecting isolate I/O to monitors
         
         :param isolate_id: ID of the watched isolate
-        :param process: A psutil.Process object
+        :param process: A subprocess.Process object
         :param timeout: Wait time out (in seconds)
         """
         if timeout <= 0:
@@ -359,10 +363,10 @@ class Forker(object):
 
     def __process_wait_watcher(self, isolate_id, process, timeout):
         """
-        Thread monitoring a psutil.Process, waiting for its death
+        Thread monitoring a subprocess.Process, waiting for its death
         
         :param isolate_id: ID of the watched isolate
-        :param process: A psutil.Process object
+        :param process: A subprocess.Process object
         :param timeout: Wait time out (in seconds)
         """
         if timeout <= 0:
@@ -370,13 +374,13 @@ class Forker(object):
 
         while self._watchers_running:
             try:
-                process.wait(timeout)
+                self._utils.wait_pid(process.pid, timeout)
 
                 # Being here means that the process ended
                 self.__handle_lost_isolate(isolate_id)
                 break
 
-            except psutil.TimeoutExpired:
+            except utils.TimeoutExpired:
                 # Time out expired : process is still there, continue the loop
                 pass
 

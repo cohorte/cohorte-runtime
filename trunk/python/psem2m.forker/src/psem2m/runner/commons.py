@@ -13,8 +13,6 @@ __docformat__ = "restructuredtext en"
 
 import psem2m.utils
 
-import psutil
-
 import os
 import shutil
 import subprocess
@@ -71,7 +69,7 @@ class Runner(object):
         * environment : The process environment
         
         :param isolate_descr: An isolate description dictionary
-        :return: A psutil.Popen object
+        :return: A subprocess.Popen object
         :raise KeyError: A key is missing in the isolate description
         :raise ValueError: Invalid configuration value
         :raise OSError: Error during an OS level task (process start, working
@@ -107,9 +105,11 @@ class Runner(object):
         args.extend(self._make_args(isolate_descr))
 
         # Run the process and return its reference
-        return psutil.Popen(args, executable=executable, env=env,
-                            cwd=working_dir, stdin=subprocess.PIPE,
-                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        return subprocess.Popen(args, executable=executable, env=env,
+                                cwd=working_dir,
+                                stdin=subprocess.PIPE,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT)
 
 
     def _get_executable(self, isolate_descr):

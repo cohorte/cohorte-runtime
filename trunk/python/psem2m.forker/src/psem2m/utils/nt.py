@@ -24,6 +24,7 @@ _logger = logging.getLogger(__name__)
 
 import pywintypes
 import win32api
+import win32event
 import win32process
 
 if sys.version_info >= (3, 0):
@@ -40,10 +41,18 @@ else:
 ERROR_INVALID_PARAMETER = 0x57
 
 # From http://msdn.microsoft.com/en-us/library/ms684880%28v=VS.85%29.aspx
+SYNCHRONIZE = 0x00100000
 PROCESS_QUERY_INFORMATION = 0x0400
 
 # From http://msdn.microsoft.com/en-us/library/ms683189%28v=VS.85%29.aspx
 STILL_ACTIVE = 259
+
+# From windows.h
+INFINITE = 0xFFFFFFFF
+
+# From win32.h
+WAIT_TIMEOUT = 0x00000102
+WAIT_FAILED = 0xFFFFFFFF
 
 # ------------------------------------------------------------------------------
 
@@ -194,6 +203,62 @@ class OSUtils(utils.BaseOSUtils):
 
         # Return real state
         return exit_code == STILL_ACTIVE
+
+
+    def wait_pid(self, pid, timeout=None):
+        """
+        Waits for process with the given PID to terminate and return its
+        exit status code as an integer.
+    
+        If PID is not a children of os.getpid() (current process) just
+        waits until the process disappears and return None.
+    
+        If pid does not exist at all return None immediately.
+    
+        Raise TimeoutExpired on timeout expired.
+        
+        Code converted from C from the psutil Python library:
+        Copyright (c) 2009, Jay Loden, Giampaolo Rodola'. All rights reserved.
+        """
+        if pid == 0:
+            return None
+
+        try:
+            # Windows loves handles
+            handle = win32api.OpenProcess(SYNCHRONIZE | PROCESS_QUERY_INFORMATION,
+                                          False, pid)
+
+        except pywintypes.error as ex:
+            # PID not in the system anymore
+            if ex.winerror == ERROR_INVALID_PARAMETER:
+                return None
+
+            # Other kind of exception
+            raise ex
+
+        if not handle:
+            # OpenProcess failed
+            return None
+
+        if timeout is None:
+            # There is no "None" on Windows
+            timeout = INFINITE
+
+        else:
+            # Convert to an integer in milliseconds
+            timeout = int(timeout * 1000)
+
+        try:
+            ret_val = win32event.WaitForSingleObject(handle, timeout)
+            if ret_val == WAIT_TIMEOUT:
+                # Time out raised
+                raise utils.TimeoutExpired(pid)
+
+            return win32process.GetExitCodeProcess(handle)
+
+        finally:
+            # Always clean up
+            win32api.CloseHandle(handle)
 
 
     def _test_java_path(self, java_home):

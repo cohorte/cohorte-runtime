@@ -120,6 +120,21 @@ def remove_quotes(path):
 
 # ------------------------------------------------------------------------------
 
+class TimeoutExpired(Exception):
+    """
+    Exception thrown when a time out expired
+    """
+    def __init__(self, pid):
+        """
+        Constructor
+        
+        :param pid: PID of the process that failed to respond
+        """
+        Exception.__init__(self, "Timeout expired waiting for PID: %d" % pid)
+
+
+# ------------------------------------------------------------------------------
+
 class BaseOSUtils(object):
     """
     Abstract OS-specific utility class
