@@ -61,35 +61,41 @@ def get_registry_java_home():
     """
     Retrieves the value of the JavaHome registry key
     """
-    try:
-        jre_key_name = r"SOFTWARE\JavaSoft\Java Runtime Environment"
-        jre_key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, jre_key_name)
+    jre_keys = (r"SOFTWARE\JavaSoft\Java Runtime Environment",
+                r"SOFTWARE\Wow6432Node\JavaSoft\Java Runtime Environment")
 
-        # Compute current version key name
-        value = winreg.QueryValueEx(jre_key, "CurrentVersion")
-        if not value:
-            print("Warning: No current JVM in registry.")
-            return None
+    for jre_key_name in jre_keys:
+        try:
+            jre_key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, jre_key_name)
 
-        # Close the key
-        winreg.CloseKey(jre_key)
+            # Compute current version key name
+            value = winreg.QueryValueEx(jre_key, "CurrentVersion")
+            if not value:
+                print("Warning: No current JVM in registry.")
+                return None
 
-        # Get its JavaHome
-        current_jre_key_name = jre_key_name + "\\" + value[0]
-        jre_key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, \
-                                 current_jre_key_name)
+            # Close the key
+            winreg.CloseKey(jre_key)
 
-        value = winreg.QueryValueEx(jre_key, "JavaHome")
-        if not value:
-            print("Warning: No current JavaHome in registry.")
-            return None
+            # Get its JavaHome
+            current_jre_key_name = jre_key_name + "\\" + value[0]
+            jre_key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, \
+                                     current_jre_key_name)
 
-        # Value found
-        return utils.remove_quotes(value[0])
+            value = winreg.QueryValueEx(jre_key, "JavaHome")
+            if not value:
+                print("Warning: No current JavaHome in registry.")
+                return None
 
-    except WindowsError:
-        _logger.exception("Error looking for the Java path in the registry")
-        return None
+            # Value found
+            return utils.remove_quotes(value[0])
+
+        except WindowsError as ex:
+            _logger.warning("Java path lookup error in the registry: %s (%s)",
+                            ex, jre_key_name)
+
+    _logger.error("Java Runtime not found in registry")
+    return None
 
 
 class OSUtils(utils.BaseOSUtils):
