@@ -42,6 +42,7 @@ ERROR_INVALID_PARAMETER = 0x57
 
 # From http://msdn.microsoft.com/en-us/library/ms684880%28v=VS.85%29.aspx
 SYNCHRONIZE = 0x00100000
+PROCESS_TERMINATE = 1
 PROCESS_QUERY_INFORMATION = 0x0400
 
 # From http://msdn.microsoft.com/en-us/library/ms683189%28v=VS.85%29.aspx
@@ -174,6 +175,7 @@ class OSUtils(utils.BaseOSUtils):
         Tests if the given process is running
         
         :param pid: PID of the process to test
+        :return: True if the process is running else False
         """
         if pid < 0:
             # Invalid PID
@@ -205,6 +207,36 @@ class OSUtils(utils.BaseOSUtils):
         return exit_code == STILL_ACTIVE
 
 
+    def kill_pid(self, pid):
+        """
+        Kills the given PID, if possible
+        
+        :param pid: PID of the process to kill
+        :raise ValueError: Invalid PID
+        :raise OSError: Unauthorized operation
+        """
+        if pid is None or not self.is_process_running(pid):
+            raise ValueError("Invalid PID: %d" % pid)
+
+        handle = None
+        try:
+            handle = win32api.OpenProcess(PROCESS_TERMINATE, False, pid)
+            win32api.TerminateProcess(handle, -1)
+
+        except pywintypes.error as ex:
+            # PID not in the system anymore
+            if ex.winerror == ERROR_INVALID_PARAMETER:
+                raise ValueError("Invalid PID: %d" % pid)
+
+            # Other kind of exception
+            raise ex
+
+        finally:
+            if handle is not None:
+                win32api.CloseHandle(handle)
+
+
+
     def wait_pid(self, pid, timeout=None):
         """
         Waits for process with the given PID to terminate and return its
@@ -219,6 +251,11 @@ class OSUtils(utils.BaseOSUtils):
         
         Code converted from C from the psutil Python library:
         Copyright (c) 2009, Jay Loden, Giampaolo Rodola'. All rights reserved.
+        
+        :param pid: The PID to wait for
+        :param timeout: The maximum time to wait, in seconds.
+                        None to wait forever
+        :raise TimeoutExpired: when timeout expired.
         """
         if pid == 0:
             return None

@@ -15,6 +15,7 @@ import psem2m.utils as utils
 
 import errno
 import os
+import signal
 import sys
 import time
 
@@ -105,8 +106,9 @@ class OSUtils(utils.BaseOSUtils):
         Tests if the given process is running
         
         :param pid: PID of the process to test
+        :return: True if the process is running else False
         """
-        if pid < 0:
+        if pid <= 0:
             # Invalid PID
             return False
 
@@ -121,6 +123,20 @@ class OSUtils(utils.BaseOSUtils):
             return True
 
 
+    def kill_pid(self, pid):
+        """
+        Kills the given PID, if possible
+        
+        :param pid: PID of the process to kill
+        :raise ValueError: Invalid PID
+        :raise OSError: Unauthorized operation
+        """
+        if pid is None or not self.is_process_running(pid):
+            raise ValueError("Invalid PID: %d" % pid)
+
+        os.kill(pid, signal.SIGKILL)
+
+
     def wait_pid(self, pid, timeout=None):
         """
         Waits for process with the given PID to terminate and return its
@@ -130,11 +146,14 @@ class OSUtils(utils.BaseOSUtils):
         waits until the process disappears and return None.
     
         If pid does not exist at all return None immediately.
-    
-        Raise TimeoutExpired on timeout expired.
         
         Code from the psutil Python library:
         Copyright (c) 2009, Jay Loden, Giampaolo Rodola'. All rights reserved.
+        
+        :param pid: The PID to wait for
+        :param timeout: The maximum time to wait, in seconds.
+                        None to wait forever
+        :raise TimeoutExpired: when timeout expired.
         """
         def check_timeout(delay):
             if timeout is not None:
