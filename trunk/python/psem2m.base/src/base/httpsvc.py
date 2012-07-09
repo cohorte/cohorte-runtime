@@ -138,9 +138,12 @@ class _HttpServerFamily(ThreadingMixIn, HTTPServer):
 
         if ipv6:
             # Explicitly ask to be accessible both by IPv4 and IPv6
-            self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
+            self.socket.setsockopt(socket.IPPROTO_IPV6,
+                                   # Some versions of Python don't have V6ONLY
+                                   # On Linux, V6_ONLY=26
+                                   getattr(socket, "IPV6_V6ONLY", 26), 0)
 
-            # Bind & accept
+            # Bind & accept (after setsockopt !)
             self.server_bind()
             self.server_activate()
 
