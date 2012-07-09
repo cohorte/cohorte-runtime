@@ -59,6 +59,69 @@ else:
 
 # ------------------------------------------------------------------------------
 
+import os
+
+if os.name == "nt":
+    # Windows Specific code
+    def pton(family, address):
+        """
+        Calls inet_pton
+        
+        :param family: Socket family
+        :param address: A string address
+        :return: The binary form of the given address
+        """
+        if family == socket.AF_INET:
+            return socket.inet_aton(address)
+
+        elif family == socket.AF_INET6:
+            # Do it using WinSocks
+            import ctypes
+            winsock = ctypes.windll.ws2_32
+
+            # Prepare structure
+            class sockaddr_in6(ctypes.Structure):
+                _fields_ = [("sin6_family", ctypes.c_short),
+                            ("sin6_port", ctypes.c_ushort),
+                            ("sin6_flowinfo", ctypes.c_ulong),
+                            ("sin6_addr", ctypes.c_ubyte * 16),
+                            ("sin6_scope_id", ctypes.c_ulong)
+                            ]
+
+            # Prepare pointers
+            addr_ptr = ctypes.c_char_p(_to_bytes(address))
+
+            out_address = sockaddr_in6()
+            size = len(sockaddr_in6)
+            size_ptr = ctypes.pointer(size)
+
+            # Second call
+            winsock.WSAStringToAddressA(addr_ptr, family, 0,
+                                        out_address, size_ptr)
+
+            # Convert the array...
+            bin_addr = 0
+            for part in out_address.sin6_addr:
+                bin_addr = bin_addr * 16 + part
+
+            return bin_addr
+
+        else:
+            raise ValueError("Unhandled socket family: %s", family)
+
+else:
+    # Other systems
+    def pton(family, address):
+        """
+        Calls inet_pton
+        
+        :param family: Socket family
+        :param address: A string address
+        :return: The binary form of the given address
+        """
+        return socket.inet_pton(family, address)
+
+
 def make_mreq(family, address):
     """
     Makes a mreq structure object for the given address and socket family.
@@ -71,7 +134,7 @@ def make_mreq(family, address):
         raise ValueError("Empty address")
 
     # Convert the address to a binary form
-    group_bin = socket.inet_pton(family, address)
+    group_bin = pton(family, address)
 
     if family == socket.AF_INET:
         # IPv4
