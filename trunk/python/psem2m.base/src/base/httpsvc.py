@@ -123,12 +123,26 @@ class _HttpServerFamily(ThreadingMixIn, HTTPServer):
     Inspired from:
     http://www.arcfn.com/2011/02/ipv6-web-serving-with-arc-or-python.html
     """
-    def __init__(self, address_family, *args, **kwargs):
+    def __init__(self, address_family, server_address, RequestHandlerClass):
         """
         Proxy constructor
         """
+        # Change the address family before the socket is created
         self.address_family = address_family
-        HTTPServer.__init__(self, *args, **kwargs)
+
+        # Special case: IPv6
+        ipv6 = (address_family == socket.AF_INET6)
+
+        # Set up the server, socket, ... but don't bind immediately in IPv6
+        HTTPServer.__init__(self, server_address, RequestHandlerClass, not ipv6)
+
+        if ipv6:
+            # Explicitly ask to be accessible both by IPv4 and IPv6
+            self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
+
+            # Bind & accept
+            self.server_bind()
+            self.server_activate()
 
 
 @ComponentFactory(name="HttpServiceFactory")
