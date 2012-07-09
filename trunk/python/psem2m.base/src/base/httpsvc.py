@@ -250,8 +250,22 @@ class HttpService(object):
         """
         _logger.info("Starting HTTP server (%d)...", self._port)
 
-        self._server = _HttpServerFamily(socket.AF_INET6, ('::', self._port), \
-                                         lambda * x : RequestHandler(self, *x))
+        handler = lambda *x : RequestHandler(self, *x)
+
+        try:
+            # Try with IPv6
+            self._server = _HttpServerFamily(socket.AF_INET6,
+                                             ('::', self._port),
+                                             handler)
+
+        except:
+            # Fall back on IPv4
+            _logger.exception("IPv6 seems to be unsupported. "\
+                              "Falling back to IPv4")
+
+            self._server = _HttpServerFamily(socket.AF_INET,
+                                             ('0.0.0.0', self._port),
+                                             handler)
 
         self._thread = threading.Thread(target=self._server.serve_forever)
         self._thread.daemon = True
@@ -266,10 +280,8 @@ class HttpService(object):
         Component invalidation
         """
         _logger.info("Shutting down HTTP server (%d)...", self._port)
-        # Shutdown connections
+        # Shutdown server
         self._server.shutdown()
-        _logger.info("Shutting down HTTP socket (%d)...", self._port)
-        self._server.socket.shutdown(socket.SHUT_RD)
 
         # Wait for the thread to stop...
         _logger.info("Waiting HTTP server (%d) thread to stop...", self._port)
@@ -277,6 +289,11 @@ class HttpService(object):
         self._thread = None
 
         # Force the socket to be closed
-        self._server.socket.close()
+        try:
+            self._server.socket.close()
+
+        except:
+            # The socket should already have been closed, so ignore errors
+            pass
 
         _logger.info("HTTP server down (%d)", self._port)
