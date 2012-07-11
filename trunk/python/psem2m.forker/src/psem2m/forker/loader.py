@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #-- Content-Encoding: UTF-8 --
 """
 The isolate loader for PSEM2M Python.
@@ -36,6 +36,32 @@ else:
     # Python 2
     import httplib
     import urlparse
+
+# ------------------------------------------------------------------------------
+
+if sys.version_info[0] == 3:
+    # Python 3
+    def _to_string(data, encoding="UTF-8"):
+        """
+        Converts the given bytes array to a string
+        """
+        if type(data) is str:
+            # Nothing to do
+            return data
+
+        return str(data, encoding)
+
+else:
+    # Python 2
+    def _to_string(data, encoding="UTF-8"):
+        """
+        Converts the given bytes array to a string
+        """
+        if type(data) is unicode:
+            # Nothing to do
+            return data
+
+        return data.decode(encoding)
 
 # ------------------------------------------------------------------------------
 
@@ -192,7 +218,7 @@ class IsolateLoader(object):
             # Get the configuration
             conn.request("GET", isolate_url)
             response = conn.getresponse()
-            data = response.read()
+            data = _to_string(response.read())
             if response.status != 200:
                 return None
 
