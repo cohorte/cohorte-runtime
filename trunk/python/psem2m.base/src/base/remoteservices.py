@@ -17,10 +17,9 @@ import jsonrpclib
 # ------------------------------------------------------------------------------
 
 from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
-    Invalidate, Instantiate, Property
+    Invalidate, Instantiate, Property, Provides
 from base.javautils import to_jabsorb, from_jabsorb, JAVA_CLASS
 
-import pelix.utilities as utilities
 import pelix.framework as pelix
 
 # ------------------------------------------------------------------------------
@@ -28,8 +27,6 @@ import pelix.framework as pelix
 _logger = logging.getLogger(__name__)
 
 EXPORTED_SERVICE_FILTER = "(|(service.exported.interfaces=*)(service.exported.configs=*))"
-
-ISOLATE_LOST_SIGNAL = "/psem2m/isolate/lost"
 
 BROADCASTER_SIGNAL_NAME_PREFIX = "/psem2m/remote-service-broadcaster"
 BROADCASTER_SIGNAL_REQUEST_ENDPOINTS = "%s/request-endpoints" \
@@ -43,6 +40,12 @@ SERVICE_EXPORTED_CONFIGS = "service.exported.configs"
 SERVICE_EXPORTED_INTERFACES = "service.exported.interfaces"
 SERVICE_IMPORTED = "service.imported"
 SERVICE_IMPORTED_CONFIGS = "service.imported.configs"
+
+REGISTERED = 0
+""" Isolate presence event: Isolate registered """
+
+UNREGISTERED = 1
+""" Isolate presence event: Isolate unregistered or lost """
 
 # ------------------------------------------------------------------------------
 
@@ -245,7 +248,7 @@ class ServiceExporter(object):
             "serviceRegistration": registration
         }
 
-        self.sender.send(SIGNAL_REMOTE_EVENT, remote_event, groups=["ALL"])
+        self.sender.fire(SIGNAL_REMOTE_EVENT, remote_event, groups=["ALL"])
 
 
     def _unexport_service(self, reference):
@@ -281,7 +284,7 @@ class ServiceExporter(object):
             "serviceRegistration": registration
         }
 
-        self.sender.send(SIGNAL_REMOTE_EVENT, remote_event, groups=["ALL"])
+        self.sender.fire(SIGNAL_REMOTE_EVENT, remote_event, groups=["ALL"])
 
 
     def service_changed(self, event):
@@ -324,12 +327,11 @@ class ServiceExporter(object):
                                  JAVA_CLASS:"org.psem2m.isolates.services.remote.beans.RemoteServiceEvent$ServiceEventType",
                                  "enumValue":"REGISTERED"
                                  },
-                   "senderHostName": "localhost",
                    "serviceRegistration": registration
                    }
                   for registration in self._registrations.values()]
 
-        self.sender.send(SIGNAL_REMOTE_EVENT, events, isolate=sender)
+        self.sender.fire(SIGNAL_REMOTE_EVENT, events, isolate=sender)
 
 
     @Validate
@@ -468,6 +470,7 @@ class _JSON_proxy(object):
 @Requires("directory", "org.psem2m.signals.ISignalDirectory")
 @Requires("receiver", "org.psem2m.signals.ISignalReceiver")
 @Requires("sender", "org.psem2m.signals.ISignalBroadcaster")
+@Provides("org.psem2m.isolates.services.monitoring.IIsolatePresenceListener")
 class ServiceImporter(object):
     """
     PSEM2M Remote Services importer
@@ -488,6 +491,24 @@ class ServiceImporter(object):
 
         # Service ID -> (proxy, reference)
         self._registered_services = {}
+
+
+    def handle_isolate_presence(self, isolate_id, isolate_node, event):
+        """
+        Called when an isolate appears or disappears
+        
+        :param isolate_id: ID of the isolate
+        :param isolate_node: Node of the isolate
+        :param event: Kind of event
+        """
+        if event == REGISTERED:
+            # Isolate registered: ask for its end points
+            self.sender.fire(BROADCASTER_SIGNAL_REQUEST_ENDPOINTS, None,
+                             isolate=isolate_id)
+
+        elif event == UNREGISTERED:
+            # Isolate lost
+            self._handle_isolate_lost(isolate_id)
 
 
     def handle_received_signal(self, name, signal_data):
@@ -515,10 +536,6 @@ class ServiceImporter(object):
             else:
                 # Single event
                 self._handle_remote_event(sender, data)
-
-        elif name == ISOLATE_LOST_SIGNAL and utilities.is_string(data):
-            # Isolate lost (data : isolate name)
-            self._handle_isolate_lost(data)
 
 
     def _handle_remote_event(self, sender, remote_event):
@@ -675,10 +692,9 @@ class ServiceImporter(object):
         # Register remote services signals
         self.receiver.register_listener(BROADCASTER_SIGNAL_NAME_PREFIX + "/*",
                                         self)
-        self.receiver.register_listener(ISOLATE_LOST_SIGNAL, self)
 
         # Send "request endpoints" signal
-        self.sender.send(BROADCASTER_SIGNAL_REQUEST_ENDPOINTS, None,
+        self.sender.fire(BROADCASTER_SIGNAL_REQUEST_ENDPOINTS, None,
                          groups=["ALL"])
 
 
@@ -690,7 +706,6 @@ class ServiceImporter(object):
         # Unregister remote services signals
         self.receiver.unregister_listener(BROADCASTER_SIGNAL_NAME_PREFIX + "/*",
                                           self)
-        self.receiver.unregister_listener(ISOLATE_LOST_SIGNAL, self)
 
         # Unregister imported services (in a single loop)
         for imported_service in self._registered_services.values():
