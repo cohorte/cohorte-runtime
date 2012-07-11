@@ -16,62 +16,62 @@ import org.psem2m.composer.model.ComponentsSetBean;
  */
 public interface IComposer {
 
-	/**
-	 * Retrieves the snapshots of all currently known compositions
-	 * 
-	 * @return Current compositions snapshots
-	 */
-	List<ComponentsSetSnapshot> getCompositionSnapshot();
+    /**
+     * Retrieves the snapshots of all currently known compositions
+     * 
+     * @return Current compositions snapshots
+     */
+    List<ComponentsSetSnapshot> getCompositionSnapshot();
 
-	/**
-	 * Tries to instantiate the given set of components in the platform
-	 * 
-	 * @param aComponentsSetBean
-	 *            The set to instantiate
-	 */
-	void instantiateComponentsSet(final ComponentsSetBean aComponentsSetBean);
+    /**
+     * Tries to instantiate the given set of components in the platform
+     * 
+     * @param aComponentsSetBean
+     *            The set to instantiate
+     */
+    void instantiateComponentsSet(final ComponentsSetBean aComponentsSetBean);
 
-	/**
-	 * Tries to load the given composition file
-	 * 
-	 * @param aFileName
-	 *            A path to a composition file
-	 * @return The loaded component set bean, null on error
-	 */
-	ComponentsSetBean loadCompositionFile(String aFileName);
+    /**
+     * Tries to load the given composition file
+     * 
+     * @param aFileName
+     *            A path to a composition file
+     * @return The loaded component set bean, null on error
+     */
+    ComponentsSetBean loadCompositionFile(String aFileName);
 
-	/**
-	 * Add a composition listener
-	 * 
-	 * All the stored composition events stored by the composer after this time
-	 * stamp must be sent to the CompositionListener
-	 * 
-	 * @param aCompositionListener
-	 *            The registering listener
-	 * @param aTimeStamp
-	 *            A time stamp
-	 */
-	void registerCompositionListener(
-			final ICompositionListener aCompositionListener,
-			final long aTimeStamp);
+    /**
+     * Add a composition listener
+     * 
+     * All the stored composition events stored by the composer after this time
+     * stamp must be sent to the CompositionListener
+     * 
+     * @param aCompositionListener
+     *            The registering listener
+     * @param aTimeStamp
+     *            A time stamp
+     */
+    void registerCompositionListener(
+            final ICompositionListener aCompositionListener,
+            final long aTimeStamp);
 
-	/**
-	 * Tries to remove the given set of components in the platform
-	 * 
-	 * @param aComponentsSetBean
-	 *            A running component set
-	 * @throws Exception
-	 *             An error occurred (depends on implementation)
-	 */
-	void removeComponentsSet(final ComponentsSetBean aComponentsSetBean)
-			throws Exception;
+    /**
+     * Tries to remove the given set of components in the platform
+     * 
+     * @param aComponentsSetBean
+     *            A running component set
+     * @throws Exception
+     *             An error occurred (depends on implementation)
+     */
+    void removeComponentsSet(final ComponentsSetBean aComponentsSetBean)
+            throws Exception;
 
-	/**
-	 * Removes a composition listener
-	 * 
-	 * @param aCompositionListener
-	 *            The listener to remove
-	 */
-	void unregisterCompositionListener(
-			final ICompositionListener aCompositionListener);
+    /**
+     * Removes a composition listener
+     * 
+     * @param aCompositionListener
+     *            The listener to remove
+     */
+    void unregisterCompositionListener(
+            final ICompositionListener aCompositionListener);
 }

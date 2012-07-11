@@ -8,10 +8,12 @@ package org.psem2m.composer.core;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.Executors;
@@ -81,7 +83,7 @@ public class ComposerCore extends CPojoBase implements IComposer,
     private long pInstantiationTimeout;
 
     /** Maps isolates and components */
-    private final Map<String, List<String>> pIsolatesCapabilities = new HashMap<String, List<String>>();
+    private final Map<String, Set<String>> pIsolatesCapabilities = new HashMap<String, Set<String>>();
 
     /** Flag to store events in the events map */
     private boolean pLogEvents;
@@ -678,15 +680,15 @@ public class ComposerCore extends CPojoBase implements IComposer,
     protected void registerComponentsForIsolate(final String aIsolateId,
             final ComponentBean[] aComponents) {
 
-        final List<String> isolateComponents;
+        final Set<String> isolateComponents;
 
         synchronized (pIsolatesCapabilities) {
             // Prepare the list of components associated to the isolate
 
-            List<String> mapComponents = pIsolatesCapabilities.get(aIsolateId);
+            Set<String> mapComponents = pIsolatesCapabilities.get(aIsolateId);
 
             if (mapComponents == null) {
-                mapComponents = new ArrayList<String>();
+                mapComponents = new HashSet<String>();
                 pIsolatesCapabilities.put(aIsolateId, mapComponents);
             }
 
@@ -717,15 +719,15 @@ public class ComposerCore extends CPojoBase implements IComposer,
     protected void registerComponentsForIsolate(final String aIsolateId,
             final String[] aComponentsTypes) {
 
-        final List<String> isolateComponents;
+        final Set<String> isolateComponents;
 
         synchronized (pIsolatesCapabilities) {
             // Prepare the list of components associated to the isolate
 
-            List<String> mapComponents = pIsolatesCapabilities.get(aIsolateId);
+            Set<String> mapComponents = pIsolatesCapabilities.get(aIsolateId);
 
             if (mapComponents == null) {
-                mapComponents = new ArrayList<String>();
+                mapComponents = new HashSet<String>();
                 pIsolatesCapabilities.put(aIsolateId, mapComponents);
             }
 
@@ -921,7 +923,7 @@ public class ComposerCore extends CPojoBase implements IComposer,
     protected synchronized void unregisterComponentsForIsolate(
             final String aIsolateId, final String[] aComponentsTypes) {
 
-        final List<String> isolateComponents = pIsolatesCapabilities
+        final Set<String> isolateComponents = pIsolatesCapabilities
                 .get(aIsolateId);
 
         if (isolateComponents == null || isolateComponents.isEmpty()) {
@@ -1011,7 +1013,7 @@ public class ComposerCore extends CPojoBase implements IComposer,
      */
     protected void unregisterIsolate(final String aIsolateId) {
 
-        final List<String> isolateCaps = pIsolatesCapabilities.get(aIsolateId);
+        final Set<String> isolateCaps = pIsolatesCapabilities.get(aIsolateId);
         if (isolateCaps != null) {
             unregisterComponentsForIsolate(aIsolateId,
                     isolateCaps.toArray(new String[0]));

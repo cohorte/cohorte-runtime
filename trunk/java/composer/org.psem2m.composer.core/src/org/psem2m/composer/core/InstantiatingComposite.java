@@ -464,7 +464,7 @@ public class InstantiatingComposite {
      * @return True if the whole composite has been resolved
      */
     public boolean resolve(
-            final Map<String, List<String>> aIsolatesCapabilities,
+            final Map<String, ? extends Collection<String>> aIsolatesCapabilities,
             final Map<String, ComponentBean[]> aResolution) {
 
         // Prepare the components beans list
