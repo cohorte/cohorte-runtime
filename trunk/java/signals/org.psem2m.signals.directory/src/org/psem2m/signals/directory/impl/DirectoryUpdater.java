@@ -12,6 +12,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
@@ -20,6 +22,9 @@ import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.constants.IPlatformProperties;
+import org.psem2m.isolates.constants.ISignalsConstants;
+import org.psem2m.isolates.services.monitoring.IIsolatePresenceListener;
+import org.psem2m.isolates.services.monitoring.IIsolatePresenceListener.EPresence;
 import org.psem2m.signals.HostAccess;
 import org.psem2m.signals.ISignalBroadcaster;
 import org.psem2m.signals.ISignalBroadcaster.ESendMode;
@@ -70,6 +75,13 @@ public class DirectoryUpdater implements ISignalListener,
      * after component validation
      */
     private int pDumperPort;
+
+    /** Isolates listeners */
+    @Requires(optional = true)
+    private IIsolatePresenceListener[] pListeners;
+
+    /** Thread pool for listeners notification */
+    private ExecutorService pListenersExecutor;
 
     /** The logger */
     @Requires
@@ -206,6 +218,10 @@ public class DirectoryUpdater implements ISignalListener,
     public Object handleReceivedSignal(final String aSignalName,
             final ISignalData aSignalData) {
 
+        // Common informations
+        final String isolateId = aSignalData.getSenderId();
+        final String isolateNode = aSignalData.getSenderNode();
+
         if (ISignalDirectoryConstants.SIGNAL_DUMP.equals(aSignalName)) {
             // Dump the directory
             return pDirectory.dump();
@@ -214,6 +230,18 @@ public class DirectoryUpdater implements ISignalListener,
                 .equals(aSignalName)) {
             // Isolate registration
             registerIsolate(aSignalData);
+
+            // Notify listeners
+            notifyPresenceListeners(isolateId, isolateNode,
+                    EPresence.REGISTERED);
+
+        } else if (ISignalsConstants.ISOLATE_LOST_SIGNAL.equals(aSignalName)) {
+            // Isolate lost
+            pDirectory.unregisterIsolate(isolateId);
+
+            // Notify listeners
+            notifyPresenceListeners(isolateId, isolateNode,
+                    EPresence.UNREGISTERED);
         }
 
         // No result
@@ -229,10 +257,54 @@ public class DirectoryUpdater implements ISignalListener,
         // Unregister signals
         pReceiver.unregisterListener(
                 ISignalDirectoryConstants.SIGNAL_PREFIX_MATCH_ALL, this);
+
+        pReceiver.unregisterListener(ISignalsConstants.ISOLATE_LOST_SIGNAL,
+                this);
+
+        // Kill the executor
+        pListenersExecutor.shutdownNow();
+        pListenersExecutor = null;
+
+        pLogger.logInfo(this, "invalidate", "Directory Updater Gone");
     }
 
     /**
-     * Handles an isolate registration signal
+     * Notifies isolate presence listeners of an event
+     * 
+     * @param aIsolateId
+     *            Isolate ID
+     * @param aNode
+     *            Node of the isolate
+     * @param aPresence
+     *            Presence event type
+     */
+    protected void notifyPresenceListeners(final String aIsolateId,
+            final String aNode, final EPresence aPresence) {
+
+        pListenersExecutor.execute(new Runnable() {
+
+            @Override
+            public void run() {
+
+                for (final IIsolatePresenceListener listener : pListeners) {
+                    // Notify all listeners
+                    try {
+                        listener.handleIsolatePresence(aIsolateId, aNode,
+                                aPresence);
+
+                    } catch (final Exception ex) {
+                        // Just log...
+                        pLogger.logWarn(this, "notifyPresenceListeners",
+                                "Listener=", listener, "failed to handle event");
+                    }
+                }
+            }
+        });
+    }
+
+    /**
+     * Handles an isolate registration signal: registers the isolate in the
+     * local directory and propagates the registration if necessary
      * 
      * @param aSignalData
      *            The signal data
@@ -473,8 +545,12 @@ public class DirectoryUpdater implements ISignalListener,
     @Validate
     public void validate() {
 
-        pLogger.logInfo(this, "validate", "Directory Updater started");
+        pLogger.logDebug(this, "validate", "Directory Updater starting...");
 
+        // Prepare listeners thread pool
+        pListenersExecutor = Executors.newFixedThreadPool(1);
+
+        // Compute the dump port
         final String dumpPortStr = System
                 .getProperty(ISignalDirectoryConstants.PROP_DUMPER_PORT);
         pDumperPort = -1;
@@ -502,9 +578,12 @@ public class DirectoryUpdater implements ISignalListener,
         }
 
         // Register to signals
-        pLogger.logDebug(this, "validate", "Registering to the receiver...");
+        pLogger.logDebug(this, "validate", "Registering to signals...");
         pReceiver.registerListener(
                 ISignalDirectoryConstants.SIGNAL_PREFIX_MATCH_ALL, this);
+        pReceiver.registerListener(ISignalsConstants.ISOLATE_LOST_SIGNAL, this);
+
+        pLogger.logInfo(this, "validate", "Directory Updater Ready");
     }
 
     /*
@@ -526,7 +605,7 @@ public class DirectoryUpdater implements ISignalListener,
             handleDumpedDirectory(aSignal.getSendToResult(), null);
 
         } else {
-            // Ingored result
+            // Ignored result
             pLogger.logDebug(this, "waitingSignalSent", "Signal name=",
                     aSignal.getName(), "sent.");
         }
