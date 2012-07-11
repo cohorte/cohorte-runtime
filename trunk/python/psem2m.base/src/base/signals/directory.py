@@ -85,17 +85,6 @@ class SignalsDirectory(object):
         # Current isolate access port
         self._current_isolate_port = -1
 
-        # Java API compliance (if possible)
-        self.getAllIsolates = self.get_all_isolates
-        self.getHostForNode = self.get_host_for_node
-        self.getIsolateAccess = self.get_isolate_access
-        self.getIsolateId = self.get_isolate_id
-        self.getIsolateNode = self.get_isolate_node
-        self.getIsolatesOnNode = self.get_isolates_on_node
-        self.getLocalNode = self.get_local_node
-        self.registerIsolate = self.register_isolate
-        self.unregisterIsolate = self.unregister_isolate
-
 
     def dump(self):
         """
