@@ -71,9 +71,6 @@ class ComposerAgent(object):
         self.ipopo = None
         self.instances = {}
 
-        self._event = threading.Event()
-        self._thread = None
-
 
     def handle_received_signal(self, name, signal_data):
         """
@@ -252,9 +249,6 @@ class ComposerAgent(object):
         # Register to iPOPO events
         self.ipopo.add_listener(self)
 
-        # Clear the event
-        self._event.clear()
-
 
     @Invalidate
     def invalidate(self, context):
@@ -263,11 +257,7 @@ class ComposerAgent(object):
         
         :param context: The bundle context
         """
-        # Set the event
-        self._event.set()
-        self._thread.join(2)
-        self._thread = None
-
+        # Unregister to events
         self.ipopo.remove_listener(self)
         self.receiver.unregister_listener(SIGNAL_REQUEST_PATTERN, self)
 
