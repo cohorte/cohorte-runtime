@@ -5,6 +5,8 @@
  */
 package org.psem2m.remote.broadcaster;
 
+import java.util.Arrays;
+
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;

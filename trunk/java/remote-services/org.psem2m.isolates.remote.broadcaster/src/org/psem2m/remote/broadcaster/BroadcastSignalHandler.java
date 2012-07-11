@@ -6,6 +6,7 @@
 package org.psem2m.remote.broadcaster;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -133,6 +134,30 @@ public class BroadcastSignalHandler extends CPojoBase implements
                     // Update its content and notify listeners
                     handleRemoteEvent(event);
                 }
+
+            } else if (signalContent instanceof Object[]) {
+                /*
+                 * Multiple remote service events received, handle them one by
+                 * one
+                 */
+                try {
+                    final RemoteServiceEvent[] events = Arrays.asList(
+                            (Object[]) signalContent).toArray(
+                            new RemoteServiceEvent[0]);
+                    for (final RemoteServiceEvent event : events) {
+                        // Update its content and notify listeners
+                        handleRemoteEvent(event);
+                    }
+
+                } catch (final ClassCastException ex) {
+                    // Invalid type
+                    pLogger.log(LogService.LOG_WARNING, "Uncastable array = "
+                            + Arrays.toString((Object[]) signalContent));
+                }
+
+            } else {
+                pLogger.log(LogService.LOG_WARNING, "Unknown type = "
+                        + signalContent.getClass().getName());
             }
 
         } else if (ISignalsConstants.BROADCASTER_SIGNAL_REQUEST_ENDPOINTS
