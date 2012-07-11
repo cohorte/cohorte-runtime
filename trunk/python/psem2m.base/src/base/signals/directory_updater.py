@@ -16,6 +16,8 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
 # ------------------------------------------------------------------------------
 
 import logging
+import threading
+
 _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
@@ -35,11 +37,23 @@ SIGNAL_REGISTER = "%s/register" % SIGNAL_PREFIX
 SIGNAL_CONTACT = "%s/contact" % SIGNAL_PREFIX
 """ Special case for early starting forkers: a monitor signals its dump port """
 
+SIGNAL_ISOLATE_LOST = "/psem2m/isolate/lost"
+""" Isolate disappeared """
+
+REGISTERED = 0
+""" Isolate presence event: Isolate registered """
+
+UNREGISTERED = 1
+""" Isolate presence event: Isolate unregistered or lost """
+
 # ------------------------------------------------------------------------------
 
 @ComponentFactory("psem2m-signals-directory-updater-factory")
 @Instantiate("psem2m-signals-directory-updater")
 @Requires("_directory", "org.psem2m.signals.ISignalDirectory")
+@Requires("_listeners",
+          "org.psem2m.isolates.services.monitoring.IIsolatePresenceListener",
+          aggregate=True, optional=True)
 @Requires("_receiver", "org.psem2m.signals.ISignalReceiver")
 @Requires("_sender", "org.psem2m.signals.ISignalBroadcaster")
 class DirectoryUpdater(object):
@@ -51,6 +65,7 @@ class DirectoryUpdater(object):
         Constructor
         """
         self._directory = None
+        self._listeners = []
         self._receiver = None
         self._sender = None
 
@@ -162,6 +177,32 @@ class DirectoryUpdater(object):
         self._grab_directory(remote_address, remote_port, remote_node)
 
 
+    def _notify_listeners(self, isolate_id, isolate_node, event):
+        """
+        Notifies listeners of an isolate presence event
+        
+        :param isolate_id: ID of the isolate
+        :param isolate_node: Node of the isolate
+        :param event: Kind of event
+        """
+        if not self._listeners:
+            # No listeners
+            return
+
+        def notification_loop(self):
+            # Use a copy of the listeners
+            for listener in self._listeners[:]:
+                try:
+                    listener.handle_isolate_presence(isolate_id, isolate_node,
+                                                     event)
+                except:
+                    # Just log...
+                    _logger.exception("Error notifying a presence listener")
+
+        # Notify in another thread
+        threading.Thread(target=notification_loop, args=[self]).start()
+
+
     def _register_isolate(self, signal_data):
         """
         Registers an isolate according to the given map
@@ -260,7 +301,8 @@ class DirectoryUpdater(object):
         :param name: Signal name
         :param signal_data: Signal content
         """
-        _logger.debug("UPDATER GOT SIGNAL :: %s", name)
+        isolate_id = signal_data["senderId"]
+        isolate_node = signal_data["senderNode"]
 
         if name == SIGNAL_DUMP:
             # Dump the directory
@@ -270,9 +312,16 @@ class DirectoryUpdater(object):
             # Isolate registration
             self._register_isolate(signal_data)
 
+            # Notify listeners
+            self._notify_listeners(isolate_id, isolate_node, REGISTERED)
+
         elif name == SIGNAL_CONTACT:
             # A contact has been signal, ask for a remote directory dump
             self._grab_remote_directory(signal_data)
+
+        elif name == SIGNAL_ISOLATE_LOST:
+            # Notify listeners
+            self._notify_listeners(isolate_id, isolate_node, UNREGISTERED)
 
 
     @Invalidate
@@ -282,6 +331,7 @@ class DirectoryUpdater(object):
         """
         # Unregister to isolate registration signals
         self._receiver.unregister_listener(SIGNAL_PREFIX_MATCH_ALL, self)
+        self._receiver.unregister_listener(SIGNAL_ISOLATE_LOST, self)
 
 
     @Validate
@@ -301,3 +351,4 @@ class DirectoryUpdater(object):
 
         # Register to isolate registration signals
         self._receiver.register_listener(SIGNAL_PREFIX_MATCH_ALL, self)
+        self._receiver.register_listener(SIGNAL_ISOLATE_LOST, self)
