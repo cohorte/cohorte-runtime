@@ -104,6 +104,9 @@ class RequestHandler(BaseHTTPRequestHandler):
 </body>
 </html>""" % self.path
 
+        # Convert the page
+        page = page.encode()
+
         # Send headers
         self.send_response(404)
         self.send_header("content-type", "text/html")
@@ -111,7 +114,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
         # Send content
-        self.wfile.write(page.encode())
+        self.wfile.write(page)
 
 # ------------------------------------------------------------------------------
 

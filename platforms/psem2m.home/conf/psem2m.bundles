@@ -31,9 +31,6 @@ include: ipojo.bundles
 # Configuration reader
 org.psem2m.isolates.config
 
-# PSEM2M Extra Log services
-org.psem2m.isolates.loggers
-
 # Signals directory (based on configuration)
 org.psem2m.signals.directory
 
@@ -42,6 +39,9 @@ org.psem2m.signals
 
 # Java Signals serializer
 org.psem2m.signals.serializer.java
+
+# PSEM2M Extra Log services
+org.psem2m.isolates.loggers
 
 # Shell stuffs
 org.apache.felix.shell

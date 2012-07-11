@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python
 #-- Content-Encoding: UTF-8 --
 """
 PSEM2M Forker control script (could be used as an init.d script)
@@ -30,7 +30,7 @@ PSEM2M_GIT = os.path.abspath(os.path.join(CONTROLLER_PATH,
                                           4 * ('..' + os.path.sep)))
 
 DEFAULT_PSEM2M_HOME = "%s/platforms/psem2m.home" % PSEM2M_GIT
-DEFAULT_PSEM2M_BASE = "%s/platforms/base-distributed-bis" % PSEM2M_GIT
+DEFAULT_PSEM2M_BASE = "%s/platforms/base-demo-july2012" % PSEM2M_GIT
 
 # ------------------------------------------------------------------------------
 
