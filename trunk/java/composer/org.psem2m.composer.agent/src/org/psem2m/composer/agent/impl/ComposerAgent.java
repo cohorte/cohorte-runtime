@@ -400,6 +400,11 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
                 pLogger.logSevere(this,
                         "handleReceivedSignal : stopComponents", e);
             }
+
+        } else if (ComposerAgentSignals.SIGNAL_ISOLATE_FACTORIES_DUMP
+                .equals(aSignalName)) {
+            // Return a String array with all registered factories
+            return pFactories.keySet().toArray(new String[0]);
         }
 
         return null;

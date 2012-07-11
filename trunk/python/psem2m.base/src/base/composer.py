@@ -9,11 +9,13 @@ Created on 29 févr. 2012
 # ------------------------------------------------------------------------------
 
 import logging
-from pelix.ipopo.core import IPopoEvent
+import threading
+
 _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+from pelix.ipopo.core import IPopoEvent
 from pelix.ipopo.decorators import ComponentFactory, Provides, Requires, \
     Validate, Invalidate, Instantiate
 import pelix.ipopo.constants as constants
@@ -41,6 +43,7 @@ SIGNAL_RESPONSE_STOP_COMPONENTS = "%s/stop-components" % SIGNAL_RESPONSE_PREFIX
 SIGNAL_ISOLATE_ADD_FACTORY = "%s/added" % SIGNAL_FACTORY_PREFIX
 SIGNAL_ISOLATE_REMOVE_FACTORY = "%s/removed" % SIGNAL_FACTORY_PREFIX
 SIGNAL_ISOLATE_FACTORIES_GONE = "%s/all-gone" % SIGNAL_FACTORY_PREFIX
+SIGNAL_ISOLATE_FACTORIES_DUMP = "%s/dump" % SIGNAL_FACTORY_PREFIX
 
 # ------------------------------------------------------------------------------
 
@@ -68,6 +71,9 @@ class ComposerAgent(object):
         self.ipopo = None
         self.instances = {}
 
+        self._event = threading.Event()
+        self._thread = None
+
 
     def handle_received_signal(self, name, signal_data):
         """
@@ -89,6 +95,10 @@ class ComposerAgent(object):
 
         elif name == SIGNAL_STOP_COMPONENTS:
             self.kill_components(sender, data)
+
+        elif name == SIGNAL_ISOLATE_FACTORIES_DUMP:
+            # This signal needs a result: an array with all known factories
+            return tuple(self.ipopo.get_registered_factories())
 
 
     def can_handle_components(self, sender, data):
@@ -242,10 +252,8 @@ class ComposerAgent(object):
         # Register to iPOPO events
         self.ipopo.add_listener(self)
 
-        # Send registered iPOPO factories
-        self.sender.fire(SIGNAL_ISOLATE_ADD_FACTORY,
-                        tuple(self.ipopo.get_registered_factories()),
-                        dir_group="ALL")
+        # Clear the event
+        self._event.clear()
 
 
     @Invalidate
@@ -255,12 +263,17 @@ class ComposerAgent(object):
         
         :param context: The bundle context
         """
+        # Set the event
+        self._event.set()
+        self._thread.join(2)
+        self._thread = None
+
         self.ipopo.remove_listener(self)
         self.receiver.unregister_listener(SIGNAL_REQUEST_PATTERN, self)
 
         # Send a signal to tell others that all our factories are gone
         self.sender.fire(SIGNAL_ISOLATE_FACTORIES_GONE, None,
-                         dir_group="OTHERS")
+                         dir_group="ALL")
 
         # Kill active components
         if len(self.instances) > 0:
