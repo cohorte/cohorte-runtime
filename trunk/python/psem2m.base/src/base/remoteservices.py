@@ -75,7 +75,7 @@ class _JsonRpcServlet(SimpleJSONRPCDispatcher):
             response = self._marshaled_dispatch(data)
             handler.send_response(200)
 
-        except Exception:
+        except:
             handler.send_response(500)
             err_lines = traceback.format_exc().splitlines()
             trace_string = '%s | %s' % (err_lines[-3], err_lines[-1])
@@ -85,12 +85,14 @@ class _JsonRpcServlet(SimpleJSONRPCDispatcher):
         if response is None:
             response = ''
 
+        # Convert response
+        response = response.encode()
+
         handler.send_header("Content-type", "application/json-rpc")
         handler.send_header("Content-length", str(len(response)))
         handler.end_headers()
-        handler.wfile.write(response.encode())
+        handler.wfile.write(response)
         handler.wfile.flush()
-        handler.connection.shutdown(1)
 
 # ------------------------------------------------------------------------------
 
@@ -433,14 +435,11 @@ class _JSON_proxy(object):
         """
         Proxy core
         """
-
         def wrapped_call(*args, **kwargs):
             """
             Wrapped call
             """
             method_name = "%s.%s" % (self.endpoint, name)
-            _logger.debug("Remote call to %s", method_name)
-
             method = self.server.__getattr__(method_name)
             if args:
                 args = [to_jabsorb(arg) for arg in args]
@@ -451,6 +450,7 @@ class _JSON_proxy(object):
 
             result = method(*args, **kwargs)
             return from_jabsorb(result)
+            # FIXME: in case of Exception, look if the service has gone
 
         return wrapped_call
 

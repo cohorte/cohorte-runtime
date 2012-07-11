@@ -189,6 +189,10 @@ class SignalReceiver(object):
             # Something wrong occurred
             _logger.debug("Signal: %s - Result: %s", signal_name, content)
 
+        if content:
+            # Convert content (Python 3)
+            content = _to_bytes(content)
+
         # Send headers
         handler.send_response(code)
         handler.send_header('Content-type', 'application/json')
@@ -196,9 +200,6 @@ class SignalReceiver(object):
         handler.end_headers()
 
         if content:
-            # Convert content (Python 3)
-            content = _to_bytes(content)
-
             # Write result
             handler.wfile.write(content)
 
