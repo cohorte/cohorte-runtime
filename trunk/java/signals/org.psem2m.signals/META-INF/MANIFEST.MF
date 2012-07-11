@@ -1,4 +1,5 @@
 Manifest-Version: 1.0
+Bundle-Activator: org.psem2m.signals.impl.CBundleSignalsImplActivator
 Bundle-ManifestVersion: 2
 Bundle-Name: PSEM2M Signals Base
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6

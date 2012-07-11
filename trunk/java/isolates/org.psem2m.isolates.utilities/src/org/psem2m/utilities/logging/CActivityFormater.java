@@ -46,7 +46,6 @@ abstract class CActivityFormater extends Formatter implements IActivityFormater 
      **/
     protected boolean pMultiline = !MULTILINES_TEXT;
 
-    StringBuilder pSB = new StringBuilder(128);
 
     /**
      * Differences in successive calls that span greater than approximately 292

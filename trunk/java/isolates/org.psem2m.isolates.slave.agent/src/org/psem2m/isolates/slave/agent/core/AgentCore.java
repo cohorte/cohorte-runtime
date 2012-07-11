@@ -453,6 +453,10 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
      */
     @Override
     public void invalidatePojo() {
+    	
+		// logs the validation
+		pIsolateLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
+				toString());
 
         // Unregister the bundle listener
         pBundleContext.removeBundleListener(this);
@@ -900,7 +904,11 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
      */
     @Override
     public void validatePojo() {
-
+    	
+		// logs the validation
+		pIsolateLoggerSvc.logInfo(this, "validatePojo", "VALIDATE",
+				toString());
+		
         // Set up the scheduler, before the call to addBundleListener.
         pScheduler = Executors.newScheduledThreadPool(1);
 

@@ -1,9 +1,10 @@
 Manifest-Version: 1.0
+Bundle-Activator: org.psem2m.composer.ui.CComposerUiActivator
 Bundle-ManifestVersion: 2
-Bundle-Name: PSEM2M - Composer Core
+Bundle-Name: PSEM2M - Composer UI
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: org.psem2m.composer.ui
-Bundle-Vendor: PSEM2M - Composer Core
+Bundle-Vendor: PSEM2M - Composer UI
 Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
 Import-Package: javax.swing, javax.swing.event, javax.swing.tree, org.
@@ -38,8 +39,8 @@ iPOJO-Components: instance { $component="org.psem2m.composer.ui.CUiAdm
  Bean,org.psem2m.composer.EComponentState}" }method { $name="compositi
  onChanged" $arguments="{org.psem2m.composer.CompositionEvent}" }metho
  d { $name="initContent" }method { $name="invalidatePojo" }method { $n
- ame="loadComposition" }method { $name="removeComposition" }method { $
- name="setUiAdminFont" $arguments="{org.psem2m.isolates.ui.admin.api.E
- UiAdminFont}" }method { $name="updateModel" }method { $name="validate
- Pojo" }}}
+ ame="destroyContent" }method { $name="loadComposition" }method { $nam
+ e="removeComposition" }method { $name="setUiAdminFont" $arguments="{o
+ rg.psem2m.isolates.ui.admin.api.EUiAdminFont}" }method { $name="updat
+ eModel" }method { $name="validatePojo" }}}
 

@@ -277,7 +277,7 @@ public class CActivityLoggerStd extends CActivityObject implements
 
 		String wLogLine = null;
 		if (isOpened()) {
-			wLogLine = pLogLineTextBuilder.formatLogLine(aInfos);
+			wLogLine = pLogLineTextBuilder.buildLogLine(aInfos);
 		}
 		CharSequence wWhat = (aWhat != null) ? aWhat : CXJavaRunContext
 				.getPreCallingMethod();
@@ -293,7 +293,7 @@ public class CActivityLoggerStd extends CActivityObject implements
 
 		if (wLogLine != null) {
 
-			pLogger.logp(aLevel, pLogLineTextBuilder.formatWhoObjectId(aWho),
+			pLogger.logp(aLevel, pLogLineTextBuilder.buildWhoObjectId(aWho),
 					wWhat.toString(), wLogLine);
 		}
 
