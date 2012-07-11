@@ -306,7 +306,13 @@ public class CJPanelComposition extends CJPanelTree {
     public void updateTree() {
 
         if (pTree != null) {
+            // Expand rows
+            for (int i = 0; i < pTree.getRowCount(); i++) {
+                pTree.expandRow(i);
+            }
+
             pTree.updateUI();
+            updateUI();
         }
     }
 }

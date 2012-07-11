@@ -14,6 +14,7 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 import javax.swing.JButton;
@@ -25,15 +26,13 @@ import javax.swing.SwingUtilities;
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
+import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.composer.ComponentsSetSnapshot;
-import org.psem2m.composer.CompositionEvent;
-import org.psem2m.composer.EComponentState;
 import org.psem2m.composer.IComposer;
 import org.psem2m.composer.ICompositionListener;
-import org.psem2m.composer.model.ComponentBean;
 import org.psem2m.composer.model.ComponentsSetBean;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
@@ -50,6 +49,7 @@ import org.psem2m.isolates.ui.admin.api.IUiAdminSvc;
  */
 @Component(name = "psem2m-composer-ui-admin-factory", publicFactory = false)
 @Instantiate(name = "psem2m-composer-ui-admin")
+@Provides(specifications = ICompositionListener.class)
 public class CUiAdminPanelComposition extends CPojoBase implements
         IUiAdminPanelControler, ICompositionListener {
 
@@ -78,45 +78,37 @@ public class CUiAdminPanelComposition extends CPojoBase implements
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.composer.ICompositionListener#componentsSetStateChanged(org
-     * .psem2m.composer.model.ComponentsSetBean,
-     * org.psem2m.composer.EComponentState)
+     * org.psem2m.composer.ICompositionListener#componentsSetRemoved(java.lang
+     * .String)
      */
     @Override
-    public void componentsSetStateChanged(
-            final ComponentsSetBean aComponentsSetBean,
-            final EComponentState aState) {
+    public void componentsSetRemoved(final String aRootName) {
 
-        updateModel();
+        pCompositionTreeModel.removeSnapshot(aRootName);
+        pTreePanel.updateTree();
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.psem2m.composer.ICompositionListener#componentStateChanged(org.psem2m
-     * .composer.model.ComponentBean, org.psem2m.composer.EComponentState)
+    /**
+     * Destroys the panel content
      */
-    @Override
-    public void componentStateChanged(final ComponentBean aComponentBean,
-            final EComponentState aState) {
+    private void destroyContent() {
 
-        updateModel();
+        pUiAdminSvc.removeUiAdminPanel(pUiAdminPanel);
+
+        if (pCompositionTreeModel != null) {
+            pCompositionTreeModel.destroy();
+            pCompositionTreeModel = null;
+        }
+
+        if (pTreePanel != null) {
+            pTreePanel.destroy();
+            pTreePanel = null;
+        }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.psem2m.composer.ICompositionListener#compositionChanged(org.psem2m
-     * .composer.CompositionEvent)
+    /**
+     * Sets up the panel content
      */
-    @Override
-    public void compositionChanged(final CompositionEvent aCompositionEvent) {
-
-        updateModel();
-    }
-
     private void initContent() {
 
         final Runnable wRunnable = new Runnable() {
@@ -133,14 +125,10 @@ public class CUiAdminPanelComposition extends CPojoBase implements
                     final JPanel parentPanel = pUiAdminPanel.getPanel();
 
                     /* The tree panel */
-                    pCompositionTreeModel = new CCompositionTreeModel(
-                            pComposer.getCompositionSnapshot());
+                    pCompositionTreeModel = new CCompositionTreeModel();
 
                     pTreePanel = new CJPanelComposition(pLogger, parentPanel,
                             pCompositionTreeModel);
-
-                    pComposer.registerCompositionListener(
-                            CUiAdminPanelComposition.this, 0);
 
                     /* The button panel */
                     final JPanel btnPanel = new JPanel();
@@ -174,7 +162,7 @@ public class CUiAdminPanelComposition extends CPojoBase implements
             }
         };
 
-        SwingUtilities.invokeLater(wRunnable);
+        safeInvokeAndWait(wRunnable);
     }
 
     /*
@@ -190,32 +178,11 @@ public class CUiAdminPanelComposition extends CPojoBase implements
         pLogger.logInfo(this, "invalidatePojo", "INVALIDATE", toDescription());
 
         try {
-            // Unregister listener
-            pComposer.unregisterCompositionListener(this);
-            
             // remove composer panel
-        	destroyContent();
+            destroyContent();
 
         } catch (final Exception e) {
             pLogger.logSevere(this, "invalidatePojo", e);
-        }
-    }
-    
-    /**
-     * 
-     */
-    private void destroyContent(){
-    	
-        pUiAdminSvc.removeUiAdminPanel(pUiAdminPanel);
-
-        if (pCompositionTreeModel != null) {
-            pCompositionTreeModel.destroy();
-            pCompositionTreeModel = null;
-        }
-
-        if (pTreePanel != null) {
-            pTreePanel.destroy();
-            pTreePanel = null;
         }
     }
 
@@ -277,6 +244,56 @@ public class CUiAdminPanelComposition extends CPojoBase implements
         }
     }
 
+    /**
+     * Calls {@link SwingUtilities#invokeAndWait(Runnable)} or runs the
+     * arguments immediately depending of the current thread
+     * 
+     * @param aRunnable
+     *            A runnable
+     */
+    private void safeInvokeAndWait(final Runnable aRunnable) {
+
+        if (SwingUtilities.isEventDispatchThread()) {
+            try {
+                // We already are in the Swing thread
+                aRunnable.run();
+
+            } catch (final Exception ex) {
+                // Just log
+                pLogger.logSevere(this, "initContent",
+                        "Error during content initialization", ex);
+            }
+
+        } else {
+            try {
+                // Call the Swing thread
+                SwingUtilities.invokeAndWait(aRunnable);
+
+            } catch (final InterruptedException ex) {
+                // Ignore...
+
+            } catch (final InvocationTargetException ex) {
+                // Just log...
+                pLogger.logSevere(this, "initContent",
+                        "Error during content initialization", ex.getCause());
+            }
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.composer.ICompositionListener#setCompositionSnapshots(org.
+     * psem2m.composer.ComponentsSetSnapshot[])
+     */
+    @Override
+    public void setCompositionSnapshots(final ComponentsSetSnapshot[] aSnapshots) {
+
+        pCompositionTreeModel.setSnapshots(aSnapshots);
+        pTreePanel.updateTree();
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -291,19 +308,18 @@ public class CUiAdminPanelComposition extends CPojoBase implements
         pTreePanel.setTreeFont(aUiAdminFont);
     }
 
-    /**
-     * Updates the tree model (changes it)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.composer.ICompositionListener#updateCompositionSnapshot(org
+     * .psem2m.composer.ComponentsSetSnapshot)
      */
-    protected void updateModel() {
+    @Override
+    public void updateCompositionSnapshot(final ComponentsSetSnapshot aSnapshot) {
 
-        final List<ComponentsSetSnapshot> compositionSnapshots = pComposer
-                .getCompositionSnapshot();
-
-        pCompositionTreeModel.update(compositionSnapshots);
+        pCompositionTreeModel.updateSnapshot(aSnapshot);
         pTreePanel.updateTree();
-        pTreePanel.updateUI();
-
-        System.out.println("Model updated...");
     }
 
     /*
@@ -320,11 +336,10 @@ public class CUiAdminPanelComposition extends CPojoBase implements
 
         try {
             // Set up GUI in a thread
-            initContent();	
-            
+            initContent();
 
         } catch (final Exception e) {
             pLogger.logSevere(this, "validatePojo", e);
-        }	
+        }
     }
 }

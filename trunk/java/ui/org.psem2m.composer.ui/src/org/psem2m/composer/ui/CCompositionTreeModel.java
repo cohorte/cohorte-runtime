@@ -11,7 +11,10 @@
 package org.psem2m.composer.ui;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
@@ -27,162 +30,201 @@ import org.psem2m.composer.ComponentsSetSnapshot;
  */
 public class CCompositionTreeModel implements TreeModel {
 
-	/** The snapshots list */
-	private List<AbstractSnapshot> pSnapshots = new ArrayList<AbstractSnapshot>();
+    /** The snapshots map */
+    private final Map<String, ComponentsSetSnapshot> pSnapshots = new HashMap<String, ComponentsSetSnapshot>();
 
-	/**
-	 * Sets up the tree model
-	 * 
-	 * @param aCompositionSnapshot
-	 *            A composition snapshot list
-	 */
-	CCompositionTreeModel(
-			final List<ComponentsSetSnapshot> aCompositionSnapshots) {
+    /** The snapshots sorted names */
+    private final List<String> pSortedNames = new ArrayList<String>();
 
-		super();
-		update(aCompositionSnapshots);
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see javax.swing.tree.TreeModel#addTreeModelListener(javax.swing.event.
+     * TreeModelListener)
+     */
+    @Override
+    public void addTreeModelListener(final TreeModelListener aListener) {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see javax.swing.tree.TreeModel#addTreeModelListener(javax.swing.event.
-	 * TreeModelListener)
-	 */
-	@Override
-	public void addTreeModelListener(final TreeModelListener aListener) {
-	}
+    }
 
-	/**
-	 * Cleans up the model
-	 */
-	void destroy() {
+    /**
+     * Cleans up the model
+     */
+    void destroy() {
 
-		pSnapshots.clear();
-		pSnapshots = null;
-	}
+        pSnapshots.clear();
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see javax.swing.tree.TreeModel#getChild(java.lang.Object, int)
-	 */
-	@Override
-	public Object getChild(final Object aParent, final int aIndex) {
+    /*
+     * (non-Javadoc)
+     * 
+     * @see javax.swing.tree.TreeModel#getChild(java.lang.Object, int)
+     */
+    @Override
+    public Object getChild(final Object aParent, final int aIndex) {
 
-		if (aParent instanceof String) {
-			// Root
-			synchronized (pSnapshots) {
-				return pSnapshots.get(aIndex);
-			}
-		}
+        if (aParent instanceof String) {
+            // Root
+            synchronized (pSnapshots) {
+                return pSnapshots.get(pSortedNames.get(aIndex));
+            }
+        }
 
-		final AbstractSnapshot wCompositionSnapshot = (AbstractSnapshot) aParent;
-		return wCompositionSnapshot.getChild(aIndex);
-	}
+        final AbstractSnapshot wCompositionSnapshot = (AbstractSnapshot) aParent;
+        return wCompositionSnapshot.getChild(aIndex);
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see javax.swing.tree.TreeModel#getChildCount(java.lang.Object)
-	 */
-	@Override
-	public int getChildCount(final Object aParent) {
+    /*
+     * (non-Javadoc)
+     * 
+     * @see javax.swing.tree.TreeModel#getChildCount(java.lang.Object)
+     */
+    @Override
+    public int getChildCount(final Object aParent) {
 
-		if (aParent instanceof String) {
-			// Root
-			synchronized (pSnapshots) {
-				return pSnapshots.size();
-			}
-		}
+        if (aParent instanceof String) {
+            // Root
+            synchronized (pSnapshots) {
+                return pSnapshots.size();
+            }
+        }
 
-		final AbstractSnapshot wCompositionSnapshot = (AbstractSnapshot) aParent;
-		return wCompositionSnapshot.getChildCount();
-	}
+        final AbstractSnapshot wCompositionSnapshot = (AbstractSnapshot) aParent;
+        return wCompositionSnapshot.getChildCount();
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see javax.swing.tree.TreeModel#getIndexOfChild(java.lang.Object,
-	 * java.lang.Object)
-	 */
-	@Override
-	public int getIndexOfChild(final Object aParent, final Object aChild) {
+    /*
+     * (non-Javadoc)
+     * 
+     * @see javax.swing.tree.TreeModel#getIndexOfChild(java.lang.Object,
+     * java.lang.Object)
+     */
+    @Override
+    public int getIndexOfChild(final Object aParent, final Object aChild) {
 
-		if (aParent instanceof String) {
-			// Root
-			synchronized (pSnapshots) {
-				return pSnapshots.indexOf(aChild);
-			}
-		}
+        if (aParent instanceof String) {
+            // Root
+            synchronized (pSnapshots) {
+                return pSortedNames.indexOf(aChild);
+            }
+        }
 
-		final AbstractSnapshot wCompositionSnapshot = (AbstractSnapshot) aParent;
-		return wCompositionSnapshot.getIndexOfChild((AbstractSnapshot) aChild);
-	}
+        final AbstractSnapshot wCompositionSnapshot = (AbstractSnapshot) aParent;
+        return wCompositionSnapshot.getIndexOfChild((AbstractSnapshot) aChild);
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see javax.swing.tree.TreeModel#getRoot()
-	 */
-	@Override
-	public Object getRoot() {
+    /*
+     * (non-Javadoc)
+     * 
+     * @see javax.swing.tree.TreeModel#getRoot()
+     */
+    @Override
+    public Object getRoot() {
 
-		return "Compositions";
-	}
+        return "Compositions";
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see javax.swing.tree.TreeModel#isLeaf(java.lang.Object)
-	 */
-	@Override
-	public boolean isLeaf(final Object aObject) {
+    /*
+     * (non-Javadoc)
+     * 
+     * @see javax.swing.tree.TreeModel#isLeaf(java.lang.Object)
+     */
+    @Override
+    public boolean isLeaf(final Object aObject) {
 
-		if (aObject instanceof String) {
-			synchronized (pSnapshots) {
-				return pSnapshots.isEmpty();
-			}
-		}
+        if (aObject instanceof String) {
+            synchronized (pSnapshots) {
+                return pSnapshots.isEmpty();
+            }
+        }
 
-		return aObject instanceof ComponentSnapshot;
-	}
+        return aObject instanceof ComponentSnapshot;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * javax.swing.tree.TreeModel#removeTreeModelListener(javax.swing.event.
-	 * TreeModelListener)
-	 */
-	@Override
-	public void removeTreeModelListener(final TreeModelListener aListener) {
-	}
+    /**
+     * Removes a snapshot from the model
+     * 
+     * @param aRootName
+     *            Name of the components set to remove
+     */
+    public void removeSnapshot(final String aRootName) {
 
-	/**
-	 * Updates the tree model
-	 * 
-	 * @param aCompositionSnapshots
-	 *            New snapshots
-	 */
-	public void update(final List<ComponentsSetSnapshot> aCompositionSnapshots) {
+        synchronized (pSnapshots) {
+            pSnapshots.remove(aRootName);
+            pSortedNames.remove(aRootName);
+        }
+    }
 
-		synchronized (pSnapshots) {
-			pSnapshots.clear();
-			if (aCompositionSnapshots != null) {
-				pSnapshots.addAll(aCompositionSnapshots);
-			}
-		}
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * javax.swing.tree.TreeModel#removeTreeModelListener(javax.swing.event.
+     * TreeModelListener)
+     */
+    @Override
+    public void removeTreeModelListener(final TreeModelListener aListener) {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * javax.swing.tree.TreeModel#valueForPathChanged(javax.swing.tree.TreePath,
-	 * java.lang.Object)
-	 */
-	@Override
-	public void valueForPathChanged(final TreePath aArg0, final Object aArg1) {
-	}
+    }
+
+    /**
+     * Replaces the model content
+     * 
+     * @param aSnapshots
+     *            Array of snapshots to store in the model
+     */
+    public void setSnapshots(final ComponentsSetSnapshot[] aSnapshots) {
+
+        synchronized (pSnapshots) {
+            // Clear current values
+            pSnapshots.clear();
+            pSortedNames.clear();
+
+            if (aSnapshots != null) {
+                // Store new ones
+                for (final ComponentsSetSnapshot snapshot : aSnapshots) {
+                    pSnapshots.put(snapshot.getQName(), snapshot);
+                }
+            }
+
+            // Update names
+            pSortedNames.addAll(pSnapshots.keySet());
+            Collections.sort(pSortedNames);
+        }
+    }
+
+    /**
+     * Updates a single snapshot
+     * 
+     * @param aSnapshot
+     *            The updated snapshot
+     */
+    public void updateSnapshot(final ComponentsSetSnapshot aSnapshot) {
+
+        synchronized (pSnapshots) {
+
+            if (aSnapshot != null) {
+                final String name = aSnapshot.getQName();
+                pSnapshots.put(name, aSnapshot);
+
+                if (!pSortedNames.contains(name)) {
+                    // Add a new name
+                    pSortedNames.add(name);
+                    Collections.sort(pSortedNames);
+                }
+            }
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * javax.swing.tree.TreeModel#valueForPathChanged(javax.swing.tree.TreePath,
+     * java.lang.Object)
+     */
+    @Override
+    public void valueForPathChanged(final TreePath aArg0, final Object aArg1) {
+
+    }
 }
