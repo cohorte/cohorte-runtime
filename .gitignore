@@ -7,8 +7,8 @@ RemoteSystemsTempFiles/
 bin/
 *.dat
 small-install.zip
-forker.pid
-forker.access
+*.pid
+*.access
 
 # Maven (tests)
 pom.xml

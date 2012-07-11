@@ -17,7 +17,7 @@ osgi.cmpn
 org.psem2m.isolates.constants
 
 # JMX Threads monitor
-# org.psem2m.isolates.jmx.monitor
+#org.psem2m.isolates.jmx.monitor
 
 # Utility classes
 org.psem2m.isolates.utilities
@@ -28,19 +28,25 @@ org.psem2m.isolates.base
 # iPOJO Stuffs
 include: ipojo.bundles
 
+# Configuration reader
+org.psem2m.isolates.config
+
+# Signals directory (based on configuration)
+org.psem2m.signals.directory
+
 # Signals Base (based on iPOJO)
 org.psem2m.signals
+
+# Java Signals serializer
+org.psem2m.signals.serializer.java
+
+# PSEM2M Extra Log services
+org.psem2m.isolates.loggers
 
 # Shell stuffs
 org.apache.felix.shell
 #org.apache.felix.shell.remote
 org.apache.felix.ipojo.arch
-
-# PSEM2M Extra Log services
-org.psem2m.isolates.loggers
-
-# Configuration reader
-org.psem2m.isolates.config
 
 # Isolate agent (use the configuration to load the next bundles)
 # Should be the last bundle to be started by the bootstrap
