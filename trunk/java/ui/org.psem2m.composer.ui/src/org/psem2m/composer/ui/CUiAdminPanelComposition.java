@@ -189,24 +189,33 @@ public class CUiAdminPanelComposition extends CPojoBase implements
         // logs in the bundle output
         pLogger.logInfo(this, "invalidatePojo", "INVALIDATE", toDescription());
 
-        // Unregister listener
-        pComposer.unregisterCompositionListener(this);
-
         try {
-            pUiAdminSvc.removeUiAdminPanel(pUiAdminPanel);
-
-            if (pCompositionTreeModel != null) {
-                pCompositionTreeModel.destroy();
-                pCompositionTreeModel = null;
-            }
-
-            if (pTreePanel != null) {
-                pTreePanel.destroy();
-                pTreePanel = null;
-            }
+            // Unregister listener
+            pComposer.unregisterCompositionListener(this);
+            
+            // remove composer panel
+        	destroyContent();
 
         } catch (final Exception e) {
             pLogger.logSevere(this, "invalidatePojo", e);
+        }
+    }
+    
+    /**
+     * 
+     */
+    private void destroyContent(){
+    	
+        pUiAdminSvc.removeUiAdminPanel(pUiAdminPanel);
+
+        if (pCompositionTreeModel != null) {
+            pCompositionTreeModel.destroy();
+            pCompositionTreeModel = null;
+        }
+
+        if (pTreePanel != null) {
+            pTreePanel.destroy();
+            pTreePanel = null;
         }
     }
 
@@ -307,9 +316,15 @@ public class CUiAdminPanelComposition extends CPojoBase implements
     public void validatePojo() throws BundleException {
 
         // logs in the bundle output
-        pLogger.logInfo(this, "invalidatePojo", "VALIDATE", toDescription());
+        pLogger.logInfo(this, "validatePojo", "VALIDATE", toDescription());
 
-        // Set up GUI in a thread
-        initContent();
+        try {
+            // Set up GUI in a thread
+            initContent();	
+            
+
+        } catch (final Exception e) {
+            pLogger.logSevere(this, "validatePojo", e);
+        }	
     }
 }
