@@ -149,6 +149,12 @@ public class DirectoryUpdater implements ISignalListener,
             // Send our registration signal
             sendRegistration(remoteAddress, remotePort);
 
+            for (final String isolate : pDirectory.getAllIsolates(null, false)) {
+                notifyPresenceListeners(isolate,
+                        pDirectory.getIsolateNode(isolate),
+                        EPresence.REGISTERED);
+            }
+
         } catch (final Exception e) {
             pLogger.logSevere(this, "grabRemoteDirectory",
                     "Error grabbing the directory of host=", remoteAddress,
@@ -199,6 +205,12 @@ public class DirectoryUpdater implements ISignalListener,
             // Send our registration, one we have the directory...
             pLogger.logDebug(this, "validate", "Sending registration");
             sendRegistration("localhost", pDumperPort);
+
+            for (final String isolate : pDirectory.getAllIsolates(null, false)) {
+                notifyPresenceListeners(isolate,
+                        pDirectory.getIsolateNode(isolate),
+                        EPresence.REGISTERED);
+            }
 
         } else {
             // Nothing found
@@ -531,9 +543,6 @@ public class DirectoryUpdater implements ISignalListener,
 
         // 3. Register all new isolates
         for (final IsolateInfo info : isolates.values()) {
-            pLogger.logDebug(this, "storeDirectory", "Registering id=",
-                    info.id, "node=", info.node, "port=", info.port);
-
             pDirectory.registerIsolate(info.id, info.node, info.port,
                     info.groups.toArray(new String[0]));
         }
