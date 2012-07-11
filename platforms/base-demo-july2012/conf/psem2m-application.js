@@ -65,7 +65,7 @@
                 }
             ],
             "environment":{
-                "PYTHONPATH":"/home/tcalmant/programmation/workspaces/psem2m/demo.july2012.python"
+                "PYTHONPATH":"/home/tcalmant/programmation/workspaces/psem2m/demos/demo-july2012/demo.july2012.python"
             }
         },
         {
@@ -97,7 +97,7 @@
                 }
             ],
             "environment":{
-                "PYTHONPATH":"/home/tcalmant/programmation/workspaces/psem2m/demo.july2012.python"
+                "PYTHONPATH":"/home/tcalmant/programmation/workspaces/psem2m/demos/demo-july2012/demo.july2012.python"
             }
         },
         {
@@ -129,7 +129,7 @@
                 }
             ],
             "environment":{
-                "PYTHONPATH":"/home/tcalmant/programmation/workspaces/psem2m/demo.july2012.python"
+                "PYTHONPATH":"/home/tcalmant/programmation/workspaces/psem2m/demos/demo-july2012/demo.july2012.python"
             }
         }
     ]
