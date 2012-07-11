@@ -120,7 +120,7 @@ public class CLogLineTextBuilder {
      * @param aObjects
      * @return
      */
-    public String formatLogLine(final Object... aObjects) {
+    public String buildLogLine(final Object... aObjects) {
 
         return addTextsInLogLine(new StringBuilder(128), aObjects).toString();
     }
@@ -129,7 +129,7 @@ public class CLogLineTextBuilder {
      * @param aWho
      * @return
      */
-    public String formatWhoObjectId(final Object aWho) {
+    public String buildWhoObjectId(final Object aWho) {
 
         if (aWho == null) {
             return CLogTools.LIB_NULL;

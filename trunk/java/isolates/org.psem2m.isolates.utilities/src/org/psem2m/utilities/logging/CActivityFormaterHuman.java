@@ -47,7 +47,8 @@ public class CActivityFormaterHuman extends CActivityFormaterBasic {
             final String aText, final boolean aWhithEndLine) {
 
         // clean the buffer
-        pSB.delete(0, pSB.length());
+        //pSB.delete(0, pSB.length());
+        StringBuilder pSB = new StringBuilder(128);
 
         pSB.append(formatDate(aMillis));
 

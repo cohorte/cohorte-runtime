@@ -77,7 +77,9 @@ public class CActivityFormaterBasic extends CActivityFormater {
             final String aText, final boolean aWhithEndLine) {
 
         // clean the buffer
-        pSB.delete(0, pSB.length());
+    	//pSB.setLength(0);
+        //pSB.delete(0, pSB.length());
+        StringBuilder pSB = new StringBuilder(128);
 
         pSB.append(aMillis);
 

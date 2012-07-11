@@ -34,7 +34,9 @@ public class CActivityFormaterStd extends CActivityFormater {
 	public synchronized String format(final long aMillis, final Level aLevel,
 			final String aSourceClassName, final String aSourceMethodName,
 			final String aText, final boolean aWhithEndLine) {
-		pSB.delete(0, pSB.length());
+
+        //pSB.delete(0, pSB.length());
+        StringBuilder pSB = new StringBuilder(128);
 
 		pSB.append(PREFIX_LINE);
 		pSB.append(SEP_COLUMN);

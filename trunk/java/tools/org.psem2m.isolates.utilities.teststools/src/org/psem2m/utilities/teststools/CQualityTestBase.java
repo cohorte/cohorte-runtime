@@ -112,9 +112,9 @@ public class CQualityTestBase extends TestCase implements IActivityLoggerBase {
 				.getPreCallingMethod();
 
 		String wLine = pActivityFormater.format(System.currentTimeMillis(),
-				aLevel, pLogLineTextBuilder.formatWhoObjectId(aWho),
+				aLevel, pLogLineTextBuilder.buildWhoObjectId(aWho),
 				wWhat.toString(),
-				"%% " + pLogLineTextBuilder.formatLogLine(aInfos));
+				"%% " + pLogLineTextBuilder.buildLogLine(aInfos));
 		writeLog(wLine);
 
 	}
