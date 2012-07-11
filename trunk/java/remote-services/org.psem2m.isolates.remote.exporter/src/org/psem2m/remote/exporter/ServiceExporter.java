@@ -7,6 +7,7 @@ package org.psem2m.remote.exporter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -29,6 +30,7 @@ import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.services.remote.IEndpointHandler;
 import org.psem2m.isolates.services.remote.IRemoteServiceBroadcaster;
 import org.psem2m.isolates.services.remote.IRemoteServiceRepository;
+import org.psem2m.isolates.services.remote.IRemoteServicesConstants;
 import org.psem2m.isolates.services.remote.beans.EndpointDescription;
 import org.psem2m.isolates.services.remote.beans.RemoteServiceEvent;
 import org.psem2m.isolates.services.remote.beans.RemoteServiceEvent.ServiceEventType;
@@ -73,7 +75,7 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
     private LogService pLogger;
 
     /** Set of all local service IDs of exported services */
-    private Set<Long> pRegisteredServicesIds = new HashSet<Long>();
+    private final Set<Long> pRegisteredServicesIds = new HashSet<Long>();
 
     /** Remote service repository (RSR) */
     @Requires
@@ -109,8 +111,34 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
             return null;
         }
 
-        // TODO Choose it more wisely
-        final String exportedInterface = serviceInterfaces[0];
+        // Select the exported interface
+        String exportedInterface = null;
+        final Object exported = aServiceReference
+                .getProperty(IRemoteServicesConstants.SERVICE_EXPORTED_INTERFACES);
+
+        if (exported instanceof String && !exported.equals("*")) {
+            // Exported interface is single
+            exportedInterface = (String) exported;
+
+        } else if (exported != null && exported.getClass().isArray()) {
+            // We got an array
+            final List<?> list = Arrays.asList(exported);
+            if (!list.isEmpty()) {
+                exportedInterface = (String) list.get(0);
+            }
+
+        } else if (exported instanceof Collection) {
+            // We got a list
+            final Collection<?> collection = (Collection<?>) exported;
+            if (!collection.isEmpty()) {
+                exportedInterface = (String) collection.iterator().next();
+            }
+        }
+
+        if (exportedInterface == null) {
+            // By default, use the first interface found
+            exportedInterface = serviceInterfaces[0];
+        }
 
         // Create end points
         final List<EndpointDescription> resultEndpoints = new ArrayList<EndpointDescription>();
