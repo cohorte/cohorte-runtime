@@ -1,5 +1,5 @@
-#!/usr/bin/python
-#-- Content-Encoding: utf-8 --
+#!/usr/bin/env python
+#-- Content-Encoding: UTF-8 --
 """
 Core of the PSEM2M Forker
 
