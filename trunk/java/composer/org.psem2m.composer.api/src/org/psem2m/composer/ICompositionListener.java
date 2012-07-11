@@ -10,40 +10,39 @@
  *******************************************************************************/
 package org.psem2m.composer;
 
-import org.psem2m.composer.model.ComponentBean;
-import org.psem2m.composer.model.ComponentsSetBean;
-
 /**
- * Define a composition listener which will be called each time the state of a
+ * Defines a composition listener which will be called each time the state of a
  * component or of a componentsSet will change and each time the composition
- * will change (eg. when a componentsSet will start or stop or will be removed).
+ * will change (e.g. when a componentsSet will start or stop or will be
+ * removed).
  * 
  * @author ogattaz
- * 
  */
 public interface ICompositionListener {
 
     /**
-     * @param aComponentsSetBean
-     *            the instance of ComponentsSetBean target of the change
-     * @param aState
-     *            the new state
+     * Notifies the listener that a composition has been removed
+     * 
+     * @param aRootName
+     *            Name of the root components set of the removed composition
      */
-    void componentsSetStateChanged(final ComponentsSetBean aComponentsSetBean,
-            final EComponentState aState);
+    void componentsSetRemoved(String aRootName);
 
     /**
-     * @param aComponentBean
-     *            the instance of ComponentBean target of the change
-     * @param aState
-     *            the new state
+     * Sets the current components set state.
+     * 
+     * Called when the listener is bound to the composer
+     * 
+     * @param aSnapshots
+     *            Current components set snapshots
      */
-    void componentStateChanged(final ComponentBean aComponentBean,
-            final EComponentState aState);
+    void setCompositionSnapshots(ComponentsSetSnapshot[] aSnapshots);
 
     /**
-     * @param aCompositionEvent
-     *            the event to be applied on the composition.
+     * Updates a components set snapshot
+     * 
+     * @param aSnapshot
+     *            Snapshot of the modified components set
      */
-    void compositionChanged(final CompositionEvent aCompositionEvent);
+    void updateCompositionSnapshot(ComponentsSetSnapshot aSnapshot);
 }

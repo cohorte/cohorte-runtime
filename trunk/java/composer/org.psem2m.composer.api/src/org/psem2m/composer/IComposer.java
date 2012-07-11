@@ -41,21 +41,6 @@ public interface IComposer {
     ComponentsSetBean loadCompositionFile(String aFileName);
 
     /**
-     * Add a composition listener
-     * 
-     * All the stored composition events stored by the composer after this time
-     * stamp must be sent to the CompositionListener
-     * 
-     * @param aCompositionListener
-     *            The registering listener
-     * @param aTimeStamp
-     *            A time stamp
-     */
-    void registerCompositionListener(
-            final ICompositionListener aCompositionListener,
-            final long aTimeStamp);
-
-    /**
      * Tries to remove the given set of components in the platform
      * 
      * @param aComponentsSetBean
@@ -65,13 +50,4 @@ public interface IComposer {
      */
     void removeComponentsSet(final ComponentsSetBean aComponentsSetBean)
             throws Exception;
-
-    /**
-     * Removes a composition listener
-     * 
-     * @param aCompositionListener
-     *            The listener to remove
-     */
-    void unregisterCompositionListener(
-            final ICompositionListener aCompositionListener);
 }
