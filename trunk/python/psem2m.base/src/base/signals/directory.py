@@ -158,6 +158,19 @@ class SignalsDirectory(object):
             return tuple(matching)
 
 
+    def get_all_nodes(self):
+        """
+        Retrieves all known nodes. Returns None if no nodes are known
+        
+        :return: All known nodes, or None
+        """
+        with self._lock:
+            if not self._nodes_isolates:
+                return None
+
+            return tuple(self._nodes_isolates.keys())
+
+
     def get_computed_group_accesses(self, group_name):
         """
         Retrieves an Isolate ID -> (host, port) map, containing all known
