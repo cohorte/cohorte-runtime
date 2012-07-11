@@ -11,25 +11,37 @@
         {
             "id":"demo.central.ui",
             "kind":"felix",
-            "node":"hyperion",
-            "httpPort":9100,
+            "node":"stratus",
+            "httpPort":9099,
             "bundles":[
-                {
-                    "symbolicName":"org.psem2m.isolates.demo.services.ui.viewer",
-                    "optional":true,
-                    "properties":{
-                        "psem2m.demo.ui.viewer.top":"0.66scr",
-                        "psem2m.demo.ui.viewer.left":"0scr",
-                        "psem2m.demo.ui.viewer.width":"0.166scr",
-                        "psem2m.demo.ui.viewer.height":"0.33scr",
-                        "psem2m.demo.ui.viewer.color":"SkyBlue"
-                    }
-                },
                 {
                     "symbolicName":"org.psem2m.composer.api"
                 },
                 {
+                    "from":"signals-http.js"
+                },
+                {
+                    "from":"jsonrpc.js"
+                },
+                {
+                    "from":"remote-services.js"
+                },
+                {
+                    "symbolicName":"org.psem2m.isolates.ui.admin",
+                    "optional":true,
+                    "properties":{
+                        "psem2m.demo.ui.viewer.top":"0scr",
+                        "psem2m.demo.ui.viewer.left":"0.25scr",
+                        "psem2m.demo.ui.viewer.width":"0.25scr",
+                        "psem2m.demo.ui.viewer.height":"0.66scr",
+                        "psem2m.demo.ui.viewer.color":"SkyBlue"
+                    }
+                },
+                {
                     "symbolicName":"org.psem2m.composer.ui"
+                },
+                {
+                    "symbolicName":"org.psem2m.isolates.ui"
                 }
             ]
         },
