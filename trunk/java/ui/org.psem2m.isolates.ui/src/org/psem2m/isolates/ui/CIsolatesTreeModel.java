@@ -12,8 +12,6 @@ package org.psem2m.isolates.ui;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.logging.Level;
 
 import javax.swing.event.TreeModelListener;
@@ -22,7 +20,6 @@ import javax.swing.tree.TreePath;
 
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.services.monitoring.IIsolatePresenceListener;
-import org.psem2m.signals.HostAccess;
 import org.psem2m.signals.ISignalDirectory;
 
 /**
@@ -31,293 +28,305 @@ import org.psem2m.signals.ISignalDirectory;
  */
 public class CIsolatesTreeModel implements TreeModel, IIsolatePresenceListener {
 
-	/** The snapshots list */
-	private List<CSnapshotNode> pSnapshotNodes = new ArrayList<CSnapshotNode>();
+    private final IIsolateLoggerSvc pLogger;
 
-	private final IIsolateLoggerSvc pLogger;
+    private final ISignalDirectory pSignalDirectory;
 
-	private final ISignalDirectory pSignalDirectory;
+    /** The snapshots list */
+    private List<CSnapshotNode> pSnapshotNodes = new ArrayList<CSnapshotNode>();
 
-	/**
-	 * Sets up the tree model
-	 * 
-	 * @param aCompositionSnapshot
-	 *            A composition snapshot list
-	 */
-	CIsolatesTreeModel(final IIsolateLoggerSvc aLogger,
-			ISignalDirectory aSignalDirectory) {
+    /**
+     * Sets up the tree model
+     * 
+     * @param aCompositionSnapshot
+     *            A composition snapshot list
+     */
+    CIsolatesTreeModel(final IIsolateLoggerSvc aLogger,
+            final ISignalDirectory aSignalDirectory) {
 
-		super();
-		pLogger = aLogger;
-		pSignalDirectory = aSignalDirectory;
-		update();
-	}
+        super();
+        pLogger = aLogger;
+        pSignalDirectory = aSignalDirectory;
+        update();
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.isolates.services.monitoring.IIsolatePresenceListener#
-	 * handleIsolatePresence(java.lang.String, java.lang.String,
-	 * org.psem2m.isolates
-	 * .services.monitoring.IIsolatePresenceListener.EPresence)
-	 */
-	@Override
-	public void handleIsolatePresence(String aIsolateId, String aNodeId,
-			EPresence aPresence) {
+    /*
+     * (non-Javadoc)
+     * 
+     * @see javax.swing.tree.TreeModel#addTreeModelListener(javax.swing.event.
+     * TreeModelListener)
+     */
+    @Override
+    public void addTreeModelListener(final TreeModelListener aListener) {
 
-		if (aPresence.equals(EPresence.REGISTERED)) {
+    }
 
-			CSnapshotNode wNode = findNode(aNodeId);
-			if (wNode == null) {
-				wNode = new CSnapshotNode(aNodeId);
-				wNode.setHostName(pSignalDirectory.getHostForNode(aNodeId));
-			}
-			wNode.add(new CSnapshotIsolate(aIsolateId));
+    /**
+     * Cleans up the model
+     */
+    void destroy() {
 
-		} else if (aPresence.equals(EPresence.UNREGISTERED)) {
+        pSnapshotNodes.clear();
+        pSnapshotNodes = null;
+    }
 
-			int wNodeIdx = findNodeIdx(aNodeId);
-			if (wNodeIdx > -1) {
-				CSnapshotNode wNode = pSnapshotNodes.get(wNodeIdx);
-				if (wNode != null) {
-					wNode.removeChild(aIsolateId);
-					if (wNode.getChildCount() < 1) {
-						pSnapshotNodes.remove(wNodeIdx);
-					}
-				}
-			}
-		}
+    /**
+     * @param aId
+     * @return
+     */
+    private CSnapshotNode findNode(final String aId) {
 
-	}
+        return pSnapshotNodes.get(findNodeIdx(aId));
+    }
 
-	/**
-	 * @param aId
-	 * @return
-	 */
-	private CSnapshotNode findNode(String aId) {
-		return pSnapshotNodes.get(findNodeIdx(aId));
-	}
+    /**
+     * @param aId
+     * @return
+     */
+    private int findNodeIdx(final String aId) {
 
-	/**
-	 * @param aId
-	 * @return
-	 */
-	private int findNodeIdx(String aId) {
-		int wIdx = 0;
-		for (CSnapshotNode wNode : pSnapshotNodes) {
-			if (wNode.getName().equals(aId))
-				return wIdx;
-			wIdx++;
-		}
-		return -1;
-	}
+        int wIdx = 0;
+        for (final CSnapshotNode wNode : pSnapshotNodes) {
+            if (wNode.getName().equals(aId)) {
+                return wIdx;
+            }
+            wIdx++;
+        }
+        return -1;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see javax.swing.tree.TreeModel#addTreeModelListener(javax.swing.event.
-	 * TreeModelListener)
-	 */
-	@Override
-	public void addTreeModelListener(final TreeModelListener aListener) {
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see javax.swing.tree.TreeModel#getChild(java.lang.Object, int)
+     */
+    @Override
+    public Object getChild(final Object aParent, final int aIndex) {
 
-	/**
-	 * Cleans up the model
-	 */
-	void destroy() {
+        if (aParent instanceof String) {
+            // Root
+            synchronized (pSnapshotNodes) {
+                return pSnapshotNodes.get(aIndex);
+            }
+        }
 
-		pSnapshotNodes.clear();
-		pSnapshotNodes = null;
-	}
+        final CSnapshotAbstract wCompositionSnapshot = (CSnapshotAbstract) aParent;
+        return wCompositionSnapshot.getChild(aIndex);
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see javax.swing.tree.TreeModel#getChild(java.lang.Object, int)
-	 */
-	@Override
-	public Object getChild(final Object aParent, final int aIndex) {
+    /*
+     * (non-Javadoc)
+     * 
+     * @see javax.swing.tree.TreeModel#getChildCount(java.lang.Object)
+     */
+    @Override
+    public int getChildCount(final Object aParent) {
 
-		if (aParent instanceof String) {
-			// Root
-			synchronized (pSnapshotNodes) {
-				return pSnapshotNodes.get(aIndex);
-			}
-		}
+        if (aParent instanceof String) {
+            // Root
+            synchronized (pSnapshotNodes) {
+                return pSnapshotNodes.size();
+            }
+        }
 
-		final CSnapshotAbstract wCompositionSnapshot = (CSnapshotAbstract) aParent;
-		return wCompositionSnapshot.getChild(aIndex);
-	}
+        final CSnapshotAbstract wCompositionSnapshot = (CSnapshotAbstract) aParent;
+        return wCompositionSnapshot.getChildCount();
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see javax.swing.tree.TreeModel#getChildCount(java.lang.Object)
-	 */
-	@Override
-	public int getChildCount(final Object aParent) {
+    /*
+     * (non-Javadoc)
+     * 
+     * @see javax.swing.tree.TreeModel#getIndexOfChild(java.lang.Object,
+     * java.lang.Object)
+     */
+    @Override
+    public int getIndexOfChild(final Object aParent, final Object aChild) {
 
-		if (aParent instanceof String) {
-			// Root
-			synchronized (pSnapshotNodes) {
-				return pSnapshotNodes.size();
-			}
-		}
+        if (aParent instanceof String) {
+            // Root
+            synchronized (pSnapshotNodes) {
+                return pSnapshotNodes.indexOf(aChild);
+            }
+        }
 
-		final CSnapshotAbstract wCompositionSnapshot = (CSnapshotAbstract) aParent;
-		return wCompositionSnapshot.getChildCount();
-	}
+        final CSnapshotAbstract wCompositionSnapshot = (CSnapshotAbstract) aParent;
+        return wCompositionSnapshot.getIndexOfChild((CSnapshotAbstract) aChild);
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see javax.swing.tree.TreeModel#getIndexOfChild(java.lang.Object,
-	 * java.lang.Object)
-	 */
-	@Override
-	public int getIndexOfChild(final Object aParent, final Object aChild) {
+    /*
+     * (non-Javadoc)
+     * 
+     * @see javax.swing.tree.TreeModel#getRoot()
+     */
+    @Override
+    public Object getRoot() {
 
-		if (aParent instanceof String) {
-			// Root
-			synchronized (pSnapshotNodes) {
-				return pSnapshotNodes.indexOf(aChild);
-			}
-		}
+        return "Isolates";
+    }
 
-		final CSnapshotAbstract wCompositionSnapshot = (CSnapshotAbstract) aParent;
-		return wCompositionSnapshot.getIndexOfChild((CSnapshotAbstract) aChild);
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.services.monitoring.IIsolatePresenceListener#
+     * handleIsolatePresence(java.lang.String, java.lang.String,
+     * org.psem2m.isolates
+     * .services.monitoring.IIsolatePresenceListener.EPresence)
+     */
+    @Override
+    public void handleIsolatePresence(final String aIsolateId,
+            final String aNodeId, final EPresence aPresence) {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see javax.swing.tree.TreeModel#getRoot()
-	 */
-	@Override
-	public Object getRoot() {
+        if (aPresence.equals(EPresence.REGISTERED)) {
 
-		return "Isolates";
-	}
+            CSnapshotNode wNode = findNode(aNodeId);
+            if (wNode == null) {
+                wNode = new CSnapshotNode(aNodeId);
+                wNode.setHostName(pSignalDirectory.getHostForNode(aNodeId));
+            }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see javax.swing.tree.TreeModel#isLeaf(java.lang.Object)
-	 */
-	@Override
-	public boolean isLeaf(final Object aObject) {
+            final CSnapshotIsolate snapshot = new CSnapshotIsolate(aIsolateId);
+            snapshot.setHostAccess(pSignalDirectory
+                    .getIsolateAccess(aIsolateId));
+            wNode.add(snapshot);
 
-		if (aObject instanceof String) {
-			synchronized (pSnapshotNodes) {
-				return pSnapshotNodes.isEmpty();
-			}
-		}
+        } else if (aPresence.equals(EPresence.UNREGISTERED)) {
 
-		return aObject instanceof CSnapshotIsolate;
-	}
+            final int wNodeIdx = findNodeIdx(aNodeId);
+            if (wNodeIdx > -1) {
+                final CSnapshotNode wNode = pSnapshotNodes.get(wNodeIdx);
+                if (wNode != null) {
+                    wNode.removeChild(aIsolateId);
+                    if (wNode.getChildCount() < 1) {
+                        pSnapshotNodes.remove(wNodeIdx);
+                    }
+                }
+            }
+        }
 
-	/**
-	 * @param aLevel
-	 * @param aWho
-	 * @param aWhat
-	 * @param aInfos
-	 */
-	private void log(Level aLevel, Object aWho, CharSequence aWhat,
-			Object... aInfos) {
+    }
 
-		CIsolatesUiActivator wActivator = CIsolatesUiActivator.getInstance();
-		if (wActivator.hasIsolateLoggerSvc()) {
-			wActivator.getIsolateLoggerSvc().log(aLevel, aWho, aWhat, aInfos);
-		}
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see javax.swing.tree.TreeModel#isLeaf(java.lang.Object)
+     */
+    @Override
+    public boolean isLeaf(final Object aObject) {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * javax.swing.tree.TreeModel#removeTreeModelListener(javax.swing.event.
-	 * TreeModelListener)
-	 */
-	@Override
-	public void removeTreeModelListener(final TreeModelListener aListener) {
-	}
+        if (aObject instanceof String) {
+            synchronized (pSnapshotNodes) {
+                return pSnapshotNodes.isEmpty();
+            }
+        }
 
-	/**
-	 * Updates the tree model
-	 * 
-	 * DirectoryDump size [3]
-	 * 
-	 * <pre>
-	 * accesses {
-	 * 	org.psem2m.internals.isolates.monitor-isolate-one={
-	 * 		port=9000, 
-	 * 		node=central
-	 * 		}, 
-	 * 	org.psem2m.internals.isolates.forker={
-	 * 		port=9001,
-	 * 		node=central
-	 * 		}
-	 * 	} 
-	 * nodes_host {
-	 * 	central=localhost
-	 * 	} 
-	 * groups {
-	 * 	local=[
-	 * 		org.psem2m.internals.isolates.forker
-	 * 		], 
-	 * 	all=[
-	 * 		org.psem2m.internals.isolates.monitor-isolate-one,
-	 * 		org.psem2m.internals.isolates.forker
-	 * 		]
-	 * 	}
-	 * </pre>
-	 * 
-	 * @param aCompositionSnapshots
-	 *            New snapshots
-	 */
-	public void update() {
+        return aObject instanceof CSnapshotIsolate;
+    }
 
-		String[] wNodeIds = pSignalDirectory.getAllNodes();
+    /**
+     * @param aLevel
+     * @param aWho
+     * @param aWhat
+     * @param aInfos
+     */
+    private void log(final Level aLevel, final Object aWho,
+            final CharSequence aWhat, final Object... aInfos) {
 
-		if (wNodeIds != null && wNodeIds.length > 0) {
-			synchronized (pSnapshotNodes) {
-				pSnapshotNodes.clear();
+        final CIsolatesUiActivator wActivator = CIsolatesUiActivator
+                .getInstance();
+        if (wActivator.hasIsolateLoggerSvc()) {
+            wActivator.getIsolateLoggerSvc().log(aLevel, aWho, aWhat, aInfos);
+        }
+    }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * javax.swing.tree.TreeModel#removeTreeModelListener(javax.swing.event.
+     * TreeModelListener)
+     */
+    @Override
+    public void removeTreeModelListener(final TreeModelListener aListener) {
 
-				for (String wNodeId : wNodeIds) {
-					CSnapshotNode wNode = new CSnapshotNode(wNodeId);
-					wNode.setHostName(pSignalDirectory.getHostForNode(wNodeId));
-					String[] wIsolateIds = pSignalDirectory
-							.getIsolatesOnNode(wNodeId);
-					for (String wIsolateId : wIsolateIds) {
-						CSnapshotIsolate wIsolate = new CSnapshotIsolate(
-								wIsolateId);
-						wIsolate.setHostAccess(pSignalDirectory
-								.getIsolateAccess(wIsolateId));
-						wNode.add(wIsolate);
-						
-						log(Level.INFO, this, "update", "Add one Isolate size=[%d] : %s",wNode.getChildCount(),
-								wIsolate.getTextInfo());
-					}
-					pSnapshotNodes.add(wNode);
-					
-					log(Level.INFO, this, "update", "Add one Node size=[%d] : %s",pSnapshotNodes.size(),
-							wNode.getTextInfo());
+    }
 
-				}
-			}
-		}
-	}
+    /**
+     * Updates the tree model
+     * 
+     * DirectoryDump size [3]
+     * 
+     * <pre>
+     * accesses {
+     * 	org.psem2m.internals.isolates.monitor-isolate-one={
+     * 		port=9000, 
+     * 		node=central
+     * 		}, 
+     * 	org.psem2m.internals.isolates.forker={
+     * 		port=9001,
+     * 		node=central
+     * 		}
+     * 	} 
+     * nodes_host {
+     * 	central=localhost
+     * 	} 
+     * groups {
+     * 	local=[
+     * 		org.psem2m.internals.isolates.forker
+     * 		], 
+     * 	all=[
+     * 		org.psem2m.internals.isolates.monitor-isolate-one,
+     * 		org.psem2m.internals.isolates.forker
+     * 		]
+     * 	}
+     * </pre>
+     * 
+     * @param aCompositionSnapshots
+     *            New snapshots
+     */
+    public void update() {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * javax.swing.tree.TreeModel#valueForPathChanged(javax.swing.tree.TreePath,
-	 * java.lang.Object)
-	 */
-	@Override
-	public void valueForPathChanged(final TreePath aArg0, final Object aArg1) {
-	}
+        final String[] wNodeIds = pSignalDirectory.getAllNodes();
+
+        if (wNodeIds != null && wNodeIds.length > 0) {
+            synchronized (pSnapshotNodes) {
+                pSnapshotNodes.clear();
+
+                for (final String wNodeId : wNodeIds) {
+                    final CSnapshotNode wNode = new CSnapshotNode(wNodeId);
+                    wNode.setHostName(pSignalDirectory.getHostForNode(wNodeId));
+                    final String[] wIsolateIds = pSignalDirectory
+                            .getIsolatesOnNode(wNodeId);
+                    for (final String wIsolateId : wIsolateIds) {
+                        final CSnapshotIsolate wIsolate = new CSnapshotIsolate(
+                                wIsolateId);
+                        wIsolate.setHostAccess(pSignalDirectory
+                                .getIsolateAccess(wIsolateId));
+                        wNode.add(wIsolate);
+
+                        log(Level.INFO, this, "update",
+                                "Add one Isolate size=[%d] : %s",
+                                wNode.getChildCount(), wIsolate.getTextInfo());
+                    }
+                    pSnapshotNodes.add(wNode);
+
+                    log(Level.INFO, this, "update",
+                            "Add one Node size=[%d] : %s",
+                            pSnapshotNodes.size(), wNode.getTextInfo());
+
+                }
+            }
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * javax.swing.tree.TreeModel#valueForPathChanged(javax.swing.tree.TreePath,
+     * java.lang.Object)
+     */
+    @Override
+    public void valueForPathChanged(final TreePath aArg0, final Object aArg1) {
+
+    }
 }

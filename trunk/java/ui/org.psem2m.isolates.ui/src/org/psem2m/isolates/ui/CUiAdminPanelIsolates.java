@@ -9,7 +9,6 @@ import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
-
 import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
@@ -32,144 +31,153 @@ import org.psem2m.signals.ISignalDirectory;
 @Instantiate(name = "psem2m-isolates-ui-admin")
 @Provides(specifications = IIsolatePresenceListener.class)
 public class CUiAdminPanelIsolates extends CPojoBase implements
-		IUiAdminPanelControler, IIsolatePresenceListener {
+        IUiAdminPanelControler, IIsolatePresenceListener {
 
-	private CIsolatesTreeModel pIsolatesTreeModel;
+    private CIsolatesTreeModel pIsolatesTreeModel;
 
-	/** The logger */
-	@Requires
-	private IIsolateLoggerSvc pLogger;
+    /** The logger */
+    @Requires
+    private IIsolateLoggerSvc pLogger;
 
-	private CJPanelIsolates pPanelIsolates= null;
+    private CJPanelIsolates pPanelIsolates = null;
 
-	/** the ISignalDirectory service ( eg. getAllIsolates() ) */
-	@Requires
-	private ISignalDirectory pSignalDirectory;
+    /** the ISignalDirectory service ( eg. getAllIsolates() ) */
+    @Requires
+    private ISignalDirectory pSignalDirectory;
 
-	/** the UiAdminPanel returned by the IUiAdminScv */
-	private IUiAdminPanel pUiAdminPanel = null;
+    /** the UiAdminPanel returned by the IUiAdminScv */
+    private IUiAdminPanel pUiAdminPanel = null;
 
-	/** the IUiAdminScv */
-	@Requires
-	private IUiAdminSvc pUiAdminSvc;
+    /** the IUiAdminScv */
+    @Requires
+    private IUiAdminSvc pUiAdminSvc;
 
-	/**
+    /**
      * 
      */
-	private void destroyContent() {
-		if (pUiAdminPanel != null) {
-			pUiAdminSvc.removeUiAdminPanel(pUiAdminPanel);
+    private void destroyContent() {
 
-			pUiAdminPanel.getPanel().removeAll();
-		}
+        if (pUiAdminPanel != null) {
+            pUiAdminSvc.removeUiAdminPanel(pUiAdminPanel);
 
-		if (pPanelIsolates != null) {
-			pPanelIsolates = null;
-		}
+            pUiAdminPanel.getPanel().removeAll();
+        }
 
-		if (pIsolatesTreeModel != null) {
-			pIsolatesTreeModel = null;
-		}
-	}
+        if (pPanelIsolates != null) {
+            pPanelIsolates = null;
+        }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.isolates.services.monitoring.IIsolatePresenceListener#
-	 * handleIsolatePresence(java.lang.String, java.lang.String,
-	 * org.psem2m.isolates
-	 * .services.monitoring.IIsolatePresenceListener.EPresence)
-	 */
-	@Override
-	public void handleIsolatePresence(String aIsolateId, String aNode,
-			EPresence aPresence) {
+        if (pIsolatesTreeModel != null) {
+            pIsolatesTreeModel = null;
+        }
+    }
 
-		pLogger.logInfo(this, "handleIsolatePresence",
-				"Node=[%s] IsolateId=[%s] Presence=[%s]", aNode, aIsolateId,
-				aPresence.name());
-		
-		if (pIsolatesTreeModel!= null){
-			pIsolatesTreeModel.handleIsolatePresence(aIsolateId, aNode, aPresence);
-		}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.services.monitoring.IIsolatePresenceListener#
+     * handleIsolatePresence(java.lang.String, java.lang.String,
+     * org.psem2m.isolates
+     * .services.monitoring.IIsolatePresenceListener.EPresence)
+     */
+    @Override
+    public void handleIsolatePresence(final String aIsolateId,
+            final String aNode, final EPresence aPresence) {
 
-	}
+        pLogger.logInfo(this, "handleIsolatePresence",
+                "Node=[%s] IsolateId=[%s] Presence=[%s]", aNode, aIsolateId,
+                aPresence.name());
 
-	/**
+        if (pIsolatesTreeModel != null) {
+            pIsolatesTreeModel.handleIsolatePresence(aIsolateId, aNode,
+                    aPresence);
+        }
+
+        if (pPanelIsolates != null) {
+            pPanelIsolates.updateTree();
+            pPanelIsolates.updateUI();
+        }
+    }
+
+    /**
      * 
      */
-	private void initContent() {
+    private void initContent() {
 
-		final Runnable wRunnable = new Runnable() {
+        /* the tree model */
+        pIsolatesTreeModel = new CIsolatesTreeModel(pLogger, pSignalDirectory);
 
-			@Override
-			public void run() {
+        final Runnable wRunnable = new Runnable() {
 
-				try {
-					/* The parent panel */
-					pUiAdminPanel = pUiAdminSvc.newUiAdminPanel("Isolates",
-							"Bundles list and managment.", null,
-							CUiAdminPanelIsolates.this,
-							EUiAdminPanelLocation.FIRST);
+            @Override
+            public void run() {
 
-					final JPanel parentPanel = pUiAdminPanel.getPanel();
+                try {
+                    /* The parent panel */
+                    pUiAdminPanel = pUiAdminSvc.newUiAdminPanel("Isolates",
+                            "Bundles list and managment.", null,
+                            CUiAdminPanelIsolates.this,
+                            EUiAdminPanelLocation.FIRST);
 
-					/* The tree panel */
-					pIsolatesTreeModel = new CIsolatesTreeModel(pLogger,
-							pSignalDirectory);
+                    final JPanel parentPanel = pUiAdminPanel.getPanel();
 
-					pPanelIsolates = new CJPanelIsolates(pLogger, parentPanel,
-							pIsolatesTreeModel);
+                    /* The tree panel */
+                    pPanelIsolates = new CJPanelIsolates(pLogger, parentPanel,
+                            pIsolatesTreeModel);
 
-				} catch (final Exception e) {
-					pLogger.logSevere(CUiAdminPanelIsolates.this,
-							"initContent", e);
-				}
-			}
-		};
+                } catch (final Exception e) {
+                    pLogger.logSevere(CUiAdminPanelIsolates.this,
+                            "initContent", e);
+                }
+            }
+        };
 
-		SwingUtilities.invokeLater(wRunnable);
-	}
+        SwingUtilities.invokeLater(wRunnable);
+    }
 
-	@Override
-	@Invalidate
-	public void invalidatePojo() throws BundleException {
-		// logs in the bundle output
-		pLogger.logInfo(this, "invalidatePojo", "INVALIDATE", toDescription());
+    @Override
+    @Invalidate
+    public void invalidatePojo() throws BundleException {
 
-		try {
+        // logs in the bundle output
+        pLogger.logInfo(this, "invalidatePojo", "INVALIDATE", toDescription());
 
-			// remove isolates panel
-			destroyContent();
+        try {
 
-		} catch (final Exception e) {
-			pLogger.logSevere(this, "invalidatePojo", e);
-		}
-	}
+            // remove isolates panel
+            destroyContent();
 
-	@Override
-	public void setUiAdminFont(EUiAdminFont aUiAdminFont) {
-		// TODO Auto-generated method stub
+        } catch (final Exception e) {
+            pLogger.logSevere(this, "invalidatePojo", e);
+        }
+    }
 
-	}
+    @Override
+    public void setUiAdminFont(final EUiAdminFont aUiAdminFont) {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.isolates.base.activators.CPojoBase#validatePojo()
-	 */
-	@Override
-	@Validate
-	public void validatePojo() throws BundleException {
-		// logs in the bundle output
-		pLogger.logInfo(this, "validatePojo", "VALIDATE", toDescription());
+        // TODO Auto-generated method stub
 
-		try {
-			// Set up GUI in a thread
-			initContent();
+    }
 
-		} catch (final Exception e) {
-			pLogger.logSevere(this, "validatePojo", e);
-		}
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.base.activators.CPojoBase#validatePojo()
+     */
+    @Override
+    @Validate
+    public void validatePojo() throws BundleException {
+
+        // logs in the bundle output
+        pLogger.logInfo(this, "validatePojo", "VALIDATE", toDescription());
+
+        try {
+            // Set up GUI in a thread
+            initContent();
+
+        } catch (final Exception e) {
+            pLogger.logSevere(this, "validatePojo", e);
+        }
+    }
 
 }
