@@ -277,8 +277,8 @@ class HttpService(object):
 
         except:
             # Fall back on IPv4
-            _logger.exception("IPv6 seems to be unsupported. "\
-                              "Falling back to IPv4")
+            _logger.error("IPv6 seems to be unsupported. "\
+                          "Falling back to IPv4")
 
             self._server = _HttpServerFamily(socket.AF_INET,
                                              ('0.0.0.0', self._port),
