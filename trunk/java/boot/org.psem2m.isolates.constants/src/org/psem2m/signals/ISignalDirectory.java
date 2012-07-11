@@ -23,6 +23,8 @@ public interface ISignalDirectory {
     public enum EBaseGroup {
         /** All isolates, including the current one */
         ALL,
+        /** Current isolate */
+        CURRENT,
         /** All forkers, including the current isolate if it is a forker */
         FORKERS,
         /**
@@ -30,8 +32,6 @@ public interface ISignalDirectory {
          * forkers. If the current isolate is a forker, it is excluded.
          */
         ISOLATES,
-        /** Current isolate */
-        CURRENT,
         /** All monitors, including the current isolate if it is a monitor */
         MONITORS,
         /** All isolates on the current node, excluding the current one */
@@ -73,6 +73,13 @@ public interface ISignalDirectory {
      * @return All known isolates beginning with prefix, or null
      */
     String[] getAllIsolates(String aPrefix, boolean aIncludeCurrent);
+
+    /**
+     * Retrieves all known nodes. Returns null if no node is known.
+     * 
+     * @return All known nodes, or null
+     */
+    String[] getAllNodes();
 
     /**
      * Retrieves an Isolate Id -&gt; (host, port) map, containing all known

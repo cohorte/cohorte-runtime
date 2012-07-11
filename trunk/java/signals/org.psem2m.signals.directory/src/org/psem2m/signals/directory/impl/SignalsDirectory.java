@@ -148,6 +148,21 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
     /*
      * (non-Javadoc)
      * 
+     * @see org.psem2m.signals.ISignalDirectory#getAllNodes()
+     */
+    @Override
+    public String[] getAllNodes() {
+
+        if (pNodesIsolates.isEmpty()) {
+            return null;
+        }
+
+        return pNodesIsolates.keySet().toArray(new String[0]);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see
      * org.psem2m.signals.ISignalDirectory#getGroupAccesses(org.psem2m.signals
      * .ISignalDirectory.EBaseGroup)
