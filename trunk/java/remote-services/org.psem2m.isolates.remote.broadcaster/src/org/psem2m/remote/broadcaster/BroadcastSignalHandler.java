@@ -12,12 +12,14 @@ import java.util.List;
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
+import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.osgi.service.log.LogService;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.constants.ISignalsConstants;
+import org.psem2m.isolates.services.monitoring.IIsolatePresenceListener;
 import org.psem2m.isolates.services.remote.IRemoteServiceEventListener;
 import org.psem2m.isolates.services.remote.IRemoteServiceRepository;
 import org.psem2m.isolates.services.remote.beans.EndpointDescription;
@@ -36,15 +38,16 @@ import org.psem2m.signals.ISignalReceiver;
  */
 @Component(name = "psem2m-remote-rsb-signal-handler-factory", publicFactory = false)
 @Instantiate(name = "psem2m-remote-rsb-signal-handler")
+@Provides(specifications = IIsolatePresenceListener.class)
 public class BroadcastSignalHandler extends CPojoBase implements
-        ISignalListener {
+        ISignalListener, IIsolatePresenceListener {
 
     /** Log service, injected by iPOJO */
     @Requires
     private LogService pLogger;
 
     /** Remote service events listeners */
-    @Requires
+    @Requires(optional = true)
     private IRemoteServiceEventListener[] pRemoteEventsListeners;
 
     /** Remote Service Repository (RSR), injected by iPOJO */
@@ -62,6 +65,35 @@ public class BroadcastSignalHandler extends CPojoBase implements
     /*
      * (non-Javadoc)
      * 
+     * @see org.psem2m.isolates.services.monitoring.IIsolatePresenceListener#
+     * handleIsolatePresence(java.lang.String, java.lang.String,
+     * org.psem2m.isolates
+     * .services.monitoring.IIsolatePresenceListener.EPresence)
+     */
+    @Override
+    public void handleIsolatePresence(final String aIsolateId,
+            final String aNode, final EPresence aPresence) {
+
+        if (aPresence == EPresence.UNREGISTERED) {
+            // Isolate lost : Notify all listeners
+            for (final IRemoteServiceEventListener listener : pRemoteEventsListeners) {
+                try {
+                    listener.handleIsolateLost(aIsolateId);
+
+                } catch (final Exception ex) {
+                    // Just log...
+                    pLogger.log(
+                            LogService.LOG_WARNING,
+                            "RemoveServiceEventListener failed to handle a lost isolate",
+                            ex);
+                }
+            }
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.psem2m.signals.ISignalListener#
      * handleReceivedSignal(java.lang.String, org.psem2m.signals.ISignalData)
      */
@@ -70,7 +102,6 @@ public class BroadcastSignalHandler extends CPojoBase implements
             final ISignalData aSignalData) {
 
         final Object signalContent = aSignalData.getSignalContent();
-        final String senderNodeName = aSignalData.getSenderNode();
 
         if (ISignalsConstants.BROADCASTER_SIGNAL_REMOTE_EVENT
                 .equals(aSignalName)) {
@@ -78,10 +109,7 @@ public class BroadcastSignalHandler extends CPojoBase implements
 
             if (signalContent instanceof RemoteServiceEvent) {
                 // Valid signal content, handle it
-                final RemoteServiceEvent event = (RemoteServiceEvent) signalContent;
-                event.setSenderHostName(senderNodeName);
-
-                handleRemoteEvent(event);
+                handleRemoteEvent((RemoteServiceEvent) signalContent);
 
             } else if (signalContent instanceof RemoteServiceEvent[]) {
                 /*
@@ -90,7 +118,6 @@ public class BroadcastSignalHandler extends CPojoBase implements
                  */
                 for (final RemoteServiceEvent event : (RemoteServiceEvent[]) signalContent) {
                     // Update its content and notify listeners
-                    event.setSenderHostName(senderNodeName);
                     handleRemoteEvent(event);
                 }
 
@@ -104,7 +131,6 @@ public class BroadcastSignalHandler extends CPojoBase implements
 
                 for (final RemoteServiceEvent event : collection) {
                     // Update its content and notify listeners
-                    event.setSenderHostName(senderNodeName);
                     handleRemoteEvent(event);
                 }
             }
@@ -113,12 +139,6 @@ public class BroadcastSignalHandler extends CPojoBase implements
                 .equals(aSignalName)) {
             // End point request
             handleRequestEndpoints(aSignalData.getSenderId());
-
-        } else if (ISignalsConstants.ISOLATE_LOST_SIGNAL.equals(aSignalName)) {
-            // Isolate lost : Notify all listeners
-            for (final IRemoteServiceEventListener listener : pRemoteEventsListeners) {
-                listener.handleIsolateLost((String) signalContent);
-            }
         }
 
         return null;
@@ -213,10 +233,6 @@ public class BroadcastSignalHandler extends CPojoBase implements
         pSignalReceiver.registerListener(
                 ISignalsConstants.BROADCASTER_SIGNAL_NAME_PREFIX
                         + ISignalsConstants.MATCH_ALL, this);
-
-        // Register to "isolate lost" signal
-        pSignalReceiver.registerListener(ISignalsConstants.ISOLATE_LOST_SIGNAL,
-                this);
 
         pLogger.log(LogService.LOG_INFO,
                 "PSEM2M Remote Service Broadcaster Handler Ready");
