@@ -44,12 +44,13 @@ import org.psem2m.composer.model.ComponentsSetBean;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.base.activators.CPojoBase;
-import org.psem2m.isolates.constants.ISignalsConstants;
+import org.psem2m.isolates.services.monitoring.IIsolatePresenceListener;
 import org.psem2m.signals.ISignalBroadcaster;
 import org.psem2m.signals.ISignalData;
 import org.psem2m.signals.ISignalDirectory.EBaseGroup;
 import org.psem2m.signals.ISignalListener;
 import org.psem2m.signals.ISignalReceiver;
+import org.psem2m.signals.ISignalSendResult;
 
 /**
  * PSEM2M Composer core agent
@@ -57,10 +58,10 @@ import org.psem2m.signals.ISignalReceiver;
  * @author Thomas Calmant
  */
 @Component(name = "psem2m-composer-core-factory", publicFactory = false)
-@Provides(specifications = IComposer.class)
+@Provides(specifications = { IComposer.class, IIsolatePresenceListener.class })
 @Instantiate(name = "psem2m-composer-core")
 public class ComposerCore extends CPojoBase implements IComposer,
-        ISignalListener {
+        ISignalListener, IIsolatePresenceListener {
 
     /** List of composition events listener */
     private final List<ICompositionListener> pCompositionListeners = new ArrayList<ICompositionListener>();
@@ -145,10 +146,6 @@ public class ComposerCore extends CPojoBase implements IComposer,
 
         aSignalReceiver.registerListener(
                 ComposerAgentSignals.SIGNAL_FACTORY_PREFIX + "/*", this);
-
-        // Register to isolate death signals
-        aSignalReceiver.registerListener(ISignalsConstants.ISOLATE_LOST_SIGNAL,
-                this);
 
         pLogger.logInfo(this, "bindSignalReceiver",
                 "Bound to a signal receiver");
@@ -281,6 +278,106 @@ public class ComposerCore extends CPojoBase implements IComposer,
     /*
      * (non-Javadoc)
      * 
+     * @see org.psem2m.isolates.services.monitoring.IIsolatePresenceListener#
+     * handleIsolatePresence(java.lang.String, java.lang.String,
+     * org.psem2m.isolates
+     * .services.monitoring.IIsolatePresenceListener.EPresence)
+     */
+    @Override
+    public void handleIsolatePresence(final String aIsolateId,
+            final String aNode, final EPresence aPresence) {
+
+        switch (aPresence) {
+        case REGISTERED: {
+            // Ask the isolate for its factories
+            ISignalSendResult result = null;
+
+            for (int i = 0; i < 5; i++) {
+                // Try 5 times max
+                result = pSignalBroadcaster.send(
+                        ComposerAgentSignals.SIGNAL_ISOLATE_FACTORIES_DUMP,
+                        null, aIsolateId);
+                if (result != null
+                        && result.getResults().containsKey(aIsolateId)) {
+                    // Isolate answered...
+                    break;
+                }
+
+                try {
+                    // Wait a second...
+                    Thread.sleep(1000);
+
+                } catch (final InterruptedException e) {
+                    // Interrupted: abort
+                    return;
+                }
+            }
+
+            if (result == null) {
+                pLogger.logSevere(this, "handleIsolatePresence", "Isolate=",
+                        aIsolateId, "node=", aNode, "didn't answered in time.");
+                return;
+            }
+
+            // Extract results
+            final Object[] rawResults = result.getResults().get(aIsolateId);
+            if (rawResults == null || rawResults.length == 0) {
+                pLogger.logSevere(this, "handleIsolatePresence",
+                        "Invalid dump result for isolate=", aIsolateId,
+                        "node=", aNode, "results=", rawResults);
+                return;
+            }
+
+            // Get the first array result
+            Object[] arrayResult = null;
+            for (final Object rawResult : rawResults) {
+                if (result != null && result.getClass().isArray()) {
+                    arrayResult = (Object[]) rawResult;
+                }
+            }
+
+            if (arrayResult == null) {
+                pLogger.logSevere(this, "handleIsolatePresence",
+                        "No dump (array) result returned by isolate=",
+                        aIsolateId, "node=", aNode);
+                return;
+            }
+
+            // Convert object array to string array
+            final List<String> stringList = new ArrayList<String>();
+            for (final Object rawFactory : arrayResult) {
+                if (rawFactory != null) {
+                    if (!(rawFactory instanceof CharSequence)) {
+                        pLogger.logWarn(
+                                this,
+                                "handleIsolatePresence",
+                                "Found something that is not a string. Isolate=",
+                                aIsolateId, "node=", aNode, "value=",
+                                rawFactory);
+                    }
+
+                    // Store the factory name
+                    stringList.add((String) rawFactory);
+                }
+            }
+
+            // Register all factories
+            registerComponentsForIsolate(aIsolateId,
+                    stringList.toArray(new String[0]));
+
+            break;
+        }
+
+        case UNREGISTERED:
+            // An isolate has been lost
+            unregisterIsolate(aIsolateId);
+            break;
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.psem2m.signals.ISignalListener#
      * handleReceivedSignal(java.lang.String, org.psem2m.signals.ISignalData)
      */
@@ -353,11 +450,6 @@ public class ComposerCore extends CPojoBase implements IComposer,
                 handleComponentChangedSignal(signalSender,
                         (Map<String, Object>) signalContent);
             }
-
-        } else if (ISignalsConstants.ISOLATE_LOST_SIGNAL.equals(aSignalName)
-                && signalContent instanceof CharSequence) {
-            // An isolate has been lost
-            unregisterIsolate((String) signalContent);
         }
 
         return null;

@@ -121,6 +121,17 @@ public interface ComposerAgentSignals {
             + "/added";
 
     /**
+     * Signal sent by the composer core to an agent. The agent must return all
+     * of its factories.
+     * 
+     * <p>
+     * Associated data : none
+     * </p>
+     */
+    String SIGNAL_ISOLATE_FACTORIES_DUMP = ComposerAgentSignals.SIGNAL_FACTORY_PREFIX
+            + "/dump";
+
+    /**
      * Signal sent to notify monitors that an isolate agent is gone and to
      * forget all its factories
      * 
