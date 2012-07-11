@@ -13,7 +13,6 @@ Created on 09 juil. 2012
 import logging
 import random
 import threading
-import time
 
 _logger = logging.getLogger(__name__)
 
@@ -22,7 +21,7 @@ _logger = logging.getLogger(__name__)
 from pelix.ipopo import constants
 
 from pelix.ipopo.decorators import ComponentFactory, Provides, \
-    Validate, Invalidate, Property, Requires
+    Validate, Invalidate, Property
 
 # ------------------------------------------------------------------------------ 
 
@@ -30,7 +29,7 @@ from pelix.ipopo.decorators import ComponentFactory, Provides, \
 @Property("_name", constants.IPOPO_INSTANCE_NAME)
 @Property("_min", "temper.value.min", 22)
 @Property("_max", "temper.value.max", 35)
-@Provides("org.psem2m.demo.sensors.ITemper")
+@Provides("org.psem2m.demo.sensors.ISensor")
 class FakeTemp(object):
     """
     Temperature sensor
@@ -47,9 +46,20 @@ class FakeTemp(object):
         self._lock = threading.Lock()
 
 
+    def get_name(self):
+        """
+        Retrieves the name of the sensor
+        
+        :return: The name of the sensor
+        """
+        return self._name
+
+
     def get_unit(self):
         """
         Retrieves the values unit name
+        
+        :return: The values unit name
         """
         return "°C"
 
@@ -57,11 +67,22 @@ class FakeTemp(object):
     def get_value(self):
         """
         Retrieves the current value of the sensor
+        
+        :return: The current value of the sensor
         """
         with self._lock:
+
+            try:
+                tmin = float(self._min)
+                tmax = float(self._max)
+            except:
+                _logger.exception("Error reading property")
+                tmin = 0
+                tmax = 50
+
             if self._last_value == 0:
                 # No value, use random one
-                self._last_value = random.randint(self._min, self._max) * 1.0
+                self._last_value = random.randint(tmin, tmax) * 1.0
 
             else:
                 # Compute a delta
@@ -75,11 +96,11 @@ class FakeTemp(object):
                     self._last_value -= delta
 
             # Normalize value
-            if self._last_value < self._min:
-                self._last_value = self._min
+            if self._last_value < tmin:
+                self._last_value = tmin
 
-            elif self._last_value > self._max:
-                self._last_value = self._max
+            elif self._last_value > tmax:
+                self._last_value = tmax
 
             # Return the result
             return self._last_value
@@ -100,6 +121,13 @@ class FakeTemp(object):
         """
         _logger.info("Component %s invalidated", self._name)
 
+
+    # Java API compliance
+    getName = get_name
+    getUnit = get_unit
+    getValue = get_value
+
+# ------------------------------------------------------------------------------
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

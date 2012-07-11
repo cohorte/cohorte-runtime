@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Demo Schneider :: API
+Bundle-SymbolicName: org.psem2m.demo.july2012.api
+Bundle-Version: 1.0.0.qualifier
+Bundle-Vendor: isandlaTech.com
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Export-Package: org.psem2m.demo.sensors;version="1.0.0"
