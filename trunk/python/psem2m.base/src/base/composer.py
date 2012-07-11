@@ -9,7 +9,6 @@ Created on 29 févr. 2012
 # ------------------------------------------------------------------------------
 
 import logging
-import threading
 
 _logger = logging.getLogger(__name__)
 
@@ -19,6 +18,7 @@ from pelix.ipopo.core import IPopoEvent
 from pelix.ipopo.decorators import ComponentFactory, Provides, Requires, \
     Validate, Invalidate, Instantiate
 import pelix.ipopo.constants as constants
+import pelix.utilities
 
 # ------------------------------------------------------------------------------
 
@@ -202,7 +202,12 @@ class ComposerAgent(object):
         unknown = []
 
         for component in data:
-            name = component["name"]
+            if pelix.utilities.is_string(component):
+                # Got a component name
+                name = component
+            else:
+                # Got a component bean
+                name = component["name"]
 
             if self.ipopo.is_registered_instance(name):
                 self.ipopo.kill(name)

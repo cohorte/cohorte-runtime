@@ -837,7 +837,7 @@ class SignalSender(object):
                     result = from_jabsorb(json.loads(_to_string(result)))
 
                 except:
-                    # Unreadable reponse
+                    # Unreadable response
                     _logger.exception("Couldn't read response: '%s'", result)
                     result = None
             else:
