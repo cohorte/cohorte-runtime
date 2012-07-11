@@ -28,6 +28,7 @@ import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.StaticServiceProperty;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.composer.ComponentsSetSnapshot;
@@ -49,7 +50,7 @@ import org.psem2m.isolates.ui.admin.api.IUiAdminSvc;
  */
 @Component(name = "psem2m-composer-ui-admin-factory", publicFactory = false)
 @Instantiate(name = "psem2m-composer-ui-admin")
-@Provides(specifications = ICompositionListener.class)
+@Provides(specifications = ICompositionListener.class, properties = @StaticServiceProperty(name = "service.exported.interfaces", value = "*", type = "String"))
 public class CUiAdminPanelComposition extends CPojoBase implements
         IUiAdminPanelControler, ICompositionListener {
 

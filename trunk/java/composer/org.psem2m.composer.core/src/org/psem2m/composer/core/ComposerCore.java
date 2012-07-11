@@ -25,6 +25,7 @@ import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Property;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.StaticServiceProperty;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.composer.ComponentSnapshot;
@@ -53,8 +54,8 @@ import org.psem2m.signals.ISignalSendResult;
  * @author Thomas Calmant
  */
 @Component(name = "psem2m-composer-core-factory", publicFactory = false)
-@Provides(specifications = { IComposer.class, IIsolatePresenceListener.class })
 @Instantiate(name = "psem2m-composer-core")
+@Provides(specifications = { IComposer.class, IIsolatePresenceListener.class }, properties = @StaticServiceProperty(name = "service.exported.interfaces", value = "org.psem2m.composer.IComposer", type = "String"))
 public class ComposerCore extends CPojoBase implements IComposer,
         ISignalListener, IIsolatePresenceListener {
 
