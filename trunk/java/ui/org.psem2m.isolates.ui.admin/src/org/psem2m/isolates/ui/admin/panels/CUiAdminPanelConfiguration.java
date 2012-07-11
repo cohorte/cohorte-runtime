@@ -175,7 +175,7 @@ public class CUiAdminPanelConfiguration extends CPojoBase implements
     public void validatePojo() throws BundleException {
 
         // logs in the bundle output
-        pLogger.logInfo(this, "invalidatePojo", "VALIDATE", toDescription());
+        pLogger.logInfo(this, "validatePojo", "VALIDATE", toDescription());
 
         try {
             pUiAdminPanel = pUiAdminSvc.newUiAdminPanel("Configuration",

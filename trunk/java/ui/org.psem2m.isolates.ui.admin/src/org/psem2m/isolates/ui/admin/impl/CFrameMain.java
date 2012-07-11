@@ -34,6 +34,7 @@ import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.ui.admin.api.EUiAdminFont;
 import org.psem2m.isolates.ui.admin.api.EUiAdminPanelLocation;
 import org.psem2m.isolates.ui.admin.api.IUiAdminPanel;
+import java.awt.Component;
 
 /**
  * The main Frame of the service IUISvc
@@ -107,7 +108,7 @@ public class CFrameMain extends javax.swing.JFrame {
     private IIsolateLoggerSvc pLogger;
     private JTabbedPane pMainTabbedPane;
     private JLabel pPreferenceLabelReadability;
-    private JLabel pPreferenceLogoAdele;
+    private JLabel pPreferenceLogoLig;
     private JLabel pPreferenceLogoIsandlaTech;
     private JLabel pPreferenceLogoPSEM2M;
     private JPanel pPreferencesChoices;
@@ -117,6 +118,7 @@ public class CFrameMain extends javax.swing.JFrame {
     private JPanel pPreferencesPanel;
     private JPanel pPreferencesSouthPanel;
     private CUiAdminSvc pUiAdminSvc;
+    private JPanel pPanelLogos;
 
     /**
      * 
@@ -312,31 +314,34 @@ public class CFrameMain extends javax.swing.JFrame {
                         pPreferencesSouthPanel.setLayout(new BoxLayout(
                                 pPreferencesSouthPanel, BoxLayout.Y_AXIS));
                         {
-                            pPreferenceLogoAdele = new JLabel();
-                            ImageIcon wIcon = new ImageIcon(
+                            ImageIcon wIconLig = new ImageIcon(
                                     CFrameMain.class
-                                            .getResource("/org/psem2m/isolates/ui/admin/impl/Laboratoire adele masque.png"));
+                                            .getResource("/org/psem2m/isolates/ui/admin/impl/LIG_masque.png"));
 
                             // 688 x 263 => 344 x 131
-                            wIcon = new ImageIcon(wIcon.getImage()
+                            wIconLig = new ImageIcon(wIconLig.getImage()
                                     .getScaledInstance(344, 131,
                                             Image.SCALE_SMOOTH));
 
-                            pPreferenceLogoAdele.setIcon(wIcon);
-                            pPreferencesSouthPanel.add(pPreferenceLogoAdele);
-                        }
-                        {
-                            pPreferenceLogoIsandlaTech = new JLabel();
-                            ImageIcon wIcon = new ImageIcon(
+           
+                            ImageIcon wIconIsandla = new ImageIcon(
                                     CFrameMain.class
                                             .getResource("/org/psem2m/isolates/ui/admin/impl/isandlaTech logo masque.png"));
                             // 804 x 119 => 402 x 59
-                            wIcon = new ImageIcon(wIcon.getImage()
+                            wIconIsandla = new ImageIcon(wIconIsandla.getImage()
                                     .getScaledInstance(402, 59,
                                             Image.SCALE_SMOOTH));
-                            pPreferenceLogoIsandlaTech.setIcon(wIcon);
-                            pPreferencesSouthPanel
-                                    .add(pPreferenceLogoIsandlaTech);
+      
+                        	pPanelLogos = new JPanel();
+                        	pPreferencesSouthPanel.add(pPanelLogos);
+                        	pPanelLogos.setLayout(new BorderLayout(0, 0));
+                        	pPreferenceLogoLig = new JLabel();
+                        	pPanelLogos.add(pPreferenceLogoLig, BorderLayout.NORTH);
+                        	pPreferenceLogoLig.setIcon(wIconLig);
+                        	
+                        	pPreferenceLogoIsandlaTech = new JLabel();
+                        	pPanelLogos.add(pPreferenceLogoIsandlaTech, BorderLayout.SOUTH);
+                        	pPreferenceLogoIsandlaTech.setIcon(wIconIsandla);
                         }
                     }
                 }
