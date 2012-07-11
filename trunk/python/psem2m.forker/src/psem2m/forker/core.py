@@ -401,7 +401,7 @@ class Forker(object):
             return
 
         # Send a signal to monitors
-        self._sender.send(ISOLATE_LOST_SIGNAL, isolate_id, dir_group="MONITORS")
+        self._sender.send(ISOLATE_LOST_SIGNAL, isolate_id, dir_group="ALL")
 
 
     def start_monitor(self):
