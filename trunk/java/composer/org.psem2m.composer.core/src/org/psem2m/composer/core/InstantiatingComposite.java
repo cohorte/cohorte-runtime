@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.psem2m.composer.EComponentState;
 import org.psem2m.composer.model.ComponentBean;
 import org.psem2m.composer.model.ComponentsSetBean;
 
@@ -103,6 +104,9 @@ public class InstantiatingComposite {
                 // Valid component
                 pRequestedComponents.remove(aComponentName);
 
+                // Update the state of the component
+                component.getComponent().setState(EComponentState.COMPLETE);
+
             } else if (pRemainingComponents.containsKey(aComponentName)) {
                 // Timed-out component...
                 wasTimedOut = true;
@@ -121,7 +125,11 @@ public class InstantiatingComposite {
                 component = pRemainingComponents.get(aComponentName);
                 pRemainingComponents.remove(aComponentName);
 
-                if (component == null) {
+                if (component != null) {
+                    // Update the state of the component
+                    component.getComponent().setState(EComponentState.COMPLETE);
+
+                } else {
                     // Something moved - do nothing
                     return;
                 }
@@ -389,6 +397,9 @@ public class InstantiatingComposite {
                     // Update the requested component state
                     component.setIsolate(aIsolateId);
                     component.requestSent();
+
+                    component.getComponent().setState(
+                            EComponentState.INSTANTIATING);
                 }
             }
         }

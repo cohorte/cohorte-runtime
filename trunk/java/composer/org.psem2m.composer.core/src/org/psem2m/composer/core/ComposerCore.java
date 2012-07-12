@@ -28,6 +28,7 @@ import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.StaticServiceProperty;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
+import org.psem2m.composer.EComponentState;
 import org.psem2m.composer.ECompositionEvent;
 import org.psem2m.composer.IComposer;
 import org.psem2m.composer.ICompositionListener;
@@ -275,31 +276,37 @@ public class ComposerCore extends CPojoBase implements IComposer,
     public void handleIsolatePresence(final String aIsolateId,
             final String aNode, final EPresence aPresence) {
 
+        new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+
+                // Run in another thread...
+                handleIsolatePresenceThread(aIsolateId, aNode, aPresence);
+            }
+        }).start();
+    }
+
+    /**
+     * Method to be executed in a separate thread, as it might take 5 seconds to
+     * execute
+     * 
+     * @param aIsolateId
+     *            Isolate ID
+     * @param aNode
+     *            Isolate Node
+     * @param aPresence
+     *            New isolate state
+     */
+    private void handleIsolatePresenceThread(final String aIsolateId,
+            final String aNode, final EPresence aPresence) {
+
         switch (aPresence) {
         case REGISTERED: {
             // Ask the isolate for its factories
-            ISignalSendResult result = null;
-
-            for (int i = 0; i < 5; i++) {
-                // Try 5 times max
-                result = pSignalBroadcaster.send(
-                        ComposerAgentSignals.SIGNAL_ISOLATE_FACTORIES_DUMP,
-                        null, aIsolateId);
-                if (result != null
-                        && result.getResults().containsKey(aIsolateId)) {
-                    // Isolate answered...
-                    break;
-                }
-
-                try {
-                    // Wait a second...
-                    Thread.sleep(1000);
-
-                } catch (final InterruptedException e) {
-                    // Interrupted: abort
-                    return;
-                }
-            }
+            final ISignalSendResult result = pSignalBroadcaster.send(
+                    ComposerAgentSignals.SIGNAL_ISOLATE_FACTORIES_DUMP, null,
+                    aIsolateId);
 
             if (result == null) {
                 pLogger.logSevere(this, "handleIsolatePresence", "Isolate=",
@@ -309,17 +316,24 @@ public class ComposerCore extends CPojoBase implements IComposer,
 
             // Extract results
             final Object[] rawResults = result.getResults().get(aIsolateId);
-            if (rawResults == null || rawResults.length == 0) {
+            if (rawResults == null) {
                 pLogger.logSevere(this, "handleIsolatePresence",
-                        "Invalid dump result for isolate=", aIsolateId,
-                        "node=", aNode, "results=", rawResults);
+                        "Null factory dump result for isolate=", aIsolateId,
+                        "node=", aNode);
+                return;
+            }
+
+            if (rawResults.length == 0) {
+                // No factories ?
+                pLogger.logDebug(this, "handleIsolatePresence", "isolate=",
+                        aIsolateId, "returned no result");
                 return;
             }
 
             // Get the first array result
             Object[] arrayResult = null;
             for (final Object rawResult : rawResults) {
-                if (result != null && result.getClass().isArray()) {
+                if (rawResult instanceof Object[]) {
                     arrayResult = (Object[]) rawResult;
                 }
             }
@@ -388,14 +402,8 @@ public class ComposerCore extends CPojoBase implements IComposer,
                 .equals(aSignalName)) {
             // An isolate can handle some components
 
-            if (componentsArray != null) {
+            if (componentsArray != null && componentsArray.length != 0) {
                 // We have something that looks like an answer
-
-                if (componentsArray.length == 0) {
-                    // We were wrong...
-                    return null;
-                }
-
                 // Register components capacities
                 registerComponentsForIsolate(signalSender, componentsArray);
             }
@@ -538,9 +546,8 @@ public class ComposerCore extends CPojoBase implements IComposer,
             // Prepare the timeouts calls
             for (final ComponentBean component : isolateComponents) {
 
-                final String componentName = component.getName();
-
                 // Cancel the previous timeout, just in case
+                final String componentName = component.getName();
                 cancelTimeout(componentName);
 
                 // Prepare the future
@@ -569,6 +576,9 @@ public class ComposerCore extends CPojoBase implements IComposer,
                 // Store the future
                 pRequestsTimeouts.put(componentName, future);
             }
+
+            // Notify listeners
+            notifyUpdate(aComposet.getBean());
 
             // Send the instantiation signal
             pSignalBroadcaster.fire(
@@ -635,6 +645,9 @@ public class ComposerCore extends CPojoBase implements IComposer,
                     // The given composite can be instantiated
                     resolvedComposites.add(composite);
 
+                    // Notify listeners
+                    notifyUpdate(composite.getBean());
+
                     // Do the job
                     instantiateComponentsSet(composite, resolution);
 
@@ -642,6 +655,9 @@ public class ComposerCore extends CPojoBase implements IComposer,
                     pLogger.logInfo(this, "notifyComponentsRegistration",
                             "remaining=", composite.getRemainingComponents(),
                             "requested=", composite.getRequestedComponents());
+
+                    // Notify listeners
+                    notifyUpdate(composite.getBean());
                 }
             }
 
@@ -1019,7 +1035,7 @@ public class ComposerCore extends CPojoBase implements IComposer,
         if (composet == null) {
             // Ignore it
             pLogger.logDebug(this, "updateInstantiatingCompositeStatus",
-                    "No known composet given, composet=", composetName);
+                    "Unknown composet given, composet=", composetName);
             return;
         }
 
@@ -1048,9 +1064,16 @@ public class ComposerCore extends CPojoBase implements IComposer,
 
             pFullComposites.put(composet.getName(), composet);
 
+            // Notify listeners (just to be sure)
+            composet.getBean().updateState(EComponentState.COMPLETE);
+            notifyUpdate(composet.getBean());
+
             // Nothing more to do
             return;
         }
+
+        // Notify listeners
+        notifyUpdate(composet.getBean());
 
         // Failed instantiations
         final String[] failedComponents = Utilities.getArray(
@@ -1064,11 +1087,12 @@ public class ComposerCore extends CPojoBase implements IComposer,
 
         if (failedComponents.length != 0) {
             pLogger.logWarn(this, "updateInstantiatingCompositeStatus",
-                    "The following components couldn't be started :",
-                    Arrays.toString(failedComponents));
+                    "The following components couldn't be started on",
+                    aHostIsolate, ":", Arrays.toString(failedComponents));
         } else {
             pLogger.logDebug(this, "updateInstantiatingCompositeStatus",
-                    "All components of", composetName, " have been started");
+                    "All components of", composetName, "on", aHostIsolate,
+                    "have been started");
         }
 
         // Ask for a new resolution

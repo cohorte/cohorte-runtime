@@ -594,6 +594,9 @@ public class ComponentsSetBean extends AbstractModelBean implements
                 if (isolateTypes.contains(component.getType())) {
                     // We've found a match
                     resolvedComponents.add(component);
+
+                    // Update the component state
+                    component.setState(EComponentState.RESOLVED);
                 }
             }
 
@@ -762,5 +765,18 @@ public class ComponentsSetBean extends AbstractModelBean implements
         builder.append(")");
 
         return builder.toString();
+    }
+
+    /**
+     * Updates the state of all sub-components
+     * 
+     * @param aNewState
+     *            New components states
+     */
+    public synchronized void updateState(final EComponentState aNewState) {
+
+        for (final ComponentBean bean : getAllComponents()) {
+            bean.setState(aNewState);
+        }
     }
 }
