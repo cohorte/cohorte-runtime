@@ -43,6 +43,7 @@ import javax.swing.table.TableRowSorter;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
+import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.ui.admin.CBundleUiActivator;
 import org.psem2m.isolates.ui.admin.api.EUiAdminFont;
 import org.psem2m.utilities.CXException;
@@ -594,8 +595,33 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
         final StringBuilder wSB = new StringBuilder();
 
         for (int wI = 0; wI < wKeys.length; wI++) {
-            wSB.append(String.format(aFormat, wKeys[wI], aServiceReference
-                    .getProperty(wKeys[wI]).toString()));
+
+            final String key = wKeys[wI];
+            final Object value = aServiceReference.getProperty(key);
+            String valueStr;
+
+            if (value != null && value.getClass().isArray()) {
+                // Convert array to Object[]
+                Object[] convertedArray;
+                if (value instanceof Object[]) {
+                    // No conversion needed
+                    convertedArray = (Object[]) value;
+
+                } else {
+                    // Array conversion
+                    convertedArray = Utilities.arrayObjectToArray(value,
+                            Object.class);
+                }
+
+                // String value
+                valueStr = Arrays.toString(convertedArray);
+
+            } else {
+                // String value
+                valueStr = String.valueOf(value);
+            }
+
+            wSB.append(String.format(aFormat, key, valueStr));
         }
         return wSB.toString();
     }
