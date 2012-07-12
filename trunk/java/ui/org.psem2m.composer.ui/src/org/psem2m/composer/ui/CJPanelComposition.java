@@ -15,6 +15,7 @@ import java.awt.Component;
 import java.awt.Font;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -28,11 +29,13 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreePath;
 
-import org.psem2m.composer.AbstractSnapshot;
-import org.psem2m.composer.ComponentsSetSnapshot;
+import org.psem2m.composer.model.ComponentBean;
 import org.psem2m.composer.model.ComponentsSetBean;
+import org.psem2m.composer.model.IModelBean;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.ui.admin.api.EUiAdminFont;
+import org.psem2m.utilities.CXException;
+import org.psem2m.utilities.CXStringUtils;
 
 /**
  * @author ogattaz
@@ -66,7 +69,7 @@ public class CJPanelComposition extends CJPanelTree {
         private static final long serialVersionUID = -2838261694472584039L;
 
         private final Icon pIconComplete;
-        private final Icon pIconInstanciating;
+        private final Icon pIconInstantiating;
         private final Icon pIconResolved;
         private final Icon pIconWaiting;
 
@@ -77,7 +80,7 @@ public class CJPanelComposition extends CJPanelTree {
 
             pIconComplete = new ImageIcon(
                     CJPanelComposition.class.getResource(NAME_ICON_COMPLETE));
-            pIconInstanciating = new ImageIcon(
+            pIconInstantiating = new ImageIcon(
                     CJPanelComposition.class.getResource(NAME_ICON_QUESTION));
             pIconResolved = new ImageIcon(
                     CJPanelComposition.class.getResource(NAME_ICON_IMPORTANT));
@@ -97,29 +100,127 @@ public class CJPanelComposition extends CJPanelTree {
 
             if (value instanceof String) {
                 // Simple string
-                setIcon(pIconInstanciating);
+                setIcon(pIconInstantiating);
                 return this;
             }
 
-            final AbstractSnapshot wAbstractSnapshot = (AbstractSnapshot) value;
+            if (value instanceof IModelBean) {
 
-            if (leaf) {
-                if (wAbstractSnapshot.getState().isComplete()) {
-                    setIcon(pIconComplete);
-                } else if (wAbstractSnapshot.getState().isInstanciating()) {
-                    setIcon(pIconInstanciating);
-                } else if (wAbstractSnapshot.getState().isResolved()) {
-                    setIcon(pIconResolved);
-                } else if (wAbstractSnapshot.getState().isWaiting()) {
-                    setIcon(pIconWaiting);
+                final IModelBean wSnapshot = (IModelBean) value;
+
+                // Show the bean name
+                String name = wSnapshot.getName();
+                if (name == null) {
+                    name = wSnapshot.toString();
+                }
+                setText(name);
+
+                if (leaf) {
+                    // Show component state icon
+                    switch (wSnapshot.getState()) {
+                    case COMPLETE:
+                        setIcon(pIconComplete);
+                        break;
+
+                    case INSTANTIATING:
+                        setIcon(pIconInstantiating);
+                        break;
+
+                    case RESOLVED:
+                        setIcon(pIconResolved);
+                        break;
+
+                    case WAITING:
+                        setIcon(pIconWaiting);
+
+                    default:
+                        break;
+                    }
                 }
             }
+
             return this;
         }
-
     }
 
     class CTreeSelectionListener implements TreeSelectionListener {
+
+        /**
+         * Prepare the description of a components set bean
+         * 
+         * @param aComponentBean
+         *            The components set to describe
+         * @return A string description
+         */
+        protected String makeComponentsSetTextInfo(
+                final ComponentsSetBean aComponentsSetBean) {
+
+            final StringBuilder wSB = new StringBuilder();
+            try {
+                CXStringUtils.appendFormatStrInBuff(wSB,
+                        "componentsSet.name=[%s]\n",
+                        aComponentsSetBean.getName());
+
+                CXStringUtils.appendFormatStrInBuff(wSB,
+                        "componentsSet.isRoot=[%b]\n",
+                        aComponentsSetBean.isRoot());
+
+            } catch (final Exception e) {
+                wSB.append(CXException.eInString(e));
+            }
+            return wSB.toString();
+        }
+
+        /**
+         * Prepare the description of a component bean
+         * 
+         * @param aComponentBean
+         *            The component to describe
+         * @return A string description
+         */
+        protected String makeComponentTextInfo(
+                final ComponentBean aComponentBean) {
+
+            final StringBuilder wSB = new StringBuilder();
+            try {
+
+                CXStringUtils.appendFormatStrInBuff(wSB,
+                        "component.name=[%s]\n", aComponentBean.getName());
+                CXStringUtils.appendFormatStrInBuff(wSB,
+                        "component.parent=[%s]\n",
+                        aComponentBean.getParentName());
+                CXStringUtils
+                        .appendFormatStrInBuff(wSB, "component.isolate=[%s]\n",
+                                aComponentBean.getIsolate());
+
+                for (final Entry<String, String> wEntry : aComponentBean
+                        .getFieldsFilters().entrySet()) {
+
+                    CXStringUtils.appendFormatStrInBuff(wSB,
+                            "Filter   '%15s'=[%s]\n", wEntry.getKey(),
+                            wEntry.getValue());
+                }
+
+                for (final Entry<String, String> wEntry : aComponentBean
+                        .getProperties().entrySet()) {
+
+                    CXStringUtils.appendFormatStrInBuff(wSB,
+                            "Property '%15s'=[%s]\n", wEntry.getKey(),
+                            wEntry.getValue());
+                }
+                for (final Entry<String, String> wEntry : aComponentBean
+                        .getWires().entrySet()) {
+
+                    CXStringUtils.appendFormatStrInBuff(wSB,
+                            "Wire     '%15s'=[%s]\n", wEntry.getKey(),
+                            wEntry.getValue());
+                }
+
+            } catch (final Exception e) {
+                wSB.append(CXException.eInString(e));
+            }
+            return wSB.toString();
+        }
 
         /*
          * (non-Javadoc)
@@ -133,17 +234,28 @@ public class CJPanelComposition extends CJPanelTree {
 
             final Object lastSelected = pTree.getLastSelectedPathComponent();
 
-            if (!(lastSelected instanceof AbstractSnapshot)) {
+            if (!(lastSelected instanceof IModelBean)) {
                 // Nothing selected, or root selected
                 return;
             }
 
-            /* retrieve the node that was selected */
-            final AbstractSnapshot wAbstractSnapshot = (AbstractSnapshot) lastSelected;
+            String text;
+            if (lastSelected instanceof ComponentBean) {
+                // Component
+                text = makeComponentTextInfo((ComponentBean) lastSelected);
+
+            } else if (lastSelected instanceof ComponentsSetBean) {
+                // Components set
+                text = makeComponentsSetTextInfo((ComponentsSetBean) lastSelected);
+
+            } else {
+                // Unhandled type
+                text = String.format("Unhandled bean type: %s", lastSelected
+                        .getClass().getName());
+            }
 
             /* React to the node selection. */
-            CJPanelComposition.this.setText(wAbstractSnapshot.getTextInfo());
-
+            CJPanelComposition.this.setText(text);
         }
     }
 
@@ -203,10 +315,8 @@ public class CJPanelComposition extends CJPanelTree {
             for (final TreePath path : paths) {
                 if (path.getPathCount() > 1) {
                     final Object root = path.getPathComponent(1);
-
-                    if (root instanceof ComponentsSetSnapshot) {
-                        final ComponentsSetSnapshot snapshot = (ComponentsSetSnapshot) root;
-                        result.add(snapshot.getComponentSet());
+                    if (root instanceof ComponentsSetBean) {
+                        result.add((ComponentsSetBean) root);
                     }
                 }
             }

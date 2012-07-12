@@ -31,7 +31,6 @@ import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.StaticServiceProperty;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
-import org.psem2m.composer.ComponentsSetSnapshot;
 import org.psem2m.composer.IComposer;
 import org.psem2m.composer.ICompositionListener;
 import org.psem2m.composer.model.ComponentsSetBean;
@@ -86,7 +85,7 @@ public class CUiAdminPanelComposition extends CPojoBase implements
     public void componentsSetRemoved(final String aRootName) {
 
         pCompositionTreeModel.removeSnapshot(aRootName);
-        pTreePanel.updateTree();
+        updateTree();
     }
 
     /**
@@ -289,10 +288,10 @@ public class CUiAdminPanelComposition extends CPojoBase implements
      * psem2m.composer.ComponentsSetSnapshot[])
      */
     @Override
-    public void setCompositionSnapshots(final ComponentsSetSnapshot[] aSnapshots) {
+    public void setCompositionSnapshots(final ComponentsSetBean[] aSnapshots) {
 
         pCompositionTreeModel.setSnapshots(aSnapshots);
-        pTreePanel.updateTree();
+        updateTree();
     }
 
     /*
@@ -317,10 +316,27 @@ public class CUiAdminPanelComposition extends CPojoBase implements
      * .psem2m.composer.ComponentsSetSnapshot)
      */
     @Override
-    public void updateCompositionSnapshot(final ComponentsSetSnapshot aSnapshot) {
+    public void updateCompositionSnapshot(final ComponentsSetBean aSnapshot) {
 
         pCompositionTreeModel.updateSnapshot(aSnapshot);
-        pTreePanel.updateTree();
+        updateTree();
+    }
+
+    /**
+     * Updates the tree panel in the UI thread
+     */
+    private void updateTree() {
+
+        safeInvokeAndWait(new Runnable() {
+
+            @Override
+            public void run() {
+
+                if (pTreePanel != null) {
+                    pTreePanel.updateTree();
+                }
+            }
+        });
     }
 
     /*

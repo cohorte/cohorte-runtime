@@ -40,9 +40,9 @@ iPOJO-Components: instance { $component="org.psem2m.composer.ui.CUiAdm
  ="invalidatePojo" }method { $name="loadComposition" }method { $name="
  removeComposition" }method { $name="safeInvokeAndWait" $arguments="{j
  ava.lang.Runnable}" }method { $name="setCompositionSnapshots" $argume
- nts="{org.psem2m.composer.ComponentsSetSnapshot[]}" }method { $name="
- setUiAdminFont" $arguments="{org.psem2m.isolates.ui.admin.api.EUiAdmi
- nFont}" }method { $name="updateCompositionSnapshot" $arguments="{org.
- psem2m.composer.ComponentsSetSnapshot}" }method { $name="validatePojo
- " }}}
+ nts="{org.psem2m.composer.model.ComponentsSetBean[]}" }method { $name
+ ="setUiAdminFont" $arguments="{org.psem2m.isolates.ui.admin.api.EUiAd
+ minFont}" }method { $name="updateCompositionSnapshot" $arguments="{or
+ g.psem2m.composer.model.ComponentsSetBean}" }method { $name="updateTr
+ ee" }method { $name="validatePojo" }}}
 

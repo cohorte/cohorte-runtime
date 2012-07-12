@@ -11,6 +11,7 @@
 package org.psem2m.composer.ui;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -20,9 +21,8 @@ import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
-import org.psem2m.composer.AbstractSnapshot;
-import org.psem2m.composer.ComponentSnapshot;
-import org.psem2m.composer.ComponentsSetSnapshot;
+import org.psem2m.composer.model.ComponentBean;
+import org.psem2m.composer.model.ComponentsSetBean;
 
 /**
  * @author ogattaz
@@ -31,7 +31,7 @@ import org.psem2m.composer.ComponentsSetSnapshot;
 public class CCompositionTreeModel implements TreeModel {
 
     /** The snapshots map */
-    private final Map<String, ComponentsSetSnapshot> pSnapshots = new HashMap<String, ComponentsSetSnapshot>();
+    private final Map<String, ComponentsSetBean> pSnapshots = new HashMap<String, ComponentsSetBean>();
 
     /** The snapshots sorted names */
     private final List<String> pSortedNames = new ArrayList<String>();
@@ -53,6 +53,7 @@ public class CCompositionTreeModel implements TreeModel {
     void destroy() {
 
         pSnapshots.clear();
+        pSortedNames.clear();
     }
 
     /*
@@ -70,8 +71,27 @@ public class CCompositionTreeModel implements TreeModel {
             }
         }
 
-        final AbstractSnapshot wCompositionSnapshot = (AbstractSnapshot) aParent;
-        return wCompositionSnapshot.getChild(aIndex);
+        if (aParent instanceof ComponentsSetBean) {
+
+            final ComponentsSetBean composet = (ComponentsSetBean) aParent;
+
+            // Components set
+            final ComponentsSetBean[] subSets = composet.getComponentSets();
+            final int nbSubSets = subSets.length;
+            if (aIndex < nbSubSets) {
+                return subSets[aIndex];
+            }
+
+            // Component
+            final ComponentBean[] components = composet.getAllComponents();
+            final int componentIndex = aIndex - nbSubSets;
+            if (componentIndex < components.length) {
+                return components[componentIndex];
+            }
+        }
+
+        // No children
+        return null;
     }
 
     /*
@@ -89,8 +109,14 @@ public class CCompositionTreeModel implements TreeModel {
             }
         }
 
-        final AbstractSnapshot wCompositionSnapshot = (AbstractSnapshot) aParent;
-        return wCompositionSnapshot.getChildCount();
+        if (aParent instanceof ComponentsSetBean) {
+
+            final ComponentsSetBean composet = (ComponentsSetBean) aParent;
+            return composet.getComponents().length
+                    + composet.getComponentSets().length;
+        }
+
+        return 0;
     }
 
     /*
@@ -102,6 +128,11 @@ public class CCompositionTreeModel implements TreeModel {
     @Override
     public int getIndexOfChild(final Object aParent, final Object aChild) {
 
+        if (aParent == null || aChild == null) {
+            // See the JavaDoc
+            return -1;
+        }
+
         if (aParent instanceof String) {
             // Root
             synchronized (pSnapshots) {
@@ -109,8 +140,29 @@ public class CCompositionTreeModel implements TreeModel {
             }
         }
 
-        final AbstractSnapshot wCompositionSnapshot = (AbstractSnapshot) aParent;
-        return wCompositionSnapshot.getIndexOfChild((AbstractSnapshot) aChild);
+        if (aParent instanceof ComponentsSetBean) {
+
+            final ComponentsSetBean composet = (ComponentsSetBean) aParent;
+            int childIndex = 0;
+
+            // Components set
+            final ComponentsSetBean[] subSets = composet.getComponentSets();
+            childIndex = Arrays.binarySearch(subSets, aChild, null);
+            if (childIndex >= 0) {
+                // Found !
+                return childIndex;
+            }
+
+            // Component
+            final ComponentBean[] components = composet.getAllComponents();
+            childIndex = Arrays.binarySearch(components, aChild, null);
+            if (childIndex >= 0) {
+                // Found !
+                return childIndex + subSets.length;
+            }
+        }
+
+        return -1;
     }
 
     /*
@@ -138,7 +190,7 @@ public class CCompositionTreeModel implements TreeModel {
             }
         }
 
-        return aObject instanceof ComponentSnapshot;
+        return aObject instanceof ComponentBean;
     }
 
     /**
@@ -173,7 +225,7 @@ public class CCompositionTreeModel implements TreeModel {
      * @param aSnapshots
      *            Array of snapshots to store in the model
      */
-    public void setSnapshots(final ComponentsSetSnapshot[] aSnapshots) {
+    public void setSnapshots(final ComponentsSetBean[] aSnapshots) {
 
         synchronized (pSnapshots) {
             // Clear current values
@@ -182,8 +234,8 @@ public class CCompositionTreeModel implements TreeModel {
 
             if (aSnapshots != null) {
                 // Store new ones
-                for (final ComponentsSetSnapshot snapshot : aSnapshots) {
-                    pSnapshots.put(snapshot.getQName(), snapshot);
+                for (final ComponentsSetBean snapshot : aSnapshots) {
+                    pSnapshots.put(snapshot.getName(), snapshot);
                 }
             }
 
@@ -199,12 +251,12 @@ public class CCompositionTreeModel implements TreeModel {
      * @param aSnapshot
      *            The updated snapshot
      */
-    public void updateSnapshot(final ComponentsSetSnapshot aSnapshot) {
+    public void updateSnapshot(final ComponentsSetBean aSnapshot) {
 
         synchronized (pSnapshots) {
 
             if (aSnapshot != null) {
-                final String name = aSnapshot.getQName();
+                final String name = aSnapshot.getName();
                 pSnapshots.put(name, aSnapshot);
 
                 if (!pSortedNames.contains(name)) {
