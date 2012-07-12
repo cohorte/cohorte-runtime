@@ -5,6 +5,8 @@
  */
 package org.psem2m.composer.model;
 
+import org.psem2m.composer.EComponentState;
+
 /**
  * Defines the common methods of Composer model beans
  * 
@@ -38,6 +40,13 @@ public interface IModelBean {
      * @return the name of the component set
      */
     String getRootName();
+
+    /**
+     * Retrieves the state of the model bean
+     * 
+     * @return The state of the model bean
+     */
+    EComponentState getState();
 
     /**
      * Recursively asks the beans to link internal wires

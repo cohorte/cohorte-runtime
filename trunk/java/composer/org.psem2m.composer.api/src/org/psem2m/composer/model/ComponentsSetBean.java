@@ -7,11 +7,14 @@ package org.psem2m.composer.model;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import org.psem2m.composer.EComponentState;
 
 /**
  * Represents a "composet", a set of components or composets.
@@ -19,12 +22,12 @@ import java.util.Map.Entry;
  * @author Thomas Calmant
  */
 public class ComponentsSetBean extends AbstractModelBean implements
-        Serializable {
+        Serializable, Comparable<ComponentsSetBean> {
 
     /** Version UID */
     private static final long serialVersionUID = 1L;
 
-    /** List of contained components */
+    /** Mapping of contained components (name -&gt; component bean) */
     private final Map<String, ComponentBean> pComponentBeans = new HashMap<String, ComponentBean>();
 
     /** List of contained components sets */
@@ -38,8 +41,38 @@ public class ComponentsSetBean extends AbstractModelBean implements
      */
     public ComponentsSetBean() {
 
-        super();
         // Does nothing
+        super();
+    }
+
+    /**
+     * Copy constructor
+     * 
+     * @param aComponentsSetBean
+     *            Bean to copy
+     */
+    public ComponentsSetBean(final ComponentsSetBean aComponentsSetBean,
+            final ComponentsSetBean aParent) {
+
+        super(aComponentsSetBean);
+
+        // Make a copy of all components
+        for (final Entry<String, ComponentBean> entry : aComponentsSetBean.pComponentBeans
+                .entrySet()) {
+
+            final ComponentBean snapshot = new ComponentBean(entry.getValue());
+            pComponentBeans.put(entry.getKey(), snapshot);
+        }
+
+        // Make a copy of all components set
+        for (final ComponentsSetBean bean : aComponentsSetBean.pComponentSets) {
+
+            // Make a snapshot
+            pComponentSets.add(new ComponentsSetBean(bean, this));
+        }
+
+        // Set the parent
+        pParent = aParent;
     }
 
     /**
@@ -60,6 +93,31 @@ public class ComponentsSetBean extends AbstractModelBean implements
 
         // Store it
         pComponentBeans.put(aComponent.getName(), aComponent);
+    }
+
+    /**
+     * Components set comparison.
+     * 
+     * Components set are greater than null. Components sets are compared by
+     * name.
+     * 
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     */
+    @Override
+    public int compareTo(final ComponentsSetBean aOther) {
+
+        if (aOther == null) {
+            // We're greater than null
+            return 1;
+        }
+
+        if (equals(aOther)) {
+            // Same object
+            return 0;
+        }
+
+        // Different object, use name ordering
+        return safeCompareTo(pName, aOther.pName);
     }
 
     /*
@@ -110,6 +168,48 @@ public class ComponentsSetBean extends AbstractModelBean implements
             bean.setRootName(pRootName);
             bean.computeName();
         }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.composer.model.AbstractModelBean#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(final Object aObj) {
+
+        if (aObj instanceof ComponentsSetBean) {
+
+            if (!super.equals(aObj)) {
+                // Name equality failed
+                return false;
+            }
+
+            final ComponentsSetBean other = (ComponentsSetBean) aObj;
+
+            // Components
+            final Collection<ComponentBean> components = pComponentBeans
+                    .values();
+            final Collection<ComponentBean> otherComponents = other.pComponentBeans
+                    .values();
+            if (!(components.containsAll(otherComponents) && otherComponents
+                    .containsAll(components))) {
+                // Different components
+                return false;
+            }
+
+            // Components sets
+            if (!(pComponentSets.containsAll(other.pComponentSets))
+                    && other.pComponentSets.containsAll(pComponentSets)) {
+                // Different sub components sets
+                return false;
+            }
+
+            // All tests passed
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -247,13 +347,21 @@ public class ComponentsSetBean extends AbstractModelBean implements
     }
 
     /**
-     * Retrieves the list of the children components (current set only)
+     * Retrieves the list of the children components (current set only).
+     * 
+     * The result array is sorted according to {@link ComponentBean#compareTo()}
      * 
      * @return the list of components
      */
     public ComponentBean[] getComponents() {
 
-        return pComponentBeans.values().toArray(new ComponentBean[0]);
+        final ComponentBean[] resultArray = pComponentBeans.values().toArray(
+                new ComponentBean[0]);
+
+        // Sort the array
+        Arrays.sort(resultArray, null);
+
+        return resultArray;
     }
 
     /**
@@ -261,9 +369,15 @@ public class ComponentsSetBean extends AbstractModelBean implements
      * 
      * @return the list of components sets
      */
-    public List<ComponentsSetBean> getComponentSets() {
+    public ComponentsSetBean[] getComponentSets() {
 
-        return pComponentSets;
+        final ComponentsSetBean[] resultArray = pComponentSets
+                .toArray(new ComponentsSetBean[pComponentSets.size()]);
+
+        // Sort the array
+        Arrays.sort(resultArray, null);
+
+        return resultArray;
     }
 
     /**
@@ -274,6 +388,107 @@ public class ComponentsSetBean extends AbstractModelBean implements
     public ComponentsSetBean getParent() {
 
         return pParent;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.composer.model.IModelBean#getState()
+     */
+    @Override
+    public EComponentState getState() {
+
+        int stateOrdinal = getStateOrdinal(EComponentState.COMPLETE);
+
+        // Get the minimal state of the components
+        for (final ComponentBean bean : pComponentBeans.values()) {
+
+            final int beanStateOrdinal = getStateOrdinal(bean.getState());
+            if (beanStateOrdinal >= 0 && beanStateOrdinal < stateOrdinal) {
+                // We found a valid state lower than the current one
+                stateOrdinal = beanStateOrdinal;
+            }
+
+            if (stateOrdinal == 0) {
+                // We're at the minimal value
+                return getStateEnum(stateOrdinal);
+            }
+        }
+
+        // Get the minimal state of the components sets
+        for (final ComponentsSetBean bean : pComponentSets) {
+
+            final int beanStateOrdinal = getStateOrdinal(bean.getState());
+            if (beanStateOrdinal >= 0 && beanStateOrdinal < stateOrdinal) {
+                // We found a valid state lower than the current one
+                stateOrdinal = beanStateOrdinal;
+            }
+
+            if (stateOrdinal == 0) {
+                // We're at the minimal value
+                return getStateEnum(stateOrdinal);
+            }
+        }
+
+        return getStateEnum(stateOrdinal);
+    }
+
+    /**
+     * Converts the given custom ordinal to a state enumeration value
+     * 
+     * @param aStateOrdinal
+     *            An ordinal value
+     * @return The corresponding component state, or null
+     */
+    protected EComponentState getStateEnum(final int aStateOrdinal) {
+
+        switch (aStateOrdinal) {
+        case 0:
+            return EComponentState.WAITING;
+
+        case 1:
+            return EComponentState.RESOLVED;
+
+        case 2:
+            return EComponentState.INSTANTIATING;
+
+        case 3:
+            return EComponentState.COMPLETE;
+        }
+
+        return null;
+    }
+
+    /**
+     * Converts the given enumeration value to a custom ordinal.
+     * 
+     * Returned ordinal orders values from WAITING (0) to COMPLETE (3)
+     * 
+     * @param aState
+     *            A component state
+     * @return A custom ordinal value, -1 on failure
+     */
+    protected int getStateOrdinal(final EComponentState aState) {
+
+        if (aState == null) {
+            return -1;
+        }
+
+        switch (aState) {
+        case WAITING:
+            return 0;
+
+        case RESOLVED:
+            return 1;
+
+        case INSTANTIATING:
+            return 2;
+
+        case COMPLETE:
+            return 3;
+        }
+
+        return -1;
     }
 
     /**
@@ -431,23 +646,6 @@ public class ComponentsSetBean extends AbstractModelBean implements
      * @param aComponents
      *            The components in this set
      */
-    public void setComponents(final Collection<ComponentBean> aComponents) {
-
-        pComponentBeans.clear();
-
-        if (aComponents != null) {
-            for (final ComponentBean component : aComponents) {
-                addComponent(component);
-            }
-        }
-    }
-
-    /**
-     * Sets the components contained in this set
-     * 
-     * @param aComponents
-     *            The components in this set
-     */
     public void setComponents(final ComponentBean[] aComponents) {
 
         pComponentBeans.clear();
@@ -465,13 +663,12 @@ public class ComponentsSetBean extends AbstractModelBean implements
      * @param aComponentSets
      *            The components sets under this set
      */
-    public void setComponentSets(
-            final Collection<ComponentsSetBean> aComponentSets) {
+    public void setComponentSets(final ComponentsSetBean[] aComponentSets) {
 
         pComponentSets.clear();
 
         if (aComponentSets != null) {
-            pComponentSets.addAll(aComponentSets);
+            pComponentSets.addAll(Arrays.asList(aComponentSets));
         }
     }
 

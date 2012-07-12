@@ -10,6 +10,8 @@
  *******************************************************************************/
 package org.psem2m.composer;
 
+import org.psem2m.composer.model.ComponentsSetBean;
+
 /**
  * Defines a composition listener which will be called each time the state of a
  * component or of a componentsSet will change and each time the composition
@@ -36,7 +38,7 @@ public interface ICompositionListener {
      * @param aSnapshots
      *            Current components set snapshots
      */
-    void setCompositionSnapshots(ComponentsSetSnapshot[] aSnapshots);
+    void setCompositionSnapshots(ComponentsSetBean[] aSnapshots);
 
     /**
      * Updates a components set snapshot
@@ -44,5 +46,5 @@ public interface ICompositionListener {
      * @param aSnapshot
      *            Snapshot of the modified components set
      */
-    void updateCompositionSnapshot(ComponentsSetSnapshot aSnapshot);
+    void updateCompositionSnapshot(ComponentsSetBean aSnapshot);
 }

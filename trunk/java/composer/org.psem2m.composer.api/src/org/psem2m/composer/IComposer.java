@@ -5,8 +5,6 @@
  */
 package org.psem2m.composer;
 
-import java.util.List;
-
 import org.psem2m.composer.model.ComponentsSetBean;
 
 /**
@@ -21,7 +19,7 @@ public interface IComposer {
      * 
      * @return Current compositions snapshots
      */
-    List<ComponentsSetSnapshot> getCompositionSnapshot();
+    ComponentsSetBean[] getCompositionSnapshot();
 
     /**
      * Tries to instantiate the given set of components in the platform

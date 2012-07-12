@@ -10,12 +10,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.psem2m.composer.EComponentState;
+
 /**
  * PSEM2M Composer component description bean
  * 
  * @author Thomas Calmant
  */
-public class ComponentBean extends AbstractModelBean implements Serializable {
+public class ComponentBean extends AbstractModelBean implements Serializable,
+        Comparable<ComponentBean> {
 
     /** Version UID */
     private static final long serialVersionUID = 1L;
@@ -32,6 +35,9 @@ public class ComponentBean extends AbstractModelBean implements Serializable {
     /** Component properties */
     private final Map<String, String> pProperties = new HashMap<String, String>();
 
+    /** Component state */
+    private EComponentState pState;
+
     /** The component type */
     private String pType;
 
@@ -44,6 +50,60 @@ public class ComponentBean extends AbstractModelBean implements Serializable {
     public ComponentBean() {
 
         // Does nothing...
+        super();
+        pState = EComponentState.WAITING;
+    }
+
+    /**
+     * Copy constructor
+     * 
+     * @param aComponentBean
+     *            Component to copy
+     */
+    public ComponentBean(final ComponentBean aComponentBean) {
+
+        super(aComponentBean);
+
+        // Make a copy of all members
+        pFieldFilters.putAll(aComponentBean.pFieldFilters);
+        pIsolate = aComponentBean.pIsolate;
+        pNameComputed = aComponentBean.pNameComputed;
+        pProperties.putAll(aComponentBean.pProperties);
+        pState = aComponentBean.pState;
+        pType = aComponentBean.pType;
+        pWires.putAll(aComponentBean.pWires);
+    }
+
+    /**
+     * Component comparison
+     * 
+     * A component is greater than null. Components are compared by name and by
+     * type.
+     * 
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     */
+    @Override
+    public final int compareTo(final ComponentBean aOther) {
+
+        if (aOther == null) {
+            // We're greater than null
+            return 1;
+        }
+
+        if (equals(aOther)) {
+            // Same object
+            return 0;
+
+        } else {
+            // Different object, use name ordering
+            final int nameDiff = safeCompareTo(pName, aOther.pName);
+            if (nameDiff == 0) {
+                // WARNING: different beans with same name (should never happen)
+                return safeCompareTo(pType, aOther.pType);
+            }
+
+            return nameDiff;
+        }
     }
 
     /*
@@ -66,6 +126,29 @@ public class ComponentBean extends AbstractModelBean implements Serializable {
             // Update the computation flag
             pNameComputed = true;
         }
+    }
+
+    /**
+     * Component beans are equals if they have the same name and the same type
+     * 
+     * @see org.psem2m.composer.model.AbstractModelBean#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(final Object aObj) {
+
+        if (aObj instanceof ComponentBean) {
+
+            if (!super.equals(aObj)) {
+                // Name equality failed
+                return false;
+            }
+
+            // Type equality
+            final ComponentBean other = (ComponentBean) aObj;
+            return safeEquals(pType, other.pType);
+        }
+
+        return false;
     }
 
     /**
@@ -143,6 +226,17 @@ public class ComponentBean extends AbstractModelBean implements Serializable {
     public Map<String, String> getProperties() {
 
         return pProperties;
+    }
+
+    /**
+     * Retrieves the component state
+     * 
+     * @return the component state
+     */
+    @Override
+    public EComponentState getState() {
+
+        return pState;
     }
 
     /**
@@ -261,6 +355,19 @@ public class ComponentBean extends AbstractModelBean implements Serializable {
 
         if (aProperties != null) {
             pProperties.putAll(aProperties);
+        }
+    }
+
+    /**
+     * Sets the component state
+     * 
+     * @param aState
+     *            the new component state
+     */
+    public void setState(final EComponentState aState) {
+
+        if (aState != null) {
+            pState = aState;
         }
     }
 

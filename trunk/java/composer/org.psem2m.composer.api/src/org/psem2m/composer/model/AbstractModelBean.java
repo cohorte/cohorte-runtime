@@ -26,6 +26,27 @@ public abstract class AbstractModelBean implements IModelBean, Serializable {
     /** Name of the root parent of the hierarchy */
     protected String pRootName;
 
+    /**
+     * Default constructor
+     */
+    public AbstractModelBean() {
+
+        // Does nothing
+    }
+
+    /**
+     * Copy constructor
+     * 
+     * @param aComponentBean
+     */
+    public AbstractModelBean(final AbstractModelBean aModelBean) {
+
+        // Copy members
+        pName = aModelBean.pName;
+        pParentName = aModelBean.pParentName;
+        pRootName = aModelBean.pRootName;
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -39,27 +60,12 @@ public abstract class AbstractModelBean implements IModelBean, Serializable {
             final AbstractModelBean other = (AbstractModelBean) aObj;
 
             // Compare names
-            boolean sameNames = false;
-
-            if (pName != null) {
-                sameNames = pName.equals(other.pName);
-
-            } else {
-                sameNames = (other.pName == null);
-            }
-
-            if (!sameNames) {
+            if (!safeEquals(pName, other.pName)) {
                 return false;
             }
 
             // Compare parent names
-            if (pParentName != null) {
-                sameNames = pParentName.equals(other.pParentName);
-            } else {
-                sameNames = (other.pParentName == null);
-            }
-
-            return sameNames;
+            return safeEquals(pParentName, other.pParentName);
 
         } else if (aObj instanceof CharSequence) {
             // The other object is a string, compare only the name
@@ -100,6 +106,52 @@ public abstract class AbstractModelBean implements IModelBean, Serializable {
     public String getRootName() {
 
         return pRootName;
+    }
+
+    /**
+     * Safe call to aObject.compareTo().
+     * 
+     * Returns 0 if both objects are null, -1 if aOther is not null while
+     * aObject is null
+     * 
+     * @param aObject
+     *            An object
+     * @param aOther
+     *            Another object
+     * @return The result of compareTo()
+     */
+    protected <T> int safeCompareTo(final Comparable<T> aObject, final T aOther) {
+
+        if (aObject == null) {
+            if (aOther == null) {
+                // Both objects are null
+                return 0;
+
+            } else {
+                // The other is greater than the object
+                return -1;
+            }
+        }
+
+        return aObject.compareTo(aOther);
+    }
+
+    /**
+     * Tests arguments equality, treating the special "null" case
+     * 
+     * @param aObject
+     *            An object
+     * @param aOther
+     *            Another object
+     * @return True if objects are equals
+     */
+    protected boolean safeEquals(final Object aObject, final Object aOther) {
+
+        if (aObject == null) {
+            return aOther == null;
+        }
+
+        return aObject.equals(aOther);
     }
 
     /*
