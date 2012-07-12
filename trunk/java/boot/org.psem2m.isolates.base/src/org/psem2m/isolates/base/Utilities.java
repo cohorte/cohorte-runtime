@@ -34,6 +34,45 @@ import org.psem2m.isolates.constants.IPlatformProperties;
 public final class Utilities {
 
     /**
+     * Converts the given object to a one-dimension array of the given type
+     * 
+     * @param aArrayObject
+     *            An array object
+     * @param aTypeArray
+     *            An object to determine the kind of result.
+     * @return The converted array
+     * @throws ClassCastException
+     *             Error casting an entry
+     * @throws IllegalArgumentException
+     *             Invalid array object or result type
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T[] arrayObjectToArray(final Object aArrayObject,
+            final Class<? extends T> aType) throws ClassCastException {
+
+        if (aArrayObject == null) {
+            // Nothing to do
+            return null;
+        }
+
+        if (aType == null) {
+            // Invalid type
+            throw new IllegalArgumentException("Can't convert to a null type");
+        }
+
+        // Prepare the result array
+        final int size = Array.getLength(aArrayObject);
+        final T[] resultArray = (T[]) Array.newInstance(aType, size);
+
+        // Copy the array
+        for (int i = 0; i < size; i++) {
+            resultArray[i] = (T) Array.get(aArrayObject, i);
+        }
+
+        return resultArray;
+    }
+
+    /**
      * Returns a list if the given object is an array, else returns the given
      * object.
      * 
