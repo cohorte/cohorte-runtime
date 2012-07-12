@@ -84,7 +84,7 @@ public class JSONSerializer implements Serializable {
      */
     protected static Class<?>[] duplicatePrimitiveTypes = { String.class,
             Integer.class, Boolean.class, Long.class, Byte.class, Double.class,
-            Float.class, Short.class };
+            Float.class, Short.class, Enum.class };
 
     /**
      * The logger for this class
@@ -107,7 +107,7 @@ public class JSONSerializer implements Serializable {
      * marshalling? If false, an exception is thrown if a circular reference is
      * found during serialization.
      */
-    private boolean fixupCircRefs = true;
+    private boolean fixupCircRefs = false;
 
     /**
      * Are FixUps are generated for primitive objects (classes of type String,
@@ -120,7 +120,7 @@ public class JSONSerializer implements Serializable {
      * Are FixUps are generated for duplicate objects found during marshalling?
      * If false, the duplicates are re-serialized.
      */
-    private boolean fixupDuplicates = true;
+    private boolean fixupDuplicates = false;
 
     /**
      * Should serializers defined in this object include the fully qualified
@@ -144,12 +144,12 @@ public class JSONSerializer implements Serializable {
     /**
      * List for reverse registration order search
      */
-    private List<Serializer> serializerList = new ArrayList<Serializer>();
+    private final List<Serializer> serializerList = new ArrayList<Serializer>();
 
     /**
      * Key: Serializer
      */
-    private Set<Serializer> serializerSet = new HashSet<Serializer>();
+    private final Set<Serializer> serializerSet = new HashSet<Serializer>();
 
     /**
      * Sets up the serializer with the default class loader

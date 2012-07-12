@@ -138,6 +138,7 @@ public class EnumSerializer extends AbstractSerializer {
      * @see org.jabsorb.serializer.Serializer#unmarshall(org.jabsorb.serializer.
      * SerializerState, java.lang.Class, java.lang.Object)
      */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
     public Object unmarshall(final SerializerState aState,
             final Class<?> aClazz, final Object aJson)
