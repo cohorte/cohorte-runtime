@@ -50,7 +50,7 @@ public class CJPanelComposition extends CJPanelTree {
      * @author ogattaz
      * 
      */
-    class CTreeCellRenderer extends DefaultTreeCellRenderer {
+    private class CTreeCellRenderer extends DefaultTreeCellRenderer {
 
         private static final String ICON_PATH = "/org/psem2m/composer/ui/";
 
@@ -143,84 +143,7 @@ public class CJPanelComposition extends CJPanelTree {
         }
     }
 
-    class CTreeSelectionListener implements TreeSelectionListener {
-
-        /**
-         * Prepare the description of a components set bean
-         * 
-         * @param aComponentBean
-         *            The components set to describe
-         * @return A string description
-         */
-        protected String makeComponentsSetTextInfo(
-                final ComponentsSetBean aComponentsSetBean) {
-
-            final StringBuilder wSB = new StringBuilder();
-            try {
-                CXStringUtils.appendFormatStrInBuff(wSB,
-                        "componentsSet.name=[%s]\n",
-                        aComponentsSetBean.getName());
-
-                CXStringUtils.appendFormatStrInBuff(wSB,
-                        "componentsSet.isRoot=[%b]\n",
-                        aComponentsSetBean.isRoot());
-
-            } catch (final Exception e) {
-                wSB.append(CXException.eInString(e));
-            }
-            return wSB.toString();
-        }
-
-        /**
-         * Prepare the description of a component bean
-         * 
-         * @param aComponentBean
-         *            The component to describe
-         * @return A string description
-         */
-        protected String makeComponentTextInfo(
-                final ComponentBean aComponentBean) {
-
-            final StringBuilder wSB = new StringBuilder();
-            try {
-
-                CXStringUtils.appendFormatStrInBuff(wSB,
-                        "component.name=[%s]\n", aComponentBean.getName());
-                CXStringUtils.appendFormatStrInBuff(wSB,
-                        "component.parent=[%s]\n",
-                        aComponentBean.getParentName());
-                CXStringUtils
-                        .appendFormatStrInBuff(wSB, "component.isolate=[%s]\n",
-                                aComponentBean.getIsolate());
-
-                for (final Entry<String, String> wEntry : aComponentBean
-                        .getFieldsFilters().entrySet()) {
-
-                    CXStringUtils.appendFormatStrInBuff(wSB,
-                            "Filter   '%15s'=[%s]\n", wEntry.getKey(),
-                            wEntry.getValue());
-                }
-
-                for (final Entry<String, String> wEntry : aComponentBean
-                        .getProperties().entrySet()) {
-
-                    CXStringUtils.appendFormatStrInBuff(wSB,
-                            "Property '%15s'=[%s]\n", wEntry.getKey(),
-                            wEntry.getValue());
-                }
-                for (final Entry<String, String> wEntry : aComponentBean
-                        .getWires().entrySet()) {
-
-                    CXStringUtils.appendFormatStrInBuff(wSB,
-                            "Wire     '%15s'=[%s]\n", wEntry.getKey(),
-                            wEntry.getValue());
-                }
-
-            } catch (final Exception e) {
-                wSB.append(CXException.eInString(e));
-            }
-            return wSB.toString();
-        }
+    private class CTreeSelectionListener implements TreeSelectionListener {
 
         /*
          * (non-Javadoc)
@@ -262,7 +185,9 @@ public class CJPanelComposition extends CJPanelTree {
     private static final long serialVersionUID = -7912303688959719480L;
 
     private JTextArea pComponentsSetText;
+
     private CCompositionTreeModel pCompositionTreeModel = null;
+
     private JSplitPane pMainSplitPane;
     private JScrollPane pTextScrollPane;
     private JTree pTree;
@@ -323,6 +248,84 @@ public class CJPanelComposition extends CJPanelTree {
         }
 
         return result;
+    }
+
+    /**
+     * Prepare the description of a components set bean
+     * 
+     * @param aComponentBean
+     *            The components set to describe
+     * @return A string description
+     */
+    protected String makeComponentsSetTextInfo(
+            final ComponentsSetBean aComponentsSetBean) {
+
+        final StringBuilder wSB = new StringBuilder();
+        try {
+            CXStringUtils.appendFormatStrInBuff(wSB,
+                    "componentsSet.name=[%s]\n", aComponentsSetBean.getName());
+
+            CXStringUtils.appendFormatStrInBuff(wSB,
+                    "componentsSet.isRoot=[%b]\n", aComponentsSetBean.isRoot());
+
+            CXStringUtils
+                    .appendFormatStrInBuff(wSB, "componentsSet.state=[%s]\n",
+                            aComponentsSetBean.getState());
+
+        } catch (final Exception e) {
+            wSB.append(CXException.eInString(e));
+        }
+        return wSB.toString();
+    }
+
+    /**
+     * Prepare the description of a component bean
+     * 
+     * @param aComponentBean
+     *            The component to describe
+     * @return A string description
+     */
+    protected String makeComponentTextInfo(final ComponentBean aComponentBean) {
+
+        final StringBuilder wSB = new StringBuilder();
+        try {
+
+            CXStringUtils.appendFormatStrInBuff(wSB, "component.name=[%s]\n",
+                    aComponentBean.getName());
+            CXStringUtils.appendFormatStrInBuff(wSB, "component.parent=[%s]\n",
+                    aComponentBean.getParentName());
+            CXStringUtils.appendFormatStrInBuff(wSB,
+                    "component.isolate=[%s]\n", aComponentBean.getIsolate());
+            CXStringUtils.appendFormatStrInBuff(wSB, "component.state=[%s]\n",
+                    aComponentBean.getState());
+
+            for (final Entry<String, String> wEntry : aComponentBean
+                    .getFieldsFilters().entrySet()) {
+
+                CXStringUtils.appendFormatStrInBuff(wSB,
+                        "Filter   '%15s'=[%s]\n", wEntry.getKey(),
+                        wEntry.getValue());
+            }
+
+            for (final Entry<String, String> wEntry : aComponentBean
+                    .getProperties().entrySet()) {
+
+                CXStringUtils.appendFormatStrInBuff(wSB,
+                        "Property '%15s'=[%s]\n", wEntry.getKey(),
+                        wEntry.getValue());
+            }
+            for (final Entry<String, String> wEntry : aComponentBean.getWires()
+                    .entrySet()) {
+
+                CXStringUtils.appendFormatStrInBuff(wSB,
+                        "Wire     '%15s'=[%s]\n", wEntry.getKey(),
+                        wEntry.getValue());
+            }
+
+        } catch (final Exception e) {
+            wSB.append(CXException.eInString(e));
+        }
+        return wSB.toString();
     }
 
     /*
