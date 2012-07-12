@@ -40,18 +40,19 @@ iPOJO-Components: instance { $component="org.psem2m.composer.config.im
  2m.composer.model.ComponentsSetBean" $arguments="{java.lang.String}" 
  }method { $name="parseComponent" $return="org.psem2m.composer.model.C
  omponentBean" $arguments="{java.lang.String,org.psem2m.utilities.json
- .JSONObject}" }method { $name="parseComponents" $return="java.util.Co
- llection" $arguments="{java.lang.String,org.psem2m.utilities.json.JSO
- NArray}" }method { $name="parseComponentSet" $return="org.psem2m.comp
- oser.model.ComponentsSetBean" $arguments="{org.psem2m.composer.model.
- ComponentsSetBean,org.psem2m.utilities.json.JSONObject}" }method { $n
- ame="parseComponentSets" $return="java.util.Collection" $arguments="{
- org.psem2m.composer.model.ComponentsSetBean,org.psem2m.utilities.json
- .JSONArray}" }method { $name="readFile" $return="java.lang.String" $a
- rguments="{java.lang.String}" }method { $name="readJsonArrayFile" $re
- turn="org.psem2m.utilities.json.JSONArray" $arguments="{java.lang.Str
- ing}" }method { $name="readJsonObjectFile" $return="org.psem2m.utilit
- ies.json.JSONObject" $arguments="{java.lang.String}" }method { $name=
- "validatePojo" }method { $name="write" $arguments="{org.psem2m.compos
- er.model.ComponentsSetBean,java.lang.String}" }}}
+ .JSONObject}" }method { $name="parseComponents" $return="org.psem2m.c
+ omposer.model.ComponentBean[]" $arguments="{java.lang.String,org.psem
+ 2m.utilities.json.JSONArray}" }method { $name="parseComponentSet" $re
+ turn="org.psem2m.composer.model.ComponentsSetBean" $arguments="{org.p
+ sem2m.composer.model.ComponentsSetBean,org.psem2m.utilities.json.JSON
+ Object}" }method { $name="parseComponentSets" $return="org.psem2m.com
+ poser.model.ComponentsSetBean[]" $arguments="{org.psem2m.composer.mod
+ el.ComponentsSetBean,org.psem2m.utilities.json.JSONArray}" }method { 
+ $name="readFile" $return="java.lang.String" $arguments="{java.lang.St
+ ring}" }method { $name="readJsonArrayFile" $return="org.psem2m.utilit
+ ies.json.JSONArray" $arguments="{java.lang.String}" }method { $name="
+ readJsonObjectFile" $return="org.psem2m.utilities.json.JSONObject" $a
+ rguments="{java.lang.String}" }method { $name="validatePojo" }method 
+ { $name="write" $arguments="{org.psem2m.composer.model.ComponentsSetB
+ ean,java.lang.String}" }}}
 

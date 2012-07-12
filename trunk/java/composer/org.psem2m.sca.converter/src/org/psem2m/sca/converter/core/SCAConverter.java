@@ -167,7 +167,8 @@ public class SCAConverter {
         for (final Composite composite : aScaComposite.getComposites()) {
             subComposets.add(convertComposite(composet, composite));
         }
-        composet.setComponentSets(subComposets);
+        composet.setComponentSets(subComposets
+                .toArray(new ComponentsSetBean[subComposets.size()]));
 
         return composet;
     }

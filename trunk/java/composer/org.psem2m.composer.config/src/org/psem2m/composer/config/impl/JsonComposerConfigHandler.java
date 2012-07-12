@@ -12,7 +12,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -297,9 +296,8 @@ public class JsonComposerConfigHandler extends CPojoBase implements
      * @throws JSONException
      *             Error while parsing the file
      */
-    protected Collection<ComponentBean> parseComponents(
-            final String aParentName, final JSONArray aJsonArray)
-            throws JSONException {
+    protected ComponentBean[] parseComponents(final String aParentName,
+            final JSONArray aJsonArray) throws JSONException {
 
         // Result list
         final List<ComponentBean> resultList = new ArrayList<ComponentBean>();
@@ -316,7 +314,7 @@ public class JsonComposerConfigHandler extends CPojoBase implements
             }
         }
 
-        return resultList;
+        return resultList.toArray(new ComponentBean[resultList.size()]);
     }
 
     /**
@@ -402,7 +400,7 @@ public class JsonComposerConfigHandler extends CPojoBase implements
      * @throws FileNotFoundException
      *             A referenced file is missing
      */
-    protected Collection<ComponentsSetBean> parseComponentSets(
+    protected ComponentsSetBean[] parseComponentSets(
             final ComponentsSetBean aParent, final JSONArray aJsonArray)
             throws JSONException, FileNotFoundException {
 
@@ -421,7 +419,7 @@ public class JsonComposerConfigHandler extends CPojoBase implements
             }
         }
 
-        return resultList;
+        return resultList.toArray(new ComponentsSetBean[resultList.size()]);
     }
 
     /**
