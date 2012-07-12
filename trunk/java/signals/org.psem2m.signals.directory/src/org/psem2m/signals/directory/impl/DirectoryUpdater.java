@@ -286,9 +286,6 @@ public class DirectoryUpdater implements ISignalListener,
     protected void notifyPresenceListeners(final String aIsolateId,
             final String aNode, final EPresence aPresence) {
 
-        pLogger.logDebug(this, "notifyPresenceListeners",
-                "Notify presence of=", aIsolateId, "to=", pListeners);
-
         for (final IIsolatePresenceListener listener : pListeners) {
             // Notify all listeners
             try {
@@ -297,7 +294,7 @@ public class DirectoryUpdater implements ISignalListener,
             } catch (final Exception ex) {
                 // Just log...
                 pLogger.logWarn(this, "notifyPresenceListeners", "Listener=",
-                        listener, "failed to handle event");
+                        listener, "failed to handle event", ex);
             }
         }
     }
