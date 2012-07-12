@@ -53,35 +53,33 @@ iPOJO-Components: instance { $component="org.psem2m.composer.core.Comp
  field { $name="pWaitingComposites" $type="java.util.List" }method { $
  name="bindCompositionListener" $arguments="{org.psem2m.composer.IComp
  ositionListener}" }method { $name="bindSignalReceiver" $arguments="{o
- rg.psem2m.signals.ISignalReceiver}" }method { $name="buildComponentsS
- etSnapshot" $return="org.psem2m.composer.ComponentsSetSnapshot" $argu
- ments="{org.psem2m.composer.model.ComponentsSetBean}" }method { $name
- ="cancelTimeout" $arguments="{java.lang.String}" }method { $name="del
- ayResolution" }method { $name="getCompositionSnapshot" $return="java.
- util.List" }method { $name="handleComponentChangedSignal" $arguments=
- "{java.lang.String,java.util.Map}" }method { $name="handleIsolatePres
- ence" $arguments="{java.lang.String,java.lang.String,org.psem2m.isola
- tes.services.monitoring.IIsolatePresenceListener$EPresence}" }method 
- { $name="handleReceivedSignal" $return="java.lang.Object" $arguments=
- "{java.lang.String,org.psem2m.signals.ISignalData}" }method { $name="
- instantiateComponentsSet" $arguments="{org.psem2m.composer.model.Comp
- onentsSetBean}" }method { $name="instantiateComponentsSet" $arguments
- ="{org.psem2m.composer.core.InstantiatingComposite,java.util.Map}" }m
- ethod { $name="invalidatePojo" }method { $name="loadCompositionFile" 
- $return="org.psem2m.composer.model.ComponentsSetBean" $arguments="{ja
- va.lang.String}" }method { $name="notifyComponentsRegistration" }meth
- od { $name="notifyRemoval" $arguments="{org.psem2m.composer.model.Com
- ponentsSetBean}" }method { $name="notifyUpdate" $arguments="{org.psem
- 2m.composer.model.ComponentsSetBean}" }method { $name="prepareCompone
- ntsSet" $return="boolean" $arguments="{org.psem2m.composer.model.Comp
- onentsSetBean}" }method { $name="registerComponentsForIsolate" $argum
- ents="{java.lang.String,org.psem2m.composer.model.ComponentBean[]}" }
- method { $name="registerComponentsForIsolate" $arguments="{java.lang.
- String,java.lang.String[]}" }method { $name="removeComponentsSet" $ar
- guments="{org.psem2m.composer.model.ComponentsSetBean}" }method { $na
- me="unregisterComponentsForIsolate" $arguments="{java.lang.String,jav
- a.lang.String[]}" }method { $name="unregisterIsolate" $arguments="{ja
- va.lang.String}" }method { $name="updateInstantiatingCompositeStatus"
-  $arguments="{java.util.Map,java.lang.String}" }method { $name="valid
- atePojo" }}}
+ rg.psem2m.signals.ISignalReceiver}" }method { $name="cancelTimeout" $
+ arguments="{java.lang.String}" }method { $name="delayResolution" }met
+ hod { $name="getCompositionSnapshot" $return="org.psem2m.composer.mod
+ el.ComponentsSetBean[]" }method { $name="handleComponentChangedSignal
+ " $arguments="{java.lang.String,java.util.Map}" }method { $name="hand
+ leIsolatePresence" $arguments="{java.lang.String,java.lang.String,org
+ .psem2m.isolates.services.monitoring.IIsolatePresenceListener$EPresen
+ ce}" }method { $name="handleReceivedSignal" $return="java.lang.Object
+ " $arguments="{java.lang.String,org.psem2m.signals.ISignalData}" }met
+ hod { $name="instantiateComponentsSet" $arguments="{org.psem2m.compos
+ er.model.ComponentsSetBean}" }method { $name="instantiateComponentsSe
+ t" $arguments="{org.psem2m.composer.core.InstantiatingComposite,java.
+ util.Map}" }method { $name="invalidatePojo" }method { $name="loadComp
+ ositionFile" $return="org.psem2m.composer.model.ComponentsSetBean" $a
+ rguments="{java.lang.String}" }method { $name="notifyComponentsRegist
+ ration" }method { $name="notifyRemoval" $arguments="{org.psem2m.compo
+ ser.model.ComponentsSetBean}" }method { $name="notifyUpdate" $argumen
+ ts="{org.psem2m.composer.model.ComponentsSetBean}" }method { $name="p
+ repareComponentsSet" $return="boolean" $arguments="{org.psem2m.compos
+ er.model.ComponentsSetBean}" }method { $name="registerComponentsForIs
+ olate" $arguments="{java.lang.String,org.psem2m.composer.model.Compon
+ entBean[]}" }method { $name="registerComponentsForIsolate" $arguments
+ ="{java.lang.String,java.lang.String[]}" }method { $name="removeCompo
+ nentsSet" $arguments="{org.psem2m.composer.model.ComponentsSetBean}" 
+ }method { $name="unregisterComponentsForIsolate" $arguments="{java.la
+ ng.String,java.lang.String[]}" }method { $name="unregisterIsolate" $a
+ rguments="{java.lang.String}" }method { $name="updateInstantiatingCom
+ positeStatus" $arguments="{java.util.Map,java.lang.String}" }method {
+  $name="validatePojo" }}}
 

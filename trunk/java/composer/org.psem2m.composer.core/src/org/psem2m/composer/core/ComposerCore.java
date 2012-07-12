@@ -28,8 +28,6 @@ import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.StaticServiceProperty;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
-import org.psem2m.composer.ComponentSnapshot;
-import org.psem2m.composer.ComponentsSetSnapshot;
 import org.psem2m.composer.ECompositionEvent;
 import org.psem2m.composer.IComposer;
 import org.psem2m.composer.ICompositionListener;
@@ -136,13 +134,18 @@ public class ComposerCore extends CPojoBase implements IComposer,
 
         // Send the current state to the listener
         try {
-            aListener.setCompositionSnapshots(getCompositionSnapshot().toArray(
-                    new ComponentsSetSnapshot[0]));
+            aListener.setCompositionSnapshots(getCompositionSnapshot());
 
         } catch (final Exception ex) {
             // Just log errors...
             pLogger.logWarn(this, "bindCompositionListener",
-                    "Error setting up a composition listener.", ex);
+                    "Error setting up a composition listener.");
+
+            Throwable e = ex;
+            do {
+                pLogger.logWarn(this, "...", "Continuation:\n", e);
+                e = e.getCause();
+            } while (e != null);
         }
     }
 
@@ -164,34 +167,6 @@ public class ComposerCore extends CPojoBase implements IComposer,
 
         pLogger.logInfo(this, "bindSignalReceiver",
                 "Bound to a signal receiver");
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.composer.IComposer#getCompositionSnapshot()
-     */
-    private synchronized ComponentsSetSnapshot buildComponentsSetSnapshot(
-            final ComponentsSetBean aComponentsSetBean) {
-
-        final ComponentsSetSnapshot wComponentsSetSnapshot = new ComponentsSetSnapshot(
-                aComponentsSetBean);
-
-        // populate the list of children
-        for (final ComponentsSetBean wChild : aComponentsSetBean
-                .getComponentSets()) {
-
-            wComponentsSetSnapshot.addChild(buildComponentsSetSnapshot(wChild));
-        }
-
-        // populate the list of components
-        for (final ComponentBean wComponent : aComponentsSetBean
-                .getComponents()) {
-            wComponentsSetSnapshot.addComponent(new ComponentSnapshot(
-                    wComponent));
-        }
-
-        return wComponentsSetSnapshot;
     }
 
     /**
@@ -233,16 +208,18 @@ public class ComposerCore extends CPojoBase implements IComposer,
      * @see org.psem2m.composer.IComposer#getCompositionSnapshot()
      */
     @Override
-    public synchronized List<ComponentsSetSnapshot> getCompositionSnapshot() {
+    public synchronized ComponentsSetBean[] getCompositionSnapshot() {
 
-        final List<ComponentsSetSnapshot> wCompositionSnapshots = new ArrayList<ComponentsSetSnapshot>();
+        final List<ComponentsSetBean> wCompositionSnapshots = new ArrayList<ComponentsSetBean>();
         for (final ComponentsSetBean wComponentsSetBean : pRootsComponentsSetBean) {
 
-            wCompositionSnapshots
-                    .add(buildComponentsSetSnapshot(wComponentsSetBean));
+            // Use the copy constructor
+            wCompositionSnapshots.add(new ComponentsSetBean(wComponentsSetBean,
+                    null));
         }
 
-        return wCompositionSnapshots;
+        return wCompositionSnapshots
+                .toArray(new ComponentsSetBean[wCompositionSnapshots.size()]);
     }
 
     /**
@@ -709,10 +686,10 @@ public class ComposerCore extends CPojoBase implements IComposer,
     /**
      * Notifies listeners of a composition update
      * 
-     * @param aComponentsSetBean
+     * @param aRootComponentsSetBean
      *            Updated components set
      */
-    protected void notifyUpdate(final ComponentsSetBean aComponentsSetBean) {
+    protected void notifyUpdate(final ComponentsSetBean aRootComponentsSetBean) {
 
         if (pCompositionListeners.length == 0) {
             // Nothing to do...
@@ -720,7 +697,8 @@ public class ComposerCore extends CPojoBase implements IComposer,
         }
 
         // Make a snapshot of the components set
-        final ComponentsSetSnapshot snapshot = buildComponentsSetSnapshot(aComponentsSetBean);
+        final ComponentsSetBean snapshot = new ComponentsSetBean(
+                aRootComponentsSetBean, null);
 
         for (final ICompositionListener listener : pCompositionListeners) {
             // Notify listeners
