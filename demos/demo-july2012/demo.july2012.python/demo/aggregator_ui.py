@@ -41,11 +41,11 @@ else:
         """
         Converts the given bytes array to a string
         """
-        if type(data) is unicode:
+        if type(data) is str:
             # Nothing to do
             return data
 
-        return data.decode(encoding)
+        return data.encode(encoding)
 
 # ------------------------------------------------------------------------------
 
@@ -123,9 +123,6 @@ class AggregatorServlet(object):
 </body>
 </html>
 """
-
-        # Convert the output
-        output = output.encode()
 
         # Send headers
         handler.send_response(200)
