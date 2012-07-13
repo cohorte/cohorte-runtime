@@ -76,7 +76,15 @@ public class CIsolatesTreeModel implements TreeModel, IIsolatePresenceListener {
      */
     private CSnapshotNode findNode(final String aId) {
 
-        return pSnapshotNodes.get(findNodeIdx(aId));
+        synchronized (pSnapshotNodes) {
+
+            final int index = findNodeIdx(aId);
+            if (index < 0) {
+                return null;
+            }
+
+            return pSnapshotNodes.get(index);
+        }
     }
 
     /**
@@ -85,12 +93,14 @@ public class CIsolatesTreeModel implements TreeModel, IIsolatePresenceListener {
      */
     private int findNodeIdx(final String aId) {
 
-        int wIdx = 0;
-        for (final CSnapshotNode wNode : pSnapshotNodes) {
-            if (wNode.getName().equals(aId)) {
-                return wIdx;
+        synchronized (pSnapshotNodes) {
+            int wIdx = 0;
+            for (final CSnapshotNode wNode : pSnapshotNodes) {
+                if (wNode.getName().equals(aId)) {
+                    return wIdx;
+                }
+                wIdx++;
             }
-            wIdx++;
         }
         return -1;
     }
@@ -176,33 +186,43 @@ public class CIsolatesTreeModel implements TreeModel, IIsolatePresenceListener {
     public void handleIsolatePresence(final String aIsolateId,
             final String aNodeId, final EPresence aPresence) {
 
-        if (aPresence.equals(EPresence.REGISTERED)) {
+        CSnapshotNode wNode = findNode(aNodeId);
 
-            CSnapshotNode wNode = findNode(aNodeId);
-            if (wNode == null) {
-                wNode = new CSnapshotNode(aNodeId);
-                wNode.setHostName(pSignalDirectory.getHostForNode(aNodeId));
+        switch (aPresence) {
+        case REGISTERED: {
+            synchronized (pSnapshotNodes) {
+                // Find or create the node
+                if (wNode == null) {
+                    wNode = new CSnapshotNode(aNodeId);
+                    wNode.setHostName(pSignalDirectory.getHostForNode(aNodeId));
+
+                    // Store the new node
+                    pSnapshotNodes.add(wNode);
+                }
+
+                // Store the isolate
+                final CSnapshotIsolate snapshot = new CSnapshotIsolate(
+                        aIsolateId);
+                snapshot.setHostAccess(pSignalDirectory
+                        .getIsolateAccess(aIsolateId));
+                wNode.add(snapshot);
             }
+            break;
+        }
 
-            final CSnapshotIsolate snapshot = new CSnapshotIsolate(aIsolateId);
-            snapshot.setHostAccess(pSignalDirectory
-                    .getIsolateAccess(aIsolateId));
-            wNode.add(snapshot);
-
-        } else if (aPresence.equals(EPresence.UNREGISTERED)) {
-
-            final int wNodeIdx = findNodeIdx(aNodeId);
-            if (wNodeIdx > -1) {
-                final CSnapshotNode wNode = pSnapshotNodes.get(wNodeIdx);
+        case UNREGISTERED: {
+            // Find the node index in the list
+            synchronized (pSnapshotNodes) {
                 if (wNode != null) {
                     wNode.removeChild(aIsolateId);
-                    if (wNode.getChildCount() < 1) {
-                        pSnapshotNodes.remove(wNodeIdx);
+                    if (wNode.getChildCount() <= 0) {
+                        pSnapshotNodes.remove(wNode);
                     }
                 }
             }
+            break;
         }
-
+        }
     }
 
     /*
