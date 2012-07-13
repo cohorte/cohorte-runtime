@@ -88,6 +88,8 @@ MODE_SEND = "send"
 DEFAULT_MODE = MODE_SEND
 HEADER_SIGNAL_MODE = "psem2m-mode"
 
+CONTENT_TYPE_JSON = "application/json"
+
 # ------------------------------------------------------------------------------
 
 def _make_json_result(code, message="", results=None):
@@ -157,7 +159,7 @@ class SignalReceiver(object):
 
         else:
             content_type = handler.headers.get('content-type')
-            if content_type not in (None, 'application/json',
+            if content_type not in (None, CONTENT_TYPE_JSON,
                                     'application/x-www-form-urlencoded'):
                 # Unknown content type
                 code, content = _make_json_result(500, "Unknown content type")
@@ -195,7 +197,7 @@ class SignalReceiver(object):
 
         # Send headers
         handler.send_response(code)
-        handler.send_header('Content-type', 'application/json')
+        handler.send_header('Content-type', CONTENT_TYPE_JSON)
         handler.send_header('Content-length', len(content))
         handler.end_headers()
 
@@ -811,19 +813,25 @@ class SignalSender(object):
             signal = signal[1:]
         signal_url = "%s%s" % (SignalReceiver.SERVLET_PATH, signal)
 
-        conn = httplib.HTTPConnection(host, port, timeout=4)
+        conn = httplib.HTTPConnection(host, port, timeout=3)
         try:
             # Open a new HTTP Connection
             conn.connect()
 
             # Send the request
-            headers = {"Content-Type": "application/json",
+            headers = {"Content-Type": CONTENT_TYPE_JSON,
                        HEADER_SIGNAL_MODE: mode}
 
             conn.request("POST", signal_url, content, headers)
 
             # Read the response
-            response = conn.getresponse()
+            try:
+                response = conn.getresponse()
+
+            except Exception as ex:
+                _logger.error("Error while reading HTTP response: %s", ex)
+                return None
+
             if response.status != 200:
                 # Not a full success
                 _logger.warn("Incorrect response for %s : %s %s",
@@ -831,14 +839,23 @@ class SignalSender(object):
                              response.reason)
 
             result = response.read()
-            if result:
+
+            # Verify content type
+            content_type = response.getheader("Content-Type")
+            json_result = (content_type == CONTENT_TYPE_JSON)
+            if content_type and not json_result:
+                # Content-Type given but not handled
+                _logger.debug("Received something that is not JSON: %s",
+                              content_type)
+
+            if result and json_result:
                 try:
                     # Try to convert the result from JSON
                     result = from_jabsorb(json.loads(_to_string(result)))
 
-                except:
+                except Exception as ex:
                     # Unreadable response
-                    _logger.exception("Couldn't read response: '%s'", result)
+                    _logger.error("Couldn't read response: %s'", ex)
                     result = None
             else:
                 # Be sure to have a None value
