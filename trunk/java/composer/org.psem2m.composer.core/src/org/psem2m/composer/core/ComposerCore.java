@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -82,6 +83,9 @@ public class ComposerCore extends CPojoBase implements IComposer,
     /** Maps isolates and components */
     private final Map<String, Set<String>> pIsolatesCapabilities = new HashMap<String, Set<String>>();
 
+    /** Executor to notify composition listeners */
+    private ExecutorService pListenersExecutor;
+
     /** The logger */
     @Requires
     private IIsolateLoggerSvc pLogger;
@@ -114,8 +118,7 @@ public class ComposerCore extends CPojoBase implements IComposer,
     private final List<ComponentsSetBean> pRootsComponentsSetBean = new ArrayList<ComponentsSetBean>();
 
     /** Scheduler executor for timeouts */
-    private final ScheduledExecutorService pScheduler = Executors
-            .newScheduledThreadPool(1);
+    private ScheduledExecutorService pScheduler;
 
     /** The signals broadcaster */
     @Requires
@@ -596,6 +599,14 @@ public class ComposerCore extends CPojoBase implements IComposer,
     @Invalidate
     public void invalidatePojo() throws BundleException {
 
+        // Stop the scheduler
+        pScheduler.shutdownNow();
+        pScheduler = null;
+
+        // Stop the notifier
+        pListenersExecutor.shutdownNow();
+        pListenersExecutor = null;
+
         pLogger.logInfo(this, "invalidatePojo", "Composer Core Gone");
     }
 
@@ -671,12 +682,31 @@ public class ComposerCore extends CPojoBase implements IComposer,
     }
 
     /**
-     * Notifies listeners of the removal of a composition
+     * Notifies listeners of the removal of a composition in a new thread
      * 
      * @param aComponentsSetBean
      *            A components set
      */
     protected void notifyRemoval(final ComponentsSetBean aComponentsSetBean) {
+
+        // Execute in another thread
+        pListenersExecutor.execute(new Runnable() {
+
+            @Override
+            public void run() {
+
+                notifyRemovalThread(aComponentsSetBean);
+            }
+        });
+    }
+
+    /**
+     * Notifies listeners of the removal of a composition
+     * 
+     * @param aComponentsSetBean
+     *            A components set
+     */
+    private void notifyRemovalThread(final ComponentsSetBean aComponentsSetBean) {
 
         if (pCompositionListeners.length == 0) {
             // Nothing to do...
@@ -700,12 +730,32 @@ public class ComposerCore extends CPojoBase implements IComposer,
     }
 
     /**
-     * Notifies listeners of a composition update
+     * Notifies listeners of a composition update in a new thread
      * 
      * @param aRootComponentsSetBean
      *            Updated components set
      */
     protected void notifyUpdate(final ComponentsSetBean aRootComponentsSetBean) {
+
+        // Execute in another thread
+        pListenersExecutor.execute(new Runnable() {
+
+            @Override
+            public void run() {
+
+                notifyUpdateThread(aRootComponentsSetBean);
+            }
+        });
+    }
+
+    /**
+     * Notifies listeners of a composition update
+     * 
+     * @param aRootComponentsSetBean
+     *            Updated components set
+     */
+    private void notifyUpdateThread(
+            final ComponentsSetBean aRootComponentsSetBean) {
 
         if (pCompositionListeners.length == 0) {
             // Nothing to do...
@@ -1107,6 +1157,12 @@ public class ComposerCore extends CPojoBase implements IComposer,
     @Override
     @Validate
     public void validatePojo() throws BundleException {
+
+        // Listeners executor
+        pListenersExecutor = Executors.newFixedThreadPool(1);
+
+        // Scheduled executor
+        pScheduler = Executors.newScheduledThreadPool(1);
 
         pLogger.logInfo(this, "validatePojo", "Composer Core Ready");
 
