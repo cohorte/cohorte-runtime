@@ -18,6 +18,9 @@
                     "symbolicName":"org.psem2m.composer.api"
                 },
                 {
+                    "symbolicName":"org.psem2m.demo.july2012.api"
+                },
+                {
                     "from":"signals-http.js"
                 },
                 {
@@ -47,7 +50,7 @@
         },
         {
             "id":"demo.stratus.aggregator",
-            "kind":"pelix_py3",
+            "kind":"pelix",
             "node":"stratus",
             "httpPort":9100,
             "bundles":[
@@ -82,7 +85,7 @@
         },
         {
             "id":"demo.temper",
-            "kind":"pelix_py3",
+            "kind":"pelix",
             "node":"stratus",
             "httpPort":9101,
             "bundles":[
@@ -114,7 +117,7 @@
         },
         {
             "id":"demo.temper-2",
-            "kind":"pelix_py3",
+            "kind":"pelix",
             "node":"stratus",
             "httpPort":9102,
             "bundles":[
