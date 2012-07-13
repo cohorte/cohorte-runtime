@@ -330,23 +330,28 @@ class SignalReceiver(object):
         :return: The result of all 
         """
         results = []
+        listeners = []
 
         with self._listeners_lock:
-            # Still use a copy of the listeners, as one may unregister itself
+            # Grab all registered listeners
             for pattern in self._listeners.copy():
                 if fnmatch.fnmatch(name, pattern):
                     # Signal name matches the pattern
-                    listeners = self._listeners[pattern][:]
-                    for listener in listeners:
-                        try:
-                            # Notify the listener
-                            result = listener.handle_received_signal(name, data)
-                            if result is not None:
-                                # Store the result
-                                results.append(result)
+                    for listener in self._listeners[pattern]:
+                        if listener not in listeners:
+                            listeners.append(listener)
 
-                        except:
-                            _logger.exception("Error notifying a listener")
+        # Out-of-lock notification loop
+        for listener in listeners:
+            try:
+                # Notify the listener
+                result = listener.handle_received_signal(name, data)
+                if result is not None:
+                    # Store the result
+                    results.append(result)
+
+            except Exception as ex:
+                _logger.exception("Error notifying a listener: %s", ex)
 
         return _make_json_result(200, results=results)
 
