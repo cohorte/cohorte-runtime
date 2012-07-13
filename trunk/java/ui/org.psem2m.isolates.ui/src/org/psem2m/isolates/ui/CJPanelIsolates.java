@@ -28,7 +28,6 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreePath;
 
-
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.ui.admin.api.EUiAdminFont;
 
@@ -49,21 +48,19 @@ public class CJPanelIsolates extends CJPanelTree {
 
         private static final String ICON_PATH = "/org/psem2m/isolates/ui/";
 
-        private static final String NAME_ICON_NODE = ICON_PATH
-                + "info.png";
-
         private static final String NAME_ICON_ISOLATE = ICON_PATH
                 + "important.png";
+
+        private static final String NAME_ICON_NODE = ICON_PATH + "info.png";
 
         private static final String NAME_ICON_ROOT = ICON_PATH
                 + "dialog-question.png";
 
-        
         private static final long serialVersionUID = -2838261694472584039L;
 
         private final Icon pIconIsolate;
-        private final Icon pIconRoot;
         private final Icon pIconNode;
+        private final Icon pIconRoot;
 
         /**
          * 
@@ -76,7 +73,6 @@ public class CJPanelIsolates extends CJPanelTree {
                     CJPanelIsolates.class.getResource(NAME_ICON_ROOT));
             pIconNode = new ImageIcon(
                     CJPanelIsolates.class.getResource(NAME_ICON_NODE));
-
 
             setIcon(pIconNode);
         }
@@ -93,17 +89,17 @@ public class CJPanelIsolates extends CJPanelTree {
                 // Simple string
                 setIcon(pIconRoot);
                 return this;
-            } 
-            if (leaf){
-	            if ( value instanceof CSnapshotNode){
-	            	
-	            	// Node
-	              	setIcon(pIconNode);
-	            } else {
-	            	
-	            	//Isolate
-	              	setIcon(pIconIsolate);
-	            }
+            }
+            if (leaf) {
+                if (value instanceof CSnapshotNode) {
+
+                    // Node
+                    setIcon(pIconNode);
+                } else {
+
+                    // Isolate
+                    setIcon(pIconIsolate);
+                }
             }
             return this;
         }
@@ -159,8 +155,7 @@ public class CJPanelIsolates extends CJPanelTree {
      * @param aLogger
      */
     public CJPanelIsolates(final IIsolateLoggerSvc aLogger,
-            final JPanel aPanel,
-            final CIsolatesTreeModel aCCompositionTreeModel) {
+            final JPanel aPanel, final CIsolatesTreeModel aCCompositionTreeModel) {
 
         super(aLogger);
         pCompositionTreeModel = aCCompositionTreeModel;
@@ -194,10 +189,11 @@ public class CJPanelIsolates extends CJPanelTree {
                 if (path.getPathCount() > 1) {
                     final Object root = path.getPathComponent(1);
 
-//                    if (root instanceof String) {
-//                        final ComponentsSetSnapshot snapshot = (ComponentsSetSnapshot) root;
-//                        result.add(snapshot.getComponentSet());
-//                    }
+                    // if (root instanceof String) {
+                    // final ComponentsSetSnapshot snapshot =
+                    // (ComponentsSetSnapshot) root;
+                    // result.add(snapshot.getComponentSet());
+                    // }
                 }
             }
         }
@@ -296,7 +292,13 @@ public class CJPanelIsolates extends CJPanelTree {
     public void updateTree() {
 
         if (pTree != null) {
+            // Expand rows
+            for (int i = 0; i < pTree.getRowCount(); i++) {
+                pTree.expandRow(i);
+            }
+
             pTree.updateUI();
+            updateUI();
         }
     }
 }

@@ -1,5 +1,7 @@
 package org.psem2m.isolates.ui;
 
+import java.lang.reflect.InvocationTargetException;
+
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
@@ -93,10 +95,16 @@ public class CUiAdminPanelIsolates extends CPojoBase implements
                     aPresence);
         }
 
-        if (pPanelIsolates != null) {
-            pPanelIsolates.updateTree();
-            pPanelIsolates.updateUI();
-        }
+        safeInvokeAndWait(new Runnable() {
+
+            @Override
+            public void run() {
+
+                if (pPanelIsolates != null) {
+                    pPanelIsolates.updateTree();
+                }
+            }
+        });
     }
 
     /**
@@ -149,6 +157,42 @@ public class CUiAdminPanelIsolates extends CPojoBase implements
 
         } catch (final Exception e) {
             pLogger.logSevere(this, "invalidatePojo", e);
+        }
+    }
+
+    /**
+     * Calls {@link SwingUtilities#invokeAndWait(Runnable)} or runs the
+     * arguments immediately depending of the current thread
+     * 
+     * @param aRunnable
+     *            A runnable
+     */
+    private void safeInvokeAndWait(final Runnable aRunnable) {
+
+        if (SwingUtilities.isEventDispatchThread()) {
+            try {
+                // We already are in the Swing thread
+                aRunnable.run();
+
+            } catch (final Exception ex) {
+                // Just log
+                pLogger.logSevere(this, "initContent",
+                        "Error during content initialization", ex);
+            }
+
+        } else {
+            try {
+                // Call the Swing thread
+                SwingUtilities.invokeAndWait(aRunnable);
+
+            } catch (final InterruptedException ex) {
+                // Ignore...
+
+            } catch (final InvocationTargetException ex) {
+                // Just log...
+                pLogger.logSevere(this, "initContent",
+                        "Error during content initialization", ex.getCause());
+            }
         }
     }
 
