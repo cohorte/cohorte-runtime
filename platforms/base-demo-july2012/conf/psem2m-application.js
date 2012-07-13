@@ -11,7 +11,7 @@
         {
             "id":"demo.central.ui",
             "kind":"felix",
-            "node":"stratus",
+            "node":"central",
             "httpPort":9099,
             "bundles":[
                 {

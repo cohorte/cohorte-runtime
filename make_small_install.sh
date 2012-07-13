@@ -16,6 +16,8 @@ BASE_MODULE="base"
 BASE_SRC="$PSEM2M_ROOT/trunk/python/psem2m.base/src"
 FORKER_MODULE="psem2m"
 FORKER_SRC="$PSEM2M_ROOT/trunk/python/psem2m.forker/src"
+DEMO_MODULE="demo"
+DEMO_SRC="$PSEM2M_ROOT/demos/demo-july2012/demo.july2012.python"
 
 # - Script -
 echo "Mise à jour de Small-Install..."
@@ -23,12 +25,16 @@ pushd "$PLATFORMS_DIR" >/dev/null || exit 1
 
 pushd "$SMALL_INSTALL_NAME/$SMALL_HOME/bin" >/dev/null || exit 1
 echo "> Mise à jour de PSEM2M base..."
-rm -fr BASE_MODULE
+rm -fr $BASE_MODULE
 cp -r "$BASE_SRC/$BASE_MODULE" .
 
 echo "> Mise à jour de PSEM2M forker..."
-rm -fr "psem2m"
+rm -fr $FORKER_MODULE
 cp -r "$FORKER_SRC/$FORKER_MODULE" .
+
+echo "> Mise à jour de Demo July 2012..."
+rm -fr $DEMO_MODULE
+cp -r "$DEMO_SRC/$DEMO_MODULE" .
 
 echo "> Suppression des fichiers .pyc..."
 find . -name "*.pyc" -exec rm -f {} \;

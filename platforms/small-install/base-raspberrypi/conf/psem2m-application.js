@@ -3,10 +3,10 @@
     "multicast":"239.0.0.1",
     "isolates":[
         {
-            "id":"org.psem2m.internals.isolates.forker.snowball",
+            "id":"org.psem2m.internals.isolates.forker.raspberrypi",
             "kind":"pelix",
             "httpPort":9001,
-            "node":"snowball",
+            "node":"raspberrypi",
             "bundles":[
                 {
                     "symbolicName":"base.httpsvc"

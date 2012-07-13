@@ -3,10 +3,10 @@
     "multicast":"239.0.0.1",
     "isolates":[
         {
-            "id":"org.psem2m.internals.isolates.forker.snowball",
+            "id":"org.psem2m.internals.isolates.forker.stratus",
             "kind":"pelix",
             "httpPort":9001,
-            "node":"snowball",
+            "node":"stratus",
             "bundles":[
                 {
                     "symbolicName":"base.httpsvc"
@@ -28,6 +28,9 @@
                 },
                 {
                     "symbolicName":"psem2m.runner.python"
+                },
+                {
+                    "symbolicName":"psem2m.runner.java"
                 },
                 {
                     "symbolicName":"psem2m.forker.heartbeat"

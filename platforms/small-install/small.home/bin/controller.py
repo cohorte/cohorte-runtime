@@ -21,7 +21,7 @@ if not CONTROLLER_PATH:
     CONTROLLER_PATH = os.getcwd()
 
 
-CURRENT_SYSTEM = "snowball"
+CURRENT_SYSTEM = os.getenv("PSEM2M_DEVICE", "stratus")
 DEFAULT_PSEM2M_HOME = os.path.abspath("%s/.." % CONTROLLER_PATH)
 DEFAULT_PSEM2M_BASE = os.path.abspath("%s/../base-%s"
                                       % (DEFAULT_PSEM2M_HOME, CURRENT_SYSTEM))
