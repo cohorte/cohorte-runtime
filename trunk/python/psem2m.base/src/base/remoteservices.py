@@ -244,7 +244,6 @@ class ServiceExporter(object):
                 JAVA_CLASS:"org.psem2m.isolates.services.remote.beans.RemoteServiceEvent$ServiceEventType",
                 "enumValue":"REGISTERED"
             },
-            "senderHostName": "localhost",
             "serviceRegistration": registration
         }
 
@@ -280,7 +279,6 @@ class ServiceExporter(object):
                 JAVA_CLASS:"org.psem2m.isolates.services.remote.beans.RemoteServiceEvent$ServiceEventType",
                 "enumValue":"UNREGISTERED"
             },
-            "senderHostName": "localhost",
             "serviceRegistration": registration
         }
 
