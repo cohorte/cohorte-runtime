@@ -254,6 +254,12 @@ class ComposerAgent(object):
         # Register to iPOPO events
         self.ipopo.add_listener(self)
 
+        # Send registered iPOPO factories to other isolates
+        # Directory might be empty at first time, but not on component reload
+        self.sender.fire(SIGNAL_ISOLATE_ADD_FACTORY,
+                        tuple(self.ipopo.get_registered_factories()),
+                        dir_group="ALL")
+
 
     @Invalidate
     def invalidate(self, context):
