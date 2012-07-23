@@ -188,7 +188,8 @@ def update_controller(home, node, zipfiles):
     return outfile
 
 
-def make_small_install_zip(small_install, node, outdir=os.curdir):
+def make_small_install_zip(small_install, node, java_home_repo, java_base_repo,
+                           outdir=os.curdir):
     """
     Prepares the ZIP for a small install
     
@@ -219,6 +220,14 @@ def make_small_install_zip(small_install, node, outdir=os.curdir):
                     # Add the file to the ZIP (ignore /var directory)
                     outfiles[fullname] = zipname
 
+    # Add the Java repository
+    prepare_zip_directory(outfiles, java_home_repo,
+                          os.path.join(SMALL_INSTALL_HOME, "repo"))
+
+    prepare_zip_directory(outfiles, java_base_repo,
+                          os.path.relpath(os.path.join(base, "repo"),
+                                          small_install))
+
     # Replace the controller.py file
     tmp_file = update_controller(home, node, outfiles)
     make_zip(os.path.join(outdir, node + "-small.zip"), outfiles)
@@ -228,7 +237,8 @@ def make_small_install_zip(small_install, node, outdir=os.curdir):
     print("{node} Done.".format(node=node))
 
 
-def make_small_installs_zips(small_install, monitor_node, outdir=os.curdir):
+def make_small_installs_zips(psem2m_home, psem2m_base, small_install,
+                             monitor_node, outdir=os.curdir):
     """
     Prepares the ZIP files for all small install bases, except the monitor node
     (if found)
@@ -240,6 +250,9 @@ def make_small_installs_zips(small_install, monitor_node, outdir=os.curdir):
     """
     bases = find_bases(small_install)
 
+    home_repo = os.path.join(psem2m_home, "repo")
+    base_repo = os.path.join(psem2m_base, "repo")
+
     for base in bases:
         node = os.path.basename(base)[len(BASE_PREFIX):]
         if node == monitor_node:
@@ -248,7 +261,8 @@ def make_small_installs_zips(small_install, monitor_node, outdir=os.curdir):
 
         else:
             # Make small.home + base ZIP
-            make_small_install_zip(small_install, node, outdir)
+            make_small_install_zip(small_install, node,
+                                   home_repo, base_repo, outdir)
 
 # ------------------------------------------------------------------------------
 
@@ -371,7 +385,7 @@ def prepare_zip_directory(zip_files, srcdir, zipdir):
     :param srcdir: Source directory
     :param zipdir: Directory in the ZIP file
     """
-    for root, dirs, files in os.walk(srcdir):
+    for root, dirs, files in os.walk(srcdir, followlinks=True):
         for filename in files:
             # Get the full path
             fullpath = os.path.join(root, filename)
@@ -415,7 +429,7 @@ def extend_home_files(dev_root, zip_files, extra_modules, home_dir=PSEM2M_HOME):
         prepare_zip_directory(zip_files, indir, outdir)
 
 
-def update_small_install(dev_root, small_install, extra_modules):
+def update_small_install(dev_root, psem2m_home, small_install, extra_modules):
     """
     Updates the small install home content
     
@@ -443,6 +457,13 @@ def update_small_install(dev_root, small_install, extra_modules):
 
         # Copy the tree
         shutil.copytree(os.path.join(srcdir, modname), outdir, False)
+
+    # Copy the configuration files
+    small_conf = os.path.join(small_install, SMALL_INSTALL_HOME, "conf")
+    if os.path.exists(small_conf):
+        shutil.rmtree(small_conf)
+
+    shutil.copytree(os.path.join(psem2m_home, "conf"), small_conf)
 
 # ------------------------------------------------------------------------------
 
@@ -499,13 +520,13 @@ def main():
 
     # 0. Update Small install
     extra_modules = read_extra_modules(dev_root, base)
-    update_small_install(dev_root, small_install, extra_modules)
+    update_small_install(dev_root, home, small_install, extra_modules)
 
     # 1. ZIP the base
     make_monitor_zip(dev_root, home, base, monitor_node, outdir)
 
     # 2. ZIP the other nodes
-    make_small_installs_zips(small_install, monitor_node, outdir)
+    make_small_installs_zips(home, base, small_install, monitor_node, outdir)
 
 
 if __name__ == "__main__":
