@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #-- Content-Encoding: UTF-8 --
 """
 PSEM2M Forker control script (could be used as an init.d script)
@@ -32,8 +32,6 @@ DEFAULT_PSEM2M_BASE = os.path.abspath("%s/../base-%s"
 
 # ------------------------------------------------------------------------------
 
-import psutil
-
 import inspect
 import json
 import socket
@@ -50,9 +48,6 @@ else:
 
 # ------------------------------------------------------------------------------
 
-# Setup the logger
-_logger = logging.getLogger("PSEM2M Controller")
-
 PSEM2M_HOME = os.environ.get("PSEM2M_HOME", DEFAULT_PSEM2M_HOME)
 PSEM2M_BASE = os.environ.get("PSEM2M_BASE", DEFAULT_PSEM2M_BASE)
 
@@ -67,8 +62,17 @@ if PSEM2M_BASE is not None:
 
 else:
     # Use HOME as BASE by default
-    os.environ["PSEM2M_BASE"] = os.getenv("PSEM2M_BASE",
-                                          os.getenv("PSEM2M_HOME"))
+    os.environ["PSEM2M_BASE"] = os.getenv("PSEM2M_HOME")
+
+# ------------------------------------------------------------------------------
+
+# Setup the logger
+_logger = logging.getLogger("PSEM2M Controller")
+
+
+# Get OS utilities
+import psem2m.utils
+_utils = psem2m.utils.get_os_utils()
 
 # ------------------------------------------------------------------------------
 
@@ -132,38 +136,36 @@ def get_forker_process(base):
         print("Error reading the forker PID file : %s" % ex)
         return None
 
-    try:
-        # Get the process
-        return psutil.Process(pid)
+    if _utils.is_process_running(pid):
+        # PID is valid
+        return pid
 
-    except psutil.NoSuchProcess:
-        # Process not found
-        return None
+    return None
 
 
-def has_forker_cmd_line(executable, argv):
-    """
-    Tests if the given executable and arguments can correspond to the forker
-
-    :param executable: The name of an executable
-    :param argv: A list of arguments
-    :return: True if given parameters corresponds to a forker
-    """
-    if "python" not in executable:
-        # Not a Python process, ignore it
-        return False
-
-    if not argv:
-        return False
-
-    for arg in argv:
-        if "psem2m.forker" in arg:
-            # The "forker" string was found in parameters
-            return True
-
-    else:
-        # Not a forker
-        return False
+# def has_forker_cmd_line(executable, argv):
+#    """
+#    Tests if the given executable and arguments can correspond to the forker
+#
+#    :param executable: The name of an executable
+#    :param argv: A list of arguments
+#    :return: True if given parameters corresponds to a forker
+#    """
+#    if "python" not in executable:
+#        # Not a Python process, ignore it
+#        return False
+#
+#    if not argv:
+#        return False
+#
+#    for arg in argv:
+#        if "psem2m.forker" in arg:
+#            # The "forker" string was found in parameters
+#            return True
+#
+#    else:
+#        # Not a forker
+#        return False
 
 # ------------------------------------------------------------------------------
 
@@ -192,10 +194,11 @@ def send_cmd_signal(base, cmd):
 
     # Set up the signal content
     signal = {
-            "javaClass": "org.psem2m.remotes.signals.http.HttpSignalData",
-            "isolateSender": "<Controller>",
-            "senderHostName": "localhost",
-            "signalContent": {"cmd": cmd, "args": None},
+            "javaClass": "org.psem2m.signals.SignalData",
+            "senderId": "<Controller>",
+            "senderNode": "<Controller-Node>",
+            "signalContent": {"javaClass": "java.util.HashMap",
+                              "map":{"cmd": cmd, "args": None}},
             "timestamp": int(time.time() * 1000)
             }
     json_signal = json.dumps(signal)
@@ -231,6 +234,22 @@ def send_cmd_signal(base, cmd):
 
 # ------------------------------------------------------------------------------
 
+def append_unique(appendable, value):
+    """
+    Appends the given value to the given list if it not yet in there
+    """
+    if not hasattr(appendable, "__in__") and not hasattr(appendable, "append"):
+        # Unusable list
+        raise TypeError("{0} is not handled".format(type(appendable).__name__))
+
+    if value in appendable:
+        return False
+
+    appendable.append(value)
+    return True
+
+# ------------------------------------------------------------------------------
+
 class Main(object):
     """
     Entry point class
@@ -257,9 +276,9 @@ class Main(object):
         Starts the platform
         """
         if self._is_running():
-            # Name tests have been done, use the process directly
-            process = get_forker_process(self.base)
-            print("Forker is already running, PID: %d" % process.pid)
+            # Use the PID directly
+            pid = get_forker_process(self.base)
+            print("Forker is already running, PID: %d" % pid)
             return 1
 
         # Forker and monitor need to be started
@@ -277,12 +296,20 @@ class Main(object):
         # Set up environment (home and base are already there)
         env = os.environ.copy()
 
-        # FIXME: setup the Python path using non-development variables
+        # Setup the Python path
         python_path = []
 
         # Working directory
-        python_path.append(os.getcwd())
-        python_path.append(os.path.abspath(os.path.dirname(__file__)))
+        append_unique(python_path, os.getcwd())
+
+        # PSEM2M Home/base binaries and Python repository
+        for root in (PSEM2M_BASE, PSEM2M_HOME):
+            for path in ("bin", "python"):
+                append_unique(python_path, os.path.abspath(os.path.join(root,
+                                                                        path)))
+
+        # Controller directory
+        append_unique(python_path, os.path.abspath(os.path.dirname(__file__)))
 
         existing_path = os.environ.get("PYTHONPATH")
         if existing_path:
@@ -308,20 +335,29 @@ class Main(object):
         """
         Stops the platform
         """
-        process = get_forker_process(self.base)
-        if process is not None:
-            # A process with the same PID is running (refreshed PID ?)
-            if has_forker_cmd_line(process.exe, process.cmdline):
-                # Forker is running
-                if send_cmd_signal(self.base, "stop"):
-                    # Signal sent
-                    print("Stop command sent")
-                    return 0
+        pid = get_forker_process(self.base)
+        if pid is not None:
+            # FIXME: validate that it is not a refreshed PID
+            # if has_forker_cmd_line(process.exe, process.cmdline):
 
-                else:
-                    # Error
-                    print("Error sending stop command")
-                    return 1
+            # Forker is running
+            if send_cmd_signal(self.base, "stop"):
+                # Signal sent
+                print("Stop command sent")
+
+                try:
+                    # Wait 5 seconds max
+                    return _utils.wait_pid(pid, 5)
+
+                except psem2m.utils.TimeoutExpired:
+                    print("Forker took too long time to stop... (PID: %d)" \
+                          % pid)
+                    return 3
+
+            else:
+                # Error
+                print("Error sending stop command")
+                return 2
 
         print("Forker is not running...")
         return 1
@@ -341,13 +377,15 @@ class Main(object):
 
         :return: True if the forker is running
         """
-        process = get_forker_process(self.base)
+        pid = get_forker_process(self.base)
 
-        if process is not None:
-            # A process with the same PID is running (refreshed PID ?)
-            if has_forker_cmd_line(process.exe, process.cmdline):
-                # Forker is running
-                return True
+        if pid is not None:
+            # A process with the same PID is running
+            # FIXME: is it a refreshed PID ?
+            # if has_forker_cmd_line(process.exe, process.cmdline):
+
+            # Forker is running
+            return True
 
         return False
 
@@ -396,10 +434,9 @@ class Main(object):
 
         @see: http://dev.linux-foundation.org/betaspecs/booksets/LSB-Core-generic/LSB-Core-generic/iniscrptact.html
         """
-
         if self._is_running():
-            process = get_forker_process(self.base)
-            print("Platform is running (forker PID: %d)" % process.pid)
+            pid = get_forker_process(self.base)
+            print("Platform is running (forker PID: %d)" % pid)
             return 0
 
         else:
@@ -416,8 +453,12 @@ class Main(object):
             return 3
 
         else:
-            process = get_forker_process(self.base)
-            process.kill()
+            pid = get_forker_process(self.base)
+            if pid is None:
+                print("Forker PID not found. Abandon.")
+                return 3
+
+            _utils.kill_pid(pid)
             print("SIGKILL signal sent to the forker")
             return 0
 
