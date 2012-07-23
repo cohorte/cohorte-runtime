@@ -15,16 +15,20 @@ import sys
 # You should modify those constants. None value means environment value.
 #
 
+# Current location
 CONTROLLER_PATH = os.path.dirname(__file__)
 if not CONTROLLER_PATH:
     # Directory name not found
     CONTROLLER_PATH = os.getcwd()
 
+# Node name
+DEFAULT_NODE = "stratus"
+CURRENT_NODE = os.getenv("PSEM2M_NODE", DEFAULT_NODE)
 
-CURRENT_SYSTEM = os.getenv("PSEM2M_DEVICE", "stratus")
+# Home & Base
 DEFAULT_PSEM2M_HOME = os.path.abspath("%s/.." % CONTROLLER_PATH)
 DEFAULT_PSEM2M_BASE = os.path.abspath("%s/../base-%s"
-                                      % (DEFAULT_PSEM2M_HOME, CURRENT_SYSTEM))
+                                      % (DEFAULT_PSEM2M_HOME, CURRENT_NODE))
 
 # ------------------------------------------------------------------------------
 
