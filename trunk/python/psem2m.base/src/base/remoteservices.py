@@ -224,7 +224,7 @@ class ServiceExporter(object):
                     "endpointName": endpoint_name,
                     "endpointUri": self.servlet_path,
                     "exportedConfig": exported_config,
-                    "host": self.http.get_hostname(),
+                    "node": self.directory.get_local_node(),
                     "port": self.http.get_port(),
                     "protocol": "http"
                 },),
@@ -478,6 +478,7 @@ class ServiceImporter(object):
         Constructor
         """
         # Dependencies
+        self.directory = None
         self.sender = None
         self.receiver = None
 
@@ -603,10 +604,13 @@ class ServiceImporter(object):
 
         # Extract end point information
         protocol = endpoint.get("protocol", "http")
-        host = endpoint.get("host", "localhost")
+        node = endpoint.get("node", self.directory.get_local_node())
         port = int(endpoint.get("port", 80))
         uri = endpoint.get("endpointUri", "/")
         endpoint_name = endpoint.get("endpointName", service_id)
+
+        # Resolve the host
+        host = self.directory.get_host_for_node(node)
 
         # Create the proxy (select the factory according to export config)
         endpoint_url = "%s://%s:%d%s" % (protocol, host, port, uri)

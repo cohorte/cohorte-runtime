@@ -17,8 +17,10 @@ import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.constants.ISignalsConstants;
 import org.psem2m.isolates.services.monitoring.IIsolatePresenceListener;
 import org.psem2m.isolates.services.remote.IRemoteServiceBroadcaster;
+import org.psem2m.isolates.services.remote.beans.EndpointDescription;
 import org.psem2m.isolates.services.remote.beans.RemoteServiceEvent;
 import org.psem2m.signals.ISignalBroadcaster;
+import org.psem2m.signals.ISignalDirectory;
 import org.psem2m.signals.ISignalDirectory.EBaseGroup;
 
 /**
@@ -32,6 +34,10 @@ import org.psem2m.signals.ISignalDirectory.EBaseGroup;
 @Instantiate(name = "psem2m-remote-rsb")
 public class RemoteServiceBroadcaster extends CPojoBase implements
         IRemoteServiceBroadcaster, IIsolatePresenceListener {
+
+    /** Signals directory */
+    @Requires
+    private ISignalDirectory pDirectory;
 
     /** Log service, injected by iPOJO */
     @Requires
@@ -99,6 +105,14 @@ public class RemoteServiceBroadcaster extends CPojoBase implements
     @Override
     public void sendNotification(final RemoteServiceEvent aEvent) {
 
+        // Set the node name for all end points
+        for (final EndpointDescription endpoints : aEvent
+                .getServiceRegistration().getEndpoints()) {
+
+            endpoints.setNode(pDirectory.getLocalNode());
+        }
+
+        // Send the signal
         pSignalEmitter.fireGroup(
                 ISignalsConstants.BROADCASTER_SIGNAL_REMOTE_EVENT, aEvent,
                 EBaseGroup.OTHERS);

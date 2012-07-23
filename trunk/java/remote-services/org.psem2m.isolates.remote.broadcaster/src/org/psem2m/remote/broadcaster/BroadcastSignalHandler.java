@@ -29,6 +29,7 @@ import org.psem2m.isolates.services.remote.beans.RemoteServiceEvent.ServiceEvent
 import org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration;
 import org.psem2m.signals.ISignalBroadcaster;
 import org.psem2m.signals.ISignalData;
+import org.psem2m.signals.ISignalDirectory;
 import org.psem2m.signals.ISignalListener;
 import org.psem2m.signals.ISignalReceiver;
 
@@ -42,6 +43,10 @@ import org.psem2m.signals.ISignalReceiver;
 @Provides(specifications = IIsolatePresenceListener.class)
 public class BroadcastSignalHandler extends CPojoBase implements
         ISignalListener, IIsolatePresenceListener {
+
+    /** Signals directory */
+    @Requires
+    private ISignalDirectory pDirectory;
 
     /** Log service, injected by iPOJO */
     @Requires
@@ -176,6 +181,18 @@ public class BroadcastSignalHandler extends CPojoBase implements
      *            A remote service event
      */
     protected void handleRemoteEvent(final RemoteServiceEvent aEvent) {
+
+        // Prepare the event content
+        for (final EndpointDescription endpoint : aEvent
+                .getServiceRegistration().getEndpoints()) {
+
+            // Resolve the host name corresponding to the node
+            final String node = endpoint.getNode();
+            final String host = pDirectory.getHostForNode(node);
+
+            // Store it
+            endpoint.resolveHost(host);
+        }
 
         // Notify all listeners
         for (final IRemoteServiceEventListener listener : pRemoteEventsListeners) {

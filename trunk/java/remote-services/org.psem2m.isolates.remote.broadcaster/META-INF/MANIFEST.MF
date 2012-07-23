@@ -22,44 +22,47 @@ iPOJO-Components: instance { $component="org.psem2m.remote.broadcaster
  .remote.broadcaster.BroadcastSignalHandler" $name="psem2m-remote-rsb-
  signal-handler-factory" $public="false" provides { $specifications="{
  org.psem2m.isolates.services.monitoring.IIsolatePresenceListener}" }r
- equires { $field="pLogger" }requires { $field="pRemoteEventsListeners
- " $optional="true" }requires { $field="pRepository" }requires { $fiel
- d="pSignalEmitter" }requires { $field="pSignalReceiver" }callback { $
- transition="invalidate" $method="invalidatePojo" }callback { $transit
- ion="validate" $method="validatePojo" }manipulation { $super="org.pse
- m2m.isolates.base.activators.CPojoBase" interface { $name="org.psem2m
- .signals.ISignalListener" }interface { $name="org.psem2m.isolates.ser
- vices.monitoring.IIsolatePresenceListener" }field { $name="pLogger" $
- type="org.osgi.service.log.LogService" }field { $name="pRemoteEventsL
- isteners" $type="org.psem2m.isolates.services.remote.IRemoteServiceEv
- entListener[]" }field { $name="pRepository" $type="org.psem2m.isolate
- s.services.remote.IRemoteServiceRepository" }field { $name="pSignalEm
- itter" $type="org.psem2m.signals.ISignalBroadcaster" }field { $name="
- pSignalReceiver" $type="org.psem2m.signals.ISignalReceiver" }method {
-  $name="handleIsolatePresence" $arguments="{java.lang.String,java.lan
- g.String,org.psem2m.isolates.services.monitoring.IIsolatePresenceList
- ener$EPresence}" }method { $name="handleReceivedSignal" $return="java
- .lang.Object" $arguments="{java.lang.String,org.psem2m.signals.ISigna
- lData}" }method { $name="handleRemoteEvent" $arguments="{org.psem2m.i
- solates.services.remote.beans.RemoteServiceEvent}" }method { $name="h
- andleRequestEndpoints" $arguments="{java.lang.String}" }method { $nam
- e="invalidatePojo" }method { $name="validatePojo" }}}component { $cla
- ssname="org.psem2m.remote.broadcaster.RemoteServiceBroadcaster" $name
- ="psem2m-remote-rsb-factory" $public="false" provides { $specificatio
- ns="{org.psem2m.isolates.services.remote.IRemoteServiceBroadcaster,or
- g.psem2m.isolates.services.monitoring.IIsolatePresenceListener}" }req
- uires { $field="pLogger" }requires { $field="pSignalEmitter" }callbac
- k { $transition="invalidate" $method="invalidatePojo" }callback { $tr
- ansition="validate" $method="validatePojo" }manipulation { $super="or
- g.psem2m.isolates.base.activators.CPojoBase" interface { $name="org.p
- sem2m.isolates.services.remote.IRemoteServiceBroadcaster" }interface 
+ equires { $field="pDirectory" }requires { $field="pLogger" }requires 
+ { $field="pRemoteEventsListeners" $optional="true" }requires { $field
+ ="pRepository" }requires { $field="pSignalEmitter" }requires { $field
+ ="pSignalReceiver" }callback { $transition="invalidate" $method="inva
+ lidatePojo" }callback { $transition="validate" $method="validatePojo"
+  }manipulation { $super="org.psem2m.isolates.base.activators.CPojoBas
+ e" interface { $name="org.psem2m.signals.ISignalListener" }interface 
  { $name="org.psem2m.isolates.services.monitoring.IIsolatePresenceList
- ener" }field { $name="pLogger" $type="org.osgi.service.log.LogService
- " }field { $name="pSignalEmitter" $type="org.psem2m.signals.ISignalBr
- oadcaster" }method { $name="handleIsolatePresence" $arguments="{java.
- lang.String,java.lang.String,org.psem2m.isolates.services.monitoring.
- IIsolatePresenceListener$EPresence}" }method { $name="invalidatePojo"
-  }method { $name="requestAllEndpoints" }method { $name="sendNotificat
- ion" $arguments="{org.psem2m.isolates.services.remote.beans.RemoteSer
- viceEvent}" }method { $name="validatePojo" }}}
+ ener" }field { $name="pDirectory" $type="org.psem2m.signals.ISignalDi
+ rectory" }field { $name="pLogger" $type="org.osgi.service.log.LogServ
+ ice" }field { $name="pRemoteEventsListeners" $type="org.psem2m.isolat
+ es.services.remote.IRemoteServiceEventListener[]" }field { $name="pRe
+ pository" $type="org.psem2m.isolates.services.remote.IRemoteServiceRe
+ pository" }field { $name="pSignalEmitter" $type="org.psem2m.signals.I
+ SignalBroadcaster" }field { $name="pSignalReceiver" $type="org.psem2m
+ .signals.ISignalReceiver" }method { $name="handleIsolatePresence" $ar
+ guments="{java.lang.String,java.lang.String,org.psem2m.isolates.servi
+ ces.monitoring.IIsolatePresenceListener$EPresence}" }method { $name="
+ handleReceivedSignal" $return="java.lang.Object" $arguments="{java.la
+ ng.String,org.psem2m.signals.ISignalData}" }method { $name="handleRem
+ oteEvent" $arguments="{org.psem2m.isolates.services.remote.beans.Remo
+ teServiceEvent}" }method { $name="handleRequestEndpoints" $arguments=
+ "{java.lang.String}" }method { $name="invalidatePojo" }method { $name
+ ="validatePojo" }}}component { $classname="org.psem2m.remote.broadcas
+ ter.RemoteServiceBroadcaster" $name="psem2m-remote-rsb-factory" $publ
+ ic="false" provides { $specifications="{org.psem2m.isolates.services.
+ remote.IRemoteServiceBroadcaster,org.psem2m.isolates.services.monitor
+ ing.IIsolatePresenceListener}" }requires { $field="pDirectory" }requi
+ res { $field="pLogger" }requires { $field="pSignalEmitter" }callback 
+ { $transition="invalidate" $method="invalidatePojo" }callback { $tran
+ sition="validate" $method="validatePojo" }manipulation { $super="org.
+ psem2m.isolates.base.activators.CPojoBase" interface { $name="org.pse
+ m2m.isolates.services.remote.IRemoteServiceBroadcaster" }interface { 
+ $name="org.psem2m.isolates.services.monitoring.IIsolatePresenceListen
+ er" }field { $name="pDirectory" $type="org.psem2m.signals.ISignalDire
+ ctory" }field { $name="pLogger" $type="org.osgi.service.log.LogServic
+ e" }field { $name="pSignalEmitter" $type="org.psem2m.signals.ISignalB
+ roadcaster" }method { $name="handleIsolatePresence" $arguments="{java
+ .lang.String,java.lang.String,org.psem2m.isolates.services.monitoring
+ .IIsolatePresenceListener$EPresence}" }method { $name="invalidatePojo
+ " }method { $name="requestAllEndpoints" }method { $name="sendNotifica
+ tion" $arguments="{org.psem2m.isolates.services.remote.beans.RemoteSe
+ rviceEvent}" }method { $name="validatePojo" }}}
 

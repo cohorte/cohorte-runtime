@@ -28,8 +28,11 @@ public class EndpointDescription implements Serializable {
     /** Associated "service.exported.configs" value */
     private String pExportedConfig;
 
-    /** End point host */
+    /** End point host (resolved by receiver) */
     private String pHost;
+
+    /** End point node */
+    private String pNode;
 
     /** Port to join the end point */
     private int pPort;
@@ -71,12 +74,14 @@ public class EndpointDescription implements Serializable {
         pPort = aPort;
 
         // Set the default host name
-        pHost = "localhost";
+        pNode = "localhost";
     }
 
     /**
      * Returns a URI according to the given informations
      * 
+     * @param aHost
+     *            The host corresponding to the end point node
      * @return A URI to contact the end point, null on error
      */
     public String computeURI() {
@@ -107,7 +112,7 @@ public class EndpointDescription implements Serializable {
         final EndpointDescription other = (EndpointDescription) aObj;
 
         // End point access
-        if (!safeCompare(pHost, other.pHost)
+        if (!safeCompare(pNode, other.pNode)
                 || !safeCompare(pPort, other.pPort)
                 || !safeCompare(pProtocol, other.pProtocol)) {
             return false;
@@ -160,9 +165,9 @@ public class EndpointDescription implements Serializable {
      * 
      * @return The end point host
      */
-    public String getHost() {
+    public String getNode() {
 
-        return pHost;
+        return pNode;
     }
 
     /**
@@ -183,6 +188,17 @@ public class EndpointDescription implements Serializable {
     public String getProtocol() {
 
         return pProtocol;
+    }
+
+    /**
+     * Sets the end point host according to the node
+     * 
+     * @param aHost
+     *            The end point host
+     */
+    public void resolveHost(final String aHost) {
+
+        pHost = aHost;
     }
 
     /**
@@ -240,9 +256,9 @@ public class EndpointDescription implements Serializable {
      * @param aHost
      *            The end point host
      */
-    public void setHost(final String aHost) {
+    public void setNode(final String aHost) {
 
-        pHost = aHost;
+        pNode = aHost;
     }
 
     /**
