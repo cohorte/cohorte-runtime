@@ -521,7 +521,18 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
      * .isolates.services.forker.IForkerEventListener)
      */
     @Override
-    public boolean registerListener(final IForkerEventListener aListener) {
+    public synchronized boolean registerListener(
+            final IForkerEventListener aListener) {
+
+        final String[] forkers = pDirectory.getAllIsolates(
+                IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER, true);
+
+        for (final String forker : forkers) {
+            aListener
+                    .handleForkerEvent(EForkerEventType.REGISTERED, forker,
+                            pDirectory.getHostForNode(pDirectory
+                                    .getIsolateNode(forker)));
+        }
 
         return pListeners.add(aListener);
     }
