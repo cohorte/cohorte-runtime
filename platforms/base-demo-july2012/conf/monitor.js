@@ -1,7 +1,7 @@
 {
     "id":"org.psem2m.internals.isolates.monitor-1",
     "kind":"felix",
-    "node":"central",
+    "node":"stratus",
     "httpPort":9000,
     "vmArgs":[
         "-Xms32M",
@@ -34,20 +34,6 @@
         },
         {
             "symbolicName":"org.psem2m.composer.core"
-        },
-        {
-            "symbolicName":"org.psem2m.isolates.ui.admin",
-            "optional":true,
-            "properties":{
-                "psem2m.demo.ui.viewer.top":"0scr",
-                "psem2m.demo.ui.viewer.left":"0scr",
-                "psem2m.demo.ui.viewer.width":"0.25scr",
-                "psem2m.demo.ui.viewer.height":"0.66scr",
-                "psem2m.demo.ui.viewer.color":"SkyBlue"
-            }
-        },
-        {
-            "symbolicName":"org.psem2m.isolates.ui"
         }
     ]
 }
