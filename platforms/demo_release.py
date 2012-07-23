@@ -127,7 +127,8 @@ def make_monitor_zip(dev_root, home, base, node, outdir=os.curdir):
                     outfiles[fullname] = zipname
 
     # Add development files
-    extend_home_files(dev_root, outfiles)
+    extra = read_extra_modules(dev_root, base)
+    extend_home_files(dev_root, outfiles, extra)
 
     # Make the ZIP
     make_zip(os.path.join(outdir, node + "-monitor.zip"), outfiles)
@@ -157,17 +158,19 @@ def update_controller(home, node, zipfiles):
     # Write the new controller
     with open(controller) as infile:
         for line in infile:
-            line = line.rstrip()
-            if line.startswith("DEFAULT_NODE = "):
+            read_line = line.rstrip()
+            if read_line.startswith("DEFAULT_NODE = "):
                 # Replace the node line
-                line = 'DEFAULT_NODE = "{node}"'.format(node=node)
+                read_line = 'DEFAULT_NODE = "{node}"'.format(node=node)
 
             # Write the line
-            outfile.write(line)
+            outfile.write(read_line)
             outfile.write(os.linesep)
 
-    # Update the ZIP entries
+    # Flush output file
+    outfile.flush()
 
+    # Update the ZIP entries
     # Default entry...
     zip_path = os.path.join(SMALL_INSTALL_HOME, CONTROLLER_PATH)
 
@@ -379,7 +382,7 @@ def prepare_zip_directory(zip_files, srcdir, zipdir):
                 zip_files[fullpath] = os.path.join(zipdir, relpath)
 
 
-def extend_home_files(dev_root, zip_files, home_dir=PSEM2M_HOME):
+def extend_home_files(dev_root, zip_files, extra_modules, home_dir=PSEM2M_HOME):
     """
     Extends the ZIP entries with the content of the forker and base development
     projects
@@ -397,6 +400,9 @@ def extend_home_files(dev_root, zip_files, home_dir=PSEM2M_HOME):
                    ".": os.path.join(python_root, "psem2m.forker", "src"),
                    "base": os.path.join(python_root, "psem2m.base", "src"),
                    }
+
+    if extra_modules is not None:
+        directories.update(extra_modules)
 
     for modname, srcdir in directories.items():
         # Source directory
