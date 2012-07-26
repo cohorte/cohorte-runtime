@@ -23,7 +23,7 @@ import org.psem2m.isolates.services.conf.ISvcConfig;
 import org.psem2m.remotes.signals.http.IHttpSignalsConstants;
 import org.psem2m.signals.HostAccess;
 import org.psem2m.signals.ISignalData;
-import org.psem2m.signals.ISignalDataSerializer;
+import org.psem2m.signals.ISignalSerializer;
 import org.psem2m.signals.ISignalReceiver;
 import org.psem2m.signals.ISignalReceptionProvider;
 import org.psem2m.signals.ISignalRequestReader;
@@ -63,7 +63,7 @@ public class HttpSignalReceiver extends CPojoBase implements
 
     /** The signal data serializers */
     @Requires
-    private ISignalDataSerializer[] pSerializers;
+    private ISignalSerializer[] pSerializers;
 
     /*
      * (non-Javadoc)
@@ -158,7 +158,7 @@ public class HttpSignalReceiver extends CPojoBase implements
         }
 
         // Try to serialize with the preferred type
-        for (final ISignalDataSerializer serializer : pSerializers) {
+        for (final ISignalSerializer serializer : pSerializers) {
 
             if (serializer.canHandleType(aPreferredContentType)) {
                 // Content-Type understood by serializer
@@ -189,7 +189,7 @@ public class HttpSignalReceiver extends CPojoBase implements
                     aPreferredContentType);
 
             // Try to serialize with the preferred type
-            for (final ISignalDataSerializer serializer : pSerializers) {
+            for (final ISignalSerializer serializer : pSerializers) {
                 if (!serializer.canHandleType(aPreferredContentType)) {
                     // We already tested the preferred Content-Type, use others
                     try {
@@ -251,7 +251,7 @@ public class HttpSignalReceiver extends CPojoBase implements
             final byte[] aData) throws InvalidDataException {
 
         // Try to de-serialize
-        for (final ISignalDataSerializer serializer : pSerializers) {
+        for (final ISignalSerializer serializer : pSerializers) {
 
             if (serializer.canHandleType(aContentType)) {
                 // Content-Type understood by serializer

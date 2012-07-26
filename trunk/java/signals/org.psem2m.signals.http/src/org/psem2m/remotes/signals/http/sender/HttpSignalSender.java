@@ -29,7 +29,7 @@ import org.psem2m.remotes.signals.http.IHttpSignalsConstants;
 import org.psem2m.signals.HostAccess;
 import org.psem2m.signals.ISignalBroadcastProvider;
 import org.psem2m.signals.ISignalData;
-import org.psem2m.signals.ISignalDataSerializer;
+import org.psem2m.signals.ISignalSerializer;
 import org.psem2m.signals.InvalidDataException;
 import org.psem2m.signals.SignalContent;
 import org.psem2m.signals.UnsendableDataException;
@@ -51,7 +51,7 @@ public class HttpSignalSender extends CPojoBase implements
 
     /** Signal data serializers */
     @Requires
-    private ISignalDataSerializer[] pSerializers;
+    private ISignalSerializer[] pSerializers;
 
     /*
      * (non-Javadoc)
@@ -86,10 +86,10 @@ public class HttpSignalSender extends CPojoBase implements
         // The sent data content type
         String contentType = null;
 
-        final SortedMap<Number, ISignalDataSerializer> pSortedSerializers = new TreeMap<Number, ISignalDataSerializer>();
+        final SortedMap<Number, ISignalSerializer> pSortedSerializers = new TreeMap<Number, ISignalSerializer>();
 
         // Find the serializers that can handle this object
-        for (final ISignalDataSerializer serializer : pSerializers) {
+        for (final ISignalSerializer serializer : pSerializers) {
 
             if (serializer.canSerialize(aData)
                     && serializer.canSerialize(aData)) {
@@ -99,7 +99,7 @@ public class HttpSignalSender extends CPojoBase implements
         }
 
         // Make the conversion
-        for (final ISignalDataSerializer serializer : pSortedSerializers
+        for (final ISignalSerializer serializer : pSortedSerializers
                 .values()) {
 
             try {
@@ -290,7 +290,7 @@ public class HttpSignalSender extends CPojoBase implements
             return null;
         }
 
-        for (final ISignalDataSerializer serializer : pSerializers) {
+        for (final ISignalSerializer serializer : pSerializers) {
 
             if (serializer.canHandleType(aContentType)) {
                 // Handled content type
