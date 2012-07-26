@@ -24,3 +24,8 @@ __pycache__/
 # Coverage (Python)
 .coverage
 htmlcov/
+
+# Sonar
+.sonar/
+sonar-project.properties
+
