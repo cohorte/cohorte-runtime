@@ -465,15 +465,44 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
             return false;
         }
 
-        if (pAccesses.containsKey(aIsolateId)) {
+        // Prepare the new access object
+        final HostAccess oldAccess = pAccesses.get(aIsolateId);
+        final HostAccess isolateAccess = new HostAccess(aNode, aPort);
+
+        if (oldAccess != null) {
             // Already known isolate
-            pLogger.logDebug(this, "registerIsolate", "Already known isolate=",
-                    aIsolateId);
-            return false;
+            if (isolateAccess.equals(oldAccess)) {
+                // Same access, no update
+                pLogger.logDebug(this, "registerIsolate",
+                        "Already known isolate=", aIsolateId,
+                        "- No access update.");
+
+                // Stop here
+                return false;
+
+            } else {
+                pLogger.logDebug(this, "registerIsolate",
+                        "Already known isolate=", aIsolateId,
+                        "- Access updated from=", oldAccess, "to=",
+                        isolateAccess);
+            }
+
+            if (!aNode.equals(oldAccess.getAddress())) {
+                // Isolate moved to another node -> remove the old entry
+                pLogger.logInfo(this, "registerIsolate", "Isolate ID=",
+                        aIsolateId, "moved from=", oldAccess.getAddress(),
+                        "to=", aNode);
+
+                final List<String> isolates = pNodesIsolates.get(oldAccess
+                        .getAddress());
+                if (isolates != null) {
+                    isolates.remove(aIsolateId);
+                }
+            }
         }
 
         // Store the access
-        pAccesses.put(aIsolateId, new HostAccess(aNode, aPort));
+        pAccesses.put(aIsolateId, isolateAccess);
 
         // Store the node
         List<String> isolates = pNodesIsolates.get(aNode);
@@ -509,6 +538,9 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
             pLogger.logWarn(this, "registerIsolate", "Isolate ID=", aIsolateId,
                     "has no group");
         }
+
+        pLogger.logDebug(this, "registerIsolate", "Registered isolate ID=",
+                aIsolateId, "Access=", isolateAccess);
 
         return true;
     }

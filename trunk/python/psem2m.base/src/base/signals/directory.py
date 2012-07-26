@@ -402,11 +402,31 @@ class SignalsDirectory(object):
             return True
 
         with self._lock:
-
-            if isolate_id in self._accesses:
+            # Get the previous access, if any
+            old_access = self._accesses.get(isolate_id, None)
+            if old_access is not None:
                 # Already known isolate
-                _logger.warning("Isolate already known: '%s'", isolate_id)
-                return False
+                if old_access == (node, port):
+                    # No update needed
+                    _logger.warning("Already known isolate '%s'"
+                                    " - No access update", isolate_id)
+                    return False
+
+                else:
+                    _logger.debug("Already known isolate '%s'"
+                                  " - Updated from %s to %s",
+                                  isolate_id, self._accesses[isolate_id],
+                                  (node, port))
+
+                if node != old_access[0]:
+                    # Isolate moved to another node -> remove the old entry
+                    _logger.info("Isolate '%s' moved from %s to %s",
+                                 isolate_id, old_access[0], node)
+
+                    node_isolates = self._nodes_isolates.get(old_access[0],
+                                                             None)
+                    if node_isolates is not None:
+                        node_isolates.remove(isolate_id)
 
             # Store the isolate access
             self._accesses[isolate_id] = (node, port)

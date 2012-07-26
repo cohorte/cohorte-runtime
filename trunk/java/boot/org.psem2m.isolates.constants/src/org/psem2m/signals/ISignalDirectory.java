@@ -172,7 +172,8 @@ public interface ISignalDirectory {
      *            The port to access the isolate
      * @param aGroups
      *            All groups of the isolate
-     * @return True if the isolate has been register
+     * @return True if the isolate has been registered, False on error or if the
+     *         isolate was already known for this access.
      * @throws IllegalArgumentException
      *             An argument is invalid
      */
