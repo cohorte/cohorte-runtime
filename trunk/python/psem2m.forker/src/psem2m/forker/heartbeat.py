@@ -347,11 +347,6 @@ class Heart(object):
                               self._context.get_property(PROPERTY_ISOLATE_ID),
                               self._context.get_property(PROPERTY_ISOLATE_NODE))
 
-        _logger.debug("HEARTBEAT: appId='%s', id='%s', node='%s'",
-                      appId,
-                      self._context.get_property(PROPERTY_ISOLATE_ID),
-                      self._context.get_property(PROPERTY_ISOLATE_NODE))
-
         while not self._event.is_set():
             # Send the heart beat using the multicast socket
             self._socket.sendto(beat, 0, self._target)
