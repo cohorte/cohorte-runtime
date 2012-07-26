@@ -1,5 +1,5 @@
 /**
- * File:   ISignalDataSerializer.java
+ * File:   ISignalSerializer.java
  * Author: Thomas Calmant
  * Date:   16 janv. 2012
  */
@@ -11,7 +11,7 @@ package org.psem2m.signals;
  * 
  * @author Thomas Calmant
  */
-public interface ISignalDataSerializer {
+public interface ISignalSerializer {
 
     /**
      * Tests if this serializer can handle a serialized stream of the given
