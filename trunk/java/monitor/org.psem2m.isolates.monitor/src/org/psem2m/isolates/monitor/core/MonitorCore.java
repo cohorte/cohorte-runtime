@@ -610,7 +610,7 @@ public class MonitorCore extends CPojoBase implements
         // Only try to stop isolates that can be started by this monitor
         final ApplicationDescription application = pConfiguration
                 .getApplication();
-        if (application.getIsolateIds() != null) {
+        if (application != null && application.getIsolateIds() != null) {
 
             for (final String isolateId : application.getIsolateIds()) {
 
@@ -618,6 +618,10 @@ public class MonitorCore extends CPojoBase implements
                     pIsolatesToStop.add(isolateId);
                 }
             }
+
+        } else if (application == null) {
+            pLogger.logSevere(this, "stopPlatform",
+                    "Configuration returned a null application !");
         }
 
         // Prepare the end semaphore

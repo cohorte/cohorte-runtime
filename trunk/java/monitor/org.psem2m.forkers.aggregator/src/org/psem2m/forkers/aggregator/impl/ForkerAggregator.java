@@ -527,11 +527,12 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
         final String[] forkers = pDirectory.getAllIsolates(
                 IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER, true);
 
-        for (final String forker : forkers) {
-            aListener
-                    .handleForkerEvent(EForkerEventType.REGISTERED, forker,
-                            pDirectory.getHostForNode(pDirectory
-                                    .getIsolateNode(forker)));
+        if (forkers != null) {
+            for (final String forker : forkers) {
+                aListener.handleForkerEvent(EForkerEventType.REGISTERED,
+                        forker, pDirectory.getHostForNode(pDirectory
+                                .getIsolateNode(forker)));
+            }
         }
 
         return pListeners.add(aListener);
