@@ -15,9 +15,10 @@ import java.util.Set;
 
 import org.osgi.framework.Constants;
 import org.psem2m.isolates.constants.IPlatformProperties;
+import org.psem2m.isolates.services.remote.IRemoteServicesConstants;
 
 /**
- * Represents a remote service
+ * Contains information about a remote service registration
  * 
  * @author Thomas Calmant
  */
@@ -26,11 +27,8 @@ public class RemoteServiceRegistration implements Serializable {
     /** Serial version UID */
     private static final long serialVersionUID = 1L;
 
-    /** Unknown isolate ID constant */
-    public static final String UNKNOWN_ISOLATE_ID = "unknown";
-
     /** Remote service end points */
-    private Set<EndpointDescription> pEndpoints = new HashSet<EndpointDescription>();
+    private final Set<EndpointDescription> pEndpoints = new HashSet<EndpointDescription>();
 
     /** Exported interfaces */
     private String[] pExportedInterfaces;
@@ -42,7 +40,7 @@ public class RemoteServiceRegistration implements Serializable {
     private String pServiceId;
 
     /** Service properties copy */
-    private Map<String, Object> pServiceProperties = new HashMap<String, Object>();
+    private final Map<String, Object> pServiceProperties = new HashMap<String, Object>();
 
     /**
      * Default constructor
@@ -91,7 +89,7 @@ public class RemoteServiceRegistration implements Serializable {
         // Get the current isolate ID
         final String sourceIsolate = System.getProperty(
                 IPlatformProperties.PROP_PLATFORM_ISOLATE_ID,
-                UNKNOWN_ISOLATE_ID);
+                IRemoteServicesConstants.UNKNOWN_ISOLATE_ID);
 
         pHostIsolate = sourceIsolate;
 

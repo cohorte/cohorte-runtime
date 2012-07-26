@@ -31,4 +31,7 @@ public interface IRemoteServicesConstants {
 
     /** Imported service configurations */
     String SERVICE_IMPORTED_CONFIGS = "service.imported.configs";
+
+    /** Unknown isolate ID constant */
+    String UNKNOWN_ISOLATE_ID = "unknown";
 }
