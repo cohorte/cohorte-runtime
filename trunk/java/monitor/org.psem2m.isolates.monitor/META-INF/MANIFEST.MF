@@ -1,9 +1,9 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: PSEM2M Monitor
+Bundle-Name: PSEM2M :: Monitor
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: org.psem2m.isolates.monitor
-Bundle-Vendor: isandlaTech
+Bundle-Vendor: isandlaTech.com
 Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
 Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix

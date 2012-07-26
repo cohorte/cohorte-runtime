@@ -1,9 +1,9 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: PSEM2M Constants
+Bundle-Name: PSEM2M :: Constants
 Bundle-SymbolicName: org.psem2m.isolates.constants
 Bundle-Version: 1.0.0.qualifier
-Bundle-Vendor: isandlaTech
+Bundle-Vendor: isandlaTech.com
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Import-Package: org.osgi.framework;version="1.5.0"
 Export-Package: org.psem2m.isolates.constants;version="1.0.1",

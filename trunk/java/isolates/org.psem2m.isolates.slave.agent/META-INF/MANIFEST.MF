@@ -2,10 +2,10 @@ Manifest-Version: 1.0
 Bundle-Activator: org.psem2m.isolates.slave.agent.CBundleSlaveAgentAct
  ivator
 Bundle-ManifestVersion: 2
-Bundle-Name: PSEM2M Isolate Agent
+Bundle-Name: PSEM2M :: Isolate Agent
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: org.psem2m.isolates.slave.agent
-Bundle-Vendor: isandlatech.com
+Bundle-Vendor: isandlaTech.com
 Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
 Export-Package: org.psem2m.isolates.slave.agent

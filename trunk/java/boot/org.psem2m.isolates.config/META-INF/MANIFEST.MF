@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-Activator: org.psem2m.isolates.config.CBundleConfigurationActiv
  ator
 Bundle-ManifestVersion: 2
-Bundle-Name: PSEM2M Isolates Configuration
+Bundle-Name: PSEM2M :: Configuration
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: org.psem2m.isolates.config
 Bundle-Vendor: isandlaTech.com

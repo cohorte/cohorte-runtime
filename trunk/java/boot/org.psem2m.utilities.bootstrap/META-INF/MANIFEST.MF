@@ -1,9 +1,9 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: PSEM2M Bootstrap
+Bundle-Name: PSEM2M :: Bootstrap
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: org.psem2m.utilities.bootstrap
-Bundle-Vendor: isandlaTech (www.isandlatech.com)
+Bundle-Vendor: isandlaTech.com
 Bundle-Version: 1.0.0.qualifier
 Created-By: isandlaTech
 Main-Class: org.psem2m.utilities.bootstrap.Main

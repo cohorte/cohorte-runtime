@@ -1,9 +1,9 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: PSEM2M Utilities
+Bundle-Name: PSEM2M :: Utilities
 Bundle-SymbolicName: org.psem2m.isolates.utilities
 Bundle-Version: 1.0.0.qualifier
-Bundle-Vendor: isandlaTech (www.isandlatech.com)
+Bundle-Vendor: isandlaTech.com
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: javax.script,
  org.psem2m.utilities;version="1.0.0",
