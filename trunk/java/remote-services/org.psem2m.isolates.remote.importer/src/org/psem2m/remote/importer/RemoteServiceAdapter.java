@@ -45,15 +45,12 @@ import org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration;
 public class RemoteServiceAdapter extends CPojoBase implements
         IRemoteServiceEventListener {
 
-    /** Service export properties prefix */
-    public static final String SERVICE_EXPORTED_PREFIX = "service.exported.";
-
     /** Remote service broadcaster (RSB) */
     @Requires
     private IRemoteServiceBroadcaster pBroadcaster;
 
     /** The component bundle context */
-    private BundleContext pBundleContext;
+    private final BundleContext pBundleContext;
 
     /** Remote service proxy handlers */
     @Requires
@@ -173,7 +170,8 @@ public class RemoteServiceAdapter extends CPojoBase implements
         for (final Entry<String, Object> entry : aServiceProperties.entrySet()) {
 
             final String property = entry.getKey();
-            if (!property.startsWith(SERVICE_EXPORTED_PREFIX)) {
+            if (!property
+                    .startsWith(IRemoteServicesConstants.SERVICE_EXPORTED_PREFIX)) {
                 // Ignore export properties
                 filteredProperties.put(property, entry.getValue());
             }
