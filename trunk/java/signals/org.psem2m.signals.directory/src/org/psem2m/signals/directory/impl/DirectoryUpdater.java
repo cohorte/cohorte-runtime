@@ -141,8 +141,8 @@ public class DirectoryUpdater implements ISignalListener,
             // Store the dumped directory
             handleDumpedDirectory(results, remoteNode);
 
-            // Send our registration signal
-            sendRegistration(remoteAddress, remotePort);
+            // Send our registration signal to everyone
+            sendRegistration(remoteAddress, remotePort, true);
 
             final String[] isolates = pDirectory.getAllIsolates(null, false);
             if (isolates != null) {
@@ -198,13 +198,12 @@ public class DirectoryUpdater implements ISignalListener,
 
         if (dump != null) {
             // All good, store it
-            storeDirectory(dump, aIgnoredNode);
+            final String[] isolates = storeDirectory(dump, aIgnoredNode);
 
             // Send our registration, one we have the directory...
-            pLogger.logDebug(this, "validate", "Sending registration");
-            sendRegistration("localhost", pDumperPort);
+            pLogger.logDebug(this, "validate", "Sending registration to all");
+            sendRegistration("localhost", pDumperPort, true);
 
-            final String[] isolates = pDirectory.getAllIsolates(null, false);
             if (isolates != null) {
                 for (final String isolate : isolates) {
                     notifyPresenceListeners(isolate,
@@ -232,13 +231,22 @@ public class DirectoryUpdater implements ISignalListener,
             final ISignalData aSignalData) {
 
         if (ISignalDirectoryConstants.SIGNAL_DUMP.equals(aSignalName)) {
-            // Dump the directory
-            return pDirectory.dump();
+
+            synchronized (pDirectory) {
+                // Register the incoming isolate
+                registerIsolate(aSignalData);
+
+                // Dump the directory
+                return pDirectory.dump();
+            }
 
         } else if (ISignalDirectoryConstants.SIGNAL_REGISTER
                 .equals(aSignalName)) {
-            // Isolate registration
-            registerIsolate(aSignalData);
+
+            synchronized (pDirectory) {
+                // Isolate registration
+                registerIsolate(aSignalData);
+            }
 
         } else if (ISignalsConstants.ISOLATE_LOST_SIGNAL.equals(aSignalName)) {
             // Isolate lost
@@ -246,11 +254,13 @@ public class DirectoryUpdater implements ISignalListener,
             final String lostIsolateNode = pDirectory
                     .getIsolateNode(lostIsolate);
 
-            pDirectory.unregisterIsolate(lostIsolate);
+            synchronized (pDirectory) {
+                pDirectory.unregisterIsolate(lostIsolate);
 
-            // Notify listeners
-            notifyPresenceListeners(lostIsolate, lostIsolateNode,
-                    EPresence.UNREGISTERED);
+                // Notify listeners
+                notifyPresenceListeners(lostIsolate, lostIsolateNode,
+                        EPresence.UNREGISTERED);
+            }
         }
 
         // No result
@@ -297,6 +307,48 @@ public class DirectoryUpdater implements ISignalListener,
                         listener, "failed to handle event", ex);
             }
         }
+    }
+
+    /**
+     * Prepares the registration signal content.
+     * 
+     * @param aPropagate
+     *            If true, the receivers of this signal will re-emit it
+     * @return The content for a registration signal
+     */
+    protected Map<String, Object> prepareRegistrationContent(
+            final boolean aPropagate) {
+
+        final String isolateId = pDirectory.getIsolateId();
+
+        // Compute groups
+        final List<String> groups = new ArrayList<String>();
+        groups.add("ALL");
+        if (isolateId.startsWith(IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER)) {
+            // Forker can only be forkers...
+            groups.add("FORKERS");
+
+        } else {
+            // Normal isolate
+            groups.add("ISOLATES");
+        }
+
+        if (isolateId
+                .startsWith(IPlatformProperties.SPECIAL_ISOLATE_ID_MONITOR)) {
+            groups.add("MONITORS");
+        }
+
+        // Prepare content
+        final Map<String, Object> content = new HashMap<String, Object>();
+        content.put("id", isolateId);
+        // Let the receiver compute our address
+        content.put("address", null);
+        content.put("node", pDirectory.getLocalNode());
+        content.put("groups", groups.toArray(new String[0]));
+        content.put("port", pReceiver.getAccessInfo().getPort());
+        content.put("propagate", aPropagate);
+
+        return content;
     }
 
     /**
@@ -396,50 +448,33 @@ public class DirectoryUpdater implements ISignalListener,
      *            The target address
      * @param aRemotePort
      *            The target port
+     * @param aPropagate
+     *            If true, the receivers of this signal will re-emit it
      */
     protected void sendRegistration(final String aRemoteAddress,
-            final int aRemotePort) {
+            final int aRemotePort, final boolean aPropagate) {
 
-        final String isolateId = pDirectory.getIsolateId();
-
-        // Compute groups
-        final List<String> groups = new ArrayList<String>();
-        groups.add("ALL");
-        if (isolateId.startsWith(IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER)) {
-            // Forker can only be forkers...
-            groups.add("FORKERS");
-
-        } else {
-            // Normal isolate
-            groups.add("ISOLATES");
-        }
-
-        if (isolateId
-                .startsWith(IPlatformProperties.SPECIAL_ISOLATE_ID_MONITOR)) {
-            groups.add("MONITORS");
-        }
-
-        // Prepare content
-        final Map<String, Object> content = new HashMap<String, Object>();
-        content.put("id", isolateId);
-        // Let the receiver compute our address
-        content.put("address", null);
-        content.put("node", pDirectory.getLocalNode());
-        content.put("groups", groups.toArray(new String[0]));
-        content.put("port", pReceiver.getAccessInfo().getPort());
-        content.put("propagate", true);
+        // Get the content
+        final Map<String, Object> content = prepareRegistrationContent(aPropagate);
 
         // Send the signal (don't wait for a result)
         try {
-            pSender.sendTo(ISignalDirectoryConstants.SIGNAL_REGISTER, content,
+            final Object[] res = pSender.sendTo(
+                    ISignalDirectoryConstants.SIGNAL_REGISTER, content,
                     aRemoteAddress, aRemotePort);
+
+            if (res == null) {
+                // No answer, registration may have failed
+                pLogger.logWarn(this, "sendRegistration",
+                        "Nothing returned during registration");
+            }
 
         } catch (final Exception e) {
             // Error ?
             pLogger.logWarn(this, "sendRegistration",
                     "Error sending registration signal to host=",
                     aRemoteAddress, "port=", aRemotePort,
-                    "Sending to all known isolates");
+                    "- Sending to all known isolates");
 
             // Try with others...
             pSender.sendGroup(ISignalDirectoryConstants.SIGNAL_REGISTER,
@@ -457,8 +492,9 @@ public class DirectoryUpdater implements ISignalListener,
      *            A directory dump
      * @param aIgnoredNode
      *            The address for this node must be ignored
+     * @return An array with all newly registered isolates
      */
-    protected void storeDirectory(final Map<?, ?> aDumpedDirectory,
+    protected String[] storeDirectory(final Map<?, ?> aDumpedDirectory,
             final String aIgnoredNode) {
 
         // Local information
@@ -530,10 +566,16 @@ public class DirectoryUpdater implements ISignalListener,
         }
 
         // 3. Register all new isolates
+        final List<String> newIsolates = new ArrayList<String>(isolates.size());
         for (final IsolateInfo info : isolates.values()) {
-            pDirectory.registerIsolate(info.id, info.node, info.port,
-                    info.groups.toArray(new String[0]));
+            if (pDirectory.registerIsolate(info.id, info.node, info.port,
+                    info.groups.toArray(new String[0]))) {
+                // Isolate registered (new or update)
+                newIsolates.add(info.id);
+            }
         }
+
+        return newIsolates.toArray(new String[newIsolates.size()]);
     }
 
     /**
@@ -565,8 +607,11 @@ public class DirectoryUpdater implements ISignalListener,
             pLogger.logDebug(this, "validate", "Grabbing directory from port=",
                     pDumperPort);
 
-            // Stack the signal...
-            pSender.stack(ISignalDirectoryConstants.SIGNAL_DUMP, null, this,
+            // Prepare signal content, without propagating the signal
+            final Map<String, Object> content = prepareRegistrationContent(false);
+
+            // Stack the signal
+            pSender.stack(ISignalDirectoryConstants.SIGNAL_DUMP, content, this,
                     ESendMode.SEND, Integer.MAX_VALUE, new HostAccess(
                             "localhost", pDumperPort));
         }

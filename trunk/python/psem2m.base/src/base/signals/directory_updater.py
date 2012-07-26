@@ -69,6 +69,9 @@ class DirectoryUpdater(object):
         self._receiver = None
         self._sender = None
 
+        # Lock to have a clean directory during signals handling
+        self._lock = threading.Lock()
+
 
     def _grab_directory(self, host, port, ignored_node=None):
         """
@@ -81,7 +84,11 @@ class DirectoryUpdater(object):
         :param port: Directory signal listener port
         :param ignored_port: The address for this node must be ignored
         """
-        sig_results = self._sender.send_to(SIGNAL_DUMP, None, host, port)
+        # Prepare pre-registration content, without propagation
+        content = self._prepare_registration_content(False)
+
+        # Send the dump signal, with a registration content
+        sig_results = self._sender.send_to(SIGNAL_DUMP, content, host, port)
         if not sig_results or not sig_results["results"]:
             _logger.warning("Nothing returned by the directory dumper")
             return
@@ -138,7 +145,7 @@ class DirectoryUpdater(object):
 
 
         # Now, we can send our registration signal
-        self._send_registration(host, port)
+        self._send_registration(host, port, True)
 
 
     def _grab_remote_directory(self, signal_data):
@@ -203,6 +210,39 @@ class DirectoryUpdater(object):
         threading.Thread(target=notification_loop, args=[self]).start()
 
 
+    def _prepare_registration_content(self, propagate):
+        """
+        Prepares the registration signal content.
+        
+        :param propagate: If true, the receivers of this signal will re-emit it
+        :return: The content for a registration signal
+        """
+        # Beat confirmation
+        isolate_id = self._directory.get_isolate_id()
+
+        # FIXME: setup groups from the configuration service
+        groups = ["ALL"]
+
+        if isolate_id.startswith("org.psem2m.internals.isolates.forker"):
+            # Forkers can only be forkers
+            groups.append("FORKERS")
+
+        else:
+            # A forker can't be an isolate and vice versa
+            groups.append("ISOLATES")
+
+        if isolate_id.startswith("org.psem2m.internals.isolates.monitor"):
+            # A monitor is a special isolate
+            groups.append("MONITORS")
+
+        return {"id": isolate_id,
+                "address": None, # <- No address when sending
+                "node": self._directory.get_local_node(),
+                "port": self._receiver.get_access_info()[1],
+                "groups": groups,
+                "propagate": propagate}
+
+
     def _register_isolate(self, signal_data):
         """
         Registers an isolate according to the given map
@@ -249,7 +289,7 @@ class DirectoryUpdater(object):
                               excluded=[isolate_id])
 
 
-    def _send_registration(self, host, port):
+    def _send_registration(self, host, port, propagate):
         """
         Sends the registration signal to the listener at the given (host, port)
         
@@ -260,38 +300,25 @@ class DirectoryUpdater(object):
         
         :param host: Registration listener host, or None
         :param port: Registration listener port
+        :param propagate: If true, the receivers of this signal will re-emit it
         """
-        # Beat confirmation
-        isolate_id = self._directory.get_isolate_id()
-
-        # FIXME: setup groups from the configuration service
-        groups = ["ALL"]
-
-        if isolate_id.startswith("org.psem2m.internals.isolates.forker"):
-            # Forkers can only be forkers
-            groups.append("FORKERS")
-
-        else:
-            # A forker can't be an isolate and vice versa
-            groups.append("ISOLATES")
-
-        if isolate_id.startswith("org.psem2m.internals.isolates.monitor"):
-            # A monitor is a special isolate
-            groups.append("MONITORS")
-
-        content = {"id": isolate_id,
-                   "address": None, # <- No address when sending
-                   "node": self._directory.get_local_node(),
-                   "port": self._receiver.get_access_info()[1],
-                   "groups": groups,
-                   "propagate": True}
+        content = self._prepare_registration_content(propagate)
 
         # Send the registration to the given address
-        sig_results = self._sender.send_to(SIGNAL_REGISTER, content,
-                                           host, port)
-        if not sig_results:
-            _logger.warning("Nothing returned during registration")
-            return
+        try:
+            sig_results = self._sender.send_to(SIGNAL_REGISTER, content,
+                                               host, port)
+
+            if not sig_results:
+                _logger.warning("Nothing returned during registration")
+                return
+
+        except Exception as ex:
+            _logger.exception("Error sending registration signal to=%s port=%d:"
+                              " %s. Sending to all known isolates.",
+                              host, port, ex)
+
+            self._sender.send(SIGNAL_REGISTER, content, dir_group="OTHERS")
 
 
     def handle_received_signal(self, name, signal_data):
@@ -301,27 +328,42 @@ class DirectoryUpdater(object):
         :param name: Signal name
         :param signal_data: Signal content
         """
-        isolate_id = signal_data["senderId"]
-        isolate_node = signal_data["senderNode"]
-
         if name == SIGNAL_DUMP:
-            # Dump the directory
-            return self._directory.dump()
+            with self._lock:
+                # Register the incoming isolate
+                self._register_isolate(signal_data)
+
+                # Dump the directory
+                return self._directory.dump()
 
         elif name == SIGNAL_REGISTER:
-            # Isolate registration
-            self._register_isolate(signal_data)
+            with self._lock:
+                # Isolate registration
+                self._register_isolate(signal_data)
 
-            # Notify listeners
-            self._notify_listeners(isolate_id, isolate_node, REGISTERED)
+                # Notify listeners
+                self._notify_listeners(signal_data["senderId"],
+                                       signal_data["senderNode"], REGISTERED)
+
+        elif name == SIGNAL_ISOLATE_LOST:
+            with self._lock:
+                # Unregister the isolate
+                lost_isolate = signal_data["signalContent"]
+                if lost_isolate:
+                    # Get the node of the lost isolate
+                    lost_node = self._directory.get_isolate_node(lost_isolate)
+
+                    # Unregister it
+                    self._directory.unregister_isolate(lost_isolate)
+
+                    # Notify listeners
+                    self._notify_listeners(lost_isolate, lost_node,
+                                           UNREGISTERED)
 
         elif name == SIGNAL_CONTACT:
             # A contact has been signal, ask for a remote directory dump
+            # -> Forker only
             self._grab_remote_directory(signal_data)
-
-        elif name == SIGNAL_ISOLATE_LOST:
-            # Notify listeners
-            self._notify_listeners(isolate_id, isolate_node, UNREGISTERED)
 
 
     @Invalidate
