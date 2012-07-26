@@ -46,19 +46,6 @@ import org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration;
 @Instantiate(name = "psem2m-remote-service-exporter")
 public class ServiceExporter extends CPojoBase implements ServiceListener {
 
-    /**
-     * The filter to detect exported services only. Test the existence of the
-     * service.exported.interfaces and service.exported.configs properties.
-     * 
-     * Optionally, a psem2m.service.export property can be set to false to block
-     * the export.
-     */
-    public static final String EXPORTED_SERVICE_FILTER = "(&"
-    /* PSEM2M flag */
-    + "(|(!(psem2m.service.export=*))(psem2m.service.export=true))"
-    /* OSGi properties */
-    + "(|(service.exported.interfaces=*)(service.exported.configs=*)))";
-
     /** Remote service broadcaster (RSB) */
     @Requires
     private IRemoteServiceBroadcaster pBroadcaster;
@@ -360,10 +347,43 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
     @Validate
     public void validatePojo() throws BundleException {
 
+        /*
+         * The filter to detect exported services only. Test the existence of
+         * the service.exported.interfaces and service.exported.configs
+         * properties.
+         * 
+         * Optionally, a psem2m.service.export property can be set to false to
+         * block the export.
+         */
+        final StringBuilder serviceFilterBuilder = new StringBuilder("(&");
+
+        /* PSEM2M flag (denies export if present and not true) */
+        serviceFilterBuilder
+                .append("(|(!(psem2m.service.export=*))(psem2m.service.export=true))");
+
+        serviceFilterBuilder.append("(|!(")
+                .append(IRemoteServicesConstants.PSEM2M_SERVICE_EXPORT)
+                .append("=*)(")
+                .append(IRemoteServicesConstants.PSEM2M_SERVICE_EXPORT)
+                .append("=true))");
+
+        /* OSGi properties */
+        serviceFilterBuilder.append("(|(")
+                .append(IRemoteServicesConstants.SERVICE_EXPORTED_INTERFACES)
+                .append("=*)(")
+                .append(IRemoteServicesConstants.SERVICE_EXPORTED_CONFIGS)
+                .append("=*))");
+
+        // End of filter
+        serviceFilterBuilder.append(")");
+
+        // Get the string form
+        final String serviceFilter = serviceFilterBuilder.toString();
+
         // Handle already registered services
         try {
             final ServiceReference[] exportedServices = pBundleContext
-                    .getAllServiceReferences(null, EXPORTED_SERVICE_FILTER);
+                    .getAllServiceReferences(null, serviceFilter);
 
             if (exportedServices != null) {
                 for (final ServiceReference serviceRef : exportedServices) {
@@ -377,7 +397,7 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
 
         // Register a listener for future exported services
         try {
-            pBundleContext.addServiceListener(this, EXPORTED_SERVICE_FILTER);
+            pBundleContext.addServiceListener(this, serviceFilter);
 
         } catch (final InvalidSyntaxException e) {
 
