@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: PSEM2M Remote Services Repository
+Bundle-Name: PSEM2M :: Remote Services :: Repository
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: org.psem2m.remote.repository
 Bundle-Vendor: isandlaTech.com
