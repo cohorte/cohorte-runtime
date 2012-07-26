@@ -28,14 +28,17 @@ org.psem2m.isolates.base
 # iPOJO Stuffs
 include: ipojo.bundles
 
+# Signals API
+org.psem2m.signals.api
+
 # Configuration reader
 org.psem2m.isolates.config
 
 # Signals directory (based on configuration)
 org.psem2m.signals.directory
 
-# Signals Base (based on iPOJO)
-org.psem2m.signals
+# Signals Base
+org.psem2m.signals.base
 
 # Java Signals serializer
 org.psem2m.signals.serializer.java
