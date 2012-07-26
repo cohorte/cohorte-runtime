@@ -323,6 +323,16 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
         // ... the port (2 bytes)
         final int port = aData.getShort();
 
+        // ... the application ID (string)
+        final String applicationId = extractString(aData);
+
+        // Check if the application corresponds to us
+        if (!pConfig.getApplication().getApplicationId().equals(applicationId)) {
+            // Not for us, ignore.
+            // Avoid to log, as this will happen every heart beat
+            return;
+        }
+
         // ... the isolate ID (string)
         final String forkerId = extractString(aData);
 

@@ -31,6 +31,12 @@ import threading
 # Heart beat packet type
 PACKET_TYPE_HEARTBEAT = 1
 
+# PSEM2M property: Isolate ID
+PROPERTY_ISOLATE_ID = 'psem2m.isolate.id'
+
+# PSEM2M property: Isolate Node
+PROPERTY_ISOLATE_NODE = 'psem2m.isolate.node'
+
 # ------------------------------------------------------------------------------
 
 if sys.version_info[0] == 3:
@@ -256,19 +262,22 @@ def close_multicast_socket(sock, address):
 
 # ------------------------------------------------------------------------------
 
-def make_heartbeat(port, isolate_id, node_id):
+def make_heartbeat(port, application_id, isolate_id, node_id):
     """
     Prepares the heart beat UDP packet
     
     Format : Little endian
     * Packet type (1 byte)
     * Signals port (2 bytes)
+    * Application ID length (2 bytes)
+    * application_id (variable, UTF-8)
     * Isolate ID length (2 bytes)
     * Isolate ID (variable, UTF-8)
     * Node ID length (2 bytes)
     * Node ID (variable, UTF-8)
     
     :param port: The Signals access port
+    :param application_id: The ID of the current application
     :param isolate_id: The ID of this isolate
     :param node_id: The host node ID
     :return: The heart beat packet content (byte array)
@@ -276,7 +285,7 @@ def make_heartbeat(port, isolate_id, node_id):
     # Type and port...
     packet = struct.pack("<BH", PACKET_TYPE_HEARTBEAT, port)
 
-    for string in (isolate_id, node_id):
+    for string in (application_id, isolate_id, node_id):
         # Strings...
         string_bytes = _to_bytes(string)
         packet += struct.pack("<H", len(string_bytes))
@@ -326,9 +335,22 @@ class Heart(object):
         Heart beat sender
         """
         # Prepare the packet
+        app = self._config.get_application()
+        if app:
+            appId = app.get_application_id()
+
+        else:
+            appId = "<unknown-app>"
+
         beat = make_heartbeat(self._http.get_port(),
-                              self._context.get_property('psem2m.isolate.id'),
-                              self._context.get_property('psem2m.isolate.node'))
+                              appId,
+                              self._context.get_property(PROPERTY_ISOLATE_ID),
+                              self._context.get_property(PROPERTY_ISOLATE_NODE))
+
+        _logger.debug("HEARTBEAT: appId='%s', id='%s', node='%s'",
+                      appId,
+                      self._context.get_property(PROPERTY_ISOLATE_ID),
+                      self._context.get_property(PROPERTY_ISOLATE_NODE))
 
         while not self._event.is_set():
             # Send the heart beat using the multicast socket
