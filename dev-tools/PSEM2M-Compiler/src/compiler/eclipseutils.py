@@ -10,6 +10,10 @@ import os.path
 import shutil
 import xml.dom.minidom as dom
 
+_logger = logging.getLogger(__name__)
+
+# ------------------------------------------------------------------------------
+
 class Link(object):
     """
     Represents a link in an Eclipse project
@@ -90,6 +94,7 @@ class Link(object):
         return "Link(name='%s', type=%d, location='%s', uri='%s')" \
             % (self.name, self.type, self.location, self.location_uri)
 
+# ------------------------------------------------------------------------------
 
 class EclipseProject(object):
     """
@@ -161,7 +166,7 @@ class EclipseProject(object):
                 self._create_link(link.location, link.name)
 
             else:
-                logging.warn("Invalid path : %s / %s", link.location, \
+                _logger.warn("Invalid path : %s / %s", link.location, \
                              link.location_uri)
 
 
@@ -172,7 +177,7 @@ class EclipseProject(object):
         @param target: Link target
         @param link_name: Name of the symbolic link
         """
-        logging.debug("%s: Create link '%s' -> '%s'", self.name, link_name, \
+        _logger.debug("%s: Create link '%s' -> '%s'", self.name, link_name, \
                       target)
 
         full_link_name = self.path + os.sep + link_name
@@ -182,7 +187,7 @@ class EclipseProject(object):
             self.to_remove.append(full_link_name)
 
         else:
-            logging.warn("%s: Symbolic link already exists '%s'", self.name, \
+            _logger.warn("%s: Symbolic link already exists '%s'", self.name, \
                          full_link_name)
 
 
@@ -192,7 +197,7 @@ class EclipseProject(object):
         
         @param name: Folder name
         """
-        logging.debug("%s: Create folder '%s'", self.name, name)
+        _logger.debug("%s: Create folder '%s'", self.name, name)
 
         full_folder_name = self.path + os.sep + name
 
@@ -201,7 +206,7 @@ class EclipseProject(object):
             self.to_remove.append(full_folder_name)
 
         else:
-            logging.warn("%s: Path already exists '%s'", self.name, \
+            _logger.warn("%s: Path already exists '%s'", self.name, \
                          full_folder_name)
 
 
@@ -209,7 +214,7 @@ class EclipseProject(object):
         """
         Logs an error raised when calling shutil.rmtree()
         """
-        logging.error("%s: Error deleting '%s'.", self.name, path, excinfo=True)
+        _logger.error("%s: Error deleting '%s'.", self.name, path, excinfo=True)
 
 
     def __str__(self):
@@ -218,6 +223,7 @@ class EclipseProject(object):
         """
         return "Project(name='%s')" % self.name
 
+# ------------------------------------------------------------------------------
 
 class EclipseClasspath(object):
     """
@@ -233,6 +239,7 @@ class EclipseClasspath(object):
         self.src = []
         self.lib = []
 
+# ------------------------------------------------------------------------------
 
 def get_first_child_text(element, tag_name):
     """
@@ -268,6 +275,32 @@ def get_text(element):
         return text
 
     return None
+
+# ------------------------------------------------------------------------------
+
+def get_project(project_root):
+    """
+    Retrieves the Eclipse project found in the given directory.
+    Returns None if the directory doesn't contain a .project file.
+    Raises an exception if an error occurs while reading the project file.
+    
+    :param project_root: The root directory of an Eclipse project
+    :return: The parsed project, or None
+    :raise Exception: Error reading the project file
+    """
+    # Read the Eclipse project
+    project_file = os.path.join(project_root, '.project')
+    if not os.path.isfile(project_file):
+        # No project file found
+        _logger.debug("Not an Eclipse project: %s", project_root)
+        return
+
+    try:
+        return read_project(project_file)
+
+    except Exception as ex:
+        _logger.exception("Error reading Eclipse project: %s", ex)
+        return
 
 
 def read_project(project_file):

@@ -1,5 +1,5 @@
-#Thu Dec 08 15:26:21 CET 2011
 eclipse.preferences.version=1
+encoding//src/compiler/eclipseutils.py=utf-8
 encoding/ant_generator.py=utf-8
-encoding/eclipse_reader.py=utf-8
 encoding/preprocessor.py=utf-8
+encoding/setup.py=utf-8
