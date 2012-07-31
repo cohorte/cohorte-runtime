@@ -219,12 +219,9 @@ def main():
     result = subprocess.call(['ant', '-f', master_file, 'package'])
     _logger.debug("Ant result = %d", result)
 
-    if result == 0 and 'compiler.ext.sonar' in config.get('main', 'extensions'):
-        # No error, run Sonar
-        # FIXME: use the 'extension' approach here
-        _logger.info("Running Sonar task...")
-        subprocess.call(['ant', '-f', master_file, 'sonar'],
-                        env={"JAVA_OPTS": "-Xms128m -Xmx1024m -XX:MaxPermSize=1024m"})
+    if result == 0:
+        # No error, call extensions
+        ant_generator.post_build()
 
     # 9. Clean up
     if params.clean_after_build:

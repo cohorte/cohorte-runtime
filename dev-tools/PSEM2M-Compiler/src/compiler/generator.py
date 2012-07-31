@@ -425,3 +425,14 @@ class AntGenerator(object):
 
         # Clean up the list
         del self._generated_files[:]
+
+
+    def post_build(self):
+        """
+        Do post-build operations
+        """
+        master_file = os.path.join(self.master_root, self.build_file_name)
+
+        # Call extensions
+        self.__call_extensions('post_build', master_file,
+                               self._generated_files[:])

@@ -11,6 +11,7 @@ Adds a Sonar task for the compiled projects.
 import compiler.antutils as ant
 
 import os
+import subprocess
 
 # ------------------------------------------------------------------------------
 
@@ -38,6 +39,7 @@ class SonarExt(object):
         self.compilation_name = parameters.get('main', 'name')
         self.ant_task_jar = parameters.get('sonar', 'ant.task.jar')
         self.sonar_host = parameters.get_default('sonar', 'sonar.host.url')
+        self.projects_ignored = parameters.get_list('sonar', 'projects.ignored')
 
 
     def finalize_bundle(self, document, bundle):
@@ -87,22 +89,25 @@ class SonarExt(object):
         sonar.appendChild(ant.create_element(document, task_name, attrs))
 
 
-    def finalize_master(self, document, generated_files):
+    def post_build(self, master_file, generated_files):
         """
-        Called once the whole Ant master file has been generated
-        
-        :param document: The Master Ant file DOM Document
-        :param generated_files: Contains generated build files
+        Called after a successful compilation
         """
-        # Add the 'modules' property (seems to add a duplication bug)
-        # ant.add_property(document, 'sonar.modules', ','.join(generated_files))
+        # Use a copy the generated files list
+        scripts = generated_files[:]
 
-        # Add the task
-        target = ant.add_target(document, 'sonar', 'Runs Sonar')
+        # Remove the master file from the list
+        scripts.remove(master_file)
 
-        for script in generated_files:
-            root = os.path.dirname(script)
-            antfile = os.path.basename(script)
+        # Common environment options
+        environment = {"JAVA_OPTS": "-Xms128m -Xmx1024m -XX:MaxPermSize=1024m"}
 
-            attrs = {'dir': root, 'target': 'sonar', 'antfile': antfile}
-            target.appendChild(ant.create_element(document, 'ant', attrs))
+        for script in scripts:
+            # Test if the script must be ignored
+            project = os.path.basename(os.path.dirname(script))
+            if project in self.projects_ignored:
+                # Ignored project
+                continue
+
+            # Call Ant
+            subprocess.call(['ant', '-f', script, 'sonar'], env=environment)
