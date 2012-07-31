@@ -15,16 +15,16 @@ public interface ISignalsEventsConstants {
     /**
      * Defines event targets
      * 
-     * Value: A collection or an array of strings
+     * Value : A EBaseGroup string value
      */
-    String EXPORT_ISOLATES = "org.psem2m.event.export.isolates";
+    String EXPORT_GROUP = "org.psem2m.event.export.group";
 
     /**
      * Defines event targets
      * 
-     * Value : ISignalBroadcaster.EEmitterTargets
+     * Value: A collection or an array of strings
      */
-    String EXPORT_TARGET = "org.psem2m.event.export.target";
+    String EXPORT_ISOLATES = "org.psem2m.event.export.isolates";
 
     /**
      * Property to indicate that the event must be exported

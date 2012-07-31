@@ -24,7 +24,8 @@ import org.osgi.service.event.EventHandler;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.constants.ISignalsEventsConstants;
-import org.psem2m.isolates.services.remote.signals.ISignalBroadcaster;
+import org.psem2m.signals.ISignalBroadcaster;
+import org.psem2m.signals.ISignalDirectory.EBaseGroup;
 
 /**
  * An EventHandler that transmits received events to other isolates
@@ -88,15 +89,13 @@ public class EventBroadcaster extends CPojoBase implements EventHandler {
             }
         }
 
-        // Is the target given from the enumeration
-        final String targetStr = (String) aEvent
-                .getProperty(ISignalsEventsConstants.EXPORT_TARGET);
-        if (targetStr != null) {
-
+        // Is the target a group
+        final String groupName = (String) aEvent
+                .getProperty(ISignalsEventsConstants.EXPORT_GROUP);
+        if (groupName != null) {
             try {
-                pSender.sendData(
-                        ISignalBroadcaster.EEmitterTargets.valueOf(targetStr),
-                        signalName, signalData);
+                pSender.sendGroup(signalName, signalData,
+                        EBaseGroup.valueOf(groupName));
 
                 // Done
                 return;
@@ -104,7 +103,7 @@ public class EventBroadcaster extends CPojoBase implements EventHandler {
             } catch (final IllegalArgumentException e) {
                 // Invalid target
                 pLogger.logWarn(this, "handleEvent", "Invalid target :",
-                        targetStr);
+                        groupName);
             }
         }
 
@@ -119,9 +118,9 @@ public class EventBroadcaster extends CPojoBase implements EventHandler {
 
         if (isolatesObj instanceof Collection) {
 
+            // Using a list avoids empty entries in the result array
             final List<String> isolates = new ArrayList<String>(
                     ((Collection<?>) isolatesObj).size());
-
             for (final Object isolateObj : (Collection<?>) isolatesObj) {
                 if (isolateObj instanceof CharSequence) {
                     isolates.add(isolateObj.toString());
@@ -129,18 +128,17 @@ public class EventBroadcaster extends CPojoBase implements EventHandler {
             }
 
             // Send to isolates
-            pSender.sendData(isolates, signalName, signalData);
-            return;
+            pSender.send(signalName, signalData,
+                    isolates.toArray(new String[0]));
 
         } else if (isolatesObj instanceof CharSequence) {
             // Only one isolate given
-            pSender.sendData(isolatesObj.toString(), signalName, signalData);
-            return;
-        }
+            pSender.send(signalName, signalData, isolatesObj.toString());
 
-        // No isolate ID given : send to all
-        pSender.sendData(ISignalBroadcaster.EEmitterTargets.ALL, signalName,
-                signalData);
+        } else {
+            // No isolate ID given : send to all
+            pSender.sendGroup(signalName, signalData, EBaseGroup.OTHERS);
+        }
     }
 
     /*
