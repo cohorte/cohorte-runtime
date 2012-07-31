@@ -9,11 +9,11 @@ PSEM2M Compiler: Entry point
 # ------------------------------------------------------------------------------
 
 from builder.dependencies import BinaryBundleFinder, SourceBundleFinder, Dependencies
-import compiler.generator
+import compiler.config
 import compiler.eclipseutils as eclipse
+import compiler.generator
 
 from pprint import pformat
-import ConfigParser
 import importlib
 import logging
 import optparse
@@ -125,27 +125,6 @@ def read_parameters():
 
 # ------------------------------------------------------------------------------
 
-def get_list(config, section, entry, default=[]):
-    """
-    Retrieves a list from the configuration
-    """
-    try:
-        values = config.get(section, entry).split(',')
-
-        new_list = []
-        for value in values:
-            value = value.strip()
-            if value:
-                new_list.append(value)
-
-        return new_list
-
-    except:
-        # Value not found
-        return default
-
-# ------------------------------------------------------------------------------
-
 def main():
     """
     Entry point
@@ -155,7 +134,7 @@ def main():
         params = read_parameters()
 
         _logger.info('Reading configuration file...')
-        config = ConfigParser.SafeConfigParser()
+        config = compiler.config.ExtSafeConfigParser()
         config.read(params.config_file)
 
     except Exception as ex:
@@ -163,9 +142,9 @@ def main():
         return 1
 
     # 0. Normalize configuration values
-    lib_dirs = get_list(config, 'main', 'lib.dirs')
-    src_dirs = get_list(config, 'main', 'src.dirs')
-    ignored_projects = get_list(config, 'main', 'projects.ignored')
+    lib_dirs = config.get_list('main', 'lib.dirs')
+    src_dirs = config.get_list('main', 'src.dirs')
+    ignored_projects = config.get_list('main', 'projects.ignored')
     eclipse_only = config.getboolean('main', 'eclipse.only')
 
     # Print configuration
@@ -217,11 +196,12 @@ def main():
                                 deps.src.bundles,
                                 deps.target_platform,
                                 config.get('main', 'output'),
-                                config.get('main', 'ant_script') or "build.xml")
+                                config.get_default('main', 'ant_script',
+                                                   'build.xml'))
 
     # 6. Load extensions
     _logger.info("Loading extensions...")
-    for ext in get_list(config, 'main', 'extensions'):
+    for ext in config.get_list('main', 'extensions'):
         try:
             print 'Loading:', ext
             ant_generator.add_extension(load_extension(ext, config))
@@ -243,7 +223,8 @@ def main():
         # No error, run Sonar
         # FIXME: use the 'extension' approach here
         _logger.info("Running Sonar task...")
-        subprocess.call(['ant', '-f', master_file, 'sonar'])
+        subprocess.call(['ant', '-f', master_file, 'sonar'],
+                        env={"JAVA_OPTS": "-Xms128m -Xmx1024m -XX:MaxPermSize=1024m"})
 
     # 9. Clean up
     if params.clean_after_build:
