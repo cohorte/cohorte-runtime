@@ -406,7 +406,7 @@ class AntGenerator(object):
         self.__finalize_master()
 
         # write the master XML file
-        filename = os.path.join(bundle.root, self.build_file_name)
+        filename = os.path.join(self.master_root, self.build_file_name)
         ant.write_xml(self.master_build_xml, filename)
         self._generated_files.append(filename)
 
