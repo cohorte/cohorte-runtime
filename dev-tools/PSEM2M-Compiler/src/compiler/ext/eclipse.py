@@ -37,14 +37,7 @@ class EclipseExt(object):
                          '**/*.js']
 
         # Extend the patterns
-        try:
-            extra = parameters.get('eclipse', 'extra_includes')
-
-        except:
-            # No extra pattern found
-            _logger.info('No extra pattern given.')
-            return
-
+        extra = parameters.get_list('eclipse', 'extra_includes')
         if extra:
             for pattern in extra:
                 if pattern not in self.patterns:

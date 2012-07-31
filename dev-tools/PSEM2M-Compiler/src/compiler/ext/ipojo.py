@@ -39,8 +39,8 @@ class IPOJOExt(object):
         
         :param parameters: The PSEM2M Compiler configuration
         """
-        self.ant_task_jar = parameters.get('ipojo', 'ant_task_jar')
-        self.ipojo_annotations_jar = parameters.get('ipojo', 'annotations_jar')
+        self.ant_task_jar = parameters.get('ipojo', 'ant.task.jar')
+        self.ipojo_annotations_jar = parameters.get('ipojo', 'annotations.jar')
 
 
     def _append_ipojo_target(self, document, project):
