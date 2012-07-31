@@ -20,6 +20,9 @@ EXTENSION_CLASS = 'SonarExt'
 SONAR_TASK_RESOURCE = 'org/sonar/ant/antlib.xml'
 """ XML file in the Ant task Jar to define the task """
 
+SONAR_ANT_TASK = "org.sonar.ant.SonarTask"
+""" Sonar Ant task class """
+
 # ------------------------------------------------------------------------------
 
 class SonarExt(object):
@@ -33,7 +36,8 @@ class SonarExt(object):
         :param parameters: The PSEM2M Compiler configuration
         """
         self.compilation_name = parameters.get('main', 'name')
-        self.ant_task_jar = parameters.get('sonar', 'ant_task_jar')
+        self.ant_task_jar = parameters.get('sonar', 'ant.task.jar')
+        self.sonar_host = parameters.get_default('sonar', 'sonar.host.url')
 
 
     def finalize_bundle(self, document, bundle):
@@ -44,35 +48,43 @@ class SonarExt(object):
         :param document: A Ant DOM Document for the given bundle project
         :param bundle: A Bundle object
         """
-        # Add the target...
-        sonar = ant.add_target(document, 'sonar', 'Runs Sonar analysis')
-
         # Add the properties
-        ant.add_property(document, 'sonar.sources', '${src}', sonar)
-        ant.add_property(document, 'sonar.projectName', bundle.sym_name, sonar)
+        ant.add_property(document, 'sonar.sources', '${src}')
+        ant.add_property(document, 'sonar.binaries', '${build}')
+        ant.add_property(document, 'sonar.projectName', bundle.sym_name)
+        ant.add_property(document, 'sonar.sourceEncoding', 'UTF-8')
+
+        if self.sonar_host:
+            # Add the Sonar host, if given
+            ant.add_property(document, 'sonar.host.url', self.sonar_host)
+
+        # Shouldn't be there...
+        project_key = ':'.join((self.compilation_name, bundle.sym_name))
+        ant.add_property(document, 'sonar.projectKey', project_key)
+        ant.add_property(document, 'sonar.version', str(bundle.version))
 
         # Add the class path
         path = ant.create_element(document, 'path', {'id': 'sonar.libraries'})
         path.appendChild(ant.create_element(document, 'path',
                                             {'refId': 'classpath'}))
-        sonar.appendChild(path)
+        document.documentElement.appendChild(path)
+
+        # Add the target...
+        sonar = ant.add_target(document, 'sonar', 'Runs Sonar analysis')
 
         # Add the task definition
-        sonar_ns = 'org.sonar.ant'
+        task_name = 'sonar'
         taskdef = ant.create_element(document, 'taskdef',
-                                     {'uri': sonar_ns,
-                                      'resource': SONAR_TASK_RESOURCE})
+                                     {'resource': SONAR_TASK_RESOURCE})
 
         taskdef.appendChild(ant.create_element(document, 'classpath',
                                                {'path': self.ant_task_jar}))
         sonar.appendChild(taskdef)
 
         # Add the task
-        task = document.createElementNS('sonar', sonar_ns)
-        task.setAttribute('key', ':'.join((self.compilation_name,
-                                           bundle.sym_name)))
-        task.setAttribute('version', str(bundle.version))
-        sonar.appendChild(task)
+        attrs = {'key': project_key + '-key',
+                 'version': str(bundle.version)}
+        sonar.appendChild(ant.create_element(document, task_name, attrs))
 
 
     def finalize_master(self, document, generated_files):
@@ -82,8 +94,8 @@ class SonarExt(object):
         :param document: The Master Ant file DOM Document
         :param generated_files: Contains generated build files
         """
-        # Add the 'modules' property
-        ant.add_property(document, 'sonar.modules', ','.join(generated_files))
+        # Add the 'modules' property (seems to add a duplication bug)
+        # ant.add_property(document, 'sonar.modules', ','.join(generated_files))
 
         # Add the task
         target = ant.add_target(document, 'sonar', 'Runs Sonar')
