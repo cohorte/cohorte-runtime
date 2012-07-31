@@ -41,6 +41,9 @@ import org.psem2m.isolates.services.remote.beans.EndpointDescription;
 @Instantiate(name = "psem2m-remote-endpoint-handler-jsonrpc")
 public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
 
+    /** Default HTTP port */
+    private static final int DEFAULT_HTTP_PORT = 80;
+
     /** The bundle context */
     private final BundleContext pBundleContext;
 
@@ -233,12 +236,13 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
     protected int getHttpPort() {
 
         final String portStr = System.getProperty("org.osgi.service.http.port");
-        int port = 80;
+        int port = DEFAULT_HTTP_PORT;
 
         try {
             port = Integer.parseInt(portStr);
+
         } catch (final NumberFormatException ex) {
-            port = 80;
+            port = DEFAULT_HTTP_PORT;
         }
 
         return port;

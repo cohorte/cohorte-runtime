@@ -36,8 +36,6 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
     public static final String ISOLATE_WORKING_DIR_BASE = CPlatformDirsSvc.VAR_DIRECTORY
             + File.separator + "work" + File.separator;
 
-    public static String LIB_ISOLATE_ID = "IsolateId";
-
     /** Platform instance log directory */
     public static final String LOGGING_DIR_BASE = CPlatformDirsSvc.VAR_DIRECTORY
             + File.separator + "log" + File.separator;
@@ -55,7 +53,9 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
     public static final String VAR_DIRECTORY = "var";
 
     /**
-     * <pre> org.psem2m.platform.isolate.id=[development] </pre>
+     * <pre>
+     * org.psem2m.platform.isolate.id=[development]
+     * </pre>
      * 
      * @return
      */
@@ -65,8 +65,10 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
     }
 
     /**
-     * <pre> org.psem2m.platform.base=[/Users/ogattaz/workspaces/psem2m/psem2m/
-     * platforms/felix.user.dir] </pre>
+     * <pre>
+     * org.psem2m.platform.base=[/Users/ogattaz/workspaces/psem2m/psem2m/
+     * platforms/felix.user.dir]
+     * </pre>
      * 
      * @return
      */
@@ -76,7 +78,9 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
     }
 
     /**
-     * <pre> org.psem2m.platform.home=[/usr/share/psem2m] </pre>
+     * <pre>
+     * org.psem2m.platform.home=[/usr/share/psem2m]
+     * </pre>
      * 
      * @return
      */
@@ -93,7 +97,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
     @Override
     public List<String> getForkerStartCommand() {
 
-        List<String> command = new ArrayList<String>();
+        final List<String> command = new ArrayList<String>();
 
         // Prepare the final script name
         final StringBuilder scriptFileNameBuilder = new StringBuilder(
@@ -115,10 +119,10 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
                 getCurrentPlatformBase(), getCurrentPlatformHome() };
         boolean scriptFound = false;
 
-        for (String platformDirectory : possibleDirectories) {
+        for (final String platformDirectory : possibleDirectories) {
 
-            File varDirectory = new File(platformDirectory, VAR_DIRECTORY);
-            File scriptFile = new File(varDirectory, scriptFileName);
+            final File varDirectory = new File(platformDirectory, VAR_DIRECTORY);
+            final File scriptFile = new File(varDirectory, scriptFileName);
 
             if (scriptFile.exists()) {
                 command.add(scriptFile.getAbsolutePath());
@@ -166,7 +170,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
     @Override
     public File getIsolateLogDir(final String aIsolateId) throws Exception {
 
-        File wLogDir = new File(getPlatformLogDir(), aIsolateId);
+        final File wLogDir = new File(getPlatformLogDir(), aIsolateId);
         if (!wLogDir.exists()) {
             wLogDir.mkdirs();
         }
@@ -261,7 +265,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
     @Override
     public File getPlatformLogDir() throws Exception {
 
-        File wLogDir = new File(getPlatformBaseDir(), LOGGING_DIR_BASE
+        final File wLogDir = new File(getPlatformBaseDir(), LOGGING_DIR_BASE
                 + "psem2m");
         if (!wLogDir.exists()) {
             wLogDir.mkdirs();
@@ -289,16 +293,16 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
     @Override
     public File[] getRepositories() {
 
-        List<File> repositories = new ArrayList<File>();
+        final List<File> repositories = new ArrayList<File>();
 
         // Current instance repository
-        File baseRepo = new File(getPlatformBaseDir(), REPOSITORY_NAME);
+        final File baseRepo = new File(getPlatformBaseDir(), REPOSITORY_NAME);
         if (baseRepo.exists()) {
             repositories.add(baseRepo);
         }
 
         // Home repository
-        File homeRepo = new File(getPlatformHomeDir(), REPOSITORY_NAME);
+        final File homeRepo = new File(getPlatformHomeDir(), REPOSITORY_NAME);
         if (!homeRepo.equals(baseRepo) && homeRepo.exists()) {
             repositories.add(homeRepo);
         }

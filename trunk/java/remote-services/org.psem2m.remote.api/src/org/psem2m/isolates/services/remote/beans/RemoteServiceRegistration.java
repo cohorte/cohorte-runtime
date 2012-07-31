@@ -82,9 +82,18 @@ public class RemoteServiceRegistration implements Serializable {
             final Map<String, Object> aServiceProperties,
             final Collection<EndpointDescription> aEndpoints) {
 
-        pExportedInterfaces = aExportedInterfaces;
+        // Use copies only
         pServiceProperties.putAll(aServiceProperties);
         pEndpoints.addAll(aEndpoints);
+
+        if (aExportedInterfaces == null) {
+            pExportedInterfaces = null;
+
+        } else {
+            pExportedInterfaces = new String[aExportedInterfaces.length];
+            System.arraycopy(aExportedInterfaces, 0, pExportedInterfaces, 0,
+                    pExportedInterfaces.length);
+        }
 
         // Get the current isolate ID
         final String sourceIsolate = System.getProperty(

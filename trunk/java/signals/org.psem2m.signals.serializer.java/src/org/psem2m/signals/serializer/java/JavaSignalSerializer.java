@@ -157,8 +157,9 @@ public class JavaSignalSerializer extends CPojoBase implements
                 try {
                     objectStream.close();
 
-                } catch (final IOException e) {
-                    e.printStackTrace();
+                } catch (final IOException ex) {
+                    pLogger.logWarn(this, "serializeData",
+                            "Can't close the ObjectStream:", ex);
                 }
             }
         }

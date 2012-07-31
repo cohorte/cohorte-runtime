@@ -26,7 +26,7 @@ public class CIsolateLoggerSvc extends CXObjectBase implements
         IIsolateLoggerSvc {
 
     /** The logger presence key name */
-    private final static String LIB_HAS_AL = "hasActivityLogger";
+    private static final String LIB_HAS_AL = "hasActivityLogger";
 
     /** reference to the activator **/
     private IActivityLoggerBase pActivityLoggerBase = null;

@@ -453,10 +453,10 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
      */
     @Override
     public void invalidatePojo() {
-    	
-		// logs the validation
-		pIsolateLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
-				toString());
+
+        // logs the validation
+        pIsolateLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
+                toString());
 
         // Unregister the bundle listener
         pBundleContext.removeBundleListener(this);
@@ -686,12 +686,9 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
                                 pInstalledBundles.get(bundleId)
                                         .getSymbolicName(), ex);
 
-                        System.err.println(ex);
-
                     } else {
                         // Propagate error if the bundle is not optional
                         throw ex;
-
                     }
                 }
             }
@@ -904,11 +901,10 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
      */
     @Override
     public void validatePojo() {
-    	
-		// logs the validation
-		pIsolateLoggerSvc.logInfo(this, "validatePojo", "VALIDATE",
-				toString());
-		
+
+        // logs the validation
+        pIsolateLoggerSvc.logInfo(this, "validatePojo", "VALIDATE", toString());
+
         // Set up the scheduler, before the call to addBundleListener.
         pScheduler = Executors.newScheduledThreadPool(1);
 
@@ -937,9 +933,6 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
                     EBaseGroup.MONITORS);
 
         } catch (final Exception ex) {
-            System.err.println("Preparation error : " + ex);
-            ex.printStackTrace();
-
             final IsolateStatus status = pBootstrapSender.sendStatus(
                     IsolateStatus.STATE_FAILURE, -1);
 

@@ -32,6 +32,15 @@ public interface ISignalsConstants {
     String BROADCASTER_SIGNAL_REQUEST_ENDPOINTS = BROADCASTER_SIGNAL_NAME_PREFIX
             + "/request-endpoints";
 
+    /** Signal result code: internal error */
+    int CODE_INTERNAL_ERROR = 501;
+
+    /** Signal result code: no listener found */
+    int CODE_NO_LISTENER = 404;
+
+    /** Signal result code: no error */
+    int CODE_OK = 200;
+
     /**
      * Lost contact with isolate
      * 

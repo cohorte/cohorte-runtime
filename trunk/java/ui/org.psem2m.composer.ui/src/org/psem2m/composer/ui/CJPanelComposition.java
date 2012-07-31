@@ -188,10 +188,7 @@ public class CJPanelComposition extends CJPanelTree {
 
     private CCompositionTreeModel pCompositionTreeModel = null;
 
-    private JSplitPane pMainSplitPane;
-    private JScrollPane pTextScrollPane;
     private JTree pTree;
-    private JScrollPane pTreeScrollPane;
 
     /**
 	 * 
@@ -339,13 +336,13 @@ public class CJPanelComposition extends CJPanelTree {
         try {
             setLayout(new BorderLayout(0, 0));
 
-            pMainSplitPane = new JSplitPane();
-            pMainSplitPane.setResizeWeight(0.5);
-            pMainSplitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
-            add(pMainSplitPane, BorderLayout.CENTER);
+            final JSplitPane mainSplitPane = new JSplitPane();
+            mainSplitPane.setResizeWeight(0.5);
+            mainSplitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
+            add(mainSplitPane, BorderLayout.CENTER);
 
-            pTreeScrollPane = new JScrollPane();
-            pMainSplitPane.setLeftComponent(pTreeScrollPane);
+            final JScrollPane treeScrollPane = new JScrollPane();
+            mainSplitPane.setLeftComponent(treeScrollPane);
 
             pTree = pCompositionTreeModel != null ? new JTree(
                     pCompositionTreeModel) : new JTree();
@@ -353,19 +350,19 @@ public class CJPanelComposition extends CJPanelTree {
             setTreeFont(EUiAdminFont.NORMAL);
             pTree.addTreeSelectionListener(new CTreeSelectionListener());
             pTree.setCellRenderer(new CTreeCellRenderer());
-            pTreeScrollPane.setViewportView(pTree);
+            treeScrollPane.setViewportView(pTree);
 
             final JPanel panel = new JPanel();
-            pMainSplitPane.setRightComponent(panel);
+            mainSplitPane.setRightComponent(panel);
             panel.setLayout(new BorderLayout(0, 0));
 
-            pTextScrollPane = new JScrollPane();
-            panel.add(pTextScrollPane, BorderLayout.CENTER);
+            final JScrollPane textScrollPane = new JScrollPane();
+            panel.add(textScrollPane, BorderLayout.CENTER);
 
             pComponentsSetText = new JTextArea();
             pComponentsSetText.setText("ComponentsSet...");
             setTextFont(EUiAdminFont.NORMAL);
-            pTextScrollPane.setViewportView(pComponentsSetText);
+            textScrollPane.setViewportView(pComponentsSetText);
         } catch (final Exception e) {
             if (hasLogger()) {
                 getLogger().logSevere(this, "newGUI", e);

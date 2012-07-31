@@ -28,7 +28,15 @@ public class SignalContent {
      */
     public SignalContent(final String aType, final byte[] aContent) {
 
-        pContent = aContent;
+        // Use a copy of the array
+        if (aContent == null) {
+            pContent = null;
+
+        } else {
+            pContent = new byte[aContent.length];
+            System.arraycopy(aContent, 0, pContent, 0, pContent.length);
+        }
+
         pContentType = aType;
     }
 

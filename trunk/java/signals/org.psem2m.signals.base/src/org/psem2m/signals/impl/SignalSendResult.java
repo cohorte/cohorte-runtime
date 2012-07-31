@@ -6,6 +6,7 @@
 package org.psem2m.signals.impl;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -35,8 +36,17 @@ public class SignalSendResult implements ISignalSendResult {
     public SignalSendResult(final Map<String, Object[]> aResults,
             final String[] aFailed) {
 
-        pFailed = aFailed;
-        pResults = aResults;
+        // Use a copy
+        pResults = new HashMap<String, Object[]>(aResults);
+
+        if (aFailed == null) {
+            pFailed = null;
+
+        } else {
+            // Use a copy (to ignore modifications in the source array)
+            pFailed = new String[aFailed.length];
+            System.arraycopy(aFailed, 0, pFailed, 0, pFailed.length);
+        }
     }
 
     /*

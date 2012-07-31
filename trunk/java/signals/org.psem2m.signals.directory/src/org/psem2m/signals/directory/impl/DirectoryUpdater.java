@@ -45,25 +45,6 @@ import org.psem2m.signals.IWaitingSignalListener;
 public class DirectoryUpdater implements ISignalListener,
         IWaitingSignalListener {
 
-    /**
-     * A small information storage
-     * 
-     * @author Thomas Calmant
-     */
-    private class IsolateInfo {
-        /** Isolate groups */
-        final List<String> groups = new ArrayList<String>();
-
-        /** Isolate ID */
-        String id;
-
-        /** Isolate node */
-        String node;
-
-        /** Signals access port */
-        int port;
-    }
-
     /** The signals directory */
     @Requires
     private ISignalDirectory pDirectory;
@@ -516,7 +497,7 @@ public class DirectoryUpdater implements ISignalListener,
         }
 
         // 2. Prepare isolates information
-        final Map<String, IsolateInfo> isolates = new HashMap<String, DirectoryUpdater.IsolateInfo>();
+        final Map<String, IsolateInfo> isolates = new HashMap<String, IsolateInfo>();
 
         final Map<?, ?> accesses = (Map<?, ?>) aDumpedDirectory.get("accesses");
         for (final Entry<?, ?> entry : accesses.entrySet()) {
@@ -530,12 +511,9 @@ public class DirectoryUpdater implements ISignalListener,
             }
 
             // Create the information bean
-            final IsolateInfo info = new IsolateInfo();
-            info.id = isolateId;
-            info.node = (String) access.get("node");
-            info.port = (Integer) access.get("port");
-
-            isolates.put(isolateId, info);
+            isolates.put(isolateId,
+                    new IsolateInfo(isolateId, (String) access.get("node"),
+                            (Integer) access.get("port")));
         }
 
         final Map<?, ?> groups = (Map<?, ?>) aDumpedDirectory.get("groups");
@@ -558,7 +536,7 @@ public class DirectoryUpdater implements ISignalListener,
                 for (final Object isolate : groupIsolates) {
                     final IsolateInfo info = isolates.get(isolate);
                     if (info != null) {
-                        info.groups.add(group);
+                        info.getGroups().add(group);
                     }
                 }
 
@@ -571,10 +549,10 @@ public class DirectoryUpdater implements ISignalListener,
         // 3. Register all new isolates
         final List<String> newIsolates = new ArrayList<String>(isolates.size());
         for (final IsolateInfo info : isolates.values()) {
-            if (pDirectory.registerIsolate(info.id, info.node, info.port,
-                    info.groups.toArray(new String[0]))) {
+            if (pDirectory.registerIsolate(info.getId(), info.getNode(),
+                    info.getPort(), info.getGroups().toArray(new String[0]))) {
                 // Isolate registered (new or update)
-                newIsolates.add(info.id);
+                newIsolates.add(info.getId());
             }
         }
 

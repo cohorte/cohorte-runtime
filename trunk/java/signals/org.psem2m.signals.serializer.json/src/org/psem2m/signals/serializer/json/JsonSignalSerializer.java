@@ -86,13 +86,11 @@ public class JsonSignalSerializer extends CPojoBase implements
         if (aObject != null) {
 
             // Try to serialize it (hard core...)
-            // FIXME: be nicer ? use cache for successes ?
             try {
                 pSerializer.toJSON(aObject);
 
-            } catch (final Exception e) {
+            } catch (final Exception ex) {
                 // Can't do
-                e.printStackTrace();
                 return false;
             }
 

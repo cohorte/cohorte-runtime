@@ -133,19 +133,8 @@ public class RemoteServiceAdapter extends CPojoBase implements
 
         } else {
             // Worst case : both inclusion and exclusion flags are set
-
-            if (pIncludeFilters.contains(aInterfaceName)) {
-                // The interface full name is included
-                return true;
-
-            } else if (pExcludeFilters.contains(aInterfaceName)) {
-                // The interface full name is excluded
-                return false;
-
-            } else {
-                // The interface matches both filters : refuse it
-                return false;
-            }
+            // Only accept if the interface full name is included
+            return pIncludeFilters.contains(aInterfaceName);
         }
     }
 
@@ -467,6 +456,8 @@ public class RemoteServiceAdapter extends CPojoBase implements
                 handler.destroyProxy(proxy);
             } catch (final Throwable t) {
                 // Ignore exceptions
+                pLogger.logWarn(this, "unregisterService",
+                        "Error destroying a remote service proxy:", t);
             }
         }
 

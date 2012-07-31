@@ -158,12 +158,18 @@ public class WaitingSignal implements IWaitingSignal {
         pBaseGroup = null;
 
         if (aGroups != null) {
-            pGroups = aGroups;
             pIsolates = null;
+            pGroups = new String[aGroups.length];
+            System.arraycopy(aGroups, 0, pGroups, 0, pGroups.length);
+
+        } else if (aIsolates != null) {
+            pGroups = null;
+            pIsolates = new String[aIsolates.length];
+            System.arraycopy(aIsolates, 0, pIsolates, 0, pIsolates.length);
 
         } else {
-            pGroups = null;
-            pIsolates = aIsolates;
+            throw new IllegalArgumentException(
+                    "One of aIsolates or aGroups must be set when creating a WaitingSignal");
         }
     }
 
@@ -326,7 +332,13 @@ public class WaitingSignal implements IWaitingSignal {
      */
     public void setFireResult(final String[] aFireResult) {
 
-        pFireResult = aFireResult;
+        if (aFireResult == null) {
+            pFireResult = null;
+
+        } else {
+            pFireResult = new String[aFireResult.length];
+            System.arraycopy(aFireResult, 0, pFireResult, 0, pFireResult.length);
+        }
     }
 
     /**
@@ -353,6 +365,8 @@ public class WaitingSignal implements IWaitingSignal {
      */
     public void setSendToResult(final Object[] aSendToResult) {
 
-        pSendToResult = aSendToResult;
+        pSendToResult = new String[aSendToResult.length];
+        System.arraycopy(aSendToResult, 0, pSendToResult, 0,
+                pSendToResult.length);
     }
 }

@@ -62,7 +62,7 @@ public abstract class CActivatorBase extends CXObjectBase implements
     }
 
     /** Bundle ID key name */
-    private static String LIB_BNDL_ID = "BundleId";
+    private static final String LIB_BNDL_ID = "BundleId";
 
     /**
      * the BundleContext given by the framework during the call of the method

@@ -28,6 +28,7 @@ import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.base.activators.CPojoBase;
+import org.psem2m.isolates.constants.ISignalsConstants;
 import org.psem2m.signals.HostAccess;
 import org.psem2m.signals.ISignalBroadcaster;
 import org.psem2m.signals.ISignalData;
@@ -147,7 +148,8 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver {
              * immediately
              */
             notifyListenersInThread(aSignalName, aSignalData);
-            return new SignalResult(200, "Signal thread started");
+            return new SignalResult(ISignalsConstants.CODE_OK,
+                    "Signal thread started");
 
         } else if (ISignalBroadcaster.MODE_ACK.equalsIgnoreCase(aMode)) {
 
@@ -158,7 +160,7 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver {
                 for (final String signal : pListeners.keySet()) {
                     // Take care of jokers ('*' and '?')
                     if (Utilities.matchFilter(aSignalName, signal)) {
-                        result = new SignalResult(200,
+                        result = new SignalResult(ISignalsConstants.CODE_OK,
                                 "At least one listener found");
                         break;
                     }
@@ -175,13 +177,14 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver {
 
             } else {
                 // No listener found
-                return new SignalResult(404, "No listener found for "
-                        + aSignalName);
+                return new SignalResult(ISignalsConstants.CODE_NO_LISTENER,
+                        "No listener found for " + aSignalName);
             }
         }
 
         // Unknown mode
-        return new SignalResult(501, "Unknown mode '" + aMode + "'");
+        return new SignalResult(ISignalsConstants.CODE_INTERNAL_ERROR,
+                "Unknown mode '" + aMode + "'");
     }
 
     /*
@@ -275,7 +278,7 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver {
             }
         }
 
-        return new SignalResult(200, results);
+        return new SignalResult(ISignalsConstants.CODE_OK, results);
     }
 
     /**

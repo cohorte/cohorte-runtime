@@ -11,7 +11,7 @@ import org.psem2m.utilities.CXStringUtils;
  */
 public abstract class CPojoBase extends CXObjectBase implements IPojoBase {
 
-    public static String LIB_POJO_ID = "PojoId";
+    public static final String LIB_POJO_ID = "PojoId";
 
     /*
      * (non-Javadoc)
@@ -36,7 +36,7 @@ public abstract class CPojoBase extends CXObjectBase implements IPojoBase {
 
         try {
             return ((Pojo) this).getComponentInstance().getInstanceName();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             return "not a pojo";
         }
     }

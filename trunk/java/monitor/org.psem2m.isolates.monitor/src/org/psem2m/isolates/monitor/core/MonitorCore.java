@@ -310,7 +310,6 @@ public class MonitorCore extends CPojoBase implements
             // Ignore status if it's too old
             pLogger.logInfo(this, "handleIsolateStatusEvent",
                     "Obsolete status=", aIsolateStatus);
-            System.out.println("Obsolete status : " + aIsolateStatus);
             return;
         }
 
@@ -336,8 +335,8 @@ public class MonitorCore extends CPojoBase implements
 
             default:
                 // Simply log
-                System.out.println("MonitorCore received status : "
-                        + aIsolateStatus);
+                pLogger.logDebug(this, "", "MonitorCore ignored a status=",
+                        aIsolateStatus);
                 break;
             }
         }
@@ -462,15 +461,12 @@ public class MonitorCore extends CPojoBase implements
 
         // Test if the status is too old or duplicated
         final Long lastStamp = pLastIsolatesStatusUID.get(sourceIsolateId);
-        if (lastStamp != null) {
-            // We already read something from this isolate
-            if (lastStamp.longValue() >= statusStamp) {
-                /*
-                 * We read something after this one, or already read this one,
-                 * so ignore it
-                 */
-                return true;
-            }
+        if (lastStamp != null && lastStamp.longValue() >= statusStamp) {
+            /*
+             * We already read something from this isolate and we read something
+             * after this one, or already read this one, so ignore it
+             */
+            return true;
         }
 
         // Update the status time stamp

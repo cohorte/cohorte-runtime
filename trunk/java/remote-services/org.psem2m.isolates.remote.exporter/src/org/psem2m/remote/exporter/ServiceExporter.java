@@ -392,7 +392,8 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
             }
 
         } catch (final InvalidSyntaxException ex) {
-            ex.printStackTrace();
+            pLogger.log(LogService.LOG_WARNING,
+                    "Error looking for services waiting to be exported", ex);
         }
 
         // Register a listener for future exported services

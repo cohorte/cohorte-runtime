@@ -55,6 +55,15 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
     /** Receivers dependency ID */
     private static final String ID_PROVIDERS = "providers";
 
+    /**
+     * Maximum time to wait for the waiting thread when invalidating
+     * (milliseconds)
+     */
+    private static final long TIMEOUT_WAITING_THREAD = 500;
+
+    /** Time to wait before polling the waiting list again (milliseconds) */
+    private static final long WAITING_LIST_POLL_INTERVAL = 1000;
+
     /** Broadcast providers */
     @Requires(id = ID_PROVIDERS, optional = true)
     private ISignalBroadcastProvider[] pBroadcasters;
@@ -587,7 +596,7 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
 
         // Wait for the thread
         try {
-            pWaitingThread.join(500);
+            pWaitingThread.join(TIMEOUT_WAITING_THREAD);
 
         } catch (final InterruptedException ex) {
             // Ignore
@@ -1015,7 +1024,7 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
             }
 
             try {
-                Thread.sleep(1000);
+                Thread.sleep(WAITING_LIST_POLL_INTERVAL);
 
             } catch (final InterruptedException ex) {
                 // Thread interrupted, go away
