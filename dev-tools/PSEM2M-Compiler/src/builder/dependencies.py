@@ -17,6 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from pprint import pformat
 import os
 import re
 import logging
@@ -25,12 +26,11 @@ import tempfile
 import shutil
 import subprocess
 
-from os.path import join
+# ------------------------------------------------------------------------------
 
-logging.basicConfig()
 logger = logging.getLogger(__name__)
-def set_logger_level(logLevel):
-    logger.setLevel(logLevel)
+
+# ------------------------------------------------------------------------------
 
 class Dependencies:
     def __init__(self, jars, src, target):
@@ -123,10 +123,10 @@ class Dependencies:
                     ' found both binary and src;' + \
                     ' using the src version (this should be an option)')
 
-                assert join(bundle.root, bundle.file) in self.target_platform
-                del self.target_platform[join(bundle.root, bundle.file)]
+                assert os.path.join(bundle.root, bundle.file) in self.target_platform
+                del self.target_platform[os.path.join(bundle.root, bundle.file)]
 
-            logger.debug(bundle.display())
+            # logger.debug(bundle.display())
             for package in bundle.epackages:
                 self.__add_package__(self.exports, package, bundle)
 
@@ -203,117 +203,213 @@ class Dependencies:
         logger.debug(self.required_jars)
         return True
 
+# ------------------------------------------------------------------------------
 
 class BinaryBundleFinder:
+    """
+    Finds binary bundles (JAR or folders)
+    """
     def __init__(self):
-        self.jar_files = []
+        """
+        Sets up the finder
+        """
         self.bundles = []
         self.unique_bundles = {}
+
+        # JAR bundles
+        self.jar_files = []
+
+        # Uncompressed bundles (with a META-INF directory)
         self.target_platform = {}
 
+
     def load(self):
+        """
+        Parses found bundles
+        """
+        # Copy all found JAR files in a temporary directory
         tmp = tempfile.mkdtemp()
-        for root, file in self.jar_files:
-            shutil.copy(join(root, file), tmp)
+        for root, filename in self.jar_files:
+            shutil.copy(os.path.join(root, filename), tmp)
         cdir = os.getcwd()
 
-        for root, dir, extra_lib_flag in self.target_platform.values():
-            # print root, dir
-            logger.debug(' looking up directory binary bundle: ' + \
-                         join(root, dir, 'META-INF', 'MANIFEST.MF'))
-            manifest_des = open(join(root, dir, 'META-INF', 'MANIFEST.MF'), 'r')
-            manifest_file = manifest_des.read()
-            logger.debug(manifest_file)
+        # Target platform (uncompressed bundles)
+        for root, directory, __ in self.target_platform.values():
+
+            # Compute the path to the manifest
+            manifest_path = os.path.join(root, directory, 'META-INF',
+                                         'MANIFEST.MF')
+
+            logger.debug(' looking up directory binary bundle: %s',
+                         manifest_path)
+
+            with open(manifest_path, 'r') as manifest_des:
+                manifest_file = manifest_des.read()
+
+            # Parse the Manifest
             parser = manifest.ManifestParser()
             bundle = parser.parse(manifest_file)
-            if bundle == None:
+
+            if bundle is None:
+                # Error parsing the bundle
+                logger.warning('Error parsing Manifest: %s', manifest_path)
+                logger.debug(manifest_file)
                 continue
+
+            # Add data...
             bundle.root = root
-            bundle.file = dir
-            logger.debug(bundle, bundle.sym_name)
+            bundle.file = directory
             bundle.binary_bundle_dir = True
+
+            logger.debug("Loaded bundle %s (%s)", bundle.sym_name, bundle.root)
+
+            # Store bundle
             assert not bundle.sym_name in self.unique_bundles
             self.unique_bundles[bundle.sym_name] = bundle
             self.bundles.append(bundle)
 
-        for root, file in self.jar_files:
+        # JAR files
+        for root, filename in self.jar_files:
+            # Work in the temporary directory
             os.chdir(tmp)
-            ret = subprocess.call(['jar', 'xf', join(tmp, file),
-                                   join('META-INF', 'MANIFEST.MF')])
+
+            # Extract the manifest
+            manifest_relpath = os.path.join('META-INF', 'MANIFEST.MF')
+            ret = subprocess.call(['jar', 'xf', os.path.join(tmp, filename),
+                                   manifest_relpath])
             assert ret == 0
+
+            # Get back to working directory
             os.chdir(cdir)
-            manifest_des = open(join(tmp, 'META-INF', 'MANIFEST.MF'), 'r')
-            manifest_file = manifest_des.read()
-            shutil.rmtree(join(tmp, 'META-INF'))
-            logger.debug(manifest_file)
+
+            # Read the manifest
+            with open(os.path.join(tmp, manifest_relpath), 'r') as manifest_des:
+                manifest_file = manifest_des.read()
+
+            # Delete the META-INF directory
+            shutil.rmtree(os.path.join(tmp, 'META-INF'))
+
+            # Parse the manifest
             parser = manifest.ManifestParser()
-#            print 'parsing ', root, file
             bundle = parser.parse(manifest_file)
-            if bundle == None:
-                continue
-            bundle.root = root
-            bundle.file = file
-            bundle.is_binary_bundle = True
-            if bundle.sym_name == '':
-                logger.info('Bundle ' + join(root, file) + ' has no symbolic name;'\
-                            ' skipping it')
+
+            if bundle is None:
+                # Error parsing the bundle
+                logger.warning('Error parsing Manifest: %s', manifest_path)
+                logger.debug(manifest_file)
                 continue
 
+            bundle.root = root
+            bundle.file = filename
+            bundle.is_binary_bundle = True
+            if not bundle.sym_name:
+                # Not an OSGi bundles
+                logger.warning('Bundle %s has no symbolic name; skipping it',
+                               os.path.join(root, filename))
+                continue
+
+            # Store bundle
             assert bundle.sym_name != ''
             assert not bundle.sym_name in self.unique_bundles
             self.unique_bundles[bundle.sym_name] = bundle
             self.bundles.append(bundle)
-            #if not(bundle.file in do_not_package_libs):
-            self.target_platform[join(bundle.root, bundle.file)] = \
+            self.target_platform[os.path.join(bundle.root, bundle.file)] = \
                     (bundle.root, bundle.file, False)
+
+        # Remove the temporary directory
         shutil.rmtree(tmp)
 
+
     def display(self):
+        """
+        Prints out the found bundles
+        """
         for i in self.bundles:
             i.display()
             print '-' * 80
 
-    def find(self, jar_path):
-        for i in jar_path:
-            logger.debug('jar_path: ' + str(i))
-            for root, dirs, files in os.walk(i):
-                for dir in dirs:
-                    if dir == 'META-INF':
-                        assert os.path.isdir(root)
+
+    def find(self, jar_paths):
+        """
+        Searches for JAR files or folders with a META-INF sub-folder in the
+        given paths.
+        
+        :param jar_paths: A list of paths
+        """
+        for i in jar_paths:
+            logger.debug('Binary path: %s', i)
+
+            for root, dirs, files in os.walk(i, followlinks=True):
+                for directory in dirs:
+                    if directory == 'META-INF':
+                        # Uncompressed binary bundle found
                         (parent_root, parent) = os.path.split(root)
                         assert os.path.isdir(parent_root)
-                        self.target_platform[join(parent_root, parent)] = \
-                            (parent_root, parent, True)
-                for file in files:
-                    if file.endswith(r'.jar'):
-                        self.jar_files.append((root, file))
 
+                        # Store the bundle
+                        self.target_platform[root] = (parent_root, parent, True)
 
-class SourceBundleFinder:
-    def __init__(self):
+                for filename in files:
+                    if filename.endswith('.jar'):
+                        # Found a JAR file
+                        self.jar_files.append((root, filename))
+
+# ------------------------------------------------------------------------------
+
+class SourceBundleFinder(object):
+    """
+    Finds bundle projects to compile
+    """
+    def __init__(self, ignored_projects=None):
+        """
+        Prepares the source bundle finder
+        
+        :param ignored_projects: Projects to ignore
+        """
+        # Ignored projects names
+        self.ignored_projects = ignored_projects or []
+
+        # List of (project root, META-INF path, {lib jar path -> lib jar path})
         self.src_manifests = []
+
+        # List of loaded bundles
         self.bundles = []
 
+
     def find_libs(self, path):
+        """
+        Finds JAR files in the given path
+        
+        :param path: A path to a folder containing JAR files
+        :return: Found JAR files (file path -> file path)
+        """
         libs = {}
-        for root, dirs, files in os.walk(path):
-            for file in files:
-                if file.endswith(r'.jar'):
-                    libs[join(root, file)] = join(root, file)
+        for root, __, files in os.walk(path, followlinks=True):
+            for filename in files:
+                if filename.endswith('.jar'):
+                    jar_path = os.path.join(root, filename)
+                    libs[jar_path] = jar_path
         return libs
 
+
     def find_junit_tests(self, bundle):
-        depth = 1
-        for root, dirs, files in os.walk(bundle.root):
-            for file in files:
+        """
+        Looks for jUnit tests in the given bundle project
+        
+        :param bundle: A Bundle object
+        """
+        for root, __, files in os.walk(bundle.root, followlinks=True):
+            for filename in files:
                 imports = False
                 tests = False
                 package = ''
 
+                filepath = os.path.join(root, filename)
+
                 # XXX - This parser sucks my ass, but it is what I had time to do.
                 # Sometime, when I have some time I'll rewrite it...
-                if file.endswith(r'.java'):
-                    f = open(join(root, file), 'r')
+                if filename.endswith('.java'):
+                    f = open(filepath, 'r')
                     jfile = f.read()
                     jfile = re.sub(r'\r', '', jfile)
                     jfile_lines = re.split(r'\n', jfile)
@@ -335,56 +431,92 @@ class SourceBundleFinder:
                             package = package.strip()
 
                 if imports or tests:
-                    file_name = re.sub(r'\.java$', '', file)
+                    file_name = re.sub(r'\.java$', '', filename)
                     bundle.junit_tests.append((root, package, file_name))
                     if not tests:
-                        logger.warn(join(root, file) + \
-                                'has junit imports but no test methods')
+                        logger.warn('%s has junit imports but no test methods',
+                                    filepath)
                     if not imports:
-                        logger.warn(join(root, file) + \
-                                'has tests but no junit imports; this test ' + \
-                                'may not work correctly')
+                        logger.warn('%s has tests but no junit imports: '
+                                    'this test may not work correctly',
+                                    filepath)
 
     def load(self):
-        for root, dir, libs in self.src_manifests:
-            logger.debug(join(root, dir, 'MANIFEST.MF'))
-            manifest_des = open(join(root, dir, 'MANIFEST.MF'), 'r')
-            manifest_file = manifest_des.read()
-            logger.debug(manifest_file)
+        """
+        Loads found bundles information
+        """
+        for root, metainf_dir, libs in self.src_manifests:
+            # Read the Manifest.MF content
+            manifest_path = os.path.join(root, metainf_dir, 'MANIFEST.MF')
+            logger.debug("Manifest path: %s", manifest_path)
+
+            with open(manifest_path, 'r') as manifest_des:
+                manifest_file = manifest_des.read()
+
+            # Parse it
             parser = manifest.ManifestParser()
             bundle = parser.parse(manifest_file)
-            bundle.root = root
-            logger.debug(bundle, bundle.sym_name)
-            if libs.keys().__len__() > 0:
-                #print libs
-                bundle.extra_libs = libs
-                #assert False
 
+            # Filter the project by symbolic name
+            if bundle.sym_name in self.ignored_projects:
+                logger.debug("Ignored project (by Symbolic-Name): %s",
+                             bundle.sym_name)
+                continue
+
+            # Add extra information
+            bundle.root = root
+            logger.debug("Loaded bundle %s (%s)", bundle.sym_name, bundle.root)
+
+            if len(libs.keys()) > 0:
+                # Embedded JAR libraries
+                logger.debug("Bundle %s has extra libraries: %s",
+                             bundle.sym_name, pformat(libs.keys()))
+                bundle.extra_libs = libs
+
+            # jUnit tests
             self.find_junit_tests(bundle)
+
+            # Store the bundle
             self.bundles.append(bundle)
 
+
     def display(self):
+        """
+        Prints out the found bundles
+        """
         for i in self.bundles:
             i.display()
             print '-' * 80
 
-    def find(self, src_path):
-        for i in src_path:
-            for root, dirs, files in os.walk(i):
+
+    def find(self, src_paths):
+        """
+        Finds all bundle projects in the given paths
+        
+        :param src_paths: A list of source paths
+        """
+        for i in src_paths:
+            for root, dirs, __ in os.walk(i, followlinks=True):
                 libs = {}
                 manifest = ()
-                manifest_found = False
 
-                if 'META-INF' in dirs:
-                    manifest_found = True
-                else:
+                if 'META-INF' not in dirs:
+                    # Project level must contain the META-INF directory
                     continue
 
-                for dir in dirs:
-                    if dir == 'META-INF':
-                        manifest = (root, dir)
-                    if dir == 'lib':
-                        libs = self.find_libs(join(root, dir))
+                # Test project name, given its path
+                project_name = os.path.basename(root)
+                if project_name in self.ignored_projects:
+                    # Ignored project
+                    logger.debug("Filtered project (by path): %s (%s)",
+                                 project_name, root)
+                    continue
+
+                for directory in dirs:
+                    if directory == 'META-INF':
+                        manifest = (root, directory)
+                    if directory == 'lib':
+                        libs = self.find_libs(os.path.join(root, directory))
 
                 manifest += (libs,)
                 self.src_manifests.append(manifest)

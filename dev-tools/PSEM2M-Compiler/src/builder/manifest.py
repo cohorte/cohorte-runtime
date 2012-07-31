@@ -86,24 +86,24 @@ class Bundle:
         self.deps[bundle] = bundle
 
     def display(self):
-        print        'Symbolic Name     = ',self.sym_name
+        print        'Symbolic Name     = ', self.sym_name
         if self.is_binary_bundle == True:
             print    'Java Archive      = ', os.path.join(self.root, self.file)
         else:
             print    'Source Directory  = ', self.root
-        imports =    'Imported Packages = '
-        exports =    'Exported Packages = '
-        rbundles =   'Required Bundles  = '
+        imports = 'Imported Packages = '
+        exports = 'Exported Packages = '
+        rbundles = 'Required Bundles  = '
         wrap_start = '                    '
 
         for i in  self.ipackages:
             for c in i.name:
                 if ((len(imports) + 1) % 80) == 0:
-                    imports += '\n'+wrap_start + c
+                    imports += '\n' + wrap_start + c
                 else:
                     imports += c
             if ((len(imports) + 1) % 80) == 0:
-                imports += '\n'+wrap_start
+                imports += '\n' + wrap_start
             else:
                 imports += ','
         print imports[:len(imports) - 1]
@@ -111,11 +111,11 @@ class Bundle:
         for e in  self.epackages:
             for c in e.name:
                 if ((len(exports) + 1) % 80) == 0:
-                    exports += '\n'+wrap_start + c
+                    exports += '\n' + wrap_start + c
                 else:
                     exports += c
             if ((len(exports) + 1) % 80) == 0:
-                exports += '\n'+wrap_start
+                exports += '\n' + wrap_start
             else:
                 exports += ','
         print exports[:len(exports) - 1]
@@ -123,11 +123,11 @@ class Bundle:
         for i in  self.rbundles:
             for c in i.name:
                 if ((len(rbundles) + 1) % 80) == 0:
-                    rbundles += '\n'+wrap_start + c
+                    rbundles += '\n' + wrap_start + c
                 else:
                     rbundles += c
             if ((len(rbundles) + 1) % 80) == 0:
-                rbundles += '\n'+wrap_start
+                rbundles += '\n' + wrap_start
             else:
                 rbundles += ','
         print rbundles[:len(rbundles) - 1]
@@ -150,7 +150,7 @@ class Package:
         else:
             string += '('
 
-        string += self.b_version.__str__() +','+ self.e_version.__str__()
+        string += self.b_version.__str__() + ',' + self.e_version.__str__()
 
         if self.e_inclusive:
             string += ']'
@@ -196,17 +196,17 @@ class Version:
             return string
 
         if(self.minor_set):
-            string = string + '.' +str(self.minor)
+            string = string + '.' + str(self.minor)
         else:
             return string
 
         if(self.micro_set):
-            string = string + '.' +str(self.micro)
+            string = string + '.' + str(self.micro)
         else:
             return string
 
         if(self.qual_set):
-            string = string + '.' +str(self.qual)
+            string = string + '.' + str(self.qual)
 
         return string
 
@@ -273,7 +273,7 @@ class Ast:
         else:
             self.bundle.version = Version()
 
-    def fragment_host(self,p):
+    def fragment_host(self, p):
         assert len(p) == 3 or len(p) == 5
         # another h4x0r
         self.bundle.fragment = True
@@ -293,12 +293,12 @@ class Ast:
         for i in packages:
             if cmd == 'Import-Package:':
                 self.bundle.add_ipackage(i)
-                logger.debug('---- adding import package ----'+str(i))
+                logger.debug('---- adding import package ----' + str(i))
             elif cmd == 'Export-Package:':
                 if i.name == 'javax.xml.namespace':
                     assert False
                 self.bundle.add_epackage(i)
-                logger.debug('---- adding export package ----'+str(i))
+                logger.debug('---- adding export package ----' + str(i))
             elif cmd == 'Require-Bundle:':
                 # h4x0r
                 self.bundle.add_required_bundle_lookup_info(i)
@@ -325,14 +325,14 @@ class Ast:
             assert len(p[1]) == 1 or p[3] == None
             if p[3] != None:
                 assert len(p[3]) == 4
-                logger.debug(str(p[1]) + ' '+ str(p[3]))
+                logger.debug(str(p[1]) + ' ' + str(p[3]))
                 p[1][0].set_version_range(p[3][0], p[3][1], p[3][2], p[3][3])
             p[0] = p[1]
 
     def package_names(self, p):
         logger.debug(' package-names ')
         if len(p) == 2:
-            p[0] = [Package(p[1]),]
+            p[0] = [Package(p[1]), ]
         else:
             assert len(p) == 4
             p[0] = p[1].append(Package(p[3]))
@@ -340,14 +340,14 @@ class Ast:
     def package_name(self, p):
         logger.debug('package_name')
         if len(p) == 4:
-            p[0] = p[1]+p[2]+p[3]
+            p[0] = p[1] + p[2] + p[3]
         elif len(p) == 3:
-            p[0] = p[1]+p[2]
+            p[0] = p[1] + p[2]
         else:
             assert len(p) == 2
             p[0] = p[1]
     def parameter(self, p):
-        logger.debug('parameter '+str(p[1])+str(len(p)))
+        logger.debug('parameter ' + str(p[1]) + str(len(p)))
         assert len(p) == 2 or len(p) == 4
         assert p[0] == None or p[3] == None
         # XXX - this is a hack
@@ -355,7 +355,7 @@ class Ast:
             p[0] = p[1]
         elif len(p) == 4 and p[3] != None:
             p[0] = p[3]
-        logger.debug('----------------'+str(p[0]))
+        logger.debug('----------------' + str(p[0]))
 
     def version(self, p):
         #logger.debug(' version ')
@@ -419,9 +419,9 @@ class ManifestParser:
         'Fragment-Host:' : 'FRAGMENT_HOST'
     }
 
-    tokens = ('DOT','COLON', 'COMMA', 'SEMI_COLON', 'QUOTE', 'LPAREN', 'RPAREN',
+    tokens = ('DOT', 'COLON', 'COMMA', 'SEMI_COLON', 'QUOTE', 'LPAREN', 'RPAREN',
               'RANGLE', 'LANGLE', 'NUMBER', 'HEADER', 'ID', 'TOKEN',
-              'SLASH', 'EQUAL', 'PERCENT', 'PLUS', 'DOLLAR')+ tuple(reserved.values())
+              'SLASH', 'EQUAL', 'PERCENT', 'PLUS', 'DOLLAR') + tuple(reserved.values())
 
     t_COLON = r'\:'
     t_COMMA = r'\,'
@@ -440,23 +440,23 @@ class ManifestParser:
     t_ignore = " \t"
 
     def __init__(self, **kw):
-        #self.debug = kw.get('debug', 0)
+#       self.debug = kw.get('debug', 0)
         self.names = { }
-        try:
-            modname = os.path.split(os.path.splitext(__file__)[0])[1] + \
-            "_" + self.__class__.__name__
-        except:
-            modname = "parser"+"_"+self.__class__.__name__
-        #self.debugfile = modname + ".dbg"
-        #self.tabmodule = modname + "_" + "parsetab"
-        #print self.debugfile, self.tabmodule
+#        try:
+#            modname = os.path.split(os.path.splitext(__file__)[0])[1] + \
+#            "_" + self.__class__.__name__
+#        except:
+#            modname = "parser" + "_" + self.__class__.__name__
+#        #self.debugfile = modname + ".dbg"
+#        #self.tabmodule = modname + "_" + "parsetab"
+#        #print self.debugfile, self.tabmodule
 
         lex.lex(module=self)#, debug=self.debug)
 
         yacc.yacc(module=self, method="SLR")#,
-                  #debug=self.debug,
-                  #debugfile=self.debugfile,
-                  #tabmodule=self.tabmodule)
+#                  debug = self.debug,
+#                  debugfile = self.debugfile,
+#                  tabmodule = self.tabmodule)
 
     def t_error(self, t):
         #print 'Illegal character t.value[0] --->',t,'<----'
@@ -633,7 +633,7 @@ class ManifestParser:
     def parse(self, manifest):
         assert manifest != None
         # remove \r if it's there...
-        manifest = re.sub(r'\r','',  manifest)
+        manifest = re.sub(r'\r', '', manifest)
         #concat multi line headers, which makes parsing simplier
         manifest = re.sub(r'\n ', '', manifest)
         headers = re.split(r'\n', manifest)
