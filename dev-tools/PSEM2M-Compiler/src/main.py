@@ -120,6 +120,10 @@ def read_parameters():
     parser.add_option('-c', '--config', dest='config_file',
                       action='store', default='compiler.conf', help=opt_help)
 
+    opt_help = "Do not run post-build extensions"
+    parser.add_option('-n', '--no-post-build', dest='use_post_build',
+                      action='store_false', default=True, help=opt_help)
+
     # Parse the sys.args, ignore extra parameters
     return parser.parse_args()[0]
 
@@ -219,7 +223,7 @@ def main():
     result = subprocess.call(['ant', '-f', master_file, 'package'])
     _logger.debug("Ant result = %d", result)
 
-    if result == 0:
+    if result == 0 and params.use_post_build:
         # No error, call extensions
         ant_generator.post_build()
 
