@@ -397,7 +397,7 @@ class AntGenerator(object):
             self.__call_extensions('finalize_bundle', doc, bundle)
 
             # Write the XML file
-            _logger.info('Writing script: %s...', filename)
+            _logger.debug('Writing script: %s...', filename)
             ant.write_xml(doc, filename)
             self._generated_files.append(filename)
 

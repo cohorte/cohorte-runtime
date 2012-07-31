@@ -8,21 +8,46 @@ PSEM2M Compiler: Entry point
 
 # ------------------------------------------------------------------------------
 
+from builder.dependencies import BinaryBundleFinder, SourceBundleFinder, Dependencies
+import compiler.generator
+import compiler.eclipseutils as eclipse
+
+from pprint import pformat
 import ConfigParser
 import importlib
 import logging
 import optparse
 import os
 import subprocess
+import sys
 
-logging.basicConfig(level=logging.INFO)
-
-from builder.dependencies import BinaryBundleFinder, SourceBundleFinder, Dependencies
-
-import compiler.generator
-import compiler.eclipseutils as eclipse
+_logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
+
+def filter_projects(src_dirs, ignored_projects):
+    """
+    Filters given bundles sources directories according to their name
+    
+    :param src_dirs: Bundles sources directories
+    :param ignored_projects: Projects to ignore
+    :return: Filtered sources directories list
+    """
+    if not ignored_projects:
+        # Nothing to do
+        return src_dirs
+
+    filtered = []
+
+    for srcdir in src_dirs:
+        # Use the base name (last element in path)
+        project_name = os.path.basename(srcdir)
+        if project_name not in ignored_projects and srcdir not in filtered:
+            # Filter passed
+            filtered.append(srcdir)
+
+    return filtered
+
 
 def find_eclipse_projects(root_dirs, ignored_projects):
     """
@@ -30,6 +55,7 @@ def find_eclipse_projects(root_dirs, ignored_projects):
     
     :param root_dirs: Root directories to search in
     :param ignored_projects: Projects to ignore
+    :return: Filtered Eclipse projects list
     """
     projects = []
 
@@ -39,16 +65,17 @@ def find_eclipse_projects(root_dirs, ignored_projects):
                 # Not an Eclipse project directory
                 continue
 
+            project_dir = os.path.basename(root)
             project = eclipse.read_project(os.path.join(root, '.project'))
-            if project.name in ignored_projects:
-                # Ignored project
-                continue
 
-            # Keep project
-            projects.append(project)
+            if project.name not in ignored_projects \
+            and project_dir not in ignored_projects:
+                # Keep project
+                projects.append(project)
 
     return projects
 
+# ------------------------------------------------------------------------------
 
 def load_extension(extension, params):
     """
@@ -96,7 +123,6 @@ def read_parameters():
     # Parse the sys.args, ignore extra parameters
     return parser.parse_args()[0]
 
-
 # ------------------------------------------------------------------------------
 
 def get_list(config, section, entry, default=[]):
@@ -118,12 +144,12 @@ def get_list(config, section, entry, default=[]):
         # Value not found
         return default
 
+# ------------------------------------------------------------------------------
+
 def main():
     """
     Entry point
     """
-    _logger = logging.getLogger(__name__)
-
     try:
         # Read the configuration file
         params = read_parameters()
@@ -142,6 +168,12 @@ def main():
     ignored_projects = get_list(config, 'main', 'projects.ignored')
     eclipse_only = config.getboolean('main', 'eclipse.only')
 
+    # Print configuration
+    _logger.info("Libraries: %s", pformat(lib_dirs))
+    _logger.info("Sources: %s", pformat(src_dirs))
+    _logger.info("Ignored Projects: %s", pformat(ignored_projects))
+    _logger.info("Eclipse only: %s", eclipse_only)
+
     # 1. Load the target platform files
     _logger.info("Looking for binary bundles...")
     lib_finder = BinaryBundleFinder()
@@ -155,17 +187,18 @@ def main():
         project.resolve_links(eclipse_projects)
 
     if eclipse_only:
-        # Only compile Eclipse projects
+        # Only compile Eclipse projects (already filtered)
         _logger.info("Compile Eclipse projects only.")
         source_dirs = [project.path for project in eclipse_projects]
 
     else:
+        # Filter projects found
         _logger.info("Compile all found projects.")
         source_dirs = src_dirs
 
     # 3. Load the bundles directories
     _logger.info("Looking for source bundles (projects)...")
-    src_finder = SourceBundleFinder()
+    src_finder = SourceBundleFinder(ignored_projects)
     src_finder.find(source_dirs)
     src_finder.load()
 
@@ -224,4 +257,6 @@ def main():
 
 if __name__ == '__main__':
     # Set up the logging
-    main()
+    logging.basicConfig()
+    logging.getLogger().setLevel(logging.INFO)
+    sys.exit(main())
