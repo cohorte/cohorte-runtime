@@ -7,6 +7,18 @@ PSEM2M Compiler: Configuration utilities
 """
 
 import ConfigParser
+import os
+
+# ------------------------------------------------------------------------------
+
+def expand_path(path):
+    """
+    Expands the given path
+    
+    :param path: A path
+    :return: The expanded path
+    """
+    return os.path.abspath(os.path.expanduser(os.path.expandvars(path)))
 
 # ------------------------------------------------------------------------------
 
@@ -50,3 +62,50 @@ class ExtSafeConfigParser(ConfigParser.SafeConfigParser):
 
         # Return the list with stripped entries
         return [value.strip() for value in values if value.strip()]
+
+
+    def get_path(self, section, option, default=None):
+        """
+        Retrieves a path from the configuration.
+        
+        Same as ``get_default()``, but expanding the path
+        
+        :param section: Configuration section
+        :param option: Configuration option
+        :param default: Default value
+        :return: The expanded path or *default*
+        """
+        path = self.get_default(section, option, None)
+        if not path:
+            # Path not found
+            return default
+
+        # Expand the path
+        return expand_path(path)
+
+
+    def get_paths_list(self, section, option, default=[]):
+        """
+        Retrieves a list of paths from the configuration.
+        
+        Same as ``get_list()``, but expanding the paths
+        
+        :param section: Configuration section
+        :param option: Configuration option
+        :param default: Default value
+        :return: The expanded paths list or *default*
+        """
+        values = self.get_list(section, option, None)
+        if not values:
+            # No values found, return the default argument
+            return default
+
+        paths = []
+        for path in values:
+            # Expand the trimmed path
+            path = expand_path(path.strip())
+            if path:
+                # Only keep valid paths
+                paths.append(path)
+
+        return paths
