@@ -38,8 +38,13 @@ class SonarExt(object):
         """
         self.compilation_name = parameters.get('main', 'name')
         self.ant_task_jar = parameters.get_path('sonar', 'ant.task.jar')
-        self.sonar_host = parameters.get_default('sonar', 'sonar.host.url')
         self.projects_ignored = parameters.get_list('sonar', 'projects.ignored')
+
+        # Custom properties
+        self.sonar_props = {}
+        for key, value in parameters.items('sonar.properties'):
+            if value and key.startswith('sonar.'):
+                self.sonar_props[key] = value
 
 
     def finalize_bundle(self, document, bundle):
@@ -56,9 +61,9 @@ class SonarExt(object):
         ant.add_property(document, 'sonar.projectName', bundle.sym_name)
         ant.add_property(document, 'sonar.sourceEncoding', 'UTF-8')
 
-        if self.sonar_host:
-            # Add the Sonar host, if given
-            ant.add_property(document, 'sonar.host.url', self.sonar_host)
+        for key, value in self.sonar_props.items():
+            # Add custom properties
+            ant.add_property(document, key, value)
 
         # Shouldn't be there...
         project_key = ':'.join((self.compilation_name, bundle.sym_name))
