@@ -21,6 +21,17 @@ import os
 import subprocess
 import sys
 
+# ------------------------------------------------------------------------------
+
+DEFAULT_CONFIGURATION_FILENAME = "compiler.conf"
+""" Default configuration file name """
+
+ENV_PSEM2M_COMPILER = "PSEM2M_COMPILER"
+""" PSEM2M Compiler directory environment variable """
+
+ENV_WORKSPACE = "WORKSPACE"
+""" PSEM2M Compiler work space environment variable """
+
 _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
@@ -139,15 +150,33 @@ def main():
 
         _logger.info('Reading configuration file...')
         config = compiler.config.ExtSafeConfigParser()
-        config.read(params.config_file)
+
+        config_files = []
+
+        # Default local file
+        local_file = os.path.join(os.getcwd(), DEFAULT_CONFIGURATION_FILENAME)
+        if os.path.isfile(local_file):
+            config_files.append(local_file)
+
+        # Given file
+        config_files.append(compiler.config.expand_path(params.config_file))
+
+        # Read configuration
+        config.read(config_files)
 
     except Exception as ex:
         _logger.exception("Error reading parameters : %s", ex)
         return 1
 
     # 0. Normalize configuration values
-    lib_dirs = config.get_list('main', 'lib.dirs')
-    src_dirs = config.get_list('main', 'src.dirs')
+    lib_dirs = config.get_paths_list('main', 'lib.dirs')
+    src_dirs = config.get_paths_list('main', 'src.dirs')
+    output_dir = config.get_path('main', 'output')
+
+    # Make the output directory if necessary
+    if not os.path.isdir(output_dir):
+        os.makedirs(output_dir)
+
     ignored_projects = config.get_list('main', 'projects.ignored')
     eclipse_only = config.getboolean('main', 'eclipse.only')
 
@@ -162,6 +191,7 @@ def main():
     lib_finder = BinaryBundleFinder()
     lib_finder.find(lib_dirs)
     lib_finder.load()
+    _logger.info("%d binary bundles found", len(lib_finder.unique_bundles))
 
     # 2. Prepare file system to match Eclipse projects
     _logger.info("Looking for Eclipse projects...")
@@ -184,12 +214,15 @@ def main():
     src_finder = SourceBundleFinder(ignored_projects)
     src_finder.find(source_dirs)
     src_finder.load()
+    _logger.info("%d source bundles found", len(src_finder.bundles))
 
     # 4. Resolve dependencies and build order
     deps = Dependencies(lib_finder, src_finder, lib_finder.target_platform)
 
     _logger.info("Resolving dependencies...")
-    deps.resolve()
+    if not deps.resolve():
+        _logger.error("Error resolving dependencies. Abandon.")
+        return 10
 
     _logger.info("Computing build order...")
     deps.sort()
@@ -199,7 +232,7 @@ def main():
                                 config.get('main', 'name'),
                                 deps.src.bundles,
                                 deps.target_platform,
-                                config.get('main', 'output'),
+                                output_dir,
                                 config.get_default('main', 'ant_script',
                                                    'build.xml'))
 
@@ -212,7 +245,7 @@ def main():
 
         except ImportError as ex:
             print("Can't import extension %s: %s" % (ext, ex))
-            return 2
+            return 11
 
     # 7. Generate scripts
     _logger.info("Generating scripts...")
@@ -233,7 +266,7 @@ def main():
         ant_generator.clean()
 
     _logger.info("Done.")
-    return 0
+    return result
 
 # ------------------------------------------------------------------------------
 
@@ -241,4 +274,14 @@ if __name__ == '__main__':
     # Set up the logging
     logging.basicConfig()
     logging.getLogger().setLevel(logging.INFO)
+
+    # Set up the environment, if needed
+    if not os.getenv(ENV_PSEM2M_COMPILER):
+        os.environ[ENV_PSEM2M_COMPILER] = os.getcwd()
+
+    if not os.getenv(ENV_WORKSPACE):
+        # Development relative position (psem2m/dev-tools/PSEM2M-Compiler)
+        dev_workspace = os.path.join(os.getcwd(), "..", "..", "..")
+        os.environ[ENV_WORKSPACE] = os.path.abspath(dev_workspace)
+
     sys.exit(main())

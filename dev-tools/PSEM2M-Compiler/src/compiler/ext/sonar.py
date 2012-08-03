@@ -37,7 +37,7 @@ class SonarExt(object):
         :param parameters: The PSEM2M Compiler configuration
         """
         self.compilation_name = parameters.get('main', 'name')
-        self.ant_task_jar = parameters.get('sonar', 'ant.task.jar')
+        self.ant_task_jar = parameters.get_path('sonar', 'ant.task.jar')
         self.sonar_host = parameters.get_default('sonar', 'sonar.host.url')
         self.projects_ignored = parameters.get_list('sonar', 'projects.ignored')
 
