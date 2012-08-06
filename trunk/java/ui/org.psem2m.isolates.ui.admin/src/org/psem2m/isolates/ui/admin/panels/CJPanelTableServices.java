@@ -358,6 +358,12 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
 
     private final static boolean COMPACTION = true;
 
+    /** Exported service property prefix */
+    private static final String PROP_SERVICE_EXPORTED_PREFIX = "service.exported.";
+
+    /** Imported service property */
+    private static final String PROP_SERVICE_IMPORTED = "service.imported";
+
     private static final long serialVersionUID = -6506936458249187873L;
 
     private final int[] COLUMNS_SIZE = { 150, 150, 5, 5, 5 };
@@ -569,16 +575,33 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
      */
     private String extractRemoteInfo(final ServiceReference aServiceReference) {
 
-        if (aServiceReference.getProperty("service.exported.configs") != null) {
-            return "E";
+        // A special property tells if the service has been imported
+        final boolean imported = aServiceReference
+                .getProperty(PROP_SERVICE_IMPORTED) != null;
+
+        // It's more complicated for the exported services...
+        boolean exported = false;
+        for (final String property : aServiceReference.getPropertyKeys()) {
+
+            if (property.startsWith(PROP_SERVICE_EXPORTED_PREFIX)
+                    && aServiceReference.getProperty(property) != null) {
+                // Exported service
+                exported = true;
+                break;
+            }
         }
 
-        if (aServiceReference.getProperty("service.imported") != null) {
-            return "I";
+        // Construct the result string
+        final StringBuilder result = new StringBuilder();
+        if (imported) {
+            result.append("I");
         }
 
-        return "";
+        if (exported) {
+            result.append("E");
+        }
 
+        return result.toString();
     }
 
     /**

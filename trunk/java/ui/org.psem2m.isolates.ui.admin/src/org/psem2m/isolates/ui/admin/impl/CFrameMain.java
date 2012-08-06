@@ -34,7 +34,6 @@ import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.ui.admin.api.EUiAdminFont;
 import org.psem2m.isolates.ui.admin.api.EUiAdminPanelLocation;
 import org.psem2m.isolates.ui.admin.api.IUiAdminPanel;
-import java.awt.Component;
 
 /**
  * The main Frame of the service IUISvc
@@ -107,9 +106,10 @@ public class CFrameMain extends javax.swing.JFrame {
     private final CFrameMainConfig pFrameConfig;
     private IIsolateLoggerSvc pLogger;
     private JTabbedPane pMainTabbedPane;
+    private JPanel pPanelLogos;
     private JLabel pPreferenceLabelReadability;
-    private JLabel pPreferenceLogoLig;
     private JLabel pPreferenceLogoIsandlaTech;
+    private JLabel pPreferenceLogoLig;
     private JLabel pPreferenceLogoPSEM2M;
     private JPanel pPreferencesChoices;
     private JLabel pPreferencesFontLabel;
@@ -118,7 +118,6 @@ public class CFrameMain extends javax.swing.JFrame {
     private JPanel pPreferencesPanel;
     private JPanel pPreferencesSouthPanel;
     private CUiAdminSvc pUiAdminSvc;
-    private JPanel pPanelLogos;
 
     /**
      * 
@@ -323,25 +322,26 @@ public class CFrameMain extends javax.swing.JFrame {
                                     .getScaledInstance(344, 131,
                                             Image.SCALE_SMOOTH));
 
-           
                             ImageIcon wIconIsandla = new ImageIcon(
                                     CFrameMain.class
                                             .getResource("/org/psem2m/isolates/ui/admin/impl/isandlaTech logo masque.png"));
                             // 804 x 119 => 402 x 59
-                            wIconIsandla = new ImageIcon(wIconIsandla.getImage()
-                                    .getScaledInstance(402, 59,
+                            wIconIsandla = new ImageIcon(wIconIsandla
+                                    .getImage().getScaledInstance(402, 59,
                                             Image.SCALE_SMOOTH));
-      
-                        	pPanelLogos = new JPanel();
-                        	pPreferencesSouthPanel.add(pPanelLogos);
-                        	pPanelLogos.setLayout(new BorderLayout(0, 0));
-                        	pPreferenceLogoLig = new JLabel();
-                        	pPanelLogos.add(pPreferenceLogoLig, BorderLayout.NORTH);
-                        	pPreferenceLogoLig.setIcon(wIconLig);
-                        	
-                        	pPreferenceLogoIsandlaTech = new JLabel();
-                        	pPanelLogos.add(pPreferenceLogoIsandlaTech, BorderLayout.SOUTH);
-                        	pPreferenceLogoIsandlaTech.setIcon(wIconIsandla);
+
+                            pPanelLogos = new JPanel();
+                            pPreferencesSouthPanel.add(pPanelLogos);
+                            pPanelLogos.setLayout(new BorderLayout(0, 0));
+                            pPreferenceLogoLig = new JLabel();
+                            pPanelLogos.add(pPreferenceLogoLig,
+                                    BorderLayout.NORTH);
+                            pPreferenceLogoLig.setIcon(wIconLig);
+
+                            pPreferenceLogoIsandlaTech = new JLabel();
+                            pPanelLogos.add(pPreferenceLogoIsandlaTech,
+                                    BorderLayout.SOUTH);
+                            pPreferenceLogoIsandlaTech.setIcon(wIconIsandla);
                         }
                     }
                 }
