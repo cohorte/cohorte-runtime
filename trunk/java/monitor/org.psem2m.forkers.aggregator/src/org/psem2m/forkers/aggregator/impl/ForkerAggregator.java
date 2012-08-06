@@ -15,11 +15,9 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -27,6 +25,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
@@ -60,11 +59,14 @@ import org.psem2m.signals.ISignalSendResult;
 @Instantiate(name = "psem2m-forker-aggregator")
 public class ForkerAggregator implements IForker, IPacketListener, Runnable {
 
+    /** ID of the forker events listeners */
+    private static final String IPOJO_ID_LISTENERS = "forker-events-listeners";
+
     /** Maximum time without forker notification : 5 seconds */
-    public static final long FORKER_TTL = 5000;
+    public final long FORKER_TTL = 5000;
 
     /** UDP Packet: Forker heart beat */
-    public static final byte PACKET_FORKER_HEARTBEAT = 1;
+    public final byte PACKET_FORKER_HEARTBEAT = 1;
 
     /** The configuration service */
     @Requires
@@ -84,7 +86,8 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
     private final Map<String, String> pIsolateForkers = new HashMap<String, String>();
 
     /** The forker events listeners */
-    private final Set<IForkerEventListener> pListeners = new HashSet<IForkerEventListener>();
+    @Requires(id = IPOJO_ID_LISTENERS, optional = true)
+    private IForkerEventListener pListeners[];
 
     /** The logger */
     @Requires
@@ -109,6 +112,32 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
 
     /** The thread stopper */
     private boolean pThreadRunning = false;
+
+    /**
+     * Called by iPOJO when a {@link IForkerEventListener} service is bound.
+     * 
+     * Notifies the new listener of all known forkers.
+     * 
+     * @param aListener
+     *            An event listener
+     */
+    @Bind(id = IPOJO_ID_LISTENERS, aggregate = true, optional = true)
+    protected synchronized void bindListener(
+            final IForkerEventListener aListener) {
+
+        // Get all forkers
+        final String[] forkers = pDirectory.getAllIsolates(
+                IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER, true);
+
+        if (forkers != null) {
+            // Call back the listener to register all of them
+            for (final String forker : forkers) {
+                aListener.handleForkerEvent(EForkerEventType.REGISTERED,
+                        forker, pDirectory.getHostForNode(pDirectory
+                                .getIsolateNode(forker)));
+            }
+        }
+    }
 
     /**
      * Extracts a string from the given buffer
@@ -526,30 +555,6 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.forker.IForker#registerListener(org.psem2m
-     * .isolates.services.forker.IForkerEventListener)
-     */
-    @Override
-    public synchronized boolean registerListener(
-            final IForkerEventListener aListener) {
-
-        final String[] forkers = pDirectory.getAllIsolates(
-                IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER, true);
-
-        if (forkers != null) {
-            for (final String forker : forkers) {
-                aListener.handleForkerEvent(EForkerEventType.REGISTERED,
-                        forker, pDirectory.getHostForNode(pDirectory
-                                .getIsolateNode(forker)));
-            }
-        }
-
-        return pListeners.add(aListener);
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
      * @see java.lang.Runnable#run()
      */
     @Override
@@ -726,24 +731,6 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
                 pDirectory.unregisterIsolate(isolate);
             }
         }
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.forker.IForker#registerListener(org.psem2m
-     * .isolates.services.forker.IForkerEventListener)
-     */
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.forker.IForker#unregisterListener(org.psem2m
-     * .isolates.services.forker.IForkerEventListener)
-     */
-    @Override
-    public boolean unregisterListener(final IForkerEventListener aListener) {
-
-        return pListeners.remove(aListener);
     }
 
     /** Component validation */

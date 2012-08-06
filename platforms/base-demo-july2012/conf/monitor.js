@@ -15,6 +15,9 @@
             "from":"jsonrpc.js"
         },
         {
+            "symbolicName":"org.psem2m.forker.api"
+        },
+        {
             "symbolicName":"org.psem2m.forkers.aggregator"
         },
         {

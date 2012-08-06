@@ -42,15 +42,6 @@ public interface IForker {
     int ping(String aIsolateId);
 
     /**
-     * Registers a forker event listener
-     * 
-     * @param aListener
-     *            A forker event listener
-     * @return True if the listener has been registered
-     */
-    boolean registerListener(IForkerEventListener aListener);
-
-    /**
      * Sets the forkers in platform stopping mode : they must not start new
      * isolates.
      */
@@ -73,13 +64,4 @@ public interface IForker {
      *            The ID of the isolate to kill
      */
     void stopIsolate(String aIsolateId);
-
-    /**
-     * Unregisters a forker event listener
-     * 
-     * @param aListener
-     *            A forker event listener
-     * @return True if the listener has been unregistered
-     */
-    boolean unregisterListener(IForkerEventListener aListener);
 }

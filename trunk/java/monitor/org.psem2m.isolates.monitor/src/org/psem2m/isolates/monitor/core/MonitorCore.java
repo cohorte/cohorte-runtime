@@ -53,7 +53,7 @@ import org.psem2m.signals.ISignalReceiver;
  * @author Thomas Calmant
  */
 @Component(name = "psem2m-monitor-core-factory", publicFactory = false)
-@Provides(specifications = IPlatformMonitor.class)
+@Provides(specifications = { IPlatformMonitor.class, IForkerEventListener.class })
 @Instantiate(name = "psem2m-monitor-core")
 public class MonitorCore extends CPojoBase implements
         IIsolateStatusEventListener, ISignalListener, IPlatformMonitor,
@@ -393,9 +393,6 @@ public class MonitorCore extends CPojoBase implements
     @Invalidate
     public void invalidatePojo() throws BundleException {
 
-        // Unregister...
-        pForkerSvc.unregisterListener(this);
-
         // Clear the time stamps list
         pLastIsolatesStatusUID.clear();
 
@@ -706,9 +703,6 @@ public class MonitorCore extends CPojoBase implements
 
         pFailureHandler = new IsolateFailureHandler(this, maxTriesStreak,
                 timeInStreak, timeBeforeStreak);
-
-        // Register to the forker events
-        pForkerSvc.registerListener(this);
 
         pLogger.logInfo(this, "validatePojo", "PSEM2M Monitor Core Ready");
     }
