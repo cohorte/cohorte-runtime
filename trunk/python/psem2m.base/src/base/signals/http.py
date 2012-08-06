@@ -10,12 +10,18 @@ Created on 11 juin 2012
 
 # ------------------------------------------------------------------------------
 
+# iPOPO
 from pelix.ipopo.decorators import ComponentFactory, Provides, Requires, \
     Validate, Invalidate, Instantiate
 
-from base.javautils import to_jabsorb, from_jabsorb, JAVA_CLASS
-
+# Pelix
 import pelix.framework as pelix
+
+# Python utilities
+from base.utils import to_bytes, to_unicode
+
+# Java utilities
+from base.javautils import to_jabsorb, from_jabsorb, JAVA_CLASS
 
 # ------------------------------------------------------------------------------
 
@@ -31,51 +37,9 @@ if sys.version_info[0] == 3:
     # Python 3
     import http.client as httplib
 
-    def _to_bytes(data, encoding="UTF-8"):
-        """
-        Converts the given string to a bytes array
-        """
-        if type(data) is bytes:
-            # Nothing to do
-            return data
-
-        return data.encode(encoding)
-
-
-    def _to_string(data, encoding="UTF-8"):
-        """
-        Converts the given bytes array to a string
-        """
-        if type(data) is str:
-            # Nothing to do
-            return data
-
-        return str(data, encoding)
-
 else:
     # Python 2
     import httplib
-
-    def _to_bytes(data, encoding="UTF-8"):
-        """
-        Converts the given string to a bytes array
-        """
-        if type(data) is str:
-            # Nothing to do
-            return data
-
-        return data.encode(encoding)
-
-
-    def _to_string(data, encoding="UTF-8"):
-        """
-        Converts the given bytes array to a string
-        """
-        if type(data) is unicode:
-            # Nothing to do
-            return data
-
-        return data.decode(encoding)
 
 # ------------------------------------------------------------------------------
 
@@ -111,10 +75,10 @@ def read_post_body(request_handler):
     """
     try :
         content_len = int(request_handler.headers.get('content-length'))
-        return _to_string(request_handler.rfile.read(content_len))
+        return to_unicode(request_handler.rfile.read(content_len))
 
-    except:
-        _logger.exception("Error reading POST body")
+    except Exception as ex:
+        _logger.exception("Error reading POST body: %s", ex)
 
     return ""
 
@@ -181,9 +145,10 @@ class SignalReceiver(object):
                     code, content = self.handle_received_signal(signal_name,
                                                                 signal_data,
                                                                 mode)
-                except:
+                except Exception as ex:
                     # Error
-                    _logger.exception("Error reading signal %s", signal_name)
+                    _logger.exception("Error reading signal '%s': %s",
+                                      signal_name, ex)
                     code, content = _make_json_result(500,
                                                       "Error parsing signal")
 
@@ -193,7 +158,7 @@ class SignalReceiver(object):
 
         if content:
             # Convert content (Python 3)
-            content = _to_bytes(content)
+            content = to_bytes(content)
 
         # Send headers
         handler.send_response(code)
@@ -856,7 +821,7 @@ class SignalSender(object):
             if result and json_result:
                 try:
                     # Try to convert the result from JSON
-                    result = from_jabsorb(json.loads(_to_string(result)))
+                    result = from_jabsorb(json.loads(to_unicode(result)))
 
                 except Exception as ex:
                     # Unreadable response

@@ -11,38 +11,12 @@ __docformat__ = "restructuredtext en"
 
 # ------------------------------------------------------------------------------
 
+from base.utils import to_str
 import psem2m.utils
 
 import os
 import shutil
 import subprocess
-import sys
-
-# ------------------------------------------------------------------------------
-
-if sys.version_info[0] == 3:
-    # Python 3
-    def _to_str(data, encoding="UTF-8"):
-        """
-        Converts the given bytes array to a string
-        """
-        if type(data) is str:
-            # Nothing to do
-            return data
-
-        return str(data, encoding)
-
-else:
-    # Python 2
-    def _to_str(data, encoding="UTF-8"):
-        """
-        Converts the given bytes array to a string
-        """
-        if type(data) is str:
-            # Nothing to do
-            return data
-
-        return data.encode(encoding)
 
 # ------------------------------------------------------------------------------
 
@@ -122,10 +96,9 @@ class Runner(object):
 
         # ... set up constants values
         home = os.getenv(psem2m.PSEM2M_HOME, os.getcwd())
-        env[psem2m.PSEM2M_HOME] = _to_str(home)
-        env[psem2m.PSEM2M_BASE] = _to_str(os.getenv(psem2m.PSEM2M_BASE,
-                                                       home))
-        env[psem2m.PSEM2M_ISOLATE_ID] = _to_str(isolate_id)
+        env[psem2m.PSEM2M_HOME] = to_str(home)
+        env[psem2m.PSEM2M_BASE] = to_str(os.getenv(psem2m.PSEM2M_BASE, home))
+        env[psem2m.PSEM2M_ISOLATE_ID] = to_str(isolate_id)
 
         # Prepare the interpreter arguments, the first argument **must** be
         # the interpreter
@@ -186,7 +159,7 @@ class Runner(object):
             return base_env
 
         # Normalize the dictionary (only strings are allowed)
-        norm_dict = dict((_to_str(key), _to_str(value))
+        norm_dict = dict((to_str(key), to_str(value))
                          for key, value in env.items())
 
         # Update the base_environment

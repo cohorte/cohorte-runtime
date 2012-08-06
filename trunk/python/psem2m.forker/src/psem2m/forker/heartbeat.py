@@ -16,6 +16,8 @@ __docformat__ = "restructuredtext en"
 from pelix.ipopo.decorators import ComponentFactory, Instantiate, \
     Requires, Validate, Invalidate
 
+from base.utils import to_bytes
+
 # ------------------------------------------------------------------------------
 
 import logging
@@ -23,7 +25,6 @@ _logger = logging.getLogger(__name__)
 
 import socket
 import struct
-import sys
 import threading
 
 # ------------------------------------------------------------------------------
@@ -36,32 +37,6 @@ PROPERTY_ISOLATE_ID = 'psem2m.isolate.id'
 
 # PSEM2M property: Isolate Node
 PROPERTY_ISOLATE_NODE = 'psem2m.isolate.node'
-
-# ------------------------------------------------------------------------------
-
-if sys.version_info[0] == 3:
-    # Python 3
-    def _to_bytes(data, encoding="UTF-8"):
-        """
-        Converts the given string to a bytes array
-        """
-        if type(data) is bytes:
-            # Nothing to do
-            return data
-
-        return data.encode(encoding)
-
-else:
-    # Python 2
-    def _to_bytes(data, encoding="UTF-8"):
-        """
-        Converts the given string to a bytes array
-        """
-        if type(data) is str:
-            # Nothing to do
-            return data
-
-        return data.encode(encoding)
 
 # ------------------------------------------------------------------------------
 
@@ -95,7 +70,7 @@ if os.name == "nt":
                             ]
 
             # Prepare pointers
-            addr_ptr = ctypes.c_char_p(_to_bytes(address))
+            addr_ptr = ctypes.c_char_p(to_bytes(address))
 
             out_address = sockaddr_in6()
             size = len(sockaddr_in6)
@@ -287,7 +262,7 @@ def make_heartbeat(port, application_id, isolate_id, node_id):
 
     for string in (application_id, isolate_id, node_id):
         # Strings...
-        string_bytes = _to_bytes(string)
+        string_bytes = to_bytes(string)
         packet += struct.pack("<H", len(string_bytes))
         packet += string_bytes
 

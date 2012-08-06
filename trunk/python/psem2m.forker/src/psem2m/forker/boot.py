@@ -30,26 +30,6 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
-def string_to_bool(string):
-    """
-    Converts the given string to a boolean
-    
-    If string is one of "true", "1", "yes" or "y", the method returns True
-    (case insensitive).
-    Else, the method returns False
-    
-    :param string: The string to parse
-    :return: True or False
-    """
-    if not string:
-        # No value
-        return False
-
-    # Accept multiple forms of "true"
-    return string.lower() in ("true", "yes", "y", "1")
-
-# ------------------------------------------------------------------------------
-
 def _store_forker_pid(base):
     """
     Stores the current PID to the forker.pid file
