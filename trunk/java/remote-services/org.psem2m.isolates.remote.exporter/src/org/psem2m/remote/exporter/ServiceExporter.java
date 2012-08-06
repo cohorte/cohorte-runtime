@@ -358,12 +358,9 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
         final StringBuilder serviceFilterBuilder = new StringBuilder("(&");
 
         /* PSEM2M flag (denies export if present and not true) */
-        serviceFilterBuilder
-                .append("(|(!(psem2m.service.export=*))(psem2m.service.export=true))");
-
-        serviceFilterBuilder.append("(|!(")
+        serviceFilterBuilder.append("(|(!(")
                 .append(IRemoteServicesConstants.PSEM2M_SERVICE_EXPORT)
-                .append("=*)(")
+                .append("=*))(")
                 .append(IRemoteServicesConstants.PSEM2M_SERVICE_EXPORT)
                 .append("=true))");
 
