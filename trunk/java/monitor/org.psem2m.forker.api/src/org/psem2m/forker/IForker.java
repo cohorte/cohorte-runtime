@@ -3,7 +3,7 @@
  * Author: Thomas Calmant
  * Date:   17 juin 2011
  */
-package org.psem2m.isolates.services.forker;
+package org.psem2m.forker;
 
 import java.util.Map;
 
@@ -13,42 +13,6 @@ import java.util.Map;
  * @author Thomas Calmant
  */
 public interface IForker {
-
-    /** Isolate is alive */
-    int ALIVE = 0;
-
-    /** The isolate is already running */
-    int ALREADY_RUNNING = 1;
-
-    /** Process is dead (not running) */
-    int DEAD = 1;
-
-    /** No reference to the isolate process, unknown state */
-    int NO_PROCESS_REF = 2;
-
-    /** No isolate watcher could be started (active isolate waiter) */
-    int NO_WATCHER = 3;
-
-    /** Error sending the request */
-    int REQUEST_ERROR = -3;
-
-    /** Forker didn't returned any result */
-    int REQUEST_NO_RESULT = -2;
-
-    /** Forker timed out */
-    int REQUEST_TIMEOUT = -1;
-
-    /** An error occurred calling the runner */
-    int RUNNER_EXCEPTION = 4;
-
-    /** Process is stuck (running, but not responding) */
-    int STUCK = 2;
-
-    /** Successful operation */
-    int SUCCESS = 0;
-
-    /** Unknown kind of isolate */
-    int UNKNOWN_KIND = 5;
 
     /**
      * Retrieves the name of the host machine of this forker
@@ -88,7 +52,7 @@ public interface IForker {
 
     /**
      * Sets the forkers in platform stopping mode : they must not start new
-     * isolaes.
+     * isolates.
      */
     void setPlatformStopping();
 

@@ -3,7 +3,7 @@
  * Author: Thomas Calmant
  * Date:   5 juin 2012
  */
-package org.psem2m.isolates.services.forker;
+package org.psem2m.forker;
 
 /**
  * Defines a forker event listener.

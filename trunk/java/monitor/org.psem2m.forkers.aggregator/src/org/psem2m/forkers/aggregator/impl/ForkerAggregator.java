@@ -33,12 +33,13 @@ import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
+import org.psem2m.forker.IForker;
+import org.psem2m.forker.IForkerEventListener;
+import org.psem2m.forker.IForkerEventListener.EForkerEventType;
+import org.psem2m.forker.IForkerStatus;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.services.conf.ISvcConfig;
-import org.psem2m.isolates.services.forker.IForker;
-import org.psem2m.isolates.services.forker.IForkerEventListener;
-import org.psem2m.isolates.services.forker.IForkerEventListener.EForkerEventType;
 import org.psem2m.signals.ISignalBroadcaster;
 import org.psem2m.signals.ISignalDirectory;
 import org.psem2m.signals.ISignalDirectory.EBaseGroup;
@@ -234,14 +235,14 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
                 // No results at all
                 pLogger.logWarn(this, "getForkerIntResult",
                         "No results from forker");
-                return IForker.REQUEST_NO_RESULT;
+                return IForkerStatus.REQUEST_NO_RESULT;
             }
 
             final Object[] forkerResults = results.get(aForkerId);
             if (forkerResults == null || forkerResults.length != 1) {
                 pLogger.logWarn(this, "getForkerIntResult",
                         "Unreadable result=", forkerResults);
-                return IForker.REQUEST_NO_RESULT;
+                return IForkerStatus.REQUEST_NO_RESULT;
             }
 
             if (forkerResults[0] instanceof Number) {
@@ -252,7 +253,7 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
                 // Bad result
                 pLogger.logWarn(this, "getForkerIntResult", "Invalid result=",
                         forkerResults[0]);
-                return IForker.REQUEST_NO_RESULT;
+                return IForkerStatus.REQUEST_NO_RESULT;
             }
 
         } catch (final InterruptedException ex) {
@@ -261,28 +262,28 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
                     "Interrupted while waiting for an answer of forker=",
                     aForkerId, "sending signal=", aSignalName);
 
-            return IForker.REQUEST_TIMEOUT;
+            return IForkerStatus.REQUEST_TIMEOUT;
 
         } catch (final TimeoutException e) {
             // Forker timed out
             pLogger.logWarn(this, "getForkerIntResult", "Forker=", aForkerId,
                     "timed out sending signal=", aSignalName);
 
-            return IForker.REQUEST_TIMEOUT;
+            return IForkerStatus.REQUEST_TIMEOUT;
 
         } catch (final ExecutionException e) {
             // Error sending the request
             pLogger.logSevere(this, "getForkerIntResult",
                     "Error sending signal=", aSignalName, "to=", aForkerId,
                     ":", e);
-            return IForker.REQUEST_ERROR;
+            return IForkerStatus.REQUEST_ERROR;
         }
     }
 
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.services.forker.IForker#getHostName()
+     * @see org.psem2m.forker.IForker#getHostName()
      */
     @Override
     public String getNodeName() {
@@ -436,8 +437,7 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * org.psem2m.isolates.services.forker.IForker#isOnHost(java.lang.String,
+     * @see org.psem2m.forker.IForker#isOnHost(java.lang.String,
      * java.lang.String)
      */
     @Override
@@ -466,7 +466,7 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.services.forker.IForker#ping(java.lang.String)
+     * @see org.psem2m.forker.IForker#ping(java.lang.String)
      */
     @Override
     public int ping(final String aIsolateId) {
@@ -526,8 +526,7 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * org.psem2m.isolates.services.forker.IForker#registerListener(org.psem2m
+     * @see org.psem2m.forker.IForker#registerListener(org.psem2m
      * .isolates.services.forker.IForkerEventListener)
      */
     @Override
@@ -631,7 +630,7 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.services.forker.IForker#setPlatformStopping()
+     * @see org.psem2m.forker.IForker#setPlatformStopping()
      */
     @Override
     public void setPlatformStopping() {
@@ -643,8 +642,7 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * org.psem2m.isolates.services.forker.IForker#startIsolate(java.util.Map)
+     * @see org.psem2m.forker.IForker#startIsolate(java.util.Map)
      */
     @Override
     public int startIsolate(final Map<String, Object> aIsolateConfiguration) {
@@ -678,8 +676,7 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * org.psem2m.isolates.services.forker.IForker#stopIsolate(java.lang.String)
+     * @see org.psem2m.forker.IForker#stopIsolate(java.lang.String)
      */
     @Override
     public void stopIsolate(final String aIsolateId) {
@@ -734,15 +731,13 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * org.psem2m.isolates.services.forker.IForker#registerListener(org.psem2m
+     * @see org.psem2m.forker.IForker#registerListener(org.psem2m
      * .isolates.services.forker.IForkerEventListener)
      */
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * org.psem2m.isolates.services.forker.IForker#unregisterListener(org.psem2m
+     * @see org.psem2m.forker.IForker#unregisterListener(org.psem2m
      * .isolates.services.forker.IForkerEventListener)
      */
     @Override

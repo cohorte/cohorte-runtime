@@ -25,6 +25,9 @@ import org.apache.felix.ipojo.annotations.ServiceProperty;
 import org.apache.felix.ipojo.annotations.Unbind;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
+import org.psem2m.forker.IForker;
+import org.psem2m.forker.IForkerEventListener;
+import org.psem2m.forker.IForkerStatus;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.base.activators.CPojoBase;
@@ -38,8 +41,6 @@ import org.psem2m.isolates.services.conf.ISvcConfig;
 import org.psem2m.isolates.services.conf.beans.ApplicationDescription;
 import org.psem2m.isolates.services.conf.beans.IsolateDescription;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
-import org.psem2m.isolates.services.forker.IForker;
-import org.psem2m.isolates.services.forker.IForkerEventListener;
 import org.psem2m.signals.ISignalBroadcaster;
 import org.psem2m.signals.ISignalData;
 import org.psem2m.signals.ISignalDirectory.EBaseGroup;
@@ -195,11 +196,9 @@ public class MonitorCore extends CPojoBase implements
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * org.psem2m.isolates.services.forker.IForkerEventListener#handleForkerEvent
-     * (
-     * org.psem2m.isolates.services.forker.IForkerEventListener.EForkerEventType
-     * , java.lang.String, java.lang.String)
+     * @see org.psem2m.forker.IForkerEventListener#handleForkerEvent (
+     * org.psem2m.forker.IForkerEventListener.EForkerEventType ,
+     * java.lang.String, java.lang.String)
      */
     @Override
     public void handleForkerEvent(final EForkerEventType aEventType,
@@ -560,7 +559,8 @@ public class MonitorCore extends CPojoBase implements
                 ", result=", result);
 
         // Success if the isolate is running (even if we done nothing) return
-        return result == IForker.SUCCESS || result == IForker.ALREADY_RUNNING;
+        return result == IForkerStatus.SUCCESS
+                || result == IForkerStatus.ALREADY_RUNNING;
     }
 
     /**
