@@ -59,14 +59,14 @@ import org.psem2m.signals.ISignalSendResult;
 @Instantiate(name = "psem2m-forker-aggregator")
 public class ForkerAggregator implements IForker, IPacketListener, Runnable {
 
+    /** Maximum time without forker notification : 5 seconds */
+    private static final long FORKER_TTL = 5000;
+
     /** ID of the forker events listeners */
     private static final String IPOJO_ID_LISTENERS = "forker-events-listeners";
 
-    /** Maximum time without forker notification : 5 seconds */
-    public final long FORKER_TTL = 5000;
-
     /** UDP Packet: Forker heart beat */
-    public final byte PACKET_FORKER_HEARTBEAT = 1;
+    private static final byte PACKET_FORKER_HEARTBEAT = 1;
 
     /** The configuration service */
     @Requires

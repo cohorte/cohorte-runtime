@@ -19,6 +19,9 @@ import java.util.concurrent.Executors;
  */
 public class MulticastReceiver {
 
+    /** Reception buffer size */
+    private final static int BUFFER_SIZE = 1500;
+
     /**
      * Leaves the group and closes the multicast socket.
      * 
@@ -128,7 +131,7 @@ public class MulticastReceiver {
         while (pThreadRun) {
 
             // Set up the buffer
-            final byte[] buffer = new byte[1500];
+            final byte[] buffer = new byte[BUFFER_SIZE];
 
             // Use a new buffer each time, or it will be erased on next packet
             final DatagramPacket packet = new DatagramPacket(buffer,
