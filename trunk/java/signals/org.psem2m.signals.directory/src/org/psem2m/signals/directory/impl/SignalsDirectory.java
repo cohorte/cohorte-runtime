@@ -447,8 +447,7 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
      */
     @Override
     public synchronized boolean registerIsolate(final String aIsolateId,
-            final String aNode, final int aPort, final String... aGroups)
-            throws IllegalArgumentException {
+            final String aNode, final int aPort, final String... aGroups) {
 
         if (aIsolateId == null || aIsolateId.isEmpty()) {
             throw new IllegalArgumentException("Empty isolate ID : '"

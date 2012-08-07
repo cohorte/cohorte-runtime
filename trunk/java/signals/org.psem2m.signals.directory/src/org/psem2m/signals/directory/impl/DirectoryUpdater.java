@@ -242,6 +242,7 @@ public class DirectoryUpdater implements ISignalListener,
                 notifyPresenceListeners(lostIsolate, lostIsolateNode,
                         EPresence.UNREGISTERED);
             }
+
         } else if (ISignalDirectoryConstants.SIGNAL_CONTACT.equals(aSignalName)) {
             // Monitor contact. Should only happen for forkers
             grabRemoteDirectory(aSignalData);

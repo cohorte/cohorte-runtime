@@ -379,6 +379,17 @@ class SignalsDirectory(object):
         self._context = None
 
 
+    def is_registered(self, isolate_id):
+        """
+        Tests if the given isolate ID is registered in the directory
+        
+        :param isolate_id: An isolate ID
+        :return: True if the ID is known, else false
+        """
+        with self._lock:
+            return isolate_id in self._accesses
+
+
     def register_isolate(self, isolate_id, node, port, groups):
         """
         Registers an isolate in the directory.
