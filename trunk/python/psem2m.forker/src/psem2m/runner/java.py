@@ -42,6 +42,9 @@ PROP_PLATFORM_ISOLATE_NODE = "org.psem2m.platform.isolate.node"
 PROP_PLATFORM_DEBUG_PORT = "org.psem2m.debug.port"
 """ PSEM2M debug port Java property """
 
+PROP_BROKER_URL = "org.psem2m.configuration.broker"
+""" URL to the configuration broker """
+
 # ------------------------------------------------------------------------------
 
 PLATFORM_FRAMEWORK_FILENAME = "platform.framework"
@@ -123,6 +126,12 @@ class JavaRunner(runner.Runner):
                       PROP_PLATFORM_ISOLATE_NODE: isolate_descr["node"]
                       }
 
+        # Configuration Broker URL
+        broker_url = isolate_descr.get("psem2m.configuration.broker", None)
+        if broker_url is not None:
+            java_props[PROP_BROKER_URL] = broker_url
+
+        # Java properties arguments
         for key, value in java_props.items():
             args.append("-D{key}={value}".format(key=str(key).strip(),
                                                  value=str(value).strip()))

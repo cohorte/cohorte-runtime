@@ -219,6 +219,7 @@ class Forker(object):
 
         # A runner can handle this kind of isolate : store the configuration
         # in the broker
+        # FIXME: make a standalone configuration JSON (without 'from'...)
         self._config_broker.store_configuration(isolate_id,
                                                 json.dumps(isolate_descr))
 
