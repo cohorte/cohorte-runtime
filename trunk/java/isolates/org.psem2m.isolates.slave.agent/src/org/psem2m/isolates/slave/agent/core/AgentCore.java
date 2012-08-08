@@ -4,7 +4,9 @@
 package org.psem2m.isolates.slave.agent.core;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.MalformedURLException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -224,17 +226,6 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
         pUpdateTimeouts.remove(aBundleId);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.utilities.CXObjectBase#destroy()
-     */
-    @Override
-    public void destroy() {
-
-        // ...
-    }
-
     /**
      * Prepares the URL to install the given bundle. Uses the given file path,
      * if any, then the given symbolic name.
@@ -325,6 +316,66 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
         }
 
         return bundlesInfo;
+    }
+
+    /**
+     * Retrieves the configuration from the given broker URL
+     * 
+     * @param aBrokerUrlStr
+     *            The URL to the configuration broker
+     * @param aIsolateId
+     *            The ID of the isolate
+     * 
+     * @return The isolate configuration, null on error
+     */
+    protected IsolateDescription getConfigurationFromBroker(
+            final String aBrokerUrlStr, final String aIsolateId) {
+
+        if (aBrokerUrlStr == null || aBrokerUrlStr.isEmpty()
+                || aIsolateId == null || aIsolateId.isEmpty()) {
+            // Nothing to do
+            return null;
+        }
+
+        ConfigBrokerClient broker = null;
+        IsolateDescription isolateDescr = null;
+
+        try {
+            // Get the configuration
+            broker = new ConfigBrokerClient(aBrokerUrlStr);
+            final String content = broker.getConfiguration(aIsolateId);
+
+            // Parse it
+            isolateDescr = pConfigurationSvc.parseIsolate(content);
+
+        } catch (final BrokerException ex) {
+            // Broker error
+            pIsolateLoggerSvc.logWarn(this, "getConfigurationFromBroker",
+                    "Configuration broker an error:", ex);
+
+        } catch (final IOException ex) {
+            // Request error
+            pIsolateLoggerSvc.logWarn(this, "getConfigurationFromBroker",
+                    "Error requesting the configuration from the broker:", ex);
+        }
+
+        if (broker != null) {
+            // Clean up if needed
+            try {
+                broker.deleteConfiguration(aIsolateId);
+
+            } catch (final IOException ex) {
+                pIsolateLoggerSvc.logWarn(this, "getConfigurationFromBroker",
+                        "Error requesting the configuration deletion:", ex);
+
+            } catch (final BrokerException ex) {
+                pIsolateLoggerSvc.logWarn(this, "getConfigurationFromBroker",
+                        "Configuration broker error during deletion:", ex);
+            }
+        }
+
+        // Return what we found (null on error)
+        return isolateDescr;
     }
 
     /**
@@ -590,13 +641,36 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
     @Override
     public void prepareIsolate(final String aIsolateId) throws Exception {
 
-        // Read the configuration
-        final IsolateDescription isolateDescr = pConfigurationSvc
-                .getApplication().getIsolate(aIsolateId);
-        if (isolateDescr == null) {
-            throw new IllegalArgumentException("Isolate '" + aIsolateId
-                    + "' is not defined in the configuration.");
+        IsolateDescription isolateDescr = null;
+
+        // Get the broker URL
+        final String brokerUrlStr = System
+                .getProperty(IPlatformProperties.PROP_BROKER_URL);
+        if (brokerUrlStr != null) {
+            pIsolateLoggerSvc.logInfo(this, "prepareIsolate",
+                    "Reading configuration from the broker URL=", brokerUrlStr);
+
+            isolateDescr = getConfigurationFromBroker(brokerUrlStr, aIsolateId);
         }
+
+        // Read from the configuration files
+        if (isolateDescr == null) {
+            pIsolateLoggerSvc.logInfo(this, "prepareIsolate",
+                    "No configuration retrieved from the broker -> use files.");
+
+            isolateDescr = pConfigurationSvc.getApplication().getIsolate(
+                    aIsolateId);
+
+            if (isolateDescr == null) {
+                // No configuration found
+                throw new IllegalArgumentException(MessageFormat.format(
+                        "Isolate ''{0}'' is not defined in the configuration.",
+                        aIsolateId));
+            }
+        }
+
+        // Update the configuration service
+        pConfigurationSvc.setCurrentIsolate(isolateDescr);
 
         // Update the system property in any case, before installing bundles
         System.setProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID,
