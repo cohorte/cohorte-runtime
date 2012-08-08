@@ -30,9 +30,28 @@ public interface ISvcConfig {
     IsolateDescription getCurrentIsolate();
 
     /**
+     * Retrieves the description of the isolate described in the given string
+     * 
+     * @param aConfigurationString
+     *            A configuration string
+     * @return The parsed description, or null
+     */
+    IsolateDescription parseIsolate(String aConfigurationString);
+
+    /**
      * Reloads configuration
      * 
      * @return True on success, else false
      */
     boolean refresh();
+
+    /**
+     * Sets the currently used isolate description. If the parameter is null,
+     * then the next call to {@link #getCurrentIsolate()} will return
+     * getApplication().getIsolate(<i>currentIsolate</i>).
+     * 
+     * @param aIsolateDescription
+     *            An isolate description
+     */
+    void setCurrentIsolate(IsolateDescription aIsolateDescription);
 }

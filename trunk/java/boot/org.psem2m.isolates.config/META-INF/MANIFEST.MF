@@ -18,24 +18,28 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  ices.conf.beans, org.psem2m.isolates.services.dirs;version=1.0.0, org
  .psem2m.utilities, org.psem2m.utilities.json, org.psem2m.utilities.lo
  gging
-iPOJO-Components: instance { $component="psem2m-config-factory" $name=
- "psem2m-config" }component { $classname="org.psem2m.isolates.config.i
- mpl.CJsonConfigSvc" $architecture="true" $immediate="true" $name="pse
- m2m-config-factory" provides { $specifications="org.psem2m.isolates.s
- ervices.conf.ISvcConfig" }requires { $field="pIsolateLoggerSvc" $opti
- onal="false" }requires { $field="pFileFinder" $optional="false" }call
- back { $transition="validate" $method="validatePojo" }callback { $tra
- nsition="invalidate" $method="invalidatePojo" }manipulation { $super=
- "org.psem2m.isolates.base.activators.CPojoBase" interface { $name="or
- g.psem2m.isolates.services.conf.ISvcConfig" }field { $name="pFileFind
- er" $type="org.psem2m.isolates.services.dirs.IFileFinderSvc" }field {
-  $name="pIsolateLoggerSvc" $type="org.psem2m.isolates.base.IIsolateLo
- ggerSvc" }field { $name="pLastLoad" $type="long" }field { $name="pRea
- der" $type="org.psem2m.isolates.config.json.JsonConfigReader" }method
-  { $name="getApplication" $return="org.psem2m.isolates.services.conf.
- beans.ApplicationDescription" }method { $name="getCurrentIsolate" $re
- turn="org.psem2m.isolates.services.conf.beans.IsolateDescription" }me
- thod { $name="invalidatePojo" }method { $name="logDumpConfig" }method
-  { $name="refresh" $return="boolean" }method { $name="validatePojo" }
- }}
+iPOJO-Components: instance { $component="org.psem2m.isolates.config.im
+ pl.CJsonConfigSvc" $name="psem2m-config-json" }component { $classname
+ ="org.psem2m.isolates.config.impl.CJsonConfigSvc" $name="psem2m-confi
+ g-json-factory" $public="false" provides { $specifications="{org.psem
+ 2m.isolates.services.conf.ISvcConfig}" }requires { $field="pFileFinde
+ r" }requires { $field="pLogger" }callback { $transition="invalidate" 
+ $method="invalidatePojo" }callback { $transition="validate" $method="
+ validatePojo" }manipulation { $super="org.psem2m.isolates.base.activa
+ tors.CPojoBase" interface { $name="org.psem2m.isolates.services.conf.
+ ISvcConfig" }field { $name="pCurrentIsolate" $type="org.psem2m.isolat
+ es.services.conf.beans.IsolateDescription" }field { $name="pFileFinde
+ r" $type="org.psem2m.isolates.services.dirs.IFileFinderSvc" }field { 
+ $name="pLastLoad" $type="long" }field { $name="pLogger" $type="org.ps
+ em2m.isolates.base.IIsolateLoggerSvc" }field { $name="pReader" $type=
+ "org.psem2m.isolates.config.json.JsonConfigReader" }method { $name="g
+ etApplication" $return="org.psem2m.isolates.services.conf.beans.Appli
+ cationDescription" }method { $name="getCurrentIsolate" $return="org.p
+ sem2m.isolates.services.conf.beans.IsolateDescription" }method { $nam
+ e="invalidatePojo" }method { $name="logDumpConfig" }method { $name="p
+ arseIsolate" $return="org.psem2m.isolates.services.conf.beans.Isolate
+ Description" $arguments="{java.lang.String}" }method { $name="refresh
+ " $return="boolean" }method { $name="setCurrentIsolate" $arguments="{
+ org.psem2m.isolates.services.conf.beans.IsolateDescription}" }method 
+ { $name="validatePojo" }}}
 

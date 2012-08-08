@@ -239,7 +239,7 @@ public class JsonConfigReader implements IConfigurationReader {
      * @throws JSONException
      *             The bundle entry is invalid
      */
-    protected BundleDescription parseBundle(final JSONObject aBundleObject,
+    public BundleDescription parseBundle(final JSONObject aBundleObject,
             final Properties aOverridenProperties) throws JSONException {
 
         // Get the symbolic name
@@ -344,7 +344,7 @@ public class JsonConfigReader implements IConfigurationReader {
      * @throws FileNotFoundException
      *             An imported file wasn't found
      */
-    protected IsolateDescription parseIsolate(final JSONObject aIsolateObject,
+    public IsolateDescription parseIsolate(final JSONObject aIsolateObject,
             final Properties aOverridingProperties) throws JSONException,
             FileNotFoundException {
 
@@ -467,7 +467,7 @@ public class JsonConfigReader implements IConfigurationReader {
      *            A JSON object representing the properties
      * @return A Properties object
      */
-    protected Properties parseProperties(final JSONObject aSetOfProperties) {
+    public Properties parseProperties(final JSONObject aSetOfProperties) {
 
         if (aSetOfProperties != null) {
 
