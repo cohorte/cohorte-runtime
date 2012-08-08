@@ -18,6 +18,12 @@ import java.util.Properties;
 import java.util.Scanner;
 import java.util.Stack;
 
+import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Instantiate;
+import org.apache.felix.ipojo.annotations.Provides;
+import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.StaticServiceProperty;
+import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.config.IPlatformConfigurationConstants;
 import org.psem2m.isolates.services.conf.IConfigurationReader;
 import org.psem2m.isolates.services.conf.beans.ApplicationDescription;
@@ -33,16 +39,24 @@ import org.psem2m.utilities.json.JSONObject;
  * 
  * @author Thomas Calmant
  */
+@Component(name = "psem2m-config-json-factory", publicFactory = false)
+@Provides(specifications = IConfigurationReader.class, properties = @StaticServiceProperty(name = "config.format", value = "json", type = "String"))
+@Instantiate(name = "psem2m-config-json")
 public class JsonConfigReader implements IConfigurationReader {
 
     /** The described application */
     private ApplicationDescription pApplication;
 
     /** A file finder */
+    @Requires
     private IFileFinderSvc pFileFinder;
 
     /** The file inclusion stack, for relative paths */
     private final Stack<File> pIncludeStack = new Stack<File>();
+
+    /** The logger */
+    @Requires
+    private IIsolateLoggerSvc pLogger;
 
     /**
      * Parses the given properties object and overrides it with the given
@@ -187,9 +201,7 @@ public class JsonConfigReader implements IConfigurationReader {
      * org.psem2m.isolates.base.dirs.IFileFinderSvc)
      */
     @Override
-    public boolean load(final String aFile, final IFileFinderSvc aFileFinder) {
-
-        pFileFinder = aFileFinder;
+    public boolean load(final String aFile) {
 
         try {
             // Parse the configuration
@@ -212,12 +224,12 @@ public class JsonConfigReader implements IConfigurationReader {
             return true;
 
         } catch (final JSONException ex) {
-            System.err.println("Error parsing a configuration file");
-            ex.printStackTrace();
+            pLogger.logSevere(this, "load",
+                    "Error parsing a configuration file:", ex);
 
-        } catch (final IOException e) {
-            System.err.println("Can't access a configuration file");
-            e.printStackTrace();
+        } catch (final IOException ex) {
+            pLogger.logSevere(this, "load",
+                    "Can't access a configuration file:", ex);
 
         } finally {
             // Don't reference the finder anymore
@@ -239,7 +251,7 @@ public class JsonConfigReader implements IConfigurationReader {
      * @throws JSONException
      *             The bundle entry is invalid
      */
-    public BundleDescription parseBundle(final JSONObject aBundleObject,
+    protected BundleDescription parseBundle(final JSONObject aBundleObject,
             final Properties aOverridenProperties) throws JSONException {
 
         // Get the symbolic name
@@ -280,6 +292,35 @@ public class JsonConfigReader implements IConfigurationReader {
         wBundleDescription.setProperties(bundleProperties);
 
         return wBundleDescription;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.services.conf.IConfigurationReader#parseBundle(java
+     * .lang.String)
+     */
+    @Override
+    public BundleDescription parseBundle(final String aBundleConfiguration) {
+
+        try {
+            // Parse the string
+            final JSONObject jsonConf = new JSONObject(aBundleConfiguration);
+
+            // Read the JSON object
+            return parseBundle(jsonConf, null);
+
+        } catch (final JSONException ex) {
+            // Error parsing the string
+            pLogger.logWarn(this, "parseBundle",
+                    "Error parsing the bundle configuration string: ", ex);
+
+            pLogger.logDebug(this, "parseBundle", "Configuration string=",
+                    aBundleConfiguration);
+        }
+
+        return null;
     }
 
     /**
@@ -344,7 +385,7 @@ public class JsonConfigReader implements IConfigurationReader {
      * @throws FileNotFoundException
      *             An imported file wasn't found
      */
-    public IsolateDescription parseIsolate(final JSONObject aIsolateObject,
+    protected IsolateDescription parseIsolate(final JSONObject aIsolateObject,
             final Properties aOverridingProperties) throws JSONException,
             FileNotFoundException {
 
@@ -414,6 +455,44 @@ public class JsonConfigReader implements IConfigurationReader {
         return isolateDescription;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.services.conf.IConfigurationReader#parseIsolate(java
+     * .lang.String)
+     */
+    @Override
+    public IsolateDescription parseIsolate(final String aIsolateConfiguration) {
+
+        try {
+            // Parse the string
+            final JSONObject jsonConf = new JSONObject(aIsolateConfiguration);
+
+            // Read the JSON object
+            return parseIsolate(jsonConf, null);
+
+        } catch (final JSONException ex) {
+            // Error parsing the string
+            pLogger.logWarn(this, "parseIsolate",
+                    "Error parsing the isolate configuration string: ", ex);
+
+            pLogger.logDebug(this, "parseIsolate", "Configuration string=",
+                    aIsolateConfiguration);
+
+        } catch (final FileNotFoundException ex) {
+            // Error looking for a referenced file
+            pLogger.logWarn(this, "parseIsolate", "Referenced file=",
+                    ex.getMessage(),
+                    "not found while parsing the isolate configuration string");
+
+            pLogger.logDebug(this, "parseIsolate", "Configuration string=",
+                    aIsolateConfiguration);
+        }
+
+        return null;
+    }
+
     /**
      * Parses an array of isolates
      * 
@@ -467,7 +546,7 @@ public class JsonConfigReader implements IConfigurationReader {
      *            A JSON object representing the properties
      * @return A Properties object
      */
-    public Properties parseProperties(final JSONObject aSetOfProperties) {
+    protected Properties parseProperties(final JSONObject aSetOfProperties) {
 
         if (aSetOfProperties != null) {
 

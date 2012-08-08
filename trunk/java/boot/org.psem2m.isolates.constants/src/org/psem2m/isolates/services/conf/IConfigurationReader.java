@@ -6,7 +6,8 @@
 package org.psem2m.isolates.services.conf;
 
 import org.psem2m.isolates.services.conf.beans.ApplicationDescription;
-import org.psem2m.isolates.services.dirs.IFileFinderSvc;
+import org.psem2m.isolates.services.conf.beans.BundleDescription;
+import org.psem2m.isolates.services.conf.beans.IsolateDescription;
 
 /**
  * Defines a PSEM2M configuration reader
@@ -37,10 +38,26 @@ public interface IConfigurationReader {
      * 
      * @param aConfigurationFile
      *            A PSEM2M configuration file
-     * @param aFileFinder
-     *            A file finder service instance
      * 
      * @return True if the file was successfully read
      */
-    boolean load(String aConfigurationFile, IFileFinderSvc aFileFinder);
+    boolean load(String aConfigurationFile);
+
+    /**
+     * Retrieves the description of the bundle described in the given string
+     * 
+     * @param aBundleConfiguration
+     *            A configuration string
+     * @return The parsed description, or null
+     */
+    BundleDescription parseBundle(String aBundleConfiguration);
+
+    /**
+     * Retrieves the description of the isolate described in the given string
+     * 
+     * @param aIsolateConfiguration
+     *            A configuration string
+     * @return The parsed description, or null
+     */
+    IsolateDescription parseIsolate(String aIsolateConfiguration);
 }
