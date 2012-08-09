@@ -365,7 +365,7 @@ public class WaitingSignal implements IWaitingSignal {
      */
     public void setSendToResult(final Object[] aSendToResult) {
 
-        pSendToResult = new String[aSendToResult.length];
+        pSendToResult = new Object[aSendToResult.length];
         System.arraycopy(aSendToResult, 0, pSendToResult, 0,
                 pSendToResult.length);
     }
