@@ -11,6 +11,7 @@ from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
 import json
 import os.path
 import socket
+import threading
 
 # ------------------------------------------------------------------------------
 
@@ -395,8 +396,15 @@ class JsonConfig(object):
         """
         Constructor
         """
-        self.application = None
         self._finder = None
+        self._context = None
+
+        # Current description
+        self.application = None
+        self._current_descr_lock = threading.Lock()
+        self._current_descr = None
+
+        # File inclusion stack
         self._include_stack = None
 
 
@@ -581,6 +589,23 @@ class JsonConfig(object):
         return self.application
 
 
+    def get_current_isolate(self):
+        """
+        Retrieves the currently used isolate configuration
+        
+        :return: the currently used isolate configuration
+        """
+        with self._current_descr_lock:
+            if self._current_descr is not None:
+                # We have a specific configuration
+                return self._current_descr
+
+            else:
+                return self.application.get_isolate(
+                                        self._context.get_property(
+                                                        'psem2m.isolate.id'))
+
+
     def parse_isolate(self, isolate_config):
         """
         Tries to parse the given isolate configuration. Returns None if the
@@ -632,6 +657,16 @@ class JsonConfig(object):
             self._include_stack = None
 
 
+    def set_current_isolate(self, isolate_descr):
+        """
+        Sets the currently used isolate configuration
+        
+        :param isolate_descr: The current isolate description
+        """
+        with self._current_descr_lock:
+            self._current_descr = isolate_descr
+
+
     @Validate
     def validate(self, context):
         """
@@ -639,6 +674,7 @@ class JsonConfig(object):
         
         :param context: The bundle context
         """
+        self._context = context
         self.refresh()
 
 
@@ -650,3 +686,5 @@ class JsonConfig(object):
         :param context: The bundle context
         """
         self.application = None
+        self._current_descr = None
+        self._include_stack = None

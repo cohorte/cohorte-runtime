@@ -267,6 +267,9 @@ class IsolateLoader(object):
             _logger.warning("No node given for isolate '%s'", isolate_id)
             return False
 
+        # Set the configuration that will be used 
+        self._config.set_current_isolate(isolate_descr)
+
         # Reset isolate
         self.reset()
 
