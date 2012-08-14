@@ -132,9 +132,12 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
         if (forkers != null) {
             // Call back the listener to register all of them
             for (final String forker : forkers) {
+
+                final String node = pDirectory.getIsolateNode(forker);
+                final String host = pDirectory.getHostForNode(node);
+
                 aListener.handleForkerEvent(EForkerEventType.REGISTERED,
-                        forker, pDirectory.getHostForNode(pDirectory
-                                .getIsolateNode(forker)));
+                        forker, node, host);
             }
         }
     }
@@ -179,11 +182,14 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
      *            The kind of event
      * @param aForkerId
      *            The forker isolate ID
-     * @param aForkerHost
-     *            The forker host
+     * @param aForkerNode
+     *            The forker node name
      */
     protected void fireForkerEvent(final EForkerEventType aEventType,
-            final String aForkerId, final String aForkerHost) {
+            final String aForkerId, final String aForkerNode) {
+
+        // Get the host name
+        final String forkerHost = pDirectory.getHostForNode(aForkerNode);
 
         pEventExecutor.submit(new Runnable() {
 
@@ -194,7 +200,7 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
                     for (final IForkerEventListener listener : pListeners) {
                         try {
                             listener.handleForkerEvent(aEventType, aForkerId,
-                                    aForkerHost);
+                                    aForkerNode, forkerHost);
 
                         } catch (final Exception e) {
                             // A listener failed
