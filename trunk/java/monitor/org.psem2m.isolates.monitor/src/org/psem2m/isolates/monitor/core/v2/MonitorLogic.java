@@ -334,6 +334,7 @@ public class MonitorLogic implements IPlatformMonitor, IForkerEventListener,
                 aIsolateDescr.getId(), "on node=", aIsolateDescr.getNode());
 
         // Call the forker
+        pStatus.isolateRequested(aIsolateDescr.getId());
         final int result = pForker.startIsolate(aIsolateDescr.toMap());
 
         // Handle the forker result
