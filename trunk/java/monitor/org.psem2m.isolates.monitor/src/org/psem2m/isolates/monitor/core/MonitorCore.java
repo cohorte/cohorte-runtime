@@ -196,13 +196,14 @@ public class MonitorCore extends CPojoBase implements
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.forker.IForkerEventListener#handleForkerEvent (
-     * org.psem2m.forker.IForkerEventListener.EForkerEventType ,
+     * @see
+     * org.psem2m.forker.IForkerEventListener#handleForkerEvent(org.psem2m.forker
+     * .IForkerEventListener.EForkerEventType, java.lang.String,
      * java.lang.String, java.lang.String)
      */
     @Override
     public void handleForkerEvent(final EForkerEventType aEventType,
-            final String aForkerId, final String aHost) {
+            final String aForkerId, final String aNode, final String aHost) {
 
         // Get the current isolate ID
         final String currentIsolateId = pPlatformDirsSvc.getIsolateId();
@@ -286,6 +287,20 @@ public class MonitorCore extends CPojoBase implements
 
         // Tell the failure handler
         pFailureHandler.isolateFailed(aIsolateId);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.base.isolates.IIsolateStatusEventListener#
+     * handleIsolateLost(java.lang.String)
+     */
+    @Override
+    public void handleIsolateLost(final String aIsolateId) {
+
+        if (pFailureHandler != null) {
+            pFailureHandler.isolateFailed(aIsolateId);
+        }
     }
 
     /*
