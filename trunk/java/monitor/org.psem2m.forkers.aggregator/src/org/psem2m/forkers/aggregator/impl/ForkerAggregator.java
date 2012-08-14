@@ -8,8 +8,9 @@ package org.psem2m.forkers.aggregator.impl;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.net.SocketException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -340,8 +341,8 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
         pLogger.logWarn(this, "handleError",
                 "Error while receiving a UDP packet:", aException);
 
-        // Continue...
-        return true;
+        // Continue if the exception is not "important"
+        return !(aException instanceof SocketException || aException instanceof NullPointerException);
     }
 
     /**
@@ -748,18 +749,9 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
 
         // Start the UDP heart beat listener
         // Get the multicast group and port
-        final InetAddress group;
         final int port = pConfig.getApplication().getMulticastPort();
-        try {
-            group = InetAddress.getByName(pConfig.getApplication()
-                    .getMulticastGroup());
-
-        } catch (final UnknownHostException ex) {
-            pLogger.logSevere(this, "validate",
-                    "Couldn't read the multicast group=", pConfig
-                            .getApplication().getMulticastGroup());
-            return;
-        }
+        final SocketAddress group = new InetSocketAddress(pConfig
+                .getApplication().getMulticastGroup(), port);
 
         // Create the multicast receiver
         try {
@@ -767,18 +759,23 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
             pMulticast.start();
 
         } catch (final IOException ex) {
+
+            pLogger.logSevere(this, "validate",
+                    "Couldn't start the multicast receiver for group=", group,
+                    ex);
+
             try {
                 // Clean up
                 pMulticast.stop();
 
             } catch (final IOException e) {
                 // Ignore
+                pLogger.logInfo(this, "validate",
+                        "Couldn't clean up the multicast receiver for group=",
+                        group, ex);
             }
 
             pMulticast = null;
-            pLogger.logSevere(this, "validate",
-                    "Couldn't start the multicast receiver for group=", group,
-                    ex);
             return;
         }
 

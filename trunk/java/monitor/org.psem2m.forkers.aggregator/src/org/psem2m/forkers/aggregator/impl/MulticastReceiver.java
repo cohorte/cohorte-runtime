@@ -7,8 +7,13 @@ package org.psem2m.forkers.aggregator.impl;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.net.NetworkInterface;
+import java.net.SocketAddress;
+import java.net.SocketException;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -16,6 +21,10 @@ import java.util.concurrent.Executors;
  * A multicast receiver
  * 
  * @author Thomas Calmant
+ * 
+ * @see <a
+ *      href="http://atastypixel.com/blog/the-making-of-talkie-multi-interface-broadcasting-and-multicast/">The
+ *      Making of Talkie: Multi-interface broadcasting and multicast</a>
  */
 public class MulticastReceiver {
 
@@ -33,7 +42,7 @@ public class MulticastReceiver {
      *             Error reading the address or leaving the group
      */
     public static void closeMulticast(final MulticastSocket aSocket,
-            final InetAddress aAddress) throws IOException {
+            final SocketAddress aAddress) throws IOException {
 
         if (aSocket == null) {
             // Nothing to do
@@ -41,13 +50,49 @@ public class MulticastReceiver {
         }
 
         try {
-            // Leave the group
-            aSocket.leaveGroup(aAddress);
+            // Leave the group, on all interfaces
+            for (final NetworkInterface itf : getMulticastInterfaces()) {
+                aSocket.leaveGroup(aAddress, itf);
+            }
 
         } finally {
             // Close the socket
             aSocket.close();
         }
+    }
+
+    /**
+     * Retrieves all network interfaces that supports multicast
+     * 
+     * @return All network interfaces that supports multicast
+     * @throws SocketException
+     *             An error occurred retrieving network interfaces
+     */
+    public static NetworkInterface[] getMulticastInterfaces()
+            throws SocketException {
+
+        final List<NetworkInterface> multicastItfs = new ArrayList<NetworkInterface>();
+
+        // Loop over all interfaces
+        final Enumeration<NetworkInterface> itfEnum = NetworkInterface
+                .getNetworkInterfaces();
+
+        while (itfEnum.hasMoreElements()) {
+            final NetworkInterface itf = itfEnum.nextElement();
+            try {
+                if (itf.supportsMulticast()) {
+                    // Multicast is supported
+                    multicastItfs.add(itf);
+                }
+
+            } catch (final SocketException ex) {
+                // TODO: use a logger
+                ex.printStackTrace();
+            }
+        }
+
+        return multicastItfs
+                .toArray(new NetworkInterface[multicastItfs.size()]);
     }
 
     /**
@@ -61,7 +106,7 @@ public class MulticastReceiver {
      * @throws IOException
      *             Something wrong occurred (bad address, bad port, ...)
      */
-    public static MulticastSocket setupMulticast(final InetAddress aAddress,
+    public static MulticastSocket setupMulticast(final SocketAddress aAddress,
             final int aPort) throws IOException {
 
         // Set up the socket
@@ -69,11 +114,13 @@ public class MulticastReceiver {
         socket.setLoopbackMode(true);
         socket.setReuseAddress(true);
 
-        // Join the group
         try {
-            socket.joinGroup(aAddress);
+            // Join the group on all interfaces
+            for (final NetworkInterface itf : getMulticastInterfaces()) {
+                socket.joinGroup(aAddress, itf);
+            }
 
-        } catch (final IOException ex) {
+        } catch (final SocketException ex) {
             // Be nice...
             socket.close();
             throw ex;
@@ -83,7 +130,7 @@ public class MulticastReceiver {
     }
 
     /** The multicast group */
-    private final InetAddress pAddress;
+    private final SocketAddress pAddress;
 
     /** The listeners invocation thread "pool" */
     private ExecutorService pExecutor;
@@ -116,7 +163,7 @@ public class MulticastReceiver {
      *             Error opening the socket
      */
     public MulticastReceiver(final IPacketListener aListener,
-            final InetAddress aAddress, final int aPort) {
+            final SocketAddress aAddress, final int aPort) {
 
         pListener = aListener;
         pAddress = aAddress;
@@ -199,6 +246,7 @@ public class MulticastReceiver {
 
         // Prepare the thread object
         pThread = new Thread(new Runnable() {
+
             @Override
             public void run() {
 
