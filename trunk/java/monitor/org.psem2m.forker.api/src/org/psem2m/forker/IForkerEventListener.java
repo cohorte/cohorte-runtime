@@ -36,9 +36,11 @@ public interface IForkerEventListener {
      *            The forker event type
      * @param aForkerId
      *            The forker isolate ID
+     * @param aNode
+     *            the forker node name
      * @param aHost
      *            The host handled by the forker
      */
     void handleForkerEvent(EForkerEventType aEventType, String aForkerId,
-            String aHost);
+            String aNode, String aHost);
 }
