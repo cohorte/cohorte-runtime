@@ -17,7 +17,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
-import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
@@ -54,7 +53,7 @@ import org.psem2m.signals.ISignalReceiver;
  */
 @Component(name = "psem2m-monitor-core-factory", publicFactory = false)
 @Provides(specifications = { IPlatformMonitor.class, IForkerEventListener.class })
-@Instantiate(name = "psem2m-monitor-core")
+// @Instantiate(name = "psem2m-monitor-core")
 public class MonitorCore extends CPojoBase implements
         IIsolateStatusEventListener, ISignalListener, IPlatformMonitor,
         IForkerEventListener {
