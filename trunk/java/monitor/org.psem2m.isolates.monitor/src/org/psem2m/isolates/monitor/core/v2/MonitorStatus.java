@@ -45,7 +45,7 @@ public class MonitorStatus implements IMonitorStatus {
     private IIsolateLoggerSvc pLogger;
 
     /** The status storage */
-    private StatusStorage<IsolateDescription> pStatus;
+    private StatusStorage<EIsolateState, IsolateDescription> pStatus;
 
     /**
      * Changes the current queue of the given isolate
@@ -328,8 +328,7 @@ public class MonitorStatus implements IMonitorStatus {
 
         try {
             // Get the state of the isolate
-            final EIsolateState isolateState = (EIsolateState) pStatus
-                    .getState(aIsolateId);
+            final EIsolateState isolateState = pStatus.getState(aIsolateId);
 
             // Search for it in the running states
             for (final EIsolateState runningState : RUNNING_STATES) {
@@ -411,7 +410,7 @@ public class MonitorStatus implements IMonitorStatus {
     public void validate() {
 
         // Sets up the status storage
-        pStatus = new StatusStorage<IsolateDescription>();
+        pStatus = new StatusStorage<EIsolateState, IsolateDescription>();
 
         // Load the waiting isolates list
         pLogger.logInfo(this, "validate", "Reading configuration...");

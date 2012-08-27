@@ -17,13 +17,13 @@ import java.util.Set;
  * 
  * @author Thomas Calmant
  */
-public class StatusStorage<T> {
+public class StatusStorage<S extends State, T> {
 
     /** IDs -> State */
-    private final Map<String, State> pIdStates = new HashMap<String, State>();
+    private final Map<String, S> pIdStates = new HashMap<String, S>();
 
     /** States -> IDs */
-    private final Map<State, Set<String>> pStates = new HashMap<State, Set<String>>();
+    private final Map<S, Set<String>> pStates = new HashMap<S, Set<String>>();
 
     /** IDs -> Value */
     private final Map<String, T> pValues = new HashMap<String, T>();
@@ -40,7 +40,7 @@ public class StatusStorage<T> {
      * @throws InvalidIdException
      *             The given ID wasn't found
      */
-    public synchronized void changeState(final String aId, final State aNewState)
+    public synchronized void changeState(final String aId, final S aNewState)
             throws InvalidStateException, InvalidIdException {
 
         // Validate the new state
@@ -155,8 +155,7 @@ public class StatusStorage<T> {
      * @throws InvalidIdException
      *             The given ID wasn't found
      */
-    public synchronized State getState(final String aId)
-            throws InvalidIdException {
+    public synchronized S getState(final String aId) throws InvalidIdException {
 
         if (!pIdStates.containsKey(aId)) {
             throw new InvalidIdException(MessageFormat.format(
@@ -208,13 +207,33 @@ public class StatusStorage<T> {
         return pValues.size();
     }
 
+    /**
+     * Stores the given ID in the given state
+     * 
+     * @param aId
+     *            An ID
+     * @param aValue
+     *            The value associated to the ID
+     * @param aInitialState
+     *            The initial state
+     * @return True on success
+     * @throws InvalidIdException
+     *             Invalid ID (empty or already known)
+     * @throws InvalidStateException
+     *             Invalid initial state (null...)
+     */
     public synchronized boolean store(final String aId, final T aValue,
-            final State aInitialState) throws InvalidIdException,
+            final S aInitialState) throws InvalidIdException,
             InvalidStateException {
 
         // Check parameters
         if (aId == null || aId.isEmpty()) {
             throw new InvalidIdException("Null or empty IDs are forbidden.");
+        }
+
+        if (pValues.containsKey(aId)) {
+            throw new InvalidIdException(MessageFormat.format(
+                    "ID ''{0}'' is already in use.", aId));
         }
 
         if (aInitialState == null) {
@@ -240,7 +259,7 @@ public class StatusStorage<T> {
      *            The state to store the ID
      * @return The result of {@link Set#add(Object)}
      */
-    private boolean storeIdInState(final String aId, final State aState) {
+    private boolean storeIdInState(final String aId, final S aState) {
 
         Set<String> stateSet = pStates.get(aState);
         if (stateSet == null) {
