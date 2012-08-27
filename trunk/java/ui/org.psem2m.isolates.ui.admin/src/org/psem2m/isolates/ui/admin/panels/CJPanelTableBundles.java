@@ -94,6 +94,7 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
                 final JMenuItem wMenuItem1 = new JMenuItem(String.format(
                         "%s %s", wAction, wName));
                 wMenuItem1.addActionListener(new ActionListener() {
+
                     @Override
                     public void actionPerformed(final ActionEvent actionEvent) {
 
@@ -118,6 +119,7 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
                 final JMenuItem wMenuItem3 = new JMenuItem(String.format(
                         "Uninstall %s", wName));
                 wMenuItem3.addActionListener(new ActionListener() {
+
                     @Override
                     public void actionPerformed(final ActionEvent actionEvent) {
 
@@ -136,6 +138,7 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
                 final JMenuItem wMenuItem4 = new JMenuItem(String.format(
                         "Update %s", wName));
                 wMenuItem4.addActionListener(new ActionListener() {
+
                     @Override
                     public void actionPerformed(final ActionEvent actionEvent) {
 
@@ -250,6 +253,7 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
         public void valueChanged(final ListSelectionEvent aListSelectionEvent) {
 
             execute(new Runnable() {
+
                 @Override
                 public void run() {
 
@@ -316,7 +320,9 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
     }
 
     private final static int COLUMN_IDX_ID = 2;
+
     private final static int COLUMN_IDX_NAME = 0;
+
     private final static int COLUMN_IDX_STATE = 1;
 
     private final static int COLUMN_KEY_IDX = COLUMN_IDX_NAME;
@@ -324,18 +330,28 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
     private static final long serialVersionUID = -6506936458249187873L;
 
     private final int[] COLUMNS_SIZE = { 200, 15, 5 };
+
     private final String[] COLUMNS_TIPS = { "Name of the bundle.",
             "State of the bundle.", "Id of the bundle." };
+
     private final String[] COLUMNS_TITLE = { "Bundle name", "State", "Bndl" };
 
     private JPanel pBundleInfoPanel;
+
     private JSplitPane pBundlesSplitPane;
+
     private JTable pBundlesTable;
+
     private JScrollPane pBundlesTablScrollPane;
+
     private JTextArea pBundleTextArea;
+
     private JScrollPane pBundleTextAreaScrollPane;
+
     private CTableModelBundles pCTableModelBundles = null;
+
     private CMouseListener pMouseListener = null;
+
     private CSelectionListener pSelectionListener = null;
 
     /**
@@ -441,7 +457,7 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
                     wBundle.getBundleId());
             if (wBundle.getRegisteredServices() != null) {
                 int wI = 0;
-                for (final ServiceReference wServiceReference : wBundle
+                for (final ServiceReference<?> wServiceReference : wBundle
                         .getRegisteredServices()) {
                     CXStringUtils.appendFormatStrInBuff(wSB,
                             "Registered.service(%d)=[%s]\n", wI,
@@ -452,7 +468,7 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
             if (wBundle.getServicesInUse() != null) {
 
                 int wJ = 0;
-                for (final ServiceReference wServiceReference : wBundle
+                for (final ServiceReference<?> wServiceReference : wBundle
                         .getServicesInUse()) {
                     CXStringUtils.appendFormatStrInBuff(wSB,
                             "used.service(%d)=[%s]\n", wJ,

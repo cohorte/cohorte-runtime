@@ -53,7 +53,7 @@ import org.psem2m.utilities.CXStringUtils;
  * @author ogattaz
  * 
  */
-public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
+public class CJPanelTableServices extends CJPanelTable<ServiceReference<?>> {
 
     /**
      * 
@@ -75,11 +75,12 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
             // Perform action
             final JCheckBox wCheckBox = (JCheckBox) aEvt.getSource();
 
-            // use state to set the comptaion flag
+            // use state to set the compaction flag
             setServiceNameCompaction(wCheckBox.isSelected());
 
             // reload the services
             execute(new Runnable() {
+
                 @Override
                 public void run() {
 
@@ -101,6 +102,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
      * 
      */
     class CFilterActionListener implements ActionListener {
+
         @Override
         public void actionPerformed(final ActionEvent aActionEvent) {
 
@@ -112,6 +114,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
 
             // reload the services
             execute(new Runnable() {
+
                 @Override
                 public void run() {
 
@@ -162,13 +165,14 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
                 final String wName = String.valueOf(pCTableModelServices
                         .getValueAt(aRowIndex, COLUMN_IDX_NAME));
 
-                // final ServiceReference wServiceReference =
+                // final ServiceReference<?>wServiceReference<?>=
                 // pCTableModelServices
                 // .getEntity(aRowIndex);
 
                 final JMenuItem wMenuItem1 = new JMenuItem(String.format(
                         "%s %s", "Service", wName));
                 wMenuItem1.addActionListener(new ActionListener() {
+
                     @Override
                     public void actionPerformed(final ActionEvent actionEvent) {
 
@@ -284,6 +288,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
         public void valueChanged(final ListSelectionEvent aListSelectionEvent) {
 
             execute(new Runnable() {
+
                 @Override
                 public void run() {
 
@@ -329,7 +334,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
      * @author ogattaz
      * 
      */
-    class CTableModelServices extends CTableModel<ServiceReference> {
+    class CTableModelServices extends CTableModel<ServiceReference<?>> {
 
         private static final long serialVersionUID = -3735378518754175980L;
 
@@ -337,7 +342,8 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
          * @param aNbCol
          * @param aColKeyIdx
          */
-        public CTableModelServices(final CJPanelTable<ServiceReference> aPanel,
+        public CTableModelServices(
+                final CJPanelTable<ServiceReference<?>> aPanel,
                 final String[] aTitles, final int aColKeyIdx) {
 
             super(aPanel, aTitles, aColKeyIdx);
@@ -349,9 +355,13 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
     }
 
     private final static int COLUMN_IDX_BUNDLE_ID = 4;
+
     private final static int COLUMN_IDX_INTERFACE = 0;
+
     private final static int COLUMN_IDX_NAME = 1;
+
     private final static int COLUMN_IDX_REMOTE_INFO = 2;
+
     private final static int COLUMN_IDX_SERVICE_ID = 3;
 
     private final static int COLUMN_KEY_IDX = COLUMN_IDX_SERVICE_ID;
@@ -367,26 +377,42 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
     private static final long serialVersionUID = -6506936458249187873L;
 
     private final int[] COLUMNS_SIZE = { 150, 150, 5, 5, 5 };
+
     private final String[] COLUMNS_TIPS = { "Interface of the service.",
             "Name of the service.", "Imported or Exported service.",
             "Id of the service.", "Id of the bundle." };
+
     private final String[] COLUMNS_TITLE = { "Interface", "Name", "i/e", "Svc",
             "Bndl" };
 
     private CTableModelServices pCTableModelServices = null;
+
     private CMouseListener pMouseListener = null;
+
     private CSelectionListener pSelectionListener = null;
+
     private JPanel pServiceChoicesPanel;
+
     private JComboBox pServiceFilterComboBox;
+
     private JLabel pServiceFilterLabel;
+
     private JPanel pServiceInfoPanel;
+
     private JTextArea pServiceInfoTextArea;
+
     private boolean pServiceNameCompaction = COMPACTION;
+
     private EFilterKind pServicesFilterKind = EFilterKind.ALL;
+
     private JCheckBox pServicesNameCompactionCheckBox;
+
     private JSplitPane pServicesSplitPane;
+
     private JTable pServicesTable;
+
     private JScrollPane pServicesTablScrollPane;
+
     private JScrollPane pServiceTextAreaScrollPane;
 
     /**
@@ -417,7 +443,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
      * Object, java.lang.String[])
      */
     @Override
-    boolean acceptRow(final ServiceReference aServiceReference,
+    boolean acceptRow(final ServiceReference<?> aServiceReference,
             final String[] wDataRow) {
 
         return pServicesFilterKind.isALL()
@@ -438,7 +464,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
      * org.psem2m.isolates.ui.admin.panels.CJPanelTable#addRow(java.lang.Object)
      */
     @Override
-    boolean addRow(final ServiceReference aServiceReference) {
+    boolean addRow(final ServiceReference<?> aServiceReference) {
 
         final boolean result = pCTableModelServices.addRow(aServiceReference);
         pServicesTable.updateUI();
@@ -451,7 +477,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
      * @see org.psem2m.isolates.ui.admin.panels.CJPanelTable#addRows(T[])
      */
     @Override
-    void addRows(final ServiceReference[] aServiceReferences) {
+    void addRows(final ServiceReference<?>[] aServiceReferences) {
 
         pCTableModelServices.addRows(aServiceReferences);
         pServicesTable.updateUI();
@@ -465,7 +491,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
      * .Object)
      */
     @Override
-    String[] buildRowData(final ServiceReference aServiceReference) {
+    String[] buildRowData(final ServiceReference<?> aServiceReference) {
 
         final String[] wRowData = new String[COLUMNS_TITLE.length];
         wRowData[COLUMN_IDX_INTERFACE] = extractServiceInterfaceCleanedCompacted(aServiceReference);
@@ -485,7 +511,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
      * .Object)
      */
     @Override
-    String buildRowKey(final ServiceReference aServiceReference) {
+    String buildRowKey(final ServiceReference<?> aServiceReference) {
 
         // COLUMN_KEY_IDX !
         return extractServiceId(aServiceReference);
@@ -499,7 +525,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
      * lang.Object)
      */
     @Override
-    String buildTextInfos(final ServiceReference aServiceReference) {
+    String buildTextInfos(final ServiceReference<?> aServiceReference) {
 
         final StringBuilder wSB = new StringBuilder();
 
@@ -555,7 +581,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
      * @param aServiceReference
      * @return
      */
-    private String extractBundleId(final ServiceReference aServiceReference) {
+    private String extractBundleId(final ServiceReference<?> aServiceReference) {
 
         if (aServiceReference == null || aServiceReference.getBundle() == null) {
             return "null";
@@ -573,7 +599,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
      * @param aServiceReference
      * @return a string representing the remote attribute
      */
-    private String extractRemoteInfo(final ServiceReference aServiceReference) {
+    private String extractRemoteInfo(final ServiceReference<?> aServiceReference) {
 
         // A special property tells if the service has been imported
         final boolean imported = aServiceReference
@@ -611,7 +637,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
      * @return the values separated by a comma in a string
      */
     private String extractServiceFormatedProperties(final String aFormat,
-            final ServiceReference aServiceReference) {
+            final ServiceReference<?> aServiceReference) {
 
         final String[] wKeys = aServiceReference.getPropertyKeys();
 
@@ -653,7 +679,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
      * @param aServiceReference
      * @return
      */
-    private String extractServiceId(final ServiceReference aServiceReference) {
+    private String extractServiceId(final ServiceReference<?> aServiceReference) {
 
         return CXStringUtils.strAdjustRight(
                 aServiceReference.getProperty(
@@ -668,7 +694,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
      * @return a cleaned service name
      */
     private String extractServiceInterfaceCleaned(
-            final ServiceReference aServiceReference) {
+            final ServiceReference<?> aServiceReference) {
 
         final String[] interfaces = (String[]) aServiceReference
                 .getProperty(Constants.OBJECTCLASS);
@@ -681,7 +707,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
      * @return
      */
     private String extractServiceInterfaceCleanedCompacted(
-            final ServiceReference aServiceReference) {
+            final ServiceReference<?> aServiceReference) {
 
         String wName = extractServiceInterfaceCleaned(aServiceReference);
         if (pServiceNameCompaction) {
@@ -710,7 +736,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
      *         always the name of the composition
      */
     private String extractServiceNameCleaned(
-            final ServiceReference aServiceReference) {
+            final ServiceReference<?> aServiceReference) {
 
         String wName = "";
         final Object wProperty = aServiceReference.getProperty("instance.name");
@@ -882,7 +908,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
      * Object)
      */
     @Override
-    void removeRow(final ServiceReference aServiceReference) {
+    void removeRow(final ServiceReference<?> aServiceReference) {
 
         pCTableModelServices.removeRow(aServiceReference);
         pServicesTable.updateUI();
@@ -892,7 +918,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
      * @param aBundle
      */
     @Override
-    void setRow(final ServiceReference aServiceReference) {
+    void setRow(final ServiceReference<?> aServiceReference) {
 
         pCTableModelServices.setRow(aServiceReference);
         pServicesTable.updateUI();
@@ -904,7 +930,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference> {
      * @see org.psem2m.isolates.ui.admin.panels.CJPanelTable#setRows(T[])
      */
     @Override
-    void setRows(final ServiceReference[] aServiceReferences) {
+    void setRows(final ServiceReference<?>[] aServiceReferences) {
 
         pCTableModelServices.setRows(aServiceReferences);
         pServicesTable.updateUI();

@@ -32,7 +32,7 @@ public class Activator implements BundleActivator {
     }
 
     /** The JMX Monitor service registration */
-    private ServiceRegistration pJmxMonitorRegistration;
+    private ServiceRegistration<IThreadCpuUsageMonitor> pJmxMonitorRegistration;
 
     /*
      * (non-Javadoc)
@@ -48,7 +48,7 @@ public class Activator implements BundleActivator {
 
         // Register the JMX Monitor service
         pJmxMonitorRegistration = aBundleContext.registerService(
-                IThreadCpuUsageMonitor.class.getName(), new JmxMonitor(), null);
+                IThreadCpuUsageMonitor.class, new JmxMonitor(), null);
     }
 
     /*

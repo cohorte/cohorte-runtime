@@ -59,7 +59,9 @@ public class CJPanelIsolates extends CJPanelTree {
         private static final long serialVersionUID = -2838261694472584039L;
 
         private final Icon pIconIsolate;
+
         private final Icon pIconNode;
+
         private final Icon pIconRoot;
 
         /**
@@ -136,10 +138,15 @@ public class CJPanelIsolates extends CJPanelTree {
     private static final long serialVersionUID = -7912303688959719480L;
 
     private JTextArea pComponentsSetText;
+
     private CIsolatesTreeModel pCompositionTreeModel = null;
+
     private JSplitPane pMainSplitPane;
+
     private JScrollPane pTextScrollPane;
+
     private JTree pTree;
+
     private JScrollPane pTreeScrollPane;
 
     /**
@@ -184,16 +191,13 @@ public class CJPanelIsolates extends CJPanelTree {
 
         final TreePath[] paths = pTree.getSelectionPaths();
         if (paths != null) {
-
             for (final TreePath path : paths) {
-                if (path.getPathCount() > 1) {
-                    final Object root = path.getPathComponent(1);
 
-                    // if (root instanceof String) {
-                    // final ComponentsSetSnapshot snapshot =
-                    // (ComponentsSetSnapshot) root;
-                    // result.add(snapshot.getComponentSet());
-                    // }
+                final Object lastComponent = path.getLastPathComponent();
+                if (lastComponent instanceof CSnapshotIsolate) {
+                    // Found a selected isolate: store its ID
+                    final CSnapshotIsolate isolate = (CSnapshotIsolate) lastComponent;
+                    result.add(isolate.getName());
                 }
             }
         }

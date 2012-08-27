@@ -18,7 +18,6 @@ import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
-import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.services.monitoring.IIsolatePresenceListener;
 import org.psem2m.signals.ISignalDirectory;
 
@@ -27,8 +26,6 @@ import org.psem2m.signals.ISignalDirectory;
  * 
  */
 public class CIsolatesTreeModel implements TreeModel, IIsolatePresenceListener {
-
-    private final IIsolateLoggerSvc pLogger;
 
     private final ISignalDirectory pSignalDirectory;
 
@@ -41,11 +38,9 @@ public class CIsolatesTreeModel implements TreeModel, IIsolatePresenceListener {
      * @param aCompositionSnapshot
      *            A composition snapshot list
      */
-    CIsolatesTreeModel(final IIsolateLoggerSvc aLogger,
-            final ISignalDirectory aSignalDirectory) {
+    CIsolatesTreeModel(final ISignalDirectory aSignalDirectory) {
 
         super();
-        pLogger = aLogger;
         pSignalDirectory = aSignalDirectory;
         update();
     }

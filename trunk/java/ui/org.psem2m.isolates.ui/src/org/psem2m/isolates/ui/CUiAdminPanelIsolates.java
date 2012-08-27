@@ -113,7 +113,7 @@ public class CUiAdminPanelIsolates extends CPojoBase implements
     private void initContent() {
 
         /* the tree model */
-        pIsolatesTreeModel = new CIsolatesTreeModel(pLogger, pSignalDirectory);
+        pIsolatesTreeModel = new CIsolatesTreeModel(pSignalDirectory);
 
         final Runnable wRunnable = new Runnable() {
 
