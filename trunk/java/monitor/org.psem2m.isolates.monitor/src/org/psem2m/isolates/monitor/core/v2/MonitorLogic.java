@@ -230,6 +230,9 @@ public class MonitorLogic implements IPlatformMonitor, IForkerEventListener,
     @Override
     public void handleIsolateLost(final String aIsolateId) {
 
+        // Isolate is considered stopped
+        pStatus.isolateStopped(aIsolateId);
+
         if (pFailureHandler != null) {
             pFailureHandler.isolateFailed(aIsolateId);
         }
