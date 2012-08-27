@@ -25,8 +25,8 @@ import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.BundleListener;
 import org.osgi.framework.Constants;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.packageadmin.PackageAdmin;
+import org.osgi.framework.FrameworkListener;
+import org.osgi.framework.wiring.FrameworkWiring;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.base.bundles.BundleInfo;
@@ -775,9 +775,6 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
      * Refreshes packages (like the refresh command in Felix / Equinox). The
      * bundle ID array can be null, to refresh the whole framework.
      * 
-     * FIXME {@link PackageAdmin} is now deprecated (OSGi 4.3), but Felix 3.2.2
-     * does currently not support the new way.
-     * 
      * @param aBundleIdArray
      *            An array containing the UID of the bundles to refresh, null to
      *            refresh all
@@ -786,41 +783,30 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
     public boolean refreshPackages(final long[] aBundleIdArray) {
 
         // Prepare the bundle array
-        Bundle[] bundles = null;
+        List<Bundle> bundles = null;
 
         if (aBundleIdArray != null) {
-            bundles = new Bundle[aBundleIdArray.length];
-            int i = 0;
+            bundles = new ArrayList<Bundle>(aBundleIdArray.length);
             for (final long bundleId : aBundleIdArray) {
-
                 final Bundle bundle = pBundleContext.getBundle(bundleId);
                 if (bundle != null) {
-                    bundles[i++] = bundle;
+                    bundles.add(bundle);
                 }
             }
         }
 
-        // Grab the service
-        final ServiceReference svcRef = pBundleContext
-                .getServiceReference(PackageAdmin.class.getName());
-        if (svcRef == null) {
+        // Get the wiring 'service'
+        final FrameworkWiring fwWiring = pBundleContext.getBundle(0).adapt(
+                FrameworkWiring.class);
+
+        if (fwWiring == null) {
+            pIsolateLoggerSvc.logWarn(this, "refreshPackages",
+                    "System bundle couldn't be adapted to FrameworkWiring.");
             return false;
         }
 
-        final PackageAdmin packadmin = (PackageAdmin) pBundleContext
-                .getService(svcRef);
-        if (packadmin == null) {
-            return false;
-        }
-
-        try {
-            // Refresh packages
-            packadmin.refreshPackages(bundles);
-
-        } finally {
-            // Release the service in any case
-            pBundleContext.ungetService(svcRef);
-        }
+        // Refresh bundles (and packages)
+        fwWiring.refreshBundles(bundles, (FrameworkListener[]) null);
 
         return true;
     }
