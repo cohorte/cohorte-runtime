@@ -16,7 +16,8 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  em2m.isolates.services.conf;version=1.0.0, org.psem2m.isolates.servic
  es.conf.beans;version=1.0.0, org.psem2m.isolates.services.dirs;versio
  n=1.0.0, org.psem2m.isolates.slave.agent, org.psem2m.signals;version=
- 1.0.0, org.psem2m.utilities, org.psem2m.utilities.logging
+ 1.0.0, org.psem2m.status.storage;version=1.0.0, org.psem2m.utilities,
+  org.psem2m.utilities.logging
 iPOJO-Components: instance { $component="org.psem2m.isolates.monitor.c
  ore.v2.IsolateMonitor" $name="psem2m-monitor-base" }instance { $compo
  nent="org.psem2m.isolates.monitor.core.v2.MonitorLogic" $name="psem2m
@@ -141,32 +142,34 @@ iPOJO-Components: instance { $component="org.psem2m.isolates.monitor.c
  .isolates.monitor.core.v2.MonitorStatus" $name="psem2m-monitor-status
  -factory" $public="false" provides { $specifications="{org.psem2m.iso
  lates.monitor.IMonitorStatus}" }requires { $field="pConfig" }requires
-  { $field="pLogger" }callback { $transition="invalidate" $method="inv
- alidate" }callback { $transition="validate" $method="validate" }manip
- ulation { interface { $name="org.psem2m.isolates.monitor.IMonitorStat
- us" }field { $name="pConfig" $type="org.psem2m.isolates.services.conf
- .ISvcConfig" }field { $name="pLogger" $type="org.psem2m.isolates.base
- .IIsolateLoggerSvc" }field { $name="pStatus" $type="org.psem2m.isolat
- es.monitor.core.v2.state.StatusStorage" }method { $name="changeQueue"
-  $return="boolean" $arguments="{java.lang.String,org.psem2m.isolates.
- monitor.core.v2.EIsolateState,java.lang.String}" }method { $name="get
- IsolateDescription" $return="org.psem2m.isolates.services.conf.beans.
- IsolateDescription" $arguments="{java.lang.String}" }method { $name="
- getIsolatesWaitingForNode" $return="org.psem2m.isolates.services.conf
- .beans.IsolateDescription[]" $arguments="{java.lang.String}" }method 
- { $name="getRunningIsolatesIDs" $return="java.lang.String[]" }method 
- { $name="getWaitingIsolateDescription" $return="org.psem2m.isolates.s
- ervices.conf.beans.IsolateDescription" $arguments="{java.lang.String}
- " }method { $name="getWaitingIsolatesIDs" $return="java.lang.String[]
- " }method { $name="invalidate" }method { $name="isAcceptableIsolate" 
- $return="boolean" $arguments="{org.psem2m.isolates.services.conf.bean
- s.IsolateDescription}" }method { $name="isolateComplete" $return="boo
- lean" $arguments="{java.lang.String}" }method { $name="isolateLoading
- " $return="boolean" $arguments="{java.lang.String}" }method { $name="
- isolateRequested" $return="boolean" $arguments="{java.lang.String}" }
- method { $name="isolateStopped" $return="boolean" $arguments="{java.l
- ang.String}" }method { $name="isRunning" $return="boolean" $arguments
- ="{java.lang.String}" }method { $name="isWaiting" $return="boolean" $
- arguments="{java.lang.String}" }method { $name="loadWaitingIsolates" 
- }method { $name="validate" }}}
+  { $field="pLogger" }requires { $field="pStatusCreator" }callback { $
+ transition="invalidate" $method="invalidate" }callback { $transition=
+ "validate" $method="validate" }manipulation { interface { $name="org.
+ psem2m.isolates.monitor.IMonitorStatus" }field { $name="pConfig" $typ
+ e="org.psem2m.isolates.services.conf.ISvcConfig" }field { $name="pLog
+ ger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $nam
+ e="pStatus" $type="org.psem2m.status.storage.IStatusStorage" }field {
+  $name="pStatusCreator" $type="org.psem2m.status.storage.IStatusStora
+ geCreator" }method { $name="changeQueue" $return="boolean" $arguments
+ ="{java.lang.String,org.psem2m.isolates.monitor.core.v2.EIsolateState
+ ,java.lang.String}" }method { $name="getIsolateDescription" $return="
+ org.psem2m.isolates.services.conf.beans.IsolateDescription" $argument
+ s="{java.lang.String}" }method { $name="getIsolatesWaitingForNode" $r
+ eturn="org.psem2m.isolates.services.conf.beans.IsolateDescription[]" 
+ $arguments="{java.lang.String}" }method { $name="getRunningIsolatesID
+ s" $return="java.lang.String[]" }method { $name="getWaitingIsolateDes
+ cription" $return="org.psem2m.isolates.services.conf.beans.IsolateDes
+ cription" $arguments="{java.lang.String}" }method { $name="getWaiting
+ IsolatesIDs" $return="java.lang.String[]" }method { $name="invalidate
+ " }method { $name="isAcceptableIsolate" $return="boolean" $arguments=
+ "{org.psem2m.isolates.services.conf.beans.IsolateDescription}" }metho
+ d { $name="isolateComplete" $return="boolean" $arguments="{java.lang.
+ String}" }method { $name="isolateLoading" $return="boolean" $argument
+ s="{java.lang.String}" }method { $name="isolateRequested" $return="bo
+ olean" $arguments="{java.lang.String}" }method { $name="isolateStoppe
+ d" $return="boolean" $arguments="{java.lang.String}" }method { $name=
+ "isRunning" $return="boolean" $arguments="{java.lang.String}" }method
+  { $name="isWaiting" $return="boolean" $arguments="{java.lang.String}
+ " }method { $name="loadWaitingIsolates" }method { $name="validate" }}
+ }
 

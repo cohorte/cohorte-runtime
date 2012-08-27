@@ -3,7 +3,7 @@
  * Author: Thomas Calmant
  * Date:   27 août 2012
  */
-package org.psem2m.isolates.monitor.core.v2.state;
+package org.psem2m.status.storage;
 
 /**
  * Exception thrown by the StatusStorage when facing an invalid or unknown ID

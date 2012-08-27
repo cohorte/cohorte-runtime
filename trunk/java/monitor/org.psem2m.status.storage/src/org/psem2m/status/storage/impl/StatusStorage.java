@@ -3,7 +3,7 @@
  * Author: Thomas Calmant
  * Date:   27 août 2012
  */
-package org.psem2m.isolates.monitor.core.v2.state;
+package org.psem2m.status.storage.impl;
 
 import java.text.MessageFormat;
 import java.util.Collection;
@@ -12,12 +12,17 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.psem2m.status.storage.IStatusStorage;
+import org.psem2m.status.storage.InvalidIdException;
+import org.psem2m.status.storage.InvalidStateException;
+import org.psem2m.status.storage.State;
+
 /**
  * Describes the current status of the monitor
  * 
  * @author Thomas Calmant
  */
-public class StatusStorage<S extends State, T> {
+public class StatusStorage<S extends State, T> implements IStatusStorage<S, T> {
 
     /** IDs -> State */
     private final Map<String, S> pIdStates = new HashMap<String, S>();
@@ -28,18 +33,14 @@ public class StatusStorage<S extends State, T> {
     /** IDs -> Value */
     private final Map<String, T> pValues = new HashMap<String, T>();
 
-    /**
-     * Changes the state of the given ID
+    /*
+     * (non-Javadoc)
      * 
-     * @param aId
-     *            A value ID
-     * @param aNewState
-     *            The new state of the ID
-     * @throws InvalidStateException
-     *             The requested state change is forbidden
-     * @throws InvalidIdException
-     *             The given ID wasn't found
+     * @see
+     * org.psem2m.status.storage.IStatusStorage#changeState(java.lang.String,
+     * org.psem2m.status.storage.State)
      */
+    @Override
     public synchronized void changeState(final String aId, final S aNewState)
             throws InvalidStateException, InvalidIdException {
 
@@ -90,9 +91,12 @@ public class StatusStorage<S extends State, T> {
         // TODO: store change in history
     }
 
-    /**
-     * Clears all collections
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.status.storage.IStatusStorage#clear()
      */
+    @Override
     public synchronized void clear() {
 
         pIdStates.clear();
@@ -100,16 +104,13 @@ public class StatusStorage<S extends State, T> {
         pStates.clear();
     }
 
-    /**
-     * Retrieves the value associated to the given ID
+    /*
+     * (non-Javadoc)
      * 
-     * @param aId
-     *            An ID
-     * @return The value associated to the ID
-     * @throws InvalidIdException
-     *             The given ID wasn't found
+     * @see org.psem2m.status.storage.IStatusStorage#get(java.lang.String)
      */
-    public T get(final String aId) throws InvalidIdException {
+    @Override
+    public synchronized T get(final String aId) throws InvalidIdException {
 
         if (!pValues.containsKey(aId)) {
             throw new InvalidIdException(MessageFormat.format(
@@ -119,13 +120,14 @@ public class StatusStorage<S extends State, T> {
         return pValues.get(aId);
     }
 
-    /**
-     * Retrieves all the IDs currently in one of the given states
+    /*
+     * (non-Javadoc)
      * 
-     * @param aStates
-     *            An array of states
-     * @return The set of all IDs in the given states
+     * @see
+     * org.psem2m.status.storage.IStatusStorage#getIdsInStates(org.psem2m.status
+     * .storage.State[])
      */
+    @Override
     public synchronized String[] getIdsInStates(final State... aStates) {
 
         // Do nothing if the aStates is null
@@ -147,14 +149,12 @@ public class StatusStorage<S extends State, T> {
         return keys.toArray(new String[keys.size()]);
     }
 
-    /**
-     * Retrieves the state of the given ID
+    /*
+     * (non-Javadoc)
      * 
-     * @param aId
-     *            An ID
-     * @throws InvalidIdException
-     *             The given ID wasn't found
+     * @see org.psem2m.status.storage.IStatusStorage#getState(java.lang.String)
      */
+    @Override
     public synchronized S getState(final String aId) throws InvalidIdException {
 
         if (!pIdStates.containsKey(aId)) {
@@ -165,13 +165,14 @@ public class StatusStorage<S extends State, T> {
         return pIdStates.get(aId);
     }
 
-    /**
-     * Retrieves all the values currently in one of the given states
+    /*
+     * (non-Javadoc)
      * 
-     * @param aStates
-     *            An array of states
-     * @return The set of all values in the given states
+     * @see
+     * org.psem2m.status.storage.IStatusStorage#getValuesInStates(org.psem2m
+     * .status.storage.State[])
      */
+    @Override
     public synchronized Collection<T> getValuesInStates(final State... aStates) {
 
         // Do nothing if the aStates is null
@@ -197,31 +198,50 @@ public class StatusStorage<S extends State, T> {
         return values;
     }
 
-    /**
-     * Retrieves the size of the values map
+    /*
+     * (non-Javadoc)
      * 
-     * @return the size of the values map
+     * @see org.psem2m.status.storage.IStatusStorage#remove(java.lang.String)
      */
+    @Override
+    public synchronized void remove(final String aId) throws InvalidIdException {
+
+        // Be sure we know the ID
+        if (!pValues.containsKey(aId)) {
+            throw new InvalidIdException(MessageFormat.format(
+                    "Unknown ID: ''{0}''", aId));
+        }
+
+        // Remove the map entries
+        pValues.remove(aId);
+        pIdStates.remove(aId);
+
+        // Remove from the state sets
+        for (final Set<String> stateSet : pStates.values()) {
+            if (stateSet != null) {
+                stateSet.remove(aId);
+            }
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.status.storage.IStatusStorage#size()
+     */
+    @Override
     public int size() {
 
         return pValues.size();
     }
 
-    /**
-     * Stores the given ID in the given state
+    /*
+     * (non-Javadoc)
      * 
-     * @param aId
-     *            An ID
-     * @param aValue
-     *            The value associated to the ID
-     * @param aInitialState
-     *            The initial state
-     * @return True on success
-     * @throws InvalidIdException
-     *             Invalid ID (empty or already known)
-     * @throws InvalidStateException
-     *             Invalid initial state (null...)
+     * @see org.psem2m.status.storage.IStatusStorage#store(java.lang.String,
+     * java.lang.Object, org.psem2m.status.storage.State)
      */
+    @Override
     public synchronized boolean store(final String aId, final T aValue,
             final S aInitialState) throws InvalidIdException,
             InvalidStateException {

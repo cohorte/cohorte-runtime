@@ -5,7 +5,7 @@
  */
 package org.psem2m.isolates.monitor.core.v2;
 
-import org.psem2m.isolates.monitor.core.v2.state.State;
+import org.psem2m.status.storage.State;
 
 /**
  * Defines the states of an isolate
@@ -26,7 +26,7 @@ public enum EIsolateState implements State {
          * </ul>
          * 
          * @see org.psem2m.isolates.monitor.core.v2.EIsolateState#canChangeTo
-         *      (org.psem2m.isolates.monitor.core.v2.state.State)
+         *      (org.psem2m.status.storage.impl.State)
          */
         @Override
         public boolean canChangeTo(final State aNewState) {
@@ -48,7 +48,7 @@ public enum EIsolateState implements State {
          * </ul>
          * 
          * @see org.psem2m.isolates.monitor.core.v2.EIsolateState#canChangeTo
-         *      (org.psem2m.isolates.monitor.core.v2.state.State)
+         *      (org.psem2m.status.storage.impl.State)
          */
         @Override
         public boolean canChangeTo(final State aNewState) {
@@ -71,7 +71,7 @@ public enum EIsolateState implements State {
          * </ul>
          * 
          * @see org.psem2m.isolates.monitor.core.v2.EIsolateState#canChangeTo
-         *      (org.psem2m.isolates.monitor.core.v2.state.State)
+         *      (org.psem2m.status.storage.impl.State)
          */
         @Override
         public boolean canChangeTo(final State aNewState) {
@@ -94,7 +94,7 @@ public enum EIsolateState implements State {
          * </ul>
          * 
          * @see org.psem2m.isolates.monitor.core.v2.EIsolateState#canChangeTo
-         *      (org.psem2m.isolates.monitor.core.v2.state.State)
+         *      (org.psem2m.status.storage.impl.State)
          */
         @Override
         public boolean canChangeTo(final State aNewState) {

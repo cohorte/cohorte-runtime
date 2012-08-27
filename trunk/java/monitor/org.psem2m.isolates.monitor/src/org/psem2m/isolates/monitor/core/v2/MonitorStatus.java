@@ -15,12 +15,13 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.monitor.IMonitorStatus;
-import org.psem2m.isolates.monitor.core.v2.state.InvalidIdException;
-import org.psem2m.isolates.monitor.core.v2.state.InvalidStateException;
-import org.psem2m.isolates.monitor.core.v2.state.StatusStorage;
 import org.psem2m.isolates.services.conf.ISvcConfig;
 import org.psem2m.isolates.services.conf.beans.ApplicationDescription;
 import org.psem2m.isolates.services.conf.beans.IsolateDescription;
+import org.psem2m.status.storage.IStatusStorage;
+import org.psem2m.status.storage.IStatusStorageCreator;
+import org.psem2m.status.storage.InvalidIdException;
+import org.psem2m.status.storage.InvalidStateException;
 
 /**
  * Describes the current status of the monitor
@@ -45,7 +46,11 @@ public class MonitorStatus implements IMonitorStatus {
     private IIsolateLoggerSvc pLogger;
 
     /** The status storage */
-    private StatusStorage<EIsolateState, IsolateDescription> pStatus;
+    private IStatusStorage<EIsolateState, IsolateDescription> pStatus;
+
+    /** The status storage creator */
+    @Requires
+    private IStatusStorageCreator pStatusCreator;
 
     /**
      * Changes the current queue of the given isolate
@@ -201,7 +206,7 @@ public class MonitorStatus implements IMonitorStatus {
     public void invalidate() {
 
         // Clear the queues
-        pStatus.clear();
+        pStatusCreator.deleteStorage(pStatus);
         pStatus = null;
 
         pLogger.logInfo(this, "invalidate", "Monitor status gone");
@@ -410,7 +415,7 @@ public class MonitorStatus implements IMonitorStatus {
     public void validate() {
 
         // Sets up the status storage
-        pStatus = new StatusStorage<EIsolateState, IsolateDescription>();
+        pStatus = pStatusCreator.createStorage();
 
         // Load the waiting isolates list
         pLogger.logInfo(this, "validate", "Reading configuration...");
