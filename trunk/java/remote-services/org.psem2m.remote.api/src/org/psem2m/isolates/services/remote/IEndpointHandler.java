@@ -31,7 +31,7 @@ public interface IEndpointHandler {
      * @return A description of all created end points, null on error
      */
     EndpointDescription[] createEndpoint(String aExportedInterface,
-            ServiceReference aServiceReference);
+            ServiceReference<?> aServiceReference);
 
     /**
      * Destroys the end point(s) associated to the given service
@@ -40,7 +40,7 @@ public interface IEndpointHandler {
      *            A service reference
      * @return True on success
      */
-    boolean destroyEndpoint(ServiceReference aServiceReference);
+    boolean destroyEndpoint(ServiceReference<?> aServiceReference);
 
     /**
      * Retrieves all end points associated to the given service reference
@@ -49,5 +49,5 @@ public interface IEndpointHandler {
      *            A reference to the exported service
      * @return All associated end points, or an empty array (never null)
      */
-    EndpointDescription[] getEndpoints(ServiceReference aServiceReference);
+    EndpointDescription[] getEndpoints(ServiceReference<?> aServiceReference);
 }

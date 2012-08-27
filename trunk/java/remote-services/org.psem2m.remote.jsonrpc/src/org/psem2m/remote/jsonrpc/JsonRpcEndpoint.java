@@ -48,7 +48,7 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
     private final BundleContext pBundleContext;
 
     /** Service -&gt; End point description mapping */
-    private final Map<ServiceReference, EndpointDescription[]> pEndpointsDescriptions = new HashMap<ServiceReference, EndpointDescription[]>();
+    private final Map<ServiceReference<?>, EndpointDescription[]> pEndpointsDescriptions = new HashMap<ServiceReference<?>, EndpointDescription[]>();
 
     /** HTTP Service, to host Jabsorb servlet */
     @Requires
@@ -90,7 +90,7 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
     @Override
     public EndpointDescription[] createEndpoint(
             final String aExportedInterface,
-            final ServiceReference aServiceReference) {
+            final ServiceReference<?> aServiceReference) {
 
         if (aServiceReference == null) {
             return null;
@@ -168,7 +168,7 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
      * org.osgi.framework.ServiceReference)
      */
     @Override
-    public boolean destroyEndpoint(final ServiceReference aServiceReference) {
+    public boolean destroyEndpoint(final ServiceReference<?> aServiceReference) {
 
         final String endpointName = (String) aServiceReference
                 .getProperty(PROP_ENDPOINT_NAME);
@@ -213,7 +213,7 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
      */
     @Override
     public EndpointDescription[] getEndpoints(
-            final ServiceReference aServiceReference) {
+            final ServiceReference<?> aServiceReference) {
 
         final EndpointDescription[] result = pEndpointsDescriptions
                 .get(aServiceReference);
@@ -256,7 +256,7 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
      * @return The service properties, as a map
      */
     protected Map<String, String> getServiceProperiesMap(
-            final ServiceReference aServiceReference) {
+            final ServiceReference<?> aServiceReference) {
 
         // Get the service properties keys
         final String[] propertyKeys = aServiceReference.getPropertyKeys();

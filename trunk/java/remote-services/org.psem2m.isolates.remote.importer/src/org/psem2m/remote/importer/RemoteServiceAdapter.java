@@ -394,9 +394,9 @@ public class RemoteServiceAdapter extends CPojoBase implements
         //
         // This call is synchronous and may take a while
         // -> use a thread
-        final ServiceRegistration serviceReg = pBundleContext.registerService(
-                registration.getExportedInterfaces(), finalServiceProxy,
-                filteredProperties);
+        final ServiceRegistration<?> serviceReg = pBundleContext
+                .registerService(registration.getExportedInterfaces(),
+                        finalServiceProxy, filteredProperties);
 
         // Store the registration information
         if (serviceReg != null) {
@@ -443,7 +443,7 @@ public class RemoteServiceAdapter extends CPojoBase implements
             return;
         }
 
-        final ServiceRegistration serviceReg = serviceInfo
+        final ServiceRegistration<?> serviceReg = serviceInfo
                 .getServiceRegistration();
         if (serviceReg != null) {
             // Unregister it

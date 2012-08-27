@@ -88,7 +88,7 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
      * @return An exported service registration
      */
     protected RemoteServiceRegistration createEndpoints(
-            final ServiceReference aServiceReference) {
+            final ServiceReference<?> aServiceReference) {
 
         // Choose the exported interface
         final String[] serviceInterfaces = (String[]) aServiceReference
@@ -159,7 +159,7 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
      *            Reference to the service to be exported
      * @return True on success, False if no end point has been created
      */
-    protected boolean exportService(final ServiceReference aServiceReference) {
+    protected boolean exportService(final ServiceReference<?> aServiceReference) {
 
         // Prepare end points
         final RemoteServiceRegistration serviceRegistration = createEndpoints(aServiceReference);
@@ -211,7 +211,8 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
      *            A service reference
      * @return True if the service is already exported
      */
-    protected boolean isAlreadyExported(final ServiceReference aServiceReference) {
+    protected boolean isAlreadyExported(
+            final ServiceReference<?> aServiceReference) {
 
         return isAlreadyExported((Long) aServiceReference
                 .getProperty(Constants.SERVICE_ID));
@@ -228,7 +229,7 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
     public void serviceChanged(final ServiceEvent aServiceEvent) {
 
         // Get the changed service reference
-        final ServiceReference serviceReference = aServiceEvent
+        final ServiceReference<?> serviceReference = aServiceEvent
                 .getServiceReference();
 
         switch (aServiceEvent.getType()) {
@@ -268,7 +269,7 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
      * @param aServiceReference
      *            Exported service
      */
-    protected void setExported(final ServiceReference aServiceReference) {
+    protected void setExported(final ServiceReference<?> aServiceReference) {
 
         pRegisteredServicesIds.add((Long) aServiceReference
                 .getProperty(Constants.SERVICE_ID));
@@ -280,7 +281,7 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
      * @param aServiceReference
      *            Reference to the service to stop to export
      */
-    protected void unexportService(final ServiceReference aServiceReference) {
+    protected void unexportService(final ServiceReference<?> aServiceReference) {
 
         // Grab end points list
         final List<EndpointDescription> serviceEndpoints = new ArrayList<EndpointDescription>();
@@ -379,11 +380,11 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
 
         // Handle already registered services
         try {
-            final ServiceReference[] exportedServices = pBundleContext
+            final ServiceReference<?>[] exportedServices = pBundleContext
                     .getAllServiceReferences(null, serviceFilter);
 
             if (exportedServices != null) {
-                for (final ServiceReference serviceRef : exportedServices) {
+                for (final ServiceReference<?> serviceRef : exportedServices) {
                     exportService(serviceRef);
                 }
             }
