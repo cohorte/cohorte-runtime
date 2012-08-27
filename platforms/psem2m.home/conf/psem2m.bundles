@@ -46,6 +46,9 @@ org.psem2m.signals.serializer.java
 # PSEM2M Extra Log services
 org.psem2m.isolates.loggers
 
+# Status Storage service (for monitor, composer, ...)
+org.psem2m.status.storage
+
 # Shell stuffs
 org.apache.felix.shell
 #org.apache.felix.shell.remote
