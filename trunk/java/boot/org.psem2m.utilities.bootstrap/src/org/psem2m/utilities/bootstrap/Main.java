@@ -15,9 +15,10 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.TreeMap;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
@@ -405,13 +406,14 @@ public final class Main {
         final BundleContext frameworkContext = aFramework.getBundleContext();
 
         // Set up the service properties
-        final Properties mainThreadExecutorProps = new Properties();
+        final Dictionary<String, Object> mainThreadExecutorProps = new Hashtable<String, Object>();
         mainThreadExecutorProps.put("thread", wCurrentThreadName);
         mainThreadExecutorProps.put(Constants.SERVICE_RANKING,
                 Integer.valueOf(-1000));
 
         // Prepare the service instance
         final Executor mainThreadExecutor = new Executor() {
+
             @Override
             public void execute(final Runnable command) {
 
@@ -434,6 +436,7 @@ public final class Main {
          * loop when the system bundle starts to shutdown
          */
         frameworkContext.addBundleListener(new SynchronousBundleListener() {
+
             @Override
             public void bundleChanged(final BundleEvent event) {
 
