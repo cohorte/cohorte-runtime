@@ -187,8 +187,8 @@ class OsgiRunner(JavaRunner):
         JavaRunner.__init__(self)
         self._kind_frameworks = {
                             # TODO: remove version numbers
-                            "felix": "org.apache.felix.main-3.2.2.jar",
-                            # "equinox":"org.eclipse.osgi_3.7.0.v20110613.jar"
+                            # TODO: try to find bundles by manifest
+                            "felix": "org.apache.felix.framework-4.0.3.jar",
                             "equinox":"org.eclipse.osgi_3.7.2.v20120110-1415.jar"
                         }
 
