@@ -20,19 +20,19 @@ public class CLogEntry implements LogEntry {
     private Bundle pBundle;
 
     /** Log level */
-    private int pLevel;
+    private final int pLevel;
 
     /** Message content */
-    private String pMessage;
+    private final String pMessage;
 
     /** Logger service reference */
-    private ServiceReference pServiceReference;
+    private final ServiceReference<?> pServiceReference;
 
     /** Associated exception */
-    private Throwable pThrowable;
+    private final Throwable pThrowable;
 
     /** Message time stamp */
-    private long pTime;
+    private final long pTime;
 
     /**
      * Sets up the log entry
@@ -49,23 +49,23 @@ public class CLogEntry implements LogEntry {
      * @param aThrowable
      *            Associated exception
      */
-    public CLogEntry(final ServiceReference aServiceReference,
-	    final Bundle aDefaultBundle, final int aLevel,
-	    final String aMessage, final Throwable aThrowable) {
+    public CLogEntry(final ServiceReference<?> aServiceReference,
+            final Bundle aDefaultBundle, final int aLevel,
+            final String aMessage, final Throwable aThrowable) {
 
-	pTime = System.currentTimeMillis();
-	pServiceReference = aServiceReference;
-	pLevel = aLevel;
-	pMessage = aMessage;
-	pThrowable = aThrowable;
+        pTime = System.currentTimeMillis();
+        pServiceReference = aServiceReference;
+        pLevel = aLevel;
+        pMessage = aMessage;
+        pThrowable = aThrowable;
 
-	if (pServiceReference != null) {
-	    pBundle = pServiceReference.getBundle();
-	}
+        if (pServiceReference != null) {
+            pBundle = pServiceReference.getBundle();
+        }
 
-	if (pBundle == null) {
-	    pBundle = aDefaultBundle;
-	}
+        if (pBundle == null) {
+            pBundle = aDefaultBundle;
+        }
     }
 
     /*
@@ -75,7 +75,8 @@ public class CLogEntry implements LogEntry {
      */
     @Override
     public Bundle getBundle() {
-	return pBundle;
+
+        return pBundle;
     }
 
     /*
@@ -85,7 +86,8 @@ public class CLogEntry implements LogEntry {
      */
     @Override
     public Throwable getException() {
-	return pThrowable;
+
+        return pThrowable;
     }
 
     /*
@@ -95,7 +97,8 @@ public class CLogEntry implements LogEntry {
      */
     @Override
     public int getLevel() {
-	return pLevel;
+
+        return pLevel;
     }
 
     /*
@@ -105,7 +108,8 @@ public class CLogEntry implements LogEntry {
      */
     @Override
     public String getMessage() {
-	return pMessage;
+
+        return pMessage;
     }
 
     /*
@@ -114,8 +118,9 @@ public class CLogEntry implements LogEntry {
      * @see org.osgi.service.log.LogEntry#getServiceReference()
      */
     @Override
-    public ServiceReference getServiceReference() {
-	return pServiceReference;
+    public ServiceReference<?> getServiceReference() {
+
+        return pServiceReference;
     }
 
     /*
@@ -125,6 +130,7 @@ public class CLogEntry implements LogEntry {
      */
     @Override
     public long getTime() {
-	return pTime;
+
+        return pTime;
     }
 }

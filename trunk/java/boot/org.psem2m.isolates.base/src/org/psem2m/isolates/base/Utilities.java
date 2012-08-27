@@ -313,7 +313,7 @@ public final class Utilities {
      * @return The service properties
      */
     public static Map<String, Object> getServiceProperties(
-            final ServiceReference aServiceReference) {
+            final ServiceReference<?> aServiceReference) {
 
         final Map<String, Object> serviceProperties = new HashMap<String, Object>();
 

@@ -17,10 +17,10 @@ import org.osgi.service.log.LogService;
 public class CLogServiceImpl implements LogService {
 
     /** Default bundle for the log service entries */
-    private Bundle pDefaultLogBundle;
+    private final Bundle pDefaultLogBundle;
 
     /** Internal log handler */
-    private CLogInternal pLogInternal;
+    private final CLogInternal pLogInternal;
 
     /**
      * Sets up the logger service
@@ -70,6 +70,7 @@ public class CLogServiceImpl implements LogService {
      * org.osgi.service.log.LogService#log(org.osgi.framework.ServiceReference,
      * int, java.lang.String)
      */
+    @SuppressWarnings("rawtypes")
     @Override
     public void log(final ServiceReference aServiceReference, final int aLevel,
             final String aMessage) {
@@ -85,6 +86,7 @@ public class CLogServiceImpl implements LogService {
      * org.osgi.service.log.LogService#log(org.osgi.framework.ServiceReference,
      * int, java.lang.String, java.lang.Throwable)
      */
+    @SuppressWarnings("rawtypes")
     @Override
     public void log(final ServiceReference aServiceReference, final int aLevel,
             final String aMessage, final Throwable aThrowable) {

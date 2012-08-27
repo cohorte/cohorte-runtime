@@ -48,7 +48,8 @@ public abstract class CActivatorBase extends CXObjectBase implements
         public void serviceChanged(final ServiceEvent event) {
 
             if (event.getType() == ServiceEvent.REGISTERED) {
-                final ServiceReference wConfigRef = event.getServiceReference();
+                final ServiceReference<?> wConfigRef = event
+                        .getServiceReference();
                 final IIsolateLoggerSvc wLogService = (IIsolateLoggerSvc) getContext()
                         .getService(wConfigRef);
                 bindIsolateLogerSvc(wLogService);
@@ -115,10 +116,10 @@ public abstract class CActivatorBase extends CXObjectBase implements
      * ()
      */
     @Override
-    public ServiceReference[] getAllServiceReferences() {
+    public ServiceReference<?>[] getAllServiceReferences() {
 
         try {
-            final ServiceReference[] wSRs = getContext()
+            final ServiceReference<?>[] wSRs = getContext()
                     .getAllServiceReferences(null, null);
 
             pLogger.logInfo(this, "getAllServiceReferences", "NbServices=[%d]",
@@ -174,13 +175,13 @@ public abstract class CActivatorBase extends CXObjectBase implements
      * (java.lang.Long)
      */
     @Override
-    public ServiceReference getServiceReference(final Long aServiceId)
+    public ServiceReference<?> getServiceReference(final Long aServiceId)
             throws Exception {
 
         final String wFilter = String.format("(%s=%s)",
                 org.osgi.framework.Constants.SERVICE_ID, aServiceId.toString());
-        final ServiceReference[] wServiceReferences = getContext()
-                .getServiceReferences(null, wFilter);
+        final ServiceReference<?>[] wServiceReferences = getContext()
+                .getServiceReferences((String) null, wFilter);
         if (wServiceReferences != null && wServiceReferences.length > 0) {
             return wServiceReferences[0];
         }
@@ -210,12 +211,12 @@ public abstract class CActivatorBase extends CXObjectBase implements
         pContext = bundleContext;
 
         // find and bind the LogService
-        final ServiceReference wIsolateLoggerServiceRef = bundleContext
-                .getServiceReference(IIsolateLoggerSvc.class.getName());
+        final ServiceReference<IIsolateLoggerSvc> wIsolateLoggerServiceRef = bundleContext
+                .getServiceReference(IIsolateLoggerSvc.class);
 
         IIsolateLoggerSvc wIsolateLogerSvc = null;
         if (wIsolateLoggerServiceRef != null) {
-            wIsolateLogerSvc = (IIsolateLoggerSvc) bundleContext
+            wIsolateLogerSvc = bundleContext
                     .getService(wIsolateLoggerServiceRef);
         }
 

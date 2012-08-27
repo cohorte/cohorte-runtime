@@ -24,7 +24,7 @@ public interface IActivatorBase {
      * 
      * @return an array containing all the available service references.
      */
-    ServiceReference[] getAllServiceReferences();
+    ServiceReference<?>[] getAllServiceReferences();
 
     /**
      * Retrieves the bundle ID
@@ -50,6 +50,5 @@ public interface IActivatorBase {
      * @throws Exception
      *             Something went wrong
      */
-    ServiceReference getServiceReference(Long aServiceId) throws Exception;
-
+    ServiceReference<?> getServiceReference(Long aServiceId) throws Exception;
 }

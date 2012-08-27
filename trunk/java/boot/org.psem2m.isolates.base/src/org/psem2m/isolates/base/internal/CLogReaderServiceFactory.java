@@ -8,16 +8,18 @@ package org.psem2m.isolates.base.internal;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.log.LogReaderService;
 
 /**
  * LogReader service factory
  * 
  * @author Thomas Calmant
  */
-public class CLogReaderServiceFactory implements ServiceFactory {
+public class CLogReaderServiceFactory implements
+        ServiceFactory<LogReaderService> {
 
     /** The internal log handler */
-    private CLogInternal pLogger;
+    private final CLogInternal pLogger;
 
     /**
      * Prepares the log service factory
@@ -26,7 +28,8 @@ public class CLogReaderServiceFactory implements ServiceFactory {
      *            The internal log handler
      */
     public CLogReaderServiceFactory(final CLogInternal aLogger) {
-	pLogger = aLogger;
+
+        pLogger = aLogger;
     }
 
     /*
@@ -37,12 +40,12 @@ public class CLogReaderServiceFactory implements ServiceFactory {
      * org.osgi.framework.ServiceRegistration)
      */
     @Override
-    public Object getService(final Bundle aBundle,
-	    final ServiceRegistration aServiceRegistration) {
+    public LogReaderService getService(final Bundle aBundle,
+            final ServiceRegistration<LogReaderService> aServiceRegistration) {
 
-	CLogReaderServiceImpl reader = new CLogReaderServiceImpl(pLogger);
-	pLogger.addLogReader(reader);
-	return reader;
+        final CLogReaderServiceImpl reader = new CLogReaderServiceImpl(pLogger);
+        pLogger.addLogReader(reader);
+        return reader;
     }
 
     /*
@@ -54,18 +57,18 @@ public class CLogReaderServiceFactory implements ServiceFactory {
      */
     @Override
     public void ungetService(final Bundle aBundle,
-	    final ServiceRegistration aServiceRegistration,
-	    final Object aServiceInstance) {
+            final ServiceRegistration<LogReaderService> aServiceRegistration,
+            final LogReaderService aServiceInstance) {
 
-	if (aServiceInstance instanceof CLogReaderServiceImpl) {
+        if (aServiceInstance instanceof CLogReaderServiceImpl) {
 
-	    final CLogReaderServiceImpl reader = (CLogReaderServiceImpl) aServiceInstance;
+            final CLogReaderServiceImpl reader = (CLogReaderServiceImpl) aServiceInstance;
 
-	    // Remove the reader from the internal log handler
-	    pLogger.removeLogReader(reader);
+            // Remove the reader from the internal log handler
+            pLogger.removeLogReader(reader);
 
-	    // Clear listeners
-	    reader.close();
-	}
+            // Clear listeners
+            reader.close();
+        }
     }
 }

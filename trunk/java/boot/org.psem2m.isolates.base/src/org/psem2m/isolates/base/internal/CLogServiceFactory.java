@@ -8,6 +8,7 @@ package org.psem2m.isolates.base.internal;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.log.LogService;
 import org.psem2m.utilities.logging.IActivityLogger;
 
 /**
@@ -15,10 +16,10 @@ import org.psem2m.utilities.logging.IActivityLogger;
  * 
  * @author Thomas Calmant
  */
-public class CLogServiceFactory implements ServiceFactory {
+public class CLogServiceFactory implements ServiceFactory<LogService> {
 
     /** The internal log handler */
-    private CLogInternal pLogger;
+    private final CLogInternal pLogger;
 
     /**
      * Prepares the log service factory
@@ -27,7 +28,8 @@ public class CLogServiceFactory implements ServiceFactory {
      *            The internal log handler
      */
     public CLogServiceFactory(final CLogInternal aLogger) {
-	pLogger = aLogger;
+
+        pLogger = aLogger;
     }
 
     /*
@@ -38,10 +40,10 @@ public class CLogServiceFactory implements ServiceFactory {
      * org.osgi.framework.ServiceRegistration)
      */
     @Override
-    public Object getService(final Bundle aBundle,
-	    final ServiceRegistration aServiceRegistration) {
+    public LogService getService(final Bundle aBundle,
+            final ServiceRegistration<LogService> aServiceRegistration) {
 
-	return new CLogServiceImpl(pLogger, aBundle);
+        return new CLogServiceImpl(pLogger, aBundle);
     }
 
     /*
@@ -53,11 +55,11 @@ public class CLogServiceFactory implements ServiceFactory {
      */
     @Override
     public void ungetService(final Bundle aBundle,
-	    final ServiceRegistration aServiceRegistration,
-	    final Object aServiceInstance) {
+            final ServiceRegistration<LogService> aServiceRegistration,
+            final LogService aServiceInstance) {
 
-	if (aServiceInstance instanceof IActivityLogger) {
-	    ((IActivityLogger) aServiceInstance).close();
-	}
+        if (aServiceInstance instanceof IActivityLogger) {
+            ((IActivityLogger) aServiceInstance).close();
+        }
     }
 }

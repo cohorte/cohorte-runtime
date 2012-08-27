@@ -21,6 +21,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceEvent;
+import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
@@ -53,31 +54,19 @@ public class CBundleBaseActivator extends CXObjectBase implements
      * @author ogattaz
      * 
      */
-    class CServiceInfos {
-
-        /** the service **/
-        Object pService;
+    private class CServiceInfos {
 
         /** the name of the service **/
-        String pServiceName;
+        private final String pServiceName;
 
         /** the registration info of the service **/
-        ServiceRegistration pServiceRegistration;
+        private final ServiceRegistration<?> pServiceRegistration;
 
-        CServiceInfos(final ServiceRegistration aServiceRegistration,
-                final String aServiceName, final Object aService) {
+        public CServiceInfos(final ServiceRegistration<?> aServiceRegistration,
+                final String aServiceName) {
 
             pServiceRegistration = aServiceRegistration;
             pServiceName = aServiceName;
-            pService = aService;
-        }
-
-        /**
-         * @return
-         */
-        public Object getService() {
-
-            return pService;
         }
 
         /**
@@ -91,7 +80,7 @@ public class CBundleBaseActivator extends CXObjectBase implements
         /**
          * @return
          */
-        public ServiceRegistration getServiceRegistration() {
+        public ServiceRegistration<?> getServiceRegistration() {
 
             return pServiceRegistration;
         }
@@ -361,7 +350,7 @@ public class CBundleBaseActivator extends CXObjectBase implements
             @Override
             public void serviceChanged(final ServiceEvent aServiceEvent) {
 
-                final ServiceReference wServiceReference = aServiceEvent
+                final ServiceReference<?> wServiceReference = aServiceEvent
                         .getServiceReference();
 
                 final String[] types = (String[]) wServiceReference
@@ -411,22 +400,47 @@ public class CBundleBaseActivator extends CXObjectBase implements
      * @param aServiceInterface
      * @param aService
      */
-    private void registerOneService(final BundleContext aBundleContext,
-            final String aServiceName, final Object aService) {
+    private <S> void registerOneService(final BundleContext aBundleContext,
+            final Class<S> aServiceInterface, final S aService) {
 
         try {
-            final ServiceRegistration registration = aBundleContext
-                    .registerService(aServiceName, aService, null);
+            final ServiceRegistration<S> registration = aBundleContext
+                    .registerService(aServiceInterface, aService, null);
             pRegisteredServicesInfos.add(new CServiceInfos(registration,
-                    aServiceName, aService));
-            logServiceRegistration(aServiceName);
+                    aServiceInterface.getName()));
+            logServiceRegistration(aServiceInterface.getName());
 
         } catch (final Exception e) {
 
             getLogger().logSevere(this, "registerOneService",
-                    "Can't register the service [%s]. %s.", aServiceName, e);
+                    "Can't register the service [%s]. %s.", aServiceInterface,
+                    e);
         }
+    }
 
+    /**
+     * @param aServiceInterface
+     * @param aService
+     */
+    private <S> void registerOneServiceFactory(
+            final BundleContext aBundleContext,
+            final Class<S> aServiceInterface,
+            final ServiceFactory<S> aServiceFactory) {
+
+        try {
+            final ServiceRegistration<?> registration = aBundleContext
+                    .registerService(aServiceInterface.getName(),
+                            aServiceFactory, null);
+            pRegisteredServicesInfos.add(new CServiceInfos(registration,
+                    aServiceInterface.getName()));
+            logServiceRegistration(aServiceInterface.getName());
+
+        } catch (final Exception e) {
+
+            getLogger().logSevere(this, "registerOneService",
+                    "Can't register the service [%s]. %s.", aServiceInterface,
+                    e);
+        }
     }
 
     /**
@@ -461,12 +475,12 @@ public class CBundleBaseActivator extends CXObjectBase implements
         getLogger().logInfo(this, "start", "START", toDescription());
 
         // Register platform directories service
-        registerOneService(aBundleContext, IPlatformDirsSvc.class.getName(),
+        registerOneService(aBundleContext, IPlatformDirsSvc.class,
                 getPlatformDirs());
 
         try {
             // LogService interface
-            registerOneService(aBundleContext, LogService.class.getName(),
+            registerOneServiceFactory(aBundleContext, LogService.class,
                     getLogServiceFactory());
         } catch (final Exception e) {
             getLogger().logSevere(this, "start",
@@ -474,8 +488,7 @@ public class CBundleBaseActivator extends CXObjectBase implements
         }
         try {
             // LogReader service interface
-            registerOneService(aBundleContext,
-                    LogReaderService.class.getName(),
+            registerOneServiceFactory(aBundleContext, LogReaderService.class,
                     getLogReaderServiceFactory());
         } catch (final Exception e) {
             getLogger().logSevere(this, "start",
@@ -483,19 +496,19 @@ public class CBundleBaseActivator extends CXObjectBase implements
         }
         try {
             // IsolateLogger service
-            registerOneService(aBundleContext,
-                    IIsolateLoggerSvc.class.getName(), getIsolateLoggerSvc());
+            registerOneService(aBundleContext, IIsolateLoggerSvc.class,
+                    getIsolateLoggerSvc());
         } catch (final Exception e) {
             getLogger().logSevere(this, "start",
                     "Can't get the IsolateLoggerSvc and register it", e);
         }
 
         // Register the file finder
-        registerOneService(aBundleContext, IFileFinderSvc.class.getName(),
+        registerOneService(aBundleContext, IFileFinderSvc.class,
                 getFileFinder());
 
         // Register the bundle finder
-        registerOneService(aBundleContext, IBundleFinderSvc.class.getName(),
+        registerOneService(aBundleContext, IBundleFinderSvc.class,
                 getBundleFinder());
 
         // put in place a listner witch logs each service registration and
