@@ -125,7 +125,7 @@ public class MonitorLogic implements IPlatformMonitor, IForkerEventListener,
             return "The forker doesn't handle this kind of isolate";
 
         default:
-            return MessageFormat.format("Unknown status {0}", aResult);
+            return MessageFormat.format("Unknown status ''{0}''", aResult);
         }
     }
 

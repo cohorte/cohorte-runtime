@@ -4,11 +4,7 @@
 package org.psem2m.isolates.monitor.core.v2;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
@@ -19,6 +15,9 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.monitor.IMonitorStatus;
+import org.psem2m.isolates.monitor.core.v2.state.InvalidIdException;
+import org.psem2m.isolates.monitor.core.v2.state.InvalidStateException;
+import org.psem2m.isolates.monitor.core.v2.state.StatusStorage;
 import org.psem2m.isolates.services.conf.ISvcConfig;
 import org.psem2m.isolates.services.conf.beans.ApplicationDescription;
 import org.psem2m.isolates.services.conf.beans.IsolateDescription;
@@ -33,60 +32,55 @@ import org.psem2m.isolates.services.conf.beans.IsolateDescription;
 @Instantiate(name = "psem2m-monitor-status")
 public class MonitorStatus implements IMonitorStatus {
 
+    /** States in which an isolate is considered running */
+    private static final EIsolateState RUNNING_STATES[] = { EIsolateState.FULL,
+            EIsolateState.LOADING, EIsolateState.REQUESTED };
+
     /** The configuration service */
     @Requires
     private ISvcConfig pConfig;
-
-    /** Fully instantiated isolates set */
-    private final Set<String> pFullIsolates = new HashSet<String>();
-
-    /** The isolate ID -&gt; Description mapping */
-    private final Map<String, IsolateDescription> pIsolates = new HashMap<String, IsolateDescription>();
-
-    /** Loading isolates map : Isolate ID -&gt; Isolate description */
-    private final Set<String> pLoadingIsolates = new HashSet<String>();
 
     /** The logger */
     @Requires
     private IIsolateLoggerSvc pLogger;
 
-    /** Requested isolates map : Isolate ID -&gt; Isolate description */
-    private final Set<String> pRequestedIsolates = new HashSet<String>();
-
-    /** Contains the queues where isolates are considered as running */
-    private final List<Set<String>> pRunningQueues = new ArrayList<Set<String>>();
-
-    /** Waiting isolates map : Isolate ID -&gt; Isolate description */
-    private final Set<String> pWaitingIsolates = new HashSet<String>();
+    /** The status storage */
+    private StatusStorage<IsolateDescription> pStatus;
 
     /**
      * Changes the current queue of the given isolate
      * 
      * @param aIsolateId
      *            The changed isolate ID
-     * @param aSourceQueue
-     *            The current isolate state
-     * @param aTargetQueue
-     *            The target isolate state
+     * @param aNewState
+     *            The new isolate state
      * @param aLogWhat
      *            The current action, used in logs in case of error
      * @return True if the state has been correctly changed
      */
     private synchronized boolean changeQueue(final String aIsolateId,
-            final Set<String> aSourceQueue, final Set<String> aTargetQueue,
-            final String aLogWhat) {
+            final EIsolateState aNewState, final String aLogWhat) {
 
-        // Try to remove the isolate
-        if (!aSourceQueue.remove(aIsolateId)) {
-            // The isolate wasn't there
-            pLogger.logWarn(this, aLogWhat, "Isolate ID=", aIsolateId,
-                    "is not is the source queue");
-            return false;
+        pLogger.logDebug(this, aLogWhat, "Isolate ID=", aIsolateId,
+                "goes to state=", aNewState);
+
+        try {
+            pStatus.changeState(aIsolateId, aNewState);
+
+            // Success !
+            return true;
+
+        } catch (final InvalidStateException ex) {
+            pLogger.logWarn(this, aLogWhat,
+                    "Error changing the state of isolate=", aIsolateId, ":", ex);
+
+        } catch (final InvalidIdException ex) {
+            pLogger.logWarn(this, aLogWhat, "Invalid isolate ID=", aIsolateId,
+                    ":", ex);
         }
-        ;
 
-        // Add it to the requested queue
-        return aTargetQueue.add(aIsolateId);
+        // An error occurred
+        return false;
     }
 
     /*
@@ -99,7 +93,16 @@ public class MonitorStatus implements IMonitorStatus {
     @Override
     public IsolateDescription getIsolateDescription(final String aIsolateId) {
 
-        return pIsolates.get(aIsolateId);
+        try {
+            return pStatus.get(aIsolateId);
+
+        } catch (final InvalidIdException ex) {
+            pLogger.logWarn(this, "getIsolateDescription",
+                    "Invalid isolate ID=", aIsolateId, ":", ex);
+        }
+
+        // Unknown ID
+        return null;
     }
 
     /*
@@ -121,12 +124,20 @@ public class MonitorStatus implements IMonitorStatus {
 
         final List<IsolateDescription> result = new ArrayList<IsolateDescription>();
 
-        for (final String waitingIsolateId : pWaitingIsolates) {
+        for (final String waitingIsolateId : pStatus
+                .getIdsInStates(EIsolateState.WAITING)) {
 
-            final IsolateDescription isoDescr = pIsolates.get(waitingIsolateId);
-            if (aNode.equals(isoDescr.getNode())) {
-                // Matching node
-                result.add(isoDescr);
+            try {
+                final IsolateDescription isoDescr = pStatus
+                        .get(waitingIsolateId);
+                if (aNode.equals(isoDescr.getNode())) {
+                    // Matching node
+                    result.add(isoDescr);
+                }
+
+            } catch (final InvalidIdException ex) {
+                pLogger.logWarn(this, "getIsolatesWaitingForNode",
+                        "Unknown waiting isolate ID=", waitingIsolateId);
             }
         }
 
@@ -141,34 +152,7 @@ public class MonitorStatus implements IMonitorStatus {
     @Override
     public synchronized String[] getRunningIsolatesIDs() {
 
-        final Set<String> result = new HashSet<String>();
-
-        // Aggregate queues
-        for (final Set<String> runningQueue : pRunningQueues) {
-            result.addAll(runningQueue);
-        }
-
-        return result.toArray(new String[result.size()]);
-    }
-
-    /**
-     * Returns the running queue containing the given isolate
-     * 
-     * @param aIsolateId
-     *            An isolate ID
-     * @return The running queue containing the given isolate, or null
-     */
-    private synchronized Set<String> getRunningQueue(final String aIsolateId) {
-
-        for (final Set<String> runningQueue : pRunningQueues) {
-
-            if (runningQueue.contains(aIsolateId)) {
-                // Found !
-                return runningQueue;
-            }
-        }
-
-        return null;
+        return pStatus.getIdsInStates(RUNNING_STATES);
     }
 
     /*
@@ -183,12 +167,20 @@ public class MonitorStatus implements IMonitorStatus {
             final String aIsolateId) {
 
         if (!isWaiting(aIsolateId)) {
-            pLogger.logWarn(this, "", "Isolate ID=", aIsolateId,
-                    "is not in the waiting queue.");
+            pLogger.logWarn(this, "getWaitingIsolateDescription",
+                    "Isolate ID=", aIsolateId, "is not in the waiting queue.");
             return null;
         }
 
-        return pIsolates.get(aIsolateId);
+        try {
+            return pStatus.get(aIsolateId);
+
+        } catch (final InvalidIdException ex) {
+            pLogger.logWarn(this, "getWaitingIsolateDescription",
+                    "Isolate ID=", aIsolateId, "is unknown.");
+        }
+
+        return null;
     }
 
     /*
@@ -199,7 +191,7 @@ public class MonitorStatus implements IMonitorStatus {
     @Override
     public synchronized String[] getWaitingIsolatesIDs() {
 
-        return pWaitingIsolates.toArray(new String[pWaitingIsolates.size()]);
+        return pStatus.getIdsInStates(EIsolateState.WAITING);
     }
 
     /**
@@ -209,12 +201,8 @@ public class MonitorStatus implements IMonitorStatus {
     public void invalidate() {
 
         // Clear the queues
-        pRunningQueues.clear();
-        pIsolates.clear();
-        pFullIsolates.clear();
-        pLoadingIsolates.clear();
-        pRequestedIsolates.clear();
-        pWaitingIsolates.clear();
+        pStatus.clear();
+        pStatus = null;
 
         pLogger.logInfo(this, "invalidate", "Monitor status gone");
     }
@@ -279,8 +267,7 @@ public class MonitorStatus implements IMonitorStatus {
     @Override
     public synchronized boolean isolateComplete(final String aIsolateId) {
 
-        return changeQueue(aIsolateId, pLoadingIsolates, pFullIsolates,
-                "isolateComplete");
+        return changeQueue(aIsolateId, EIsolateState.FULL, "isolateComplete");
     }
 
     /*
@@ -293,8 +280,7 @@ public class MonitorStatus implements IMonitorStatus {
     @Override
     public synchronized boolean isolateLoading(final String aIsolateId) {
 
-        return changeQueue(aIsolateId, pRequestedIsolates, pLoadingIsolates,
-                "isolateLoading");
+        return changeQueue(aIsolateId, EIsolateState.LOADING, "isolateLoading");
     }
 
     /*
@@ -307,7 +293,7 @@ public class MonitorStatus implements IMonitorStatus {
     @Override
     public synchronized boolean isolateRequested(final String aIsolateId) {
 
-        return changeQueue(aIsolateId, pWaitingIsolates, pRequestedIsolates,
+        return changeQueue(aIsolateId, EIsolateState.REQUESTED,
                 "isolateRequested");
     }
 
@@ -321,19 +307,14 @@ public class MonitorStatus implements IMonitorStatus {
     @Override
     public synchronized boolean isolateStopped(final String aIsolateId) {
 
-        final Set<String> runningQueue = getRunningQueue(aIsolateId);
-        if (runningQueue == null) {
-            // Isolate not found
+        if (!isRunning(aIsolateId)) {
+            // Isolate is not running
             pLogger.logWarn(this, "isolateStopped", "Isolate ID=", aIsolateId,
                     "doesn't seem to be running.");
             return false;
         }
 
-        // Found the isolate: remove it from the queue
-        runningQueue.remove(aIsolateId);
-
-        // Put it in the waiting queue
-        return pWaitingIsolates.add(aIsolateId);
+        return changeQueue(aIsolateId, EIsolateState.WAITING, "isolateStopped");
     }
 
     /*
@@ -345,7 +326,25 @@ public class MonitorStatus implements IMonitorStatus {
     @Override
     public synchronized boolean isRunning(final String aIsolateId) {
 
-        return getRunningQueue(aIsolateId) != null;
+        try {
+            // Get the state of the isolate
+            final EIsolateState isolateState = (EIsolateState) pStatus
+                    .getState(aIsolateId);
+
+            // Search for it in the running states
+            for (final EIsolateState runningState : RUNNING_STATES) {
+                if (runningState == isolateState) {
+                    return true;
+                }
+            }
+
+        } catch (final InvalidIdException ex) {
+            pLogger.logWarn(this, "isRunning", "Unknown isolate ID=",
+                    aIsolateId, ":", ex);
+        }
+
+        // Not found...
+        return false;
     }
 
     /*
@@ -357,7 +356,16 @@ public class MonitorStatus implements IMonitorStatus {
     @Override
     public synchronized boolean isWaiting(final String aIsolateId) {
 
-        return pWaitingIsolates.contains(aIsolateId);
+        try {
+            return pStatus.getState(aIsolateId) == EIsolateState.WAITING;
+
+        } catch (final InvalidIdException ex) {
+            pLogger.logWarn(this, "isRunning", "Unknown isolate ID=",
+                    aIsolateId, ":", ex);
+        }
+
+        // Not found...
+        return false;
     }
 
     /**
@@ -379,8 +387,19 @@ public class MonitorStatus implements IMonitorStatus {
             // Avoid to add ourselves or a forker
             if (isAcceptableIsolate(isolateDescr)) {
 
-                pIsolates.put(isolateId, isolateDescr);
-                pWaitingIsolates.add(isolateId);
+                try {
+                    pStatus.store(isolateId, isolateDescr,
+                            EIsolateState.WAITING);
+
+                } catch (final InvalidIdException ex) {
+                    pLogger.logWarn(this, "loadWaitingIsolates",
+                            "Invalid isolate ID=", isolateId, ":", ex);
+
+                } catch (final InvalidStateException ex) {
+                    pLogger.logWarn(this, "loadWaitingIsolates",
+                            "Invalid initial state=", ex.getCauseState(),
+                            "for isolate ID=", isolateId, ":", ex);
+                }
             }
         }
     }
@@ -391,15 +410,13 @@ public class MonitorStatus implements IMonitorStatus {
     @Validate
     public void validate() {
 
-        // Fill the running queues list
-        pRunningQueues.add(pFullIsolates);
-        pRunningQueues.add(pLoadingIsolates);
-        pRunningQueues.add(pRequestedIsolates);
+        // Sets up the status storage
+        pStatus = new StatusStorage<IsolateDescription>();
 
         // Load the waiting isolates list
         pLogger.logInfo(this, "validate", "Reading configuration...");
         loadWaitingIsolates();
-        pLogger.logInfo(this, "validate", "Isolates count=", pIsolates.size());
+        pLogger.logInfo(this, "validate", "Isolates count=", pStatus.size());
 
         // TODO: try to send a signal to each isolate, see if it's available ?
 
