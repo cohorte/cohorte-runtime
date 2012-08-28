@@ -32,28 +32,6 @@ public class CBundleRestServerActivator extends CActivatorBase implements
         return sSingleton;
     }
 
-    /**
-     * Explicit default constructor
-     */
-    public CBundleRestServerActivator() {
-
-        super();
-        if (sSingleton == null) {
-            sSingleton = this;
-        }
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.utilities.CXObjectBase#destroy()
-     */
-    @Override
-    public void destroy() {
-
-        // nothing...
-    }
-
     /*
      * (non-Javadoc)
      * 
@@ -64,8 +42,10 @@ public class CBundleRestServerActivator extends CActivatorBase implements
     @Override
     public void start(final BundleContext bundleContext) throws Exception {
 
+        // Store the singleton reference
+        sSingleton = this;
+
         super.start(bundleContext);
-        // ...
     }
 
     /*
@@ -78,6 +58,8 @@ public class CBundleRestServerActivator extends CActivatorBase implements
     public void stop(final BundleContext bundleContext) throws Exception {
 
         super.stop(bundleContext);
-        // ...
+
+        // Forget the singleton reference
+        sSingleton = null;
     }
 }

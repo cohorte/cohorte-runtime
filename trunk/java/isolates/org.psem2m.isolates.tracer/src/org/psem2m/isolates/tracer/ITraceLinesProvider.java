@@ -16,19 +16,18 @@ package org.psem2m.isolates.tracer;
  */
 public interface ITraceLinesProvider {
 
-	/**
-	 * @return
-	 */
-	int getNbStackedLines();
+    /**
+     * @return
+     */
+    int getNbStackedLines();
 
-	/**
-	 * @return
-	 */
-	ITraceLine retreiveFirstStackedLine();
+    /**
+     * @return
+     */
+    ITraceLine retreiveFirstStackedLine();
 
-	/**
-	 * @return
-	 */
-	ITraceLine[] retreiveStackedLines();
-
+    /**
+     * @return
+     */
+    ITraceLine[] retreiveStackedLines();
 }

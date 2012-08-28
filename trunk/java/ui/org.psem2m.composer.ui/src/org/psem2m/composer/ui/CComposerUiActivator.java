@@ -27,17 +27,6 @@ public class CComposerUiActivator extends CActivatorBase implements
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.utilities.CXObjectBase#destroy()
-     */
-    @Override
-    public void destroy() {
-
-        // nothing...
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
      * @see
      * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext
      * )
@@ -65,5 +54,4 @@ public class CComposerUiActivator extends CActivatorBase implements
         // Forget the singleton reference
         sSingleton = null;
     }
-
 }

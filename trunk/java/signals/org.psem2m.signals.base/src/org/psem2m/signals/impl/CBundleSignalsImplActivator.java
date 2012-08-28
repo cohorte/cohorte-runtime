@@ -6,77 +6,52 @@ import org.psem2m.isolates.base.activators.IActivatorBase;
 
 /**
  * @author ogattaz
- *
+ * 
  */
 public class CBundleSignalsImplActivator extends CActivatorBase implements
-		IActivatorBase {
+        IActivatorBase {
 
-	/** Current valid instance */
-	private static CBundleSignalsImplActivator sInstance = null;
+    /** Current valid instance */
+    private static CBundleSignalsImplActivator sInstance = null;
 
-	/**
-	 * Retrieves the current instance of the activator
-	 * 
-	 * @return the current instance of the activator
-	 */
-	public static CBundleSignalsImplActivator getInstance() {
+    /**
+     * Retrieves the current instance of the activator
+     * 
+     * @return the current instance of the activator
+     */
+    public static CBundleSignalsImplActivator getInstance() {
 
-		return sInstance;
-	}
+        return sInstance;
+    }
 
-	public CBundleSignalsImplActivator() {
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext
+     * )
+     */
+    @Override
+    public void start(final BundleContext bundleContext) throws Exception {
 
-		super();
-		sInstance = this;
-	}
+        // Store the singleton reference
+        sInstance = this;
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.utilities.CXObjectBase#destroy()
-	 */
-	@Override
-	public void destroy() {
+        super.start(bundleContext);
+    }
 
-		// ...
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
+     */
+    @Override
+    public void stop(final BundleContext bundleContext) throws Exception {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.isolates.base.CActivatorBase#getBundleId()
-	 */
-	@Override
-	public String getBundleId() {
+        super.stop(bundleContext);
 
-		return getClass().getPackage().getName();
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext
-	 * )
-	 */
-	@Override
-	public void start(final BundleContext aBundleContext) throws Exception {
-
-		sInstance = this;
-		super.start(aBundleContext);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
-	 */
-	@Override
-	public void stop(final BundleContext aBundleContext) throws Exception {
-
-		super.stop(aBundleContext);
-		sInstance = null;
-	}
-
+        // Forget the singleton reference
+        sInstance = null;
+    }
 }

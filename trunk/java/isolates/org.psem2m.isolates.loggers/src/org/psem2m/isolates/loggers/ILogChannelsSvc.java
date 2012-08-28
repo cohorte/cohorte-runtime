@@ -18,21 +18,20 @@ import java.util.List;
  */
 public interface ILogChannelsSvc {
 
-	/**
-	 * @return the list of available channels
-	 */
-	public List<ILogChannelSvc> getChannels();
+    /**
+     * @return the list of available channels
+     */
+    List<ILogChannelSvc> getChannels();
 
-	/**
-	 * @return the list of the ids of the available channels
-	 */
-	public List<String> getChannelsIds();
+    /**
+     * @return the list of the IDs of the available channels
+     */
+    List<String> getChannelsIds();
 
-	/**
-	 * @param aChannelId
-	 *            the channel id of the logger to retreive
-	 * @return the instance of Logger corresponding to the channel id
-	 */
-	public ILogChannelSvc getLogChannel(String aChannelId) throws Exception;
-
+    /**
+     * @param aChannelId
+     *            the channel id of the logger to retrieve
+     * @return the instance of Logger corresponding to the channel id
+     */
+    ILogChannelSvc getLogChannel(String aChannelId) throws Exception;
 }

@@ -24,34 +24,6 @@ public class CBundleSlaveAgentActivator extends CActivatorBase implements
         return sInstance;
     }
 
-    public CBundleSlaveAgentActivator() {
-
-        super();
-        sInstance = this;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.utilities.CXObjectBase#destroy()
-     */
-    @Override
-    public void destroy() {
-
-        // ...
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.base.CActivatorBase#getBundleId()
-     */
-    @Override
-    public String getBundleId() {
-
-        return getClass().getPackage().getName();
-    }
-
     /*
      * (non-Javadoc)
      * 
@@ -60,10 +32,12 @@ public class CBundleSlaveAgentActivator extends CActivatorBase implements
      * )
      */
     @Override
-    public void start(final BundleContext aBundleContext) throws Exception {
+    public void start(final BundleContext bundleContext) throws Exception {
 
+        // Store the singleton reference
         sInstance = this;
-        super.start(aBundleContext);
+
+        super.start(bundleContext);
     }
 
     /*
@@ -73,9 +47,11 @@ public class CBundleSlaveAgentActivator extends CActivatorBase implements
      * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
      */
     @Override
-    public void stop(final BundleContext aBundleContext) throws Exception {
+    public void stop(final BundleContext bundleContext) throws Exception {
 
-        super.stop(aBundleContext);
+        super.stop(bundleContext);
+
+        // Forget the singleton reference
         sInstance = null;
     }
 }

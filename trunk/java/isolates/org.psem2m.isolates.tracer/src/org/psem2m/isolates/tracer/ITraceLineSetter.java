@@ -16,35 +16,34 @@ package org.psem2m.isolates.tracer;
  */
 public interface ITraceLineSetter extends ITraceLine {
 
-	/**
-	 * @param aContent
-	 *            the content of this trace line
-	 */
-	public void setContent(String aContent);
+    /**
+     * @param aContent
+     *            the content of this trace line
+     */
+    void setContent(String aContent);
 
-	/**
-	 * @param aWhat
-	 *            the name of the method from where this trace line was sent
-	 */
-	public void setWhat(String aWhat);
+    /**
+     * @param aWhat
+     *            the name of the method from where this trace line was sent
+     */
+    void setWhat(String aWhat);
 
-	/**
-	 * @param aWhen
-	 *            the timestamp of this trace line
-	 */
-	public void setWhen(Long aWhen);
+    /**
+     * @param aWhen
+     *            the timestamp of this trace line
+     */
+    void setWhen(Long aWhen);
 
-	/**
-	 * @param aWhere
-	 *            the identifier of the thread from where this trace line was
-	 *            sent
-	 */
-	public void setWhere(String aWhere);
+    /**
+     * @param aWhere
+     *            the identifier of the thread from where this trace line was
+     *            sent
+     */
+    void setWhere(String aWhere);
 
-	/**
-	 * @param aWho
-	 *            the identifier of the object which send this trace line
-	 */
-	public void setWho(String aWho);
-
+    /**
+     * @param aWho
+     *            the identifier of the object which send this trace line
+     */
+    void setWho(String aWho);
 }
