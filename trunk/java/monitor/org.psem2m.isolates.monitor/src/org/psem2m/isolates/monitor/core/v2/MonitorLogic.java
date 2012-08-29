@@ -6,7 +6,6 @@ package org.psem2m.isolates.monitor.core.v2;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
@@ -164,7 +163,8 @@ public class MonitorLogic implements IPlatformMonitor, IForkerEventListener,
     }
 
     /**
-     * Handles the result of a call to {@link IForker#startIsolate(Map)}
+     * Handles the result of a call to
+     * {@link IForker#startIsolate(java.util.Map)}
      * 
      * @param aIsolateDescr
      *            The started isolate description
@@ -451,9 +451,10 @@ public class MonitorLogic implements IPlatformMonitor, IForkerEventListener,
         // FIXME: wait for stopping isolates ? Like before ?
         try {
             Thread.sleep(1000);
+
         } catch (final InterruptedException ex) {
-            // TODO Auto-generated catch block
-            ex.printStackTrace();
+            pLogger.logWarn(this, "",
+                    "Interrupted while waiting for isolates to stop.", ex);
         }
 
         // Kill the forkers
