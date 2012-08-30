@@ -21,6 +21,9 @@ public enum EComponentState {
     /** Component instantiation requested */
     INSTANTIATING,
 
+    /** Component removed of the components set */
+    REMOVED,
+
     /** Component resolved (can be instantiated by an agent) */
     RESOLVED,
 

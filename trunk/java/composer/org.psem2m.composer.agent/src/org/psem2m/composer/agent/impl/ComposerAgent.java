@@ -27,7 +27,7 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.apache.felix.ipojo.handlers.providedservice.ProvidedServiceHandler;
 import org.apache.felix.ipojo.metadata.Element;
 import org.osgi.framework.BundleException;
-import org.psem2m.composer.ECompositionEvent;
+import org.psem2m.composer.EComponentState;
 import org.psem2m.composer.agent.ComposerAgentConstants;
 import org.psem2m.composer.agent.ComposerAgentSignals;
 import org.psem2m.composer.model.ComponentBean;
@@ -77,14 +77,6 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
     /** Signal broadcaster */
     @Requires(id = IPOJO_ID_BROADCASTER)
     private ISignalBroadcaster pSignalBroadcaster;
-
-    /**
-     * Default constructor
-     */
-    public ComposerAgent() {
-
-        super();
-    }
 
     /**
      * Called by iPOJO when a Factory service is bound
@@ -569,20 +561,20 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
             pComponentsInstances.remove(name);
         }
 
-        final ECompositionEvent newState;
+        final EComponentState newState;
         switch (aState) {
 
         case ComponentInstance.INVALID:
-            newState = ECompositionEvent.STOP;
+            newState = EComponentState.INSTANTIATING;
             break;
 
         case ComponentInstance.DISPOSED:
         case ComponentInstance.STOPPED:
-            newState = ECompositionEvent.REMOVE;
+            newState = EComponentState.REMOVED;
             break;
 
         case ComponentInstance.VALID:
-            newState = ECompositionEvent.START;
+            newState = EComponentState.COMPLETE;
             break;
 
         default:

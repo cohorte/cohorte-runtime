@@ -21,7 +21,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
-import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Property;
 import org.apache.felix.ipojo.annotations.Provides;
@@ -30,7 +29,6 @@ import org.apache.felix.ipojo.annotations.StaticServiceProperty;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.composer.EComponentState;
-import org.psem2m.composer.ECompositionEvent;
 import org.psem2m.composer.IComposer;
 import org.psem2m.composer.ICompositionListener;
 import org.psem2m.composer.agent.ComposerAgentSignals;
@@ -54,7 +52,7 @@ import org.psem2m.signals.ISignalSendResult;
  * @author Thomas Calmant
  */
 @Component(name = "psem2m-composer-core-factory", publicFactory = false)
-@Instantiate(name = "psem2m-composer-core")
+// @Instantiate(name = "psem2m-composer-core")
 @Provides(specifications = { IComposer.class, IIsolatePresenceListener.class }, properties = @StaticServiceProperty(name = "service.exported.interfaces", value = "org.psem2m.composer.IComposer", type = "String"))
 public class ComposerCore extends CPojoBase implements IComposer,
         ISignalListener, IIsolatePresenceListener {
@@ -247,7 +245,7 @@ public class ComposerCore extends CPojoBase implements IComposer,
         }
 
         // Get the new state
-        final ECompositionEvent event = (ECompositionEvent) aStateMap
+        final EComponentState event = (EComponentState) aStateMap
                 .get(ComposerAgentSignals.COMPONENT_CHANGED_KEY_STATE);
         if (event == null) {
             // Invalid data
@@ -255,8 +253,8 @@ public class ComposerCore extends CPojoBase implements IComposer,
         }
 
         switch (event) {
-        case ADD:
-        case START:
+        case INSTANTIATING:
+        case COMPLETE:
             // The component has been added or started : stop the timeout run
             cancelTimeout(componentName);
             break;
