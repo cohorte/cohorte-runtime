@@ -28,6 +28,8 @@ SIGNAL_RESPONSE_PREFIX = "%s/response" % SIGNAL_PREFIX
 SIGNAL_FACTORY_PREFIX = "%s/factory-state" % SIGNAL_PREFIX
 
 SIGNAL_REQUEST_PATTERN = "%s/*" % SIGNAL_REQUEST_PREFIX
+SIGNAL_FACTORY_PATTERN = "%s/*" % SIGNAL_FACTORY_PREFIX
+
 SIGNAL_CAN_HANDLE_COMPONENTS = "%s/can-handle-components" \
                                % SIGNAL_REQUEST_PREFIX
 SIGNAL_INSTANTIATE_COMPONENTS = "%s/instantiate-components" \
@@ -250,6 +252,7 @@ class ComposerAgent(object):
         """
         self.instances.clear()
         self.receiver.register_listener(SIGNAL_REQUEST_PATTERN, self)
+        self.receiver.register_listener(SIGNAL_FACTORY_PATTERN, self)
 
         # Register to iPOPO events
         self.ipopo.add_listener(self)
@@ -271,6 +274,7 @@ class ComposerAgent(object):
         # Unregister to events
         self.ipopo.remove_listener(self)
         self.receiver.unregister_listener(SIGNAL_REQUEST_PATTERN, self)
+        self.receiver.unregister_listener(SIGNAL_FACTORY_PATTERN, self)
 
         # Send a signal to tell others that all our factories are gone
         self.sender.fire(SIGNAL_ISOLATE_FACTORIES_GONE, None,
