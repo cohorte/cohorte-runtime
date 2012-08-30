@@ -50,5 +50,5 @@ public interface IComposer {
      *             An error occurred (depends on implementation)
      */
     void removeComponentsSet(ComponentsSetBean aComponentsSetBean)
-            throws Exception;
+            throws InvalidComponentsSetException;
 }

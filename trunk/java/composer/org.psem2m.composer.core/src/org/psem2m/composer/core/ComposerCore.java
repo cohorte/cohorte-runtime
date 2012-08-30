@@ -886,7 +886,7 @@ public class ComposerCore extends CPojoBase implements IComposer,
      */
     @Override
     public synchronized void removeComponentsSet(
-            final ComponentsSetBean aComponentsSetBean) throws Exception {
+            final ComponentsSetBean aComponentsSetBean) {
 
         if (!aComponentsSetBean.isRoot()) {
             // Invalid composite
