@@ -168,6 +168,17 @@ public class StatusStorage<S extends State, T> implements IStatusStorage<S, T> {
     /*
      * (non-Javadoc)
      * 
+     * @see org.psem2m.status.storage.IStatusStorage#getValues()
+     */
+    @Override
+    public Collection<T> getValues() {
+
+        return pValues.values();
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see
      * org.psem2m.status.storage.IStatusStorage#getValuesInStates(org.psem2m
      * .status.storage.State[])

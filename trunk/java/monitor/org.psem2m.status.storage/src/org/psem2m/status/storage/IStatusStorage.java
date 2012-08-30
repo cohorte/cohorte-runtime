@@ -66,6 +66,13 @@ public interface IStatusStorage<S extends State, T> {
     S getState(final String aId) throws InvalidIdException;
 
     /**
+     * Retrieves the stored values
+     * 
+     * @return the stored values
+     */
+    Collection<T> getValues();
+
+    /**
      * Retrieves all the values currently in one of the given states
      * 
      * @param aStates
