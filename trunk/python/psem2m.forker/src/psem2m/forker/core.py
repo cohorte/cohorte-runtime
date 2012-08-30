@@ -357,7 +357,7 @@ class Forker(object):
 
                 # Re-transmit the isolate status
                 self._sender.send(ISOLATE_STATUS_SIGNAL, status_bean,
-                                  groups=["MONITORS"])
+                                  dir_group="MONITORS")
 
             except:
                 logger.exception("Error reading isolate status line :\n%s\n",

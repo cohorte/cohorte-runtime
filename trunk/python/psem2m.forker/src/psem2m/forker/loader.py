@@ -28,6 +28,7 @@ _logger = logging.getLogger(__name__)
 
 import json
 import sys
+import time
 
 if sys.version_info[0] == 3:
     # Python 3
@@ -38,6 +39,20 @@ else:
     # Python 2
     import httplib
     import urlparse
+
+# ------------------------------------------------------------------------------
+
+ISOLATE_STATE_AGENT_DONE = 10
+""" "Agent Done" status value """
+
+ISOLATE_STATUS_CLASS = "org.psem2m.isolates.base.isolates.boot.IsolateStatus"
+""" IsolateStatus Java class name """
+
+ISOLATE_STATUS_SIGNAL = "/psem2m/isolate/status"
+""" Isolate status PSEM2M signal name """
+
+SPEC_SIGNAL_BROADCASTER = "org.psem2m.signals.ISignalBroadcaster"
+""" Signal broadcaster service specification """
 
 # ------------------------------------------------------------------------------
 
@@ -244,6 +259,56 @@ class IsolateLoader(object):
         return isolate_descr
 
 
+    def send_agent_done(self):
+        """
+        Tries to send an IsolateStatus signal with the status **AGENT_DONE**.
+        
+        Simply prints a message if the signal couldn't be sent.
+        
+        :return: True if the signal was sent, else False
+        """
+        try:
+            # Find the SignalSender service
+            ref = self.context.get_service_reference(SPEC_SIGNAL_BROADCASTER)
+            if ref is None:
+                _logger.warning("No signal broadcaster available")
+                return False
+
+            # Get the service instance
+            sender = self.context.get_service(ref)
+            if sender is None:
+                _logger.warning("Invalid signal broadcaster service")
+                return False
+
+        except pelix.BundleException as ex:
+            _logger.exception("Error grabbing the signal broadcaster: %s", ex)
+            return False
+
+        # Prepare the bean
+        isolate_id = self._config.get_current_isolate().get_id()
+        status_bean = {
+                       "javaClass": ISOLATE_STATUS_CLASS,
+                       "isolateId": isolate_id,
+                       "progress": float(100),
+                       "state": ISOLATE_STATE_AGENT_DONE,
+                       "statusUID": int(time.time() * 1000),
+                       "timestamp": int(time.time() * 1000)
+                       }
+
+        # Send the isolate status
+        sender.send(ISOLATE_STATUS_SIGNAL, status_bean, dir_group="ALL")
+
+        try:
+            # Release the service instance
+            self.context.unget_service(ref)
+
+        except pelix.BundleException as ex:
+            _logger.exception("Error freeing the signal broadcaster: %s", ex)
+
+        # Done !
+        return True
+
+
     def setup_isolate(self):
         """
         Configures the current isolate according to the configuration for the
@@ -313,6 +378,11 @@ class IsolateLoader(object):
             # FIXME: Pelix should stop there
             raise pelix.FrameworkException("Loader had to stop the framework",
                                            True)
+
+        else:
+            # Send the "agent done" isolate status signal
+            self.send_agent_done()
+
 
     @Invalidate
     def invalidate(self, context):
