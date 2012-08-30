@@ -189,6 +189,7 @@ public class ComponentMonitor implements ISignalListener,
 
         if (aIsolateStatus == null) {
             // Unhandled status
+            return;
         }
 
         switch (aIsolateStatus.getState()) {
