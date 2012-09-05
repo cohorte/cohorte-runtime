@@ -64,6 +64,13 @@ public interface IComposerStatus {
     boolean composetWaiting(String aName);
 
     /**
+     * Retrieves the components sets in the instantiation or full state
+     * 
+     * @return The atvive components sets
+     */
+    InstantiatingComposite[] getActiveComposets();
+
+    /**
      * Retrieves the components set with the given name
      * 
      * @param aComposetName
@@ -95,7 +102,7 @@ public interface IComposerStatus {
      *            An isolate ID
      * @return All factories registered on the given isolate
      */
-    Set<String> getIsolateFactories(String aIsolateId);
+    String[] getIsolateFactories(String aIsolateId);
 
     /**
      * Retrieves the isolate ID -&gt; factories map
@@ -117,6 +124,26 @@ public interface IComposerStatus {
      * @return The waiting components sets
      */
     InstantiatingComposite[] getWaitingComposets();
+
+    /**
+     * Tests if the given components set is active. Returns false if the set is
+     * waiting or unknown
+     * 
+     * @param aName
+     *            The name of the components set
+     * @return True if components set is known and active
+     */
+    boolean isComposetActive(String aName);
+
+    /**
+     * Tests if the given components set is active. Returns false if the set is
+     * active or unknown
+     * 
+     * @param aName
+     *            The name of the components set
+     * @return True if components set is known and waiting
+     */
+    boolean isComposetWaiting(String aName);
 
     /**
      * Registers factories in the given isolate
@@ -144,7 +171,7 @@ public interface IComposerStatus {
      * @param aIsolateId
      *            An isolate ID
      */
-    void removeIsolate(String aIsolateId);
+    void removeIsolateFactories(String aIsolateId);
 
     /**
      * Unregisters factories from the given isolate

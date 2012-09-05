@@ -154,6 +154,26 @@ public class ComposerStatus implements IComposerStatus {
     /*
      * (non-Javadoc)
      * 
+     * @see org.psem2m.composer.core.v2.IComposerStatus#getActiveComposets()
+     */
+    @Override
+    public InstantiatingComposite[] getActiveComposets() {
+
+        final Collection<InstantiatingComposite> composets = pComposetStatus
+                .getValuesInStates(EComposetState.INSTANTIATING,
+                        EComposetState.FULL);
+
+        if (composets == null || composets.isEmpty()) {
+            // No components set in this state
+            return null;
+        }
+
+        return composets.toArray(new InstantiatingComposite[composets.size()]);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see
      * org.psem2m.composer.core.v2.IComposerStatus#getComposet(java.lang.String)
      */
@@ -219,10 +239,10 @@ public class ComposerStatus implements IComposerStatus {
      * lang.String)
      */
     @Override
-    public synchronized Set<String> getIsolateFactories(final String aIsolateId) {
+    public synchronized String[] getIsolateFactories(final String aIsolateId) {
 
         // Return a copy of the set
-        return new HashSet<String>(getSet(pIsolateFactories, aIsolateId));
+        return getSet(pIsolateFactories, aIsolateId).toArray(new String[0]);
     }
 
     /*
@@ -306,7 +326,7 @@ public class ComposerStatus implements IComposerStatus {
                 .getValuesInStates(EComposetState.WAITING);
 
         if (composets == null || composets.isEmpty()) {
-            // No composets in this state
+            // No components set in this state
             return null;
         }
 
@@ -327,6 +347,50 @@ public class ComposerStatus implements IComposerStatus {
         pIsolateFactories.clear();
 
         pLogger.logInfo(this, "invalidate", "Composer Status gone");
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.composer.core.v2.IComposerStatus#isComposetActive(java.lang
+     * .String)
+     */
+    @Override
+    public boolean isComposetActive(final String aName) {
+
+        try {
+            return pComposetStatus.getState(aName) != EComposetState.WAITING;
+
+        } catch (final InvalidIdException ex) {
+            // Unknown ID
+            pLogger.logDebug(this, "isComposetActive",
+                    "Unknown components set=", aName);
+        }
+
+        return false;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.composer.core.v2.IComposerStatus#isComposetWaiting(java.lang
+     * .String)
+     */
+    @Override
+    public boolean isComposetWaiting(final String aName) {
+
+        try {
+            return pComposetStatus.getState(aName) == EComposetState.WAITING;
+
+        } catch (final InvalidIdException ex) {
+            // Unknown ID
+            pLogger.logDebug(this, "isComposetWaiting",
+                    "Unknown components set=", aName);
+        }
+
+        return false;
     }
 
     /*
@@ -382,11 +446,11 @@ public class ComposerStatus implements IComposerStatus {
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.composer.core.v2.IComposerStatus#removeIsolate(java.lang.String
-     * )
+     * org.psem2m.composer.core.v2.IComposerStatus#removeIsolateFactories(java
+     * .lang.String)
      */
     @Override
-    public synchronized void removeIsolate(final String aIsolateId) {
+    public synchronized void removeIsolateFactories(final String aIsolateId) {
 
         final Set<String> isolateFactories = pIsolateFactories.get(aIsolateId);
         if (isolateFactories != null) {

@@ -331,7 +331,45 @@ public class ComposerLogic implements IComposer, IComposerLogic {
     @Override
     public synchronized void handleIsolateGone(final String aIsolateId) {
 
-        pStatus.removeIsolate(aIsolateId);
+        // Get the isolate factories
+        final String[] factories = pStatus.getIsolateFactories(aIsolateId);
+
+        // Update the composer status
+        pStatus.removeIsolateFactories(aIsolateId);
+
+        // Update the components sets
+        final InstantiatingComposite[] knownComposets = pStatus.getComposets();
+        if (knownComposets == null) {
+            // Nothing more to do
+            pLogger.logDebug(this, "handleIsolateGone", "No components set");
+            return;
+        }
+
+        // Flag to compute a new composition only if necessary
+        boolean needsResolution = false;
+
+        for (final InstantiatingComposite composet : knownComposets) {
+
+            final String composetName = composet.getName();
+
+            // Update the set
+            composet.lostComponentTypes(aIsolateId, factories);
+
+            // Test if it is still complete if it was running
+            if (pStatus.isComposetActive(composetName)
+                    && !composet.isComplete()) {
+                // Components set goes in the Waiting state
+                pStatus.composetWaiting(composetName);
+
+                // A new resolution is needed
+                needsResolution = true;
+            }
+        }
+
+        if (needsResolution) {
+            // Recompute a resolution
+            delayResolution();
+        }
     }
 
     /*

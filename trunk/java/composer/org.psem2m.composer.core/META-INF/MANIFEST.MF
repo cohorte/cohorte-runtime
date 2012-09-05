@@ -193,21 +193,25 @@ iPOJO-Components: instance { $component="org.psem2m.composer.core.v2.C
  tateChange" $return="boolean" $arguments="{java.lang.String,org.psem2
  m.composer.core.v2.EComposetState}" }method { $name="composetWaiting"
   $return="boolean" $arguments="{java.lang.String}" }method { $name="g
- etComposet" $return="org.psem2m.composer.core.InstantiatingComposite"
-  $arguments="{java.lang.String}" }method { $name="getComposets" $retu
- rn="org.psem2m.composer.core.InstantiatingComposite[]" }method { $nam
- e="getComposetState" $return="org.psem2m.composer.core.v2.EComposetSt
- ate" $arguments="{java.lang.String}" }method { $name="getIsolateFacto
- ries" $return="java.util.Set" $arguments="{java.lang.String}" }method
-  { $name="getIsolatesFactories" $return="java.util.Map" }method { $na
- me="getSet" $return="java.util.Set" $arguments="{java.util.Map,java.l
- ang.Object}" }method { $name="getSnapshot" $return="org.psem2m.compos
- er.model.ComponentsSetBean[]" }method { $name="getWaitingComposets" $
- return="org.psem2m.composer.core.InstantiatingComposite[]" }method { 
- $name="invalidate" }method { $name="registerFactories" $return="boole
- an" $arguments="{java.lang.String,java.lang.String[]}" }method { $nam
- e="removeComposet" $return="boolean" $arguments="{java.lang.String}" 
- }method { $name="removeIsolate" $arguments="{java.lang.String}" }meth
- od { $name="unregisterFactories" $return="boolean" $arguments="{java.
- lang.String,java.lang.String[]}" }method { $name="validate" }}}
+ etActiveComposets" $return="org.psem2m.composer.core.InstantiatingCom
+ posite[]" }method { $name="getComposet" $return="org.psem2m.composer.
+ core.InstantiatingComposite" $arguments="{java.lang.String}" }method 
+ { $name="getComposets" $return="org.psem2m.composer.core.Instantiatin
+ gComposite[]" }method { $name="getComposetState" $return="org.psem2m.
+ composer.core.v2.EComposetState" $arguments="{java.lang.String}" }met
+ hod { $name="getIsolateFactories" $return="java.lang.String[]" $argum
+ ents="{java.lang.String}" }method { $name="getIsolatesFactories" $ret
+ urn="java.util.Map" }method { $name="getSet" $return="java.util.Set" 
+ $arguments="{java.util.Map,java.lang.Object}" }method { $name="getSna
+ pshot" $return="org.psem2m.composer.model.ComponentsSetBean[]" }metho
+ d { $name="getWaitingComposets" $return="org.psem2m.composer.core.Ins
+ tantiatingComposite[]" }method { $name="invalidate" }method { $name="
+ isComposetActive" $return="boolean" $arguments="{java.lang.String}" }
+ method { $name="isComposetWaiting" $return="boolean" $arguments="{jav
+ a.lang.String}" }method { $name="registerFactories" $return="boolean"
+  $arguments="{java.lang.String,java.lang.String[]}" }method { $name="
+ removeComposet" $return="boolean" $arguments="{java.lang.String}" }me
+ thod { $name="removeIsolateFactories" $arguments="{java.lang.String}"
+  }method { $name="unregisterFactories" $return="boolean" $arguments="
+ {java.lang.String,java.lang.String[]}" }method { $name="validate" }}}
 

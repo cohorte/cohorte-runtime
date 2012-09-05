@@ -187,11 +187,6 @@ public class ComponentMonitor implements ISignalListener,
     public void handleIsolateStatusEvent(final String aSenderId,
             final IsolateStatus aIsolateStatus) {
 
-        if (aIsolateStatus == null) {
-            // Unhandled status
-            return;
-        }
-
         switch (aIsolateStatus.getState()) {
         case IsolateStatus.STATE_AGENT_DONE:
             pComposer.handleIsolateReady(aIsolateStatus.getIsolateId());
