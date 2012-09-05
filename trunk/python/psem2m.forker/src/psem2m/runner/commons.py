@@ -84,12 +84,12 @@ class Runner(object):
             raise ValueError("Can't find the executable for isolate '%s'"
                              % isolate_id)
 
-        # Get the working directory
+        # Clean the working directory
         working_dir = self._make_working_directory(isolate_id)
 
         # Prepare the environment...
         # ... use configuration values
-        env = self._make_env(isolate_descr, os.environ.copy())
+        env = self._make_env(isolate_descr, os.environ.copy(), working_dir)
         if env is None:
             # ... or start with a fresh environment
             env = {}
@@ -103,7 +103,7 @@ class Runner(object):
         # Prepare the interpreter arguments, the first argument **must** be
         # the interpreter
         args = [executable]
-        args.extend(self._make_args(isolate_descr))
+        args.extend(self._make_args(isolate_descr, working_dir))
 
         # Run the process and return its reference
         return subprocess.Popen(args, executable=executable, env=env,
@@ -125,13 +125,14 @@ class Runner(object):
         raise NotImplementedError("Runner should implement _get_executable()")
 
 
-    def _make_args(self, isolate_descr):
+    def _make_args(self, isolate_descr, working_dir):
         """
         Prepares the isolate executable arguments.
         
         **TO BE IMPLEMENTED BY SUBCLASSES**
         
         :param isolate_descr: A dictionary describing the isolate
+        :param working_dir: The isolate working directory
         :return: The parameters to give to the interpreter (array)
         :raise OSError: File not found
         :raise ValueError: Error preparing the arguments
@@ -139,7 +140,7 @@ class Runner(object):
         raise NotImplementedError("Runner should implement _make_args()")
 
 
-    def _make_env(self, isolate_descr, base_env):
+    def _make_env(self, isolate_descr, base_env, working_dir):
         """
         Retrieves the process environment variables to be set.
         
@@ -150,6 +151,7 @@ class Runner(object):
         
         :param isolate_descr: Isolate description
         :param base_env: Current environment variables
+        :param working_dir: The isolate working directory
         
         :return: The isolate environment variables
         """

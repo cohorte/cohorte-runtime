@@ -291,7 +291,11 @@ class Main(object):
 
         # Activate debug mode
         if '-d' in extra_args or '--debug' in extra_args:
-            args.append('--debug')
+            args.append('--debug-mode')
+
+        # Activate verbose mode
+        if '-v' in extra_args or '--verbose' in extra_args:
+            args.append('--verbose-mode')
 
         # Start the monitor except if told otherwise
         if '-s' not in extra_args and '--single' not in extra_args:

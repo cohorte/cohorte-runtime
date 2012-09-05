@@ -66,11 +66,12 @@ class ExecutableRunner(runner.Runner):
         return executable
 
 
-    def _make_args(self, isolate_descr):
+    def _make_args(self, isolate_descr, working_dir):
         """
         Prepares the executable arguments
         
         :param isolate_descr: A dictionary describing the isolate
+        :param working_dir: The isolate working directory
         :return: The parameters to give to the interpreter (array)
         """
         # Prepare arguments
@@ -90,17 +91,19 @@ class ExecutableRunner(runner.Runner):
         return args
 
 
-    def _make_env(self, isolate_descr, base_env):
+    def _make_env(self, isolate_descr, base_env, working_dir):
         """
         Retrieves the process environment variables to be set.
         
         :param isolate_descr: Isolate description
         :param base_env: Current environment variables
+        :param working_dir: The isolate working directory
         
         :return: The isolate environment variables
         """
         # Call the parent method
-        env = super(ExecutableRunner, self)._make_env(isolate_descr, base_env)
+        env = super(ExecutableRunner, self)._make_env(isolate_descr, base_env,
+                                                      working_dir)
         if env is None:
             # Parent did nothing
             env = {}

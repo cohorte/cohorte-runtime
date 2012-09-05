@@ -93,7 +93,7 @@ class JavaRunner(runner.Runner):
         return self._path
 
 
-    def _make_args(self, isolate_descr):
+    def _make_args(self, isolate_descr, working_dir):
         """
         Prepares the Java interpreter arguments.
         
@@ -105,6 +105,7 @@ class JavaRunner(runner.Runner):
           and its parameters.
         
         :param isolate_descr: A dictionary describing the isolate
+        :param working_dir: The isolate working directory
         :return: The parameters to give to the interpreter (array)
         :raise OSError: File not found
         :raise ValueError: Error preparing the arguments
@@ -255,11 +256,12 @@ class OsgiRunner(JavaRunner):
         return framework_file
 
 
-    def _make_args(self, isolate_descr):
+    def _make_args(self, isolate_descr, working_dir):
         """
         Prepares the Java virtual machine arguments
         
         :param isolate_descr: A dictionary describing the isolate
+        :param working_dir: The isolate working directory
         :return: The parameters to give to the interpreter (array)
         :raise OSError: File not found
         :raise ValueError: Error preparing the arguments
@@ -309,4 +311,4 @@ class OsgiRunner(JavaRunner):
         new_descr["vmArgs"] = vm_args
 
         # Call the parent class
-        return super(OsgiRunner, self)._make_args(new_descr)
+        return super(OsgiRunner, self)._make_args(new_descr, working_dir)
