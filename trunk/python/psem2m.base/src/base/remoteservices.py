@@ -246,6 +246,7 @@ class ServiceExporter(object):
             "serviceRegistration": registration
         }
 
+        _logger.debug("> Export Service %s: %s", reference, properties)
         self.sender.fire(SIGNAL_REMOTE_EVENT, remote_event, dir_group="ALL")
 
 
@@ -281,6 +282,8 @@ class ServiceExporter(object):
             "serviceRegistration": registration
         }
 
+        _logger.debug("X UNexported service %s: %s", ref,
+                      ref.get_properties()[pelix.OBJECTCLASS])
         self.sender.fire(SIGNAL_REMOTE_EVENT, remote_event, dir_group="ALL")
 
 
@@ -327,6 +330,7 @@ class ServiceExporter(object):
            "serviceRegistration": registration
            } for registration in self._registrations.values()]
 
+        _logger.debug("Got endpoints request from %s", sender)
         self.sender.fire(SIGNAL_REMOTE_EVENT, events, isolate=sender)
 
 
@@ -359,6 +363,7 @@ class ServiceExporter(object):
         # Register to the REQUEST_ALL_ENDPOINTS signal
         self.receiver.register_listener(BROADCASTER_SIGNAL_REQUEST_ENDPOINTS,
                                         self)
+        _logger.debug("ServiceExporter Ready")
 
 
     @Invalidate
@@ -388,6 +393,7 @@ class ServiceExporter(object):
 
         # Remove the reference to the context
         self.context = None
+        _logger.debug("ServiceExporter Gone")
 
 # ------------------------------------------------------------------------------
 
@@ -501,11 +507,13 @@ class ServiceImporter(object):
         """
         if event == REGISTERED:
             # Isolate registered: ask for its end points
+            _logger.debug("Isolate %s registered -> request endpoints", isolate_id)
             self.sender.fire(BROADCASTER_SIGNAL_REQUEST_ENDPOINTS, None,
                              isolate=isolate_id)
 
         elif event == UNREGISTERED:
             # Isolate lost
+            _logger.debug("Isolate %s lost", isolate_id)
             self._handle_isolate_lost(isolate_id)
 
 
@@ -585,6 +593,9 @@ class ServiceImporter(object):
         # Store remote service ID
         service_id = remote_reg["serviceId"]
 
+        # Store the host isolate ID
+        host_isolate = remote_reg["hostIsolate"]
+
         with self._registry_lock:
             if service_id in self._registered_services:
                 # Already registered service
@@ -622,6 +633,7 @@ class ServiceImporter(object):
 
             # Filter properties
             properties = _filter_export_properties(remote_reg["serviceProperties"])
+            properties["service.imported.from"] = host_isolate
 
             # Register the service
             try:
@@ -640,13 +652,15 @@ class ServiceImporter(object):
             # Store information
             self._registered_services[service_id] = (proxy, reg)
 
-            isolate_name = remote_reg["hostIsolate"]
-            services = self._services.get(isolate_name, None)
+            services = self._services.get(host_isolate, None)
             if services is None:
                 services = []
-                self._services[isolate_name] = services
+                self._services[host_isolate] = services
 
             services.append(service_id)
+
+            _logger.debug("< Imported Service from %s: %s", host_isolate,
+                          remote_reg["exportedInterfaces"])
 
 
     def _unimport_service(self, isolate_name, service_id):
@@ -685,6 +699,8 @@ class ServiceImporter(object):
             if isolate_services is not None and service_id in isolate_services:
                 isolate_services.remove(service_id)
 
+            _logger.debug("X UNimported service from %s: %s", isolate_name,
+                          reg.get_reference().get_properties()[pelix.OBJECTCLASS])
 
 
     @Validate
@@ -703,8 +719,10 @@ class ServiceImporter(object):
                                         self)
 
         # Send "request endpoints" signal
+        _logger.debug("Sending endpoints request...")
         self.sender.fire(BROADCASTER_SIGNAL_REQUEST_ENDPOINTS, None,
                          dir_group="ALL")
+        _logger.debug("ServiceImporter Ready")
 
 
     @Invalidate
@@ -737,3 +755,4 @@ class ServiceImporter(object):
 
         # Forget the context
         self.context = None
+        _logger.debug("ServiceImporter Gone")

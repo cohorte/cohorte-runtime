@@ -237,6 +237,8 @@ class SignalReceiver(object):
         with self._listeners_lock:
             self._listeners.clear()
 
+        _logger.info("SignalReceiver Gone")
+
 
     def register_listener(self, signal_pattern, listener):
         """
@@ -280,10 +282,13 @@ class SignalReceiver(object):
         Component validated
         """
         self._listeners.clear()
-        self.http.register_servlet(SignalReceiver.SERVLET_PATH, self)
 
         # Register ourselves in the directory
         self._directory.register_local(self.http.get_port(), ["ALL", "LOCAL"])
+
+        # Register to the HTTP service
+        self.http.register_servlet(SignalReceiver.SERVLET_PATH, self)
+        _logger.info("SignalReceiver Ready")
 
 
     def _notify_listeners(self, name, data):
@@ -501,6 +506,7 @@ class SignalSender(object):
         Component invalidated
         """
         self._context = None
+        _logger.info("SignalSender Gone")
 
 
     def post(self, signal, content, isolate=None, isolates=None,
@@ -605,6 +611,7 @@ class SignalSender(object):
         Component validated
         """
         self._context = context
+        _logger.info("SignalSender Ready")
 
 
     def _get_directory_group_accesses(self, dir_group):
