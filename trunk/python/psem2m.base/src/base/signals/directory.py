@@ -28,7 +28,7 @@ ALL = "ALL"
 FORKERS = "FORKERS"
 """ All forkers, including the current isolate if it is a forker """
 
-ISOLATES = "FORKERS"
+ISOLATES = "ISOLATES"
 """
 All isolates, including monitors and the current one, excluding forkers.
 If the current isolate is a forker, it is excluded.
