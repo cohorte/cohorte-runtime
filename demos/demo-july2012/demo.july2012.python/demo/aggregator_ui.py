@@ -20,6 +20,8 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, \
 import logging
 _logger = logging.getLogger(__name__)
 
+import time
+
 # ------------------------------------------------------------------------------
 
 import sys
@@ -68,6 +70,13 @@ class AggregatorServlet(object):
         self._http = None
 
 
+    def _format_timestamp(self, time_stamp):
+        """
+        Format the given time (in seconds) to string
+        """
+        return time.strftime("%H:%M:%S", time.localtime(time_stamp))
+
+
     def _make_sensor_part(self, name, history):
         """
         Prepares a HTML title and a table containing sensor history
@@ -81,8 +90,8 @@ class AggregatorServlet(object):
 <td>{time}</td>
 <td>{value:.2f}</td>
 <td>{unit}</td>
-</tr>""".format(time=entry["time"], value=entry["value"],
-                unit=_to_string(entry["unit"]))
+</tr>""".format(time=self._format_timestamp(entry["time"] / 1000.),
+                value=entry["value"], unit=_to_string(entry["unit"]))
         for entry in history)
 
         return """
@@ -103,7 +112,7 @@ class AggregatorServlet(object):
         output = """<html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<meta http-equiv="refresh" content="2">
+<meta http-equiv="refresh" content="1">
 <title>Sensor Aggregator - {name}</title>
 </head>
 <body>

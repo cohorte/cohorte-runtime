@@ -13,7 +13,7 @@ Created on 10 juil. 2012
 from pelix.ipopo import constants
 
 from pelix.ipopo.decorators import ComponentFactory, Provides, \
-    Validate, Invalidate, Property, Requires, Bind
+    Validate, Invalidate, Property, Requires, Bind, Unbind
 
 # ------------------------------------------------------------------------------
 
@@ -139,6 +139,32 @@ class Aggregator(object):
                                       "value": value,
                                       "unit": unit,
                                       "javaClass": HISTORY_ENTRY_CLASS})
+
+
+    @Bind
+    def bind(self, svc, ref):
+        """
+        Called by iPOPO when a service is bound
+        """
+        props = ref.get_properties()
+        if props.get("service.imported", False):
+            import_str = "from %s" % props.get("service.imported.from")
+        else:
+            import_str = "local"
+        _logger.debug("%s> Bound to %s (%s)", self._name, ref, import_str)
+
+
+    @Unbind
+    def unbind(self, svc, ref):
+        """
+        Called by iPOPO when a service is gone
+        """
+        props = ref.get_properties()
+        if props.get("service.imported", False):
+            import_str = "from %s" % props.get("service.imported.from")
+        else:
+            import_str = "local"
+        _logger.debug("%s> UnBound of %s (%s)", self._name, ref, import_str)
 
 
     @Validate
