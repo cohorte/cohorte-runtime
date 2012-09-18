@@ -132,6 +132,8 @@ class IsolateLoader(object):
         :param isolate_descr: Description of the current isolate
         :return: True on success, else False
         """
+        optionals = {}
+
         for bundle in isolate_descr.get_bundles():
             # Install the bundle
             try:
@@ -140,6 +142,7 @@ class IsolateLoader(object):
 
                 # Store the installed bundle
                 self._bundles.append(bnd)
+                optionals[bnd] = bundle.optional
 
             except pelix.BundleException:
                 _logger.exception("Error installing bundle %s",
@@ -160,16 +163,16 @@ class IsolateLoader(object):
         _logger.debug("HTTP Port set to %d", port)
 
         # Start bundles
-        for bundle in self._bundles:
+        for bnd in self._bundles:
             try:
-                bundle.start()
-                _logger.debug("Bundle %s started", bundle)
+                bnd.start()
+                _logger.debug("Bundle %s started", bnd)
 
             except pelix.BundleException:
                 _logger.exception("Error starting bundle %s",
-                                  bundle.get_symbolic_name())
+                                  bnd.get_symbolic_name())
 
-                if not bundle.optional:
+                if not optionals.get(bnd):
                     # Reset isolate on error
                     self.reset()
                     return False
