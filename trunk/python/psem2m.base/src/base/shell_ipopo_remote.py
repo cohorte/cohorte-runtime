@@ -97,19 +97,6 @@ class RemoteConsole(socketserver.StreamRequestHandler):
 
     def handle(self):
         """
-        Creates a new thread, with modified streams, to answer the client
-        """
-        # We do it in a thread to joke the standard output 
-        thread = threading.Thread(target=self._inner_loop)
-        thread.start()
-
-        # Wait for the thread to end because exiting from here shuts down
-        # the connection
-        thread.join()
-
-
-    def _inner_loop(self):
-        """
         Handles a TCP client
         """
         _logger.info("RemoteConsole client connected: [%s]:%d",
@@ -148,11 +135,17 @@ class RemoteConsole(socketserver.StreamRequestHandler):
                     self.send("\nInterruption received.")
                     return
 
+                except IOError as ex:
+                    # I/O errors are fatal
+                    _logger.exception("Error communicating with a client: %s",
+                                      ex)
+                    break
+
                 except Exception as ex:
+                    # Other exceptions are not important
                     import traceback
                     self.send("\nError during last command: %s\n" % ex)
                     self.send(traceback.format_exc())
-                    break
 
                 # Print the prompt
                 self.send(ps1)
@@ -225,7 +218,7 @@ def createServer(shell, ip, port, address_family=None):
 @ComponentFactory("pelix-ipopo-remote-shell-factory")
 @Property("_port", "shell.port", 9000)
 @Requires("_shell", SHELL_SERVICE_SPEC)
-@Requires("_handlers", SHELL_COMMAND_SPEC, True, True)
+@Requires("_handlers", SHELL_COMMAND_SPEC, aggregate=True, optional=True)
 @Instantiate("ipopo-remote-shell")
 class IPopoRemoteShell(object):
     """
@@ -244,6 +237,7 @@ class IPopoRemoteShell(object):
         self._thread = None
         self._server = None
         self._server_flag = None
+        self._remote_handlers = {}
 
 
     def get_banner(self):
@@ -282,6 +276,33 @@ class IPopoRemoteShell(object):
         return self._shell.execute(line, rfile, wfile)
 
 
+    def __register_handler(self, handler):
+        """
+        Registers the given command handler to the shell
+        """
+        # Shell command bound, and shell active
+        namespace = handler.get_namespace()
+        if handler not in self._remote_handlers:
+            # Local service
+            for command, method in handler.get_methods():
+                self._shell.register_command(namespace, command, method)
+
+        else:
+            # Imported service (TODO: to be tested)
+            host = self._remote_handlers[handler]
+            _logger.info("Bound to a remote command handler from %s", host)
+
+            namespace = ".".join((host, namespace))
+            for command, method_name in handler.get_methods_names():
+                def proxy(*args, **kwargs):
+                    """
+                    Remote command proxy
+                    """
+                    return getattr(handler, method_name)(*args, **kwargs)
+
+                self._shell.register_command(namespace, command, proxy)
+
+
     @Bind
     def bind(self, svc, svc_ref):
         """
@@ -292,10 +313,20 @@ class IPopoRemoteShell(object):
         """
         specs = svc_ref.get_property(pelix.OBJECTCLASS)
         if SHELL_COMMAND_SPEC in specs:
-            # Shell command bound
-            namespace = svc.get_namespace()
-            for command, method in svc.get_methods():
-                self._shell.register_command(namespace, command, method)
+            # Command handler bound
+            if svc_ref.get_property("service.imported"):
+                # Imported command
+                self._remote_handlers[svc] = \
+                                svc_ref.get_property("service.imported.from")
+
+            if self._shell is not None:
+                # The shell is active, register the command handler immediately
+                self.__register_handler(svc)
+
+        elif self._handlers and SHELL_SERVICE_SPEC in specs:
+            # Bound to the shell, register bound commands if any
+            for handler in self._handlers:
+                self.__register_handler(handler)
 
 
     @Unbind
@@ -311,6 +342,10 @@ class IPopoRemoteShell(object):
             # Shell command unbound
             namespace = svc.get_namespace()
             self._shell.unregister(namespace)
+
+            # Clean up the references
+            if svc in self._remote_handlers:
+                del self._remote_handlers[svc]
 
 
     @Validate
@@ -334,6 +369,9 @@ class IPopoRemoteShell(object):
         # Stop the clients loops
         self._server_flag.set_value(False)
 
+        # Clear data
+        self._remote_handlers.clear()
+
         # Shutdown the server
         self._server.shutdown()
         self._thread.join(2)
@@ -342,3 +380,4 @@ class IPopoRemoteShell(object):
         self._server.server_close()
 
         _logger.info("RemoteShell gone")
+

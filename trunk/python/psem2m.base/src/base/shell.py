@@ -1,15 +1,37 @@
 #!/usr/bin/env python
 #-- Content-Encoding: UTF-8 --
 """
-Created on 18 sept. 2012
+Pelix shell bundle.
+
+Provides the basic command parsing and execution support to make a Pelix shell.
 
 :author: Thomas Calmant
+:copyright: Copyright 2012, isandlaTech
+:license: GPLv3
+:version: 0.3
+:status: Alpha
+
+..
+
+    This file is part of iPOPO.
+
+    iPOPO is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    iPOPO is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with iPOPO. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # ------------------------------------------------------------------------------
 
 import pelix.framework as pelix
-
 
 import logging
 import shlex
@@ -18,6 +40,7 @@ import sys
 # ------------------------------------------------------------------------------
 
 SHELL_SERVICE_SPEC = "pelix.shell"
+SHELL_UTILS_SERVICE_SPEC = "pelix.shell.utilities"
 DEFAULT_NAMESPACE = "default"
 
 _logger = logging.getLogger(__name__)
@@ -99,75 +122,89 @@ def _split_ns_command(cmd_token):
 
 # ------------------------------------------------------------------------------
 
-def bundlestate_to_str(state):
+class ShellUtils(object):
     """
-    Converts a bundle state integer to a string
+    Utility methods for the shell
     """
-    states = {
-              pelix.Bundle.INSTALLED: "INSTALLED",
-              pelix.Bundle.ACTIVE:"ACTIVE",
-              pelix.Bundle.RESOLVED:"RESOLVED",
-              pelix.Bundle.STARTING:"STARTING",
-              pelix.Bundle.STOPPING:"STOPPING",
-              pelix.Bundle.UNINSTALLED:"UNINSTALLED"
-    }
+    def bundlestate_to_str(self, state):
+        """
+        Converts a bundle state integer to a string
+        """
+        states = {
+                  pelix.Bundle.INSTALLED:   "INSTALLED",
+                  pelix.Bundle.ACTIVE:      "ACTIVE",
+                  pelix.Bundle.RESOLVED:    "RESOLVED",
+                  pelix.Bundle.STARTING:    "STARTING",
+                  pelix.Bundle.STOPPING:    "STOPPING",
+                  pelix.Bundle.UNINSTALLED: "UNINSTALLED"
+        }
 
-    if state in states:
-        return states[state]
+        return states.get(state, "Unknown state (%d)".format(state))
 
-    return "UNKNOWN STATE (%d)".format(state)
 
-# ------------------------------------------------------------------------------
+    def make_table(self, headers, lines):
+        """
+        Generates an ASCII table according to the given headers and lines
+        
+        :param headers: List of table headers
+        :param lines: List of table lines (tuples).
+        :return: The ASCII representation of the table
+        :raise ValueError: Different number of columns between headers and lines
+        """
+        if lines and len(headers) != len(lines[0]):
+            raise ValueError("Different sizes for header and lines")
 
-def make_table(headers, lines):
-    """
-    Generates an ASCII table according to the given headers and lines
-    """
-    if lines and len(headers) != len(lines[0]):
-        raise ValueError("Different sizes for header and lines")
+        # Maximum lengths
+        lengths = [len(title) for title in headers]
 
-    # Maximum lengths
-    lengths = [len(title) for title in headers]
+        # Lines
+        str_lines = []
+        for line in lines:
+            # Recompute lengths
+            i = 0
+            str_line = []
+            str_lines.append(str_line)
+            for entry in line:
+                str_entry = str(entry)
+                str_line.append(str_entry)
 
-    # Lines
-    for line in lines:
-        # Recompute lengths
+                if len(str_entry) > lengths[i]:
+                    lengths[i] = len(str_entry)
+                i += 1
+
+        # Prepare the head (centered text)
+        format_str = "|"
         i = 0
-        for entry in line:
-            if len(entry) > lengths[i]:
-                lengths[i] = len(entry)
+        for length in lengths:
+            format_str += " {%d:^%d} |" % (i, length)
             i += 1
 
-    # Prepare the head (centered text)
-    format_str = "|"
-    i = 0
-    for length in lengths:
-        format_str += " {%d:^%d} |" % (i, length)
-        i += 1
+        head_str = format_str.format(*headers)
 
-    head_str = format_str.format(*headers)
+        # Prepare the separator, according the length of the headers string
+        separator = '-' * len(head_str)
+        idx = head_str.find('|')
+        while idx != -1:
+            separator = '+'.join((separator[:idx], separator[idx + 1:]))
+            idx = head_str.find('|', idx + 1)
 
-    # Prepare the separator, according the length of the headers string
-    separator = '-' * len(head_str)
-    idx = head_str.find('|')
-    while idx != -1:
-        separator = '+'.join((separator[:idx], separator[idx + 1:]))
-        idx = head_str.find('|', idx + 1)
-
-    # Prepare the output
-    output = []
-    output.append(separator)
-    output.append(head_str)
-    output.append(separator)
-
-    # Compute the lines
-    format_str = format_str.replace('^', '<')
-    for line in lines:
-        output.append(format_str.format(*line))
+        # Prepare the output
+        output = []
         output.append(separator)
+        output.append(head_str)
+        output.append(separator.replace('-', '='))
 
-    # Join'em
-    return '\n'.join(output)
+        # Compute the lines
+        format_str = format_str.replace('^', '<')
+        for line in str_lines:
+            output.append(format_str.format(*line))
+            output.append(separator)
+
+        # Force the last end of line
+        output.append("")
+
+        # Join'em
+        return '\n'.join(output)
 
 # ------------------------------------------------------------------------------
 
@@ -177,7 +214,7 @@ class Shell(object):
     
     Allows to use name spaces.
     """
-    def __init__(self, context):
+    def __init__(self, context, utilities):
         """
         Sets up the shell
         
@@ -185,6 +222,7 @@ class Shell(object):
         """
         self._commands = {}
         self._context = context
+        self._utils = utilities
 
         # Register basic commands
         self.register_command(None, "lb", self.list_bundles)
@@ -193,6 +231,7 @@ class Shell(object):
         self.register_command(None, "stop", self.stop)
         self.register_command(None, "update", self.update)
         self.register_command(None, "install", self.install)
+        self.register_command(None, "uninstall", self.uninstall)
 
         self.register_command(None, "help", self.print_help)
         self.register_command(None, "?", self.print_help)
@@ -298,16 +337,14 @@ class Shell(object):
         space = self._commands.get(namespace, None)
         if not space:
             _logger.warning("Unknown name space: %s", namespace)
-            stdout.write("Unknown name space %s" % namespace)
-            stdout.flush()
+            stdout.write("Unknown name space %s\n" % namespace)
             return False
 
         # Get the method
         method = space.get(command, None)
         if method is None:
             _logger.warning("Unknown command: %s:%s", namespace, command)
-            stdout.write("Unknown command: %s:%s" % (namespace, command))
-            stdout.flush()
+            stdout.write("Unknown command: %s:%s\n" % (namespace, command))
             return False
 
         # Make arguments and keyword arguments
@@ -321,7 +358,6 @@ class Shell(object):
             # Invalid arguments...
             _logger.exception("Invalid method call: %s", ex)
             stdout.write("Invalid method call: %s\n" % (ex))
-            stdout.flush()
             return False
 
 
@@ -358,14 +394,13 @@ class Shell(object):
             # Make the line
             line = [str(entry) for entry in
                     (bundle.get_bundle_id()), bundle.get_symbolic_name(),
-                    bundlestate_to_str(bundle.get_state()),
+                    self._utils.bundlestate_to_str(bundle.get_state()),
                     bundle.get_version()]
 
             lines.append(line)
 
         # Print'em all
-        stdout.write(make_table(headers, lines) + "\n")
-        stdout.flush()
+        stdout.write(self._utils.make_table(headers, lines))
 
 
     def list_services(self, stdin, stdout):
@@ -393,13 +428,12 @@ class Shell(object):
             lines.append(line)
 
         # Print'em all
-        stdout.write(make_table(headers, lines) + "\n")
-        stdout.flush()
+        stdout.write(self._utils.make_table(headers, lines))
 
 
     def print_help(self, stdin, stdout):
         """
-        Prints the available methods and there documentation
+        Prints the available methods and their documentation
         """
         namespaces = [ns for ns in self._commands.keys()]
         namespaces.remove(DEFAULT_NAMESPACE)
@@ -417,8 +451,6 @@ class Shell(object):
                               "(Documentation missing)")
                 stdout.write("\t\t%s\n" % ' '.join(doc.split()))
 
-        stdout.flush()
-
 
     def quit(self, stdin, stdout):
         """
@@ -429,19 +461,19 @@ class Shell(object):
 
     def start(self, stdin, stdout, bundle_id):
         """
-        Starts the given bundle ID
+        start <bundle_id> - Starts the given bundle ID
         """
         bundle_id = int(bundle_id)
         bundle = self._context.get_bundle(bundle_id)
         if bundle is None:
-            stdout.write("Unknown bundle: %d", bundle_id)
+            stdout.write("Unknown bundle: %d\n", bundle_id)
 
         bundle.start()
 
 
     def stop(self, stdin, stdout, bundle_id):
         """
-        Stops the given bundle ID
+        stop <bundle_id> - Stops the given bundle
         """
         bundle_id = int(bundle_id)
         bundle = self._context.get_bundle(bundle_id)
@@ -453,7 +485,7 @@ class Shell(object):
 
     def update(self, stdin, stdout, bundle_id):
         """
-        Updates the given bundle ID
+        update <bundle_id> - Updates the given bundle ID
         """
         bundle_id = int(bundle_id)
         bundle = self._context.get_bundle(bundle_id)
@@ -465,10 +497,22 @@ class Shell(object):
 
     def install(self, stdin, stdout, location):
         """
-        Installs the given bundle
+        install <bundle_id> - Installs the given bundle
         """
         bundle_id = self._context.install_bundle(location)
         stdout.write("Bundle ID: %d\n" % bundle_id)
+
+
+    def uninstall(self, stdin, stdout, bundle_id):
+        """
+        uninstall <bundle_id> - Uninstalls the given bundle
+        """
+        bundle_id = int(bundle_id)
+        bundle = self._context.get_bundle(bundle_id)
+        if bundle is None:
+            stdout.write("Unknown bundle: %d\n" % bundle_id)
+
+        bundle.uninstall()
 
 
 # ------------------------------------------------------------------------------
@@ -481,7 +525,8 @@ class PelixActivator(object):
         """
         Sets up the activator
         """
-        self._svc_reg = None
+        self._shell_reg = None
+        self._utils_reg = None
 
 
     def start(self, context):
@@ -491,9 +536,16 @@ class PelixActivator(object):
         :param context: The bundle context
         """
         try:
-            self._svc_reg = context.register_service(SHELL_SERVICE_SPEC,
-                                                     Shell(context), {})
-            _logger.info("Shell service registered")
+            # Prepare the shell utility service
+            utils = ShellUtils()
+            shell = Shell(context, utils)
+
+            self._shell_reg = context.register_service(SHELL_SERVICE_SPEC,
+                                                       shell, {})
+            self._utils_reg = context.register_service(SHELL_UTILS_SERVICE_SPEC,
+                                                       utils, {})
+
+            _logger.info("Shell services registered")
 
         except pelix.BundleException as ex:
             _logger.exception("Error registering the shell service: %s", ex)
@@ -505,10 +557,15 @@ class PelixActivator(object):
         
         :param context: The bundle context
         """
-        if self._svc_reg is not None:
-            self._svc_reg.unregister()
-            _logger.info("Shell service unregistered")
-            self._svc_reg = None
+        if self._shell_reg is not None:
+            self._shell_reg.unregister()
+            self._shell_reg = None
+
+        if self._utils_reg is not None:
+            self._utils_reg.unregister()
+            self._utils_reg = None
+
+        _logger.info("Shell services unregistered")
 
 
 # Activator for Pelix
