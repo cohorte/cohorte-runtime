@@ -90,7 +90,11 @@ class IPopoCommands(object):
         Retrieves the list of tuples (command, method) for this command handler
         """
         return [("factories", self.list_factories),
-                ("instances", self.list_instances)]
+                ("instances", self.list_instances),
+                ("instance", self.instance_details),
+                ("instantiate", self.instantiate),
+                ("kill", self.kill),
+                ]
 
 
     def get_methods_names(self):
@@ -126,3 +130,68 @@ class IPopoCommands(object):
         stdout.write(self._utils.make_table(headers, lines))
 
 
+    def instance_details(self, stdin, stdout, name):
+        """
+        instance <name> - Prints the details of the given component instance
+        """
+        lines = []
+
+        try:
+            details = self._ipopo.get_instance_details(name)
+
+        except ValueError as ex:
+            stdout.write("Error getting instance details: %s\n" % ex)
+            return
+
+        lines.append("Name   : {0}".format(details["name"]))
+        lines.append("Factory: {0}".format(details["factory"]))
+        lines.append("State  : {0}".format(ipopo_state_to_str(details["state"])))
+        if "service" in details:
+            lines.append("Service: {0}".format(details["service"]))
+
+        lines.append("Dependencies:")
+        for field, infos in details["dependencies"].items():
+            lines.append("\tField: {0}".format(field))
+            lines.append("\t\tOptional : {0}".format(infos["optional"]))
+            lines.append("\t\tAggregate: {0}".format(infos["aggregate"]))
+            if "filter" in infos:
+                lines.append("\t\tFilter   : {0}".format(infos["filter"]))
+
+            lines.append("\t\tHandler  : {0}".format(infos["handler"]))
+            lines.append("\t\tBindings :")
+            for ref in infos["bindings"]:
+                lines.append('\t\t\t{0}'.format(ref))
+
+        lines.append("")
+        stdout.write('\n'.join(lines))
+
+
+    def instantiate(self, stdin, stdout, factory, name, **kwargs):
+        """
+        instantiate <factory> <name> [<property=value> ...] - Instantiate a
+        component of the given factory with the given name and properties
+        """
+        try:
+            self._ipopo.instantiate(factory, name, kwargs)
+            stdout.write("Component '%s' instantiated.\n" % name)
+
+        except ValueError as ex:
+            stdout.write("Invalid parameter: %s\n" % ex)
+
+        except TypeError as ex:
+            stdout.write("Invalid factory: %s\n" % ex)
+
+        except Exception as ex:
+            stdout.write("Error instantiating the component: %s\n" % ex)
+
+
+    def kill(self, stdin, stdout, name):
+        """
+        kill <name> - Kills the given component instance
+        """
+        try:
+            self._ipopo.kill(name)
+            stdout.write("Component '%s' killed.\n" % name)
+
+        except ValueError as ex:
+            stdout.write("Invalid parameter: %s\n" % ex)
