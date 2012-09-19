@@ -260,8 +260,8 @@ class ServiceExporter(object):
 
         # Remove corresponding end points
         endpoints = [endpoint
-                     for endpoint, ref in self._endpoints.items()
-                     if ref[0] == reference]
+                     for endpoint, svcref_svc in self._endpoints.items()
+                     if svcref_svc[0] == reference]
 
         for endpoint in endpoints:
             del self._endpoints[endpoint]
@@ -282,8 +282,8 @@ class ServiceExporter(object):
             "serviceRegistration": registration
         }
 
-        _logger.debug("X UNexported service %s: %s", ref,
-                      ref.get_properties()[pelix.OBJECTCLASS])
+        _logger.debug("X Un-exported service %s: %s", reference,
+                      reference.get_properties()[pelix.OBJECTCLASS])
         self.sender.fire(SIGNAL_REMOTE_EVENT, remote_event, dir_group="ALL")
 
 
