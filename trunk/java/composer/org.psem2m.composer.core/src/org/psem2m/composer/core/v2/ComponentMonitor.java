@@ -64,6 +64,9 @@ public class ComponentMonitor implements ISignalListener,
         aSignalReceiver.registerListener(
                 ComposerAgentSignals.SIGNAL_FACTORY_PREFIX + "/*", this);
 
+        aSignalReceiver.registerListener(
+                ComposerAgentSignals.SIGNAL_COMPONENT_CHANGED, this);
+
         pLogger.logInfo(this, "bindSignalReceiver",
                 "Bound to a signal receiver");
     }
