@@ -31,7 +31,8 @@ SIGNAL_REQUEST_PATTERN = "%s/*" % SIGNAL_REQUEST_PREFIX
 SIGNAL_FACTORY_PATTERN = "%s/*" % SIGNAL_FACTORY_PREFIX
 
 SIGNAL_CAN_HANDLE_COMPONENTS = "%s/can-handle-components" \
-                               % SIGNAL_REQUEST_PREFIX
+                                % SIGNAL_REQUEST_PREFIX
+SIGNAL_COMPONENT_CHANGED = "%s/component-changed" % SIGNAL_PREFIX
 SIGNAL_INSTANTIATE_COMPONENTS = "%s/instantiate-components" \
                                 % SIGNAL_REQUEST_PREFIX
 SIGNAL_STOP_COMPONENTS = "%s/stop-components" % SIGNAL_REQUEST_PREFIX
@@ -46,6 +47,12 @@ SIGNAL_ISOLATE_ADD_FACTORY = "%s/added" % SIGNAL_FACTORY_PREFIX
 SIGNAL_ISOLATE_REMOVE_FACTORY = "%s/removed" % SIGNAL_FACTORY_PREFIX
 SIGNAL_ISOLATE_FACTORIES_GONE = "%s/all-gone" % SIGNAL_FACTORY_PREFIX
 SIGNAL_ISOLATE_FACTORIES_DUMP = "%s/dump" % SIGNAL_FACTORY_PREFIX
+
+# See the Java enumeration: org.psem2m.composer.EComponentState
+ECOMPONENTSTATE_COMPLETE = {"javaClass": "org.psem2m.composer.EComponentState",
+                            "enumValue": "COMPLETE"}
+ECOMPONENTSTATE_REMOVED = {"javaClass": "org.psem2m.composer.EComponentState",
+                            "enumValue": "REMOVED"}
 
 # ------------------------------------------------------------------------------
 
@@ -230,6 +237,7 @@ class ComposerAgent(object):
         :param event: An iPOPO event
         """
         kind = event.get_kind()
+        component = event.get_component_name()
         factory = event.get_factory_name()
 
         if kind == IPopoEvent.REGISTERED:
@@ -240,6 +248,21 @@ class ComposerAgent(object):
         elif kind == IPopoEvent.UNREGISTERED:
             # Factory gone
             self.sender.fire(SIGNAL_ISOLATE_REMOVE_FACTORY, (factory,),
+                             dir_group="ALL")
+
+        elif kind in (IPopoEvent.VALIDATED, IPopoEvent.KILLED):
+            # Component state changed
+            if kind == IPopoEvent.VALIDATED:
+                state = ECOMPONENTSTATE_COMPLETE
+
+            else:
+                state = ECOMPONENTSTATE_REMOVED
+
+            # Send the signal
+            change_dict = {"name": component,
+                           "state": state}
+
+            self.sender.fire(SIGNAL_COMPONENT_CHANGED, change_dict,
                              dir_group="ALL")
 
 
