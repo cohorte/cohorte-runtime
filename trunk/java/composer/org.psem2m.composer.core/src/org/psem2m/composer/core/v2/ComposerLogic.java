@@ -585,6 +585,14 @@ public class ComposerLogic implements IComposer, IComposerLogic {
 
                                 // Remove ourself from the map
                                 pRequestsTimeouts.remove(componentName);
+
+                                // Go back to the waiting state
+                                if (!pStatus.isComposetWaiting(componentName)) {
+                                    pStatus.composetWaiting(aComposet.getName());
+                                }
+
+                                // Ask for a new resolution
+                                delayResolution();
                             }
                         }, pInstantiationTimeout, TimeUnit.MILLISECONDS);
 
