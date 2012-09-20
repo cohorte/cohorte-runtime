@@ -11,7 +11,8 @@ Created on 18 juin 2012
 # ------------------------------------------------------------------------------
 
 from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
-    Invalidate, Instantiate
+    Invalidate, Instantiate, Bind
+import pelix.framework as pelix
 
 # ------------------------------------------------------------------------------
 
@@ -48,12 +49,14 @@ UNREGISTERED = 1
 
 # ------------------------------------------------------------------------------
 
+SPEC_LISTENER = "org.psem2m.isolates.services.monitoring.IIsolatePresenceListener"
+
+# ------------------------------------------------------------------------------
+
 @ComponentFactory("psem2m-signals-directory-updater-factory")
 @Instantiate("psem2m-signals-directory-updater")
 @Requires("_directory", "org.psem2m.signals.ISignalDirectory")
-@Requires("_listeners",
-          "org.psem2m.isolates.services.monitoring.IIsolatePresenceListener",
-          aggregate=True, optional=True)
+@Requires("_listeners", SPEC_LISTENER, aggregate=True, optional=True)
 @Requires("_receiver", "org.psem2m.signals.ISignalReceiver")
 @Requires("_sender", "org.psem2m.signals.ISignalBroadcaster")
 class DirectoryUpdater(object):
@@ -184,6 +187,22 @@ class DirectoryUpdater(object):
         self._grab_directory(remote_address, remote_port, remote_node)
 
 
+    @Bind
+    def _bind(self, svc, svc_ref):
+        """
+        Notifies newly bound listener of known isolates presence
+        """
+        specs = svc_ref.get_property(pelix.OBJECTCLASS)
+        if self._directory is not None and SPEC_LISTENER in specs:
+            # New listener bound and directory active
+            with self._lock:
+                for isolate_id in self._directory.get_all_isolates(None, False):
+                    isolate_node = self._directory.get_isolate_node(isolate_id)
+                    svc.handle_isolate_presence(isolate_id, isolate_node,
+                                                REGISTERED)
+
+
+
     def _notify_listeners(self, isolate_id, isolate_node, event):
         """
         Notifies listeners of an isolate presence event
@@ -247,14 +266,15 @@ class DirectoryUpdater(object):
         """
         Registers an isolate according to the given map
         
-        :param signal_data: The received signal 
+        :param signal_data: The received signal
+        :return: True if the isolate has been registered 
         """
         content = signal_data["signalContent"]
 
         isolate_id = content["id"]
         if isolate_id == self._directory.get_isolate_id():
             # Ignore self-registration
-            return
+            return False
 
         node = content["node"]
         if node == signal_data["senderNode"]:
@@ -274,8 +294,9 @@ class DirectoryUpdater(object):
         self._directory.set_node_address(node, address)
 
         # 2. Register the isolate
-        self._directory.register_isolate(isolate_id, node, content["port"],
-                                         content["groups"])
+        registered = self._directory.register_isolate(isolate_id, node,
+                                                      content["port"],
+                                                      content["groups"])
 
         # 3. Propagate the registration, if needed
         if content["propagate"]:
@@ -287,6 +308,8 @@ class DirectoryUpdater(object):
 
             self._sender.fire(SIGNAL_REGISTER, content, dir_group="OTHERS",
                               excluded=[isolate_id])
+
+        return registered
 
 
     def _send_registration(self, host, port, propagate):
@@ -339,11 +362,11 @@ class DirectoryUpdater(object):
         elif name == SIGNAL_REGISTER:
             with self._lock:
                 # Isolate registration
-                self._register_isolate(signal_data)
-
-                # Notify listeners
-                self._notify_listeners(signal_data["senderId"],
-                                       signal_data["senderNode"], REGISTERED)
+                if self._register_isolate(signal_data):
+                    # Notify listeners
+                    self._notify_listeners(signal_data["senderId"],
+                                           signal_data["senderNode"],
+                                           REGISTERED)
 
         elif name == SIGNAL_ISOLATE_LOST:
             with self._lock:
@@ -354,16 +377,16 @@ class DirectoryUpdater(object):
                     lost_node = self._directory.get_isolate_node(lost_isolate)
 
                     # Unregister it
-                    self._directory.unregister_isolate(lost_isolate)
-
-                    # Notify listeners
-                    self._notify_listeners(lost_isolate, lost_node,
-                                           UNREGISTERED)
+                    if self._directory.unregister_isolate(lost_isolate):
+                        # Notify listeners
+                        self._notify_listeners(lost_isolate, lost_node,
+                                               UNREGISTERED)
 
         elif name == SIGNAL_CONTACT:
             # A contact has been signal, ask for a remote directory dump
             # -> Forker only
-            self._grab_remote_directory(signal_data)
+            with self._lock:
+                self._grab_remote_directory(signal_data)
 
 
     @Invalidate
