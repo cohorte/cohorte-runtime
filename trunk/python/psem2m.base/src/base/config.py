@@ -336,6 +336,15 @@ class _IsolateDescription(object):
         return self.bundles
 
 
+    def get_environment(self):
+        """
+        Retrieves the configured environment dictionary, or an empty one
+        
+        :return: The environment dictionary
+        """
+        return self.__raw_dictionary.get("environment", {})
+
+
     def get_id(self):
         """
         Retrieves the isolate ID. Can't be null nor empty.

@@ -27,6 +27,7 @@ import logging
 _logger = logging.getLogger(__name__)
 
 import json
+import os
 import sys
 import time
 
@@ -132,8 +133,11 @@ class IsolateLoader(object):
         :param isolate_descr: Description of the current isolate
         :return: True on success, else False
         """
-        optionals = {}
+        # Set up the environment variables
+        for name, value in isolate_descr.get_environment().items():
+            os.environ[name] = value
 
+        optionals = {}
         for bundle in isolate_descr.get_bundles():
             # Install the bundle
             try:
