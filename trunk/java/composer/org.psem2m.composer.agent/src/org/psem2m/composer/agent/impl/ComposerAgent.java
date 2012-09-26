@@ -75,7 +75,8 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
     private IPlatformDirsSvc pPlatformDirs;
 
     /** Signal broadcaster */
-    @Requires(id = IPOJO_ID_BROADCASTER)
+    @Requires(id = IPOJO_ID_BROADCASTER, filter = "("
+            + ISignalBroadcaster.PROPERTY_ONLINE + "=true)")
     private ISignalBroadcaster pSignalBroadcaster;
 
     /**
@@ -154,10 +155,8 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
         aSignalReceiver.registerListener(
                 ComposerAgentSignals.FILTER_ALL_REQUESTS, this);
 
-        // Indicate all our factories
-        pSignalBroadcaster.fireGroup(
-                ComposerAgentSignals.SIGNAL_ISOLATE_ADD_FACTORY, pFactories
-                        .keySet().toArray(new String[0]), EBaseGroup.ALL);
+        aSignalReceiver.registerListener(
+                ComposerAgentSignals.SIGNAL_FACTORY_PREFIX + "/*", this);
 
         pLogger.logInfo(this, "bindSignalReceiver",
                 "Bound to a signal receiver");
@@ -699,7 +698,7 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
     }
 
     /**
-     * Called by iPOOJO when a signal broadcaster is gone, which means just
+     * Called by iPOJO when a signal broadcaster is gone, which means just
      * before this agent is invalidated.
      * 
      * @param aSignalBroadcaster
@@ -723,6 +722,11 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
     @Override
     @Validate
     public void validatePojo() throws BundleException {
+
+        // Indicate all our factories
+        pSignalBroadcaster.fireGroup(
+                ComposerAgentSignals.SIGNAL_ISOLATE_ADD_FACTORY, pFactories
+                        .keySet().toArray(new String[0]), EBaseGroup.ALL);
 
         pLogger.logInfo(this, "validatePojo", "Composer agent Ready");
     }
