@@ -85,7 +85,7 @@ def read_post_body(request_handler):
 @ComponentFactory("psem2m-signals-receiver-factory")
 @Instantiate("psem2m-signals-receiver")
 @Provides("org.psem2m.signals.ISignalReceiver")
-@Requires("http", "HttpService")
+@Requires("_http", "HttpService")
 @Requires("_directory", "org.psem2m.signals.ISignalDirectory")
 class SignalReceiver(object):
     """
@@ -97,15 +97,11 @@ class SignalReceiver(object):
         """
         Constructor
         """
-        self.http = None
+        self._http = None
+        self._directory = None
 
         self._listeners = {}
         self._listeners_lock = threading.RLock()
-
-        # Java API compliance
-        self.getAccessInfo = self.get_access_info
-        self.registerListener = self.register_listener
-        self.unregisterListener = self.unregister_listener
 
 
     def do_POST(self, handler):
@@ -179,7 +175,7 @@ class SignalReceiver(object):
         
         :return: An (host, port) tuple
         """
-        return (self.http.get_hostname(), self.http.get_port())
+        return (self._http.get_hostname(), self._http.get_port())
 
 
     def handle_received_signal(self, name, data, mode):
@@ -232,7 +228,7 @@ class SignalReceiver(object):
         """
         Component invalidated
         """
-        self.http.unregister_servlet(self)
+        self._http.unregister_servlet(self)
 
         with self._listeners_lock:
             self._listeners.clear()
@@ -284,10 +280,10 @@ class SignalReceiver(object):
         self._listeners.clear()
 
         # Register ourselves in the directory
-        self._directory.register_local(self.http.get_port(), ["ALL", "LOCAL"])
+        self._directory.register_local(self._http.get_port(), ["ALL", "LOCAL"])
 
         # Register to the HTTP service
-        self.http.register_servlet(SignalReceiver.SERVLET_PATH, self)
+        self._http.register_servlet(SignalReceiver.SERVLET_PATH, self)
         _logger.info("SignalReceiver Ready")
 
 
@@ -431,12 +427,6 @@ class SignalSender(object):
 
         # Bundle context
         self._context = None
-
-        # Java API compatibility
-        self.sendTo = self.send_to
-        self.fireGroup = lambda s, c, g : self.fire(s, c, groups=g)
-        self.postGroup = lambda s, c, g : self.post(s, c, groups=g)
-        self.sendGroup = lambda s, c, g : self.send(s, c, groups=g)
 
 
     def fire(self, signal, content, isolate=None, isolates=None,
@@ -632,8 +622,8 @@ class SignalSender(object):
         for directory in self._directories:
             group_accesses = directory.get_computed_group_accesses(dir_group)
             if group_accesses is not None:
-                    # Expend the group accesses
-                    accesses.update(group_accesses)
+                # Expend the group accesses
+                accesses.update(group_accesses)
 
         return accesses
 
