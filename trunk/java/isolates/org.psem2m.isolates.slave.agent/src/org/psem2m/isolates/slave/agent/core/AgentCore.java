@@ -993,6 +993,9 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
                     EBaseGroup.MONITORS);
 
         } catch (final Exception ex) {
+            // Reset critical section if needed
+            pCriticalSection.set(false);
+
             final IsolateStatus status = pBootstrapSender.sendStatus(
                     IsolateStatus.STATE_FAILURE, -1);
 
