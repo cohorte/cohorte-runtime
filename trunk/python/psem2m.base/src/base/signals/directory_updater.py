@@ -49,7 +49,8 @@ UNREGISTERED = 1
 
 # ------------------------------------------------------------------------------
 
-SPEC_LISTENER = "org.psem2m.isolates.services.monitoring.IIsolatePresenceListener"
+SPEC_LISTENER = "org.psem2m.isolates.services.monitoring." \
+                "IIsolatePresenceListener"
 
 # ------------------------------------------------------------------------------
 
@@ -107,45 +108,14 @@ class DirectoryUpdater(object):
 
         result = results[0]
 
-        # 1. Setup nodes hosts
-        for node, dumped_host in result["nodes_host"].items():
-            if node != ignored_node and node != local_node:
-                self._directory.set_node_address(node, dumped_host)
+        # 1. Filter the nodes
+        ignored_nodes = (ignored_node, local_node)
 
-        # 2. Prepare isolates information
-        new_isolates = {}
+        # 2. Filter the IDs
+        ignored_ids = (local_id,)
 
-        for isolate_id, access in result["accesses"].items():
-            # Access URL
-            if isolate_id == local_id:
-                # Ignore current isolate
-                continue
-
-            new_isolates[isolate_id] = {}
-            new_isolates[isolate_id]["node"] = access["node"]
-            new_isolates[isolate_id]["port"] = access["port"]
-
-        for group, isolates in result["groups"].items():
-            # Groups
-            for isolate_id in isolates:
-                if isolate_id in new_isolates:
-                    if "groups" in new_isolates[isolate_id]:
-                        new_groups = new_isolates[isolate_id]["groups"]
-                    else:
-                        new_groups = new_isolates[isolate_id]["groups"] = []
-
-                    new_groups.append(group)
-
-        # 3. Register all new isolates
-        for isolate_id, info in new_isolates.items():
-            try:
-                self._directory.register_isolate(isolate_id,
-                                                 info["node"], info["port"],
-                                                 info.get("groups", None))
-            except KeyError:
-                _logger.warning("Missing information to register '%s': %s",
-                                isolate_id, info)
-
+        # 3. Call the directory, to do all the update at once
+        self._directory.store_dump(result, ignored_nodes, ignored_ids)
 
         # Now, we can send our registration signal
         self._send_registration(host, port, True)
@@ -216,6 +186,9 @@ class DirectoryUpdater(object):
             return
 
         def notification_loop(self):
+            """
+            Notifies isolate presence listeners (should be ran in a thread)
+            """
             # Use a copy of the listeners
             for listener in self._listeners[:]:
                 try:

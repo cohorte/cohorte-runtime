@@ -118,6 +118,59 @@ class SignalsDirectory(object):
         return result
 
 
+    def store_dump(self, dump, ignored_nodes=None, ignored_ids=None):
+        """
+        Stores the result of a dump
+        
+        :param dump: A dictionary, result of dump()
+        :param ignored_nodes: A list of ignored nodes
+        :param ignored_ids: A list of ignored IDs
+        """
+        with self._lock:
+            # 0. Always ignore the current isolate and the current node
+            local_id = self.get_isolate_id()
+            local_node = self.get_local_node()
+
+            if ignored_nodes is None:
+                ignored_nodes = [local_node]
+            elif local_node not in ignored_nodes:
+                ignored_nodes.append(local_node)
+
+            if ignored_ids is None:
+                ignored_ids = [local_id]
+            elif local_id not in ignored_ids:
+                ignored_ids.append(local_id)
+
+            # 1. Setup nodes hosts
+            for node, dumped_host in dump["nodes_host"].items():
+                if node not in ignored_nodes:
+                    self.set_node_address(node, dumped_host)
+
+            # 2. Prepare isolates information
+            new_isolates = {}
+            for isolate_id, access in dump["accesses"].items():
+                # Access URL
+                if isolate_id not in ignored_ids:
+                    new_isolates[isolate_id] = access
+
+            for group, isolates in dump["groups"].items():
+                # Reconstruct groups
+                for isolate_id in isolates:
+                    if isolate_id in new_isolates:
+                        new_isolates[isolate_id].setdefault('groups', []) \
+                                                                .append(group)
+
+            # 3. Register all new isolates
+            for isolate_id, info in new_isolates.items():
+                try:
+                    self.register_isolate(isolate_id, info["node"],
+                                          info["port"],
+                                          info.get("groups", None))
+                except KeyError:
+                    _logger.warning("Missing information to register '%s': %s",
+                                    isolate_id, info)
+
+
     def get_all_isolates(self, prefix, include_current):
         """
         Retrieves all known isolates which ID begins with the given prefix. If 
@@ -347,7 +400,7 @@ class SignalsDirectory(object):
         :return: A list of IDs, or None
         """
         with self._lock:
-            isolates = self._nodes.get(node, None)
+            isolates = self._nodes_isolates.get(node, None)
             if isolates is not None:
                 # Return a copy, to avoid unwanted modifications
                 return isolates[:]
