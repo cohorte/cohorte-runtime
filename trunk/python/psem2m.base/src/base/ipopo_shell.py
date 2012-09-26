@@ -145,7 +145,8 @@ class IPopoCommands(object):
 
         lines.append("Name   : {0}".format(details["name"]))
         lines.append("Factory: {0}".format(details["factory"]))
-        lines.append("State  : {0}".format(ipopo_state_to_str(details["state"])))
+        lines.append("State  : {0}".format(ipopo_state_to_str(
+                                                        details["state"])))
         if "service" in details:
             lines.append("Service: {0}".format(details["service"]))
 

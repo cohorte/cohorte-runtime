@@ -110,13 +110,13 @@ class RemoteConsole(socketserver.StreamRequestHandler):
         try:
             while self._active.get_value():
                 # Wait for data
-                r = select([self.rfile], [], [], .5)[0]
-                if len(r) == 0:
+                rlist = select([self.rfile], [], [], .5)[0]
+                if not rlist:
                     # Nothing to do (poll timed out)
                     continue
 
                 data = self.rfile.readline()
-                if len(data) == 0:
+                if not data:
                     # End of stream (client gone)
                     break
 
@@ -167,7 +167,7 @@ class ThreadingTCPServerFamily(socketserver.ThreadingTCPServer):
     """
     Threaded TCP Server handling different address families
     """
-    def __init__(self, server_address, RequestHandlerClass,
+    def __init__(self, server_address, request_handler_class,
                  bind_and_activate=True, address_family=socket.AF_INET):
         """
         Sets up the server
@@ -177,16 +177,16 @@ class ThreadingTCPServerFamily(socketserver.ThreadingTCPServer):
 
         # Call the super constructor
         socketserver.ThreadingTCPServer.__init__(self, server_address,
-                                                 RequestHandlerClass,
+                                                 request_handler_class,
                                                  bind_and_activate)
 
 
-def createServer(shell, ip, port, address_family=None):
+def _create_server(shell, server_address, port, address_family=None):
     """
-    Creates the TCP console on the given ip and port
+    Creates the TCP console on the given address and port
     
     :param shell: The remote shell handler
-    :param ip: Server IP
+    :param server_address: Server bound address
     :param port: Server port
     :param address_family: The IP address family
     :return: server thread, TCP server object
@@ -196,8 +196,8 @@ def createServer(shell, ip, port, address_family=None):
     request_handler = lambda *args: RemoteConsole(shell, active_flag, *args)
 
     # Set up the server
-    server = ThreadingTCPServerFamily((ip, port), request_handler, False,
-                                      address_family)
+    server = ThreadingTCPServerFamily((server_address, port), request_handler,
+                                      False, address_family)
 
     # Set flags
     server.daemon_threads = True
@@ -356,7 +356,8 @@ class IPopoRemoteShell(object):
         # Start the TCP server
         port = int(self._port)
         self._thread, self._server, \
-            self._server_flag = createServer(self, "::", port, socket.AF_INET6)
+            self._server_flag = _create_server(self, "::", port,
+                                               socket.AF_INET6)
 
         _logger.info("RemoteShell validated on port: %d", port)
 

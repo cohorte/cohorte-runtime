@@ -457,8 +457,8 @@ class JsonConfig(object):
         conf_file = os.path.abspath(files[0])
         self._include_stack.append(conf_file)
 
-        with open(conf_file) as fp:
-            return json.load(fp)
+        with open(conf_file) as filep:
+            return json.load(filep)
 
 
     def _parse_bundle(self, bundle_object):

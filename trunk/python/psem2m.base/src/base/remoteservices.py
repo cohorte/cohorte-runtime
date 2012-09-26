@@ -27,7 +27,15 @@ import pelix.framework as pelix
 
 _logger = logging.getLogger(__name__)
 
-EXPORTED_SERVICE_FILTER = "(|(service.exported.interfaces=*)(service.exported.configs=*))"
+EXPORTED_SERVICE_FILTER = "(|(service.exported.interfaces=*)" \
+                            "(service.exported.configs=*))"
+
+JAVA_BEANS_PACKAGE = "org.psem2m.isolates.services.remote.beans"
+JAVA_ENDPOINT_DESCRIPTION = "%s.EndpointDescription" % JAVA_BEANS_PACKAGE
+JAVA_REMOTE_SERVICE_EVENT = "%s.RemoteServiceEvent" % JAVA_BEANS_PACKAGE
+JAVA_SERVICE_EVENT_TYPE = "%s$ServiceEventType" % JAVA_REMOTE_SERVICE_EVENT
+JAVA_REMOTE_SERVICE_REGISTRATION = "%s.RemoteServiceRegistration" \
+                                    % JAVA_BEANS_PACKAGE
 
 BROADCASTER_SIGNAL_NAME_PREFIX = "/psem2m/remote-service-broadcaster"
 BROADCASTER_SIGNAL_REQUEST_ENDPOINTS = "%s/request-endpoints" \
@@ -70,12 +78,12 @@ class _JsonRpcServlet(SimpleJSONRPCDispatcher):
         try:
             max_chunk_size = 10 * 1024 * 1024
             size_remaining = int(handler.headers["content-length"])
-            L = []
+            chunks_list = []
             while size_remaining:
                 chunk_size = min(size_remaining, max_chunk_size)
-                L.append(handler.rfile.read(chunk_size).decode())
-                size_remaining -= len(L[-1])
-            data = ''.join(L)
+                chunks_list.append(handler.rfile.read(chunk_size).decode())
+                size_remaining -= len(chunks_list[-1])
+            data = ''.join(chunks_list)
             response = self._marshaled_dispatch(data)
             handler.send_response(200)
 
@@ -117,6 +125,7 @@ class ServiceExporter(object):
         """
         # HTTP Service
         self.http = None
+        self.servlet_path = None
 
         # The JSON-RPC servlet
         self.server = None
@@ -217,9 +226,9 @@ class ServiceExporter(object):
 
         # Create the registration map
         registration = {
-            JAVA_CLASS: "org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration",
+            JAVA_CLASS: JAVA_REMOTE_SERVICE_REGISTRATION,
             "endpoints": ({
-                    JAVA_CLASS: "org.psem2m.isolates.services.remote.beans.EndpointDescription",
+                    JAVA_CLASS: JAVA_ENDPOINT_DESCRIPTION,
                     "endpointName": endpoint_name,
                     "endpointUri": self.servlet_path,
                     "exportedConfig": exported_config,
@@ -238,10 +247,10 @@ class ServiceExporter(object):
 
         # Send registration signal
         remote_event = {
-            JAVA_CLASS: "org.psem2m.isolates.services.remote.beans.RemoteServiceEvent",
+            JAVA_CLASS: JAVA_REMOTE_SERVICE_EVENT,
             "eventType": {
-                JAVA_CLASS:"org.psem2m.isolates.services.remote.beans.RemoteServiceEvent$ServiceEventType",
-                "enumValue":"REGISTERED"
+                JAVA_CLASS: JAVA_SERVICE_EVENT_TYPE,
+                "enumValue": "REGISTERED"
             },
             "serviceRegistration": registration
         }
@@ -274,10 +283,10 @@ class ServiceExporter(object):
 
         # Send signal
         remote_event = {
-            JAVA_CLASS: "org.psem2m.isolates.services.remote.beans.RemoteServiceEvent",
+            JAVA_CLASS: JAVA_REMOTE_SERVICE_EVENT,
             "eventType": {
-                JAVA_CLASS:"org.psem2m.isolates.services.remote.beans.RemoteServiceEvent$ServiceEventType",
-                "enumValue":"UNREGISTERED"
+                JAVA_CLASS: JAVA_SERVICE_EVENT_TYPE,
+                "enumValue": "UNREGISTERED"
             },
             "serviceRegistration": registration
         }
@@ -322,10 +331,10 @@ class ServiceExporter(object):
 
         events = [
           {
-           JAVA_CLASS: "org.psem2m.isolates.services.remote.beans.RemoteServiceEvent",
+           JAVA_CLASS: JAVA_REMOTE_SERVICE_EVENT,
            "eventType": {
-                         JAVA_CLASS:"org.psem2m.isolates.services.remote.beans.RemoteServiceEvent$ServiceEventType",
-                         "enumValue":"REGISTERED"
+                         JAVA_CLASS: JAVA_SERVICE_EVENT_TYPE,
+                         "enumValue": "REGISTERED"
                          },
            "serviceRegistration": registration
            } for registration in self._registrations.values()]
@@ -423,7 +432,7 @@ def _filter_export_properties(properties):
     return result
 
 
-class _JSON_proxy(object):
+class _JSONProxy(object):
     """
     JSON-RPC proxy
     """
@@ -507,13 +516,11 @@ class ServiceImporter(object):
         """
         if event == REGISTERED:
             # Isolate registered: ask for its end points
-            _logger.debug("Isolate %s registered -> request endpoints", isolate_id)
             self.sender.fire(BROADCASTER_SIGNAL_REQUEST_ENDPOINTS, None,
                              isolate=isolate_id)
 
         elif event == UNREGISTERED:
             # Isolate lost
-            _logger.debug("Isolate %s lost", isolate_id)
             self._handle_isolate_lost(isolate_id)
 
 
@@ -626,13 +633,14 @@ class ServiceImporter(object):
 
             # Create the proxy (select the factory according to export config)
             endpoint_url = "%s://%s:%d%s" % (protocol, host, port, uri)
-            proxy = _JSON_proxy(endpoint_url, endpoint_name)
+            proxy = _JSONProxy(endpoint_url, endpoint_name)
             if proxy is None:
                 _logger.error("Remote service proxy not created")
                 return
 
             # Filter properties
-            properties = _filter_export_properties(remote_reg["serviceProperties"])
+            properties = _filter_export_properties(\
+                                                remote_reg["serviceProperties"])
             properties["service.imported.from"] = host_isolate
 
             # Register the service
@@ -700,7 +708,8 @@ class ServiceImporter(object):
                 isolate_services.remove(service_id)
 
             _logger.debug("X UNimported service from %s: %s", isolate_name,
-                          reg.get_reference().get_properties()[pelix.OBJECTCLASS])
+                          reg.get_reference().get_properties()\
+                          .get(pelix.OBJECTCLASS))
 
 
     @Validate

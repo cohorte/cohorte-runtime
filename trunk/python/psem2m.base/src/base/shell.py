@@ -435,19 +435,19 @@ class Shell(object):
         """
         Prints the available methods and their documentation
         """
-        namespaces = [ns for ns in self._commands.keys()]
+        namespaces = [namespace for namespace in self._commands.keys()]
         namespaces.remove(DEFAULT_NAMESPACE)
         namespaces.sort()
         namespaces.insert(0, DEFAULT_NAMESPACE)
 
-        for ns in namespaces:
-            stdout.write("* Namespace '%s':\n" % ns)
-            names = [command for command in self._commands[ns]]
+        for namespace in namespaces:
+            stdout.write("* Namespace '%s':\n" % namespace)
+            names = [command for command in self._commands[namespace]]
             names.sort()
 
             for name in names:
                 stdout.write("- %s\n" % name)
-                doc = getattr(self._commands[ns][name], '__doc__',
+                doc = getattr(self._commands[namespace][name], '__doc__',
                               "(Documentation missing)")
                 stdout.write("\t\t%s\n" % ' '.join(doc.split()))
 
