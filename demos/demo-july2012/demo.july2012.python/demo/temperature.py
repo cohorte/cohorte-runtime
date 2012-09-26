@@ -111,6 +111,7 @@ class FakeTemp(object):
         """
         Validation
         """
+        self._last_value = 0
         _logger.info("Component %s validated", self._name)
 
 
@@ -119,6 +120,7 @@ class FakeTemp(object):
         """
         Invalidation
         """
+        self._last_value = 0
         _logger.info("Component %s invalidated", self._name)
 
 

@@ -100,9 +100,9 @@ class Aggregator(object):
             if self._sensors is not None:
                 for sensor in self._sensors:
                     try:
-                        name = sensor.get_name()
-                        value = sensor.get_value()
-                        unit = sensor.get_unit()
+                        name = sensor.getName()
+                        value = sensor.getValue()
+                        unit = sensor.getUnit()
                         self._store(name, value, unit)
 
                     except:
