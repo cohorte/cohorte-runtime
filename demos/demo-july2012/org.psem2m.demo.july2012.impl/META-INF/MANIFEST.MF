@@ -1,0 +1,28 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Demo July 2012 :: Java Implementation
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-SymbolicName: org.psem2m.demo.july2012.impl
+Bundle-Vendor: isandlaTech.com
+Bundle-Version: 1.0.0.qualifier
+Created-By: iPOJO  1.8.0
+Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
+ .ipojo.architecture;version=1.8.0, org.osgi.service.cm;version=1.2, o
+ rg.osgi.service.log;version=1.3, org.psem2m.demo.sensors;version=1.0.
+ 0
+iPOJO-Components: component { $classname="org.psem2m.demo.sensors.impl
+ .FakeTemp" $name="java-fake-temp-factory" $public="true" provides { $
+ specifications="{org.psem2m.demo.sensors.ISensor}" property { $name="
+ temper.value.max" $field="pMax" $value="30" }property { $name="temper
+ .value.min" $field="pMin" $value="10" }}properties { property { $name
+ ="instance.name" $field="pName" }}callback { $transition="invalidate"
+  $method="invalidate" }callback { $transition="validate" $method="val
+ idate" }manipulation { interface { $name="org.psem2m.demo.sensors.ISe
+ nsor" }field { $name="pLast" $type="float" }field { $name="pMax" $typ
+ e="float" }field { $name="pMin" $type="float" }field { $name="pName" 
+ $type="java.lang.String" }field { $name="pRandom" $type="java.util.Ra
+ ndom" }method { $name="getName" $return="java.lang.String" }method { 
+ $name="getUnit" $return="java.lang.String" }method { $name="getValue"
+  $return="double" }method { $name="invalidate" }method { $name="valid
+ ate" }}}
+
