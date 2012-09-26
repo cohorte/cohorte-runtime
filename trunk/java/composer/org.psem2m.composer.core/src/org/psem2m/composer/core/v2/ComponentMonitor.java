@@ -21,8 +21,7 @@ import org.psem2m.composer.agent.ComposerAgentSignals;
 import org.psem2m.composer.model.ComponentBean;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.Utilities;
-import org.psem2m.isolates.base.isolates.IIsolateStatusEventListener;
-import org.psem2m.isolates.base.isolates.boot.IsolateStatus;
+import org.psem2m.isolates.services.monitoring.IIsolatePresenceListener;
 import org.psem2m.signals.ISignalData;
 import org.psem2m.signals.ISignalListener;
 import org.psem2m.signals.ISignalReceiver;
@@ -35,10 +34,10 @@ import org.psem2m.signals.ISignalReceiver;
  * @author Thomas Calmant
  */
 @Component(name = "psem2m-composer-monitor-factory", publicFactory = false)
-@Provides(specifications = IIsolateStatusEventListener.class)
+@Provides(specifications = IIsolatePresenceListener.class)
 @Instantiate(name = "psem2m-composer-monitor")
 public class ComponentMonitor implements ISignalListener,
-        IIsolateStatusEventListener {
+        IIsolatePresenceListener {
 
     /** The composer logic */
     @Requires
@@ -170,29 +169,25 @@ public class ComponentMonitor implements ISignalListener,
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.base.isolates.IIsolateStatusEventListener#
-     * handleIsolateLost(java.lang.String)
+     * @see org.psem2m.isolates.services.monitoring.IIsolatePresenceListener#
+     * handleIsolatePresence(java.lang.String, java.lang.String,
+     * org.psem2m.isolates
+     * .services.monitoring.IIsolatePresenceListener.EPresence)
      */
     @Override
-    public void handleIsolateLost(final String aIsolateId) {
+    public void handleIsolatePresence(final String aIsolateId,
+            final String aNode, final EPresence aPresence) {
 
-        pComposer.handleIsolateGone(aIsolateId);
-    }
+        switch (aPresence) {
+        case REGISTERED:
+            pComposer.handleIsolateReady(aIsolateId);
+            break;
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.base.isolates.IIsolateStatusEventListener#
-     * handleIsolateStatusEvent(java.lang.String,
-     * org.psem2m.isolates.base.isolates.boot.IsolateStatus)
-     */
-    @Override
-    public void handleIsolateStatusEvent(final String aSenderId,
-            final IsolateStatus aIsolateStatus) {
+        case UNREGISTERED:
+            pComposer.handleIsolateGone(aIsolateId);
+            break;
 
-        switch (aIsolateStatus.getState()) {
-        case IsolateStatus.STATE_AGENT_DONE:
-            pComposer.handleIsolateReady(aIsolateStatus.getIsolateId());
+        default:
             break;
         }
     }

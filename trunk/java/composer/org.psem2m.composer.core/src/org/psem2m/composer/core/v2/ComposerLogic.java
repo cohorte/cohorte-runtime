@@ -431,8 +431,11 @@ public class ComposerLogic implements IComposer, IComposerLogic {
         }
 
         // Register all factories
-        pStatus.registerFactories(aIsolateId,
-                stringList.toArray(new String[stringList.size()]));
+        if (pStatus.registerFactories(aIsolateId,
+                stringList.toArray(new String[stringList.size()]))) {
+            // New factories found, ask for a new resolution
+            delayResolution();
+        }
     }
 
     /**
