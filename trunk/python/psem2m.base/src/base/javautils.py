@@ -6,9 +6,15 @@ Created on 06 mars 2012
 :author: Thomas Calmant
 """
 
+import re
+
 # ------------------------------------------------------------------------------
 
 JAVA_CLASS = "javaClass"
+
+JAVA_MAPS_PATTERN = re.compile("java\.util\.(.*Map|Properties)")
+JAVA_LISTS_PATTERN = re.compile("java\.util\..*List")
+JAVA_SETS_PATTERN = re.compile("java\.util\..*Set")
 
 # ------------------------------------------------------------------------------
 
@@ -50,6 +56,14 @@ def to_jabsorb(result):
         for item in result:
             converted_result["list"].append(to_jabsorb(item))
 
+    # Set ?
+    elif isinstance(result, set):
+        converted_result[JAVA_CLASS] = "java.util.HashSet"
+        converted_result["set"] = []
+
+        for item in result:
+            converted_result["set"].append(to_jabsorb(item))
+
     # Tuple ? (used as array, except if it is empty)
     elif isinstance(result, tuple):
         converted_result = []
@@ -86,7 +100,7 @@ def from_jabsorb(request):
     java_class = str(request[JAVA_CLASS])
 
     # Java Map ?
-    if java_class.endswith("Map"):
+    if JAVA_MAPS_PATTERN.match(java_class) is not None:
         result = {}
 
         for key, value in request["map"].items():
@@ -95,11 +109,20 @@ def from_jabsorb(request):
         return result
 
     # Java List ?
-    elif java_class.endswith("List"):
+    elif JAVA_LISTS_PATTERN.match(java_class) is not None:
         result = []
 
         for element in request["list"]:
             result.append(from_jabsorb(element))
+
+        return result
+
+    # Java Set ?
+    elif JAVA_SETS_PATTERN.match(java_class) is not None:
+        result = set()
+
+        for element in request["set"]:
+            result.add(from_jabsorb(element))
 
         return result
 
