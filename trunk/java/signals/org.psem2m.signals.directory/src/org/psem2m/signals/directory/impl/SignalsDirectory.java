@@ -7,6 +7,7 @@ package org.psem2m.signals.directory.impl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -410,6 +411,40 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
                 .getProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_NODE);
     }
 
+    /**
+     * Returns a collection that contains the base one and the additional
+     * content. Uses a new collection if needed.
+     * 
+     * @param aBaseCollection
+     *            A base collection (can be null)
+     * @param aMinimumContent
+     *            An object that must be in the returned collection
+     * @return A new collection if the base one didn't contain the minimum
+     *         content
+     */
+    private Collection<String> getMinimalCollection(
+            final Collection<String> aBaseCollection,
+            final String aMinimumContent) {
+
+        final Collection<String> ignoredNodes;
+        if (aBaseCollection == null) {
+            // Use a new set with only the local node
+            ignoredNodes = new HashSet<String>();
+            ignoredNodes.add(aMinimumContent);
+
+        } else if (!aBaseCollection.contains(aMinimumContent)) {
+            // Use a new list, with the content
+            ignoredNodes = new HashSet<String>(aBaseCollection);
+            ignoredNodes.add(aMinimumContent);
+
+        } else {
+            // Nothing to do
+            ignoredNodes = aBaseCollection;
+        }
+
+        return ignoredNodes;
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -615,6 +650,102 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
                 "updated: previous=", oldAddress, "new=", aHostAddress);
 
         return pNodesHost.put(aNodeName, aHostAddress);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.signals.ISignalDirectory#storeDump(java.util.Map,
+     * java.util.Collection, java.util.Collection)
+     */
+    @Override
+    public synchronized String[] storeDump(final Map<?, ?> aDumpedDirectory,
+            final Collection<String> aIgnoredNodes,
+            final Collection<String> aIgnoredIds) {
+
+        // 0. Always ignore the current isolate and node
+        final String localId = getIsolateId();
+        final String localNode = getLocalNode();
+
+        final Collection<String> ignoredNodes = getMinimalCollection(
+                aIgnoredNodes, localNode);
+        final Collection<String> ignoredIds = getMinimalCollection(aIgnoredIds,
+                localId);
+
+        // 1. Setup nodes hosts
+        final Map<?, ?> nodesHost = (Map<?, ?>) aDumpedDirectory
+                .get("nodes_host");
+        for (final Entry<?, ?> entry : nodesHost.entrySet()) {
+            final String node = (String) entry.getKey();
+            if (!ignoredNodes.contains(node)) {
+                // Node passed the filter
+                setNodeAddress(node, (String) entry.getValue());
+            }
+        }
+
+        // 2. Prepare isolates information
+        final Map<String, IsolateInfo> isolates = new HashMap<String, IsolateInfo>();
+
+        final Map<?, ?> accesses = (Map<?, ?>) aDumpedDirectory.get("accesses");
+        for (final Entry<?, ?> entry : accesses.entrySet()) {
+            // Cast entry
+            final String isolateId = (String) entry.getKey();
+            final Map<?, ?> access = (Map<?, ?>) entry.getValue();
+
+            if (!ignoredIds.contains(isolateId)) {
+                // Create the information bean
+                isolates.put(isolateId,
+                        new IsolateInfo(isolateId, (String) access.get("node"),
+                                (Integer) access.get("port")));
+            }
+        }
+
+        final Map<?, ?> groups = (Map<?, ?>) aDumpedDirectory.get("groups");
+        for (final Entry<?, ?> entry : groups.entrySet()) {
+            // Reconstruct groups
+            final String group = (String) entry.getKey();
+            final Object rawGroupIsolates = entry.getValue();
+
+            Collection<?> groupIsolates = null;
+            if (rawGroupIsolates instanceof Collection) {
+                // Collection...
+                groupIsolates = (Collection<?>) rawGroupIsolates;
+
+            } else if (rawGroupIsolates instanceof Object[]) {
+                // Array...
+                groupIsolates = Arrays.asList((Object[]) rawGroupIsolates);
+            }
+
+            if (groupIsolates != null) {
+                for (final Object isolate : groupIsolates) {
+                    final IsolateInfo info = isolates.get(isolate);
+                    if (info != null) {
+                        info.getGroups().add(group);
+                    }
+                }
+
+            } else {
+                pLogger.logWarn(this, "grabDirectory", "Unreadable groups=",
+                        rawGroupIsolates.getClass().getName());
+            }
+        }
+
+        // 3. Register all new isolates
+        final List<String> newIsolates = new ArrayList<String>();
+        for (final IsolateInfo info : isolates.values()) {
+            if (registerIsolate(info.getId(), info.getNode(), info.getPort(),
+                    info.getGroups().toArray(new String[0]))) {
+
+                newIsolates.add(info.getId());
+            }
+        }
+
+        if (newIsolates.isEmpty()) {
+            // Return null instead of an empty list
+            return null;
+        }
+
+        return newIsolates.toArray(new String[newIsolates.size()]);
     }
 
     /*

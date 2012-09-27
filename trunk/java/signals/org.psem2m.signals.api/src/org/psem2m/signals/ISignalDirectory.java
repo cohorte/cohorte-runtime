@@ -5,6 +5,7 @@
  */
 package org.psem2m.signals;
 
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -204,6 +205,23 @@ public interface ISignalDirectory {
      * @return The previous address
      */
     String setNodeAddress(String aNodeName, String aHostAddress);
+
+    /**
+     * Stores the content of the given directory dump
+     * 
+     * If aIgnoredNode is not null, the address corresponding to it in the
+     * dumped directory won't be stored.
+     * 
+     * @param aDumpedDirectory
+     *            A directory dump
+     * @param aIgnoredNodes
+     *            The name of the nodes to ignore
+     * @param aIgnoredIds
+     *            The isolate IDs to ignore
+     * @return The list of the newly registered isolates
+     */
+    String[] storeDump(Map<?, ?> aDumpedDirectory,
+            Collection<String> aIgnoredNodes, Collection<String> aIgnoredIds);
 
     /**
      * Unregisters the given isolate of the directory

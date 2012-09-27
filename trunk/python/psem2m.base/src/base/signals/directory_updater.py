@@ -86,7 +86,7 @@ class DirectoryUpdater(object):
         
         :param host: Directory dumper host address
         :param port: Directory signal listener port
-        :param ignored_port: The address for this node must be ignored
+        :param ignored_node: The address for this node must be ignored
         """
         # Prepare pre-registration content, without propagation
         content = self._prepare_registration_content(False)
@@ -115,10 +115,18 @@ class DirectoryUpdater(object):
         ignored_ids = (local_id,)
 
         # 3. Call the directory, to do all the update at once
-        self._directory.store_dump(result, ignored_nodes, ignored_ids)
+        new_isolates = self._directory.store_dump(result, ignored_nodes,
+                                                  ignored_ids)
 
-        # Now, we can send our registration signal
+        # 4. Now, we can send our registration signal
         self._send_registration(host, port, True)
+
+        # 5. Notify listeners
+        if new_isolates:
+            for isolate_id in new_isolates:
+                isolate_node = self._directory.get_isolate_node(isolate_id)
+                self._notify_listeners(isolate_id, isolate_node,
+                                       REGISTERED)
 
 
     def _grab_remote_directory(self, signal_data):

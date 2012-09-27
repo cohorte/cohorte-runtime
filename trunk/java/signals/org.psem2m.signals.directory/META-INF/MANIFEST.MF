@@ -74,13 +74,16 @@ iPOJO-Components: instance { $component="org.psem2m.signals.directory.
  me="getIsolateNode" $return="java.lang.String" $arguments="{java.lang
  .String}" }method { $name="getIsolatesOnNode" $return="java.lang.Stri
  ng[]" $arguments="{java.lang.String}" }method { $name="getLocalNode" 
- $return="java.lang.String" }method { $name="invalidatePojo" }method {
-  $name="isRegistered" $return="boolean" $arguments="{java.lang.String
- }" }method { $name="registerIsolate" $return="boolean" $arguments="{j
- ava.lang.String,java.lang.String,int,java.lang.String[]}" }method { $
- name="registerLocal" $arguments="{int,java.lang.String[]}" }method { 
- $name="setNodeAddress" $return="java.lang.String" $arguments="{java.l
- ang.String,java.lang.String}" }method { $name="unregisterIsolate" $re
- turn="boolean" $arguments="{java.lang.String}" }method { $name="valid
- atePojo" }}}
+ $return="java.lang.String" }method { $name="getMinimalCollection" $re
+ turn="java.util.Collection" $arguments="{java.util.Collection,java.la
+ ng.String}" }method { $name="invalidatePojo" }method { $name="isRegis
+ tered" $return="boolean" $arguments="{java.lang.String}" }method { $n
+ ame="registerIsolate" $return="boolean" $arguments="{java.lang.String
+ ,java.lang.String,int,java.lang.String[]}" }method { $name="registerL
+ ocal" $arguments="{int,java.lang.String[]}" }method { $name="setNodeA
+ ddress" $return="java.lang.String" $arguments="{java.lang.String,java
+ .lang.String}" }method { $name="storeDump" $return="java.lang.String[
+ ]" $arguments="{java.util.Map,java.util.Collection,java.util.Collecti
+ on}" }method { $name="unregisterIsolate" $return="boolean" $arguments
+ ="{java.lang.String}" }method { $name="validatePojo" }}}
 

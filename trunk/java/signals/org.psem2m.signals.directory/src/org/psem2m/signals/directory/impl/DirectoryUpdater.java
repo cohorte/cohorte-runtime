@@ -178,14 +178,16 @@ public class DirectoryUpdater implements ISignalListener,
         }
 
         if (dump != null) {
-            // All good, store it
-            final String[] isolates = storeDirectory(dump, aIgnoredNode);
+            // All good, store the dump in the directory
+            final String[] isolates = pDirectory.storeDump(dump,
+                    Arrays.asList(aIgnoredNode), null);
 
             // Send our registration, one we have the directory...
             pLogger.logDebug(this, "validate", "Sending registration to all");
             sendRegistration("localhost", pDumperPort, true);
 
             if (isolates != null) {
+                // Some isolates has been registered, notify listeners
                 for (final String isolate : isolates) {
                     notifyPresenceListeners(isolate,
                             pDirectory.getIsolateNode(isolate),

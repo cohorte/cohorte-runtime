@@ -147,28 +147,37 @@ class SignalsDirectory(object):
                     self.set_node_address(node, dumped_host)
 
             # 2. Prepare isolates information
-            new_isolates = {}
+            filtered_isolates = {}
             for isolate_id, access in dump["accesses"].items():
                 # Access URL
                 if isolate_id not in ignored_ids:
-                    new_isolates[isolate_id] = access
+                    filtered_isolates[isolate_id] = access
 
             for group, isolates in dump["groups"].items():
                 # Reconstruct groups
                 for isolate_id in isolates:
-                    if isolate_id in new_isolates:
-                        new_isolates[isolate_id].setdefault('groups', []) \
-                                                                .append(group)
+                    if isolate_id in filtered_isolates:
+                        filtered_isolates[isolate_id].setdefault('groups', []) \
+                                                                 .append(group)
 
             # 3. Register all new isolates
-            for isolate_id, info in new_isolates.items():
+            new_isolates = []
+            for isolate_id, info in filtered_isolates.items():
                 try:
-                    self.register_isolate(isolate_id, info["node"],
-                                          info["port"],
-                                          info.get("groups", None))
+                    if self.register_isolate(isolate_id, info["node"],
+                                             info["port"],
+                                             info.get("groups", None)):
+                        new_isolates.append(isolate_id)
+
                 except KeyError:
                     _logger.warning("Missing information to register '%s': %s",
                                     isolate_id, info)
+
+            # Return the list of newly registered isolates
+            if not new_isolates:
+                return None
+
+            return new_isolates
 
 
     def get_all_isolates(self, prefix, include_current):
