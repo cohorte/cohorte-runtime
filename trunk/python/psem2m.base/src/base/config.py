@@ -280,6 +280,20 @@ class _BundleDescription(object):
         return self.optional
 
 
+    def update(self):
+        """
+        Updates the RAW dictionary according to members
+        """
+        self.__raw_dictionary["symbolicName"] = self.name
+        self.__raw_dictionary["optional"] = self.optional
+
+        if self.properties:
+            self.__raw_dictionary["properties"] = self.properties
+
+        elif "properties" in self.__raw_dictionary:
+            del self.__raw_dictionary["properties"]
+
+
 # ------------------------------------------------------------------------------
 
 class _IsolateDescription(object):
@@ -431,6 +445,7 @@ class JsonConfig(object):
             return overriding_props
 
         if overriding_props is not None:
+            overridden_props = overridden_props.copy()
             overridden_props.update(overriding_props)
 
         return overridden_props
@@ -461,7 +476,7 @@ class JsonConfig(object):
             return json.load(filep)
 
 
-    def _parse_bundle(self, bundle_object):
+    def _parse_bundle(self, bundle_object, overridden_props):
         """
         Parses a bundle entry
         
@@ -473,11 +488,18 @@ class JsonConfig(object):
         bundle.name = bundle_object.get("symbolicName")
         bundle.optional = bundle_object.get("optional", False)
         bundle.properties = bundle_object.get("properties", None)
+        if bundle.properties is None:
+            bundle.properties = overridden_props
+        elif overridden_props:
+            bundle.properties.update(overridden_props)
+
+        # Update the bundle RAW dictionary
+        bundle.update()
 
         return bundle
 
 
-    def _parse_bundles(self, bundles_array):
+    def _parse_bundles(self, bundles_array, overriding_props):
         """
         Parses an array of bundles
         
@@ -487,10 +509,15 @@ class JsonConfig(object):
         new_array = []
 
         for bundle in bundles_array:
+            # Overridden properties
+            bundle_props = self._compute_overridden_props(bundle,
+                                                         overriding_props)
+
             if 'from' in bundle:
                 # Case 1 : Import a list of bundles from another file
                 new_array.extend(self._parse_bundles(
-                                            self._parse_file(bundle['from'])))
+                                            self._parse_file(bundle['from']),
+                                            bundle_props))
 
                 # Remove the included file from the stack
                 if self._include_stack:
@@ -498,7 +525,7 @@ class JsonConfig(object):
 
             else:
                 # Case 2 : everything is described here
-                new_array.append(self._parse_bundle(bundle))
+                new_array.append(self._parse_bundle(bundle, bundle_props))
 
         return new_array
 
@@ -545,8 +572,12 @@ class JsonConfig(object):
         # Store data
         isolate.port = port
 
+        # Compute overriding properties
+        isolate_props = self._compute_overridden_props(isolate_object,
+                                                       overriding_props)
+
         # Get the isolate bundles
-        bundles = self._parse_bundles(isolate_object['bundles'])
+        bundles = self._parse_bundles(isolate_object['bundles'], isolate_props)
         for bundle in bundles:
             # Update the bean representation
             isolate.add_bundle(bundle)
