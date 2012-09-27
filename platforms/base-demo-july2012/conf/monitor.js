@@ -5,7 +5,9 @@
     "httpPort":9000,
     "vmArgs":[
         "-Xms32M",
-        "-Xmx64M"
+        "-Xmx64M",
+        "-XX:+UnlockDiagnosticVMOptions",
+        "-XX:+UnsyncloadClass"
     ],
     "bundles":[
         {
@@ -37,6 +39,23 @@
         },
         {
             "symbolicName":"org.psem2m.composer.core"
+        },
+        {
+            "symbolicName":"org.psem2m.isolates.ui.admin",
+            "optional":true,
+            "properties":{
+                "psem2m.demo.ui.viewer.top":"0scr",
+                "psem2m.demo.ui.viewer.left":"0.25scr",
+                "psem2m.demo.ui.viewer.width":"0.25scr",
+                "psem2m.demo.ui.viewer.height":"0.66scr",
+                "psem2m.demo.ui.viewer.color":"SkyBlue"
+            }
+        },
+        {
+            "symbolicName":"org.psem2m.composer.ui"
+        },
+        {
+            "symbolicName":"org.psem2m.isolates.ui"
         }
     ]
 }
