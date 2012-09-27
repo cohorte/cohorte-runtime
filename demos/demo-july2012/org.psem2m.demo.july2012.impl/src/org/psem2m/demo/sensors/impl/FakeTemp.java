@@ -25,6 +25,7 @@ import org.psem2m.demo.sensors.ISensor;
 public class FakeTemp implements ISensor {
 
     /** Last temperature */
+    @ServiceProperty(name = "temper.value.last")
     private float pLast;
 
     /** The maximal temperature */
