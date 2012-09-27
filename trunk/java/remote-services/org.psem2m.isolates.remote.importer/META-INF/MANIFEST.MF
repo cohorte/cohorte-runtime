@@ -44,5 +44,7 @@ iPOJO-Components: instance { $component="org.psem2m.remote.importer.Re
   $name="prepareFilters" }method { $name="registerService" $arguments=
  "{org.psem2m.isolates.services.remote.beans.RemoteServiceEvent}" }met
  hod { $name="unregisterService" $arguments="{java.lang.String,java.la
- ng.String}" }method { $name="validatePojo" }}}
+ ng.String}" }method { $name="updateService" $arguments="{org.psem2m.i
+ solates.services.remote.beans.RemoteServiceRegistration}" }method { $
+ name="validatePojo" }}}
 

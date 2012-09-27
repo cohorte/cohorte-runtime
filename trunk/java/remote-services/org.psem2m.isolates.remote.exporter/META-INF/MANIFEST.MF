@@ -26,19 +26,18 @@ iPOJO-Components: instance { $component="org.psem2m.remote.exporter.Se
  s.services.remote.IRemoteServiceBroadcaster" }field { $name="pBundleC
  ontext" $type="org.osgi.framework.BundleContext" }field { $name="pEnd
  pointHandlers" $type="org.psem2m.isolates.services.remote.IEndpointHa
- ndler[]" }field { $name="pLogger" $type="org.osgi.service.log.LogServ
- ice" }field { $name="pRegisteredServicesIds" $type="java.util.Set" }f
- ield { $name="pRepository" $type="org.psem2m.isolates.services.remote
- .IRemoteServiceRepository" }method { $name="createEndpoints" $return=
- "org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration"
-  $arguments="{org.osgi.framework.ServiceReference}" }method { $name="
- exportService" $return="boolean" $arguments="{org.osgi.framework.Serv
- iceReference}" }method { $name="invalidatePojo" }method { $name="isAl
- readyExported" $return="boolean" $arguments="{java.lang.Long}" }metho
- d { $name="isAlreadyExported" $return="boolean" $arguments="{org.osgi
- .framework.ServiceReference}" }method { $name="serviceChanged" $argum
- ents="{org.osgi.framework.ServiceEvent}" }method { $name="setExported
- " $arguments="{org.osgi.framework.ServiceReference}" }method { $name=
- "unexportService" $arguments="{org.osgi.framework.ServiceReference}" 
+ ndler[]" }field { $name="pExportedServices" $type="java.util.Map" }fi
+ eld { $name="pLogger" $type="org.osgi.service.log.LogService" }field 
+ { $name="pRepository" $type="org.psem2m.isolates.services.remote.IRem
+ oteServiceRepository" }method { $name="createEndpoints" $return="org.
+ psem2m.isolates.services.remote.beans.RemoteServiceRegistration" $arg
+ uments="{org.osgi.framework.ServiceReference}" }method { $name="expor
+ tService" $return="boolean" $arguments="{org.osgi.framework.ServiceRe
+ ference}" }method { $name="invalidatePojo" }method { $name="isAlready
+ Exported" $return="boolean" $arguments="{org.osgi.framework.ServiceRe
+ ference}" }method { $name="serviceChanged" $arguments="{org.osgi.fram
+ ework.ServiceEvent}" }method { $name="unexportService" $arguments="{o
+ rg.osgi.framework.ServiceReference}" }method { $name="updateService" 
+ $return="boolean" $arguments="{org.osgi.framework.ServiceReference}" 
  }method { $name="validatePojo" }}}
 

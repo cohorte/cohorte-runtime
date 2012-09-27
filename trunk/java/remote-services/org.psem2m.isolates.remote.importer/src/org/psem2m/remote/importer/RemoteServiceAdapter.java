@@ -231,17 +231,21 @@ public class RemoteServiceAdapter extends CPojoBase implements
         pLogger.logDebug(this, "handleRemoteEvent",
                 "Handling remote service event :", aServiceEvent);
 
-        switch (aServiceEvent.getEventType()) {
+        final RemoteServiceRegistration registration = aServiceEvent
+                .getServiceRegistration();
 
+        switch (aServiceEvent.getEventType()) {
         case REGISTERED: {
             registerService(aServiceEvent);
             break;
         }
 
-        case UNREGISTERED: {
-            final RemoteServiceRegistration registration = aServiceEvent
-                    .getServiceRegistration();
+        case MODIFIED: {
+            updateService(registration);
+            break;
+        }
 
+        case UNREGISTERED: {
             unregisterService(registration.getHostIsolate(),
                     registration.getServiceId());
             break;
@@ -350,7 +354,7 @@ public class RemoteServiceAdapter extends CPojoBase implements
 
         if (pRegisteredServices.containsKey(serviceId)) {
 
-            // Ignore already registered ids
+            // Ignore already registered IDs
             pLogger.logWarn(this, "registerService",
                     "Already registered service : " + serviceId);
             return;
@@ -379,9 +383,16 @@ public class RemoteServiceAdapter extends CPojoBase implements
             return;
         }
 
+        // Get the publishing isolate ID
+        final String publisherId = registration.getHostIsolate();
+
         // Filter properties, if any
         final Dictionary<String, Object> filteredProperties = filterProperties(registration
                 .getServiceProperties());
+
+        // Add the publishing isolate information
+        filteredProperties.put(IRemoteServicesConstants.SERVICE_IMPORTED_FROM,
+                publisherId);
 
         // Used in the thread
         final Object finalServiceProxy = serviceProxy;
@@ -406,12 +417,11 @@ public class RemoteServiceAdapter extends CPojoBase implements
             pRegisteredServices.put(serviceId, serviceInfo);
 
             // Map the service with its host isolate
-            final String isolateId = registration.getHostIsolate();
-            Set<String> isolateServices = pIsolatesServices.get(isolateId);
+            Set<String> isolateServices = pIsolatesServices.get(publisherId);
             if (isolateServices == null) {
                 // Prepare a new list
                 isolateServices = new HashSet<String>();
-                pIsolatesServices.put(isolateId, isolateServices);
+                pIsolatesServices.put(publisherId, isolateServices);
             }
 
             // Add the service ID to the list
@@ -470,6 +480,40 @@ public class RemoteServiceAdapter extends CPojoBase implements
             synchronized (isolateServices) {
                 isolateServices.remove(aServiceId);
             }
+        }
+    }
+
+    /**
+     * Updates the properties of an imported service
+     * 
+     * @param aRegistration
+     *            A remote service registration bean
+     */
+    protected synchronized void updateService(
+            final RemoteServiceRegistration aRegistration) {
+
+        final String serviceId = aRegistration.getServiceId();
+
+        // Retrieve the service registration
+        final ProxyServiceInfo serviceInfo = pRegisteredServices.get(serviceId);
+        if (serviceInfo == null) {
+            // Unknown service
+            pLogger.logWarn(this, "updateService",
+                    "No service informations for ID=", serviceId);
+            return;
+        }
+
+        final ServiceRegistration<?> serviceReg = serviceInfo
+                .getServiceRegistration();
+        if (serviceReg != null) {
+            // Set up the new properties
+            final Dictionary<String, Object> properties = filterProperties(aRegistration
+                    .getServiceProperties());
+            properties.put(IRemoteServicesConstants.SERVICE_IMPORTED_FROM,
+                    aRegistration.getHostIsolate());
+
+            // Update service properties
+            serviceReg.setProperties(properties);
         }
     }
 
