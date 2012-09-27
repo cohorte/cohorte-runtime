@@ -178,9 +178,31 @@ class ServiceExporter(object):
         return to_jabsorb(result)
 
 
+    def _send_remote_event(self, event_type, registration):
+        """
+        Sends a RemoteServiceEvent Java bean to all isolates
+        
+        :param event_type: The event type string (one of REGISTERED, MODIFIED,
+                           UNREGISTERED)
+        :param registration: The RemoteServiceRegistration associated to the
+                             event
+        """
+        remote_event = {
+            JAVA_CLASS: JAVA_REMOTE_SERVICE_EVENT,
+            "eventType": {
+                JAVA_CLASS: JAVA_SERVICE_EVENT_TYPE,
+                "enumValue": event_type
+            },
+            "serviceRegistration": registration
+        }
+        self.sender.fire(SIGNAL_REMOTE_EVENT, remote_event, dir_group="ALL")
+
+
     def _export_service(self, reference):
         """
         Exports the given service
+        
+        :param reference: A ServiceReference object
         """
         if reference in self._exported_references:
             # Already exported service
@@ -246,22 +268,14 @@ class ServiceExporter(object):
         self._registrations[reference] = registration
 
         # Send registration signal
-        remote_event = {
-            JAVA_CLASS: JAVA_REMOTE_SERVICE_EVENT,
-            "eventType": {
-                JAVA_CLASS: JAVA_SERVICE_EVENT_TYPE,
-                "enumValue": "REGISTERED"
-            },
-            "serviceRegistration": registration
-        }
-
-        _logger.debug("> Export Service %s: %s", reference, properties)
-        self.sender.fire(SIGNAL_REMOTE_EVENT, remote_event, dir_group="ALL")
+        self._send_remote_event("REGISTERED", registration)
 
 
     def _unexport_service(self, reference):
         """
         Stops the export of the given service
+        
+        :param reference: A ServiceReference object
         """
         if reference not in self._exported_references:
             # Unknown reference
@@ -282,18 +296,27 @@ class ServiceExporter(object):
         registration = self._registrations.pop(reference)
 
         # Send signal
-        remote_event = {
-            JAVA_CLASS: JAVA_REMOTE_SERVICE_EVENT,
-            "eventType": {
-                JAVA_CLASS: JAVA_SERVICE_EVENT_TYPE,
-                "enumValue": "UNREGISTERED"
-            },
-            "serviceRegistration": registration
-        }
+        self._send_remote_event("UNREGISTERED", registration)
 
-        _logger.debug("X Un-exported service %s: %s", reference,
-                      reference.get_properties()[pelix.OBJECTCLASS])
-        self.sender.fire(SIGNAL_REMOTE_EVENT, remote_event, dir_group="ALL")
+
+    def _update_service(self, reference):
+        """
+        Updates a service : sends a modification event for an already exported
+        service
+        
+        :param reference: A ServiceReference object
+        """
+        registration = self._registrations.get(reference)
+        if registration is None:
+            # Unknown service
+            return
+
+        # Update the registration
+        registration["serviceProperties"] = reference.get_properties()
+
+        # Send the notification
+        self._send_remote_event("MODIFIED", registration)
+
 
 
     def service_changed(self, event):
@@ -303,11 +326,19 @@ class ServiceExporter(object):
         kind = event.get_type()
         ref = event.get_service_reference()
 
-        if kind == pelix.ServiceEvent.REGISTERED or \
-                (kind == pelix.ServiceEvent.MODIFIED \
-                 and ref not in self._exported_references):
-            # Matching registering or updated service
+        if kind == pelix.ServiceEvent.REGISTERED:
+            # Simply export the service
             self._export_service(ref)
+
+        elif kind == pelix.ServiceEvent.MODIFIED:
+            # Matching registering or updated service
+            if ref not in self._exported_references:
+                # New match
+                self._export_service(ref)
+
+            else:
+                # Properties modification
+                self._update_service(ref)
 
         elif ref in self._exported_references and\
                 (kind == pelix.ServiceEvent.UNREGISTERING or \
@@ -559,16 +590,20 @@ class ServiceImporter(object):
         """
         try:
             event_type = remote_event["eventType"]["enumValue"]
+
         except:
             _logger.exception("Invalid RemoteEvent object\n%s", remote_event)
             return
 
+        remote_registration = remote_event["serviceRegistration"]
         if event_type == "REGISTERED":
             self._import_service(remote_event)
 
+        elif event_type == "MODIFIED":
+            self._update_service(remote_registration)
+
         elif event_type == "UNREGISTERED":
-            self._unimport_service(sender,
-                            remote_event["serviceRegistration"]["serviceId"])
+            self._unimport_service(sender, remote_registration["serviceId"])
 
 
     def _handle_isolate_lost(self, isolate_name):
@@ -667,18 +702,18 @@ class ServiceImporter(object):
 
             services.append(service_id)
 
-            _logger.debug("< Imported Service from %s: %s", host_isolate,
-                          remote_reg["exportedInterfaces"])
-
 
     def _unimport_service(self, isolate_name, service_id):
         """
         Cancel the import of the given service
+        
+        :param isolate_name: The ID of the isolate publishing the service
+        :param service_id: The ID of the unregistered service
         """
         with self._registry_lock:
             service = self._registered_services.get(service_id, None)
             if not service:
-                _logger.debug("Unknown service - %s", service_id)
+                _logger.debug("Unknown unregistered service - %s", service_id)
                 # Unknown service
                 return
 
@@ -707,9 +742,34 @@ class ServiceImporter(object):
             if isolate_services is not None and service_id in isolate_services:
                 isolate_services.remove(service_id)
 
-            _logger.debug("X UNimported service from %s: %s", isolate_name,
-                          reg.get_reference().get_properties()\
-                          .get(pelix.OBJECTCLASS))
+
+    def _update_service(self, remote_reg):
+        """
+        Updates the properties of an imported service
+        
+        :param remote_reg: A RemoteServiceRegistration bean
+        """
+        # Store remote service ID
+        service_id = remote_reg["serviceId"]
+
+        # Store the host isolate ID
+        host_isolate = remote_reg["hostIsolate"]
+
+        # Get the imported service information
+        service = self._registered_services.get(service_id, None)
+        if not service:
+            # Unknown service
+            _logger.debug("Unknown modified service - %s", service_id)
+            return
+
+        # Filter properties
+        filtered_properties = _filter_export_properties(\
+                                            remote_reg["serviceProperties"])
+        filtered_properties["service.imported.from"] = host_isolate
+
+        # Extract service registration and proxy instance
+        local_registration = service[1]
+        local_registration.set_properties(filtered_properties)
 
 
     @Validate
@@ -728,7 +788,6 @@ class ServiceImporter(object):
                                         self)
 
         # Send "request endpoints" signal
-        _logger.debug("Sending endpoints request...")
         self.sender.fire(BROADCASTER_SIGNAL_REQUEST_ENDPOINTS, None,
                          dir_group="ALL")
         _logger.debug("ServiceImporter Ready")
