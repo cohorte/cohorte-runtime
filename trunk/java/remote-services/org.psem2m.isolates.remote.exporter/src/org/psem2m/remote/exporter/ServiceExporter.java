@@ -349,6 +349,10 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
             return false;
         }
 
+        // Update the registration
+        serviceRegistration.setServiceProperties(Utilities
+                .getServiceProperties(aServiceReference));
+
         // Send the notification
         final RemoteServiceEvent event = new RemoteServiceEvent(
                 ServiceEventType.MODIFIED, serviceRegistration);
