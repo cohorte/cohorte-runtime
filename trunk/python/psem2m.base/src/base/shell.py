@@ -225,8 +225,12 @@ class Shell(object):
         self._utils = utilities
 
         # Register basic commands
-        self.register_command(None, "lb", self.list_bundles)
-        self.register_command(None, "ls", self.list_services)
+        self.register_command(None, "bd", self.bundle_details)
+        self.register_command(None, "bl", self.bundles_list)
+
+        self.register_command(None, "sd", self.service_details)
+        self.register_command(None, "sl", self.services_list)
+
         self.register_command(None, "start", self.start)
         self.register_command(None, "stop", self.stop)
         self.register_command(None, "update", self.update)
@@ -375,7 +379,58 @@ class Shell(object):
         return "$ "
 
 
-    def list_bundles(self, stdin, stdout):
+    def bundle_details(self, stdin, stdout, bundle_id):
+        """
+        Prints the details of the given bundle
+        """
+        try:
+            bundle_id = int(bundle_id)
+            bundle = self._context.get_bundle(bundle_id)
+
+        except pelix.BundleException:
+            stdout.write("Unknown bundle ID: {0}".format(bundle_id))
+            return
+
+        lines = []
+        lines.append("ID      : {0}".format(bundle.get_bundle_id()))
+        lines.append("Name    : {0}".format(bundle.get_symbolic_name()))
+        lines.append("Version : {0}".format(bundle.get_version()))
+        lines.append("State   : {0}".format(self._utils.bundlestate_to_str(
+                                                        bundle.get_state())))
+        lines.append("Location: {0}".format(bundle.get_location()))
+        lines.append("Published services:")
+        try:
+            services = bundle.get_registered_services()
+            if services:
+                for svc_ref in services:
+                    lines.append("\t{0}".format(svc_ref))
+
+            else:
+                lines.append("\tn/a")
+
+        except pelix.BundleException as ex:
+            # Bundle in a invalid state
+            lines.append("\tError: {0}".format(ex))
+
+        lines.append("Services used by this bundle:")
+        try:
+            services = bundle.get_services_in_use()
+            if services:
+                for svc_ref in services:
+                    lines.append("\t{0}".format(svc_ref))
+
+            else:
+                lines.append("\tn/a")
+
+        except pelix.BundleException as ex:
+            # Bundle in a invalid state
+            lines.append("\tError: {0}".format(ex))
+
+        lines.append("")
+        stdout.write('\n'.join(lines))
+
+
+    def bundles_list(self, stdin, stdout):
         """
         Lists the bundles in the framework and their state
         """
@@ -403,7 +458,38 @@ class Shell(object):
         stdout.write(self._utils.make_table(headers, lines))
 
 
-    def list_services(self, stdin, stdout):
+    def service_details(self, stdin, stdout, service_id):
+        """
+        Prints the details of the given service
+        """
+        svc_ref = self._context.get_service_reference(None,
+                                            '({0}={1})'.format(pelix.SERVICE_ID,
+                                                               service_id))
+        if svc_ref is None:
+            stdout.write('Service not found: {0}\n'.format(service_id))
+            return
+
+        lines = []
+        lines.append("ID    : {0}".format(svc_ref.get_property(
+                                                    pelix.SERVICE_ID)))
+        lines.append("Rank  : {0}".format(svc_ref.get_property(
+                                                    pelix.SERVICE_RANKING)))
+        lines.append("Specs : {0}".format(svc_ref.get_property(
+                                                    pelix.OBJECTCLASS)))
+        lines.append("Bundle: {0}".format(svc_ref.get_bundle()))
+        lines.append("Properties:")
+        for key, value in svc_ref.get_properties().items():
+            lines.append("\t{0} = {1}".format(key, value))
+
+        lines.append("Bundles using this service:")
+        for bundle in svc_ref.get_using_bundles():
+            lines.append("\t{0}".format(bundle))
+
+        lines.append("")
+        stdout.write('\n'.join(lines))
+
+
+    def services_list(self, stdin, stdout):
         """
         Lists the services in the framework
         """
