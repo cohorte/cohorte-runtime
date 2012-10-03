@@ -131,7 +131,8 @@ class IsolateLoader(object):
         not optional, the isolate is automatically reset.
         
         :param isolate_descr: Description of the current isolate
-        :return: True on success, else False
+        :return: True on success
+        :raise Exception: Something wrong occurred
         """
         # Set up the environment variables
         for name, value in isolate_descr.get_environment().items():
@@ -148,14 +149,16 @@ class IsolateLoader(object):
                 self._bundles.append(bnd)
                 optionals[bnd] = bundle.optional
 
-            except pelix.BundleException:
-                _logger.exception("Error installing bundle %s",
-                                  bundle.get_symbolic_name())
+            except pelix.BundleException as ex:
+                _logger.exception("Error installing bundle %s: %s",
+                                  bundle.get_symbolic_name(), ex)
 
                 if not bundle.optional:
                     # Reset isolate on error
                     self.reset()
-                    return False
+                    raise Exception("Error installing mandatory bundle {0}: " \
+                                    "{1}".format(bundle.get_symbolic_name(),
+                                                 ex))
 
         # Special thing before starting bundle : set up the HTTP port property
         port = isolate_descr.get_port()
@@ -172,14 +175,15 @@ class IsolateLoader(object):
                 bnd.start()
                 _logger.debug("Bundle %s started", bnd)
 
-            except pelix.BundleException:
-                _logger.exception("Error starting bundle %s",
-                                  bnd.get_symbolic_name())
+            except pelix.BundleException as ex:
+                _logger.exception("Error starting bundle %s: %s",
+                                  bnd.get_symbolic_name(), ex)
 
                 if not optionals.get(bnd):
                     # Reset isolate on error
                     self.reset()
-                    return False
+                    raise Exception("Error starting mandatory bundle {0}: {1}" \
+                                    .format(bundle.get_symbolic_name(), ex))
 
         return True
 
@@ -321,23 +325,24 @@ class IsolateLoader(object):
         Configures the current isolate according to the configuration for the
         isolate ID indicated in the framework property ``psem2m.isolate.id``.
         
-        :return: True on success, False on error
+        :return: True on success
+        :raise Exception: Something wrong occurred
         """
         is_forker = self.context.get_property("psem2m.forker")
         isolate_id = self.context.get_property("psem2m.isolate.id")
         if isolate_id is None and not is_forker:
             # No isolate ID found and not a forker: do nothing
-            return False
+            raise ValueError("No isolate ID given")
 
         isolate_descr = self._find_configuration(isolate_id, is_forker)
         if isolate_descr is None:
             # No description for this isolate
-            _logger.info("No configuration found for '%s'", isolate_id)
-            return False
+            raise Exception("No configuration found for '{0}'" \
+                            .format(isolate_id))
 
         if not isolate_descr.get_node():
-            _logger.warning("No node given for isolate '%s'", isolate_id)
-            return False
+            raise Exception("No node given for isolate '{0}'" \
+                            .format(isolate_id))
 
         # Set the configuration that will be used 
         self._config.set_current_isolate(isolate_descr)
@@ -378,13 +383,16 @@ class IsolateLoader(object):
         """
         self.context = context
 
-        if not self.setup_isolate():
+        try:
+            self.setup_isolate()
+
+        except Exception as ex:
             # An error occurred, stop the framework
-            _logger.error("An error occurred starting the bundle: Abandon.")
+            _logger.exception("An error occurred starting the bundle: Abandon.")
 
             # FIXME: Pelix should stop there
-            raise pelix.FrameworkException("Loader had to stop the framework",
-                                           True)
+            raise pelix.FrameworkException("Error setting up the isolate: {0}" \
+                                           .format(ex), True)
 
         else:
             # Send the "agent done" isolate status signal
