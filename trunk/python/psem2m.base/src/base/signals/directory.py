@@ -73,6 +73,12 @@ class SignalsDirectory(object):
         # Isolate ID -> (node, port)
         self._accesses = {}
 
+        # Local isolate ID
+        self._current_isolate_id = None
+
+        # Current isolate access port
+        self._current_isolate_port = -1
+
         # Group Name -> [isolates]
         self._groups = {}
 
@@ -81,9 +87,6 @@ class SignalsDirectory(object):
 
         # Node name -> host
         self._nodes_host = {}
-
-        # Current isolate access port
-        self._current_isolate_port = -1
 
 
     def dump(self):
@@ -380,7 +383,7 @@ class SignalsDirectory(object):
         
         :return: the current isolate ID
         """
-        return self._context.get_property('psem2m.isolate.id')
+        return self._current_isolate_id
 
 
     def get_isolate_node(self, isolate):
@@ -650,6 +653,9 @@ class SignalsDirectory(object):
         Component validated
         """
         self._context = context
+
+        # Store the current isolate ID
+        self._current_isolate_id = context.get_property('psem2m.isolate.id')
 
         # Special registration for the current isolate
         self._accesses[self.get_isolate_id()] = (None, -1)
