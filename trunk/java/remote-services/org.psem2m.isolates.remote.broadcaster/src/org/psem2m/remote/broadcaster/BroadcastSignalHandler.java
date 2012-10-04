@@ -17,7 +17,7 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
-import org.osgi.service.log.LogService;
+import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.constants.ISignalsConstants;
 import org.psem2m.isolates.services.monitoring.IIsolatePresenceListener;
@@ -50,7 +50,7 @@ public class BroadcastSignalHandler extends CPojoBase implements
 
     /** Log service, injected by iPOJO */
     @Requires
-    private LogService pLogger;
+    private IIsolateLoggerSvc pLogger;
 
     /** Remote service events listeners */
     @Requires(optional = true)
@@ -88,10 +88,11 @@ public class BroadcastSignalHandler extends CPojoBase implements
 
                 } catch (final Exception ex) {
                     // Just log...
-                    pLogger.log(
-                            LogService.LOG_WARNING,
-                            "RemoveServiceEventListener failed to handle a lost isolate",
-                            ex);
+                    pLogger.logWarn(
+                            this,
+                            "handleIsolatePresence",
+                            "RemoveServiceEventListener failed to handle lost isolate=",
+                            aIsolateId, ex);
                 }
             }
         }
@@ -156,13 +157,15 @@ public class BroadcastSignalHandler extends CPojoBase implements
 
                 } catch (final ClassCastException ex) {
                     // Invalid type
-                    pLogger.log(LogService.LOG_WARNING, "Uncastable array = "
-                            + Arrays.toString((Object[]) signalContent));
+                    pLogger.logWarn(this, "handleReceivedSignal",
+                            "Uncastable array from isolate=",
+                            aSignalData.getSenderId(), "content=",
+                            Arrays.toString((Object[]) signalContent));
                 }
 
             } else {
-                pLogger.log(LogService.LOG_WARNING, "Unknown type = "
-                        + signalContent.getClass().getName());
+                pLogger.logWarn(this, "handleReceivedSignal", "Unknown class=",
+                        signalContent.getClass().getName());
             }
 
         } else if (ISignalsConstants.BROADCASTER_SIGNAL_REQUEST_ENDPOINTS
@@ -215,8 +218,9 @@ public class BroadcastSignalHandler extends CPojoBase implements
                 .getLocalRegistrations();
         if (localRegistrations == null || localRegistrations.length == 0) {
             // Don't say anything if we have anything to say...
-            pLogger.log(LogService.LOG_INFO,
-                    "RequestEndpoints received, but the RSR is empty");
+            pLogger.logInfo(this, "handleRequestEndpoints",
+                    "RequestEndpoints received from isolate=",
+                    aRequestingIsolateId, "but the RSR is empty");
             return;
         }
 
@@ -258,7 +262,7 @@ public class BroadcastSignalHandler extends CPojoBase implements
 
         // Unregister the listener
         pSignalReceiver.unregisterListener(ISignalsConstants.MATCH_ALL, this);
-        pLogger.log(LogService.LOG_INFO,
+        pLogger.logInfo(this, "invalidatePojo",
                 "PSEM2M Remote Service Broadcaster Handler Gone");
     }
 
@@ -276,7 +280,7 @@ public class BroadcastSignalHandler extends CPojoBase implements
                 ISignalsConstants.BROADCASTER_SIGNAL_NAME_PREFIX
                         + ISignalsConstants.MATCH_ALL, this);
 
-        pLogger.log(LogService.LOG_INFO,
+        pLogger.logInfo(this, "validatePojo",
                 "PSEM2M Remote Service Broadcaster Handler Ready");
     }
 }

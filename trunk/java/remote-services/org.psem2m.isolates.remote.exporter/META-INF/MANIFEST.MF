@@ -12,7 +12,7 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  g.psem2m.isolates.base;version=1.0.0, org.psem2m.isolates.base.activa
  tors;version=1.0.0, org.psem2m.isolates.services.remote;version=1.0.0
  , org.psem2m.isolates.services.remote.beans;version=1.0.0, org.psem2m
- .utilities
+ .utilities, org.psem2m.utilities.logging;version=1.0.0
 iPOJO-Components: instance { $component="org.psem2m.remote.exporter.Se
  rviceExporter" $name="psem2m-remote-service-exporter" }component { $c
  lassname="org.psem2m.remote.exporter.ServiceExporter" $name="psem2m-r
@@ -27,17 +27,17 @@ iPOJO-Components: instance { $component="org.psem2m.remote.exporter.Se
  ontext" $type="org.osgi.framework.BundleContext" }field { $name="pEnd
  pointHandlers" $type="org.psem2m.isolates.services.remote.IEndpointHa
  ndler[]" }field { $name="pExportedServices" $type="java.util.Map" }fi
- eld { $name="pLogger" $type="org.osgi.service.log.LogService" }field 
- { $name="pRepository" $type="org.psem2m.isolates.services.remote.IRem
- oteServiceRepository" }method { $name="createEndpoints" $return="org.
- psem2m.isolates.services.remote.beans.RemoteServiceRegistration" $arg
- uments="{org.osgi.framework.ServiceReference}" }method { $name="expor
- tService" $return="boolean" $arguments="{org.osgi.framework.ServiceRe
- ference}" }method { $name="invalidatePojo" }method { $name="isAlready
- Exported" $return="boolean" $arguments="{org.osgi.framework.ServiceRe
- ference}" }method { $name="serviceChanged" $arguments="{org.osgi.fram
- ework.ServiceEvent}" }method { $name="unexportService" $arguments="{o
- rg.osgi.framework.ServiceReference}" }method { $name="updateService" 
- $return="boolean" $arguments="{org.osgi.framework.ServiceReference}" 
- }method { $name="validatePojo" }}}
+ eld { $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerS
+ vc" }field { $name="pRepository" $type="org.psem2m.isolates.services.
+ remote.IRemoteServiceRepository" }method { $name="createEndpoints" $r
+ eturn="org.psem2m.isolates.services.remote.beans.RemoteServiceRegistr
+ ation" $arguments="{org.osgi.framework.ServiceReference}" }method { $
+ name="exportService" $return="boolean" $arguments="{org.osgi.framewor
+ k.ServiceReference}" }method { $name="invalidatePojo" }method { $name
+ ="isAlreadyExported" $return="boolean" $arguments="{org.osgi.framewor
+ k.ServiceReference}" }method { $name="serviceChanged" $arguments="{or
+ g.osgi.framework.ServiceEvent}" }method { $name="unexportService" $ar
+ guments="{org.osgi.framework.ServiceReference}" }method { $name="upda
+ teService" $return="boolean" $arguments="{org.osgi.framework.ServiceR
+ eference}" }method { $name="validatePojo" }}}
 

@@ -12,7 +12,7 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
-import org.osgi.service.log.LogService;
+import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.constants.ISignalsConstants;
 import org.psem2m.isolates.services.monitoring.IIsolatePresenceListener;
@@ -41,7 +41,7 @@ public class RemoteServiceBroadcaster extends CPojoBase implements
 
     /** Log service, injected by iPOJO */
     @Requires
-    private LogService pLogger;
+    private IIsolateLoggerSvc pLogger;
 
     /** Signal sender service, inject by iPOJO */
     @Requires
@@ -76,7 +76,7 @@ public class RemoteServiceBroadcaster extends CPojoBase implements
     @Invalidate
     public void invalidatePojo() throws BundleException {
 
-        pLogger.log(LogService.LOG_INFO,
+        pLogger.logInfo(this, "invalidatePojo",
                 "PSEM2M Remote Service Broadcaster Gone");
     }
 
@@ -127,7 +127,7 @@ public class RemoteServiceBroadcaster extends CPojoBase implements
     @Validate
     public void validatePojo() throws BundleException {
 
-        pLogger.log(LogService.LOG_INFO,
+        pLogger.logInfo(this, "validatePojo",
                 "PSEM2M Remote Service Broadcaster Ready");
     }
 }

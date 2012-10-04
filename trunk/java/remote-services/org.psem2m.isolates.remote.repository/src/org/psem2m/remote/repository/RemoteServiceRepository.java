@@ -16,7 +16,7 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
-import org.osgi.service.log.LogService;
+import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.services.remote.IRemoteServiceEventListener;
 import org.psem2m.isolates.services.remote.IRemoteServiceRepository;
@@ -39,7 +39,7 @@ public class RemoteServiceRepository extends CPojoBase implements
 
     /** Log service, injected by iPOJO */
     @Requires
-    private LogService pLogger;
+    private IIsolateLoggerSvc pLogger;
 
     /** Exported service registrations */
     private final Set<RemoteServiceRegistration> pRegistrations = new HashSet<RemoteServiceRegistration>();
@@ -59,17 +59,6 @@ public class RemoteServiceRepository extends CPojoBase implements
                 pListeners.add(aListener);
             }
         }
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.utilities.CXObjectBase#destroy()
-     */
-    @Override
-    public void destroy() {
-
-        // ...
     }
 
     /*
@@ -95,7 +84,8 @@ public class RemoteServiceRepository extends CPojoBase implements
     @Invalidate
     public void invalidatePojo() throws BundleException {
 
-        pLogger.log(LogService.LOG_INFO, "RSR gone");
+        pLogger.logInfo(this, "invalidatePojo",
+                "Remote Service Repository Gone");
     }
 
     /*
@@ -129,7 +119,7 @@ public class RemoteServiceRepository extends CPojoBase implements
 
         if (aRegistrations != null) {
 
-            for (RemoteServiceRegistration registration : aRegistrations) {
+            for (final RemoteServiceRegistration registration : aRegistrations) {
                 registerExportedService(registration);
             }
         }
@@ -164,7 +154,7 @@ public class RemoteServiceRepository extends CPojoBase implements
             final EndpointDescription aEndpointDescription) {
 
         synchronized (pRegistrations) {
-            for (RemoteServiceRegistration registration : pRegistrations) {
+            for (final RemoteServiceRegistration registration : pRegistrations) {
                 registration.removeEndpoints(aEndpointDescription);
             }
         }
@@ -190,7 +180,7 @@ public class RemoteServiceRepository extends CPojoBase implements
 
         synchronized (pRegistrations) {
             // Remove end points from registrations
-            for (RemoteServiceRegistration registration : pRegistrations) {
+            for (final RemoteServiceRegistration registration : pRegistrations) {
                 registration.removeEndpoints(endpointsDescriptionsArray);
             }
         }
@@ -205,6 +195,6 @@ public class RemoteServiceRepository extends CPojoBase implements
     @Validate
     public void validatePojo() throws BundleException {
 
-        pLogger.log(LogService.LOG_INFO, "RSR ready");
+        pLogger.logInfo(this, "validatePojo", "Remote Service Repository Ready");
     }
 }

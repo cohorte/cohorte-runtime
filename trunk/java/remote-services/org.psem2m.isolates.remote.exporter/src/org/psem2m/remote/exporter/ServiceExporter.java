@@ -24,7 +24,7 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
-import org.osgi.service.log.LogService;
+import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.services.remote.IEndpointHandler;
@@ -62,7 +62,7 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
 
     /** The logger */
     @Requires
-    private LogService pLogger;
+    private IIsolateLoggerSvc pLogger;
 
     /** Remote service repository (RSR) */
     @Requires
@@ -141,8 +141,9 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
 
             } catch (final Throwable t) {
                 // Log errors
-                pLogger.log(LogService.LOG_WARNING,
-                        "Error creating an end point", t);
+                pLogger.logWarn(this, "createEndpoints",
+                        "Error creating endpoint for service=",
+                        exportedInterface, ":", t);
             }
         }
 
@@ -178,6 +179,8 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
                 ServiceEventType.REGISTERED, serviceRegistration);
 
         pBroadcaster.sendNotification(broadcastEvent);
+        pLogger.logDebug(this, "", "Export notification sent for ref=",
+                aServiceReference);
         return true;
     }
 
@@ -320,9 +323,9 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
 
             } catch (final Exception ex) {
                 // Log error
-                pLogger.log(LogService.LOG_WARNING,
-                        "Can't remove endpoint from " + handler
-                                + " for reference " + aServiceReference, ex);
+                pLogger.logWarn(this, "unexportService",
+                        "Can't remove endpoint from handler=", handler,
+                        "for reference=", aServiceReference, ":", ex);
             }
         }
 
@@ -411,8 +414,8 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
             }
 
         } catch (final InvalidSyntaxException ex) {
-            pLogger.log(LogService.LOG_WARNING,
-                    "Error looking for services waiting to be exported", ex);
+            pLogger.logWarn(this, "validatePojo",
+                    "Error looking for services waiting to be exported:", ex);
         }
 
         // Register a listener for future exported services
@@ -421,13 +424,13 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
 
         } catch (final InvalidSyntaxException e) {
 
-            pLogger.log(LogService.LOG_ERROR,
-                    "Error creating the service listener", e);
+            pLogger.logSevere(this, "validatePojo",
+                    "Error creating the service listener:", e);
 
             throw new BundleException(
                     "Error creating the service listener filter", e);
         }
 
-        pLogger.log(LogService.LOG_INFO, "PSEM2M Service Exporter Ready.");
+        pLogger.logInfo(this, "validatePojo", "PSEM2M Service Exporter Ready.");
     }
 }
