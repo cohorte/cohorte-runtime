@@ -72,7 +72,7 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver {
     @ServiceProperty(name = ISignalReceiver.PROPERTY_ONLINE, value = "false", mandatory = true)
     private boolean pPropertyOnline;
 
-    /** Reception providers */
+    /** Reception providers: for access information and 'on-line' flag */
     @Requires(id = ID_RECEIVERS, optional = true)
     private ISignalReceptionProvider[] pReceivers;
 
@@ -86,18 +86,16 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver {
             + ISignalReceptionProvider.PROPERTY_READY + "=true)")
     protected void bindProvider(final ISignalReceptionProvider aProvider) {
 
-        // Register to the provider
-        if (!aProvider.setReceiver(this)) {
-            pLogger.logInfo(this, "bindProvider",
-                    "Error registering to the reception provider=", aProvider);
-        }
-
         // Increase the number of available providers
         pNbProviders++;
 
+        /*
+         * Test if we have a host access now (bind is called after the
+         * dependency injection)
+         */
         final HostAccess access = getAccessInfo();
         if (access != null) {
-            // Register the access
+            // Update our local access
             pDirectory.registerLocal(access.getPort(), "ALL");
 
             // We're now on-line
@@ -195,11 +193,6 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver {
     @Override
     @Invalidate
     public void invalidatePojo() throws BundleException {
-
-        // Unregister from all providers
-        for (final ISignalReceptionProvider provider : pReceivers) {
-            provider.unsetReceiver(this);
-        }
 
         // Clear listeners
         synchronized (pListeners) {
@@ -342,8 +335,6 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver {
      */
     @Unbind(id = ID_RECEIVERS, aggregate = true)
     protected void unbindProvider(final ISignalReceptionProvider aProvider) {
-
-        aProvider.unsetReceiver(this);
 
         // Decrease the number of available providers
         pNbProviders--;

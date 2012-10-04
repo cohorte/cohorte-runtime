@@ -23,10 +23,10 @@ import org.psem2m.isolates.services.conf.ISvcConfig;
 import org.psem2m.remotes.signals.http.IHttpSignalsConstants;
 import org.psem2m.signals.HostAccess;
 import org.psem2m.signals.ISignalData;
-import org.psem2m.signals.ISignalSerializer;
 import org.psem2m.signals.ISignalReceiver;
 import org.psem2m.signals.ISignalReceptionProvider;
 import org.psem2m.signals.ISignalRequestReader;
+import org.psem2m.signals.ISignalSerializer;
 import org.psem2m.signals.InvalidDataException;
 import org.psem2m.signals.SignalContent;
 import org.psem2m.signals.SignalResult;
@@ -59,6 +59,7 @@ public class HttpSignalReceiver extends CPojoBase implements
     private boolean pPropertyReady;
 
     /** Main signals receiver */
+    @Requires
     private ISignalReceiver pReceiver;
 
     /** The signal data serializers */
@@ -94,14 +95,7 @@ public class HttpSignalReceiver extends CPojoBase implements
     public SignalResult handleSignal(final String aSignalName,
             final ISignalData aSignalData, final String aMode) {
 
-        if (pReceiver != null) {
-            synchronized (pReceiver) {
-                return pReceiver.handleReceivedSignal(aSignalName, aSignalData,
-                        aMode);
-            }
-        }
-
-        return null;
+        return pReceiver.handleReceivedSignal(aSignalName, aSignalData, aMode);
     }
 
     /*
@@ -118,9 +112,6 @@ public class HttpSignalReceiver extends CPojoBase implements
 
         // Unregister the servlet
         pHttpService.unregister(IHttpSignalsConstants.RECEIVER_SERVLET_ALIAS);
-
-        // Clear listeners
-        pReceiver = null;
 
         pLogger.logInfo(this, "invalidatePojo", "HTTP Signal Sender Gone");
     }
@@ -173,7 +164,7 @@ public class HttpSignalReceiver extends CPojoBase implements
                 }
 
                 if (rawData != null) {
-                    // Sucess...
+                    // Success...
                     contentType = serializer.getContentType();
                     break;
                 }
@@ -225,24 +216,6 @@ public class HttpSignalReceiver extends CPojoBase implements
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * org.psem2m.signals.ISignalReceptionProvider#setReceiver(org.psem2m.signals
-     * .ISignalReceiver)
-     */
-    @Override
-    public boolean setReceiver(final ISignalReceiver aReceiver) {
-
-        if (pReceiver == null && aReceiver != null) {
-            pReceiver = aReceiver;
-            return true;
-        }
-
-        return false;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
      * @see org.psem2m.remotes.signals.http.receiver.ISignalRequestHandler#
      * handleSignalRequest(java.lang.String, byte[])
      */
@@ -282,23 +255,6 @@ public class HttpSignalReceiver extends CPojoBase implements
 
         // No de-serializer found
         return null;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.psem2m.signals.ISignalReceptionProvider#unsetReceiver(org.psem2m.
-     * signals.ISignalReceiver)
-     */
-    @Override
-    public void unsetReceiver(final ISignalReceiver aReceiver) {
-
-        synchronized (pReceiver) {
-            if (pReceiver != null && pReceiver.equals(aReceiver)) {
-                pReceiver = null;
-            }
-        }
     }
 
     /*
