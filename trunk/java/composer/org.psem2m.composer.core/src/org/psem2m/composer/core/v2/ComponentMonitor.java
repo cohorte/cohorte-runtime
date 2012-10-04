@@ -130,6 +130,39 @@ public class ComponentMonitor implements ISignalListener,
         pComposer.handleComponentEvent(aIsolateId, componentName, state);
     }
 
+    private void handleComponentHandlingSignal(final String aSenderId,
+            final Map<String, Object> aSignalContent) {
+
+        // Extract arrays
+        final ComponentBean[] handledComponents = Utilities.arrayObjectToArray(
+                aSignalContent.get("handled"), ComponentBean.class);
+        final ComponentBean[] runningComponents = Utilities.arrayObjectToArray(
+                aSignalContent.get("running"), ComponentBean.class);
+
+        // Update the components state
+        if (runningComponents != null) {
+            String composetName = null;
+            for (final ComponentBean bean : runningComponents) {
+                if (composetName == null) {
+                    // Find the root components set name
+                    composetName = bean.getRootName();
+                }
+            }
+
+            if (composetName != null) {
+                /*
+                 * TODO: notify the composer logic of running components
+                 * Problem: the composition might not even be in 'instantiating'
+                 * when this method is executed
+                 */
+            }
+        }
+
+        // Update the factories state
+        pComposer.handleFactoriesState(aSenderId,
+                getFactories(handledComponents), EFactoryState.REGISTERED);
+    }
+
     /**
      * Handles the result of an instantiation, received from an agent
      * 
@@ -211,8 +244,6 @@ public class ComponentMonitor implements ISignalListener,
         // Decode Jabsorb arrays
         final String[] stringContent = Utilities.getArray(signalContent,
                 String.class);
-        final ComponentBean[] componentsArray = Utilities.getArray(
-                signalContent, ComponentBean.class);
 
         /* Factory signals */
         if (ComposerAgentSignals.SIGNAL_ISOLATE_ADD_FACTORY.equals(aSignalName)) {
@@ -236,8 +267,15 @@ public class ComponentMonitor implements ISignalListener,
         else if (ComposerAgentSignals.SIGNAL_RESPONSE_HANDLES_COMPONENTS
                 .equals(aSignalName)) {
             // An isolate can handle some components
-            pComposer.handleFactoriesState(senderId,
-                    getFactories(componentsArray), EFactoryState.REGISTERED);
+            if (signalContent instanceof Map) {
+                handleComponentHandlingSignal(senderId,
+                        (Map<String, Object>) signalContent);
+
+            } else {
+                pLogger.logWarn(this, "handleReceivedSignal",
+                        "Unhandled response for a 'can handle' signal content=",
+                        signalContent);
+            }
 
         } else if (ComposerAgentSignals.SIGNAL_RESPONSE_INSTANTIATE_COMPONENTS
                 .equals(aSignalName)) {

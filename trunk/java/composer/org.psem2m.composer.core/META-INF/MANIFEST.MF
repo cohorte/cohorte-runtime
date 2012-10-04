@@ -108,112 +108,113 @@ iPOJO-Components: instance { $component="org.psem2m.composer.core.v2.C
  rg.psem2m.signals.ISignalReceiver}" }method { $name="getFactories" $r
  eturn="java.lang.String[]" $arguments="{org.psem2m.composer.model.Com
  ponentBean[]}" }method { $name="handleComponentChangedSignal" $argume
- nts="{java.lang.String,java.util.Map}" }method { $name="handleInstant
- iationResult" $arguments="{java.lang.String,java.util.Map}" }method {
-  $name="handleIsolatePresence" $arguments="{java.lang.String,java.lan
- g.String,org.psem2m.isolates.services.monitoring.IIsolatePresenceList
- ener$EPresence}" }method { $name="handleReceivedSignal" $return="java
- .lang.Object" $arguments="{java.lang.String,org.psem2m.signals.ISigna
- lData}" }method { $name="invalidate" }method { $name="validate" }}}co
- mponent { $classname="org.psem2m.composer.core.v2.ComposerLogic" $nam
- e="psem2m-composer-logic-factory" $public="false" provides { $specifi
- cations="{org.psem2m.composer.IComposer,org.psem2m.composer.core.v2.I
- ComposerLogic}" property { $name="service.exported.interfaces" $type=
- "String" $value="org.psem2m.composer.IComposer" }}requires { $field="
- pCompositionListeners" $optional="true" $id="composition-listeners" $
- aggregate="true" callback { $method="bindCompositionListener" $type="
- bind" }}requires { $field="pConfigReaders" }requires { $field="pLogge
- r" }requires { $field="pSignalBroadcaster" }requires { $field="pStatu
- s" }properties { property { $name="component-instantiation-timeout" $
- field="pInstantiationTimeout" $value="1000" }property { $name="resolu
- tion-delay" $field="pResolutionDelay" $value="200" }}callback { $tran
- sition="invalidate" $method="invalidate" }callback { $transition="val
- idate" $method="validate" }manipulation { interface { $name="org.psem
- 2m.composer.IComposer" }interface { $name="org.psem2m.composer.core.v
- 2.IComposerLogic" }field { $name="pCompositionListeners" $type="org.p
- sem2m.composer.ICompositionListener[]" }field { $name="pConfigReaders
- " $type="org.psem2m.composer.config.IComposerConfigHandler[]" }field 
- { $name="pInstantiationTimeout" $type="long" }field { $name="pListene
- rsExecutor" $type="java.util.concurrent.ExecutorService" }field { $na
- me="pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }fiel
- d { $name="pRequestsTimeouts" $type="java.util.Map" }field { $name="p
- ResolutionDelay" $type="long" }field { $name="pResolutionFuture" $typ
- e="java.util.concurrent.ScheduledFuture" }field { $name="pResolutionR
- unner" $type="java.lang.Runnable" }field { $name="pScheduler" $type="
- java.util.concurrent.ScheduledExecutorService" }field { $name="pSigna
- lBroadcaster" $type="org.psem2m.signals.ISignalBroadcaster" }field { 
- $name="pStatus" $type="org.psem2m.composer.core.v2.IComposerStatus" }
- method { $name="bindCompositionListener" $arguments="{org.psem2m.comp
- oser.ICompositionListener}" }method { $name="cancelTimeout" $argument
- s="{java.lang.String}" }method { $name="delayResolution" }method { $n
- ame="forceResolution" }method { $name="getCompositionSnapshot" $retur
- n="org.psem2m.composer.model.ComponentsSetBean[]" }method { $name="ha
- ndleComponentEvent" $arguments="{java.lang.String,java.lang.String,or
- g.psem2m.composer.EComponentState}" }method { $name="handleFactoriesS
- tate" $arguments="{java.lang.String,java.lang.String[],org.psem2m.com
- poser.core.v2.EFactoryState}" }method { $name="handleInstantiationRes
- ult" $arguments="{java.lang.String,java.lang.String,java.lang.String[
- ],java.lang.String[]}" }method { $name="handleIsolateGone" $arguments
- ="{java.lang.String}" }method { $name="handleIsolateReady" $arguments
- ="{java.lang.String}" }method { $name="handleLostComponent" $argument
- s="{java.lang.String}" }method { $name="instantiateComponentsSet" $ar
- guments="{org.psem2m.composer.model.ComponentsSetBean}" }method { $na
- me="instantiateComponentsSet" $arguments="{org.psem2m.composer.core.I
- nstantiatingComposite,java.util.Map}" }method { $name="invalidate" }m
- ethod { $name="loadCompositionFile" $return="org.psem2m.composer.mode
- l.ComponentsSetBean" $arguments="{java.lang.String}" }method { $name=
- "notifyRemoval" $arguments="{org.psem2m.composer.model.ComponentsSetB
- ean}" }method { $name="notifyRemovalThread" $arguments="{org.psem2m.c
- omposer.model.ComponentsSetBean}" }method { $name="notifyUpdate" $arg
- uments="{org.psem2m.composer.model.ComponentsSetBean}" }method { $nam
- e="notifyUpdateThread" $arguments="{org.psem2m.composer.model.Compone
- ntsSetBean}" }method { $name="prepareComponentsSet" $return="boolean"
-  $arguments="{org.psem2m.composer.model.ComponentsSetBean}" }method {
-  $name="registerFactories" $arguments="{java.lang.String,java.lang.St
- ring[]}" }method { $name="removeComponentsSet" $arguments="{org.psem2
- m.composer.model.ComponentsSetBean}" }method { $name="resolveComposet
- s" }method { $name="sendStopSignals" $arguments="{org.psem2m.composer
- .core.InstantiatingComposite}" }method { $name="unregisterFactories" 
- $arguments="{java.lang.String,java.lang.String[]}" }method { $name="v
- alidate" }}}component { $classname="org.psem2m.composer.core.v2.Compo
- serStatus" $name="psem2m-composer-status-factory" $public="false" pro
- vides { $specifications="{org.psem2m.composer.core.v2.IComposerStatus
- }" }requires { $field="pLogger" }requires { $field="pStatusCreator" }
- callback { $transition="invalidate" $method="invalidate" }callback { 
- $transition="validate" $method="validate" }manipulation { interface {
-  $name="org.psem2m.composer.core.v2.IComposerStatus" }field { $name="
- pComposetStatus" $type="org.psem2m.status.storage.IStatusStorage" }fi
- eld { $name="pFactoryIsolates" $type="java.util.Map" }field { $name="
- pIsolateFactories" $type="java.util.Map" }field { $name="pLogger" $ty
- pe="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pStat
- usCreator" $type="org.psem2m.status.storage.IStatusStorageCreator" }m
- ethod { $name="addWaitingComposet" $return="boolean" $arguments="{org
- .psem2m.composer.core.InstantiatingComposite}" }method { $name="compo
- setComplete" $return="boolean" $arguments="{java.lang.String}" }metho
- d { $name="composetInstantiating" $return="boolean" $arguments="{java
- .lang.String}" }method { $name="composetStateChange" $return="boolean
- " $arguments="{java.lang.String,org.psem2m.composer.core.v2.EComposet
- State}" }method { $name="composetWaiting" $return="boolean" $argument
- s="{java.lang.String}" }method { $name="getActiveComposets" $return="
- org.psem2m.composer.core.InstantiatingComposite[]" }method { $name="g
- etComposet" $return="org.psem2m.composer.core.InstantiatingComposite"
-  $arguments="{java.lang.String}" }method { $name="getComposets" $retu
- rn="org.psem2m.composer.core.InstantiatingComposite[]" }method { $nam
- e="getComposetState" $return="org.psem2m.composer.core.v2.EComposetSt
- ate" $arguments="{java.lang.String}" }method { $name="getIsolateFacto
- ries" $return="java.lang.String[]" $arguments="{java.lang.String}" }m
- ethod { $name="getIsolatesFactories" $return="java.util.Map" }method 
- { $name="getSet" $return="java.util.Set" $arguments="{java.util.Map,j
- ava.lang.Object}" }method { $name="getSnapshot" $return="org.psem2m.c
- omposer.model.ComponentsSetBean[]" }method { $name="getWaitingCompose
- ts" $return="org.psem2m.composer.core.InstantiatingComposite[]" }meth
- od { $name="invalidate" }method { $name="isComposetActive" $return="b
- oolean" $arguments="{java.lang.String}" }method { $name="isComposetWa
- iting" $return="boolean" $arguments="{java.lang.String}" }method { $n
- ame="registerFactories" $return="boolean" $arguments="{java.lang.Stri
- ng,java.lang.String[]}" }method { $name="removeComposet" $return="boo
- lean" $arguments="{java.lang.String}" }method { $name="removeIsolateF
- actories" $arguments="{java.lang.String}" }method { $name="unregister
- Factories" $return="boolean" $arguments="{java.lang.String,java.lang.
- String[]}" }method { $name="validate" }}}
+ nts="{java.lang.String,java.util.Map}" }method { $name="handleCompone
+ ntHandlingSignal" $arguments="{java.lang.String,java.util.Map}" }meth
+ od { $name="handleInstantiationResult" $arguments="{java.lang.String,
+ java.util.Map}" }method { $name="handleIsolatePresence" $arguments="{
+ java.lang.String,java.lang.String,org.psem2m.isolates.services.monito
+ ring.IIsolatePresenceListener$EPresence}" }method { $name="handleRece
+ ivedSignal" $return="java.lang.Object" $arguments="{java.lang.String,
+ org.psem2m.signals.ISignalData}" }method { $name="invalidate" }method
+  { $name="validate" }}}component { $classname="org.psem2m.composer.co
+ re.v2.ComposerLogic" $name="psem2m-composer-logic-factory" $public="f
+ alse" provides { $specifications="{org.psem2m.composer.IComposer,org.
+ psem2m.composer.core.v2.IComposerLogic}" property { $name="service.ex
+ ported.interfaces" $type="String" $value="org.psem2m.composer.ICompos
+ er" }}requires { $field="pCompositionListeners" $optional="true" $id=
+ "composition-listeners" $aggregate="true" callback { $method="bindCom
+ positionListener" $type="bind" }}requires { $field="pConfigReaders" }
+ requires { $field="pLogger" }requires { $field="pSignalBroadcaster" }
+ requires { $field="pStatus" }properties { property { $name="component
+ -instantiation-timeout" $field="pInstantiationTimeout" $value="1000" 
+ }property { $name="resolution-delay" $field="pResolutionDelay" $value
+ ="200" }}callback { $transition="invalidate" $method="invalidate" }ca
+ llback { $transition="validate" $method="validate" }manipulation { in
+ terface { $name="org.psem2m.composer.IComposer" }interface { $name="o
+ rg.psem2m.composer.core.v2.IComposerLogic" }field { $name="pCompositi
+ onListeners" $type="org.psem2m.composer.ICompositionListener[]" }fiel
+ d { $name="pConfigReaders" $type="org.psem2m.composer.config.ICompose
+ rConfigHandler[]" }field { $name="pInstantiationTimeout" $type="long"
+  }field { $name="pListenersExecutor" $type="java.util.concurrent.Exec
+ utorService" }field { $name="pLogger" $type="org.psem2m.isolates.base
+ .IIsolateLoggerSvc" }field { $name="pRequestsTimeouts" $type="java.ut
+ il.Map" }field { $name="pResolutionDelay" $type="long" }field { $name
+ ="pResolutionFuture" $type="java.util.concurrent.ScheduledFuture" }fi
+ eld { $name="pResolutionRunner" $type="java.lang.Runnable" }field { $
+ name="pScheduler" $type="java.util.concurrent.ScheduledExecutorServic
+ e" }field { $name="pSignalBroadcaster" $type="org.psem2m.signals.ISig
+ nalBroadcaster" }field { $name="pStatus" $type="org.psem2m.composer.c
+ ore.v2.IComposerStatus" }method { $name="bindCompositionListener" $ar
+ guments="{org.psem2m.composer.ICompositionListener}" }method { $name=
+ "cancelTimeout" $arguments="{java.lang.String}" }method { $name="dela
+ yResolution" }method { $name="forceResolution" }method { $name="getCo
+ mpositionSnapshot" $return="org.psem2m.composer.model.ComponentsSetBe
+ an[]" }method { $name="handleComponentEvent" $arguments="{java.lang.S
+ tring,java.lang.String,org.psem2m.composer.EComponentState}" }method 
+ { $name="handleFactoriesState" $arguments="{java.lang.String,java.lan
+ g.String[],org.psem2m.composer.core.v2.EFactoryState}" }method { $nam
+ e="handleInstantiationResult" $arguments="{java.lang.String,java.lang
+ .String,java.lang.String[],java.lang.String[]}" }method { $name="hand
+ leIsolateGone" $arguments="{java.lang.String}" }method { $name="handl
+ eIsolateReady" $arguments="{java.lang.String}" }method { $name="handl
+ eLostComponent" $arguments="{java.lang.String}" }method { $name="inst
+ antiateComponentsSet" $arguments="{org.psem2m.composer.model.Componen
+ tsSetBean}" }method { $name="instantiateComponentsSet" $arguments="{o
+ rg.psem2m.composer.core.InstantiatingComposite,java.util.Map}" }metho
+ d { $name="invalidate" }method { $name="loadCompositionFile" $return=
+ "org.psem2m.composer.model.ComponentsSetBean" $arguments="{java.lang.
+ String}" }method { $name="notifyRemoval" $arguments="{org.psem2m.comp
+ oser.model.ComponentsSetBean}" }method { $name="notifyRemovalThread" 
+ $arguments="{org.psem2m.composer.model.ComponentsSetBean}" }method { 
+ $name="notifyUpdate" $arguments="{org.psem2m.composer.model.Component
+ sSetBean}" }method { $name="notifyUpdateThread" $arguments="{org.psem
+ 2m.composer.model.ComponentsSetBean}" }method { $name="prepareCompone
+ ntsSet" $return="boolean" $arguments="{org.psem2m.composer.model.Comp
+ onentsSetBean}" }method { $name="registerFactories" $arguments="{java
+ .lang.String,java.lang.String[]}" }method { $name="removeComponentsSe
+ t" $arguments="{org.psem2m.composer.model.ComponentsSetBean}" }method
+  { $name="resolveComposets" }method { $name="sendStopSignals" $argume
+ nts="{org.psem2m.composer.core.InstantiatingComposite}" }method { $na
+ me="unregisterFactories" $arguments="{java.lang.String,java.lang.Stri
+ ng[]}" }method { $name="validate" }}}component { $classname="org.psem
+ 2m.composer.core.v2.ComposerStatus" $name="psem2m-composer-status-fac
+ tory" $public="false" provides { $specifications="{org.psem2m.compose
+ r.core.v2.IComposerStatus}" }requires { $field="pLogger" }requires { 
+ $field="pStatusCreator" }callback { $transition="invalidate" $method=
+ "invalidate" }callback { $transition="validate" $method="validate" }m
+ anipulation { interface { $name="org.psem2m.composer.core.v2.ICompose
+ rStatus" }field { $name="pComposetStatus" $type="org.psem2m.status.st
+ orage.IStatusStorage" }field { $name="pFactoryIsolates" $type="java.u
+ til.Map" }field { $name="pIsolateFactories" $type="java.util.Map" }fi
+ eld { $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerS
+ vc" }field { $name="pStatusCreator" $type="org.psem2m.status.storage.
+ IStatusStorageCreator" }method { $name="addWaitingComposet" $return="
+ boolean" $arguments="{org.psem2m.composer.core.InstantiatingComposite
+ }" }method { $name="composetComplete" $return="boolean" $arguments="{
+ java.lang.String}" }method { $name="composetInstantiating" $return="b
+ oolean" $arguments="{java.lang.String}" }method { $name="composetStat
+ eChange" $return="boolean" $arguments="{java.lang.String,org.psem2m.c
+ omposer.core.v2.EComposetState}" }method { $name="composetWaiting" $r
+ eturn="boolean" $arguments="{java.lang.String}" }method { $name="getA
+ ctiveComposets" $return="org.psem2m.composer.core.InstantiatingCompos
+ ite[]" }method { $name="getComposet" $return="org.psem2m.composer.cor
+ e.InstantiatingComposite" $arguments="{java.lang.String}" }method { $
+ name="getComposets" $return="org.psem2m.composer.core.InstantiatingCo
+ mposite[]" }method { $name="getComposetState" $return="org.psem2m.com
+ poser.core.v2.EComposetState" $arguments="{java.lang.String}" }method
+  { $name="getIsolateFactories" $return="java.lang.String[]" $argument
+ s="{java.lang.String}" }method { $name="getIsolatesFactories" $return
+ ="java.util.Map" }method { $name="getSet" $return="java.util.Set" $ar
+ guments="{java.util.Map,java.lang.Object}" }method { $name="getSnapsh
+ ot" $return="org.psem2m.composer.model.ComponentsSetBean[]" }method {
+  $name="getWaitingComposets" $return="org.psem2m.composer.core.Instan
+ tiatingComposite[]" }method { $name="invalidate" }method { $name="isC
+ omposetActive" $return="boolean" $arguments="{java.lang.String}" }met
+ hod { $name="isComposetWaiting" $return="boolean" $arguments="{java.l
+ ang.String}" }method { $name="registerFactories" $return="boolean" $a
+ rguments="{java.lang.String,java.lang.String[]}" }method { $name="rem
+ oveComposet" $return="boolean" $arguments="{java.lang.String}" }metho
+ d { $name="removeIsolateFactories" $arguments="{java.lang.String}" }m
+ ethod { $name="unregisterFactories" $return="boolean" $arguments="{ja
+ va.lang.String,java.lang.String[]}" }method { $name="validate" }}}
 

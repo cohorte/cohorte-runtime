@@ -177,8 +177,9 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
         // Don't forget : the isolate ID can change due to the SlaveAgent
         final String currentIsolateId = pPlatformDirs.getIsolateId();
 
-        // Result list
+        // Result lists
         final List<ComponentBean> handledComponents = new ArrayList<ComponentBean>();
+        final List<ComponentBean> runningComponents = new ArrayList<ComponentBean>();
 
         // Test all beans...
         for (final ComponentBean component : aComponents) {
@@ -197,15 +198,27 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
                 // We can do it
                 handledComponents.add(component);
             }
+
+            // ... instance already there
+            final String componentName = component.getName();
+            if (pComponentsInstances.containsKey(componentName)) {
+                // Instance already running here
+                runningComponents.add(component);
+                pLogger.logDebug(this, "", "Instance already there=",
+                        componentName);
+            }
         }
 
         // Reply to the requester with a signal
-        final ComponentBean[] resultArray = handledComponents
-                .toArray(new ComponentBean[handledComponents.size()]);
+        final Map<String, ComponentBean[]> resultMap = new HashMap<String, ComponentBean[]>();
+        resultMap.put("handled", handledComponents
+                .toArray(new ComponentBean[handledComponents.size()]));
+        resultMap.put("running", runningComponents
+                .toArray(new ComponentBean[runningComponents.size()]));
 
         pSignalBroadcaster.fire(
                 ComposerAgentSignals.SIGNAL_RESPONSE_HANDLES_COMPONENTS,
-                resultArray, aIsolateId);
+                resultMap, aIsolateId);
     }
 
     /**

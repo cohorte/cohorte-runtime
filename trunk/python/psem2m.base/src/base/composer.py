@@ -125,6 +125,7 @@ class ComposerAgent(object):
         with self._lock:
             current_isolate = self.directory.get_isolate_id()
             handled = []
+            running = []
 
             # Find all instantiable components
             for component in data:
@@ -138,11 +139,23 @@ class ComposerAgent(object):
                     _logger.debug("%s can be handled here (%s)", name, factory)
                     handled.append(component)
 
+                if name in self.instances:
+                    # Component already running
+                    running.append(component)
+
         # Send the result
         if not handled:
             handled = None
+        else:
+            handled = tuple(handled)
 
-        self.sender.fire(SIGNAL_RESPONSE_HANDLES_COMPONENTS, handled,
+        if not running:
+            running = None
+        else:
+            running = tuple(running)
+
+        self.sender.fire(SIGNAL_RESPONSE_HANDLES_COMPONENTS,
+                         {"handled": handled, "running": running},
                          isolate=sender)
 
 
