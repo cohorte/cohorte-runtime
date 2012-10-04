@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
@@ -45,6 +46,9 @@ import org.psem2m.signals.IWaitingSignalListener;
 public class DirectoryUpdater implements ISignalListener,
         IWaitingSignalListener {
 
+    /** Isolate presence listeners dependency ID */
+    private static final String ID_LISTENERS = "isolate-presence-listeners";
+
     /** The signals directory */
     @Requires
     private ISignalDirectory pDirectory;
@@ -56,7 +60,7 @@ public class DirectoryUpdater implements ISignalListener,
     private int pDumperPort;
 
     /** Isolates listeners */
-    @Requires(optional = true)
+    @Requires(id = ID_LISTENERS, optional = true)
     private IIsolatePresenceListener[] pListeners;
 
     /** The logger */
@@ -72,6 +76,24 @@ public class DirectoryUpdater implements ISignalListener,
     private ISignalBroadcaster pSender;
 
     /**
+     * Called by iPOJO when an new isolate presence listener is bound
+     * 
+     * @param aListener
+     *            A new isolate presence listener
+     */
+    @Bind(id = ID_LISTENERS)
+    protected synchronized void bindPresenceListener(
+            final IIsolatePresenceListener aListener) {
+
+        // Notify the new listener of all known isolates
+        for (final String isolate : pDirectory.getAllIsolates(null, true)) {
+            final String node = pDirectory.getIsolateNode(isolate);
+            aListener
+                    .handleIsolatePresence(isolate, node, EPresence.REGISTERED);
+        }
+    }
+
+    /**
      * Retrieves the directory of a remote isolate.
      * 
      * This method is called after a CONTACT signal has been received from a
@@ -80,7 +102,8 @@ public class DirectoryUpdater implements ISignalListener,
      * @param aSignalData
      *            The received contact signal
      */
-    protected void grabRemoteDirectory(final ISignalData aSignalData) {
+    protected synchronized void grabRemoteDirectory(
+            final ISignalData aSignalData) {
 
         // Only monitors can send us this kind of signal
         final String remoteId = aSignalData.getSenderId();
@@ -152,7 +175,7 @@ public class DirectoryUpdater implements ISignalListener,
      * @param aIgnoredNode
      *            The address for this node must be ignored
      */
-    protected void handleDumpedDirectory(final Object[] aResults,
+    protected synchronized void handleDumpedDirectory(final Object[] aResults,
             final String aIgnoredNode) {
 
         if (aResults == null || aResults.length == 0) {
@@ -280,8 +303,9 @@ public class DirectoryUpdater implements ISignalListener,
      * @param aPresence
      *            Presence event type
      */
-    protected void notifyPresenceListeners(final String aIsolateId,
-            final String aNode, final EPresence aPresence) {
+    protected synchronized void notifyPresenceListeners(
+            final String aIsolateId, final String aNode,
+            final EPresence aPresence) {
 
         for (final IIsolatePresenceListener listener : pListeners) {
             // Notify all listeners
@@ -345,7 +369,7 @@ public class DirectoryUpdater implements ISignalListener,
      * @param aSignalData
      *            The signal data
      */
-    protected void registerIsolate(final ISignalData aSignalData) {
+    protected synchronized void registerIsolate(final ISignalData aSignalData) {
 
         // Extract information
         @SuppressWarnings("unchecked")
@@ -481,8 +505,8 @@ public class DirectoryUpdater implements ISignalListener,
      *            The address for this node must be ignored
      * @return An array with all newly registered isolates
      */
-    protected String[] storeDirectory(final Map<?, ?> aDumpedDirectory,
-            final String aIgnoredNode) {
+    protected synchronized String[] storeDirectory(
+            final Map<?, ?> aDumpedDirectory, final String aIgnoredNode) {
 
         // Local information
         final String localId = pDirectory.getIsolateId();
