@@ -41,21 +41,13 @@
             "symbolicName":"org.psem2m.composer.core"
         },
         {
-            "symbolicName":"org.psem2m.isolates.ui.admin",
-            "optional":true,
+            "symbolicName":"org.apache.felix.shell"
+        },
+        {
+            "symbolicName":"org.apache.felix.shell.remote",
             "properties":{
-                "psem2m.demo.ui.viewer.top":"0scr",
-                "psem2m.demo.ui.viewer.left":"0.25scr",
-                "psem2m.demo.ui.viewer.width":"0.25scr",
-                "psem2m.demo.ui.viewer.height":"0.66scr",
-                "psem2m.demo.ui.viewer.color":"SkyBlue"
+                "osgi.shell.telnet.port":"6000"
             }
-        },
-        {
-            "symbolicName":"org.psem2m.composer.ui"
-        },
-        {
-            "symbolicName":"org.psem2m.isolates.ui"
         }
     ]
 }

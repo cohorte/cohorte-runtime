@@ -1,5 +1,5 @@
 {
-    "appId":"demo-july-2012",
+    "appId":"demo-app",
     "multicast":"239.0.0.1",
     "isolates":[
         {
@@ -55,13 +55,16 @@
             "httpPort":9100,
             "bundles":[
 				{
-				    "symbolicName":"base.shell"
+				    "symbolicName":"pelix.shell.core"
 				},
 				{
-				    "symbolicName":"base.shell_ipopo_remote"
+					"symbolicName":"pelix.shell.remote"
 				},
 				{
-				    "symbolicName":"base.ipopo_shell"
+					"symbolicName":"pelix.shell.ipopo"
+				},
+				{
+					"symbolicName":"base.psem2m_shell"
 				},
                 {
                     "symbolicName":"base.httpsvc"
@@ -100,14 +103,17 @@
             "httpPort":9101,
             "bundles":[
                 {
-                    "symbolicName":"base.shell"
+                    "symbolicName":"pelix.shell.core"
                 },
                 {
-                    "symbolicName":"base.shell_ipopo_remote"
+                    "symbolicName":"pelix.shell.remote"
                 },
                 {
-                    "symbolicName":"base.ipopo_shell"
+                    "symbolicName":"pelix.shell.ipopo"
                 },
+                {
+					"symbolicName":"base.psem2m_shell"
+				},
                 {
                     "symbolicName":"base.composer"
                 },
@@ -142,13 +148,16 @@
             "httpPort":9102,
             "bundles":[
 				{
-				    "symbolicName":"base.shell"
+				    "symbolicName":"pelix.shell.core"
 				},
 				{
-				    "symbolicName":"base.shell_ipopo_remote"
+				    "symbolicName":"pelix.shell.remote"
 				},
 				{
-				    "symbolicName":"base.ipopo_shell"
+				    "symbolicName":"pelix.shell.ipopo"
+				},
+				{
+					"symbolicName":"base.psem2m_shell"
 				},
                 {
                     "symbolicName":"base.httpsvc"
@@ -180,7 +189,7 @@
         {
         	"id":"demo.temper-java",
             "kind":"felix",
-            "node":"stratus",
+            "node":"central",
             "httpPort":9103,
             "vmArgs":[
                   "-Xms32M",
