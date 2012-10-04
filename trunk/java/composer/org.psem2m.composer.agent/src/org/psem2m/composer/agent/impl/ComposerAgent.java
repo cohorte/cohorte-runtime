@@ -437,14 +437,24 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
                 compositeName = component.getRootName();
             }
 
+            // Test if we already known this component
+            final String componentName = component.getName();
+            if (pComponentsInstances.containsKey(componentName)) {
+                // Nothing to do...
+                succeededComponents.add(componentName);
+                pLogger.logWarn(this, "instantiateComponents",
+                        "Already instantiated component=", componentName);
+                continue;
+            }
+
             // Get the factory
             final Factory factory = pFactories.get(component.getType());
             if (factory == null) {
                 // Unknown component type
                 pLogger.logWarn(this, "instantiateComponents",
-                        "Factory not found :", component.getType());
+                        "Factory not found=", component.getType());
 
-                failedComponents.add(component.getName());
+                failedComponents.add(componentName);
                 continue;
             }
 
@@ -482,17 +492,15 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
                 compInst.addInstanceStateListener(this);
 
                 // Keep a reference to this component
-                pComponentsInstances.put(component.getName(), compInst);
-
-                succeededComponents.add(component.getName());
+                pComponentsInstances.put(componentName, compInst);
+                succeededComponents.add(componentName);
 
             } catch (final Exception e) {
 
                 // Fail !
-                failedComponents.add(component.getName());
+                failedComponents.add(componentName);
                 pLogger.logSevere(this, "instantiateComponents",
-                        "Error instantiating component '", component.getName(),
-                        "'", e);
+                        "Error instantiating component=", componentName, e);
             }
         }
 
