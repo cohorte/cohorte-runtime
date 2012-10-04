@@ -25,6 +25,7 @@ import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Property;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.StaticServiceProperty;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.psem2m.composer.EComponentState;
 import org.psem2m.composer.IComposer;
@@ -46,7 +47,7 @@ import org.psem2m.signals.ISignalSendResult;
  * @author Thomas Calmant
  */
 @Component(name = "psem2m-composer-logic-factory", publicFactory = false)
-@Provides(specifications = { IComposer.class, IComposerLogic.class })
+@Provides(specifications = { IComposer.class, IComposerLogic.class }, properties = @StaticServiceProperty(name = "service.exported.interfaces", value = "org.psem2m.composer.IComposer", type = "String"))
 @Instantiate(name = "psem2m-composer-logic")
 public class ComposerLogic implements IComposer, IComposerLogic {
 
@@ -164,6 +165,17 @@ public class ComposerLogic implements IComposer, IComposerLogic {
         // Schedule the next call
         pResolutionFuture = pScheduler.schedule(pResolutionRunner,
                 pResolutionDelay, TimeUnit.MILLISECONDS);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.composer.core.v2.IComposerLogic#forceResolution()
+     */
+    @Override
+    public void forceResolution() {
+
+        delayResolution();
     }
 
     /*

@@ -486,6 +486,9 @@ public class ComponentsSetBean extends AbstractModelBean implements
 
         case COMPLETE:
             return 3;
+
+        default:
+            break;
         }
 
         return -1;

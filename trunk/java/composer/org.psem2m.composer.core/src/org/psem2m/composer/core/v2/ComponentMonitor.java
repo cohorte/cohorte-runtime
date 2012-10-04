@@ -214,21 +214,27 @@ public class ComponentMonitor implements ISignalListener,
         final ComponentBean[] componentsArray = Utilities.getArray(
                 signalContent, ComponentBean.class);
 
+        pLogger.logDebug(this, "******", "GOT SIGNAL=", aSignalName,
+                "from isolate=", senderId);
+
         /* Factory signals */
         if (ComposerAgentSignals.SIGNAL_ISOLATE_ADD_FACTORY.equals(aSignalName)) {
             // An isolate has some new factories
+            pLogger.logDebug(this, "******", "> add factory=", stringContent);
             pComposer.handleFactoriesState(senderId, stringContent,
                     EFactoryState.REGISTERED);
 
         } else if (ComposerAgentSignals.SIGNAL_ISOLATE_REMOVE_FACTORY
                 .equals(aSignalName)) {
             // An isolate lost some factories
+            pLogger.logDebug(this, "******", "> remove factory=", stringContent);
             pComposer.handleFactoriesState(senderId, stringContent,
                     EFactoryState.UNREGISTERED);
 
         } else if (ComposerAgentSignals.SIGNAL_ISOLATE_FACTORIES_GONE
                 .equals(aSignalName)) {
             // An isolate agent is gone
+            pLogger.logDebug(this, "******", "> isolate gone");
             pComposer.handleIsolateGone(senderId);
         }
 
@@ -236,6 +242,8 @@ public class ComponentMonitor implements ISignalListener,
         else if (ComposerAgentSignals.SIGNAL_RESPONSE_HANDLES_COMPONENTS
                 .equals(aSignalName)) {
             // An isolate can handle some components
+            pLogger.logDebug(this, "******", "> can handle=",
+                    getFactories(componentsArray));
             pComposer.handleFactoriesState(senderId,
                     getFactories(componentsArray), EFactoryState.REGISTERED);
 
@@ -286,6 +294,7 @@ public class ComponentMonitor implements ISignalListener,
     @Validate
     public void validate() {
 
+        pComposer.forceResolution();
         pLogger.logInfo(this, "validate", "Component Monitor ready");
     }
 }

@@ -15,6 +15,13 @@ import org.psem2m.composer.EComponentState;
 public interface IComposerLogic {
 
     /**
+     * Forces the composer logic to prepare a new resolution for waiting
+     * components sets. The resolution may be delayed if the composer is
+     * working.
+     */
+    void forceResolution();
+
+    /**
      * Handles the change of a component state
      * 
      * @param aIsolateId
