@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Jabsorb.orn NG
+Bundle-Name: Jabsorb.org - Fork
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: org.jabsorb.ng
 Bundle-Version: 1.0.0.qualifier
