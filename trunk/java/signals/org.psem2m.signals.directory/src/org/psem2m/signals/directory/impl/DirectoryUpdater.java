@@ -85,11 +85,14 @@ public class DirectoryUpdater implements ISignalListener,
     protected synchronized void bindPresenceListener(
             final IIsolatePresenceListener aListener) {
 
-        // Notify the new listener of all known isolates
-        for (final String isolate : pDirectory.getAllIsolates(null, true)) {
-            final String node = pDirectory.getIsolateNode(isolate);
-            aListener
-                    .handleIsolatePresence(isolate, node, EPresence.REGISTERED);
+        final String[] isolates = pDirectory.getAllIsolates(null, true);
+        if (isolates != null) {
+            // Notify the new listener of all known isolates
+            for (final String isolate : isolates) {
+                final String node = pDirectory.getIsolateNode(isolate);
+                aListener.handleIsolatePresence(isolate, node,
+                        EPresence.REGISTERED);
+            }
         }
     }
 
@@ -233,26 +236,22 @@ public class DirectoryUpdater implements ISignalListener,
      * org.psem2m.signals.ISignalData)
      */
     @Override
-    public Object handleReceivedSignal(final String aSignalName,
+    public synchronized Object handleReceivedSignal(final String aSignalName,
             final ISignalData aSignalData) {
 
         if (ISignalDirectoryConstants.SIGNAL_DUMP.equals(aSignalName)) {
 
-            synchronized (pDirectory) {
-                // Register the incoming isolate
-                registerIsolate(aSignalData);
+            // Register the incoming isolate
+            registerIsolate(aSignalData);
 
-                // Dump the directory
-                return pDirectory.dump();
-            }
+            // Dump the directory
+            return pDirectory.dump();
 
         } else if (ISignalDirectoryConstants.SIGNAL_REGISTER
                 .equals(aSignalName)) {
 
-            synchronized (pDirectory) {
-                // Isolate registration
-                registerIsolate(aSignalData);
-            }
+            // Isolate registration
+            registerIsolate(aSignalData);
 
         } else if (ISignalsConstants.ISOLATE_LOST_SIGNAL.equals(aSignalName)) {
             // Isolate lost
@@ -260,13 +259,11 @@ public class DirectoryUpdater implements ISignalListener,
             final String lostIsolateNode = pDirectory
                     .getIsolateNode(lostIsolate);
 
-            synchronized (pDirectory) {
-                pDirectory.unregisterIsolate(lostIsolate);
+            pDirectory.unregisterIsolate(lostIsolate);
 
-                // Notify listeners
-                notifyPresenceListeners(lostIsolate, lostIsolateNode,
-                        EPresence.UNREGISTERED);
-            }
+            // Notify listeners
+            notifyPresenceListeners(lostIsolate, lostIsolateNode,
+                    EPresence.UNREGISTERED);
 
         } else if (ISignalDirectoryConstants.SIGNAL_CONTACT.equals(aSignalName)) {
             // Monitor contact. Should only happen for forkers
