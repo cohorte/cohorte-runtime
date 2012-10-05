@@ -194,8 +194,8 @@ public class RemoteServiceAdapter extends CPojoBase implements
         final Set<String> services = pIsolatesServices.get(aIsolateId);
         if (services == null) {
             // Nothing to do
-            pLogger.logDebug(this, "handleIsolateLost", "No services for",
-                    aIsolateId);
+            pLogger.logDebug(this, "handleIsolateLost",
+                    "No services associated to lost isolate=", aIsolateId);
             return;
         }
 
@@ -227,9 +227,6 @@ public class RemoteServiceAdapter extends CPojoBase implements
      */
     @Override
     public void handleRemoteEvent(final RemoteServiceEvent aServiceEvent) {
-
-        pLogger.logDebug(this, "handleRemoteEvent",
-                "Handling remote service event :", aServiceEvent);
 
         final RemoteServiceRegistration registration = aServiceEvent
                 .getServiceRegistration();
@@ -356,7 +353,7 @@ public class RemoteServiceAdapter extends CPojoBase implements
 
             // Ignore already registered IDs
             pLogger.logWarn(this, "registerService",
-                    "Already registered service : " + serviceId);
+                    "Already registered service ID=", serviceId);
             return;
         }
 
@@ -379,7 +376,7 @@ public class RemoteServiceAdapter extends CPojoBase implements
 
         if (serviceProxy == null) {
             pLogger.logSevere(this, "registerService",
-                    "No proxy created for service : " + serviceId);
+                    "No proxy created for service ID=", serviceId);
             return;
         }
 
@@ -427,6 +424,9 @@ public class RemoteServiceAdapter extends CPojoBase implements
             // Add the service ID to the list
             isolateServices.add(serviceId);
 
+            // Log the import
+            pLogger.logDebug(this, "registerService", "Imported service ID=",
+                    serviceId);
         }
         // }
         // }).start();
@@ -497,9 +497,7 @@ public class RemoteServiceAdapter extends CPojoBase implements
         // Retrieve the service registration
         final ProxyServiceInfo serviceInfo = pRegisteredServices.get(serviceId);
         if (serviceInfo == null) {
-            // Unknown service
-            pLogger.logWarn(this, "updateService",
-                    "No service informations for ID=", serviceId);
+            // Unknown service (do not log, as it may fill the logs)
             return;
         }
 
