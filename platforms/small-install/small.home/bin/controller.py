@@ -203,8 +203,9 @@ def send_cmd_signal(base, cmd):
             }
     json_signal = json.dumps(signal)
 
-    # Prepare request content
-    headers = {"Content-Type": "application/json"}
+    # Prepare request headers
+    headers = {"Content-Type": "application/json",
+               "psem2m-mode":"ack"}
     try:
         # 1 second timeout, to avoid useless waits
         conn = httplib.HTTPConnection(host, port, timeout=1)
@@ -224,7 +225,8 @@ def send_cmd_signal(base, cmd):
 
     except socket.error as ex:
         # Socket error
-        _logger.error("Error sending command to %s : %s", signal_url, str(ex))
+        _logger.error("Error sending command to [%s]:%d/%s : %s",
+                      host, port, signal_url, str(ex))
 
     except:
         # Other error...
@@ -287,7 +289,11 @@ class Main(object):
 
         # Activate debug mode
         if '-d' in extra_args or '--debug' in extra_args:
-            args.append('--debug')
+            args.append('--debug-mode')
+
+        # Activate verbose mode
+        if '-v' in extra_args or '--verbose' in extra_args:
+            args.append('--verbose-mode')
 
         # Start the monitor except if told otherwise
         if '-s' not in extra_args and '--single' not in extra_args:
