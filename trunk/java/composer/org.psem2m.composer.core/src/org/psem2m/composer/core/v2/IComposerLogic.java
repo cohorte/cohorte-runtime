@@ -6,6 +6,7 @@
 package org.psem2m.composer.core.v2;
 
 import org.psem2m.composer.EComponentState;
+import org.psem2m.composer.model.ComponentBean;
 
 /**
  * Defines the composer logic service
@@ -13,13 +14,6 @@ import org.psem2m.composer.EComponentState;
  * @author Thomas Calmant
  */
 public interface IComposerLogic {
-
-    /**
-     * Forces the composer logic to prepare a new resolution for waiting
-     * components sets. The resolution may be delayed if the composer is
-     * working.
-     */
-    void forceResolution();
 
     /**
      * Handles the change of a component state
@@ -78,4 +72,16 @@ public interface IComposerLogic {
      *            The isolate ID
      */
     void handleIsolateReady(String aIsolateId);
+
+    /**
+     * Called by the component monitor when an isolate specified already running
+     * components after the composer logic asked for instantiation capacities.
+     * 
+     * @param aIsolateId
+     *            The isolate ID
+     * @param aRunningComponents
+     *            The components already instantiated
+     */
+    void handleRunningComponents(String aIsolateId,
+            ComponentBean[] aRunningComponents);
 }

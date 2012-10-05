@@ -8,6 +8,7 @@ package org.psem2m.composer.core.v2;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -63,7 +64,7 @@ public class ComposerLogic implements IComposer, IComposerLogic {
     private IComposerConfigHandler[] pConfigReaders;
 
     /** The component instantiation time out (in milliseconds) */
-    @Property(name = "component-instantiation-timeout", value = "1000")
+    @Property(name = "component-instantiation-timeout", value = "5000")
     private long pInstantiationTimeout;
 
     /** Executor to notify composition listeners */
@@ -80,7 +81,7 @@ public class ComposerLogic implements IComposer, IComposerLogic {
      * The delay to wait after receiving a factory message before trying a new
      * resolution (in milliseconds)
      */
-    @Property(name = "resolution-delay", value = "200")
+    @Property(name = "resolution-delay", value = "500")
     private long pResolutionDelay;
 
     /** The resolution future */
@@ -135,6 +136,23 @@ public class ComposerLogic implements IComposer, IComposerLogic {
     }
 
     /**
+     * Cancels the scheduled resolution, if any
+     * 
+     * @return true if a resolution was scheduled
+     */
+    private synchronized boolean cancelResolution() {
+
+        // Cancel current run
+        if (pResolutionFuture != null) {
+            pResolutionFuture.cancel(false);
+            pResolutionFuture = null;
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Cancels the timeout for the given component, if possible
      * 
      * @param aComponentName
@@ -157,25 +175,11 @@ public class ComposerLogic implements IComposer, IComposerLogic {
      */
     private synchronized void delayResolution() {
 
-        // Cancel current run
-        if (pResolutionFuture != null) {
-            pResolutionFuture.cancel(false);
-        }
+        cancelResolution();
 
         // Schedule the next call
         pResolutionFuture = pScheduler.schedule(pResolutionRunner,
                 pResolutionDelay, TimeUnit.MILLISECONDS);
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.composer.core.v2.IComposerLogic#forceResolution()
-     */
-    @Override
-    public void forceResolution() {
-
-        delayResolution();
     }
 
     /*
@@ -243,13 +247,16 @@ public class ComposerLogic implements IComposer, IComposerLogic {
             return;
         }
 
+        // Cancel the current resolution
+        boolean needsResolution = cancelResolution();
+
         switch (aState) {
         case REGISTERED:
-            registerFactories(aIsolateId, aFactories);
+            needsResolution |= registerFactories(aIsolateId, aFactories);
             break;
 
         case UNREGISTERED:
-            unregisterFactories(aIsolateId, aFactories);
+            needsResolution |= unregisterFactories(aIsolateId, aFactories);
             break;
 
         default:
@@ -257,6 +264,11 @@ public class ComposerLogic implements IComposer, IComposerLogic {
                     aState, "for factories=", aFactories, "on isolate=",
                     aIsolateId);
             break;
+        }
+
+        if (needsResolution) {
+            // Schedule a new resolution
+            delayResolution();
         }
     }
 
@@ -292,6 +304,9 @@ public class ComposerLogic implements IComposer, IComposerLogic {
             return;
         }
 
+        // Stop the resolution
+        boolean needsResolution = cancelResolution();
+
         // Update the state of the components set
         for (final String componentName : aInstantiatedComponents) {
 
@@ -323,13 +338,18 @@ public class ComposerLogic implements IComposer, IComposerLogic {
                     aIsolateId, ":", Arrays.toString(aFailedComponents));
 
             // Ask for a new resolution
-            delayResolution();
+            needsResolution = true;
 
         } else {
             // No component failed
             pLogger.logDebug(this, "handleInstantiationResult",
                     "All components of", aComposetName, "on", aIsolateId,
                     "have been started");
+        }
+
+        if (needsResolution) {
+            // Schedule a new resolution
+            delayResolution();
         }
     }
 
@@ -343,6 +363,10 @@ public class ComposerLogic implements IComposer, IComposerLogic {
     @Override
     public synchronized void handleIsolateGone(final String aIsolateId) {
 
+        // Flag to compute a new composition only if necessary
+        // -> Stop the current resolution at first
+        boolean needsResolution = cancelResolution();
+
         // Get the isolate factories
         final String[] factories = pStatus.getIsolateFactories(aIsolateId);
 
@@ -351,35 +375,28 @@ public class ComposerLogic implements IComposer, IComposerLogic {
 
         // Update the components sets
         final InstantiatingComposite[] knownComposets = pStatus.getComposets();
-        if (knownComposets == null) {
-            // Nothing more to do
-            pLogger.logDebug(this, "handleIsolateGone", "No components set");
-            return;
-        }
+        if (knownComposets != null) {
+            for (final InstantiatingComposite composet : knownComposets) {
 
-        // Flag to compute a new composition only if necessary
-        boolean needsResolution = false;
+                final String composetName = composet.getName();
 
-        for (final InstantiatingComposite composet : knownComposets) {
+                // Update the components set
+                composet.lostComponentTypes(aIsolateId, factories);
 
-            final String composetName = composet.getName();
+                // Test if it is still complete if it was running
+                if (pStatus.isComposetActive(composetName)
+                        && !composet.isComplete()) {
+                    // Components set goes in the Waiting state
+                    pStatus.composetWaiting(composetName);
 
-            // Update the set
-            composet.lostComponentTypes(aIsolateId, factories);
-
-            // Test if it is still complete if it was running
-            if (pStatus.isComposetActive(composetName)
-                    && !composet.isComplete()) {
-                // Components set goes in the Waiting state
-                pStatus.composetWaiting(composetName);
-
-                // A new resolution is needed
-                needsResolution = true;
+                    // A new resolution is needed
+                    needsResolution = true;
+                }
             }
         }
 
         if (needsResolution) {
-            // Recompute a resolution
+            // Recompute a resolution if needed
             delayResolution();
         }
     }
@@ -460,23 +477,78 @@ public class ComposerLogic implements IComposer, IComposerLogic {
 
         // Retrieve all known components sets
         final InstantiatingComposite[] composets = pStatus.getComposets();
-        if (composets == null) {
-            // Nothing to do
+        if (composets != null) {
+
+            // Stop the resolution schedule
+            cancelResolution();
+
+            for (final InstantiatingComposite composet : composets) {
+                // Update the factories
+                composet.componentStopped(aComponentName);
+
+                // Update the completion level if needed
+                if (!composet.isComplete()) {
+                    pStatus.composetWaiting(composet.getName());
+                }
+            }
+
+            // Ask for a new resolution
+            delayResolution();
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.composer.core.v2.IComposerLogic#handleRunningComponents(java
+     * .lang.String, org.psem2m.composer.model.ComponentBean[])
+     */
+    @Override
+    public synchronized void handleRunningComponents(final String aIsolateId,
+            final ComponentBean[] aRunningComponents) {
+
+        if (aRunningComponents == null) {
+            // Nothing to do...
             return;
         }
 
-        for (final InstantiatingComposite composet : composets) {
-            // Update the factories
-            composet.componentStopped(aComponentName);
+        // Stop the resolution schedule
+        final boolean needsResolution = cancelResolution();
 
-            // Update the completion level if needed
-            if (!composet.isComplete()) {
-                pStatus.composetWaiting(composet.getName());
+        final Set<ComponentsSetBean> updatedComposets = new HashSet<ComponentsSetBean>();
+        for (final ComponentBean component : aRunningComponents) {
+            // Get the composition
+            final String composetName = component.getRootName();
+            final InstantiatingComposite composet = pStatus
+                    .getComposet(composetName);
+
+            if (composet == null) {
+                // Not for us...
+                pLogger.logWarn(this, "handleRunningComponents",
+                        "Unknown composet=", composetName, "for component=",
+                        component.getName());
+
+            } else {
+                // Update the composition (request + success)
+                composet.notifyInstantiationRequest(aIsolateId,
+                        new ComponentBean[] { component });
+                composet.componentStarted(component, aIsolateId);
+
+                // Keep the composition in the update list
+                updatedComposets.add(composet.getBean());
             }
         }
 
-        // Ask for a new resolution
-        delayResolution();
+        if (needsResolution) {
+            // Ask for a new resolution
+            delayResolution();
+        }
+
+        // Update listeners
+        for (final ComponentsSetBean composet : updatedComposets) {
+            notifyUpdate(composet);
+        }
     }
 
     /*
@@ -586,6 +658,9 @@ public class ComposerLogic implements IComposer, IComposerLogic {
 
                             @Override
                             public void run() {
+
+                                // Do not resolve while handling a timeout
+                                cancelResolution();
 
                                 pLogger.logInfo(
                                         this,
@@ -796,15 +871,13 @@ public class ComposerLogic implements IComposer, IComposerLogic {
      *            An isolate ID
      * @param aFactories
      *            Component factories supported by the isolate
+     * @return True if a new resolution must be scheduled
      */
-    private void registerFactories(final String aIsolateId,
+    private boolean registerFactories(final String aIsolateId,
             final String[] aFactories) {
 
         // Update the status storage
-        pStatus.registerFactories(aIsolateId, aFactories);
-
-        // Delay a new resolution run
-        delayResolution();
+        return pStatus.registerFactories(aIsolateId, aFactories);
     }
 
     /*
@@ -943,15 +1016,17 @@ public class ComposerLogic implements IComposer, IComposerLogic {
      *            The isolate ID
      * @param aFactories
      *            The unregistered factories
+     * @return True if a new resolution must be scheduled
      */
-    private synchronized void unregisterFactories(final String aIsolateId,
+    private synchronized boolean unregisterFactories(final String aIsolateId,
             final String[] aFactories) {
 
         if (!pStatus.unregisterFactories(aIsolateId, aFactories)) {
             // Factories were unknown
-            pLogger.logDebug(this, "", "Unknown unregistered factories=",
-                    aFactories, "on isolate=", aIsolateId);
-            return;
+            pLogger.logDebug(this, "unregisterFactories",
+                    "Unknown unregistered factories=", aFactories,
+                    "on isolate=", aIsolateId);
+            return false;
         }
 
         // Flag indicating if a new composite resolution is needed
@@ -961,7 +1036,7 @@ public class ComposerLogic implements IComposer, IComposerLogic {
         final InstantiatingComposite[] composets = pStatus.getComposets();
         if (composets == null) {
             // Nothing to do
-            return;
+            return false;
         }
 
         for (final InstantiatingComposite composet : composets) {
@@ -977,10 +1052,7 @@ public class ComposerLogic implements IComposer, IComposerLogic {
             }
         }
 
-        if (needsNewResolution) {
-            // Try to recompute a route for a degraded composition
-            delayResolution();
-        }
+        return needsNewResolution;
     }
 
     /**

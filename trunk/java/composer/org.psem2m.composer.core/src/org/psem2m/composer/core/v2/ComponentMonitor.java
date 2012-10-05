@@ -141,26 +141,14 @@ public class ComponentMonitor implements ISignalListener,
 
         // Update the components state
         if (runningComponents != null) {
-            String composetName = null;
-            for (final ComponentBean bean : runningComponents) {
-                if (composetName == null) {
-                    // Find the root components set name
-                    composetName = bean.getRootName();
-                }
-            }
-
-            if (composetName != null) {
-                /*
-                 * TODO: notify the composer logic of running components
-                 * Problem: the composition might not even be in 'instantiating'
-                 * when this method is executed
-                 */
-            }
+            pComposer.handleRunningComponents(aSenderId, runningComponents);
         }
 
         // Update the factories state
-        pComposer.handleFactoriesState(aSenderId,
-                getFactories(handledComponents), EFactoryState.REGISTERED);
+        if (handledComponents != null) {
+            pComposer.handleFactoriesState(aSenderId,
+                    getFactories(handledComponents), EFactoryState.REGISTERED);
+        }
     }
 
     /**
@@ -272,7 +260,9 @@ public class ComponentMonitor implements ISignalListener,
                         (Map<String, Object>) signalContent);
 
             } else {
-                pLogger.logWarn(this, "handleReceivedSignal",
+                pLogger.logWarn(
+                        this,
+                        "handleReceivedSignal",
                         "Unhandled response for a 'can handle' signal content=",
                         signalContent);
             }
