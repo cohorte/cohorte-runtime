@@ -15,6 +15,7 @@ import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -122,7 +123,7 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
      * @param aListener
      *            An event listener
      */
-    @Bind(id = IPOJO_ID_LISTENERS, aggregate = true, optional = true)
+    @Bind(id = IPOJO_ID_LISTENERS)
     protected synchronized void bindListener(
             final IForkerEventListener aListener) {
 
@@ -186,28 +187,31 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
      * @param aForkerNode
      *            The forker node name
      */
-    protected void fireForkerEvent(final EForkerEventType aEventType,
-            final String aForkerId, final String aForkerNode) {
+    protected synchronized void fireForkerEvent(
+            final EForkerEventType aEventType, final String aForkerId,
+            final String aForkerNode) {
 
         // Get the host name
         final String forkerHost = pDirectory.getHostForNode(aForkerNode);
+
+        // Copy the active listeners
+        final IForkerEventListener[] listeners = Arrays.copyOf(pListeners,
+                pListeners.length);
 
         pEventExecutor.submit(new Runnable() {
 
             @Override
             public void run() {
 
-                synchronized (pListeners) {
-                    for (final IForkerEventListener listener : pListeners) {
-                        try {
-                            listener.handleForkerEvent(aEventType, aForkerId,
-                                    aForkerNode, forkerHost);
+                for (final IForkerEventListener listener : listeners) {
+                    try {
+                        listener.handleForkerEvent(aEventType, aForkerId,
+                                aForkerNode, forkerHost);
 
-                        } catch (final Exception e) {
-                            // A listener failed
-                            pLogger.logSevere(this, "fireForkerEvent",
-                                    "A forker event listener failed:\n", e);
-                        }
+                    } catch (final Exception e) {
+                        // A listener failed
+                        pLogger.logSevere(this, "fireForkerEvent",
+                                "A forker event listener failed:\n", e);
                     }
                 }
             }
