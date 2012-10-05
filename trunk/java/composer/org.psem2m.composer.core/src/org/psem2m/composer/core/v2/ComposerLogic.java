@@ -514,9 +514,9 @@ public class ComposerLogic implements IComposer, IComposerLogic {
         }
 
         // Stop the resolution schedule
-        final boolean needsResolution = cancelResolution();
+        boolean needsResolution = cancelResolution();
 
-        final Set<ComponentsSetBean> updatedComposets = new HashSet<ComponentsSetBean>();
+        final Set<InstantiatingComposite> updatedComposets = new HashSet<InstantiatingComposite>();
         for (final ComponentBean component : aRunningComponents) {
             // Get the composition
             final String composetName = component.getRootName();
@@ -535,19 +535,48 @@ public class ComposerLogic implements IComposer, IComposerLogic {
                         new ComponentBean[] { component });
                 composet.componentStarted(component, aIsolateId);
 
-                // Keep the composition in the update list
-                updatedComposets.add(composet.getBean());
+                // Store the composition in the update list
+                updatedComposets.add(composet);
             }
+        }
+
+        for (final InstantiatingComposite composet : updatedComposets) {
+
+            // Get the current composition state
+            final String composetName = composet.getName();
+            final EComposetState state = pStatus.getComposetState(composetName);
+
+            // Is the composition already complete ?
+            if (composet.isComplete()) {
+                switch (state) {
+                case WAITING:
+                    // Set the composition in 'instantiating' mode first
+                    pStatus.composetInstantiating(composetName);
+                    // ... don't break
+
+                case INSTANTIATING:
+                    // Set the composition in 'full' mode
+                    pStatus.composetComplete(composetName);
+                    break;
+
+                default:
+                    // Do nothing in other cases (already full, or unknown...)
+                    break;
+                }
+
+            } else if (state == EComposetState.WAITING) {
+                // We need a resolution if the composition is still in waiting
+                // mode
+                needsResolution = true;
+            }
+
+            // Notify listeners
+            notifyUpdate(composet.getBean());
         }
 
         if (needsResolution) {
             // Ask for a new resolution
             delayResolution();
-        }
-
-        // Update listeners
-        for (final ComponentsSetBean composet : updatedComposets) {
-            notifyUpdate(composet);
         }
     }
 
