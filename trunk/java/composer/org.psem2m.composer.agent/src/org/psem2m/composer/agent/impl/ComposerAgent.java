@@ -222,6 +222,48 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
     }
 
     /**
+     * Prepares and fires an instantiation result signal, for one component
+     * 
+     * @param aComposetName
+     *            The name of the instantiating composition
+     * @param aComponentName
+     *            The name of the instantiated/failed component
+     * @param aSuccess
+     *            True if the component has been successfully instantiated
+     * @param aComposerIsolateId
+     *            ID of the Composer Core isolate
+     */
+    private void fireInstantiationResult(final String aComposetName,
+            final String aComponentName, final boolean aSuccess,
+            final String aComposerIsolateId) {
+
+        // Set the composite name
+        final HashMap<String, Object> resultMap = new HashMap<String, Object>();
+        resultMap.put(ComposerAgentSignals.RESULT_KEY_COMPOSITE, aComposetName);
+
+        // Prepare the result arrays
+        final String[] succeededArray;
+        final String[] failedArray;
+        if (aSuccess) {
+            succeededArray = new String[] { aComponentName };
+            failedArray = null;
+
+        } else {
+            succeededArray = null;
+            failedArray = new String[] { aComponentName };
+        }
+
+        resultMap.put(ComposerAgentSignals.RESULT_KEY_INSTANTIATED,
+                succeededArray);
+        resultMap.put(ComposerAgentSignals.RESULT_KEY_FAILED, failedArray);
+
+        // Send the signal
+        pSignalBroadcaster.fire(
+                ComposerAgentSignals.SIGNAL_RESPONSE_INSTANTIATE_COMPONENTS,
+                resultMap, aComposerIsolateId);
+    }
+
+    /**
      * Generates the iPOJO instance properties of the given component.
      * 
      * Sets up the instance name and required fields filters properties
@@ -427,15 +469,7 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
             final ComponentBean[] aComponents) {
 
         // Current isolate ID
-        final String isolateId = pPlatformDirs.getIsolateId();
-
-        // List of the successfully started components
-        final List<String> succeededComponents = new ArrayList<String>(
-                aComponents.length);
-
-        // List of the components that failed
-        final List<String> failedComponents = new ArrayList<String>(
-                aComponents.length);
+        final String currentIsolateId = pPlatformDirs.getIsolateId();
 
         // Find the composite name from the first component
         String compositeName = null;
@@ -454,7 +488,8 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
             final String componentName = component.getName();
             if (pComponentsInstances.containsKey(componentName)) {
                 // Nothing to do...
-                succeededComponents.add(componentName);
+                fireInstantiationResult(compositeName, componentName, true,
+                        aIsolateId);
                 pLogger.logWarn(this, "instantiateComponents",
                         "Already instantiated component=", componentName);
                 continue;
@@ -464,10 +499,10 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
             final Factory factory = pFactories.get(component.getType());
             if (factory == null) {
                 // Unknown component type
+                fireInstantiationResult(compositeName, componentName, false,
+                        aIsolateId);
                 pLogger.logWarn(this, "instantiateComponents",
                         "Factory not found=", component.getType());
-
-                failedComponents.add(componentName);
                 continue;
             }
 
@@ -482,7 +517,7 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
                     component.getParentName());
             // Host isolate
             serviceProperties.put(ComposerAgentConstants.HOST_ISOLATE,
-                    isolateId);
+                    currentIsolateId);
             // Exported service
             serviceProperties.put("service.exported.interfaces", "*");
 
@@ -506,36 +541,18 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
 
                 // Keep a reference to this component
                 pComponentsInstances.put(componentName, compInst);
-                succeededComponents.add(componentName);
+                fireInstantiationResult(compositeName, componentName, true,
+                        aIsolateId);
 
             } catch (final Exception e) {
 
                 // Fail !
-                failedComponents.add(componentName);
+                fireInstantiationResult(compositeName, componentName, false,
+                        aIsolateId);
                 pLogger.logSevere(this, "instantiateComponents",
                         "Error instantiating component=", componentName, e);
             }
         }
-
-        // Set the composite name
-        final HashMap<String, Object> resultMap = new HashMap<String, Object>();
-        resultMap.put(ComposerAgentSignals.RESULT_KEY_COMPOSITE, compositeName);
-
-        // Set the succeeded components names
-        final String[] succeededArray = succeededComponents
-                .toArray(new String[succeededComponents.size()]);
-        resultMap.put(ComposerAgentSignals.RESULT_KEY_INSTANTIATED,
-                succeededArray);
-
-        // Set the failed components names
-        final String[] failedArray = failedComponents
-                .toArray(new String[failedComponents.size()]);
-        resultMap.put(ComposerAgentSignals.RESULT_KEY_FAILED, failedArray);
-
-        // Send the signal
-        pSignalBroadcaster.fire(
-                ComposerAgentSignals.SIGNAL_RESPONSE_INSTANTIATE_COMPONENTS,
-                resultMap, aIsolateId);
     }
 
     /*

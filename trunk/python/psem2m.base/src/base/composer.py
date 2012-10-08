@@ -159,6 +159,31 @@ class ComposerAgent(object):
                          isolate=sender)
 
 
+    def __fire_instantiation_result(self, composet_name, component_name,
+                                    success, composer_id):
+        """
+        Prepares and fires an instantiation result signal, for one component
+        
+        :param composet_name: The name of the instantiating composition
+        :param component_name: The name of the instantiated/failed component
+        :param success: True if the component has been successfully instantiated
+        :param composer_id: ID of the Composer Core isolate
+        """
+        if success:
+            instantiated = [component_name]
+            failed = None
+
+        else:
+            instantiated = None
+            failed = [component_name]
+
+        self.sender.fire(SIGNAL_RESPONSE_INSTANTIATE_COMPONENTS,
+                         {'composite': composet_name,
+                          'instantiated': instantiated,
+                          'failed': failed},
+                         isolate=composer_id)
+
+
     def instantiate_components(self, sender, data):
         """
         Instantiates the given components
@@ -169,10 +194,8 @@ class ComposerAgent(object):
         with self._lock:
             current_isolate = self.directory.get_isolate_id()
 
-            success = []
-            failure = []
+            # We'll known the composition name while reading components beans
             composite_name = None
-
             for component in data:
                 if not composite_name:
                     # Find the root name
@@ -182,8 +205,9 @@ class ComposerAgent(object):
                 name = component["name"]
 
                 if name in self.instances:
-                    # Already known isolate, consider a success
-                    success.append(name)
+                    # Already known isolate, consider a success (send a signal)
+                    self.__fire_instantiation_result(composite_name, name,
+                                                     True, sender)
                     _logger.warning("Already instantiated component: %s", name)
                     continue
 
@@ -209,20 +233,19 @@ class ComposerAgent(object):
                                                                 fields_filters
 
                 try:
+                    # Instantiate and store the component
                     instance = self.ipopo.instantiate(factory, name, properties)
-
                     self.instances[name] = instance
-                    success.append(name)
+
+                    # Send a success signal
+                    self.__fire_instantiation_result(composite_name, name,
+                                                     True, sender)
 
                 except Exception as ex:
                     _logger.exception("Composer agent Failed ! %s", ex)
-                    failure.append(name)
-
-            result_map = {"composite": composite_name, "instantiated": success,
-                          "failed": failure}
-
-        self.sender.fire(SIGNAL_RESPONSE_INSTANTIATE_COMPONENTS, result_map,
-                         isolate=sender)
+                    # Send a failure signal
+                    self.__fire_instantiation_result(composite_name, name,
+                                                     False, sender)
 
 
     def kill_components(self, sender, data):
