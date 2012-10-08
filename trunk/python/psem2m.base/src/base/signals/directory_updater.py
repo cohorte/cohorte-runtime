@@ -92,10 +92,22 @@ class DirectoryUpdater(object):
         content = self._prepare_registration_content(False)
 
         # Send the dump signal, with a registration content
-        sig_results = self._sender.send_to(SIGNAL_DUMP, content, host, port)
-        if not sig_results or not sig_results["results"]:
-            _logger.warning("Nothing returned by the directory dumper")
-            return
+        # -> we give 5 attempts (~15 seconds) for the dumper to reply 
+        max_attempts = 5
+        attempts = 0
+        while attempts < max_attempts:
+            attempts += 1
+            sig_results = self._sender.send_to(SIGNAL_DUMP, content, host, port)
+            if not sig_results or not sig_results["results"]:
+                # No result: the dumper might be busy
+                _logger.warning("Nothing returned by the directory dumper "
+                                "(%d/%d)", attempts, max_attempts)
+
+            else:
+                # Got it
+                _logger.warning("Grabbed the directory after %d attempts",
+                                attempts)
+                break
 
         # Local information
         local_id = self._directory.get_isolate_id()
