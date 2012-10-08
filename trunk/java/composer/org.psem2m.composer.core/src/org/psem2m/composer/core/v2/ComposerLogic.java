@@ -142,8 +142,8 @@ public class ComposerLogic implements IComposer, IComposerLogic {
      */
     private synchronized boolean cancelResolution() {
 
-        // Cancel current run
         if (pResolutionFuture != null) {
+            // Cancel current run
             pResolutionFuture.cancel(false);
             pResolutionFuture = null;
             return true;
@@ -158,7 +158,7 @@ public class ComposerLogic implements IComposer, IComposerLogic {
      * @param aComponentName
      *            A component name
      */
-    private void cancelTimeout(final String aComponentName) {
+    private synchronized void cancelTimeout(final String aComponentName) {
 
         final ScheduledFuture<?> future = pRequestsTimeouts.get(aComponentName);
         if (future != null) {
@@ -175,11 +175,45 @@ public class ComposerLogic implements IComposer, IComposerLogic {
      */
     private synchronized void delayResolution() {
 
+        // Stop the scheduled resolution
         cancelResolution();
 
         // Schedule the next call
         pResolutionFuture = pScheduler.schedule(pResolutionRunner,
                 pResolutionDelay, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * Prepares or delays a component time out handler
+     * 
+     * @param aComposet
+     *            The instantiating components set
+     * @param aComponent
+     *            The name of an instantiating component
+     * @param aIsolateId
+     *            The isolate where the component is instantiating
+     */
+    private synchronized void delayTimeout(
+            final InstantiatingComposite aComposet,
+            final ComponentBean aComponent, final String aIsolateId) {
+
+        // Cancel the previous timeout, just in case
+        final String componentName = aComponent.getName();
+        cancelTimeout(componentName);
+
+        // Prepare the future
+        final ScheduledFuture<?> future = pScheduler.schedule(new Runnable() {
+
+            @Override
+            public void run() {
+
+                handleTimeout(aComposet, componentName, aIsolateId);
+            }
+
+        }, pInstantiationTimeout, TimeUnit.MILLISECONDS);
+
+        // Store the future
+        pRequestsTimeouts.put(componentName, future);
     }
 
     /*
@@ -339,12 +373,6 @@ public class ComposerLogic implements IComposer, IComposerLogic {
 
             // Ask for a new resolution
             needsResolution = true;
-
-        } else {
-            // No component failed
-            pLogger.logDebug(this, "handleInstantiationResult",
-                    "All components of", aComposetName, "on", aIsolateId,
-                    "have been started");
         }
 
         if (needsResolution) {
@@ -580,6 +608,41 @@ public class ComposerLogic implements IComposer, IComposerLogic {
         }
     }
 
+    /**
+     * Handles the expiration of an instantiation time out
+     * 
+     * @param aComposet
+     *            The instantiating components set
+     * @param aComponentName
+     *            The instantiating component
+     * @param aIsolateId
+     *            The isolate where the component is instantiating
+     */
+    private synchronized void handleTimeout(
+            final InstantiatingComposite aComposet,
+            final String aComponentName, final String aIsolateId) {
+
+        // Do not resolve while handling a timeout
+        cancelResolution();
+
+        pLogger.logInfo(this, "ComponentRequestTimeout", aComponentName,
+                "Instantiation request timed out on isolate", aIsolateId);
+
+        // Notify the timeout
+        aComposet.notifyInstantiationTimeout(aComponentName);
+
+        // Remove ourself from the map
+        pRequestsTimeouts.remove(aComponentName);
+
+        // Go back to the waiting state
+        if (!pStatus.isComposetWaiting(aComponentName)) {
+            pStatus.composetWaiting(aComposet.getName());
+        }
+
+        // Ask for a new resolution
+        delayResolution();
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -676,47 +739,7 @@ public class ComposerLogic implements IComposer, IComposerLogic {
 
             // Prepare the timeouts calls
             for (final ComponentBean component : isolateComponents) {
-
-                // Cancel the previous timeout, just in case
-                final String componentName = component.getName();
-                cancelTimeout(componentName);
-
-                // Prepare the future
-                final ScheduledFuture<?> future = pScheduler.schedule(
-                        new Runnable() {
-
-                            @Override
-                            public void run() {
-
-                                // Do not resolve while handling a timeout
-                                cancelResolution();
-
-                                pLogger.logInfo(
-                                        this,
-                                        "ComponentRequestTimeout",
-                                        componentName,
-                                        "Instantiation request timed out on isolate",
-                                        isolateId);
-
-                                // Notify the timeout
-                                aComposet
-                                        .notifyInstantiationTimeout(componentName);
-
-                                // Remove ourself from the map
-                                pRequestsTimeouts.remove(componentName);
-
-                                // Go back to the waiting state
-                                if (!pStatus.isComposetWaiting(componentName)) {
-                                    pStatus.composetWaiting(aComposet.getName());
-                                }
-
-                                // Ask for a new resolution
-                                delayResolution();
-                            }
-                        }, pInstantiationTimeout, TimeUnit.MILLISECONDS);
-
-                // Store the future
-                pRequestsTimeouts.put(componentName, future);
+                delayTimeout(aComposet, component, isolateId);
             }
 
             // Notify listeners
