@@ -12,6 +12,12 @@
             "id":"demo.central.ui",
             "kind":"felix",
             "node":"central",
+        	"vmArgs":[
+        	          "-Xms32M",
+        	          "-Xmx64M",
+        	          "-XX:+UnlockDiagnosticVMOptions",
+        	          "-XX:+UnsyncloadClass"
+        	      ],
             "httpPort":9099,
             "bundles":[
                 {
@@ -144,7 +150,7 @@
         {
             "id":"demo.temper-2",
             "kind":"pelix",
-            "node":"stratus",
+            "node":"raspberrypi",
             "httpPort":9102,
             "bundles":[
 				{
