@@ -207,14 +207,32 @@ public class MonitorLogic implements IPlatformMonitor, IForkerEventListener,
             failsafeStop(isolateId);
             pStatus.isolateStopped(isolateId);
 
-        default:
-            // Log the error status
+            // Log the error
             pLogger.logInfo(this, logMethodName, "Isolate ID=", isolateId,
                     "failed to start on node=", aIsolateDescr.getNode(),
                     "reason=", forkerResultToString(aResult));
 
             // TODO: Try again (modify the configuration according to the
             // error ?)
+            break;
+
+        case IForkerStatus.NO_MATCHING_FORKER:
+            // Forker didn't start
+            pStatus.isolateStopped(isolateId);
+
+            // Log the error
+            pLogger.logInfo(this, logMethodName,
+                    "No forker found to start isolate ID=", isolateId,
+                    "on node=", aIsolateDescr.getNode());
+
+            // TODO: Try again later
+            break;
+
+        default:
+            // Log the error
+            pLogger.logInfo(this, logMethodName, "Unknown forker status code=",
+                    aResult, "to start isolate ID=", isolateId, "on node=",
+                    aIsolateDescr.getNode());
             break;
         }
 
@@ -231,9 +249,8 @@ public class MonitorLogic implements IPlatformMonitor, IForkerEventListener,
     public void handleIsolateLost(final String aIsolateId) {
 
         // Isolate is considered stopped
-        pStatus.isolateStopped(aIsolateId);
-
-        if (pFailureHandler != null) {
+        if (pStatus.isolateStopped(aIsolateId) && pFailureHandler != null) {
+            // State change OK and failure handler present
             pFailureHandler.isolateFailed(aIsolateId);
         }
     }
