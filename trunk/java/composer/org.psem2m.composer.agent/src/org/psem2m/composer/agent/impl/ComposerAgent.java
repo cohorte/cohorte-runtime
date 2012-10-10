@@ -204,8 +204,8 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
             if (pComponentsInstances.containsKey(componentName)) {
                 // Instance already running here
                 runningComponents.add(component);
-                pLogger.logDebug(this, "", "Instance already there=",
-                        componentName);
+                pLogger.logDebug(this, "canHandleComponents",
+                        "Instance already there=", componentName);
             }
         }
 
