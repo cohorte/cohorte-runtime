@@ -38,6 +38,7 @@ iPOJO-Components: instance { $component="org.psem2m.remote.importer.Re
  "{java.lang.String}" }method { $name="filterProperties" $return="java
  .util.Dictionary" $arguments="{java.util.Map}" }method { $name="handl
  eIsolateLost" $arguments="{java.lang.String}" }method { $name="handle
+ IsolateReady" $arguments="{java.lang.String}" }method { $name="handle
  RemoteEvent" $arguments="{org.psem2m.isolates.services.remote.beans.R
  emoteServiceEvent}" }method { $name="invalidatePojo" }method { $name=
  "parseFilter" $arguments="{java.lang.String,java.util.Set}" }method {

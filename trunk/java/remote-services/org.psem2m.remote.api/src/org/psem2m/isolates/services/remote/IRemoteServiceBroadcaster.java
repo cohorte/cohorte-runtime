@@ -16,12 +16,20 @@ public interface IRemoteServiceBroadcaster {
 
     /**
      * Sends a request to all other isolates to send notifications about their
-     * current state.
+     * current exported services.
      * 
      * They'll communicate directly with the sender RSR to register their end
      * points.
      */
     void requestAllEndpoints();
+
+    /**
+     * Sends a request to the given isolate to send notifications about its
+     * current exported services.
+     * 
+     * @param aIsolateId
+     */
+    void requestEndpoints(String aIsolateId);
 
     /**
      * Sends the given event to all other isolates

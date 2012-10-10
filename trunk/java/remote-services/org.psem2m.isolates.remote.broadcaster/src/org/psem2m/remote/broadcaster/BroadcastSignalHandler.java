@@ -80,7 +80,8 @@ public class BroadcastSignalHandler extends CPojoBase implements
     public void handleIsolatePresence(final String aIsolateId,
             final String aNode, final EPresence aPresence) {
 
-        if (aPresence == EPresence.UNREGISTERED) {
+        switch (aPresence) {
+        case UNREGISTERED:
             // Isolate lost : Notify all listeners
             for (final IRemoteServiceEventListener listener : pRemoteEventsListeners) {
                 try {
@@ -95,6 +96,29 @@ public class BroadcastSignalHandler extends CPojoBase implements
                             aIsolateId, ex);
                 }
             }
+            break;
+
+        case REGISTERED:
+            // Isolate registered: Ask for its end points
+            for (final IRemoteServiceEventListener listener : pRemoteEventsListeners) {
+                try {
+                    listener.handleIsolateReady(aIsolateId);
+
+                } catch (final Exception ex) {
+                    // Just log...
+                    pLogger.logWarn(
+                            this,
+                            "handleIsolatePresence",
+                            "RemoveServiceEventListener failed to handle registered isolate=",
+                            aIsolateId, ex);
+                }
+            }
+            break;
+
+        default:
+            pLogger.logWarn(this, "handleIsolatePresence",
+                    "Unhandled isolate presence type=", aPresence);
+            break;
         }
     }
 

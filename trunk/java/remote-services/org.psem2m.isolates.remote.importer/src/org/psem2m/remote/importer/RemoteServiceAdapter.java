@@ -222,6 +222,19 @@ public class RemoteServiceAdapter extends CPojoBase implements
     /*
      * (non-Javadoc)
      * 
+     * @see org.psem2m.isolates.services.remote.IRemoteServiceEventListener#
+     * handleIsolateReady(java.lang.String)
+     */
+    @Override
+    public void handleIsolateReady(final String aIsolateId) {
+
+        // Ask for its end points
+        pBroadcaster.requestEndpoints(aIsolateId);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.psem2m.isolates.commons.remote.IRemoteServiceEventListener#
      * handleRemoteEvent(org.psem2m.isolates.commons.remote.RemoteServiceEvent)
      */

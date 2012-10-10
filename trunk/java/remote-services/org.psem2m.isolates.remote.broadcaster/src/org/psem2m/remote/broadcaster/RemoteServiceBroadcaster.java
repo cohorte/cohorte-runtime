@@ -89,10 +89,24 @@ public class RemoteServiceBroadcaster extends CPojoBase implements
     @Override
     public void requestAllEndpoints() {
 
-        // Ask for monitors and isolates services
+        // Ask for monitors and isolates services too
         pSignalEmitter.fireGroup(
                 ISignalsConstants.BROADCASTER_SIGNAL_REQUEST_ENDPOINTS, null,
                 EBaseGroup.OTHERS);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.services.remote.IRemoteServiceBroadcaster#
+     * requestEndpoints(java.lang.String)
+     */
+    @Override
+    public void requestEndpoints(final String aIsolateId) {
+
+        pSignalEmitter.fire(
+                ISignalsConstants.BROADCASTER_SIGNAL_REQUEST_ENDPOINTS, null,
+                aIsolateId);
     }
 
     /*

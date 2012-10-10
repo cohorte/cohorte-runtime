@@ -64,6 +64,7 @@ iPOJO-Components: instance { $component="org.psem2m.remote.broadcaster
  nce" $arguments="{java.lang.String,java.lang.String,org.psem2m.isolat
  es.services.monitoring.IIsolatePresenceListener$EPresence}" }method {
   $name="invalidatePojo" }method { $name="requestAllEndpoints" }method
-  { $name="sendNotification" $arguments="{org.psem2m.isolates.services
- .remote.beans.RemoteServiceEvent}" }method { $name="validatePojo" }}}
+  { $name="requestEndpoints" $arguments="{java.lang.String}" }method {
+  $name="sendNotification" $arguments="{org.psem2m.isolates.services.r
+ emote.beans.RemoteServiceEvent}" }method { $name="validatePojo" }}}
 
