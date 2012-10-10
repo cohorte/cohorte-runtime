@@ -40,6 +40,7 @@ import org.psem2m.forker.IForkerEventListener.EForkerEventType;
 import org.psem2m.forker.IForkerStatus;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.constants.IPlatformProperties;
+import org.psem2m.isolates.constants.ISignalsConstants;
 import org.psem2m.isolates.services.conf.ISvcConfig;
 import org.psem2m.signals.ISignalBroadcaster;
 import org.psem2m.signals.ISignalDirectory;
@@ -681,7 +682,7 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
         if (forker == null) {
             pLogger.logSevere(this, "startIsolate",
                     "No forker known for host=", hostName);
-            return -20;
+            return IForkerStatus.NO_MATCHING_FORKER;
         }
 
         // Get the started isolate ID
@@ -755,6 +756,16 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
 
                 pIsolateForkers.remove(isolate);
                 pDirectory.unregisterIsolate(isolate);
+            }
+        }
+
+        // Send the isolate lost signals
+        pSender.fireGroup(ISignalsConstants.ISOLATE_LOST_SIGNAL, aForkerId,
+                EBaseGroup.ALL);
+        if (isolates != null) {
+            for (final String isolate : isolates) {
+                pSender.fireGroup(ISignalsConstants.ISOLATE_LOST_SIGNAL,
+                        isolate, EBaseGroup.ALL);
             }
         }
     }

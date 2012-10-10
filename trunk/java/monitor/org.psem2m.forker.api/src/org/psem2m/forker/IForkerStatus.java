@@ -22,6 +22,9 @@ public interface IForkerStatus {
     /** Process is dead (not running) */
     int DEAD = 1;
 
+    /** No forker for the node */
+    int NO_MATCHING_FORKER = -20;
+
     /** No reference to the isolate process, unknown state */
     int NO_PROCESS_REF = 2;
 
