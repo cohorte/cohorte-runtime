@@ -11,7 +11,9 @@ Created on 12 juin 2012
 # ------------------------------------------------------------------------------
 
 from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
-    Invalidate, Instantiate
+    Invalidate, Instantiate, Requires, Bind
+
+import pelix.framework as pelix
 
 # ------------------------------------------------------------------------------
 
@@ -54,8 +56,21 @@ MONITOR_ID_PREFIX = "org.psem2m.internals.isolates.monitor"
 
 # ------------------------------------------------------------------------------
 
+SPEC_LISTENER = "org.psem2m.isolates.services.monitoring." \
+                "IIsolatePresenceListener"
+
+# FIXME: use Jabsorb enumeration dictionaries
+REGISTERED = 0
+""" Isolate presence event: Isolate registered """
+
+UNREGISTERED = 1
+""" Isolate presence event: Isolate unregistered or lost """
+
+# ------------------------------------------------------------------------------
+
 @ComponentFactory("psem2m-signals-directory-factory")
 @Instantiate("psem2m-signals-directory")
+@Requires("_listeners", SPEC_LISTENER, aggregate=True, optional=True)
 @Provides("org.psem2m.signals.ISignalDirectory")
 class SignalsDirectory(object):
     """
@@ -69,6 +84,9 @@ class SignalsDirectory(object):
 
         # The big lock
         self._lock = threading.RLock()
+
+        # Listeners
+        self._listeners = []
 
         # Isolate ID -> (node, port)
         self._accesses = {}
@@ -87,6 +105,51 @@ class SignalsDirectory(object):
 
         # Node name -> host
         self._nodes_host = {}
+
+
+    @Bind
+    def _bind(self, svc, svc_ref):
+        """
+        Notifies newly bound listener of known isolates presence
+        """
+        specs = svc_ref.get_property(pelix.OBJECTCLASS)
+        if SPEC_LISTENER in specs:
+            # New listener bound
+            with self._lock:
+                for isolate_id in self.get_all_isolates(None, False):
+                    isolate_node = self.get_isolate_node(isolate_id)
+                    svc.handle_isolate_presence(isolate_id, isolate_node,
+                                                REGISTERED)
+
+
+    def _notify_listeners(self, isolate_id, isolate_node, event):
+        """
+        Notifies listeners of an isolate presence event
+        
+        :param isolate_id: ID of the isolate
+        :param isolate_node: Node of the isolate
+        :param event: Kind of event
+        """
+        if not self._listeners:
+            # No listeners
+            return
+
+        def notification_loop(listeners):
+            """
+            Notifies isolate presence listeners (should be ran in a thread)
+            """
+            # Use a copy of the listeners
+            for listener in listeners:
+                try:
+                    listener.handle_isolate_presence(isolate_id, isolate_node,
+                                                     event)
+                except:
+                    # Just log...
+                    _logger.exception("Error notifying a presence listener")
+
+        # Notify in another thread, with a copy of the listeners list
+        listeners = self._listeners[:]
+        threading.Thread(target=notification_loop, args=[listeners]).start()
 
 
     def dump(self):
@@ -467,45 +530,50 @@ class SignalsDirectory(object):
         :raise ValueError: An argument is invalid
         """
         if not isolate_id:
-            raise ValueError("Invalid IsolateID : '%s'" % isolate_id)
+            raise ValueError("Empty isolate ID: '{0}'".format(isolate_id))
 
         if not node:
-            raise ValueError("Invalid node name for '%s' : '%s'" \
-                             % (isolate_id, node))
+            raise ValueError("Empty node name for isolate '{0}'"\
+                             .format(isolate_id))
 
         if isolate_id == self.get_isolate_id():
             # Ignore our own registration
-            return True
+            return False
 
         with self._lock:
+            # Prepare the new access tuple
+            new_access = (node, port)
+
             # Get the previous access, if any
             old_access = self._accesses.get(isolate_id, None)
             if old_access is not None:
                 # Already known isolate
-                if old_access == (node, port):
+                if old_access == new_access:
                     # No update needed
-                    _logger.warning("Already known isolate '%s'"
-                                    " - No access update", isolate_id)
                     return False
 
                 else:
+                    # Log the update
                     _logger.debug("Already known isolate '%s'"
                                   " - Updated from %s to %s",
                                   isolate_id, self._accesses[isolate_id],
-                                  (node, port))
+                                  new_access)
 
-                if node != old_access[0]:
+                old_node = old_access[0]
+                if node != old_node:
                     # Isolate moved to another node -> remove the old entry
                     _logger.info("Isolate '%s' moved from %s to %s",
-                                 isolate_id, old_access[0], node)
+                                 isolate_id, old_node, node)
 
-                    node_isolates = self._nodes_isolates.get(old_access[0],
-                                                             None)
+                    node_isolates = self._nodes_isolates.get(old_node, None)
                     if node_isolates is not None:
                         node_isolates.remove(isolate_id)
 
+                    # Notify the unregistration
+                    self._notify_listeners(isolate_id, old_node, UNREGISTERED)
+
             # Store the isolate access
-            self._accesses[isolate_id] = (node, port)
+            self._accesses[isolate_id] = new_access
 
             # Store the node
             node_isolates = self._nodes_isolates.get(node, None)
@@ -537,8 +605,11 @@ class SignalsDirectory(object):
                         # Store the isolate
                         isolates.append(isolate_id)
 
-            else:
-                _logger.warning("The isolate '%s' has no group.", isolate_id)
+            _logger.debug("Registered isolate ID=%s, Access=%s", isolate_id,
+                          new_access)
+
+            # Notify listeners
+            self._notify_listeners(isolate_id, node, REGISTERED)
 
         return True
 
@@ -618,33 +689,32 @@ class SignalsDirectory(object):
         :param isolate_id: The ID of the isolate to unregister
         :return: True if the isolate has been unregistered
         """
-        if not isolate_id:
-            # Nothing to do
-            return False
-
         with self._lock:
-            result = False
+            if not isolate_id or isolate_id not in self._accesses:
+                # Nothing to do
+                return False
 
             # Remove the isolate access
-            if isolate_id in self._accesses:
-                del self._accesses[isolate_id]
-                result = True
+            del self._accesses[isolate_id]
 
-            # Remove references in nodes
-            for isolates in self._nodes_isolates.values():
+            # Remove isolate reference in its node
+            isolate_node = None
+            for node, isolates in self._nodes_isolates.items():
                 if isolate_id in isolates:
-                    # The isolate belongs to the group
+                    # Found the isolate node
                     isolates.remove(isolate_id)
-                    result = True
+                    isolate_node = node
+                    break
 
             # Remove references in groups
             for isolates in self._groups.values():
                 if isolate_id in isolates:
                     # The isolate belongs to the group
                     isolates.remove(isolate_id)
-                    result = True
 
-            return result
+            # Notify listeners
+            self._notify_listeners(isolate_id, isolate_node, UNREGISTERED)
+            return True
 
 
     @Validate

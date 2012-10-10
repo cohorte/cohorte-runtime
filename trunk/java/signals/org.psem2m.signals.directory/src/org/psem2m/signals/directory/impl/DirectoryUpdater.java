@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
@@ -22,8 +21,6 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.constants.ISignalsConstants;
-import org.psem2m.isolates.services.monitoring.IIsolatePresenceListener;
-import org.psem2m.isolates.services.monitoring.IIsolatePresenceListener.EPresence;
 import org.psem2m.signals.HostAccess;
 import org.psem2m.signals.ISignalBroadcaster;
 import org.psem2m.signals.ISignalBroadcaster.ESendMode;
@@ -46,9 +43,6 @@ import org.psem2m.signals.IWaitingSignalListener;
 public class DirectoryUpdater implements ISignalListener,
         IWaitingSignalListener {
 
-    /** Isolate presence listeners dependency ID */
-    private static final String ID_LISTENERS = "isolate-presence-listeners";
-
     /** The signals directory */
     @Requires
     private ISignalDirectory pDirectory;
@@ -58,10 +52,6 @@ public class DirectoryUpdater implements ISignalListener,
      * after component validation
      */
     private int pDumperPort;
-
-    /** Isolates listeners */
-    @Requires(id = ID_LISTENERS, optional = true)
-    private IIsolatePresenceListener[] pListeners;
 
     /** The logger */
     @Requires
@@ -74,27 +64,6 @@ public class DirectoryUpdater implements ISignalListener,
     /** The signal sender (it must be usable) */
     @Requires(filter = "(" + ISignalBroadcaster.PROPERTY_ONLINE + "=true)")
     private ISignalBroadcaster pSender;
-
-    /**
-     * Called by iPOJO when an new isolate presence listener is bound
-     * 
-     * @param aListener
-     *            A new isolate presence listener
-     */
-    @Bind(id = ID_LISTENERS)
-    protected synchronized void bindPresenceListener(
-            final IIsolatePresenceListener aListener) {
-
-        final String[] isolates = pDirectory.getAllIsolates(null, true);
-        if (isolates != null) {
-            // Notify the new listener of all known isolates
-            for (final String isolate : isolates) {
-                final String node = pDirectory.getIsolateNode(isolate);
-                aListener.handleIsolatePresence(isolate, node,
-                        EPresence.REGISTERED);
-            }
-        }
-    }
 
     /**
      * Retrieves the directory of a remote isolate.
@@ -151,15 +120,6 @@ public class DirectoryUpdater implements ISignalListener,
             // Send our registration signal to everyone
             sendRegistration(remoteAddress, remotePort, true);
 
-            final String[] isolates = pDirectory.getAllIsolates(null, false);
-            if (isolates != null) {
-                for (final String isolate : isolates) {
-                    notifyPresenceListeners(isolate,
-                            pDirectory.getIsolateNode(isolate),
-                            EPresence.REGISTERED);
-                }
-            }
-
         } catch (final Exception e) {
             pLogger.logSevere(this, "grabRemoteDirectory",
                     "Error grabbing the directory of host=", remoteAddress,
@@ -205,21 +165,11 @@ public class DirectoryUpdater implements ISignalListener,
 
         if (dump != null) {
             // All good, store the dump in the directory
-            final String[] isolates = pDirectory.storeDump(dump,
-                    Arrays.asList(aIgnoredNode), null);
+            pDirectory.storeDump(dump, Arrays.asList(aIgnoredNode), null);
 
             // Send our registration, one we have the directory...
             pLogger.logDebug(this, "validate", "Sending registration to all");
             sendRegistration("localhost", pDumperPort, true);
-
-            if (isolates != null) {
-                // Some isolates has been registered, notify listeners
-                for (final String isolate : isolates) {
-                    notifyPresenceListeners(isolate,
-                            pDirectory.getIsolateNode(isolate),
-                            EPresence.REGISTERED);
-                }
-            }
 
         } else {
             // Nothing found
@@ -256,14 +206,7 @@ public class DirectoryUpdater implements ISignalListener,
         } else if (ISignalsConstants.ISOLATE_LOST_SIGNAL.equals(aSignalName)) {
             // Isolate lost
             final String lostIsolate = (String) aSignalData.getSignalContent();
-            final String lostIsolateNode = pDirectory
-                    .getIsolateNode(lostIsolate);
-
             pDirectory.unregisterIsolate(lostIsolate);
-
-            // Notify listeners
-            notifyPresenceListeners(lostIsolate, lostIsolateNode,
-                    EPresence.UNREGISTERED);
 
         } else if (ISignalDirectoryConstants.SIGNAL_CONTACT.equals(aSignalName)) {
             // Monitor contact. Should only happen for forkers
@@ -288,33 +231,6 @@ public class DirectoryUpdater implements ISignalListener,
                 this);
 
         pLogger.logInfo(this, "invalidate", "Directory Updater Gone");
-    }
-
-    /**
-     * Notifies isolate presence listeners of an event
-     * 
-     * @param aIsolateId
-     *            Isolate ID
-     * @param aNode
-     *            Node of the isolate
-     * @param aPresence
-     *            Presence event type
-     */
-    protected synchronized void notifyPresenceListeners(
-            final String aIsolateId, final String aNode,
-            final EPresence aPresence) {
-
-        for (final IIsolatePresenceListener listener : pListeners) {
-            // Notify all listeners
-            try {
-                listener.handleIsolatePresence(aIsolateId, aNode, aPresence);
-
-            } catch (final Exception ex) {
-                // Just log...
-                pLogger.logWarn(this, "notifyPresenceListeners", "Listener=",
-                        listener, "failed to handle event", ex);
-            }
-        }
     }
 
     /**
@@ -431,9 +347,6 @@ public class DirectoryUpdater implements ISignalListener,
 
         // 2. Register the isolate
         pDirectory.registerIsolate(isolateId, node, port, groups);
-
-        // Notify listeners
-        notifyPresenceListeners(isolateId, node, EPresence.REGISTERED);
 
         // 3. Propagate the registration if needed
         if (propagate.booleanValue()) {
