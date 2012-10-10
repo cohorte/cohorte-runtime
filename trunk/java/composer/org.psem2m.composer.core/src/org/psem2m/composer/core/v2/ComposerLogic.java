@@ -420,6 +420,9 @@ public class ComposerLogic implements IComposer, IComposerLogic {
                     // A new resolution is needed
                     needsResolution = true;
                 }
+
+                // Notify listeners
+                notifyUpdate(composet.getBean());
             }
         }
 
@@ -518,6 +521,9 @@ public class ComposerLogic implements IComposer, IComposerLogic {
                 if (!composet.isComplete()) {
                     pStatus.composetWaiting(composet.getName());
                 }
+
+                // Notify listeners
+                notifyUpdate(composet.getBean());
             }
 
             // Ask for a new resolution
