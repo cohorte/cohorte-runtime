@@ -576,22 +576,31 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
         while (pThreadRunning) {
 
             synchronized (pForkersLST) {
+                final long currentTime = System.currentTimeMillis();
+
                 for (final Entry<String, Long> entry : pForkersLST.entrySet()) {
                     // First loop to detect forkers to delete
                     final String forkerId = entry.getKey();
-                    final long lastSeen = entry.getValue();
+                    final Long lastSeen = entry.getValue();
 
-                    if (System.currentTimeMillis() - lastSeen > FORKER_TTL) {
+                    if (lastSeen == null) {
+                        // Invalid entry, ignore it
+                        pLogger.logWarn(this, "run",
+                                "Found a null 'last seen' value for forker=",
+                                forkerId);
+
+                    } else if (currentTime - lastSeen > FORKER_TTL) {
                         // TTL reached
                         toDelete.add(forkerId);
+
+                        pLogger.logInfo(this, "run", "Forker=", forkerId,
+                                "reached TTL ->", (currentTime - lastSeen),
+                                "ms");
                     }
                 }
 
                 for (final String forkerId : toDelete) {
                     // Unregister the forker
-                    pLogger.logInfo(this, "run", "Forker=", forkerId,
-                            "reached TTL");
-                    pForkersLST.remove(forkerId);
                     unregisterForker(forkerId);
                 }
             }
@@ -732,12 +741,18 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
                     forkerNode);
         }
 
+        // Remove the references to the forker
+        pForkersLST.remove(aForkerId);
+
         // Clean up corresponding isolates
         final String[] isolates = pDirectory.getIsolatesOnNode(forkerNode);
         if (isolates != null) {
 
             for (final String isolate : isolates) {
                 // Forget this isolate
+                pLogger.logDebug(this, "unregisterForker", "Forget isolate=",
+                        isolate);
+
                 pIsolateForkers.remove(isolate);
                 pDirectory.unregisterIsolate(isolate);
             }
