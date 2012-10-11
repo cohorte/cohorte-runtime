@@ -71,6 +71,7 @@ import org.json.JSONTokener;
  * objects into Java objects.
  */
 public class JSONSerializer implements Serializable {
+
     /**
      * Special token Object to indicate the fact that the given object being
      * marshalled is a duplicate or circular reference and so it should not be
@@ -245,7 +246,8 @@ public class JSONSerializer implements Serializable {
             final JSONArray arr = (JSONArray) o;
             if (arr.length() == 0) {
                 // Use an empty list if the type is unknown
-                return ArrayList.class;
+                // return ArrayList.class;
+                return Object[].class;
                 // throw new UnmarshallException("no type for empty array");
             }
             // return type of first element
@@ -879,7 +881,7 @@ public class JSONSerializer implements Serializable {
         if (clazz == null) {
             throw new UnmarshallException("no class hint");
         }
-        if (json == null || json == JSONObject.NULL) {
+        if (JSONObject.NULL.equals(json)) {
             if (!clazz.isPrimitive()) {
                 return null;
             }
