@@ -18,61 +18,53 @@ JAVA_SETS_PATTERN = re.compile("java\.util\..*Set")
 
 # ------------------------------------------------------------------------------
 
-def to_jabsorb(result):
+def to_jabsorb(value):
     """
     Adds information for Jabsorb, if needed.
     
     Converts maps and lists to a jabsorb form.
     Keeps tuples as is, to let them be considered as arrays.
     
-    :param result: A Python result to send to Jabsorb
+    :param value: A Python result to send to Jabsorb
     :return: The result in a Jabsorb map format (not a JSON object)
     """
     converted_result = {}
 
-    # Map ?
-    if isinstance(result, dict):
+    # None ?
+    if value is None:
+        return None
 
-        if JAVA_CLASS not in result:
+    # Map ?
+    elif isinstance(value, dict):
+        if JAVA_CLASS not in value:
             # Needs the whole transformation
             converted_result[JAVA_CLASS] = "java.util.HashMap"
-
-            map_pairs = {}
-            for key, value in result.items():
-                map_pairs[key] = to_jabsorb(value)
-
-            converted_result["map"] = map_pairs
+            converted_result["map"] = map_pairs = {}
+            for key, content in value.items():
+                map_pairs[key] = to_jabsorb(content)
 
         else:
             # Bean representation
-            for key, value in result.items():
-                converted_result[key] = to_jabsorb(value)
+            for key, content in value.items():
+                converted_result[key] = to_jabsorb(content)
 
     # List ? (consider tuples as an array)
-    elif isinstance(result, list):
+    elif isinstance(value, list):
         converted_result[JAVA_CLASS] = "java.util.ArrayList"
-        converted_result["list"] = []
-
-        for item in result:
-            converted_result["list"].append(to_jabsorb(item))
+        converted_result["list"] = [to_jabsorb(entry) for entry in value]
 
     # Set ?
-    elif isinstance(result, set):
+    elif isinstance(value, set):
         converted_result[JAVA_CLASS] = "java.util.HashSet"
-        converted_result["set"] = []
-
-        for item in result:
-            converted_result["set"].append(to_jabsorb(item))
+        converted_result["set"] = [to_jabsorb(entry) for entry in value]
 
     # Tuple ? (used as array, except if it is empty)
-    elif isinstance(result, tuple):
-        converted_result = []
-        for element in result:
-            converted_result.append(to_jabsorb(element))
+    elif isinstance(value, tuple):
+        converted_result = [to_jabsorb(entry) for entry in value]
 
     # Other ?
     else:
-        converted_result = result
+        converted_result = value
 
     return converted_result
 
