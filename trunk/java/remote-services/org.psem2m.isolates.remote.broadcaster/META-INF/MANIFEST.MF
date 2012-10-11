@@ -45,26 +45,31 @@ iPOJO-Components: instance { $component="org.psem2m.remote.broadcaster
  s="{java.lang.String,org.psem2m.signals.ISignalData}" }method { $name
  ="handleRemoteEvent" $arguments="{org.psem2m.isolates.services.remote
  .beans.RemoteServiceEvent}" }method { $name="handleRequestEndpoints" 
- $arguments="{java.lang.String}" }method { $name="invalidatePojo" }met
- hod { $name="validatePojo" }}}component { $classname="org.psem2m.remo
- te.broadcaster.RemoteServiceBroadcaster" $name="psem2m-remote-rsb-fac
- tory" $public="false" provides { $specifications="{org.psem2m.isolate
- s.services.remote.IRemoteServiceBroadcaster,org.psem2m.isolates.servi
- ces.monitoring.IIsolatePresenceListener}" }requires { $field="pDirect
- ory" }requires { $field="pLogger" }requires { $field="pSignalEmitter"
-  }callback { $transition="invalidate" $method="invalidatePojo" }callb
- ack { $transition="validate" $method="validatePojo" }manipulation { $
- super="org.psem2m.isolates.base.activators.CPojoBase" interface { $na
- me="org.psem2m.isolates.services.remote.IRemoteServiceBroadcaster" }i
- nterface { $name="org.psem2m.isolates.services.monitoring.IIsolatePre
- senceListener" }field { $name="pDirectory" $type="org.psem2m.signals.
- ISignalDirectory" }field { $name="pLogger" $type="org.psem2m.isolates
- .base.IIsolateLoggerSvc" }field { $name="pSignalEmitter" $type="org.p
- sem2m.signals.ISignalBroadcaster" }method { $name="handleIsolatePrese
- nce" $arguments="{java.lang.String,java.lang.String,org.psem2m.isolat
- es.services.monitoring.IIsolatePresenceListener$EPresence}" }method {
-  $name="invalidatePojo" }method { $name="requestAllEndpoints" }method
-  { $name="requestEndpoints" $arguments="{java.lang.String}" }method {
-  $name="sendNotification" $arguments="{org.psem2m.isolates.services.r
- emote.beans.RemoteServiceEvent}" }method { $name="validatePojo" }}}
+ $return="org.psem2m.isolates.services.remote.beans.RemoteServiceEvent
+ []" $arguments="{java.lang.String}" }method { $name="invalidatePojo" 
+ }method { $name="validatePojo" }}}component { $classname="org.psem2m.
+ remote.broadcaster.RemoteServiceBroadcaster" $name="psem2m-remote-rsb
+ -factory" $public="false" provides { $specifications="{org.psem2m.iso
+ lates.services.remote.IRemoteServiceBroadcaster,org.psem2m.isolates.s
+ ervices.monitoring.IIsolatePresenceListener}" }requires { $field="pDi
+ rectory" }requires { $field="pLogger" }requires { $field="pSignalEmit
+ ter" }callback { $transition="invalidate" $method="invalidatePojo" }c
+ allback { $transition="validate" $method="validatePojo" }manipulation
+  { $super="org.psem2m.isolates.base.activators.CPojoBase" interface {
+  $name="org.psem2m.isolates.services.remote.IRemoteServiceBroadcaster
+ " }interface { $name="org.psem2m.isolates.services.monitoring.IIsolat
+ ePresenceListener" }field { $name="pDirectory" $type="org.psem2m.sign
+ als.ISignalDirectory" }field { $name="pLogger" $type="org.psem2m.isol
+ ates.base.IIsolateLoggerSvc" }field { $name="pSignalEmitter" $type="o
+ rg.psem2m.signals.ISignalBroadcaster" }method { $name="getRemoteServi
+ ceEvents" $return="java.util.Collection" $arguments="{java.lang.Objec
+ t[]}" }method { $name="handleIsolatePresence" $arguments="{java.lang.
+ String,java.lang.String,org.psem2m.isolates.services.monitoring.IIsol
+ atePresenceListener$EPresence}" }method { $name="invalidatePojo" }met
+ hod { $name="requestAllEndpoints" $return="org.psem2m.isolates.servic
+ es.remote.beans.RemoteServiceEvent[]" }method { $name="requestEndpoin
+ ts" $return="org.psem2m.isolates.services.remote.beans.RemoteServiceE
+ vent[]" $arguments="{java.lang.String}" }method { $name="sendNotifica
+ tion" $arguments="{org.psem2m.isolates.services.remote.beans.RemoteSe
+ rviceEvent}" }method { $name="validatePojo" }}}
 

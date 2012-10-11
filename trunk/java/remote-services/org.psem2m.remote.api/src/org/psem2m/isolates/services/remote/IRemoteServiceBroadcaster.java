@@ -21,15 +21,16 @@ public interface IRemoteServiceBroadcaster {
      * They'll communicate directly with the sender RSR to register their end
      * points.
      */
-    void requestAllEndpoints();
+    RemoteServiceEvent[] requestAllEndpoints();
 
     /**
      * Sends a request to the given isolate to send notifications about its
      * current exported services.
      * 
      * @param aIsolateId
+     * @return
      */
-    void requestEndpoints(String aIsolateId);
+    RemoteServiceEvent[] requestEndpoints(String aIsolateId);
 
     /**
      * Sends the given event to all other isolates

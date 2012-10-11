@@ -194,8 +194,8 @@ public class BroadcastSignalHandler extends CPojoBase implements
 
         } else if (ISignalsConstants.BROADCASTER_SIGNAL_REQUEST_ENDPOINTS
                 .equals(aSignalName)) {
-            // End point request
-            handleRequestEndpoints(aSignalData.getSenderId());
+            // End points request
+            return handleRequestEndpoints(aSignalData.getSenderId());
         }
 
         return null;
@@ -235,8 +235,10 @@ public class BroadcastSignalHandler extends CPojoBase implements
      * 
      * @param aRequestingIsolateId
      *            Isolate to answer to.
+     * @return An array of events, or null
      */
-    protected void handleRequestEndpoints(final String aRequestingIsolateId) {
+    protected RemoteServiceEvent[] handleRequestEndpoints(
+            final String aRequestingIsolateId) {
 
         final RemoteServiceRegistration[] localRegistrations = pRepository
                 .getLocalRegistrations();
@@ -245,7 +247,7 @@ public class BroadcastSignalHandler extends CPojoBase implements
             pLogger.logInfo(this, "handleRequestEndpoints",
                     "RequestEndpoints received from isolate=",
                     aRequestingIsolateId, "but the RSR is empty");
-            return;
+            return null;
         }
 
         // Prepare the event list
@@ -268,11 +270,11 @@ public class BroadcastSignalHandler extends CPojoBase implements
             events.add(remoteEvent);
         }
 
-        // Use the signal sender to reply to the isolate
-        pSignalEmitter
-                .fire(ISignalsConstants.BROADCASTER_SIGNAL_REMOTE_EVENT,
-                        events.toArray(new RemoteServiceEvent[0]),
-                        aRequestingIsolateId);
+        pLogger.logDebug(this, "handleRequestEndpoints",
+                "Answering to end points request from=", aRequestingIsolateId,
+                "count=", events.size());
+
+        return events.toArray(new RemoteServiceEvent[events.size()]);
     }
 
     /*

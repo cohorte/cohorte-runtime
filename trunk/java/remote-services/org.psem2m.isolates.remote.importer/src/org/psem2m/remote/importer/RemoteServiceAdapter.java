@@ -92,7 +92,7 @@ public class RemoteServiceAdapter extends CPojoBase implements
      *            An imported interface name
      * @return True if the service can be imported
      */
-    protected boolean acceptInterface(final String aInterfaceName) {
+    private boolean acceptInterface(final String aInterfaceName) {
 
         // Tests results
         boolean include = false;
@@ -145,7 +145,7 @@ public class RemoteServiceAdapter extends CPojoBase implements
      *            Imported service properties
      * @return The service properties, without the remote service ones
      */
-    protected Dictionary<String, Object> filterProperties(
+    private Dictionary<String, Object> filterProperties(
             final Map<String, Object> aServiceProperties) {
 
         if (aServiceProperties == null) {
@@ -229,7 +229,7 @@ public class RemoteServiceAdapter extends CPojoBase implements
     public void handleIsolateReady(final String aIsolateId) {
 
         // Ask for its end points
-        pBroadcaster.requestEndpoints(aIsolateId);
+        requestEndpoints(aIsolateId);
     }
 
     /*
@@ -298,8 +298,7 @@ public class RemoteServiceAdapter extends CPojoBase implements
      * @param aFilters
      *            Set that will receive found filters
      */
-    protected void parseFilter(final String aFilterStr,
-            final Set<String> aFilters) {
+    private void parseFilter(final String aFilterStr, final Set<String> aFilters) {
 
         if (aFilterStr == null || aFilterStr.isEmpty() || aFilters == null) {
             // Do nothing if not necessary...
@@ -323,7 +322,7 @@ public class RemoteServiceAdapter extends CPojoBase implements
     /**
      * Sets up the inclusion and exclusion filters
      */
-    protected void prepareFilters() {
+    private void prepareFilters() {
 
         final String inclusionFilters = System
                 .getProperty(IPlatformProperties.PROP_REMOTE_SERVICE_FILTERS_INCLUDE);
@@ -344,7 +343,7 @@ public class RemoteServiceAdapter extends CPojoBase implements
      * @param aServiceEvent
      *            A service registration event
      */
-    protected synchronized void registerService(
+    private synchronized void registerService(
             final RemoteServiceEvent aServiceEvent) {
 
         // Get the service registration object
@@ -446,6 +445,36 @@ public class RemoteServiceAdapter extends CPojoBase implements
     }
 
     /**
+     * Requests the end points of the given isolate. If no isolate is given, the
+     * request is sent to all known isolates.
+     * 
+     * @param aIsolateId
+     *            An isolate ID, or null
+     */
+    private void requestEndpoints(final String aIsolateId) {
+
+        final RemoteServiceEvent[] events;
+        if (aIsolateId == null) {
+            // Ask to all known isolates
+            events = pBroadcaster.requestAllEndpoints();
+
+        } else {
+            // Ask to a specific isolate
+            events = pBroadcaster.requestEndpoints(aIsolateId);
+        }
+
+        if (events == null) {
+            // Nothing to do
+            return;
+        }
+
+        for (final RemoteServiceEvent event : events) {
+            // Handle all events
+            handleRemoteEvent(event);
+        }
+    }
+
+    /**
      * Unregisters the given service and destroys its proxy
      * 
      * @param aHostIsolate
@@ -453,7 +482,7 @@ public class RemoteServiceAdapter extends CPojoBase implements
      * @param aServiceId
      *            The removed service ID
      */
-    protected synchronized void unregisterService(final String aHostIsolate,
+    private synchronized void unregisterService(final String aHostIsolate,
             final String aServiceId) {
 
         // Retrieve the service registration
@@ -502,7 +531,7 @@ public class RemoteServiceAdapter extends CPojoBase implements
      * @param aRegistration
      *            A remote service registration bean
      */
-    protected synchronized void updateService(
+    private synchronized void updateService(
             final RemoteServiceRegistration aRegistration) {
 
         final String serviceId = aRegistration.getServiceId();
@@ -541,7 +570,7 @@ public class RemoteServiceAdapter extends CPojoBase implements
         prepareFilters();
 
         // Request other isolates state with the RSB
-        pBroadcaster.requestAllEndpoints();
+        requestEndpoints(null);
 
         pLogger.logInfo(this, "validatePojo", "RemoteServiceAdapter Ready");
     }

@@ -195,7 +195,7 @@ class ServiceExporter(object):
             },
             "serviceRegistration": registration
         }
-        self.sender.fire(SIGNAL_REMOTE_EVENT, remote_event, dir_group="ALL")
+        self.sender.fire(SIGNAL_REMOTE_EVENT, remote_event, dir_group="OTHERS")
 
 
     def _export_service(self, reference):
@@ -370,8 +370,11 @@ class ServiceExporter(object):
            "serviceRegistration": registration
            } for registration in self._registrations.values()]
 
-        _logger.debug("Got endpoints request from %s", sender)
-        self.sender.fire(SIGNAL_REMOTE_EVENT, events, isolate=sender)
+        _logger.debug("End points request from %s -> %d events", sender,
+                      len(events))
+
+        if events:
+            return tuple(events)
 
 
     @Validate
@@ -494,7 +497,7 @@ class _JSONProxy(object):
 
             result = method(*args, **kwargs)
             return from_jabsorb(result)
-            # FIXME: in case of Exception, look if the service has gone
+            # FIXME: in case of Exception, look if the service has gone away
 
         return wrapped_call
 
@@ -772,6 +775,33 @@ class ServiceImporter(object):
         local_registration.set_properties(filtered_properties)
 
 
+    def _requestEndpoints(self, isolate=None):
+        """
+        Requests the services exported by the given isolate. If isolate is None,
+        then the request is sent to all known isolates.
+        
+        :param: isolate: An isolate ID
+        """
+        if not isolate:
+            sig_results = self.sender.send(BROADCASTER_SIGNAL_REQUEST_ENDPOINTS,
+                                           None, dir_group="OTHERS")[0]
+
+        else:
+            sig_results = self.sender.send(BROADCASTER_SIGNAL_REQUEST_ENDPOINTS,
+                                           None, isolate=isolate)[0]
+
+        if not sig_results:
+            # Nothing to do...
+            return
+
+        for isolate_id, isolate_results in sig_results.items():
+            for result in isolate_results:
+                if isinstance(result, list):
+                    for event in result:
+                        # Handle each event
+                        self._handle_remote_event(isolate_id, event)
+
+
     @Validate
     def validate(self, context):
         """
@@ -787,7 +817,7 @@ class ServiceImporter(object):
         self.receiver.register_listener(BROADCASTER_SIGNAL_NAME_PREFIX + "/*",
                                         self)
 
-        # Send "request endpoints" signal
+        # Send "request end points" signal
         self.sender.fire(BROADCASTER_SIGNAL_REQUEST_ENDPOINTS, None,
                          dir_group="ALL")
         _logger.debug("ServiceImporter Ready")
