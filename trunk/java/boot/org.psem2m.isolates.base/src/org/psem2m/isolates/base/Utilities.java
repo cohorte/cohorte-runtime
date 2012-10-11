@@ -13,6 +13,7 @@ import java.lang.reflect.Array;
 import java.net.InetAddress;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -60,16 +61,35 @@ public final class Utilities {
             throw new IllegalArgumentException("Can't convert to a null type");
         }
 
-        // Prepare the result array
-        final int size = Array.getLength(aArrayObject);
-        final T[] resultArray = (T[]) Array.newInstance(aType, size);
+        if (aArrayObject.getClass().isArray()) {
+            // We got an array
+            final int size = Array.getLength(aArrayObject);
+            final T[] resultArray = (T[]) Array.newInstance(aType, size);
 
-        // Copy the array
-        for (int i = 0; i < size; i++) {
-            resultArray[i] = (T) Array.get(aArrayObject, i);
+            // Copy the array
+            for (int i = 0; i < size; i++) {
+                resultArray[i] = (T) Array.get(aArrayObject, i);
+            }
+            return resultArray;
+
+        } else if (aArrayObject instanceof Collection) {
+            // We got a collection instead of an array, don't worry
+            try {
+                final Collection<T> collection = (Collection<T>) aArrayObject;
+                return collection.toArray((T[]) Array.newInstance(aType,
+                        collection.size()));
+
+            } catch (final ArrayStoreException ex) {
+                // Convert the exception class
+                throw new ClassCastException(MessageFormat.format(
+                        "Invalid array object content type: {0}", ex));
+            }
         }
 
-        return resultArray;
+        // Neither an array nor a collection
+        throw new IllegalArgumentException(MessageFormat.format(
+                "Given object is not an array: {0}", aArrayObject.getClass()
+                        .getName()));
     }
 
     /**
