@@ -341,6 +341,7 @@ public class ComposerStatus implements IComposerStatus {
 
         // Clear the status
         pStatusCreator.deleteStorage(pComposetStatus);
+        pComposetStatus = null;
 
         // Clear the maps
         pFactoryIsolates.clear();
