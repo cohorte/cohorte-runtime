@@ -37,8 +37,7 @@ iPOJO-Components: instance { $component="org.psem2m.isolates.ui.CUiAdm
  ent" }method { $name="handleIsolatePresence" $arguments="{java.lang.S
  tring,java.lang.String,org.psem2m.isolates.services.monitoring.IIsola
  tePresenceListener$EPresence}" }method { $name="initContent" }method 
- { $name="invalidatePojo" }method { $name="safeInvokeAndWait" $argumen
- ts="{java.lang.Runnable}" }method { $name="setUiAdminFont" $arguments
- ="{org.psem2m.isolates.ui.admin.api.EUiAdminFont}" }method { $name="v
- alidatePojo" }}}
+ { $name="invalidatePojo" }method { $name="setUiAdminFont" $arguments=
+ "{org.psem2m.isolates.ui.admin.api.EUiAdminFont}" }method { $name="va
+ lidatePojo" }}}
 
