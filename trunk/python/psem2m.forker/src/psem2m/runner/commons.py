@@ -17,6 +17,7 @@ import psem2m.utils
 import os
 import shutil
 import subprocess
+import time
 
 # ------------------------------------------------------------------------------
 
@@ -191,13 +192,16 @@ class Runner(object):
         working_dir = os.path.abspath(os.path.join(base, "var", "work",
                                                    escaped_id))
 
-        if os.path.isdir(working_dir):
+        if os.path.isfile(working_dir) or os.path.islink(working_dir):
+            # Remove the existing file
+            os.remove(working_dir)
+
+        else:
             # Remove the existing directory
             shutil.rmtree(working_dir, True)
 
-        elif os.path.exists(working_dir):
-            # A file or a link already exists with this name
-            os.remove(working_dir)
+        # Wait a little
+        time.sleep(.1)
 
         # (Re-)Make the directory
         os.makedirs(working_dir)
