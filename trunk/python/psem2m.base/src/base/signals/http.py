@@ -245,11 +245,7 @@ class SignalReceiver(object):
             return
 
         with self._listeners_lock:
-            listeners = self._listeners.get(signal_pattern, None)
-            if listeners is None:
-                listeners = []
-                self._listeners[signal_pattern] = listeners
-
+            listeners = self._listeners.setdefault(signal_pattern, [])
             listeners.append(listener)
 
 
@@ -300,7 +296,7 @@ class SignalReceiver(object):
 
         with self._listeners_lock:
             # Grab all registered listeners
-            for pattern in self._listeners.copy():
+            for pattern in self._listeners:
                 if fnmatch.fnmatch(name, pattern):
                     # Signal name matches the pattern
                     for listener in self._listeners[pattern]:
