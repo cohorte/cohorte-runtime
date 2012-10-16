@@ -63,7 +63,7 @@ import org.psem2m.signals.ISignalSendResult;
 public class ForkerAggregator implements IForker, IPacketListener, Runnable {
 
     /** Maximum time without forker notification : 5 seconds */
-    private static final long FORKER_TTL = 5000;
+    private static final long FORKER_TTL = 10000;
 
     /** ID of the forker events listeners */
     private static final String IPOJO_ID_LISTENERS = "forker-events-listeners";
@@ -130,7 +130,7 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
 
         // Get all forkers
         final String[] forkers = pDirectory.getAllIsolates(
-                IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER, true);
+                IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER, true, true);
 
         if (forkers != null) {
             // Call back the listener to register all of them
@@ -552,6 +552,11 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
         // Register the forker (it can already be in the directory)
         if (pDirectory
                 .registerIsolate(aForkerId, aForkerNode, aPort, "FORKERS")) {
+            // Send it a SYN-ACK
+            pDirectory.synchronizingIsolatePresence(aForkerId);
+            pSender.fire(ISignalDirectoryConstants.SIGNAL_REGISTER_SYNACK,
+                    null, aForkerId);
+
             // Fresh forker: we can send it a contact signal as someone else
             // may not known it
             sendContactSignal(aHost, aPort);

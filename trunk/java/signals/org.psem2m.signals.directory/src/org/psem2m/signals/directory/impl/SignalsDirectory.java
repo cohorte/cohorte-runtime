@@ -32,6 +32,10 @@ import org.psem2m.isolates.services.monitoring.IIsolatePresenceListener;
 import org.psem2m.isolates.services.monitoring.IIsolatePresenceListener.EPresence;
 import org.psem2m.signals.HostAccess;
 import org.psem2m.signals.ISignalDirectory;
+import org.psem2m.status.storage.IStatusStorage;
+import org.psem2m.status.storage.IStatusStorageCreator;
+import org.psem2m.status.storage.InvalidIdException;
+import org.psem2m.status.storage.InvalidStateException;
 
 /**
  * Simple implementation of the PSEM2M Signals isolates directory, based on the
@@ -70,6 +74,13 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
     /** Node name -&gt; Isolate IDs */
     private final Map<String, List<String>> pNodesIsolates = new HashMap<String, List<String>>();
 
+    /** Status of the components sets */
+    private IStatusStorage<EIsolateRegistrationState, Object> pRegistrationStatus;
+
+    /** The status storage creator */
+    @Requires
+    private IStatusStorageCreator pStatusCreator;
+
     /**
      * Called by iPOJO when an new isolate presence listener is bound
      * 
@@ -80,7 +91,7 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
     protected synchronized void bindPresenceListener(
             final IIsolatePresenceListener aListener) {
 
-        final String[] isolates = getAllIsolates(null, true);
+        final String[] isolates = getAllIsolates(null, true, true);
         if (isolates != null) {
             // Notify the new listener of all known isolates
             for (final String isolate : isolates) {
@@ -140,7 +151,7 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
      */
     @Override
     public synchronized String[] getAllIsolates(final String aPrefix,
-            final boolean aIncludeCurrent) {
+            final boolean aIncludeCurrent, final boolean aOnlyValidated) {
 
         if (pAccesses.isEmpty()) {
             // Nothing to return
@@ -168,6 +179,20 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
         if (!aIncludeCurrent) {
             // Remove current isolate if needed
             resultSet.remove(currentId);
+        }
+
+        if (aOnlyValidated) {
+            // Get all validated isolates IDs
+            final String[] validatedIds = pRegistrationStatus.getIdsInStates(
+                    EIsolateRegistrationState.VALIDATED,
+                    EIsolateRegistrationState.NOTIFIED);
+            if (validatedIds == null || validatedIds.length == 0) {
+                // Nothing returned
+                return null;
+            }
+
+            // Filter the result set
+            resultSet.retainAll(Arrays.asList(validatedIds));
         }
 
         if (resultSet.isEmpty()) {
@@ -212,12 +237,16 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
         switch (aGroup) {
         case ALL:
             // Return all isolates, including the current one
-            matchingIsolates = getAllIsolates(null, true);
+            matchingIsolates = getAllIsolates(null, true, true);
             break;
 
         case OTHERS:
             // Return all isolates, excluding the current one
-            matchingIsolates = getAllIsolates(null, false);
+            matchingIsolates = getAllIsolates(null, false, true);
+            break;
+
+        case STORED:
+            matchingIsolates = getAllIsolates(null, false, false);
             break;
 
         case CURRENT:
@@ -228,18 +257,18 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
         case FORKERS:
             // Return only forkers, including the current one
             matchingIsolates = getAllIsolates(
-                    IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER, true);
+                    IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER, true, true);
             break;
 
         case MONITORS:
             // Return only monitors, including the current one
             matchingIsolates = getAllIsolates(
-                    IPlatformProperties.SPECIAL_ISOLATE_ID_MONITOR, true);
+                    IPlatformProperties.SPECIAL_ISOLATE_ID_MONITOR, true, true);
             break;
 
         case ISOLATES:
             // Return all isolates but the forkers
-            matchingIsolates = getAllIsolates(null, true);
+            matchingIsolates = getAllIsolates(null, true, true);
             if (matchingIsolates != null) {
                 // Use a temporary set
                 final Set<String> set = new HashSet<String>(
@@ -477,6 +506,28 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
         return ignoredNodes;
     }
 
+    /**
+     * Retrieves the current state of the registration of the given isolate.
+     * Returns null if the isolate is unknown.
+     * 
+     * @param aIsolateId
+     *            An isolate ID
+     * @return The registration state, or null.
+     */
+    private EIsolateRegistrationState getRegistrationState(
+            final String aIsolateId) {
+
+        try {
+            return pRegistrationStatus.getState(aIsolateId);
+
+        } catch (final InvalidIdException ex) {
+            pLogger.logWarn(this, "getRegistrationState",
+                    "Unknown isolate ID=", aIsolateId);
+        }
+
+        return null;
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -485,6 +536,10 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
     @Invalidate
     @Override
     public void invalidatePojo() throws BundleException {
+
+        // Clear the status storage
+        pStatusCreator.deleteStorage(pRegistrationStatus);
+        pRegistrationStatus = null;
 
         pAccesses.clear();
         pGroups.clear();
@@ -505,6 +560,49 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
         return pAccesses.containsKey(aIsolateId);
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.signals.ISignalDirectory#isValidated(java.lang.String)
+     */
+    @Override
+    public synchronized boolean isValidated(final String aIsolateId) {
+
+        final EIsolateRegistrationState state = getRegistrationState(aIsolateId);
+        return state == EIsolateRegistrationState.VALIDATED
+                || state == EIsolateRegistrationState.NOTIFIED;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.signals.ISignalDirectory#notifyIsolatePresence(java.lang.String
+     * )
+     */
+    @Override
+    public synchronized boolean notifyIsolatePresence(final String aIsolateId) {
+
+        // Update the registration
+        if (registrationStateChange(aIsolateId,
+                EIsolateRegistrationState.NOTIFIED)) {
+
+            // We can notify listeners
+            notifyPresenceListeners(aIsolateId, getIsolateNode(aIsolateId),
+                    EPresence.REGISTERED);
+
+            return true;
+
+        } else {
+            // Can't change state
+            pLogger.logWarn(this, "notifyIsolatePresence",
+                    "Can't notify the presence of isolate=", aIsolateId,
+                    "due to current state=", getRegistrationState(aIsolateId));
+        }
+
+        return false;
+    }
+
     /**
      * Notifies isolate presence listeners of an event
      * 
@@ -515,9 +613,8 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
      * @param aPresence
      *            Presence event type
      */
-    protected synchronized void notifyPresenceListeners(
-            final String aIsolateId, final String aNode,
-            final EPresence aPresence) {
+    private synchronized void notifyPresenceListeners(final String aIsolateId,
+            final String aNode, final EPresence aPresence) {
 
         for (final IIsolatePresenceListener listener : pListeners) {
             // Notify all listeners
@@ -588,8 +685,7 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
                 }
 
                 // Consider an unregistration
-                notifyPresenceListeners(aIsolateId, oldNode,
-                        EPresence.UNREGISTERED);
+                unregisterIsolate(aIsolateId);
             }
         }
 
@@ -627,12 +723,12 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
             }
         }
 
+        // Store the registration state
+        registrationStateCreate(aIsolateId,
+                EIsolateRegistrationState.REGISTERED);
+
         pLogger.logDebug(this, "registerIsolate", "Registered isolate ID=",
                 aIsolateId, "Access=", isolateAccess);
-
-        // Notify listeners
-        notifyPresenceListeners(aIsolateId, aNode, EPresence.REGISTERED);
-
         return true;
     }
 
@@ -682,6 +778,74 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
                 }
             }
         }
+
+        // We are immediately validated
+        if (getRegistrationState(isolateId) == null) {
+            // First registration
+            registrationStateCreate(isolateId,
+                    EIsolateRegistrationState.VALIDATED);
+
+        } else {
+            pLogger.logDebug(this, "registerLocal",
+                    "Re-definition of current isolate");
+        }
+    }
+
+    /**
+     * Changes the state of the registration of an isolate
+     * 
+     * @param aIsolateId
+     *            ID of the isolate
+     * @param aNewState
+     *            The new registration state
+     * @return True on success, else false
+     */
+    private boolean registrationStateChange(final String aIsolateId,
+            final EIsolateRegistrationState aNewState) {
+
+        try {
+            pRegistrationStatus.changeState(aIsolateId, aNewState);
+            return true;
+
+        } catch (final InvalidIdException ex) {
+            pLogger.logWarn(this, "isolateStateChange", "Invalid isolate ID=",
+                    aIsolateId, ex);
+
+        } catch (final InvalidStateException ex) {
+            pLogger.logWarn(this, "isolateStateChange",
+                    "Invalid state change=", aNewState, "for isolate=",
+                    aIsolateId, ex);
+        }
+
+        return false;
+    }
+
+    /**
+     * Stores a new isolate in the status storage
+     * 
+     * @param aIsolateId
+     *            ID of the stored isolate
+     * @param aInitialState
+     *            The initial registration state
+     * @return True on success, else false
+     */
+    private boolean registrationStateCreate(final String aIsolateId,
+            final EIsolateRegistrationState aInitialState) {
+
+        try {
+            return pRegistrationStatus.store(aIsolateId, null, aInitialState);
+
+        } catch (final InvalidIdException ex) {
+            pLogger.logWarn(this, "isolateStateCreate", "Invalid isolate ID=",
+                    aIsolateId, ex);
+
+        } catch (final InvalidStateException ex) {
+            pLogger.logWarn(this, "isolateStateCreate",
+                    "Invalid initial state=", aInitialState, "for isolate=",
+                    aIsolateId, ex);
+        }
+
+        return false;
     }
 
     /*
@@ -709,6 +873,12 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
         return pNodesHost.put(aNodeName, aHostAddress);
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.signals.ISignalDirectory#unregisterIsolate(java.lang.String)
+     */
     /*
      * (non-Javadoc)
      * 
@@ -809,8 +979,27 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.signals.ISignalDirectory#unregisterIsolate(java.lang.String)
+     * org.psem2m.signals.ISignalDirectory#synchronizingIsolatePresence(java
+     * .lang.String)
      */
+    @Override
+    public synchronized boolean synchronizingIsolatePresence(
+            final String aIsolateId) {
+
+        final EIsolateRegistrationState currentState = getRegistrationState(aIsolateId);
+        switch (currentState) {
+        case VALIDATED:
+        case NOTIFIED:
+            // Do nothing, we already have validated this isolate
+            return false;
+
+        default:
+            // Default: update the component state
+            return registrationStateChange(aIsolateId,
+                    EIsolateRegistrationState.SYNCHRONIZING);
+        }
+    }
+
     @Override
     public synchronized boolean unregisterIsolate(final String aIsolateId) {
 
@@ -845,9 +1034,59 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
             }
         }
 
-        // Notify listeners
-        notifyPresenceListeners(aIsolateId, isolateNode, EPresence.UNREGISTERED);
+        // Keep the current registration state
+        final EIsolateRegistrationState registrationState = getRegistrationState(aIsolateId);
+
+        try {
+            // Remove the registration state
+            pRegistrationStatus.remove(aIsolateId);
+
+        } catch (final InvalidIdException ex) {
+            pLogger.logDebug(this, "unregisterIsolate",
+                    "Error removing registration state for isolate=",
+                    aIsolateId, ex);
+        }
+
+        if (registrationState == EIsolateRegistrationState.NOTIFIED) {
+            // Notify listeners if they knew about the isolate
+            notifyPresenceListeners(aIsolateId, isolateNode,
+                    EPresence.UNREGISTERED);
+        }
+
         return true;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.signals.ISignalDirectory#validateIsolatePresence(java.lang
+     * .String)
+     */
+    @Override
+    public synchronized boolean validateIsolatePresence(final String aIsolateId) {
+
+        if (getRegistrationState(aIsolateId) == EIsolateRegistrationState.NOTIFIED) {
+            // We already have notified the presence of this isolate
+            return false;
+        }
+
+        // Change the state the registration
+        if (registrationStateChange(aIsolateId,
+                EIsolateRegistrationState.VALIDATED)) {
+            pLogger.logDebug(this, "validateIsolatePresence", "Isolate ID=",
+                    aIsolateId, "validated");
+            return true;
+
+        } else {
+            // Can't change state
+            pLogger.logWarn(this, "validateIsolatePresence",
+                    "Failed to change registration state of isolate=",
+                    aIsolateId, "due to state=",
+                    getRegistrationState(aIsolateId));
+        }
+
+        return false;
     }
 
     /*
@@ -858,6 +1097,9 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
     @Validate
     @Override
     public void validatePojo() throws BundleException {
+
+        // Create the status storage
+        pRegistrationStatus = pStatusCreator.createStorage();
 
         // Register the local isolate, without access port nor group
         pAccesses.put(getIsolateId(), ISignalDirectory.LOCAL_ACCESS);

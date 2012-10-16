@@ -106,6 +106,9 @@ class SignalsDirectory(object):
         # Node name -> host
         self._nodes_host = {}
 
+        # Isolates waiting for validation
+        self._waiting_isolates = set()
+
 
     @Bind
     def _bind(self, svc, svc_ref):
@@ -608,8 +611,8 @@ class SignalsDirectory(object):
             _logger.debug("Registered isolate ID=%s, Access=%s", isolate_id,
                           new_access)
 
-            # Notify listeners
-            self._notify_listeners(isolate_id, node, REGISTERED)
+            # Isolate waits for validation
+            self._waiting_isolates.add(isolate_id)
 
         return True
 
@@ -712,9 +715,31 @@ class SignalsDirectory(object):
                     # The isolate belongs to the group
                     isolates.remove(isolate_id)
 
-            # Notify listeners
-            self._notify_listeners(isolate_id, isolate_node, UNREGISTERED)
+            if isolate_id not in self._waiting_isolates:
+                # Notify listeners
+                self._notify_listeners(isolate_id, isolate_node, UNREGISTERED)
+
+            else:
+                self._waiting_isolates.remove(isolate_id)
+
             return True
+
+
+    def validate_isolate_presence(self, isolate_id):
+        """
+        Notifies the directory that an isolate has acknowledged the registration
+        of the current isolate.
+        
+        :param aIsolateId: An isolate ID
+        """
+        with self._lock:
+            if isolate_id in self._waiting_isolates:
+                self._waiting_isolates.remove(isolate_id)
+
+                _logger.debug("Isolate %s validated", isolate_id)
+                self._notify_listeners(isolate_id,
+                                       self.get_isolate_node(isolate_id),
+                                       REGISTERED)
 
 
     @Validate

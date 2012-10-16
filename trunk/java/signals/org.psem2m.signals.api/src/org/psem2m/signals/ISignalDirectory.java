@@ -24,21 +24,33 @@ public interface ISignalDirectory {
     public enum EBaseGroup {
         /** All isolates, including the current one */
         ALL,
+
         /** Current isolate */
         CURRENT,
+
         /** All forkers, including the current isolate if it is a forker */
         FORKERS,
+
         /**
          * All isolates, including monitors and the current one, excluding
          * forkers. If the current isolate is a forker, it is excluded.
          */
         ISOLATES,
+
         /** All monitors, including the current isolate if it is a monitor */
         MONITORS,
+
         /** All isolates on the current node, excluding the current one */
         NEIGHBOURS,
+
         /** All isolates, with monitors and forkers, but this one */
         OTHERS,
+
+        /**
+         * All isolates, with monitors and forkers, but this one, even if they
+         * are not validated
+         */
+        STORED,
     }
 
     /**
@@ -71,9 +83,14 @@ public interface ISignalDirectory {
      *            An optional prefix filter
      * @param aIncludeCurrent
      *            If true, include the current isolate in the result
+     * @param aOnlyValidated
+     *            If true, only return isolates that have been validated
      * @return All known isolates beginning with prefix, or null
+     * 
+     * @see #validateIsolatePresence(String)
      */
-    String[] getAllIsolates(String aPrefix, boolean aIncludeCurrent);
+    String[] getAllIsolates(String aPrefix, boolean aIncludeCurrent,
+            boolean aOnlyValidated);
 
     /**
      * Retrieves all known nodes. Returns null if no node is known.
@@ -163,6 +180,27 @@ public interface ISignalDirectory {
     boolean isRegistered(String aIsolateId);
 
     /**
+     * Tests if the given isolate ID is registered and has been validated
+     * 
+     * @param aIsolateId
+     *            An isolate ID
+     * @return True if the ID is known and validated, else false
+     */
+    boolean isValidated(String aIsolateId);
+
+    /**
+     * Notifies the isolate presence listeners of the validated presence of the
+     * given isolate. This method must be called after
+     * {@link #validateIsolatePresence(String)}.
+     * 
+     * @param aIsolateId
+     *            The validated isolate ID.
+     * @return true on success, false if the isolate wasn't in the validated
+     *         state.
+     */
+    boolean notifyIsolatePresence(String aIsolateId);
+
+    /**
      * Registers an isolate in the directory if it is not yet known
      * 
      * @param aIsolateId
@@ -224,6 +262,16 @@ public interface ISignalDirectory {
             Collection<String> aIgnoredNodes, Collection<String> aIgnoredIds);
 
     /**
+     * Notifies the directory we are synchronizing with the given isolate. This
+     * method must be called when sending or receiving a SYN-ACK signal.
+     * 
+     * @param aIsolateId
+     *            An isolate ID
+     * @return True if the state change succeeded
+     */
+    boolean synchronizingIsolatePresence(String aIsolateId);
+
+    /**
      * Unregisters the given isolate of the directory
      * 
      * @param aIsolateId
@@ -231,4 +279,15 @@ public interface ISignalDirectory {
      * @return True if the isolate has been unregistered
      */
     boolean unregisterIsolate(String aIsolateId);
+
+    /**
+     * Notifies the directory that an isolate has acknowledged the registration
+     * of the current isolate. This method must be called when an ACK signal has
+     * been received.
+     * 
+     * @param aIsolateId
+     *            An isolate ID
+     * @return True if the state change succeeded
+     */
+    boolean validateIsolatePresence(String aIsolateId);
 }

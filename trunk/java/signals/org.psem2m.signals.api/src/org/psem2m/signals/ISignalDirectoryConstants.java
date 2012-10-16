@@ -19,7 +19,8 @@ public interface ISignalDirectoryConstants {
      * Special case for early starting forkers, when a monitor signals its dump
      * port
      */
-    String SIGNAL_CONTACT = ISignalDirectoryConstants.SIGNAL_PREFIX + "/contact";
+    String SIGNAL_CONTACT = ISignalDirectoryConstants.SIGNAL_PREFIX
+            + "/contact";
 
     /** Directory dump request */
     String SIGNAL_DUMP = ISignalDirectoryConstants.SIGNAL_PREFIX + "/dump";
@@ -34,4 +35,12 @@ public interface ISignalDirectoryConstants {
     /** Isolate registration notification */
     String SIGNAL_REGISTER = ISignalDirectoryConstants.SIGNAL_PREFIX
             + "/register";
+
+    /** Acknowledgment of a registration signal */
+    String SIGNAL_REGISTER_ACK = ISignalDirectoryConstants.SIGNAL_REGISTER
+            + "/ack";
+
+    /** Synchronization acknowledgment of a registration signal */
+    String SIGNAL_REGISTER_SYNACK = ISignalDirectoryConstants.SIGNAL_REGISTER
+            + "/syn-ack";
 }

@@ -34,6 +34,12 @@ SIGNAL_DUMP = "%s/dump" % SIGNAL_PREFIX
 SIGNAL_REGISTER = "%s/register" % SIGNAL_PREFIX
 """ Isolate registration notification """
 
+SIGNAL_REGISTER_SYNACK = "%s/syn-ack" % SIGNAL_REGISTER
+""" Isolate registration acknowledgment synchronization """
+
+SIGNAL_REGISTER_ACK = "%s/ack" % SIGNAL_REGISTER
+""" Isolate registration acknowledgment """
+
 SIGNAL_CONTACT = "%s/contact" % SIGNAL_PREFIX
 """ Special case for early starting forkers: a monitor signals its dump port """
 
@@ -116,7 +122,7 @@ class DirectoryUpdater(object):
         self._directory.store_dump(result, ignored_nodes, ignored_ids)
 
         # 4. Now, we can send our registration signal
-        self._send_registration(host, port, True)
+        self._send_registration_to_all(True)
 
 
     def _grab_remote_directory(self, signal_data):
@@ -195,6 +201,7 @@ class DirectoryUpdater(object):
         :param signal_data: The received signal
         :return: True if the isolate has been registered 
         """
+        sender_id = signal_data["senderId"]
         content = signal_data["signalContent"]
 
         isolate_id = content["id"]
@@ -224,6 +231,24 @@ class DirectoryUpdater(object):
                                                       content["port"],
                                                       content["groups"])
 
+        # 2b. Acknowledge the registration, even if we knew it before
+        if self._directory.is_registered(isolate_id):
+            if sender_id == isolate_id:
+                # Case 1: we got the registration from the isolate itself
+                # -> Send a SYN-ACK
+                self._sender.fire(SIGNAL_REGISTER_SYNACK, None,
+                                  isolate=isolate_id)
+
+            elif registered:
+                # Case 2: we got the registration by propagation
+                # -> Send a REGISTER
+                self._sender.fire(SIGNAL_REGISTER,
+                                  self._prepare_registration_content(False),
+                                  isolate=isolate_id)
+
+        else:
+            _logger.debug("NOT REGISTERED: %s", isolate_id)
+
         # 3. Propagate the registration, if needed
         if content["propagate"]:
             # Propagate only once...
@@ -238,36 +263,24 @@ class DirectoryUpdater(object):
         return registered
 
 
-    def _send_registration(self, host, port, propagate):
+    def _send_registration_to_all(self, propagate):
         """
-        Sends the registration signal to the listener at the given (host, port)
+        Sends the registration signal to all known isolates
         
-        If host is None, the signal will be sent to the directory group OTHERS,
-        therefore the directory must contain some data.
-        If host is not None, the signal will be sent to the given (host, port)
-        couple.
-        
-        :param host: Registration listener host, or None
-        :param port: Registration listener port
         :param propagate: If true, the receivers of this signal will re-emit it
         """
         content = self._prepare_registration_content(propagate)
 
-        # Send the registration to the given address
-        try:
-            sig_results = self._sender.send_to(SIGNAL_REGISTER, content,
-                                               host, port)
+        # Send the registration signal
+        results = self._sender.send(SIGNAL_REGISTER, content,
+                                    dir_group="OTHERS")
 
-            if not sig_results:
-                _logger.warning("Nothing returned during registration")
-                return
+        if not results:
+            _logger.warning("Registration signal not sent/received")
 
-        except Exception as ex:
-            _logger.exception("Error sending registration signal to=%s port=%d:"
-                              " %s. Sending to all known isolates.",
-                              host, port, ex)
-
-            self._sender.send(SIGNAL_REGISTER, content, dir_group="OTHERS")
+        else:
+            _logger.debug("Registration sent to: %s",
+                          results[0].keys())
 
 
     def handle_received_signal(self, name, signal_data):
@@ -277,9 +290,12 @@ class DirectoryUpdater(object):
         :param name: Signal name
         :param signal_data: Signal content
         """
+        sender_id = signal_data["senderId"]
+
         if name == SIGNAL_DUMP:
             with self._lock:
                 # Register the incoming isolate
+                _logger.debug("DUMP from %s", sender_id)
                 self._register_isolate(signal_data)
 
                 # Dump the directory
@@ -289,6 +305,19 @@ class DirectoryUpdater(object):
             with self._lock:
                 # Isolate registration
                 self._register_isolate(signal_data)
+
+        elif name == SIGNAL_REGISTER_SYNACK:
+            with self._lock:
+                # Send the final acknowledgment
+                self._sender.fire(SIGNAL_REGISTER_ACK, None, isolate=sender_id)
+
+                # Notify listeners
+                self._directory.validate_isolate_presence(sender_id)
+
+        elif name == SIGNAL_REGISTER_ACK:
+            with self._lock:
+                # Our acknowledgment has been received
+                self._directory.validate_isolate_presence(sender_id)
 
         elif name == SIGNAL_ISOLATE_LOST:
             with self._lock:
@@ -320,6 +349,10 @@ class DirectoryUpdater(object):
         """
         Component validate
         """
+        # Register to isolate registration signals
+        self._receiver.register_listener(SIGNAL_PREFIX_MATCH_ALL, self)
+        self._receiver.register_listener(SIGNAL_ISOLATE_LOST, self)
+
         # Get the local dumper port
         dump_port = context.get_property("psem2m.directory.dumper.port")
         if not dump_port:
@@ -329,7 +362,3 @@ class DirectoryUpdater(object):
         else:
             # Grab from local host
             self._grab_directory("localhost", int(dump_port))
-
-        # Register to isolate registration signals
-        self._receiver.register_listener(SIGNAL_PREFIX_MATCH_ALL, self)
-        self._receiver.register_listener(SIGNAL_ISOLATE_LOST, self)

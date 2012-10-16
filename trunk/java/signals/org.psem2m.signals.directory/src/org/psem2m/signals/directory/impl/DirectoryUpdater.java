@@ -11,7 +11,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
@@ -30,6 +29,7 @@ import org.psem2m.signals.ISignalDirectory.EBaseGroup;
 import org.psem2m.signals.ISignalDirectoryConstants;
 import org.psem2m.signals.ISignalListener;
 import org.psem2m.signals.ISignalReceiver;
+import org.psem2m.signals.ISignalSendResult;
 import org.psem2m.signals.IWaitingSignal;
 import org.psem2m.signals.IWaitingSignalListener;
 
@@ -74,8 +74,7 @@ public class DirectoryUpdater implements ISignalListener,
      * @param aSignalData
      *            The received contact signal
      */
-    protected synchronized void grabRemoteDirectory(
-            final ISignalData aSignalData) {
+    private void grabRemoteDirectory(final ISignalData aSignalData) {
 
         // Only monitors can send us this kind of signal
         final String remoteId = aSignalData.getSenderId();
@@ -117,13 +116,26 @@ public class DirectoryUpdater implements ISignalListener,
             // Store the dumped directory
             handleDumpedDirectory(results, remoteNode);
 
-            // Send our registration signal to everyone
-            sendRegistration(remoteAddress, remotePort, true);
-
         } catch (final Exception e) {
             pLogger.logSevere(this, "grabRemoteDirectory",
                     "Error grabbing the directory of host=", remoteAddress,
                     "port=", remotePort, "id=", remoteId, ":", e);
+        }
+    }
+
+    /**
+     * Handles an ACK signal
+     * 
+     * @param aSenderId
+     *            ID of the signal broadcaster
+     */
+    private void handleAck(final String aSenderId) {
+
+        pLogger.logDebug(this, "handleSynAck", "ACK from", aSenderId);
+
+        // Our acknowledgment has been received
+        if (pDirectory.validateIsolatePresence(aSenderId)) {
+            pDirectory.notifyIsolatePresence(aSenderId);
         }
     }
 
@@ -138,7 +150,7 @@ public class DirectoryUpdater implements ISignalListener,
      * @param aIgnoredNode
      *            The address for this node must be ignored
      */
-    protected synchronized void handleDumpedDirectory(final Object[] aResults,
+    private synchronized void handleDumpedDirectory(final Object[] aResults,
             final String aIgnoredNode) {
 
         if (aResults == null || aResults.length == 0) {
@@ -167,9 +179,9 @@ public class DirectoryUpdater implements ISignalListener,
             // All good, store the dump in the directory
             pDirectory.storeDump(dump, Arrays.asList(aIgnoredNode), null);
 
-            // Send our registration, one we have the directory...
-            pLogger.logDebug(this, "validate", "Sending registration to all");
-            sendRegistration("localhost", pDumperPort, true);
+            // Send our registration signal to all isolates we known,
+            // without propagation
+            sendRegistrationToAll(true);
 
         } else {
             // Nothing found
@@ -189,7 +201,12 @@ public class DirectoryUpdater implements ISignalListener,
     public synchronized Object handleReceivedSignal(final String aSignalName,
             final ISignalData aSignalData) {
 
+        // The sender ID
+        final String senderId = aSignalData.getSenderId();
+
         if (ISignalDirectoryConstants.SIGNAL_DUMP.equals(aSignalName)) {
+            pLogger.logDebug(this, "handleReceivedSignal", "DUMP from",
+                    senderId);
 
             // Register the incoming isolate
             registerIsolate(aSignalData);
@@ -199,9 +216,18 @@ public class DirectoryUpdater implements ISignalListener,
 
         } else if (ISignalDirectoryConstants.SIGNAL_REGISTER
                 .equals(aSignalName)) {
-
-            // Isolate registration
+            // Register the isolate
             registerIsolate(aSignalData);
+
+        } else if (ISignalDirectoryConstants.SIGNAL_REGISTER_SYNACK
+                .equals(aSignalName)) {
+            // We received a registration acknowledgment
+            handleSynAck(senderId);
+
+        } else if (ISignalDirectoryConstants.SIGNAL_REGISTER_ACK
+                .equals(aSignalName)) {
+            // Final acknowledgment
+            handleAck(senderId);
 
         } else if (ISignalsConstants.ISOLATE_LOST_SIGNAL.equals(aSignalName)) {
             // Isolate lost
@@ -215,6 +241,49 @@ public class DirectoryUpdater implements ISignalListener,
 
         // No result
         return null;
+    }
+
+    /**
+     * Handles a SYN-ACK signal
+     * 
+     * @param aSenderId
+     *            ID of the signal broadcaster
+     */
+    private void handleSynAck(final String aSenderId) {
+
+        pLogger.logDebug(this, "handleSynAck", "SYN-ACK from", aSenderId);
+
+        if (!pDirectory.isRegistered(aSenderId)) {
+            // Unknown isolate, ask for a REGISTER signal
+            pLogger.logWarn(this, "handleSynAck", "Unknown isolate ID:",
+                    aSenderId);
+
+        } else if (pDirectory.synchronizingIsolatePresence(aSenderId)) {
+
+            // Validate the registration (the isolate talked to us)
+            pDirectory.validateIsolatePresence(aSenderId);
+
+            // Our registration has been accepted, final acknowledgment
+            // (blocking call)
+            final ISignalSendResult result = pSender.send(
+                    ISignalDirectoryConstants.SIGNAL_REGISTER_ACK, null,
+                    aSenderId);
+
+            if (result != null) {
+                // Notify our listeners (final step)
+                pDirectory.notifyIsolatePresence(aSenderId);
+
+            } else {
+                // Failed to talk to the isolate ?
+                pLogger.logWarn(this, "handleSynAck", "Isolate ID=", aSenderId,
+                        "did not respond to the ACK signal.");
+            }
+
+        } else {
+            pLogger.logWarn(this, "handleSynAck",
+                    "SYN-ACK ignored due to failed state change for isolate=",
+                    aSenderId);
+        }
     }
 
     /**
@@ -240,7 +309,7 @@ public class DirectoryUpdater implements ISignalListener,
      *            If true, the receivers of this signal will re-emit it
      * @return The content for a registration signal
      */
-    protected Map<String, Object> prepareRegistrationContent(
+    private Map<String, Object> prepareRegistrationContent(
             final boolean aPropagate) {
 
         final String isolateId = pDirectory.getIsolateId();
@@ -282,7 +351,10 @@ public class DirectoryUpdater implements ISignalListener,
      * @param aSignalData
      *            The signal data
      */
-    protected synchronized void registerIsolate(final ISignalData aSignalData) {
+    private synchronized void registerIsolate(final ISignalData aSignalData) {
+
+        // Get the ID of the sender
+        final String senderId = aSignalData.getSenderId();
 
         // Extract information
         @SuppressWarnings("unchecked")
@@ -346,7 +418,37 @@ public class DirectoryUpdater implements ISignalListener,
         pDirectory.setNodeAddress(node, address);
 
         // 2. Register the isolate
-        pDirectory.registerIsolate(isolateId, node, port, groups);
+        final boolean newlyRegistered = pDirectory.registerIsolate(isolateId,
+                node, port, groups);
+
+        if (pDirectory.isRegistered(isolateId)) {
+            // 2b. Acknowledge the registration
+
+            if (isolateId.equals(senderId)) {
+                /*
+                 * Case 1: we got the registration from the isolate itself ->
+                 * Send a SYN-ACK
+                 */
+                if (newlyRegistered) {
+                    // Update registration state
+                    pDirectory.synchronizingIsolatePresence(isolateId);
+                }
+
+                pSender.fire(ISignalDirectoryConstants.SIGNAL_REGISTER_SYNACK,
+                        null, isolateId);
+
+            } else if (newlyRegistered) {
+                /*
+                 * Case 2: we got the registration by propagation -> Send a
+                 * REGISTER to the registered isolate
+                 */
+                pLogger.logDebug(this, "registerIsolate",
+                        "Sending a registration signal to", isolateId,
+                        "due to a propagation");
+                pSender.fire(ISignalDirectoryConstants.SIGNAL_REGISTER,
+                        prepareRegistrationContent(false), isolateId);
+            }
+        }
 
         // 3. Propagate the registration if needed
         if (propagate.booleanValue()) {
@@ -357,143 +459,36 @@ public class DirectoryUpdater implements ISignalListener,
             content.put("address", address);
 
             pSender.fireGroup(ISignalDirectoryConstants.SIGNAL_REGISTER,
-                    content, EBaseGroup.OTHERS, isolateId);
+                    content, EBaseGroup.STORED, isolateId);
         }
     }
 
     /**
-     * Sends the registration signal the given isolate (that will propagate the
-     * signal once)
+     * Sends the registration signal to all isolates stored in the directory
      * 
-     * @param aRemoteAddress
-     *            The target address
-     * @param aRemotePort
-     *            The target port
      * @param aPropagate
      *            If true, the receivers of this signal will re-emit it
      */
-    protected void sendRegistration(final String aRemoteAddress,
-            final int aRemotePort, final boolean aPropagate) {
+    private void sendRegistrationToAll(final boolean aPropagate) {
 
         // Get the content
         final Map<String, Object> content = prepareRegistrationContent(aPropagate);
 
         // Send the signal (don't wait for a result)
-        try {
-            final Object[] res = pSender.sendTo(
-                    ISignalDirectoryConstants.SIGNAL_REGISTER, content,
-                    aRemoteAddress, aRemotePort);
+        final ISignalSendResult res = pSender.sendGroup(
+                ISignalDirectoryConstants.SIGNAL_REGISTER, content,
+                EBaseGroup.STORED);
 
-            if (res == null) {
-                // No answer, registration may have failed
-                pLogger.logWarn(this, "sendRegistration",
-                        "Nothing returned during registration");
-            }
+        if (res == null) {
+            // No answer, registration may have failed
+            pLogger.logWarn(this, "sendRegistrationToAll",
+                    "Registration signal not sent/received");
 
-        } catch (final Exception e) {
-            // Error ?
-            pLogger.logWarn(this, "sendRegistration",
-                    "Error sending registration signal to host=",
-                    aRemoteAddress, "port=", aRemotePort,
-                    "- Sending to all known isolates");
-
-            // Try with others...
-            pSender.sendGroup(ISignalDirectoryConstants.SIGNAL_REGISTER,
-                    content, EBaseGroup.OTHERS);
+        } else {
+            // Log the receivers
+            pLogger.logDebug(this, "sendRegistrationToAll",
+                    "Registration sent to=", res.getResults().keySet());
         }
-    }
-
-    /**
-     * Stores the content of the given directory dump
-     * 
-     * If aIgnoredNode is not null, the address corresponding to it in the
-     * dumped directory won't be stored.
-     * 
-     * @param aDumpedDirectory
-     *            A directory dump
-     * @param aIgnoredNode
-     *            The address for this node must be ignored
-     * @return An array with all newly registered isolates
-     */
-    protected synchronized String[] storeDirectory(
-            final Map<?, ?> aDumpedDirectory, final String aIgnoredNode) {
-
-        // Local information
-        final String localId = pDirectory.getIsolateId();
-        final String localNode = pDirectory.getLocalNode();
-
-        // 1. Setup nodes hosts
-        final Map<?, ?> nodesHost = (Map<?, ?>) aDumpedDirectory
-                .get("nodes_host");
-        for (final Entry<?, ?> entry : nodesHost.entrySet()) {
-            final String node = (String) entry.getKey();
-            if (!node.equals(localNode) && !node.equals(aIgnoredNode)) {
-                // Node passed the filter
-                pDirectory.setNodeAddress(node, (String) entry.getValue());
-            }
-        }
-
-        // 2. Prepare isolates information
-        final Map<String, IsolateInfo> isolates = new HashMap<String, IsolateInfo>();
-
-        final Map<?, ?> accesses = (Map<?, ?>) aDumpedDirectory.get("accesses");
-        for (final Entry<?, ?> entry : accesses.entrySet()) {
-            // Cast entry
-            final String isolateId = (String) entry.getKey();
-            final Map<?, ?> access = (Map<?, ?>) entry.getValue();
-
-            if (localId.equals(isolateId)) {
-                // Ignore current isolate
-                continue;
-            }
-
-            // Create the information bean
-            isolates.put(isolateId,
-                    new IsolateInfo(isolateId, (String) access.get("node"),
-                            (Integer) access.get("port")));
-        }
-
-        final Map<?, ?> groups = (Map<?, ?>) aDumpedDirectory.get("groups");
-        for (final Entry<?, ?> entry : groups.entrySet()) {
-
-            final String group = (String) entry.getKey();
-            final Object rawGroupIsolates = entry.getValue();
-            Collection<?> groupIsolates = null;
-
-            if (rawGroupIsolates instanceof Collection) {
-                // Collection...
-                groupIsolates = (Collection<?>) rawGroupIsolates;
-
-            } else if (rawGroupIsolates instanceof Object[]) {
-                // Array...
-                groupIsolates = Arrays.asList((Object[]) rawGroupIsolates);
-            }
-
-            if (groupIsolates != null) {
-                for (final Object isolate : groupIsolates) {
-                    final IsolateInfo info = isolates.get(isolate);
-                    if (info != null) {
-                        info.getGroups().add(group);
-                    }
-                }
-
-            } else {
-                pLogger.logWarn(this, "grabDirectory", "Unreadable groups=",
-                        rawGroupIsolates.getClass().getName());
-            }
-        }
-
-        // 3. Register all new isolates
-        final List<String> newIsolates = new ArrayList<String>(isolates.size());
-        for (final IsolateInfo info : isolates.values()) {
-            if (pDirectory.registerIsolate(info.getId(), info.getNode(),
-                    info.getPort(), info.getGroups().toArray(new String[0]))) {
-                // Isolate registered (new or update)
-                newIsolates.add(info.getId());
-            }
-        }
-
-        return newIsolates.toArray(new String[newIsolates.size()]);
     }
 
     /**
@@ -503,6 +498,12 @@ public class DirectoryUpdater implements ISignalListener,
     public void validate() {
 
         pLogger.logDebug(this, "validate", "Directory Updater starting...");
+
+        // Register to signals
+        pLogger.logDebug(this, "validate", "Registering to signals...");
+        pReceiver.registerListener(
+                ISignalDirectoryConstants.SIGNAL_PREFIX_MATCH_ALL, this);
+        pReceiver.registerListener(ISignalsConstants.ISOLATE_LOST_SIGNAL, this);
 
         // Compute the dump port
         final String dumpPortStr = System
@@ -533,12 +534,6 @@ public class DirectoryUpdater implements ISignalListener,
                     ESendMode.SEND, Integer.MAX_VALUE, new HostAccess(
                             "localhost", pDumperPort));
         }
-
-        // Register to signals
-        pLogger.logDebug(this, "validate", "Registering to signals...");
-        pReceiver.registerListener(
-                ISignalDirectoryConstants.SIGNAL_PREFIX_MATCH_ALL, this);
-        pReceiver.registerListener(ISignalsConstants.ISOLATE_LOST_SIGNAL, this);
 
         pLogger.logInfo(this, "validate", "Directory Updater Ready");
     }
