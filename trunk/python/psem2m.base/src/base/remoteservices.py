@@ -550,8 +550,7 @@ class ServiceImporter(object):
         """
         if event == REGISTERED:
             # Isolate registered: ask for its end points
-            self.sender.fire(BROADCASTER_SIGNAL_REQUEST_ENDPOINTS, None,
-                             isolate=isolate_id)
+            self._requestEndpoints(isolate_id)
 
         elif event == UNREGISTERED:
             # Isolate lost
@@ -760,7 +759,7 @@ class ServiceImporter(object):
 
         # Get the imported service information
         service = self._registered_services.get(service_id, None)
-        if not service:
+        if service is None:
             # Unknown service
             _logger.debug("Unknown modified service - %s", service_id)
             return
@@ -794,8 +793,8 @@ class ServiceImporter(object):
             # Nothing to do...
             return
 
-        for isolate_id, isolate_results in sig_results.items():
-            for result in isolate_results:
+        for isolate_id, isolate_sigresult in sig_results.items():
+            for result in isolate_sigresult['results']:
                 if isinstance(result, list):
                     for event in result:
                         # Handle each event
@@ -818,8 +817,7 @@ class ServiceImporter(object):
                                         self)
 
         # Send "request end points" signal
-        self.sender.fire(BROADCASTER_SIGNAL_REQUEST_ENDPOINTS, None,
-                         dir_group="ALL")
+        self._requestEndpoints()
         _logger.debug("ServiceImporter Ready")
 
 
