@@ -1,6 +1,6 @@
 /**
  * File:   IStatusStorage.java
- * Author: "Thomas Calmant"
+ * Author: Thomas Calmant
  * Date:   27 août 2012
  */
 package org.psem2m.status.storage;
@@ -8,10 +8,14 @@ package org.psem2m.status.storage;
 import java.util.Collection;
 
 /**
- * @author "Thomas Calmant"
+ * Defines a status storage service.
+ * 
+ * @author Thomas Calmant
  * 
  * @param <S>
+ *            Enumeration defining states
  * @param <T>
+ *            Type of the values associated to each entry
  */
 public interface IStatusStorage<S extends State, T> {
 
