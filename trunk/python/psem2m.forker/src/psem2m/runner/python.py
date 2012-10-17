@@ -164,8 +164,23 @@ class PythonRunner(runner.Runner):
         
         :param context: The bundle context
         """
+        # Python 2
         self._python2_path = self._utils.find_python2_interpreter()
+        if not self._python2_path:
+            _logger.warning("No Python 2 interpreter found.")
+            self._python2_path = None
+
+        else:
+            _logger.debug("Python 2 interpreter: %s", self._python2_path)
+
+        # Python 3
         self._python3_path = self._utils.find_python3_interpreter()
+        if not self._python3_path:
+            _logger.warning("No Python 3 interpreter found.")
+            self._python3_path = None
+
+        else:
+            _logger.debug("Python 3 interpreter: %s", self._python3_path)
 
 
     @Invalidate

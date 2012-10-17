@@ -161,6 +161,12 @@ class JavaRunner(runner.Runner):
         :param context: The bundle context
         """
         self._path = self._utils.find_java_interpreter(None)
+        if not self._path:
+            _logger.debug('No Java interpreter found.')
+            self._path = None
+
+        else:
+            _logger.debug("Java interpreter: %s", self._path)
 
 
     @Invalidate
