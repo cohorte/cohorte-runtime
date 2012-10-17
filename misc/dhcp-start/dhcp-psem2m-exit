@@ -1,0 +1,57 @@
+#!/bin/bash
+# DHCP script to start PSEM2M right after a network interface got an IP address
+
+# Propagate the PATH
+export PATH=$PATH
+
+# Daemonizer configuration
+DAEMONIZER="/home/pi/daemonize.py"
+export DAEMON_RUN="/usr/bin/python"
+export DAEMON_USER="pi"
+export DAEMON_GROUP="pi"
+
+# Network configuration
+PSEM2M_INTERFACE="wlan0"
+PSEM2M_NETWORK_ROUTE="192.168.0.1"
+
+# Paths computation
+PSEM2M_ROOT="/home/pi/small-raspberrypi"
+export PSEM2M_HOME="$PSEM2M_ROOT/small.home"
+export PSEM2M_BASE="$PSEM2M_ROOT/base-raspberrypi"
+
+# Log configuration
+LOG=/var/log/psem2m/dhcp_script.log
+export PSEM2M_LOGFILE="$PSEM2M_ROOT/forker.log"
+
+# Controller arguments
+CONTROLLER="$PSEM2M_HOME/bin/controller.py"
+EXTRA_ARGS="-d -v"
+STOP_COMMAND="force-stop"
+
+if [ "$interface" != "$PSEM2M_INTERFACE" ]
+then
+	# Ignore other interfaces
+	exit 0
+fi
+
+if [ $reason == "BOUND" ]
+then
+    date >> $LOG
+    
+	# Updating route
+	echo Updating route... >> $LOG
+	route del default
+	route add default gw $PSEM2M_NETWORK_ROUTE
+
+	# Start with PSEM2M Controller
+	echo Running PSEM2M... >> $LOG
+    rm -f $PSEM2M_LOGFILE
+	"$DAEMONIZER" "$CONTROLLER" start $EXTRA_ARGS >> $LOG 2>&1
+
+elif [ $reason == "RELEASE" ]
+then
+	# Interface down
+	date >> $LOG
+	echo Stopping PSEM2M... >> $LOG
+	"$DAEMONIZER" "$CONTROLLER" "$STOP_COMMAND" >> $LOG 2>&1
+fi
