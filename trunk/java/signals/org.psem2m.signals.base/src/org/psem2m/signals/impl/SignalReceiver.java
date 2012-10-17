@@ -265,9 +265,13 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver {
                     results.add(result);
                 }
 
-            } catch (final Throwable throwable) {
+            } catch (final Exception ex) {
                 pLogger.logWarn(this, "handleReceivedSignal",
-                        "Error notifying a signal listener", throwable);
+                        "Exception notifying a signal listener", ex);
+
+            } catch (final Error err) {
+                pLogger.logSevere(this, "handleReceivedSignal",
+                        "Important error notifying a signal listener", err);
             }
         }
 

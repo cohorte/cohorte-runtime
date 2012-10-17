@@ -40,6 +40,7 @@ import org.psem2m.signals.ISignalSendResult;
 import org.psem2m.signals.IWaitingSignalListener;
 import org.psem2m.signals.SignalData;
 import org.psem2m.signals.SignalResult;
+import org.psem2m.signals.UnsendableDataException;
 import org.psem2m.signals.WaitingSignal;
 
 /**
@@ -149,7 +150,7 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
         if (accesses == null || accesses.isEmpty()) {
             // No known isolate found
             pLogger.logDebug(this, "commonGroupSignalHandling",
-                    "No access found for groups=", aGroup);
+                    "No access found for directory group=", aGroup);
             return null;
         }
 
@@ -203,7 +204,7 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
         if (accesses.isEmpty()) {
             // No known isolate found
             pLogger.logDebug(this, "commonGroupSignalHandling",
-                    "No access found for groups=", Arrays.toString(aGroups));
+                    "No access found for groups=", aGroups);
             return null;
         }
 
@@ -384,7 +385,7 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
      */
     @Override
     public boolean fireTo(final String aSignalName, final Object aContent,
-            final String aHost, final int aPort) throws Exception {
+            final String aHost, final int aPort) {
 
         // Prepare the signal data
         final SignalData signalData = new SignalData();
@@ -393,7 +394,7 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
         signalData.setSignalContent(aContent);
 
         if (pBroadcasters.length == 0) {
-            pLogger.logWarn(this, "internalSend", "No signals broadcasters yet");
+            pLogger.logWarn(this, "fireTo", "No signals broadcasters yet");
             return false;
         }
 
@@ -401,10 +402,16 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
         final HostAccess access = new HostAccess(aHost, aPort);
         for (final ISignalBroadcastProvider broadcaster : pBroadcasters) {
 
-            if (broadcaster.sendSignal(access, MODE_FORGET, aSignalName,
-                    signalData) != null) {
-                // Success
-                return true;
+            try {
+                if (broadcaster.sendSignal(access, MODE_FORGET, aSignalName,
+                        signalData) != null) {
+                    // Success
+                    return true;
+                }
+
+            } catch (final UnsendableDataException ex) {
+                pLogger.logWarn(this, "fireTo", "Couldn't fire signal=",
+                        aSignalName, ":", ex);
             }
         }
 
@@ -541,7 +548,7 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
      */
     protected Object[] internalSend(final HostAccess aAccess,
             final String aSignalName, final ISignalData aSignalData,
-            final String aMode) throws Exception {
+            final String aMode) {
 
         if (ISignalDirectory.LOCAL_ACCESS.equals(aAccess)) {
             // Special case : signal for the local isolate
@@ -563,10 +570,16 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
         final List<Object> results = new ArrayList<Object>();
         for (final ISignalBroadcastProvider broadcaster : pBroadcasters) {
             // Call all broadcasters
-            final Object[] result = broadcaster.sendSignal(aAccess, aMode,
-                    aSignalName, aSignalData);
-            if (result != null) {
-                results.addAll(Arrays.asList(result));
+            try {
+                final Object[] result = broadcaster.sendSignal(aAccess, aMode,
+                        aSignalName, aSignalData);
+                if (result != null) {
+                    results.addAll(Arrays.asList(result));
+                }
+
+            } catch (final UnsendableDataException ex) {
+                pLogger.logWarn(this, "internalSend",
+                        "Couldn't send data for signal=", aSignalName, ":", ex);
             }
         }
 
@@ -632,7 +645,7 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
         final Callable<ISignalSendResult> method = new Callable<ISignalSendResult>() {
 
             @Override
-            public ISignalSendResult call() throws Exception {
+            public ISignalSendResult call() {
 
                 // Re-use existing code...
                 return send(aSignalName, aContent, aIsolates);
@@ -656,7 +669,7 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
         final Callable<ISignalSendResult> method = new Callable<ISignalSendResult>() {
 
             @Override
-            public ISignalSendResult call() throws Exception {
+            public ISignalSendResult call() {
 
                 // Re-use existing code...
                 return sendGroup(aSignalName, aContent, aGroup);
@@ -709,7 +722,7 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
         final Callable<ISignalSendResult> method = new Callable<ISignalSendResult>() {
 
             @Override
-            public ISignalSendResult call() throws Exception {
+            public ISignalSendResult call() {
 
                 // Re-use existing code...
                 return sendGroup(aSignalName, aContent, aGroups, aExcluded);
@@ -733,10 +746,19 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
         final Callable<Object[]> method = new Callable<Object[]>() {
 
             @Override
-            public Object[] call() throws Exception {
+            public Object[] call() {
 
                 // Use existing code...
-                return sendTo(aSignalName, aContent, aHost, aPort);
+                try {
+                    return sendTo(aSignalName, aContent, aHost, aPort);
+
+                } catch (final UnsendableDataException ex) {
+                    pLogger.logWarn(this, "postTo",
+                            "Couldn't send data for signal=", aSignalName, ":",
+                            ex);
+                }
+
+                return null;
             }
         };
 
@@ -851,7 +873,7 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
      */
     @Override
     public Object[] sendTo(final String aSignalName, final Object aContent,
-            final String aHost, final int aPort) throws Exception {
+            final String aHost, final int aPort) throws UnsendableDataException {
 
         // Prepare the signal data
         final SignalData signalData = new SignalData();
