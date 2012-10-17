@@ -51,7 +51,7 @@ public class DirectoryUpdater implements ISignalListener,
      * The port to access the directory dumper. The member shall not be changed
      * after component validation
      */
-    private int pDumperPort;
+    // private int pDumperPort;
 
     /** The logger */
     @Requires
@@ -508,15 +508,15 @@ public class DirectoryUpdater implements ISignalListener,
         // Compute the dump port
         final String dumpPortStr = System
                 .getProperty(ISignalDirectoryConstants.PROP_DUMPER_PORT);
-        pDumperPort = -1;
+        int dumperPort = -1;
         try {
-            pDumperPort = Integer.parseInt(dumpPortStr);
+            dumperPort = Integer.parseInt(dumpPortStr);
 
         } catch (final NumberFormatException e) {
             // Ignore
         }
 
-        if (pDumperPort <= 0) {
+        if (dumperPort <= 0) {
             // Bad port
             pLogger.logWarn(this, "validate", "Unreadable dumper port=",
                     dumpPortStr);
@@ -524,7 +524,7 @@ public class DirectoryUpdater implements ISignalListener,
         } else {
             // Retrieve the directory
             pLogger.logDebug(this, "validate", "Grabbing directory from port=",
-                    pDumperPort);
+                    dumperPort);
 
             // Prepare signal content, without propagating the signal
             final Map<String, Object> content = prepareRegistrationContent(false);
@@ -532,7 +532,7 @@ public class DirectoryUpdater implements ISignalListener,
             // Stack the signal
             pSender.stack(ISignalDirectoryConstants.SIGNAL_DUMP, content, this,
                     ESendMode.SEND, Integer.MAX_VALUE, new HostAccess(
-                            "localhost", pDumperPort));
+                            "localhost", dumperPort));
         }
 
         pLogger.logInfo(this, "validate", "Directory Updater Ready");
