@@ -77,7 +77,7 @@ public class HttpSignalSender extends CPojoBase implements
      * @throws UnsendableDataException
      *             The given signal content can't be serialized
      */
-    protected SignalContent makeRequestBody(final ISignalData aData)
+    private SignalContent makeRequestBody(final ISignalData aData)
             throws UnsendableDataException {
 
         // The really sent data
@@ -99,8 +99,7 @@ public class HttpSignalSender extends CPojoBase implements
         }
 
         // Make the conversion
-        for (final ISignalSerializer serializer : pSortedSerializers
-                .values()) {
+        for (final ISignalSerializer serializer : pSortedSerializers.values()) {
 
             try {
                 sentData = serializer.serializeData(aData);
@@ -210,7 +209,7 @@ public class HttpSignalSender extends CPojoBase implements
 
             // Flush the request
             final int responseCode = httpConnection.getResponseCode();
-            if (responseCode != 200) {
+            if (responseCode != HttpURLConnection.HTTP_OK) {
                 pLogger.logWarn(this, "sendSignal",
                         "Incorrect response for signal=", aSignalName,
                         "access=", aAccess, "code=", responseCode);
@@ -282,8 +281,7 @@ public class HttpSignalSender extends CPojoBase implements
      *            RAW data
      * @return The un-serialized data, or null
      */
-    protected Object unserializeData(final String aContentType,
-            final byte[] aData) {
+    private Object unserializeData(final String aContentType, final byte[] aData) {
 
         if (aData == null) {
             // Nothing to do
@@ -296,13 +294,17 @@ public class HttpSignalSender extends CPojoBase implements
                 // Handled content type
                 try {
                     return serializer.unserializeData(aData);
+
                 } catch (final InvalidDataException e) {
-                    pLogger.logDebug(this, "",
+                    pLogger.logDebug(this, "unserializeData",
                             "Invalid data found with content-type=",
-                            aContentType);
+                            aContentType, ":", e.getMessage());
                 }
             }
         }
+
+        pLogger.logWarn(this, "unserializeData",
+                "Couldn't decode value of content-type=", aContentType);
 
         return null;
     }

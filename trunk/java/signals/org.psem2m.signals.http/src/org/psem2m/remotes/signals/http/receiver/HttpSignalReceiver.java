@@ -79,7 +79,8 @@ public class HttpSignalReceiver extends CPojoBase implements
                     pConfig.getCurrentIsolate().getPort());
 
         } catch (final UnknownHostException ex) {
-            pLogger.logWarn(this, "", "Could not get local host name, ex=", ex);
+            pLogger.logWarn(this, "getAccessInfo",
+                    "Could not get local host name:", ex);
             return null;
         }
     }
@@ -156,10 +157,10 @@ public class HttpSignalReceiver extends CPojoBase implements
                 try {
                     rawData = serializer.serializeData(toSerialize);
 
-                } catch (final Exception e) {
+                } catch (final Exception ex) {
                     // Error during serialization, ignore
                     pLogger.logDebug(this, "serializeSignalResult",
-                            "Error serializing data, ex=", e);
+                            "Error serializing data:", ex);
                     continue;
                 }
 
@@ -189,12 +190,12 @@ public class HttpSignalReceiver extends CPojoBase implements
                     } catch (final Exception e) {
                         // Error during serialization, ignore
                         pLogger.logDebug(this, "serializeSignalResult",
-                                "Error serializing data, ex=", e);
+                                "Error serializing data:", e);
                         continue;
                     }
 
                     if (rawData != null) {
-                        // Sucess...
+                        // Success...
                         contentType = serializer.getContentType();
                         break;
                     }
@@ -235,7 +236,7 @@ public class HttpSignalReceiver extends CPojoBase implements
                 } catch (final Exception e) {
                     // Error during de-serialization
                     pLogger.logWarn(this, "unserializeSignalContent",
-                            "Error during de-serialization : ex=", e);
+                            "Error during de-serialization:", e);
                     continue;
                 }
 
@@ -280,7 +281,7 @@ public class HttpSignalReceiver extends CPojoBase implements
 
         } catch (final Exception ex) {
             pLogger.logSevere(this, "validatePojo",
-                    "Can't register the HTTP Signal Receiver servlet ex=", ex);
+                    "Can't register the HTTP Signal Receiver servlet:", ex);
         }
     }
 }

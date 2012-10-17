@@ -60,14 +60,26 @@ public class ServletReceiver extends HttpServlet {
             final HttpServletResponse aResp) throws ServletException,
             IOException {
 
-        aResp.setStatus(HttpServletResponse.SC_OK);
-        final PrintWriter writer = aResp.getWriter();
+        // Prepare the page
+        final StringBuilder pageBuilder = new StringBuilder();
+        pageBuilder.append("<html>\n<head>\n");
+        pageBuilder.append("<title>HTTP Signal Receiver</title>\n");
+        pageBuilder.append("</head>\n<body>\n");
+        pageBuilder.append("<h1>HTTP Signal Receiver</h1>\n<ul>\n");
+        pageBuilder.append("<li>Main signal handler : <pre>");
+        pageBuilder.append(pSignalRequestHandler);
+        pageBuilder.append("</pre></li>\n");
+        pageBuilder.append("</ul>\n</body>\n</html>\n");
 
-        writer.println("<html><head><title>HTTP Signal Receiver</title></head>");
-        writer.println("<body><h1>HTTP Signal Receiver</h1><ul>");
-        writer.println("<li>Main signal handler : <pre>"
-                + pSignalRequestHandler + "</pre></li>");
-        writer.println("</ul></body></html>");
+        // Setup headers
+        aResp.setStatus(HttpServletResponse.SC_OK);
+        aResp.setContentLength(pageBuilder.length());
+        aResp.setContentType("text/html");
+
+        // Write the page
+        final PrintWriter writer = aResp.getWriter();
+        writer.print(pageBuilder.toString());
+        writer.flush();
     }
 
     /*
