@@ -256,6 +256,9 @@ def configure_logger(logfile, debug=False, verbose=False):
     # ... register it
     root_log.addHandler(consh)
 
+    # Get the log file name from the environment if necessary
+    if not logfile:
+        logfile = os.getenv('PSEM2M_LOGFILE')
 
     # Prepare the file handler
     if logfile:
