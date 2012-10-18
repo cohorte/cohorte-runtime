@@ -4,15 +4,20 @@ import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Largely GNU-compatible command-line options parser. Has short (-v) and
  * long-form (--verbose) option support, and also allows options with associated
  * values (-d 2, --debug 2, --debug=2). Option processing can be explicitly
  * terminated by the argument '--'.
+ * 
+ * Update by Thomas Calmant: code update according to Sonar and PSEM2M
+ * guidelines.
  * 
  * @author Steve Purcell
  * @version $Revision: 1.10 $
@@ -27,11 +32,23 @@ public class CmdLineParser {
      */
     public static class IllegalOptionValueException extends OptionException {
 
+        /** Serialization version */
         private static final long serialVersionUID = 1L;
+
+        /** Erroneous option */
         private final Option option;
 
+        /** Illegal value */
         private final String value;
 
+        /**
+         * Sets up the exception
+         * 
+         * @param opt
+         *            Erroneous option
+         * @param value
+         *            Illegal value
+         */
         public IllegalOptionValueException(final Option opt, final String value) {
 
             super(MessageFormat
@@ -60,18 +77,29 @@ public class CmdLineParser {
     }
 
     /**
-     * Thrown when the parsed commandline contains multiple concatenated short
+     * Thrown when the parsed command line contains multiple concatenated short
      * options, such as -abcd, where one or more requires a value.
-     * <code>getMessage()</code> returns an english human-readable error string.
+     * <code>getMessage()</code> returns an English human-readable error string.
      * 
      * @author Vidar Holen
      */
     public static class NotFlagException extends UnknownOptionException {
 
+        /** Serialization version */
         private static final long serialVersionUID = 1L;
+
+        /** The one-char parameter that must have a value */
         private final char notflag;
 
-        NotFlagException(final String option, final char unflaggish) {
+        /**
+         * Sets up the exception
+         * 
+         * @param option
+         *            The option corresponding to the parameter
+         * @param unflaggish
+         *            The one-char parameter that must have a value
+         */
+        public NotFlagException(final String option, final char unflaggish) {
 
             super(option, MessageFormat.format(
                     "Illegal option: ''{0}'', ''{1}'' requires a value",
@@ -94,6 +122,7 @@ public class CmdLineParser {
     public abstract static class Option {
 
         public static class BooleanOption extends Option {
+
             public BooleanOption(final char shortForm, final String longForm) {
 
                 super(shortForm, longForm, false);
@@ -109,6 +138,7 @@ public class CmdLineParser {
          * An option that expects a floating-point value
          */
         public static class DoubleOption extends Option {
+
             public DoubleOption(final char shortForm, final String longForm) {
 
                 super(shortForm, longForm, true);
@@ -138,6 +168,7 @@ public class CmdLineParser {
          * An option that expects an integer value
          */
         public static class IntegerOption extends Option {
+
             public IntegerOption(final char shortForm, final String longForm) {
 
                 super(shortForm, longForm, true);
@@ -165,6 +196,7 @@ public class CmdLineParser {
          * An option that expects a long integer value
          */
         public static class LongOption extends Option {
+
             public LongOption(final char shortForm, final String longForm) {
 
                 super(shortForm, longForm, true);
@@ -191,6 +223,7 @@ public class CmdLineParser {
          * An option that expects a string value
          */
         public static class StringOption extends Option {
+
             public StringOption(final char shortForm, final String longForm) {
 
                 super(shortForm, longForm, true);
@@ -283,9 +316,16 @@ public class CmdLineParser {
      */
     public abstract static class OptionException extends Exception {
 
+        /** Serialization version */
         private static final long serialVersionUID = 1L;
 
-        OptionException(final String msg) {
+        /**
+         * Sets up the exception
+         * 
+         * @param msg
+         *            The exception message
+         */
+        public OptionException(final String msg) {
 
             super(msg);
         }
@@ -293,21 +333,38 @@ public class CmdLineParser {
 
     /**
      * Thrown when the parsed command-line contains an option that is not
-     * recognised. <code>getMessage()</code> returns an error string suitable
+     * recognized. <code>getMessage()</code> returns an error string suitable
      * for reporting the error to the user (in English).
      */
     public static class UnknownOptionException extends OptionException {
 
+        /** Serialization version */
         private static final long serialVersionUID = 1L;
+
+        /** Unrecognized option string */
         private String optionName = null;
 
-        UnknownOptionException(final String optionName) {
+        /**
+         * Sets up the exception, with a default message
+         * 
+         * @param optionName
+         *            The unrecognized option string
+         */
+        public UnknownOptionException(final String optionName) {
 
             this(optionName, MessageFormat.format("Unknown option ''{0}''",
                     optionName));
         }
 
-        UnknownOptionException(final String optionName, final String msg) {
+        /**
+         * Sets up the exception, with the given message
+         * 
+         * @param optionName
+         *            The unrecognized option string
+         * @param msg
+         *            A description of the error
+         */
+        public UnknownOptionException(final String optionName, final String msg) {
 
             super(msg);
             this.optionName = optionName;
@@ -323,19 +380,32 @@ public class CmdLineParser {
     }
 
     /**
-     * Thrown when the parsed commandline contains multiple concatenated short
+     * Thrown when the parsed command line contains multiple concatenated short
      * options, such as -abcd, where one is unknown. <code>getMessage()</code>
-     * returns an english human-readable error string.
+     * returns an English human-readable error string.
      * 
      * @author Vidar Holen
      */
     public static class UnknownSuboptionException extends
             UnknownOptionException {
 
+        /** Serialization version */
         private static final long serialVersionUID = 1L;
+
+        /** The unknown one-char parameter */
         private final char suboption;
 
-        UnknownSuboptionException(final String option, final char suboption) {
+        /**
+         * Sets up the exception
+         * 
+         * @param option
+         *            The parsed option string (concatenated one-char
+         *            parameters)
+         * @param suboption
+         *            The unknown one-char parameter in the option string
+         */
+        public UnknownSuboptionException(final String option,
+                final char suboption) {
 
             super(option, MessageFormat.format(
                     "Illegal option: ''{0}'' in ''{1}''", suboption, option));
@@ -348,11 +418,14 @@ public class CmdLineParser {
         }
     }
 
-    private final Hashtable<String, Option> options = new Hashtable<String, Option>();
+    /** The available program options */
+    private final Map<String, Option> options = new HashMap<String, Option>();
 
+    /** The extra arguments of the command line */
     private String[] remainingArgs = null;
 
-    private Hashtable<String, List<Object>> values = new Hashtable<String, List<Object>>();
+    /** The parsed values */
+    private Map<String, List<Object>> values = new HashMap<String, List<Object>>();
 
     /**
      * Convenience method for adding a boolean option.
@@ -471,6 +544,14 @@ public class CmdLineParser {
         return addOption(new Option.StringOption(longForm));
     }
 
+    /**
+     * Stores a parsed value for the given option
+     * 
+     * @param aOption
+     *            A parameter
+     * @param aValue
+     *            The parsed value
+     */
     private void addValue(final Option aOption, final Object aValue) {
 
         final String longForm = aOption.longForm();

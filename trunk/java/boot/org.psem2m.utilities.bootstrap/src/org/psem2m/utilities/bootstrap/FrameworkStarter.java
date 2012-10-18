@@ -21,6 +21,7 @@ import java.util.logging.Level;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.launch.FrameworkFactory;
 import org.psem2m.isolates.base.isolates.boot.IBootstrapMessageSender;
@@ -65,6 +66,9 @@ public class FrameworkStarter {
 
     /** Log message sender */
     private IMessageSender pMessageSender;
+
+    /** The bootstrap message sender service registration */
+    private ServiceRegistration<IBootstrapMessageSender> pSenderRegistration;
 
     /**
      * Prepares the bootstrap members
@@ -149,10 +153,10 @@ public class FrameworkStarter {
         }
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Creates the OSGi framework, using {@link FrameworkFactory}.
      * 
-     * @see org.psem2m.utilities.bootstrap.impl.ISvcBootstrap#createFramework()
+     * @return The created framework, null on error.
      */
     public Framework createFramework() {
 
@@ -185,7 +189,7 @@ public class FrameworkStarter {
      * 
      * @return A FrameworkFactory pSingleton, null on error
      */
-    protected FrameworkFactory getFrameworkFactory() {
+    private FrameworkFactory getFrameworkFactory() {
 
         // The asked framework factory, can be null
         final String osgiFramework = pBootstrapConfiguration
@@ -276,7 +280,7 @@ public class FrameworkStarter {
      * @return All visible framework factories, an empty list if nothing is
      *         found or on error.
      */
-    protected List<String> getMetaInfFrameworkFactories() {
+    private List<String> getMetaInfFrameworkFactories() {
 
         // Prepare the result list
         final List<String> factoriesNames = new ArrayList<String>();
@@ -340,26 +344,22 @@ public class FrameworkStarter {
     }
 
     /**
-     * Installs the bootstrap message sender service
-     */
-    protected void installBootstrapService() {
-
-        pFramework.getBundleContext().registerService(
-                IBootstrapMessageSender.class.getName(), pBootstrapService,
-                null);
-    }
-
-    /*
-     * (non-Javadoc)
+     * Installs the bundles located at the given URLs. Returns false if the
+     * given array is null, true if it is empty
      * 
-     * @see
-     * org.psem2m.utilities.bootstrap.impl.ISvcBootstrap#installBundles(java
-     * .net.URL[])
+     * @param aBundlesURLs
+     *            An array of URLs
+     * @return True on success, false on error
      */
-    public boolean installBundles(final URL[] aBundlesConfiguration) {
+    public boolean installBundles(final URL[] aBundlesURLs) {
+
+        if (aBundlesURLs == null) {
+            // Nothing to install, consider an error
+            return false;
+        }
 
         boolean success = true;
-        for (final URL url : aBundlesConfiguration) {
+        for (final URL url : aBundlesURLs) {
             try {
                 pInstalledBundles.add(pFramework.getBundleContext()
                         .installBundle(url.toString()));
@@ -385,9 +385,26 @@ public class FrameworkStarter {
      *            Bundle to be tested
      * @return True if the bundle is a fragment
      */
-    protected boolean isFragment(final Bundle aBundle) {
+    private boolean isFragment(final Bundle aBundle) {
 
         return aBundle.getHeaders().get(Constants.FRAGMENT_HOST) != null;
+    }
+
+    /**
+     * Installs the bootstrap message sender service
+     * 
+     * @return True on success, false on error
+     */
+    public boolean registerBootstrapMessageSenderService() {
+
+        if (pFramework == null) {
+            return false;
+        }
+
+        pSenderRegistration = pFramework.getBundleContext().registerService(
+                IBootstrapMessageSender.class, pBootstrapService, null);
+
+        return pSenderRegistration != null;
     }
 
     /**
@@ -396,7 +413,7 @@ public class FrameworkStarter {
      * @param aDirectory
      *            Directory to delete
      */
-    protected final void removeDirectory(final File aDirectory) {
+    private final void removeDirectory(final File aDirectory) {
 
         final File[] files = aDirectory.listFiles();
 
@@ -424,10 +441,10 @@ public class FrameworkStarter {
         }
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Starts all bundles installed with {@link #installBundles(URL[])}.
      * 
-     * @see org.psem2m.utilities.bootstrap.impl.ISvcBootstrap#startBundles()
+     * @return True if all bundles have started, false if at least one failed
      */
     public boolean startBundles() {
 
@@ -463,10 +480,10 @@ public class FrameworkStarter {
         return success;
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Starts the OSGi framework.
      * 
-     * @see org.psem2m.utilities.bootstrap.impl.ISvcBootstrap#startFramework()
+     * @return True on success, false on error
      */
     public boolean startFramework() {
 
@@ -483,16 +500,16 @@ public class FrameworkStarter {
         return false;
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Stops the OSGi framework.
      * 
-     * @see org.psem2m.utilities.bootstrap.impl.ISvcBootstrap#stopFramework()
+     * @return True on success, false on error
      */
     public boolean stopFramework() {
 
         try {
-
             pFramework.stop();
+            unregisterBootstrapMessageSenderService();
             return true;
 
         } catch (final BundleException e) {
@@ -503,5 +520,21 @@ public class FrameworkStarter {
         }
 
         return false;
+    }
+
+    /**
+     * Unregisters the bootstrap message sender service
+     * 
+     * @return True on success, false on error
+     */
+    public boolean unregisterBootstrapMessageSenderService() {
+
+        if (pSenderRegistration == null || pFramework == null) {
+            return false;
+        }
+
+        pSenderRegistration.unregister();
+        pSenderRegistration = null;
+        return true;
     }
 }
