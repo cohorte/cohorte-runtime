@@ -3,7 +3,7 @@
  * Author: Thomas Calmant
  * Date:   29 août 2012
  */
-package org.psem2m.composer.core.v2;
+package org.psem2m.composer.core;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,7 +34,6 @@ import org.psem2m.composer.ICompositionListener;
 import org.psem2m.composer.InvalidComponentsSetException;
 import org.psem2m.composer.agent.ComposerAgentSignals;
 import org.psem2m.composer.config.IComposerConfigHandler;
-import org.psem2m.composer.core.InstantiatingComposite;
 import org.psem2m.composer.model.ComponentBean;
 import org.psem2m.composer.model.ComponentsSetBean;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;

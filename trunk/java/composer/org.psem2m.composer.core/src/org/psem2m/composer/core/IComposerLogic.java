@@ -3,7 +3,7 @@
  * Author: Thomas Calmant
  * Date:   30 août 2012
  */
-package org.psem2m.composer.core.v2;
+package org.psem2m.composer.core;
 
 import org.psem2m.composer.EComponentState;
 import org.psem2m.composer.model.ComponentBean;

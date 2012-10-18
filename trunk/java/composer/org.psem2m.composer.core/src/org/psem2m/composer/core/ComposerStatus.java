@@ -3,7 +3,7 @@
  * Author: Thomas Calmant
  * Date:   29 août 2012
  */
-package org.psem2m.composer.core.v2;
+package org.psem2m.composer.core;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,7 +21,6 @@ import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
-import org.psem2m.composer.core.InstantiatingComposite;
 import org.psem2m.composer.model.ComponentsSetBean;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.status.storage.IStatusStorage;

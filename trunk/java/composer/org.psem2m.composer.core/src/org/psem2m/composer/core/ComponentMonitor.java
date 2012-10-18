@@ -3,7 +3,7 @@
  * Author: Thomas Calmant
  * Date:   29 août 2012
  */
-package org.psem2m.composer.core.v2;
+package org.psem2m.composer.core;
 
 import java.util.HashSet;
 import java.util.Map;

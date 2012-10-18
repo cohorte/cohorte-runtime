@@ -3,12 +3,11 @@
  * Author: Thomas Calmant
  * Date:   29 août 2012
  */
-package org.psem2m.composer.core.v2;
+package org.psem2m.composer.core;
 
 import java.util.Map;
 import java.util.Set;
 
-import org.psem2m.composer.core.InstantiatingComposite;
 import org.psem2m.composer.model.ComponentsSetBean;
 
 /**
