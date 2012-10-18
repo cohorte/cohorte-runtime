@@ -17,27 +17,27 @@ iPOJO-Components: instance { $component="org.psem2m.remote.exporter.Se
  rviceExporter" $name="psem2m-remote-service-exporter" }component { $c
  lassname="org.psem2m.remote.exporter.ServiceExporter" $name="psem2m-r
  emote-service-exporter-factory" $public="false" requires { $field="pB
- roadcaster" }requires { $field="pEndpointHandlers" }requires { $field
- ="pLogger" }requires { $field="pRepository" }callback { $transition="
- invalidate" $method="invalidatePojo" }callback { $transition="validat
- e" $method="validatePojo" }manipulation { $super="org.psem2m.isolates
- .base.activators.CPojoBase" interface { $name="org.osgi.framework.Ser
- viceListener" }field { $name="pBroadcaster" $type="org.psem2m.isolate
- s.services.remote.IRemoteServiceBroadcaster" }field { $name="pBundleC
- ontext" $type="org.osgi.framework.BundleContext" }field { $name="pEnd
- pointHandlers" $type="org.psem2m.isolates.services.remote.IEndpointHa
- ndler[]" }field { $name="pExportedServices" $type="java.util.Map" }fi
- eld { $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerS
- vc" }field { $name="pRepository" $type="org.psem2m.isolates.services.
- remote.IRemoteServiceRepository" }method { $name="createEndpoints" $r
- eturn="org.psem2m.isolates.services.remote.beans.RemoteServiceRegistr
- ation" $arguments="{org.osgi.framework.ServiceReference}" }method { $
- name="exportService" $return="boolean" $arguments="{org.osgi.framewor
- k.ServiceReference}" }method { $name="invalidatePojo" }method { $name
- ="isAlreadyExported" $return="boolean" $arguments="{org.osgi.framewor
- k.ServiceReference}" }method { $name="serviceChanged" $arguments="{or
- g.osgi.framework.ServiceEvent}" }method { $name="unexportService" $ar
- guments="{org.osgi.framework.ServiceReference}" }method { $name="upda
- teService" $return="boolean" $arguments="{org.osgi.framework.ServiceR
- eference}" }method { $name="validatePojo" }}}
+ roadcaster" }requires { $field="pEndpointHandlers" $id="endpoint-hand
+ lers" }requires { $field="pLogger" }requires { $field="pRepository" }
+ callback { $transition="invalidate" $method="invalidatePojo" }callbac
+ k { $transition="validate" $method="validatePojo" }manipulation { $su
+ per="org.psem2m.isolates.base.activators.CPojoBase" interface { $name
+ ="org.osgi.framework.ServiceListener" }field { $name="pBroadcaster" $
+ type="org.psem2m.isolates.services.remote.IRemoteServiceBroadcaster" 
+ }field { $name="pBundleContext" $type="org.osgi.framework.BundleConte
+ xt" }field { $name="pEndpointHandlers" $type="org.psem2m.isolates.ser
+ vices.remote.IEndpointHandler[]" }field { $name="pExportedServices" $
+ type="java.util.Map" }field { $name="pLogger" $type="org.psem2m.isola
+ tes.base.IIsolateLoggerSvc" }field { $name="pRepository" $type="org.p
+ sem2m.isolates.services.remote.IRemoteServiceRepository" }method { $n
+ ame="createEndpoints" $return="org.psem2m.isolates.services.remote.be
+ ans.RemoteServiceRegistration" $arguments="{org.osgi.framework.Servic
+ eReference}" }method { $name="exportService" $return="boolean" $argum
+ ents="{org.osgi.framework.ServiceReference}" }method { $name="invalid
+ atePojo" }method { $name="isAlreadyExported" $return="boolean" $argum
+ ents="{org.osgi.framework.ServiceReference}" }method { $name="service
+ Changed" $arguments="{org.osgi.framework.ServiceEvent}" }method { $na
+ me="unexportService" $arguments="{org.osgi.framework.ServiceReference
+ }" }method { $name="updateService" $return="boolean" $arguments="{org
+ .osgi.framework.ServiceReference}" }method { $name="validatePojo" }}}
 
