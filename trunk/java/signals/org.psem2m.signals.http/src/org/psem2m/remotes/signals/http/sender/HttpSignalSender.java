@@ -29,7 +29,7 @@ import org.psem2m.remotes.signals.http.IHttpSignalsConstants;
 import org.psem2m.signals.HostAccess;
 import org.psem2m.signals.ISignalBroadcastProvider;
 import org.psem2m.signals.ISignalData;
-import org.psem2m.signals.ISignalDataSerializer;
+import org.psem2m.signals.ISignalSerializer;
 import org.psem2m.signals.InvalidDataException;
 import org.psem2m.signals.SignalContent;
 import org.psem2m.signals.UnsendableDataException;
@@ -51,7 +51,7 @@ public class HttpSignalSender extends CPojoBase implements
 
     /** Signal data serializers */
     @Requires
-    private ISignalDataSerializer[] pSerializers;
+    private ISignalSerializer[] pSerializers;
 
     /*
      * (non-Javadoc)
@@ -77,7 +77,7 @@ public class HttpSignalSender extends CPojoBase implements
      * @throws UnsendableDataException
      *             The given signal content can't be serialized
      */
-    protected SignalContent makeRequestBody(final ISignalData aData)
+    private SignalContent makeRequestBody(final ISignalData aData)
             throws UnsendableDataException {
 
         // The really sent data
@@ -86,10 +86,10 @@ public class HttpSignalSender extends CPojoBase implements
         // The sent data content type
         String contentType = null;
 
-        final SortedMap<Number, ISignalDataSerializer> pSortedSerializers = new TreeMap<Number, ISignalDataSerializer>();
+        final SortedMap<Number, ISignalSerializer> pSortedSerializers = new TreeMap<Number, ISignalSerializer>();
 
         // Find the serializers that can handle this object
-        for (final ISignalDataSerializer serializer : pSerializers) {
+        for (final ISignalSerializer serializer : pSerializers) {
 
             if (serializer.canSerialize(aData)
                     && serializer.canSerialize(aData)) {
@@ -99,8 +99,7 @@ public class HttpSignalSender extends CPojoBase implements
         }
 
         // Make the conversion
-        for (final ISignalDataSerializer serializer : pSortedSerializers
-                .values()) {
+        for (final ISignalSerializer serializer : pSortedSerializers.values()) {
 
             try {
                 sentData = serializer.serializeData(aData);
@@ -210,7 +209,7 @@ public class HttpSignalSender extends CPojoBase implements
 
             // Flush the request
             final int responseCode = httpConnection.getResponseCode();
-            if (responseCode != 200) {
+            if (responseCode != HttpURLConnection.HTTP_OK) {
                 pLogger.logWarn(this, "sendSignal",
                         "Incorrect response for signal=", aSignalName,
                         "access=", aAccess, "code=", responseCode);
@@ -282,27 +281,30 @@ public class HttpSignalSender extends CPojoBase implements
      *            RAW data
      * @return The un-serialized data, or null
      */
-    protected Object unserializeData(final String aContentType,
-            final byte[] aData) {
+    private Object unserializeData(final String aContentType, final byte[] aData) {
 
         if (aData == null) {
             // Nothing to do
             return null;
         }
 
-        for (final ISignalDataSerializer serializer : pSerializers) {
+        for (final ISignalSerializer serializer : pSerializers) {
 
             if (serializer.canHandleType(aContentType)) {
                 // Handled content type
                 try {
                     return serializer.unserializeData(aData);
+
                 } catch (final InvalidDataException e) {
-                    pLogger.logDebug(this, "",
+                    pLogger.logDebug(this, "unserializeData",
                             "Invalid data found with content-type=",
-                            aContentType);
+                            aContentType, ":", e.getMessage());
                 }
             }
         }
+
+        pLogger.logWarn(this, "unserializeData",
+                "Couldn't decode value of content-type=", aContentType);
 
         return null;
     }

@@ -27,6 +27,11 @@ public interface IPlatformProperties {
     String PROP_BASE_DEBUG_PORT = "org.psem2m.debug.port";
 
     /**
+     * URL to the configuration broker
+     */
+    String PROP_BROKER_URL = "org.psem2m.configuration.broker";
+
+    /**
      * contains the absolute path of the BASE folder of the current application
      */
     String PROP_PLATFORM_BASE = "org.psem2m.platform.base";

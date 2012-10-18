@@ -8,18 +8,18 @@ package org.psem2m.forkers.aggregator.impl;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.net.SocketException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -27,18 +27,21 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
+import org.psem2m.forker.IForker;
+import org.psem2m.forker.IForkerEventListener;
+import org.psem2m.forker.IForkerEventListener.EForkerEventType;
+import org.psem2m.forker.IForkerStatus;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.constants.IPlatformProperties;
+import org.psem2m.isolates.constants.ISignalsConstants;
 import org.psem2m.isolates.services.conf.ISvcConfig;
-import org.psem2m.isolates.services.forker.IForker;
-import org.psem2m.isolates.services.forker.IForkerEventListener;
-import org.psem2m.isolates.services.forker.IForkerEventListener.EForkerEventType;
 import org.psem2m.signals.ISignalBroadcaster;
 import org.psem2m.signals.ISignalDirectory;
 import org.psem2m.signals.ISignalDirectory.EBaseGroup;
@@ -60,10 +63,13 @@ import org.psem2m.signals.ISignalSendResult;
 public class ForkerAggregator implements IForker, IPacketListener, Runnable {
 
     /** Maximum time without forker notification : 5 seconds */
-    public static final long FORKER_TTL = 5000;
+    private static final long FORKER_TTL = 10000;
+
+    /** ID of the forker events listeners */
+    private static final String IPOJO_ID_LISTENERS = "forker-events-listeners";
 
     /** UDP Packet: Forker heart beat */
-    public static final byte PACKET_FORKER_HEARTBEAT = 1;
+    private static final byte PACKET_FORKER_HEARTBEAT = 1;
 
     /** The configuration service */
     @Requires
@@ -83,7 +89,8 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
     private final Map<String, String> pIsolateForkers = new HashMap<String, String>();
 
     /** The forker events listeners */
-    private final Set<IForkerEventListener> pListeners = new HashSet<IForkerEventListener>();
+    @Requires(id = IPOJO_ID_LISTENERS, optional = true)
+    private IForkerEventListener pListeners[];
 
     /** The logger */
     @Requires
@@ -108,6 +115,35 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
 
     /** The thread stopper */
     private boolean pThreadRunning = false;
+
+    /**
+     * Called by iPOJO when a {@link IForkerEventListener} service is bound.
+     * 
+     * Notifies the new listener of all known forkers.
+     * 
+     * @param aListener
+     *            An event listener
+     */
+    @Bind(id = IPOJO_ID_LISTENERS)
+    protected synchronized void bindListener(
+            final IForkerEventListener aListener) {
+
+        // Get all forkers
+        final String[] forkers = pDirectory.getAllIsolates(
+                IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER, true, true);
+
+        if (forkers != null) {
+            // Call back the listener to register all of them
+            for (final String forker : forkers) {
+
+                final String node = pDirectory.getIsolateNode(forker);
+                final String host = pDirectory.getHostForNode(node);
+
+                aListener.handleForkerEvent(EForkerEventType.REGISTERED,
+                        forker, node, host);
+            }
+        }
+    }
 
     /**
      * Extracts a string from the given buffer
@@ -149,28 +185,34 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
      *            The kind of event
      * @param aForkerId
      *            The forker isolate ID
-     * @param aForkerHost
-     *            The forker host
+     * @param aForkerNode
+     *            The forker node name
      */
-    protected void fireForkerEvent(final EForkerEventType aEventType,
-            final String aForkerId, final String aForkerHost) {
+    protected synchronized void fireForkerEvent(
+            final EForkerEventType aEventType, final String aForkerId,
+            final String aForkerNode) {
+
+        // Get the host name
+        final String forkerHost = pDirectory.getHostForNode(aForkerNode);
+
+        // Copy the active listeners
+        final IForkerEventListener[] listeners = Arrays.copyOf(pListeners,
+                pListeners.length);
 
         pEventExecutor.submit(new Runnable() {
 
             @Override
             public void run() {
 
-                synchronized (pListeners) {
-                    for (final IForkerEventListener listener : pListeners) {
-                        try {
-                            listener.handleForkerEvent(aEventType, aForkerId,
-                                    aForkerHost);
+                for (final IForkerEventListener listener : listeners) {
+                    try {
+                        listener.handleForkerEvent(aEventType, aForkerId,
+                                aForkerNode, forkerHost);
 
-                        } catch (final Exception e) {
-                            // A listener failed
-                            pLogger.logSevere(this, "fireForkerEvent",
-                                    "A forker event listener failed:\n", e);
-                        }
+                    } catch (final Exception e) {
+                        // A listener failed
+                        pLogger.logSevere(this, "fireForkerEvent",
+                                "A forker event listener failed:\n", e);
                     }
                 }
             }
@@ -234,14 +276,14 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
                 // No results at all
                 pLogger.logWarn(this, "getForkerIntResult",
                         "No results from forker");
-                return IForker.REQUEST_NO_RESULT;
+                return IForkerStatus.REQUEST_NO_RESULT;
             }
 
             final Object[] forkerResults = results.get(aForkerId);
             if (forkerResults == null || forkerResults.length != 1) {
                 pLogger.logWarn(this, "getForkerIntResult",
                         "Unreadable result=", forkerResults);
-                return IForker.REQUEST_NO_RESULT;
+                return IForkerStatus.REQUEST_NO_RESULT;
             }
 
             if (forkerResults[0] instanceof Number) {
@@ -252,7 +294,7 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
                 // Bad result
                 pLogger.logWarn(this, "getForkerIntResult", "Invalid result=",
                         forkerResults[0]);
-                return IForker.REQUEST_NO_RESULT;
+                return IForkerStatus.REQUEST_NO_RESULT;
             }
 
         } catch (final InterruptedException ex) {
@@ -261,28 +303,28 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
                     "Interrupted while waiting for an answer of forker=",
                     aForkerId, "sending signal=", aSignalName);
 
-            return IForker.REQUEST_TIMEOUT;
+            return IForkerStatus.REQUEST_TIMEOUT;
 
         } catch (final TimeoutException e) {
             // Forker timed out
             pLogger.logWarn(this, "getForkerIntResult", "Forker=", aForkerId,
                     "timed out sending signal=", aSignalName);
 
-            return IForker.REQUEST_TIMEOUT;
+            return IForkerStatus.REQUEST_TIMEOUT;
 
         } catch (final ExecutionException e) {
             // Error sending the request
             pLogger.logSevere(this, "getForkerIntResult",
                     "Error sending signal=", aSignalName, "to=", aForkerId,
                     ":", e);
-            return IForker.REQUEST_ERROR;
+            return IForkerStatus.REQUEST_ERROR;
         }
     }
 
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.services.forker.IForker#getHostName()
+     * @see org.psem2m.forker.IForker#getHostName()
      */
     @Override
     public String getNodeName() {
@@ -304,8 +346,8 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
         pLogger.logWarn(this, "handleError",
                 "Error while receiving a UDP packet:", aException);
 
-        // Continue...
-        return true;
+        // Continue if the exception is not "important"
+        return !(aException instanceof SocketException || aException instanceof NullPointerException);
     }
 
     /**
@@ -322,6 +364,16 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
         /* Extract packet content */
         // ... the port (2 bytes)
         final int port = aData.getShort();
+
+        // ... the application ID (string)
+        final String applicationId = extractString(aData);
+
+        // Check if the application corresponds to us
+        if (!pConfig.getApplication().getApplicationId().equals(applicationId)) {
+            // Not for us, ignore.
+            // Avoid to log, as this will happen every heart beat
+            return;
+        }
 
         // ... the isolate ID (string)
         final String forkerId = extractString(aData);
@@ -426,8 +478,7 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * org.psem2m.isolates.services.forker.IForker#isOnHost(java.lang.String,
+     * @see org.psem2m.forker.IForker#isOnHost(java.lang.String,
      * java.lang.String)
      */
     @Override
@@ -456,7 +507,7 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.services.forker.IForker#ping(java.lang.String)
+     * @see org.psem2m.forker.IForker#ping(java.lang.String)
      */
     @Override
     public int ping(final String aIsolateId) {
@@ -501,6 +552,11 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
         // Register the forker (it can already be in the directory)
         if (pDirectory
                 .registerIsolate(aForkerId, aForkerNode, aPort, "FORKERS")) {
+            // Send it a SYN-ACK
+            pDirectory.synchronizingIsolatePresence(aForkerId);
+            pSender.fire(ISignalDirectoryConstants.SIGNAL_REGISTER_SYNACK,
+                    null, aForkerId);
+
             // Fresh forker: we can send it a contact signal as someone else
             // may not known it
             sendContactSignal(aHost, aPort);
@@ -516,30 +572,6 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * org.psem2m.isolates.services.forker.IForker#registerListener(org.psem2m
-     * .isolates.services.forker.IForkerEventListener)
-     */
-    @Override
-    public synchronized boolean registerListener(
-            final IForkerEventListener aListener) {
-
-        final String[] forkers = pDirectory.getAllIsolates(
-                IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER, true);
-
-        for (final String forker : forkers) {
-            aListener
-                    .handleForkerEvent(EForkerEventType.REGISTERED, forker,
-                            pDirectory.getHostForNode(pDirectory
-                                    .getIsolateNode(forker)));
-        }
-
-        return pListeners.add(aListener);
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
      * @see java.lang.Runnable#run()
      */
     @Override
@@ -550,22 +582,31 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
         while (pThreadRunning) {
 
             synchronized (pForkersLST) {
+                final long currentTime = System.currentTimeMillis();
+
                 for (final Entry<String, Long> entry : pForkersLST.entrySet()) {
                     // First loop to detect forkers to delete
                     final String forkerId = entry.getKey();
-                    final long lastSeen = entry.getValue();
+                    final Long lastSeen = entry.getValue();
 
-                    if (System.currentTimeMillis() - lastSeen > FORKER_TTL) {
+                    if (lastSeen == null) {
+                        // Invalid entry, ignore it
+                        pLogger.logWarn(this, "run",
+                                "Found a null 'last seen' value for forker=",
+                                forkerId);
+
+                    } else if (currentTime - lastSeen > FORKER_TTL) {
                         // TTL reached
                         toDelete.add(forkerId);
+
+                        pLogger.logInfo(this, "run", "Forker=", forkerId,
+                                "reached TTL ->", (currentTime - lastSeen),
+                                "ms");
                     }
                 }
 
                 for (final String forkerId : toDelete) {
                     // Unregister the forker
-                    pLogger.logInfo(this, "run", "Forker=", forkerId,
-                            "reached TTL");
-                    pForkersLST.remove(forkerId);
                     unregisterForker(forkerId);
                 }
             }
@@ -620,7 +661,7 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.services.forker.IForker#setPlatformStopping()
+     * @see org.psem2m.forker.IForker#setPlatformStopping()
      */
     @Override
     public void setPlatformStopping() {
@@ -632,8 +673,7 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * org.psem2m.isolates.services.forker.IForker#startIsolate(java.util.Map)
+     * @see org.psem2m.forker.IForker#startIsolate(java.util.Map)
      */
     @Override
     public int startIsolate(final Map<String, Object> aIsolateConfiguration) {
@@ -647,7 +687,7 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
         if (forker == null) {
             pLogger.logSevere(this, "startIsolate",
                     "No forker known for host=", hostName);
-            return -20;
+            return IForkerStatus.NO_MATCHING_FORKER;
         }
 
         // Get the started isolate ID
@@ -667,8 +707,7 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * org.psem2m.isolates.services.forker.IForker#stopIsolate(java.lang.String)
+     * @see org.psem2m.forker.IForker#stopIsolate(java.lang.String)
      */
     @Override
     public void stopIsolate(final String aIsolateId) {
@@ -708,36 +747,32 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
                     forkerNode);
         }
 
+        // Remove the references to the forker
+        pForkersLST.remove(aForkerId);
+
         // Clean up corresponding isolates
         final String[] isolates = pDirectory.getIsolatesOnNode(forkerNode);
         if (isolates != null) {
 
             for (final String isolate : isolates) {
                 // Forget this isolate
+                pLogger.logDebug(this, "unregisterForker", "Forget isolate=",
+                        isolate);
+
                 pIsolateForkers.remove(isolate);
                 pDirectory.unregisterIsolate(isolate);
             }
         }
-    }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.psem2m.isolates.services.forker.IForker#registerListener(org.psem2m
-     * .isolates.services.forker.IForkerEventListener)
-     */
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.psem2m.isolates.services.forker.IForker#unregisterListener(org.psem2m
-     * .isolates.services.forker.IForkerEventListener)
-     */
-    @Override
-    public boolean unregisterListener(final IForkerEventListener aListener) {
-
-        return pListeners.remove(aListener);
+        // Send the isolate lost signals
+        pSender.fireGroup(ISignalsConstants.ISOLATE_LOST_SIGNAL, aForkerId,
+                EBaseGroup.ALL);
+        if (isolates != null) {
+            for (final String isolate : isolates) {
+                pSender.fireGroup(ISignalsConstants.ISOLATE_LOST_SIGNAL,
+                        isolate, EBaseGroup.ALL);
+            }
+        }
     }
 
     /** Component validation */
@@ -749,18 +784,9 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
 
         // Start the UDP heart beat listener
         // Get the multicast group and port
-        final InetAddress group;
         final int port = pConfig.getApplication().getMulticastPort();
-        try {
-            group = InetAddress.getByName(pConfig.getApplication()
-                    .getMulticastGroup());
-
-        } catch (final UnknownHostException ex) {
-            pLogger.logSevere(this, "validate",
-                    "Couldn't read the multicast group=", pConfig
-                            .getApplication().getMulticastGroup());
-            return;
-        }
+        final SocketAddress group = new InetSocketAddress(pConfig
+                .getApplication().getMulticastGroup(), port);
 
         // Create the multicast receiver
         try {
@@ -768,18 +794,23 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
             pMulticast.start();
 
         } catch (final IOException ex) {
+
+            pLogger.logSevere(this, "validate",
+                    "Couldn't start the multicast receiver for group=", group,
+                    ex);
+
             try {
                 // Clean up
                 pMulticast.stop();
 
             } catch (final IOException e) {
                 // Ignore
+                pLogger.logInfo(this, "validate",
+                        "Couldn't clean up the multicast receiver for group=",
+                        group, ex);
             }
 
             pMulticast = null;
-            pLogger.logSevere(this, "validate",
-                    "Couldn't start the multicast receiver for group=", group,
-                    ex);
             return;
         }
 

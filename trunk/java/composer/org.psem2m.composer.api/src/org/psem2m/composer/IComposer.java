@@ -26,8 +26,11 @@ public interface IComposer {
      * 
      * @param aComponentsSetBean
      *            The set to instantiate
+     * @throws InvalidComponentsSetException
+     *             Invalid components set
      */
-    void instantiateComponentsSet(final ComponentsSetBean aComponentsSetBean);
+    void instantiateComponentsSet(ComponentsSetBean aComponentsSetBean)
+            throws InvalidComponentsSetException;
 
     /**
      * Tries to load the given composition file
@@ -46,6 +49,6 @@ public interface IComposer {
      * @throws Exception
      *             An error occurred (depends on implementation)
      */
-    void removeComponentsSet(final ComponentsSetBean aComponentsSetBean)
-            throws Exception;
+    void removeComponentsSet(ComponentsSetBean aComponentsSetBean)
+            throws InvalidComponentsSetException;
 }

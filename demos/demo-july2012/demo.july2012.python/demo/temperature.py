@@ -29,6 +29,7 @@ from pelix.ipopo.decorators import ComponentFactory, Provides, \
 @Property("_name", constants.IPOPO_INSTANCE_NAME)
 @Property("_min", "temper.value.min", 22)
 @Property("_max", "temper.value.max", 35)
+@Property("_last_value", "temper.value.last", 0)
 @Provides("org.psem2m.demo.sensors.ISensor")
 class FakeTemp(object):
     """
@@ -111,6 +112,7 @@ class FakeTemp(object):
         """
         Validation
         """
+        self._last_value = 0
         _logger.info("Component %s validated", self._name)
 
 
@@ -119,6 +121,7 @@ class FakeTemp(object):
         """
         Invalidation
         """
+        self._last_value = 0
         _logger.info("Component %s invalidated", self._name)
 
 

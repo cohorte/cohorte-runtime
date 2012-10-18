@@ -11,7 +11,9 @@ Created on 12 juin 2012
 # ------------------------------------------------------------------------------
 
 from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
-    Invalidate, Instantiate
+    Invalidate, Instantiate, Requires, Bind
+
+import pelix.framework as pelix
 
 # ------------------------------------------------------------------------------
 
@@ -28,7 +30,7 @@ ALL = "ALL"
 FORKERS = "FORKERS"
 """ All forkers, including the current isolate if it is a forker """
 
-ISOLATES = "FORKERS"
+ISOLATES = "ISOLATES"
 """
 All isolates, including monitors and the current one, excluding forkers.
 If the current isolate is a forker, it is excluded.
@@ -54,8 +56,21 @@ MONITOR_ID_PREFIX = "org.psem2m.internals.isolates.monitor"
 
 # ------------------------------------------------------------------------------
 
+SPEC_LISTENER = "org.psem2m.isolates.services.monitoring." \
+                "IIsolatePresenceListener"
+
+# FIXME: use Jabsorb enumeration dictionaries
+REGISTERED = 0
+""" Isolate presence event: Isolate registered """
+
+UNREGISTERED = 1
+""" Isolate presence event: Isolate unregistered or lost """
+
+# ------------------------------------------------------------------------------
+
 @ComponentFactory("psem2m-signals-directory-factory")
 @Instantiate("psem2m-signals-directory")
+@Requires("_listeners", SPEC_LISTENER, aggregate=True, optional=True)
 @Provides("org.psem2m.signals.ISignalDirectory")
 class SignalsDirectory(object):
     """
@@ -70,8 +85,17 @@ class SignalsDirectory(object):
         # The big lock
         self._lock = threading.RLock()
 
+        # Listeners
+        self._listeners = []
+
         # Isolate ID -> (node, port)
         self._accesses = {}
+
+        # Local isolate ID
+        self._current_isolate_id = None
+
+        # Current isolate access port
+        self._current_isolate_port = -1
 
         # Group Name -> [isolates]
         self._groups = {}
@@ -82,8 +106,53 @@ class SignalsDirectory(object):
         # Node name -> host
         self._nodes_host = {}
 
-        # Current isolate access port
-        self._current_isolate_port = -1
+        # Isolates waiting for validation
+        self._waiting_isolates = set()
+
+
+    @Bind
+    def _bind(self, svc, svc_ref):
+        """
+        Notifies newly bound listener of known isolates presence
+        """
+        specs = svc_ref.get_property(pelix.OBJECTCLASS)
+        if SPEC_LISTENER in specs:
+            # New listener bound
+            with self._lock:
+                for isolate_id in self.get_all_isolates(None, False):
+                    isolate_node = self.get_isolate_node(isolate_id)
+                    svc.handle_isolate_presence(isolate_id, isolate_node,
+                                                REGISTERED)
+
+
+    def _notify_listeners(self, isolate_id, isolate_node, event):
+        """
+        Notifies listeners of an isolate presence event
+        
+        :param isolate_id: ID of the isolate
+        :param isolate_node: Node of the isolate
+        :param event: Kind of event
+        """
+        if not self._listeners:
+            # No listeners
+            return
+
+        def notification_loop(listeners):
+            """
+            Notifies isolate presence listeners (should be ran in a thread)
+            """
+            # Use a copy of the listeners
+            for listener in listeners:
+                try:
+                    listener.handle_isolate_presence(isolate_id, isolate_node,
+                                                     event)
+                except:
+                    # Just log...
+                    _logger.exception("Error notifying a presence listener")
+
+        # Notify in another thread, with a copy of the listeners list
+        listeners = self._listeners[:]
+        threading.Thread(target=notification_loop, args=[listeners]).start()
 
 
     def dump(self):
@@ -116,6 +185,68 @@ class SignalsDirectory(object):
                 result[registry] = getattr(self, '_{0}'.format(registry)).copy()
 
         return result
+
+
+    def store_dump(self, dump, ignored_nodes=None, ignored_ids=None):
+        """
+        Stores the result of a dump
+        
+        :param dump: A dictionary, result of dump()
+        :param ignored_nodes: A list of ignored nodes
+        :param ignored_ids: A list of ignored IDs
+        """
+        with self._lock:
+            # 0. Always ignore the current isolate and the current node
+            local_id = self.get_isolate_id()
+            local_node = self.get_local_node()
+
+            if ignored_nodes is None:
+                ignored_nodes = [local_node]
+            elif local_node not in ignored_nodes:
+                ignored_nodes.append(local_node)
+
+            if ignored_ids is None:
+                ignored_ids = [local_id]
+            elif local_id not in ignored_ids:
+                ignored_ids.append(local_id)
+
+            # 1. Setup nodes hosts
+            for node, dumped_host in dump["nodes_host"].items():
+                if node not in ignored_nodes:
+                    self.set_node_address(node, dumped_host)
+
+            # 2. Prepare isolates information
+            filtered_isolates = {}
+            for isolate_id, access in dump["accesses"].items():
+                # Access URL
+                if isolate_id not in ignored_ids:
+                    filtered_isolates[isolate_id] = access
+
+            for group, isolates in dump["groups"].items():
+                # Reconstruct groups
+                for isolate_id in isolates:
+                    if isolate_id in filtered_isolates:
+                        filtered_isolates[isolate_id].setdefault('groups', []) \
+                                                                 .append(group)
+
+            # 3. Register all new isolates
+            new_isolates = []
+            for isolate_id, info in filtered_isolates.items():
+                try:
+                    if self.register_isolate(isolate_id, info["node"],
+                                             info["port"],
+                                             info.get("groups", None)):
+                        new_isolates.append(isolate_id)
+
+                except KeyError:
+                    _logger.warning("Missing information to register '%s': %s",
+                                    isolate_id, info)
+
+            # Return the list of newly registered isolates
+            if not new_isolates:
+                return None
+
+            return new_isolates
 
 
     def get_all_isolates(self, prefix, include_current):
@@ -318,7 +449,7 @@ class SignalsDirectory(object):
         
         :return: the current isolate ID
         """
-        return self._context.get_property('psem2m.isolate.id')
+        return self._current_isolate_id
 
 
     def get_isolate_node(self, isolate):
@@ -347,7 +478,7 @@ class SignalsDirectory(object):
         :return: A list of IDs, or None
         """
         with self._lock:
-            isolates = self._nodes.get(node, None)
+            isolates = self._nodes_isolates.get(node, None)
             if isolates is not None:
                 # Return a copy, to avoid unwanted modifications
                 return isolates[:]
@@ -379,6 +510,17 @@ class SignalsDirectory(object):
         self._context = None
 
 
+    def is_registered(self, isolate_id):
+        """
+        Tests if the given isolate ID is registered in the directory
+        
+        :param isolate_id: An isolate ID
+        :return: True if the ID is known, else false
+        """
+        with self._lock:
+            return isolate_id in self._accesses
+
+
     def register_isolate(self, isolate_id, node, port, groups):
         """
         Registers an isolate in the directory.
@@ -391,25 +533,50 @@ class SignalsDirectory(object):
         :raise ValueError: An argument is invalid
         """
         if not isolate_id:
-            raise ValueError("Invalid IsolateID : '%s'" % isolate_id)
+            raise ValueError("Empty isolate ID: '{0}'".format(isolate_id))
 
         if not node:
-            raise ValueError("Invalid node name for '%s' : '%s'" \
-                             % (isolate_id, node))
+            raise ValueError("Empty node name for isolate '{0}'"\
+                             .format(isolate_id))
 
         if isolate_id == self.get_isolate_id():
             # Ignore our own registration
-            return True
+            return False
 
         with self._lock:
+            # Prepare the new access tuple
+            new_access = (node, port)
 
-            if isolate_id in self._accesses:
+            # Get the previous access, if any
+            old_access = self._accesses.get(isolate_id, None)
+            if old_access is not None:
                 # Already known isolate
-                _logger.warning("Isolate already known: '%s'", isolate_id)
-                return False
+                if old_access == new_access:
+                    # No update needed
+                    return False
+
+                else:
+                    # Log the update
+                    _logger.debug("Already known isolate '%s'"
+                                  " - Updated from %s to %s",
+                                  isolate_id, self._accesses[isolate_id],
+                                  new_access)
+
+                old_node = old_access[0]
+                if node != old_node:
+                    # Isolate moved to another node -> remove the old entry
+                    _logger.info("Isolate '%s' moved from %s to %s",
+                                 isolate_id, old_node, node)
+
+                    node_isolates = self._nodes_isolates.get(old_node, None)
+                    if node_isolates is not None:
+                        node_isolates.remove(isolate_id)
+
+                    # Notify the unregistration
+                    self._notify_listeners(isolate_id, old_node, UNREGISTERED)
 
             # Store the isolate access
-            self._accesses[isolate_id] = (node, port)
+            self._accesses[isolate_id] = new_access
 
             # Store the node
             node_isolates = self._nodes_isolates.get(node, None)
@@ -441,8 +608,11 @@ class SignalsDirectory(object):
                         # Store the isolate
                         isolates.append(isolate_id)
 
-            else:
-                _logger.warning("The isolate '%s' has no group.", isolate_id)
+            _logger.debug("Registered isolate ID=%s, Access=%s", isolate_id,
+                          new_access)
+
+            # Isolate waits for validation
+            self._waiting_isolates.add(isolate_id)
 
         return True
 
@@ -522,33 +692,54 @@ class SignalsDirectory(object):
         :param isolate_id: The ID of the isolate to unregister
         :return: True if the isolate has been unregistered
         """
-        if not isolate_id:
-            # Nothing to do
-            return False
-
         with self._lock:
-            result = False
+            if not isolate_id or isolate_id not in self._accesses:
+                # Nothing to do
+                return False
 
             # Remove the isolate access
-            if isolate_id in self._accesses:
-                del self._accesses[isolate_id]
-                result = True
+            del self._accesses[isolate_id]
 
-            # Remove references in nodes
-            for isolates in self._nodes_isolates.values():
+            # Remove isolate reference in its node
+            isolate_node = None
+            for node, isolates in self._nodes_isolates.items():
                 if isolate_id in isolates:
-                    # The isolate belongs to the group
+                    # Found the isolate node
                     isolates.remove(isolate_id)
-                    result = True
+                    isolate_node = node
+                    break
 
             # Remove references in groups
             for isolates in self._groups.values():
                 if isolate_id in isolates:
                     # The isolate belongs to the group
                     isolates.remove(isolate_id)
-                    result = True
 
-            return result
+            if isolate_id not in self._waiting_isolates:
+                # Notify listeners
+                self._notify_listeners(isolate_id, isolate_node, UNREGISTERED)
+
+            else:
+                self._waiting_isolates.remove(isolate_id)
+
+            return True
+
+
+    def validate_isolate_presence(self, isolate_id):
+        """
+        Notifies the directory that an isolate has acknowledged the registration
+        of the current isolate.
+        
+        :param aIsolateId: An isolate ID
+        """
+        with self._lock:
+            if isolate_id in self._waiting_isolates:
+                self._waiting_isolates.remove(isolate_id)
+
+                _logger.debug("Isolate %s validated", isolate_id)
+                self._notify_listeners(isolate_id,
+                                       self.get_isolate_node(isolate_id),
+                                       REGISTERED)
 
 
     @Validate
@@ -557,6 +748,9 @@ class SignalsDirectory(object):
         Component validated
         """
         self._context = context
+
+        # Store the current isolate ID
+        self._current_isolate_id = context.get_property('psem2m.isolate.id')
 
         # Special registration for the current isolate
         self._accesses[self.get_isolate_id()] = (None, -1)

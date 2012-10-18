@@ -11,6 +11,7 @@ from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
 import json
 import os.path
 import socket
+import threading
 
 # ------------------------------------------------------------------------------
 
@@ -33,7 +34,7 @@ _logger = logging.getLogger(__name__)
 @Provides("org.psem2m.isolates.services.dirs.IFileFinderSvc")
 class FileFinder(object):
     """
-    The PSEM2M file finder service
+    The PSEM2M file _finder service
     """
     def __init__(self):
         """
@@ -279,6 +280,20 @@ class _BundleDescription(object):
         return self.optional
 
 
+    def update(self):
+        """
+        Updates the RAW dictionary according to members
+        """
+        self.__raw_dictionary["symbolicName"] = self.name
+        self.__raw_dictionary["optional"] = self.optional
+
+        if self.properties:
+            self.__raw_dictionary["properties"] = self.properties
+
+        elif "properties" in self.__raw_dictionary:
+            del self.__raw_dictionary["properties"]
+
+
 # ------------------------------------------------------------------------------
 
 class _IsolateDescription(object):
@@ -335,6 +350,15 @@ class _IsolateDescription(object):
         return self.bundles
 
 
+    def get_environment(self):
+        """
+        Retrieves the configured environment dictionary, or an empty one
+        
+        :return: The environment dictionary
+        """
+        return self.__raw_dictionary.get("environment", {})
+
+
     def get_id(self):
         """
         Retrieves the isolate ID. Can't be null nor empty.
@@ -386,7 +410,7 @@ class _IsolateDescription(object):
 @ComponentFactory("JsonConfigFactory")
 @Instantiate("JsonConfig")
 @Provides("org.psem2m.isolates.services.conf.ISvcConfig")
-@Requires("finder", "org.psem2m.isolates.services.dirs.IFileFinderSvc")
+@Requires("_finder", "org.psem2m.isolates.services.dirs.IFileFinderSvc")
 class JsonConfig(object):
     """
     JSON configuration reader
@@ -395,8 +419,15 @@ class JsonConfig(object):
         """
         Constructor
         """
+        self._finder = None
+        self._context = None
+
+        # Current description
         self.application = None
-        self.finder = None
+        self._current_descr_lock = threading.Lock()
+        self._current_descr = None
+
+        # File inclusion stack
         self._include_stack = None
 
 
@@ -414,6 +445,7 @@ class JsonConfig(object):
             return overriding_props
 
         if overriding_props is not None:
+            overridden_props = overridden_props.copy()
             overridden_props.update(overriding_props)
 
         return overridden_props
@@ -433,18 +465,18 @@ class JsonConfig(object):
         else:
             base_file = "conf"
 
-        files = self.finder.find(file_name, base_file)
+        files = self._finder.find(file_name, base_file)
         if not files:
             raise IOError("File not found: %s" % file_name)
 
         conf_file = os.path.abspath(files[0])
         self._include_stack.append(conf_file)
 
-        with open(conf_file) as fp:
-            return json.load(fp)
+        with open(conf_file) as filep:
+            return json.load(filep)
 
 
-    def _parse_bundle(self, bundle_object):
+    def _parse_bundle(self, bundle_object, overridden_props):
         """
         Parses a bundle entry
         
@@ -456,8 +488,46 @@ class JsonConfig(object):
         bundle.name = bundle_object.get("symbolicName")
         bundle.optional = bundle_object.get("optional", False)
         bundle.properties = bundle_object.get("properties", None)
+        if bundle.properties is None:
+            bundle.properties = overridden_props
+        elif overridden_props:
+            bundle.properties.update(overridden_props)
+
+        # Update the bundle RAW dictionary
+        bundle.update()
 
         return bundle
+
+
+    def _parse_bundles(self, bundles_array, overriding_props):
+        """
+        Parses an array of bundles
+        
+        :param bundles_array: The array of bundles entries
+        :return: The resolved bundles array (without imports)
+        """
+        new_array = []
+
+        for bundle in bundles_array:
+            # Overridden properties
+            bundle_props = self._compute_overridden_props(bundle,
+                                                         overriding_props)
+
+            if 'from' in bundle:
+                # Case 1 : Import a list of bundles from another file
+                new_array.extend(self._parse_bundles(
+                                            self._parse_file(bundle['from']),
+                                            bundle_props))
+
+                # Remove the included file from the stack
+                if self._include_stack:
+                    self._include_stack.pop()
+
+            else:
+                # Case 2 : everything is described here
+                new_array.append(self._parse_bundle(bundle, bundle_props))
+
+        return new_array
 
 
     def _parse_isolate(self, isolate_object, overriding_props):
@@ -502,9 +572,18 @@ class JsonConfig(object):
         # Store data
         isolate.port = port
 
+        # Compute overriding properties
+        isolate_props = self._compute_overridden_props(isolate_object,
+                                                       overriding_props)
+
         # Get the isolate bundles
-        for bundle_descr in isolate_object.get("bundles"):
-            isolate.add_bundle(self._parse_bundle(bundle_descr))
+        bundles = self._parse_bundles(isolate_object['bundles'], isolate_props)
+        for bundle in bundles:
+            # Update the bean representation
+            isolate.add_bundle(bundle)
+
+        # Update the raw dictionary
+        isolate_object['bundles'] = [bundle.get_raw() for bundle in bundles]
 
         return isolate
 
@@ -515,15 +594,19 @@ class JsonConfig(object):
         
         :param isolates_array: The array of isolates entries
         """
+        index = 0
         for isolate in isolates_array:
             # Compute overriding properties
             overriding_props = self._compute_overridden_props(isolate, None)
 
             if "from" in isolate:
                 # Case 1 : the isolate is described in another file
-                isolate_desc = self._parse_isolate(
+                isolate_descr = self._parse_isolate(
                                             self._parse_file(isolate["from"]),
                                             overriding_props)
+
+                # Modify the array (replace the 'from' by its content)
+                isolates_array[index] = isolate_descr
 
                 # Remove the included file from the stack
                 if self._include_stack:
@@ -531,9 +614,10 @@ class JsonConfig(object):
 
             else:
                 # Case 2 : everything is described here
-                isolate_desc = self._parse_isolate(isolate, overriding_props)
+                isolate_descr = self._parse_isolate(isolate, overriding_props)
 
-            self.application.isolates[isolate_desc.id] = isolate_desc
+            self.application.isolates[isolate_descr.id] = isolate_descr
+            index += 1
 
 
     def get_application(self):
@@ -543,6 +627,23 @@ class JsonConfig(object):
         :return: the current application description
         """
         return self.application
+
+
+    def get_current_isolate(self):
+        """
+        Retrieves the currently used isolate configuration
+        
+        :return: the currently used isolate configuration
+        """
+        with self._current_descr_lock:
+            if self._current_descr is not None:
+                # We have a specific configuration
+                return self._current_descr
+
+            else:
+                return self.application.get_isolate(
+                                        self._context.get_property(
+                                                        'psem2m.isolate.id'))
 
 
     def parse_isolate(self, isolate_config):
@@ -596,6 +697,16 @@ class JsonConfig(object):
             self._include_stack = None
 
 
+    def set_current_isolate(self, isolate_descr):
+        """
+        Sets the currently used isolate configuration
+        
+        :param isolate_descr: The current isolate description
+        """
+        with self._current_descr_lock:
+            self._current_descr = isolate_descr
+
+
     @Validate
     def validate(self, context):
         """
@@ -603,6 +714,7 @@ class JsonConfig(object):
         
         :param context: The bundle context
         """
+        self._context = context
         self.refresh()
 
 
@@ -614,3 +726,5 @@ class JsonConfig(object):
         :param context: The bundle context
         """
         self.application = None
+        self._current_descr = None
+        self._include_stack = None

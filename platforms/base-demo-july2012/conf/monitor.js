@@ -5,7 +5,9 @@
     "httpPort":9000,
     "vmArgs":[
         "-Xms32M",
-        "-Xmx64M"
+        "-Xmx64M",
+        "-XX:+UnlockDiagnosticVMOptions",
+        "-XX:+UnsyncloadClass"
     ],
     "bundles":[
         {
@@ -13,6 +15,9 @@
         },
         {
             "from":"jsonrpc.js"
+        },
+        {
+            "symbolicName":"org.psem2m.forker.api"
         },
         {
             "symbolicName":"org.psem2m.forkers.aggregator"
@@ -34,6 +39,15 @@
         },
         {
             "symbolicName":"org.psem2m.composer.core"
+        },
+        {
+            "symbolicName":"org.apache.felix.shell"
+        },
+        {
+            "symbolicName":"org.apache.felix.shell.remote",
+            "properties":{
+                "osgi.shell.telnet.port":"6000"
+            }
         }
     ]
 }

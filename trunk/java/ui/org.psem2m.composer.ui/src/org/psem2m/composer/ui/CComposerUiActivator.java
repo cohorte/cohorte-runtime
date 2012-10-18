@@ -2,15 +2,14 @@ package org.psem2m.composer.ui;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CActivatorBase;
 
 /**
  * @author ogattaz
- *
+ * 
  */
-public class CComposerUiActivator extends CActivatorBase implements BundleActivator {
-
+public class CComposerUiActivator extends CActivatorBase implements
+        BundleActivator {
 
     /** Current instance **/
     private static CComposerUiActivator sSingleton = null;
@@ -23,35 +22,6 @@ public class CComposerUiActivator extends CActivatorBase implements BundleActiva
     public static CComposerUiActivator getInstance() {
 
         return sSingleton;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.utilities.CXObjectBase#destroy()
-     */
-    @Override
-    public void destroy() {
-
-        // nothing...
-    }
-
-    /**
-     * @return
-     */
-    @Override
-    public IIsolateLoggerSvc getIsolateLoggerSvc() {
-
-        return super.getIsolateLoggerSvc();
-    }
-
-    /**
-     * @return
-     */
-    @Override
-    public boolean hasIsolateLoggerSvc() {
-
-        return getIsolateLoggerSvc() != null;
     }
 
     /*
@@ -84,5 +54,4 @@ public class CComposerUiActivator extends CActivatorBase implements BundleActiva
         // Forget the singleton reference
         sSingleton = null;
     }
-
 }

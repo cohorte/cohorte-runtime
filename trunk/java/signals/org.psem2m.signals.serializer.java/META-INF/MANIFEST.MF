@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: PSEM2M - Signals - Java Serializer
+Bundle-Name: PSEM2M :: Signals :: Serializer :: Java
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: org.psem2m.signals.serializer.java
 Bundle-Vendor: isandlaTech.com
@@ -16,20 +16,21 @@ iPOJO-Components: instance { $component="org.psem2m.signals.serializer
  .java.JavaSignalSerializer" $name="psem2m-signals-data-java" }compone
  nt { $classname="org.psem2m.signals.serializer.java.JavaSignalSeriali
  zer" $name="psem2m-signals-data-java-factory" $public="false" provide
- s { $specifications="{org.psem2m.signals.ISignalDataSerializer}" }req
- uires { $field="pLogger" $optional="true" }callback { $transition="in
- validate" $method="invalidatePojo" }callback { $transition="validate"
-  $method="validatePojo" }manipulation { $super="org.psem2m.isolates.b
- ase.activators.CPojoBase" interface { $name="org.psem2m.signals.ISign
- alDataSerializer" }field { $name="DEFAULT_ERROR_CODE" $type="int" }fi
- eld { $name="pBundleContext" $type="org.osgi.framework.BundleContext"
-  }field { $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLog
- gerSvc" }method { $name="canHandleType" $return="boolean" $arguments=
- "{java.lang.String}" }method { $name="canSerialize" $return="boolean"
-  $arguments="{java.lang.Object}" }method { $name="getContentType" $re
- turn="java.lang.String" }method { $name="getPriority" $return="int" }
- method { $name="invalidatePojo" }method { $name="serializeData" $retu
- rn="byte[]" $arguments="{java.lang.Object}" }method { $name="unserial
- izeData" $return="java.lang.Object" $arguments="{byte[]}" }method { $
- name="validatePojo" }}}
+ s { $specifications="{org.psem2m.signals.ISignalSerializer}" property
+  { $name="psem2m.signals.serializer.priority" $field="pSerializerPrio
+ rity" $value="2147483647" $mandatory="true" }}requires { $field="pLog
+ ger" $optional="true" }callback { $transition="invalidate" $method="i
+ nvalidatePojo" }callback { $transition="validate" $method="validatePo
+ jo" }manipulation { $super="org.psem2m.isolates.base.activators.CPojo
+ Base" interface { $name="org.psem2m.signals.ISignalSerializer" }field
+  { $name="pBundleContext" $type="org.osgi.framework.BundleContext" }f
+ ield { $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLogger
+ Svc" }field { $name="pSerializerPriority" $type="int" }method { $name
+ ="canHandleType" $return="boolean" $arguments="{java.lang.String}" }m
+ ethod { $name="canSerialize" $return="boolean" $arguments="{java.lang
+ .Object}" }method { $name="getContentType" $return="java.lang.String"
+  }method { $name="getPriority" $return="int" }method { $name="invalid
+ atePojo" }method { $name="serializeData" $return="byte[]" $arguments=
+ "{java.lang.Object}" }method { $name="unserializeData" $return="java.
+ lang.Object" $arguments="{byte[]}" }method { $name="validatePojo" }}}
 

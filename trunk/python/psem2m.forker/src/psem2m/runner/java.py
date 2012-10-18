@@ -42,6 +42,9 @@ PROP_PLATFORM_ISOLATE_NODE = "org.psem2m.platform.isolate.node"
 PROP_PLATFORM_DEBUG_PORT = "org.psem2m.debug.port"
 """ PSEM2M debug port Java property """
 
+PROP_BROKER_URL = "org.psem2m.configuration.broker"
+""" URL to the configuration broker """
+
 # ------------------------------------------------------------------------------
 
 PLATFORM_FRAMEWORK_FILENAME = "platform.framework"
@@ -90,7 +93,7 @@ class JavaRunner(runner.Runner):
         return self._path
 
 
-    def _make_args(self, isolate_descr):
+    def _make_args(self, isolate_descr, working_dir):
         """
         Prepares the Java interpreter arguments.
         
@@ -102,6 +105,7 @@ class JavaRunner(runner.Runner):
           and its parameters.
         
         :param isolate_descr: A dictionary describing the isolate
+        :param working_dir: The isolate working directory
         :return: The parameters to give to the interpreter (array)
         :raise OSError: File not found
         :raise ValueError: Error preparing the arguments
@@ -123,6 +127,12 @@ class JavaRunner(runner.Runner):
                       PROP_PLATFORM_ISOLATE_NODE: isolate_descr["node"]
                       }
 
+        # Configuration Broker URL
+        broker_url = isolate_descr.get("psem2m.configuration.broker", None)
+        if broker_url is not None:
+            java_props[PROP_BROKER_URL] = broker_url
+
+        # Java properties arguments
         for key, value in java_props.items():
             args.append("-D{key}={value}".format(key=str(key).strip(),
                                                  value=str(value).strip()))
@@ -151,6 +161,12 @@ class JavaRunner(runner.Runner):
         :param context: The bundle context
         """
         self._path = self._utils.find_java_interpreter(None)
+        if not self._path:
+            _logger.debug('No Java interpreter found.')
+            self._path = None
+
+        else:
+            _logger.debug("Java interpreter: %s", self._path)
 
 
     @Invalidate
@@ -178,8 +194,8 @@ class OsgiRunner(JavaRunner):
         JavaRunner.__init__(self)
         self._kind_frameworks = {
                             # TODO: remove version numbers
-                            "felix": "org.apache.felix.main-3.2.2.jar",
-                            # "equinox":"org.eclipse.osgi_3.7.0.v20110613.jar"
+                            # TODO: try to find bundles by manifest
+                            "felix": "org.apache.felix.framework-4.0.3.jar",
                             "equinox":"org.eclipse.osgi_3.7.2.v20120110-1415.jar"
                         }
 
@@ -246,11 +262,12 @@ class OsgiRunner(JavaRunner):
         return framework_file
 
 
-    def _make_args(self, isolate_descr):
+    def _make_args(self, isolate_descr, working_dir):
         """
         Prepares the Java virtual machine arguments
         
         :param isolate_descr: A dictionary describing the isolate
+        :param working_dir: The isolate working directory
         :return: The parameters to give to the interpreter (array)
         :raise OSError: File not found
         :raise ValueError: Error preparing the arguments
@@ -300,4 +317,4 @@ class OsgiRunner(JavaRunner):
         new_descr["vmArgs"] = vm_args
 
         # Call the parent class
-        return super(OsgiRunner, self)._make_args(new_descr)
+        return super(OsgiRunner, self)._make_args(new_descr, working_dir)

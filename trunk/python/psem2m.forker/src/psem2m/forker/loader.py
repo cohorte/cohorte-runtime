@@ -17,15 +17,19 @@ __docformat__ = "restructuredtext en"
 from pelix.ipopo.decorators import ComponentFactory, Instantiate, \
     Requires, Validate, Invalidate
 
-# ------------------------------------------------------------------------------
-
 import pelix.framework as pelix
+
+from base.utils import to_unicode
+
+# ------------------------------------------------------------------------------
 
 import logging
 _logger = logging.getLogger(__name__)
 
 import json
+import os
 import sys
+import time
 
 if sys.version_info[0] == 3:
     # Python 3
@@ -39,29 +43,17 @@ else:
 
 # ------------------------------------------------------------------------------
 
-if sys.version_info[0] == 3:
-    # Python 3
-    def _to_string(data, encoding="UTF-8"):
-        """
-        Converts the given bytes array to a string
-        """
-        if type(data) is str:
-            # Nothing to do
-            return data
+ISOLATE_STATE_AGENT_DONE = 10
+""" "Agent Done" status value """
 
-        return str(data, encoding)
+ISOLATE_STATUS_CLASS = "org.psem2m.isolates.base.isolates.boot.IsolateStatus"
+""" IsolateStatus Java class name """
 
-else:
-    # Python 2
-    def _to_string(data, encoding="UTF-8"):
-        """
-        Converts the given bytes array to a string
-        """
-        if type(data) is unicode:
-            # Nothing to do
-            return data
+ISOLATE_STATUS_SIGNAL = "/psem2m/isolate/status"
+""" Isolate status PSEM2M signal name """
 
-        return data.decode(encoding)
+SPEC_SIGNAL_BROADCASTER = "org.psem2m.signals.ISignalBroadcaster"
+""" Signal broadcaster service specification """
 
 # ------------------------------------------------------------------------------
 
@@ -139,8 +131,14 @@ class IsolateLoader(object):
         not optional, the isolate is automatically reset.
         
         :param isolate_descr: Description of the current isolate
-        :return: True on success, else False
+        :return: True on success
+        :raise Exception: Something wrong occurred
         """
+        # Set up the environment variables
+        for name, value in isolate_descr.get_environment().items():
+            os.environ[name] = value
+
+        optionals = {}
         for bundle in isolate_descr.get_bundles():
             # Install the bundle
             try:
@@ -149,15 +147,18 @@ class IsolateLoader(object):
 
                 # Store the installed bundle
                 self._bundles.append(bnd)
+                optionals[bnd] = bundle.optional
 
-            except pelix.BundleException:
-                _logger.exception("Error installing bundle %s",
-                                  bundle.get_symbolic_name())
+            except pelix.BundleException as ex:
+                _logger.exception("Error installing bundle %s: %s",
+                                  bundle.get_symbolic_name(), ex)
 
                 if not bundle.optional:
                     # Reset isolate on error
                     self.reset()
-                    return False
+                    raise Exception("Error installing mandatory bundle {0}: " \
+                                    "{1}".format(bundle.get_symbolic_name(),
+                                                 ex))
 
         # Special thing before starting bundle : set up the HTTP port property
         port = isolate_descr.get_port()
@@ -169,19 +170,20 @@ class IsolateLoader(object):
         _logger.debug("HTTP Port set to %d", port)
 
         # Start bundles
-        for bundle in self._bundles:
+        for bnd in self._bundles:
             try:
-                bundle.start()
-                _logger.debug("Bundle %s started", bundle)
+                bnd.start()
+                _logger.debug("Bundle %s started", bnd)
 
-            except pelix.BundleException:
-                _logger.exception("Error starting bundle %s",
-                                  bundle.get_symbolic_name())
+            except pelix.BundleException as ex:
+                _logger.exception("Error starting bundle %s: %s",
+                                  bnd.get_symbolic_name(), ex)
 
-                if not bundle.optional:
+                if not optionals.get(bnd):
                     # Reset isolate on error
                     self.reset()
-                    return False
+                    raise Exception("Error starting mandatory bundle {0}: {1}" \
+                                    .format(bundle.get_symbolic_name(), ex))
 
         return True
 
@@ -218,7 +220,7 @@ class IsolateLoader(object):
             # Get the configuration
             conn.request("GET", isolate_url)
             response = conn.getresponse()
-            data = _to_string(response.read())
+            data = to_unicode(response.read())
             if response.status != 200:
                 return None
 
@@ -268,28 +270,82 @@ class IsolateLoader(object):
         return isolate_descr
 
 
+    def send_agent_done(self):
+        """
+        Tries to send an IsolateStatus signal with the status **AGENT_DONE**.
+        
+        Simply prints a message if the signal couldn't be sent.
+        
+        :return: True if the signal was sent, else False
+        """
+        try:
+            # Find the SignalSender service
+            ref = self.context.get_service_reference(SPEC_SIGNAL_BROADCASTER)
+            if ref is None:
+                _logger.warning("No signal broadcaster available")
+                return False
+
+            # Get the service instance
+            sender = self.context.get_service(ref)
+            if sender is None:
+                _logger.warning("Invalid signal broadcaster service")
+                return False
+
+        except pelix.BundleException as ex:
+            _logger.exception("Error grabbing the signal broadcaster: %s", ex)
+            return False
+
+        # Prepare the bean
+        isolate_id = self._config.get_current_isolate().get_id()
+        status_bean = {
+                       "javaClass": ISOLATE_STATUS_CLASS,
+                       "isolateId": isolate_id,
+                       "progress": float(100),
+                       "state": ISOLATE_STATE_AGENT_DONE,
+                       "statusUID": int(time.time() * 1000),
+                       "timestamp": int(time.time() * 1000)
+                       }
+
+        # Send the isolate status
+        sender.send(ISOLATE_STATUS_SIGNAL, status_bean, dir_group="ALL")
+
+        try:
+            # Release the service instance
+            self.context.unget_service(ref)
+
+        except pelix.BundleException as ex:
+            _logger.exception("Error freeing the signal broadcaster: %s", ex)
+
+        # Done !
+        return True
+
+
     def setup_isolate(self):
         """
         Configures the current isolate according to the configuration for the
         isolate ID indicated in the framework property ``psem2m.isolate.id``.
         
-        :return: True on success, False on error
+        :return: True on success
+        :raise Exception: Something wrong occurred
         """
         is_forker = self.context.get_property("psem2m.forker")
         isolate_id = self.context.get_property("psem2m.isolate.id")
         if isolate_id is None and not is_forker:
             # No isolate ID found and not a forker: do nothing
-            return False
+            raise ValueError("No isolate ID given")
 
         isolate_descr = self._find_configuration(isolate_id, is_forker)
         if isolate_descr is None:
             # No description for this isolate
-            _logger.info("No configuration found for '%s'", isolate_id)
-            return False
+            raise Exception("No configuration found for '{0}'" \
+                            .format(isolate_id))
 
         if not isolate_descr.get_node():
-            _logger.warning("No node given for isolate '%s'", isolate_id)
-            return False
+            raise Exception("No node given for isolate '{0}'" \
+                            .format(isolate_id))
+
+        # Set the configuration that will be used 
+        self._config.set_current_isolate(isolate_descr)
 
         # Reset isolate
         self.reset()
@@ -327,13 +383,21 @@ class IsolateLoader(object):
         """
         self.context = context
 
-        if not self.setup_isolate():
+        try:
+            self.setup_isolate()
+
+        except Exception as ex:
             # An error occurred, stop the framework
-            _logger.error("An error occurred starting the bundle: Abandon.")
+            _logger.exception("An error occurred starting the bundle: Abandon.")
 
             # FIXME: Pelix should stop there
-            raise pelix.FrameworkException("Loader had to stop the framework",
-                                           True)
+            raise pelix.FrameworkException("Error setting up the isolate: {0}" \
+                                           .format(ex), True)
+
+        else:
+            # Send the "agent done" isolate status signal
+            self.send_agent_done()
+
 
     @Invalidate
     def invalidate(self, context):

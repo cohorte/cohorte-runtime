@@ -27,15 +27,7 @@ public abstract class CActivatorBase extends CXObjectBase implements
      * @author isandlatech (www.isandlatech.com) - ogattaz
      * 
      */
-    class CIsolateLoggerListner implements ServiceListener {
-
-        /**
-         * Explicit default constructor
-         */
-        CIsolateLoggerListner() {
-
-            super();
-        }
+    private class CIsolateLoggerListener implements ServiceListener {
 
         /*
          * (non-Javadoc)
@@ -47,22 +39,41 @@ public abstract class CActivatorBase extends CXObjectBase implements
         @Override
         public void serviceChanged(final ServiceEvent event) {
 
-            if (event.getType() == ServiceEvent.REGISTERED) {
-                final ServiceReference wConfigRef = event.getServiceReference();
-                final IIsolateLoggerSvc wLogService = (IIsolateLoggerSvc) getContext()
-                        .getService(wConfigRef);
-                bindIsolateLogerSvc(wLogService);
+            switch (event.getType()) {
+            case ServiceEvent.MODIFIED:
+            case ServiceEvent.REGISTERED:
+                if (hasIsolateLoggerSvc()) {
+                    // Nothing to do
+                    break;
+                }
 
-            } else if (event.getType() == ServiceEvent.UNREGISTERING) {
-                getContext().ungetService(event.getServiceReference());
-                unbindIsolateLogerSvc();
+                // Bind the logger
+                bindIsolateLogerSvc(event.getServiceReference());
+                break;
+
+            case ServiceEvent.MODIFIED_ENDMATCH:
+            case ServiceEvent.UNREGISTERING:
+                if (!hasIsolateLoggerSvc()) {
+                    // Nothing to do
+                    break;
+                }
+
+                // Unbind the logger
+                unbindIsolateLoggerSvc();
+
+                // Search for a new one
+                findLoggerSvc();
+                break;
+
+            default:
+                break;
             }
         }
 
     }
 
     /** Bundle ID key name */
-    private static String LIB_BNDL_ID = "BundleId";
+    private static final String LIB_BNDL_ID = "BundleId";
 
     /**
      * the BundleContext given by the framework during the call of the method
@@ -70,16 +81,11 @@ public abstract class CActivatorBase extends CXObjectBase implements
      **/
     private BundleContext pContext = null;
 
-    /** the reference to the isolateLogger service **/
-    private IIsolateLoggerSvc pLogger;
+    /** the reference to the isolate logger service **/
+    private IIsolateLoggerSvc pLogger = null;
 
-    /**
-     * Explicit default constructor
-     */
-    public CActivatorBase() {
-
-        super();
-    }
+    /** The logger service reference */
+    private ServiceReference<?> pLoggerReference = null;
 
     /*
      * (non-Javadoc)
@@ -99,12 +105,43 @@ public abstract class CActivatorBase extends CXObjectBase implements
     /**
      * Binds the log service
      * 
-     * @param aIsolateLogerSvc
-     *            An isolate logger service
+     * @param aServiceReference
+     *            A reference to an isolate logger service
      */
-    private void bindIsolateLogerSvc(final IIsolateLoggerSvc aIsolateLogerSvc) {
+    private boolean bindIsolateLogerSvc(
+            final ServiceReference<?> aServiceReference) {
 
-        pLogger = aIsolateLogerSvc;
+        if (aServiceReference == null) {
+            // Invalid reference
+            return false;
+        }
+
+        pLogger = (IIsolateLoggerSvc) pContext.getService(aServiceReference);
+        if (pLogger == null) {
+            // Service not found
+            return false;
+        }
+
+        pLoggerReference = aServiceReference;
+        return true;
+    }
+
+    /**
+     * Looks for an {@link IIsolateLoggerSvc} service
+     * 
+     * @return True if a logger has been bound, else false
+     */
+    private boolean findLoggerSvc() {
+
+        // find and bind the LogService
+        final ServiceReference<IIsolateLoggerSvc> wIsolateLoggerServiceRef = pContext
+                .getServiceReference(IIsolateLoggerSvc.class);
+
+        if (wIsolateLoggerServiceRef != null) {
+            return bindIsolateLogerSvc(wIsolateLoggerServiceRef);
+        }
+
+        return false;
     }
 
     /*
@@ -115,10 +152,10 @@ public abstract class CActivatorBase extends CXObjectBase implements
      * ()
      */
     @Override
-    public ServiceReference[] getAllServiceReferences() {
+    public ServiceReference<?>[] getAllServiceReferences() {
 
         try {
-            final ServiceReference[] wSRs = getContext()
+            final ServiceReference<?>[] wSRs = pContext
                     .getAllServiceReferences(null, null);
 
             pLogger.logInfo(this, "getAllServiceReferences", "NbServices=[%d]",
@@ -174,13 +211,13 @@ public abstract class CActivatorBase extends CXObjectBase implements
      * (java.lang.Long)
      */
     @Override
-    public ServiceReference getServiceReference(final Long aServiceId)
+    public ServiceReference<?> getServiceReference(final Long aServiceId)
             throws Exception {
 
         final String wFilter = String.format("(%s=%s)",
                 org.osgi.framework.Constants.SERVICE_ID, aServiceId.toString());
-        final ServiceReference[] wServiceReferences = getContext()
-                .getServiceReferences(null, wFilter);
+        final ServiceReference<?>[] wServiceReferences = pContext
+                .getServiceReferences((String) null, wFilter);
         if (wServiceReferences != null && wServiceReferences.length > 0) {
             return wServiceReferences[0];
         }
@@ -194,7 +231,7 @@ public abstract class CActivatorBase extends CXObjectBase implements
      */
     protected boolean hasIsolateLoggerSvc() {
 
-        return getIsolateLoggerSvc() != null;
+        return pLogger != null;
     }
 
     /*
@@ -209,24 +246,17 @@ public abstract class CActivatorBase extends CXObjectBase implements
 
         pContext = bundleContext;
 
-        // find and bind the LogService
-        final ServiceReference wIsolateLoggerServiceRef = bundleContext
-                .getServiceReference(IIsolateLoggerSvc.class.getName());
+        // Try to bind to a logger
+        findLoggerSvc();
 
-        IIsolateLoggerSvc wIsolateLogerSvc = null;
-        if (wIsolateLoggerServiceRef != null) {
-            wIsolateLogerSvc = (IIsolateLoggerSvc) bundleContext
-                    .getService(wIsolateLoggerServiceRef);
-        }
+        // Register a service listener
+        final StringBuilder filterBuilder = new StringBuilder();
+        filterBuilder.append("(objectclass=");
+        filterBuilder.append(LogService.class.getName());
+        filterBuilder.append(")");
 
-        if (wIsolateLogerSvc != null) {
-            bindIsolateLogerSvc(wIsolateLogerSvc);
-        } else {
-            final String wFilter = "(objectclass=" + LogService.class.getName()
-                    + ")";
-            getContext().addServiceListener(new CIsolateLoggerListner(),
-                    wFilter);
-        }
+        pContext.addServiceListener(new CIsolateLoggerListener(),
+                filterBuilder.toString());
 
         if (hasIsolateLoggerSvc()) {
             pLogger.logInfo(this, "start", "START", toDescription());
@@ -245,17 +275,22 @@ public abstract class CActivatorBase extends CXObjectBase implements
         if (hasIsolateLoggerSvc()) {
             pLogger.logInfo(this, "stop", "STOP", toDescription());
         }
+
+        unbindIsolateLoggerSvc();
         pContext = null;
     }
 
     /**
      * Logs the event then un-binds the logger
      */
-    public void unbindIsolateLogerSvc() {
+    public void unbindIsolateLoggerSvc() {
 
         if (hasIsolateLoggerSvc()) {
             pLogger.logInfo(this, "unbindLogService");
+            pContext.ungetService(pLoggerReference);
         }
+
+        pLoggerReference = null;
         pLogger = null;
     }
 

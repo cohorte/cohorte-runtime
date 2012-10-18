@@ -17,7 +17,7 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
-import org.osgi.service.log.LogService;
+import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.constants.ISignalsConstants;
 import org.psem2m.isolates.services.monitoring.IIsolatePresenceListener;
@@ -50,7 +50,7 @@ public class BroadcastSignalHandler extends CPojoBase implements
 
     /** Log service, injected by iPOJO */
     @Requires
-    private LogService pLogger;
+    private IIsolateLoggerSvc pLogger;
 
     /** Remote service events listeners */
     @Requires(optional = true)
@@ -80,7 +80,8 @@ public class BroadcastSignalHandler extends CPojoBase implements
     public void handleIsolatePresence(final String aIsolateId,
             final String aNode, final EPresence aPresence) {
 
-        if (aPresence == EPresence.UNREGISTERED) {
+        switch (aPresence) {
+        case UNREGISTERED:
             // Isolate lost : Notify all listeners
             for (final IRemoteServiceEventListener listener : pRemoteEventsListeners) {
                 try {
@@ -88,12 +89,36 @@ public class BroadcastSignalHandler extends CPojoBase implements
 
                 } catch (final Exception ex) {
                     // Just log...
-                    pLogger.log(
-                            LogService.LOG_WARNING,
-                            "RemoveServiceEventListener failed to handle a lost isolate",
-                            ex);
+                    pLogger.logWarn(
+                            this,
+                            "handleIsolatePresence",
+                            "RemoveServiceEventListener failed to handle lost isolate=",
+                            aIsolateId, ex);
                 }
             }
+            break;
+
+        case REGISTERED:
+            // Isolate registered: Ask for its end points
+            for (final IRemoteServiceEventListener listener : pRemoteEventsListeners) {
+                try {
+                    listener.handleIsolateReady(aIsolateId);
+
+                } catch (final Exception ex) {
+                    // Just log...
+                    pLogger.logWarn(
+                            this,
+                            "handleIsolatePresence",
+                            "RemoveServiceEventListener failed to handle registered isolate=",
+                            aIsolateId, ex);
+                }
+            }
+            break;
+
+        default:
+            pLogger.logWarn(this, "handleIsolatePresence",
+                    "Unhandled isolate presence type=", aPresence);
+            break;
         }
     }
 
@@ -156,19 +181,21 @@ public class BroadcastSignalHandler extends CPojoBase implements
 
                 } catch (final ClassCastException ex) {
                     // Invalid type
-                    pLogger.log(LogService.LOG_WARNING, "Uncastable array = "
-                            + Arrays.toString((Object[]) signalContent));
+                    pLogger.logWarn(this, "handleReceivedSignal",
+                            "Uncastable array from isolate=",
+                            aSignalData.getSenderId(), "content=",
+                            Arrays.toString((Object[]) signalContent));
                 }
 
             } else {
-                pLogger.log(LogService.LOG_WARNING, "Unknown type = "
-                        + signalContent.getClass().getName());
+                pLogger.logWarn(this, "handleReceivedSignal", "Unknown class=",
+                        signalContent.getClass().getName());
             }
 
         } else if (ISignalsConstants.BROADCASTER_SIGNAL_REQUEST_ENDPOINTS
                 .equals(aSignalName)) {
-            // End point request
-            handleRequestEndpoints(aSignalData.getSenderId());
+            // End points request
+            return handleRequestEndpoints(aSignalData.getSenderId());
         }
 
         return null;
@@ -208,16 +235,19 @@ public class BroadcastSignalHandler extends CPojoBase implements
      * 
      * @param aRequestingIsolateId
      *            Isolate to answer to.
+     * @return An array of events, or null
      */
-    protected void handleRequestEndpoints(final String aRequestingIsolateId) {
+    protected RemoteServiceEvent[] handleRequestEndpoints(
+            final String aRequestingIsolateId) {
 
         final RemoteServiceRegistration[] localRegistrations = pRepository
                 .getLocalRegistrations();
         if (localRegistrations == null || localRegistrations.length == 0) {
             // Don't say anything if we have anything to say...
-            pLogger.log(LogService.LOG_INFO,
-                    "RequestEndpoints received, but the RSR is empty");
-            return;
+            pLogger.logInfo(this, "handleRequestEndpoints",
+                    "RequestEndpoints received from isolate=",
+                    aRequestingIsolateId, "but the RSR is empty");
+            return null;
         }
 
         // Prepare the event list
@@ -240,11 +270,11 @@ public class BroadcastSignalHandler extends CPojoBase implements
             events.add(remoteEvent);
         }
 
-        // Use the signal sender to reply to the isolate
-        pSignalEmitter
-                .fire(ISignalsConstants.BROADCASTER_SIGNAL_REMOTE_EVENT,
-                        events.toArray(new RemoteServiceEvent[0]),
-                        aRequestingIsolateId);
+        pLogger.logDebug(this, "handleRequestEndpoints",
+                "Answering to end points request from=", aRequestingIsolateId,
+                "count=", events.size());
+
+        return events.toArray(new RemoteServiceEvent[events.size()]);
     }
 
     /*
@@ -258,7 +288,7 @@ public class BroadcastSignalHandler extends CPojoBase implements
 
         // Unregister the listener
         pSignalReceiver.unregisterListener(ISignalsConstants.MATCH_ALL, this);
-        pLogger.log(LogService.LOG_INFO,
+        pLogger.logInfo(this, "invalidatePojo",
                 "PSEM2M Remote Service Broadcaster Handler Gone");
     }
 
@@ -276,7 +306,7 @@ public class BroadcastSignalHandler extends CPojoBase implements
                 ISignalsConstants.BROADCASTER_SIGNAL_NAME_PREFIX
                         + ISignalsConstants.MATCH_ALL, this);
 
-        pLogger.log(LogService.LOG_INFO,
+        pLogger.logInfo(this, "validatePojo",
                 "PSEM2M Remote Service Broadcaster Handler Ready");
     }
 }

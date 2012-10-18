@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: PSEM2M HTTP Signals
+Bundle-Name: PSEM2M :: Signals :: HTTP
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: org.psem2m.signals.http
 Bundle-Vendor: isandlaTech.com
@@ -27,44 +27,42 @@ iPOJO-Components: instance { $component="org.psem2m.remotes.signals.ht
  Provider}" property { $name="signal.provider.ready" $field="pProperty
  Ready" $value="false" $mandatory="true" }}requires { $field="pConfig"
   }requires { $field="pHttpService" $filter="(org.osgi.service.http.po
- rt=*)" }requires { $field="pLogger" }requires { $field="pSerializers"
-  }callback { $transition="invalidate" $method="invalidatePojo" }callb
- ack { $transition="validate" $method="validatePojo" }manipulation { $
- super="org.psem2m.isolates.base.activators.CPojoBase" interface { $na
- me="org.psem2m.signals.ISignalReceptionProvider" }interface { $name="
- org.psem2m.signals.ISignalRequestReader" }field { $name="pConfig" $ty
- pe="org.psem2m.isolates.services.conf.ISvcConfig" }field { $name="pHt
- tpService" $type="org.osgi.service.http.HttpService" }field { $name="
- pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { 
- $name="pPropertyReady" $type="boolean" }field { $name="pReceiver" $ty
- pe="org.psem2m.signals.ISignalReceiver" }field { $name="pSerializers"
-  $type="org.psem2m.signals.ISignalDataSerializer[]" }method { $name="
- getAccessInfo" $return="org.psem2m.signals.HostAccess" }method { $nam
- e="handleSignal" $return="org.psem2m.signals.SignalResult" $arguments
- ="{java.lang.String,org.psem2m.signals.ISignalData,java.lang.String}"
-  }method { $name="invalidatePojo" }method { $name="isReady" $return="
- boolean" }method { $name="serializeSignalResult" $return="org.psem2m.
- signals.SignalContent" $arguments="{java.lang.String,org.psem2m.signa
- ls.SignalResult}" }method { $name="setReceiver" $return="boolean" $ar
- guments="{org.psem2m.signals.ISignalReceiver}" }method { $name="unser
- ializeSignalContent" $return="org.psem2m.signals.ISignalData" $argume
- nts="{java.lang.String,byte[]}" }method { $name="unsetReceiver" $argu
- ments="{org.psem2m.signals.ISignalReceiver}" }method { $name="validat
- ePojo" }}}component { $classname="org.psem2m.remotes.signals.http.sen
- der.HttpSignalSender" $name="psem2m-remote-signal-sender-http-factory
- " $public="false" provides { $specifications="{org.psem2m.signals.ISi
- gnalBroadcastProvider}" }requires { $field="pLogger" }requires { $fie
- ld="pSerializers" }callback { $transition="invalidate" $method="inval
- idatePojo" }callback { $transition="validate" $method="validatePojo" 
- }manipulation { $super="org.psem2m.isolates.base.activators.CPojoBase
- " interface { $name="org.psem2m.signals.ISignalBroadcastProvider" }fi
- eld { $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerS
- vc" }field { $name="pSerializers" $type="org.psem2m.signals.ISignalDa
- taSerializer[]" }method { $name="invalidatePojo" }method { $name="mak
- eRequestBody" $return="org.psem2m.signals.SignalContent" $arguments="
- {org.psem2m.signals.ISignalData}" }method { $name="sendSignal" $retur
- n="java.lang.Object[]" $arguments="{org.psem2m.signals.HostAccess,jav
- a.lang.String,java.lang.String,org.psem2m.signals.ISignalData}" }meth
- od { $name="unserializeData" $return="java.lang.Object" $arguments="{
- java.lang.String,byte[]}" }method { $name="validatePojo" }}}
+ rt=*)" }requires { $field="pLogger" }requires { $field="pReceiver" }r
+ equires { $field="pSerializers" }callback { $transition="invalidate" 
+ $method="invalidatePojo" }callback { $transition="validate" $method="
+ validatePojo" }manipulation { $super="org.psem2m.isolates.base.activa
+ tors.CPojoBase" interface { $name="org.psem2m.signals.ISignalReceptio
+ nProvider" }interface { $name="org.psem2m.signals.ISignalRequestReade
+ r" }field { $name="pConfig" $type="org.psem2m.isolates.services.conf.
+ ISvcConfig" }field { $name="pHttpService" $type="org.osgi.service.htt
+ p.HttpService" }field { $name="pLogger" $type="org.psem2m.isolates.ba
+ se.IIsolateLoggerSvc" }field { $name="pPropertyReady" $type="boolean"
+  }field { $name="pReceiver" $type="org.psem2m.signals.ISignalReceiver
+ " }field { $name="pSerializers" $type="org.psem2m.signals.ISignalSeri
+ alizer[]" }method { $name="getAccessInfo" $return="org.psem2m.signals
+ .HostAccess" }method { $name="handleSignal" $return="org.psem2m.signa
+ ls.SignalResult" $arguments="{java.lang.String,org.psem2m.signals.ISi
+ gnalData,java.lang.String}" }method { $name="invalidatePojo" }method 
+ { $name="isReady" $return="boolean" }method { $name="serializeSignalR
+ esult" $return="org.psem2m.signals.SignalContent" $arguments="{java.l
+ ang.String,org.psem2m.signals.SignalResult}" }method { $name="unseria
+ lizeSignalContent" $return="org.psem2m.signals.ISignalData" $argument
+ s="{java.lang.String,byte[]}" }method { $name="validatePojo" }}}compo
+ nent { $classname="org.psem2m.remotes.signals.http.sender.HttpSignalS
+ ender" $name="psem2m-remote-signal-sender-http-factory" $public="fals
+ e" provides { $specifications="{org.psem2m.signals.ISignalBroadcastPr
+ ovider}" }requires { $field="pLogger" }requires { $field="pSerializer
+ s" }callback { $transition="invalidate" $method="invalidatePojo" }cal
+ lback { $transition="validate" $method="validatePojo" }manipulation {
+  $super="org.psem2m.isolates.base.activators.CPojoBase" interface { $
+ name="org.psem2m.signals.ISignalBroadcastProvider" }field { $name="pL
+ ogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $n
+ ame="pSerializers" $type="org.psem2m.signals.ISignalSerializer[]" }me
+ thod { $name="invalidatePojo" }method { $name="makeRequestBody" $retu
+ rn="org.psem2m.signals.SignalContent" $arguments="{org.psem2m.signals
+ .ISignalData}" }method { $name="sendSignal" $return="java.lang.Object
+ []" $arguments="{org.psem2m.signals.HostAccess,java.lang.String,java.
+ lang.String,org.psem2m.signals.ISignalData}" }method { $name="unseria
+ lizeData" $return="java.lang.Object" $arguments="{java.lang.String,by
+ te[]}" }method { $name="validatePojo" }}}
 

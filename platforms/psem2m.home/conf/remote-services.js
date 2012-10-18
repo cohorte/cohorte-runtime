@@ -1,5 +1,8 @@
 [
     {
+        "symbolicName":"org.psem2m.remote.api"
+    },
+    {
         "symbolicName":"org.psem2m.remote.repository"
     },
     {

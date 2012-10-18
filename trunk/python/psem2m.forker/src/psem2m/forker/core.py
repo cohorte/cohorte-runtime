@@ -292,6 +292,7 @@ class Forker(object):
         process = self._isolates.get(isolate_id, None)
         if process is None:
             # Unknown isolate
+            _logger.warn("Can't stop an unknown isolate: %s", isolate_id)
             return
 
         # Send the stop signal (stop softly)
@@ -300,9 +301,11 @@ class Forker(object):
         try:
             # Wait a little
             self._utils.wait_pid(process.pid, timeout)
+            _logger.warn("Isolate stopped: %s", isolate_id)
 
         except utils.TimeoutExpired:
             # The isolate didn't stop -> kill the process
+            _logger.warn("Isolate timed out: %s. Trying to kill it", isolate_id)
             process.kill()
 
         # Remove references to the isolate
@@ -354,7 +357,7 @@ class Forker(object):
 
                 # Re-transmit the isolate status
                 self._sender.send(ISOLATE_STATUS_SIGNAL, status_bean,
-                                  groups=["MONITORS"])
+                                  dir_group="MONITORS")
 
             except:
                 logger.exception("Error reading isolate status line :\n%s\n",
@@ -394,14 +397,15 @@ class Forker(object):
         
         :param isolate_id: The ID of the lost isolate
         """
-        if not self._platform_stopping \
-        and isolate_id.startswith("org.psem2m.internals."):
-            # Internal isolate : restart it immediately
-            self.start_isolate_id(isolate_id)
-            return
+        if not self._platform_stopping:
+            # Send a signal to all isolates, except the lost one
+            # -> avoids a time out
+            self._sender.send(ISOLATE_LOST_SIGNAL, isolate_id, dir_group="ALL",
+                              excluded=isolate_id)
 
-        # Send a signal to monitors
-        self._sender.send(ISOLATE_LOST_SIGNAL, isolate_id, dir_group="ALL")
+            if isolate_id.startswith("org.psem2m.internals."):
+                # Internal isolate : restart it immediately
+                self.start_isolate_id(isolate_id)
 
 
     def start_monitor(self):

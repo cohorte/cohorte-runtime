@@ -13,6 +13,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import org.psem2m.isolates.monitor.IPlatformMonitor;
+
 /**
  * Isolate launch retry logic
  * 
@@ -34,7 +36,7 @@ public class IsolateFailureHandler {
     private final int pMaxTriesStreak;
 
     /** A Runnable that calls an isolate launcher */
-    private final MonitorCore pMonitorCore;
+    private final IPlatformMonitor pMonitor;
 
     /** Time to wait before the next streak */
     private final int pTimeWaitBeforeStreak;
@@ -54,11 +56,11 @@ public class IsolateFailureHandler {
      * @param aWaitBeforeStreak
      *            Time to wait before the next try streak
      */
-    public IsolateFailureHandler(final MonitorCore aMonitor,
+    public IsolateFailureHandler(final IPlatformMonitor aMonitor,
             final int aMaxTriesStreak, final int aWaitInStreak,
             final int aWaitBeforeStreak) {
 
-        pMonitorCore = aMonitor;
+        pMonitor = aMonitor;
         pMaxTriesStreak = aMaxTriesStreak;
         pTimeWaitInStreak = aWaitInStreak;
         pTimeWaitBeforeStreak = aWaitBeforeStreak;
@@ -112,7 +114,7 @@ public class IsolateFailureHandler {
             @Override
             public void run() {
 
-                pMonitorCore.startIsolate(aIsolateId);
+                pMonitor.startIsolate(aIsolateId);
             }
         };
 
@@ -121,7 +123,7 @@ public class IsolateFailureHandler {
             pIsolateFutures.put(aIsolateId, pExecutor.schedule(isolateLauncher,
                     timeUntilNextTry, TimeUnit.SECONDS));
 
-        } catch (RejectedExecutionException e) {
+        } catch (final RejectedExecutionException e) {
             // Ignore error : the executor has been shut down
         }
     }
@@ -133,7 +135,7 @@ public class IsolateFailureHandler {
 
         synchronized (pIsolateFutures) {
             // Cancel all future tasks (and running ones)
-            for (ScheduledFuture<?> future : pIsolateFutures.values()) {
+            for (final ScheduledFuture<?> future : pIsolateFutures.values()) {
                 future.cancel(true);
             }
         }

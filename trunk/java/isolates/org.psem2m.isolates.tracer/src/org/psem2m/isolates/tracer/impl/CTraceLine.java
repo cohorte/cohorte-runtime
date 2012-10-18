@@ -18,134 +18,149 @@ import org.psem2m.isolates.tracer.ITraceLineSetter;
  */
 public class CTraceLine implements ITraceLineSetter {
 
-	private String pContent;
-	private String pWhat;
-	private Long pWhen;
-	private String pWhere;
-	private String pWho;
+    private String pContent;
 
-	/**
+    private String pWhat;
+
+    private Long pWhen;
+
+    private String pWhere;
+
+    private String pWho;
+
+    /**
 	 * 
 	 */
-	public CTraceLine() {
-		super();
-	}
+    public CTraceLine() {
 
-	/**
-	 * @param aWhen
-	 * @param aWho
-	 * @param aWhat
-	 * @param aWhere
-	 * @param aContent
-	 */
-	public CTraceLine(final Long aWhen, final String aWho, final String aWhat,
-			final String aWhere, final String aContent) {
-		this();
-		setWhen(aWhen);
-		setWho(aWho);
-		setWhat(aWhat);
-		setWhere(aWhere);
-		setContent(aContent);
-	}
+        super();
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.tracer.IJmxTraceLine#getLine()
-	 */
-	@Override
-	public String getContent() {
-		return pContent;
-	}
+    /**
+     * @param aWhen
+     * @param aWho
+     * @param aWhat
+     * @param aWhere
+     * @param aContent
+     */
+    public CTraceLine(final Long aWhen, final String aWho, final String aWhat,
+            final String aWhere, final String aContent) {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.tracer.IJmxTraceLine#getWhat()
-	 */
-	@Override
-	public String getWhat() {
-		return pWhat;
-	}
+        this();
+        setWhen(aWhen);
+        setWho(aWho);
+        setWhat(aWhat);
+        setWhere(aWhere);
+        setContent(aContent);
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.tracer.IJmxTraceLine#getTimeStamp()
-	 */
-	@Override
-	public Long getWhen() {
-		return pWhen;
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.tracer.IJmxTraceLine#getLine()
+     */
+    @Override
+    public String getContent() {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.tracer.IJmxTraceLine#getWhere()
-	 */
-	@Override
-	public String getWhere() {
-		return pWhere;
-	}
+        return pContent;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.tracer.IJmxTraceLine#getWho()
-	 */
-	@Override
-	public String getWho() {
-		return pWho;
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.tracer.IJmxTraceLine#getWhat()
+     */
+    @Override
+    public String getWhat() {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.tracer.ITraceLine#setContent(java.lang.String)
-	 */
-	@Override
-	public void setContent(final String aContent) {
-		pContent = aContent;
-	}
+        return pWhat;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.tracer.ITraceLine#setWhat(java.lang.String)
-	 */
-	@Override
-	public void setWhat(final String aWhat) {
-		pWhat = aWhat;
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.tracer.IJmxTraceLine#getTimeStamp()
+     */
+    @Override
+    public Long getWhen() {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.tracer.ITraceLine#setWhen(long)
-	 */
-	@Override
-	public void setWhen(final Long aWhen) {
-		pWhen = aWhen;
-	}
+        return pWhen;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.tracer.ITraceLine#setWhere(java.lang.String)
-	 */
-	@Override
-	public void setWhere(final String aWhere) {
-		pWhere = aWhere;
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.tracer.IJmxTraceLine#getWhere()
+     */
+    @Override
+    public String getWhere() {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.psem2m.tracer.ITraceLine#setWho(java.lang.String)
-	 */
-	@Override
-	public void setWho(final String aWho) {
-		pWho = aWho;
-	}
+        return pWhere;
+    }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.tracer.IJmxTraceLine#getWho()
+     */
+    @Override
+    public String getWho() {
+
+        return pWho;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.tracer.ITraceLine#setContent(java.lang.String)
+     */
+    @Override
+    public void setContent(final String aContent) {
+
+        pContent = aContent;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.tracer.ITraceLine#setWhat(java.lang.String)
+     */
+    @Override
+    public void setWhat(final String aWhat) {
+
+        pWhat = aWhat;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.tracer.ITraceLine#setWhen(long)
+     */
+    @Override
+    public void setWhen(final Long aWhen) {
+
+        pWhen = aWhen;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.tracer.ITraceLine#setWhere(java.lang.String)
+     */
+    @Override
+    public void setWhere(final String aWhere) {
+
+        pWhere = aWhere;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.tracer.ITraceLine#setWho(java.lang.String)
+     */
+    @Override
+    public void setWho(final String aWho) {
+
+        pWho = aWho;
+    }
 }

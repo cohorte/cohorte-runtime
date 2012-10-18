@@ -5,8 +5,8 @@ import org.osgi.framework.BundleContext;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CActivatorBase;
 
-public class CIsolatesUiActivator extends CActivatorBase implements BundleActivator {
-
+public class CIsolatesUiActivator extends CActivatorBase implements
+        BundleActivator {
 
     /** Current instance **/
     private static CIsolatesUiActivator sSingleton = null;
@@ -19,17 +19,6 @@ public class CIsolatesUiActivator extends CActivatorBase implements BundleActiva
     public static CIsolatesUiActivator getInstance() {
 
         return sSingleton;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.utilities.CXObjectBase#destroy()
-     */
-    @Override
-    public void destroy() {
-
-        // nothing...
     }
 
     /**

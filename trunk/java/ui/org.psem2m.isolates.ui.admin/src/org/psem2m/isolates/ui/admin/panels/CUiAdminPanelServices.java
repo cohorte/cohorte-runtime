@@ -42,7 +42,7 @@ public class CUiAdminPanelServices extends CPojoBase implements
      * @author ogattaz
      * 
      */
-    class CServiceListener implements ServiceListener {
+    private class CServiceListener implements ServiceListener {
 
         /*
          * (non-Javadoc)
@@ -54,10 +54,14 @@ public class CUiAdminPanelServices extends CPojoBase implements
         @Override
         public void serviceChanged(final ServiceEvent aServiceEvent) {
 
-            pLogger.logInfo(this, "serviceChanged",
-                    "ServiceEvent=[%s] service=[%s]",
-                    serviceEventToString(aServiceEvent.getType()),
-                    aServiceEvent.getServiceReference().toString());
+            final int eventType = aServiceEvent.getType();
+            if (eventType != ServiceEvent.MODIFIED) {
+                // Do not log service modifications
+                pLogger.logInfo(this, "serviceChanged",
+                        "ServiceEvent=[%s] service=[%s]",
+                        serviceEventToString(eventType), aServiceEvent
+                                .getServiceReference().toString());
+            }
 
             SwingUtilities.invokeLater(new Runnable() {
 
@@ -65,7 +69,8 @@ public class CUiAdminPanelServices extends CPojoBase implements
                 public void run() {
 
                     if (pJPanel != null) {
-                        switch (aServiceEvent.getType()) {
+                        switch (eventType) {
+                        case ServiceEvent.MODIFIED:
                         case ServiceEvent.REGISTERED:
                             pJPanel.setRow(aServiceEvent.getServiceReference());
                             break;
@@ -86,8 +91,16 @@ public class CUiAdminPanelServices extends CPojoBase implements
             switch (aType) {
             case ServiceEvent.REGISTERED:
                 return String.format("%d REGISTERED", aType);
+
             case ServiceEvent.UNREGISTERING:
                 return String.format("%d UNREGISTERING", aType);
+
+            case ServiceEvent.MODIFIED:
+                return String.format("%d MODIFIED", aType);
+
+            case ServiceEvent.MODIFIED_ENDMATCH:
+                return String.format("%d MODIFIED_ENDMATCH", aType);
+
             default:
                 return String.format("%d ???", aType);
             }
@@ -124,6 +137,7 @@ public class CUiAdminPanelServices extends CPojoBase implements
     private void initContent() {
 
         final Runnable wRunnable = new Runnable() {
+
             @Override
             public void run() {
 

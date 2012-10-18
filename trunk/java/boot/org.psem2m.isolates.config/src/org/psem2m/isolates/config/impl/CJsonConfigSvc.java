@@ -5,17 +5,22 @@
  */
 package org.psem2m.isolates.config.impl;
 
+import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Instantiate;
+import org.apache.felix.ipojo.annotations.Invalidate;
+import org.apache.felix.ipojo.annotations.Provides;
+import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.config.IPlatformConfigurationConstants;
-import org.psem2m.isolates.config.json.JsonConfigReader;
 import org.psem2m.isolates.constants.IPlatformProperties;
+import org.psem2m.isolates.services.conf.IConfigurationReader;
 import org.psem2m.isolates.services.conf.ISvcConfig;
 import org.psem2m.isolates.services.conf.beans.ApplicationDescription;
 import org.psem2m.isolates.services.conf.beans.BundleDescription;
 import org.psem2m.isolates.services.conf.beans.IsolateDescription;
-import org.psem2m.isolates.services.dirs.IFileFinderSvc;
 import org.psem2m.utilities.CXListUtils;
 
 /**
@@ -23,30 +28,27 @@ import org.psem2m.utilities.CXListUtils;
  * 
  * @author Thomas Calmant
  */
+@Component(name = "psem2m-config-factory", publicFactory = false)
+@Provides(specifications = ISvcConfig.class)
+@Instantiate(name = "psem2m-config")
 public class CJsonConfigSvc extends CPojoBase implements ISvcConfig {
 
     /** Minimum age of the configuration before a reload (in milliseconds) */
-    public static final long MINIMUM_AGE = 1000;
+    private static final long MINIMUM_AGE = 1000;
 
-    /** File finder service, injected by iPOJO */
-    private IFileFinderSvc pFileFinder;
-
-    /** Log service, injected by iPOJO */
-    private IIsolateLoggerSvc pIsolateLoggerSvc;
+    /** The current isolate description */
+    private IsolateDescription pCurrentIsolate;
 
     /** Time stamp of the last configuration load */
     private long pLastLoad;
 
+    /** Log service, injected by iPOJO */
+    @Requires
+    private IIsolateLoggerSvc pLogger;
+
     /** JSON Configuration reader */
-    private final JsonConfigReader pReader = new JsonConfigReader();
-
-    /**
-     * Default constructor
-     */
-    public CJsonConfigSvc() {
-
-        super();
-    }
+    @Requires
+    private IConfigurationReader pReader;
 
     /*
      * (non-Javadoc)
@@ -70,8 +72,14 @@ public class CJsonConfigSvc extends CPojoBase implements ISvcConfig {
      * @see org.psem2m.isolates.services.conf.ISvcConfig#getCurrentIsolate()
      */
     @Override
-    public IsolateDescription getCurrentIsolate() {
+    public synchronized IsolateDescription getCurrentIsolate() {
 
+        if (pCurrentIsolate != null) {
+            // Return the forced current isolate value
+            return pCurrentIsolate;
+        }
+
+        // Return the read configuration
         final String isolateId = System
                 .getProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID);
         return getApplication().getIsolate(isolateId);
@@ -83,11 +91,15 @@ public class CJsonConfigSvc extends CPojoBase implements ISvcConfig {
      * @see org.psem2m.isolates.base.CPojoBase#invalidatePojo()
      */
     @Override
+    @Invalidate
     public void invalidatePojo() {
 
+        // Clean up
+        pLastLoad = 0;
+        pCurrentIsolate = null;
+
         // logs in the bundle logger
-        pIsolateLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
-                toDescription());
+        pLogger.logInfo(this, "invalidatePojo", "INVALIDATE", toDescription());
     }
 
     /**
@@ -95,29 +107,42 @@ public class CJsonConfigSvc extends CPojoBase implements ISvcConfig {
      */
     private void logDumpConfig() {
 
-        pIsolateLoggerSvc.logInfo(this, "logDumpConfig", "Application=",
-                getApplication().getApplicationId());
+        pLogger.logInfo(this, "logDumpConfig", "Application=", getApplication()
+                .getApplicationId());
         for (final String wIsolateId : getApplication().getIsolateIds()) {
 
-            pIsolateLoggerSvc.logInfo(this, "logDumpConfig", " - IsolateId=",
-                    wIsolateId);
+            pLogger.logInfo(this, "logDumpConfig", " - IsolateId=", wIsolateId);
 
             for (final BundleDescription wIBundleDescr : getApplication()
                     .getIsolate(wIsolateId).getBundles()) {
 
-                pIsolateLoggerSvc.logInfo(this, "logDumpConfig",
-                        "   - Bundle=", wIBundleDescr.getSymbolicName(),
-                        "Optional=", wIBundleDescr.getOptional(), "Version=",
+                pLogger.logInfo(this, "logDumpConfig", "   - Bundle=",
+                        wIBundleDescr.getSymbolicName(), "Optional=",
+                        wIBundleDescr.getOptional(), "Version=",
                         wIBundleDescr.getVersion());
 
                 if (wIBundleDescr.hasProperties()) {
-                    pIsolateLoggerSvc.logInfo(this, "logDumpConfig",
+                    pLogger.logInfo(this, "logDumpConfig",
                             "     - Properties=", CXListUtils
                                     .PropertiesToString(wIBundleDescr
                                             .getProperties()));
                 }
             }
         }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.services.conf.ISvcConfig#parseIsolate(java.lang.String
+     * )
+     */
+    @Override
+    public IsolateDescription parseIsolate(final String aConfigurationString) {
+
+        // Parse the configuration string
+        return pReader.parseIsolate(aConfigurationString);
     }
 
     /*
@@ -134,8 +159,21 @@ public class CJsonConfigSvc extends CPojoBase implements ISvcConfig {
         }
 
         pLastLoad = System.currentTimeMillis();
-        return pReader.load(IPlatformConfigurationConstants.FILE_MAIN_CONF,
-                pFileFinder);
+        return pReader.load(IPlatformConfigurationConstants.FILE_MAIN_CONF);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.services.conf.ISvcConfig#setCurrentIsolate(org.psem2m
+     * .isolates.services.conf.beans.IsolateDescription)
+     */
+    @Override
+    public synchronized void setCurrentIsolate(
+            final IsolateDescription aIsolateDescription) {
+
+        pCurrentIsolate = aIsolateDescription;
     }
 
     /*
@@ -144,11 +182,11 @@ public class CJsonConfigSvc extends CPojoBase implements ISvcConfig {
      * @see org.psem2m.isolates.base.CPojoBase#validatePojo()
      */
     @Override
+    @Validate
     public void validatePojo() throws BundleException {
 
         // logs in the bundle logger
-        pIsolateLoggerSvc.logInfo(this, "validatePojo", "VALIDATE",
-                toDescription());
+        pLogger.logInfo(this, "validatePojo", "VALIDATE", toDescription());
 
         // Read the configuration
         refresh();

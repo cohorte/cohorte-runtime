@@ -16,38 +16,40 @@ package org.psem2m.isolates.tracer;
  */
 public interface ITraceLine {
 
-	public final static String ATT_CONTENT = "Content";
-	public final static String ATT_WHAT = "What";
-	public final static String ATT_WHEN = "When";
-	public final static String ATT_WHERE = "Where";
-	public final static String ATT_WHO = "Who";
+    String ATT_CONTENT = "Content";
 
-	public final static String[] ATTRIBUTES = { ATT_CONTENT, ATT_WHAT,
-			ATT_WHEN, ATT_WHERE, ATT_WHO };
+    String ATT_WHAT = "What";
 
-	/**
-	 * @return the content of this trace line
-	 */
-	public String getContent();
+    String ATT_WHEN = "When";
 
-	/**
-	 * @return the name of the method from where this trace line was sent
-	 */
-	public String getWhat();
+    String ATT_WHERE = "Where";
 
-	/**
-	 * @return the timestamp of this trace line
-	 */
-	public Long getWhen();
+    String ATT_WHO = "Who";
 
-	/**
-	 * @return the identifier of the thread from where this trace line was sent
-	 */
-	public String getWhere();
+    String[] ATTRIBUTES = { ATT_CONTENT, ATT_WHAT, ATT_WHEN, ATT_WHERE, ATT_WHO };
 
-	/**
-	 * @return the identifier of the object which send this trace line
-	 */
-	public String getWho();
+    /**
+     * @return the content of this trace line
+     */
+    String getContent();
 
+    /**
+     * @return the name of the method from where this trace line was sent
+     */
+    String getWhat();
+
+    /**
+     * @return the timestamp of this trace line
+     */
+    Long getWhen();
+
+    /**
+     * @return the identifier of the thread from where this trace line was sent
+     */
+    String getWhere();
+
+    /**
+     * @return the identifier of the object which send this trace line
+     */
+    String getWho();
 }

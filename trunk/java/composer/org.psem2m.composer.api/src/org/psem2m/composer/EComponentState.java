@@ -11,15 +11,20 @@
 package org.psem2m.composer;
 
 /**
- * @author ogattaz
+ * Describes the states of a component or a components set.
  * 
+ * @author ogattaz
  */
 public enum EComponentState {
+
     /** Component up and running */
     COMPLETE,
 
     /** Component instantiation requested */
     INSTANTIATING,
+
+    /** Component removed of the components set */
+    REMOVED,
 
     /** Component resolved (can be instantiated by an agent) */
     RESOLVED,

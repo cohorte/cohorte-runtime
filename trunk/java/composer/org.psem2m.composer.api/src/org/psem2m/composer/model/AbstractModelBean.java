@@ -12,19 +12,19 @@ import java.io.Serializable;
  * 
  * @author Thomas Calmant
  */
-public abstract class AbstractModelBean implements IModelBean, Serializable {
+abstract class AbstractModelBean implements IModelBean, Serializable {
 
     /** Version UID */
     private static final long serialVersionUID = 1L;
 
     /** Name of the bean */
-    protected String pName;
+    private String pName;
 
     /** Name of the parent of the bean */
-    protected String pParentName;
+    private String pParentName;
 
     /** Name of the root parent of the hierarchy */
-    protected String pRootName;
+    private String pRootName;
 
     /**
      * Default constructor

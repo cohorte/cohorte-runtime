@@ -21,37 +21,17 @@ import org.psem2m.isolates.base.activators.IActivatorBase;
 public class CBundleTracerActivator extends CActivatorBase implements
         IActivatorBase {
 
-    /** first instance **/
+    /** Bundle activator instance **/
     private static CBundleTracerActivator sSingleton = null;
 
     /**
-     * @return
+     * Retrieves the bundle activator singleton
+     * 
+     * @return The bundle activator instance
      */
     public static CBundleTracerActivator getInstance() {
 
         return sSingleton;
-    }
-
-    /**
-     * Explicit default constructor
-     */
-    public CBundleTracerActivator() {
-
-        super();
-        if (sSingleton == null) {
-            sSingleton = this;
-        }
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.utilities.CXObjectBase#destroy()
-     */
-    @Override
-    public void destroy() {
-
-        // nothing...
     }
 
     /*
@@ -64,8 +44,10 @@ public class CBundleTracerActivator extends CActivatorBase implements
     @Override
     public void start(final BundleContext bundleContext) throws Exception {
 
+        // Store the singleton reference
+        sSingleton = this;
+
         super.start(bundleContext);
-        // ...
     }
 
     /*
@@ -78,7 +60,8 @@ public class CBundleTracerActivator extends CActivatorBase implements
     public void stop(final BundleContext bundleContext) throws Exception {
 
         super.stop(bundleContext);
-        // ...
-    }
 
+        // Forget the singleton reference
+        sSingleton = null;
+    }
 }

@@ -1,0 +1,146 @@
+Manifest-Version: 1.0
+Bundle-Activator: org.psem2m.signals.impl.CBundleSignalsImplActivator
+Bundle-ManifestVersion: 2
+Bundle-Name: PSEM2M :: Signals :: Base
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-SymbolicName: org.psem2m.signals.base
+Bundle-Vendor: isandlaTech.com
+Bundle-Version: 1.0.0.qualifier
+Created-By: iPOJO  1.8.0
+Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
+ .ipojo.architecture;version=1.8.0, org.osgi.framework;version=1.5.0, 
+ org.osgi.service.cm;version=1.2, org.osgi.service.log;version=1.3.0, 
+ org.psem2m.isolates.base;version=1.0.0, org.psem2m.isolates.base.acti
+ vators;version=1.0.0, org.psem2m.isolates.constants;version=1.0.0, or
+ g.psem2m.signals;version=1.0.1, org.psem2m.utilities;version=1.0.0, o
+ rg.psem2m.utilities.logging;version=1.0.0
+iPOJO-Components: instance { $component="org.psem2m.signals.impl.Signa
+ lBroadcaster" $name="psem2m-signal-broadcaster" }instance { $componen
+ t="org.psem2m.signals.impl.SignalReceiver" $name="psem2m-signal-recei
+ ver" }component { $classname="org.psem2m.signals.impl.SignalBroadcast
+ er" $name="psem2m-signal-broadcaster-factory" $public="true" provides
+  { $specifications="{org.psem2m.signals.ISignalBroadcaster}" property
+  { $name="signal-receiver-online" $field="pPropertyOnline" $value="fa
+ lse" $mandatory="true" }}requires { $field="pBroadcasters" $optional=
+ "true" $id="providers" $aggregate="true" callback { $method="bindProv
+ ider" $type="bind" }callback { $method="unbindProvider" $type="unbind
+ " }}requires { $field="pDirectory" }requires { $field="pLogger" }requ
+ ires { $field="pReceiver" }callback { $transition="invalidate" $metho
+ d="invalidatePojo" }callback { $transition="validate" $method="valida
+ tePojo" }manipulation { $super="org.psem2m.isolates.base.activators.C
+ PojoBase" interface { $name="org.psem2m.signals.ISignalBroadcaster" }
+ field { $name="pBroadcasters" $type="org.psem2m.signals.ISignalBroadc
+ astProvider[]" }field { $name="pDirectory" $type="org.psem2m.signals.
+ ISignalDirectory" }field { $name="pExecutor" $type="java.util.concurr
+ ent.ExecutorService" }field { $name="pLogger" $type="org.psem2m.isola
+ tes.base.IIsolateLoggerSvc" }field { $name="pNbProviders" $type="int"
+  }field { $name="pPropertyOnline" $type="boolean" }field { $name="pRe
+ ceiver" $type="org.psem2m.signals.ISignalReceiver" }field { $name="pW
+ aitingList" $type="java.util.List" }field { $name="pWaitingThread" $t
+ ype="java.lang.Thread" }field { $name="pWaitingThreadRun" $type="bool
+ ean" }method { $name="bindProvider" $arguments="{org.psem2m.signals.I
+ SignalBroadcastProvider}" }method { $name="commonGroupSignalHandling"
+  $return="org.psem2m.signals.ISignalSendResult" $arguments="{java.lan
+ g.String,java.lang.Object,java.lang.String,org.psem2m.signals.ISignal
+ Directory$EBaseGroup,java.lang.String[]}" }method { $name="commonGrou
+ pSignalHandling" $return="org.psem2m.signals.ISignalSendResult" $argu
+ ments="{java.lang.String,java.lang.Object,java.lang.String,java.lang.
+ String[],java.lang.String[]}" }method { $name="commonSignalHandling" 
+ $return="org.psem2m.signals.ISignalSendResult" $arguments="{java.lang
+ .String,java.lang.Object,java.lang.String,java.lang.String[]}" }metho
+ d { $name="commonStackHandling" $return="boolean" $arguments="{org.ps
+ em2m.signals.WaitingSignal}" }method { $name="fire" $return="java.lan
+ g.String[]" $arguments="{java.lang.String,java.lang.Object,java.lang.
+ String[]}" }method { $name="fireGroup" $return="java.lang.String[]" $
+ arguments="{java.lang.String,java.lang.Object,org.psem2m.signals.ISig
+ nalDirectory$EBaseGroup}" }method { $name="fireGroup" $return="java.l
+ ang.String[]" $arguments="{java.lang.String,java.lang.Object,org.psem
+ 2m.signals.ISignalDirectory$EBaseGroup,java.lang.String[]}" }method {
+  $name="fireGroup" $return="java.lang.String[]" $arguments="{java.lan
+ g.String,java.lang.Object,java.lang.String[]}" }method { $name="fireG
+ roup" $return="java.lang.String[]" $arguments="{java.lang.String,java
+ .lang.Object,java.lang.String[],java.lang.String[]}" }method { $name=
+ "fireTo" $return="boolean" $arguments="{java.lang.String,java.lang.Ob
+ ject,java.lang.String,int}" }method { $name="handleWaitingSignal" $re
+ turn="boolean" $arguments="{org.psem2m.signals.WaitingSignal}" }metho
+ d { $name="internalSend" $return="java.lang.Object[]" $arguments="{or
+ g.psem2m.signals.HostAccess,java.lang.String,org.psem2m.signals.ISign
+ alData,java.lang.String}" }method { $name="invalidatePojo" }method { 
+ $name="isOnline" $return="boolean" }method { $name="post" $return="ja
+ va.util.concurrent.Future" $arguments="{java.lang.String,java.lang.Ob
+ ject,java.lang.String[]}" }method { $name="postGroup" $return="java.u
+ til.concurrent.Future" $arguments="{java.lang.String,java.lang.Object
+ ,org.psem2m.signals.ISignalDirectory$EBaseGroup}" }method { $name="po
+ stGroup" $return="java.util.concurrent.Future" $arguments="{java.lang
+ .String,java.lang.Object,org.psem2m.signals.ISignalDirectory$EBaseGro
+ up,java.lang.String[]}" }method { $name="postGroup" $return="java.uti
+ l.concurrent.Future" $arguments="{java.lang.String,java.lang.Object,j
+ ava.lang.String[]}" }method { $name="postGroup" $return="java.util.co
+ ncurrent.Future" $arguments="{java.lang.String,java.lang.Object,java.
+ lang.String[],java.lang.String[]}" }method { $name="postTo" $return="
+ java.util.concurrent.Future" $arguments="{java.lang.String,java.lang.
+ Object,java.lang.String,int}" }method { $name="send" $return="org.pse
+ m2m.signals.ISignalSendResult" $arguments="{java.lang.String,java.lan
+ g.Object,java.lang.String[]}" }method { $name="sendGroup" $return="or
+ g.psem2m.signals.ISignalSendResult" $arguments="{java.lang.String,jav
+ a.lang.Object,org.psem2m.signals.ISignalDirectory$EBaseGroup}" }metho
+ d { $name="sendGroup" $return="org.psem2m.signals.ISignalSendResult" 
+ $arguments="{java.lang.String,java.lang.Object,org.psem2m.signals.ISi
+ gnalDirectory$EBaseGroup,java.lang.String[]}" }method { $name="sendGr
+ oup" $return="org.psem2m.signals.ISignalSendResult" $arguments="{java
+ .lang.String,java.lang.Object,java.lang.String[],java.lang.String[]}"
+  }method { $name="sendLoop" $return="org.psem2m.signals.ISignalSendRe
+ sult" $arguments="{java.util.Map,java.lang.String,org.psem2m.signals.
+ SignalData,java.lang.String}" }method { $name="sendTo" $return="java.
+ lang.Object[]" $arguments="{java.lang.String,java.lang.Object,java.la
+ ng.String,int}" }method { $name="stack" $return="boolean" $arguments=
+ "{java.lang.String,java.lang.Object,org.psem2m.signals.IWaitingSignal
+ Listener,org.psem2m.signals.ISignalBroadcaster$ESendMode,long,org.pse
+ m2m.signals.HostAccess}" }method { $name="stack" $return="boolean" $a
+ rguments="{java.lang.String,java.lang.Object,org.psem2m.signals.IWait
+ ingSignalListener,org.psem2m.signals.ISignalBroadcaster$ESendMode,lon
+ g,java.lang.String[]}" }method { $name="stackGroup" $return="boolean"
+  $arguments="{java.lang.String,java.lang.Object,org.psem2m.signals.IW
+ aitingSignalListener,org.psem2m.signals.ISignalBroadcaster$ESendMode,
+ long,org.psem2m.signals.ISignalDirectory$EBaseGroup}" }method { $name
+ ="stackGroup" $return="boolean" $arguments="{java.lang.String,java.la
+ ng.Object,org.psem2m.signals.IWaitingSignalListener,org.psem2m.signal
+ s.ISignalBroadcaster$ESendMode,long,java.lang.String[]}" }method { $n
+ ame="unbindProvider" $arguments="{org.psem2m.signals.ISignalBroadcast
+ Provider}" }method { $name="validatePojo" }method { $name="waitingLis
+ tThread" }}}component { $classname="org.psem2m.signals.impl.SignalRec
+ eiver" $name="psem2m-signal-receiver-factory" $public="false" provide
+ s { $specifications="{org.psem2m.signals.ISignalReceiver}" property {
+  $name="signal-receiver-online" $field="pPropertyOnline" $value="fals
+ e" $mandatory="true" }}requires { $field="pDirectory" }requires { $fi
+ eld="pLogger" }requires { $field="pReceivers" $optional="true" $id="r
+ eceivers" $aggregate="true" $filter="(signal.provider.ready=true)" ca
+ llback { $method="bindProvider" $type="bind" }callback { $method="unb
+ indProvider" $type="unbind" }}callback { $transition="invalidate" $me
+ thod="invalidatePojo" }callback { $transition="validate" $method="val
+ idatePojo" }manipulation { $super="org.psem2m.isolates.base.activator
+ s.CPojoBase" interface { $name="org.psem2m.signals.ISignalReceiver" }
+ field { $name="pDirectory" $type="org.psem2m.signals.ISignalDirectory
+ " }field { $name="pListeners" $type="java.util.Map" }field { $name="p
+ Logger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $
+ name="pNbProviders" $type="int" }field { $name="pNotificationExecutor
+ " $type="java.util.concurrent.ExecutorService" }field { $name="pPrope
+ rtyOnline" $type="boolean" }field { $name="pReceivers" $type="org.pse
+ m2m.signals.ISignalReceptionProvider[]" }method { $name="bindProvider
+ " $arguments="{org.psem2m.signals.ISignalReceptionProvider}" }method 
+ { $name="getAccessInfo" $return="org.psem2m.signals.HostAccess" }meth
+ od { $name="handleReceivedSignal" $return="org.psem2m.signals.SignalR
+ esult" $arguments="{java.lang.String,org.psem2m.signals.ISignalData,j
+ ava.lang.String}" }method { $name="invalidatePojo" }method { $name="i
+ sOnline" $return="boolean" }method { $name="localReception" $return="
+ org.psem2m.signals.SignalResult" $arguments="{java.lang.String,org.ps
+ em2m.signals.ISignalData,java.lang.String}" }method { $name="notifyLi
+ steners" $return="org.psem2m.signals.SignalResult" $arguments="{java.
+ lang.String,org.psem2m.signals.ISignalData}" }method { $name="notifyL
+ istenersInThread" $arguments="{java.lang.String,org.psem2m.signals.IS
+ ignalData}" }method { $name="registerListener" $arguments="{java.lang
+ .String,org.psem2m.signals.ISignalListener}" }method { $name="unbindP
+ rovider" $arguments="{org.psem2m.signals.ISignalReceptionProvider}" }
+ method { $name="unregisterListener" $arguments="{java.lang.String,org
+ .psem2m.signals.ISignalListener}" }method { $name="validatePojo" }}}
+

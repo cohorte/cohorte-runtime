@@ -156,6 +156,12 @@ class OSUtils(utils.BaseOSUtils):
         :raise TimeoutExpired: when timeout expired.
         """
         def check_timeout(delay):
+            """
+            Tests if the time out has expired
+            
+            :param delay: Delay before the method returns
+            :return: The next delay value (max: 4 ms)
+            """
             if timeout is not None:
                 if time.time() >= stop_at:
                     raise utils.TimeoutExpired(pid)

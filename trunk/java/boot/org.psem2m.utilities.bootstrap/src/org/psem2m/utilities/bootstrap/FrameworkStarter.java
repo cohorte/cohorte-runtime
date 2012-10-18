@@ -396,14 +396,13 @@ public class FrameworkStarter {
      * @param aDirectory
      *            Directory to delete
      */
-    protected void removeDirectory(final File aDirectory) {
+    protected final void removeDirectory(final File aDirectory) {
 
         final File[] files = aDirectory.listFiles();
 
         for (final File file : files) {
             if (file.isDirectory()) {
                 removeDirectory(file);
-
             }
 
             file.delete();

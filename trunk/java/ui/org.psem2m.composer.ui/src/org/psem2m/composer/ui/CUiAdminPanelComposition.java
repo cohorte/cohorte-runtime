@@ -15,6 +15,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+import java.text.MessageFormat;
 import java.util.List;
 
 import javax.swing.JButton;
@@ -33,6 +34,7 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.composer.IComposer;
 import org.psem2m.composer.ICompositionListener;
+import org.psem2m.composer.InvalidComponentsSetException;
 import org.psem2m.composer.model.ComponentsSetBean;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
@@ -215,10 +217,23 @@ public class CUiAdminPanelComposition extends CPojoBase implements
         }
 
         // Instantiate the composet
-        pComposer.instantiateComponentsSet(composet);
-        JOptionPane.showMessageDialog(pTreePanel,
-                "Composition '" + composet.getName() + "' loaded.", "Composer",
-                JOptionPane.INFORMATION_MESSAGE);
+        try {
+            pComposer.instantiateComponentsSet(composet);
+
+            JOptionPane.showMessageDialog(pTreePanel, MessageFormat.format(
+                    "Composition ''{0}'' loaded.", composet.getName()),
+                    "Composer", JOptionPane.INFORMATION_MESSAGE);
+
+        } catch (final InvalidComponentsSetException ex) {
+
+            pLogger.logWarn(this, "loadComposition",
+                    "Error instantiating composet=", composet.getName(), ex);
+
+            JOptionPane.showMessageDialog(pTreePanel, MessageFormat.format(
+                    "Error loading ''{0}'':\n{1}", composet.getName(),
+                    ex.getMessage()), "Composer",
+                    JOptionPane.INFORMATION_MESSAGE);
+        }
     }
 
     /**

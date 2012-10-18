@@ -5,6 +5,7 @@
  */
 package org.psem2m.isolates.config;
 
+import org.osgi.framework.BundleContext;
 import org.psem2m.isolates.base.activators.CActivatorBase;
 
 /**
@@ -27,26 +28,34 @@ public class CBundleConfigurationActivator extends CActivatorBase {
         return sBundleInstance;
     }
 
-    /**
-     * Sets up the bundle activator instance reference if needed
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext
+     * )
      */
-    public CBundleConfigurationActivator() {
+    @Override
+    public void start(final BundleContext bundleContext) throws Exception {
 
-        super();
+        // Store the singleton reference
+        sBundleInstance = this;
 
-        if (sBundleInstance == null) {
-            sBundleInstance = this;
-        }
+        super.start(bundleContext);
     }
 
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.base.CActivatorBase#getBundleId()
+     * @see
+     * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
      */
     @Override
-    public String getBundleId() {
+    public void stop(final BundleContext bundleContext) throws Exception {
 
-        return getClass().getPackage().getName();
+        super.stop(bundleContext);
+
+        // Forget the singleton reference
+        sBundleInstance = null;
     }
 }

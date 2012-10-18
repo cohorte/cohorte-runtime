@@ -24,6 +24,9 @@ import org.psem2m.composer.EComponentState;
 public class ComponentsSetBean extends AbstractModelBean implements
         Serializable, Comparable<ComponentsSetBean> {
 
+    /** Indentation for pretty printing */
+    private static final String PRETTY_PRINT_INDENT = "   ";
+
     /** Version UID */
     private static final long serialVersionUID = 1L;
 
@@ -89,10 +92,39 @@ public class ComponentsSetBean extends AbstractModelBean implements
         }
 
         // Associate the component to the composite...
-        aComponent.setParentName(pName);
+        aComponent.setParentName(getName());
 
         // Store it
         pComponentBeans.put(aComponent.getName(), aComponent);
+    }
+
+    /**
+     * Appends a new line with the given prefix in the given string builder
+     * 
+     * @param aBuilder
+     *            A string builder
+     * @param aPrefix
+     *            An optional line prefix (can be null)
+     * @return The given string builder
+     */
+    private StringBuilder appendNewLine(final StringBuilder aBuilder,
+            final CharSequence aPrefix) {
+
+        if (aBuilder == null) {
+            // Small protection
+            return null;
+        }
+
+        // New line
+        aBuilder.append("\n");
+
+        if (aPrefix != null) {
+            // Add the prefix, if any
+            aBuilder.append(aPrefix);
+        }
+
+        // Return the builder
+        return aBuilder;
     }
 
     /**
@@ -117,7 +149,7 @@ public class ComponentsSetBean extends AbstractModelBean implements
         }
 
         // Different object, use name ordering
-        return safeCompareTo(pName, aOther.pName);
+        return safeCompareTo(getName(), aOther.getName());
     }
 
     /*
@@ -134,12 +166,17 @@ public class ComponentsSetBean extends AbstractModelBean implements
 
             // Update the bean name, if needed
             if (parentName != null) {
-                pName = parentName + "." + pName;
+                final StringBuilder builder = new StringBuilder();
+                builder.append(parentName);
+                builder.append(".");
+                builder.append(getName());
+
+                setName(builder.toString());
             }
 
         } else {
             // We are the root element
-            pRootName = pName;
+            setRootName(getName());
         }
 
         synchronized (pComponentBeans) {
@@ -153,8 +190,8 @@ public class ComponentsSetBean extends AbstractModelBean implements
 
             // Update their name and re-populate the components map
             for (final ComponentBean bean : components) {
-                bean.setParentName(pName);
-                bean.setRootName(pRootName);
+                bean.setParentName(getName());
+                bean.setRootName(getRootName());
                 bean.computeName();
 
                 // Now mapped with the new component name
@@ -164,8 +201,8 @@ public class ComponentsSetBean extends AbstractModelBean implements
 
         // Propagate modification to sub-sets
         for (final ComponentsSetBean bean : pComponentSets) {
-            bean.setParentName(pName);
-            bean.setRootName(pRootName);
+            bean.setParentName(getName());
+            bean.setRootName(getRootName());
             bean.computeName();
         }
     }
@@ -239,7 +276,7 @@ public class ComponentsSetBean extends AbstractModelBean implements
      * 
      * @return The first component found, or null
      */
-    protected ComponentBean findComponent(final String aComponentName,
+    private ComponentBean findComponent(final String aComponentName,
             final ComponentsSetBean aCallingChild, final boolean aTryParent) {
 
         // Look into components
@@ -295,7 +332,7 @@ public class ComponentsSetBean extends AbstractModelBean implements
      * @param aComponents
      *            A list that will be populated with components (can't be null)
      */
-    protected void getAllComponents(final Collection<ComponentBean> aComponents) {
+    private void getAllComponents(final Collection<ComponentBean> aComponents) {
 
         aComponents.addAll(pComponentBeans.values());
 
@@ -381,6 +418,67 @@ public class ComponentsSetBean extends AbstractModelBean implements
     }
 
     /**
+     * Returns the lowest component state of the current and given state. If the
+     * given state is null, returns the current state.
+     * 
+     * @param aOtherState
+     *            A component state
+     * @return The lowest state of the current and the given one
+     */
+    private EComponentState getLowest(final EComponentState aState,
+            final EComponentState aOtherState) {
+
+        if (aOtherState == null || aOtherState.equals(aState)) {
+            // Nothing to do
+            return aState;
+        }
+
+        if (aState == null) {
+            // Nothing to do
+            return aOtherState;
+        }
+
+        switch (aState) {
+        case REMOVED:
+            // Ignore this state
+            return aOtherState;
+
+        case COMPLETE:
+            // Nothing can be upon complete
+            return aOtherState;
+
+        case WAITING:
+            // Nothing can be above waiting
+            return aState;
+
+        case INSTANTIATING:
+            // Only Complete is a greater state
+            switch (aOtherState) {
+            case COMPLETE:
+                return aState;
+
+            default:
+                return aOtherState;
+            }
+
+        case RESOLVED:
+            // Resolved state is before Instantiating and Complete
+            switch (aOtherState) {
+            case INSTANTIATING:
+            case COMPLETE:
+                return aState;
+
+            default:
+                return aOtherState;
+            }
+
+        default:
+            // Unhandled case
+            return aState;
+        }
+    }
+
+    /**
      * Retrieves the parent of this component set
      * 
      * @return the parent of this component set
@@ -390,121 +488,84 @@ public class ComponentsSetBean extends AbstractModelBean implements
         return pParent;
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Returns the lowest state found in the components or sets contained in
+     * this set.
      * 
+     * @return The computed state of this components set
      * @see org.psem2m.composer.model.IModelBean#getState()
      */
     @Override
     public EComponentState getState() {
 
-        int stateOrdinal = getStateOrdinal(EComponentState.COMPLETE);
+        // Start with the highest state
+        EComponentState lowestState = EComponentState.COMPLETE;
 
-        // Get the minimal state of the components
-        for (final ComponentBean bean : pComponentBeans.values()) {
+        // Get the minimal state of our components
+        for (final ComponentBean component : pComponentBeans.values()) {
 
-            final int beanStateOrdinal = getStateOrdinal(bean.getState());
-            if (beanStateOrdinal >= 0 && beanStateOrdinal < stateOrdinal) {
-                // We found a valid state lower than the current one
-                stateOrdinal = beanStateOrdinal;
-            }
+            // Update the lowest state with the current bean value
+            lowestState = getLowest(lowestState, component.getState());
 
-            if (stateOrdinal == 0) {
-                // We're at the minimal value
-                return getStateEnum(stateOrdinal);
+            if (lowestState == EComponentState.WAITING) {
+                // We reached the lowest possible state
+                return lowestState;
             }
         }
 
         // Get the minimal state of the components sets
-        for (final ComponentsSetBean bean : pComponentSets) {
+        for (final ComponentsSetBean composet : pComponentSets) {
 
-            final int beanStateOrdinal = getStateOrdinal(bean.getState());
-            if (beanStateOrdinal >= 0 && beanStateOrdinal < stateOrdinal) {
-                // We found a valid state lower than the current one
-                stateOrdinal = beanStateOrdinal;
-            }
+            // Update the lowest state with the current bean value
+            lowestState = getLowest(lowestState, composet.getState());
 
-            if (stateOrdinal == 0) {
-                // We're at the minimal value
-                return getStateEnum(stateOrdinal);
+            if (lowestState == EComponentState.WAITING) {
+                // We reached the lowest possible state
+                return lowestState;
             }
         }
 
-        return getStateEnum(stateOrdinal);
+        return lowestState;
     }
 
     /**
-     * Converts the given custom ordinal to a state enumeration value
+     * Returns an indented prefix for pretty print in {@link #toString()}.
      * 
-     * @param aStateOrdinal
-     *            An ordinal value
-     * @return The corresponding component state, or null
+     * @param aCurrentIndent
+     *            The current indentation (null is considered as an empty
+     *            string)
+     * @return The new indentation (current + 3 spaces)
      */
-    protected EComponentState getStateEnum(final int aStateOrdinal) {
+    private String indent(final CharSequence aCurrentIndent) {
 
-        switch (aStateOrdinal) {
-        case 0:
-            return EComponentState.WAITING;
-
-        case 1:
-            return EComponentState.RESOLVED;
-
-        case 2:
-            return EComponentState.INSTANTIATING;
-
-        case 3:
-            return EComponentState.COMPLETE;
+        final StringBuilder builder = new StringBuilder();
+        if (aCurrentIndent != null) {
+            builder.append(aCurrentIndent);
         }
 
-        return null;
+        builder.append(PRETTY_PRINT_INDENT);
+        return builder.toString();
     }
 
     /**
-     * Converts the given enumeration value to a custom ordinal.
-     * 
-     * Returned ordinal orders values from WAITING (0) to COMPLETE (3)
-     * 
-     * @param aState
-     *            A component state
-     * @return A custom ordinal value, -1 on failure
-     */
-    protected int getStateOrdinal(final EComponentState aState) {
-
-        if (aState == null) {
-            return -1;
-        }
-
-        switch (aState) {
-        case WAITING:
-            return 0;
-
-        case RESOLVED:
-            return 1;
-
-        case INSTANTIATING:
-            return 2;
-
-        case COMPLETE:
-            return 3;
-        }
-
-        return -1;
-    }
-
-    /**
-     * Tests if the set is empty
+     * Tests if this set has no components nor components sets.
      * 
      * @return True if the set is empty
      */
     public boolean isEmpty() {
 
-        // We have beans...
         return pComponentBeans.isEmpty() && pComponentSets.isEmpty();
     }
 
+    /**
+     * Tests if this components set is the root of a composition, i.e. has no
+     * parent set.
+     * 
+     * @return True if this components set is a root
+     */
     public boolean isRoot() {
 
-        return getParent() == null;
+        return pParent == null;
     }
 
     /*
@@ -530,6 +591,42 @@ public class ComponentsSetBean extends AbstractModelBean implements
         }
 
         return success;
+    }
+
+    /**
+     * Merges two ComponentBean arrays into a single one, avoiding doubles.
+     * 
+     * @param aExistingArray
+     *            An original array (can be null)
+     * @param aAddedItems
+     *            Items to add to the array (can be null)
+     * @return A merged array, or null if both arguments were null.
+     */
+    private ComponentBean[] mergeArrays(final ComponentBean[] aExistingArray,
+            final ComponentBean[] aAddedItems) {
+
+        if (aAddedItems == null) {
+            // Nothing to add
+            return aExistingArray;
+        }
+
+        if (aExistingArray == null) {
+            // Nothing to add either
+            return aAddedItems;
+        }
+
+        // We use an array list to keep the original items order
+        final List<ComponentBean> tempSet = new ArrayList<ComponentBean>(
+                Arrays.asList(aExistingArray));
+
+        for (final ComponentBean item : aAddedItems) {
+            if (!tempSet.contains(item)) {
+                // Add if not yet in the set
+                tempSet.add(item);
+            }
+        }
+
+        return tempSet.toArray(new ComponentBean[tempSet.size()]);
     }
 
     /**
@@ -573,43 +670,26 @@ public class ComponentsSetBean extends AbstractModelBean implements
 
         for (final Entry<String, ? extends Collection<String>> capabilities : aIsolatesCapabilities
                 .entrySet()) {
-
             // Get the entry content
             final String isolateId = capabilities.getKey();
-            final Collection<String> isolateTypes = capabilities.getValue();
 
-            // Prepare the resolution content
-            final List<ComponentBean> resolvedComponents = new ArrayList<ComponentBean>();
+            // Try a resolution
+            final ComponentBean[] resolvedComponents = resolveOnIsolate(
+                    isolateId, capabilities.getValue(), unresolvedComponents);
 
-            // Test all awaiting components
-            for (final ComponentBean component : unresolvedComponents) {
-
-                final String componentHost = component.getIsolate();
-                if (componentHost != null && !componentHost.isEmpty()
-                        && !componentHost.equals(isolateId)) {
-                    // No the host we're waiting for
-                    continue;
-                }
-
-                if (isolateTypes.contains(component.getType())) {
-                    // We've found a match
-                    resolvedComponents.add(component);
-
-                    // Update the component state
-                    component.setState(EComponentState.RESOLVED);
-                }
+            // Update the resolution map (merge with previous resolution)
+            final ComponentBean[] newResolution = mergeArrays(
+                    aResolution.get(isolateId), resolvedComponents);
+            if (newResolution != null) {
+                aResolution.put(isolateId, newResolution);
             }
-
-            // Update the resolution map
-            aResolution.put(isolateId, resolvedComponents
-                    .toArray(new ComponentBean[resolvedComponents.size()]));
 
             // Clean the awaiting components list
             for (final ComponentBean component : resolvedComponents) {
                 unresolvedComponents.remove(component);
             }
 
-            // Test if the resolution is total
+            // Test if the resolution is complete
             if (unresolvedComponents.isEmpty()) {
                 return true;
             }
@@ -622,25 +702,46 @@ public class ComponentsSetBean extends AbstractModelBean implements
     }
 
     /**
-     * Tries to resolve a component repartition in isolates according to their
-     * capabilities and to components properties
+     * Tries to resolve the given components with the given isolate
+     * informations. Updates the state of the resolved components to
+     * {@link EComponentState#RESOLVED}.
      * 
-     * @param aIsolatesCapabilities
-     *            Isolates capabilities
-     * @param aResolution
-     *            The resulting resolution
-     * 
-     * @return True if the whole composite has been resolved
+     * @param aIsolateId
+     *            An isolate ID
+     * @param aIsolateTypes
+     *            The component types available on the given isolate
+     * @param aToResolve
+     *            Components to resolve
+     * @return The list of resolved components (subset of aToResolve)
      */
-    public boolean resolve(
-            final Map<String, Collection<String>> aIsolatesCapabilities,
-            final Map<String, ComponentBean[]> aResolution) {
+    private ComponentBean[] resolveOnIsolate(final String aIsolateId,
+            final Collection<String> aIsolateTypes,
+            final Collection<ComponentBean> aToResolve) {
 
-        // Clear the resolution map, to be safe
-        aResolution.clear();
+        // Prepare the resolution content
+        final List<ComponentBean> resolvedComponents = new ArrayList<ComponentBean>();
 
-        return resolve(pComponentBeans.values(), aIsolatesCapabilities,
-                aResolution);
+        // Test all awaiting components
+        for (final ComponentBean component : aToResolve) {
+
+            final String componentHost = component.getIsolate();
+            if (componentHost != null && !componentHost.isEmpty()
+                    && !componentHost.equals(aIsolateId)) {
+                // No the host we're waiting for
+                continue;
+            }
+
+            if (aIsolateTypes.contains(component.getType())) {
+                // We've found a match
+                resolvedComponents.add(component);
+
+                // Update the component state
+                component.setState(EComponentState.RESOLVED);
+            }
+        }
+
+        return resolvedComponents.toArray(new ComponentBean[resolvedComponents
+                .size()]);
     }
 
     /**
@@ -655,6 +756,7 @@ public class ComponentsSetBean extends AbstractModelBean implements
 
         if (aComponents != null) {
             for (final ComponentBean component : aComponents) {
+                // Update the component information
                 addComponent(component);
             }
         }
@@ -671,7 +773,11 @@ public class ComponentsSetBean extends AbstractModelBean implements
         pComponentSets.clear();
 
         if (aComponentSets != null) {
-            pComponentSets.addAll(Arrays.asList(aComponentSets));
+            for (final ComponentsSetBean composet : aComponentSets) {
+                // Update the components set information
+                composet.setParent(this);
+                pComponentSets.add(composet);
+            }
         }
     }
 
@@ -687,10 +793,10 @@ public class ComponentsSetBean extends AbstractModelBean implements
 
         // Also update the parent name
         if (pParent != null) {
-            pParentName = pParent.getName();
+            setParentName(pParent.getName());
 
         } else {
-            pParentName = null;
+            setParentName(null);
         }
     }
 
@@ -703,7 +809,7 @@ public class ComponentsSetBean extends AbstractModelBean implements
     public String toCompleteString() {
 
         final StringBuilder builder = new StringBuilder();
-        toCompleteString(builder, "");
+        toCompleteString(builder, null);
 
         return builder.toString();
     }
@@ -718,36 +824,49 @@ public class ComponentsSetBean extends AbstractModelBean implements
      *            The current line prefix
      */
     private void toCompleteString(final StringBuilder aBuilder,
-            final String aPrefix) {
+            final CharSequence aPrefix) {
 
-        final String subPrefix = aPrefix + "  ";
+        // Indent a bit more
+        final String subPrefix = indent(aPrefix);
 
-        aBuilder.append("\n").append(aPrefix);
-        aBuilder.append("Name : ").append(pName);
+        // Components set name
+        appendNewLine(aBuilder, subPrefix);
+        aBuilder.append("Name: ").append(getName());
 
-        aBuilder.append("\n").append(aPrefix);
+        // Components information
+        appendNewLine(aBuilder, subPrefix);
         aBuilder.append("Components : [");
         for (final ComponentBean component : pComponentBeans.values()) {
-            aBuilder.append("\n").append(subPrefix);
+            // Component name
+            appendNewLine(aBuilder, subPrefix);
             aBuilder.append("Name: ").append(component.getName());
-            aBuilder.append("\n").append(subPrefix);
+
+            // Component type
+            appendNewLine(aBuilder, subPrefix);
             aBuilder.append("Type: ").append(component.getType());
-            aBuilder.append("\n").append(subPrefix);
+
+            // Component properties
+            appendNewLine(aBuilder, subPrefix);
             aBuilder.append("Properties: ").append(component.getProperties());
-            aBuilder.append("\n").append(subPrefix);
+            appendNewLine(aBuilder, subPrefix);
+
+            // Component filters
             aBuilder.append("Filters: ").append(component.getFieldsFilters());
-            aBuilder.append("\n").append(subPrefix);
+
+            // Component wires
+            appendNewLine(aBuilder, subPrefix);
             aBuilder.append("Wires: ").append(component.getWires());
 
         }
-        aBuilder.append("\n").append(aPrefix).append("]");
+        appendNewLine(aBuilder, subPrefix).append("]");
 
-        aBuilder.append("\n").append(aPrefix);
+        // Sub components sets information
+        appendNewLine(aBuilder, subPrefix);
         aBuilder.append("Composets : [");
         for (final ComponentsSetBean component : pComponentSets) {
             component.toCompleteString(aBuilder, subPrefix);
         }
-        aBuilder.append("\n").append(aPrefix).append("]\n");
+        appendNewLine(aBuilder, subPrefix).append("]\n");
     }
 
     /*
@@ -760,7 +879,7 @@ public class ComponentsSetBean extends AbstractModelBean implements
 
         final StringBuilder builder = new StringBuilder();
         builder.append("ComponentsSet(");
-        builder.append("Name=").append(pName);
+        builder.append("Name=").append(getName());
         builder.append(", Parent=").append(pParent);
         builder.append(")");
 

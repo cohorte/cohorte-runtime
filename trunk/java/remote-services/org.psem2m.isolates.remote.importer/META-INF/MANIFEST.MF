@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: PSEM2M Remote Service Importer
+Bundle-Name: PSEM2M :: Remote Services :: Importer
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: org.psem2m.remote.importer
 Bundle-Vendor: isandlaTech.com
@@ -38,11 +38,15 @@ iPOJO-Components: instance { $component="org.psem2m.remote.importer.Re
  "{java.lang.String}" }method { $name="filterProperties" $return="java
  .util.Dictionary" $arguments="{java.util.Map}" }method { $name="handl
  eIsolateLost" $arguments="{java.lang.String}" }method { $name="handle
+ IsolateReady" $arguments="{java.lang.String}" }method { $name="handle
  RemoteEvent" $arguments="{org.psem2m.isolates.services.remote.beans.R
  emoteServiceEvent}" }method { $name="invalidatePojo" }method { $name=
  "parseFilter" $arguments="{java.lang.String,java.util.Set}" }method {
   $name="prepareFilters" }method { $name="registerService" $arguments=
  "{org.psem2m.isolates.services.remote.beans.RemoteServiceEvent}" }met
- hod { $name="unregisterService" $arguments="{java.lang.String,java.la
- ng.String}" }method { $name="validatePojo" }}}
+ hod { $name="requestEndpoints" $arguments="{java.lang.String}" }metho
+ d { $name="unregisterService" $arguments="{java.lang.String,java.lang
+ .String}" }method { $name="updateService" $arguments="{org.psem2m.iso
+ lates.services.remote.beans.RemoteServiceRegistration}" }method { $na
+ me="validatePojo" }}}
 

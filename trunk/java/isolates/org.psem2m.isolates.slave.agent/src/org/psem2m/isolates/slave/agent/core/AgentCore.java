@@ -4,7 +4,9 @@
 package org.psem2m.isolates.slave.agent.core;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.MalformedURLException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -23,8 +25,8 @@ import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.BundleListener;
 import org.osgi.framework.Constants;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.packageadmin.PackageAdmin;
+import org.osgi.framework.FrameworkListener;
+import org.osgi.framework.wiring.FrameworkWiring;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.base.bundles.BundleInfo;
@@ -224,17 +226,6 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
         pUpdateTimeouts.remove(aBundleId);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.utilities.CXObjectBase#destroy()
-     */
-    @Override
-    public void destroy() {
-
-        // ...
-    }
-
     /**
      * Prepares the URL to install the given bundle. Uses the given file path,
      * if any, then the given symbolic name.
@@ -325,6 +316,66 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
         }
 
         return bundlesInfo;
+    }
+
+    /**
+     * Retrieves the configuration from the given broker URL
+     * 
+     * @param aBrokerUrlStr
+     *            The URL to the configuration broker
+     * @param aIsolateId
+     *            The ID of the isolate
+     * 
+     * @return The isolate configuration, null on error
+     */
+    protected IsolateDescription getConfigurationFromBroker(
+            final String aBrokerUrlStr, final String aIsolateId) {
+
+        if (aBrokerUrlStr == null || aBrokerUrlStr.isEmpty()
+                || aIsolateId == null || aIsolateId.isEmpty()) {
+            // Nothing to do
+            return null;
+        }
+
+        ConfigBrokerClient broker = null;
+        IsolateDescription isolateDescr = null;
+
+        try {
+            // Get the configuration
+            broker = new ConfigBrokerClient(aBrokerUrlStr);
+            final String content = broker.getConfiguration(aIsolateId);
+
+            // Parse it
+            isolateDescr = pConfigurationSvc.parseIsolate(content);
+
+        } catch (final BrokerException ex) {
+            // Broker error
+            pIsolateLoggerSvc.logWarn(this, "getConfigurationFromBroker",
+                    "Configuration broker an error:", ex);
+
+        } catch (final IOException ex) {
+            // Request error
+            pIsolateLoggerSvc.logWarn(this, "getConfigurationFromBroker",
+                    "Error requesting the configuration from the broker:", ex);
+        }
+
+        if (broker != null) {
+            // Clean up if needed
+            try {
+                broker.deleteConfiguration(aIsolateId);
+
+            } catch (final IOException ex) {
+                pIsolateLoggerSvc.logWarn(this, "getConfigurationFromBroker",
+                        "Error requesting the configuration deletion:", ex);
+
+            } catch (final BrokerException ex) {
+                pIsolateLoggerSvc.logWarn(this, "getConfigurationFromBroker",
+                        "Configuration broker error during deletion:", ex);
+            }
+        }
+
+        // Return what we found (null on error)
+        return isolateDescr;
     }
 
     /**
@@ -453,10 +504,10 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
      */
     @Override
     public void invalidatePojo() {
-    	
-		// logs the validation
-		pIsolateLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
-				toString());
+
+        // logs the validation
+        pIsolateLoggerSvc.logInfo(this, "invalidatePojo", "INVALIDATE",
+                toString());
 
         // Unregister the bundle listener
         pBundleContext.removeBundleListener(this);
@@ -590,13 +641,36 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
     @Override
     public void prepareIsolate(final String aIsolateId) throws Exception {
 
-        // Read the configuration
-        final IsolateDescription isolateDescr = pConfigurationSvc
-                .getApplication().getIsolate(aIsolateId);
-        if (isolateDescr == null) {
-            throw new IllegalArgumentException("Isolate '" + aIsolateId
-                    + "' is not defined in the configuration.");
+        IsolateDescription isolateDescr = null;
+
+        // Get the broker URL
+        final String brokerUrlStr = System
+                .getProperty(IPlatformProperties.PROP_BROKER_URL);
+        if (brokerUrlStr != null) {
+            pIsolateLoggerSvc.logInfo(this, "prepareIsolate",
+                    "Reading configuration from the broker URL=", brokerUrlStr);
+
+            isolateDescr = getConfigurationFromBroker(brokerUrlStr, aIsolateId);
         }
+
+        // Read from the configuration files
+        if (isolateDescr == null) {
+            pIsolateLoggerSvc.logInfo(this, "prepareIsolate",
+                    "No configuration retrieved from the broker -> use files.");
+
+            isolateDescr = pConfigurationSvc.getApplication().getIsolate(
+                    aIsolateId);
+
+            if (isolateDescr == null) {
+                // No configuration found
+                throw new IllegalArgumentException(MessageFormat.format(
+                        "Isolate ''{0}'' is not defined in the configuration.",
+                        aIsolateId));
+            }
+        }
+
+        // Update the configuration service
+        pConfigurationSvc.setCurrentIsolate(isolateDescr);
 
         // Update the system property in any case, before installing bundles
         System.setProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID,
@@ -686,12 +760,9 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
                                 pInstalledBundles.get(bundleId)
                                         .getSymbolicName(), ex);
 
-                        System.err.println(ex);
-
                     } else {
                         // Propagate error if the bundle is not optional
                         throw ex;
-
                     }
                 }
             }
@@ -704,9 +775,6 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
      * Refreshes packages (like the refresh command in Felix / Equinox). The
      * bundle ID array can be null, to refresh the whole framework.
      * 
-     * FIXME {@link PackageAdmin} is now deprecated (OSGi 4.3), but Felix 3.2.2
-     * does currently not support the new way.
-     * 
      * @param aBundleIdArray
      *            An array containing the UID of the bundles to refresh, null to
      *            refresh all
@@ -715,41 +783,30 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
     public boolean refreshPackages(final long[] aBundleIdArray) {
 
         // Prepare the bundle array
-        Bundle[] bundles = null;
+        List<Bundle> bundles = null;
 
         if (aBundleIdArray != null) {
-            bundles = new Bundle[aBundleIdArray.length];
-            int i = 0;
+            bundles = new ArrayList<Bundle>(aBundleIdArray.length);
             for (final long bundleId : aBundleIdArray) {
-
                 final Bundle bundle = pBundleContext.getBundle(bundleId);
                 if (bundle != null) {
-                    bundles[i++] = bundle;
+                    bundles.add(bundle);
                 }
             }
         }
 
-        // Grab the service
-        final ServiceReference svcRef = pBundleContext
-                .getServiceReference(PackageAdmin.class.getName());
-        if (svcRef == null) {
+        // Get the wiring 'service'
+        final FrameworkWiring fwWiring = pBundleContext.getBundle(0).adapt(
+                FrameworkWiring.class);
+
+        if (fwWiring == null) {
+            pIsolateLoggerSvc.logWarn(this, "refreshPackages",
+                    "System bundle couldn't be adapted to FrameworkWiring.");
             return false;
         }
 
-        final PackageAdmin packadmin = (PackageAdmin) pBundleContext
-                .getService(svcRef);
-        if (packadmin == null) {
-            return false;
-        }
-
-        try {
-            // Refresh packages
-            packadmin.refreshPackages(bundles);
-
-        } finally {
-            // Release the service in any case
-            pBundleContext.ungetService(svcRef);
-        }
+        // Refresh bundles (and packages)
+        fwWiring.refreshBundles(bundles, (FrameworkListener[]) null);
 
         return true;
     }
@@ -904,11 +961,10 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
      */
     @Override
     public void validatePojo() {
-    	
-		// logs the validation
-		pIsolateLoggerSvc.logInfo(this, "validatePojo", "VALIDATE",
-				toString());
-		
+
+        // logs the validation
+        pIsolateLoggerSvc.logInfo(this, "validatePojo", "VALIDATE", toString());
+
         // Set up the scheduler, before the call to addBundleListener.
         pScheduler = Executors.newScheduledThreadPool(1);
 
@@ -937,8 +993,8 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
                     EBaseGroup.MONITORS);
 
         } catch (final Exception ex) {
-            System.err.println("Preparation error : " + ex);
-            ex.printStackTrace();
+            // Reset critical section if needed
+            pCriticalSection.set(false);
 
             final IsolateStatus status = pBootstrapSender.sendStatus(
                     IsolateStatus.STATE_FAILURE, -1);

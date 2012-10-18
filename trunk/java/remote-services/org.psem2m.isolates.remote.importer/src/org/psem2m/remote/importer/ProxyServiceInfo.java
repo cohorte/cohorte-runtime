@@ -13,7 +13,7 @@ public class ProxyServiceInfo {
     private final Object pProxy;
 
     /** The service registration information */
-    private final ServiceRegistration pServiceRegistration;
+    private final ServiceRegistration<?> pServiceRegistration;
 
     /**
      * Sets up the bean
@@ -23,7 +23,7 @@ public class ProxyServiceInfo {
      * @param aProxy
      *            Service proxy object
      */
-    public ProxyServiceInfo(final ServiceRegistration aRegistration,
+    public ProxyServiceInfo(final ServiceRegistration<?> aRegistration,
             final Object aProxy) {
 
         pServiceRegistration = aRegistration;
@@ -45,7 +45,7 @@ public class ProxyServiceInfo {
      * 
      * @return the service registration information
      */
-    public ServiceRegistration getServiceRegistration() {
+    public ServiceRegistration<?> getServiceRegistration() {
 
         return pServiceRegistration;
     }

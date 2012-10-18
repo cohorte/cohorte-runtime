@@ -20,7 +20,7 @@ public interface IPojoBase {
     /**
      * @return the id of the bundle
      */
-    public String getPojoId();
+    String getPojoId();
 
     /**
      * Called when the POJO has been invalidated by iPOJO (dependency gone, ...)
@@ -28,7 +28,7 @@ public interface IPojoBase {
      * @throws BundleException
      *             An error occurred while stopping the POJO
      */
-    public void invalidatePojo() throws BundleException;
+    void invalidatePojo() throws BundleException;
 
     /**
      * Called when iPOJO starts the POJO.
@@ -36,5 +36,5 @@ public interface IPojoBase {
      * @throws BundleException
      *             An error occurred while starting the POJO
      */
-    public void validatePojo() throws BundleException;
+    void validatePojo() throws BundleException;
 }

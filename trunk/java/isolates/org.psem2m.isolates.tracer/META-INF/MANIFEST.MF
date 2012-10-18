@@ -1,10 +1,10 @@
 Manifest-Version: 1.0
 Bundle-Activator: org.psem2m.isolates.tracer.CBundleTracerActivator
 Bundle-ManifestVersion: 2
-Bundle-Name: PSEM2M Tracer
+Bundle-Name: PSEM2M :: Tracer
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: org.psem2m.isolates.tracer
-Bundle-Vendor: isandlaTech (www.isandlatech.com)
+Bundle-Vendor: isandlaTech.com
 Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
 Export-Package: org.psem2m.isolates.tracer,org.psem2m.isolates.tracer.
@@ -27,9 +27,8 @@ iPOJO-Components: instance { $component="psem2m-tracer-factory" $name=
  m.isolates.tracer.ITracerSvc" }field { $name="pIsolateLoggerSvc" $typ
  e="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pLogCh
  annelsSvc" $type="org.psem2m.isolates.loggers.ILogChannelsSvc" }metho
- d { $name="destroy" }method { $name="getPojoId" $return="java.lang.St
- ring" }method { $name="getTracableChannelsIds" $return="java.util.Lis
- t" }method { $name="invalidatePojo" }method { $name="traceChannels" $
- return="boolean" $arguments="{java.util.List}" }method { $name="valid
- atePojo" }}}
+ d { $name="getPojoId" $return="java.lang.String" }method { $name="get
+ TracableChannelsIds" $return="java.util.List" }method { $name="invali
+ datePojo" }method { $name="traceChannels" $return="boolean" $argument
+ s="{java.util.List}" }method { $name="validatePojo" }}}
 

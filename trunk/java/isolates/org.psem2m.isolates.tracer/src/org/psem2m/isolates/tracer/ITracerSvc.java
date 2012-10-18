@@ -18,15 +18,14 @@ import java.util.List;
  */
 public interface ITracerSvc {
 
-	/**
-	 * @return the list of the ids of the tracable channels
-	 */
-	public List<String> getTracableChannelsIds();
+    /**
+     * @return the list of the ids of the tracable channels
+     */
+    List<String> getTracableChannelsIds();
 
-	/**
-	 * @param aIds
-	 * @return
-	 */
-	public boolean traceChannels(List<String> aIds);
-
+    /**
+     * @param aIds
+     * @return
+     */
+    boolean traceChannels(List<String> aIds);
 }

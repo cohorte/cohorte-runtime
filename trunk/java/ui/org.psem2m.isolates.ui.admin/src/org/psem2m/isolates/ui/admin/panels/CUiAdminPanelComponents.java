@@ -69,11 +69,7 @@ public class CUiAdminPanelComponents extends CPojoBase implements
      * @param aArch
      */
     @Bind(id = IPOJO_ID_ARCHITECTURES, aggregate = true)
-    void architectureBind(final Architecture aArch) {
-
-        pLogger.logInfo(this, "architectureBind",
-                "component=[%s] - panel present=[%b]", aArch
-                        .getInstanceDescription().getName(), pJPanel != null);
+    protected void architectureBind(final Architecture aArch) {
 
         SwingUtilities.invokeLater(new Runnable() {
 
@@ -93,10 +89,7 @@ public class CUiAdminPanelComponents extends CPojoBase implements
      * @param aArch
      */
     @Unbind(id = IPOJO_ID_ARCHITECTURES, aggregate = true)
-    void architectureUnBind(final Architecture aArch) {
-
-        pLogger.logInfo(this, "architectureUnBind", "component=[%s]", aArch
-                .getInstanceDescription().getName());
+    protected void architectureUnBind(final Architecture aArch) {
 
         SwingUtilities.invokeLater(new Runnable() {
 
@@ -116,6 +109,7 @@ public class CUiAdminPanelComponents extends CPojoBase implements
     private void initContent() {
 
         final Runnable wRunnable = new Runnable() {
+
             @Override
             public void run() {
 

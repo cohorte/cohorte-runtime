@@ -19,9 +19,9 @@ import org.osgi.service.event.EventAdmin;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.constants.ISignalsEventsConstants;
-import org.psem2m.isolates.services.remote.signals.ISignalData;
-import org.psem2m.isolates.services.remote.signals.ISignalListener;
-import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
+import org.psem2m.signals.ISignalData;
+import org.psem2m.signals.ISignalListener;
+import org.psem2m.signals.ISignalReceiver;
 
 /**
  * Receives the EventAdmin bridge signals and posts them in the local isolate
@@ -62,7 +62,7 @@ public class EventNotifier extends CPojoBase implements ISignalListener {
      * org.psem2m.isolates.services.remote.signals.ISignalData)
      */
     @Override
-    public void handleReceivedSignal(final String aSignalName,
+    public Object handleReceivedSignal(final String aSignalName,
             final ISignalData aSignalData) {
 
         // Extract the topic
@@ -80,6 +80,8 @@ public class EventNotifier extends CPojoBase implements ISignalListener {
 
         // Post the event
         pEventAdmin.postEvent(new Event(topic, properties));
+
+        return null;
     }
 
     /*

@@ -15,15 +15,22 @@ import org.psem2m.isolates.base.isolates.boot.IsolateStatus;
  */
 public interface IIsolateStatusEventListener {
 
-    /**
-     * Notifies the listener that an IsolateStatus object as been received, or
-     * that an isolate has been lost (the isolate status is null)
-     * 
-     * @param aIsolateId
-     *            The source isolate ID
-     * @param aIsolateStatus
-     *            The received object, null if the isolate has been lost
-     */
-    void handleIsolateStatusEvent(String aIsolateId,
-            IsolateStatus aIsolateStatus);
+	/**
+	 * Notifies the listener that an isolate has been declared lost
+	 * 
+	 * @param aIsolateId
+	 *            The lost isolate ID
+	 */
+	void handleIsolateLost(String aIsolateId);
+
+	/**
+	 * Notifies the listener that an IsolateStatus object as been received, or
+	 * that an isolate has been lost (the isolate status is null)
+	 * 
+	 * @param aSenderId
+	 *            The source isolate ID
+	 * @param aIsolateStatus
+	 *            The received object, null if the isolate has been lost
+	 */
+	void handleIsolateStatusEvent(String aSenderId, IsolateStatus aIsolateStatus);
 }

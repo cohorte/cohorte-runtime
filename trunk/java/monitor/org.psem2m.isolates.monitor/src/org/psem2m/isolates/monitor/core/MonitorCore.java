@@ -17,7 +17,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
-import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
@@ -25,6 +24,9 @@ import org.apache.felix.ipojo.annotations.ServiceProperty;
 import org.apache.felix.ipojo.annotations.Unbind;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
+import org.psem2m.forker.IForker;
+import org.psem2m.forker.IForkerEventListener;
+import org.psem2m.forker.IForkerStatus;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.base.activators.CPojoBase;
@@ -38,8 +40,6 @@ import org.psem2m.isolates.services.conf.ISvcConfig;
 import org.psem2m.isolates.services.conf.beans.ApplicationDescription;
 import org.psem2m.isolates.services.conf.beans.IsolateDescription;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
-import org.psem2m.isolates.services.forker.IForker;
-import org.psem2m.isolates.services.forker.IForkerEventListener;
 import org.psem2m.signals.ISignalBroadcaster;
 import org.psem2m.signals.ISignalData;
 import org.psem2m.signals.ISignalDirectory.EBaseGroup;
@@ -52,8 +52,8 @@ import org.psem2m.signals.ISignalReceiver;
  * @author Thomas Calmant
  */
 @Component(name = "psem2m-monitor-core-factory", publicFactory = false)
-@Provides(specifications = IPlatformMonitor.class)
-@Instantiate(name = "psem2m-monitor-core")
+@Provides(specifications = { IPlatformMonitor.class, IForkerEventListener.class })
+// @Instantiate(name = "psem2m-monitor-core")
 public class MonitorCore extends CPojoBase implements
         IIsolateStatusEventListener, ISignalListener, IPlatformMonitor,
         IForkerEventListener {
@@ -196,14 +196,13 @@ public class MonitorCore extends CPojoBase implements
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.isolates.services.forker.IForkerEventListener#handleForkerEvent
-     * (
-     * org.psem2m.isolates.services.forker.IForkerEventListener.EForkerEventType
-     * , java.lang.String, java.lang.String)
+     * org.psem2m.forker.IForkerEventListener#handleForkerEvent(org.psem2m.forker
+     * .IForkerEventListener.EForkerEventType, java.lang.String,
+     * java.lang.String, java.lang.String)
      */
     @Override
     public void handleForkerEvent(final EForkerEventType aEventType,
-            final String aForkerId, final String aHost) {
+            final String aForkerId, final String aNode, final String aHost) {
 
         // Get the current isolate ID
         final String currentIsolateId = pPlatformDirsSvc.getIsolateId();
@@ -293,6 +292,20 @@ public class MonitorCore extends CPojoBase implements
      * (non-Javadoc)
      * 
      * @see org.psem2m.isolates.base.isolates.IIsolateStatusEventListener#
+     * handleIsolateLost(java.lang.String)
+     */
+    @Override
+    public void handleIsolateLost(final String aIsolateId) {
+
+        if (pFailureHandler != null) {
+            pFailureHandler.isolateFailed(aIsolateId);
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.base.isolates.IIsolateStatusEventListener#
      * handleIsolateStatusEvent
      * (org.psem2m.isolates.base.isolates.boot.IsolateStatus)
      */
@@ -310,7 +323,6 @@ public class MonitorCore extends CPojoBase implements
             // Ignore status if it's too old
             pLogger.logInfo(this, "handleIsolateStatusEvent",
                     "Obsolete status=", aIsolateStatus);
-            System.out.println("Obsolete status : " + aIsolateStatus);
             return;
         }
 
@@ -336,8 +348,8 @@ public class MonitorCore extends CPojoBase implements
 
             default:
                 // Simply log
-                System.out.println("MonitorCore received status : "
-                        + aIsolateStatus);
+                pLogger.logDebug(this, "", "MonitorCore ignored a status=",
+                        aIsolateStatus);
                 break;
             }
         }
@@ -394,9 +406,6 @@ public class MonitorCore extends CPojoBase implements
     @Override
     @Invalidate
     public void invalidatePojo() throws BundleException {
-
-        // Unregister...
-        pForkerSvc.unregisterListener(this);
 
         // Clear the time stamps list
         pLastIsolatesStatusUID.clear();
@@ -462,15 +471,12 @@ public class MonitorCore extends CPojoBase implements
 
         // Test if the status is too old or duplicated
         final Long lastStamp = pLastIsolatesStatusUID.get(sourceIsolateId);
-        if (lastStamp != null) {
-            // We already read something from this isolate
-            if (lastStamp.longValue() >= statusStamp) {
-                /*
-                 * We read something after this one, or already read this one,
-                 * so ignore it
-                 */
-                return true;
-            }
+        if (lastStamp != null && lastStamp.longValue() >= statusStamp) {
+            /*
+             * We already read something from this isolate and we read something
+             * after this one, or already read this one, so ignore it
+             */
+            return true;
         }
 
         // Update the status time stamp
@@ -564,7 +570,8 @@ public class MonitorCore extends CPojoBase implements
                 ", result=", result);
 
         // Success if the isolate is running (even if we done nothing) return
-        return result == IForker.SUCCESS || result == IForker.ALREADY_RUNNING;
+        return result == IForkerStatus.SUCCESS
+                || result == IForkerStatus.ALREADY_RUNNING;
     }
 
     /**
@@ -610,7 +617,7 @@ public class MonitorCore extends CPojoBase implements
         // Only try to stop isolates that can be started by this monitor
         final ApplicationDescription application = pConfiguration
                 .getApplication();
-        if (application.getIsolateIds() != null) {
+        if (application != null && application.getIsolateIds() != null) {
 
             for (final String isolateId : application.getIsolateIds()) {
 
@@ -618,6 +625,10 @@ public class MonitorCore extends CPojoBase implements
                     pIsolatesToStop.add(isolateId);
                 }
             }
+
+        } else if (application == null) {
+            pLogger.logSevere(this, "stopPlatform",
+                    "Configuration returned a null application !");
         }
 
         // Prepare the end semaphore
@@ -706,9 +717,6 @@ public class MonitorCore extends CPojoBase implements
 
         pFailureHandler = new IsolateFailureHandler(this, maxTriesStreak,
                 timeInStreak, timeBeforeStreak);
-
-        // Register to the forker events
-        pForkerSvc.registerListener(this);
 
         pLogger.logInfo(this, "validatePojo", "PSEM2M Monitor Core Ready");
     }

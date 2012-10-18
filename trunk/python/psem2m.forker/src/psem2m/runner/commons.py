@@ -11,38 +11,13 @@ __docformat__ = "restructuredtext en"
 
 # ------------------------------------------------------------------------------
 
+from base.utils import to_str
 import psem2m.utils
 
 import os
 import shutil
 import subprocess
-import sys
-
-# ------------------------------------------------------------------------------
-
-if sys.version_info[0] == 3:
-    # Python 3
-    def _to_str(data, encoding="UTF-8"):
-        """
-        Converts the given bytes array to a string
-        """
-        if type(data) is str:
-            # Nothing to do
-            return data
-
-        return str(data, encoding)
-
-else:
-    # Python 2
-    def _to_str(data, encoding="UTF-8"):
-        """
-        Converts the given bytes array to a string
-        """
-        if type(data) is str:
-            # Nothing to do
-            return data
-
-        return data.encode(encoding)
+import time
 
 # ------------------------------------------------------------------------------
 
@@ -110,27 +85,26 @@ class Runner(object):
             raise ValueError("Can't find the executable for isolate '%s'"
                              % isolate_id)
 
-        # Get the working directory
+        # Clean the working directory
         working_dir = self._make_working_directory(isolate_id)
 
         # Prepare the environment...
         # ... use configuration values
-        env = self._make_env(isolate_descr, os.environ.copy())
+        env = self._make_env(isolate_descr, os.environ.copy(), working_dir)
         if env is None:
             # ... or start with a fresh environment
             env = {}
 
         # ... set up constants values
         home = os.getenv(psem2m.PSEM2M_HOME, os.getcwd())
-        env[psem2m.PSEM2M_HOME] = _to_str(home)
-        env[psem2m.PSEM2M_BASE] = _to_str(os.getenv(psem2m.PSEM2M_BASE,
-                                                       home))
-        env[psem2m.PSEM2M_ISOLATE_ID] = _to_str(isolate_id)
+        env[psem2m.PSEM2M_HOME] = to_str(home)
+        env[psem2m.PSEM2M_BASE] = to_str(os.getenv(psem2m.PSEM2M_BASE, home))
+        env[psem2m.PSEM2M_ISOLATE_ID] = to_str(isolate_id)
 
         # Prepare the interpreter arguments, the first argument **must** be
         # the interpreter
         args = [executable]
-        args.extend(self._make_args(isolate_descr))
+        args.extend(self._make_args(isolate_descr, working_dir))
 
         # Run the process and return its reference
         return subprocess.Popen(args, executable=executable, env=env,
@@ -152,13 +126,14 @@ class Runner(object):
         raise NotImplementedError("Runner should implement _get_executable()")
 
 
-    def _make_args(self, isolate_descr):
+    def _make_args(self, isolate_descr, working_dir):
         """
         Prepares the isolate executable arguments.
         
         **TO BE IMPLEMENTED BY SUBCLASSES**
         
         :param isolate_descr: A dictionary describing the isolate
+        :param working_dir: The isolate working directory
         :return: The parameters to give to the interpreter (array)
         :raise OSError: File not found
         :raise ValueError: Error preparing the arguments
@@ -166,7 +141,7 @@ class Runner(object):
         raise NotImplementedError("Runner should implement _make_args()")
 
 
-    def _make_env(self, isolate_descr, base_env):
+    def _make_env(self, isolate_descr, base_env, working_dir):
         """
         Retrieves the process environment variables to be set.
         
@@ -177,6 +152,7 @@ class Runner(object):
         
         :param isolate_descr: Isolate description
         :param base_env: Current environment variables
+        :param working_dir: The isolate working directory
         
         :return: The isolate environment variables
         """
@@ -186,7 +162,7 @@ class Runner(object):
             return base_env
 
         # Normalize the dictionary (only strings are allowed)
-        norm_dict = dict((_to_str(key), _to_str(value))
+        norm_dict = dict((to_str(key), to_str(value))
                          for key, value in env.items())
 
         # Update the base_environment
@@ -216,13 +192,16 @@ class Runner(object):
         working_dir = os.path.abspath(os.path.join(base, "var", "work",
                                                    escaped_id))
 
-        if os.path.isdir(working_dir):
+        if os.path.isfile(working_dir) or os.path.islink(working_dir):
+            # Remove the existing file
+            os.remove(working_dir)
+
+        else:
             # Remove the existing directory
             shutil.rmtree(working_dir, True)
 
-        elif os.path.exists(working_dir):
-            # A file or a link already exists with this name
-            os.remove(working_dir)
+        # Wait a little
+        time.sleep(.1)
 
         # (Re-)Make the directory
         os.makedirs(working_dir)

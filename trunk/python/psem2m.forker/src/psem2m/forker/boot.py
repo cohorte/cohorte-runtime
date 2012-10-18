@@ -30,26 +30,6 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
-def string_to_bool(string):
-    """
-    Converts the given string to a boolean
-    
-    If string is one of "true", "1", "yes" or "y", the method returns True
-    (case insensitive).
-    Else, the method returns False
-    
-    :param string: The string to parse
-    :return: True or False
-    """
-    if not string:
-        # No value
-        return False
-
-    # Accept multiple forms of "true"
-    return string.lower() in ("true", "yes", "y", "1")
-
-# ------------------------------------------------------------------------------
-
 def _store_forker_pid(base):
     """
     Stores the current PID to the forker.pid file
@@ -234,6 +214,78 @@ def start_forker(start_monitor, base_properties):
 
 # ------------------------------------------------------------------------------
 
+def configure_logger(logfile, debug=False, verbose=False):
+    """
+    Configures the root logger.
+    
+    If the debug flag is on, debug messages will be logged in the file.
+    If the verbosity flag is on, the console output will log information 
+    messages.
+    If both verbosity and debug flag are on, the console output will log debug
+    messages.
+    
+    :param logfile: The name of the log file. If None, the log file will be
+                    disabled
+    :param debug: The debug flag
+    :param verbose: The verbosity flag
+    """
+    # Get the root logger
+    root_log = logging.root
+
+    if debug:
+        root_log.setLevel(logging.DEBUG)
+    else:
+        root_log.setLevel(logging.INFO)
+
+    # Prepare the console handler
+    consh = logging.StreamHandler()
+
+    # ... set its level
+    if verbose:
+        if debug:
+            consh.setLevel(logging.DEBUG)
+        else:
+            consh.setLevel(logging.INFO)
+    else:
+        consh.setLevel(logging.WARNING)
+
+    # ... prepare its formatter
+    formatter = logging.Formatter("%(asctime)s:%(levelname)-8s:%(name)-20s: %(message)s")
+    consh.setFormatter(formatter)
+
+    # ... register it
+    root_log.addHandler(consh)
+
+    # Get the log file name from the environment if necessary
+    if not logfile:
+        logfile = os.getenv('PSEM2M_LOGFILE')
+
+    # Prepare the file handler
+    if logfile:
+        fileh = logging.FileHandler(logfile, encoding='UTF-8')
+
+        # ... set its level
+        if debug:
+            fileh.setLevel(logging.DEBUG)
+        else:
+            fileh.setLevel(logging.INFO)
+
+        # ... prepare its formatter
+        formatter = logging.Formatter("%(asctime)s:%(levelname)-8s:%(name)-20s:"
+                                      "%(threadName)-15s: %(message)s "
+                                      "(%(module)s.%(funcName)s() @%(lineno)d)")
+        fileh.setFormatter(formatter)
+
+        # ... register it
+        root_log.addHandler(fileh)
+
+    else:
+        root_log.warning("No output log file given.")
+
+    # Done
+    root_log.info("Root log configured.")
+
+
 def main():
     """
     Script entry point if called directly. Uses sys.argv to determine the boot
@@ -272,25 +324,31 @@ def main():
                         dest="with_monitor", default=False,
                         help="The forker must start a monitor")
 
+    parser.add_argument("-l", "--logfile", action="store",
+                        metavar="FILE", dest="logfile", default=None,
+                        help="Sets the output log file")
+
     parser.add_argument("-d", "--debug-mode", action="store_true",
                         dest="debug", default=False,
                         help="Sets the forker framework in debug mode")
 
-    parser.add_argument("-v", "--version", action="version",
+    parser.add_argument("-v", "--verbose-mode", action="store_true",
+                        dest="verbose", default=False,
+                        help="Sets the forker framework in verbose mode")
+
+    parser.add_argument("--version", action="version",
                         version="PSEM2M Python bootstrap 1.0.0")
 
     # Parse arguments
     args = parser.parse_args()
 
-    # Set up the log level according to the debug flag
-    if args.debug:
-        logging.basicConfig(level=logging.DEBUG)
-
-    else:
-        logging.basicConfig(level=logging.INFO)
+    # Set up the logger
+    configure_logger(args.logfile, args.debug, args.verbose)
 
     # Prepare the framework properties
     base_properties = {"pelix.debug": args.debug,
+                       "psem2m.debug": args.debug,
+                       "psem2m.verbose": args.verbose,
                        "psem2m.configuration.broker": args.config_url,
                        "psem2m.directory.dumper.port": args.dumper_port}
 

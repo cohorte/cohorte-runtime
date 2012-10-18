@@ -15,9 +15,10 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.TreeMap;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
@@ -43,7 +44,7 @@ import org.psem2m.utilities.bootstrap.streams.RedirectedOutputStream;
  * 
  * @author Thomas Calmant
  */
-public class Main {
+public final class Main {
 
     /** Name to use in logs */
     private static final String CLASS_LOG_NAME = "Bootstrap.Main";
@@ -79,9 +80,6 @@ public class Main {
 
     /** Real error output */
     private final PrintStream pErrorOutput;
-
-    /** Framework starter thread */
-    private FrameworkStarterThread pFrameworkStarterThread;
 
     /** Human output format */
     private boolean pHumanOutput = false;
@@ -151,6 +149,33 @@ public class Main {
                 e.printStackTrace();
             }
         }
+    }
+
+    /**
+     * Special treatment for Mac OS X, if needed.
+     * 
+     * Loads the AWT library in the main thread.
+     * 
+     * os.name=[Mac OS X]
+     */
+    protected void handleMacOsX() {
+
+        final String osName = System.getProperty("os.name").toLowerCase();
+        if (!osName.contains("os x")) {
+            // Not a Mac OS X host
+            return;
+        }
+
+        // Load AWT
+        final CAWTLoader wAWTLoader = new CAWTLoader();
+
+        // Signal the special behavior
+        final StringBuilder message = new StringBuilder();
+        message.append("os.name=[").append(osName).append("] ");
+        message.append("RgbOfBlackColor=[")
+                .append(Integer.toHexString(wAWTLoader.getBlackRgb()))
+                .append("]");
+        pMessageSender.sendMessage(Level.FINEST, "Main", "run/Start", message);
     }
 
     /**
@@ -381,13 +406,14 @@ public class Main {
         final BundleContext frameworkContext = aFramework.getBundleContext();
 
         // Set up the service properties
-        final Properties mainThreadExecutorProps = new Properties();
+        final Dictionary<String, Object> mainThreadExecutorProps = new Hashtable<String, Object>();
         mainThreadExecutorProps.put("thread", wCurrentThreadName);
         mainThreadExecutorProps.put(Constants.SERVICE_RANKING,
                 Integer.valueOf(-1000));
 
         // Prepare the service instance
         final Executor mainThreadExecutor = new Executor() {
+
             @Override
             public void execute(final Runnable command) {
 
@@ -410,6 +436,7 @@ public class Main {
          * loop when the system bundle starts to shutdown
          */
         frameworkContext.addBundleListener(new SynchronousBundleListener() {
+
             @Override
             public void bundleChanged(final BundleEvent event) {
 
@@ -439,21 +466,10 @@ public class Main {
                         "CurrentThread=[%s]", Thread.currentThread().getName()));
 
         // tips to make AWT available on MacOsX ???
-        // os.name=[Mac OS X]
-        if ("Mac OS X".equalsIgnoreCase(System.getProperty("os.name"))) {
-
-            final CAWTLoader wAWTLoader = new CAWTLoader();
-            pMessageSender.sendMessage(
-                    Level.FINEST,
-                    "Main",
-                    "run/Start",
-                    String.format("os.name=[%s] RgbOfBlackColor=[%s]",
-                            System.getProperty("os.name"),
-                            Integer.toHexString(wAWTLoader.getBlackRgb())));
-        }
+        handleMacOsX();
 
         // Read the bundles list and run the bootstrap
-        URL[] bundleConfiguration;
+        final URL[] bundleConfiguration;
         try {
             bundleConfiguration = readConfiguration();
 
@@ -474,14 +490,31 @@ public class Main {
         }
 
         // Run the framework...
+        runFramework(bundleConfiguration);
+
+        // Close the streams before exit
+        closeStreams();
+
+        // Exit in any case (do not wait for non-daemon threads)
+        System.exit(0);
+    }
+
+    /**
+     * Runs and waits for the framework thread. Executes the main thread queue
+     * 
+     * @param aBundleConfiguration
+     *            An array of URLs to bundles to install
+     */
+    protected void runFramework(final URL[] aBundleConfiguration) {
+
+        FrameworkStarterThread frameworkStarterThread = null;
         try {
             // Prepare the thread
-            pFrameworkStarterThread = new FrameworkStarterThread(
-                    pMessageSender, pBootstrapConfiguration,
-                    pOtherConfiguration);
+            frameworkStarterThread = new FrameworkStarterThread(pMessageSender,
+                    pBootstrapConfiguration, pOtherConfiguration);
 
             // Prepare the framework (without starting it)
-            final Framework framework = pFrameworkStarterThread
+            final Framework framework = frameworkStarterThread
                     .prepareFramework();
 
             // Register the UI service
@@ -490,12 +523,12 @@ public class Main {
                     .getBundle();
 
             // Run the beast
-            if (!pFrameworkStarterThread.runBootstrap(bundleConfiguration)) {
+            if (!frameworkStarterThread.runBootstrap(aBundleConfiguration)) {
                 throw new Exception("Error in runBootstrap()");
             }
 
             // Start the framework activity thread
-            pFrameworkStarterThread.start();
+            frameworkStarterThread.start();
 
             // Enter a loop to poll on the work queue
             while (!shutdown.get()
@@ -525,10 +558,10 @@ public class Main {
             }
 
             // Release the framework thread
-            pFrameworkStarterThread.releaseFramework();
+            frameworkStarterThread.releaseFramework();
 
             // Wait for it to stop
-            pFrameworkStarterThread.join(5000);
+            frameworkStarterThread.join(5000);
 
             // Clear the interrupted state if it was uncaught during the above
             // loop
@@ -539,16 +572,10 @@ public class Main {
             pMessageSender.sendMessage(Level.SEVERE, CLASS_LOG_NAME, "run",
                     "Exception while running the main thread", ex);
 
-            if (pFrameworkStarterThread != null) {
-                pFrameworkStarterThread.releaseFramework();
+            if (frameworkStarterThread != null) {
+                frameworkStarterThread.releaseFramework();
             }
         }
-
-        // Close the streams before exit
-        closeStreams();
-
-        // Exit in any case (do not wait for non-daemon threads)
-        System.exit(0);
     }
 
     /**

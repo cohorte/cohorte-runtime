@@ -24,21 +24,21 @@ public interface IActivatorBase {
      * 
      * @return an array containing all the available service references.
      */
-    public ServiceReference[] getAllServiceReferences();
+    ServiceReference<?>[] getAllServiceReferences();
 
     /**
      * Retrieves the bundle ID
      * 
      * @return The bundle ID
      */
-    public String getBundleId();
+    String getBundleId();
 
     /**
      * Retrieves the bundle context of the activator
      * 
      * @return The bundle context
      */
-    public BundleContext getContext();
+    BundleContext getContext();
 
     /**
      * Retrieves the service reference of a service using the unique service id
@@ -50,7 +50,5 @@ public interface IActivatorBase {
      * @throws Exception
      *             Something went wrong
      */
-    public ServiceReference getServiceReference(Long aServiceId)
-            throws Exception;
-
+    ServiceReference<?> getServiceReference(Long aServiceId) throws Exception;
 }

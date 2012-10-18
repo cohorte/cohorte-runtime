@@ -49,7 +49,7 @@ public class SCAParser implements SCAConstants {
     private Logger pLogger;
 
     /** The parser */
-    private DOM3Parser pParser;
+    private final DOM3Parser pParser;
 
     /**
      * Sets up the DOM 3 parser
@@ -1136,7 +1136,9 @@ public class SCAParser implements SCAConstants {
                 // Retrieve the service
                 return container.getService(refName);
             }
+            break;
 
+        default:
             break;
         }
 

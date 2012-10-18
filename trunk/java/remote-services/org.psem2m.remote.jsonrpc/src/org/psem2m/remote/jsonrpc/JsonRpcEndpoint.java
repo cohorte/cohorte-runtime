@@ -41,11 +41,14 @@ import org.psem2m.isolates.services.remote.beans.EndpointDescription;
 @Instantiate(name = "psem2m-remote-endpoint-handler-jsonrpc")
 public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
 
+    /** Default HTTP port */
+    private static final int DEFAULT_HTTP_PORT = 80;
+
     /** The bundle context */
     private final BundleContext pBundleContext;
 
     /** Service -&gt; End point description mapping */
-    private final Map<ServiceReference, EndpointDescription[]> pEndpointsDescriptions = new HashMap<ServiceReference, EndpointDescription[]>();
+    private final Map<ServiceReference<?>, EndpointDescription[]> pEndpointsDescriptions = new HashMap<ServiceReference<?>, EndpointDescription[]>();
 
     /** HTTP Service, to host Jabsorb servlet */
     @Requires
@@ -87,14 +90,14 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
     @Override
     public EndpointDescription[] createEndpoint(
             final String aExportedInterface,
-            final ServiceReference aServiceReference) {
+            final ServiceReference<?> aServiceReference) {
 
         if (aServiceReference == null) {
             return null;
         }
 
         // Copy service properties in a map
-        final Map<String, String> serviceProperties = getServiceProperiesMap(aServiceReference);
+        final Map<String, String> serviceProperties = getServicePropertiesMap(aServiceReference);
 
         // Compute a end point name
         final String endPointName = generateEndpointName(serviceProperties);
@@ -165,7 +168,7 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
      * org.osgi.framework.ServiceReference)
      */
     @Override
-    public boolean destroyEndpoint(final ServiceReference aServiceReference) {
+    public boolean destroyEndpoint(final ServiceReference<?> aServiceReference) {
 
         final String endpointName = (String) aServiceReference
                 .getProperty(PROP_ENDPOINT_NAME);
@@ -178,6 +181,10 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
         pJsonRpcBridge.unregisterObject(endpointName);
         pEndpointsDescriptions.remove(aServiceReference);
         pRegisteredEndpoints.remove(endpointName);
+
+        // We do not use the service anymore
+        pBundleContext.ungetService(aServiceReference);
+
         return true;
     }
 
@@ -188,7 +195,7 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
      *            Properties of the exported service
      * @return An end point name, never null
      */
-    protected String generateEndpointName(
+    private String generateEndpointName(
             final Map<String, String> aServiceProperties) {
 
         // Compute a end point name
@@ -210,7 +217,7 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
      */
     @Override
     public EndpointDescription[] getEndpoints(
-            final ServiceReference aServiceReference) {
+            final ServiceReference<?> aServiceReference) {
 
         final EndpointDescription[] result = pEndpointsDescriptions
                 .get(aServiceReference);
@@ -230,15 +237,16 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
      * 
      * @return The found HTTP port.
      */
-    protected int getHttpPort() {
+    private int getHttpPort() {
 
         final String portStr = System.getProperty("org.osgi.service.http.port");
-        int port = 80;
+        int port = DEFAULT_HTTP_PORT;
 
         try {
             port = Integer.parseInt(portStr);
+
         } catch (final NumberFormatException ex) {
-            port = 80;
+            port = DEFAULT_HTTP_PORT;
         }
 
         return port;
@@ -251,8 +259,8 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
      *            Service reference
      * @return The service properties, as a map
      */
-    protected Map<String, String> getServiceProperiesMap(
-            final ServiceReference aServiceReference) {
+    private Map<String, String> getServicePropertiesMap(
+            final ServiceReference<?> aServiceReference) {
 
         // Get the service properties keys
         final String[] propertyKeys = aServiceReference.getPropertyKeys();
@@ -314,7 +322,7 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
      *            Implemented interfaces
      * @return True if the exported interface is in the implemented ones
      */
-    protected boolean isInterfaceExported(final String aExportedInterface,
+    private boolean isInterfaceExported(final String aExportedInterface,
             final String[] aImplementedInterfaces) {
 
         if (aImplementedInterfaces == null
@@ -348,7 +356,7 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
      *            A end point name
      * @return The URI to access the end point
      */
-    protected String makeEndpointUri(final String aEndpointName) {
+    private String makeEndpointUri(final String aEndpointName) {
 
         final StringBuilder builder = new StringBuilder(pServletName);
         builder.append("/").append(aEndpointName);
@@ -359,7 +367,7 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
     /**
      * Sets up the Jabsorb bridge
      */
-    protected void startJabsorbBridge() {
+    private void startJabsorbBridge() {
 
         // Register the Jabsorb servlet
         try {
@@ -387,16 +395,17 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
     /**
      * Cleans up the Jabsorb bridge references.
      */
-    protected void stopJabsorbBridge() {
+    private void stopJabsorbBridge() {
 
         // Unregister the servlet
         pHttpService.unregister(pServletName);
 
-        // Unregister end points
-        final String[] endpoints = pRegisteredEndpoints
-                .toArray(new String[pRegisteredEndpoints.size()]);
-        for (final String endpoint : endpoints) {
-            pJsonRpcBridge.unregisterObject(endpoint);
+        // Destroy end points
+        final ServiceReference<?>[] references = pEndpointsDescriptions
+                .keySet().toArray(new ServiceReference<?>[0]);
+        for (final ServiceReference<?> svcRef : references) {
+            // Destroys the end point and frees the service
+            destroyEndpoint(svcRef);
         }
 
         // Clean up references

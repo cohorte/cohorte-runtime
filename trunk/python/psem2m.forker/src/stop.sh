@@ -1,5 +1,4 @@
 #!/bin/bash
-
 echo "Current system : $(uname)";
 
 if [ $(uname) == "Darwin" ]

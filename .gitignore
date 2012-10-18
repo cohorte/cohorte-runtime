@@ -24,3 +24,11 @@ __pycache__/
 # Coverage (Python)
 .coverage
 htmlcov/
+
+# Sonar
+.sonar/
+sonar-project.properties
+
+# PSEM2M Compiler
+auto_build_psem2m.xml
+

@@ -19,14 +19,16 @@ import org.psem2m.composer.model.ComponentsSetBean;
 public class CompositionEvent {
 
     private final ComponentsSetBean pComponentsSetBean;
+
     private final ComponentsSetBean pComponentsSetBeanParent;
-    private final ECompositionEvent pCompositionEvent;
+
+    private final EComponentState pCompositionEvent;
 
     /**
      * @param aECompositionEvent
      * @param aComponentsSetSnapshot
      */
-    public CompositionEvent(final ECompositionEvent aECompositionEvent,
+    public CompositionEvent(final EComponentState aECompositionEvent,
             final ComponentsSetBean aComponentsSetBean) {
 
         this(aECompositionEvent, aComponentsSetBean, null);
@@ -37,7 +39,7 @@ public class CompositionEvent {
      * @param aComponentsSetSnapshot
      * @param aComponentsSetSnapshotParent
      */
-    public CompositionEvent(final ECompositionEvent aECompositionEvent,
+    public CompositionEvent(final EComponentState aECompositionEvent,
             final ComponentsSetBean aComponentsSetBean,
             final ComponentsSetBean aComponentsSetBeantParent) {
 
@@ -66,7 +68,7 @@ public class CompositionEvent {
     /**
      * @return
      */
-    public ECompositionEvent getCompositionEvent() {
+    public EComponentState getCompositionEvent() {
 
         return pCompositionEvent;
     }

@@ -41,22 +41,11 @@ public class CTracerSvc extends CPojoBase implements ITracerSvc {
     private ILogChannelsSvc pLogChannelsSvc;
 
     /**
-     * Explicite default constructor
+     * Explicit default constructor
      */
     public CTracerSvc() {
 
         super();
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.utilities.CXObjectBase#destroy()
-     */
-    @Override
-    public void destroy() {
-
-        // ...
     }
 
     /*
@@ -102,9 +91,9 @@ public class CTracerSvc extends CPojoBase implements ITracerSvc {
     @Override
     public boolean traceChannels(final List<String> aIds) {
 
-        for (String wId : aIds) {
-            // pLogChannelsSvc.getLogChannel(wId).setHandler(this);
-        }
+        // for (String wId : aIds) {
+        // pLogChannelsSvc.getLogChannel(wId).setHandler(this);
+        // }
         return true;
     }
 
@@ -120,7 +109,7 @@ public class CTracerSvc extends CPojoBase implements ITracerSvc {
         pIsolateLoggerSvc.logInfo(this, "validatePojo", "VALIDATE",
                 toDescription());
 
-        List<String> wIds = pLogChannelsSvc.getChannelsIds();
+        final List<String> wIds = pLogChannelsSvc.getChannelsIds();
 
         pIsolateLoggerSvc.logInfo(this, null, "getChannelsIds=[%s]",
                 CXStringUtils.stringListToString(wIds));

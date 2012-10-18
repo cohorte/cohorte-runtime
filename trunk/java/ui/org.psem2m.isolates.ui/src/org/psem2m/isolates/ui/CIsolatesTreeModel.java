@@ -12,13 +12,11 @@ package org.psem2m.isolates.ui;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
-import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.services.monitoring.IIsolatePresenceListener;
 import org.psem2m.signals.ISignalDirectory;
 
@@ -27,8 +25,6 @@ import org.psem2m.signals.ISignalDirectory;
  * 
  */
 public class CIsolatesTreeModel implements TreeModel, IIsolatePresenceListener {
-
-    private final IIsolateLoggerSvc pLogger;
 
     private final ISignalDirectory pSignalDirectory;
 
@@ -41,13 +37,10 @@ public class CIsolatesTreeModel implements TreeModel, IIsolatePresenceListener {
      * @param aCompositionSnapshot
      *            A composition snapshot list
      */
-    CIsolatesTreeModel(final IIsolateLoggerSvc aLogger,
-            final ISignalDirectory aSignalDirectory) {
+    CIsolatesTreeModel(final ISignalDirectory aSignalDirectory) {
 
         super();
-        pLogger = aLogger;
         pSignalDirectory = aSignalDirectory;
-        update();
     }
 
     /*
@@ -242,22 +235,6 @@ public class CIsolatesTreeModel implements TreeModel, IIsolatePresenceListener {
         return aObject instanceof CSnapshotIsolate;
     }
 
-    /**
-     * @param aLevel
-     * @param aWho
-     * @param aWhat
-     * @param aInfos
-     */
-    private void log(final Level aLevel, final Object aWho,
-            final CharSequence aWhat, final Object... aInfos) {
-
-        final CIsolatesUiActivator wActivator = CIsolatesUiActivator
-                .getInstance();
-        if (wActivator.hasIsolateLoggerSvc()) {
-            wActivator.getIsolateLoggerSvc().log(aLevel, aWho, aWhat, aInfos);
-        }
-    }
-
     /*
      * (non-Javadoc)
      * 
@@ -268,74 +245,6 @@ public class CIsolatesTreeModel implements TreeModel, IIsolatePresenceListener {
     @Override
     public void removeTreeModelListener(final TreeModelListener aListener) {
 
-    }
-
-    /**
-     * Updates the tree model
-     * 
-     * DirectoryDump size [3]
-     * 
-     * <pre>
-     * accesses {
-     * 	org.psem2m.internals.isolates.monitor-isolate-one={
-     * 		port=9000, 
-     * 		node=central
-     * 		}, 
-     * 	org.psem2m.internals.isolates.forker={
-     * 		port=9001,
-     * 		node=central
-     * 		}
-     * 	} 
-     * nodes_host {
-     * 	central=localhost
-     * 	} 
-     * groups {
-     * 	local=[
-     * 		org.psem2m.internals.isolates.forker
-     * 		], 
-     * 	all=[
-     * 		org.psem2m.internals.isolates.monitor-isolate-one,
-     * 		org.psem2m.internals.isolates.forker
-     * 		]
-     * 	}
-     * </pre>
-     * 
-     * @param aCompositionSnapshots
-     *            New snapshots
-     */
-    public void update() {
-
-        final String[] wNodeIds = pSignalDirectory.getAllNodes();
-
-        if (wNodeIds != null && wNodeIds.length > 0) {
-            synchronized (pSnapshotNodes) {
-                pSnapshotNodes.clear();
-
-                for (final String wNodeId : wNodeIds) {
-                    final CSnapshotNode wNode = new CSnapshotNode(wNodeId);
-                    wNode.setHostName(pSignalDirectory.getHostForNode(wNodeId));
-                    final String[] wIsolateIds = pSignalDirectory
-                            .getIsolatesOnNode(wNodeId);
-                    for (final String wIsolateId : wIsolateIds) {
-                        final CSnapshotIsolate wIsolate = new CSnapshotIsolate(
-                                wIsolateId);
-                        wIsolate.setHostAccess(pSignalDirectory
-                                .getIsolateAccess(wIsolateId));
-                        wNode.add(wIsolate);
-
-                        log(Level.INFO, this, "update",
-                                "Add one Isolate size=[%d] : %s",
-                                wNode.getChildCount(), wIsolate.getTextInfo());
-                    }
-                    pSnapshotNodes.add(wNode);
-
-                    log(Level.INFO, this, "update",
-                            "Add one Node size=[%d] : %s",
-                            pSnapshotNodes.size(), wNode.getTextInfo());
-
-                }
-            }
-        }
     }
 
     /*

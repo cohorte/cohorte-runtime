@@ -77,12 +77,13 @@ def find_bases(root=os.curdir):
     return bases
 
 
-def make_zip(zip_name, files_dict):
+def make_zip(zip_name, files_dict, zip_root=None):
     """
     Makes a ZIP file according to the given dictionary
     
     :param zip_name: Name of the output ZIP file
     :param files_dict: A file path -> zip path mapping
+    :param zip_root: Name of a root directory in the ZIP file, if needed
     """
     print("Outzip = " + zip_name)
 
@@ -93,6 +94,8 @@ def make_zip(zip_name, files_dict):
                 zipname = fullname
 
             if accept_file(zipname):
+                if zip_root:
+                    zipname = os.path.join(zip_root, zipname)
                 outzip.write(fullname, zipname)
 
     finally:
@@ -131,7 +134,8 @@ def make_monitor_zip(dev_root, home, base, node, outdir=os.curdir):
     extend_home_files(dev_root, outfiles, extra)
 
     # Make the ZIP
-    make_zip(os.path.join(outdir, node + "-monitor.zip"), outfiles)
+    dirname = "monitor-{node}".format(node=node)
+    make_zip(os.path.join(outdir, "{0}.zip".format(dirname)), outfiles, dirname)
     print("Monitor {node} done.".format(node=node))
 
 
@@ -230,7 +234,8 @@ def make_small_install_zip(small_install, node, java_home_repo, java_base_repo,
 
     # Replace the controller.py file
     tmp_file = update_controller(home, node, outfiles)
-    make_zip(os.path.join(outdir, node + "-small.zip"), outfiles)
+    dirname = "small-{node}".format(node=node)
+    make_zip(os.path.join(outdir, "{0}.zip".format(dirname)), outfiles, dirname)
 
     # Clean up the temporary file
     tmp_file.close()

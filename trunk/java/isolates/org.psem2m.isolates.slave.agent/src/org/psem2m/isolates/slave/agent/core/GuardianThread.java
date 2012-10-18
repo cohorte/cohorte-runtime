@@ -7,9 +7,11 @@ package org.psem2m.isolates.slave.agent.core;
 
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
+import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.services.conf.beans.BundleDescription;
 
 /**
@@ -23,7 +25,10 @@ public class GuardianThread extends Thread {
     public static final String THREAD_NAME = "PSEM2M-Agent-Guardian";
 
     /** Parent agent */
-    private AgentCore pAgentCore;
+    private final AgentCore pAgentCore;
+
+    /** The logger */
+    private IIsolateLoggerSvc pLogger;
 
     /**
      * Sets up the guardian
@@ -38,6 +43,22 @@ public class GuardianThread extends Thread {
 
         // Set this thread as a daemon one, to avoid mess when the JVM exits
         setDaemon(true);
+    }
+
+    /**
+     * Logs some information
+     * 
+     * @param aLevel
+     *            Log level
+     * @param aWhat
+     *            Current operation
+     * @param aInfos
+     *            Log message
+     */
+    private synchronized void log(final Level aLevel, final String aWhat,
+            final Object... aInfos) {
+
+        pLogger.log(aLevel, this, aWhat, aInfos);
     }
 
     /*
@@ -71,8 +92,9 @@ public class GuardianThread extends Thread {
 
                         if (!bundleDescr.getOptional()) {
                             // TODO handle the missing bundle
-                            System.err.println("MISSING BUNDLE: "
-                                    + bundleDescr.getSymbolicName());
+                            log(Level.WARNING, "Thread Loop",
+                                    "Missing bundle=",
+                                    bundleDescr.getSymbolicName());
                         }
                         // Don't care if the bundle is optional
 
@@ -86,15 +108,15 @@ public class GuardianThread extends Thread {
                             } catch (final BundleException e) {
                                 if (!bundleDescr.getOptional()) {
                                     // TODO handle this case
-                                    System.err.println("INVALID STATE BUNDLE: "
-                                            + bundleDescr.getSymbolicName()
-                                            + " - " + e);
+                                    log(Level.WARNING,
+                                            "Thread Loop",
+                                            "Invalid state exception starting bundle=",
+                                            bundleDescr.getSymbolicName(), e);
 
                                 } else {
-                                    System.out
-                                            .println("WARNING: can't wake up bundle "
-                                                    + bundleDescr
-                                                            .getSymbolicName());
+                                    log(Level.WARNING, "Thread Loop",
+                                            "Can't wake up bundle=",
+                                            bundleDescr.getSymbolicName());
                                 }
                             }
                         }
@@ -111,5 +133,16 @@ public class GuardianThread extends Thread {
         }
 
         // End of monitoring
+    }
+
+    /**
+     * Sets the logger to use
+     * 
+     * @param aLogger
+     *            the logger to use
+     */
+    public synchronized void setLogger(final IIsolateLoggerSvc aLogger) {
+
+        pLogger = aLogger;
     }
 }

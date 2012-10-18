@@ -42,7 +42,7 @@ class PythonRunner(runner.Runner):
         """
         Constructor
         """
-        runner.Runner.__init__(self)
+        super(PythonRunner, self).__init__()
         self._python2_path = None
         self._python3_path = None
 
@@ -75,11 +75,13 @@ class PythonRunner(runner.Runner):
         return None
 
 
-    def _make_args(self, isolate_descr):
+    def _make_args(self, isolate_descr, working_dir):
         """
         Prepares the Python interpreter arguments
         
         :param isolate_descr: A dictionary describing the isolate
+        :param working_dir: The isolate working directory
+        
         :return: The parameters to give to the interpreter (array)
         """
         # Get the list of bundles in the configuration
@@ -115,12 +117,13 @@ class PythonRunner(runner.Runner):
         return args
 
 
-    def _make_env(self, isolate_descr, base_env):
+    def _make_env(self, isolate_descr, base_env, working_dir):
         """
         Retrieves the process environment variables to be set.
         
         :param isolate_descr: Isolate description
         :param base_env: Current environment variables
+        :param working_dir: The isolate working directory
         
         :return: The isolate environment variables
         """
@@ -128,7 +131,8 @@ class PythonRunner(runner.Runner):
         python_path = base_env.get("PYTHONPATH", None)
 
         # Call the parent method (will override environment values)
-        env = super(PythonRunner, self)._make_env(isolate_descr, base_env)
+        env = super(PythonRunner, self)._make_env(isolate_descr, base_env,
+                                                  working_dir)
         if env is None:
             # Parent did nothing
             env = {}
@@ -160,8 +164,23 @@ class PythonRunner(runner.Runner):
         
         :param context: The bundle context
         """
+        # Python 2
         self._python2_path = self._utils.find_python2_interpreter()
+        if not self._python2_path:
+            _logger.warning("No Python 2 interpreter found.")
+            self._python2_path = None
+
+        else:
+            _logger.debug("Python 2 interpreter: %s", self._python2_path)
+
+        # Python 3
         self._python3_path = self._utils.find_python3_interpreter()
+        if not self._python3_path:
+            _logger.warning("No Python 3 interpreter found.")
+            self._python3_path = None
+
+        else:
+            _logger.debug("Python 3 interpreter: %s", self._python3_path)
 
 
     @Invalidate
@@ -186,6 +205,14 @@ class PelixRunner(PythonRunner):
 
     PELIX_LOADER_MODULE = "psem2m.forker.boot"
     """ The Pelix isolate loader module """
+
+    def __init__(self):
+        """
+        Constructor
+        """
+        super(PelixRunner, self).__init__()
+        self._context = None
+
 
     def can_handle(self, kind):
         """
@@ -215,11 +242,12 @@ class PelixRunner(PythonRunner):
         return None
 
 
-    def _make_args(self, isolate_descr):
+    def _make_args(self, isolate_descr, working_dir):
         """
         Prepares the Python interpreter arguments
         
         :param isolate_descr: A dictionary describing the isolate
+        :param working_dir: The isolate working directory
         :return: The parameters to give to the interpreter (array)
         """
         # Arguments list
@@ -250,7 +278,37 @@ class PelixRunner(PythonRunner):
             args.append("--directory-dumper-port")
             args.append(str(dumper_port))
 
-        # TODO: Debug mode, if needed
-        args.append("-d")
+        # Log file
+        args.append("--logfile")
+        args.append(os.path.join(working_dir, "isolate.log"))
+
+        # Debug mode, if needed
+        if self._context.get_property('psem2m.debug'):
+            args.append("--debug-mode")
+
+        if self._context.get_property('psem2m.verbose'):
+            args.append("--verbose-mode")
 
         return args
+
+
+    @Validate
+    def validate(self, context):
+        """
+        Component validated
+        
+        :param context: The bundle context
+        """
+        super(PelixRunner, self).validate(context)
+        self._context = context
+
+
+    @Invalidate
+    def invalidate(self, context):
+        """
+        Component invalidated
+        
+        :param context: The bundle context
+        """
+        self._context = None
+        super(PelixRunner, self).invalidate(context)

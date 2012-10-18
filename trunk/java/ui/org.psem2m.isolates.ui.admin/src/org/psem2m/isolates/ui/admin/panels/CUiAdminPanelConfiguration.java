@@ -73,21 +73,21 @@ public class CUiAdminPanelConfiguration extends CPojoBase implements
         CXStringUtils.appendKeyValInBuff(wSB, "Application", pSvcConfig
                 .getApplication().getApplicationId());
 
-        pSvcConfig.getApplication().getIsolate(pPlatformDirsSvc.getIsolateId());
-
+        // List other isolates
         for (final String wIsolateId : pSvcConfig.getApplication()
                 .getIsolateIds()) {
 
             CXStringUtils.appendKeyValInBuff(wSB, "\n - IsolateId", wIsolateId);
         }
 
+        // Print current isolate ID
         final String wCurrentIsolateId = pPlatformDirsSvc.getIsolateId();
-
         CXStringUtils.appendKeyValInBuff(wSB, "\nCurrentIsolateId",
                 wCurrentIsolateId);
 
+        // Print the bundles of the active isolate configuration
         for (final BundleDescription wIBundleDescr : pSvcConfig
-                .getApplication().getIsolate(wCurrentIsolateId).getBundles()) {
+                .getCurrentIsolate().getBundles()) {
 
             CXStringUtils.appendKeyValInBuff(wSB, "\n  - Bundle",
                     wIBundleDescr.getSymbolicName());
@@ -113,6 +113,7 @@ public class CUiAdminPanelConfiguration extends CPojoBase implements
     private void initContent() {
 
         final Runnable wRunnable = new Runnable() {
+
             @Override
             public void run() {
 

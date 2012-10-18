@@ -16,6 +16,11 @@
             "isolate":"demo.temper-2"
         },
         {
+            "name":"temper-3",
+            "type":"java-fake-temp-factory",
+            "isolate":"demo.temper-java"
+        },
+        {
             "name":"aggregator",
             "type":"demo-sensor-aggregator-factory",
             "isolate":"demo.stratus.aggregator",

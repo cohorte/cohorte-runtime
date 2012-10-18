@@ -5,6 +5,7 @@
  */
 package org.psem2m.remote.jsonrpc;
 
+import java.net.MalformedURLException;
 import java.net.URI;
 
 import org.jabsorb.ng.client.IHTTPSession;
@@ -24,7 +25,8 @@ public class JabsorbHttpSessionProvider implements IHTTPSessionProvider {
      * org.jabsorb.ng.client.IHTTPSessionProvider#newHTTPSession(java.net.URI)
      */
     @Override
-    public IHTTPSession newHTTPSession(final URI aUri) throws Exception {
+    public IHTTPSession newHTTPSession(final URI aUri)
+            throws MalformedURLException {
 
         return new JabsorbHttpSession(aUri);
     }
