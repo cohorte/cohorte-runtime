@@ -132,7 +132,7 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
      *            Excluded isolates
      * @return A SignalSendResult object per reached isolate, null on error
      */
-    protected ISignalSendResult commonGroupSignalHandling(
+    private ISignalSendResult commonGroupSignalHandling(
             final String aSignalName, final Object aContent,
             final String aMode, final EBaseGroup aGroup,
             final String[] aExcluded) {
@@ -180,7 +180,7 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
      *            Excluded isolates
      * @return A SignalSendResult object per reached isolate, null on error
      */
-    protected ISignalSendResult commonGroupSignalHandling(
+    private ISignalSendResult commonGroupSignalHandling(
             final String aSignalName, final Object aContent,
             final String aMode, final String[] aGroups, final String[] aExcluded) {
 
@@ -232,7 +232,7 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
      *            Target isolates
      * @return A SignalSendResult object per reached isolate, null on error
      */
-    protected ISignalSendResult commonSignalHandling(final String aSignalName,
+    private ISignalSendResult commonSignalHandling(final String aSignalName,
             final Object aContent, final String aMode,
             final String... aIsolates) {
 
@@ -267,7 +267,7 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
      *            The waiting signal...
      * @return A future signal result
      */
-    protected boolean commonStackHandling(final WaitingSignal aWaitingSignal) {
+    private boolean commonStackHandling(final WaitingSignal aWaitingSignal) {
 
         if (aWaitingSignal == null) {
             return false;
@@ -419,13 +419,13 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
     }
 
     /**
-     * Sends a signal from the waiting list
+     * Handles a waiting signal using the FIRE mode
      * 
      * @param aSignal
      *            A waiting signal
-     * @return True if the signal has been sent by at least one isolate
+     * @return True if the signal has been handled correctly
      */
-    protected boolean handleWaitingSignal(final WaitingSignal aSignal) {
+    private boolean handleWaitingFire(final WaitingSignal aSignal) {
 
         final String name = aSignal.getName();
         final Object content = aSignal.getContent();
@@ -434,77 +434,12 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
         final EBaseGroup baseGroup = aSignal.getGroup();
         final String[] groups = aSignal.getGroups();
 
-        switch (aSignal.getMode()) {
-        case SEND: {
-            // send, sendGroup, sendTo
-            if (access != null) {
-                // Send to
-                Object[] results = null;
-                try {
-                    results = sendTo(name, content, access.getAddress(),
-                            access.getPort());
+        if (access != null) {
+            // fireTo: no result, as we don't event know the isolate ID
+            return fireTo(name, content, access.getAddress(), access.getPort());
 
-                } catch (final Exception e) {
-                    // Ignore errors (try later)
-                    pLogger.logDebug(this, "handleWaitingSignal", e);
-                }
-
-                if (results != null) {
-                    // Success
-                    aSignal.setSendToResult(results);
-                    return true;
-                }
-
-            } else {
-                ISignalSendResult result = null;
-                if (isolates != null) {
-                    // Send
-                    result = send(name, content, isolates);
-
-                } else if (baseGroup != null) {
-                    // Send group
-                    result = sendGroup(name, content, baseGroup);
-
-                } else if (groups != null) {
-                    // Send group
-                    result = sendGroup(name, content, groups, null);
-                }
-
-                if (result != null) {
-                    // Success
-                    aSignal.setSendResult(result);
-                    return true;
-                }
-            }
-            break;
-        }
-
-        case POST: {
-            // post, postGroup
-            Future<ISignalSendResult> result = null;
-            if (isolates != null) {
-                // Post
-                result = post(name, content, isolates);
-
-            } else if (baseGroup != null) {
-                // Send group
-                result = postGroup(name, content, baseGroup);
-
-            } else if (groups != null) {
-                // Post group
-                result = postGroup(name, content, groups);
-            }
-
-            if (result != null) {
-                // Success
-                aSignal.setPostResult(result);
-                return true;
-            }
-            break;
-        }
-
-        case FIRE: {
-            // Fire, fireGroup
+        } else {
+            // fire, fireGroup
             String[] result = null;
             if (isolates != null) {
                 // Fire
@@ -524,11 +459,148 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
                 aSignal.setFireResult(result);
                 return true;
             }
-            break;
-        }
         }
 
         return false;
+    }
+
+    /**
+     * Handles a waiting signal using the POST mode
+     * 
+     * @param aSignal
+     *            A waiting signal
+     * @return True if the signal has been handled correctly
+     */
+    private boolean handleWaitingPost(final WaitingSignal aSignal) {
+
+        final String name = aSignal.getName();
+        final Object content = aSignal.getContent();
+        final HostAccess access = aSignal.getAccess();
+        final String[] isolates = aSignal.getIsolates();
+        final EBaseGroup baseGroup = aSignal.getGroup();
+        final String[] groups = aSignal.getGroups();
+
+        if (access != null) {
+            // postTo
+            final Future<Object[]> result = postTo(name, content,
+                    access.getAddress(), access.getPort());
+            if (result != null) {
+                aSignal.setPostToResult(result);
+                return true;
+            }
+
+        } else {
+            // postTo, postGroup
+            Future<ISignalSendResult> result = null;
+            if (isolates != null) {
+                // Post
+                result = post(name, content, isolates);
+
+            } else if (baseGroup != null) {
+                // Directory group
+                result = postGroup(name, content, baseGroup);
+
+            } else if (groups != null) {
+                // Group
+                result = postGroup(name, content, groups);
+            }
+
+            if (result != null) {
+                // Success
+                aSignal.setPostResult(result);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Handles a waiting signal using the SEND mode
+     * 
+     * @param aSignal
+     *            A waiting signal
+     * @return True if the signal has been handled correctly
+     */
+    private boolean handleWaitingSend(final WaitingSignal aSignal) {
+
+        final String name = aSignal.getName();
+        final Object content = aSignal.getContent();
+        final HostAccess access = aSignal.getAccess();
+        final String[] isolates = aSignal.getIsolates();
+        final EBaseGroup baseGroup = aSignal.getGroup();
+        final String[] groups = aSignal.getGroups();
+
+        if (access != null) {
+            // Send to
+            Object[] results = null;
+            try {
+                results = sendTo(name, content, access.getAddress(),
+                        access.getPort());
+
+            } catch (final Exception e) {
+                // Ignore errors (try later)
+                pLogger.logDebug(this, "handleWaitingSend",
+                        "Error trying to send signal=", name, "to=", access, e);
+            }
+
+            if (results != null) {
+                // Success
+                aSignal.setSendToResult(results);
+                return true;
+            }
+
+        } else {
+            ISignalSendResult result = null;
+            if (isolates != null) {
+                // Send
+                result = send(name, content, isolates);
+
+            } else if (baseGroup != null) {
+                // Send group
+                result = sendGroup(name, content, baseGroup);
+
+            } else if (groups != null) {
+                // Send group
+                result = sendGroup(name, content, groups, null);
+            }
+
+            if (result != null) {
+                // Success
+                aSignal.setSendResult(result);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Sends a signal from the waiting list
+     * 
+     * @param aSignal
+     *            A waiting signal
+     * @return True if the signal has been sent by at least one isolate
+     */
+    private boolean handleWaitingSignal(final WaitingSignal aSignal) {
+
+        switch (aSignal.getMode()) {
+        case SEND:
+            // send, sendGroup, sendTo
+            return handleWaitingSend(aSignal);
+
+        case POST:
+            // post, postGroup, postTo
+            return handleWaitingPost(aSignal);
+
+        case FIRE:
+            // fire, fireGroup, fireTo
+            return handleWaitingFire(aSignal);
+
+        default:
+            // Unknown type
+            return false;
+        }
     }
 
     /**
@@ -546,7 +618,7 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
      * @throws Exception
      *             Something wrong happened
      */
-    protected Object[] internalSend(final HostAccess aAccess,
+    private Object[] internalSend(final HostAccess aAccess,
             final String aSignalName, final ISignalData aSignalData,
             final String aMode) {
 
@@ -836,9 +908,9 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
      *            Request mode
      * @return The result of each isolate and failed isolates
      */
-    protected ISignalSendResult sendLoop(
-            final Map<String, HostAccess> aAccesses, final String aSignalName,
-            final SignalData aSignalData, final String aMode) {
+    private ISignalSendResult sendLoop(final Map<String, HostAccess> aAccesses,
+            final String aSignalName, final SignalData aSignalData,
+            final String aMode) {
 
         // Prepare results storage
         final Map<String, Object[]> results = new HashMap<String, Object[]>();
@@ -1018,7 +1090,7 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
     /**
      * Waiting list handling loop
      */
-    protected void waitingListThread() {
+    private void waitingListThread() {
 
         while (pWaitingThreadRun) {
 

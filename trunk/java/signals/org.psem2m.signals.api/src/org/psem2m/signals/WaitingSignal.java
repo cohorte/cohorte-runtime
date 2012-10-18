@@ -47,6 +47,9 @@ public class WaitingSignal implements IWaitingSignal {
     /** Result of a call to post() */
     private Future<ISignalSendResult> pPostResult;
 
+    /** Result of a call to postTo() */
+    private Future<Object[]> pPostToResult;
+
     /** Result of a call to send() */
     private ISignalSendResult pSendResult;
 
@@ -304,6 +307,14 @@ public class WaitingSignal implements IWaitingSignal {
         return pPostResult;
     }
 
+    /**
+     * @return the postToResult
+     */
+    public Future<Object[]> getPostToResult() {
+
+        return pPostToResult;
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -348,6 +359,15 @@ public class WaitingSignal implements IWaitingSignal {
     public void setPostResult(final Future<ISignalSendResult> aPostResult) {
 
         pPostResult = aPostResult;
+    }
+
+    /**
+     * @param aPostToResult
+     *            the postToResult to set
+     */
+    public void setPostToResult(final Future<Object[]> aPostToResult) {
+
+        pPostToResult = aPostToResult;
     }
 
     /**
