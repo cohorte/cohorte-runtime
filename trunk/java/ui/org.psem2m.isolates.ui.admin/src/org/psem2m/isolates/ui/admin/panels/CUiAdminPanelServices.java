@@ -42,7 +42,7 @@ public class CUiAdminPanelServices extends CPojoBase implements
      * @author ogattaz
      * 
      */
-    class CServiceListener implements ServiceListener {
+    private class CServiceListener implements ServiceListener {
 
         /*
          * (non-Javadoc)
@@ -70,6 +70,7 @@ public class CUiAdminPanelServices extends CPojoBase implements
 
                     if (pJPanel != null) {
                         switch (eventType) {
+                        case ServiceEvent.MODIFIED:
                         case ServiceEvent.REGISTERED:
                             pJPanel.setRow(aServiceEvent.getServiceReference());
                             break;

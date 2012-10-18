@@ -455,6 +455,10 @@ public class CJPanelTableBundles extends CJPanelTable<Bundle> {
                     wBundle.getSymbolicName());
             CXStringUtils.appendFormatStrInBuff(wSB, "bundle.id=[%d]\n",
                     wBundle.getBundleId());
+            CXStringUtils.appendFormatStrInBuff(wSB, "bundle.version=[%s]\n",
+                    wBundle.getVersion().toString());
+            CXStringUtils.appendFormatStrInBuff(wSB, "bundle.location=[%s]\n",
+                    wBundle.getLocation());
             if (wBundle.getRegisteredServices() != null) {
                 int wI = 0;
                 for (final ServiceReference<?> wServiceReference : wBundle
