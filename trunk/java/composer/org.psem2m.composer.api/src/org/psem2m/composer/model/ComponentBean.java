@@ -96,7 +96,7 @@ public class ComponentBean extends AbstractModelBean implements Serializable,
 
         } else {
             // Different object, use name ordering
-            final int nameDiff = safeCompareTo(pName, aOther.pName);
+            final int nameDiff = safeCompareTo(getName(), aOther.getName());
             if (nameDiff == 0) {
                 // WARNING: different beans with same name (should never happen)
                 return safeCompareTo(pType, aOther.pType);
@@ -119,9 +119,15 @@ public class ComponentBean extends AbstractModelBean implements Serializable,
             return;
         }
 
-        // Compute the new name
-        if (pParentName != null) {
-            pName = pParentName + "." + pName;
+        final String parentName = getParentName();
+        if (getParentName() != null) {
+            // Compute the new name
+            final StringBuilder builder = new StringBuilder();
+            builder.append(parentName);
+            builder.append(".");
+            builder.append(getName());
+
+            setName(builder.toString());
 
             // Update the computation flag
             pNameComputed = true;
@@ -422,10 +428,10 @@ public class ComponentBean extends AbstractModelBean implements Serializable,
 
         final StringBuilder builder = new StringBuilder();
         builder.append("Component(");
-        builder.append("Name=").append(pName);
+        builder.append("Name=").append(getName());
         builder.append(", Type=").append(pType);
         builder.append(", Isolate=").append(pIsolate);
-        builder.append(", Parent=").append(pParentName);
+        builder.append(", Parent=").append(getParentName());
         builder.append(")");
 
         return builder.toString();
