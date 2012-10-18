@@ -64,11 +64,11 @@ iPOJO-Components: instance { $component="org.psem2m.remote.jsonrpc.Jso
   $name="getEndpoints" $return="org.psem2m.isolates.services.remote.be
  ans.EndpointDescription[]" $arguments="{org.osgi.framework.ServiceRef
  erence}" }method { $name="getHttpPort" $return="int" }method { $name=
- "getServiceProperiesMap" $return="java.util.Map" $arguments="{org.osg
- i.framework.ServiceReference}" }method { $name="invalidatePojo" }meth
- od { $name="isInterfaceExported" $return="boolean" $arguments="{java.
- lang.String,java.lang.String[]}" }method { $name="makeEndpointUri" $r
- eturn="java.lang.String" $arguments="{java.lang.String}" }method { $n
- ame="startJabsorbBridge" }method { $name="stopJabsorbBridge" }method 
- { $name="validatePojo" }}}
+ "getServicePropertiesMap" $return="java.util.Map" $arguments="{org.os
+ gi.framework.ServiceReference}" }method { $name="invalidatePojo" }met
+ hod { $name="isInterfaceExported" $return="boolean" $arguments="{java
+ .lang.String,java.lang.String[]}" }method { $name="makeEndpointUri" $
+ return="java.lang.String" $arguments="{java.lang.String}" }method { $
+ name="startJabsorbBridge" }method { $name="stopJabsorbBridge" }method
+  { $name="validatePojo" }}}
 
