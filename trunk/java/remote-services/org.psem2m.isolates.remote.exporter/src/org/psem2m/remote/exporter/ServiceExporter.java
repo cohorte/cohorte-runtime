@@ -40,11 +40,17 @@ import org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration;
  * Tracks services to be exported and uses active handlers to create associated
  * end points
  * 
+ * TODO: handle {@link IEndpointHandler} unbinding -&gt; send remote service
+ * events
+ * 
  * @author Thomas Calmant
  */
 @Component(name = "psem2m-remote-service-exporter-factory", publicFactory = false)
 @Instantiate(name = "psem2m-remote-service-exporter")
 public class ServiceExporter extends CPojoBase implements ServiceListener {
+
+    /** End points handlers dependency ID */
+    private static final String IPOJO_ENDPOINT_HANDLERS = "endpoint-handlers";
 
     /** Remote service broadcaster (RSB) */
     @Requires
@@ -54,7 +60,7 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
     private final BundleContext pBundleContext;
 
     /** End point handlers */
-    @Requires
+    @Requires(id = IPOJO_ENDPOINT_HANDLERS)
     private IEndpointHandler[] pEndpointHandlers;
 
     /** Mapping of local service ID -&gt; remote service registration */
@@ -87,7 +93,7 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
      *            Reference to the service to use behind the end point
      * @return An exported service registration
      */
-    protected RemoteServiceRegistration createEndpoints(
+    private RemoteServiceRegistration createEndpoints(
             final ServiceReference<?> aServiceReference) {
 
         // Choose the exported interface
@@ -160,7 +166,7 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
      *            Reference to the service to be exported
      * @return True on success, False if no end point has been created
      */
-    protected synchronized boolean exportService(
+    private synchronized boolean exportService(
             final ServiceReference<?> aServiceReference) {
 
         // Prepare end points
@@ -179,8 +185,8 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
                 ServiceEventType.REGISTERED, serviceRegistration);
 
         pBroadcaster.sendNotification(broadcastEvent);
-        pLogger.logDebug(this, "", "Export notification sent for ref=",
-                aServiceReference);
+        pLogger.logDebug(this, "exportService",
+                "Export notification sent for ref=", aServiceReference);
         return true;
     }
 
@@ -212,7 +218,7 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
      *            A service reference
      * @return True if the service is already exported
      */
-    protected boolean isAlreadyExported(
+    private boolean isAlreadyExported(
             final ServiceReference<?> aServiceReference) {
 
         return pExportedServices.containsKey(aServiceReference);
@@ -271,7 +277,7 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
      * @param aServiceReference
      *            Reference to the service to stop to export
      */
-    protected synchronized void unexportService(
+    private synchronized void unexportService(
             final ServiceReference<?> aServiceReference) {
 
         // Grab end points list
@@ -341,7 +347,7 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
      *            Reference to the modified service
      * @return True on success, False if the end point wasn't known
      */
-    protected synchronized boolean updateService(
+    private synchronized boolean updateService(
             final ServiceReference<?> aServiceReference) {
 
         // Get the end point

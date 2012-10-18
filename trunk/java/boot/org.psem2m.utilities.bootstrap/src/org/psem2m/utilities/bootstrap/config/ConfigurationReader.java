@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -61,7 +62,7 @@ public class ConfigurationReader {
      *            Complete include directive line
      * @return The file input stream, null on error
      */
-    protected FileInputStream getIncludedFileStream(final String aIncludeLine) {
+    private FileInputStream getIncludedFileStream(final String aIncludeLine) {
 
         try {
             final String fileName = aIncludeLine.substring(
@@ -91,8 +92,9 @@ public class ConfigurationReader {
         final File platformFile = pFileFinder
                 .findInConfiguration(IBootstrapConstants.FILE_PLATFORM_BUNDLES);
         if (platformFile == null) {
-            throw new IOException("Can't find the base file '"
-                    + IBootstrapConstants.FILE_PLATFORM_BUNDLES + "'");
+            throw new IOException(MessageFormat.format(
+                    "Can''t find the base file ''{0}''",
+                    IBootstrapConstants.FILE_PLATFORM_BUNDLES));
         }
 
         // Parse them all
@@ -114,7 +116,7 @@ public class ConfigurationReader {
      * 
      * @return The read lines content
      */
-    protected String[] readStringLines(final InputStream aInputStream) {
+    private String[] readStringLines(final InputStream aInputStream) {
 
         // Use a set to avoid duplications
         final Set<String> linesSet = new LinkedHashSet<String>();
@@ -133,32 +135,30 @@ public class ConfigurationReader {
                 // Trim the line
                 readLine = readLine.trim();
 
-                // Test the comment marker
-                if (readLine.isEmpty() || readLine.startsWith(COMMENT_MARKER)) {
-                    // Do nothing (ignore the other commands
+                if (!(readLine.isEmpty() || readLine.startsWith(COMMENT_MARKER))) {
+                    // Non-commented, non-empty line
+                    if (readLine.startsWith(INCLUDE_COMMAND)) {
+                        // File include
+                        final InputStream includedStream = getIncludedFileStream(readLine);
 
-                } else if (readLine.startsWith(INCLUDE_COMMAND)) {
-                    // File include
-                    final InputStream includedStream = getIncludedFileStream(readLine);
+                        if (includedStream != null) {
+                            linesSet.addAll(Arrays
+                                    .asList(readStringLines(includedStream)));
 
-                    if (includedStream != null) {
-                        linesSet.addAll(Arrays
-                                .asList(readStringLines(includedStream)));
+                        } else {
+                            // Error opening file
+                            final String fileName = readLine
+                                    .substring(INCLUDE_COMMAND.length());
+                            pMessageSender.sendMessage(Level.WARNING,
+                                    "ConfigurationReader", "readStringLines",
+                                    MessageFormat.format(
+                                            "Can''t open file: {0}", fileName));
+                        }
 
                     } else {
-
-                        pMessageSender.sendMessage(
-                                Level.WARNING,
-                                "ConfigurationReader",
-                                "readStringLines",
-                                "Can't open file : "
-                                        + readLine.substring(INCLUDE_COMMAND
-                                                .length()));
+                        // Consider the line as an URL
+                        linesSet.add(readLine);
                     }
-
-                } else {
-                    // Consider the line as an URL
-                    linesSet.add(readLine);
                 }
 
                 // Next step
@@ -188,20 +188,12 @@ public class ConfigurationReader {
         final List<URL> result = new ArrayList<URL>(aStringArray.length);
 
         for (final String value : aStringArray) {
-            URL valueUrl = null;
-            try {
-                // Try a direct conversion
-                valueUrl = new URL(value);
-
-            } catch (final MalformedURLException e) {
+            // Try URL parsing
+            URL valueUrl = tryParseUrl(value);
+            if (valueUrl == null) {
+                // Conversion returned nothing
                 // Try the file name
-                File file = pFileFinder.findInRepositories(value);
-
-                if (file == null) {
-                    // Try the symbolic name
-                    file = pFileFinder.findBundle(value);
-                }
-
+                final File file = tryFindFile(value);
                 if (file != null) {
                     try {
                         // Accept the URL in any case at this time
@@ -223,5 +215,43 @@ public class ConfigurationReader {
         }
 
         return result;
+    }
+
+    /**
+     * Tries to find the given bundle file, by file or bundle symbolic name
+     * 
+     * @param aName
+     *            A file name or a symbolic name
+     * @return The found file object, or null
+     */
+    private File tryFindFile(final String aName) {
+
+        // Try the file name
+        File file = pFileFinder.findInRepositories(aName);
+        if (file == null) {
+            // Try the bundle symbolic name
+            file = pFileFinder.findBundle(aName);
+        }
+
+        return file;
+    }
+
+    /**
+     * Tries to convert the given URL, returns null on parsing error
+     * 
+     * @param aUrlString
+     *            A URL string
+     * @return The URL object or null
+     */
+    private URL tryParseUrl(final String aUrlString) {
+
+        try {
+            // Try a direct conversion
+            return new URL(aUrlString);
+
+        } catch (final MalformedURLException e) {
+            // Invalid URL
+            return null;
+        }
     }
 }

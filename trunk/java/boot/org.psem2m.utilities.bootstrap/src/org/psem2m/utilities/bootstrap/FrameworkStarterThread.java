@@ -172,7 +172,7 @@ public class FrameworkStarterThread extends Thread {
         pMessageSender.sendStatus(IsolateStatus.STATE_FRAMEWORK_STARTED, 2.5);
 
         // Install bootstrap service
-        pFrameworkStarter.installBootstrapService();
+        pFrameworkStarter.registerBootstrapMessageSenderService();
 
         pMessageSender.sendMessage(Level.INFO, CLASS_LOG_NAME, "runBootstrap",
                 "Starting bundles...");
