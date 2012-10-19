@@ -39,9 +39,9 @@ import org.psem2m.demo.erp.api.beans.ItemBean;
 import org.psem2m.demo.erp.api.services.IErpDataProxy;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
-import org.psem2m.isolates.services.remote.signals.ISignalData;
-import org.psem2m.isolates.services.remote.signals.ISignalListener;
-import org.psem2m.isolates.services.remote.signals.ISignalReceiver;
+import org.psem2m.signals.ISignalData;
+import org.psem2m.signals.ISignalListener;
+import org.psem2m.signals.ISignalReceiver;
 
 /**
  * Main strategy handler
@@ -384,7 +384,7 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback,
      * org.psem2m.isolates.services.remote.signals.ISignalData)
      */
     @Override
-    public void handleReceivedSignal(final String aSignalName,
+    public Object handleReceivedSignal(final String aSignalName,
             final ISignalData aSignalData) {
 
         if (SIGNAL_TOGGLE_COMPONENT.equals(aSignalName)) {
@@ -395,6 +395,8 @@ public class QuarterbackSvc extends CPojoBase implements IQuarterback,
             // Toggle the component state : (in)validate will trace the change
             pQuarterbackActivated = !pQuarterbackActivated;
         }
+        // Nothing to return
+        return null;
     }
 
     /*
