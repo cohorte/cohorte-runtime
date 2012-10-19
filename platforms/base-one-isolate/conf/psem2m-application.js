@@ -9,7 +9,7 @@
             "id":"org.psem2m.internals.isolates.monitor-isolate-one",
             "kind":"felix",
             "node":"central",
-            "httpPort":9000,
+            "httpPort":9100,
             "vmArgs":[
                 "-Xms32M",
                 "-Xmx64M",
@@ -44,6 +44,9 @@
                 },
                 {
                     "from":"jsonrpc.js"
+                },
+                {
+                    "symbolicName":"org.psem2m.forker.api"
                 },
                 {
                     "symbolicName":"org.psem2m.forkers.aggregator"
