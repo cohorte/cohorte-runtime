@@ -95,14 +95,16 @@ class AggregatorServlet(object):
         for entry in history)
 
         return """
+<td>
 <h2>Sensor {name}</h2>
-<table>
+<table class="result">
 <tr>
 <th>Time Stamp</th>
 <th>Value</th>
 <th>Unit</th>
 </tr>{rows}
-</table>""".format(name=name, rows=''.join(table_rows))
+</table>
+</td>""".format(name=name, rows=''.join(table_rows))
 
 
     def do_GET(self, handler):
@@ -113,6 +115,26 @@ class AggregatorServlet(object):
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta http-equiv="refresh" content="1">
+<style>
+body {{
+    font:12px arial,sans-serif;
+}}
+table {{
+    font:12px arial,sans-serif;
+}}
+table.main {{
+    border:solid blue 1px;
+    width:100%;
+}}
+table.result {{
+    border:solid red 1px;
+    margin:20px;
+}}
+td {{
+    border:solid black 1px;
+    padding:5px
+}}
+</style>
 <title>Sensor Aggregator - {name}</title>
 </head>
 <body>
@@ -125,8 +147,10 @@ class AggregatorServlet(object):
         else:
             output += "<p>Aggregator found</p>"
             history = self._aggregator.get_history()
+            output += "\n<table class=\"main\"><tr>"
             output += '\n'.join((self._make_sensor_part(name, history[name])
                                  for name in history))
+            output += "\n</tr></table>"
 
         output += """
 </body>
