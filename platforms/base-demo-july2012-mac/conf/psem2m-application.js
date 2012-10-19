@@ -1,0 +1,27 @@
+{
+    "appId":"demo-app-july2012-mac",
+    "multicast":"239.0.0.1",
+    "isolates":[
+        {
+            "from":"monitor.js"
+        },
+        {
+            "from":"forker.js"
+        },
+        {
+            "from":"isolate-laptop-ui.js"
+        },
+        {
+            "from":"isolate-stratus-aggregator.js"
+        },
+        {
+            "from":"isolate-stratus-temper.js"
+        },
+        {
+            "from":"isolate-raspberrypi-temper.js"
+        },
+        {
+            "from":"isolate-laptop-temper.js"
+        }
+    ]
+}
