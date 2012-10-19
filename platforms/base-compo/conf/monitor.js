@@ -1,11 +1,11 @@
 {
     "id":"org.psem2m.internals.isolates.monitor-1",
-    "kind":"equinox",
+    "kind":"felix",
+    "node":"central",
     "httpPort":9000,
     "vmArgs":[
         "-Xms32M",
-        "-Xmx64M",
-        "-Dosgi.shell.telnet.port=6000"
+        "-Xmx64M"
     ],
     "bundles":[
         {
@@ -20,9 +20,6 @@
             }
         },
         {
-            "symbolicName":"org.psem2m.composer.ui"
-        },
-        {
             "symbolicName":"org.apache.felix.shell"
         },
         {
@@ -32,10 +29,19 @@
             }
         },
         {
+            "symbolicName":"org.psem2m.composer.ui"
+        },
+        {
             "from":"signals-http.js"
         },
         {
             "from":"jsonrpc.js"
+        },
+        {
+            "symbolicName":"org.psem2m.forker.api"
+        },
+        {
+            "symbolicName":"org.psem2m.forkers.aggregator"
         },
         {
             "from":"remote-services.js",
@@ -44,7 +50,8 @@
             }
         },
         {
-            "symbolicName":"org.psem2m.isolates.master.manager"
+            "symbolicName":"org.psem2m.isolates.master.manager",
+            "optional":true
         },
         {
             "symbolicName":"org.psem2m.isolates.monitor"
@@ -56,19 +63,14 @@
             "symbolicName":"org.psem2m.libs.xerces"
         },
         {
-            "symbolicName":"org.psem2m.sca.converter"
+            "symbolicName":"org.psem2m.sca.converter",
+            "optional":true
         },
         {
             "symbolicName":"org.psem2m.composer.config"
         },
         {
             "symbolicName":"org.psem2m.composer.core"
-        },
-		{
-		    "symbolicName":"org.psem2m.composer.demo.api"
-		},
-		{
-            "symbolicName":"org.psem2m.forkers.aggregator"
         }
     ]
 }
