@@ -1,7 +1,7 @@
 {
     "id":"isolate-raspberrypi-temper",
     "kind":"pelix",
-    "node":"raspberrypi",
+    "node":"central",
     "httpPort":9300,
     "bundles":[
 		{
@@ -39,7 +39,7 @@
         }
     ],
     "environment":{
-        "PYTHONPATH":"/Users/ogattaz/workspaces/PSEM2M_SDK_2012/_REPO_git/demos/demo-july2012/demo.july2012.python",
+    	"PYTHONPATH":"/Users/ogattaz/workspaces/PSEM2M_SDK_2012/_REPO_git/demos/demo-july2012/demo.july2012.python:/home/tcalmant/programmation/workspaces/psem2m/demos/demo-july2012/demo.july2012.python",
         "shell.port":"4202"
     }
 }

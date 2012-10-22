@@ -1,7 +1,7 @@
 {
     "id":"org.psem2m.internals.isolates.forker",
     "kind":"pelix",
-    "node":"stratus",
+    "node":"central",
     "httpPort":9001,
     "bundles":[
         {

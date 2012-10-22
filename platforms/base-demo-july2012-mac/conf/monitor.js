@@ -1,7 +1,7 @@
 {
     "id":"org.psem2m.internals.isolates.monitor-1",
     "kind":"felix",
-    "node":"stratus",
+    "node":"central",
     "httpPort":9000,
     "vmArgs":[
         "-Xms32M",

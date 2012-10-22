@@ -1,5 +1,5 @@
 {
-    "appId":"demo-app",
+    "appId":"demo-july2012-single-node",
     "multicast":"239.0.0.1",
     "isolates":[
         {
