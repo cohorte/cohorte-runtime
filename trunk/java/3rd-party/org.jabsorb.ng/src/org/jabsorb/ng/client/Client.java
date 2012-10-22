@@ -23,10 +23,15 @@
  */
 package org.jabsorb.ng.client;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jabsorb.ng.JSONRPCBridge;
 import org.jabsorb.ng.JSONRPCResult;
@@ -34,62 +39,66 @@ import org.jabsorb.ng.JSONSerializer;
 import org.jabsorb.ng.serializer.FixUp;
 import org.jabsorb.ng.serializer.SerializerState;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
  * [START HERE] A factory to create proxies for access to remote Jabsorb
  * services.
+ * 
+ * TODO: enhance code readability
+ * 
+ * TODO: add a logger
  */
 public class Client implements InvocationHandler {
 
-    /** Manual instantiation of HashMap<String, Object> */
-    private static class ProxyMap extends HashMap<Object, String> {
+    /** The class loader to use */
+    private ClassLoader pClassLoader;
 
-        private static final long serialVersionUID = 1L;
+    /** Maintain a unique id for each message */
+    private final AtomicInteger pId = new AtomicInteger();
 
-        public String getString(final Object key) {
+    /** Proxy object -&gt; remote key */
+    private final Map<Object, String> pProxyMap = new HashMap<Object, String>();
 
-            return super.get(key);
-        }
-    }
+    /** The Jabsorb serializer */
+    private JSONSerializer pSerializer;
 
-    /**
-     * Maintain a unique id for each message
-     */
-    private int id = 0;
-
-    private final ProxyMap proxyMap = new ProxyMap();
-
-    private JSONSerializer serializer;
-
-    private ISession session;
+    /** The underlying HTTP session */
+    private ISession pSession;
 
     /**
-     * Create a client given a session
+     * Create a client given a pSession
      * 
-     * @param session
-     *            -- transport session to use for this connection
+     * @param aSession
+     *            -- transport pSession to use for this connection
      */
-    public Client(final ISession session) {
+    public Client(final ISession aSession) {
 
-        this(session, null);
+        this(aSession, null);
     }
 
     /**
      * Create a client given a session
      * 
-     * @param session
-     *            -- transport session to use for this connection
-     * @param classLoader
+     * @param aSession
+     *            -- transport pSession to use for this connection
+     * @param aClassLoader
      *            -- Serializer class loader
      */
-    public Client(final ISession session, final ClassLoader classLoader) {
+    public Client(final ISession aSession, final ClassLoader aClassLoader) {
 
         try {
-            this.session = session;
-            serializer = new JSONSerializer(classLoader);
-            serializer.registerDefaultSerializers();
+            if (aClassLoader == null) {
+                pClassLoader = getClass().getClassLoader();
+
+            } else {
+                pClassLoader = aClassLoader;
+            }
+
+            pSession = aSession;
+            pSerializer = new JSONSerializer(pClassLoader);
+            pSerializer.registerDefaultSerializers();
+
         } catch (final Exception e) {
             throw new ClientError(e);
         }
@@ -102,12 +111,46 @@ public class Client implements InvocationHandler {
      */
     public void closeProxy(final Object proxy) {
 
-        proxyMap.remove(proxy);
+        pProxyMap.remove(proxy);
     }
 
-    private synchronized int getId() {
+    /**
+     * Tries to get the requested constructor for the given class
+     * 
+     * @param aClass
+     *            A class
+     * @param aParameters
+     *            The requested constructor parameters
+     * @return The found constructor, null on error
+     */
+    private <T> Constructor<T> getConstructor(final Class<T> aClass,
+            final Class<?>... aParameters) {
 
-        return id++;
+        try {
+            return aClass.getConstructor(aParameters);
+
+        } catch (final SecurityException ex) {
+            // Illegal access
+            System.out
+                    .println(MessageFormat.format(
+                            "Illegal access to a constructor of {0}",
+                            aClass.getName()));
+
+        } catch (final NoSuchMethodException ex) {
+            // Constructor not found, ignore
+        }
+
+        return null;
+    }
+
+    /**
+     * Retrieves the next message ID
+     * 
+     * @return the next message ID
+     */
+    private int getId() {
+
+        return pId.getAndIncrement();
     }
 
     /**
@@ -117,7 +160,7 @@ public class Client implements InvocationHandler {
      */
     public JSONSerializer getSerializer() {
 
-        return serializer;
+        return pSerializer;
     }
 
     /**
@@ -126,7 +169,7 @@ public class Client implements InvocationHandler {
      */
     @Override
     public Object invoke(final Object proxyObj, final Method method,
-            final Object[] args) throws Exception {
+            final Object[] args) throws Throwable {
 
         final String methodName = method.getName();
         if (methodName.equals("hashCode")) {
@@ -137,12 +180,12 @@ public class Client implements InvocationHandler {
             return proxyObj.getClass().getName() + '@'
                     + Integer.toHexString(proxyObj.hashCode());
         }
-        return invoke(proxyMap.getString(proxyObj), method.getName(), args,
+        return invoke(pProxyMap.get(proxyObj), method.getName(), args,
                 method.getReturnType());
     }
 
     private Object invoke(final String objectTag, final String methodName,
-            final Object[] args, final Class<?> returnType) throws Exception {
+            final Object[] args, final Class<?> returnType) throws Throwable {
 
         final int id = getId();
         final JSONObject message = new JSONObject();
@@ -155,7 +198,8 @@ public class Client implements InvocationHandler {
 
             if (args != null) {
 
-                final JSONArray params = (JSONArray) serializer.marshall(state, /* parent */
+                final JSONArray params = (JSONArray) pSerializer.marshall(
+                        state, /* parent */
                         null, args, "params");
 
                 if ((state.getFixUps() != null)
@@ -175,7 +219,7 @@ public class Client implements InvocationHandler {
         }
         message.put("id", id);
 
-        final JSONObject responseMessage = session.sendAndReceive(message);
+        final JSONObject responseMessage = pSession.sendAndReceive(message);
 
         if (!responseMessage.has("result")) {
             processException(responseMessage);
@@ -200,37 +244,106 @@ public class Client implements InvocationHandler {
                 }
             }
         }
-        return serializer.unmarshall(new SerializerState(), returnType,
+        return pSerializer.unmarshall(new SerializerState(), returnType,
                 rawResult);
+    }
+
+    /**
+     * Tries to make a Throwable object from the given class name and message
+     * 
+     * @param aJavaClass
+     *            A Throwable class name
+     * @param aMessage
+     *            An error message
+     * @return The Throwable instance, or null
+     */
+    private Throwable makeThrowable(final String aJavaClass,
+            final String aMessage) {
+
+        try {
+            // Try to find the class
+            @SuppressWarnings("unchecked")
+            final Class<? extends Throwable> clazz = (Class<? extends Throwable>) pClassLoader
+                    .loadClass(aJavaClass);
+            if (!Throwable.class.isAssignableFrom(clazz)) {
+                // Not an exception class
+                return null;
+            }
+
+            // 'message' constructor
+            Constructor<? extends Throwable> ctor = getConstructor(clazz,
+                    String.class);
+            if (ctor != null) {
+                return ctor.newInstance(aMessage);
+            }
+
+            // default constructor
+            ctor = getConstructor(clazz, (Class<?>[]) null);
+            if (ctor != null) {
+                return ctor.newInstance((Object[]) null);
+            }
+
+        } catch (final ClassNotFoundException ex) {
+            // Class not found...
+            System.out.println(MessageFormat.format(
+                    "Exception class not found: {0}", aJavaClass));
+
+        } catch (final IllegalArgumentException ex) {
+            // Invalid message
+            System.err.println("Invalid argument for the exception");
+            ex.printStackTrace();
+
+        } catch (final InstantiationException ex) {
+            // Error instantiating the exception
+            System.err.println("Error instantiating the exception");
+            ex.printStackTrace();
+
+        } catch (final IllegalAccessException ex) {
+            // Can't access the class
+            System.err.println("Can't instantiate the exception");
+            ex.printStackTrace();
+
+        } catch (final InvocationTargetException ex) {
+            // Error calling the exception constructor
+            System.err.println("Error calling the exception constructor");
+            ex.printStackTrace();
+        }
+
+        return null;
     }
 
     /**
      * Create a proxy for communicating with the remote service.
      * 
-     * @param key
+     * @param aKey
      *            the remote object key
-     * @param klass
+     * @param aClass
      *            the class of the interface the remote object should adhere to
      * @return created proxy
      */
-    public Object openProxy(final String key, final Class<?> klass) {
+    public Object openProxy(final String aKey, final Class<?> aClass) {
 
-        final Object result = java.lang.reflect.Proxy.newProxyInstance(
-                klass.getClassLoader(), new Class[] { klass }, this);
-        proxyMap.put(result, key);
-        return result;
+        final Object proxy = java.lang.reflect.Proxy.newProxyInstance(
+                aClass.getClassLoader(), new Class[] { aClass }, this);
+        pProxyMap.put(proxy, aKey);
+        return proxy;
     }
 
     /**
      * Generate and throw exception based on the data in the 'responseMessage'
+     * 
+     * @throws Throwable
+     *             Throws the correct exception object, or an
+     *             {@link ErrorResponse}.
      */
     protected void processException(final JSONObject responseMessage)
-            throws JSONException {
+            throws Throwable {
 
         final JSONObject error = (JSONObject) responseMessage.get("error");
         if (error != null) {
             final Integer code = new Integer(
                     error.has("code") ? error.getInt("code") : 0);
+
             final String trace = error.has("trace") ? error.getString("trace")
                     : null;
 
@@ -243,13 +356,33 @@ public class Client implements InvocationHandler {
                 msg = null;
             }
 
-            // TODO: throw an exception according to the javaClass entry
+            Throwable throwable = null;
+            if (error.has("javaClass")) {
+                // Throw an exception according to the javaClass entry
+                final String exceptionClass = error.getString("javaClass");
 
-            throw new ErrorResponse(code, msg, trace);
+                // Make a complete message
+                final StringBuilder traceMessage = new StringBuilder(msg);
+                if (trace != null) {
+                    traceMessage.append("\nTrace:\n").append(trace);
+                }
+
+                // Instantiate the exception object
+                throwable = makeThrowable(exceptionClass,
+                        traceMessage.toString());
+            }
+
+            if (throwable == null) {
+                // Default Jabsorb exception
+                throwable = new ErrorResponse(code, msg, trace);
+            }
+
+            throw throwable;
+
         } else {
             throw new ErrorResponse(new Integer(JSONRPCResult.CODE_ERR_PARSE),
-                    "Unknown response:" + responseMessage.toString(2), null);
+                    MessageFormat.format("Unknown response: {0}",
+                            responseMessage.toString(2)), null);
         }
     }
-
 }
