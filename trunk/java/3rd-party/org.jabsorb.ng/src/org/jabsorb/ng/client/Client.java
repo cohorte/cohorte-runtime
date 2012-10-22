@@ -42,8 +42,10 @@ import org.json.JSONObject;
  * services.
  */
 public class Client implements InvocationHandler {
+
     /** Manual instantiation of HashMap<String, Object> */
     private static class ProxyMap extends HashMap<Object, String> {
+
         private static final long serialVersionUID = 1L;
 
         public String getString(final Object key) {
@@ -57,9 +59,10 @@ public class Client implements InvocationHandler {
      */
     private int id = 0;
 
-    private ProxyMap proxyMap = new ProxyMap();
+    private final ProxyMap proxyMap = new ProxyMap();
 
     private JSONSerializer serializer;
+
     private ISession session;
 
     /**
@@ -239,6 +242,8 @@ public class Client implements InvocationHandler {
             } else {
                 msg = null;
             }
+
+            // TODO: throw an exception according to the javaClass entry
 
             throw new ErrorResponse(code, msg, trace);
         } else {

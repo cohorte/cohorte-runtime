@@ -108,10 +108,12 @@ import org.json.JSONObject;
  * com.example.MyClass.class);</code>
  */
 public class JSONRPCBridge implements Serializable {
+
     /**
      * Container for objects of which instances have been made
      */
     private static class ObjectInstance implements Serializable {
+
         /**
          * Unique serialisation id.
          */
@@ -191,23 +193,12 @@ public class JSONRPCBridge implements Serializable {
     /**
      * Global bridge (for exporting to all users)
      */
-    private final static JSONRPCBridge globalBridge = new JSONRPCBridge();
+    private final static JSONRPCBridge globalBridge;
 
     /**
      * A simple transformer that makes no change
      */
-    private static final ExceptionTransformer IDENTITY_EXCEPTION_TRANSFORMER = new ExceptionTransformer() {
-        /**
-         * Unique serialisation id.
-         */
-        private final static long serialVersionUID = 2;
-
-        @Override
-        public Object transform(final Throwable t) {
-
-            return t;
-        }
-    };
+    private static final ExceptionTransformer IDENTITY_EXCEPTION_TRANSFORMER;
 
     /**
      * The logger for this class
@@ -223,19 +214,42 @@ public class JSONRPCBridge implements Serializable {
     /**
      * Global JSONSerializer instance
      */
-    private static JSONSerializer ser = new JSONSerializer();
+    private static JSONSerializer ser;
 
     /**
      * Unique serialisation id.
      */
     private final static long serialVersionUID = 2;
 
+    /*
+     * We have to ensure that IDENTITY_EXCEPTION_TRANSFORMER will be assigned
+     * before the first instantiation of JSONRPCBridge
+     */
     static {
+        /* Set the default exception transformer */
+        IDENTITY_EXCEPTION_TRANSFORMER = new ExceptionTransformer() {
+
+            /** Unique serialization id. */
+            private final static long serialVersionUID = 2;
+
+            @Override
+            public Object transform(final Throwable t) {
+
+                return t;
+            }
+        };
+
+        /* Register serializers */
+        ser = new JSONSerializer();
         try {
             ser.registerDefaultSerializers();
+
         } catch (final Exception e) {
             e.printStackTrace();
         }
+
+        /* Default singleton */
+        globalBridge = new JSONRPCBridge();
     }
 
     /**
