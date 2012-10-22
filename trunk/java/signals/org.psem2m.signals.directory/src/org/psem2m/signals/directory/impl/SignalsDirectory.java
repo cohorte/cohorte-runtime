@@ -1106,7 +1106,7 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
 
         // Register the local isolate, without access port nor group
         pAccesses.put(getIsolateId(), ISignalDirectory.LOCAL_ACCESS);
-        pNodesHost.put(getLocalNode(), "localhost");
+        setNodeAddress(getLocalNode(), "localhost");
         registerLocal(-1, (String[]) null);
 
         pLogger.logInfo(this, "validatePojo", "Signals directory ready");
