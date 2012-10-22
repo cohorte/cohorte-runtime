@@ -79,6 +79,9 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
             + ISignalBroadcaster.PROPERTY_ONLINE + "=true)")
     private ISignalBroadcaster pSignalBroadcaster;
 
+    /** Component validation flag */
+    private boolean pValidated;
+
     /**
      * Called by iPOJO when a Factory service is bound
      * 
@@ -86,7 +89,7 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
      *            A new factory service
      */
     @Bind(id = IPOJO_ID_FACTORIES, aggregate = true, optional = true)
-    protected void bindFactory(final Factory aFactory) {
+    protected synchronized void bindFactory(final Factory aFactory) {
 
         // Store the factory name (component type name)
         final String factoryName = aFactory.getName();
@@ -133,13 +136,14 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
         }
 
         pFactories.put(factoryName, aFactory);
-
-        // Signal the arrival to others
-        pSignalBroadcaster.fireGroup(
-                ComposerAgentSignals.SIGNAL_ISOLATE_ADD_FACTORY,
-                new String[] { factoryName }, EBaseGroup.ALL);
-
         pLogger.logInfo(this, "bindFactory", "Factory bound :", factoryName);
+
+        if (pValidated) {
+            // Signal the arrival to others
+            pSignalBroadcaster.fireGroup(
+                    ComposerAgentSignals.SIGNAL_ISOLATE_ADD_FACTORY,
+                    new String[] { factoryName }, EBaseGroup.ALL);
+        }
     }
 
     /**
@@ -149,7 +153,8 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
      *            The bound service
      */
     @Bind(optional = false)
-    protected void bindSignalReceiver(final ISignalReceiver aSignalReceiver) {
+    protected synchronized void bindSignalReceiver(
+            final ISignalReceiver aSignalReceiver) {
 
         // Register to all composer agent signals
         aSignalReceiver.registerListener(
@@ -562,7 +567,17 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
      */
     @Override
     @Invalidate
-    public void invalidatePojo() throws BundleException {
+    public synchronized void invalidatePojo() throws BundleException {
+
+        // Update the validation flag (no more notification of new factories)
+        pValidated = false;
+
+        // Stop listening for components modifications
+        for (final ComponentInstance instance : pComponentsInstances.values()) {
+            instance.removeInstanceStateListener(this);
+        }
+
+        // TODO: stop components ? Notify composer ?
 
         pLogger.logInfo(this, "invalidatePojo", "Composer agent Gone");
     }
@@ -759,13 +774,14 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
      */
     @Override
     @Validate
-    public void validatePojo() throws BundleException {
+    public synchronized void validatePojo() throws BundleException {
 
         // Indicate all our factories
         pSignalBroadcaster.fireGroup(
                 ComposerAgentSignals.SIGNAL_ISOLATE_ADD_FACTORY, pFactories
                         .keySet().toArray(new String[0]), EBaseGroup.ALL);
 
+        pValidated = true;
         pLogger.logInfo(this, "validatePojo", "Composer agent Ready");
     }
 }

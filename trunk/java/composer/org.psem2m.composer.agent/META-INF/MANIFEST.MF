@@ -37,26 +37,26 @@ iPOJO-Components: instance { $component="org.psem2m.composer.agent.imp
  ogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $n
  ame="pPlatformDirs" $type="org.psem2m.isolates.services.dirs.IPlatfor
  mDirsSvc" }field { $name="pSignalBroadcaster" $type="org.psem2m.signa
- ls.ISignalBroadcaster" }method { $name="bindFactory" $arguments="{org
- .apache.felix.ipojo.Factory}" }method { $name="bindSignalReceiver" $a
- rguments="{org.psem2m.signals.ISignalReceiver}" }method { $name="canH
- andleComponents" $arguments="{java.lang.String,org.psem2m.composer.mo
- del.ComponentBean[]}" }method { $name="fireInstantiationResult" $argu
- ments="{java.lang.String,java.lang.String,boolean,java.lang.String}" 
- }method { $name="generateComponentInstanceProperties" $return="java.u
- til.Properties" $arguments="{org.psem2m.composer.model.ComponentBean}
- " }method { $name="generateFieldsFilters" $return="java.util.Properti
- es" $arguments="{org.psem2m.composer.model.ComponentBean,java.util.Ma
- p}" }method { $name="handleReceivedSignal" $return="java.lang.Object"
-  $arguments="{java.lang.String,org.psem2m.signals.ISignalData}" }meth
- od { $name="instantiateComponents" $arguments="{java.lang.String,org.
- psem2m.composer.model.ComponentBean[]}" }method { $name="invalidatePo
- jo" }method { $name="stateChanged" $arguments="{org.apache.felix.ipoj
- o.ComponentInstance,int}" }method { $name="stopComponents" $arguments
- ="{java.lang.String,org.psem2m.composer.model.ComponentBean[]}" }meth
- od { $name="stopComponents" $arguments="{java.lang.String,java.lang.S
- tring[]}" }method { $name="unbindFactory" $arguments="{org.apache.fel
- ix.ipojo.Factory}" }method { $name="unbindSignalBroadcaster" $argumen
- ts="{org.psem2m.signals.ISignalBroadcaster}" }method { $name="validat
- ePojo" }}}
+ ls.ISignalBroadcaster" }field { $name="pValidated" $type="boolean" }m
+ ethod { $name="bindFactory" $arguments="{org.apache.felix.ipojo.Facto
+ ry}" }method { $name="bindSignalReceiver" $arguments="{org.psem2m.sig
+ nals.ISignalReceiver}" }method { $name="canHandleComponents" $argumen
+ ts="{java.lang.String,org.psem2m.composer.model.ComponentBean[]}" }me
+ thod { $name="fireInstantiationResult" $arguments="{java.lang.String,
+ java.lang.String,boolean,java.lang.String}" }method { $name="generate
+ ComponentInstanceProperties" $return="java.util.Properties" $argument
+ s="{org.psem2m.composer.model.ComponentBean}" }method { $name="genera
+ teFieldsFilters" $return="java.util.Properties" $arguments="{org.psem
+ 2m.composer.model.ComponentBean,java.util.Map}" }method { $name="hand
+ leReceivedSignal" $return="java.lang.Object" $arguments="{java.lang.S
+ tring,org.psem2m.signals.ISignalData}" }method { $name="instantiateCo
+ mponents" $arguments="{java.lang.String,org.psem2m.composer.model.Com
+ ponentBean[]}" }method { $name="invalidatePojo" }method { $name="stat
+ eChanged" $arguments="{org.apache.felix.ipojo.ComponentInstance,int}"
+  }method { $name="stopComponents" $arguments="{java.lang.String,org.p
+ sem2m.composer.model.ComponentBean[]}" }method { $name="stopComponent
+ s" $arguments="{java.lang.String,java.lang.String[]}" }method { $name
+ ="unbindFactory" $arguments="{org.apache.felix.ipojo.Factory}" }metho
+ d { $name="unbindSignalBroadcaster" $arguments="{org.psem2m.signals.I
+ SignalBroadcaster}" }method { $name="validatePojo" }}}
 
