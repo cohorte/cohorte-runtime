@@ -12,7 +12,7 @@ import java.io.Serializable;
  * 
  * @author Thomas Calmant
  */
-abstract class AbstractModelBean implements IModelBean, Serializable {
+public abstract class AbstractModelBean implements IModelBean, Serializable {
 
     /** Version UID */
     private static final long serialVersionUID = 1L;
