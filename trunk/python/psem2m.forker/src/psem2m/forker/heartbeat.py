@@ -309,6 +309,9 @@ class Heart(object):
         """
         Heart beat sender
         """
+        
+        _logger.debug("HeartBeat: run begin")
+        
         # Prepare the packet
         app = self._config.get_application()
         if app:
@@ -325,6 +328,8 @@ class Heart(object):
         while not self._event.is_set():
             # Send the heart beat using the multicast socket
             self._socket.sendto(beat, 0, self._target)
+            
+            #_logger.debug("HeartBeat: send one beat")
 
             # Wait 3 seconds before next loop
             self._event.wait(3)
@@ -346,6 +351,8 @@ class Heart(object):
 
         # Close the socket
         close_multicast_socket(self._socket, self._target[0])
+        
+        _logger.debug("invalidate: close multicast socket done")
 
         # Clean up
         self._context = None
@@ -365,6 +372,8 @@ class Heart(object):
         # Get the multicast configuration
         group = self._config.get_application().get_multicast_group()
         port = self._config.get_application().get_multicast_port()
+        
+        _logger.debug("validate: multicast group={0} port={1}".format(group,port))
 
         # Create the socket
         self._socket, address = create_multicast_socket(group, port)
