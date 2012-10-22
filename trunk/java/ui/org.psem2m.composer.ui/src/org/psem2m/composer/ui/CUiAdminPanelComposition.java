@@ -34,7 +34,6 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.composer.IComposer;
 import org.psem2m.composer.ICompositionListener;
-import org.psem2m.composer.InvalidComponentsSetException;
 import org.psem2m.composer.model.ComponentsSetBean;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
@@ -224,7 +223,7 @@ public class CUiAdminPanelComposition extends CPojoBase implements
                     "Composition ''{0}'' loaded.", composet.getName()),
                     "Composer", JOptionPane.INFORMATION_MESSAGE);
 
-        } catch (final InvalidComponentsSetException ex) {
+        } catch (final Exception ex) {
 
             pLogger.logWarn(this, "loadComposition",
                     "Error instantiating composet=", composet.getName(), ex);
