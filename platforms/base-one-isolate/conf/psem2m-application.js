@@ -79,6 +79,9 @@
                 },
                 {
                     "symbolicName":"org.psem2m.composer.core"
+                },
+                {
+                    "symbolicName":"org.psem2m.composer.agent"
                 }
             ]
         }
