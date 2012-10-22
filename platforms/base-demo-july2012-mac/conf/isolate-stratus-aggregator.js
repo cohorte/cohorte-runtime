@@ -1,7 +1,7 @@
 {
     "id":"isolate-stratus-aggregator",
     "kind":"pelix",
-    "node":"central",
+    "node":"stratus",
     "httpPort":9100,
     "bundles":[
 		{

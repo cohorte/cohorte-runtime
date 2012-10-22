@@ -1,7 +1,7 @@
 {
     "id":"isolate-stratus-temper",
     "kind":"pelix",
-    "node":"central",
+    "node":"stratus",
     "httpPort":9101,
     "bundles":[
         {

@@ -1,7 +1,7 @@
 {
     "id":"isolate-raspberrypi-temper",
     "kind":"pelix",
-    "node":"central",
+    "node":"raspberrypi",
     "httpPort":9300,
     "bundles":[
 		{

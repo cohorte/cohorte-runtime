@@ -1,5 +1,5 @@
 {
-    "appId":"demo-app-july2012-mac",
+    "appId":"demo-app",
     "multicast":"239.0.0.1",
     "isolates":[
         {

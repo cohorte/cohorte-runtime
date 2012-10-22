@@ -4,11 +4,11 @@
     "node":"central",
     "httpPort":9200,
 	"vmArgs":[
-	          "-Xms32M",
-	          "-Xmx64M",
-	          "-XX:+UnlockDiagnosticVMOptions",
-	          "-XX:+UnsyncloadClass"
-	      ],
+          "-Xms32M",
+          "-Xmx64M",
+          "-XX:+UnlockDiagnosticVMOptions",
+          "-XX:+UnsyncloadClass"
+    ],
     "bundles":[
         {
             "symbolicName":"org.psem2m.composer.api"
