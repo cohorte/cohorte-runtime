@@ -785,6 +785,9 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
             registrationStateCreate(isolateId,
                     EIsolateRegistrationState.VALIDATED);
 
+            // Notify listeners
+            notifyIsolatePresence(isolateId);
+
         } else {
             pLogger.logDebug(this, "registerLocal",
                     "Re-definition of current isolate");
