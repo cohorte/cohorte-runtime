@@ -80,6 +80,11 @@ public class BroadcastSignalHandler extends CPojoBase implements
     public void handleIsolatePresence(final String aIsolateId,
             final String aNode, final EPresence aPresence) {
 
+        if (pDirectory.getIsolateId().equals(aIsolateId)) {
+            // Ignore local isolate events
+            return;
+        }
+
         switch (aPresence) {
         case UNREGISTERED:
             // Isolate lost : Notify all listeners
@@ -133,6 +138,11 @@ public class BroadcastSignalHandler extends CPojoBase implements
             final ISignalData aSignalData) {
 
         final Object signalContent = aSignalData.getSignalContent();
+        final String senderId = aSignalData.getSenderId();
+        if (pDirectory.getIsolateId().equals(senderId)) {
+            // Ignore local isolate
+            return null;
+        }
 
         if (ISignalsConstants.BROADCASTER_SIGNAL_REMOTE_EVENT
                 .equals(aSignalName)) {
@@ -216,6 +226,12 @@ public class BroadcastSignalHandler extends CPojoBase implements
             // Resolve the host name corresponding to the node
             final String node = endpoint.getNode();
             final String host = pDirectory.getHostForNode(node);
+
+            if (host == null || host.isEmpty()) {
+                pLogger.logWarn(this, "handleRemoteEvent",
+                        "No host for end point=", endpoint);
+                continue;
+            }
 
             // Store it
             endpoint.resolveHost(host);

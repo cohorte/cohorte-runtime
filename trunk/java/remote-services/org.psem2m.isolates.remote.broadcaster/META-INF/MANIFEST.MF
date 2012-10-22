@@ -50,26 +50,23 @@ iPOJO-Components: instance { $component="org.psem2m.remote.broadcaster
  }method { $name="validatePojo" }}}component { $classname="org.psem2m.
  remote.broadcaster.RemoteServiceBroadcaster" $name="psem2m-remote-rsb
  -factory" $public="false" provides { $specifications="{org.psem2m.iso
- lates.services.remote.IRemoteServiceBroadcaster,org.psem2m.isolates.s
- ervices.monitoring.IIsolatePresenceListener}" }requires { $field="pDi
- rectory" }requires { $field="pLogger" }requires { $field="pSignalEmit
- ter" }callback { $transition="invalidate" $method="invalidatePojo" }c
- allback { $transition="validate" $method="validatePojo" }manipulation
-  { $super="org.psem2m.isolates.base.activators.CPojoBase" interface {
-  $name="org.psem2m.isolates.services.remote.IRemoteServiceBroadcaster
- " }interface { $name="org.psem2m.isolates.services.monitoring.IIsolat
- ePresenceListener" }field { $name="pDirectory" $type="org.psem2m.sign
- als.ISignalDirectory" }field { $name="pLogger" $type="org.psem2m.isol
- ates.base.IIsolateLoggerSvc" }field { $name="pSignalEmitter" $type="o
- rg.psem2m.signals.ISignalBroadcaster" }method { $name="getRemoteServi
- ceEvents" $return="java.util.Collection" $arguments="{java.lang.Objec
- t[]}" }method { $name="handleIsolatePresence" $arguments="{java.lang.
- String,java.lang.String,org.psem2m.isolates.services.monitoring.IIsol
- atePresenceListener$EPresence}" }method { $name="invalidatePojo" }met
- hod { $name="requestAllEndpoints" $return="org.psem2m.isolates.servic
- es.remote.beans.RemoteServiceEvent[]" }method { $name="requestEndpoin
- ts" $return="org.psem2m.isolates.services.remote.beans.RemoteServiceE
- vent[]" $arguments="{java.lang.String}" }method { $name="sendNotifica
- tion" $arguments="{org.psem2m.isolates.services.remote.beans.RemoteSe
- rviceEvent}" }method { $name="validatePojo" }}}
+ lates.services.remote.IRemoteServiceBroadcaster}" }requires { $field=
+ "pDirectory" }requires { $field="pLogger" }requires { $field="pSignal
+ Emitter" }callback { $transition="invalidate" $method="invalidatePojo
+ " }callback { $transition="validate" $method="validatePojo" }manipula
+ tion { $super="org.psem2m.isolates.base.activators.CPojoBase" interfa
+ ce { $name="org.psem2m.isolates.services.remote.IRemoteServiceBroadca
+ ster" }field { $name="pDirectory" $type="org.psem2m.signals.ISignalDi
+ rectory" }field { $name="pLogger" $type="org.psem2m.isolates.base.IIs
+ olateLoggerSvc" }field { $name="pSignalEmitter" $type="org.psem2m.sig
+ nals.ISignalBroadcaster" }method { $name="getRemoteServiceEvents" $re
+ turn="java.util.Collection" $arguments="{java.lang.Object[]}" }method
+  { $name="invalidatePojo" }method { $name="requestAllEndpoints" $retu
+ rn="org.psem2m.isolates.services.remote.beans.RemoteServiceEvent[]" }
+ method { $name="requestEndpoints" $return="org.psem2m.isolates.servic
+ es.remote.beans.RemoteServiceEvent[]" $arguments="{java.lang.String}"
+  }method { $name="sendNotification" $arguments="{org.psem2m.isolates.
+ services.remote.beans.RemoteServiceEvent}" }method { $name="updateEnd
+ pointsHost" $arguments="{org.psem2m.isolates.services.remote.beans.Re
+ moteServiceRegistration}" }method { $name="validatePojo" }}}
 
