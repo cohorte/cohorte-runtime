@@ -4,7 +4,7 @@
         {
             "name":"dataServer-Exported",
             "type":"server-exported",
-            "isolate":"isolate-dataserver",
+            "isolate":"org.psem2m.internals.isolates.monitor-isolate-one",
             "properties":{
                 "endpoint.name":"dataserver"
             },
@@ -36,7 +36,7 @@
                 {
                     "name":"serverEndpoint",
                     "type":"server-endpoint-getItem",
-                    "isolate":"isolate-dataserver",
+                    "isolate":"org.psem2m.internals.isolates.monitor-isolate-one",
                     "wires":{
                         "normalizer":"resultNormalizer",
                         "next":"fallbackOnCache"
@@ -45,12 +45,12 @@
                 {
                     "name":"resultNormalizer",
                     "type":"normalizer-getItem",
-                    "isolate":"isolate-cache"
+                    "isolate":"org.psem2m.internals.isolates.monitor-isolate-one"
                 },
                 {
                     "name":"fallbackOnCache",
                     "type":"fall-back",
-                    "isolate":"isolate-cache",
+                    "isolate":"org.psem2m.internals.isolates.monitor-isolate-one",
                     "wires":{
                         "next":"erpChain.getCacheFirst",
                         "second":"fallback.getCache"
@@ -64,7 +64,7 @@
                         {
                             "name":"getCache",
                             "type":"get-cache",
-                            "isolate":"isolate-cache",
+                            "isolate":"org.psem2m.internals.isolates.monitor-isolate-one",
                             "properties":{
                                 "cacheChannel":"cache-getItem",
                                 "requestKeyName":"itemId"
@@ -78,7 +78,7 @@
                         {
                             "name":"getCacheFirst",
                             "type":"get-cache-if-recent",
-                            "isolate":"isolate-cache",
+                            "isolate":"org.psem2m.internals.isolates.monitor-isolate-one",
                             "properties":{
                                 "cacheChannel":"cache-getItem",
                                 "requestKeyName":"itemId",
@@ -91,7 +91,7 @@
                         {
                             "name":"storeErpResult",
                             "type":"store-cache",
-                            "isolate":"isolate-cache",
+                            "isolate":"org.psem2m.internals.isolates.monitor-isolate-one",
                             "properties":{
                                 "cacheChannel":"cache-getItem",
                                 "resultKeyName":"id"
@@ -132,7 +132,7 @@
                 {
                     "name":"serverEndpoint",
                     "type":"server-endpoint-getItems",
-                    "isolate":"isolate-dataserver",
+                    "isolate":"org.psem2m.internals.isolates.monitor-isolate-one",
                     "wires":{
                         "normalizer":"resultNormalizer",
                         "next":"fallbackOnCache"
@@ -158,7 +158,7 @@
                         {
                             "name":"getCache",
                             "type":"get-cache-query",
-                            "isolate":"isolate-cache",
+                            "isolate":"org.psem2m.internals.isolates.monitor-isolate-one",
                             "properties":{
                                 "queryChannelName":"cache-getItems",
                                 "itemsChannelName":"cache-getItem"
@@ -172,7 +172,7 @@
                         {
                             "name":"storeErpResult",
                             "type":"store-cache-query",
-                            "isolate":"isolate-cache",
+                            "isolate":"org.psem2m.internals.isolates.monitor-isolate-one",
                             "properties":{
                                 "queryChannelName":"cache-getItems",
                                 "itemsChannelName":"cache-getItem",
@@ -214,7 +214,7 @@
                 {
                     "name":"serverEndpoint",
                     "type":"server-endpoint-getItemsStock",
-                    "isolate":"isolate-dataserver",
+                    "isolate":"org.psem2m.internals.isolates.monitor-isolate-one",
                     "wires":{
                         "normalizer":"resultNormalizer",
                         "next":"computeQueuedCarts"
@@ -223,12 +223,12 @@
                 {
                     "name":"resultNormalizer",
                     "type":"normalizer-getItemsStock",
-                    "isolate":"isolate-cache"
+                    "isolate":"org.psem2m.internals.isolates.monitor-isolate-one"
                 },
                 {
                     "name":"computeQueuedCarts",
                     "type":"compute-queued-carts",
-                    "isolate":"isolate-cache",
+                    "isolate":"org.psem2m.internals.isolates.monitor-isolate-one",
                     "properties":{
                         "cartCacheChannel":"carts",
                         "cartLinesKey":"lines",
@@ -243,7 +243,7 @@
                 {
                     "name":"fallbackOnCache",
                     "type":"fall-back",
-                    "isolate":"isolate-cache",
+                    "isolate":"org.psem2m.internals.isolates.monitor-isolate-one",
                     "wires":{
                         "next":"erpChain.getCacheFirst",
                         "second":"fallback.getCache"
@@ -257,7 +257,7 @@
                         {
                             "name":"getCache",
                             "type":"get-cache",
-                            "isolate":"isolate-cache",
+                            "isolate":"org.psem2m.internals.isolates.monitor-isolate-one",
                             "properties":{
                                 "cacheChannel":"cache-getItemsStock",
                                 "requestKeyName":"itemId"
@@ -271,7 +271,7 @@
                         {
                             "name":"getCacheFirst",
                             "type":"get-cache-if-recent",
-                            "isolate":"isolate-cache",
+                            "isolate":"org.psem2m.internals.isolates.monitor-isolate-one",
                             "properties":{
                                 "cacheChannel":"cache-getItemsStock",
                                 "requestKeyName":"itemId",
@@ -284,7 +284,7 @@
                         {
                             "name":"storeErpResult",
                             "type":"store-cache",
-                            "isolate":"isolate-cache",
+                            "isolate":"org.psem2m.internals.isolates.monitor-isolate-one",
                             "properties":{
                                 "cacheChannel":"cache-getItemsStock",
                                 "resultKeyName":"id"
@@ -325,7 +325,7 @@
                 {
                     "name":"serverEndpoint",
                     "type":"server-endpoint-applyCart",
-                    "isolate":"isolate-dataserver",
+                    "isolate":"org.psem2m.internals.isolates.monitor-isolate-one",
                     "wires":{
                         "normalizer":"resultNormalizer",
                         "next":"useCartQueue"
@@ -338,40 +338,40 @@
             ]
         },
         {
-            "name":"CartsApplier",
+            "name":"CartsApplier2",
             "components":[
-                          {
-                              "name":"useCartQueue",
-                              "type":"cache-queue-handler",
-                              "isolate":"isolate-cache",
-                              "properties":{
-                                  "cacheChannel":"carts",
-                                  "cartIdKey":"id",
-                                  "cartLinesKey":"lines",
-                                  "timeout":3000
-                              },
-                              "wires":{
-                                  "next":"safeErpCaller"
-                              }
-                          },
-                          {
-                              "name":"safeErpCaller",
-                              "type":"exception-catcher",
-                              "wires":{
-                                  "next":"erpCaller"
-                              }
-                          },
-                          {
-                              "name":"erpCaller",
-                              "type":"erp-caller",
-                              "properties":{
-                                  "method":"applyCart"
-                              },
-                              "wires":{
-                                  "next":"erpProxy"
-                              }
-                          }
-                      ]
+                {
+                    "name":"useCartQueue",
+                    "type":"cache-queue-handler",
+                    "isolate":"org.psem2m.internals.isolates.monitor-isolate-one",
+                    "properties":{
+                        "cacheChannel":"carts",
+                        "cartIdKey":"id",
+                        "cartLinesKey":"lines",
+                        "timeout":3000
+                    },
+                    "wires":{
+                        "next":"safeErpCaller"
+                    }
+                },
+                {
+                    "name":"safeErpCaller",
+                    "type":"exception-catcher",
+                    "wires":{
+                        "next":"erpCaller"
+                    }
+                },
+                {
+                    "name":"erpCaller",
+                    "type":"erp-caller",
+                    "properties":{
+                        "method":"applyCart"
+                    },
+                    "wires":{
+                        "next":"erpProxy"
+                    }
+                }
+            ]
         }
     ]
 }
