@@ -22,10 +22,10 @@ import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.constants.ISignalsConstants;
-import org.psem2m.isolates.services.monitoring.IIsolatePresenceListener;
 import org.psem2m.isolates.services.remote.IRemoteServiceBroadcaster;
 import org.psem2m.isolates.services.remote.beans.EndpointDescription;
 import org.psem2m.isolates.services.remote.beans.RemoteServiceEvent;
+import org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration;
 import org.psem2m.signals.ISignalBroadcaster;
 import org.psem2m.signals.ISignalDirectory;
 import org.psem2m.signals.ISignalDirectory.EBaseGroup;
@@ -37,11 +37,10 @@ import org.psem2m.signals.ISignalSendResult;
  * @author Thomas Calmant
  */
 @Component(name = "psem2m-remote-rsb-factory", publicFactory = false)
-@Provides(specifications = { IRemoteServiceBroadcaster.class,
-        IIsolatePresenceListener.class })
+@Provides(specifications = IRemoteServiceBroadcaster.class)
 @Instantiate(name = "psem2m-remote-rsb")
 public class RemoteServiceBroadcaster extends CPojoBase implements
-        IRemoteServiceBroadcaster, IIsolatePresenceListener {
+        IRemoteServiceBroadcaster {
 
     /** Signals directory */
     @Requires
@@ -92,26 +91,6 @@ public class RemoteServiceBroadcaster extends CPojoBase implements
         }
 
         return events;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.services.monitoring.IIsolatePresenceListener#
-     * handleIsolatePresence(java.lang.String, java.lang.String,
-     * org.psem2m.isolates
-     * .services.monitoring.IIsolatePresenceListener.EPresence)
-     */
-    @Override
-    public void handleIsolatePresence(final String aIsolateId,
-            final String aNode, final EPresence aPresence) {
-
-        if (aPresence == EPresence.REGISTERED) {
-            // Component registered: request its end points
-            pSignalEmitter.fire(
-                    ISignalsConstants.BROADCASTER_SIGNAL_REQUEST_ENDPOINTS,
-                    null, aIsolateId);
-        }
     }
 
     /*
@@ -168,6 +147,11 @@ public class RemoteServiceBroadcaster extends CPojoBase implements
             }
         }
 
+        // Update host name in end points
+        for (final RemoteServiceEvent event : allEvents) {
+            updateEndpointsHost(event.getServiceRegistration());
+        }
+
         return allEvents.toArray(new RemoteServiceEvent[allEvents.size()]);
     }
 
@@ -179,6 +163,11 @@ public class RemoteServiceBroadcaster extends CPojoBase implements
      */
     @Override
     public RemoteServiceEvent[] requestEndpoints(final String aIsolateId) {
+
+        if (pDirectory.getIsolateId().equals(aIsolateId)) {
+            // Ignore local isolate
+            return null;
+        }
 
         final ISignalSendResult sendResult = pSignalEmitter.send(
                 ISignalsConstants.BROADCASTER_SIGNAL_REQUEST_ENDPOINTS, null,
@@ -198,6 +187,11 @@ public class RemoteServiceBroadcaster extends CPojoBase implements
             pLogger.logDebug(this, "requestEndpoints",
                     "No end points in isolate=", aIsolateId);
             return null;
+        }
+
+        // Update host name in end points
+        for (final RemoteServiceEvent event : events) {
+            updateEndpointsHost(event.getServiceRegistration());
         }
 
         return events.toArray(new RemoteServiceEvent[events.size()]);
@@ -224,6 +218,33 @@ public class RemoteServiceBroadcaster extends CPojoBase implements
         pSignalEmitter.fireGroup(
                 ISignalsConstants.BROADCASTER_SIGNAL_REMOTE_EVENT, aEvent,
                 EBaseGroup.OTHERS);
+    }
+
+    /**
+     * Updates the host name of all end points described in the given
+     * registration
+     * 
+     * @param aRegistration
+     *            A remote service registration
+     */
+    private void updateEndpointsHost(
+            final RemoteServiceRegistration aRegistration) {
+
+        if (aRegistration == null) {
+            // Nothing to do
+            return;
+        }
+
+        final EndpointDescription[] endpoints = aRegistration.getEndpoints();
+        if (endpoints == null) {
+            // Nothing to do
+            return;
+        }
+
+        // Update end points beans
+        for (final EndpointDescription endpoint : aRegistration.getEndpoints()) {
+            endpoint.resolveHost(pDirectory.getHostForNode(endpoint.getNode()));
+        }
     }
 
     /*

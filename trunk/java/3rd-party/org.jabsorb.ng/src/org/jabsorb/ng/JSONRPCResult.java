@@ -41,6 +41,7 @@ import org.json.JSONObject;
  * error results, and remote exceptions results.
  */
 public class JSONRPCResult {
+
     /**
      * Denotes that an error occured while applying the fixup data for circular
      * references/duplicates.
@@ -109,7 +110,7 @@ public class JSONRPCResult {
     /**
      * An error code if a problem occured (CODE_SUCCESS otherwise)
      */
-    private int errorCode;
+    private final int errorCode;
 
     /**
      * Optional fixup entries to run against the result in order to reconstitute
@@ -123,12 +124,12 @@ public class JSONRPCResult {
     /**
      * The id of the response.
      */
-    private Object id;
+    private final Object id;
 
     /**
      * The result of the call
      */
-    private Object result;
+    private final Object result;
 
     /**
      * Creates a new JSONRPCResult without fixups (for backward compatibility to
@@ -228,6 +229,10 @@ public class JSONRPCResult {
                     err.put("code", new Integer(errorCode));
                     err.put("message", e.getMessage());
                     err.put("trace", caw.toString());
+                    
+                    // PATCH: Add the Java exception class hint
+                    err.put("javaClass", e.getClass().getName());
+                    
                     o.put("error", err);
                 } else {
                     // When using a customized implementation of

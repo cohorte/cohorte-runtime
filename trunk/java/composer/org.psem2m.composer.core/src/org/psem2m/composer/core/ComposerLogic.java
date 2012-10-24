@@ -5,6 +5,7 @@
  */
 package org.psem2m.composer.core;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -661,17 +662,28 @@ public class ComposerLogic implements IComposer, IComposerLogic {
             throws InvalidComponentsSetException {
 
         if (aComponentsSetBean == null) {
-            // Invalid composite
+            // Invalid components set
             pLogger.logSevere(this, "instantiateComponentsSet",
                     "Null components set given");
             throw new InvalidComponentsSetException("Null components set");
         }
 
         if (!aComponentsSetBean.isRoot()) {
-            // Invalid composite
+            // Invalid components set
             pLogger.logSevere(this, "instantiateComponentsSet",
                     "Can't instantiate a ComponentsSet which is not root");
             throw new InvalidComponentsSetException("Not a root components set");
+        }
+
+        // Verify that we don't already have a composition with that name
+        if (pStatus.getComposet(aComponentsSetBean.getName()) != null) {
+            // Already known components set
+            pLogger.logSevere(this, "instantiateComponentsSet",
+                    "Already known composition name=",
+                    aComponentsSetBean.getName());
+            throw new InvalidComponentsSetException(MessageFormat.format(
+                    "Already known composition name: {0}",
+                    aComponentsSetBean.getName()));
         }
 
         // Get the components
@@ -693,7 +705,7 @@ public class ComposerLogic implements IComposer, IComposerLogic {
         }
 
         // Print a complete representation of the components set
-        pLogger.logDebug(this, "instantiateComponentsSet", "Model :",
+        pLogger.logDebug(this, "instantiateComponentsSet", "Model:",
                 aComponentsSetBean.toCompleteString());
 
         // Prepare the components set bean
@@ -781,6 +793,11 @@ public class ComposerLogic implements IComposer, IComposerLogic {
      */
     @Override
     public ComponentsSetBean loadCompositionFile(final String aFileName) {
+
+        if (aFileName == null || aFileName.isEmpty()) {
+            // Nothing to do
+            return null;
+        }
 
         // Find the corresponding configuration reader
         IComposerConfigHandler configReader = null;

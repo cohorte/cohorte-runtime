@@ -257,8 +257,11 @@ class IsolateLoader(object):
 
         # Get the isolate from the local configuration
         app = self._config.get_application()
-        isolate_descr = app.get_isolate(isolate_id)
+        if app is None:
+            _logger.warning("No application found: invalid configuration ?")
+            return None
 
+        isolate_descr = app.get_isolate(isolate_id)
         if isolate_descr is None and is_forker:
             # Configuration not found, but we look for a forker
             for isolate in app.get_isolate_ids():
