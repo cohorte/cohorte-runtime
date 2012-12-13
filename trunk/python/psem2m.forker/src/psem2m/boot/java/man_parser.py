@@ -1,7 +1,15 @@
 #!/usr/bin/python
 # -- Content-Encoding: UTF-8 --
+"""
+Java Manifest.mf parser
 
-from pprint import pprint
+:author: Thomas Calmant
+"""
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# ------------------------------------------------------------------------------
 
 import ipojo_parser
 import operator
@@ -24,8 +32,11 @@ else:
 # Empty bundle representing the system
 SYSTEM_BUNDLE = object()
 
+# Path of the descriptions of the bundle services
+BUNDLE_SERVICES_FOLDER = 'META-INF/services'
+
 # FrameworkFactory service descriptor in the framework JAR file
-FRAMEWORK_FACTORY_SERVICE_FILE = 'META-INF/services/org.osgi.framework.launch.FrameworkFactory'
+FRAMEWORK_SERVICE = 'org.osgi.framework.launch.FrameworkFactory'
 
 # ------------------------------------------------------------------------------
 
@@ -572,7 +583,7 @@ class Bundle(object):
 
                 # Parse the provided version
                 provided = other_bundle._export[package].get('version', None)
-                if Version(provided_version).matches(requirement):
+                if Version(provided).matches(requirement):
                     return True
 
         return False
@@ -589,23 +600,20 @@ class Bundle(object):
         """
         Tests if this bundle is an OSGi framework
         """
-        framework = False
-
         jar_file = zipfile.ZipFile(self.filename)
         try:
             # Try to retrieve the FrameworkFactory service descriptor
-            if jar_file.getinfo(FRAMEWORK_FACTORY_SERVICE_FILE):
+            if jar_file.getinfo('{0}/{1}'.format(BUNDLE_SERVICES_FOLDER,
+                                                 FRAMEWORK_SERVICE)):
                 # No error
-                framework = True
+                return True
 
         except KeyError:
             # File not found
-            framework = False
+            return False
 
         finally:
             jar_file.close()
-
-        return framework
 
 
     def get_exported_packages(self):
@@ -616,17 +624,33 @@ class Bundle(object):
                 for name, attributes in self._export.items())
 
 
-    def get_framework_factory_name(self):
+    def get_framework_factory(self):
         """
         Retrieves the content of the FrameworkFactory service file
         """
+        return self.get_service(FRAMEWORK_SERVICE)
+
+
+    def get_service(self, service_name):
+        """
+        Retrieves the content of a service description file (like the
+        FrameworkFactory service)
+        
+        :param service_name: The name of a service
+        :return: The content of the service description file, or None
+        """
+        if not service_name:
+            return None
+
         jar_file = zipfile.ZipFile(self.filename)
         try:
-            framework_factory = jar_file.read(FRAMEWORK_FACTORY_SERVICE_FILE)
+            service_factory = jar_file.read('{0}/{1}' \
+                                            .format(BUNDLE_SERVICES_FOLDER,
+                                                    service_name))
             if PYTHON3:
-                framework_factory = str(framework_factory, 'UTF-8')
+                service_factory = str(service_factory, 'UTF-8')
 
-            return framework_factory.strip()
+            return service_factory.strip()
 
         except KeyError:
             # Not a framework JAR
@@ -641,6 +665,13 @@ class Bundle(object):
         Reads an entry from the Manifest of the bundle
         """
         return self._manifest.get(key, default)
+
+
+    def get_url(self):
+        """
+        Retrieves the file:/ URL for this bundle
+        """
+        return 'file:{0}'.format(self.filename.replace(' ', '%20'))
 
 # ------------------------------------------------------------------------------
 
@@ -697,6 +728,10 @@ class Repository(object):
         factories_set = set(factories)
         resolution = {}
 
+        if not factories:
+            # Nothing to do...
+            return resolution, factories_set
+
         # Prepare the parser
         parser = ipojo_parser.IPojoMetadataParser()
 
@@ -712,15 +747,13 @@ class Repository(object):
                 # Parse it
                 ipojo_root = parser.parse(ipojo_entry)
 
-                # Find the factories
-                bundle_factories = []
-
                 for component in ipojo_root.get_elements('component'):
                     factory_attr = component.get_attribute('name')
 
                     if factory_attr and factory_attr.value in factories_set:
                         # Add the bundle to the factory providers
-                        resolution.setdefault(factory_attr.value, []).append(bundle)
+                        resolution.setdefault(factory_attr.value, []) \
+                                                                .append(bundle)
 
         # Sort the providers
         for bundles_list in resolution.values():
@@ -892,13 +925,13 @@ class Repository(object):
                         dependencies[bundle].append(provider)
 
                         # The new bundle will be resolved later
-                        if added not in to_install:
+                        if provider not in to_install:
                             # We'll have to resolve it
                             to_install.append(provider)
 
                     else:
-                         # No match found
-                         missing_bundles.add(required)
+                        # No match found
+                        missing_bundles.add(required)
 
             # Resolve Import-Package
             for imported in bundle._import:
@@ -941,192 +974,3 @@ class Repository(object):
                             to_install.append(provider)
 
         return to_install, dependencies, (missing_bundles, missing_packages)
-
-# ------------------------------------------------------------------------------
-
-def find_psem2m_factories(monitor=False):
-    """
-    Finds the PSEM2M iPOJO factories
-    """
-    # Resolve component factories
-    factories = ['psem2m-config-factory',
-                 'psem2m-config-json-factory',
-                 'psem2m-composer-agent-factory',
-                 'psem2m-slave-agent-core-factory']
-
-    # ... signals
-    factories += ['psem2m-signal-receiver-factory',
-                  'psem2m-signal-broadcaster-factory',
-                  'psem2m-signals-directory-factory',
-                  'psem2m-signals-directory-updater-factory',
-                  'psem2m-remote-signal-sender-http-factory',
-                  'psem2m-remote-signal-receiver-http-factory',
-                  'psem2m-signals-data-java-factory',
-                  'psem2m-signals-data-json-factory']
-
-    # ... remote services
-    factories += ['psem2m-remote-rsb-factory',
-                  'psem2m-remote-rsb-signal-handler-factory',
-                  'psem2m-remote-service-exporter-factory',
-                  'psem2m-remote-service-importer-factory',
-                  'psem2m-remote-endpoint-handler-jsonrpc-factory',
-                  'psem2m-remote-client-handler-jsonrpc-factory',
-                  'psem2m-remote-rsr-factory']
-
-    if monitor:
-        # Monitor
-        factories += ['psem2m-forker-aggregator-factory',
-                      'psem2m-monitor-base-factory',
-                      'psem2m-monitor-logic-factory',
-                      'psem2m-monitor-status-factory',
-                      'psem2m-status-storage-creator-factory']
-
-        # Composer
-        factories += ['psem2m-composer-config-json-factory',
-                      'psem2m-composer-status-factory',
-                      'psem2m-composer-logic-factory',
-                      'psem2m-composer-monitor-factory',
-                      'psem2m-composer-config-json-factory']
-
-    # Find'em
-    factories, unresolved = repo.find_ipojo_factories(factories)
-    if unresolved:
-        raise KeyError('Some factories are missing: {0}'.format(unresolved))
-
-    # Return a list of bundles
-    return [bundles_list[0] for bundles_list in factories.values()]
-
-
-def prepare_repository(*repo_dirs):
-    repo = Repository()
-    for repo_dir in repo_dirs:
-        repo.load_folder(repo_dir)
-
-    return repo
-
-def get_psem2m_bundles(repository):
-    # Load the repository
-    repo = Repository()
-    for repo_dir in repo_dirs:
-        repo.load_folder(repo_dir)
-
-    # Find the bundles providing our factories
-    print('-' * 80)
-    factories_bundles = find_psem2m_factories(False)
-
-    # Packages exported by the framework
-    system_packages = ('javax.security.cert', 'javax.net.ssl',
-                       'javax.xml.parsers', 'org.w3c.dom', 'org.xml.sax',
-                       'org.xml.sax.helpers')
-
-    # Non-iPOJO bundles list
-    basic_bundles = ['org.psem2m.isolates.constants',
-                       'org.psem2m.isolates.base',
-                       'org.apache.felix.shell',
-                       'org.apache.felix.shell.remote']
-
-    print('-' * 80)
-    # Resolve the installation
-    to_install, dependencies, missing = repo.resolve_installation(\
-                                            basic_bundles + factories_bundles,
-                                            system_packages)
-
-    if missing[0]:
-        print('> Missing bundles')
-        pprint(missing[0])
-
-    if missing[1]:
-        print('> Missing packages')
-        pprint(missing[1])
-
-    print('-' * 80)
-    print('> Bundles to install')
-    pprint(to_install)
-
-    # Get the framework JAR
-    for bundle in to_install:
-        if bundle.is_framework():
-            framework = bundle
-            break
-    else:
-        raise ValueError('No OSGi framework found. Abandon.')
-
-    # Remove the framework of the bundles to install
-    to_install.remove(framework)
-
-    return framework, to_install
-
-def run_isolate(isolate_id, framework_jar, bundles_jars):
-    # Run the framework
-    import jpype
-    from jpype import java
-
-    # Start the JVM
-    print('Loading JVM...')
-    jpype.startJVM(jpype.getDefaultJVMPath(),
-                   '-Djava.class.path=' + framework_jar.filename,
-                   '-Dorg.psem2m.platform.isolate.id=' + isolate_id,
-                   '-Dosgi.shell.telnet.port=6000')
-
-    # Load the FrameworkFactory implementation
-    print('Looking for the FrameworkFactory implementation...')
-    framework_factory_class = framework_jar.get_framework_factory_name()
-
-    print('Loading FrameworkFactory class: {0}'.format(framework_factory_class))
-    FrameworkFactory = jpype.JClass(framework_factory_class)
-
-    # Instantiate the factory
-    factory = FrameworkFactory()
-
-    # Instantiate a framework instance
-    print('Creating framework...')
-    felix = factory.newFramework(None)
-
-    # Initialize it
-    print('Init...')
-    felix.init()
-
-    print('Installing bundles...')
-    context = felix.getBundleContext()
-    installed = {}
-    for bundle in bundles_jars:
-        if bundle is not framework:
-            fw_bundle = context.installBundle('file:' + bundle.filename.replace(' ', '%20'))
-            installed[fw_bundle] = bundle
-
-    print_bundles(context)
-    raw_input('Press Enter to continue')
-
-    print('Start !')
-    felix.start()
-
-    print_bundles(context)
-    raw_input('Press Enter to continue')
-
-    print('Stopping framework')
-    felix.stop()
-
-    print('Stopping JVM')
-    jpype.shutdownJVM()
-    print('Done')
-
-
-def print_bundles(context):
-    for bundle in context.getBundles():
-        print('> Bundle {0:2d}: {1} ({2})'.format(bundle.getBundleId(),
-                                                  bundle.getSymbolicName(),
-                                                  bundle.getState()))
-
-# ------------------------------------------------------------------------------
-
-if __name__ == "__main__":
-
-    #    repo_dirs = ['/home/thomas/boulot/git/psem2m/platforms/felix',
-    #                 '/home/thomas/Bureau/test']
-
-    repo_dirs = ['/home/tcalmant/programmation/workspaces/psem2m/platforms/felix',
-                 '/home/tcalmant/programmation/workspaces/psem2m/platforms/base-demo-july2012/repo']
-
-    repo = prepare_repository(*repo_dirs)
-    framework, bundles = get_psem2m_bundles(repo)
-    run_isolate('toto', framework, bundles)

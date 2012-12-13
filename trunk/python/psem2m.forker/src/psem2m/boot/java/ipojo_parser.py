@@ -1,5 +1,15 @@
 #!/usr/bin/python
 # -- Content-Encoding: UTF-8 --
+"""
+Parses the iPOJO entry in the manifest of a bundle
+
+:author: Thomas Calmant
+"""
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# ------------------------------------------------------------------------------
 
 class Element(object):
     """
@@ -83,26 +93,27 @@ class Element(object):
         return ':'.join((self.namespace, self.name))
 
 
-    def to_pretty_string(self, prefix="", return_list=False):
+    def to_pretty_string(self, prefix="", return_list=False, lines=None):
         """
         Pretty string representation
         """
         if prefix is None:
             prefix = ""
 
-        lines = []
+        if lines is None:
+            lines = []
 
-        lines.append(prefix + self.get_qname() + ' {')
+        lines.append('{0}{1} {{'.format(prefix, self.get_qname()))
 
         sub_prefix = prefix + "   "
         for attribute in self.attributes.values():
-            lines.append(sub_prefix + str(attribute))
+            lines.append("{0}{1}".format(sub_prefix, str(attribute)))
 
         for elements_list in self.elements.values():
             for element in elements_list:
-                lines.extend(element.to_pretty_string(sub_prefix, True))
+                element.to_pretty_string(sub_prefix, True, lines)
 
-        lines.append(prefix + '}')
+        lines.append('{0}}}'.format(prefix))
 
         if return_list:
             return lines
@@ -141,7 +152,14 @@ class Attribute(object):
         """
         String representation
         """
-        return '$' + self.get_qname() + '="' + self.value + '"'
+        return '${0}="{1}"'.format(self.get_qname(), self.value)
+
+
+    def __repr__(self):
+        """
+        Object representation string
+        """
+        return "{0}.Attribute('{1}')".format(__name__, self.__str__())
 
 # ------------------------------------------------------------------------------
 
@@ -224,13 +242,16 @@ class IPojoMetadataParser(object):
             elif current != ' ':
                 # (Spaces are ignored)
                 # Default case
-                qname = ""
+                qname = []
 
                 while current != ' ' and current != '{':
                     # Get the qualified name
-                    qname += current
+                    qname.append(current)
                     idx += 1
                     current = line[idx]
+
+                # Convert the name into a string
+                qname = ''.join(qname)
 
                 current = line[idx + 1]
                 while current == ' ' or current == '{':
