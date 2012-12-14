@@ -19,6 +19,7 @@ from pelix.ipopo.decorators import ComponentFactory, Instantiate, \
 import man_parser
 
 import jpype
+import logging
 import os
 
 # ------------------------------------------------------------------------------
@@ -26,10 +27,14 @@ import os
 __vm_started__ = False
 """ Flag to indicate if this module has started a JVM """
 
+_logger = logging.getLogger(__name__)
+
 # ------------------------------------------------------------------------------
 
 @ComponentFactory("psem2m-java-osgi-loader-factory")
 @Requires('_config', 'org.psem2m.isolates.services.conf.ISvcConfig')
+@Requires('_compo_loader', 'org.psem2m.composer.config.IComposerConfigHandler',
+          spec_filter="(configuration.format=json)")
 @Instantiate('psem2m-java-osgi-loader')
 class JavaOSGiLoader(object):
     """
@@ -47,6 +52,7 @@ class JavaOSGiLoader(object):
 
         # Configuration service
         self._config = None
+        self._compo_loader = None
 
         # Bundle repository
         self._repository = None
@@ -91,6 +97,23 @@ class JavaOSGiLoader(object):
         # Load the bundles
         for repo_dir in paths:
             self._repository.load_folder(repo_dir)
+
+
+    def load_composition_file(self):
+        """
+        Loads the basic Java isolate composition
+        """
+        factories = []
+
+        composite = self._compo_loader.load('psem2m-isolate-composition.js')
+        if composite:
+            factories = [component.type
+                         for component in composite.get_all_components()]
+
+        else:
+            _logger.warning('No composition found')
+
+        return factories
 
 
     def get_osgi_bundles(self, specified_bundles, factories, system_packages):
@@ -192,8 +215,8 @@ class JavaOSGiLoader(object):
         # TODO: Get the isolate minimal bundles
         specified_bundles = isolate_conf.get_bundles()
 
-        # TODO: Get the isolate factories
-        factories = isolate_conf.get_base_composition().get_factories()
+        # Get the isolate factories
+        factories = self.load_composition_file()
 
         # TODO: Get the system packages
         system_packages = isolate_conf.get_system_packages()
