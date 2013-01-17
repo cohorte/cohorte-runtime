@@ -25,7 +25,6 @@ import cohorte.utils as utils
 # Pelix framework
 from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
     Invalidate
-import pelix.framework
 
 # Python standard library
 import json
@@ -212,9 +211,14 @@ class Forker(object):
 
         # Make the configuration
         try:
-            configuration = self._config.prepare_isolate(self._monitor_uid,
-                                                         MONITOR_NAME,
-                                                         node, MONITOR_KIND)
+            # Load the boot-monitor file
+            configuration = self._config.load_conf_raw('java', 'monitor')
+
+            # Extend with the OSGi boot
+            configuration.update(self._config.prepare_isolate(self._monitor_uid,
+                                                              MONITOR_NAME,
+                                                              node,
+                                                              MONITOR_KIND))
 
         except IOError as ex:
             _logger.error("Can't read a configuration for the monitor: %s", ex)
@@ -335,8 +339,8 @@ class Forker(object):
             args.append('--state-updater={0}'.format(state_updater_url))
 
         # Log file
-        logname = 'log_{0}_{1}.log'.format(configuration['name'],
-                                           configuration['uid'])
+        logname = 'log_{0}.log'.format(configuration['name'],
+                                       configuration['uid'])
         args.append('--logfile={0}'.format(os.path.join(working_directory,
                                                         logname)))
 
@@ -571,7 +575,8 @@ class Forker(object):
 
             # In debug mode, print the raw output
             w_isolate_id = isolate_id[:25]
-            _logger.debug("FROM %25s:\n> %s", w_isolate_id, line)
+            # TODO: _logger.debug("FROM %25s:\n> %s", w_isolate_id, line)
+            print(">> %s" % line)
 
             # parts = line.decode("UTF-8").split("::")
             parts = line.split("::")

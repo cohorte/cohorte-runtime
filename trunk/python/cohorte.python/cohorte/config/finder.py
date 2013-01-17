@@ -3,6 +3,9 @@
 """
 COHORTE file finder
 
+**TODO:**
+* Review API
+
 :author: Thomas Calmant
 :license: GPLv3
 """
@@ -23,6 +26,7 @@ from pelix.ipopo.decorators import ComponentFactory, Instantiate, Provides, \
     Validate, Invalidate
 
 # Python standard library
+import fnmatch
 import logging
 import os
 
@@ -64,59 +68,56 @@ class FileFinder(object):
             return None
 
         # COHORTE root directories
-        for root_list in (self._roots, self._custom_roots):
-            for root_dir in root_list:
-                if path.startswith(root_dir):
-                    return os.path.relpath(path, root_dir)
+        for root_dir in self._gen_roots():
+            if path.startswith(root_dir):
+                return os.path.relpath(path, root_dir)
 
         # No match found
         return None
 
 
+    def _gen_roots(self):
+        """
+        Generator to have the Cohorte roots (base then home) and the custom
+        roots.
+        """
+        for root_list in (self._roots, self._custom_roots):
+            if root_list:
+                for root in root_list:
+                    yield root
+
+
     def _internal_find(self, filename):
         """
-        Tries to find the given file in the platform directories. Never returns
-        None.
+        A generator to find the given file in the platform directories.
         
         :param filename: Name of the file to find
-        :return: The list of the corresponding files
         """
-        file_abspath = os.path.realpath
-        file_exists = os.path.exists
-        file_join = os.path.join
-
         if filename[0] == os.path.sep:
             # os.path.join won't work if the name starts with a path separator
             filename = filename[len(os.path.sep):]
 
-        files = []
         # Look into root directories
-        for root_list in (self._roots, self._custom_roots):
-            for root_dir in root_list:
-                path = file_abspath(file_join(root_dir, filename))
-                if file_exists(path):
-                    files.append(path)
+        for root_dir in self._gen_roots():
+            path = os.path.realpath(os.path.join(root_dir, filename))
+            if os.path.exists(path):
+                yield path
 
         # Test the absolute file name
-        path = file_abspath(filename)
-        if file_exists(path):
-            files.append(path)
-
-        return files
+        path = os.path.realpath(filename)
+        if os.path.exists(path):
+            yield path
 
 
-    def find(self, filename, base_file=None):
+    def find_rel(self, filename, base_file):
         """
-        Tries to find the given file in the platform folders
+        A generator to find the given file in the platform folders
         
         :param filename: The file to look for (tries its absolute path then its
                           name)
-        :param base_file: Base file reference (file_name can be relative to it)
-        :return: All found files with the given information, an empty list
-                 if none found
+        :param base_file: Base file reference (filename can be relative to it)
+        :return: The matching files
         """
-        found_files = []
-
         if base_file:
             abspath = os.path.abspath
             file_exists = os.path.exists
@@ -136,17 +137,51 @@ class FileFinder(object):
             if base_dir:
                 # Try the base directory directly (as a relative directory)
                 path = os.path.join(base_dir, filename)
-                found_files.extend(self._internal_find(path))
+                for found_file in self._internal_find(path):
+                    yield found_file
 
                 # Try without the platform prefix, if any
                 platform_subdir = self._extract_platform_path(base_dir)
                 if platform_subdir:
                     path = os.path.join(platform_subdir, filename)
-                    found_files.extend(self._internal_find(path))
+                    for found_file in self._internal_find(path):
+                        yield found_file
 
         # Find files, the standard way
-        found_files.extend(self._internal_find(filename))
-        return found_files
+        for found_file in self._internal_find(filename):
+            yield found_file
+
+
+    def find_gen(self, pattern, base_dir=None, recursive=True):
+        """
+        Generator to find the files matching the given pattern looking
+        recursively in the given directory in the roots (base, home and customs)
+        
+        :param pattern: A file pattern
+        :param base_dir: The name of a sub-directory of "home" or "base"
+        :param recursive: If True, searches recursively for the file
+        :return: The matching files
+        """
+        if base_dir[0] == os.path.sep:
+            # os.path.join won't work if the name starts with a path separator
+            base_dir = base_dir[len(os.path.sep):]
+
+        for root in self._gen_roots():
+            # Prepare the base directory
+            if base_dir is not None:
+                base_path = os.path.join(root, base_dir)
+            else:
+                base_path = root
+
+            # Walk the directory
+            for root, _, filenames in os.walk(base_path, followlinks=True):
+                for filename in fnmatch.filter(filenames, pattern):
+                    # Return the real path of the matching file
+                    yield os.path.realpath(os.path.join(root, filename))
+
+                if not recursive:
+                    # Stop on first directory
+                    return
 
 
     def add_custom_root(self, root):

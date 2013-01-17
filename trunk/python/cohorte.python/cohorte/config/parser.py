@@ -38,7 +38,7 @@ Component = collections.namedtuple('Component', ('factory', 'name',
 
 # Bundle to be installed
 Bundle = collections.namedtuple('Bundle', ('name', 'filename', 'properties',
-                                           'optional'))
+                                           'version', 'optional'))
 
 # Simplest configuration possible
 BootConfiguration = collections.namedtuple('BootConfiguration',
@@ -59,11 +59,7 @@ def _recursive_namedtuple_convert(data):
     """
     if type(data) is list:
         # List
-        new_array = []
-        for item in data:
-            new_array.append(_recursive_namedtuple_convert(item))
-
-        return new_array
+        return [_recursive_namedtuple_convert(item) for item in data]
 
     elif hasattr(data, '_asdict'):
         # Named tuple
@@ -118,6 +114,7 @@ class BootConfigParser(object):
                       # Optional
                       filename=json_object.get('file'),
                       properties=properties,
+                      version=json_object.get('version'),
                       optional=json_object.get('optional', False))
 
 
@@ -211,11 +208,23 @@ class BootConfigParser(object):
         :raise KeyError: A parameter is missing in the configuration files
         :raise ValueError: Error reading the configuration
         """
-        # Load the boot file
-        json_data = self._reader.load_file('boot-{0}.js'.format(kind), 'conf')
-
         # Prepare & store the bean representation
-        return self.load_boot_dict(json_data)
+        return self.load_boot_dict(self.load_conf_raw('boot', kind))
+
+
+    def load_conf_raw(self, level, kind):
+        """
+        Loads the boot configuration for the given kind of isolate, or returns
+        the one in the cache.
+        
+        :param kind: The kind of isolate to boot
+        :return: The loaded BootConfiguration object
+        :raise IOError: Unknown/unaccessible kind of isolate
+        :raise KeyError: A parameter is missing in the configuration files
+        :raise ValueError: Error reading the configuration
+        """
+        # Load the boot file
+        return self._reader.load_file('{0}-{1}.js'.format(level, kind), 'conf')
 
 
     def load_boot_dict(self, dict_config):
@@ -243,7 +252,7 @@ class BootConfigParser(object):
         return BootConfiguration(bundles=self._parse_bundles(
                                                dict_config.get('bundles')),
                                  composition=self._parse_components(
-                                               dict_config.get('components')),
+                                               dict_config.get('composition')),
                                  boot_args=dict_config.get('boot_args'),
                                  environment=environment,
                                  properties=properties)
@@ -281,10 +290,12 @@ class BootConfigParser(object):
         configuration['boot'] = _recursive_namedtuple_convert(boot)
 
         # Add bundles (or an empty list)
-        configuration['bundles'] = bundles or []
+        if bundles:
+            configuration['bundles'] = bundles
 
         # Add components (or an empty list)
-        configuration['compositon'] = composition or []
+        if composition:
+            configuration['composition'] = composition or []
 
         # Return the configuration dictionary
         return configuration

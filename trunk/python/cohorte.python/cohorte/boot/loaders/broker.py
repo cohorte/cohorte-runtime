@@ -334,7 +334,7 @@ class BrokerClientLoader(object):
 
         finally:
             # Clean the service usage
-            self._context.unget_service()
+            self._context.unget_service(self._loader_ref)
 
 
     @Validate

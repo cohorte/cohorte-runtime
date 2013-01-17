@@ -56,6 +56,7 @@ def boot_load(context, boot_config):
 
             # Start it
             context.get_bundle(bundle_id).start()
+            logger.debug("%s started", bundle.name)
 
         except pelix.framework.BundleException as ex:
             if bundle.optional:
@@ -78,6 +79,10 @@ def boot_load(context, boot_config):
             logger.debug("Instantiating %s...", component.name)
             ipopo_svc.instantiate(component.factory, component.name,
                                   component.properties)
+            logger.debug("%s instantiated", component.name)
 
-        # We don't need it anymore
+        # We don't need iPOPO anymore
         context.unget_service(ipopo_ref)
+
+    else:
+        logger.debug("No component to instantiate")

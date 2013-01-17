@@ -25,7 +25,6 @@ from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
 # Python standard library
 import json
 import logging
-import os
 
 # ------------------------------------------------------------------------------
 
@@ -369,26 +368,23 @@ class ConfigurationFileReader(object):
         :raise ValueError: Error parsing a JSON file
         :raise IOError: Error reading the configuration file
         """
-        # Find the matching files
-        files = self._finder.find(filename, base_file)
-        if not files:
+        # Parse the first matching file
+        conffile = next(self._finder.find_rel(filename, base_file), None)
+        if not conffile:
             raise IOError("File not found: '{0}' (base: {1})" \
                           .format(filename, base_file))
 
-        # Parse the first matching file
-        filename = os.path.realpath(files[0])
-
-        if filename in self._include_stack:
+        if conffile in self._include_stack:
             # The file is already in the inclusion stack
             raise ValueError("Recursive import detected: '{0}' - '{1}'" \
-                             .format(filename, self._include_stack))
+                             .format(conffile, self._include_stack))
 
         else:
             # Store the file in the inclusion stack
-            self._include_stack.append(filename)
+            self._include_stack.append(conffile)
 
         # Parse the file and resolve inclusions
-        json_data = self._parse_file(filename, overridden_props)
+        json_data = self._parse_file(conffile, overridden_props)
 
         # Remove the top of the stack before returning
         self._include_stack.pop()
