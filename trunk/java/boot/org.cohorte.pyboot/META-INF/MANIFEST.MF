@@ -1,0 +1,28 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: COHORTE :: Boot :: Python Bridge
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-SymbolicName: org.cohorte.pyboot
+Bundle-Vendor: isandlaTech.com
+Bundle-Version: 1.0.0.qualifier
+Created-By: iPOJO  1.8.0
+Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
+ .ipojo.architecture;version=1.8.0, org.cohorte.pyboot.api, org.osgi.f
+ ramework;version=1.3.0, org.osgi.service.cm;version=1.2, org.osgi.ser
+ vice.log;version=1.3
+iPOJO-Components: instance { $component="org.cohorte.pyboot.BridgeClie
+ nt" $name="cohorte-java-bridge-client" }component { $classname="org.c
+ ohorte.pyboot.BridgeClient" $name="cohorte-java-bridge-client-factory
+ " $public="true" requires { $field="pBridge" }callback { $transition=
+ "invalidate" $method="invalidate" }callback { $transition="validate" 
+ $method="validate" }manipulation { interface { $name="org.osgi.framew
+ ork.ServiceListener" }field { $name="pBridge" $type="org.cohorte.pybo
+ ot.api.IPyBridge" }field { $name="pComponents" $type="java.util.List"
+  }field { $name="pContext" $type="org.osgi.framework.BundleContext" }
+ method { $name="instantiateComponents" $arguments="{org.osgi.framewor
+ k.ServiceReference}" }method { $name="invalidate" }method { $name="po
+ llFactories" }method { $name="prepareInstanceProperties" $return="jav
+ a.util.Properties" $arguments="{org.cohorte.pyboot.api.ComponentBean}
+ " }method { $name="serviceChanged" $arguments="{org.osgi.framework.Se
+ rviceEvent}" }method { $name="validate" }}}
+
