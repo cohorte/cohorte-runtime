@@ -3,7 +3,7 @@
  * Author: Thomas Calmant
  * Date:   18 oct. 2011
  */
-package org.psem2m.isolates.slave.agent.monitor;
+package org.psem2m.isolates.slave.agent.threads;
 
 /**
  * The thread that polls the threads monitor

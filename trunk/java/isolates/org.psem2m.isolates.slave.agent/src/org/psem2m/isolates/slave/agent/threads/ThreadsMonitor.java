@@ -3,7 +3,7 @@
  * Author: Thomas Calmant
  * Date:   18 oct. 2011
  */
-package org.psem2m.isolates.slave.agent.monitor;
+package org.psem2m.isolates.slave.agent.threads;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,13 +12,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.felix.ipojo.annotations.Component;
-import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
-import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
-import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.services.monitoring.IThreadCpuUsageMonitor;
 
 /**
@@ -27,8 +24,7 @@ import org.psem2m.isolates.services.monitoring.IThreadCpuUsageMonitor;
  * @author Thomas Calmant
  */
 @Component(name = "psem2m-threads-monitor-factory")
-@Instantiate(name = "psem2m-threads-monitor")
-public class ThreadsMonitor extends CPojoBase {
+public class ThreadsMonitor {
 
     /** The logger */
     @Requires
@@ -66,13 +62,13 @@ public class ThreadsMonitor extends CPojoBase {
             aThreadGroup.enumerate(threads, false);
 
             // Fill the map
-            for (Thread thread : threads) {
+            for (final Thread thread : threads) {
                 if (thread != null) {
                     aResultMap.put(thread.getId(), thread);
                 }
             }
 
-        } catch (SecurityException ex) {
+        } catch (final SecurityException ex) {
             // Ignore security exception...
             pLogger.logWarn(this, "enumerateThreadGroup",
                     "Not allowed to read thread group ",
@@ -87,7 +83,7 @@ public class ThreadsMonitor extends CPojoBase {
         aThreadGroup.enumerate(threadGroups, false);
 
         // Recursive calls on sub-groups
-        for (ThreadGroup group : threadGroups) {
+        for (final ThreadGroup group : threadGroups) {
             enumerateThreadGroup(aResultMap, group);
         }
     }
@@ -140,9 +136,8 @@ public class ThreadsMonitor extends CPojoBase {
      * 
      * @see org.psem2m.isolates.base.activators.CPojoBase#invalidatePojo()
      */
-    @Override
     @Invalidate
-    public void invalidatePojo() throws BundleException {
+    public void invalidatePojo() {
 
         pScheduledExecutor.shutdownNow();
         pLogger.logInfo(this, "invalidatePojo", "Threads Monitor Gone");
@@ -167,7 +162,7 @@ public class ThreadsMonitor extends CPojoBase {
                     "Average CPU Usage : %3.2f for %d threads",
                     pMonitor.getAverageCpuUsage(), allThreads.size());
 
-            for (long id : pMonitor.getKnownThreadsIds()) {
+            for (final long id : pMonitor.getKnownThreadsIds()) {
 
                 // Find the correspond JVM thread
                 final Thread thread = allThreads.get(id);
@@ -215,9 +210,8 @@ public class ThreadsMonitor extends CPojoBase {
      * 
      * @see org.psem2m.isolates.base.activators.CPojoBase#validatePojo()
      */
-    @Override
     @Validate
-    public void validatePojo() throws BundleException {
+    public void validatePojo() {
 
         // Prepare the scheduled update
         pScheduledExecutor = Executors.newScheduledThreadPool(1);
