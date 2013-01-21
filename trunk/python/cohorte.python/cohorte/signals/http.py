@@ -27,9 +27,11 @@ import cohorte
 
 # Pelix/iPOPO
 from pelix.ipopo.decorators import ComponentFactory, Provides, Requires, \
-    Validate, Invalidate, Instantiate, Property
+    Validate, Invalidate, Property
 import pelix.framework
 import pelix.http
+
+# ------------------------------------------------------------------------------
 
 # Python utilities
 from base.utils import to_bytes, to_unicode
@@ -37,7 +39,9 @@ from base.utils import to_bytes, to_unicode
 # Java utilities
 from base.javautils import to_jabsorb, from_jabsorb, JAVA_CLASS
 
-# Python standard library
+# ------------------------------------------------------------------------------
+
+# Standard library
 import fnmatch
 import logging
 import json
@@ -362,10 +366,6 @@ class SignalReceiver(object):
 
 
 # ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
 
 class FutureResult(object):
     """
@@ -454,9 +454,8 @@ class FutureResult(object):
 # ------------------------------------------------------------------------------
 
 @ComponentFactory("psem2m-signals-sender-factory")
-@Instantiate("psem2m-signals-sender")
 @Provides(cohorte.SERVICE_SIGNALS_SENDER)
-# TODO: @Requires("_directories", "org.psem2m.signals.ISignalDirectory", aggregate=True)
+@Requires("_directory", cohorte.SERVICE_SIGNALS_DIRECTORY)
 @Requires("_local_recv", cohorte.SERVICE_SIGNALS_RECEIVER)
 class SignalSender(object):
     """
@@ -466,7 +465,8 @@ class SignalSender(object):
         """
         Constructor
         """
-        self._directories = []
+        # Injected services
+        self._directory = None
         self._local_recv = None
 
         # Bundle context
@@ -663,37 +663,10 @@ class SignalSender(object):
             # Nothing to do
             return accesses
 
-        for directory in self._directories:
-            group_accesses = directory.get_computed_group_accesses(dir_group)
-            if group_accesses is not None:
-                # Expend the group accesses
-                accesses.update(group_accesses)
-
-        return accesses
-
-
-    def _get_groups_accesses(self, groups):
-        """
-        Retrieves a map of (host, port) couples to access the isolates of the
-        given groups
-        
-        :param groups: A list of group names
-        :return: An isolate ID -> (host, port) map, empty no isolate is known
-        """
-        # Isolate ID -> (host, port) map
-        accesses = {}
-
-        if not groups:
-            # Nothing to do
-            return accesses
-
-        for group in groups:
-            # Compute the isolates of the group according to all directories
-            for directory in self._directories:
-                group_accesses = directory.get_group_accesses(group)
-                if group_accesses is not None:
-                    # Expend the group accesses
-                    accesses.update(group_accesses)
+        group_accesses = self._directory.get_computed_group_accesses(dir_group)
+        if group_accesses is not None:
+            # Expend the group accesses
+            accesses.update(group_accesses)
 
         return accesses
 
@@ -713,13 +686,23 @@ class SignalSender(object):
             # Nothing to do
             return accesses
 
+        # Compute UIDs
+        uids = set()
         for isolate_id in isolates:
-            for directory in self._directories:
-                access = directory.get_isolate_access(isolate_id)
-                if access is not None:
-                    # Isolate found !
-                    accesses[isolate_id] = access
-                    break
+            # Consider the given ID as a name
+            name_uids = self._directory.get_name_uids(isolate_id)
+            if name_uids:
+                uids.update(name_uids)
+
+            else:
+                # Not a name, so it must be a UID
+                uids.add(isolate_id)
+
+        # Compute accesses
+        for uid in uids:
+            access = self._directory.get_isolate_access(uid)
+            if access is not None:
+                accesses[uid] = access
 
         return accesses
 
@@ -734,9 +717,10 @@ class SignalSender(object):
         signal_content = {
             # We need that to talk to Java isolates
             JAVA_CLASS: "org.psem2m.signals.SignalData",
-            "senderId": self._context.get_property('psem2m.isolate.id'),
+            "senderUID": self._context.get_property(cohorte.PROP_UID),
+            "senderName": self._context.get_property(cohorte.PROP_NAME),
             # Set up the node name
-            "senderNode": self._context.get_property('psem2m.isolate.node'),
+            "senderNode": self._context.get_property(cohorte.PROP_NODE),
             "timestamp": int(time.time() * 1000),
             "signalContent": content
             }
@@ -770,9 +754,6 @@ class SignalSender(object):
 
         if isolates:
             accesses.update(self._get_isolates_accesses(isolates))
-
-        if groups:
-            accesses.update(self._get_groups_accesses(groups))
 
         if dir_group:
             accesses.update(self._get_directory_group_accesses(dir_group))
@@ -917,7 +898,6 @@ class SignalSender(object):
 # ------------------------------------------------------------------------------
 
 @ComponentFactory("psem2m-slave-agent-factory")
-@Instantiate("psem2m-slave-agent")
 @Requires("_receiver", "org.psem2m.signals.ISignalReceiver")
 class MiniSlaveAgent(object):
     """

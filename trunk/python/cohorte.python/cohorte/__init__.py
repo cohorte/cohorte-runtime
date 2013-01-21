@@ -124,6 +124,9 @@ loaded in a process.
 
 # ------------------------------------------------------------------------------
 
+SERVICE_SIGNALS_DIRECTORY = 'cohorte.signals.directory'
+""" Specification provided by a signals directory """
+
 SERVICE_SIGNALS_RECEIVER = 'cohorte.signals.receiver'
 """ Specification provided by a signals receiver """
 
