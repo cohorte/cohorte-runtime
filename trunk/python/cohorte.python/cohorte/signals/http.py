@@ -31,13 +31,10 @@ from cohorte.java.jabsorb import to_jabsorb, from_jabsorb, JAVA_CLASS
 # Pelix/iPOPO
 from pelix.ipopo.decorators import ComponentFactory, Provides, Requires, \
     Validate, Invalidate, Property
+from pelix.utilities import to_bytes, to_unicode
+
 import pelix.framework
 import pelix.http
-
-# ------------------------------------------------------------------------------
-
-# Python utilities
-from base.utils import to_bytes, to_unicode
 
 # ------------------------------------------------------------------------------
 

@@ -19,17 +19,17 @@ __version__ = '1.0.0'
 import cohorte
 import cohorte.boot.loaders.utils as utils
 
-# TODO: to be moved somewhere else
-from base.utils import to_unicode
-
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
     Invalidate, Provides, Property
 
-# Python standard library
+from pelix.utilities import to_unicode
+
+# ------------------------------------------------------------------------------
+
+# Standard library
 import json
 import logging
-import os
 import sys
 
 if sys.version_info[0] == 3:
