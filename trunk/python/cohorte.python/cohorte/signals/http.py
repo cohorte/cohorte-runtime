@@ -25,6 +25,9 @@ __version__ = "1.0.0"
 # COHORTE constants
 import cohorte
 
+# Java utilities
+from cohorte.java.jabsorb import to_jabsorb, from_jabsorb, JAVA_CLASS
+
 # Pelix/iPOPO
 from pelix.ipopo.decorators import ComponentFactory, Provides, Requires, \
     Validate, Invalidate, Property
@@ -35,9 +38,6 @@ import pelix.http
 
 # Python utilities
 from base.utils import to_bytes, to_unicode
-
-# Java utilities
-from base.javautils import to_jabsorb, from_jabsorb, JAVA_CLASS
 
 # ------------------------------------------------------------------------------
 
