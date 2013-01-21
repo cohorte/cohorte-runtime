@@ -6,6 +6,7 @@
 	 * Java bundles
 	 */
 	"bundles" : [ {
+		// OSGi Compendium
 		"name" : "osgi.cmpn"
 	}, {
 		"name" : "org.psem2m.isolates.constants"
@@ -47,7 +48,17 @@
 	"composition" : [
 	/* Configuration of common components */
 	{
+		// Slave Agent: provides JMX methods to handle bundles
 		"factory" : "psem2m-slave-agent-core-factory",
 		"name" : "psem2m-slave-agent-core"
-	} ]
+	} ],
+
+	/*
+	 * Properties
+	 */
+	"properties" : {
+		// HTTP Service
+		"org.osgi.service.http.port" : 9000,
+		"org.apache.felix.http.jettyEnabled" : true
+	}
 }
