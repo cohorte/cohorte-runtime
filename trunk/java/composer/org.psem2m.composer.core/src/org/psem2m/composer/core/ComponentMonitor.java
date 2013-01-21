@@ -226,7 +226,7 @@ public class ComponentMonitor implements ISignalListener,
             final ISignalData aSignalData) {
 
         // Extract the signal information
-        final String senderId = aSignalData.getSenderId();
+        final String senderId = aSignalData.getSenderUID();
         final Object signalContent = aSignalData.getSignalContent();
 
         // Decode Jabsorb arrays

@@ -75,7 +75,7 @@ public class IsolateMonitor implements ISignalListener {
             final ISignalData aSignalData) {
 
         // Get the signal information
-        final String senderId = aSignalData.getSenderId();
+        final String senderId = aSignalData.getSenderUID();
         final Object signalContent = aSignalData.getSignalContent();
 
         // Signal status

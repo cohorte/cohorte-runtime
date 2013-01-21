@@ -27,10 +27,11 @@ public interface IRemoteServiceBroadcaster {
      * Sends a request to the given isolate to send notifications about its
      * current exported services.
      * 
-     * @param aIsolateId
-     * @return
+     * @param aIsolateUID
+     *            An isolate UID
+     * @return The services exported by the given isolate
      */
-    RemoteServiceEvent[] requestEndpoints(String aIsolateId);
+    RemoteServiceEvent[] requestEndpoints(String aIsolateUID);
 
     /**
      * Sends the given event to all other isolates

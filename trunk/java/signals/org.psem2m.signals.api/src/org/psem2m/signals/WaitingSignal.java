@@ -255,17 +255,6 @@ public class WaitingSignal implements IWaitingSignal {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.signals.IWaitingSignal#getGroups()
-     */
-    @Override
-    public String[] getGroups() {
-
-        return pGroups;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
      * @see org.psem2m.signals.IWaitingSignal#getIsolates()
      */
     @Override

@@ -32,6 +32,29 @@ public interface IPlatformProperties {
     String PROP_BROKER_URL = "org.psem2m.configuration.broker";
 
     /**
+     * contains the name of the current isolates.
+     */
+    String PROP_ISOLATE_NAME = "org.psem2m.platform.isolate.name";
+
+    /**
+     * contains the node of the current isolates.
+     * 
+     * <pre>
+     * -Dorg.psem2m.platform.isolate.id=development
+     * </pre>
+     */
+    String PROP_ISOLATE_NODE = "org.psem2m.platform.isolate.node";
+
+    /**
+     * contains the id of the current isolates.
+     * 
+     * <pre>
+     * -Dorg.psem2m.platform.isolate.id=development
+     * </pre>
+     */
+    String PROP_ISOLATE_UID = "org.psem2m.platform.isolate.uid";
+
+    /**
      * contains the absolute path of the BASE folder of the current application
      */
     String PROP_PLATFORM_BASE = "org.psem2m.platform.base";
@@ -45,24 +68,6 @@ public interface IPlatformProperties {
      * Contains the name (or IP) of the current isolate host machine
      */
     String PROP_PLATFORM_HOST_NAME = "org.psem2m.platform.host.name";
-
-    /**
-     * contains the id of the current isolates.
-     * 
-     * <pre>
-     * -Dorg.psem2m.platform.isolate.id=development
-     * </pre>
-     */
-    String PROP_PLATFORM_ISOLATE_ID = "org.psem2m.platform.isolate.id";
-
-    /**
-     * contains the node of the current isolates.
-     * 
-     * <pre>
-     * -Dorg.psem2m.platform.isolate.id=development
-     * </pre>
-     */
-    String PROP_PLATFORM_ISOLATE_NODE = "org.psem2m.platform.isolate.node";
 
     /**
      * if "true", allows the redirection of the output of the OSGi log service

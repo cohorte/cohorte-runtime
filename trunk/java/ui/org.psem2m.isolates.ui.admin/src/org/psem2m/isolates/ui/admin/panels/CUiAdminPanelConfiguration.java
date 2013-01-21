@@ -81,9 +81,14 @@ public class CUiAdminPanelConfiguration extends CPojoBase implements
         }
 
         // Print current isolate ID
-        final String wCurrentIsolateId = pPlatformDirsSvc.getIsolateId();
-        CXStringUtils.appendKeyValInBuff(wSB, "\nCurrentIsolateId",
+        final String wCurrentIsolateId = pPlatformDirsSvc.getIsolateUID();
+        CXStringUtils.appendKeyValInBuff(wSB, "\nCurrentIsolateUID",
                 wCurrentIsolateId);
+
+        // Print current isolate Name
+        final String wCurrentIsolateName = pPlatformDirsSvc.getIsolateName();
+        CXStringUtils.appendKeyValInBuff(wSB, "\nCurrentIsolateNaùe",
+                wCurrentIsolateName);
 
         // Print the bundles of the active isolate configuration
         for (final BundleDescription wIBundleDescr : pSvcConfig

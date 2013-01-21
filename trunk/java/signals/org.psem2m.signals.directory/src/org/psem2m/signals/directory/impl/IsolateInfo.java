@@ -5,9 +5,6 @@
  */
 package org.psem2m.signals.directory.impl;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * A small information storage
  * 
@@ -15,11 +12,8 @@ import java.util.List;
  */
 public class IsolateInfo {
 
-    /** Isolate groups */
-    private final List<String> pGroups = new ArrayList<String>();
-
-    /** Isolate ID */
-    private String pId;
+    /** Isolate name */
+    private String pName;
 
     /** Isolate node */
     private String pNode;
@@ -27,41 +21,38 @@ public class IsolateInfo {
     /** Signals access port */
     private int pPort;
 
+    /** Isolate UID */
+    private String pUID;
+
     /**
      * Sets up the bean
      * 
-     * @param aId
+     * @param aUID
      *            Isolate ID
+     * @param aName
+     *            Isolate name
      * @param aNode
      *            Isolate node
      * @param aPort
      *            Signals access port
      */
-    public IsolateInfo(final String aId, final String aNode, final int aPort) {
+    public IsolateInfo(final String aUID, final String aName,
+            final String aNode, final int aPort) {
 
-        pId = aId;
+        pUID = aUID;
+        pName = aName;
         pNode = aNode;
         pPort = aPort;
     }
 
     /**
-     * Retrieves a direct access to the isolate groups list
+     * Retrieves the name of the isolate
      * 
-     * @return the isolate groups list
+     * @return the name of the isolate
      */
-    public List<String> getGroups() {
+    public String getName() {
 
-        return pGroups;
-    }
-
-    /**
-     * Retrieves the Isolate ID
-     * 
-     * @return the Isolate ID
-     */
-    public String getId() {
-
-        return pId;
+        return pName;
     }
 
     /**
@@ -85,14 +76,24 @@ public class IsolateInfo {
     }
 
     /**
-     * Sets the Isolate ID
+     * Retrieves the Isolate UID
      * 
-     * @param aId
-     *            the Isolate ID
+     * @return the Isolate UID
      */
-    public void setId(final String aId) {
+    public String getUID() {
 
-        pId = aId;
+        return pUID;
+    }
+
+    /**
+     * Sets the name of the isolate
+     * 
+     * @param aName
+     *            the name of the isolate
+     */
+    public void setName(final String aName) {
+
+        pName = aName;
     }
 
     /**
@@ -115,6 +116,17 @@ public class IsolateInfo {
     public void setPort(final int aPort) {
 
         pPort = aPort;
+    }
+
+    /**
+     * Sets the Isolate ID
+     * 
+     * @param aUID
+     *            the Isolate ID
+     */
+    public void setUID(final String aUID) {
+
+        pUID = aUID;
     }
 
 }

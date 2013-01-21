@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -28,6 +29,7 @@ import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.constants.IPlatformProperties;
+import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.isolates.services.monitoring.IIsolatePresenceListener;
 import org.psem2m.isolates.services.monitoring.IIsolatePresenceListener.EPresence;
 import org.psem2m.signals.HostAccess;
@@ -57,9 +59,6 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
     /** Special information: local isolate port */
     private int pCurrentIsolatePort;
 
-    /** Group name -&gt; Isolate IDs */
-    private final Map<String, List<String>> pGroups = new HashMap<String, List<String>>();
-
     /** Isolates listeners */
     @Requires(id = ID_LISTENERS, optional = true)
     private IIsolatePresenceListener[] pListeners;
@@ -68,11 +67,18 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
     @Requires
     private IIsolateLoggerSvc pLogger;
 
+    /** Isolate UID -&gt; Isolate Name */
+    private final Map<String, String> pNames = new HashMap<String, String>();
+
     /** Node name -&gt; Host address */
     private final Map<String, String> pNodesHost = new HashMap<String, String>();
 
     /** Node name -&gt; Isolate IDs */
     private final Map<String, List<String>> pNodesIsolates = new HashMap<String, List<String>>();
+
+    /** The platform information service */
+    @Requires
+    private IPlatformDirsSvc pPlatform;
 
     /** Status of the components sets */
     private IStatusStorage<EIsolateRegistrationState, Object> pRegistrationStatus;
@@ -114,31 +120,34 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
         final Map<String, Object> accesses = new HashMap<String, Object>();
         for (final Entry<String, HostAccess> entry : pAccesses.entrySet()) {
             // Prepare the access map
+            final String isolateUID = entry.getKey();
             final HostAccess access = entry.getValue();
             final Map<String, Object> isolateAccessMap = new HashMap<String, Object>();
 
             if (ISignalDirectory.LOCAL_ACCESS.equals(access)) {
                 // Special treatment for the local isolate
-                isolateAccessMap.put("node", getLocalNode());
-                isolateAccessMap.put("port", pCurrentIsolatePort);
+                isolateAccessMap
+                        .put(IDumpKeys.NODE, pPlatform.getIsolateNode());
+                isolateAccessMap.put(IDumpKeys.PORT, pCurrentIsolatePort);
 
             } else {
-                isolateAccessMap.put("node", access.getAddress());
-                isolateAccessMap.put("port", access.getPort());
+                isolateAccessMap.put(IDumpKeys.NODE, access.getAddress());
+                isolateAccessMap.put(IDumpKeys.PORT, access.getPort());
             }
+
+            // Keep the name in the access map
+            isolateAccessMap.put(IDumpKeys.NAME, pNames.get(isolateUID));
 
             // Store the access map
             accesses.put(entry.getKey(), isolateAccessMap);
         }
 
         final Map<String, Object> result = new HashMap<String, Object>();
-        result.put("accesses", accesses);
-
-        // Groups...
-        result.put("groups", new HashMap<String, Object>(pGroups));
+        result.put(IDumpKeys.ACCESSES, accesses);
 
         // Hosts...
-        result.put("nodes_host", new HashMap<String, Object>(pNodesHost));
+        result.put(IDumpKeys.NODES_HOST,
+                new HashMap<String, Object>(pNodesHost));
 
         return result;
     }
@@ -159,7 +168,7 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
         }
 
         // Get the current isolate ID
-        final String currentId = getIsolateId();
+        final String currentUID = pPlatform.getIsolateUID();
 
         final Set<String> resultSet;
         if (aPrefix == null || aPrefix.isEmpty()) {
@@ -178,7 +187,7 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
 
         if (!aIncludeCurrent) {
             // Remove current isolate if needed
-            resultSet.remove(currentId);
+            resultSet.remove(currentUID);
         }
 
         if (aOnlyValidated) {
@@ -229,7 +238,7 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
     public Map<String, HostAccess> getGroupAccesses(final EBaseGroup aGroup) {
 
         // Current ID
-        final String currentId = getIsolateId();
+        final String currentUID = pPlatform.getIsolateUID();
 
         // Filtered IDs
         String[] matchingIsolates = null;
@@ -251,7 +260,7 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
 
         case CURRENT:
             // Only the current isolate
-            matchingIsolates = new String[] { currentId };
+            matchingIsolates = new String[] { currentUID };
             break;
 
         case FORKERS:
@@ -291,14 +300,14 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
 
         case NEIGHBOURS:
             // All isolates from the current node, excluding the current one
-            matchingIsolates = getIsolatesOnNode(getLocalNode());
+            matchingIsolates = getIsolatesOnNode(pPlatform.getIsolateNode());
             if (matchingIsolates != null) {
                 // Use a temporary set
                 final Set<String> set = new HashSet<String>(
                         Arrays.asList(matchingIsolates));
 
                 // Remove the current ID
-                set.remove(currentId);
+                set.remove(currentUID);
                 matchingIsolates = set.toArray(new String[0]);
             }
             break;
@@ -320,44 +329,6 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
             if (access != null) {
                 accesses.put(isolate, access);
             }
-        }
-
-        return accesses;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.psem2m.signals.ISignalDirectory#getGroupAccesses(java.lang.String)
-     */
-    @Override
-    public synchronized Map<String, HostAccess> getGroupAccesses(
-            final String aGroupName) {
-
-        if (aGroupName == null) {
-            // Empty name
-            return null;
-        }
-
-        final List<String> isolates = pGroups.get(aGroupName.toLowerCase());
-        if (isolates == null) {
-            // Unknown group
-            return null;
-        }
-
-        final Map<String, HostAccess> accesses = new HashMap<String, HostAccess>();
-        for (final String isolate : isolates) {
-            // Find all accesses for this group
-            final HostAccess access = getIsolateAccess(isolate);
-            if (access != null) {
-                accesses.put(isolate, access);
-            }
-        }
-
-        if (accesses.isEmpty()) {
-            // Nothing found, consider the group unknown
-            return null;
         }
 
         return accesses;
@@ -389,7 +360,7 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
             return null;
         }
 
-        if (getIsolateId().equals(aIsolateId)) {
+        if (pPlatform.getIsolateUID().equals(aIsolateId)) {
             // Special case
             return ISignalDirectory.LOCAL_ACCESS;
         }
@@ -408,13 +379,12 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.signals.ISignalDirectory# getCurrentIsolateId()
+     * @see org.psem2m.signals.ISignalDirectory#getIsolateName(java.lang.String)
      */
     @Override
-    public String getIsolateId() {
+    public String getIsolateName(final String aIsolateUID) {
 
-        // Isolate ID can change on slave agent order
-        return System.getProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID);
+        return pNames.get(aIsolateUID);
     }
 
     /*
@@ -460,18 +430,6 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
         return null;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.signals.ISignalDirectory#getLocalNode()
-     */
-    @Override
-    public String getLocalNode() {
-
-        return System
-                .getProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_NODE);
-    }
-
     /**
      * Returns a collection that contains the base one and the additional
      * content. Uses a new collection if needed.
@@ -504,6 +462,33 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
         }
 
         return ignoredNodes;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.signals.ISignalDirectory#getNameUIDs(java.lang.String)
+     */
+    @Override
+    public String[] getNameUIDs(final String aIsolateName) {
+
+        if (aIsolateName == null) {
+            // Invalid name
+            return null;
+        }
+
+        // Found UIDs
+        final List<String> uids = new LinkedList<String>();
+
+        for (final Entry<String, String> entry : pNames.entrySet()) {
+            final String name = entry.getValue();
+            if (aIsolateName.equals(name)) {
+                // Found a match
+                uids.add(entry.getKey());
+            }
+        }
+
+        return uids.toArray(new String[0]);
     }
 
     /**
@@ -542,7 +527,7 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
         pRegistrationStatus = null;
 
         pAccesses.clear();
-        pGroups.clear();
+        pNames.clear();
         pNodesHost.clear();
         pNodesIsolates.clear();
 
@@ -634,29 +619,62 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
      * 
      * @see
      * org.psem2m.signals.ISignalDirectory#registerIsolate(java.lang.String,
-     * java.lang.String, java.lang.String, int, java.lang.String[])
+     * java.lang.String, java.lang.String, int)
      */
     @Override
-    public synchronized boolean registerIsolate(final String aIsolateId,
-            final String aNode, final int aPort, final String... aGroups) {
+    public synchronized boolean registerIsolate(final String aUID,
+            final String aName, final String aNode, final int aPort) {
 
-        if (aIsolateId == null || aIsolateId.isEmpty()) {
+        return registerIsolateInternal(aUID, aName, aNode, aPort,
+                EIsolateRegistrationState.REGISTERED);
+    }
+
+    /**
+     * Registers an isolate in the directory if it is not yet known
+     * 
+     * @param aUID
+     *            The UID of the isolate to register
+     * @param aName
+     *            The name of the isolate
+     * @param aNode
+     *            The node hosting the isolate
+     * @param aPort
+     *            The port to access the isolate
+     * @param aGroups
+     *            All groups of the isolate
+     * @param aInitialState
+     *            The initial state of the isolate registration
+     * @return True if the isolate has been registered, False on error or if the
+     *         isolate was already known for this access.
+     * @throws IllegalArgumentException
+     *             An argument is invalid
+     */
+    private boolean registerIsolateInternal(final String aUID,
+            final String aName, final String aNode, final int aPort,
+            final EIsolateRegistrationState aInitialState) {
+
+        if (aUID == null || aUID.isEmpty()) {
             throw new IllegalArgumentException(MessageFormat.format(
-                    "Empty isolate ID: ''{0}''", aIsolateId));
+                    "Empty isolate UID: {0} ({1})", aUID, aName));
+        }
+
+        if (aName == null || aName.isEmpty()) {
+            throw new IllegalArgumentException(MessageFormat.format(
+                    "Empty isolate name: {0} ({1})", aUID, aName));
         }
 
         if (aNode == null || aNode.isEmpty()) {
             throw new IllegalArgumentException(MessageFormat.format(
-                    "Empty node name for isolate ''{0}''", aIsolateId));
+                    "Empty node name for isolate {0} ({1})", aUID, aName));
         }
 
-        if (aIsolateId.equals(getIsolateId())) {
+        if (aUID.equals(pPlatform.getIsolateUID())) {
             // Ignore our own registration
             return false;
         }
 
         // Prepare the new access object
-        final HostAccess oldAccess = pAccesses.get(aIsolateId);
+        final HostAccess oldAccess = pAccesses.get(aUID);
         final HostAccess isolateAccess = new HostAccess(aNode, aPort);
 
         if (oldAccess != null) {
@@ -668,7 +686,7 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
             } else {
                 // Log the update
                 pLogger.logDebug(this, "registerIsolate",
-                        "Already known isolate=", aIsolateId,
+                        "Already known isolate ID=", aUID, "name=", aName,
                         "- Access updated from=", oldAccess, "to=",
                         isolateAccess);
             }
@@ -676,21 +694,21 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
             final String oldNode = oldAccess.getAddress();
             if (!aNode.equals(oldNode)) {
                 // Isolate moved to another node -> remove the old entry
-                pLogger.logInfo(this, "registerIsolate", "Isolate ID=",
-                        aIsolateId, "moved from=", oldNode, "to=", aNode);
+                pLogger.logInfo(this, "registerIsolate", "Isolate ID=", aUID,
+                        "name=", aName, "moved from=", oldNode, "to=", aNode);
 
                 final List<String> isolates = pNodesIsolates.get(oldNode);
                 if (isolates != null) {
-                    isolates.remove(aIsolateId);
+                    isolates.remove(aUID);
                 }
 
                 // Consider an unregistration
-                unregisterIsolate(aIsolateId);
+                unregisterIsolate(aUID);
             }
         }
 
         // Store the access
-        pAccesses.put(aIsolateId, isolateAccess);
+        pAccesses.put(aUID, isolateAccess);
 
         // Store the node
         List<String> isolates = pNodesIsolates.get(aNode);
@@ -700,98 +718,42 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
             pNodesIsolates.put(aNode, isolates);
         }
 
-        if (!isolates.contains(aIsolateId)) {
-            isolates.add(aIsolateId);
+        if (!isolates.contains(aUID)) {
+            isolates.add(aUID);
         }
 
-        // Store the groups
-        if (aGroups != null) {
-            for (final String group : aGroups) {
-                // Lower case for case insensitivity
-                final String lowerGroup = group.toLowerCase();
-
-                isolates = pGroups.get(lowerGroup);
-                if (isolates == null) {
-                    // Create the group
-                    isolates = new ArrayList<String>();
-                    pGroups.put(lowerGroup, isolates);
-                }
-
-                if (!isolates.contains(aIsolateId)) {
-                    isolates.add(aIsolateId);
-                }
-            }
-        }
+        // Store the name
+        pNames.get(aName);
 
         // Store the registration state
-        registrationStateCreate(aIsolateId,
-                EIsolateRegistrationState.REGISTERED);
+        registrationStateCreate(aUID, aInitialState);
 
         pLogger.logDebug(this, "registerIsolate", "Registered isolate ID=",
-                aIsolateId, "Access=", isolateAccess);
+                aUID, "Name=", aName, "Access=", isolateAccess, "State=",
+                aInitialState);
         return true;
     }
 
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.signals.ISignalDirectory#registerLocal(int,
-     * java.lang.String[])
+     * @see
+     * org.psem2m.signals.ISignalDirectory#registerValidated(java.lang.String,
+     * java.lang.String, java.lang.String, int)
      */
     @Override
-    public synchronized void registerLocal(final int aPort,
-            final String... aGroups) {
+    public boolean registerValidated(final String aIsolateUID,
+            final String aIsolateName, final String aNode, final int aPort)
+            throws IllegalArgumentException {
 
-        final String isolateId = getIsolateId();
-        final String node = getLocalNode();
+        // Register the isolate (state: REGISTERED)
+        final boolean registered = registerIsolateInternal(aIsolateUID,
+                aIsolateName, aNode, aPort, EIsolateRegistrationState.VALIDATED);
 
-        // Store the access port...
-        pCurrentIsolatePort = aPort;
+        // Notify listeners
+        notifyIsolatePresence(aIsolateUID);
 
-        // Store the node
-        List<String> isolates = pNodesIsolates.get(node);
-        if (isolates == null) {
-            // Create the node entry
-            isolates = new ArrayList<String>();
-            pNodesIsolates.put(node, isolates);
-        }
-
-        if (!isolates.contains(isolateId)) {
-            isolates.add(isolateId);
-        }
-
-        // Store the groups
-        if (aGroups != null) {
-            for (final String group : aGroups) {
-                // Lower case for case insensitivity
-                final String lowerGroup = group.toLowerCase();
-
-                isolates = pGroups.get(lowerGroup);
-                if (isolates == null) {
-                    // Create the group
-                    isolates = new ArrayList<String>();
-                    pGroups.put(lowerGroup, isolates);
-                }
-
-                if (!isolates.contains(isolateId)) {
-                    isolates.add(isolateId);
-                }
-            }
-        }
-
-        // We are immediately validated
-        if (getRegistrationState(isolateId) == null) {
-            // First registration
-            registrationStateCreate(isolateId,
-                    EIsolateRegistrationState.VALIDATED);
-
-            // Notify listeners
-            notifyIsolatePresence(isolateId);
-
-        } else {
-            pLogger.logDebug(this, "registerLocal",
-                    "Re-definition of current isolate");
-        }
+        return registered;
     }
 
     /**
@@ -894,17 +856,17 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
             final Collection<String> aIgnoredIds) {
 
         // 0. Always ignore the current isolate and node
-        final String localId = getIsolateId();
-        final String localNode = getLocalNode();
+        final String localUID = pPlatform.getIsolateUID();
+        final String localNode = pPlatform.getIsolateNode();
 
         final Collection<String> ignoredNodes = getMinimalCollection(
                 aIgnoredNodes, localNode);
         final Collection<String> ignoredIds = getMinimalCollection(aIgnoredIds,
-                localId);
+                localUID);
 
         // 1. Setup nodes hosts
         final Map<?, ?> nodesHost = (Map<?, ?>) aDumpedDirectory
-                .get("nodes_host");
+                .get(IDumpKeys.NODES_HOST);
         for (final Entry<?, ?> entry : nodesHost.entrySet()) {
             final String node = (String) entry.getKey();
             if (!ignoredNodes.contains(node)) {
@@ -916,7 +878,8 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
         // 2. Prepare isolates information
         final Map<String, IsolateInfo> isolates = new HashMap<String, IsolateInfo>();
 
-        final Map<?, ?> accesses = (Map<?, ?>) aDumpedDirectory.get("accesses");
+        final Map<?, ?> accesses = (Map<?, ?>) aDumpedDirectory
+                .get(IDumpKeys.ACCESSES);
         for (final Entry<?, ?> entry : accesses.entrySet()) {
             // Cast entry
             final String isolateId = (String) entry.getKey();
@@ -924,49 +887,21 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
 
             if (!ignoredIds.contains(isolateId)) {
                 // Create the information bean
-                isolates.put(isolateId,
-                        new IsolateInfo(isolateId, (String) access.get("node"),
-                                (Integer) access.get("port")));
-            }
-        }
-
-        final Map<?, ?> groups = (Map<?, ?>) aDumpedDirectory.get("groups");
-        for (final Entry<?, ?> entry : groups.entrySet()) {
-            // Reconstruct groups
-            final String group = (String) entry.getKey();
-            final Object rawGroupIsolates = entry.getValue();
-
-            Collection<?> groupIsolates = null;
-            if (rawGroupIsolates instanceof Collection) {
-                // Collection...
-                groupIsolates = (Collection<?>) rawGroupIsolates;
-
-            } else if (rawGroupIsolates instanceof Object[]) {
-                // Array...
-                groupIsolates = Arrays.asList((Object[]) rawGroupIsolates);
-            }
-
-            if (groupIsolates != null) {
-                for (final Object isolate : groupIsolates) {
-                    final IsolateInfo info = isolates.get(isolate);
-                    if (info != null) {
-                        info.getGroups().add(group);
-                    }
-                }
-
-            } else {
-                pLogger.logWarn(this, "grabDirectory", "Unreadable groups=",
-                        rawGroupIsolates.getClass().getName());
+                isolates.put(
+                        isolateId,
+                        new IsolateInfo(isolateId, (String) access
+                                .get(IDumpKeys.NAME), (String) access
+                                .get(IDumpKeys.NODE), (Integer) access
+                                .get(IDumpKeys.PORT)));
             }
         }
 
         // 3. Register all new isolates
         final List<String> newIsolates = new ArrayList<String>();
         for (final IsolateInfo info : isolates.values()) {
-            if (registerIsolate(info.getId(), info.getNode(), info.getPort(),
-                    info.getGroups().toArray(new String[0]))) {
-
-                newIsolates.add(info.getId());
+            if (registerIsolate(info.getUID(), info.getName(), info.getNode(),
+                    info.getPort())) {
+                newIsolates.add(info.getUID());
             }
         }
 
@@ -1004,16 +939,15 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
     }
 
     @Override
-    public synchronized boolean unregisterIsolate(final String aIsolateId) {
+    public synchronized boolean unregisterIsolate(final String aUID) {
 
-        if (aIsolateId == null || aIsolateId.isEmpty()
-                || !pAccesses.containsKey(aIsolateId)) {
+        if (aUID == null || aUID.isEmpty() || !pAccesses.containsKey(aUID)) {
             // Nothing to do
             return false;
         }
 
         // Remove the access information
-        pAccesses.remove(aIsolateId);
+        pAccesses.remove(aUID);
 
         // Remove isolate reference in its node
         String isolateNode = null;
@@ -1022,38 +956,32 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
             final String node = entry.getKey();
             final List<String> isolates = entry.getValue();
 
-            if (isolates.contains(aIsolateId)) {
+            if (isolates.contains(aUID)) {
                 // Remove the reference
-                isolates.remove(aIsolateId);
+                isolates.remove(aUID);
                 isolateNode = node;
                 break;
             }
         }
 
-        // Remove references in groups
-        for (final List<String> isolates : pGroups.values()) {
-            if (isolates.contains(aIsolateId)) {
-                isolates.remove(aIsolateId);
-            }
-        }
+        // Remove reference in names
+        pNames.remove(aUID);
 
         // Keep the current registration state
-        final EIsolateRegistrationState registrationState = getRegistrationState(aIsolateId);
+        final EIsolateRegistrationState registrationState = getRegistrationState(aUID);
 
         try {
             // Remove the registration state
-            pRegistrationStatus.remove(aIsolateId);
+            pRegistrationStatus.remove(aUID);
 
         } catch (final InvalidIdException ex) {
             pLogger.logDebug(this, "unregisterIsolate",
-                    "Error removing registration state for isolate=",
-                    aIsolateId, ex);
+                    "Error removing registration state for isolate=", aUID, ex);
         }
 
         if (registrationState == EIsolateRegistrationState.NOTIFIED) {
             // Notify listeners if they knew about the isolate
-            notifyPresenceListeners(aIsolateId, isolateNode,
-                    EPresence.UNREGISTERED);
+            notifyPresenceListeners(aUID, isolateNode, EPresence.UNREGISTERED);
         }
 
         return true;
@@ -1105,9 +1033,10 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
         pRegistrationStatus = pStatusCreator.createStorage();
 
         // Register the local isolate, without access port nor group
-        pAccesses.put(getIsolateId(), ISignalDirectory.LOCAL_ACCESS);
-        setNodeAddress(getLocalNode(), "localhost");
-        registerLocal(-1, (String[]) null);
+        pAccesses.put(pPlatform.getIsolateUID(), ISignalDirectory.LOCAL_ACCESS);
+        setNodeAddress(pPlatform.getIsolateNode(), "localhost");
+        registerValidated(pPlatform.getIsolateUID(),
+                pPlatform.getIsolateName(), pPlatform.getIsolateNode(), -1);
 
         pLogger.logInfo(this, "validatePojo", "Signals directory ready");
     }

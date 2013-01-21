@@ -48,7 +48,7 @@ public interface ISignalBroadcaster {
      * @param aContent
      *            The signal content
      * @param aIsolates
-     *            A list of isolate IDs
+     *            A list of isolate UIDs or names
      * @return The list of reached isolates, None if there is no isolate to send
      *         the signal to.
      */
@@ -92,43 +92,6 @@ public interface ISignalBroadcaster {
             String... aExcluded);
 
     /**
-     * Sends a signal to the given target, without waiting for the result.
-     * 
-     * Returns the list of successfully reached isolates, which may not have a
-     * listener for this signal.
-     * 
-     * @param aSignalName
-     *            The signal name
-     * @param aContent
-     *            The signal content
-     * @param aGroups
-     *            A list of isolates groups names
-     * @return The list of reached isolates, None if there is no isolate to send
-     *         the signal to.
-     */
-    String[] fireGroup(String aSignalName, Object aContent, String... aGroups);
-
-    /**
-     * Sends a signal to the given target, without waiting for the result.
-     * 
-     * Returns the list of successfully reached isolates, which may not have a
-     * listener for this signal.
-     * 
-     * @param aSignalName
-     *            The signal name
-     * @param aContent
-     *            The signal content
-     * @param aGroups
-     *            A list of isolates groups names
-     * @param aExcluded
-     *            Excluded isolates
-     * @return The list of reached isolates, None if there is no isolate to send
-     *         the signal to.
-     */
-    String[] fireGroup(String aSignalName, Object aContent, String[] aGroups,
-            String[] aExcluded);
-
-    /**
      * Sends a signal to the given target, described by a host name and a port,
      * without waiting for the result.
      * 
@@ -139,16 +102,11 @@ public interface ISignalBroadcaster {
      *            The signal name
      * @param aContent
      *            The signal content
-     * @param aHost
-     *            Target host name or IP
-     * @param aPort
-     *            Target port
+     * @param aAccess
+     *            Access to the target
      * @return True if the target has been reached, else false
-     * @throws Exception
-     *             Error sending the signal
      */
-    boolean fireTo(final String aSignalName, final Object aContent,
-            final String aHost, final int aPort) throws Exception;
+    boolean fireTo(String aSignalName, Object aContent, HostAccess aAccess);
 
     /**
      * Sends a signal to the given target in a different thread. See
@@ -162,7 +120,7 @@ public interface ISignalBroadcaster {
      * @param aContent
      *            The signal content
      * @param aIsolates
-     *            A list of isolate IDs
+     *            A list of isolate UIDs or names
      * @return A Future result, that will contain the signal results
      */
     Future<ISignalSendResult> post(String aSignalName, Object aContent,
@@ -209,62 +167,20 @@ public interface ISignalBroadcaster {
             EBaseGroup aGroup, String... aExcluded);
 
     /**
-     * Sends a signal to the given target in a different thread. See
-     * send(signal, content, isolate, isolates, groups) for more details.
-     * 
-     * The result is a future object, allowing to wait for and to retrieve the
-     * result of the signal.
-     * 
-     * @param aSignalName
-     *            The signal name
-     * @param aContent
-     *            The signal content
-     * @param aGroups
-     *            A list of isolates groups names
-     * @return A Future result, that will contain the signal results (reached
-     *         isolates results and failed isolates)
-     */
-    Future<ISignalSendResult> postGroup(String aSignalName, Object aContent,
-            String... aGroups);
-
-    /**
-     * Sends a signal to the given target in a different thread. See
-     * send(signal, content, isolate, isolates, groups) for more details.
-     * 
-     * The result is a future object, allowing to wait for and to retrieve the
-     * result of the signal.
-     * 
-     * @param aSignalName
-     *            The signal name
-     * @param aContent
-     *            The signal content
-     * @param aGroups
-     *            A list of isolates groups names
-     * @param aExcluded
-     *            Excluded isolates
-     * @return A Future result, that will contain the signal results (reached
-     *         isolates results and failed isolates)
-     */
-    Future<ISignalSendResult> postGroup(String aSignalName, Object aContent,
-            String[] aGroups, String[] aExcluded);
-
-    /**
      * Posts a signal to the given end point
      * 
      * @param aSignalName
      *            The signal name
      * @param aContent
      *            The signal content
-     * @param aHost
-     *            Target host name or IP
-     * @param aPort
-     *            Target port
+     * @param aAccess
+     *            Access to the target
      * @return The signal result (null or the listeners results array)
      * @throws Exception
      *             Error sending the signal
      */
-    Future<Object[]> postTo(String aSignalName, Object aContent, String aHost,
-            int aPort);
+    Future<Object[]> postTo(String aSignalName, Object aContent,
+            HostAccess aAccess);
 
     /**
      * Sends a signal to the given target.
@@ -280,7 +196,7 @@ public interface ISignalBroadcaster {
      * @param aContent
      *            The signal content
      * @param aIsolates
-     *            A list of isolate IDs
+     *            A list of isolate UIDs or names
      * @return The signal results (reached isolates results and failed isolates)
      */
     ISignalSendResult send(String aSignalName, Object aContent,
@@ -329,69 +245,20 @@ public interface ISignalBroadcaster {
             EBaseGroup aGroup, String... aExcluded);
 
     /**
-     * Sends a signal to the given target.
-     * 
-     * The target can be either the ID of an isolate, a list of group of
-     * isolates or a list of isolates.
-     * 
-     * The result is a map, with an entry for each reached isolate. The
-     * associated result can be empty.
-     * 
-     * @param aSignalName
-     *            The signal name
-     * @param aContent
-     *            The signal content
-     * @param aGroups
-     *            A list of isolates groups names
-     * @param aExcluded
-     *            Excluded isolates
-     * @return The signal results (reached isolates results and failed isolates)
-     */
-    ISignalSendResult sendGroup(String aSignalName, Object aContent,
-            String[] aGroups, String[] aExcluded);
-
-    /**
      * Sends a signal to the given end point
      * 
      * @param aSignalName
      *            The signal name
      * @param aContent
      *            The signal content
-     * @param aHost
-     *            Target host name or IP
-     * @param aPort
-     *            Target port
+     * @param aAccess
+     *            Access to the target
      * @return The signal result (null or the listeners results array)
-     * @throws Exception
-     *             Error sending the signal
+     * @throws UnsendableDataException
+     *             Signal content couldn't be converted
      */
-    Object[] sendTo(String aSignalName, Object aContent, String aHost, int aPort)
-            throws Exception;
-
-    /**
-     * Adds a signal in a broadcast waiting list.
-     * 
-     * The signal will be sent in a specific thread when possible. It will be
-     * held in the waiting list until a valid serializer is found and when at
-     * list one isolate will receive it, or until its TTL expired.
-     * 
-     * @param aSignalName
-     *            The signal name
-     * @param aContent
-     *            The signal content
-     * @param aListener
-     *            The waiting signal listener
-     * @param aMode
-     *            The signal sending mode
-     * @param aTTL
-     *            The signal Time To Live before being forgotten
-     * @param aIsolates
-     *            A list of isolate IDs
-     * @return True if the signal has been added to the waiting list
-     */
-    boolean stack(String aSignalName, Object aContent,
-            IWaitingSignalListener aListener, ESendMode aMode, long aTTL,
-            HostAccess aAccess);
+    Object[] sendTo(String aSignalName, Object aContent, HostAccess aAccess)
+            throws UnsendableDataException;
 
     /**
      * Adds a signal in a broadcast waiting list.
@@ -412,7 +279,7 @@ public interface ISignalBroadcaster {
      *            The signal Time To Live before being forgotten
      * 
      * @param aIsolates
-     *            A list of isolate IDs
+     *            A list of isolate UIDs or names
      * @return True if the signal has been added to the waiting list
      */
     boolean stack(String aSignalName, Object aContent,
@@ -461,11 +328,11 @@ public interface ISignalBroadcaster {
      *            The signal sending mode
      * @param aTTL
      *            The signal Time To Live before being forgotten
-     * @param aGroups
-     *            A list of isolates groups names
+     * @param aAccess
+     *            Access to the target
      * @return True if the signal has been added to the waiting list
      */
-    boolean stackGroup(String aSignalName, Object aContent,
+    boolean stackTo(String aSignalName, Object aContent,
             IWaitingSignalListener aListener, ESendMode aMode, long aTTL,
-            String... aGroups);
+            HostAccess aAccess);
 }

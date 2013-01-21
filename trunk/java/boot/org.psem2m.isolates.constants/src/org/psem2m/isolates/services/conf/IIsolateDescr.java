@@ -46,11 +46,11 @@ public interface IIsolateDescr extends Serializable {
      */
     String ISOLATE_ENVIRONMENT = "environment";
 
-    /** Isolate ID : String (never null nor empty) */
-    String ISOLATE_ID = "id";
-
     /** Isolate kind : String (never empty, can be null) */
     String ISOLATE_KIND = "kind";
+
+    /** Isolate name : String (never null nor empty) */
+    String ISOLATE_NAME = "name";
 
     /** The node where to instanciate the isolate */
     String ISOLATE_NODE = "node";
@@ -74,6 +74,9 @@ public interface IIsolateDescr extends Serializable {
 
     /** The socket port to access the signals receiver of the isolate */
     String ISOLATE_SIGNALS_PORT = "httpPort";
+
+    /** Isolate ID : String (never null nor empty) */
+    String ISOLATE_UID = "uid";
 
     /**
      * Virtual machine / interpreter arguments : List of strings (can be absent,

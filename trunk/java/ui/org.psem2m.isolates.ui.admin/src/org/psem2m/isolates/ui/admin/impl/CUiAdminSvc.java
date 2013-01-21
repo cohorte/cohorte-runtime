@@ -63,6 +63,7 @@ public class CUiAdminSvc extends CPojoBase implements IUiAdminSvc,
      **/
     @Requires
     private IIsolateLoggerSvc pLogger;
+
     /**
      * Service reference managed by iPojo (see metadata.xml)
      **/
@@ -89,16 +90,19 @@ public class CUiAdminSvc extends CPojoBase implements IUiAdminSvc,
     private void createFrameMainExec() {
 
         try {
-            pLogger.logInfo(this, "initFrame", "Create the frame [%s]",
-                    pPlatformDirsSvc.getIsolateId());
+            final String wTitle = pPlatformDirsSvc.getIsolateName() + " - "
+                    + pPlatformDirsSvc.getIsolateUID();
+
+            pLogger.logInfo(this, "initFrame", "Create the frame [%s]", wTitle);
             final CFrameMain wFrameMain = new CFrameMain(this);
 
             pLogger.logInfo(this, "initFrame", "FrameConfig : %s", wFrameMain
                     .getFrameMainConfig().toDescription());
 
-            wFrameMain.setTitle(pPlatformDirsSvc.getIsolateId());
+            wFrameMain.setTitle(wTitle);
 
             wFrameMain.addWindowListener(new WindowAdapter() {
+
                 @Override
                 public void windowClosing(final WindowEvent we) {
 
@@ -176,6 +180,7 @@ public class CUiAdminSvc extends CPojoBase implements IUiAdminSvc,
 
         // gives the runnable to the UIExecutor
         SwingUtilities.invokeLater(new Runnable() {
+
             @Override
             public void run() {
 
@@ -307,6 +312,7 @@ public class CUiAdminSvc extends CPojoBase implements IUiAdminSvc,
 
         // gives the runnable to the UIExecutor
         SwingUtilities.invokeLater(new Runnable() {
+
             @Override
             public void run() {
 

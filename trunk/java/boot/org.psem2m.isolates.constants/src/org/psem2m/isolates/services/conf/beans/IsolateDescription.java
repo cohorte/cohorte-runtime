@@ -39,11 +39,14 @@ public class IsolateDescription implements Serializable {
     /** The isolate process environment variables */
     private final Map<String, String> pEnvironment = new HashMap<String, String>();
 
-    /** Isolate ID */
-    private String pIsolateId;
-
     /** Isolate kind, must never be null */
     private String pIsolateKind = "";
+
+    /** Isolate name */
+    private String pIsolateName;
+
+    /** Isolate ID */
+    private String pIsolateUID;
 
     /** The node hosting the isolate */
     private String pNode;
@@ -74,7 +77,8 @@ public class IsolateDescription implements Serializable {
     public IsolateDescription(final Map<String, Object> aDescriptionMap) {
 
         // Standard fields
-        pIsolateId = (String) aDescriptionMap.get(IIsolateDescr.ISOLATE_ID);
+        pIsolateUID = (String) aDescriptionMap.get(IIsolateDescr.ISOLATE_UID);
+        pIsolateName = (String) aDescriptionMap.get(IIsolateDescr.ISOLATE_NAME);
 
         pNode = (String) aDescriptionMap.get(IIsolateDescr.ISOLATE_NODE);
 
@@ -146,7 +150,7 @@ public class IsolateDescription implements Serializable {
      */
     public IsolateDescription(final String aIsolateId) {
 
-        pIsolateId = aIsolateId;
+        pIsolateUID = aIsolateId;
     }
 
     /**
@@ -226,16 +230,6 @@ public class IsolateDescription implements Serializable {
     }
 
     /**
-     * Retrieves the ID of this isolate
-     * 
-     * @return The isolate ID
-     */
-    public String getId() {
-
-        return pIsolateId;
-    }
-
-    /**
      * Retrieves the kind of this isolate
      * 
      * @return the isolate kind
@@ -243,6 +237,14 @@ public class IsolateDescription implements Serializable {
     public String getKind() {
 
         return pIsolateKind;
+    }
+
+    /**
+     * @return the isolateName
+     */
+    public String getName() {
+
+        return pIsolateName;
     }
 
     /**
@@ -273,6 +275,16 @@ public class IsolateDescription implements Serializable {
     public int getPort() {
 
         return pPort;
+    }
+
+    /**
+     * Retrieves the ID of this isolate
+     * 
+     * @return The isolate ID
+     */
+    public String getUID() {
+
+        return pIsolateUID;
     }
 
     /**
@@ -335,17 +347,6 @@ public class IsolateDescription implements Serializable {
     }
 
     /**
-     * Sets the isolate ID
-     * 
-     * @param aIsolateId
-     *            the isolate ID
-     */
-    public void setId(final String aIsolateId) {
-
-        pIsolateId = aIsolateId;
-    }
-
-    /**
      * Sets the kind of isolate
      * 
      * @param aKind
@@ -361,6 +362,15 @@ public class IsolateDescription implements Serializable {
         } else {
             pIsolateKind = "";
         }
+    }
+
+    /**
+     * @param aIsolateName
+     *            the isolateName to set
+     */
+    public void setName(final String aIsolateName) {
+
+        pIsolateName = aIsolateName;
     }
 
     /**
@@ -393,6 +403,17 @@ public class IsolateDescription implements Serializable {
     }
 
     /**
+     * Sets the isolate ID
+     * 
+     * @param aIsolateId
+     *            the isolate ID
+     */
+    public void setUID(final String aIsolateId) {
+
+        pIsolateUID = aIsolateId;
+    }
+
+    /**
      * Sets the Java virtual machine arguments
      * 
      * @param aVmArgs
@@ -419,7 +440,7 @@ public class IsolateDescription implements Serializable {
         map.put(IIsolateDescr.ISOLATE_APP_ARGS, pAppArgs);
         map.put(IIsolateDescr.ISOLATE_CLASSPATH, pClasspath);
         map.put(IIsolateDescr.ISOLATE_ENVIRONMENT, pEnvironment);
-        map.put(IIsolateDescr.ISOLATE_ID, pIsolateId);
+        map.put(IIsolateDescr.ISOLATE_UID, pIsolateUID);
         map.put(IIsolateDescr.ISOLATE_KIND, pIsolateKind);
         map.put(IIsolateDescr.ISOLATE_OSGI_FRAMEWORK, pOsgiFramework);
         map.put(IIsolateDescr.ISOLATE_NODE, pNode);

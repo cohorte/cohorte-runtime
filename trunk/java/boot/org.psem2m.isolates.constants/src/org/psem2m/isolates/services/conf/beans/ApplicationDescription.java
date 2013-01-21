@@ -59,7 +59,7 @@ public class ApplicationDescription implements Serializable {
      */
     public void addIsolate(final IsolateDescription aIsolateDescription) {
 
-        pIsolates.put(aIsolateDescription.getId(), aIsolateDescription);
+        pIsolates.put(aIsolateDescription.getUID(), aIsolateDescription);
     }
 
     /**

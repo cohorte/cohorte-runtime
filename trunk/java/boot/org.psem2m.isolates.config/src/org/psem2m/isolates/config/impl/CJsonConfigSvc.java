@@ -81,7 +81,7 @@ public class CJsonConfigSvc extends CPojoBase implements ISvcConfig {
 
         // Return the read configuration
         final String isolateId = System
-                .getProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID);
+                .getProperty(IPlatformProperties.PROP_ISOLATE_UID);
         return getApplication().getIsolate(isolateId);
     }
 

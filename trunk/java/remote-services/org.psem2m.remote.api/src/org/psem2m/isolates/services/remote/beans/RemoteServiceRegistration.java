@@ -14,8 +14,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.osgi.framework.Constants;
-import org.psem2m.isolates.constants.IPlatformProperties;
-import org.psem2m.isolates.services.remote.IRemoteServicesConstants;
 
 /**
  * Contains information about a remote service registration
@@ -33,8 +31,8 @@ public class RemoteServiceRegistration implements Serializable {
     /** Exported interfaces */
     private String[] pExportedInterfaces;
 
-    /** The host isolate ID */
-    private String pHostIsolate;
+    /** The host isolate UID */
+    private String pHostIsolateUID;
 
     /** An ID representing the service */
     private String pServiceId;
@@ -53,6 +51,8 @@ public class RemoteServiceRegistration implements Serializable {
     /**
      * Stores a remote service registration description.
      * 
+     * @param aIsolateUID
+     *            UID of the isolate exporting the service
      * @param aExportedInterface
      *            Interface exported
      * @param aServiceProperties
@@ -60,17 +60,41 @@ public class RemoteServiceRegistration implements Serializable {
      * @param aEndpoints
      *            End points to access to the service
      */
-    public RemoteServiceRegistration(final String aExportedInterface,
+    public RemoteServiceRegistration(final String aIsolateUID,
+            final String aExportedInterface,
             final Map<String, Object> aServiceProperties,
-            final EndpointDescription[] aEndpoints) {
+            final Collection<EndpointDescription> aEndpoints) {
 
-        this(new String[] { aExportedInterface }, aServiceProperties,
-                aEndpoints);
+        this(aIsolateUID, new String[] { aExportedInterface },
+                aServiceProperties, aEndpoints);
     }
 
     /**
      * Stores a remote service registration description.
      * 
+     * @param aIsolateUID
+     *            UID of the isolate exporting the service
+     * @param aExportedInterface
+     *            Interface exported
+     * @param aServiceProperties
+     *            Service properties (will be copied)
+     * @param aEndpoints
+     *            End points to access to the service
+     */
+    public RemoteServiceRegistration(final String aIsolateUID,
+            final String aExportedInterface,
+            final Map<String, Object> aServiceProperties,
+            final EndpointDescription[] aEndpoints) {
+
+        this(aIsolateUID, new String[] { aExportedInterface },
+                aServiceProperties, aEndpoints);
+    }
+
+    /**
+     * Stores a remote service registration description.
+     * 
+     * @param aIsolateUID
+     *            UID of the isolate exporting the service
      * @param aExportedInterfaces
      *            Interfaces exported
      * @param aServiceProperties
@@ -78,7 +102,8 @@ public class RemoteServiceRegistration implements Serializable {
      * @param aEndpoints
      *            End points to access to the service
      */
-    public RemoteServiceRegistration(final String[] aExportedInterfaces,
+    public RemoteServiceRegistration(final String aIsolateUID,
+            final String[] aExportedInterfaces,
             final Map<String, Object> aServiceProperties,
             final Collection<EndpointDescription> aEndpoints) {
 
@@ -95,24 +120,19 @@ public class RemoteServiceRegistration implements Serializable {
                     pExportedInterfaces.length);
         }
 
-        // Get the current isolate ID
-        final String sourceIsolate = System.getProperty(
-                IPlatformProperties.PROP_PLATFORM_ISOLATE_ID,
-                IRemoteServicesConstants.UNKNOWN_ISOLATE_ID);
-
-        pHostIsolate = sourceIsolate;
+        // Store the exporter UID
+        pHostIsolateUID = aIsolateUID;
 
         // Generate a service ID
-        final StringBuilder builder = new StringBuilder(sourceIsolate);
-        builder.append(".");
-        builder.append(pServiceProperties.get(Constants.SERVICE_ID));
-
-        pServiceId = builder.toString();
+        pServiceId = pHostIsolateUID + "."
+                + pServiceProperties.get(Constants.SERVICE_ID);
     }
 
     /**
      * Stores a remote service registration description.
      * 
+     * @param aIsolateUID
+     *            UID of the isolate exporting the service
      * @param aExportedInterfaces
      *            Interfaces exported
      * @param aServiceProperties
@@ -120,11 +140,13 @@ public class RemoteServiceRegistration implements Serializable {
      * @param aEndpoints
      *            End points to access to the service
      */
-    public RemoteServiceRegistration(final String[] aExportedInterfaces,
+    public RemoteServiceRegistration(final String aIsolateUID,
+            final String[] aExportedInterfaces,
             final Map<String, Object> aServiceProperties,
             final EndpointDescription[] aEndpoints) {
 
-        this(aExportedInterfaces, aServiceProperties, Arrays.asList(aEndpoints));
+        this(aIsolateUID, aExportedInterfaces, aServiceProperties, Arrays
+                .asList(aEndpoints));
     }
 
     /**
@@ -151,13 +173,13 @@ public class RemoteServiceRegistration implements Serializable {
     }
 
     /**
-     * Retrieves the ID of the isolate exporting the service
+     * Retrieves the UID of the isolate exporting the service
      * 
-     * @return The ID of the host isolate
+     * @return The UID of the host isolate
      */
     public String getHostIsolate() {
 
-        return pHostIsolate;
+        return pHostIsolateUID;
     }
 
     /**
@@ -231,10 +253,10 @@ public class RemoteServiceRegistration implements Serializable {
      */
     public void setHostIsolate(final String aHostIsolate) {
 
-        pHostIsolate = aHostIsolate;
+        pHostIsolateUID = aHostIsolate;
 
         if (!pServiceProperties.isEmpty()) {
-            final StringBuilder builder = new StringBuilder(pHostIsolate);
+            final StringBuilder builder = new StringBuilder(pHostIsolateUID);
             builder.append(".");
             builder.append(pServiceProperties.get(Constants.SERVICE_ID));
 
@@ -261,8 +283,8 @@ public class RemoteServiceRegistration implements Serializable {
         pServiceProperties.clear();
         pServiceProperties.putAll(aServiceProperties);
 
-        if (pHostIsolate != null) {
-            final StringBuilder builder = new StringBuilder(pHostIsolate);
+        if (pHostIsolateUID != null) {
+            final StringBuilder builder = new StringBuilder(pHostIsolateUID);
             builder.append(".");
             builder.append(pServiceProperties.get(Constants.SERVICE_ID));
 

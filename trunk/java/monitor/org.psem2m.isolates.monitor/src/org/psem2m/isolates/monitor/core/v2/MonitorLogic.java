@@ -179,7 +179,7 @@ public class MonitorLogic implements IPlatformMonitor, IForkerEventListener,
         final String logMethodName = "handleForkerResult";
 
         // Log the result
-        final String isolateId = aIsolateDescr.getId();
+        final String isolateId = aIsolateDescr.getUID();
         pLogger.logInfo(this, logMethodName, "Isolate ID=", isolateId,
                 "start result=", aResult);
 
@@ -345,16 +345,16 @@ public class MonitorLogic implements IPlatformMonitor, IForkerEventListener,
         if (!pPlatformRunning) {
             pLogger.logInfo(this, "startIsolate",
                     "Platform is not running. Ignored startIsolate() for ID=",
-                    aIsolateDescr.getId());
+                    aIsolateDescr.getUID());
 
             return false;
         }
 
         pLogger.logInfo(this, "startIsolate", "Starting isolate ID=",
-                aIsolateDescr.getId(), "on node=", aIsolateDescr.getNode());
+                aIsolateDescr.getUID(), "on node=", aIsolateDescr.getNode());
 
         // Call the forker
-        pStatus.isolateRequested(aIsolateDescr.getId());
+        pStatus.isolateRequested(aIsolateDescr.getUID());
         final int result = pForker.startIsolate(aIsolateDescr.toMap());
 
         // Handle the forker result

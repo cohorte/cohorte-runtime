@@ -55,16 +55,9 @@ public interface IWaitingSignal {
     EBaseGroup getGroup();
 
     /**
-     * Retrieves the target groups
+     * Retrieves the target isolates UIDs
      * 
-     * @return the target groups
-     */
-    String[] getGroups();
-
-    /**
-     * Retrieves the target isolates
-     * 
-     * @return the target isolates
+     * @return the target isolates UIDs
      */
     String[] getIsolates();
 

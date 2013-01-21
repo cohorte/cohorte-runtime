@@ -129,8 +129,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
                                 startBundle(bundleId);
 
                             } catch (final Exception e) {
-                                pLogger.logSevere(this,
-                                        "bundleChanged",
+                                pLogger.logSevere(this, "bundleChanged",
                                         "Can't restart bundle", bundleId, e);
                             }
                         }
@@ -285,8 +284,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
         pUpdateTimeouts.clear();
 
         // log the invalidation
-        pLogger.logInfo(this, "invalidatePojo", "INVALIDATE",
-                toString());
+        pLogger.logInfo(this, "invalidatePojo", "INVALIDATE", toString());
     }
 
     /**
@@ -310,8 +308,8 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
     @Override
     public void killIsolate() {
 
-        pLogger.logInfo(this, "killIsolate",
-                "Kill this isolate [%s]", pPlatformDirs.getIsolateId());
+        pLogger.logInfo(this, "killIsolate", "Kill this isolate [%s:%s]",
+                pPlatformDirs.getIsolateName(), pPlatformDirs.getIsolateUID());
 
         try {
             // Stop the platform
@@ -319,8 +317,8 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
 
         } catch (final BundleException e) {
             // Damn
-            pLogger.logSevere(this, "validatePojo",
-                    "Can't stop the framework", e);
+            pLogger.logSevere(this, "validatePojo", "Can't stop the framework",
+                    e);
         }
     }
 

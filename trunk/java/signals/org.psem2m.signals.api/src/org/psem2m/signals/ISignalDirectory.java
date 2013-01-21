@@ -63,9 +63,9 @@ public interface ISignalDirectory {
      * 
      * The result is a map with 4 entries :
      * <ul>
-     * <li>'accesses': Isolate ID -&gt; {'node' -&gt; Node Name, 'port' -&gt;
+     * <li>'accesses': Isolate UID -&gt; {'node' -&gt; Node Name, 'port' -&gt;
      * Port}</li>
-     * <li>'groups': Group Name -&gt; [Isolates IDs]</li>
+     * <li>'names': Isolate Name -&gt; [Isolates UIDs]</li>
      * <li>'nodes_host': Node Name -&gt; Host Address</li>
      * </ul>
      * 
@@ -74,13 +74,13 @@ public interface ISignalDirectory {
     Map<String, Object> dump();
 
     /**
-     * Retrieves all known isolates which ID begins with the given prefix. If
+     * Retrieves all known isolates which name begins with the given prefix. If
      * the prefix is null or empty, returns all known isolates.
      * 
      * Returns null if no isolate matched the prefix.
      * 
      * @param aPrefix
-     *            An optional prefix filter
+     *            An optional prefix filter on isolate names
      * @param aIncludeCurrent
      *            If true, include the current isolate in the result
      * @param aOnlyValidated
@@ -110,16 +110,6 @@ public interface ISignalDirectory {
     Map<String, HostAccess> getGroupAccesses(EBaseGroup aGroup);
 
     /**
-     * Retrieves an Isolate Id -&gt; (host, port) map, containing all known
-     * isolates that belong to given group.
-     * 
-     * @param aGroupName
-     *            A group name
-     * @return An ID -&gt; (host, port) map, null if the group is unknown
-     */
-    Map<String, HostAccess> getGroupAccesses(String aGroupName);
-
-    /**
      * Retrieves the host name to access the node
      * 
      * @param aNodeName
@@ -131,30 +121,32 @@ public interface ISignalDirectory {
     /**
      * Retrieves the (host, port) tuple to access the given isolate, or null
      * 
-     * @param aIsolateId
+     * @param aIsolateUID
      *            The ID of an isolate
      * @return A (host, port) object, or null if the isolate is unknown
      */
-    HostAccess getIsolateAccess(String aIsolateId);
+    HostAccess getIsolateAccess(String aIsolateUID);
 
     /**
-     * Retrieves the current isolate ID
+     * Retrieves the name associated to the given UID
      * 
-     * @return The current isolate ID
+     * @param aIsolateUID
+     *            An isolate UID
+     * @return The isolate name
      */
-    String getIsolateId();
+    String getIsolateName(String aIsolateUID);
 
     /**
      * Retrieves the node of the given isolate
      * 
-     * @param aIsolateId
-     *            An isolate ID
+     * @param aIsolateUID
+     *            An isolate UID
      * @return The node hosting the given isolate, or null
      */
-    String getIsolateNode(String aIsolateId);
+    String getIsolateNode(String aIsolateUID);
 
     /**
-     * Retrieves the IDs of the isolates on the given node
+     * Retrieves the UIDs of the isolates on the given node
      * 
      * @param aNodeName
      *            A node name
@@ -164,47 +156,51 @@ public interface ISignalDirectory {
     String[] getIsolatesOnNode(String aNodeName);
 
     /**
-     * Retrieves the name of the current node
+     * Retrieves the UIDs of the isolate having the given name
      * 
-     * @return the name of the current node
+     * @param aIsolateName
+     *            An isolate name
+     * @return All UIDs associated to the given name
      */
-    String getLocalNode();
+    String[] getNameUIDs(String aIsolateName);
 
     /**
      * Tests if the given isolate ID is registered in the directory
      * 
-     * @param aIsolateId
+     * @param aIsolateUID
      *            An isolate ID
      * @return True if the ID is known, else false
      */
-    boolean isRegistered(String aIsolateId);
+    boolean isRegistered(String aIsolateUID);
 
     /**
      * Tests if the given isolate ID is registered and has been validated
      * 
-     * @param aIsolateId
+     * @param aIsolateUID
      *            An isolate ID
      * @return True if the ID is known and validated, else false
      */
-    boolean isValidated(String aIsolateId);
+    boolean isValidated(String aIsolateUID);
 
     /**
      * Notifies the isolate presence listeners of the validated presence of the
      * given isolate. This method must be called after
      * {@link #validateIsolatePresence(String)}.
      * 
-     * @param aIsolateId
+     * @param aIsolateUID
      *            The validated isolate ID.
      * @return true on success, false if the isolate wasn't in the validated
      *         state.
      */
-    boolean notifyIsolatePresence(String aIsolateId);
+    boolean notifyIsolatePresence(String aIsolateUID);
 
     /**
      * Registers an isolate in the directory if it is not yet known
      * 
-     * @param aIsolateId
-     *            The ID of the isolate to register
+     * @param aIsolateUID
+     *            The UID of the isolate to register
+     * @param aIsolateName
+     *            The name of the isolate
      * @param aNode
      *            The node hosting the isolate
      * @param aPort
@@ -216,18 +212,30 @@ public interface ISignalDirectory {
      * @throws IllegalArgumentException
      *             An argument is invalid
      */
-    boolean registerIsolate(String aIsolateId, String aNode, int aPort,
-            String... aGroups) throws IllegalArgumentException;
+    boolean registerIsolate(String aIsolateUID, String aIsolateName,
+            String aNode, int aPort) throws IllegalArgumentException;
 
     /**
-     * Registers the local isolate in the registry
+     * Registers an isolate in the directory if it is not yet known, without
+     * doing the access validation process.
      * 
+     * @param aIsolateUID
+     *            The UID of the isolate
+     * @param aIsolateName
+     *            The name of the isolate
+     * @param aNode
+     *            The node hosting the isolate
      * @param aPort
-     *            The port to access the signals
+     *            The port to access the isolate
      * @param aGroups
-     *            The local isolate groups
+     *            All groups of the isolate
+     * @return True if the isolate has been registered, False on error or if the
+     *         isolate was already known for this access.
+     * @throws IllegalArgumentException
+     *             An argument is invalid
      */
-    void registerLocal(int aPort, String... aGroups);
+    boolean registerValidated(String aIsolateUID, String aIsolateName,
+            String aNode, int aPort) throws IllegalArgumentException;
 
     /**
      * Sets up the address to access the given node. Overrides the previous
@@ -254,40 +262,40 @@ public interface ISignalDirectory {
      *            A directory dump
      * @param aIgnoredNodes
      *            The name of the nodes to ignore
-     * @param aIgnoredIds
-     *            The isolate IDs to ignore
+     * @param aIgnoredUIDs
+     *            The isolate UIDs to ignore
      * @return The list of the newly registered isolates
      */
     String[] storeDump(Map<?, ?> aDumpedDirectory,
-            Collection<String> aIgnoredNodes, Collection<String> aIgnoredIds);
+            Collection<String> aIgnoredNodes, Collection<String> aIgnoredUIDs);
 
     /**
      * Notifies the directory we are synchronizing with the given isolate. This
      * method must be called when sending or receiving a SYN-ACK signal.
      * 
-     * @param aIsolateId
+     * @param aIsolateUID
      *            An isolate ID
      * @return True if the state change succeeded
      */
-    boolean synchronizingIsolatePresence(String aIsolateId);
+    boolean synchronizingIsolatePresence(String aIsolateUID);
 
     /**
      * Unregisters the given isolate of the directory
      * 
-     * @param aIsolateId
+     * @param aIsolateUID
      *            The ID of the isolate to unregister
      * @return True if the isolate has been unregistered
      */
-    boolean unregisterIsolate(String aIsolateId);
+    boolean unregisterIsolate(String aIsolateUID);
 
     /**
      * Notifies the directory that an isolate has acknowledged the registration
      * of the current isolate. This method must be called when an ACK signal has
      * been received.
      * 
-     * @param aIsolateId
+     * @param aIsolateUID
      *            An isolate ID
      * @return True if the state change succeeded
      */
-    boolean validateIsolatePresence(String aIsolateId);
+    boolean validateIsolatePresence(String aIsolateUID);
 }

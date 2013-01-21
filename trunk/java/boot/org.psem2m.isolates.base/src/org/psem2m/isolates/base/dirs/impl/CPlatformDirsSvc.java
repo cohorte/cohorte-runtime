@@ -12,12 +12,11 @@ package org.psem2m.isolates.base.dirs.impl;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
+import org.osgi.framework.BundleContext;
+import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
-import org.psem2m.utilities.CXJvmUtils;
-import org.psem2m.utilities.CXOSUtils;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
@@ -25,128 +24,36 @@ import org.psem2m.utilities.CXOSUtils;
  */
 public class CPlatformDirsSvc implements IPlatformDirsSvc {
 
-    /** Forker start script name */
-    public static final String FORKER_SCRIPT_BASE_NAME = "run_forker";
-
     /** Isolate storage directory parent */
-    public static final String ISOLATE_STORAGE_DIR_BASE = CPlatformDirsSvc.VAR_DIRECTORY
+    private static final String ISOLATE_STORAGE_DIR_BASE = CPlatformDirsSvc.VAR_DIRECTORY
             + File.separator + "storage" + File.separator;
 
     /** Isolate working directory parent */
-    public static final String ISOLATE_WORKING_DIR_BASE = CPlatformDirsSvc.VAR_DIRECTORY
+    private static final String ISOLATE_WORKING_DIR_BASE = CPlatformDirsSvc.VAR_DIRECTORY
             + File.separator + "work" + File.separator;
 
     /** Platform instance log directory */
-    public static final String LOGGING_DIR_BASE = CPlatformDirsSvc.VAR_DIRECTORY
+    private static final String LOGGING_DIR_BASE = CPlatformDirsSvc.VAR_DIRECTORY
             + File.separator + "log" + File.separator;
 
     /** Platform base and home repository directory name */
-    public static final String REPOSITORY_NAME = "repo";
-
-    /** Script executor on Linux */
-    public static final String[] SCRIPT_LINUX_COMMAND = { "/bin/sh" };
-
-    /** Script executor on Windows */
-    public static final String[] SCRIPT_WINDOWS_COMMAND = { "cmd.exe", "/C" };
+    private static final String REPOSITORY_NAME = "repo";
 
     /** Base working directory */
-    public static final String VAR_DIRECTORY = "var";
+    private static final String VAR_DIRECTORY = "var";
+
+    /** The bundle context */
+    private final BundleContext pContext;
 
     /**
-     * <pre>
-     * org.psem2m.platform.isolate.id=[development]
-     * </pre>
+     * Sets up the platform informations service
      * 
-     * @return
+     * @param aBundleContext
+     *            The bundle context
      */
-    private static String getCurrentIsolateId() {
+    public CPlatformDirsSvc(final BundleContext aBundleContext) {
 
-        return System.getProperty(PROP_PLATFORM_ISOLATE_ID);
-    }
-
-    /**
-     * <pre>
-     * org.psem2m.platform.base=[/Users/ogattaz/workspaces/psem2m/psem2m/
-     * platforms/felix.user.dir]
-     * </pre>
-     * 
-     * @return
-     */
-    static String getCurrentPlatformBase() {
-
-        return System.getProperty(PROP_PLATFORM_BASE);
-    }
-
-    /**
-     * <pre>
-     * org.psem2m.platform.home=[/usr/share/psem2m]
-     * </pre>
-     * 
-     * @return
-     */
-    static String getCurrentPlatformHome() {
-
-        return System.getProperty(PROP_PLATFORM_HOME);
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.base.IPlatformDirsSvc#getForkerStartScript()
-     */
-    @Override
-    public List<String> getForkerStartCommand() {
-
-        final List<String> command = new ArrayList<String>();
-
-        // Prepare the final script name
-        final StringBuilder scriptFileNameBuilder = new StringBuilder(
-                FORKER_SCRIPT_BASE_NAME);
-
-        // Interpreter and script extension depends on the system
-        if (isOsWindowsFamily()) {
-            command.addAll(Arrays.asList(SCRIPT_WINDOWS_COMMAND));
-            scriptFileNameBuilder.append(".bat");
-
-        } else {
-            command.addAll(Arrays.asList(SCRIPT_LINUX_COMMAND));
-            scriptFileNameBuilder.append(".sh");
-        }
-
-        // Finish with the script file name
-        final String scriptFileName = scriptFileNameBuilder.toString();
-        final String[] possibleDirectories = { System.getProperty("user.dir"),
-                getCurrentPlatformBase(), getCurrentPlatformHome() };
-        boolean scriptFound = false;
-
-        for (final String platformDirectory : possibleDirectories) {
-
-            final File varDirectory = new File(platformDirectory, VAR_DIRECTORY);
-            final File scriptFile = new File(varDirectory, scriptFileName);
-
-            if (scriptFile.exists()) {
-                command.add(scriptFile.getAbsolutePath());
-                scriptFound = true;
-                break;
-            }
-        }
-
-        if (!scriptFound) {
-            return null;
-        }
-
-        return command;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.osgi.IPlatformDirs#getCurrentIsolateId()
-     */
-    @Override
-    public String getIsolateId() {
-
-        return getCurrentIsolateId();
+        pContext = aBundleContext;
     }
 
     /*
@@ -157,8 +64,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
     @Override
     public File getIsolateLogDir() throws Exception {
 
-        return getIsolateLogDir(getCurrentIsolateId());
-
+        return getIsolateLogDir(getIsolateUID());
     }
 
     /*
@@ -175,6 +81,28 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
             wLogDir.mkdirs();
         }
         return wLogDir;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateName()
+     */
+    @Override
+    public String getIsolateName() {
+
+        return pContext.getProperty(IPlatformProperties.PROP_ISOLATE_NAME);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateNode()
+     */
+    @Override
+    public String getIsolateNode() {
+
+        return pContext.getProperty(IPlatformProperties.PROP_ISOLATE_NODE);
     }
 
     /*
@@ -200,6 +128,17 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
     /*
      * (non-Javadoc)
      * 
+     * @see org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateUID()
+     */
+    @Override
+    public String getIsolateUID() {
+
+        return pContext.getProperty(IPlatformProperties.PROP_ISOLATE_UID);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see
      * org.psem2m.isolates.base.IPlatformDirsSvc#getIsolateWorkingDir(java.lang
      * .String)
@@ -214,36 +153,13 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.base.dirs.IPlatformDirsSvc#getJavaExecutable()
-     */
-    @Override
-    public File getJavaExecutable() {
-
-        final StringBuilder javaExecutablePath = new StringBuilder();
-
-        javaExecutablePath.append(System
-                .getProperty(CXJvmUtils.SYSPROP_JAVA_HOME));
-        javaExecutablePath.append(File.separator);
-        javaExecutablePath.append("bin");
-        javaExecutablePath.append(File.separator);
-        javaExecutablePath.append("java");
-
-        if (CXOSUtils.isOsWindowsFamily()) {
-            javaExecutablePath.append(".exe");
-        }
-
-        return new File(javaExecutablePath.toString());
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
      * @see org.psem2m.isolates.osgi.IPlatformDirs#getPlatformBaseDir()
      */
     @Override
     public File getPlatformBaseDir() {
 
-        return new File(getCurrentPlatformBase());
+        return new File(
+                pContext.getProperty(IPlatformProperties.PROP_PLATFORM_BASE));
     }
 
     /*
@@ -254,7 +170,8 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
     @Override
     public File getPlatformHomeDir() {
 
-        return new File(getCurrentPlatformHome());
+        return new File(
+                pContext.getProperty(IPlatformProperties.PROP_PLATFORM_HOME));
     }
 
     /*
@@ -310,22 +227,5 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
         // Add other repositories here, from higher to lower priority
 
         return repositories.toArray(new File[0]);
-    }
-
-    /**
-     * Tests if we're running on Windows
-     * 
-     * @return True if we're running on Windows
-     */
-    protected boolean isOsWindowsFamily() {
-
-        String osName = System.getProperty("os.name");
-        if (osName == null) {
-            // What ?
-            return false;
-        }
-
-        osName = osName.toLowerCase();
-        return osName.startsWith("windows");
     }
 }

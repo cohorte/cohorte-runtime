@@ -24,7 +24,7 @@ public interface ISignalSendResult {
     /**
      * Retrieves the results of each listener of each isolate
      * 
-     * @return the isolates results
+     * @return the isolates results (UID -&gt; Result)
      */
     Map<String, Object[]> getResults();
 }

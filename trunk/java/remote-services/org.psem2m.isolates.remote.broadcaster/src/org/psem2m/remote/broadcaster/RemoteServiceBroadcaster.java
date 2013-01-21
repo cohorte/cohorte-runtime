@@ -22,6 +22,7 @@ import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.constants.ISignalsConstants;
+import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.isolates.services.remote.IRemoteServiceBroadcaster;
 import org.psem2m.isolates.services.remote.beans.EndpointDescription;
 import org.psem2m.isolates.services.remote.beans.RemoteServiceEvent;
@@ -49,6 +50,10 @@ public class RemoteServiceBroadcaster extends CPojoBase implements
     /** Log service, injected by iPOJO */
     @Requires
     private IIsolateLoggerSvc pLogger;
+
+    /** Platform information service */
+    @Requires
+    private IPlatformDirsSvc pPlatform;
 
     /** Signal sender service, inject by iPOJO */
     @Requires
@@ -164,7 +169,7 @@ public class RemoteServiceBroadcaster extends CPojoBase implements
     @Override
     public RemoteServiceEvent[] requestEndpoints(final String aIsolateId) {
 
-        if (pDirectory.getIsolateId().equals(aIsolateId)) {
+        if (pPlatform.getIsolateUID().equals(aIsolateId)) {
             // Ignore local isolate
             return null;
         }
@@ -211,7 +216,7 @@ public class RemoteServiceBroadcaster extends CPojoBase implements
         for (final EndpointDescription endpoints : aEvent
                 .getServiceRegistration().getEndpoints()) {
 
-            endpoints.setNode(pDirectory.getLocalNode());
+            endpoints.setNode(pPlatform.getIsolateNode());
         }
 
         // Send the signal

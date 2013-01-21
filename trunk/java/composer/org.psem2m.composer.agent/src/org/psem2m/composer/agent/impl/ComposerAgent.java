@@ -180,7 +180,7 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
             final ComponentBean[] aComponents) {
 
         // Don't forget : the isolate ID can change due to the SlaveAgent
-        final String currentIsolateId = pPlatformDirs.getIsolateId();
+        final String currentIsolateName = pPlatformDirs.getIsolateName();
 
         // Result lists
         final List<ComponentBean> handledComponents = new ArrayList<ComponentBean>();
@@ -190,9 +190,9 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
         for (final ComponentBean component : aComponents) {
 
             // ... host isolate ID
-            final String componentHostId = component.getIsolate();
-            if (componentHostId != null
-                    && !componentHostId.equals(currentIsolateId)) {
+            final String componentHostName = component.getIsolate();
+            if (componentHostName != null
+                    && !componentHostName.equals(currentIsolateName)) {
                 // Bad host
                 continue;
             }
@@ -402,7 +402,7 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
     public Object handleReceivedSignal(final String aSignalName,
             final ISignalData aSignalData) {
 
-        final String signalSender = aSignalData.getSenderId();
+        final String signalSender = aSignalData.getSenderUID();
         final Object signalContent = aSignalData.getSignalContent();
 
         // For Jabsorb results...
@@ -474,7 +474,7 @@ public class ComposerAgent extends CPojoBase implements ISignalListener,
             final ComponentBean[] aComponents) {
 
         // Current isolate ID
-        final String currentIsolateId = pPlatformDirs.getIsolateId();
+        final String currentIsolateId = pPlatformDirs.getIsolateUID();
 
         // Find the composite name from the first component
         String compositeName = null;

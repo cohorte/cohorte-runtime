@@ -27,6 +27,7 @@ import org.osgi.framework.ServiceReference;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.base.activators.CPojoBase;
+import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.isolates.services.remote.IEndpointHandler;
 import org.psem2m.isolates.services.remote.IRemoteServiceBroadcaster;
 import org.psem2m.isolates.services.remote.IRemoteServiceRepository;
@@ -69,6 +70,10 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
     /** The logger */
     @Requires
     private IIsolateLoggerSvc pLogger;
+
+    /** Platform information service */
+    @Requires
+    private IPlatformDirsSvc pPlatform;
 
     /** Remote service repository (RSR) */
     @Requires
@@ -153,9 +158,10 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
             }
         }
 
-        return new RemoteServiceRegistration(exportedInterface,
+        return new RemoteServiceRegistration(pPlatform.getIsolateUID(),
+                exportedInterface,
                 Utilities.getServiceProperties(aServiceReference),
-                resultEndpoints.toArray(new EndpointDescription[0]));
+                resultEndpoints);
     }
 
     /**
@@ -310,9 +316,9 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
 
             // Prepare a service registration object
             final RemoteServiceRegistration serviceReg = new RemoteServiceRegistration(
-                    exportedInterfaces[0],
+                    pPlatform.getIsolateUID(), exportedInterfaces[0],
                     Utilities.getServiceProperties(aServiceReference),
-                    serviceEndpoints.toArray(new EndpointDescription[0]));
+                    serviceEndpoints);
 
             // Send an RSB notification
             final RemoteServiceEvent broadcastEvent = new RemoteServiceEvent(

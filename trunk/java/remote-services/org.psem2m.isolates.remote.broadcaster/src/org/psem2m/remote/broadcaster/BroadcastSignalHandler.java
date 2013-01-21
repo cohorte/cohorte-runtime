@@ -20,6 +20,7 @@ import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.constants.ISignalsConstants;
+import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.isolates.services.monitoring.IIsolatePresenceListener;
 import org.psem2m.isolates.services.remote.IRemoteServiceEventListener;
 import org.psem2m.isolates.services.remote.IRemoteServiceRepository;
@@ -52,6 +53,10 @@ public class BroadcastSignalHandler extends CPojoBase implements
     @Requires
     private IIsolateLoggerSvc pLogger;
 
+    /** Platform information service */
+    @Requires
+    private IPlatformDirsSvc pPlatform;
+
     /** Remote service events listeners */
     @Requires(optional = true)
     private IRemoteServiceEventListener[] pRemoteEventsListeners;
@@ -80,7 +85,7 @@ public class BroadcastSignalHandler extends CPojoBase implements
     public void handleIsolatePresence(final String aIsolateId,
             final String aNode, final EPresence aPresence) {
 
-        if (pDirectory.getIsolateId().equals(aIsolateId)) {
+        if (pPlatform.getIsolateUID().equals(aIsolateId)) {
             // Ignore local isolate events
             return;
         }
@@ -138,8 +143,8 @@ public class BroadcastSignalHandler extends CPojoBase implements
             final ISignalData aSignalData) {
 
         final Object signalContent = aSignalData.getSignalContent();
-        final String senderId = aSignalData.getSenderId();
-        if (pDirectory.getIsolateId().equals(senderId)) {
+        final String senderId = aSignalData.getSenderUID();
+        if (pPlatform.getIsolateUID().equals(senderId)) {
             // Ignore local isolate
             return null;
         }
@@ -193,7 +198,7 @@ public class BroadcastSignalHandler extends CPojoBase implements
                     // Invalid type
                     pLogger.logWarn(this, "handleReceivedSignal",
                             "Uncastable array from isolate=",
-                            aSignalData.getSenderId(), "content=",
+                            aSignalData.getSenderUID(), "content=",
                             Arrays.toString((Object[]) signalContent));
                 }
 
@@ -205,7 +210,7 @@ public class BroadcastSignalHandler extends CPojoBase implements
         } else if (ISignalsConstants.BROADCASTER_SIGNAL_REQUEST_ENDPOINTS
                 .equals(aSignalName)) {
             // End points request
-            return handleRequestEndpoints(aSignalData.getSenderId());
+            return handleRequestEndpoints(aSignalData.getSenderUID());
         }
 
         return null;

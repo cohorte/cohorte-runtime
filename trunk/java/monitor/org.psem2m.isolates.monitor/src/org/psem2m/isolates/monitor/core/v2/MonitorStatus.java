@@ -18,6 +18,7 @@ import org.psem2m.isolates.monitor.IMonitorStatus;
 import org.psem2m.isolates.services.conf.ISvcConfig;
 import org.psem2m.isolates.services.conf.beans.ApplicationDescription;
 import org.psem2m.isolates.services.conf.beans.IsolateDescription;
+import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.status.storage.IStatusStorage;
 import org.psem2m.status.storage.IStatusStorageCreator;
 import org.psem2m.status.storage.InvalidIdException;
@@ -44,6 +45,10 @@ public class MonitorStatus implements IMonitorStatus {
     /** The logger */
     @Requires
     private IIsolateLoggerSvc pLogger;
+
+    /** Platform information service */
+    @Requires
+    private IPlatformDirsSvc pPlatform;
 
     /** The status storage */
     private IStatusStorage<EIsolateState, IsolateDescription> pStatus;
@@ -225,11 +230,11 @@ public class MonitorStatus implements IMonitorStatus {
     protected boolean isAcceptableIsolate(final IsolateDescription aIsolateDescr) {
 
         // Test the isolate ID
-        final String isolateId = aIsolateDescr.getId();
-        if (isolateId == null || isolateId.isEmpty()) {
+        final String isolateUID = aIsolateDescr.getUID();
+        if (isolateUID == null || isolateUID.isEmpty()) {
             // Invalid ID
             pLogger.logWarn(this, "isAcceptableIsolate",
-                    "Null isolate ID found");
+                    "Null isolate UID found");
             return false;
         }
 
@@ -238,28 +243,28 @@ public class MonitorStatus implements IMonitorStatus {
         if (isolateNode == null || isolateNode.isEmpty()) {
             // Invalid node
             pLogger.logWarn(this, "isAcceptableIsolate",
-                    "Null isolate node found for ID=", isolateId);
-            return false;
-        }
-
-        // Test forker ID prefix
-        if (isolateId
-                .startsWith(IPlatformProperties.SPECIAL_INTERNAL_ISOLATES_PREFIX)) {
-            // Forker ID found
+                    "Null isolate node found for ID=", isolateUID);
             return false;
         }
 
         // Get the current isolate ID
-        final String currentId = System
-                .getProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_ID);
-        if (currentId == null || currentId.isEmpty()) {
+        final String currentUID = pPlatform.getIsolateUID();
+        if (currentUID == null || currentUID.isEmpty()) {
             pLogger.logWarn(this, "isAcceptableIsolate",
                     "Can't find the current isolate ID.");
             return false;
         }
 
+        // Test forker special name
+        final String isolateName = aIsolateDescr.getName();
+        if (isolateName
+                .startsWith(IPlatformProperties.SPECIAL_INTERNAL_ISOLATES_PREFIX)) {
+            // Special name found
+            return false;
+        }
+
         // Test ID inequality
-        return !currentId.equals(isolateId);
+        return !currentUID.equals(isolateUID);
     }
 
     /*

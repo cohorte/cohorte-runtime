@@ -29,6 +29,7 @@ import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.constants.ISignalsConstants;
+import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.signals.HostAccess;
 import org.psem2m.signals.ISignalBroadcaster;
 import org.psem2m.signals.ISignalData;
@@ -68,6 +69,10 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver {
     /** Notification thread pool */
     private ExecutorService pNotificationExecutor;
 
+    /** Platform information service */
+    @Requires
+    private IPlatformDirsSvc pPlatform;
+
     /** On-line service property */
     @ServiceProperty(name = ISignalReceiver.PROPERTY_ONLINE, value = "false", mandatory = true)
     private boolean pPropertyOnline;
@@ -96,7 +101,9 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver {
         final HostAccess access = getAccessInfo();
         if (access != null) {
             // Update our local access
-            pDirectory.registerLocal(access.getPort(), "ALL");
+            pDirectory.registerValidated(pPlatform.getIsolateUID(),
+                    pPlatform.getIsolateName(), pPlatform.getIsolateNode(),
+                    access.getPort());
 
             // We're now on-line
             pPropertyOnline = true;

@@ -42,6 +42,8 @@ import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.constants.ISignalsConstants;
 import org.psem2m.isolates.services.conf.ISvcConfig;
+import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
+import org.psem2m.signals.HostAccess;
 import org.psem2m.signals.ISignalBroadcaster;
 import org.psem2m.signals.ISignalDirectory;
 import org.psem2m.signals.ISignalDirectory.EBaseGroup;
@@ -98,6 +100,10 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
 
     /** The multicast receiver */
     private MulticastReceiver pMulticast;
+
+    /** Platform information service */
+    @Requires
+    private IPlatformDirsSvc pPlatform;
 
     /** The signal receiver, it must be online to retrieve its access point */
     @Requires(filter = "(" + ISignalReceiver.PROPERTY_ONLINE + "=true)")
@@ -329,8 +335,7 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
     @Override
     public String getNodeName() {
 
-        return System
-                .getProperty(IPlatformProperties.PROP_PLATFORM_ISOLATE_NODE);
+        return pPlatform.getIsolateNode();
     }
 
     /*
@@ -544,14 +549,15 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
             final String aForkerNode, final String aHost, final int aPort) {
 
         // Update the node host
-        if (!pDirectory.getLocalNode().equals(aForkerNode)) {
+        if (!pPlatform.getIsolateNode().equals(aForkerNode)) {
             // Don't update our node
             pDirectory.setNodeAddress(aForkerNode, aHost);
         }
 
         // Register the forker (it can already be in the directory)
-        if (pDirectory
-                .registerIsolate(aForkerId, aForkerNode, aPort, "FORKERS")) {
+        if (pDirectory.registerIsolate(aForkerId,
+                IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER, aForkerNode,
+                aPort)) {
             // Send it a SYN-ACK
             pDirectory.synchronizingIsolatePresence(aForkerId);
             pSender.fire(ISignalDirectoryConstants.SIGNAL_REGISTER_SYNACK,
@@ -642,8 +648,8 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
 
             // Send the signal
             final Object[] results = pSender.sendTo(
-                    ISignalDirectoryConstants.SIGNAL_CONTACT, content, aHost,
-                    aPort);
+                    ISignalDirectoryConstants.SIGNAL_CONTACT, content,
+                    new HostAccess(aHost, aPort));
             if (results == null) {
                 // No response...
                 pLogger.logWarn(this, "sendContactSignal",

@@ -95,6 +95,9 @@ public class CBundleBaseActivator extends CXObjectBase implements
     /** Log instance underlying logger */
     private IActivityLogger pActivityLogger;
 
+    /** The bundle context */
+    private BundleContext pBundleContext;
+
     /** Bundle finder service */
     private CBundleFinderSvc pBundleFinderSvc;
 
@@ -119,6 +122,7 @@ public class CBundleBaseActivator extends CXObjectBase implements
     /** OSGi services registration */
     private final List<CServiceInfos> pRegisteredServicesInfos = new ArrayList<CServiceInfos>();
 
+    /** The service listener */
     private ServiceListener pRegistrationListener = null;
 
     /**
@@ -245,13 +249,15 @@ public class CBundleBaseActivator extends CXObjectBase implements
     /**
      * Creates or retrieves an instance of the platform directories registry
      * 
+     * @param aContext
+     *            The bundle context
      * @return A platform directories registry instance
      */
     public IPlatformDirsSvc getPlatformDirs() {
 
         // if no PlatformDirsSvc already created
         if (pPlatformDirsSvc == null) {
-            pPlatformDirsSvc = new CPlatformDirsSvc();
+            pPlatformDirsSvc = new CPlatformDirsSvc(pBundleContext);
         }
 
         return pPlatformDirsSvc;
@@ -276,7 +282,7 @@ public class CBundleBaseActivator extends CXObjectBase implements
 
             // the name of the logger
             final String wLoggerName = "psem2m.isolate."
-                    + wPlatformDirsSvc.getIsolateId();
+                    + wPlatformDirsSvc.getIsolateUID();
 
             // the FilePathPattern of the logger
             final StringBuilder wFilePathPattern = new StringBuilder();
@@ -472,6 +478,9 @@ public class CBundleBaseActivator extends CXObjectBase implements
     @Override
     public void start(final BundleContext aBundleContext) {
 
+        // Store the bundle context
+        pBundleContext = aBundleContext;
+
         getLogger().logInfo(this, "start", "START", toDescription());
 
         // Register platform directories service
@@ -547,5 +556,7 @@ public class CBundleBaseActivator extends CXObjectBase implements
 
         // The end of the isolate
         destroyLogger();
+
+        pBundleContext = null;
     }
 }

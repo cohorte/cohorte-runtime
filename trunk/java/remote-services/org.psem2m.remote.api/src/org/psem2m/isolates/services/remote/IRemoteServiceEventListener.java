@@ -17,18 +17,18 @@ public interface IRemoteServiceEventListener {
     /**
      * Notifies the listener that an isolate has been lost
      * 
-     * @param aIsolateId
-     *            The ID of the lost isolate
+     * @param aIsolateUID
+     *            The UID of the lost isolate
      */
-    void handleIsolateLost(String aIsolateId);
+    void handleIsolateLost(String aIsolateUID);
 
     /**
      * Notifies the listener that an isolate has been registered
      * 
-     * @param aIsolateId
-     *            The ID of the new isolate
+     * @param aIsolateUID
+     *            The UID of the new isolate
      */
-    void handleIsolateReady(String aIsolateId);
+    void handleIsolateReady(String aIsolateUID);
 
     /**
      * Notifies the listener that a remote event has been received.
