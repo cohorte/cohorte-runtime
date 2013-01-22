@@ -623,6 +623,11 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
     public synchronized boolean registerIsolate(final String aUID,
             final String aName, final String aNode, final int aPort) {
 
+        if (aUID.equals(pPlatform.getIsolateUID())) {
+            // Ignore our own registration
+            return false;
+        }
+
         return registerIsolateInternal(aUID, aName, aNode, aPort,
                 EIsolateRegistrationState.REGISTERED);
     }
@@ -666,14 +671,12 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
                     "Empty node name for isolate {0} ({1})", aUID, aName));
         }
 
-        if (aUID.equals(pPlatform.getIsolateUID())) {
-            // Ignore our own registration
-            return false;
-        }
-
         // Prepare the new access object
         final HostAccess oldAccess = pAccesses.get(aUID);
         final HostAccess isolateAccess = new HostAccess(aNode, aPort);
+
+        // By default, create the status
+        boolean needsStatusCreation = true;
 
         if (oldAccess != null) {
             // Already known isolate
@@ -695,13 +698,22 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
                 pLogger.logInfo(this, "registerIsolate", "Isolate ID=", aUID,
                         "name=", aName, "moved from=", oldNode, "to=", aNode);
 
-                final List<String> isolates = pNodesIsolates.get(oldNode);
-                if (isolates != null) {
-                    isolates.remove(aUID);
-                }
-
                 // Consider an unregistration
                 unregisterIsolate(aUID);
+
+            } else {
+                try {
+                    // Test if the registration state changes
+                    needsStatusCreation = (pRegistrationStatus.getState(aUID) != aInitialState);
+                    if (needsStatusCreation) {
+                        // Known ID & state change: remove current state
+                        pRegistrationStatus.remove(aUID);
+                    }
+
+                } catch (final InvalidIdException ex) {
+                    // Unknown ID
+                    needsStatusCreation = true;
+                }
             }
         }
 
@@ -724,11 +736,14 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
         pNames.get(aName);
 
         // Store the registration state
-        registrationStateCreate(aUID, aInitialState);
+        if (needsStatusCreation) {
+            registrationStateCreate(aUID, aInitialState);
+        }
 
         pLogger.logDebug(this, "registerIsolate", "Registered isolate ID=",
                 aUID, "Name=", aName, "Access=", isolateAccess, "State=",
                 aInitialState);
+
         return true;
     }
 
@@ -1030,8 +1045,7 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
         // Create the status storage
         pRegistrationStatus = pStatusCreator.createStorage();
 
-        // Register the local isolate, without access port nor group
-        pAccesses.put(pPlatform.getIsolateUID(), ISignalDirectory.LOCAL_ACCESS);
+        // Register the local isolate, without access port
         setNodeAddress(pPlatform.getIsolateNode(), "localhost");
         registerValidated(pPlatform.getIsolateUID(),
                 pPlatform.getIsolateName(), pPlatform.getIsolateNode(), -1);
