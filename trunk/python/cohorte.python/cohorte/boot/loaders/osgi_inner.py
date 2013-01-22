@@ -46,19 +46,6 @@ FRAMEWORK_SERVICE = 'org.osgi.framework.launch.FrameworkFactory'
 FRAMEWORK_SYSTEMPACKAGES_EXTRA = "org.osgi.framework.system.packages.extra"
 """ OSGi extra system packages """
 
-JAVA_PROP_PLATFORM_BASE = "org.psem2m.platform.base"
-""" PSEM2M Base directory Java property """
-
-JAVA_PROP_PLATFORM_HOME = "org.psem2m.platform.home"
-""" PSEM2M Home directory Java property """
-
-# TODO: notion of ID has gone away
-JAVA_PROP_PLATFORM_ID = "org.psem2m.platform.isolate.id"
-""" PSEM2M Isolate ID Java property """
-
-JAVA_PROP_PLATFORM_NODE = "org.psem2m.platform.isolate.node"
-""" PSEM2M Isolate Node Java property """
-
 PYTHON_BRIDGE_BUNDLE_API = "org.cohorte.pyboot.api"
 """ Name of the Python bridge API bundle """
 
@@ -209,18 +196,41 @@ class JavaOsgiLoader(object):
         """
         # Prepare the dictionary
         if properties:
-            vm_properties = properties.copy()
-        else:
-            vm_properties = {}
+            return properties.copy()
 
-        # Propagate Pelix properties
-        for java, fw_prop in ((JAVA_PROP_PLATFORM_HOME, cohorte.PROP_HOME),
-                              (JAVA_PROP_PLATFORM_BASE, cohorte.PROP_BASE),
-                              (JAVA_PROP_PLATFORM_ID, cohorte.PROP_NAME),
-                              (JAVA_PROP_PLATFORM_NODE, cohorte.PROP_NODE)):
-            vm_properties[java] = self._context.get_property(fw_prop)
+        return {}
 
-        return vm_properties
+
+    def _setup_osgi_properties(self, properties, allow_bridge):
+        """
+        Sets up the OSGi framework properties and converts them into a Java
+        HashMap.
+        
+        :param properties: Configured framework properties
+        :param allow_bridge: If True, the bridge API package will be exported
+                             by the framework.
+        :return: The framework properties as a Java Map
+        """
+        osgi_properties = self._java.load_class("java.util.HashMap")()
+        for key, value in properties.items():
+            osgi_properties.put(key, value)
+
+        # Inherit some Pelix properties
+        for key in (cohorte.PROP_HOME, cohorte.PROP_BASE,
+                    cohorte.PROP_UID, cohorte.PROP_NAME, cohorte.PROP_NODE,
+                    cohorte.PROP_DUMPER_PORT):
+            value = self._context.get_property(key)
+            if value:
+                # Avoid empty values
+                osgi_properties.put(key, value)
+
+        if allow_bridge:
+            # Prepare the "extra system package" framework property
+            osgi_properties.put(FRAMEWORK_SYSTEMPACKAGES_EXTRA,
+                                "{0}; version=1.0.0" \
+                                .format(PYTHON_BRIDGE_BUNDLE_API))
+
+        return osgi_properties
 
 
     def _start_jvm(self, vm_args, classpath, properties):
@@ -393,15 +403,8 @@ class JavaOsgiLoader(object):
         factory = FrameworkFactory()
 
         # Framework properties
-        osgi_properties = self._java.load_class("java.util.HashMap")()
-        for key, value in java_config.properties.items():
-            osgi_properties.put(key, value)
-
-        if api_jar:
-            # Prepare the "extra system package" framework property
-            osgi_properties.put(FRAMEWORK_SYSTEMPACKAGES_EXTRA,
-                                "{0}; version=1.0.0" \
-                                .format(PYTHON_BRIDGE_BUNDLE_API))
+        osgi_properties = self._setup_osgi_properties(java_config.properties,
+                                                      api_jar is not None)
 
         # Start a framework, with the given properties
         self._osgi = factory.newFramework(osgi_properties)
