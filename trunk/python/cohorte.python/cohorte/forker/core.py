@@ -26,7 +26,7 @@ import cohorte.utils as utils
 from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
     Invalidate
 
-# Python standard library
+# Standard library
 import json
 import logging
 import os
@@ -395,6 +395,10 @@ class Forker(object):
 
         # Tell the state directory to prepare an entry
         self._state_dir.prepare_isolate(uid)
+
+        # Prepare the dumper port property
+        isolate_config['properties'][cohorte.PROP_DUMPER_PORT] = \
+                                            self._receiver.get_access_info()[1]
 
         # Store the configuration in the broker
         config_url = self._config_broker.store_configuration(uid,

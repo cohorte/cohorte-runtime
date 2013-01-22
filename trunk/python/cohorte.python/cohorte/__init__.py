@@ -69,6 +69,13 @@ PROP_START_MONITOR = 'cohorte.forker.start_monitor'
 PROP_STATE_UPDATER = 'cohorte.state.updater.url'
 """ URL to the state updater, use during boot only """
 
+PROP_DUMPER_PORT = 'psem2m.directory.dumper.port'
+"""
+Port to the signal directory dumper
+
+TODO: Change value ('cohortify'), put a complete URL instead of a port
+"""
+
 # ------------------------------------------------------------------------------
 # Bundle-level constants
 
