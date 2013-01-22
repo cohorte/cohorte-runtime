@@ -13,6 +13,7 @@ import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
+import org.osgi.framework.BundleContext;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.constants.ISignalsConstants;
@@ -39,6 +40,9 @@ import org.psem2m.signals.IWaitingSignalListener;
 public class DirectoryUpdater implements ISignalListener,
         IWaitingSignalListener {
 
+    /** The bundle context */
+    private final BundleContext pContext;
+
     /** The signals directory */
     @Requires
     private ISignalDirectory pDirectory;
@@ -64,6 +68,14 @@ public class DirectoryUpdater implements ISignalListener,
     /** The signal sender (it must be usable) */
     @Requires(filter = "(" + ISignalBroadcaster.PROPERTY_ONLINE + "=true)")
     private ISignalBroadcaster pSender;
+
+    /**
+     * Sets up the component
+     */
+    public DirectoryUpdater(final BundleContext aContext) {
+
+        pContext = aContext;
+    }
 
     /**
      * Retrieves the directory of a remote isolate.
@@ -467,7 +479,7 @@ public class DirectoryUpdater implements ISignalListener,
         pReceiver.registerListener(ISignalsConstants.ISOLATE_LOST_SIGNAL, this);
 
         // Compute the dump port
-        final String dumpPortStr = System
+        final String dumpPortStr = pContext
                 .getProperty(ISignalDirectoryConstants.PROP_DUMPER_PORT);
         int dumperPort = -1;
         try {
