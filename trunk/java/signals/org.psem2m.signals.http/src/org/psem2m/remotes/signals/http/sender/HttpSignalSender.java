@@ -16,7 +16,6 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.apache.felix.ipojo.annotations.Component;
-import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
@@ -39,9 +38,8 @@ import org.psem2m.signals.UnsendableDataException;
  * 
  * @author Thomas Calmant
  */
-@Component(name = "psem2m-remote-signal-sender-http-factory", publicFactory = false)
+@Component(name = "psem2m-signals-sender-http-factory")
 @Provides(specifications = ISignalBroadcastProvider.class)
-@Instantiate(name = "psem2m-remote-signal-http-sender")
 public class HttpSignalSender extends CPojoBase implements
         ISignalBroadcastProvider {
 

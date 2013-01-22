@@ -6,7 +6,6 @@
 package org.psem2m.signals.serializer.json;
 
 import org.apache.felix.ipojo.annotations.Component;
-import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
@@ -30,9 +29,8 @@ import org.psem2m.signals.UnsendableDataException;
  * 
  * @author Thomas Calmant
  */
-@Component(name = "psem2m-signals-data-json-factory", publicFactory = false)
+@Component(name = "psem2m-signals-data-json-factory")
 @Provides(specifications = ISignalSerializer.class)
-@Instantiate(name = "psem2m-signals-data-json")
 public class JsonSignalSerializer extends CPojoBase implements
         ISignalSerializer {
 

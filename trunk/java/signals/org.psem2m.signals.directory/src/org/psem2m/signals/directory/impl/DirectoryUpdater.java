@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.felix.ipojo.annotations.Component;
-import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
@@ -36,8 +35,7 @@ import org.psem2m.signals.IWaitingSignalListener;
  * 
  * @author Thomas Calmant
  */
-@Component(name = "psem2m-signals-directory-updater-factory", publicFactory = false)
-@Instantiate(name = "psem2m-signals-directory-updater")
+@Component(name = "psem2m-signals-directory-updater-factory")
 public class DirectoryUpdater implements ISignalListener,
         IWaitingSignalListener {
 

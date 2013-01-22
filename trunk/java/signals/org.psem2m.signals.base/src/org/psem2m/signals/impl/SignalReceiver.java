@@ -17,7 +17,6 @@ import java.util.concurrent.Executors;
 
 import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
-import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
@@ -44,9 +43,8 @@ import org.psem2m.signals.SignalResult;
  * 
  * @author Thomas Calmant
  */
-@Component(name = "psem2m-signal-receiver-factory", publicFactory = false)
+@Component(name = "psem2m-signals-receiver-factory")
 @Provides(specifications = ISignalReceiver.class)
-@Instantiate(name = "psem2m-signal-receiver")
 public class SignalReceiver extends CPojoBase implements ISignalReceiver {
 
     /** Receivers dependency ID */

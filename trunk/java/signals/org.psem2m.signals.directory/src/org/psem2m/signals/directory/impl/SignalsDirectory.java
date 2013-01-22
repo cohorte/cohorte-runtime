@@ -20,7 +20,6 @@ import java.util.Set;
 
 import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
-import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
@@ -45,9 +44,8 @@ import org.psem2m.status.storage.InvalidStateException;
  * 
  * @author Thomas Calmant
  */
-@Component(name = "psem2m-signals-directory-factory", publicFactory = false)
+@Component(name = "psem2m-signals-directory-factory")
 @Provides(specifications = ISignalDirectory.class)
-@Instantiate(name = "psem2m-signals-directory")
 public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
 
     /** Isolate presence listeners dependency ID */

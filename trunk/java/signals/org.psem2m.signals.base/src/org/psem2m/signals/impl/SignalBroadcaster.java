@@ -19,8 +19,8 @@ import java.util.concurrent.Future;
 
 import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
-import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
+import org.apache.felix.ipojo.annotations.Property;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.ServiceProperty;
@@ -49,22 +49,12 @@ import org.psem2m.signals.WaitingSignal;
  * 
  * @author Thomas Calmant
  */
-@Component(name = "psem2m-signal-broadcaster-factory", publicFactory = true)
+@Component(name = "psem2m-signals-broadcaster-factory")
 @Provides(specifications = ISignalBroadcaster.class)
-@Instantiate(name = "psem2m-signal-broadcaster")
 public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
 
     /** Receivers dependency ID */
     private static final String ID_PROVIDERS = "providers";
-
-    /**
-     * Maximum time to wait for the waiting thread when invalidating
-     * (milliseconds)
-     */
-    private static final long TIMEOUT_WAITING_THREAD = 500;
-
-    /** Time to wait before polling the waiting list again (milliseconds) */
-    private static final long WAITING_LIST_POLL_INTERVAL = 1000;
 
     /** Broadcast providers */
     @Requires(id = ID_PROVIDERS, optional = true)
@@ -96,8 +86,19 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
     @Requires
     private ISignalReceiver pReceiver;
 
+    /**
+     * Maximum time to wait for the waiting thread when invalidating
+     * (milliseconds)
+     */
+    @Property(name = "waiting.thread.timeout", value = "500")
+    private long pTimeoutWaitingThread;
+
     /** The list of all signals waiting to be sent */
     private final List<WaitingSignal> pWaitingList = new ArrayList<WaitingSignal>();
+
+    /** Time to wait before polling the waiting list again (milliseconds) */
+    @Property(name = "waiting.poll.interval", value = "1000")
+    private long pWaitingListPollInterval;
 
     /** The thread that handles the waiting queue */
     private Thread pWaitingThread;
@@ -566,7 +567,7 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
 
         // Wait for the thread
         try {
-            pWaitingThread.join(TIMEOUT_WAITING_THREAD);
+            pWaitingThread.join(pTimeoutWaitingThread);
 
         } catch (final InterruptedException ex) {
             // Ignore
@@ -951,7 +952,7 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
             }
 
             try {
-                Thread.sleep(WAITING_LIST_POLL_INTERVAL);
+                Thread.sleep(pWaitingListPollInterval);
 
             } catch (final InterruptedException ex) {
                 // Thread interrupted, go away

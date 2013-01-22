@@ -12,25 +12,24 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  g.psem2m.isolates.base;version=1.0.0, org.psem2m.isolates.base.activa
  tors;version=1.0.0, org.psem2m.signals;version=1.0.0, org.psem2m.util
  ities;version=1.0.0, org.psem2m.utilities.logging;version=1.0.0
-iPOJO-Components: instance { $component="org.psem2m.signals.serializer
- .java.JavaSignalSerializer" $name="psem2m-signals-data-java" }compone
- nt { $classname="org.psem2m.signals.serializer.java.JavaSignalSeriali
- zer" $name="psem2m-signals-data-java-factory" $public="false" provide
- s { $specifications="{org.psem2m.signals.ISignalSerializer}" property
-  { $name="psem2m.signals.serializer.priority" $field="pSerializerPrio
- rity" $value="2147483647" $mandatory="true" }}requires { $field="pLog
- ger" $optional="true" }callback { $transition="invalidate" $method="i
- nvalidatePojo" }callback { $transition="validate" $method="validatePo
- jo" }manipulation { $super="org.psem2m.isolates.base.activators.CPojo
- Base" interface { $name="org.psem2m.signals.ISignalSerializer" }field
-  { $name="pBundleContext" $type="org.osgi.framework.BundleContext" }f
- ield { $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLogger
- Svc" }field { $name="pSerializerPriority" $type="int" }method { $name
- ="canHandleType" $return="boolean" $arguments="{java.lang.String}" }m
- ethod { $name="canSerialize" $return="boolean" $arguments="{java.lang
- .Object}" }method { $name="getContentType" $return="java.lang.String"
-  }method { $name="getPriority" $return="int" }method { $name="invalid
- atePojo" }method { $name="serializeData" $return="byte[]" $arguments=
- "{java.lang.Object}" }method { $name="unserializeData" $return="java.
- lang.Object" $arguments="{byte[]}" }method { $name="validatePojo" }}}
+iPOJO-Components: component { $classname="org.psem2m.signals.serialize
+ r.java.JavaSignalSerializer" $name="psem2m-signals-data-java-factory"
+  $public="true" provides { $specifications="{org.psem2m.signals.ISign
+ alSerializer}" property { $name="psem2m.signals.serializer.priority" 
+ $field="pSerializerPriority" $value="2147483647" $mandatory="true" }}
+ requires { $field="pLogger" $optional="true" }callback { $transition=
+ "invalidate" $method="invalidatePojo" }callback { $transition="valida
+ te" $method="validatePojo" }manipulation { $super="org.psem2m.isolate
+ s.base.activators.CPojoBase" interface { $name="org.psem2m.signals.IS
+ ignalSerializer" }field { $name="pBundleContext" $type="org.osgi.fram
+ ework.BundleContext" }field { $name="pLogger" $type="org.psem2m.isola
+ tes.base.IIsolateLoggerSvc" }field { $name="pSerializerPriority" $typ
+ e="int" }method { $name="canHandleType" $return="boolean" $arguments=
+ "{java.lang.String}" }method { $name="canSerialize" $return="boolean"
+  $arguments="{java.lang.Object}" }method { $name="getContentType" $re
+ turn="java.lang.String" }method { $name="getPriority" $return="int" }
+ method { $name="invalidatePojo" }method { $name="serializeData" $retu
+ rn="byte[]" $arguments="{java.lang.Object}" }method { $name="unserial
+ izeData" $return="java.lang.Object" $arguments="{byte[]}" }method { $
+ name="validatePojo" }}}
 
