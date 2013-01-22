@@ -213,16 +213,17 @@ class JavaOsgiLoader(object):
         """
         osgi_properties = self._java.load_class("java.util.HashMap")()
         for key, value in properties.items():
-            osgi_properties.put(key, value)
+            if value is not None:
+                osgi_properties.put(key, str(value))
 
         # Inherit some Pelix properties
         for key in (cohorte.PROP_HOME, cohorte.PROP_BASE,
                     cohorte.PROP_UID, cohorte.PROP_NAME, cohorte.PROP_NODE,
                     cohorte.PROP_DUMPER_PORT):
             value = self._context.get_property(key)
-            if value:
+            if value is not None:
                 # Avoid empty values
-                osgi_properties.put(key, value)
+                osgi_properties.put(key, str(value))
 
         if allow_bridge:
             # Prepare the "extra system package" framework property
