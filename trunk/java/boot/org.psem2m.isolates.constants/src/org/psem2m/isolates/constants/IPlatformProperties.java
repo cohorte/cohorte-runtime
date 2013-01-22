@@ -29,12 +29,12 @@ public interface IPlatformProperties {
     /**
      * URL to the configuration broker
      */
-    String PROP_BROKER_URL = "org.psem2m.configuration.broker";
+    String PROP_BROKER_URL = "cohorte.configuration.broker.url";
 
     /**
      * contains the name of the current isolates.
      */
-    String PROP_ISOLATE_NAME = "org.psem2m.platform.isolate.name";
+    String PROP_ISOLATE_NAME = "cohorte.isolate.name";
 
     /**
      * contains the node of the current isolates.
@@ -43,7 +43,7 @@ public interface IPlatformProperties {
      * -Dorg.psem2m.platform.isolate.id=development
      * </pre>
      */
-    String PROP_ISOLATE_NODE = "org.psem2m.platform.isolate.node";
+    String PROP_ISOLATE_NODE = "cohorte.node";
 
     /**
      * contains the id of the current isolates.
@@ -52,17 +52,17 @@ public interface IPlatformProperties {
      * -Dorg.psem2m.platform.isolate.id=development
      * </pre>
      */
-    String PROP_ISOLATE_UID = "org.psem2m.platform.isolate.uid";
+    String PROP_ISOLATE_UID = "cohorte.isolate.uid";
 
     /**
      * contains the absolute path of the BASE folder of the current application
      */
-    String PROP_PLATFORM_BASE = "org.psem2m.platform.base";
+    String PROP_PLATFORM_BASE = "cohorte.base";
 
     /**
      * contains the absolute path of the HOME folder of the current application
      */
-    String PROP_PLATFORM_HOME = "org.psem2m.platform.home";
+    String PROP_PLATFORM_HOME = "cohorte.home";
 
     /**
      * Contains the name (or IP) of the current isolate host machine
