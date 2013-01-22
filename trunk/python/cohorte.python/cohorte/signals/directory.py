@@ -83,7 +83,7 @@ UNREGISTERED = 1
 
 # ------------------------------------------------------------------------------
 
-@ComponentFactory("psem2m-signals-directory-factory")
+@ComponentFactory("cohorte-signals-directory-factory")
 @Requires("_listeners", SPEC_LISTENER, aggregate=True, optional=True)
 @Provides(cohorte.SERVICE_SIGNALS_DIRECTORY)
 class SignalsDirectory(object):
@@ -263,11 +263,12 @@ class SignalsDirectory(object):
         :param prefix: An optional prefix filter
         :param include_current: If true, include the current isolate in the
                                 result
-        :return: A tuple of all known isolates beginning with prefix, or None
+        :return: A tuple of all known isolates beginning with prefix, or
+                 an empty one
         """
         if not self._accesses:
             # Nothing to return
-            return None
+            return tuple()
 
         with self._lock:
             if not prefix:
@@ -287,7 +288,7 @@ class SignalsDirectory(object):
 
             if not matching:
                 # No isolate found
-                return None
+                return tuple()
 
             # Return a tuple
             return tuple(matching)

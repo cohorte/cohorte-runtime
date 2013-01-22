@@ -97,7 +97,7 @@ def _make_json_result(code, message="", results=None):
 @ComponentFactory('cohorte-signals-receiver-http-factory')
 @Provides(cohorte.SERVICE_SIGNALS_RECEIVER)
 @Provides(pelix.http.HTTP_SERVLET)
-@Property('_path', pelix.http.HTTP_SERVLET_PATH, DEFAULT_RECEIVER_PATH)
+@Property('_servlet_path', pelix.http.HTTP_SERVLET_PATH, DEFAULT_RECEIVER_PATH)
 class SignalReceiver(object):
     """
     COHORTE HTTP Signals receiver servlet
@@ -107,7 +107,11 @@ class SignalReceiver(object):
         Constructor
         """
         # Servlet path
-        self._path = DEFAULT_RECEIVER_PATH
+        self._servlet_path = DEFAULT_RECEIVER_PATH
+
+        # Servlet access
+        self._host = None
+        self._port = None
 
         # Bundle context
         self._context = None
@@ -115,6 +119,42 @@ class SignalReceiver(object):
         # Signals listeners
         self._listeners = {}
         self._listeners_lock = threading.RLock()
+
+
+    def bound_to(self, path, parameters):
+        """
+        Servlet bound to a HTTP service
+        
+        :param path: The path to access the servlet
+        :param parameters: The server & servlet parameters
+        """
+        if path == self._servlet_path:
+            # Update our access informations
+            self._host = parameters['http.address']
+            self._port = int(parameters['http.port'])
+
+            # Register our service
+            self._svc_flag = True
+
+        else:
+            _logger.warning("Bound to a HTTP service with a different path."
+                            "Ignore.")
+
+
+    def unbound_from(self, path, parameters):
+        """
+        Servlet unbound from a HTTP service
+        
+        :param path: The path to access the servlet
+        :param parameters: The server & servlet parameters
+        """
+        if path == self._servlet_path:
+            # Unregister our service
+            self._svc_flag = False
+
+            # Clear our access information
+            self._host = None
+            self._port = None
 
 
     def do_GET(self, request, response):
@@ -125,7 +165,7 @@ class SignalReceiver(object):
         :param request: The HTTP response handler
         """
         # Basic properties
-        values = {'path': quote(self._path),
+        values = {'path': quote(self._servlet_path),
                   'nb_listeners': len(self._listeners),
                   'clt_addr': request.get_client_address()}
 
@@ -180,7 +220,7 @@ class SignalReceiver(object):
         content = ""
 
         # Read the request
-        signal_name = request.get_path()[len(self._path):]
+        signal_name = request.get_path()[len(self._servlet_path):]
         if not signal_name:
             code, content = _make_json_result(404, "No signal name in URI")
 
@@ -224,6 +264,17 @@ class SignalReceiver(object):
 
         # Send headers
         response.send_content(code, content, CONTENT_TYPE_JSON)
+
+
+    def get_access_info(self):
+        """
+        Retrieves the (host, port) tuple to access this signal receiver.
+        
+        WARNING: The host might often be "localhost"
+        
+        :return: An (host, port) tuple
+        """
+        return (self._host, self._port)
 
 
     def handle_received_signal(self, name, data, mode):
@@ -450,7 +501,7 @@ class FutureResult(object):
 
 # ------------------------------------------------------------------------------
 
-@ComponentFactory("psem2m-signals-sender-factory")
+@ComponentFactory("cohorte-signals-sender-http-factory")
 @Provides(cohorte.SERVICE_SIGNALS_SENDER)
 @Requires("_directory", cohorte.SERVICE_SIGNALS_DIRECTORY)
 @Requires("_local_recv", cohorte.SERVICE_SIGNALS_RECEIVER)
@@ -471,7 +522,7 @@ class SignalSender(object):
 
 
     def fire(self, signal, content, isolate=None, isolates=None,
-             dir_group=None, groups=None, excluded=None):
+             dir_group=None, excluded=None):
         """
         Sends a signal to the given target, without waiting for the result.
         Returns the list of successfully reached isolates, which may not have
@@ -482,15 +533,13 @@ class SignalSender(object):
         :param isolate: The ID of the target isolate
         :param isolates: A list of isolate IDs
         :param dir_group: The name of a group computed by the directory
-        :param groups: A list of isolates groups names
         :param excluded: Excluded isolates (only when using groups)
         :return: The list of reached isolates, None if there is no isolate to
                  send the signal to.
         """
         # Send the signal
         result = self.__common_handling(signal, content, isolate, isolates,
-                                        dir_group, groups, excluded,
-                                        MODE_FORGET)
+                                        dir_group, excluded, MODE_FORGET)
 
         if result is None:
             # Unknown targets
@@ -541,7 +590,7 @@ class SignalSender(object):
 
 
     def post(self, signal, content, isolate=None, isolates=None,
-             dir_group=None, groups=None, excluded=None):
+             dir_group=None, excluded=None):
         """
         Sends a signal to the given target in a different thread.
         See send(signal, content, isolate, isolates, groups) for more details.
@@ -554,13 +603,12 @@ class SignalSender(object):
         :param isolate: The ID of the target isolate
         :param isolates: A list of isolate IDs
         :param dir_group: The name of a group computed by the directory
-        :param groups: A list of isolates groups names
         :param excluded: Excluded isolates (only when using groups)
         :return: A FutureResult object
         """
         future = FutureResult()
         future.execute(self.send, signal, content, isolate, isolates,
-                       dir_group, groups, excluded)
+                       dir_group, excluded)
         return future
 
 
@@ -581,7 +629,7 @@ class SignalSender(object):
 
 
     def send(self, signal, content, isolate=None, isolates=None,
-             dir_group=None, groups=None, excluded=None):
+             dir_group=None, excluded=None):
         """
         Sends a signal to the given target.
         
@@ -596,14 +644,13 @@ class SignalSender(object):
         :param isolate: The ID of the target isolate
         :param isolates: A list of isolate IDs
         :param dir_group: The name of a group computed by the directory
-        :param groups: A list of isolates groups names
         :param excluded: Excluded isolates (only when using groups)
         :return: A (map Isolate ID -> results array, failed isolates) tuple,
                  None if there is no isolate to send the signal to.
         """
         # Standard behavior
         return self.__common_handling(signal, content, isolate, isolates,
-                                      dir_group, groups, excluded, MODE_SEND)
+                                      dir_group, excluded, MODE_SEND)
 
 
     def send_to(self, signal, content, host, port):
@@ -727,7 +774,7 @@ class SignalSender(object):
 
 
     def __common_handling(self, signal, content, isolate, isolates,
-                          dir_group, groups, excluded, mode):
+                          dir_group, excluded, mode):
         """
         All multiple targets methods shares the same code : compute accesses,
         use the loop and handle the results
@@ -737,11 +784,10 @@ class SignalSender(object):
         :param isolate: The ID of the target isolate
         :param isolates: A list of isolate IDs
         :param dir_group: The name of a group computed by the directory
-        :param groups: A list of isolates groups names
         :param excluded: Excluded isolates (only when using groups)
         :param mode: Signal sending mode
         :return: A (map Isolate ID -> results array, failed isolates) tuple,
-                 None if there is no isolate to send the signal to.
+                 (None, None) if there is no isolate to send the signal to.
         """
         accesses = {}
 

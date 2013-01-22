@@ -123,7 +123,7 @@ class _JsonRpcServlet(SimpleJSONRPCDispatcher):
 
 # ------------------------------------------------------------------------------
 
-@ComponentFactory("ServiceExporterFactory")
+@ComponentFactory("cohorte-remote-exporter-factory")
 @Requires("http", pelix.http.HTTP_SERVICE)
 @Requires("directory", cohorte.SERVICE_SIGNALS_DIRECTORY)
 @Requires("receiver", cohorte.SERVICE_SIGNALS_RECEIVER)
@@ -433,7 +433,7 @@ class ServiceExporter(object):
                                           self)
 
         # Unregister the servlet
-        self.http.unregister_servlet(self.server)
+        self.http.unregister(None, self.server)
         self.server = None
 
         # Unregister the service listener
@@ -524,7 +524,7 @@ class _JSONProxy(object):
         self.endpoint = None
 
 
-@ComponentFactory("ServiceImporterFactory")
+@ComponentFactory("cohorte-remote-importer-factory")
 @Requires("directory", cohorte.SERVICE_SIGNALS_DIRECTORY)
 @Requires("receiver", cohorte.SERVICE_SIGNALS_RECEIVER)
 @Requires("sender", cohorte.SERVICE_SIGNALS_SENDER)
@@ -795,16 +795,23 @@ class ServiceImporter(object):
         :param: isolate: An isolate ID
         """
         if not isolate:
-            sig_results = self.sender.send(BROADCASTER_SIGNAL_REQUEST_ENDPOINTS,
-                                           None, dir_group="OTHERS")[0]
+            raw_results = self.sender.send(BROADCASTER_SIGNAL_REQUEST_ENDPOINTS,
+                                           None, dir_group="OTHERS")
 
         else:
-            sig_results = self.sender.send(BROADCASTER_SIGNAL_REQUEST_ENDPOINTS,
-                                           None, isolate=isolate)[0]
+            raw_results = self.sender.send(BROADCASTER_SIGNAL_REQUEST_ENDPOINTS,
+                                           None, isolate=isolate)
 
-        if not sig_results:
-            # Nothing to do...
+        if raw_results is None:
+            # Nothing to do
             return
+
+        else:
+            # Extract information
+            sig_results = raw_results[0]
+            if not sig_results:
+                # Nothing to do...
+                return
 
         for isolate_id, isolate_sigresult in sig_results.items():
             for result in isolate_sigresult['results']:

@@ -59,7 +59,7 @@ SIGNAL_ISOLATE_LOST = "/psem2m/isolate/lost"
 
 # ------------------------------------------------------------------------------
 
-@ComponentFactory("psem2m-signals-directory-updater-factory")
+@ComponentFactory("cohorte-signals-directory-updater-factory")
 @Requires("_directory", cohorte.SERVICE_SIGNALS_DIRECTORY)
 @Requires("_receiver", cohorte.SERVICE_SIGNALS_RECEIVER)
 @Requires("_sender", cohorte.SERVICE_SIGNALS_SENDER)
