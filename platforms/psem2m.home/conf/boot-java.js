@@ -3,7 +3,7 @@
  */
 {
 	/* Common Python stack */
-	"import-file" : "boot-common.js",
+	"import-files" : "boot-common.js",
 
 	/*
 	 * Bundles

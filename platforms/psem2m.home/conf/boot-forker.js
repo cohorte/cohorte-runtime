@@ -5,7 +5,7 @@
 	/*
 	 * Import the common configuration for Python isolates
 	 */
-	"import-file" : "boot-common-py.js",
+	"import-files" : "boot-common-py.js",
 
 	/*
 	 * Forker bundles

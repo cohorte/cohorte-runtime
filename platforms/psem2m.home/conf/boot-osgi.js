@@ -5,7 +5,7 @@
 	/*
 	 * Import the common configuration for Java isolates
 	 */
-	"import-file" : "boot-java.js",
+	"import-files" : "boot-java.js",
 
 	/*
 	 * Bundles

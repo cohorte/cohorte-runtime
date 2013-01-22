@@ -34,9 +34,9 @@ Key used in configuration file to replace a JSON object by the content of
 another file
 """
 
-KEY_FILE_IMPORT = 'import-file'
+KEY_FILES_IMPORT = 'import-files'
 """
-Key used to merge a JSON object with the content of another file
+Key used to merge a JSON object with the content of other files
 """
 
 KEY_OVERRIDDEN_PROPERTIES = 'overriddenProperties'
@@ -159,7 +159,7 @@ class ConfigurationFileReader(object):
         elif type(json_data) is dict:
             # We have an object
             from_filename = json_data.get(KEY_FILE_FROM)
-            import_filename = json_data.get(KEY_FILE_IMPORT)
+            import_filenames = json_data.get(KEY_FILES_IMPORT)
 
             if from_filename:
                 # Load & return the content of the imported file
@@ -175,33 +175,38 @@ class ConfigurationFileReader(object):
                 # Return the imported object
                 return imported_data
 
-            elif import_filename:
+            elif import_filenames:
                 # Load the content of the imported file and merge with local
                 # values, i.e. add entries existing only in the imported file
                 # and merge arrays
-                new_props = self._compute_overridden_props(json_data,
-                                                           overridden_props)
-                imported_data = self._load_file(import_filename, filename,
-                                                new_props)
-
-                # Update properties in imported data
-                self._update_properties(imported_data, overridden_props)
+                if type(import_filenames) is not list:
+                    import_filenames = [import_filenames]
 
                 # Remove import keys
-                del json_data[KEY_FILE_IMPORT]
+                del json_data[KEY_FILES_IMPORT]
                 if KEY_OVERRIDDEN_PROPERTIES in json_data:
                     del json_data[KEY_OVERRIDDEN_PROPERTIES]
 
-                # Merge arrays with imported data
-                json_data = self._merge_object(json_data, imported_data)
+                for import_filename in import_filenames:
+                    # Import files
+                    new_props = self._compute_overridden_props(json_data,
+                                                               overridden_props)
+                    imported_data = self._load_file(import_filename, filename,
+                                                    new_props)
 
-                # Do the recursive import
-                for key, value in json_data.items():
-                    new_value = self._do_recursive_imports(filename, value,
-                                                           overridden_props)
-                    if new_value is not value:
-                        # The value has been changed
-                        json_data[key] = value
+                    # Update properties in imported data
+                    self._update_properties(imported_data, overridden_props)
+
+                    # Merge arrays with imported data
+                    json_data = self._merge_object(json_data, imported_data)
+
+                    # Do the recursive import
+                    for key, value in json_data.items():
+                        new_value = self._do_recursive_imports(filename, value,
+                                                               overridden_props)
+                        if new_value is not value:
+                            # The value has been changed
+                            json_data[key] = value
 
                 return json_data
 

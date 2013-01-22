@@ -5,7 +5,7 @@
 	/*
 	 * Import the common configuration
 	 */
-	"import-file" : "boot-common.js",
+	"import-files" : "boot-common.js",
 
 	/*
 	 * Bundles
@@ -14,6 +14,12 @@
 		"name" : "pelix.http.basic"
 	}, {
 		"name" : "cohorte.signals.http"
+	}, {
+		"name" : "cohorte.signals.directory"
+	}, {
+		"name" : "cohorte.signals.directory_updater"
+	}, {
+		"name" : "cohorte.signals.remoteservices"
 	}, {
 		"name" : "cohorte.debug.servlet"
 	} ],
@@ -48,5 +54,23 @@
 	{
 		"factory" : "cohorte-signals-receiver-http-factory",
 		"name" : "cohorte-signals-receiver-http"
+	}, {
+		"factory" : "cohorte-signals-sender-http-factory",
+		"name" : "cohorte-signals-sender-http"
+	}, {
+		"factory" : "cohorte-signals-directory-factory",
+		"name" : "cohorte-signals-directory"
+	}, {
+		"factory" : "cohorte-signals-directory-updater-factory",
+		"name" : "cohorte-signals-directory-updater"
+	},
+
+	/* Remote services */
+	{
+		"factory" : "cohorte-remote-exporter-factory",
+		"name" : "cohorte-remote-exporter"
+	}, {
+		"factory" : "cohorte-remote-importer-factory",
+		"name" : "cohorte-remote-importer"
 	} ]
 }
