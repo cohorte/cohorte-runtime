@@ -737,7 +737,7 @@ public class MonitorCore extends CPojoBase implements
 
             // Create the file
             final File accessFile = new File(
-                    pPlatformDirsSvc.getPlatformBaseDir(),
+                    pPlatformDirsSvc.getPlatformBase(),
                     "/var/monitor.access");
             if (!accessFile.exists()) {
                 accessFile.createNewFile();

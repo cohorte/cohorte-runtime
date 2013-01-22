@@ -25,22 +25,8 @@ public interface IPlatformDirsSvc extends IPlatformProperties {
      * if needed.
      * 
      * @return the log directory of the current isolate
-     * @throws Exception
-     *             An error occurred while preparing the log directory
      */
-    File getIsolateLogDir() throws Exception;
-
-    /**
-     * Retrieves the specific log directory of the given isolate. Creates it if
-     * needed.
-     * 
-     * @param aIsolateId
-     *            the id of an isolate
-     * @return the log directory of the isolate
-     * @throws Exception
-     *             if the hierarchy doesn't exist and can't be created
-     */
-    File getIsolateLogDir(final String aIsolateId) throws Exception;
+    File getIsolateLogDir();
 
     /**
      * Retrieves the name of the current isolate
@@ -57,11 +43,11 @@ public interface IPlatformDirsSvc extends IPlatformProperties {
     String getIsolateNode();
 
     /**
-     * @param aIsolateId
-     *            the id of an isolate
+     * Retrieves the storage directory of the current isolate
+     * 
      * @return The isolate storage directory
      */
-    File getIsolateStorageDir(String aIsolateId);
+    File getIsolateStorageDirectory();
 
     /**
      * Retrieves the current isolate UID
@@ -71,43 +57,25 @@ public interface IPlatformDirsSvc extends IPlatformProperties {
     String getIsolateUID();
 
     /**
-     * @param aIsolateId
-     *            the id of an isolate
+     * Retrieves the working directory of the current isolate
+     * 
      * @return The isolate working directory
      */
-    File getIsolateWorkingDir(String aIsolateId);
+    File getIsolateWorkingDirectory();
 
     /**
      * Retrieves the PSEM2M_BASE value
      * 
-     * <pre>
-     * -Dorg.psem2m.platform.base=${workspace_loc}/psem2m/platforms/felix.user
-     * .dir
-     * </pre>
-     * 
      * @return the base directory of the platform
      */
-    File getPlatformBaseDir();
+    File getPlatformBase();
 
     /**
      * Retrieves the PSEM2M_HOME value
      * 
-     * <pre>
-     * -Dorg.psem2m.platform.home=/usr/share/psem2m
-     * </pre>
-     * 
      * @return the home directory of the platform
      */
-    File getPlatformHomeDir();
-
-    /**
-     * Retrieves the log directory file object. Creates the directory if needed.
-     * 
-     * @return the log directory of the platform
-     * @throws Exception
-     *             An error occurred while preparing the log directory
-     */
-    File getPlatformLogDir() throws Exception;
+    File getPlatformHome();
 
     /**
      * Retrieves the platform root directories : base, home and working

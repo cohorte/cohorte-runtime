@@ -24,29 +24,18 @@ import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
  */
 public class CPlatformDirsSvc implements IPlatformDirsSvc {
 
-    /** Isolate storage directory parent */
-    private static final String ISOLATE_STORAGE_DIR_BASE = CPlatformDirsSvc.VAR_DIRECTORY
-            + File.separator + "storage" + File.separator;
-
-    /** Isolate working directory parent */
-    private static final String ISOLATE_WORKING_DIR_BASE = CPlatformDirsSvc.VAR_DIRECTORY
-            + File.separator + "work" + File.separator;
-
-    /** Platform instance log directory */
-    private static final String LOGGING_DIR_BASE = CPlatformDirsSvc.VAR_DIRECTORY
-            + File.separator + "log" + File.separator;
-
     /** Platform base and home repository directory name */
     private static final String REPOSITORY_NAME = "repo";
-
-    /** Base working directory */
-    private static final String VAR_DIRECTORY = "var";
 
     /** The bundle context */
     private final BundleContext pContext;
 
+    /** The initial working directory */
+    private final File pInitialWorkingDirectory;
+
     /**
-     * Sets up the platform informations service
+     * Sets up the platform informations service. Stores the working directory
+     * at instantiation time.
      * 
      * @param aBundleContext
      *            The bundle context
@@ -54,6 +43,9 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
     public CPlatformDirsSvc(final BundleContext aBundleContext) {
 
         pContext = aBundleContext;
+
+        // Store the working directory
+        pInitialWorkingDirectory = new File(System.getProperty("user.dir"));
     }
 
     /*
@@ -62,25 +54,11 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
      * @see org.psem2m.isolates.osgi.IPlatformDirs#getIsolateLogDir()
      */
     @Override
-    public File getIsolateLogDir() throws Exception {
+    public File getIsolateLogDir() {
 
-        return getIsolateLogDir(getIsolateUID());
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.psem2m.isolates.osgi.IPlatformDirs#getIsolateLogDir(java.lang.String)
-     */
-    @Override
-    public File getIsolateLogDir(final String aIsolateId) throws Exception {
-
-        final File wLogDir = new File(getPlatformLogDir(), aIsolateId);
-        if (!wLogDir.exists()) {
-            wLogDir.mkdirs();
-        }
-        return wLogDir;
+        // Valid log directory
+        return tryCreateDirectory(new File(pInitialWorkingDirectory, "log"),
+                pInitialWorkingDirectory);
     }
 
     /*
@@ -109,20 +87,15 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateStorageDir
-     * (java.lang.String)
+     * org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateStorageDirectory
+     * ()
      */
     @Override
-    public File getIsolateStorageDir(final String aIsolateId) {
+    public File getIsolateStorageDirectory() {
 
-        final File dir = new File(getPlatformBaseDir(),
-                ISOLATE_STORAGE_DIR_BASE + aIsolateId);
-        if (!dir.exists()) {
-            // Create directories if needed
-            dir.mkdirs();
-        }
-
-        return dir;
+        return tryCreateDirectory(
+                new File(pInitialWorkingDirectory, "storage"),
+                pInitialWorkingDirectory);
     }
 
     /*
@@ -140,14 +113,13 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.isolates.base.IPlatformDirsSvc#getIsolateWorkingDir(java.lang
-     * .String)
+     * org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateWorkingDirectory
+     * ()
      */
     @Override
-    public File getIsolateWorkingDir(final String aIsolateId) {
+    public File getIsolateWorkingDirectory() {
 
-        return new File(getPlatformBaseDir(), ISOLATE_WORKING_DIR_BASE
-                + aIsolateId);
+        return pInitialWorkingDirectory;
     }
 
     /*
@@ -156,7 +128,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
      * @see org.psem2m.isolates.osgi.IPlatformDirs#getPlatformBaseDir()
      */
     @Override
-    public File getPlatformBaseDir() {
+    public File getPlatformBase() {
 
         return new File(
                 pContext.getProperty(IPlatformProperties.PROP_PLATFORM_BASE));
@@ -168,26 +140,10 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
      * @see org.psem2m.isolates.base.IPlatformDirsSvc#getPlatformHomeDir()
      */
     @Override
-    public File getPlatformHomeDir() {
+    public File getPlatformHome() {
 
         return new File(
                 pContext.getProperty(IPlatformProperties.PROP_PLATFORM_HOME));
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.osgi.IPlatformDirs#getPlatformLogDir()
-     */
-    @Override
-    public File getPlatformLogDir() throws Exception {
-
-        final File wLogDir = new File(getPlatformBaseDir(), LOGGING_DIR_BASE
-                + "psem2m");
-        if (!wLogDir.exists()) {
-            wLogDir.mkdirs();
-        }
-        return wLogDir;
     }
 
     /*
@@ -198,7 +154,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
     @Override
     public File[] getPlatformRootDirs() {
 
-        return new File[] { getPlatformBaseDir(), getPlatformHomeDir(),
+        return new File[] { getPlatformBase(), getPlatformHome(),
                 new File(System.getProperty("user.dir")) };
     }
 
@@ -213,13 +169,13 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
         final List<File> repositories = new ArrayList<File>();
 
         // Current instance repository
-        final File baseRepo = new File(getPlatformBaseDir(), REPOSITORY_NAME);
+        final File baseRepo = new File(getPlatformBase(), REPOSITORY_NAME);
         if (baseRepo.exists()) {
             repositories.add(baseRepo);
         }
 
         // Home repository
-        final File homeRepo = new File(getPlatformHomeDir(), REPOSITORY_NAME);
+        final File homeRepo = new File(getPlatformHome(), REPOSITORY_NAME);
         if (!homeRepo.equals(baseRepo) && homeRepo.exists()) {
             repositories.add(homeRepo);
         }
@@ -227,5 +183,37 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
         // Add other repositories here, from higher to lower priority
 
         return repositories.toArray(new File[0]);
+    }
+
+    /**
+     * Tries to create the given directory, return the default one on failure
+     * 
+     * @param aDirectory
+     *            Directory to create via {@link File#mkdirs()}
+     * @param aDefault
+     *            Directory to return on failure
+     * @return The created directory or the default one
+     */
+    private File tryCreateDirectory(final File aDirectory, final File aDefault) {
+
+        if (aDirectory == null) {
+            return aDefault;
+        }
+
+        if (!aDirectory.exists()) {
+            try {
+                if (!aDirectory.mkdirs()) {
+                    // Error creating directories
+                    return aDefault;
+                }
+
+            } catch (final SecurityException ex) {
+                // Security error
+                return aDefault;
+            }
+        }
+
+        // Valid log directory
+        return aDirectory;
     }
 }
