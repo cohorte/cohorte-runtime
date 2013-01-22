@@ -22,5 +22,5 @@ public interface IHttpSignalsConstants {
     String HEADER_SIGNAL_MODE = "psem2m-mode";
 
     /** HTTP Servlet alias */
-    String RECEIVER_SERVLET_ALIAS = "/psem2m-signal-receiver";
+    String RECEIVER_SERVLET_ALIAS = "/cohorte-signal-receiver";
 }
