@@ -15,60 +15,56 @@ Import-Package: javax.servlet, org.apache.felix.ipojo;version=1.8.0, o
  es.services.remote;version=1.0.0, org.psem2m.isolates.services.remote
  .beans;version=1.0.0, org.psem2m.utilities;version=1.0.0, org.psem2m.
  utilities.logging;version=1.0.0
-iPOJO-Components: instance { $component="org.psem2m.remote.jsonrpc.Jso
- nRpcClient" $name="psem2m-remote-client-handler-jsonrpc" }instance { 
- $component="org.psem2m.remote.jsonrpc.JsonRpcEndpoint" $name="psem2m-
- remote-endpoint-handler-jsonrpc" }component { $classname="org.psem2m.
- remote.jsonrpc.JsonRpcClient" $name="psem2m-remote-client-handler-jso
- nrpc-factory" $public="false" provides { $specifications="{org.psem2m
- .isolates.services.remote.IRemoteServiceClientHandler}" }requires { $
- field="pLogger" }callback { $transition="invalidate" $method="invalid
- atePojo" }callback { $transition="validate" $method="validatePojo" }m
- anipulation { $super="org.psem2m.isolates.base.activators.CPojoBase" 
- interface { $name="org.psem2m.isolates.services.remote.IRemoteService
- ClientHandler" }field { $name="pBundleContext" $type="org.osgi.framew
- ork.BundleContext" }field { $name="pLogger" $type="org.psem2m.isolate
- s.base.IIsolateLoggerSvc" }field { $name="pProxies" $type="java.util.
- Map" }method { $name="createProxy" $return="java.lang.Object" $argume
- nts="{org.psem2m.isolates.services.remote.beans.EndpointDescription,j
- ava.lang.Class}" }method { $name="destroyProxy" $arguments="{java.lan
- g.Object}" }method { $name="getEndpointDescription" $return="org.psem
- 2m.isolates.services.remote.beans.EndpointDescription" $arguments="{o
- rg.psem2m.isolates.services.remote.beans.EndpointDescription[]}" }met
- hod { $name="getExportedInterface" $return="java.lang.Class" $argumen
- ts="{java.lang.String[]}" }method { $name="getRemoteProxy" $return="j
- ava.lang.Object" $arguments="{org.psem2m.isolates.services.remote.bea
- ns.RemoteServiceEvent}" }method { $name="invalidatePojo" }method { $n
- ame="validatePojo" }}}component { $classname="org.psem2m.remote.jsonr
- pc.JsonRpcEndpoint" $name="psem2m-remote-endpoint-handler-jsonrpc-fac
- tory" $public="false" provides { $specifications="{org.psem2m.isolate
- s.services.remote.IEndpointHandler}" }requires { $field="pHttpService
- " }requires { $field="pLogger" }properties { property { $name="endpoi
- nt.servlet.name" $field="pServletName" $value="/JSON-RPC" }}callback 
- { $transition="invalidate" $method="invalidatePojo" }callback { $tran
- sition="validate" $method="validatePojo" }manipulation { $super="org.
- psem2m.isolates.base.activators.CPojoBase" interface { $name="org.pse
- m2m.isolates.services.remote.IEndpointHandler" }field { $name="pBundl
- eContext" $type="org.osgi.framework.BundleContext" }field { $name="pE
- ndpointsDescriptions" $type="java.util.Map" }field { $name="pHttpServ
- ice" $type="org.osgi.service.http.HttpService" }field { $name="pJsonR
- pcBridge" $type="org.jabsorb.ng.JSONRPCBridge" }field { $name="pLogge
- r" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name=
- "pRegisteredEndpoints" $type="java.util.List" }field { $name="pServle
- tName" $type="java.lang.String" }method { $name="createEndpoint" $ret
- urn="org.psem2m.isolates.services.remote.beans.EndpointDescription[]"
-  $arguments="{java.lang.String,org.osgi.framework.ServiceReference}" 
- }method { $name="destroyEndpoint" $return="boolean" $arguments="{org.
- osgi.framework.ServiceReference}" }method { $name="generateEndpointNa
- me" $return="java.lang.String" $arguments="{java.util.Map}" }method {
-  $name="getEndpoints" $return="org.psem2m.isolates.services.remote.be
- ans.EndpointDescription[]" $arguments="{org.osgi.framework.ServiceRef
- erence}" }method { $name="getHttpPort" $return="int" }method { $name=
- "getServicePropertiesMap" $return="java.util.Map" $arguments="{org.os
- gi.framework.ServiceReference}" }method { $name="invalidatePojo" }met
- hod { $name="isInterfaceExported" $return="boolean" $arguments="{java
- .lang.String,java.lang.String[]}" }method { $name="makeEndpointUri" $
- return="java.lang.String" $arguments="{java.lang.String}" }method { $
- name="startJabsorbBridge" }method { $name="stopJabsorbBridge" }method
-  { $name="validatePojo" }}}
+iPOJO-Components: component { $classname="org.psem2m.remote.jsonrpc.Js
+ onRpcClient" $name="psem2m-remote-client-jsonrpc-factory" $public="fa
+ lse" provides { $specifications="{org.psem2m.isolates.services.remote
+ .IRemoteServiceClientHandler}" }requires { $field="pLogger" }callback
+  { $transition="invalidate" $method="invalidatePojo" }callback { $tra
+ nsition="validate" $method="validatePojo" }manipulation { $super="org
+ .psem2m.isolates.base.activators.CPojoBase" interface { $name="org.ps
+ em2m.isolates.services.remote.IRemoteServiceClientHandler" }field { $
+ name="pBundleContext" $type="org.osgi.framework.BundleContext" }field
+  { $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc"
+  }field { $name="pProxies" $type="java.util.Map" }method { $name="cre
+ ateProxy" $return="java.lang.Object" $arguments="{org.psem2m.isolates
+ .services.remote.beans.EndpointDescription,java.lang.Class}" }method 
+ { $name="destroyProxy" $arguments="{java.lang.Object}" }method { $nam
+ e="getEndpointDescription" $return="org.psem2m.isolates.services.remo
+ te.beans.EndpointDescription" $arguments="{org.psem2m.isolates.servic
+ es.remote.beans.EndpointDescription[]}" }method { $name="getExportedI
+ nterface" $return="java.lang.Class" $arguments="{java.lang.String[]}"
+  }method { $name="getRemoteProxy" $return="java.lang.Object" $argumen
+ ts="{org.psem2m.isolates.services.remote.beans.RemoteServiceEvent}" }
+ method { $name="invalidatePojo" }method { $name="validatePojo" }}}com
+ ponent { $classname="org.psem2m.remote.jsonrpc.JsonRpcEndpoint" $name
+ ="psem2m-remote-endpoint-jsonrpc-factory" $public="true" provides { $
+ specifications="{org.psem2m.isolates.services.remote.IEndpointHandler
+ }" }requires { $field="pHttpService" }requires { $field="pLogger" }pr
+ operties { property { $name="endpoint.servlet.name" $field="pServletN
+ ame" $value="/JSON-RPC" }}callback { $transition="invalidate" $method
+ ="invalidatePojo" }callback { $transition="validate" $method="validat
+ ePojo" }manipulation { $super="org.psem2m.isolates.base.activators.CP
+ ojoBase" interface { $name="org.psem2m.isolates.services.remote.IEndp
+ ointHandler" }field { $name="pBundleContext" $type="org.osgi.framewor
+ k.BundleContext" }field { $name="pEndpointsDescriptions" $type="java.
+ util.Map" }field { $name="pHttpService" $type="org.osgi.service.http.
+ HttpService" }field { $name="pJsonRpcBridge" $type="org.jabsorb.ng.JS
+ ONRPCBridge" }field { $name="pLogger" $type="org.psem2m.isolates.base
+ .IIsolateLoggerSvc" }field { $name="pRegisteredEndpoints" $type="java
+ .util.List" }field { $name="pServletName" $type="java.lang.String" }m
+ ethod { $name="createEndpoint" $return="org.psem2m.isolates.services.
+ remote.beans.EndpointDescription[]" $arguments="{java.lang.String,org
+ .osgi.framework.ServiceReference}" }method { $name="destroyEndpoint" 
+ $return="boolean" $arguments="{org.osgi.framework.ServiceReference}" 
+ }method { $name="generateEndpointName" $return="java.lang.String" $ar
+ guments="{java.util.Map}" }method { $name="getEndpoints" $return="org
+ .psem2m.isolates.services.remote.beans.EndpointDescription[]" $argume
+ nts="{org.osgi.framework.ServiceReference}" }method { $name="getHttpP
+ ort" $return="int" }method { $name="getServicePropertiesMap" $return=
+ "java.util.Map" $arguments="{org.osgi.framework.ServiceReference}" }m
+ ethod { $name="invalidatePojo" }method { $name="isInterfaceExported" 
+ $return="boolean" $arguments="{java.lang.String,java.lang.String[]}" 
+ }method { $name="makeEndpointUri" $return="java.lang.String" $argumen
+ ts="{java.lang.String}" }method { $name="startJabsorbBridge" }method 
+ { $name="stopJabsorbBridge" }method { $name="validatePojo" }}}
 

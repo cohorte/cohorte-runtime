@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.felix.ipojo.annotations.Component;
-import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Property;
 import org.apache.felix.ipojo.annotations.Provides;
@@ -36,9 +35,8 @@ import org.psem2m.isolates.services.remote.beans.EndpointDescription;
  * 
  * @author Thomas Calmant
  */
-@Component(name = "psem2m-remote-endpoint-handler-jsonrpc-factory", publicFactory = false)
+@Component(name = "psem2m-remote-endpoint-jsonrpc-factory")
 @Provides(specifications = IEndpointHandler.class)
-@Instantiate(name = "psem2m-remote-endpoint-handler-jsonrpc")
 public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
 
     /** Default HTTP port */

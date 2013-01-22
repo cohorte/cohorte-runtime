@@ -10,7 +10,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.felix.ipojo.annotations.Component;
-import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
@@ -28,9 +27,8 @@ import org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration;
  * 
  * @author Thomas Calmant
  */
-@Component(name = "psem2m-remote-rsr-factory", publicFactory = false)
+@Component(name = "psem2m-remote-rsr-factory")
 @Provides(specifications = IRemoteServiceRepository.class)
-@Instantiate(name = "psem2m-remote-rsr")
 public class RemoteServiceRepository extends CPojoBase implements
         IRemoteServiceRepository {
 

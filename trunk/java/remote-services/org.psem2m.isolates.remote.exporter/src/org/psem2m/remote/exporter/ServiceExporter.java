@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.felix.ipojo.annotations.Component;
-import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
@@ -46,8 +45,7 @@ import org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration;
  * 
  * @author Thomas Calmant
  */
-@Component(name = "psem2m-remote-service-exporter-factory", publicFactory = false)
-@Instantiate(name = "psem2m-remote-service-exporter")
+@Component(name = "psem2m-remote-exporter-factory")
 public class ServiceExporter extends CPojoBase implements ServiceListener {
 
     /** End points handlers dependency ID */

@@ -11,7 +11,6 @@ import java.util.Collection;
 import java.util.List;
 
 import org.apache.felix.ipojo.annotations.Component;
-import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
@@ -39,8 +38,7 @@ import org.psem2m.signals.ISignalReceiver;
  * 
  * @author Thomas Calmant
  */
-@Component(name = "psem2m-remote-rsb-signal-handler-factory", publicFactory = false)
-@Instantiate(name = "psem2m-remote-rsb-signal-handler")
+@Component(name = "psem2m-remote-rsb-signals-factory")
 @Provides(specifications = IIsolatePresenceListener.class)
 public class BroadcastSignalHandler extends CPojoBase implements
         ISignalListener, IIsolatePresenceListener {
