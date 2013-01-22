@@ -5,7 +5,7 @@
 	/*
 	 * OSGi stuffs
 	 */
-	"import-file": "java-osgi.js",
+	"import-files": "java-osgi.js",
 	
 	/*
 	 * Java bundles
