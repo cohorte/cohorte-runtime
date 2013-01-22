@@ -7,18 +7,20 @@ package org.psem2m.remotes.signals.http.receiver;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Map;
 
+import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.ServiceProperty;
+import org.apache.felix.ipojo.annotations.Unbind;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.osgi.service.http.HttpService;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
-import org.psem2m.isolates.services.conf.ISvcConfig;
 import org.psem2m.remotes.signals.http.IHttpSignalsConstants;
 import org.psem2m.signals.HostAccess;
 import org.psem2m.signals.ISignalData;
@@ -40,12 +42,17 @@ import org.psem2m.signals.SignalResult;
 public class HttpSignalReceiver extends CPojoBase implements
         ISignalReceptionProvider, ISignalRequestReader {
 
-    /** Configuration service */
-    @Requires
-    private ISvcConfig pConfig;
+    /** HTTP service port property */
+    private static final String HTTP_SERVICE_PORT = "org.osgi.service.http.port";
+
+    /** HTTPService dependency ID */
+    private static final String IPOJO_ID_HTTP = "http.service";
+
+    /** HTTP service port */
+    private int pHttpPort;
 
     /** HTTP service, injected by iPOJO */
-    @Requires(filter = "(org.osgi.service.http.port=*)")
+    @Requires(id = IPOJO_ID_HTTP, filter = "(" + HTTP_SERVICE_PORT + "=*)")
     private HttpService pHttpService;
 
     /** Log service, injected by iPOJO */
@@ -64,6 +71,36 @@ public class HttpSignalReceiver extends CPojoBase implements
     @Requires
     private ISignalSerializer[] pSerializers;
 
+    /**
+     * HTTP service ready
+     * 
+     * @param aHttpService
+     *            The bound service
+     * @param aServiceProperties
+     *            The HTTP service properties
+     */
+    @Bind(id = IPOJO_ID_HTTP)
+    private void bindHttpService(final HttpService aHttpService,
+            final Map<?, ?> aServiceProperties) {
+
+        final Object rawPort = aServiceProperties.get(HTTP_SERVICE_PORT);
+
+        if (rawPort instanceof Number) {
+            // Get the integer
+            pHttpPort = ((Number) rawPort).intValue();
+
+        } else if (rawPort instanceof CharSequence) {
+            // Parse the string
+            pHttpPort = Integer.parseInt(rawPort.toString());
+
+        } else {
+            // Unknown port type
+            pLogger.logWarn(this, "getAccessInfo",
+                    "Couldn't read access port=", rawPort);
+            pHttpPort = -1;
+        }
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -72,9 +109,15 @@ public class HttpSignalReceiver extends CPojoBase implements
     @Override
     public HostAccess getAccessInfo() {
 
+        if (pHttpPort < 0) {
+            pLogger.logWarn(this, "getAccessInfo",
+                    "HTTP service has no port yet");
+        }
+
         try {
+            // Read the host name
             return new HostAccess(InetAddress.getLocalHost().getHostName(),
-                    pConfig.getCurrentIsolate().getPort());
+                    pHttpPort);
 
         } catch (final UnknownHostException ex) {
             pLogger.logWarn(this, "getAccessInfo",
@@ -210,6 +253,16 @@ public class HttpSignalReceiver extends CPojoBase implements
                     "Coudln't serialize data");
             return null;
         }
+    }
+
+    /**
+     * HTTP service gone
+     */
+    @Unbind(id = IPOJO_ID_HTTP)
+    private void unbindHttpService() {
+
+        // Forget the port
+        pHttpPort = 0;
     }
 
     /*
