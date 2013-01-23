@@ -66,7 +66,7 @@ public class ComponentBean {
      */
     public Map<String, Object> getProperties() {
 
-        return pProperties;
+        return new HashMap<String, Object>(pProperties);
     }
 
     /*

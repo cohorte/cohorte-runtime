@@ -6,6 +6,7 @@
 package org.cohorte.pyboot.api;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represents a Python-side boot orders service
@@ -42,6 +43,13 @@ public interface IPyBridge {
     List<ComponentBean> getComponents();
 
     /**
+     * Retrieves the configuration used to start this isolate as a map
+     * 
+     * @return The configuration used to start this isolate
+     */
+    Map<String, Object> getStartConfiguration();
+
+    /**
      * Called when a component has been started
      * 
      * @param aName
@@ -56,4 +64,13 @@ public interface IPyBridge {
      *            An error message
      */
     void onError(String aError);
+
+    /**
+     * Reads the given configuration file
+     * 
+     * @param aFileName
+     *            A configuration file name
+     * @return The parsed configuration map
+     */
+    Map<String, Object> readConfiguration(String aFileName);
 }
