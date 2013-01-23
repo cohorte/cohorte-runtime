@@ -32,7 +32,7 @@ import org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration;
  * @author Thomas Calmant
  * 
  */
-@Component(name = "psem2m-remote-client-jsonrpc-factory", publicFactory = false)
+@Component(name = "psem2m-remote-client-jsonrpc-factory")
 @Provides(specifications = IRemoteServiceClientHandler.class)
 public class JsonRpcClient extends CPojoBase implements
         IRemoteServiceClientHandler {
