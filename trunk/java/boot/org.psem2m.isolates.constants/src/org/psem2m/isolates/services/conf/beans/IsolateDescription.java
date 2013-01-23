@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -27,14 +28,11 @@ public class IsolateDescription implements Serializable {
     /** Serializable version */
     private static final long serialVersionUID = 1L;
 
-    /** Application arguments */
-    private List<String> pAppArgs = new ArrayList<String>();
-
     /** Isolate bundles (can't be null) */
     private final Set<BundleDescription> pBundles = new LinkedHashSet<BundleDescription>();
 
     /** The isolate VM class path (mainly for Java) */
-    private final List<String> pClasspath = new ArrayList<String>();
+    private final List<String> pClasspath = new LinkedList<String>();
 
     /** The isolate process environment variables */
     private final Map<String, String> pEnvironment = new HashMap<String, String>();
@@ -90,10 +88,6 @@ public class IsolateDescription implements Serializable {
 
         // "Special" fields
         setKind((String) aDescriptionMap.get(IIsolateDescr.ISOLATE_KIND));
-
-        // Application arguments
-        fillStringCollection(pAppArgs,
-                aDescriptionMap.get(IIsolateDescr.ISOLATE_APP_ARGS), true);
 
         // Class path
         fillStringCollection(pClasspath,
@@ -187,16 +181,6 @@ public class IsolateDescription implements Serializable {
 
             aFilledCollection.add((String) obj);
         }
-    }
-
-    /**
-     * Retrieves the application argumens
-     * 
-     * @return the application arguments
-     */
-    public List<String> getAppArgs() {
-
-        return pAppArgs;
     }
 
     /**
@@ -295,15 +279,6 @@ public class IsolateDescription implements Serializable {
     public List<String> getVmArgs() {
 
         return pVmArguments;
-    }
-
-    /**
-     * @param aAppArgs
-     *            the appArgs to set
-     */
-    public void setAppArgs(final List<String> aAppArgs) {
-
-        pAppArgs = aAppArgs;
     }
 
     /**
@@ -437,7 +412,6 @@ public class IsolateDescription implements Serializable {
 
         final Map<String, Object> map = new HashMap<String, Object>();
 
-        map.put(IIsolateDescr.ISOLATE_APP_ARGS, pAppArgs);
         map.put(IIsolateDescr.ISOLATE_CLASSPATH, pClasspath);
         map.put(IIsolateDescr.ISOLATE_ENVIRONMENT, pEnvironment);
         map.put(IIsolateDescr.ISOLATE_UID, pIsolateUID);
