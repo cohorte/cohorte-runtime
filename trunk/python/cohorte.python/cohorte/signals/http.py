@@ -319,7 +319,7 @@ class SignalReceiver(object):
             return result
 
         # Unknown mode (not implemented error)
-        return _make_json_result(501, "Unknown mode %s" % mode)
+        return _make_json_result(501, "Unknown mode '{0}'".format(mode))
 
 
     def register_listener(self, signal_pattern, listener):
@@ -840,7 +840,7 @@ class SignalSender(object):
             host, port = access
 
         except (TypeError, ValueError):
-            raise ValueError("Invalid access tuple : '%s'" % access)
+            raise ValueError("Invalid access tuple: '{0}'".format(access))
 
         if host == None:
             # Special case : local signals don't have to go through the network
@@ -849,7 +849,7 @@ class SignalSender(object):
         # Prepare the signal URL
         if signal[0] == '/':
             signal = signal[1:]
-        signal_url = "%s%s" % (SignalReceiver.SERVLET_PATH, signal)
+        signal_url = "{0}/{1}".format(self._local_recv._servlet_path, signal)
 
         conn = httplib.HTTPConnection(host, port, timeout=3)
         try:
