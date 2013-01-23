@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: COHORTE :: Boot :: Python Bridge
+Bundle-Name: COHORTE :: Python Bridge :: Core
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: org.cohorte.pyboot
 Bundle-Vendor: isandlaTech.com
