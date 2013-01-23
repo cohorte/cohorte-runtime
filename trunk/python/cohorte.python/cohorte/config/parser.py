@@ -224,7 +224,7 @@ class BootConfigParser(object):
         :raise ValueError: Error reading the configuration
         """
         # Load the boot file
-        return self._reader.load_file('{0}-{1}.js'.format(level, kind), 'conf')
+        return self.read('{0}-{1}.js'.format(level, kind))
 
 
     def load_boot_dict(self, dict_config):
@@ -299,3 +299,13 @@ class BootConfigParser(object):
 
         # Return the configuration dictionary
         return configuration
+
+
+    def read(self, filename):
+        """
+        Reads the content of the given file, without parsing it.
+        
+        :param filename: A configuration file name
+        :return: The dictionary read from the file
+        """
+        return self._reader.load_file(filename, 'conf')

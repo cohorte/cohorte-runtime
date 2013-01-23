@@ -66,24 +66,27 @@ class PyBridge(object):
     # Implemented Java interface
     JAVA_INTERFACE = PYTHON_JAVA_BRIDGE_INTERFACE
 
-    def __init__(self, jvm, components, callback):
+    def __init__(self, jvm, java_configuration, configuration_parser, callback):
         """
         Sets up the bridge
         
         :param jvm: The JVM wrapper
-        :param components: Components to instantiate
+        :param java_configuration: Java boot configuration
         :param callback: Method to call back on error or success
         """
-        self._callback = callback
-        self._components = {}
-
         # Java class
         self.ArrayList = jvm.load_class("java.util.ArrayList")
         self.Component = jvm.load_class("org.cohorte.pyboot.api.ComponentBean")
         self.HashMap = jvm.load_class("java.util.HashMap")
 
-        # Convert components to beans
-        self._prepare_components(components)
+        # Prepare members
+        self._callback = callback
+        self._components = {}
+        self._parser = configuration_parser
+
+        # Convert stored components
+        self._java_boot_config = self._to_java(java_configuration)
+        self._prepare_components(java_configuration.composition)
 
 
     def _prepare_components(self, raw_components):
@@ -102,6 +105,47 @@ class PyBridge(object):
             self._components[component.name] = self.Component(component.factory,
                                                               component.name,
                                                               properties)
+
+    def _to_java(self, data):
+        """
+        Recursively converts lists and maps to Java ones
+        
+        :param data: Data to be converted
+        :return: Converted data
+        """
+        if hasattr(data, '_asdict'):
+            # Named tuple
+            data = data._asdict()
+
+        data_type = type(data)
+        if data_type is dict:
+            # Convert a dictionary
+            converted = self.HashMap()
+
+            for key, value in data.items():
+                # Convert entry
+                new_key = self._to_java(key)
+                new_value = self._to_java(value)
+
+                converted.put(new_key, new_value)
+
+            # Return the new value
+            return converted
+
+        elif data_type in (list, set):
+            # Convert a list
+            converted = self.ArrayList()
+
+            for item in data:
+                # Convert each item
+                converted.add(self._to_java(item))
+
+            return converted
+
+        else:
+            # No conversion
+            return data
+
 
     def debug(self, message, values):
         """
@@ -131,6 +175,15 @@ class PyBridge(object):
         return result
 
 
+    def getStartConfiguration(self):
+        """
+        Retrieves the configuration used to start this isolate as a map
+        
+        :return: The configuration used to start this isolate
+        """
+        return self._java_boot_config
+
+
     def onComponentStarted(self, name):
         """
         Called when a component has been started
@@ -151,6 +204,20 @@ class PyBridge(object):
         :param error: An error message
         """
         self._callback(False, error)
+
+
+    def readConfiguration(self, filename):
+        """
+        Reads the given configuration file
+        
+        :param filename: A configuration file name
+        :return: The parsed configuration map
+        """
+        # Load the file
+        raw_dict = self._parser.read(filename)
+
+        # Convert the dictionary to Java
+        return self._to_java(raw_dict)
 
 # ------------------------------------------------------------------------------
 
@@ -283,15 +350,17 @@ class JavaOsgiLoader(object):
             self._osgi = None
 
 
-    def _register_bridge(self, context, components):
+    def _register_bridge(self, context, java_configuration):
         """
         Instantiates and starts the iPOJO components instantiation handler
         
         :param context: An OSGi bundle context
-        :param components: Components to be instantiated
+        :param java_configuration: The Java boot configuration
         """
-        # Make a Java proxy of the brdige
-        bridge_java = self._java.make_proxy(PyBridge(self._java, components,
+        # Make a Java proxy of the bridge
+        bridge_java = self._java.make_proxy(PyBridge(self._java,
+                                                     java_configuration,
+                                                     self._config,
                                                      self._bridge_callback))
 
         # Register it to the framework
@@ -444,7 +513,7 @@ class JavaOsgiLoader(object):
             bundle.start()
 
         # Start the component instantiation handler
-        self._register_bridge(context, java_config.composition)
+        self._register_bridge(context, java_config)
 
 
     def wait(self):
