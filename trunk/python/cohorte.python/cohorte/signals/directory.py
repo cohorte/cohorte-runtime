@@ -692,7 +692,6 @@ class SignalsDirectory(object):
         self._context = context
 
         # Special registration for the current isolate
-        self._accesses[self.get_isolate_uid()] = (None, -1)
         self._nodes_host[self.get_local_node()] = "localhost"
         self.register_isolate(self.get_isolate_uid(),
                               self._context.get_property(cohorte.PROP_NAME),
