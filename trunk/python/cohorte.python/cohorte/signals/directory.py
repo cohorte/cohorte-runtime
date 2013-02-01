@@ -542,10 +542,6 @@ class SignalsDirectory(object):
             raise ValueError("Empty node name for isolate {0} ({1})" \
                              .format(uid, name))
 
-        if uid == self.get_isolate_uid():
-            # Ignore our own registration
-            return False
-
         with self._lock:
             # Prepare the new access tuple
             new_access = (node, port)
