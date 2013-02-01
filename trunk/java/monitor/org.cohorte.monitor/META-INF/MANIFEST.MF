@@ -1,0 +1,94 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: COHORTE :: Monitor
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-SymbolicName: org.cohorte.monitor
+Bundle-Vendor: isandlaTech.com
+Bundle-Version: 1.0.0.qualifier
+Created-By: iPOJO  1.8.0
+Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
+ .ipojo.architecture;version=1.8.0, org.cohorte.monitor.api;version=1.
+ 0.0, org.osgi.service.cm;version=1.2, org.osgi.service.log;version=1.
+ 3, org.psem2m.isolates.base;version=1.0.1, org.psem2m.isolates.consta
+ nts;version=1.0.1, org.psem2m.isolates.services.conf;version=1.0.1, o
+ rg.psem2m.isolates.services.conf.beans;version=1.0.0, org.psem2m.isol
+ ates.services.dirs;version=1.0.1, org.psem2m.signals;version=1.0.1, o
+ rg.psem2m.status.storage;version=1.0.0, org.psem2m.utilities;version=
+ 1.0.0, org.psem2m.utilities.logging;version=1.0.0
+iPOJO-Components: component { $classname="org.cohorte.monitor.impl.Mon
+ itorStatus" $name="cohorte-monitor-status-factory" $public="true" pro
+ vides { $specifications="{org.cohorte.monitor.api.IMonitorStatus}" }r
+ equires { $field="pConfig" }requires { $field="pLogger" }requires { $
+ field="pPlatform" }requires { $field="pStatusCreator" }callback { $tr
+ ansition="invalidate" $method="invalidate" }callback { $transition="v
+ alidate" $method="validate" }manipulation { interface { $name="org.co
+ horte.monitor.api.IMonitorStatus" }field { $name="pConfig" $type="org
+ .psem2m.isolates.services.conf.ISvcConfig" }field { $name="pLogger" $
+ type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pPl
+ atform" $type="org.psem2m.isolates.services.dirs.IPlatformDirsSvc" }f
+ ield { $name="pStatus" $type="org.psem2m.status.storage.IStatusStorag
+ e" }field { $name="pStatusCreator" $type="org.psem2m.status.storage.I
+ StatusStorageCreator" }method { $name="changeQueue" $return="boolean"
+  $arguments="{java.lang.String,org.cohorte.monitor.impl.EIsolateState
+ ,java.lang.String}" }method { $name="getIsolateDescription" $return="
+ org.psem2m.isolates.services.conf.beans.IsolateConf" $arguments="{jav
+ a.lang.String}" }method { $name="getIsolatesOnNode" $return="java.lan
+ g.String[]" $arguments="{java.lang.String}" }method { $name="getIsola
+ tesWaitingForNode" $return="org.psem2m.isolates.services.conf.beans.I
+ solateConf[]" $arguments="{java.lang.String}" }method { $name="getRun
+ ningIsolatesUIDs" $return="java.lang.String[]" }method { $name="getWa
+ itingIsolate" $return="org.psem2m.isolates.services.conf.beans.Isolat
+ eConf" $arguments="{java.lang.String}" }method { $name="getWaitingIso
+ latesUIDs" $return="java.lang.String[]" }method { $name="invalidate" 
+ }method { $name="isAcceptableIsolate" $return="boolean" $arguments="{
+ org.psem2m.isolates.services.conf.beans.IsolateConf}" }method { $name
+ ="isolateLoading" $return="boolean" $arguments="{java.lang.String}" }
+ method { $name="isolateReady" $return="boolean" $arguments="{java.lan
+ g.String}" }method { $name="isolateRequested" $return="boolean" $argu
+ ments="{java.lang.String}" }method { $name="isolateStopped" $return="
+ boolean" $arguments="{java.lang.String}" }method { $name="isRunning" 
+ $return="boolean" $arguments="{java.lang.String}" }method { $name="is
+ Waiting" $return="boolean" $arguments="{java.lang.String}" }method { 
+ $name="prepareIsolate" $return="boolean" $arguments="{java.lang.Strin
+ g,org.psem2m.isolates.services.conf.beans.IsolateConf}" }method { $na
+ me="validate" }}}component { $classname="org.cohorte.monitor.impl.Pla
+ tformController" $name="cohorte-platform-controller-factory" $public=
+ "true" provides { $specifications="{org.cohorte.monitor.api.IPlatform
+ Controller,org.cohorte.monitor.api.IIsolatePresenceListener,org.cohor
+ te.monitor.api.IForkerPresenceListener}" }requires { $field="pForkers
+ " }requires { $field="pLogger" }requires { $field="pParser" }requires
+  { $field="pStatus" }manipulation { interface { $name="org.cohorte.mo
+ nitor.api.IPlatformController" }interface { $name="org.cohorte.monito
+ r.api.IIsolatePresenceListener" }interface { $name="org.cohorte.monit
+ or.api.IForkerPresenceListener" }field { $name="pForkers" $type="org.
+ cohorte.monitor.api.IForkerAggregator" }field { $name="pLogger" $type
+ ="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pParser
+ " $type="org.psem2m.isolates.services.conf.IConfigurationParser" }fie
+ ld { $name="pStatus" $type="org.cohorte.monitor.api.IMonitorStatus" }
+ method { $name="forkerLost" $arguments="{java.lang.String,java.lang.S
+ tring}" }method { $name="forkerReady" $arguments="{java.lang.String,j
+ ava.lang.String}" }method { $name="isAlive" $return="boolean" $argume
+ nts="{java.lang.String}" }method { $name="isolateLost" $arguments="{j
+ ava.lang.String,java.lang.String,java.lang.String}" }method { $name="
+ isolateReady" $arguments="{java.lang.String,java.lang.String,java.lan
+ g.String}" }method { $name="startIsolate" $return="java.lang.String" 
+ $arguments="{org.psem2m.isolates.services.conf.beans.IsolateConf}" }m
+ ethod { $name="startIsolate" $return="java.lang.String" $arguments="{
+ java.lang.String,java.lang.String,java.lang.String,java.lang.String,j
+ ava.lang.String,java.util.Map,java.util.Collection,java.util.Collecti
+ on}" }method { $name="stopIsolate" $return="boolean" $arguments="{jav
+ a.lang.String}" }method { $name="stopPlatform" $arguments="{boolean}"
+  }}}component { $classname="org.cohorte.monitor.impl.StaticConfigurat
+ ionReader" $name="cohorte-platform-static-isolates-factory" $public="
+ true" requires { $field="pController" }requires { $field="pFinder" }r
+ equires { $field="pLogger" }requires { $field="pPlatform" }properties
+  { property { $name="static-file" $field="pDefaultFile" $value="" }}c
+ allback { $transition="validate" $method="validate" }manipulation { f
+ ield { $name="pController" $type="org.cohorte.monitor.api.IPlatformCo
+ ntroller" }field { $name="pDefaultFile" $type="java.lang.String" }fie
+ ld { $name="pFinder" $type="org.psem2m.isolates.services.dirs.IFileFi
+ nderSvc" }field { $name="pLogger" $type="org.psem2m.isolates.base.IIs
+ olateLoggerSvc" }field { $name="pPlatform" $type="org.psem2m.isolates
+ .services.dirs.IPlatformDirsSvc" }method { $name="load" $arguments="{
+ java.lang.String}" }method { $name="validate" }}}
+
