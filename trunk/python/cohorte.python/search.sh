@@ -7,9 +7,11 @@
 BEFORE=4
 AFTER=4
 
-# Java log files
-LOG_FILES=$(echo $COHORTE_BASE/var/**/log/LogService-*.txt)
-
-# Search it
-grep --color -i -n -B "$BEFORE" -A "$AFTER" "$1" $LOG_FILES
+# Search !
+for file in $COHORTE_BASE/var/**/log/LogService-*.txt
+do
+    echo "Reading... $file"
+    grep --color -i -n -B "$BEFORE" -A "$AFTER" "$1" $file
+    echo "\n"
+done
 
