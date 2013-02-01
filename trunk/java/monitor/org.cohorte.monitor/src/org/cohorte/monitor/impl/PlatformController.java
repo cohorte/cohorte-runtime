@@ -16,7 +16,6 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.cohorte.monitor.api.IForkerAggregator;
 import org.cohorte.monitor.api.IForkerPresenceListener;
-import org.cohorte.monitor.api.IIsolatePresenceListener;
 import org.cohorte.monitor.api.IMonitorStatus;
 import org.cohorte.monitor.api.IPlatformController;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
@@ -24,6 +23,7 @@ import org.psem2m.isolates.services.conf.IConfigurationParser;
 import org.psem2m.isolates.services.conf.beans.BundleConf;
 import org.psem2m.isolates.services.conf.beans.ComponentConf;
 import org.psem2m.isolates.services.conf.beans.IsolateConf;
+import org.psem2m.isolates.services.monitoring.IIsolatePresenceListener;
 
 /**
  * Prepares isolates configuration and ask the forker aggregator to send the
@@ -57,8 +57,8 @@ public class PlatformController implements IPlatformController,
      * (non-Javadoc)
      * 
      * @see
-     * monitor.interfaces.IForkerPresenceListener#forkerGone(java.lang.String,
-     * java.lang.String)
+     * org.cohorte.monitor.api.IForkerPresenceListener#forkerLost(java.lang.
+     * String, java.lang.String)
      */
     @Override
     public void forkerLost(final String aUID, final String aNode) {
@@ -78,8 +78,8 @@ public class PlatformController implements IPlatformController,
      * (non-Javadoc)
      * 
      * @see
-     * monitor.interfaces.IForkerPresenceListener#forkerReady(java.lang.String,
-     * java.lang.String)
+     * org.cohorte.monitor.api.IForkerPresenceListener#forkerReady(java.lang
+     * .String, java.lang.String)
      */
     @Override
     public void forkerReady(final String aUID, final String aNode) {
@@ -117,8 +117,8 @@ public class PlatformController implements IPlatformController,
      * (non-Javadoc)
      * 
      * @see
-     * monitor.interfaces.IIsolatePresenceListener#isolateGone(java.lang.String,
-     * java.lang.String, java.lang.String)
+     * org.cohorte.monitor.api.IIsolatePresenceListener#isolateLost(java.lang
+     * .String, java.lang.String, java.lang.String)
      */
     @Override
     public void isolateLost(final String aUID, final String aName,
@@ -128,14 +128,15 @@ public class PlatformController implements IPlatformController,
         pStatus.isolateStopped(aUID);
 
         // TODO Notify the isolate rules handler -> restart, do nothing
+        pLogger.logDebug(this, "isolateLost", "Isolate LOST=", aUID);
     }
 
     /*
      * (non-Javadoc)
      * 
      * @see
-     * monitor.interfaces.IIsolatePresenceListener#isolateReady(java.lang.String
-     * , java.lang.String, java.lang.String)
+     * org.cohorte.monitor.api.IIsolatePresenceListener#isolateReady(java.lang
+     * .String, java.lang.String, java.lang.String)
      */
     @Override
     public void isolateReady(final String aUID, final String aName,
@@ -143,6 +144,8 @@ public class PlatformController implements IPlatformController,
 
         // Clear the isolate out of the waiting list
         pStatus.isolateReady(aUID);
+
+        pLogger.logDebug(this, "isolateReady", "Isolate READY=", aUID);
     }
 
     /**
@@ -198,8 +201,13 @@ public class PlatformController implements IPlatformController,
         // Ask the forker to start the isolate
         final int result = pForkers
                 .startIsolate(uid, node, kind, configuration);
+
         pLogger.logDebug(this, "startIsolate", "Result=", result, "for UID=",
                 uid);
+
+        if (result >= 0) {
+            pStatus.isolateRequested(uid);
+        }
 
         /*
          * TODO: handle result code:

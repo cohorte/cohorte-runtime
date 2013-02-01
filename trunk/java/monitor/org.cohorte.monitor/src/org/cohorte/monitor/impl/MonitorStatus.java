@@ -442,6 +442,19 @@ public class MonitorStatus implements IMonitorStatus {
         // Sets up the status storage
         pStatus = pStatusCreator.createStorage();
 
+        // Make this isolate as ready
+        try {
+            pStatus.store(pPlatform.getIsolateUID(), null, EIsolateState.READY);
+
+        } catch (final InvalidIdException ex) {
+            pLogger.logWarn(this, "validate",
+                    "Can't store the current isolate state:", ex);
+
+        } catch (final InvalidStateException ex) {
+            pLogger.logWarn(this, "validate",
+                    "Can't store the current isolate state:", ex);
+        }
+
         pLogger.logInfo(this, "validate", "Monitor status ready");
     }
 }
