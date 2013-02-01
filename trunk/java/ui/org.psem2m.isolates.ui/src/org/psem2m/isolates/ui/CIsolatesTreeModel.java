@@ -17,7 +17,6 @@ import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
-import org.psem2m.isolates.services.monitoring.IIsolatePresenceListener;
 import org.psem2m.signals.ISignalDirectory;
 
 /**
@@ -41,6 +40,35 @@ public class CIsolatesTreeModel implements TreeModel {
 
         super();
         pSignalDirectory = aSignalDirectory;
+    }
+
+    /**
+     * Adds an isolate in the tree
+     * 
+     * @param aUID
+     *            Isolate UID
+     * @param aName
+     *            Isolate name
+     * @param aNode
+     *            Isolate node
+     */
+    public synchronized void addIsolate(final String aUID, final String aName,
+            final String aNode) {
+
+        // Find or create the node
+        CSnapshotNode wNode = findNode(aNode);
+        if (wNode == null) {
+            wNode = new CSnapshotNode(aNode);
+            wNode.setHostName(pSignalDirectory.getHostForNode(aNode));
+
+            // Store the new node
+            pSnapshotNodes.add(wNode);
+        }
+
+        // Store the isolate
+        final CSnapshotIsolate snapshot = new CSnapshotIsolate(aUID, aName);
+        snapshot.setHostAccess(pSignalDirectory.getIsolateAccess(aUID));
+        wNode.add(snapshot);
     }
 
     /*
@@ -167,60 +195,6 @@ public class CIsolatesTreeModel implements TreeModel {
         return "Isolates";
     }
 
-    /**
-     * Handles an isolate presence event
-     * 
-     * @param aUID
-     *            Isolate UID
-     * @param aName
-     *            Isolate name
-     * @param aNode
-     *            Isolate node
-     * @param aPresence
-     *            Event type
-     */
-    public void handleIsolatePresence(final String aUID, final String aName,
-            final String aNode,
-            final IIsolatePresenceListener.EPresence aPresence) {
-
-        CSnapshotNode wNode = findNode(aNode);
-
-        switch (aPresence) {
-        case REGISTERED: {
-            synchronized (pSnapshotNodes) {
-                // Find or create the node
-                if (wNode == null) {
-                    wNode = new CSnapshotNode(aNode);
-                    wNode.setHostName(pSignalDirectory.getHostForNode(aNode));
-
-                    // Store the new node
-                    pSnapshotNodes.add(wNode);
-                }
-
-                // Store the isolate
-                final CSnapshotIsolate snapshot = new CSnapshotIsolate(aUID,
-                        aName);
-                snapshot.setHostAccess(pSignalDirectory.getIsolateAccess(aUID));
-                wNode.add(snapshot);
-            }
-            break;
-        }
-
-        case UNREGISTERED: {
-            // Find the node index in the list
-            synchronized (pSnapshotNodes) {
-                if (wNode != null) {
-                    wNode.removeChild(aUID);
-                    if (wNode.getChildCount() <= 0) {
-                        pSnapshotNodes.remove(wNode);
-                    }
-                }
-            }
-            break;
-        }
-        }
-    }
-
     /*
      * (non-Javadoc)
      * 
@@ -236,6 +210,29 @@ public class CIsolatesTreeModel implements TreeModel {
         }
 
         return aObject instanceof CSnapshotIsolate;
+    }
+
+    /**
+     * Removes an isolate from the tree
+     * 
+     * @param aUID
+     *            Isolate UID
+     * @param aName
+     *            Isolate name
+     * @param aNode
+     *            Isolate node
+     */
+    public synchronized void removeIsolate(final String aUID,
+            final String aName, final String aNode) {
+
+        // Find the node index in the list
+        final CSnapshotNode wNode = findNode(aNode);
+        if (wNode != null) {
+            wNode.removeChild(aUID);
+            if (wNode.getChildCount() <= 0) {
+                pSnapshotNodes.remove(wNode);
+            }
+        }
     }
 
     /*

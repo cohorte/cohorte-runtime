@@ -13,27 +13,26 @@ package org.psem2m.isolates.services.monitoring;
 public interface IIsolatePresenceListener {
 
     /**
-     * Defines the presence event type
+     * Notifies the loss of an isolate
      * 
-     * @author Thomas Calmant
+     * @param aUID
+     *            Isolate UID
+     * @param aName
+     *            Isolate name
+     * @param aNode
+     *            Isolate node
      */
-    enum EPresence {
-        /** Isolate registered in directory */
-        REGISTERED,
-        /** Isolate unregistered or lost */
-        UNREGISTERED,
-    }
+    void isolateLost(String aUID, String aName, String aNode);
 
     /**
-     * Notifies the listener of an isolate presence event
+     * Notifies the registration of an isolate
      * 
-     * @param aIsolateId
-     *            Isolate ID
+     * @param aUID
+     *            Isolate UID
+     * @param aName
+     *            Isolate name
      * @param aNode
-     *            Node of the isolate
-     * @param aPresence
-     *            Presence event type
+     *            Isolate node
      */
-    void handleIsolatePresence(String aIsolateId, String aNode,
-            EPresence aPresence);
+    void isolateReady(String aUID, String aName, String aNode);
 }

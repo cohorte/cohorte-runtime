@@ -74,65 +74,6 @@ public class BroadcastSignalHandler extends CPojoBase implements
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.services.monitoring.IIsolatePresenceListener#
-     * handleIsolatePresence(java.lang.String, java.lang.String,
-     * org.psem2m.isolates
-     * .services.monitoring.IIsolatePresenceListener.EPresence)
-     */
-    @Override
-    public void handleIsolatePresence(final String aIsolateId,
-            final String aNode, final EPresence aPresence) {
-
-        if (pPlatform.getIsolateUID().equals(aIsolateId)) {
-            // Ignore local isolate events
-            return;
-        }
-
-        switch (aPresence) {
-        case UNREGISTERED:
-            // Isolate lost : Notify all listeners
-            for (final IRemoteServiceEventListener listener : pRemoteEventsListeners) {
-                try {
-                    listener.handleIsolateLost(aIsolateId);
-
-                } catch (final Exception ex) {
-                    // Just log...
-                    pLogger.logWarn(
-                            this,
-                            "handleIsolatePresence",
-                            "RemoveServiceEventListener failed to handle lost isolate=",
-                            aIsolateId, ex);
-                }
-            }
-            break;
-
-        case REGISTERED:
-            // Isolate registered: Ask for its end points
-            for (final IRemoteServiceEventListener listener : pRemoteEventsListeners) {
-                try {
-                    listener.handleIsolateReady(aIsolateId);
-
-                } catch (final Exception ex) {
-                    // Just log...
-                    pLogger.logWarn(
-                            this,
-                            "handleIsolatePresence",
-                            "RemoveServiceEventListener failed to handle registered isolate=",
-                            aIsolateId, ex);
-                }
-            }
-            break;
-
-        default:
-            pLogger.logWarn(this, "handleIsolatePresence",
-                    "Unhandled isolate presence type=", aPresence);
-            break;
-        }
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
      * @see org.psem2m.signals.ISignalListener#
      * handleReceivedSignal(java.lang.String, org.psem2m.signals.ISignalData)
      */
@@ -309,6 +250,70 @@ public class BroadcastSignalHandler extends CPojoBase implements
         pSignalReceiver.unregisterListener(ISignalsConstants.MATCH_ALL, this);
         pLogger.logInfo(this, "invalidatePojo",
                 "PSEM2M Remote Service Broadcaster Handler Gone");
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.services.monitoring.IIsolatePresenceListener#isolateLost
+     * (java.lang.String, java.lang.String, java.lang.String)
+     */
+    @Override
+    public void isolateLost(final String aUID, final String aName,
+            final String aNode) {
+
+        if (pPlatform.getIsolateUID().equals(aUID)) {
+            // Ignore local isolate events
+            return;
+        }
+
+        // Isolate lost : Notify all listeners
+        for (final IRemoteServiceEventListener listener : pRemoteEventsListeners) {
+            try {
+                listener.handleIsolateLost(aUID);
+
+            } catch (final Exception ex) {
+                // Just log...
+                pLogger.logWarn(
+                        this,
+                        "isolateLost",
+                        "RemoveServiceEventListener failed to handle lost isolate=",
+                        aUID, ex);
+            }
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.services.monitoring.IIsolatePresenceListener#isolateReady
+     * (java.lang.String, java.lang.String, java.lang.String)
+     */
+    @Override
+    public void isolateReady(final String aUID, final String aName,
+            final String aNode) {
+
+        if (pPlatform.getIsolateUID().equals(aUID)) {
+            // Ignore local isolate events
+            return;
+        }
+
+        // Isolate registered: Ask for its end points
+        for (final IRemoteServiceEventListener listener : pRemoteEventsListeners) {
+            try {
+                listener.handleIsolateReady(aUID);
+
+            } catch (final Exception ex) {
+                // Just log...
+                pLogger.logWarn(
+                        this,
+                        "isolateReady",
+                        "RemoveServiceEventListener failed to handle registered isolate=",
+                        aUID, ex);
+            }
+        }
     }
 
     /*

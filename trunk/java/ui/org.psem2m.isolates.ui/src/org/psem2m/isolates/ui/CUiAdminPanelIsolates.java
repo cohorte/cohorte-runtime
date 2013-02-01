@@ -72,40 +72,6 @@ public class CUiAdminPanelIsolates extends CPojoBase implements
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.services.monitoring.IIsolatePresenceListener#
-     * handleIsolatePresence(java.lang.String, java.lang.String,
-     * org.psem2m.isolates
-     * .services.monitoring.IIsolatePresenceListener.EPresence)
-     */
-    @Override
-    public void handleIsolatePresence(final String aIsolateUID,
-            final String aNode, final EPresence aPresence) {
-
-        pLogger.logInfo(this, "handleIsolatePresence",
-                "Node=[%s] IsolateId=[%s] Presence=[%s]", aNode, aIsolateUID,
-                aPresence.name());
-
-        if (pIsolatesTreeModel != null) {
-            pIsolatesTreeModel.handleIsolatePresence(aIsolateUID,
-                    pSignalDirectory.getIsolateName(aIsolateUID), aNode,
-                    aPresence);
-        }
-
-        SwingUtilities.invokeLater(new Runnable() {
-
-            @Override
-            public void run() {
-
-                if (pPanelIsolates != null) {
-                    pPanelIsolates.updateTree();
-                }
-            }
-        });
-    }
-
     /**
      * 
      */
@@ -159,10 +125,75 @@ public class CUiAdminPanelIsolates extends CPojoBase implements
         }
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.services.monitoring.IIsolatePresenceListener#isolateLost
+     * (java.lang.String, java.lang.String, java.lang.String)
+     */
+    @Override
+    public void isolateLost(final String aUID, final String aName,
+            final String aNode) {
+
+        pLogger.logInfo(this, "isolateLost", "Del - Node=[%s] IsolateId=[%s]",
+                aNode, aUID);
+
+        if (pIsolatesTreeModel != null) {
+            pIsolatesTreeModel.removeIsolate(aUID, aName, aNode);
+        }
+
+        SwingUtilities.invokeLater(new Runnable() {
+
+            @Override
+            public void run() {
+
+                if (pPanelIsolates != null) {
+                    pPanelIsolates.updateTree();
+                }
+            }
+        });
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.services.monitoring.IIsolatePresenceListener#isolateReady
+     * (java.lang.String, java.lang.String, java.lang.String)
+     */
+    @Override
+    public void isolateReady(final String aUID, final String aName,
+            final String aNode) {
+
+        pLogger.logInfo(this, "isolateReady", "Add - Node=[%s] IsolateId=[%s]",
+                aNode, aUID);
+
+        if (pIsolatesTreeModel != null) {
+            pIsolatesTreeModel.addIsolate(aUID, aName, aNode);
+        }
+
+        SwingUtilities.invokeLater(new Runnable() {
+
+            @Override
+            public void run() {
+
+                if (pPanelIsolates != null) {
+                    pPanelIsolates.updateTree();
+                }
+            }
+        });
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.ui.admin.api.IUiAdminPanelControler#setUiAdminFont
+     * (org.psem2m.isolates.ui.admin.api.EUiAdminFont)
+     */
     @Override
     public void setUiAdminFont(final EUiAdminFont aUiAdminFont) {
-
-        // TODO Auto-generated method stub
 
     }
 

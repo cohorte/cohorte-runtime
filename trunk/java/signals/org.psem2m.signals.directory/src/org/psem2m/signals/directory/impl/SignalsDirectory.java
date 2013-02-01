@@ -30,7 +30,6 @@ import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.isolates.services.monitoring.IIsolatePresenceListener;
-import org.psem2m.isolates.services.monitoring.IIsolatePresenceListener.EPresence;
 import org.psem2m.signals.HostAccess;
 import org.psem2m.signals.ISignalDirectory;
 import org.psem2m.status.storage.IStatusStorage;
@@ -100,8 +99,7 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
             // Notify the new listener of all known isolates
             for (final String isolate : isolates) {
                 final String node = getIsolateNode(isolate);
-                aListener.handleIsolatePresence(isolate, node,
-                        EPresence.REGISTERED);
+                aListener.isolateReady(isolate, pNames.get(isolate), node);
             }
         }
     }
@@ -556,6 +554,32 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
                 || state == EIsolateRegistrationState.NOTIFIED;
     }
 
+    /**
+     * Notifies isolate presence listeners of an event
+     * 
+     * @param aIsolateId
+     *            Isolate ID
+     * @param aNode
+     *            Node of the isolate
+     * @param aPresence
+     *            Presence event type
+     */
+    private synchronized void notifyIsolateLost(final String aUID,
+            final String aName, final String aNode) {
+
+        for (final IIsolatePresenceListener listener : pListeners) {
+            // Notify all listeners
+            try {
+                listener.isolateLost(aUID, aName, aNode);
+
+            } catch (final Exception ex) {
+                // Just log...
+                pLogger.logWarn(this, "notifyIsolateLost", "Listener=",
+                        listener, "failed to handle event", ex);
+            }
+        }
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -564,23 +588,21 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
      * )
      */
     @Override
-    public synchronized boolean notifyIsolatePresence(final String aIsolateId) {
+    public synchronized boolean notifyIsolatePresence(final String aUID) {
 
         // Update the registration
-        if (registrationStateChange(aIsolateId,
-                EIsolateRegistrationState.NOTIFIED)) {
+        if (registrationStateChange(aUID, EIsolateRegistrationState.NOTIFIED)) {
 
             // We can notify listeners
-            notifyPresenceListeners(aIsolateId, getIsolateNode(aIsolateId),
-                    EPresence.REGISTERED);
+            notifyIsolateReady(aUID, pNames.get(aUID), getIsolateNode(aUID));
 
             return true;
 
         } else {
             // Can't change state
             pLogger.logWarn(this, "notifyIsolatePresence",
-                    "Can't notify the presence of isolate=", aIsolateId,
-                    "due to current state=", getRegistrationState(aIsolateId));
+                    "Can't notify the presence of isolate=", aUID,
+                    "due to current state=", getRegistrationState(aUID));
         }
 
         return false;
@@ -596,17 +618,17 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
      * @param aPresence
      *            Presence event type
      */
-    private synchronized void notifyPresenceListeners(final String aIsolateId,
-            final String aNode, final EPresence aPresence) {
+    private synchronized void notifyIsolateReady(final String aUID,
+            final String aName, final String aNode) {
 
         for (final IIsolatePresenceListener listener : pListeners) {
             // Notify all listeners
             try {
-                listener.handleIsolatePresence(aIsolateId, aNode, aPresence);
+                listener.isolateReady(aUID, aName, aNode);
 
             } catch (final Exception ex) {
                 // Just log...
-                pLogger.logWarn(this, "notifyPresenceListeners", "Listener=",
+                pLogger.logWarn(this, "notifyIsolateReady", "Listener=",
                         listener, "failed to handle event", ex);
             }
         }
@@ -975,7 +997,7 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
         }
 
         // Remove reference in names
-        pNames.remove(aUID);
+        final String isolateName = pNames.remove(aUID);
 
         // Keep the current registration state
         final EIsolateRegistrationState registrationState = getRegistrationState(aUID);
@@ -991,7 +1013,7 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
 
         if (registrationState == EIsolateRegistrationState.NOTIFIED) {
             // Notify listeners if they knew about the isolate
-            notifyPresenceListeners(aUID, isolateNode, EPresence.UNREGISTERED);
+            notifyIsolateLost(aUID, isolateName, isolateNode);
         }
 
         return true;
