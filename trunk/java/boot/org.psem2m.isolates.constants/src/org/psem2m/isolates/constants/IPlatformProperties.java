@@ -109,4 +109,9 @@ public interface IPlatformProperties {
      */
     String SPECIAL_ISOLATE_ID_MONITOR = SPECIAL_INTERNAL_ISOLATES_PREFIX
             + "monitor";
+
+    /**
+     * Special isolate name: forker
+     */
+    String SPECIAL_NAME_FORKER = "cohorte.internals.forker";
 }

@@ -1,12 +1,13 @@
 package org.psem2m.isolates.base.activators;
 
+import java.util.logging.Level;
+
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
-import org.osgi.service.log.LogService;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.utilities.CXObjectBase;
 import org.psem2m.utilities.CXStringUtils;
@@ -158,17 +159,17 @@ public abstract class CActivatorBase extends CXObjectBase implements
             final ServiceReference<?>[] wSRs = pContext
                     .getAllServiceReferences(null, null);
 
-            pLogger.logInfo(this, "getAllServiceReferences", "NbServices=[%d]",
+            log(Level.INFO, "getAllServiceReferences", "NbServices=[%d]",
                     wSRs.length);
+
             return wSRs;
 
         } catch (final InvalidSyntaxException e) {
             // can't throw an InvalidSyntaxException, the method
             // getAllServiceReferences uses no filter !
-            pLogger.logSevere(this, "getAllServiceReferences", e);
+            log(Level.SEVERE, "getAllServiceReferences", e);
             return new ServiceReference[0];
         }
-
     }
 
     /*
@@ -234,6 +235,26 @@ public abstract class CActivatorBase extends CXObjectBase implements
         return pLogger != null;
     }
 
+    /**
+     * Logs the given event, if a logger is bound
+     * 
+     * @param aLevel
+     *            Log level
+     * @param aWho
+     *            Current object
+     * @param aWhat
+     *            Current action
+     * @param aInfos
+     *            Log message
+     */
+    private void log(final Level aLevel, final CharSequence aWhat,
+            final Object... aInfos) {
+
+        if (hasIsolateLoggerSvc()) {
+            pLogger.log(aLevel, this, aWhat, aInfos);
+        }
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -252,15 +273,13 @@ public abstract class CActivatorBase extends CXObjectBase implements
         // Register a service listener
         final StringBuilder filterBuilder = new StringBuilder();
         filterBuilder.append("(objectclass=");
-        filterBuilder.append(LogService.class.getName());
+        filterBuilder.append(IIsolateLoggerSvc.class.getName());
         filterBuilder.append(")");
 
         pContext.addServiceListener(new CIsolateLoggerListener(),
                 filterBuilder.toString());
 
-        if (hasIsolateLoggerSvc()) {
-            pLogger.logInfo(this, "start", "START", toDescription());
-        }
+        log(Level.INFO, "start", "START", toDescription());
     }
 
     /*
@@ -272,9 +291,7 @@ public abstract class CActivatorBase extends CXObjectBase implements
     @Override
     public void stop(final BundleContext bundleContext) throws Exception {
 
-        if (hasIsolateLoggerSvc()) {
-            pLogger.logInfo(this, "stop", "STOP", toDescription());
-        }
+        log(Level.INFO, "stop", "STOP", toDescription());
 
         unbindIsolateLoggerSvc();
         pContext = null;

@@ -121,6 +121,22 @@ public class ComponentConf {
     }
 
     /**
+     * Converts the bean to a map
+     * 
+     * @return A map
+     */
+    public Map<String, Object> toMap() {
+
+        final Map<String, Object> result = new HashMap<String, Object>();
+
+        result.put("factory", pFactory);
+        result.put("name", pName);
+        result.put("properties", pProperties);
+
+        return result;
+    }
+
+    /**
      * Adds, updates or removes the given property. If aValue is null, the
      * property is removed. If aKey is null, the method does nothing.
      * 

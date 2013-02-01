@@ -64,7 +64,10 @@ public class ConfigurationParser implements IConfigurationParser {
         final IsolateConf isolate = new IsolateConf(
                 (String) aConfiguration.get("uid"),
                 (String) aConfiguration.get("name"),
-                (String) aConfiguration.get("node"));
+                (String) aConfiguration.get("node"),
+                (String) aConfiguration.get("kind"),
+                (String) aConfiguration.get("level"),
+                (String) aConfiguration.get("sublevel"));
 
         // Convert bundles
         final Collection<Map<String, Object>> rawBundles = (Collection<Map<String, Object>>) aConfiguration
@@ -103,5 +106,25 @@ public class ConfigurationParser implements IConfigurationParser {
         isolate.setComponents(components);
 
         return isolate;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.isolates.services.conf.IConfigurationParser#prepareIsolate
+     * (java.lang.String, java.lang.String, java.lang.String, java.lang.String,
+     * java.lang.String, java.lang.String, java.util.Collection,
+     * java.util.Collection)
+     */
+    @Override
+    public Map<String, Object> prepareIsolate(final String aUID,
+            final String aName, final String aNode, final String aKind,
+            final String aLevel, final String aSubLevel,
+            final Collection<Map<String, Object>> aBundles,
+            final Collection<Map<String, Object>> aComposition) {
+
+        return pBridge.prepareIsolate(aUID, aName, aNode, aKind, aLevel,
+                aSubLevel, aBundles, aComposition);
     }
 }

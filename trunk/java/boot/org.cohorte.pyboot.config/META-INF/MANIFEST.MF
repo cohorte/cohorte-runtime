@@ -20,27 +20,30 @@ iPOJO-Components: component { $classname="org.cohorte.pyboot.config.Co
  i.IPyBridge" }method { $name="loadIsolateFile" $return="org.psem2m.is
  olates.services.conf.beans.IsolateConf" $arguments="{java.lang.String
  }" }method { $name="loadIsolateMap" $return="org.psem2m.isolates.serv
- ices.conf.beans.IsolateConf" $arguments="{java.util.Map}" }}}componen
- t { $classname="org.cohorte.pyboot.config.StartConfiguration" $name="
- cohorte-pyboot-configuration-start-factory" $public="true" provides {
-  $specifications="{org.psem2m.isolates.services.conf.IStartConfigurat
- ion}" controller { $field="pServiceFlag" $value="false" }}requires { 
- $field="pBridge" $optional="true" $nullable="true" $id="python-bridge
- " callback { $method="bindBridge" $type="bind" }}requires { $field="p
- Parser" $optional="true" $nullable="true" $id="config-parser" callbac
- k { $method="bindParser" $type="bind" }}callback { $transition="inval
- idate" $method="invalidate" }callback { $transition="validate" $metho
- d="validate" }manipulation { interface { $name="org.psem2m.isolates.s
- ervices.conf.IStartConfiguration" }field { $name="pApplication" $type
- ="org.psem2m.isolates.services.conf.beans.ApplicationDescription" }fi
- eld { $name="pBridge" $type="org.cohorte.pyboot.api.IPyBridge" }field
-  { $name="pConfiguration" $type="org.psem2m.isolates.services.conf.be
- ans.IsolateConf" }field { $name="pParser" $type="org.psem2m.isolates.
- services.conf.IConfigurationParser" }field { $name="pServiceFlag" $ty
- pe="boolean" }method { $name="bindBridge" }method { $name="bindParser
- " }method { $name="getApplication" $return="org.psem2m.isolates.servi
- ces.conf.beans.ApplicationDescription" }method { $name="getConfigurat
- ion" $return="org.psem2m.isolates.services.conf.beans.IsolateConf" }m
- ethod { $name="invalidate" }method { $name="loadConfiguration" $retur
- n="boolean" }method { $name="validate" }}}
+ ices.conf.beans.IsolateConf" $arguments="{java.util.Map}" }method { $
+ name="prepareIsolate" $return="java.util.Map" $arguments="{java.lang.
+ String,java.lang.String,java.lang.String,java.lang.String,java.lang.S
+ tring,java.lang.String,java.util.Collection,java.util.Collection}" }}
+ }component { $classname="org.cohorte.pyboot.config.StartConfiguration
+ " $name="cohorte-pyboot-configuration-start-factory" $public="true" p
+ rovides { $specifications="{org.psem2m.isolates.services.conf.IStartC
+ onfiguration}" controller { $field="pServiceFlag" $value="false" }}re
+ quires { $field="pBridge" $optional="true" $nullable="true" $id="pyth
+ on-bridge" callback { $method="bindBridge" $type="bind" }}requires { 
+ $field="pParser" $optional="true" $nullable="true" $id="config-parser
+ " callback { $method="bindParser" $type="bind" }}callback { $transiti
+ on="invalidate" $method="invalidate" }callback { $transition="validat
+ e" $method="validate" }manipulation { interface { $name="org.psem2m.i
+ solates.services.conf.IStartConfiguration" }field { $name="pApplicati
+ on" $type="org.psem2m.isolates.services.conf.beans.ApplicationDescrip
+ tion" }field { $name="pBridge" $type="org.cohorte.pyboot.api.IPyBridg
+ e" }field { $name="pConfiguration" $type="org.psem2m.isolates.service
+ s.conf.beans.IsolateConf" }field { $name="pParser" $type="org.psem2m.
+ isolates.services.conf.IConfigurationParser" }field { $name="pService
+ Flag" $type="boolean" }method { $name="bindBridge" }method { $name="b
+ indParser" }method { $name="getApplication" $return="org.psem2m.isola
+ tes.services.conf.beans.ApplicationDescription" }method { $name="getC
+ onfiguration" $return="org.psem2m.isolates.services.conf.beans.Isolat
+ eConf" }method { $name="invalidate" }method { $name="loadConfiguratio
+ n" $return="boolean" }method { $name="validate" }}}
 

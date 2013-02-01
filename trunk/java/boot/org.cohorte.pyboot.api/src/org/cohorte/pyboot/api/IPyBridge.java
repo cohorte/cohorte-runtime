@@ -5,6 +5,7 @@
  */
 package org.cohorte.pyboot.api;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -64,6 +65,32 @@ public interface IPyBridge {
      *            An error message
      */
     void onError(String aError);
+
+    /**
+     * Prepares the configuration dictionary of an isolate
+     * 
+     * @param aUID
+     *            Isolate UID
+     * @param aName
+     *            Isolate name
+     * @param aNode
+     *            Isolate node
+     * @param aKind
+     *            Isolate kind
+     * @param aLevel
+     *            Level of configuration (boot, Java, Python, ...)
+     * @param aSubLevel
+     *            Category of configuration (monitor, isolate, ...)
+     * @param aBundles
+     *            Isolate bundles
+     * @param aComposition
+     *            Isolate components
+     * @return The configuration dictionary
+     */
+    Map<String, Object> prepareIsolate(String aUID, String aName, String aNode,
+            String aKind, String aLevel, String aSubLevel,
+            Collection<Map<String, Object>> aBundles,
+            Collection<Map<String, Object>> aComposition);
 
     /**
      * Reads the given configuration file

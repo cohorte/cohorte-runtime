@@ -6,6 +6,7 @@
 package org.psem2m.isolates.services.conf.beans;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -33,6 +34,9 @@ public class IsolateConf {
     /** Kind of isolate */
     private String pKind;
 
+    /** Configuration level */
+    private String pLevel;
+
     /** Name of the isolate */
     private String pName;
 
@@ -41,6 +45,9 @@ public class IsolateConf {
 
     /** Isolate properties */
     private final Map<String, Object> pProperties = new HashMap<String, Object>();
+
+    /** Configuration category */
+    private String pSublevel;
 
     /** UID of the isolate */
     private String pUID;
@@ -62,11 +69,22 @@ public class IsolateConf {
      *            Isolate name
      * @param aNode
      *            Isolate node
+     * @param aKind
+     *            Isolate kind
+     * @param aLevel
+     *            Configuration level
+     * @param aSublevel
+     *            Configuration category
      */
-    public IsolateConf(final String aUID, final String aName, final String aNode) {
+    public IsolateConf(final String aUID, final String aName,
+            final String aNode, final String aKind, final String aLevel,
+            final String aSublevel) {
 
         pUID = aUID;
         pName = aName;
+        pKind = aKind;
+        pLevel = aLevel;
+        pSublevel = aSublevel;
         pNode = aNode;
     }
 
@@ -111,6 +129,14 @@ public class IsolateConf {
     }
 
     /**
+     * @return the level
+     */
+    public String getLevel() {
+
+        return pLevel;
+    }
+
+    /**
      * @return the name
      */
     public String getName() {
@@ -135,6 +161,14 @@ public class IsolateConf {
     }
 
     /**
+     * @return the sub level
+     */
+    public String getSublevel() {
+
+        return pSublevel;
+    }
+
+    /**
      * @return the uID
      */
     public String getUID() {
@@ -146,7 +180,7 @@ public class IsolateConf {
      * @param aBootArguments
      *            the bootArguments to set
      */
-    public void setBootArguments(final List<String> aBootArguments) {
+    public void setBootArguments(final Collection<String> aBootArguments) {
 
         if (aBootArguments != null) {
             pBootArguments.addAll(aBootArguments);
@@ -157,7 +191,7 @@ public class IsolateConf {
      * @param aBundles
      *            the bundles to set
      */
-    public void setBundles(final List<BundleConf> aBundles) {
+    public void setBundles(final Collection<BundleConf> aBundles) {
 
         if (aBundles != null) {
             pBundles.addAll(aBundles);
@@ -168,7 +202,7 @@ public class IsolateConf {
      * @param aComponents
      *            the components to set
      */
-    public void setComponents(final List<ComponentConf> aComponents) {
+    public void setComponents(final Collection<ComponentConf> aComponents) {
 
         if (aComponents != null) {
             pComponents.addAll(aComponents);
@@ -193,6 +227,15 @@ public class IsolateConf {
     public void setKind(final String aKind) {
 
         pKind = aKind;
+    }
+
+    /**
+     * @param aLevel
+     *            the level to set
+     */
+    public void setLevel(final String aLevel) {
+
+        pLevel = aLevel;
     }
 
     /**
@@ -222,6 +265,15 @@ public class IsolateConf {
         if (aProperties != null) {
             pProperties.putAll(aProperties);
         }
+    }
+
+    /**
+     * @param aSublevel
+     *            the sub level to set
+     */
+    public void setSublevel(final String aSublevel) {
+
+        pSublevel = aSublevel;
     }
 
     /**
