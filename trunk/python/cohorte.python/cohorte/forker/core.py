@@ -24,7 +24,7 @@ import cohorte.utils as utils
 
 # Pelix framework
 from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
-    Invalidate
+    Invalidate, Provides
 
 # Standard library
 import json
@@ -112,6 +112,7 @@ SIGNAL_ISOLATE_STOP = "STOP"
 # ------------------------------------------------------------------------------
 
 @ComponentFactory('cohorte-forker-factory')
+@Provides(cohorte.SERVICE_FORKER)
 @Requires('_config', cohorte.SERVICE_CONFIGURATION_READER)
 @Requires('_config_broker', cohorte.SERVICE_CONFIGURATION_BROKER)
 @Requires('_receiver', cohorte.SERVICE_SIGNALS_RECEIVER)
@@ -212,13 +213,10 @@ class Forker(object):
         # Make the configuration
         try:
             # Load the boot-monitor file
-            configuration = self._config.load_conf_raw('java', 'monitor')
-
-            # Extend with the OSGi boot
-            configuration.update(self._config.prepare_isolate(self._monitor_uid,
-                                                              MONITOR_NAME,
-                                                              node,
-                                                              MONITOR_KIND))
+            configuration = self._config.prepare_isolate(self._monitor_uid,
+                                                         MONITOR_NAME, node,
+                                                         MONITOR_KIND,
+                                                         'java', 'monitor')
 
         except IOError as ex:
             _logger.error("Can't read a configuration for the monitor: %s", ex)
@@ -397,12 +395,16 @@ class Forker(object):
         self._state_dir.prepare_isolate(uid)
 
         # Prepare the dumper port property
-        isolate_config['properties'][cohorte.PROP_DUMPER_PORT] = \
-                                            self._receiver.get_access_info()[1]
+        isolate_props = isolate_config.setdefault('properties', {})
+        isolate_props[cohorte.PROP_DUMPER_PORT] = self._receiver. \
+                                                            get_access_info()[1]
 
         # Store the configuration in the broker
         config_url = self._config_broker.store_configuration(uid,
                                                              isolate_config)
+
+        from pprint import pformat
+        _logger.debug("Starting isolate with config:\n%s", pformat(isolate_config))
 
         # Start the boot script
         try:
@@ -578,7 +580,7 @@ class Forker(object):
                 pass
 
             # In debug mode, print the raw output
-            w_isolate_id = isolate_id[:25]
+            # w_isolate_id = isolate_id[:25]
             # TODO: _logger.debug("FROM %25s:\n> %s", w_isolate_id, line)
             print(">> %s" % line)
 
@@ -681,11 +683,11 @@ class Forker(object):
 
             elif name == SIGNAL_START_ISOLATE:
                 # Start an isolate with the given description
-                return self.startIsolate(signal_content["isolateDescr"])
+                return self.start_isolate(signal_content["isolateDescr"])
 
             elif name == SIGNAL_STOP_ISOLATE:
                 # Stop the isolate with the given ID
-                return self.stopIsolate(signal_content["isolateId"])
+                return self.stop_isolate(signal_content["isolateId"])
 
             elif name == SIGNAL_PLATFORM_STOPPING:
                 # Platform is stopping: do not start new isolates

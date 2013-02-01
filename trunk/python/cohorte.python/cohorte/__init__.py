@@ -123,6 +123,11 @@ SVCPROP_ISOLATE_LOADER_KIND = 'loader.kind'
 
 # ------------------------------------------------------------------------------
 
+SERVICE_FORKER = 'cohorte.forker'
+""" Represents a forker service """
+
+# ------------------------------------------------------------------------------
+
 SERVICE_JAVA_RUNNER = 'cohorte.java.runner'
 """
 Loads a Java Virtual Machine (JVM) in the current process. Only one JVM can be
