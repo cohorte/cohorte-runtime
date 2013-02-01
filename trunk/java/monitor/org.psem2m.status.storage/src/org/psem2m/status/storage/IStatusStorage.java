@@ -40,6 +40,15 @@ public interface IStatusStorage<S extends State, T> {
     void clear();
 
     /**
+     * Tests if the given ID is in the storage
+     * 
+     * @param aId
+     *            A value ID
+     * @return True if the ID is known
+     */
+    boolean contains(String aId);
+
+    /**
      * Retrieves the value associated to the given ID
      * 
      * @param aId
@@ -49,6 +58,18 @@ public interface IStatusStorage<S extends State, T> {
      *             The given ID wasn't found
      */
     T get(final String aId) throws InvalidIdException;
+
+    /**
+     * Retrieves the value associated to the given ID, or the default one if the
+     * ID is unknown
+     * 
+     * @param aId
+     *            A value ID
+     * @param aDefault
+     *            The value to use if the ID is unknown
+     * @return The value associated to the ID, or the default one
+     */
+    T getdefault(String aId, T aDefault);
 
     /**
      * Retrieves all the IDs currently in one of the given states

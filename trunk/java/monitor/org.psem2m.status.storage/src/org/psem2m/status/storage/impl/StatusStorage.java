@@ -107,6 +107,17 @@ public class StatusStorage<S extends State, T> implements IStatusStorage<S, T> {
     /*
      * (non-Javadoc)
      * 
+     * @see org.psem2m.status.storage.IStatusStorage#contains(java.lang.String)
+     */
+    @Override
+    public synchronized boolean contains(final String aId) {
+
+        return pValues.containsKey(aId);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.psem2m.status.storage.IStatusStorage#get(java.lang.String)
      */
     @Override
@@ -118,6 +129,24 @@ public class StatusStorage<S extends State, T> implements IStatusStorage<S, T> {
         }
 
         return pValues.get(aId);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.psem2m.status.storage.IStatusStorage#getdefault(java.lang.String,
+     * java.lang.Object)
+     */
+    @Override
+    public synchronized T getdefault(final String aId, final T aDefault) {
+
+        if (pValues.containsKey(aId)) {
+            // Return the known content
+            return pValues.get(aId);
+        }
+
+        return aDefault;
     }
 
     /*
