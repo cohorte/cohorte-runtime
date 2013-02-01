@@ -378,4 +378,15 @@ public class WaitingSignal implements IWaitingSignal {
         System.arraycopy(aSendToResult, 0, pSendToResult, 0,
                 pSendToResult.length);
     }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+
+        return "WaitingSignal('" + pName + "', " + pAccess + ", " + pMode + ")";
+    }
 }

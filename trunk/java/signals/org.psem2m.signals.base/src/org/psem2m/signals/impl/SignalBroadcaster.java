@@ -933,7 +933,12 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
                 final Iterator<WaitingSignal> iter = pWaitingList.iterator();
 
                 while (iter.hasNext()) {
+
                     final WaitingSignal signal = iter.next();
+
+                    pLogger.logDebug(this, "waitingListThread",
+                            "Trying to handle waiting signal:", signal);
+
                     if (handleWaitingSignal(signal)) {
                         // Signal sent
                         iter.remove();

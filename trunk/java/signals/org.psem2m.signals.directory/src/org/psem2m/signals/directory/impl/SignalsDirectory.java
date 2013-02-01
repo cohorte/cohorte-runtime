@@ -733,7 +733,7 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
         }
 
         // Store the name
-        pNames.get(aName);
+        pNames.put(aUID, aName);
 
         // Store the registration state
         if (needsStatusCreation) {
@@ -854,12 +854,6 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * org.psem2m.signals.ISignalDirectory#unregisterIsolate(java.lang.String)
-     */
-    /*
-     * (non-Javadoc)
-     * 
      * @see org.psem2m.signals.ISignalDirectory#storeDump(java.util.Map,
      * java.util.Collection, java.util.Collection)
      */
@@ -867,6 +861,9 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
     public synchronized String[] storeDump(final Map<?, ?> aDumpedDirectory,
             final Collection<String> aIgnoredNodes,
             final Collection<String> aIgnoredIds) {
+
+        pLogger.logDebug(this, "storeDump", "Dump=", aDumpedDirectory,
+                "ignored nodes=", aIgnoredNodes, "uids=", aIgnoredIds);
 
         // 0. Always ignore the current isolate and node
         final String localUID = pPlatform.getIsolateUID();

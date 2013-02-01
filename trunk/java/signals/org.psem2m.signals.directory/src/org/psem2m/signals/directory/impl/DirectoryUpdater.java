@@ -504,8 +504,8 @@ public class DirectoryUpdater implements ISignalListener,
 
             // Stack the signal
             pSender.stackTo(ISignalDirectoryConstants.SIGNAL_DUMP, content,
-                    this, ESendMode.SEND, Integer.MAX_VALUE, new HostAccess(
-                            "localhost", dumperPort));
+                    this, ESendMode.SEND, 10, new HostAccess("localhost",
+                            dumperPort));
         }
 
         pLogger.logInfo(this, "validate", "Directory Updater Ready");
