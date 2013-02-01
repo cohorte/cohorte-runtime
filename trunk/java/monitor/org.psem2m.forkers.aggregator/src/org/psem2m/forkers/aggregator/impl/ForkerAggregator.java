@@ -34,9 +34,10 @@ import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
+import org.cohorte.monitor.api.IForkerAggregator;
+import org.cohorte.monitor.api.IForkerPresenceListener;
 import org.psem2m.forker.IForker;
 import org.psem2m.forker.IForkerEventListener;
-import org.psem2m.forker.IForkerEventListener.EForkerEventType;
 import org.psem2m.forker.IForkerStatus;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.constants.IPlatformProperties;
@@ -60,9 +61,10 @@ import org.psem2m.signals.ISignalSendResult;
  * @author Thomas Calmant
  */
 @Component(name = "psem2m-forker-aggregator-factory", publicFactory = false)
-@Provides(specifications = IForker.class)
+@Provides(specifications = IForkerAggregator.class)
 @Instantiate(name = "psem2m-forker-aggregator")
-public class ForkerAggregator implements IForker, IPacketListener, Runnable {
+public class ForkerAggregator implements IForkerAggregator, IPacketListener,
+        Runnable {
 
     /** Maximum time without forker notification : 5 seconds */
     private static final long FORKER_TTL = 10000;
@@ -92,7 +94,7 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
 
     /** The forker events listeners */
     @Requires(id = IPOJO_ID_LISTENERS, optional = true)
-    private IForkerEventListener pListeners[];
+    private IForkerPresenceListener pListeners[];
 
     /** The logger */
     @Requires
@@ -132,7 +134,7 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
      */
     @Bind(id = IPOJO_ID_LISTENERS)
     protected synchronized void bindListener(
-            final IForkerEventListener aListener) {
+            final IForkerPresenceListener aListener) {
 
         // Get all forkers
         final String[] forkers = pDirectory.getAllIsolates(
@@ -142,11 +144,8 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
             // Call back the listener to register all of them
             for (final String forker : forkers) {
 
-                final String node = pDirectory.getIsolateNode(forker);
-                final String host = pDirectory.getHostForNode(node);
-
-                aListener.handleForkerEvent(EForkerEventType.REGISTERED,
-                        forker, node, host);
+                aListener
+                        .forkerReady(forker, pDirectory.getIsolateNode(forker));
             }
         }
     }
@@ -187,33 +186,33 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
     /**
      * Notifies listeners of a forker event
      * 
-     * @param aEventType
-     *            The kind of event
-     * @param aForkerId
-     *            The forker isolate ID
-     * @param aForkerNode
+     * @param aUID
+     *            The forker UID
+     * @param aNode
      *            The forker node name
+     * @param aRegistered
+     *            If true, the forker has been registered, else it has been lost
      */
-    protected synchronized void fireForkerEvent(
-            final EForkerEventType aEventType, final String aForkerId,
-            final String aForkerNode) {
-
-        // Get the host name
-        final String forkerHost = pDirectory.getHostForNode(aForkerNode);
+    protected synchronized void fireForkerEvent(final String aUID,
+            final String aNode, final boolean aRegistered) {
 
         // Copy the active listeners
-        final IForkerEventListener[] listeners = Arrays.copyOf(pListeners,
+        final IForkerPresenceListener[] listeners = Arrays.copyOf(pListeners,
                 pListeners.length);
 
+        // Call the listeners in another thread
         pEventExecutor.submit(new Runnable() {
 
             @Override
             public void run() {
 
-                for (final IForkerEventListener listener : listeners) {
+                for (final IForkerPresenceListener listener : listeners) {
                     try {
-                        listener.handleForkerEvent(aEventType, aForkerId,
-                                aForkerNode, forkerHost);
+                        if (aRegistered) {
+                            listener.forkerReady(aUID, aNode);
+                        } else {
+                            listener.forkerLost(aUID, aNode);
+                        }
 
                     } catch (final Exception e) {
                         // A listener failed
@@ -228,25 +227,37 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
     /**
      * Finds the first isolate with a forker ID on the given node
      * 
-     * @param aNodeName
+     * @param aNode
      *            The name of a node
+     * @param aKind
+     *            The kind the forker must handle
      * @return The first forker found on the node, or null
      */
-    protected String getForkerForNode(final String aNodeName) {
+    protected String getForker(final String aNode, final String aKind) {
 
-        final String[] isolates = pDirectory.getIsolatesOnNode(aNodeName);
-        if (isolates == null) {
+        // Get all forkers
+        final String[] forkers = pDirectory
+                .getNameUIDs(IPlatformProperties.SPECIAL_NAME_FORKER);
+        if (forkers == null || forkers.length == 0) {
+            // No forker known (yet)
             return null;
         }
 
-        for (final String isolate : isolates) {
-            if (isolate
-                    .startsWith(IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER)) {
-                // Node forker found
-                return isolate;
+        if (aNode == null) {
+            // No node given, use the first known forker
+            return forkers[0];
+        }
+
+        for (final String forker : forkers) {
+
+            if (aNode.equals(pDirectory.getIsolateNode(forker))) {
+                // Matching forker
+                pLogger.logDebug(this, "getForker", "FOUND=", forker);
+                return forker;
             }
         }
 
+        // No match found
         return null;
     }
 
@@ -330,17 +341,6 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.forker.IForker#getHostName()
-     */
-    @Override
-    public String getNodeName() {
-
-        return pPlatform.getIsolateNode();
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
      * @see
      * org.psem2m.forkers.aggregator.impl.IPacketListener#handleError(java.lang
      * .Exception)
@@ -373,11 +373,11 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
         // ... the application ID (string)
         final String applicationId = extractString(aData);
 
-        // Check if the application corresponds to us
+        // TODO: Check if the application corresponds to us
         if (!pConfig.getApplication().getApplicationId().equals(applicationId)) {
             // Not for us, ignore.
             // Avoid to log, as this will happen every heart beat
-            return;
+            // return;
         }
 
         // ... the isolate ID (string)
@@ -400,6 +400,7 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
             // TODO: use pSender.postTo() to test the access
 
             // Register the forker in the internal directory
+            pLogger.logDebug(this, "handleBeat", "Register forker=", forkerId);
             registerForker(forkerId, nodeId, aSenderAddress, port);
         }
     }
@@ -483,96 +484,66 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.forker.IForker#isOnHost(java.lang.String,
-     * java.lang.String)
+     * @see org.cohorte.monitor.IForkerAggregator#isAlive(java.lang.String)
      */
     @Override
-    public boolean isOnNode(final String aForkerId, final String aNodeName) {
+    public boolean isAlive(final String aUID) {
 
-        if (aForkerId == null) {
-            // Invalid ID
-            return false;
-        }
-
-        final String[] nodeIsolates = pDirectory.getIsolatesOnNode(aNodeName);
-        if (nodeIsolates == null) {
-            // No isolates on this node
-            return false;
-        }
-
-        for (final String isolate : nodeIsolates) {
-            if (aForkerId.equals(isolate)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.forker.IForker#ping(java.lang.String)
-     */
-    @Override
-    public int ping(final String aIsolateId) {
-
-        final String forker = pIsolateForkers.get(aIsolateId);
+        final String forker = pIsolateForkers.get(aUID);
         if (forker == null) {
-            pLogger.logSevere(this, "ping", "No forker known for isolate ID=",
-                    aIsolateId);
-            return -1;
+            pLogger.logSevere(this, "ping", "No forker known for isolate UID=",
+                    aUID);
+            return false;
         }
 
         // Prepare the order
         final Map<String, Object> order = new HashMap<String, Object>();
-        order.put("isolateId", aIsolateId);
+        order.put("uid", aUID);
 
         return getForkerIntResult(forker, IForkerOrders.SIGNAL_PING_ISOLATE,
-                order, 1000);
+                order, 1000) == 0;
     }
 
     /**
      * Registers a forker in the internal directory, using a heart beat signal
      * data, and notifies listeners on success.
      * 
-     * @param aForkerId
-     *            The forker isolate ID
-     * @param aForkerNode
+     * @param aUID
+     *            The forker UID
+     * @param aNode
      *            The node hosting the forker
      * @param aHost
      *            The node host address
      * @param aPort
      *            The forker signals access port
      */
-    protected void registerForker(final String aForkerId,
-            final String aForkerNode, final String aHost, final int aPort) {
+    protected void registerForker(final String aUID, final String aNode,
+            final String aHost, final int aPort) {
 
         // Update the node host
-        if (!pPlatform.getIsolateNode().equals(aForkerNode)) {
+        if (!pPlatform.getIsolateNode().equals(aNode)) {
             // Don't update our node
-            pDirectory.setNodeAddress(aForkerNode, aHost);
+            pDirectory.setNodeAddress(aNode, aHost);
         }
 
         // Register the forker (it can already be in the directory)
-        if (pDirectory.registerIsolate(aForkerId,
-                IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER, aForkerNode,
-                aPort)) {
+        if (pDirectory.registerIsolate(aUID,
+                IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER, aNode, aPort)) {
             // Send it a SYN-ACK
-            pDirectory.synchronizingIsolatePresence(aForkerId);
+            pDirectory.synchronizingIsolatePresence(aUID);
             pSender.fire(ISignalDirectoryConstants.SIGNAL_REGISTER_SYNACK,
-                    null, aForkerId);
+                    null, aUID);
 
             // Fresh forker: we can send it a contact signal as someone else
             // may not known it
             sendContactSignal(aHost, aPort);
         }
 
-        pLogger.logInfo(this, "registerForker", "Registered forker ID=",
-                aForkerId, "Node=", aForkerNode, "Port=", aPort);
+        pLogger.logInfo(this, "registerForker", "Registered forker ID=", aUID,
+                "Node=", aNode, "Port=", aPort);
 
         // Notify listeners
-        fireForkerEvent(EForkerEventType.REGISTERED, aForkerId, aForkerNode);
+        fireForkerEvent(aUID, aNode, true);
     }
 
     /*
@@ -667,7 +638,7 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.forker.IForker#setPlatformStopping()
+     * @see org.cohorte.monitor.api.IForkerAggregator#setPlatformStopping()
      */
     @Override
     public void setPlatformStopping() {
@@ -679,32 +650,27 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.forker.IForker#startIsolate(java.util.Map)
+     * @see
+     * org.cohorte.monitor.api.IForkerAggregator#startIsolate(java.lang.String,
+     * java.lang.String, java.lang.String, java.util.Map)
      */
     @Override
-    public int startIsolate(final Map<String, Object> aIsolateConfiguration) {
+    public int startIsolate(final String aUID, final String aNode,
+            final String aKind, final Map<String, Object> aIsolateConfiguration) {
 
-        String hostName = (String) aIsolateConfiguration.get("node");
-        if (hostName == null || hostName.isEmpty()) {
-            hostName = getNodeName();
-        }
-
-        final String forker = getForkerForNode(hostName);
+        final String forker = getForker(aNode, aKind);
         if (forker == null) {
             pLogger.logSevere(this, "startIsolate",
-                    "No forker known for host=", hostName);
+                    "No forker known for host=", aNode);
             return IForkerStatus.NO_MATCHING_FORKER;
         }
-
-        // Get the started isolate ID
-        final String isolateId = (String) aIsolateConfiguration.get("id");
 
         // Prepare the order
         final Map<String, Object> order = new HashMap<String, Object>();
         order.put("isolateDescr", aIsolateConfiguration);
 
         // Associate the isolate to the found forker
-        pIsolateForkers.put(isolateId, forker);
+        pIsolateForkers.put(aUID, forker);
 
         return getForkerIntResult(forker, IForkerOrders.SIGNAL_START_ISOLATE,
                 order, 1000);
@@ -713,48 +679,50 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.forker.IForker#stopIsolate(java.lang.String)
+     * @see org.cohorte.monitor.IForkerAggregator#stopIsolate(java.lang.String)
      */
     @Override
-    public void stopIsolate(final String aIsolateId) {
+    public boolean stopIsolate(final String aUID) {
 
-        final String forker = pIsolateForkers.get(aIsolateId);
+        final String forker = pIsolateForkers.get(aUID);
         if (forker == null) {
             pLogger.logSevere(this, "stopIsolate",
-                    "No forker known for isolate ID=", aIsolateId);
-            return;
+                    "No forker known for isolate UID=", aUID);
+            return false;
         }
 
         // Prepare the order
         final Map<String, Object> order = new HashMap<String, Object>();
-        order.put("isolateId", aIsolateId);
+        order.put("uid", aUID);
 
         // Send the order (don't care about the result)
         pSender.fire(IForkerOrders.SIGNAL_STOP_ISOLATE, order, forker);
+
+        // TODO: test the result of the signal
+        return true;
     }
 
     /**
      * Unregisters the given forker and notifies listeners on success
      * 
-     * @param aForkerId
-     *            The ID of the forker to unregister
+     * @param aUID
+     *            The UID of the forker to unregister
      */
-    protected synchronized void unregisterForker(final String aForkerId) {
+    protected synchronized void unregisterForker(final String aUID) {
 
         // Get the forker host
-        final String forkerNode = pDirectory.getIsolateNode(aForkerId);
+        final String forkerNode = pDirectory.getIsolateNode(aUID);
 
         pLogger.logDebug(this, "unregisterForker", "Unregistering forker=",
-                aForkerId, "for node=", forkerNode);
+                aUID, "for node=", forkerNode);
 
-        if (pDirectory.unregisterIsolate(aForkerId)) {
+        if (pDirectory.unregisterIsolate(aUID)) {
             // Forker has been removed
-            fireForkerEvent(EForkerEventType.UNREGISTERED, aForkerId,
-                    forkerNode);
+            fireForkerEvent(aUID, forkerNode, false);
         }
 
         // Remove the references to the forker
-        pForkersLST.remove(aForkerId);
+        pForkersLST.remove(aUID);
 
         // Clean up corresponding isolates
         final String[] isolates = pDirectory.getIsolatesOnNode(forkerNode);
@@ -771,7 +739,7 @@ public class ForkerAggregator implements IForker, IPacketListener, Runnable {
         }
 
         // Send the isolate lost signals
-        pSender.fireGroup(ISignalsConstants.ISOLATE_LOST_SIGNAL, aForkerId,
+        pSender.fireGroup(ISignalsConstants.ISOLATE_LOST_SIGNAL, aUID,
                 EBaseGroup.ALL);
         if (isolates != null) {
             for (final String isolate : isolates) {
