@@ -18,6 +18,8 @@
 		"name" : "cohorte.forker.state"
 	}, {
 		"name" : "cohorte.forker.state_updater"
+	}, {
+		"name" : "cohorte.forker.heartbeat"
 	} ],
 
 	/*
@@ -38,6 +40,7 @@
 			"pelix.shell.port" : 8001
 		}
 	},
+	
 	/* Forker specific components */
 	{
 		"factory" : "cohorte-forker-factory",
@@ -51,5 +54,8 @@
 	}, {
 		"factory" : "cohorte-forker-state-updater-factory",
 		"name" : "cohorte-forker-state-updater"
+	}, {
+		"factory" : "cohorte-forker-heart-factory",
+		"name" : "cohorte-forker-heart"
 	} ]
 }
