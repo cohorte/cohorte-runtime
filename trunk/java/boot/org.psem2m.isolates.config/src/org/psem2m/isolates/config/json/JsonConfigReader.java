@@ -420,12 +420,6 @@ public class JsonConfigReader implements IConfigurationReader {
         }
         isolateDescription.setPort(isolatePort);
 
-        // Application arguments
-        final JSONArray appArgsArray = aIsolateObject
-                .optJSONArray(IJsonConfigKeys.CONFIG_ISOLATE_APP_ARGS);
-        isolateDescription
-                .setAppArgs(jsonArrayToStringList(appArgsArray, true));
-
         // Class path
         final JSONArray classpathArray = aIsolateObject
                 .optJSONArray(IJsonConfigKeys.CONFIG_ISOLATE_CLASSPATH);
@@ -535,7 +529,7 @@ public class JsonConfigReader implements IConfigurationReader {
             }
 
             // Store it
-            pApplication.addIsolate(isolateDescription);
+            // pApplication.addIsolate(isolateDescription);
         }
     }
 

@@ -15,13 +15,10 @@ import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.config.IPlatformConfigurationConstants;
-import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.services.conf.IConfigurationReader;
 import org.psem2m.isolates.services.conf.ISvcConfig;
 import org.psem2m.isolates.services.conf.beans.ApplicationDescription;
-import org.psem2m.isolates.services.conf.beans.BundleDescription;
 import org.psem2m.isolates.services.conf.beans.IsolateDescription;
-import org.psem2m.utilities.CXListUtils;
 
 /**
  * Implements the configuration service
@@ -79,10 +76,7 @@ public class CJsonConfigSvc extends CPojoBase implements ISvcConfig {
             return pCurrentIsolate;
         }
 
-        // Return the read configuration
-        final String isolateId = System
-                .getProperty(IPlatformProperties.PROP_ISOLATE_UID);
-        return getApplication().getIsolate(isolateId);
+        return null;
     }
 
     /*
@@ -109,26 +103,22 @@ public class CJsonConfigSvc extends CPojoBase implements ISvcConfig {
 
         pLogger.logInfo(this, "logDumpConfig", "Application=", getApplication()
                 .getApplicationId());
-        for (final String wIsolateId : getApplication().getIsolateIds()) {
-
-            pLogger.logInfo(this, "logDumpConfig", " - IsolateId=", wIsolateId);
-
-            for (final BundleDescription wIBundleDescr : getApplication()
-                    .getIsolate(wIsolateId).getBundles()) {
-
-                pLogger.logInfo(this, "logDumpConfig", "   - Bundle=",
-                        wIBundleDescr.getSymbolicName(), "Optional=",
-                        wIBundleDescr.getOptional(), "Version=",
-                        wIBundleDescr.getVersion());
-
-                if (wIBundleDescr.hasProperties()) {
-                    pLogger.logInfo(this, "logDumpConfig",
-                            "     - Properties=", CXListUtils
-                                    .PropertiesToString(wIBundleDescr
-                                            .getProperties()));
-                }
-            }
-        }
+        /*
+         * for (final String wIsolateId : getApplication().getIsolateIds()) {
+         * 
+         * pLogger.logInfo(this, "logDumpConfig", " - IsolateId=", wIsolateId);
+         * 
+         * for (final BundleDescription wIBundleDescr : getApplication()
+         * .getIsolate(wIsolateId).getBundles()) {
+         * 
+         * pLogger.logInfo(this, "logDumpConfig", "   - Bundle=",
+         * wIBundleDescr.getSymbolicName(), "Optional=",
+         * wIBundleDescr.getOptional(), "Version=", wIBundleDescr.getVersion());
+         * 
+         * if (wIBundleDescr.hasProperties()) { pLogger.logInfo(this,
+         * "logDumpConfig", "     - Properties=", CXListUtils
+         * .PropertiesToString(wIBundleDescr .getProperties())); } } }
+         */
     }
 
     /*
