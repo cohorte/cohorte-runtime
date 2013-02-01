@@ -206,6 +206,23 @@ class PyBridge(object):
         self._callback(False, error)
 
 
+    def prepareIsolate(self, uid, name, node, kind, level, sublevel,
+                       bundles, composition):
+        """
+        Prepares the configuration dictionary of an isolate
+        """
+        try:
+            conf = self._parser.prepare_isolate(uid, name, node, kind,
+                                                level, sublevel,
+                                                bundles, composition)
+
+        except:
+            _logger.exception("Error preparing isolate...")
+            return None
+
+        return self._to_java(conf)
+
+
     def readConfiguration(self, filename):
         """
         Reads the given configuration file

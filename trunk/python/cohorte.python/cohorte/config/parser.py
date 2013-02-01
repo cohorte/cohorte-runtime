@@ -48,7 +48,8 @@ BootConfiguration = collections.namedtuple('BootConfiguration',
 
 # Boot configuration + Isolate basic description
 Isolate = collections.namedtuple('Isolate', BootConfiguration._fields
-                                            + ('name', 'kind', 'node'))
+                                            + ('name', 'kind', 'node',
+                                               'level', 'sublevel'))
 
 def _recursive_namedtuple_convert(data):
     """
@@ -192,9 +193,54 @@ class BootConfigParser(object):
 
         return Isolate(name=json_object['name'],
                        kind=json_object['kind'],
+                       level=json_object['level'],
+                       sublevel=json_object['sublevel'],
 
                        # Reuse boot configuration values
                        ** boot_config._asdict())
+
+
+    def _prepare_configuration(self, uid, name, node, kind,
+                              bundles=None, composition=None):
+        """
+        Prepares and returns a configuration dictionary to be stored in the
+        configuration broker, to start an isolate of the given kind.
+        
+        :param uid: The isolate UID
+        :param name: The isolate name
+        :param node: The isolate node name
+        :param kind: The kind of isolate to boot
+        :param bundles: Extra bundles to install
+        :param composition: Extra components to instantiate
+        :return: A configuration dictionary
+        :raise IOError: Unknown/unaccessible kind of isolate
+        :raise KeyError: A parameter is missing in the configuration files
+        :raise ValueError: Error reading the configuration
+        """
+        configuration = {}
+
+        # Set up isolate properties
+        configuration['uid'] = uid
+        configuration['name'] = name
+        configuration['node'] = node
+        configuration['kind'] = kind
+
+        # Boot configuration for the given kind
+        boot = self.load_boot(kind)
+
+        # Convert the boot configuration to a dictionary
+        configuration['boot'] = _recursive_namedtuple_convert(boot)
+
+        # Add bundles (or an empty list)
+        if bundles:
+            configuration['bundles'] = bundles
+
+        # Add components (or an empty list)
+        if composition:
+            configuration['composition'] = composition or []
+
+        # Return the configuration dictionary
+        return configuration
 
 
     def load_boot(self, kind):
@@ -217,6 +263,7 @@ class BootConfigParser(object):
         Loads the boot configuration for the given kind of isolate, or returns
         the one in the cache.
         
+        :param level: The level of configuration (boot, java, python)
         :param kind: The kind of isolate to boot
         :return: The loaded BootConfiguration object
         :raise IOError: Unknown/unaccessible kind of isolate
@@ -258,16 +305,18 @@ class BootConfigParser(object):
                                  properties=properties)
 
 
-    def prepare_isolate(self, uid, name, node, kind,
+    def prepare_isolate(self, uid, name, node, kind, level, sublevel,
                         bundles=None, composition=None):
         """
         Prepares and returns a configuration dictionary to be stored in the
         configuration broker, to start an isolate of the given kind.
         
         :param uid: The isolate UID
-        :param name: The isolate ID / model name
+        :param name: The isolate name
         :param node: The isolate node name
-        :param kind: The kind of isolate to boot
+        :param kind: The kind of isolate to boot (pelix, osgi, ...)
+        :param level: The level of configuration (boot, java, python, ...)
+        :param sublevel: Category of configuration (monitor, isolate, ...)
         :param bundles: Extra bundles to install
         :param composition: Extra components to instantiate
         :return: A configuration dictionary
@@ -275,29 +324,12 @@ class BootConfigParser(object):
         :raise KeyError: A parameter is missing in the configuration files
         :raise ValueError: Error reading the configuration
         """
-        configuration = {}
+        # Load the isolate model file
+        configuration = self.load_conf_raw(level, sublevel)
 
-        # Set up isolate properties
-        configuration['uid'] = uid
-        configuration['name'] = name
-        configuration['node'] = node
-        configuration['kind'] = kind
-
-        # Boot configuration for the given kind
-        boot = self.load_boot(kind)
-
-        # Convert the boot configuration to a dictionary
-        configuration['boot'] = _recursive_namedtuple_convert(boot)
-
-        # Add bundles (or an empty list)
-        if bundles:
-            configuration['bundles'] = bundles
-
-        # Add components (or an empty list)
-        if composition:
-            configuration['composition'] = composition or []
-
-        # Return the configuration dictionary
+        # Extend with the boot configuration
+        configuration.update(self._prepare_configuration(uid, name, node, kind,
+                                                         bundles, composition))
         return configuration
 
 
