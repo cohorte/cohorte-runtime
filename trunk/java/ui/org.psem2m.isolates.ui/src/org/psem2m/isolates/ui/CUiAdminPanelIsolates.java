@@ -81,15 +81,16 @@ public class CUiAdminPanelIsolates extends CPojoBase implements
      * .services.monitoring.IIsolatePresenceListener.EPresence)
      */
     @Override
-    public void handleIsolatePresence(final String aIsolateId,
+    public void handleIsolatePresence(final String aIsolateUID,
             final String aNode, final EPresence aPresence) {
 
         pLogger.logInfo(this, "handleIsolatePresence",
-                "Node=[%s] IsolateId=[%s] Presence=[%s]", aNode, aIsolateId,
+                "Node=[%s] IsolateId=[%s] Presence=[%s]", aNode, aIsolateUID,
                 aPresence.name());
 
         if (pIsolatesTreeModel != null) {
-            pIsolatesTreeModel.handleIsolatePresence(aIsolateId, aNode,
+            pIsolatesTreeModel.handleIsolatePresence(aIsolateUID,
+                    pSignalDirectory.getIsolateName(aIsolateUID), aNode,
                     aPresence);
         }
 

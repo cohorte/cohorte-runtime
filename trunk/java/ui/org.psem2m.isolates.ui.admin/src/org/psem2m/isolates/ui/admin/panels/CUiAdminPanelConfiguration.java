@@ -10,6 +10,8 @@
  *******************************************************************************/
 package org.psem2m.isolates.ui.admin.panels;
 
+import java.util.Properties;
+
 import javax.swing.SwingUtilities;
 
 import org.apache.felix.ipojo.annotations.Component;
@@ -20,8 +22,8 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.activators.CPojoBase;
-import org.psem2m.isolates.services.conf.ISvcConfig;
-import org.psem2m.isolates.services.conf.beans.BundleDescription;
+import org.psem2m.isolates.services.conf.IStartConfiguration;
+import org.psem2m.isolates.services.conf.beans.BundleConf;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.isolates.ui.admin.api.EUiAdminFont;
 import org.psem2m.isolates.ui.admin.api.EUiAdminPanelLocation;
@@ -53,9 +55,8 @@ public class CUiAdminPanelConfiguration extends CPojoBase implements
     @Requires
     private IPlatformDirsSvc pPlatformDirsSvc;
 
-    /** Configuration service */
     @Requires
-    private ISvcConfig pSvcConfig;
+    private IStartConfiguration pSvcConfig;
 
     /** the UiAdminPanel returned by the IUiAdminScv **/
     private IUiAdminPanel pUiAdminPanel = null;
@@ -70,15 +71,17 @@ public class CUiAdminPanelConfiguration extends CPojoBase implements
 
         final StringBuilder wSB = new StringBuilder();
 
-        CXStringUtils.appendKeyValInBuff(wSB, "Application", pSvcConfig
-                .getApplication().getApplicationId());
+        if (pSvcConfig.getApplication() != null) {
+            CXStringUtils.appendKeyValInBuff(wSB, "Application", pSvcConfig
+                    .getApplication().getApplicationId());
+        }
 
         // List other isolates
-        for (final String wIsolateId : pSvcConfig.getApplication()
-                .getIsolateIds()) {
-
-            CXStringUtils.appendKeyValInBuff(wSB, "\n - IsolateId", wIsolateId);
-        }
+        // for (final String wIsolateId : pSvcConfig.getApplication()
+        // .getIsolateIds()) {
+        //
+        // CXStringUtils.appendKeyValInBuff(wSB, "\n - IsolateId", wIsolateId);
+        // }
 
         // Print current isolate ID
         final String wCurrentIsolateId = pPlatformDirsSvc.getIsolateUID();
@@ -87,26 +90,26 @@ public class CUiAdminPanelConfiguration extends CPojoBase implements
 
         // Print current isolate Name
         final String wCurrentIsolateName = pPlatformDirsSvc.getIsolateName();
-        CXStringUtils.appendKeyValInBuff(wSB, "\nCurrentIsolateNaùe",
+        CXStringUtils.appendKeyValInBuff(wSB, "\nCurrentIsolateName",
                 wCurrentIsolateName);
 
         // Print the bundles of the active isolate configuration
-        for (final BundleDescription wIBundleDescr : pSvcConfig
-                .getCurrentIsolate().getBundles()) {
+        for (final BundleConf wBundle : pSvcConfig.getConfiguration()
+                .getBundles()) {
 
             CXStringUtils.appendKeyValInBuff(wSB, "\n  - Bundle",
-                    wIBundleDescr.getSymbolicName());
+                    wBundle.getName());
             CXStringUtils.appendKeyValInBuff(wSB, "Optional",
-                    wIBundleDescr.getOptional());
+                    wBundle.isOptional());
             CXStringUtils.appendKeyValInBuff(wSB, "Version",
-                    wIBundleDescr.getVersion());
+                    wBundle.getVersion());
 
-            if (wIBundleDescr.hasProperties()) {
-                CXStringUtils.appendKeyValInBuff(wSB, "\n    - Properties",
-                        CXListUtils.PropertiesToString(
-                                wIBundleDescr.getProperties(),
-                                "\n                  "));
-            }
+            // Convert map to properties
+            final Properties props = new Properties();
+            props.putAll(wBundle.getProperties());
+            CXStringUtils.appendKeyValInBuff(wSB, "\n    - Properties",
+                    CXListUtils.PropertiesToString(props,
+                            "\n                  "));
         }
 
         return wSB.toString();

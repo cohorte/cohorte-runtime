@@ -90,14 +90,14 @@ public class CSnapshotNode extends CSnapshotAbstract {
     }
 
     /**
-     * @param aIsolateId
+     * @param aUID
      * @return
      */
-    public int getIndexOfChild(final String aIsolateId) {
+    public int getIndexOfChild(final String aUID) {
 
         int wIdx = 0;
         for (final CSnapshotIsolate wChild : pIsolates) {
-            if (wChild.getName().equals(aIsolateId)) {
+            if (wChild.getUID().equals(aUID)) {
                 return wIdx;
             }
             wIdx++;
@@ -113,16 +113,16 @@ public class CSnapshotNode extends CSnapshotAbstract {
     @Override
     public String getTextInfo() {
 
-        return String.format("Node:\nname=[%s]\nHostName=[%s]", getName(),
-                getHostName());
+        return String.format("Node:\nName=[%s]\nHostName=[%s]", getName(),
+                pHostName);
     }
 
     /**
-     * @param aIsolateId
+     * @param aUID
      */
-    void removeChild(final String aIsolateId) {
+    void removeChild(final String aUID) {
 
-        final int wIdx = getIndexOfChild(aIsolateId);
+        final int wIdx = getIndexOfChild(aUID);
         if (wIdx > -1) {
             pIsolates.remove(wIdx);
         }

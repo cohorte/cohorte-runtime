@@ -31,6 +31,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
+import org.psem2m.isolates.ui.admin.CBundleUiActivator;
 import org.psem2m.isolates.ui.admin.api.EUiAdminFont;
 import org.psem2m.isolates.ui.admin.api.EUiAdminPanelLocation;
 import org.psem2m.isolates.ui.admin.api.IUiAdminPanel;
@@ -92,6 +93,7 @@ public class CFrameMain extends javax.swing.JFrame {
     public static void main(final String[] args) {
 
         SwingUtilities.invokeLater(new Runnable() {
+
             @Override
             public void run() {
 
@@ -104,19 +106,33 @@ public class CFrameMain extends javax.swing.JFrame {
     }
 
     private final CFrameMainConfig pFrameConfig;
+
     private IIsolateLoggerSvc pLogger;
+
     private JTabbedPane pMainTabbedPane;
+
     private JPanel pPanelLogos;
+
     private JLabel pPreferenceLabelReadability;
+
     private JLabel pPreferenceLogoIsandlaTech;
+
     private JLabel pPreferenceLogoLig;
+
     private JLabel pPreferenceLogoPSEM2M;
+
     private JPanel pPreferencesChoices;
+
     private JLabel pPreferencesFontLabel;
+
     private JComboBox pPreferencesFontSizeComboBox;
+
     private JPanel pPreferencesNorthPanel;
+
     private JPanel pPreferencesPanel;
+
     private JPanel pPreferencesSouthPanel;
+
     private CUiAdminSvc pUiAdminSvc;
 
     /**
@@ -125,7 +141,14 @@ public class CFrameMain extends javax.swing.JFrame {
     public CFrameMain() {
 
         super();
-        pFrameConfig = new CFrameMainConfig();
+
+        final CBundleUiActivator activator = CBundleUiActivator.getInstance();
+        if (activator != null) {
+            pFrameConfig = new CFrameMainConfig(activator.getContext());
+        } else {
+            pFrameConfig = new CFrameMainConfig(null);
+        }
+
         initGUI();
     }
 

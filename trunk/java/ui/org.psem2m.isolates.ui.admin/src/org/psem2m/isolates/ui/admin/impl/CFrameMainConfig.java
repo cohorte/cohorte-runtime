@@ -13,6 +13,7 @@ package org.psem2m.isolates.ui.admin.impl;
 import java.awt.Color;
 import java.awt.Dimension;
 
+import org.osgi.framework.BundleContext;
 import org.psem2m.utilities.CXObjectBase;
 import org.psem2m.utilities.CXStringUtils;
 
@@ -22,24 +23,36 @@ import org.psem2m.utilities.CXStringUtils;
  */
 public class CFrameMainConfig extends CXObjectBase {
 
-    public final static String COLOR = "psem2m.demo.ui.viewer.color";
-    public final static String DIM_HEIGHT = "psem2m.demo.ui.viewer.height";
-    public final static String DIM_LEFT = "psem2m.demo.ui.viewer.left";
-    public final static String DIM_TOP = "psem2m.demo.ui.viewer.top";
-    public final static String DIM_WIDTH = "psem2m.demo.ui.viewer.width";
+    private final static String COLOR = "psem2m.demo.ui.viewer.color";
+
+    private final static String DIM_HEIGHT = "psem2m.demo.ui.viewer.height";
+
+    private final static String DIM_LEFT = "psem2m.demo.ui.viewer.left";
+
+    private final static String DIM_TOP = "psem2m.demo.ui.viewer.top";
+
+    private final static String DIM_WIDTH = "psem2m.demo.ui.viewer.width";
+
+    /** The bundle context (to access properties) */
+    private final BundleContext pContext;
 
     private CFrameSizeValue pHeight;
+
     private EHtmlColor pHtmlColor;
+
     private CFrameSizeValue pLeft;
+
     private CFrameSizeValue pTop;
+
     private CFrameSizeValue pWidth;
 
     /**
      * 
      */
-    public CFrameMainConfig() {
+    public CFrameMainConfig(final BundleContext aContext) {
 
         super();
+        pContext = aContext;
         init();
     }
 
@@ -86,6 +99,31 @@ public class CFrameMainConfig extends CXObjectBase {
     }
 
     /**
+     * Retrieves the value of the given property from the framework or the
+     * system.
+     * 
+     * @param aKey
+     *            Property name
+     * @return Property value (or null)
+     */
+    private String getProperty(final String aKey) {
+
+        String value = null;
+
+        if (pContext != null) {
+            // Try the framework property
+            value = pContext.getProperty(aKey);
+        }
+
+        if (value == null) {
+            // Try the system property
+            value = System.getProperty(aKey);
+        }
+
+        return value;
+    }
+
+    /**
      * @return
      */
     public int getTop() {
@@ -115,17 +153,12 @@ public class CFrameMainConfig extends CXObjectBase {
     private void init() {
 
         setHeight(new CFrameSizeValue(EFrameSize.HEIGHT,
-                System.getProperty(DIM_HEIGHT)));
+                getProperty(DIM_HEIGHT)));
+        setWidth(new CFrameSizeValue(EFrameSize.WIDTH, getProperty(DIM_WIDTH)));
+        setTop(new CFrameSizeValue(EFrameSize.TOP, getProperty(DIM_TOP)));
+        setLeft(new CFrameSizeValue(EFrameSize.LEFT, getProperty(DIM_LEFT)));
 
-        setWidth(new CFrameSizeValue(EFrameSize.WIDTH,
-                System.getProperty(DIM_WIDTH)));
-
-        setTop(new CFrameSizeValue(EFrameSize.TOP, System.getProperty(DIM_TOP)));
-
-        setLeft(new CFrameSizeValue(EFrameSize.LEFT,
-                System.getProperty(DIM_LEFT)));
-
-        setHtmlColor(EHtmlColor.getHtmlColor(System.getProperty(COLOR)));
+        setHtmlColor(EHtmlColor.getHtmlColor(getProperty(COLOR)));
 
     }
 
@@ -168,5 +201,4 @@ public class CFrameMainConfig extends CXObjectBase {
 
         this.pWidth = aWidth;
     }
-
 }
