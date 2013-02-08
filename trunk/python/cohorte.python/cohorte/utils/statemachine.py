@@ -62,6 +62,18 @@ class State(object):
         return self.__name
 
 
+    def copy(self):
+        """
+        Makes a copy of this state
+        """
+        # Create a new instance
+        state = State(self.__name, self.__data, self.__callback)
+
+        # Copy the transitions
+        state.__transitions = self.__transitions.copy()
+        return state
+
+
     def add_transition(self, transition):
         """
         Adds a transition: if the event if encountered, then the state
@@ -163,7 +175,7 @@ class StateMachine(object):
     """
     Generic Finite State Machine
     """
-    def __init__(self, name=None):
+    def __init__(self, name=None, data=None):
         """
         Sets up members
         
@@ -178,6 +190,9 @@ class StateMachine(object):
         # FSM name
         self.__name = name or "FSM"
 
+        # FSM data
+        self.__data = data
+
         # Prepare the logger
         self._logger = logging.getLogger(self.__name)
 
@@ -187,6 +202,14 @@ class StateMachine(object):
         Description of the state machine
         """
         return "{0}({1})".format(self.__name, self.__state)
+
+
+    @property
+    def data(self):
+        """
+        The data associated to the state
+        """
+        return self.__data
 
 
     @property
@@ -204,6 +227,24 @@ class StateMachine(object):
         """
         if self.__state is not None:
             return self.__state.name
+
+
+    def copy(self, name=None, data=None):
+        """
+        Makes a simple copy of this state machine, without active state.
+        
+        If no name is given, the current one is used. The data member is not
+        inherited. 
+        
+        :param name: Name of the new FSM
+        :param data: Data associated to the new FSM
+        """
+        # Make a new FSM
+        fsm = StateMachine(name or self.__name, data)
+
+        # Make a copy of the state
+        fsm.__states = [state.copy() for state in fsm.__states]
+        return fsm
 
 
     def add_state(self, name, data=None, callback=None):
