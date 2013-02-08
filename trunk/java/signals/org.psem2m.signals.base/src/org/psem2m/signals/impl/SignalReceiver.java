@@ -137,8 +137,9 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver {
      * org.psem2m.signals.ISignalData, java.lang.String)
      */
     @Override
-    public SignalResult handleReceivedSignal(final String aSignalName,
-            final ISignalData aSignalData, final String aMode) {
+    public synchronized SignalResult handleReceivedSignal(
+            final String aSignalName, final ISignalData aSignalData,
+            final String aMode) {
 
         if (ISignalBroadcaster.MODE_SEND.equalsIgnoreCase(aMode)) {
             // Standard mode
@@ -159,14 +160,12 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver {
             SignalResult result = null;
 
             // Test if at least one listener will be notified
-            synchronized (pListeners) {
-                for (final String signal : pListeners.keySet()) {
-                    // Take care of jokers ('*' and '?')
-                    if (Utilities.matchFilter(aSignalName, signal)) {
-                        result = new SignalResult(ISignalsConstants.CODE_OK,
-                                "At least one listener found");
-                        break;
-                    }
+            for (final String signal : pListeners.keySet()) {
+                // Take care of jokers ('*' and '?')
+                if (Utilities.matchFilter(aSignalName, signal)) {
+                    result = new SignalResult(ISignalsConstants.CODE_OK,
+                            "At least one listener found");
+                    break;
                 }
             }
 
@@ -197,12 +196,10 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver {
      */
     @Override
     @Invalidate
-    public void invalidatePojo() throws BundleException {
+    public synchronized void invalidatePojo() throws BundleException {
 
         // Clear listeners
-        synchronized (pListeners) {
-            pListeners.clear();
-        }
+        pListeners.clear();
 
         // Stop the executor
         pNotificationExecutor.shutdown();
@@ -243,19 +240,16 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver {
      *            The signal data
      * @return A (code, listeners results) couple
      */
-    protected SignalResult notifyListeners(final String aSignalName,
-            final ISignalData aSignalData) {
+    protected synchronized SignalResult notifyListeners(
+            final String aSignalName, final ISignalData aSignalData) {
 
         final Set<ISignalListener> signalListeners = new HashSet<ISignalListener>();
 
-        // Get listeners set
-        synchronized (pListeners) {
-
-            for (final String signal : pListeners.keySet()) {
-                // Take care of jokers ('*' and '?')
-                if (Utilities.matchFilter(aSignalName, signal)) {
-                    signalListeners.addAll(pListeners.get(signal));
-                }
+        // Get the set of listeners
+        for (final String signal : pListeners.keySet()) {
+            // Take care of jokers ('*' and '?')
+            if (Utilities.matchFilter(aSignalName, signal)) {
+                signalListeners.addAll(pListeners.get(signal));
             }
         }
 
@@ -312,28 +306,25 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver {
      * (java.lang.String, org.psem2m.signals.impl.ISignalListener)
      */
     @Override
-    public void registerListener(final String aSignalName,
+    public synchronized void registerListener(final String aSignalName,
             final ISignalListener aListener) {
 
         if (aSignalName == null || aSignalName.isEmpty() || aListener == null) {
             // Invalid call
+            pLogger.logWarn(this, "registerListener",
+                    "Invalid parameter - signal=", aSignalName, "listener=",
+                    aListener);
             return;
         }
 
-        synchronized (pListeners) {
-
-            // Get or create the signal listeners set
-            Set<ISignalListener> signalListeners = pListeners.get(aSignalName);
-
-            if (signalListeners == null) {
-                signalListeners = new LinkedHashSet<ISignalListener>();
-                pListeners.put(aSignalName, signalListeners);
-            }
-
-            synchronized (signalListeners) {
-                signalListeners.add(aListener);
-            }
+        // Get or create the signal listeners set
+        Set<ISignalListener> signalListeners = pListeners.get(aSignalName);
+        if (signalListeners == null) {
+            signalListeners = new LinkedHashSet<ISignalListener>();
+            pListeners.put(aSignalName, signalListeners);
         }
+
+        signalListeners.add(aListener);
     }
 
     /**
@@ -362,24 +353,29 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver {
      * org.psem2m.signals.impl.ISignalListener)
      */
     @Override
-    public void unregisterListener(final String aSignalName,
+    public synchronized void unregisterListener(final String aSignalName,
             final ISignalListener aListener) {
 
-        if (aSignalName == null || aSignalName.isEmpty() || aListener == null) {
-            // Invalid call
+        if (aListener == null) {
+            // Invalid listener
+            pLogger.logWarn(this, "unregisterListener",
+                    "Invalid parameter - listener=", aListener);
             return;
         }
 
-        synchronized (pListeners) {
+        if (aSignalName == null) {
+            // Remove all occurrences to the listener
+            for (final Set<ISignalListener> signalListeners : pListeners
+                    .values()) {
+                signalListeners.remove(aSignalName);
+            }
 
-            // Get or create the signal listeners set
+        } else if (!aSignalName.isEmpty()) {
+            // Remove the listener for the given signal only
             final Set<ISignalListener> signalListeners = pListeners
                     .get(aSignalName);
-
             if (signalListeners != null) {
-                synchronized (signalListeners) {
-                    signalListeners.remove(aListener);
-                }
+                signalListeners.remove(aListener);
             }
         }
     }
