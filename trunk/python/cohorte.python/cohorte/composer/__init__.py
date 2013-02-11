@@ -12,3 +12,11 @@ instantiate these components in iPOPO or in iPOJO in an embedded JVM.
 
 # Documentation strings format
 __docformat__ = "restructuredtext en"
+
+# ------------------------------------------------------------------------------
+
+SERVICE_COMPOSITION_PARSER = 'cohorte.composer.parser'
+""" Specification of a composition parser """
+
+SERVICE_COMPOSITION_LOADER = 'cohorte.composer.loader'
+""" Specification of a composition loader """
