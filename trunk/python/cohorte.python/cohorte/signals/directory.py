@@ -22,52 +22,22 @@ __version__ = "1.0.0"
 # ------------------------------------------------------------------------------
 
 # COHORTE constants
-import cohorte
+import cohorte.forker
+import cohorte.monitor
+import cohorte.signals
 
 # Pelix/iPOPO
 from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
     Invalidate, Requires, Bind
-
 import pelix.framework as pelix
 
-# ------------------------------------------------------------------------------
-
+# Standard library
 import logging
-_logger = logging.getLogger(__name__)
-
 import threading
 
 # ------------------------------------------------------------------------------
 
-ALL = "ALL"
-""" All isolates, including the current one """
-
-FORKERS = "FORKERS"
-""" All forkers, including the current isolate if it is a forker """
-
-ISOLATES = "ISOLATES"
-"""
-All isolates, including monitors and the current one, excluding forkers.
-If the current isolate is a forker, it is excluded.
-"""
-
-CURRENT = "CURRENT"
-""" Current isolate """
-
-MONITORS = "MONITORS"
-""" All monitors, including the current isolate if it is a monitor """
-
-NEIGHBOURS = "NEIGHBOURS"
-""" All isolates on the current node, excluding the current one """
-
-OTHERS = "OTHERS"
-""" All isolates, with monitors and forkers, but this one """
-
-FORKER_NAME = "org.psem2m.internals.isolates.forker"
-""" Forkers isolate ID prefix """
-
-MONITOR_NAME = "org.psem2m.internals.isolates.monitor"
-""" Monitors isolate ID prefix """
+_logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
@@ -331,35 +301,38 @@ class SignalsDirectory(object):
         matching = None
 
         with self._lock:
-            if group_name == ALL:
+            if group_name == cohorte.signals.GROUP_ALL:
                 # Return all isolates, including the current one
                 matching = self.get_all_isolates(None, True)
 
-            elif group_name == OTHERS:
+            elif group_name == cohorte.signals.GROUP_OTHERS:
                 # Return all isolates, excluding the current one
                 matching = self.get_all_isolates(None, False)
 
-            elif group_name == CURRENT:
+            elif group_name == cohorte.signals.GROUP_CURRENT:
                 # Only the current isolate
                 matching = [isolate_id]
 
-            elif group_name == FORKERS:
+            elif group_name == cohorte.signals.GROUP_FORKERS:
                 # Return only forkers, including the current one
-                matching = self.get_all_isolates(FORKER_NAME, True)
+                matching = self.get_all_isolates(cohorte.forker.FORKER_NAME,
+                                                 True)
 
-            elif group_name == MONITORS:
+            elif group_name == cohorte.signals.GROUP_MONITORS:
                 # Return only monitors, including the current one
-                matching = self.get_all_isolates(MONITOR_NAME, True)
+                matching = self.get_all_isolates(cohorte.monitor.MONITOR_NAME,
+                                                 True)
 
-            elif group_name == ISOLATES:
+            elif group_name == cohorte.signals.GROUP_ISOLATES:
                 # Return all isolates but the forkers
                 matching = self.get_all_isolates(None, True)
                 if matching:
                     # Filter the list
                     matching = [isolate for isolate in matching
-                                if not isolate.startswith(FORKER_NAME)]
+                                if not isolate.startswith(\
+                                                  cohorte.forker.FORKER_NAME)]
 
-            elif group_name == NEIGHBOURS:
+            elif group_name == cohorte.signals.GROUP_NEIGHBOURS:
                 # Return all isolates but the forkers
                 matching = self.get_isolates_on_node(self.get_local_node())
                 if matching:
@@ -433,15 +406,16 @@ class SignalsDirectory(object):
         return self._names.get(uid)
 
 
-    def get_isolate_node(self, uid):
+    def get_isolate_node(self, uid=None):
         """
-        Retrieves the node hosting the given isolate
+        Retrieves the node hosting the given isolate, or None
         
         :param uid: An isolate UID
-        :return: THe node hosting the isolate
+        :return: The node hosting the isolate, the current node is uid is
+                 empty, or None
         """
         if not uid:
-            return None
+            return self._context.get_property(cohorte.PROP_NODE)
 
         with self._lock:
             for node, isolates in self._nodes_isolates.items():
@@ -456,7 +430,7 @@ class SignalsDirectory(object):
         Retrieves the IDs of the isolates on the given node, or None
         
         :param node: The name of a node
-        :return: A list of IDs, or None
+        :return: A list of IDs (can be empty)
         """
         with self._lock:
             isolates = self._nodes_isolates.get(node, None)
@@ -464,7 +438,7 @@ class SignalsDirectory(object):
                 # Return a copy, to avoid unwanted modifications
                 return isolates[:]
 
-            return None
+            return []
 
 
     def get_local_node(self):
@@ -478,20 +452,16 @@ class SignalsDirectory(object):
 
     def get_name_uids(self, name):
         """
-        Retrieves the UIDs of the isolate having the given name
+        Generator that retrieves the UIDs of the isolate having the given name
         
         :param name: An isolate name
         :return: A list of isolate UIDs associated to that name
         """
-        if not name:
-            return
-
         uids = set()
         for isolate_uid, isolate_name in self._names.items():
-            if isolate_name == name:
+            if isolate_name == name and isolate_uid not in uids:
                 uids.add(isolate_uid)
-
-        return list(uids)
+                yield isolate_uid
 
 
     @Invalidate

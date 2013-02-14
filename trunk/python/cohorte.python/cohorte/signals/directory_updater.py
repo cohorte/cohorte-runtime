@@ -18,44 +18,20 @@ __version__ = "1.0.0"
 # ------------------------------------------------------------------------------
 
 # COHORTE constants
-import cohorte
+import cohorte.monitor
+import cohorte.signals
 
 # Pelix/iPOPO
 from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
     Invalidate
 
-# ------------------------------------------------------------------------------
-
+# Standard library
 import logging
 import threading
 
-_logger = logging.getLogger(__name__)
-
 # ------------------------------------------------------------------------------
 
-SIGNAL_PREFIX = "/psem2m-directory-updater"
-""" Prefix of all directory updater signals """
-
-SIGNAL_PREFIX_MATCH_ALL = "%s/*" % SIGNAL_PREFIX
-""" Pattern to match all directory updater signals """
-
-SIGNAL_DUMP = "%s/dump" % SIGNAL_PREFIX
-""" Directory dump request """
-
-SIGNAL_REGISTER = "%s/register" % SIGNAL_PREFIX
-""" Isolate registration notification """
-
-SIGNAL_REGISTER_SYNACK = "%s/syn-ack" % SIGNAL_REGISTER
-""" Isolate registration acknowledgment synchronization """
-
-SIGNAL_REGISTER_ACK = "%s/ack" % SIGNAL_REGISTER
-""" Isolate registration acknowledgment """
-
-SIGNAL_CONTACT = "%s/contact" % SIGNAL_PREFIX
-""" Special case for early starting forkers: a monitor signals its dump port """
-
-SIGNAL_ISOLATE_LOST = "/psem2m/isolate/lost"
-""" Isolate disappeared """
+_logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
@@ -99,7 +75,8 @@ class DirectoryUpdater(object):
         attempts = 0
         while attempts < max_attempts:
             attempts += 1
-            sig_results = self._sender.send_to(SIGNAL_DUMP, content, host, port)
+            sig_results = self._sender.send_to(cohorte.signals.SIGNAL_DUMP,
+                                               content, host, port)
             if not sig_results or not sig_results["results"]:
                 # No result: the dumper might be busy
                 _logger.warning("Nothing returned by the directory dumper "
@@ -247,13 +224,13 @@ class DirectoryUpdater(object):
             if sender_id == isolate_uid:
                 # Case 1: we got the registration from the isolate itself
                 # -> Send a SYN-ACK
-                self._sender.fire(SIGNAL_REGISTER_SYNACK, None,
+                self._sender.fire(cohorte.signals.SIGNAL_REGISTER_SYNACK, None,
                                   isolate=isolate_uid)
 
             elif registered:
                 # Case 2: we got the registration by propagation
                 # -> Send a REGISTER
-                self._sender.fire(SIGNAL_REGISTER,
+                self._sender.fire(cohorte.signals.SIGNAL_REGISTER,
                                   self._prepare_registration_content(False),
                                   isolate=isolate_uid)
 
@@ -268,8 +245,8 @@ class DirectoryUpdater(object):
             # Indicate the address we used for the registration
             content["address"] = address
 
-            self._sender.fire(SIGNAL_REGISTER, content, dir_group="OTHERS",
-                              excluded=[isolate_uid])
+            self._sender.fire(cohorte.signals.SIGNAL_REGISTER, content,
+                              dir_group="OTHERS", excluded=[isolate_uid])
 
         return registered
 
@@ -283,7 +260,7 @@ class DirectoryUpdater(object):
         content = self._prepare_registration_content(propagate)
 
         # Send the registration signal
-        results = self._sender.send(SIGNAL_REGISTER, content,
+        results = self._sender.send(cohorte.signals.SIGNAL_REGISTER, content,
                                     dir_group="OTHERS")
 
         if not results:
@@ -303,7 +280,7 @@ class DirectoryUpdater(object):
         """
         sender_id = signal_data["senderUID"]
 
-        if name == SIGNAL_DUMP:
+        if name == cohorte.signals.SIGNAL_DUMP:
             with self._lock:
                 # Register the incoming isolate
                 _logger.debug("DUMP from %s", sender_id)
@@ -312,25 +289,26 @@ class DirectoryUpdater(object):
                 # Dump the directory
                 return self._directory.dump()
 
-        elif name == SIGNAL_REGISTER:
+        elif name == cohorte.signals.SIGNAL_REGISTER:
             with self._lock:
                 # Isolate registration
                 self._register_isolate(signal_data)
 
-        elif name == SIGNAL_REGISTER_SYNACK:
+        elif name == cohorte.signals.SIGNAL_REGISTER_SYNACK:
             with self._lock:
                 # Send the final acknowledgment
-                self._sender.fire(SIGNAL_REGISTER_ACK, None, isolate=sender_id)
+                self._sender.fire(cohorte.signals.SIGNAL_REGISTER_ACK, None,
+                                  isolate=sender_id)
 
                 # Notify listeners
                 self._directory.validate_isolate_presence(sender_id)
 
-        elif name == SIGNAL_REGISTER_ACK:
+        elif name == cohorte.signals.SIGNAL_REGISTER_ACK:
             with self._lock:
                 # Our acknowledgment has been received
                 self._directory.validate_isolate_presence(sender_id)
 
-        elif name == SIGNAL_ISOLATE_LOST:
+        elif name == cohorte.monitor.SIGNAL_ISOLATE_LOST:
             with self._lock:
                 # Unregister the isolate
                 lost_isolate = signal_data["signalContent"]
@@ -338,7 +316,7 @@ class DirectoryUpdater(object):
                     # Unregister it
                     self._directory.unregister_isolate(lost_isolate)
 
-        elif name == SIGNAL_CONTACT:
+        elif name == cohorte.signals.SIGNAL_CONTACT:
             # A contact has been signal, ask for a remote directory dump
             # -> Forker only
             with self._lock:
@@ -351,8 +329,9 @@ class DirectoryUpdater(object):
         Component invalidated
         """
         # Unregister to isolate registration signals
-        self._receiver.unregister_listener(SIGNAL_PREFIX_MATCH_ALL, self)
-        self._receiver.unregister_listener(SIGNAL_ISOLATE_LOST, self)
+        self._receiver.unregister_listener(cohorte.signals.SIGNAL_PATTERN, self)
+        self._receiver.unregister_listener(cohorte.monitor.SIGNAL_ISOLATE_LOST,
+                                           self)
 
 
     @Validate
@@ -361,8 +340,9 @@ class DirectoryUpdater(object):
         Component validate
         """
         # Register to isolate registration signals
-        self._receiver.register_listener(SIGNAL_PREFIX_MATCH_ALL, self)
-        self._receiver.register_listener(SIGNAL_ISOLATE_LOST, self)
+        self._receiver.register_listener(cohorte.signals.SIGNAL_PATTERN, self)
+        self._receiver.register_listener(cohorte.monitor.SIGNAL_ISOLATE_LOST,
+                                         self)
 
         # Get the local dumper port
         dump_port = context.get_property("psem2m.directory.dumper.port")

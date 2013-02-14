@@ -4,7 +4,6 @@
 Implementation of COHORTE Signals based on the HTTP protocol
 
 **TODO:**
-* Move the SlaveAgent out of this bundle
 * Keep-alive/pool connections (for the sender)
 * Complete code review
 * Avoid using Java compatibility methods
@@ -33,7 +32,6 @@ from pelix.ipopo.decorators import ComponentFactory, Provides, Requires, \
     Validate, Invalidate, Property
 from pelix.utilities import to_bytes, to_unicode
 
-import pelix.framework
 import pelix.http
 
 # ------------------------------------------------------------------------------
@@ -440,7 +438,7 @@ class FutureResult(object):
         
         :param exception_handler: An exception handling method
         """
-        self._event = threading.Event()
+        self._stop_event = threading.Event()
         self._handler = exception_handler
         self._result = None
 
@@ -449,7 +447,7 @@ class FutureResult(object):
         """
         Returns True if the job has finished, else False
         """
-        return self._event.is_set()
+        return self._stop_event.is_set()
 
 
     def execute(self, method, *args, **kwargs):
@@ -473,7 +471,7 @@ class FutureResult(object):
         Resets the object for re-use
         """
         self._result = None
-        self._event.clear()
+        self._stop_event.clear()
 
 
     def result(self, timeout=None):
@@ -483,7 +481,7 @@ class FutureResult(object):
         :param timeout: The maximum time to wait for a result (in seconds)
         :raise OSError: The timeout raised before the job finished
         """
-        if self._event.wait(timeout):
+        if self._stop_event.wait(timeout):
             return self._result
 
         raise OSError("Timeout raised")
@@ -508,7 +506,7 @@ class FutureResult(object):
                 _logger.exception("Error executing a threaded job")
 
         # Result stored or exception handled, we are ready
-        self._event.set()
+        self._stop_event.set()
 
 # ------------------------------------------------------------------------------
 
@@ -798,7 +796,7 @@ class SignalSender(object):
         :param excluded: Excluded isolates (only when using groups)
         :param mode: Signal sending mode
         :return: A (map Isolate ID -> results array, failed isolates) tuple,
-                 (None, None) if there is no isolate to send the signal to.
+                 None if there is no isolate to send the signal to.
         """
         accesses = {}
 
@@ -948,58 +946,3 @@ class SignalSender(object):
                 failed.append(isolate_id)
 
         return (results, failed)
-
-# ------------------------------------------------------------------------------
-
-@ComponentFactory("psem2m-slave-agent-factory")
-@Requires("_receiver", "org.psem2m.signals.ISignalReceiver")
-class MiniSlaveAgent(object):
-    """
-    Mini slave agent implementation : stops the framework when the stop signal
-    has been received
-    
-    **TODO:**
-    * Shouldn't be there
-    """
-    ISOLATE_STOP_SIGNAL = "/psem2m/isolate/stop"
-
-    def __init__(self):
-        """
-        Constructor
-        """
-        self._receiver = None
-        self._context = None
-
-
-    def handle_received_signal(self, name, data):
-        """
-        Handles a received signal
-        """
-        try:
-            self._context.get_bundle(0).stop()
-        except pelix.framework.BundleException:
-            _logger.exception("Error stopping the framework")
-
-
-    @Invalidate
-    def invalidate(self, context):
-        """
-        Component invalidated
-        
-        :param context: The bundle context
-        """
-        self._receiver.unregister_listener(MiniSlaveAgent.ISOLATE_STOP_SIGNAL,
-                                           self)
-        self._context = None
-
-
-    @Validate
-    def validate(self, context):
-        """
-        Component validated
-        
-        :param context: The bundle context
-        """
-        self._receiver.register_listener(MiniSlaveAgent.ISOLATE_STOP_SIGNAL,
-                                         self)
-        self._context = context
