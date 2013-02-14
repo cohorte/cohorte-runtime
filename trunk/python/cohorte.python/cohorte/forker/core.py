@@ -19,7 +19,8 @@ __version__ = "1.0.0"
 # ------------------------------------------------------------------------------
 
 # COHORTE modules
-import cohorte
+import cohorte.forker
+import cohorte.monitor
 import cohorte.utils as utils
 
 # Pelix framework
@@ -37,11 +38,11 @@ import uuid
 
 if sys.version_info[0] == 3:
     # Python 3
-    from urllib.parse import quote as url_quote
+    from urllib.parse import quote
 
 else:
     # Python 2
-    from urllib import quote as url_quote
+    from urllib import quote
 
 # ------------------------------------------------------------------------------
 
@@ -71,43 +72,7 @@ _logger = logging.getLogger(__name__)
 
 ISOLATE_STATUS_CLASS = "org.psem2m.isolates.base.isolates.boot.IsolateStatus"
 
-ISOLATE_LOST_SIGNAL = "/psem2m/isolate/lost"
 ISOLATE_STATUS_SIGNAL = "/psem2m/isolate/status"
-
-MONITOR_PREFIX = "org.psem2m.internals.isolates.monitor"
-PROPERTY_START_MONITOR = "psem2m.forker.start_monitor"
-
-# ------------------------------------------------------------------------------
-
-# The order ID request key
-CMD_ID = "requestToken"
-
-# The order result key
-RESULT_CODE = "result"
-
-# The signals prefix
-SIGNAL_PREFIX = "/psem2m/internals/forkers/"
-
-# The ping isolate signal
-SIGNAL_PING_ISOLATE = SIGNAL_PREFIX + "ping"
-
-# The signal match string
-SIGNAL_PREFIX_MATCH_ALL = SIGNAL_PREFIX + "*"
-
-# The response signal
-SIGNAL_RESPONSE = SIGNAL_PREFIX + "response"
-
-# The start isolate signal
-SIGNAL_START_ISOLATE = SIGNAL_PREFIX + "start"
-
-# The stop isolate signal
-SIGNAL_STOP_ISOLATE = SIGNAL_PREFIX + "stop"
-
-# The platform is stopping
-SIGNAL_PLATFORM_STOPPING = SIGNAL_PREFIX + "platform-stopping"
-
-# TODO: from psem2m
-SIGNAL_ISOLATE_STOP = "STOP"
 
 # ------------------------------------------------------------------------------
 
@@ -248,7 +213,7 @@ class Forker(object):
         base = self._context.get_property(cohorte.PROP_BASE)
 
         # Escape the name
-        name = url_quote(name)
+        name = quote(name)
 
         # Compute the path (1st step)
         path = os.path.join(base, 'var', name)
@@ -540,8 +505,8 @@ class Forker(object):
             return
 
         # Send the stop signal (stop softly)
-        # TODO: use a new API in Signals (UID/Names)
-        self._sender.send(SIGNAL_ISOLATE_STOP, None, isolate=uid)
+        self._sender.send(cohorte.monitor.SIGNAL_STOP_ISOLATE, None,
+                          isolate=uid)
 
         try:
             # Wait a little
@@ -566,6 +531,8 @@ class Forker(object):
         :param isolate_id: ID of the watched isolate
         :param process: A subprocess.Process object
         :param timeout: Wait time out (in seconds)
+        
+        FIXME: status signal changed...
         """
         if timeout <= 0:
             timeout = 1
@@ -658,12 +625,12 @@ class Forker(object):
         if not self._platform_stopping:
             # Send a signal to all isolates, except the lost one
             # -> avoids a time out
-            self._sender.send(ISOLATE_LOST_SIGNAL, uid, dir_group="ALL",
-                              excluded=uid)
+            self._sender.send(cohorte.monitor.SIGNAL_ISOLATE_LOST, uid,
+                              dir_group="ALL", excluded=uid)
 
             if uid == self._monitor_uid:
                 # Internal isolate : restart it immediately
-                # self._start_monitor()
+                # FIXME: self._start_monitor()
                 pass
 
 
@@ -677,19 +644,19 @@ class Forker(object):
         signal_content = signal_data["signalContent"]
 
         try:
-            if name == SIGNAL_PING_ISOLATE:
+            if name == cohorte.forker.SIGNAL_PING_ISOLATE:
                 # Ping the isolate with the given ID
-                return self.ping(signal_content["isolateId"])
+                return self.ping(signal_content["uid"])
 
-            elif name == SIGNAL_START_ISOLATE:
+            elif name == cohorte.forker.SIGNAL_START_ISOLATE:
                 # Start an isolate with the given description
                 return self.start_isolate(signal_content["isolateDescr"])
 
-            elif name == SIGNAL_STOP_ISOLATE:
+            elif name == cohorte.forker.SIGNAL_STOP_ISOLATE:
                 # Stop the isolate with the given ID
-                return self.stop_isolate(signal_content["isolateId"])
+                return self.stop_isolate(signal_content["uid"])
 
-            elif name == SIGNAL_PLATFORM_STOPPING:
+            elif name == cohorte.forker.SIGNAL_PLATFORM_STOPPING:
                 # Platform is stopping: do not start new isolates
                 self._platform_stopping = True
 
@@ -721,7 +688,8 @@ class Forker(object):
         self._watchers_running = True
 
         # Register to signals
-        self._receiver.register_listener(SIGNAL_PREFIX_MATCH_ALL, self)
+        self._receiver.register_listener(cohorte.forker.SIGNALS_FORKER_PATTERN,
+                                         self)
 
         if context.get_property(cohorte.PROP_START_MONITOR):
             # A monitor must be started
@@ -740,7 +708,8 @@ class Forker(object):
         self._watchers_running = False
 
         # Unregister from signals
-        self._receiver.unregister_listener(SIGNAL_PREFIX_MATCH_ALL, self)
+        self._receiver.unregister_listener(\
+                                    cohorte.forker.SIGNALS_FORKER_PATTERN, self)
 
         # Isolates to be removed from thread dictionary
         to_kill = {}
