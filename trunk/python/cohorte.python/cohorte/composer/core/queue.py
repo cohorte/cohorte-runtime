@@ -61,7 +61,7 @@ class ActionQueue(object):
         self._timeout = 1
 
         # Action queue
-        self._queue = queue.Queue()
+        self._queue = None
 
         # Queue thread
         self._thread = None
@@ -130,6 +130,9 @@ class ActionQueue(object):
         """
         Component validated
         """
+        # Prepare the queue
+        self._queue = queue.Queue()
+
         # Start the thread
         self._stop.clear()
         self._thread = threading.Thread(target=self.run, "action-queue")
@@ -149,8 +152,6 @@ class ActionQueue(object):
         self._thread = None
 
         # Clear storage
-        if self._queue.count() != 0:
-            _logger.warning("Stopping the action but some actions were waiting")
-        self._queue.clear()
+        self._queue = None
 
         _logger.info("Action queue invalidated")
