@@ -23,7 +23,7 @@ import cohorte.composer.core
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
-    Invalidate, Property
+    Invalidate, Property, Provides
 
 # Standard library
 import logging
@@ -35,8 +35,11 @@ _logger = logging.getLogger(__name__)
 # ------------------------------------------------------------------------------
 
 @ComponentFactory("cohorte-composer-core-rules-factory")
+@Provides(cohorte.composer.core.SERVICE_RULE_ENGINE)
 @Requires('_queue', cohorte.composer.core.SERVICE_QUEUE)
-@Property('_rules_file', 'rules.file', None)
+@Requires('_status', cohorte.composer.core.SERVICE_STATUS)
+@Property('_rules_file', cohorte.composer.core.PROP_ENGINE_FILE, None)
+@Property('_kind', cohorte.composer.core.PROP_ENGINE_KIND, None)
 class RuleEngineComponent(object):
     """
     Composer core action executor
@@ -45,14 +48,16 @@ class RuleEngineComponent(object):
         """
         Sets up the component
         """
-        # Action queue
+        # Injected services
         self._queue = None
+        self._status = None
+
+        # Component properties
+        self._rules_file = None
+        self._kind = None
 
         # Rule engine
         self._engine = None
-
-        # Rules file
-        self._rules_file = None
 
 
     def learn_rules(self, filename):
@@ -103,9 +108,17 @@ class RuleEngineComponent(object):
         # Learn the rules
         self.learn_rules(self._rules_file)
 
-        # Add component methods for rules
+        # Add action methods for rules
         for method in (self.enqueue,):
             self._engine.add_callable(method)
+
+        # Add status methods for rules
+        status_method_prefixes = ("agent", "composer", "composite")
+        for name in dir(self._status):
+            for prefix in status_method_prefixes:
+                if name.startswith(prefix):
+                    # Method matching the prefixes
+                    self._engine.add_callable(getattr(self._status, name), name)
 
         # Add logger methods
         for method in (_logger.debug, _logger.info, _logger.warning,

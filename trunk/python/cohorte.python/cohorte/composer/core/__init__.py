@@ -23,3 +23,12 @@ SERVICE_QUEUE = "cohorte.composer.core.queue"
 
 SERVICE_STATUS = "cohorte.composer.core.status"
 """ Specification of the composer core status """
+
+SERVICE_RULE_ENGINE = "cohorte.composer.core.ruleengine"
+""" Specification of a rule engine """
+
+PROP_ENGINE_FILE = "rules.file"
+""" Rule file to load """
+
+PROP_ENGINE_KIND = "rules.kind"
+""" Kind of rules for this rule engine (e.g. distribution, status, ...) """
