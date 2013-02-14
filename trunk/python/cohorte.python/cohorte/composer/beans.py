@@ -171,6 +171,34 @@ class Composite(object):
         return self.__name
 
 
+    def all_components(self):
+        """
+        Generator to recursively visit all components of this composition
+        """
+        for component in self._components.values():
+            yield component
+
+        for composite in self._composites.values():
+            for component in composite.all_components():
+                yield component
+
+
+    @property
+    def components(self):
+        """
+        The components right in this composite
+        """
+        return self._components.copy()
+
+
+    @property
+    def composites(self):
+        """
+        The composites right in this composite
+        """
+        return self._composites.copy()
+
+
     @property
     def parent(self):
         """
@@ -311,6 +339,7 @@ class Component(object):
         self.__uid = uid
         self.__factory = factory
         self.__name = name
+        self.__prefered_isolate = None
 
         # Set-once parameter
         self.__fullname = None
@@ -355,6 +384,22 @@ class Component(object):
         The configured properties
         """
         return self.__properties
+
+
+    @property
+    def isolate(self):
+        """
+        The preferred isolate to host this component
+        """
+        return self.__prefered_isolate
+
+
+    @isolate.setter
+    def isolate(self, isolate):
+        """
+        The preferred isolate to host this component
+        """
+        self.__prefered_isolate = isolate
 
 
     @property
