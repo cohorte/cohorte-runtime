@@ -37,7 +37,7 @@ _logger = logging.getLogger(__name__)
 @Provides(cohorte.composer.core.SERVICE_STATUS)
 class ComposerStatus(object):
     """
-    Composer core action executor
+    Composer core status
     """
     def __init__(self):
         """
@@ -46,11 +46,14 @@ class ComposerStatus(object):
         # Agent UID -> State
         self._agents = {}
 
-        # Component UID -> State
-        self._components = {}
+        # Composition UID -> Composition
+        self._composition = {}
 
         # Composites UID -> State
         self._composites = {}
+
+        # Component UID -> State
+        self._components = {}
 
 
     def agent_event(self, uid, event):
@@ -73,11 +76,11 @@ class ComposerStatus(object):
         self._components[uid].handle(event)
 
 
-    def composition_event(self, uid, event):
+    def composite_event(self, uid, event):
         """
-        Changes the state of a component
+        Changes the state of a composite
         
-        :param uid: UID of the composition
+        :param uid: UID of the composite
         :param event: A transition event
         """
         self._compositions[uid].handle(event)
@@ -130,6 +133,59 @@ class ComposerStatus(object):
         return uid
 
 
+    def add_composition(self, composition):
+        """
+        Stores a composition in the status
+        
+        :param composition: A composition bean
+        """
+        # Store the composition
+        self._composition[composition.uid] = composition
+
+        # Store its composites and components
+        self.__store_composite(composition.root)
+
+
+    def remove_composition(self, composition):
+        """
+        Removes a composition from the status
+        
+        :param composition: A composition bean
+        :raise KeyError: Unknown composition
+        """
+        del self._composition[composition.uid]
+        self.__remove_composite(composition.root)
+
+
+    def __store_composite(self, composite):
+        """
+        Recursively stores the composite and its children composites in the
+        status
+        
+        :param composite: A composite
+        """
+        # Store the composite itself
+        self.composite_requested(composite)
+
+        # Store its composites
+        for child in composite.composites:
+            self.__store_composite(child)
+
+
+    def __remove_composite(self, composite):
+        """
+        Recursively removes the composite from the status
+        
+        :param composite: A composite
+        """
+        # Remove the composite itself
+        del self._composites[composite.uid]
+
+        # Remove its composites
+        for child in composite.composites:
+            self.__remove_composite(child)
+
+
     @Validate
     def validate(self, context):
         """
@@ -143,4 +199,10 @@ class ComposerStatus(object):
         """
         Component invalidated
         """
+        # Clear storage
+        self._agents.clear()
+        self._components.clear()
+        self._composites.clear()
+        self._composition.clear()
+
         _logger.info("Composer status invalidated")
