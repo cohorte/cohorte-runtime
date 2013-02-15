@@ -147,3 +147,66 @@ class FactoryEvent(__Event):
         The name of the component factory
         """
         return self.__factory
+
+
+class MatchEvent(__Event):
+    """
+    A component compatibility check must be done
+    """
+    def __init__(self, composition, componentA, componentB):
+        """
+        Sets up the members
+        
+        :param composition: Loaded composition
+        :param componentA: A Component bean
+        :param componentB: A Component bean
+        """
+        __Event.__init__(self, None, "compatibility_check")
+
+        # Loaded component information
+        self.__composition = composition
+        self.__componentA = componentA
+        self.__componentB = componentB
+
+        # Component isolate
+        self.__isolate = None
+
+
+    @property
+    def componentA(self):
+        """
+        The component being check
+        """
+        return self.__componentA
+
+
+    @property
+    def componentB(self):
+        """
+        The component to check against
+        """
+        return self.__componentB
+
+
+    @property
+    def composition(self):
+        """
+        The composition being loaded
+        """
+        return self.__composition
+
+
+    @property
+    def isolate(self):
+        """
+        The computed isolate ID for this component
+        """
+        return self.__isolate
+
+
+    @isolate.setter
+    def isolate(self, isolate):
+        """
+        Sets the computed isolate ID for this component
+        """
+        self.__isolate = isolate
