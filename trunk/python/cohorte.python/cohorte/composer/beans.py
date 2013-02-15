@@ -343,6 +343,7 @@ class Component(object):
 
         # Set-once parameter
         self.__fullname = None
+        self.__language = None
 
         # Configured properties
         self.__properties = properties.copy() if properties else {}
@@ -417,6 +418,23 @@ class Component(object):
         """
         if not self.__fullname:
             self.__fullname = name
+
+
+    @property
+    def language(self):
+        """
+        The component implementation language
+        """
+        return self.__language
+
+
+    @language.setter
+    def language(self, language):
+        """
+        Sets the component implementation language
+        """
+        if not self.__language:
+            self.__language = language
 
 
     def link_wires(self, composite):
