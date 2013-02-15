@@ -19,6 +19,7 @@ __version__ = "1.0.0"
 import cohorte.forker
 import cohorte.monitor
 import cohorte.monitor.fsm as fsm
+import cohorte.java.repository as repository
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
@@ -27,6 +28,7 @@ from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
 # Standard library
 import logging
 import threading
+import uuid
 
 # ------------------------------------------------------------------------------
 
@@ -37,17 +39,14 @@ _logger = logging.getLogger(__name__)
 @ComponentFactory("cohorte-monitor-core-factory")
 @Provides(cohorte.monitor.SERVICE_MONITOR)
 @Requires('_config', cohorte.SERVICE_CONFIGURATION_READER)
+@Requires('_finder', cohorte.SERVICE_FILE_FINDER)
 @Requires('_forkers', cohorte.forker.SERVICE_AGGREGATOR)
 @Requires('_receiver', cohorte.SERVICE_SIGNALS_RECEIVER)
 @Requires('_sender', cohorte.SERVICE_SIGNALS_SENDER)
 @Requires('_status', cohorte.monitor.SERVICE_STATUS)
 class MonitorCore(object):
     """
-    Monitor core component
-    
-    TODO:
-    * start isolate
-    * start isolate on node apparition
+    Monitor core component: interface to the forker aggregator
     """
     def __init__(self):
         """
@@ -55,15 +54,19 @@ class MonitorCore(object):
         """
         # Injected services
         self._config = None
+        self._finder = None
         self._forkers = None
         self._receiver = None
         self._sender = None
         self._status = None
 
+        # Java repository
+        self._repository = None
+
         # Platform stopping event
         self._platform_stopping = threading.Event()
 
-        # Isolates waiting on nodes (Node -> [isolates configs])
+        # Isolates waiting on nodes (Node -> [uid -> (kind, config)])
         self._waiting = {}
 
 
@@ -101,11 +104,67 @@ class MonitorCore(object):
         return self._forkers.ping(uid)
 
 
-    def start_isolate(self):
+    def start_isolate(self, name, node, kind, level, sublevel,
+                      bundles=None, factories=None, composition=None):
         """
-        TODO:
+        Starts an isolate according to the given elements, or stacks the order
+        until a forker appears on the given node
+        
+        :param name: Isolate name
+        :param node: Node hosting the isolate
+        :param kind: The kind of isolate to boot (pelix, osgi, ...)
+        :param level: The level of configuration (boot, java, python, ...)
+        :param sublevel: Category of configuration (monitor, isolate, ...)
+        :param bundles: Extra bundles to install (Bundle beans)
+        :param factories: Factories needed to start the isolate (extend bundles)
+        :param composition: Extra components to instantiate (dictionary)
+        :raise IOError: Unknown/unaccessible kind of isolate
+        :raise KeyError: A parameter is missing in the configuration files
+        :raise ValueError: Error reading the configuration
         """
-        pass
+        # Compute bundles according to the factories
+        if bundles is None:
+            bundles = []
+
+        # Use the repository class
+        if kind == 'osgi':
+            # OSGi/iPOJO factories
+            resolved, missing = self._repository.find_ipojo_factories(factories)
+
+        elif kind == 'pelix':
+            # TODO: iPOPO factories
+            pass
+
+        if missing:
+            # Some factories can't be found -> error
+            raise ValueError("Some factories are missing: {0}".format(missing))
+
+        # Compute the bundles
+        for providers in resolved.values():
+            for provider in providers:
+                if provider in bundles:
+                    # Already known provider
+                    break
+
+            else:
+                # No known provider: use the first one found
+                bundles.append(providers[0])
+
+        # Generate a UID
+        uid = str(uuid.uuid4())
+
+        # Prepare a configuration
+        config = self._reader.prepare_isolate(uid, name, node, kind, level,
+                                              sublevel, bundles, composition)
+
+        # Talk to the forker aggregator
+        result = self._forkers.start_isolate(uid, node, kind, config)
+        if result == cohorte.forker.REQUEST_NO_MATCHING_FORKER:
+            # Stack the request
+            self._waiting.setdefault(node, {})[uid] = (kind, config)
+            return False
+
+        return result in cohorte.forker.REQUEST_SUCCESSES
 
 
     def stop_isolate(self, uid):
@@ -116,6 +175,41 @@ class MonitorCore(object):
         :return: True if the forker associated to the isolate has been reached
         """
         return self._forkers.stop_isolate(uid)
+
+
+
+    def forker_ready(self, uid, node):
+        """
+        A forker has been detected
+        
+        :param uid: Forker uid
+        :param node: Forker node
+        """
+        if node not in self._waiting:
+            # Nothing to do
+            return
+
+        # Get the isolates waiting for that forker
+        isolates = self._waiting[node]
+
+        # Start all isolates waiting on that node
+        for iso_uid, (kind, config) in isolates.items():
+            # Call the forker
+            result = self._forkers.start_isolate(iso_uid, node, kind, config)
+            if result in cohorte.forker.REQUEST_SUCCESSES:
+                # Isolate started
+                del isolates[iso_uid]
+
+
+    def _load_repository(self):
+        """
+        Loads all the JARs in the bundle repositories
+        """
+        self._repository = repository.Repository()
+
+        # Load all JAR files in the "repo" directory
+        for jar_file in self._finder.find_gen("*.jar", "repo", True):
+            self._repository.add_file(jar_file)
 
 
     def _handle_lost(self, uid):
@@ -170,6 +264,9 @@ class MonitorCore(object):
         """
         Component validated
         """
+        # Load the Java repository
+        self._load_repository()
+
         # Register to signals
         self._receiver.register_listener(cohorte.monitor.SIGNAL_STOP_PLATFORM,
                                          self)
@@ -189,5 +286,12 @@ class MonitorCore(object):
                                          self)
         self._receiver.unregister_listener(\
                                  cohorte.monitor.SIGNALS_ISOLATE_PATTERN, self)
+
+        # Clear the repository
+        self._repository.clear()
+        self._repository = None
+
+        # Clear the waiting list
+        self._waiting.clear()
 
         _logger.info("Monitor core invalidated")
