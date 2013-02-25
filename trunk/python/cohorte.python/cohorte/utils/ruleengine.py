@@ -19,8 +19,9 @@ __version__ = "1.0.0"
 # ------------------------------------------------------------------------------
 
 # Intellect (rule engine)
-import intellect.Intellect.Intellect as Intellect
-import intellect.Intellect.Callable as Callable
+import intellect.Intellect
+Intellect = intellect.Intellect.Intellect
+Callable = intellect.Intellect.Callable
 
 # Standard library
 import keyword
@@ -36,6 +37,9 @@ class RuleEngine(Intellect):
         """
         Sets up the Intellect
         """
+        # Trick to avoid an endless recursion in getattr()
+        self._knowledge = []
+
         # Parent constructor
         Intellect.__init__(self)
 
