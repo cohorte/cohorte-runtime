@@ -16,7 +16,7 @@ __version__ = "1.0.0"
 # ------------------------------------------------------------------------------
 
 # State machine
-import cohorte.utils.statemachine.StateMachine as StateMachine
+import cohorte.utils.statemachine as statemachine
 
 # ------------------------------------------------------------------------------
 
@@ -39,7 +39,7 @@ def make_agent_fsm(uid):
     
     :param uid: UID of the isolate hosting the agent
     """
-    fsm = StateMachine("Agent-{0}".format(uid), uid)
+    fsm = statemachine.StateMachine("Agent-{0}".format(uid), uid)
 
     # Add states
     for name in (AGENT_STATE_REQUESTED, AGENT_STATE_READY, AGENT_STATE_STOPPING,
@@ -94,7 +94,8 @@ def make_component_fsm(component):
     
     :param component: A component bean
     """
-    fsm = StateMachine("Component-{0}".format(component.uid), component)
+    fsm = statemachine.StateMachine("Component-{0}".format(component.uid),
+                                    component)
 
     # Add states
     for name in (COMPONENT_STATE_PARSED, COMPONENT_STATE_ASSIGNED,
@@ -151,11 +152,13 @@ def make_composite_fsm(composite):
     
     :param composite: A composite bean
     """
-    fsm = StateMachine("Composite-{0}".format(composite.uid), composite)
+    fsm = statemachine.StateMachine("Composite-{0}".format(composite.uid),
+                                    composite)
 
     # Add states
     for name in (COMPOSITE_STATE_PARSED, COMPOSITE_STATE_COMPUTED,
-                 COMPOSITE_STATE_RESQUESTED, COMPOSITE_STATE_RUNNING):
+                 COMPOSITE_STATE_RESQUESTED, COMPOSITE_STATE_RUNNING,
+                 COMPOSITE_STATE_ERROR):
         fsm.add_state(name)
 
     # Add transitions

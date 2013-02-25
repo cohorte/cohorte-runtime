@@ -135,7 +135,7 @@ class ActionQueue(object):
 
         # Start the thread
         self._stop.clear()
-        self._thread = threading.Thread(target=self.run, "action-queue")
+        self._thread = threading.Thread(target=self.run, name="action-queue")
         self._thread.start()
 
         _logger.info("Action queue validated")

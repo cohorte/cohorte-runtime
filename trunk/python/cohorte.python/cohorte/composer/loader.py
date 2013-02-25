@@ -17,7 +17,6 @@ __version__ = "1.0.0"
 
 # COHORTE
 import cohorte.composer.core
-import cohorte.composer.core.events as events
 import cohorte.monitor
 
 # iPOPO Decorators
@@ -36,22 +35,76 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
-def __make_kind_filter(kind):
+@ComponentFactory("cohorte-composer-default-checker-factory")
+@Provides([cohorte.composer.SERVICE_COMPATIBILITY_CHECKER,
+           cohorte.composer.SERVICE_DISTANCE_CALCULATOR])
+@Requires('_ratings', cohorte.composer.SERVICE_COMPONENT_RATING)
+@Requires('_compatibilities', cohorte.composer.SERVICE_COMPONENT_COMPATIBILITY)
+class DefaultDistanceAndCompatibility(object):
     """
-    Makes a filter string to obtain a rule engine for the given kind of event
+    Component providing a default computation of components distance and
+    compatibility.
     """
-    return "({0}={1})".format(cohorte.composer.core.PROP_ENGINE_KIND, kind)
+    def __init__(self):
+        """
+        Sets up the component
+        """
+        self._compatibilities = None
+        self._ratings = None
+
+
+    def get_compatibility(self, compoA, compoB):
+        """
+        Checks the compatibility of two components using a compatibility matrix
+        
+        :param compoA: A component
+        :param compoB: Another component
+        :return: A compatibility level (0-100 or None)
+        """
+        return self._compatibilities.get(compoA, compoB)
+
+
+    def get_distance(self, compoA, compoB):
+        """
+        Computes the distance between two components according to their
+        configuration and ratings.
+        
+        :param compoA: A component
+        :param compoB: Another component
+        :return: A distance (0-100 or None)
+        """
+        # Components are too distant if they are configured to be in different
+        # isolates or nodes
+        for entry in ('isolate', 'node'):
+            entryA = getattr(compoA, entry)
+            entryB = getattr(compoB, entry)
+
+            if entryA and entryB and entryA != entryB:
+                # Different isolate or node
+                return None
+
+        if compoA.isolate and compoA.isolate == compoB.isolate:
+            # Same isolate
+            return 100
+
+        # Distance by ratings
+        ratingA = self._ratings.get(compoA)
+        ratingB = self._ratings.get(compoB)
+        return abs(ratingA - ratingB)
 
 # ------------------------------------------------------------------------------
 
 @ComponentFactory('cohorte-composer-loader-factory')
 @Provides(cohorte.composer.SERVICE_COMPOSITION_LOADER)
 @Requires('_parser', cohorte.composer.SERVICE_COMPOSITION_PARSER)
-@Requires('_distributor', cohorte.composer.core.SERVICE_RULE_ENGINE,
-          spec_filter=__make_kind_filter("distribution"))
+@Requires('_compatibility_checkers',
+          cohorte.composer.SERVICE_COMPATIBILITY_CHECKER, aggregate=True)
+@Requires('_distance_calculators', cohorte.composer.SERVICE_DISTANCE_CALCULATOR,
+          aggregate=True)
 @Requires('_status', cohorte.composer.core.SERVICE_STATUS)
 @Requires('_monitor', cohorte.monitor.SERVICE_MONITOR)
-@Property('_threshold', 'compatibility.threshold', 10)
+@Property('_compatibility_threshold', 'threshold.compatibility', 50)
+@Property('_distance_threshold', 'threshold.distance', 10)
 class CompositionLoader(object):
     """
     Composition loading service.
@@ -63,13 +116,15 @@ class CompositionLoader(object):
         Sets up members
         """
         # Injected services
-        self._distributor = None
         self._monitor = None
         self._parser = None
         self._status = None
+        self._compatibility_checkers = []
+        self._distance_calculators = []
 
         # Distribution threshold
-        self._threshold = 10
+        self._compatibility_threshold = 50
+        self._distance_threshold = 10
 
 
     def parse(self, filename):
@@ -82,19 +137,133 @@ class CompositionLoader(object):
         return self._parser.load(filename)
 
 
-    def _find_next_subgroup(self, group):
+    def _clusters_distance(self, clusterA, clusterB):
         """
+        Computes the "distance" between two clusters.
+        Returns None if the clusters can't be bound together.
+        
+        :param clusterA: A cluster
+        :param clusterB: Another cluster
+        :return: The computed distance or None
         """
-        subgroup = []
+        # Maximum distance found
+        max_distance = 0
 
-        idx = 0
-        while idx < len(group):
-            if group[idx] < self._threshold:
-                subgroup.append(idx)
+        for componentA in clusterA:
+            for componentB in clusterB:
+                # Check the minimum compatibility level
+                min_compat = None
+                for checker in self._compatibility_checkers:
+                    compat = checker.get_compatibility(componentA, componentB)
+                    if compat is None:
+                        # Incompatible components
+                        return None
 
-            idx += 1
+                    elif min_compat is None or compat < min_compat:
+                        # Update the minimal compatibility level
+                        min_compat = compat
 
-        return subgroup
+                    if min_compat < self._compatibility_threshold:
+                        # Too low compatibility level: no binding authorized
+                        return None
+
+                # Check the maximum distance
+                for calculator in self._distance_calculators:
+                    distance = calculator.get_distance(componentA, componentB)
+                    if distance is None:
+                        # Can't compute a distance
+                        return None
+
+                    max_distance = max(distance, max_distance)
+                    if max_distance > self._distance_threshold:
+                        # Too distant components
+                        return None
+
+        return max_distance
+
+
+    def _find_closest_clusters(self, clusters):
+        """
+        Finds the closest pair of clusters
+    
+        :param clusters: A list of clusters
+        :return: The closest pair (tuple), or None
+        """
+        min_couple = None
+        min_distance = None
+
+        i = 0
+        for clusterA in clusters:
+            i += 1
+            for clusterB in clusters[i:]:
+                distance = self._clusters_distance(clusterA, clusterB)
+                if (distance is not None and
+                    (min_distance is None or distance < min_distance)):
+                    # Found sufficiently close clusters
+                    min_couple = (clusterA, clusterB)
+                    min_distance = distance
+
+        return min_couple
+
+
+    def _distribute(self, components, nb_clusters=1):
+        """
+        Clustering algorithm, based on:
+        
+        "Hierarchical Clustering Schemes"
+        Stephen C. Johnson (Bell Telephone Laboratories, 1967)
+        Psychometrika, 2:241-254
+    
+        :param components: Components to distribute
+        :param nb_clusters: Minimum number of clusters to obtain
+        :return: The computed clusters (list of sets)
+        :raise ValueError: Invalid parameter
+        """
+        if not components:
+            return []
+
+        if nb_clusters < 1:
+            raise ValueError("Invalid number of clusters: {0}" \
+                             .format(nb_clusters))
+
+
+        # 1. Start by assigning each item to a cluster
+        clusters = [set([component]) for component in components]
+        count = len(clusters)
+
+        while count > nb_clusters:
+            # 2. Find the closest pair of clusters
+            pair = self._find_closest_clusters(clusters)
+            if not pair:
+                # No more pair available
+                break
+
+            # Merge'em in A (and remove B)
+            clusterA, clusterB = pair
+            clusterA.update(clusterB)
+            clusters.remove(clusterB)
+            count -= 1
+
+        return clusters
+
+
+    def _compute_kind(self, component):
+        """
+        Computes the kind of a component
+        
+        :param component: A component bean
+        :return: The (language, kind) of configuration needed to start this
+                 component
+        """
+        language = component.language
+        if language == "java":
+            return (language, "osgi")
+
+        elif language == "python":
+            return (language, "pelix")
+
+        else:
+            return (language, "boot")
 
 
     def instantiate(self, composition):
@@ -108,91 +277,50 @@ class CompositionLoader(object):
             _logger.warning("Composition couldn't be normalized: "
                             "some component might not be validated")
 
-        # TODO: compute languages
-
-        # 1st distribution: languages
-        languages = {}
-        for component in composition.all_components():
-            language = component.language
-            if not language:
-                # Normalize none/empty string
-                language = None
-
+        # 1st distribution: kinds
+        kinds = {}
+        for component in composition.root.all_components():
             # Store the component
-            languages.setdefault(language, []).append(component)
+            kind = self._compute_kind(component)
+            kinds.setdefault(kind, []).append(component)
+
+        # TODO: compute languages (from language from factory) of kinds[None]
 
         # 2nd distribution: rules (per language)
         # Name -> (language, factories)
         groups = {}
         group_idx = 0
-        for language in languages:
-            # Make the matrix for the components of this language
-            size = len(language)
-            matrix = [[0] * size] * size
+        for kind in kinds:
+            # Distribute the components of the given language
+            clusters = self._distribute(kinds[kind])
 
-            next_idx = 0
-            for component in language:
-                # Compute from the following component
-                idx = next_idx
-                next_idx += 1
-
-                for i in range(next_idx, size):
-                    # Check the compatibility between each components
-                    event = events.MatchEvent(composition,
-                                              component, language[i])
-
-                    # Compatibility level: >= 0
-                    compatibility = self._distributor.handle(event)
-
-                    # Store the result
-                    matrix[idx][i] = matrix[i][idx] = compatibility
-
-            # Make the groups
-            while len(matrix) != 0:
-                indexes = self._find_next_subgroup(matrix[0])
-
-                # Extract group components
+            for cluster in clusters:
+                # Convert clusters into named groups
                 group_idx += 1
-                name = "{0}-{1}".format(language, group_idx)
-                groups[name] = (language,
-                                [language[idx].factory for idx in indexes])
-
-                # Remove them from the list and matrix
-                indexes.reverse()
-                for idx in indexes:
-                    # Remove the component from the language distribution
-                    del language[idx]
-
-                    # Remove the component from the matrix
-                    del matrix[idx]
-                    for line in matrix:
-                        del line[idx]
+                name = "{0}-{1}-{2}".format(kind[0], kind[1], group_idx)
+                groups[name] = (kind,
+                                set([component.factory
+                                     for component in cluster]))
 
         # Store the components in the status
         self._status.add_composition(composition)
-        for component in component.all_components():
+        for component in composition.root.all_components():
             # Make an identified instance of the component
             self._status.component_requested(component)
 
-
         # Start new isolates using the monitor
         # -> Events will trigger instantiations
-        for name, info in groups:
-            # TODO: compute kind before (or more nicely)
-            language = info[0]
-            if language == 'java':
-                kind = 'osgi'
-            elif language == 'python':
-                kind = "pelix"
-            else:
-                kind = language
+        for name, data in groups.items():
+            # Extract kind & language
+            kind, language = data[0]
+            factories = data[1]
 
             # TODO: compute the node
             node = None
 
             # Start the isolate
             self._monitor.start_isolate(name, node, kind, language, 'isolate',
-                                        factories=info[1])
+                                        factories=factories)
 
 
     def stop(self, uid):
@@ -213,8 +341,7 @@ class CompositionLoader(object):
         """
         Component validated
         """
-        composition = self.load(AUTORUN_COMPOSITION)
+        composition = self.parse(AUTORUN_COMPOSITION)
         if composition is not None:
             # Composition loaded: instantiate it
             self.instantiate(composition)
-

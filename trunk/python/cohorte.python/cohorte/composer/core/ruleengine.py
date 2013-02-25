@@ -16,7 +16,8 @@ __version__ = "1.0.0"
 # ------------------------------------------------------------------------------
 
 # Rule engine
-import cohorte.utils.ruleengine.RuleEngine as RuleEngine
+import cohorte.utils.ruleengine
+RuleEngine = cohorte.utils.ruleengine.RuleEngine
 
 # Composer core
 import cohorte.composer.core

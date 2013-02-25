@@ -35,7 +35,7 @@ _logger = logging.getLogger(__name__)
 
 @ComponentFactory('cohorte-composer-parser-factory')
 @Provides(cohorte.composer.SERVICE_COMPOSITION_PARSER)
-@Requires('_reader', cohorte.SERVICE_CONFIGURATION_READER)
+@Requires('_reader', cohorte.SERVICE_FILE_READER)
 class CompositionParser(object):
     """
     Reads the JSON configuration file of the COHORTE Composer.
@@ -122,7 +122,7 @@ class CompositionParser(object):
         empty_composite = True
 
         # Parse the components
-        components_array = composite_dict.get('components')
+        components_array = composite_dict.get('components', [])
         for component_dict in components_array:
             component = self._parse_component(composite, component_dict)
             if component is not None:
@@ -130,7 +130,7 @@ class CompositionParser(object):
                 empty_composite = False
 
         # Parse the composites
-        composites_array = composite_dict.get('composites')
+        composites_array = composite_dict.get('composites', [])
         for child_dict in composites_array:
             child = self._parse_composite(composite, child_dict)
             if child is not None:
@@ -166,6 +166,12 @@ class CompositionParser(object):
         wires = component_dict.get('wires', {})
         for field, wire in wires.items():
             component.set_wire(field, wire)
+
+        # Other parameters
+        for entry in ('node', 'isolate', 'language'):
+            value = component_dict.get(entry)
+            if value is not None and hasattr(component, entry):
+                setattr(component, entry, value)
 
         return component
 

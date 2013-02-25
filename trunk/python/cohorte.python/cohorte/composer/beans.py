@@ -84,9 +84,9 @@ class Composition(object):
     @property
     def root(self):
         """
-        The component full name
+        The composition root composite
         """
-        return self.__fullname
+        return self.__root
 
 
     @root.setter
@@ -140,7 +140,8 @@ class Composite(object):
             raise ValueError("Name can't be empty")
 
         if '.' in name:
-            raise ValueError("A composite name can't contain a '.' (dot)")
+            raise ValueError("{0}: A composite name can't contain a '.' (dot)" \
+                             .format(name))
 
         # Read-only parameters
         self.__uid = uid
@@ -294,11 +295,11 @@ class Composite(object):
         result = True
 
         # Link wires in the components
-        for component in self._components:
-            result &= component.link_wires()
+        for component in self._components.values():
+            result &= component.link_wires(self)
 
         # Continue normalization
-        for composite in self._composites:
+        for composite in self._composites.values():
             result &= composite.normalize()
 
         return result
@@ -339,7 +340,8 @@ class Component(object):
         self.__uid = uid
         self.__factory = factory
         self.__name = name
-        self.__prefered_isolate = None
+        self.__preferred_isolate = None
+        self.__preferred_node = None
 
         # Set-once parameter
         self.__fullname = None
@@ -392,7 +394,7 @@ class Component(object):
         """
         The preferred isolate to host this component
         """
-        return self.__prefered_isolate
+        return self.__preferred_isolate
 
 
     @isolate.setter
@@ -400,7 +402,23 @@ class Component(object):
         """
         The preferred isolate to host this component
         """
-        self.__prefered_isolate = isolate
+        self.__preferred_isolate = isolate
+
+
+    @property
+    def node(self):
+        """
+        The preferred node to host this component
+        """
+        return self.__preferred_node
+
+
+    @node.setter
+    def node(self, node):
+        """
+        The preferred node to host this component
+        """
+        self.__preferred_node = node
 
 
     @property
