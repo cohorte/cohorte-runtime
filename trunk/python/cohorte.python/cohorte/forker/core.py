@@ -60,8 +60,11 @@ else:
 
 # ------------------------------------------------------------------------------
 
-MONITOR_KIND = 'osgi'
+MONITOR_KIND = 'pelix'
 """ Kind of isolate for the monitor """
+
+MONITOR_LANGUAGE = 'python'
+""" Language of implementation of the monitor """
 
 MONITOR_NAME = 'cohorte.internals.monitor'
 """ All monitors have the same name """
@@ -181,7 +184,8 @@ class Forker(object):
             configuration = self._config.prepare_isolate(self._monitor_uid,
                                                          MONITOR_NAME, node,
                                                          MONITOR_KIND,
-                                                         'java', 'monitor')
+                                                         MONITOR_LANGUAGE,
+                                                         'monitor')
 
         except IOError as ex:
             _logger.error("Can't read a configuration for the monitor: %s", ex)
