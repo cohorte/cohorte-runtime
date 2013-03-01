@@ -33,7 +33,7 @@ _logger = logging.getLogger(__name__)
 # ------------------------------------------------------------------------------
 
 @ComponentFactory("cohorte-monitor-status-factory")
-@Provides(cohorte.monitor.SERVICE_MONITOR)
+@Provides(cohorte.monitor.SERVICE_STATUS)
 class MonitorStatus(object):
     """
     Monitor status holder
