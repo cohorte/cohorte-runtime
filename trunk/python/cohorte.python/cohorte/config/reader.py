@@ -417,6 +417,7 @@ class ConfigurationFileReader(object):
             # Log parsing errors
             _logger.error("Error parsing file '%s': %s",
                           self._include_stack[-1], ex)
+            raise
 
         except IOError as ex:
             # Log access errors
