@@ -16,7 +16,7 @@ __version__ = "1.0.0"
 # ------------------------------------------------------------------------------
 
 # State machine
-import cohorte.utils.statemachine.StateMachine as StateMachine
+from cohorte.utils.statemachine import StateMachine
 
 # ------------------------------------------------------------------------------
 

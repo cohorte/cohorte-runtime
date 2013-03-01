@@ -63,11 +63,11 @@ class CompositionParser(object):
 
         except IOError as ex:
             # Access error
-            _logger.exception("Error reading a composition file: %s", ex)
+            _logger.error("Error reading a composition file: %s", ex)
 
         except ValueError as ex:
             # JSON error
-            _logger.exception("Error parsing a composition file: %s", ex)
+            _logger.error("Error parsing a composition file: %s", ex)
 
         else:
             try:
@@ -76,7 +76,7 @@ class CompositionParser(object):
 
             except ValueError as ex:
                 # Content error
-                _logger.exception("Error in the composition file: %s", ex)
+                _logger.error("Error in the composition file: %s", ex)
 
 
     def _parse_composition(self, filename, data):

@@ -84,7 +84,7 @@ class MulticastReceiver(object):
 
         # Start the listening thread
         self._stop_event.clear()
-        self._thread = threading.Thread(self.__read)
+        self._thread = threading.Thread(target=self.__read)
         self._thread.start()
 
 
