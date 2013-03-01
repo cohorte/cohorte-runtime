@@ -20,6 +20,8 @@
 		"name" : "cohorte.forker.state_updater"
 	}, {
 		"name" : "cohorte.forker.heartbeat"
+	}, {
+		"name" : "pelix.shell.console"
 	} ],
 
 	/*
