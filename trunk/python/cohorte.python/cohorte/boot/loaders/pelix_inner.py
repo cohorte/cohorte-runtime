@@ -85,7 +85,7 @@ class PelixLoader(object):
         Waits for the isolate to stop
         """
         # Simply wait for the framework to stop
-        self._framework.wait_for_stop()
+        self._context.get_bundle(0).wait_for_stop()
 
 
     @Validate
