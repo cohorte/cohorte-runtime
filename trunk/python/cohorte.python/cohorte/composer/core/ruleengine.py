@@ -66,8 +66,12 @@ class RuleEngineComponent(object):
         Tells the rule engine to learn the content of the given file
         
         :param filename: Name of a rule file
+        :raise ValueError: Empty file name
         :raise Exception: Error reading the file
         """
+        if not filename:
+            raise ValueError("Empty file name")
+
         self._engine.learn_policy(filename)
 
 
@@ -107,7 +111,11 @@ class RuleEngineComponent(object):
         self._engine = RuleEngine()
 
         # Learn the rules
-        self.learn_rules(self._rules_file)
+        try:
+            self.learn_rules(self._rules_file)
+
+        except Exception as ex:
+            _logger.error("Error reading the default rules: %s", ex)
 
         # Add action methods for rules
         for method in (self.enqueue,):
