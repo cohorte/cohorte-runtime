@@ -48,18 +48,19 @@ class CompositionParser(object):
         self._reader = None
 
 
-    def load(self, filename):
+    def load(self, filename, base=None):
         """
         Finds and loads the first file found in the platform directories
         matching the given name.
         
         :param filename: The name of a configuration file
+        :param base: Base directory or file where to look for the file
         :return: The parsed Composition bean, or None
         """
         try:
             # Read the composition file
             _logger.info('Loading composition file: "%s"', filename)
-            data = self._reader.load_file(filename)
+            data = self._reader.load_file(filename, base)
 
         except IOError as ex:
             # Access error

@@ -134,7 +134,7 @@ class CompositionLoader(object):
         :param filename: Name of the composition file
         :return: The parsed composition (or None)
         """
-        return self._parser.load(filename)
+        return self._parser.load(filename, 'conf')
 
 
     def _clusters_distance(self, clusterA, clusterB):
@@ -257,13 +257,13 @@ class CompositionLoader(object):
         """
         language = component.language
         if language == "java":
-            return (language, "osgi")
+            return ("osgi", language)
 
         elif language == "python":
-            return (language, "pelix")
+            return ("pelix", language)
 
         else:
-            return (language, "boot")
+            return ("boot", language)
 
 
     def instantiate(self, composition):
