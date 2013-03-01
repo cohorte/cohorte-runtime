@@ -132,8 +132,12 @@ class MonitorCore(object):
             resolved, missing = self._repository.find_ipojo_factories(factories)
 
         elif kind == 'pelix':
-            # TODO: iPOPO factories
-            pass
+            # TODO: Find iPOPO factories
+            resolved = {}
+            missing = []
+
+        else:
+            raise ValueError("Unknown kind: {0}".format(kind))
 
         if missing:
             # Some factories can't be found -> error
