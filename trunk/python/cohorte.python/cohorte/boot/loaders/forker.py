@@ -41,9 +41,6 @@ ISOLATE_LOADER_FACTORY = 'cohorte-loader-forker-factory'
 LOADER_KIND = 'forker'
 """ Kind of isolate started with this loader """
 
-FORKER_NAME = 'cohorte.internals.forker'
-""" All forkers have the same name """
-
 _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
@@ -213,7 +210,7 @@ class ForkerLoader(object):
 
         # TODO: Set up isolate/forker specific framework properties
         self._framework.add_property(cohorte.PROP_KIND, LOADER_KIND)
-        self._framework.add_property(cohorte.PROP_NAME, FORKER_NAME)
+        self._framework.add_property(cohorte.PROP_NAME, cohorte.FORKER_NAME)
 
         # TODO: Load forker.js configuration file
         # All forkers have the same default ID (discrimination by UID), but the

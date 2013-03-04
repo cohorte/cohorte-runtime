@@ -66,9 +66,6 @@ MONITOR_KIND = 'pelix'
 MONITOR_LANGUAGE = 'python'
 """ Language of implementation of the monitor """
 
-MONITOR_NAME = 'cohorte.internals.monitor'
-""" All monitors have the same name """
-
 _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
@@ -182,7 +179,8 @@ class Forker(object):
         try:
             # Load the boot-monitor file
             configuration = self._config.prepare_isolate(self._monitor_uid,
-                                                         MONITOR_NAME, node,
+                                                         cohorte.MONITOR_NAME,
+                                                         node,
                                                          MONITOR_KIND,
                                                          MONITOR_LANGUAGE,
                                                          'monitor')

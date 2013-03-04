@@ -77,6 +77,15 @@ TODO: Change value ('cohortify'), put a complete URL instead of a port
 """
 
 # ------------------------------------------------------------------------------
+# Isolate naming constants
+
+MONITOR_NAME = 'cohorte.internals.monitor'
+""" All monitors have the same name """
+
+FORKER_NAME = 'cohorte.internals.forker'
+""" All forkers have the same name """
+
+# ------------------------------------------------------------------------------
 # Bundle-level constants
 
 BUNDLE_ISOLATE_LOADER_FACTORY = "ISOLATE_LOADER_FACTORY"

@@ -158,7 +158,7 @@ class MonitorCore(object):
         uid = str(uuid.uuid4())
 
         # Prepare a configuration
-        config = self._reader.prepare_isolate(uid, name, node, kind, level,
+        config = self._config.prepare_isolate(uid, name, node, kind, level,
                                               sublevel, bundles, composition)
 
         # Talk to the forker aggregator
