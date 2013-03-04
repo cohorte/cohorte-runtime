@@ -122,13 +122,14 @@ class DirectoryUpdater(object):
         :param signal_data: The received contact signal
         """
         # Only monitors can send us contacts
-        remote_id = signal_data["senderUID"]
-        if not remote_id.startswith("org.psem2m.internals.isolates.monitor"):
+        remote_name = signal_data["senderName"]
+        if remote_name != cohorte.MONITOR_NAME:
             _logger.warning("Contacts must be made by a monitor, not %s",
-                            remote_id)
+                            remote_name)
             return
 
         # Get information on the sender
+        remote_id = signal_data["senderUID"]
         remote_address = signal_data["senderAddress"]
         remote_node = signal_data["senderNode"]
 
@@ -156,28 +157,14 @@ class DirectoryUpdater(object):
         :return: The content for a registration signal
         """
         # Beat confirmation
-        isolate_id = self._directory.get_isolate_uid()
+        uid = self._directory.get_isolate_uid()
+        name = self._directory.get_isolate_name(uid)
 
-        # FIXME: setup groups from the configuration service
-        groups = ["ALL"]
-
-        if isolate_id.startswith("org.psem2m.internals.isolates.forker"):
-            # Forkers can only be forkers
-            groups.append("FORKERS")
-
-        else:
-            # A forker can't be an isolate and vice versa
-            groups.append("ISOLATES")
-
-        if isolate_id.startswith("org.psem2m.internals.isolates.monitor"):
-            # A monitor is a special isolate
-            groups.append("MONITORS")
-
-        return {"id": isolate_id,
+        return {"uid": uid,
+                "name": name,
                 "address": None,  # <- No address when sending
                 "node": self._directory.get_local_node(),
                 "port": self._receiver.get_access_info()[1],
-                "groups": groups,
                 "propagate": propagate}
 
 
