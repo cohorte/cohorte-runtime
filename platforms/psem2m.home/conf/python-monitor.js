@@ -27,8 +27,6 @@
 	}, {
 		"name" : "cohorte.composer.core.rating"
 	}, {
-		"name" : "cohorte.composer.core.rating"
-	}, {
 		"name" : "cohorte.composer.core.ruleengine"
 	}, {
 		"name" : "cohorte.composer.core.status"
