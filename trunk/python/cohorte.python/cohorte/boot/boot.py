@@ -216,6 +216,59 @@ def find_cohorte_directories():
 
 # ------------------------------------------------------------------------------
 
+class ColorFormatter(logging.Formatter):
+    """
+    Colored logging output for Linux
+    """
+    RESET_SEQ = "\033[0m"
+    """ Reset color sequence """
+
+    COLOR_SEQ_FORMAT = "\033[1;{0:d}m"
+    """ Model of a color sequence """
+
+    def __init__(self, fmt=None, datefmt=None, use_colors=True):
+        """
+        Sets up the format
+        
+        Inspired from:
+        http://stackoverflow.com/questions/384076/how-can-i-color-python-logging-output
+        and:
+        http://pueblo.sourceforge.net/doc/manual/ansi_color_codes.html
+        
+        :param fmt: Log line format
+        :param datefmt: Format of the log time stamp
+        :param use_colors: If True, uses colors control sequences
+        """
+        logging.Formatter.__init__(self, fmt=fmt, datefmt=datefmt)
+
+        # Color usage flag
+        self.use_colors = use_colors
+
+        # Log level -> color
+        self.colors = {logging.DEBUG: 34,  # BLUE
+                       logging.INFO: 30,  # BLACK
+                       logging.WARNING: 33,  # YELLOW
+                       logging.ERROR: 41,  # RED (background)
+                       logging.CRITICAL: 45,  # PURPLE (background)
+                       }
+
+
+    def format(self, record):
+        """
+        Formats a log record
+        """
+        loglevel = record.levelno
+        if self.use_colors and loglevel in self.colors:
+            # Colorize the log level name
+            color = self.COLOR_SEQ_FORMAT.format(self.colors[loglevel])
+            record.levelname = "{colorseq}{level}{resetseq}" \
+                               .format(level=record.levelname,
+                                       colorseq=color,
+                                       resetseq=self.RESET_SEQ)
+
+        return logging.Formatter.format(self, record)
+
+
 def configure_logger(logfile, debug, verbose):
     """
     Configures the root logger.
@@ -253,8 +306,8 @@ def configure_logger(logfile, debug, verbose):
         consh.setLevel(logging.WARNING)
 
     # ... prepare its formatter
-    formatter = logging.Formatter("%(asctime)s:%(levelname)-8s:%(name)-20s: "
-                                  "%(message)s")
+    formatter = ColorFormatter("%(asctime)s:%(levelname)-8s:%(name)-20s: "
+                               "%(message)s")
     consh.setFormatter(formatter)
 
     # ... register it
