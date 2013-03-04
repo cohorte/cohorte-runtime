@@ -133,6 +133,40 @@ class MulticastReceiver(object):
             _logger.exception("Error notifying callback: %s", ex)
 
 
+    def _unpack(self, fmt, data):
+        """
+        Calls struct.unpack().
+        
+        Returns a tuple containing the result tuple and the subset of data
+        containing the unread content.
+        
+        :param fmt: The format of data
+        :param data: Data to unpack
+        :return: A tuple (result tuple, unread_data)
+        """
+        size = struct.calcsize(fmt)
+        read, unread = data[:size], data[size:]
+        return (struct.unpack(fmt, read), unread)
+
+
+    def _unpack_string(self, data):
+        """
+        Unpacks the next string from the given data
+        
+        :param data: A datagram, starting at a string size
+        :return: A (string, unread_data) tuple 
+        """
+        # Get the size of the string
+        result, data = self._unpack("<H", data)
+        size = result[0]
+
+        # Read it
+        string_bytes = data[:size]
+
+        # Convert it
+        return (to_unicode(string_bytes), data[size:])
+
+
     def __read(self):
         """
         Reads packets from the socket
@@ -476,40 +510,6 @@ class ForkerAggregator(object):
                     return uid
 
 
-    def _unpack(self, fmt, data):
-        """
-        Calls struct.unpack().
-        
-        Returns a tuple containing the result tuple and the subset of data
-        containing the unread content.
-        
-        :param fmt: The format of data
-        :param data: Data to unpack
-        :return: A tuple (result tuple, unread_data)
-        """
-        size = struct.calcsize(fmt)
-        read, unread = data[size:], data[size:]
-        return (struct.unpack(fmt, read), unread)
-
-
-    def _unpack_string(self, data):
-        """
-        Unpacks the next string from the given data
-        
-        :param data: A datagram, starting at a string size
-        :return: A (string, unread_data) tuple 
-        """
-        # Get the size of the string
-        result, data = self._unpack("<H", data)
-        size = result[0]
-
-        # Read it
-        string_bytes = data[:size]
-
-        # Convert it
-        return (to_unicode(string_bytes), data[size:])
-
-
     def _handle_heartbeat(self, uid, application_id, node, host, port):
         """
         Handles a decoded heartbeat
@@ -523,9 +523,9 @@ class ForkerAggregator(object):
         _logger.debug("Got heartbeat: %s / %d / %s / %s", uid, port, node,
                       application_id)
 
-        with self._forker_lst:
+        with self._lst_lock:
             # Update the forker LST
-            to_register = uid in self._forker_lst
+            to_register = uid not in self._forker_lst
             self._forker_lst[uid] = time.time()
 
         if to_register:
@@ -545,12 +545,12 @@ class ForkerAggregator(object):
             with self._lst_lock:
                 loop_start = time.time()
 
-                for uid, lst in self._forker_lst:
-                    if not lst:
+                for uid, last_seen in self._forker_lst.items():
+                    if not last_seen:
                         # No LST for this forker
                         _logger.warning("Invalid LST for %s", uid)
 
-                    elif (loop_start - lst) > self._forker_ttl:
+                    elif (loop_start - last_seen) > self._forker_ttl:
                         # TTL reached
                         to_delete.add(uid)
                         _logger.info("Forker %s reached TTL.", uid)
