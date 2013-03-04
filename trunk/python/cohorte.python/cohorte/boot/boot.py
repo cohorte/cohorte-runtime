@@ -258,6 +258,8 @@ class ColorFormatter(logging.Formatter):
         Formats a log record
         """
         loglevel = record.levelno
+        levelname = record.levelname
+
         if self.use_colors and loglevel in self.colors:
             # Colorize the log level name
             color = self.COLOR_SEQ_FORMAT.format(self.colors[loglevel])
@@ -266,7 +268,12 @@ class ColorFormatter(logging.Formatter):
                                        colorseq=color,
                                        resetseq=self.RESET_SEQ)
 
-        return logging.Formatter.format(self, record)
+        # Format the line
+        result = logging.Formatter.format(self, record)
+
+        # Reset the log record
+        record.levelname = levelname
+        return result
 
 
 def configure_logger(logfile, debug, verbose):
