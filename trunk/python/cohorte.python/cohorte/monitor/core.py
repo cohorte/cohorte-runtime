@@ -60,6 +60,9 @@ class MonitorCore(object):
         self._sender = None
         self._status = None
 
+        # Bundle context
+        self._context = None
+
         # Java repository
         self._repository = None
 
@@ -157,6 +160,10 @@ class MonitorCore(object):
         # Generate a UID
         uid = str(uuid.uuid4())
 
+        # Run on local node if none is given
+        if not node:
+            node = self._context.get_property(cohorte.PROP_NODE)
+
         # Prepare a configuration
         config = self._config.prepare_isolate(uid, name, node, kind, level,
                                               sublevel, bundles, composition)
@@ -166,6 +173,8 @@ class MonitorCore(object):
         if result == cohorte.forker.REQUEST_NO_MATCHING_FORKER:
             # Stack the request
             self._waiting.setdefault(node, {})[uid] = (kind, config)
+            _logger.warning("No forker for node %s yet - %s waiting.",
+                            node, name)
             return False
 
         return result in cohorte.forker.REQUEST_SUCCESSES
@@ -268,6 +277,8 @@ class MonitorCore(object):
         """
         Component validated
         """
+        self._context = context
+
         # Load the Java repository
         self._load_repository()
 
@@ -298,4 +309,5 @@ class MonitorCore(object):
         # Clear the waiting list
         self._waiting.clear()
 
+        self._context = None
         _logger.info("Monitor core invalidated")

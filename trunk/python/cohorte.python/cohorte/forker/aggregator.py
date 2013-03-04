@@ -253,7 +253,6 @@ class ForkerAggregator(object):
         """
         forker = self._get_forker(node, kind)
         if forker is None:
-            _logger.warning("No forker for node %s yet.", node)
             return cohorte.forker.REQUEST_NO_MATCHING_FORKER
 
         # Send the order
@@ -520,9 +519,6 @@ class ForkerAggregator(object):
         :param host: Address of the node
         :param port: Port to access the forker
         """
-        _logger.debug("Got heartbeat: %s / %d / %s / %s", uid, port, node,
-                      application_id)
-
         with self._lst_lock:
             # Update the forker LST
             to_register = uid not in self._forker_lst
