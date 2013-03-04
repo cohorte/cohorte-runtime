@@ -25,6 +25,7 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
 
 # Standard library
 import logging
+import uuid
 
 # ------------------------------------------------------------------------------
 
@@ -306,7 +307,8 @@ class CompositionLoader(object):
         self._status.add_composition(composition)
         for component in composition.root.all_components():
             # Make an identified instance of the component
-            self._status.component_requested(component)
+            _logger.debug("Requesting... %s", component.name)
+            self._status.component_requested(component.copy(uuid.uuid4()))
 
         # Start new isolates using the monitor
         # -> Events will trigger instantiations
@@ -341,7 +343,11 @@ class CompositionLoader(object):
         """
         Component validated
         """
-        composition = self.parse(AUTORUN_COMPOSITION)
-        if composition is not None:
-            # Composition loaded: instantiate it
-            self.instantiate(composition)
+        try:
+            composition = self.parse(AUTORUN_COMPOSITION)
+            if composition is not None:
+                # Composition loaded: instantiate it
+                self.instantiate(composition)
+
+        except (ValueError, IOError) as ex:
+            _logger.error("Error loading the auto-run composition: %s", ex)
