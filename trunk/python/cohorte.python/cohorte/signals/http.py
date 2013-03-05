@@ -461,9 +461,13 @@ class FutureResult(object):
             # Reset if necessary
             self.reset()
 
+        internal_args = [method]
+        if args:
+            internal_args.extend(args)
+
         # Start the job thread
         threading.Thread(target=self.__internal_execute,
-                         args=args, kwargs=kwargs).start()
+                         args=internal_args, kwargs=kwargs).start()
 
 
     def reset(self):
@@ -615,7 +619,10 @@ class SignalSender(object):
         :param excluded: Excluded isolates (only when using groups)
         :return: A FutureResult object
         """
-        future = FutureResult()
+        future = FutureResult(lambda ex: \
+                              _logger.error("Error in post(%s): %s",
+                                            signal, ex))
+
         future.execute(self.send, signal, content, isolate, isolates,
                        dir_group, excluded)
         return future
@@ -632,7 +639,10 @@ class SignalSender(object):
         :return: The signal result (None or a listeners results array)
         :raise Exception: Error sending the signal
         """
-        future = FutureResult()
+        future = FutureResult(lambda ex: \
+                              _logger.error("Error in post_to(%s): %s",
+                                            signal, ex))
+
         future.execute(self.send_to, signal, content, host, port)
         return future
 
@@ -743,7 +753,7 @@ class SignalSender(object):
         uids = set()
         for isolate_id in isolates:
             # Consider the given ID as a name
-            name_uids = self._directory.get_name_uids(isolate_id)
+            name_uids = list(self._directory.get_name_uids(isolate_id))
             if name_uids:
                 uids.update(name_uids)
 

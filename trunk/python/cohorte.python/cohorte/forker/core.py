@@ -539,6 +539,7 @@ class Forker(object):
         if timeout <= 0:
             timeout = 1
 
+        # Setup the logger for this isolate
         logger = logging.getLogger(isolate_id)
 
         for line in iter(process.stdout.readline, b''):
@@ -549,11 +550,8 @@ class Forker(object):
                 pass
 
             # In debug mode, print the raw output
-            # w_isolate_id = isolate_id[:25]
-            # TODO: _logger.debug("FROM %25s:\n> %s", w_isolate_id, line)
-            print(">> %s" % line)
+            logger.debug(line)
 
-            # parts = line.decode("UTF-8").split("::")
             parts = line.split("::")
             if len(parts) != 2:
                 # Unknown format, ignore line

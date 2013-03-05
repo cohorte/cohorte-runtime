@@ -367,24 +367,23 @@ class SignalsDirectory(object):
         return self._nodes_host.get(node, None)
 
 
-    def get_isolate_access(self, isolate_id):
+    def get_isolate_access(self, isolate_uid):
         """
         Retrieves the (host, port) tuple to access the given isolate, or None
         
-        :param isolate_id: An isolate ID
+        :param isolate_uid: An isolate UID
         :return: A (host, port) tuple or None if the isolate is unknown
         """
-        # An ID is case-sensitive
-        node_access = self._accesses.get(isolate_id, None)
-        if not node_access:
+        try:
+            node_access = self._accesses[isolate_uid]
+            node_host = self._nodes_host[node_access[0]]
+
+        except KeyError as ex:
+            # Unknown isolate or node
             return None
 
-        node_host = self._nodes_host.get(node_access[0], None)
-        if not node_host:
-            # No host for this node
-            return None
-
-        return (node_host, node_access[1])
+        else:
+            return (node_host, node_access[1])
 
 
     def get_isolate_uid(self):

@@ -19,6 +19,9 @@ __version__ = "1.0.0"
 
 # ------------------------------------------------------------------------------
 
+# Pelix utilities
+from pelix.utilities import is_string
+
 # Manifest parser
 import cohorte.java.manifest as manifest_parser
 
@@ -415,7 +418,7 @@ class Version(object):
             # No version matches any version
             return True
 
-        if isinstance(other, str):
+        if is_string(other):
             # The given string can be either a version or a range
             other = other.strip()
             if other[0] == '[':

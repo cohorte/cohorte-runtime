@@ -307,7 +307,6 @@ class CompositionLoader(object):
         self._status.add_composition(composition)
         for component in composition.root.all_components():
             # Make an identified instance of the component
-            _logger.debug("Requesting... %s", component.name)
             self._status.component_requested(component.copy(uuid.uuid4()))
 
         # Start new isolates using the monitor

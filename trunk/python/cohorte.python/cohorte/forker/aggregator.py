@@ -29,9 +29,10 @@ import cohorte.utils.pool as pool
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
-    Invalidate, Requires, Property
+    Invalidate, Requires, Property, Bind
 
 # Pelix utilities
+import pelix.framework
 from pelix.utilities import to_unicode
 
 # Standard library
@@ -233,6 +234,25 @@ class ForkerAggregator(object):
         self._isolate_forker = {}
 
 
+    @Bind
+    def bind(self, service, reference):
+        """
+        A dependency has been bound
+        
+        :param service: Bound service
+        :param reference: Associated ServiceReference
+        """
+        specs = reference.get_property(pelix.framework.OBJECTCLASS)
+        if cohorte.forker.SERVICE_FORKER_LISTENER in specs:
+            # Forker listener bound
+            if hasattr(service, "forker_ready"):
+                # Forker presence method implemented
+                for uid in self._forker_lst:
+                    # Notify the presence of all known forkers
+                    node = self._directory.get_isolate_node(uid)
+                    service.forker_ready(uid, node)
+
+
     def set_platform_stopping(self):
         """
         Sends the signal to all forkers that the platform is shutting down
@@ -337,8 +357,11 @@ class ForkerAggregator(object):
             # Fresh forker: send a contact signal
             self._send_contact(host, port)
 
-        _logger.debug("Registered forker ID=%s Node=%s Port=%d",
-                      uid, node, port)
+            _logger.debug("Newly registered forker ID=%s Node=%s Port=%d",
+                          uid, node, port)
+
+        else:
+            _logger.debug("Already registered forker ID=%s", uid)
 
         # Notify listeners
         self._notify_listeners(uid, node, True)
@@ -455,6 +478,7 @@ class ForkerAggregator(object):
             self._sender.post(cohorte.monitor.SIGNAL_ISOLATE_LOST, isolate,
                           dir_group="ALL")
 
+
     def _call_forker(self, uid, signal, data, timeout):
         """
         Posts an order to the given forker and waits for the result.
@@ -463,7 +487,7 @@ class ForkerAggregator(object):
         :param uid: Forker UID
         :param signal: Name of the signal to send
         :param data: Content of the signal
-        :param timeout: 
+        :param timeout: Maximum time to wait for a response (in seconds)
         """
         future = self._sender.post(signal, data, uid)
 

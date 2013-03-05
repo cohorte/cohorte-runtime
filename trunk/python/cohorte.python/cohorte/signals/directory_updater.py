@@ -84,8 +84,8 @@ class DirectoryUpdater(object):
 
             else:
                 # Got it
-                _logger.warning("Grabbed the directory after %d attempts",
-                                attempts)
+                _logger.debug("Grabbed the directory after %d attempts",
+                              attempts)
                 break
 
         # Local information

@@ -38,6 +38,7 @@ _logger = logging.getLogger(__name__)
 
 @ComponentFactory("cohorte-monitor-core-factory")
 @Provides(cohorte.monitor.SERVICE_MONITOR)
+@Provides(cohorte.forker.SERVICE_FORKER_LISTENER)
 @Requires('_config', cohorte.SERVICE_CONFIGURATION_READER)
 @Requires('_finder', cohorte.SERVICE_FILE_FINDER)
 @Requires('_forkers', cohorte.forker.SERVICE_AGGREGATOR)
@@ -157,6 +158,9 @@ class MonitorCore(object):
                 # No known provider: use the first one found
                 bundles.append(providers[0])
 
+        # TODO: Resolve the dependencies
+        # self._repository.resolve_installation(bundles)
+
         # Generate a UID
         uid = str(uuid.uuid4())
 
@@ -188,7 +192,6 @@ class MonitorCore(object):
         :return: True if the forker associated to the isolate has been reached
         """
         return self._forkers.stop_isolate(uid)
-
 
 
     def forker_ready(self, uid, node):
