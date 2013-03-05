@@ -24,7 +24,7 @@
 		"factory" : "ipopo-remote-shell-factory",
 		"name" : "pelix-remote-shell",
 		"properties" : {
-			"pelix.shell.port" : 9000
+			"pelix.shell.port" : 0
 		}
 	} ],
 	
