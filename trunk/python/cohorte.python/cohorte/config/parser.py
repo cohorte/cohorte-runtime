@@ -64,7 +64,7 @@ def _recursive_namedtuple_convert(data):
 
     elif hasattr(data, '_asdict'):
         # Named tuple
-        dict_value = data._asdict()
+        dict_value = dict(data._asdict())
         for key, value in dict_value.items():
             dict_value[key] = _recursive_namedtuple_convert(value)
 
@@ -119,23 +119,19 @@ class BootConfigParser(object):
                       optional=json_object.get('optional', False))
 
 
-    def _parse_bundles(self, bundles_list):
+    def _parse_bundles(self, bundles):
         """
         Parses the bundles in the given list. Returns an empty list if the
         given one is None or empty.
         
-        :param bundles_list: A list of bundles representations
+        :param bundles: A list of bundles representations
         :return: A list of Bundle objects
         :raise KeyError: A mandatory parameter is missing
         """
-        if not bundles_list:
+        if not bundles:
             return []
 
-        bundles = []
-        for bundle in bundles_list:
-            bundles.append(self._parse_bundle(bundle))
-
-        return bundles
+        return [self._parse_bundle(bundle) for bundle in bundles]
 
 
     def _parse_component(self, json_object):
@@ -161,23 +157,19 @@ class BootConfigParser(object):
         return Component(factory=factory, name=name, properties=properties)
 
 
-    def _parse_components(self, components_list):
+    def _parse_components(self, components):
         """
         Parses the components in the given list. Returns an empty list if the
         given one is None or empty.
         
-        :param components_list: A list of components representations
+        :param components: A list of components representations
         :return: A list of Component objects
         :raise KeyError: A mandatory parameter is missing
         """
-        if not components_list:
+        if not components:
             return []
 
-        components = []
-        for component in components_list:
-            components.append(self._parse_component(component))
-
-        return components
+        return [self._parse_component(component) for component in components]
 
 
     def _parse_isolate(self, json_object):
@@ -201,7 +193,8 @@ class BootConfigParser(object):
 
 
     def _prepare_configuration(self, uid, name, node, kind,
-                              bundles=None, composition=None):
+                              bundles=None, composition=None,
+                              base_configuration=None):
         """
         Prepares and returns a configuration dictionary to be stored in the
         configuration broker, to start an isolate of the given kind.
@@ -217,7 +210,10 @@ class BootConfigParser(object):
         :raise KeyError: A parameter is missing in the configuration files
         :raise ValueError: Error reading the configuration
         """
-        configuration = {}
+        if isinstance(base_configuration, dict):
+            configuration = base_configuration
+        else:
+            configuration = {}
 
         # Set up isolate properties
         configuration['uid'] = uid
@@ -225,22 +221,57 @@ class BootConfigParser(object):
         configuration['node'] = node
         configuration['kind'] = kind
 
-        # Boot configuration for the given kind
-        boot = self.load_boot(kind)
-
-        # Convert the boot configuration to a dictionary
-        configuration['boot'] = _recursive_namedtuple_convert(boot)
+        # Boot configuration for this kind
+        new_boot = configuration.setdefault('boot', {})
+        new_boot.update(_recursive_namedtuple_convert(self.load_boot(kind)))
 
         # Add bundles (or an empty list)
         if bundles:
-            configuration['bundles'] = bundles
+            new_bundles = configuration.setdefault('bundles', [])
+            new_bundles.extend(_recursive_namedtuple_convert(\
+                                         [self.normalize_bundle(bundle)
+                                          for bundle in bundles]))
 
         # Add components (or an empty list)
         if composition:
-            configuration['composition'] = composition or []
+            new_compo = configuration.setdefault('composition', [])
+            new_compo.extend(_recursive_namedtuple_convert(composition))
 
         # Return the configuration dictionary
         return configuration
+
+
+    def normalize_bundle(self, bundle):
+        """
+        Make a Bundle object from the given Bundle-like object attributes,
+        using default values when necessary.
+        
+        :param bundle: A Bundle-like object
+        :return: A Bundle object
+        :raise AttributeError: A mandatory attribute is missing
+        :raise ValueError: Invalid attribute value
+        """
+        if isinstance(bundle, Bundle):
+            # Already a bundle
+            return bundle
+
+        name = bundle.name
+        if not name:
+            raise ValueError("A bundle must have a name: %s", bundle)
+
+        properties = getattr(bundle, 'properties', {})
+        if not isinstance(properties, dict):
+            properties = {}
+
+        version = getattr(bundle, 'version', None)
+        if version is not None:
+            version = str(version)
+
+        return Bundle(name,
+                      getattr(bundle, 'filename', None),
+                      properties,
+                      version,
+                      getattr(bundle, 'optional', False))
 
 
     def load_boot(self, kind):
@@ -328,9 +359,8 @@ class BootConfigParser(object):
         configuration = self.load_conf_raw(level, sublevel)
 
         # Extend with the boot configuration
-        configuration.update(self._prepare_configuration(uid, name, node, kind,
-                                                         bundles, composition))
-        return configuration
+        return self._prepare_configuration(uid, name, node, kind,
+                                           bundles, composition, configuration)
 
 
     def read(self, filename):
