@@ -1,0 +1,476 @@
+#!/usr/bin/python
+# -- Content-Encoding: UTF-8 --
+"""
+Python modules repository utility module
+
+:author: Thomas Calmant
+:license: GPLv3
+"""
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Boot module version
+__version__ = "1.0.0"
+
+# ------------------------------------------------------------------------------
+
+# Repository beans
+import cohorte.repositories
+from cohorte.repositories.beans import Artifact
+
+# Pelix
+from pelix.ipopo.decorators import ComponentFactory, Provides, Property, \
+    Invalidate
+from pelix.utilities import is_string
+
+# Standard library
+import ast
+import logging
+import operator
+import os
+
+# ------------------------------------------------------------------------------
+
+_logger = logging.getLogger(__name__)
+
+# ------------------------------------------------------------------------------
+
+class Module(Artifact):
+    """
+    Represents a bundle
+    """
+    def __init__(self, name, version, imports, filename):
+        """
+        Sets up the bundle details
+        
+        :param name: Name of the module
+        :param version: Version of the module (as a string)
+        :param imports: List of names of imported modules
+        :param filename: Path to the .py file
+        :raise ValueError: Invalid argument
+        """
+        Artifact.__init__(self, "python", name, version, filename)
+
+        # Store informations
+        self._imports = imports
+
+
+    def imports(self, artifact):
+        """
+        Tests if this module might import the given artifact
+
+        :param artifact: Another artifact
+        :return: True if this module imports the given one
+        """
+        if artifact.language != self.language:
+            # No inter-language imports
+            return False
+
+        return artifact.name in self._imports
+
+# ------------------------------------------------------------------------------
+
+class AstVisitor(ast.NodeVisitor):
+    """
+    AST visitor to extract imports and version
+    """
+    def __init__(self):
+        """
+        Sets up the visitor
+        """
+        ast.NodeVisitor.__init__(self)
+
+        self.imports = set()
+        self.version = None
+
+
+    def visit_Import(self, node):
+        """
+        Found an "import"
+        """
+        for alias in node.names:
+            self.imports.add(alias.name)
+
+
+    def visit_ImportFrom(self, node):
+        """
+        Found a "from ... import ..."
+        """
+        self.imports.add(node.module)
+
+
+    def visit_Assign(self, node):
+        """
+        Found an assignment
+        """
+        field = getattr(node.targets[0], 'id', None)
+        if field == '__version__':
+            version_parsed = ast.literal_eval(node.value)
+            if isinstance(version_parsed, (tuple, list)):
+                self.version = ".".join(version_parsed)
+
+            else:
+                self.version = str(version_parsed)
+
+
+def _extract_module_info(filename):
+    """
+    Extract the version and the imports from the given Python file
+    
+    :param filename: Path to the file to parse
+    :return: A (version, [imports]) tuple
+    :raise ValueError: Unreadable file
+    """
+    visitor = AstVisitor()
+
+    try:
+        with open(filename) as filep:
+            source = filep.read()
+
+    except (OSError, IOError) as ex:
+        raise ValueError("Error reading {0}: {1}".format(filename, ex))
+
+    try:
+        module = ast.parse(source, filename, 'exec')
+
+    except (ValueError, SyntaxError) as ex:
+        raise ValueError("Error parsing {0}: {1}".format(filename, ex))
+
+    visitor.visit(module)
+    return visitor.version, visitor.imports
+
+# ------------------------------------------------------------------------------
+
+@ComponentFactory("cohorte-repository-artifacts-python")
+@Provides(cohorte.repositories.SERVICE_REPOSITORY_ARTIFACTS)
+@Property('_language', cohorte.repositories.PROP_REPOSITORY_LANGUAGE, "python")
+class PythonModuleRepository(object):
+    """
+    Represents a repository
+    """
+    def __init__(self):
+        """
+        Sets up the repository
+        """
+        self._language = "python"
+
+        # Name -> [Modules]
+        self._modules = {}
+
+        # Directory name -> Package name
+        self._directory_package = {}
+
+        # File -> Module
+        self._files = {}
+
+
+    def __contains__(self, item):
+        """
+        Tests if the given item is in the repository
+        
+        :param item: Item to be tested
+        :return: True if the item is in the repository
+        """
+        if isinstance(item, Artifact):
+            # Test artifact language
+            if item.language != "python":
+                return False
+
+            # Test if the name is in the modules
+            return item.name in self._modules
+
+        elif item in self._modules:
+            # Item matches a module name
+            return True
+
+        else:
+            # Test the file name
+            for name in (item, os.path.realpath(item)):
+                if name in self._files:
+                    return True
+
+        # No match
+        return False
+
+
+    def __add_module(self, module, registry=None):
+        """
+        Adds a module to the registry
+        
+        :param module: A Module object
+        :param registry: Registry where to store the module
+        """
+        if registry is None:
+            registry = self._modules
+
+        # Add the module to the registry
+        modules_list = registry.setdefault(module.name, [])
+        if module not in modules_list:
+            modules_list.append(module)
+            modules_list.sort(key=operator.attrgetter('version'), reverse=True)
+
+        # Associate the file name with the module
+        self._files[module.file] = module
+
+
+    def __compute_name(self, filename):
+        """
+        Computes the module name of the given file by looking for '__init__.py'
+        files in its parent directories
+        
+        :param filename: Path of the module file
+        :return: The Python name of the module
+        :raise ValueError: Invalid directory name
+        """
+        # Compute the complete module name
+        filename = os.path.abspath(filename)
+        dirname = os.path.dirname(filename)
+
+        module = os.path.basename(os.path.splitext(filename)[0])
+        package_parts = []
+
+        while dirname:
+            if dirname in self._directory_package:
+                # Known directory: stop there
+                package_parts.append(self._directory_package[dirname])
+                break
+
+            elif not os.path.exists(os.path.join(dirname, "__init__.py")):
+                # Not a package anymore
+                break
+
+            else:
+                package = os.path.basename(dirname)
+                if ' ' in package:
+                    # Invalid package name
+                    raise ValueError("Invalid package name: {0}"\
+                                     .format(package))
+                else:
+                    # Go further up
+                    package_parts.append(package)
+                    dirname = os.path.dirname(dirname)
+
+        # Store the package informations
+        package_parts.reverse()
+        package = None
+        package_path = dirname
+
+        for part in package_parts:
+            try:
+                package = '.'.join((package, part))
+
+            except TypeError:
+                package = part
+
+            package_path = os.path.join(package_path, part)
+            self._directory_package[package_path] = package
+
+        if module == '__init__':
+            # Do not append the __init__ in packages
+            return package
+
+        else:
+            return '{0}.{1}'.format(package, module)
+
+
+    @Invalidate
+    def invalidate(self, context):
+        """
+        Component invalidated
+        """
+        self.clear()
+
+
+    def add_file(self, filename):
+        """
+        Adds a Python file to the repository
+        
+        :param filename: A Python file name
+        :raise ValueError: Unreadable file
+        """
+        # Compute the complete module name
+        name = self.__compute_name(filename)
+
+        # Compute the real name of the Python file
+        realfile = os.path.realpath(filename)
+
+        # Parse the file
+        version, imports = _extract_module_info(realfile)
+
+        # Store the module
+        self.__add_module(Module(name, version, imports, realfile))
+
+
+    def add_directory(self, dirname):
+        """
+        Recursively adds all .py modules found in the given directory into the
+        repository
+        
+        :param dirname: A path to a directory
+        """
+        for root, _, filenames in os.walk(dirname):
+            for filename in filenames:
+                if os.path.splitext(filename)[1] == '.py':
+                    fullname = os.path.join(root, filename)
+                    try:
+                        self.add_file(fullname)
+
+                    except ValueError as ex:
+                        _logger.warning(ex)
+
+
+    def clear(self):
+        """
+        Clears the repository content
+        """
+        self._modules.clear()
+        self._files.clear()
+        self._directory_package.clear()
+
+
+    def get_artifact(self, name=None, version=None, filename=None,
+                     registry=None):
+        """
+        Retrieves a module from the repository
+
+        :param name: The module name (mutually exclusive with filename)
+        :param version: The module version (None or '0.0.0' for any), ignored if
+                        filename is used
+        :param filename: The module file name (mutually exclusive with name)
+        :param registry: Registry where to look for the module
+        :return: The first matching module
+        :raise ValueError: If the module can't be found
+        """
+        if registry is None:
+            registry = self._modules
+
+        if filename:
+            # Use the file name (direct search)
+            module = self._files.get(filename)
+            if module:
+                # Found it
+                return module
+
+            for bundle_file in self._files:
+                # Search by file base name
+                if os.path.basename(bundle_file) == filename:
+                    return self._files[bundle_file]
+
+        if not name:
+            # Not found by file name, and no name to look for
+            raise ValueError("Module file not found: {0}".format(filename))
+
+        if isinstance(name, Module):
+            # Got a module
+            module = name
+            if module in registry:
+                return module
+
+            else:
+                # Use the module name and version
+                name = module.name
+                version = module.version
+
+        matching = registry.get(name, None)
+        if not matching:
+            raise ValueError('Module {0} not found.'.format(name))
+
+        for module in matching:
+            if module.version.matches(version):
+                return module
+        else:
+            raise ValueError('Module {0} not found for version {1}' \
+                             .format(name, version))
+
+
+    def get_language(self):
+        """
+        Retrieves the language of the artifacts stored in this repository
+        """
+        return self._language
+
+
+    def resolve_installation(self, artifacts, system_artifacts=None):
+        """
+        Returns all the artifacts that must be installed in order to have the
+        given modules resolved.
+
+        :param artifacts: A list of bundles to be modules
+        :param system_modules: Modules considered as available
+        :return: A tuple: (to install, inter-dependencies, missing artifacts)
+        """
+        # Name -> Module for this resolution
+        local_modules = {}
+
+        # Module -> [Modules]
+        dependencies = {}
+
+        # Missing elements
+        missing_modules = set()
+
+        # Consider system modules already installed
+        if system_artifacts:
+            for module in system_artifacts:
+                if is_string(module):
+                    if module in self._modules:
+                        module = self._modules[module]
+
+                    else:
+                        module = Module(str(module), None, None, None)
+
+                if isinstance(module, Module):
+                    # Only accept modules
+                    self.__add_module(module, local_modules)
+
+        # Resolution loop
+        to_install = [self.get_artifact(name) for name in artifacts]
+        i = 0
+        while i < len(to_install):
+            # Loop control
+            module = to_install[i]
+            i += 1
+
+            # Add the current module
+            self.__add_module(module, local_modules)
+            dependencies[module] = []
+
+            # Resolve import ...
+            for required in module._imports:
+                # Work only if necessary
+                provider = self.get_artifact(required, None, None,
+                                             local_modules)
+
+                if provider:
+                    # Found the module in the resolved ones
+                    dependencies[module].append(provider)
+
+                else:
+                    # Find it
+                    provider = self.get_artifact(required)
+                    if provider:
+                        # Store the module
+                        self.__add_module(provider, local_modules)
+
+                        # Store the dependency
+                        dependencies[module].append(provider)
+
+                        # The new module will be resolved later
+                        if provider not in to_install:
+                            # We'll have to resolve it
+                            to_install.append(provider)
+
+                    else:
+                        # No match found
+                        missing_modules.add(required)
+
+        return to_install, dependencies, missing_modules
+
+
+    def walk(self):
+        """
+        # Walk through the known artifacts
+        """
+        for modules in self._modules.values():
+            for module in modules:
+                yield module
