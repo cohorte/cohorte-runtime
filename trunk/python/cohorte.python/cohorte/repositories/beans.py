@@ -53,6 +53,13 @@ class Artifact(object):
         self.file = filename
 
 
+    def __hash__(self):
+        """
+        Computes the hash of this object
+        """
+        return hash(repr(self))
+
+
     def __eq__(self, other):
         """
         Tests the equality with another artifact
@@ -344,7 +351,7 @@ class Version(object):
 
         if local_version is None or other_version is None:
             # Do nothing if one of the version is None
-            return local_version, other_version
+            return local_version or (0, 0, 0), other_version or (0, 0, 0)
 
         local_len = len(self.version)
         other_len = len(other.version)
