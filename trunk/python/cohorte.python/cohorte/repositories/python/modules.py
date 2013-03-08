@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -- Content-Encoding: UTF-8 --
 """
-Python modules repository utility module
+Python modules repository
 
 :author: Thomas Calmant
 :license: GPLv3
@@ -26,8 +26,8 @@ from pelix.utilities import is_string
 
 # Standard library
 import ast
+import imp
 import logging
-import operator
 import os
 
 # ------------------------------------------------------------------------------
@@ -83,6 +83,15 @@ class AstVisitor(ast.NodeVisitor):
 
         self.imports = set()
         self.version = None
+
+
+    def generic_visit(self, node):
+        """
+        Custom default visit method that avoids to visit further that the
+        module level.
+        """
+        if type(node) is ast.Module:
+            ast.NodeVisitor.generic_visit(self, node)
 
 
     def visit_Import(self, node):
@@ -194,6 +203,13 @@ class PythonModuleRepository(object):
         return False
 
 
+    def __len__(self):
+        """
+        Length of a repository <=> number of individual artifacts
+        """
+        return sum((len(modules) for modules in self._modules.values()))
+
+
     def __add_module(self, module, registry=None):
         """
         Adds a module to the registry
@@ -208,7 +224,7 @@ class PythonModuleRepository(object):
         modules_list = registry.setdefault(module.name, [])
         if module not in modules_list:
             modules_list.append(module)
-            modules_list.sort(key=operator.attrgetter('version'), reverse=True)
+            modules_list.sort(reverse=True)
 
         # Associate the file name with the module
         self._files[module.file] = module
@@ -274,12 +290,28 @@ class PythonModuleRepository(object):
             return '{0}.{1}'.format(package, module)
 
 
-    @Invalidate
-    def invalidate(self, context):
+    def __test_import(self, name):
         """
-        Component invalidated
+        Tries to import the given module, using imp.find_module().
+        
+        :param name: A module name
+        :return: True if the module can be imported
         """
-        self.clear()
+        try:
+            # find_module() uses a path-like name, not a dotted one
+            path_name = name.replace('.', os.sep)
+            result = imp.find_module(path_name)
+
+        except ImportError:
+            # Module not found
+            return False
+
+        else:
+            # Module found: close the file opened by find_module(), if any
+            if result[0] is not None:
+                result[0].close()
+
+            return True
 
 
     def add_file(self, filename):
@@ -309,7 +341,7 @@ class PythonModuleRepository(object):
         
         :param dirname: A path to a directory
         """
-        for root, _, filenames in os.walk(dirname):
+        for root, _, filenames in os.walk(dirname, followlinks=True):
             for filename in filenames:
                 if os.path.splitext(filename)[1] == '.py':
                     fullname = os.path.join(root, filename)
@@ -436,33 +468,43 @@ class PythonModuleRepository(object):
             dependencies[module] = []
 
             # Resolve import ...
-            for required in module._imports:
-                # Work only if necessary
-                provider = self.get_artifact(required, None, None,
-                                             local_modules)
+            for imported in module._imports:
+                # Find the module
+                provider = None
+                for registry in (local_modules, self._modules):
+                    try:
+                        provider = self.get_artifact(imported, None, None,
+                                                     registry)
+                        # Found one
+                        break
 
-                if provider:
-                    # Found the module in the resolved ones
-                    dependencies[module].append(provider)
+                    except ValueError:
+                        # Try next
+                        pass
 
                 else:
-                    # Find it
-                    provider = self.get_artifact(required)
-                    if provider:
-                        # Store the module
-                        self.__add_module(provider, local_modules)
+                    # No provider found, try to import the file
+                    if not self.__test_import(imported):
+                        # Totally unknown module
+                        missing_modules.add(imported)
 
-                        # Store the dependency
-                        dependencies[module].append(provider)
+                    # Resolve next import
+                    continue
 
-                        # The new module will be resolved later
-                        if provider not in to_install:
-                            # We'll have to resolve it
-                            to_install.append(provider)
+                # Store the module we found
+                dependencies[module].append(provider)
 
-                    else:
-                        # No match found
-                        missing_modules.add(required)
+                if registry is self._modules:
+                    # The provider was found in the global registry, store it
+                    self.__add_module(provider, local_modules)
+
+                    # Store the dependency
+                    dependencies[module].append(provider)
+
+                    # The new module will be resolved later
+                    if provider not in to_install:
+                        # We'll have to resolve it
+                        to_install.append(provider)
 
         return to_install, dependencies, missing_modules
 
@@ -474,3 +516,11 @@ class PythonModuleRepository(object):
         for modules in self._modules.values():
             for module in modules:
                 yield module
+
+
+    @Invalidate
+    def invalidate(self, context):
+        """
+        Component invalidated
+        """
+        self.clear()

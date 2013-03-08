@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -- Content-Encoding: UTF-8 --
 """
-Python modules repository utility module
+iPOPO component factories repository
 
 :author: Thomas Calmant
 :license: GPLv3
@@ -22,7 +22,7 @@ from cohorte.repositories.beans import Factory
 # Pelix
 from pelix.utilities import is_string
 from pelix.ipopo.decorators import ComponentFactory, Provides, Invalidate, \
-    Property, Requires
+    Property, Requires, Validate
 
 # Standard library
 import ast
@@ -45,6 +45,15 @@ class ComponentFactoryVisitor(ast.NodeVisitor):
         ast.NodeVisitor.__init__(self)
         self.factories = set()
         self.values = {}
+
+
+    def generic_visit(self, node):
+        """
+        Custom default visit method that avoids to visit further that the
+        module level.
+        """
+        if type(node) is ast.Module:
+            ast.NodeVisitor.generic_visit(self, node)
 
 
     def visit_ClassDef(self, node):
@@ -117,7 +126,7 @@ def _extract_module_factories(filename):
 
 # ------------------------------------------------------------------------------
 
-@ComponentFactory("cohorte-repository-factories-python")
+@ComponentFactory("cohorte-repository-factories-ipopo")
 @Provides(cohorte.repositories.SERVICE_REPOSITORY_FACTORIES)
 @Requires('_repositories', cohorte.repositories.SERVICE_REPOSITORY_ARTIFACTS,
           True, False,
@@ -169,6 +178,13 @@ class IPopoRepository(object):
         return False
 
 
+    def __len__(self):
+        """
+        Length of a repository <=> number of individual factories 
+        """
+        return sum((len(factories) for factories in self._factories.values()))
+
+
     def add_artifact(self, artifact):
         """
         Adds the factories provided by the given artifact
@@ -194,6 +210,62 @@ class IPopoRepository(object):
                 artifact_list.append(factory)
 
 
+    def clear(self):
+        """
+        Clears the repository content
+        """
+        self._artifacts.clear()
+        self._factories.clear()
+
+
+    def find_factories(self, factories):
+        """
+        Returns the list of artifacts that provides the given factories
+        
+        :param factories: A list of iPOPO factory names
+        :return: A tuple ({Name -> [Artifacts]}, [Not found factories])
+        """
+        factories_set = set(factories)
+        resolution = {}
+        unresolved = set()
+
+        if not factories:
+            # Nothing to do...
+            return resolution, factories_set
+
+        for name in factories_set:
+            try:
+                # Get the list of factories for this name
+                factories = self._factories[name]
+                providers = resolution.setdefault(name, [])
+                providers.extend((factory.artifact for factory in factories))
+
+            except KeyError:
+                # Factory name not found
+                unresolved.add(name)
+
+        # Sort the artifacts
+        for artifacts in resolution.values():
+            artifacts.sort(reverse=True)
+
+        return resolution, unresolved
+
+
+    def get_language(self):
+        """
+        Retrieves the language of the artifacts stored in this repository
+        """
+        return self._language
+
+
+    def get_model(self):
+        """
+        Retrieves the component model that can handle the factories of this
+        repository
+        """
+        return self._model
+
+
     def load_repositories(self):
         """
         Loads the factories according to the repositories
@@ -208,12 +280,12 @@ class IPopoRepository(object):
                 self.add_artifact(artifact)
 
 
-    def clear(self):
+    @Validate
+    def validate(self, context):
         """
-        Clears the repository content
+        Component validated
         """
-        self._artifacts.clear()
-        self._factories.clear()
+        self.load_repositories()
 
 
     @Invalidate

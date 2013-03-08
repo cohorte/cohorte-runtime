@@ -33,7 +33,7 @@ class Artifact(object):
         Sets up the artifact
         
         :param language: Language of implementation of the artifact (mandatory)
-        :param name: Name of the artifact (mandatory)
+        :param name: Name of the artifact (will be file name if empty)
         :param version: Version of the artifact (optional)
         :param filename: Path to the artifact file (optional)
         :raise ValueError: Invalid parameter
@@ -42,12 +42,12 @@ class Artifact(object):
         if not language:
             raise ValueError("Artifact language can't be empty")
 
-        if not name:
-            raise ValueError("Artifact name can't be empty")
+        if not name and not filename:
+            raise ValueError("Artifact name and filename can't be both empty")
 
         # Store values
         self.__language = language.lower()
-        self.__name = name
+        self.__name = name or filename
         self.__version = Version(version)
         self.__file = None
         self.file = filename
@@ -59,6 +59,11 @@ class Artifact(object):
         """
         if isinstance(other, Artifact):
             # Compare the other artifact
+            if self.__file == other.__file:
+                # Same file, same artifact
+                return True
+
+            # All other attributes must be equal
             return self.__language == other.__language \
                 and self.__name == other.__name \
                 and self.__version == other.__version
@@ -83,12 +88,68 @@ class Artifact(object):
         return not equality
 
 
+    def __lt__(self, other):
+        """
+        Compares this artifact with another
+        """
+        if not isinstance(other, Artifact):
+            # Not a version
+            return NotImplemented
+
+        if self.__name == other.__name:
+            # Same name: compare versions
+            return self.__version < other.__version
+
+        else:
+            # Name order
+            return self.__name < other.__name
+
+
+    def __le__(self, other):
+        """
+        Compares this artifact with another
+        """
+        equals = self.__eq__(other)
+        if equals is NotImplemented:
+            return NotImplemented
+
+        return equals or self.__lt__(other)
+
+
+    def __gt__(self, other):
+        """
+        Compares this artifact with another
+        """
+        if not isinstance(other, Artifact):
+            # Not a version
+            return NotImplemented
+
+        if self.__name == other.__name:
+            # Same name: compare versions
+            return self.__version > other.__version
+
+        else:
+            # Name order
+            return self.__name > other.__name
+
+
+    def __ge__(self, other):
+        """
+        Compares this artifact with another
+        """
+        equals = self.__eq__(other)
+        if equals is NotImplemented:
+            return NotImplemented
+
+        return equals or self.__gt__(other)
+
+
     def __repr__(self):
         """
         String representation of the artifact
         """
-        return "Artifact({self.language}, {self.name}, " \
-               "{self.version:r}, {self.file}".format(self=self)
+        return "Artifact('{self.language}', '{self.name}', " \
+               "{self.version!r}, '{self.file}')".format(self=self)
 
 
     def __str__(self):
@@ -194,8 +255,8 @@ class Factory(object):
         """
         String representation of the factory
         """
-        return "Factory({self.name}, {self.language}, " \
-               "{self.model}, {self.artifact}".format(self=self)
+        return "Factory('{self.name}', '{self.language}', " \
+               "'{self.model}', {self.artifact!r})".format(self=self)
 
 
     def __str__(self):
@@ -271,7 +332,7 @@ class Version(object):
         """
         Object string representation
         """
-        return "{0}.Version('{1}')".format(__name__, self.__str__())
+        return "Version('{1}')".format(__name__, self.__str__())
 
 
     def __normalize_cmp(self, other):
