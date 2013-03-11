@@ -19,7 +19,8 @@ __version__ = "1.0.0"
 import cohorte.forker
 import cohorte.monitor
 import cohorte.monitor.fsm as fsm
-import cohorte.java.repository as repository
+import cohorte.repositories
+import cohorte.repositories.beans as beans
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
@@ -43,6 +44,8 @@ _logger = logging.getLogger(__name__)
 @Requires('_finder', cohorte.SERVICE_FILE_FINDER)
 @Requires('_forkers', cohorte.forker.SERVICE_AGGREGATOR)
 @Requires('_receiver', cohorte.SERVICE_SIGNALS_RECEIVER)
+@Requires('_repositories', cohorte.repositories.SERVICE_REPOSITORY_ARTIFACTS,
+          aggregate=True)
 @Requires('_sender', cohorte.SERVICE_SIGNALS_SENDER)
 @Requires('_status', cohorte.monitor.SERVICE_STATUS)
 class MonitorCore(object):
@@ -58,14 +61,12 @@ class MonitorCore(object):
         self._finder = None
         self._forkers = None
         self._receiver = None
+        self._repositories = []
         self._sender = None
         self._status = None
 
         # Bundle context
         self._context = None
-
-        # Java repository
-        self._repository = None
 
         # Platform stopping event
         self._platform_stopping = threading.Event()
@@ -108,8 +109,23 @@ class MonitorCore(object):
         return self._forkers.ping(uid)
 
 
-    def start_isolate(self, name, node, kind, level, sublevel,
-                      bundles=None, factories=None, composition=None):
+    def _get_isolate_artifacts(self, kind, level, sublevel):
+        """
+        Retrieves the list of bundles configured for this isolate
+        """
+        # Load the isolate model file
+        boot_dict = self._config.load_conf_raw(level, sublevel)
+
+        # Parse it
+        configuration = self._config.load_boot_dict(boot_dict)
+
+        # Convert configuration bundles to repository artifacts
+        return [beans.Artifact(level, bundle.name, bundle.version,
+                               bundle.filename)
+                for bundle in configuration.bundles]
+
+
+    def start_isolate(self, name, node, kind, level, sublevel, bundles=None):
         """
         Starts an isolate according to the given elements, or stacks the order
         until a forker appears on the given node
@@ -120,8 +136,6 @@ class MonitorCore(object):
         :param level: The level of configuration (boot, java, python, ...)
         :param sublevel: Category of configuration (monitor, isolate, ...)
         :param bundles: Extra bundles to install (Bundle beans)
-        :param factories: Factories needed to start the isolate (extend bundles)
-        :param composition: Extra components to instantiate (dictionary)
         :raise IOError: Unknown/unaccessible kind of isolate
         :raise KeyError: A parameter is missing in the configuration files
         :raise ValueError: Error reading the configuration
@@ -130,36 +144,36 @@ class MonitorCore(object):
         if bundles is None:
             bundles = []
 
-        # Use the repository class
-        if kind == 'osgi':
-            # OSGi/iPOJO factories
-            resolved, missing = self._repository.find_ipojo_factories(factories)
-
-        elif kind == 'pelix':
-            # TODO: Find iPOPO factories
-            resolved = {}
-            missing = []
+        # Find the repository associated to the language
+        for repository in self._repositories:
+            if repository.get_language() == level:
+                break
 
         else:
-            raise ValueError("Unknown kind: {0}".format(kind))
+            _logger.error("No repository found for language: %s", level)
+            return False
 
-        if missing:
-            # Some factories can't be found -> error
-            raise ValueError("Some factories are missing: {0}".format(missing))
+        # Get the configured isolate artifacts
+        isolate_artifacts = self._get_isolate_artifacts(kind, level, sublevel)
 
-        # Compute the bundles
-        for providers in resolved.values():
-            for provider in providers:
-                if provider in bundles:
-                    # Already known provider
-                    break
+        # Resolve the custom bundles installation
+        resolution = repository.resolve_installation(bundles, isolate_artifacts)
+        if resolution[2]:
+            # Some artifacts are missing
+            _logger.error("Missing artifacts: %s", resolution[3])
+            return False
 
-            else:
-                # No known provider: use the first one found
-                bundles.append(providers[0])
+        elif resolution[3]:
+            # Some extra dependencies are missing
+            _logger.warning("Missing extra elements: %s", resolution[4])
 
-        # TODO: Resolve the dependencies
-        # self._repository.resolve_installation(bundles)
+        # Clean up resolution
+        custom_artifacts = [artifact for artifact in resolution[0]
+                            if artifact not in isolate_artifacts]
+
+        from pprint import pformat
+        _logger.debug("Isolate %s: %s/%s/%s", name, kind, level, sublevel)
+        _logger.debug("Bundles:\n%s", pformat(custom_artifacts))
 
         # Generate a UID
         uid = str(uuid.uuid4())
@@ -170,7 +184,7 @@ class MonitorCore(object):
 
         # Prepare a configuration
         config = self._config.prepare_isolate(uid, name, node, kind, level,
-                                              sublevel, bundles, composition)
+                                              sublevel, custom_artifacts)
 
         # Talk to the forker aggregator
         result = self._forkers.start_isolate(uid, node, kind, config)
@@ -215,17 +229,6 @@ class MonitorCore(object):
             if result in cohorte.forker.REQUEST_SUCCESSES:
                 # Isolate started
                 del isolates[iso_uid]
-
-
-    def _load_repository(self):
-        """
-        Loads all the JARs in the bundle repositories
-        """
-        self._repository = repository.Repository()
-
-        # Load all JAR files in the "repo" directory
-        for jar_file in self._finder.find_gen("*.jar", "repo", True):
-            self._repository.add_file(jar_file)
 
 
     def _handle_lost(self, uid):
@@ -282,9 +285,6 @@ class MonitorCore(object):
         """
         self._context = context
 
-        # Load the Java repository
-        self._load_repository()
-
         # Register to signals
         self._receiver.register_listener(cohorte.monitor.SIGNAL_STOP_PLATFORM,
                                          self)
@@ -304,10 +304,6 @@ class MonitorCore(object):
                                          self)
         self._receiver.unregister_listener(\
                                  cohorte.monitor.SIGNALS_ISOLATE_PATTERN, self)
-
-        # Clear the repository
-        self._repository.clear()
-        self._repository = None
 
         # Clear the waiting list
         self._waiting.clear()

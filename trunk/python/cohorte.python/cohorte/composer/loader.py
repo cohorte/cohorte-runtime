@@ -18,6 +18,7 @@ __version__ = "1.0.0"
 # COHORTE
 import cohorte.composer.core
 import cohorte.monitor
+import cohorte.repositories
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
@@ -97,13 +98,16 @@ class DefaultDistanceAndCompatibility(object):
 
 @ComponentFactory('cohorte-composer-loader-factory')
 @Provides(cohorte.composer.SERVICE_COMPOSITION_LOADER)
+@Requires('_monitor', cohorte.monitor.SERVICE_MONITOR)
 @Requires('_parser', cohorte.composer.SERVICE_COMPOSITION_PARSER)
+@Requires('_status', cohorte.composer.core.SERVICE_STATUS)
 @Requires('_compatibility_checkers',
-          cohorte.composer.SERVICE_COMPATIBILITY_CHECKER, aggregate=True)
+          cohorte.composer.SERVICE_COMPATIBILITY_CHECKER,
+          aggregate=True)
 @Requires('_distance_calculators', cohorte.composer.SERVICE_DISTANCE_CALCULATOR,
           aggregate=True)
-@Requires('_status', cohorte.composer.core.SERVICE_STATUS)
-@Requires('_monitor', cohorte.monitor.SERVICE_MONITOR)
+@Requires('_repositories', cohorte.repositories.SERVICE_REPOSITORY_FACTORIES,
+          aggregate=True)
 @Property('_compatibility_threshold', 'threshold.compatibility', 50)
 @Property('_distance_threshold', 'threshold.distance', 10)
 class CompositionLoader(object):
@@ -122,6 +126,7 @@ class CompositionLoader(object):
         self._status = None
         self._compatibility_checkers = []
         self._distance_calculators = []
+        self._repositories = []
 
         # Distribution threshold
         self._compatibility_threshold = 50
@@ -248,15 +253,14 @@ class CompositionLoader(object):
         return clusters
 
 
-    def _compute_kind(self, component):
+    def _compute_kind(self, language):
         """
-        Computes the kind of a component
+        Retrieves the kind of isolate associated to a component implementation
+        language.
         
-        :param component: A component bean
-        :return: The (language, kind) of configuration needed to start this
-                 component
+        :param language: An implementation language
+        :return: The (kind, language) tuple needed to start this component
         """
-        language = component.language
         if language == "java":
             return ("osgi", language)
 
@@ -278,14 +282,41 @@ class CompositionLoader(object):
             _logger.warning("Composition couldn't be normalized: "
                             "some component might not be validated")
 
-        # 1st distribution: kinds
-        kinds = {}
-        for component in composition.root.all_components():
-            # Store the component
-            kind = self._compute_kind(component)
-            kinds.setdefault(kind, []).append(component)
+        # 1st distribution: kinds (and artifacts handling)
 
-        # TODO: compute languages (from language from factory) of kinds[None]
+        # (kind, language) -> [components]
+        kinds = {}
+
+        # Factory name -> Artifact
+        artifacts = {}
+
+        factories = set(component.factory
+                        for component in composition.root.all_components())
+        for repository in self._repositories:
+            # Get the language of the repository
+            language = repository.get_language()
+
+            # Compute its kind
+            kind = self._compute_kind(language)
+
+            # Find the factories that are in this repository
+            found, unresolved = repository.find_factories(factories)
+
+            # Get the list of components for the found factories
+            kinds[kind] = [component
+                           for component in composition.root.all_components()
+                           if component.factory in found]
+
+            # Add the factory artifact
+            artifacts.update((factory, found[factory][0]) for factory in found)
+
+            # Loop on unresolved factories
+            factories = unresolved
+
+        if factories:
+            # Still some unresolved factories
+            _logger.warning("Some factories have not been resolved: %s",
+                            factories)
 
         # 2nd distribution: rules (per language)
         # Name -> (language, factories)
@@ -321,7 +352,8 @@ class CompositionLoader(object):
 
             # Start the isolate
             self._monitor.start_isolate(name, node, kind, language, 'isolate',
-                                        factories=factories)
+                                        [artifacts[factory]
+                                         for factory in factories])
 
 
     def stop(self, uid):
