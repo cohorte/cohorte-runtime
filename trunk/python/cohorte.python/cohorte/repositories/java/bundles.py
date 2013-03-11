@@ -26,7 +26,7 @@ from cohorte.repositories.java.manifest import Manifest
 # Pelix
 from pelix.utilities import to_str
 from pelix.ipopo.decorators import ComponentFactory, Provides, Property, \
-    Invalidate
+    Invalidate, Validate
 
 # Standard library
 import contextlib
@@ -181,7 +181,7 @@ class Bundle(Artifact):
 
 # ------------------------------------------------------------------------------
 
-@ComponentFactory("cohorte-repository-artifacts-java")
+@ComponentFactory("cohorte-repository-artifacts-java-factory")
 @Provides(cohorte.repositories.SERVICE_REPOSITORY_ARTIFACTS)
 @Property('_language', cohorte.repositories.PROP_REPOSITORY_LANGUAGE, "java")
 class OSGiBundleRepository(object):
@@ -423,7 +423,8 @@ class OSGiBundleRepository(object):
         return None
 
 
-    def resolve_installation(self, bundles, system_packages=None):
+    def resolve_installation(self, bundles, system_artifacts=None,
+                             system_packages=None):
         """
         Returns all the bundles that must be installed in order to have the
         given bundles resolved.
@@ -433,8 +434,8 @@ class OSGiBundleRepository(object):
 
         :param bundles: A list of bundles to be resolved
         :param system_packages: Packages considered available by the framework
-        :return: A tuple: (to install, dependencies,
-                (missing bundles, missing packages))
+        :return: A tuple: (bundles, dependencies, missing artifacts,
+                 missing packages)
         :raise ValueError: One of the given bundles is unknown
         """
         # Name -> Bundle for this resolution
@@ -454,6 +455,26 @@ class OSGiBundleRepository(object):
             for name in system_packages:
                 self.__add_package(local_packages, name, Version(None),
                                    SYSTEM_BUNDLE)
+
+        # Consider system bundles already installed
+        if system_artifacts:
+            for artifact in system_artifacts:
+                if isinstance(artifact, Bundle):
+                    # Got a bundle
+                    self.__add_bundle(artifact, local_bundles, local_packages)
+
+                elif isinstance(artifact, Artifact):
+                    # Got an artifact
+                    bundle = self.get_artifact(artifact.name, artifact.version,
+                                               artifact.file)
+                    if bundle:
+                        self.__add_bundle(bundle, local_bundles, local_packages)
+
+                    else:
+                        _logger.warning("Unknown system bundle: %s", artifact)
+
+                else:
+                    _logger.warning("Unhandled system artifact: %s", artifact)
 
         # Resolution loop
         to_install = [self.get_artifact(name) for name in bundles]
@@ -552,7 +573,7 @@ class OSGiBundleRepository(object):
                             # We'll have to resolve it
                             to_install.append(provider)
 
-        return to_install, dependencies, (missing_bundles, missing_packages)
+        return to_install, dependencies, missing_bundles, missing_packages
 
 
     def walk(self):
@@ -562,6 +583,17 @@ class OSGiBundleRepository(object):
         for bundles in self._bundles.values():
             for bundle in bundles:
                 yield bundle
+
+
+    @Validate
+    def validate(self, context):
+        """
+        Component validated
+        """
+        # Home/Base repository
+        for key in (cohorte.PROP_BASE, cohorte.PROP_HOME):
+            repository = os.path.join(context.get_property(key), "repo")
+            self.add_directory(repository)
 
 
     @Invalidate

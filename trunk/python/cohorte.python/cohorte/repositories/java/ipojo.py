@@ -294,7 +294,7 @@ def parse_ipojo_line(line):
 
 # ------------------------------------------------------------------------------
 
-@ComponentFactory("cohorte-repository-factories-ipojo")
+@ComponentFactory("cohorte-repository-factories-ipojo-factory")
 @Provides(cohorte.repositories.SERVICE_REPOSITORY_FACTORIES)
 @Requires('_repositories', cohorte.repositories.SERVICE_REPOSITORY_ARTIFACTS,
           True, False,

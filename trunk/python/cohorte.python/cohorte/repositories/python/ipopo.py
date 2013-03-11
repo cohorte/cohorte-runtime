@@ -126,7 +126,7 @@ def _extract_module_factories(filename):
 
 # ------------------------------------------------------------------------------
 
-@ComponentFactory("cohorte-repository-factories-ipopo")
+@ComponentFactory("cohorte-repository-factories-ipopo-factory")
 @Provides(cohorte.repositories.SERVICE_REPOSITORY_FACTORIES)
 @Requires('_repositories', cohorte.repositories.SERVICE_REPOSITORY_ARTIFACTS,
           True, False,

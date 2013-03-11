@@ -21,7 +21,7 @@ from cohorte.repositories.beans import Artifact
 
 # Pelix
 from pelix.ipopo.decorators import ComponentFactory, Provides, Property, \
-    Invalidate
+    Invalidate, Validate
 from pelix.utilities import is_string
 
 # Standard library
@@ -151,7 +151,7 @@ def _extract_module_info(filename):
 
 # ------------------------------------------------------------------------------
 
-@ComponentFactory("cohorte-repository-artifacts-python")
+@ComponentFactory("cohorte-repository-artifacts-python-factory")
 @Provides(cohorte.repositories.SERVICE_REPOSITORY_ARTIFACTS)
 @Property('_language', cohorte.repositories.PROP_REPOSITORY_LANGUAGE, "python")
 class PythonModuleRepository(object):
@@ -430,7 +430,7 @@ class PythonModuleRepository(object):
 
         :param artifacts: A list of bundles to be modules
         :param system_modules: Modules considered as available
-        :return: A tuple: (to install, inter-dependencies, missing artifacts)
+        :return: A tuple: (modules, dependencies, missing artifacts, [])
         """
         # Name -> Module for this resolution
         local_modules = {}
@@ -506,7 +506,7 @@ class PythonModuleRepository(object):
                         # We'll have to resolve it
                         to_install.append(provider)
 
-        return to_install, dependencies, missing_modules
+        return to_install, dependencies, missing_modules, []
 
 
     def walk(self):
@@ -516,6 +516,20 @@ class PythonModuleRepository(object):
         for modules in self._modules.values():
             for module in modules:
                 yield module
+
+
+    @Validate
+    def validate(self, context):
+        """
+        Component validated
+        """
+        # Home/Base repository
+        for key in (cohorte.PROP_BASE, cohorte.PROP_HOME):
+            repository = os.path.join(context.get_property(key), "repo")
+            self.add_directory(repository)
+
+        # DEBUG: Demo repo
+        self.add_directory("/home/tcalmant/programmation/workspaces/psem2m/demos/demo-july2012/demo.july2012.python")
 
 
     @Invalidate
