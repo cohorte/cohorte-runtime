@@ -30,6 +30,17 @@
 		"name" : "cohorte.composer.core.ruleengine"
 	}, {
 		"name" : "cohorte.composer.core.status"
+	},
+
+	/* Repositories */
+	{
+		"name" : "cohorte.repositories.java.bundles"
+	}, {
+		"name" : "cohorte.repositories.java.ipojo"
+	}, {
+		"name" : "cohorte.repositories.python.modules"
+	}, {
+		"name" : "cohorte.repositories.python.ipopo"
 	} ],
 
 	/*
@@ -46,6 +57,21 @@
 	}, {
 		"factory" : "cohorte-forker-aggregator-factory",
 		"name" : "cohorte-forker-aggregator"
+	},
+
+	/* Repositories */
+	{
+		"factory" : "cohorte-repository-artifacts-java-factory",
+		"name" : "cohorte-repository-artifacts-java"
+	}, {
+		"factory" : "cohorte-repository-factories-ipojo-factory",
+		"name" : "cohorte-repository-factories-ipojo"
+	}, {
+		"factory" : "cohorte-repository-artifacts-python-factory",
+		"name" : "cohorte-repository-artifacts-python"
+	}, {
+		"factory" : "cohorte-repository-factories-ipopo-factory",
+		"name" : "cohorte-repository-factories-ipopo"
 	},
 
 	/* Composition loading */
