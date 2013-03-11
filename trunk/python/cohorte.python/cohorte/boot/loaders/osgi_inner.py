@@ -19,8 +19,7 @@ __version__ = '1.0.0'
 # ------------------------------------------------------------------------------
 
 # COHORTE constants
-import cohorte
-import cohorte.java.repository as repository
+import cohorte.repositories
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
@@ -242,6 +241,9 @@ class PyBridge(object):
 @Provides(cohorte.SERVICE_ISOLATE_LOADER)
 @Property('_handled_kind', cohorte.SVCPROP_ISOLATE_LOADER_KIND, LOADER_KIND)
 @Requires('_java', cohorte.SERVICE_JAVA_RUNNER)
+@Requires('_repository', cohorte.repositories.SERVICE_REPOSITORY_ARTIFACTS,
+          spec_filter="({0}=java)" \
+                      .format(cohorte.repositories.PROP_REPOSITORY_LANGUAGE))
 @Requires('_config', cohorte.SERVICE_CONFIGURATION_READER)
 @Requires('_finder', cohorte.SERVICE_FILE_FINDER)
 class JavaOsgiLoader(object):
@@ -257,12 +259,10 @@ class JavaOsgiLoader(object):
         self._java = None
         self._config = None
         self._finder = None
+        self._repository = None
 
         # Pelix bundle context
         self._context = None
-
-        # JARs repository
-        self._repository = None
 
         # OSGi Framework
         self._osgi = None
@@ -411,8 +411,8 @@ class JavaOsgiLoader(object):
         """
         try:
             # We've been given a specific JAR file or symbolic name
-            osgi_bundle = self._repository.get_bundle(name=symbolic_name,
-                                                      filename=osgi_jar)
+            osgi_bundle = self._repository.get_artifact(symbolic_name,
+                                                        filename=osgi_jar)
 
         except ValueError:
             # Bundle not found
@@ -426,18 +426,7 @@ class JavaOsgiLoader(object):
                 raise ValueError("No OSGi framework found in repository")
 
         # Found !
-        return osgi_bundle.filename, osgi_bundle.get_service(FRAMEWORK_SERVICE)
-
-
-    def _load_repository(self):
-        """
-        Loads all the JARs in the bundle repositories
-        """
-        self._repository = repository.Repository()
-
-        # Load all JAR files in the "repo" directory
-        for jar_file in self._finder.find_gen("*.jar", "repo", True):
-            self._repository.add_file(jar_file)
+        return osgi_bundle.file, osgi_bundle.get_service(FRAMEWORK_SERVICE)
 
 
     def load(self, configuration):
@@ -458,9 +447,6 @@ class JavaOsgiLoader(object):
         # Parse the configuration (boot-like part) -> Might raise error
         java_config = self._config.load_boot_dict(configuration)
 
-        # Load the repository
-        self._load_repository()
-
         # Find the OSGi JAR file to use
         osgi_jar_file, factory_name = self._find_osgi_jar(
                                               configuration.get('osgi_jar'),
@@ -472,10 +458,10 @@ class JavaOsgiLoader(object):
         classpath = [osgi_jar_file]
 
         # Find the bridge API JAR file
-        api_jar = self._repository.get_bundle(PYTHON_BRIDGE_BUNDLE_API)
+        api_jar = self._repository.get_artifact(PYTHON_BRIDGE_BUNDLE_API)
         if api_jar:
             # Add the bundle to the class path...
-            classpath.append(api_jar.filename)
+            classpath.append(api_jar.file)
         else:
             _logger.warning("No Python bridge API bundle found")
 
@@ -502,27 +488,27 @@ class JavaOsgiLoader(object):
         java_bundles = []
 
         # Install the bridge
-        bundle = self._repository.get_bundle(PYTHON_BRIDGE_BUNDLE)
+        bundle = self._repository.get_artifact(PYTHON_BRIDGE_BUNDLE)
         if not bundle:
             _logger.warning("No Python bridge bundle found")
 
         else:
-            java_bundles.append(context.installBundle(bundle.get_url()))
+            java_bundles.append(context.installBundle(bundle.url))
 
         # Install the configured bundles
         for bundle_conf in java_config.bundles:
-            bundle = self._repository.get_bundle(bundle_conf.name,
-                                                 bundle_conf.version,
-                                                 bundle_conf.filename)
+            bundle = self._repository.get_artifact(bundle_conf.name,
+                                                   bundle_conf.version,
+                                                   bundle_conf.filename)
             if bundle:
                 _logger.debug("Installing Java bundle %s...", bundle.name)
-                java_bundles.append(context.installBundle(bundle.get_url()))
+                java_bundles.append(context.installBundle(bundle.url))
 
             elif not bundle_conf.optional:
                 raise ValueError("Bundle not found: {0}".format(bundle_conf))
 
             else:
-                _logger.warning("Bundle not found: {0}".format(bundle_conf))
+                _logger.warning("Bundle not found: %s", bundle_conf)
 
         # Start the bundles
         for bundle in java_bundles:
@@ -577,11 +563,6 @@ class JavaOsgiLoader(object):
 
         # Clear the JVM
         self._java.stop()
-
-        # Clear the repository
-        if self._repository is not None:
-            self._repository.clear()
-            self._repository = None
 
         # Clear the framework access
         self._context = None
