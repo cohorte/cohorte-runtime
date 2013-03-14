@@ -4,7 +4,7 @@
 . ./common.sh
 
 # Python interpreter to use
-PYTHON_INTERPRETER='python'
+PYTHON_INTERPRETER=${PYTHON_INTERPRETER:="python"}
 
 # Python path
 export PYTHONPATH=$(pwd):/home/tcalmant/programmation/workspaces/psem2m/trunk/python/psem2m.base/src
