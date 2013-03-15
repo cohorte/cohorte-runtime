@@ -150,8 +150,14 @@ class StateUpdater(object):
             # Invalid URL
             return None
 
-        return 'http://{host}:{port}{path}'.format(host=self._host,
-                                                   port=self._port,
+        # Special IPv6 format
+        if ':' in self._host:
+            host = '[{0}]'.format(self._host)
+
+        else:
+            host = self._host
+
+        return 'http://{host}:{port}{path}'.format(host=host, port=self._port,
                                                    path=self._servlet_path)
 
 

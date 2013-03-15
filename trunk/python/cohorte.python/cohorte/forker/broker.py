@@ -199,10 +199,16 @@ class ConfigBroker(object):
             # Store the configuration as a JSON string
             self._configurations[uid] = json.dumps(dict_config)
 
+        # Special IPv6 format
+        if ':' in self._host:
+            host = '[{0}]'.format(self._host)
+
+        else:
+            host = self._host
+
         return 'http://{host}:{port}{path}/{uid}'.format(uid=uid,
-                                                 host=self._host,
-                                                 port=self._port,
-                                                 path=self._servlet_path)
+                                                     host=host, port=self._port,
+                                                     path=self._servlet_path)
 
 
     @Invalidate
