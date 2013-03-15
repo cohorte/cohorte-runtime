@@ -44,19 +44,17 @@ def boot_load(context, boot_config):
     # Set up framework properties, if possible
     for key, value in boot_config.properties.items():
         if not framework.add_property(key, value):
-            logger.debug("Couldn't set the '%s' property to '%s'",
+            logger.debug("Couldn't set the '%s' property to '%s' (current: %s)",
                          key, value, context.get_property(key))
 
     # Load Forker bundles
     for bundle in boot_config.bundles:
         try:
             # Install it
-            logger.debug("Installing %s...", bundle.name)
             bundle_id = context.install_bundle(bundle.name)
 
             # Start it
             context.get_bundle(bundle_id).start()
-            logger.debug("%s started", bundle.name)
 
         except pelix.framework.BundleException as ex:
             if bundle.optional:
@@ -76,10 +74,8 @@ def boot_load(context, boot_config):
                 component.properties[constants.IPOPO_AUTO_RESTART] = True
 
             # Instantiate the component
-            logger.debug("Instantiating %s...", component.name)
             ipopo_svc.instantiate(component.factory, component.name,
                                   component.properties)
-            logger.debug("%s instantiated", component.name)
 
         # We don't need iPOPO anymore
         context.unget_service(ipopo_ref)
