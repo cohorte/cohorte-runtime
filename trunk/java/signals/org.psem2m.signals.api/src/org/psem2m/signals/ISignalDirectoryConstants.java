@@ -26,7 +26,7 @@ public interface ISignalDirectoryConstants {
     String SIGNAL_DUMP = ISignalDirectoryConstants.SIGNAL_PREFIX + "/dump";
 
     /** Prefix of all directory updater signals */
-    String SIGNAL_PREFIX = "/psem2m-directory-updater";
+    String SIGNAL_PREFIX = "/cohorte/signals/directory-updater";
 
     /** Pattern to match all directory updater signals */
     String SIGNAL_PREFIX_MATCH_ALL = ISignalDirectoryConstants.SIGNAL_PREFIX
