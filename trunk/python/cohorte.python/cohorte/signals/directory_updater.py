@@ -211,13 +211,13 @@ class DirectoryUpdater(object):
             if sender_id == isolate_uid:
                 # Case 1: we got the registration from the isolate itself
                 # -> Send a SYN-ACK
-                self._sender.fire(cohorte.signals.SIGNAL_REGISTER_SYNACK, None,
+                self._sender.post(cohorte.signals.SIGNAL_REGISTER_SYNACK, None,
                                   isolate=isolate_uid)
 
             elif registered:
                 # Case 2: we got the registration by propagation
                 # -> Send a REGISTER
-                self._sender.fire(cohorte.signals.SIGNAL_REGISTER,
+                self._sender.post(cohorte.signals.SIGNAL_REGISTER,
                                   self._prepare_registration_content(False),
                                   isolate=isolate_uid)
 
@@ -232,7 +232,7 @@ class DirectoryUpdater(object):
             # Indicate the address we used for the registration
             content["address"] = address
 
-            self._sender.fire(cohorte.signals.SIGNAL_REGISTER, content,
+            self._sender.post(cohorte.signals.SIGNAL_REGISTER, content,
                               dir_group="OTHERS", excluded=[isolate_uid])
 
         return registered
@@ -284,7 +284,7 @@ class DirectoryUpdater(object):
         elif name == cohorte.signals.SIGNAL_REGISTER_SYNACK:
             with self._lock:
                 # Send the final acknowledgment
-                self._sender.fire(cohorte.signals.SIGNAL_REGISTER_ACK, None,
+                self._sender.post(cohorte.signals.SIGNAL_REGISTER_ACK, None,
                                   isolate=sender_id)
 
                 # Notify listeners
@@ -332,7 +332,7 @@ class DirectoryUpdater(object):
                                          self)
 
         # Get the local dumper port
-        dump_port = context.get_property("psem2m.directory.dumper.port")
+        dump_port = context.get_property(cohorte.PROP_DUMPER_PORT)
         if not dump_port:
             _logger.warning("No local dumper port found.")
             # Can't grab...

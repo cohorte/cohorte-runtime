@@ -407,7 +407,7 @@ public class DirectoryUpdater implements ISignalListener,
                     pDirectory.synchronizingIsolatePresence(isolateUID);
                 }
 
-                pSender.fire(ISignalDirectoryConstants.SIGNAL_REGISTER_SYNACK,
+                pSender.post(ISignalDirectoryConstants.SIGNAL_REGISTER_SYNACK,
                         null, isolateUID);
 
             } else if (newlyRegistered) {
@@ -418,7 +418,7 @@ public class DirectoryUpdater implements ISignalListener,
                 pLogger.logDebug(this, "registerIsolate",
                         "Sending a registration signal to", isolateUID,
                         "due to a propagation");
-                pSender.fire(ISignalDirectoryConstants.SIGNAL_REGISTER,
+                pSender.post(ISignalDirectoryConstants.SIGNAL_REGISTER,
                         prepareRegistrationContent(false), isolateUID);
             }
         }
