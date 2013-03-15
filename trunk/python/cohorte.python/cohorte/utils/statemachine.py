@@ -343,9 +343,6 @@ class StateMachine(object):
             self._logger.exception("Error calling the transition callback: %s",
                                    ex)
 
-        # Log the change
-        self._logger.debug("State change %s", self.__name, transition)
-
         # Change the state
         self.__state = transition.next
 

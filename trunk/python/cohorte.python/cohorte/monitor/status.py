@@ -54,7 +54,7 @@ class MonitorStatus(object):
         :return: The initial state of the isolate (waiting)
         :raise KeyError: Already known & running isolate
         """
-        current_state = self._isolates.get(uid)
+        current_state = self._isolates.get(uid, fsm.ISOLATE_STATE_GONE)
         # Already known isolate
         if current_state != fsm.ISOLATE_STATE_GONE:
             # The isolate isn't gone
@@ -93,6 +93,17 @@ class MonitorStatus(object):
         :raise ValueError: Invalid state transition
         """
         return self._isolates[uid].handle(fsm.ISOLATE_EVENT_REQUESTED)
+
+
+    def isolate_starting(self, uid):
+        """
+        The forker has created the isolate process and lets it boot
+        
+        :param uid: UID of the isolate
+        :raise KeyError: Unknown UID
+        :raise ValueError: Invalid state transition
+        """
+        return self._isolates[uid].handle(fsm.ISOLATE_EVENT_STARTING)
 
 
     def isolate_ready(self, uid):

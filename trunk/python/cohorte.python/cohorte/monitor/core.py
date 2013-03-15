@@ -171,10 +171,6 @@ class MonitorCore(object):
         custom_artifacts = [artifact for artifact in resolution[0]
                             if artifact not in isolate_artifacts]
 
-        from pprint import pformat
-        _logger.debug("Isolate %s: %s/%s/%s", name, kind, level, sublevel)
-        _logger.debug("Bundles:\n%s", pformat(custom_artifacts))
-
         # Generate a UID
         uid = str(uuid.uuid4())
 
@@ -186,16 +182,31 @@ class MonitorCore(object):
         config = self._config.prepare_isolate(uid, name, node, kind, level,
                                               sublevel, custom_artifacts)
 
+        # Store the isolate in the status
+        self._status.add_isolate(uid)
+
         # Talk to the forker aggregator
+        self._status.isolate_requested(uid)
         result = self._forkers.start_isolate(uid, node, kind, config)
         if result == cohorte.forker.REQUEST_NO_MATCHING_FORKER:
+            # Return in waiting mode
+            self._status.isolate_gone(uid)
+
             # Stack the request
             self._waiting.setdefault(node, {})[uid] = (kind, config)
             _logger.warning("No forker for node %s yet - %s waiting.",
                             node, name)
             return False
 
-        return result in cohorte.forker.REQUEST_SUCCESSES
+        elif result in cohorte.forker.REQUEST_SUCCESSES:
+            self._status.isolate_starting(uid)
+            return True
+
+        else:
+            # Forget it
+            self._status.remove_isolate(uid)
+
+        return False
 
 
     def stop_isolate(self, uid):
@@ -225,9 +236,11 @@ class MonitorCore(object):
         # Start all isolates waiting on that node
         for iso_uid, (kind, config) in isolates.items():
             # Call the forker
+            self._status.isolate_requested(iso_uid)
             result = self._forkers.start_isolate(iso_uid, node, kind, config)
             if result in cohorte.forker.REQUEST_SUCCESSES:
                 # Isolate started
+                self._status.isolate_starting(iso_uid)
                 del isolates[iso_uid]
 
 

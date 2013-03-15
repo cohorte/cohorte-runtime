@@ -23,12 +23,14 @@ from cohorte.utils.statemachine import StateMachine
 # Isolate states
 ISOLATE_STATE_WAITING = "WAITING"
 ISOLATE_STATE_REQUESTED = "REQUESTED"
+ISOLATE_STATE_STARTING = "STARTING"
 ISOLATE_STATE_READY = "READY"
 ISOLATE_STATE_STOPPING = "STOPPING"
 ISOLATE_STATE_GONE = "GONE"
 
 # Isolate events
 ISOLATE_EVENT_REQUESTED = "/requested"
+ISOLATE_EVENT_STARTING = "/starting"
 ISOLATE_EVENT_READY = "/ready"
 ISOLATE_EVENT_STOPPING = "/stopping"
 ISOLATE_EVENT_GONE = "/gone"
@@ -43,17 +45,25 @@ def make_isolate_fsm(uid):
 
     # Add states
     for name in (ISOLATE_STATE_WAITING, ISOLATE_STATE_REQUESTED,
-                 ISOLATE_STATE_READY, ISOLATE_STATE_STOPPING,
-                 ISOLATE_STATE_GONE):
+                 ISOLATE_STATE_STARTING, ISOLATE_STATE_READY,
+                 ISOLATE_STATE_STOPPING, ISOLATE_STATE_GONE):
         fsm.add_state(name)
 
     # Add transitions
     fsm.add_transition(ISOLATE_STATE_WAITING, ISOLATE_EVENT_REQUESTED,
                        ISOLATE_STATE_REQUESTED)
 
-    fsm.add_transition(ISOLATE_STATE_REQUESTED, ISOLATE_EVENT_READY,
-                       ISOLATE_STATE_READY)
+    # Failed instantiation request
     fsm.add_transition(ISOLATE_STATE_REQUESTED, ISOLATE_EVENT_GONE,
+                       ISOLATE_STATE_WAITING)
+
+    # Forker request succeeded
+    fsm.add_transition(ISOLATE_STATE_REQUESTED, ISOLATE_EVENT_STARTING,
+                       ISOLATE_STATE_STARTING)
+
+    fsm.add_transition(ISOLATE_STATE_STARTING, ISOLATE_EVENT_READY,
+                       ISOLATE_STATE_READY)
+    fsm.add_transition(ISOLATE_STATE_STARTING, ISOLATE_EVENT_GONE,
                        ISOLATE_STATE_GONE)
 
     fsm.add_transition(ISOLATE_STATE_READY, ISOLATE_EVENT_STOPPING,
