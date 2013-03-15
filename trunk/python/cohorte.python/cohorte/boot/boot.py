@@ -96,6 +96,13 @@ def load_isolate(pelix_properties, state_updater_url=None, fail_on_pdb=False):
     _logger.debug("Starting Pelix framework with properties:\n%s",
                   pformat(pelix_properties))
 
+    # Update Python path (if necessary)
+    for key in (cohorte.PROP_HOME, cohorte.PROP_BASE):
+        repo = os.path.join(pelix_properties[key], "repo")
+        if repo not in sys.path:
+            _logger.debug("Adding %s to Python path", repo)
+            sys.path.insert(0, repo)
+
     # Start the framework
     framework = pelix.framework.FrameworkFactory.get_framework(pelix_properties)
     framework.start()
