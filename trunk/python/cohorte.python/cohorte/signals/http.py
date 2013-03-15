@@ -143,6 +143,7 @@ class SignalReceiver(object):
                              self._port, True)
 
             # Register our service
+            _logger.info("Activating SignalReceiver service")
             self._svc_flag = True
 
         else:
@@ -159,6 +160,7 @@ class SignalReceiver(object):
         """
         if path == self._servlet_path:
             # Unregister our service
+            _logger.info("Unregistering SignalReceiver service")
             self._svc_flag = False
 
             # Clear our access information
@@ -886,7 +888,8 @@ class SignalSender(object):
                 response = conn.getresponse()
 
             except Exception as ex:
-                _logger.error("Error while reading HTTP response: %s", ex)
+                _logger.error("Error reading HTTP response from %s for signal "
+                              "%s: %s", access, signal, ex)
                 return None
 
             if response.status != 200:
