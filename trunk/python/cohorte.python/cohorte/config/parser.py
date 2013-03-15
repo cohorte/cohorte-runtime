@@ -255,22 +255,28 @@ class BootConfigParser(object):
             # Already a bundle
             return bundle
 
+        # Bundle name is mandatory
         name = bundle.name
         if not name:
             raise ValueError("A bundle must have a name: %s", bundle)
 
+        # Get the filename
+        for fileattr in ('filename', 'file'):
+            filename = getattr(bundle, fileattr, None)
+            if filename:
+                break
+
+        # Normalize bundle properties
         properties = getattr(bundle, 'properties', {})
         if not isinstance(properties, dict):
             properties = {}
 
+        # Normalize bundle version
         version = getattr(bundle, 'version', None)
         if version is not None:
             version = str(version)
 
-        return Bundle(name,
-                      getattr(bundle, 'filename', None),
-                      properties,
-                      version,
+        return Bundle(name, filename, properties, version,
                       getattr(bundle, 'optional', False))
 
 
