@@ -116,8 +116,7 @@ class PyBridge(object):
             # Named tuple
             data = data._asdict()
 
-        data_type = type(data)
-        if data_type is dict:
+        if isinstance(data, dict):
             # Convert a dictionary
             converted = self.HashMap()
 
@@ -131,7 +130,7 @@ class PyBridge(object):
             # Return the new value
             return converted
 
-        elif data_type in (list, set):
+        elif isinstance(data, (list, tuple, set)):
             # Convert a list
             converted = self.ArrayList()
 
