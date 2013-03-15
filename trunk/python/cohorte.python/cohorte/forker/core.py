@@ -362,9 +362,17 @@ class Forker(object):
         self._state_dir.prepare_isolate(uid)
 
         # Prepare the dumper port property
-        isolate_props = isolate_config.setdefault('properties', {})
-        isolate_props[cohorte.PROP_DUMPER_PORT] = self._receiver. \
-                                                            get_access_info()[1]
+        dumper_port = self._receiver.get_access_info()[1]
+        all_props = []
+        if 'boot' in isolate_config and 'properties' in isolate_config['boot']:
+            # ... in boot properties
+            all_props.append(isolate_config['boot']['properties'])
+
+        # ... in isolate properties
+        all_props.append(isolate_config.setdefault('properties', {}))
+
+        for props in all_props:
+            props[cohorte.PROP_DUMPER_PORT] = dumper_port
 
         # Store the configuration in the broker
         config_url = self._config_broker.store_configuration(uid,
