@@ -7,10 +7,13 @@
 PYTHON_INTERPRETER=${PYTHON_INTERPRETER:="python"}
 
 # Python path
-export PYTHONPATH=$(pwd):/home/tcalmant/programmation/workspaces/psem2m/trunk/python/psem2m.base/src
+export PYTHONPATH=$(pwd):"/home/tcalmant/programmation/workspaces/psem2m/trunk/python/psem2m.base/src"
 
 # COHORTE node name
-export COHORTE_NODE=${COHORTE_NODE:=central}
+export COHORTE_NODE=${COHORTE_NODE:="central"}
+
+# Forker log file
+export COHORTE_LOGFILE="$COHORTE_BASE/var/forker.log"
 
 # Remove previous environment
 rm -fr $COHORTE_BASE/var/*
