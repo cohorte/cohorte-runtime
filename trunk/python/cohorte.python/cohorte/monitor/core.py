@@ -202,9 +202,8 @@ class MonitorCore(object):
             self._status.isolate_starting(uid)
             return True
 
-        else:
-            # Forget it
-            self._status.remove_isolate(uid)
+        # Do not remove the failed isolate from the status:
+        # an "isolate lost" signal will be received soon
 
         return False
 
