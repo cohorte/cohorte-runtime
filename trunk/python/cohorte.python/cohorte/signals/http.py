@@ -248,7 +248,8 @@ class SignalReceiver(object):
 
                 try:
                     # Decode the JSON content
-                    signal_data = from_jabsorb(json.loads(request.read_data()))
+                    raw_data = to_unicode(request.read_data())
+                    signal_data = from_jabsorb(json.loads(raw_data))
 
                     if signal_data:
                         # Complete the signal information: client IP

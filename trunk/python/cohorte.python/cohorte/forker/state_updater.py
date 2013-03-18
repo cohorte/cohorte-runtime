@@ -18,6 +18,7 @@ __version__ = "1.0.0"
 # Pelix framework
 from pelix.ipopo.decorators import ComponentFactory, Requires, Property, \
     Provides, Invalidate, Validate
+from pelix.utilities import to_str
 import pelix.http
 
 # Python standard library
@@ -105,7 +106,7 @@ class StateUpdater(object):
         :param request: The HTTP response handler
         """
         # Parse the request content
-        data = json.loads(request.read_data())
+        data = json.loads(to_str(request.read_data()))
 
         # Extract information
         uid = data['uid']
