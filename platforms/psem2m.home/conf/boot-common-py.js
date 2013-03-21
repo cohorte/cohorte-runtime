@@ -13,13 +13,19 @@
 	"bundles" : [ {
 		"name" : "pelix.http.basic"
 	}, {
+		"name" : "pelix.remote.dispatcher"
+	}, {
+		"name" : "pelix.remote.registry"
+	}, {
 		"name" : "cohorte.signals.http"
 	}, {
 		"name" : "cohorte.signals.directory"
 	}, {
 		"name" : "cohorte.signals.directory_updater"
 	}, {
-		"name" : "cohorte.signals.remoteservices"
+		"name" : "cohorte.remote.jabsorb_rpc"
+	}, {
+		"name" : "cohorte.remote.signals_discovery"
 	}, {
 		"name" : "cohorte.debug.servlet"
 	} ],
@@ -64,10 +70,19 @@
 
 	/* Remote services */
 	{
-		"factory" : "cohorte-remote-exporter-factory",
-		"name" : "cohorte-remote-exporter"
+		"factory" : "pelix-remote-dispatcher-factory",
+		"name" : "pelix-remote-dispatcher"
 	}, {
-		"factory" : "cohorte-remote-importer-factory",
-		"name" : "cohorte-remote-importer"
+		"factory" : "pelix-remote-imports-registry-factory",
+		"name" : "pelix-remote-imports-registry"
+	}, {
+		"factory" : "cohorte-remote-discovery-signals-factory",
+		"name" : "cohorte-remote-discovery-signals"
+	}, {
+		"factory" : "cohorte-jabsorbrpc-importer-factory",
+		"name" : "cohorte-jabsorbrpc-importer"
+	}, {
+		"factory" : "cohorte-jabsorbrpc-exporter-factory",
+		"name" : "cohorte-jabsorbrpc-exporter"
 	} ]
 }
