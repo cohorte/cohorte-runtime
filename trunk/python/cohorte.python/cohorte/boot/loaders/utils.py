@@ -44,8 +44,10 @@ def boot_load(context, boot_config):
     # Set up framework properties, if possible
     for key, value in boot_config.properties.items():
         if not framework.add_property(key, value):
-            logger.debug("Couldn't set the '%s' property to '%s' (current: %s)",
-                         key, value, context.get_property(key))
+            current = context.get_property(key)
+            if current != value:
+                logger.debug("Couldn't set the property %r to %r (current: %r)",
+                             key, value, current)
 
     # Load Forker bundles
     for bundle in boot_config.bundles:

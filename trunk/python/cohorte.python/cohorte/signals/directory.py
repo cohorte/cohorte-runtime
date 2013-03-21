@@ -378,7 +378,7 @@ class SignalsDirectory(object):
             node_access = self._accesses[isolate_uid]
             node_host = self._nodes_host[node_access[0]]
 
-        except KeyError as ex:
+        except KeyError:
             # Unknown isolate or node
             return None
 
