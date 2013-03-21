@@ -1,20 +1,73 @@
 #!/usr/bin/env python
-#-- Content-Encoding: UTF-8 --
+# -- Content-Encoding: UTF-8 --
 """
-Created on 06 mars 2012
+COHORTE Remote Services: JSON-RPC in Jabsorb format
 
 :author: Thomas Calmant
+:license: GPLv3
 """
 
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Boot module version
+__version__ = "1.0.0"
+
+# ------------------------------------------------------------------------------
+
+# Standard library
 import re
 
 # ------------------------------------------------------------------------------
 
 JAVA_CLASS = "javaClass"
+"""
+Dictionary key used by Jabsorb to indicate which Java class corresponds to its
+content
+"""
 
 JAVA_MAPS_PATTERN = re.compile("java\.util\.(.*Map|Properties)")
+""" Pattern to detect standard Java classes for maps """
+
 JAVA_LISTS_PATTERN = re.compile("java\.util\..*List")
+""" Pattern to detect standard Java classes for lists """
+
 JAVA_SETS_PATTERN = re.compile("java\.util\..*Set")
+""" Pattern to detect standard Java classes for sets """
+
+# ------------------------------------------------------------------------------
+
+class __hashabledict(dict):
+    """
+    Small workaround because dictionaries are not hashable in Python
+    """
+    def __hash__(self):
+        """
+        Computes the hash of the dictionary
+        """
+        return hash(tuple(sorted(self.items())))
+
+
+class __hashableset(set):
+    """
+    Small workaround because sets are not hashable in Python
+    """
+    def __hash__(self):
+        """
+        Computes the hash of the set
+        """
+        return hash(tuple(sorted(self)))
+
+
+class __hashablelist(list):
+    """
+    Small workaround because lists are not hashable in Python
+    """
+    def __hash__(self):
+        """
+        Computes the hash of the list
+        """
+        return hash(tuple(sorted(self)))
 
 # ------------------------------------------------------------------------------
 
@@ -62,6 +115,11 @@ def to_jabsorb(value):
     elif isinstance(value, tuple):
         converted_result = [to_jabsorb(entry) for entry in value]
 
+    elif hasattr(value, JAVA_CLASS):
+        # Class with a Java class hint: convert into a dictionary
+        converted_result = __hashabledict((key, to_jabsorb(content))
+                                  for key, content in value.__dict__.items())
+
     # Other ?
     else:
         converted_result = value
@@ -77,51 +135,32 @@ def from_jabsorb(request):
     :param request: Data coming from Jabsorb
     :return: A Python representation of the given data
     """
-    if isinstance(request, list):
+    if isinstance(request, (list, set, tuple)):
         # Special case : JSON arrays (Python lists)
-        converted_list = []
-        for element in request:
-            converted_list.append(from_jabsorb(element))
+        return [from_jabsorb(element) for element in request]
 
-        return converted_list
-
-    if not isinstance(request, dict) or JAVA_CLASS not in request:
-        # Raw element
+    elif not isinstance(request, dict):
+        # Only handle dictionaries after this point
         return request
 
-    java_class = str(request[JAVA_CLASS])
+    java_class = request.get(JAVA_CLASS)
 
-    # Java Map ?
-    if JAVA_MAPS_PATTERN.match(java_class) is not None:
-        result = {}
+    if java_class:
+        # Java Map ?
+        if JAVA_MAPS_PATTERN.match(java_class) is not None:
+            return __hashabledict((from_jabsorb(key), from_jabsorb(value))
+                                  for key, value in request["map"].items())
 
-        for key, value in request["map"].items():
-            result[key] = from_jabsorb(value)
+        # Java List ?
+        elif JAVA_LISTS_PATTERN.match(java_class) is not None:
+            return __hashablelist(from_jabsorb(element)
+                                  for element in request["list"])
 
-        return result
+        # Java Set ?
+        elif JAVA_SETS_PATTERN.match(java_class) is not None:
+            return __hashableset(from_jabsorb(element)
+                                 for element in request["set"])
 
-    # Java List ?
-    elif JAVA_LISTS_PATTERN.match(java_class) is not None:
-        result = []
-
-        for element in request["list"]:
-            result.append(from_jabsorb(element))
-
-        return result
-
-    # Java Set ?
-    elif JAVA_SETS_PATTERN.match(java_class) is not None:
-        result = set()
-
-        for element in request["set"]:
-            result.add(from_jabsorb(element))
-
-        return result
-
-    else:
-        # Other ?
-        converted_request = {}
-        for key, value in request.items():
-            converted_request[key] = from_jabsorb(value)
-
-        return converted_request
+    # Any other case
+    return __hashabledict((from_jabsorb(key), from_jabsorb(value))
+                          for key, value in request.items())
