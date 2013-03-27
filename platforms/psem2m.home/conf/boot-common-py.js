@@ -17,6 +17,10 @@
 	}, {
 		"name" : "pelix.remote.registry"
 	}, {
+		"name" : "pelix.services.eventadmin"
+	}, {
+		"name" : "pelix.shell.eventadmin"
+	}, {
 		"name" : "cohorte.signals.http"
 	}, {
 		"name" : "cohorte.signals.directory"
@@ -84,5 +88,11 @@
 	}, {
 		"factory" : "cohorte-jabsorbrpc-exporter-factory",
 		"name" : "cohorte-jabsorbrpc-exporter"
+	},
+
+	/* Event Admin */
+	{
+		"factory" : "pelix-services-eventadmin-factory",
+		"name" : "pelix-services-eventadmin"
 	} ]
 }
