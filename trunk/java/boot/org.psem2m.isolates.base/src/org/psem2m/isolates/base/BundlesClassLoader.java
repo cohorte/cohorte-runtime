@@ -6,6 +6,7 @@
 package org.psem2m.isolates.base;
 
 import org.osgi.framework.BundleContext;
+import org.psem2m.isolates.base.Utilities.BundleClass;
 
 /**
  * "Fake" Class loader, trying to load a class that could be in one of the
@@ -16,7 +17,7 @@ import org.osgi.framework.BundleContext;
 public class BundlesClassLoader extends ClassLoader {
 
     /** The bundle context */
-    private BundleContext pBundleContext;
+    private final BundleContext pBundleContext;
 
     /**
      * Prepares the "class loader"
@@ -65,14 +66,13 @@ public class BundlesClassLoader extends ClassLoader {
         }
 
         // Try the bundles loaders
-        final Class<?> foundClass = Utilities.findClassInBundles(
-                pBundleContext.getBundles(), aName);
-
+        final BundleClass foundClass = Utilities.findClassInBundles(
+                pBundleContext.getBundles(), aName, true);
         if (foundClass == null) {
-            throw new ClassNotFoundException("Class not found : " + aName);
+            throw new ClassNotFoundException("Class not found: " + aName);
         }
 
-        return foundClass;
+        return foundClass.getLoadedClass();
     }
 
     /*

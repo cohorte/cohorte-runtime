@@ -1,6 +1,7 @@
 package org.psem2m.remote.importer;
 
 import org.osgi.framework.ServiceRegistration;
+import org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration;
 
 /**
  * Stored information about proxied services
@@ -12,21 +13,28 @@ public class ProxyServiceInfo {
     /** The proxy object */
     private final Object pProxy;
 
+    /** The remote service registration bean */
+    private final RemoteServiceRegistration pRemoteRegistration;
+
     /** The service registration information */
     private final ServiceRegistration<?> pServiceRegistration;
 
     /**
      * Sets up the bean
      * 
-     * @param aRegistration
-     *            Service registration information
+     * @param aRemoteRegistration
+     *            Remote service registration
+     * @param aLocalRegistration
+     *            Local service registration information
      * @param aProxy
      *            Service proxy object
      */
-    public ProxyServiceInfo(final ServiceRegistration<?> aRegistration,
-            final Object aProxy) {
+    public ProxyServiceInfo(
+            final RemoteServiceRegistration aRemoteRegistration,
+            final ServiceRegistration<?> aLocalRegistration, final Object aProxy) {
 
-        pServiceRegistration = aRegistration;
+        pRemoteRegistration = aRemoteRegistration;
+        pServiceRegistration = aLocalRegistration;
         pProxy = aProxy;
     }
 
@@ -38,6 +46,16 @@ public class ProxyServiceInfo {
     public Object getProxy() {
 
         return pProxy;
+    }
+
+    /**
+     * Retrieves the remote service registration
+     * 
+     * @return the remote service registration
+     */
+    public RemoteServiceRegistration getRemoteRegistration() {
+
+        return pRemoteRegistration;
     }
 
     /**

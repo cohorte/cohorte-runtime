@@ -34,6 +34,49 @@ import org.psem2m.isolates.constants.IPlatformProperties;
  */
 public final class Utilities {
 
+    public static final class BundleClass {
+
+        /** The bundle providing the class */
+        private final Bundle pBundle;
+
+        /** The loaded class */
+        private final Class<?> pClass;
+
+        /**
+         * Sets up the bean
+         * 
+         * @param aBundle
+         *            The bundle providing the class
+         * @param aClass
+         *            The loaded class
+         */
+        public BundleClass(final Bundle aBundle, final Class<?> aClass) {
+
+            pBundle = aBundle;
+            pClass = aClass;
+        }
+
+        /**
+         * Retrieves the bundle providing the class
+         * 
+         * @return the bundle
+         */
+        public Bundle getBundle() {
+
+            return pBundle;
+        }
+
+        /**
+         * Retrieves the loaded class
+         * 
+         * @return the loaded class
+         */
+        public Class<?> getLoadedClass() {
+
+            return pClass;
+        }
+    }
+
     /**
      * Converts the given object to a one-dimension array of the given type
      * 
@@ -117,22 +160,30 @@ public final class Utilities {
      *            An array containing all bundles to search into
      * @param aClassName
      *            Name of the class to load
+     * @param aAllowResolvedBundles
      * @return The searched class, null if not found
      */
-    public static Class<?> findClassInBundles(final Bundle[] aBundles,
-            final String aClassName) {
+    public static BundleClass findClassInBundles(final Bundle[] aBundles,
+            final String aClassName, final boolean aAllowResolvedBundles) {
 
         if (aBundles == null) {
+            // No bundles to look into
             return null;
         }
 
-        for (final Bundle bundle : aBundles) {
+        // Prepare the state mask
+        int stateMask = Bundle.ACTIVE;
+        if (aAllowResolvedBundles) {
+            stateMask |= Bundle.RESOLVED;
+        }
 
-            // Only work with RESOLVED and ACTIVE bundles
+        for (final Bundle bundle : aBundles) {
+            // Check if the bundle state passes the mask
             final int bundleState = bundle.getState();
-            if (bundleState == Bundle.ACTIVE || bundleState == Bundle.RESOLVED) {
+            if ((bundleState | stateMask) != 0) {
                 try {
-                    return bundle.loadClass(aClassName);
+                    final Class<?> clazz = bundle.loadClass(aClassName);
+                    return new BundleClass(bundle, clazz);
 
                 } catch (final ClassNotFoundException e) {
                     // Class not found, try next bundle...

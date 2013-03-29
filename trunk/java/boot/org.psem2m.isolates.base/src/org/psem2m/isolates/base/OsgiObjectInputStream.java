@@ -11,6 +11,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectStreamClass;
 
 import org.osgi.framework.BundleContext;
+import org.psem2m.isolates.base.Utilities.BundleClass;
 
 /**
  * A class loader aware ObjectInputStream.
@@ -62,17 +63,16 @@ public class OsgiObjectInputStream extends ObjectInputStream {
                     .getContextClassLoader();
             return currentTccl.loadClass(aDesc.getName());
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             // Ignore errors at this level
         }
 
         // Try with bundles
         if (pBundleContext != null) {
-            final Class<?> clazz = Utilities.findClassInBundles(
-                    pBundleContext.getBundles(), aDesc.getName());
-
+            final BundleClass clazz = Utilities.findClassInBundles(
+                    pBundleContext.getBundles(), aDesc.getName(), true);
             if (clazz != null) {
-                return clazz;
+                return clazz.getLoadedClass();
             }
         }
 
