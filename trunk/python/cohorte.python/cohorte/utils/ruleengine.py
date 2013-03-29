@@ -73,7 +73,7 @@ class RuleEngine(Intellect):
         :raise ValueError: Invalid name or method
         """
         if method is None or not hasattr(method, '__call__'):
-            raise ValueError("Invalid method reference")
+            raise ValueError("Invalid method reference: %s", method)
 
         if not name:
             # Compute the name of method
