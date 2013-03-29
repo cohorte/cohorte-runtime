@@ -86,6 +86,20 @@ class ComposerStatus(object):
         self._compositions[uid].handle(event)
 
 
+    def get_agents(self):
+        """
+        Generator to walk through stored agents/isolates UIDs
+        """
+        return (uid for uid in self._agents.keys())
+
+
+    def get_components(self):
+        """
+        Generator to walk through stored component beans
+        """
+        return (status.data for status in self._components.values())
+
+
     def agent_requested(self, uid):
         """
         A new agent has been requested
