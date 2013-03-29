@@ -22,7 +22,7 @@
 	},
 	/* Composer agent */
 	{
-		"factory" : "cohorte-composer-agent-factory",
-		"name" : "cohorte-composer-agent"
+		"factory" : "cohorte-composer-agent-ipopo-factory",
+		"name" : "cohorte-composer-agent-ipopo"
 	} ]
 }

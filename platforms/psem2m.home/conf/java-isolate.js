@@ -8,6 +8,25 @@
 	"import-files" : [ "java-osgi.js", "java-common-ui.js" ],
 
 	/*
+	 * Bundles
+	 */
+	"bundles" : [ {
+		"name" : "org.cohorte.composer.api"
+	}, {
+		"name" : "org.cohorte.composer.agent"
+	} ],
+
+	/*
+	 * Components
+	 */
+	"composition" : [
+	/* Composer agent */
+	{
+		"factory" : "cohorte-composer-agent-ipojo-factory",
+		"name" : "cohorte-composer-agent-ipojo"
+	} ],
+
+	/*
 	 * Framework properties
 	 */
 	"properties" : {
