@@ -16,6 +16,7 @@ __version__ = "1.0.0"
 # ------------------------------------------------------------------------------
 
 # Standard library
+import inspect
 import re
 
 # ------------------------------------------------------------------------------
@@ -117,8 +118,11 @@ def to_jabsorb(value):
 
     elif hasattr(value, JAVA_CLASS):
         # Class with a Java class hint: convert into a dictionary
-        converted_result = __hashabledict((key, to_jabsorb(content))
-                                  for key, content in value.__dict__.items())
+        converted_result = __hashabledict(
+            (name, to_jabsorb(content))
+            for name, content
+            in map(lambda name: (name, getattr(value, name)), dir(value))
+            if not name.startswith('_') and not inspect.ismethod(content))
 
     # Other ?
     else:
