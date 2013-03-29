@@ -199,9 +199,11 @@ public class JsonSignalSerializer extends CPojoBase implements
             if (pLogger.isLogDebugOn()) {
                 // Trace the complete exception when debugging
                 Throwable ex = e;
+                pLogger.logDebug(this, "JSON.unserializeData",
+                        "Error while reading JSON:\n", ex);
+
                 while (ex != null) {
-                    pLogger.logDebug(this, "JSON.unserializeData",
-                            "Error while reading JSON :\n", ex);
+                    pLogger.logDebug(this, "...", "Caused by:", ex.getMessage());
                     ex = ex.getCause();
                 }
             }
