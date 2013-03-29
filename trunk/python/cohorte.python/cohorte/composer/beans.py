@@ -357,6 +357,22 @@ class Component(object):
         self._filters = {}
 
 
+    def as_dict(self):
+        """
+        Converts the bean into a dictionary
+        """
+        return {"uid": self.__uid,
+                "name": self.__fullname,
+                "type": self.__factory,
+                # Parent name: full name without '.name'
+                "parentName": self.fullname[:-(len(self.__name) + 1)],
+                "fieldsFilters": self._filters,
+                "properties": self.__properties,
+                "isolate": self.__preferred_isolate,
+                "node": self.__preferred_node
+                }
+
+
     @property
     def uid(self):
         """
@@ -520,7 +536,8 @@ class Component(object):
             parsed_filter = ldapfilter.get_ldap_filter(ldap_filter)
 
             # Store its string representation
-            self._filters[field] = str(parsed_filter)
+            if parsed_filter is not None:
+                self._filters[field] = str(parsed_filter)
 
         return previous
 
@@ -564,12 +581,21 @@ class Component(object):
         if not uid:
             raise ValueError("No UID given")
 
+        else:
+            uid = str(uid)
+
         # New component
         copy = Component(self.__name, self.__factory, self.__properties, uid)
 
         # Copy other members
         copy._filters = self._filters.copy()
         copy._wires = self._wires.copy()
+
+        copy.__fullname = self.__fullname
+        copy.__language = self.__language
+        copy.__preferred_isolate = self.__preferred_isolate
+        copy.__preferred_node = self.__preferred_node
+
         return copy
 
 

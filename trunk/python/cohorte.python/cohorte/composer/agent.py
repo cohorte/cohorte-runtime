@@ -1,281 +1,143 @@
 #!/usr/bin/env python
 # -- Content-Encoding: UTF-8 --
 """
-Created on 29 févr. 2012
+COHORTE Composer Agent
 
 :author: Thomas Calmant
+:license: GPLv3
 """
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Boot module version
+__version__ = "1.0.0"
 
 # ------------------------------------------------------------------------------
 
+# COHORTE
+import cohorte.composer
+import cohorte.composer.core.fsm as fsm
+
+# Pelix / iPOPO
+from pelix.ipopo.decorators import ComponentFactory, Provides, Requires, \
+    Validate, Invalidate, Property
+from pelix.ipopo.constants import IPopoEvent
+import pelix.ipopo.constants as constants
+import pelix.utilities
+import pelix.remote
+
+# Standard library
 import logging
 import threading
+
+# ------------------------------------------------------------------------------
+
+IPOPO_KIND_TO_EVENT = {
+    IPopoEvent.INSTANTIATED: fsm.COMPONENT_EVENT_INSTANTIATED,
+    IPopoEvent.VALIDATED: fsm.COMPONENT_EVENT_VALIDATED,
+    IPopoEvent.INVALIDATED: fsm.COMPONENT_EVENT_INVALIDATED,
+    IPopoEvent.KILLED: fsm.COMPONENT_EVENT_GONE,
+}
+""" Translation of iPOPO events into composer FSM events """
+
+PROP_COMPONENT_UID = 'cohorte.composer.component.uid'
+""" Component UID """
+
+PROP_COMPONENT_NAME = 'cohorte.composer.component.name'
+""" Component name (redundant with instance.name) """
+
+PROP_COMPOSITE_NAME = 'cohorte.composer.composite.name'
+""" Composite containing the component """
+
+PROP_HOST_ISOLATE = "cohorte.composer.isolate"
+""" UID of the isolate hosting the component """
 
 _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
-from pelix.ipopo.constants import IPopoEvent
-from pelix.ipopo.decorators import ComponentFactory, Provides, Requires, \
-    Validate, Invalidate
-import pelix.ipopo.constants as constants
-import pelix.utilities
-
-# ------------------------------------------------------------------------------
-
-SIGNAL_PREFIX = "/cohorte-composer-agent"
-SIGNAL_REQUEST_PREFIX = "%s/request" % SIGNAL_PREFIX
-SIGNAL_RESPONSE_PREFIX = "%s/response" % SIGNAL_PREFIX
-SIGNAL_FACTORY_PREFIX = "%s/factory-state" % SIGNAL_PREFIX
-
-SIGNAL_REQUEST_PATTERN = "%s/*" % SIGNAL_REQUEST_PREFIX
-SIGNAL_FACTORY_PATTERN = "%s/*" % SIGNAL_FACTORY_PREFIX
-
-SIGNAL_CAN_HANDLE_COMPONENTS = "%s/can-handle-components" \
-                                % SIGNAL_REQUEST_PREFIX
-SIGNAL_COMPONENT_CHANGED = "%s/component-changed" % SIGNAL_PREFIX
-SIGNAL_INSTANTIATE_COMPONENTS = "%s/instantiate-components" \
-                                % SIGNAL_REQUEST_PREFIX
-SIGNAL_STOP_COMPONENTS = "%s/stop-components" % SIGNAL_REQUEST_PREFIX
-
-SIGNAL_RESPONSE_HANDLES_COMPONENTS = "%s/can-handle-components" \
-                                     % SIGNAL_RESPONSE_PREFIX
-SIGNAL_RESPONSE_INSTANTIATE_COMPONENTS = "%s/instantiate-components" \
-                                         % SIGNAL_RESPONSE_PREFIX
-SIGNAL_RESPONSE_STOP_COMPONENTS = "%s/stop-components" % SIGNAL_RESPONSE_PREFIX
-
-SIGNAL_ISOLATE_ADD_FACTORY = "%s/added" % SIGNAL_FACTORY_PREFIX
-SIGNAL_ISOLATE_REMOVE_FACTORY = "%s/removed" % SIGNAL_FACTORY_PREFIX
-SIGNAL_ISOLATE_FACTORIES_GONE = "%s/all-gone" % SIGNAL_FACTORY_PREFIX
-SIGNAL_ISOLATE_FACTORIES_DUMP = "%s/dump" % SIGNAL_FACTORY_PREFIX
-
-# See the Java enumeration: org.psem2m.composer.EComponentState
-ECOMPONENTSTATE_COMPLETE = {"javaClass": "org.psem2m.composer.EComponentState",
-                            "enumValue": "COMPLETE"}
-ECOMPONENTSTATE_REMOVED = {"javaClass": "org.psem2m.composer.EComponentState",
-                            "enumValue": "REMOVED"}
-
-# ------------------------------------------------------------------------------
-
-@ComponentFactory("cohorte-composer-agent-factory")
+@ComponentFactory("cohorte-composer-agent-ipopo-factory")
 @Provides("cohorte.composer.Agent")
-@Requires("ipopo", constants.IPOPO_SERVICE_SPECIFICATION)
-@Requires("directory", "org.psem2m.signals.ISignalDirectory")
-@Requires("sender", "org.psem2m.signals.ISignalBroadcaster")
-@Requires("receiver", "org.psem2m.signals.ISignalReceiver")
+@Property('_export', pelix.remote.PROP_EXPORTED_INTERFACES,
+          ["cohorte.composer.Agent"])
+@Property('_export_name', pelix.remote.PROP_ENDPOINT_NAME, 'composer-agent')
+@Requires("_composer", cohorte.composer.SERVICE_COMPOSITION_LOADER)
+@Requires("_ipopo", constants.IPOPO_SERVICE_SPECIFICATION)
 class ComposerAgent(object):
     """
-    Python Composer agent
+    Python composer agent
     """
-    COMPOSITE_NAME = "org.psem2m.composer.composite.name"
-    HOST_ISOLATE = "org.psem2m.composer.isolate"
-
     def __init__(self):
         """
-        Constructor
+        Sets up members
         """
-        # Dependencies
-        self.sender = None
-        self.receiver = None
-        self.directory = None
-        self.ipopo = None
+        # Bundle context
+        self._context = None
 
-        # Instantiated components (name -> instance)
-        self.instances = {}
+        # Injected services
+        self._composer = None
+        self._ipopo = None
 
-        # Protection
+        # Properties
+        self._export = "*"
+        self._export_name = "composer-agent"
+
+        # Instantiation lock
         self._lock = threading.RLock()
 
+        # Instantiated components: name -> UID
+        self._instances = {}
 
-    def handle_received_signal(self, name, signal_data):
+        # Waiting component: factory -> [(name, properties)]
+        self._waiting = {}
+
+
+    def can_handle_components(self, components):
         """
-        Called when a composer signal is received
+        Tests which components can be instantiated here.
         
-        :param name: The signal name
-        :param data: The signal data object
+        :param components: A list of component descriptions
+        :return: The names of the components that can be instantiated
+                 immediately with this agent
         """
-        _logger.info("Composer Signal: %s", name)
+        # Isolate identification
+        local_uid = self.get_isolate()
+        local_name = self._context.get_property(cohorte.PROP_NAME)
 
-        sender = signal_data["senderId"]
-        data = signal_data["signalContent"]
+        # List of handled components
+        handled = []
+        for component in components:
+            isolate = component.get("isolate", None)
+            if isolate and isolate not in (local_uid, local_name):
+                # Not configured for this isolate
+                continue
 
-        if name == SIGNAL_CAN_HANDLE_COMPONENTS:
-            self.can_handle_components(sender, data)
+            factory = component["type"]
+            if self._ipopo.is_registered_factory(factory):
+                # Factory available
+                handled.append(component["name"])
 
-        elif name == SIGNAL_INSTANTIATE_COMPONENTS:
-            self.instantiate_components(sender, data)
-
-        elif name == SIGNAL_STOP_COMPONENTS:
-            self.kill_components(sender, data)
-
-        elif name == SIGNAL_ISOLATE_FACTORIES_DUMP:
-            # This signal needs a result: an array with all known factories
-            return tuple(self.ipopo.get_factories())
+        return tuple(handled) if handled else None
 
 
-    def can_handle_components(self, sender, data):
+    def get_factories(self):
         """
-        Sends a signal to the given isolate to indicate which components can be
-        instantiated here.
+        Retrieves a tuple of all factories accessible by this agent
         
-        :param sender: The isolate that sent the request signal
-        :param data: An array of ComponentBean objects
+        :return: A tuple of factories names
         """
-        with self._lock:
-            current_isolate = self.directory.get_isolate_id()
-            handled = []
-            running = []
-
-            # Find all instantiable components
-            for component in data:
-                name = component["name"]
-                host = component.get("isolate", None)
-                if host and host != current_isolate:
-                    continue
-
-                factory = component["type"]
-                if self.ipopo.is_registered_factory(factory):
-                    _logger.debug("%s can be handled here (%s)", name, factory)
-                    handled.append(component)
-
-                if name in self.instances:
-                    # Component already running
-                    running.append(component)
-
-        # Send the result
-        if not handled:
-            handled = None
-        else:
-            handled = tuple(handled)
-
-        if not running:
-            running = None
-        else:
-            running = tuple(running)
-
-        self.sender.fire(SIGNAL_RESPONSE_HANDLES_COMPONENTS,
-                         {"handled": handled, "running": running},
-                         isolate=sender)
+        return tuple(self._ipopo.get_factories())
 
 
-    def __fire_instantiation_result(self, composet_name, component_name,
-                                    success, composer_id):
+    def get_isolate(self):
         """
-        Prepares and fires an instantiation result signal, for one component
+        Retrieves the UID and the name of the isolate hosting this agent
         
-        :param composet_name: The name of the instantiating composition
-        :param component_name: The name of the instantiated/failed component
-        :param success: True if the component has been successfully instantiated
-        :param composer_id: ID of the Composer Core isolate
+        :return: A tuple: (isolate UID, isolate name)
         """
-        if success:
-            instantiated = [component_name]
-            failed = None
-
-        else:
-            instantiated = None
-            failed = [component_name]
-
-        self.sender.fire(SIGNAL_RESPONSE_INSTANTIATE_COMPONENTS,
-                         {'composite': composet_name,
-                          'instantiated': instantiated,
-                          'failed': failed},
-                         isolate=composer_id)
-
-
-    def instantiate_components(self, sender, data):
-        """
-        Instantiates the given components
-        
-        :param sender: The isolate requesting the instantiation
-        :param data: The signal content
-        """
-        with self._lock:
-            current_isolate = self.directory.get_isolate_id()
-
-            # We'll known the composition name while reading components beans
-            composite_name = None
-            for component in data:
-                if not composite_name:
-                    # Find the root name
-                    composite_name = component.get("rootName", None)
-
-                # Get the instance name
-                name = component["name"]
-
-                if name in self.instances:
-                    # Already known isolate, consider a success (send a signal)
-                    self.__fire_instantiation_result(composite_name, name,
-                                                     True, sender)
-                    _logger.warning("Already instantiated component: %s", name)
-                    continue
-
-                # Get the component type
-                factory = component["type"]
-
-                # Get the instance properties
-                properties = component.get("properties", {})
-                if not isinstance(properties, dict):
-                    # Ensure it is a dictionary
-                    properties = {}
-
-                # Set up PSEM2M Composer properties
-                properties[ComposerAgent.COMPOSITE_NAME] = \
-                                                        component["parentName"]
-                properties[ComposerAgent.HOST_ISOLATE] = current_isolate
-                properties["service.exported.interfaces"] = "*"
-
-                # Set up fields filters (if any)
-                fields_filters = component["fieldsFilters"]
-                if fields_filters:
-                    properties[constants.IPOPO_REQUIRES_FILTERS] = \
-                                                                fields_filters
-
-                try:
-                    # Instantiate and store the component
-                    instance = self.ipopo.instantiate(factory, name, properties)
-                    self.instances[name] = instance
-
-                    # Send a success signal
-                    self.__fire_instantiation_result(composite_name, name,
-                                                     True, sender)
-
-                except Exception as ex:
-                    _logger.exception("Composer agent Failed ! %s", ex)
-                    # Send a failure signal
-                    self.__fire_instantiation_result(composite_name, name,
-                                                     False, sender)
-
-
-    def kill_components(self, sender, data):
-        """
-        Kills given components
-        
-        :param sender: The isolate requesting the destruction of a component
-        :param data: The signal content
-        """
-        with self._lock:
-            killed = []
-            unknown = []
-
-            for component in data:
-                if pelix.utilities.is_string(component):
-                    # Got a component name
-                    name = component
-                else:
-                    # Got a component bean
-                    name = component["name"]
-
-                if self.ipopo.is_registered_instance(name):
-                    self.ipopo.kill(name)
-                    killed.append(name)
-
-                else:
-                    unknown.append(name)
-
-            result_map = {"stopped": killed, "unknown": unknown}
-            self.sender.fire(SIGNAL_RESPONSE_STOP_COMPONENTS, result_map,
-                             isolate=sender)
+        return self._context.get_property(cohorte.PROP_UID), \
+            self._context.get_property(cohorte.PROP_NAME)
 
 
     def handle_ipopo_event(self, event):
@@ -284,84 +146,230 @@ class ComposerAgent(object):
         
         :param event: An iPOPO event
         """
-        with self._lock:
-            kind = event.get_kind()
-            component = event.get_component_name()
-            factory = event.get_factory_name()
+        kind = event.get_kind()
+        name = event.get_component_name()
+        factory = event.get_factory_name()
 
-            if kind == IPopoEvent.REGISTERED:
-                # Factory registered
-                self.sender.fire(SIGNAL_ISOLATE_ADD_FACTORY, (factory,),
-                                 dir_group="ALL")
+        if kind == IPopoEvent.REGISTERED and factory in self._waiting:
+            # Instantiate waiting components
+            with self._lock:
+                self._instantiation_loop(self._waiting[factory])
 
-            elif kind == IPopoEvent.UNREGISTERED:
-                # Factory gone
-                self.sender.fire(SIGNAL_ISOLATE_REMOVE_FACTORY, (factory,),
-                                 dir_group="ALL")
+        elif name in self._instances and kind in IPOPO_KIND_TO_EVENT:
+            # Known component, handled event
+            uid = self._instances[name]
+            event = IPOPO_KIND_TO_EVENT[kind]
+            self._composer.component_changed(self.get_isolate(),
+                                             uid, name, factory, event)
 
-            elif kind in (IPopoEvent.VALIDATED, IPopoEvent.KILLED) \
-            and component in self.instances:
-                # Instantiated component state changed
-                if kind == IPopoEvent.VALIDATED:
-                    state = ECOMPONENTSTATE_COMPLETE
+            if kind == IPopoEvent.KILLED:
+                # Clean up references
+                del self._instances[name]
+
+
+    def _instantiation_loop(self, components):
+        """
+        Instantiates the given components.
+        A component description is 3-tuple: (instance name, factory name,
+        properties). 
+        
+        :param components: A list of component descriptions
+        :return: A 3-tuple: instantiated components, already running ones and
+                 failed ones.
+        """
+        if not components:
+            # Nothing to do
+            return
+
+        # Instantiated components UID -> Name
+        success = {}
+
+        # List of already running components
+        running = []
+
+        # Component name -> Error message
+        errors = {}
+
+        for name, factory, properties in components:
+            if name in self._instances:
+                # Already instantiated component
+                running.append(name)
+
+            else:
+                uid = properties[PROP_COMPONENT_UID]
+                # Create the instance entry first, as it will be tested
+                # while handling iPOPO events
+                self._instances[name] = uid
+
+                try:
+                    # Instantiate the component
+                    self._ipopo.instantiate(factory, name, properties)
+
+                except Exception as ex:
+                    # Store the error
+                    errors[name] = str(ex)
+                    _logger.exception("Error instantiating %s: %s", name, ex)
+
+                    # Clear the instance
+                    del self._instances[name]
 
                 else:
-                    # Clean the agent dictionary
-                    del self.instances[component]
-                    state = ECOMPONENTSTATE_REMOVED
+                    # Store the instance
+                    success[uid] = name
 
-                # Send the signal
-                change_dict = {"name": component,
-                               "state": state}
+        # Notify the composer
+        self._composer.components_instantiation(self.get_isolate(), success,
+                                                running, errors)
 
-                self.sender.fire(SIGNAL_COMPONENT_CHANGED, change_dict,
-                                 dir_group="ALL")
+
+    def instantiate(self, components, until_possible=True):
+        """
+        Instantiates the given components. The result lists only contains
+        components names, without compositions names. 
+        
+        :param components: A list of component descriptions
+        :param until_possible: If True, every component whom factory is missing
+                               will be kept until its instantiation can be done;
+                               else, those components are considered failing.
+        """
+        to_instantiate = []
+
+        with self._lock:
+            # We'll known the composition name while reading components beans
+            for component in components:
+                # Get the component description
+                name = component["name"]
+                factory = component["type"]
+
+                # Normalize the instance properties
+                properties = component.get("properties", {})
+                if not isinstance(properties, dict):
+                    # Ensure it is a dictionary
+                    properties = {}
+
+                # Set up Composer properties
+                properties[PROP_COMPONENT_UID] = component["uid"]
+                properties[PROP_COMPONENT_NAME] = name
+                properties[PROP_COMPOSITE_NAME] = component["parentName"]
+                properties[PROP_HOST_ISOLATE] = self.get_isolate()
+                properties[pelix.remote.PROP_EXPORTED_INTERFACES] = "*"
+
+                # Set up fields filters (if any)
+                # TODO: convert to LDAP here instead of in the composer
+                req_filters = component["fieldsFilters"]
+                if req_filters:
+                    properties[constants.IPOPO_REQUIRES_FILTERS] = req_filters
+
+                if until_possible \
+                and not self._ipopo.is_registered_factory(factory):
+                    # Factory is missing, try again later
+                    self._waiting.setdefault(factory, []).append((name, factory,
+                                                                  properties))
+
+                else:
+                    # Add the component to the instantiation loop
+                    to_instantiate.append((name, factory, properties))
+
+            # Run the instantiation loop (will notify the composer)
+            self._instantiation_loop(to_instantiate)
+
+
+    def is_running(self, component):
+        """
+        Tests if the given component is running and returns 0 if the component
+        is unknown, 1 if it running, and -1 if a component with the same name
+        but a different factory is running. The latter only works if the given
+        parameter is a component description.
+        
+        :param component: A component description or a name
+        :return: One of 0, 1, -1
+        """
+        if pelix.utilities.is_string(component):
+            # Got a component name
+            name = component
+            factory = None
+
+        else:
+            # Got a component description
+            name = component["name"]
+            factory = component["type"]
+
+        try:
+            details = self._ipopo.get_instance_details(name)
+            if not factory or details["factory"] == factory:
+                # Same/no factory
+                return 1
+            else:
+                # Same name, different factories
+                return -1
+
+        except ValueError:
+            # Unknown/Invalid component name
+            return 0
+
+
+
+    def kill(self, components):
+        """
+        Kills the given components
+        
+        :param components: A list of component descriptions or names
+        :return: A tuple (stopped components names, unknown names)
+        """
+        killed = []
+        unknown = []
+
+        for component in components:
+            if pelix.utilities.is_string(component):
+                # Got a component name
+                name = component
+            else:
+                # Got a component bean
+                name = component["name"]
+
+            if name in self._instances \
+            and self._ipopo.is_registered_instance(name):
+                # Kill the instance
+                # References clean up will occur during iPOPO events handling
+                self._ipopo.kill(name)
+                killed.append(name)
+
+            else:
+                # Unknown instance (or not started by this agent)
+                unknown.append(name)
+
+        return killed, unknown
 
 
     @Validate
     def validate(self, context):
         """
         Component validated
-        
-        :param context: The bundle context
         """
-        self.instances.clear()
-        self.receiver.register_listener(SIGNAL_REQUEST_PATTERN, self)
-        self.receiver.register_listener(SIGNAL_FACTORY_PATTERN, self)
+        self._context = context
+
+        # Ensure the storage is empty
+        self._waiting.clear()
+        self._instances.clear()
 
         # Register to iPOPO events
-        self.ipopo.add_listener(self)
-
-        # Send registered iPOPO factories to other isolates
-        # Directory might be empty at first time, but not on component reload
-        self.sender.fire(SIGNAL_ISOLATE_ADD_FACTORY,
-                        tuple(self.ipopo.get_factories()),
-                        dir_group="ALL")
+        self._ipopo.add_listener(self)
+        _logger.info("Composer agent validated")
 
 
     @Invalidate
     def invalidate(self, context):
         """
         Component invalidated
-        
-        :param context: The bundle context
         """
         # Unregister to events
         self.ipopo.remove_listener(self)
-        self.receiver.unregister_listener(SIGNAL_REQUEST_PATTERN, self)
-        self.receiver.unregister_listener(SIGNAL_FACTORY_PATTERN, self)
 
-        # Send a signal to tell others that all our factories are gone
-        self.sender.fire(SIGNAL_ISOLATE_FACTORIES_GONE, None,
-                         dir_group="ALL")
+        # Kill active components
+        self.kill(self._instances.keys())
 
-        with self._lock:
-            # Kill active components
-            if len(self.instances) > 0:
-                data = []
-                for compo_name in self.instances:
-                    data.append({"name": compo_name})
-
-                self.kill_components("monitors", data)
-
-            self.instances.clear()
+        # Clean up
+        self._waiting.clear()
+        self._instances.clear()
+        self._context = None
+        _logger.info("Composer agent invalidated")
