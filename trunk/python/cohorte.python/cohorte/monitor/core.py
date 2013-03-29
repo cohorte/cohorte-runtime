@@ -125,7 +125,8 @@ class MonitorCore(object):
                 for bundle in configuration.bundles]
 
 
-    def start_isolate(self, name, node, kind, level, sublevel, bundles=None):
+    def start_isolate(self, name, node, kind, level, sublevel, bundles=None,
+                      uid=None):
         """
         Starts an isolate according to the given elements, or stacks the order
         until a forker appears on the given node
@@ -136,6 +137,7 @@ class MonitorCore(object):
         :param level: The level of configuration (boot, java, python, ...)
         :param sublevel: Category of configuration (monitor, isolate, ...)
         :param bundles: Extra bundles to install (Bundle beans)
+        :param uid: A user-defined isolate UID
         :raise IOError: Unknown/unaccessible kind of isolate
         :raise KeyError: A parameter is missing in the configuration files
         :raise ValueError: Error reading the configuration
@@ -171,8 +173,12 @@ class MonitorCore(object):
         custom_artifacts = [artifact for artifact in resolution[0]
                             if artifact not in isolate_artifacts]
 
-        # Generate a UID
-        uid = str(uuid.uuid4())
+        # Generate a UID, if necessary
+        if not uid:
+            uid = uuid.uuid4()
+
+        # Convert the UID into a string
+        uid = str(uid)
 
         # Run on local node if none is given
         if not node:

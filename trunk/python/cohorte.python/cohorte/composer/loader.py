@@ -17,12 +17,14 @@ __version__ = "1.0.0"
 
 # COHORTE
 import cohorte.composer.core
+import cohorte.composer.core.fsm as fsm
 import cohorte.monitor
 import cohorte.repositories
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
-    Provides, Property
+    Provides, Property, Bind
+import pelix.framework
 
 # Standard library
 import logging
@@ -96,20 +98,27 @@ class DefaultDistanceAndCompatibility(object):
 
 # ------------------------------------------------------------------------------
 
+import pelix.remote
+
 @ComponentFactory('cohorte-composer-loader-factory')
-@Provides(cohorte.composer.SERVICE_COMPOSITION_LOADER)
+@Provides([cohorte.composer.SERVICE_COMPOSITION_LOADER,
+           'org.cohorte.composer.api.IComposerCore'])
 @Requires('_monitor', cohorte.monitor.SERVICE_MONITOR)
 @Requires('_parser', cohorte.composer.SERVICE_COMPOSITION_PARSER)
 @Requires('_status', cohorte.composer.core.SERVICE_STATUS)
+@Requires('_agents', 'cohorte.composer.Agent', aggregate=True, optional=True)
 @Requires('_compatibility_checkers',
-          cohorte.composer.SERVICE_COMPATIBILITY_CHECKER,
-          aggregate=True)
+          cohorte.composer.SERVICE_COMPATIBILITY_CHECKER, aggregate=True)
 @Requires('_distance_calculators', cohorte.composer.SERVICE_DISTANCE_CALCULATOR,
           aggregate=True)
 @Requires('_repositories', cohorte.repositories.SERVICE_REPOSITORY_FACTORIES,
           aggregate=True)
 @Property('_compatibility_threshold', 'threshold.compatibility', 50)
 @Property('_distance_threshold', 'threshold.distance', 10)
+@Property('_export', pelix.remote.PROP_EXPORTED_INTERFACES,
+          [cohorte.composer.SERVICE_COMPOSITION_LOADER,
+           "org.cohorte.composer.api.IComposerCore"])
+@Property('_export_name', pelix.remote.PROP_ENDPOINT_NAME, 'composer-core')
 class CompositionLoader(object):
     """
     Composition loading service.
@@ -124,6 +133,7 @@ class CompositionLoader(object):
         self._monitor = None
         self._parser = None
         self._status = None
+        self._agents = []
         self._compatibility_checkers = []
         self._distance_calculators = []
         self._repositories = []
@@ -131,6 +141,61 @@ class CompositionLoader(object):
         # Distribution threshold
         self._compatibility_threshold = 50
         self._distance_threshold = 10
+
+        # Service property
+        self._export = "*"
+        self._export_name = "composer-core"
+
+
+    @Bind
+    def bind(self, svc, ref):
+        """
+        """
+        specs = ref.get_property(pelix.framework.OBJECTCLASS)
+        if 'cohorte.composer.Agent' in specs:
+            # Get the agent isolate UID
+            uid, name = svc.get_isolate()
+            _logger.info("Bound to composer agent - %s (%s)", name, uid)
+
+            # Update the agent status
+            self._status.agent_event(uid, fsm.AGENT_EVENT_READY)
+
+            # Get the list of components that must be started on this isolate
+            components = []
+            for component in self._status.get_components():
+                if component.isolate in (uid, name):
+                    # Mark the component as requested
+                    components.append(component.as_dict())
+                    self._status.component_event(component.uid,
+                                                 fsm.COMPONENT_EVENT_REQUESTED)
+
+            # Send the order to the agent
+            svc.instantiate(components)
+
+
+    def components_instantiation(self, isolate, success, running, errors):
+        """
+        """
+        if success:
+            _logger.debug("%s: Successfully started components: %s",
+                          isolate[1], success)
+
+        if running:
+            _logger.warning("%s: Components already running: %s",
+                            isolate[1], running)
+
+        if errors:
+            _logger.error("%s: Error running components: %s",
+                          isolate[1], errors)
+
+
+    def component_changed(self, isolate, uid, name, factory, state):
+        """
+        """
+        _logger.info("From %s: Component %s (%s) -> %s",
+                         isolate[1], name, factory, state)
+
+        self._status.component_event(uid, state)
 
 
     def parse(self, filename):
@@ -330,15 +395,28 @@ class CompositionLoader(object):
                 # Convert clusters into named groups
                 group_idx += 1
                 name = "{0}-{1}-{2}".format(kind[0], kind[1], group_idx)
-                groups[name] = (kind,
-                                set([component.factory
-                                     for component in cluster]))
+                group_factories = set()
+
+                for component in cluster:
+                    # Keep track of the factories needed in this group
+                    group_factories.add(component.factory)
+
+                    # Update the preferred isolate for the component
+                    component.isolate = name
+
+                # Store the group pre-configuration
+                groups[name] = (kind, group_factories)
 
         # Store the components in the status
         self._status.add_composition(composition)
         for component in composition.root.all_components():
             # Make an identified instance of the component
-            self._status.component_requested(component.copy(uuid.uuid4()))
+            live_component = component.copy(uuid.uuid4())
+
+            # Mark it as requested, then assigned (to a cluster)
+            self._status.component_requested(live_component)
+            self._status.component_event(live_component.uid,
+                                         fsm.COMPONENT_EVENT_ASSIGNED)
 
         # Start new isolates using the monitor
         # -> Events will trigger instantiations
@@ -350,10 +428,16 @@ class CompositionLoader(object):
             # TODO: compute the node
             node = None
 
+            # Generate the isolate UID
+            uid = str(uuid.uuid4())
+
+            # Agent "requested"
+            self._status.agent_requested(uid)
+
             # Start the isolate
             self._monitor.start_isolate(name, node, kind, language, 'isolate',
                                         [artifacts[factory]
-                                         for factory in factories])
+                                         for factory in factories], uid)
 
 
     def stop(self, uid):
@@ -381,4 +465,4 @@ class CompositionLoader(object):
                 self.instantiate(composition)
 
         except (ValueError, IOError) as ex:
-            _logger.error("Error loading the auto-run composition: %s", ex)
+            _logger.exception("Error loading the auto-run composition: %s", ex)
