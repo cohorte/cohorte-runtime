@@ -1,0 +1,48 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Cohorte :: Composer :: Agent
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-SymbolicName: org.cohorte.composer.agent
+Bundle-Vendor: isandlaTech.com
+Bundle-Version: 1.0.0.qualifier
+Created-By: iPOJO  1.8.0
+Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
+ .ipojo.architecture;version=1.8.0, org.apache.felix.ipojo.handlers.pr
+ ovidedservice;version=1.8.1, org.apache.felix.ipojo.metadata;version=
+ 1.8.1, org.cohorte.composer.api;version=1.0.0, org.osgi.framework;ver
+ sion=1.6.0, org.osgi.service.cm;version=1.2, org.osgi.service.log;ver
+ sion=1.3, org.psem2m.isolates.base;version=1.0.1, org.psem2m.isolates
+ .constants;version=1.0.1, org.psem2m.utilities;version=1.0.0, org.pse
+ m2m.utilities.logging;version=1.0.0
+iPOJO-Components: component { $classname="org.cohorte.composer.agent.I
+ PojoAgent" $name="cohorte-composer-agent-ipojo-factory" $public="true
+ " provides { $specifications="{org.cohorte.composer.api.IComposerAgen
+ t}" property { $name="service.exported.interfaces" $type="String" $va
+ lue="cohorte.composer.agent" }}requires { $field="pComposer" }require
+ s { $field="pLogger" }requires { $aggregate="true" $optional="true" $
+ id="ipojo-factories" callback { $method="bindFactory" $type="bind" }c
+ allback { $method="unbindFactory" $type="unbind" }}manipulation { int
+ erface { $name="org.cohorte.composer.api.IComposerAgent" }interface {
+  $name="org.apache.felix.ipojo.InstanceStateListener" }field { $name=
+ "pComposer" $type="org.cohorte.composer.api.IComposerCore" }field { $
+ name="pContext" $type="org.osgi.framework.BundleContext" }field { $na
+ me="pFactories" $type="java.util.Map" }field { $name="pFactoriesField
+ sIds" $type="java.util.Map" }field { $name="pInstanceUid" $type="java
+ .util.Map" }field { $name="pInstances" $type="java.util.Map" }field {
+  $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }
+ field { $name="pWaitings" $type="java.util.Map" }method { $name="bind
+ Factory" $arguments="{org.apache.felix.ipojo.Factory}" }method { $nam
+ e="generateFieldsFilters" $return="java.util.Properties" $arguments="
+ {java.util.Map,java.util.Map}" }method { $name="generateIPojoProperti
+ es" $return="java.util.Properties" $arguments="{java.util.Map}" }meth
+ od { $name="get_factories" $return="java.lang.String[]" }method { $na
+ me="get_isolate" $return="java.lang.String[]" }method { $name="instan
+ tiate" $arguments="{java.util.Collection,boolean}" }method { $name="i
+ nstantiationLoop" $arguments="{java.util.Collection}" }method { $name
+ ="is_running" $return="int" $arguments="{java.util.Map}" }method { $n
+ ame="is_running" $return="int" $arguments="{java.lang.String}" }metho
+ d { $name="kill" $return="java.lang.String[][]" $arguments="{java.uti
+ l.Collection}" }method { $name="stateChanged" $arguments="{org.apache
+ .felix.ipojo.ComponentInstance,int}" }method { $name="unbindFactory" 
+ $arguments="{org.apache.felix.ipojo.Factory}" }}}
+
