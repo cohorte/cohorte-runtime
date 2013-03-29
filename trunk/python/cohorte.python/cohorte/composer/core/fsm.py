@@ -57,14 +57,14 @@ def make_agent_fsm(uid):
     fsm.add_transition(AGENT_STATE_READY, AGENT_EVENT_GONE,
                        AGENT_STATE_GONE)
 
-    fsm.add_transition(AGENT_EVENT_STOPPING, AGENT_EVENT_STOPPED,
+    fsm.add_transition(AGENT_STATE_STOPPING, AGENT_EVENT_STOPPED,
                        AGENT_STATE_STOPPED)
-    fsm.add_transition(AGENT_EVENT_STOPPING, AGENT_EVENT_GONE,
+    fsm.add_transition(AGENT_STATE_STOPPING, AGENT_EVENT_GONE,
                        AGENT_STATE_GONE)
 
-    fsm.add_transition(AGENT_EVENT_STOPPED, AGENT_EVENT_READY,
+    fsm.add_transition(AGENT_STATE_STOPPED, AGENT_EVENT_READY,
                        AGENT_STATE_READY)
-    fsm.add_transition(AGENT_EVENT_STOPPED, AGENT_EVENT_GONE,
+    fsm.add_transition(AGENT_STATE_STOPPED, AGENT_EVENT_GONE,
                        AGENT_STATE_GONE)
 
     # Start state
