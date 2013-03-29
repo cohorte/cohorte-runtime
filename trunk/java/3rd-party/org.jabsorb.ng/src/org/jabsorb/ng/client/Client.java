@@ -321,10 +321,11 @@ public class Client implements InvocationHandler {
      *            the class of the interface the remote object should adhere to
      * @return created proxy
      */
-    public Object openProxy(final String aKey, final Class<?> aClass) {
+    public Object openProxy(final String aKey, final ClassLoader aClassLoader,
+            final Class<?>[] aClasses) {
 
         final Object proxy = java.lang.reflect.Proxy.newProxyInstance(
-                aClass.getClassLoader(), new Class[] { aClass }, this);
+                aClassLoader, aClasses, this);
         pProxyMap.put(proxy, aKey);
         return proxy;
     }
