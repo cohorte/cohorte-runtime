@@ -101,9 +101,9 @@ class _Registration(object):
                                    if endpoint is not None)
 
         else:
-            self.endpoints = ()
+            self.endpoints = tuple()
 
-        self.exportedInterfaces = specifications
+        self.exportedInterfaces = tuple(specifications)
         self.hostIsolate = isolate_uid
         self.serviceProperties = properties
         self.serviceId = service_id
@@ -114,9 +114,7 @@ class _Registration(object):
         Adds an end point to the registration
         """
         if endpoint is not None and endpoint not in self.endpoints:
-            endpoints = list(self.endpoints)
-            endpoints.append(endpoint)
-            self.endpoints = tuple(endpoints)
+            self.endpoints = self.endpoints + tuple([endpoint])
 
 
 class _EndpointDescription(object):
@@ -207,7 +205,11 @@ class SignalsDiscovery(object):
         """
         # Extract information
         specifications = endpoint.reference.get_property(\
-                                                    pelix.framework.OBJECTCLASS)
+                                        pelix.remote.PROP_EXPORTED_INTERFACES)
+        if '*' in specifications or specifications == '*':
+            specifications = endpoint.reference.get_property(\
+                                         pelix.framework.OBJECTCLASS)
+
         uid = self._context.get_property(cohorte.PROP_UID)
         node = self._context.get_property(cohorte.PROP_NODE)
 
@@ -346,7 +348,15 @@ class SignalsDiscovery(object):
         registration = remote_event["serviceRegistration"]
 
         # Get the first end point
-        endpoint = registration["endpoints"][0]
+        endpoints = registration["endpoints"]
+        if not endpoints:
+            # FIXME: No end point: nothing to do
+            _logger.warning("RemoteServiceEvent without endpoint: "
+                            "debug JsonRpcEndpoint (Java)\n%s",
+                            remote_event)
+            return
+
+        endpoint = endpoints[0]
 
         # Prepare the end point description
         name = endpoint["endpointName"]
