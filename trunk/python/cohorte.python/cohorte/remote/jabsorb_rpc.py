@@ -252,7 +252,7 @@ class JsonRpcServiceExporter(object):
         """
         Called when a service event is triggered
         """
-        kind = event.get_type()
+        kind = event.get_kind()
         svcref = event.get_service_reference()
 
         if kind == pelix.framework.ServiceEvent.REGISTERED:
