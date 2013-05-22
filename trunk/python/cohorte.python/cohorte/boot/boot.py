@@ -113,9 +113,10 @@ def load_isolate(pelix_properties, state_updater_url=None, fail_on_pdb=False):
         # Install & start configuration bundles
         for name in MINIMAL_BUNDLES:
             _logger.debug('Installing bundle %s...', name)
-            bid = context.install_bundle(name)
-            context.get_bundle(bid).start()
-            _logger.debug('Bundle %s (%d) started', name, bid)
+            bundle = context.install_bundle(name)
+            bundle.start()
+            _logger.debug('Bundle %s (%d) started',
+                          name, bundle.get_bundle_id())
 
         # Find the isolate loader to use
         if context.get_property(cohorte.PROP_CONFIG_BROKER):
@@ -128,8 +129,7 @@ def load_isolate(pelix_properties, state_updater_url=None, fail_on_pdb=False):
 
         # Install & start the loader bundle
         _logger.debug("Using isolate loader: %s.", loader_bundle_name)
-        bid = context.install_bundle(loader_bundle_name)
-        loader_bundle = context.get_bundle(bid)
+        loader_bundle = context.install_bundle(loader_bundle_name)
         loader_bundle.start()
 
         # Retrieve the loader service & load the isolate

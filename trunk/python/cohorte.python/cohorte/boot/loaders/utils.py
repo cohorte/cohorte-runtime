@@ -52,11 +52,8 @@ def boot_load(context, boot_config):
     # Load Forker bundles
     for bundle in boot_config.bundles:
         try:
-            # Install it
-            bundle_id = context.install_bundle(bundle.name)
-
-            # Start it
-            context.get_bundle(bundle_id).start()
+            # Install & start it
+            context.install_bundle(bundle.name).start()
 
         except pelix.framework.BundleException as ex:
             if bundle.optional:

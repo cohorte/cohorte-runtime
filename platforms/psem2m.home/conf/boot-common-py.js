@@ -74,12 +74,6 @@
 
 	/* Remote services */
 	{
-		"factory" : "pelix-remote-dispatcher-factory",
-		"name" : "pelix-remote-dispatcher"
-	}, {
-		"factory" : "pelix-remote-imports-registry-factory",
-		"name" : "pelix-remote-imports-registry"
-	}, {
 		"factory" : "cohorte-remote-discovery-signals-factory",
 		"name" : "cohorte-remote-discovery-signals"
 	}, {
