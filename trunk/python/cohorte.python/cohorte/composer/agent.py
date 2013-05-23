@@ -59,7 +59,7 @@ _logger = logging.getLogger(__name__)
 
 @ComponentFactory("cohorte-composer-agent-ipopo-factory")
 @Provides("cohorte.composer.Agent")
-@Property('_export', pelix.remote.PROP_EXPORTED_INTERFACES,
+@Property('_export_specs', pelix.remote.PROP_EXPORTED_INTERFACES,
           ["cohorte.composer.Agent"])
 @Property('_export_name', pelix.remote.PROP_ENDPOINT_NAME, 'composer-agent')
 @Requires("_composer", cohorte.composer.SERVICE_COMPOSITION_LOADER)
@@ -80,7 +80,7 @@ class ComposerAgent(object):
         self._ipopo = None
 
         # Properties
-        self._export = "*"
+        self._export_specs = "*"
         self._export_name = "composer-agent"
 
         # Instantiation lock

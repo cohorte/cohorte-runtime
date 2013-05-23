@@ -101,8 +101,7 @@ class DefaultDistanceAndCompatibility(object):
 import pelix.remote
 
 @ComponentFactory('cohorte-composer-loader-factory')
-@Provides([cohorte.composer.SERVICE_COMPOSITION_LOADER,
-           'org.cohorte.composer.api.IComposerCore'])
+@Provides(cohorte.composer.SERVICE_COMPOSITION_LOADER)
 @Requires('_monitor', cohorte.monitor.SERVICE_MONITOR)
 @Requires('_parser', cohorte.composer.SERVICE_COMPOSITION_PARSER)
 @Requires('_status', cohorte.composer.core.SERVICE_STATUS)
@@ -115,10 +114,11 @@ import pelix.remote
           aggregate=True)
 @Property('_compatibility_threshold', 'threshold.compatibility', 50)
 @Property('_distance_threshold', 'threshold.distance', 10)
-@Property('_export', pelix.remote.PROP_EXPORTED_INTERFACES,
-          [cohorte.composer.SERVICE_COMPOSITION_LOADER,
-           "org.cohorte.composer.api.IComposerCore"])
+@Property('_export_interfaces', pelix.remote.PROP_EXPORTED_INTERFACES,
+          [cohorte.composer.SERVICE_COMPOSITION_LOADER])
 @Property('_export_name', pelix.remote.PROP_ENDPOINT_NAME, 'composer-core')
+@Property('_export_synonyms', cohorte.SVCPROP_SYNONYM_INTERFACES,
+          ["java:/org.cohorte.composer.api.IComposerCore"])
 class CompositionLoader(object):
     """
     Composition loading service.
@@ -143,8 +143,9 @@ class CompositionLoader(object):
         self._distance_threshold = 10
 
         # Service property
-        self._export = "*"
+        self._export_interfaces = "*"
         self._export_name = "composer-core"
+        self._export_synonyms = None
 
 
     @Bind
