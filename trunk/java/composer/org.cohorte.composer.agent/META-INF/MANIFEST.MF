@@ -18,31 +18,33 @@ iPOJO-Components: component { $classname="org.cohorte.composer.agent.I
  PojoAgent" $name="cohorte-composer-agent-ipojo-factory" $public="true
  " provides { $specifications="{org.cohorte.composer.api.IComposerAgen
  t}" property { $name="service.exported.interfaces" $type="String" $va
- lue="cohorte.composer.agent" }}requires { $field="pComposer" }require
- s { $field="pLogger" }requires { $aggregate="true" $optional="true" $
- id="ipojo-factories" callback { $method="bindFactory" $type="bind" }c
- allback { $method="unbindFactory" $type="unbind" }}manipulation { int
- erface { $name="org.cohorte.composer.api.IComposerAgent" }interface {
-  $name="org.apache.felix.ipojo.InstanceStateListener" }field { $name=
- "pComposer" $type="org.cohorte.composer.api.IComposerCore" }field { $
- name="pContext" $type="org.osgi.framework.BundleContext" }field { $na
- me="pFactories" $type="java.util.Map" }field { $name="pFactoriesField
- sIds" $type="java.util.Map" }field { $name="pInstanceUid" $type="java
- .util.Map" }field { $name="pInstances" $type="java.util.Map" }field {
-  $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }
- field { $name="pWaitings" $type="java.util.Map" }method { $name="bind
- Factory" $arguments="{org.apache.felix.ipojo.Factory}" }method { $nam
- e="generateFieldsFilters" $return="java.util.Properties" $arguments="
- {java.util.Map,java.util.Map}" }method { $name="generateIPojoProperti
- es" $return="java.util.Properties" $arguments="{java.util.Map}" }meth
- od { $name="get_factories" $return="java.lang.String[]" }method { $na
- me="get_isolate" $return="java.lang.String[]" }method { $name="instan
- tiate" $arguments="{java.util.Collection,boolean}" }method { $name="i
- nstantiationLoop" $arguments="{java.util.Collection}" }method { $name
- ="is_running" $return="int" $arguments="{java.util.Map}" }method { $n
- ame="is_running" $return="int" $arguments="{java.lang.String}" }metho
- d { $name="kill" $return="java.lang.String[][]" $arguments="{java.uti
- l.Collection}" }method { $name="stateChanged" $arguments="{org.apache
- .felix.ipojo.ComponentInstance,int}" }method { $name="unbindFactory" 
- $arguments="{org.apache.felix.ipojo.Factory}" }}}
+ lue="org.cohorte.composer.api.IComposerAgent" }property { $name="coho
+ rte.remote.synonyms" $type="String[]" $value="{python:/cohorte.compos
+ er.agent}" }}requires { $field="pComposer" }requires { $field="pLogge
+ r" }requires { $aggregate="true" $optional="true" $id="ipojo-factorie
+ s" callback { $method="bindFactory" $type="bind" }callback { $method=
+ "unbindFactory" $type="unbind" }}manipulation { interface { $name="or
+ g.cohorte.composer.api.IComposerAgent" }interface { $name="org.apache
+ .felix.ipojo.InstanceStateListener" }field { $name="pComposer" $type=
+ "org.cohorte.composer.api.IComposerCore" }field { $name="pContext" $t
+ ype="org.osgi.framework.BundleContext" }field { $name="pFactories" $t
+ ype="java.util.Map" }field { $name="pFactoriesFieldsIds" $type="java.
+ util.Map" }field { $name="pInstanceUid" $type="java.util.Map" }field 
+ { $name="pInstances" $type="java.util.Map" }field { $name="pLogger" $
+ type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pWa
+ itings" $type="java.util.Map" }method { $name="bindFactory" $argument
+ s="{org.apache.felix.ipojo.Factory}" }method { $name="generateFieldsF
+ ilters" $return="java.util.Properties" $arguments="{java.util.Map,jav
+ a.util.Map}" }method { $name="generateIPojoProperties" $return="java.
+ util.Properties" $arguments="{java.util.Map}" }method { $name="get_fa
+ ctories" $return="java.lang.String[]" }method { $name="get_isolate" $
+ return="java.lang.String[]" }method { $name="instantiate" $arguments=
+ "{java.util.Collection,boolean}" }method { $name="instantiationLoop" 
+ $arguments="{java.util.Collection}" }method { $name="is_running" $ret
+ urn="int" $arguments="{java.util.Map}" }method { $name="is_running" $
+ return="int" $arguments="{java.lang.String}" }method { $name="kill" $
+ return="java.lang.String[][]" $arguments="{java.util.Collection}" }me
+ thod { $name="stateChanged" $arguments="{org.apache.felix.ipojo.Compo
+ nentInstance,int}" }method { $name="unbindFactory" $arguments="{org.a
+ pache.felix.ipojo.Factory}" }}}
 
