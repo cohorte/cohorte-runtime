@@ -50,10 +50,13 @@ public interface IRemoteServiceClientHandler {
      * 
      * @param aRegistration
      *            A remote service registration bean
+     * @param aFilteredInterfaces
+     *            List of interfaces to give access to
      * @return A service proxy, null on error
      * @throws ClassNotFoundException
      *             The interface to proxify is not visible
      */
-    Object getRemoteProxy(final RemoteServiceRegistration aRegistration)
+    Object getRemoteProxy(final RemoteServiceRegistration aRegistration,
+            Collection<String> aFilteredInterfaces)
             throws ClassNotFoundException;
 }

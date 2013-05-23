@@ -5,7 +5,6 @@
  */
 package org.psem2m.remote.jsonrpc;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -239,12 +238,13 @@ public class JsonRpcClient extends CPojoBase implements
      *             None of the given interfaces is accessible
      */
     private Class<?>[] filterKnownInterfaces(final String aServiceId,
-            final String[] aInterfacesNames) throws ClassNotFoundException {
+            final Collection<String> aInterfacesNames)
+            throws ClassNotFoundException {
 
         // Invalid parameter
-        if (aInterfacesNames == null || aInterfacesNames.length == 0) {
+        if (aInterfacesNames == null || aInterfacesNames.isEmpty()) {
             pLogger.logSevere(this, "filterKnownInterfaces",
-                    "No/Empty interface array");
+                    "No/Empty interface list");
             return null;
         }
 
@@ -287,7 +287,7 @@ public class JsonRpcClient extends CPojoBase implements
         if (classes.isEmpty()) {
             pLogger.logSevere(this, "filterKnownInterfaces",
                     "No interface found in=", aInterfacesNames);
-            throw new ClassNotFoundException(Arrays.toString(aInterfacesNames));
+            throw new ClassNotFoundException(aInterfacesNames.toString());
         }
 
         // Some interfaces are missing
@@ -306,10 +306,12 @@ public class JsonRpcClient extends CPojoBase implements
      * 
      * @see org.psem2m.isolates.services.remote.IRemoteServiceClientHandler#
      * getRemoteProxy
-     * (org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration)
+     * (org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration,
+     * java.util.Collection)
      */
     @Override
-    public Object getRemoteProxy(final RemoteServiceRegistration aRegistration)
+    public Object getRemoteProxy(final RemoteServiceRegistration aRegistration,
+            final Collection<String> aFilteredInterfaces)
             throws ClassNotFoundException {
 
         if (aRegistration == null) {
@@ -332,7 +334,7 @@ public class JsonRpcClient extends CPojoBase implements
 
         // Get the interface class
         final Class<?>[] interfaceClasses = filterKnownInterfaces(serviceId,
-                aRegistration.getExportedInterfaces());
+                aFilteredInterfaces);
         if (interfaceClasses != null) {
             // Create the proxy and store it
             final Object proxy = createProxy(foundEndpoint, interfaceClasses);

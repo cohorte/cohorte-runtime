@@ -9,6 +9,7 @@ import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -461,13 +462,28 @@ public class RemoteServiceAdapter extends CPojoBase implements
         // Compute the interfaces to import
         final Set<String> javaInterfaces = new InterfacePrefixUtils()
                 .extractInterfaces(aRegistration.getExportedInterfaces());
-        for (final String exportedInterface : javaInterfaces) {
+
+        final Iterator<String> iterator = javaInterfaces.iterator();
+        while (iterator.hasNext()) {
+            // Get next interface
+            final String exportedInterface = iterator.next();
+
             // Test include / exclude filters
             if (!acceptInterface(exportedInterface)) {
-                pLogger.logWarn(this, "registerService",
-                        "Event filtered due to interface=", exportedInterface);
-                return;
+                // Remove it when checked
+                pLogger.logDebug(this, "registerService",
+                        "Filtered interface=", exportedInterface);
+
+                iterator.remove();
             }
+        }
+
+        if (javaInterfaces.isEmpty()) {
+            // All interfaces have been filtered: stop
+            pLogger.logWarn(this, "registerService",
+                    "Import aborted: all interfaces have been filtered=",
+                    aRegistration.getExportedInterfaces());
+            return;
         }
 
         // Store the remote service ID
@@ -484,7 +500,8 @@ public class RemoteServiceAdapter extends CPojoBase implements
         for (final IRemoteServiceClientHandler clientHandler : pClientHandlers) {
             try {
                 // Create a proxy
-                serviceProxy = clientHandler.getRemoteProxy(aRegistration);
+                serviceProxy = clientHandler.getRemoteProxy(aRegistration,
+                        javaInterfaces);
 
             } catch (final ClassNotFoundException e) {
                 // Try next handler
