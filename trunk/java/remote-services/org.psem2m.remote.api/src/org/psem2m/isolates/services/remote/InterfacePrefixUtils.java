@@ -33,7 +33,7 @@ public class InterfacePrefixUtils {
      * 
      * @param aInterfaceName
      *            An interface name
-     * @return The escaped named
+     * @return The escaped name
      */
     private String escape(final String aInterfaceName) {
 
@@ -187,7 +187,7 @@ public class InterfacePrefixUtils {
      * 
      * @param aInterfaceName
      *            An interface name
-     * @return The escaped named
+     * @return The unescaped name
      */
     private String unescape(final String aInterfaceName) {
 
