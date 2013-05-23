@@ -53,40 +53,19 @@ public class RemoteServiceRegistration implements Serializable {
      * 
      * @param aIsolateUID
      *            UID of the isolate exporting the service
-     * @param aExportedInterface
-     *            Interface exported
+     * @param aExportedInterfaces
+     *            Interfaces exported
      * @param aServiceProperties
      *            Service properties (will be copied)
      * @param aEndpoints
      *            End points to access to the service
      */
     public RemoteServiceRegistration(final String aIsolateUID,
-            final String aExportedInterface,
+            final Collection<String> aExportedInterfaces,
             final Map<String, Object> aServiceProperties,
             final Collection<EndpointDescription> aEndpoints) {
 
-        this(aIsolateUID, new String[] { aExportedInterface },
-                aServiceProperties, aEndpoints);
-    }
-
-    /**
-     * Stores a remote service registration description.
-     * 
-     * @param aIsolateUID
-     *            UID of the isolate exporting the service
-     * @param aExportedInterface
-     *            Interface exported
-     * @param aServiceProperties
-     *            Service properties (will be copied)
-     * @param aEndpoints
-     *            End points to access to the service
-     */
-    public RemoteServiceRegistration(final String aIsolateUID,
-            final String aExportedInterface,
-            final Map<String, Object> aServiceProperties,
-            final EndpointDescription[] aEndpoints) {
-
-        this(aIsolateUID, new String[] { aExportedInterface },
+        this(aIsolateUID, aExportedInterfaces.toArray(new String[0]),
                 aServiceProperties, aEndpoints);
     }
 
@@ -126,27 +105,6 @@ public class RemoteServiceRegistration implements Serializable {
         // Generate a service ID
         pServiceId = pHostIsolateUID + "."
                 + pServiceProperties.get(Constants.SERVICE_ID);
-    }
-
-    /**
-     * Stores a remote service registration description.
-     * 
-     * @param aIsolateUID
-     *            UID of the isolate exporting the service
-     * @param aExportedInterfaces
-     *            Interfaces exported
-     * @param aServiceProperties
-     *            Service properties (will be copied)
-     * @param aEndpoints
-     *            End points to access to the service
-     */
-    public RemoteServiceRegistration(final String aIsolateUID,
-            final String[] aExportedInterfaces,
-            final Map<String, Object> aServiceProperties,
-            final EndpointDescription[] aEndpoints) {
-
-        this(aIsolateUID, aExportedInterfaces, aServiceProperties, Arrays
-                .asList(aEndpoints));
     }
 
     /**

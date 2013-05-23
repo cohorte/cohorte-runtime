@@ -59,18 +59,16 @@ iPOJO-Components: component { $classname="org.psem2m.remote.jsonrpc.Js
  d { $name="pRegisteredEndpoints" $type="java.util.List" }field { $nam
  e="pServletName" $type="java.lang.String" }method { $name="createEndp
  oint" $return="org.psem2m.isolates.services.remote.beans.EndpointDesc
- ription[]" $arguments="{java.lang.String,org.osgi.framework.ServiceRe
- ference}" }method { $name="destroyEndpoint" $return="boolean" $argume
- nts="{org.osgi.framework.ServiceReference}" }method { $name="generate
- EndpointName" $return="java.lang.String" $arguments="{java.util.Map}"
-  }method { $name="getEndpoints" $return="org.psem2m.isolates.services
- .remote.beans.EndpointDescription[]" $arguments="{org.osgi.framework.
- ServiceReference}" }method { $name="getHttpPort" $return="int" }metho
- d { $name="getServicePropertiesMap" $return="java.util.Map" $argument
- s="{org.osgi.framework.ServiceReference}" }method { $name="invalidate
- Pojo" }method { $name="isInterfaceExported" $return="boolean" $argume
- nts="{java.lang.String,java.lang.String[]}" }method { $name="makeEndp
- ointUri" $return="java.lang.String" $arguments="{java.lang.String}" }
- method { $name="startJabsorbBridge" }method { $name="stopJabsorbBridg
- e" }method { $name="validatePojo" }}}
+ ription[]" $arguments="{java.util.Set,org.osgi.framework.ServiceRefer
+ ence}" }method { $name="destroyEndpoint" $return="boolean" $arguments
+ ="{org.osgi.framework.ServiceReference}" }method { $name="generateEnd
+ pointName" $return="java.lang.String" $arguments="{java.util.Map}" }m
+ ethod { $name="getEndpoints" $return="org.psem2m.isolates.services.re
+ mote.beans.EndpointDescription[]" $arguments="{org.osgi.framework.Ser
+ viceReference}" }method { $name="getHttpPort" $return="int" }method {
+  $name="getServicePropertiesMap" $return="java.util.Map" $arguments="
+ {org.osgi.framework.ServiceReference}" }method { $name="invalidatePoj
+ o" }method { $name="makeEndpointUri" $return="java.lang.String" $argu
+ ments="{java.lang.String}" }method { $name="startJabsorbBridge" }meth
+ od { $name="stopJabsorbBridge" }method { $name="validatePojo" }}}
 

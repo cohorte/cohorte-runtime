@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
@@ -83,11 +84,11 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
      * 
      * @see
      * org.psem2m.isolates.services.remote.IEndpointHandler#createEndpoint(java
-     * .lang.String, org.osgi.framework.ServiceReference)
+     * .util.Set, org.osgi.framework.ServiceReference)
      */
     @Override
     public EndpointDescription[] createEndpoint(
-            final String aExportedInterface,
+            final Set<String> aExportedInterfaces,
             final ServiceReference<?> aServiceReference) {
 
         if (aServiceReference == null) {
@@ -109,37 +110,14 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
             return null;
         }
 
-        // Get the service interfaces
-        final String[] interfacesNames = (String[]) aServiceReference
-                .getProperty(Constants.OBJECTCLASS);
-        if (!isInterfaceExported(aExportedInterface, interfacesNames)) {
-            // Interface not exported, already logged.
-            return null;
-        }
-
         // Create the end point
-        if (aExportedInterface == null) {
-            // Export all public methods
-            pJsonRpcBridge.registerObject(endPointName, serviceInstance);
-
-        } else {
-            // Export only methods declared in the exported interface
-            try {
-                final Class<?> interfaceClass = serviceInstance.getClass()
-                        .getClassLoader().loadClass(aExportedInterface);
-
-                pJsonRpcBridge.registerObject(endPointName, serviceInstance,
-                        interfaceClass);
-
-            } catch (final ClassNotFoundException ex) {
-                // Log the error
-                pLogger.logSevere(this, "createEndpoint",
-                        "Error loading the exported interface :", ex);
-
-                // No end point created.
-                return null;
-            }
-        }
+        /*
+         * FIXME: avoid to export all public methods
+         * 
+         * pJsonRpcBridge.registerObject(endPointName, serviceInstance,
+         * interfaceClass);
+         */
+        pJsonRpcBridge.registerObject(endPointName, serviceInstance);
 
         // Keep a track of the end point
         pRegisteredEndpoints.add(endPointName);
@@ -306,45 +284,6 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
 
         pLogger.logInfo(this, "invalidatePojo",
                 "PSEM2M JSON-RPC Remote-Services endpoint Gone");
-    }
-
-    /**
-     * Tests if the exported interface is in the implemented ones. The
-     * implemented interfaces can be found by reading the
-     * {@link Constants#OBJECTCLASS} service property.
-     * 
-     * 
-     * @param aExportedInterface
-     *            Exported interface
-     * @param aImplementedInterfaces
-     *            Implemented interfaces
-     * @return True if the exported interface is in the implemented ones
-     */
-    private boolean isInterfaceExported(final String aExportedInterface,
-            final String[] aImplementedInterfaces) {
-
-        if (aImplementedInterfaces == null
-                || aImplementedInterfaces.length == 0) {
-            pLogger.logWarn(this, "createEndpoint",
-                    "No interface implememted by the service.");
-            return false;
-        }
-
-        // Test if the exported interface is available
-        for (final String interfaceName : aImplementedInterfaces) {
-
-            if (interfaceName.equals(aExportedInterface)) {
-                return true;
-            }
-        }
-
-        // Interface not found, abandon.
-        pLogger.logSevere(
-                this,
-                "createEndpoint",
-                "The service to export doesn't provide the specified interface=",
-                aExportedInterface);
-        return false;
     }
 
     /**

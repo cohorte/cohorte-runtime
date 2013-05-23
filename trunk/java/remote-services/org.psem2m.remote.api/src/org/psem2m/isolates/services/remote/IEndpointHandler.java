@@ -5,6 +5,8 @@
  */
 package org.psem2m.isolates.services.remote;
 
+import java.util.Set;
+
 import org.osgi.framework.ServiceReference;
 import org.psem2m.isolates.services.remote.beans.EndpointDescription;
 
@@ -24,13 +26,13 @@ public interface IEndpointHandler {
     /**
      * Create all end points needed for the specified service
      * 
-     * @param aExportedInterface
-     *            Interface to export from the given service
+     * @param aExportedInterfaces
+     *            Interfaces to export from the given service
      * @param aServiceReference
      *            A reference to the service to be exported
      * @return A description of all created end points, null on error
      */
-    EndpointDescription[] createEndpoint(String aExportedInterface,
+    EndpointDescription[] createEndpoint(Set<String> aExportedInterfaces,
             ServiceReference<?> aServiceReference);
 
     /**

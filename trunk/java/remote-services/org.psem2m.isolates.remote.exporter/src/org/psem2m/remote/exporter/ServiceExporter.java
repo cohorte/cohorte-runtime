@@ -9,8 +9,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
@@ -108,32 +110,48 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
         }
 
         // Select the exported interface
-        String exportedInterface = null;
+        final Set<String> exportedInterfaces = new LinkedHashSet<String>();
         final Object exported = aServiceReference
                 .getProperty(IRemoteServicesConstants.SERVICE_EXPORTED_INTERFACES);
 
-        if (exported instanceof String && !exported.equals("*")) {
-            // Exported interface is single
-            exportedInterface = (String) exported;
+        if (exported instanceof String) {
+            // Trim the string
+            final String trimmedExport = ((String) exported).trim();
+
+            if (trimmedExport.equals("*") || trimmedExport.isEmpty()) {
+                // Export all interfaces
+                exportedInterfaces.addAll(Arrays.asList(serviceInterfaces));
+
+            } else {
+                // Exported interface is single
+                exportedInterfaces.add((String) exported);
+            }
 
         } else if (exported != null && exported.getClass().isArray()) {
             // We got an array
-            final List<?> list = Arrays.asList(exported);
-            if (!list.isEmpty()) {
-                exportedInterface = (String) list.get(0);
+            for (final Object rawName : Arrays.asList(exported)) {
+                if (rawName instanceof String) {
+                    exportedInterfaces.add((String) rawName);
+                }
             }
 
         } else if (exported instanceof Collection) {
             // We got a list
-            final Collection<?> collection = (Collection<?>) exported;
-            if (!collection.isEmpty()) {
-                exportedInterface = (String) collection.iterator().next();
+            for (final Object rawName : (Collection<?>) exported) {
+                if (rawName instanceof String) {
+                    exportedInterfaces.add((String) rawName);
+                }
             }
         }
 
-        if (exportedInterface == null) {
-            // By default, use the first interface found
-            exportedInterface = serviceInterfaces[0];
+        // Only export interfaces declared in the service objectClass property
+        exportedInterfaces.retainAll(Arrays.asList(serviceInterfaces));
+
+        if (exportedInterfaces.isEmpty()) {
+            // No interface to export
+            pLogger.logWarn(this, "", "No interface to export. interfaces=",
+                    serviceInterfaces, "export=", exported);
+            return null;
         }
 
         // Create end points
@@ -141,7 +159,7 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
         for (final IEndpointHandler handler : pEndpointHandlers) {
             try {
                 final EndpointDescription[] newEndpoints = handler
-                        .createEndpoint(exportedInterface, aServiceReference);
+                        .createEndpoint(exportedInterfaces, aServiceReference);
 
                 // Store end points if they are valid
                 if (newEndpoints != null && newEndpoints.length != 0) {
@@ -152,12 +170,21 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
                 // Log errors
                 pLogger.logWarn(this, "createEndpoints",
                         "Error creating endpoint for service=",
-                        exportedInterface, ":", t);
+                        exportedInterfaces, ":", t);
             }
         }
 
+        if (resultEndpoints.isEmpty()) {
+            // No end point created, return null
+            pLogger.logWarn(this, "createEndpoints",
+                    "No endpoint created for exports=", exportedInterfaces);
+            return null;
+        }
+
+        // TODO: add java:// prefix + synonyms to interfaces
+
         return new RemoteServiceRegistration(pPlatform.getIsolateUID(),
-                exportedInterface,
+                exportedInterfaces,
                 Utilities.getServiceProperties(aServiceReference),
                 resultEndpoints);
     }
@@ -314,7 +341,7 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
 
             // Prepare a service registration object
             final RemoteServiceRegistration serviceReg = new RemoteServiceRegistration(
-                    pPlatform.getIsolateUID(), exportedInterfaces[0],
+                    pPlatform.getIsolateUID(), exportedInterfaces,
                     Utilities.getServiceProperties(aServiceReference),
                     serviceEndpoints);
 
