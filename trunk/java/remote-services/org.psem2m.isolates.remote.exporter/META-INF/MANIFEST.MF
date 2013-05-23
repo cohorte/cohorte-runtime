@@ -34,12 +34,13 @@ iPOJO-Components: component { $classname="org.psem2m.remote.exporter.S
  name="createEndpoints" $return="org.psem2m.isolates.services.remote.b
  eans.RemoteServiceRegistration" $arguments="{org.osgi.framework.Servi
  ceReference}" }method { $name="exportService" $return="boolean" $argu
- ments="{org.osgi.framework.ServiceReference}" }method { $name="invali
- datePojo" }method { $name="isAlreadyExported" $return="boolean" $argu
- ments="{org.osgi.framework.ServiceReference}" }method { $name="servic
- eChanged" $arguments="{org.osgi.framework.ServiceEvent}" }method { $n
- ame="unexportService" $arguments="{org.osgi.framework.ServiceReferenc
- e}" }method { $name="updateService" $return="boolean" $arguments="{or
- g.osgi.framework.ServiceReference}" }method { $name="validatePojo" }}
- }
+ ments="{org.osgi.framework.ServiceReference}" }method { $name="getExp
+ ortedInterfaces" $return="java.util.Set" $arguments="{org.osgi.framew
+ ork.ServiceReference}" }method { $name="invalidatePojo" }method { $na
+ me="isAlreadyExported" $return="boolean" $arguments="{org.osgi.framew
+ ork.ServiceReference}" }method { $name="serviceChanged" $arguments="{
+ org.osgi.framework.ServiceEvent}" }method { $name="unexportService" $
+ arguments="{org.osgi.framework.ServiceReference}" }method { $name="up
+ dateService" $return="boolean" $arguments="{org.osgi.framework.Servic
+ eReference}" }method { $name="validatePojo" }}}
 

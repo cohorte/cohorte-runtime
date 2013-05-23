@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -101,56 +102,10 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
     private RemoteServiceRegistration createEndpoints(
             final ServiceReference<?> aServiceReference) {
 
-        // Choose the exported interface
-        final String[] serviceInterfaces = (String[]) aServiceReference
-                .getProperty(Constants.OBJECTCLASS);
-        if (serviceInterfaces == null || serviceInterfaces.length == 0) {
-            // No service to export
-            return null;
-        }
-
-        // Select the exported interface
-        final Set<String> exportedInterfaces = new LinkedHashSet<String>();
-        final Object exported = aServiceReference
-                .getProperty(IRemoteServicesConstants.SERVICE_EXPORTED_INTERFACES);
-
-        if (exported instanceof String) {
-            // Trim the string
-            final String trimmedExport = ((String) exported).trim();
-
-            if (trimmedExport.equals("*") || trimmedExport.isEmpty()) {
-                // Export all interfaces
-                exportedInterfaces.addAll(Arrays.asList(serviceInterfaces));
-
-            } else {
-                // Exported interface is single
-                exportedInterfaces.add((String) exported);
-            }
-
-        } else if (exported != null && exported.getClass().isArray()) {
-            // We got an array
-            for (final Object rawName : Arrays.asList(exported)) {
-                if (rawName instanceof String) {
-                    exportedInterfaces.add((String) rawName);
-                }
-            }
-
-        } else if (exported instanceof Collection) {
-            // We got a list
-            for (final Object rawName : (Collection<?>) exported) {
-                if (rawName instanceof String) {
-                    exportedInterfaces.add((String) rawName);
-                }
-            }
-        }
-
-        // Only export interfaces declared in the service objectClass property
-        exportedInterfaces.retainAll(Arrays.asList(serviceInterfaces));
-
+        // Compute exported interfaces
+        final Set<String> exportedInterfaces = getExportedInterfaces(aServiceReference);
         if (exportedInterfaces.isEmpty()) {
             // No interface to export
-            pLogger.logWarn(this, "", "No interface to export. interfaces=",
-                    serviceInterfaces, "export=", exported);
             return null;
         }
 
@@ -219,6 +174,65 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
         pLogger.logDebug(this, "exportService",
                 "Export notification sent for ref=", aServiceReference);
         return true;
+    }
+
+    /**
+     * Computes the interfaces to export
+     * 
+     * @param aServiceReference
+     *            Reference of the service to export
+     * @return A set of interfaces (can be empty)
+     */
+    private Set<String> getExportedInterfaces(
+            final ServiceReference<?> aServiceReference) {
+
+        // Choose the exported interface
+        final String[] serviceInterfaces = (String[]) aServiceReference
+                .getProperty(Constants.OBJECTCLASS);
+        if (serviceInterfaces == null || serviceInterfaces.length == 0) {
+            // No service to export
+            return new HashSet<String>();
+        }
+
+        // Select the exported interface
+        final Set<String> exportedInterfaces = new LinkedHashSet<String>();
+        final Object exported = aServiceReference
+                .getProperty(IRemoteServicesConstants.SERVICE_EXPORTED_INTERFACES);
+
+        if (exported instanceof String) {
+            // Trim the string
+            final String trimmedExport = ((String) exported).trim();
+
+            if (trimmedExport.equals("*") || trimmedExport.isEmpty()) {
+                // Export all interfaces
+                exportedInterfaces.addAll(Arrays.asList(serviceInterfaces));
+
+            } else {
+                // Exported interface is single
+                exportedInterfaces.add((String) exported);
+            }
+
+        } else if (exported != null && exported.getClass().isArray()) {
+            // We got an array
+            for (final Object rawName : Arrays.asList(exported)) {
+                if (rawName instanceof String) {
+                    exportedInterfaces.add((String) rawName);
+                }
+            }
+
+        } else if (exported instanceof Collection) {
+            // We got a list
+            for (final Object rawName : (Collection<?>) exported) {
+                if (rawName instanceof String) {
+                    exportedInterfaces.add((String) rawName);
+                }
+            }
+        }
+
+        // Only export interfaces declared in the service objectClass property
+        exportedInterfaces.retainAll(Arrays.asList(serviceInterfaces));
+
+        return exportedInterfaces;
     }
 
     /*
@@ -311,46 +325,23 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
     private synchronized void unexportService(
             final ServiceReference<?> aServiceReference) {
 
-        // Grab end points list
-        final List<EndpointDescription> serviceEndpoints = new ArrayList<EndpointDescription>();
-        for (final IEndpointHandler handler : pEndpointHandlers) {
-
-            // Get handler end points for this service
-            final EndpointDescription[] handlerEndpoints = handler
-                    .getEndpoints(aServiceReference);
-
-            if (handlerEndpoints != null && handlerEndpoints.length > 0) {
-                serviceEndpoints.addAll(Arrays.asList(handlerEndpoints));
-            }
-        }
-
-        if (serviceEndpoints.isEmpty()) {
-            // No end point corresponds to this service, abort.
+        // Get the registration object
+        final RemoteServiceRegistration serviceReg = pExportedServices
+                .remove(aServiceReference);
+        if (serviceReg == null) {
+            // Unknown service
             return;
         }
 
-        // Unregister them from the RSR
-        pRepository.unregisterEndpoints(serviceEndpoints);
+        // Unregister the end points from the RSR
+        pRepository
+                .unregisterEndpoints(Arrays.asList(serviceReg.getEndpoints()));
 
-        // Find the exported interface
-        final String[] exportedInterfaces = (String[]) aServiceReference
-                .getProperty(Constants.OBJECTCLASS);
+        // Send an RSB notification
+        final RemoteServiceEvent broadcastEvent = new RemoteServiceEvent(
+                ServiceEventType.UNREGISTERED, serviceReg);
 
-        if (exportedInterfaces != null && exportedInterfaces.length != 0) {
-            // Only send notification if there is something to unregister
-
-            // Prepare a service registration object
-            final RemoteServiceRegistration serviceReg = new RemoteServiceRegistration(
-                    pPlatform.getIsolateUID(), exportedInterfaces,
-                    Utilities.getServiceProperties(aServiceReference),
-                    serviceEndpoints);
-
-            // Send an RSB notification
-            final RemoteServiceEvent broadcastEvent = new RemoteServiceEvent(
-                    ServiceEventType.UNREGISTERED, serviceReg);
-
-            pBroadcaster.sendNotification(broadcastEvent);
-        }
+        pBroadcaster.sendNotification(broadcastEvent);
 
         // Remove end points, after sending the broadcast event
         for (final IEndpointHandler handler : pEndpointHandlers) {
