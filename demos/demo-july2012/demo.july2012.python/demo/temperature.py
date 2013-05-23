@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#-- Content-Encoding: UTF-8 --
+# -- Content-Encoding: UTF-8 --
 """
 A fake sensor that provides dummy values
 
@@ -23,14 +23,14 @@ from pelix.ipopo import constants
 from pelix.ipopo.decorators import ComponentFactory, Provides, \
     Validate, Invalidate, Property
 
-# ------------------------------------------------------------------------------ 
+# ------------------------------------------------------------------------------
 
 @ComponentFactory("demo-temperature-fake-factory")
 @Property("_name", constants.IPOPO_INSTANCE_NAME)
 @Property("_min", "temper.value.min", 22)
 @Property("_max", "temper.value.max", 35)
 @Property("_last_value", "temper.value.last", 0)
-@Provides("org.psem2m.demo.sensors.ISensor")
+@Provides("java:/org.psem2m.demo.sensors.ISensor")
 class FakeTemp(object):
     """
     Temperature sensor

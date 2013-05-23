@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#-- Content-Encoding: UTF-8 --
+# -- Content-Encoding: UTF-8 --
 """
 An aggregator of sensors values
 
@@ -54,7 +54,7 @@ else:
 @ComponentFactory("demo-sensor-aggregator-ui-factory")
 @Property("_name", constants.IPOPO_INSTANCE_NAME)
 @Property("_path", "servlet.path", "/sensors")
-@Requires("_aggregator", "org.psem2m.demo.sensors.IAggregator", optional=True)
+@Requires("_aggregator", "java:/org.psem2m.demo.sensors.IAggregator", optional=True)
 @Requires("_http", "HttpService")
 class AggregatorServlet(object):
     """

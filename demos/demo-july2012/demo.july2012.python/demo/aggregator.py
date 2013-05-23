@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#-- Content-Encoding: UTF-8 --
+# -- Content-Encoding: UTF-8 --
 """
 An aggregator of sensors values
 
@@ -34,9 +34,9 @@ _logger = logging.getLogger(__name__)
 @Property("_name", constants.IPOPO_INSTANCE_NAME)
 @Property("_history_size", "history.size", 10)
 @Property("_poll_delta", "poll.delta", 10)
-@Requires("_sensors", "org.psem2m.demo.sensors.ISensor",
+@Requires("_sensors", "java:/org.psem2m.demo.sensors.ISensor",
           aggregate=True, optional=True)
-@Provides("org.psem2m.demo.sensors.IAggregator")
+@Provides("java:/org.psem2m.demo.sensors.IAggregator")
 class Aggregator(object):
     """
     Temperature sensor
