@@ -20,7 +20,7 @@ iPOJO-Components: component { $classname="org.cohorte.composer.agent.I
  t}" property { $name="service.exported.interfaces" $type="String" $va
  lue="org.cohorte.composer.api.IComposerAgent" }property { $name="coho
  rte.remote.synonyms" $type="String[]" $value="{python:/cohorte.compos
- er.agent}" }}requires { $field="pComposer" }requires { $field="pLogge
+ er.Agent}" }}requires { $field="pComposer" }requires { $field="pLogge
  r" }requires { $aggregate="true" $optional="true" $id="ipojo-factorie
  s" callback { $method="bindFactory" $type="bind" }callback { $method=
  "unbindFactory" $type="unbind" }}manipulation { interface { $name="or

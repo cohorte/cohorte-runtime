@@ -48,7 +48,7 @@ import org.psem2m.isolates.constants.IPlatformProperties;
                         value = "org.cohorte.composer.api.IComposerAgent"),
                 @StaticServiceProperty(name = "cohorte.remote.synonyms",
                         type = "String[]",
-                        value = "{python:/cohorte.composer.agent}") })
+                        value = "{python:/cohorte.composer.Agent}") })
 public class IPojoAgent implements IComposerAgent, InstanceStateListener {
 
     /** iPOJO factories dependency ID */
