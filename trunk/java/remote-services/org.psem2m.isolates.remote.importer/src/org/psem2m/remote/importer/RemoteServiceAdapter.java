@@ -32,6 +32,7 @@ import org.psem2m.isolates.services.remote.IRemoteServiceBroadcaster;
 import org.psem2m.isolates.services.remote.IRemoteServiceClientHandler;
 import org.psem2m.isolates.services.remote.IRemoteServiceEventListener;
 import org.psem2m.isolates.services.remote.IRemoteServicesConstants;
+import org.psem2m.isolates.services.remote.InterfacePrefixUtils;
 import org.psem2m.isolates.services.remote.beans.RemoteServiceEvent;
 import org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration;
 
@@ -450,14 +451,17 @@ public class RemoteServiceAdapter extends CPojoBase implements
     private synchronized void registerService(
             final RemoteServiceRegistration aRegistration) {
 
+        // Check if the service ID is already known
         if (pRegisteredServices.containsKey(aRegistration.getServiceId())) {
             pLogger.logInfo(this, "registerService",
                     "Already registered service=", aRegistration);
             return;
         }
 
-        for (final String exportedInterface : aRegistration
-                .getExportedInterfaces()) {
+        // Compute the interfaces to import
+        final Set<String> javaInterfaces = new InterfacePrefixUtils()
+                .extractInterfaces(aRegistration.getExportedInterfaces());
+        for (final String exportedInterface : javaInterfaces) {
             // Test include / exclude filters
             if (!acceptInterface(exportedInterface)) {
                 pLogger.logWarn(this, "registerService",
@@ -587,9 +591,9 @@ public class RemoteServiceAdapter extends CPojoBase implements
     private synchronized void unregisterService(final String aHostIsolate,
             final String aServiceId) {
 
-        // Retrieve the service registration
+        // Pop the service registration
         final ProxyServiceInfo serviceInfo = pRegisteredServices
-                .get(aServiceId);
+                .remove(aServiceId);
         if (serviceInfo == null) {
             // Unknown service
             pLogger.logWarn(this, "unregisterService",
@@ -608,15 +612,13 @@ public class RemoteServiceAdapter extends CPojoBase implements
         for (final IRemoteServiceClientHandler handler : pClientHandlers) {
             try {
                 handler.destroyProxy(proxy);
+
             } catch (final Throwable t) {
                 // Ignore exceptions
                 pLogger.logWarn(this, "unregisterService",
                         "Error destroying a remote service proxy:", t);
             }
         }
-
-        // Remove the informations
-        pRegisteredServices.remove(aServiceId);
 
         // Remove from the isolate mapping
         final Set<String> isolateServices = pIsolatesServices.get(aHostIsolate);

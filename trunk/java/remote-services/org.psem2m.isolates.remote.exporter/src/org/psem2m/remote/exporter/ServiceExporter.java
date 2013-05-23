@@ -34,6 +34,7 @@ import org.psem2m.isolates.services.remote.IEndpointHandler;
 import org.psem2m.isolates.services.remote.IRemoteServiceBroadcaster;
 import org.psem2m.isolates.services.remote.IRemoteServiceRepository;
 import org.psem2m.isolates.services.remote.IRemoteServicesConstants;
+import org.psem2m.isolates.services.remote.InterfacePrefixUtils;
 import org.psem2m.isolates.services.remote.beans.EndpointDescription;
 import org.psem2m.isolates.services.remote.beans.RemoteServiceEvent;
 import org.psem2m.isolates.services.remote.beans.RemoteServiceEvent.ServiceEventType;
@@ -136,10 +137,16 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
             return null;
         }
 
-        // TODO: add java:// prefix + synonyms to interfaces
+        // Add the synonyms
+        exportedInterfaces.addAll(getSynonyms(aServiceReference));
+
+        // Format the names of the exported interfaces
+        final InterfacePrefixUtils prefixUtils = new InterfacePrefixUtils();
+        final Set<String> prefixedExportedInterfaces = prefixUtils
+                .formatNames(exportedInterfaces);
 
         return new RemoteServiceRegistration(pPlatform.getIsolateUID(),
-                exportedInterfaces,
+                prefixedExportedInterfaces,
                 Utilities.getServiceProperties(aServiceReference),
                 resultEndpoints);
     }
@@ -196,9 +203,12 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
 
         // Select the exported interface
         final Set<String> exportedInterfaces = new LinkedHashSet<String>();
-        final Object exported = aServiceReference
+        final Object rawExported = aServiceReference
                 .getProperty(IRemoteServicesConstants.SERVICE_EXPORTED_INTERFACES);
 
+        // Simplify treatment by converting the object into a collection if it
+        // is an array.
+        final Object exported = Utilities.arrayToIterable(rawExported);
         if (exported instanceof String) {
             // Trim the string
             final String trimmedExport = ((String) exported).trim();
@@ -210,14 +220,6 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
             } else {
                 // Exported interface is single
                 exportedInterfaces.add((String) exported);
-            }
-
-        } else if (exported != null && exported.getClass().isArray()) {
-            // We got an array
-            for (final Object rawName : Arrays.asList(exported)) {
-                if (rawName instanceof String) {
-                    exportedInterfaces.add((String) rawName);
-                }
             }
 
         } else if (exported instanceof Collection) {
@@ -233,6 +235,41 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
         exportedInterfaces.retainAll(Arrays.asList(serviceInterfaces));
 
         return exportedInterfaces;
+    }
+
+    /**
+     * Retrieves the exported interfaces synonyms from the service properties.
+     * 
+     * @param aServiceReference
+     *            The exported service reference
+     * @return A set of interface names, never null
+     */
+    private Set<String> getSynonyms(final ServiceReference<?> aServiceReference) {
+
+        final Set<String> foundSynonyms = new LinkedHashSet<String>();
+
+        // Get the raw value
+        final Object rawSynonyms = aServiceReference
+                .getProperty(IRemoteServicesConstants.SYNONYM_INTERFACES);
+
+        // Simplify treatment by converting the object into a collection if it
+        // is an array.
+        final Object synonyms = Utilities.arrayToIterable(rawSynonyms);
+
+        if (synonyms instanceof String) {
+            // Got a simple string
+            foundSynonyms.add((String) synonyms);
+
+        } else if (synonyms instanceof Collection) {
+            // We got a list
+            for (final Object rawName : (Collection<?>) synonyms) {
+                if (rawName instanceof String) {
+                    foundSynonyms.add((String) rawName);
+                }
+            }
+        }
+
+        return foundSynonyms;
     }
 
     /*

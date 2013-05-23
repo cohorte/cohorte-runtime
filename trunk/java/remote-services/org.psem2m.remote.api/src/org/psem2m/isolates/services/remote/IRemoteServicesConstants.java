@@ -26,14 +26,17 @@ public interface IRemoteServicesConstants {
     /** Service export properties prefix */
     String SERVICE_EXPORTED_PREFIX = "service.exported.";
 
-    /** Imported service flag */
+    /** Imported service flag (boolean) */
     String SERVICE_IMPORTED = "service.imported";
 
-    /** Imported service configurations */
+    /** Imported service configurations (String[]) */
     String SERVICE_IMPORTED_CONFIGS = "service.imported.configs";
 
-    /** ID of the isolate publishing the imported service */
+    /** ID of the isolate publishing the imported service (String) */
     String SERVICE_IMPORTED_FROM = "service.imported.from";
+
+    /** Exported interfaces synonyms (String[]) */
+    String SYNONYM_INTERFACES = "cohorte.remote.synonyms";
 
     /** Unknown isolate ID constant */
     String UNKNOWN_ISOLATE_ID = "unknown";
