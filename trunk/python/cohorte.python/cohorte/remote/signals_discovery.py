@@ -26,6 +26,7 @@ import cohorte.java.jabsorb as jabsorb
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
     Invalidate, Requires, Property
+from pelix.utilities import is_string
 import pelix.framework
 import pelix.remote
 
@@ -49,6 +50,8 @@ JAVA_SERVICE_EVENT_TYPE = "{0}$ServiceEventType" \
 JAVA_REMOTE_SERVICE_REGISTRATION = "{0}.RemoteServiceRegistration" \
                                             .format(JAVA_BEANS_PACKAGE)
 
+# ------------------------------------------------------------------------------
+
 BROADCASTER_SIGNAL_NAME_PREFIX = "/psem2m/remote-service-broadcaster"
 BROADCASTER_SIGNALS_PATTERN = "{0}/*".format(BROADCASTER_SIGNAL_NAME_PREFIX)
 BROADCASTER_SIGNAL_REQUEST_ENDPOINTS = "{0}/request-endpoints" \
@@ -56,6 +59,11 @@ BROADCASTER_SIGNAL_REQUEST_ENDPOINTS = "{0}/request-endpoints" \
 SIGNAL_REMOTE_EVENT = "{0}/remote-event".format(BROADCASTER_SIGNAL_NAME_PREFIX)
 SIGNAL_REQUEST_ENDPOINTS = "{0}/request-endpoints" \
                                         .format(BROADCASTER_SIGNAL_NAME_PREFIX)
+
+# ------------------------------------------------------------------------------
+
+PYTHON_SCHEME = "python"
+""" Python scheme for URI-like specification name """
 
 _logger = logging.getLogger(__name__)
 
@@ -203,13 +211,33 @@ class SignalsDiscovery(object):
         """
         A new service is exported
         """
-        # Extract information
-        specifications = endpoint.reference.get_property(\
+        # Alias...
+        svc_ref = endpoint.reference
+
+        # Get the exported interfaces
+        specifications = svc_ref.get_property(\
                                         pelix.remote.PROP_EXPORTED_INTERFACES)
         if '*' in specifications or specifications == '*':
-            specifications = endpoint.reference.get_property(\
-                                         pelix.framework.OBJECTCLASS)
+            specifications = svc_ref.get_property(pelix.framework.OBJECTCLASS)
 
+        # Convert the specifications list into a set
+        specifications = set(specifications)
+
+        # Add the synonyms
+        synonyms = svc_ref.get_property(cohorte.SVCPROP_SYNONYM_INTERFACES)
+        if synonyms:
+            if is_string(synonyms):
+                # Single synonym
+                specifications.add(synonyms)
+
+            else:
+                # Iterable
+                specifications.update(synonyms)
+
+        # Format the specifications
+        specifications = self.__format_specifications(specifications)
+
+        # Get isolate information
         uid = self._context.get_property(cohorte.PROP_UID)
         node = self._context.get_property(cohorte.PROP_NODE)
 
@@ -226,11 +254,11 @@ class SignalsDiscovery(object):
         # Make a registration bean
         registration = _Registration(specifications, uid,
                                      endpoint.name,
-                                     endpoint.reference.get_properties(),
+                                     svc_ref.get_properties(),
                                      [java_endpoint])
 
         # Store it
-        self._registrations[endpoint.reference] = registration
+        self._registrations[svc_ref] = registration
 
         # Send the signal
         self._send_remote_event(REGISTERED, registration)
@@ -329,6 +357,112 @@ class SignalsDiscovery(object):
         return result
 
 
+    def __extract_specifications_parts(self, specification):
+        """
+        Extract the language and the interface from a "language:/interface"
+        interface name
+        
+        :param specification: The formatted interface name
+        :return: A (language, interface name) tuple
+        """
+        try:
+            # Parse the URI-like string
+            parsed = urlparse(specification)
+
+        except:
+            # Invalid URL
+            _logger.debug("Invalid URL: %s", specification)
+            return
+
+        # Extract the interface name
+        interface = parsed.path
+
+        # Extract the language, if given
+        language = parsed.scheme
+        if not language:
+            # Simple name, without scheme
+            language = PYTHON_SCHEME
+
+        else:
+            # Formatted name: un-escape it, without the starting '/'
+            interface = self.__unescape_specification(interface[1:])
+
+        return (language, interface)
+
+
+    def __format_specification(self, language, specification):
+        """
+        Formats a "language://interface" string
+        
+        :param language: Specification language
+        :param interface: Specification name
+        :return: A formatted string
+        """
+        return "{0}:/{1}".format(language,
+                                 self.__escape_specification(specification))
+
+
+    def __escape_specification(self, specification):
+        """
+        Escapes the interface string: replaces slashes '/' by '%2F'
+        
+        :param specification: Specification name
+        :return: The escaped name
+        """
+        return specification.replace('/', '%2F')
+
+
+    def __unescape_specification(self, specification):
+        """
+        Unescapes the interface string: replaces '%2F' by slashes '/'
+        
+        :param specification: Specification name
+        :return: The escaped name
+        """
+        return specification.replace('%2F', '/')
+
+
+    def __extract_specifications(self, specifications):
+        """
+        Converts "python:/name" specifications to "name". Keeps the other
+        specifications as is.
+        
+        :param specifications: The specifications found in a remote registration
+        :return: The filtered specifications (as a set)
+        """
+        filtered_specs = set()
+
+        for original in specifications:
+            # Extract informations
+            lang, spec = self.__extract_specifications_parts(original)
+            if lang == PYTHON_SCHEME:
+                # Language match: keep the name only
+                filtered_specs.add(spec)
+
+            else:
+                # Keep the name as is
+                filtered_specs.add(original)
+
+        return list(filtered_specs)
+
+
+    def __format_specifications(self, specifications):
+        """
+        Transforms the interfaces names into a URI string, with the interface
+        implementation language as a scheme.
+        
+        :param specifications: Specifications to transform
+        :return: The transformed names
+        """
+        transformed = set()
+
+        for original in specifications:
+            lang, spec = self.__extract_specifications_parts(original)
+            transformed.add(self.__format_specification(lang, spec))
+
+        return list(transformed)
+
+
     def _handle_remote_event(self, sender, remote_event):
         """
         Handles a remote service event.
@@ -351,8 +485,7 @@ class SignalsDiscovery(object):
         endpoints = registration["endpoints"]
         if not endpoints:
             # FIXME: No end point: nothing to do
-            _logger.warning("RemoteServiceEvent without endpoint: "
-                            "debug JsonRpcEndpoint (Java)\n%s",
+            _logger.warning("RemoteServiceEvent without endpoint:\n%s",
                             remote_event)
             return
 
@@ -362,10 +495,16 @@ class SignalsDiscovery(object):
         name = endpoint["endpointName"]
         uid = "{0}@{1}".format(name, registration["hostIsolate"])
         kind = endpoint["exportedConfig"]
-        specs = registration["exportedInterfaces"]
+
+        # Parse the specs
+        specs = self.__extract_specifications(\
+                                            registration["exportedInterfaces"])
 
         # Filter the properties (replace exports by imports)
         properties = self._filter_properties(registration["serviceProperties"])
+
+        # ... add the source isolate information
+        properties["service.imported.from"] = registration["hostIsolate"]
 
         # Prepare the access URL
         host = self._directory.get_host_for_node(endpoint["node"])

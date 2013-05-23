@@ -92,6 +92,11 @@ BUNDLE_ISOLATE_LOADER_FACTORY = "ISOLATE_LOADER_FACTORY"
 """ Name of the isolate loader component factory """
 
 # ------------------------------------------------------------------------------
+# Remote Services constants
+SVCPROP_SYNONYM_INTERFACES = "cohorte.remote.synonyms"
+""" Exported interfaces synonyms (array of strings) """
+
+# ------------------------------------------------------------------------------
 # Core services specifications
 
 SERVICE_FILE_FINDER = 'cohorte.file.finder'
