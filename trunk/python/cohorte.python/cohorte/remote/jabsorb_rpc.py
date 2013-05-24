@@ -16,7 +16,8 @@ __version__ = "1.0.0"
 # ------------------------------------------------------------------------------
 
 # JSON-RPC
-from jsonrpclib.SimpleJSONRPCServer import SimpleJSONRPCDispatcher
+from jsonrpclib.SimpleJSONRPCServer import SimpleJSONRPCDispatcher, \
+    NoMulticallResult
 import jsonrpclib.jsonrpc
 
 # Cohorte
@@ -76,28 +77,34 @@ class _JabsorbRpcServlet(SimpleJSONRPCDispatcher):
         :param request: The HTTP request bean
         :param request: The HTTP response handler
         """
+        # Get the request JSON content
+        data = jsonrpclib.loads(request.read_data())
+
+        # Convert from Jabsorb
+        data = jabsorb.from_jabsorb(data)
+
+        # Dispatch
         try:
-            # Get the request JSON content
-            data = jsonrpclib.loads(request.read_data())
-
-            # Convert from Jabsorb
-            data = jabsorb.from_jabsorb(data)
-
-            # Dispatch
             result = self._unmarshaled_dispatch(data, self._simple_dispatch)
-            if result != '':
-                # Convert result to Jabsorb
-                if 'result' in result:
-                    result['result'] = jabsorb.to_jabsorb(result['result'])
 
-                # Store JSON
-                result = jsonrpclib.jdumps(result)
+        except NoMulticallResult:
+            # No result (never happens, but who knows...)
+            result = None
 
-            # Send the result
-            response.send_content(200, result, 'application/json-rpc')
+        if result is not None:
+            # Convert result to Jabsorb
+            if 'result' in result:
+                result['result'] = jabsorb.to_jabsorb(result['result'])
 
-        except Exception as ex:
-            _logger.exception("ERROR: %s", ex)
+            # Store JSON
+            result = jsonrpclib.jdumps(result)
+
+        else:
+            # It was a notification
+            result = ''
+
+        # Send the result
+        response.send_content(200, result, 'application/json-rpc')
 
 # ------------------------------------------------------------------------------
 
