@@ -76,20 +76,28 @@ class _JabsorbRpcServlet(SimpleJSONRPCDispatcher):
         :param request: The HTTP request bean
         :param request: The HTTP response handler
         """
-        # Get the request content
-        data = request.read_data()
+        try:
+            # Get the request JSON content
+            data = jsonrpclib.loads(request.read_data())
 
-        # Convert from Jabsorb
-        data = jabsorb.from_jabsorb(data)
+            # Convert from Jabsorb
+            data = jabsorb.from_jabsorb(data)
 
-        # Dispatch
-        result = self._marshaled_dispatch(data, self._simple_dispatch)
+            # Dispatch
+            result = self._unmarshaled_dispatch(data, self._simple_dispatch)
+            if result != '':
+                # Convert result to Jabsorb
+                if 'result' in result:
+                    result['result'] = jabsorb.to_jabsorb(result['result'])
 
-        # Convert to Jabsorb
-        result = jabsorb.to_jabsorb(result)
+                # Store JSON
+                result = jsonrpclib.jdumps(result)
 
-        # Send the result
-        response.send_content(200, result, 'application/json-rpc')
+            # Send the result
+            response.send_content(200, result, 'application/json-rpc')
+
+        except Exception as ex:
+            _logger.exception("ERROR: %s", ex)
 
 # ------------------------------------------------------------------------------
 
@@ -366,7 +374,24 @@ class _ServiceCallProxy(object):
         # proxy re-uses the same connection when possible: sometimes it means
         # sending a request before retrieving a result
         proxy = jsonrpclib.jsonrpc.ServerProxy(self.__url)
-        return getattr(proxy, "{0}.{1}".format(self.__name, name))
+
+        def wrapped_call(*args, **kwargs):
+            """
+            Wrapped call
+            """
+            # Get the method from the proxy
+            method = getattr(proxy, "{0}.{1}".format(self.__name, name))
+
+            # Convert arguments
+            args = [jabsorb.to_jabsorb(arg) for arg in args]
+            kwargs = dict([(key, jabsorb.to_jabsorb(value))
+                               for key, value in kwargs.items()])
+
+            result = method(*args, **kwargs)
+            return jabsorb.from_jabsorb(result)
+            # FIXME: in case of Exception, look if the service has gone away
+
+        return wrapped_call
 
 # ------------------------------------------------------------------------------
 

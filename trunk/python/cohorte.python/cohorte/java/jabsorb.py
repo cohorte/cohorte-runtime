@@ -82,8 +82,6 @@ def to_jabsorb(value):
     :param value: A Python result to send to Jabsorb
     :return: The result in a Jabsorb map format (not a JSON object)
     """
-    converted_result = {}
-
     # None ?
     if value is None:
         return None
@@ -92,24 +90,25 @@ def to_jabsorb(value):
     elif isinstance(value, dict):
         if JAVA_CLASS not in value:
             # Needs the whole transformation
-            converted_result[JAVA_CLASS] = "java.util.HashMap"
+            converted_result = {JAVA_CLASS: "java.util.HashMap"}
             converted_result["map"] = map_pairs = {}
             for key, content in value.items():
                 map_pairs[key] = to_jabsorb(content)
 
         else:
             # Bean representation
+            converted_result = {}
             for key, content in value.items():
                 converted_result[key] = to_jabsorb(content)
 
     # List ? (consider tuples as an array)
     elif isinstance(value, list):
-        converted_result[JAVA_CLASS] = "java.util.ArrayList"
+        converted_result = {JAVA_CLASS: "java.util.ArrayList"}
         converted_result["list"] = [to_jabsorb(entry) for entry in value]
 
     # Set ?
     elif isinstance(value, set):
-        converted_result[JAVA_CLASS] = "java.util.HashSet"
+        converted_result = {JAVA_CLASS: "java.util.HashSet"}
         converted_result["set"] = [to_jabsorb(entry) for entry in value]
 
     # Tuple ? (used as array, except if it is empty)
@@ -118,11 +117,13 @@ def to_jabsorb(value):
 
     elif hasattr(value, JAVA_CLASS):
         # Class with a Java class hint: convert into a dictionary
-        converted_result = __hashabledict(
-            (name, to_jabsorb(content))
-            for name, content
+        converted_result = __hashabledict((name, to_jabsorb(content))
+                                          for name, content
             in map(lambda name: (name, getattr(value, name)), dir(value))
             if not name.startswith('_') and not inspect.ismethod(content))
+
+        # Do not forget the Java class
+        converted_result[JAVA_CLASS] = getattr(value, JAVA_CLASS)
 
     # Other ?
     else:
