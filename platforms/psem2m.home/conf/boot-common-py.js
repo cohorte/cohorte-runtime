@@ -21,6 +21,8 @@
 	}, {
 		"name" : "pelix.shell.eventadmin"
 	}, {
+		"name" : "cohorte.signals.shell"
+	}, {
 		"name" : "cohorte.signals.http"
 	}, {
 		"name" : "cohorte.signals.directory"
