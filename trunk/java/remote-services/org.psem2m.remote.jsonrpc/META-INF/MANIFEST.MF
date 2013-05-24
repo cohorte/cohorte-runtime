@@ -45,31 +45,34 @@ iPOJO-Components: component { $classname="org.psem2m.remote.jsonrpc.Js
  nent { $classname="org.psem2m.remote.jsonrpc.JsonRpcEndpoint" $name="
  psem2m-remote-endpoint-jsonrpc-factory" $public="true" provides { $sp
  ecifications="{org.psem2m.isolates.services.remote.IEndpointHandler}"
-  }requires { $field="pHttpService" }requires { $field="pLogger" }prop
- erties { property { $name="endpoint.servlet.name" $field="pServletNam
- e" $value="/JSON-RPC" }}callback { $transition="invalidate" $method="
- invalidatePojo" }callback { $transition="validate" $method="validateP
- ojo" }manipulation { $super="org.psem2m.isolates.base.activators.CPoj
- oBase" interface { $name="org.psem2m.isolates.services.remote.IEndpoi
- ntHandler" }field { $name="pBundleContext" $type="org.osgi.framework.
- BundleContext" }field { $name="pEndpointsDescriptions" $type="java.ut
- il.Map" }field { $name="pHttpService" $type="org.osgi.service.http.Ht
- tpService" }field { $name="pJsonRpcBridge" $type="org.jabsorb.ng.JSON
- RPCBridge" }field { $name="pLogger" $type="org.psem2m.isolates.base.I
- IsolateLoggerSvc" }field { $name="pRegisteredEndpoints" $type="java.u
- til.List" }field { $name="pServletName" $type="java.lang.String" }met
- hod { $name="createEndpoint" $return="org.psem2m.isolates.services.re
- mote.beans.EndpointDescription[]" $arguments="{java.util.Set,org.osgi
- .framework.ServiceReference}" }method { $name="destroyEndpoint" $retu
- rn="boolean" $arguments="{org.osgi.framework.ServiceReference}" }meth
- od { $name="generateEndpointName" $return="java.lang.String" $argumen
- ts="{java.util.Map}" }method { $name="getEndpoints" $return="org.psem
- 2m.isolates.services.remote.beans.EndpointDescription[]" $arguments="
- {org.osgi.framework.ServiceReference}" }method { $name="getHttpPort" 
- $return="int" }method { $name="getServicePropertiesMap" $return="java
- .util.Map" $arguments="{org.osgi.framework.ServiceReference}" }method
-  { $name="invalidatePojo" }method { $name="makeEndpointUri" $return="
- java.lang.String" $arguments="{java.lang.String}" }method { $name="st
- artJabsorbBridge" }method { $name="stopJabsorbBridge" }method { $name
- ="validatePojo" }}}
+  }requires { $field="pHttpService" $filter="(org.osgi.service.http.po
+ rt=*)" $id="http.service" callback { $method="bindHttpService" $type=
+ "bind" }}requires { $field="pLogger" }properties { property { $name="
+ endpoint.servlet.name" $field="pServletName" $value="/JSON-RPC" }}cal
+ lback { $transition="invalidate" $method="invalidatePojo" }callback {
+  $transition="validate" $method="validatePojo" }manipulation { $super
+ ="org.psem2m.isolates.base.activators.CPojoBase" interface { $name="o
+ rg.psem2m.isolates.services.remote.IEndpointHandler" }field { $name="
+ pBundleContext" $type="org.osgi.framework.BundleContext" }field { $na
+ me="pEndpointsDescriptions" $type="java.util.Map" }field { $name="pHt
+ tpPort" $type="int" }field { $name="pHttpService" $type="org.osgi.ser
+ vice.http.HttpService" }field { $name="pJsonRpcBridge" $type="org.jab
+ sorb.ng.JSONRPCBridge" }field { $name="pLogger" $type="org.psem2m.iso
+ lates.base.IIsolateLoggerSvc" }field { $name="pRegisteredEndpoints" $
+ type="java.util.List" }field { $name="pServletName" $type="java.lang.
+ String" }method { $name="bindHttpService" $arguments="{org.osgi.servi
+ ce.http.HttpService,java.util.Map}" }method { $name="createEndpoint" 
+ $return="org.psem2m.isolates.services.remote.beans.EndpointDescriptio
+ n[]" $arguments="{java.util.Set,org.osgi.framework.ServiceReference}"
+  }method { $name="destroyEndpoint" $return="boolean" $arguments="{org
+ .osgi.framework.ServiceReference}" }method { $name="generateEndpointN
+ ame" $return="java.lang.String" $arguments="{java.util.Map}" }method 
+ { $name="getEndpoints" $return="org.psem2m.isolates.services.remote.b
+ eans.EndpointDescription[]" $arguments="{org.osgi.framework.ServiceRe
+ ference}" }method { $name="getServicePropertiesMap" $return="java.uti
+ l.Map" $arguments="{org.osgi.framework.ServiceReference}" }method { $
+ name="invalidatePojo" }method { $name="makeEndpointUri" $return="java
+ .lang.String" $arguments="{java.lang.String}" }method { $name="startJ
+ absorbBridge" }method { $name="stopJabsorbBridge" }method { $name="va
+ lidatePojo" }}}
 

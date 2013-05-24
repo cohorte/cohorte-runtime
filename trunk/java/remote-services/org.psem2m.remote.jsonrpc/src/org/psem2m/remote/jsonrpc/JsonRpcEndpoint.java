@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Property;
@@ -40,8 +41,11 @@ import org.psem2m.isolates.services.remote.beans.EndpointDescription;
 @Provides(specifications = IEndpointHandler.class)
 public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
 
-    /** Default HTTP port */
-    private static final int DEFAULT_HTTP_PORT = 80;
+    /** HTTP service port property */
+    private static final String HTTP_SERVICE_PORT = "org.osgi.service.http.port";
+
+    /** HTTPService dependency ID */
+    private static final String IPOJO_ID_HTTP = "http.service";
 
     /** The bundle context */
     private final BundleContext pBundleContext;
@@ -49,8 +53,11 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
     /** Service -&gt; End point description mapping */
     private final Map<ServiceReference<?>, EndpointDescription[]> pEndpointsDescriptions = new HashMap<ServiceReference<?>, EndpointDescription[]>();
 
-    /** HTTP Service, to host Jabsorb servlet */
-    @Requires
+    /** HTTP service port */
+    private int pHttpPort;
+
+    /** HTTP service, to host the Jabsorb servlet */
+    @Requires(id = IPOJO_ID_HTTP, filter = "(" + HTTP_SERVICE_PORT + "=*)")
     private HttpService pHttpService;
 
     /** The JSON-RPC bridge (Jabsorb) */
@@ -64,7 +71,8 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
     private final List<String> pRegisteredEndpoints = new ArrayList<String>();
 
     /** Name of the Jabsorb servlet */
-    @Property(name = "endpoint.servlet.name", value = IJsonRpcConstants.DEFAULT_SERVLET_NAME)
+    @Property(name = "endpoint.servlet.name",
+            value = IJsonRpcConstants.DEFAULT_SERVLET_NAME)
     private String pServletName;
 
     /**
@@ -77,6 +85,36 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
 
         super();
         pBundleContext = aBundleContext;
+    }
+
+    /**
+     * HTTP service ready: store its listening port
+     * 
+     * @param aHttpService
+     *            The bound service
+     * @param aServiceProperties
+     *            The HTTP service properties
+     */
+    @Bind(id = IPOJO_ID_HTTP)
+    private void bindHttpService(final HttpService aHttpService,
+            final Map<?, ?> aServiceProperties) {
+
+        final Object rawPort = aServiceProperties.get(HTTP_SERVICE_PORT);
+
+        if (rawPort instanceof Number) {
+            // Get the integer
+            pHttpPort = ((Number) rawPort).intValue();
+
+        } else if (rawPort instanceof CharSequence) {
+            // Parse the string
+            pHttpPort = Integer.parseInt(rawPort.toString());
+
+        } else {
+            // Unknown port type
+            pLogger.logWarn(this, "getAccessInfo",
+                    "Couldn't read access port=", rawPort);
+            pHttpPort = -1;
+        }
     }
 
     /*
@@ -126,7 +164,7 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
         final EndpointDescription endpointDescription = new EndpointDescription(
                 IJsonRpcConstants.EXPORT_CONFIGS[0], endPointName,
                 IJsonRpcConstants.EXPORT_PROTOCOL,
-                makeEndpointUri(endPointName), getHttpPort());
+                makeEndpointUri(endPointName), pHttpPort);
 
         // Make an array
         final EndpointDescription[] result = new EndpointDescription[] { endpointDescription };
@@ -204,28 +242,6 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
         }
 
         return result;
-    }
-
-    /**
-     * Tries to retrieve the HTTP port to access the generated end points. First
-     * tries reading the <em>org.osgi.service.http.port</em> system property. If
-     * the property content is invalid, returns 80.
-     * 
-     * @return The found HTTP port.
-     */
-    private int getHttpPort() {
-
-        final String portStr = System.getProperty("org.osgi.service.http.port");
-        int port = DEFAULT_HTTP_PORT;
-
-        try {
-            port = Integer.parseInt(portStr);
-
-        } catch (final NumberFormatException ex) {
-            port = DEFAULT_HTTP_PORT;
-        }
-
-        return port;
     }
 
     /**
