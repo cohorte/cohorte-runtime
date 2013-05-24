@@ -23,8 +23,7 @@ import cohorte.repositories
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
-    Provides, Property, Bind
-import pelix.framework
+    Provides, Property, BindField
 
 # Standard library
 import logging
@@ -148,30 +147,28 @@ class CompositionLoader(object):
         self._export_synonyms = None
 
 
-    @Bind
-    def bind(self, svc, ref):
+    @BindField('_agents')
+    def bind_agent(self, field, svc, ref):
         """
         """
-        specs = ref.get_property(pelix.framework.OBJECTCLASS)
-        if 'cohorte.composer.Agent' in specs:
-            # Get the agent isolate UID
-            uid, name = svc.get_isolate()
-            _logger.info("Bound to composer agent - %s (%s)", name, uid)
+        # Get the agent isolate UID
+        uid, name = svc.get_isolate()
+        _logger.info("Bound to composer agent - %s (%s)", name, uid)
 
-            # Update the agent status
-            self._status.agent_event(uid, fsm.AGENT_EVENT_READY)
+        # Update the agent status
+        self._status.agent_event(uid, fsm.AGENT_EVENT_READY)
 
-            # Get the list of components that must be started on this isolate
-            components = []
-            for component in self._status.get_components():
-                if component.isolate in (uid, name):
-                    # Mark the component as requested
-                    components.append(component.as_dict())
-                    self._status.component_event(component.uid,
-                                                 fsm.COMPONENT_EVENT_REQUESTED)
+        # Get the list of components that must be started on this isolate
+        components = []
+        for component in self._status.get_components():
+            if component.isolate in (uid, name):
+                # Mark the component as requested
+                components.append(component.as_dict())
+                self._status.component_event(component.uid,
+                                             fsm.COMPONENT_EVENT_REQUESTED)
 
-            # Send the order to the agent
-            svc.instantiate(components)
+        # Send the order to the agent
+        svc.instantiate(components, True)
 
 
     def components_instantiation(self, isolate, success, running, errors):
