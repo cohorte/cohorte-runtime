@@ -60,7 +60,8 @@ public class HttpSignalReceiver extends CPojoBase implements
     private IIsolateLoggerSvc pLogger;
 
     /** A service flag to indicate that the servlet is ready */
-    @ServiceProperty(name = ISignalReceptionProvider.PROPERTY_READY, value = "false", mandatory = true)
+    @ServiceProperty(name = ISignalReceptionProvider.PROPERTY_READY,
+            value = "false", mandatory = true)
     private boolean pPropertyReady;
 
     /** Main signals receiver */
@@ -99,6 +100,9 @@ public class HttpSignalReceiver extends CPojoBase implements
                     "Couldn't read access port=", rawPort);
             pHttpPort = -1;
         }
+
+        pLogger.logInfo(this, "bindHttpService",
+                "HTTP Signal Receiver bound to port=", pHttpPort);
     }
 
     /*
@@ -328,7 +332,8 @@ public class HttpSignalReceiver extends CPojoBase implements
             // Ready to work
             pPropertyReady = true;
 
-            pLogger.logInfo(this, "validatePojo", "HTTP Signal Receiver Ready");
+            pLogger.logInfo(this, "validatePojo",
+                    "HTTP Signal Receiver ready on port=", pHttpPort);
 
         } catch (final Exception ex) {
             pLogger.logSevere(this, "validatePojo",

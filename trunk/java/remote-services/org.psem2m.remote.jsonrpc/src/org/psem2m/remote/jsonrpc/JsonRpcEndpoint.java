@@ -115,6 +115,9 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
                     "Couldn't read access port=", rawPort);
             pHttpPort = -1;
         }
+
+        pLogger.logInfo(this, "bindHttpService",
+                "JSON-RPC endpoint bound to port=", pHttpPort);
     }
 
     /*
@@ -299,7 +302,7 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
         pRegisteredEndpoints.clear();
 
         pLogger.logInfo(this, "invalidatePojo",
-                "PSEM2M JSON-RPC Remote-Services endpoint Gone");
+                "JSON-RPC endpoint handler gone");
     }
 
     /**
@@ -384,6 +387,6 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
         startJabsorbBridge();
 
         pLogger.logInfo(this, "validatePojo",
-                "PSEM2M JSON-RPC Remote-Services endpoint Ready");
+                "JSON-RPC endpoint handler ready, port=", pHttpPort);
     }
 }
