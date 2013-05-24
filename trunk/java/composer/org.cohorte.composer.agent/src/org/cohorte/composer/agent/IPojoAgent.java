@@ -329,7 +329,7 @@ public class IPojoAgent implements IComposerAgent, InstanceStateListener {
         for (final Map<String, ?> component : aComponents) {
             // Extract basic component information
             final String name = (String) component.get("name");
-            final String factory = (String) component.get("factory");
+            final String factory = (String) component.get("type");
 
             // Normalize service properties
             final Properties serviceProperties = new Properties();
