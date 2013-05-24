@@ -33,6 +33,7 @@ from pprint import pformat
 import logging
 import os
 import sys
+import traceback
 
 # ------------------------------------------------------------------------------
 
@@ -457,11 +458,20 @@ def main(args=None):
     # Run PDB on unhandled exceptions, in debug mode
     use_pdb = args.debug and sys.stdin.isatty()
     if use_pdb:
-        import pdb, traceback
-        def info(exctype, value, tb):
+        import pdb
+        def pm_exception(exctype, value, tb):
             traceback.print_exception(exctype, value, tb)
             pdb.pm()
-        sys.excepthook = info
+
+        sys.excepthook = pm_exception
+
+    else:
+        # Log the unhandled exception
+        def log_exception(ex_cls, ex, tb):
+            logging.critical('{0}: {1}'.format(ex_cls, ex))
+            logging.critical(''.join(traceback.format_tb(tb)))
+
+        sys.excepthook = log_exception
 
     try:
         # Load the isolate and wait for it to stop
