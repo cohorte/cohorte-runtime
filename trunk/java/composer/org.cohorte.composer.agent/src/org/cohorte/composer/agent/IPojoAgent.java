@@ -84,7 +84,7 @@ public class IPojoAgent implements IComposerAgent, InstanceStateListener {
      * Mapping of components waiting for a factory to appear: Factory -&gt;
      * Component descriptions
      */
-    private Map<String, List<ComponentDescription>> pWaitings;
+    private final Map<String, List<ComponentDescription>> pWaitings = new HashMap<String, List<ComponentDescription>>();
 
     /**
      * Sets up the component
