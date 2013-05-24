@@ -222,7 +222,7 @@ class ComposerAgent(object):
                                                 running, errors)
 
 
-    def instantiate(self, components, until_possible=True):
+    def instantiate(self, components, until_possible):
         """
         Instantiates the given components. The result lists only contains
         components names, without compositions names. 
