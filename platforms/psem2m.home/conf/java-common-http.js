@@ -8,7 +8,7 @@
 	"bundles" : [
 	/* Apache Felix HTTP Bundle */
 	{
-		"name" : "org.apache.felix.http.bundle"
+		"name" : "org.apache.felix.http.jetty"
 	},
 
 	/* PSEM2M HTTP Signals */

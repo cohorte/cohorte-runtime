@@ -32,7 +32,7 @@
 	"properties" : {
 		"osgi.shell.telnet.port" : "6100",
 		// HTTP port
-		"org.osgi.service.http.port" : 9100
+		"org.osgi.service.http.port" : 0
 	},
 
 	/*
