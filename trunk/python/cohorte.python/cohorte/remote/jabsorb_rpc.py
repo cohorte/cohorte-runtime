@@ -31,6 +31,7 @@ import pelix.remote
 
 # Standard library
 import logging
+import socket
 import uuid
 
 # ------------------------------------------------------------------------------
@@ -361,15 +362,19 @@ class _ServiceCallProxy(object):
     """
     Service call proxy
     """
-    def __init__(self, name, url):
+    def __init__(self, uid, name, url, on_error):
         """
         Sets up the call proxy
         
+        :param uid: End point UID
         :param name: End point name
         :param url: End point URL
+        :param on_error: A method to call back in case of socket error
         """
+        self.__uid = uid
         self.__name = name
         self.__url = url
+        self.__on_error = on_error
 
 
     def __getattr__(self, name):
@@ -394,9 +399,14 @@ class _ServiceCallProxy(object):
             kwargs = dict([(key, jabsorb.to_jabsorb(value))
                                for key, value in kwargs.items()])
 
-            result = method(*args, **kwargs)
-            return jabsorb.from_jabsorb(result)
-            # FIXME: in case of Exception, look if the service has gone away
+            try:
+                result = method(*args, **kwargs)
+                return jabsorb.from_jabsorb(result)
+
+            except socket.error:
+                # In case of transport error, look if the service has gone away
+                if self.__on_error is not None:
+                    self.__on_error(self.__uid)
 
         return wrapped_call
 
@@ -434,7 +444,8 @@ class JsonRpcServiceImporter(object):
             return
 
         # Register the service
-        svc = _ServiceCallProxy(endpoint.name, endpoint.url)
+        svc = _ServiceCallProxy(endpoint.uid, endpoint.name, endpoint.url,
+                                self._unregister)
         svc_reg = self._context.register_service(endpoint.specifications, svc,
                                                  endpoint.properties)
 
@@ -459,15 +470,29 @@ class JsonRpcServiceImporter(object):
         """
         An end point has been removed
         """
-        if endpoint.uid not in self.__registrations:
-            # Unknown end point
-            return
+        if endpoint.uid in self.__registrations:
+            # Unregister the end point
+            self._unregister(endpoint.uid)
 
-        # Pop references
-        svc_reg = self.__registrations.pop(endpoint.uid)
 
-        # Unregister the service
-        svc_reg.unregister()
+    def _unregister(self, endpoint_uid):
+        """
+        Unregisters the service associated to the given UID
+        
+        :param endpoint_uid: An end point UID
+        :return: True on success, else False
+        """
+        try:
+            # Pop references
+            svc_reg = self.__registrations.pop(endpoint_uid)
+
+            # Unregister the service
+            svc_reg.unregister()
+            return True
+
+        except KeyError:
+            _logger.debug("Unknown end point %s", endpoint_uid)
+            return False
 
 
     @Validate

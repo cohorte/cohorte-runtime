@@ -370,15 +370,14 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
             return;
         }
 
-        // Unregister the end points from the RSR
-        pRepository
-                .unregisterEndpoints(Arrays.asList(serviceReg.getEndpoints()));
-
         // Send an RSB notification
         final RemoteServiceEvent broadcastEvent = new RemoteServiceEvent(
                 ServiceEventType.UNREGISTERED, serviceReg);
-
         pBroadcaster.sendNotification(broadcastEvent);
+
+        // Unregister the end points from the RSR
+        pRepository
+                .unregisterEndpoints(Arrays.asList(serviceReg.getEndpoints()));
 
         // Remove end points, after sending the broadcast event
         for (final IEndpointHandler handler : pEndpointHandlers) {
