@@ -8,9 +8,7 @@
 	"bundles" : [ {
 		"name" : "org.psem2m.remote.api"
 	}, {
-		"name" : "org.psem2m.remote.exporter"
-	}, {
-		"name" : "org.psem2m.remote.importer"
+		"name" : "org.psem2m.remote.core"
 	}, {
 		"name" : "org.psem2m.remote.broadcaster"
 	}, {
