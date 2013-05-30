@@ -363,7 +363,7 @@ class ComposerAgent(object):
         Component invalidated
         """
         # Unregister to events
-        self.ipopo.remove_listener(self)
+        self._ipopo.remove_listener(self)
 
         # Kill active components
         self.kill(self._instances.keys())
