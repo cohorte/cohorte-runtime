@@ -343,6 +343,9 @@ class Component(object):
         self.__preferred_isolate = None
         self.__preferred_node = None
 
+        # Original component bean (for copied elements)
+        self.__original = None
+
         # Set-once parameter
         self.__fullname = None
         self.__language = None
@@ -403,6 +406,20 @@ class Component(object):
         The configured properties
         """
         return self.__properties
+
+
+    @property
+    def original(self):
+        """
+        The original configuration bean
+        """
+        if self.__original is None:
+            # Return this configuration bean
+            return self
+
+        else:
+            # Return the original configuration bean
+            return self.__original
 
 
     @property
@@ -572,20 +589,27 @@ class Component(object):
 
     def copy(self, uid):
         """
-        Makes a copy this bean, with the given UID
+        Makes a copy this bean, with the given UID.
+        Only original beans can be copied
         
         :param uid: UID of the copy of this bean
         :return: A copy of this bean
+        :raise TypeError: Only original beans can be copied
         :raise ValueError: Invalid UID
         """
+        if self.__uid is not None:
+            raise TypeError("Can't make a copy of a non-original bean")
+
         if not uid:
             raise ValueError("No UID given")
-
         else:
             uid = str(uid)
 
         # New component
         copy = Component(self.__name, self.__factory, self.__properties, uid)
+
+        # Add a reference to the original
+        copy.__original = self
 
         # Copy other members
         copy._filters = self._filters.copy()
@@ -606,4 +630,5 @@ class Component(object):
         return "Component({0}, {1}, {2}, {3})".format(self.__name,
                                                       self.__factory,
                                                       self.__properties,
-                                                      self.__uid)
+                                                      self.__uid
+                                                      or "<original>")

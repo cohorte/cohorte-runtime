@@ -23,7 +23,8 @@ import cohorte.repositories
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
-    Provides, Property, BindField
+    Provides, Property, BindField, Invalidate
+import pelix.remote
 
 # Standard library
 import logging
@@ -97,8 +98,6 @@ class DefaultDistanceAndCompatibility(object):
 
 # ------------------------------------------------------------------------------
 
-import pelix.remote
-
 @ComponentFactory('cohorte-composer-loader-factory')
 @Provides(cohorte.composer.SERVICE_COMPOSITION_LOADER)
 @Requires('_monitor', cohorte.monitor.SERVICE_MONITOR)
@@ -111,6 +110,7 @@ import pelix.remote
           aggregate=True)
 @Requires('_repositories', cohorte.repositories.SERVICE_REPOSITORY_FACTORIES,
           aggregate=True)
+@Requires('_receiver', cohorte.SERVICE_SIGNALS_RECEIVER)
 @Property('_compatibility_threshold', 'threshold.compatibility', 50)
 @Property('_distance_threshold', 'threshold.distance', 10)
 @Property('_export_interfaces', pelix.remote.PROP_EXPORTED_INTERFACES,
@@ -136,6 +136,7 @@ class CompositionLoader(object):
         self._compatibility_checkers = []
         self._distance_calculators = []
         self._repositories = []
+        self._receiver = None
 
         # Distribution threshold
         self._compatibility_threshold = 50
@@ -150,6 +151,11 @@ class CompositionLoader(object):
     @BindField('_agents')
     def bind_agent(self, field, svc, ref):
         """
+        Called when a composer agent is bound
+        
+        :param field: Name of the injected field
+        :param svc: The injected service
+        :param svc: The injected service reference
         """
         # Get the agent isolate UID
         uid, name = svc.get_isolate()
@@ -173,27 +179,78 @@ class CompositionLoader(object):
 
     def components_instantiation(self, isolate, success, running, errors):
         """
+        The instantiation request of a set of components has been handled
+        
+        :param isolate: Isolate that handled the request, a (uid, name) tuple
+        :param success: Successfully instantiated components: {UID -> Name}
+        :param running: List of already-running/known components: [UID]
+        :param errors: Failed instantiations: {UID -> Error message}
         """
+        # No need to update the FSM, we already know those components
         if success:
             _logger.debug("%s: Successfully started components: %s",
                           isolate[1], success)
+            # Use the UID of the isolate
+            for uid in success:
+                component = self._status.get_component(uid)
+                component.isolate = isolate[0]
 
         if running:
             _logger.warning("%s: Components already running: %s",
                             isolate[1], running)
+            # Use the UID of the isolate
+            for uid in running:
+                component = self._status.get_component(uid)
+                component.isolate = isolate[0]
 
         if errors:
             _logger.error("%s: Error running components: %s",
                           isolate[1], errors)
 
+            # Remove'em
+            for uid in errors:
+                self._status.remove_component(uid)
+
 
     def component_changed(self, isolate, uid, name, factory, state):
         """
+        The state of a component changed
+        
+        :param isolate: Isolate that hosts the component, a (uid, name) tuple
+        :param uid: UID of the component
+        :param name: Name of the component
+        :param factory: Factory/Type of the component
+        :param state: New component state
         """
         _logger.info("From %s: Component %s (%s) -> %s",
                          isolate[1], name, factory, state)
 
+        # Update the FSM
         self._status.component_event(uid, state)
+
+
+    def handle_received_signal(self, name, signal_data):
+        """
+        Called when a remote services signal is received
+        
+        :param name: Signal name
+        :param signal_data: Signal content
+        """
+        if name == cohorte.monitor.SIGNAL_ISOLATE_LOST:
+            # Isolate lost
+            isolate_uid = signal_data['signalContent']
+            _logger.debug('Isolate lost: %s', isolate_uid)
+
+            # Get the lost components beans
+            lost = [component for component in self._status.get_components()
+                    if component.isolate == isolate_uid]
+            for component in lost:
+                # Remove them from the status storage
+                self._status.remove_component(component.uid)
+
+            # Recompute the clustering of the original components
+            self.__instantiate_components([component.original
+                                           for component in lost])
 
 
     def parse(self, filename):
@@ -345,6 +402,22 @@ class CompositionLoader(object):
             _logger.warning("Composition couldn't be normalized: "
                             "some component might not be validated")
 
+        # Store the composition in the status
+        self._status.add_composition(composition)
+
+        # Distribute & instantiate components
+        components = list(composition.root.all_components())
+        self.__instantiate_components(components)
+
+
+    def __instantiate_components(self, components):
+        """
+        Instantiates a set of components.
+        Those components must have been normalized using the normalize() method
+        of their composition (or root composite)
+        
+        :param components: A list of components
+        """
         # 1st distribution: kinds (and artifacts handling)
 
         # (kind, language) -> [components]
@@ -353,8 +426,7 @@ class CompositionLoader(object):
         # Factory name -> Artifact
         artifacts = {}
 
-        factories = set(component.factory
-                        for component in composition.root.all_components())
+        factories = set(component.factory for component in components)
         for repository in self._repositories:
             # Get the language of the repository
             language = repository.get_language()
@@ -366,8 +438,7 @@ class CompositionLoader(object):
             found, unresolved = repository.find_factories(factories)
 
             # Get the list of components for the found factories
-            kinds[kind] = [component
-                           for component in composition.root.all_components()
+            kinds[kind] = [component for component in components
                            if component.factory in found]
 
             # Add the factory artifact
@@ -406,10 +477,9 @@ class CompositionLoader(object):
                 groups[name] = (kind, group_factories)
 
         # Store the components in the status
-        self._status.add_composition(composition)
-        for component in composition.root.all_components():
+        for component in components:
             # Make an identified instance of the component
-            live_component = component.copy(uuid.uuid4())
+            live_component = component.copy(str(uuid.uuid4()))
 
             # Mark it as requested, then assigned (to a cluster)
             self._status.component_requested(live_component)
@@ -456,6 +526,10 @@ class CompositionLoader(object):
         """
         Component validated
         """
+        # Register to the "isolate lost" signal
+        self._receiver.register_listener(cohorte.monitor.SIGNAL_ISOLATE_LOST,
+                                         self)
+
         try:
             composition = self.parse(AUTORUN_COMPOSITION)
             if composition is not None:
@@ -464,3 +538,13 @@ class CompositionLoader(object):
 
         except (ValueError, IOError) as ex:
             _logger.exception("Error loading the auto-run composition: %s", ex)
+
+
+    @Invalidate
+    def invalidate(self, context):
+        """
+        Component invalidated
+        """
+        # Unregister from signals
+        self._receiver.unregister_listener(cohorte.monitor.SIGNAL_ISOLATE_LOST,
+                                           self)

@@ -93,6 +93,27 @@ class ComposerStatus(object):
         return (uid for uid in self._agents.keys())
 
 
+    def get_component(self, uid):
+        """
+        Returns the component with the given UID
+        
+        :param uid: A component UID
+        :return: The component with the given UID
+        :raise KeyError: Unknown UID
+        """
+        return self._components[uid].data
+
+
+    def remove_component(self, uid):
+        """
+        Removes a component from the status storage
+        
+        :param uid: UID of a component
+        :raise KeyError: Unknown component
+        """
+        del self._components[uid]
+
+
     def get_components(self):
         """
         Generator to walk through stored component beans
