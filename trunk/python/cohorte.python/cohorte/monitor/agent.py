@@ -68,6 +68,7 @@ class MonitorCore(object):
         """
         Stops the whole isolate
         """
+        _logger.critical(">>> STOPPING isolate <<<")
         self._context.get_bundle(0).stop()
 
 
@@ -76,6 +77,9 @@ class MonitorCore(object):
         """
         Component validated
         """
+        # Store the context
+        self._context = context
+
         # Register to signals
         self._receiver.register_listener(cohorte.monitor.SIGNAL_STOP_ISOLATE,
                                          self)
@@ -100,5 +104,8 @@ class MonitorCore(object):
         # Send the stopping signal
         self._sender.fire(cohorte.monitor.SIGNAL_ISOLATE_STOPPING, None,
                           dir_group="MONITORS")
+
+        # Clear the context
+        self._context = None
 
         _logger.info("Isolate agent invalidated")
