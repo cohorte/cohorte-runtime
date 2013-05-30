@@ -577,7 +577,7 @@ class ForkerAggregator(object):
 
                 for uid in to_delete:
                     # Unregister forkers
-                    self.unregister(uid)
+                    self._unregister_forker(uid)
 
                 # Clear the to_delete set
                 to_delete.clear()
