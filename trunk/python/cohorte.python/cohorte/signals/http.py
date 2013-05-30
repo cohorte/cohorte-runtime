@@ -855,6 +855,10 @@ class SignalSender(object):
         :raise ValueError: Invalid access or signal name
         :raise: Exception raised sending the signal
         """
+        if self._local_recv is None:
+            # Late call (post handled after invalidation)
+            raise ValueError("No more local receiver: can't send signal")
+
         if not signal:
             raise ValueError("A signal must have a name")
 
@@ -864,7 +868,7 @@ class SignalSender(object):
         except (TypeError, ValueError):
             raise ValueError("Invalid access tuple: '{0}'".format(access))
 
-        if host == None:
+        if host is None:
             # Special case : local signals don't have to go through the network
             return self._local_recv.handle_received_signal(signal, content)
 
@@ -916,7 +920,7 @@ class SignalSender(object):
 
                 except Exception as ex:
                     # Unreadable response
-                    _logger.error("Couldn't read response: %s'", ex)
+                    _logger.error("Couldn't read response: %s", ex)
                     result = None
             else:
                 # Be sure to have a None value
@@ -953,10 +957,10 @@ class SignalSender(object):
                               signal, access, ex)
                 failed.append(isolate_id)
 
-            except:
+            except Exception as ex:
                 # Other error...
-                _logger.exception("Error sending signal %s to %s",
-                                  signal, access)
+                _logger.error("Error sending signal %s to %s: %s",
+                              signal, access, ex)
                 failed.append(isolate_id)
 
         return (results, failed)
