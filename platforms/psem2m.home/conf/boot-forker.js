@@ -22,6 +22,8 @@
 		"name" : "cohorte.forker.heartbeat"
 	}, {
 		"name" : "pelix.shell.console"
+	}, {
+		"name" : "cohorte.shell.forker"
 	} ],
 
 	/*
