@@ -515,18 +515,24 @@ class Forker(object):
             return
 
         # Send the stop signal (stop softly)
-        self._sender.send(cohorte.monitor.SIGNAL_STOP_ISOLATE, None,
-                          isolate=uid)
-
-        try:
-            # Wait a little
-            self._utils.wait_pid(process.pid, timeout)
-            _logger.warn("Isolate stopped: %s", uid)
-
-        except utils.TimeoutExpired:
-            # The isolate didn't stop -> kill the process
-            _logger.warn("Isolate timed out: %s. Trying to kill it", uid)
+        reached = self._sender.send(cohorte.monitor.SIGNAL_STOP_ISOLATE,
+                                    None, isolate=uid)
+        if uid not in reached:
+            # Signal not handled
+            _logger.warn("Isolate didn't received the 'stop' signal: Kill it!")
             process.kill()
+
+        else:
+            # Signal handled
+            try:
+                # Wait a little
+                self._utils.wait_pid(process.pid, timeout)
+                _logger.info("Isolate stopped: %s", uid)
+
+            except utils.TimeoutExpired:
+                # The isolate didn't stop -> kill the process
+                _logger.warn("Isolate timed out: %s. Trying to kill it", uid)
+                process.kill()
 
         # Remove references to the isolate
         del self._isolates[uid]
@@ -634,7 +640,7 @@ class Forker(object):
             # Send a signal to all isolates, except the lost one
             # -> avoids a time out
             self._sender.send(cohorte.monitor.SIGNAL_ISOLATE_LOST, uid,
-                              dir_group="ALL", excluded=uid)
+                              dir_group="ALL", excluded=[uid])
 
             if uid == self._monitor_uid:
                 # Internal isolate : restart it immediately
@@ -718,6 +724,10 @@ class Forker(object):
         # Unregister from signals
         self._receiver.unregister_listener(\
                                     cohorte.forker.SIGNALS_FORKER_PATTERN, self)
+
+        # Stop the isolates
+        for uid in self._isolates.keys():
+            self.stop_isolate(uid, 2)
 
         # Isolates to be removed from thread dictionary
         to_kill = {}
