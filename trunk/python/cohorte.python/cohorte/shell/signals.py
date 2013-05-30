@@ -22,7 +22,7 @@ __docformat__ = "restructuredtext en"
 # -----------------------------------------------------------------------------
 
 # Cohorte
-import cohorte
+import cohorte.signals
 
 # Shell constants
 from pelix.shell import SHELL_COMMAND_SPEC, SHELL_UTILS_SERVICE_SPEC
@@ -62,7 +62,11 @@ class SignalsCommands(object):
         """
         Retrieves the list of tuples (command, method) for this command handler
         """
-        return [("dir", self.dir)]
+        return [("dir", self.dir),
+                ("group", self.group),
+                ("groups", self.groups),
+                ("local", self.local),
+                ("named", self.named)]
 
 
     def get_methods_names(self):
@@ -88,6 +92,96 @@ class SignalsCommands(object):
             host, port = self._directory.get_isolate_access(isolate_uid)
 
             content.append((name, isolate_uid, node, host, port))
+
+        if not content:
+            # No match found
+            io_handler.write_line("No matching isolate.")
+            return
+
+        # Sort the list
+        content.sort()
+
+        # Print the table
+        io_handler.write_line(self._utils.make_table(headers, content))
+
+
+    def group(self, io_handler, group):
+        """
+        group <group> - Lists the isolates from the given group
+        """
+        headers = ('Name', 'UID', 'Node', 'Host', 'Port')
+        content = []
+
+        # Grab data
+        accesses = self._directory.get_computed_group_accesses(group)
+        if not accesses:
+            # No match found
+            io_handler.write_line("No isolate found in group {0}", group)
+            return
+
+        for isolate_uid, access in accesses.items():
+            name = self._directory.get_isolate_name(isolate_uid)
+            node = self._directory.get_isolate_node(isolate_uid)
+            host, port = access
+
+            content.append((name, isolate_uid, node, host, port))
+
+        # Sort the list
+        content.sort()
+
+        # Print the table
+        io_handler.write_line(self._utils.make_table(headers, content))
+
+
+    def groups(self, io_handler, prefix=None):
+        """
+        groups [<prefix>] - Lists the available isolate groups
+        """
+        if prefix is not None:
+            prefix = prefix.upper()
+
+        for member in dir(cohorte.signals):
+            if member.startswith("GROUP_"):
+                group = getattr(cohorte.signals, member)
+                if prefix is None or group.startswith(prefix):
+                    io_handler.write_line(group)
+
+
+    def local(self, io_handler):
+        """
+        local - Prints information about this isolate
+        """
+        uid = self._directory.get_isolate_uid()
+
+        io_handler.write_line("UID:\t{0}", uid)
+        io_handler.write_line("Name:\t{0}",
+                              self._directory.get_isolate_name(uid))
+        io_handler.write_line("Node:\t{0}",
+                              self._directory.get_isolate_node(uid))
+
+        host, port = self._directory.get_isolate_access(uid)
+        io_handler.write_line("Access:\t{0} - {1}", host, port)
+
+
+    def named(self, io_handler, name=None):
+        """
+        named <name> - Lists the isolates having the exact given name
+        """
+        headers = ('Name', 'UID', 'Node', 'Host', 'Port')
+        content = []
+
+        # Grab data
+        for isolate_uid in self._directory.get_name_uids(name):
+            name = self._directory.get_isolate_name(isolate_uid)
+            node = self._directory.get_isolate_node(isolate_uid)
+            host, port = self._directory.get_isolate_access(isolate_uid)
+
+            content.append((name, isolate_uid, node, host, port))
+
+        if not content:
+            # No match found
+            io_handler.write_line("No matching isolate.")
+            return
 
         # Sort the list
         content.sort()
