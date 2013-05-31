@@ -27,11 +27,17 @@
 	}, {
 		"name" : "org.psem2m.status.storage"
 	}, {
-		"name" : "org.apache.felix.shell"
+		"name" : "org.apache.felix.gogo.runtime"
 	}, {
-		"name" : "org.apache.felix.shell.remote"
+	 	"name" : "org.apache.felix.gogo.shell"
 	}, {
-		"name" : "org.apache.felix.ipojo.arch"
+	 	"name" : "org.apache.felix.gogo.command"
+	},
+	//{
+	//	"name" : "org.apache.felix.ipojo.arch.gogo"
+	//},
+    {
+		"name" : "org.cohorte.remote.shell"
 	} ],
 
 	/*
@@ -45,5 +51,9 @@
 		// Python boot bridge : boot configuration
 		"factory" : "cohorte-pyboot-configuration-start-factory",
 		"name" : "cohorte-pyboot-configuration-start"
+	}, {
+		// Remote shell
+		"factory" : "cohorte-remote-shell-factory",
+		"name" : "cohorte-remote-shell"
 	} ]
 }

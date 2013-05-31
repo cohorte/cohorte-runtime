@@ -5,7 +5,7 @@
 	/*
 	 * OSGi stuffs
 	 */
-	"import-files" : [ "java-osgi.js", "java-common-ui.js" ],
+	"import-files" : [ "java-osgi.js", "java-common.js" ],
 
 	/*
 	 * Bundles
@@ -30,7 +30,8 @@
 	 * Framework properties
 	 */
 	"properties" : {
-		"osgi.shell.telnet.port" : "6100",
+		// Remote shell port
+		"osgi.shell.telnet.port" : 0,
 		// HTTP port
 		"org.osgi.service.http.port" : 0
 	},
