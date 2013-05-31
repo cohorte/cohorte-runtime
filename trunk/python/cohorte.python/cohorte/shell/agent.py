@@ -123,9 +123,6 @@ class ShellAgentCommands(object):
         # Send the signal
         succeeded, failed = self._sender.send(SIGNAL_GET_SHELLS, None, **params)
 
-        from pprint import pformat
-        io_handler.write_line("GOT:\n{0}", pformat(succeeded))
-
         # Compute the shell names
         shell_names = []
         for isolate_response in succeeded.values():
@@ -140,8 +137,8 @@ class ShellAgentCommands(object):
         # Compute the table content
         table = []
         for uid, response in succeeded.items():
-            # First column: UID
-            line = [uid]
+            # First columns: UID, Name
+            line = [uid, self._directory.get_isolate_name(uid)]
 
             shell_ports = {}
             for result in response['results']:
@@ -161,7 +158,7 @@ class ShellAgentCommands(object):
 
         if table:
             # Setup the headers
-            headers = ['UID'] + shell_names
+            headers = ['UID', 'Name'] + shell_names
 
             # Print the table
             io_handler.write_line(self._utils.make_table(headers, table))
