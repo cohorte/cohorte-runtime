@@ -12,6 +12,8 @@
 	 * Java bundles
 	 */
 	"bundles" : [ {
+		"name" : "org.cohorte.pyboot.shell.agent"
+	}, {
 		"name" : "org.psem2m.isolates.slave.agent"
 	} ],
 
