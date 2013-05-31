@@ -88,12 +88,12 @@ class DefaultDistanceAndCompatibility(object):
                 return None
 
         if compoA.isolate and compoA.isolate == compoB.isolate:
-            # Same isolate
-            return 100
+            # Same isolate (distance 0)
+            return 0
 
         # Distance by ratings
-        ratingA = self._ratings.get(compoA)
-        ratingB = self._ratings.get(compoB)
+        ratingA = self._ratings.get(compoA.factory)
+        ratingB = self._ratings.get(compoB.factory)
         return abs(ratingA - ratingB)
 
 # ------------------------------------------------------------------------------
@@ -302,7 +302,8 @@ class CompositionLoader(object):
 
                     max_distance = max(distance, max_distance)
                     if max_distance > self._distance_threshold:
-                        # Too distant components
+                        # Two components are too distant, therefore the clusters
+                        # are too
                         return None
 
         return max_distance
@@ -455,6 +456,10 @@ class CompositionLoader(object):
         # 2nd distribution: rules (per language)
         # Name -> (language, factories)
         groups = {}
+
+        # Component -> Group name
+        components_group = {}
+
         group_idx = 0
         for kind in kinds:
             # Distribute the components of the given language
@@ -462,16 +467,23 @@ class CompositionLoader(object):
 
             for cluster in clusters:
                 # Convert clusters into named groups
-                group_idx += 1
-                name = "{0}-{1}-{2}".format(kind[0], kind[1], group_idx)
-                group_factories = set()
+                for component in cluster:
+                    if component.isolate:
+                        # A component has an isolate name, use it
+                        name = component.isolate
+                        break
+                else:
+                    # Generate a name
+                    group_idx += 1
+                    name = "{0}-{1}-{2}".format(kind[0], kind[1], group_idx)
 
+                group_factories = set()
                 for component in cluster:
                     # Keep track of the factories needed in this group
                     group_factories.add(component.factory)
 
-                    # Update the preferred isolate for the component
-                    component.isolate = name
+                    # Store the assigned isolate for the component
+                    components_group[component] = name
 
                 # Store the group pre-configuration
                 groups[name] = (kind, group_factories)
@@ -480,6 +492,9 @@ class CompositionLoader(object):
         for component in components:
             # Make an identified instance of the component
             live_component = component.copy(str(uuid.uuid4()))
+
+            # Update the isolate information
+            live_component.isolate = components_group.pop(component)
 
             # Mark it as requested, then assigned (to a cluster)
             self._status.component_requested(live_component)
