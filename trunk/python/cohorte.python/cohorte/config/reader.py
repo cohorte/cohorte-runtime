@@ -198,7 +198,7 @@ class ConfigurationFileReader(object):
                     self._update_properties(imported_data, overridden_props)
 
                     # Merge arrays with imported data
-                    json_data = self._merge_object(json_data, imported_data)
+                    json_data = self.merge_object(json_data, imported_data)
 
                     # Do the recursive import
                     for key, value in json_data.items():
@@ -252,14 +252,15 @@ class ConfigurationFileReader(object):
         return None
 
 
-    def _merge_object(self, local, imported):
+    def merge_object(self, local, imported):
         """
         Merges recursively two JSON objects.
         
         The local values have priority on imported ones.
         Arrays of objects are also merged. 
         
-        :param local: The local object, which will receive get the merged values
+        :param local: The local object, which will receive the merged values
+                      (modified in-place)
         :param imported: The imported object, which will be merged into local
         :return: The merge result, i.e. local
         """
@@ -283,7 +284,7 @@ class ConfigurationFileReader(object):
 
                 if cur_type is dict:
                     # Merge children
-                    local[key] = self._merge_object(cur_value, imp_value)
+                    local[key] = self.merge_object(cur_value, imp_value)
 
                 elif cur_type is list:
                     # Merge arrays
@@ -302,7 +303,7 @@ class ConfigurationFileReader(object):
 
                             elif imp_item != cur_item:
                                 # Found an equivalent that must be merged
-                                self._merge_object(cur_item, imp_item)
+                                self.merge_object(cur_item, imp_item)
 
                                 # Replace the existing entry
                                 idx = new_array.index(imp_item)
