@@ -11,8 +11,6 @@
 	 * Bundles
 	 */
 	"bundles" : [ {
-		"name" : "pelix.http.basic"
-	}, {
 		"name" : "pelix.remote.dispatcher"
 	}, {
 		"name" : "pelix.remote.registry"
@@ -20,6 +18,8 @@
 		"name" : "pelix.services.eventadmin"
 	}, {
 		"name" : "pelix.shell.eventadmin"
+	}, {
+		"name" : "cohorte.shell.agent"
 	}, {
 		"name" : "cohorte.shell.signals"
 	}, {
@@ -39,18 +39,7 @@
 	/*
 	 * Components
 	 */
-	"composition" : [ {
-		"factory" : "pelix.http.service.basic.factory",
-		"name" : "pelix-http-service",
-		"properties" : {
-			// Use the IPv6 stack by default
-			"pelix.http.address" : "::",
-
-			// Use the first port available
-			"pelix.http.port" : 0
-		}
-	},
-
+	"composition" : [
 	/* Debug */
 	{
 		"factory" : "cohorte-debug-servlet-factory",
@@ -58,8 +47,8 @@
 			"pelix.http.path" : "/cohorte-debug"
 		}
 	},
-
-	/* Signals components */
+	
+	/* Signals components */ 
 	{
 		"factory" : "cohorte-signals-receiver-http-factory",
 		"name" : "cohorte-signals-receiver-http"

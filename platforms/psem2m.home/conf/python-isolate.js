@@ -2,6 +2,8 @@
  * Start configuration for the monitor (Python version)
  */
 {
+	"import-files" : [ "python-common-http.js" ],
+	
 	/*
 	 * Monitor bundles
 	 */
