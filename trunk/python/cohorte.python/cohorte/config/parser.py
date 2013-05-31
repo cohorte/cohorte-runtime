@@ -205,7 +205,9 @@ class BootConfigParser(object):
         :param kind: The kind of isolate to boot
         :param bundles: Extra bundles to install
         :param composition: Extra components to instantiate
+        :param base_configuration: Base configuration (to override)
         :return: A configuration dictionary
+                 (updated base_configuration if given)
         :raise IOError: Unknown/unaccessible kind of isolate
         :raise KeyError: A parameter is missing in the configuration files
         :raise ValueError: Error reading the configuration
@@ -258,7 +260,7 @@ class BootConfigParser(object):
         # Bundle name is mandatory
         name = bundle.name
         if not name:
-            raise ValueError("A bundle must have a name: %s", bundle)
+            raise ValueError("A bundle must have a name: {0}".format(bundle))
 
         # Get the filename
         for fileattr in ('filename', 'file'):
@@ -363,6 +365,20 @@ class BootConfigParser(object):
         """
         # Load the isolate model file
         configuration = self.load_conf_raw(level, sublevel)
+
+        try:
+            # Try to load the isolate-specific configuration
+            isolate_conf = self.read(name + ".js")
+
+            # Merge the configurations: this method considers that the first
+            # parameter has priority on the second
+            configuration = self._reader.merge_object(isolate_conf,
+                                                      configuration)
+
+        except IOError:
+            # Ignore I/O errors (file not found)
+            # Propagate ValueError (parsing errors)
+            pass
 
         # Extend with the boot configuration
         return self._prepare_configuration(uid, name, node, kind,
