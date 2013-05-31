@@ -44,6 +44,14 @@ public interface IPyBridge {
     List<ComponentBean> getComponents();
 
     /**
+     * Returns the port used by the Pelix remote shell, or -1 if the shell is
+     * not active
+     * 
+     * @return the port used by the Pelix remote shell or -1
+     */
+    int getRemoteShellPort();
+
+    /**
      * Retrieves the configuration used to start this isolate as a map
      * 
      * @return The configuration used to start this isolate

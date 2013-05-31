@@ -24,6 +24,8 @@ import cohorte.repositories
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
     Invalidate, Property, Requires
+import pelix.framework
+import pelix.shell
 
 # Python standard library
 import logging
@@ -65,14 +67,19 @@ class PyBridge(object):
     # Implemented Java interface
     JAVA_INTERFACE = PYTHON_JAVA_BRIDGE_INTERFACE
 
-    def __init__(self, jvm, java_configuration, configuration_parser, callback):
+    def __init__(self, context, jvm, java_configuration, configuration_parser,
+                 callback):
         """
         Sets up the bridge
         
+        :param context: The bundle context
         :param jvm: The JVM wrapper
         :param java_configuration: Java boot configuration
         :param callback: Method to call back on error or success
         """
+        # Bundle context
+        self._context = context
+
         # Java class
         self.ArrayList = jvm.load_class("java.util.ArrayList")
         self.Component = jvm.load_class("org.cohorte.pyboot.api.ComponentBean")
@@ -180,6 +187,34 @@ class PyBridge(object):
         :return: The configuration used to start this isolate
         """
         return self._java_boot_config
+
+
+    def getRemoteShellPort(self):
+        """
+        Returns the port used by the Pelix remote shell, or -1 if the shell is
+        not active
+        
+        :return: The port used by the remote shell, or -1
+        """
+        ref = self._context.get_service_reference(pelix.shell.REMOTE_SHELL_SPEC)
+        if ref is None:
+            return -1
+
+        try:
+            # Get the service
+            shell = self._context.get_service(ref)
+
+            # Get the shell port
+            port = shell.get_access()[1]
+
+            # Release the service
+            self._context.unget_service(ref)
+
+            return port
+
+        except pelix.framework.BundleException:
+            # Service lost (called while the framework was stopping)
+            return -1
 
 
     def onComponentStarted(self, name):
@@ -374,7 +409,8 @@ class JavaOsgiLoader(object):
         :param java_configuration: The Java boot configuration
         """
         # Make a Java proxy of the bridge
-        bridge_java = self._java.make_proxy(PyBridge(self._java,
+        bridge_java = self._java.make_proxy(PyBridge(self._context,
+                                                     self._java,
                                                      java_configuration,
                                                      self._config,
                                                      self._bridge_callback))
