@@ -93,7 +93,7 @@ def _make_json_result(code, message="", results=None):
 
 
 @ComponentFactory('cohorte-signals-receiver-http-factory')
-@Provides(cohorte.SERVICE_SIGNALS_RECEIVER)
+@Provides(cohorte.SERVICE_SIGNALS_RECEIVER, controller="_svc_flag")
 @Provides(pelix.http.HTTP_SERVLET)
 @Requires('_directory', cohorte.SERVICE_SIGNALS_DIRECTORY)
 @Property('_servlet_path', pelix.http.HTTP_SERVLET_PATH, DEFAULT_RECEIVER_PATH)
@@ -110,6 +110,9 @@ class SignalReceiver(object):
 
         # Servlet path
         self._servlet_path = DEFAULT_RECEIVER_PATH
+
+        # Provided service controller
+        self._svc_flag = False
 
         # Servlet access
         self._host = None
