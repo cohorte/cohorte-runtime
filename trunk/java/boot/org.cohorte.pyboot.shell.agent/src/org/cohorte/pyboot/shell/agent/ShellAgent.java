@@ -14,7 +14,7 @@ import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.cohorte.pyboot.api.IPyBridge;
-import org.osgi.framework.BundleContext;
+import org.cohorte.shell.IRemoteShell;
 import org.psem2m.signals.ISignalData;
 import org.psem2m.signals.ISignalListener;
 import org.psem2m.signals.ISignalReceiver;
@@ -28,9 +28,6 @@ import org.psem2m.signals.ISignalReceiver;
 @Instantiate(name = "cohorte-shell-agent")
 public class ShellAgent implements ISignalListener {
 
-    /** OSGi shell port framework property */
-    private static final String OSGI_SHELL_PORT = "osgi.shell.telnet.port";
-
     /** Signal to request shell accesses */
     private static final String SIGNAL_GET_SHELLS = "/cohorte/shell/agent/get_shells";
 
@@ -38,23 +35,13 @@ public class ShellAgent implements ISignalListener {
     @Requires
     private IPyBridge pBridge;
 
-    /** Bundle context */
-    private final BundleContext pContext;
-
     /** The signal receiver */
     @Requires
     private ISignalReceiver pReceiver;
 
-    /**
-     * Injection of the bundle context
-     * 
-     * @param aContext
-     *            The bundle context
-     */
-    private ShellAgent(final BundleContext aContext) {
-
-        pContext = aContext;
-    }
+    /** The remote shell */
+    @Requires(optional = true, nullable = true)
+    private IRemoteShell pRemoteShell;
 
     /**
      * Returns the port used by the OSGi remote shell, or -1
@@ -63,20 +50,11 @@ public class ShellAgent implements ISignalListener {
      */
     private int getOsgiRemoteShellPort() {
 
-        final String strValue = pContext.getProperty(OSGI_SHELL_PORT);
-        if (strValue == null) {
-            // No value
+        if (pRemoteShell == null) {
             return -1;
         }
 
-        try {
-            // Get the integer value
-            return Integer.parseInt(strValue);
-
-        } catch (final NumberFormatException ex) {
-            // Invalid string
-            return -1;
-        }
+        return pRemoteShell.getPort();
     }
 
     /*
