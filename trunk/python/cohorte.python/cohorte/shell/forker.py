@@ -75,35 +75,6 @@ class SignalsCommands(object):
                 for command, method in self.get_methods()]
 
 
-    def __get_uids(self, isolate_name_or_uid):
-        """
-        Retrieves a list of isolate UIDs
-        
-        :param isolate_name_or_uid: A name or UID of isolate (or None)
-        :return: A list of UIDs
-        :raise KeyError: Unknown isolate
-        """
-        if isolate_name_or_uid is None:
-            # Return every thing (except us)
-            uids = list(self._directory.get_all_isolates(None, False))
-
-        elif self._directory.is_registered(isolate_name_or_uid):
-            # Consider the argument as a UID
-            uids = [isolate_name_or_uid]
-
-        else:
-            # Consider the given argument as a name, i.e. multiple UIDs
-            uids = list(self._directory.get_name_uids(isolate_name_or_uid))
-
-        if not uids:
-            # No matching UID
-            raise KeyError("Unknown UID/Name: {0}".format(isolate_name_or_uid))
-
-        # Sort names, to always have the same result
-        uids.sort()
-        return uids
-
-
     def __ping_to_str(self, ping_result):
         """
         Converts a ping() result (integer) into a string
@@ -129,7 +100,7 @@ class SignalsCommands(object):
         ping [<isolate>] - Checks if the given isolate (name or UID) is alive
         """
         try:
-            for uid in self.__get_uids(isolate):
+            for uid in self._directory.get_uids(isolate):
                 io_handler.write_line_no_feed("{0}...", uid)
                 result = self._forker.ping(uid)
                 io_handler.write_line("\r{2} - {0} ({1})", uid,
@@ -145,7 +116,7 @@ class SignalsCommands(object):
         stop <isolate> - Stops the given isolate (name or UID)
         """
         try:
-            for uid in self.__get_uids(isolate):
+            for uid in self._directory.get_uids(isolate):
                 io_handler.write_line("Stopping {0}...", uid)
                 self._forker.stop_isolate(uid)
 

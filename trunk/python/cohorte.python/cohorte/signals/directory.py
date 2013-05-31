@@ -463,6 +463,37 @@ class SignalsDirectory(object):
                 yield isolate_uid
 
 
+    def get_uids(self, isolate_name_or_uid=None):
+        """
+        Retrieves a list of isolate UIDs corresponding to the given isolate
+        name or UID.
+        Returns the list of all known UIDs if the parameter is None.
+        
+        :param isolate_name_or_uid: The name or UID of an isolate (or None)
+        :return: A list of UIDs
+        :raise KeyError: Unknown isolate
+        """
+        if isolate_name_or_uid is None:
+            # Return every thing (except us)
+            uids = list(self.get_all_isolates(None, False))
+
+        elif self.is_registered(isolate_name_or_uid):
+            # Consider the argument as a UID
+            uids = [isolate_name_or_uid]
+
+        else:
+            # Consider the given argument as a name, i.e. multiple UIDs
+            uids = list(self.get_name_uids(isolate_name_or_uid))
+
+        if not uids:
+            # No matching UID
+            raise KeyError("Unknown UID/Name: {0}".format(isolate_name_or_uid))
+
+        # Sort names, to always have the same result
+        uids.sort()
+        return uids
+
+
     @Invalidate
     def invalidate(self, context):
         """
