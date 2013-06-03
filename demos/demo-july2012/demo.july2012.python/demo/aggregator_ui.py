@@ -10,17 +10,19 @@ Created on 10 juil. 2012
 
 # ------------------------------------------------------------------------------
 
+# iPOPO
 from pelix.ipopo import constants
-
 from pelix.ipopo.decorators import ComponentFactory, Requires, \
     Validate, Invalidate, Property
+import pelix.http
+
+# Standard library
+import logging
+import time
 
 # ------------------------------------------------------------------------------
 
-import logging
 _logger = logging.getLogger(__name__)
-
-import time
 
 # ------------------------------------------------------------------------------
 
@@ -53,9 +55,10 @@ else:
 
 @ComponentFactory("demo-sensor-aggregator-ui-factory")
 @Property("_name", constants.IPOPO_INSTANCE_NAME)
-@Property("_path", "servlet.path", "/sensors")
-@Requires("_aggregator", "java:/org.psem2m.demo.sensors.IAggregator", optional=True)
-@Requires("_http", "HttpService")
+@Property("_path", pelix.http.HTTP_SERVLET_PATH, "/sensors")
+@Requires("_aggregator", "java:/org.psem2m.demo.sensors.IAggregator",
+          optional=True)
+@Requires("_http", pelix.http.HTTP_SERVICE)
 class AggregatorServlet(object):
     """
     Temperature sensor
@@ -107,9 +110,12 @@ class AggregatorServlet(object):
 </td>""".format(name=name, rows=''.join(table_rows))
 
 
-    def do_GET(self, handler):
+    def do_GET(self, request, response):
         """
-        Handle GET requests
+        Handles a GET request
+        
+        :param request: The HTTP request bean
+        :param request: The HTTP response handler
         """
         output = """<html>
 <head>
@@ -149,7 +155,7 @@ td {{
             history = self._aggregator.get_history()
             output += "\n<table class=\"main\"><tr>"
             output += '\n'.join((self._make_sensor_part(name, history[name])
-                                 for name in history))
+                                 for name in sorted(history)))
             output += "\n</tr></table>"
 
         output += """
@@ -157,14 +163,8 @@ td {{
 </html>
 """
 
-        # Send headers
-        handler.send_response(200)
-        handler.send_header("content-type", "text/html")
-        handler.send_header("content-length", str(len(output)))
-        handler.end_headers()
-
-        # Send content
-        handler.wfile.write(output)
+        # Send the result
+        response.send_content(200, output)
 
 
     @Validate
