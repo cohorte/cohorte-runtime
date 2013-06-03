@@ -6,8 +6,9 @@
 # Python interpreter to use
 PYTHON_INTERPRETER=${PYTHON_INTERPRETER:="python"}
 
-# Python path
-export PYTHONPATH="$(pwd)"
+# Python path: Current path + demo path
+PYTHON_DEMOPATH=$(readlink -f "../../../demos/demo-july2012/demo.july2012.python")
+export PYTHONPATH="$(pwd):$PYTHON_DEMOPATH"
 
 # COHORTE node name
 export COHORTE_NODE=${COHORTE_NODE:="central"}
