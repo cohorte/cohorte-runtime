@@ -880,7 +880,11 @@ class SignalSender(object):
             signal = signal[1:]
         signal_url = "{0}/{1}".format(self._local_recv._servlet_path, signal)
 
-        conn = httplib.HTTPConnection(host, port, timeout=3)
+        # Use a reasonable timeout:
+        # - less than a minute, to avoid to block the sender for too long
+        # - more than 5 seconds, to let mono-core, virtualized processes handle
+        #   the request
+        conn = httplib.HTTPConnection(host, port, timeout=15)
         try:
             # Open a new HTTP Connection
             conn.connect()
