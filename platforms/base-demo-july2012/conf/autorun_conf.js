@@ -6,7 +6,7 @@
 			/**
 			 * Fake temperature sensors
 			 */
-			"name" : "temper-1",
+			"name" : "temper-python-1",
 			"type" : "demo-temperature-fake-factory",
 			// Uncomment to force isolation
 			// "isolate" : "demo.temper.1",
@@ -15,12 +15,12 @@
 				"temper.value.max" : 45
 			}
 		}, {
-			"name" : "temper-2",
+			"name" : "temper-python-2",
 			"type" : "demo-temperature-fake-factory"
 			// Uncomment to force isolation
 			// , "isolate" : "demo.temper.2"
 		}, {
-			"name" : "temper-3",
+			"name" : "temper-java-1",
 			"type" : "java-fake-temp-factory",
 			// Give a name for the Java isolate
 			"isolate" : "demo.temper.java"
