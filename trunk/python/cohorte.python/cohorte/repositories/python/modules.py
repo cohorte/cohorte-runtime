@@ -114,13 +114,19 @@ class AstVisitor(ast.NodeVisitor):
         Found an assignment
         """
         field = getattr(node.targets[0], 'id', None)
-        if field == '__version__':
-            version_parsed = ast.literal_eval(node.value)
-            if isinstance(version_parsed, (tuple, list)):
-                self.version = ".".join(version_parsed)
+        if not self.version \
+        and field in ('__version__', '__version_info__'):
+            try:
+                version_parsed = ast.literal_eval(node.value)
+                if isinstance(version_parsed, (tuple, list)):
+                    self.version = ".".join(str(version_parsed))
 
-            else:
-                self.version = str(version_parsed)
+                else:
+                    self.version = str(version_parsed)
+
+            except ValueError:
+                # Ignore errors
+                pass
 
 
 def _extract_module_info(filename):
@@ -349,7 +355,7 @@ class PythonModuleRepository(object):
                         self.add_file(fullname)
 
                     except ValueError as ex:
-                        _logger.warning(ex)
+                        _logger.warning("Error analyzing %s: %s", fullname, ex)
 
 
     def clear(self):
@@ -528,8 +534,11 @@ class PythonModuleRepository(object):
             repository = os.path.join(context.get_property(key), "repo")
             self.add_directory(repository)
 
-        # DEBUG: Demo repo
-        self.add_directory("/home/tcalmant/programmation/workspaces/psem2m/demos/demo-july2012/demo.july2012.python")
+        # Python path directories
+        python_path = os.getenv("PYTHONPATH", None)
+        if python_path:
+            for path in python_path.split(os.pathsep):
+                self.add_directory(path)
 
 
     @Invalidate
