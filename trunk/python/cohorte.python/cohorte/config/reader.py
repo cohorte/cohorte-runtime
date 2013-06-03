@@ -397,7 +397,8 @@ class ConfigurationFileReader(object):
         return json_data
 
 
-    def load_file(self, filename, base_file=None, overridden_props=None):
+    def load_file(self, filename, base_file=None, overridden_props=None,
+                  log_error=True):
         """
         Parses a configuration file.
         If a configuration entry has a "from" key, then this entry is replaced
@@ -406,6 +407,7 @@ class ConfigurationFileReader(object):
         :param filename: Base name or relative name of the file to load
         :param base_file: If given, search the file near the base file first
         :param overridden_props: Properties to override in imported files
+        :param log_error: If True, log the encountered I/O error (if any)
         :return: The parsed JSON content.
         :raise ValueError: Error parsing a JSON file
         :raise IOError: Error reading the configuration file
@@ -421,13 +423,14 @@ class ConfigurationFileReader(object):
             raise
 
         except IOError as ex:
-            # Log access errors
-            if self._include_stack:
-                _logger.error("Error looking for file imported by '%s': %s",
-                              self._include_stack[-1], ex)
+            if log_error:
+                # Log the access error
+                if self._include_stack:
+                    _logger.error("Error looking for file imported by '%s': %s",
+                                  self._include_stack[-1], ex)
 
-            else:
-                _logger.error("Can't read file '%s': %s", filename, ex)
+                else:
+                    _logger.error("Can't read file '%s': %s", filename, ex)
 
             # Re-raise the error
             raise

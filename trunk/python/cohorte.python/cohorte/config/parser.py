@@ -368,28 +368,32 @@ class BootConfigParser(object):
 
         try:
             # Try to load the isolate-specific configuration
-            isolate_conf = self.read(name + ".js")
-
-            # Merge the configurations: this method considers that the first
-            # parameter has priority on the second
-            configuration = self._reader.merge_object(isolate_conf,
-                                                      configuration)
+            # without logging "file not found" errors
+            isolate_conf = self.read(name + ".js", False)
 
         except IOError:
             # Ignore I/O errors (file not found)
             # Propagate ValueError (parsing errors)
             pass
 
+        else:
+            # Merge the configurations: this method considers that the first
+            # parameter has priority on the second
+            configuration = self._reader.merge_object(isolate_conf,
+                                                      configuration)
+
         # Extend with the boot configuration
         return self._prepare_configuration(uid, name, node, kind,
                                            bundles, composition, configuration)
 
 
-    def read(self, filename):
+    def read(self, filename, reader_log_error=True):
         """
         Reads the content of the given file, without parsing it.
         
         :param filename: A configuration file name
+        :param reader_log_error: If True, the reader will log I/O errors
         :return: The dictionary read from the file
         """
-        return self._reader.load_file(filename, 'conf')
+        return self._reader.load_file(filename, 'conf',
+                                      log_error=reader_log_error)
