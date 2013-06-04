@@ -93,7 +93,11 @@ class FileFinder(object):
         
         :param filename: Name of the file to find
         """
-        if filename[0] == os.path.sep:
+        if os.path.isabs(filename) and os.path.exists(filename):
+			# The file name is absolute and valid
+			yield filename
+        
+        if filename.startswith(os.path.sep):
             # os.path.join won't work if the name starts with a path separator
             filename = filename[len(os.path.sep):]
 
