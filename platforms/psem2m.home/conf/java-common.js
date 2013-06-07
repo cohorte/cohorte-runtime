@@ -55,5 +55,12 @@
 		// Remote shell
 		"factory" : "cohorte-remote-shell-factory",
 		"name" : "cohorte-remote-shell"
-	} ]
+	} ],
+	
+	/*
+	 * Framework properties
+	 */
+	"properties" : {
+		"gosh.args": "--nointeractive --noshutdown"
+	}
 }
