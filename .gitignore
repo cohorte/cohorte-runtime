@@ -5,13 +5,14 @@ RemoteSystemsTempFiles/
 # Binaires
 *.tar.gz
 bin/
+target/
 *.dat
 small-install.zip
 *.pid
 *.access
 
 # Maven (tests)
-pom.xml
+# pom.xml
 
 # C
 *.o
