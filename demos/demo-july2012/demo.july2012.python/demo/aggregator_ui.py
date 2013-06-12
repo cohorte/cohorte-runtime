@@ -184,6 +184,6 @@ td {{
         Component invalidation
         """
         # Unregister the servlet
-        self._http.unregister(servlet=self)
+        self._http.unregister(None, self)
 
         _logger.info("Component %s invalidated", self._name)
