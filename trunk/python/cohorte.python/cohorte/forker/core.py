@@ -517,7 +517,7 @@ class Forker(object):
         # Send the stop signal (stop softly)
         reached = self._sender.send(cohorte.monitor.SIGNAL_STOP_ISOLATE,
                                     None, isolate=uid)
-        if uid not in reached:
+        if not reached or uid not in reached:
             # Signal not handled
             _logger.warn("Isolate didn't received the 'stop' signal: Kill it!")
             process.kill()
