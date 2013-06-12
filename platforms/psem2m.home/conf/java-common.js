@@ -29,14 +29,12 @@
 	}, {
 		"name" : "org.apache.felix.gogo.runtime"
 	}, {
-	 	"name" : "org.apache.felix.gogo.shell"
+		"name" : "org.apache.felix.gogo.shell"
 	}, {
-	 	"name" : "org.apache.felix.gogo.command"
-	},
-	//{
-	//	"name" : "org.apache.felix.ipojo.arch.gogo"
-	//},
-    {
+		"name" : "org.apache.felix.gogo.command"
+	}, {
+		"name" : "org.apache.felix.ipojo.arch.gogo"
+	}, {
 		"name" : "org.cohorte.remote.shell"
 	} ],
 
@@ -56,11 +54,11 @@
 		"factory" : "cohorte-remote-shell-factory",
 		"name" : "cohorte-remote-shell"
 	} ],
-	
+
 	/*
 	 * Framework properties
 	 */
 	"properties" : {
-		"gosh.args": "--nointeractive --noshutdown"
+		"gosh.args" : "--nointeractive --noshutdown"
 	}
 }
