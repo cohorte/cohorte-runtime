@@ -65,6 +65,7 @@ class SignalsCommands(object):
         return [("dir", self.dir),
                 ("group", self.group),
                 ("groups", self.groups),
+                ("host", self.host),
                 ("local", self.local),
                 ("named", self.named)]
 
@@ -145,6 +146,31 @@ class SignalsCommands(object):
                 group = getattr(cohorte.signals, member)
                 if prefix is None or group.startswith(prefix):
                     io_handler.write_line(group)
+
+
+    def host(self, io_handler, prefix=None):
+        """
+        host [<prefix>] - Prints the known host address/name of known nodes
+        """
+        headers = ('Node', 'Host')
+        content = []
+
+        # Get data
+        nodes = self._directory.get_all_nodes()
+        if not nodes:
+            # Nothing to show
+            io_handler.write_line("No known node.")
+            return
+
+        for node in nodes:
+            if not prefix or node.startswith(prefix):
+                content.append((node, self._directory.get_host_for_node(node)))
+
+        # Sort the list
+        content.sort()
+
+        # Print the table
+        io_handler.write_line(self._utils.make_table(headers, content))
 
 
     def local(self, io_handler):
