@@ -32,10 +32,22 @@ from pelix.shell import SHELL_COMMAND_SPEC, SHELL_UTILS_SERVICE_SPEC, \
 from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
     Instantiate, Validate, Invalidate
 
+# Standard library
+import os
+
 # ------------------------------------------------------------------------------
 
-SIGNAL_GET_SHELLS = "/cohorte/shell/agent/get_shells"
-""" Signal to request shell accesses """
+_SIGNALS_PREFIX = "/cohorte/shell/agent"
+""" Common prefix to agent signals """
+
+_SIGNALS_MATCH_ALL = "{0}/*".format(_SIGNALS_PREFIX)
+""" Filter to match agent signals """
+
+SIGNAL_GET_SHELLS = "{0}/get_shells".format(_SIGNALS_PREFIX)
+""" Signal to request the ports to access remote shellS """
+
+SIGNAL_GET_PID = "{0}/get_pid".format(_SIGNALS_PREFIX)
+""" Signal to request the isolate PID """
 
 REMOTE_SHELL_FACTORY = "ipopo-remote-shell-factory"
 """ Name of the iPOPO remote shell factory """
@@ -77,7 +89,8 @@ class ShellAgentCommands(object):
         """
         Retrieves the list of tuples (command, method) for this command handler
         """
-        return [("shells", self.shells)]
+        return [("pids", self.pids),
+                ("shells", self.shells)]
 
 
     def get_methods_names(self):
@@ -99,6 +112,69 @@ class ShellAgentCommands(object):
         if name == SIGNAL_GET_SHELLS:
             # Shell information requested
             return {"pelix": self._remote_shell.get_access()[1]}
+
+        elif name == SIGNAL_GET_PID:
+            # Get the isolate PID
+            return {"pid": os.getpid()}
+
+
+    def pids(self, io_handler, isolate=None):
+        """
+        pids [<isolate>] - Prints the Process ID of the isolate(s)
+        """
+        # Prepare the signal targets
+        params = {}
+        if not isolate:
+            # Get all shells
+            params['dir_group'] = cohorte.signals.GROUP_ALL
+
+        else:
+            # Get shells of the given isolate(s)
+            try:
+                params['isolates'] = self._directory.get_uids(isolate)
+
+            except KeyError as ex:
+                io_handler.write_line("Error: {0}", ex)
+
+        # Send the signal
+        succeeded, failed = self._sender.send(SIGNAL_GET_PID, None, **params)
+
+        # Compute the table content
+        table = []
+        for uid, response in succeeded.items():
+            # Get the first valid result
+            for result in response['results']:
+                try:
+                    pid = result['pid']
+                    break
+
+                except KeyError:
+                    pass
+
+            else:
+                pid = "<unknown>"
+
+            # Add the line to the table
+            line = (self._directory.get_isolate_name(uid), uid,
+                    self._directory.get_isolate_node(uid), pid)
+            table.append(line)
+
+        if table:
+            # Setup the headers
+            headers = ['Name', 'UID', 'Node', 'PID']
+
+            # Sort values
+            table.sort()
+
+            # Print the table
+            io_handler.write_line(self._utils.make_table(headers, table))
+
+        if failed:
+            io_handler.write_line("These isolates didn't respond:")
+            for uid in failed:
+                io_handler.write_line("%s - %s",
+                                      self._directory.get_isolate_name(uid),
+                                      uid)
 
 
     def shells(self, io_handler, isolate=None):
@@ -137,8 +213,9 @@ class ShellAgentCommands(object):
         # Compute the table content
         table = []
         for uid, response in succeeded.items():
-            # First columns: UID, Name
-            line = [uid, self._directory.get_isolate_name(uid)]
+            # First columns: Name, UID, Node
+            line = [self._directory.get_isolate_name(uid), uid,
+                    self._directory.get_isolate_node(uid)]
 
             shell_ports = {}
             for result in response['results']:
@@ -158,7 +235,10 @@ class ShellAgentCommands(object):
 
         if table:
             # Setup the headers
-            headers = ['UID', 'Name'] + shell_names
+            headers = ['Name', 'UID', 'Node'] + shell_names
+
+            # Sort values
+            table.sort()
 
             # Print the table
             io_handler.write_line(self._utils.make_table(headers, table))
@@ -174,7 +254,7 @@ class ShellAgentCommands(object):
         """
         Component validated
         """
-        self._receiver.register_listener(SIGNAL_GET_SHELLS, self)
+        self._receiver.register_listener(_SIGNALS_MATCH_ALL, self)
 
 
     @Invalidate
@@ -182,4 +262,4 @@ class ShellAgentCommands(object):
         """
         Component invalidated
         """
-        self._receiver.unregister_listener(SIGNAL_GET_SHELLS, self)
+        self._receiver.unregister_listener(_SIGNALS_MATCH_ALL, self)

@@ -28,8 +28,20 @@ import org.psem2m.signals.ISignalReceiver;
 @Instantiate(name = "cohorte-shell-agent")
 public class ShellAgent implements ISignalListener {
 
+    /** Signal to request the isolate PID */
+    private static final String SIGNAL_GET_PID = ShellAgent.SIGNALS_PREFIX
+            + "/get_pid";
+
     /** Signal to request shell accesses */
-    private static final String SIGNAL_GET_SHELLS = "/cohorte/shell/agent/get_shells";
+    private static final String SIGNAL_GET_SHELLS = ShellAgent.SIGNALS_PREFIX
+            + "/get_shells";
+
+    /** Filter to match agent signals */
+    private static final String SIGNALS_MATCH_ALL = ShellAgent.SIGNALS_PREFIX
+            + "/*";
+
+    /** Common prefix to agent signals */
+    private static final String SIGNALS_PREFIX = "/cohorte/shell/agent";
 
     /** The Python bridge */
     @Requires
@@ -69,6 +81,7 @@ public class ShellAgent implements ISignalListener {
             final ISignalData aSignalData) {
 
         if (SIGNAL_GET_SHELLS.equals(aSignalName)) {
+            // Remote shells ports
             final Map<String, Integer> result = new HashMap<String, Integer>();
 
             // Get the Pelix shell port
@@ -84,6 +97,13 @@ public class ShellAgent implements ISignalListener {
             }
 
             return result;
+
+        } else if (SIGNAL_GET_PID.equals(aSignalName)) {
+            // Isolate Process ID
+            final Map<String, Integer> result = new HashMap<String, Integer>();
+            result.put("pid", pBridge.getPid());
+
+            return result;
         }
 
         return null;
@@ -96,7 +116,7 @@ public class ShellAgent implements ISignalListener {
     public void invalidate() {
 
         // Unregister from signals
-        pReceiver.unregisterListener(SIGNAL_GET_SHELLS, this);
+        pReceiver.unregisterListener(SIGNALS_MATCH_ALL, this);
     }
 
     /**
@@ -106,6 +126,6 @@ public class ShellAgent implements ISignalListener {
     public void validate() {
 
         // Register to the signals
-        pReceiver.registerListener(SIGNAL_GET_SHELLS, this);
+        pReceiver.registerListener(SIGNALS_MATCH_ALL, this);
     }
 }

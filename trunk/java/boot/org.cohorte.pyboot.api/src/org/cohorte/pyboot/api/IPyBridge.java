@@ -44,6 +44,13 @@ public interface IPyBridge {
     List<ComponentBean> getComponents();
 
     /**
+     * Retrieves the process ID (PID) of this isolate
+     * 
+     * @return the isolate PID
+     */
+    int getPid();
+
+    /**
      * Returns the port used by the Pelix remote shell, or -1 if the shell is
      * not active
      * 

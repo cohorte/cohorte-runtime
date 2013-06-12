@@ -29,6 +29,7 @@ import pelix.shell
 
 # Python standard library
 import logging
+import os
 
 # ------------------------------------------------------------------------------
 
@@ -187,6 +188,15 @@ class PyBridge(object):
         :return: The configuration used to start this isolate
         """
         return self._java_boot_config
+
+
+    def getPid(self):
+        """
+        Retrieves the Process ID of this isolate
+        
+        :return: The isolate PID
+        """
+        return os.getpid()
 
 
     def getRemoteShellPort(self):
