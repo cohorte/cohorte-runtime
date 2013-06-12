@@ -14,37 +14,37 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  sion=1.3, org.psem2m.isolates.base;version=1.0.1, org.psem2m.isolates
  .constants;version=1.0.1, org.psem2m.utilities;version=1.0.0, org.pse
  m2m.utilities.logging;version=1.0.0
-iPOJO-Components: component { $classname="org.cohorte.composer.agent.I
- PojoAgent" $name="cohorte-composer-agent-ipojo-factory" $public="true
- " provides { $specifications="{org.cohorte.composer.api.IComposerAgen
- t}" property { $name="service.exported.interfaces" $type="String" $va
- lue="org.cohorte.composer.api.IComposerAgent" }property { $name="coho
- rte.remote.synonyms" $type="String[]" $value="{python:/cohorte.compos
- er.Agent}" }}requires { $field="pComposer" }requires { $field="pLogge
- r" }requires { $aggregate="true" $optional="true" $id="ipojo-factorie
- s" callback { $method="bindFactory" $type="bind" }callback { $method=
- "unbindFactory" $type="unbind" }}manipulation { interface { $name="or
- g.cohorte.composer.api.IComposerAgent" }interface { $name="org.apache
- .felix.ipojo.InstanceStateListener" }field { $name="pComposer" $type=
- "org.cohorte.composer.api.IComposerCore" }field { $name="pContext" $t
- ype="org.osgi.framework.BundleContext" }field { $name="pFactories" $t
- ype="java.util.Map" }field { $name="pFactoriesFieldsIds" $type="java.
- util.Map" }field { $name="pInstanceUid" $type="java.util.Map" }field 
- { $name="pInstances" $type="java.util.Map" }field { $name="pLogger" $
- type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pWa
- itings" $type="java.util.Map" }method { $name="bindFactory" $argument
- s="{org.apache.felix.ipojo.Factory}" }method { $name="generateFieldsF
- ilters" $return="java.util.Properties" $arguments="{java.util.Map,jav
- a.util.Map}" }method { $name="generateIPojoProperties" $return="java.
- util.Properties" $arguments="{java.util.Map}" }method { $name="get_fa
- ctories" $return="java.lang.String[]" }method { $name="get_isolate" $
- return="java.lang.String[]" }method { $name="instantiate" $arguments=
- "{java.util.Collection,boolean}" }method { $name="instantiationLoop" 
- $arguments="{java.util.Collection}" }method { $name="is_running" $ret
- urn="int" $arguments="{java.util.Map}" }method { $name="is_running" $
- return="int" $arguments="{java.lang.String}" }method { $name="kill" $
- return="java.lang.String[][]" $arguments="{java.util.Collection}" }me
- thod { $name="stateChanged" $arguments="{org.apache.felix.ipojo.Compo
- nentInstance,int}" }method { $name="unbindFactory" $arguments="{org.a
- pache.felix.ipojo.Factory}" }}}
+iPOJO-Components: component { $name="cohorte-composer-agent-ipojo-fact
+ ory" $classname="org.cohorte.composer.agent.IPojoAgent" provides { $s
+ pecifications="{org.cohorte.composer.api.IComposerAgent}" property { 
+ $name="service.exported.interfaces" $type="String" $value="org.cohort
+ e.composer.api.IComposerAgent" }property { $name="cohorte.remote.syno
+ nyms" $type="String[]" $value="{python:/cohorte.composer.Agent}" }}re
+ quires { $field="pComposer" }requires { $field="pLogger" }requires { 
+ $aggregate="true" $optional="true" $id="ipojo-factories" callback { $
+ method="bindFactory" $type="bind" }callback { $method="unbindFactory"
+  $type="unbind" }}manipulation { interface { $name="org.cohorte.compo
+ ser.api.IComposerAgent" }interface { $name="org.apache.felix.ipojo.In
+ stanceStateListener" }field { $name="pComposer" $type="org.cohorte.co
+ mposer.api.IComposerCore" }field { $name="pContext" $type="org.osgi.f
+ ramework.BundleContext" }field { $name="pFactories" $type="java.util.
+ Map" }field { $name="pFactoriesFieldsIds" $type="java.util.Map" }fiel
+ d { $name="pInstanceUid" $type="java.util.Map" }field { $name="pInsta
+ nces" $type="java.util.Map" }field { $name="pLogger" $type="org.psem2
+ m.isolates.base.IIsolateLoggerSvc" }field { $name="pWaitings" $type="
+ java.util.Map" }method { $name="bindFactory" $arguments="{org.apache.
+ felix.ipojo.Factory}" }method { $name="generateFieldsFilters" $return
+ ="java.util.Properties" $arguments="{java.util.Map,java.util.Map}" }m
+ ethod { $name="generateIPojoProperties" $return="java.util.Properties
+ " $arguments="{java.util.Map}" }method { $name="get_factories" $retur
+ n="java.lang.String[]" }method { $name="get_isolate" $return="java.la
+ ng.String[]" }method { $name="instantiate" $arguments="{java.util.Col
+ lection,boolean}" }method { $name="instantiationLoop" $arguments="{ja
+ va.util.Collection}" }method { $name="is_running" $return="int" $argu
+ ments="{java.util.Map}" }method { $name="is_running" $return="int" $a
+ rguments="{java.lang.String}" }method { $name="kill" $return="java.la
+ ng.String[][]" $arguments="{java.util.Collection}" }method { $name="s
+ tateChanged" $arguments="{org.apache.felix.ipojo.ComponentInstance,in
+ t}" }method { $name="unbindFactory" $arguments="{org.apache.felix.ipo
+ jo.Factory}" }}}
 

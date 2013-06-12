@@ -15,29 +15,29 @@ Import-Package: javax.swing, javax.swing.event, javax.swing.tree, org.
   org.psem2m.isolates.services.monitoring;version=1.0.1, org.psem2m.is
  olates.ui.admin.api, org.psem2m.signals;version=1.0.1, org.psem2m.uti
  lities, org.psem2m.utilities.logging
-iPOJO-Components: instance { $component="org.psem2m.isolates.ui.CUiAdm
- inPanelIsolates" $name="psem2m-isolates-ui-admin" }component { $class
- name="org.psem2m.isolates.ui.CUiAdminPanelIsolates" $name="psem2m-iso
- lates-ui-admin-factory" $public="false" provides { $specifications="{
- org.psem2m.isolates.services.monitoring.IIsolatePresenceListener}" }r
- equires { $field="pLogger" }requires { $field="pSignalDirectory" }req
- uires { $field="pUiAdminSvc" }callback { $transition="invalidate" $me
- thod="invalidatePojo" }callback { $transition="validate" $method="val
- idatePojo" }manipulation { $super="org.psem2m.isolates.base.activator
- s.CPojoBase" interface { $name="org.psem2m.isolates.ui.admin.api.IUiA
- dminPanelControler" }interface { $name="org.psem2m.isolates.services.
- monitoring.IIsolatePresenceListener" }field { $name="pIsolatesTreeMod
- el" $type="org.psem2m.isolates.ui.CIsolatesTreeModel" }field { $name=
- "pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field {
-  $name="pPanelIsolates" $type="org.psem2m.isolates.ui.CJPanelIsolates
- " }field { $name="pSignalDirectory" $type="org.psem2m.signals.ISignal
- Directory" }field { $name="pUiAdminPanel" $type="org.psem2m.isolates.
- ui.admin.api.IUiAdminPanel" }field { $name="pUiAdminSvc" $type="org.p
- sem2m.isolates.ui.admin.api.IUiAdminSvc" }method { $name="destroyCont
- ent" }method { $name="initContent" }method { $name="invalidatePojo" }
- method { $name="isolateLost" $arguments="{java.lang.String,java.lang.
- String,java.lang.String}" }method { $name="isolateReady" $arguments="
- {java.lang.String,java.lang.String,java.lang.String}" }method { $name
- ="setUiAdminFont" $arguments="{org.psem2m.isolates.ui.admin.api.EUiAd
- minFont}" }method { $name="validatePojo" }}}
+iPOJO-Components: instance { $name="psem2m-isolates-ui-admin" $compone
+ nt="psem2m-isolates-ui-admin-factory" }component { $name="psem2m-isol
+ ates-ui-admin-factory" $public="false" $classname="org.psem2m.isolate
+ s.ui.CUiAdminPanelIsolates" provides { $specifications="{org.psem2m.i
+ solates.services.monitoring.IIsolatePresenceListener}" }requires { $f
+ ield="pLogger" }requires { $field="pSignalDirectory" }requires { $fie
+ ld="pUiAdminSvc" }callback { $transition="invalidate" $method="invali
+ datePojo" }callback { $transition="validate" $method="validatePojo" }
+ manipulation { $super="org.psem2m.isolates.base.activators.CPojoBase"
+  interface { $name="org.psem2m.isolates.ui.admin.api.IUiAdminPanelCon
+ troler" }interface { $name="org.psem2m.isolates.services.monitoring.I
+ IsolatePresenceListener" }field { $name="pIsolatesTreeModel" $type="o
+ rg.psem2m.isolates.ui.CIsolatesTreeModel" }field { $name="pLogger" $t
+ ype="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pPan
+ elIsolates" $type="org.psem2m.isolates.ui.CJPanelIsolates" }field { $
+ name="pSignalDirectory" $type="org.psem2m.signals.ISignalDirectory" }
+ field { $name="pUiAdminPanel" $type="org.psem2m.isolates.ui.admin.api
+ .IUiAdminPanel" }field { $name="pUiAdminSvc" $type="org.psem2m.isolat
+ es.ui.admin.api.IUiAdminSvc" }method { $name="destroyContent" }method
+  { $name="initContent" }method { $name="invalidatePojo" }method { $na
+ me="isolateLost" $arguments="{java.lang.String,java.lang.String,java.
+ lang.String}" }method { $name="isolateReady" $arguments="{java.lang.S
+ tring,java.lang.String,java.lang.String}" }method { $name="setUiAdmin
+ Font" $arguments="{org.psem2m.isolates.ui.admin.api.EUiAdminFont}" }m
+ ethod { $name="validatePojo" }}}
 

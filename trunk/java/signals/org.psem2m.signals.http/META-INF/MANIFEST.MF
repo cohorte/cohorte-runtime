@@ -15,51 +15,51 @@ Import-Package: javax.servlet;version=2.5.0, javax.servlet.http;versio
  ctivators;version=1.0.0, org.psem2m.isolates.constants;version=1.0.0,
   org.psem2m.signals;version=1.0.0, org.psem2m.utilities;version=1.0.0
  , org.psem2m.utilities.logging;version=1.0.0
-iPOJO-Components: component { $classname="org.psem2m.remotes.signals.h
- ttp.receiver.HttpSignalReceiver" $name="psem2m-signals-receiver-http-
- factory" $public="true" provides { $specifications="{org.psem2m.signa
- ls.ISignalReceptionProvider}" property { $name="signal.provider.ready
- " $field="pPropertyReady" $value="false" $mandatory="true" }}requires
-  { $field="pHttpService" $filter="(org.osgi.service.http.port=*)" $id
- ="http.service" callback { $method="bindHttpService" $type="bind" }ca
- llback { $method="unbindHttpService" $type="unbind" }}requires { $fie
- ld="pLogger" }requires { $field="pReceiver" }requires { $field="pSeri
- alizers" }callback { $transition="invalidate" $method="invalidatePojo
- " }callback { $transition="validate" $method="validatePojo" }manipula
- tion { $super="org.psem2m.isolates.base.activators.CPojoBase" interfa
- ce { $name="org.psem2m.signals.ISignalReceptionProvider" }interface {
-  $name="org.psem2m.signals.ISignalRequestReader" }field { $name="pHtt
- pPort" $type="int" }field { $name="pHttpService" $type="org.osgi.serv
- ice.http.HttpService" }field { $name="pLogger" $type="org.psem2m.isol
- ates.base.IIsolateLoggerSvc" }field { $name="pPropertyReady" $type="b
- oolean" }field { $name="pReceiver" $type="org.psem2m.signals.ISignalR
- eceiver" }field { $name="pSerializers" $type="org.psem2m.signals.ISig
- nalSerializer[]" }method { $name="bindHttpService" $arguments="{org.o
- sgi.service.http.HttpService,java.util.Map}" }method { $name="getAcce
- ssInfo" $return="org.psem2m.signals.HostAccess" }method { $name="hand
- leSignal" $return="org.psem2m.signals.SignalResult" $arguments="{java
- .lang.String,org.psem2m.signals.ISignalData,java.lang.String}" }metho
- d { $name="invalidatePojo" }method { $name="isReady" $return="boolean
- " }method { $name="serializeSignalResult" $return="org.psem2m.signals
- .SignalContent" $arguments="{java.lang.String,org.psem2m.signals.Sign
- alResult}" }method { $name="unbindHttpService" }method { $name="unser
- ializeSignalContent" $return="org.psem2m.signals.ISignalData" $argume
- nts="{java.lang.String,byte[]}" }method { $name="validatePojo" }}}com
- ponent { $classname="org.psem2m.remotes.signals.http.sender.HttpSigna
- lSender" $name="psem2m-signals-sender-http-factory" $public="true" pr
- ovides { $specifications="{org.psem2m.signals.ISignalBroadcastProvide
- r}" }requires { $field="pLogger" }requires { $field="pSerializers" }c
- allback { $transition="invalidate" $method="invalidatePojo" }callback
-  { $transition="validate" $method="validatePojo" }manipulation { $sup
- er="org.psem2m.isolates.base.activators.CPojoBase" interface { $name=
- "org.psem2m.signals.ISignalBroadcastProvider" }field { $name="pLogger
- " $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="
- pSerializers" $type="org.psem2m.signals.ISignalSerializer[]" }method 
- { $name="invalidatePojo" }method { $name="makeRequestBody" $return="o
- rg.psem2m.signals.SignalContent" $arguments="{org.psem2m.signals.ISig
- nalData}" }method { $name="sendSignal" $return="java.lang.Object[]" $
- arguments="{org.psem2m.signals.HostAccess,java.lang.String,java.lang.
- String,org.psem2m.signals.ISignalData}" }method { $name="unserializeD
- ata" $return="java.lang.Object" $arguments="{java.lang.String,byte[]}
- " }method { $name="validatePojo" }}}
+iPOJO-Components: component { $name="psem2m-signals-receiver-http-fact
+ ory" $classname="org.psem2m.remotes.signals.http.receiver.HttpSignalR
+ eceiver" provides { $specifications="{org.psem2m.signals.ISignalRecep
+ tionProvider}" property { $name="signal.provider.ready" $field="pProp
+ ertyReady" $value="false" $mandatory="true" }}requires { $field="pHtt
+ pService" $filter="(org.osgi.service.http.port=*)" $id="http.service"
+  callback { $method="bindHttpService" $type="bind" }callback { $metho
+ d="unbindHttpService" $type="unbind" }}requires { $field="pLogger" }r
+ equires { $field="pReceiver" }requires { $field="pSerializers" }callb
+ ack { $transition="invalidate" $method="invalidatePojo" }callback { $
+ transition="validate" $method="validatePojo" }manipulation { $super="
+ org.psem2m.isolates.base.activators.CPojoBase" interface { $name="org
+ .psem2m.signals.ISignalReceptionProvider" }interface { $name="org.pse
+ m2m.signals.ISignalRequestReader" }field { $name="pHttpPort" $type="i
+ nt" }field { $name="pHttpService" $type="org.osgi.service.http.HttpSe
+ rvice" }field { $name="pLogger" $type="org.psem2m.isolates.base.IIsol
+ ateLoggerSvc" }field { $name="pPropertyReady" $type="boolean" }field 
+ { $name="pReceiver" $type="org.psem2m.signals.ISignalReceiver" }field
+  { $name="pSerializers" $type="org.psem2m.signals.ISignalSerializer[]
+ " }method { $name="bindHttpService" $arguments="{org.osgi.service.htt
+ p.HttpService,java.util.Map}" }method { $name="getAccessInfo" $return
+ ="org.psem2m.signals.HostAccess" }method { $name="handleSignal" $retu
+ rn="org.psem2m.signals.SignalResult" $arguments="{java.lang.String,or
+ g.psem2m.signals.ISignalData,java.lang.String}" }method { $name="inva
+ lidatePojo" }method { $name="isReady" $return="boolean" }method { $na
+ me="serializeSignalResult" $return="org.psem2m.signals.SignalContent"
+  $arguments="{java.lang.String,org.psem2m.signals.SignalResult}" }met
+ hod { $name="unbindHttpService" }method { $name="unserializeSignalCon
+ tent" $return="org.psem2m.signals.ISignalData" $arguments="{java.lang
+ .String,byte[]}" }method { $name="validatePojo" }}}component { $name=
+ "psem2m-signals-sender-http-factory" $classname="org.psem2m.remotes.s
+ ignals.http.sender.HttpSignalSender" provides { $specifications="{org
+ .psem2m.signals.ISignalBroadcastProvider}" }requires { $field="pLogge
+ r" }requires { $field="pSerializers" }callback { $transition="invalid
+ ate" $method="invalidatePojo" }callback { $transition="validate" $met
+ hod="validatePojo" }manipulation { $super="org.psem2m.isolates.base.a
+ ctivators.CPojoBase" interface { $name="org.psem2m.signals.ISignalBro
+ adcastProvider" }field { $name="pLogger" $type="org.psem2m.isolates.b
+ ase.IIsolateLoggerSvc" }field { $name="pSerializers" $type="org.psem2
+ m.signals.ISignalSerializer[]" }method { $name="invalidatePojo" }meth
+ od { $name="makeRequestBody" $return="org.psem2m.signals.SignalConten
+ t" $arguments="{org.psem2m.signals.ISignalData}" }method { $name="sen
+ dSignal" $return="java.lang.Object[]" $arguments="{org.psem2m.signals
+ .HostAccess,java.lang.String,java.lang.String,org.psem2m.signals.ISig
+ nalData}" }method { $name="unserializeData" $return="java.lang.Object
+ " $arguments="{java.lang.String,byte[]}" }method { $name="validatePoj
+ o" }}}
 

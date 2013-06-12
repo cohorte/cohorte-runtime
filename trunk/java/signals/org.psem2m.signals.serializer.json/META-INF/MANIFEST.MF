@@ -13,25 +13,24 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  sion=1.0.0, org.psem2m.isolates.base.activators;version=1.0.0, org.ps
  em2m.signals;version=1.0.0, org.psem2m.utilities;version=1.0.0, org.p
  sem2m.utilities.logging;version=1.0.0
-iPOJO-Components: component { $classname="org.psem2m.signals.serialize
- r.json.JsonSignalSerializer" $name="psem2m-signals-data-json-factory"
-  $public="true" provides { $specifications="{org.psem2m.signals.ISign
- alSerializer}" property { $name="psem2m.signals.serializer.priority" 
- $field="pSerializerPriority" $value="1000" $mandatory="true" }}requir
- es { $field="pLogger" $optional="true" }callback { $transition="inval
- idate" $method="invalidatePojo" }callback { $transition="validate" $m
- ethod="validatePojo" }manipulation { $super="org.psem2m.isolates.base
- .activators.CPojoBase" interface { $name="org.psem2m.signals.ISignalS
- erializer" }field { $name="pBundleContext" $type="org.osgi.framework.
- BundleContext" }field { $name="pLogger" $type="org.psem2m.isolates.ba
- se.IIsolateLoggerSvc" }field { $name="pSerializer" $type="org.jabsorb
- .ng.JSONSerializer" }field { $name="pSerializerPriority" $type="int" 
- }method { $name="canHandleType" $return="boolean" $arguments="{java.l
- ang.String}" }method { $name="canSerialize" $return="boolean" $argume
- nts="{java.lang.Object}" }method { $name="getContentType" $return="ja
- va.lang.String" }method { $name="getPriority" $return="int" }method {
-  $name="invalidatePojo" }method { $name="serializeData" $return="byte
- []" $arguments="{java.lang.Object}" }method { $name="unserializeData"
-  $return="java.lang.Object" $arguments="{byte[]}" }method { $name="va
- lidatePojo" }}}
+iPOJO-Components: component { $name="psem2m-signals-data-json-factory"
+  $classname="org.psem2m.signals.serializer.json.JsonSignalSerializer"
+  provides { $specifications="{org.psem2m.signals.ISignalSerializer}" 
+ property { $name="psem2m.signals.serializer.priority" $field="pSerial
+ izerPriority" $value="1000" $mandatory="true" }}requires { $field="pL
+ ogger" $optional="true" }callback { $transition="invalidate" $method=
+ "invalidatePojo" }callback { $transition="validate" $method="validate
+ Pojo" }manipulation { $super="org.psem2m.isolates.base.activators.CPo
+ joBase" interface { $name="org.psem2m.signals.ISignalSerializer" }fie
+ ld { $name="pBundleContext" $type="org.osgi.framework.BundleContext" 
+ }field { $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLogg
+ erSvc" }field { $name="pSerializer" $type="org.jabsorb.ng.JSONSeriali
+ zer" }field { $name="pSerializerPriority" $type="int" }method { $name
+ ="canHandleType" $return="boolean" $arguments="{java.lang.String}" }m
+ ethod { $name="canSerialize" $return="boolean" $arguments="{java.lang
+ .Object}" }method { $name="getContentType" $return="java.lang.String"
+  }method { $name="getPriority" $return="int" }method { $name="invalid
+ atePojo" }method { $name="serializeData" $return="byte[]" $arguments=
+ "{java.lang.Object}" }method { $name="unserializeData" $return="java.
+ lang.Object" $arguments="{byte[]}" }method { $name="validatePojo" }}}
 

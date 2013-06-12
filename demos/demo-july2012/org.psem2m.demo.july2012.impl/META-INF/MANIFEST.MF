@@ -10,19 +10,19 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  .ipojo.architecture;version=1.8.0, org.osgi.service.cm;version=1.2, o
  rg.osgi.service.log;version=1.3, org.psem2m.demo.sensors;version=1.0.
  0
-iPOJO-Components: component { $classname="org.psem2m.demo.sensors.impl
- .FakeTemp" $name="java-fake-temp-factory" $public="true" provides { $
- specifications="{org.psem2m.demo.sensors.ISensor}" property { $name="
- temper.value.last" $field="pLast" }property { $name="temper.value.max
- " $field="pMax" $value="30" }property { $name="temper.value.min" $fie
- ld="pMin" $value="10" }}properties { property { $name="instance.name"
-  $field="pName" }}callback { $transition="invalidate" $method="invali
- date" }callback { $transition="validate" $method="validate" }manipula
- tion { interface { $name="org.psem2m.demo.sensors.ISensor" }field { $
- name="pLast" $type="float" }field { $name="pMax" $type="float" }field
-  { $name="pMin" $type="float" }field { $name="pName" $type="java.lang
- .String" }field { $name="pRandom" $type="java.util.Random" }method { 
- $name="getName" $return="java.lang.String" }method { $name="getUnit" 
- $return="java.lang.String" }method { $name="getValue" $return="double
- " }method { $name="invalidate" }method { $name="validate" }}}
+iPOJO-Components: component { $name="java-fake-temp-factory" $classnam
+ e="org.psem2m.demo.sensors.impl.FakeTemp" provides { $specifications=
+ "{org.psem2m.demo.sensors.ISensor}" property { $name="temper.value.la
+ st" $field="pLast" }property { $name="temper.value.max" $field="pMax"
+  $value="30" }property { $name="temper.value.min" $field="pMin" $valu
+ e="10" }}properties { property { $name="instance.name" $field="pName"
+  }}callback { $transition="invalidate" $method="invalidate" }callback
+  { $transition="validate" $method="validate" }manipulation { interfac
+ e { $name="org.psem2m.demo.sensors.ISensor" }field { $name="pLast" $t
+ ype="float" }field { $name="pMax" $type="float" }field { $name="pMin"
+  $type="float" }field { $name="pName" $type="java.lang.String" }field
+  { $name="pRandom" $type="java.util.Random" }method { $name="getName"
+  $return="java.lang.String" }method { $name="getUnit" $return="java.l
+ ang.String" }method { $name="getValue" $return="double" }method { $na
+ me="invalidate" }method { $name="validate" }}}
 

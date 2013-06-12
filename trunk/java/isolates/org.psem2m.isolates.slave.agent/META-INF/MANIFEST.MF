@@ -66,19 +66,18 @@ iPOJO-Components: component { $classname="org.psem2m.isolates.slave.ag
  }" }method { $name="stopBundle" $return="boolean" $arguments="{long}"
   }method { $name="uninstallBundle" $return="boolean" $arguments="{lon
  g}" }method { $name="updateBundle" $return="boolean" $arguments="{lon
- g}" }method { $name="validatePojo" }}}component { $classname="org.pse
- m2m.isolates.slave.agent.threads.ThreadsMonitor" $name="psem2m-thread
- s-monitor-factory" $public="true" requires { $field="pLogger" }requir
- es { $field="pMonitor" }callback { $transition="invalidate" $method="
- invalidatePojo" }callback { $transition="validate" $method="validateP
- ojo" }manipulation { field { $name="pLogger" $type="org.psem2m.isolat
- es.base.IIsolateLoggerSvc" }field { $name="pMonitor" $type="org.psem2
- m.isolates.services.monitoring.IThreadCpuUsageMonitor" }field { $name
- ="pScheduledExecutor" $type="java.util.concurrent.ScheduledExecutorSe
- rvice" }method { $name="enumerateThreadGroup" $arguments="{java.util.
- Map,java.lang.ThreadGroup}" }method { $name="findThreadStarter" $retu
- rn="java.lang.String" $arguments="{java.lang.Thread}" }method { $name
- ="getAllThreads" $return="java.util.Map" }method { $name="invalidateP
- ojo" }method { $name="updateMonitor" }method { $name="validatePojo" }
- }}
+ g}" }method { $name="validatePojo" }}}component { $name="psem2m-threa
+ ds-monitor-factory" $classname="org.psem2m.isolates.slave.agent.threa
+ ds.ThreadsMonitor" requires { $field="pLogger" }requires { $field="pM
+ onitor" }callback { $transition="invalidate" $method="invalidatePojo"
+  }callback { $transition="validate" $method="validatePojo" }manipulat
+ ion { field { $name="pLogger" $type="org.psem2m.isolates.base.IIsolat
+ eLoggerSvc" }field { $name="pMonitor" $type="org.psem2m.isolates.serv
+ ices.monitoring.IThreadCpuUsageMonitor" }field { $name="pScheduledExe
+ cutor" $type="java.util.concurrent.ScheduledExecutorService" }method 
+ { $name="enumerateThreadGroup" $arguments="{java.util.Map,java.lang.T
+ hreadGroup}" }method { $name="findThreadStarter" $return="java.lang.S
+ tring" $arguments="{java.lang.Thread}" }method { $name="getAllThreads
+ " $return="java.util.Map" }method { $name="invalidatePojo" }method { 
+ $name="updateMonitor" }method { $name="validatePojo" }}}
 

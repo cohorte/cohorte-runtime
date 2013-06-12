@@ -11,19 +11,18 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  e.shell;version=1.0.0, org.osgi.framework;version=1.6.0, org.osgi.ser
  vice.cm;version=1.2, org.osgi.service.log;version=1.3, org.psem2m.sig
  nals;version=1.0.1
-iPOJO-Components: instance { $component="org.cohorte.pyboot.shell.agen
- t.ShellAgent" $name="cohorte-shell-agent" }component { $classname="or
- g.cohorte.pyboot.shell.agent.ShellAgent" $name="cohorte-shell-agent-f
- actory" $public="true" requires { $field="pBridge" }requires { $field
- ="pReceiver" }requires { $field="pRemoteShell" $optional="true" $null
- able="true" }callback { $transition="invalidate" $method="invalidate"
-  }callback { $transition="validate" $method="validate" }manipulation 
- { interface { $name="org.psem2m.signals.ISignalListener" }field { $na
- me="pBridge" $type="org.cohorte.pyboot.api.IPyBridge" }field { $name=
- "pReceiver" $type="org.psem2m.signals.ISignalReceiver" }field { $name
- ="pRemoteShell" $type="org.cohorte.shell.IRemoteShell" }method { $nam
- e="getOsgiRemoteShellPort" $return="int" }method { $name="handleRecei
- vedSignal" $return="java.lang.Object" $arguments="{java.lang.String,o
- rg.psem2m.signals.ISignalData}" }method { $name="invalidate" }method 
- { $name="validate" }}}
+iPOJO-Components: instance { $name="cohorte-shell-agent" $component="c
+ ohorte-shell-agent-factory" }component { $name="cohorte-shell-agent-f
+ actory" $classname="org.cohorte.pyboot.shell.agent.ShellAgent" requir
+ es { $field="pBridge" }requires { $field="pReceiver" }requires { $fie
+ ld="pRemoteShell" $optional="true" $nullable="true" }callback { $tran
+ sition="invalidate" $method="invalidate" }callback { $transition="val
+ idate" $method="validate" }manipulation { interface { $name="org.psem
+ 2m.signals.ISignalListener" }field { $name="pBridge" $type="org.cohor
+ te.pyboot.api.IPyBridge" }field { $name="pReceiver" $type="org.psem2m
+ .signals.ISignalReceiver" }field { $name="pRemoteShell" $type="org.co
+ horte.shell.IRemoteShell" }method { $name="getOsgiRemoteShellPort" $r
+ eturn="int" }method { $name="handleReceivedSignal" $return="java.lang
+ .Object" $arguments="{java.lang.String,org.psem2m.signals.ISignalData
+ }" }method { $name="invalidate" }method { $name="validate" }}}
 

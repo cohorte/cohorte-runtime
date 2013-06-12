@@ -11,17 +11,17 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  .ipojo.architecture;version=1.8.0, org.osgi.service.cm;version=1.2, o
  rg.osgi.service.log;version=1.3, org.psem2m.isolates.base;version=1.0
  .1, org.psem2m.utilities.logging;version=1.0.0
-iPOJO-Components: instance { $component="org.psem2m.status.storage.imp
- l.StatusStorageCreator" $name="psem2m-status-storage-creator" }compon
- ent { $classname="org.psem2m.status.storage.impl.StatusStorageCreator
- " $name="psem2m-status-storage-creator-factory" $public="false" provi
- des { $specifications="{org.psem2m.status.storage.IStatusStorageCreat
- or}" }requires { $field="pLogger" }callback { $transition="invalidate
- " $method="invalidate" }callback { $transition="validate" $method="va
- lidate" }manipulation { interface { $name="org.psem2m.status.storage.
- IStatusStorageCreator" }field { $name="pLogger" $type="org.psem2m.iso
- lates.base.IIsolateLoggerSvc" }method { $name="deleteStorage" $argume
- nts="{org.psem2m.status.storage.IStatusStorage}" }method { $name="cre
- ateStorage" $return="org.psem2m.status.storage.IStatusStorage" }metho
- d { $name="invalidate" }method { $name="validate" }}}
+iPOJO-Components: instance { $name="psem2m-status-storage-creator" $co
+ mponent="psem2m-status-storage-creator-factory" }component { $name="p
+ sem2m-status-storage-creator-factory" $public="false" $classname="org
+ .psem2m.status.storage.impl.StatusStorageCreator" provides { $specifi
+ cations="{org.psem2m.status.storage.IStatusStorageCreator}" }requires
+  { $field="pLogger" }callback { $transition="invalidate" $method="inv
+ alidate" }callback { $transition="validate" $method="validate" }manip
+ ulation { interface { $name="org.psem2m.status.storage.IStatusStorage
+ Creator" }field { $name="pLogger" $type="org.psem2m.isolates.base.IIs
+ olateLoggerSvc" }method { $name="deleteStorage" $arguments="{org.psem
+ 2m.status.storage.IStatusStorage}" }method { $name="createStorage" $r
+ eturn="org.psem2m.status.storage.IStatusStorage" }method { $name="inv
+ alidate" }method { $name="validate" }}}
 

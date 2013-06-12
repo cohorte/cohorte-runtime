@@ -10,19 +10,19 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  .ipojo.architecture;version=1.8.0, org.cohorte.pyboot.api, org.osgi.f
  ramework;version=1.3.0, org.osgi.service.cm;version=1.2, org.osgi.ser
  vice.log;version=1.3
-iPOJO-Components: instance { $component="org.cohorte.pyboot.BridgeClie
- nt" $name="cohorte-java-bridge-client" }component { $classname="org.c
- ohorte.pyboot.BridgeClient" $name="cohorte-java-bridge-client-factory
- " $public="true" requires { $field="pBridge" }callback { $transition=
- "invalidate" $method="invalidate" }callback { $transition="validate" 
- $method="validate" }manipulation { interface { $name="org.osgi.framew
- ork.ServiceListener" }field { $name="pBridge" $type="org.cohorte.pybo
- ot.api.IPyBridge" }field { $name="pComponents" $type="java.util.List"
-  }field { $name="pContext" $type="org.osgi.framework.BundleContext" }
- method { $name="instantiateComponents" $arguments="{org.osgi.framewor
- k.ServiceReference}" }method { $name="invalidate" }method { $name="po
- llFactories" }method { $name="prepareInstanceProperties" $return="jav
- a.util.Properties" $arguments="{org.cohorte.pyboot.api.ComponentBean}
- " }method { $name="serviceChanged" $arguments="{org.osgi.framework.Se
- rviceEvent}" }method { $name="validate" }}}
+iPOJO-Components: instance { $name="cohorte-java-bridge-client" $compo
+ nent="cohorte-java-bridge-client-factory" }component { $name="cohorte
+ -java-bridge-client-factory" $classname="org.cohorte.pyboot.BridgeCli
+ ent" requires { $field="pBridge" }callback { $transition="invalidate"
+  $method="invalidate" }callback { $transition="validate" $method="val
+ idate" }manipulation { interface { $name="org.osgi.framework.ServiceL
+ istener" }field { $name="pBridge" $type="org.cohorte.pyboot.api.IPyBr
+ idge" }field { $name="pComponents" $type="java.util.List" }field { $n
+ ame="pContext" $type="org.osgi.framework.BundleContext" }method { $na
+ me="instantiateComponents" $arguments="{org.osgi.framework.ServiceRef
+ erence}" }method { $name="invalidate" }method { $name="pollFactories"
+  }method { $name="prepareInstanceProperties" $return="java.util.Prope
+ rties" $arguments="{org.cohorte.pyboot.api.ComponentBean}" }method { 
+ $name="serviceChanged" $arguments="{org.osgi.framework.ServiceEvent}"
+  }method { $name="validate" }}}
 
