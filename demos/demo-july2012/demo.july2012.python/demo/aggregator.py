@@ -124,10 +124,7 @@ class Aggregator(object):
         """
         # Get the history list for this sensor
         with self._lock:
-            sensor_history = self._history.get(sensor, None)
-            if sensor_history is None:
-                # Make a new one, if necessary
-                sensor_history = self._history[sensor] = []
+            sensor_history = self._history.setdefault(sensor, [])
 
             # Remove the oldest entry if needed
             if len(sensor_history) >= self._history_size:
