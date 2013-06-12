@@ -408,6 +408,9 @@ class _ServiceCallProxy(object):
                 if self.__on_error is not None:
                     self.__on_error(self.__uid)
 
+                # Let the exception stop the caller
+                raise
+
         return wrapped_call
 
 # ------------------------------------------------------------------------------
