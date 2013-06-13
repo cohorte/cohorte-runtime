@@ -1,104 +1,79 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>org.cohorte</groupId>
-  <artifactId>cohorte-java</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-  <packaging>pom</packaging>
-  <properties>
-    <tycho-version>0.18.0</tycho-version>
-  </properties>
-  <modules>
-    <module>target_platform</module>
+<project
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.cohorte</groupId>
+		<artifactId>cohorte-root</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+		<relativePath>../../pom.xml</relativePath>
+	</parent>
 
-    <module>3rd-party/org.jabsorb.ng</module>
+	<groupId>org.cohorte</groupId>
+	<artifactId>cohorte-java</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>pom</packaging>
 
-    <module>boot/org.cohorte.pyboot</module>
-    <module>boot/org.cohorte.pyboot.api</module>
-    <module>boot/org.cohorte.pyboot.config</module>
-    <module>boot/org.cohorte.pyboot.shell.agent</module>
-    <module>boot/org.psem2m.isolates.base</module>
-    <module>boot/org.psem2m.isolates.constants</module>
+	<modules>
+		<module>3rd-party/org.jabsorb.ng</module>
 
-    <module>composer/org.cohorte.composer.api</module>
-    <module>composer/org.cohorte.composer.agent</module>
+		<module>boot/org.cohorte.pyboot</module>
+		<module>boot/org.cohorte.pyboot.api</module>
+		<module>boot/org.cohorte.pyboot.config</module>
+		<module>boot/org.cohorte.pyboot.shell.agent</module>
+		<module>boot/org.psem2m.isolates.base</module>
+		<module>boot/org.psem2m.isolates.constants</module>
 
-    <module>isolates/org.cohorte.remote.shell</module>
-    <module>isolates/org.psem2m.isolates.loggers</module>
-    <module>isolates/org.psem2m.isolates.slave.agent</module>
-    <module>isolates/org.psem2m.isolates.utilities</module>
+		<module>composer/org.cohorte.composer.api</module>
+		<module>composer/org.cohorte.composer.agent</module>
 
-    <module>remote-services/org.psem2m.isolates.remote.broadcaster</module>
-    <module>remote-services/org.psem2m.isolates.remote.core</module>
-    <module>remote-services/org.psem2m.isolates.remote.repository</module>
-    <module>remote-services/org.psem2m.remote.api</module>
-    <module>remote-services/org.psem2m.remote.jsonrpc</module>
+		<module>isolates/org.cohorte.remote.shell</module>
+		<module>isolates/org.psem2m.isolates.loggers</module>
+		<module>isolates/org.psem2m.isolates.slave.agent</module>
+		<module>isolates/org.psem2m.isolates.utilities</module>
 
-    <module>signals/org.psem2m.signals.api</module>
-    <module>signals/org.psem2m.signals.base</module>
-    <module>signals/org.psem2m.signals.directory</module>
-    <module>signals/org.psem2m.signals.http</module>
-    <module>signals/org.psem2m.signals.serializer.java</module>
-    <module>signals/org.psem2m.signals.serializer.json</module>
+		<module>remote-services/org.psem2m.isolates.remote.broadcaster</module>
+		<module>remote-services/org.psem2m.isolates.remote.core</module>
+		<module>remote-services/org.psem2m.isolates.remote.repository</module>
+		<module>remote-services/org.psem2m.remote.api</module>
+		<module>remote-services/org.psem2m.remote.jsonrpc</module>
 
-    <module>tools/org.psem2m.status.storage</module>
+		<module>signals/org.psem2m.signals.api</module>
+		<module>signals/org.psem2m.signals.base</module>
+		<module>signals/org.psem2m.signals.directory</module>
+		<module>signals/org.psem2m.signals.http</module>
+		<module>signals/org.psem2m.signals.serializer.java</module>
+		<module>signals/org.psem2m.signals.serializer.json</module>
 
-    <module>ui/org.psem2m.isolates.base.ui</module>
-    <module>ui/org.psem2m.isolates.ui</module>
-    <module>ui/org.psem2m.isolates.ui.admin</module>
-  </modules>
-  <repositories>
-        <repository>
-            <id>juno</id>
-            <layout>p2</layout>
-            <url>http://download.eclipse.org/releases/juno</url>
-        </repository>
-  </repositories>
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.eclipse.tycho</groupId>
-        <artifactId>tycho-maven-plugin</artifactId>
-        <version>${tycho-version}</version>
-        <extensions>true</extensions>
-      </plugin>
-      <plugin>
-        <groupId>org.eclipse.tycho</groupId>
-        <artifactId>target-platform-configuration</artifactId>
-        <version>${tycho-version}</version>
-        <configuration>
-           <target>
-              <artifact>
-                 <groupId>org.cohorte</groupId>
-                 <artifactId>felix-target</artifactId>
-                 <version>1.0.0-SNAPSHOT</version>
-              </artifact>
-           </target>
-         </configuration>
-      </plugin>
-    </plugins>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.eclipse.tycho</groupId>
-          <artifactId>tycho-compiler-plugin</artifactId>
-          <version>${tycho-version}</version>
-          <configuration>
-            <source>1.6</source>
-            <target>1.6</target>
-          </configuration>
-        </plugin>
-        <plugin>
-          <groupId>org.eclipse.tycho</groupId>
-          <artifactId>tycho-surefire-plugin</artifactId>
-          <version>${tycho-version}</version>
-          <configuration>
-            <useUIHarness>true</useUIHarness>
-            <useUIThread>false</useUIThread>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-  </build>
+		<module>tools/org.psem2m.status.storage</module>
+
+		<module>ui/org.psem2m.isolates.base.ui</module>
+		<module>ui/org.psem2m.isolates.ui</module>
+		<module>ui/org.psem2m.isolates.ui.admin</module>
+	</modules>
+
+	<repositories>
+		<repository>
+			<id>local-felix</id>
+			<layout>p2</layout>
+			<url>file://${user.dir}/repository-p2/org.cohorte.p2.repository/target/repository</url>
+		</repository>
+	</repositories>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.eclipse.tycho</groupId>
+					<artifactId>tycho-surefire-plugin</artifactId>
+					<version>${tycho-version}</version>
+					<configuration>
+						<useUIHarness>true</useUIHarness>
+						<useUIThread>false</useUIThread>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
 </project>
