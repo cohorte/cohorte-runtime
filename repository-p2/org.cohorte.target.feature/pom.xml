@@ -1,0 +1,43 @@
+<project
+	xsi:schemalocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.cohorte.platform</groupId>
+		<artifactId>parent</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+	<artifactId>org.cohorte.target.feature</artifactId>
+	<version>1.0.0-SNAPSHOT</version>
+	<packaging>eclipse-feature</packaging>
+	<dependencies>
+		<!-- OSGI Compendium 4.2.0 -->
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.compendium</artifactId>
+			<version>4.2.0</version>
+		</dependency>
+
+		<!-- Felix Framework 4.0.3 -->
+		<dependency>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>org.apache.felix.main</artifactId>
+			<version>4.0.3</version>
+		</dependency>
+
+		<!-- iPOJO -->
+		<dependency>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>org.apache.felix.ipojo</artifactId>
+			<version>1.8.6</version>
+		</dependency>
+
+		<!-- Gogo -->
+		<dependency>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>org.apache.felix.gogo.runtime</artifactId>
+			<version>0.10.0</version>
+		</dependency>
+	</dependencies>
+</project>
