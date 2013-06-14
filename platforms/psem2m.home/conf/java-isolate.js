@@ -39,5 +39,5 @@
 	/*
 	 * Framework informations
 	 */
-	"osgi_jar" : "org.apache.felix.framework-4.0.3.jar"
+	"osgi_name" : "org.apache.felix.framework"
 }
