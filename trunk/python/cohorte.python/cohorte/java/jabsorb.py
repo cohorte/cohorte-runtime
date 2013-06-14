@@ -27,13 +27,13 @@ Dictionary key used by Jabsorb to indicate which Java class corresponds to its
 content
 """
 
-JAVA_MAPS_PATTERN = re.compile("java\.util\.(.*Map|Properties)")
+JAVA_MAPS_PATTERN = re.compile(r"java\.util\.(.*Map|Properties)")
 """ Pattern to detect standard Java classes for maps """
 
-JAVA_LISTS_PATTERN = re.compile("java\.util\..*List")
+JAVA_LISTS_PATTERN = re.compile(r"java\.util\..*List")
 """ Pattern to detect standard Java classes for lists """
 
-JAVA_SETS_PATTERN = re.compile("java\.util\..*Set")
+JAVA_SETS_PATTERN = re.compile(r"java\.util\..*Set")
 """ Pattern to detect standard Java classes for sets """
 
 # ------------------------------------------------------------------------------
