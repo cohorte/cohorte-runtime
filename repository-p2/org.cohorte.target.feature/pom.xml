@@ -19,18 +19,18 @@
 			<version>4.2.0</version>
 		</dependency>
 
-		<!-- Felix Framework 4.0.3 -->
+		<!-- Felix Framework 4.2.1 -->
 		<dependency>
 			<groupId>org.apache.felix</groupId>
 			<artifactId>org.apache.felix.main</artifactId>
-			<version>4.0.3</version>
+			<version>4.2.1</version>
 		</dependency>
 
 		<!-- iPOJO -->
 		<dependency>
 			<groupId>org.apache.felix</groupId>
 			<artifactId>org.apache.felix.ipojo</artifactId>
-			<version>1.8.6</version>
+			<version>1.10.0</version>
 		</dependency>
 
 		<!-- Gogo -->
