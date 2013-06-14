@@ -172,7 +172,7 @@ class ShellAgentCommands(object):
         if failed:
             io_handler.write_line("These isolates didn't respond:")
             for uid in failed:
-                io_handler.write_line("%s - %s",
+                io_handler.write_line("{0} - {1}",
                                       self._directory.get_isolate_name(uid),
                                       uid)
 
@@ -246,7 +246,9 @@ class ShellAgentCommands(object):
         if failed:
             io_handler.write_line("These isolates didn't respond:")
             for uid in failed:
-                io_handler.write_line(uid)
+                io_handler.write_line("{0} - {1}",
+                                      self._directory.get_isolate_name(uid),
+                                      uid)
 
 
     @Validate
