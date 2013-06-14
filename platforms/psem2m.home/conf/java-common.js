@@ -21,8 +21,6 @@
 	}, {
 		"name" : "org.apache.felix.ipojo.handler.jmx"
 	}, {
-		"name" : "org.psem2m.isolates.config"
-	}, {
 		"name" : "org.psem2m.isolates.loggers"
 	}, {
 		"name" : "org.psem2m.status.storage"
