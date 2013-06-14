@@ -29,6 +29,7 @@
 			</activation>
 			<modules>
 				<module>trunk/java</module>
+				<module>trunk/python/cohorte.python</module>
 			</modules>
 		</profile>
 
