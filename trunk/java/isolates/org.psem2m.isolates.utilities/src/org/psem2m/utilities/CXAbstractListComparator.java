@@ -108,6 +108,19 @@ public abstract class CXAbstractListComparator<E> implements Comparator<E> {
 		return a == b;
 	}
 
+	/*
+	 * Sonar : Checks that classes that override equals() also override
+	 * hashCode().
+	 * 
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		return super.hashCode();
+	}
+
 	/**
 	 * @return
 	 */
