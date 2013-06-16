@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2011 www.isandlatech.com (www.isandlatech.com)
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    ogattaz (isandlaTech) - initial API and implementation
+ *******************************************************************************/
 package org.psem2m.utilities.teststools;
 
 import java.io.BufferedReader;
@@ -62,8 +72,8 @@ public abstract class CConsoleTester extends CBaseTester {
 	 * @param aValue
 	 * @return
 	 */
-	public static StringBuilder addDescrInSB(final StringBuilder aSB,
-			final String aId, final boolean aValue) {
+	public static StringBuilder addDescrInSB(final StringBuilder aSB, final String aId,
+			final boolean aValue) {
 		return addDescrInSB(aSB, aId, String.valueOf(aValue));
 	}
 
@@ -73,8 +83,8 @@ public abstract class CConsoleTester extends CBaseTester {
 	 * @param aValue
 	 * @return
 	 */
-	public static StringBuilder addDescrInSB(final StringBuilder aSB,
-			final String aId, final int aValue) {
+	public static StringBuilder addDescrInSB(final StringBuilder aSB, final String aId,
+			final int aValue) {
 		return addDescrInSB(aSB, aId, String.valueOf(aValue));
 	}
 
@@ -84,8 +94,8 @@ public abstract class CConsoleTester extends CBaseTester {
 	 * @param aValue
 	 * @return
 	 */
-	public static StringBuilder addDescrInSB(final StringBuilder aSB,
-			final String aId, final long aValue) {
+	public static StringBuilder addDescrInSB(final StringBuilder aSB, final String aId,
+			final long aValue) {
 		return addDescrInSB(aSB, aId, String.valueOf(aValue));
 	}
 
@@ -95,8 +105,8 @@ public abstract class CConsoleTester extends CBaseTester {
 	 * @param aValue
 	 * @return
 	 */
-	public static StringBuilder addDescrInSB(final StringBuilder aSB,
-			final String aId, final String aValue) {
+	public static StringBuilder addDescrInSB(final StringBuilder aSB, final String aId,
+			final String aValue) {
 		aSB.append(aId);
 		aSB.append('=');
 		aSB.append('[');
@@ -165,7 +175,7 @@ public abstract class CConsoleTester extends CBaseTester {
 			aConsoleTester.initTester();
 			aConsoleTester.monitor();
 			wErrorLevel = 0;
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			System.out.println("CConsoleTester.main : EXCEPTION:");
 			System.out.println(CXException.eInString(e));
 			wErrorLevel = 1;
@@ -190,8 +200,7 @@ public abstract class CConsoleTester extends CBaseTester {
 		} catch (Exception e) {
 		}
 		System.out.println(" \"ENTER\" to continue...");
-		BufferedReader wInput = new BufferedReader(new InputStreamReader(
-				System.in));
+		BufferedReader wInput = new BufferedReader(new InputStreamReader(System.in));
 		try {
 			wInput.readLine();
 		} catch (IOException e) {
@@ -214,8 +223,7 @@ public abstract class CConsoleTester extends CBaseTester {
 	 * @param aLine
 	 * @return
 	 */
-	protected StringBuilder addHelpLine(final StringBuilder aHelp,
-			final String... aLineParts) {
+	protected StringBuilder addHelpLine(final StringBuilder aHelp, final String... aLineParts) {
 		return addInHelpSB(aHelp, HELP_LINE_PREFIX, aLineParts);
 	}
 
@@ -224,8 +232,7 @@ public abstract class CConsoleTester extends CBaseTester {
 	 * @param aLine
 	 * @return
 	 */
-	protected StringBuilder addHelpSubLine(final StringBuilder aHelp,
-			final String... aLineParts) {
+	protected StringBuilder addHelpSubLine(final StringBuilder aHelp, final String... aLineParts) {
 		return addInHelpSB(aHelp, HELP_SUBLINE_PREFIX, aLineParts);
 	}
 
@@ -234,8 +241,7 @@ public abstract class CConsoleTester extends CBaseTester {
 	 * @param aLine
 	 * @return
 	 */
-	protected StringBuilder addHelpTitle(final StringBuilder aHelp,
-			final String... aLineParts) {
+	protected StringBuilder addHelpTitle(final StringBuilder aHelp, final String... aLineParts) {
 		return addInHelpSB(aHelp, HELP_TITLE_PREFIX, aLineParts);
 	}
 
@@ -245,8 +251,8 @@ public abstract class CConsoleTester extends CBaseTester {
 	 * @param aLine
 	 * @return
 	 */
-	private StringBuilder addInHelpSB(final StringBuilder aHelp,
-			final String aPrefix, final String... aLineParts) {
+	private StringBuilder addInHelpSB(final StringBuilder aHelp, final String aPrefix,
+			final String... aLineParts) {
 		aHelp.append(aPrefix);
 		int wMax = (aLineParts != null) ? aLineParts.length : 0;
 		int wI = 0;
@@ -254,8 +260,7 @@ public abstract class CConsoleTester extends CBaseTester {
 		boolean wNewLine;
 		while (wI < wMax) {
 			wStr = aLineParts[wI];
-			wNewLine = wStr != null && wStr.length() > 0
-					&& wStr.charAt(0) == '\n';
+			wNewLine = wStr != null && wStr.length() > 0 && wStr.charAt(0) == '\n';
 			if (wNewLine) {
 				aHelp.append('\n').append(aPrefix);
 				wStr = wStr.substring(1);
@@ -302,8 +307,7 @@ public abstract class CConsoleTester extends CBaseTester {
 		if (wCorrections != null) {
 			for (int wI = 0; wI < wCorrections.length; wI++) {
 				wSB.append('\n');
-				CXStringUtils.appendKeyValInBuff(wSB, "(" + wI + ")",
-						wCorrections[wI]);
+				CXStringUtils.appendKeyValInBuff(wSB, "(" + wI + ")", wCorrections[wI]);
 			}
 		}
 		return wSB.toString();
@@ -337,8 +341,7 @@ public abstract class CConsoleTester extends CBaseTester {
 		if (getArgs() != null) {
 			int wMax = getArgs().length;
 			wSB.append("- Arguments:")
-					.append(CXStringUtils.formatKeyValueInString("NbArg(s)",
-							wMax)).append('\n');
+					.append(CXStringUtils.formatKeyValueInString("NbArg(s)", wMax)).append('\n');
 			for (int wI = 0; wI < wMax; wI++) {
 				if (wI > 0) {
 					wSB.append('\n');
@@ -359,9 +362,8 @@ public abstract class CConsoleTester extends CBaseTester {
 		if (getConfig() != null) {
 			int wI = 0;
 			wSB.append("- Config:")
-					.append(CXStringUtils.formatKeyValueInString(
-							"NbProperty(ies)", getConfig().size()))
-					.append('\n');
+					.append(CXStringUtils.formatKeyValueInString("NbProperty(ies)", getConfig()
+							.size())).append('\n');
 			Enumeration<?> wNames = getConfig().propertyNames();
 			Enumeration<?> wElements = getConfig().elements();
 
@@ -369,8 +371,7 @@ public abstract class CConsoleTester extends CBaseTester {
 				if (wI > 0) {
 					wSB.append('\n');
 				}
-				CXStringUtils.appendKeyValInBuff(wSB,
-						(String) wNames.nextElement(),
+				CXStringUtils.appendKeyValInBuff(wSB, (String) wNames.nextElement(),
 						(String) wElements.nextElement());
 				wI++;
 			}
@@ -399,8 +400,7 @@ public abstract class CConsoleTester extends CBaseTester {
 
 	private void displayInfos() {
 		StringBuilder wSB = new StringBuilder();
-		wSB.append("- Les proprietes de la JVM :\n").append(
-				displaySystemInfos());
+		wSB.append("- Les proprietes de la JVM :\n").append(displaySystemInfos());
 		logInfoAndPrompt(wSB.toString());
 	}
 
@@ -636,8 +636,7 @@ public abstract class CConsoleTester extends CBaseTester {
 		boolean wRun = true;
 		String wLine;
 
-		BufferedReader wInput = new BufferedReader(new InputStreamReader(
-				System.in));
+		BufferedReader wInput = new BufferedReader(new InputStreamReader(System.in));
 
 		logInfoAndPrompt("ready...");
 
@@ -646,14 +645,13 @@ public abstract class CConsoleTester extends CBaseTester {
 			try {
 				wLine = wInput.readLine();
 			} catch (IOException e) {
-				logInfo(this.getClass().toString()
-						+ ".monitor() => readLine error.");
+				logInfo(this.getClass().toString() + ".monitor() => readLine error.");
 				logInfo(e);
 				wLine = CMDE_QUIT;
 			}
 			try {
 				wRun = execLine(cleanLine(wLine));
-			} catch (Throwable e) {
+			} catch (Exception e) {
 				logInfo(e);
 				wRun = true;
 			}
@@ -669,8 +667,8 @@ public abstract class CConsoleTester extends CBaseTester {
 	 * @return
 	 * @throws Exception
 	 */
-	public abstract boolean monitorCommand(String aCommand, String aLine,
-			StringTokenizer aST) throws Exception;
+	public abstract boolean monitorCommand(String aCommand, String aLine, StringTokenizer aST)
+			throws Exception;
 
 	/**
 	 * @param aAAAMMJJ

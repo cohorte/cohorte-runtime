@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2011 www.isandlatech.com (www.isandlatech.com)
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    ogattaz (isandlaTech) - initial API and implementation
+ *******************************************************************************/
 package org.psem2m.utilities.teststools;
 
 import java.util.logging.Level;
@@ -22,11 +32,9 @@ public class CQualityTestBase extends TestCase implements IActivityLoggerBase {
 
 	public final static String[] START_ARGS = { "-junit" };
 
-	private final IActivityFormater pActivityFormater = CActivityFormaterBasic
-			.getInstance();
+	private final IActivityFormater pActivityFormater = CActivityFormaterBasic.getInstance();
 
-	private final CLogLineTextBuilder pLogLineTextBuilder = CLogLineTextBuilder
-			.getInstance();
+	private final CLogLineTextBuilder pLogLineTextBuilder = CLogLineTextBuilder.getInstance();
 
 	/*
 	 * (non-Javadoc)
@@ -37,11 +45,8 @@ public class CQualityTestBase extends TestCase implements IActivityLoggerBase {
 	 */
 	@Override
 	public Appendable addDescriptionInBuffer(final Appendable aBuffer) {
-		CXStringUtils.appendKeyValInBuff(
-				aBuffer,
-				"Id",
-				getClass().getSimpleName() + '_'
-						+ CXStringUtils.strAdjustRight(this.hashCode(), 4));
+		CXStringUtils.appendKeyValInBuff(aBuffer, "Id", getClass().getSimpleName() + '_'
+				+ CXStringUtils.strAdjustRight(this.hashCode(), 4));
 		return aBuffer;
 	}
 
@@ -105,18 +110,15 @@ public class CQualityTestBase extends TestCase implements IActivityLoggerBase {
 	 * .Level, java.lang.Object, java.lang.CharSequence, java.lang.Object[])
 	 */
 	@Override
-	public void log(final Level aLevel, final Object aWho,
-			final CharSequence aWhat, final Object... aInfos) {
+	public void log(final Level aLevel, final Object aWho, final CharSequence aWhat,
+			final Object... aInfos) {
 
-		CharSequence wWhat = (aWhat != null) ? aWhat : CXJavaRunContext
-				.getPreCallingMethod();
+		CharSequence wWhat = (aWhat != null) ? aWhat : CXJavaRunContext.getPreCallingMethod();
 
-		String wLine = pActivityFormater.format(System.currentTimeMillis(),
-				aLevel, pLogLineTextBuilder.buildWhoObjectId(aWho),
-				wWhat.toString(),
-				"%% " + pLogLineTextBuilder.buildLogLine(aInfos));
+		String wLine = pActivityFormater.format(System.currentTimeMillis(), aLevel,
+				pLogLineTextBuilder.buildWhoObjectId(aWho), wWhat.toString(), "%% "
+						+ pLogLineTextBuilder.buildLogLine(aInfos));
 		writeLog(wLine);
-
 	}
 
 	/*
@@ -139,8 +141,7 @@ public class CQualityTestBase extends TestCase implements IActivityLoggerBase {
 	 * , java.lang.CharSequence, java.lang.Object[])
 	 */
 	@Override
-	public void logDebug(final Object aWho, final CharSequence aWhat,
-			final Object... aInfos) {
+	public void logDebug(final Object aWho, final CharSequence aWhat, final Object... aInfos) {
 		this.log(Level.FINE, aWho, aWhat, aInfos);
 	}
 
@@ -152,8 +153,7 @@ public class CQualityTestBase extends TestCase implements IActivityLoggerBase {
 	 * , java.lang.CharSequence, java.lang.Object[])
 	 */
 	@Override
-	public void logInfo(final Object aWho, final CharSequence aWhat,
-			final Object... aInfos) {
+	public void logInfo(final Object aWho, final CharSequence aWhat, final Object... aInfos) {
 		this.log(Level.INFO, aWho, aWhat, aInfos);
 	}
 
@@ -165,8 +165,7 @@ public class CQualityTestBase extends TestCase implements IActivityLoggerBase {
 	 * Object, java.lang.CharSequence, java.lang.Object[])
 	 */
 	@Override
-	public void logSevere(final Object aWho, final CharSequence aWhat,
-			final Object... aInfos) {
+	public void logSevere(final Object aWho, final CharSequence aWhat, final Object... aInfos) {
 		this.log(Level.SEVERE, aWho, aWhat, aInfos);
 
 	}
@@ -179,8 +178,7 @@ public class CQualityTestBase extends TestCase implements IActivityLoggerBase {
 	 * , java.lang.CharSequence, java.lang.Object[])
 	 */
 	@Override
-	public void logWarn(final Object aWho, final CharSequence aWhat,
-			final Object... aInfos) {
+	public void logWarn(final Object aWho, final CharSequence aWhat, final Object... aInfos) {
 		this.log(Level.WARNING, aWho, aWhat, aInfos);
 	}
 
