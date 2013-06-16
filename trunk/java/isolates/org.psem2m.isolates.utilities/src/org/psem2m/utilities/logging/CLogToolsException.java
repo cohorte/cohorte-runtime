@@ -52,10 +52,9 @@ public class CLogToolsException {
 	 * @param e
 	 * @return
 	 */
-	private Appendable addEClassInBuffer(final Appendable aSB, final Throwable e)
-			throws Exception {
-		return aSB.append(PREFIX_CLASS).append('=').append('[')
-				.append(e.getClass().getName()).append(']');
+	private Appendable addEClassInBuffer(final Appendable aSB, final Throwable e) throws Exception {
+		return aSB.append(PREFIX_CLASS).append('=').append('[').append(e.getClass().getName())
+				.append(']');
 	}
 
 	/**
@@ -64,8 +63,8 @@ public class CLogToolsException {
 	 * @param aSeparator
 	 * @return
 	 */
-	private Appendable addEDescrFullInBuffer(final Appendable aSB,
-			final Throwable e, final char aSeparator) throws Exception {
+	private Appendable addEDescrFullInBuffer(final Appendable aSB, final Throwable e,
+			final char aSeparator) throws Exception {
 		if (aSeparator == SEPARATOR_LINE) {
 			aSB.append(aSeparator);
 		}
@@ -85,8 +84,8 @@ public class CLogToolsException {
 	 * @param e
 	 * @return
 	 */
-	private Appendable addEMessInBuffer(final Appendable aSB,
-			final Throwable e, final char aSeparator) throws Exception {
+	private Appendable addEMessInBuffer(final Appendable aSB, final Throwable e,
+			final char aSeparator) throws Exception {
 
 		if (e == null) {
 			return aSB.append("no message, throwable is null");
@@ -100,8 +99,7 @@ public class CLogToolsException {
 			wMess = "no message in " + e.getClass().getSimpleName();
 		}
 
-		return aSB.append(PREFIX_MESS).append('=').append('[').append(wMess)
-				.append(']');
+		return aSB.append(PREFIX_MESS).append('=').append('[').append(wMess).append(']');
 	}
 
 	/**
@@ -111,10 +109,10 @@ public class CLogToolsException {
 	 * @param e
 	 * @return
 	 */
-	private Appendable addEStackInBuffer(final Appendable aSB,
-			final Throwable e, final char aSeparator) throws Exception {
-		return aSB.append(PREFIX_STACK).append('=').append('[')
-				.append(eStack(e, aSeparator)).append(']');
+	private Appendable addEStackInBuffer(final Appendable aSB, final Throwable e,
+			final char aSeparator) throws Exception {
+		return aSB.append(PREFIX_STACK).append('=').append('[').append(eStack(e, aSeparator))
+				.append(']');
 	}
 
 	/**
@@ -122,21 +120,17 @@ public class CLogToolsException {
 	 * @param aDumpedThrowable
 	 * @return
 	 */
-	private String buildExceptionDumpErrorMess(final Exception e,
-			final Throwable aDumpedThrowable) {
+	private String buildExceptionDumpErrorMess(final Exception e, final Throwable aDumpedThrowable) {
 		StringBuilder wSB = new StringBuilder();
 		wSB.append(LIB_THROWABLE_DUMP_ERROR);
 		if (e != null) {
-			wSB.append(String.format(FORMAT_EXCEPTION, e.getClass()
-					.getSimpleName()));
+			wSB.append(String.format(FORMAT_EXCEPTION, e.getClass().getSimpleName()));
 			wSB.append(String.format(FORMAT_MESAGE, e.getMessage()));
 			wSB.append(CXException.getFirstLineOfStack(e));
 		}
 		if (aDumpedThrowable != null) {
-			wSB.append(String.format(FORMAT_THROWABLE, aDumpedThrowable
-					.getClass().getSimpleName()));
-			wSB.append(String.format(FORMAT_MESAGE,
-					aDumpedThrowable.getMessage()));
+			wSB.append(String.format(FORMAT_THROWABLE, aDumpedThrowable.getClass().getSimpleName()));
+			wSB.append(String.format(FORMAT_MESAGE, aDumpedThrowable.getMessage()));
 			wSB.append(CXException.getCleanedStackOfThrowable(aDumpedThrowable));
 		}
 		return wSB.toString();
@@ -175,8 +169,7 @@ public class CLogToolsException {
 	 */
 	public String eInString(final Throwable aThrowable, final char aSeparator) {
 		try {
-			return addEDescrFullInBuffer(new StringBuilder(512), aThrowable,
-					aSeparator).toString();
+			return addEDescrFullInBuffer(new StringBuilder(512), aThrowable, aSeparator).toString();
 		} catch (Exception e) {
 			e.initCause(aThrowable);
 			e.printStackTrace();
@@ -189,8 +182,7 @@ public class CLogToolsException {
 	 * @param e
 	 * @return
 	 */
-	private String eStack(final String aShift, final Throwable e,
-			final char aSeparator) {
+	private String eStack(final String aShift, final Throwable e, final char aSeparator) {
 		StringBuilder wTmp = new StringBuilder();
 		StackTraceElement[] wStackElements = e.getStackTrace();
 		StackTraceElement wStackElement;
@@ -249,7 +241,7 @@ public class CLogToolsException {
 			}
 
 			return cutStackAfterOrgPsem2m(wS);
-		} catch (Throwable e2) {
+		} catch (Exception e2) {
 			return messCantGetStack(e2);
 		}
 	}
@@ -270,7 +262,7 @@ public class CLogToolsException {
 			} else {
 				return wStack;
 			}
-		} catch (Throwable e2) {
+		} catch (Exception e2) {
 			return messCantGetFirstLine(e2);
 		}
 	}
@@ -282,13 +274,11 @@ public class CLogToolsException {
 	 * @param aPackagePrefix
 	 * @return
 	 */
-	private String getFirstPackageLineInStack(final Throwable e,
-			final String aPackagePrefix) {
+	private String getFirstPackageLineInStack(final Throwable e, final String aPackagePrefix) {
 		try {
 			String wS = eStack(e);
 
-			int wPos = (aPackagePrefix != null) ? wS.indexOf(aPackagePrefix)
-					: -1;
+			int wPos = (aPackagePrefix != null) ? wS.indexOf(aPackagePrefix) : -1;
 
 			if (wPos > -1) {
 				wS = wS.substring(wPos);
@@ -299,7 +289,7 @@ public class CLogToolsException {
 
 			}
 			return wS;
-		} catch (Throwable e2) {
+		} catch (Exception e2) {
 			return messCantGetFirstPackageLine(e2, aPackagePrefix);
 		}
 	}
@@ -327,10 +317,8 @@ public class CLogToolsException {
 	 * @param aPackagePrefix
 	 * @return
 	 */
-	private String messCantGetFirstPackageLine(final Throwable e,
-			final String aPackagePrefix) {
-		return String.format(MESS_CANT_GET_FPLIS, aPackagePrefix,
-				e.getMessage(), eStack(e));
+	private String messCantGetFirstPackageLine(final Throwable e, final String aPackagePrefix) {
+		return String.format(MESS_CANT_GET_FPLIS, aPackagePrefix, e.getMessage(), eStack(e));
 	}
 
 	/**
