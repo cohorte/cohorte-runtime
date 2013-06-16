@@ -1,6 +1,9 @@
 package org.psem2m.utilities.scripting;
 
-
+/**
+ * @author ogattaz
+ * 
+ */
 public interface IXjsTracer {
 
 	public final static String CONSTRUCTOR = "<init>";

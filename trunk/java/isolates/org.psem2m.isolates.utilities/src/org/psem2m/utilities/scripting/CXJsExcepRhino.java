@@ -14,9 +14,14 @@ public class CXJsExcepRhino extends CXJsException {
 
 	private static final long serialVersionUID = 1L;
 
-	// Dans certains cas (eval s'un script compile) on n'a pas le Numero de
-	// ligne
-	// via getLineNumber main il est indique dans le texte du message
+	//
+	/**
+	 * Dans certains cas (eval s'un script compile) on n'a pas le Numero de
+	 * ligne // via getLineNumber main il est indique dans le texte du message
+	 * 
+	 * @param aExcep
+	 * @return
+	 */
 	private static int checkLineNum(ScriptException aExcep) {
 		if (aExcep == null) {
 			return -1;
@@ -148,18 +153,17 @@ public class CXJsExcepRhino extends CXJsException {
 		pCustomMessage = pCustomMessage == null || pCustomMessage.trim().length() < 1 ? super
 				.getMessage() : pCustomMessage;
 		if (pCustomMessage == null || "object error".equals(pCustomMessage.toLowerCase())) {
-			// FDB - Fiche 64829
-			// Type Error javascript - On essaie de d�terminer la valeur
+			// Type Error javascript - On essaie de determiner la valeur
 			try {
-				// --> ScriptException ne fournit pas de m�thode directe pour
-				// d�terminer le contenu de l'erreur
+				// --> ScriptException ne fournit pas de methode directe pour
+				// determiner le contenu de l'erreur
 				// --> Le package sun.org.mozilla.* n'est pas visible dans le
 				// Serveur bridge OSGI
-				// --> On check la pr�sence de la m�thode cause.value
+				// --> On check la presence de la methode cause.value
 				Throwable obj = super.getCause() == null ? null : super.getCause().getCause();
 				// Obj est une
 				// sun.org.mozilla.javascript.internal.RhinoException qui
-				// permettrait de r�cup�rer l'objet li� � l'exception
+				// permettrait de recuperer l'objet lie a l'exception
 				if (obj != null) {
 					Method meth = obj.getClass().getMethod("getValue");
 					if (meth != null && meth.getReturnType().equals(Object.class)) {
@@ -167,6 +171,7 @@ public class CXJsExcepRhino extends CXJsException {
 					}
 				}
 			} catch (Exception e) {
+				// pas réussi récupérer la cause...
 			}
 		}
 		return pCustomMessage;
