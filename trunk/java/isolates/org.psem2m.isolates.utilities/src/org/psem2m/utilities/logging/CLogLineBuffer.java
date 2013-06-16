@@ -592,9 +592,7 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable, java.
 		append(' ').append(aId).append(DESCR_VALUE_START);
 
 		int wMax = (aValues != null) ? aValues.length : 0;
-		if (wMax == 0) {
-
-		} else {
+		if (wMax > 0) {
 			Object wValue;
 			int wI = 0;
 			append(aValues[wI]);
@@ -612,42 +610,9 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable, java.
 	}
 
 	/**
-	 * Appends the "description " of the <code>String</code> value argument to
-	 * this trace buffer:<br>
-	 * <code>aId=[theStringValue]</code>
-	 * <p>
-	 * The characters of the <code>String</code> argument are appended, in
-	 * order, to the contents of this trace-buffer, increasing the length of
-	 * this trace-buffer by the length of the argument.
-	 * <p>
-	 * If <code>str</code> is <code>null</code>, then the four characters
-	 * <code>"null"</code> are appended to this trace-buffer.
-	 * <p>
-	 * 
 	 * @param aId
-	 *            a <code>String</code> identifier.
-	 * @param aStringValue
-	 *            a <code>String</code> value.
-	 * @return a reference to this <code>CTraceBuffer</code> object.
-	 * @see java.lang.CTraceBuffer#append(java.lang.String)
-	 */
-
-	/**
-	 * Appends the "description " of the <code>boolean</code> value argument to
-	 * this trace buffer:<br>
-	 * <code>aId=[theBoolValue]</code>
-	 * <p>
-	 * The argument is converted to a string as if by the method
-	 * <code>String.valueOf()</code>, and the characters of that string are then
-	 * appended to this trace-buffer.
-	 * <p>
-	 * 
-	 * @param aId
-	 *            a <code>String</code> identifier.
-	 * @param aBoolValue
-	 *            a <code>boolean</code> value.
-	 * @return a reference to this <code>CTraceBuffer</code> object.
-	 * @see java.lang.CLogLineBuffer#append(java.lang.String)
+	 * @param e
+	 * @return
 	 */
 	public CLogLineBuffer appendDescr(String aId, Throwable e) {
 		String wClassName = e.getClass().getName();
