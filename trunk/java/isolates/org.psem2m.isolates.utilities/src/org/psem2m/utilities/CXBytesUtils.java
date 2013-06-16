@@ -14,7 +14,7 @@ package org.psem2m.utilities;
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
-public class CXBytesUtils {
+public final class CXBytesUtils {
 
 	private static byte BOM_UTF_16BE[] = { (byte) 0xFE, (byte) 0xFF };
 

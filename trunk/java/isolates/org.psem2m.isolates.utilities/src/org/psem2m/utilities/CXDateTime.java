@@ -18,7 +18,7 @@ import java.util.Date;
  * @author ogattaz
  * 
  */
-public class CXDateTime {
+public final class CXDateTime {
 
 	public final static String DATE_SEP = "/";
 

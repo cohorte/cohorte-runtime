@@ -17,7 +17,7 @@ import java.util.List;
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
-public class CXStringUtils implements IConstants {
+public final class CXStringUtils implements IConstants {
 
 	private final static String FORMAT_EXCEPTION = "Exception=[%s] ";
 
@@ -973,4 +973,10 @@ public class CXStringUtils implements IConstants {
 		return new String(wChars);
 	}
 
+	/**
+	 * 
+	 */
+	private CXStringUtils() {
+		super();
+	}
 }

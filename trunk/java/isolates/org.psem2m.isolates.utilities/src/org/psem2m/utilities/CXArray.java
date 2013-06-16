@@ -17,7 +17,7 @@ import java.util.List;
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
-public class CXArray implements IConstants {
+public final class CXArray implements IConstants {
 
 	/**
 	 * @param aValues

@@ -28,7 +28,7 @@ import org.w3c.dom.Element;
  * @author ogattaz
  * 
  */
-public class CXListUtils {
+public final class CXListUtils {
 
 	/**
 	 * CReation d'une propertie qui contient la somme de aPropB dans aPropA
@@ -192,5 +192,12 @@ public class CXListUtils {
 	public static String SystemPropertiesToString() {
 
 		return PropertiesToString(System.getProperties());
+	}
+
+	/**
+	 * 
+	 */
+	private CXListUtils() {
+		super();
 	}
 }
