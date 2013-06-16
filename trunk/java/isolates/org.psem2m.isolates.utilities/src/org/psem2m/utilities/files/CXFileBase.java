@@ -75,6 +75,9 @@ public class CXFileBase extends File {
 		super(aFileDir.getAbsolutePath(), checkSeparator(aSubPath));
 	}
 
+	/**
+	 * @param aFile
+	 */
 	public CXFileBase(File aFile) {
 		super(aFile.getAbsolutePath());
 	}
@@ -87,8 +90,6 @@ public class CXFileBase extends File {
 	}
 
 	/**
-	 * 16w_104 - suppression des ajout systématique d'un "separatorChar" en fin
-	 * de path d'un Dir !
 	 * 
 	 * @param aPath
 	 * @param aSubPath
@@ -97,18 +98,27 @@ public class CXFileBase extends File {
 		super(aPath, checkSeparator(aSubPath));
 	}
 
-	/**
-	 * @param obj
-	 * @return
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.io.File#equals(java.lang.Object)
 	 */
-	public boolean equals(CXFileBase obj) {
+	@Override
+	public boolean equals(Object obj) {
 		if (obj == null) {
 			return false;
-		} else if ((this.isFile() && obj.isFile()) || (this.isDirectory() && obj.isDirectory())) {
+		}
+		if (!(obj instanceof CXFileBase)) {
+			return super.equals(obj);
+		}
+
+		CXFileBase wFileBase = (CXFileBase) obj;
+		if ((this.isFile() && wFileBase.isFile())
+				|| (this.isDirectory() && wFileBase.isDirectory())) {
 			if (isPathCaseSensitive()) {
-				return obj.getAbsolutePath().equals(getAbsolutePath());
+				return wFileBase.getAbsolutePath().equals(getAbsolutePath());
 			} else {
-				return obj.getAbsolutePath().equalsIgnoreCase(getAbsolutePath());
+				return wFileBase.getAbsolutePath().equalsIgnoreCase(getAbsolutePath());
 			}
 		} else {
 			return false;
@@ -116,8 +126,8 @@ public class CXFileBase extends File {
 	}
 
 	/**
-	 * FDB - Méthode volontairement passée en @Deprecated pour forcer
-	 * l'utilisation de getAbsolutePath
+	 * Méthode volontairement passée en @Deprecated pour forcer l'utilisation de
+	 * getAbsolutePath
 	 */
 	@Override
 	@Deprecated
@@ -144,6 +154,19 @@ public class CXFileBase extends File {
 			wResult = wResult.substring(1);
 		}
 		return wResult;
+	}
+
+	/*
+	 * règle sonar : Checks that classes that override equals() also override
+	 * hashCode().
+	 * 
+	 * (non-Javadoc)
+	 * 
+	 * @see java.io.File#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		return super.hashCode();
 	}
 
 	/**
