@@ -197,18 +197,22 @@ public class CXFileText extends CXFile {
 				// Unicode BOM mark not found, unread all bytes
 				unread = n;
 			}
-			if (wEncoding != null) {
-				// System.out.println("Found BOM " + wEncoding + ", read=" + n +
-				// ", unread=" + unread);
-				// System.out.println("BOM Found - " + wEncoding + " - " +
-				// aFile.getAbsolutePath());
+			// if (wEncoding != null) {
+			// System.out.println("Found BOM " + wEncoding + ", read=" + n +
+			// ", unread=" + unread);
+			// System.out.println("BOM Found - " + wEncoding + " - " +
+			// aFile.getAbsolutePath());
+			//
+			// } else {
+			// wEncoding = wDefEncod;
+			// System.out.println("No BOM found - encoding=" + wEncoding +
+			// ", read=" + n + ", unread=" + unread);
+			// System.out.println("BOM not found - encoding=" + wEncoding +
+			// " - " + aFile.getAbsolutePath());
+			// }
 
-			} else {
+			if (wEncoding == null) {
 				wEncoding = wDefEncod;
-				// System.out.println("No BOM found - encoding=" + wEncoding +
-				// ", read=" + n + ", unread=" + unread);
-				// System.out.println("BOM not found - encoding=" + wEncoding +
-				// " - " + aFile.getAbsolutePath());
 			}
 
 			if (unread > 0) {

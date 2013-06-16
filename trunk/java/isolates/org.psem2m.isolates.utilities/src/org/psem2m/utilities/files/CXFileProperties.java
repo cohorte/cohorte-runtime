@@ -228,18 +228,18 @@ public class CXFileProperties extends CXFileText {
 			if (wLine.length() != 0 && !wLine.startsWith("#")) {
 				// Key
 				String wKey = CXStringUtils.strLeft(wLine, "=");
-				if (aOptionKey == PROP_UNCHANGE) {
 
-				} else if (aOptionKey == PROP_UPPERCASE) {
+				// nothing if aOptionKey == PROP_UNCHANGE
+				if (aOptionKey == PROP_UPPERCASE) {
 					wKey = wKey.toUpperCase();
 				} else if (aOptionKey == PROP_LOWERCASE) {
 					wKey = wKey.toLowerCase();
 				}
+
 				// Value
 				String wValue = CXStringUtils.strRight(wLine, "=");
-				if (aOptionValue == PROP_UNCHANGE) {
-
-				} else if (aOptionValue == PROP_UPPERCASE) {
+				// nothing if aOptionValue == PROP_UNCHANGE
+				if (aOptionValue == PROP_UPPERCASE) {
 					wValue = wValue.toUpperCase();
 				} else if (aOptionValue == PROP_LOWERCASE) {
 					wValue = wValue.toLowerCase();
