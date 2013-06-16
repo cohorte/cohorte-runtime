@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2011 www.isandlatech.com (www.isandlatech.com)
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    ogattaz (isandlaTech) - initial API and implementation
+ *******************************************************************************/
 package org.psem2m.utilities;
 
 /**
@@ -51,8 +61,9 @@ public class CXJavaCallerContext {
 	public static Class<?> getCaller(int wDeep) {
 		Class<?>[] wCallers = getCallers();
 		int wMax = wCallers.length;
-		if (wDeep > wMax)
+		if (wDeep > wMax) {
 			wDeep = wMax;
+		}
 		return wCallers[wDeep];
 	}
 
@@ -65,8 +76,9 @@ public class CXJavaCallerContext {
 		int wMax = wCallers.length;
 		int wI = 0;
 		while (wI < wMax) {
-			if (wCallers[wI].getName().startsWith(aPackageId))
+			if (wCallers[wI].getName().startsWith(aPackageId)) {
 				return wCallers[wI];
+			}
 			wI++;
 		}
 		return null;
@@ -86,10 +98,12 @@ public class CXJavaCallerContext {
 	public static Class<?>[] getCallers(int wLimit) {
 		Class<?>[] wCallers = getCallers();
 		int wMax = wCallers.length;
-		if (wLimit < 0)
+		if (wLimit < 0) {
 			wLimit = wMax;
-		if (wMax > wLimit)
+		}
+		if (wMax > wLimit) {
 			wMax = wLimit;
+		}
 		Class<?>[] wSubCallers = new Class<?>[wMax];
 		int wI = 0;
 		while (wI < wMax) {
@@ -113,8 +127,9 @@ public class CXJavaCallerContext {
 	public static String[] getCallersNames(int wLimit) {
 		Class<?>[] wCallers = getCallers();
 		int wMax = wCallers.length;
-		if (wLimit > NOLIMIT && wMax > wLimit)
+		if (wLimit > NOLIMIT && wMax > wLimit) {
 			wMax = wLimit;
+		}
 		String[] wNames = new String[wMax];
 		int wI = 0;
 		while (wI < wMax) {

@@ -23,6 +23,7 @@ import java.util.Comparator;
  * 
  */
 public abstract class CXAbstractListComparator<E> implements Comparator<E> {
+
 	// ascending sort by default
 	private boolean pAsc = true;
 
@@ -41,8 +42,11 @@ public abstract class CXAbstractListComparator<E> implements Comparator<E> {
 		pAsc = aSortAsc;
 	}
 
-	// METHODES DE L'INTERFACE COMPARE
-
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
+	 */
 	@Override
 	public int compare(final E a, final E b) {
 		int wRes = 0;
@@ -65,25 +69,41 @@ public abstract class CXAbstractListComparator<E> implements Comparator<E> {
 		return wRes;
 	}
 
-	// A reimplementer pour le critere de tri
-	// Idem methode compare
+	/**
+	 * A reimplementer pour le critere de tri Idem methode compare
+	 * 
+	 * @param a
+	 * @param b
+	 * @return
+	 */
 	abstract protected int compareObjects(Object a, Object b);
 
-	// METHODES ABSTRAITES ET A REIMPLEMENTER
-
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
 	@Override
 	public boolean equals(final Object obj) {
 		return obj != null && obj instanceof Comparator<?>;
 	}
 
-	// A reimplementer pour le critere de tri
-	// Renvoie true si les objets a et b sont identiques (au sens du pointeur)
-	// Ex : Liste de fichiers triee par taille
-	// --> a et b sont identique si les path sont identiques
-	// -----> equalsObjects compare les path de a et b
-	// --> Si a et b ont la meme taille ils ne sont pas consideres comme
-	// identiques
-	// -----> equalsObjects renvoie false
+	/**
+	 * <pre>
+	 * A reimplementer pour le critere de tri
+	 *  Renvoie true si les objets a et b sont identiques (au sens du pointeur)
+	 *  Ex : Liste de fichiers triee par taille
+	 *  --&gt; a et b sont identique si les path sont identiques
+	 *  -----&gt; equalsObjects compare les path de a et b
+	 *  --&gt; Si a et b ont la meme taille ils ne sont pas consideres comme
+	 *  identiques
+	 *  -----&gt; equalsObjects renvoie false
+	 * </pre>
+	 * 
+	 * @param a
+	 * @param b
+	 * @return
+	 */
 	protected boolean equalsObjects(final Object a, final Object b) {
 		return a == b;
 	}

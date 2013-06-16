@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2011 www.isandlatech.com (www.isandlatech.com)
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    ogattaz (isandlaTech) - initial API and implementation
+ *******************************************************************************/
 package org.psem2m.utilities.files;
 
 import java.io.File;
@@ -6,46 +16,32 @@ import java.util.Collection;
 import org.psem2m.utilities.CXAbstractListComparator;
 import org.psem2m.utilities.CXSortList;
 
-
-
 /**
- * @author parents
- *
+ * @author ogattaz
+ * 
  */
-public class CXSortListFiles extends CXSortList<File>
-{
+public class CXSortListFiles extends CXSortList<File> {
 
 	private static final long serialVersionUID = 3978703982749364787L;
 
 	/**
 	 */
-	public CXSortListFiles()
-	{
+	public CXSortListFiles() {
 		super();
 	}
 
 	/**
 	 * @param aSortAsc
 	 */
-	public CXSortListFiles(boolean aSortAsc)
-	{
+	public CXSortListFiles(boolean aSortAsc) {
 		super(aSortAsc);
-	}
-
-	/**
-	 * @param aComp
-	 */
-	public CXSortListFiles(CXSortListFileAbstractComparator<File> aComp)
-	{
-		super(aComp);
 	}
 
 	/**
 	 * @param c
 	 * @throws Exception
 	 */
-	public CXSortListFiles(Collection<File> c) throws Exception
-	{
+	public CXSortListFiles(Collection<File> c) throws Exception {
 		super(c);
 	}
 
@@ -54,17 +50,23 @@ public class CXSortListFiles extends CXSortList<File>
 	 * @param aComp
 	 * @throws Exception
 	 */
-	public CXSortListFiles(Collection<File> c, CXSortListFileAbstractComparator<File> aComp) throws Exception
-	{
+	public CXSortListFiles(Collection<File> c, CXSortListFileAbstractComparator<File> aComp)
+			throws Exception {
 		super(c, aComp);
 	}
 
 	/**
-	 * Constructeur par d�faut
+	 * @param aComp
+	 */
+	public CXSortListFiles(CXSortListFileAbstractComparator<File> aComp) {
+		super(aComp);
+	}
+
+	/**
+	 * Constructeur par defaut
 	 */
 	@Override
-	protected CXAbstractListComparator<File> getDefaultComparator()
-	{
+	protected CXAbstractListComparator<File> getDefaultComparator() {
 		return new CAdminFilePathComparator();
 	}
 
@@ -74,56 +76,49 @@ public class CXSortListFiles extends CXSortList<File>
 	 * @see org.psem2m.utilities.CXSortList#getDefaultComparator(boolean)
 	 */
 	@Override
-	protected CXAbstractListComparator<File> getDefaultComparator(boolean aSortAsc)
-	{
+	protected CXAbstractListComparator<File> getDefaultComparator(boolean aSortAsc) {
 		return new CAdminFilePathComparator(aSortAsc);
 	}
 
 	/**
 	 * 
 	 */
-	public void sortByDateAsc()
-	{
+	public void sortByDateAsc() {
 		sort(new CAdminFileDateComparator());
 	}
 
 	/**
 	 * 
 	 */
-	public void sortByDateDesc()
-	{
+	public void sortByDateDesc() {
 		sort(new CAdminFileDateComparator(false));
 	}
 
 	/**
 	 * 
 	 */
-	public void sortByPathAsc()
-	{
+	public void sortByPathAsc() {
 		sort(new CAdminFilePathComparator());
 	}
 
 	/**
 	 * 
 	 */
-	public void sortByPathDesc()
-	{
+	public void sortByPathDesc() {
 		sort(new CAdminFilePathComparator(false));
 	}
 
 	/**
 	 * 
 	 */
-	public void sortBySizeAsc()
-	{
+	public void sortBySizeAsc() {
 		sort(new CAdminFileSizeComparator());
 	}
 
 	/**
 	 * 
 	 */
-	public void sortBySizeDesc()
-	{
+	public void sortBySizeDesc() {
 		sort(new CAdminFileSizeComparator(false));
 	}
 }

@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2011 www.isandlatech.com (www.isandlatech.com)
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    ogattaz (isandlaTech) - initial API and implementation
+ *******************************************************************************/
 package org.psem2m.utilities;
 
 import java.io.ByteArrayInputStream;
@@ -45,12 +55,15 @@ public class CXResourcesXml extends CXResources {
 	 */
 	private String buildFullId(String aId, String aSuffix, String aExtension) {
 		StringBuilder wSB = new StringBuilder();
-		if (aId != null && !aId.isEmpty())
+		if (aId != null && !aId.isEmpty()) {
 			wSB.append(aId.replace('.', '/'));
-		if (aSuffix != null && !aSuffix.isEmpty())
+		}
+		if (aSuffix != null && !aSuffix.isEmpty()) {
 			wSB.append('_').append(aSuffix);
-		if (aExtension != null && !aExtension.isEmpty())
+		}
+		if (aExtension != null && !aExtension.isEmpty()) {
 			wSB.append('.').append(aExtension);
+		}
 		return wSB.toString();
 	}
 
@@ -59,8 +72,7 @@ public class CXResourcesXml extends CXResources {
 	 * @param aLocale
 	 * @return
 	 */
-	private InputStream findResourceStream(String aId, Locale aLocale)
-			throws Exception {
+	private InputStream findResourceStream(String aId, Locale aLocale) throws Exception {
 		ClassLoader wClassLoader = getClassLoader(aId);
 		String wFullId;
 		// err report
@@ -80,13 +92,15 @@ public class CXResourcesXml extends CXResources {
 				wFullId = buildFullId(aId, aLocale.getLanguage(), XML);
 				wResourceStream = wClassLoader.getResourceAsStream(wFullId);
 
-				if (wResourceStream == null)
+				if (wResourceStream == null) {
 					wErrReport.append('\n').append(buildErrMessUFRS(wFullId));
+				}
 			}
 		}
 		// if no stream => Exception
-		if (wResourceStream == null)
+		if (wResourceStream == null) {
 			throw new Exception(wErrReport.toString());
+		}
 
 		return wResourceStream;
 	}
@@ -106,11 +120,9 @@ public class CXResourcesXml extends CXResources {
 
 			Properties wProperties = new Properties();
 			wProperties.loadFromXML(wResourceStream);
-			ByteArrayOutputStream wOuputStream = new ByteArrayOutputStream(
-					wSize);
+			ByteArrayOutputStream wOuputStream = new ByteArrayOutputStream(wSize);
 			wProperties.store(wOuputStream, CXStringUtils.EMPTY);
-			ByteArrayInputStream wBAIS = new ByteArrayInputStream(
-					wOuputStream.toByteArray());
+			ByteArrayInputStream wBAIS = new ByteArrayInputStream(wOuputStream.toByteArray());
 			pResourceBundle = new PropertyResourceBundle(wBAIS);
 
 		} catch (Exception e) {

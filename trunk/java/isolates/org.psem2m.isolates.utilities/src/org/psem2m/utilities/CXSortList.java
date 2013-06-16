@@ -44,6 +44,7 @@ public class CXSortList<E> extends ArrayList<E> {
 	TreeSet<E> pTreeSet = null;
 
 	/**
+	 * 
 	 */
 	public CXSortList() {
 		super();
@@ -51,6 +52,7 @@ public class CXSortList<E> extends ArrayList<E> {
 	}
 
 	/**
+	 * @param aSortAsc
 	 */
 	public CXSortList(final boolean aSortAsc) {
 		super();
@@ -58,6 +60,8 @@ public class CXSortList<E> extends ArrayList<E> {
 	}
 
 	/**
+	 * @param aCol
+	 * @throws Exception
 	 */
 	public CXSortList(final Collection<E> aCol) throws Exception {
 		super();
@@ -65,14 +69,18 @@ public class CXSortList<E> extends ArrayList<E> {
 	}
 
 	/**
+	 * @param aCol
+	 * @param aComp
+	 * @throws Exception
 	 */
-	public CXSortList(final Collection<E> aCol,
-			final CXAbstractListComparator<E> aComp) throws Exception {
+	public CXSortList(final Collection<E> aCol, final CXAbstractListComparator<E> aComp)
+			throws Exception {
 		super();
 		init(aCol.iterator(), aComp);
 	}
 
 	/**
+	 * @param aComp
 	 */
 	public CXSortList(final CXAbstractListComparator<E> aComp) {
 		super();
@@ -80,6 +88,8 @@ public class CXSortList<E> extends ArrayList<E> {
 	}
 
 	/**
+	 * @param aEnum
+	 * @throws Exception
 	 */
 	public CXSortList(final Enumeration<E> aEnum) throws Exception {
 		super();
@@ -87,14 +97,19 @@ public class CXSortList<E> extends ArrayList<E> {
 	}
 
 	/**
+	 * @param aEnum
+	 * @param aComp
+	 * @throws Exception
 	 */
-	public CXSortList(final Enumeration<E> aEnum,
-			final CXAbstractListComparator<E> aComp) throws Exception {
+	public CXSortList(final Enumeration<E> aEnum, final CXAbstractListComparator<E> aComp)
+			throws Exception {
 		super();
 		init(aEnum, aComp);
 	}
 
 	/**
+	 * @param aIt
+	 * @throws Exception
 	 */
 	public CXSortList(final Iterator<E> aIt) throws Exception {
 		super();
@@ -103,8 +118,8 @@ public class CXSortList<E> extends ArrayList<E> {
 
 	/**
 		*/
-	public CXSortList(final Iterator<E> aIt,
-			final CXAbstractListComparator<E> aComp) throws Exception {
+	public CXSortList(final Iterator<E> aIt, final CXAbstractListComparator<E> aComp)
+			throws Exception {
 		super();
 		init(aIt, aComp);
 	}
@@ -164,8 +179,7 @@ public class CXSortList<E> extends ArrayList<E> {
 	 * <p>
 	 * A reimplementer : MUST BE OVERWRITED
 	 */
-	protected CXAbstractListComparator<E> getDefaultComparator(
-			final boolean aSortAsc) {
+	protected CXAbstractListComparator<E> getDefaultComparator(final boolean aSortAsc) {
 		return null;
 	}
 
@@ -183,8 +197,7 @@ public class CXSortList<E> extends ArrayList<E> {
 	 * @param aEnum
 	 * @param aComp
 	 */
-	private void init(final Enumeration<E> aEnum,
-			final CXAbstractListComparator<E> aComp) {
+	private void init(final Enumeration<E> aEnum, final CXAbstractListComparator<E> aComp) {
 		setComparator(aComp);
 		if (aEnum != null) {
 			while (aEnum.hasMoreElements()) {
@@ -200,8 +213,7 @@ public class CXSortList<E> extends ArrayList<E> {
 	 * @param aIt
 	 * @param aComp
 	 */
-	private void init(final Iterator<E> aIt,
-			final CXAbstractListComparator<E> aComp) {
+	private void init(final Iterator<E> aIt, final CXAbstractListComparator<E> aComp) {
 		setComparator(aComp);
 		if (aIt != null) {
 			while (aIt.hasNext()) {

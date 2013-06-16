@@ -90,7 +90,7 @@ public class CXJsEngineInvocable extends CXJsEngine {
 			} catch (ScriptException e) {
 				CXJsExcepRhino.throwMyScriptExcep(this, pMainModule, tracer, e,
 						"invokeFunction(" + aFuntion + ")");
-			} catch (Throwable e) {
+			} catch (Exception e) {
 				throwMyScriptExcep(pMainModule, tracer,
 						"Error invoking function", e, "invokeFunction("
 								+ aFuntion + ")");
@@ -122,7 +122,7 @@ public class CXJsEngineInvocable extends CXJsEngine {
 			} catch (ScriptException e) {
 				CXJsExcepRhino.throwMyScriptExcep(this, pMainModule, tracer, e,
 						"invokeMethod(" + aJSObjMethod + ")");
-			} catch (Throwable e) {
+			} catch (Exception e) {
 				throwMyScriptExcep(pMainModule, tracer,
 						"Error invoking methos", e, "invokeMethod("
 								+ aJSObjMethod + ")");

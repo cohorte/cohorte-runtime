@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2011 www.isandlatech.com (www.isandlatech.com)
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    ogattaz (isandlaTech) - initial API and implementation
+ *******************************************************************************/
 package org.psem2m.utilities.logging;
 
 import java.io.Serializable;
@@ -13,8 +23,15 @@ import org.psem2m.utilities.IXDescriber;
  * @author ogattaz
  * 
  */
-public class CLogLineBuffer implements Serializable, java.lang.Appendable,
-		java.lang.CharSequence {
+/**
+ * @author ogattaz
+ *
+ */
+/**
+ * @author ogattaz
+ * 
+ */
+public class CLogLineBuffer implements Serializable, java.lang.Appendable, java.lang.CharSequence {
 
 	public final static char DESCR_VALUE_END = ']';
 
@@ -49,15 +66,13 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable,
 	/** attention : LENGTH_MAX_METHODNAME spaces **/
 	private final static String SPACES_METHODNAME = "                    ";
 
-	final static char[] TENZEROCHARS = { '0', '0', '0', '0', '0', '0', '0',
-			'0', '0', '0' };
+	final static char[] TENZEROCHARS = { '0', '0', '0', '0', '0', '0', '0', '0', '0', '0' };
 
 	final static char VALUES_SEP = ';';
 
 	private final StringBuilder pBuffer;
 
-	private final CLogToolsException pToolsException = CLogToolsException
-			.getInstance();
+	private final CLogToolsException pToolsException = CLogToolsException.getInstance();
 
 	/**
    *
@@ -131,13 +146,14 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable,
 	private CLogLineBuffer addNumStringInText(int aValue, int aLen) {
 		String wResult = String.valueOf(aValue);
 		int wLen = wResult.length();
-		if (wLen == aLen)
+		if (wLen == aLen) {
 			return append(wResult);
-		else if (wLen < aLen)
+		} else if (wLen < aLen) {
 			return append(TENZEROCHARS, 0, aLen - wLen).append(wResult);
-		else
+		} else {
 			// if (wResult.length() > aLen)
 			return append(wResult.substring(wLen - aLen));
+		}
 	}
 
 	/**
@@ -187,42 +203,25 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable,
 		return this;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Appendable#append(java.lang.CharSequence)
+	 */
 	@Override
 	public CLogLineBuffer append(CharSequence csq) {
 		pBuffer.append(csq);
 		return this;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Appendable#append(java.lang.CharSequence, int, int)
+	 */
 	@Override
 	public CLogLineBuffer append(CharSequence csq, int start, int end) {
 		pBuffer.append(csq, start, end);
-		return this;
-	}
-
-	/**
-	 * @param d
-	 * @return
-	 */
-	public CLogLineBuffer append(double d) {
-		pBuffer.append(d);
-		return this;
-	}
-
-	/**
-	 * @param i
-	 * @return
-	 */
-	public CLogLineBuffer append(int i) {
-		pBuffer.append(i);
-		return this;
-	}
-
-	/**
-	 * @param l
-	 * @return
-	 */
-	public CLogLineBuffer append(long l) {
-		pBuffer.append(l);
 		return this;
 	}
 
@@ -236,25 +235,18 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable,
 	}
 
 	/**
-	 * @param str
-	 * @return
-	 */
-	public CLogLineBuffer append(String str) {
-		pBuffer.append(str);
-		return this;
-	}
-
-	/**
-	 * @param str
+	 * @param aValue
 	 * @param aMaxLen
 	 * @return
 	 */
-	public CLogLineBuffer append(String str, int aMaxLen) {
-		int wLength = str.length();
+	public CLogLineBuffer append(Object aValue, int aMaxLen) {
+
+		String wValue = (aValue != null) ? aValue.toString() : "null";
+		int wLength = wValue.length();
 		if (wLength > aMaxLen) {
-			str = str.substring(0, aMaxLen);
+			wValue = wValue.substring(0, aMaxLen);
 		}
-		pBuffer.append(str);
+		pBuffer.append(wValue);
 		if (wLength < aMaxLen) {
 			int wMax = aMaxLen - wLength;
 			int wI = 0;
@@ -264,7 +256,6 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable,
 			}
 
 		}
-
 		return this;
 	}
 
@@ -275,15 +266,15 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable,
 	public CLogLineBuffer appendClassName(Object aObject) {
 		if (aObject != null) {
 			String wName;
-			if (aObject instanceof Class<?>)
+			if (aObject instanceof Class<?>) {
 				wName = ((Class<?>) aObject).getName();
-			else
+			} else {
 				wName = aObject.getClass().getName();
+			}
 
 			int wPos = wName.lastIndexOf('.');
-			return append(
-					((wPos > -1 && wPos < wName.length() - 1) ? wName.substring(wPos + 1)
-							: wName), LENGTH_MAX_CLASSNAME);
+			return append(((wPos > -1 && wPos < wName.length() - 1) ? wName.substring(wPos + 1)
+					: wName), LENGTH_MAX_CLASSNAME);
 		} else {
 			return append('(').append("null").append(')');
 		}
@@ -330,8 +321,7 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable,
 	 * @param aValueSize
 	 * @param aValue
 	 */
-	public CLogLineBuffer appendDescr(Integer aIdSize, String aId,
-			Integer aValueSize, String aValue) {
+	public CLogLineBuffer appendDescr(Integer aIdSize, String aId, Integer aValueSize, String aValue) {
 		append(' ');
 		addAlignStringToLeft(aId, aIdSize.intValue());
 		append(DESCR_VALUE_START);
@@ -369,8 +359,7 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable,
 	 * @param aValue
 	 * @param aValueB
 	 */
-	public CLogLineBuffer appendDescr(Integer aIdSize, String aId,
-			String aValue, String aValueB) {
+	public CLogLineBuffer appendDescr(Integer aIdSize, String aId, String aValue, String aValueB) {
 		append(' ');
 		addAlignStringToLeft(aId, aIdSize.intValue());
 		append(DESCR_VALUE_START);
@@ -388,7 +377,7 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable,
 		try {
 			aDescriber.addDescriptionInBuffer(this);
 			return this;
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			return appendDescr("ERROR DURING THE BUILT OF THE DESCRIPTION", e);
 		}
 	}
@@ -420,10 +409,8 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable,
 	 * @param aIntValue
 	 * @return
 	 */
-	public CLogLineBuffer appendDescr(String aId, boolean aBoolValue,
-			int aIntValue) {
-		return appendDescr(aId, String.valueOf(aBoolValue),
-				String.valueOf(aIntValue));
+	public CLogLineBuffer appendDescr(String aId, boolean aBoolValue, int aIntValue) {
+		return appendDescr(aId, String.valueOf(aBoolValue), String.valueOf(aIntValue));
 	}
 
 	/**
@@ -432,14 +419,11 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable,
 	 * @param aLongValue
 	 * @return
 	 */
-	public CLogLineBuffer appendDescr(String aId, boolean aBoolValue,
-			long aLongValue) {
-		return appendDescr(aId, String.valueOf(aBoolValue),
-				String.valueOf(aLongValue));
+	public CLogLineBuffer appendDescr(String aId, boolean aBoolValue, long aLongValue) {
+		return appendDescr(aId, String.valueOf(aBoolValue), String.valueOf(aLongValue));
 	}
 
-	public CLogLineBuffer appendDescr(String aId, boolean aBoolValue,
-			String aValue) {
+	public CLogLineBuffer appendDescr(String aId, boolean aBoolValue, String aValue) {
 		return appendDescr(aId, String.valueOf(aBoolValue), aValue);
 	}
 
@@ -481,15 +465,13 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable,
 	 * @see java.lang.CLogLineBuffer#append(java.lang.String)
 	 */
 	public CLogLineBuffer appendDescr(String aId, Class<?> aClass) {
-		if (aClass == null)
+		if (aClass == null) {
 			return appendDescr(aId, (String) null);
-		else {
+		} else {
 			String wName = aClass.getName();
 			int wPos = wName.lastIndexOf('.');
-			return appendDescr(
-					aId,
-					((wPos > -1 && wPos < wName.length() - 1) ? wName
-							.substring(wPos + 1) : wName));
+			return appendDescr(aId,
+					((wPos > -1 && wPos < wName.length() - 1) ? wName.substring(wPos + 1) : wName));
 		}
 	}
 
@@ -509,8 +491,8 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable,
 	 * @return
 	 */
 	public CLogLineBuffer appendDescr(String aId, int aIntValue) {
-		this.append(' ').append(aId).append(DESCR_VALUE_START)
-				.append(aIntValue).append(DESCR_VALUE_END);
+		this.append(' ').append(aId).append(DESCR_VALUE_START).append(aIntValue)
+				.append(DESCR_VALUE_END);
 		return this;
 	}
 
@@ -535,8 +517,7 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable,
 	 * @param aIntValueC
 	 * @return
 	 */
-	public CLogLineBuffer appendDescr(String aId, int aIntValue,
-			int aIntValueB, int aIntValueC) {
+	public CLogLineBuffer appendDescr(String aId, int aIntValue, int aIntValueB, int aIntValueC) {
 		append(' ').append(aId).append(DESCR_VALUE_START);
 		append(aIntValue);
 		append(VALUES_SEP).append(aIntValueB);
@@ -562,10 +543,11 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable,
 	 */
 	public CLogLineBuffer appendDescr(String aId, IXDescriber aDescriber) {
 		append(' ').append(aId).append(DESCR_VALUE_START);
-		if (aDescriber != null)
+		if (aDescriber != null) {
 			appendDescr(aDescriber);
-		else
+		} else {
 			append((String) null);
+		}
 		append(DESCR_VALUE_END);
 		return this;
 	}
@@ -596,31 +578,29 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable,
 	 * @param aLongValueB
 	 * @return
 	 */
-	public CLogLineBuffer appendDescr(String aId, long aLongValue,
-			long aLongValueB) {
-		return appendDescr(aId, String.valueOf(aLongValue),
-				String.valueOf(aLongValueB));
+	public CLogLineBuffer appendDescr(String aId, long aLongValue, long aLongValueB) {
+		return appendDescr(aId, String.valueOf(aLongValue), String.valueOf(aLongValueB));
 	}
 
 	/**
-	 * 
 	 * @param aId
-	 * @param aStringValueA
-	 * @param aStringValueB
+	 * @param aValues
 	 * @return
 	 */
-	public CLogLineBuffer appendDescr(String aId, String... aValue) {
+	public CLogLineBuffer appendDescr(String aId, Object... aValues) {
 
 		append(' ').append(aId).append(DESCR_VALUE_START);
 
-		int wMax = aValue.length;
-		if (wMax > 0) {
-			String wValue;
+		int wMax = (aValues != null) ? aValues.length : 0;
+		if (wMax == 0) {
+
+		} else {
+			Object wValue;
 			int wI = 0;
-			append(aValue[wI]);
+			append(aValues[wI]);
 			wI++;
 			while (wI < wMax) {
-				wValue = aValue[wI];
+				wValue = aValues[wI];
 				if (wValue != null) {
 					append(';').append(wValue);
 				}
@@ -651,54 +631,6 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable,
 	 * @return a reference to this <code>CTraceBuffer</code> object.
 	 * @see java.lang.CTraceBuffer#append(java.lang.String)
 	 */
-	// public CTraceBuffer appendDescr(String aId, String aStringValue)
-	// {
-	// this.append('
-	// ').append(aId).append(DESCR_VALUE_START).append(aStringValue).append(DESCR_VALUE_END);
-	// return this;
-	// }
-	/**
-	 * @param aId
-	 * @param aValue
-	 * @param aIntValue
-	 * @return
-	 */
-	public CLogLineBuffer appendDescr(String aId, String aValue, int aIntValue) {
-		return appendDescr(aId, aValue, String.valueOf(aIntValue));
-	}
-
-	/**
-	 * @param aId
-	 * @param aValue
-	 * @param aIntValue
-	 * @return
-	 */
-	public CLogLineBuffer appendDescr(String aId, String aValue, long aLongValue) {
-		return appendDescr(aId, aValue, String.valueOf(aLongValue));
-	}
-
-	/**
-	 * 
-	 * @param aId
-	 * @param aStringValue
-	 * @return
-	 */
-	public CLogLineBuffer appendDescr(String aId, StringBuffer aStringValue) {
-		this.append(' ').append(aId).append(DESCR_VALUE_START)
-				.append(aStringValue).append(DESCR_VALUE_END);
-		return this;
-	}
-
-	/**
-	 * @param aId
-	 * @param aStringValue
-	 * @return
-	 */
-	public CLogLineBuffer appendDescr(String aId, StringBuilder aStringValue) {
-		this.append(' ').append(aId).append(DESCR_VALUE_START)
-				.append(aStringValue).append(DESCR_VALUE_END);
-		return this;
-	}
 
 	/**
 	 * Appends the "description " of the <code>boolean</code> value argument to
@@ -726,17 +658,20 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable,
 		String wMess = e.getLocalizedMessage();
 
 		append(PREFIX);
-		if (aId != null)
+		if (aId != null) {
 			append(aId).append(DESCR_VALUE_START);
+		}
 		append(wClassName);
 
-		if (wMess != null)
+		if (wMess != null) {
 			append(':').append(wMess);
+		}
 
 		append(':').append(pToolsException.getFirstPsem2mLineInStack(e));
 
-		if (aId != null)
+		if (aId != null) {
 			append(DESCR_VALUE_END);
+		}
 
 		return this;
 	}
@@ -769,17 +704,15 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable,
 	 * @return a reference to this <code>CTraceBuffer</code> object.
 	 * @see java.lang.CLogLineBuffer#append(java.lang.String)
 	 */
-	public CLogLineBuffer appendDescrLeftAligned(String aId, Class<?> aClass,
-			int aValueLength) {
-		if (aClass == null)
+	public CLogLineBuffer appendDescrLeftAligned(String aId, Class<?> aClass, int aValueLength) {
+		if (aClass == null) {
 			return appendDescrLeftAligned(aId, (String) null, aValueLength);
-		else {
+		} else {
 			String wName = aClass.getName();
 			int wPos = wName.lastIndexOf('.');
-			return appendDescrLeftAligned(
-					aId,
-					((wPos > -1 && wPos < wName.length() - 1) ? wName
-							.substring(wPos + 1) : wName), aValueLength);
+			return appendDescrLeftAligned(aId,
+					((wPos > -1 && wPos < wName.length() - 1) ? wName.substring(wPos + 1) : wName),
+					aValueLength);
 		}
 	}
 
@@ -797,14 +730,14 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable,
 	 * @return a reference to this <code>CTraceBuffer</code> object.
 	 * @see java.lang.CLogLineBuffer#append(java.lang.String)
 	 */
-	public CLogLineBuffer appendDescrLeftAligned(String aId,
-			String aStringValue, int aValueLength) {
+	public CLogLineBuffer appendDescrLeftAligned(String aId, String aStringValue, int aValueLength) {
 		this.append(' ').append(aId).append(DESCR_VALUE_START);
 		int wLen = aStringValue.length();
-		if (wLen > aValueLength)
+		if (wLen > aValueLength) {
 			this.append(aStringValue.substring(0, aValueLength));
-		else
+		} else {
 			this.append(aStringValue).append(' ', aValueLength - wLen);
+		}
 		this.append(DESCR_VALUE_END);
 		return this;
 	}
@@ -827,10 +760,8 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable,
 	 * @return a reference to this <code>CTraceBuffer</code> object.
 	 * @see java.lang.CLogLineBuffer#append(java.lang.String)
 	 */
-	public CLogLineBuffer appendDescrRightAligned(String aId, int aIntValue,
-			int aValueLength) {
-		return appendDescrRightAligned(aId, String.valueOf(aIntValue),
-				aValueLength);
+	public CLogLineBuffer appendDescrRightAligned(String aId, int aIntValue, int aValueLength) {
+		return appendDescrRightAligned(aId, String.valueOf(aIntValue), aValueLength);
 	}
 
 	/**
@@ -851,10 +782,8 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable,
 	 * @return a reference to this <code>CTraceBuffer</code> object.
 	 * @see java.lang.CLogLineBuffer#append(java.lang.String)
 	 */
-	public CLogLineBuffer appendDescrRightAligned(String aId, long aLongValue,
-			int aValueLength) {
-		return appendDescrRightAligned(aId, String.valueOf(aLongValue),
-				aValueLength);
+	public CLogLineBuffer appendDescrRightAligned(String aId, long aLongValue, int aValueLength) {
+		return appendDescrRightAligned(aId, String.valueOf(aLongValue), aValueLength);
 	}
 
 	/**
@@ -871,14 +800,14 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable,
 	 * @return a reference to this <code>CTraceBuffer</code> object.
 	 * @see java.lang.CLogLineBuffer#append(java.lang.String)
 	 */
-	public CLogLineBuffer appendDescrRightAligned(String aId,
-			String aStringValue, int aValueLength) {
+	public CLogLineBuffer appendDescrRightAligned(String aId, String aStringValue, int aValueLength) {
 		this.append(' ').append(aId).append(DESCR_VALUE_START);
 		int wLen = aStringValue.length();
-		if (wLen > aValueLength)
+		if (wLen > aValueLength) {
 			this.append(aStringValue.substring(0, aValueLength));
-		else
+		} else {
 			this.append(' ', aValueLength - wLen).append(aStringValue);
+		}
 		this.append(DESCR_VALUE_END);
 		return this;
 	}
@@ -915,8 +844,9 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable,
 	 */
 	public CLogLineBuffer appendLine(char aChar, int aLen, int aMarginLeft) {
 		append('\n');
-		if (aMarginLeft > 0)
+		if (aMarginLeft > 0) {
 			append(' ', aMarginLeft);
+		}
 		append(aChar, aLen);
 		return this;
 	}
@@ -983,8 +913,7 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable,
 	 * @return
 	 */
 	public CLogLineBuffer appendThrowableDescr(Throwable e, String aSeparator) {
-		append(LIB_CLASS).append('=').append('[')
-				.append(e.getClass().getName()).append(']');
+		append(LIB_CLASS).append('=').append('[').append(e.getClass().getName()).append(']');
 
 		append(aSeparator);
 
@@ -993,24 +922,21 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable,
 			Method wMethod = wClass.getMethod(METHOD_WHY);
 			if (wMethod != null) {
 				String wWhy = (String) wMethod.invoke(e);
-				append(LIB_WHY).append('=').append('[').append(wWhy)
-						.append(']');
+				append(LIB_WHY).append('=').append('[').append(wWhy).append(']');
 				append(aSeparator);
 			}
 		} catch (NoSuchMethodException e1) {
 			// nothing
 		} catch (Exception e2) {
 			append(LIB_WHY).append('=').append('[')
-					.append("Can't read the 'why' of the Throwable.")
-					.append(']').append(aSeparator);
-			append(LIB_WHY).append('=').append('[').append(e2.getMessage())
-					.append(']').append(aSeparator);
-			append(LIB_WHY).append('=').append('[')
-					.append(e2.getClass().getName()).append(']')
+					.append("Can't read the 'why' of the Throwable.").append(']')
 					.append(aSeparator);
-			append(LIB_WHY).append('=').append('[')
-					.append(pToolsException.eStackToString(e2)).append(']')
+			append(LIB_WHY).append('=').append('[').append(e2.getMessage()).append(']')
 					.append(aSeparator);
+			append(LIB_WHY).append('=').append('[').append(e2.getClass().getName()).append(']')
+					.append(aSeparator);
+			append(LIB_WHY).append('=').append('[').append(pToolsException.eStackToString(e2))
+					.append(']').append(aSeparator);
 		}
 
 		boolean wHasListOfMess = false;
@@ -1028,8 +954,7 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable,
 					while (wI < wMax) {
 						append(LIB_MESS);
 						append('(').append(wI + 1).append(')');
-						append('=').append('[').append(wComplement.get(wI))
-								.append(']');
+						append('=').append('[').append(wComplement.get(wI)).append(']');
 						append(aSeparator);
 						wI++;
 					}
@@ -1039,16 +964,14 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable,
 			// nothing
 		} catch (Exception e3) {
 			append(LIB_MESS).append('=').append('[')
-					.append("Can't get the 'message(s)' of the Throwable.")
-					.append(']').append(aSeparator);
-			append(LIB_MESS).append('=').append('[').append(e3.getMessage())
-					.append(']').append(aSeparator);
-			append(LIB_MESS).append('=').append('[')
-					.append(e3.getClass().getName()).append(']')
+					.append("Can't get the 'message(s)' of the Throwable.").append(']')
 					.append(aSeparator);
-			append(LIB_MESS).append('=').append('[')
-					.append(pToolsException.eStackToString(e3)).append(']')
+			append(LIB_MESS).append('=').append('[').append(e3.getMessage()).append(']')
 					.append(aSeparator);
+			append(LIB_MESS).append('=').append('[').append(e3.getClass().getName()).append(']')
+					.append(aSeparator);
+			append(LIB_MESS).append('=').append('[').append(pToolsException.eStackToString(e3))
+					.append(']').append(aSeparator);
 		}
 
 		if (!wHasListOfMess) {
@@ -1064,10 +987,11 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable,
 					append('(').append(wNbMess).append(')');
 					append('=').append('[');
 
-					if (wNbMess == 1)
+					if (wNbMess == 1) {
 						append(wMess);
-					else
+					} else {
 						addEClassAndMessInSB(wThrowable);
+					}
 
 					append(']');
 					append(aSeparator);
@@ -1080,8 +1004,7 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable,
 
 		append(LIB_STACK);
 		append('=').append('[');
-		append(pToolsException.eStackToString(e).replace("\n", aSeparator))
-				.append(']');
+		append(pToolsException.eStackToString(e).replace("\n", aSeparator)).append(']');
 		append(aSeparator);
 
 		if (e.getCause() != null) {
@@ -1132,8 +1055,7 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable,
 	 * @return
 	 * @throws UnsupportedEncodingException
 	 */
-	public byte[] getBytes(String charsetName)
-			throws UnsupportedEncodingException {
+	public byte[] getBytes(String charsetName) throws UnsupportedEncodingException {
 		return pBuffer.toString().getBytes(charsetName);
 	}
 
@@ -1155,8 +1077,9 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable,
 		int wMax = length();
 		int wI = 0;
 		while (wI < wMax) {
-			if (charAt(wI) == aChar)
+			if (charAt(wI) == aChar) {
 				return wI;
+			}
 			wI++;
 		}
 		return -1;
@@ -1222,8 +1145,9 @@ public class CLogLineBuffer implements Serializable, java.lang.Appendable,
 		int wMax = length();
 		int wI = 0;
 		while (wI < wMax) {
-			if (charAt(wI) == aWhy)
+			if (charAt(wI) == aWhy) {
 				setCharAt(wI, aBy);
+			}
 			wI++;
 		}
 		return this;

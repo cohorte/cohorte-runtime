@@ -1,6 +1,15 @@
+/*******************************************************************************
+ * Copyright (c) 2011 www.isandlatech.com (www.isandlatech.com)
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    ogattaz (isandlaTech) - initial API and implementation
+ *******************************************************************************/
 package org.psem2m.utilities.files;
 
-//
 import java.io.File;
 
 /**
@@ -23,21 +32,22 @@ public class CXFileBase extends File {
 	 * @return
 	 */
 	public static String checkSeparator(String aPath) {
-		if (aPath == null)
+		if (aPath == null) {
 			return null;
-		else
-			return aPath.replace(CXFileBase.getBadSeparatorChar(),
-					separatorChar);
+		} else {
+			return aPath.replace(CXFileBase.getBadSeparatorChar(), separatorChar);
+		}
 	}
 
 	/**
 	 * @return
 	 */
 	public static char getBadSeparatorChar() {
-		if (separatorChar == '\\')
+		if (separatorChar == '\\') {
 			return '/';
-		else
+		} else {
 			return '\\';
+		}
 	}
 
 	/**
@@ -92,17 +102,17 @@ public class CXFileBase extends File {
 	 * @return
 	 */
 	public boolean equals(CXFileBase obj) {
-		if (obj == null)
+		if (obj == null) {
 			return false;
-		else if ((this.isFile() && obj.isFile())
-				|| (this.isDirectory() && obj.isDirectory())) {
-			if (isPathCaseSensitive())
+		} else if ((this.isFile() && obj.isFile()) || (this.isDirectory() && obj.isDirectory())) {
+			if (isPathCaseSensitive()) {
 				return obj.getAbsolutePath().equals(getAbsolutePath());
-			else
-				return obj.getAbsolutePath()
-						.equalsIgnoreCase(getAbsolutePath());
-		} else
+			} else {
+				return obj.getAbsolutePath().equalsIgnoreCase(getAbsolutePath());
+			}
+		} else {
 			return false;
+		}
 	}
 
 	/**
@@ -160,7 +170,8 @@ public class CXFileBase extends File {
 	 * @param a
 	 */
 	protected void traceError(String aMethod, Throwable a) {
-		if (a != null)
+		if (a != null) {
 			traceError(aMethod, a.getMessage());
+		}
 	}
 }

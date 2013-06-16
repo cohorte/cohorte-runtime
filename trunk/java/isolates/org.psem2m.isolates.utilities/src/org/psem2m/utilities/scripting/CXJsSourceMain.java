@@ -199,7 +199,7 @@ public class CXJsSourceMain extends CXJsSource {
 				tracer.trace("loadOk - code["
 						+ (pMergedCode == null ? 0 : pMergedCode.length())
 						+ "] chars");
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			if (trace)
 				tracer.trace("loadMainScriptError", e);
 			loadThrowExcep(this, e);

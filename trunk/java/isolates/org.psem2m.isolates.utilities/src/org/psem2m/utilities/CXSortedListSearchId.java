@@ -1,8 +1,22 @@
+/*******************************************************************************
+ * Copyright (c) 2011 www.isandlatech.com (www.isandlatech.com)
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    ogattaz (isandlaTech) - initial API and implementation
+ *******************************************************************************/
 package org.psem2m.utilities;
 
 /**
  * abstract class that extends a CXSortedListSearch; permit to find a Element of
  * a list and sort list with Id of Element and not elements.
+ * 
+ * @author ogattaz
+ * 
+ * @param <E>
  */
 public abstract class CXSortedListSearchId<E extends IXIdentifiable<?>> extends
 		CXSortedListSearch<E> {

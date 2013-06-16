@@ -49,7 +49,7 @@ public class CXJsCompiledScript extends CXJsObjectBase {
 		} catch (ScriptException e) {
 			CXJsExcepRhino.throwMyScriptExcep(this, pMainModule, tracer, e,
 					"evalCompiled");
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			throwMyScriptExcep(tracer, "Error evaluating script", e,
 					"evalCompiled");
 		} finally {
@@ -76,7 +76,7 @@ public class CXJsCompiledScript extends CXJsObjectBase {
 			// FDB - 64796
 			CXJsExcepRhino.throwMyScriptExcep(this, pMainModule, tracer, e,
 					"evalCompiledBinding");
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			throwMyScriptExcep(tracer, "Error evaluating script", e,
 					"evalCompiledBinding");
 		} finally {
@@ -107,7 +107,7 @@ public class CXJsCompiledScript extends CXJsObjectBase {
 			// FDB - 64796
 			CXJsExcepRhino.throwMyScriptExcep(this, pMainModule, tracer, e,
 					"evalContextCompiled");
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			throwMyScriptExcep(tracer, "Error evaluating script", e,
 					"evalContextCompiled");
 		} finally {
@@ -138,7 +138,7 @@ public class CXJsCompiledScript extends CXJsObjectBase {
 		CXTimer wT = trace ? new CXTimer("checkTimeStamp", true) : null;
 		try {
 			return pMainModule.checkTimeStamp();
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			throwMyScriptExcep(tracer, "Error checking timeStamp", e,
 					"checkTimeStamp");
 		} finally {

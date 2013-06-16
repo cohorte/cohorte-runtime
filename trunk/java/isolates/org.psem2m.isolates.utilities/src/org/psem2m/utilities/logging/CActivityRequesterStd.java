@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2011 www.isandlatech.com (www.isandlatech.com)
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    ogattaz (isandlaTech) - initial API and implementation
+ *******************************************************************************/
 package org.psem2m.utilities.logging;
 
 import java.util.Iterator;
@@ -6,6 +16,10 @@ import java.util.logging.LogRecord;
 
 import org.psem2m.utilities.CXStringUtils;
 
+/**
+ * @author ogattaz
+ * 
+ */
 class CActivityLine extends CActivityObject {
 	private final static String LABEL_EI = "EndIndex";
 
@@ -38,13 +52,19 @@ class CActivityLine extends CActivityObject {
 		pEndIndex = aEndIndex;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.psem2m.utilities.CXObjectBase#addDescriptionInBuffer(java.lang.Appendable
+	 * )
+	 */
 	@Override
 	public Appendable addDescriptionInBuffer(Appendable aBuffer) {
 		super.addDescriptionInBuffer(aBuffer);
 		CXStringUtils.appendKeyValInBuff(aBuffer, LABEL_SI, getStartIndex());
 		CXStringUtils.appendKeyValInBuff(aBuffer, LABEL_EI, getEndIndex());
-		CXStringUtils
-				.appendKeyValInBuff(aBuffer, LABEL_TEXT, getTrucatedText());
+		CXStringUtils.appendKeyValInBuff(aBuffer, LABEL_TEXT, getTrucatedText());
 		return aBuffer;
 	}
 
@@ -85,8 +105,7 @@ class CActivityLine extends CActivityObject {
 	 * @return
 	 */
 	private String getTrucatedText() {
-		return (getTextLength() > 128) ? getText().subSequence(0, 128) + " ..."
-				: getText();
+		return (getTextLength() > 128) ? getText().subSequence(0, 128) + " ..." : getText();
 
 	}
 
@@ -103,8 +122,15 @@ class CActivityLine extends CActivityObject {
 
 }
 
-public class CActivityRequesterStd extends CActivityObject implements
-		IActivityRequester {
+/**
+ * @author ogattaz
+ * 
+ */
+/**
+ * @author ogattaz
+ * 
+ */
+public class CActivityRequesterStd extends CActivityObject implements IActivityRequester {
 
 	private final static String MESS_ENOUGHT_REC = "Log reading stopped. [%s] records are found.";
 
@@ -118,13 +144,12 @@ public class CActivityRequesterStd extends CActivityObject implements
 	 * @return
 	 * @throws Exception
 	 */
-	public static IActivityRequester newRequester(String aRequesterName,
-			String aFilePathPattern, int aFileCount) throws Exception {
-		CActivityFileHandler wFileHandler = new CActivityFileHandler(
-				aFilePathPattern, aFileCount);
+	public static IActivityRequester newRequester(String aRequesterName, String aFilePathPattern,
+			int aFileCount) throws Exception {
+		CActivityFileHandler wFileHandler = new CActivityFileHandler(aFilePathPattern, aFileCount);
 		wFileHandler.setFormatter(new CActivityFormaterStd());
-		CActivityRequesterStd wRequesterStd = new CActivityRequesterStd(
-				aRequesterName, wFileHandler);
+		CActivityRequesterStd wRequesterStd = new CActivityRequesterStd(aRequesterName,
+				wFileHandler);
 		wRequesterStd.setFileHandlerClosable(true);
 		return wRequesterStd;
 	}
@@ -142,6 +167,13 @@ public class CActivityRequesterStd extends CActivityObject implements
 		pFileHandler = aFileHandler;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.psem2m.utilities.CXObjectBase#addDescriptionInBuffer(java.lang.Appendable
+	 * )
+	 */
 	@Override
 	public Appendable addDescriptionInBuffer(Appendable aBuffer) {
 		super.addDescriptionInBuffer(aBuffer);
@@ -172,37 +204,34 @@ public class CActivityRequesterStd extends CActivityObject implements
 	 * @throws Exception
 	 */
 	protected boolean filterRecord(CActivityRequestRecord aRequestRecord,
-			CActivityRequestReply aRequestReply,
-			CActivityRequestFilter aRequestFilter) throws Exception {
+			CActivityRequestReply aRequestReply, CActivityRequestFilter aRequestFilter)
+			throws Exception {
 		boolean wContinue = true;
 
-		boolean wTimeOk = aRequestFilter.isTimeOK(aRequestRecord.getLogRecord()
-				.getMillis());
-		boolean wMethodOk = aRequestFilter.isMethodOK(aRequestRecord
-				.getLogRecord().getSourceMethodName());
-		boolean wLevelOk = aRequestFilter.isLevelOK(aRequestRecord
-				.getLogRecord().getLevel());
+		boolean wTimeOk = aRequestFilter.isTimeOK(aRequestRecord.getLogRecord().getMillis());
+		boolean wMethodOk = aRequestFilter.isMethodOK(aRequestRecord.getLogRecord()
+				.getSourceMethodName());
+		boolean wLevelOk = aRequestFilter.isLevelOK(aRequestRecord.getLogRecord().getLevel());
 		boolean wOutOfTime = false;
 
 		if (wTimeOk && wMethodOk && wLevelOk) {
 			aRequestReply.addLogRecord(aRequestRecord);
-		} else if (aRequestFilter.isOutOfTime(aRequestRecord.getLogRecord()
-				.getMillis())) {
+		} else if (aRequestFilter.isOutOfTime(aRequestRecord.getLogRecord().getMillis())) {
 			wOutOfTime = true;
 			wContinue = false;
 		}
 		// applique la limite de record
 		if (aRequestFilter.hasNbMaxLogRecord()
 				&& aRequestReply.size() >= aRequestFilter.getNbMaxLogRecord()) {
-			String wMess = String
-					.format(MESS_ENOUGHT_REC, aRequestReply.size());
+			String wMess = String.format(MESS_ENOUGHT_REC, aRequestReply.size());
 			aRequestReply.addInfoMessage(wMess);
 			wContinue = false;
 		}
 
-		if (isTraceDebugOn())
-			traceFilterRecord(wTimeOk, wMethodOk, wLevelOk, wOutOfTime,
-					aRequestReply.size(), wContinue);
+		if (isTraceDebugOn()) {
+			traceFilterRecord(wTimeOk, wMethodOk, wLevelOk, wOutOfTime, aRequestReply.size(),
+					wContinue);
+		}
 
 		return wContinue;
 	}
@@ -221,8 +250,7 @@ public class CActivityRequesterStd extends CActivityObject implements
 	 */
 	@Override
 	public CActivityRequestReply getLogLevelRecords(String aLevelName, int aMax) {
-		return getLogRecords(CActivityRequestFilter.newLevelFilter(aLevelName,
-				aMax));
+		return getLogRecords(CActivityRequestFilter.newLevelFilter(aLevelName, aMax));
 	}
 
 	/**
@@ -231,10 +259,8 @@ public class CActivityRequesterStd extends CActivityObject implements
 	 * @return
 	 */
 	@Override
-	public CActivityRequestReply getLogMethodRecords(String aMethodName,
-			int aMax) {
-		return getLogRecords(CActivityRequestFilter.newMethodFilter(
-				aMethodName, aMax));
+	public CActivityRequestReply getLogMethodRecords(String aMethodName, int aMax) {
+		return getLogRecords(CActivityRequestFilter.newMethodFilter(aMethodName, aMax));
 	}
 
 	/**
@@ -246,20 +272,17 @@ public class CActivityRequesterStd extends CActivityObject implements
 	 * @return
 	 */
 	@Override
-	public CActivityRequestReply getLogRecords(
-			CActivityRequestFilter aRequestFilter) {
+	public CActivityRequestReply getLogRecords(CActivityRequestFilter aRequestFilter) {
 		if (isTraceDebugOn()) {
 			traceGetLogRecords(aRequestFilter);
 		}
 
 		CActivityRequestReply wRequestReply = new CActivityRequestReply(this);
 
-		Iterator<CActivityFileText> wFiles = getFileHandler()
-				.getExistingFiles().iterator();
+		Iterator<CActivityFileText> wFiles = getFileHandler().getExistingFiles().iterator();
 		boolean wContinue = true;
 		while (wFiles.hasNext() && wContinue) {
-			wContinue = readOneFile(wFiles.next(), wRequestReply,
-					aRequestFilter);
+			wContinue = readOneFile(wFiles.next(), wRequestReply, aRequestFilter);
 		}
 
 		return wRequestReply;
@@ -279,22 +302,21 @@ public class CActivityRequesterStd extends CActivityObject implements
 	 * @param aLogLine
 	 * @return
 	 */
-	protected CActivityRecordPart getNextRecordPart(String aLogLine,
-			int aPosStartColumn, char aColumnSep) {
+	protected CActivityRecordPart getNextRecordPart(String aLogLine, int aPosStartColumn,
+			char aColumnSep) {
 		CActivityRecordPart wRecordPart = null;
 		int wColumnPos = aLogLine.indexOf(aColumnSep, aPosStartColumn);
 		if (wColumnPos < 0) {
-			if (aPosStartColumn < aLogLine.length() - 1)
+			if (aPosStartColumn < aLogLine.length() - 1) {
 				wRecordPart = new CActivityRecordPart(aPosStartColumn,
 						aLogLine.substring(aPosStartColumn), -1);
+			}
 
 		} else {
-			String wValue = CXStringUtils.strFullTrim(aLogLine.substring(
-					aPosStartColumn, wColumnPos));
-			int pPosNextColumn = (wColumnPos + 1 < aLogLine.length() - 1) ? wColumnPos + 1
-					: -1;
-			wRecordPart = new CActivityRecordPart(wColumnPos, wValue,
-					pPosNextColumn);
+			String wValue = CXStringUtils.strFullTrim(aLogLine.substring(aPosStartColumn,
+					wColumnPos));
+			int pPosNextColumn = (wColumnPos + 1 < aLogLine.length() - 1) ? wColumnPos + 1 : -1;
+			wRecordPart = new CActivityRecordPart(wColumnPos, wValue, pPosNextColumn);
 		}
 		if (isTraceDebugOn()) {
 			traceGetNextRecordPart(wRecordPart);
@@ -307,10 +329,8 @@ public class CActivityRequesterStd extends CActivityObject implements
 	 * @param aLineText
 	 * @return
 	 */
-	private CActivityRecordPart getNextRecordPartStd(String aLineText,
-			int aOffset) {
-		return getNextRecordPart(aLineText, aOffset,
-				CActivityFormaterStd.SEP_COLUMN);
+	private CActivityRecordPart getNextRecordPartStd(String aLineText, int aOffset) {
+		return getNextRecordPart(aLineText, aOffset, CActivityFormaterStd.SEP_COLUMN);
 	}
 
 	boolean isFileHandlerClosable() {
@@ -332,19 +352,14 @@ public class CActivityRequesterStd extends CActivityObject implements
 		CActivityRecordPart wPartPrefix = getNextRecordPartStd(wText, 0);
 		CActivityRecordPart wPartMillis = getNextRecordPartStd(wText,
 				wPartPrefix.getPosNextColumn());
-		CActivityRecordPart wPartNanos = getNextRecordPartStd(wText,
-				wPartMillis.getPosNextColumn());
-		CActivityRecordPart wPartDate = getNextRecordPartStd(wText,
-				wPartNanos.getPosNextColumn());
-		CActivityRecordPart wPartTime = getNextRecordPartStd(wText,
-				wPartDate.getPosNextColumn());
-		CActivityRecordPart wPartClass = getNextRecordPartStd(wText,
-				wPartTime.getPosNextColumn());
-		CActivityRecordPart wPartMethod = getNextRecordPart(wText,
-				wPartClass.getPosNextColumn(), CActivityFormater.SEP_LINE);
+		CActivityRecordPart wPartNanos = getNextRecordPartStd(wText, wPartMillis.getPosNextColumn());
+		CActivityRecordPart wPartDate = getNextRecordPartStd(wText, wPartNanos.getPosNextColumn());
+		CActivityRecordPart wPartTime = getNextRecordPartStd(wText, wPartDate.getPosNextColumn());
+		CActivityRecordPart wPartClass = getNextRecordPartStd(wText, wPartTime.getPosNextColumn());
+		CActivityRecordPart wPartMethod = getNextRecordPart(wText, wPartClass.getPosNextColumn(),
+				CActivityFormater.SEP_LINE);
 
-		CActivityRecordPart wPartLevel = getNextRecordPartStd(wText,
-				wPartMethod.getPosNextColumn());
+		CActivityRecordPart wPartLevel = getNextRecordPartStd(wText, wPartMethod.getPosNextColumn());
 
 		String wMessage = wText.substring(wPartLevel.getPosNextColumn());
 
@@ -364,25 +379,26 @@ public class CActivityRequesterStd extends CActivityObject implements
 	 * @return
 	 */
 	CActivityLine readLastLine(String aLogText) throws Exception {
-		if (isTraceDebugOn())
+		if (isTraceDebugOn()) {
 			traceReadLastLine(aLogText);
+		}
 
 		return readPreviousLine(aLogText, aLogText.length() - 1);
 	}
 
 	/**
 	 * @param aLogFile
+	 * @param aRequestReply
+	 * @param aRequestFilter
 	 * @return
 	 */
-	private boolean readOneFile(CActivityFileText aLogFile,
-			CActivityRequestReply aRequestReply,
+	private boolean readOneFile(CActivityFileText aLogFile, CActivityRequestReply aRequestReply,
 			CActivityRequestFilter aRequestFilter) {
 		if (isTraceDebugOn()) {
 			traceReadOneFile(aLogFile);
 		}
 		if (!aLogFile.isSameWhenFound()) {
-			String wMess = String.format(MESS_FILE_CHANGED,
-					aLogFile.getAbsolutePath());
+			String wMess = String.format(MESS_FILE_CHANGED, aLogFile.getAbsolutePath());
 			aRequestReply.setStatusNOTOK(wMess);
 			return false;
 		}
@@ -397,18 +413,16 @@ public class CActivityRequesterStd extends CActivityObject implements
 				wLogRecord = parseOneRecord(wActivityLine);
 
 				// applique le filtre
-				wContinue = filterRecord(wLogRecord, aRequestReply,
-						aRequestFilter);
+				wContinue = filterRecord(wLogRecord, aRequestReply, aRequestFilter);
 
 				if (wContinue) {
 					// lit la "ligne precedente"
-					wActivityLine = readPreviousLine(wLogText,
-							wActivityLine.getStartIndex());
+					wActivityLine = readPreviousLine(wLogText, wActivityLine.getStartIndex());
 					wContinue = wActivityLine.getStartIndex() > -1;
 				}
 
 			}
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			aRequestReply.setStatusNOTOK(e);
 			return false;
 		}
@@ -421,10 +435,8 @@ public class CActivityRequesterStd extends CActivityObject implements
 	 * @param aActivityLine
 	 * @return
 	 */
-	protected CActivityLine readPreviousLine(String aLogText, int aFromIndex)
-			throws Exception {
-		return readPreviousLine(aLogText, aFromIndex,
-				CActivityFormaterStd.PREFIX_LINE);
+	protected CActivityLine readPreviousLine(String aLogText, int aFromIndex) throws Exception {
+		return readPreviousLine(aLogText, aFromIndex, CActivityFormaterStd.PREFIX_LINE);
 	}
 
 	/**
@@ -434,25 +446,28 @@ public class CActivityRequesterStd extends CActivityObject implements
 	 * @return
 	 * @throws Exception
 	 */
-	protected CActivityLine readPreviousLine(String aLogText, int aFromIndex,
-			char aSepLine) throws Exception {
-		if (isTraceDebugOn())
+	protected CActivityLine readPreviousLine(String aLogText, int aFromIndex, char aSepLine)
+			throws Exception {
+		if (isTraceDebugOn()) {
 			traceReadPreviousLine(aLogText, aFromIndex, aSepLine);
-
-		CActivityLine wActivityLine;
-		if (aFromIndex <= 0)
-			wActivityLine = new CActivityLine();
-		else {
-			aFromIndex -= 1;
-			int wStartIndex = aLogText.lastIndexOf(aSepLine, aFromIndex - 1);
-			if (wStartIndex == -1)
-				wStartIndex = 0;
-			wActivityLine = new CActivityLine(aLogText.substring(wStartIndex,
-					aFromIndex), wStartIndex, aFromIndex);
 		}
 
-		if (isTraceDebugOn())
+		CActivityLine wActivityLine;
+		if (aFromIndex <= 0) {
+			wActivityLine = new CActivityLine();
+		} else {
+			aFromIndex -= 1;
+			int wStartIndex = aLogText.lastIndexOf(aSepLine, aFromIndex - 1);
+			if (wStartIndex == -1) {
+				wStartIndex = 0;
+			}
+			wActivityLine = new CActivityLine(aLogText.substring(wStartIndex, aFromIndex),
+					wStartIndex, aFromIndex);
+		}
+
+		if (isTraceDebugOn()) {
 			traceReadPreviousLine(wActivityLine);
+		}
 
 		return wActivityLine;
 	}
@@ -471,8 +486,8 @@ public class CActivityRequesterStd extends CActivityObject implements
 	 * @param aOutOfTime
 	 * @param aContinue
 	 */
-	protected void traceFilterRecord(boolean aTimeOk, boolean aMethodOk,
-			boolean aLevelOk, boolean aOutOfTime, int aNbRec, boolean aContinue) {
+	protected void traceFilterRecord(boolean aTimeOk, boolean aMethodOk, boolean aLevelOk,
+			boolean aOutOfTime, int aNbRec, boolean aContinue) {
 		CLogLineBuffer wTB = new CLogLineBuffer();
 		wTB.appendDescr("TimeOk", aTimeOk);
 		wTB.appendDescr("MethodOk", aMethodOk);
@@ -497,10 +512,11 @@ public class CActivityRequesterStd extends CActivityObject implements
 	 */
 	private void traceGetNextRecordPart(CActivityRecordPart aRecordPart) {
 		CLogLineBuffer wTB = new CLogLineBuffer();
-		if (aRecordPart != null)
+		if (aRecordPart != null) {
 			wTB.appendDescr(aRecordPart);
-		else
+		} else {
 			wTB.append("No RecordPart available.");
+		}
 		traceDebug(this, "getNextRecordPart", wTB);
 	}
 
@@ -509,8 +525,7 @@ public class CActivityRequesterStd extends CActivityObject implements
 	 */
 	protected void traceReadLastLine(String aLogText) {
 		CLogLineBuffer wTB = new CLogLineBuffer();
-		wTB.appendDescr("LogText.length",
-				(aLogText != null) ? aLogText.length() : -1);
+		wTB.appendDescr("LogText.length", (aLogText != null) ? aLogText.length() : -1);
 		traceDebug(this, "readLastLine", wTB);
 	}
 
@@ -536,14 +551,12 @@ public class CActivityRequesterStd extends CActivityObject implements
 	/**
 	 * @param aRequestFilter
 	 */
-	protected void traceReadPreviousLine(String aLogText, int aFromIndex,
-			char aSepLine) {
+	protected void traceReadPreviousLine(String aLogText, int aFromIndex, char aSepLine) {
 		CLogLineBuffer wTB = new CLogLineBuffer();
-		wTB.appendDescr("LogText.length",
-				(aLogText != null) ? aLogText.length() : -1);
+		wTB.appendDescr("LogText.length", (aLogText != null) ? aLogText.length() : -1);
 		wTB.appendDescr("FromIndex", aFromIndex);
-		wTB.appendDescr("SepLine", (aSepLine < 32) ? "0x" + (int) aSepLine
-				: String.valueOf(aSepLine));
+		wTB.appendDescr("SepLine",
+				(aSepLine < 32) ? "0x" + (int) aSepLine : String.valueOf(aSepLine));
 		traceDebug(this, "readPreviousLine", wTB);
 
 	}

@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2011 www.isandlatech.com (www.isandlatech.com)
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    ogattaz (isandlaTech) - initial API and implementation
+ *******************************************************************************/
 package org.psem2m.utilities;
 
 import java.util.Iterator;
@@ -64,17 +74,20 @@ class CPropertiesComparator<E> extends CXAbstractListComparator<E> {
 	 * @return
 	 */
 	protected String getData(Object a) {
-		if (pSortByKey)
+		if (pSortByKey) {
 			return (String) ((Entry<?, ?>) a).getKey();
-		else
+		} else {
 			return (String) ((Entry<?, ?>) a).getValue();
+		}
 	}
 }
 
+/**
+ * @author ogattaz
+ * 
+ */
 public class CXSortListProperties extends CXSortList<Entry<Object, Object>> {
-	/**
-   * 
-   */
+
 	private static final long serialVersionUID = 9156273794753617100L;
 
 	/**
@@ -85,21 +98,24 @@ public class CXSortListProperties extends CXSortList<Entry<Object, Object>> {
 	}
 
 	/**
-   */
+	 * @param aSortAsc
+	 */
 	public CXSortListProperties(boolean aSortAsc) {
 		super(aSortAsc);
 	}
 
 	/**
-   */
-	public CXSortListProperties(
-			CPropertiesComparator<Entry<Object, Object>> aComp) {
+	 * @param aComp
+	 */
+	public CXSortListProperties(CPropertiesComparator<Entry<Object, Object>> aComp) {
 		super(aComp);
 	}
 
 	/**
 	 * 
-	 * HashTable et properties aSortAsc --> Tri Tri sur les cles
+	 * @param aData
+	 * @param aSortAsc
+	 *            Tri sur les cles
 	 */
 	public CXSortListProperties(Properties aData, boolean aSortAsc) {
 		this(aData, aSortAsc, SORTBYKEY);
@@ -107,15 +123,17 @@ public class CXSortListProperties extends CXSortList<Entry<Object, Object>> {
 
 	/**
 	 * 
-	 * HashTable et properties aSortAsc --> Tri aSortByKey --> Type de tri (True
-	 * --> Tri par Key - false --> tri par valeurs)
+	 * @param aData
+	 * @param aSortAsc
+	 *            -Tri
+	 * @param aSortByKey
+	 *            TrueType de tri (True --> Tri par Key - false --> tri par
+	 *            valeurs)
 	 */
-	public CXSortListProperties(Properties aData, boolean aSortAsc,
-			boolean aSortByKey) {
+	public CXSortListProperties(Properties aData, boolean aSortAsc, boolean aSortByKey) {
 		super();
-		init(aData.entrySet().iterator(),
-				new CPropertiesComparator<Entry<Object, Object>>(aSortAsc,
-						aSortByKey));
+		init(aData.entrySet().iterator(), new CPropertiesComparator<Entry<Object, Object>>(
+				aSortAsc, aSortByKey));
 	}
 
 	/**
@@ -126,8 +144,9 @@ public class CXSortListProperties extends CXSortList<Entry<Object, Object>> {
 			CPropertiesComparator<Entry<Object, Object>> aComp) {
 		setComparator(aComp);
 		if (aIt != null) {
-			while (aIt.hasNext())
+			while (aIt.hasNext()) {
 				add(aIt.next());
+			}
 		}
 	}
 

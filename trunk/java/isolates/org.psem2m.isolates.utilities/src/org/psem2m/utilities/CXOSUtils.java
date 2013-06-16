@@ -211,7 +211,7 @@ public class CXOSUtils {
                         String.valueOf(wProp.getValue()), aValueMultiLineLine);
                 wI++;
             }
-        } catch (Throwable e) {
+        } catch (Exception e) {
             wSB.append(CXException.eInString(e));
         }
 

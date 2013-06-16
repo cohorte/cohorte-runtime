@@ -37,8 +37,7 @@ public class CXBase64Coder {
 	// Mapping table from Base64 characters to 6-bit nibbles.
 	private static byte[] map2 = new byte[128];
 	// The line separator string of the operating system.
-	private static final String systemLineSeparator = System
-			.getProperty("line.separator");
+	private static final String systemLineSeparator = System.getProperty("line.separator");
 
 	static {
 		int i = 0;
@@ -112,16 +111,14 @@ public class CXBase64Coder {
 			int i2 = ip < iEnd ? in[ip++] : 'A';
 			int i3 = ip < iEnd ? in[ip++] : 'A';
 			if (i0 > 127 || i1 > 127 || i2 > 127 || i3 > 127) {
-				throw new IllegalArgumentException(
-						"Illegal character in Base64 encoded data.");
+				throw new IllegalArgumentException("Illegal character in Base64 encoded data.");
 			}
 			int b0 = map2[i0];
 			int b1 = map2[i1];
 			int b2 = map2[i2];
 			int b3 = map2[i3];
 			if (b0 < 0 || b1 < 0 || b2 < 0 || b3 < 0) {
-				throw new IllegalArgumentException(
-						"Illegal character in Base64 encoded data.");
+				throw new IllegalArgumentException("Illegal character in Base64 encoded data.");
 			}
 			int o0 = (b0 << 2) | (b1 >>> 4);
 			int o1 = ((b1 & 0xf) << 4) | (b2 >>> 2);
@@ -283,8 +280,8 @@ public class CXBase64Coder {
 	 *            The line separator to be used to separate the output lines.
 	 * @return A String containing the Base64 encoded data, broken into lines.
 	 */
-	public static String encodeLines(final byte[] in, final int iOff,
-			final int iLen, final int lineLen, final String lineSeparator) {
+	public static String encodeLines(final byte[] in, final int iOff, final int iLen,
+			final int lineLen, final String lineSeparator) {
 		int blockLen = (lineLen * 3) / 4;
 		if (blockLen <= 0) {
 			throw new IllegalArgumentException();
@@ -314,7 +311,9 @@ public class CXBase64Coder {
 		return new String(encode(s.getBytes()));
 	}
 
-	// Dummy constructor.
+	/**
+	 * Dummy constructor.
+	 */
 	private CXBase64Coder() {
 	}
 

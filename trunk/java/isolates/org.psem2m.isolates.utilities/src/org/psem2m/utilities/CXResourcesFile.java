@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2011 www.isandlatech.com (www.isandlatech.com)
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    ogattaz (isandlaTech) - initial API and implementation
+ *******************************************************************************/
 package org.psem2m.utilities;
 
 import java.io.File;
@@ -36,10 +46,8 @@ public class CXResourcesFile extends CXResources {
 	 * @return
 	 * @throws Exception
 	 */
-	private static File adjustLocaleInFile(File aFile, Locale aLocale)
-			throws Exception {
-		return new File(aFile.getParent(), adjustLocaleInFileName(
-				aFile.getName(), aLocale));
+	private static File adjustLocaleInFile(File aFile, Locale aLocale) throws Exception {
+		return new File(aFile.getParent(), adjustLocaleInFileName(aFile.getName(), aLocale));
 	}
 
 	/**
@@ -52,8 +60,7 @@ public class CXResourcesFile extends CXResources {
 	 * @return
 	 * @throws Exception
 	 */
-	private static String adjustLocaleInFileName(String aName, Locale aLocale)
-			throws Exception {
+	private static String adjustLocaleInFileName(String aName, Locale aLocale) throws Exception {
 		String wExtension = CXStringUtils.EMPTY;
 		int wDotPos = aName.indexOf('.');
 		if (wDotPos > -1) {
@@ -86,15 +93,11 @@ public class CXResourcesFile extends CXResources {
 		}
 		int wUnderScorePos = aName.indexOf('_');
 		if (wUnderScorePos > -1) {
-			StringTokenizer wST = new StringTokenizer(
-					aName.substring(wUnderScorePos), "_");
+			StringTokenizer wST = new StringTokenizer(aName.substring(wUnderScorePos), "_");
 
-			String wLanguage = ((wST.hasMoreTokens()) ? wST.nextToken()
-					: CXStringUtils.EMPTY);
-			String wCountry = ((wST.hasMoreTokens()) ? wST.nextToken()
-					: CXStringUtils.EMPTY);
-			String wVariant = ((wST.hasMoreTokens()) ? wST.nextToken()
-					: CXStringUtils.EMPTY);
+			String wLanguage = ((wST.hasMoreTokens()) ? wST.nextToken() : CXStringUtils.EMPTY);
+			String wCountry = ((wST.hasMoreTokens()) ? wST.nextToken() : CXStringUtils.EMPTY);
+			String wVariant = ((wST.hasMoreTokens()) ? wST.nextToken() : CXStringUtils.EMPTY);
 			return new Locale(wLanguage, wCountry, wVariant);
 		}
 		return null;
@@ -105,11 +108,13 @@ public class CXResourcesFile extends CXResources {
 	 * @return true if the file name ends by "_xx"
 	 */
 	private static boolean hasLocaleInFileName(String aFileName) {
-		if (aFileName != null && aFileName.length() > 0)
+		if (aFileName != null && aFileName.length() > 0) {
 			return false;
+		}
 		int wPosPoint = aFileName.indexOf('.');
-		if (wPosPoint > -1)
+		if (wPosPoint > -1) {
 			aFileName = aFileName.substring(0, wPosPoint);
+		}
 		return (aFileName.lastIndexOf('_') >= aFileName.length() - 2);
 	}
 
@@ -121,8 +126,7 @@ public class CXResourcesFile extends CXResources {
 	 * @param aFileLocale
 	 * @return
 	 */
-	private static boolean isLocaleEqualsSimplifiedLocale(Locale aLocale,
-			Locale aFileLocale) {
+	private static boolean isLocaleEqualsSimplifiedLocale(Locale aLocale, Locale aFileLocale) {
 		// si la locale est simplifee (uniquement un code langue = test de la
 		// langue
 		if (aFileLocale.getCountry().equals(CXStringUtils.EMPTY)) {
@@ -143,16 +147,14 @@ public class CXResourcesFile extends CXResources {
 	 * @return
 	 * @throws Exception
 	 */
-	public static File validResourcesFile(File aFile, Locale aLocale)
-			throws Exception {
+	public static File validResourcesFile(File aFile, Locale aLocale) throws Exception {
 		String wName = aFile.getName();
 		// le nom du fichier contient une "locale" (sous la forme "_fr" ) et si
 		// la langue de cette locale et egual a la laonge de la locale passée en
 		// parametre
 
 		if (hasLocaleInFileName(wName)
-				&& isLocaleEqualsSimplifiedLocale(aLocale,
-						extractLocaleFromName(wName))) {
+				&& isLocaleEqualsSimplifiedLocale(aLocale, extractLocaleFromName(wName))) {
 			return aFile;
 		}
 		// sinon, ajustement
@@ -214,8 +216,7 @@ public class CXResourcesFile extends CXResources {
 	void loadResourcFile(File aFile, Locale aLocale) {
 		try {
 			pFile = validResourcesFile(aFile, aLocale);
-			pResourceBundle = new PropertyResourceBundle(
-					buildInputStream(pFile));
+			pResourceBundle = new PropertyResourceBundle(buildInputStream(pFile));
 		} catch (Exception e) {
 			pWhy = e.getLocalizedMessage();
 			pResourceBundle = null;
@@ -226,8 +227,7 @@ public class CXResourcesFile extends CXResources {
 			try {
 				Locale wAdjustedLocale = getDefaultLocale();
 				pFile = validResourcesFile(aFile, wAdjustedLocale);
-				pResourceBundle = new PropertyResourceBundle(
-						buildInputStream(pFile));
+				pResourceBundle = new PropertyResourceBundle(buildInputStream(pFile));
 				setCurrentLocale(wAdjustedLocale);
 			} catch (Exception e) {
 				pWhy = e.getLocalizedMessage();

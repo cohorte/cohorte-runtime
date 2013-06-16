@@ -45,7 +45,7 @@ public class CXJsEngine extends CXJsObjectBase {
 		} catch (ScriptException e) {
 			CXJsExcepRhino.throwMyScriptExcep(this, aMainModule, tracer, e,
 					"eval");
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			throwMyScriptExcep(aMainModule, tracer, "Error evaluating script",
 					e, "eval");
 		} finally {
@@ -72,7 +72,7 @@ public class CXJsEngine extends CXJsObjectBase {
 		} catch (ScriptException e) {
 			CXJsExcepRhino.throwMyScriptExcep(this, aMainModule, tracer, e,
 					"evalCtx");
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			throwMyScriptExcep(aMainModule, tracer, "Error evaluating script",
 					e, "evalCtx");
 		} finally {
@@ -99,7 +99,7 @@ public class CXJsEngine extends CXJsObjectBase {
 		} catch (ScriptException e) {
 			CXJsExcepRhino.throwMyScriptExcep(this, aMainModule, tracer, e,
 					"evalBinding");
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			throwMyScriptExcep(aMainModule, tracer, "Error evaluating script",
 					e, "evalBinding");
 		} finally {
@@ -165,7 +165,7 @@ public class CXJsEngine extends CXJsObjectBase {
 			} catch (ScriptException e) {
 				CXJsExcepRhino.throwMyScriptExcep(this, aMainModule, tracer, e,
 						"doCompile");
-			} catch (Throwable e) {
+			} catch (Exception e) {
 				throwMyScriptExcep(aMainModule, tracer,
 						"Error compiling script", e, "doCompile");
 			} finally {

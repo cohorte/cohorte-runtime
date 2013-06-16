@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2011 www.isandlatech.com (www.isandlatech.com)
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    ogattaz (isandlaTech) - initial API and implementation
+ *******************************************************************************/
 package org.psem2m.utilities;
 
 /**
@@ -10,11 +20,9 @@ public class CXBytesUtils {
 
 	private static byte BOM_UTF_16LE[] = { (byte) 0xFF, (byte) 0xFE };
 
-	private static byte BOM_UTF_32BE[] = { (byte) 0x00, (byte) 0x00,
-			(byte) 0xFE, (byte) 0xFF };
+	private static byte BOM_UTF_32BE[] = { (byte) 0x00, (byte) 0x00, (byte) 0xFE, (byte) 0xFF };
 
-	private static byte BOM_UTF_32LE[] = { (byte) 0xFF, (byte) 0xFE,
-			(byte) 0x00, (byte) 0x00 };
+	private static byte BOM_UTF_32LE[] = { (byte) 0xFF, (byte) 0xFE, (byte) 0x00, (byte) 0x00 };
 
 	private static byte BOM_UTF_8[] = { (byte) 0xEF, (byte) 0xBB, (byte) 0xBF };
 
@@ -68,38 +76,19 @@ public class CXBytesUtils {
 
 	public final static String ENCODING_UTF_8 = DEF_UTF_8_CONSTANT_JAVA;
 
-	/**
-   */
 	private final static String HEXA_BUFFER_DIGITS = ".x0123456789ABCDEF";
 
-	/**
-   * 
-   */
-	private final static char[] HEXA_DIGITS = { '0', '1', '2', '3', '4', '5',
-			'6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+	private final static char[] HEXA_DIGITS = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+			'A', 'B', 'C', 'D', 'E', 'F' };
 
-	/**
-   */
 	private final static String HEXA_PREFIX = ".x";
 
-	/**
-   * 
-   */
 	public static int LEN_OF_BYTE = 1;
 
-	/**
-   * 
-   */
 	public static int LEN_OF_INT = 4;
 
-	/**
-   * 
-   */
 	public static int LEN_OF_LONG = 8;
 
-	/**
-   * 
-   */
 	public static int LEN_OF_SHORT = 2;
 
 	private final static String MESS_NOT_ENOUGH_LARGE = "The byte array is not enough large. It should have at least [%s] bytes to accept an [%s]";
@@ -111,8 +100,7 @@ public class CXBytesUtils {
 	 * @param mybyte
 	 * @return
 	 */
-	static public StringBuilder addByte2DecimalInSB(final StringBuilder aSB,
-			final byte mybyte) {
+	static public StringBuilder addByte2DecimalInSB(final StringBuilder aSB, final byte mybyte) {
 		aSB.append('.');
 		aSB.append('d');
 		aSB.append(CXStringUtils.strAdjustRight(mybyte, 3));
@@ -126,8 +114,7 @@ public class CXBytesUtils {
 	 * @param mybyte
 	 * @return
 	 */
-	static public StringBuilder addByte2HexaInCSB(final StringBuilder aSB,
-			final byte mybyte) {
+	static public StringBuilder addByte2HexaInCSB(final StringBuilder aSB, final byte mybyte) {
 		aSB.append('.');
 		aSB.append('x');
 		aSB.append(HEXA_DIGITS[(0x00F0 & mybyte) >> 4]);
@@ -142,8 +129,7 @@ public class CXBytesUtils {
 	 * @param mybyte
 	 * @return
 	 */
-	static public StringBuilder addByte2HexaInSB(final StringBuilder aSB,
-			final byte mybyte) {
+	static public StringBuilder addByte2HexaInSB(final StringBuilder aSB, final byte mybyte) {
 		aSB.append('.');
 		aSB.append('x');
 		aSB.append(HEXA_DIGITS[(0x00F0 & mybyte) >> 4]);
@@ -160,11 +146,10 @@ public class CXBytesUtils {
 	 * @return la nouvelle position
 	 * @throws ArrayIndexOutOfBoundsException
 	 */
-	static public int appendByteInBuffer(final byte[] aBuffer, final int aPos,
-			final int aValue) throws ArrayIndexOutOfBoundsException {
+	static public int appendByteInBuffer(final byte[] aBuffer, final int aPos, final int aValue)
+			throws ArrayIndexOutOfBoundsException {
 		if (aBuffer.length - aPos < LEN_OF_BYTE) {
-			throw new IllegalArgumentException(
-					"Byte array should contain at least 2 bytes");
+			throw new IllegalArgumentException("Byte array should contain at least 2 bytes");
 		}
 
 		aBuffer[aPos] = (byte) (aValue & 0x000000FF);
@@ -181,8 +166,8 @@ public class CXBytesUtils {
 	 * @return la nouvelle position
 	 * @throws ArrayIndexOutOfBoundsException
 	 */
-	static public int appendBytesInBuffer(final byte[] aBuffer, final int aPos,
-			final byte[] aInfo) throws ArrayIndexOutOfBoundsException {
+	static public int appendBytesInBuffer(final byte[] aBuffer, final int aPos, final byte[] aInfo)
+			throws ArrayIndexOutOfBoundsException {
 		int wLen = aInfo.length;
 		System.arraycopy(aInfo, 0, aBuffer, aPos, wLen);
 		return aPos + wLen;
@@ -197,12 +182,11 @@ public class CXBytesUtils {
 	 * @return la nouvelle position
 	 * @throws IllegalArgumentException
 	 */
-	public static int appendBytetInBuffer(final byte[] aBuffer, final int aPos,
-			final int aValue) throws IllegalArgumentException {
+	public static int appendBytetInBuffer(final byte[] aBuffer, final int aPos, final int aValue)
+			throws IllegalArgumentException {
 		if (aBuffer.length - aPos < LEN_OF_BYTE) {
-			throw new IllegalArgumentException(
-					"Byte array should contain at least " + LEN_OF_BYTE
-							+ " bytes");
+			throw new IllegalArgumentException("Byte array should contain at least " + LEN_OF_BYTE
+					+ " bytes");
 		}
 
 		aBuffer[aPos] = (byte) (aValue & 0x000000FF);
@@ -218,11 +202,9 @@ public class CXBytesUtils {
 	 * @return
 	 * @throws ArrayIndexOutOfBoundsException
 	 */
-	static public byte[] appendInExpendableBuffer(final byte[] aDestBuffer,
-			final int aDestPos, final byte[] aAddedBuffer)
-			throws ArrayIndexOutOfBoundsException {
-		return appendInExpendableBuffer(aDestBuffer, aDestPos, aAddedBuffer, 0,
-				aAddedBuffer.length);
+	static public byte[] appendInExpendableBuffer(final byte[] aDestBuffer, final int aDestPos,
+			final byte[] aAddedBuffer) throws ArrayIndexOutOfBoundsException {
+		return appendInExpendableBuffer(aDestBuffer, aDestPos, aAddedBuffer, 0, aAddedBuffer.length);
 	}
 
 	/**
@@ -237,19 +219,16 @@ public class CXBytesUtils {
 	 * @return
 	 * @throws ArrayIndexOutOfBoundsException
 	 */
-	static public byte[] appendInExpendableBuffer(final byte[] aDestBuffer,
-			final int aDestPos, final byte[] aAddedBuffer,
-			final int aAddedOffset, final int aAddedLen)
+	static public byte[] appendInExpendableBuffer(final byte[] aDestBuffer, final int aDestPos,
+			final byte[] aAddedBuffer, final int aAddedOffset, final int aAddedLen)
 			throws ArrayIndexOutOfBoundsException {
 		if (aDestBuffer.length - aDestPos >= aAddedLen) {
-			System.arraycopy(aAddedBuffer, aAddedOffset, aDestBuffer, aDestPos,
-					aAddedLen);
+			System.arraycopy(aAddedBuffer, aAddedOffset, aDestBuffer, aDestPos, aAddedLen);
 			return aDestBuffer;
 		} else {
 			byte[] wBuffer = new byte[aDestPos + aAddedLen];
 			System.arraycopy(aDestBuffer, 0, wBuffer, 0, aDestPos);
-			System.arraycopy(aAddedBuffer, aAddedOffset, wBuffer, aDestPos,
-					aAddedLen);
+			System.arraycopy(aAddedBuffer, aAddedOffset, wBuffer, aDestPos, aAddedLen);
 			return wBuffer;
 		}
 	}
@@ -264,11 +243,10 @@ public class CXBytesUtils {
 	 * @return la nouvelle position
 	 * @throws IllegalArgumentException
 	 */
-	public static int appendIntInBuffer(final byte[] aBuffer, final int aPos,
-			final int aValue) throws IllegalArgumentException {
+	public static int appendIntInBuffer(final byte[] aBuffer, final int aPos, final int aValue)
+			throws IllegalArgumentException {
 		if (aBuffer.length - aPos < LEN_OF_INT) {
-			throw new IllegalArgumentException(builNotEnoughLargeMess(
-					LEN_OF_INT, "int"));
+			throw new IllegalArgumentException(builNotEnoughLargeMess(LEN_OF_INT, "int"));
 		}
 
 		for (int i = 3; i >= 0; i--) {
@@ -286,11 +264,10 @@ public class CXBytesUtils {
 	 * @return la nouvelle position
 	 * @throws IllegalArgumentException
 	 */
-	public static int appendLongInBuffer(final byte[] aBuffer, final int aPos,
-			final long aValue) throws IllegalArgumentException {
+	public static int appendLongInBuffer(final byte[] aBuffer, final int aPos, final long aValue)
+			throws IllegalArgumentException {
 		if (aBuffer.length - aPos < LEN_OF_LONG) {
-			throw new IllegalArgumentException(builNotEnoughLargeMess(
-					LEN_OF_LONG, "long"));
+			throw new IllegalArgumentException(builNotEnoughLargeMess(LEN_OF_LONG, "long"));
 		}
 
 		for (int i = 7; i >= 0; i--) {
@@ -309,11 +286,10 @@ public class CXBytesUtils {
 	 * @return
 	 * @throws IllegalArgumentException
 	 */
-	public static int appendNBytesInBuffer(final byte[] aBuffer, int aPos,
-			final byte aValue, final int aNb) throws IllegalArgumentException {
+	public static int appendNBytesInBuffer(final byte[] aBuffer, int aPos, final byte aValue,
+			final int aNb) throws IllegalArgumentException {
 		if (aBuffer.length - aPos < LEN_OF_LONG) {
-			throw new IllegalArgumentException(
-					"Byte array should contain at least 8 bytes");
+			throw new IllegalArgumentException("Byte array should contain at least 8 bytes");
 		}
 		int wI = 0;
 		while (wI < aNb) {
@@ -333,11 +309,10 @@ public class CXBytesUtils {
 	 * @return la nouvelle position
 	 * @throws ArrayIndexOutOfBoundsException
 	 */
-	static public int appendShortInBuffer(final byte[] aBuffer, final int aPos,
-			final int aValue) throws ArrayIndexOutOfBoundsException {
+	static public int appendShortInBuffer(final byte[] aBuffer, final int aPos, final int aValue)
+			throws ArrayIndexOutOfBoundsException {
 		if (aBuffer.length - aPos < LEN_OF_SHORT) {
-			throw new IllegalArgumentException(
-					"Byte array should contain at least 2 bytes");
+			throw new IllegalArgumentException("Byte array should contain at least 2 bytes");
 		}
 
 		aBuffer[aPos] = (byte) ((aValue >>> 8) & 0x000000FF);
@@ -351,10 +326,8 @@ public class CXBytesUtils {
 	 * @param aContent
 	 * @return
 	 */
-	private static String builNotEnoughLargeMess(final int aSize,
-			final String aContent) {
-		return String.format(MESS_NOT_ENOUGH_LARGE, String.valueOf(aSize),
-				aContent);
+	private static String builNotEnoughLargeMess(final int aSize, final String aContent) {
+		return String.format(MESS_NOT_ENOUGH_LARGE, String.valueOf(aSize), aContent);
 	}
 
 	/**
@@ -395,13 +368,12 @@ public class CXBytesUtils {
 	 * @param aLong
 	 * @return
 	 */
-	static public String byteBufferBin2Decimal(final byte[] aBuffer,
-			final int aOffset, final int aLong) {
+	static public String byteBufferBin2Decimal(final byte[] aBuffer, final int aOffset,
+			final int aLong) {
 		if (aLong > aBuffer.length - aOffset) {
 			StringBuilder wMess = new StringBuilder(256);
 			wMess.append("byteBufferBin2Hexa : aLong < aBuffer.length - aOffset !");
-			CXStringUtils.appendKeyValInBuff(wMess, "Buffer.length",
-					aBuffer.length);
+			CXStringUtils.appendKeyValInBuff(wMess, "Buffer.length", aBuffer.length);
 			CXStringUtils.appendKeyValInBuff(wMess, "Offset", aOffset);
 			CXStringUtils.appendKeyValInBuff(wMess, "Long", aLong);
 			return wMess.toString();
@@ -416,8 +388,7 @@ public class CXBytesUtils {
 				wI++;
 			}
 		} catch (ArrayIndexOutOfBoundsException e) {
-			wSB.append(" ArrayIndexOutOfBoundsException"
-					+ e.getLocalizedMessage());
+			wSB.append(" ArrayIndexOutOfBoundsException" + e.getLocalizedMessage());
 		}
 		return wSB.toString();
 	}
@@ -437,13 +408,11 @@ public class CXBytesUtils {
 	 * @param aLong
 	 * @return
 	 */
-	static public String byteBufferBin2Hexa(final byte[] aBuffer,
-			final int aOffset, final int aLong) {
+	static public String byteBufferBin2Hexa(final byte[] aBuffer, final int aOffset, final int aLong) {
 		if (aLong > aBuffer.length - aOffset) {
 			StringBuilder wMess = new StringBuilder(256);
 			wMess.append("byteBufferBin2Hexa : aLong < aBuffer.length - aOffset !");
-			CXStringUtils.appendKeyValInBuff(wMess, "Buffer.length",
-					aBuffer.length);
+			CXStringUtils.appendKeyValInBuff(wMess, "Buffer.length", aBuffer.length);
 			CXStringUtils.appendKeyValInBuff(wMess, "Offset", aOffset);
 			CXStringUtils.appendKeyValInBuff(wMess, "Long", aLong);
 			return wMess.toString();
@@ -458,8 +427,7 @@ public class CXBytesUtils {
 				wI++;
 			}
 		} catch (ArrayIndexOutOfBoundsException e) {
-			wSB.append(" ArrayIndexOutOfBoundsException"
-					+ e.getLocalizedMessage());
+			wSB.append(" ArrayIndexOutOfBoundsException" + e.getLocalizedMessage());
 		}
 		return wSB.toString();
 	}
@@ -469,8 +437,7 @@ public class CXBytesUtils {
 	 * @return
 	 * @throws IllegalArgumentException
 	 */
-	public static int bytesToInt(final byte[] aBuffer)
-			throws IllegalArgumentException {
+	public static int bytesToInt(final byte[] aBuffer) throws IllegalArgumentException {
 		return bytesToInt(aBuffer, 0);
 	}
 
@@ -483,8 +450,7 @@ public class CXBytesUtils {
 	public static int bytesToInt(final byte[] aBuffer, final int aPos)
 			throws IllegalArgumentException {
 		if (aBuffer.length - aPos < LEN_OF_INT) {
-			throw new IllegalArgumentException(
-					"Byte array should contain at least 4 bytes");
+			throw new IllegalArgumentException("Byte array should contain at least 4 bytes");
 		}
 		int l = 0;
 		for (int i = 0; i < LEN_OF_INT; i++) {
@@ -498,8 +464,7 @@ public class CXBytesUtils {
 	 * @return
 	 * @throws IllegalArgumentException
 	 */
-	public static long bytesToLong(final byte[] aBuffer)
-			throws IllegalArgumentException {
+	public static long bytesToLong(final byte[] aBuffer) throws IllegalArgumentException {
 		return bytesToLong(aBuffer, 0);
 	}
 
@@ -512,8 +477,7 @@ public class CXBytesUtils {
 	public static long bytesToLong(final byte[] aBuffer, final int aPos)
 			throws IllegalArgumentException {
 		if (aBuffer.length - aPos < LEN_OF_LONG) {
-			throw new IllegalArgumentException(
-					"Byte array should contain at least 8 bytes");
+			throw new IllegalArgumentException("Byte array should contain at least 8 bytes");
 		}
 		long l = 0;
 		for (int i = 0; i < LEN_OF_LONG; i++) {
@@ -531,8 +495,7 @@ public class CXBytesUtils {
 	public static short bytesToShort(final byte[] aBuffer, final int aPos)
 			throws IllegalArgumentException {
 		if (aBuffer.length - aPos < LEN_OF_SHORT) {
-			throw new IllegalArgumentException(
-					"Byte array should contain at least 2 bytes");
+			throw new IllegalArgumentException("Byte array should contain at least 2 bytes");
 		}
 
 		short l = 0;
@@ -551,8 +514,7 @@ public class CXBytesUtils {
 	public static int bytesToUnsignedShort(final byte[] aBuffer, final int aPos)
 			throws IllegalArgumentException {
 		if (aBuffer.length - aPos < LEN_OF_SHORT) {
-			throw new IllegalArgumentException(
-					"Byte array should contain at least 2 bytes");
+			throw new IllegalArgumentException("Byte array should contain at least 2 bytes");
 		}
 
 		int l = 0;
@@ -573,7 +535,6 @@ public class CXBytesUtils {
 	}
 
 	/**
-	 * 15w_003
 	 * 
 	 * @param aBuffer
 	 * @param aBomRef
@@ -628,8 +589,8 @@ public class CXBytesUtils {
 	 * @param pattern
 	 * @return
 	 */
-	public static boolean contains(final byte[] data, final int aOffset,
-			final int aLen, final byte[] pattern) {
+	public static boolean contains(final byte[] data, final int aOffset, final int aLen,
+			final byte[] pattern) {
 		return (indexOf(data, aOffset, aLen, pattern) > -1);
 	}
 
@@ -684,7 +645,6 @@ public class CXBytesUtils {
 	}
 
 	/**
-	 * 15w_003
 	 * 
 	 * The Java I/O classes will read and write Unicode data in the
 	 * "default character encoding" by default. The default encoding depends on
@@ -737,15 +697,14 @@ public class CXBytesUtils {
 				wOffsetNextDot = aHexaBuffer.length();
 			}
 
-			wHexa = aHexaBuffer.substring(wOffsetDot + 2, wOffsetNextDot)
-					.toLowerCase();
+			wHexa = aHexaBuffer.substring(wOffsetDot + 2, wOffsetNextDot).toLowerCase();
 
 			try {
 				wBytes[wI] = (byte) (Integer.parseInt(wHexa, 16) & 0x000000FF);
-			} catch (Throwable e) {
-				throw new IllegalArgumentException("Can't parse hexa value ["
-						+ wHexa + "] localized at offset [" + (wOffsetDot + 2)
-						+ "] in hexaBuffer [" + aHexaBuffer + "]");
+			} catch (Exception e) {
+				throw new IllegalArgumentException("Can't parse hexa value [" + wHexa
+						+ "] localized at offset [" + (wOffsetDot + 2) + "] in hexaBuffer ["
+						+ aHexaBuffer + "]");
 			}
 			wOffsetDot = wOffsetNextDot;
 			wI++;
@@ -770,8 +729,8 @@ public class CXBytesUtils {
 	 * @param pattern
 	 * @return
 	 */
-	public static int indexOf(final byte[] data, final int aOffset,
-			final int aLen, final byte[] pattern) {
+	public static int indexOf(final byte[] data, final int aOffset, final int aLen,
+			final byte[] pattern) {
 		if (aLen < 1 || aOffset < 0) {
 			return -1;
 		}
@@ -813,7 +772,6 @@ public class CXBytesUtils {
 	}
 
 	/**
-	 * 14w_009 - Int�gration WebServices
 	 * 
 	 * @param aHexaBuffer
 	 * @return
@@ -877,8 +835,7 @@ public class CXBytesUtils {
 	 */
 	public static boolean startWith(final byte[] aBuffer, final byte[] aPrefix) {
 
-		if (aBuffer == null || aPrefix == null
-				|| aBuffer.length < aPrefix.length) {
+		if (aBuffer == null || aPrefix == null || aBuffer.length < aPrefix.length) {
 			return false;
 		}
 
@@ -899,13 +856,11 @@ public class CXBytesUtils {
 	 * @param aHexaPrefix
 	 * @return
 	 */
-	public static boolean startWith(final byte[] aBuffer,
-			final String aHexaPrefix) {
+	public static boolean startWith(final byte[] aBuffer, final String aHexaPrefix) {
 		return startWith(aBuffer, hexaBufferToBytes(aHexaPrefix));
 	}
 
 	/**
-	 * 14w_009 - Int�gration WebServices
 	 * 
 	 * @param aHexaBuffer
 	 * @param aThrowingException
@@ -923,8 +878,7 @@ public class CXBytesUtils {
 				if (aThrowingException) {
 					throwBadHexaBufferBytes("At the offset [" + wI
 							+ "], the buffer contains the char [" + wChar
-							+ "]  which is not a valid character ("
-							+ HEXA_PREFIX + ").");
+							+ "]  which is not a valid character (" + HEXA_PREFIX + ").");
 				} else {
 					return false;
 				}
@@ -952,16 +906,14 @@ public class CXBytesUtils {
 		}
 		if ((aHexaBuffer.length() % 4) != 0) {
 			if (aThrowingException) {
-				throwBadHexaBufferBytes("The buffer length is ["
-						+ aHexaBuffer.length() + "]");
+				throwBadHexaBufferBytes("The buffer length is [" + aHexaBuffer.length() + "]");
 			} else {
 				return false;
 			}
 		}
 		if (!aHexaBuffer.startsWith(HEXA_PREFIX)) {
 			if (aThrowingException) {
-				throwBadHexaBufferBytes("The buffer des not start with ["
-						+ HEXA_PREFIX + "].");
+				throwBadHexaBufferBytes("The buffer des not start with [" + HEXA_PREFIX + "].");
 			} else {
 				return false;
 			}
@@ -973,8 +925,7 @@ public class CXBytesUtils {
 	/**
 	 * @throws IllegalArgumentException
 	 */
-	private static void throwBadHexaBufferBytes(final String aMess)
-			throws IllegalArgumentException {
+	private static void throwBadHexaBufferBytes(final String aMess) throws IllegalArgumentException {
 		String wMess = "Hexa string length should be at least a multiple of 4 characters like \".xFF.x0A\";";
 		if (aMess != null && aMess.length() > 0) {
 			wMess += aMess;
@@ -996,6 +947,12 @@ public class CXBytesUtils {
 	 */
 	public static long unsignedByteToLong(final byte b) {
 		return (b & 128) + (b & 127);
+	}
+
+	/**
+	 * Dummy constructor.
+	 */
+	private CXBytesUtils() {
 	}
 
 }

@@ -221,7 +221,7 @@ public class CXMimeType {
                     log(getMimeTypeDescr());
                 }
             }
-        } catch (Throwable e) {
+        } catch (Exception e) {
             log(CXException.eInString(e));
         }
     }
@@ -242,7 +242,7 @@ public class CXMimeType {
 
             Class<?> wCallerClass = CXJavaCallerContext.getCaller(wPackageName);
             return wCallerClass.getClassLoader();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             String wMess = String.format(MESS_ERR_CCL, wPackageName,
                     CXException.eInString(e));
             log(wMess);

@@ -40,7 +40,7 @@ public class CXJsObjectBase implements IXDescriber {
 							.append(DESCR_NEWLINE);
 			}
 			return wResult;
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			return new StringBuilder().append(e);
 		}
 	}
@@ -68,7 +68,7 @@ public class CXJsObjectBase implements IXDescriber {
 	public static Appendable descrAddLine(Appendable aBuff) {
 		try {
 			return descrCheckBuffer(aBuff).append(DESCR_NEWLINE);
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			return new StringBuilder().append(e);
 		}
 	}
@@ -76,7 +76,7 @@ public class CXJsObjectBase implements IXDescriber {
 	public static Appendable descrAddLine(Appendable aBuff, CharSequence aLine) {
 		try {
 			return descrCheckBuffer(aBuff).append(aLine).append(DESCR_NEWLINE);
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			return new StringBuilder().append(e);
 		}
 	}
@@ -105,7 +105,7 @@ public class CXJsObjectBase implements IXDescriber {
 			String aValue) {
 		try {
 			return descrAddProp(aBuff, aLib, aValue).append(DESCR_NEWLINE);
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			return new StringBuilder().append(e);
 		}
 	}
@@ -113,7 +113,7 @@ public class CXJsObjectBase implements IXDescriber {
 	public static Appendable descrAddLine(Appendable aBuff, StringBuilder aLine) {
 		try {
 			return descrCheckBuffer(aBuff).append(aLine).append(DESCR_NEWLINE);
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			return new StringBuilder().append(e);
 		}
 	}
@@ -122,7 +122,7 @@ public class CXJsObjectBase implements IXDescriber {
 			CharSequence aLine, CharSequence aIndent) {
 		try {
 			return descrAddLine(aBuff.append(aIndent), aLine);
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			return new StringBuilder().append(e);
 		}
 	}
@@ -131,7 +131,7 @@ public class CXJsObjectBase implements IXDescriber {
 			String aValue, String aIndent) {
 		try {
 			return descrAddLine(aBuff.append(aIndent), aLib, aValue);
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			return new StringBuilder().append(e);
 		}
 	}
@@ -172,7 +172,7 @@ public class CXJsObjectBase implements IXDescriber {
 						.append(aValue == null ? EMPTY_STR : aValue)
 						.append(DESCR_VALUE_END);
 			return wBuff;
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			return new StringBuilder().append(e);
 		}
 	}
@@ -188,7 +188,7 @@ public class CXJsObjectBase implements IXDescriber {
 			else
 				wBuff.append(DESCR_STR_SUBTITLE2);
 			return wBuff;
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			return new StringBuilder().append(e);
 		}
 	}
@@ -200,7 +200,7 @@ public class CXJsObjectBase implements IXDescriber {
 	public static Appendable descrAddText(Appendable aBuff, CharSequence atext) {
 		try {
 			return descrCheckBuffer(aBuff).append(atext);
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			return new StringBuilder().append(e);
 		}
 	}
@@ -215,7 +215,7 @@ public class CXJsObjectBase implements IXDescriber {
 						.append(aTitle.toString().toUpperCase())
 						.append(DESCR_NEWLINE).append(DESCR_STR_TITLE);
 			return wBuff;
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			return new StringBuilder().append(e);
 		}
 	}
@@ -248,7 +248,7 @@ public class CXJsObjectBase implements IXDescriber {
 	public Appendable addDescriptionInBuffer(Appendable aBuffer) {
 		try {
 			return aBuffer.append("null");
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			return new StringBuilder().append(e);
 		}
 	}

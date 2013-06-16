@@ -1,9 +1,18 @@
+/*******************************************************************************
+ * Copyright (c) 2011 www.isandlatech.com (www.isandlatech.com)
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    ogattaz (isandlaTech) - initial API and implementation
+ *******************************************************************************/
 package org.psem2m.utilities.files;
 
 import java.io.File;
 import java.io.FileFilter;
 import java.util.Iterator;
-
 
 /**
  * @author ogattaz
@@ -17,7 +26,7 @@ public class CXFileDirSynchronizer {
 	private CXFile pFileNextFrom = null;
 	private CXFile pFileNextTarget = null;
 	private CXFile pFileTarget = null;
-	private CXFileDir pFromDir;
+	private final CXFileDir pFromDir;
 	private boolean pIterEofFrom;
 	private boolean pIterEofTarget;
 	private Iterator<File> pIterFrom;
@@ -29,12 +38,12 @@ public class CXFileDirSynchronizer {
 	private String pKeyNextTarget = KEYSTART;
 	private String pKeyTarget = KEYSTART;
 	// 16j_101
-	//private IXLogBase pLogger = null;
-	private String pPathFrom;
-	private String pPathTarget;
-	private CXFileDir pTargetDir;
+	// private IXLogBase pLogger = null;
+	private final String pPathFrom;
+	private final String pPathTarget;
+	private final CXFileDir pTargetDir;
 
-	private boolean pWithSubDir;
+	private final boolean pWithSubDir;
 
 	protected CXFileDirSynchronizer(CXFileDir aTargetDir, CXFileDir aFromDir) throws Exception {
 		this(aTargetDir, aFromDir, IXFilesContainer.WITH_SUBDIRS);
@@ -45,7 +54,8 @@ public class CXFileDirSynchronizer {
 	 * @param aFromDir
 	 * @throws Exception
 	 */
-	protected CXFileDirSynchronizer(CXFileDir aTargetDir, CXFileDir aFromDir, boolean aWithSubDir) throws Exception {
+	protected CXFileDirSynchronizer(CXFileDir aTargetDir, CXFileDir aFromDir, boolean aWithSubDir)
+			throws Exception {
 		super();
 		pTargetDir = aTargetDir;
 		pPathTarget = getAbsolutePath(pTargetDir);
@@ -133,13 +143,15 @@ public class CXFileDirSynchronizer {
 
 	private String getAbsolutePath(CXFileDir aDir) {
 		String wPath = aDir.getAbsolutePath();
-		if (wPath.charAt(wPath.length() - 1) != File.separatorChar)
+		if (wPath.charAt(wPath.length() - 1) != File.separatorChar) {
 			wPath = wPath + File.separatorChar;
+		}
 		return wPath;
 	}
 
 	/**
-	 * @return le filtre a appliquer a la recherche des fichiers et dossiers contenus dans "pFromDir"
+	 * @return le filtre a appliquer a la recherche des fichiers et dossiers
+	 *         contenus dans "pFromDir"
 	 */
 	protected FileFilter getFileFiletFrom() {
 		// to be overwritten ...
@@ -147,7 +159,8 @@ public class CXFileDirSynchronizer {
 	}
 
 	/**
-	 * @return le filtre a appliquer a la recherche des fichiers et dossiers contenus dans "pTargetDir"
+	 * @return le filtre a appliquer a la recherche des fichiers et dossiers
+	 *         contenus dans "pTargetDir"
 	 */
 	protected FileFilter getFileFiletTarget() {
 		// to be overwritten ...
@@ -159,7 +172,8 @@ public class CXFileDirSynchronizer {
 	}
 
 	/**
-	 * @return la liste des fichiers et dossiers contenus dans "pFromDir" et ses sous dossier si "pWithSubDir"
+	 * @return la liste des fichiers et dossiers contenus dans "pFromDir" et ses
+	 *         sous dossier si "pWithSubDir"
 	 * @throws Exception
 	 */
 	protected CXSortListFiles getListFrom() throws Exception {
@@ -167,7 +181,8 @@ public class CXFileDirSynchronizer {
 	}
 
 	/**
-	 * @return la liste des fichiers et dossiers contenus dans "pTargetDir" et ses sous dossier si "pWithSubDir"
+	 * @return la liste des fichiers et dossiers contenus dans "pTargetDir" et
+	 *         ses sous dossier si "pWithSubDir"
 	 * @throws Exception
 	 */
 	protected CXSortListFiles getListTarget() throws Exception {
@@ -199,8 +214,8 @@ public class CXFileDirSynchronizer {
 
 	// 16j_101
 	protected void logWrite(String aFormat, Object... args) {
-//		if (hasLogger())
-//			pLogger.logWrite(aFormat, args);
+		// if (hasLogger())
+		// pLogger.logWrite(aFormat, args);
 	}
 
 	/**
@@ -210,8 +225,9 @@ public class CXFileDirSynchronizer {
 	 */
 	private boolean mustDoSomthing(String aFromKey, String aTargetKey) {
 		// 16j_101
-		if (hasLogger())
+		if (hasLogger()) {
 			logWrite("mustDoSomthing  From=[%s],targ=[%s]", aFromKey, aTargetKey);
+		}
 		return !KEYEND.equals(aFromKey) || !KEYEND.equals(aTargetKey);
 	}
 
@@ -219,8 +235,9 @@ public class CXFileDirSynchronizer {
 		pIterEofFrom = !pIterFrom.hasNext();
 		pIterIdxFrom += (!pIterEofFrom) ? 1 : 0;
 		// 16j_101
-		if (hasLogger())
+		if (hasLogger()) {
 			logWrite("readIterFrom   EOF=[%b],Idx=[%d]", pIterEofFrom, pIterIdxFrom);
+		}
 		pFileNextFrom = (!pIterEofFrom) ? new CXFile(pIterFrom.next().getAbsolutePath()) : null;
 		setKeyNextFrom();
 	}
@@ -229,9 +246,11 @@ public class CXFileDirSynchronizer {
 		pIterEofTarget = !pIterTarget.hasNext();
 		pIterIdxTarget += (!pIterEofTarget) ? 1 : 0;
 		// 16j_101
-		if (hasLogger())
+		if (hasLogger()) {
 			logWrite("readIterTarget EOF=[%b],Idx=[%d]", pIterEofTarget, pIterIdxTarget);
-		pFileNextTarget = (!pIterEofTarget) ? new CXFile(pIterTarget.next().getAbsolutePath()) : null;
+		}
+		pFileNextTarget = (!pIterEofTarget) ? new CXFile(pIterTarget.next().getAbsolutePath())
+				: null;
 		setKeyNextTarget();
 	}
 
@@ -248,33 +267,35 @@ public class CXFileDirSynchronizer {
 	}
 
 	private void setKeyNextFrom() {
-		if (pFileNextFrom == null)
+		if (pFileNextFrom == null) {
 			pKeyNextFrom = KEYEND;
-		else {
+		} else {
 			int wOffset = pPathFrom.length();
 			String wName = pFileNextFrom.getAbsolutePath();
 			pKeyNextFrom = wName.substring(wOffset);
 		}
 		// 16j_101
-		if (hasLogger())
+		if (hasLogger()) {
 			logWrite("pKeyNextFrom=[%s]", pKeyNextFrom);
+		}
 	}
 
 	private void setKeyNextTarget() {
-		if (pFileNextTarget == null)
+		if (pFileNextTarget == null) {
 			pKeyNextTarget = KEYEND;
-		else {
+		} else {
 			int wOffset = pPathTarget.length();
 			String wName = pFileNextTarget.getAbsolutePath();
 			pKeyNextTarget = wName.substring(wOffset);
 		}
 		// 16j_101
-		if (hasLogger())
+		if (hasLogger()) {
 			logWrite("pKeyNextTarget=[%s]", pKeyNextTarget);
+		}
 	}
 
 	// 16j_101
-//	protected void setLogger(IXLogBase aLogger) {
-//		pLogger = aLogger;
-//	}
+	// protected void setLogger(IXLogBase aLogger) {
+	// pLogger = aLogger;
+	// }
 }

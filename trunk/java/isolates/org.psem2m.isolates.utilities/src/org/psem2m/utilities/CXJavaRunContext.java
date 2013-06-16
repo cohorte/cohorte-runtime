@@ -21,8 +21,7 @@ public class CXJavaRunContext {
 	 * @param aMethodName
 	 * @return
 	 */
-	private static int findMethodIdx(final StackTraceElement[] aSTEs,
-			final String aMethodName) {
+	private static int findMethodIdx(final StackTraceElement[] aSTEs, final String aMethodName) {
 		int wMax = (aSTEs != null) ? aSTEs.length : 0;
 
 		for (int wI = 0; wI < wMax; wI++) {
@@ -65,8 +64,7 @@ public class CXJavaRunContext {
 	 * @param aBefore
 	 * @return
 	 */
-	public static String getMethod(final String aToolMethodName,
-			final int aBefore) {
+	public static String getMethod(final String aToolMethodName, final int aBefore) {
 
 		StackTraceElement[] wSTEs = getStackTrace();
 		int wMax = (wSTEs != null) ? wSTEs.length : 0;
@@ -79,8 +77,7 @@ public class CXJavaRunContext {
 			return null;
 		}
 		int wIdxCallingMethod = wIdx + aBefore;
-		return (wIdxCallingMethod < wMax) ? wSTEs[wIdxCallingMethod]
-				.getMethodName() : null;
+		return (wIdxCallingMethod < wMax) ? wSTEs[wIdxCallingMethod].getMethodName() : null;
 
 	}
 
@@ -97,8 +94,6 @@ public class CXJavaRunContext {
 	}
 
 	/**
-	 * *
-	 * 
 	 * <pre>
 	 * getStackTrace,getStackTrace,getStackMethods,doCmdeMethods,monitorCommand,execLine,monitor,main,main
 	 * </pre>
