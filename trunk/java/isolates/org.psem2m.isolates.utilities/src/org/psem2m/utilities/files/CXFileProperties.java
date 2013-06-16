@@ -295,7 +295,7 @@ public class CXFileProperties extends CXFileText {
 	 * @see com.adonix.adminsrv.utils.CXFileText#readAll()
 	 */
 	@Override
-	public String readAll() throws Exception {
+	public String readAll() throws IOException {
 		return convertUnicodeEscapesToNonIso8859(super.readAll());
 	}
 
@@ -331,7 +331,7 @@ public class CXFileProperties extends CXFileText {
 	 * @see com.adonix.adminsrv.utils.CXFileText#write(java.lang.String)
 	 */
 	@Override
-	public void write(String aString) throws Exception {
+	public void write(String aString) throws IOException {
 		/*
 		 * ecrit la chaine de caractere dans le fichier text sous jascent (cf
 		 * ISO-8859-1) en convertissant tous les caracteres non representable en

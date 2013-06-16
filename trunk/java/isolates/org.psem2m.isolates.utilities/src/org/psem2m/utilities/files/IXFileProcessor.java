@@ -11,6 +11,7 @@
 package org.psem2m.utilities.files;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * @author ogattaz
@@ -23,5 +24,5 @@ public interface IXFileProcessor {
 	 * @return vrai si
 	 * @throws Exception
 	 */
-	public boolean processFile(File aFile) throws Exception;
+	public boolean processFile(File aFile) throws IOException;
 }

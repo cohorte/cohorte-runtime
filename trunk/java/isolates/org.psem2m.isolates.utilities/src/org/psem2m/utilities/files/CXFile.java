@@ -117,7 +117,7 @@ public class CXFile extends CXFileBase {
 	 * @return aDestFile
 	 * @throws Exception
 	 */
-	public CXFile copyTo(CXFile aDestFile, boolean aDeleteIfExists) throws Exception {
+	public CXFile copyTo(CXFile aDestFile, boolean aDeleteIfExists) throws IOException {
 		assertExist("copy");
 		this.close();
 		if ((!aDestFile.exists()) || (aDestFile.exists() && aDeleteIfExists)) {
@@ -155,7 +155,7 @@ public class CXFile extends CXFileBase {
 	 * @return fichier de destination
 	 * @throws Exception
 	 */
-	public CXFile copyTo(CXFileDir aDir, String aName, boolean aDeleteIfExists) throws Exception {
+	public CXFile copyTo(CXFileDir aDir, String aName, boolean aDeleteIfExists) throws IOException {
 		CXFileDir wDir = aDir;
 		if (wDir == null) {
 			wDir = getParentDirectory();
@@ -247,7 +247,7 @@ public class CXFile extends CXFileBase {
 	 * @return
 	 * @throws Exception
 	 */
-	public FileOutputStream getOutputStream(boolean aAppend) throws Exception {
+	public FileOutputStream getOutputStream(boolean aAppend) throws IOException {
 		if (aAppend) {
 			assertExist("open (append)");
 		}
@@ -258,7 +258,7 @@ public class CXFile extends CXFileBase {
 	 * @return
 	 * @throws Exception
 	 */
-	public CXFileDir getParentDirectory() throws Exception {
+	public CXFileDir getParentDirectory() throws IOException {
 		return new CXFileDir(getParentFile().getAbsolutePath());
 	}
 
@@ -283,7 +283,7 @@ public class CXFile extends CXFileBase {
 	 * @return
 	 * @throws Exception
 	 */
-	public CXFile moveTo(CXFile aDestFile, boolean aDeleteIfExists) throws Exception {
+	public CXFile moveTo(CXFile aDestFile, boolean aDeleteIfExists) throws IOException {
 		assertExist("move");
 		close();
 
@@ -313,7 +313,7 @@ public class CXFile extends CXFileBase {
 	 *            - Suppresion du fichier destination
 	 * @throws Exception
 	 */
-	public CXFile moveTo(CXFileDir aDir, String aName, boolean aDeleteIfExists) throws Exception {
+	public CXFile moveTo(CXFileDir aDir, String aName, boolean aDeleteIfExists) throws IOException {
 		CXFileDir wDir = aDir;
 		if (wDir == null) {
 			wDir = getParentDirectory();
@@ -327,7 +327,7 @@ public class CXFile extends CXFileBase {
 	 * @return
 	 * @throws Exception
 	 */
-	public byte[] readAllBytes() throws Exception {
+	public byte[] readAllBytes() throws IOException {
 		return readAllBytes(Integer.MAX_VALUE);
 	}
 
@@ -336,7 +336,7 @@ public class CXFile extends CXFileBase {
 	 * @return
 	 * @throws Exception
 	 */
-	public byte[] readAllBytes(int aCount) throws Exception {
+	public byte[] readAllBytes(int aCount) throws IOException {
 		if (super.canRead()) {
 			FileInputStream wStream = getInputStream();
 			int wMax = wStream.available();

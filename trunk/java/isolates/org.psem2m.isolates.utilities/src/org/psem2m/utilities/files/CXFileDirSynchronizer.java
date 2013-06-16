@@ -12,6 +12,7 @@ package org.psem2m.utilities.files;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.IOException;
 import java.util.Iterator;
 
 /**
@@ -19,8 +20,8 @@ import java.util.Iterator;
  */
 public class CXFileDirSynchronizer {
 
-	public static String KEYEND = "zzzzz";
-	public static String KEYSTART = "";
+	private static final String KEYEND = "zzzzz";
+	private static final String KEYSTART = "";
 
 	private CXFile pFileFrom = null;
 	private CXFile pFileNextFrom = null;
@@ -45,7 +46,12 @@ public class CXFileDirSynchronizer {
 
 	private final boolean pWithSubDir;
 
-	protected CXFileDirSynchronizer(CXFileDir aTargetDir, CXFileDir aFromDir) throws Exception {
+	/**
+	 * @param aTargetDir
+	 * @param aFromDir
+	 * @throws Exception
+	 */
+	protected CXFileDirSynchronizer(CXFileDir aTargetDir, CXFileDir aFromDir) {
 		this(aTargetDir, aFromDir, IXFilesContainer.WITH_SUBDIRS);
 	}
 
@@ -54,8 +60,7 @@ public class CXFileDirSynchronizer {
 	 * @param aFromDir
 	 * @throws Exception
 	 */
-	protected CXFileDirSynchronizer(CXFileDir aTargetDir, CXFileDir aFromDir, boolean aWithSubDir)
-			throws Exception {
+	protected CXFileDirSynchronizer(CXFileDir aTargetDir, CXFileDir aFromDir, boolean aWithSubDir) {
 		super();
 		pTargetDir = aTargetDir;
 		pPathTarget = getAbsolutePath(pTargetDir);
@@ -69,14 +74,14 @@ public class CXFileDirSynchronizer {
 	 * @param aKey
 	 * @param aPathTarget
 	 */
-	protected void doAddOne(CXFile aFileFrom, String aKey, CXFileDir aTargetDir) throws Exception {
+	protected void doAddOne(CXFile aFileFrom, String aKey, CXFileDir aTargetDir) throws IOException {
 		// to be overwritten ...
 	}
 
 	/**
 	 * @param aFileTarget
 	 */
-	protected void doDeleteOne(CXFile aFileTarget) throws Exception {
+	protected void doDeleteOne(CXFile aFileTarget) throws IOException {
 		// to be overwritten ...
 	}
 
@@ -84,14 +89,14 @@ public class CXFileDirSynchronizer {
 	 * @param pFileFrom
 	 * @param pFileTarget
 	 */
-	protected void doSyncOne(CXFile aFileFrom, CXFile aFileTarget) throws Exception {
+	protected void doSyncOne(CXFile aFileFrom, CXFile aFileTarget) throws IOException {
 		// to be overwritten ...
 	}
 
 	/**
 	 * 
 	 */
-	public void exec() throws Exception {
+	public void exec() throws IOException {
 
 		initIteratorFrom();
 		initIteratorTarget();
@@ -176,7 +181,7 @@ public class CXFileDirSynchronizer {
 	 *         sous dossier si "pWithSubDir"
 	 * @throws Exception
 	 */
-	protected CXSortListFiles getListFrom() throws Exception {
+	protected CXSortListFiles getListFrom() throws IOException {
 		return pFromDir.scanAll(getFileFiletFrom(), pWithSubDir);
 	}
 
@@ -185,7 +190,7 @@ public class CXFileDirSynchronizer {
 	 *         ses sous dossier si "pWithSubDir"
 	 * @throws Exception
 	 */
-	protected CXSortListFiles getListTarget() throws Exception {
+	protected CXSortListFiles getListTarget() throws IOException {
 		return pTargetDir.scanAll(getFileFiletTarget(), pWithSubDir);
 	}
 
@@ -201,14 +206,14 @@ public class CXFileDirSynchronizer {
 	/**
 	 * @throws Exception
 	 */
-	protected void initIteratorFrom() throws Exception {
+	protected void initIteratorFrom() throws IOException {
 		pIterFrom = getListFrom().iterator();
 	}
 
 	/**
 	 * @throws Exception
 	 */
-	protected void initIteratorTarget() throws Exception {
+	protected void initIteratorTarget() throws IOException {
 		pIterTarget = getListTarget().iterator();
 	}
 
