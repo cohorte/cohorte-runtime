@@ -40,7 +40,7 @@ public class CXJavaCallerContext {
 
 	private static final int INTERNAL_CALL_COUNT = 1;
 
-	private final static int NOLIMIT = -1;
+	private static final int NOLIMIT = -1;
 
 	/**
 	 * Utility to obtain the <code>Class</code> issuing the call to the current

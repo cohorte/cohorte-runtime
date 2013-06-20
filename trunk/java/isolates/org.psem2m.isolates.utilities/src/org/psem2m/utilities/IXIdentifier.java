@@ -16,7 +16,7 @@ package org.psem2m.utilities;
  */
 public interface IXIdentifier {
 
-	public static String LIB_ID = "Id";
+	public static final String LIB_ID = "Id";
 
 	/**
 	 * @return

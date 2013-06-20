@@ -9,15 +9,12 @@ import java.util.List;
  */
 class CExceptionMessage implements IXDescriber {
 
-	private final static String LABEL_MESS = "Mess=[%s]";
+	private static final String LABEL_MESS = "Mess=[%s]";
 
-	private final static String LABEL_TYP = "Typ=[%s]";
+	private static final String LABEL_TYP = "Typ=[%s]";
 
 	private final String pMessage;
 
-	/**
-   * 
-   */
 	private final EExceptionMessageTyp pTyp;
 
 	/**
@@ -76,7 +73,6 @@ class CExceptionMessage implements IXDescriber {
 	String getMessageFull() throws Exception {
 
 		return toDescription();
-
 	}
 
 	/**

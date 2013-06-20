@@ -12,6 +12,9 @@ package org.psem2m.utilities.files;
 
 /**
  * Lecture/Ecriture de fichiers XML Encodage UTF-8 par defaut
+ * 
+ * @author ogattaz
+ * 
  */
 public class CXFileUtf8 extends CXFileText {
 

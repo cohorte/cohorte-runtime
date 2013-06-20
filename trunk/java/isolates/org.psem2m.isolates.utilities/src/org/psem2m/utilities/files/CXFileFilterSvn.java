@@ -20,6 +20,10 @@ public class CXFileFilterSvn extends CXFileFilterSubPath implements FileFilter {
 
 	private final static String SVN_DIR_NAME = ".svn";
 
+	/**
+	 * @param aSubFileFilter
+	 * @param aInclude
+	 */
 	public CXFileFilterSvn(FileFilter aSubFileFilter, boolean aInclude) {
 		super(SVN_DIR_NAME, aSubFileFilter, aInclude);
 	}
@@ -34,7 +38,7 @@ public class CXFileFilterSvn extends CXFileFilterSubPath implements FileFilter {
 		StringBuilder wSB = new StringBuilder();
 		wSB.append(String.format("CXFileFilterSvn(%s)", includer()));
 		if (hasSubFileFilter()) {
-			wSB.append(SEPARATOR).append(getSubFileFilter().toString());
+			wSB.append(FILTERS_SEPARATOR).append(getSubFileFilter().toString());
 		}
 		return wSB.toString();
 	}

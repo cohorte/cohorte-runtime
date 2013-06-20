@@ -16,82 +16,74 @@ package org.psem2m.utilities;
  */
 public final class CXBytesUtils {
 
-	private static byte BOM_UTF_16BE[] = { (byte) 0xFE, (byte) 0xFF };
+	public static final int BOM_SIZE = 4;
+	public static final int BOM_SIZE_16 = 2;
+	public static final int BOM_SIZE_8 = 3;
 
-	private static byte BOM_UTF_16LE[] = { (byte) 0xFF, (byte) 0xFE };
+	public static final int BOM_SIZE_MAX = BOM_SIZE;
 
-	private static byte BOM_UTF_32BE[] = { (byte) 0x00, (byte) 0x00, (byte) 0xFE, (byte) 0xFF };
-
-	private static byte BOM_UTF_32LE[] = { (byte) 0xFF, (byte) 0xFE, (byte) 0x00, (byte) 0x00 };
-
-	private static byte BOM_UTF_8[] = { (byte) 0xEF, (byte) 0xBB, (byte) 0xBF };
+	public static final byte[] BOM_UTF_16BE = { (byte) 0xFE, (byte) 0xFF };
+	public static final byte[] BOM_UTF_16LE = { (byte) 0xFF, (byte) 0xFE };
+	public static final byte[] BOM_UTF_32BE = { (byte) 0x00, (byte) 0x00, (byte) 0xFE, (byte) 0xFF };
+	public static final byte[] BOM_UTF_32LE = { (byte) 0xFF, (byte) 0xFE, (byte) 0x00, (byte) 0x00 };
+	public static final byte[] BOM_UTF_8 = { (byte) 0xEF, (byte) 0xBB, (byte) 0xBF };
 
 	/**
 	 * java.nio.charset.Charset: ISO Latin Alphabet No. 1, a.k.a. ISO-LATIN-1
 	 */
-	private final static String DEF_ISO_8859_1_CONSTANT_JAVA = "ISO-8859-1";
+	private static final String DEF_ISO_8859_1_CONSTANT_JAVA = "ISO-8859-1";
 
 	/**
 	 * java.nio.charset.Charset: Seven-bit ASCII, a.k.a. ISO646-US, a.k.a. the
 	 * Basic Latin block of the Unicode character set
 	 */
-	private final static String DEF_US_ASCII_CONSTANT_JAVA = "US-ASCII";
+	private static final String DEF_US_ASCII_CONSTANT_JAVA = "US-ASCII";
 
 	/**
 	 * java.nio.charset.Charset: Sixteen-bit UCS Transformation Format, byte
 	 * order identified by an optional byte-order mark
 	 */
-	private final static String DEF_UTF_16_CONSTANT_JAVA = "UTF-16";
+	private static final String DEF_UTF_16_CONSTANT_JAVA = "UTF-16";
 
 	/**
 	 * java.nio.charset.Charset: Sixteen-bit UCS Transformation Format,
 	 * big-endian byte order
 	 */
-	private final static String DEF_UTF_16BE_CONSTANT_JAVA = "UTF-16BE";
+	private static final String DEF_UTF_16BE_CONSTANT_JAVA = "UTF-16BE";
 
 	/**
 	 * java.nio.charset.Charset: Sixteen-bit UCS Transformation Format,
 	 * little-endian byte order
 	 */
-	private final static String DEF_UTF_16LE_CONSTANT_JAVA = "UTF-16LE";
+	private static final String DEF_UTF_16LE_CONSTANT_JAVA = "UTF-16LE";
 
 	/**
 	 * java.nio.charset.Charset: Eight-bit UCS Transformation Format
 	 */
-	private final static String DEF_UTF_8_CONSTANT_JAVA = "UTF-8";
+	private static final String DEF_UTF_8_CONSTANT_JAVA = "UTF-8";
 
-	public final static String ENCODING_ISO_8859_1 = DEF_ISO_8859_1_CONSTANT_JAVA;
+	public static final String ENCODING_ISO_8859_1 = DEF_ISO_8859_1_CONSTANT_JAVA;
+	public static final String ENCODING_US_ASCII = DEF_US_ASCII_CONSTANT_JAVA;
+	public static final String ENCODING_UTF_16 = DEF_UTF_16_CONSTANT_JAVA;
+	public static final String ENCODING_UTF_16BE = DEF_UTF_16BE_CONSTANT_JAVA;
+	public static final String ENCODING_UTF_16LE = DEF_UTF_16LE_CONSTANT_JAVA;
+	public static final String ENCODING_UTF_32BE = "UTF-32BE";
+	public static final String ENCODING_UTF_32LE = "UTF-32LE";
+	public static final String ENCODING_UTF_8 = DEF_UTF_8_CONSTANT_JAVA;
 
-	public final static String ENCODING_US_ASCII = DEF_US_ASCII_CONSTANT_JAVA;
+	public static final String HEXA_BUFFER_DIGITS = ".x0123456789ABCDEF";
 
-	public final static String ENCODING_UTF_16 = DEF_UTF_16_CONSTANT_JAVA;
-
-	public final static String ENCODING_UTF_16BE = DEF_UTF_16BE_CONSTANT_JAVA;
-
-	public final static String ENCODING_UTF_16LE = DEF_UTF_16LE_CONSTANT_JAVA;
-
-	public final static String ENCODING_UTF_32BE = "UTF-32BE";
-
-	public final static String ENCODING_UTF_32LE = "UTF-32LE";
-
-	public final static String ENCODING_UTF_8 = DEF_UTF_8_CONSTANT_JAVA;
-
-	private final static String HEXA_BUFFER_DIGITS = ".x0123456789ABCDEF";
-
-	private final static char[] HEXA_DIGITS = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+	private static final char[] HEXA_DIGITS = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
 			'A', 'B', 'C', 'D', 'E', 'F' };
 
-	private final static String HEXA_PREFIX = ".x";
+	private static final String HEXA_PREFIX = ".x";
 
-	public static int LEN_OF_BYTE = 1;
+	public static final int LEN_OF_BYTE = 1;
+	public static final int LEN_OF_INT = 4;
+	public static final int LEN_OF_LONG = 8;
+	public static final int LEN_OF_SHORT = 2;
 
-	public static int LEN_OF_INT = 4;
-
-	public static int LEN_OF_LONG = 8;
-
-	public static int LEN_OF_SHORT = 2;
-
-	private final static String MESS_NOT_ENOUGH_LARGE = "The byte array is not enough large. It should have at least [%s] bytes to accept an [%s]";
+	private static final String MESS_NOT_ENOUGH_LARGE = "The byte array is not enough large. It should have at least [%s] bytes to accept an [%s]";
 
 	/**
 	 * ajoute la representation HEXA d'un octet dans un StringBuilder
@@ -100,7 +92,7 @@ public final class CXBytesUtils {
 	 * @param mybyte
 	 * @return
 	 */
-	static public StringBuilder addByte2DecimalInSB(final StringBuilder aSB, final byte mybyte) {
+	public static StringBuilder addByte2DecimalInSB(final StringBuilder aSB, final byte mybyte) {
 		aSB.append('.');
 		aSB.append('d');
 		aSB.append(CXStringUtils.strAdjustRight(mybyte, 3));
@@ -114,7 +106,7 @@ public final class CXBytesUtils {
 	 * @param mybyte
 	 * @return
 	 */
-	static public StringBuilder addByte2HexaInCSB(final StringBuilder aSB, final byte mybyte) {
+	public static StringBuilder addByte2HexaInCSB(final StringBuilder aSB, final byte mybyte) {
 		aSB.append('.');
 		aSB.append('x');
 		aSB.append(HEXA_DIGITS[(0x00F0 & mybyte) >> 4]);
@@ -129,7 +121,7 @@ public final class CXBytesUtils {
 	 * @param mybyte
 	 * @return
 	 */
-	static public StringBuilder addByte2HexaInSB(final StringBuilder aSB, final byte mybyte) {
+	public static StringBuilder addByte2HexaInSB(final StringBuilder aSB, final byte mybyte) {
 		aSB.append('.');
 		aSB.append('x');
 		aSB.append(HEXA_DIGITS[(0x00F0 & mybyte) >> 4]);
@@ -146,7 +138,7 @@ public final class CXBytesUtils {
 	 * @return la nouvelle position
 	 * @throws ArrayIndexOutOfBoundsException
 	 */
-	static public int appendByteInBuffer(final byte[] aBuffer, final int aPos, final int aValue)
+	public static int appendByteInBuffer(final byte[] aBuffer, final int aPos, final int aValue)
 			throws ArrayIndexOutOfBoundsException {
 		if (aBuffer.length - aPos < LEN_OF_BYTE) {
 			throw new IllegalArgumentException("Byte array should contain at least 2 bytes");
@@ -166,7 +158,7 @@ public final class CXBytesUtils {
 	 * @return la nouvelle position
 	 * @throws ArrayIndexOutOfBoundsException
 	 */
-	static public int appendBytesInBuffer(final byte[] aBuffer, final int aPos, final byte[] aInfo)
+	public static int appendBytesInBuffer(final byte[] aBuffer, final int aPos, final byte[] aInfo)
 			throws ArrayIndexOutOfBoundsException {
 		int wLen = aInfo.length;
 		System.arraycopy(aInfo, 0, aBuffer, aPos, wLen);
@@ -202,7 +194,7 @@ public final class CXBytesUtils {
 	 * @return
 	 * @throws ArrayIndexOutOfBoundsException
 	 */
-	static public byte[] appendInExpendableBuffer(final byte[] aDestBuffer, final int aDestPos,
+	public static byte[] appendInExpendableBuffer(final byte[] aDestBuffer, final int aDestPos,
 			final byte[] aAddedBuffer) throws ArrayIndexOutOfBoundsException {
 		return appendInExpendableBuffer(aDestBuffer, aDestPos, aAddedBuffer, 0, aAddedBuffer.length);
 	}
@@ -219,7 +211,7 @@ public final class CXBytesUtils {
 	 * @return
 	 * @throws ArrayIndexOutOfBoundsException
 	 */
-	static public byte[] appendInExpendableBuffer(final byte[] aDestBuffer, final int aDestPos,
+	public static byte[] appendInExpendableBuffer(final byte[] aDestBuffer, final int aDestPos,
 			final byte[] aAddedBuffer, final int aAddedOffset, final int aAddedLen)
 			throws ArrayIndexOutOfBoundsException {
 		if (aDestBuffer.length - aDestPos >= aAddedLen) {
@@ -309,7 +301,7 @@ public final class CXBytesUtils {
 	 * @return la nouvelle position
 	 * @throws ArrayIndexOutOfBoundsException
 	 */
-	static public int appendShortInBuffer(final byte[] aBuffer, final int aPos, final int aValue)
+	public static int appendShortInBuffer(final byte[] aBuffer, final int aPos, final int aValue)
 			throws ArrayIndexOutOfBoundsException {
 		if (aBuffer.length - aPos < LEN_OF_SHORT) {
 			throw new IllegalArgumentException("Byte array should contain at least 2 bytes");
@@ -334,7 +326,7 @@ public final class CXBytesUtils {
 	 * @param mybyte
 	 * @return la valeur ASCII d'un octet
 	 */
-	static public int byte2CodeASCII(final byte mybyte) {
+	public static int byte2CodeASCII(final byte mybyte) {
 		// the byte to translate is mybyte
 		return (0x00FF & mybyte);
 	}
@@ -343,7 +335,7 @@ public final class CXBytesUtils {
 	 * @param mybyte
 	 * @return la representation hexa d'un octet
 	 */
-	static public String byte2Hexa(final byte mybyte) {
+	public static String byte2Hexa(final byte mybyte) {
 		return new String(byte2HexaInChars(mybyte));
 	}
 
@@ -368,7 +360,7 @@ public final class CXBytesUtils {
 	 * @param aLong
 	 * @return
 	 */
-	static public String byteBufferBin2Decimal(final byte[] aBuffer, final int aOffset,
+	public static String byteBufferBin2Decimal(final byte[] aBuffer, final int aOffset,
 			final int aLong) {
 		if (aLong > aBuffer.length - aOffset) {
 			StringBuilder wMess = new StringBuilder(256);
@@ -396,7 +388,7 @@ public final class CXBytesUtils {
 	/**
 	 * appel de la trace pour un buffer
 	 */
-	static public String byteBufferBin2Hexa(final byte[] aBuffer) {
+	public static String byteBufferBin2Hexa(final byte[] aBuffer) {
 		return byteBufferBin2Hexa(aBuffer, 0, aBuffer.length);
 	}
 
@@ -408,7 +400,7 @@ public final class CXBytesUtils {
 	 * @param aLong
 	 * @return
 	 */
-	static public String byteBufferBin2Hexa(final byte[] aBuffer, final int aOffset, final int aLong) {
+	public static String byteBufferBin2Hexa(final byte[] aBuffer, final int aOffset, final int aLong) {
 		if (aLong > aBuffer.length - aOffset) {
 			StringBuilder wMess = new StringBuilder(256);
 			wMess.append("byteBufferBin2Hexa : aLong < aBuffer.length - aOffset !");

@@ -20,13 +20,11 @@ import java.util.ArrayList;
  */
 public interface IXFilesContainer {
 
-	public final static FileFilter NO_FILTER = null;
+	public static final FileFilter NO_FILTER = null;
 
-	public final static boolean WITH_DIRS = true;
-
-	public final static boolean WITH_SUBDIRS = true;
-
-	public final static boolean WITH_TEXTFILE = true;
+	public static final boolean WITH_DIRS = true;
+	public static final boolean WITH_SUBDIRS = true;
+	public static final boolean WITH_TEXTFILE = true;
 
 	/**
 	 * @param aFilter

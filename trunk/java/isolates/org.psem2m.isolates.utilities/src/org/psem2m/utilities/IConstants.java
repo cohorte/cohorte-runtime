@@ -16,7 +16,7 @@ package org.psem2m.utilities;
  */
 public interface IConstants {
 
-	public final static String EMPTY = "";
-	public final static String LIB_EMPTY = "empty";
-	public final static String LIB_NULL = "null";
+	public static final String EMPTY = "";
+	public static final String LIB_EMPTY = "empty";
+	public static final String LIB_NULL = "null";
 }

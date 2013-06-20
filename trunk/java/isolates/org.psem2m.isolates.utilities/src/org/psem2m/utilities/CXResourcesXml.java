@@ -26,7 +26,7 @@ import java.util.PropertyResourceBundle;
  */
 public class CXResourcesXml extends CXResources {
 
-	private final static String XML = "xml";
+	private static final String XML = "xml";
 
 	/**
 	 * @param aId

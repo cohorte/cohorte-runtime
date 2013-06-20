@@ -15,19 +15,36 @@ import java.io.FileFilter;
 
 import org.psem2m.utilities.CXStringUtils;
 
+/**
+ * @author ogattaz
+ * 
+ */
 public class CXFileFilterSubLevel extends CXFileFilter implements FileFilter {
 
 	private final int pMaxSubLevel;
 
+	/**
+	 * @param aMaxSubLevel
+	 */
 	public CXFileFilterSubLevel(int aMaxSubLevel) {
 		this(aMaxSubLevel, null, INCLUDE);
 	}
 
+	/**
+	 * @param aMaxSubLevel
+	 * @param subFileFilter
+	 * @param include
+	 */
 	public CXFileFilterSubLevel(int aMaxSubLevel, FileFilter subFileFilter, boolean include) {
 		super(subFileFilter, include);
 		pMaxSubLevel = aMaxSubLevel;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.io.FileFilter#accept(java.io.File)
+	 */
 	@Override
 	public boolean accept(File aFile) {
 		String wPath = aFile.getAbsolutePath();
@@ -39,6 +56,9 @@ public class CXFileFilterSubLevel extends CXFileFilter implements FileFilter {
 		return wOK;
 	}
 
+	/**
+	 * @return
+	 */
 	protected int getMaxSubLevel() {
 		return pMaxSubLevel;
 	}
@@ -48,13 +68,12 @@ public class CXFileFilterSubLevel extends CXFileFilter implements FileFilter {
 	 * 
 	 * @see java.lang.Object#toString()
 	 */
-	// 16w_109 - enrichissement de la log
 	@Override
 	public String toString() {
 		StringBuilder wSB = new StringBuilder();
 		wSB.append(String.format("FilterSubLevel(%s)=[%d]", includer(), getMaxSubLevel()));
 		if (hasSubFileFilter()) {
-			wSB.append(SEPARATOR).append(getSubFileFilter().toString());
+			wSB.append(FILTERS_SEPARATOR).append(getSubFileFilter().toString());
 		}
 		return wSB.toString();
 	}

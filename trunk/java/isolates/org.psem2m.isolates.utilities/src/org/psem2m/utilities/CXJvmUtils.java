@@ -22,49 +22,48 @@ import java.util.TreeSet;
  */
 public final class CXJvmUtils {
 
-	private final static int ID_WITDH = 30;
+	private static final int ID_WITDH = 30;
 
-	private final static int LINE_WITDH = 130;
-	public final static int MASK_INFOS_JAVA = 1;
+	private static final int LINE_WITDH = 130;
 
-	public final static int MASK_INFOS_OS = 2;
-	public final static int MASK_INFOS_PATHS = 8;
-	public final static int MASK_INFOS_USER = 4;
-	public final static int MASK_OTHER_PROPS = 16;
-	public final static char SEP_NUL = (char) 255;
+	public static final int MASK_INFOS_JAVA = 1;
+	public static final int MASK_INFOS_OS = 2;
+	public static final int MASK_INFOS_PATHS = 8;
+	public static final int MASK_INFOS_USER = 4;
+	public static final int MASK_OTHER_PROPS = 16;
+	public static final char SEP_NUL = (char) 255;
 
-	public final static String SYSPROP_DEFAULT_CHARSET = "defaultCharset";
+	public static final String SYSPROP_DEFAULT_CHARSET = "defaultCharset";
+	public static final String SYSPROP_JAVA_CLASS_PATH = "java.class.path";
+	public static final String SYSPROP_JAVA_CLASS_VERS = "java.class.version";
+	public static final String SYSPROP_JAVA_ENDORSED_DIR = "java.endorsed.dirs";
+	public static final String SYSPROP_JAVA_EXT_DIR = "java.ext.dirs";
+	public static final String SYSPROP_JAVA_HOME = "java.home";
+	public static final String SYSPROP_JAVA_IO_TMPDIR = "java.io.tmpdir";
+	public static final String SYSPROP_JAVA_RUN_NAME = "java.runtime.name";
+	public static final String SYSPROP_JAVA_RUN_VERS = "java.runtime.version";
+	public static final String SYSPROP_JAVA_SPEC_VERS = "java.specification.version";
+	public static final String SYSPROP_JAVA_VENDOR = "java.vendor";
+	public static final String SYSPROP_JAVA_VENDOR_URL = "java.vendor.url";
+	public static final String SYSPROP_JAVA_VERS = "java.version";
+	public static final String SYSPROP_JAVA_VM_INFO = "java.vm.info";
+	public static final String SYSPROP_JAVA_VM_NAME = "java.vm.name";
+	public static final String SYSPROP_JAVA_VM_VENDOR = "java.vm.vendor";
+	public static final String SYSPROP_JAVA_VM_VERSION = "java.vm.version";
+	public static final String SYSPROP_LIB_PATH = "java.library.path";
+	public static final String SYSPROP_OS_ARCH = "os.arch";
+	public static final String SYSPROP_OS_NAME = "os.name";
+	public static final String SYSPROP_OS_VERS = "os.version";
+	public static final String SYSPROP_SUPPORTED_ENCODING = "supported.encodings";
+	public static final String SYSPROP_USER_COUNTRY = "user.country";
+	public static final String SYSPROP_USER_DIR = "user.dir";
+	public static final String SYSPROP_USER_HOME = "user.home";
+	public static final String SYSPROP_USER_LANG = "user.language";
+	public static final String SYSPROP_USER_NAME = "user.name";
+	public static final String SYSPROP_USER_REGION = "user.region";
+	public static final String SYSPROP_USER_TIMEZONE = "user.timezone";
 
-	public final static String SYSPROP_JAVA_CLASS_PATH = "java.class.path";
-	public final static String SYSPROP_JAVA_CLASS_VERS = "java.class.version";
-	public final static String SYSPROP_JAVA_ENDORSED_DIR = "java.endorsed.dirs";
-	public final static String SYSPROP_JAVA_EXT_DIR = "java.ext.dirs";
-	public final static String SYSPROP_JAVA_HOME = "java.home";
-	public final static String SYSPROP_JAVA_IO_TMPDIR = "java.io.tmpdir";
-	public final static String SYSPROP_JAVA_RUN_NAME = "java.runtime.name";
-	public final static String SYSPROP_JAVA_RUN_VERS = "java.runtime.version";
-	public final static String SYSPROP_JAVA_SPEC_VERS = "java.specification.version";
-	public final static String SYSPROP_JAVA_VENDOR = "java.vendor";
-	public final static String SYSPROP_JAVA_VENDOR_URL = "java.vendor.url";
-	public final static String SYSPROP_JAVA_VERS = "java.version";
-	public final static String SYSPROP_JAVA_VM_INFO = "java.vm.info";
-	public final static String SYSPROP_JAVA_VM_NAME = "java.vm.name";
-	public final static String SYSPROP_JAVA_VM_VENDOR = "java.vm.vendor";
-	public final static String SYSPROP_JAVA_VM_VERSION = "java.vm.version";
-	public final static String SYSPROP_LIB_PATH = "java.library.path";
-	public final static String SYSPROP_OS_ARCH = "os.arch";
-	public final static String SYSPROP_OS_NAME = "os.name";
-	public final static String SYSPROP_OS_VERS = "os.version";
-	public final static String SYSPROP_SUPPORTED_ENCODING = "supported.encodings";
-	public final static String SYSPROP_USER_COUNTRY = "user.country";
-	public final static String SYSPROP_USER_DIR = "user.dir";
-	public final static String SYSPROP_USER_HOME = "user.home";
-	public final static String SYSPROP_USER_LANG = "user.language";
-	public final static String SYSPROP_USER_NAME = "user.name";
-	public final static String SYSPROP_USER_REGION = "user.region";
-	public final static String SYSPROP_USER_TIMEZONE = "user.timezone";
-
-	public final static String[] SYSPROPS = { SYSPROP_DEFAULT_CHARSET, SYSPROP_JAVA_CLASS_PATH,
+	public static final String[] SYSPROPS = { SYSPROP_DEFAULT_CHARSET, SYSPROP_JAVA_CLASS_PATH,
 			SYSPROP_JAVA_CLASS_VERS, SYSPROP_JAVA_ENDORSED_DIR, SYSPROP_JAVA_EXT_DIR,
 			SYSPROP_JAVA_HOME, SYSPROP_JAVA_IO_TMPDIR, SYSPROP_JAVA_RUN_NAME,
 			SYSPROP_JAVA_RUN_VERS, SYSPROP_JAVA_VENDOR, SYSPROP_JAVA_VERS, SYSPROP_JAVA_VM_INFO,
@@ -74,13 +73,13 @@ public final class CXJvmUtils {
 			SYSPROP_USER_HOME, SYSPROP_USER_LANG, SYSPROP_USER_NAME, SYSPROP_USER_COUNTRY,
 			SYSPROP_USER_REGION, SYSPROP_USER_TIMEZONE, SYSPROP_JAVA_VENDOR_URL };
 
-	public final static boolean VALUE_MULTI_LINE = true;
+	public static final boolean VALUE_MULTI_LINE = true;
+	public static final boolean VALUE_ONE_LINE = false;
 
-	public final static boolean VALUE_ONE_LINE = false;
-	public final static int VECTOR_FULL_INFOS = MASK_INFOS_JAVA + MASK_INFOS_OS + MASK_INFOS_USER
+	public static final int VECTOR_FULL_INFOS = MASK_INFOS_JAVA + MASK_INFOS_OS + MASK_INFOS_USER
 			+ MASK_INFOS_PATHS + MASK_OTHER_PROPS;
 
-	public final static int VECTOR_INFOS_LESS_PATHS = MASK_INFOS_JAVA + MASK_INFOS_OS
+	public static final int VECTOR_INFOS_LESS_PATHS = MASK_INFOS_JAVA + MASK_INFOS_OS
 			+ MASK_INFOS_USER + MASK_OTHER_PROPS;
 
 	/**

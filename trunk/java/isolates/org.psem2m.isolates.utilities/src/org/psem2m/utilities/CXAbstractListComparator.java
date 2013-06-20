@@ -25,14 +25,7 @@ import java.util.Comparator;
 public abstract class CXAbstractListComparator<E> implements Comparator<E> {
 
 	// ascending sort by default
-	private boolean pAsc = true;
-
-	/**
-	 * 
-	 */
-	public CXAbstractListComparator() {
-		this(true);
-	}
+	private boolean pAsc;
 
 	/**
 	 * @param aSortAsc

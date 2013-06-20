@@ -17,7 +17,7 @@ package org.psem2m.utilities;
  */
 public interface IXIdentifiable<E extends Comparable<E>> extends Comparable<IXIdentifiable<?>> {
 
-	public static String LIB_ID = IXIdentifier.LIB_ID;
+	public static final String LIB_ID = IXIdentifier.LIB_ID;
 
 	/*
 	 * (non-Javadoc)

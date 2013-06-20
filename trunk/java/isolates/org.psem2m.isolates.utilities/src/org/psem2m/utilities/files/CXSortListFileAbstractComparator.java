@@ -13,6 +13,7 @@ package org.psem2m.utilities.files;
 import java.io.File;
 
 import org.psem2m.utilities.CXAbstractListComparator;
+import org.psem2m.utilities.CXSortList;
 
 /**
  * Renvoie un comparateur pour classer les fichiers par date de modification
@@ -21,13 +22,6 @@ import org.psem2m.utilities.CXAbstractListComparator;
  * 
  */
 class CAdminFileDateComparator extends CXSortListFileAbstractComparator<File> {
-
-	/**
-	 * 
-	 */
-	public CAdminFileDateComparator() {
-		super();
-	}
 
 	/**
 	 * @param aSortAsc
@@ -141,7 +135,7 @@ public abstract class CXSortListFileAbstractComparator<E> extends CXAbstractList
 	 * 
 	 */
 	public CXSortListFileAbstractComparator() {
-		super();
+		super(CXSortList.ASCENDING);
 	}
 
 	/**

@@ -30,8 +30,8 @@ import java.util.TreeSet;
  */
 public class CXSortList<E> extends ArrayList<E> {
 
-	public final static boolean ASCENDING = true;
-	public final static boolean DESCENDING = false;
+	public static final boolean ASCENDING = true;
+	public static final boolean DESCENDING = false;
 
 	private static final long serialVersionUID = 3256437014961468726L;
 

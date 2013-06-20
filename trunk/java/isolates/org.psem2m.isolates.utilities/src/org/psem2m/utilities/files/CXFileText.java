@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import org.psem2m.utilities.CXBytesUtils;
 import org.psem2m.utilities.CXOSUtils;
 
 /**
@@ -46,25 +47,28 @@ public class CXFileText extends CXFile {
 	 * Taille du Byte Order Mark poour les fichiers unicode Voir
 	 * http://www.unicode.org/unicode/faq/utf_bom.html
 	 */
-	private static final int BOM_SIZE = 4;
-	private static final int BOM_SIZE_16 = 2;
-	private static final int BOM_SIZE_8 = 3;
+	private static final int BOM_SIZE = CXBytesUtils.BOM_SIZE;
+	private static final int BOM_SIZE_16 = CXBytesUtils.BOM_SIZE_16;
+	private static final int BOM_SIZE_8 = CXBytesUtils.BOM_SIZE_8;
 
-	private static final byte BOM_UTF_16BE[] = { (byte) 0xFE, (byte) 0xFF };
-	private static final byte BOM_UTF_16LE[] = { (byte) 0xFF, (byte) 0xFE };
-	private static final byte BOM_UTF_32BE[] = { (byte) 0x00, (byte) 0x00, (byte) 0xFE, (byte) 0xFF };
-	private static final byte BOM_UTF_32LE[] = { (byte) 0xFF, (byte) 0xFE, (byte) 0x00, (byte) 0x00 };
-	private static final byte BOM_UTF_8[] = { (byte) 0xEF, (byte) 0xBB, (byte) 0xBF };
+	private static final byte[] BOM_UTF_16BE = CXBytesUtils.BOM_UTF_16BE;
+	private static final byte[] BOM_UTF_16LE = CXBytesUtils.BOM_UTF_16LE;
+	private static final byte[] BOM_UTF_32BE = CXBytesUtils.BOM_UTF_32BE;
+	private static final byte[] BOM_UTF_32LE = CXBytesUtils.BOM_UTF_32LE;
+	private static final byte[] BOM_UTF_8 = CXBytesUtils.BOM_UTF_8;
 
-	/*
-	 * Java
-	 */
-	public static final String ENCODING_ISO_8859_1 = CXOSUtils.ENCODING_ISO_8859_1;
-	public static final String ENCODING_UTF_16BE = "UTF-16BE";
-	public static final String ENCODING_UTF_16LE = "UTF-16LE";
-	public static final String ENCODING_UTF_32BE = "UTF-32BE";
-	public static final String ENCODING_UTF_32LE = "UTF-32LE";
-	public static final String ENCODING_UTF_8 = "UTF-8";
+	// "ISO-8859-1"
+	public static final String ENCODING_ISO_8859_1 = CXBytesUtils.ENCODING_ISO_8859_1;
+	// "UTF-16BE";
+	public static final String ENCODING_UTF_16BE = CXBytesUtils.ENCODING_UTF_16BE;
+	// "UTF-16LE";
+	public static final String ENCODING_UTF_16LE = CXBytesUtils.ENCODING_UTF_16LE;
+	// "UTF-32BE";
+	public static final String ENCODING_UTF_32BE = CXBytesUtils.ENCODING_UTF_32BE;
+	// "UTF-32LE"
+	public static final String ENCODING_UTF_32LE = CXBytesUtils.ENCODING_UTF_32LE;
+	// "UTF-8";
+	public static final String ENCODING_UTF_8 = CXBytesUtils.ENCODING_UTF_8;
 
 	/**
 	 * 

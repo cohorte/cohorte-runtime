@@ -38,8 +38,6 @@ public class CXFileDirSynchronizer {
 	private String pKeyNextFrom = KEYSTART;
 	private String pKeyNextTarget = KEYSTART;
 	private String pKeyTarget = KEYSTART;
-	// 16j_101
-	// private IXLogBase pLogger = null;
 	private final String pPathFrom;
 	private final String pPathTarget;
 	private final CXFileDir pTargetDir;

@@ -18,15 +18,15 @@ package org.psem2m.utilities;
  */
 public class CXTimer implements IXDescriber {
 
-	public final static String DESCR_EL = "[";
-	public final static String DESCR_MS = "ms]";
-	public final static String DESCR_NS = "[Not started]";
-	public final static String DESCR_SEP = "[";
-	public final static String FMT_HEAP_SIZE = "%,3.0f";
-	public final static String FMT_MICRO_SEC = "%6.3f";
-	public final static String FMT_MILI_SEC = "%06d";
+	public static final String DESCR_EL = "[";
+	public static final String DESCR_MS = "ms]";
+	public static final String DESCR_NS = "[Not started]";
+	public static final String DESCR_SEP = "[";
+	public static final String FMT_HEAP_SIZE = "%,3.0f";
+	public static final String FMT_MICRO_SEC = "%6.3f";
+	public static final String FMT_MILI_SEC = "%06d";
 
-	public final static boolean START = true;
+	public static final boolean START = true;
 
 	private static final boolean STARTED = true;
 

@@ -20,14 +20,14 @@ import java.util.Date;
  */
 public final class CXDateTime {
 
-	public final static String DATE_SEP = "/";
+	public static final String DATE_SEP = "/";
 
-	private final static String PATTERN_TIMESTAMP = "DDD-hh:mm:ss.SSS";
+	private static final String PATTERN_TIMESTAMP = "DDD-hh:mm:ss.SSS";
 
-	private final static SimpleDateFormat sTimeStampFormater = new SimpleDateFormat(
+	private static final SimpleDateFormat sTimeStampFormater = new SimpleDateFormat(
 			PATTERN_TIMESTAMP);
 
-	public final static String TIME_SEP = ":";
+	public static final String TIME_SEP = ":";
 
 	/**
 	 * @return a formated time stamp in a string "DDD-hh:mm:ss.SSS"

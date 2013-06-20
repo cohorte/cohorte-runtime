@@ -21,10 +21,7 @@ package org.psem2m.utilities;
  */
 public abstract class CXSortedListSearch<E> extends CXSortList<E> {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = -1714732314134480372L;
 
 	/**
 	 * default constructor
@@ -33,6 +30,9 @@ public abstract class CXSortedListSearch<E> extends CXSortList<E> {
 		super();
 	}
 
+	/**
+	 * @param aComp
+	 */
 	public CXSortedListSearch(CXAbstractListComparator<E> aComp) {
 		super();
 		setComparator(aComp);

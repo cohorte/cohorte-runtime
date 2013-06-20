@@ -21,9 +21,9 @@ import java.io.FileFilter;
  */
 public class CXFileFilter {
 
-	protected final static boolean INCLUDE = true;
+	protected static final boolean INCLUDE = true;
 
-	final static String SEPARATOR = ";";
+	protected static final String FILTERS_SEPARATOR = ";";
 
 	/**
 	 * @param aListExt

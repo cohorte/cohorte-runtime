@@ -2,40 +2,46 @@ package org.psem2m.utilities.rsrc;
 
 import java.nio.charset.Charset;
 
-public enum EXUnicodeEncoding implements IUnicodeEncoding {
-	UTF_16BE(new byte[] { (byte) 0xFE, (byte) 0xFF },
-			EXUnicodeEncoding.ENCODING_UTF_16BE), UTF_16LE(new byte[] {
-			(byte) 0xFF, (byte) 0xFE }, EXUnicodeEncoding.ENCODING_UTF_16LE), UTF_32BE(
-			new byte[] { (byte) 0x00, (byte) 0x00, (byte) 0xFE, (byte) 0xFF },
-			EXUnicodeEncoding.ENCODING_UTF_32BE), UTF_32LE(new byte[] {
-			(byte) 0xFF, (byte) 0xFE, (byte) 0x00, (byte) 0x00 },
-			EXUnicodeEncoding.ENCODING_UTF_32LE), UTF_8(new byte[] {
-			(byte) 0xEF, (byte) 0xBB, (byte) 0xBF },
-			EXUnicodeEncoding.ENCODING_UTF_8);
+import org.psem2m.utilities.CXBytesUtils;
+
+/**
+ * @author ogattaz
+ * 
+ */
+public enum EXUnicodeEncoding {
+	UTF_16BE(CXBytesUtils.BOM_UTF_16BE, CXBytesUtils.ENCODING_UTF_16BE), UTF_16LE(
+			CXBytesUtils.BOM_UTF_16LE, CXBytesUtils.ENCODING_UTF_16LE), UTF_32BE(
+			CXBytesUtils.BOM_UTF_32BE, CXBytesUtils.ENCODING_UTF_32BE), UTF_32LE(
+			CXBytesUtils.BOM_UTF_32LE, CXBytesUtils.ENCODING_UTF_32LE), UTF_8(
+			CXBytesUtils.BOM_UTF_8, CXBytesUtils.ENCODING_UTF_8);
 
 	private byte[] pBom = null;
-	private String pEncoding = null;
 	private Charset pCharset = null;
+	private String pEncoding = null;
 
+	/**
+	 * @param aBom
+	 * @param aEncoding
+	 */
 	private EXUnicodeEncoding(byte[] aBom, String aEncoding) {
-		pBom = aBom;
+		pBom = aBom.clone();
 		pEncoding = aEncoding;
 		pCharset = Charset.forName(pEncoding);
 	}
 
-	public String getEncoding() {
-		return pEncoding;
+	public byte[] getBom() {
+		return pBom.clone();
+	}
+
+	public int getBomLen() {
+		return pBom == null ? 0 : pBom.length;
 	}
 
 	public Charset getCharset() {
 		return pCharset;
 	}
 
-	public byte[] getBom() {
-		return pBom;
-	}
-
-	public int getBomLen() {
-		return pBom == null ? 0 : pBom.length;
+	public String getEncoding() {
+		return pEncoding;
 	}
 }

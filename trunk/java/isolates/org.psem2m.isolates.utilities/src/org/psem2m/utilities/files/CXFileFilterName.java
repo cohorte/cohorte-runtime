@@ -19,8 +19,6 @@ import org.psem2m.utilities.CXListUtils;
 import org.psem2m.utilities.CXStringUtils;
 
 /**
- * 16j_102 - mise en place de la classe CXFileFilterName
- * 
  * @author ogattaz
  * 
  */
@@ -28,17 +26,30 @@ public class CXFileFilterName extends CXFileFilter implements FileFilter {
 
 	private final HashSet<String> pListRegExp = new HashSet<String>();
 
+	/**
+	 * @param aListRegExp
+	 */
 	public CXFileFilterName(String aListRegExp) {
 		this(aListRegExp, null, INCLUDE);
 	}
 
+	/**
+	 * @param aListRegExp
+	 * @param aSubFileFilter
+	 * @param aInclude
+	 */
 	public CXFileFilterName(String aListRegExp, FileFilter aSubFileFilter, boolean aInclude) {
 		super(aSubFileFilter, aInclude);
 		if (aListRegExp != null) {
-			CXListUtils.loadStrCollection(pListRegExp, aListRegExp, SEPARATOR);
+			CXListUtils.loadStrCollection(pListRegExp, aListRegExp, FILTERS_SEPARATOR);
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.io.FileFilter#accept(java.io.File)
+	 */
 	@Override
 	public boolean accept(File pathname) {
 		if (pathname.isDirectory()) {
@@ -66,6 +77,11 @@ public class CXFileFilterName extends CXFileFilter implements FileFilter {
 		return wRes;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 		String[] wStrs = pListRegExp.toArray(new String[0]);
@@ -73,7 +89,7 @@ public class CXFileFilterName extends CXFileFilter implements FileFilter {
 		wSB.append(String.format("FilterName(%s)=[%s]", includer(),
 				CXStringUtils.stringTableToString(wStrs)));
 		if (hasSubFileFilter()) {
-			wSB.append(SEPARATOR).append(getSubFileFilter().toString());
+			wSB.append(FILTERS_SEPARATOR).append(getSubFileFilter().toString());
 		}
 		return wSB.toString();
 	}

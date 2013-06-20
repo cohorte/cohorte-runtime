@@ -16,8 +16,9 @@ package org.psem2m.utilities;
  */
 public abstract class CXObjectRunnable extends CXObjectBase implements Runnable {
 
-	public final static boolean OFF = false;
-	public final static boolean ON = true;
+	public static final boolean OFF = false;
+	public static final boolean ON = true;
+
 	private boolean pContinue = ON;
 	private long pStartTime;
 	private Thread pThread;

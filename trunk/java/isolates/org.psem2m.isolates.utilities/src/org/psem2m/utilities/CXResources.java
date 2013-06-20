@@ -23,9 +23,9 @@ import java.util.Set;
  */
 public class CXResources implements IXDescriber {
 
-	private final static String MESS_ERR_CCL = "Can't get caller of package [%s]. \nException:\n%s";
-	private final static String NBSP = "&nbsp;";
-	private final static String NOT_LOAD_RES = "can't get key [%s] in the not loaded resource [%s]. Cause:[%s].";
+	private static final String MESS_ERR_CCL = "Can't get caller of package [%s]. \nException:\n%s";
+	private static final String NBSP = "&nbsp;";
+	private static final String NOT_LOAD_RES = "can't get key [%s] in the not loaded resource [%s]. Cause:[%s].";
 
 	public static final String RES_COMMAND_PREFIX = "command.";
 	public static final String RES_LABEL_PREFIX = "label.";
@@ -36,19 +36,19 @@ public class CXResources implements IXDescriber {
 
 	static final String RES_TITLE_PREFIX = "title.";
 
-	private final static String SPACE = " ";
+	private static final String SPACE = " ";
 
-	private final static String UNKNOWN_REASON = "unknown";
+	private static final String UNKNOWN_REASON = "unknown";
 
 	static final String USER_LANGAGE = "user.language";
 
 	static final String USER_REGION = "user.region";
 
-	private final static char WHY_INFO_SEPARATOR = ',';
+	private static final char WHY_INFO_SEPARATOR = ',';
 
-	private final static char WHY_SEPARATOR = '\n';
+	private static final char WHY_SEPARATOR = '\n';
 
-	public final static boolean WITH_CODLANG_PREFIX = true;
+	public static final boolean WITH_CODLANG_PREFIX = true;
 
 	/**
 	 * @param aResourceId

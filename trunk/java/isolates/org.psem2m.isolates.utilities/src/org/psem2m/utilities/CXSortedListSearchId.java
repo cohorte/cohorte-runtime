@@ -22,13 +22,27 @@ public abstract class CXSortedListSearchId<E extends IXIdentifiable<?>> extends
 		CXSortedListSearch<E> {
 
 	/**
-	 * Compara
+	 * Comparator
 	 * 
-	 * @author apisu
+	 * @author ogattaz
 	 * 
 	 */
 	protected class CXIdElemListComparator extends CXAbstractListComparator<E> {
 
+		/**
+		 * @param aSortAsc
+		 */
+		public CXIdElemListComparator(boolean aSortAsc) {
+			super(aSortAsc);
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see
+		 * org.psem2m.utilities.CXAbstractListComparator#compareObjects(java
+		 * .lang.Object, java.lang.Object)
+		 */
 		@Override
 		protected int compareObjects(Object a, Object b) {
 			IXIdentifiable<?> wDefElem1 = ((IXIdentifiable<?>) a);
@@ -39,17 +53,14 @@ public abstract class CXSortedListSearchId<E extends IXIdentifiable<?>> extends
 
 	}
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 2588347263330351611L;
 
 	/**
 	 * default constructor
 	 */
 	public CXSortedListSearchId() {
 		super();
-		setComparator(new CXIdElemListComparator());
+		setComparator(new CXIdElemListComparator(CXSortList.ASCENDING));
 	}
 
 	/**

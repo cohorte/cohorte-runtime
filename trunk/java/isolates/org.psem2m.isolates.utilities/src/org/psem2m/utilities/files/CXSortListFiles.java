@@ -84,7 +84,7 @@ public class CXSortListFiles extends CXSortList<File> {
 	 * 
 	 */
 	public void sortByDateAsc() {
-		sort(new CAdminFileDateComparator());
+		sort(new CAdminFileDateComparator(CXSortList.ASCENDING));
 	}
 
 	/**

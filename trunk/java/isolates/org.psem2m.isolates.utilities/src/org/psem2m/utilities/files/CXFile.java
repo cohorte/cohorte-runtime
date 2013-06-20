@@ -23,10 +23,10 @@ import org.psem2m.utilities.CXStringUtils;
  */
 public class CXFile extends CXFileBase {
 
-	public final static boolean APPEND = true;
-	public final static boolean DELETE_IF_EXIST = true;
-	public static final String sepExtension = ".";
-	public static final char sepExtensionChar = '.';
+	public static final boolean APPEND = true;
+	public static final boolean DELETE_IF_EXIST = true;
+	public static final String EXTENSION_SEP = ".";
+	public static final char EXTENSION_SEP_CHAR = '.';
 
 	private static final long serialVersionUID = 4122260644587321138L;
 
@@ -219,7 +219,7 @@ public class CXFile extends CXFileBase {
 	 * @return
 	 */
 	public String getExtension() {
-		return CXStringUtils.strRightBack(getAbsolutePath(), sepExtension);
+		return CXStringUtils.strRightBack(getAbsolutePath(), EXTENSION_SEP);
 	}
 
 	/**
@@ -236,7 +236,7 @@ public class CXFile extends CXFileBase {
 	 */
 	public String getNameWithoutExtension() {
 		if (hasExtension()) {
-			return CXStringUtils.strLeftBack(getName(), sepExtension);
+			return CXStringUtils.strLeftBack(getName(), EXTENSION_SEP);
 		} else {
 			return getName();
 		}
@@ -266,7 +266,7 @@ public class CXFile extends CXFileBase {
 	 * @return
 	 */
 	public boolean hasExtension() {
-		return getAbsolutePath().indexOf(sepExtension) != -1;
+		return getAbsolutePath().indexOf(EXTENSION_SEP) != -1;
 	}
 
 	/**

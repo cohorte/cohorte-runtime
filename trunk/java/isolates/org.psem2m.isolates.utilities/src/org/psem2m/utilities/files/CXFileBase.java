@@ -20,12 +20,12 @@ import java.io.File;
  */
 public class CXFileBase extends File {
 
-	public final static String MANIFEST_MF = "MANIFEST.MF";
-	public final static String META_INF = "META-INF";
-	public static String pEOL = "\n";
-	public static char pEOLChar = '\n';
+	public static final String EOL = "\n";
+	public static final char EOLChar = '\n';
+	public static final String MANIFEST_MF = "MANIFEST.MF";
+	public static final String META_INF = "META-INF";
 	private static final long serialVersionUID = 3258131349545432374L;
-	public final static String TMP = "tmp";
+	public static final String TMP = "tmp";
 
 	/**
 	 * @param aPath
@@ -54,14 +54,14 @@ public class CXFileBase extends File {
 	 * @return
 	 */
 	public static String getEOL() {
-		return pEOL;
+		return EOL;
 	}
 
 	/**
 	 * @return
 	 */
 	public static char getEOLChar() {
-		return pEOLChar;
+		return EOLChar;
 	}
 
 	/**

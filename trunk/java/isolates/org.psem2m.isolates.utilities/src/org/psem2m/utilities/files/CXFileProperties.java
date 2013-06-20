@@ -27,8 +27,8 @@ import org.psem2m.utilities.CXStringUtils;
  */
 public class CXFileProperties extends CXFileText {
 
-	public static final int PROP_LOWERCASE = 2;
 	// Options pour readProperties
+	public static final int PROP_LOWERCASE = 2;
 	public static final int PROP_UNCHANGE = 0;
 	public static final int PROP_UPPERCASE = 1;
 

@@ -46,19 +46,19 @@ import org.xml.sax.SAXParseException;
  */
 public class CXDomUtils implements ErrorHandler {
 
-	public final static String ATTR_ID = "id";
+	public static final String ATTR_ID = "id";
 
-	private final static int ERR_TEXT_LEN = 50;
+	private static final int ERR_TEXT_LEN = 50;
 
-	public static boolean INDENT = true;
+	public static final boolean INDENT = true;
 
 	private static DocumentBuilderFactory pBuilderFactory = DocumentBuilderFactory.newInstance();
 
 	private static TransformerFactory pTransformerFactory = TransformerFactory.newInstance();
 
-	public final static boolean WITH_SUB_TREE = true;
+	public static final boolean WITH_SUB_TREE = true;
 
-	public final static String YES = "yes";
+	public static final String YES = "yes";
 
 	/**
 	 * @param aElmt

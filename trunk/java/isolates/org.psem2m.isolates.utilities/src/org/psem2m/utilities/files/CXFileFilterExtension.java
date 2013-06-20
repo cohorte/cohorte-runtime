@@ -32,7 +32,7 @@ class CExtension implements Comparable<CExtension> {
 
 	CExtension(String aExtension) {
 		pExt = aExtension;
-		pMultiple = CXStringUtils.countChar(pExt, CXFile.sepExtensionChar) > 0;
+		pMultiple = CXStringUtils.countChar(pExt, CXFile.EXTENSION_SEP_CHAR) > 0;
 	}
 
 	/*
@@ -143,7 +143,7 @@ class CExtensions extends HashSet<CExtension> {
 
 	boolean match(String aFilename) {
 		if (aFilename == null || aFilename.length() < 2
-				|| aFilename.indexOf(CXFile.sepExtensionChar) == -1) {
+				|| aFilename.indexOf(CXFile.EXTENSION_SEP_CHAR) == -1) {
 			return false;
 		}
 		Iterator<CExtension> wExtensions = iterator();
@@ -168,7 +168,7 @@ public class CXFileFilterExtension extends CXFileFilter implements FileFilter {
 	private final CExtensions pListExt;
 
 	/**
-	 * aListExt : Liste des extension s�par�es par ";"
+	 * aListExt : Liste des extension separees par ";"
 	 * 
 	 * @param aListExt
 	 */
@@ -178,13 +178,13 @@ public class CXFileFilterExtension extends CXFileFilter implements FileFilter {
 
 	/**
 	 * @param aListExt
-	 *            Liste des extension s�par�es par ";"
+	 *            Liste des extension separees par ";"
 	 * @param aSubFileFilter
 	 * @param aInclude
 	 */
 	public CXFileFilterExtension(String aListExt, FileFilter aSubFileFilter, boolean aInclude) {
 		super(aSubFileFilter, aInclude);
-		pListExt = new CExtensions(aListExt, SEPARATOR);
+		pListExt = new CExtensions(aListExt, FILTERS_SEPARATOR);
 
 	}
 
@@ -200,8 +200,8 @@ public class CXFileFilterExtension extends CXFileFilter implements FileFilter {
 			wRes = true;
 		} else {
 			String wFileName = pathname.getName();
-			// test de l'extension situ�e derri�re le dernier "sepExtension"
-			if (pListExt.contains(CXStringUtils.strRightBack(wFileName, CXFile.sepExtension))) {
+			// test de l'extension situee derriere le dernier "sepExtension"
+			if (pListExt.contains(CXStringUtils.strRightBack(wFileName, CXFile.EXTENSION_SEP))) {
 				wRes = include();
 			} else if (nameWithMultipleExtension(wFileName) && pListExt.hasMultipleExtension()
 					&& pListExt.match(wFileName)) {
@@ -223,7 +223,7 @@ public class CXFileFilterExtension extends CXFileFilter implements FileFilter {
 	 * @return
 	 */
 	private boolean nameWithMultipleExtension(String aFileName) {
-		return CXStringUtils.countChar(aFileName, CXFile.sepExtensionChar) > 1;
+		return CXStringUtils.countChar(aFileName, CXFile.EXTENSION_SEP_CHAR) > 1;
 	}
 
 	/*
@@ -231,14 +231,13 @@ public class CXFileFilterExtension extends CXFileFilter implements FileFilter {
 	 * 
 	 * @see java.lang.Object#toString()
 	 */
-	// 16w_109 - enrichissement de la log
 	@Override
 	public String toString() {
 		StringBuilder wSB = new StringBuilder();
 		wSB.append(String.format("FilterExtension(%s)=[%s]", includer(),
 				CXListUtils.collectionToString(pListExt, ";")));
 		if (hasSubFileFilter()) {
-			wSB.append(SEPARATOR).append(getSubFileFilter().toString());
+			wSB.append(FILTERS_SEPARATOR).append(getSubFileFilter().toString());
 		}
 		return wSB.toString();
 	}

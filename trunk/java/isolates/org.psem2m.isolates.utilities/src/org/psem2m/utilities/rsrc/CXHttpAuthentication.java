@@ -2,22 +2,35 @@ package org.psem2m.utilities.rsrc;
 
 import org.psem2m.utilities.scripting.CXJsObjectBase;
 
-public abstract class CXHttpAuthentication extends CXJsObjectBase implements
-		Cloneable {
+/**
+ * @author ogattaz
+ * 
+ */
+public abstract class CXHttpAuthentication extends CXJsObjectBase implements Cloneable {
 
-	private String pAuthentication = null;
-	private String pUser = null;
-	private String pPassword = null;
-
-	// Constructeurs
-
-	public CXHttpAuthentication(String aAuthentication, String aUser,
-			String aPassword) {
-		pAuthentication = aAuthentication;
-		pUser = aUser == null ? "" : aUser;
-		pPassword = aPassword == null ? "" : aPassword;
+	/**
+	 * @param aType
+	 * @param aUser
+	 * @param aPwd
+	 * @return
+	 */
+	public static CXHttpAuthentication newAuthentication(String aType, String aUser, String aPwd) {
+		CXHttpAuthentication wResult = null;
+		if (aType != null) {
+			if (aType.equalsIgnoreCase(CXHttpAuthentBasic.AUTHENT_TYPE)) {
+				wResult = new CXHttpAuthentBasic(aUser, aPwd);
+			}
+		}
+		return wResult;
 	}
 
+	private String pAuthentication = null;
+	private String pPassword = null;
+	private String pUser = null;
+
+	/**
+	 * @param aAuthent
+	 */
 	protected CXHttpAuthentication(CXHttpAuthentication aAuthent) {
 		super();
 		if (aAuthent != null) {
@@ -27,33 +40,24 @@ public abstract class CXHttpAuthentication extends CXJsObjectBase implements
 		}
 	}
 
-	@Override
-	public abstract CXHttpAuthentication clone();
-
-	// Get and Set
-	public boolean isValid() {
-		return pAuthentication != null && pAuthentication.length() != 0;
+	/**
+	 * @param aAuthentication
+	 * @param aUser
+	 * @param aPassword
+	 */
+	public CXHttpAuthentication(String aAuthentication, String aUser, String aPassword) {
+		pAuthentication = aAuthentication;
+		pUser = aUser == null ? "" : aUser;
+		pPassword = aPassword == null ? "" : aPassword;
 	}
 
-	// Entete Http : Authorization: Basic YWRvbml4OmFkb25peA==
-	public abstract String getEncodedAuthorization();
-
-	public boolean hasAuthentication() {
-		return isValid() && pUser != null && pUser.length() != 0;
-	}
-
-	public String getAuthentication() {
-		return pAuthentication;
-	}
-
-	public String getUser() {
-		return pUser;
-	}
-
-	public String getPwd() {
-		return pPassword;
-	}
-
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.psem2m.utilities.scripting.CXJsObjectBase#addDescriptionInBuffer(
+	 * java.lang.Appendable)
+	 */
 	@Override
 	public Appendable addDescriptionInBuffer(Appendable aSB) {
 		aSB = super.addDescriptionInBuffer(aSB);
@@ -63,13 +67,54 @@ public abstract class CXHttpAuthentication extends CXJsObjectBase implements
 		return aSB;
 	}
 
-	public static CXHttpAuthentication newAuthentication(String aType,
-			String aUser, String aPwd) {
-		CXHttpAuthentication wResult = null;
-		if (aType != null) {
-			if (aType.equalsIgnoreCase(CXHttpAuthentBasic.AUTHENT_TYPE))
-				wResult = new CXHttpAuthentBasic(aUser, aPwd);
-		}
-		return wResult;
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#clone()
+	 */
+	@Override
+	public abstract CXHttpAuthentication clone();
+
+	/**
+	 * @return
+	 */
+	public String getAuthentication() {
+		return pAuthentication;
+	}
+
+	/**
+	 * Entete Http : Authorization: Basic YWRvbml4OmFkb25peA==
+	 * 
+	 * @return
+	 */
+	public abstract String getEncodedAuthorization();
+
+	/**
+	 * @return
+	 */
+	public String getPwd() {
+		return pPassword;
+	}
+
+	/**
+	 * @return
+	 */
+	public String getUser() {
+		return pUser;
+	}
+
+	/**
+	 * @return
+	 */
+	public boolean hasAuthentication() {
+		return isValid() && pUser != null && pUser.length() != 0;
+	}
+
+	// Get and Set
+	/**
+	 * @return
+	 */
+	public boolean isValid() {
+		return pAuthentication != null && pAuthentication.length() != 0;
 	}
 }

@@ -19,20 +19,20 @@ import java.util.List;
  */
 public final class CXStringUtils implements IConstants {
 
-	private final static String FORMAT_EXCEPTION = "Exception=[%s] ";
+	private static final String FORMAT_EXCEPTION = "Exception=[%s] ";
 
-	private final static String FORMAT_MESAGE = "Message=[%s] ";
+	private static final String FORMAT_MESAGE = "Message=[%s] ";
 
-	private final static String LIB_APPEND_ERROR = "ERROR DURING AN APPEND IN A APPENDABLE. ";
+	private static final String LIB_APPEND_ERROR = "ERROR DURING AN APPEND IN A APPENDABLE. ";
 
 	/** usual line separator **/
-	public final static String LINE_SEP = "\n";
+	public static final String LINE_SEP = "\n";
 
 	/** the trimables characters : space, tabulation, LineFeed, CariageReturn **/
-	public final static String TRIMABLE_CHARS = " \t\n\r";
+	public static final String TRIMABLE_CHARS = " \t\n\r";
 
 	/** the trimables control characters : tabulation, LineFeed, CariageReturn **/
-	public final static String TRIMABLE_CONTROL = "\t\n\r";
+	public static final String TRIMABLE_CONTROL = "\t\n\r";
 
 	public static final String UNICODE_PREFIX = "\\u";
 

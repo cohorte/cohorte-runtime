@@ -16,7 +16,8 @@ package org.psem2m.utilities;
  */
 class CXIdentifier implements IXIdentifier {
 
-	private final static String ANONYMOUS = "anonymous";
+	private static final String ANONYMOUS = "anonymous";
+
 	private final long pCpt;
 	private final String pFullId;
 	private final String pId;

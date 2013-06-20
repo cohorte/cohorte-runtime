@@ -32,9 +32,7 @@ class CStringListComparator extends CXAbstractListComparator<String> {
 	 * @param aCaseSensitive
 	 */
 	public CStringListComparator(boolean aAcceptDoublons, boolean aCaseSensitive) {
-		super();
-		pAcceptDoublons = aAcceptDoublons;
-		pCaseSensitive = aCaseSensitive;
+		this(true, aAcceptDoublons, aCaseSensitive);
 	}
 
 	/**

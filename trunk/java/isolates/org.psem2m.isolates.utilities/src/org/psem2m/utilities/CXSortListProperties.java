@@ -18,14 +18,8 @@ import java.util.Properties;
  * Renvoie un comparateur pour les properties
  */
 class CPropertiesComparator<E> extends CXAbstractListComparator<E> {
-	boolean pSortByKey = true;
 
-	/**
- * 
- */
-	public CPropertiesComparator() {
-		super();
-	}
+	private boolean pSortByKey = true;
 
 	/**
 	 * @param aSortAsc
@@ -94,7 +88,7 @@ public class CXSortListProperties extends CXSortList<Entry<Object, Object>> {
    * 
    */
 	public CXSortListProperties() {
-		super();
+		this(CXSortList.ASCENDING);
 	}
 
 	/**

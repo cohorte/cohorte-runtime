@@ -34,7 +34,7 @@ public final class CXOSUtils {
 	 * for example a small 'e' acute is character 0xe9 in ISO-8859-1 but
 	 * character 0x82 in Windows OEM fonts.
 	 */
-	public final static String ENCODING_CP_858 = "Cp858";
+	public static final String ENCODING_CP_858 = "Cp858";
 
 	/**
 	 * http://java.sun.com/j2se/1.4.2/docs/guide/intl/encoding.doc.html
@@ -45,19 +45,21 @@ public final class CXOSUtils {
 	 * and Swedish). Beware, for NT, the default is Cp1252 a variant of Latin-1,
 	 * controlled by the control panel regional settings.
 	 */
-	public final static String ENCODING_ISO_8859_1 = "ISO-8859-1";
 
-	public final static String ENCODING_UTF_16 = "UTF-16";
-
-	public final static String ENCODING_UTF_16BE = "UTF-16BE";
-
-	public final static String ENCODING_UTF_16LE = "UTF-16LE";
-
-	public final static String ENCODING_UTF_32BE = "UTF-32BE";
-
-	public final static String ENCODING_UTF_32LE = "UTF-32LE";
-
-	public final static String ENCODING_UTF_8 = "UTF-8";
+	// "ISO-8859-1"
+	public static final String ENCODING_ISO_8859_1 = CXBytesUtils.ENCODING_ISO_8859_1;
+	// "UTF-16";
+	public static final String ENCODING_UTF_16 = CXBytesUtils.ENCODING_UTF_16;
+	// "UTF-16BE";
+	public static final String ENCODING_UTF_16BE = CXBytesUtils.ENCODING_UTF_16BE;
+	// "UTF-16LE";
+	public static final String ENCODING_UTF_16LE = CXBytesUtils.ENCODING_UTF_16LE;
+	// "UTF-32BE";
+	public static final String ENCODING_UTF_32BE = CXBytesUtils.ENCODING_UTF_32BE;
+	// "UTF-32LE"
+	public static final String ENCODING_UTF_32LE = CXBytesUtils.ENCODING_UTF_32LE;
+	// "UTF-8";
+	public static final String ENCODING_UTF_8 = CXBytesUtils.ENCODING_UTF_8;
 
 	/**
 	 * http://java.sun.com/j2se/1.4.2/docs/guide/intl/encoding.doc.html
@@ -65,7 +67,7 @@ public final class CXOSUtils {
 	 * windows-1250 Cp1250 Windows Eastern European
 	 * 
 	 */
-	public final static String ENCODING_WINDOWS_1250 = "windows-1250";
+	public static final String ENCODING_WINDOWS_1250 = "windows-1250";
 
 	/**
 	 * http://java.sun.com/j2se/1.4.2/docs/guide/intl/encoding.doc.html
@@ -78,7 +80,7 @@ public final class CXOSUtils {
 	 * on. It does not just truncate the high byte on write and pad with 0 on
 	 * read. For true Latin-1 see 8859-1.
 	 */
-	public final static String ENCODING_WINDOWS_1252 = "windows-1252";
+	public static final String ENCODING_WINDOWS_1252 = "windows-1252";
 
 	private final static String FILE_EXT_TXT = "txt";
 
@@ -97,9 +99,9 @@ public final class CXOSUtils {
 
 	private final static String SYS_PROPERTY_OSNAME = "os.name";
 
-	public final static String SYS_PROPERTY_TMPDIR = "java.io.tmpdir";
+	public static final String SYS_PROPERTY_TMPDIR = "java.io.tmpdir";
 
-	public final static String SYS_PROPERTY_USERDIR = "user.dir";
+	public static final String SYS_PROPERTY_USERDIR = "user.dir";
 
 	/**
 	 * add a pair

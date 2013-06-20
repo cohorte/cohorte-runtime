@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import org.psem2m.utilities.CXJvmUtils;
 import org.psem2m.utilities.CXStringUtils;
 
 /**
@@ -27,11 +28,12 @@ import org.psem2m.utilities.CXStringUtils;
  */
 public class CXFileDir extends CXFileBase implements IXFilesContainer {
 
+	private static final CXFileDir DIR_TMP = new CXFileDir(getTempAbsolutePath());
+
+	private static final CXFileDir DIR_USER = new CXFileDir(
+			System.getProperty(CXJvmUtils.SYSPROP_USER_DIR));
+
 	private static final long serialVersionUID = 3257562910606570550L;
-
-	private static CXFileDir sTempDir = new CXFileDir(getTempAbsolutePath());
-
-	private static CXFileDir sUserDir = new CXFileDir(System.getProperty("user.dir"));
 
 	/**
 	 * 
@@ -245,7 +247,7 @@ public class CXFileDir extends CXFileBase implements IXFilesContainer {
 	 */
 	public static CXFileDir getTempDir() {
 
-		return sTempDir;
+		return DIR_TMP;
 	}
 
 	/**
@@ -254,7 +256,7 @@ public class CXFileDir extends CXFileBase implements IXFilesContainer {
 	 */
 	public static CXFileDir getUserDir() {
 
-		return sUserDir;
+		return DIR_USER;
 	}
 
 	/**

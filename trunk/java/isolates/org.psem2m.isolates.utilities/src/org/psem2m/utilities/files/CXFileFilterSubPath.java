@@ -21,9 +21,6 @@ import org.psem2m.utilities.CXStringUtils;
 /**
  * Filtre sur un / des sous dossiers
  * 
- * <li>16w_104 - Fiche 50792 - Admin - Erreur de detection du fonctionnement de
- * tomcat <li>16w_109 - enrichissement de la log
- * 
  * @author ogattaz
  * 
  */
@@ -51,7 +48,7 @@ public class CXFileFilterSubPath extends CXFileFilter implements FileFilter {
 	public CXFileFilterSubPath(String aListSubPath, FileFilter aSubFileFilter, boolean aInclude) {
 		super(aSubFileFilter, aInclude);
 		if (aListSubPath != null) {
-			CXListUtils.loadStrCollection(pListSubPath, aListSubPath, SEPARATOR);
+			CXListUtils.loadStrCollection(pListSubPath, aListSubPath, FILTERS_SEPARATOR);
 		}
 	}
 
@@ -89,7 +86,6 @@ public class CXFileFilterSubPath extends CXFileFilter implements FileFilter {
 	 * 
 	 * @see java.lang.Object#toString()
 	 */
-	// 16w_109 - enrichissement de la log
 	@Override
 	public String toString() {
 		String[] wStrs = pListSubPath.toArray(new String[0]);
@@ -97,7 +93,7 @@ public class CXFileFilterSubPath extends CXFileFilter implements FileFilter {
 		wSB.append(String.format("FilterSubPath(%s)=[%s]", includer(),
 				CXStringUtils.stringTableToString(wStrs)));
 		if (hasSubFileFilter()) {
-			wSB.append(SEPARATOR).append(getSubFileFilter().toString());
+			wSB.append(FILTERS_SEPARATOR).append(getSubFileFilter().toString());
 		}
 		return wSB.toString();
 	}
