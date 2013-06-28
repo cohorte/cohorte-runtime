@@ -7,5 +7,4 @@ Bundle-Vendor: isandlaTech.com
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: org.psem2m.isolates.services.remote;version="1.0.1",
  org.psem2m.isolates.services.remote.beans;version="1.0.1"
-Import-Package: org.osgi.framework,
- org.psem2m.isolates.constants;version="1.0.1"
+Import-Package: org.osgi.framework
