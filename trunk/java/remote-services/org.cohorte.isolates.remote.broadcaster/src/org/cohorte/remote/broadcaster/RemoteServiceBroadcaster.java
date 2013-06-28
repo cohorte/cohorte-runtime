@@ -20,10 +20,8 @@ import org.cohorte.remote.IRemoteServiceBroadcaster;
 import org.cohorte.remote.beans.EndpointDescription;
 import org.cohorte.remote.beans.RemoteServiceEvent;
 import org.cohorte.remote.beans.RemoteServiceRegistration;
-import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.Utilities;
-import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.constants.ISignalsConstants;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.signals.ISignalBroadcaster;
@@ -38,8 +36,7 @@ import org.psem2m.signals.ISignalSendResult;
  */
 @Component(name = "psem2m-remote-rsb-factory")
 @Provides(specifications = IRemoteServiceBroadcaster.class)
-public class RemoteServiceBroadcaster extends CPojoBase implements
-        IRemoteServiceBroadcaster {
+public class RemoteServiceBroadcaster implements IRemoteServiceBroadcaster {
 
     /** Signals directory */
     @Requires
@@ -96,14 +93,11 @@ public class RemoteServiceBroadcaster extends CPojoBase implements
         return events;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.base.activators.CPojoBase#invalidatePojo()
+    /**
+     * Component invalidated
      */
-    @Override
     @Invalidate
-    public void invalidatePojo() throws BundleException {
+    public void invalidatePojo() {
 
         pLogger.logInfo(this, "invalidatePojo",
                 "PSEM2M Remote Service Broadcaster Gone");
@@ -250,14 +244,11 @@ public class RemoteServiceBroadcaster extends CPojoBase implements
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.base.activators.CPojoBase#validatePojo()
+    /**
+     * Component validated
      */
-    @Override
     @Validate
-    public void validatePojo() throws BundleException {
+    public void validatePojo() {
 
         pLogger.logInfo(this, "validatePojo",
                 "PSEM2M Remote Service Broadcaster Ready");

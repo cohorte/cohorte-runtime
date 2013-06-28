@@ -19,11 +19,9 @@ import org.cohorte.remote.IRemoteServiceEventListener;
 import org.cohorte.remote.IRemoteServiceRepository;
 import org.cohorte.remote.beans.EndpointDescription;
 import org.cohorte.remote.beans.RemoteServiceEvent;
-import org.cohorte.remote.beans.RemoteServiceRegistration;
 import org.cohorte.remote.beans.RemoteServiceEvent.ServiceEventType;
-import org.osgi.framework.BundleException;
+import org.cohorte.remote.beans.RemoteServiceRegistration;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
-import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.constants.ISignalsConstants;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.isolates.services.monitoring.IIsolatePresenceListener;
@@ -40,8 +38,8 @@ import org.psem2m.signals.ISignalReceiver;
  */
 @Component(name = "psem2m-remote-rsb-signals-factory")
 @Provides(specifications = IIsolatePresenceListener.class)
-public class BroadcastSignalHandler extends CPojoBase implements
-        ISignalListener, IIsolatePresenceListener {
+public class BroadcastSignalHandler implements ISignalListener,
+        IIsolatePresenceListener {
 
     /** Signals directory */
     @Requires
@@ -237,14 +235,11 @@ public class BroadcastSignalHandler extends CPojoBase implements
         return events.toArray(new RemoteServiceEvent[events.size()]);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.base.activators.CPojoBase#invalidatePojo()
+    /**
+     * Component invalidated
      */
-    @Override
     @Invalidate
-    public void invalidatePojo() throws BundleException {
+    public void invalidatePojo() {
 
         // Unregister the listener
         pSignalReceiver.unregisterListener(ISignalsConstants.MATCH_ALL, this);
@@ -316,14 +311,11 @@ public class BroadcastSignalHandler extends CPojoBase implements
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.base.activators.CPojoBase#validatePojo()
+    /**
+     * Component validated
      */
-    @Override
     @Validate
-    public void validatePojo() throws BundleException {
+    public void validatePojo() {
 
         // Register to all broadcast signals
         pSignalReceiver.registerListener(
