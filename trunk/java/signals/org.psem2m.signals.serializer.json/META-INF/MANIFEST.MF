@@ -7,12 +7,13 @@ Bundle-Vendor: isandlaTech.com
 Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
 Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
- .ipojo.architecture;version=1.8.0, org.jabsorb.ng, org.jabsorb.ng.ser
- ializer, org.osgi.framework;version=1.5.0, org.osgi.service.cm;versio
- n=1.2, org.osgi.service.log;version=1.3, org.psem2m.isolates.base;ver
- sion=1.0.0, org.psem2m.isolates.base.activators;version=1.0.0, org.ps
- em2m.signals;version=1.0.0, org.psem2m.utilities;version=1.0.0, org.p
- sem2m.utilities.logging;version=1.0.0
+ .ipojo.architecture;version=1.8.0, org.cohorte.remote.utilities;versi
+ on=1.0.0, org.jabsorb.ng, org.jabsorb.ng.serializer, org.osgi.framewo
+ rk;version=1.5.0, org.osgi.service.cm;version=1.2, org.osgi.service.l
+ og;version=1.3, org.psem2m.isolates.base;version=1.0.0, org.psem2m.is
+ olates.base.activators;version=1.0.0, org.psem2m.signals;version=1.0.
+ 0, org.psem2m.utilities;version=1.0.0, org.psem2m.utilities.logging;v
+ ersion=1.0.0
 iPOJO-Components: component { $name="psem2m-signals-data-json-factory"
   $classname="org.psem2m.signals.serializer.json.JsonSignalSerializer"
   provides { $specifications="{org.psem2m.signals.ISignalSerializer}" 
