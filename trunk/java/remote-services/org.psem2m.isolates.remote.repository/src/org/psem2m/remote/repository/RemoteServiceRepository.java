@@ -14,9 +14,7 @@ import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
-import org.osgi.framework.BundleException;
-import org.psem2m.isolates.base.IIsolateLoggerSvc;
-import org.psem2m.isolates.base.activators.CPojoBase;
+import org.osgi.service.log.LogService;
 import org.psem2m.isolates.services.remote.IRemoteServiceEventListener;
 import org.psem2m.isolates.services.remote.IRemoteServiceRepository;
 import org.psem2m.isolates.services.remote.beans.EndpointDescription;
@@ -29,15 +27,14 @@ import org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration;
  */
 @Component(name = "psem2m-remote-rsr-factory")
 @Provides(specifications = IRemoteServiceRepository.class)
-public class RemoteServiceRepository extends CPojoBase implements
-        IRemoteServiceRepository {
+public class RemoteServiceRepository implements IRemoteServiceRepository {
 
     /** Remote service event listeners */
     private final Set<IRemoteServiceEventListener> pListeners = new HashSet<IRemoteServiceEventListener>();
 
     /** Log service, injected by iPOJO */
     @Requires
-    private IIsolateLoggerSvc pLogger;
+    private LogService pLogger;
 
     /** Exported service registrations */
     private final Set<RemoteServiceRegistration> pRegistrations = new HashSet<RemoteServiceRegistration>();
@@ -73,17 +70,13 @@ public class RemoteServiceRepository extends CPojoBase implements
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.base.activators.CPojoBase#invalidatePojo()
+    /**
+     * Component invalidated
      */
-    @Override
     @Invalidate
-    public void invalidatePojo() throws BundleException {
+    public void invalidatePojo() {
 
-        pLogger.logInfo(this, "invalidatePojo",
-                "Remote Service Repository Gone");
+        pLogger.log(LogService.LOG_INFO, "Remote Service Repository Gone");
     }
 
     /*
@@ -184,15 +177,12 @@ public class RemoteServiceRepository extends CPojoBase implements
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.base.activators.CPojoBase#validatePojo()
+    /**
+     * Component validated
      */
-    @Override
     @Validate
-    public void validatePojo() throws BundleException {
+    public void validatePojo() {
 
-        pLogger.logInfo(this, "validatePojo", "Remote Service Repository Ready");
+        pLogger.log(LogService.LOG_INFO, "Remote Service Repository Ready");
     }
 }
