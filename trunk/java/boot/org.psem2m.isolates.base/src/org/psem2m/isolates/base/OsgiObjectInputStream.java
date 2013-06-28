@@ -10,8 +10,8 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamClass;
 
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
-import org.psem2m.isolates.base.Utilities.BundleClass;
 
 /**
  * A class loader aware ObjectInputStream.
@@ -44,6 +44,47 @@ public class OsgiObjectInputStream extends ObjectInputStream {
     }
 
     /**
+     * Tries to load the given class by looking into all available bundles.
+     * 
+     * @param aBundles
+     *            An array containing all bundles to search into
+     * @param aClassName
+     *            Name of the class to load
+     * @param aAllowResolvedBundles
+     *            Allows to look into bundles in RESOLVED state
+     * @return The searched class, null if not found
+     */
+    private Class<?> findClassInBundles(final Bundle[] aBundles,
+            final String aClassName, final boolean aAllowResolvedBundles) {
+
+        if (aBundles == null) {
+            // No bundles to look into
+            return null;
+        }
+
+        // Prepare the state mask
+        int stateMask = Bundle.ACTIVE;
+        if (aAllowResolvedBundles) {
+            stateMask |= Bundle.RESOLVED;
+        }
+
+        for (final Bundle bundle : aBundles) {
+            // Check if the bundle state passes the mask
+            final int bundleState = bundle.getState();
+            if ((bundleState | stateMask) != 0) {
+                try {
+                    return bundle.loadClass(aClassName);
+
+                } catch (final ClassNotFoundException e) {
+                    // Class not found, try next bundle...
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Resolves the given class using the Thread class loader, then by calling
      * all active bundles.
      * 
@@ -69,10 +110,10 @@ public class OsgiObjectInputStream extends ObjectInputStream {
 
         // Try with bundles
         if (pBundleContext != null) {
-            final BundleClass clazz = Utilities.findClassInBundles(
+            final Class<?> clazz = findClassInBundles(
                     pBundleContext.getBundles(), aDesc.getName(), true);
             if (clazz != null) {
-                return clazz.getLoadedClass();
+                return clazz;
             }
         }
 

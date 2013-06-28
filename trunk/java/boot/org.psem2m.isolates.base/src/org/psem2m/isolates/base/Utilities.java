@@ -15,16 +15,11 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.regex.Pattern;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.ServiceReference;
 import org.psem2m.isolates.constants.IPlatformProperties;
 
 /**
@@ -33,49 +28,6 @@ import org.psem2m.isolates.constants.IPlatformProperties;
  * @author Thomas Calmant
  */
 public final class Utilities {
-
-    public static final class BundleClass {
-
-        /** The bundle providing the class */
-        private final Bundle pBundle;
-
-        /** The loaded class */
-        private final Class<?> pClass;
-
-        /**
-         * Sets up the bean
-         * 
-         * @param aBundle
-         *            The bundle providing the class
-         * @param aClass
-         *            The loaded class
-         */
-        public BundleClass(final Bundle aBundle, final Class<?> aClass) {
-
-            pBundle = aBundle;
-            pClass = aClass;
-        }
-
-        /**
-         * Retrieves the bundle providing the class
-         * 
-         * @return the bundle
-         */
-        public Bundle getBundle() {
-
-            return pBundle;
-        }
-
-        /**
-         * Retrieves the loaded class
-         * 
-         * @return the loaded class
-         */
-        public Class<?> getLoadedClass() {
-
-            return pClass;
-        }
-    }
 
     /**
      * Converts the given object to a one-dimension array of the given type
@@ -133,65 +85,6 @@ public final class Utilities {
         throw new IllegalArgumentException(MessageFormat.format(
                 "Given object is not an array: {0}", aArrayObject.getClass()
                         .getName()));
-    }
-
-    /**
-     * Returns a list if the given object is an array, else returns the given
-     * object.
-     * 
-     * @param aObject
-     *            An object, can be null
-     * @return A list if aObject is an array, else aObject
-     */
-    public static Object arrayToIterable(final Object aObject) {
-
-        if (aObject != null && aObject.getClass().isArray()) {
-            // Convert arrays into list
-            return Arrays.asList((Object[]) aObject);
-        }
-
-        return aObject;
-    }
-
-    /**
-     * Tries to load the given class by looking into all available bundles.
-     * 
-     * @param aBundles
-     *            An array containing all bundles to search into
-     * @param aClassName
-     *            Name of the class to load
-     * @param aAllowResolvedBundles
-     * @return The searched class, null if not found
-     */
-    public static BundleClass findClassInBundles(final Bundle[] aBundles,
-            final String aClassName, final boolean aAllowResolvedBundles) {
-
-        if (aBundles == null) {
-            // No bundles to look into
-            return null;
-        }
-
-        // Prepare the state mask
-        int stateMask = Bundle.ACTIVE;
-        if (aAllowResolvedBundles) {
-            stateMask |= Bundle.RESOLVED;
-        }
-
-        for (final Bundle bundle : aBundles) {
-            // Check if the bundle state passes the mask
-            final int bundleState = bundle.getState();
-            if ((bundleState | stateMask) != 0) {
-                try {
-                    final Class<?> clazz = bundle.loadClass(aClassName);
-                    return new BundleClass(bundle, clazz);
-
-                } catch (final ClassNotFoundException e) {
-                    // Class not found, try next bundle...
-                }
-            }
-        }
-
-        return null;
     }
 
     /**
@@ -377,26 +270,6 @@ public final class Utilities {
     }
 
     /**
-     * Retrieves the service properties as a map
-     * 
-     * @param aServiceReference
-     *            A reference to the service
-     * @return The service properties
-     */
-    public static Map<String, Object> getServiceProperties(
-            final ServiceReference<?> aServiceReference) {
-
-        final Map<String, Object> serviceProperties = new HashMap<String, Object>();
-
-        final String[] propertyKeys = aServiceReference.getPropertyKeys();
-        for (final String key : propertyKeys) {
-            serviceProperties.put(key, aServiceReference.getProperty(key));
-        }
-
-        return serviceProperties;
-    }
-
-    /**
      * Converts an input stream into a byte array
      * 
      * @param aInputStream
@@ -541,18 +414,24 @@ public final class Utilities {
         }
 
         final StringBuffer f = new StringBuffer();
+        final StringTokenizer tokenizer = new StringTokenizer(aFilter, "?*",
+                true);
 
-        for (final StringTokenizer st = new StringTokenizer(aFilter, "?*", true); st
-                .hasMoreTokens();) {
-            final String t = st.nextToken();
-            if (t.equals("?")) {
+        while (tokenizer.hasMoreTokens()) {
+
+            final String token = tokenizer.nextToken();
+
+            if (token.equals("?")) {
                 f.append(".");
-            } else if (t.equals("*")) {
+
+            } else if (token.equals("*")) {
                 f.append(".*");
+
             } else {
-                f.append(Pattern.quote(t));
+                f.append(Pattern.quote(token));
             }
         }
+
         return aTested.matches(f.toString());
     }
 
