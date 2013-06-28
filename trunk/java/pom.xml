@@ -33,11 +33,7 @@
 		<module>isolates/org.psem2m.isolates.slave.agent</module>
 		<module>isolates/org.psem2m.isolates.utilities</module>
 
-		<module>remote-services/org.psem2m.isolates.remote.broadcaster</module>
-		<module>remote-services/org.psem2m.isolates.remote.core</module>
-		<module>remote-services/org.psem2m.isolates.remote.repository</module>
-		<module>remote-services/org.psem2m.remote.api</module>
-		<module>remote-services/org.psem2m.remote.jsonrpc</module>
+		<module>remote-services</module>
 
 		<module>signals/org.psem2m.signals.api</module>
 		<module>signals/org.psem2m.signals.base</module>

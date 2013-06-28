@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: COHORTE :: Remote Services :: API
 Bundle-SymbolicName: org.cohorte.remote.api
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.1.0.qualifier
 Bundle-Vendor: isandlaTech.com
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: org.cohorte.remote;version="1.1.0",

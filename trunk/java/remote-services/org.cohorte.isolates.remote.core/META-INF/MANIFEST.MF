@@ -4,7 +4,7 @@ Bundle-Name: COHORTE :: Remote Services :: Core
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: org.cohorte.remote.core
 Bundle-Vendor: isandlaTech.com
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.1.0.qualifier
 Created-By: iPOJO  1.8.0
 Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  .ipojo.architecture;version=1.8.0, org.cohorte.remote;version=1.1.0, 
