@@ -246,7 +246,7 @@ public class BroadcastSignalHandler implements ISignalListener,
         // Unregister the listener
         pSignalReceiver.unregisterListener(ISignalsConstants.MATCH_ALL, this);
         pLogger.logInfo(this, "invalidatePojo",
-                "PSEM2M Remote Service Broadcaster Handler Gone");
+                "COHORTE Remote Service Broadcaster Handler Gone");
     }
 
     /*
@@ -325,6 +325,6 @@ public class BroadcastSignalHandler implements ISignalListener,
                         + ISignalsConstants.MATCH_ALL, this);
 
         pLogger.logInfo(this, "validatePojo",
-                "PSEM2M Remote Service Broadcaster Handler Ready");
+                "COHORTE Remote Service Broadcaster Handler Ready");
     }
 }

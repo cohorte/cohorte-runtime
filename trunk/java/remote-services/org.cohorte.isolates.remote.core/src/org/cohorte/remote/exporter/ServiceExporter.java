@@ -28,8 +28,8 @@ import org.cohorte.remote.IRemoteServicesConstants;
 import org.cohorte.remote.InterfacePrefixUtils;
 import org.cohorte.remote.beans.EndpointDescription;
 import org.cohorte.remote.beans.RemoteServiceEvent;
-import org.cohorte.remote.beans.RemoteServiceRegistration;
 import org.cohorte.remote.beans.RemoteServiceEvent.ServiceEventType;
+import org.cohorte.remote.beans.RemoteServiceRegistration;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
@@ -500,16 +500,16 @@ public class ServiceExporter implements ServiceListener {
          * the service.exported.interfaces and service.exported.configs
          * properties.
          * 
-         * Optionally, a psem2m.service.export property can be set to false to
+         * Optionally, a cohorte.service.export property can be set to false to
          * block the export.
          */
         final StringBuilder serviceFilterBuilder = new StringBuilder("(&");
 
-        /* PSEM2M flag (denies export if present and not true) */
+        /* COHORTE flag (denies export if present and not true) */
         serviceFilterBuilder.append("(|(!(")
-                .append(IRemoteServicesConstants.PSEM2M_SERVICE_EXPORT)
+                .append(IRemoteServicesConstants.COHORTE_SERVICE_EXPORT)
                 .append("=*))(")
-                .append(IRemoteServicesConstants.PSEM2M_SERVICE_EXPORT)
+                .append(IRemoteServicesConstants.COHORTE_SERVICE_EXPORT)
                 .append("=true))");
 
         /* OSGi properties */
@@ -551,6 +551,7 @@ public class ServiceExporter implements ServiceListener {
                     "Error creating the service listener:", e);
         }
 
-        pLogger.log(LogService.LOG_INFO, "PSEM2M Service Exporter Ready.");
+        pLogger.log(LogService.LOG_INFO,
+                "COHORTE Remote Service Exporter Ready.");
     }
 }

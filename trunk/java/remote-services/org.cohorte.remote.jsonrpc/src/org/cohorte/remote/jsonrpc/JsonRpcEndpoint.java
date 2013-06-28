@@ -32,7 +32,7 @@ import org.osgi.service.http.HttpService;
 import org.osgi.service.log.LogService;
 
 /**
- * Implementation of the PSEM2M JSON-RPC end point handler. Uses Jabsorb.
+ * Implementation of the COHORTE JSON-RPC end point handler. Uses Jabsorb.
  * 
  * @author Thomas Calmant
  */
@@ -123,9 +123,8 @@ public class JsonRpcEndpoint implements IEndpointHandler {
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * org.psem2m.isolates.services.remote.IEndpointHandler#createEndpoint(java
-     * .util.Set, org.osgi.framework.ServiceReference)
+     * @see org.cohorte.remote.IEndpointHandler#createEndpoint(java.util.Set,
+     * org.osgi.framework.ServiceReference)
      */
     @Override
     public EndpointDescription[] createEndpoint(
@@ -181,8 +180,8 @@ public class JsonRpcEndpoint implements IEndpointHandler {
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.isolates.services.remote.IEndpointHandler#destroyEndpoint(
-     * org.osgi.framework.ServiceReference)
+     * org.cohorte.remote.IEndpointHandler#destroyEndpoint(org.osgi.framework
+     * .ServiceReference)
      */
     @Override
     public boolean destroyEndpoint(final ServiceReference<?> aServiceReference) {
@@ -228,9 +227,8 @@ public class JsonRpcEndpoint implements IEndpointHandler {
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * org.psem2m.isolates.services.remote.IEndpointHandler#getEndpoints(org
-     * .osgi.framework.ServiceReference)
+     * @see org.cohorte.remote.IEndpointHandler#getEndpoints(org.osgi.framework.
+     * ServiceReference)
      */
     @Override
     public EndpointDescription[] getEndpoints(

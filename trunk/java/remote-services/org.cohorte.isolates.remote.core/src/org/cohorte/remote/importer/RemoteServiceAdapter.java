@@ -287,8 +287,9 @@ public class RemoteServiceAdapter implements IRemoteServiceEventListener,
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.services.remote.IRemoteServiceEventListener#
-     * handleIsolateLost(java.lang.String)
+     * @see
+     * org.cohorte.remote.IRemoteServiceEventListener#handleIsolateLost(java
+     * .lang.String)
      */
     @Override
     public synchronized void handleIsolateLost(final String aIsolateId) {
@@ -321,8 +322,9 @@ public class RemoteServiceAdapter implements IRemoteServiceEventListener,
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.services.remote.IRemoteServiceEventListener#
-     * handleIsolateReady(java.lang.String)
+     * @see
+     * org.cohorte.remote.IRemoteServiceEventListener#handleIsolateReady(java
+     * .lang.String)
      */
     @Override
     public void handleIsolateReady(final String aIsolateId) {
@@ -334,8 +336,9 @@ public class RemoteServiceAdapter implements IRemoteServiceEventListener,
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.commons.remote.IRemoteServiceEventListener#
-     * handleRemoteEvent(org.psem2m.isolates.commons.remote.RemoteServiceEvent)
+     * @see
+     * org.cohorte.remote.IRemoteServiceEventListener#handleRemoteEvent(org.
+     * cohorte.remote.beans.RemoteServiceEvent)
      */
     @Override
     public void handleRemoteEvent(final RemoteServiceEvent aServiceEvent) {

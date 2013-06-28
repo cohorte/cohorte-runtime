@@ -102,7 +102,7 @@ public class RemoteServiceBroadcaster implements IRemoteServiceBroadcaster {
     public void invalidatePojo() {
 
         pLogger.logInfo(this, "invalidatePojo",
-                "PSEM2M Remote Service Broadcaster Gone");
+                "COHORTE Remote Service Broadcaster Gone");
     }
 
     /*
@@ -253,6 +253,6 @@ public class RemoteServiceBroadcaster implements IRemoteServiceBroadcaster {
     public void validatePojo() {
 
         pLogger.logInfo(this, "validatePojo",
-                "PSEM2M Remote Service Broadcaster Ready");
+                "COHORTE Remote Service Broadcaster Ready");
     }
 }

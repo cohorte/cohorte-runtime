@@ -45,8 +45,8 @@ public class RemoteServiceRepository implements IRemoteServiceRepository {
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.isolates.services.remote.IRemoteServiceRepository#addListener
-     * (org.psem2m.isolates.services.remote.IRemoteServiceEventListener)
+     * org.cohorte.remote.IRemoteServiceRepository#addListener(org.cohorte.remote
+     * .IRemoteServiceEventListener)
      */
     @Override
     public void addListener(final IRemoteServiceEventListener aListener) {
@@ -61,8 +61,7 @@ public class RemoteServiceRepository implements IRemoteServiceRepository {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.services.remote.IRemoteServiceRepository#
-     * getLocalRegistrations()
+     * @see org.cohorte.remote.IRemoteServiceRepository#getLocalRegistrations()
      */
     @Override
     public RemoteServiceRegistration[] getLocalRegistrations() {
@@ -78,7 +77,8 @@ public class RemoteServiceRepository implements IRemoteServiceRepository {
     @Invalidate
     public void invalidatePojo() {
 
-        pLogger.log(LogService.LOG_INFO, "Remote Service Repository Gone");
+        pLogger.log(LogService.LOG_INFO,
+                "COHORTE Remote Service Repository Gone");
     }
 
     /*
@@ -103,8 +103,9 @@ public class RemoteServiceRepository implements IRemoteServiceRepository {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.services.remote.IRemoteServiceRepository#
-     * registerExportedServices(java.util.Collection)
+     * @see
+     * org.cohorte.remote.IRemoteServiceRepository#registerExportedServices(
+     * java.util.Collection)
      */
     @Override
     public void registerExportedServices(
@@ -122,8 +123,8 @@ public class RemoteServiceRepository implements IRemoteServiceRepository {
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.isolates.services.remote.IRemoteServiceRepository#removeListener
-     * (org.psem2m.isolates.services.remote.IRemoteServiceEventListener)
+     * org.cohorte.remote.IRemoteServiceRepository#removeListener(org.cohorte
+     * .remote.IRemoteServiceEventListener)
      */
     @Override
     public void removeListener(final IRemoteServiceEventListener aListener) {
@@ -138,9 +139,9 @@ public class RemoteServiceRepository implements IRemoteServiceRepository {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.services.remote.IRemoteServiceRepository#
-     * unregisterEndpoint
-     * (org.psem2m.isolates.services.remote.beans.EndpointDescription)
+     * @see
+     * org.cohorte.remote.IRemoteServiceRepository#unregisterEndpoint(org.cohorte
+     * .remote.beans.EndpointDescription)
      */
     @Override
     public void unregisterEndpoint(
@@ -156,8 +157,9 @@ public class RemoteServiceRepository implements IRemoteServiceRepository {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.services.remote.IRemoteServiceRepository#
-     * unregisterEndpoints(java.util.Collection)
+     * @see
+     * org.cohorte.remote.IRemoteServiceRepository#unregisterEndpoints(java.
+     * util.Collection)
      */
     @Override
     public void unregisterEndpoints(
@@ -185,6 +187,7 @@ public class RemoteServiceRepository implements IRemoteServiceRepository {
     @Validate
     public void validatePojo() {
 
-        pLogger.log(LogService.LOG_INFO, "Remote Service Repository Ready");
+        pLogger.log(LogService.LOG_INFO,
+                "COHORTE Remote Service Repository Ready");
     }
 }

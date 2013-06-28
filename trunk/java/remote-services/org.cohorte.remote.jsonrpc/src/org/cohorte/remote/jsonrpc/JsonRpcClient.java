@@ -31,8 +31,9 @@ import org.osgi.framework.BundleContext;
 import org.osgi.service.log.LogService;
 
 /**
- * @author Thomas Calmant
+ * Implementation of the COHORTE JSON-RPC client. Uses Jabsorb.
  * 
+ * @author Thomas Calmant
  */
 @Component(name = "cohorte-remote-client-jsonrpc-factory")
 @Provides(specifications = IRemoteServiceClientHandler.class)
@@ -74,8 +75,8 @@ public class JsonRpcClient implements IRemoteServiceClientHandler {
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.isolates.services.remote.IRemoteServiceClientHandler#bundleStarted
-     * (org.osgi.framework.Bundle)
+     * org.cohorte.remote.IRemoteServiceClientHandler#bundleStarted(org.osgi
+     * .framework.Bundle)
      */
     @Override
     public Collection<String> bundleStarted(final Bundle aBundle) {
@@ -115,8 +116,8 @@ public class JsonRpcClient implements IRemoteServiceClientHandler {
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.isolates.services.remote.IRemoteServiceClientHandler#bundleStopped
-     * (org.osgi.framework.Bundle)
+     * org.cohorte.remote.IRemoteServiceClientHandler#bundleStopped(org.osgi
+     * .framework.Bundle)
      */
     @Override
     public Collection<String> bundleStopped(final Bundle aBundle) {
@@ -176,8 +177,8 @@ public class JsonRpcClient implements IRemoteServiceClientHandler {
      * (non-Javadoc)
      * 
      * @see
-     * org.psem2m.isolates.services.remote.IRemoteServiceClientHandler#destroyProxy
-     * (java.lang.Object)
+     * org.cohorte.remote.IRemoteServiceClientHandler#destroyProxy(java.lang
+     * .Object)
      */
     @Override
     public synchronized void destroyProxy(final Object aProxy) {
@@ -301,10 +302,9 @@ public class JsonRpcClient implements IRemoteServiceClientHandler {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.services.remote.IRemoteServiceClientHandler#
-     * getRemoteProxy
-     * (org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration,
-     * java.util.Collection)
+     * @see
+     * org.cohorte.remote.IRemoteServiceClientHandler#getRemoteProxy(org.cohorte
+     * .remote.beans.RemoteServiceRegistration, java.util.Collection)
      */
     @Override
     public Object getRemoteProxy(final RemoteServiceRegistration aRegistration,
@@ -367,7 +367,7 @@ public class JsonRpcClient implements IRemoteServiceClientHandler {
         pServiceIds.clear();
 
         pLogger.log(LogService.LOG_INFO,
-                "PSEM2M JSON-RPC Remote-Services proxy Gone");
+                "COHORTE JSON-RPC Remote-Services proxy Gone");
     }
 
     /**
@@ -380,6 +380,6 @@ public class JsonRpcClient implements IRemoteServiceClientHandler {
         pProxies.clear();
 
         pLogger.log(LogService.LOG_INFO,
-                "PSEM2M JSON-RPC Remote-Services proxy Ready");
+                "COHORTE JSON-RPC Remote-Services proxy Ready");
     }
 }

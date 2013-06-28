@@ -12,6 +12,9 @@ package org.cohorte.remote;
  */
 public interface IRemoteServicesConstants {
 
+    /** COHORTE: Force/Refuse service export */
+    String COHORTE_SERVICE_EXPORT = "cohorte.service.export";
+
     /**
      * Remote Service Importer exclusion filter
      * 
@@ -33,9 +36,6 @@ public interface IRemoteServicesConstants {
      * property.
      */
     String ISOLATE_UID = "cohorte.isolate.uid";
-
-    /** PSEM2M Force service export */
-    String PSEM2M_SERVICE_EXPORT = "psem2m.service.export";
 
     /** Exported service configurations (OSGi Remote Services) */
     String SERVICE_EXPORTED_CONFIGS = IRemoteServicesConstants.SERVICE_EXPORTED_PREFIX
