@@ -17,17 +17,14 @@ import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
+import org.cohorte.remote.utilities.BundleClass;
+import org.cohorte.remote.utilities.BundlesClassLoader;
 import org.jabsorb.ng.client.Client;
 import org.jabsorb.ng.client.ISession;
 import org.jabsorb.ng.client.TransportRegistry;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
-import org.psem2m.isolates.base.BundlesClassLoader;
-import org.psem2m.isolates.base.IIsolateLoggerSvc;
-import org.psem2m.isolates.base.Utilities;
-import org.psem2m.isolates.base.Utilities.BundleClass;
-import org.psem2m.isolates.base.activators.CPojoBase;
+import org.osgi.service.log.LogService;
 import org.psem2m.isolates.services.remote.IRemoteServiceClientHandler;
 import org.psem2m.isolates.services.remote.beans.EndpointDescription;
 import org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration;
@@ -38,8 +35,7 @@ import org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration;
  */
 @Component(name = "psem2m-remote-client-jsonrpc-factory")
 @Provides(specifications = IRemoteServiceClientHandler.class)
-public class JsonRpcClient extends CPojoBase implements
-        IRemoteServiceClientHandler {
+public class JsonRpcClient implements IRemoteServiceClientHandler {
 
     /** Bundles providing classes */
     private final Map<Bundle, List<Class<?>>> pBundleClasses = new HashMap<Bundle, List<Class<?>>>();
@@ -49,7 +45,7 @@ public class JsonRpcClient extends CPojoBase implements
 
     /** The logger */
     @Requires
-    private IIsolateLoggerSvc pLogger;
+    private LogService pLogger;
 
     /** Service ID -&gt; Classes missing for a full end point proxy */
     private final Map<String, List<String>> pMissingClasses = new HashMap<String, List<String>>();
@@ -243,8 +239,7 @@ public class JsonRpcClient extends CPojoBase implements
 
         // Invalid parameter
         if (aInterfacesNames == null || aInterfacesNames.isEmpty()) {
-            pLogger.logSevere(this, "filterKnownInterfaces",
-                    "No/Empty interface list");
+            pLogger.log(LogService.LOG_ERROR, "No/Empty interface list");
             return null;
         }
 
@@ -261,7 +256,7 @@ public class JsonRpcClient extends CPojoBase implements
 
             // Finding the class using Class.forName(interfaceName) won't work.
             // Only look into active bundles (not resolved ones)
-            final BundleClass foundClass = Utilities.findClassInBundles(
+            final BundleClass foundClass = BundleClass.findClassInBundles(
                     pBundleContext.getBundles(), interfaceName, false);
             if (foundClass != null) {
                 // Found an interface
@@ -285,16 +280,16 @@ public class JsonRpcClient extends CPojoBase implements
 
         // No interface found at all
         if (classes.isEmpty()) {
-            pLogger.logSevere(this, "filterKnownInterfaces",
-                    "No interface found in=", aInterfacesNames);
+            pLogger.log(LogService.LOG_ERROR, "No interface found in: "
+                    + aInterfacesNames);
             throw new ClassNotFoundException(aInterfacesNames.toString());
         }
 
         // Some interfaces are missing
         if (!unknownClasses.isEmpty()) {
             pMissingClasses.put(aServiceId, unknownClasses);
-            pLogger.logWarn(this, "filterKnownInterfaces",
-                    "Some interfaces are missing=", unknownClasses);
+            pLogger.log(LogService.LOG_WARNING, "Some interfaces are missing: "
+                    + unknownClasses);
         }
 
         // Return the classes array
@@ -315,7 +310,7 @@ public class JsonRpcClient extends CPojoBase implements
             throws ClassNotFoundException {
 
         if (aRegistration == null) {
-            pLogger.logSevere(this, "getRemoteProxy", "Invalid service event");
+            pLogger.log(LogService.LOG_ERROR, "Invalid service event");
             return null;
         }
 
@@ -324,7 +319,7 @@ public class JsonRpcClient extends CPojoBase implements
                 .getEndpoints());
         if (foundEndpoint == null) {
             // Not exported with JSON-RPC
-            pLogger.logSevere(this, "getRemoteProxy",
+            pLogger.log(LogService.LOG_WARNING,
                     "Service is not exported with JSON-RPC");
             return null;
         }
@@ -347,14 +342,11 @@ public class JsonRpcClient extends CPojoBase implements
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.base.activators.CPojoBase#invalidatePojo()
+    /**
+     * Component invalidated
      */
-    @Override
     @Invalidate
-    public synchronized void invalidatePojo() throws BundleException {
+    public synchronized void invalidatePojo() {
 
         // Clean up all proxies
         for (final Entry<Object, Client> entry : pProxies.entrySet()) {
@@ -372,23 +364,20 @@ public class JsonRpcClient extends CPojoBase implements
         pProxies.clear();
         pServiceIds.clear();
 
-        pLogger.logInfo(this, "invalidatePojo",
+        pLogger.log(LogService.LOG_INFO,
                 "PSEM2M JSON-RPC Remote-Services proxy Gone");
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.base.activators.CPojoBase#validatePojo()
+    /**
+     * Component validated
      */
-    @Override
     @Validate
-    public void validatePojo() throws BundleException {
+    public void validatePojo() {
 
         // Be sure to start from nothing...
         pProxies.clear();
 
-        pLogger.logInfo(this, "validatePojo",
+        pLogger.log(LogService.LOG_INFO,
                 "PSEM2M JSON-RPC Remote-Services proxy Ready");
     }
 }

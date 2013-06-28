@@ -18,17 +18,15 @@ import org.apache.felix.ipojo.annotations.Property;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
+import org.cohorte.remote.utilities.BundlesClassLoader;
 import org.jabsorb.ng.JSONRPCBridge;
 import org.jabsorb.ng.JSONRPCServlet;
 import org.jabsorb.ng.client.HTTPSessionFactory;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.http.HttpService;
-import org.psem2m.isolates.base.BundlesClassLoader;
-import org.psem2m.isolates.base.IIsolateLoggerSvc;
-import org.psem2m.isolates.base.activators.CPojoBase;
+import org.osgi.service.log.LogService;
 import org.psem2m.isolates.services.remote.IEndpointHandler;
 import org.psem2m.isolates.services.remote.beans.EndpointDescription;
 
@@ -39,7 +37,7 @@ import org.psem2m.isolates.services.remote.beans.EndpointDescription;
  */
 @Component(name = "psem2m-remote-endpoint-jsonrpc-factory")
 @Provides(specifications = IEndpointHandler.class)
-public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
+public class JsonRpcEndpoint implements IEndpointHandler {
 
     /** HTTP service port property */
     private static final String HTTP_SERVICE_PORT = "org.osgi.service.http.port";
@@ -65,7 +63,7 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
 
     /** The logger */
     @Requires
-    private IIsolateLoggerSvc pLogger;
+    private LogService pLogger;
 
     /** The registered end points names list */
     private final List<String> pRegisteredEndpoints = new ArrayList<String>();
@@ -111,13 +109,13 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
 
         } else {
             // Unknown port type
-            pLogger.logWarn(this, "getAccessInfo",
-                    "Couldn't read access port=", rawPort);
+            pLogger.log(LogService.LOG_WARNING,
+                    String.format("Couldn't read access port=%d", rawPort));
             pHttpPort = -1;
         }
 
-        pLogger.logInfo(this, "bindHttpService",
-                "JSON-RPC endpoint bound to port=", pHttpPort);
+        pLogger.log(LogService.LOG_INFO,
+                String.format("JSON-RPC endpoint bound to port=%d", pHttpPort));
     }
 
     /*
@@ -146,7 +144,7 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
         final Object serviceInstance = pBundleContext
                 .getService(aServiceReference);
         if (serviceInstance == null) {
-            pLogger.logSevere(this, "createEndpoint",
+            pLogger.log(LogService.LOG_ERROR,
                     "The service reference to export as no associated instance.");
             return null;
         }
@@ -285,14 +283,11 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
         return result;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.base.activators.CPojoBase#invalidatePojo()
+    /**
+     * Component invalidated
      */
-    @Override
     @Invalidate
-    public void invalidatePojo() throws BundleException {
+    public void invalidatePojo() {
 
         // Clean up the bridge
         stopJabsorbBridge();
@@ -301,8 +296,7 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
         pEndpointsDescriptions.clear();
         pRegisteredEndpoints.clear();
 
-        pLogger.logInfo(this, "invalidatePojo",
-                "JSON-RPC endpoint handler gone");
+        pLogger.log(LogService.LOG_INFO, "JSON-RPC endpoint handler gone");
     }
 
     /**
@@ -331,8 +325,8 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
                     null, null);
 
         } catch (final Exception ex) {
-            pLogger.logSevere(this, "startJabsorbBridge",
-                    "Error registering the JSON-RPC servlet (Jabsorb) :", ex);
+            pLogger.log(LogService.LOG_INFO,
+                    "Error registering the JSON-RPC servlet (Jabsorb)", ex);
         }
 
         // Set the bridge
@@ -370,14 +364,11 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
         pJsonRpcBridge = null;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.base.activators.CPojoBase#validatePojo()
+    /**
+     * Component validated
      */
-    @Override
     @Validate
-    public void validatePojo() throws BundleException {
+    public void validatePojo() {
 
         // Be sure to have clean members
         pEndpointsDescriptions.clear();
@@ -386,7 +377,7 @@ public class JsonRpcEndpoint extends CPojoBase implements IEndpointHandler {
         // Start the bridge
         startJabsorbBridge();
 
-        pLogger.logInfo(this, "validatePojo",
-                "JSON-RPC endpoint handler ready, port=", pHttpPort);
+        pLogger.log(LogService.LOG_INFO, String.format(
+                "JSON-RPC endpoint handler ready, port=%d", pHttpPort));
     }
 }
