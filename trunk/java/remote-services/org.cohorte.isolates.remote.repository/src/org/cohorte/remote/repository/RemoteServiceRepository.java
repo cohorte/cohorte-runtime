@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
@@ -25,8 +26,9 @@ import org.osgi.service.log.LogService;
  * 
  * @author Thomas Calmant
  */
-@Component(name = "psem2m-remote-rsr-factory")
+@Component(name = "cohorte-remote-repository-factory")
 @Provides(specifications = IRemoteServiceRepository.class)
+@Instantiate(name = "cohorte-remote-repository")
 public class RemoteServiceRepository implements IRemoteServiceRepository {
 
     /** Remote service event listeners */

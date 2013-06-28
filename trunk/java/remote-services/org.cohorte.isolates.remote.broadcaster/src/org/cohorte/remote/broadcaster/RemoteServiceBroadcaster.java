@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
@@ -34,8 +35,9 @@ import org.psem2m.signals.ISignalSendResult;
  * 
  * @author Thomas Calmant
  */
-@Component(name = "psem2m-remote-rsb-factory")
+@Component(name = "cohorte-remote-broadcast-notifier-signals-factory")
 @Provides(specifications = IRemoteServiceBroadcaster.class)
+@Instantiate(name = "cohorte-remote-broadcast-notifier-signals")
 public class RemoteServiceBroadcaster implements IRemoteServiceBroadcaster {
 
     /** Signals directory */

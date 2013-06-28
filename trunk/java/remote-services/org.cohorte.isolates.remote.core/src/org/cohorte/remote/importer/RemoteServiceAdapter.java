@@ -18,6 +18,7 @@ import java.util.StringTokenizer;
 import java.util.regex.Pattern;
 
 import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
@@ -42,8 +43,9 @@ import org.osgi.service.log.LogService;
  * 
  * @author Thomas Calmant
  */
-@Component(name = "psem2m-remote-importer-factory")
+@Component(name = "cohorte-remote-importer-factory")
 @Provides(specifications = IRemoteServiceEventListener.class)
+@Instantiate(name = "cohorte-remote-importer")
 public class RemoteServiceAdapter implements IRemoteServiceEventListener,
         BundleListener {
 

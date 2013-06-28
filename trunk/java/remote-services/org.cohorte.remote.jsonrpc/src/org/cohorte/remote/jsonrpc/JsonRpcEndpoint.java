@@ -13,6 +13,7 @@ import java.util.Set;
 
 import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Property;
 import org.apache.felix.ipojo.annotations.Provides;
@@ -35,8 +36,9 @@ import org.osgi.service.log.LogService;
  * 
  * @author Thomas Calmant
  */
-@Component(name = "psem2m-remote-endpoint-jsonrpc-factory")
+@Component(name = "cohorte-remote-endpoint-jsonrpc-factory")
 @Provides(specifications = IEndpointHandler.class)
+@Instantiate(name = "cohorte-remote-endpoint-jsonrpc")
 public class JsonRpcEndpoint implements IEndpointHandler {
 
     /** HTTP service port property */

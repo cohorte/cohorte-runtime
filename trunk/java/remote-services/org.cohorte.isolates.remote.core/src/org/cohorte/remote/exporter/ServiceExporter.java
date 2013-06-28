@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
@@ -46,7 +47,8 @@ import org.osgi.service.log.LogService;
  * 
  * @author Thomas Calmant
  */
-@Component(name = "psem2m-remote-exporter-factory")
+@Component(name = "cohorte-remote-exporter-factory")
+@Instantiate(name = "cohorte-remote-exporter")
 public class ServiceExporter implements ServiceListener {
 
     /** End points handlers dependency ID */

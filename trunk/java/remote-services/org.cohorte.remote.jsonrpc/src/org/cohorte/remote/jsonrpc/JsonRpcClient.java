@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
@@ -33,8 +34,9 @@ import org.osgi.service.log.LogService;
  * @author Thomas Calmant
  * 
  */
-@Component(name = "psem2m-remote-client-jsonrpc-factory")
+@Component(name = "cohorte-remote-client-jsonrpc-factory")
 @Provides(specifications = IRemoteServiceClientHandler.class)
+@Instantiate(name = "cohorte-remote-client-jsonrpc")
 public class JsonRpcClient implements IRemoteServiceClientHandler {
 
     /** Bundles providing classes */
