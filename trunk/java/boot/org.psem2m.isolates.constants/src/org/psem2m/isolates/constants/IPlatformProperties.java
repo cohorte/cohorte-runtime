@@ -80,20 +80,6 @@ public interface IPlatformProperties {
     String PROP_PLATFORM_REDIRECT_LOGSVC = "org.psem2m.platform.isolate.redirect.logservice";
 
     /**
-     * Remote Service Importer exclusion filter
-     * 
-     * Default : "" Format : "filter1,filter2"
-     */
-    String PROP_REMOTE_SERVICE_FILTERS_EXCLUDE = "org.psem2m.remote.filters.exclude";
-
-    /**
-     * Remote Service Importer inclusion filter
-     * 
-     * Default : "*" Format : "filter1,filter2"
-     */
-    String PROP_REMOTE_SERVICE_FILTERS_INCLUDE = "org.psem2m.remote.filters.include";
-
-    /**
      * Special isolates ID prefix
      */
     String SPECIAL_INTERNAL_ISOLATES_PREFIX = "org.psem2m.internals.isolates.";
