@@ -42,7 +42,7 @@ else:
 
 # ------------------------------------------------------------------------------
 
-JAVA_BEANS_PACKAGE = "org.psem2m.isolates.services.remote.beans"
+JAVA_BEANS_PACKAGE = "org.cohorte.remote.beans"
 JAVA_ENDPOINT_DESCRIPTION = "{0}.EndpointDescription".format(JAVA_BEANS_PACKAGE)
 JAVA_REMOTE_SERVICE_EVENT = "{0}.RemoteServiceEvent".format(JAVA_BEANS_PACKAGE)
 JAVA_SERVICE_EVENT_TYPE = "{0}$ServiceEventType" \
