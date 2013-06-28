@@ -5,6 +5,7 @@
  */
 package org.psem2m.remote.importer;
 
+import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -13,6 +14,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.StringTokenizer;
+import java.util.regex.Pattern;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
@@ -22,13 +25,9 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
-import org.osgi.framework.BundleException;
 import org.osgi.framework.BundleListener;
 import org.osgi.framework.ServiceRegistration;
-import org.psem2m.isolates.base.IIsolateLoggerSvc;
-import org.psem2m.isolates.base.Utilities;
-import org.psem2m.isolates.base.activators.CPojoBase;
-import org.psem2m.isolates.constants.IPlatformProperties;
+import org.osgi.service.log.LogService;
 import org.psem2m.isolates.services.remote.IRemoteServiceBroadcaster;
 import org.psem2m.isolates.services.remote.IRemoteServiceClientHandler;
 import org.psem2m.isolates.services.remote.IRemoteServiceEventListener;
@@ -45,8 +44,8 @@ import org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration;
  */
 @Component(name = "psem2m-remote-importer-factory")
 @Provides(specifications = IRemoteServiceEventListener.class)
-public class RemoteServiceAdapter extends CPojoBase implements
-        IRemoteServiceEventListener, BundleListener {
+public class RemoteServiceAdapter implements IRemoteServiceEventListener,
+        BundleListener {
 
     /** Remote service broadcaster (RSB) */
     @Requires
@@ -70,7 +69,7 @@ public class RemoteServiceAdapter extends CPojoBase implements
 
     /** Log service */
     @Requires
-    private IIsolateLoggerSvc pLogger;
+    private LogService pLogger;
 
     /** Registered services: Service ID -&gt; Proxy information */
     private final Map<String, ProxyServiceInfo> pRegisteredServices = new HashMap<String, ProxyServiceInfo>();
@@ -106,7 +105,7 @@ public class RemoteServiceAdapter extends CPojoBase implements
 
         // Test include filters
         for (final String includeFilter : pIncludeFilters) {
-            if (Utilities.matchFilter(aInterfaceName, includeFilter)) {
+            if (matchFilter(aInterfaceName, includeFilter)) {
                 include = true;
                 break;
             }
@@ -119,7 +118,7 @@ public class RemoteServiceAdapter extends CPojoBase implements
 
         // Test exclude filters
         for (final String excludeFilter : pExcludeFilters) {
-            if (Utilities.matchFilter(aInterfaceName, excludeFilter)) {
+            if (matchFilter(aInterfaceName, excludeFilter)) {
                 exclude = true;
             }
         }
@@ -181,8 +180,8 @@ public class RemoteServiceAdapter extends CPojoBase implements
             serviceIds.addAll(handler.bundleStarted(aBundle));
         }
 
-        pLogger.logDebug(this, "bundleStarted", "Services to update=",
-                serviceIds);
+        pLogger.log(LogService.LOG_DEBUG,
+                String.format("Services to update=%s", serviceIds));
 
         for (final String serviceId : serviceIds) {
             // Get the associated registration
@@ -204,9 +203,9 @@ public class RemoteServiceAdapter extends CPojoBase implements
 
         // Try to import the waiting services
         for (final RemoteServiceRegistration registration : waitings) {
-            pLogger.logDebug(this, "bundleStarted",
-                    "Trying to import waiting=",
-                    registration.getExportedInterfaces());
+            pLogger.log(LogService.LOG_DEBUG, String.format(
+                    "Trying to import waiting=%s",
+                    Arrays.toString(registration.getExportedInterfaces())));
             registerService(registration);
         }
     }
@@ -295,8 +294,8 @@ public class RemoteServiceAdapter extends CPojoBase implements
         final Set<String> services = pIsolatesServices.get(aIsolateId);
         if (services == null) {
             // Nothing to do
-            pLogger.logDebug(this, "handleIsolateLost",
-                    "No services associated to lost isolate=", aIsolateId);
+            pLogger.log(LogService.LOG_DEBUG, String.format(
+                    "No services associated to lost isolate=%s", aIsolateId));
             return;
         }
 
@@ -307,14 +306,14 @@ public class RemoteServiceAdapter extends CPojoBase implements
         for (final String serviceId : servicesIds) {
             unregisterService(aIsolateId, serviceId);
 
-            pLogger.logDebug(this, "handleIsolateLost", aIsolateId,
-                    "unregisters", serviceId);
+            pLogger.log(LogService.LOG_DEBUG,
+                    String.format("%s unregisters %s", aIsolateId, serviceId));
         }
 
         // Clear the map list (just to be sure)
         services.clear();
 
-        pLogger.logDebug(this, "handleIsolateLost", aIsolateId, "handled.");
+        pLogger.log(LogService.LOG_DEBUG, String.format("%s handled."));
     }
 
     /*
@@ -365,14 +364,11 @@ public class RemoteServiceAdapter extends CPojoBase implements
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.base.CPojoBase#invalidatePojo()
+    /**
+     * Component invalidated
      */
-    @Override
     @Invalidate
-    public synchronized void invalidatePojo() throws BundleException {
+    public synchronized void invalidatePojo() {
 
         // Unregister to bundle events
         pBundleContext.removeBundleListener(this);
@@ -393,7 +389,51 @@ public class RemoteServiceAdapter extends CPojoBase implements
         pRegisteredServices.clear();
         pWaitingRegistrations.clear();
 
-        pLogger.logInfo(this, "invalidatePojo", "RemoteServiceAdapter Gone");
+        pLogger.log(LogService.LOG_INFO, "RemoteServiceAdapter Gone");
+    }
+
+    /**
+     * Tests if the given string matches the filter.
+     * 
+     * The filter is the regular filename filter and not a regular expression.
+     * Allowed are *.* or ???.xml, etc.
+     * 
+     * Found at : <a href="http://blogs.igalia.com/eocanha/?p=67">blogs.igalia
+     * .com/eocanha/?p=67</a>
+     * 
+     * @param aTested
+     *            Tested string
+     * @param aFilter
+     *            Filename filter-like string
+     * 
+     * @return True if matches and false if either null or no match
+     */
+    private boolean matchFilter(final String aTested, final String aFilter) {
+
+        if (aTested == null || aFilter == null) {
+            return false;
+        }
+
+        final StringBuffer f = new StringBuffer();
+        final StringTokenizer tokenizer = new StringTokenizer(aFilter, "?*",
+                true);
+
+        while (tokenizer.hasMoreTokens()) {
+
+            final String token = tokenizer.nextToken();
+
+            if (token.equals("?")) {
+                f.append(".");
+
+            } else if (token.equals("*")) {
+                f.append(".*");
+
+            } else {
+                f.append(Pattern.quote(token));
+            }
+        }
+
+        return aTested.matches(f.toString());
     }
 
     /**
@@ -431,13 +471,13 @@ public class RemoteServiceAdapter extends CPojoBase implements
     private void prepareFilters() {
 
         final String inclusionFilters = System
-                .getProperty(IPlatformProperties.PROP_REMOTE_SERVICE_FILTERS_INCLUDE);
+                .getProperty(IRemoteServicesConstants.FILTERS_INCLUDE);
         if (inclusionFilters != null) {
             parseFilter(inclusionFilters, pIncludeFilters);
         }
 
         final String exclusionFilters = System
-                .getProperty(IPlatformProperties.PROP_REMOTE_SERVICE_FILTERS_EXCLUDE);
+                .getProperty(IRemoteServicesConstants.FILTERS_EXCLUDE);
         if (exclusionFilters != null) {
             parseFilter(exclusionFilters, pExcludeFilters);
         }
@@ -454,8 +494,8 @@ public class RemoteServiceAdapter extends CPojoBase implements
 
         // Check if the service ID is already known
         if (pRegisteredServices.containsKey(aRegistration.getServiceId())) {
-            pLogger.logInfo(this, "registerService",
-                    "Already registered service=", aRegistration);
+            pLogger.log(LogService.LOG_INFO, String.format(
+                    "Already registered service=%s", aRegistration));
             return;
         }
 
@@ -471,8 +511,8 @@ public class RemoteServiceAdapter extends CPojoBase implements
             // Test include / exclude filters
             if (!acceptInterface(exportedInterface)) {
                 // Remove it when checked
-                pLogger.logDebug(this, "registerService",
-                        "Filtered interface=", exportedInterface);
+                pLogger.log(LogService.LOG_DEBUG, String.format(
+                        "Filtered interface=%s", exportedInterface));
 
                 iterator.remove();
             }
@@ -480,9 +520,9 @@ public class RemoteServiceAdapter extends CPojoBase implements
 
         if (javaInterfaces.isEmpty()) {
             // All interfaces have been filtered: stop
-            pLogger.logWarn(this, "registerService",
-                    "Import aborted: all interfaces have been filtered=",
-                    aRegistration.getExportedInterfaces());
+            pLogger.log(LogService.LOG_WARNING, String.format(
+                    "Import aborted: all interfaces have been filtered=%s",
+                    Arrays.toString(aRegistration.getExportedInterfaces())));
             return;
         }
 
@@ -490,8 +530,8 @@ public class RemoteServiceAdapter extends CPojoBase implements
         final String serviceId = aRegistration.getServiceId();
         if (pRegisteredServices.containsKey(serviceId)) {
             // Ignore already registered IDs
-            pLogger.logWarn(this, "registerService",
-                    "Already registered service ID=", serviceId);
+            pLogger.log(LogService.LOG_WARNING, String.format(
+                    "Already registered service ID=%s", serviceId));
             return;
         }
 
@@ -505,8 +545,9 @@ public class RemoteServiceAdapter extends CPojoBase implements
 
             } catch (final ClassNotFoundException e) {
                 // Try next handler
-                pLogger.logWarn(this, "registerService",
-                        "Error looking for proxyfied class:", e.getMessage());
+                pLogger.log(LogService.LOG_WARNING,
+                        String.format("Error looking for proxyfied class: %s",
+                                e.getMessage()));
                 continue;
             }
 
@@ -520,8 +561,8 @@ public class RemoteServiceAdapter extends CPojoBase implements
             // No proxy create, wait for another handler
             pWaitingRegistrations.add(aRegistration);
 
-            pLogger.logSevere(this, "registerService",
-                    "No proxy created for remote service=", serviceId);
+            pLogger.log(LogService.LOG_ERROR, String.format(
+                    "No proxy created for remote service=%s", serviceId));
             return;
         }
 
@@ -563,8 +604,8 @@ public class RemoteServiceAdapter extends CPojoBase implements
         isolateServices.add(serviceId);
 
         // Log the import
-        pLogger.logDebug(this, "registerService", "Imported remote service=",
-                serviceId);
+        pLogger.log(LogService.LOG_DEBUG,
+                String.format("Imported remote service=%s", serviceId));
     }
 
     /**
@@ -613,8 +654,8 @@ public class RemoteServiceAdapter extends CPojoBase implements
                 .remove(aServiceId);
         if (serviceInfo == null) {
             // Unknown service
-            pLogger.logWarn(this, "unregisterService",
-                    "No service informations for", aServiceId);
+            pLogger.log(LogService.LOG_WARNING,
+                    String.format("No service informations for %s", aServiceId));
             return;
         }
 
@@ -630,10 +671,10 @@ public class RemoteServiceAdapter extends CPojoBase implements
             try {
                 handler.destroyProxy(proxy);
 
-            } catch (final Throwable t) {
+            } catch (final Exception ex) {
                 // Ignore exceptions
-                pLogger.logWarn(this, "unregisterService",
-                        "Error destroying a remote service proxy:", t);
+                pLogger.log(LogService.LOG_WARNING, String.format(
+                        "Error destroying a remote service proxy:", ex), ex);
             }
         }
 
@@ -678,14 +719,11 @@ public class RemoteServiceAdapter extends CPojoBase implements
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.base.CPojoBase#validatePojo()
+    /**
+     * Component validated
      */
-    @Override
     @Validate
-    public synchronized void validatePojo() throws BundleException {
+    public synchronized void validatePojo() {
 
         // Prepare in/exclusion filters
         prepareFilters();
@@ -696,6 +734,6 @@ public class RemoteServiceAdapter extends CPojoBase implements
         // Request other isolates state with the RSB
         requestEndpoints(null);
 
-        pLogger.logInfo(this, "validatePojo", "RemoteServiceAdapter Ready");
+        pLogger.log(LogService.LOG_DEBUG, "RemoteServiceAdapter Ready");
     }
 }

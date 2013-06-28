@@ -14,22 +14,19 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
-import org.psem2m.isolates.base.IIsolateLoggerSvc;
-import org.psem2m.isolates.base.Utilities;
-import org.psem2m.isolates.base.activators.CPojoBase;
-import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
+import org.osgi.service.log.LogService;
 import org.psem2m.isolates.services.remote.IEndpointHandler;
 import org.psem2m.isolates.services.remote.IRemoteServiceBroadcaster;
 import org.psem2m.isolates.services.remote.IRemoteServiceRepository;
@@ -50,7 +47,7 @@ import org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration;
  * @author Thomas Calmant
  */
 @Component(name = "psem2m-remote-exporter-factory")
-public class ServiceExporter extends CPojoBase implements ServiceListener {
+public class ServiceExporter implements ServiceListener {
 
     /** End points handlers dependency ID */
     private static final String IPOJO_ENDPOINT_HANDLERS = "endpoint-handlers";
@@ -69,13 +66,12 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
     /** Mapping of local service ID -&gt; remote service registration */
     private final Map<ServiceReference<?>, RemoteServiceRegistration> pExportedServices = new HashMap<ServiceReference<?>, RemoteServiceRegistration>();
 
+    /** Isolate UID */
+    private String pIsolateUID;
+
     /** The logger */
     @Requires
-    private IIsolateLoggerSvc pLogger;
-
-    /** Platform information service */
-    @Requires
-    private IPlatformDirsSvc pPlatform;
+    private LogService pLogger;
 
     /** Remote service repository (RSR) */
     @Requires
@@ -91,6 +87,24 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
 
         super();
         pBundleContext = aBundleContext;
+    }
+
+    /**
+     * Returns a list if the given object is an array, else returns the given
+     * object.
+     * 
+     * @param aObject
+     *            An object, can be null
+     * @return A list if aObject is an array, else aObject
+     */
+    private Object arrayToIterable(final Object aObject) {
+
+        if (aObject != null && aObject.getClass().isArray()) {
+            // Convert arrays into list
+            return Arrays.asList((Object[]) aObject);
+        }
+
+        return aObject;
     }
 
     /**
@@ -122,18 +136,18 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
                     resultEndpoints.addAll(Arrays.asList(newEndpoints));
                 }
 
-            } catch (final Throwable t) {
+            } catch (final Exception ex) {
                 // Log errors
-                pLogger.logWarn(this, "createEndpoints",
-                        "Error creating endpoint for service=",
-                        exportedInterfaces, ":", t);
+                pLogger.log(LogService.LOG_WARNING, String.format(
+                        "Error creating endpoint for service=%s: %s",
+                        exportedInterfaces, ex), ex);
             }
         }
 
         if (resultEndpoints.isEmpty()) {
             // No end point created, return null
-            pLogger.logWarn(this, "createEndpoints",
-                    "No endpoint created for exports=", exportedInterfaces);
+            pLogger.log(LogService.LOG_WARNING, String.format(
+                    "No endpoint created for exports=%s", exportedInterfaces));
             return null;
         }
 
@@ -145,10 +159,9 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
         final Set<String> prefixedExportedInterfaces = prefixUtils
                 .formatNames(exportedInterfaces);
 
-        return new RemoteServiceRegistration(pPlatform.getIsolateUID(),
+        return new RemoteServiceRegistration(pIsolateUID,
                 prefixedExportedInterfaces,
-                Utilities.getServiceProperties(aServiceReference),
-                resultEndpoints);
+                getServiceProperties(aServiceReference), resultEndpoints);
     }
 
     /**
@@ -178,8 +191,8 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
                 ServiceEventType.REGISTERED, serviceRegistration);
 
         pBroadcaster.sendNotification(broadcastEvent);
-        pLogger.logDebug(this, "exportService",
-                "Export notification sent for ref=", aServiceReference);
+        pLogger.log(LogService.LOG_DEBUG, String.format(
+                "Export notification sent for ref=%s", aServiceReference));
         return true;
     }
 
@@ -208,7 +221,7 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
 
         // Simplify treatment by converting the object into a collection if it
         // is an array.
-        final Object exported = Utilities.arrayToIterable(rawExported);
+        final Object exported = arrayToIterable(rawExported);
         if (exported instanceof String) {
             // Trim the string
             final String trimmedExport = ((String) exported).trim();
@@ -238,6 +251,26 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
     }
 
     /**
+     * Retrieves the service properties as a map
+     * 
+     * @param aServiceReference
+     *            A reference to the service
+     * @return The service properties
+     */
+    private Map<String, Object> getServiceProperties(
+            final ServiceReference<?> aServiceReference) {
+
+        final Map<String, Object> serviceProperties = new HashMap<String, Object>();
+
+        final String[] propertyKeys = aServiceReference.getPropertyKeys();
+        for (final String key : propertyKeys) {
+            serviceProperties.put(key, aServiceReference.getProperty(key));
+        }
+
+        return serviceProperties;
+    }
+
+    /**
      * Retrieves the exported interfaces synonyms from the service properties.
      * 
      * @param aServiceReference
@@ -254,7 +287,7 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
 
         // Simplify treatment by converting the object into a collection if it
         // is an array.
-        final Object synonyms = Utilities.arrayToIterable(rawSynonyms);
+        final Object synonyms = arrayToIterable(rawSynonyms);
 
         if (synonyms instanceof String) {
             // Got a simple string
@@ -272,14 +305,11 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
         return foundSynonyms;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.base.CPojoBase#invalidatePojo()
+    /**
+     * Component invalidated
      */
-    @Override
     @Invalidate
-    public synchronized void invalidatePojo() throws BundleException {
+    public synchronized void invalidatePojo() {
 
         // Unregister to service events
         pBundleContext.removeServiceListener(this);
@@ -354,6 +384,31 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
     }
 
     /**
+     * Stores the isolate UID found in the framework or the system properties.
+     * If no UID is found, a new one is generated and stored in the system
+     * properties.
+     */
+    private void setupIsolateUID() {
+
+        // Try with the framework properties
+        pIsolateUID = pBundleContext
+                .getProperty(IRemoteServicesConstants.ISOLATE_UID);
+        if (pIsolateUID == null) {
+            // Try with the system properties
+            System.getProperty(IRemoteServicesConstants.ISOLATE_UID);
+        }
+
+        if (pIsolateUID == null) {
+            // No UID found, generate one
+            pIsolateUID = UUID.randomUUID().toString();
+
+            // Store it
+            System.setProperty(IRemoteServicesConstants.ISOLATE_UID,
+                    pIsolateUID);
+        }
+    }
+
+    /**
      * Stops the export of the given service.
      * 
      * @param aServiceReference
@@ -387,9 +442,11 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
 
             } catch (final Exception ex) {
                 // Log error
-                pLogger.logWarn(this, "unexportService",
-                        "Can't remove endpoint from handler=", handler,
-                        "for reference=", aServiceReference, ":", ex);
+                pLogger.log(
+                        LogService.LOG_WARNING,
+                        String.format(
+                                "Can't remove endpoint from handler=%s for reference=%s: %s",
+                                handler, aServiceReference, ex), ex);
             }
         }
 
@@ -417,8 +474,8 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
         }
 
         // Update the registration
-        serviceRegistration.setServiceProperties(Utilities
-                .getServiceProperties(aServiceReference));
+        serviceRegistration
+                .setServiceProperties(getServiceProperties(aServiceReference));
 
         // Send the notification
         final RemoteServiceEvent event = new RemoteServiceEvent(
@@ -427,14 +484,14 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
         return true;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.base.CPojoBase#validatePojo()
+    /**
+     * Component validated
      */
-    @Override
     @Validate
-    public void validatePojo() throws BundleException {
+    public synchronized void validatePojo() {
+
+        // Setup the isolate UID
+        setupIsolateUID();
 
         /*
          * The filter to detect exported services only. Test the existence of
@@ -478,7 +535,7 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
             }
 
         } catch (final InvalidSyntaxException ex) {
-            pLogger.logWarn(this, "validatePojo",
+            pLogger.log(LogService.LOG_WARNING,
                     "Error looking for services waiting to be exported:", ex);
         }
 
@@ -488,13 +545,10 @@ public class ServiceExporter extends CPojoBase implements ServiceListener {
 
         } catch (final InvalidSyntaxException e) {
 
-            pLogger.logSevere(this, "validatePojo",
+            pLogger.log(LogService.LOG_ERROR,
                     "Error creating the service listener:", e);
-
-            throw new BundleException(
-                    "Error creating the service listener filter", e);
         }
 
-        pLogger.logInfo(this, "validatePojo", "PSEM2M Service Exporter Ready.");
+        pLogger.log(LogService.LOG_INFO, "PSEM2M Service Exporter Ready.");
     }
 }

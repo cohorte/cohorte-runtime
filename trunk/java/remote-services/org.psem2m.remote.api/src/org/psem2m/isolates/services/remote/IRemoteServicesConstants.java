@@ -12,6 +12,28 @@ package org.psem2m.isolates.services.remote;
  */
 public interface IRemoteServicesConstants {
 
+    /**
+     * Remote Service Importer exclusion filter
+     * 
+     * Default : "" Format : "filter1,filter2"
+     */
+    String FILTERS_EXCLUDE = "org.cohorte.remote.filters.exclude";
+
+    /**
+     * Remote Service Importer inclusion filter
+     * 
+     * Default : "*" Format : "filter1,filter2"
+     */
+    String FILTERS_INCLUDE = "org.cohorte.remote.filters.include";
+
+    /**
+     * Contains the isolate Unique IDentifier, a String.
+     * 
+     * This might be a Framework property (read-only), or a generated System
+     * property.
+     */
+    String ISOLATE_UID = "cohorte.isolate.uid";
+
     /** PSEM2M Force service export */
     String PSEM2M_SERVICE_EXPORT = "psem2m.service.export";
 

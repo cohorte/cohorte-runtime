@@ -9,77 +9,75 @@ Created-By: iPOJO  1.8.0
 Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  .ipojo.architecture;version=1.8.0, org.osgi.framework;version=1.5.0, 
  org.osgi.service.cm;version=1.2, org.osgi.service.log;version=1.3, or
- g.psem2m.isolates.base;version=1.0.0, org.psem2m.isolates.base.activa
- tors;version=1.0.0, org.psem2m.isolates.constants;version=1.0.1, org.
- psem2m.isolates.services.dirs;version=1.0.1, org.psem2m.isolates.serv
- ices.remote;version=1.0.0, org.psem2m.isolates.services.remote.beans;
- version=1.0.0, org.psem2m.utilities, org.psem2m.utilities.logging;ver
- sion=1.0.0
+ g.psem2m.isolates.services.remote;version=1.0.0, org.psem2m.isolates.
+ services.remote.beans;version=1.0.0
 iPOJO-Components: component { $name="psem2m-remote-exporter-factory" $
  classname="org.psem2m.remote.exporter.ServiceExporter" requires { $fi
  eld="pBroadcaster" }requires { $field="pEndpointHandlers" $id="endpoi
- nt-handlers" }requires { $field="pLogger" }requires { $field="pPlatfo
- rm" }requires { $field="pRepository" }callback { $transition="invalid
- ate" $method="invalidatePojo" }callback { $transition="validate" $met
- hod="validatePojo" }manipulation { $super="org.psem2m.isolates.base.a
- ctivators.CPojoBase" interface { $name="org.osgi.framework.ServiceLis
- tener" }field { $name="pBroadcaster" $type="org.psem2m.isolates.servi
- ces.remote.IRemoteServiceBroadcaster" }field { $name="pBundleContext"
-  $type="org.osgi.framework.BundleContext" }field { $name="pEndpointHa
- ndlers" $type="org.psem2m.isolates.services.remote.IEndpointHandler[]
- " }field { $name="pExportedServices" $type="java.util.Map" }field { $
- name="pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }fi
- eld { $name="pPlatform" $type="org.psem2m.isolates.services.dirs.IPla
- tformDirsSvc" }field { $name="pRepository" $type="org.psem2m.isolates
- .services.remote.IRemoteServiceRepository" }method { $name="createEnd
- points" $return="org.psem2m.isolates.services.remote.beans.RemoteServ
- iceRegistration" $arguments="{org.osgi.framework.ServiceReference}" }
- method { $name="exportService" $return="boolean" $arguments="{org.osg
- i.framework.ServiceReference}" }method { $name="getExportedInterfaces
- " $return="java.util.Set" $arguments="{org.osgi.framework.ServiceRefe
- rence}" }method { $name="getSynonyms" $return="java.util.Set" $argume
- nts="{org.osgi.framework.ServiceReference}" }method { $name="invalida
- tePojo" }method { $name="isAlreadyExported" $return="boolean" $argume
- nts="{org.osgi.framework.ServiceReference}" }method { $name="serviceC
- hanged" $arguments="{org.osgi.framework.ServiceEvent}" }method { $nam
- e="unexportService" $arguments="{org.osgi.framework.ServiceReference}
- " }method { $name="updateService" $return="boolean" $arguments="{org.
- osgi.framework.ServiceReference}" }method { $name="validatePojo" }}}c
- omponent { $name="psem2m-remote-importer-factory" $classname="org.pse
- m2m.remote.importer.RemoteServiceAdapter" provides { $specifications=
- "{org.psem2m.isolates.services.remote.IRemoteServiceEventListener}" }
- requires { $field="pBroadcaster" }requires { $field="pClientHandlers"
-  }requires { $field="pLogger" }callback { $transition="invalidate" $m
- ethod="invalidatePojo" }callback { $transition="validate" $method="va
- lidatePojo" }manipulation { $super="org.psem2m.isolates.base.activato
- rs.CPojoBase" interface { $name="org.psem2m.isolates.services.remote.
- IRemoteServiceEventListener" }interface { $name="org.osgi.framework.B
- undleListener" }field { $name="pBroadcaster" $type="org.psem2m.isolat
- es.services.remote.IRemoteServiceBroadcaster" }field { $name="pBundle
- Context" $type="org.osgi.framework.BundleContext" }field { $name="pCl
- ientHandlers" $type="org.psem2m.isolates.services.remote.IRemoteServi
- ceClientHandler[]" }field { $name="pExcludeFilters" $type="java.util.
- Set" }field { $name="pIncludeFilters" $type="java.util.Set" }field { 
- $name="pIsolatesServices" $type="java.util.Map" }field { $name="pLogg
- er" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name
- ="pRegisteredServices" $type="java.util.Map" }field { $name="pWaiting
- Registrations" $type="java.util.Set" }method { $name="acceptInterface
- " $return="boolean" $arguments="{java.lang.String}" }method { $name="
- bundleChanged" $arguments="{org.osgi.framework.BundleEvent}" }method 
- { $name="bundleStarted" $arguments="{org.osgi.framework.Bundle}" }met
- hod { $name="bundleStopped" $arguments="{org.osgi.framework.Bundle}" 
- }method { $name="filterProperties" $return="java.util.Dictionary" $ar
- guments="{java.util.Map}" }method { $name="handleIsolateLost" $argume
- nts="{java.lang.String}" }method { $name="handleIsolateReady" $argume
- nts="{java.lang.String}" }method { $name="handleRemoteEvent" $argumen
- ts="{org.psem2m.isolates.services.remote.beans.RemoteServiceEvent}" }
- method { $name="invalidatePojo" }method { $name="parseFilter" $argume
- nts="{java.lang.String,java.util.Set}" }method { $name="prepareFilter
- s" }method { $name="registerService" $arguments="{org.psem2m.isolates
- .services.remote.beans.RemoteServiceRegistration}" }method { $name="r
- equestEndpoints" $arguments="{java.lang.String}" }method { $name="unr
- egisterService" $arguments="{java.lang.String,java.lang.String}" }met
- hod { $name="updateService" $arguments="{org.psem2m.isolates.services
- .remote.beans.RemoteServiceRegistration}" }method { $name="validatePo
- jo" }}}
+ nt-handlers" }requires { $field="pLogger" }requires { $field="pReposi
+ tory" }callback { $transition="invalidate" $method="invalidatePojo" }
+ callback { $transition="validate" $method="validatePojo" }manipulatio
+ n { interface { $name="org.osgi.framework.ServiceListener" }field { $
+ name="pBroadcaster" $type="org.psem2m.isolates.services.remote.IRemot
+ eServiceBroadcaster" }field { $name="pBundleContext" $type="org.osgi.
+ framework.BundleContext" }field { $name="pEndpointHandlers" $type="or
+ g.psem2m.isolates.services.remote.IEndpointHandler[]" }field { $name=
+ "pExportedServices" $type="java.util.Map" }field { $name="pIsolateUID
+ " $type="java.lang.String" }field { $name="pLogger" $type="org.osgi.s
+ ervice.log.LogService" }field { $name="pRepository" $type="org.psem2m
+ .isolates.services.remote.IRemoteServiceRepository" }method { $name="
+ arrayToIterable" $return="java.lang.Object" $arguments="{java.lang.Ob
+ ject}" }method { $name="createEndpoints" $return="org.psem2m.isolates
+ .services.remote.beans.RemoteServiceRegistration" $arguments="{org.os
+ gi.framework.ServiceReference}" }method { $name="exportService" $retu
+ rn="boolean" $arguments="{org.osgi.framework.ServiceReference}" }meth
+ od { $name="getExportedInterfaces" $return="java.util.Set" $arguments
+ ="{org.osgi.framework.ServiceReference}" }method { $name="getServiceP
+ roperties" $return="java.util.Map" $arguments="{org.osgi.framework.Se
+ rviceReference}" }method { $name="getSynonyms" $return="java.util.Set
+ " $arguments="{org.osgi.framework.ServiceReference}" }method { $name=
+ "invalidatePojo" }method { $name="isAlreadyExported" $return="boolean
+ " $arguments="{org.osgi.framework.ServiceReference}" }method { $name=
+ "serviceChanged" $arguments="{org.osgi.framework.ServiceEvent}" }meth
+ od { $name="setupIsolateUID" }method { $name="unexportService" $argum
+ ents="{org.osgi.framework.ServiceReference}" }method { $name="updateS
+ ervice" $return="boolean" $arguments="{org.osgi.framework.ServiceRefe
+ rence}" }method { $name="validatePojo" }}}component { $name="psem2m-r
+ emote-importer-factory" $classname="org.psem2m.remote.importer.Remote
+ ServiceAdapter" provides { $specifications="{org.psem2m.isolates.serv
+ ices.remote.IRemoteServiceEventListener}" }requires { $field="pBroadc
+ aster" }requires { $field="pClientHandlers" }requires { $field="pLogg
+ er" }callback { $transition="invalidate" $method="invalidatePojo" }ca
+ llback { $transition="validate" $method="validatePojo" }manipulation 
+ { interface { $name="org.psem2m.isolates.services.remote.IRemoteServi
+ ceEventListener" }interface { $name="org.osgi.framework.BundleListene
+ r" }field { $name="pBroadcaster" $type="org.psem2m.isolates.services.
+ remote.IRemoteServiceBroadcaster" }field { $name="pBundleContext" $ty
+ pe="org.osgi.framework.BundleContext" }field { $name="pClientHandlers
+ " $type="org.psem2m.isolates.services.remote.IRemoteServiceClientHand
+ ler[]" }field { $name="pExcludeFilters" $type="java.util.Set" }field 
+ { $name="pIncludeFilters" $type="java.util.Set" }field { $name="pIsol
+ atesServices" $type="java.util.Map" }field { $name="pLogger" $type="o
+ rg.osgi.service.log.LogService" }field { $name="pRegisteredServices" 
+ $type="java.util.Map" }field { $name="pWaitingRegistrations" $type="j
+ ava.util.Set" }method { $name="acceptInterface" $return="boolean" $ar
+ guments="{java.lang.String}" }method { $name="bundleChanged" $argumen
+ ts="{org.osgi.framework.BundleEvent}" }method { $name="bundleStarted"
+  $arguments="{org.osgi.framework.Bundle}" }method { $name="bundleStop
+ ped" $arguments="{org.osgi.framework.Bundle}" }method { $name="filter
+ Properties" $return="java.util.Dictionary" $arguments="{java.util.Map
+ }" }method { $name="handleIsolateLost" $arguments="{java.lang.String}
+ " }method { $name="handleIsolateReady" $arguments="{java.lang.String}
+ " }method { $name="handleRemoteEvent" $arguments="{org.psem2m.isolate
+ s.services.remote.beans.RemoteServiceEvent}" }method { $name="invalid
+ atePojo" }method { $name="matchFilter" $return="boolean" $arguments="
+ {java.lang.String,java.lang.String}" }method { $name="parseFilter" $a
+ rguments="{java.lang.String,java.util.Set}" }method { $name="prepareF
+ ilters" }method { $name="registerService" $arguments="{org.psem2m.iso
+ lates.services.remote.beans.RemoteServiceRegistration}" }method { $na
+ me="requestEndpoints" $arguments="{java.lang.String}" }method { $name
+ ="unregisterService" $arguments="{java.lang.String,java.lang.String}"
+  }method { $name="updateService" $arguments="{org.psem2m.isolates.ser
+ vices.remote.beans.RemoteServiceRegistration}" }method { $name="valid
+ atePojo" }}}
 
