@@ -6,40 +6,14 @@
 	 * Java Remote Services bundles
 	 */
 	"bundles" : [ {
-		"name" : "org.psem2m.remote.api"
+		"name" : "org.cohorte.remote.api"
 	}, {
-		"name" : "org.psem2m.remote.core"
+		"name" : "org.cohorte.remote.utilities"
 	}, {
-		"name" : "org.psem2m.remote.broadcaster"
+		"name" : "org.cohorte.remote.core"
 	}, {
-		"name" : "org.psem2m.remote.repository"
-	} ],
-
-	/*
-	 * Components
-	 */
-	"composition" : [
-	/* Importer (RSI), Exporter (RSE) */
-	{
-		"factory" : "psem2m-remote-exporter-factory",
-		"name" : "psem2m-remote-exporter"
+		"name" : "org.cohorte.remote.broadcaster"
 	}, {
-		"factory" : "psem2m-remote-importer-factory",
-		"name" : "psem2m-remote-importer"
-	},
-
-	/* Broadcaster (RSB) */
-	{
-		"factory" : "psem2m-remote-rsb-factory",
-		"name" : "psem2m-remote-rsb"
-	}, {
-		"factory" : "psem2m-remote-rsb-signals-factory",
-		"name" : "psem2m-remote-rsb-signals"
-	},
-
-	/* Repository (RSR) */
-	{
-		"factory" : "psem2m-remote-rsr-factory",
-		"name" : "psem2m-remote-rsr"
+		"name" : "org.cohorte.remote.repository"
 	} ]
 }

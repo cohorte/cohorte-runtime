@@ -22,7 +22,7 @@
 	}, {
 		"name" : "org.psem2m.signals.serializer.json"
 	}, {
-		"name" : "org.psem2m.remote.jsonrpc"
+		"name" : "org.cohorte.remote.jsonrpc"
 	} ],
 
 	/*
@@ -42,15 +42,6 @@
 	{
 		"factory" : "psem2m-signals-data-json-factory",
 		"name" : "psem2m-signals-data-json"
-	},
-
-	/* JSON Remote Services */
-	{
-		"factory" : "psem2m-remote-endpoint-jsonrpc-factory",
-		"name" : "psem2m-remote-endpoint-jsonrpc"
-	}, {
-		"factory" : "psem2m-remote-client-jsonrpc-factory",
-		"name" : "psem2m-remote-client-jsonrpc"
 	} ],
 
 	/*
