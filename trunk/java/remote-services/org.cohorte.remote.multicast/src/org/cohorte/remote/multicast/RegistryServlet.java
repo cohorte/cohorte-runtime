@@ -102,18 +102,25 @@ public class RegistryServlet extends HttpServlet {
 
     /**
      * Converts a Cohorte Remote Services registration bean to a Pelix remote
-     * services end point
+     * services end point. Returns null if no end point is stored in the
+     * registration bean.
      * 
      * @param aRegistration
      *            A remote service registration
-     * @return The corresponding Pelix representation
+     * @return The corresponding Pelix representation, or null
      */
     private Map<String, Object> registrationToMap(
             final RemoteServiceRegistration aRegistration) {
 
+        final EndpointDescription[] regEndpoints = aRegistration.getEndpoints();
+        if (regEndpoints == null || regEndpoints.length == 0) {
+            // No end points
+            return null;
+        }
+
         // Find a JSON-RPC end point
         EndpointDescription foundEndpoint = null;
-        for (final EndpointDescription endpoint : aRegistration.getEndpoints()) {
+        for (final EndpointDescription endpoint : regEndpoints) {
             if (endpoint.getExportedConfig().contains("json")) {
                 foundEndpoint = endpoint;
                 break;
@@ -122,7 +129,7 @@ public class RegistryServlet extends HttpServlet {
 
         if (foundEndpoint == null) {
             // No JSON end point, try the first one
-            foundEndpoint = aRegistration.getEndpoints()[0];
+            foundEndpoint = regEndpoints[0];
         }
 
         // Filter the properties (remove the specifications)
@@ -188,6 +195,12 @@ public class RegistryServlet extends HttpServlet {
 
         // Convert the object to a map
         final Map<String, Object> regMap = registrationToMap(requested);
+        if (regMap == null) {
+            // Nothing to do
+            aResp.sendError(HttpServletResponse.SC_NO_CONTENT,
+                    "No valid end point for ID:" + aRegistrationUID);
+            return;
+        }
 
         // Convert to JSON
         final JSONObject jsonContent = new JSONObject(regMap);
@@ -214,7 +227,12 @@ public class RegistryServlet extends HttpServlet {
         // Convert the objects to maps
         final List<Object> regMaps = new LinkedList<Object>();
         for (final RemoteServiceRegistration registration : regBeans) {
-            regMaps.add(registrationToMap(registration));
+
+            final Map<String, Object> regMap = registrationToMap(registration);
+            if (regMap != null) {
+                // Avoid registrations without end point
+                regMaps.add(regMap);
+            }
         }
 
         // Convert to JSON
