@@ -14,7 +14,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
@@ -30,6 +29,7 @@ import org.cohorte.remote.beans.EndpointDescription;
 import org.cohorte.remote.beans.RemoteServiceEvent;
 import org.cohorte.remote.beans.RemoteServiceEvent.ServiceEventType;
 import org.cohorte.remote.beans.RemoteServiceRegistration;
+import org.cohorte.remote.utilities.RSUtils;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
@@ -386,31 +386,6 @@ public class ServiceExporter implements ServiceListener {
     }
 
     /**
-     * Stores the isolate UID found in the framework or the system properties.
-     * If no UID is found, a new one is generated and stored in the system
-     * properties.
-     */
-    private void setupIsolateUID() {
-
-        // Try with the framework properties
-        pIsolateUID = pBundleContext
-                .getProperty(IRemoteServicesConstants.ISOLATE_UID);
-        if (pIsolateUID == null) {
-            // Try with the system properties
-            System.getProperty(IRemoteServicesConstants.ISOLATE_UID);
-        }
-
-        if (pIsolateUID == null) {
-            // No UID found, generate one
-            pIsolateUID = UUID.randomUUID().toString();
-
-            // Store it
-            System.setProperty(IRemoteServicesConstants.ISOLATE_UID,
-                    pIsolateUID);
-        }
-    }
-
-    /**
      * Stops the export of the given service.
      * 
      * @param aServiceReference
@@ -493,7 +468,8 @@ public class ServiceExporter implements ServiceListener {
     public synchronized void validatePojo() {
 
         // Setup the isolate UID
-        setupIsolateUID();
+        pIsolateUID = RSUtils.setupUID(pBundleContext,
+                IRemoteServicesConstants.ISOLATE_UID);
 
         /*
          * The filter to detect exported services only. Test the existence of
