@@ -173,6 +173,7 @@ public class PelixEndpointDescription {
         // Make an end point bean
         final EndpointDescription endpoint = new EndpointDescription(pKind,
                 pName, url.getProtocol(), url.getPath(), url.getPort());
+        endpoint.resolveHost(pServerAddress);
 
         // Make a registration bean
         return new RemoteServiceRegistration(pSender, pSpecifications,
