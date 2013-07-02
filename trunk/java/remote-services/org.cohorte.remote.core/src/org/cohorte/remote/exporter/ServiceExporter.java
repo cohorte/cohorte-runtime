@@ -219,7 +219,7 @@ public class ServiceExporter implements ServiceListener {
         // Select the exported interface
         final Set<String> exportedInterfaces = new LinkedHashSet<String>();
         final Object rawExported = aServiceReference
-                .getProperty(IRemoteServicesConstants.SERVICE_EXPORTED_INTERFACES);
+                .getProperty(Constants.SERVICE_EXPORTED_INTERFACES);
 
         // Simplify treatment by converting the object into a collection if it
         // is an array.
@@ -490,10 +490,8 @@ public class ServiceExporter implements ServiceListener {
 
         /* OSGi properties */
         serviceFilterBuilder.append("(|(")
-                .append(IRemoteServicesConstants.SERVICE_EXPORTED_INTERFACES)
-                .append("=*)(")
-                .append(IRemoteServicesConstants.SERVICE_EXPORTED_CONFIGS)
-                .append("=*))");
+                .append(Constants.SERVICE_EXPORTED_INTERFACES).append("=*)(")
+                .append(Constants.SERVICE_EXPORTED_CONFIGS).append("=*))");
 
         // End of filter
         serviceFilterBuilder.append(")");

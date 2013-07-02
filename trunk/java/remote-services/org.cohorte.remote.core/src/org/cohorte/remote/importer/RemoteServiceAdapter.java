@@ -34,6 +34,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleListener;
+import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.log.LogService;
 
@@ -261,8 +262,7 @@ public class RemoteServiceAdapter implements IRemoteServiceEventListener,
         for (final Entry<String, Object> entry : aServiceProperties.entrySet()) {
 
             final String property = entry.getKey();
-            if (!property
-                    .startsWith(IRemoteServicesConstants.SERVICE_EXPORTED_PREFIX)) {
+            if (!property.startsWith("service.exported.")) {
                 // Ignore export properties
                 filteredProperties.put(property, entry.getValue());
             }
@@ -274,10 +274,9 @@ public class RemoteServiceAdapter implements IRemoteServiceEventListener,
                 "true");
 
         final Object exportedProperty = aServiceProperties
-                .get(IRemoteServicesConstants.SERVICE_EXPORTED_CONFIGS);
+                .get(Constants.SERVICE_EXPORTED_CONFIGS);
         if (exportedProperty != null) {
-            filteredProperties.put(
-                    IRemoteServicesConstants.SERVICE_IMPORTED_CONFIGS,
+            filteredProperties.put(Constants.SERVICE_IMPORTED_CONFIGS,
                     exportedProperty);
         }
 
