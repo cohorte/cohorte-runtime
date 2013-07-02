@@ -57,7 +57,9 @@ public class PelixMulticastPacket {
         // Basic
         pSender = aJsonObject.getString(IPacketConstants.KEY_SENDER);
         pEvent = aJsonObject.getString(IPacketConstants.KEY_EVENT);
-        pUID = aJsonObject.getString(IPacketConstants.KEY_ENDPOINT_UID);
+
+        // The end point UID is optional (absent of discovery/discovered events)
+        pUID = aJsonObject.optString(IPacketConstants.KEY_ENDPOINT_UID);
 
         // Access
         final JSONObject access = aJsonObject

@@ -46,7 +46,7 @@ public class PelixEndpointDescription {
     private final String pUID;
 
     /** The URL to access the end point */
-    private String pURL;
+    private final String pURL;
 
     /**
      * Parses the given JSON object to construct the bean
@@ -64,6 +64,7 @@ public class PelixEndpointDescription {
         pUID = aJsonObject.getString("uid");
         pKind = aJsonObject.getString("kind");
         pName = aJsonObject.getString("name");
+        pURL = aJsonObject.getString("url");
 
         // Properties
         pProperties = ParseUtils.jsonToMap(aJsonObject);
