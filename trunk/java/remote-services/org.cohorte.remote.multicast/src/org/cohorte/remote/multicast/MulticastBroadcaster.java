@@ -21,11 +21,11 @@ import java.util.Map;
 
 import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
-import org.apache.felix.ipojo.annotations.Controller;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Property;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.ServiceController;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.cohorte.remote.IRemoteServiceBroadcaster;
 import org.cohorte.remote.IRemoteServiceEventListener;
@@ -54,6 +54,7 @@ import org.osgi.service.log.LogService;
  */
 @Component(name = "cohorte-remote-broadcast-multicast")
 @Provides(specifications = IRemoteServiceBroadcaster.class)
+// @Instantiate(name = "cohorte-remote-multicast")
 public class MulticastBroadcaster implements IRemoteServiceBroadcaster,
         IPacketListener {
 
@@ -109,7 +110,7 @@ public class MulticastBroadcaster implements IRemoteServiceBroadcaster,
     private IRemoteServiceRepository pRepository;
 
     /** The service controller: active only if the validation succeeded */
-    @Controller
+    @ServiceController
     private boolean pServiceController;
 
     /** The registry servlet */
@@ -160,7 +161,7 @@ public class MulticastBroadcaster implements IRemoteServiceBroadcaster,
         }
 
         pLogger.log(LogService.LOG_INFO,
-                "Multicast Remote Service broadcastet bound to port "
+                "Multicast Remote Service broadcaster bound to port "
                         + pHttpPort);
     }
 
@@ -580,6 +581,8 @@ public class MulticastBroadcaster implements IRemoteServiceBroadcaster,
             pHttpService.unregister(pServletPath);
             pServlet = null;
         }
+
+        pLogger.log(LogService.LOG_DEBUG, "Multicast broadcaster validated");
     }
 
     /*
@@ -809,6 +812,8 @@ public class MulticastBroadcaster implements IRemoteServiceBroadcaster,
             invalidate();
             return;
         }
+
+        pLogger.log(LogService.LOG_DEBUG, "Multicast broadcaster validated");
 
         // No error: activate the service
         pServiceController = true;

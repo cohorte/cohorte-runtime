@@ -16,15 +16,15 @@ Import-Package: javax.servlet;version=2.5.0, javax.servlet.http;versio
 iPOJO-Components: component { $name="cohorte-remote-broadcast-multicas
  t" $classname="org.cohorte.remote.multicast.MulticastBroadcaster" pro
  vides { $specifications="{org.cohorte.remote.IRemoteServiceBroadcaste
- r}" }requires { $field="pHttpService" $filter="(org.osgi.service.http
- .port=*)" $id="http.service" callback { $method="bindHttpService" $ty
- pe="bind" }}requires { $field="pLogger" }requires { $field="pRemoteEv
- entsListeners" $optional="true" }requires { $field="pRepository" }pro
- perties { property { $name="multicast.group" $field="pMulticastGroup"
-  $value="239.0.0.1" }property { $name="multicast.port" $field="pMulti
- castPort" $value="42000" }property { $name="servlet.path" $field="pSe
- rvletPath" $value="/pelix-dispatcher" }}controller { $field="pService
- Controller" }callback { $transition="invalidate" $method="invalidate"
+ r}" controller { $field="pServiceController" }}requires { $field="pHt
+ tpService" $filter="(org.osgi.service.http.port=*)" $id="http.service
+ " callback { $method="bindHttpService" $type="bind" }}requires { $fie
+ ld="pLogger" }requires { $field="pRemoteEventsListeners" $optional="t
+ rue" }requires { $field="pRepository" }properties { property { $name=
+ "multicast.group" $field="pMulticastGroup" $value="239.0.0.1" }proper
+ ty { $name="multicast.port" $field="pMulticastPort" $value="42000" }p
+ roperty { $name="servlet.path" $field="pServletPath" $value="/pelix-d
+ ispatcher" }}callback { $transition="invalidate" $method="invalidate"
   }callback { $transition="validate" $method="validate" }manipulation 
  { interface { $name="org.cohorte.remote.IRemoteServiceBroadcaster" }i
  nterface { $name="org.cohorte.remote.multicast.utils.IPacketListener"
