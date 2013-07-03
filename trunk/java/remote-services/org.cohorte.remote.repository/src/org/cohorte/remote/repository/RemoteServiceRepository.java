@@ -5,7 +5,6 @@
  */
 package org.cohorte.remote.repository;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -15,9 +14,7 @@ import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
-import org.cohorte.remote.IRemoteServiceEventListener;
 import org.cohorte.remote.IRemoteServiceRepository;
-import org.cohorte.remote.beans.EndpointDescription;
 import org.cohorte.remote.beans.RemoteServiceRegistration;
 import org.osgi.service.log.LogService;
 
@@ -31,9 +28,6 @@ import org.osgi.service.log.LogService;
 @Instantiate(name = "cohorte-remote-repository")
 public class RemoteServiceRepository implements IRemoteServiceRepository {
 
-    /** Remote service event listeners */
-    private final Set<IRemoteServiceEventListener> pListeners = new HashSet<IRemoteServiceEventListener>();
-
     /** Log service, injected by iPOJO */
     @Requires
     private LogService pLogger;
@@ -44,31 +38,12 @@ public class RemoteServiceRepository implements IRemoteServiceRepository {
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * org.cohorte.remote.IRemoteServiceRepository#addListener(org.cohorte.remote
-     * .IRemoteServiceEventListener)
-     */
-    @Override
-    public void addListener(final IRemoteServiceEventListener aListener) {
-
-        if (aListener != null) {
-            synchronized (pListeners) {
-                pListeners.add(aListener);
-            }
-        }
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
      * @see org.cohorte.remote.IRemoteServiceRepository#getLocalRegistrations()
      */
     @Override
-    public RemoteServiceRegistration[] getLocalRegistrations() {
+    public synchronized RemoteServiceRegistration[] getLocalRegistrations() {
 
-        synchronized (pRegistrations) {
-            return pRegistrations.toArray(new RemoteServiceRegistration[0]);
-        }
+        return pRegistrations.toArray(new RemoteServiceRegistration[0]);
     }
 
     /**
@@ -89,96 +64,29 @@ public class RemoteServiceRepository implements IRemoteServiceRepository {
      * (org.psem2m.isolates.services.remote.beans.RemoteServiceRegistration)
      */
     @Override
-    public void registerExportedService(
+    public synchronized boolean registerExportedService(
             final RemoteServiceRegistration aRegistration) {
 
         if (aRegistration != null) {
-
-            synchronized (pRegistrations) {
-                pRegistrations.add(aRegistration);
-            }
+            pRegistrations.add(aRegistration);
+            return true;
         }
+
+        return false;
     }
 
     /*
      * (non-Javadoc)
      * 
      * @see
-     * org.cohorte.remote.IRemoteServiceRepository#registerExportedServices(
-     * java.util.Collection)
+     * org.cohorte.remote.IRemoteServiceRepository#unregisterExportedService
+     * (org.cohorte.remote.beans.RemoteServiceRegistration)
      */
     @Override
-    public void registerExportedServices(
-            final Collection<RemoteServiceRegistration> aRegistrations) {
+    public synchronized boolean unregisterExportedService(
+            final RemoteServiceRegistration aRegistration) {
 
-        if (aRegistrations != null) {
-
-            for (final RemoteServiceRegistration registration : aRegistrations) {
-                registerExportedService(registration);
-            }
-        }
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.cohorte.remote.IRemoteServiceRepository#removeListener(org.cohorte
-     * .remote.IRemoteServiceEventListener)
-     */
-    @Override
-    public void removeListener(final IRemoteServiceEventListener aListener) {
-
-        if (aListener != null) {
-            synchronized (pListeners) {
-                pListeners.remove(aListener);
-            }
-        }
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.cohorte.remote.IRemoteServiceRepository#unregisterEndpoint(org.cohorte
-     * .remote.beans.EndpointDescription)
-     */
-    @Override
-    public void unregisterEndpoint(
-            final EndpointDescription aEndpointDescription) {
-
-        synchronized (pRegistrations) {
-            for (final RemoteServiceRegistration registration : pRegistrations) {
-                registration.removeEndpoints(aEndpointDescription);
-            }
-        }
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.cohorte.remote.IRemoteServiceRepository#unregisterEndpoints(java.
-     * util.Collection)
-     */
-    @Override
-    public void unregisterEndpoints(
-            final Collection<EndpointDescription> aEndpointsDescriptions) {
-
-        if (aEndpointsDescriptions == null || aEndpointsDescriptions.isEmpty()) {
-            return;
-        }
-
-        // Convert the collection into an array
-        final EndpointDescription[] endpointsDescriptionsArray = aEndpointsDescriptions
-                .toArray(new EndpointDescription[aEndpointsDescriptions.size()]);
-
-        synchronized (pRegistrations) {
-            // Remove end points from registrations
-            for (final RemoteServiceRegistration registration : pRegistrations) {
-                registration.removeEndpoints(endpointsDescriptionsArray);
-            }
-        }
+        return pRegistrations.remove(aRegistration);
     }
 
     /**

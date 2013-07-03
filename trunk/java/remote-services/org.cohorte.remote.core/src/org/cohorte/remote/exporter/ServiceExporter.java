@@ -407,9 +407,8 @@ public class ServiceExporter implements ServiceListener {
                 ServiceEventType.UNREGISTERED, serviceReg);
         pBroadcaster.sendNotification(broadcastEvent);
 
-        // Unregister the end points from the RSR
-        pRepository
-                .unregisterEndpoints(Arrays.asList(serviceReg.getEndpoints()));
+        // Unregister from the RSR
+        pRepository.unregisterExportedService(serviceReg);
 
         // Remove end points, after sending the broadcast event
         for (final IEndpointHandler handler : pEndpointHandlers) {
