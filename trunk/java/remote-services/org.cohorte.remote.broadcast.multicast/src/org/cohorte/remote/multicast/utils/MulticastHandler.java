@@ -303,7 +303,7 @@ public class MulticastHandler {
 
         // Set up the socket
         final MulticastSocket socket = new MulticastSocket(aPort);
-        socket.setLoopbackMode(true);
+        socket.setLoopbackMode(false);
         socket.setReuseAddress(true);
 
         try {
