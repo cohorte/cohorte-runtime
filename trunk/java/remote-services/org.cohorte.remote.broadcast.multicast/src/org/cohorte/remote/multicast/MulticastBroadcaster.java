@@ -21,6 +21,7 @@ import java.util.Map;
 
 import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Property;
 import org.apache.felix.ipojo.annotations.Provides;
@@ -54,7 +55,7 @@ import org.osgi.service.log.LogService;
  */
 @Component(name = "cohorte-remote-broadcast-multicast")
 @Provides(specifications = IRemoteServiceBroadcaster.class)
-// @Instantiate(name = "cohorte-remote-multicast")
+@Instantiate(name = "cohorte-remote-multicast")
 public class MulticastBroadcaster implements IRemoteServiceBroadcaster,
         IPacketListener {
 
