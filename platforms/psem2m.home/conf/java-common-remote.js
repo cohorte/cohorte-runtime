@@ -12,7 +12,7 @@
 	}, {
 		"name" : "org.cohorte.remote.core"
 	}, {
-		"name" : "org.cohorte.remote.broadcaster"
+		"name" : "org.cohorte.remote.broadcast.signals"
 	}, {
 		"name" : "org.cohorte.remote.repository"
 	} ]
