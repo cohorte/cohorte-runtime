@@ -393,7 +393,8 @@ public class RemoteServiceAdapter implements IRemoteServiceEventListener,
         pRegisteredServices.clear();
         pWaitingRegistrations.clear();
 
-        pLogger.log(LogService.LOG_INFO, "RemoteServiceAdapter Gone");
+        pLogger.log(LogService.LOG_INFO,
+                "COHORTE Remote Service Importer Gone.");
     }
 
     /**
@@ -631,14 +632,11 @@ public class RemoteServiceAdapter implements IRemoteServiceEventListener,
             events = pBroadcaster.requestEndpoints(aIsolateId);
         }
 
-        if (events == null) {
-            // Nothing to do
-            return;
-        }
-
-        for (final RemoteServiceEvent event : events) {
-            // Handle all events
-            handleRemoteEvent(event);
+        if (events != null) {
+            for (final RemoteServiceEvent event : events) {
+                // Handle each event
+                handleRemoteEvent(event);
+            }
         }
     }
 
@@ -738,6 +736,7 @@ public class RemoteServiceAdapter implements IRemoteServiceEventListener,
         // Request other isolates state with the RSB
         requestEndpoints(null);
 
-        pLogger.log(LogService.LOG_DEBUG, "RemoteServiceAdapter Ready");
+        pLogger.log(LogService.LOG_INFO,
+                "COHORTE Remote Service Importer Ready.");
     }
 }
