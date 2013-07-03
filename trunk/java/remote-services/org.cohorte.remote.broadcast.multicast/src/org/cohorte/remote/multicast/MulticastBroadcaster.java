@@ -582,7 +582,7 @@ public class MulticastBroadcaster implements IRemoteServiceBroadcaster,
             pServlet = null;
         }
 
-        pLogger.log(LogService.LOG_DEBUG, "Multicast broadcaster validated");
+        pLogger.log(LogService.LOG_INFO, "Multicast broadcaster gone");
     }
 
     /*
@@ -713,9 +713,11 @@ public class MulticastBroadcaster implements IRemoteServiceBroadcaster,
 
         // Set the servlet access
         final Map<String, Object> access = new LinkedHashMap<String, Object>();
+        access.put(IPacketConstants.KEY_ACCESS_PATH, pServletPath);
+        access.put(IPacketConstants.KEY_ACCESS_PORT, pHttpPort);
         packet.put(IPacketConstants.KEY_ACCESS, access);
-        packet.put(IPacketConstants.KEY_ACCESS_PATH, pServletPath);
-        packet.put(IPacketConstants.KEY_ACCESS_PORT, pHttpPort);
+
+        pLogger.log(LogService.LOG_DEBUG, "Sending notification:\n" + packet);
 
         // Send the packet
         sendPacket(packet);
@@ -813,7 +815,7 @@ public class MulticastBroadcaster implements IRemoteServiceBroadcaster,
             return;
         }
 
-        pLogger.log(LogService.LOG_DEBUG, "Multicast broadcaster validated");
+        pLogger.log(LogService.LOG_INFO, "Multicast broadcaster ready");
 
         // No error: activate the service
         pServiceController = true;
