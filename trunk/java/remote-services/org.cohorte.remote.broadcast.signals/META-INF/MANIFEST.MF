@@ -1,8 +1,8 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: COHORTE :: Remote Services :: Broadcaster
+Bundle-Name: COHORTE :: Remote Services :: Signals Broadcaster
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Bundle-SymbolicName: org.cohorte.remote.broadcaster
+Bundle-SymbolicName: org.cohorte.remote.broadcast.signals
 Bundle-Vendor: isandlaTech.com
 Bundle-Version: 1.1.0.qualifier
 Created-By: iPOJO  1.8.0
