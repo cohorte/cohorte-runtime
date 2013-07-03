@@ -536,7 +536,7 @@ public class MulticastBroadcaster implements IRemoteServiceBroadcaster,
             // Discovery request: send a packet back
             sendDiscovered(aPacket.getAddress(), aPacket.getPort());
 
-        } else if (IPacketConstants.EVENT_DISCOVERY.equals(event)) {
+        } else if (IPacketConstants.EVENT_DISCOVERED.equals(event)) {
             // Discovered: grab end points
             final List<RemoteServiceRegistration> endpoints = grabEndpoints(
                     aPacket.getAddress(), endpointPacket.getAccessPort(),
