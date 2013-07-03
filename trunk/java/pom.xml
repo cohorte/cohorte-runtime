@@ -28,7 +28,8 @@
 		<module>composer/org.cohorte.composer.api</module>
 		<module>composer/org.cohorte.composer.agent</module>
 
-		<module>isolates/org.cohorte.remote.shell</module>
+		<module>isolates/org.cohorte.shell.osgi</module>
+		<module>isolates/org.cohorte.shell.remote</module>
 		<module>isolates/org.psem2m.isolates.loggers</module>
 		<module>isolates/org.psem2m.isolates.slave.agent</module>
 		<module>isolates/org.psem2m.isolates.utilities</module>
