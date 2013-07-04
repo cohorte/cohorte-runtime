@@ -33,7 +33,9 @@
 	}, {
 		"name" : "org.apache.felix.ipojo.arch.gogo"
 	}, {
-		"name" : "org.cohorte.remote.shell"
+		"name" : "org.cohorte.shell.osgi"
+	}, {
+		"name" : "org.cohorte.shell.remote"
 	} ],
 
 	/*
