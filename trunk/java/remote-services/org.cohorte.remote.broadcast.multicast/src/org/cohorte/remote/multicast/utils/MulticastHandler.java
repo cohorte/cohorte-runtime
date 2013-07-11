@@ -392,6 +392,10 @@ public class MulticastHandler {
     private void stopThread() {
 
         pThreadRun = false;
+        if (pThread == null) {
+            return;
+        }
+
         pThread.interrupt();
 
         // Wait for it a little
