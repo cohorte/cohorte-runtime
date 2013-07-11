@@ -46,37 +46,39 @@ iPOJO-Components: instance { $name="cohorte-remote-exporter" $componen
  rviceReference}" }method { $name="validatePojo" }}}component { $name=
  "cohorte-remote-importer-factory" $classname="org.cohorte.remote.impo
  rter.RemoteServiceAdapter" provides { $specifications="{org.cohorte.r
- emote.IRemoteServiceEventListener}" }requires { $field="pBroadcaster"
-  }requires { $field="pClientHandlers" }requires { $field="pLogger" }c
- allback { $transition="invalidate" $method="invalidatePojo" }callback
-  { $transition="validate" $method="validatePojo" }manipulation { inte
- rface { $name="org.cohorte.remote.IRemoteServiceEventListener" }inter
- face { $name="org.osgi.framework.BundleListener" }field { $name="pBro
- adcaster" $type="org.cohorte.remote.IRemoteServiceBroadcaster" }field
-  { $name="pBundleContext" $type="org.osgi.framework.BundleContext" }f
- ield { $name="pClientHandlers" $type="org.cohorte.remote.IRemoteServi
- ceClientHandler[]" }field { $name="pExcludeFilters" $type="java.util.
- Set" }field { $name="pIncludeFilters" $type="java.util.Set" }field { 
- $name="pIsolatesServices" $type="java.util.Map" }field { $name="pLogg
- er" $type="org.osgi.service.log.LogService" }field { $name="pRegister
- edServices" $type="java.util.Map" }field { $name="pWaitingRegistratio
- ns" $type="java.util.Set" }method { $name="acceptInterface" $return="
- boolean" $arguments="{java.lang.String}" }method { $name="bundleChang
- ed" $arguments="{org.osgi.framework.BundleEvent}" }method { $name="bu
- ndleStarted" $arguments="{org.osgi.framework.Bundle}" }method { $name
- ="bundleStopped" $arguments="{org.osgi.framework.Bundle}" }method { $
- name="filterProperties" $return="java.util.Dictionary" $arguments="{j
- ava.util.Map}" }method { $name="handleIsolateLost" $arguments="{java.
- lang.String}" }method { $name="handleIsolateReady" $arguments="{java.
- lang.String}" }method { $name="handleRemoteEvent" $arguments="{org.co
- horte.remote.beans.RemoteServiceEvent}" }method { $name="invalidatePo
- jo" }method { $name="matchFilter" $return="boolean" $arguments="{java
- .lang.String,java.lang.String}" }method { $name="parseFilter" $argume
- nts="{java.lang.String,java.util.Set}" }method { $name="prepareFilter
- s" }method { $name="registerService" $arguments="{org.cohorte.remote.
- beans.RemoteServiceRegistration}" }method { $name="requestEndpoints" 
- $arguments="{java.lang.String}" }method { $name="unregisterService" $
- arguments="{java.lang.String,java.lang.String}" }method { $name="upda
- teService" $arguments="{org.cohorte.remote.beans.RemoteServiceRegistr
- ation}" }method { $name="validatePojo" }}}
+ emote.IRemoteServiceEventListener}" $post-registration="postListenerS
+ erviceRegistration" }requires { $field="pBroadcaster" }requires { $fi
+ eld="pClientHandlers" }requires { $field="pLogger" }callback { $trans
+ ition="invalidate" $method="invalidatePojo" }callback { $transition="
+ validate" $method="validatePojo" }manipulation { interface { $name="o
+ rg.cohorte.remote.IRemoteServiceEventListener" }interface { $name="or
+ g.osgi.framework.BundleListener" }field { $name="pBroadcaster" $type=
+ "org.cohorte.remote.IRemoteServiceBroadcaster" }field { $name="pBundl
+ eContext" $type="org.osgi.framework.BundleContext" }field { $name="pC
+ lientHandlers" $type="org.cohorte.remote.IRemoteServiceClientHandler[
+ ]" }field { $name="pExcludeFilters" $type="java.util.Set" }field { $n
+ ame="pIncludeFilters" $type="java.util.Set" }field { $name="pIsolates
+ Services" $type="java.util.Map" }field { $name="pLogger" $type="org.o
+ sgi.service.log.LogService" }field { $name="pRegisteredServices" $typ
+ e="java.util.Map" }field { $name="pWaitingRegistrations" $type="java.
+ util.Set" }method { $name="acceptInterface" $return="boolean" $argume
+ nts="{java.lang.String}" }method { $name="bundleChanged" $arguments="
+ {org.osgi.framework.BundleEvent}" }method { $name="bundleStarted" $ar
+ guments="{org.osgi.framework.Bundle}" }method { $name="bundleStopped"
+  $arguments="{org.osgi.framework.Bundle}" }method { $name="filterProp
+ erties" $return="java.util.Dictionary" $arguments="{java.util.Map}" }
+ method { $name="handleIsolateLost" $arguments="{java.lang.String}" }m
+ ethod { $name="handleIsolateReady" $arguments="{java.lang.String}" }m
+ ethod { $name="handleRemoteEvent" $arguments="{org.cohorte.remote.bea
+ ns.RemoteServiceEvent}" }method { $name="invalidatePojo" }method { $n
+ ame="matchFilter" $return="boolean" $arguments="{java.lang.String,jav
+ a.lang.String}" }method { $name="parseFilter" $arguments="{java.lang.
+ String,java.util.Set}" }method { $name="postListenerServiceRegistrati
+ on" $arguments="{org.osgi.framework.ServiceReference}" }method { $nam
+ e="prepareFilters" }method { $name="registerService" $arguments="{org
+ .cohorte.remote.beans.RemoteServiceRegistration}" }method { $name="re
+ questEndpoints" $arguments="{java.lang.String}" }method { $name="unre
+ gisterService" $arguments="{java.lang.String,java.lang.String}" }meth
+ od { $name="updateService" $arguments="{org.cohorte.remote.beans.Remo
+ teServiceRegistration}" }method { $name="validatePojo" }}}
 

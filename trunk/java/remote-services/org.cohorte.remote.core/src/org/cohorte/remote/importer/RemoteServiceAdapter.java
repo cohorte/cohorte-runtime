@@ -20,6 +20,7 @@ import java.util.regex.Pattern;
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
+import org.apache.felix.ipojo.annotations.PostRegistration;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
@@ -35,6 +36,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleListener;
 import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.log.LogService;
 
@@ -471,6 +473,23 @@ public class RemoteServiceAdapter implements IRemoteServiceEventListener,
     }
 
     /**
+     * Called right after the registration of the provided service
+     * 
+     * @param aReference
+     *            Reference to the provided service
+     */
+    @PostRegistration
+    public synchronized void postListenerServiceRegistration(
+            final ServiceReference<?> aReference) {
+
+        /*
+         * Request end points now that our component is validated and its
+         * "listener" service can be used by the discovery layer.
+         */
+        requestEndpoints(null);
+    }
+
+    /**
      * Sets up the inclusion and exclusion filters
      */
     private void prepareFilters() {
@@ -732,9 +751,6 @@ public class RemoteServiceAdapter implements IRemoteServiceEventListener,
 
         // Register to bundle events
         pBundleContext.addBundleListener(this);
-
-        // Request other isolates state with the RSB
-        requestEndpoints(null);
 
         pLogger.log(LogService.LOG_INFO,
                 "COHORTE Remote Service Importer Ready.");
