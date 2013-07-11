@@ -128,13 +128,15 @@ def make_mreq(family, address):
 
 # ------------------------------------------------------------------------------
 
-def create_multicast_socket(address, port):
+def create_multicast_socket(address, port, join=True):
     """
     Creates a multicast socket according to the given address and port.
     Handles both IPv4 and IPv6 addresses.
     
     :param address: Multicast address/group
     :param port: Socket port
+    :param join: If False, the socket is not bound and does not join the
+                 multicast group (creates a simple UDP socket)
     :return: A tuple (socket, listening address)
     :raise ValueError: Invalid address or port
     """
@@ -161,39 +163,40 @@ def create_multicast_socket(address, port):
     # Prepare the socket
     sock = socket.socket(addr_info[0], socket.SOCK_DGRAM)
 
-    # Reuse address
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    if hasattr(socket, 'SO_REUSEPORT'):
-        # Special for MacOS
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+    if join:
+        # Reuse address
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        if hasattr(socket, 'SO_REUSEPORT'):
+            # Special for MacOS
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
 
-    # Bind the socket
-    if sock.family == socket.AF_INET:
-        # IPv4 binding
-        sock.bind(('0.0.0.0', port))
+        # Bind the socket
+        if sock.family == socket.AF_INET:
+            # IPv4 binding
+            sock.bind(('0.0.0.0', port))
 
-    else:
-        # IPv6 Binding
-        sock.bind(('::', port))
+        else:
+            # IPv6 Binding
+            sock.bind(('::', port))
 
-    # Prepare the mreq structure to join the group
-    # addrinfo[4] = (addr,port)
-    mreq = make_mreq(sock.family, addr_info[4][0])
+        # Prepare the mreq structure to join the group
+        # addrinfo[4] = (addr,port)
+        mreq = make_mreq(sock.family, addr_info[4][0])
 
-    # Join the group
-    if sock.family == socket.AF_INET:
-        # IPv4
-        sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+        # Join the group
+        if sock.family == socket.AF_INET:
+            # IPv4
+            sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 
-        # Allow multicast packets to get back on this host
-        sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 1)
+            # Allow multicast packets to get back on this host
+            sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 1)
 
-    else:
-        # IPv6
-        sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP, mreq)
+        else:
+            # IPv6
+            sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP, mreq)
 
-        # Allow multicast packets to get back on this host
-        sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, 1)
+            # Allow multicast packets to get back on this host
+            sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, 1)
 
     return (sock, addr_info[4][0])
 

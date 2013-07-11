@@ -154,7 +154,7 @@ class Heart(object):
         self._thread.join(.5)
 
         # Close the socket
-        multicast.close_multicast_socket(self._socket, self._target[0])
+        self._socket.close()
 
         _logger.debug("invalidate: close multicast socket done")
 
@@ -179,7 +179,8 @@ class Heart(object):
 
         # Create the socket
         self._socket, address = multicast.create_multicast_socket(self._group,
-                                                                  self._port)
+                                                                  self._port,
+                                                                  False)
 
         # Store group information
         self._target = (address, self._port)
