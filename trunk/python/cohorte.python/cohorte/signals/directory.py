@@ -16,8 +16,8 @@ Created on 12 juin 2012
 # Documentation strings format
 __docformat__ = "restructuredtext en"
 
-# Boot module version
-__version__ = "1.0.0"
+# Module version
+__version__ = "1.0.1"
 
 # ------------------------------------------------------------------------------
 
@@ -26,10 +26,9 @@ import cohorte.forker
 import cohorte.monitor
 import cohorte.signals
 
-# Pelix/iPOPO
+# iPOPO
 from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
-    Invalidate, Requires, Bind
-import pelix.framework as pelix
+    Invalidate, Requires, BindField
 
 # Standard library
 import logging
@@ -41,20 +40,9 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
-SPEC_LISTENER = "org.psem2m.isolates.services.monitoring." \
-                "IIsolatePresenceListener"
-
-# FIXME: use Jabsorb enumeration dictionaries
-REGISTERED = 0
-""" Isolate presence event: Isolate registered """
-
-UNREGISTERED = 1
-""" Isolate presence event: Isolate unregistered or lost """
-
-# ------------------------------------------------------------------------------
-
 @ComponentFactory("cohorte-signals-directory-factory")
-@Requires("_listeners", SPEC_LISTENER, aggregate=True, optional=True)
+@Requires("_listeners", cohorte.signals.SERVICE_ISOLATE_PRESENCE_LISTENER,
+          aggregate=True, optional=True)
 @Provides(cohorte.SERVICE_SIGNALS_DIRECTORY)
 class SignalsDirectory(object):
     """
@@ -91,19 +79,16 @@ class SignalsDirectory(object):
         self._waiting_isolates = set()
 
 
-    @Bind
-    def _bind(self, svc, svc_ref):
+    @BindField('_listeners')
+    def _bind_listener(self, field, svc, svc_ref):
         """
         Notifies newly bound listener of known isolates presence
         """
-        specs = svc_ref.get_property(pelix.OBJECTCLASS)
-        if SPEC_LISTENER in specs:
-            # New listener bound
-            with self._lock:
-                for isolate_id in self.get_all_isolates(None, False):
-                    isolate_node = self.get_isolate_node(isolate_id)
-                    svc.handle_isolate_presence(isolate_id, isolate_node,
-                                                REGISTERED)
+        with self._lock:
+            for isolate_id in self.get_all_isolates(None, False):
+                isolate_node = self.get_isolate_node(isolate_id)
+                svc.handle_isolate_presence(isolate_id, isolate_node,
+                                            cohorte.signals.ISOLATE_REGISTERED)
 
 
     def _notify_listeners(self, isolate_id, isolate_node, event):
@@ -571,7 +556,8 @@ class SignalsDirectory(object):
                         node_isolates.remove(uid)
 
                     # Notify the unregistration
-                    self._notify_listeners(uid, old_node, UNREGISTERED)
+                    self._notify_listeners(uid, old_node,
+                                           cohorte.signals.ISOLATE_UNREGISTERED)
 
             # Store the isolate access
             self._accesses[uid] = new_access
@@ -598,7 +584,8 @@ class SignalsDirectory(object):
 
             else:
                 # Notify registration
-                self._notify_listeners(uid, node, REGISTERED)
+                self._notify_listeners(uid, node,
+                                       cohorte.signals.ISOLATE_REGISTERED)
 
         return True
 
@@ -655,7 +642,8 @@ class SignalsDirectory(object):
 
             if isolate_id not in self._waiting_isolates:
                 # Notify listeners
-                self._notify_listeners(isolate_id, isolate_node, UNREGISTERED)
+                self._notify_listeners(isolate_id, isolate_node,
+                                       cohorte.signals.ISOLATE_UNREGISTERED)
 
             else:
                 self._waiting_isolates.remove(isolate_id)
@@ -677,7 +665,7 @@ class SignalsDirectory(object):
                 _logger.debug("Isolate %s validated", isolate_id)
                 self._notify_listeners(isolate_id,
                                        self.get_isolate_node(isolate_id),
-                                       REGISTERED)
+                                       cohorte.signals.ISOLATE_REGISTERED)
 
 
     @Validate

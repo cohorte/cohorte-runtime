@@ -14,6 +14,24 @@ __docformat__ = "restructuredtext en"
 
 # ------------------------------------------------------------------------------
 
+SERVICE_ISOLATE_PRESENCE_LISTENER = "cohorte.signals.isolate.presence.listener"
+"""
+Isolate presence listener specification. Notified by the Signals Directory
+when a new isolate is detected or when a known one is gone.
+
+* handle_isolate_presence(uid, node, event): notifies the listener of an
+  event (PRESENCE_REGISTERED or PRESENCE_UNREGISTERED) about the isolate with
+  given UID, on the given node
+"""
+
+ISOLATE_REGISTERED = 0
+""" Isolate registration event """
+
+ISOLATE_UNREGISTERED = 1
+""" Isolate disappearing event """
+
+# ------------------------------------------------------------------------------
+
 GROUP_ALL = "ALL"
 """ All isolates, including the current one """
 
