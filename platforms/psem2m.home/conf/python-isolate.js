@@ -21,10 +21,5 @@
 	{
 		"factory" : "cohorte-isolate-agent-factory",
 		"name" : "cohorte-isolate-agent"
-	},
-	/* Composer agent */
-	{
-		"factory" : "cohorte-composer-agent-ipopo-factory",
-		"name" : "cohorte-composer-agent-ipopo"
-	} ]
+	}]
 }
