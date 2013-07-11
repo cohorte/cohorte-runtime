@@ -125,6 +125,15 @@ def make_component_fsm(component):
     fsm.add_transition(COMPONENT_STATE_VALID, COMPONENT_EVENT_GONE,
                        COMPONENT_STATE_PARSED)
 
+    # Ugly trick: some component might be "validated" right after their
+    # instantiation, and before the instantiation success signal is sent by the
+    # agent
+    fsm.add_transition(COMPONENT_STATE_RESQUESTED, COMPONENT_EVENT_VALIDATED,
+                       COMPONENT_STATE_VALID)
+    fsm.add_transition(COMPONENT_STATE_VALID, COMPONENT_EVENT_INSTANTIATED,
+                       COMPONENT_STATE_VALID)
+
+
     # Start state
     fsm.set_start(COMPONENT_STATE_PARSED)
     return fsm
