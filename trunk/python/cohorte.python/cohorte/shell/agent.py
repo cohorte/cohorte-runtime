@@ -135,6 +135,7 @@ class ShellAgentCommands(object):
 
             except KeyError as ex:
                 io_handler.write_line("Error: {0}", ex)
+                return False
 
         # Send the signal
         succeeded, failed = self._sender.send(SIGNAL_GET_PID, None, **params)
