@@ -32,6 +32,7 @@ _logger = logging.getLogger(__name__)
 
 @ComponentFactory("cohorte-composer-rating-factory")
 @Provides(cohorte.composer.SERVICE_COMPONENT_RATING)
+@Provides(cohorte.composer.SERVICE_UPDATABLE_RATING)
 @Property("_default_rating", "default.rating", 50)
 class RatingStorage(object):
     """
@@ -45,7 +46,11 @@ class RatingStorage(object):
         self._default_rating = 50
 
         # Factory name -> Rating (double)
-        self.__ratings = {}
+        self.__ratings = { "demo-sensor-aggregator-ui-factory":-15000}
+
+
+    def update(self, event):
+        _logger.debug("UPDATING rating storage")
 
 
     def get(self, factory):
@@ -79,6 +84,7 @@ class RatingStorage(object):
 
 @ComponentFactory("cohorte-composer-compatibility-factory")
 @Provides(cohorte.composer.SERVICE_COMPONENT_COMPATIBILITY)
+@Provides(cohorte.composer.SERVICE_UPDATABLE_RATING)
 @Property("_default_compatibility", "default.compatibility", 50)
 class CompatibilityStorage(object):
     """
@@ -109,6 +115,10 @@ class CompatibilityStorage(object):
 
         return self.__compatibilities.get((factoryA, factoryB),
                                           self._default_compatibility)
+
+
+    def update(self, event):
+        _logger.debug("UPDATING compatibility storage")
 
 
     def store(self, factoryA, factoryB, compatibility):

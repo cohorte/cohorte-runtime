@@ -28,11 +28,12 @@ import org.apache.felix.ipojo.handlers.providedservice.ProvidedServiceHandler;
 import org.apache.felix.ipojo.metadata.Element;
 import org.cohorte.composer.api.IAgentConstants;
 import org.cohorte.composer.api.IComposerAgent;
-import org.cohorte.composer.api.IComposerCore;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.constants.IPlatformProperties;
+import org.psem2m.signals.ISignalBroadcaster;
+import org.psem2m.signals.ISignalDirectory.EBaseGroup;
 
 /**
  * import org.apache.felix.ipojo.annotations.Provides; Implementation of the
@@ -54,9 +55,12 @@ public class IPojoAgent implements IComposerAgent, InstanceStateListener {
     /** iPOJO factories dependency ID */
     private static final String IPOJO_ID_FACTORIES = "ipojo-factories";
 
-    /** Composer core service */
+    /** Agent event */
+    private static final String SIGNAL_AGENT_EVENT = "/cohorte/composer/agent/event";
+
+    /** Signals broadcaster */
     @Requires
-    private IComposerCore pComposer;
+    private ISignalBroadcaster pBroadcaster;
 
     /** Bundle context */
     private final BundleContext pContext;
@@ -480,8 +484,12 @@ public class IPojoAgent implements IComposerAgent, InstanceStateListener {
         }
 
         // Notify the composer
-        pComposer.components_instantiation(get_isolate(), successes, running,
-                errors);
+        final Map<String, Object> content = new LinkedHashMap<String, Object>();
+        content.put("instantiated", successes);
+        content.put("running", running);
+        content.put("gone", errors);
+
+        pBroadcaster.sendGroup(SIGNAL_AGENT_EVENT, content, EBaseGroup.OTHERS);
     }
 
     /*
@@ -593,7 +601,6 @@ public class IPojoAgent implements IComposerAgent, InstanceStateListener {
         // Compute the Composer FSM event
         final String composerEvent;
         switch (aState) {
-
         case ComponentInstance.INVALID:
             composerEvent = "/invalidated";
             break;
@@ -618,8 +625,14 @@ public class IPojoAgent implements IComposerAgent, InstanceStateListener {
         }
 
         // Notify composer core
-        pComposer.component_changed(get_isolate(), pInstanceUid.get(name),
-                name, aComponentInstance.getFactory().getName(), composerEvent);
+        // ... content: Event -> {UID -> Map}
+        final Map<String, String> componentMap = new LinkedHashMap<String, String>();
+        componentMap.put(pInstanceUid.get(name), name);
+
+        final Map<String, Object> content = new LinkedHashMap<String, Object>();
+        content.put(composerEvent, componentMap);
+
+        pBroadcaster.sendGroup(SIGNAL_AGENT_EVENT, content, EBaseGroup.OTHERS);
     }
 
     /**

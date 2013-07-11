@@ -20,7 +20,8 @@ import cohorte.composer
 import cohorte.composer.beans as beans
 
 # iPOPO Decorators
-from pelix.ipopo.decorators import ComponentFactory, Requires, Provides
+from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
+    Instantiate
 
 # Standard library
 import logging
@@ -36,6 +37,7 @@ _logger = logging.getLogger(__name__)
 @ComponentFactory('cohorte-composer-parser-factory')
 @Provides(cohorte.composer.SERVICE_COMPOSITION_PARSER)
 @Requires('_reader', cohorte.SERVICE_FILE_READER)
+@Instantiate('cohorte-composer-parser')
 class CompositionParser(object):
     """
     Reads the JSON configuration file of the COHORTE Composer.
@@ -56,28 +58,14 @@ class CompositionParser(object):
         :param filename: The name of a configuration file
         :param base: Base directory or file where to look for the file
         :return: The parsed Composition bean, or None
+        :raise IOError: Error reading the file
+        :raise ValueError: Error parsing the composition
         """
-        try:
-            # Read the composition file
-            _logger.info('Loading composition file: "%s"', filename)
-            data = self._reader.load_file(filename, base)
+        # Read the composition file
+        data = self._reader.load_file(filename, base)
 
-        except IOError as ex:
-            # Access error
-            _logger.error("Error reading a composition file: %s", ex)
-
-        except ValueError as ex:
-            # JSON error
-            _logger.error("Error parsing a composition file: %s", ex)
-
-        else:
-            try:
-                # Parse the content
-                return self._parse_composition(filename, data)
-
-            except ValueError as ex:
-                # Content error
-                _logger.error("Error in the composition file: %s", ex)
+        # Parse the content
+        return self._parse_composition(filename, data)
 
 
     def _parse_composition(self, filename, data):
@@ -175,4 +163,3 @@ class CompositionParser(object):
                 setattr(component, entry, value)
 
         return component
-

@@ -21,6 +21,13 @@ SERVICE_COMPOSITION_PARSER = 'cohorte.composer.parser'
 SERVICE_COMPOSITION_LOADER = 'cohorte.composer.loader'
 """ Specification of a composition loader """
 
+SERVICE_DISTRIBUTOR = 'cohorte.composer.distributor'
+""" Specification of a distributor """
+
+SERVICE_UPDATABLE_RATING = 'cohorte.composer.rating.updable'
+""" Specification of a rating with an update(event) method """
+
+
 SERVICE_COMPONENT_RATING = 'cohorte.composer.rating.storage'
 """ Specification of a component rating storage """
 
@@ -34,6 +41,9 @@ SERVICE_DISTANCE_CALCULATOR = 'cohorte.composer.distance.calculator'
 """ Specification of a component distance calculator """
 
 # ------------------------------------------------------------------------------
+
+SIGNAL_AGENT_EVENT = "/cohorte/composer/agent/event"
+
 
 __EVENTS_PREFIX = '/cohorte/composer'
 """ Prefix common to all composer events """

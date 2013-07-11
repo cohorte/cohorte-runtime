@@ -18,10 +18,11 @@ __version__ = "1.0.0"
 # COHORTE
 import cohorte.composer
 import cohorte.composer.core.fsm as fsm
+import cohorte.signals
 
 # Pelix / iPOPO
 from pelix.ipopo.decorators import ComponentFactory, Provides, Requires, \
-    Validate, Invalidate, Property
+    Validate, Invalidate, Property, Instantiate
 from pelix.ipopo.constants import IPopoEvent
 import pelix.ipopo.constants as constants
 import pelix.utilities
@@ -62,8 +63,9 @@ _logger = logging.getLogger(__name__)
 @Property('_export_specs', pelix.remote.PROP_EXPORTED_INTERFACES,
           ["cohorte.composer.Agent"])
 @Property('_export_name', pelix.remote.PROP_ENDPOINT_NAME, 'composer-agent')
-@Requires("_composer", cohorte.composer.SERVICE_COMPOSITION_LOADER)
 @Requires("_ipopo", constants.IPOPO_SERVICE_SPECIFICATION)
+@Requires('_sender', cohorte.SERVICE_SIGNALS_SENDER)
+@Instantiate('cohorte-composer-agent-ipopo')
 class ComposerAgent(object):
     """
     Python composer agent
@@ -76,8 +78,8 @@ class ComposerAgent(object):
         self._context = None
 
         # Injected services
-        self._composer = None
         self._ipopo = None
+        self._sender = None
 
         # Properties
         self._export_specs = "*"
@@ -159,8 +161,10 @@ class ComposerAgent(object):
             # Known component, handled event
             uid = self._instances[name]
             event = IPOPO_KIND_TO_EVENT[kind]
-            self._composer.component_changed(self.get_isolate(),
-                                             uid, name, factory, event)
+
+            self._sender.post(cohorte.composer.SIGNAL_AGENT_EVENT,
+                              {event: {uid: name}},
+                              dir_group=cohorte.signals.GROUP_OTHERS)
 
             if kind == IPopoEvent.KILLED:
                 # Clean up references
@@ -218,8 +222,10 @@ class ComposerAgent(object):
                     success[uid] = name
 
         # Notify the composer
-        self._composer.components_instantiation(self.get_isolate(), success,
-                                                running, errors)
+        self._sender.post(cohorte.composer.SIGNAL_AGENT_EVENT,
+                          {"instantiated": success, "running": running,
+                           "gone": errors},
+                          dir_group=cohorte.signals.GROUP_OTHERS)
 
 
     def instantiate(self, components, until_possible):

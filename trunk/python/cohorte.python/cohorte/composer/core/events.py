@@ -70,6 +70,102 @@ class Action(object):
 
 # ------------------------------------------------------------------------------
 
+class BasicEvent(object):
+    """
+    Common class for events
+    """
+    ISOLATE_LOST = "isolate.lost"
+
+    ISOLATE_QUIT = "isolate.quit"
+
+    ISOLATE_ALERT = "isolate.alert"
+
+    COMPONENT_GONE = "component.gone"
+
+    COMPONENT_ALERT = "component.alert"
+
+    def __init__(self, kind, isolate_uid, isolate_node,
+                 component=None, factory=None):
+        """
+        Sets up the event
+        
+        :param kind: Kind of event
+        :param isolate_uid: UID of the isolate that is associated to this event
+        :param isolate_node: Node of the isolate
+        :param component: UID of the associated component (optional)
+        :param factory: Factory of the associated component (optional)
+        """
+        # Event
+        self.__timestamp = time.time()
+        self.__kind = kind
+        self.__data = {}
+
+        # Source isolate
+        self.__isolate = isolate_uid
+        self.__node = isolate_node
+
+        # Associated component (optional)
+        self.__component_uid = None
+        self.__component_factory = None
+
+
+    @property
+    def kind(self):
+        """
+        Kind of event
+        """
+        return self.__kind
+
+
+    @property
+    def timestamp(self):
+        """
+        Time of creation of this event
+        """
+        return self.__timestamp
+
+
+    @property
+    def data(self):
+        """
+        The data associated to the event (dictionary)
+        """
+        return self.__data
+
+
+    @property
+    def component(self):
+        """
+        The UID of the component associated to the event (optional)
+        """
+        return self.__component_uid
+
+
+    @property
+    def factory(self):
+        """
+        The factory of the component associated to the event (optional)
+        """
+        return self.__component_factory
+
+
+    @property
+    def isolate(self):
+        """
+        The isolate that is associated to this event
+        """
+        return self.__isolate
+
+
+    @property
+    def node(self):
+        """
+        The node hosting the isolate
+        """
+        return self.__node
+
+# ------------------------------------------------------------------------------
+
 class __Event(object):
     """
     Common class for events
@@ -78,11 +174,11 @@ class __Event(object):
         """
         Sets up the event
         
-        :param isolate: Isolate that is associated to this event
+        :param isolate: UID of the isolate that is associated to this event
         :param kind: Kind of event
         """
-        self.__isolate = isolate
         self.__kind = kind
+        self.__isolate = isolate
         self.__timestamp = time.time()
 
 

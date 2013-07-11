@@ -22,7 +22,7 @@ import cohorte.composer.core.fsm as fsm_creator
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
-    Invalidate
+    Invalidate, Instantiate
 
 # Standard library
 import logging
@@ -35,6 +35,7 @@ _logger = logging.getLogger(__name__)
 
 @ComponentFactory("cohorte-composer-core-status-factory")
 @Provides(cohorte.composer.core.SERVICE_STATUS)
+@Instantiate('cohorte-composer-core-status')
 class ComposerStatus(object):
     """
     Composer core status
@@ -114,11 +115,20 @@ class ComposerStatus(object):
         del self._components[uid]
 
 
-    def get_components(self):
+    def get_components(self, state=None):
         """
-        Generator to walk through stored component beans
+        Generator to walk through stored component beans, if they are in the
+        given state (if any)
+        
+        :param state: State that the component must be have to be selected
+        :return: A generator of components
         """
-        return (status.data for status in self._components.values())
+        if state is None:
+            return (status.data for status in self._components.values())
+
+        else:
+            return (status.data for status in self._components.values()
+                    if status.state == state)
 
 
     def agent_requested(self, uid):
