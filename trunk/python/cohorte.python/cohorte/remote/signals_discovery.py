@@ -4,7 +4,7 @@
 COHORTE Remote Services: Discovery based on Signals
 
 TODO:
-* handle new/lost isolates
+* handle lost isolates
 * update signals names
 
 :author: Thomas Calmant
@@ -14,13 +14,13 @@ TODO:
 # Documentation strings format
 __docformat__ = "restructuredtext en"
 
-# Boot module version
-__version__ = "1.0.0"
+# Module version
+__version__ = "1.0.1"
 
 # ------------------------------------------------------------------------------
 
 # Cohorte
-import cohorte
+import cohorte.signals
 import cohorte.java.jabsorb as jabsorb
 
 # iPOPO Decorators
@@ -146,7 +146,8 @@ class _EndpointDescription(object):
 # ------------------------------------------------------------------------------
 
 @ComponentFactory("cohorte-remote-discovery-signals-factory")
-@Provides(pelix.remote.SERVICE_ENDPOINT_LISTENER)
+@Provides([pelix.remote.SERVICE_ENDPOINT_LISTENER,
+           cohorte.signals.SERVICE_ISOLATE_PRESENCE_LISTENER])
 @Requires("_dispatcher", pelix.remote.SERVICE_DISPATCHER)
 @Requires("_registry", pelix.remote.SERVICE_REGISTRY)
 @Requires("_directory", cohorte.SERVICE_SIGNALS_DIRECTORY)
@@ -294,6 +295,19 @@ class SignalsDiscovery(object):
 
         # Send the signal
         self._send_remote_event(UNREGISTERED, registration)
+
+
+    def handle_isolate_presence(self, uid, node, event):
+        """
+        Handles an isolate presence event
+        
+        :param uid: UID of the isolate
+        :param node: Node of the isolate
+        :param event: Kind of event
+        """
+        if event == cohorte.signals.ISOLATE_REGISTERED:
+            # New isolate detected
+            self._request_endpoints(uid)
 
 
     def handle_received_signal(self, name, signal_data):
