@@ -194,7 +194,9 @@ public class ServiceExporter implements ServiceListener {
 
         pBroadcaster.sendNotification(broadcastEvent);
         pLogger.log(LogService.LOG_DEBUG, String.format(
-                "Export notification sent for ref=%s", aServiceReference));
+                "Export notification sent for reference=%s - specs=%s",
+                aServiceReference,
+                Arrays.toString(serviceRegistration.getExportedInterfaces())));
         return true;
     }
 
