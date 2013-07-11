@@ -67,7 +67,8 @@ public class PelixEndpointDescription {
         pURL = aJsonObject.getString("url");
 
         // Properties
-        pProperties = ParseUtils.jsonToMap(aJsonObject);
+        pProperties = ParseUtils.jsonToMap(aJsonObject
+                .getJSONObject("properties"));
 
         // Specifications
         for (final Object item : ParseUtils.jsonToList(aJsonObject
