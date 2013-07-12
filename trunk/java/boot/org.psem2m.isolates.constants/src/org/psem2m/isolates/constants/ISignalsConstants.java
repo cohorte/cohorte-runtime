@@ -46,7 +46,7 @@ public interface ISignalsConstants {
      * 
      * Associated data : the Isolate ID (CharSequence)
      */
-    String ISOLATE_LOST_SIGNAL = "/psem2m/isolate/lost";
+    String ISOLATE_LOST_SIGNAL = "/cohorte/isolate/lost";
 
     /**
      * IsolateStatus signal
@@ -60,7 +60,7 @@ public interface ISignalsConstants {
      * 
      * Associated data : none
      */
-    String ISOLATE_STOP_SIGNAL = "/psem2m/isolate/stop";
+    String ISOLATE_STOP_SIGNAL = "/cohorte/isolate/stop";
 
     /** Match all sub signals */
     String MATCH_ALL = "/*";
@@ -70,5 +70,5 @@ public interface ISignalsConstants {
      * 
      * Associated data : none
      */
-    String MONITOR_SIGNAL_STOP_PLATFORM = "/psem2m/platform/stop";
+    String MONITOR_SIGNAL_STOP_PLATFORM = "/cohorte/platform/stop";
 }
