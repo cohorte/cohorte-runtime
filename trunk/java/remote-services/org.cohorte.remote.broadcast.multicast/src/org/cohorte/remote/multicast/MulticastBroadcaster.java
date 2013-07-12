@@ -7,12 +7,13 @@ package org.cohorte.remote.multicast;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.DatagramPacket;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.SocketException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -96,6 +97,7 @@ public class MulticastBroadcaster implements IRemoteServiceBroadcaster,
 
     /** The multicast group */
     @Property(name = "multicast.group", value = "239.0.0.1")
+    // ff05::5
     private String pMulticastGroup;
 
     /** The multicast port */
@@ -160,10 +162,6 @@ public class MulticastBroadcaster implements IRemoteServiceBroadcaster,
                     + rawPort);
             pHttpPort = -1;
         }
-
-        pLogger.log(LogService.LOG_INFO,
-                "Multicast Remote Service broadcaster bound to port "
-                        + pHttpPort);
     }
 
     /**
@@ -495,15 +493,16 @@ public class MulticastBroadcaster implements IRemoteServiceBroadcaster,
      * 
      * @see
      * org.cohorte.remote.multicast.utils.IPacketListener#handlePacket(java.
-     * net.DatagramPacket)
+     * net.SocketAddress, byte[])
      */
     @Override
-    public void handlePacket(final DatagramPacket aPacket) {
+    public void handlePacket(final InetSocketAddress aSender,
+            final byte[] aContent) {
 
         // Read the packet content
         final String content;
         try {
-            content = new String(aPacket.getData(), CHARSET_UTF8);
+            content = new String(aContent, CHARSET_UTF8).trim();
 
         } catch (final UnsupportedEncodingException ex) {
             pLogger.log(LogService.LOG_ERROR,
@@ -529,19 +528,27 @@ public class MulticastBroadcaster implements IRemoteServiceBroadcaster,
             return;
         }
 
+        // Get information about the sender
+        final InetAddress senderAddress = aSender.getAddress();
+        final int senderPort = aSender.getPort();
+
         // Get the kind of event
         final String event = endpointPacket.getEvent();
 
         // Dispatch...
         if (IPacketConstants.EVENT_DISCOVERY.equals(event)) {
             // Discovery request: send a packet back
-            sendDiscovered(aPacket.getAddress(), aPacket.getPort());
+            sendDiscovered(senderAddress, senderPort);
 
         } else if (IPacketConstants.EVENT_DISCOVERED.equals(event)) {
             // Discovered: grab end points
             final List<RemoteServiceRegistration> endpoints = grabEndpoints(
-                    aPacket.getAddress(), endpointPacket.getAccessPort(),
+                    senderAddress, endpointPacket.getAccessPort(),
                     endpointPacket.getAccessPath());
+
+            pLogger.log(LogService.LOG_DEBUG, "GOT EVENT_DISCOVERED by "
+                    + endpointPacket.getSender() + " - " + endpoints.size()
+                    + " end points found");
 
             // Notify listeners
             for (final RemoteServiceRegistration registration : endpoints) {
@@ -555,7 +562,7 @@ public class MulticastBroadcaster implements IRemoteServiceBroadcaster,
 
         } else {
             // Handle an end point event
-            handleEvent(endpointPacket, aPacket.getAddress(), aPacket.getPort());
+            handleEvent(endpointPacket, senderAddress, senderPort);
         }
     }
 
@@ -800,8 +807,20 @@ public class MulticastBroadcaster implements IRemoteServiceBroadcaster,
             return;
         }
 
+        // Compute the group address
+        InetAddress groupAddress;
+        try {
+            groupAddress = InetAddress.getByName(pMulticastGroup);
+
+        } catch (final UnknownHostException ex) {
+            pLogger.log(LogService.LOG_ERROR,
+                    "Error computing the multicast group address", ex);
+            invalidate();
+            return;
+        }
+
         // Create the handler
-        pMulticast = new MulticastHandler(this, pMulticastGroup, pMulticastPort);
+        pMulticast = new MulticastHandler(this, groupAddress, pMulticastPort);
         pMulticast.setLogger(pLogger);
 
         try {

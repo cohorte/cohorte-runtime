@@ -6,15 +6,22 @@
 package org.cohorte.remote.multicast.utils;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.MulticastSocket;
 import java.net.NetworkInterface;
+import java.net.ProtocolFamily;
 import java.net.SocketAddress;
 import java.net.SocketException;
+import java.net.StandardProtocolFamily;
+import java.net.StandardSocketOptions;
+import java.nio.ByteBuffer;
+import java.nio.channels.DatagramChannel;
+import java.nio.channels.MembershipKey;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -42,10 +49,16 @@ public class MulticastHandler {
     private static final String BUNDLE_NAME = "org.cohorte.remote.multicast";
 
     /** The multicast group */
-    private final InetSocketAddress pAddress;
+    private final InetAddress pAddress;
+
+    /** Channel */
+    private DatagramChannel pChannel;
 
     /** The listeners invocation thread "pool" */
     private ExecutorService pExecutor;
+
+    /** Joined group on different interfaces */
+    private final List<MembershipKey> pJoinedGroups = new LinkedList<>();
 
     /** The packet listener */
     private final IPacketListener pListener;
@@ -53,8 +66,8 @@ public class MulticastHandler {
     /** An associated log service */
     private LogService pLogger;
 
-    /** The multicast socket */
-    private MulticastSocket pSocket;
+    /** The multicast port */
+    private final int pPort;
 
     /** The listening thread */
     private Thread pThread;
@@ -75,39 +88,35 @@ public class MulticastHandler {
      *             Error opening the socket
      */
     public MulticastHandler(final IPacketListener aListener,
-            final String aAddress, final int aPort) {
+            final InetAddress aAddress, final int aPort) {
 
         pListener = aListener;
-        pAddress = new InetSocketAddress(aAddress, aPort);
+        pAddress = aAddress;
+        pPort = aPort;
     }
 
     /**
      * Leaves the group and closes the multicast socket.
      * 
-     * @param aSocket
-     *            A multicast socket
-     * @param aAddress
-     *            The multicast address
      * @throws IOException
      *             Error reading the address or leaving the group
      */
-    private void closeMulticast(final MulticastSocket aSocket,
-            final SocketAddress aAddress) throws IOException {
+    private void closeMulticast() throws IOException {
 
-        if (aSocket == null) {
+        if (pChannel == null) {
             // Nothing to do
             return;
         }
 
         try {
             // Leave the group, on all interfaces
-            for (final NetworkInterface itf : getMulticastInterfaces()) {
-                aSocket.leaveGroup(aAddress, itf);
+            for (final MembershipKey key : pJoinedGroups) {
+                key.drop();
             }
 
         } finally {
             // Close the socket
-            aSocket.close();
+            pChannel.close();
         }
     }
 
@@ -142,6 +151,19 @@ public class MulticastHandler {
 
         return multicastItfs
                 .toArray(new NetworkInterface[multicastItfs.size()]);
+    }
+
+    /**
+     * Logs an entry if a logger is present, else prints on the error output
+     * 
+     * @param aLevel
+     *            Log level
+     * @param aMessage
+     *            Log entry
+     */
+    private void log(final int aLevel, final String aMessage) {
+
+        log(aLevel, aMessage, null);
     }
 
     /**
@@ -196,20 +218,33 @@ public class MulticastHandler {
     /**
      * Waits for packets on the multicast socket
      */
-    protected void receivePackets() {
+    private void receivePackets() {
 
         while (pThreadRun) {
 
             // Set up the buffer
-            final byte[] buffer = new byte[BUFFER_SIZE];
-
-            // Use a new buffer each time, or it will be erased on next packet
-            final DatagramPacket packet = new DatagramPacket(buffer,
-                    buffer.length);
+            final ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
 
             try {
+                // Reset the buffer
+                buffer.clear();
+
                 // Wait for a packet (blocking)
-                pSocket.receive(packet);
+                final SocketAddress sender = pChannel.receive(buffer);
+                if (!(sender instanceof InetSocketAddress)) {
+                    // Unhandled kind of address, try next time
+                    log(LogService.LOG_WARNING,
+                            "Unhandled kind of socket address: "
+                                    + sender.getClass().getName());
+                    continue;
+                }
+
+                // Get the sender address
+                final InetSocketAddress senderAddress = (InetSocketAddress) sender;
+
+                // Extract the content of the packet
+                final byte[] content = new byte[buffer.position()];
+                buffer.get(content);
 
                 // Call the listener in a separate thread
                 if (pListener != null) {
@@ -219,7 +254,7 @@ public class MulticastHandler {
                         public void run() {
 
                             try {
-                                pListener.handlePacket(packet);
+                                pListener.handlePacket(senderAddress, content);
 
                             } catch (final Exception e) {
                                 // Let the listener handle its own exception
@@ -250,7 +285,7 @@ public class MulticastHandler {
      */
     public void send(final byte[] aData) throws IOException {
 
-        send(aData, pAddress.getAddress(), pAddress.getPort());
+        send(aData, pAddress, pPort);
     }
 
     /**
@@ -268,12 +303,9 @@ public class MulticastHandler {
     public void send(final byte[] aData, final InetAddress aAddress,
             final int aPort) throws IOException {
 
-        // Prepare the packet
-        final DatagramPacket packet = new DatagramPacket(aData, aData.length,
-                aAddress, aPort);
-
-        // Send it
-        pSocket.send(packet);
+        // Send the datagram
+        pChannel.send(ByteBuffer.wrap(aData), new InetSocketAddress(aAddress,
+                aPort));
     }
 
     /**
@@ -288,37 +320,44 @@ public class MulticastHandler {
     }
 
     /**
-     * Sets up a multicast socket
+     * Sets up the multicast channel
      * 
-     * @param aAddress
-     *            The multicast address (group)
-     * @param aPort
-     *            The multicast port
-     * @return The created socket
      * @throws IOException
      *             Something wrong occurred (bad address, bad port, ...)
      */
-    private MulticastSocket setupMulticast(final SocketAddress aAddress,
-            final int aPort) throws IOException {
+    private void setupMulticast() throws IOException {
 
-        // Set up the socket
-        final MulticastSocket socket = new MulticastSocket(aPort);
-        socket.setLoopbackMode(false);
-        socket.setReuseAddress(true);
+        // Compute the address family
+        final ProtocolFamily family;
+        if (pAddress instanceof Inet4Address) {
+            // IPv4
+            family = StandardProtocolFamily.INET;
+
+        } else if (pAddress instanceof Inet6Address) {
+            // IPv6
+            family = StandardProtocolFamily.INET6;
+
+        } else {
+            // Unknown
+            throw new SocketException("Unknown multicast group family");
+        }
+
+        // Create the UDP channel
+        pChannel = DatagramChannel.open(family);
+        pChannel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
+        pChannel.bind(new InetSocketAddress(pPort));
 
         try {
             // Join the group on all interfaces
             for (final NetworkInterface itf : getMulticastInterfaces()) {
-                socket.joinGroup(aAddress, itf);
+                pJoinedGroups.add(pChannel.join(pAddress, itf));
             }
 
         } catch (final SocketException ex) {
             // Be nice...
-            socket.close();
+            pChannel.close();
             throw ex;
         }
-
-        return socket;
     }
 
     /**
@@ -330,11 +369,11 @@ public class MulticastHandler {
      */
     public boolean start() throws IOException {
 
-        if (pSocket != null) {
+        if (pChannel != null) {
             return false;
         }
 
-        pSocket = setupMulticast(pAddress, pAddress.getPort());
+        setupMulticast();
         startThread();
         return true;
     }
@@ -382,8 +421,8 @@ public class MulticastHandler {
         pExecutor = null;
 
         // Close the socket
-        closeMulticast(pSocket, pAddress);
-        pSocket = null;
+        closeMulticast();
+        pChannel = null;
     }
 
     /**

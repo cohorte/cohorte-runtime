@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: COHORTE :: Remote Services :: Multicast Broadcaster
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-SymbolicName: org.cohorte.remote.broadcast.multicast
 Bundle-Vendor: isandlaTech.com
 Bundle-Version: 1.0.0.qualifier
@@ -58,14 +58,14 @@ iPOJO-Components: instance { $name="cohorte-remote-multicast" $compone
  ="handleEventRemove" $arguments="{java.lang.String}" }method { $name=
  "handleEventUpdate" $arguments="{java.lang.String,org.cohorte.remote.
  multicast.beans.PelixMulticastPacket}" }method { $name="handlePacket"
-  $arguments="{java.net.DatagramPacket}" }method { $name="invalidate" 
- }method { $name="requestAllEndpoints" $return="org.cohorte.remote.bea
- ns.RemoteServiceEvent[]" }method { $name="requestEndpoints" $return="
- org.cohorte.remote.beans.RemoteServiceEvent[]" $arguments="{java.lang
- .String}" }method { $name="sendDiscovered" $arguments="{java.net.Inet
- Address,int}" }method { $name="sendDiscovery" }method { $name="sendNo
- tification" $arguments="{org.cohorte.remote.beans.RemoteServiceEvent}
- " }method { $name="sendPacket" $arguments="{java.util.Map}" }method {
-  $name="sendPacket" $arguments="{java.util.Map,java.net.InetAddress,i
- nt}" }method { $name="validate" }}}
+  $arguments="{java.net.InetSocketAddress,byte[]}" }method { $name="in
+ validate" }method { $name="requestAllEndpoints" $return="org.cohorte.
+ remote.beans.RemoteServiceEvent[]" }method { $name="requestEndpoints"
+  $return="org.cohorte.remote.beans.RemoteServiceEvent[]" $arguments="
+ {java.lang.String}" }method { $name="sendDiscovered" $arguments="{jav
+ a.net.InetAddress,int}" }method { $name="sendDiscovery" }method { $na
+ me="sendNotification" $arguments="{org.cohorte.remote.beans.RemoteSer
+ viceEvent}" }method { $name="sendPacket" $arguments="{java.util.Map}"
+  }method { $name="sendPacket" $arguments="{java.util.Map,java.net.Ine
+ tAddress,int}" }method { $name="validate" }}}
 

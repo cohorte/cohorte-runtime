@@ -5,7 +5,7 @@
  */
 package org.cohorte.remote.multicast.utils;
 
-import java.net.DatagramPacket;
+import java.net.InetSocketAddress;
 
 /**
  * Defines a UDP packets listener
@@ -26,8 +26,10 @@ public interface IPacketListener {
     /**
      * Handles a received UDP packet
      * 
-     * @param aPacket
-     *            The received packet
+     * @param aSender
+     *            Address of the packet sender
+     * @param aContent
+     *            Content of the packet
      */
-    void handlePacket(DatagramPacket aPacket);
+    void handlePacket(InetSocketAddress aSender, byte[] aContent);
 }
