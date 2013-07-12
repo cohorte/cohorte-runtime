@@ -21,6 +21,7 @@ __version__ = "1.0.0"
 # COHORTE modules
 import cohorte.forker
 import cohorte.monitor
+import cohorte.signals
 import cohorte.utils as utils
 
 # Pelix framework
@@ -593,7 +594,7 @@ class Forker(object):
 
                 # Re-transmit the isolate status
                 self._sender.send(ISOLATE_STATUS_SIGNAL, status_bean,
-                                  dir_group="MONITORS")
+                                  dir_group=cohorte.signals.GROUP_MONITORS)
 
             except:
                 logger.exception("Error reading isolate status line :\n%s\n",
@@ -640,7 +641,8 @@ class Forker(object):
             # Send a signal to all isolates, except the lost one
             # -> avoids a time out
             self._sender.send(cohorte.monitor.SIGNAL_ISOLATE_LOST, uid,
-                              dir_group="ALL", excluded=[uid])
+                              dir_group=cohorte.signals.GROUP_ALL,
+                              excluded=[uid])
 
             if uid == self._monitor_uid:
                 # Internal isolate : restart it immediately
