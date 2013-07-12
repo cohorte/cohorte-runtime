@@ -260,11 +260,6 @@ public class BroadcastSignalHandler implements ISignalListener,
     public void isolateLost(final String aUID, final String aName,
             final String aNode) {
 
-        if (pPlatform.getIsolateUID().equals(aUID)) {
-            // Ignore local isolate events
-            return;
-        }
-
         // Isolate lost : Notify all listeners
         for (final IRemoteServiceEventListener listener : pRemoteEventsListeners) {
             try {

@@ -295,29 +295,22 @@ public class RemoteServiceAdapter implements IRemoteServiceEventListener,
     @Override
     public synchronized void handleIsolateLost(final String aIsolateId) {
 
-        final Set<String> services = pIsolatesServices.get(aIsolateId);
-        if (services == null) {
+        final Set<String> services = pIsolatesServices.remove(aIsolateId);
+        if (services == null || services.isEmpty()) {
             // Nothing to do
-            pLogger.log(LogService.LOG_DEBUG, String.format(
-                    "No services associated to lost isolate=%s", aIsolateId));
             return;
         }
 
-        // Use an array, as the map will be modified by unregisterService
-        final String[] servicesIds = services.toArray(new String[0]);
-
         // Unregister all corresponding services
-        for (final String serviceId : servicesIds) {
-            unregisterService(aIsolateId, serviceId);
+        pLogger.log(LogService.LOG_DEBUG, "Unregistering services of "
+                + aIsolateId);
 
-            pLogger.log(LogService.LOG_DEBUG,
-                    String.format("%s unregisters %s", aIsolateId, serviceId));
+        for (final String serviceId : services) {
+            unregisterService(aIsolateId, serviceId);
         }
 
-        // Clear the map list (just to be sure)
+        // Clear the list
         services.clear();
-
-        pLogger.log(LogService.LOG_DEBUG, String.format("%s handled."));
     }
 
     /*
