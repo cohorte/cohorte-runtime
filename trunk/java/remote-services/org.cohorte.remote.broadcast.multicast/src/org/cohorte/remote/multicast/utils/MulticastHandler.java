@@ -244,6 +244,9 @@ public class MulticastHandler {
 
                 // Extract the content of the packet
                 final byte[] content = new byte[buffer.position()];
+                // Reset the position, else we will the content after what have
+                // been read
+                buffer.position(0);
                 buffer.get(content);
 
                 // Call the listener in a separate thread
