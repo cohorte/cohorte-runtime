@@ -60,6 +60,9 @@
 		"name" : "cohorte-forker-state-updater"
 	}, {
 		"factory" : "cohorte-forker-heart-factory",
-		"name" : "cohorte-forker-heart"
+		"name" : "cohorte-forker-heart",
+		"properties": {
+			"multicast.port": 42001
+		}
 	} ]
 }

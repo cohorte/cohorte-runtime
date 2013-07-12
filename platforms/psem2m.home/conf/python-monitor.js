@@ -60,7 +60,10 @@
 		"name" : "cohorte-monitor-status"
 	}, {
 		"factory" : "cohorte-forker-aggregator-factory",
-		"name" : "cohorte-forker-aggregator"
+		"name" : "cohorte-forker-aggregator",
+		"properties": {
+			"multicast.port": 42001
+		}
 	},
 
 	/* Repositories */
