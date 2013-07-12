@@ -27,7 +27,7 @@ import cohorte.java.jabsorb as jabsorb
 from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
     Invalidate, Requires, Property
 import pelix.http
-import pelix.remote
+import pelix.remote.beans
 
 # Standard library
 import logging
@@ -209,10 +209,10 @@ class JsonRpcServiceExporter(object):
             return
 
         # Create the registration information
-        endpoint = pelix.remote.ExportEndpoint(str(uuid.uuid4()),
-                                               self._kind, endpoint_name,
-                                               reference, service,
-                                               self.get_access())
+        endpoint = pelix.remote.beans.ExportEndpoint(str(uuid.uuid4()),
+                                                     self._kind, endpoint_name,
+                                                     reference, service,
+                                                     self.get_access())
 
         try:
             # Register the end point
