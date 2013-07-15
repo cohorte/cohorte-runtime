@@ -81,6 +81,7 @@ ISOLATE_STATUS_SIGNAL = "/psem2m/isolate/status"
 @Provides(cohorte.SERVICE_FORKER)
 @Requires('_config', cohorte.SERVICE_CONFIGURATION_READER)
 @Requires('_config_broker', cohorte.SERVICE_CONFIGURATION_BROKER)
+@Requires('_directory', cohorte.SERVICE_SIGNALS_DIRECTORY)
 @Requires('_receiver', cohorte.SERVICE_SIGNALS_RECEIVER)
 @Requires('_sender', cohorte.SERVICE_SIGNALS_SENDER)
 @Requires('_state_dir', 'cohorte.forker.state')
@@ -96,6 +97,7 @@ class Forker(object):
         # Injected services
         self._config = None
         self._config_broker = None
+        self._directory = None
         self._receiver = None
         self._sender = None
         self._state_dir = None
@@ -637,12 +639,13 @@ class Forker(object):
         # Clear isolate status
         self._state_dir.clear_isolate(uid)
 
+        # Locally unregister the isolate
+        self._directory.unregister_isolate(uid)
+
         if not self._platform_stopping:
-            # Send a signal to all isolates, except the lost one
-            # -> avoids a time out
+            # Send a signal to all other isolates
             self._sender.send(cohorte.monitor.SIGNAL_ISOLATE_LOST, uid,
-                              dir_group=cohorte.signals.GROUP_ALL,
-                              excluded=[uid])
+                              dir_group=cohorte.signals.GROUP_OTHERS)
 
             if uid == self._monitor_uid:
                 # Internal isolate : restart it immediately
