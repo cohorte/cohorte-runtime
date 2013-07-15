@@ -258,7 +258,7 @@ class ForkerAggregator(object):
         Sends the signal to all forkers that the platform is shutting down
         """
         self._sender.fire(cohorte.monitor.SIGNAL_STOP_PLATFORM, None,
-                          dir_group="FORKERS")
+                          dir_group=cohorte.signals.GROUP_FORKERS)
 
 
     def start_isolate(self, uid, node, kind, configuration):
@@ -473,10 +473,10 @@ class ForkerAggregator(object):
 
         # Send "lost isolate" signals
         self._sender.post(cohorte.monitor.SIGNAL_ISOLATE_LOST, uid,
-                          dir_group="ALL")
+                          dir_group=cohorte.signals.GROUP_ALL)
         for isolate in forker_isolates:
             self._sender.post(cohorte.monitor.SIGNAL_ISOLATE_LOST, isolate,
-                          dir_group="ALL")
+                          dir_group=cohorte.signals.GROUP_ALL)
 
 
     def _call_forker(self, uid, signal, data, timeout):
