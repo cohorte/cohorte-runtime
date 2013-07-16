@@ -22,7 +22,7 @@ __version__ = "1.0.0"
 # ------------------------------------------------------------------------------
 
 # COHORTE constants
-import cohorte
+import cohorte.signals
 
 # Java utilities
 from cohorte.java.jabsorb import to_jabsorb, from_jabsorb, JAVA_CLASS
@@ -121,7 +121,7 @@ class SignalReceiver(object):
         # Bundle context
         self._context = None
 
-        # Signals listeners
+        # Signals listeners (pattern -> {listener -> priority})
         self._listeners = {}
         self._listeners_lock = threading.RLock()
 
@@ -135,8 +135,8 @@ class SignalReceiver(object):
         """
         if path == self._servlet_path:
             # Update our access informations
-            self._host = parameters['http.address']
-            self._port = int(parameters['http.port'])
+            self._host = parameters[pelix.http.PARAM_ADDRESS]
+            self._port = int(parameters[pelix.http.PARAM_PORT])
 
             # Update the access port in the directory
             self._directory.register_isolate(
@@ -148,10 +148,12 @@ class SignalReceiver(object):
             # Register our service
             _logger.info("Activating SignalReceiver service")
             self._svc_flag = True
+            return True
 
         else:
             _logger.warning("Bound to a HTTP service with a different path."
                             "Ignore.")
+            return False
 
 
     def unbound_from(self, path, parameters):
@@ -337,7 +339,7 @@ class SignalReceiver(object):
         return _make_json_result(501, "Unknown mode '{0}'".format(mode))
 
 
-    def register_listener(self, signal_pattern, listener):
+    def register_listener(self, signal_pattern, listener, priority=100):
         """
         Registers a signal listener
         """
@@ -346,27 +348,45 @@ class SignalReceiver(object):
             return
 
         with self._listeners_lock:
-            listeners = self._listeners.setdefault(signal_pattern, [])
-            listeners.append(listener)
+            listeners = self._listeners.setdefault(signal_pattern, {})
+            listeners[listener] = priority
 
 
     def unregister_listener(self, signal_pattern, listener):
         """
         Unregisters a listener
         """
-        if not signal_pattern or listener is None:
+        if listener is None:
             # Invalid listener
             return
 
         with self._listeners_lock:
-            listeners = self._listeners.get(signal_pattern, None)
-            if listeners is not None:
-                try:
-                    listeners.remove(listener)
+            # Compute the patterns to clean up
+            if signal_pattern:
+                patterns = [signal_pattern]
 
-                except ValueError:
-                    # Listener not found
+            else:
+                patterns = self._listeners.keys()
+
+            # Remove the listener from the patterns
+            patterns_to_remove = []
+            for pattern in patterns:
+                try:
+                    # Remove the listener
+                    listeners = self._listeners[pattern]
+                    del listeners[listener]
+
+                    if not listeners:
+                        # No more listener for this pattern, forget it
+                        patterns_to_remove.append(pattern)
+
+                except KeyError:
+                    # Unknown pattern/listener: ignore
                     pass
+
+            # Remove empty patterns
+            for pattern in patterns_to_remove:
+                del patterns[pattern]
 
 
     def _notify_listeners(self, name, data):
@@ -377,29 +397,52 @@ class SignalReceiver(object):
         :param data: Complete signal data (meta-data + content)
         :return: The result of all 
         """
+        # Priority -> listener
+        priorities = {}
+
+        # Results of listeners
         results = []
-        listeners = []
 
         with self._listeners_lock:
+            # Listener -> Priority (temporary)
+            selected = {}
+
             # Grab all registered listeners
             for pattern in self._listeners:
                 if fnmatch.fnmatch(name, pattern):
                     # Signal name matches the pattern
-                    for listener in self._listeners[pattern]:
-                        if listener not in listeners:
-                            listeners.append(listener)
+                    for listener, priority in self._listeners[pattern].items():
+                        try:
+                            # Check for a priority change
+                            old_priority = selected[listener]
+                            if old_priority > priority:
+                                # Listener gained in priority
+                                selected[listener] = priority
+                                priorities[old_priority].remove(listener)
+                                priorities.setdefault(priority, []) \
+                                                            .append(listener)
+
+                        except KeyError:
+                            # Listener not yet registered
+                            selected[listener] = priority
+                            priorities.setdefault(priority, []).append(listener)
+
+            # Clear the temporary dictionary
+            selected.clear()
+            del selected
 
         # Out-of-lock notification loop
-        for listener in listeners:
-            try:
-                # Notify the listener
-                result = listener.handle_received_signal(name, data)
-                if result is not None:
-                    # Store the result
-                    results.append(result)
+        for priority in sorted(priorities.keys()):
+            for listener in priorities[priority]:
+                try:
+                    # Notify the listener
+                    result = listener.handle_received_signal(name, data)
+                    if result is not None:
+                        # Store the result
+                        results.append(result)
 
-            except Exception as ex:
-                _logger.exception("Error notifying a listener: %s", ex)
+                except Exception as ex:
+                    _logger.exception("Error notifying a listener: %s", ex)
 
         return _make_json_result(200, results=results)
 
