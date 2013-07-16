@@ -18,7 +18,7 @@ __version__ = "1.0.0"
 # COHORTE
 import cohorte.composer.core
 import cohorte.composer.core.events as events
-import cohorte.monitor
+import cohorte.signals
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
@@ -34,8 +34,8 @@ _logger = logging.getLogger(__name__)
 # ------------------------------------------------------------------------------
 
 @ComponentFactory("cohorte-composer-core-dispatcher-factory")
-@Provides('forker.isolate_lost.listener')
 @Provides('cohorte.agent.listener')
+@Provides(cohorte.signals.SERVICE_ISOLATE_PRESENCE_LISTENER)
 @Requires('_distributor', cohorte.composer.SERVICE_DISTRIBUTOR)
 @Requires('_receiver', cohorte.SERVICE_SIGNALS_RECEIVER)
 @Requires('_status', cohorte.composer.core.SERVICE_STATUS)
@@ -135,6 +135,19 @@ class EventDispatcher(object):
                                         for component in lost])
 
 
+    def handle_isolate_presence(self, uid, node, event):
+        """
+        Handles an isolate presence event
+        
+        :param uid: UID of the isolate
+        :param node: Node hosting the isolate
+        :param even: Kind of event
+        """
+        if event == cohorte.signals.ISOLATE_UNREGISTERED:
+            # Isolate gone away
+            self.handle_isolate_lost(uid, node)
+
+
     def handle_received_signal(self, name, signal_data):
         """
         Called when a remote services signal is received
@@ -142,12 +155,7 @@ class EventDispatcher(object):
         :param name: Signal name
         :param signal_data: Signal content
         """
-        if name == cohorte.monitor.SIGNAL_ISOLATE_LOST:
-            # Isolate lost
-            self.handle_isolate_lost(signal_data['signalContent'],
-                                     signal_data['senderNode'])
-
-        elif name == cohorte.composer.SIGNAL_AGENT_EVENT:
+        if name == cohorte.composer.SIGNAL_AGENT_EVENT:
             # Agent event
             content = signal_data['signalContent']
             isolate = signal_data['senderUID']
@@ -171,9 +179,7 @@ class EventDispatcher(object):
         """
         Component validated
         """
-        # Register to the "isolate lost" signal
-        self._receiver.register_listener(cohorte.monitor.SIGNAL_ISOLATE_LOST,
-                                         self)
+        # Register to signals from agents
         self._receiver.register_listener(cohorte.composer.SIGNAL_AGENT_EVENT,
                                          self)
 
@@ -184,7 +190,5 @@ class EventDispatcher(object):
         Component invalidated
         """
         # Unregister from signals
-        self._receiver.unregister_listener(cohorte.monitor.SIGNAL_ISOLATE_LOST,
-                                           self)
         self._receiver.unregister_listener(cohorte.composer.SIGNAL_AGENT_EVENT,
                                            self)
