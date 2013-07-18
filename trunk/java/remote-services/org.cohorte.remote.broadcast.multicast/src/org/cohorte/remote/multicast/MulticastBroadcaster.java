@@ -22,7 +22,6 @@ import java.util.Map;
 
 import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
-import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Property;
 import org.apache.felix.ipojo.annotations.Provides;
@@ -56,7 +55,6 @@ import org.osgi.service.log.LogService;
  */
 @Component(name = "cohorte-remote-broadcast-multicast")
 @Provides(specifications = IRemoteServiceBroadcaster.class)
-@Instantiate(name = "cohorte-remote-multicast")
 public class MulticastBroadcaster implements IRemoteServiceBroadcaster,
         IPacketListener {
 
@@ -780,6 +778,31 @@ public class MulticastBroadcaster implements IRemoteServiceBroadcaster,
             pLogger.log(LogService.LOG_ERROR,
                     "Error sending a multicast packet", ex);
         }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+
+        final StringBuilder builder = new StringBuilder(
+                "MulticastBroadcaster({");
+        // End point
+        builder.append(pMulticastGroup).append("}:").append(pMulticastPort);
+
+        // Service state
+        builder.append(", ");
+        if (pServiceController) {
+            builder.append("up and running");
+        } else {
+            builder.append("stopped");
+        }
+        builder.append(")");
+
+        return builder.toString();
     }
 
     /**
