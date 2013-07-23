@@ -14,7 +14,7 @@ __docformat__ = "restructuredtext en"
 
 # ------------------------------------------------------------------------------
 
-MONITOR_NAME = 'cohorte.internals.forker'
+MONITOR_NAME = 'cohorte.internals.monitor'
 """ All monitors have the same name """
 
 # ------------------------------------------------------------------------------
