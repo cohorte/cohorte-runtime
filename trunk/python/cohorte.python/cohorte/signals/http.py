@@ -386,7 +386,7 @@ class SignalReceiver(object):
 
             # Remove empty patterns
             for pattern in patterns_to_remove:
-                del patterns[pattern]
+                patterns.remove(pattern)
 
 
     def _notify_listeners(self, name, data):
