@@ -338,21 +338,59 @@ class ConfigurationFileReader(object):
             for line in filep:
                 if not commented:
                     # Non commented line
-                    lstrip_line = line.lstrip()
+                    try:
+                        # Look for a multiline comment
+                        start_idx = line.index('/*')
 
-                    if lstrip_line.startswith('/*'):
-                        # Comment block start (can be on one line)
-                        commented = not line.rstrip().endswith('*/')
+                        # Is the end of the comment on the same line ?
+                        end_idx = line.find('*/', start_idx)
 
-                    elif not lstrip_line.startswith('//'):
-                        # Normal line
+                        # We enter a comment block if the end of the comment
+                        # is not on this line
+                        commented = (end_idx == -1)
+
+                        if commented:
+                            # Remove the beginning of the comment
+                            line = line[:start_idx]
+
+                        else:
+                            # Remove the in-line comment
+                            end_idx += len('*/')
+                            line = ''.join((line[:start_idx], line[end_idx:]))
+
+                    except ValueError:
+                        # No multiline comment found
+                        pass
+
+                    try:
+                        # Single line comment
+                        line = line[:line.index('//')]
+
+                    except ValueError:
+                        # No comment
+                        pass
+
+                    # Store the treated line
+                    if line:
                         lines.append(line)
 
                 else:
-                    # We're in a comment block
-                    if line.rstrip().endswith('*/'):
-                        # End of the comment
+                    # We are in a comment block
+                    try:
+                        # Look for the end of the multiline comment block
+                        end_idx = line.index('*/')
+                        end_idx += len('*/')
+
+                    except ValueError:
+                        # No end of comment
+                        pass
+
+                    else:
+                        # End of comment found
                         commented = False
+
+                        # Store the line, without comments
+                        lines.append(line[end_idx:])
 
         # Load the JSON data
         json_data = json.loads(''.join(lines))
