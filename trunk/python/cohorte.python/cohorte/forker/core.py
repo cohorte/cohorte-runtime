@@ -731,8 +731,12 @@ class Forker(object):
                                     cohorte.forker.SIGNALS_FORKER_PATTERN, self)
 
         # Stop the isolates
-        for uid in self._isolates.keys():
-            self.stop_isolate(uid, 2)
+        for uid in list(self._isolates.keys()):
+            try:
+                self.stop_isolate(uid, 2)
+
+            except OSError as ex:
+                _logger.error("Error stopping isolate %s: %s", uid, ex)
 
         # Isolates to be removed from thread dictionary
         to_kill = {}
