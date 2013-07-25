@@ -28,6 +28,7 @@ from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
     Invalidate, Requires, Property
 import pelix.http
 import pelix.remote.beans
+from pelix.utilities import to_str
 
 # Standard library
 import logging
@@ -79,7 +80,7 @@ class _JabsorbRpcServlet(SimpleJSONRPCDispatcher):
         :param request: The HTTP response handler
         """
         # Get the request JSON content
-        data = jsonrpclib.loads(request.read_data())
+        data = jsonrpclib.loads(to_str(request.read_data()))
 
         # Convert from Jabsorb
         data = jabsorb.from_jabsorb(data)
