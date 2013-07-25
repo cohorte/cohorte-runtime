@@ -215,8 +215,8 @@ class Artifact(object):
         """
         The URL to the bundle file, if known
         """
-        if file:
-            return "file://{0}".format(self.file.replace(' ', '%20'))
+        if self.__file:
+            return "file://{0}".format(self.__file.replace(' ', '%20'))
 
         return None
 
