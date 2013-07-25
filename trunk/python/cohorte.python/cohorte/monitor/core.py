@@ -88,11 +88,11 @@ class MonitorCore(object):
 
         elif name == cohorte.monitor.SIGNAL_ISOLATE_READY:
             # Isolate ready
-            self._status.isolate_ready(data['signalSender'])
+            self._status.isolate_ready(data['senderUID'])
 
         elif name == cohorte.monitor.SIGNAL_ISOLATE_STOPPING:
             # Isolate ready
-            self._status.isolate_stopping(data['signalSender'])
+            self._status.isolate_stopping(data['senderUID'])
 
         elif name == cohorte.monitor.SIGNAL_ISOLATE_LOST:
             # Isolate signaled as lost
