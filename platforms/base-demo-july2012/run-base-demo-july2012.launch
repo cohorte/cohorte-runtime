@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.eclipse.ui.externaltools.ProgramLaunchConfigurationType">
+<stringAttribute key="bad_container_name" value="/platforms/base-demo-july2012/ru"/>
+<mapAttribute key="org.eclipse.debug.core.environmentVariables">
+<mapEntry key="COHORTE_BASE" value="${workspace_loc:/platforms}/base-demo-july2012"/>
+<mapEntry key="COHORTE_HOME" value="${workspace_loc:/platforms}/psem2m.home"/>
+</mapAttribute>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_LOCATION" value="${workspace_loc:/cohorte.python}/run.sh"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_TOOL_ARGUMENTS" value="--start-monitor"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_WORKING_DIRECTORY" value="${workspace_loc:/cohorte.python}"/>
+</launchConfiguration>
