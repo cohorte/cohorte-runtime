@@ -381,6 +381,10 @@ class JavaOsgiLoader(object):
                 # VM specific arguments first
                 java_args.extend(vm_args)
 
+            # DEBUG: Remote debug server
+            # java_args.append("-Xdebug")
+            # java_args.append("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005")
+
             # Set the class path as a parameter
             java_args.append(self._java.make_jvm_classpath(classpath))
 
@@ -515,6 +519,10 @@ class JavaOsgiLoader(object):
         _logger.debug("Starting JVM...")
         self._start_jvm(configuration.get('vm_args'), classpath,
                         configuration.get('vm_properties'))
+
+        # Patch for Mac OS X:
+        # GUI library must be loaded early in the main thread
+        self._java.load_class("java.awt.Color")
 
         # Load the FrameworkFactory implementation
         FrameworkFactory = self._java.load_class(factory_name)
