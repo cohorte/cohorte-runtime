@@ -284,7 +284,7 @@ class ColorFormatter(logging.Formatter):
         return result
 
 
-def configure_logger(logfile, debug, verbose):
+def configure_logger(logfile, debug, verbose, color):
     """
     Configures the root logger.
     
@@ -299,6 +299,7 @@ def configure_logger(logfile, debug, verbose):
     :param debug: The debug mode flag
     :param verbose: The verbose mode flag (allows to set the console output
                     in debug mode)
+    :param color: The console colored output flag
     """
     # Get the root logger
     root_log = logging.root
@@ -321,8 +322,13 @@ def configure_logger(logfile, debug, verbose):
         consh.setLevel(logging.WARNING)
 
     # ... prepare its formatter
-    formatter = ColorFormatter("%(asctime)s:%(levelname)-8s:%(name)-20s: "
-                               "%(message)s")
+    console_format = "%(asctime)s:%(levelname)-8s:%(name)-20s: %(message)s"
+    if color:
+        formatter = ColorFormatter(console_format)
+
+    else:
+        formatter = logging.Formatter(console_format)
+
     consh.setFormatter(formatter)
 
     # ... register it
@@ -414,6 +420,10 @@ def main(args=None):
                        dest="verbose", default=False,
                        help="Sets the isolate logging in verbose mode")
 
+    group.add_argument("-c", "--color", action="store_true",
+                       dest="color", default=False,
+                       help="Colors the console output")
+
     # Other options
     parser.add_argument("--version", action="version",
                         version="Cohorte bootstrap {0}".format(__version__))
@@ -422,7 +432,7 @@ def main(args=None):
     args = parser.parse_args(args)
 
     # Set up the logger
-    configure_logger(args.logfile, args.debug, args.verbose)
+    configure_logger(args.logfile, args.debug, args.verbose, args.color)
 
     # Find HOME and BASE
     home, base = find_cohorte_directories()
