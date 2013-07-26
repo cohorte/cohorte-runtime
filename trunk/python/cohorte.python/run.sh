@@ -8,7 +8,7 @@ PYTHON_INTERPRETER=${PYTHON_INTERPRETER:="python"}
 
 # Python path: Current path + demo path
 PYTHON_DEMOPATH=$($PYTHON_INTERPRETER -c "import os; print(os.path.realpath('../../../demos/demo-july2012/demo.july2012.python'))")
-export PYTHONPATH="$(pwd):$PYTHON_DEMOPATH:$($PYTHON_INTERPRETER -c 'import os,sys; print(os.pathsep.join(sys.path))')"
+export PYTHONPATH="$(pwd):$PYTHON_DEMOPATH:$($PYTHON_INTERPRETER -c 'import os,pelix; print(os.path.dirname(pelix.__file__))')"
 
 # COHORTE node name
 export COHORTE_NODE=${COHORTE_NODE:="central"}
