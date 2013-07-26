@@ -42,6 +42,9 @@ PROP_DEBUG = 'cohorte.debug'
 PROP_VERBOSE = 'cohorte.verbose'
 """ COHORTE logging verbose mode """
 
+PROP_COLORED = 'cohorte.log.color'
+""" COHORTE logging color mode """
+
 PROP_CONFIG_BROKER = 'cohorte.configuration.broker.url'
 """ URL to the configuration broker """
 

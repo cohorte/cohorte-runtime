@@ -441,6 +441,7 @@ def main(args=None):
     framework_properties = {'pelix.debug': args.debug,
                             cohorte.PROP_DEBUG: args.debug,
                             cohorte.PROP_VERBOSE: args.verbose,
+                            cohorte.PROP_COLORED: args.color,
                             cohorte.PROP_HOME: home,
                             cohorte.PROP_BASE: base}
 

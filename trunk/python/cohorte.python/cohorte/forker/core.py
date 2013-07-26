@@ -319,6 +319,9 @@ class Forker(object):
         if self._context.get_property(cohorte.PROP_VERBOSE):
             args.append('--verbose')
 
+        if self._context.get_property(cohorte.PROP_COLORED):
+            args.append('--color')
+
         # Run the process and return its reference
         return subprocess.Popen(args, executable=args[0],
                                 env=environment,
