@@ -62,7 +62,16 @@ class ComponentFactoryVisitor(ast.NodeVisitor):
         """
         for decorator in node.decorator_list:
             if decorator.func.id == "ComponentFactory":
-                argument = decorator.args[0]
+                if decorator.args:
+                    # Name: First argument
+                    argument = decorator.args[0]
+                elif decorator.kwargs:
+                    # Keyword argument
+                    argument = decorator.kwargs['name']
+                else:
+                    # Default name
+                    argument = "{0}Factory".format(node.name)
+
                 if hasattr(argument, 'id'):
                     # Constant
                     try:
@@ -121,7 +130,12 @@ def _extract_module_factories(filename):
     except (ValueError, SyntaxError) as ex:
         raise ValueError("Error parsing {0}: {1}".format(filename, ex))
 
-    visitor.visit(module)
+    try:
+        visitor.visit(module)
+
+    except Exception as ex:
+        raise ValueError("Error visiting {0}: {1}".format(filename, ex))
+
     return visitor.factories
 
 # ------------------------------------------------------------------------------
