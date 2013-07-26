@@ -162,12 +162,12 @@ class MonitorCore(object):
         resolution = repository.resolve_installation(bundles, isolate_artifacts)
         if resolution[2]:
             # Some artifacts are missing
-            _logger.error("Missing artifacts: %s", resolution[3])
+            _logger.error("Missing artifacts: %s", resolution[2])
             return False
 
         elif resolution[3]:
             # Some extra dependencies are missing
-            _logger.warning("Missing extra elements: %s", resolution[4])
+            _logger.warning("Missing extra elements: %s", resolution[3])
 
         # Clean up resolution
         custom_artifacts = [artifact for artifact in resolution[0]
