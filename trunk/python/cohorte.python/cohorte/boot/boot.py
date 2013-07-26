@@ -94,6 +94,9 @@ def load_isolate(pelix_properties, state_updater_url=None, fail_on_pdb=False):
                         occurs starting the framework
     :raise Exception: All exceptions are propagated
     """
+    _logger.debug("Running Python %s from %s",
+                  '.'.join(str(part) for part in sys.version_info),
+                  sys.executable)
     _logger.debug("Starting Pelix framework with properties:\n%s",
                   pformat(pelix_properties))
 
