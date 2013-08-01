@@ -30,9 +30,9 @@
 		"name" : "cohorte.composer.executor"
 	}, {
 		"name" : "cohorte.composer.core.rating"
-	}, {
-		"name" : "cohorte.composer.core.ruleengine"
-	}, {
+	}, /*
+		 * { "name" : "cohorte.composer.core.ruleengine" },
+		 */{
 		"name" : "cohorte.composer.core.status"
 	},
 
@@ -61,8 +61,8 @@
 	}, {
 		"factory" : "cohorte-forker-aggregator-factory",
 		"name" : "cohorte-forker-aggregator",
-		"properties": {
-			"multicast.port": 42001
+		"properties" : {
+			"multicast.port" : 42001
 		}
 	},
 
@@ -94,11 +94,9 @@
 	}, {
 		"factory" : "cohorte-composer-compatibility-factory",
 		"name" : "cohorte-composer-compatibility"
-	}, {
-		"factory" : "cohorte-composer-core-rules-factory",
-		"name" : "cohorte-composer-core-rules",
-		"properties": {
-			"rules.file": "file:/home/tcalmant/programmation/workspaces/psem2m/trunk/python/cohorte.python/cohorte/composer/core/composer.rules"
-		}
-	} ]
+	} /*
+		 * , { "factory" : "cohorte-composer-core-rules-factory", "name" :
+		 * "cohorte-composer-core-rules", "properties": { "rules.file":
+		 * "file:/home/tcalmant/programmation/workspaces/psem2m/trunk/python/cohorte.python/cohorte/composer/core/composer.rules" } }
+		 */]
 }
