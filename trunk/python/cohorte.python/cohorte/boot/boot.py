@@ -47,8 +47,6 @@ STATE_FAILED = -1
 STATE_LOADING = 2
 STATE_LOADED = 3
 
-PROP_LOOPER_NAME = "main.looper.name"
-
 _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
@@ -62,11 +60,7 @@ def _get_looper(context, looper_name):
     :return: The main thread handler
     :raise ValueError: Unknown looper
     """
-    if not looper_name:
-        # Default looper
-        looper_name = "cohorte.boot.looper.default"
-
-    elif '.' not in looper_name:
+    if '.' not in looper_name:
         # Internal name
         looper_name = "cohorte.boot.looper.{0}".format(looper_name)
 
@@ -110,16 +104,13 @@ def _get_loader(context, loader_bundle):
 
 
 def load_isolate(pelix_properties, state_updater_url=None,
-                 use_main_thread=True, looper_name=None,
-                 fail_on_pdb=False):
+                 looper_name=None, fail_on_pdb=False):
     """
     Starts a Pelix framework, installs iPOPO and boot modules and waits for
     the framework to stop
     
     :param pelix_properties: Pelix framework instance properties
     :param state_updater_url: URL to access the isolate state updater
-    :param use_main_thread: If True, run the framework in the main thread,
-                            else use a main thread handler
     :param looper_name: Name of the main thread loop handler
     :param fail_on_pdb: If true, ``pdb.post_mortem()`` is called if an exception
                         occurs starting the framework
@@ -142,7 +133,7 @@ def load_isolate(pelix_properties, state_updater_url=None,
     # Prepare the framework
     framework = pelix.framework.FrameworkFactory.get_framework(pelix_properties)
 
-    if use_main_thread:
+    if not looper_name:
         # Run the framework in the main thread (nothing to do)
         _run_framework(framework, state_updater_url, fail_on_pdb)
 
@@ -530,10 +521,6 @@ def main(args=None):
 
     # Threading options
     group = parser.add_argument_group("Threading options")
-    group.add_argument('-m', "--use-main-thread", action="store_true",
-                       dest="use_main_thread", default=False,
-                       help="The framework can be started in the main thread")
-
     group.add_argument('-l', "--looper", action="store",
                        dest="looper_name", default=None, metavar="NAME",
                        help="The main thread loop handler name")
@@ -600,8 +587,7 @@ def main(args=None):
     try:
         # Load the isolate and wait for it to stop
         load_isolate(framework_properties, args.state_updater,
-                     args.use_main_thread, args.looper_name,
-                     use_pdb)
+                     args.looper_name, use_pdb)
         return 0
 
     except Exception as ex:
