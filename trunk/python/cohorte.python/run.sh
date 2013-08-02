@@ -1,21 +1,34 @@
 #!/bin/bash
 
-# Compute the repository root, and normalize it
-COHORTE_ROOT=${COHORTE_ROOT:="../../.."}
+# Keep the current working directory
 old_pwd="$(pwd)"
-cd "$COHORTE_ROOT"
+
+# Compute the path to this file
+cd "$(dirname $0)"
+run_home="$(pwd)"
+
+# Compute the repository root, and normalize it
+cohorte_root=${COHORTE_ROOT:="$run_home/../../.."}
+cd "$cohorte_root"
 export COHORTE_ROOT="$(pwd)"
 cd "$old_pwd"
 
+echo "Cohorte root   => $COHORTE_ROOT"
+echo "Cohorte runner => $run_home"
+
 # Run the default configuration
-. ./run_conf/default.sh
+echo Reading default configuration
+. "$run_home/run_conf/default.sh"
 
 # Compute the local configuration file name
-conf_name="./run_conf/$(hostname).sh"
-if [ -x conf_name ]
+conf_name="$run_home/run_conf/$(hostname).sh"
+if [ -x "$conf_name" ]
 then
     # Execute it
+    echo "Reading local configuration => $conf_name"
     . "$conf_name"
+else
+    echo "No local configuration to read ($conf_name)"
 fi
 
 # COHORTE node name
@@ -34,9 +47,9 @@ export PYTHONPATH="$(pwd):$PYTHON_DEMOPATH:$PYTHONPATH"
 # Remove previous environment
 if [ ! -d "$COHORTE_BASE/var" ]
 then
-	mkdir "$COHORTE_BASE/var"
+    mkdir "$COHORTE_BASE/var"
 else
-	rm -r $COHORTE_BASE/var/*
+    rm -r $COHORTE_BASE/var/*
 fi
 
 # Run the damn thing
