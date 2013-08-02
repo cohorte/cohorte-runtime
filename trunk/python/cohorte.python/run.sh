@@ -32,8 +32,12 @@ PYTHON_DEMOPATH="$COHORTE_ROOT/demos/demo-july2012/demo.july2012.python"
 export PYTHONPATH="$(pwd):$PYTHON_DEMOPATH:$PYTHONPATH"
 
 # Remove previous environment
-mkdir -f $COHORTE_BASE/var
-rm -fr $COHORTE_BASE/var/*
+if [ ! -d "$COHORTE_BASE/var" ]
+then
+	mkdir "$COHORTE_BASE/var"
+else
+	rm -r $COHORTE_BASE/var/*
+fi
 
 # Run the damn thing
 $PYTHON_INTERPRETER -- cohorte/boot/boot.py -d -v $*
