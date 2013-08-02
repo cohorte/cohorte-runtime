@@ -253,7 +253,8 @@ class Forker(object):
 
 
     def _run_boot_script(self, working_directory, configuration,
-                         config_broker_url, state_updater_url):
+                         config_broker_url, state_updater_url,
+                         looper_name=None):
         """
         Runs the boot script in a new process
         
@@ -261,6 +262,7 @@ class Forker(object):
         :param configuration: Isolate configuration dictionary
         :param config_broker_url: URL to the configuration in the broker
         :param state_updater_url: URL to the isolate state updater
+        :param looper_name: Name of the main thread loop handler, if any
         :return: A POpen object
         """
         # Increase readability
@@ -305,6 +307,10 @@ class Forker(object):
         # State updater URL
         if state_updater_url:
             args.append('--state-updater={0}'.format(state_updater_url))
+
+        # Main thread loop handler
+        if looper_name:
+            args.append('--looper={0}'.format(looper_name))
 
         # Log file
         logname = 'log_{0}.log'.format(configuration['name'],
@@ -384,15 +390,13 @@ class Forker(object):
         config_url = self._config_broker.store_configuration(uid,
                                                              isolate_config)
 
-        from pprint import pformat
-        _logger.debug("Starting isolate with config:\n%s", pformat(isolate_config))
-
         # Start the boot script
         try:
             # Start the process
             process = self._run_boot_script(working_dir, isolate_config,
                                             config_url,
-                                            self._state_updater.get_url())
+                                            self._state_updater.get_url(),
+                                            isolate_config.get('looper'))
 
         except ValueError as ex:
             # Invalid argument given

@@ -28,6 +28,7 @@ from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
 
 # Standard library
 import logging
+import sys
 import threading
 import uuid
 
@@ -187,6 +188,11 @@ class MonitorCore(object):
         # Prepare a configuration
         config = self._config.prepare_isolate(uid, name, node, kind, level,
                                               sublevel, custom_artifacts)
+
+        # FIXME: make that prettier
+        # Compute the looper, if needed
+        if sys.platform == "darwin" and kind in ("java", "osgi"):
+            config['looper'] = 'cocoa'
 
         # Store the isolate in the status
         self._status.add_isolate(uid)
