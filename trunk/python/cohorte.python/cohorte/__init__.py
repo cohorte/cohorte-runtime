@@ -125,6 +125,15 @@ SERVICE_CONFIGURATION_BROKER = 'cohorte.configuration.broker'
 
 # ------------------------------------------------------------------------------
 
+SERVICE_LOOPER = 'cohorte.boot.looper'
+"""
+Specification of a main thread loop handler.
+
+* stop(): Exits the main thread loop
+* run(method, *args, **kwargs): Runs the given method on the main thread
+  and returns its result.
+"""
+
 SERVICE_ISOLATE_LOADER = 'cohorte.boot.loader'
 """
 Specification provided by an isolate Loader.

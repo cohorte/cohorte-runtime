@@ -33,6 +33,7 @@ from pprint import pformat
 import logging
 import os
 import sys
+import threading
 import traceback
 
 # ------------------------------------------------------------------------------
@@ -46,9 +47,34 @@ STATE_FAILED = -1
 STATE_LOADING = 2
 STATE_LOADED = 3
 
+PROP_LOOPER_NAME = "main.looper.name"
+
 _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
+
+def _get_looper(context, looper_name):
+    """
+    Retrieves the main thread looper corresponding to the system
+    
+    :param context: The bundle context
+    :param looper_name: Name of the loop handler bundle (or internal name)
+    :return: The main thread handler
+    :raise ValueError: Unknown looper
+    """
+    if not looper_name:
+        # Default looper
+        looper_name = "cohorte.boot.looper.default"
+
+    elif '.' not in looper_name:
+        # Internal name
+        looper_name = "cohorte.boot.looper.{0}".format(looper_name)
+
+    # Do not start the bundle, as the framework is still stopped here
+    # Also, we only need the bundle module, not its services
+    bundle = context.install_bundle(looper_name)
+    return bundle.get_module().get_looper()
+
 
 def _get_loader(context, loader_bundle):
     """
@@ -83,17 +109,23 @@ def _get_loader(context, loader_bundle):
     raise TypeError('No isolate loader found')
 
 
-def load_isolate(pelix_properties, state_updater_url=None, fail_on_pdb=False):
+def load_isolate(pelix_properties, state_updater_url=None,
+                 use_main_thread=True, looper_name=None,
+                 fail_on_pdb=False):
     """
     Starts a Pelix framework, installs iPOPO and boot modules and waits for
     the framework to stop
     
     :param pelix_properties: Pelix framework instance properties
     :param state_updater_url: URL to access the isolate state updater
+    :param use_main_thread: If True, run the framework in the main thread,
+                            else use a main thread handler
+    :param looper_name: Name of the main thread loop handler
     :param fail_on_pdb: If true, ``pdb.post_mortem()`` is called if an exception
                         occurs starting the framework
     :raise Exception: All exceptions are propagated
     """
+    # Give some information
     _logger.debug("Running Python %s from %s",
                   '.'.join(str(part) for part in sys.version_info),
                   sys.executable)
@@ -107,12 +139,81 @@ def load_isolate(pelix_properties, state_updater_url=None, fail_on_pdb=False):
             _logger.debug("Adding %s to Python path", repo)
             sys.path.insert(0, repo)
 
-    # Start the framework
+    # Prepare the framework
     framework = pelix.framework.FrameworkFactory.get_framework(pelix_properties)
-    framework.start()
 
+    if use_main_thread:
+        # Run the framework in the main thread (nothing to do)
+        _run_framework(framework, state_updater_url, fail_on_pdb)
+
+    else:
+        # Get the main thread handler
+        context = framework.get_bundle_context()
+        looper = _get_looper(context, looper_name)
+        looper.setup(sys.argv)
+
+        # Register the looper as a service
+        context.register_service(cohorte.SERVICE_LOOPER, looper, None)
+
+        # Run the framework in a new thread
+        threading.Thread(target=_safe_run_framework,
+                         args=(framework, looper,
+                               state_updater_url, fail_on_pdb),
+                         name="framework").start()
+
+        # Let the main thread loop
+        try:
+            _logger.debug("Entering main thread loop...")
+            looper.loop()
+            _logger.debug("Exiting main thread loop...")
+
+        finally:
+            # Stop the framework if the looper stops
+            _logger.debug("Stopping the framework...")
+            framework.stop()
+
+
+def _safe_run_framework(framework, looper, state_updater_url, fail_on_pdb):
+    """
+    Starts the framework, logs exceptions
+    
+    :param framework: An instance of framework
+    :param looper: The main thread handler
+    :param state_updater_url: URL to access the isolate state updater
+    :param fail_on_pdb: If true, ``pdb.post_mortem()`` is called if an exception
+                        occurs starting the framework
+    """
+    try:
+        # Run the framework
+        current_thread = threading.current_thread()
+        _logger.debug("Starting framework in thread '%s' (%s)",
+                      current_thread.name, current_thread.ident)
+
+        _run_framework(framework, state_updater_url, fail_on_pdb)
+
+    except Exception as ex:
+        # Log the exception
+        _logger.exception("Error running the framework: %s", ex)
+
+    finally:
+        # Stop the looper
+        _logger.debug("Stopping the looper...")
+        looper.stop()
+
+
+def _run_framework(framework, state_updater_url, fail_on_pdb):
+    """
+    Starts the framework
+    
+    :param framework: An instance of framework
+    :param state_updater_url: URL to access the isolate state updater
+    :param fail_on_pdb: If true, ``pdb.post_mortem()`` is called if an exception
+                        occurs starting the framework
+    :raise Exception: All exceptions are propagated
+    """
     try:
         context = framework.get_bundle_context()
+        framework.start()
 
         # Install & start configuration bundles
         for name in MINIMAL_BUNDLES:
@@ -427,6 +528,16 @@ def main(args=None):
                        dest="color", default=False,
                        help="Colors the console output")
 
+    # Threading options
+    group = parser.add_argument_group("Threading options")
+    group.add_argument('-m', "--use-main-thread", action="store_true",
+                       dest="use_main_thread", default=False,
+                       help="The framework can be started in the main thread")
+
+    group.add_argument('-l', "--looper", action="store",
+                       dest="looper_name", default=None, metavar="NAME",
+                       help="The main thread loop handler name")
+
     # Other options
     parser.add_argument("--version", action="version",
                         version="Cohorte bootstrap {0}".format(__version__))
@@ -468,7 +579,6 @@ def main(args=None):
         # The forker must start a monitor
         framework_properties[cohorte.PROP_START_MONITOR] = True
 
-
     # Run PDB on unhandled exceptions, in debug mode
     use_pdb = args.debug and sys.stdin.isatty()
     if use_pdb:
@@ -489,7 +599,9 @@ def main(args=None):
 
     try:
         # Load the isolate and wait for it to stop
-        load_isolate(framework_properties, args.state_updater, use_pdb)
+        load_isolate(framework_properties, args.state_updater,
+                     args.use_main_thread, args.looper_name,
+                     use_pdb)
         return 0
 
     except Exception as ex:
