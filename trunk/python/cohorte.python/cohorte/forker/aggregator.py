@@ -522,12 +522,15 @@ class ForkerAggregator(object):
         :param kind: Kind the forker must handle
         :return: The first matching UID or None
         """
-        for uid in self._directory.get_name_uids(cohorte.forker.FORKER_NAME):
-            if node is None:
-                # No node given, get the first one found
-                return uid
+        # get_name_uids() returns a generator
+        forkers = self._directory.get_name_uids(cohorte.forker.FORKER_NAME)
 
-            else:
+        if node is None:
+            # No node given, get the first one found
+            return next(forkers)
+
+        else:
+            for uid in forkers:
                 if self._directory.get_isolate_node(uid) == node:
                     # Found a forker for the node
                     return uid
