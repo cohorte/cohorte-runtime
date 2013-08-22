@@ -182,12 +182,15 @@ class MonitorCore(object):
         uid = str(uid)
 
         # Run on local node if none is given
-        if not node:
-            node = self._context.get_property(cohorte.PROP_NODE)
+        default_node = self._context.get_property(cohorte.PROP_NODE)
 
         # Prepare a configuration
         config = self._config.prepare_isolate(uid, name, node, kind, level,
-                                              sublevel, custom_artifacts)
+                                              sublevel, custom_artifacts,
+                                              default_node=default_node)
+
+        # Update the target node
+        node = config['node']
 
         # FIXME: make that prettier
         # Compute the looper, if needed

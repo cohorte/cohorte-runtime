@@ -194,7 +194,7 @@ class BootConfigParser(object):
 
     def _prepare_configuration(self, uid, name, node, kind,
                               bundles=None, composition=None,
-                              base_configuration=None):
+                              base_configuration=None, default_node=None):
         """
         Prepares and returns a configuration dictionary to be stored in the
         configuration broker, to start an isolate of the given kind.
@@ -206,6 +206,8 @@ class BootConfigParser(object):
         :param bundles: Extra bundles to install
         :param composition: Extra components to instantiate
         :param base_configuration: Base configuration (to override)
+        :param default_node: Node to use if not forced neither in the
+                             base configuration
         :return: A configuration dictionary
                  (updated base_configuration if given)
         :raise IOError: Unknown/unaccessible kind of isolate
@@ -220,8 +222,15 @@ class BootConfigParser(object):
         # Set up isolate properties
         configuration['uid'] = uid
         configuration['name'] = name
-        configuration['node'] = node
         configuration['kind'] = kind
+
+        if node:
+            # Node forced
+            configuration['node'] = node
+
+        elif 'node' not in configuration:
+            # Node not set in the base configuration
+            configuration['node'] = default_node
 
         # Boot configuration for this kind
         new_boot = configuration.setdefault('boot', {})
@@ -345,19 +354,21 @@ class BootConfigParser(object):
 
 
     def prepare_isolate(self, uid, name, node, kind, level, sublevel,
-                        bundles=None, composition=None):
+                        bundles=None, composition=None, default_node=None):
         """
         Prepares and returns a configuration dictionary to be stored in the
         configuration broker, to start an isolate of the given kind.
         
         :param uid: The isolate UID
         :param name: The isolate name
-        :param node: The isolate node name
+        :param node: Forced node name (can be None)
         :param kind: The kind of isolate to boot (pelix, osgi, ...)
         :param level: The level of configuration (boot, java, python, ...)
         :param sublevel: Category of configuration (monitor, isolate, ...)
         :param bundles: Extra bundles to install
         :param composition: Extra components to instantiate
+        :param default_node: Node to use if not forced neither in the
+                             isolate-specific configuration
         :return: A configuration dictionary
         :raise IOError: Unknown/unaccessible kind of isolate
         :raise KeyError: A parameter is missing in the configuration files
@@ -384,7 +395,8 @@ class BootConfigParser(object):
 
         # Extend with the boot configuration
         return self._prepare_configuration(uid, name, node, kind,
-                                           bundles, composition, configuration)
+                                           bundles, composition, configuration,
+                                           default_node)
 
 
     def read(self, filename, reader_log_error=True):
