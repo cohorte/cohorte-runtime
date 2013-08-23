@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -- Content-Encoding: UTF-8 --
 """
-COHORTE Utilities: Task pool
+COHORTE Utilities: Task (thread) pool
 
 :author: Thomas Calmant
 :license: GPLv3
@@ -11,7 +11,7 @@ COHORTE Utilities: Task pool
 __docformat__ = "restructuredtext en"
 
 # Version
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 
 # ------------------------------------------------------------------------------
 
@@ -20,13 +20,13 @@ import logging
 import threading
 import sys
 
-if sys.version_info[0] == 3:
-    # Python 3
-    import queue
-
-else:
+if sys.version_info[0] < 3:
     # Python 2
     import Queue as queue
+
+else:
+    # Python 3
+    import queue
 
 # ------------------------------------------------------------------------------
 
@@ -140,6 +140,29 @@ class TaskPool(object):
         self._queue = queue.Queue(self._queue_size)
 
 
+    def join(self, timeout=None):
+        """
+        Waits for all the tasks to be executed
+        
+        :param timeout: Maximum time to wait (in seconds)
+        :return: True if the queue has been emptied, else False
+        """
+        if self._queue.empty():
+            # Nothing to wait for...
+            return True
+
+        elif timeout is None:
+            # Use the original join
+            self._queue.join()
+            return True
+
+        else:
+            # Wait for the condition
+            with self._queue.all_tasks_done:
+                self._queue.all_tasks_done.wait(timeout)
+                return self._queue.empty()
+
+
     def __run(self):
         """
         The main loop
@@ -150,6 +173,7 @@ class TaskPool(object):
                 task = self._queue.get(True, self._timeout)
                 if task is self._stop_event:
                     # Stop event in the queue: get out
+                    self._queue.task_done()
                     return
 
             except queue.Empty:
