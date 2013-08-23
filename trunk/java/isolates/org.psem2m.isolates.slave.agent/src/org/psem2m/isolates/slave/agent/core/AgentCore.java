@@ -13,6 +13,11 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Invalidate;
+import org.apache.felix.ipojo.annotations.Provides;
+import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
@@ -22,7 +27,6 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.FrameworkListener;
 import org.osgi.framework.wiring.FrameworkWiring;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
-import org.psem2m.isolates.base.activators.CPojoBase;
 import org.psem2m.isolates.base.bundles.BundleInfo;
 import org.psem2m.isolates.constants.ISignalsConstants;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
@@ -36,8 +40,9 @@ import org.psem2m.signals.ISignalReceiver;
  * 
  * @author Thomas Calmant
  */
-public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
-        BundleListener {
+@Component(name = "psem2m-slave-agent-core-factory")
+@Provides(specifications = ISvcAgent.class)
+public class AgentCore implements ISvcAgent, ISignalListener, BundleListener {
 
     // TODO: inject the Python StateUpdater service
 
@@ -48,15 +53,18 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
     private final AtomicBoolean pCriticalSection = new AtomicBoolean(false);
 
     /** Isolate logger, injected by iPOJO */
+    @Requires
     private IIsolateLoggerSvc pLogger;
 
     /** Platform directories service, injected by iPOJO */
+    @Requires
     private IPlatformDirsSvc pPlatformDirs;
 
     /** The scheduler */
     private ScheduledExecutorService pScheduler;
 
     /** Signal receiver */
+    @Requires
     private ISignalReceiver pSignalReceiver;
 
     /** The update timeouts */
@@ -230,7 +238,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
     public Object handleReceivedSignal(final String aSignalName,
             final ISignalData aSignalData) {
 
-        if (aSignalName.equals(ISignalsConstants.ISOLATE_STOP_SIGNAL)) {
+        if (ISignalsConstants.ISOLATE_STOP_SIGNAL.equals(aSignalName)) {
 
             // Log what happened
             pLogger.logInfo(this, "handleReceivedSignal",
@@ -267,13 +275,14 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
         return pContext.installBundle(aBundleUrl).getBundleId();
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.base.CPojoBase#invalidatePojo()
+    /**
+     * Component invalidated
      */
-    @Override
-    public void invalidatePojo() {
+    @Invalidate
+    public void invalidate() {
+
+        pSignalReceiver.unregisterListener(
+                ISignalsConstants.ISOLATE_STOP_SIGNAL, this);
 
         // Stop the scheduled timeouts
         pScheduler.shutdownNow();
@@ -284,7 +293,7 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
         pUpdateTimeouts.clear();
 
         // log the invalidation
-        pLogger.logInfo(this, "invalidatePojo", "INVALIDATE", toString());
+        pLogger.logInfo(this, "invalidate", "Slave agent gone");
     }
 
     /**
@@ -311,15 +320,22 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
         pLogger.logInfo(this, "killIsolate", "Kill this isolate [%s:%s]",
                 pPlatformDirs.getIsolateName(), pPlatformDirs.getIsolateUID());
 
-        try {
-            // Stop the platform
-            pContext.getBundle(0).stop();
+        // Use a thread to be responsive
+        new Thread(new Runnable() {
 
-        } catch (final BundleException e) {
-            // Damn
-            pLogger.logSevere(this, "validatePojo", "Can't stop the framework",
-                    e);
-        }
+            @Override
+            public void run() {
+
+                try {
+                    // Stop the platform
+                    pContext.getBundle(0).stop();
+
+                } catch (final BundleException e) {
+                    pLogger.logSevere(this, "validatePojo",
+                            "Can't stop the framework", e);
+                }
+            }
+        }, "agent-stop").start();
     }
 
     /**
@@ -451,16 +467,11 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
         return true;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.base.CPojoBase#validatePojo()
+    /**
+     * Component validated
      */
-    @Override
-    public void validatePojo() {
-
-        // logs the validation
-        pLogger.logInfo(this, "validatePojo", "VALIDATE", toString());
+    @Validate
+    public void validate() {
 
         // Set up the scheduler, before the call to addBundleListener.
         pScheduler = Executors.newScheduledThreadPool(1);
@@ -471,5 +482,8 @@ public class AgentCore extends CPojoBase implements ISvcAgent, ISignalListener,
 
         // Register to bundle events : replaces the guardian thread.
         pContext.addBundleListener(this);
+
+        // Log the validation
+        pLogger.logInfo(this, "validate", "Slave agent ready");
     }
 }
