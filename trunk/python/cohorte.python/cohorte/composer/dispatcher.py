@@ -68,12 +68,19 @@ class EventDispatcher(object):
         :return: The original component bean if it needs to be redistributed,
                  else None
         """
+        # Get the associated component
+        try:
+            component = self._status.get_component(component_uid)
+
+        except KeyError:
+            _logger.warning("Unknown component: %s", component_uid)
+            return None
+
         if kind and kind[0] == '/':
             kind = kind[1:]
 
         if kind in ("instantiated", "running"):
             # Use the UID of the isolate
-            component = self._status.get_component(component_uid)
             component.isolate = isolate_uid
 
         elif kind in ("validated", "invalidated"):
@@ -83,7 +90,6 @@ class EventDispatcher(object):
         elif kind in ("gone", "lost"):
             # Component lost
             # Update status
-            component = self._status.get_component(component_uid)
             self._status.remove_component(component.uid)
 
             # Update ratings
