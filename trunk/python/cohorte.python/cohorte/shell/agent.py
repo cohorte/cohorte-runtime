@@ -144,16 +144,20 @@ class ShellAgentCommands(object):
         table = []
         for uid, response in succeeded.items():
             # Get the first valid result
-            for result in response['results']:
-                try:
-                    pid = result['pid']
-                    break
-
-                except KeyError:
-                    pass
+            if response is None:
+                failed.append(uid)
 
             else:
-                pid = "<unknown>"
+                for result in response['results']:
+                    try:
+                        pid = result['pid']
+                        break
+
+                    except KeyError:
+                        pass
+
+                else:
+                    pid = "<unknown>"
 
             # Add the line to the table
             line = (self._directory.get_isolate_name(uid), uid,
@@ -202,11 +206,15 @@ class ShellAgentCommands(object):
 
         # Compute the shell names
         shell_names = []
-        for isolate_response in succeeded.values():
-            for result in isolate_response['results']:
-                for shell_name in result:
-                    if shell_name not in shell_names:
-                        shell_names.append(shell_name)
+        for uid, isolate_response in succeeded.items():
+            if isolate_response is None:
+                # Unreadable answer
+                failed.append(uid)
+            else:
+                for result in isolate_response['results']:
+                    for shell_name in result:
+                        if shell_name not in shell_names:
+                            shell_names.append(shell_name)
 
         # Sort shell names
         shell_names.sort()
