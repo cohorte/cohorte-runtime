@@ -72,9 +72,6 @@ class ConfigurationFileReader(object):
         # The file finder
         self._finder = None
 
-        # File inclusion stack
-        self._include_stack = []
-
 
     def _compute_overridden_props(self, json_object, overriding_props):
         """
@@ -125,7 +122,8 @@ class ConfigurationFileReader(object):
                     json_data[key] = value
 
 
-    def _do_recursive_imports(self, filename, json_data, overridden_props):
+    def _do_recursive_imports(self, filename, json_data, overridden_props,
+                              include_stack):
         """
         Recursively does the file merging according to the indications in the
         given JSON data (object or array).
@@ -147,7 +145,8 @@ class ConfigurationFileReader(object):
             while i < len(json_data):
                 entry = json_data[i]
                 new_data = self._do_recursive_imports(filename, entry,
-                                                      overridden_props)
+                                                      overridden_props,
+                                                      include_stack)
                 if new_data is not entry:
                     # The entry has been updated
                     json_data[i] = new_data
@@ -167,7 +166,7 @@ class ConfigurationFileReader(object):
                 new_props = self._compute_overridden_props(json_data,
                                                            overridden_props)
                 imported_data = self._load_file(from_filename, filename,
-                                                new_props)
+                                                new_props, include_stack)
 
                 # Update properties
                 self._update_properties(imported_data, overridden_props)
@@ -192,7 +191,7 @@ class ConfigurationFileReader(object):
                     new_props = self._compute_overridden_props(json_data,
                                                                overridden_props)
                     imported_data = self._load_file(import_filename, filename,
-                                                    new_props)
+                                                    new_props, include_stack)
 
                     # Update properties in imported data
                     self._update_properties(imported_data, overridden_props)
@@ -203,7 +202,8 @@ class ConfigurationFileReader(object):
                     # Do the recursive import
                     for key, value in json_data.items():
                         new_value = self._do_recursive_imports(filename, value,
-                                                               overridden_props)
+                                                               overridden_props,
+                                                               include_stack)
                         if new_value is not value:
                             # The value has been changed
                             json_data[key] = value
@@ -214,7 +214,8 @@ class ConfigurationFileReader(object):
                 # Standard object, look into its entries
                 for key, value in json_data.items():
                     new_value = self._do_recursive_imports(filename, value,
-                                                           overridden_props)
+                                                           overridden_props,
+                                                           include_stack)
                     if new_value is not value:
                         # The value has been changed
                         json_data[key] = value
@@ -320,7 +321,7 @@ class ConfigurationFileReader(object):
         return local
 
 
-    def _parse_file(self, filename, overridden_props):
+    def _parse_file(self, filename, overridden_props, include_stack):
         """
         Returns the parsed JSON content of the given file
         
@@ -396,10 +397,11 @@ class ConfigurationFileReader(object):
         json_data = json.loads(''.join(lines))
 
         # Check imports
-        return self._do_recursive_imports(filename, json_data, overridden_props)
+        return self._do_recursive_imports(filename, json_data, overridden_props,
+                                          include_stack)
 
 
-    def _load_file(self, filename, base_file, overridden_props):
+    def _load_file(self, filename, base_file, overridden_props, include_stack):
         """
         Parses a configuration file.
         This method shall not be called directly, as it doesn't performs clean
@@ -418,20 +420,20 @@ class ConfigurationFileReader(object):
             raise IOError("File not found: '{0}' (base: {1})" \
                           .format(filename, base_file))
 
-        if conffile in self._include_stack:
+        if conffile in include_stack:
             # The file is already in the inclusion stack
             raise ValueError("Recursive import detected: '{0}' - '{1}'" \
-                             .format(conffile, self._include_stack))
+                             .format(conffile, include_stack))
 
         else:
             # Store the file in the inclusion stack
-            self._include_stack.append(conffile)
+            include_stack.append(conffile)
 
         # Parse the file and resolve inclusions
-        json_data = self._parse_file(conffile, overridden_props)
+        json_data = self._parse_file(conffile, overridden_props, include_stack)
 
         # Remove the top of the stack before returning
-        self._include_stack.pop()
+        include_stack.pop()
         return json_data
 
 
@@ -450,29 +452,27 @@ class ConfigurationFileReader(object):
         :raise ValueError: Error parsing a JSON file
         :raise IOError: Error reading the configuration file
         """
+        include_stack = []
+
         try:
             # Load the file
-            return self._load_file(filename, base_file, overridden_props)
+            return self._load_file(filename, base_file, overridden_props,
+                                   include_stack)
 
         except ValueError as ex:
             # Log parsing errors
-            _logger.error("Error parsing file '%s': %s",
-                          self._include_stack[-1], ex)
+            _logger.error("Error parsing file '%s': %s", include_stack[-1], ex)
             raise
 
         except IOError as ex:
             if log_error:
                 # Log the access error
-                if self._include_stack:
+                if include_stack:
                     _logger.error("Error looking for file imported by '%s': %s",
-                                  self._include_stack[-1], ex)
+                                  include_stack[-1], ex)
 
                 else:
                     _logger.error("Can't read file '%s': %s", filename, ex)
 
             # Re-raise the error
             raise
-
-        finally:
-            # Clear the stack content in any case
-            del self._include_stack[:]
