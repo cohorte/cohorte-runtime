@@ -74,6 +74,16 @@ def make_isolate_fsm(uid):
     fsm.add_transition(ISOLATE_STATE_STOPPING, ISOLATE_EVENT_GONE,
                        ISOLATE_STATE_GONE)
 
+    # Ugly trick : on fast systems, the isolate can be ready before the forker
+    # returns a result
+    fsm.add_transition(ISOLATE_STATE_REQUESTED, ISOLATE_EVENT_READY,
+                       ISOLATE_STATE_READY)
+    fsm.add_transition(ISOLATE_STATE_READY, ISOLATE_EVENT_STARTING,
+                       ISOLATE_STATE_READY)
+
+    fsm.add_transition(ISOLATE_STATE_GONE, ISOLATE_EVENT_GONE,
+                       ISOLATE_STATE_GONE)
+
     # Start state
     fsm.set_start(ISOLATE_STATE_WAITING)
     return fsm
