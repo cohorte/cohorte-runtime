@@ -23,6 +23,7 @@ import cohorte.forker
 import cohorte.monitor
 import cohorte.signals
 import cohorte.utils as utils
+import cohorte.utils.pool
 
 # Pelix framework
 from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
@@ -526,7 +527,7 @@ class Forker(object):
 
         # Send the stop signal (stop softly)
         reached = self._sender.send(cohorte.monitor.SIGNAL_STOP_ISOLATE,
-                                    None, isolate=uid)
+                                    None, isolate=uid)[0]
         if not reached or uid not in reached:
             # Signal not handled
             _logger.warn("Isolate didn't received the 'stop' signal: Kill it!")
@@ -738,12 +739,22 @@ class Forker(object):
                                     cohorte.forker.SIGNALS_FORKER_PATTERN, self)
 
         # Stop the isolates
-        for uid in list(self._isolates.keys()):
+        def stop(uid):
             try:
-                self.stop_isolate(uid, 2)
+                self.stop_isolate(uid, 3)
 
             except OSError as ex:
                 _logger.error("Error stopping isolate %s: %s", uid, ex)
+
+        # Create a pool (using 5 threads max)
+        pool = cohorte.utils.pool.TaskPool(min(len(self._isolates), 5))
+        for uid in self._isolates.keys():
+            pool.enqueue(stop, uid)
+
+        # Start the pool
+        pool.start()
+        pool.join(10)
+        pool.stop()
 
         # Isolates to be removed from thread dictionary
         to_kill = {}
