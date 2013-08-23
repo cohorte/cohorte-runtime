@@ -105,8 +105,8 @@ class Aggregator(object):
                         unit = sensor.getUnit()
                         self._store(name, value, unit)
 
-                    except:
-                        _logger.exception("Error retrieving sensor data")
+                    except Exception as ex:
+                        _logger.error("Error retrieving sensor data: %s", ex)
 
             # Wait for the poll delta, or for the order to stop
             try:
