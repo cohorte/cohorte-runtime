@@ -197,7 +197,7 @@ class MulticastReceiver(object):
 @Requires('_listeners', cohorte.forker.SERVICE_FORKER_LISTENER, True, True)
 @Property('_group', 'multicast.group', '239.0.0.1')
 @Property('_port', 'multicast.port', 42000)
-@Property('_forker_ttl', 'forker.ttl', 10)
+@Property('_forker_ttl', 'forker.ttl', 5)
 class ForkerAggregator(object):
     """
     Forker aggregator: listens for multicast datagrams to register forkers or
@@ -506,7 +506,7 @@ class ForkerAggregator(object):
         else:
             try:
                 # Get the result
-                result = results[0][uid][0]
+                result = results[0][uid]['results'][0]
                 return int(result)
 
             except (KeyError, IndexError, ValueError):
