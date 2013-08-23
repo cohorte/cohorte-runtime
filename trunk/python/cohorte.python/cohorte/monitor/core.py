@@ -245,17 +245,18 @@ class MonitorCore(object):
             return
 
         # Get the isolates waiting for that forker
-        isolates = self._waiting[node]
+        original = self._waiting[node]
+        waiting = original.copy()
 
         # Start all isolates waiting on that node
-        for iso_uid, (kind, config) in isolates.items():
+        for iso_uid, (kind, config) in waiting.items():
             # Call the forker
             self._status.isolate_requested(iso_uid)
             result = self._forkers.start_isolate(iso_uid, node, kind, config)
             if result in cohorte.forker.REQUEST_SUCCESSES:
                 # Isolate started
                 self._status.isolate_starting(iso_uid)
-                del isolates[iso_uid]
+                del original[iso_uid]
 
 
     def _handle_lost(self, uid):
@@ -264,8 +265,14 @@ class MonitorCore(object):
         
         :param uid: UID of the lost isolate
         """
-        # Get previous state
-        state = self._status.get_state(uid)
+        try:
+            # Get previous state
+            state = self._status.get_state(uid)
+
+        except KeyError:
+            # Unknown / Already lost isolate -> do nothing
+            _logger.info("Unknown isolate %s lost (or already handled)", uid)
+            return
 
         # Change state
         self._status.isolate_gone(uid)
