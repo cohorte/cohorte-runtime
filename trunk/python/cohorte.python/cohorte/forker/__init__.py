@@ -51,18 +51,32 @@ Start isolate request:
 - contains the whole configuration of the isolate to start (with a UID)
 """
 
-SIGNAL_STOP_ISOLATE = "{0}/stop".format(__SIGNALS_FORKER_PREFIX)
+SIGNAL_KILL_ISOLATE = "{0}/kill".format(__SIGNALS_FORKER_PREFIX)
 """
-Stop isolate request:
-- sent by the monitor
+Request to the forker to stop or kill the given isolate
+- sent by the monitor, to the forker associated to the isolate
 - contains the UID of the isolate to stop.
 """
 
-SIGNAL_PLATFORM_STOPPING = "{0}/platform-stop".format(__SIGNALS_FORKER_PREFIX)
+SIGNAL_STOP_FORKER = "{0}/stop".format(__SIGNALS_FORKER_PREFIX)
 """
-Sets the forker into platform stopping mode
-- sent by the monitor
+A monitor tells a forker to stop itself
+- sent by the monitor, to one or more forkers
 - no content
+"""
+
+SIGNAL_FORKER_STOPPING = "{0}/stopping".format(__SIGNALS_FORKER_PREFIX)
+"""
+A forker indicates that it will stop soon
+- sent by the stopping forker, to all
+- contains the UID of the forker, its node and the list of its isolates (UIDs)
+"""
+
+SIGNAL_FORKER_LOST = "{0}/lost".format(__SIGNALS_FORKER_PREFIX)
+"""
+A monitor indicates that it lost contact with a forker
+- sent by the monitor, to all
+- contains the UID of the forker, its node and the list of its isolates (UIDs)
 """
 
 # ------------------------------------------------------------------------------

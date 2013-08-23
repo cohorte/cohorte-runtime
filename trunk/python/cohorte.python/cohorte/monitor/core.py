@@ -21,6 +21,7 @@ import cohorte.monitor
 import cohorte.monitor.fsm as fsm
 import cohorte.repositories
 import cohorte.repositories.beans as beans
+import cohorte.signals
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
@@ -35,6 +36,10 @@ import uuid
 # ------------------------------------------------------------------------------
 
 _logger = logging.getLogger(__name__)
+
+HANDLED_SIGNALS = (cohorte.monitor.SIGNALS_ISOLATE_PATTERN,
+                   cohorte.monitor.SIGNALS_PLATFORM_PATTERN,
+                   cohorte.forker.SIGNAL_FORKER_LOST)
 
 # ------------------------------------------------------------------------------
 
@@ -83,21 +88,32 @@ class MonitorCore(object):
         :param name: Signal name
         :param data: Signal data dictionary
         """
-        if name == cohorte.monitor.SIGNAL_STOP_PLATFORM:
-            # Platform must stop
-            self._stop_platform()
-
-        elif name == cohorte.monitor.SIGNAL_ISOLATE_READY:
+        if name == cohorte.monitor.SIGNAL_ISOLATE_READY:
             # Isolate ready
             self._status.isolate_ready(data['senderUID'])
 
         elif name == cohorte.monitor.SIGNAL_ISOLATE_STOPPING:
-            # Isolate ready
+            # Isolate stopping
             self._status.isolate_stopping(data['senderUID'])
 
         elif name == cohorte.monitor.SIGNAL_ISOLATE_LOST:
             # Isolate signaled as lost
             self._handle_lost(data['signalContent'])
+
+        elif name == cohorte.forker.SIGNAL_FORKER_LOST:
+            # Forker lost: tell of its isolates to stop
+            self._handle_forker_lost(data['signalContent']['uid'],
+                                     data['signalContent']['isolates'])
+
+
+        elif name == cohorte.monitor.SIGNAL_STOP_PLATFORM:
+            # Platform must stop (new thread)
+            threading.Thread(name="platform-stop",
+                             target=self._stop_platform).start()
+
+        elif name == cohorte.monitor.SIGNAL_PLATFORM_STOPPING:
+            # Platform goes into stopping mode (let the sender do the job)
+            self._platform_stopping.set()
 
 
     def ping(self, uid):
@@ -143,6 +159,10 @@ class MonitorCore(object):
         :raise KeyError: A parameter is missing in the configuration files
         :raise ValueError: Error reading the configuration
         """
+        if self._platform_stopping.is_set():
+            # Avoid to start new isolates while we are stopping
+            return False
+
         # Compute bundles according to the factories
         if bundles is None:
             bundles = []
@@ -259,6 +279,16 @@ class MonitorCore(object):
                 del original[iso_uid]
 
 
+    def _handle_forker_lost(self, uid, isolates):
+        """
+        Handles a lost forker
+        """
+        if isolates:
+            for isolate in isolates:
+                self._sender.fire(cohorte.monitor.SIGNAL_STOP_ISOLATE, None,
+                                  isolate=isolate)
+
+
     def _handle_lost(self, uid):
         """
         Handles a lost isolate
@@ -294,13 +324,20 @@ class MonitorCore(object):
             # Already stopping
             return
 
-        # Set the monitor in stopping state
+        _logger.critical(">>> PLATFORM STOPPING <<<")
+
+        # Set this monitor in stopping state
         self._platform_stopping.set()
+
+        # Send the platform stopping signal to other monitors
+        self._sender.send(cohorte.monitor.SIGNAL_PLATFORM_STOPPING, None,
+                          dir_group=cohorte.signals.GROUP_MONITORS,
+                          excluded=self._context.get_property(cohorte.PROP_UID))
 
         # Set the forkers in stopping state
         self._forkers.set_platform_stopping()
 
-        # Tell the forkers to stop the the running isolates
+        # Tell the forkers to stop the running isolates
         for uid in self._status.get_running():
             self._forkers.stop_isolate(uid)
 
@@ -308,8 +345,7 @@ class MonitorCore(object):
         self._forkers.stop_forkers()
 
         # Stop this isolate
-        self._sender.fire(cohorte.monitor.SIGNAL_STOP_ISOLATE, None,
-                          dir_group="CURRENT")
+        self._context.get_bundle(0).stop()
 
 
     @Validate
@@ -320,10 +356,8 @@ class MonitorCore(object):
         self._context = context
 
         # Register to signals
-        self._receiver.register_listener(cohorte.monitor.SIGNAL_STOP_PLATFORM,
-                                         self)
-        self._receiver.register_listener(\
-                                 cohorte.monitor.SIGNALS_ISOLATE_PATTERN, self)
+        for signal in HANDLED_SIGNALS:
+            self._receiver.register_listener(signal, self)
 
         _logger.info("Monitor core validated")
 
@@ -334,10 +368,8 @@ class MonitorCore(object):
         Component invalidated
         """
         # Unregister to signals
-        self._receiver.unregister_listener(cohorte.monitor.SIGNAL_STOP_PLATFORM,
-                                         self)
-        self._receiver.unregister_listener(\
-                                 cohorte.monitor.SIGNALS_ISOLATE_PATTERN, self)
+        for signal in HANDLED_SIGNALS:
+            self._receiver.unregister_listener(signal, self)
 
         # Clear the waiting list
         self._waiting.clear()

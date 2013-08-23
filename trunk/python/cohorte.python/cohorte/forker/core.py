@@ -518,11 +518,15 @@ class Forker(object):
         :param timeout: Maximum time to wait before killing the isolate process
                         (in seconds)
         """
+        # Get the name of this isolate
+        name = self._directory.get_isolate_name(uid)
+
         # Get the isolate PID
         process = self._isolates.get(uid, None)
         if process is None:
             # Unknown isolate
-            _logger.warn("Can't stop an unknown isolate: %s", uid)
+            _logger.warn("Can't stop an isolate without process: %s (%s)",
+                         uid, name)
             return
 
         # Send the stop signal (stop softly)
@@ -530,7 +534,8 @@ class Forker(object):
                                     None, isolate=uid)[0]
         if not reached or uid not in reached:
             # Signal not handled
-            _logger.warn("Isolate didn't received the 'stop' signal: Kill it!")
+            _logger.warn("Isolate %s (%s) didn't received the 'stop' signal: "
+                         "Kill it!", uid, name)
             process.kill()
 
         else:
@@ -538,11 +543,12 @@ class Forker(object):
             try:
                 # Wait a little
                 self._utils.wait_pid(process.pid, timeout)
-                _logger.info("Isolate stopped: %s", uid)
+                _logger.info("Isolate stopped: %s (%s)", uid, name)
 
             except utils.TimeoutExpired:
                 # The isolate didn't stop -> kill the process
-                _logger.warn("Isolate timed out: %s. Trying to kill it", uid)
+                _logger.warn("Isolate timed out: %s (%s). Trying to kill it",
+                             uid, name)
                 process.kill()
 
         # Remove references to the isolate
@@ -635,7 +641,6 @@ class Forker(object):
                 pass
 
 
-
     def __handle_lost_isolate(self, uid):
         """
         Handle the loss of an isolate.
@@ -658,7 +663,7 @@ class Forker(object):
             if uid == self._monitor_uid:
                 # Internal isolate : restart it immediately
                 # FIXME: self._start_monitor()
-                pass
+                _logger.critical("MONITOR LOST")
 
 
     def handle_received_signal(self, name, signal_data):
@@ -679,15 +684,27 @@ class Forker(object):
                 # Start an isolate with the given description
                 return self.start_isolate(signal_content["isolateDescr"])
 
-            elif name == cohorte.forker.SIGNAL_STOP_ISOLATE:
+            elif name == cohorte.forker.SIGNAL_KILL_ISOLATE:
                 # Stop the isolate with the given ID
                 return self.stop_isolate(signal_content["uid"])
 
-            elif name == cohorte.forker.SIGNAL_PLATFORM_STOPPING:
+            elif name == cohorte.monitor.SIGNAL_PLATFORM_STOPPING:
                 # Platform is stopping: do not start new isolates
                 self._platform_stopping = True
 
                 # Nothing to send back
+                return
+
+            elif name == cohorte.forker.SIGNAL_STOP_FORKER:
+                # Forker must stop; do it in a new thread
+                framework = self._context.get_bundle(0)
+                threading.Thread(name="forker-stop",
+                                 target=framework.stop).start()
+                return
+
+            elif name in (cohorte.forker.SIGNAL_FORKER_STOPPING,
+                          cohorte.forker.SIGNAL_FORKER_LOST):
+                # Ignore (logged somewhere else)
                 return
 
             else:
@@ -699,6 +716,60 @@ class Forker(object):
             # Error
             _logger.exception("Error treating signal %s\n%s", name, signal_data)
             return
+
+
+    def _send_stopping(self):
+        """
+        Sends the "forker stopping" signal to others
+        """
+        if self._platform_stopping:
+            # Do not send the signal when the platform is stopping
+            return
+
+        isolates = list(self._isolates.keys())
+        if self._monitor_uid in isolates:
+            isolates.remove(self._monitor_uid)
+
+        content = {'uid': self._context.get_property(cohorte.PROP_UID),
+                   'node': self._context.get_property(cohorte.PROP_NODE),
+                   'isolates': isolates}
+
+        self._sender.send(cohorte.forker.SIGNAL_FORKER_STOPPING,
+                          content, dir_group=cohorte.signals.GROUP_OTHERS)
+
+
+    def _kill_isolates(self, max_threads=5, stop_timeout=5, total_timeout=None):
+        """
+        Stops/kills all isolates started by this forker.
+        Uses a task pool to parallelize isolate stopping.
+        
+        :param max_threads: Maximum number of threads to use to stop isolates
+        :param stop_timeout: Maximum time to wait for an isolate to stop
+                            (in seconds)
+        :param total_timeout: Maximum time to wait for all isolates to be
+                              stopped (in seconds)
+        """
+        def safe_stop(uid):
+            try:
+                self.stop_isolate(uid, stop_timeout)
+
+            except OSError as ex:
+                _logger.error("Error stopping isolate %s: %s", uid, ex)
+
+        # Create a task pool
+        isolates = list(self._isolates.keys())
+        if self._monitor_uid in isolates:
+            isolates.remove(self._monitor_uid)
+
+        nb_threads = min(len(isolates), max_threads)
+        pool = cohorte.utils.pool.TaskPool(nb_threads)
+        for uid in isolates:
+            pool.enqueue(safe_stop, uid)
+
+        # Run the pool
+        pool.start()
+        pool.join(total_timeout)
+        pool.stop()
 
 
     @Validate
@@ -734,27 +805,21 @@ class Forker(object):
         # De-activate watchers
         self._watchers_running = False
 
+        if self._monitor_uid is not None:
+            # We started a monitor, therefore we control the platform
+            self._platform_stopping = True
+            self._sender.send(cohorte.monitor.SIGNAL_STOP_PLATFORM, None,
+                              isolate=self._monitor_uid)
+
         # Unregister from signals
         self._receiver.unregister_listener(\
                                     cohorte.forker.SIGNALS_FORKER_PATTERN, self)
 
+        # Send the "forker stopping" signal
+        self._send_stopping()
+
         # Stop the isolates
-        def stop(uid):
-            try:
-                self.stop_isolate(uid, 3)
-
-            except OSError as ex:
-                _logger.error("Error stopping isolate %s: %s", uid, ex)
-
-        # Create a pool (using 5 threads max)
-        pool = cohorte.utils.pool.TaskPool(min(len(self._isolates), 5))
-        for uid in self._isolates.keys():
-            pool.enqueue(stop, uid)
-
-        # Start the pool
-        pool.start()
-        pool.join(10)
-        pool.stop()
+        self._kill_isolates()
 
         # Isolates to be removed from thread dictionary
         to_kill = {}

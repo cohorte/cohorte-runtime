@@ -18,6 +18,7 @@ __version__ = "1.0.0"
 # ------------------------------------------------------------------------------
 
 # COHORTE constants
+import cohorte.forker
 import cohorte.monitor
 import cohorte.signals
 
@@ -32,6 +33,12 @@ import threading
 # ------------------------------------------------------------------------------
 
 _logger = logging.getLogger(__name__)
+
+UPDATE_SIGNALS = (cohorte.signals.SIGNAL_PATTERN,
+                  cohorte.monitor.SIGNAL_ISOLATE_STOPPING,
+                  cohorte.monitor.SIGNAL_ISOLATE_LOST,
+                  cohorte.forker.SIGNAL_FORKER_STOPPING,
+                  cohorte.forker.SIGNAL_FORKER_LOST)
 
 # ------------------------------------------------------------------------------
 
@@ -233,7 +240,8 @@ class DirectoryUpdater(object):
             content["address"] = address
 
             self._sender.post(cohorte.signals.SIGNAL_REGISTER, content,
-                              dir_group="OTHERS", excluded=[isolate_uid])
+                              dir_group=cohorte.signals.GROUP_OTHERS,
+                              excluded=[isolate_uid])
 
         return registered
 
@@ -248,7 +256,7 @@ class DirectoryUpdater(object):
 
         # Send the registration signal
         results = self._sender.send(cohorte.signals.SIGNAL_REGISTER, content,
-                                    dir_group="OTHERS")
+                                    dir_group=cohorte.signals.GROUP_OTHERS)
 
         if not results:
             _logger.warning("Registration signal not sent/received")
@@ -265,12 +273,11 @@ class DirectoryUpdater(object):
         :param name: Signal name
         :param signal_data: Signal content
         """
-        sender_id = signal_data["senderUID"]
+        sender_uid = signal_data["senderUID"]
 
         if name == cohorte.signals.SIGNAL_DUMP:
             with self._lock:
                 # Register the incoming isolate
-                _logger.debug("DUMP from %s", sender_id)
                 self._register_isolate(signal_data)
 
                 # Dump the directory
@@ -285,29 +292,45 @@ class DirectoryUpdater(object):
             with self._lock:
                 # Send the final acknowledgment
                 self._sender.post(cohorte.signals.SIGNAL_REGISTER_ACK, None,
-                                  isolate=sender_id)
+                                  isolate=sender_uid)
 
                 # Notify listeners
-                self._directory.validate_isolate_presence(sender_id)
+                self._directory.validate_isolate_presence(sender_uid)
 
         elif name == cohorte.signals.SIGNAL_REGISTER_ACK:
             with self._lock:
                 # Our acknowledgment has been received
-                self._directory.validate_isolate_presence(sender_id)
-
-        elif name == cohorte.monitor.SIGNAL_ISOLATE_LOST:
-            with self._lock:
-                # Unregister the isolate
-                lost_isolate = signal_data["signalContent"]
-                if lost_isolate:
-                    # Unregister it
-                    self._directory.unregister_isolate(lost_isolate)
+                self._directory.validate_isolate_presence(sender_uid)
 
         elif name == cohorte.signals.SIGNAL_CONTACT:
             # A contact has been signal, ask for a remote directory dump
             # -> Forker only
             with self._lock:
                 self._grab_remote_directory(signal_data)
+
+        elif name in (cohorte.monitor.SIGNAL_ISOLATE_STOPPING,
+                      cohorte.monitor.SIGNAL_ISOLATE_LOST):
+            # Stopping / lost isolate
+            with self._lock:
+                # Unregister the isolate
+                isolate_uid = signal_data["signalContent"]
+                if isolate_uid:
+                    self._directory.unregister_isolate(isolate_uid)
+
+        elif name in (cohorte.forker.SIGNAL_FORKER_STOPPING,
+                      cohorte.forker.SIGNAL_FORKER_LOST):
+            # Stopping / lost forker
+            with self._lock:
+                # Unregister the forker and its isolates
+                forker_uid = signal_data["signalContent"]['uid']
+                isolates = signal_data["signalContent"]['isolates']
+
+                if forker_uid:
+                    self._directory.unregister_isolate(forker_uid)
+
+                for isolate_uid in isolates:
+                    if isolate_uid:
+                        self._directory.unregister_isolate(isolate_uid)
 
 
     @Invalidate
@@ -316,9 +339,8 @@ class DirectoryUpdater(object):
         Component invalidated
         """
         # Unregister to isolate registration signals
-        self._receiver.unregister_listener(cohorte.signals.SIGNAL_PATTERN, self)
-        self._receiver.unregister_listener(cohorte.monitor.SIGNAL_ISOLATE_LOST,
-                                           self)
+        for signal in UPDATE_SIGNALS:
+            self._receiver.unregister_listener(signal, self)
 
 
     @Validate
@@ -327,9 +349,8 @@ class DirectoryUpdater(object):
         Component validate
         """
         # Register to isolate registration signals
-        self._receiver.register_listener(cohorte.signals.SIGNAL_PATTERN, self)
-        self._receiver.register_listener(cohorte.monitor.SIGNAL_ISOLATE_LOST,
-                                         self)
+        for signal in UPDATE_SIGNALS:
+            self._receiver.register_listener(signal, self)
 
         # Get the local dumper port
         dump_port = context.get_property(cohorte.PROP_DUMPER_PORT)

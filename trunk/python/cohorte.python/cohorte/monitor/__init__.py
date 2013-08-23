@@ -27,11 +27,21 @@ SERVICE_MONITOR = "cohorte.monitor.core"
 
 # ------------------------------------------------------------------------------
 
-SIGNAL_STOP_PLATFORM = "/cohorte/platform/stop"
+__SIGNALS_PLATFORM_PREFIX = "/cohorte/platform"
+""" Prefix to all platform signals """
+
+SIGNALS_PLATFORM_PATTERN = "{0}/*".format(__SIGNALS_PLATFORM_PREFIX)
+""" Pattern to catch all platform signals """
+
+SIGNAL_STOP_PLATFORM = "{0}/stop".format(__SIGNALS_PLATFORM_PREFIX)
 """ Signals requesting the platform to completely stop """
 
-SIGNAL_STOP_ISOLATE = "/cohorte/isolate/stop"
-""" Requests the isolate to stop """
+SIGNAL_PLATFORM_STOPPING = "{0}/platform-stop".format(__SIGNALS_PLATFORM_PREFIX)
+"""
+Sets the monitors and forkers into platform stopping mode
+- sent by monitor or forker, to all monitors and forkers
+- no content
+"""
 
 # ------------------------------------------------------------------------------
 
@@ -40,6 +50,9 @@ __SIGNALS_ISOLATE_PREFIX = "/cohorte/isolate"
 
 SIGNALS_ISOLATE_PATTERN = "{0}/*".format(__SIGNALS_ISOLATE_PREFIX)
 """ Pattern to catch all isolate status signals """
+
+SIGNAL_STOP_ISOLATE = "{0}/stop".format(__SIGNALS_ISOLATE_PREFIX)
+""" Requests the isolate to stop """
 
 SIGNAL_ISOLATE_LOST = "{0}/lost".format(__SIGNALS_ISOLATE_PREFIX)
 """

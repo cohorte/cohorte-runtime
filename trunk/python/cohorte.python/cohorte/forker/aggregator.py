@@ -191,6 +191,7 @@ class MulticastReceiver(object):
 
 @ComponentFactory("cohorte-forker-aggregator-factory")
 @Provides(cohorte.forker.SERVICE_AGGREGATOR)
+@Provides(cohorte.signals.SERVICE_ISOLATE_PRESENCE_LISTENER)
 @Requires('_directory', cohorte.SERVICE_SIGNALS_DIRECTORY)
 @Requires('_receiver', cohorte.SERVICE_SIGNALS_RECEIVER)
 @Requires('_sender', cohorte.SERVICE_SIGNALS_SENDER)
@@ -333,6 +334,14 @@ class ForkerAggregator(object):
                 return False
 
 
+    def stop_forkers(self):
+        """
+        Sends a stop signal to all forkers
+        """
+        self._sender.fire(cohorte.forker.SIGNAL_STOP_FORKER, None,
+                          dir_group=cohorte.signals.GROUP_FORKERS)
+
+
     def register_forker(self, uid, node, host, port):
         """
         Registers a forker in the directory.
@@ -436,47 +445,42 @@ class ForkerAggregator(object):
             _logger.error("Error sending contact signal: %s", ex)
 
 
-
-    def _unregister_forker(self, uid):
+    def _send_forker_lost(self, uid):
         """
-        Unregisters the given forker from the directory
+        Sends a "forker lost" signal
         
-        :param uid: UID of the forker
+        :param uid: UID of the lost forker
         """
-        node = self._directory.get_isolate_node(uid)
-        _logger.debug("Unregistering forker %s for node %s", uid, node)
-
-        if self._directory.unregister_isolate(uid):
-            # The forker has been unregistered from directory
-            self._notify_listeners(uid, node, False)
-
-        # Remove the references to the forker
+        # Remove the references to the forker in the LST
         with self._lst_lock:
             if uid in self._forker_lst:
                 del self._forker_lst[uid]
 
-        # Clean up isolates
-        forker_isolates = [entry[0] for entry in self._isolate_forker
-                           if entry[1] == uid]
-        for isolate in forker_isolates:
-            # Remove it from local storage
-            _logger.debug("Forgetting isolate: %s", isolate)
-            if isolate in self._isolate_forker:
-                del self._isolate_forker[isolate]
+        # Compute the forker node
+        node = self._directory.get_isolate_node(uid)
 
-            # Send it a stop message
-            self._sender.post(cohorte.monitor.SIGNAL_STOP_ISOLATE, None,
-                              isolate)
+        # Get the list of its isolates
+        isolates = [entry[0] for entry in self._isolate_forker.items()
+                    if entry[1] == uid]
 
-            # Unregister it
-            self._directory.unregister_isolate(isolate)
+        _logger.debug("Lost forker %s for node %s (%s isolates)",
+                      uid, node, len(isolates))
 
-        # Send "lost isolate" signals
-        self._sender.post(cohorte.monitor.SIGNAL_ISOLATE_LOST, uid,
-                          dir_group=cohorte.signals.GROUP_ALL)
-        for isolate in forker_isolates:
-            self._sender.post(cohorte.monitor.SIGNAL_ISOLATE_LOST, isolate,
-                          dir_group=cohorte.signals.GROUP_ALL)
+        # Compute the signal exclusion list
+        excluded = [uid]
+        excluded.extend(isolates)
+
+        # Prepare the signal content
+        content = {'uid': uid, 'node': node, 'isolates': isolates}
+
+        # Send the signal to all but the lost forker and its isolates
+        self._sender.post(cohorte.forker.SIGNAL_FORKER_LOST,
+                          content, dir_group=cohorte.signals.GROUP_ALL,
+                          excluded=excluded)
+
+        # Clean up details about this forker
+        for isolate in isolates:
+            del self._isolate_forker[isolate]
 
 
     def _call_forker(self, uid, signal, data, timeout):
@@ -579,14 +583,32 @@ class ForkerAggregator(object):
                         _logger.info("Forker %s reached TTL.", uid)
 
                 for uid in to_delete:
-                    # Unregister forkers
-                    self._unregister_forker(uid)
+                    # Lost forkers
+                    self._send_forker_lost(uid)
 
                 # Clear the to_delete set
                 to_delete.clear()
 
             # Wait a second or the event before next loop
             self._stopped.wait(1)
+
+
+    def handle_isolate_presence(self, uid, node, event):
+        """
+        Handles an isolate presence event
+        
+        :param uid: UID of the isolate
+        :param node: Node of the isolate
+        :param event: Kind of event
+        """
+        if event == cohorte.signals.ISOLATE_UNREGISTERED:
+            # Isolate lost: remove informations about it
+            with self._lst_lock:
+                try: del self._isolate_forker[uid]
+                except KeyError: pass
+
+                try: del self._forker_lst[uid]
+                except: pass
 
 
     @Validate
@@ -634,8 +656,8 @@ class ForkerAggregator(object):
         self._lst_thread = None
 
         # Unregister all forkers
-        for forker in self._forker_lst.keys():
-            self._unregister_forker(forker)
+        for forker in list(self._forker_lst.keys()):
+            self._send_forker_lost(forker)
 
         # Stop the thread pool
         self._events_thread.stop()

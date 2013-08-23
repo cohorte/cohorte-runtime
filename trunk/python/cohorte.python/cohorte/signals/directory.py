@@ -239,7 +239,12 @@ class SignalsDirectory(object):
 
             if not include_current:
                 # Remove the current isolate ID
-                matching.remove(self.get_isolate_uid())
+                try:
+                    matching.remove(self.get_isolate_uid())
+
+                except KeyError:
+                    # The current isolate ID wasn't in the computed list
+                    pass
 
             if not matching:
                 # No isolate found

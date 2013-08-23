@@ -22,7 +22,7 @@ __version__ = "1.0.0"
 # ------------------------------------------------------------------------------
 
 # COHORTE constants
-import cohorte.signals
+import cohorte
 
 # Java utilities
 from cohorte.java.jabsorb import to_jabsorb, from_jabsorb, JAVA_CLASS
@@ -30,7 +30,7 @@ from cohorte.java.jabsorb import to_jabsorb, from_jabsorb, JAVA_CLASS
 # Pelix/iPOPO
 from pelix.ipopo.decorators import ComponentFactory, Provides, Requires, \
     Validate, Invalidate, Property
-from pelix.utilities import to_bytes, to_unicode
+from pelix.utilities import to_bytes, to_unicode, is_string
 
 import pelix.http
 
@@ -887,6 +887,9 @@ class SignalSender(object):
             accesses.update(self._get_directory_group_accesses(dir_group))
 
         if excluded:
+            if is_string(excluded):
+                excluded = [excluded]
+
             for excluded_isolate in excluded:
                 # Remove excluded isolates, if any
                 if excluded_isolate in accesses:

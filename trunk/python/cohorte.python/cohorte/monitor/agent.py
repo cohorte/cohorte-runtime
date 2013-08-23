@@ -38,7 +38,7 @@ _logger = logging.getLogger(__name__)
 @ComponentFactory("cohorte-isolate-agent-factory")
 @Requires('_receiver', cohorte.SERVICE_SIGNALS_RECEIVER)
 @Requires('_sender', cohorte.SERVICE_SIGNALS_SENDER)
-class MonitorAgent(object):
+class IsolateAgent(object):
     """
     Isolate agent component
     """
@@ -73,6 +73,12 @@ class MonitorAgent(object):
         """
         Stops the whole isolate
         """
+        # Send the "isolate stopping" signal
+        _logger.warning(">>> Isolate will stop <<<")
+        self._sender.send(cohorte.monitor.SIGNAL_ISOLATE_STOPPING,
+                          self._context.get_property(cohorte.PROP_UID),
+                          dir_group=cohorte.signals.GROUP_OTHERS)
+
         _logger.critical(">>> STOPPING isolate <<<")
         self._context.get_bundle(0).stop()
 
