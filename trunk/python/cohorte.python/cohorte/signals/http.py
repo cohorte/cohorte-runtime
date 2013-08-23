@@ -92,6 +92,25 @@ def _make_json_result(code, message="", results=None):
                                         'results': results}))
 
 
+def _make_exception_handler(signal):
+    """
+    Prepares an exception handling method for FutureResult in
+    SignalSender.post()
+    
+    :param signal: The name of the posted signal
+    """
+    def ex_handler(ex):
+        """
+        Logs an exception during a signal post()
+        
+        :param ex: The exception object
+        """
+        _logger.error("Error in post(%s): %s", signal, ex)
+
+    return ex_handler
+
+# ------------------------------------------------------------------------------
+
 @ComponentFactory('cohorte-signals-receiver-http-factory')
 @Provides(cohorte.SERVICE_SIGNALS_RECEIVER, controller="_svc_flag")
 @Provides(pelix.http.HTTP_SERVLET)
@@ -550,16 +569,17 @@ class FutureResult(object):
             # Do the job...
             self._result = method(*args, **kwargs)
 
-        except BaseException as ex:
+        except Exception as ex:
             # Call an exception handler, if any
-            if self._handler:
+            if self._handler is not None:
                 self._handler(ex)
 
             else:
-                _logger.exception("Error executing a threaded job")
+                _logger.exception("Error executing a threaded job: %s", ex)
 
-        # Result stored or exception handled, we are ready
-        self._stop_event.set()
+        finally:
+            # Result stored or exception handled, we are ready
+            self._stop_event.set()
 
 # ------------------------------------------------------------------------------
 
@@ -668,10 +688,7 @@ class SignalSender(object):
         :param excluded: Excluded isolates (only when using groups)
         :return: A FutureResult object
         """
-        future = FutureResult(lambda ex: \
-                              _logger.error("Error in post(%s): %s",
-                                            signal, ex))
-
+        future = FutureResult(_make_exception_handler(signal))
         future.execute(self.send, signal, content, isolate, isolates,
                        dir_group, excluded)
         return future
@@ -688,10 +705,7 @@ class SignalSender(object):
         :return: The signal result (None or a listeners results array)
         :raise Exception: Error sending the signal
         """
-        future = FutureResult(lambda ex: \
-                              _logger.error("Error in post_to(%s): %s",
-                                            signal, ex))
-
+        future = FutureResult(_make_exception_handler(signal))
         future.execute(self.send_to, signal, content, host, port)
         return future
 
@@ -826,6 +840,9 @@ class SignalSender(object):
         :param content: The signal content
         :return: The JSON form of the complete signal
         """
+        if self._context is None:
+            raise ValueError("Late signal: no more bundle context")
+
         signal_content = {
             # We need that to talk to Java isolates
             JAVA_CLASS: "org.psem2m.signals.SignalData",
@@ -996,21 +1013,28 @@ class SignalSender(object):
         results = {}
         failed = []
 
-        for isolate_id, access in accesses.items():
-            try:
-                results[isolate_id] = self.__internal_send(access, signal,
-                                                           content, mode)
+        # Avoid a useless loop if necessary
+        if self._local_recv is None:
+            _logger.warning("No more local signal receiver: "
+                            "can't send signal '%s'", signal)
+            failed.extend(accesses.keys())
 
-            except socket.error as ex:
-                # Socket error
-                _logger.error("Error sending signal %s to %s : %s",
-                              signal, access, ex)
-                failed.append(isolate_id)
+        else:
+            for isolate_id, access in accesses.items():
+                try:
+                    results[isolate_id] = self.__internal_send(access, signal,
+                                                               content, mode)
 
-            except Exception as ex:
-                # Other error...
-                _logger.error("Error sending signal %s to %s: %s",
-                              signal, access, ex)
-                failed.append(isolate_id)
+                except socket.error as ex:
+                    # Socket error
+                    _logger.error("Error sending signal %s to %s : %s",
+                                  signal, access, ex)
+                    failed.append(isolate_id)
+
+                except Exception as ex:
+                    # Other error...
+                    _logger.error("Error sending signal %s to %s: %s",
+                                  signal, access, ex)
+                    failed.append(isolate_id)
 
         return (results, failed)
