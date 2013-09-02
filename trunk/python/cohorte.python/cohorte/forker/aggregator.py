@@ -620,7 +620,8 @@ class ForkerAggregator(object):
         self._port = int(self._port)
 
         # Start the event pool
-        self._events_thread = pelix.threadpool.ThreadPool(1)
+        self._events_thread = pelix.threadpool.ThreadPool(1, \
+                                                  logname="forker-aggregator")
         self._events_thread.start()
 
         # Start the multicast listener
