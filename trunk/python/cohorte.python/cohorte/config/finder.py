@@ -81,10 +81,18 @@ class FileFinder(object):
         Generator to have the Cohorte roots (base then home) and the custom
         roots.
         """
+        realpath = os.path.realpath
+
         for root_list in (self._roots, self._custom_roots):
             if root_list:
                 for root in root_list:
+                    # given root
                     yield root
+
+                    # real path
+                    real_root = realpath(root)
+                    if real_root != root:
+                        yield real_root
 
 
     def _internal_find(self, filename):
