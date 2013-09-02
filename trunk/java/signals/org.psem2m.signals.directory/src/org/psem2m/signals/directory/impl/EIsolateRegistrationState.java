@@ -43,7 +43,7 @@ public enum EIsolateRegistrationState implements State {
         @Override
         public boolean canChangeTo(final State aNewState) {
 
-            return aNewState == SYNCHRONIZING;
+            return aNewState == SYNCHRONIZING || aNewState == VALIDATED;
         }
     },
 

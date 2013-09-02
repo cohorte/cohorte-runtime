@@ -7,6 +7,7 @@ package org.psem2m.signals.directory.impl;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.felix.ipojo.annotations.Component;
@@ -40,6 +41,20 @@ import org.psem2m.signals.IWaitingSignalListener;
 public class DirectoryUpdater implements ISignalListener,
         IWaitingSignalListener {
 
+    /**
+     * Signals this component is listening to
+     */
+    private static final String[] UPDATE_SIGNALS = {
+            ISignalDirectoryConstants.SIGNAL_PREFIX_MATCH_ALL,
+            ISignalsConstants.ISOLATE_STOPPING_SIGNAL,
+            ISignalsConstants.ISOLATE_LOST_SIGNAL,
+            ISignalsConstants.FORKER_STOPPING_SIGNAL,
+            ISignalsConstants.FORKER_LOST_SIGNAL, };
+
+    /**
+     * Component validated
+     */
+
     /** The bundle context */
     private final BundleContext pContext;
 
@@ -50,12 +65,6 @@ public class DirectoryUpdater implements ISignalListener,
     /** The logger */
     @Requires
     private IIsolateLoggerSvc pLogger;
-
-    /**
-     * The port to access the directory dumper. The member shall not be changed
-     * after component validation
-     */
-    // private int pDumperPort;
 
     /** The platform information service */
     @Requires
@@ -210,6 +219,7 @@ public class DirectoryUpdater implements ISignalListener,
      * org.psem2m.signals.ISignalListener#handleReceivedSignal(java.lang.String,
      * org.psem2m.signals.ISignalData)
      */
+    @SuppressWarnings("unchecked")
     @Override
     public synchronized Object handleReceivedSignal(final String aSignalName,
             final ISignalData aSignalData) {
@@ -242,14 +252,33 @@ public class DirectoryUpdater implements ISignalListener,
             // Final acknowledgment
             handleAck(senderId);
 
-        } else if (ISignalsConstants.ISOLATE_LOST_SIGNAL.equals(aSignalName)) {
-            // Isolate lost
-            final String lostIsolate = (String) aSignalData.getSignalContent();
-            pDirectory.unregisterIsolate(lostIsolate);
-
         } else if (ISignalDirectoryConstants.SIGNAL_CONTACT.equals(aSignalName)) {
             // Monitor contact. Should only happen for forkers
             grabRemoteDirectory(aSignalData);
+
+        } else if (ISignalsConstants.ISOLATE_LOST_SIGNAL.equals(aSignalName)
+                || ISignalsConstants.ISOLATE_STOPPING_SIGNAL
+                        .equals(aSignalName)) {
+            // Isolate stopping/lost
+            final String lostIsolate = (String) aSignalData.getSignalContent();
+            pDirectory.unregisterIsolate(lostIsolate);
+
+        } else if (ISignalsConstants.FORKER_LOST_SIGNAL.equals(aSignalName)
+                || ISignalsConstants.FORKER_STOPPING_SIGNAL.equals(aSignalName)) {
+            // Forker stopping/lost
+            final Map<String, Object> content = (Map<String, Object>) aSignalData
+                    .getSignalContent();
+
+            // Unregister the forker first
+            final String forkerUid = (String) content.get("uid");
+            pDirectory.unregisterIsolate(forkerUid);
+
+            // Unregister its isolates
+            final List<String> isolates = (List<String>) content
+                    .get("isolates");
+            for (final String isolate : isolates) {
+                pDirectory.unregisterIsolate(isolate);
+            }
         }
 
         // No result
@@ -306,11 +335,9 @@ public class DirectoryUpdater implements ISignalListener,
     public void invalidate() {
 
         // Unregister signals
-        pReceiver.unregisterListener(
-                ISignalDirectoryConstants.SIGNAL_PREFIX_MATCH_ALL, this);
-
-        pReceiver.unregisterListener(ISignalsConstants.ISOLATE_LOST_SIGNAL,
-                this);
+        for (final String signal : UPDATE_SIGNALS) {
+            pReceiver.unregisterListener(signal, this);
+        }
 
         pLogger.logInfo(this, "invalidate", "Directory Updater Gone");
     }
@@ -464,19 +491,13 @@ public class DirectoryUpdater implements ISignalListener,
         }
     }
 
-    /**
-     * Component validated
-     */
     @Validate
     public void validate() {
 
-        pLogger.logDebug(this, "validate", "Directory Updater starting...");
-
         // Register to signals
-        pLogger.logDebug(this, "validate", "Registering to signals...");
-        pReceiver.registerListener(
-                ISignalDirectoryConstants.SIGNAL_PREFIX_MATCH_ALL, this);
-        pReceiver.registerListener(ISignalsConstants.ISOLATE_LOST_SIGNAL, this);
+        for (final String signal : UPDATE_SIGNALS) {
+            pReceiver.registerListener(signal, this);
+        }
 
         // Compute the dump port
         final String dumpPortStr = pContext

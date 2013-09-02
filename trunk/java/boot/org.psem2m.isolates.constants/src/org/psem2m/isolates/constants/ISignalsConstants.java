@@ -39,6 +39,22 @@ public interface ISignalsConstants {
     int CODE_OK = 200;
 
     /**
+     * A forker indicates that it will stop soon
+     * 
+     * Associated data: the UID of the forker and the list of its isolates
+     */
+    String FORKER_LOST_SIGNAL = ISignalsConstants.PREFIX_FORKER_SIGNAL_NAME
+            + "/lost";
+
+    /**
+     * A monitor indicates that it lost contact with a forker
+     * 
+     * Associated data: the UID of the forker and the list of its isolates
+     */
+    String FORKER_STOPPING_SIGNAL = ISignalsConstants.PREFIX_FORKER_SIGNAL_NAME
+            + "/stopping";
+
+    /**
      * Lost contact with isolate
      * 
      * Associated data: the Isolate ID (CharSequence)
@@ -88,6 +104,9 @@ public interface ISignalsConstants {
 
     /** Remote service broadcaster signals names prefix */
     String PREFIX_BROADCASTER_SIGNAL_NAME = "/psem2m/remote-service-broadcaster";
+
+    /** Prefix of any isolate signal name **/
+    String PREFIX_FORKER_SIGNAL_NAME = "/cohorte/forker";
 
     /** Prefix of any isolate signal name **/
     String PREFIX_ISOLATE_SIGNAL_NAME = "/cohorte/isolate";
