@@ -316,7 +316,7 @@ public class BroadcastSignalHandler implements ISignalListener,
 
         // Register to all broadcast signals
         pSignalReceiver.registerListener(
-                ISignalsConstants.BROADCASTER_SIGNAL_NAME_PREFIX
+                ISignalsConstants.PREFIX_BROADCASTER_SIGNAL_NAME
                         + ISignalsConstants.MATCH_ALL, this);
 
         pLogger.logInfo(this, "validatePojo",

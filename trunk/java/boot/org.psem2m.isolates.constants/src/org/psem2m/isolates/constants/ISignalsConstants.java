@@ -12,24 +12,21 @@ package org.psem2m.isolates.constants;
  */
 public interface ISignalsConstants {
 
-    /** Remote service broadcaster signals names prefix */
-    String BROADCASTER_SIGNAL_NAME_PREFIX = "/psem2m/remote-service-broadcaster";
-
     /**
      * Broadcaster Remote Event notification signal.
      * 
-     * Associated data : an instance of
+     * Associated data: an instance of
      * {@link org.psem2m.isolates.services.remote.beans.RemoteServiceEvent}
      */
-    String BROADCASTER_SIGNAL_REMOTE_EVENT = BROADCASTER_SIGNAL_NAME_PREFIX
+    String BROADCASTER_SIGNAL_REMOTE_EVENT = ISignalsConstants.PREFIX_BROADCASTER_SIGNAL_NAME
             + "/remote-event";
 
     /**
      * Broadcaster end points update request signal.
      * 
-     * Associated data : none
+     * Associated data: none
      */
-    String BROADCASTER_SIGNAL_REQUEST_ENDPOINTS = BROADCASTER_SIGNAL_NAME_PREFIX
+    String BROADCASTER_SIGNAL_REQUEST_ENDPOINTS = ISignalsConstants.PREFIX_BROADCASTER_SIGNAL_NAME
             + "/request-endpoints";
 
     /** Signal result code: internal error */
@@ -44,23 +41,40 @@ public interface ISignalsConstants {
     /**
      * Lost contact with isolate
      * 
-     * Associated data : the Isolate ID (CharSequence)
+     * Associated data: the Isolate ID (CharSequence)
      */
     String ISOLATE_LOST_SIGNAL = "/cohorte/isolate/lost";
 
     /**
+     * The sender is now "ready"
+     * 
+     * Associated data: none
+     */
+    String ISOLATE_READY_SIGNAL = ISignalsConstants.PREFIX_ISOLATE_SIGNAL_NAME
+            + "/ready";
+
+    /**
      * IsolateStatus signal
      * 
-     * Associated data : an IsolateStatus object
+     * Associated data: an IsolateStatus object
      */
     String ISOLATE_STATUS_SIGNAL = "/psem2m/isolate/status";
 
     /**
      * Stop isolate signal
      * 
-     * Associated data : none
+     * Associated data: none
      */
-    String ISOLATE_STOP_SIGNAL = "/cohorte/isolate/stop";
+    String ISOLATE_STOP_SIGNAL = ISignalsConstants.PREFIX_ISOLATE_SIGNAL_NAME
+            + "/stop";
+
+    /**
+     * An isolate is stopping
+     * 
+     * Associated data: The UID of the stopping isolate
+     */
+    String ISOLATE_STOPPING_SIGNAL = ISignalsConstants.PREFIX_ISOLATE_SIGNAL_NAME
+            + "/stopping";
 
     /** Match all sub signals */
     String MATCH_ALL = "/*";
@@ -68,7 +82,13 @@ public interface ISignalsConstants {
     /**
      * Platform stop signal
      * 
-     * Associated data : none
+     * Associated data: none
      */
     String MONITOR_SIGNAL_STOP_PLATFORM = "/cohorte/platform/stop";
+
+    /** Remote service broadcaster signals names prefix */
+    String PREFIX_BROADCASTER_SIGNAL_NAME = "/psem2m/remote-service-broadcaster";
+
+    /** Prefix of any isolate signal name **/
+    String PREFIX_ISOLATE_SIGNAL_NAME = "/cohorte/isolate";
 }

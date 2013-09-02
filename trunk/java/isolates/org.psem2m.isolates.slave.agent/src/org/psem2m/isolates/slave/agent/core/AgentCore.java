@@ -31,7 +31,9 @@ import org.psem2m.isolates.base.bundles.BundleInfo;
 import org.psem2m.isolates.constants.ISignalsConstants;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.isolates.slave.agent.ISvcAgent;
+import org.psem2m.signals.ISignalBroadcaster;
 import org.psem2m.signals.ISignalData;
+import org.psem2m.signals.ISignalDirectory.EBaseGroup;
 import org.psem2m.signals.ISignalListener;
 import org.psem2m.signals.ISignalReceiver;
 
@@ -62,6 +64,10 @@ public class AgentCore implements ISvcAgent, ISignalListener, BundleListener {
 
     /** The scheduler */
     private ScheduledExecutorService pScheduler;
+
+    /** Signal sender */
+    @Requires
+    private ISignalBroadcaster pSender;
 
     /** Signal receiver */
     @Requires
@@ -284,6 +290,10 @@ public class AgentCore implements ISvcAgent, ISignalListener, BundleListener {
         pSignalReceiver.unregisterListener(
                 ISignalsConstants.ISOLATE_STOP_SIGNAL, this);
 
+        // Send the stopping signal
+        pSender.fireGroup(ISignalsConstants.ISOLATE_STOPPING_SIGNAL, null,
+                EBaseGroup.MONITORS);
+
         // Stop the scheduled timeouts
         pScheduler.shutdownNow();
         pScheduler = null;
@@ -293,7 +303,7 @@ public class AgentCore implements ISvcAgent, ISignalListener, BundleListener {
         pUpdateTimeouts.clear();
 
         // log the invalidation
-        pLogger.logInfo(this, "invalidate", "Slave agent gone");
+        pLogger.logInfo(this, "invalidate", "Isolate agent gone");
     }
 
     /**
@@ -326,8 +336,16 @@ public class AgentCore implements ISvcAgent, ISignalListener, BundleListener {
             @Override
             public void run() {
 
+                // Send the "isolate stopping" signal
+                pLogger.logWarn(this, "killIsolate",
+                        ">>> Isolate will stop <<<");
+                pSender.sendGroup(ISignalsConstants.ISOLATE_STOPPING_SIGNAL,
+                        pPlatformDirs.getIsolateUID(), EBaseGroup.OTHERS);
+
                 try {
                     // Stop the platform
+                    pLogger.logSevere(this, "killIsolate",
+                            ">>> STOPPING isolate <<<");
                     pContext.getBundle(0).stop();
 
                 } catch (final BundleException e) {
@@ -335,7 +353,7 @@ public class AgentCore implements ISvcAgent, ISignalListener, BundleListener {
                             "Can't stop the framework", e);
                 }
             }
-        }, "agent-stop").start();
+        }, "monitor-agent-stop").start();
     }
 
     /**
@@ -483,7 +501,11 @@ public class AgentCore implements ISvcAgent, ISignalListener, BundleListener {
         // Register to bundle events : replaces the guardian thread.
         pContext.addBundleListener(this);
 
+        // Send the "ready" signal (even if the directory is empty)
+        pSender.fireGroup(ISignalsConstants.ISOLATE_READY_SIGNAL, null,
+                EBaseGroup.MONITORS);
+
         // Log the validation
-        pLogger.logInfo(this, "validate", "Slave agent ready");
+        pLogger.logInfo(this, "validate", "Isolate agent ready");
     }
 }
