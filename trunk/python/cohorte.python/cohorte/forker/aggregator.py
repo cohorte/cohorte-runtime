@@ -25,7 +25,6 @@ import cohorte.signals
 
 # COHORTE utilities
 import cohorte.utils.multicast as multicast
-import cohorte.utils.pool as pool
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
@@ -33,6 +32,7 @@ from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
 
 # Pelix utilities
 import pelix.framework
+import pelix.threadpool
 from pelix.utilities import to_unicode
 
 # Standard library
@@ -620,7 +620,7 @@ class ForkerAggregator(object):
         self._port = int(self._port)
 
         # Start the event pool
-        self._events_thread = pool.TaskPool(1)
+        self._events_thread = pelix.threadpool.ThreadPool(1)
         self._events_thread.start()
 
         # Start the multicast listener

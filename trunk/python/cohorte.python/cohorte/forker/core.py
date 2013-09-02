@@ -23,11 +23,11 @@ import cohorte.forker
 import cohorte.monitor
 import cohorte.signals
 import cohorte.utils as utils
-import cohorte.utils.pool
 
 # Pelix framework
 from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
     Invalidate, Provides
+import pelix.threadpool
 
 # Standard library
 import json
@@ -762,7 +762,7 @@ class Forker(object):
             isolates.remove(self._monitor_uid)
 
         nb_threads = min(len(isolates), max_threads)
-        pool = cohorte.utils.pool.TaskPool(nb_threads)
+        pool = pelix.threadpool.ThreadPool(nb_threads)
         for uid in isolates:
             pool.enqueue(safe_stop, uid)
 
