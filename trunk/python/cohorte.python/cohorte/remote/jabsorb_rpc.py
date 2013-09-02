@@ -26,6 +26,7 @@ import cohorte.java.jabsorb as jabsorb
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
     Invalidate, Requires, Property
+import pelix.framework
 import pelix.http
 import pelix.remote.beans
 from pelix.utilities import to_str
@@ -33,6 +34,7 @@ from pelix.utilities import to_str
 # Standard library
 import logging
 import socket
+import threading
 import uuid
 
 # ------------------------------------------------------------------------------
@@ -437,6 +439,7 @@ class JsonRpcServiceImporter(object):
 
         # Registered services (end point -> reference)
         self.__registrations = {}
+        self.__reg_lock = threading.Lock()
 
 
     def endpoint_added(self, endpoint):
@@ -447,36 +450,43 @@ class JsonRpcServiceImporter(object):
             # Not for us
             return
 
-        # Register the service
-        svc = _ServiceCallProxy(endpoint.uid, endpoint.name, endpoint.url,
-                                self._unregister)
-        svc_reg = self._context.register_service(endpoint.specifications, svc,
-                                                 endpoint.properties)
+        with self.__reg_lock:
+            # Already known end point
+            if endpoint.uid in self.__registrations:
+                return
 
-        # Store references
-        self.__registrations[endpoint.uid] = svc_reg
+            # Register the service
+            svc = _ServiceCallProxy(endpoint.uid, endpoint.name, endpoint.url,
+                                    self._unregister)
+            svc_reg = self._context.register_service(endpoint.specifications,
+                                                     svc, endpoint.properties)
+
+            # Store references
+            self.__registrations[endpoint.uid] = svc_reg
 
 
     def endpoint_updated(self, endpoint, old_properties):
         """
         An end point has been updated
         """
-        if endpoint.uid not in self.__registrations:
-            # Unknown end point
-            return
+        with self.__reg_lock:
+            if endpoint.uid not in self.__registrations:
+                # Unknown end point
+                return
 
-        # Update service properties
-        svc_reg = self.__registrations[endpoint.uid]
-        svc_reg.set_properties(endpoint.properties)
+            # Update service properties
+            svc_reg = self.__registrations[endpoint.uid]
+            svc_reg.set_properties(endpoint.properties)
 
 
     def endpoint_removed(self, endpoint):
         """
         An end point has been removed
         """
-        if endpoint.uid in self.__registrations:
-            # Unregister the end point
-            self._unregister(endpoint.uid)
+        with self.__reg_lock:
+            if endpoint.uid in self.__registrations:
+                # Unregister the end point
+                self._unregister(endpoint.uid)
 
 
     def _unregister(self, endpoint_uid):
@@ -496,6 +506,10 @@ class JsonRpcServiceImporter(object):
 
         except KeyError:
             _logger.debug("Unknown end point %s", endpoint_uid)
+            return False
+
+        except pelix.framework.BundleException as ex:
+            _logger.debug("Can't unregister end point %s: %s", endpoint_uid, ex)
             return False
 
 
