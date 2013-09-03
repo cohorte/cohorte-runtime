@@ -762,15 +762,16 @@ class Forker(object):
             isolates.remove(self._monitor_uid)
 
         nb_threads = min(len(isolates), max_threads)
-        pool = pelix.threadpool.ThreadPool(nb_threads,
-                                           logname="forker-core-killer")
-        for uid in isolates:
-            pool.enqueue(safe_stop, uid)
+        if nb_threads > 0:
+            pool = pelix.threadpool.ThreadPool(nb_threads,
+                                               logname="forker-core-killer")
+            for uid in isolates:
+                pool.enqueue(safe_stop, uid)
 
-        # Run the pool
-        pool.start()
-        pool.join(total_timeout)
-        pool.stop()
+            # Run the pool
+            pool.start()
+            pool.join(total_timeout)
+            pool.stop()
 
 
     @Validate
