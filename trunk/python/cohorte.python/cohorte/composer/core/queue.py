@@ -25,14 +25,13 @@ from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
 
 # Standard library
 import logging
-import sys
 import threading
 
-if sys.version_info[0] == 3:
+try:
     # Python 3
     import queue
 
-else:
+except ImportError:
     # Python 2
     import Queue as queue
 

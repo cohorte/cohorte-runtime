@@ -31,12 +31,13 @@ import pelix.remote.beans
 
 # Standard library
 import logging
-import sys
 
-if sys.version_info[0] == 3:
+try:
+    # Python 3
     from urllib.parse import urlparse
 
-else:
+except ImportError:
+    # Python 2
     from urlparse import urlparse
 
 # ------------------------------------------------------------------------------

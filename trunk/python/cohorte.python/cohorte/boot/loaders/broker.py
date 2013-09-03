@@ -30,14 +30,13 @@ from pelix.utilities import to_unicode
 # Standard library
 import json
 import logging
-import sys
 
-if sys.version_info[0] == 3:
+try:
     # Python 3
     import http.client as httplib
     import urllib.parse as urlparse
 
-else:
+except ImportError:
     # Python 2
     import httplib
     import urlparse

@@ -43,14 +43,13 @@ import json
 import socket
 import time
 import threading
-import sys
 
-if sys.version_info[0] == 3:
+try:
     # Python 3
     import http.client as httplib
     from urllib.parse import quote
 
-else:
+except ImportError:
     # Python 2
     import httplib
     from urllib import quote

@@ -22,14 +22,15 @@ import cohorte.boot.looper.utils as utils
 
 # Standard library
 import logging
-import sys
 import threading
 
-if sys.version_info[0] < 3:
-    import Queue as queue
-
-else:
+try:
+    # Python 3
     import queue
+
+except ImportError:
+    # Python 2
+    import Queue as queue
 
 # ------------------------------------------------------------------------------
 

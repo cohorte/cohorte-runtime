@@ -38,11 +38,11 @@ import sys
 import threading
 import uuid
 
-if sys.version_info[0] == 3:
+try:
     # Python 3
     from urllib.parse import quote
 
-else:
+except ImportError:
     # Python 2
     from urllib import quote
 

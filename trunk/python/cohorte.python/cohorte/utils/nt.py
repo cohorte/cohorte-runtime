@@ -31,11 +31,11 @@ import win32api
 import win32event
 import win32process
 
-if sys.version_info >= (3, 0):
+try:
     # Python 3
     import winreg
 
-else:
+except ImportError:
     # Python 2
     import _winreg as winreg
 
