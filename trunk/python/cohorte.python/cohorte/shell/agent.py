@@ -14,7 +14,7 @@ Provides commands to the Pelix shell to find other shells
 
 # Module version
 __version_info__ = (0, 1, 0)
-__version__ = ".".join(map(str, __version_info__))
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # Documentation strings format
 __docformat__ = "restructuredtext en"
