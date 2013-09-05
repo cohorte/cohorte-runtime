@@ -21,7 +21,7 @@ export COHORTE_NODE=${COHORTE_NODE:="raspberry"}
 export COHORTE_LOGFILE="$COHORTE_BASE/var/forker.log"
 
 # Default Python interpreter to use
-PYTHON_INTERPRETER=${PYTHON_INTERPRETER:="python"}
+PYTHON_INTERPRETER=${PYTHON_INTERPRETER:="python3"}
 
 # Python path: Current path + demo path
 PYTHON_DEMOPATH="$COHORTE_ROOT/demo.july2012.python"
