@@ -196,7 +196,7 @@ class JsonRpcServiceExporter(object):
         endpoint_name = self._compute_endpoint_name(reference)
         if endpoint_name in self.__endpoints:
             # Already known end point
-            _logger.error("Already known end point %s for JSON-RPC",
+            _logger.error("Already known end point %s for JSON-RPC (jabsorb)",
                           endpoint_name)
             return
 
@@ -211,11 +211,15 @@ class JsonRpcServiceExporter(object):
             _logger.error("Error retrieving the service to export: %s", ex)
             return
 
-        # Create the registration information
-        endpoint = pelix.remote.beans.ExportEndpoint(str(uuid.uuid4()),
+        try:
+            # Create the registration information
+            endpoint = pelix.remote.beans.ExportEndpoint(str(uuid.uuid4()),
                                                      self._kind, endpoint_name,
                                                      reference, service,
                                                      self.get_access())
+        except ValueError:
+            # Invalid end point
+            return False
 
         try:
             # Register the end point
