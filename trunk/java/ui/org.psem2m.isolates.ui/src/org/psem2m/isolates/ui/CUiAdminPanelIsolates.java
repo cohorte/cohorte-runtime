@@ -30,192 +30,185 @@ import org.psem2m.signals.ISignalDirectory;
 @Component(name = "psem2m-isolates-ui-admin-factory", publicFactory = false)
 @Instantiate(name = "psem2m-isolates-ui-admin")
 @Provides(specifications = IIsolatePresenceListener.class)
-public class CUiAdminPanelIsolates extends CPojoBase implements
-        IUiAdminPanelControler, IIsolatePresenceListener {
+public class CUiAdminPanelIsolates extends CPojoBase implements IUiAdminPanelControler,
+		IIsolatePresenceListener {
 
-    private CIsolatesTreeModel pIsolatesTreeModel;
+	private CIsolatesTreeModel pIsolatesTreeModel;
 
-    /** The logger */
-    @Requires
-    private IIsolateLoggerSvc pLogger;
+	/** The logger */
+	@Requires
+	private IIsolateLoggerSvc pLogger;
 
-    private CJPanelIsolates pPanelIsolates = null;
+	private CJPanelIsolates pPanelIsolates = null;
 
-    /** the ISignalDirectory service ( eg. getAllIsolates() ) */
-    @Requires
-    private ISignalDirectory pSignalDirectory;
+	/** the ISignalDirectory service ( eg. getAllIsolates() ) */
+	@Requires
+	private ISignalDirectory pSignalDirectory;
 
-    /** the UiAdminPanel returned by the IUiAdminScv */
-    private IUiAdminPanel pUiAdminPanel = null;
+	/** the UiAdminPanel returned by the IUiAdminScv */
+	private IUiAdminPanel pUiAdminPanel = null;
 
-    /** the IUiAdminScv */
-    @Requires
-    private IUiAdminSvc pUiAdminSvc;
+	/** the IUiAdminScv */
+	@Requires
+	private IUiAdminSvc pUiAdminSvc;
 
-    /**
+	/**
      * 
      */
-    private void destroyContent() {
+	private void destroyContent() {
 
-        if (pUiAdminPanel != null) {
-            pUiAdminSvc.removeUiAdminPanel(pUiAdminPanel);
+		if (pUiAdminPanel != null) {
+			pUiAdminSvc.removeUiAdminPanel(pUiAdminPanel);
 
-            pUiAdminPanel.getPanel().removeAll();
-        }
+			pUiAdminPanel.getPanel().removeAll();
+		}
 
-        if (pPanelIsolates != null) {
-            pPanelIsolates = null;
-        }
+		if (pPanelIsolates != null) {
+			pPanelIsolates = null;
+		}
 
-        if (pIsolatesTreeModel != null) {
-            pIsolatesTreeModel = null;
-        }
-    }
+		if (pIsolatesTreeModel != null) {
+			pIsolatesTreeModel = null;
+		}
+	}
 
-    /**
+	/**
      * 
      */
-    private void initContent() {
+	private void initContent() {
 
-        /* the tree model */
-        pIsolatesTreeModel = new CIsolatesTreeModel(pSignalDirectory);
+		/* the tree model */
+		pIsolatesTreeModel = new CIsolatesTreeModel(pSignalDirectory);
 
-        final Runnable wRunnable = new Runnable() {
+		final Runnable wRunnable = new Runnable() {
 
-            @Override
-            public void run() {
+			@Override
+			public void run() {
 
-                try {
-                    /* The parent panel */
-                    pUiAdminPanel = pUiAdminSvc.newUiAdminPanel("Isolates",
-                            "Bundles list and managment.", null,
-                            CUiAdminPanelIsolates.this,
-                            EUiAdminPanelLocation.FIRST);
+				try {
+					/* The parent panel */
+					pUiAdminPanel = pUiAdminSvc.newUiAdminPanel("Isolates",
+							"Isolates list and managment.", null, CUiAdminPanelIsolates.this,
+							EUiAdminPanelLocation.FIRST);
 
-                    final JPanel parentPanel = pUiAdminPanel.getPanel();
+					final JPanel parentPanel = pUiAdminPanel.getPanel();
 
-                    /* The tree panel */
-                    pPanelIsolates = new CJPanelIsolates(pLogger, parentPanel,
-                            pIsolatesTreeModel);
+					/* The tree panel */
+					pPanelIsolates = new CJPanelIsolates(pLogger, parentPanel, pIsolatesTreeModel);
 
-                } catch (final Exception e) {
-                    pLogger.logSevere(CUiAdminPanelIsolates.this,
-                            "initContent", e);
-                }
-            }
-        };
+				} catch (final Exception e) {
+					pLogger.logSevere(CUiAdminPanelIsolates.this, "initContent", e);
+				}
+			}
+		};
 
-        SwingUtilities.invokeLater(wRunnable);
-    }
+		SwingUtilities.invokeLater(wRunnable);
+	}
 
-    @Override
-    @Invalidate
-    public void invalidatePojo() throws BundleException {
+	@Override
+	@Invalidate
+	public void invalidatePojo() throws BundleException {
 
-        // logs in the bundle output
-        pLogger.logInfo(this, "invalidatePojo", "INVALIDATE", toDescription());
+		// logs in the bundle output
+		pLogger.logInfo(this, "invalidatePojo", "INVALIDATE", toDescription());
 
-        try {
+		try {
 
-            // remove isolates panel
-            destroyContent();
+			// remove isolates panel
+			destroyContent();
 
-        } catch (final Exception e) {
-            pLogger.logSevere(this, "invalidatePojo", e);
-        }
-    }
+		} catch (final Exception e) {
+			pLogger.logSevere(this, "invalidatePojo", e);
+		}
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.psem2m.isolates.services.monitoring.IIsolatePresenceListener#isolateLost
-     * (java.lang.String, java.lang.String, java.lang.String)
-     */
-    @Override
-    public void isolateLost(final String aUID, final String aName,
-            final String aNode) {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.psem2m.isolates.services.monitoring.IIsolatePresenceListener#isolateLost
+	 * (java.lang.String, java.lang.String, java.lang.String)
+	 */
+	@Override
+	public void isolateLost(final String aUID, final String aName, final String aNode) {
 
-        pLogger.logInfo(this, "isolateLost", "Del - Node=[%s] IsolateId=[%s]",
-                aNode, aUID);
+		pLogger.logInfo(this, "isolateLost", "Del - Node=[%s] IsolateId=[%s]", aNode, aUID);
 
-        if (pIsolatesTreeModel != null) {
-            pIsolatesTreeModel.removeIsolate(aUID, aName, aNode);
-        }
+		if (pIsolatesTreeModel != null) {
+			pIsolatesTreeModel.removeIsolate(aUID, aName, aNode);
+		}
 
-        SwingUtilities.invokeLater(new Runnable() {
+		SwingUtilities.invokeLater(new Runnable() {
 
-            @Override
-            public void run() {
+			@Override
+			public void run() {
 
-                if (pPanelIsolates != null) {
-                    pPanelIsolates.updateTree();
-                }
-            }
-        });
-    }
+				if (pPanelIsolates != null) {
+					pPanelIsolates.updateTree();
+				}
+			}
+		});
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.psem2m.isolates.services.monitoring.IIsolatePresenceListener#isolateReady
-     * (java.lang.String, java.lang.String, java.lang.String)
-     */
-    @Override
-    public void isolateReady(final String aUID, final String aName,
-            final String aNode) {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.psem2m.isolates.services.monitoring.IIsolatePresenceListener#isolateReady
+	 * (java.lang.String, java.lang.String, java.lang.String)
+	 */
+	@Override
+	public void isolateReady(final String aUID, final String aName, final String aNode) {
 
-        pLogger.logInfo(this, "isolateReady", "Add - Node=[%s] IsolateId=[%s]",
-                aNode, aUID);
+		pLogger.logInfo(this, "isolateReady", "Add - Node=[%s] IsolateId=[%s]", aNode, aUID);
 
-        if (pIsolatesTreeModel != null) {
-            pIsolatesTreeModel.addIsolate(aUID, aName, aNode);
-        }
+		if (pIsolatesTreeModel != null) {
+			pIsolatesTreeModel.addIsolate(aUID, aName, aNode);
+		}
 
-        SwingUtilities.invokeLater(new Runnable() {
+		SwingUtilities.invokeLater(new Runnable() {
 
-            @Override
-            public void run() {
+			@Override
+			public void run() {
 
-                if (pPanelIsolates != null) {
-                    pPanelIsolates.updateTree();
-                }
-            }
-        });
-    }
+				if (pPanelIsolates != null) {
+					pPanelIsolates.updateTree();
+				}
+			}
+		});
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.psem2m.isolates.ui.admin.api.IUiAdminPanelControler#setUiAdminFont
-     * (org.psem2m.isolates.ui.admin.api.EUiAdminFont)
-     */
-    @Override
-    public void setUiAdminFont(final EUiAdminFont aUiAdminFont) {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.psem2m.isolates.ui.admin.api.IUiAdminPanelControler#setUiAdminFont
+	 * (org.psem2m.isolates.ui.admin.api.EUiAdminFont)
+	 */
+	@Override
+	public void setUiAdminFont(final EUiAdminFont aUiAdminFont) {
 
-    }
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.base.activators.CPojoBase#validatePojo()
-     */
-    @Override
-    @Validate
-    public void validatePojo() throws BundleException {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.isolates.base.activators.CPojoBase#validatePojo()
+	 */
+	@Override
+	@Validate
+	public void validatePojo() throws BundleException {
 
-        // logs in the bundle output
-        pLogger.logInfo(this, "validatePojo", "VALIDATE", toDescription());
+		// logs in the bundle output
+		pLogger.logInfo(this, "validatePojo", "VALIDATE", toDescription());
 
-        try {
-            // Set up GUI in a thread
-            initContent();
+		try {
+			// Set up GUI in a thread
+			initContent();
 
-        } catch (final Exception e) {
-            pLogger.logSevere(this, "validatePojo", e);
-        }
-    }
+		} catch (final Exception e) {
+			pLogger.logSevere(this, "validatePojo", e);
+		}
+	}
 
 }

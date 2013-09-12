@@ -1,11 +1,16 @@
 Démo "August 2013"
 ##################
 
-Central
-*******
+Le noeud "Central"
+******************
 
 Liens symboliques
 =================
+
+Les liens à créer dans le dossier :
+
+.. code-block:: bash
+   ${workspace_loc:/platforms}/small-install/demo-august2013/central/
 
 +----------------------+------------------------------------------------------+
 | Lien                 | Cible                                                |
@@ -50,12 +55,17 @@ Démarrage
    ./run.sh --color --start-monitor
 
 
-Raspberry
-*********
+Le noeud Raspberry
+******************
 
 Liens symboliques
 =================
 
+Les liens à créer dans le dossier :
+
+.. code-block:: bash
+   ${workspace_loc:/platforms}/small-install/demo-august2013/raspberry/
+   
 +----------------------+------------------------------------------------------+
 | Lien                 | Cible                                                |
 +======================+======================================================+
