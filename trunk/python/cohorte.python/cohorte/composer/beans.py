@@ -72,6 +72,14 @@ class RawComposition(object):
         """
         return self.__name
 
+    def all_components(self):
+        """
+        Generator to recursively visit all components of this composition
+        """
+        if self.root is not None:
+            for component in self.root.all_components():
+                yield component
+
 # ------------------------------------------------------------------------------
 
 class RawComposite(object):
@@ -120,6 +128,17 @@ class RawComposite(object):
         The parent of this composite
         """
         return self.__parent
+
+    def all_components(self):
+        """
+        Generator to recursively visit all components of this composition
+        """
+        for component in self.components.values():
+            yield component
+
+        for composite in self.composites.values():
+            for component in composite.all_components():
+                yield component
 
 # ------------------------------------------------------------------------------
 
