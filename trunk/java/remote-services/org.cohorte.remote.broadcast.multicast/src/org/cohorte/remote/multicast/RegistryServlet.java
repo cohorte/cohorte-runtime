@@ -7,6 +7,7 @@ package org.cohorte.remote.multicast;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -20,7 +21,10 @@ import javax.servlet.http.HttpServletResponse;
 import org.cohorte.remote.IRemoteServiceRepository;
 import org.cohorte.remote.beans.EndpointDescription;
 import org.cohorte.remote.beans.RemoteServiceRegistration;
+import org.cohorte.remote.multicast.beans.PelixEndpointDescription;
+import org.cohorte.remote.utilities.RSUtils;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.osgi.framework.Constants;
 
@@ -29,240 +33,321 @@ import org.osgi.framework.Constants;
  * 
  * @author Thomas Calmant
  */
-public class RegistryServlet extends HttpServlet {
+class RegistryServlet extends HttpServlet {
 
-    /** JSON mime-type */
-    private static final String JSON_TYPE = "application/json";
+	/** JSON mime-type */
+	private static final String JSON_TYPE = "application/json";
 
-    /** Serial version UID */
-    private static final long serialVersionUID = 1L;
+	/** Serial version UID */
+	private static final long serialVersionUID = 1L;
 
-    /** The isolate UID */
-    private final String pIsolateUID;
+	/** The parent multicast broadcaster */
+	private final MulticastBroadcaster pBroadcaster;
 
-    /** The exported services repository */
-    private final IRemoteServiceRepository pRepository;
+	/** The isolate UID */
+	private final String pIsolateUID;
 
-    /**
-     * Sets up members
-     */
-    public RegistryServlet(final String aIsolateUID,
-            final IRemoteServiceRepository aRepository) {
+	/** The exported services repository */
+	private final IRemoteServiceRepository pRepository;
 
-        pIsolateUID = aIsolateUID;
-        pRepository = aRepository;
-    }
+	/**
+	 * Sets up members
+	 */
+	public RegistryServlet(final String aIsolateUID,
+			final MulticastBroadcaster aBroadcaster,
+			final IRemoteServiceRepository aRepository) {
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * javax.servlet.http.HttpServlet#doGet(javax.servlet.http.HttpServletRequest
-     * , javax.servlet.http.HttpServletResponse)
-     */
-    @Override
-    protected void doGet(final HttpServletRequest aReq,
-            final HttpServletResponse aResp) throws ServletException,
-            IOException {
+		pIsolateUID = aIsolateUID;
+		pBroadcaster = aBroadcaster;
+		pRepository = aRepository;
+	}
 
-        // Get the path given after the servlet path
-        final String extra = aReq.getPathInfo();
-        if (extra == null) {
-            // No order given
-            aResp.sendError(HttpServletResponse.SC_BAD_REQUEST,
-                    "Invalid request path");
-            return;
-        }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * javax.servlet.http.HttpServlet#doGet(javax.servlet.http.HttpServletRequest
+	 * , javax.servlet.http.HttpServletResponse)
+	 */
+	@Override
+	protected void doGet(final HttpServletRequest aReq,
+			final HttpServletResponse aResp) throws ServletException,
+			IOException {
 
-        // Split it (extra will start with a '/')
-        final String[] parts = extra.substring(1).split("/");
-        if (parts[0].equals("endpoint")) {
-            // /endpoint/<uid>
-            if (parts.length < 2) {
-                // Missing the UID
-                aResp.sendError(HttpServletResponse.SC_BAD_REQUEST,
-                        "Endpoint UID is missing");
-                return;
+		// Get the path given after the servlet path
+		final String extra = aReq.getPathInfo();
+		if (extra == null) {
+			// No order given
+			aResp.sendError(HttpServletResponse.SC_BAD_REQUEST,
+					"Invalid request path");
+			return;
+		}
 
-            } else {
-                // Send the response
-                sendEndpointDict(aResp, parts[1]);
-            }
+		// Split it (extra will start with a '/')
+		final String[] parts = extra.substring(1).split("/");
+		if (parts[0].equals("endpoint")) {
+			// /endpoint/<uid>
+			if (parts.length < 2) {
+				// Missing the UID
+				aResp.sendError(HttpServletResponse.SC_BAD_REQUEST,
+						"Endpoint UID is missing");
+				return;
 
-        } else if (parts[0].equals("endpoints")) {
-            // /endpoints
-            sendEndpoints(aResp);
+			} else {
+				// Send the response
+				sendEndpointDict(aResp, parts[1]);
+			}
 
-        } else {
-            // Unknown path
-            aResp.sendError(HttpServletResponse.SC_NOT_FOUND);
-            return;
-        }
-    }
+		} else if (parts[0].equals("endpoints")) {
+			// /endpoints
+			sendEndpoints(aResp);
 
-    /**
-     * Converts a Cohorte Remote Services registration bean to a Pelix remote
-     * services end point. Returns null if no end point is stored in the
-     * registration bean.
-     * 
-     * @param aRegistration
-     *            A remote service registration
-     * @return The corresponding Pelix representation, or null
-     */
-    private Map<String, Object> registrationToMap(
-            final RemoteServiceRegistration aRegistration) {
+		} else {
+			// Unknown path
+			aResp.sendError(HttpServletResponse.SC_NOT_FOUND);
+			return;
+		}
+	}
 
-        final EndpointDescription[] regEndpoints = aRegistration.getEndpoints();
-        if (regEndpoints == null || regEndpoints.length == 0) {
-            // No end points
-            return null;
-        }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * javax.servlet.http.HttpServlet#doPost(javax.servlet.http.HttpServletRequest
+	 * , javax.servlet.http.HttpServletResponse)
+	 */
+	@Override
+	protected void doPost(final HttpServletRequest req,
+			final HttpServletResponse resp) throws ServletException,
+			IOException {
 
-        // Find a JSON-RPC end point
-        EndpointDescription foundEndpoint = null;
-        for (final EndpointDescription endpoint : regEndpoints) {
-            if (endpoint.getExportedConfig().contains("json")) {
-                foundEndpoint = endpoint;
-                break;
-            }
-        }
+		// Get the body of the request
+		byte[] rawContent = RSUtils.inputStreamToBytes(req.getInputStream());
+		String strContent = new String(rawContent);
 
-        if (foundEndpoint == null) {
-            // No JSON end point, try the first one
-            foundEndpoint = regEndpoints[0];
-        }
+		try {
+			// Parse it
+			JSONArray jsonEndpoints = new JSONArray(strContent);
 
-        // Filter the properties (remove the specifications)
-        final Map<String, Object> properties = new LinkedHashMap<String, Object>(
-                aRegistration.getServiceProperties());
-        properties.remove(Constants.OBJECTCLASS);
+			// Prepare the list of end points
+			String senderAddr = req.getRemoteAddr();
+			List<PelixEndpointDescription> endpoints = new ArrayList<>(
+					jsonEndpoints.length());
+			for (int i = 0; i < jsonEndpoints.length(); i++) {
+				JSONObject endpoint = jsonEndpoints.getJSONObject(i);
+				System.out.println("ENDPOINT:\n" + endpoint);
 
-        // Prepare the end point map
-        final Map<String, Object> endpoint = new LinkedHashMap<String, Object>();
+				final PelixEndpointDescription converted = new PelixEndpointDescription(
+						endpoint);
+				converted.setServerAddress(senderAddr);
+				System.out.println("Converted: " + converted);
+				endpoints.add(converted);
+			}
 
-        // Found in the registration...
-        endpoint.put("sender", pIsolateUID);
-        endpoint.put("uid", aRegistration.getServiceId());
-        endpoint.put("specifications", aRegistration.getExportedInterfaces());
-        endpoint.put("properties", properties);
+			// Let them be registered
+			pBroadcaster.handleDiscovered(endpoints);
 
-        // Found in the end point
-        endpoint.put("kind", foundEndpoint.getExportedConfig());
-        endpoint.put("name", foundEndpoint.getEndpointName());
+			// Success
+			resp.setStatus(HttpServletResponse.SC_OK);
+			resp.setHeader("Content-Type", "text/plain");
+			resp.getWriter().print("OK");
 
-        // Forge the URL
-        final String url = String.format("%s://{server}:%d%s",
-                foundEndpoint.getProtocol(), foundEndpoint.getPort(),
-                foundEndpoint.getEndpointUri());
-        endpoint.put("url", url);
+		} catch (JSONException ex) {
+			// Error
+			resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			resp.setHeader("Content-Type", "text/plain");
+			ex.printStackTrace(resp.getWriter());
+		}
+	}
 
-        return endpoint;
-    }
+	/**
+	 * Retrieves the exported end points in a JSON array
+	 * 
+	 * @return a JSON array
+	 */
+	protected JSONArray getJsonEndpoints() {
+		// Get our registrations
+		final RemoteServiceRegistration[] regBeans = pRepository
+				.getLocalRegistrations();
 
-    /**
-     * Sends the representation of the end point matching the given ID
-     * 
-     * @param aResp
-     *            Servlet response
-     * @param aRegistrationUID
-     *            The UID of the registration (the service ID)
-     * @throws IOException
-     *             Error writing to the client
-     */
-    private void sendEndpointDict(final HttpServletResponse aResp,
-            final String aRegistrationUID) throws IOException {
+		// Convert the objects to maps
+		final List<Object> regMaps = new LinkedList<Object>();
+		for (final RemoteServiceRegistration registration : regBeans) {
 
-        // The requested one
-        RemoteServiceRegistration requested = null;
+			final Map<String, Object> regMap = registrationToMap(registration);
+			if (regMap != null) {
+				// Avoid registrations without end point
+				regMaps.add(regMap);
+			}
+		}
 
-        // Get all registrations
-        final RemoteServiceRegistration[] regBeans = pRepository
-                .getLocalRegistrations();
-        for (final RemoteServiceRegistration registration : regBeans) {
-            if (registration.getServiceId().equals(aRegistrationUID)) {
-                // Found it !
-                requested = registration;
-                break;
-            }
-        }
+		// Convert to JSON
+		return new JSONArray(regMaps);
+	}
 
-        if (requested == null) {
-            // Unknown ID
-            aResp.sendError(HttpServletResponse.SC_NOT_FOUND,
-                    "Unknown end point ID: " + aRegistrationUID);
-            return;
-        }
+	/**
+	 * Converts a Cohorte Remote Services registration bean to a Pelix remote
+	 * services end point. Returns null if no end point is stored in the
+	 * registration bean.
+	 * 
+	 * @param aRegistration
+	 *            A remote service registration
+	 * @return The corresponding Pelix representation, or null
+	 */
+	private Map<String, Object> registrationToMap(
+			final RemoteServiceRegistration aRegistration) {
 
-        // Convert the object to a map
-        final Map<String, Object> regMap = registrationToMap(requested);
-        if (regMap == null) {
-            // Nothing to do
-            aResp.sendError(HttpServletResponse.SC_NO_CONTENT,
-                    "No valid end point for ID:" + aRegistrationUID);
-            return;
-        }
+		final EndpointDescription[] regEndpoints = aRegistration.getEndpoints();
+		if (regEndpoints == null || regEndpoints.length == 0) {
+			// No end points
+			return null;
+		}
 
-        // Convert to JSON
-        final JSONObject jsonContent = new JSONObject(regMap);
+		// Find a JSON-RPC end point
+		EndpointDescription foundEndpoint = null;
+		for (final EndpointDescription endpoint : regEndpoints) {
+			if (endpoint.getExportedConfig().contains("json")) {
+				foundEndpoint = endpoint;
+				break;
+			}
+		}
 
-        // Send
-        sendJson(aResp, jsonContent.toString());
-    }
+		if (foundEndpoint == null) {
+			// No JSON end point, try the first one
+			foundEndpoint = regEndpoints[0];
+		}
 
-    /**
-     * Sends the whole content of the repository
-     * 
-     * @param aResp
-     *            Servlet response
-     * @throws IOException
-     *             Error writing to the client
-     */
-    private void sendEndpoints(final HttpServletResponse aResp)
-            throws IOException {
+		// Filter the properties (remove the specifications)
+		final Map<String, Object> properties = new LinkedHashMap<String, Object>(
+				aRegistration.getServiceProperties());
+		properties.remove(Constants.OBJECTCLASS);
 
-        // Get our registrations
-        final RemoteServiceRegistration[] regBeans = pRepository
-                .getLocalRegistrations();
+		// Prepare the end point map
+		final Map<String, Object> endpoint = new LinkedHashMap<String, Object>();
 
-        // Convert the objects to maps
-        final List<Object> regMaps = new LinkedList<Object>();
-        for (final RemoteServiceRegistration registration : regBeans) {
+		// Found in the registration...
+		endpoint.put("sender", pIsolateUID);
+		endpoint.put("uid", aRegistration.getServiceId());
+		endpoint.put("specifications", aRegistration.getExportedInterfaces());
+		endpoint.put("properties", properties);
 
-            final Map<String, Object> regMap = registrationToMap(registration);
-            if (regMap != null) {
-                // Avoid registrations without end point
-                regMaps.add(regMap);
-            }
-        }
+		// Found in the end point
+		endpoint.put("kind", foundEndpoint.getExportedConfig());
+		endpoint.put("name", foundEndpoint.getEndpointName());
 
-        // Convert to JSON
-        final JSONArray jsonContent = new JSONArray(regMaps);
+		// Forge the URL
+		final String url = String.format("%s://{server}:%d%s",
+				foundEndpoint.getProtocol(), foundEndpoint.getPort(),
+				foundEndpoint.getEndpointUri());
+		endpoint.put("url", url);
 
-        // Send
-        sendJson(aResp, jsonContent.toString());
-    }
+		return endpoint;
+	}
 
-    /**
-     * Writes a JSON response
-     * 
-     * @param aResp
-     *            Servlet response
-     * @param aJsonString
-     *            JSON string
-     * @throws IOException
-     *             Error writing to the client
-     */
-    private void sendJson(final HttpServletResponse aResp,
-            final String aJsonString) throws IOException {
+	/**
+	 * Sends the representation of the end point matching the given ID
+	 * 
+	 * @param aResp
+	 *            Servlet response
+	 * @param aRegistrationUID
+	 *            The UID of the registration (the service ID)
+	 * @throws IOException
+	 *             Error writing to the client
+	 */
+	private void sendEndpointDict(final HttpServletResponse aResp,
+			final String aRegistrationUID) throws IOException {
 
-        // Setup headers
-        aResp.setStatus(HttpServletResponse.SC_OK);
-        aResp.setContentType(JSON_TYPE);
-        aResp.setContentLength(aJsonString.length());
+		// The requested one
+		RemoteServiceRegistration requested = null;
 
-        // Write the content
-        final PrintWriter writer = aResp.getWriter();
-        writer.print(aJsonString);
-        writer.flush();
-    }
+		// Get all registrations
+		final RemoteServiceRegistration[] regBeans = pRepository
+				.getLocalRegistrations();
+		for (final RemoteServiceRegistration registration : regBeans) {
+			if (registration.getServiceId().equals(aRegistrationUID)) {
+				// Found it !
+				requested = registration;
+				break;
+			}
+		}
+
+		if (requested == null) {
+			// Unknown ID
+			aResp.sendError(HttpServletResponse.SC_NOT_FOUND,
+					"Unknown end point ID: " + aRegistrationUID);
+			return;
+		}
+
+		// Convert the object to a map
+		final Map<String, Object> regMap = registrationToMap(requested);
+		if (regMap == null) {
+			// Nothing to do
+			aResp.sendError(HttpServletResponse.SC_NO_CONTENT,
+					"No valid end point for ID:" + aRegistrationUID);
+			return;
+		}
+
+		// Convert to JSON
+		final JSONObject jsonContent = new JSONObject(regMap);
+
+		// Send
+		sendJson(aResp, jsonContent.toString());
+	}
+
+	/**
+	 * Sends the whole content of the repository
+	 * 
+	 * @param aResp
+	 *            Servlet response
+	 * @throws IOException
+	 *             Error writing to the client
+	 */
+	private void sendEndpoints(final HttpServletResponse aResp)
+			throws IOException {
+
+		// Get our registrations
+		final RemoteServiceRegistration[] regBeans = pRepository
+				.getLocalRegistrations();
+
+		// Convert the objects to maps
+		final List<Object> regMaps = new LinkedList<Object>();
+		for (final RemoteServiceRegistration registration : regBeans) {
+
+			final Map<String, Object> regMap = registrationToMap(registration);
+			if (regMap != null) {
+				// Avoid registrations without end point
+				regMaps.add(regMap);
+			}
+		}
+
+		// Convert to JSON
+		final JSONArray jsonContent = new JSONArray(regMaps);
+
+		// Send
+		sendJson(aResp, jsonContent.toString());
+	}
+
+	/**
+	 * Writes a JSON response
+	 * 
+	 * @param aResp
+	 *            Servlet response
+	 * @param aJsonString
+	 *            JSON string
+	 * @throws IOException
+	 *             Error writing to the client
+	 */
+	private void sendJson(final HttpServletResponse aResp,
+			final String aJsonString) throws IOException {
+
+		// Setup headers
+		aResp.setStatus(HttpServletResponse.SC_OK);
+		aResp.setContentType(JSON_TYPE);
+		aResp.setContentLength(aJsonString.length());
+
+		// Write the content
+		final PrintWriter writer = aResp.getWriter();
+		writer.print(aJsonString);
+		writer.flush();
+	}
 }

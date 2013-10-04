@@ -48,37 +48,37 @@ iPOJO-Components: instance { $name="multicast-starter" $component="mul
  ress,int,java.lang.String}" }method { $name="grabEndpoint" $return="o
  rg.cohorte.remote.beans.RemoteServiceRegistration" $arguments="{java.
  net.InetAddress,int,java.lang.String,java.lang.String}" }method { $na
- me="grabEndpoints" $return="java.util.List" $arguments="{java.net.Ine
- tAddress,int,java.lang.String}" }method { $name="handleError" $return
- ="boolean" $arguments="{java.lang.Exception}" }method { $name="handle
- Event" $arguments="{org.cohorte.remote.multicast.beans.PelixMulticast
- Packet,java.net.InetAddress,int}" }method { $name="handleEventAdd" $a
- rguments="{java.lang.String,org.cohorte.remote.multicast.beans.PelixM
- ulticastPacket,java.net.InetAddress}" }method { $name="handleEventRem
- ove" $arguments="{java.lang.String}" }method { $name="handleEventUpda
- te" $arguments="{java.lang.String,org.cohorte.remote.multicast.beans.
- PelixMulticastPacket}" }method { $name="handlePacket" $arguments="{ja
- va.net.InetSocketAddress,byte[]}" }method { $name="invalidate" }metho
- d { $name="requestAllEndpoints" $return="org.cohorte.remote.beans.Rem
- oteServiceEvent[]" }method { $name="requestEndpoints" $return="org.co
- horte.remote.beans.RemoteServiceEvent[]" $arguments="{java.lang.Strin
- g}" }method { $name="sendDiscovered" $arguments="{java.net.InetAddres
- s,int}" }method { $name="sendDiscovery" }method { $name="sendNotifica
- tion" $arguments="{org.cohorte.remote.beans.RemoteServiceEvent}" }met
- hod { $name="sendPacket" $arguments="{java.util.Map}" }method { $name
- ="sendPacket" $arguments="{java.util.Map,java.net.InetAddress,int}" }
- method { $name="toString" $return="java.lang.String" }method { $name=
- "validate" }}}component { $name="multicast-starter-factory" $classnam
- e="org.cohorte.remote.multicast.MulticastStarter" requires { $field="
- pLogger" }requires { $field="pMulticastFactory" $filter="(factory.nam
- e=cohorte-remote-broadcast-multicast)" }callback { $transition="inval
- idate" $method="invalidate" }callback { $transition="validate" $metho
- d="validate" }manipulation { field { $name="pContext" $type="org.osgi
- .framework.BundleContext" }field { $name="pInstance" $type="org.apach
- e.felix.ipojo.ComponentInstance" }field { $name="pLogger" $type="org.
- osgi.service.log.LogService" }field { $name="pMulticastFactory" $type
- ="org.apache.felix.ipojo.Factory" }method { $name="getProperty" $retu
- rn="java.lang.String" $arguments="{java.lang.String,java.lang.String}
- " }method { $name="invalidate" }method { $name="startComponent" }meth
- od { $name="stopComponent" }method { $name="validate" }}}
+ me="handleDiscovered" $arguments="{java.util.List}" }method { $name="
+ handleError" $return="boolean" $arguments="{java.lang.Exception}" }me
+ thod { $name="handleEvent" $arguments="{org.cohorte.remote.multicast.
+ beans.PelixMulticastPacket,java.net.InetAddress,int}" }method { $name
+ ="handleEventAdd" $arguments="{java.lang.String,org.cohorte.remote.mu
+ lticast.beans.PelixMulticastPacket,java.net.InetAddress}" }method { $
+ name="handleEventRemove" $arguments="{java.lang.String}" }method { $n
+ ame="handleEventUpdate" $arguments="{java.lang.String,org.cohorte.rem
+ ote.multicast.beans.PelixMulticastPacket}" }method { $name="handlePac
+ ket" $arguments="{java.net.InetSocketAddress,byte[]}" }method { $name
+ ="invalidate" }method { $name="requestAllEndpoints" $return="org.coho
+ rte.remote.beans.RemoteServiceEvent[]" }method { $name="requestEndpoi
+ nts" $return="org.cohorte.remote.beans.RemoteServiceEvent[]" $argumen
+ ts="{java.lang.String}" }method { $name="sendDiscovered" $arguments="
+ {java.lang.String,int,java.lang.String}" }method { $name="sendDiscove
+ ry" }method { $name="sendNotification" $arguments="{org.cohorte.remot
+ e.beans.RemoteServiceEvent}" }method { $name="sendPacket" $arguments=
+ "{java.util.Map}" }method { $name="sendPacket" $arguments="{java.util
+ .Map,java.net.InetAddress,int}" }method { $name="toString" $return="j
+ ava.lang.String" }method { $name="validate" }}}component { $name="mul
+ ticast-starter-factory" $classname="org.cohorte.remote.multicast.Mult
+ icastStarter" requires { $field="pLogger" }requires { $field="pMultic
+ astFactory" $filter="(factory.name=cohorte-remote-broadcast-multicast
+ )" }callback { $transition="invalidate" $method="invalidate" }callbac
+ k { $transition="validate" $method="validate" }manipulation { field {
+  $name="pContext" $type="org.osgi.framework.BundleContext" }field { $
+ name="pInstance" $type="org.apache.felix.ipojo.ComponentInstance" }fi
+ eld { $name="pLogger" $type="org.osgi.service.log.LogService" }field 
+ { $name="pMulticastFactory" $type="org.apache.felix.ipojo.Factory" }m
+ ethod { $name="getProperty" $return="java.lang.String" $arguments="{j
+ ava.lang.String,java.lang.String}" }method { $name="invalidate" }meth
+ od { $name="startComponent" }method { $name="stopComponent" }method {
+  $name="validate" }}}
 
