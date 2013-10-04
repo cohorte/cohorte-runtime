@@ -21,19 +21,7 @@
 	{
 		"name" : "cohorte.composer.parser"
 	}, {
-		"name" : "cohorte.composer.loader"
-	}, {
-		"name" : "cohorte.composer.dispatcher"
-	}, {
-		"name" : "cohorte.composer.distributor"
-	}, {
-		"name" : "cohorte.composer.executor"
-	}, {
-		"name" : "cohorte.composer.core.rating"
-	}, /*
-		 * { "name" : "cohorte.composer.core.ruleengine" },
-		 */{
-		"name" : "cohorte.composer.core.status"
+		"name" : "cohorte.shell.debug_composer"
 	},
 
 	/* Repositories */
@@ -79,24 +67,5 @@
 	}, {
 		"factory" : "cohorte-repository-factories-ipopo-factory",
 		"name" : "cohorte-repository-factories-ipopo"
-	},
-
-	/* Composition loading */
-	{
-		"factory" : "cohorte-composer-loader-factory",
-		"name" : "cohorte-composer-loader"
-	},
-
-	/* Composer core engine */
-	{
-		"factory" : "cohorte-composer-rating-factory",
-		"name" : "cohorte-composer-rating"
-	}, {
-		"factory" : "cohorte-composer-compatibility-factory",
-		"name" : "cohorte-composer-compatibility"
-	} /*
-		 * , { "factory" : "cohorte-composer-core-rules-factory", "name" :
-		 * "cohorte-composer-core-rules", "properties": { "rules.file":
-		 * "file:/home/tcalmant/programmation/workspaces/psem2m/trunk/python/cohorte.python/cohorte/composer/core/composer.rules" } }
-		 */]
+	} ]
 }

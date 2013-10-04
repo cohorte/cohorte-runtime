@@ -1,0 +1,104 @@
+#!/usr/bin/env python
+# -- Content-Encoding: UTF-8 --
+"""
+Shell commands to debug the composer v3
+
+:author: Thomas Calmant
+:copyright: Copyright 2013, isandlaTech
+:license: GPLv3
+:version: 3.0.0
+
+..
+
+    This file is part of Cohorte.
+
+    Cohorte is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Cohorte is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Cohorte. If not, see <http://www.gnu.org/licenses/>.
+"""
+
+# Module version
+__version_info__ = (3, 0, 0)
+__version__ = ".".join(str(x) for x in __version_info__)
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# ------------------------------------------------------------------------------
+
+# Composer
+import cohorte.composer
+
+# Shell constants
+from pelix.shell import SHELL_COMMAND_SPEC, SHELL_UTILS_SERVICE_SPEC
+
+# iPOPO Decorators
+from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
+    Instantiate
+
+# Standard library
+import json
+
+# ------------------------------------------------------------------------------
+
+@ComponentFactory("cohorte-composer-parser-shell-factory")
+@Requires('_reader', cohorte.SERVICE_FILE_READER)
+@Requires("_parser", cohorte.composer.SERVICE_PARSER)
+@Requires("_utils", SHELL_UTILS_SERVICE_SPEC)
+@Provides(SHELL_COMMAND_SPEC)
+@Instantiate("cohorte-composer-parser-shell")
+class ParserCommands(object):
+    """
+    Signals shell commands
+    """
+    def __init__(self):
+        """
+        Sets up members
+        """
+        # Injected services
+        self._parser = None
+        self._utils = None
+
+
+    def get_namespace(self):
+        """
+        Retrieves the name space of this command handler
+        """
+        return "parser"
+
+
+    def get_methods(self):
+        """
+        Retrieves the list of tuples (command, method) for this command handler
+        """
+        return [("load", self.load_composition),
+                ("read", self.read_file)]
+
+
+    def load_composition(self, io_handler, filename, base=None):
+        """
+        Parses a composition
+        """
+        composition = self._parser.load(filename, base)
+        io_handler.write_line("{0}", composition)
+
+
+    def read_file(self, io_handler, filename, base=None):
+        """
+        Reads a file
+        """
+        data = self._reader.load_file(filename, base)
+        io_handler.write_line("{0}", json.dumps(data, sort_keys=True,
+                                                indent='  ',
+                                                separators=(',', ': ')))
+
+
