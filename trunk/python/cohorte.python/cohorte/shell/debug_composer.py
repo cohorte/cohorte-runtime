@@ -46,16 +46,19 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
     Instantiate
 
 # Standard library
+from pprint import pformat
+import logging
 import json
 
 # ------------------------------------------------------------------------------
 
-@ComponentFactory("cohorte-composer-parser-shell-factory")
+@ComponentFactory()
 @Requires('_reader', cohorte.SERVICE_FILE_READER)
-@Requires("_parser", cohorte.composer.SERVICE_PARSER)
-@Requires("_utils", SHELL_UTILS_SERVICE_SPEC)
+@Requires('_parser', cohorte.composer.SERVICE_PARSER)
+@Requires('_distributor', cohorte.composer.SERVICE_DISTRIBUTOR_NODE)
+@Requires('_utils', SHELL_UTILS_SERVICE_SPEC)
 @Provides(SHELL_COMMAND_SPEC)
-@Instantiate("cohorte-composer-parser-shell")
+@Instantiate('cohorte-composer-parser-shell')
 class ParserCommands(object):
     """
     Signals shell commands
@@ -68,6 +71,7 @@ class ParserCommands(object):
         self._parser = None
         self._utils = None
 
+        self.logger = logging.getLogger('composer-shell')
 
     def get_namespace(self):
         """
@@ -84,21 +88,27 @@ class ParserCommands(object):
                 ("read", self.read_file)]
 
 
+    def read_file(self, io_handler, filename, base="conf"):
+        """
+        Reads a file
+        """
+        # Read the file content (dictionary)
+        data = self._reader.load_file(filename, base)
+
+        # Pretty print
+        io_handler.write_line(json.dumps(data, sort_keys=True,
+                                         indent='  ', separators=(',', ': ')))
+
+
     def load_composition(self, io_handler, filename, base=None):
         """
         Parses a composition
         """
+        # Load the composition
         composition = self._parser.load(filename, base)
-        io_handler.write_line("{0}", composition)
 
+        # Distribute it
+        distribution = self._distributor.distribute(composition)
 
-    def read_file(self, io_handler, filename, base=None):
-        """
-        Reads a file
-        """
-        data = self._reader.load_file(filename, base)
-        io_handler.write_line("{0}", json.dumps(data, sort_keys=True,
-                                                indent='  ',
-                                                separators=(',', ': ')))
-
-
+        # Pretty print
+        io_handler.write_line('{0}', pformat(distribution, indent=2))
