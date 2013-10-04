@@ -7,7 +7,7 @@
 			 * Python sensor
 			 */
 			"name" : "temper-python-python",
-			"type" : "demo-temperature-fake-factory",
+			"factory" : "demo-temperature-fake-factory",
 			// Force isolation
 			"isolate" : "temper.python",
 			"properties" : {
@@ -19,23 +19,23 @@
 			 * Raspberry Pi sensor
 			 */
 			"name" : "temper-python-raspi",
-			"type" : "demo-temperature-fake-factory",
+			"factory" : "demo-temperature-fake-factory",
 			// Force placement
-			"isolate" : "temper.raspi"
-			// "node" : "raspberry"
+			"isolate" : "temper.raspi",
+			"node" : "raspberry"
 		}, {
 			/**
 			 * Java sensor
 			 */
 			"name" : "temper-java",
-			"type" : "java-fake-temp-factory",
+			"factory" : "java-fake-temp-factory",
 			"isolate" : "temper.java"
 		}, {
 			/**
 			 * Aggregator component
 			 */
 			"name" : "aggregator",
-			"type" : "demo-sensor-aggregator-factory",
+			"factory" : "demo-sensor-aggregator-factory",
 			"language" : "python",
 			"isolate" : "stratus.aggregator",
 			"properties" : {
@@ -46,7 +46,7 @@
 			 * Aggregator web UI
 			 */
 			"name" : "aggregator-UI",
-			"type" : "demo-sensor-aggregator-ui-factory",
+			"factory" : "demo-sensor-aggregator-ui-factory",
 			"language" : "python",
 			// Force the isolate name: allows to force the HTTP port in
 			// the isolate configuration
