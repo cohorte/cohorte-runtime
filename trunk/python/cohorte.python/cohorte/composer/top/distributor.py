@@ -48,7 +48,7 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
 
 # ------------------------------------------------------------------------------
 
-@ComponentFactory("cohorte-composer-node-distributor-factory")
+@ComponentFactory()
 @Provides(cohorte.composer.SERVICE_DISTRIBUTOR_NODE)
 @Requires('_distance_criteria', cohorte.composer.SERVICE_CRITERION_DISTANCE,
           aggregate=True)
@@ -89,10 +89,10 @@ class NodeDistributor(object):
         """
         groups = {}
 
-        not_grouped = components
-        for criterion in self._distance_criteria:
+        not_grouped = list(components)
+        for criterion in self._distance_criteria[:]:
             # Group components
-            grouped, not_grouped = criterion.group(not_grouped)
+            grouped, not_grouped = criterion.group(not_grouped, groups)
 
             # Update the distribution
             for group, group_components in grouped.items():
@@ -100,6 +100,6 @@ class NodeDistributor(object):
 
         if not_grouped:
             # Some components have not been grouped: use the "undefined" group
-            groups.setdefault(None, set()).update(group_components)
+            groups.setdefault(None, set()).update(not_grouped)
 
         return groups
