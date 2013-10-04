@@ -21,6 +21,12 @@
 	{
 		"name" : "cohorte.composer.parser"
 	}, {
+		"name" : "cohorte.composer.top.composer"
+	}, {
+		"name" : "cohorte.composer.top.distributor"
+	}, {
+		"name" : "cohorte.composer.criteria.distance.configuration"
+	}, {
 		"name" : "cohorte.shell.debug_composer"
 	},
 
