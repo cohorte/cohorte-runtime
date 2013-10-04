@@ -40,8 +40,6 @@ __docformat__ = "restructuredtext en"
 import cohorte.composer
 import cohorte.composer.beans as beans
 
-# ------------------------------------------------------------------------------
-
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
     Instantiate
@@ -150,7 +148,7 @@ class CompositionParser(object):
         # Copy dictionaries
         for entry in beans.RawComponent.PARSER_UPDATE:
             try:
-                setattr(component, entry, component_dict[entry])
+                setattr(component, entry, component_dict.get(entry, {}))
             except AttributeError:
                 raise ValueError("Invalid component entry: {0}".format(entry))
 
