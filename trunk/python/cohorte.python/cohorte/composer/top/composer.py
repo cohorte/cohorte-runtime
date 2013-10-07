@@ -61,6 +61,8 @@ class TopComposer(object):
         Sets up components
         """
         self._distributor = None
+        self._status = None
+        self._commander = None
 
 
     def start(self, composition):
@@ -77,7 +79,11 @@ class TopComposer(object):
         uid = self._status.store(distribution)
 
         # Tell the monitor to start the nodes
+        # FIXME: use an intermediate level for nodes (EC2 LoadBalancer-like)
         self._monitor.start_nodes(distribution.keys())
+
+        # Tell the commander to start the instantiation on existing nodes
+        self._commander.start(distribution)
         return uid
 
 

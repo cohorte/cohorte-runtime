@@ -54,7 +54,7 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
           aggregate=True)
 @Requires('_repositories', cohorte.repositories.SERVICE_REPOSITORY_FACTORIES,
           aggregate=True)
-@Instantiate('cohorte-composer-distributor')
+@Instantiate('cohorte-composer-top-distributor')
 class NodeDistributor(object):
     """
     Clusters components into groups. Each group corresponds to a node.

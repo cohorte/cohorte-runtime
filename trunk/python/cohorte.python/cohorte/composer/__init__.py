@@ -62,3 +62,8 @@ SERVICE_CRITERION_DISTANCE = 'cohorte.composer.criterion.distance'
 
 SERVICE_CRITERION_RELIABILITY = 'cohorte.composer.criterion.reliability'
 """ Specification of a factory reliability criterion service """
+
+# ------------------------------------------------------------------------------
+
+PROP_NODE_NAME = 'cohorte.composer.node.name'
+""" Name of the node the service is executed on """
