@@ -54,8 +54,8 @@ import json
 
 @ComponentFactory()
 @Requires('_reader', cohorte.SERVICE_FILE_READER)
-@Requires('_parser', cohorte.composer.SERVICE_PARSER)
-@Requires('_distributor', cohorte.composer.SERVICE_DISTRIBUTOR_NODE)
+@Requires('_parser', cohorte.composer.SERVICE_PARSER, optional=True)
+@Requires('_distributor', cohorte.composer.SERVICE_DISTRIBUTOR_NODE, optional=True)
 @Requires('_utils', SHELL_UTILS_SERVICE_SPEC)
 @Provides(SHELL_COMMAND_SPEC)
 @Instantiate('cohorte-composer-parser-shell')
@@ -96,8 +96,9 @@ class ParserCommands(object):
         data = self._reader.load_file(filename, base)
 
         # Pretty print
-        io_handler.write_line(json.dumps(data, sort_keys=True,
-                                         indent='  ', separators=(',', ': ')))
+        io_handler.write_line("{0}", json.dumps(data, sort_keys=True,
+                                                indent='  ',
+                                                separators=(',', ': ')))
 
 
     def load_composition(self, io_handler, filename, base=None):
