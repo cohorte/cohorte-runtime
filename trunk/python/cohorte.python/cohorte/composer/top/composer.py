@@ -45,7 +45,7 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
 
 # ------------------------------------------------------------------------------
 
-@ComponentFactory('cohorte-composer-top-factory')
+@ComponentFactory()
 @Provides(cohorte.composer.SERVICE_COMPOSER_TOP)
 @Requires('_distributor', cohorte.composer.SERVICE_DISTRIBUTOR_NODE)
 @Requires('_status', cohorte.composer.SERVICE_STATUS_TOP)

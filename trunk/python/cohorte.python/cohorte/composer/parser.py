@@ -46,7 +46,7 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
 
 # ------------------------------------------------------------------------------
 
-@ComponentFactory('cohorte-composer-parser-factory')
+@ComponentFactory()
 @Provides(cohorte.composer.SERVICE_PARSER)
 @Requires('_reader', cohorte.SERVICE_FILE_READER)
 @Instantiate('cohorte-composer-parser')
