@@ -42,7 +42,11 @@ import cohorte.composer
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
-    Instantiate, BindField, UpdateField, UnbindField, Invalidate, Validate
+    Property, Instantiate, BindField, UpdateField, UnbindField, \
+    Invalidate, Validate
+
+# Pelix
+import pelix.remote
 
 # Standard library
 import logging
@@ -55,9 +59,12 @@ _logger = logging.getLogger(__name__)
 # ------------------------------------------------------------------------------
 
 @ComponentFactory()
+@Provides(cohorte.composer.SERVICE_COMMANDER_TOP)
+@Property('_export', pelix.remote.PROP_EXPORTED_INTERFACES, '*')
+@Property('_export_name', pelix.remote.PROP_ENDPOINT_NAME,
+          'composer-top-commander')
 @Requires('_injected_composers', cohorte.composer.SERVICE_COMMANDER_NODE,
           aggregate=True, optional=True)
-@Provides(cohorte.composer.SERVICE_COMMANDER_TOP)
 @Instantiate('cohorte-composer-top-commander')
 class TopCommander(object):
     """
@@ -72,6 +79,10 @@ class TopCommander(object):
 
         # Node name -> NodeComposer[]
         self._node_composers = {}
+
+        # Export flags
+        self._export = None
+        self._export_name = None
 
         # Validation flag
         self.__validated = False
