@@ -64,7 +64,7 @@ _logger = logging.getLogger(__name__)
 @Property('_export_name', pelix.remote.PROP_ENDPOINT_NAME,
           'composer-top-commander')
 @Requires('_status', cohorte.composer.SERVICE_STATUS_TOP)
-@Requires('_injected_composers', cohorte.composer.SERVICE_COMMANDER_NODE,
+@Requires('_injected_composers', cohorte.composer.SERVICE_COMPOSER_NODE,
           aggregate=True, optional=True)
 @Instantiate('cohorte-composer-top-commander')
 class TopCommander(object):
