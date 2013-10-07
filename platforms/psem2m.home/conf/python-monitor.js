@@ -2,7 +2,8 @@
  * Start configuration for the monitor (Python version)
  */
 {
-	"import-files" : [ "python-common-http.js" ],
+	"import-files" : [ "python-common-http.js",
+	                   "composer/python-top.js" ],
 
 	/*
 	 * Monitor bundles
@@ -15,19 +16,6 @@
 		"name" : "cohorte.monitor.status"
 	}, {
 		"name" : "cohorte.forker.aggregator"
-	},
-
-	/* Composer */
-	{
-		"name" : "cohorte.composer.parser"
-	}, {
-		"name" : "cohorte.composer.top.composer"
-	}, {
-		"name" : "cohorte.composer.top.distributor"
-	}, {
-		"name" : "cohorte.composer.criteria.distance.configuration"
-	}, {
-		"name" : "cohorte.shell.debug_composer"
 	},
 
 	/* Repositories */
