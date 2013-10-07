@@ -113,7 +113,8 @@ class TopCommander(object):
 
 
     @UpdateField('_injected_composers')
-    def _update_composer(self, field, service, service_reference, old_properties):
+    def _update_composer(self, field, service, service_reference,
+                         old_properties):
         """
         Called by iPOPO when the properties of a bound composer changed
         """
@@ -177,8 +178,9 @@ class TopCommander(object):
             self.__validated = True
 
             # Call all bound node composers
-            for node, composer in self._node_composers.items():
-                self._late_composer(node, composer)
+            for node, composers in self._node_composers.items():
+                for composer in composers:
+                    self._late_composer(node, composer)
 
 
     def __call_for_node(self, node_name, per_composer_method, components):
