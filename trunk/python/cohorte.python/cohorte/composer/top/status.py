@@ -3,7 +3,7 @@
 """
 Top Composer: Top status storage
 
-Gives orders to the node composer
+Stores the distributions computed by the Top Composer and assigns them an UUID
 
 :author: Thomas Calmant
 :copyright: Copyright 2013, isandlaTech
@@ -88,7 +88,7 @@ class TopStatusStorage(object):
         """
         Stores a new distribution
 
-        :param composition0: The RawComposition bean
+        :param composition: The RawComposition bean
         :param distribution: A {node -> set(RawComponent)} dictionary
         :return: The UID associated to this distribution
         :raise: ValueError: The composition name is already known
@@ -137,7 +137,7 @@ class TopStatusStorage(object):
 
         :param node_name: A node name
         :return: The set of RawComponent beans associated to the node,
-                 or an empty list
+                 or an empty set
         """
         return {component
                 for distribution in self._storage.values()
