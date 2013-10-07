@@ -63,6 +63,7 @@ _logger = logging.getLogger(__name__)
 @Property('_export', pelix.remote.PROP_EXPORTED_INTERFACES, '*')
 @Property('_export_name', pelix.remote.PROP_ENDPOINT_NAME,
           'composer-top-commander')
+@Requires('_status', cohorte.composer.SERVICE_STATUS_TOP)
 @Requires('_injected_composers', cohorte.composer.SERVICE_COMMANDER_NODE,
           aggregate=True, optional=True)
 @Instantiate('cohorte-composer-top-commander')
@@ -74,9 +75,10 @@ class TopCommander(object):
         """
         Sets up members
         """
+        self._status = None
+
         # Injected (for naming only)
         self._injected_composers = []
-
         # Node name -> NodeComposer[]
         self._node_composers = {}
 
@@ -104,6 +106,10 @@ class TopCommander(object):
 
         with self.__lock:
             self._node_composers.setdefault(node_name, []).append(service)
+
+        if self.__validated:
+            # Late composer: give it its order
+            self._late_composer(node_name, service)
 
 
     @UpdateField('_injected_composers')
@@ -200,6 +206,23 @@ class TopCommander(object):
         :param components: The composer to stop
         """
         composer.kill(components)
+
+
+    def _late_composer(self, node_name, composer):
+        """
+        Pushes orders to a newly bound composer
+
+        :param node_name: Name of the node hosting the composer
+        :param composer: The composer service
+        """
+        components = self._status.get_components_for_node(node_name)
+        if components:
+            try:
+                self.__start(composer, components)
+
+            except Exception as ex:
+                _logger.exception("Error calling composer on node %s: %s",
+                                  node_name, ex)
 
 
     def start(self, distribution):

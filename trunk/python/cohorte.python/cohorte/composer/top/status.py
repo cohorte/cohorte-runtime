@@ -111,3 +111,16 @@ class TopStatusStorage(object):
         :raise KeyError: Unknown UID
         """
         return self._storage.pop(uid)
+
+
+    def get_components_for_node(self, node_name):
+        """
+        Retrieves the components assigned to the given node
+
+        :param node_name: A node name
+        :return: The set of RawComponent beans associated to the node,
+                 or an empty list
+        """
+        return {components
+                for node, components in self._storage.values().items()
+                if node == node_name}
