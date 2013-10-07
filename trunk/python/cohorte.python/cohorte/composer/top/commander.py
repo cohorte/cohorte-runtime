@@ -164,7 +164,8 @@ class TopCommander(object):
         """
         Component invalidated
         """
-        self.__validated = False
+        with self.__lock:
+            self.__validated = False
 
 
     @Validate
@@ -172,7 +173,12 @@ class TopCommander(object):
         """
         Component validated
         """
-        self.__validated = True
+        with self.__lock:
+            self.__validated = True
+
+            # Call all bound node composers
+            for node, composer in self._node_composers.items():
+                self._late_composer(node, composer)
 
 
     def __call_for_node(self, node_name, per_composer_method, components):
