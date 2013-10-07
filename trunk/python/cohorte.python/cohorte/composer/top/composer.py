@@ -41,7 +41,7 @@ import cohorte.monitor
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
-    Instantiate
+    Instantiate, Validate, Invalidate
 
 # ------------------------------------------------------------------------------
 
@@ -63,6 +63,47 @@ class TopComposer(object):
         self._distributor = None
         self._status = None
         self._commander = None
+        self._context = None
+
+
+    def _set_default_node(self, distribution):
+        """
+        Chooses a default node for unassigned components
+
+        :param distribution: A Node -> set(RawComponent) dictionary
+        :return: The dictionary, with each component assigned to a node
+        """
+        try:
+            # Get the unassigned components
+            unassigned = distribution[None]
+            del distribution[None]
+
+        except KeyError:
+            # Nothing to do
+            return distribution
+
+        # FIXME: use a configurable default node
+        default_node = self._context.get_property(cohorte.PROP_NODE)
+
+        # Add the unassigned components to the default one
+        distribution.setdefault(default_node, set()).update(unassigned)
+        return distribution
+
+
+    @Validate
+    def validate(self, context):
+        """
+        Component validated
+        """
+        self._context = context
+
+
+    @Invalidate
+    def invalidate(self, context):
+        """
+        Component invalidated
+        """
+        self._context = None
 
 
     def start(self, composition):
@@ -75,8 +116,11 @@ class TopComposer(object):
         # Distribute components
         distribution = self._distributor.distribute(composition)
 
+        # Handle components without assigned node
+        self._set_default_node(distribution)
+
         # Store the distribution
-        uid = self._status.store(distribution)
+        uid = self._status.store(composition, distribution)
 
         # Tell the monitor to start the nodes
         # FIXME: use an intermediate level for nodes (EC2 LoadBalancer-like)
