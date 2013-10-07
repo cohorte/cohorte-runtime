@@ -67,3 +67,6 @@ SERVICE_CRITERION_RELIABILITY = 'cohorte.composer.criterion.reliability'
 
 PROP_NODE_NAME = 'cohorte.composer.node.name'
 """ Name of the node the service is executed on """
+
+PROP_ISOLATE_NAME = 'cohorte.composer.isolate.name'
+""" Name of the isolate the service is executed in """
