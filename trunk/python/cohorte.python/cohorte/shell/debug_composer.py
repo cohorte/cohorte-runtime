@@ -101,7 +101,7 @@ class ParserCommands(object):
                                                 separators=(',', ': ')))
 
 
-    def load_composition(self, io_handler, filename, base=None):
+    def load_composition(self, io_handler, filename, base="conf"):
         """
         Parses a composition
         """
