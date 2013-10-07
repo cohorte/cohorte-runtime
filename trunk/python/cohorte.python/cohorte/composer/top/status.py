@@ -62,8 +62,26 @@ class TopStatusStorage(object):
         # Known composition names
         self._names = set()
 
-        # UID -> {Node -> RawComponent[]}
+        # UID -> {Node -> set(RawComponent)}
         self._storage = {}
+
+
+    def dump(self):
+        """
+        Dumps the content of the storage
+        """
+        lines = ['Names:']
+        lines.extend('\t- {0}'.format(name) for name in self._names)
+        lines.append('')
+        lines.append('Storage:')
+        for uid, distribution in self._storage.items():
+            lines.append('\t- {0}'.format(uid))
+            for node, components in distribution.items():
+                lines.append('\t\t- {0}'.format(node))
+                lines.extend('\t\t\t- {0}'.format(component)
+                             for component in components)
+
+        return '\n'.join(lines)
 
 
     def store(self, composition, distribution):
@@ -71,7 +89,7 @@ class TopStatusStorage(object):
         Stores a new distribution
 
         :param composition0: The RawComposition bean
-        :param distribution: A {node -> RawComponent[]} dictionary
+        :param distribution: A {node -> set(RawComponent)} dictionary
         :return: The UID associated to this distribution
         :raise: ValueError: The composition name is already known
         """
@@ -121,6 +139,6 @@ class TopStatusStorage(object):
         :return: The set of RawComponent beans associated to the node,
                  or an empty list
         """
-        return {components
-                for node, components in self._storage.values().items()
-                if node == node_name}
+        return {component
+                for distribution in self._storage.values()
+                for component in distribution[node_name]}

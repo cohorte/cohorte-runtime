@@ -75,7 +75,7 @@ class NodeDistributor(object):
         Computes the distribution of the components of the given composition
 
         :param composition: A RawComposition bean
-        :return: A dictionary: Node ID -> RawComponent[]
+        :return: A dictionary: Node ID -> set(RawComponent)
         """
         return self.redistribute(composition.all_components())
 
@@ -85,7 +85,7 @@ class NodeDistributor(object):
         Computes the distribution of the given components
 
         :param components: A list of RawComponent beans
-        :return: A dictionary: Node ID -> RawComponent[]
+        :return: A dictionary: Node ID -> set(RawComponent)
         """
         groups = {}
 
