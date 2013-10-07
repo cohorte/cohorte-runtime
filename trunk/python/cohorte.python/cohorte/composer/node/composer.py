@@ -123,3 +123,4 @@ class NodeComposer(object):
         """
         # Tell all isolate composers to stop their components
         self._commander.kill(components)
+        self._status.remove(components)
