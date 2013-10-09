@@ -61,34 +61,43 @@ class ComponentFactoryVisitor(ast.NodeVisitor):
         Found a class definition
         """
         for decorator in node.decorator_list:
-            if decorator.func.id == "ComponentFactory":
+            if hasattr(decorator, 'func') \
+            and decorator.func.id == "ComponentFactory":
+                name = None
                 if decorator.args:
                     # Name: First argument
                     argument = decorator.args[0]
+
                 elif decorator.kwargs:
                     # Keyword argument
                     argument = decorator.kwargs['name']
+
                 else:
                     # Default name
-                    argument = "{0}Factory".format(node.name)
+                    name = "{0}Factory".format(node.name)
 
-                if hasattr(argument, 'id'):
-                    # Constant
-                    try:
-                        self.factories.add(self.values[argument.id])
+                if name is None:
+                    if hasattr(argument, 'id'):
+                        # Constant
+                        try:
+                            name = self.values[argument.id]
 
-                    except KeyError:
-                        _logger.warning("Factory name '%s' is unknown (%s)",
-                                        argument.id, node.name)
+                        except KeyError:
+                            _logger.warning("Factory name '%s' is unknown (%s)",
+                                            argument.id, node.name)
 
-                else:
-                    # Literal
-                    try:
-                        self.factories.add(ast.literal_eval(argument))
+                    else:
+                        # Literal
+                        try:
+                            name = ast.literal_eval(argument)
 
-                    except (ValueError, SyntaxError) as ex:
-                        _logger.warning("Invalid factory name for class %s: %s",
-                                        node.name, ex)
+                        except (ValueError, SyntaxError) as ex:
+                            _logger.warning("Invalid factory name for class %s: %s",
+                                            node.name, ex)
+
+                if name is not None:
+                    # Store the factory name
+                    self.factories.add(name)
 
 
     def visit_Assign(self, node):
@@ -110,7 +119,7 @@ class ComponentFactoryVisitor(ast.NodeVisitor):
 def _extract_module_factories(filename):
     """
     Extract the version and the imports from the given Python file
-    
+
     :param filename: Path to the file to parse
     :return: A (version, [imports]) tuple
     :raise ValueError: Unreadable file
@@ -172,7 +181,7 @@ class IPopoRepository(object):
     def __contains__(self, item):
         """
         Tests if the given item is in the repository
-        
+
         :param item: Item to be tested
         :return: True if the item is in the repository
         """
@@ -194,7 +203,7 @@ class IPopoRepository(object):
 
     def __len__(self):
         """
-        Length of a repository <=> number of individual factories 
+        Length of a repository <=> number of individual factories
         """
         return sum((len(factories) for factories in self._factories.values()))
 
@@ -202,7 +211,7 @@ class IPopoRepository(object):
     def add_artifact(self, artifact):
         """
         Adds the factories provided by the given artifact
-        
+
         :param artifact: A Python Module artifact
         :raise ValueError: Unreadable file
         """
@@ -235,7 +244,7 @@ class IPopoRepository(object):
     def find_factories(self, factories):
         """
         Returns the list of artifacts that provides the given factories
-        
+
         :param factories: A list of iPOPO factory names
         :return: A tuple ({Name -> [Artifacts]}, [Not found factories])
         """
