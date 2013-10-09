@@ -42,12 +42,12 @@ __docformat__ = "restructuredtext en"
 import cohorte.composer
 import cohorte.repositories
 
+# Vote utility
+import cohorte.utils.vote
+
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
     Instantiate
-
-# Standard library
-import itertools
 
 # ------------------------------------------------------------------------------
 
@@ -73,54 +73,6 @@ class Isolate(object):
 
         return "Isolate({0}, {1}, {2})".format(self.name, self.language,
                                                len(self.components))
-
-# ------------------------------------------------------------------------------
-
-
-class CoupdEtat(Exception):
-    """
-    Election result is forced
-    """
-    def __init__(self, claimant):
-        """
-        Sets up members
-
-        :param claimant: The candidate that claims to be elected
-        """
-        # Do keep a None here
-        self.claimant = claimant
-
-
-    def __str__(self):
-        """
-        String representation
-        """
-        return "Coup d'État by {0:s}.".format(self.claimant)
-
-
-class NextTurn(Exception):
-    """
-    Needs a new turn of vote
-    """
-    def __init__(self, candidates=None):
-        """
-        Sets up members
-
-        :param candidates: Candidates for the next vote
-        """
-        # Do not keep a None here
-        if candidates is None:
-            candidates = []
-
-        self.candidates = candidates
-
-
-    def __str__(self):
-        """
-        String representation
-        """
-        return 'Next turn with {0}.'\
-            .format(', '.join(str(candidate) for candidate in self.candidates))
 
 # ------------------------------------------------------------------------------
 
@@ -151,109 +103,6 @@ class IsolateDistributor(object):
         self._reliability_criteria = []
 
 
-    def _compute_majority(self, votes, nb_voters):
-        """
-        Returns the candidate with nb_voters+1 votes, or the set of candidates
-        for the next turn.
-
-        :param votes: A {candidate -> votes} dictionary
-        :param nb_voters: Number of voters
-        :return:
-        :raise NextTurn: A new turn is necessary
-        """
-        # Absolute majority
-        majority = (nb_voters / 2) + 1
-
-        # Sort by number of votes
-        results = sorted(((nb_votes, candidate)
-                          for candidate, nb_votes in votes.items()),
-                         reversed=True)
-
-        if results[0][0] >= majority:
-            # Elected by majority
-            return results[0][1]
-
-        # Threshold to go on next turn: > 10% of voters
-        threshold = (nb_voters / 10) + 1
-        def predicate(result):
-            return result[0] >= threshold
-
-        # Call for next turn
-        candidates = set(result[1]
-                         for result in itertools.takewhile(predicate, results))
-        raise NextTurn(candidates)
-
-
-    def _compute_results(self, votes, nb_voters, default=None):
-        """
-        Computes the results of an election
-
-        :param votes: A {candidate -> votes} dictionary
-        :param nb_voters: Number of voters
-        :param default: Result if no votes given
-        :return: The elected candidate, or a new neutral one
-        :raise NextTurn: No candidate with majority
-        """
-        if not votes:
-            # No one elected: force a new isolate
-            return default
-
-        elif len(votes) == 1:
-            # Only 1 of the candidates has been retained
-            return next(iter(votes))
-
-        else:
-            # Compute isolates with majority or raises a NextTurn exception
-            return self._compute_majority(votes, nb_voters)
-
-
-    def vote(self, component, electors, initial_candidates,
-             default=None, max_turns=3):
-        """
-        Votes for one of the given candidates or creates a new one
-
-        :param component: Subject of election
-        :param electors: Objects with a vote() method
-        :param initial_candidates: Initial candidates of the election
-        :param default: Candidate to use if no one has been elected
-        :param max_turns: Maximum number of turns
-        :return: The elected candidate
-        """
-        candidates = dict((candidate, 0)
-                          for candidate in initial_candidates)
-
-        try:
-            for _ in range(max_turns):
-                for elector in electors:
-                    # Vote
-                    elector.vote(component, candidates)
-
-                    # Check if candidates are still available
-                    if not candidates:
-                        # Request a new loop with a new candidate
-                        break
-
-                try:
-                    # Get the results
-                    elected = self._compute_results(candidates)
-                    break
-
-                except NextTurn as ex:
-                    # Still not decided
-                    candidates = ex.candidates
-
-        except CoupdEtat as ex:
-            # Well, that escalated quickly...
-            elected = ex.claimant
-
-        if elected is None:
-            # Election failed
-            return default
-
-        # Return the elected isolate
-        return elected
-
-
     def _get_matching_isolates(self, component, additional_isolates):
         """
         Gets the isolates that match the given component. Looks in known
@@ -268,7 +117,6 @@ class IsolateDistributor(object):
 
         # Filter: component language
         language = component.language
-
         return {isolate for isolate in all_isolates
                 if isolate.language in (None, language)}
 
@@ -286,14 +134,16 @@ class IsolateDistributor(object):
         electors = set(self._distance_criteria)
         electors.update(self._reliability_criteria)
 
+        # Create a vote
+        vote = cohorte.utils.vote.MatchVote(electors)
+
         for component in components:
             # Compute the isolates that could match this component
             matching_isolates = self._get_matching_isolates(component,
                                                             isolates)
 
             # Vote !
-            isolate = self.vote(component, electors,
-                                matching_isolates, Isolate())
+            isolate = vote.vote(component, matching_isolates, Isolate())
 
             # Associate the component to the isolate
             isolate.components.add(component)
