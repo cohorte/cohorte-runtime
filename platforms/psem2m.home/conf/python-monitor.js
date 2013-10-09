@@ -3,7 +3,8 @@
  */
 {
 	"import-files" : [ "python-common-http.js",
-	                   "composer/python-top.js" ],
+	                   "composer/python-top.js",
+	                   "composer/python-node.js"],
 
 	/*
 	 * Monitor bundles
