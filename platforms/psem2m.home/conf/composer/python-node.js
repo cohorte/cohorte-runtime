@@ -9,6 +9,8 @@
 	/* Parser */
 	{
 		"name" : "cohorte.composer.parser"
+	}, {
+		"name" : "cohorte.composer.node.finder"
 	},
 
 	/* Top Composer components */
