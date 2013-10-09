@@ -92,8 +92,8 @@ class ComponentFactoryVisitor(ast.NodeVisitor):
                             name = ast.literal_eval(argument)
 
                         except (ValueError, SyntaxError) as ex:
-                            _logger.warning("Invalid factory name for class %s: %s",
-                                            node.name, ex)
+                            _logger.warning("Invalid factory name for class %s:"
+                                            " %s", node.name, ex)
 
                 if name is not None:
                     # Store the factory name
@@ -272,6 +272,38 @@ class IPopoRepository(object):
             artifacts.sort(reverse=True)
 
         return resolution, unresolved
+
+
+    def find_factory(self, factory, artifact_name=None, artifact_version=None):
+        """
+        Find the artifacts that provides the given factory, filtered by name
+        and version.
+
+        :return: The list of artifacts providing the factory, sorted by name
+                 and version
+        :raise KeyError: Unknown factory
+        """
+        # Copy the list of artifacts for this factory
+        artifacts = [factory.artifact for factory in self._factories[factory]]
+
+        if artifact_name is not None:
+            # Artifact must be selected
+            # Prepare the version bean
+            version = cohorte.repositories.beans.Version(artifact_version)
+
+            # Filter results
+            artifacts = [artifact for artifact in artifacts
+                         if artifact.name == artifact_name
+                         and version.matches(artifact.version)]
+
+            if not artifacts:
+                # No match found
+                raise KeyError("No matching artifact for {0} -> {1} {2}" \
+                               .format(factory, artifact_name, version))
+
+        # Sort results
+        artifacts.sort(reverse=True)
+        return artifacts
 
 
     def get_language(self):

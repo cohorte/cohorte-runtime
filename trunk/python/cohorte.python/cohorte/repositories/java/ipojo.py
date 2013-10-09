@@ -190,7 +190,7 @@ class Attribute(object):
 def _parse_attribute(line, idx):
     """
     Parses an Element attribute
-    
+
     :param line: The whole Manifest line
     :param idx: Index of the '$' starting the attribute name in the line
     :return: An (Attribute, idx) tuple, where idx is the index of final '"'
@@ -230,7 +230,7 @@ def _parse_attribute(line, idx):
 def parse_ipojo_line(line):
     """
     Parses the elements in the given line
-    
+
     :param line: A manifest line
     :return: The root iPOJO Element
     """
@@ -326,7 +326,7 @@ class IPojoRepository(object):
     def __contains__(self, item):
         """
         Tests if the given item is in the repository
-        
+
         :param item: Item to be tested
         :return: True if the item is in the repository
         """
@@ -348,7 +348,7 @@ class IPojoRepository(object):
 
     def __len__(self):
         """
-        Length of a repository <=> number of individual factories 
+        Length of a repository <=> number of individual factories
         """
         return sum((len(factories) for factories in self._factories.values()))
 
@@ -356,7 +356,7 @@ class IPojoRepository(object):
     def _extract_bundle_factories(self, artifact):
         """
         Extracts the iPOJO factories definitions from the given artifact
-        
+
         :param artifact: A Java Bundle artifact
         :return: A list of factories or None
         """
@@ -397,7 +397,7 @@ class IPojoRepository(object):
     def add_artifact(self, artifact):
         """
         Adds the factories provided by the given artifact
-        
+
         :param artifact: A Java Bundle artifact
         :raise ValueError: Unreadable file
         """
@@ -433,7 +433,7 @@ class IPojoRepository(object):
     def find_factories(self, factories):
         """
         Returns the list of artifacts that provides the given factories
-        
+
         :param factories: A list of iPOJO factory names
         :return: A tuple ({Name -> [Artifacts]}, [Not found factories])
         """
@@ -461,6 +461,38 @@ class IPojoRepository(object):
             artifacts.sort(reverse=True)
 
         return resolution, unresolved
+
+
+    def find_factory(self, factory, artifact_name=None, artifact_version=None):
+        """
+        Find the artifacts that provides the given factory, filtered by name
+        and version.
+
+        :return: The list of artifacts providing the factory, sorted by name
+                 and version
+        :raise KeyError: Unknown factory
+        """
+        # Copy the list of artifacts for this factory
+        artifacts = [factory.artifact for factory in self._factories[factory]]
+
+        if artifact_name is not None:
+            # Artifact must be selected
+            # Prepare the version bean
+            version = cohorte.repositories.beans.Version(artifact_version)
+
+            # Filter results
+            artifacts = [artifact for artifact in artifacts
+                         if artifact.name == artifact_name
+                         and version.matches(artifact.version)]
+
+            if not artifacts:
+                # No match found
+                raise KeyError("No matching artifact for {0} -> {1} {2}" \
+                               .format(factory, artifact_name, version))
+
+        # Sort results
+        artifacts.sort(reverse=True)
+        return artifacts
 
 
     def get_language(self):
