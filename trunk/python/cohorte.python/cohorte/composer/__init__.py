@@ -20,6 +20,9 @@ __docformat__ = "restructuredtext en"
 SERVICE_PARSER = 'cohorte.composer.parser'
 """ Specification of a composition parser """
 
+SERVICE_COMPONENT_FINDER = 'cohorte.composer.finder'
+""" Specification of a component finder """
+
 # Composers #
 
 SERVICE_COMPOSER_TOP = 'cohorte.composer.top'
