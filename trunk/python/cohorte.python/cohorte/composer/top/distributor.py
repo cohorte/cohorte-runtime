@@ -40,7 +40,6 @@ __docformat__ = "restructuredtext en"
 
 # Composer
 import cohorte.composer
-import cohorte.repositories
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
@@ -50,9 +49,7 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
 
 @ComponentFactory()
 @Provides(cohorte.composer.SERVICE_DISTRIBUTOR_NODE)
-@Requires('_distance_criteria', cohorte.composer.SERVICE_CRITERION_DISTANCE,
-          aggregate=True)
-@Requires('_repositories', cohorte.repositories.SERVICE_REPOSITORY_FACTORIES,
+@Requires('_distance_criteria', cohorte.composer.SERVICE_TOP_CRITERION_DISTANCE,
           aggregate=True)
 @Instantiate('cohorte-composer-top-distributor')
 class NodeDistributor(object):
@@ -63,9 +60,6 @@ class NodeDistributor(object):
         """
         Sets up members
         """
-        # Bundle repositories
-        self._repositories = []
-
         # Distance criteria
         self._distance_criteria = []
 

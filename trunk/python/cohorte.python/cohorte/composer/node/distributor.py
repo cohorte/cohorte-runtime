@@ -40,7 +40,7 @@ __docformat__ = "restructuredtext en"
 
 # Composer
 import cohorte.composer
-import cohorte.repositories
+import cohorte.composer.node.beans as beans
 
 # Vote utility
 import cohorte.utils.vote
@@ -51,39 +51,12 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
 
 # ------------------------------------------------------------------------------
 
-class Isolate(object):
-    """
-    Represents an isolate to be instantiated
-    """
-    def __init__(self):
-        """
-        Sets up members
-        """
-        self.name = None
-        self.language = None
-        self.components = set()
-
-
-    def __str__(self):
-        """
-        String representation
-        """
-        if not self.language:
-            return "NeutralIsolate"
-
-        return "Isolate({0}, {1}, {2})".format(self.name, self.language,
-                                               len(self.components))
-
-# ------------------------------------------------------------------------------
-
 @ComponentFactory()
 @Provides(cohorte.composer.SERVICE_DISTRIBUTOR_ISOLATE)
-@Requires('_distance_criteria', cohorte.composer.SERVICE_CRITERION_DISTANCE,
-          aggregate=True)
+@Requires('_distance_criteria',
+          cohorte.composer.SERVICE_NODE_CRITERION_DISTANCE, aggregate=True)
 @Requires('_reliability_criteria',
-          cohorte.composer.SERVICE_CRITERION_RELIABILITY, aggregate=True)
-@Requires('_repositories', cohorte.repositories.SERVICE_REPOSITORY_FACTORIES,
-          aggregate=True)
+          cohorte.composer.SERVICE_NODE_CRITERION_RELIABILITY, aggregate=True)
 @Instantiate('cohorte-composer-node-distributor')
 class IsolateDistributor(object):
     """
@@ -93,9 +66,6 @@ class IsolateDistributor(object):
         """
         Sets up members
         """
-        # Bundle repositories
-        self._repositories = []
-
         # Distance criteria
         self._distance_criteria = []
 
@@ -143,10 +113,13 @@ class IsolateDistributor(object):
                                                             isolates)
 
             # Vote !
-            isolate = vote.vote(component, matching_isolates, Isolate())
+            isolate = vote.vote(component, matching_isolates)
+            if isolate is None:
+                # Vote without result
+                isolate = beans.Isolate()
 
             # Associate the component to the isolate
-            isolate.components.add(component)
+            isolate.add_component(component)
 
             # Store the isolate
             isolates.add(isolate)

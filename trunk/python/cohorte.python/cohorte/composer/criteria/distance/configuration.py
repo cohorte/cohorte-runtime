@@ -45,7 +45,7 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
 # ------------------------------------------------------------------------------
 
 @ComponentFactory()
-@Provides(cohorte.composer.SERVICE_CRITERION_DISTANCE)
+@Provides(cohorte.composer.SERVICE_TOP_CRITERION_DISTANCE)
 @Requires('_configuration', cohorte.SERVICE_CONFIGURATION_READER)
 @Instantiate('cohorte-composer-criterion-distance-configuration')
 class ConfigurationCriterion(object):

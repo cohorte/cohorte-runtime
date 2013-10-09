@@ -57,10 +57,13 @@ SERVICE_COMMANDER_NODE = 'cohorte.composer.commander.node'
 
 # Criterion #
 
-SERVICE_CRITERION_DISTANCE = 'cohorte.composer.criterion.distance'
-""" Specification of a distance criterion service """
+SERVICE_TOP_CRITERION_DISTANCE = 'cohorte.composer.top.criterion.distance'
+""" Specification of a distance criterion service for the top distributor """
 
-SERVICE_CRITERION_RELIABILITY = 'cohorte.composer.criterion.reliability'
+SERVICE_NODE_CRITERION_DISTANCE = 'cohorte.composer.node.criterion.distance'
+""" Specification of a distance criterion service for the node distributor """
+
+SERVICE_NODE_CRITERION_RELIABILITY = 'cohorte.composer.node.criterion.reliability'
 """ Specification of a factory reliability criterion service """
 
 # ------------------------------------------------------------------------------
