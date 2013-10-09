@@ -103,6 +103,13 @@ class _Vote(object):
         self.__votes = 0
 
 
+    def __hash__(self):
+        """
+        Vote hash is the one if the candidate
+        """
+        return hash(self.__candidate)
+
+
     def __str__(self):
         """
         String representation
@@ -238,7 +245,8 @@ class MatchVote(object):
         :return: The elected candidate
         """
         # Candidate −> Votes
-        candidates = {_Vote(candidate) for candidate in initial_candidates}
+        candidates = frozenset(_Vote(candidate)
+                               for candidate in initial_candidates)
 
         try:
             for _ in range(max_turns):
