@@ -46,6 +46,36 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
 # Pelix remote services
 import pelix.remote
 
+# Standard library
+import logging
+
+# ------------------------------------------------------------------------------
+
+_logger = logging.getLogger(__name__)
+
+# ------------------------------------------------------------------------------
+
+class FactoriesMissing(Exception):
+    """
+    Some factories are missing
+    """
+    def __init__(self, factories):
+        """
+        Sets up members
+
+        :param factories: Missing factories
+        """
+        self.factories = factories
+
+
+    def __str__(self):
+        """
+        String representation
+        """
+        missing = '\n'.join('\t- {0}'.format(factory)
+                            for factory in self.factories)
+        return "Missing factories:\n{0}".format(missing)
+
 # ------------------------------------------------------------------------------
 
 @ComponentFactory()
@@ -54,6 +84,7 @@ import pelix.remote
 @Property('_export', pelix.remote.PROP_EXPORTED_INTERFACES, '*')
 @Property('_export_name', pelix.remote.PROP_ENDPOINT_NAME,
           'composer-node-distributor')
+@Requires('_finder', cohorte.composer.SERVICE_COMPONENT_FINDER)
 @Requires('_distributor', cohorte.composer.SERVICE_DISTRIBUTOR_ISOLATE)
 @Requires('_status', cohorte.composer.SERVICE_STATUS_NODE)
 @Requires('_commander', cohorte.composer.SERVICE_COMMANDER_NODE)
@@ -73,6 +104,7 @@ class NodeComposer(object):
         self._export_name = None
 
         # Injected services
+        self._finder = None
         self._distributor = None
         self._status = None
         self._commander = None
@@ -95,24 +127,55 @@ class NodeComposer(object):
         self._node_name = context.get_property(cohorte.PROP_NODE)
 
 
+    def _compute_bundles(self, components):
+        """
+        Normalizes the component beans by looking for their implementation
+        bundle.
+
+        :param components: A set of components (beans modified in-place)
+        :raise FactoriesMissing: Some factories are missing
+        """
+        not_found = set()
+
+        for component in components:
+            try:
+                self._finder.normalize(component)
+
+            except ValueError:
+                # Factory not found
+                not_found.add(component.factory)
+
+        if not_found:
+            raise FactoriesMissing(not_found)
+
+
     def instantiate(self, components):
         """
         Instantiates the given components
 
         :param components: A list of RawComponent beans
+        :return: Missing factories
         """
+        try:
+            # Compute the implementation language of the components
+            self._compute_bundles(components)
+
+        except FactoriesMissing as ex:
+            _logger.error("%s", ex)
+            return ex.factories
+
         # Distribute components
-        distribution = self._distributor.distribute(components)
+        isolates = self._distributor.distribute(components)
 
         # Store the distribution
-        self._status.store(distribution)
+        self._status.store(isolates)
 
         # Tell the monitor to start the isolates
-        for isolate in distribution:
+        for isolate in isolates:
             self._monitor.start_isolate(isolate)
 
         # Tell the commander to start the instantiation on existing isolates
-        self._commander.start(distribution)
+        self._commander.start(isolates)
 
 
     def kill(self, components):
