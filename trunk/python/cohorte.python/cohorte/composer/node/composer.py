@@ -86,8 +86,8 @@ class FactoriesMissing(Exception):
           'composer-node-distributor')
 @Requires('_finder', cohorte.composer.SERVICE_COMPONENT_FINDER)
 @Requires('_distributor', cohorte.composer.SERVICE_DISTRIBUTOR_ISOLATE)
-@Requires('_status', cohorte.composer.SERVICE_STATUS_NODE)
-@Requires('_commander', cohorte.composer.SERVICE_COMMANDER_NODE)
+# @Requires('_status', cohorte.composer.SERVICE_STATUS_NODE)
+# @Requires('_commander', cohorte.composer.SERVICE_COMMANDER_NODE)
 @Requires('_monitor', cohorte.monitor.SERVICE_MONITOR)
 @Instantiate('cohorte-composer-node')
 class NodeComposer(object):
@@ -133,13 +133,16 @@ class NodeComposer(object):
         bundle.
 
         :param components: A set of components (beans modified in-place)
+        :return: The list of bundles providing the components
         :raise FactoriesMissing: Some factories are missing
         """
+        bundles = set()
         not_found = set()
 
         for component in components:
             try:
-                self._finder.normalize(component)
+                # TODO: try to reuse existing bundles (same name)
+                bundles.add(self._finder.normalize(component))
 
             except ValueError:
                 # Factory not found
@@ -147,6 +150,27 @@ class NodeComposer(object):
 
         if not_found:
             raise FactoriesMissing(not_found)
+
+        return bundles
+
+
+    def _compute_kind(self, language):
+        """
+        Computes the kind of an isolate according to its language
+        
+        :param language: The isolate language
+        :return: The kind of isolate
+        
+        TODO: do it in the monitor
+        """
+        if language in ('python', 'python3'):
+            return 'pelix'
+
+        elif language == 'java':
+            return 'osgi'
+
+        else:
+            return 'boot'
 
 
     def instantiate(self, components):
@@ -158,7 +182,7 @@ class NodeComposer(object):
         """
         try:
             # Compute the implementation language of the components
-            self._compute_bundles(components)
+            bundles = self._compute_bundles(components)
 
         except FactoriesMissing as ex:
             _logger.error("%s", ex)
@@ -172,7 +196,9 @@ class NodeComposer(object):
 
         # Tell the monitor to start the isolates
         for isolate in isolates:
-            self._monitor.start_isolate(isolate)
+            self._monitor.start_isolate(isolate.name, self._node_name,
+                                        self._compute_kind(isolate.language),
+                                        isolate.language, 'isolate', bundles)
 
         # Tell the commander to start the instantiation on existing isolates
         self._commander.start(isolates)
