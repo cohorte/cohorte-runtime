@@ -92,12 +92,12 @@ class NodeStatusStorage(object):
         for isolate in isolates:
             # Isolate name -> Components
             name = isolate.name
-            self._isolate_conf.setdefault(name, set()) \
+            self._isolate_components.setdefault(name, set()) \
                                                     .update(isolate.components)
 
             # Component name -> Isolate name
             for component in isolate.components:
-                self._configuration[component.name] = name
+                self._component_isolate[component.name] = name
 
 
     def remove(self, names):
@@ -130,4 +130,15 @@ class NodeStatusStorage(object):
                  or an empty set
         """
         # Return a copy
-        return self._isolate_conf.get(isolate_name, set()).copy()
+        return self._isolate_components.get(isolate_name, set()).copy()
+
+
+    def get_isolate_for_component(self, component_name):
+        """
+        Retrieves the isolate that must host the given component
+
+        :param component_name: Name of a component
+        :return: The name of the isolate that must host it
+        :raise KeyError: Unknown component
+        """
+        return self._component_isolate[component_name]
