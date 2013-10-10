@@ -175,25 +175,26 @@ class MatchVote(object):
 
         :param electors: Electors for this vote
         """
-        self._electors = electors
+        self._electors = frozenset(electors)
 
 
-    def _compute_majority(self, votes, nb_voters, default=None):
+    def _compute_majority(self, votes, default=None):
         """
         Returns the candidate with nb_voters+1 votes, or the set of candidates
         for the next turn.
 
         :param votes: A set of _Vote beans
-        :param nb_voters: Number of voters
         :param default: Result if no votes given
         :return: The candidate elected by majority
         :raise NextTurn: A new turn is necessary
         """
+        nb_voters = len(self._electors)
+
         # Absolute majority
         majority = (nb_voters / 2) + 1
 
         # Sort by number of votes
-        results = sorted(votes, reversed=True)
+        results = sorted(votes, reverse=True)
 
         if results[0].votes >= majority:
             # Elected by majority
@@ -211,12 +212,11 @@ class MatchVote(object):
         raise NextTurn(candidates)
 
 
-    def _compute_results(self, votes, nb_voters, default=None):
+    def _compute_results(self, votes, default=None):
         """
         Computes the results of an election
 
         :param votes: A set of _Vote beans
-        :param nb_voters: Number of voters
         :param default: Result if no votes given
         :return: The elected candidate, or a new neutral one
         :raise NextTurn: No candidate with majority
@@ -231,7 +231,7 @@ class MatchVote(object):
 
         else:
             # Compute isolates with majority or raises a NextTurn exception
-            return self._compute_majority(votes, nb_voters)
+            return self._compute_majority(votes)
 
 
     def vote(self, subject, initial_candidates, default=None, max_turns=3):
