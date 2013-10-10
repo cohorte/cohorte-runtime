@@ -50,6 +50,9 @@ SERVICE_STATUS_TOP = 'cohorte.composer.status.top'
 SERVICE_STATUS_NODE = 'cohorte.composer.status.node'
 """ Specification of the Node status storage """
 
+SERVICE_STATUS_ISOLATE = 'cohorte.composer.status.isolate'
+""" Specification of the Isolate status storage """
+
 # Commanders #
 
 SERVICE_COMMANDER_TOP = 'cohorte.composer.commander.top'
@@ -68,6 +71,11 @@ SERVICE_NODE_CRITERION_DISTANCE = 'cohorte.composer.node.criterion.distance'
 
 SERVICE_NODE_CRITERION_RELIABILITY = 'cohorte.composer.node.criterion.reliability'
 """ Specification of a factory reliability criterion service """
+
+# Isolate agent #
+
+SERVICE_AGENT_ISOLATE = 'cohorte.composer.isolate.agent'
+""" Specification of an isolate composer agent """
 
 # ------------------------------------------------------------------------------
 
