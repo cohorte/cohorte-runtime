@@ -70,7 +70,9 @@ class ConfigurationIsolateCriterion(object):
 
         for eligible in eligibles:
             candidate = eligible.candidate
+
             if candidate.name == isolate:
+                # Same name
                 if candidate.language in (None, language):
                     # Found the corresponding isolate
                     raise vote.CoupdEtat(candidate)
@@ -81,6 +83,12 @@ class ConfigurationIsolateCriterion(object):
                                      "{0} {1} and component {2} {3}."\
                                      .format(isolate, candidate.language,
                                              component.name, language))
+
+            elif candidate.name is None \
+            and candidate.language in (None, language) \
+            and candidate.propose_rename(isolate):
+                # No name yet, same language and renaming accepted
+                eligible.vote()
 
         else:
             # Not found, create a new isolate
