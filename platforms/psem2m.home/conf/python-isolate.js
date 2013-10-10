@@ -1,15 +1,14 @@
 /**
- * Start configuration for the monitor (Python version)
+ * Start configuration for basic isolates (Python version)
  */
 {
-	"import-files" : [ "python-common-http.js" ],
+	"import-files" : [ "python-common-http.js",
+	                   "composer/python-isolate.js"],
 	
 	/*
 	 * Monitor bundles
 	 */
 	"bundles" : [ {
-		"name" : "cohorte.composer.agent"
-	}, {
 		"name" : "cohorte.monitor.agent"
 	} ],
 

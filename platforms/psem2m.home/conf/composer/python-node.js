@@ -9,15 +9,19 @@
 	/* Parser */
 	{
 		"name" : "cohorte.composer.parser"
-	}, {
-		"name" : "cohorte.composer.node.finder"
 	},
 
-	/* Top Composer components */
+	/* Node Composer components */
 	{
+		"name" : "cohorte.composer.node.finder"
+	}, {
 		"name" : "cohorte.composer.node.composer"
 	}, {
 		"name" : "cohorte.composer.node.distributor"
+	}, {
+		"name" : "cohorte.composer.node.status"
+	}, {
+		"name" : "cohorte.composer.node.commander"
 	},
 
 	/* Distributor criteria */
