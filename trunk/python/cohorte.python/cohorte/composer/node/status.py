@@ -43,6 +43,13 @@ import cohorte.composer
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate
 
+# Standard library
+import logging
+
+# ------------------------------------------------------------------------------
+
+_logger = logging.getLogger(__name__)
+
 # ------------------------------------------------------------------------------
 
 @ComponentFactory()
@@ -56,11 +63,11 @@ class NodeStatusStorage(object):
         """
         Sets up members
         """
-        # RawComponent -> Isolate name
-        self._configuration = {}
+        # Component name -> Isolate name
+        self._component_isolate = {}
 
         # Isolate name -> set(RawComponent)
-        self._isolate_conf = {}
+        self._isolate_components = {}
 
 
     def dump(self):
@@ -76,30 +83,42 @@ class NodeStatusStorage(object):
         return '\n'.join(lines)
 
 
-    def store(self, distribution):
+    def store(self, isolates):
         """
-        Updates the storage with the given distribution
+        Updates the storage with the given isolate distribution
 
-        :param distribution: A {Isolate name -> set(RawComponent)} dictionary
+        :param isolates: A set of Isolate beans
         """
-        for isolate, components in distribution:
-            # Isolate -> Components
-            self._isolate_conf.setdefault(isolate, set()).update(components)
+        for isolate in isolates:
+            # Isolate name -> Components
+            name = isolate.name
+            self._isolate_conf.setdefault(name, set()) \
+                                                    .update(isolate.components)
 
-            # Component -> Isolate
-            for component in components:
-                self._configuration[component] = isolate
+            # Component name -> Isolate name
+            for component in isolate.components:
+                self._configuration[component.name] = name
 
 
-    def remove(self, components):
+    def remove(self, names):
         """
         Removes the given components from the storage
-        """
-        for isolate_components in self._isolate_conf.values():
-            isolate_components.difference_update(components)
 
-        for component in components:
-            del self._configuration[component]
+        :param names: A set of names of components
+        """
+        for name in names:
+            try:
+                # Remove from the component from the lists
+                isolate = self._component_isolate.pop(name)
+
+                isolate_components = self._isolate_components[isolate]
+                isolate_components.remove(name)
+                if not isolate_components:
+                    # No more component on this isolate
+                    del self._isolate_components[isolate]
+
+            except KeyError:
+                _logger.warning("Unknown component: %s", name)
 
 
     def get_components_for_isolate(self, isolate_name):
