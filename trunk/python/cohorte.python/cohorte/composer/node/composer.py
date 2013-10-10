@@ -86,8 +86,8 @@ class FactoriesMissing(Exception):
           'composer-node-distributor')
 @Requires('_finder', cohorte.composer.SERVICE_COMPONENT_FINDER)
 @Requires('_distributor', cohorte.composer.SERVICE_DISTRIBUTOR_ISOLATE)
-# @Requires('_status', cohorte.composer.SERVICE_STATUS_NODE)
-# @Requires('_commander', cohorte.composer.SERVICE_COMMANDER_NODE)
+@Requires('_status', cohorte.composer.SERVICE_STATUS_NODE)
+@Requires('_commander', cohorte.composer.SERVICE_COMMANDER_NODE)
 @Requires('_monitor', cohorte.monitor.SERVICE_MONITOR)
 @Instantiate('cohorte-composer-node')
 class NodeComposer(object):
@@ -133,16 +133,16 @@ class NodeComposer(object):
         bundle.
 
         :param components: A set of components (beans modified in-place)
-        :return: The list of bundles providing the components
+        :return: A Component bean -> Bundle bean dictionary
         :raise FactoriesMissing: Some factories are missing
         """
-        bundles = set()
+        bundles = {}
         not_found = set()
 
         for component in components:
             try:
                 # TODO: try to reuse existing bundles (same name)
-                bundles.add(self._finder.normalize(component))
+                bundles[component] = self._finder.normalize(component)
 
             except ValueError:
                 # Factory not found
@@ -154,15 +154,14 @@ class NodeComposer(object):
         return bundles
 
 
-    def _compute_kind(self, language):
+    def _compute_kind(self, isolate):
         """
         Computes the kind of an isolate according to its language
-        
-        :param language: The isolate language
+
+        :param isolate: An Isolate bean
         :return: The kind of isolate
-        
-        TODO: do it in the monitor
         """
+        language = isolate.language
         if language in ('python', 'python3'):
             return 'pelix'
 
@@ -185,20 +184,35 @@ class NodeComposer(object):
             bundles = self._compute_bundles(components)
 
         except FactoriesMissing as ex:
-            _logger.error("%s", ex)
+            _logger.error("Error computing bundles providing components: %s",
+                          ex)
             return ex.factories
 
         # Distribute components
         isolates = self._distributor.distribute(components)
+
+        # Generate the name of isolates
+        for isolate in isolates:
+            isolate.generate_name(self._node_name)
 
         # Store the distribution
         self._status.store(isolates)
 
         # Tell the monitor to start the isolates
         for isolate in isolates:
+            _logger.debug("Starting isolate: %s -- kind=%s -- language=%s",
+                          isolate, self._compute_kind(isolate),
+                          isolate.language)
+
+            # Compute the bundles required for this isolate
+            isolate_bundles = {bundles[component]
+                               for component in isolate.components}
+
+            # Start the isolate (should be done asynchronously)
             self._monitor.start_isolate(isolate.name, self._node_name,
-                                        self._compute_kind(isolate.language),
-                                        isolate.language, 'isolate', bundles)
+                                        self._compute_kind(isolate),
+                                        isolate.language, 'isolate',
+                                        isolate_bundles)
 
         # Tell the commander to start the instantiation on existing isolates
         self._commander.start(isolates)
