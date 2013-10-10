@@ -173,9 +173,9 @@ class NodeCommander(object):
         with self.__lock:
             self.__validated = True
 
-            # Call all bound node composers
-            for node, composer in self._isolate_composer.items():
-                self._late_composer(node, composer)
+            # Call all bound isolate composers
+            for isolate, composer in self._isolate_composer.items():
+                self._late_composer(isolate, composer)
 
 
     def __start(self, composer, components):
@@ -198,32 +198,34 @@ class NodeCommander(object):
         composer.kill(components)
 
 
-    def _late_composer(self, node_name, composer):
+    def _late_composer(self, isolate_name, composer):
         """
         Pushes orders to a newly bound composer
 
-        :param node_name: Name of the node hosting the composer
+        :param isolate_name: Name of the isolate hosting the composer
         :param composer: The composer service
         """
-        components = self._status.get_components_for_node(node_name)
+        components = self._status.get_components_for_isolate(isolate_name)
         if components:
             try:
                 self.__start(composer, components)
 
             except Exception as ex:
-                _logger.exception("Error calling composer on node %s: %s",
-                                  node_name, ex)
+                _logger.exception("Error calling composer on isolate %s: %s",
+                                  isolate_name, ex)
 
 
-    def start(self, distribution):
+    def start(self, isolates):
         """
         Starts the given distribution
 
-        :param distribution: An Isolate -> set(RawComponent) dictionary
+        :param isolates: A set of Isolate beans
         """
-        for isolate, components in distribution.items():
+        for isolate in isolates:
             try:
-                self._isolate_composer[isolate].instantiate(components)
+                # Try to call the bound composer
+                self._isolate_composer[isolate.name] \
+                                                .instantiate(isolate.components)
 
             except KeyError:
                 # Unknown node
