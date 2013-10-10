@@ -60,6 +60,23 @@ class Isolate(object):
         return "Isolate({0}, {1})".format(self.name, self.language)
 
 
+    @property
+    def components(self):
+        """
+        Returns the (frozen) set of components associated to this isolate
+        """
+        return frozenset(self.__components)
+
+
+    @property
+    def factories(self):
+        """
+        Returns the (frozen) set of the factories required to instantiate
+        the components associated to this isolate
+        """
+        return frozenset(component.factory for component in self.__components)
+
+
     def add_component(self, component):
         """
         Adds a component to the isolate
@@ -69,7 +86,3 @@ class Isolate(object):
             self.language = component.language
 
         self.__components.add(component)
-
-    @property
-    def components(self):
-        return frozenset(self.__components)
