@@ -83,7 +83,7 @@ class FactoriesMissing(Exception):
 @Property('_node_name', cohorte.composer.PROP_NODE_NAME)
 @Property('_export', pelix.remote.PROP_EXPORTED_INTERFACES, '*')
 @Property('_export_name', pelix.remote.PROP_ENDPOINT_NAME,
-          'composer-node-distributor')
+          'composer-node-composer')
 @Requires('_finder', cohorte.composer.SERVICE_COMPONENT_FINDER)
 @Requires('_distributor', cohorte.composer.SERVICE_DISTRIBUTOR_ISOLATE)
 @Requires('_status', cohorte.composer.SERVICE_STATUS_NODE)
