@@ -56,7 +56,8 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
 @Requires('_distance_criteria',
           cohorte.composer.SERVICE_NODE_CRITERION_DISTANCE, aggregate=True)
 @Requires('_reliability_criteria',
-          cohorte.composer.SERVICE_NODE_CRITERION_RELIABILITY, aggregate=True)
+          cohorte.composer.SERVICE_NODE_CRITERION_RELIABILITY, aggregate=True,
+          optional=True)
 @Instantiate('cohorte-composer-node-distributor')
 class IsolateDistributor(object):
     """
@@ -121,7 +122,16 @@ class IsolateDistributor(object):
             # Associate the component to the isolate
             isolate.add_component(component)
 
+            # Isolate rename accepted
+            if not isolate.name:
+                isolate.accepted_rename()
+
             # Store the isolate
             isolates.add(isolate)
+
+            # Reset others
+            for other_isolate in matching_isolates:
+                if other_isolate is not isolate:
+                    other_isolate.rejected_rename()
 
         return isolates
