@@ -67,6 +67,7 @@ class ComponentFinder(object):
         Component bean is modified in-place.
 
         :param component: A RawComponent bean
+        :return: The Bundle bean providing the component
         :raise ValueError: Component factory not available
         """
         # Filter repositories
@@ -99,3 +100,5 @@ class ComponentFinder(object):
         component.language = bundle.language
         component.bundle_name = bundle.name
         component.bundle_version = str(bundle.version)
+
+        return bundle
