@@ -141,9 +141,19 @@ class CompositionParser(object):
         :raise KeyError: Mandatory value missing
         :raise ValueError: Error creating the beans
         """
+        # Validate values first
+        factory, name = component_dict['factory'], component_dict['name']
+        if not factory:
+            raise ValueError("Component factory can't be empty")
+
+        if not name:
+            raise ValueError("Component name can't be empty")
+
+        elif '.' in name:
+            raise ValueError("A component name can't contain a '.' (dot)")
+
         # Set up the component bean
-        component = beans.RawComponent(component_dict['factory'],
-                                       component_dict['name'])
+        component = beans.RawComponent(factory, name)
 
         # Copy dictionaries
         for entry in beans.RawComponent.PARSER_UPDATE:

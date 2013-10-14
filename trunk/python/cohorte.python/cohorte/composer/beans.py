@@ -144,7 +144,8 @@ class RawComposite(object):
 
 class RawComponent(object):
     """
-    Represents a component, as described in the configuration file
+    Represents a component, as described in the configuration file.
+    This bean is meant to be transmitted by remote services.
     """
     # Dictionary fields (calls update())
     PARSER_UPDATE = ('properties', 'filters', 'wires')
@@ -153,7 +154,7 @@ class RawComponent(object):
     PARSER_COPY = ('bundle.name', 'bundle.version',
                    'language', 'isolate', 'node')
 
-    def __init__(self, factory, name):
+    def __init__(self, factory=None, name=None):
         """
         Sets up members
 
@@ -161,19 +162,9 @@ class RawComponent(object):
         :param name: Name of the component instance
         :raise ValueError: Invalid parameters
         """
-        # Validate parameters
-        if not factory:
-            raise ValueError("Component factory can't be empty")
-
-        if not name:
-            raise ValueError("Component name can't be empty")
-
-        elif '.' in name:
-            raise ValueError("A component name can't contain a '.' (dot)")
-
-        # Read-only members
-        self.__factory = factory
-        self.__name = name
+        # Initial values
+        self.factory = factory
+        self.name = name
 
         # Component properties
         self.properties = {}
@@ -198,18 +189,5 @@ class RawComponent(object):
         """
         String representation of the component
         """
-        return "RawComponent({0}, {1})".format(self.__factory, self.__name)
+        return "RawComponent({0}, {1})".format(self.factory, self.name)
 
-    @property
-    def factory(self):
-        """
-        The factory of the component
-        """
-        return self.__factory
-
-    @property
-    def name(self):
-        """
-        The name of the component instance
-        """
-        return self.__name
