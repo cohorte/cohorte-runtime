@@ -39,6 +39,7 @@ __docformat__ = "restructuredtext en"
 
 # Composer
 import cohorte.composer
+import cohorte.composer.isolate.beans as beans
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
@@ -185,7 +186,9 @@ class NodeCommander(object):
         :param composer: The node composer to call
         :param components: The composer to start
         """
-        composer.instantiate(components)
+        # Send converted beans
+        composer.instantiate({beans.IsolateComponent().from_raw(component)
+                              for component in components})
 
 
     def __stop(self, composer, components):
@@ -195,7 +198,7 @@ class NodeCommander(object):
         :param composer: The node composer to call
         :param components: The composer to stop
         """
-        composer.kill(components)
+        composer.kill({component.name for component in components})
 
 
     def _late_composer(self, isolate_name, composer):
