@@ -9,6 +9,8 @@
 	/* Isolate Composer components */
 	{
 		"name" : "cohorte.composer.isolate.composer"
+	}, {
+		"name" : "cohorte.composer.isolate.status"
 	},
 
 	/* Debug shell commands */
