@@ -39,7 +39,6 @@ __docformat__ = "restructuredtext en"
 
 # Composer
 import cohorte.composer
-import cohorte.composer.isolate.beans as beans
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
@@ -187,8 +186,7 @@ class NodeCommander(object):
         :param components: The composer to start
         """
         # Send converted beans
-        composer.instantiate({beans.IsolateComponent().from_raw(component)
-                              for component in components})
+        composer.instantiate(components)
 
 
     def __stop(self, composer, components):
@@ -216,6 +214,25 @@ class NodeCommander(object):
             except Exception as ex:
                 _logger.exception("Error calling composer on isolate %s: %s",
                                   isolate_name, ex)
+
+
+    def get_running_isolates(self):
+        """
+        Returns the list of running isolates
+
+        :return: A set of isolate beans
+        """
+        isolates = set()
+        for composer in self._injected_composers:
+            try:
+                isolates.add(composer.get_isolate_info())
+
+            except Exception as ex:
+                # Something went wrong
+                _logger.error("Error retrieving information about a composer: "
+                              "%s", ex)
+
+        return isolates
 
 
     def start(self, isolates):

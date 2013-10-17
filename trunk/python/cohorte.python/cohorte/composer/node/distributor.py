@@ -74,32 +74,29 @@ class IsolateDistributor(object):
         self._reliability_criteria = []
 
 
-    def _get_matching_isolates(self, component, additional_isolates):
+    def _get_matching_isolates(self, component, isolates):
         """
-        Gets the isolates that match the given component. Looks in known
-        isolates (starting/running) and in the given isolates.
+        Returns the isolates that match the given component.
 
         :param component: Component to check
-        :param additional_isolates: Extra available isolates
+        :param isolates: Extra available isolates
+        :return: A set of isolates that could host the component (can be empty)
         """
-        all_isolates = set(additional_isolates)
-
-        # TODO: add known isolates
-
         # Filter: component language
         language = component.language
-        return {isolate for isolate in all_isolates
+        return {isolate for isolate in isolates
                 if isolate.language in (None, language)}
 
 
-    def distribute(self, components):
+    def distribute(self, components, existing_isolates):
         """
         Computes the distribution of the given components
 
         :param components: A list of RawComponent beans
+        :param existing_isolates: A list of isolates that are already active
         :return: A list of Isolate beans
         """
-        isolates = set()
+        isolates = set(existing_isolates)
 
         # Nominate electors
         electors = set(self._distance_criteria)

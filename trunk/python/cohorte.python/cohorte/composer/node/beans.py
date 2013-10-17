@@ -46,11 +46,13 @@ class Isolate(object):
     # The isolate counter
     __counter = itertools.count(1)
 
-    def __init__(self, name=None):
+    def __init__(self, name=None, language=None, components=None):
         """
         Sets up members
 
         :param name: The name of the isolate
+        :param language: The language of components in this isolate
+        :param components: A set of pre-existing components
         """
         # The configured isolate name
         self.__name = name
@@ -59,10 +61,13 @@ class Isolate(object):
         self.__proposed_name = None
 
         # Language of components hosted by this isolate
-        self.language = None
+        self.language = language
 
         # Components hosted by this isolate
-        self.__components = set()
+        if components is None:
+            self.__components = set()
+        else:
+            self.__components = set(components)
 
 
     def __str__(self):

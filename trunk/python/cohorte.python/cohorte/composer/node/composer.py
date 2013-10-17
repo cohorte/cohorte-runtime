@@ -162,10 +162,10 @@ class NodeComposer(object):
         :return: The kind of isolate
         """
         language = isolate.language
-        if language in ('python', 'python3'):
+        if language in cohorte.composer.LANGUAGES_PYTHON:
             return 'pelix'
 
-        elif language == 'java':
+        elif language == cohorte.composer.LANGUAGE_JAVA:
             return 'osgi'
 
         else:
@@ -188,18 +188,30 @@ class NodeComposer(object):
                           ex)
             return ex.factories
 
+        # Prepare the list of existing isolates (and their languages)
+        existing_isolates = self._commander.get_running_isolates()
+
         # Distribute components
-        isolates = self._distributor.distribute(components)
+        dist_isolates = self._distributor.distribute(components,
+                                                     existing_isolates)
+
+        # Differentiate new and running isolates
+        existing_isolates.intersection_update(dist_isolates)
+        new_isolates = dist_isolates.difference(existing_isolates)
 
         # Generate the name of isolates
-        for isolate in isolates:
+        for isolate in new_isolates:
             isolate.generate_name(self._node_name)
 
         # Store the distribution
-        self._status.store(isolates)
+        self._status.store(dist_isolates)
 
-        # Tell the monitor to start the isolates
-        for isolate in isolates:
+        # Tell the commander to start the instantiation on existing isolates
+        self._commander.start(existing_isolates)
+
+        # Tell the monitor to start the new isolates.
+        # The commander will send their orders once there composer will be bound
+        for isolate in new_isolates:
             _logger.debug("Starting isolate: %s -- kind=%s -- language=%s",
                           isolate, self._compute_kind(isolate),
                           isolate.language)
@@ -213,9 +225,6 @@ class NodeComposer(object):
                                         self._compute_kind(isolate),
                                         isolate.language, 'isolate',
                                         isolate_bundles)
-
-        # Tell the commander to start the instantiation on existing isolates
-        self._commander.start(isolates)
 
 
     def kill(self, components):

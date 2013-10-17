@@ -14,6 +14,7 @@ instantiate these components in iPOPO or in iPOJO in an embedded JVM.
 __docformat__ = "restructuredtext en"
 
 # ------------------------------------------------------------------------------
+# Service specifications
 
 # Utilities #
 
@@ -78,9 +79,25 @@ SERVICE_AGENT_ISOLATE = 'cohorte.composer.isolate.agent'
 """ Specification of an isolate composer agent """
 
 # ------------------------------------------------------------------------------
+# Node and Isolate Composer services properties
 
 PROP_NODE_NAME = 'cohorte.composer.node.name'
 """ Name of the node the service is executed on """
 
 PROP_ISOLATE_NAME = 'cohorte.composer.isolate.name'
 """ Name of the isolate the service is executed in """
+
+# ------------------------------------------------------------------------------
+# Constants
+
+LANGUAGE_PYTHON = "python"
+""" Isolate language: Python 2 """
+
+LANGUAGE_PYTHON3 = "python3"
+""" Isolate language: Python 3 """
+
+LANGUAGES_PYTHON = (LANGUAGE_PYTHON, LANGUAGE_PYTHON3)
+""" Isolate language: Python 2 or 3 """
+
+LANGUAGE_JAVA = "java"
+""" Isolate language: Java """
