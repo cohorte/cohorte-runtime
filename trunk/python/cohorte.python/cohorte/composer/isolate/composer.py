@@ -37,16 +37,19 @@ __docformat__ = "restructuredtext en"
 
 # Composer
 import cohorte.composer
+import cohorte.composer.node.beans as beans
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
-    Instantiate, Property, Validate, Invalidate
+    Instantiate, Property, Validate, Invalidate, BindField
 
 # Pelix remote services
 import pelix.remote
 
 # Standard library
 import logging
+import threading
+import sys
 
 # ------------------------------------------------------------------------------
 
@@ -61,8 +64,7 @@ _logger = logging.getLogger(__name__)
 @Property('_export', pelix.remote.PROP_EXPORTED_INTERFACES, '*')
 @Property('_export_name', pelix.remote.PROP_ENDPOINT_NAME,
           'composer-isolate-composer')
-@Requires('_agents', cohorte.composer.SERVICE_AGENT_ISOLATE,
-          aggregate=True, optional=True)
+@Requires('_agent', cohorte.composer.SERVICE_AGENT_ISOLATE, optional=True)
 @Requires('_status', cohorte.composer.SERVICE_STATUS_ISOLATE)
 @Instantiate('cohorte-composer-isolate')
 class IsolateComposer(object):
@@ -80,8 +82,13 @@ class IsolateComposer(object):
         self._export_name = None
 
         # Injected services
-        self._agents = []
+        self._agent = None
         self._status = None
+
+        # Remaining components
+        self._remaining = set()
+        self.__lock = threading.RLock()
+        self.__validated = False
 
 
     @Validate
@@ -91,6 +98,7 @@ class IsolateComposer(object):
         """
         self._node_name = context.get_property(cohorte.PROP_NODE)
         self._isolate_name = context.get_property(cohorte.PROP_NAME)
+        self.__validated = True
 
 
     @Invalidate
@@ -98,12 +106,73 @@ class IsolateComposer(object):
         """
         Component invalidated
         """
+        self.__validated = False
+        self._remaining.clear()
+
         self._node_name = None
         self._isolate_name = None
 
 
+    @BindField('_agent')
+    def _bind_agent(self, field, service, svc_ref):
+        """
+        An agent has been bound
+        """
+        with self.__lock:
+            if self.__validated and self._agent is not None:
+                # Tell it to handle remaining components
+                self._agent.handle(self._remaining)
+                self._remaining.clear()
+
+
+    def get_isolate_info(self):
+        """
+        Returns an Isolate bean corresponding to this composer
+
+        :return: An Isolate bean
+        """
+        # Language
+        if sys.version_info[0] == 3:
+            language = cohorte.composer.LANGUAGE_PYTHON3
+        else:
+            language = cohorte.composer.LANGUAGE_PYTHON
+
+        # Make the bean
+        return beans.Isolate(self._isolate_name, language,
+                             self._status.get_components())
+
+
     def instantiate(self, components):
         """
+        Instantiates the given components
+
+        :param components: A set of RawComponent beans
         """
-        from pprint import pformat
-        _logger.debug("Must instantiate: %s", pformat(components))
+        with self.__lock:
+            if self._agent is not None:
+                self._agent.handle(components)
+
+            else:
+                self._remaning.update(components)
+
+
+    def kill(self, names):
+        """
+        Kills the components with the given names
+
+        :param names: Names of the components to kill
+        """
+        with self.__lock:
+            if self._agent is not None:
+                for name in name:
+                    try:
+                        self._agent.kill(name)
+
+                    except ValueError:
+                        # Unknown component
+                        pass
+
+            else:
+                self._remaining.difference_update(component
+                                                for component in self._remaining
+                                                if component.name in names)

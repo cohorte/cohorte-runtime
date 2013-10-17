@@ -91,13 +91,19 @@ class IsolateStatusStorage(object):
         beans.
 
         :param components: A set of RawComponent beans
+        :return: The set of components that wasn't already known
         """
+        added_components = set()
+
         for component in components:
             name = component.name
             if name not in self._components:
                 # Store if not yet known
                 self._components[name] = component
                 self._instantiated.add(component)
+                added_components.add(component)
+
+        return added_components
 
 
     def remove(self, names):
@@ -140,6 +146,15 @@ class IsolateStatusStorage(object):
         component = self._components[name]
         self._instantiated.discard(component)
         self._remaining.add(component)
+
+
+    def get_components(self):
+        """
+        Retrieves the set of all components associated to this isolate
+
+        :return: A set of RawComponent beans
+        """
+        return set(self._components.values())
 
 
     def get_remaining(self):
