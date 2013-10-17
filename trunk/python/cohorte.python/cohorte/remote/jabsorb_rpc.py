@@ -71,13 +71,17 @@ class _JabsorbRpcServlet(SimpleJSONRPCDispatcher):
 
         except KeyError:
             # Other method
-            return self._dispatch_method(name, params)
+            pass
+
+        # Avoid calling this method in the "except" block, as it would be in
+        # an exception state (logs will consider the KeyError as a failure)
+        return self._dispatch_method(name, params)
 
 
     def do_POST(self, request, response):
         """
         Handle a post request
-        
+
         :param request: The HTTP request bean
         :param request: The HTTP response handler
         """
@@ -174,7 +178,7 @@ class JsonRpcServiceExporter(object):
     def _compute_endpoint_name(self, reference):
         """
         Computes the end point name according to service properties
-        
+
         :param reference: A ServiceReference object
         :return: The computed end point name
         """
@@ -189,7 +193,7 @@ class JsonRpcServiceExporter(object):
     def _export_service(self, reference):
         """
         Exports the given service
-        
+
         :param reference: A ServiceReference object
         """
         # Compute the end point name
@@ -257,7 +261,7 @@ class JsonRpcServiceExporter(object):
     def _unexport_service(self, reference):
         """
         Stops the export of the given service
-        
+
         :param reference: A ServiceReference object
         """
         # Find the corresponding end point
@@ -372,7 +376,7 @@ class _ServiceCallProxy(object):
     def __init__(self, uid, name, url, on_error):
         """
         Sets up the call proxy
-        
+
         :param uid: End point UID
         :param name: End point name
         :param url: End point URL
@@ -496,7 +500,7 @@ class JsonRpcServiceImporter(object):
     def _unregister(self, endpoint_uid):
         """
         Unregisters the service associated to the given UID
-        
+
         :param endpoint_uid: An end point UID
         :return: True on success, else False
         """
