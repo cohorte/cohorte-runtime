@@ -21,6 +21,12 @@ import re
 
 # ------------------------------------------------------------------------------
 
+JSON_CLASS = '__jsonclass__'
+"""
+Tuple used by jsonrpclib to indicate wich Python class corresponds to its
+content
+"""
+
 JAVA_CLASS = "javaClass"
 """
 Dictionary key used by Jabsorb to indicate which Java class corresponds to its
@@ -75,10 +81,10 @@ class __hashablelist(list):
 def to_jabsorb(value):
     """
     Adds information for Jabsorb, if needed.
-    
+
     Converts maps and lists to a jabsorb form.
     Keeps tuples as is, to let them be considered as arrays.
-    
+
     :param value: A Python result to send to Jabsorb
     :return: The result in a Jabsorb map format (not a JSON object)
     """
@@ -88,18 +94,33 @@ def to_jabsorb(value):
 
     # Map ?
     elif isinstance(value, dict):
-        if JAVA_CLASS not in value:
+
+        if JAVA_CLASS in value or JSON_CLASS in value:
+            # Bean representation
+            converted_result = {}
+
+            for key, content in value.items():
+                converted_result[key] = to_jabsorb(content)
+
+            try:
+                # Keep the raw jsonrpclib information
+                converted_result[JSON_CLASS] = value[JSON_CLASS]
+            except KeyError:
+                pass
+
+        else:
             # Needs the whole transformation
             converted_result = {JAVA_CLASS: "java.util.HashMap"}
             converted_result["map"] = map_pairs = {}
             for key, content in value.items():
                 map_pairs[key] = to_jabsorb(content)
 
-        else:
-            # Bean representation
-            converted_result = {}
-            for key, content in value.items():
-                converted_result[key] = to_jabsorb(content)
+            try:
+                # Keep the raw jsonrpclib information
+                map_pairs[JSON_CLASS] = value[JSON_CLASS]
+            except KeyError:
+                pass
+
 
     # List ? (consider tuples as an array)
     elif isinstance(value, list):
@@ -107,7 +128,7 @@ def to_jabsorb(value):
         converted_result["list"] = [to_jabsorb(entry) for entry in value]
 
     # Set ?
-    elif isinstance(value, set):
+    elif isinstance(value, (set, frozenset)):
         converted_result = {JAVA_CLASS: "java.util.HashSet"}
         converted_result["set"] = [to_jabsorb(entry) for entry in value]
 
@@ -136,11 +157,11 @@ def from_jabsorb(request):
     """
     Transforms a jabsorb request into a more Python data model (converts maps
     and lists)
-    
+
     :param request: Data coming from Jabsorb
     :return: A Python representation of the given data
     """
-    if isinstance(request, (list, set, tuple)):
+    if isinstance(request, (list, set, frozenset, tuple)):
         # Special case : JSON arrays (Python lists)
         return [from_jabsorb(element) for element in request]
 
