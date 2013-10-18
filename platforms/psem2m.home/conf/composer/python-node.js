@@ -29,5 +29,5 @@
 		"name" : "cohorte.composer.node.criteria.distance.configuration"
 	} ]
 
-/* All components of the Top Composer are automatically instantiated */
+/* All components of the Composer are automatically instantiated */
 }
