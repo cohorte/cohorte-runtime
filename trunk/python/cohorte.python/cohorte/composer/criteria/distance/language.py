@@ -49,7 +49,7 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
 # ------------------------------------------------------------------------------
 
 @ComponentFactory()
-@Provides(cohorte.composer.SERVICE_CRITERION_DISTANCE)
+@Provides(cohorte.composer.SERVICE_TOP_CRITERION_DISTANCE)
 @Requires('_repositories', cohorte.repositories.SERVICE_REPOSITORY_FACTORIES,
           aggregate=True)
 @Instantiate('cohorte-composer-criterion-distance-language')

@@ -47,7 +47,7 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
 INCOMPATIBLE = 1
 
 @ComponentFactory()
-@Provides(cohorte.composer.SERVICE_CRITERION_DISTANCE)
+@Provides(cohorte.composer.SERVICE_TOP_CRITERION_DISTANCE)
 @Requires('_compatibility_checkers',
           cohorte.composer.SERVICE_COMPATIBILITY_CHECKER, aggregate=True)
 @Requires('_distance_calculators', cohorte.composer.SERVICE_DISTANCE_CALCULATOR,
