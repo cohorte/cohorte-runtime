@@ -35,6 +35,10 @@ __docformat__ = "restructuredtext en"
 
 # ------------------------------------------------------------------------------
 
+import itertools
+
+# ------------------------------------------------------------------------------
+
 class RawComposition(object):
     """
     Represents a composition, as described in the configuration file
@@ -154,6 +158,9 @@ class RawComponent(object):
     PARSER_COPY = ('bundle.name', 'bundle.version',
                    'language', 'isolate', 'node')
 
+    # Java class name
+    javaClass = 'org.cohorte.composer.api.RawComponent'
+
     def __init__(self, factory=None, name=None):
         """
         Sets up members
@@ -173,7 +180,6 @@ class RawComponent(object):
         self.bundle_name = None
         self.bundle_version = None
         self.language = None
-        self.socm_agent = None
 
         # Dispatcher information
         self.isolate = None
@@ -191,3 +197,144 @@ class RawComponent(object):
         """
         return "RawComponent({0}, {1})".format(self.factory, self.name)
 
+# ------------------------------------------------------------------------------
+
+class Isolate(object):
+    """
+    Represents an isolate to be instantiated
+    """
+    # The isolate counter
+    __counter = itertools.count(1)
+
+    def __init__(self, name=None, language=None, components=None):
+        """
+        Sets up members
+
+        :param name: The name of the isolate
+        :param language: The language of components in this isolate
+        :param components: A set of pre-existing components
+        """
+        # The configured isolate name
+        self.__name = name
+
+        # Proposed name, if the current vote passes
+        self.__proposed_name = None
+
+        # Language of components hosted by this isolate
+        self.language = language
+
+        # Components hosted by this isolate
+        if components is None:
+            self.__components = set()
+        else:
+            self.__components = set(components)
+
+
+    def __str__(self):
+        """
+        String representation
+        """
+        if not self.language:
+            return "NeutralIsolate"
+
+        return "Isolate({0}, {1})".format(self.__name, self.language)
+
+
+    def accepted_rename(self):
+        """
+        Possible name accepted
+
+        :raise ValueError: A name was already given
+        """
+        if self.__name:
+            raise ValueError("Isolate already have a name: {0}" \
+                             .format(self.__name))
+
+        self.__name = self.__proposed_name
+        self.__proposed_name = None
+
+
+    def propose_rename(self, new_name):
+        """
+        Proposes the renaming of the isolate
+
+        :raise ValueError: A name was already given to this isolate
+        :return: True if the proposal is acceptable
+        """
+        if self.__name:
+            raise ValueError("Isolate already have a name: {0}" \
+                             .format(self.__name))
+
+        if self.__proposed_name:
+            return False
+
+        self.__proposed_name = new_name
+        return True
+
+
+    def rejected_rename(self):
+        """
+        Possible name rejected
+        """
+        self.__proposed_name = None
+
+
+    def generate_name(self, node):
+        """
+        Generates a name for this isolate (to be called) after votes.
+        Does nothing if a name was already assigned to the isolate
+
+        :param node: The node name
+        :return: The (generated) isolate name
+        """
+        if not self.__name:
+            # Need to generate a name
+            self.__name = '{node}-{language}-auto{count:02d}' \
+                          .format(node=node, language=self.language,
+                                  count=next(Isolate.__counter))
+
+        return self.__name
+
+
+    @property
+    def name(self):
+        """
+        Returns the name of the isolate
+        """
+        return self.__name
+
+
+    @property
+    def proposed_name(self):
+        """
+        Returns the currently proposed name, or None
+        """
+        return self.__proposed_name
+
+
+    @property
+    def components(self):
+        """
+        Returns the (frozen) set of components associated to this isolate
+        """
+        return frozenset(self.__components)
+
+
+    @property
+    def factories(self):
+        """
+        Returns the (frozen) set of the factories required to instantiate
+        the components associated to this isolate
+        """
+        return frozenset(component.factory for component in self.__components)
+
+
+    def add_component(self, component):
+        """
+        Adds a component to the isolate
+        """
+        if self.language is None:
+            # First component tells which language this isolate hosts
+            self.language = component.language
+
+        self.__components.add(component)

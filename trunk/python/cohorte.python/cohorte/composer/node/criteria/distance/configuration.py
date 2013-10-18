@@ -37,7 +37,7 @@ __docformat__ = "restructuredtext en"
 
 # Composer
 import cohorte.composer
-import cohorte.composer.node.beans as beans
+import cohorte.composer.beans as beans
 import cohorte.utils.vote as vote
 
 # iPOPO Decorators
