@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -- Content-Encoding: UTF-8 --
 """
-Shell commands to debug the composer v3
+Shell commands to control the top composer
 
 :author: Thomas Calmant
 :copyright: Copyright 2013, isandlaTech
@@ -64,9 +64,9 @@ import json
 @Requires('_utils', SHELL_UTILS_SERVICE_SPEC)
 @Provides(SHELL_COMMAND_SPEC)
 @Instantiate('cohorte-composer-shell-debug')
-class ParserCommands(object):
+class TopComposerCommands(object):
     """
-    Signals shell commands
+    Shell commands to control the top composer
     """
     def __init__(self):
         """
@@ -80,34 +80,31 @@ class ParserCommands(object):
         self._distributor = None
         self._status = None
 
-        self.logger = logging.getLogger('composer-shell')
+        self.logger = logging.getLogger('shell-composer-top')
 
 
     def get_namespace(self):
         """
         Retrieves the name space of this command handler
         """
-        return "composer"
+        return "top"
 
 
     def get_methods(self):
         """
         Retrieves the list of tuples (command, method) for this command handler
         """
-        return [("distribute", self.distribute_composition),
-                ("read", self.read_file),
+        return [('read', self.read_file),
+                ('dist', self.distribute_composition),
+                ('load', self.instantiate_composition),
                 ('dump', self.dump_status),
-                ('inst', self.instantiate_composition)]
+                ('stop', self.stop_composition), ]
 
 
     def read_file(self, io_handler, filename="autorun_conf.js", base="conf"):
         """
         Reads a file
         """
-        if self._reader is None:
-            io_handler.write_line("No file reader.")
-            return
-
         # Read the file content (dictionary)
         data = self._reader.load_file(filename, base)
 
@@ -130,7 +127,7 @@ class ParserCommands(object):
         composition = self._parser.load(filename, base)
 
         if self._distributor is None:
-            io_handler.write_line("No distributor found.")
+            io_handler.write_line("No top distributor found.")
             io_handler.write_line("Composition: {0}", str(composition))
             return
 
@@ -155,7 +152,7 @@ class ParserCommands(object):
 
         # Tell the top composer to work
         if self._composer is None:
-            io_handler.write_line("No composer found.")
+            io_handler.write_line("No top composer service available.")
             return
 
         uid = self._composer.start(composition)
@@ -163,12 +160,28 @@ class ParserCommands(object):
                               composition.name, uid)
 
 
+    def stop_composition(self, io_handler, uid):
+        """
+        Kills the distribution with the given UID
+        """
+        if self._composer is None:
+            io_handler.write_line("No top composer service available.")
+            return
+
+        try:
+            self._composer.stop(uid)
+            io_handler.write_line("Composition {0} should be stopped", uid)
+
+        except KeyError:
+            io_handler.write_line("Unknown composition: {0}", uid)
+
+
     def dump_status(self, io_handler, node=None):
         """
         Dumps the content of status
         """
         if self._status is None:
-            io_handler.write_line("No status found.")
+            io_handler.write_line("No top status service available.")
             return
 
         if not node:

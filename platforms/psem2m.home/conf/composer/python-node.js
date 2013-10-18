@@ -27,11 +27,6 @@
 	/* Distributor criteria */
 	{
 		"name" : "cohorte.composer.node.criteria.distance.configuration"
-	},
-
-	/* Debug shell commands */
-	{
-		"name" : "cohorte.shell.debug_composer"
 	} ]
 
 /* All components of the Top Composer are automatically instantiated */

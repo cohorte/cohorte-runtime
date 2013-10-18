@@ -29,7 +29,9 @@
 
 	/* Debug shell commands */
 	{
-		"name" : "cohorte.shell.debug_composer"
+		"name" : "cohorte.shell.composer_top"
+	}, {
+		"name" : "cohorte.shell.composer_node"
 	} ]
 
 /* All components of the Top Composer are automatically instantiated */
