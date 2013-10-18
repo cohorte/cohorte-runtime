@@ -172,6 +172,13 @@ class NodeComposer(object):
             return 'boot'
 
 
+    def get_running_isolates(self):
+        """
+        Retrieves the set of isolate beans describing the current status
+        """
+        return self._commander.get_running_isolates()
+
+
     def instantiate(self, components):
         """
         Instantiates the given components
@@ -189,7 +196,7 @@ class NodeComposer(object):
             return ex.factories
 
         # Prepare the list of existing isolates (and their languages)
-        existing_isolates = self._commander.get_running_isolates()
+        existing_isolates = self.get_running_isolates()
 
         # Distribute components
         dist_isolates = self._distributor.distribute(components,
