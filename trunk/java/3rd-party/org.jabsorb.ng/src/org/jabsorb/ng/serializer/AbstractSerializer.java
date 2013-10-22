@@ -37,7 +37,7 @@ public abstract class AbstractSerializer implements Serializer {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Main serialiser
+     * Main serializer
      */
     protected JSONSerializer ser;
 
@@ -54,6 +54,7 @@ public abstract class AbstractSerializer implements Serializer {
      * @return true If this Serializer can serialize/deserialize the given
      *         java,json pair.
      */
+    @Override
     public boolean canSerialize(final Class<?> clazz, final Class<?> jsonClazz) {
 
         boolean canJava = false, canJSON = false;
@@ -80,10 +81,28 @@ public abstract class AbstractSerializer implements Serializer {
     }
 
     /**
+     * Tests if the given class name can be serialized
+     * 
+     * @param aClassName
+     *            The class name to test
+     * @return True if the class can be handled by this serializer
+     */
+    protected boolean classNameCheck(final String aClassName) {
+
+        for (final Class<?> clazz : getSerializableClasses()) {
+            if (aClassName.equals(clazz.getName())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Set the JSONSerialiser that spawned this object.
      * 
      * @param ser
-     *            The parent serialiser.
+     *            The parent serializer.
      */
     @Override
     public void setOwner(final JSONSerializer ser) {

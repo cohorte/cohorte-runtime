@@ -28,7 +28,6 @@ package org.jabsorb.ng.serializer.impl;
 
 import java.util.AbstractList;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
@@ -44,27 +43,28 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * Serialises lists
+ * Serializes lists
  * 
- * TODO: if this serialises a superclass does it need to also specify the
+ * TODO: if this serializes a superclass does it need to also specify the
  * subclasses?
  */
 public class ListSerializer extends AbstractSerializer {
-    /**
-     * Classes that this can serialise to.
-     */
-    private static Class<?>[] _JSONClasses = new Class<?>[] { JSONObject.class };
 
     /**
-     * Classes that this can serialise.
+     * Classes that this can serialize to.
      */
-    private static Class<?>[] _serializableClasses = new Class<?>[] {
+    private static final Class<?>[] _JSONClasses = new Class<?>[] { JSONObject.class };
+
+    /**
+     * Classes that this can serialize.
+     */
+    private static final Class<?>[] _serializableClasses = new Class<?>[] {
             List.class, ArrayList.class, LinkedList.class, Vector.class };
 
     /**
-     * Unique serialisation id.
+     * Unique serialization id.
      */
-    private final static long serialVersionUID = 2;
+    private static final long serialVersionUID = 2;
 
     @Override
     public boolean canSerialize(final Class<?> clazz, final Class<?> jsonClazz) {
@@ -89,7 +89,7 @@ public class ListSerializer extends AbstractSerializer {
     public Object marshall(final SerializerState state, final Object p,
             final Object o) throws MarshallException {
 
-        final List list = (List) o;
+        final List<?> list = (List<?>) o;
         final JSONObject obj = new JSONObject();
         final JSONArray arr = new JSONArray();
 
@@ -102,18 +102,22 @@ public class ListSerializer extends AbstractSerializer {
                 throw new MarshallException("javaClass not found!", e);
             }
         }
+
         try {
             obj.put("list", arr);
             state.push(o, arr, "list");
+
         } catch (final JSONException e) {
             throw new MarshallException("Error setting list: " + e, e);
         }
+
         int index = 0;
         try {
-            final Iterator i = list.iterator();
-            while (i.hasNext()) {
-                final Object json = ser.marshall(state, arr, i.next(),
-                        new Integer(index));
+            for (final Object item : list) {
+                // Convert the item
+                final Object json = ser.marshall(state, arr, item, index);
+
+                // Check for circular references
                 if (JSONSerializer.CIRC_REF_OR_DUPLICATE != json) {
                     arr.put(json);
                 } else {
@@ -121,13 +125,17 @@ public class ListSerializer extends AbstractSerializer {
                     // up properly in the fix up phase
                     arr.put(JSONObject.NULL);
                 }
+
                 index++;
             }
+
         } catch (final MarshallException e) {
             throw new MarshallException("element " + index, e);
+
         } finally {
             state.pop();
         }
+
         return obj;
     }
 
@@ -141,6 +149,8 @@ public class ListSerializer extends AbstractSerializer {
 
         final JSONObject jso = (JSONObject) o;
         String java_class;
+
+        // Hint presence
         try {
             java_class = jso.getString("javaClass");
         } catch (final JSONException e) {
@@ -149,13 +159,13 @@ public class ListSerializer extends AbstractSerializer {
         if (java_class == null) {
             throw new UnmarshallException("no type hint");
         }
-        if (!(java_class.equals("java.util.List")
-                || java_class.equals("java.util.AbstractList")
-                || java_class.equals("java.util.LinkedList")
-                || java_class.equals("java.util.ArrayList") || java_class
-                    .equals("java.util.Vector"))) {
+
+        // Class compatibility check
+        if (!classNameCheck(java_class)) {
             throw new UnmarshallException("not a List");
         }
+
+        // JSON Format check
         JSONArray jsonlist;
         try {
             jsonlist = jso.getJSONArray("list");
@@ -166,20 +176,23 @@ public class ListSerializer extends AbstractSerializer {
         if (jsonlist == null) {
             throw new UnmarshallException("list missing");
         }
-        int i = 0;
+
+        // Content check
         final ObjectMatch m = new ObjectMatch(-1);
         state.setSerialized(o, m);
+
+        int idx = 0;
         try {
-            for (; i < jsonlist.length(); i++) {
-                m.setMismatch(ser.tryUnmarshall(state, null, jsonlist.get(i))
+            for (idx = 0; idx < jsonlist.length(); idx++) {
+                m.setMismatch(ser.tryUnmarshall(state, null, jsonlist.get(idx))
                         .max(m).getMismatch());
             }
         } catch (final UnmarshallException e) {
-            throw new UnmarshallException(
-                    "element " + i + " " + e.getMessage(), e);
+            throw new UnmarshallException("element " + idx + " "
+                    + e.getMessage(), e);
         } catch (final JSONException e) {
-            throw new UnmarshallException(
-                    "element " + i + " " + e.getMessage(), e);
+            throw new UnmarshallException("element " + idx + " "
+                    + e.getMessage(), e);
         }
         return m;
     }
@@ -190,51 +203,60 @@ public class ListSerializer extends AbstractSerializer {
 
         final JSONObject jso = (JSONObject) o;
         String java_class;
+
+        // Hint check
         try {
             java_class = jso.getString("javaClass");
         } catch (final JSONException e) {
             throw new UnmarshallException("Could not read javaClass", e);
         }
+
         if (java_class == null) {
             throw new UnmarshallException("no type hint");
         }
-        AbstractList al;
+
+        // Create the list
+        final AbstractList<Object> ablist;
         if (java_class.equals("java.util.List")
                 || java_class.equals("java.util.AbstractList")
                 || java_class.equals("java.util.ArrayList")) {
-            al = new ArrayList();
+            ablist = new ArrayList<Object>();
         } else if (java_class.equals("java.util.LinkedList")) {
-            al = new LinkedList();
+            ablist = new LinkedList<Object>();
         } else if (java_class.equals("java.util.Vector")) {
-            al = new Vector();
+            ablist = new Vector<Object>();
         } else {
             throw new UnmarshallException("not a List");
         }
 
+        // Parse the JSON list
         JSONArray jsonlist;
         try {
             jsonlist = jso.getJSONArray("list");
+
         } catch (final JSONException e) {
             throw new UnmarshallException("Could not read list: "
                     + e.getMessage(), e);
         }
+
         if (jsonlist == null) {
             throw new UnmarshallException("list missing");
         }
-        state.setSerialized(o, al);
-        int i = 0;
+
+        state.setSerialized(o, ablist);
+
+        int idx = 0;
         try {
-            for (; i < jsonlist.length(); i++) {
-                al.add(ser.unmarshall(state, null, jsonlist.get(i)));
+            for (idx = 0; idx < jsonlist.length(); idx++) {
+                ablist.add(ser.unmarshall(state, null, jsonlist.get(idx)));
             }
         } catch (final UnmarshallException e) {
-            throw new UnmarshallException(
-                    "element " + i + " " + e.getMessage(), e);
+            throw new UnmarshallException("element " + idx + " "
+                    + e.getMessage(), e);
         } catch (final JSONException e) {
-            throw new UnmarshallException(
-                    "element " + i + " " + e.getMessage(), e);
+            throw new UnmarshallException("element " + idx + " "
+                    + e.getMessage(), e);
         }
-        return al;
+        return ablist;
     }
-
 }

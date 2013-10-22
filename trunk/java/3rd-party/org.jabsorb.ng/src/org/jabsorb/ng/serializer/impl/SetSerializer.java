@@ -77,24 +77,6 @@ public class SetSerializer extends AbstractSerializer {
                 .isAssignableFrom(clazz)));
     }
 
-    /**
-     * Tests if the given class name can be serialized
-     * 
-     * @param aClassName
-     *            The class name to test
-     * @return True if the class can be handled by this serializer
-     */
-    private boolean classNameCheck(final String aClassName) {
-
-        for (final Class<?> clazz : getSerializableClasses()) {
-            if (aClassName.equals(clazz)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     @Override
     public Class<?>[] getJSONClasses() {
 
@@ -233,7 +215,7 @@ public class SetSerializer extends AbstractSerializer {
         }
 
         // Create the set
-        AbstractSet<Object> abset = null;
+        final AbstractSet<Object> abset;
         if (java_class.equals("java.util.Set")
                 || java_class.equals("java.util.AbstractSet")
                 || java_class.equals("java.util.HashSet")) {
@@ -264,8 +246,7 @@ public class SetSerializer extends AbstractSerializer {
         int idx = 0;
         try {
             for (idx = 0; idx < jsonset.length(); idx++) {
-                final Object setElement = jsonset.get(idx);
-                abset.add(ser.unmarshall(state, null, setElement));
+                abset.add(ser.unmarshall(state, null, jsonset.get(idx)));
             }
         } catch (final UnmarshallException e) {
             throw new UnmarshallException(
