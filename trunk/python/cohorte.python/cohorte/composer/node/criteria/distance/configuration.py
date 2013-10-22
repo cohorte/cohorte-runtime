@@ -37,7 +37,7 @@ __docformat__ = "restructuredtext en"
 
 # Composer
 import cohorte.composer
-import cohorte.composer.beans as beans
+import cohorte.composer.node.beans as beans
 import cohorte.utils.vote as vote
 
 # iPOPO Decorators
@@ -93,4 +93,4 @@ class ConfigurationIsolateCriterion(object):
         else:
             # Not found, create a new isolate
             # (it will be configured by the node distributor)
-            raise vote.CoupdEtat(beans.Isolate(component.isolate))
+            raise vote.CoupdEtat(beans.EligibleIsolate(component.isolate))

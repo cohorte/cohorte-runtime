@@ -37,6 +37,8 @@ __docformat__ = "restructuredtext en"
 
 # Composer
 import cohorte.composer
+import cohorte.composer.node.beans as beans
+
 import cohorte.monitor
 
 # iPOPO Decorators
@@ -179,6 +181,47 @@ class NodeComposer(object):
         return self._commander.get_running_isolates()
 
 
+    def _distribute(self, components, existing_isolates):
+        """
+        Computes the distribution of the given components into isolates
+
+        :param components: A list of RawComponent beans
+        :param existing_isolates: A list of Isolate beans, corresponding to
+                                  already running isolates
+        :return: A tuple (distribution, new_isolates), both parts being sets of
+                 Isolate beans
+        """
+        # Convert them
+        eligible_isolates = {beans.EligibleIsolate.from_isolate(isolate)
+                             for isolate in existing_isolates}
+
+        # Distribute components
+        dist_isolates = self._distributor.distribute(components,
+                                                     eligible_isolates)
+
+        # Differentiate new and running isolates
+        eligible_isolates.intersection_update(dist_isolates)
+        new_isolates = dist_isolates.difference(eligible_isolates)
+
+        # Generate the name of isolates
+        for isolate in new_isolates:
+            isolate.generate_name(self._node_name)
+
+        # Convert back to composer-level beans
+        new_beans = {isolate.to_isolate() for isolate in new_isolates}
+        dist_beans = set(new_beans)
+
+        # Re-use existing beans instead of creating new ones
+        existing_beans = dict((isolate.name, isolate)
+                              for isolate in existing_isolates)
+        for elected in eligible_isolates:
+            isolate = existing_beans[elected.name]
+            isolate.components.update(elected.components)
+            dist_beans.add(isolate)
+
+        return (dist_beans, new_beans)
+
+
     def instantiate(self, components):
         """
         Instantiates the given components
@@ -196,25 +239,14 @@ class NodeComposer(object):
             return ex.factories
 
         # Prepare the list of existing isolates (and their languages)
-        existing_isolates = self.get_running_isolates()
-
-        # Distribute components
-        dist_isolates = self._distributor.distribute(components,
-                                                     existing_isolates)
-
-        # Differentiate new and running isolates
-        existing_isolates.intersection_update(dist_isolates)
-        new_isolates = dist_isolates.difference(existing_isolates)
-
-        # Generate the name of isolates
-        for isolate in new_isolates:
-            isolate.generate_name(self._node_name)
+        distribution, new_isolates = self._distribute(components,
+                                                    self.get_running_isolates())
 
         # Store the distribution
-        self._status.store(dist_isolates)
+        self._status.store(distribution)
 
         # Tell the commander to start the instantiation on existing isolates
-        self._commander.start(existing_isolates)
+        self._commander.start(distribution.difference(new_isolates))
 
         # Tell the monitor to start the new isolates.
         # The commander will send their orders once there composer will be bound

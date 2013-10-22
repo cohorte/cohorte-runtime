@@ -40,7 +40,7 @@ __docformat__ = "restructuredtext en"
 
 # Composer
 import cohorte.composer
-import cohorte.composer.beans as beans
+import cohorte.composer.node.beans as beans
 
 # Vote utility
 import cohorte.utils.vote
@@ -93,8 +93,8 @@ class IsolateDistributor(object):
         Computes the distribution of the given components
 
         :param components: A list of RawComponent beans
-        :param existing_isolates: A list of isolates that are already active
-        :return: A list of Isolate beans
+        :param existing_isolates: A set of pre-existing eligible isolates
+        :return: A set of EligibleIsolate beans
         """
         isolates = set(existing_isolates)
 
@@ -114,7 +114,7 @@ class IsolateDistributor(object):
             isolate = vote.vote(component, matching_isolates)
             if isolate is None:
                 # Vote without result
-                isolate = beans.Isolate()
+                isolate = beans.EligibleIsolate()
 
             # Associate the component to the isolate
             isolate.add_component(component)
