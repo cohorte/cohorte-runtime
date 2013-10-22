@@ -12,6 +12,9 @@ package org.cohorte.composer.api;
  */
 public interface ComposerConstants {
 
+    /** Instance name */
+    String PROP_INSTANCE_NAME = "instance.name";
+
     /** Name of the hosting isolate */
     String PROP_ISOLATE_NAME = "cohorte.composer.isolate.name";
 
