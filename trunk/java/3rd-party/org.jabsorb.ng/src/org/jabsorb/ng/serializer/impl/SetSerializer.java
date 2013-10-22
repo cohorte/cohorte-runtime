@@ -39,37 +39,60 @@ import org.jabsorb.ng.serializer.MarshallException;
 import org.jabsorb.ng.serializer.ObjectMatch;
 import org.jabsorb.ng.serializer.SerializerState;
 import org.jabsorb.ng.serializer.UnmarshallException;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * Serialises Sets
+ * Serializes Sets
  * 
- * TODO: if this serialises a superclass does it need to also specify the
+ * PATCH by T. Calmant: set contains an array instead of a key -&gt; value
+ * object
+ * 
+ * TODO: if this serializes a superclass does it need to also specify the
  * subclasses?
  */
 public class SetSerializer extends AbstractSerializer {
-    /**
-     * Classes that this can serialise to.
-     */
-    private static Class<?>[] _JSONClasses = new Class<?>[] { JSONObject.class };
 
     /**
-     * Classes that this can serialise.
+     * Classes that this can serialize to.
      */
-    private static Class<?>[] _serializableClasses = new Class<?>[] {
+    private static final Class<?>[] _JSONClasses = new Class<?>[] { JSONObject.class };
+
+    /**
+     * Classes that this can serialize.
+     */
+    private static final Class<?>[] _serializableClasses = new Class<?>[] {
             Set.class, HashSet.class, TreeSet.class, LinkedHashSet.class };
 
     /**
-     * Unique serialisation id.
+     * Unique serialization id.
      */
-    private final static long serialVersionUID = 2;
+    private static final long serialVersionUID = 3;
 
     @Override
     public boolean canSerialize(final Class<?> clazz, final Class<?> jsonClazz) {
 
         return (super.canSerialize(clazz, jsonClazz) || ((jsonClazz == null || jsonClazz == JSONObject.class) && Set.class
                 .isAssignableFrom(clazz)));
+    }
+
+    /**
+     * Tests if the given class name can be serialized
+     * 
+     * @param aClassName
+     *            The class name to test
+     * @return True if the class can be handled by this serializer
+     */
+    private boolean classNameCheck(final String aClassName) {
+
+        for (final Class<?> clazz : getSerializableClasses()) {
+            if (aClassName.equals(clazz)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     @Override
@@ -91,7 +114,7 @@ public class SetSerializer extends AbstractSerializer {
         final Set<?> set = (Set<?>) o;
 
         final JSONObject obj = new JSONObject();
-        final JSONObject setdata = new JSONObject();
+        final JSONArray setdata = new JSONArray();
         if (ser.getMarshallClassHints()) {
             try {
                 obj.put("javaClass", o.getClass().getName());
@@ -106,28 +129,30 @@ public class SetSerializer extends AbstractSerializer {
             throw new MarshallException("Could not set 'set': "
                     + e.getMessage(), e);
         }
-        Object key = null;
-        final Iterator<?> i = set.iterator();
 
+        Object value = null;
+        int idx = 0;
+        final Iterator<?> i = set.iterator();
         try {
             while (i.hasNext()) {
-                key = i.next();
-                final String keyString = key.toString(); // only support String
-                                                         // keys
-                final Object json = ser
-                        .marshall(state, setdata, key, keyString);
+                value = i.next();
+                final Object json = ser.marshall(state, setdata, value, idx);
 
                 // omit the object entirely if it's a circular reference or
                 // duplicate
                 // it will be regenerated in the fixups phase
                 if (JSONSerializer.CIRC_REF_OR_DUPLICATE != json) {
-                    setdata.put(keyString, json);
+                    setdata.put(idx, json);
                 }
+
+                idx++;
             }
         } catch (final MarshallException e) {
-            throw new MarshallException("set key " + key + e.getMessage(), e);
+            throw new MarshallException("set value " + value + " "
+                    + e.getMessage(), e);
         } catch (final JSONException e) {
-            throw new MarshallException("set key " + key + e.getMessage(), e);
+            throw new MarshallException("set value " + value + " "
+                    + e.getMessage(), e);
         } finally {
             state.pop();
         }
@@ -140,6 +165,8 @@ public class SetSerializer extends AbstractSerializer {
 
         final JSONObject jso = (JSONObject) o;
         String java_class;
+
+        // Hint presence
         try {
             java_class = jso.getString("javaClass");
         } catch (final JSONException e) {
@@ -148,16 +175,16 @@ public class SetSerializer extends AbstractSerializer {
         if (java_class == null) {
             throw new UnmarshallException("no type hint");
         }
-        if (!(java_class.equals("java.util.Set")
-                || java_class.equals("java.util.AbstractSet")
-                || java_class.equals("java.util.LinkedHashSet")
-                || java_class.equals("java.util.TreeSet") || java_class
-                    .equals("java.util.HashSet"))) {
+
+        // Class compatibility check
+        if (!classNameCheck(java_class)) {
             throw new UnmarshallException("not a Set");
         }
-        JSONObject jsonset;
+
+        // JSON Format check
+        JSONArray jsonset;
         try {
-            jsonset = jso.getJSONObject("set");
+            jsonset = jso.getJSONArray("set");
         } catch (final JSONException e) {
             throw new UnmarshallException("set missing", e);
         }
@@ -166,23 +193,23 @@ public class SetSerializer extends AbstractSerializer {
             throw new UnmarshallException("set missing");
         }
 
+        // Content check
         final ObjectMatch m = new ObjectMatch(-1);
         state.setSerialized(o, m);
-        final Iterator i = jsonset.keys();
-        String key = null;
 
+        int idx = 0;
         try {
-            while (i.hasNext()) {
-                key = (String) i.next();
-                m.setMismatch(ser.tryUnmarshall(state, null, jsonset.get(key))
+            for (idx = 0; idx < jsonset.length(); idx++) {
+                m.setMismatch(ser.tryUnmarshall(state, null, jsonset.get(idx))
                         .max(m).getMismatch());
             }
+
         } catch (final UnmarshallException e) {
-            throw new UnmarshallException("key " + key + " " + e.getMessage(),
-                    e);
+            throw new UnmarshallException(
+                    "index " + idx + " " + e.getMessage(), e);
         } catch (final JSONException e) {
-            throw new UnmarshallException("key " + key + " " + e.getMessage(),
-                    e);
+            throw new UnmarshallException(
+                    "index " + idx + " " + e.getMessage(), e);
         }
         return m;
     }
@@ -193,29 +220,37 @@ public class SetSerializer extends AbstractSerializer {
 
         final JSONObject jso = (JSONObject) o;
         String java_class;
+
+        // Hint check
         try {
             java_class = jso.getString("javaClass");
         } catch (final JSONException e) {
             throw new UnmarshallException("Could not read javaClass", e);
         }
+
         if (java_class == null) {
             throw new UnmarshallException("no type hint");
         }
-        AbstractSet abset = null;
+
+        // Create the set
+        AbstractSet<Object> abset = null;
         if (java_class.equals("java.util.Set")
                 || java_class.equals("java.util.AbstractSet")
                 || java_class.equals("java.util.HashSet")) {
-            abset = new HashSet();
+            abset = new HashSet<Object>();
         } else if (java_class.equals("java.util.TreeSet")) {
-            abset = new TreeSet();
+            abset = new TreeSet<Object>();
         } else if (java_class.equals("java.util.LinkedHashSet")) {
-            abset = new LinkedHashSet();
+            abset = new LinkedHashSet<Object>();
         } else {
             throw new UnmarshallException("not a Set");
         }
-        JSONObject jsonset;
+
+        // Parse the JSON set
+        JSONArray jsonset;
         try {
-            jsonset = jso.getJSONObject("set");
+            jsonset = jso.getJSONArray("set");
+
         } catch (final JSONException e) {
             throw new UnmarshallException("set missing", e);
         }
@@ -224,22 +259,21 @@ public class SetSerializer extends AbstractSerializer {
             throw new UnmarshallException("set missing");
         }
 
-        final Iterator i = jsonset.keys();
-        String key = null;
         state.setSerialized(o, abset);
+
+        int idx = 0;
         try {
-            while (i.hasNext()) {
-                key = (String) i.next();
-                final Object setElement = jsonset.get(key);
+            for (idx = 0; idx < jsonset.length(); idx++) {
+                final Object setElement = jsonset.get(idx);
                 abset.add(ser.unmarshall(state, null, setElement));
             }
         } catch (final UnmarshallException e) {
-            throw new UnmarshallException("key " + i + e.getMessage(), e);
+            throw new UnmarshallException(
+                    "index " + idx + " " + e.getMessage(), e);
         } catch (final JSONException e) {
-            throw new UnmarshallException("key " + key + " " + e.getMessage(),
-                    e);
+            throw new UnmarshallException(
+                    "index " + idx + " " + e.getMessage(), e);
         }
         return abset;
     }
-
 }
