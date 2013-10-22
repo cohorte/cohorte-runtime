@@ -10,7 +10,7 @@ package org.cohorte.composer.api;
  * 
  * @author Thomas Calmant
  */
-public interface Constants {
+public interface ComposerConstants {
 
     /** Name of the hosting isolate */
     String PROP_ISOLATE_NAME = "cohorte.composer.isolate.name";
