@@ -94,6 +94,22 @@ def _compute_jsonclass(obj):
     return [json_class, []]
 
 
+def _is_builtin(obj):
+    """
+    Checks if the type of the given object is a built-in one or not
+
+    :param obj: An object
+    :return: True if the object is of a built-in type
+    """
+    module = inspect.getmodule(obj)
+    if module is None:
+        return True
+
+    else:
+        return module.__name__ in ('', '__main__')
+
+# ------------------------------------------------------------------------------
+
 def to_jabsorb(value):
     """
     Adds information for Jabsorb, if needed.
@@ -184,28 +200,40 @@ def from_jabsorb(request):
         # Special case : JSON arrays (Python lists)
         return [from_jabsorb(element) for element in request]
 
-    elif not isinstance(request, dict):
-        # Only handle dictionaries after this point
+    elif isinstance(request, dict):
+        # Dictionary
+        java_class = request.get(JAVA_CLASS)
+
+        if java_class:
+            # Java Map ?
+            if JAVA_MAPS_PATTERN.match(java_class) is not None:
+                return __hashabledict((from_jabsorb(key), from_jabsorb(value))
+                                      for key, value in request["map"].items())
+
+            # Java List ?
+            elif JAVA_LISTS_PATTERN.match(java_class) is not None:
+                return __hashablelist(from_jabsorb(element)
+                                      for element in request["list"])
+
+            # Java Set ?
+            elif JAVA_SETS_PATTERN.match(java_class) is not None:
+                return __hashableset(from_jabsorb(element)
+                                     for element in request["set"])
+
+        # Any other case
+        return __hashabledict((from_jabsorb(key), from_jabsorb(value))
+                              for key, value in request.items())
+
+    elif not _is_builtin(request):
+        # Bean
+        for attr in dir(request):
+            # Only convert public fields
+            if not attr[0] == '_':
+                # Field conversion
+                setattr(request, attr, from_jabsorb(getattr(request, attr)))
+
         return request
 
-    java_class = request.get(JAVA_CLASS)
-
-    if java_class:
-        # Java Map ?
-        if JAVA_MAPS_PATTERN.match(java_class) is not None:
-            return __hashabledict((from_jabsorb(key), from_jabsorb(value))
-                                  for key, value in request["map"].items())
-
-        # Java List ?
-        elif JAVA_LISTS_PATTERN.match(java_class) is not None:
-            return __hashablelist(from_jabsorb(element)
-                                  for element in request["list"])
-
-        # Java Set ?
-        elif JAVA_SETS_PATTERN.match(java_class) is not None:
-            return __hashableset(from_jabsorb(element)
-                                 for element in request["set"])
-
-    # Any other case
-    return __hashabledict((from_jabsorb(key), from_jabsorb(value))
-                          for key, value in request.items())
+    else:
+        # Any other case
+        return request
