@@ -149,10 +149,14 @@ class IsolateComposer(object):
         :param components: A set of RawComponent beans
         """
         with self.__lock:
-            if self._agent is not None:
-                self._agent.handle(components)
+            # Store the new components
+            self._status.store(components)
 
+            if self._agent is not None:
+                # Instantiate them
+                self._agent.handle(components)
             else:
+                # Wait for an agent to come
                 self._remaning.update(components)
 
 
@@ -163,9 +167,14 @@ class IsolateComposer(object):
         :param names: Names of the components to kill
         """
         with self.__lock:
+            # Update the status storage
+            self._status.remove(names)
+
             if self._agent is not None:
-                for name in name:
+                # An agent can kill the components
+                for name in names:
                     try:
+                        # Kill the component
                         self._agent.kill(name)
 
                     except ValueError:
@@ -173,6 +182,7 @@ class IsolateComposer(object):
                         pass
 
             else:
+                # Update the remaining components
                 self._remaining.difference_update(component
                                                 for component in self._remaining
                                                 if component.name in names)
