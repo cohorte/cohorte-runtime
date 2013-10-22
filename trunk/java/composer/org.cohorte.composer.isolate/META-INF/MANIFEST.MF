@@ -8,10 +8,11 @@ Bundle-Version: 3.0.0.qualifier
 Created-By: iPOJO 1.10.1
 Import-Package: org.apache.felix.ipojo;version="[1.8.0,2.0.0)", org.ap
  ache.felix.ipojo.architecture;version="[1.8.0,2.0.0)", org.apache.fel
- ix.ipojo.metadata;version=1.10.0, org.cohorte.composer.api;version=3.
- 0.0, org.osgi.framework;version=1.7.0, org.osgi.service.cm;version=1.
- 2, org.osgi.service.log;version=1.3, org.psem2m.isolates.constants;ve
- rsion=1.0.1
+ ix.ipojo.handlers.providedservice;version=1.10.0, org.apache.felix.ip
+ ojo.metadata;version=1.10.0, org.cohorte.composer.api;version=3.0.0, 
+ org.osgi.framework;version=1.7.0, org.osgi.service.cm;version=1.2, or
+ g.osgi.service.log;version=1.3, org.psem2m.isolates.constants;version
+ =1.0.1
 iPOJO-Components: instance { $name="cohorte-composer-isolate" $compone
  nt="org.cohorte.composer.isolate.IsolateComposer" }instance { $name="
  cohorte-composer-agent-ipojo" $component="org.cohorte.composer.isolat
