@@ -10,6 +10,6 @@
   </parent>
   <groupId>org.cohorte</groupId>
   <artifactId>org.cohorte.composer.api</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>3.0.0-SNAPSHOT</version>
   <packaging>eclipse-plugin</packaging>
 </project>
