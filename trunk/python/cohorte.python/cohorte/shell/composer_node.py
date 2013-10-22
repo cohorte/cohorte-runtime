@@ -44,6 +44,7 @@ from pelix.shell import SHELL_COMMAND_SPEC, SHELL_UTILS_SERVICE_SPEC
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
     Instantiate, Validate, Invalidate
+from pelix.utilities import use_service
 
 # Standard library
 import logging
@@ -137,16 +138,13 @@ class NodeComposerCommands(object):
 
         # For each node, get the isolate bean
         for svc_ref in svc_refs:
-            try:
-                composer = self._context.get_service(svc_ref)
-                node = svc_ref.get_property(cohorte.composer.PROP_NODE_NAME)
-                isolates[node] = composer.get_running_isolates()
+            with use_service(self._context, svc_ref) as composer:
+                try:
+                    node = svc_ref.get_property(cohorte.composer.PROP_NODE_NAME)
+                    isolates[node] = composer.get_running_isolates()
 
-            except Exception as ex:
-                self.logger.error("Error calling composer: %s", ex)
-
-            finally:
-                self._context.unget_service(svc_ref)
+                except Exception as ex:
+                    self.logger.error("Error calling composer: %s", ex)
 
         # Sort by node name
         names = sorted(isolates.keys())
