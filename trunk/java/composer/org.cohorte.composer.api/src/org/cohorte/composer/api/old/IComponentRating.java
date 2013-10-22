@@ -3,7 +3,7 @@
  * Author: "Thomas Calmant"
  * Date:   29 janv. 2013
  */
-package org.cohorte.composer.api;
+package org.cohorte.composer.api.old;
 
 import java.io.IOException;
 import java.util.Map;

@@ -3,7 +3,7 @@
  * Author: Thomas Calmant
  * Date:   28 mars 2013
  */
-package org.cohorte.composer.api;
+package org.cohorte.composer.api.old;
 
 import java.util.Collection;
 import java.util.Map;
