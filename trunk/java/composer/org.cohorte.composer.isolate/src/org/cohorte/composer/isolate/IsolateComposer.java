@@ -10,9 +10,13 @@ import java.util.Set;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
+import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.ServiceProperty;
 import org.apache.felix.ipojo.annotations.StaticServiceProperty;
+import org.apache.felix.ipojo.annotations.Validate;
+import org.cohorte.composer.api.ComposerConstants;
 import org.cohorte.composer.api.IAgent;
 import org.cohorte.composer.api.IIsolateComposer;
 import org.cohorte.composer.api.Isolate;
@@ -39,14 +43,23 @@ import org.psem2m.isolates.constants.IPlatformProperties;
 public class IsolateComposer implements IIsolateComposer {
 
     /** The composer agent */
+    @Requires
     private IAgent pAgent;
 
     /** Bundle context */
     private final BundleContext pContext;
 
+    /** Host isolate name */
+    @ServiceProperty(name = ComposerConstants.PROP_ISOLATE_NAME)
+    private String pIsolateName;
+
     /** The logger */
     @Requires
     private LogService pLogger;
+
+    /** Host node name */
+    @ServiceProperty(name = ComposerConstants.PROP_NODE_NAME)
+    private String pNodeName;
 
     /**
      * Component creation
@@ -89,6 +102,19 @@ public class IsolateComposer implements IIsolateComposer {
         pAgent.handle(aComponents);
     }
 
+    /**
+     * Component invalidated
+     */
+    @Invalidate
+    public synchronized void invalidate() {
+
+        // Clean up values
+        pIsolateName = null;
+        pNodeName = null;
+
+        pLogger.log(LogService.LOG_INFO, "Isolate composer invalidated");
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -101,5 +127,19 @@ public class IsolateComposer implements IIsolateComposer {
         for (final String name : aNames) {
             pAgent.kill(name);
         }
+    }
+
+    /**
+     * Component validated
+     */
+    @Validate
+    public synchronized void validate() {
+
+        // Store isolate information
+        pIsolateName = pContext
+                .getProperty(IPlatformProperties.PROP_ISOLATE_NAME);
+        pNodeName = pContext.getProperty(IPlatformProperties.PROP_ISOLATE_NODE);
+
+        pLogger.log(LogService.LOG_INFO, "Isolate composer validated");
     }
 }
