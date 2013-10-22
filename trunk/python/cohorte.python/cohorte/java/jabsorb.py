@@ -78,6 +78,22 @@ class __hashablelist(list):
 
 # ------------------------------------------------------------------------------
 
+def _compute_jsonclass(obj):
+    """
+    Compute the content of the __jsonclass__ field for the given object
+
+    :param obj: An object
+    :return: The content of the __jsonclass__ field
+    """
+    # It's not a standard type, so it needs __jsonclass__
+    module_name = inspect.getmodule(obj).__name__
+    json_class = obj.__class__.__name__
+    if module_name not in ('', '__main__'):
+        json_class = '{0}.{1}'.format(module_name, json_class)
+
+    return [json_class, []]
+
+
 def to_jabsorb(value):
     """
     Adds information for Jabsorb, if needed.
@@ -145,6 +161,9 @@ def to_jabsorb(value):
 
         # Do not forget the Java class
         converted_result[JAVA_CLASS] = getattr(value, JAVA_CLASS)
+
+        # Also add a __jsonclass__ entry
+        converted_result[JSON_CLASS] = _compute_jsonclass(value)
 
     # Other ?
     else:
