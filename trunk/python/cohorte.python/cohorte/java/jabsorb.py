@@ -52,7 +52,7 @@ class __hashabledict(dict):
         """
         Computes the hash of the dictionary
         """
-        return hash(tuple(sorted(self.items())))
+        return hash(str(sorted(self.items())))
 
 
 class __hashableset(set):
@@ -63,7 +63,7 @@ class __hashableset(set):
         """
         Computes the hash of the set
         """
-        return hash(tuple(sorted(self)))
+        return hash(str(sorted(self)))
 
 
 class __hashablelist(list):
@@ -74,7 +74,7 @@ class __hashablelist(list):
         """
         Computes the hash of the list
         """
-        return hash(tuple(sorted(self)))
+        return hash(str(sorted(self)))
 
 # ------------------------------------------------------------------------------
 
