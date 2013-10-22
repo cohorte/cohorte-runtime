@@ -156,14 +156,15 @@ class CompositionParser(object):
         component = beans.RawComponent(factory, name)
 
         # Copy dictionaries
-        for entry in beans.RawComponent.PARSER_UPDATE:
+        for entry in ('properties', 'filters', 'wires'):
             try:
                 setattr(component, entry, component_dict.get(entry, {}))
             except AttributeError:
                 raise ValueError("Invalid component entry: {0}".format(entry))
 
         # Other parameters
-        for entry in beans.RawComponent.PARSER_COPY:
+        for entry in ('bundle.name', 'bundle.version', 'language',
+                      'isolate', 'node'):
             value = component_dict.get(entry)
             if value:
                 # Copy the value only if it is valid, normalizing field names

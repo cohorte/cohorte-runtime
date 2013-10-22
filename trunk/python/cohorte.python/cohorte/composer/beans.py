@@ -147,13 +147,6 @@ class RawComponent(object):
     Represents a component, as described in the configuration file.
     This bean is meant to be transmitted by remote services.
     """
-    # Dictionary fields (calls update())
-    PARSER_UPDATE = ('properties', 'filters', 'wires')
-
-    # String fields (simple assignment)
-    PARSER_COPY = ('bundle.name', 'bundle.version',
-                   'language', 'isolate', 'node')
-
     # Java class name
     javaClass = 'org.cohorte.composer.api.RawComponent'
 
