@@ -35,6 +35,7 @@ import org.cohorte.composer.api.RawComponent;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.service.log.LogService;
+import org.psem2m.isolates.constants.IPlatformProperties;
 
 /**
  * The iPOJO composer agent
@@ -380,11 +381,11 @@ public class IPojoAgent implements IAgent, InstanceStateListener {
                     instantiated.add(component);
                 }
 
-            } catch (final Exception ex) {
+            } catch (final Throwable ex) {
                 // Instantiation error
                 pLogger.log(LogService.LOG_ERROR,
                         "Error instantiating component " + component + ": "
-                                + ex);
+                                + ex, ex);
             }
         }
 
@@ -547,8 +548,8 @@ public class IPojoAgent implements IAgent, InstanceStateListener {
 
         // Store isolate information
         pIsolateName = pContext
-                .getProperty(ComposerConstants.PROP_ISOLATE_NAME);
-        pNodeName = pContext.getProperty(ComposerConstants.PROP_NODE_NAME);
+                .getProperty(IPlatformProperties.PROP_ISOLATE_NAME);
+        pNodeName = pContext.getProperty(IPlatformProperties.PROP_ISOLATE_NODE);
 
         // Allow bindings
         pValidated = true;
