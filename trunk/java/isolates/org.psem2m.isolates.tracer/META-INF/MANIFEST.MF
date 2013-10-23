@@ -22,13 +22,14 @@ iPOJO-Components: instance { $component="psem2m-tracer-factory" $name=
  r.ITracerSvc" }requires { $field="pIsolateLoggerSvc" $optional="false
  " }requires { $field="pLogChannelsSvc" $optional="false" }callback { 
  $transition="validate" $method="validatePojo" }callback { $transition
- ="invalidate" $method="invalidatePojo" }manipulation { $super="org.ps
- em2m.isolates.base.activators.CPojoBase" interface { $name="org.psem2
- m.isolates.tracer.ITracerSvc" }field { $name="pIsolateLoggerSvc" $typ
- e="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pLogCh
- annelsSvc" $type="org.psem2m.isolates.loggers.ILogChannelsSvc" }metho
- d { $name="getPojoId" $return="java.lang.String" }method { $name="get
- TracableChannelsIds" $return="java.util.List" }method { $name="invali
- datePojo" }method { $name="traceChannels" $return="boolean" $argument
- s="{java.util.List}" }method { $name="validatePojo" }}}
+ ="invalidate" $method="invalidatePojo" }manipulation { $classname="or
+ g.psem2m.isolates.tracer.impl.CTracerSvc" $super="org.psem2m.isolates
+ .base.activators.CPojoBase" interface { $name="org.psem2m.isolates.tr
+ acer.ITracerSvc" }field { $name="pIsolateLoggerSvc" $type="org.psem2m
+ .isolates.base.IIsolateLoggerSvc" }field { $name="pLogChannelsSvc" $t
+ ype="org.psem2m.isolates.loggers.ILogChannelsSvc" }method { $name="ge
+ tPojoId" $return="java.lang.String" }method { $name="getTracableChann
+ elsIds" $return="java.util.List" }method { $name="invalidatePojo" }me
+ thod { $name="traceChannels" $return="boolean" $arguments="{java.util
+ .List}" $names="{aIds}" }method { $name="validatePojo" }}}
 

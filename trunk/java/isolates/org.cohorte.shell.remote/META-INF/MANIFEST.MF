@@ -21,19 +21,21 @@ iPOJO-Components: component { $name="cohorte-remote-shell-factory" $cl
  ame="osgi.shell.telnet.port" $field="pPort" $value="0" }}requires { $
  field="pCommandProcessor" }requires { $field="pLogger" }callback { $t
  ransition="invalidate" $method="invalidate" }callback { $transition="
- validate" $method="validate" }manipulation { interface { $name="org.c
- ohorte.shell.IRemoteShell" }field { $name="pAddress" $type="java.lang
- .String" }field { $name="pCommandProcessor" $type="org.apache.felix.s
- ervice.command.CommandProcessor" }field { $name="pContext" $type="org
- .osgi.framework.BundleContext" }field { $name="pLogger" $type="org.ps
- em2m.isolates.base.IIsolateLoggerSvc" }field { $name="pPort" $type="i
- nt" }field { $name="pServer" $type="org.cohorte.remote.shell.Server" 
- }method { $name="createGogoSession" $return="org.apache.felix.service
- .command.CommandSession" $arguments="{java.io.InputStream,java.io.Pri
- ntStream,java.io.PrintStream}" }method { $name="error" $arguments="{j
- ava.lang.String,java.lang.Object[]}" }method { $name="getAddress" $re
- turn="java.lang.String" }method { $name="getPort" $return="int" }meth
- od { $name="invalidate" }method { $name="stopServer" }method { $name=
- "validate" }method { $name="warning" $arguments="{java.lang.String,ja
- va.lang.Object[]}" }}}
+ validate" $method="validate" }manipulation { $classname="org.cohorte.
+ remote.shell.RemoteShellService" interface { $name="org.cohorte.shell
+ .IRemoteShell" }field { $name="pAddress" $type="java.lang.String" }fi
+ eld { $name="pCommandProcessor" $type="org.apache.felix.service.comma
+ nd.CommandProcessor" }field { $name="pContext" $type="org.osgi.framew
+ ork.BundleContext" }field { $name="pLogger" $type="org.psem2m.isolate
+ s.base.IIsolateLoggerSvc" }field { $name="pPort" $type="int" }field {
+  $name="pServer" $type="org.cohorte.remote.shell.Server" }method { $n
+ ame="createGogoSession" $return="org.apache.felix.service.command.Com
+ mandSession" $arguments="{java.io.InputStream,java.io.PrintStream,jav
+ a.io.PrintStream}" $names="{aStdin,aStdout,aStderr}" }method { $name=
+ "error" $arguments="{java.lang.String,java.lang.Object[]}" $names="{a
+ What,aInfos}" }method { $name="getAddress" $return="java.lang.String"
+  }method { $name="getPort" $return="int" }method { $name="invalidate"
+  }method { $name="stopServer" }method { $name="validate" }method { $n
+ ame="warning" $arguments="{java.lang.String,java.lang.Object[]}" $nam
+ es="{aWhat,aInfos}" }}}
 

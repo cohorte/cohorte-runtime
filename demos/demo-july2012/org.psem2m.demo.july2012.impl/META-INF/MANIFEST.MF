@@ -17,12 +17,13 @@ iPOJO-Components: component { $name="java-fake-temp-factory" $classnam
   $value="30" }property { $name="temper.value.min" $field="pMin" $valu
  e="10" }}properties { property { $name="instance.name" $field="pName"
   }}callback { $transition="invalidate" $method="invalidate" }callback
-  { $transition="validate" $method="validate" }manipulation { interfac
- e { $name="org.psem2m.demo.sensors.ISensor" }field { $name="pLast" $t
- ype="float" }field { $name="pMax" $type="float" }field { $name="pMin"
-  $type="float" }field { $name="pName" $type="java.lang.String" }field
-  { $name="pRandom" $type="java.util.Random" }method { $name="getName"
-  $return="java.lang.String" }method { $name="getUnit" $return="java.l
- ang.String" }method { $name="getValue" $return="double" }method { $na
- me="invalidate" }method { $name="validate" }}}
+  { $transition="validate" $method="validate" }manipulation { $classna
+ me="org.psem2m.demo.sensors.impl.FakeTemp" interface { $name="org.pse
+ m2m.demo.sensors.ISensor" }field { $name="pLast" $type="float" }field
+  { $name="pMax" $type="float" }field { $name="pMin" $type="float" }fi
+ eld { $name="pName" $type="java.lang.String" }field { $name="pRandom"
+  $type="java.util.Random" }method { $name="getName" $return="java.lan
+ g.String" }method { $name="getUnit" $return="java.lang.String" }metho
+ d { $name="getValue" $return="double" }method { $name="invalidate" }m
+ ethod { $name="validate" }}}
 

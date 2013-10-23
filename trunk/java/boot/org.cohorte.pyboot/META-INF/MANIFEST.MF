@@ -15,14 +15,16 @@ iPOJO-Components: instance { $name="cohorte-java-bridge-client" $compo
  -java-bridge-client-factory" $classname="org.cohorte.pyboot.BridgeCli
  ent" requires { $field="pBridge" }callback { $transition="invalidate"
   $method="invalidate" }callback { $transition="validate" $method="val
- idate" }manipulation { interface { $name="org.osgi.framework.ServiceL
- istener" }field { $name="pBridge" $type="org.cohorte.pyboot.api.IPyBr
- idge" }field { $name="pComponents" $type="java.util.List" }field { $n
- ame="pContext" $type="org.osgi.framework.BundleContext" }method { $na
- me="instantiateComponents" $arguments="{org.osgi.framework.ServiceRef
- erence}" }method { $name="invalidate" }method { $name="pollFactories"
-  }method { $name="prepareInstanceProperties" $return="java.util.Prope
- rties" $arguments="{org.cohorte.pyboot.api.ComponentBean}" }method { 
- $name="serviceChanged" $arguments="{org.osgi.framework.ServiceEvent}"
-  }method { $name="validate" }}}
+ idate" }manipulation { $classname="org.cohorte.pyboot.BridgeClient" i
+ nterface { $name="org.osgi.framework.ServiceListener" }field { $name=
+ "pBridge" $type="org.cohorte.pyboot.api.IPyBridge" }field { $name="pC
+ omponents" $type="java.util.List" }field { $name="pContext" $type="or
+ g.osgi.framework.BundleContext" }method { $name="instantiateComponent
+ s" $arguments="{org.osgi.framework.ServiceReference}" $names="{aFacto
+ ryRef}" }method { $name="invalidate" }method { $name="pollFactories" 
+ }method { $name="prepareInstanceProperties" $return="java.util.Proper
+ ties" $arguments="{org.cohorte.pyboot.api.ComponentBean}" $names="{aC
+ omponent}" }method { $name="serviceChanged" $arguments="{org.osgi.fra
+ mework.ServiceEvent}" $names="{aEvent}" }method { $name="validate" }}
+ }
 

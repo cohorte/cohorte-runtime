@@ -17,14 +17,16 @@ iPOJO-Components: instance { $name="cohorte-remote-repository" $compon
  emoteServiceRepository" provides { $specifications="{org.cohorte.remo
  te.IRemoteServiceRepository}" }requires { $field="pLogger" }callback 
  { $transition="invalidate" $method="invalidatePojo" }callback { $tran
- sition="validate" $method="validatePojo" }manipulation { interface { 
- $name="org.cohorte.remote.IRemoteServiceRepository" }field { $name="p
- Logger" $type="org.osgi.service.log.LogService" }field { $name="pRegi
- strations" $type="java.util.Set" }method { $name="getLocalRegistratio
- ns" $return="org.cohorte.remote.beans.RemoteServiceRegistration[]" }m
- ethod { $name="invalidatePojo" }method { $name="registerExportedServi
- ce" $return="boolean" $arguments="{org.cohorte.remote.beans.RemoteSer
- viceRegistration}" }method { $name="unregisterExportedService" $retur
- n="boolean" $arguments="{org.cohorte.remote.beans.RemoteServiceRegist
- ration}" }method { $name="validatePojo" }}}
+ sition="validate" $method="validatePojo" }manipulation { $classname="
+ org.cohorte.remote.repository.RemoteServiceRepository" interface { $n
+ ame="org.cohorte.remote.IRemoteServiceRepository" }field { $name="pLo
+ gger" $type="org.osgi.service.log.LogService" }field { $name="pRegist
+ rations" $type="java.util.Set" }method { $name="getLocalRegistrations
+ " $return="org.cohorte.remote.beans.RemoteServiceRegistration[]" }met
+ hod { $name="invalidatePojo" }method { $name="registerExportedService
+ " $return="boolean" $arguments="{org.cohorte.remote.beans.RemoteServi
+ ceRegistration}" $names="{aRegistration}" }method { $name="unregister
+ ExportedService" $return="boolean" $arguments="{org.cohorte.remote.be
+ ans.RemoteServiceRegistration}" $names="{aRegistration}" }method { $n
+ ame="validatePojo" }}}
 

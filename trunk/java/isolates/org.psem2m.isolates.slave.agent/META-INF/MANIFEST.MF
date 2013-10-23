@@ -22,45 +22,53 @@ iPOJO-Components: component { $name="psem2m-slave-agent-core-factory"
  ires { $field="pLogger" }requires { $field="pPlatformDirs" }requires 
  { $field="pSender" }requires { $field="pSignalReceiver" }callback { $
  transition="invalidate" $method="invalidate" }callback { $transition=
- "validate" $method="validate" }manipulation { interface { $name="org.
- psem2m.isolates.slave.agent.ISvcAgent" }interface { $name="org.psem2m
- .signals.ISignalListener" }interface { $name="org.osgi.framework.Bund
- leListener" }field { $name="pContext" $type="org.osgi.framework.Bundl
- eContext" }field { $name="pCriticalSection" $type="java.util.concurre
- nt.atomic.AtomicBoolean" }field { $name="pLogger" $type="org.psem2m.i
- solates.base.IIsolateLoggerSvc" }field { $name="pPlatformDirs" $type=
- "org.psem2m.isolates.services.dirs.IPlatformDirsSvc" }field { $name="
- pScheduler" $type="java.util.concurrent.ScheduledExecutorService" }fi
- eld { $name="pSender" $type="org.psem2m.signals.ISignalBroadcaster" }
- field { $name="pSignalReceiver" $type="org.psem2m.signals.ISignalRece
- iver" }field { $name="pUpdateTimeouts" $type="java.util.Map" }method 
- { $name="bundleChanged" $arguments="{org.osgi.framework.BundleEvent}"
-  }method { $name="cancelTimeout" $arguments="{long}" }method { $name=
- "getBundleInfo" $return="org.psem2m.isolates.base.bundles.BundleInfo"
-  $arguments="{long}" }method { $name="getBundlesState" $return="org.p
- sem2m.isolates.base.bundles.BundleInfo[]" }method { $name="handleRece
- ivedSignal" $return="java.lang.Object" $arguments="{java.lang.String,
- org.psem2m.signals.ISignalData}" }method { $name="installBundle" $ret
- urn="long" $arguments="{java.lang.String}" }method { $name="invalidat
- e" }method { $name="isFragment" $return="boolean" $arguments="{org.os
- gi.framework.Bundle}" }method { $name="killIsolate" }method { $name="
- refreshPackages" $return="boolean" $arguments="{long[]}" }method { $n
- ame="startBundle" $return="boolean" $arguments="{long}" }method { $na
- me="stopBundle" $return="boolean" $arguments="{long}" }method { $name
- ="uninstallBundle" $return="boolean" $arguments="{long}" }method { $n
- ame="updateBundle" $return="boolean" $arguments="{long}" }method { $n
- ame="validate" }}}component { $name="psem2m-threads-monitor-factory" 
- $classname="org.psem2m.isolates.slave.agent.threads.ThreadsMonitor" r
- equires { $field="pLogger" }requires { $field="pMonitor" }callback { 
- $transition="invalidate" $method="invalidatePojo" }callback { $transi
- tion="validate" $method="validatePojo" }manipulation { field { $name=
- "pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field {
-  $name="pMonitor" $type="org.psem2m.isolates.services.monitoring.IThr
- eadCpuUsageMonitor" }field { $name="pScheduledExecutor" $type="java.u
- til.concurrent.ScheduledExecutorService" }method { $name="enumerateTh
- readGroup" $arguments="{java.util.Map,java.lang.ThreadGroup}" }method
-  { $name="findThreadStarter" $return="java.lang.String" $arguments="{
- java.lang.Thread}" }method { $name="getAllThreads" $return="java.util
- .Map" }method { $name="invalidatePojo" }method { $name="updateMonitor
- " }method { $name="validatePojo" }}}
+ "validate" $method="validate" }manipulation { $classname="org.psem2m.
+ isolates.slave.agent.core.AgentCore" interface { $name="org.psem2m.is
+ olates.slave.agent.ISvcAgent" }interface { $name="org.psem2m.signals.
+ ISignalListener" }interface { $name="org.osgi.framework.BundleListene
+ r" }field { $name="pContext" $type="org.osgi.framework.BundleContext"
+  }field { $name="pCriticalSection" $type="java.util.concurrent.atomic
+ .AtomicBoolean" }field { $name="pLogger" $type="org.psem2m.isolates.b
+ ase.IIsolateLoggerSvc" }field { $name="pPlatformDirs" $type="org.psem
+ 2m.isolates.services.dirs.IPlatformDirsSvc" }field { $name="pSchedule
+ r" $type="java.util.concurrent.ScheduledExecutorService" }field { $na
+ me="pSender" $type="org.psem2m.signals.ISignalBroadcaster" }field { $
+ name="pSignalReceiver" $type="org.psem2m.signals.ISignalReceiver" }fi
+ eld { $name="pUpdateTimeouts" $type="java.util.Map" }method { $name="
+ bundleChanged" $arguments="{org.osgi.framework.BundleEvent}" $names="
+ {aBundleEvent}" }method { $name="cancelTimeout" $arguments="{long}" $
+ names="{aBundleId}" }method { $name="getBundleInfo" $return="org.psem
+ 2m.isolates.base.bundles.BundleInfo" $arguments="{long}" $names="{aBu
+ ndleId}" }method { $name="getBundlesState" $return="org.psem2m.isolat
+ es.base.bundles.BundleInfo[]" }method { $name="handleReceivedSignal" 
+ $return="java.lang.Object" $arguments="{java.lang.String,org.psem2m.s
+ ignals.ISignalData}" $names="{aSignalName,aSignalData}" }method { $na
+ me="installBundle" $return="long" $arguments="{java.lang.String}" $na
+ mes="{aBundleUrl}" }method { $name="invalidate" }method { $name="isFr
+ agment" $return="boolean" $arguments="{org.osgi.framework.Bundle}" $n
+ ames="{aBundle}" }method { $name="killIsolate" }method { $name="refre
+ shPackages" $return="boolean" $arguments="{long[]}" $names="{aBundleI
+ dArray}" }method { $name="startBundle" $return="boolean" $arguments="
+ {long}" $names="{aBundleId}" }method { $name="stopBundle" $return="bo
+ olean" $arguments="{long}" $names="{aBundleId}" }method { $name="unin
+ stallBundle" $return="boolean" $arguments="{long}" $names="{aBundleId
+ }" }method { $name="updateBundle" $return="boolean" $arguments="{long
+ }" $names="{aBundleId}" }method { $name="validate" }inner { $name="1"
+  method { $name="run" }}inner { $name="2" method { $name="run" }}}}co
+ mponent { $name="psem2m-threads-monitor-factory" $classname="org.psem
+ 2m.isolates.slave.agent.threads.ThreadsMonitor" requires { $field="pL
+ ogger" }requires { $field="pMonitor" }callback { $transition="invalid
+ ate" $method="invalidatePojo" }callback { $transition="validate" $met
+ hod="validatePojo" }manipulation { $classname="org.psem2m.isolates.sl
+ ave.agent.threads.ThreadsMonitor" field { $name="pLogger" $type="org.
+ psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pMonitor" $ty
+ pe="org.psem2m.isolates.services.monitoring.IThreadCpuUsageMonitor" }
+ field { $name="pScheduledExecutor" $type="java.util.concurrent.Schedu
+ ledExecutorService" }method { $name="enumerateThreadGroup" $arguments
+ ="{java.util.Map,java.lang.ThreadGroup}" $names="{aResultMap,aThreadG
+ roup}" }method { $name="findThreadStarter" $return="java.lang.String"
+  $arguments="{java.lang.Thread}" $names="{aThread}" }method { $name="
+ getAllThreads" $return="java.util.Map" }method { $name="invalidatePoj
+ o" }method { $name="updateMonitor" }method { $name="validatePojo" }in
+ ner { $name="1" method { $name="run" }}}}
 

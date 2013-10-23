@@ -21,54 +21,62 @@ iPOJO-Components: instance { $name="cohorte-remote-client-jsonrpc" $co
   $specifications="{org.cohorte.remote.IRemoteServiceClientHandler}" }
  requires { $field="pLogger" }callback { $transition="invalidate" $met
  hod="invalidatePojo" }callback { $transition="validate" $method="vali
- datePojo" }manipulation { interface { $name="org.cohorte.remote.IRemo
- teServiceClientHandler" }field { $name="pBundleClasses" $type="java.u
- til.Map" }field { $name="pBundleContext" $type="org.osgi.framework.Bu
- ndleContext" }field { $name="pLogger" $type="org.osgi.service.log.Log
- Service" }field { $name="pMissingClasses" $type="java.util.Map" }fiel
- d { $name="pProxies" $type="java.util.Map" }field { $name="pServiceId
- s" $type="java.util.Map" }method { $name="bundleStarted" $return="jav
- a.util.Collection" $arguments="{org.osgi.framework.Bundle}" }method {
-  $name="bundleStopped" $return="java.util.Collection" $arguments="{or
- g.osgi.framework.Bundle}" }method { $name="createProxy" $return="java
- .lang.Object" $arguments="{org.cohorte.remote.beans.EndpointDescripti
- on,java.lang.Class[]}" }method { $name="destroyProxy" $arguments="{ja
- va.lang.Object}" }method { $name="filterEndpoints" $return="org.cohor
- te.remote.beans.EndpointDescription" $arguments="{org.cohorte.remote.
- beans.EndpointDescription[]}" }method { $name="filterKnownInterfaces"
-  $return="java.lang.Class[]" $arguments="{java.lang.String,java.util.
- Collection}" }method { $name="getRemoteProxy" $return="java.lang.Obje
- ct" $arguments="{org.cohorte.remote.beans.RemoteServiceRegistration,j
- ava.util.Collection}" }method { $name="invalidatePojo" }method { $nam
- e="validatePojo" }}}component { $name="cohorte-remote-endpoint-jsonrp
- c-factory" $classname="org.cohorte.remote.jsonrpc.JsonRpcEndpoint" pr
- ovides { $specifications="{org.cohorte.remote.IEndpointHandler}" }req
- uires { $field="pHttpService" $filter="(org.osgi.service.http.port=*)
- " $id="http.service" callback { $method="bindHttpService" $type="bind
- " }}requires { $field="pLogger" }properties { property { $name="endpo
- int.servlet.name" $field="pServletName" $value="/JSON-RPC" }}callback
-  { $transition="invalidate" $method="invalidatePojo" }callback { $tra
- nsition="validate" $method="validatePojo" }manipulation { interface {
-  $name="org.cohorte.remote.IEndpointHandler" }field { $name="pBundleC
- ontext" $type="org.osgi.framework.BundleContext" }field { $name="pEnd
- pointsDescriptions" $type="java.util.Map" }field { $name="pHttpPort" 
- $type="int" }field { $name="pHttpService" $type="org.osgi.service.htt
- p.HttpService" }field { $name="pJsonRpcBridge" $type="org.jabsorb.ng.
- JSONRPCBridge" }field { $name="pLogger" $type="org.osgi.service.log.L
- ogService" }field { $name="pRegisteredEndpoints" $type="java.util.Lis
- t" }field { $name="pServletName" $type="java.lang.String" }method { $
- name="bindHttpService" $arguments="{org.osgi.service.http.HttpService
- ,java.util.Map}" }method { $name="createEndpoint" $return="org.cohort
+ datePojo" }manipulation { $classname="org.cohorte.remote.jsonrpc.Json
+ RpcClient" interface { $name="org.cohorte.remote.IRemoteServiceClient
+ Handler" }field { $name="pBundleClasses" $type="java.util.Map" }field
+  { $name="pBundleContext" $type="org.osgi.framework.BundleContext" }f
+ ield { $name="pLogger" $type="org.osgi.service.log.LogService" }field
+  { $name="pMissingClasses" $type="java.util.Map" }field { $name="pPro
+ xies" $type="java.util.Map" }field { $name="pServiceIds" $type="java.
+ util.Map" }method { $name="bundleStarted" $return="java.util.Collecti
+ on" $arguments="{org.osgi.framework.Bundle}" $names="{aBundle}" }meth
+ od { $name="bundleStopped" $return="java.util.Collection" $arguments=
+ "{org.osgi.framework.Bundle}" $names="{aBundle}" }method { $name="cre
+ ateProxy" $return="java.lang.Object" $arguments="{org.cohorte.remote.
+ beans.EndpointDescription,java.lang.Class[]}" $names="{aEndpoint,aCla
+ sses}" }method { $name="destroyProxy" $arguments="{java.lang.Object}"
+  $names="{aProxy}" }method { $name="filterEndpoints" $return="org.coh
+ orte.remote.beans.EndpointDescription" $arguments="{org.cohorte.remot
+ e.beans.EndpointDescription[]}" $names="{aEndpoints}" }method { $name
+ ="filterKnownInterfaces" $return="java.lang.Class[]" $arguments="{jav
+ a.lang.String,java.util.Collection}" $names="{aServiceId,aInterfacesN
+ ames}" }method { $name="getRemoteProxy" $return="java.lang.Object" $a
+ rguments="{org.cohorte.remote.beans.RemoteServiceRegistration,java.ut
+ il.Collection}" $names="{aRegistration,aFilteredInterfaces}" }method 
+ { $name="invalidatePojo" }method { $name="validatePojo" }}}component 
+ { $name="cohorte-remote-endpoint-jsonrpc-factory" $classname="org.coh
+ orte.remote.jsonrpc.JsonRpcEndpoint" provides { $specifications="{org
+ .cohorte.remote.IEndpointHandler}" }requires { $field="pHttpService" 
+ $filter="(org.osgi.service.http.port=*)" $id="http.service" callback 
+ { $method="bindHttpService" $type="bind" }}requires { $field="pLogger
+ " }properties { property { $name="endpoint.servlet.name" $field="pSer
+ vletName" $value="/JSON-RPC" }}callback { $transition="invalidate" $m
+ ethod="invalidatePojo" }callback { $transition="validate" $method="va
+ lidatePojo" }manipulation { $classname="org.cohorte.remote.jsonrpc.Js
+ onRpcEndpoint" interface { $name="org.cohorte.remote.IEndpointHandler
+ " }field { $name="pBundleContext" $type="org.osgi.framework.BundleCon
+ text" }field { $name="pEndpointsDescriptions" $type="java.util.Map" }
+ field { $name="pHttpPort" $type="int" }field { $name="pHttpService" $
+ type="org.osgi.service.http.HttpService" }field { $name="pJsonRpcBrid
+ ge" $type="org.jabsorb.ng.JSONRPCBridge" }field { $name="pLogger" $ty
+ pe="org.osgi.service.log.LogService" }field { $name="pRegisteredEndpo
+ ints" $type="java.util.List" }field { $name="pServletName" $type="jav
+ a.lang.String" }method { $name="bindHttpService" $arguments="{org.osg
+ i.service.http.HttpService,java.util.Map}" $names="{aHttpService,aSer
+ viceProperties}" }method { $name="createEndpoint" $return="org.cohort
  e.remote.beans.EndpointDescription[]" $arguments="{java.util.Set,org.
- osgi.framework.ServiceReference}" }method { $name="destroyEndpoint" $
- return="boolean" $arguments="{org.osgi.framework.ServiceReference}" }
- method { $name="generateEndpointName" $return="java.lang.String" $arg
- uments="{java.util.Map}" }method { $name="getEndpoints" $return="org.
- cohorte.remote.beans.EndpointDescription[]" $arguments="{org.osgi.fra
- mework.ServiceReference}" }method { $name="getServicePropertiesMap" $
- return="java.util.Map" $arguments="{org.osgi.framework.ServiceReferen
- ce}" }method { $name="invalidatePojo" }method { $name="makeEndpointUr
- i" $return="java.lang.String" $arguments="{java.lang.String}" }method
-  { $name="startJabsorbBridge" }method { $name="stopJabsorbBridge" }me
- thod { $name="validatePojo" }}}
+ osgi.framework.ServiceReference}" $names="{aExportedInterfaces,aServi
+ ceReference}" }method { $name="destroyEndpoint" $return="boolean" $ar
+ guments="{org.osgi.framework.ServiceReference}" $names="{aServiceRefe
+ rence}" }method { $name="generateEndpointName" $return="java.lang.Str
+ ing" $arguments="{java.util.Map}" $names="{aServiceProperties}" }meth
+ od { $name="getEndpoints" $return="org.cohorte.remote.beans.EndpointD
+ escription[]" $arguments="{org.osgi.framework.ServiceReference}" $nam
+ es="{aServiceReference}" }method { $name="getServicePropertiesMap" $r
+ eturn="java.util.Map" $arguments="{org.osgi.framework.ServiceReferenc
+ e}" $names="{aServiceReference}" }method { $name="invalidatePojo" }me
+ thod { $name="makeEndpointUri" $return="java.lang.String" $arguments=
+ "{java.lang.String}" $names="{aEndpointName}" }method { $name="startJ
+ absorbBridge" }method { $name="stopJabsorbBridge" }method { $name="va
+ lidatePojo" }}}
 

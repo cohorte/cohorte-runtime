@@ -23,21 +23,25 @@ iPOJO-Components: instance { $name="psem2m-isolates-ui-admin" $compone
  ield="pLogger" }requires { $field="pSignalDirectory" }requires { $fie
  ld="pUiAdminSvc" }callback { $transition="invalidate" $method="invali
  datePojo" }callback { $transition="validate" $method="validatePojo" }
- manipulation { $super="org.psem2m.isolates.base.activators.CPojoBase"
-  interface { $name="org.psem2m.isolates.ui.admin.api.IUiAdminPanelCon
- troler" }interface { $name="org.psem2m.isolates.services.monitoring.I
- IsolatePresenceListener" }field { $name="pIsolatesTreeModel" $type="o
- rg.psem2m.isolates.ui.CIsolatesTreeModel" }field { $name="pLogger" $t
- ype="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pPan
- elIsolates" $type="org.psem2m.isolates.ui.CJPanelIsolates" }field { $
- name="pSignalDirectory" $type="org.psem2m.signals.ISignalDirectory" }
- field { $name="pUiAdminPanel" $type="org.psem2m.isolates.ui.admin.api
- .IUiAdminPanel" }field { $name="pUiAdminSvc" $type="org.psem2m.isolat
- es.ui.admin.api.IUiAdminSvc" }method { $name="destroyContent" }method
-  { $name="initContent" }method { $name="invalidatePojo" }method { $na
- me="isolateLost" $arguments="{java.lang.String,java.lang.String,java.
- lang.String}" }method { $name="isolateReady" $arguments="{java.lang.S
- tring,java.lang.String,java.lang.String}" }method { $name="setUiAdmin
- Font" $arguments="{org.psem2m.isolates.ui.admin.api.EUiAdminFont}" }m
- ethod { $name="validatePojo" }}}
+ manipulation { $classname="org.psem2m.isolates.ui.CUiAdminPanelIsolat
+ es" $super="org.psem2m.isolates.base.activators.CPojoBase" interface 
+ { $name="org.psem2m.isolates.ui.admin.api.IUiAdminPanelControler" }in
+ terface { $name="org.psem2m.isolates.services.monitoring.IIsolatePres
+ enceListener" }field { $name="pIsolatesTreeModel" $type="org.psem2m.i
+ solates.ui.CIsolatesTreeModel" }field { $name="pLogger" $type="org.ps
+ em2m.isolates.base.IIsolateLoggerSvc" }field { $name="pPanelIsolates"
+  $type="org.psem2m.isolates.ui.CJPanelIsolates" }field { $name="pSign
+ alDirectory" $type="org.psem2m.signals.ISignalDirectory" }field { $na
+ me="pUiAdminPanel" $type="org.psem2m.isolates.ui.admin.api.IUiAdminPa
+ nel" }field { $name="pUiAdminSvc" $type="org.psem2m.isolates.ui.admin
+ .api.IUiAdminSvc" }method { $name="destroyContent" }method { $name="i
+ nitContent" }method { $name="invalidatePojo" }method { $name="isolate
+ Lost" $arguments="{java.lang.String,java.lang.String,java.lang.String
+ }" $names="{aUID,aName,aNode}" }method { $name="isolateReady" $argume
+ nts="{java.lang.String,java.lang.String,java.lang.String}" $names="{a
+ UID,aName,aNode}" }method { $name="setUiAdminFont" $arguments="{org.p
+ sem2m.isolates.ui.admin.api.EUiAdminFont}" $names="{aUiAdminFont}" }m
+ ethod { $name="validatePojo" }inner { $name="1" method { $name="run" 
+ }}inner { $name="2" method { $name="run" }}inner { $name="3" method {
+  $name="run" }}}}
 

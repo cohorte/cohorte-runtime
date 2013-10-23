@@ -26,58 +26,68 @@ iPOJO-Components: instance { $name="psem2m-config" $component="psem2m-
  .ISvcConfig}" }requires { $field="pLogger" }requires { $field="pReade
  r" }callback { $transition="invalidate" $method="invalidatePojo" }cal
  lback { $transition="validate" $method="validatePojo" }manipulation {
-  $super="org.psem2m.isolates.base.activators.CPojoBase" interface { $
- name="org.psem2m.isolates.services.conf.ISvcConfig" }field { $name="p
- CurrentIsolate" $type="org.psem2m.isolates.services.conf.beans.Isolat
- eDescription" }field { $name="pLastLoad" $type="long" }field { $name=
- "pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field {
-  $name="pReader" $type="org.psem2m.isolates.services.conf.IConfigurat
- ionReader" }method { $name="getApplication" $return="org.psem2m.isola
- tes.services.conf.beans.ApplicationDescription" }method { $name="getC
- urrentIsolate" $return="org.psem2m.isolates.services.conf.beans.Isola
- teDescription" }method { $name="invalidatePojo" }method { $name="logD
- umpConfig" }method { $name="parseIsolate" $return="org.psem2m.isolate
- s.services.conf.beans.IsolateDescription" $arguments="{java.lang.Stri
- ng}" }method { $name="refresh" $return="boolean" }method { $name="set
- CurrentIsolate" $arguments="{org.psem2m.isolates.services.conf.beans.
- IsolateDescription}" }method { $name="validatePojo" }}}component { $n
- ame="psem2m-config-json-factory" $public="false" $classname="org.psem
- 2m.isolates.config.json.JsonConfigReader" provides { $specifications=
- "{org.psem2m.isolates.services.conf.IConfigurationReader}" property {
-  $name="config.format" $type="String" $value="json" }}requires { $fie
- ld="pFileFinder" }requires { $field="pLogger" }manipulation { interfa
- ce { $name="org.psem2m.isolates.services.conf.IConfigurationReader" }
- field { $name="pApplication" $type="org.psem2m.isolates.services.conf
- .beans.ApplicationDescription" }field { $name="pFileFinder" $type="or
- g.psem2m.isolates.services.dirs.IFileFinderSvc" }field { $name="pIncl
- udeStack" $type="java.util.Stack" }field { $name="pLogger" $type="org
- .psem2m.isolates.base.IIsolateLoggerSvc" }method { $name="computeOver
- riddenProperties" $return="java.util.Properties" $arguments="{org.pse
- m2m.utilities.json.JSONObject,java.util.Properties}" }method { $name=
- "getApplication" $return="org.psem2m.isolates.services.conf.beans.App
- licationDescription" $arguments="{java.lang.String}" }method { $name=
- "getApplicationIds" $return="java.lang.String[]" }method { $name="jso
- nArrayToStringList" $return="java.util.List" $arguments="{org.psem2m.
- utilities.json.JSONArray,boolean}" }method { $name="jsonObjectToMap" 
- $return="java.util.Map" $arguments="{org.psem2m.utilities.json.JSONOb
- ject,boolean}" }method { $name="load" $return="boolean" $arguments="{
- java.lang.String}" }method { $name="parseBundle" $return="org.psem2m.
- isolates.services.conf.beans.BundleDescription" $arguments="{org.psem
- 2m.utilities.json.JSONObject,java.util.Properties}" }method { $name="
- parseBundle" $return="org.psem2m.isolates.services.conf.beans.BundleD
- escription" $arguments="{java.lang.String}" }method { $name="parseBun
- dles" $arguments="{org.psem2m.isolates.services.conf.beans.IsolateDes
- cription,org.psem2m.utilities.json.JSONArray,java.util.Properties}" }
- method { $name="parseIsolate" $return="org.psem2m.isolates.services.c
- onf.beans.IsolateDescription" $arguments="{org.psem2m.utilities.json.
- JSONObject,java.util.Properties}" }method { $name="parseIsolate" $ret
- urn="org.psem2m.isolates.services.conf.beans.IsolateDescription" $arg
- uments="{java.lang.String}" }method { $name="parseIsolates" $argument
- s="{org.psem2m.utilities.json.JSONArray}" }method { $name="parsePrope
- rties" $return="java.util.Properties" $arguments="{org.psem2m.utiliti
- es.json.JSONObject}" }method { $name="readFile" $return="java.lang.St
- ring" $arguments="{java.lang.String}" }method { $name="readJsonArrayF
- ile" $return="org.psem2m.utilities.json.JSONArray" $arguments="{java.
- lang.String}" }method { $name="readJsonObjectFile" $return="org.psem2
- m.utilities.json.JSONObject" $arguments="{java.lang.String}" }}}
+  $classname="org.psem2m.isolates.config.impl.CJsonConfigSvc" $super="
+ org.psem2m.isolates.base.activators.CPojoBase" interface { $name="org
+ .psem2m.isolates.services.conf.ISvcConfig" }field { $name="pCurrentIs
+ olate" $type="org.psem2m.isolates.services.conf.beans.IsolateDescript
+ ion" }field { $name="pLastLoad" $type="long" }field { $name="pLogger"
+  $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="p
+ Reader" $type="org.psem2m.isolates.services.conf.IConfigurationReader
+ " }method { $name="getApplication" $return="org.psem2m.isolates.servi
+ ces.conf.beans.ApplicationDescription" }method { $name="getCurrentIso
+ late" $return="org.psem2m.isolates.services.conf.beans.IsolateDescrip
+ tion" }method { $name="invalidatePojo" }method { $name="logDumpConfig
+ " }method { $name="parseIsolate" $return="org.psem2m.isolates.service
+ s.conf.beans.IsolateDescription" $arguments="{java.lang.String}" $nam
+ es="{aConfigurationString}" }method { $name="refresh" $return="boolea
+ n" }method { $name="setCurrentIsolate" $arguments="{org.psem2m.isolat
+ es.services.conf.beans.IsolateDescription}" $names="{aIsolateDescript
+ ion}" }method { $name="validatePojo" }}}component { $name="psem2m-con
+ fig-json-factory" $public="false" $classname="org.psem2m.isolates.con
+ fig.json.JsonConfigReader" provides { $specifications="{org.psem2m.is
+ olates.services.conf.IConfigurationReader}" property { $name="config.
+ format" $type="String" $value="json" }}requires { $field="pFileFinder
+ " }requires { $field="pLogger" }manipulation { $classname="org.psem2m
+ .isolates.config.json.JsonConfigReader" interface { $name="org.psem2m
+ .isolates.services.conf.IConfigurationReader" }field { $name="pApplic
+ ation" $type="org.psem2m.isolates.services.conf.beans.ApplicationDesc
+ ription" }field { $name="pFileFinder" $type="org.psem2m.isolates.serv
+ ices.dirs.IFileFinderSvc" }field { $name="pIncludeStack" $type="java.
+ util.Stack" }field { $name="pLogger" $type="org.psem2m.isolates.base.
+ IIsolateLoggerSvc" }method { $name="computeOverriddenProperties" $ret
+ urn="java.util.Properties" $arguments="{org.psem2m.utilities.json.JSO
+ NObject,java.util.Properties}" $names="{aPropertiesJsonObject,aOverri
+ dingProperties}" }method { $name="getApplication" $return="org.psem2m
+ .isolates.services.conf.beans.ApplicationDescription" $arguments="{ja
+ va.lang.String}" $names="{aApplicationId}" }method { $name="getApplic
+ ationIds" $return="java.lang.String[]" }method { $name="jsonArrayToSt
+ ringList" $return="java.util.List" $arguments="{org.psem2m.utilities.
+ json.JSONArray,boolean}" $names="{aJsonArray,aReturnNull}" }method { 
+ $name="jsonObjectToMap" $return="java.util.Map" $arguments="{org.psem
+ 2m.utilities.json.JSONObject,boolean}" $names="{aJsonObject,aReturnNu
+ ll}" }method { $name="load" $return="boolean" $arguments="{java.lang.
+ String}" $names="{aFile}" }method { $name="parseBundle" $return="org.
+ psem2m.isolates.services.conf.beans.BundleDescription" $arguments="{o
+ rg.psem2m.utilities.json.JSONObject,java.util.Properties}" $names="{a
+ BundleObject,aOverridenProperties}" }method { $name="parseBundle" $re
+ turn="org.psem2m.isolates.services.conf.beans.BundleDescription" $arg
+ uments="{java.lang.String}" $names="{aBundleConfiguration}" }method {
+  $name="parseBundles" $arguments="{org.psem2m.isolates.services.conf.
+ beans.IsolateDescription,org.psem2m.utilities.json.JSONArray,java.uti
+ l.Properties}" $names="{aIsolateDescription,aJsonArray,aOverridingPro
+ perties}" }method { $name="parseIsolate" $return="org.psem2m.isolates
+ .services.conf.beans.IsolateDescription" $arguments="{org.psem2m.util
+ ities.json.JSONObject,java.util.Properties}" $names="{aIsolateObject,
+ aOverridingProperties}" }method { $name="parseIsolate" $return="org.p
+ sem2m.isolates.services.conf.beans.IsolateDescription" $arguments="{j
+ ava.lang.String}" $names="{aIsolateConfiguration}" }method { $name="p
+ arseIsolates" $arguments="{org.psem2m.utilities.json.JSONArray}" $nam
+ es="{aJsonArray}" }method { $name="parseProperties" $return="java.uti
+ l.Properties" $arguments="{org.psem2m.utilities.json.JSONObject}" $na
+ mes="{aSetOfProperties}" }method { $name="readFile" $return="java.lan
+ g.String" $arguments="{java.lang.String}" $names="{aFileName}" }metho
+ d { $name="readJsonArrayFile" $return="org.psem2m.utilities.json.JSON
+ Array" $arguments="{java.lang.String}" $names="{aFile}" }method { $na
+ me="readJsonObjectFile" $return="org.psem2m.utilities.json.JSONObject
+ " $arguments="{java.lang.String}" $names="{aFile}" }}}
 

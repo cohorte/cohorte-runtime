@@ -26,45 +26,51 @@ iPOJO-Components: instance { $name="cohorte-remote-broadcast-handler-s
  sListeners" $optional="true" }requires { $field="pRepository" }requir
  es { $field="pSignalEmitter" }requires { $field="pSignalReceiver" }ca
  llback { $transition="invalidate" $method="invalidatePojo" }callback 
- { $transition="validate" $method="validatePojo" }manipulation { inter
- face { $name="org.psem2m.signals.ISignalListener" }interface { $name=
- "org.psem2m.isolates.services.monitoring.IIsolatePresenceListener" }f
- ield { $name="pDirectory" $type="org.psem2m.signals.ISignalDirectory"
-  }field { $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLog
- gerSvc" }field { $name="pPlatform" $type="org.psem2m.isolates.service
- s.dirs.IPlatformDirsSvc" }field { $name="pRemoteEventsListeners" $typ
- e="org.cohorte.remote.IRemoteServiceEventListener[]" }field { $name="
- pRepository" $type="org.cohorte.remote.IRemoteServiceRepository" }fie
- ld { $name="pSignalEmitter" $type="org.psem2m.signals.ISignalBroadcas
- ter" }field { $name="pSignalReceiver" $type="org.psem2m.signals.ISign
- alReceiver" }method { $name="handleReceivedSignal" $return="java.lang
- .Object" $arguments="{java.lang.String,org.psem2m.signals.ISignalData
- }" }method { $name="handleRemoteEvent" $arguments="{org.cohorte.remot
- e.beans.RemoteServiceEvent}" }method { $name="handleRequestEndpoints"
-  $return="org.cohorte.remote.beans.RemoteServiceEvent[]" $arguments="
- {java.lang.String}" }method { $name="invalidatePojo" }method { $name=
- "isolateLost" $arguments="{java.lang.String,java.lang.String,java.lan
- g.String}" }method { $name="isolateReady" $arguments="{java.lang.Stri
- ng,java.lang.String,java.lang.String}" }method { $name="validatePojo"
-  }}}component { $name="cohorte-remote-broadcast-notifier-signals-fact
- ory" $classname="org.cohorte.remote.broadcaster.RemoteServiceBroadcas
- ter" provides { $specifications="{org.cohorte.remote.IRemoteServiceBr
- oadcaster}" }requires { $field="pDirectory" }requires { $field="pLogg
- er" }requires { $field="pPlatform" }requires { $field="pSignalEmitter
- " }callback { $transition="invalidate" $method="invalidatePojo" }call
- back { $transition="validate" $method="validatePojo" }manipulation { 
- interface { $name="org.cohorte.remote.IRemoteServiceBroadcaster" }fie
+ { $transition="validate" $method="validatePojo" }manipulation { $clas
+ sname="org.cohorte.remote.broadcaster.BroadcastSignalHandler" interfa
+ ce { $name="org.psem2m.signals.ISignalListener" }interface { $name="o
+ rg.psem2m.isolates.services.monitoring.IIsolatePresenceListener" }fie
  ld { $name="pDirectory" $type="org.psem2m.signals.ISignalDirectory" }
  field { $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLogge
  rSvc" }field { $name="pPlatform" $type="org.psem2m.isolates.services.
- dirs.IPlatformDirsSvc" }field { $name="pSignalEmitter" $type="org.pse
- m2m.signals.ISignalBroadcaster" }method { $name="getRemoteServiceEven
- ts" $return="java.util.Collection" $arguments="{java.lang.Object[]}" 
- }method { $name="invalidatePojo" }method { $name="requestAllEndpoints
- " $return="org.cohorte.remote.beans.RemoteServiceEvent[]" }method { $
- name="requestEndpoints" $return="org.cohorte.remote.beans.RemoteServi
- ceEvent[]" $arguments="{java.lang.String}" }method { $name="sendNotif
- ication" $arguments="{org.cohorte.remote.beans.RemoteServiceEvent}" }
- method { $name="updateEndpointsHost" $arguments="{org.cohorte.remote.
- beans.RemoteServiceRegistration}" }method { $name="validatePojo" }}}
+ dirs.IPlatformDirsSvc" }field { $name="pRemoteEventsListeners" $type=
+ "org.cohorte.remote.IRemoteServiceEventListener[]" }field { $name="pR
+ epository" $type="org.cohorte.remote.IRemoteServiceRepository" }field
+  { $name="pSignalEmitter" $type="org.psem2m.signals.ISignalBroadcaste
+ r" }field { $name="pSignalReceiver" $type="org.psem2m.signals.ISignal
+ Receiver" }method { $name="handleReceivedSignal" $return="java.lang.O
+ bject" $arguments="{java.lang.String,org.psem2m.signals.ISignalData}"
+  $names="{aSignalName,aSignalData}" }method { $name="handleRemoteEven
+ t" $arguments="{org.cohorte.remote.beans.RemoteServiceEvent}" $names=
+ "{aEvent}" }method { $name="handleRequestEndpoints" $return="org.coho
+ rte.remote.beans.RemoteServiceEvent[]" $arguments="{java.lang.String}
+ " $names="{aRequestingIsolateId}" }method { $name="invalidatePojo" }m
+ ethod { $name="isolateLost" $arguments="{java.lang.String,java.lang.S
+ tring,java.lang.String}" $names="{aUID,aName,aNode}" }method { $name=
+ "isolateReady" $arguments="{java.lang.String,java.lang.String,java.la
+ ng.String}" $names="{aUID,aName,aNode}" }method { $name="validatePojo
+ " }}}component { $name="cohorte-remote-broadcast-notifier-signals-fac
+ tory" $classname="org.cohorte.remote.broadcaster.RemoteServiceBroadca
+ ster" provides { $specifications="{org.cohorte.remote.IRemoteServiceB
+ roadcaster}" }requires { $field="pDirectory" }requires { $field="pLog
+ ger" }requires { $field="pPlatform" }requires { $field="pSignalEmitte
+ r" }callback { $transition="invalidate" $method="invalidatePojo" }cal
+ lback { $transition="validate" $method="validatePojo" }manipulation {
+  $classname="org.cohorte.remote.broadcaster.RemoteServiceBroadcaster"
+  interface { $name="org.cohorte.remote.IRemoteServiceBroadcaster" }fi
+ eld { $name="pDirectory" $type="org.psem2m.signals.ISignalDirectory" 
+ }field { $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLogg
+ erSvc" }field { $name="pPlatform" $type="org.psem2m.isolates.services
+ .dirs.IPlatformDirsSvc" }field { $name="pSignalEmitter" $type="org.ps
+ em2m.signals.ISignalBroadcaster" }method { $name="getRemoteServiceEve
+ nts" $return="java.util.Collection" $arguments="{java.lang.Object[]}"
+  $names="{aIsolateSendResults}" }method { $name="invalidatePojo" }met
+ hod { $name="requestAllEndpoints" $return="org.cohorte.remote.beans.R
+ emoteServiceEvent[]" }method { $name="requestEndpoints" $return="org.
+ cohorte.remote.beans.RemoteServiceEvent[]" $arguments="{java.lang.Str
+ ing}" $names="{aIsolateId}" }method { $name="sendNotification" $argum
+ ents="{org.cohorte.remote.beans.RemoteServiceEvent}" $names="{aEvent}
+ " }method { $name="updateEndpointsHost" $arguments="{org.cohorte.remo
+ te.beans.RemoteServiceRegistration}" $names="{aRegistration}" }method
+  { $name="validatePojo" }}}
 

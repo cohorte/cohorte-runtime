@@ -17,12 +17,14 @@ iPOJO-Components: instance { $name="cohorte-shell-agent" $component="c
  es { $field="pBridge" }requires { $field="pReceiver" }requires { $fie
  ld="pRemoteShell" $optional="true" $nullable="true" }callback { $tran
  sition="invalidate" $method="invalidate" }callback { $transition="val
- idate" $method="validate" }manipulation { interface { $name="org.psem
- 2m.signals.ISignalListener" }field { $name="pBridge" $type="org.cohor
- te.pyboot.api.IPyBridge" }field { $name="pReceiver" $type="org.psem2m
- .signals.ISignalReceiver" }field { $name="pRemoteShell" $type="org.co
- horte.shell.IRemoteShell" }method { $name="getOsgiRemoteShellPort" $r
- eturn="int" }method { $name="handleReceivedSignal" $return="java.lang
- .Object" $arguments="{java.lang.String,org.psem2m.signals.ISignalData
- }" }method { $name="invalidate" }method { $name="validate" }}}
+ idate" $method="validate" }manipulation { $classname="org.cohorte.pyb
+ oot.shell.agent.ShellAgent" interface { $name="org.psem2m.signals.ISi
+ gnalListener" }field { $name="pBridge" $type="org.cohorte.pyboot.api.
+ IPyBridge" }field { $name="pReceiver" $type="org.psem2m.signals.ISign
+ alReceiver" }field { $name="pRemoteShell" $type="org.cohorte.shell.IR
+ emoteShell" }method { $name="getOsgiRemoteShellPort" $return="int" }m
+ ethod { $name="handleReceivedSignal" $return="java.lang.Object" $argu
+ ments="{java.lang.String,org.psem2m.signals.ISignalData}" $names="{aS
+ ignalName,aSignalData}" }method { $name="invalidate" }method { $name=
+ "validate" }}}
 
