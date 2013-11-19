@@ -16,8 +16,6 @@
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>3rd-party/org.jabsorb.ng</module>
-
 		<module>boot/org.cohorte.pyboot</module>
 		<module>boot/org.cohorte.pyboot.api</module>
 		<module>boot/org.cohorte.pyboot.config</module>
