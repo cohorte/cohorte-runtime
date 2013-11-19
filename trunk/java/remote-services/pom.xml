@@ -16,12 +16,6 @@
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>org.cohorte.remote.api</module>
-		<module>org.cohorte.remote.utilities</module>
-		<module>org.cohorte.remote.broadcast.multicast</module>
 		<module>org.cohorte.remote.broadcast.signals</module>
-		<module>org.cohorte.remote.core</module>
-		<module>org.cohorte.remote.repository</module>
-		<module>org.cohorte.remote.jsonrpc</module>
 	</modules>
 </project>
