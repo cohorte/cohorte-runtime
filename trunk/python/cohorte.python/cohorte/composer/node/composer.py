@@ -47,6 +47,7 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
 
 # Pelix remote services
 import pelix.remote
+import pelix.threadpool
 
 # Standard library
 import logging
@@ -112,12 +113,16 @@ class NodeComposer(object):
         self._commander = None
         self._monitor = None
 
+        # Thread to start isolates
+        self._pool = pelix.threadpool.ThreadPool(3, "NodeComposer-Starter")
+
 
     @Invalidate
     def invalidate(self, context):
         """
         Component invalidated
         """
+        self._pool.stop()
         self._node_name = None
 
 
@@ -127,6 +132,7 @@ class NodeComposer(object):
         Component validated
         """
         self._node_name = context.get_property(cohorte.PROP_NODE)
+        self._pool.start()
 
 
     def _compute_bundles(self, components):
@@ -222,6 +228,28 @@ class NodeComposer(object):
         return (dist_beans, new_beans)
 
 
+    def _start_isolate(self, isolate, bundles):
+        """
+        Starts the given isolate, using the monitor
+
+        :param isolate: Isolate to start
+        :param bundles: Dictionary: Component -> Bundle
+        """
+        _logger.debug("Starting isolate: %s -- kind=%s -- language=%s",
+                      isolate, self._compute_kind(isolate),
+                      isolate.language)
+
+        # Compute the bundles required for this isolate
+        isolate_bundles = {bundles[component]
+                           for component in isolate.components}
+
+        # Start the isolate (should be done asynchronously)
+        self._monitor.start_isolate(isolate.name, self._node_name,
+                                    self._compute_kind(isolate),
+                                    isolate.language, 'isolate',
+                                    isolate_bundles)
+
+
     def instantiate(self, components):
         """
         Instantiates the given components
@@ -251,19 +279,7 @@ class NodeComposer(object):
         # Tell the monitor to start the new isolates.
         # The commander will send their orders once there composer will be bound
         for isolate in new_isolates:
-            _logger.debug("Starting isolate: %s -- kind=%s -- language=%s",
-                          isolate, self._compute_kind(isolate),
-                          isolate.language)
-
-            # Compute the bundles required for this isolate
-            isolate_bundles = {bundles[component]
-                               for component in isolate.components}
-
-            # Start the isolate (should be done asynchronously)
-            self._monitor.start_isolate(isolate.name, self._node_name,
-                                        self._compute_kind(isolate),
-                                        isolate.language, 'isolate',
-                                        isolate_bundles)
+            self._pool.enqueue(self._start_isolate, isolate, bundles)
 
 
     def kill(self, components):
