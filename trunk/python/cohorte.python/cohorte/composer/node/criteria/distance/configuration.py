@@ -43,6 +43,13 @@ import cohorte.utils.vote as vote
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate
 
+# Standard library
+import logging
+
+# ------------------------------------------------------------------------------
+
+_logger = logging.getLogger(__name__)
+
 # ------------------------------------------------------------------------------
 
 @ComponentFactory()
@@ -73,16 +80,17 @@ class ConfigurationIsolateCriterion(object):
 
             if candidate.name == isolate:
                 # Same name
-                if candidate.language in (None, language):
-                    # Found the corresponding isolate
-                    raise vote.CoupdEtat(candidate)
+                if candidate.language not in (None, language):
+                    # Incompatible language ?
+                    # FIXME: an exception should be raised here (like before)
+                    # => Simple warning due to python/python3 naming
+                    _logger.warning("Possible language incompatibility for " \
+                                    "%s (%s) on isolate %s (%s)",
+                                    component.name, language,
+                                    isolate, candidate.language)
 
-                else:
-                    # Incompatible languages
-                    raise ValueError("Incompatible language for isolate"
-                                     "{0} {1} and component {2} {3}."\
-                                     .format(isolate, candidate.language,
-                                             component.name, language))
+                # Found the corresponding isolate
+                raise vote.CoupdEtat(candidate)
 
             elif candidate.name is None \
             and candidate.language in (None, language) \

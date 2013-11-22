@@ -107,8 +107,10 @@ class IsolateDistributor(object):
 
         for component in components:
             # Compute the isolates that could match this component
-            matching_isolates = self._get_matching_isolates(component,
-                                                            isolates)
+            # FIXME: hidden due to python/python3 comparison problem
+            # matching_isolates = self._get_matching_isolates(component,
+            #                                                 isolates)
+            matching_isolates = isolates
 
             # Vote !
             isolate = vote.vote(component, matching_isolates)
