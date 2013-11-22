@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Default Monitor shell port
+DEFAULT_PORT=8011
+
 # Get the port
 if [ -z "$1" ]
 then
@@ -13,7 +16,7 @@ int_regex='^[0-9]+$'
 if ! [[ $port =~ $int_regex ]]
 then
 	echo "Not a number: $port"
-	exit 1
+	port=$DEFAULT_PORT
 fi
 
 echo "Connecting to localhost:$port..."
