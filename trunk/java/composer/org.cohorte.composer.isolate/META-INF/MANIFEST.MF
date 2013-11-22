@@ -75,9 +75,9 @@ iPOJO-Components: instance { $name="cohorte-composer-isolate" $compone
  g}" $names="{aName}" }method { $name="removeRemaining" $arguments="{o
  rg.cohorte.composer.api.RawComponent}" $names="{aComponent}" }method 
  { $name="stateChanged" $arguments="{org.apache.felix.ipojo.ComponentI
- nstance,int}" $names="{aArg0,aArg1}" }method { $name="tryInstantiate"
-  $return="boolean" $arguments="{org.cohorte.composer.api.RawComponent
- }" $names="{aComponent}" }method { $name="unbindFactory" $arguments="
- {org.apache.felix.ipojo.Factory}" $names="{aFactory}" }method { $name
- ="validate" }}}
+ nstance,int}" $names="{aComponentInstance,aState}" }method { $name="t
+ ryInstantiate" $return="boolean" $arguments="{org.cohorte.composer.ap
+ i.RawComponent}" $names="{aComponent}" }method { $name="unbindFactory
+ " $arguments="{org.apache.felix.ipojo.Factory}" $names="{aFactory}" }
+ method { $name="validate" }}}
 

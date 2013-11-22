@@ -425,6 +425,7 @@ public class IPojoAgent implements IAgent, InstanceStateListener {
         if (instance != null) {
             // Kill the component
             instance.dispose();
+            pLogger.log(LogService.LOG_INFO, "Component " + aName + " disposed");
 
         } else if (pRemainingNames.containsKey(aName)) {
             // Remove the entry from the remaining components
@@ -433,6 +434,7 @@ public class IPojoAgent implements IAgent, InstanceStateListener {
 
         } else {
             // FIXME Unknown component
+            pLogger.log(LogService.LOG_WARNING, "Unknown component: " + aName);
         }
     }
 
@@ -463,10 +465,26 @@ public class IPojoAgent implements IAgent, InstanceStateListener {
      * felix.ipojo.ComponentInstance, int)
      */
     @Override
-    public void stateChanged(final ComponentInstance aArg0, final int aArg1) {
+    public void stateChanged(final ComponentInstance aComponentInstance,
+            final int aState) {
 
-        // TODO Auto-generated method stub
+        // Get the component name
+        final String name = aComponentInstance.getInstanceName();
+        if (!pInstances.containsKey(name)) {
+            // Component is no more handled...
+            if (aState != ComponentInstance.DISPOSED
+                    && aState != ComponentInstance.STOPPED) {
+                // Incoherent state
+                pLogger.log(LogService.LOG_WARNING, "Received new status "
+                        + aState + " for component " + name
+                        + " which should no longer change...");
+            }
 
+            // Ignore
+            return;
+        }
+
+        // TODO: handle events
     }
 
     /**
