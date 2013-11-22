@@ -152,6 +152,9 @@ SVCPROP_ISOLATE_LOADER_KIND = 'loader.kind'
 SERVICE_FORKER = 'cohorte.forker'
 """ Represents a forker service """
 
+SERVICE_NODE_STARTER = 'cohorte.node_starter'
+""" Specification of the node starter """
+
 # ------------------------------------------------------------------------------
 
 SERVICE_JAVA_RUNNER = 'cohorte.java.runner'

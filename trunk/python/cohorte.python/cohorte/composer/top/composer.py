@@ -51,6 +51,7 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
 @Requires('_status', cohorte.composer.SERVICE_STATUS_TOP)
 @Requires('_commander', cohorte.composer.SERVICE_COMMANDER_TOP)
 @Requires('_monitor', cohorte.monitor.SERVICE_MONITOR)
+@Requires('_node_starter', cohorte.SERVICE_NODE_STARTER)
 @Instantiate('cohorte-composer-top')
 class TopComposer(object):
     """
@@ -64,6 +65,7 @@ class TopComposer(object):
         self._status = None
         self._commander = None
         self._context = None
+        self._node_starter = None
 
 
     def _set_default_node(self, distribution):
@@ -124,7 +126,7 @@ class TopComposer(object):
 
         # Tell the monitor to start the nodes
         # FIXME: use an intermediate level for nodes (EC2 LoadBalancer-like)
-        self._monitor.start_nodes(distribution.keys())
+        self._node_starter.start_nodes(distribution.keys())
 
         # Tell the commander to start the instantiation on existing nodes
         self._commander.start(distribution)
