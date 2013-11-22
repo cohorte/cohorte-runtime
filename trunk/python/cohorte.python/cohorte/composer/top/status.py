@@ -102,7 +102,7 @@ class TopStatusStorage(object):
             self._names.add(name)
 
         # Generate a UUID
-        uid = uuid.uuid4()
+        uid = str(uuid.uuid4())
 
         # Store the composition
         self._storage[uid] = distribution
