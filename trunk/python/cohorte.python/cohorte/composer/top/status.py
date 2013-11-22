@@ -59,8 +59,11 @@ class TopStatusStorage(object):
         """
         Sets up members
         """
-        # Known composition names
+        # Known compositions names
         self._names = set()
+
+        # UID -> Name
+        self._uids = {}
 
         # UID -> {Node -> set(RawComponent)}
         self._storage = {}
@@ -97,14 +100,13 @@ class TopStatusStorage(object):
         name = composition.name
         if name in self._names:
             raise ValueError("Already used composition name: {0}".format(name))
-        else:
-            # Store it
-            self._names.add(name)
 
         # Generate a UUID
         uid = str(uuid.uuid4())
 
         # Store the composition
+        self._names.add(name)
+        self._uids[uid] = name
         self._storage[uid] = distribution
         return uid
 
@@ -128,6 +130,11 @@ class TopStatusStorage(object):
         :return: The stored distribution dictionary
         :raise KeyError: Unknown UID
         """
+        # Remove the name entry
+        name = self._uids.pop(uid)
+        self._names.remove(name)
+
+        # Remove and return the distribution
         return self._storage.pop(uid)
 
 

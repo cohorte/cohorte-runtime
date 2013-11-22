@@ -273,5 +273,5 @@ class NodeComposer(object):
         :param components: A list of RawComponent beans
         """
         # Tell all isolate composers to stop their components
+        # The commander update the status
         self._commander.kill(components)
-        self._status.remove(components)

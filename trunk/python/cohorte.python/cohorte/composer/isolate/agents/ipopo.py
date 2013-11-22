@@ -71,6 +71,8 @@ class IPopoAgent(object):
         # Injected services
         self._ipopo = None
 
+        # TODO: remaining factories / names, like for iPOJO
+
         # Factory -> Remaining components
         self._remaining = {}
         self.__lock = threading.RLock()
@@ -94,6 +96,10 @@ class IPopoAgent(object):
             except KeyError:
                 # Unknown factory
                 pass
+
+        elif kind == constants.IPopoEvent.UNREGISTERED:
+            # TODO: factory gone, put components in remaining state
+            pass
 
 
     @Validate

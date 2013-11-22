@@ -225,12 +225,18 @@ class NodeCommander(object):
         isolates = set()
         for composer in self._injected_composers:
             try:
-                isolates.add(composer.get_isolate_info())
+                # Request the description of the composer
+                isolate_info = composer.get_isolate_info()
 
             except Exception as ex:
                 # Something went wrong
                 _logger.error("Error retrieving information about a composer: "
                               "%s", ex)
+
+            else:
+                # Type enforcement
+                isolate_info.components = set(isolate_info.components)
+                isolates.add(isolate_info)
 
         return isolates
 
@@ -262,4 +268,35 @@ class NodeCommander(object):
 
         :param components: A set of RawComponent beans
         """
-        pass
+        # Compute a dictionary: isolate -> component names
+        distribution = {}
+        for component in components:
+            try:
+                name = component.name
+                isolate = self._status.get_isolate_for_component(name)
+                distribution.setdefault(isolate, set()).add(name)
+
+            except KeyError:
+                # Component has not been bound...
+                pass
+
+        # Call the composer
+        for isolate, names in distribution.items():
+            try:
+                # Get the service
+                composer = self._isolate_composer[isolate]
+
+            except KeyError:
+                _logger.error("No composer for isolate %s", isolate)
+
+            else:
+                try:
+                    # Call it
+                    composer.kill(names)
+
+                    # Update the status
+                    self._status.remove(names)
+
+                except Exception as ex:
+                    _logger.exception("Error calling composer on %s: %s",
+                                      isolate, ex)
