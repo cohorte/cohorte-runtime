@@ -132,7 +132,7 @@ class IPopoAgent(object):
         # TODO: add position informations (name, node, isolate, ...)
 
         # Export the component interfaces
-        properties[pelix.remote.PROP_EXPORTED_INTERFACES] = "*"
+        properties.setdefault(pelix.remote.PROP_EXPORTED_INTERFACES, "*")
         return properties
 
 
