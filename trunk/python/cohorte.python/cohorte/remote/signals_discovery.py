@@ -195,14 +195,15 @@ class SignalsDiscovery(object):
     def _send_remote_event(self, event_type, registration):
         """
         Sends a RemoteServiceEvent Java bean to all isolates
-        
+
         :param event_type: The event type string (one of REGISTERED, MODIFIED,
                            UNREGISTERED)
         :param registration: The RemoteServiceRegistration associated to the
                              event
         """
         remote_event = _RemoteEvent(event_type, registration)
-        self._sender.post(SIGNAL_REMOTE_EVENT, remote_event, dir_group="OTHERS")
+        self._sender.post(SIGNAL_REMOTE_EVENT, remote_event,
+                          dir_group=cohorte.signals.GROUP_OTHERS)
 
 
     def endpoint_added(self, endpoint):
@@ -294,7 +295,7 @@ class SignalsDiscovery(object):
     def handle_isolate_presence(self, uid, node, event):
         """
         Handles an isolate presence event
-        
+
         :param uid: UID of the isolate
         :param node: Node of the isolate
         :param event: Kind of event
@@ -339,7 +340,7 @@ class SignalsDiscovery(object):
     def _filter_properties(self, properties):
         """
         Filters imported service properties. Makes a new dictionary
-    
+
         :param properties: Imported service properties
         :return: A filtered dictionary
         """
@@ -431,18 +432,18 @@ class SignalsDiscovery(object):
 
         elif event_type == MODIFIED:
             # Update (without previous value)
-            self._registry.update(rs_endpoint, None)
+            self._registry.update(rs_endpoint, properties)
 
         elif event_type == UNREGISTERED:
             # Removed
-            self._registry.remove(rs_endpoint)
+            self._registry.remove(uid)
 
 
     def _request_endpoints(self, isolate=None):
         """
         Requests the services exported by the given isolate. If isolate is None,
         then the request is sent to all known isolates.
-        
+
         :param: isolate: An isolate UID (optional)
         """
         if not isolate:
