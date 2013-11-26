@@ -66,6 +66,9 @@ class NodeStatusStorage(object):
         # Component name -> Isolate name
         self._component_isolate = {}
 
+        # Component name -> RawComponent
+        self._components = {}
+
         # Isolate name -> set(RawComponent)
         self._isolate_components = {}
 
@@ -91,13 +94,15 @@ class NodeStatusStorage(object):
         """
         for isolate in isolates:
             # Isolate name -> Components
-            name = isolate.name
-            self._isolate_components.setdefault(name, set()) \
+            isolate_name = isolate.name
+            self._isolate_components.setdefault(isolate_name, set()) \
                                                     .update(isolate.components)
 
-            # Component name -> Isolate name
+            # Component name -> Isolate name / RawComponent
             for component in isolate.components:
-                self._component_isolate[component.name] = name
+                component_name = component.name
+                self._component_isolate[component_name] = isolate_name
+                self._components[component_name] = component
 
 
     def remove(self, names):
@@ -110,9 +115,10 @@ class NodeStatusStorage(object):
             try:
                 # Remove from the component from the lists
                 isolate = self._component_isolate.pop(name)
+                component = self._components.pop(name)
 
                 isolate_components = self._isolate_components[isolate]
-                isolate_components.remove(name)
+                isolate_components.remove(component)
                 if not isolate_components:
                     # No more component on this isolate
                     del self._isolate_components[isolate]
