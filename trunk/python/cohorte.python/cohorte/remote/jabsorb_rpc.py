@@ -157,11 +157,13 @@ class JsonRpcServiceExporter(object):
         # Get the best matching name
         matching = None
         len_found = 0
+
         for name in self.__endpoints:
-            if len(name) > len_found and method.startswith(name + "."):
+            len_name = len(name)
+            if len_name > len_found and method.startswith(name + "."):
                 # Better matching end point name (longer that previous one)
                 matching = name
-                len_found = len(matching)
+                len_found = len_name
 
         if matching is None:
             # No end point name match
@@ -454,7 +456,7 @@ class JsonRpcServiceImporter(object):
         """
         An end point has been imported
         """
-        if endpoint.kind != self._kind and endpoint.kind != '*':
+        if endpoint.kind not in ('*', self._kind):
             # Not for us
             return
 
