@@ -54,7 +54,7 @@ _logger = logging.getLogger(__name__)
 def _get_looper(context, looper_name):
     """
     Retrieves the main thread looper corresponding to the system
-    
+
     :param context: The bundle context
     :param looper_name: Name of the loop handler bundle (or internal name)
     :return: The main thread handler
@@ -73,7 +73,7 @@ def _get_looper(context, looper_name):
 def _get_loader(context, loader_bundle):
     """
     Retrieves/instantiates the loader service/component from the given bundle
-    
+
     :param context: A bundle context
     :param loader_bundle: The loader implementation bundle object
     :return: The loader component/service
@@ -108,7 +108,7 @@ def load_isolate(pelix_properties, state_updater_url=None,
     """
     Starts a Pelix framework, installs iPOPO and boot modules and waits for
     the framework to stop
-    
+
     :param pelix_properties: Pelix framework instance properties
     :param state_updater_url: URL to access the isolate state updater
     :param looper_name: Name of the main thread loop handler
@@ -167,7 +167,7 @@ def load_isolate(pelix_properties, state_updater_url=None,
 def _safe_run_framework(framework, looper, state_updater_url, fail_on_pdb):
     """
     Starts the framework, logs exceptions
-    
+
     :param framework: An instance of framework
     :param looper: The main thread handler
     :param state_updater_url: URL to access the isolate state updater
@@ -195,7 +195,7 @@ def _safe_run_framework(framework, looper, state_updater_url, fail_on_pdb):
 def _run_framework(framework, state_updater_url, fail_on_pdb):
     """
     Starts the framework
-    
+
     :param framework: An instance of framework
     :param state_updater_url: URL to access the isolate state updater
     :param fail_on_pdb: If true, ``pdb.post_mortem()`` is called if an exception
@@ -287,7 +287,7 @@ def find_cohorte_directories():
     """
     Finds the COHORTE Home and Base directories, according to process
     environment variables.
-    
+
     :return: A (home, base) tuple.
     :raise KeyError: The Home and Base directories can't be determined
     """
@@ -332,12 +332,12 @@ class ColorFormatter(logging.Formatter):
     def __init__(self, fmt=None, datefmt=None, use_colors=True):
         """
         Sets up the format
-        
+
         Inspired from:
         http://stackoverflow.com/questions/384076/how-can-i-color-python-logging-output
         and:
         http://pueblo.sourceforge.net/doc/manual/ansi_color_codes.html
-        
+
         :param fmt: Log line format
         :param datefmt: Format of the log time stamp
         :param use_colors: If True, uses colors control sequences
@@ -382,13 +382,13 @@ class ColorFormatter(logging.Formatter):
 def configure_logger(logfile, debug, verbose, color):
     """
     Configures the root logger.
-    
+
     If the debug flag is on, debug messages will be logged in the file.
-    If the verbose flag is on, the console output will log information 
+    If the verbose flag is on, the console output will log information
     messages.
     If both verbose and debug flag are on, the console output will log debug
     messages.
-    
+
     :param logfile: The name of the log file. If None, the log file will be
                     disabled
     :param debug: The debug mode flag
@@ -464,9 +464,9 @@ def main(args=None):
     """
     Script entry point if called directly.
     Uses sys.argv to determine the boot options if the *args* parameter is None.
-    
+
     **WARNING:** This method changes the log level of the logging module.
-    
+
     :param args: An optional list of arguments (used instead of sys.argv)
     :return: An integer error code, 0 for success (see load_isolate())
     """
@@ -496,11 +496,6 @@ def main(args=None):
                        help="URL to the state updater. Should be given if " \
                             "--configuration-broker is.")
 
-    group.add_argument("--start-monitor", action="store_true",
-                       dest="start_monitor", default=False,
-                       help="Start the monitor once initialized " \
-                            "(only works on a forker)")
-
     # Logging options
     group = parser.add_argument_group("Logging options")
     group.add_argument("--logfile", action="store",
@@ -526,6 +521,11 @@ def main(args=None):
                        help="The main thread loop handler name")
 
     # Other options
+    parser.add_argument('-t', "--top-composer", action="store_true",
+                        dest="top_composer", default=False,
+                        help="If True and given to a monitor, "
+                             "starts the TopComposer")
+
     parser.add_argument("--version", action="version",
                         version="Cohorte bootstrap {0}".format(__version__))
 
@@ -562,9 +562,9 @@ def main(args=None):
         # The state updater URL has been given
         framework_properties[cohorte.PROP_STATE_UPDATER] = args.state_updater
 
-    if args.start_monitor:
-        # The forker must start a monitor
-        framework_properties[cohorte.PROP_START_MONITOR] = True
+    if args.top_composer:
+        # The isolate contains the TopComposer
+        framework_properties[cohorte.PROP_RUN_TOP_COMPOSER] = True
 
     # Run PDB on unhandled exceptions, in debug mode
     use_pdb = args.debug and sys.stdin.isatty()

@@ -3,15 +3,18 @@
  */
 {
 	/*
-	 * Import the common configuration for Python isolates
+	 * Import the common configuration for Python isolates, and the Node
+	 * Composer
 	 */
-	"import-files" : ["boot-common-py.js", "python-common-http.js"],
+	"import-files" : [ "boot-common-py.js", "python-common-http.js",
+			"composer/python-node.js" ],
 
+	"bundles" : [
 	/*
 	 * Forker bundles
 	 */
-	"bundles" : [ {
-		"name" : "cohorte.forker.core"
+	{
+		"name" : "cohorte.forker.basic"
 	}, {
 		"name" : "cohorte.forker.broker"
 	}, {
@@ -19,11 +22,34 @@
 	}, {
 		"name" : "cohorte.forker.state_updater"
 	}, {
-		"name" : "cohorte.forker.heartbeat"
-	}, {
 		"name" : "pelix.shell.console"
 	}, {
 		"name" : "cohorte.shell.forker"
+	},
+	
+	/*
+	 * Monitor bundles
+	 */
+	{
+		"name" : "cohorte.monitor.basic"
+	}, {
+		"name" : "cohorte.monitor.status"
+	}, {
+		// FIXME: Should be in the TopComposer/NodeManager only
+		"name" : "cohorte.monitor.node_starter"
+	},
+
+	/*
+	 * Repositories
+	 */
+	{
+		"name" : "cohorte.repositories.java.bundles"
+	}, {
+		"name" : "cohorte.repositories.java.ipojo"
+	}, {
+		"name" : "cohorte.repositories.python.modules"
+	}, {
+		"name" : "cohorte.repositories.python.ipopo"
 	} ],
 
 	/*
@@ -44,11 +70,11 @@
 			"pelix.shell.port" : 8001
 		}
 	},
-	
+
 	/* Forker specific components */
 	{
-		"factory" : "cohorte-forker-factory",
-		"name" : "cohorte-forker"
+		"factory" : "cohorte-forker-basic-factory",
+		"name" : "cohorte-forker-basic"
 	}, {
 		"factory" : "cohorte-forker-broker-factory",
 		"name" : "cohorte-forker-broker"
@@ -58,11 +84,29 @@
 	}, {
 		"factory" : "cohorte-forker-state-updater-factory",
 		"name" : "cohorte-forker-state-updater"
+	},
+
+	/* Configuration of monitor components */
+	{
+		"factory" : "cohorte-monitor-basic-factory",
+		"name" : "cohorte-monitor-basic"
 	}, {
-		"factory" : "cohorte-forker-heart-factory",
-		"name" : "cohorte-forker-heart",
-		"properties": {
-			"multicast.port": 42001
-		}
+		"factory" : "cohorte-monitor-status-factory",
+		"name" : "cohorte-monitor-status"
+	},
+
+	/* Repositories */
+	{
+		"factory" : "cohorte-repository-artifacts-java-factory",
+		"name" : "cohorte-repository-artifacts-java"
+	}, {
+		"factory" : "cohorte-repository-factories-ipojo-factory",
+		"name" : "cohorte-repository-factories-ipojo"
+	}, {
+		"factory" : "cohorte-repository-artifacts-python-factory",
+		"name" : "cohorte-repository-artifacts-python"
+	}, {
+		"factory" : "cohorte-repository-factories-ipopo-factory",
+		"name" : "cohorte-repository-factories-ipopo"
 	} ]
 }

@@ -94,7 +94,7 @@ class SignalsDirectory(object):
     def _notify_listeners(self, isolate_id, isolate_node, event):
         """
         Notifies listeners of an isolate presence event
-        
+
         :param isolate_id: ID of the isolate
         :param isolate_node: Node of the isolate
         :param event: Kind of event
@@ -124,13 +124,13 @@ class SignalsDirectory(object):
     def dump(self):
         """
         Returns a snapshot of the directory.
-        
+
         The result is a map with 3 entries :
-        
+
         * 'accesses': Isolate ID -> {'node' -> Node Name, 'port' -> Port}
         * 'groups': Group Name -> [Isolates IDs]
         * 'nodes_host': Node Name -> Host Address
-        
+
         :return: A snapshot of the directory
         """
         result = {}
@@ -157,7 +157,7 @@ class SignalsDirectory(object):
     def store_dump(self, dump, ignored_nodes=None, ignored_ids=None):
         """
         Stores the result of a dump
-        
+
         :param dump: A dictionary, result of dump()
         :param ignored_nodes: A list of ignored nodes
         :param ignored_ids: A list of ignored IDs
@@ -210,11 +210,11 @@ class SignalsDirectory(object):
 
     def get_all_isolates(self, prefix, include_current):
         """
-        Retrieves all known isolates which ID begins with the given prefix. If 
+        Retrieves all known isolates which ID begins with the given prefix. If
         the prefix is null or empty, returns all known isolates.
-        
+
         Returns None if no isolate matched the prefix.
-        
+
         :param prefix: An optional prefix filter
         :param include_current: If true, include the current isolate in the
                                 result
@@ -257,7 +257,7 @@ class SignalsDirectory(object):
     def get_all_nodes(self):
         """
         Retrieves all known nodes. Returns None if no nodes are known
-        
+
         :return: All known nodes, or None
         """
         with self._lock:
@@ -271,19 +271,19 @@ class SignalsDirectory(object):
         """
         Retrieves an Isolate ID -> (host, port) map, containing all known
         isolates that belong to the computed group
-        
+
         Valid group names are:
         * ALL: all isolates, including the current one
         * FORKERS: All forkers, including the current isolate if it is a forker
         * ISOLATES: All isolates, including monitors and the current one,
           excluding forkers. If the current isolate is a forker, it is excluded.
-        * CURRENT: Current isolate 
+        * CURRENT: Current isolate
         * MONITORS: All monitors, including the current isolate if it is a
           monitor
         * NEIGHBOURS: All isolates on the current node, excluding the current
           one
         * OTHERS: All isolates, with monitors and forkers, excluding this one
-        
+
         :param group_name: Name of the group to compute
         :return: An ID -> (host, port) map, None if the group is unknown.
         """
@@ -350,7 +350,7 @@ class SignalsDirectory(object):
     def get_host_for_node(self, node):
         """
         Retrieves the host address for the given node
-        
+
         :param node: A node name
         :return: The address of the node, or None
         """
@@ -360,7 +360,7 @@ class SignalsDirectory(object):
     def get_isolate_access(self, isolate_uid):
         """
         Retrieves the (host, port) tuple to access the given isolate, or None
-        
+
         :param isolate_uid: An isolate UID
         :return: A (host, port) tuple or None if the isolate is unknown
         """
@@ -379,7 +379,7 @@ class SignalsDirectory(object):
     def get_isolate_uid(self):
         """
         Retrieves the current isolate ID
-        
+
         :return: the current isolate ID
         """
         return self._context.get_property(cohorte.PROP_UID)
@@ -388,7 +388,7 @@ class SignalsDirectory(object):
     def get_isolate_name(self, uid):
         """
         Retrieves the name of the given isolate
-        
+
         :param UID: An isolate UID
         :return: The name of the isolate, or None
         """
@@ -398,7 +398,7 @@ class SignalsDirectory(object):
     def get_isolate_node(self, uid=None):
         """
         Retrieves the node hosting the given isolate, or None
-        
+
         :param uid: An isolate UID
         :return: The node hosting the isolate, the current node is uid is
                  empty, or None
@@ -417,7 +417,7 @@ class SignalsDirectory(object):
     def get_isolates_on_node(self, node):
         """
         Retrieves the IDs of the isolates on the given node, or None
-        
+
         :param node: The name of a node
         :return: A list of IDs (can be empty)
         """
@@ -432,9 +432,9 @@ class SignalsDirectory(object):
 
     def get_local_node(self):
         """
-        Retrieves the current isolate ID
-        
-        :return: the current isolate ID
+        Retrieves the current node ID
+
+        :return: the current node ID
         """
         return self._context.get_property(cohorte.PROP_NODE)
 
@@ -442,7 +442,7 @@ class SignalsDirectory(object):
     def get_name_uids(self, name):
         """
         Generator that retrieves the UIDs of the isolate having the given name
-        
+
         :param name: An isolate name
         :return: A list of isolate UIDs associated to that name
         """
@@ -458,7 +458,7 @@ class SignalsDirectory(object):
         Retrieves a list of isolate UIDs corresponding to the given isolate
         name or UID.
         Returns the list of all known UIDs if the parameter is None.
-        
+
         :param isolate_name_or_uid: The name or UID of an isolate (or None)
         :return: A list of UIDs
         :raise KeyError: Unknown isolate
@@ -502,7 +502,7 @@ class SignalsDirectory(object):
     def is_registered(self, isolate_id):
         """
         Tests if the given isolate ID is registered in the directory
-        
+
         :param isolate_id: An isolate ID
         :return: True if the ID is known, else false
         """
@@ -513,7 +513,7 @@ class SignalsDirectory(object):
     def register_isolate(self, uid, name, node, port, validated=False):
         """
         Registers an isolate in the directory.
-        
+
         :param uid: The UID of the isolate to register
         :param name: The name of the isolate to register
         :param node: The node the isolate is running on
@@ -599,10 +599,10 @@ class SignalsDirectory(object):
         """
         Sets up the address to access the given node. Overrides the previous
         address and returns it.
-        
+
         If the given address is null or empty, only returns the current node
         address.
-        
+
         :param node: A node name
         :param address: The address to the node host
         :return: The previous address
@@ -621,7 +621,7 @@ class SignalsDirectory(object):
     def unregister_isolate(self, isolate_id):
         """
         Unregisters the given isolate of the directory
-        
+
         :param isolate_id: The ID of the isolate to unregister
         :return: True if the isolate has been unregistered
         """
@@ -660,7 +660,7 @@ class SignalsDirectory(object):
         """
         Notifies the directory that an isolate has acknowledged the registration
         of the current isolate.
-        
+
         :param aIsolateId: An isolate ID
         """
         with self._lock:

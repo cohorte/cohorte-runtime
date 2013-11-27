@@ -33,6 +33,9 @@ ENV_BASE = 'COHORTE_BASE'
 ENV_NODE = 'COHORTE_NODE'
 """ COHORTE Node name environment variable """
 
+ENV_NODE_UID = 'COHORTE_NODE_UID'
+""" COHORTE Node UID environment variable """
+
 # ------------------------------------------------------------------------------
 # Framework properties
 
@@ -66,8 +69,11 @@ PROP_BASE = 'cohorte.base'
 PROP_NODE = 'cohorte.node'
 """ COHORTE Node name framework property """
 
-PROP_START_MONITOR = 'cohorte.forker.start_monitor'
-""" If present, the forker must start a monitor """
+PROP_NODE_UID = 'cohorte.node.uid'
+""" COHORTE Node UID framework property """
+
+PROP_RUN_TOP_COMPOSER = 'cohorte.composer.top.run'
+""" If present, the monitor must load the top composer """
 
 PROP_STATE_UPDATER = 'cohorte.state.updater.url'
 """ URL to the state updater, use during boot only """

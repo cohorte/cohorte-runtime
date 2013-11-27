@@ -54,7 +54,7 @@ Isolate = collections.namedtuple('Isolate', BootConfiguration._fields
 def _recursive_namedtuple_convert(data):
     """
     Recursively converts the named tuples in the given object to dictionaries
-    
+
     :param data: An object in a named tuple or its children
     :return: The converted object
     """
@@ -98,7 +98,7 @@ class BootConfigParser(object):
     def _parse_bundle(self, json_object):
         """
         Reads the given JSON object and returns its Bundle representation
-        
+
         :param json_object: A parsed JSON object
         :return: A Bundle object
         :raise KeyError: A mandatory parameter is missing
@@ -123,7 +123,7 @@ class BootConfigParser(object):
         """
         Parses the bundles in the given list. Returns an empty list if the
         given one is None or empty.
-        
+
         :param bundles: A list of bundles representations
         :return: A list of Bundle objects
         :raise KeyError: A mandatory parameter is missing
@@ -137,7 +137,7 @@ class BootConfigParser(object):
     def _parse_component(self, json_object):
         """
         Reads the given JSON object and returns its Component representation
-        
+
         :param json_object: A parsed JSON object
         :return: A Component object
         :raise KeyError: A mandatory parameter is missing
@@ -161,7 +161,7 @@ class BootConfigParser(object):
         """
         Parses the components in the given list. Returns an empty list if the
         given one is None or empty.
-        
+
         :param components: A list of components representations
         :return: A list of Component objects
         :raise KeyError: A mandatory parameter is missing
@@ -175,7 +175,7 @@ class BootConfigParser(object):
     def _parse_isolate(self, json_object):
         """
         Reads the given JSON object and returns its Isolate representation
-        
+
         :param json_object: A parsed JSON object
         :return: An Isolate object
         :raise KeyError: A mandatory parameter is missing
@@ -194,11 +194,11 @@ class BootConfigParser(object):
 
     def _prepare_configuration(self, uid, name, node, kind,
                               bundles=None, composition=None,
-                              base_configuration=None, default_node=None):
+                              base_configuration=None):
         """
         Prepares and returns a configuration dictionary to be stored in the
         configuration broker, to start an isolate of the given kind.
-        
+
         :param uid: The isolate UID
         :param name: The isolate name
         :param node: The isolate node name
@@ -206,8 +206,6 @@ class BootConfigParser(object):
         :param bundles: Extra bundles to install
         :param composition: Extra components to instantiate
         :param base_configuration: Base configuration (to override)
-        :param default_node: Node to use if not forced neither in the
-                             base configuration
         :return: A configuration dictionary
                  (updated base_configuration if given)
         :raise IOError: Unknown/unaccessible kind of isolate
@@ -224,13 +222,9 @@ class BootConfigParser(object):
         configuration['name'] = name
         configuration['kind'] = kind
 
-        if node:
-            # Node forced
+        if node not in configuration:
+            # Node not given in the configuration
             configuration['node'] = node
-
-        elif 'node' not in configuration:
-            # Node not set in the base configuration
-            configuration['node'] = default_node
 
         # Boot configuration for this kind
         new_boot = configuration.setdefault('boot', {})
@@ -256,7 +250,7 @@ class BootConfigParser(object):
         """
         Make a Bundle object from the given Bundle-like object attributes,
         using default values when necessary.
-        
+
         :param bundle: A Bundle-like object
         :return: A Bundle object
         :raise AttributeError: A mandatory attribute is missing
@@ -295,7 +289,7 @@ class BootConfigParser(object):
         """
         Loads the boot configuration for the given kind of isolate, or returns
         the one in the cache.
-        
+
         :param kind: The kind of isolate to boot
         :return: The loaded BootConfiguration object
         :raise IOError: Unknown/unaccessible kind of isolate
@@ -310,7 +304,7 @@ class BootConfigParser(object):
         """
         Loads the boot configuration for the given kind of isolate, or returns
         the one in the cache.
-        
+
         :param level: The level of configuration (boot, java, python)
         :param kind: The kind of isolate to boot
         :return: The loaded BootConfiguration object
@@ -325,7 +319,7 @@ class BootConfigParser(object):
     def load_boot_dict(self, dict_config):
         """
         Parses a boot configuration from the given dictionary
-        
+
         :param dict_config: A configuration dictionary
         :return: The parsed BootConfiguration object
         :raise KeyError: A parameter is missing in the configuration files
@@ -354,21 +348,19 @@ class BootConfigParser(object):
 
 
     def prepare_isolate(self, uid, name, node, kind, level, sublevel,
-                        bundles=None, composition=None, default_node=None):
+                        bundles=None, composition=None):
         """
         Prepares and returns a configuration dictionary to be stored in the
         configuration broker, to start an isolate of the given kind.
-        
+
         :param uid: The isolate UID
         :param name: The isolate name
-        :param node: Forced node name (can be None)
+        :param node: Isolate node name
         :param kind: The kind of isolate to boot (pelix, osgi, ...)
         :param level: The level of configuration (boot, java, python, ...)
         :param sublevel: Category of configuration (monitor, isolate, ...)
         :param bundles: Extra bundles to install
         :param composition: Extra components to instantiate
-        :param default_node: Node to use if not forced neither in the
-                             isolate-specific configuration
         :return: A configuration dictionary
         :raise IOError: Unknown/unaccessible kind of isolate
         :raise KeyError: A parameter is missing in the configuration files
@@ -395,14 +387,13 @@ class BootConfigParser(object):
 
         # Extend with the boot configuration
         return self._prepare_configuration(uid, name, node, kind,
-                                           bundles, composition, configuration,
-                                           default_node)
+                                           bundles, composition, configuration)
 
 
     def read(self, filename, reader_log_error=True):
         """
         Reads the content of the given file, without parsing it.
-        
+
         :param filename: A configuration file name
         :param reader_log_error: If True, the reader will log I/O errors
         :return: The dictionary read from the file

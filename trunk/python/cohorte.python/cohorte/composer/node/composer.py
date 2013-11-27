@@ -244,7 +244,7 @@ class NodeComposer(object):
                            for component in isolate.components}
 
         # Start the isolate (should be done asynchronously)
-        self._monitor.start_isolate(isolate.name, self._node_name,
+        self._monitor.start_isolate(isolate.name,
                                     self._compute_kind(isolate),
                                     isolate.language, 'isolate',
                                     isolate_bundles)
