@@ -192,7 +192,7 @@ class BootConfigParser(object):
                        ** boot_config._asdict())
 
 
-    def _prepare_configuration(self, uid, name, node, kind,
+    def _prepare_configuration(self, uid, name, kind,
                               bundles=None, composition=None,
                               base_configuration=None):
         """
@@ -201,7 +201,6 @@ class BootConfigParser(object):
 
         :param uid: The isolate UID
         :param name: The isolate name
-        :param node: The isolate node name
         :param kind: The kind of isolate to boot
         :param bundles: Extra bundles to install
         :param composition: Extra components to instantiate
@@ -221,10 +220,6 @@ class BootConfigParser(object):
         configuration['uid'] = uid
         configuration['name'] = name
         configuration['kind'] = kind
-
-        if node not in configuration:
-            # Node not given in the configuration
-            configuration['node'] = node
 
         # Boot configuration for this kind
         new_boot = configuration.setdefault('boot', {})
@@ -347,7 +342,7 @@ class BootConfigParser(object):
                                  properties=properties)
 
 
-    def prepare_isolate(self, uid, name, node, kind, level, sublevel,
+    def prepare_isolate(self, uid, name, kind, level, sublevel,
                         bundles=None, composition=None):
         """
         Prepares and returns a configuration dictionary to be stored in the
@@ -355,7 +350,6 @@ class BootConfigParser(object):
 
         :param uid: The isolate UID
         :param name: The isolate name
-        :param node: Isolate node name
         :param kind: The kind of isolate to boot (pelix, osgi, ...)
         :param level: The level of configuration (boot, java, python, ...)
         :param sublevel: Category of configuration (monitor, isolate, ...)
@@ -386,7 +380,7 @@ class BootConfigParser(object):
                                                       configuration)
 
         # Extend with the boot configuration
-        return self._prepare_configuration(uid, name, node, kind,
+        return self._prepare_configuration(uid, name, kind,
                                            bundles, composition, configuration)
 
 

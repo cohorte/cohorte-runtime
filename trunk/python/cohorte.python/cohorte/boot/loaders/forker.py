@@ -75,7 +75,7 @@ class ForkerLoader(object):
         """
         Finds the COHORTE Home and Base directories, according to existing
         framework properties or process environment.
-        
+
         :return: A (home, base) tuple.
         :raise KeyError: The Home and Base directories can't be determined
         """
@@ -120,25 +120,37 @@ class ForkerLoader(object):
         """
         Sets the isolate Node property, according to existing framework
         property or process environment.
-        
-        :return: The isolate node name
-        :raise KeyError: The node name can't be determined
-        """
-        node = self._context.get_property(cohorte.PROP_NODE)
-        if not node:
-            node = os.path.expandvars(os.getenv(cohorte.ENV_NODE))
 
-        if not node:
-            # Node name not found
-            raise KeyError('No correct value found for the Node name: '
-                           '{env_node}, {prop_node}'
-                           .format(env_node=cohorte.ENV_NODE,
-                                   prop_node=cohorte.PROP_NODE))
+        :return: A tuple: (node UID, node name)
+        """
+        # Generate the node UID
+        uid = str(uuid.uuid4())
+
+        # Get the possibly configured node name
+        name = self._context.get_property(cohorte.PROP_NODE_NAME)
+
+        if not name:
+            # Get name from environment
+            name = os.getenv(cohorte.ENV_NODE_NAME)
+            if name:
+                # Allow the user to use variables in the node name
+                name = os.path.expandvars(name)
+
+        if not name:
+            # Still no node name, use the UID
+            name = uid
+
+            # Print a message to indicate the situation
+            _logger.warning("No node name given, using a generated one. "
+                            "To specify a node name, use the %s environment "
+                            "property or the %s framework property.",
+                            cohorte.ENV_NODE_NAME, cohorte.PROP_NODE_NAME)
 
         # Update framework properties
-        self._framework.add_property(cohorte.PROP_NODE, node)
+        self._framework.add_property(cohorte.PROP_NODE_NAME, name)
+        self._framework.add_property(cohorte.PROP_NODE_UID, uid)
 
-        return node
+        return uid, name
 
 
     def _update_uid(self):
@@ -146,7 +158,7 @@ class ForkerLoader(object):
         Sets the isolate UID property. Generates it if not indicated in
         framework properties.
         Updates the framework properties if needed.
-        
+
         :return: The isolate UID
         """
         uid = self._context.get_property(cohorte.PROP_UID)
@@ -175,7 +187,7 @@ class ForkerLoader(object):
     def load(self, configuration):
         """
         Loads the forker
-        
+
         :param configuration: API compatibility argument (raises ValueError
                               if present)
         :raise KeyError: A mandatory property is missing
@@ -193,17 +205,20 @@ class ForkerLoader(object):
         # Get/Update the Home and Base directories
         home, base = self._find_cohorte_directories()
 
-        # Get the node name
-        node = self._update_node()
+        # Get the node UID and name
+        node_uid, node_name = self._update_node()
 
         # Generate the forker UID if needed
         uid = self._update_uid()
 
         _logger.info('''Loading a forker with the following properties:
-* Home: {home}
-* Base: {base}
-* Node: {node}
-* UID : {uid}'''.format(home=home, base=base, node=node, uid=uid))
+* Home.....: {home}
+* Base.....: {base}
+* Node UID.: {node_uid}
+* Node Name: {node_name}
+* UID......: {uid}'''.format(home=home, base=base,
+                              node_uid=node_uid, node_name=node_name,
+                              uid=uid))
 
         # Update the file finder, as framework properties may have been modified
         self._finder.update_roots()
@@ -238,7 +253,7 @@ class ForkerLoader(object):
     def validate(self, context):
         """
         Component validated
-        
+
         :param context: The bundle context
         """
         # Store the framework access
@@ -250,7 +265,7 @@ class ForkerLoader(object):
     def invalidate(self, context):
         """
         Component invalidated
-        
+
         :param context: The bundle context
         """
         # Clear the framework access

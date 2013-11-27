@@ -32,7 +32,7 @@ else
 fi
 
 # COHORTE node name
-export COHORTE_NODE=${COHORTE_NODE:="central"}
+export COHORTE_NODE_NAME=${COHORTE_NODE_NAME:="central"}
 
 # Forker log file
 export COHORTE_LOGFILE="$COHORTE_BASE/var/forker.log"

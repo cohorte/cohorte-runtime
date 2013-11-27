@@ -85,7 +85,7 @@ class TopComposer(object):
             return distribution
 
         # FIXME: use a configurable default node
-        default_node = self._context.get_property(cohorte.PROP_NODE)
+        default_node = self._context.get_property(cohorte.PROP_NODE_NAME)
 
         # Add the unassigned components to the default one
         distribution.setdefault(default_node, set()).update(unassigned)

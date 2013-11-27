@@ -89,7 +89,7 @@ class BrokerClientLoader(object):
         """
         Retrieves the isolate configuration from the configuration broker, if
         any
-        
+
         :param access: A (host, port, path) tuple
         :param host: The broker HTTP server host address
         :param host: The broker HTTP server port
@@ -134,7 +134,7 @@ class BrokerClientLoader(object):
         """
         Extracts information from the given URL and returns a tuple to make
         requests for the given address
-        
+
         :param url: An URL
         :return: A (host, port, path) tuple to request the configuration
         :raise ValueError: Invalid URL
@@ -168,10 +168,8 @@ class BrokerClientLoader(object):
     def prepare_state_updater(self, state_updater_url):
         """
         Prepares the access to the state updater
-        
+
         :param state_updater_url: The URL to the state updater
-        
-        TODO: should be in a mother class
         """
         # Get the UID if already present
         self._uid = self._context.get_property(cohorte.PROP_UID)
@@ -189,11 +187,9 @@ class BrokerClientLoader(object):
     def update_state(self, new_state, extra=None):
         """
         Sends the new state to the state updater
-        
+
         :param new_state: The new state of the isolate
         :param extra: Extra information to send (must be JSON serializable)
-        
-        TODO: should be in a mother class
         """
         if not self._updater_access:
             # No access, do nothing
@@ -245,11 +241,11 @@ class BrokerClientLoader(object):
         """
         Grabs the configuration from the broker and uses the corresponding
         loader (instantiates it if needed).
-        
+
         The *cohorte.configuration.broker* framework property must be set
         correctly before calling this method, or a KeyError exception will be
         raised.
-        
+
         :raise KeyError: A mandatory property is missing
         :raise ValueError: Invalid parameter/file encountered
         :raise BundleException: Error installing a bundle
@@ -277,7 +273,8 @@ class BrokerClientLoader(object):
         # Store basic isolate properties
         framework.add_property(cohorte.PROP_UID, json_data['uid'])
         framework.add_property(cohorte.PROP_NAME, json_data['name'])
-        framework.add_property(cohorte.PROP_NODE, json_data['node'])
+        framework.add_property(cohorte.PROP_NODE_UID, json_data['node_uid'])
+        framework.add_property(cohorte.PROP_NODE_NAME, json_data['node_name'])
         framework.add_property(cohorte.PROP_KIND, kind)
 
         # Get the boot configuration
@@ -319,7 +316,7 @@ class BrokerClientLoader(object):
     def wait(self):
         """
         Waits for the isolate to stop
-        
+
         :raise ValueError: No loader used in load()
         :raise BundleException: Error retrieving the loader
         """
@@ -341,7 +338,7 @@ class BrokerClientLoader(object):
     def validate(self, context):
         """
         Component validated
-        
+
         :param context: The bundle context
         """
         # Store the framework access
@@ -354,7 +351,7 @@ class BrokerClientLoader(object):
     def invalidate(self, context):
         """
         Component invalidated
-        
+
         :param context: The bundle context
         """
         self._uid = None

@@ -72,7 +72,7 @@ class PyBridge(object):
                  callback):
         """
         Sets up the bridge
-        
+
         :param context: The bundle context
         :param jvm: The JVM wrapper
         :param java_configuration: Java boot configuration
@@ -99,7 +99,7 @@ class PyBridge(object):
     def _prepare_components(self, raw_components):
         """
         Converts the Python Component objects into Java Component beans
-        
+
         :param raw_components: Python components representations
         """
         for component in raw_components:
@@ -116,7 +116,7 @@ class PyBridge(object):
     def _to_java(self, data):
         """
         Recursively converts lists and maps to Java ones
-        
+
         :param data: Data to be converted
         :return: Converted data
         """
@@ -170,7 +170,7 @@ class PyBridge(object):
     def getComponents(self):
         """
         Retrieves the components to instantiate (Java API)
-        
+
         :return: An array of components
         """
         # Create a list
@@ -184,7 +184,7 @@ class PyBridge(object):
     def getStartConfiguration(self):
         """
         Retrieves the configuration used to start this isolate as a map
-        
+
         :return: The configuration used to start this isolate
         """
         return self._java_boot_config
@@ -193,7 +193,7 @@ class PyBridge(object):
     def getPid(self):
         """
         Retrieves the Process ID of this isolate
-        
+
         :return: The isolate PID
         """
         return os.getpid()
@@ -203,7 +203,7 @@ class PyBridge(object):
         """
         Returns the port used by the Pelix remote shell, or -1 if the shell is
         not active
-        
+
         :return: The port used by the remote shell, or -1
         """
         ref = self._context.get_service_reference(pelix.shell.REMOTE_SHELL_SPEC)
@@ -230,7 +230,7 @@ class PyBridge(object):
     def onComponentStarted(self, name):
         """
         Called when a component has been started
-        
+
         :param name: Name of the started component
         """
         if name in self._components:
@@ -243,7 +243,7 @@ class PyBridge(object):
     def onError(self, error):
         """
         Called when an error has occurred
-        
+
         :param error: An error message
         """
         self._callback(False, error)
@@ -269,7 +269,7 @@ class PyBridge(object):
     def readConfiguration(self, filename):
         """
         Reads the given configuration file
-        
+
         :param filename: A configuration file name
         :return: The parsed configuration map
         """
@@ -318,7 +318,7 @@ class JavaOsgiLoader(object):
     def _setup_vm_properties(self, properties):
         """
         Sets up the JVM system properties dictionary (not the arguments)
-        
+
         :param properties: Configured properties
         :return: VM properties dictionary
         """
@@ -333,7 +333,7 @@ class JavaOsgiLoader(object):
         """
         Sets up the OSGi framework properties and converts them into a Java
         HashMap.
-        
+
         :param properties: Configured framework properties
         :param allow_bridge: If True, the bridge API package will be exported
                              by the framework.
@@ -346,7 +346,8 @@ class JavaOsgiLoader(object):
 
         # Inherit some Pelix properties
         for key in (cohorte.PROP_HOME, cohorte.PROP_BASE,
-                    cohorte.PROP_UID, cohorte.PROP_NAME, cohorte.PROP_NODE,
+                    cohorte.PROP_UID, cohorte.PROP_NAME,
+                    cohorte.PROP_NODE_UID, cohorte.PROP_NODE_NAME,
                     cohorte.PROP_DUMPER_PORT):
             value = self._context.get_property(key)
             if value is not None:
@@ -365,7 +366,7 @@ class JavaOsgiLoader(object):
     def _start_jvm(self, vm_args, classpath, properties):
         """
         Starts the JVM, with the given file in the class path
-        
+
         :param vm_args: JVM arguments
         :param classpath: A list of JAR files
         :param properties: Java system properties
@@ -418,7 +419,7 @@ class JavaOsgiLoader(object):
     def _register_bridge(self, context, java_configuration):
         """
         Instantiates and starts the iPOJO components instantiation handler
-        
+
         :param context: An OSGi bundle context
         :param java_configuration: The Java boot configuration
         """
@@ -437,7 +438,7 @@ class JavaOsgiLoader(object):
     def _bridge_callback(self, success, message):
         """
         Called back by the Python-Java bridge
-        
+
         :param success: If True, all components have been started, else an error
                         occurred
         :param message: A call back message
@@ -452,7 +453,7 @@ class JavaOsgiLoader(object):
     def _find_osgi_jar(self, osgi_jar, symbolic_name):
         """
         Looks for the OSGi framework JAR file matching the given parameters
-        
+
         :param osgi_jar: An OSGi framework JAR file name
         :param symbolic_name: An OSGi framework symbolic name
         :return: A (file name, framework factory) tuple
@@ -481,7 +482,7 @@ class JavaOsgiLoader(object):
     def load(self, configuration):
         """
         Loads the Java OSGi isolate
-        
+
         :param configuration: Isolate configuration dictionary (required)
         :raise KeyError: A mandatory property is missing
         :raise ValueError: Invalid parameter/file encountered or the JVM
@@ -594,7 +595,7 @@ class JavaOsgiLoader(object):
     def validate(self, context):
         """
         Component validated
-        
+
         :param context: The bundle context
         """
         # Update the finder
@@ -608,7 +609,7 @@ class JavaOsgiLoader(object):
     def invalidate(self, context):
         """
         Component invalidated
-        
+
         :param context: The bundle context
         """
         # Stop the framework

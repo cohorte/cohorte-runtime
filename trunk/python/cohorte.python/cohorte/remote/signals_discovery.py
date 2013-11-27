@@ -129,14 +129,14 @@ class _EndpointDescription(object):
     javaClass = JAVA_ENDPOINT_DESCRIPTION
     """ Java class (for Jabsorb) """
 
-    def __init__(self, name, uri, exported_config, node, port, protocol):
+    def __init__(self, name, uri, exported_config, node_uid, port, protocol):
         """
         Sets up the bean
         """
         self.endpointName = name
         self.endpointUri = uri
         self.exportedConfig = exported_config
-        self.node = node
+        self.node = node_uid
         self.port = port
         self.protocol = protocol
 
@@ -235,7 +235,7 @@ class SignalsDiscovery(object):
 
         # Get isolate information
         uid = self._context.get_property(cohorte.PROP_UID)
-        node = self._context.get_property(cohorte.PROP_NODE)
+        node_uid = self._context.get_property(cohorte.PROP_NODE_UID)
 
         # Parse access URL
         access = urlparse(endpoint.url)
@@ -244,7 +244,7 @@ class SignalsDiscovery(object):
         java_endpoint = _EndpointDescription(endpoint.name,
                                              access.path,
                                              endpoint.kind,
-                                             node, access.port,
+                                             node_uid, access.port,
                                              access.scheme or "http")
 
         # Make a registration bean
@@ -392,7 +392,7 @@ class SignalsDiscovery(object):
         endpoints = registration["endpoints"]
         if not endpoints:
             # FIXME: No end point: nothing to do
-            _logger.warning("RemoteServiceEvent without endpoint:\n%s",
+            _logger.warning("RemoteServiceEvent without end point:\n%s",
                             remote_event)
             return
 
@@ -419,6 +419,8 @@ class SignalsDiscovery(object):
         url = "{0}://{1}:{2}{3}".format(endpoint["protocol"], host,
                                         endpoint["port"],
                                         endpoint["endpointUri"])
+
+        # TODO: change ranking according to the node UID
 
         # Create the bean
         rs_endpoint = pelix.remote.beans.ImportEndpoint(uid, framework, kind, \
@@ -449,7 +451,8 @@ class SignalsDiscovery(object):
         if not isolate:
             raw_results = self._sender.send(\
                                         BROADCASTER_SIGNAL_REQUEST_ENDPOINTS,
-                                        None, dir_group="OTHERS")
+                                        None,
+                                        dir_group=cohorte.signals.GROUP_OTHERS)
 
         else:
             raw_results = self._sender.send(\

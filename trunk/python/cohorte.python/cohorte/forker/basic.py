@@ -113,6 +113,10 @@ class ForkerBasic(object):
         # Platform is not yet stopped
         self._platform_stopping = False
 
+        # Node name and UID
+        self._node_name = None
+        self._node_uid = None
+
         # Isolate ID -> process object
         self._isolates = {}
 
@@ -211,8 +215,9 @@ class ForkerBasic(object):
         # Internal values
         environment[cohorte.ENV_HOME] = get_property(cohorte.PROP_HOME)
         environment[cohorte.ENV_BASE] = get_property(cohorte.PROP_BASE)
-        environment[cohorte.ENV_NODE] = get_property(cohorte.PROP_NODE)
         environment[cohorte.ENV_NODE_UID] = get_property(cohorte.PROP_NODE_UID)
+        environment[cohorte.ENV_NODE_NAME] = get_property(
+                                                      cohorte.PROP_NODE_NAME)
 
         # Normalize environment
         self._normalize_environment(environment)
@@ -311,6 +316,7 @@ class ForkerBasic(object):
 
         # Prepare the dumper port property
         dumper_port = self._receiver.get_access_info()[1]
+
         all_props = []
         if 'boot' in isolate_config and 'properties' in isolate_config['boot']:
             # ... in boot properties
@@ -320,7 +326,12 @@ class ForkerBasic(object):
         all_props.append(isolate_config.setdefault('properties', {}))
 
         for props in all_props:
+            # Dumper port
             props[cohorte.PROP_DUMPER_PORT] = dumper_port
+
+        # Force node name and UID
+        isolate_config['node_uid'] = self._node_uid
+        isolate_config['node_name'] = self._node_name
 
         # Store the configuration in the broker
         config_url = self._config_broker.store_configuration(uid,
@@ -667,6 +678,10 @@ class ForkerBasic(object):
         # Store the bundle context
         self._context = context
 
+        # Get node information
+        self._node_name = context.get_property(cohorte.PROP_NODE_NAME)
+        self._node_uid = context.get_property(cohorte.PROP_NODE_UID)
+
         # Activate watchers
         self._watchers_running = True
         self._platform_stopping = False
@@ -709,4 +724,6 @@ class ForkerBasic(object):
         # Clean up
         self._threads.clear()
         self._context = None
+        self._node_name = None
+        self._node_uid = None
         _logger.info("Forker invalidated")

@@ -8,6 +8,7 @@ Created on 18 juin 2012
 :author: Thomas Calmant
 :license: GPLv3
 """
+import cohorte
 
 # Documentation strings format
 __docformat__ = "restructuredtext en"
@@ -62,16 +63,16 @@ class DirectoryUpdater(object):
         self._lock = threading.Lock()
 
 
-    def _grab_directory(self, host, port, ignored_node=None):
+    def _grab_directory(self, host, port, ignored_node_uid=None):
         """
         Sends a directory dump signal to the dumper on local host.
-        
+
         If ignored_host is not None, the address corresponding to it in the
         dumped directory won't be stored.
-        
+
         :param host: Directory dumper host address
         :param port: Directory signal listener port
-        :param ignored_node: The address for this node must be ignored
+        :param ignored_node_uid: The address for this node UID must be ignored
         """
         # Prepare pre-registration content, without propagation
         content = self._prepare_registration_content(False)
@@ -96,8 +97,8 @@ class DirectoryUpdater(object):
                 break
 
         # Local information
-        local_id = self._directory.get_isolate_uid()
-        local_node = self._directory.get_local_node()
+        local_isolate_uid = self._directory.get_isolate_uid()
+        local_node_uid = self._directory.get_local_node()
 
         # Get the first result only
         results = sig_results["results"]
@@ -107,13 +108,13 @@ class DirectoryUpdater(object):
         result = results[0]
 
         # 1. Filter the nodes
-        ignored_nodes = (ignored_node, local_node)
+        ignored_nodes = (ignored_node_uid, local_node_uid)
 
-        # 2. Filter the IDs
-        ignored_ids = (local_id,)
+        # 2. Filter the UIDs
+        ignored_uids = (local_isolate_uid,)
 
         # 3. Call the directory, to do all the update at once
-        self._directory.store_dump(result, ignored_nodes, ignored_ids)
+        self._directory.store_dump(result, ignored_nodes, ignored_uids)
 
         # 4. Now, we can send our registration signal
         self._send_registration_to_all(True)
@@ -122,10 +123,10 @@ class DirectoryUpdater(object):
     def _grab_remote_directory(self, signal_data):
         """
         Retrieves the directory of a remote isolate.
-        
+
         This method is called after a CONTACT signal has been received from a
         monitor.
-        
+
         :param signal_data: The received contact signal
         """
         # Only monitors can send us contacts
@@ -136,11 +137,12 @@ class DirectoryUpdater(object):
             return
 
         # Get information on the sender
-        remote_id = signal_data["senderUID"]
+        remote_uid = signal_data["senderUID"]
         remote_address = signal_data["senderAddress"]
-        remote_node = signal_data["senderNode"]
+        remote_node_uid = signal_data["senderNodeUID"]
 
-        _logger.debug("Grab directory from %s (%s)", remote_id, remote_node)
+        _logger.debug("Received request from %s (%s) to dump directory",
+                      remote_uid, remote_node_uid)
 
         # Get the dumper port
         content = signal_data["signalContent"]
@@ -150,16 +152,16 @@ class DirectoryUpdater(object):
             return
 
         # Store the remote node
-        self._directory.set_node_address(remote_node, remote_address)
+        self._directory.set_node_address(remote_node_uid, remote_address)
 
         # Grab the directory
-        self._grab_directory(remote_address, remote_port, remote_node)
+        self._grab_directory(remote_address, remote_port, remote_node_uid)
 
 
     def _prepare_registration_content(self, propagate):
         """
         Prepares the registration signal content.
-        
+
         :param propagate: If true, the receivers of this signal will re-emit it
         :return: The content for a registration signal
         """
@@ -170,7 +172,8 @@ class DirectoryUpdater(object):
         return {"uid": uid,
                 "name": name,
                 "address": None,  # <- No address when sending
-                "node": self._directory.get_local_node(),
+                "node_uid": self._directory.get_local_node(),
+                "node_name": self._directory.get_node_name(),
                 "port": self._receiver.get_access_info()[1],
                 "propagate": propagate}
 
@@ -178,9 +181,9 @@ class DirectoryUpdater(object):
     def _register_isolate(self, signal_data):
         """
         Registers an isolate according to the given map
-        
+
         :param signal_data: The received signal
-        :return: True if the isolate has been registered 
+        :return: True if the isolate has been registered
         """
         sender_id = signal_data["senderUID"]
         content = signal_data["signalContent"]
@@ -190,8 +193,9 @@ class DirectoryUpdater(object):
             # Ignore self-registration
             return False
 
-        node = content["node"]
-        if node == signal_data["senderNode"]:
+        node_uid = content["node_uid"]
+        node_name = content["node_name"]
+        if node_uid == signal_data["senderNodeUID"]:
             # If both the registered and the registrar are on the same node,
             # use the sender address to update the node access
             address = signal_data["senderAddress"]
@@ -205,12 +209,13 @@ class DirectoryUpdater(object):
                 address = signal_data["senderAddress"]
 
         # 1. Update the node host
-        self._directory.set_node_address(node, address)
+        self._directory.set_node_address(node_uid, address)
+        self._directory.set_node_name(node_uid, node_name)
 
         # 2. Register the isolate
         registered = self._directory.register_isolate(isolate_uid,
                                                       content["name"],
-                                                      node,
+                                                      node_uid,
                                                       content["port"])
 
         # 2b. Acknowledge the registration, even if we knew it before
@@ -249,7 +254,7 @@ class DirectoryUpdater(object):
     def _send_registration_to_all(self, propagate):
         """
         Sends the registration signal to all known isolates
-        
+
         :param propagate: If true, the receivers of this signal will re-emit it
         """
         content = self._prepare_registration_content(propagate)
@@ -269,7 +274,7 @@ class DirectoryUpdater(object):
     def handle_received_signal(self, name, signal_data):
         """
         Called when a remote services signal is received
-        
+
         :param name: Signal name
         :param signal_data: Signal content
         """

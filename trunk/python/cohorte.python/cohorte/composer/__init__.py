@@ -84,6 +84,9 @@ SERVICE_AGENT_ISOLATE = 'cohorte.composer.isolate.agent'
 PROP_NODE_NAME = 'cohorte.composer.node.name'
 """ Name of the node the service is executed on """
 
+PROP_NODE_UID = 'cohorte.composer.node.uid'
+""" UID of the node the service is executed on """
+
 PROP_ISOLATE_NAME = 'cohorte.composer.isolate.name'
 """ Name of the isolate the service is executed in """
 

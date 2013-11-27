@@ -60,7 +60,7 @@ class SignalsDirectory(object):
         # Listeners
         self._listeners = []
 
-        # Isolate UID -> (node, port)
+        # Isolate UID -> (node UID, port)
         self._accesses = {}
 
         # Isolate UID -> Isolate Name
@@ -69,11 +69,14 @@ class SignalsDirectory(object):
         # Current isolate access port
         self._current_isolate_port = -1
 
-        # Node name -> [isolates]
+        # Node UID -> set(Isolate UID)
         self._nodes_isolates = {}
 
-        # Node name -> host
+        # Node UID -> Host name/address
         self._nodes_host = {}
+
+        # Node name -> set(Node UID)
+        self._nodes_names = {}
 
         # Isolates waiting for validation
         self._waiting_isolates = set()
@@ -138,63 +141,77 @@ class SignalsDirectory(object):
             # Isolate accesses, converted into a map
             result["accesses"] = {}
             for isolate_id, access in self._accesses.items():
-
                 if access[0] is None:
                     # Special case: current isolate
                     access = (self.get_local_node(), self._current_isolate_port)
 
-                result["accesses"][isolate_id] = {"node": access[0],
-                                                  "port": access[1],
-                                                  "name": self._names[isolate_id]
-                                                  }
+                result["accesses"][isolate_id] = {
+                                             "node_uid": access[0],
+                                             "port": access[1],
+                                             "name": self._names[isolate_id]
+                                             }
 
-            # Copy the node -> host name association
+            # Copy the node UID -> host Name association
             result['nodes_host'] = self._nodes_host.copy()
+
+            # Copy the node Name -> node UIDs registry
+            result['nodes_names'] = self._nodes_names.copy()
 
         return result
 
 
-    def store_dump(self, dump, ignored_nodes=None, ignored_ids=None):
+    def store_dump(self, dump, ignored_nodes=None, ignored_isolates=None):
         """
         Stores the result of a dump
 
         :param dump: A dictionary, result of dump()
-        :param ignored_nodes: A list of ignored nodes
-        :param ignored_ids: A list of ignored IDs
+        :param ignored_nodes: A list of ignored nodes UIDs
+        :param ignored_isolates: A list of ignored isolate UIDs
         """
         with self._lock:
             # 0. Always ignore the current isolate and the current node
             local_uid = self.get_isolate_uid()
             local_node = self.get_local_node()
 
+            # Always ignore the local node UID
             if ignored_nodes is None:
-                ignored_nodes = [local_node]
-            elif local_node not in ignored_nodes:
-                ignored_nodes.append(local_node)
+                ignored_nodes = set()
+            else:
+                ignored_nodes = set(ignored_nodes)
 
-            if ignored_ids is None:
-                ignored_ids = [local_uid]
-            elif local_uid not in ignored_ids:
-                ignored_ids.append(local_uid)
+            ignored_nodes.add(local_node)
+
+            # Always ignore the local UIDs
+            if ignored_isolates is None:
+                ignored_isolates = set()
+            else:
+                ignored_isolates = set(ignored_isolates)
+
+            ignored_isolates.add(local_uid)
 
             # 1. Setup nodes hosts
-            for node, dumped_host in dump["nodes_host"].items():
-                if node not in ignored_nodes:
-                    self.set_node_address(node, dumped_host)
+            for node_uid, dumped_host in dump["nodes_host"].items():
+                if node_uid not in ignored_nodes:
+                    self.set_node_address(node_uid, dumped_host)
 
-            # 2. Prepare isolates information
+            # 2. Setup nodes names
+            for node_name, node_uids in dump["nodes_names"].items():
+                node_uids = set(node_uids).difference(ignored_nodes)
+                self._nodes_names.setdefault(node_name, set()).update(node_uids)
+
+            # 3. Prepare isolates information
             filtered_isolates = {}
-            for isolate_id, access in dump["accesses"].items():
+            for isolate_uid, info in dump["accesses"].items():
                 # Access URL
-                if isolate_id not in ignored_ids:
-                    filtered_isolates[isolate_id] = access
+                if isolate_uid not in ignored_isolates:
+                    filtered_isolates[isolate_uid] = info
 
             # 3. Register all new isolates
             new_isolates = []
             for isolate_id, info in filtered_isolates.items():
                 try:
                     if self.register_isolate(isolate_id, info["name"],
-                                             info["node"], info["port"]):
+                                             info["node_uid"], info["port"]):
                         new_isolates.append(isolate_id)
 
                 except KeyError:
@@ -256,9 +273,9 @@ class SignalsDirectory(object):
 
     def get_all_nodes(self):
         """
-        Retrieves all known nodes. Returns None if no nodes are known
+        Retrieves all known nodes UID. Returns None if no nodes are known
 
-        :return: All known nodes, or None
+        :return: All known nodes UID, or None
         """
         with self._lock:
             if not self._nodes_isolates:
@@ -347,14 +364,14 @@ class SignalsDirectory(object):
         return accesses
 
 
-    def get_host_for_node(self, node):
+    def get_host_for_node(self, node_uid):
         """
-        Retrieves the host address for the given node
+        Retrieves the host address for the given node UID
 
-        :param node: A node name
+        :param node: A node UID
         :return: The address of the node, or None
         """
-        return self._nodes_host.get(node, None)
+        return self._nodes_host.get(node_uid, None)
 
 
     def get_isolate_access(self, isolate_uid):
@@ -385,58 +402,58 @@ class SignalsDirectory(object):
         return self._context.get_property(cohorte.PROP_UID)
 
 
-    def get_isolate_name(self, uid):
+    def get_isolate_name(self, isolate_uid=None):
         """
         Retrieves the name of the given isolate
 
-        :param UID: An isolate UID
+        :param isolate_uid: An isolate UID
         :return: The name of the isolate, or None
         """
-        return self._names.get(uid)
+        if isolate_uid is None:
+            return self._context.get_property(cohorte.PROP_NAME)
+
+        return self._names.get(isolate_uid)
 
 
-    def get_isolate_node(self, uid=None):
+    def get_isolate_node(self, isolate_uid=None):
         """
         Retrieves the node hosting the given isolate, or None
 
-        :param uid: An isolate UID
-        :return: The node hosting the isolate, the current node is uid is
-                 empty, or None
+        :param isolate_uid: An isolate UID
+        :return: The UID of the node hosting the isolate, or the current node
+                 UID if isolate_uid is empty, or None
         """
-        if not uid:
-            return self._context.get_property(cohorte.PROP_NODE)
+        if not isolate_uid:
+            return self._context.get_property(cohorte.PROP_NODE_UID)
 
         with self._lock:
             for node, isolates in self._nodes_isolates.items():
-                if uid in isolates:
+                if isolate_uid in isolates:
                     return node
 
-        return None
 
-
-    def get_isolates_on_node(self, node):
+    def get_isolates_on_node(self, node_uid):
         """
-        Retrieves the IDs of the isolates on the given node, or None
+        Retrieves the UIDs of the isolates on the given node, or None
 
-        :param node: The name of a node
-        :return: A list of IDs (can be empty)
+        :param node_uid: The UID of a node
+        :return: A set of isolate UIDs (can be empty)
         """
         with self._lock:
-            isolates = self._nodes_isolates.get(node, None)
-            if isolates is not None:
-                # Return a copy, to avoid unwanted modifications
-                return isolates[:]
+            try:
+                return self._nodes_isolates[node_uid].copy()
 
-            return []
+            except KeyError:
+                return set()
 
 
     def get_local_node(self):
         """
-        Retrieves the current node ID
+        Retrieves the current node UID
 
-        :return: the current node ID
+        :return: the current node UID
         """
-        return self._context.get_property(cohorte.PROP_NODE)
+        return self._context.get_property(cohorte.PROP_NODE_UID)
 
 
     def get_name_uids(self, name):
@@ -451,6 +468,37 @@ class SignalsDirectory(object):
             if isolate_name == name and isolate_uid not in uids:
                 uids.add(isolate_uid)
                 yield isolate_uid
+
+
+    def get_node_name(self, node_uid=None):
+        """
+        Returns the name of the node with the given UID
+
+        :param node_uid: The UID of a node
+        :return: The node name, or None
+        """
+        if node_uid is None:
+            return self._context.get_property(cohorte.PROP_NODE_UID)
+
+        with self._lock:
+            for name, uids in self._nodes_names.items():
+                if node_uid in uids:
+                    return name
+
+
+    def get_node_uids(self, node_name):
+        """
+        Returns the UIDs of the nodes with the given name
+
+        :param node_name: The name of a (set of) node(s)
+        :return: A set of node UIDs (can be empty)
+        """
+        with self._lock:
+            try:
+                return self._nodes_names[node_name].copy()
+
+            except KeyError:
+                return set()
 
 
     def get_uids(self, isolate_name_or_uid=None):
@@ -510,7 +558,7 @@ class SignalsDirectory(object):
             return isolate_id in self._accesses
 
 
-    def register_isolate(self, uid, name, node, port, validated=False):
+    def register_isolate(self, uid, name, node_uid, port, validated=False):
         """
         Registers an isolate in the directory.
 
@@ -528,13 +576,13 @@ class SignalsDirectory(object):
         if not name:
             raise ValueError("Empty name: {0} ({1})".format(uid, name))
 
-        if not node:
-            raise ValueError("Empty node name for isolate {0} ({1})" \
+        if not node_uid:
+            raise ValueError("Empty node UID for isolate {0} ({1})" \
                              .format(uid, name))
 
         with self._lock:
             # Prepare the new access tuple
-            new_access = (node, port)
+            new_access = (node_uid, port)
 
             # Get the previous access, if any
             old_access = self._accesses.get(uid, None)
@@ -550,18 +598,24 @@ class SignalsDirectory(object):
                                   " - Updated from %s to %s",
                                   uid, self._accesses[uid], new_access)
 
-                old_node = old_access[0]
-                if node != old_node:
+                old_node_uid = old_access[0]
+                if node_uid != old_node_uid:
                     # Isolate moved to another node -> remove the old entry
                     _logger.info("Isolate '%s' moved from %s to %s",
-                                 uid, old_node, node)
+                                 uid, old_node_uid, node_uid)
 
-                    node_isolates = self._nodes_isolates.get(old_node, None)
-                    if node_isolates is not None:
+                    try:
+                        node_isolates = self._nodes_isolates[old_node_uid]
                         node_isolates.remove(uid)
+                        if not node_isolates:
+                            del self._nodes_isolates[old_node_uid]
 
-                    # Notify the unregistration
-                    self._notify_listeners(uid, old_node,
+                    except KeyError:
+                        # Unknown UID
+                        pass
+
+                    # Notify about the removal
+                    self._notify_listeners(uid, old_node_uid,
                                            cohorte.signals.ISOLATE_UNREGISTERED)
 
             # Store the isolate access
@@ -571,16 +625,9 @@ class SignalsDirectory(object):
             self._names[uid] = name
 
             # Store the node
-            node_isolates = self._nodes_isolates.get(node, None)
-            if node_isolates is None:
-                # Create the node entry
-                node_isolates = []
-                self._nodes_isolates[node] = node_isolates
+            self._nodes_isolates.setdefault(node_uid, set()).add(uid)
 
-            if uid not in node_isolates:
-                node_isolates.append(uid)
-
-            _logger.debug("Registered isolate ID=%s, Name=%s, Access=%s",
+            _logger.debug("Registered isolate UID=%s, Name=%s, Access=%s",
                           uid, name, new_access)
 
             if not validated:
@@ -588,8 +635,8 @@ class SignalsDirectory(object):
                 self._waiting_isolates.add(uid)
 
             else:
-                # Notify registration
-                self._notify_listeners(uid, node,
+                # Notify about the registration
+                self._notify_listeners(uid, node_uid,
                                        cohorte.signals.ISOLATE_REGISTERED)
 
         return True
@@ -618,40 +665,89 @@ class SignalsDirectory(object):
             return old
 
 
-    def unregister_isolate(self, isolate_id):
+    def set_node_name(self, node_uid, node_name):
+        """
+        Associates the given node UID to a node name
+
+        :param node_uid: UID of the node
+        :param node_name: Name of the node
+        """
+        with self._lock:
+            self._nodes_names.setdefault(node_name, set()).add(node_uid)
+
+
+    def remove_node(self, node_uid):
+        """
+        Removes the references to the given node UID, including all of its
+        isolates.
+
+        :param node_uid: UID of the node to remove
+        """
+        with self._lock:
+            # Remove access (to avoid sending signals there)
+            del self._nodes_host[node_uid]
+
+            # Unregister corresponding isolates
+            for isolate_id in self._nodes_isolates[node_uid].copy():
+                self.unregister_isolate(isolate_id)
+
+            # Remove node name reference
+            for name, uids in self._nodes_names.items():
+                try:
+                    uids.remove(node_uid)
+                    if not uids:
+                        # Full clean up
+                        del self._nodes_names[name]
+
+                    break
+
+                except KeyError:
+                    # Not there
+                    pass
+
+            # Final clean up
+            del self._nodes_isolates[node_uid]
+
+
+    def unregister_isolate(self, isolate_uid):
         """
         Unregisters the given isolate of the directory
 
-        :param isolate_id: The ID of the isolate to unregister
+        :param isolate_uid: The UID of the isolate to unregister
         :return: True if the isolate has been unregistered
         """
         with self._lock:
-            if not isolate_id or isolate_id not in self._accesses:
+            if not isolate_uid or isolate_uid not in self._accesses:
                 # Nothing to do
                 return False
 
             # Remove the isolate access
-            del self._accesses[isolate_id]
+            del self._accesses[isolate_uid]
 
             # Remove isolate reference in its node
-            isolate_node = None
-            for node, isolates in self._nodes_isolates.items():
-                if isolate_id in isolates:
-                    # Found the isolate node
-                    isolates.remove(isolate_id)
-                    isolate_node = node
+            node_uid = None
+            for node, node_isolates in self._nodes_isolates.items():
+                try:
+                    node_isolates.remove(isolate_uid)
+                    # No exception: UID was here
+                    node_uid = node
                     break
 
+                except KeyError:
+                    # Not on this node
+                    pass
+
             # Remove references in names
-            del self._names[isolate_id]
+            del self._names[isolate_uid]
 
-            if isolate_id not in self._waiting_isolates:
-                # Notify listeners
-                self._notify_listeners(isolate_id, isolate_node,
+            try:
+                # Remove from the waiting set
+                self._waiting_isolates.remove(isolate_uid)
+
+            except KeyError:
+                # Wasn't in the waiting set, notify listeners
+                self._notify_listeners(isolate_uid, node_uid,
                                        cohorte.signals.ISOLATE_UNREGISTERED)
-
-            else:
-                self._waiting_isolates.remove(isolate_id)
 
             return True
 

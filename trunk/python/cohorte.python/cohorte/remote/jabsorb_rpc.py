@@ -18,7 +18,7 @@ __version__ = "1.0.0"
 # JSON-RPC
 from jsonrpclib.SimpleJSONRPCServer import SimpleJSONRPCDispatcher, \
     NoMulticallResult
-import jsonrpclib.jsonrpc
+import jsonrpclib.jsonrpc as jsonrpclib
 
 # Cohorte
 import cohorte.java.jabsorb as jabsorb
@@ -398,7 +398,7 @@ class _ServiceCallProxy(object):
         # This is an ugly trick to handle multithreaded calls, as the underlying
         # proxy re-uses the same connection when possible: sometimes it means
         # sending a request before retrieving a result
-        proxy = jsonrpclib.jsonrpc.ServerProxy(self.__url)
+        proxy = jsonrpclib.ServerProxy(self.__url)
 
         def wrapped_call(*args, **kwargs):
             """

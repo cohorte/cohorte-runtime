@@ -30,7 +30,13 @@ ENV_HOME = 'COHORTE_HOME'
 ENV_BASE = 'COHORTE_BASE'
 """ COHORTE Base directory environment variable """
 
-ENV_NODE = 'COHORTE_NODE'
+ENV_NAME = 'COHORTE_ISOLATE_NAME'
+""" COHORTE Isolate name environment variable """
+
+ENV_UID = 'COHORTE_ISOLATE_UID'
+""" COHORTE Isolate UID environment variable """
+
+ENV_NODE_NAME = 'COHORTE_NODE_NAME'
 """ COHORTE Node name environment variable """
 
 ENV_NODE_UID = 'COHORTE_NODE_UID'
@@ -66,11 +72,11 @@ PROP_HOME = 'cohorte.home'
 PROP_BASE = 'cohorte.base'
 """ COHORTE Base directory framework property """
 
-PROP_NODE = 'cohorte.node'
-""" COHORTE Node name framework property """
-
 PROP_NODE_UID = 'cohorte.node.uid'
 """ COHORTE Node UID framework property """
+
+PROP_NODE_NAME = 'cohorte.node.name'
+""" COHORTE Node name framework property """
 
 PROP_RUN_TOP_COMPOSER = 'cohorte.composer.top.run'
 """ If present, the monitor must load the top composer """

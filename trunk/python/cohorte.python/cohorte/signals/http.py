@@ -82,7 +82,7 @@ def _make_json_result(code, message="", results=None):
     """
     An utility method to prepare a JSON result string, usable by the
     SignalReceiver
-    
+
     :param code: A HTTP Code
     :param message: An associated message
     """
@@ -95,13 +95,13 @@ def _make_exception_handler(signal):
     """
     Prepares an exception handling method for FutureResult in
     SignalSender.post()
-    
+
     :param signal: The name of the posted signal
     """
     def ex_handler(ex):
         """
         Logs an exception during a signal post()
-        
+
         :param ex: The exception object
         """
         _logger.error("Error in post(%s): %s", signal, ex)
@@ -147,7 +147,7 @@ class SignalReceiver(object):
     def bound_to(self, path, parameters):
         """
         Servlet bound to a HTTP service
-        
+
         :param path: The path to access the servlet
         :param parameters: The server & servlet parameters
         """
@@ -156,11 +156,16 @@ class SignalReceiver(object):
             self._host = parameters[pelix.http.PARAM_ADDRESS]
             self._port = int(parameters[pelix.http.PARAM_PORT])
 
+            # Update the node name
+            node_uid = self._context.get_property(cohorte.PROP_NODE_UID)
+            self._directory.set_node_name(node_uid,
+                             self._context.get_property(cohorte.PROP_NODE_NAME))
+
             # Update the access port in the directory
             self._directory.register_isolate(
                              self._context.get_property(cohorte.PROP_UID),
                              self._context.get_property(cohorte.PROP_NAME),
-                             self._context.get_property(cohorte.PROP_NODE),
+                             node_uid,
                              self._port, True)
 
             # Register our service
@@ -177,7 +182,7 @@ class SignalReceiver(object):
     def unbound_from(self, path, parameters):
         """
         Servlet unbound from a HTTP service
-        
+
         :param path: The path to access the servlet
         :param parameters: The server & servlet parameters
         """
@@ -194,7 +199,7 @@ class SignalReceiver(object):
     def do_GET(self, request, response):
         """
         Handles a GET request
-        
+
         :param request: The HTTP request bean
         :param request: The HTTP response handler
         """
@@ -204,9 +209,10 @@ class SignalReceiver(object):
                   'clt_addr': request.get_client_address()}
 
         # Isolate information
-        values['uuid'] = self._context.get_property(cohorte.PROP_UID)
+        values['uid'] = self._context.get_property(cohorte.PROP_UID)
         values['name'] = self._context.get_property(cohorte.PROP_NAME)
-        values['node'] = self._context.get_property(cohorte.PROP_NODE)
+        values['node_uid'] = self._context.get_property(cohorte.PROP_NODE_UID)
+        values['node_name'] = self._context.get_property(cohorte.PROP_NODE_NAME)
         values['home'] = self._context.get_property(cohorte.PROP_HOME)
         values['base'] = self._context.get_property(cohorte.PROP_BASE)
 
@@ -224,9 +230,10 @@ class SignalReceiver(object):
 </ul>
 <h2>Isolate informations:</h2>
 <ul>
-    <li>UUID: {uuid}</li>
+    <li>UID: {uid}</li>
     <li>Name: {name}</li>
-    <li>Node: {node}</li>
+    <li>Node UID: {node_uid}</li>
+    <li>Node Name: {node_name}</li>
     <li>Home: {home}</li>
     <li>Base: {base}</li>
 </ul>
@@ -245,7 +252,7 @@ class SignalReceiver(object):
     def do_POST(self, request, response):
         """
         Handles a GET request
-        
+
         :param request: The HTTP request bean
         :param request: The HTTP response handler
         """
@@ -304,9 +311,9 @@ class SignalReceiver(object):
     def get_access_info(self):
         """
         Retrieves the (host, port) tuple to access this signal receiver.
-        
+
         WARNING: The host might often be "localhost"
-        
+
         :return: An (host, port) tuple
         """
         return (self._host, self._port)
@@ -315,7 +322,7 @@ class SignalReceiver(object):
     def handle_received_signal(self, name, data, mode):
         """
         Handles a received signal
-        
+
         :param name: Signal name
         :param data: Complete signal data (meta-data + content)
         :param mode: Request mode
@@ -410,10 +417,10 @@ class SignalReceiver(object):
     def _notify_listeners(self, name, data):
         """
         Notifies all signal listeners that matches the given signal name
-        
+
         :param name: A signal name
         :param data: Complete signal data (meta-data + content)
-        :return: The result of all 
+        :return: The result of all
         """
         # Priority -> listener
         priorities = {}
@@ -469,24 +476,24 @@ class SignalReceiver(object):
     def validate(self, context):
         """
         Component validated
-        
+
         :param context: The bundle context
         """
         # Store the framework access
         self._context = context
-        _logger.info("SignalReceiver servlet Ready")
+        _logger.info("SignalReceiver Ready")
 
 
     @Invalidate
     def invalidate(self, context):
         """
         Component invalidated
-        
+
         :param context: The bundle context
         """
         # Clear the framework access
         self._context = None
-        _logger.info("SignalReceiver servlet Gone")
+        _logger.info("SignalReceiver Gone")
 
 
 # ------------------------------------------------------------------------------
@@ -498,11 +505,11 @@ class FutureResult(object):
     def __init__(self, exception_handler=None):
         """
         Sets up the FutureResult object
-        
+
         The given exception handler must be a callable accepting one argument,
         the raised exception. It will be called if the job execution raises an
         error.
-        
+
         :param exception_handler: An exception handling method
         """
         self._stop_event = threading.Event()
@@ -520,7 +527,7 @@ class FutureResult(object):
     def execute(self, method, *args, **kwargs):
         """
         Executes the given method in a new thread
-        
+
         :param method: The method to execute
         :param args: The arguments of the method to execute
         """
@@ -548,7 +555,7 @@ class FutureResult(object):
     def result(self, timeout=None):
         """
         Waits up to timeout for the result the threaded job.
-        
+
         :param timeout: The maximum time to wait for a result (in seconds)
         :raise OSError: The timeout raised before the job finished
         """
@@ -561,8 +568,8 @@ class FutureResult(object):
     def __internal_execute(self, method, *args, **kwargs):
         """
         Executes the given method
-        
-        :param method: A callable object 
+
+        :param method: A callable object
         """
         try:
             # Do the job...
@@ -608,7 +615,7 @@ class SignalSender(object):
         Sends a signal to the given target, without waiting for the result.
         Returns the list of successfully reached isolates, which may not have
         a listener for this signal.
-        
+
         :param signal: The signal name
         :param content: The signal content
         :param isolate: The ID of the target isolate
@@ -633,7 +640,7 @@ class SignalSender(object):
     def fire_to(self, signal, content, host, port):
         """
         Sends a signal to the given end point
-        
+
         :param signal: Signal name
         :param content: Signal content
         :param host: Target host name or IP
@@ -675,10 +682,10 @@ class SignalSender(object):
         """
         Sends a signal to the given target in a different thread.
         See send(signal, content, isolate, isolates, groups) for more details.
-        
+
         The result is a future object, allowing to wait for and to retrieve the
         result of the signal.
-        
+
         :param signal: The signal name
         :param content: The signal content
         :param isolate: The ID of the target isolate
@@ -696,7 +703,7 @@ class SignalSender(object):
     def post_to(self, signal, content, host, port):
         """
         Sends a signal to the given end point
-        
+
         :param signal: Signal name
         :param content: Signal content
         :param host: Target host name or IP
@@ -713,13 +720,13 @@ class SignalSender(object):
              dir_group=None, excluded=None):
         """
         Sends a signal to the given target.
-        
+
         The target can be either the ID of an isolate, a list of group of
         isolates or a list of isolates.
-        
+
         The result is a map, with an entry for each reached isolate.
         The associated result can be empty.
-        
+
         :param signal: The signal name
         :param content: The signal content
         :param isolate: The ID of the target isolate
@@ -737,7 +744,7 @@ class SignalSender(object):
     def send_to(self, signal, content, host, port):
         """
         Sends a signal to the given end point
-        
+
         :param signal: Signal name
         :param content: Signal content
         :param host: Target host name or IP
@@ -777,9 +784,9 @@ class SignalSender(object):
         """
         Retrieves a map of (host, port) couples to access the isolates of the
         group computed by the directory
-        
+
         :param groups: A list of group names
-        :return: An isolate ID -> (host, port) map, empty no isolate is known 
+        :return: An isolate ID -> (host, port) map, empty no isolate is known
         """
         # Isolate ID -> (host, port) map
         accesses = {}
@@ -800,7 +807,7 @@ class SignalSender(object):
         """
         Retrieves a map of (host, port) couples to access the given isolates.
         The result contains only known isolates. Unknown ones are ignored.
-        
+
         :param isolates: A list of isolate IDs
         :return: An isolate ID -> (host, port) map, empty no isolate is known
         """
@@ -835,7 +842,7 @@ class SignalSender(object):
     def _make_content(self, content):
         """
         Builds the signal complete content (meta-data + content)
-        
+
         :param content: The signal content
         :return: The JSON form of the complete signal
         """
@@ -848,7 +855,9 @@ class SignalSender(object):
             "senderUID": self._context.get_property(cohorte.PROP_UID),
             "senderName": self._context.get_property(cohorte.PROP_NAME),
             # Set up the node name
-            "senderNode": self._context.get_property(cohorte.PROP_NODE),
+            "senderNodeUID": self._context.get_property(cohorte.PROP_NODE_UID),
+            "senderNodeName":
+                            self._context.get_property(cohorte.PROP_NODE_NAME),
             "timestamp": int(time.time() * 1000),
             "signalContent": content
             }
@@ -862,7 +871,7 @@ class SignalSender(object):
         """
         All multiple targets methods shares the same code : compute accesses,
         use the loop and handle the results
-        
+
         :param signal: The signal name
         :param content: The signal content
         :param isolate: The ID of the target isolate
@@ -908,10 +917,10 @@ class SignalSender(object):
     def __internal_send(self, access, signal, content, mode):
         """
         Sends the signal to the given access
-        
+
         **TODO:**
         * Use a pool of connections instead creating a new one each time
-        
+
         :param access: A (host, port) tuple
         :param signal: The name of the signal
         :param content: The complete signal content (meta-data + content)
@@ -1005,7 +1014,7 @@ class SignalSender(object):
     def __loop_send(self, accesses, signal, content, mode):
         """
         Sends the signal to all given accesses.
-        
+
         :param accesses: A Isolate ID -> (host, port) map
         :param signal: The signal name
         :param content: The complete signal content

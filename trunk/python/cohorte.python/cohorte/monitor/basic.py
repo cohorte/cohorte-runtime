@@ -193,9 +193,9 @@ class MonitorBasic(object):
         uid = str(uid)
 
         # Prepare a configuration
-        config = self._config.prepare_isolate(uid, name, self._node_uid,
-                                              kind, level, sublevel,
-                                              custom_artifacts)
+        # Node name and UID will be given by the forker
+        config = self._config.prepare_isolate(uid, name, kind,
+                                              level, sublevel, custom_artifacts)
 
         # FIXME: make that prettier
         # Compute the looper, if needed
@@ -314,7 +314,7 @@ class MonitorBasic(object):
         self._context = context
 
         # FIXME: set to PROP_NODE_UID when ready
-        self._node_uid = context.get_property(cohorte.PROP_NODE)
+        self._node_uid = context.get_property(cohorte.PROP_NODE_UID)
 
         # Register to signals
         for signal in HANDLED_SIGNALS:

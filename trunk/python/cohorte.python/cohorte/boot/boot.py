@@ -482,7 +482,7 @@ def main(args=None):
 
     # TODO: Are node & broker mutually exclusive ?
     group.add_argument('--node', action="store",
-                       dest="isolate_node", default=None, metavar="NODE",
+                       dest="isolate_node_name", default=None, metavar="NAME",
                        help="Sets the isolate node name. Only used by the "
                        "forker, i.e. if no configuration broker is given")
 
@@ -551,12 +551,13 @@ def main(args=None):
         framework_properties[cohorte.PROP_UID] = args.isolate_uid
 
     if args.config_broker:
-        # The configuration broker URL has been given
+        # The configuration broker URL has been given, i.e. not a forker isolate
         framework_properties[cohorte.PROP_CONFIG_BROKER] = args.config_broker
 
-    elif args.isolate_node:
+    elif args.isolate_node_name:
         # The node name has been given, and the configuration broker is missing
-        framework_properties[cohorte.PROP_NODE] = args.isolate_node
+        # (in here if no broker given, i.e. if isolate is a forker)
+        framework_properties[cohorte.PROP_NODE_NAME] = args.isolate_node_name
 
     if args.state_updater:
         # The state updater URL has been given

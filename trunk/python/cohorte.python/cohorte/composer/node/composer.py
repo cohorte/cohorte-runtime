@@ -83,6 +83,7 @@ class FactoriesMissing(Exception):
 
 @ComponentFactory()
 @Provides(cohorte.composer.SERVICE_COMPOSER_NODE)
+@Property('_node_uid', cohorte.composer.PROP_NODE_UID)
 @Property('_node_name', cohorte.composer.PROP_NODE_NAME)
 @Property('_export', pelix.remote.PROP_EXPORTED_INTERFACES, '*')
 @Property('_export_name', pelix.remote.PROP_ENDPOINT_NAME,
@@ -103,6 +104,7 @@ class NodeComposer(object):
         """
         # Service properties
         self._node_name = None
+        self._node_uid = None
         self._export = None
         self._export_name = None
 
@@ -124,6 +126,7 @@ class NodeComposer(object):
         """
         self._pool.stop()
         self._node_name = None
+        self._node_uid = None
 
 
     @Validate
@@ -131,7 +134,8 @@ class NodeComposer(object):
         """
         Component validated
         """
-        self._node_name = context.get_property(cohorte.PROP_NODE)
+        self._node_name = context.get_property(cohorte.PROP_NODE_NAME)
+        self._node_uid = context.get_property(cohorte.PROP_NODE_UID)
         self._pool.start()
 
 
