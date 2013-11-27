@@ -490,6 +490,13 @@ class ForkerBasic(object):
         del self._isolates[uid]
         self._state_dir.clear_isolate(uid)
 
+
+    def set_platform_stopping(self):
+        """
+        Sets the forker in platform-stopping mode: no more isolate will be spawn
+        """
+        self._platform_stopping = True
+
 # ------------------------------------------------------------------------------
 
     def __process_io_watcher(self, isolate_id, process, timeout=0):
@@ -596,50 +603,6 @@ class ForkerBasic(object):
                               dir_group=cohorte.signals.GROUP_OTHERS)
 
 
-    def handle_received_signal(self, name, signal_data):
-        """
-        Called when a remote services signal is received
-
-        :param name: Signal name
-        :param signal_data: Signal content
-        """
-        signal_content = signal_data["signalContent"]
-
-        try:
-            if name == cohorte.forker.SIGNAL_PING_ISOLATE:
-                # Ping the isolate with the given ID
-                return self.ping(signal_content["uid"])
-
-            elif name == cohorte.monitor.SIGNAL_PLATFORM_STOPPING:
-                # Platform is stopping: do not start new isolates
-                self._platform_stopping = True
-
-                # Nothing to send back
-                return
-
-            elif name == cohorte.forker.SIGNAL_STOP_FORKER:
-                # Forker must stop; do it in a new thread
-                framework = self._context.get_bundle(0)
-                threading.Thread(name="forker-stop",
-                                 target=framework.stop).start()
-                return
-
-            elif name in (cohorte.forker.SIGNAL_FORKER_STOPPING,
-                          cohorte.forker.SIGNAL_FORKER_LOST):
-                # Ignore (logged somewhere else)
-                return
-
-            else:
-                # Unhandled message
-                _logger.warning("Received unknown signal: %s", name)
-                return
-
-        except:
-            # Error
-            _logger.exception("Error treating signal %s\n%s", name, signal_data)
-            return
-
-
     def _send_stopping(self):
         """
         Sends the "forker stopping" signal to others
@@ -708,10 +671,6 @@ class ForkerBasic(object):
         self._watchers_running = True
         self._platform_stopping = False
 
-        # Register to signals
-        self._receiver.register_listener(cohorte.forker.SIGNALS_FORKER_PATTERN,
-                                         self)
-
 
     @Invalidate
     def invalidate(self, context):
@@ -723,10 +682,6 @@ class ForkerBasic(object):
         # De-activate watchers
         self._watchers_running = False
         self._platform_stopping = True
-
-        # Unregister from signals
-        self._receiver.unregister_listener(\
-                                    cohorte.forker.SIGNALS_FORKER_PATTERN, self)
 
         # Send the "forker stopping" signal
         self._send_stopping()

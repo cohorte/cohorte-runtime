@@ -282,9 +282,6 @@ class MonitorBasic(object):
         for uid in self._status.get_running():
             self._forker.stop_isolate(uid)
 
-        # Stop the forker
-        self._forker.stop_forker()
-
         # Stop this isolate
         self._context.get_bundle(0).stop()
 
