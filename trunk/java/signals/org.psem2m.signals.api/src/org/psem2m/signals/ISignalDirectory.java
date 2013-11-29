@@ -93,7 +93,7 @@ public interface ISignalDirectory {
             boolean aOnlyValidated);
 
     /**
-     * Retrieves all known nodes. Returns null if no node is known.
+     * Retrieves all known nodes UID. Returns null if no node is known.
      * 
      * @return All known nodes, or null
      */
@@ -110,13 +110,13 @@ public interface ISignalDirectory {
     Map<String, HostAccess> getGroupAccesses(EBaseGroup aGroup);
 
     /**
-     * Retrieves the host name to access the node
+     * Retrieves the host name to access the given node
      * 
-     * @param aNodeName
-     *            A node name
+     * @param aNodeUID
+     *            A node UID
      * @return A host name or address
      */
-    String getHostForNode(String aNodeName);
+    String getHostForNode(String aNodeUID);
 
     /**
      * Retrieves the (host, port) tuple to access the given isolate, or null
@@ -137,23 +137,23 @@ public interface ISignalDirectory {
     String getIsolateName(String aIsolateUID);
 
     /**
-     * Retrieves the node of the given isolate
+     * Retrieves the UID of the node of the given isolate
      * 
      * @param aIsolateUID
      *            An isolate UID
-     * @return The node hosting the given isolate, or null
+     * @return The UID of node hosting the given isolate, or null
      */
     String getIsolateNode(String aIsolateUID);
 
     /**
      * Retrieves the UIDs of the isolates on the given node
      * 
-     * @param aNodeName
-     *            A node name
+     * @param aNodeUID
+     *            A node UID
      * @return The list of isolates on the given node, null if there is no
      *         isolate
      */
-    String[] getIsolatesOnNode(String aNodeName);
+    String[] getIsolatesOnNode(String aNodeUID);
 
     /**
      * Retrieves the UIDs of the isolate having the given name
@@ -163,6 +163,24 @@ public interface ISignalDirectory {
      * @return All UIDs associated to the given name
      */
     String[] getNameUIDs(String aIsolateName);
+
+    /**
+     * Returns the name associated to the given node UID
+     * 
+     * @param aNodeUID
+     *            The UID of a node
+     * @return The node name, or null
+     */
+    String getNodeName(String aNodeUID);
+
+    /**
+     * Returns the node UIDs associated to the given node name
+     * 
+     * @param aNodeName
+     *            The name of a node
+     * @return An array of UIDs, or null
+     */
+    String[] getNodeUIDs(String aNodeName);
 
     /**
      * Tests if the given isolate ID is registered in the directory
@@ -251,6 +269,16 @@ public interface ISignalDirectory {
      * @return The previous address
      */
     String setNodeAddress(String aNodeName, String aHostAddress);
+
+    /**
+     * Associates the given node UID to a node name.
+     * 
+     * @param aNodeUID
+     *            A node UID
+     * @param aNodeName
+     *            A node name
+     */
+    void setNodeName(String aNodeUID, String aNodeName);
 
     /**
      * Stores the content of the given directory dump

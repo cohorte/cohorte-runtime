@@ -12,6 +12,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -71,7 +73,10 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
     private final Map<String, String> pNodesHost = new HashMap<String, String>();
 
     /** Node name -&gt; Isolate IDs */
-    private final Map<String, List<String>> pNodesIsolates = new HashMap<String, List<String>>();
+    private final Map<String, Set<String>> pNodesIsolates = new HashMap<String, Set<String>>();
+
+    /** Node name -&gt; Node UIDs */
+    private final Map<String, Set<String>> pNodesNames = new LinkedHashMap<String, Set<String>>();
 
     /** The platform information service */
     @Requires
@@ -123,11 +128,11 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
             if (ISignalDirectory.LOCAL_ACCESS.equals(access)) {
                 // Special treatment for the local isolate
                 isolateAccessMap
-                        .put(IDumpKeys.NODE, pPlatform.getIsolateNode());
+                        .put(IDumpKeys.NODE_UID, pPlatform.getNodeUID());
                 isolateAccessMap.put(IDumpKeys.PORT, pCurrentIsolatePort);
 
             } else {
-                isolateAccessMap.put(IDumpKeys.NODE, access.getAddress());
+                isolateAccessMap.put(IDumpKeys.NODE_UID, access.getAddress());
                 isolateAccessMap.put(IDumpKeys.PORT, access.getPort());
             }
 
@@ -143,7 +148,11 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
 
         // Hosts...
         result.put(IDumpKeys.NODES_HOST,
-                new HashMap<String, Object>(pNodesHost));
+                new HashMap<String, String>(pNodesHost));
+
+        // Node names...
+        result.put(IDumpKeys.NODES_NAMES, new HashMap<String, Set<String>>(
+                pNodesNames));
 
         return result;
     }
@@ -296,7 +305,7 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
 
         case NEIGHBOURS:
             // All isolates from the current node, excluding the current one
-            matchingIsolates = getIsolatesOnNode(pPlatform.getIsolateNode());
+            matchingIsolates = getIsolatesOnNode(pPlatform.getNodeUID());
             if (matchingIsolates != null) {
                 // Use a temporary set
                 final Set<String> set = new HashSet<String>(
@@ -396,9 +405,8 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
             return null;
         }
 
-        for (final Entry<String, List<String>> entry : pNodesIsolates
-                .entrySet()) {
-            final List<String> isolates = entry.getValue();
+        for (final Entry<String, Set<String>> entry : pNodesIsolates.entrySet()) {
+            final Set<String> isolates = entry.getValue();
             if (isolates.contains(aIsolateId)) {
                 // Found !
                 return entry.getKey();
@@ -415,9 +423,9 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
      * org.psem2m.signals.ISignalDirectory#getIsolatesOnNode(java.lang.String)
      */
     @Override
-    public synchronized String[] getIsolatesOnNode(final String aNodeName) {
+    public synchronized String[] getIsolatesOnNode(final String aNodeUID) {
 
-        final List<String> isolates = pNodesIsolates.get(aNodeName);
+        final Collection<String> isolates = pNodesIsolates.get(aNodeUID);
         if (isolates != null && !isolates.isEmpty()) {
             // Return a copy of the list
             return isolates.toArray(new String[0]);
@@ -485,6 +493,41 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
         }
 
         return uids.toArray(new String[0]);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.signals.ISignalDirectory#getNodeName(java.lang.String)
+     */
+    @Override
+    public synchronized String getNodeName(final String aNodeUID) {
+
+        for (final Entry<String, Set<String>> entry : pNodesNames.entrySet()) {
+            if (entry.getValue().contains(aNodeUID)) {
+                return entry.getKey();
+            }
+        }
+
+        // Not found
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.signals.ISignalDirectory#getNodeUIDs(java.lang.String)
+     */
+    @Override
+    public synchronized String[] getNodeUIDs(final String aNodeName) {
+
+        final Set<String> uids = pNodesNames.get(aNodeName);
+        if (uids != null) {
+            return uids.toArray(new String[0]);
+        }
+
+        // Unknown name
+        return null;
     }
 
     /**
@@ -559,18 +602,18 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
      * 
      * @param aIsolateId
      *            Isolate ID
-     * @param aNode
+     * @param aNodeUID
      *            Node of the isolate
      * @param aPresence
      *            Presence event type
      */
     private synchronized void notifyIsolateLost(final String aUID,
-            final String aName, final String aNode) {
+            final String aName, final String aNodeUID) {
 
         for (final IIsolatePresenceListener listener : pListeners) {
             // Notify all listeners
             try {
-                listener.isolateLost(aUID, aName, aNode);
+                listener.isolateLost(aUID, aName, aNodeUID);
 
             } catch (final Exception ex) {
                 // Just log...
@@ -743,10 +786,10 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
         pAccesses.put(aUID, isolateAccess);
 
         // Store the node
-        List<String> isolates = pNodesIsolates.get(aNode);
+        Set<String> isolates = pNodesIsolates.get(aNode);
         if (isolates == null) {
             // Create the node entry
-            isolates = new ArrayList<String>();
+            isolates = new LinkedHashSet<String>();
             pNodesIsolates.put(aNode, isolates);
         }
 
@@ -876,9 +919,51 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
     /*
      * (non-Javadoc)
      * 
+     * @see org.psem2m.signals.ISignalDirectory#setNodeName(java.lang.String,
+     * java.lang.String)
+     */
+    @Override
+    public synchronized void setNodeName(final String aNodeUID,
+            final String aNodeName) {
+
+        // Look for the UID in the nodes
+        for (final Entry<String, Set<String>> entry : pNodesNames.entrySet()) {
+            final String name = entry.getKey();
+            final Set<String> uids = entry.getValue();
+
+            if (uids.contains(aNodeUID)) {
+                if (name == aNodeName) {
+                    // Nothing to do
+                    return;
+
+                } else {
+                    // UID was known for another name
+                    pLogger.logWarn(this, "setNodeName", "Node=", aNodeUID,
+                            "renamed from ", name, " to ", aNodeName);
+                    uids.remove(aNodeUID);
+                    break;
+                }
+            }
+        }
+
+        // Get the current list of node UIDs
+        Set<String> uids = pNodesNames.get(aNodeName);
+        if (uids == null) {
+            uids = new LinkedHashSet<String>();
+            pNodesNames.put(aNodeName, uids);
+        }
+
+        // Add the node
+        uids.add(aNodeUID);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.psem2m.signals.ISignalDirectory#storeDump(java.util.Map,
      * java.util.Collection, java.util.Collection)
      */
+    @SuppressWarnings("unchecked")
     @Override
     public synchronized String[] storeDump(final Map<?, ?> aDumpedDirectory,
             final Collection<String> aIgnoredNodes,
@@ -889,33 +974,50 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
 
         // 0. Always ignore the current isolate and node
         final String localUID = pPlatform.getIsolateUID();
-        final String localNode = pPlatform.getIsolateNode();
+        final String localNodeUID = pPlatform.getNodeUID();
 
         final Collection<String> ignoredNodes = getMinimalCollection(
-                aIgnoredNodes, localNode);
+                aIgnoredNodes, localNodeUID);
         final Collection<String> ignoredIds = getMinimalCollection(aIgnoredIds,
                 localUID);
 
         // 1. Setup nodes hosts
-        final Map<?, ?> nodesHost = (Map<?, ?>) aDumpedDirectory
+        final Map<String, String> nodesHost = (Map<String, String>) aDumpedDirectory
                 .get(IDumpKeys.NODES_HOST);
-        for (final Entry<?, ?> entry : nodesHost.entrySet()) {
-            final String node = (String) entry.getKey();
-            if (!ignoredNodes.contains(node)) {
+        for (final Entry<String, String> entry : nodesHost.entrySet()) {
+            final String nodeUID = entry.getKey();
+            if (!ignoredNodes.contains(nodeUID)) {
                 // Node passed the filter
-                setNodeAddress(node, (String) entry.getValue());
+                setNodeAddress(nodeUID, entry.getValue());
             }
         }
 
-        // 2. Prepare isolates information
+        // 2. Setup nodes names
+        final Map<?, ?> nodesNames = (Map<?, ?>) aDumpedDirectory
+                .get(IDumpKeys.NODES_NAMES);
+        for (final Entry<?, ?> entry : nodesNames.entrySet()) {
+            final String nodeName = (String) entry.getKey();
+
+            // Filter the set of UIDs
+            final Set<String> nodeUIDs = new HashSet<String>(
+                    (Collection<String>) entry.getValue());
+            nodeUIDs.removeAll(ignoredNodes);
+
+            for (final Object nodeUID : nodeUIDs) {
+                setNodeName(nodeName, (String) nodeUID);
+            }
+        }
+
+        // 3. Prepare isolates information
         final Map<String, IsolateInfo> isolates = new HashMap<String, IsolateInfo>();
 
-        final Map<?, ?> accesses = (Map<?, ?>) aDumpedDirectory
+        final Map<String, Map<String, Object>> accesses = (Map<String, Map<String, Object>>) aDumpedDirectory
                 .get(IDumpKeys.ACCESSES);
-        for (final Entry<?, ?> entry : accesses.entrySet()) {
+        for (final Entry<String, Map<String, Object>> entry : accesses
+                .entrySet()) {
             // Cast entry
-            final String isolateId = (String) entry.getKey();
-            final Map<?, ?> access = (Map<?, ?>) entry.getValue();
+            final String isolateId = entry.getKey();
+            final Map<String, Object> access = entry.getValue();
 
             if (!ignoredIds.contains(isolateId)) {
                 // Create the information bean
@@ -923,12 +1025,12 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
                         isolateId,
                         new IsolateInfo(isolateId, (String) access
                                 .get(IDumpKeys.NAME), (String) access
-                                .get(IDumpKeys.NODE), (Integer) access
+                                .get(IDumpKeys.NODE_UID), (Integer) access
                                 .get(IDumpKeys.PORT)));
             }
         }
 
-        // 3. Register all new isolates
+        // 4. Register all new isolates
         final List<String> newIsolates = new ArrayList<String>();
         for (final IsolateInfo info : isolates.values()) {
             if (registerIsolate(info.getUID(), info.getName(), info.getNode(),
@@ -982,16 +1084,15 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
         pAccesses.remove(aUID);
 
         // Remove isolate reference in its node
-        String isolateNode = null;
-        for (final Entry<String, List<String>> entry : pNodesIsolates
-                .entrySet()) {
+        String nodeUID = null;
+        for (final Entry<String, Set<String>> entry : pNodesIsolates.entrySet()) {
             final String node = entry.getKey();
-            final List<String> isolates = entry.getValue();
+            final Set<String> isolates = entry.getValue();
 
             if (isolates.contains(aUID)) {
                 // Remove the reference
                 isolates.remove(aUID);
-                isolateNode = node;
+                nodeUID = node;
                 break;
             }
         }
@@ -1013,7 +1114,7 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
 
         if (registrationState == EIsolateRegistrationState.NOTIFIED) {
             // Notify listeners if they knew about the isolate
-            notifyIsolateLost(aUID, isolateName, isolateNode);
+            notifyIsolateLost(aUID, isolateName, nodeUID);
         }
 
         return true;
@@ -1065,9 +1166,9 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
         pRegistrationStatus = pStatusCreator.createStorage();
 
         // Register the local isolate, without access port
-        setNodeAddress(pPlatform.getIsolateNode(), "localhost");
+        setNodeAddress(pPlatform.getNodeUID(), "localhost");
         registerValidated(pPlatform.getIsolateUID(),
-                pPlatform.getIsolateName(), pPlatform.getIsolateNode(), -1);
+                pPlatform.getIsolateName(), pPlatform.getNodeUID(), -1);
 
         pLogger.logInfo(this, "validatePojo", "Signals directory ready");
     }

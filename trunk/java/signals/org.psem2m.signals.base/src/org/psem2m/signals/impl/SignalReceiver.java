@@ -72,7 +72,8 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver {
     private IPlatformDirsSvc pPlatform;
 
     /** On-line service property */
-    @ServiceProperty(name = ISignalReceiver.PROPERTY_ONLINE, value = "false", mandatory = true)
+    @ServiceProperty(name = ISignalReceiver.PROPERTY_ONLINE, value = "false",
+            mandatory = true)
     private boolean pPropertyOnline;
 
     /** Reception providers: for access information and 'on-line' flag */
@@ -98,9 +99,13 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver {
          */
         final HostAccess access = getAccessInfo();
         if (access != null) {
+            // Update the node name
+            final String nodeUid = pPlatform.getNodeUID();
+            pDirectory.setNodeName(nodeUid, pPlatform.getNodeName());
+
             // Update our local access
             pDirectory.registerValidated(pPlatform.getIsolateUID(),
-                    pPlatform.getIsolateName(), pPlatform.getIsolateNode(),
+                    pPlatform.getIsolateName(), pPlatform.getNodeUID(),
                     access.getPort());
 
             // We're now on-line

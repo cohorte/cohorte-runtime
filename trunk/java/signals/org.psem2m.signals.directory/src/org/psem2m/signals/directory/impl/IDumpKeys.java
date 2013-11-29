@@ -18,11 +18,14 @@ public interface IDumpKeys {
     /** Isolate name (access) */
     String NAME = "name";
 
-    /** The isolate node (access) */
-    String NODE = "node";
+    /** Node UID (access) */
+    String NODE_UID = "node_uid";
 
-    /** Node -&gt; Host name map */
+    /** Node UID -&gt; Host name map */
     String NODES_HOST = "nodes_host";
+
+    /** Node name -&gt; set of node UIDs */
+    String NODES_NAMES = "nodes_names";
 
     /** The isolate port (access) */
     String PORT = "port";

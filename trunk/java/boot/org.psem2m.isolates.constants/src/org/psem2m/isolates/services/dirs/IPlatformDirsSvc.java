@@ -36,13 +36,6 @@ public interface IPlatformDirsSvc extends IPlatformProperties {
     String getIsolateName();
 
     /**
-     * Retrieves the node of the current isolate
-     * 
-     * @return the node of the current isolate
-     */
-    String getIsolateNode();
-
-    /**
      * Retrieves the storage directory of the current isolate
      * 
      * @return The isolate storage directory
@@ -62,6 +55,20 @@ public interface IPlatformDirsSvc extends IPlatformProperties {
      * @return The isolate working directory
      */
     File getIsolateWorkingDirectory();
+
+    /**
+     * Retrieves the name of the node of the current isolate
+     * 
+     * @return the name of the node of the current isolate
+     */
+    String getNodeName();
+
+    /**
+     * Retrieves the UID of the node of the current isolate
+     * 
+     * @return the UID of the node of the current isolate
+     */
+    String getNodeUID();
 
     /**
      * Retrieves the PSEM2M_BASE value

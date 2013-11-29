@@ -75,17 +75,6 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateNode()
-     */
-    @Override
-    public String getIsolateNode() {
-
-        return pContext.getProperty(IPlatformProperties.PROP_ISOLATE_NODE);
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
      * @see
      * org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateStorageDirectory
      * ()
@@ -120,6 +109,28 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
     public File getIsolateWorkingDirectory() {
 
         return pInitialWorkingDirectory;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getNodeName()
+     */
+    @Override
+    public String getNodeName() {
+
+        return pContext.getProperty(IPlatformProperties.PROP_NODE_NAME);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getNodeUID()
+     */
+    @Override
+    public String getNodeUID() {
+
+        return pContext.getProperty(IPlatformProperties.PROP_NODE_UID);
     }
 
     /*

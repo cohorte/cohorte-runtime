@@ -27,11 +27,18 @@ public interface ISignalData {
     String getSenderName();
 
     /**
-     * Retrieves the node of the isolate which sent the signal
+     * Retrieves the name of the node of the isolate which sent the signal
      * 
-     * @return the node hosting the sender
+     * @return the name of the node hosting the sender
      */
-    String getSenderNode();
+    String getSenderNodeName();
+
+    /**
+     * Retrieves the UID of the node of the isolate which sent the signal
+     * 
+     * @return the UID of the node hosting the sender
+     */
+    String getSenderNodeUID();
 
     /**
      * Retrieves the UID of the isolate which sent the signal (unique)

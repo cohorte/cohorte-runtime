@@ -19,10 +19,10 @@ public interface IIsolatePresenceListener {
      *            Isolate UID
      * @param aName
      *            Isolate name
-     * @param aNode
-     *            Isolate node
+     * @param aNodeUID
+     *            Isolate node UID
      */
-    void isolateLost(String aUID, String aName, String aNode);
+    void isolateLost(String aUID, String aName, String aNodeUID);
 
     /**
      * Notifies the registration of an isolate
@@ -31,8 +31,8 @@ public interface IIsolatePresenceListener {
      *            Isolate UID
      * @param aName
      *            Isolate name
-     * @param aNode
-     *            Isolate node
+     * @param aNodeUID
+     *            Isolate node UID
      */
-    void isolateReady(String aUID, String aName, String aNode);
+    void isolateReady(String aUID, String aName, String aNodeUID);
 }

@@ -79,7 +79,8 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
     private IPlatformDirsSvc pPlatform;
 
     /** On-line service property */
-    @ServiceProperty(name = ISignalBroadcaster.PROPERTY_ONLINE, value = "false", mandatory = true)
+    @ServiceProperty(name = ISignalBroadcaster.PROPERTY_ONLINE,
+            value = "false", mandatory = true)
     private boolean pPropertyOnline;
 
     /** Signal receiver (for local only communication) */
@@ -604,7 +605,8 @@ public class SignalBroadcaster extends CPojoBase implements ISignalBroadcaster {
         // Sender information
         signalData.setSenderUID(pPlatform.getIsolateUID());
         signalData.setSenderName(pPlatform.getIsolateName());
-        signalData.setSenderNode(pPlatform.getIsolateNode());
+        signalData.setSenderNodeName(pPlatform.getNodeName());
+        signalData.setSenderNodeUID(pPlatform.getNodeUID());
 
         // Content
         signalData.setSignalContent(aContent);

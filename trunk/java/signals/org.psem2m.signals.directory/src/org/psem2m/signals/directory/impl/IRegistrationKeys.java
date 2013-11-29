@@ -18,8 +18,11 @@ public interface IRegistrationKeys {
     /** The isolate name */
     String NAME = "name";
 
-    /** The isolate node */
-    String NODE = "node";
+    /** The node name */
+    String NODE_NAME = "node_name";
+
+    /** The node UID */
+    String NODE_UID = "uid";
 
     /** The isolate port */
     String PORT = "port";

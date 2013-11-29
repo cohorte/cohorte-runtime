@@ -18,8 +18,11 @@ public class SignalData implements ISignalData {
     /** The source isolate UID */
     private String pIsolateUID;
 
-    /** The source isolate node */
-    private String pNode;
+    /** The name of the node hosting the source isolate */
+    private String pNodeName;
+
+    /** The UID of the node hosting the source isolate */
+    private String pNodeUID;
 
     /** The sender host/address */
     private String pSender;
@@ -63,12 +66,23 @@ public class SignalData implements ISignalData {
     /*
      * (non-Javadoc)
      * 
-     * @see org.psem2m.signals.ISignalData#getSenderNode()
+     * @see org.psem2m.signals.ISignalData#getSenderNodeName()
      */
     @Override
-    public String getSenderNode() {
+    public String getSenderNodeName() {
 
-        return pNode;
+        return pNodeName;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.psem2m.signals.ISignalData#getSenderNodeUID()
+     */
+    @Override
+    public String getSenderNodeUID() {
+
+        return pNodeUID;
     }
 
     /*
@@ -127,14 +141,25 @@ public class SignalData implements ISignalData {
     }
 
     /**
-     * Sets up the sending node
+     * Sets up the sending node name
      * 
-     * @param aNode
-     *            An isolate node
+     * @param aNodeName
+     *            The name of a node
      */
-    public void setSenderNode(final String aNode) {
+    public void setSenderNodeName(final String aNodeName) {
 
-        pNode = aNode;
+        pNodeName = aNodeName;
+    }
+
+    /**
+     * Sets up the sending node UID
+     * 
+     * @param aNodeUID
+     *            The UID of a node
+     */
+    public void setSenderNodeUID(final String aNodeUID) {
+
+        pNodeUID = aNodeUID;
     }
 
     /**

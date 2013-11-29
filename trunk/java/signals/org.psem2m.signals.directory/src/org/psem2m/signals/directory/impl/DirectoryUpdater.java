@@ -110,7 +110,7 @@ public class DirectoryUpdater implements ISignalListener,
 
         // Get information on the sender
         final String remoteAddress = aSignalData.getSenderAddress();
-        final String remoteNode = aSignalData.getSenderNode();
+        final String remoteNodeUID = aSignalData.getSenderNodeUID();
         final Object rawContent = aSignalData.getSignalContent();
         if (!(rawContent instanceof Map)) {
             pLogger.logWarn(this, "grabRemoteDirectory", "Unreadable content=",
@@ -127,7 +127,7 @@ public class DirectoryUpdater implements ISignalListener,
         }
 
         // Store the node information
-        pDirectory.setNodeAddress(remoteNode, remoteAddress);
+        pDirectory.setNodeAddress(remoteNodeUID, remoteAddress);
 
         // Grab the directory
         try {
@@ -136,7 +136,7 @@ public class DirectoryUpdater implements ISignalListener,
                     new HostAccess(remoteAddress, remotePort));
 
             // Store the dumped directory
-            handleDumpedDirectory(results, remoteNode);
+            handleDumpedDirectory(results, remoteNodeUID);
 
         } catch (final Exception e) {
             pLogger.logSevere(this, "grabRemoteDirectory",
@@ -169,11 +169,11 @@ public class DirectoryUpdater implements ISignalListener,
      * 
      * @param aResults
      *            The signal results
-     * @param aIgnoredNode
+     * @param aIgnoredNodeUID
      *            The address for this node must be ignored
      */
     private synchronized void handleDumpedDirectory(final Object[] aResults,
-            final String aIgnoredNode) {
+            final String aIgnoredNodeUID) {
 
         if (aResults == null || aResults.length == 0) {
             // No result...
@@ -199,7 +199,7 @@ public class DirectoryUpdater implements ISignalListener,
 
         if (dump != null) {
             // All good, store the dump in the directory
-            pDirectory.storeDump(dump, Arrays.asList(aIgnoredNode), null);
+            pDirectory.storeDump(dump, Arrays.asList(aIgnoredNodeUID), null);
 
             // Send our registration signal to all isolates we known,
             // without propagation
@@ -359,7 +359,8 @@ public class DirectoryUpdater implements ISignalListener,
 
         // Let the receiver compute our address
         content.put(IRegistrationKeys.ADDRESS, null);
-        content.put(IRegistrationKeys.NODE, pPlatform.getIsolateNode());
+        content.put(IRegistrationKeys.NODE_NAME, pPlatform.getNodeName());
+        content.put(IRegistrationKeys.NODE_UID, pPlatform.getNodeUID());
         content.put(IRegistrationKeys.PORT, pReceiver.getAccessInfo().getPort());
         content.put(IRegistrationKeys.PROPAGATE, aPropagate);
 
@@ -390,13 +391,15 @@ public class DirectoryUpdater implements ISignalListener,
         }
 
         final String name = (String) content.get(IRegistrationKeys.NAME);
-        final String node = (String) content.get(IRegistrationKeys.NODE);
+        final String nodeName = (String) content
+                .get(IRegistrationKeys.NODE_NAME);
+        final String nodeUID = (String) content.get(IRegistrationKeys.NODE_UID);
         final Integer port = (Integer) content.get(IRegistrationKeys.PORT);
         final Boolean propagate = (Boolean) content
                 .get(IRegistrationKeys.PROPAGATE);
 
         String address;
-        if (aSignalData.getSenderNode().equals(node)) {
+        if (aSignalData.getSenderNodeUID().equals(nodeUID)) {
             /*
              * If both the registered and the registrar are on the same node,
              * use the sender address to update the node access
@@ -415,11 +418,12 @@ public class DirectoryUpdater implements ISignalListener,
         }
 
         // 1. Update the node address
-        pDirectory.setNodeAddress(node, address);
+        pDirectory.setNodeAddress(nodeUID, address);
+        pDirectory.setNodeName(nodeUID, nodeName);
 
         // 2. Register the isolate
         final boolean newlyRegistered = pDirectory.registerIsolate(isolateUID,
-                name, node, port);
+                name, nodeUID, port);
 
         if (pDirectory.isRegistered(isolateUID)) {
             // 2b. Acknowledge the registration
