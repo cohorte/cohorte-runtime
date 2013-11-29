@@ -60,20 +60,20 @@ class SignalsDirectory(object):
         # Listeners
         self._listeners = []
 
+        # Current isolate access port
+        self._current_isolate_port = -1
+
         # Isolate UID -> (node UID, port)
         self._accesses = {}
 
         # Isolate UID -> Isolate Name
         self._names = {}
 
-        # Current isolate access port
-        self._current_isolate_port = -1
+        # Node UID -> Host name/address
+        self._nodes_host = {}
 
         # Node UID -> set(Isolate UID)
         self._nodes_isolates = {}
-
-        # Node UID -> Host name/address
-        self._nodes_host = {}
 
         # Node name -> set(Node UID)
         self._nodes_names = {}
@@ -171,7 +171,7 @@ class SignalsDirectory(object):
         with self._lock:
             # 0. Always ignore the current isolate and the current node
             local_uid = self.get_isolate_uid()
-            local_node = self.get_local_node()
+            local_node_uid = self.get_local_node()
 
             # Always ignore the local node UID
             if ignored_nodes is None:
@@ -179,7 +179,7 @@ class SignalsDirectory(object):
             else:
                 ignored_nodes = set(ignored_nodes)
 
-            ignored_nodes.add(local_node)
+            ignored_nodes.add(local_node_uid)
 
             # Always ignore the local UIDs
             if ignored_isolates is None:
@@ -673,6 +673,19 @@ class SignalsDirectory(object):
         :param node_name: Name of the node
         """
         with self._lock:
+            for name, uids in self._nodes_names.items():
+                if node_uid in uids:
+                    if name == node_name:
+                        # Nothing to do
+                        return
+
+                    else:
+                        # UID was known for another name
+                        _logger.warning("Node %s renamed from %s to %s",
+                                        node_uid, name, node_name)
+                        uids.remove(node_uid)
+                        break
+
             self._nodes_names.setdefault(node_name, set()).add(node_uid)
 
 

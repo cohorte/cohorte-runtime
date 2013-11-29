@@ -8,7 +8,6 @@ Created on 18 juin 2012
 :author: Thomas Calmant
 :license: GPLv3
 """
-import cohorte
 
 # Documentation strings format
 __docformat__ = "restructuredtext en"
