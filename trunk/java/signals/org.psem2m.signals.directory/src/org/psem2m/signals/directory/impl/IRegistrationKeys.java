@@ -22,7 +22,7 @@ public interface IRegistrationKeys {
     String NODE_NAME = "node_name";
 
     /** The node UID */
-    String NODE_UID = "uid";
+    String NODE_UID = "node_uid";
 
     /** The isolate port */
     String PORT = "port";
