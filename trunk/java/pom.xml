@@ -24,7 +24,7 @@
 		<module>boot/org.psem2m.isolates.constants</module>
 
 		<module>composer/org.cohorte.composer.api</module>
-		<module>composer/org.cohorte.composer.agent</module>
+		<module>composer/org.cohorte.composer.isolate</module>
 
 		<module>isolates/org.cohorte.shell.osgi</module>
 		<module>isolates/org.cohorte.shell.remote</module>
