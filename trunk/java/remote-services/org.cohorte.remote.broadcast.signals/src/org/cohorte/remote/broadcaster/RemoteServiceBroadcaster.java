@@ -210,7 +210,7 @@ public class RemoteServiceBroadcaster implements IRemoteServiceBroadcaster {
         for (final EndpointDescription endpoints : aEvent
                 .getServiceRegistration().getEndpoints()) {
 
-            endpoints.setNode(pPlatform.getIsolateNode());
+            endpoints.setNode(pPlatform.getNodeUID());
         }
 
         // Send the signal
