@@ -138,7 +138,7 @@ public class IsolateComposer implements IIsolateComposer {
         // Store isolate information
         pIsolateName = pContext
                 .getProperty(IPlatformProperties.PROP_ISOLATE_NAME);
-        pNodeName = pContext.getProperty(IPlatformProperties.PROP_ISOLATE_NODE);
+        pNodeName = pContext.getProperty(IPlatformProperties.PROP_NODE_NAME);
 
         pLogger.log(LogService.LOG_INFO, "Isolate composer validated");
     }

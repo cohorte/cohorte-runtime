@@ -72,7 +72,7 @@ public class IPojoAgent implements IAgent, InstanceStateListener {
     @Requires
     private LogService pLogger;
 
-    /** Host node name */
+    /** Host node Name */
     private String pNodeName;
 
     /** Factory name -&gt; Remaining components */
@@ -168,7 +168,7 @@ public class IPojoAgent implements IAgent, InstanceStateListener {
      * 
      * @param aComponent
      *            A component bean
-     * @return The basic properties of the givne component
+     * @return The basic properties of the given component
      */
     private Properties computeCommonProperties(final RawComponent aComponent) {
 
@@ -567,7 +567,7 @@ public class IPojoAgent implements IAgent, InstanceStateListener {
         // Store isolate information
         pIsolateName = pContext
                 .getProperty(IPlatformProperties.PROP_ISOLATE_NAME);
-        pNodeName = pContext.getProperty(IPlatformProperties.PROP_ISOLATE_NODE);
+        pNodeName = pContext.getProperty(IPlatformProperties.PROP_NODE_NAME);
 
         // Allow bindings
         pValidated = true;
