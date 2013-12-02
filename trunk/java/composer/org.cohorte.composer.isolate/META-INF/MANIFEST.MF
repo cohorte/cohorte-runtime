@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Cohorte :: Composer :: Isolate
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: org.cohorte.composer.isolate
 Bundle-Vendor: isandlaTech.com
 Bundle-Version: 3.0.0.qualifier

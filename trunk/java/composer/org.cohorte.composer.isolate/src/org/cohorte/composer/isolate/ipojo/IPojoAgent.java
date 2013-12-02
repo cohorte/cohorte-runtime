@@ -54,16 +54,16 @@ public class IPojoAgent implements IAgent, InstanceStateListener {
     private final BundleContext pContext;
 
     /** Local factories: Name -&gt; iPOJO Factory */
-    private final Map<String, Factory> pFactories = new LinkedHashMap<>();
+    private final Map<String, Factory> pFactories = new LinkedHashMap<String, Factory>();
 
     /**
      * Maps fields names and IDs for each component type: Factory -&gt; {Field
      * name -&gt; ID}
      */
-    private final Map<String, Map<String, String>> pFactoriesFieldsIds = new LinkedHashMap<>();
+    private final Map<String, Map<String, String>> pFactoriesFieldsIds = new LinkedHashMap<String, Map<String, String>>();
 
     /** Instance name -&gt; iPOJO instance */
-    private final Map<String, ComponentInstance> pInstances = new LinkedHashMap<>();
+    private final Map<String, ComponentInstance> pInstances = new LinkedHashMap<String, ComponentInstance>();
 
     /** Host isolate name */
     private String pIsolateName;
@@ -76,10 +76,10 @@ public class IPojoAgent implements IAgent, InstanceStateListener {
     private String pNodeName;
 
     /** Factory name -&gt; Remaining components */
-    private final Map<String, Set<RawComponent>> pRemainingFactories = new LinkedHashMap<>();
+    private final Map<String, Set<RawComponent>> pRemainingFactories = new LinkedHashMap<String, Set<RawComponent>>();
 
     /** Instance name -&gt; Remaining component */
-    private final Map<String, RawComponent> pRemainingNames = new LinkedHashMap<>();
+    private final Map<String, RawComponent> pRemainingNames = new LinkedHashMap<String, RawComponent>();
 
     /** Component validation flag */
     private boolean pValidated;
@@ -109,7 +109,7 @@ public class IPojoAgent implements IAgent, InstanceStateListener {
         final String factoryName = aFactory.getName();
 
         // Prepare a field -> ID map and attach it to the component type
-        final Map<String, String> fieldIdMap = new LinkedHashMap<>();
+        final Map<String, String> fieldIdMap = new LinkedHashMap<String, String>();
         pFactoriesFieldsIds.put(factoryName, fieldIdMap);
 
         // Set up the map content
@@ -196,7 +196,7 @@ public class IPojoAgent implements IAgent, InstanceStateListener {
     private Map<String, String> computeFilters(final RawComponent aComponent) {
 
         // Computed filters: Field -> LDAP filter
-        final Map<String, String> filters = new LinkedHashMap<>(
+        final Map<String, String> filters = new LinkedHashMap<String, String>(
                 aComponent.getFilters());
 
         // Field -> component name
@@ -358,7 +358,7 @@ public class IPojoAgent implements IAgent, InstanceStateListener {
 
         Set<RawComponent> set = pRemainingFactories.get(aFactory);
         if (set == null) {
-            set = new LinkedHashSet<>();
+            set = new LinkedHashSet<RawComponent>();
             pRemainingFactories.put(aFactory, set);
         }
 
@@ -374,7 +374,7 @@ public class IPojoAgent implements IAgent, InstanceStateListener {
     public synchronized Set<RawComponent> handle(
             final Set<RawComponent> aComponents) {
 
-        final Set<RawComponent> instantiated = new LinkedHashSet<>();
+        final Set<RawComponent> instantiated = new LinkedHashSet<RawComponent>();
         for (final RawComponent component : aComponents) {
             try {
                 if (tryInstantiate(component)) {
@@ -390,7 +390,8 @@ public class IPojoAgent implements IAgent, InstanceStateListener {
         }
 
         // Store the remaining components
-        final Set<RawComponent> remaining = new LinkedHashSet<>(aComponents);
+        final Set<RawComponent> remaining = new LinkedHashSet<RawComponent>(
+                aComponents);
         remaining.removeAll(instantiated);
         for (final RawComponent component : remaining) {
             getRemainingByFactory(component.getFactory()).add(component);
