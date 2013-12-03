@@ -9,8 +9,16 @@
 		<version>0.0.1-SNAPSHOT</version>
 		<relativePath>../../pom.xml</relativePath>
 	</parent>
-	<groupId>org.cohorte</groupId>
 	<artifactId>org.cohorte.composer.isolate</artifactId>
 	<version>3.0.0-SNAPSHOT</version>
 	<packaging>eclipse-plugin</packaging>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-ipojo-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
 </project>
