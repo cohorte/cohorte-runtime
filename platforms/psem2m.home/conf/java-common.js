@@ -31,7 +31,7 @@
 	}, {
 		"name" : "org.apache.felix.gogo.command"
 	}, {
-		"name" : "org.apache.felix.ipojo.arch.gogo"
+		"name" : "org.apache.felix.ipojo.gogo"
 	}, {
 		"name" : "org.cohorte.shell.osgi"
 	}, {
