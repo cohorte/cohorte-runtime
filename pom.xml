@@ -103,6 +103,7 @@
 						<source>1.6</source>
 						<target>1.6</target>
 						<extraClasspathElements>
+							<!-- iPOJO Annotations are not in a bundle -->
 							<extraClasspathElement>
 								<groupId>org.apache.felix</groupId>
 								<artifactId>org.apache.felix.ipojo.annotations</artifactId>
@@ -110,6 +111,25 @@
 							</extraClasspathElement>
 						</extraClasspathElements>
 					</configuration>
+				</plugin>
+
+				<plugin>
+					<groupId>org.apache.felix</groupId>
+					<artifactId>maven-ipojo-plugin</artifactId>
+					<version>${ipojo-version}</version>
+					<configuration>
+						<!-- Add support for Tycho packaging -->
+						<m_supportedProjectTypes>
+							<type>eclipse-plugin</type>
+						</m_supportedProjectTypes>
+					</configuration>
+					<executions>
+						<execution>
+							<goals>
+								<goal>ipojo-bundle</goal>
+							</goals>
+						</execution>
+					</executions>
 				</plugin>
 			</plugins>
 		</pluginManagement>
