@@ -60,7 +60,7 @@ class ConfigurationFileReader(object):
     """
     Reader for isolate configuration files, returning the combined and parsed
     JSON content.
-    
+
     It handles file imports using the 'from' key
     The overridden properties, defined using the 'overriddenProperties' key,
     are applied on the 'properties' field, then on the object itself.
@@ -77,7 +77,7 @@ class ConfigurationFileReader(object):
         """
         Parses the given properties object and overrides it with the given
         properties
-        
+
         :param json_object: A properties JSON object (can't be None)
         :param overriding_props: Overriding properties (can be None)
         :return: The overridden properties
@@ -96,7 +96,7 @@ class ConfigurationFileReader(object):
     def _update_properties(self, json_data, overridden_props):
         """
         Updates the properties in the given parsed JSON content in-place
-        
+
         :param json_data: A parsed JSON content
         :param overridden_props: Dictionary to describe the new values of the
                                  parsed file properties
@@ -127,10 +127,10 @@ class ConfigurationFileReader(object):
         """
         Recursively does the file merging according to the indications in the
         given JSON data (object or array).
-        
+
         **TODO:**
         * Refactor to avoid duplicated lines
-        
+
         :param filename: The name of the file used to parse this data
                          (can be None)
         :param json_data: A parsed JSON data (object or array)
@@ -230,10 +230,10 @@ class ConfigurationFileReader(object):
         """
         Finds the item in the given list which has the same ID than the given
         dictionary.
-        
+
         A dictionary is equivalent to another if they have the same value for
         one of the following keys: 'id', 'uid', 'name'.
-        
+
         :param searched_dict: The dictionary to look for into the list
         :param dicts_list: A list of potential equivalents
         :return: The first item found in the list equivalent to the given
@@ -256,10 +256,10 @@ class ConfigurationFileReader(object):
     def merge_object(self, local, imported):
         """
         Merges recursively two JSON objects.
-        
+
         The local values have priority on imported ones.
-        Arrays of objects are also merged. 
-        
+        Arrays of objects are also merged.
+
         :param local: The local object, which will receive the merged values
                       (modified in-place)
         :param imported: The imported object, which will be merged into local
@@ -324,7 +324,7 @@ class ConfigurationFileReader(object):
     def _parse_file(self, filename, overridden_props, include_stack):
         """
         Returns the parsed JSON content of the given file
-        
+
         :param filename: A JSON file to parse
         :param overridden_props: Properties to override in imported files
         :return: The parsed content (array or dictionary)
@@ -406,7 +406,7 @@ class ConfigurationFileReader(object):
         Parses a configuration file.
         This method shall not be called directly, as it doesn't performs clean
         up if an error occurs
-        
+
         :param filename: Base name or relative name of the file to load
         :param base_file: If given, search the file near the base file first
         :param overridden_props: Properties to override in imported files
@@ -415,19 +415,28 @@ class ConfigurationFileReader(object):
         :raise IOError: Error reading the configuration file
         """
         # Parse the first matching file
-        conffile = next(self._finder.find_rel(filename, base_file), None)
-        if not conffile:
+        finder = self._finder.find_rel(filename, base_file)
+
+        try:
+            conffile = next(finder)
+
+        except StopIteration:
+            # No file found
             raise IOError("File not found: '{0}' (base: {1})" \
                           .format(filename, base_file))
 
-        if conffile in include_stack:
-            # The file is already in the inclusion stack
+        try:
+            # Get the first file that is not yet in the include stack
+            while conffile in include_stack:
+                conffile = next(finder)
+
+        except StopIteration:
+            # All found files are already in the inclusion stack
             raise ValueError("Recursive import detected: '{0}' - '{1}'" \
                              .format(conffile, include_stack))
 
-        else:
-            # Store the file in the inclusion stack
-            include_stack.append(conffile)
+        # Store the selected file in the inclusion stack
+        include_stack.append(conffile)
 
         # Parse the file and resolve inclusions
         json_data = self._parse_file(conffile, overridden_props, include_stack)
@@ -443,7 +452,7 @@ class ConfigurationFileReader(object):
         Parses a configuration file.
         If a configuration entry has a "from" key, then this entry is replaced
         by the content of the linked file.
-        
+
         :param filename: Base name or relative name of the file to load
         :param base_file: If given, search the file near the base file first
         :param overridden_props: Properties to override in imported files
