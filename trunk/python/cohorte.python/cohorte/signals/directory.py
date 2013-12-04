@@ -478,7 +478,7 @@ class SignalsDirectory(object):
         :return: The node name, or None
         """
         if node_uid is None:
-            return self._context.get_property(cohorte.PROP_NODE_UID)
+            return self._context.get_property(cohorte.PROP_NODE_NAME)
 
         with self._lock:
             for name, uids in self._nodes_names.items():
