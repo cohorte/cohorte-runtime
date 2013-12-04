@@ -39,6 +39,7 @@
 	/* Debug */
 	{
 		"factory" : "cohorte-debug-servlet-factory",
+		"name": "cohorte-debug-servlet",
 		"properties" : {
 			"pelix.http.path" : "/cohorte-debug"
 		}

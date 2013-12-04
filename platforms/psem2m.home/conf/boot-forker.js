@@ -26,7 +26,16 @@
 	}, {
 		"name" : "cohorte.shell.forker"
 	},
-	
+
+	/*
+	 * Forker aggregator
+	 */
+	{
+		"name" : "cohorte.forker.aggregator"
+	}, {
+		"name" : "cohorte.forker.heartbeat"
+	},
+
 	/*
 	 * Monitor bundles
 	 */
@@ -84,6 +93,24 @@
 	}, {
 		"factory" : "cohorte-forker-state-updater-factory",
 		"name" : "cohorte-forker-state-updater"
+	},
+	
+	/* Forker aggregator */
+	{
+		"factory" : "cohorte-forker-heart-factory",
+		"name" : "cohorte-forker-heartbeat",
+		"properties" : {
+			"multicast.group" : "239.0.0.1",
+			"multicast.port" : 42001,
+			"cohorte.application" : "demo-august-2013"
+		}
+	}, {
+		"factory" : "cohorte-forker-aggregator-factory",
+		"name" : "cohorte-forker-aggregator",
+		"properties" : {
+			"multicast.group" : "239.0.0.1",
+			"multicast.port" : 42001
+		}
 	},
 
 	/* Configuration of monitor components */
