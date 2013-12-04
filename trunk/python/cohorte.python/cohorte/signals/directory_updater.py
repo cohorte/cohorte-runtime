@@ -124,14 +124,14 @@ class DirectoryUpdater(object):
         Retrieves the directory of a remote isolate.
 
         This method is called after a CONTACT signal has been received from a
-        monitor.
+        forker.
 
         :param signal_data: The received contact signal
         """
         # Only monitors can send us contacts
         remote_name = signal_data["senderName"]
-        if remote_name != cohorte.MONITOR_NAME:
-            _logger.warning("Contacts must be made by a monitor, not %s",
+        if remote_name != cohorte.FORKER_NAME:
+            _logger.warning("Contacts must be made by a forker, not %s",
                             remote_name)
             return
 
