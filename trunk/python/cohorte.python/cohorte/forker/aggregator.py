@@ -55,7 +55,7 @@ class MulticastReceiver(object):
     def __init__(self, group, port, callback):
         """
         Sets up the receiver
-        
+
         :param group: Multicast group to listen
         :param port: Multicast port
         :param handler: Method to call back once a packet is received
@@ -76,7 +76,7 @@ class MulticastReceiver(object):
     def start(self):
         """
         Starts listening to the socket
-        
+
         :return: True if the socket has been created
         """
         # Create the multicast socket (update the group)
@@ -107,7 +107,7 @@ class MulticastReceiver(object):
     def _handle_heartbeat(self, sender, data):
         """
         Handles a raw heartbeat
-        
+
         :param sender: Sender (address, port) tuple
         :param data: Raw packet data
         """
@@ -125,10 +125,12 @@ class MulticastReceiver(object):
         application_id, data = self._unpack_string(data)
         forker_uid, data = self._unpack_string(data)
         node_id, data = self._unpack_string(data)
+        node_name, data = self._unpack_string(data)
 
         # Call the callback method
         try:
-            self._callback(forker_uid, application_id, node_id, sender[0], port)
+            self._callback(forker_uid, application_id, node_id, node_name,
+                           sender[0], port)
 
         except Exception as ex:
             _logger.exception("Error notifying callback: %s", ex)
@@ -137,10 +139,10 @@ class MulticastReceiver(object):
     def _unpack(self, fmt, data):
         """
         Calls struct.unpack().
-        
+
         Returns a tuple containing the result tuple and the subset of data
         containing the unread content.
-        
+
         :param fmt: The format of data
         :param data: Data to unpack
         :return: A tuple (result tuple, unread_data)
@@ -153,9 +155,9 @@ class MulticastReceiver(object):
     def _unpack_string(self, data):
         """
         Unpacks the next string from the given data
-        
+
         :param data: A datagram, starting at a string size
-        :return: A (string, unread_data) tuple 
+        :return: A (string, unread_data) tuple
         """
         # Get the size of the string
         result, data = self._unpack("<H", data)
@@ -214,6 +216,9 @@ class ForkerAggregator(object):
         self._sender = None
         self._listeners = None
 
+        # Local forker UID
+        self._local_uid = None
+
         # Multicast receiver
         self._multicast = None
 
@@ -239,7 +244,7 @@ class ForkerAggregator(object):
     def bind(self, service, reference):
         """
         A dependency has been bound
-        
+
         :param service: Bound service
         :param reference: Associated ServiceReference
         """
@@ -265,7 +270,7 @@ class ForkerAggregator(object):
     def start_isolate(self, uid, node, kind, configuration):
         """
         Requests the forker on the given node to start an isolate
-        
+
         :param uid: UID of the isolate to start
         :param node: ID of the node that will host the isolate
         :param kind: Kind of isolate
@@ -290,7 +295,7 @@ class ForkerAggregator(object):
     def is_alive(self, uid):
         """
         Uses a forker to test if the isolate process is alive
-        
+
         :param uid: An isolate UID
         :return: True if the isolate process is active
         """
@@ -307,7 +312,7 @@ class ForkerAggregator(object):
         """
         Stops the isolate with the given UID using its associated forker.
         Sends the stop signal to isolate itself if no forker is found.
-        
+
         :param uid: UID of the isolate to stop
         :return: True if the forker associated to the UID has been contacted
         """
@@ -342,44 +347,45 @@ class ForkerAggregator(object):
                           dir_group=cohorte.signals.GROUP_FORKERS)
 
 
-    def register_forker(self, uid, node, host, port):
+    def register_forker(self, uid, node_uid, node_name, host, port):
         """
         Registers a forker in the directory.
-        
+
         :param uid: Forker UID
-        :param node: Node hosting the forker
+        :param node_uid: UID of the node hosting the forker
+        :param node_name: Name of the node hosting the forker
         :param address: Node address
         :param port: Forker access port
         """
         # Update the node host
-        current_node = self._directory.get_isolate_node()
-        if node != current_node:
-            # Don't update our node (or it will become "localhost")
-            self._directory.set_node_address(node, host)
+        self._directory.set_node_address(node_uid, host)
+
+        # Update the node name
+        self._directory.set_node_name(node_uid, node_name)
 
         # Register the forker
         if self._directory.register_isolate(uid, cohorte.forker.FORKER_NAME,
-                                            node, port):
+                                            node_uid, port):
             # New isolate: send it a SYN-ACK
             self._sender.fire(cohorte.signals.SIGNAL_REGISTER_SYNACK, None, uid)
 
             # Fresh forker: send a contact signal
             self._send_contact(host, port)
 
-            _logger.debug("Newly registered forker ID=%s Node=%s Port=%d",
-                          uid, node, port)
+            _logger.debug("Newly registered forker ID=%s Node=%s/%s Port=%d",
+                          uid, node_uid, node_name, port)
 
         else:
             _logger.debug("Already registered forker ID=%s", uid)
 
         # Notify listeners
-        self._notify_listeners(uid, node, True)
+        self._notify_listeners(uid, node_uid, True)
 
 
     def _notify_listeners(self, uid, node, registered):
         """
         Notifies listeners of a forker event
-        
+
         :param uid: UID of a forker
         :param node: Node hosting the forker
         :param registered: If True, the forker has been registered, else lost
@@ -402,7 +408,7 @@ class ForkerAggregator(object):
     def __notification(self, listeners, method_name, uid, node):
         """
         Listeners notification loop
-        
+
         :param listeners: List of listeners to call
         :param method: Name of the method to call in listeners
         :param uid: UID of a forker
@@ -425,7 +431,7 @@ class ForkerAggregator(object):
     def _send_contact(self, host, port):
         """
         Sends a CONTACT signal to the given access point.
-        
+
         :param host: A host address
         :param port: A signal access port
         """
@@ -448,7 +454,7 @@ class ForkerAggregator(object):
     def _send_forker_lost(self, uid):
         """
         Sends a "forker lost" signal
-        
+
         :param uid: UID of the lost forker
         """
         # Remove the references to the forker in the LST
@@ -487,7 +493,7 @@ class ForkerAggregator(object):
         """
         Posts an order to the given forker and waits for the result.
         Returns FORKER_REQUEST_TIMEOUT if the time out expires before.
-        
+
         :param uid: Forker UID
         :param signal: Name of the signal to send
         :param data: Content of the signal
@@ -521,7 +527,7 @@ class ForkerAggregator(object):
     def _get_forker(self, node, kind):
         """
         Finds the first isolate with a forker ID on the given node
-        
+
         :param node: Name of a node
         :param kind: Kind the forker must handle
         :return: The first matching UID or None
@@ -540,16 +546,22 @@ class ForkerAggregator(object):
                     return uid
 
 
-    def _handle_heartbeat(self, uid, application_id, node, host, port):
+    def _handle_heartbeat(self, uid, application_id, node_uid, node_name,
+                          host, port):
         """
         Handles a decoded heartbeat
-        
+
         :param uid: UID of the forker
         :param application_id: ID of the application handled by the forker
-        :param node: Node hosting the forker
+        :param node_uid: UID of the node hosting the forker
+        :param node_name: Name of the node hosting the forker
         :param host: Address of the node
         :param port: Port to access the forker
         """
+        if node_uid == self._local_uid:
+            # Ignore this heart beat (sent by us)
+            return
+
         with self._lst_lock:
             # Update the forker LST
             to_register = uid not in self._forker_lst
@@ -557,8 +569,9 @@ class ForkerAggregator(object):
 
         if to_register:
             # The forker wasn't known, register it
-            _logger.debug("Register forker: %s from %s", uid, node)
-            self.register_forker(uid, node, host, port)
+            _logger.debug("Register forker: %s from %s/%s",
+                          uid, node_uid, node_name)
+            self.register_forker(uid, node_uid, node_name, host, port)
 
 
     def __lst_loop(self):
@@ -596,7 +609,7 @@ class ForkerAggregator(object):
     def handle_isolate_presence(self, uid, node, event):
         """
         Handles an isolate presence event
-        
+
         :param uid: UID of the isolate
         :param node: Node of the isolate
         :param event: Kind of event
@@ -618,6 +631,9 @@ class ForkerAggregator(object):
         """
         # Convert port into integer
         self._port = int(self._port)
+
+        # Get the local node UID
+        self._local_uid = self._directory.get_local_node()
 
         # Start the event pool
         self._events_thread = pelix.threadpool.ThreadPool(1, \
@@ -667,5 +683,6 @@ class ForkerAggregator(object):
         # Clear storage
         self._forker_lst.clear()
         self._isolate_forker.clear()
+        self._local_uid = None
 
         _logger.info("Forker aggregator invalidated")

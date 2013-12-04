@@ -46,10 +46,10 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
-def make_heartbeat(port, application_id, isolate_id, node_id):
+def make_heartbeat(port, application_id, isolate_id, node_id, node_name):
     """
     Prepares the heart beat UDP packet
-    
+
     Format : Little endian
     * Packet type (1 byte)
     * Signals port (2 bytes)
@@ -57,19 +57,22 @@ def make_heartbeat(port, application_id, isolate_id, node_id):
     * application_id (variable, UTF-8)
     * Isolate ID length (2 bytes)
     * Isolate ID (variable, UTF-8)
-    * Node ID length (2 bytes)
-    * Node ID (variable, UTF-8)
-    
+    * Node UID length (2 bytes)
+    * Node UID (variable, UTF-8)
+    * Node name length length (2 bytes)
+    * Node name (variable, UTF-8)
+
     :param port: The Signals access port
     :param application_id: The ID of the current application
     :param isolate_id: The ID of this isolate
     :param node_id: The host node ID
+    :param node_name: The host node name
     :return: The heart beat packet content (byte array)
     """
     # Type and port...
     packet = struct.pack("<BH", PACKET_TYPE_HEARTBEAT, port)
 
-    for string in (application_id, isolate_id, node_id):
+    for string in (application_id, isolate_id, node_id, node_name):
         # Strings...
         string_bytes = to_bytes(string)
         packet += struct.pack("<H", len(string_bytes))
@@ -129,7 +132,9 @@ class Heart(object):
         beat = make_heartbeat(self._http.get_access()[1],
                               self._app_id,
                               self._context.get_property(cohorte.PROP_UID),
-                              self._context.get_property(cohorte.PROP_NODE))
+                              self._context.get_property(cohorte.PROP_NODE_UID),
+                              self._context.get_property(cohorte.PROP_NODE_NAME)
+                              )
 
         while not self._stop_event.is_set():
             # Send the heart beat using the multicast socket
