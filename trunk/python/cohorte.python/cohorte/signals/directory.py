@@ -23,7 +23,6 @@ __version__ = "1.0.1"
 
 # COHORTE constants
 import cohorte.forker
-import cohorte.monitor
 import cohorte.signals
 
 # iPOPO
@@ -320,14 +319,11 @@ class SignalsDirectory(object):
                 # Only the current isolate
                 matching = [isolate_id]
 
-            elif group_name == cohorte.signals.GROUP_FORKERS:
-                # Return only forkers, including the current one
+            elif group_name in (cohorte.signals.GROUP_FORKERS,
+                                cohorte.signals.GROUP_MONITORS):
+                # Return forkers, including the current one
+                # Note: now, monitors are inside forkers.
                 matching = self.get_all_isolates(cohorte.forker.FORKER_NAME,
-                                                 True)
-
-            elif group_name == cohorte.signals.GROUP_MONITORS:
-                # Return only monitors, including the current one
-                matching = self.get_all_isolates(cohorte.monitor.MONITOR_NAME,
                                                  True)
 
             elif group_name == cohorte.signals.GROUP_ISOLATES:
