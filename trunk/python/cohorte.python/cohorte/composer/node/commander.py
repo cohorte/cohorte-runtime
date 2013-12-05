@@ -80,10 +80,6 @@ class NodeCommander(object):
         # Isolate name -> NodeComposer
         self._isolate_composer = {}
 
-        # Export flags
-        self._export = None
-        self._export_name = None
-
         # Validation flag
         self.__validated = False
 
