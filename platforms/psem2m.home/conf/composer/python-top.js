@@ -27,11 +27,9 @@
 		"name" : "cohorte.composer.criteria.distance.configuration"
 	},
 
-	/* Debug shell commands */
+	/* Shell commands */
 	{
 		"name" : "cohorte.shell.composer_top"
-	}, {
-		"name" : "cohorte.shell.composer_node"
 	} ]
 
 /* All components of the Composer are automatically instantiated */

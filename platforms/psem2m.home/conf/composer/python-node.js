@@ -23,6 +23,11 @@
 	}, {
 		"name" : "cohorte.composer.node.commander"
 	},
+	
+	/* Shell commands */
+	{
+		"name" : "cohorte.shell.composer_node"
+	},
 
 	/* Distributor criteria */
 	{
