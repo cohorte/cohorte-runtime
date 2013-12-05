@@ -41,12 +41,15 @@ import cohorte.repositories
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
-    Instantiate
+    Instantiate, BindField, Invalidate
+
+# Standard library
+import threading
 
 # ------------------------------------------------------------------------------
 
 @ComponentFactory()
-@Provides(cohorte.composer.SERVICE_COMPONENT_FINDER)
+@Provides(cohorte.composer.SERVICE_COMPONENT_FINDER, controller="_controller")
 @Requires('_repositories', cohorte.repositories.SERVICE_REPOSITORY_FACTORIES,
           aggregate=True)
 @Instantiate('cohorte-composer-node-finder')
@@ -58,7 +61,49 @@ class ComponentFinder(object):
         """
         Sets up members
         """
+        # Injected repositories
         self._repositories = []
+
+        # Service controller
+        self._controller = False
+
+        # Binding timer
+        self._timer = None
+
+        # Let 1 second before considering all repositories are available
+        self.__pause_time = 1
+
+
+    def __provide(self):
+        """
+        Sets the service controller to True
+        """
+        self._controller = True
+
+
+    @BindField('_repositories')
+    def _bind_repository(self, field, svc, svc_ref):
+        """
+        A repository has been bound. Starts the timer to provide the service
+        when most of repositories have been bound.
+        """
+        if self._timer is not None:
+            self._timer.cancel()
+
+        # Set a new timer
+        self._timer = threading.Timer(self.__pause_time, self.__provide)
+        self._timer.start()
+
+
+    @Invalidate
+    def _invalidate(self, context):
+        """
+        Component invalidated
+        """
+        # Kill the timer
+        if self._timer is not None:
+            self._timer.cancel()
+            self._timer = None
 
 
     def normalize(self, component):
