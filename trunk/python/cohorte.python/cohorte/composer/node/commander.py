@@ -47,9 +47,6 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
     Property, Instantiate, BindField, UpdateField, UnbindField, \
     Invalidate, Validate
 
-# Pelix
-import pelix.remote
-
 # Standard library
 import logging
 import threading
@@ -62,9 +59,7 @@ _logger = logging.getLogger(__name__)
 
 @ComponentFactory()
 @Provides(cohorte.composer.SERVICE_COMMANDER_NODE)
-@Property('_export', pelix.remote.PROP_EXPORTED_INTERFACES, '*')
-@Property('_export_name', pelix.remote.PROP_ENDPOINT_NAME,
-          'composer-node-commander')
+@Property('_node_uid', cohorte.composer.PROP_NODE_UID)
 @Requires('_status', cohorte.composer.SERVICE_STATUS_NODE)
 @Requires('_injected_composers', cohorte.composer.SERVICE_COMPOSER_ISOLATE,
           aggregate=True, optional=True)
@@ -79,7 +74,7 @@ class NodeCommander(object):
         """
         self._status = None
 
-        # Injected (for naming only)
+        # Injected
         self._injected_composers = []
 
         # Isolate name -> NodeComposer
@@ -92,17 +87,35 @@ class NodeCommander(object):
         # Validation flag
         self.__validated = False
 
+        # Node UID
+        self._node_uid = None
+
         # Lock
         self.__lock = threading.Lock()
 
 
+    def __check_node(self, svc_ref):
+        """
+        Compares the node UID of the given service reference with the local one
+
+        :param svc_ref: A service reference
+        :return: True if the given service is on the local node
+        """
+        return self._node_uid == \
+            svc_ref.get_property(cohorte.composer.PROP_NODE_UID)
+
+
     @BindField('_injected_composers')
-    def _bind_composer(self, _, service, service_reference):
+    def _bind_composer(self, _, service, svc_ref):
         """
         Called by iPOPO when a new composer is bound
         """
-        isolate_name = service_reference.get_property(\
-                                            cohorte.composer.PROP_ISOLATE_NAME)
+        # Check node UID
+        if not self.__check_node(svc_ref):
+            # Different node: ignore this isolate composer
+            return
+
+        isolate_name = svc_ref.get_property(cohorte.composer.PROP_ISOLATE_NAME)
         if not isolate_name:
             # No node name given, ignore it
             return
@@ -116,39 +129,46 @@ class NodeCommander(object):
 
 
     @UpdateField('_injected_composers')
-    def _update_composer(self, field, service, service_reference,
-                         old_properties):
+    def _update_composer(self, field, service, svc_ref, old_properties):
         """
         Called by iPOPO when the properties of a bound composer changed
         """
+        # Check node UID
+        if not self.__check_node(svc_ref):
+            # Different node: ignore this isolate composer
+            return
+
         old_name = old_properties.get(cohorte.composer.PROP_ISOLATE_NAME)
-        new_name = service_reference.get_property(\
-                                            cohorte.composer.PROP_ISOLATE_NAME)
+        new_name = svc_ref.get_property(cohorte.composer.PROP_ISOLATE_NAME)
         if old_name == new_name:
             # Nothing to do
             return
 
         if not old_name:
             # Previously ignored
-            self._bind_composer(field, service, service_reference)
+            self._bind_composer(field, service, svc_ref)
 
         elif not new_name:
             # Now ignored
-            self._unbind_composer(field, service, service_reference)
+            self._unbind_composer(field, service, svc_ref)
 
         else:
             # Changed node name
-            self._unbind_composer(field, service, service_reference)
-            self._bind_composer(field, service, service_reference)
+            self._unbind_composer(field, service, svc_ref)
+            self._bind_composer(field, service, svc_ref)
 
 
     @UnbindField('_injected_composers')
-    def _unbind_composer(self, _, service, service_reference):
+    def _unbind_composer(self, _, service, svc_ref):
         """
         Called by iPOPO when a bound composer is gone
         """
-        isolate_name = service_reference.get_property(\
-                                            cohorte.composer.PROP_ISOLATE_NAME)
+        # Check node UID
+        if not self.__check_node(svc_ref):
+            # Different node: ignore this isolate composer
+            return
+
+        isolate_name = svc_ref.get_property(cohorte.composer.PROP_ISOLATE_NAME)
         if not isolate_name:
             # No node name given, ignore it
             return
@@ -165,6 +185,7 @@ class NodeCommander(object):
         """
         with self.__lock:
             self.__validated = False
+            self._node_uid = None
 
 
     @Validate
@@ -174,6 +195,7 @@ class NodeCommander(object):
         """
         with self.__lock:
             self.__validated = True
+            self._node_uid = context.get_property(cohorte.PROP_NODE_UID)
 
             # Call all bound isolate composers
             for isolate, composer in self._isolate_composer.items():
@@ -225,7 +247,7 @@ class NodeCommander(object):
         :return: A set of isolate beans
         """
         isolates = set()
-        for composer in self._injected_composers:
+        for composer in self._isolate_composer.values():
             try:
                 # Request the description of the composer
                 isolate_info = composer.get_isolate_info()
