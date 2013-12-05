@@ -60,6 +60,7 @@ _logger = logging.getLogger(__name__)
 @ComponentFactory()
 @Provides(cohorte.composer.SERVICE_COMPOSER_ISOLATE)
 @Property('_node_uid', cohorte.composer.PROP_NODE_UID)
+@Property('_node_name', cohorte.composer.PROP_NODE_NAME)
 @Property('_isolate_name', cohorte.composer.PROP_ISOLATE_NAME)
 @Property('_export', pelix.remote.PROP_EXPORTED_INTERFACES, '*')
 @Property('_export_name', pelix.remote.PROP_ENDPOINT_NAME,
@@ -77,6 +78,7 @@ class IsolateComposer(object):
         """
         # Service properties
         self._node_uid = None
+        self._node_name = None
         self._isolate_name = None
         self._export = None
         self._export_name = None
@@ -97,6 +99,7 @@ class IsolateComposer(object):
         Component validated
         """
         self._node_uid = context.get_property(cohorte.PROP_NODE_UID)
+        self._node_name = context.get_property(cohorte.PROP_NODE_NAME)
         self._isolate_name = context.get_property(cohorte.PROP_NAME)
         self.__validated = True
 
@@ -110,6 +113,7 @@ class IsolateComposer(object):
         self._remaining.clear()
 
         self._node_uid = None
+        self._node_name = None
         self._isolate_name = None
 
 
