@@ -21,6 +21,14 @@ import org.psem2m.isolates.constants.IPlatformProperties;
 public interface IPlatformDirsSvc extends IPlatformProperties {
 
     /**
+     * Retrieves the log directory of the current platform base . Creates it
+     * if needed.
+     * 
+     * @return the log directory of the current platform base
+     */
+	File getPlatformBaseLogDir();
+		
+    /**
      * Retrieves the specific log directory of the current isolate . Creates it
      * if needed.
      * 
@@ -61,8 +69,16 @@ public interface IPlatformDirsSvc extends IPlatformProperties {
      * 
      * @return The isolate working directory
      */
+    @Deprecated
     File getIsolateWorkingDirectory();
 
+    /**
+     * Retrieves the working directory of the current isolate (user.dir of the jvm)
+     * 
+     * @return The isolate working directory
+     */
+    File getIsolateUserDir();
+    
     /**
      * Retrieves the PSEM2M_BASE value
      * 

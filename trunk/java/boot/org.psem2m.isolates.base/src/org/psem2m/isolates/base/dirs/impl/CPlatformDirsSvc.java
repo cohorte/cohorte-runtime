@@ -13,10 +13,12 @@ package org.psem2m.isolates.base.dirs.impl;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.osgi.framework.BundleContext;
 import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
+import org.psem2m.utilities.CXStringUtils;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
@@ -24,196 +26,298 @@ import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
  */
 public class CPlatformDirsSvc implements IPlatformDirsSvc {
 
-    /** Platform base and home repository directory name */
-    private static final String REPOSITORY_NAME = "repo";
+	/**
+	 * Platform base and home repository directory name
+	 */
+	private static final String REPOSITORY_NAME = "repo";
 
-    /** The bundle context */
-    private final BundleContext pContext;
+	/**
+	 * The bundle context
+	 */
+	private final BundleContext pContext;
 
-    /** The initial working directory */
-    private final File pInitialWorkingDirectory;
+	/**
+	 * The Name of the isolate , given in "-Dcohorte.isolate.name" or calculated
+	 * (eg. "Isolate258769")
+	 */
+	private String pIsolateName = null;
 
-    /**
-     * Sets up the platform informations service. Stores the working directory
-     * at instantiation time.
-     * 
-     * @param aBundleContext
-     *            The bundle context
-     */
-    public CPlatformDirsSvc(final BundleContext aBundleContext) {
+	/**
+	 * The node of the isolate , given in "-Dcohorte.node" or calculated
+	 */
+	private String pIsolateNode = null;
 
-        pContext = aBundleContext;
+	/**
+	 * The UUID of the isolate , given in "-Dcohorte.isolate.uid" or calculated
+	 */
+	private String pIsolateUID = null;
 
-        // Store the working directory
-        pInitialWorkingDirectory = new File(System.getProperty("user.dir"));
-    }
+	/**
+	 * The initial working directory of the current isolate (user.dir of the
+	 * jvm)
+	 */
+	private final File pIsolateUserDir;
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.osgi.IPlatformDirs#getIsolateLogDir()
-     */
-    @Override
-    public File getIsolateLogDir() {
+	/**
+	 * Sets up the platform informations service. Stores the working directory
+	 * at instantiation time.
+	 * 
+	 * @param aBundleContext
+	 *            The bundle context
+	 */
+	public CPlatformDirsSvc(final BundleContext aBundleContext) {
 
-        // Valid log directory
-        return tryCreateDirectory(new File(pInitialWorkingDirectory, "log"),
-                pInitialWorkingDirectory);
-    }
+		pContext = aBundleContext;
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateName()
-     */
-    @Override
-    public String getIsolateName() {
+		// Store the working directory
+		pIsolateUserDir = new File(System.getProperty("user.dir"));
 
-        return pContext.getProperty(IPlatformProperties.PROP_ISOLATE_NAME);
-    }
+		getIsolateName();
+		getIsolateUID();
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateNode()
-     */
-    @Override
-    public String getIsolateNode() {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.isolates.osgi.IPlatformDirs#getIsolateLogDir()
+	 */
+	@Override
+	public File getIsolateLogDir() {
 
-        return pContext.getProperty(IPlatformProperties.PROP_ISOLATE_NODE);
-    }
+		// Valid log directory
+		return tryCreateDirectory(new File(getPlatformBaseLogDir(), "log"),
+				pIsolateUserDir);
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateStorageDirectory
-     * ()
-     */
-    @Override
-    public File getIsolateStorageDirectory() {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateName()
+	 */
+	@Override
+	public String getIsolateName() {
+		if (pIsolateName == null) {
+			pIsolateName = pContext
+					.getProperty(IPlatformProperties.PROP_ISOLATE_NAME);
+			if (pIsolateName == null || pIsolateName.isEmpty()) {
+				pIsolateName = "Isolate"
+						+ CXStringUtils.strAdjustRight(
+								System.currentTimeMillis(), 6);
+			}
+		}
+		return pIsolateName;
+	}
 
-        return tryCreateDirectory(
-                new File(pInitialWorkingDirectory, "storage"),
-                pInitialWorkingDirectory);
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateNode()
+	 */
+	@Override
+	public String getIsolateNode() {
+		if (pIsolateNode == null) {
+			pIsolateNode = pContext
+					.getProperty(IPlatformProperties.PROP_ISOLATE_NODE);
+			if (pIsolateNode == null || pIsolateNode.isEmpty()) {
+				pIsolateNode = "Node"
+						+ CXStringUtils.strAdjustRight(
+								System.currentTimeMillis(), 6);
+			}
+		}
+		return pIsolateNode;
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateUID()
-     */
-    @Override
-    public String getIsolateUID() {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateStorageDirectory
+	 * ()
+	 */
+	@Override
+	public File getIsolateStorageDirectory() {
 
-        return pContext.getProperty(IPlatformProperties.PROP_ISOLATE_UID);
-    }
+		return tryCreateDirectory(new File(pIsolateUserDir, "storage"),
+				pIsolateUserDir);
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateWorkingDirectory
-     * ()
-     */
-    @Override
-    public File getIsolateWorkingDirectory() {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateUID()
+	 */
+	@Override
+	public String getIsolateUID() {
 
-        return pInitialWorkingDirectory;
-    }
+		if (pIsolateUID == null) {
+			pIsolateUID = pContext
+					.getProperty(IPlatformProperties.PROP_ISOLATE_UID);
+			if (pIsolateUID == null || pIsolateUID.isEmpty()) {
+				pIsolateUID = UUID.randomUUID().toString();
+			}
+		}
+		return pIsolateUID;
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.osgi.IPlatformDirs#getPlatformBaseDir()
-     */
-    @Override
-    public File getPlatformBase() {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateUserDir()
+	 */
+	@Override
+	public File getIsolateUserDir() {
 
-        return new File(
-                pContext.getProperty(IPlatformProperties.PROP_PLATFORM_BASE));
-    }
+		return pIsolateUserDir;
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.base.IPlatformDirsSvc#getPlatformHomeDir()
-     */
-    @Override
-    public File getPlatformHome() {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateWorkingDirectory
+	 * ()
+	 */
+	@Override
+	public File getIsolateWorkingDirectory() {
 
-        return new File(
-                pContext.getProperty(IPlatformProperties.PROP_PLATFORM_HOME));
-    }
+		return getIsolateUserDir();
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.base.dirs.IPlatformDirsSvc#getPlatformRootDirs()
-     */
-    @Override
-    public File[] getPlatformRootDirs() {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.isolates.osgi.IPlatformDirs#getPlatformBaseDir()
+	 */
+	@Override
+	public File getPlatformBase() {
+		// Valid directory
+		return validDirectory(
+				new File(pContext
+						.getProperty(IPlatformProperties.PROP_PLATFORM_BASE)),
+				getIsolateWorkingDirectory());
 
-        return new File[] { getPlatformBase(), getPlatformHome(),
-                new File(System.getProperty("user.dir")) };
-    }
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.isolates.base.IPlatformDirsSvc#getRepositories()
-     */
-    @Override
-    public File[] getRepositories() {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getPlatformBaseLogDir
+	 * ()
+	 */
+	@Override
+	public File getPlatformBaseLogDir() {
+		// Valid log or create directory
+		return tryCreateDirectory(new File(getPlatformBase(), "log"),
+				getIsolateWorkingDirectory());
+	}
 
-        final List<File> repositories = new ArrayList<File>();
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.isolates.base.IPlatformDirsSvc#getPlatformHomeDir()
+	 */
+	@Override
+	public File getPlatformHome() {
 
-        // Current instance repository
-        final File baseRepo = new File(getPlatformBase(), REPOSITORY_NAME);
-        if (baseRepo.exists()) {
-            repositories.add(baseRepo);
-        }
+		return validDirectory(
+				new File(pContext
+						.getProperty(IPlatformProperties.PROP_PLATFORM_HOME)),
+				getIsolateWorkingDirectory());
+	}
 
-        // Home repository
-        final File homeRepo = new File(getPlatformHome(), REPOSITORY_NAME);
-        if (!homeRepo.equals(baseRepo) && homeRepo.exists()) {
-            repositories.add(homeRepo);
-        }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.isolates.base.dirs.IPlatformDirsSvc#getPlatformRootDirs()
+	 */
+	@Override
+	public File[] getPlatformRootDirs() {
 
-        // Add other repositories here, from higher to lower priority
+		return new File[] { getPlatformBase(), getPlatformHome(),
+				new File(System.getProperty("user.dir")) };
+	}
 
-        return repositories.toArray(new File[0]);
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.isolates.base.IPlatformDirsSvc#getRepositories()
+	 */
+	@Override
+	public File[] getRepositories() {
 
-    /**
-     * Tries to create the given directory, return the default one on failure
-     * 
-     * @param aDirectory
-     *            Directory to create via {@link File#mkdirs()}
-     * @param aDefault
-     *            Directory to return on failure
-     * @return The created directory or the default one
-     */
-    private File tryCreateDirectory(final File aDirectory, final File aDefault) {
+		final List<File> repositories = new ArrayList<File>();
 
-        if (aDirectory == null) {
-            return aDefault;
-        }
+		// Current instance repository
+		final File baseRepo = new File(getPlatformBase(), REPOSITORY_NAME);
+		if (baseRepo.exists()) {
+			repositories.add(baseRepo);
+		}
 
-        if (!aDirectory.exists()) {
-            try {
-                if (!aDirectory.mkdirs()) {
-                    // Error creating directories
-                    return aDefault;
-                }
+		// Home repository
+		final File homeRepo = new File(getPlatformHome(), REPOSITORY_NAME);
+		if (!homeRepo.equals(baseRepo) && homeRepo.exists()) {
+			repositories.add(homeRepo);
+		}
 
-            } catch (final SecurityException ex) {
-                // Security error
-                return aDefault;
-            }
-        }
+		// Add other repositories here, from higher to lower priority
 
-        // Valid log directory
-        return aDirectory;
-    }
+		return repositories.toArray(new File[0]);
+	}
+
+	/**
+	 * Tries to create the given directory, return the default one on failure
+	 * 
+	 * @param aDirectory
+	 *            Directory to create via {@link File#mkdirs()}
+	 * @param aDefault
+	 *            Directory to return on failure
+	 * @return The created directory or the default one
+	 */
+	private File tryCreateDirectory(final File aDirectory, final File aDefault) {
+
+		if (aDirectory == null) {
+			return aDefault;
+		}
+
+		if (!aDirectory.exists()) {
+			try {
+				if (!aDirectory.mkdirs()) {
+					// Error creating directories
+					return aDefault;
+				}
+
+			} catch (final SecurityException ex) {
+				// Security error
+				return aDefault;
+			}
+		}
+
+		// Valid log directory
+		return aDirectory;
+	}
+
+	/**
+	 * 
+	 * @param aDirectory
+	 *            to valid
+	 * @param aDefault
+	 *            a defaut dir
+	 * @return aDirectory or aDefault if aDirectory doesn't exist
+	 */
+	private File validDirectory(final File aDirectory, final File aDefault) {
+
+		if (aDirectory == null) {
+			return aDefault;
+		}
+
+		if (!aDirectory.exists()) {
+
+			return aDefault;
+		}
+
+		// Valid log directory
+		return aDirectory;
+	}
 }
