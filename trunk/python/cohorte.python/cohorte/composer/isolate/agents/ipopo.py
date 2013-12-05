@@ -205,6 +205,26 @@ class IPopoAgent(object):
             instantiated = set()
 
             for component in components:
+                try:
+                    # Check if component is already running
+                    stored = self.__names[component.name]
+                    if stored in self.__components[component.factory]:
+                        # Already running
+                        _logger.debug("%s is already running...",
+                                      component.name)
+                        continue
+
+                    elif stored in self.__remaining[component.factory]:
+                        # Already in the remaining list, use the stored bean
+                        # -> this will avoid different hashes due to network
+                        # transmission
+                        component = stored
+
+                except KeyError:
+                    # Not yet known component
+                    pass
+
+
                 # Store the name
                 self.__names[component.name] = component
 
