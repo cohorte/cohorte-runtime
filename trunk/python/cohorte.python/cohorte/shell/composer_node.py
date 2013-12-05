@@ -115,7 +115,7 @@ class NodeComposerCommands(object):
         # Prepare the table
         headers = ('Node Name', 'Node UID')
         lines = sorted((svc_ref.get_property(cohorte.composer.PROP_NODE_NAME),
-                        "n/a")
+                        svc_ref.get_property(cohorte.composer.PROP_NODE_UID))
                        for svc_ref in svc_refs)
 
         # Pretty print
