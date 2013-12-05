@@ -71,10 +71,16 @@ class IPopoAgent(object):
         # Injected services
         self._ipopo = None
 
-        # TODO: remaining factories / names, like for iPOJO
+        # Name -> Component
+        self.__names = {}
 
-        # Factory -> Remaining components
-        self._remaining = {}
+        # Factory -> set(Instantiated components)
+        self.__components = {}
+
+        # Factory -> set(Remaining components)
+        self.__remaining = {}
+
+        # Thread safety
         self.__lock = threading.RLock()
 
 
@@ -87,19 +93,26 @@ class IPopoAgent(object):
         kind = event.get_kind()
         factory = event.get_factory_name()
 
-        if kind == constants.IPopoEvent.REGISTERED:
-            # New factory registered
-            try:
-                # Instantiate waiting components
-                self.handle(self._remaining[factory])
+        with self.__lock:
+            if kind == constants.IPopoEvent.REGISTERED:
+                # New factory registered
+                try:
+                    # Instantiate waiting components
+                    self.handle(self.__remaining[factory])
 
-            except KeyError:
-                # Unknown factory
-                pass
+                except KeyError:
+                    # Unknown factory
+                    pass
 
-        elif kind == constants.IPopoEvent.UNREGISTERED:
-            # TODO: factory gone, put components in remaining state
-            pass
+            elif kind == constants.IPopoEvent.UNREGISTERED:
+                # Factory gone, put components in remaining state
+                try:
+                    self.__remaining.setdefault(factory, set()) \
+                                        .update(self.__components.pop(factory))
+
+                except KeyError:
+                    # No instantiated components for this factory
+                    pass
 
 
     @Validate
@@ -136,7 +149,7 @@ class IPopoAgent(object):
         return properties
 
 
-    def _try_instantiate(self, component):
+    def __try_instantiate(self, component):
         """
         Tries to instantiate a component
 
@@ -147,23 +160,27 @@ class IPopoAgent(object):
         """
         try:
             # Prepare properties (filters...)
+            factory = component.factory
             properties = self._compute_properties(component)
 
             # Instantiate the component
-            self._ipopo.instantiate(component.factory,
+            self._ipopo.instantiate(factory,
                                     component.name,
                                     properties)
 
             # Component instantiated
             try:
-                remaining = self._remaining[component.factory]
+                remaining = self.__remaining[factory]
                 remaining.discard(component)
                 if not remaining:
-                    del self._remaining[component.factory]
+                    del self.__remaining[factory]
 
             except KeyError:
                 # Component wasn't a remaining one
                 pass
+
+            # Store it
+            self.__components.setdefault(factory, set()).add(component)
 
             return True
 
@@ -188,18 +205,23 @@ class IPopoAgent(object):
             instantiated = set()
 
             for component in components:
+                # Store the name
+                self.__names[component.name] = component
+
                 try:
-                    if self._try_instantiate(component):
+                    # Try instantiation (updates local storage)
+                    if self.__try_instantiate(component):
                         instantiated.add(component)
+
+                    else:
+                        # Factory not found, keep track of the component
+                        self.__remaining.setdefault(component.factory, set()) \
+                                                                .add(component)
 
                 except Exception as ex:
                     # Other errors
                     _logger.exception("Error instantiating component %s: %s",
                                       component, ex)
-
-            # Store the remaining components
-            for component in components.difference(instantiated):
-                self._remaining.setdefault(component.factory, set()) \
 
             return instantiated
 
@@ -209,21 +231,39 @@ class IPopoAgent(object):
         Kills the component with the given name
 
         :param name: Name of the component to kill
-        :raise ValueError: Invalid component name
+        :raise KeyError: Unknown component
         """
         with self.__lock:
+            # Get the component bean
+            component = self.__names.pop(name)
+
+            # Bean storage
+            storage = self.__components
+
             try:
                 # Kill the component
                 self._ipopo.kill(name)
 
             except ValueError:
-                # Remove the component from the remaining ones
-                for component in self._remaining.values():
-                    if component.name == name:
-                        # Found it
-                        self._remaining[component.factory].remove(component)
-                        break
+                # iPOPO didn't know about the component,
+                # remove it from the remaining ones
+                storage = self.__remaining
 
-                else:
-                    # Component not found
-                    raise
+            else:
+                # Bean is stored in the instantiated components dictionary
+                storage = self.__components
+
+            try:
+                # Clean up the storage
+                components = storage[component.factory]
+                components.remove(component)
+                if not components:
+                    del storage[component.factory]
+
+            except KeyError:
+                # Strange: the component is not where it is supposed to be
+                _logger.warning("Component %s is not stored where it is "
+                                "supposed to be (%s components)", name,
+                                "instantiated" if storage is self.__components \
+                                else "remaining")
+                return
