@@ -25,6 +25,7 @@ from pelix.ipopo.decorators import ComponentFactory, Provides, Invalidate, \
 
 # Standard library
 import logging
+import threading
 
 # ------------------------------------------------------------------------------
 
@@ -322,6 +323,9 @@ class IPojoRepository(object):
         # Artifact -> [Factories]
         self._artifacts = {}
 
+        # Thread safety
+        self.__lock = threading.RLock()
+
 
     def __contains__(self, item):
         """
@@ -401,33 +405,35 @@ class IPojoRepository(object):
         :param artifact: A Java Bundle artifact
         :raise ValueError: Unreadable file
         """
-        # Extract factories
-        names = self._extract_bundle_factories(artifact)
-        if not names:
-            # No factory in this artifact
-            return
+        with self.__lock:
+            # Extract factories
+            names = self._extract_bundle_factories(artifact)
+            if not names:
+                # No factory in this artifact
+                return
 
-        artifact_list = self._artifacts.setdefault(artifact, [])
-        for name in names:
-            # Make the bean
-            factory = Factory(name, self._language, self._model, artifact)
+            artifact_list = self._artifacts.setdefault(artifact, [])
+            for name in names:
+                # Make the bean
+                factory = Factory(name, self._language, self._model, artifact)
 
-            # Factory
-            factory_list = self._factories.setdefault(name, [])
-            if factory not in factory_list:
-                factory_list.append(factory)
+                # Factory
+                factory_list = self._factories.setdefault(name, [])
+                if factory not in factory_list:
+                    factory_list.append(factory)
 
-            # Artifact
-            if factory not in artifact_list:
-                artifact_list.append(factory)
+                # Artifact
+                if factory not in artifact_list:
+                    artifact_list.append(factory)
 
 
     def clear(self):
         """
         Clears the repository content
         """
-        self._artifacts.clear()
-        self._factories.clear()
+        with self.__lock:
+            self._artifacts.clear()
+            self._factories.clear()
 
 
     def find_factories(self, factories):
@@ -437,30 +443,31 @@ class IPojoRepository(object):
         :param factories: A list of iPOJO factory names
         :return: A tuple ({Name -> [Artifacts]}, [Not found factories])
         """
-        factories_set = set(factories)
-        resolution = {}
-        unresolved = set()
+        with self.__lock:
+            factories_set = set(factories)
+            resolution = {}
+            unresolved = set()
 
-        if not factories:
-            # Nothing to do...
-            return resolution, factories_set
+            if not factories:
+                # Nothing to do...
+                return resolution, factories_set
 
-        for name in factories_set:
-            try:
-                # Get the list of factories for this name
-                factories = self._factories[name]
-                providers = resolution.setdefault(name, [])
-                providers.extend((factory.artifact for factory in factories))
+            for name in factories_set:
+                try:
+                    # Get the list of factories for this name
+                    factories = self._factories[name]
+                    providers = resolution.setdefault(name, [])
+                    providers.extend((factory.artifact for factory in factories))
 
-            except KeyError:
-                # Factory name not found
-                unresolved.add(name)
+                except KeyError:
+                    # Factory name not found
+                    unresolved.add(name)
 
-        # Sort the artifacts
-        for artifacts in resolution.values():
-            artifacts.sort(reverse=True)
+            # Sort the artifacts
+            for artifacts in resolution.values():
+                artifacts.sort(reverse=True)
 
-        return resolution, unresolved
+            return resolution, unresolved
 
 
     def find_factory(self, factory, artifact_name=None, artifact_version=None):
@@ -472,27 +479,28 @@ class IPojoRepository(object):
                  and version
         :raise KeyError: Unknown factory
         """
-        # Copy the list of artifacts for this factory
-        artifacts = [factory.artifact for factory in self._factories[factory]]
+        with self.__lock:
+            # Copy the list of artifacts for this factory
+            artifacts = [factory.artifact for factory in self._factories[factory]]
 
-        if artifact_name is not None:
-            # Artifact must be selected
-            # Prepare the version bean
-            version = cohorte.repositories.beans.Version(artifact_version)
+            if artifact_name is not None:
+                # Artifact must be selected
+                # Prepare the version bean
+                version = cohorte.repositories.beans.Version(artifact_version)
 
-            # Filter results
-            artifacts = [artifact for artifact in artifacts
-                         if artifact.name == artifact_name
-                         and version.matches(artifact.version)]
+                # Filter results
+                artifacts = [artifact for artifact in artifacts
+                             if artifact.name == artifact_name
+                             and version.matches(artifact.version)]
 
-            if not artifacts:
-                # No match found
-                raise KeyError("No matching artifact for {0} -> {1} {2}" \
-                               .format(factory, artifact_name, version))
+                if not artifacts:
+                    # No match found
+                    raise KeyError("No matching artifact for {0} -> {1} {2}" \
+                                   .format(factory, artifact_name, version))
 
-        # Sort results
-        artifacts.sort(reverse=True)
-        return artifacts
+            # Sort results
+            artifacts.sort(reverse=True)
+            return artifacts
 
 
     def get_language(self):
@@ -514,14 +522,15 @@ class IPojoRepository(object):
         """
         Loads the factories according to the repositories
         """
-        if not self._repositories:
-            # No repository
-            return
+        with self.__lock:
+            if not self._repositories:
+                # No repository
+                return
 
-        # Walk through artifacts
-        for repository in self._repositories:
-            for artifact in repository.walk():
-                self.add_artifact(artifact)
+            # Walk through artifacts
+            for repository in self._repositories:
+                for artifact in repository.walk():
+                    self.add_artifact(artifact)
 
 
     @Validate
@@ -529,7 +538,9 @@ class IPojoRepository(object):
         """
         Component validated
         """
-        self.load_repositories()
+        # Load repositories in another thread
+        threading.Thread(target=self.load_repositories,
+                         name="iPOJO-repository-loader").start()
 
 
     @Invalidate
