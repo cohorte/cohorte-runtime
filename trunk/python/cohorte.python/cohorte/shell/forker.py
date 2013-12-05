@@ -8,12 +8,12 @@ Provides commands to the Pelix shell to work with the forker
 :author: Thomas Calmant
 :copyright: Copyright 2013, isandlaTech
 :license: GPLv3
-:version: 0.1
+:version: 0.2
 :status: Alpha
 """
 
 # Module version
-__version_info__ = (0, 1, 0)
+__version_info__ = (0, 2, 0)
 __version__ = ".".join(str(x) for x in __version_info__)
 
 # Documentation strings format
@@ -78,7 +78,7 @@ class SignalsCommands(object):
     def __ping_to_str(self, ping_result):
         """
         Converts a ping() result (integer) into a string
-        
+
         :param ping_result: A ping result
         :return: A string
         """
@@ -92,12 +92,12 @@ class SignalsCommands(object):
             return "STUCK"
 
         else:
-            return "<UNKNOWN>"
+            return "<UNKNOWN:{0}>".format(ping_result)
 
 
     def ping(self, io_handler, isolate=None):
         """
-        ping [<isolate>] - Checks if the given isolate (name or UID) is alive
+        Checks if the given isolate (name or UID) is alive
         """
         try:
             for uid in self._directory.get_uids(isolate):
@@ -113,7 +113,7 @@ class SignalsCommands(object):
 
     def stop_isolate(self, io_handler, isolate):
         """
-        stop <isolate> - Stops the given isolate (name or UID)
+        Stops the given isolate (name or UID)
         """
         try:
             for uid in self._directory.get_uids(isolate):

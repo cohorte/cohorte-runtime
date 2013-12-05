@@ -8,12 +8,12 @@ Provides commands to the Pelix shell to find other shells
 :author: Thomas Calmant
 :copyright: Copyright 2013, isandlaTech
 :license: GPLv3
-:version: 0.1
+:version: 0.2
 :status: Alpha
 """
 
 # Module version
-__version_info__ = (0, 1, 0)
+__version_info__ = (0, 2, 0)
 __version__ = ".".join(str(x) for x in __version_info__)
 
 # Documentation strings format
@@ -105,7 +105,7 @@ class ShellAgentCommands(object):
     def handle_received_signal(self, name, signal_data):
         """
         Called when a remote services signal is received
-        
+
         :param name: Signal name
         :param signal_data: Signal content
         """
@@ -120,7 +120,7 @@ class ShellAgentCommands(object):
 
     def pids(self, io_handler, isolate=None):
         """
-        pids [<isolate>] - Prints the Process ID of the isolate(s)
+        Prints the Process ID of the isolate(s)
         """
         # Prepare the signal targets
         params = {}
@@ -139,6 +139,9 @@ class ShellAgentCommands(object):
 
         # Send the signal
         succeeded, failed = self._sender.send(SIGNAL_GET_PID, None, **params)
+
+        # Setup the headers
+        headers = ('Name', 'UID', 'Node Name', 'Node UID', 'PID')
 
         # Compute the table content
         table = []
@@ -160,14 +163,12 @@ class ShellAgentCommands(object):
                     pid = "<unknown>"
 
             # Add the line to the table
+            node_uid = self._directory.get_isolate_node(uid)
             line = (self._directory.get_isolate_name(uid), uid,
-                    self._directory.get_isolate_node(uid), pid)
+                    self._directory.get_node_name(node_uid), node_uid, pid)
             table.append(line)
 
         if table:
-            # Setup the headers
-            headers = ['Name', 'UID', 'Node', 'PID']
-
             # Sort values
             table.sort()
 
@@ -184,8 +185,7 @@ class ShellAgentCommands(object):
 
     def shells(self, io_handler, isolate=None):
         """
-        shells [<isolate>] - Prints the port(s) to access the isolate remote
-        shell(s)
+        Prints the port(s) to access the isolate remote shell(s)
         """
         # Prepare the signal targets
         params = {}
@@ -205,26 +205,27 @@ class ShellAgentCommands(object):
         succeeded, failed = self._sender.send(SIGNAL_GET_SHELLS, None, **params)
 
         # Compute the shell names
-        shell_names = []
+        shell_names = set()
         for uid, isolate_response in succeeded.items():
             if isolate_response is None:
                 # Unreadable answer
                 failed.append(uid)
             else:
-                for result in isolate_response['results']:
-                    for shell_name in result:
-                        if shell_name not in shell_names:
-                            shell_names.append(shell_name)
+                shell_names.update(shell_name
+                                   for result in isolate_response['results']
+                                   for shell_name in result)
 
-        # Sort shell names
+        # Sort shell names, using a list
+        shell_names = list(shell_names)
         shell_names.sort()
 
         # Compute the table content
         table = []
         for uid, response in succeeded.items():
-            # First columns: Name, UID, Node
+            # First columns: Name, UID, Node Name, Node UID
+            node_uid = self._directory.get_isolate_node(uid)
             line = [self._directory.get_isolate_name(uid), uid,
-                    self._directory.get_isolate_node(uid)]
+                    self._directory.get_node_name(node_uid), node_uid]
 
             shell_ports = {}
             for result in response['results']:
@@ -244,7 +245,7 @@ class ShellAgentCommands(object):
 
         if table:
             # Setup the headers
-            headers = ['Name', 'UID', 'Node'] + shell_names
+            headers = ['Name', 'UID', 'Node Name', 'Node UID'] + shell_names
 
             # Sort values
             table.sort()

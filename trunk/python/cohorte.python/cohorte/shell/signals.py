@@ -8,12 +8,12 @@ Provides commands to the Pelix shell to work with the signals service
 :author: Thomas Calmant
 :copyright: Copyright 2013, isandlaTech
 :license: GPLv3
-:version: 0.1
+:version: 0.2
 :status: Alpha
 """
 
 # Module version
-__version_info__ = (0, 1, 0)
+__version_info__ = (0, 2, 0)
 __version__ = ".".join(str(x) for x in __version_info__)
 
 # Documentation strings format
@@ -81,18 +81,20 @@ class SignalsCommands(object):
 
     def dir(self, io_handler, prefix=None):
         """
-        dir [<prefix>] - Lists the known isolates
+        Lists the known isolates, filtered by the given name prefix or UID
         """
-        headers = ('Name', 'UID', 'Node', 'Host', 'Port')
+        headers = ('Name', 'UID', 'Node Name', 'Node UID', 'Host', 'Port')
         content = []
 
         # Grab data
         for isolate_uid in self._directory.get_all_isolates(prefix, True):
-            name = self._directory.get_isolate_name(isolate_uid)
-            node = self._directory.get_isolate_node(isolate_uid)
+            isolate_name = self._directory.get_isolate_name(isolate_uid)
+            node_uid = self._directory.get_isolate_node(isolate_uid)
+            node_name = self._directory.get_node_name(node_uid)
             host, port = self._directory.get_isolate_access(isolate_uid)
 
-            content.append((name, isolate_uid, node, host, port))
+            content.append((isolate_name, isolate_uid, node_name, node_uid,
+                            host, port))
 
         if not content:
             # No match found
@@ -108,9 +110,9 @@ class SignalsCommands(object):
 
     def group(self, io_handler, group):
         """
-        group <group> - Lists the isolates from the given group
+        Lists the isolates from the given group
         """
-        headers = ('Name', 'UID', 'Node', 'Host', 'Port')
+        headers = ('Name', 'UID', 'Node Name', 'Node UID', 'Host', 'Port')
         content = []
 
         # Grab data
@@ -121,11 +123,13 @@ class SignalsCommands(object):
             return
 
         for isolate_uid, access in accesses.items():
-            name = self._directory.get_isolate_name(isolate_uid)
-            node = self._directory.get_isolate_node(isolate_uid)
+            isolate_name = self._directory.get_isolate_name(isolate_uid)
+            node_uid = self._directory.get_isolate_node(isolate_uid)
+            node_name = self._directory.get_node_name(node_uid)
             host, port = access
 
-            content.append((name, isolate_uid, node, host, port))
+            content.append((isolate_name, isolate_uid, node_name, node_uid,
+                            host, port))
 
         # Sort the list
         content.sort()
@@ -136,7 +140,7 @@ class SignalsCommands(object):
 
     def groups(self, io_handler, prefix=None):
         """
-        groups [<prefix>] - Lists the available isolate groups
+        Lists the available isolate groups
         """
         if prefix is not None:
             prefix = prefix.upper()
@@ -150,21 +154,27 @@ class SignalsCommands(object):
 
     def host(self, io_handler, prefix=None):
         """
-        host [<prefix>] - Prints the known host address/name of known nodes
+        Prints the known host address/name of known nodes
         """
-        headers = ('Node', 'Host')
+        headers = ('Node Name', 'Node UID', 'Host')
         content = []
 
         # Get data
-        nodes = self._directory.get_all_nodes()
-        if not nodes:
+        node_uids = self._directory.get_all_nodes()
+        if not node_uids:
             # Nothing to show
             io_handler.write_line("No known node.")
             return
 
-        for node in nodes:
-            if not prefix or node.startswith(prefix):
-                content.append((node, self._directory.get_host_for_node(node)))
+        for node_uid in node_uids:
+            node_name = self._directory.get_node_name(node_uid)
+            if not prefix or node_name.startswith(prefix) or node_uid == prefix:
+                content.append((node_name, node_uid,
+                                self._directory.get_host_for_node(node_uid)))
+
+        if not content:
+            io_handler.write_line("No matching node")
+            return
 
         # Sort the list
         content.sort()
@@ -175,34 +185,46 @@ class SignalsCommands(object):
 
     def local(self, io_handler):
         """
-        local - Prints information about this isolate
+        Prints information about this isolate
         """
         uid = self._directory.get_isolate_uid()
 
-        io_handler.write_line("UID:\t{0}", uid)
-        io_handler.write_line("Name:\t{0}",
+        # Isolate
+        io_handler.write_line("Isolate UID.: {0}", uid)
+        io_handler.write_line("Isolate Name: {0}",
                               self._directory.get_isolate_name(uid))
-        io_handler.write_line("Node:\t{0}",
-                              self._directory.get_isolate_node(uid))
 
+        # Node
+        node_uid = self._directory.get_local_node()
+        io_handler.write_line("Node UID....: {0}", node_uid)
+        io_handler.write_line("Node Name...: {0}",
+                              self._directory.get_node_name(node_uid))
+
+        # Signals Access
         host, port = self._directory.get_isolate_access(uid)
-        io_handler.write_line("Access:\t{0} - {1}", host, port)
+        io_handler.write_line("HTTP Access.: {0} : {1}", host, port)
 
 
     def named(self, io_handler, name=None):
         """
-        named <name> - Lists the isolates having the exact given name
+        Lists the isolates having the exact given name, or the same name as this
+        isolate.
         """
-        headers = ('Name', 'UID', 'Node', 'Host', 'Port')
+        headers = ('Name', 'UID', 'Node Name', 'Node UID', 'Host', 'Port')
         content = []
+
+        if name is None:
+            name = self._directory.get_isolate_name()
 
         # Grab data
         for isolate_uid in self._directory.get_name_uids(name):
-            name = self._directory.get_isolate_name(isolate_uid)
-            node = self._directory.get_isolate_node(isolate_uid)
+            isolate_name = self._directory.get_isolate_name(isolate_uid)
+            node_uid = self._directory.get_isolate_node(isolate_uid)
+            node_name = self._directory.get_node_name(node_uid)
             host, port = self._directory.get_isolate_access(isolate_uid)
 
-            content.append((name, isolate_uid, node, host, port))
+            content.append((isolate_name, isolate_uid, node_name, node_uid,
+                            host, port))
 
         if not content:
             # No match found
