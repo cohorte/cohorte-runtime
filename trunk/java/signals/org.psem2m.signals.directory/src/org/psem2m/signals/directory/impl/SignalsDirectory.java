@@ -268,16 +268,12 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
             matchingIsolates = new String[] { currentUID };
             break;
 
+        case MONITORS:
         case FORKERS:
-            // Return only forkers, including the current one
+            // Return only forkers (which are also monitors),
+            // including the current one
             matchingIsolates = getAllIsolates(
                     IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER, true, true);
-            break;
-
-        case MONITORS:
-            // Return only monitors, including the current one
-            matchingIsolates = getAllIsolates(
-                    IPlatformProperties.SPECIAL_ISOLATE_ID_MONITOR, true, true);
             break;
 
         case ISOLATES:
