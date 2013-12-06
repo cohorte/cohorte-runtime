@@ -90,7 +90,7 @@ public class DirectoryUpdater implements ISignalListener,
      * Retrieves the directory of a remote isolate.
      * 
      * This method is called after a CONTACT signal has been received from a
-     * monitor.
+     * forker.
      * 
      * @param aSignalData
      *            The received contact signal
@@ -101,10 +101,10 @@ public class DirectoryUpdater implements ISignalListener,
         final String remoteId = aSignalData.getSenderUID();
         final String remoteName = aSignalData.getSenderName();
         if (!remoteName
-                .startsWith(IPlatformProperties.SPECIAL_ISOLATE_ID_MONITOR)) {
+                .startsWith(IPlatformProperties.SPECIAL_ISOLATE_ID_FORKER)) {
             // Log & Ignore
             pLogger.logWarn(this, "grabRemoteDirectory",
-                    "Contacts must be made by monitors only, sender=", remoteId);
+                    "Contacts must be made by forkers only, sender=", remoteId);
             return;
         }
 
