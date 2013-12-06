@@ -409,7 +409,8 @@ class ForkerBasic(object):
 
             except ValueError as ex:
                 # Timeout reached or isolate lost
-                _logger.error("Error waiting for the isolate to be loaded")
+                _logger.error("Error waiting for isolate %s (%s) to be loaded",
+                              uid, name)
 
                 # Kill the isolate
                 try:
