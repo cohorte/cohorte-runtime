@@ -126,8 +126,6 @@ class Heart(object):
         """
         Heart beat sender
         """
-        _logger.debug("HeartBeat: run begin")
-
         # Prepare the packet
         beat = make_heartbeat(self._http.get_access()[1],
                               self._app_id,
@@ -136,7 +134,7 @@ class Heart(object):
                               self._context.get_property(cohorte.PROP_NODE_NAME)
                               )
 
-        while not self._stop_event.is_set():
+        while not self._stop_event.is_set() and self._forker.is_alive():
             # Send the heart beat using the multicast socket
             self._socket.sendto(beat, 0, self._target)
 
@@ -161,7 +159,7 @@ class Heart(object):
         # Close the socket
         self._socket.close()
 
-        _logger.debug("invalidate: close multicast socket done")
+        _logger.debug("Heart multicast socket closed")
 
         # Clean up
         self._context = None
@@ -179,7 +177,7 @@ class Heart(object):
         self._context = context
         self._port = int(self._port)
 
-        _logger.debug("Heart validated: multicast group=%s port=%d",
+        _logger.info("Heart validated: multicast group=%s port=%d",
                       self._group, self._port)
 
         # Create the socket

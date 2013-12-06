@@ -617,11 +617,15 @@ class ForkerAggregator(object):
         if event == cohorte.signals.ISOLATE_UNREGISTERED:
             # Isolate lost: remove informations about it
             with self._lst_lock:
-                try: del self._isolate_forker[uid]
-                except KeyError: pass
+                try:
+                    del self._isolate_forker[uid]
+                except KeyError:
+                    pass
 
-                try: del self._forker_lst[uid]
-                except: pass
+                try:
+                    del self._forker_lst[uid]
+                except:
+                    pass
 
 
     @Validate
