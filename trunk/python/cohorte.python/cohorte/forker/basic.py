@@ -477,9 +477,10 @@ class ForkerBasic(object):
             return
 
         # Send the stop signal (stop softly)
-        result = self._sender.send(cohorte.monitor.SIGNAL_STOP_ISOLATE,
+        _logger.info("Sending STOP signal to %s...", uid)
+        reached = self._sender.fire(cohorte.monitor.SIGNAL_STOP_ISOLATE,
                                     None, isolate=uid)
-        if result is None or uid not in result[0]:
+        if reached is None or uid not in reached:
             # Signal not handled
             _logger.warn("Isolate %s (%s) didn't received the 'stop' signal: "
                          "Kill it!", uid, name)
@@ -489,6 +490,8 @@ class ForkerBasic(object):
             # Signal handled
             try:
                 # Wait a little
+                _logger.info("Waiting for isolate %s (PID: %s) to stop...",
+                             uid, process.pid)
                 self._utils.wait_pid(process.pid, timeout)
                 _logger.info("Isolate stopped: %s (%s)", uid, name)
 
@@ -630,9 +633,11 @@ class ForkerBasic(object):
         """
         Sends the "forker stopping" signal to others
         """
-        if self._platform_stopping:
-            # Do not send the signal when the platform is stopping
+        if self._sent_stopping:
+            # Do not send this signal twice
             return
+
+        _logger.warning("Sending 'forker stopping' signal.")
 
         content = {'uid': self._context.get_property(cohorte.PROP_UID),
                    'node': self._context.get_property(cohorte.PROP_NODE_UID),
@@ -706,15 +711,12 @@ class ForkerBasic(object):
         """
         Called by the Pelix framework when it is about to stop
         """
-        if not self._sent_stopping:
-            _logger.warning("Sending 'forker stopping' signal.")
+        # Flags down
+        self._watchers_running = False
+        self._platform_stopping = True
 
-            # Flags down
-            self._watchers_running = False
-            self._platform_stopping = True
-
-            # Send the "forker stopping" signal
-            self._send_stopping()
+        # Send the "forker stopping" signal
+        self._send_stopping()
 
 
     @Invalidate
@@ -724,13 +726,12 @@ class ForkerBasic(object):
 
         :param context: The bundle context
         """
-        if not self._sent_stopping:
-            # De-activate watchers
-            self._watchers_running = False
-            self._platform_stopping = True
+        # De-activate watchers
+        self._watchers_running = False
+        self._platform_stopping = True
 
-            # Send the "forker stopping" signal
-            self._send_stopping()
+        # Send the "forker stopping" signal
+        self._send_stopping()
 
         # Stop the isolates
         self._kill_isolates()
