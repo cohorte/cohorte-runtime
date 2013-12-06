@@ -590,7 +590,7 @@ class FutureResult(object):
 # ------------------------------------------------------------------------------
 
 @ComponentFactory("cohorte-signals-sender-http-factory")
-@Provides(cohorte.SERVICE_SIGNALS_SENDER)
+@Provides(cohorte.SERVICE_SIGNALS_SENDER, controller='_controller')
 @Requires("_directory", cohorte.SERVICE_SIGNALS_DIRECTORY)
 @Requires("_local_recv", cohorte.SERVICE_SIGNALS_RECEIVER)
 class SignalSender(object):
@@ -605,8 +605,40 @@ class SignalSender(object):
         self._directory = None
         self._local_recv = None
 
+        # Service controller
+        self._controller = True
+
         # Bundle context
         self._context = None
+
+
+    def framework_stopping(self):
+        """
+        Called by the Pelix framework when it is about to stop
+        """
+        # Invalidate all signal sender dependent components before the
+        # real invalidation
+        self._controller = False
+
+
+    @Invalidate
+    def _invalidate(self, context):
+        """
+        Component invalidated
+        """
+        context.remove_framework_stop_listener(self)
+        self._context = None
+        _logger.info("SignalSender Gone")
+
+
+    @Validate
+    def _validate(self, context):
+        """
+        Component validated
+        """
+        self._context = context
+        context.add_framework_stop_listener(self)
+        _logger.info("SignalSender Ready")
 
 
     def fire(self, signal, content, isolate=None, isolates=None,
@@ -634,7 +666,7 @@ class SignalSender(object):
             return None
 
         # Only return reached isolates
-        return result[0].keys()
+        return list(result[0].keys())
 
 
     def fire_to(self, signal, content, host, port):
@@ -666,15 +698,6 @@ class SignalSender(object):
             _logger.exception("Error sending signal %s to (%s, %s) : %s",
                               signal, host, port, ex)
             raise
-
-
-    @Invalidate
-    def invalidate(self, context):
-        """
-        Component invalidated
-        """
-        self._context = None
-        _logger.info("SignalSender Gone")
 
 
     def post(self, signal, content, isolate=None, isolates=None,
@@ -769,15 +792,6 @@ class SignalSender(object):
             _logger.exception("Error sending signal %s to (%s, %s) : %s",
                               signal, host, port, ex)
             raise
-
-
-    @Validate
-    def validate(self, context):
-        """
-        Component validated
-        """
-        self._context = context
-        _logger.info("SignalSender Ready")
 
 
     def _get_directory_group_accesses(self, dir_group):
