@@ -57,7 +57,7 @@ class IsolateAgent(object):
     def handle_received_signal(self, name, data):
         """
         Handles a signal
-        
+
         :param name: Signal name
         :param data: Signal data dictionary
         """
@@ -75,11 +75,11 @@ class IsolateAgent(object):
         """
         # Send the "isolate stopping" signal
         _logger.warning(">>> Isolate will stop <<<")
-        self._sender.send(cohorte.monitor.SIGNAL_ISOLATE_STOPPING,
+        self._sender.fire(cohorte.monitor.SIGNAL_ISOLATE_STOPPING,
                           self._context.get_property(cohorte.PROP_UID),
                           dir_group=cohorte.signals.GROUP_OTHERS)
 
-        _logger.critical(">>> STOPPING isolate <<<")
+        _logger.warning(">>> STOPPING isolate <<<")
         self._context.get_bundle(0).stop()
 
 
