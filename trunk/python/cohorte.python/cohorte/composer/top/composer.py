@@ -108,6 +108,29 @@ class TopComposer(object):
         self._context = None
 
 
+    def __start(self, name, distribution, uid):
+        """
+        Stores and instantiates the given distribution
+
+        :param name: The name of the composition
+        :param distribution: The computed node distribution
+        :param uid: Distribution UID, given only if reloaded from a top storage
+        :return: The UID of the instantiated composition
+        """
+        # Handle components without assigned node
+        self._set_default_node(distribution)
+
+        # Store the distribution
+        uid = self._status.store(name, distribution, uid)
+
+        # Start required nodes
+        self._node_starter.start_nodes(distribution.keys())
+
+        # Tell the commander to start the instantiation on existing nodes
+        self._commander.start(distribution)
+        return uid
+
+
     def start(self, composition):
         """
         Instantiates the given composition
@@ -118,19 +141,33 @@ class TopComposer(object):
         # Distribute components
         distribution = self._distributor.distribute(composition)
 
-        # Handle components without assigned node
-        self._set_default_node(distribution)
+        # Instantiate them
+        return self.__start(composition.name, distribution, None)
 
-        # Store the distribution
-        uid = self._status.store(composition, distribution)
 
-        # Tell the monitor to start the nodes
-        # FIXME: use an intermediate level for nodes (EC2 LoadBalancer-like)
-        self._node_starter.start_nodes(distribution.keys())
+    def reload_distribution(self, name, distribution, uid):
+        """
+        Loads the given distribution, typically given by the store loader
 
-        # Tell the commander to start the instantiation on existing nodes
-        self._commander.start(distribution)
-        return uid
+        :param name: The name of the composition
+        :param distribution: The previously computed distribution
+        :param uid: Distribution UID
+        :return: The UID of the instantiated composition
+        :raise KeyError: Already known UID
+        """
+        try:
+            # See if it is already in the status
+            self._status.get(uid)
+
+        except KeyError:
+            # Unknown distribution, instantiate it out of the exception block
+            pass
+
+        else:
+            # Already known: error
+            raise KeyError("Already used distribution UID: %s", uid)
+
+        return self.__start(name, distribution, uid)
 
 
     def stop(self, uid):

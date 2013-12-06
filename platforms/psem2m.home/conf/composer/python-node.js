@@ -22,6 +22,8 @@
 		"name" : "cohorte.composer.node.status"
 	}, {
 		"name" : "cohorte.composer.node.commander"
+	},{
+		"name" : "cohorte.composer.node.top_store"
 	},
 	
 	/* Shell commands */

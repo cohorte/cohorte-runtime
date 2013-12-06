@@ -44,7 +44,12 @@ import cohorte.composer
 from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate
 
 # Standard library
+import logging
 import uuid
+
+# ------------------------------------------------------------------------------
+
+_logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
@@ -68,6 +73,9 @@ class TopStatusStorage(object):
         # UID -> {Node -> set(RawComponent)}
         self._storage = {}
 
+        # Listeners
+        self.__listeners = set()
+
 
     def dump(self):
         """
@@ -87,27 +95,59 @@ class TopStatusStorage(object):
         return '\n'.join(lines)
 
 
-    def store(self, composition, distribution):
+    def add_listener(self, listener):
+        """
+        Registers a Top status listener
+
+        :param listener: The new listener
+        """
+        if listener is not None:
+            self.__listeners.add(listener)
+
+
+    def remove_listener(self, listener):
+        """
+        Removes a Top status listener
+
+        :param listener: Listener to remove
+        """
+        self.__listeners.discard(listener)
+
+
+    def store(self, name, distribution, uid=None):
         """
         Stores a new distribution
 
-        :param composition: The RawComposition bean
+        :param name: The name of the composition
         :param distribution: A {node -> set(RawComponent)} dictionary
+        :param uid: A forced UID (for reloaded compositions)
         :return: The UID associated to this distribution
+        :raise KeyError: UID already taken
         :raise: ValueError: The composition name is already known
         """
         # Check if the composition name has already been taken
-        name = composition.name
         if name in self._names:
             raise ValueError("Already used composition name: {0}".format(name))
 
         # Generate a UUID
-        uid = str(uuid.uuid4())
+        if not uid:
+            uid = str(uuid.uuid4())
+
+        if uid in self._uids:
+            raise KeyError("UID conflict: %s", uid)
 
         # Store the composition
         self._names.add(name)
         self._uids[uid] = name
         self._storage[uid] = distribution
+
+        # Notify listeners
+        for listener in self.__listeners:
+            try:
+                listener.distribution_added(uid, name, distribution.copy())
+            except Exception as ex:
+                _logger.exception("Error notifying status addition: %s", ex)
+
         return uid
 
 
@@ -122,6 +162,26 @@ class TopStatusStorage(object):
         return self._storage[uid]
 
 
+    def get_name(self, uid):
+        """
+        Returns the name of the composition associated to the given UID
+
+        :param uid: UID of a composition
+        :return: The name of the composition
+        :raise KeyError: Unknown UID
+        """
+        return self._uids[uid]
+
+
+    def list(self):
+        """
+        Returns the list of stored UIDs
+
+        :return: A list of UIDs of compositions
+        """
+        return list(self._storage.keys())
+
+
     def pop(self, uid):
         """
         Retrieves the composition with the given UID
@@ -133,6 +193,13 @@ class TopStatusStorage(object):
         # Remove the name entry
         name = self._uids.pop(uid)
         self._names.remove(name)
+
+        # Notify listeners
+        for listener in self.__listeners:
+            try:
+                listener.distribution_removed(uid)
+            except Exception as ex:
+                _logger.exception("Error notifying status removal: %s", ex)
 
         # Remove and return the distribution
         return self._storage.pop(uid)

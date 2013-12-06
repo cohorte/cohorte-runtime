@@ -24,6 +24,9 @@ SERVICE_PARSER = 'cohorte.composer.parser'
 SERVICE_COMPONENT_FINDER = 'cohorte.composer.finder'
 """ Specification of a component finder """
 
+SERVICE_TOP_STORAGE = 'cohorte.composer.top.storage'
+""" Specification of a distribution storage, hosted by node composers """
+
 # Composers #
 
 SERVICE_COMPOSER_TOP = 'cohorte.composer.top'

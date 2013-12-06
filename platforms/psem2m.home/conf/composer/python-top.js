@@ -20,6 +20,8 @@
 		"name" : "cohorte.composer.top.status"
 	}, {
 		"name" : "cohorte.composer.top.commander"
+	}, {
+		"name" : "cohorte.composer.top.store_handler"
 	},
 
 	/* Distributor criteria */
