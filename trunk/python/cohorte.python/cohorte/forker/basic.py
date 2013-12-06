@@ -112,6 +112,7 @@ class ForkerBasic(object):
 
         # Platform is not yet stopped
         self._platform_stopping = False
+        self._sent_stopping = False
 
         # Node name and UID
         self._node_name = None
@@ -476,9 +477,9 @@ class ForkerBasic(object):
             return
 
         # Send the stop signal (stop softly)
-        reached = self._sender.send(cohorte.monitor.SIGNAL_STOP_ISOLATE,
-                                    None, isolate=uid)[0]
-        if not reached or uid not in reached:
+        result = self._sender.send(cohorte.monitor.SIGNAL_STOP_ISOLATE,
+                                    None, isolate=uid)
+        if result is None or uid not in result[0]:
             # Signal not handled
             _logger.warn("Isolate %s (%s) didn't received the 'stop' signal: "
                          "Kill it!", uid, name)
@@ -507,6 +508,17 @@ class ForkerBasic(object):
         Sets the forker in platform-stopping mode: no more isolate will be spawn
         """
         self._platform_stopping = True
+
+
+    def is_alive(self):
+        """
+        Tests if the forker is still usable
+
+        :return: True if the forker is usable, False if it is shutting down
+        """
+        return self._watchers_running \
+            and not self._sent_stopping \
+            and not self._platform_stopping
 
 # ------------------------------------------------------------------------------
 
@@ -610,7 +622,7 @@ class ForkerBasic(object):
 
         if not self._platform_stopping:
             # Send a signal to all other isolates
-            self._sender.send(cohorte.monitor.SIGNAL_ISOLATE_LOST, uid,
+            self._sender.fire(cohorte.monitor.SIGNAL_ISOLATE_LOST, uid,
                               dir_group=cohorte.signals.GROUP_OTHERS)
 
 
@@ -622,16 +634,15 @@ class ForkerBasic(object):
             # Do not send the signal when the platform is stopping
             return
 
-        isolates = list(self._isolates.keys())
-        if self._monitor_uid in isolates:
-            isolates.remove(self._monitor_uid)
-
         content = {'uid': self._context.get_property(cohorte.PROP_UID),
                    'node': self._context.get_property(cohorte.PROP_NODE_UID),
-                   'isolates': isolates}
+                   'isolates': list(self._isolates.keys())}
 
         self._sender.send(cohorte.forker.SIGNAL_FORKER_STOPPING,
                           content, dir_group=cohorte.signals.GROUP_OTHERS)
+
+        # Flag up
+        self._sent_stopping = True
 
 
     def _kill_isolates(self, max_threads=5, stop_timeout=5, total_timeout=None):
@@ -683,8 +694,27 @@ class ForkerBasic(object):
         self._node_uid = context.get_property(cohorte.PROP_NODE_UID)
 
         # Activate watchers
+        self._sent_stopping = False
         self._watchers_running = True
         self._platform_stopping = False
+
+        # Register as a framework listener
+        context.add_framework_stop_listener(self)
+
+
+    def framework_stopping(self):
+        """
+        Called by the Pelix framework when it is about to stop
+        """
+        if not self._sent_stopping:
+            _logger.warning("Sending 'forker stopping' signal.")
+
+            # Flags down
+            self._watchers_running = False
+            self._platform_stopping = True
+
+            # Send the "forker stopping" signal
+            self._send_stopping()
 
 
     @Invalidate
@@ -694,12 +724,13 @@ class ForkerBasic(object):
 
         :param context: The bundle context
         """
-        # De-activate watchers
-        self._watchers_running = False
-        self._platform_stopping = True
+        if not self._sent_stopping:
+            # De-activate watchers
+            self._watchers_running = False
+            self._platform_stopping = True
 
-        # Send the "forker stopping" signal
-        self._send_stopping()
+            # Send the "forker stopping" signal
+            self._send_stopping()
 
         # Stop the isolates
         self._kill_isolates()
@@ -720,6 +751,9 @@ class ForkerBasic(object):
                 if thread.is_alive():
                     # Kill it
                     _Thread_stop(thread)
+
+        # Unregister from the framework (if we weren't stopped by the framework)
+        context.remove_framework_stop_listener(self)
 
         # Clean up
         self._threads.clear()
