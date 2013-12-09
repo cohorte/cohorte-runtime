@@ -183,7 +183,7 @@ class ShellAgentCommands(object):
                                       uid)
 
 
-    def shells(self, io_handler, isolate=None):
+    def shells(self, io_handler, isolate=None, kind=None):
         """
         Prints the port(s) to access the isolate remote shell(s)
         """
@@ -218,6 +218,15 @@ class ShellAgentCommands(object):
         # Sort shell names, using a list
         shell_names = list(shell_names)
         shell_names.sort()
+
+        if kind:
+            # Filter on shell names given
+            if kind in shell_names:
+                shell_names = [kind]
+
+            else:
+                io_handler.write_line("No isolate with shell: {0}", kind)
+                return
 
         # Compute the table content
         table = []
