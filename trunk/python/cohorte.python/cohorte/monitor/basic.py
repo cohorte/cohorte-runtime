@@ -89,6 +89,7 @@ class MonitorBasic(object):
 
         # Node UID
         self._node_uid = None
+        self._node_name = None
 
         # Bundle context
         self._context = None
@@ -154,6 +155,55 @@ class MonitorBasic(object):
         return [beans.Artifact(level, bundle.name, bundle.version,
                                bundle.filename)
                 for bundle in configuration.bundles]
+
+
+    def _start_config_isolates(self):
+        """
+        Starts isolates configured for this node
+        """
+        try:
+            isolates = self._config.read('autorun_isolates.js', True)
+
+        except (IOError, ValueError):
+            # Error already logged by the file reader
+            return
+
+        if not isolates:
+            # No predefined isolates
+            _logger.debug("No predefined isolates.")
+            return
+
+        for isolate in isolates:
+            # Check isolate node
+            if isolate.get('node') != self._node_name:
+                continue
+
+            # Check its name
+            name = isolate.get('name')
+            if not name:
+                _logger.warning("Refusing an auto-run isolate without name")
+                continue
+
+            # Generate an UID
+            uid = str(uuid.uuid4())
+
+            # Store the isolate in the status
+            self._status.add_isolate(uid)
+
+            # Call the forker
+            _logger.debug("Loading predefined isolate: %s", name)
+            self._status.isolate_requested(uid)
+            result = self._forker.start_isolate(isolate)
+
+            if result in cohorte.forker.REQUEST_SUCCESSES:
+                # Great success !
+                self._status.isolate_starting(uid)
+                return True
+
+            else:
+                # Failed...
+                self._status.isolate_gone(uid)
+                return False
 
 
     def start_isolate(self, name, kind, level, sublevel, bundles=None,
@@ -222,7 +272,7 @@ class MonitorBasic(object):
         # Store the isolate in the status
         self._status.add_isolate(uid)
 
-        # Talk to the forker aggregator
+        # Talk to the forker
         self._status.isolate_requested(uid)
         result = self._forker.start_isolate(config)
 
@@ -330,14 +380,18 @@ class MonitorBasic(object):
         """
         self._context = context
 
-        # FIXME: set to PROP_NODE_UID when ready
+        # Set to PROP_NODE_UID when ready
         self._node_uid = context.get_property(cohorte.PROP_NODE_UID)
+        self._node_name = context.get_property(cohorte.PROP_NODE_NAME)
 
         # Register to signals
         for signal in HANDLED_SIGNALS:
             self._receiver.register_listener(signal, self)
 
         _logger.info("Monitor core validated")
+
+        # Start predefined isolates
+        self._start_config_isolates()
 
         # Start the Top Composer
         if context.get_property(cohorte.PROP_RUN_TOP_COMPOSER):
@@ -354,5 +408,6 @@ class MonitorBasic(object):
             self._receiver.unregister_listener(signal, self)
 
         self._node_uid = None
+        self._node_name = None
         self._context = None
         _logger.info("Monitor core invalidated")
