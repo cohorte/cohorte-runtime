@@ -210,7 +210,8 @@ class ForkerBasic(object):
 
         try:
             # Start the isolate
-            starter.start(isolate_config, self._state_updater.get_url())
+            uses_state = starter.start(isolate_config,
+                                       self._state_updater.get_url())
 
         except (ValueError, OSError):
             # Clear the state
@@ -218,27 +219,34 @@ class ForkerBasic(object):
             return 2
 
 
-        # Wait for the isolate to come up
-        try:
-            # Wait for it to be loaded (30 seconds max)
-            _logger.debug('Waiting for %s to come up', uid)
-            self._state_dir.wait_for(uid, 30)
+        if uses_state:
+            # Wait for the isolate to come up
+            try:
+                # Wait for it to be loaded (30 seconds max)
+                _logger.debug('Waiting for %s to come up', uid)
+                self._state_dir.wait_for(uid, 30)
 
-        except ValueError:
-            # Timeout reached or isolate lost
-            _logger.error("Error waiting for isolate %s (%s) to be loaded",
-                          uid, name)
+            except ValueError:
+                # Timeout reached or isolate lost
+                _logger.error("Error waiting for isolate %s (%s) to be loaded",
+                              uid, name)
 
-            # Kill the isolate
-            starter.terminate(uid)
-            return 2
+                # Forget the isolate
+                self._state_dir.clear_isolate(uid)
+
+                # Kill the isolate
+                starter.terminate(uid)
+                return 2
 
         else:
-            # Link UID and starter
-            self._isolates[uid] = starter
+            # No need to wait for the isolate
+            self._state_dir.clear_isolate(uid)
 
-            # No error
-            return 0
+        # Link UID and starter
+        self._isolates[uid] = starter
+
+        # No error
+        return 0
 
 
     def ping(self, uid):
@@ -315,6 +323,10 @@ class ForkerBasic(object):
 
         :param uid: The ID of the lost isolate
         """
+        _logger.critical("Lost isolate %s", uid)
+
+        # FIXME: handle loss of predefined isolates
+
         # Clear isolate status
         self._state_dir.clear_isolate(uid)
 
