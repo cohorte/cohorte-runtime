@@ -90,13 +90,13 @@ class ExeStarter(common.CommonStarter):
         return arguments
 
 
-    def start(self, configuration):
+    def start(self, configuration, state_udpater_url):
         """
         Starts an isolate with the given configuration and its monitoring
         threads
 
         :param configuration: An isolate configuration
-        :return: True in case of success
+        :return: False in case of success, as it doesn't use the state updater
         :raise KeyError: A mandatory configuration option is missing
         :raise OSError: Error starting the isolate
         """
@@ -111,6 +111,9 @@ class ExeStarter(common.CommonStarter):
         # Prepare working directory
         working_directory = self.prepare_working_directory(configuration)
 
+        # Check I/O watch thread flag
+        io_watch = configuration.get('io_watch', True)
+
         # Start the process
         process = subprocess.Popen(arguments, executable=arguments[0],
                                    env=environment,
@@ -123,7 +126,7 @@ class ExeStarter(common.CommonStarter):
         self._isolates[uid] = process
 
         # Start watching after the isolate
-        self._watcher.watch(uid, process)
+        self._watcher.watch(uid, process, io_watch)
 
-        # Success
-        return True
+        # Don't wait for the state to be updated
+        return False
