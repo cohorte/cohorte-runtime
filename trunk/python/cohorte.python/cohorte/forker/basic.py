@@ -41,7 +41,7 @@ import cohorte.signals
 
 # Pelix framework
 from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
-    Invalidate, Provides, RequiresMap
+    Invalidate, Provides, RequiresMap, BindField
 import pelix.threadpool
 
 # Standard library
@@ -71,7 +71,8 @@ _logger = logging.getLogger(__name__)
 # ------------------------------------------------------------------------------
 
 @ComponentFactory('cohorte-forker-basic-factory')
-@Provides(cohorte.SERVICE_FORKER)
+@Provides(cohorte.SERVICE_FORKER, '_controller')
+@Provides(cohorte.forker.SERVICE_WATCHER_LISTENER)
 @Requires('_directory', cohorte.SERVICE_SIGNALS_DIRECTORY)
 @Requires('_receiver', cohorte.SERVICE_SIGNALS_RECEIVER)
 @Requires('_sender', cohorte.SERVICE_SIGNALS_SENDER)
@@ -95,6 +96,10 @@ class ForkerBasic(object):
         self._state_updater = None
         self._starters = {}
 
+        # Service controller (delayed)
+        self._controller = False
+        self._timer = None
+
         # Bundle context
         self._context = None
 
@@ -111,6 +116,26 @@ class ForkerBasic(object):
 
         # Loop control of thread watching isolates
         self._watchers_running = False
+
+
+    @BindField('_starters')
+    def _bind_starter(self, field, svc, svc_ref):
+        """
+        A new isolate starter is bound. Delays the forker service registration
+        """
+        if self._timer is not None:
+            self._timer.cancel()
+
+        # Set a new timer
+        self._timer = threading.Timer(.5, self.__provide)
+        self._timer.start()
+
+
+    def __provide(self):
+        """
+        Sets the service controller to True
+        """
+        self._controller = True
 
 
     def start_isolate(self, isolate_config):
@@ -352,8 +377,53 @@ class ForkerBasic(object):
             pool.stop()
 
 
+    def framework_stopping(self):
+        """
+        Called by the Pelix framework when it is about to stop
+        """
+        # Flags down
+        self._watchers_running = False
+        self._platform_stopping = True
+
+        # Send the "forker stopping" signal
+        self._send_stopping()
+
+
+    @Invalidate
+    def _invalidate(self, context):
+        """
+        Component invalidated
+
+        :param context: The bundle context
+        """
+        # De-activate watchers
+        self._watchers_running = False
+        self._platform_stopping = True
+
+        # Kill the timer
+        if self._timer is not None:
+            self._timer.cancel()
+            self._timer = None
+
+        # Send the "forker stopping" signal
+        self._send_stopping()
+
+        # Stop the isolates
+        self._kill_isolates()
+
+        # Unregister from the framework (if we weren't stopped by the framework)
+        context.remove_framework_stop_listener(self)
+
+        # Clean up
+        self._isolates.clear()
+        self._context = None
+        self._node_name = None
+        self._node_uid = None
+        _logger.info("Forker invalidated")
+
+
     @Validate
-    def validate(self, context):
+    def _validate(self, context):
         """
         Component validated
 
@@ -373,43 +443,3 @@ class ForkerBasic(object):
 
         # Register as a framework listener
         context.add_framework_stop_listener(self)
-
-
-    def framework_stopping(self):
-        """
-        Called by the Pelix framework when it is about to stop
-        """
-        # Flags down
-        self._watchers_running = False
-        self._platform_stopping = True
-
-        # Send the "forker stopping" signal
-        self._send_stopping()
-
-
-    @Invalidate
-    def invalidate(self, context):
-        """
-        Component invalidated
-
-        :param context: The bundle context
-        """
-        # De-activate watchers
-        self._watchers_running = False
-        self._platform_stopping = True
-
-        # Send the "forker stopping" signal
-        self._send_stopping()
-
-        # Stop the isolates
-        self._kill_isolates()
-
-        # Unregister from the framework (if we weren't stopped by the framework)
-        context.remove_framework_stop_listener(self)
-
-        # Clean up
-        self._isolates.clear()
-        self._context = None
-        self._node_name = None
-        self._node_uid = None
-        _logger.info("Forker invalidated")

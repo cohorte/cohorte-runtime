@@ -39,6 +39,9 @@ PROP_STARTER_KINDS = 'forker.starter.kinds'
 SERVICE_WATCHER = 'cohorte.forker.watcher'
 """ Specification of an isolate watcher service """
 
+SERVICE_WATCHER_LISTENER = 'cohorte.forker.watcher.listener'
+""" Specification of an isolate that listens to a watcher service """
+
 # ------------------------------------------------------------------------------
 
 __SIGNALS_FORKER_PREFIX = "/cohorte/forker"

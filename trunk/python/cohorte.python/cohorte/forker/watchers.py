@@ -37,7 +37,8 @@ _logger = logging.getLogger(__name__)
 
 @ComponentFactory()
 @Provides(cohorte.forker.SERVICE_WATCHER)
-@Requires('_forker', cohorte.SERVICE_FORKER)
+@Requires('_listeners', cohorte.forker.SERVICE_WATCHER_LISTENER,
+          aggregate=True, optional=True)
 @Instantiate('cohorte-forker-watcher')
 class IsolateWatcher(object):
     """
@@ -47,8 +48,8 @@ class IsolateWatcher(object):
         """
         Sets up members
         """
-        # Forker service
-        self._forker = None
+        # Lost isolates listeners
+        self._listeners = []
 
         # Utility methods
         self._utils = None
@@ -127,12 +128,14 @@ class IsolateWatcher(object):
                     # Check PID presence
                     self._utils.wait_pid(process.pid, 0)
 
-                    # Being here means that the process ended, notify the
-                    # forker
-                    self._forker.handle_lost_isolate(uid)
-
-                    # Clean up
+                    # Being here means that the process ended,
+                    # ... clean up
                     self.unwatch(uid)
+
+                    # ... notify listeners
+                    if self._listeners:
+                        for listener in self._listeners:
+                            listener.handle_lost_isolate(uid)
 
                 except utils.TimeoutExpired:
                     # Time out expired : process is still there,
