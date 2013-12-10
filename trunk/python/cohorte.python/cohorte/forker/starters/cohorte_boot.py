@@ -71,7 +71,7 @@ class CohorteBoot(common.CommonStarter):
         """
         Sets up members
         """
-        super().__init__()
+        super(CohorteBoot, self).__init__()
 
         # Configuration broker
         self._broker = None
@@ -162,7 +162,7 @@ class CohorteBoot(common.CommonStarter):
 
         :param configuration: An isolate configuration
         :param state_updater_url: URL to the isolate state updater
-        :return: True in case of success
+        :return: True in case of success, as it uses the state udpater
         :raise ValueError: Invalid configuration
         :raise OSError: Error starting the isolate
         """
@@ -198,7 +198,7 @@ class CohorteBoot(common.CommonStarter):
         # Start watching after the isolate
         self._watcher.watch(uid, process)
 
-        # Success
+        # Success, and uses the state updater
         return True
 
 
