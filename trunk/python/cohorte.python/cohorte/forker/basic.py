@@ -1,13 +1,29 @@
 #!/usr/bin/env python
 # -- Content-Encoding: UTF-8 --
 """
-Core of the COHORTE Forker, inthe F/M/N process
-
-**TODO:**
-* Review all the code !
+Core of the COHORTE Forker, in the F/M/N process
 
 :author: Thomas Calmant
+:copyright: Copyright 2013, isandlaTech
 :license: GPLv3
+:version: 1.0.0
+
+..
+
+    This file is part of Cohorte.
+
+    Cohorte is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Cohorte is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Cohorte. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Documentation strings format
@@ -22,29 +38,17 @@ __version__ = "1.0.0"
 import cohorte.forker
 import cohorte.monitor
 import cohorte.signals
-import cohorte.utils as utils
 
 # Pelix framework
 from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
-    Invalidate, Provides
+    Invalidate, Provides, RequiresMap
 import pelix.threadpool
 
 # Standard library
-import json
 import logging
-import os
-import subprocess
 import sys
 import threading
 import uuid
-
-try:
-    # Python 3
-    from urllib.parse import quote
-
-except ImportError:
-    # Python 2
-    from urllib import quote
 
 # ------------------------------------------------------------------------------
 
@@ -62,31 +66,19 @@ else:
 
 # ------------------------------------------------------------------------------
 
-MONITOR_KIND = 'pelix'
-""" Kind of isolate for the monitor """
-
-MONITOR_LANGUAGE = 'python'
-""" Language of implementation of the monitor """
-
 _logger = logging.getLogger(__name__)
-
-# ------------------------------------------------------------------------------
-
-ISOLATE_STATUS_CLASS = "org.psem2m.isolates.base.isolates.boot.IsolateStatus"
-
-ISOLATE_STATUS_SIGNAL = "/psem2m/isolate/status"
 
 # ------------------------------------------------------------------------------
 
 @ComponentFactory('cohorte-forker-basic-factory')
 @Provides(cohorte.SERVICE_FORKER)
-@Requires('_config', cohorte.SERVICE_CONFIGURATION_READER)
-@Requires('_config_broker', cohorte.SERVICE_CONFIGURATION_BROKER)
 @Requires('_directory', cohorte.SERVICE_SIGNALS_DIRECTORY)
 @Requires('_receiver', cohorte.SERVICE_SIGNALS_RECEIVER)
 @Requires('_sender', cohorte.SERVICE_SIGNALS_SENDER)
 @Requires('_state_dir', 'cohorte.forker.state')
 @Requires('_state_updater', 'cohorte.forker.state.updater')
+@RequiresMap('_starters', cohorte.forker.SERVICE_STARTER,
+             cohorte.forker.PROP_STARTER_KINDS)
 class ForkerBasic(object):
     """
     The forker core component
@@ -96,19 +88,15 @@ class ForkerBasic(object):
         Constructor
         """
         # Injected services
-        self._config = None
-        self._config_broker = None
         self._directory = None
         self._receiver = None
         self._sender = None
         self._state_dir = None
         self._state_updater = None
+        self._starters = {}
 
         # Bundle context
         self._context = None
-
-        # Get OS specific methods
-        self._utils = utils.get_os_utils()
 
         # Platform is not yet stopped
         self._platform_stopping = False
@@ -118,165 +106,11 @@ class ForkerBasic(object):
         self._node_name = None
         self._node_uid = None
 
-        # Isolate ID -> process object
+        # Isolate ID -> associated starter
         self._isolates = {}
-
-        # List of watching threads Isolate ID -> Thread
-        self._threads = {}
 
         # Loop control of thread watching isolates
         self._watchers_running = False
-
-
-    def _prepare_working_directory(self, uid, name):
-        """
-        Prepare a working directory for the given isolate
-
-        :param uid: Isolate UID
-        :param name: Isolate name
-        :return: The path to the working directory
-        """
-        # Get the base directory
-        base = self._context.get_property(cohorte.PROP_BASE)
-
-        # Escape the name
-        name = quote(name)
-
-        # Compute the path (1st step)
-        path = os.path.join(base, 'var', name)
-
-        # Compute the instance index
-        index = 0
-        if os.path.exists(path):
-            # The path already exists, get the maximum folder index value
-            max_index = 0
-            for entry in os.listdir(path):
-                if os.path.isdir(os.path.join(path, entry)):
-                    try:
-                        dir_index = int(entry[:entry.index('-')])
-                        if dir_index > max_index:
-                            max_index = dir_index
-
-                    except ValueError:
-                        # No '-' in the name or not an integer
-                        pass
-
-            index = max_index + 1
-
-        # Set the folder name (2nd step)
-        path = os.path.join(path,
-                            '{index:03d}-{uid}'.format(index=index, uid=uid))
-
-        # Ensure the whole path is created
-        if not os.path.exists(path):
-            os.makedirs(path)
-
-        return path
-
-
-    def _normalize_environment(self, environment):
-        """
-        Ensures that the environment dictionary only contains strings.
-
-        :param environment: The environment dictionary
-        """
-        for key in list(environment):
-            value = environment[key]
-            if value is None:
-                environment[key] = ''
-
-            elif not isinstance(value, str):
-                environment[key] = str(value)
-
-
-    def _run_boot_script(self, working_directory, configuration,
-                         config_broker_url, state_updater_url,
-                         looper_name=None):
-        """
-        Runs the boot script in a new process
-
-        :param working_directory: Isolate working directory (must exist)
-        :param configuration: Isolate configuration dictionary
-        :param config_broker_url: URL to the configuration in the broker
-        :param state_updater_url: URL to the isolate state updater
-        :param looper_name: Name of the main thread loop handler, if any
-        :return: A POpen object
-        """
-        # Increase readability
-        get_property = self._context.get_property
-
-        # Process environment
-        environment = os.environ.copy()
-
-        # Use configuration environment variables
-        config_env = configuration.get('environment')
-        if config_env:
-            environment.update(config_env)
-
-        # Internal values
-        environment[cohorte.ENV_HOME] = get_property(cohorte.PROP_HOME)
-        environment[cohorte.ENV_BASE] = get_property(cohorte.PROP_BASE)
-        environment[cohorte.ENV_NODE_UID] = get_property(cohorte.PROP_NODE_UID)
-        environment[cohorte.ENV_NODE_NAME] = get_property(
-                                                      cohorte.PROP_NODE_NAME)
-
-        # Normalize environment
-        self._normalize_environment(environment)
-
-        # Python interpreter to use
-        args = [sys.executable]
-
-        # Interpreter arguments
-        interpreter_args = configuration.get('boot_args')
-        if interpreter_args:
-            if type(interpreter_args) is list:
-                args.extend(interpreter_args)
-
-            else:
-                args.append(str(interpreter_args))
-
-        # Boot script
-        args.append('--')
-        args.append(os.path.abspath(sys.modules['__main__'].__file__))
-
-        # UID
-        args.append('--uid={0}'.format(configuration['uid']))
-
-        # Broker URL
-        if config_broker_url:
-            args.append('--configuration-broker={0}'.format(config_broker_url))
-
-        # State updater URL
-        if state_updater_url:
-            args.append('--state-updater={0}'.format(state_updater_url))
-
-        # Main thread loop handler
-        if looper_name:
-            args.append('--looper={0}'.format(looper_name))
-
-        # Log file
-        logname = 'log_{0}.log'.format(configuration['name'],
-                                       configuration['uid'])
-        args.append('--logfile={0}'.format(os.path.join(working_directory,
-                                                        logname)))
-
-        # Debug arguments
-        if self._context.get_property(cohorte.PROP_DEBUG):
-            args.append('--debug')
-
-        if self._context.get_property(cohorte.PROP_VERBOSE):
-            args.append('--verbose')
-
-        if self._context.get_property(cohorte.PROP_COLORED):
-            args.append('--color')
-
-        # Run the process and return its reference
-        return subprocess.Popen(args, executable=args[0],
-                                env=environment,
-                                cwd=working_directory,
-                                stdin=subprocess.PIPE,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.STDOUT)
 
 
     def start_isolate(self, isolate_config):
@@ -293,30 +127,29 @@ class ForkerBasic(object):
         :param isolate_config: The isolate configuration dictionary
         :return: The result code
         """
+        # -- Normalize configuration --
         # Name is mandatory
         name = isolate_config.get('name')
         if not name:
             _logger.error("Isolate doesn't have a name")
             return 3
 
+        # Compute the isolate UID
         uid = isolate_config.get('uid')
         if not uid:
-            # UID is missing, generate one
+            # UID is missing, generate one and update the configuration
             uid = isolate_config['uid'] = str(uuid.uuid4())
 
         elif self.ping(uid) == 0:
             # Isolate is already running
-            _logger.error("UID '%s' is already running", isolate_config['uid'])
+            _logger.error("UID '%s' is already running", uid)
             return 1
 
-        # Prepare the working directory
-        working_dir = self._prepare_working_directory(uid, name)
-
-        # Tell the state directory to prepare an entry
-        self._state_dir.prepare_isolate(uid)
-
-        # Prepare the dumper port property
-        dumper_port = self._receiver.get_access_info()[1]
+        # FIXME: remove compatibility mode ASAP
+        kind = isolate_config.get('kind', 'cohorte-compat')
+        if not kind:
+            # Kind is mandatory
+            raise ValueError("No kind of isolate given")
 
         all_props = []
         if 'boot' in isolate_config and 'properties' in isolate_config['boot']:
@@ -326,105 +159,61 @@ class ForkerBasic(object):
         # ... in isolate properties
         all_props.append(isolate_config.setdefault('properties', {}))
 
+        # Store the dumper port property
+        dumper_port = self._receiver.get_access_info()[1]
         for props in all_props:
-            # Dumper port
             props[cohorte.PROP_DUMPER_PORT] = dumper_port
 
         # Force node name and UID
         isolate_config['node_uid'] = self._node_uid
         isolate_config['node_name'] = self._node_name
 
-        # Store the configuration in the broker
-        config_url = self._config_broker.store_configuration(uid,
-                                                             isolate_config)
+        # Tell the state directory to prepare an entry
+        self._state_dir.prepare_isolate(uid)
 
-        # Start the boot script
-        try:
-            # Start the process
-            process = self._run_boot_script(working_dir, isolate_config,
-                                            config_url,
-                                            self._state_updater.get_url(),
-                                            isolate_config.get('looper'))
-
-        except ValueError as ex:
-            # Invalid argument given
-            _logger.error("Invalid argument given to the boot script for "
-                          "isolate '%s' (%s): %s",
-                          isolate_config['name'], uid, ex)
-
-            # Clear the configuration in the broker
-            self._config_broker.delete_configuration(uid)
-
-            # Clear the state
-            self._state_dir.clear_isolate(uid)
-
-            # Invalid parameter
-            return 3
-
-        except OSError as ex:
-            # Error starting the process
-            _logger.error("Error starting the boot script for "
-                          "isolate '%s' (%s): %s",
-                          isolate_config['name'], uid, ex)
-
-            # Clear the configuration in the broker
-            self._config_broker.delete_configuration(uid)
-
-            # Clear the state
-            self._state_dir.clear_isolate(uid)
-
-            # Runner exception
-            return 2
-
-        except Exception as ex:
-            _logger.exception('WTF ?? %s', ex)
-            return -1
+        # -- Start the isolate --
+        for kinds, starter in self._starters.items():
+            if kind in kinds:
+                break
 
         else:
-            # Store the isolate process information
-            self._isolates[uid] = process
+            raise KeyError("Unhandled kind of isolate: {0}".format(kind))
 
-            # Start the waiting thread
-            thread_name = '{0}-waiter'.format(uid)
-            thread = self._threads[thread_name] = threading.Thread(
-                                            name=thread_name,
-                                            target=self.__process_wait_watcher,
-                                            args=(uid, process, 1))
-            thread.daemon = True
-            thread.start()
 
-            # Start the IO watching thread
-            thread_name = '{0}-reader'.format(uid)
-            thread = self._threads[thread_name] = threading.Thread(
-                                            name=thread_name,
-                                            target=self.__process_io_watcher,
-                                            args=(uid, process, 1))
-            thread.daemon = True
-            thread.start()
+        # Tell the state directory to prepare an entry
+        self._state_dir.prepare_isolate(uid)
 
-            try:
-                # Wait for it to be loaded (30 seconds max)
-                _logger.debug('Waiting for %s - %s', uid, process.pid)
-                self._state_dir.wait_for(uid, 30)
+        try:
+            # Start the isolate
+            starter.start(isolate_config, self._state_updater.get_url())
 
-            except ValueError as ex:
-                # Timeout reached or isolate lost
-                _logger.error("Error waiting for isolate %s (%s) to be loaded",
-                              uid, name)
+        except (ValueError, OSError):
+            # Clear the state
+            self._state_dir.clear_isolate(uid)
+            return 2
 
-                # Kill the isolate
-                try:
-                    if process.poll() is not None:
-                        process.terminate()
 
-                except OSError:
-                    # Ignore errors
-                    pass
+        # Wait for the isolate to come up
+        try:
+            # Wait for it to be loaded (30 seconds max)
+            _logger.debug('Waiting for %s to come up', uid)
+            self._state_dir.wait_for(uid, 30)
 
-                return 2
+        except ValueError:
+            # Timeout reached or isolate lost
+            _logger.error("Error waiting for isolate %s (%s) to be loaded",
+                          uid, name)
 
-        # Success
-        return 0
+            # Kill the isolate
+            starter.terminate(uid)
+            return 2
+
+        else:
+            # Link UID and starter
+            self._isolates[uid] = starter
+
+            # No error
+            return 0
 
 
     def ping(self, uid):
@@ -441,18 +230,17 @@ class ForkerBasic(object):
         :param uid: The UID of the isolate to test
         :return: The isolate process state
         """
-        process = self._isolates.get(uid, None)
+        try:
+            starter = self._isolates[uid]
 
-        if process is None:
-            # No PID for this ID
+        except KeyError:
+            # Unknown UID -> dead
             return 1
 
-        # Poll the process and wait for an answer
-        if not self._utils.is_process_running(process.pid):
-            # FIXME: current implementation can't test if a process is stuck
+        if starter.ping(uid):
+            return 0
+        else:
             return 1
-
-        return 0
 
 
     def stop_isolate(self, uid, timeout=3):
@@ -466,44 +254,13 @@ class ForkerBasic(object):
         :param timeout: Maximum time to wait before killing the isolate process
                         (in seconds)
         """
-        # Get the name of this isolate
-        name = self._directory.get_isolate_name(uid)
+        # Find the starter handling the isolate and tell it to stop it
+        starter = self._isolates.pop(uid)
 
-        # Get the isolate PID
-        process = self._isolates.get(uid, None)
-        if process is None:
-            # Unknown isolate
-            _logger.warn("Can't stop an isolate without process: %s (%s)",
-                         uid, name)
-            return
-
-        # Send the stop signal (stop softly)
-        _logger.info("Sending STOP signal to %s...", uid)
-        reached = self._sender.fire(cohorte.monitor.SIGNAL_STOP_ISOLATE,
-                                    None, isolate=uid)
-        if reached is None or uid not in reached:
-            # Signal not handled
-            _logger.warn("Isolate %s (%s) didn't received the 'stop' signal: "
-                         "Kill it!", uid, name)
-            process.kill()
-
-        else:
-            # Signal handled
-            try:
-                # Wait a little
-                _logger.info("Waiting for isolate %s (PID: %s) to stop...",
-                             uid, process.pid)
-                self._utils.wait_pid(process.pid, timeout)
-                _logger.info("Isolate stopped: %s (%s)", uid, name)
-
-            except utils.TimeoutExpired:
-                # The isolate didn't stop -> kill the process
-                _logger.warn("Isolate timed out: %s (%s). Trying to kill it",
-                             uid, name)
-                process.kill()
+        # Stop the isolate
+        starter.stop(uid)
 
         # Remove references to the isolate
-        del self._isolates[uid]
         self._state_dir.clear_isolate(uid)
 
 
@@ -524,95 +281,10 @@ class ForkerBasic(object):
             and not self._sent_stopping \
             and not self._platform_stopping
 
-# ------------------------------------------------------------------------------
 
-    def __process_io_watcher(self, isolate_id, process, timeout=0):
+    def handle_lost_isolate(self, uid):
         """
-        Thread redirecting isolate I/O to monitors
-
-        :param isolate_id: ID of the watched isolate
-        :param process: A subprocess.Process object
-        :param timeout: Wait time out (in seconds)
-
-        FIXME: status signal changed...
-        """
-        if timeout <= 0:
-            timeout = 1
-
-        # Setup the logger for this isolate
-        logger = logging.getLogger(isolate_id)
-
-        for line in iter(process.stdout.readline, b''):
-
-            try:
-                line = line.decode('UTF-8').rstrip()
-            except:
-                pass
-
-            # In debug mode, print the raw output
-            logger.debug(line)
-
-            parts = line.split("::")
-            if len(parts) != 2:
-                # Unknown format, ignore line
-                continue
-
-            if "Bootstrap.MessageSender.sendStatus" not in parts[0]:
-                # Not a status, ignore
-                continue
-
-            # Get the status content (JSON)
-            try:
-                status_json = json.loads(parts[1])
-                if status_json.get("type", None) != "IsolateStatus":
-                    # Not a known status
-                    continue
-
-                status_bean = {
-                               "javaClass": ISOLATE_STATUS_CLASS,
-                               "isolateId": isolate_id,
-                               "progress": float(status_json["progress"]),
-                               "state": status_json["state"],
-                               "statusUID": status_json["UID"],
-                               "timestamp": status_json["timestamp"]
-                               }
-
-                # Re-transmit the isolate status
-                self._sender.send(ISOLATE_STATUS_SIGNAL, status_bean,
-                                  dir_group=cohorte.signals.GROUP_MONITORS)
-
-            except:
-                logger.exception("Error reading isolate status line :\n%s\n",
-                                 parts[1])
-
-
-    def __process_wait_watcher(self, isolate_id, process, timeout):
-        """
-        Thread monitoring a subprocess.Process, waiting for its death
-
-        :param isolate_id: ID of the watched isolate
-        :param process: A subprocess.Process object
-        :param timeout: Wait time out (in seconds)
-        """
-        if timeout <= 0:
-            timeout = 1
-
-        while self._watchers_running:
-            try:
-                self._utils.wait_pid(process.pid, timeout)
-
-                # Being here means that the process ended
-                self.__handle_lost_isolate(isolate_id)
-                break
-
-            except utils.TimeoutExpired:
-                # Time out expired : process is still there, continue the loop
-                pass
-
-
-    def __handle_lost_isolate(self, uid):
-        """
-        Handle the loss of an isolate.
+        Handles the loss of an isolate.
         If the isolate is a monitor, it must be restarted immediately.
         If not, a lost isolate signal is sent to monitors.
 
@@ -623,6 +295,10 @@ class ForkerBasic(object):
 
         # Locally unregister the isolate
         self._directory.unregister_isolate(uid)
+
+        # Tell the starter to remove references to this isolate
+        starter = self._isolates.pop(uid)
+        starter.terminate(uid)
 
         if not self._platform_stopping:
             # Send a signal to all other isolates
@@ -662,22 +338,13 @@ class ForkerBasic(object):
         :param total_timeout: Maximum time to wait for all isolates to be
                               stopped (in seconds)
         """
-        def safe_stop(uid):
-            try:
-                self.stop_isolate(uid, stop_timeout)
-
-            except OSError as ex:
-                _logger.error("Error stopping isolate %s: %s", uid, ex)
-
         # Create a task pool
-        isolates = list(self._isolates.keys())
-
-        nb_threads = min(len(isolates), max_threads)
+        nb_threads = min(len(self._isolates), max_threads)
         if nb_threads > 0:
             pool = pelix.threadpool.ThreadPool(nb_threads,
                                                logname="forker-core-killer")
-            for uid in isolates:
-                pool.enqueue(safe_stop, uid)
+            for uid, starter in self._isolates.items():
+                pool.enqueue(starter.terminate, uid)
 
             # Run the pool
             pool.start()
@@ -737,28 +404,11 @@ class ForkerBasic(object):
         # Stop the isolates
         self._kill_isolates()
 
-        # Isolates to be removed from thread dictionary
-        to_kill = {}
-
-        for uid, thread in self._threads.items():
-            thread.join(2)
-            if thread.is_alive():
-                # A thread is still there
-                _logger.warning("Thread watching %s is still running...", uid)
-                to_kill[uid] = thread
-
-        if _Thread_stop:
-            # Terminate threads
-            for thread in to_kill.values():
-                if thread.is_alive():
-                    # Kill it
-                    _Thread_stop(thread)
-
         # Unregister from the framework (if we weren't stopped by the framework)
         context.remove_framework_stop_listener(self)
 
         # Clean up
-        self._threads.clear()
+        self._isolates.clear()
         self._context = None
         self._node_name = None
         self._node_uid = None

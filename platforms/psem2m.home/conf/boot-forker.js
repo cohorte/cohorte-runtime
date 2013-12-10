@@ -25,6 +25,17 @@
 		"name" : "pelix.shell.console"
 	}, {
 		"name" : "cohorte.shell.forker"
+	}, {
+		"name" : "cohorte.forker.watchers"
+	},
+	
+	/*
+	 * Isolate starters
+	 */
+	{
+		"name" : "cohorte.forker.starters.cohorte_boot"
+	}, {
+		"name" : "cohorte.forker.starters.exe"
 	},
 
 	/*

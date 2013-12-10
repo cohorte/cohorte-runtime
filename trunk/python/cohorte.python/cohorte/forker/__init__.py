@@ -29,6 +29,16 @@ Specification of a forker event listener:
 - forker_gone(uid, node)
 """
 
+SERVICE_STARTER = 'cohorte.forker.starter'
+""" Specification of an isolate starter """
+
+PROP_STARTER_KINDS = 'forker.starter.kinds'
+""" Kinds of isolates handled by the starter """
+
+
+SERVICE_WATCHER = 'cohorte.forker.watcher'
+""" Specification of an isolate watcher service """
+
 # ------------------------------------------------------------------------------
 
 __SIGNALS_FORKER_PREFIX = "/cohorte/forker"

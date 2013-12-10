@@ -4,7 +4,26 @@
 COHORTE Monitor: Monitor included in the F/M/N process
 
 :author: Thomas Calmant
+:copyright: Copyright 2013, isandlaTech
 :license: GPLv3
+:version: 1.0.0
+
+..
+
+    This file is part of Cohorte.
+
+    Cohorte is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Cohorte is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Cohorte. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Documentation strings format
@@ -29,7 +48,6 @@ from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
 
 # Standard library
 import logging
-import sys
 import threading
 import uuid
 
@@ -200,11 +218,6 @@ class MonitorBasic(object):
         # Node name and UID will be given by the forker
         config = self._config.prepare_isolate(uid, name, kind,
                                               level, sublevel, custom_artifacts)
-
-        # FIXME: make that prettier
-        # Compute the looper, if needed
-        if sys.platform == "darwin" and kind in ("java", "osgi"):
-            config['looper'] = 'cocoa'
 
         # Store the isolate in the status
         self._status.add_isolate(uid)
