@@ -260,5 +260,7 @@ class CommonStarter(object):
                                                                  uid=uid))
 
             # Ensure the whole path is created
-            os.makedirs(path, exist_ok=True)
+            if not os.path.exists(path):
+                os.makedirs(path)
+
             return path
