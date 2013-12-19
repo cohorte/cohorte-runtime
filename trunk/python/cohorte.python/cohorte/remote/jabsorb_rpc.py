@@ -1,17 +1,37 @@
 #!/usr/bin/env python
 # -- Content-Encoding: UTF-8 --
 """
-COHORTE Remote Services: JSON-RPC in Jabsorb format
+COHORTE Remote Services: JABSORB-RPC, i.e. JSON-RPC in Jabsorb format
 
 :author: Thomas Calmant
-:license: GPLv3
+:copyright: Copyright 2013, isandlaTech
+:license: Apache License 2.0
+:version: 1.1
+:status: Beta
+
+..
+
+    Copyright 2013 isandlaTech
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
 """
 
 # Documentation strings format
 __docformat__ = "restructuredtext en"
 
-# Boot module version
-__version__ = "1.0.0"
+# Module version
+__version_info__ = (1, 1, 0)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 
@@ -29,6 +49,7 @@ from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
 import pelix.framework
 import pelix.http
 import pelix.remote.beans
+from pelix.remote import RemoteServiceError
 from pelix.utilities import to_str
 
 # Standard library
@@ -38,6 +59,18 @@ import threading
 import uuid
 
 # ------------------------------------------------------------------------------
+
+JABSORB_CONFIG = 'ecf.jabsorb'
+""" Remote Service configuration constant """
+
+PROP_ENDPOINT_NAME = '{0}.name'.format(JABSORB_CONFIG)
+""" Name of the endpoint """
+
+PROP_HTTP_ACCESSES = '{0}.accesses'.format(JABSORB_CONFIG)
+""" HTTP accesses (comma-separated String) """
+
+HOST_SERVLET_PATH = "/JABSORB-RPC"
+""" Default servlet path """
 
 _logger = logging.getLogger(__name__)
 
@@ -119,11 +152,12 @@ class _JabsorbRpcServlet(SimpleJSONRPCDispatcher):
 @ComponentFactory("cohorte-jabsorbrpc-exporter-factory")
 @Requires('_dispatcher', pelix.remote.SERVICE_DISPATCHER)
 @Requires('_http', pelix.http.HTTP_SERVICE)
-@Property('_path', pelix.http.HTTP_SERVLET_PATH, '/JSON-RPC')
-@Property('_kind', 'endpoints.kind', 'jsonrpc')
-class JsonRpcServiceExporter(object):
+@Property('_path', pelix.http.HTTP_SERVLET_PATH, HOST_SERVLET_PATH)
+@Property('_kinds', pelix.remote.PROP_REMOTE_CONFIGS_SUPPORTED,
+          (JABSORB_CONFIG,))
+class JabsorbRpcServiceExporter(object):
     """
-    JSON-RPC Remote Services exporter
+    JABSORB-RPC Remote Services exporter
     """
     def __init__(self):
         """
@@ -134,7 +168,9 @@ class JsonRpcServiceExporter(object):
 
         # Dispatcher
         self._dispatcher = None
-        self._kind = None
+
+        # Supported configurations
+        self._kinds = None
 
         # HTTP Service
         self._http = None
@@ -146,8 +182,8 @@ class JsonRpcServiceExporter(object):
         # Exported services: Name -> ExportEndpoint
         self.__endpoints = {}
 
-        # Service Reference -> ExportEndpoint
-        self.__registrations = {}
+        # Thread safety
+        self.__lock = threading.Lock()
 
 
     def _dispatch(self, method, params):
@@ -157,13 +193,11 @@ class JsonRpcServiceExporter(object):
         # Get the best matching name
         matching = None
         len_found = 0
-
         for name in self.__endpoints:
-            len_name = len(name)
-            if len_name > len_found and method.startswith(name + "."):
+            if len(name) > len_found and method.startswith(name + "."):
                 # Better matching end point name (longer that previous one)
                 matching = name
-                len_found = len_name
+                len_found = len(matching)
 
         if matching is None:
             # No end point name match
@@ -172,9 +206,19 @@ class JsonRpcServiceExporter(object):
         # Extract the method name. (+1 for the trailing dot)
         method_name = method[len_found + 1:]
 
-        # Call the dispatcher
-        return self._dispatcher.dispatch(self._kind, matching,
-                                         method_name, params)
+        # Get the service
+        try:
+            service = self.__endpoints[name].instance
+        except KeyError:
+            raise RemoteServiceError("Unknown endpoint: {0}".format(name))
+
+        # Get the method
+        method_ref = getattr(service, method_name, None)
+        if method_ref is None:
+            raise RemoteServiceError("Unknown method {0}".format(method))
+
+        # Call it (let the errors be propagated)
+        return method_ref(*params)
 
 
     def _compute_endpoint_name(self, reference):
@@ -185,125 +229,123 @@ class JsonRpcServiceExporter(object):
         :return: The computed end point name
         """
         service_id = reference.get_property(pelix.framework.SERVICE_ID)
-        endpoint_name = reference.get_property(pelix.remote.PROP_ENDPOINT_NAME)
-        if not endpoint_name:
+
+        for key in (PROP_ENDPOINT_NAME, pelix.remote.PROP_ENDPOINT_NAME):
+            endpoint_name = reference.get_property(key)
+            if endpoint_name:
+                # Found a configured name
+                break
+
+        else:
+            # Make a new one
             endpoint_name = 'service_{0}'.format(service_id)
 
         return endpoint_name
 
 
-    def _export_service(self, reference):
+    def handles(self, configurations):
         """
-        Exports the given service
+        Checks if this provider handles the given configuration types
 
-        :param reference: A ServiceReference object
+        :param configurations: Configuration types
         """
-        # Compute the end point name
-        endpoint_name = self._compute_endpoint_name(reference)
-        if endpoint_name in self.__endpoints:
-            # Already known end point
-            _logger.error("Already known end point %s for JSON-RPC (jabsorb)",
-                          endpoint_name)
-            return
+        if configurations is None or configurations == '*':
+            # 'Matches all'
+            return True
 
-        # Get the service
-        try:
-            service = self._context.get_service(reference)
-            if service is None:
-                _logger.error("Invalid service for reference %s",
-                              str(reference))
-
-        except pelix.framework.BundleException as ex:
-            _logger.error("Error retrieving the service to export: %s", ex)
-            return
-
-        try:
-            # Create the registration information
-            endpoint = pelix.remote.beans.ExportEndpoint(str(uuid.uuid4()),
-                                                     self._kind, endpoint_name,
-                                                     reference, service,
-                                                     self.get_access())
-        except ValueError:
-            # Invalid end point
-            return False
-
-        try:
-            # Register the end point
-            self._dispatcher.add_endpoint(self._kind, endpoint_name, endpoint)
-
-        except KeyError as ex:
-            _logger.error("Error registering end point: %s", ex)
-
-        else:
-            # Store informations
-            self.__endpoints[endpoint_name] = endpoint
-            self.__registrations[reference] = endpoint
+        return bool(set(configurations).intersection(self._kinds))
 
 
-    def _update_service(self, reference, old_properties):
+    def export_service(self, svc_ref, name, fw_uid):
         """
-        Service properties updated
+        Prepares an export endpoint
+
+        :param svc_ref: Service reference
+        :param name: Endpoint name
+        :param fw_uid: Framework UID
+        :return: An ExportEndpoint bean
+        :raise NameError: Already known name
+        :raise BundleException: Error getting the service
         """
-        # Compute the new end point name
-        new_name = self._compute_endpoint_name(reference)
+        if not name:
+            # Compute the end point name
+            name = self._compute_endpoint_name(svc_ref)
 
-        # Get the end point
-        endpoint = self.__registrations[reference]
-        if endpoint.name != new_name:
-            # Name changed -> re-export the service
-            self._unexport_service(reference)
-            self._export_service(reference)
+        with self.__lock:
+            if name in self.__endpoints:
+                # Already known end point
+                raise NameError("Already known end point %s for JABSORB-RPC",
+                                name)
 
-        else:
-            # Notify the dispatcher
-            self._dispatcher.update_endpoint(self._kind, endpoint.name,
-                                             endpoint, old_properties)
+            # Get the service (let it raise a BundleException if any
+            service = self._context.get_service(svc_ref)
+
+            # Prepare extra properties
+            properties = {PROP_ENDPOINT_NAME: name}
+
+            # FIXME: setup HTTP accesses
+            properties[PROP_HTTP_ACCESSES] = [self.get_access()]
+
+            # Prepare the export endpoint
+            try:
+                endpoint = pelix.remote.beans.ExportEndpoint(str(uuid.uuid4()),
+                                                             fw_uid,
+                                                             self._kinds,
+                                                             name, svc_ref,
+                                                             service,
+                                                             properties)
+            except ValueError:
+                # No specification to export (specifications filtered, ...)
+                return None
+
+            # Store information
+            self.__endpoints[name] = endpoint
+
+            # Return the endpoint bean
+            return endpoint
 
 
-    def _unexport_service(self, reference):
+    def update_export(self, endpoint, new_name, old_properties):
         """
-        Stops the export of the given service
+        Updates an export endpoint
 
-        :param reference: A ServiceReference object
+        :param endpoint: An ExportEndpoint bean
+        :param new_name: Future endpoint name
+        :param old_properties: Previous properties
+        :raise NameError: Rename refused
         """
-        # Find the corresponding end point
-        endpoint = self.__registrations.get(reference)
-        if endpoint is not None:
-            # Delete the registration
-            del self.__registrations[reference]
-            del self.__endpoints[endpoint.name]
+        with self.__lock:
+            if new_name in self.__endpoints:
+                # Reject the new name
+                raise NameError("New name of %s already used: %s",
+                                endpoint.name, new_name)
 
-            # Unregister the service from the dispatcher
-            self._dispatcher.remove_endpoint(self._kind, endpoint.name)
+            # Update storage
+            self.__endpoints[new_name] = self.__endpoints.pop(endpoint.name)
+
+            # Update the endpoint
+            endpoint.name = new_name
 
 
-    def service_changed(self, event):
+    def unexport_service(self, endpoint):
         """
-        Called when a service event is triggered
+        Deletes an export endpoint
+
+        :param endpoint: An ExportEndpoint bean
         """
-        kind = event.get_kind()
-        svcref = event.get_service_reference()
+        with self.__lock:
+            try:
+                # Clean up storage
+                del self.__endpoints[endpoint.name]
 
-        if kind == pelix.framework.ServiceEvent.REGISTERED:
-            # Simply export the service
-            self._export_service(svcref)
-
-        elif kind == pelix.framework.ServiceEvent.MODIFIED:
-            # Matching registering or updated service
-            if svcref not in self.__registrations:
-                # New match
-                self._export_service(svcref)
+            except KeyError:
+                # Unknown endpoint
+                _logger.warning("Unknown endpoint: %s", endpoint)
 
             else:
-                # Properties modification:
-                # Re-export if endpoint.name has changed
-                self._update_service(svcref, event.get_previous_properties())
-
-        elif svcref in self.__registrations and \
-                (kind == pelix.framework.ServiceEvent.UNREGISTERING or \
-                 kind == pelix.framework.ServiceEvent.MODIFIED_ENDMATCH):
-            # Service is updated or unregistering
-            self._unexport_service(svcref)
+                # Release the service
+                svc_ref = endpoint.reference
+                self._context.unget_service(svc_ref)
 
 
     def get_access(self):
@@ -326,21 +368,6 @@ class JsonRpcServiceExporter(object):
         # Store the context
         self._context = context
 
-        # Prepare the service filter
-        ldapfilter = '(|(|({0}=jsonrpc)({0}=\*))(&(!({0}=*))({1}=*)))' \
-                    .format(pelix.remote.PROP_EXPORTED_CONFIGS,
-                            pelix.remote.PROP_EXPORTED_INTERFACES)
-
-        # Export existing services
-        existing_ref = self._context.get_all_service_references(None,
-                                                                ldapfilter)
-        if existing_ref is not None:
-            for reference in existing_ref:
-                self._export_service(reference)
-
-        # Register a service listener, to update the exported services state
-        self._context.add_service_listener(self, ldapfilter)
-
         # Create/register the servlet
         self._servlet = _JabsorbRpcServlet(self._dispatch)
         self._http.register_servlet(self._path, self._servlet)
@@ -351,19 +378,11 @@ class JsonRpcServiceExporter(object):
         """
         Component invalidated
         """
-        # Unregister the service listener
-        context.remove_service_listener(self)
-
         # Unregister the servlet
         self._http.unregister(None, self._servlet)
 
-        # Remove all exports
-        for reference in list(self.__registrations.keys()):
-            self._unexport_service(reference)
-
         # Clean up the storage
         self.__endpoints.clear()
-        self.__registrations.clear()
 
         # Clean up members
         self._servlet = None
@@ -430,11 +449,12 @@ class _ServiceCallProxy(object):
 
 @ComponentFactory("cohorte-jabsorbrpc-importer-factory")
 @Provides(pelix.remote.SERVICE_ENDPOINT_LISTENER)
-@Property('_kind', 'endpoints.kind', 'jsonrpc')
+@Property('_kinds', pelix.remote.PROP_REMOTE_CONFIGS_SUPPORTED,
+          (JABSORB_CONFIG,))
 @Property('_listener_flag', pelix.remote.PROP_LISTEN_IMPORTED, True)
-class JsonRpcServiceImporter(object):
+class JabsorbRpcServiceImporter(object):
     """
-    JSON-RPC Remote Services importer
+    JABSORB-RPC Remote Services importer
     """
     def __init__(self):
         """
@@ -444,7 +464,7 @@ class JsonRpcServiceImporter(object):
         self._context = None
 
         # Component properties
-        self._kind = None
+        self._kinds = None
         self._listener_flag = True
 
         # Registered services (end point -> reference)
@@ -456,17 +476,37 @@ class JsonRpcServiceImporter(object):
         """
         An end point has been imported
         """
-        if endpoint.kind not in ('*', self._kind):
+        configs = set(endpoint.configurations)
+        if '*' not in configs and not configs.intersection(self._kinds):
             # Not for us
             return
+
+        # Get the access URL
+        access_url = endpoint.properties.get(PROP_HTTP_ACCESSES)
+        if not access_url:
+            # No URL information
+            _logger.warning("No access URL given: %s", endpoint)
+            return
+
+        else:
+            # Get the first URL in the list
+            access_url = access_url.split(',')[0]
+
+        _logger.debug("Chosen access: %s", access_url)
 
         with self.__reg_lock:
             # Already known end point
             if endpoint.uid in self.__registrations:
                 return
 
+            # Compute the name
+            name = endpoint.properties.get(PROP_ENDPOINT_NAME)
+            if not name:
+                _logger.error("Remote endpoint has no name: %s", endpoint)
+                return
+
             # Register the service
-            svc = _ServiceCallProxy(endpoint.uid, endpoint.name, endpoint.url,
+            svc = _ServiceCallProxy(endpoint.uid, name, access_url,
                                     self._unregister)
             svc_reg = self._context.register_service(endpoint.specifications,
                                                      svc, endpoint.properties)
