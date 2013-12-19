@@ -150,6 +150,7 @@ class _JabsorbRpcServlet(SimpleJSONRPCDispatcher):
 # ------------------------------------------------------------------------------
 
 @ComponentFactory("cohorte-jabsorbrpc-exporter-factory")
+@Provides(pelix.remote.SERVICE_EXPORT_PROVIDER)
 @Requires('_dispatcher', pelix.remote.SERVICE_DISPATCHER)
 @Requires('_http', pelix.http.HTTP_SERVICE)
 @Property('_path', pelix.http.HTTP_SERVLET_PATH, HOST_SERVLET_PATH)
@@ -208,9 +209,9 @@ class JabsorbRpcServiceExporter(object):
 
         # Get the service
         try:
-            service = self.__endpoints[name].instance
+            service = self.__endpoints[matching].instance
         except KeyError:
-            raise RemoteServiceError("Unknown endpoint: {0}".format(name))
+            raise RemoteServiceError("Unknown endpoint: {0}".format(matching))
 
         # Get the method
         method_ref = getattr(service, method_name, None)
@@ -219,28 +220,6 @@ class JabsorbRpcServiceExporter(object):
 
         # Call it (let the errors be propagated)
         return method_ref(*params)
-
-
-    def _compute_endpoint_name(self, reference):
-        """
-        Computes the end point name according to service properties
-
-        :param reference: A ServiceReference object
-        :return: The computed end point name
-        """
-        service_id = reference.get_property(pelix.framework.SERVICE_ID)
-
-        for key in (PROP_ENDPOINT_NAME, pelix.remote.PROP_ENDPOINT_NAME):
-            endpoint_name = reference.get_property(key)
-            if endpoint_name:
-                # Found a configured name
-                break
-
-        else:
-            # Make a new one
-            endpoint_name = 'service_{0}'.format(service_id)
-
-        return endpoint_name
 
 
     def handles(self, configurations):
@@ -267,9 +246,10 @@ class JabsorbRpcServiceExporter(object):
         :raise NameError: Already known name
         :raise BundleException: Error getting the service
         """
-        if not name:
-            # Compute the end point name
-            name = self._compute_endpoint_name(svc_ref)
+        jabsorb_name = svc_ref.get_property(PROP_ENDPOINT_NAME)
+        if jabsorb_name:
+            # The end point name has been configured in the Jabsorb way
+            name = jabsorb_name
 
         with self.__lock:
             if name in self.__endpoints:
@@ -284,7 +264,8 @@ class JabsorbRpcServiceExporter(object):
             properties = {PROP_ENDPOINT_NAME: name}
 
             # FIXME: setup HTTP accesses
-            properties[PROP_HTTP_ACCESSES] = [self.get_access()]
+            # Comma-separated string
+            properties[PROP_HTTP_ACCESSES] = self.get_access()
 
             # Prepare the export endpoint
             try:
@@ -449,6 +430,7 @@ class _ServiceCallProxy(object):
 
 @ComponentFactory("cohorte-jabsorbrpc-importer-factory")
 @Provides(pelix.remote.SERVICE_ENDPOINT_LISTENER)
+@Provides(pelix.remote.SERVICE_ENDPOINT_LISTENER)
 @Property('_kinds', pelix.remote.PROP_REMOTE_CONFIGS_SUPPORTED,
           (JABSORB_CONFIG,))
 @Property('_listener_flag', pelix.remote.PROP_LISTEN_IMPORTED, True)
@@ -504,6 +486,8 @@ class JabsorbRpcServiceImporter(object):
             if not name:
                 _logger.error("Remote endpoint has no name: %s", endpoint)
                 return
+
+            _logger.debug("Importing %s with name = %s", endpoint, name)
 
             # Register the service
             svc = _ServiceCallProxy(endpoint.uid, name, access_url,
