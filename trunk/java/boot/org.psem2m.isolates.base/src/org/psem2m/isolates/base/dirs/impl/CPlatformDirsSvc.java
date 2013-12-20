@@ -19,33 +19,39 @@ import org.osgi.framework.BundleContext;
 import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.utilities.CXStringUtils;
+import org.psem2m.utilities.IXDescriber;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
-public class CPlatformDirsSvc implements IPlatformDirsSvc {
+public class CPlatformDirsSvc implements IPlatformDirsSvc, IXDescriber {
 
 	/**
-	 * Platform base and home repository directory name
+	 * standards sub dirs
 	 */
-	private static final String REPOSITORY_NAME = "repo";
+	private static final String DIRNAME_LOG = "log";
+	private static final String DIRNAME_REPOSITORY = "repo";
+	private static final String DIRNAME_STORAGE = "storage";
+	private static final String DIRPREFIX_ISOLATE = "isolate_";
+	private static final String NAMEPREFIX_ISOLATE = "Isolate";
+	private static final String NAMEPREFIX_NODE = "Node";
 
 	/**
 	 * The bundle context
 	 */
 	private final BundleContext pContext;
 
+	private final File pIsolateDir;
+
+	private final File pIsolateLogDir;
+
 	/**
 	 * The Name of the isolate , given in "-Dcohorte.isolate.name" or calculated
 	 * (eg. "Isolate258769")
 	 */
 	private String pIsolateName = null;
-
-	/**
-	 * The node of the isolate , given in "-Dcohorte.node" or calculated
-	 */
-	private String pIsolateNode = null;
+	private final File pIsolateStorageDir;
 
 	/**
 	 * The UUID of the isolate , given in "-Dcohorte.isolate.uid" or calculated
@@ -57,6 +63,16 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 	 * jvm)
 	 */
 	private final File pIsolateUserDir;
+	/**
+	 * The node name of the isolate , given in "-Dcohorte.node.name" or
+	 * calculated
+	 */
+	private String pNodeName = null;
+	/**
+	 * The node UUID of the isolate , given in "-Dcohorte.node.uid" or
+	 * calculated
+	 */
+	private String pNodeUID = null;
 
 	/**
 	 * Sets up the platform informations service. Stores the working directory
@@ -72,8 +88,77 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 		// Store the working directory
 		pIsolateUserDir = new File(System.getProperty("user.dir"));
 
+		// init
 		getIsolateName();
 		getIsolateUID();
+		getNodeName();
+		pIsolateDir = initIsolateDir();
+		pIsolateLogDir = initIsolateLogDir();
+		pIsolateStorageDir = initIsolateStorageDir();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.psem2m.utilities.IXDescriber#addDescriptionInBuffer(java.lang.Appendable
+	 * )
+	 */
+	@Override
+	public Appendable addDescriptionInBuffer(Appendable aBuffer) {
+
+		appendKeyValInBuff(aBuffer, IPlatformProperties.PROP_ISOLATE_UID,
+				getIsolateUID());
+		appendKeyValInBuff(aBuffer, IPlatformProperties.PROP_ISOLATE_NAME,
+				getIsolateName());
+		appendKeyValInBuff(aBuffer, IPlatformProperties.PROP_NODE_UID,
+				getNodeUID());
+		appendKeyValInBuff(aBuffer, IPlatformProperties.PROP_NODE_NAME,
+				getNodeName());
+
+		appendKeyValInBuff(aBuffer, IPlatformProperties.PROP_PLATFORM_HOME,
+				getPlatformHome());
+		appendKeyValInBuff(aBuffer, IPlatformProperties.PROP_PLATFORM_BASE,
+				getPlatformBase());
+
+		appendKeyValInBuff(aBuffer, IPlatformProperties.PROP_PLATFORM_BASE
+				+ ".log.dir", getPlatformBaseLogDir());
+		appendKeyValInBuff(aBuffer, IPlatformProperties.PROP_PLATFORM_BASE
+				+ ".storage.dir", getPlatformBaseStorageDir());
+
+		appendKeyValInBuff(aBuffer, "IsolateDir", getIsolateDir());
+		appendKeyValInBuff(aBuffer, "IsolateLogDir", getIsolateLogDir());
+		appendKeyValInBuff(aBuffer, "IsolateStorageDir", getIsolateStorageDir());
+
+		appendKeyValInBuff(aBuffer, "NbFoundRepositories",
+				getRepositories().length);
+
+		return aBuffer;
+	}
+
+	/**
+	 * @param aBuffer
+	 * @param aKey
+	 * @param aValue
+	 * @return
+	 */
+	private Appendable appendKeyValInBuff(Appendable aBuffer,
+			final String aKey, final Object aValue) {
+		aBuffer = CXStringUtils.appendKeyValInBuff(aBuffer,
+				CXStringUtils.strAdjustRight(aKey, 25, ' '), aValue.toString());
+		CXStringUtils.appendCharInBuff(aBuffer, '\n');
+		return aBuffer;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateDir()
+	 */
+	@Override
+	public File getIsolateDir() {
+
+		return pIsolateDir;
 	}
 
 	/*
@@ -83,10 +168,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 	 */
 	@Override
 	public File getIsolateLogDir() {
-
-		// Valid log directory
-		return tryCreateDirectory(new File(getPlatformBaseLogDir(), "log"),
-				pIsolateUserDir);
+		return pIsolateLogDir;
 	}
 
 	/*
@@ -100,7 +182,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 			pIsolateName = pContext
 					.getProperty(IPlatformProperties.PROP_ISOLATE_NAME);
 			if (pIsolateName == null || pIsolateName.isEmpty()) {
-				pIsolateName = "Isolate"
+				pIsolateName = NAMEPREFIX_ISOLATE
 						+ CXStringUtils.strAdjustRight(
 								System.currentTimeMillis(), 6);
 			}
@@ -111,20 +193,12 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateNode()
+	 * @see
+	 * org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateStorageDir()
 	 */
 	@Override
-	public String getIsolateNode() {
-		if (pIsolateNode == null) {
-			pIsolateNode = pContext
-					.getProperty(IPlatformProperties.PROP_ISOLATE_NODE);
-			if (pIsolateNode == null || pIsolateNode.isEmpty()) {
-				pIsolateNode = "Node"
-						+ CXStringUtils.strAdjustRight(
-								System.currentTimeMillis(), 6);
-			}
-		}
-		return pIsolateNode;
+	public File getIsolateStorageDir() {
+		return pIsolateStorageDir;
 	}
 
 	/*
@@ -136,9 +210,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 	 */
 	@Override
 	public File getIsolateStorageDirectory() {
-
-		return tryCreateDirectory(new File(pIsolateUserDir, "storage"),
-				pIsolateUserDir);
+		return getIsolateStorageDir();
 	}
 
 	/*
@@ -187,6 +259,41 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 	/*
 	 * (non-Javadoc)
 	 * 
+	 * @see org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateNode()
+	 */
+	@Override
+	public String getNodeName() {
+		if (pNodeName == null) {
+			pNodeName = pContext
+					.getProperty(IPlatformProperties.PROP_NODE_NAME);
+			if (pNodeName == null || pNodeName.isEmpty()) {
+				pNodeName = NAMEPREFIX_NODE
+						+ CXStringUtils.strAdjustRight(
+								System.currentTimeMillis(), 6);
+			}
+		}
+		return pNodeName;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateNode()
+	 */
+	@Override
+	public String getNodeUID() {
+		if (pNodeUID == null) {
+			pNodeUID = pContext.getProperty(IPlatformProperties.PROP_NODE_UID);
+			if (pNodeUID == null || pNodeUID.isEmpty()) {
+				pNodeUID = UUID.randomUUID().toString();
+			}
+		}
+		return pNodeUID;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.psem2m.isolates.osgi.IPlatformDirs#getPlatformBaseDir()
 	 */
 	@Override
@@ -209,8 +316,22 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 	@Override
 	public File getPlatformBaseLogDir() {
 		// Valid log or create directory
-		return tryCreateDirectory(new File(getPlatformBase(), "log"),
-				getIsolateWorkingDirectory());
+		return tryCreateDirectory(new File(getPlatformBase(), DIRNAME_LOG),
+				getIsolateUserDir());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getPlatformBaseStorageDir
+	 * ()
+	 */
+	@Override
+	public File getPlatformBaseStorageDir() {
+		// Valid storage or create directory
+		return tryCreateDirectory(new File(getPlatformBase(), DIRNAME_STORAGE),
+				getIsolateUserDir());
 	}
 
 	/*
@@ -250,13 +371,13 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 		final List<File> repositories = new ArrayList<File>();
 
 		// Current instance repository
-		final File baseRepo = new File(getPlatformBase(), REPOSITORY_NAME);
+		final File baseRepo = new File(getPlatformBase(), DIRNAME_REPOSITORY);
 		if (baseRepo.exists()) {
 			repositories.add(baseRepo);
 		}
 
 		// Home repository
-		final File homeRepo = new File(getPlatformHome(), REPOSITORY_NAME);
+		final File homeRepo = new File(getPlatformHome(), DIRNAME_REPOSITORY);
 		if (!homeRepo.equals(baseRepo) && homeRepo.exists()) {
 			repositories.add(homeRepo);
 		}
@@ -264,6 +385,46 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 		// Add other repositories here, from higher to lower priority
 
 		return repositories.toArray(new File[0]);
+	}
+
+	/**
+	 * @return
+	 */
+	private File initIsolateDir() {
+
+		// Valid root directory of the isolate
+		return tryCreateDirectory(new File(getPlatformBase(), DIRPREFIX_ISOLATE
+				+ getIsolateName()), pIsolateUserDir);
+
+	}
+
+	/**
+	 * @return
+	 */
+	public File initIsolateLogDir() {
+
+		// Valid log directory of the isolate
+		return tryCreateDirectory(new File(getIsolateDir(), DIRNAME_LOG),
+				pIsolateUserDir);
+	}
+
+	/**
+	 * @return
+	 */
+	public File initIsolateStorageDir() {
+
+		return tryCreateDirectory(new File(getIsolateDir(), DIRNAME_STORAGE),
+				pIsolateUserDir);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.utilities.IXDescriber#toDescription()
+	 */
+	@Override
+	public String toDescription() {
+		return addDescriptionInBuffer(new StringBuilder()).toString();
 	}
 
 	/**
