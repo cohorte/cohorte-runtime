@@ -28,10 +28,10 @@ public class CActivityLoggerBasicConsole implements IActivityLogger {
 	/**
 	 * 
 	 */
-	private CActivityLoggerBasicConsole(){
+	protected CActivityLoggerBasicConsole(){
 		super();
 		
-		pActivityFormater = CActivityFormaterBasic.getInstance();
+		pActivityFormater = CActivityFormaterBasic.getInstance(IActivityFormater.SHORT_LINE);
 		pActivityFormater.acceptMultiline(IActivityFormater.MULTILINES_TEXT);
 		pLogLineTextBuilder = CLogLineTextBuilder.getInstance();
 	}
@@ -135,9 +135,8 @@ public class CActivityLoggerBasicConsole implements IActivityLogger {
 			//System.out.println("wLogWhat="+((wLogWhat!=null)?wLogWhat:"null"));
 			
 			String wLine = pActivityFormater.format(System.currentTimeMillis(), aLevel, wLogWho, wLogWhat, wLogText,!IActivityFormater.WITH_END_LINE);
-			System.out.println("wLine="+((wLine!=null)?wLine:"null"));
-			//System.out.println(wLine);
-		
+			
+			System.out.println((wLine!=null)?wLine:"wLine=null");		
 	}
 
 	/*

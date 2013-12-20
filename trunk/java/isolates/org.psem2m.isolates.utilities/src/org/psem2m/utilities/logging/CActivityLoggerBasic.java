@@ -63,7 +63,7 @@ public class CActivityLoggerBasic extends CActivityLogger implements
 	 */
 	protected String buildLine(String aLine, final Throwable e) {
 		if (e != null) {
-			StringBuffer wSB = new StringBuffer();
+			StringBuilder wSB = new StringBuilder();
 			wSB.append(aLine);
 			wSB.append(' ');
 			wSB.append(CXException.eInString(e).replace('\n', '|'));

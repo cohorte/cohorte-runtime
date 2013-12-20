@@ -25,6 +25,8 @@ public interface IActivityFormater {
 	 **/
 	public final static boolean MULTILINES_TEXT = true;
 
+	public final static boolean SHORT_LINE = true;
+	
 	/**
 	 * the value of the end-line flag to obtain an end-line at the end of the
 	 * formated line

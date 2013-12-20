@@ -281,7 +281,7 @@ public class CBundleBaseActivator extends CXObjectBase implements
             final IPlatformDirsSvc wPlatformDirsSvc = getPlatformDirs();
 
             // the name of the logger
-            final String wLoggerName = "psem2m.isolate."
+            final String wLoggerName = "cohorte.isolate."
                     + wPlatformDirsSvc.getIsolateUID();
 
             // the FilePathPattern of the logger
@@ -478,10 +478,14 @@ public class CBundleBaseActivator extends CXObjectBase implements
     @Override
     public void start(final BundleContext aBundleContext) {
 
+		System.out.printf("start(): Starting - Activator=[%s]\n", aBundleContext
+				.getBundle().getSymbolicName());
+		
         // Store the bundle context
         pBundleContext = aBundleContext;
 
-        getLogger().logInfo(this, "start", "START", toDescription());
+        getLogger().logInfo(this, "start", "START", toDescription(),((CPlatformDirsSvc)getPlatformDirs()).toDescription());
+                
 
         // Register platform directories service
         registerOneService(aBundleContext, IPlatformDirsSvc.class,
@@ -493,7 +497,7 @@ public class CBundleBaseActivator extends CXObjectBase implements
                     getLogServiceFactory());
         } catch (final Exception e) {
             getLogger().logSevere(this, "start",
-                    "Can't get the LogServiceFactory and register it", e);
+                    "Can't get the LogServiceFactory and register it as 'LogService'", e);
         }
         try {
             // LogReader service interface
@@ -501,7 +505,7 @@ public class CBundleBaseActivator extends CXObjectBase implements
                     getLogReaderServiceFactory());
         } catch (final Exception e) {
             getLogger().logSevere(this, "start",
-                    "Can't get the LogReaderServiceFactory and register it", e);
+                    "Can't get the LogReaderServiceFactory and register it as 'LogReaderService'", e);
         }
         try {
             // IsolateLogger service
@@ -509,7 +513,7 @@ public class CBundleBaseActivator extends CXObjectBase implements
                     getIsolateLoggerSvc());
         } catch (final Exception e) {
             getLogger().logSevere(this, "start",
-                    "Can't get the IsolateLoggerSvc and register it", e);
+                    "Can't get the IsolateLoggerSvc and register it as 'IIsolateLoggerSvc'", e);
         }
 
         // Register the file finder
@@ -533,7 +537,10 @@ public class CBundleBaseActivator extends CXObjectBase implements
      */
     @Override
     public void stop(final BundleContext aBundleContext) {
-
+    	
+		System.out.printf("stop(): Stopped - Activator=[%s]\n", aBundleContext
+				.getBundle().getSymbolicName());
+		
         try {
             getLogger().logInfo(this, "stop", "STOP", toDescription());
         } catch (final Exception e) {

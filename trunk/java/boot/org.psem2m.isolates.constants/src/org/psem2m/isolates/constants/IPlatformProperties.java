@@ -33,26 +33,38 @@ public interface IPlatformProperties {
 
     /**
      * contains the name of the current isolates.
-     */
-    String PROP_ISOLATE_NAME = "cohorte.isolate.name";
-
-    /**
-     * contains the node of the current isolates.
-     * 
      * <pre>
-     * -Dorg.psem2m.platform.isolate.id=development
+     * -Dcohorte.isolate.name=development
      * </pre>
      */
-    String PROP_ISOLATE_NODE = "cohorte.node";
-
+    String PROP_ISOLATE_NAME = "cohorte.isolate.name";
     /**
-     * contains the id of the current isolates.
+     * contains the uuid of the current isolates.
      * 
      * <pre>
-     * -Dorg.psem2m.platform.isolate.id=development
+     * -Dcohorte.isolate.uid=POSD-UEZS-NBG9-JA72
      * </pre>
      */
     String PROP_ISOLATE_UID = "cohorte.isolate.uid";
+    /**
+     * contains the node uuid of the current isolates.
+     * 
+     * <pre>
+     * -Dcohorte.node.uid=GFRY-HYRZ-LOIS-85HY
+     * </pre>
+     */
+    String PROP_NODE_NAME = "cohorte.node.name";
+
+    /**
+     * contains the node uuid of the current isolates.
+     * 
+     * <pre>
+     * -Dcohorte.node.uid=GFRY-HYRZ-LOIS-85HY
+     * </pre>
+     */
+    String PROP_NODE_UID = "cohorte.node.uid";
+
+
 
     /**
      * contains the absolute path of the BASE folder of the current application
