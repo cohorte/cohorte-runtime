@@ -3,18 +3,35 @@
 """
 COHORTE Remote Services: Discovery based on Signals
 
-TODO:
-* update signals names
-
 :author: Thomas Calmant
-:license: GPLv3
+:copyright: Copyright 2014, isandlaTech
+:license: Apache License 2.0
+:version: 1.1
+:status: Beta
+
+..
+
+    Copyright 2013 isandlaTech
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
 """
 
 # Documentation strings format
 __docformat__ = "restructuredtext en"
 
 # Module version
-__version__ = "1.0.1"
+__version_info__ = (1, 1, 0)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 
@@ -26,19 +43,10 @@ import cohorte.java.jabsorb as jabsorb
 from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
     Invalidate, Requires, Property
 from pelix.utilities import is_string
-import pelix.framework
 import pelix.remote.beans
 
 # Standard library
 import logging
-
-try:
-    # Python 3
-    from urllib.parse import urlparse
-
-except ImportError:
-    # Python 2
-    from urlparse import urlparse
 
 # ------------------------------------------------------------------------------
 
@@ -52,7 +60,7 @@ JAVA_REMOTE_SERVICE_REGISTRATION = "{0}.RemoteServiceRegistration" \
 
 # ------------------------------------------------------------------------------
 
-BROADCASTER_SIGNAL_NAME_PREFIX = "/psem2m/remote-service-broadcaster"
+BROADCASTER_SIGNAL_NAME_PREFIX = "/cohorte/remote-service-broadcaster"
 BROADCASTER_SIGNALS_PATTERN = "{0}/*".format(BROADCASTER_SIGNAL_NAME_PREFIX)
 BROADCASTER_SIGNAL_REQUEST_ENDPOINTS = "{0}/request-endpoints" \
                                         .format(BROADCASTER_SIGNAL_NAME_PREFIX)
@@ -129,16 +137,14 @@ class _EndpointDescription(object):
     javaClass = JAVA_ENDPOINT_DESCRIPTION
     """ Java class (for Jabsorb) """
 
-    def __init__(self, name, uri, exported_config, node_uid, port, protocol):
+    def __init__(self, uid, name, exported_configs, node_uid):
         """
         Sets up the bean
         """
+        self.endpointUid = uid
         self.endpointName = name
-        self.endpointUri = uri
-        self.exportedConfig = exported_config
+        self.exportedConfigs = tuple(exported_configs)
         self.node = node_uid
-        self.port = port
-        self.protocol = protocol
 
 # ------------------------------------------------------------------------------
 
@@ -206,6 +212,14 @@ class SignalsDiscovery(object):
                           dir_group=cohorte.signals.GROUP_OTHERS)
 
 
+    def endpoints_added(self, endpoints):
+        """
+        New endpoints are exported
+        """
+        for endpoint in endpoints:
+            self.endpoint_added(endpoint)
+
+
     def endpoint_added(self, endpoint):
         """
         A new service is exported
@@ -213,14 +227,8 @@ class SignalsDiscovery(object):
         # Alias...
         svc_ref = endpoint.reference
 
-        # Get the exported interfaces
-        specifications = svc_ref.get_property(\
-                                        pelix.remote.PROP_EXPORTED_INTERFACES)
-        if '*' in specifications or specifications == '*':
-            specifications = svc_ref.get_property(pelix.framework.OBJECTCLASS)
-
         # Convert the specifications list into a set
-        specifications = set(specifications)
+        specifications = set(endpoint.specifications)
 
         # Add the synonyms
         synonyms = svc_ref.get_property(cohorte.SVCPROP_SYNONYM_INTERFACES)
@@ -234,23 +242,18 @@ class SignalsDiscovery(object):
                 specifications.update(synonyms)
 
         # Get isolate information
-        uid = self._context.get_property(cohorte.PROP_UID)
+        isolate_uid = self._context.get_property(cohorte.PROP_UID)
         node_uid = self._context.get_property(cohorte.PROP_NODE_UID)
 
-        # Parse access URL
-        access = urlparse(endpoint.url)
-
         # Prepare an end point description
-        java_endpoint = _EndpointDescription(endpoint.name,
-                                             access.path,
-                                             endpoint.kind,
-                                             node_uid, access.port,
-                                             access.scheme or "http")
+        java_endpoint = _EndpointDescription(endpoint.uid,
+                                             endpoint.name,
+                                             endpoint.configurations,
+                                             node_uid)
 
         # Make a registration bean
-        registration = _Registration(specifications, uid,
-                                     endpoint.name,
-                                     svc_ref.get_properties(),
+        registration = _Registration(specifications, isolate_uid,
+                                     endpoint.name, endpoint.get_properties(),
                                      [java_endpoint])
 
         # Store it
@@ -391,18 +394,18 @@ class SignalsDiscovery(object):
         # Get the first end point
         endpoints = registration["endpoints"]
         if not endpoints:
-            # FIXME: No end point: nothing to do
-            _logger.warning("RemoteServiceEvent without end point:\n%s",
-                            remote_event)
+            _logger.error("RemoteServiceEvent without end point:\n%s",
+                          remote_event)
             return
 
         endpoint = endpoints[0]
 
         # Prepare the end point description
+        uid = endpoint["endpointUid"]
         name = endpoint["endpointName"]
         framework = registration["hostIsolate"]
-        uid = "{0}@{1}".format(name, framework)
-        kind = endpoint["exportedConfig"]
+        kinds = endpoint["exportedConfigs"]
+        specifications = registration["exportedInterfaces"]
 
         # Filter the properties (replace exports by imports)
         properties = self._filter_properties(registration["serviceProperties"])
@@ -410,23 +413,10 @@ class SignalsDiscovery(object):
         # ... add the source isolate information
         properties["service.imported.from"] = registration["hostIsolate"]
 
-        # Prepare the access URL
-        host = self._directory.get_host_for_node(endpoint["node"])
-        if ':' in host:
-            # IPv6 handling
-            host = "[{0}]".format(host)
-
-        url = "{0}://{1}:{2}{3}".format(endpoint["protocol"], host,
-                                        endpoint["port"],
-                                        endpoint["endpointUri"])
-
-        # TODO: change ranking according to the node UID
-
         # Create the bean
-        rs_endpoint = pelix.remote.beans.ImportEndpoint(uid, framework, kind, \
-                                            name, url,
-                                            registration["exportedInterfaces"],
-                                            properties)
+        rs_endpoint = pelix.remote.beans.ImportEndpoint(uid, framework, kinds,
+                                                        name, specifications,
+                                                        properties)
 
         if event_type == REGISTERED:
             # New service
