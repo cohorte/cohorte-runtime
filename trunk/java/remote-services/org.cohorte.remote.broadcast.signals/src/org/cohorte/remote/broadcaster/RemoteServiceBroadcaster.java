@@ -18,9 +18,7 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.cohorte.remote.IRemoteServiceBroadcaster;
-import org.cohorte.remote.beans.EndpointDescription;
 import org.cohorte.remote.beans.RemoteServiceEvent;
-import org.cohorte.remote.beans.RemoteServiceRegistration;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.Utilities;
 import org.psem2m.isolates.constants.ISignalsConstants;
@@ -146,11 +144,6 @@ public class RemoteServiceBroadcaster implements IRemoteServiceBroadcaster {
             }
         }
 
-        // Update host name in end points
-        for (final RemoteServiceEvent event : allEvents) {
-            updateEndpointsHost(event.getServiceRegistration());
-        }
-
         return allEvents.toArray(new RemoteServiceEvent[allEvents.size()]);
     }
 
@@ -188,11 +181,6 @@ public class RemoteServiceBroadcaster implements IRemoteServiceBroadcaster {
             return null;
         }
 
-        // Update host name in end points
-        for (final RemoteServiceEvent event : events) {
-            updateEndpointsHost(event.getServiceRegistration());
-        }
-
         return events.toArray(new RemoteServiceEvent[events.size()]);
     }
 
@@ -206,44 +194,10 @@ public class RemoteServiceBroadcaster implements IRemoteServiceBroadcaster {
     @Override
     public void sendNotification(final RemoteServiceEvent aEvent) {
 
-        // Set the node name for all end points
-        for (final EndpointDescription endpoints : aEvent
-                .getServiceRegistration().getEndpoints()) {
-
-            endpoints.setNode(pPlatform.getNodeUID());
-        }
-
         // Send the signal
         pSignalEmitter.fireGroup(
                 ISignalsConstants.BROADCASTER_SIGNAL_REMOTE_EVENT, aEvent,
                 EBaseGroup.OTHERS);
-    }
-
-    /**
-     * Updates the host name of all end points described in the given
-     * registration
-     * 
-     * @param aRegistration
-     *            A remote service registration
-     */
-    private void updateEndpointsHost(
-            final RemoteServiceRegistration aRegistration) {
-
-        if (aRegistration == null) {
-            // Nothing to do
-            return;
-        }
-
-        final EndpointDescription[] endpoints = aRegistration.getEndpoints();
-        if (endpoints == null) {
-            // Nothing to do
-            return;
-        }
-
-        // Update end points beans
-        for (final EndpointDescription endpoint : aRegistration.getEndpoints()) {
-            endpoint.resolveHost(pDirectory.getHostForNode(endpoint.getNode()));
-        }
     }
 
     /**
