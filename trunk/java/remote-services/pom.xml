@@ -16,6 +16,6 @@
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>org.cohorte.remote.broadcast.signals</module>
+		<module>org.cohorte.remote.discovery.signals</module>
 	</modules>
 </project>
