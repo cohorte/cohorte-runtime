@@ -103,7 +103,7 @@ public interface ISignalsConstants {
     String MONITOR_SIGNAL_STOP_PLATFORM = "/cohorte/platform/stop";
 
     /** Remote service broadcaster signals names prefix */
-    String PREFIX_BROADCASTER_SIGNAL_NAME = "/psem2m/remote-service-broadcaster";
+    String PREFIX_BROADCASTER_SIGNAL_NAME = "/cohorte/remote-service-broadcaster";
 
     /** Prefix of any isolate signal name **/
     String PREFIX_FORKER_SIGNAL_NAME = "/cohorte/forker";
