@@ -15,7 +15,7 @@
  */
 package org.cohorte.remote.discovery.signals;
 
-import org.cohorte.remote.pelix.ExportEndpoint;
+import org.cohorte.remote.ExportEndpoint;
 
 /**
  * Represents an endpoint event sent using signals

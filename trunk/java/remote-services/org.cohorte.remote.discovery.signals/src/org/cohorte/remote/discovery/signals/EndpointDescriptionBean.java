@@ -18,8 +18,8 @@ package org.cohorte.remote.discovery.signals;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.cohorte.remote.pelix.ExportEndpoint;
-import org.cohorte.remote.pelix.ImportEndpoint;
+import org.cohorte.remote.ExportEndpoint;
+import org.cohorte.remote.ImportEndpoint;
 
 /**
  * Represents an endpoint in signals events
