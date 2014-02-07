@@ -130,6 +130,8 @@ public class SignalsDiscovery implements IExportEndpointListener,
      * 
      * @param aEvent
      *            An endpoint event
+     * @param aSenderAddress
+     *            The address of the event sender
      */
     private void handleEvent(final EndpointEventBean aEvent,
             final String aSenderAddress) {
@@ -182,24 +184,14 @@ public class SignalsDiscovery implements IExportEndpointListener,
         } else if (ISignalsConstants.BROADCASTER_SIGNAL_REQUEST_ENDPOINTS
                 .equals(aSignalName)) {
             // Get the events
-            final EndpointEventBean[] events = (EndpointEventBean[]) aSignalData
+            final EndpointEventBean event = (EndpointEventBean) aSignalData
                     .getSignalContent();
 
-            // Handle them in a different thread
-            new Thread(new Runnable() {
+            // Register remove endpoints
+            handleEvent(event, aSignalData.getSenderAddress());
 
-                @Override
-                public void run() {
-
-                    // Handle events
-                    for (final EndpointEventBean event : events) {
-                        handleEvent(event, aSignalData.getSenderAddress());
-                    }
-                }
-            }).start();
-
-            // Return our endpoints as events
-            return makeExportEvents();
+            // Return our endpoints as an event
+            return makeExportsEvent();
         }
 
         // Unhandled signal
@@ -243,10 +235,12 @@ public class SignalsDiscovery implements IExportEndpointListener,
     public void isolateReady(final String aIsolateUID, final String aName,
             final String aNodeUID) {
 
+        // TODO: factorize with requestEndpoints
+
         // Request endpoints
         final ISignalSendResult result = pSender.send(
                 ISignalsConstants.BROADCASTER_SIGNAL_REQUEST_ENDPOINTS,
-                makeExportEvents(), aIsolateUID);
+                makeExportsEvent(), aIsolateUID);
 
         // Get the result of the first signal handler of the isolate
         final EndpointEventBean[] remoteEvents = (EndpointEventBean[]) result
@@ -259,24 +253,15 @@ public class SignalsDiscovery implements IExportEndpointListener,
     }
 
     /**
-     * Returns an array of REGISTERED endpoint events, matching the endpoints
+     * Returns a signle REGISTERED endpoint event, matching the endpoints
      * exported by the local isolate
      * 
-     * @return An array of endpoint events
+     * @return An endpoint event with all endpoints
      */
-    private EndpointEventBean[] makeExportEvents() {
+    private EndpointEventBean makeExportsEvent() {
 
-        // Get export endpoints
-        final ExportEndpoint[] localEndpoints = pDispatcher.getEndpoints();
-
-        // Prepare events
-        final EndpointEventBean[] localEvents = new EndpointEventBean[localEndpoints.length];
-        for (int i = 0; i < localEndpoints.length; i++) {
-            localEvents[i] = new EndpointEventBean(
-                    EEndpointEventType.REGISTERED, localEndpoints[i]);
-        }
-
-        return localEvents;
+        return new EndpointEventBean(EEndpointEventType.REGISTERED,
+                pDispatcher.getEndpoints());
     }
 
     /**
@@ -322,5 +307,7 @@ public class SignalsDiscovery implements IExportEndpointListener,
         pReceiver.registerListener(
                 ISignalsConstants.PREFIX_BROADCASTER_SIGNAL_NAME
                         + ISignalsConstants.MATCH_ALL, this);
+
+        // TODO: request endpoints
     }
 }

@@ -42,31 +42,17 @@ import cohorte.java.jabsorb as jabsorb
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
     Invalidate, Requires, Property
-from pelix.utilities import is_string
-import pelix.remote.beans
+import pelix.remote
 
 # Standard library
 import logging
 
 # ------------------------------------------------------------------------------
 
-JAVA_BEANS_PACKAGE = "org.cohorte.remote.beans"
-JAVA_ENDPOINT_DESCRIPTION = "{0}.EndpointDescription".format(JAVA_BEANS_PACKAGE)
-JAVA_REMOTE_SERVICE_EVENT = "{0}.RemoteServiceEvent".format(JAVA_BEANS_PACKAGE)
-JAVA_SERVICE_EVENT_TYPE = "{0}$ServiceEventType" \
-                                            .format(JAVA_REMOTE_SERVICE_EVENT)
-JAVA_REMOTE_SERVICE_REGISTRATION = "{0}.RemoteServiceRegistration" \
-                                            .format(JAVA_BEANS_PACKAGE)
-
-# ------------------------------------------------------------------------------
-
-BROADCASTER_SIGNAL_NAME_PREFIX = "/cohorte/remote-service-broadcaster"
-BROADCASTER_SIGNALS_PATTERN = "{0}/*".format(BROADCASTER_SIGNAL_NAME_PREFIX)
-BROADCASTER_SIGNAL_REQUEST_ENDPOINTS = "{0}/request-endpoints" \
-                                        .format(BROADCASTER_SIGNAL_NAME_PREFIX)
-SIGNAL_REMOTE_EVENT = "{0}/remote-event".format(BROADCASTER_SIGNAL_NAME_PREFIX)
-SIGNAL_REQUEST_ENDPOINTS = "{0}/request-endpoints" \
-                                        .format(BROADCASTER_SIGNAL_NAME_PREFIX)
+SIGNALS_NAME_PREFIX = "/cohorte/remote-service-broadcaster"
+SIGNALS_MATCH_ALL = "{0}/*".format(SIGNALS_NAME_PREFIX)
+SIGNAL_REMOTE_EVENT = "{0}/remote-event".format(SIGNALS_NAME_PREFIX)
+SIGNAL_REQUEST_ENDPOINTS = "{0}/request-endpoints".format(SIGNALS_NAME_PREFIX)
 
 # ------------------------------------------------------------------------------
 
@@ -74,84 +60,34 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
-REGISTERED = "REGISTERED"
-MODIFIED = "MODIFIED"
-UNREGISTERED = "UNREGISTERED"
+EVENT_REGISTERED = "REGISTERED"
+EVENT_MODIFIED = "MODIFIED"
+EVENT_UNREGISTERED = "UNREGISTERED"
 
-class _RemoteEvent(object):
+class EndpointEventBean(object):
     """
-    Represents a remote service event Java bean
+    An endpoint event bean
     """
-    javaClass = JAVA_REMOTE_SERVICE_EVENT
+    javaClass = "org.cohorte.remote.discovery.signals.EndpointEventBean"
     """ Java class (for Jabsorb) """
 
-    def __init__(self, kind, registration):
+    def __init__(self, event_type):
         """
-        Sets up the bean
+        Sets up members
+
+        TODO: continue implementation: force to have tuples as endpoints
         """
-        if kind not in (REGISTERED, MODIFIED, UNREGISTERED):
-            raise ValueError("Invalid RemoteEvent kind: %s", kind)
+        self.type = event_type
 
-        self.eventType = {jabsorb.JAVA_CLASS: JAVA_SERVICE_EVENT_TYPE,
-                          "enumValue": kind}
-        self.serviceRegistration = registration
-
-
-class _Registration(object):
-    """
-    Represents a registration Java bean
-    """
-    javaClass = JAVA_REMOTE_SERVICE_REGISTRATION
-    """ Java class (for Jabsorb) """
-
-    def __init__(self, specifications, isolate_uid, service_id, properties,
-                 endpoints=None):
-        """
-        Sets up the bean
-        """
-        if endpoints:
-            self.endpoints = tuple(endpoint for endpoint in endpoints
-                                   if endpoint is not None)
-
-        else:
-            self.endpoints = tuple()
-
-        self.exportedInterfaces = tuple(specifications)
-        self.hostIsolate = isolate_uid
-        self.serviceProperties = properties
-        self.serviceId = service_id
-
-
-    def add_endpoint(self, endpoint):
-        """
-        Adds an end point to the registration
-        """
-        if endpoint is not None and endpoint not in self.endpoints:
-            self.endpoints = self.endpoints + tuple([endpoint])
-
-
-class _EndpointDescription(object):
-    """
-    Represents an end point Java bean
-    """
-    javaClass = JAVA_ENDPOINT_DESCRIPTION
-    """ Java class (for Jabsorb) """
-
-    def __init__(self, uid, name, exported_configs, node_uid):
-        """
-        Sets up the bean
-        """
-        self.endpointUid = uid
-        self.endpointName = name
-        self.exportedConfigs = tuple(exported_configs)
-        self.node = node_uid
+        self.endpoints = []
+        self.sender = None
 
 # ------------------------------------------------------------------------------
 
 @ComponentFactory("cohorte-remote-discovery-signals-factory")
-@Provides([pelix.remote.SERVICE_ENDPOINT_LISTENER,
-           cohorte.signals.SERVICE_ISOLATE_PRESENCE_LISTENER])
-@Requires("_dispatcher", pelix.remote.SERVICE_DISPATCHER)
+@Provides((pelix.remote.SERVICE_ENDPOINT_LISTENER,
+           cohorte.signals.SERVICE_ISOLATE_PRESENCE_LISTENER))
+@Requires('_dispatcher', pelix.remote.SERVICE_DISPATCHER)
 @Requires("_registry", pelix.remote.SERVICE_REGISTRY)
 @Requires("_directory", cohorte.SERVICE_SIGNALS_DIRECTORY)
 @Requires("_receiver", cohorte.SERVICE_SIGNALS_RECEIVER)
@@ -168,9 +104,6 @@ class SignalsDiscovery(object):
         # Bundle context
         self._context = None
 
-        # Java Registrations
-        self._registrations = {}
-
         # End point listener flag
         self._listener_flag = True
 
@@ -184,31 +117,67 @@ class SignalsDiscovery(object):
         self._sender = None
 
 
-
-    def _get_endpoints(self):
+    def _request_endpoints(self, isolate=None):
         """
-        Prepares a tuple of registration events for all known end points
+        Requests the services exported by the given isolate. If isolate is None,
+        then the request is sent to all known isolates.
+
+        :param: isolate: An isolate UID (optional)
         """
-        # Get end points
-        events = tuple(_RemoteEvent(REGISTERED, registration)
-                       for registration in self._registrations.values())
+        # Prepare our event, to be sent with the request
+        local_event = jabsorb.to_jabsorb(self._make_exports_event())
 
-        if events:
-            # Return None instead of an empty tuple
-            return events
+        if not isolate:
+            raw_results = self._sender.send(SIGNAL_REQUEST_ENDPOINTS,
+                                            local_event,
+                                        dir_group=cohorte.signals.GROUP_OTHERS)
+
+        else:
+            raw_results = self._sender.send(SIGNAL_REQUEST_ENDPOINTS,
+                                            local_event, isolate=isolate)
+
+        if raw_results is None:
+            # Nothing to do
+            return
+
+        else:
+            # Extract information
+            sig_results = raw_results[0]
+            if not sig_results:
+                # Nothing to do...
+                return
+
+        for isolate_uid, isolate_sigresult in sig_results.items():
+            # Get the first result as the event
+            event = jabsorb.from_jabsorb(isolate_sigresult['results'][0])
+
+            # Get the node of the isolate
+            node_uid = self._directory.get_isolate_node(isolate_uid)
+
+            # Handle the event
+            self.__handle_event(event,
+                                self._directory.get_host_for_node(node_uid))
 
 
-    def _send_remote_event(self, event_type, registration):
+    def _make_exports_event(self):
         """
-        Sends a RemoteServiceEvent Java bean to all isolates
-
-        :param event_type: The event type string (one of REGISTERED, MODIFIED,
-                           UNREGISTERED)
-        :param registration: The RemoteServiceRegistration associated to the
-                             event
+        Returns a single REGISTERED endpoint event, matching the endpoints
+        exported by the local isolate
         """
-        remote_event = _RemoteEvent(event_type, registration)
-        self._sender.post(SIGNAL_REMOTE_EVENT, remote_event,
+        # Get the export endpoints
+        event = EndpointEventBean(EVENT_REGISTERED)
+        event.endpoints.extend(self._dispatcher.get_endpoints())
+        return event
+
+
+    def _send_event(self, event):
+        """
+        Sends an event using Signals.
+
+        :param event: An EndpointEventBean
+        """
+        self._sender.fire(SIGNAL_REMOTE_EVENT,
+                          jabsorb.to_jabsorb(event),
                           dir_group=cohorte.signals.GROUP_OTHERS)
 
 
@@ -216,83 +185,66 @@ class SignalsDiscovery(object):
         """
         New endpoints are exported
         """
-        for endpoint in endpoints:
-            self.endpoint_added(endpoint)
-
-
-    def endpoint_added(self, endpoint):
-        """
-        A new service is exported
-        """
-        # Alias...
-        svc_ref = endpoint.reference
-
-        # Convert the specifications list into a set
-        specifications = set(endpoint.specifications)
-
-        # Add the synonyms
-        synonyms = svc_ref.get_property(cohorte.SVCPROP_SYNONYM_INTERFACES)
-        if synonyms:
-            if is_string(synonyms):
-                # Single synonym
-                specifications.add(synonyms)
-
-            else:
-                # Iterable
-                specifications.update(synonyms)
-
-        # Get isolate information
-        isolate_uid = self._context.get_property(cohorte.PROP_UID)
-        node_uid = self._context.get_property(cohorte.PROP_NODE_UID)
-
-        # Prepare an end point description
-        java_endpoint = _EndpointDescription(endpoint.uid,
-                                             endpoint.name,
-                                             endpoint.configurations,
-                                             node_uid)
-
-        # Make a registration bean
-        registration = _Registration(specifications, isolate_uid,
-                                     endpoint.name, endpoint.get_properties(),
-                                     [java_endpoint])
-
-        # Store it
-        self._registrations[svc_ref] = registration
+        # Prepare the event bean
+        event = EndpointEventBean(EVENT_REGISTERED)
+        event.endpoints.extend(endpoints)
 
         # Send the signal
-        self._send_remote_event(REGISTERED, registration)
+        self._send_event(event)
 
 
     def endpoint_updated(self, endpoint, old_properties):
         """
         An end point is updated
         """
-        # Get the registration bean
-        registration = self._registrations.get(endpoint.reference)
-        if registration is None:
-            # Unknown reference
-            return
-
-        # Update the bean
-        registration.serviceProperties = endpoint.reference.get_properties()
+        # Prepare the event bean
+        event = EndpointEventBean(EVENT_MODIFIED)
+        event.endpoints.append(endpoint)
 
         # Send the signal
-        self._send_remote_event(MODIFIED, registration)
+        self._send_event(event)
 
 
     def endpoint_removed(self, endpoint):
         """
-        An end point is removed
-        """
-        if endpoint.reference not in self._registrations:
-            # Unknown reference
-            return
+        An end point has been removed
 
-        # Pop the registration bean
-        registration = self._registrations.pop(endpoint.reference)
+        :param endpoint: An ExportEndpoint bean
+        """
+        # Prepare the event bean
+        event = EndpointEventBean(EVENT_UNREGISTERED)
+        event.endpoints.append(endpoint)
 
         # Send the signal
-        self._send_remote_event(UNREGISTERED, registration)
+        self._send_event(event)
+
+
+    def __handle_event(self, event, sender_address):
+        """
+        Hanldles an endpoint event
+
+        :param event: An EndpointEvent bean
+        :param sender_address: The address of the event sender
+        """
+        kind = event.type
+
+        if kind == EVENT_REGISTERED:
+            # Registration of endpoints
+            self.__register_endpoints(event.endpoints, sender_address)
+
+        elif kind == EVENT_MODIFIED:
+            # Single endpoint updated
+            endpoint = event.endpoints[0]
+            self._registry.update(endpoint.uid, endpoint.properties)
+
+        elif kind == EVENT_UNREGISTERED:
+            # Single endpoint unregistered
+            endpoint = event.endpoints[0]
+            self._registry.remove(endpoint.uid)
+
+        else:
+            # Unknown kind of event
+            _logger.warning("Unknown RS event type: %s", kind)
 
 
     def handle_isolate_presence(self, uid, node, event):
@@ -316,156 +268,25 @@ class SignalsDiscovery(object):
         """
         Called when a remote services signal is received
         """
-        if name == BROADCASTER_SIGNAL_REQUEST_ENDPOINTS:
-            # An isolate requests all of our exported services
-            return self._get_endpoints()
+        # Get the sender address
+        sender = signal_data['senderAddress']
 
-        elif name == SIGNAL_REMOTE_EVENT:
+        if name == SIGNAL_REMOTE_EVENT:
             # Received a remote service event
-            sender = signal_data["senderUID"]
             data = jabsorb.from_jabsorb(signal_data["signalContent"])
 
-            if isinstance(data, list):
-                # Multiple events in one signal
-                for event in data:
-                    try:
-                        self._handle_remote_event(sender, event)
+            # Single event
+            self.__handle_event(data, sender)
 
-                    except Exception as ex:
-                        _logger.exception("Error reading event %s: %s",
-                                          event, ex)
+        elif name == SIGNAL_REQUEST_ENDPOINTS:
+            # An isolate requests all of our exported services
+            event = jabsorb.from_jabsorb(signal_data["signalContent"])
 
-            else:
-                # Single event
-                self._handle_remote_event(sender, data)
+            # Register remote endpoints
+            self.__handle_event(event, sender)
 
-
-    def _filter_properties(self, properties):
-        """
-        Filters imported service properties. Makes a new dictionary
-
-        :param properties: Imported service properties
-        :return: A filtered dictionary
-        """
-        if properties is None:
-            # Minimal import properties
-            return {pelix.remote.PROP_IMPORTED: True}
-
-        # Modified keys
-        prop_filter = {pelix.remote.PROP_EXPORTED_CONFIGS:
-                        pelix.remote.PROP_IMPORTED_CONFIGS,
-                       pelix.remote.PROP_EXPORTED_INTERFACES:
-                        pelix.remote.PROP_IMPORTED_INTERFACES}
-
-        # Prepare the new dictionary
-        result = {}
-        for key, value in properties.items():
-            if key in prop_filter:
-                # Key renamed
-                key = prop_filter[key]
-
-            if key is not None:
-                # Only accept valid keys
-                result[key] = value
-
-        # Add the import flag
-        result[pelix.remote.PROP_IMPORTED] = True
-        return result
-
-
-    def _handle_remote_event(self, sender, remote_event):
-        """
-        Handles a remote service event.
-
-        :param sender: UID of the isolate sending the event
-        :param remote_event: Raw remote service event dictionary
-        """
-        try:
-            # Compute the event type
-            event_type = remote_event["eventType"]["enumValue"]
-
-        except KeyError as ex:
-            _logger.error("Invalid RemoteEvent object: %s", ex)
-            return
-
-        # Get the registration bean (as a dict)
-        registration = remote_event["serviceRegistration"]
-
-        # Get the first end point
-        endpoints = registration["endpoints"]
-        if not endpoints:
-            _logger.error("RemoteServiceEvent without end point:\n%s",
-                          remote_event)
-            return
-
-        endpoint = endpoints[0]
-
-        # Prepare the end point description
-        uid = endpoint["endpointUid"]
-        name = endpoint["endpointName"]
-        framework = registration["hostIsolate"]
-        kinds = endpoint["exportedConfigs"]
-        specifications = registration["exportedInterfaces"]
-
-        # Filter the properties (replace exports by imports)
-        properties = self._filter_properties(registration["serviceProperties"])
-
-        # ... add the source isolate information
-        properties["service.imported.from"] = registration["hostIsolate"]
-
-        # Create the bean
-        rs_endpoint = pelix.remote.beans.ImportEndpoint(uid, framework, kinds,
-                                                        name, specifications,
-                                                        properties)
-
-        if event_type == REGISTERED:
-            # New service
-            self._registry.add(rs_endpoint)
-
-        elif event_type == MODIFIED:
-            # Update (without previous value)
-            self._registry.update(rs_endpoint, properties)
-
-        elif event_type == UNREGISTERED:
-            # Removed
-            self._registry.remove(uid)
-
-
-    def _request_endpoints(self, isolate=None):
-        """
-        Requests the services exported by the given isolate. If isolate is None,
-        then the request is sent to all known isolates.
-
-        :param: isolate: An isolate UID (optional)
-        """
-        if not isolate:
-            raw_results = self._sender.send(\
-                                        BROADCASTER_SIGNAL_REQUEST_ENDPOINTS,
-                                        None,
-                                        dir_group=cohorte.signals.GROUP_OTHERS)
-
-        else:
-            raw_results = self._sender.send(\
-                                        BROADCASTER_SIGNAL_REQUEST_ENDPOINTS,
-                                        None, isolate=isolate)
-
-        if raw_results is None:
-            # Nothing to do
-            return
-
-        else:
-            # Extract information
-            sig_results = raw_results[0]
-            if not sig_results:
-                # Nothing to do...
-                return
-
-        for isolate_uid, isolate_sigresult in sig_results.items():
-            for result in isolate_sigresult['results']:
-                if isinstance(result, list):
-                    for event in result:
-                        # Handle each event
-                        self._handle_remote_event(isolate_uid, event)
+            # Return our endpoints
+            return jabsorb.to_jabsorb(self._make_exports_event())
 
 
     @Invalidate
@@ -474,7 +295,7 @@ class SignalsDiscovery(object):
         Component invalidated
         """
         # Unregister from signals
-        self._receiver.unregister_listener(BROADCASTER_SIGNALS_PATTERN, self)
+        self._receiver.unregister_listener(SIGNALS_MATCH_ALL, self)
 
         self._context = None
         _logger.info("Signals discovery invalidated")
@@ -488,7 +309,7 @@ class SignalsDiscovery(object):
         self._context = context
 
         # Register to signals
-        self._receiver.register_listener(BROADCASTER_SIGNALS_PATTERN, self)
+        self._receiver.register_listener(SIGNALS_MATCH_ALL, self)
 
         # Send a discovery request
         self._request_endpoints()
