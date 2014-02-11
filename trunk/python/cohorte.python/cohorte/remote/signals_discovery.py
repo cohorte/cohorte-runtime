@@ -41,7 +41,7 @@ import cohorte.java.jabsorb as jabsorb
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
-    Invalidate, Requires, Property
+    Invalidate, Requires
 import pelix.remote
 
 # Standard library
@@ -85,14 +85,13 @@ class EndpointEventBean(object):
 # ------------------------------------------------------------------------------
 
 @ComponentFactory("cohorte-remote-discovery-signals-factory")
-@Provides((pelix.remote.SERVICE_ENDPOINT_LISTENER,
+@Provides((pelix.remote.SERVICE_EXPORT_ENDPOINT_LISTENER,
            cohorte.signals.SERVICE_ISOLATE_PRESENCE_LISTENER))
 @Requires('_dispatcher', pelix.remote.SERVICE_DISPATCHER)
 @Requires("_registry", pelix.remote.SERVICE_REGISTRY)
 @Requires("_directory", cohorte.SERVICE_SIGNALS_DIRECTORY)
 @Requires("_receiver", cohorte.SERVICE_SIGNALS_RECEIVER)
 @Requires("_sender", cohorte.SERVICE_SIGNALS_SENDER)
-@Property("_listener_flag", pelix.remote.PROP_LISTEN_EXPORTED, True)
 class SignalsDiscovery(object):
     """
     Remote services discovery and notification using COHORTE Signals
@@ -103,9 +102,6 @@ class SignalsDiscovery(object):
         """
         # Bundle context
         self._context = None
-
-        # End point listener flag
-        self._listener_flag = True
 
         # End points registry
         self._dispatcher = None
