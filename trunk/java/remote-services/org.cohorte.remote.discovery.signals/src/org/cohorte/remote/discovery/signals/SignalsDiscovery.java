@@ -16,6 +16,7 @@
 package org.cohorte.remote.discovery.signals;
 
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
@@ -235,21 +236,8 @@ public class SignalsDiscovery implements IExportEndpointListener,
     public void isolateReady(final String aIsolateUID, final String aName,
             final String aNodeUID) {
 
-        // TODO: factorize with requestEndpoints
-
-        // Request endpoints
-        final ISignalSendResult result = pSender.send(
-                ISignalsConstants.BROADCASTER_SIGNAL_REQUEST_ENDPOINTS,
-                makeExportsEvent(), aIsolateUID);
-
-        // Get the result of the first signal handler of the isolate
-        final EndpointEventBean[] remoteEvents = (EndpointEventBean[]) result
-                .getResults().get(aIsolateUID)[0];
-
-        // Handle result
-        for (final EndpointEventBean event : remoteEvents) {
-            handleEvent(event, pDirectory.getHostForNode(aNodeUID));
-        }
+        // Request the endpoints of the given isolate
+        requestEndpoints(aIsolateUID);
     }
 
     /**
@@ -286,6 +274,71 @@ public class SignalsDiscovery implements IExportEndpointListener,
     }
 
     /**
+     * Requests the services exported by the given isolate. If no isolate is
+     * given, the request is sent to all known isolates.
+     * 
+     * @param aIsolateUid
+     *            An isolate UID (optional, can be null)
+     */
+    private void requestEndpoints(final String aIsolateUid) {
+
+        // Prepare our event
+        final EndpointEventBean event = makeExportsEvent();
+
+        final ISignalSendResult rawResults;
+        if (aIsolateUid == null || aIsolateUid.isEmpty()) {
+            // Send the signal to all known isolates
+            rawResults = pSender.sendGroup(
+                    ISignalsConstants.BROADCASTER_SIGNAL_REQUEST_ENDPOINTS,
+                    event, EBaseGroup.OTHERS);
+
+        } else {
+            // Send the signal to the given isolate only
+            rawResults = pSender.send(
+                    ISignalsConstants.BROADCASTER_SIGNAL_REQUEST_ENDPOINTS,
+                    event, aIsolateUid);
+        }
+
+        if (rawResults == null) {
+            // No result...
+            return;
+        }
+
+        // Get successful results
+        final Map<String, Object[]> sigResults = rawResults.getResults();
+        if (sigResults == null || sigResults.isEmpty()) {
+            // No result
+            return;
+        }
+
+        // Handle all events
+        for (final Entry<String, Object[]> entry : sigResults.entrySet()) {
+            final String isolateUid = entry.getKey();
+
+            // Only use the first result
+            Object isolateResult = null;
+            for (final Object rawIsolateResult : entry.getValue()) {
+                if (rawIsolateResult instanceof EndpointEventBean) {
+                    isolateResult = entry.getValue()[0];
+                    break;
+                }
+            }
+
+            if (isolateResult == null) {
+                // No valid result for this isolate
+                continue;
+            }
+
+            // Found a result, compute the host address of the isolate
+            final String isolateNode = pDirectory.getIsolateNode(isolateUid);
+            final String nodeAddress = pDirectory.getHostForNode(isolateNode);
+
+            // Handle the event
+            handleEvent(event, nodeAddress);
+        }
+    }
+
+    /**
      * Sends an endpoint event to all other isolates
      * 
      * @param aEvent
@@ -308,6 +361,7 @@ public class SignalsDiscovery implements IExportEndpointListener,
                 ISignalsConstants.PREFIX_BROADCASTER_SIGNAL_NAME
                         + ISignalsConstants.MATCH_ALL, this);
 
-        // TODO: request endpoints
+        // Request existing endpoints
+        requestEndpoints(null);
     }
 }
