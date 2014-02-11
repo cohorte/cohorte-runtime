@@ -155,7 +155,7 @@ class _JabsorbRpcServlet(SimpleJSONRPCDispatcher):
 @Requires('_http', pelix.http.HTTP_SERVICE)
 @Property('_path', pelix.http.HTTP_SERVLET_PATH, HOST_SERVLET_PATH)
 @Property('_kinds', pelix.remote.PROP_REMOTE_CONFIGS_SUPPORTED,
-          (JABSORB_CONFIG,))
+          (JABSORB_CONFIG, 'jabsorb-rpc'))
 class JabsorbRpcServiceExporter(object):
     """
     JABSORB-RPC Remote Services exporter
@@ -257,7 +257,7 @@ class JabsorbRpcServiceExporter(object):
                 raise NameError("Already known end point %s for JABSORB-RPC",
                                 name)
 
-            # Get the service (let it raise a BundleException if any
+            # Get the service (let it raise a BundleException if any)
             service = self._context.get_service(svc_ref)
 
             # Prepare extra properties
@@ -429,11 +429,9 @@ class _ServiceCallProxy(object):
 # ------------------------------------------------------------------------------
 
 @ComponentFactory("cohorte-jabsorbrpc-importer-factory")
-@Provides(pelix.remote.SERVICE_ENDPOINT_LISTENER)
-@Provides(pelix.remote.SERVICE_ENDPOINT_LISTENER)
+@Provides(pelix.remote.SERVICE_IMPORT_ENDPOINT_LISTENER)
 @Property('_kinds', pelix.remote.PROP_REMOTE_CONFIGS_SUPPORTED,
-          (JABSORB_CONFIG,))
-@Property('_listener_flag', pelix.remote.PROP_LISTEN_IMPORTED, True)
+          (JABSORB_CONFIG, 'jabsorb-rpc'))
 class JabsorbRpcServiceImporter(object):
     """
     JABSORB-RPC Remote Services importer
@@ -447,9 +445,8 @@ class JabsorbRpcServiceImporter(object):
 
         # Component properties
         self._kinds = None
-        self._listener_flag = True
 
-        # Registered services (end point -> reference)
+        # Registered services (endpoint UID -> ServiceReference)
         self.__registrations = {}
         self.__reg_lock = threading.Lock()
 
@@ -504,13 +501,14 @@ class JabsorbRpcServiceImporter(object):
         An end point has been updated
         """
         with self.__reg_lock:
-            if endpoint.uid not in self.__registrations:
+            try:
+                # Update service properties
+                svc_reg = self.__registrations[endpoint.uid]
+                svc_reg.set_properties(endpoint.properties)
+
+            except KeyError:
                 # Unknown end point
                 return
-
-            # Update service properties
-            svc_reg = self.__registrations[endpoint.uid]
-            svc_reg.set_properties(endpoint.properties)
 
 
     def endpoint_removed(self, endpoint):
