@@ -6,18 +6,14 @@ Bundle-SymbolicName: org.cohorte.remote.discovery.signals
 Bundle-Vendor: isandlaTech.com
 Bundle-Version: 1.2.0.qualifier
 Created-By: iPOJO  1.8.0
-Import-Package: org.apache.felix.ipojo;version="1.8.0",
- org.apache.felix.ipojo.architecture;version="1.8.0",
- org.cohorte.remote;version="1.2.0",
- org.osgi.framework;version="1.5.0",
- org.osgi.service.cm;version="1.2",
- org.osgi.service.log;version="1.3.0",
- org.psem2m.isolates.base;version="1.0.1",
- org.psem2m.isolates.constants;version="1.0.0",
- org.psem2m.isolates.services.dirs;version="1.0.1",
- org.psem2m.isolates.services.monitoring;version="1.0.1",
- org.psem2m.signals;version="1.0.0",
- org.psem2m.utilities.logging;version="1.0.0"
+Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
+ .ipojo.architecture;version=1.8.0, org.cohorte.remote;version=1.2.0, 
+ org.osgi.framework;version=1.5.0, org.osgi.service.cm;version=1.2, or
+ g.osgi.service.log;version=1.3.0, org.psem2m.isolates.base;version=1.
+ 0.1, org.psem2m.isolates.constants;version=1.0.0, org.psem2m.isolates
+ .services.dirs;version=1.0.1, org.psem2m.isolates.services.monitoring
+ ;version=1.0.1, org.psem2m.signals;version=1.0.0, org.psem2m.utilitie
+ s.logging;version=1.0.0
 iPOJO-Components: instance { $name="cohorte-remote-discovery-signals" 
  $component="cohorte-remote-discovery-signals-factory" }component { $n
  ame="cohorte-remote-discovery-signals-factory" $classname="org.cohort
@@ -51,11 +47,11 @@ iPOJO-Components: instance { $name="cohorte-remote-discovery-signals"
  ava.lang.String}" $names="{aUID,aName,aNodeUID}" }method { $name="iso
  lateReady" $arguments="{java.lang.String,java.lang.String,java.lang.S
  tring}" $names="{aIsolateUID,aName,aNodeUID}" }method { $name="makeEx
- portEvents" $return="org.cohorte.remote.discovery.signals.EndpointEve
- ntBean[]" }method { $name="registerEndpoints" $arguments="{org.cohort
- e.remote.discovery.signals.EndpointDescriptionBean[],java.lang.String
- }" $names="{aEndpoints,aSenderAddress}" }method { $name="sendEvent" $
- arguments="{org.cohorte.remote.discovery.signals.EndpointEventBean}" 
- $names="{aEvent}" }method { $name="validate" }inner { $name="1" metho
- d { $name="run" }}}}
+ portsEvent" $return="org.cohorte.remote.discovery.signals.EndpointEve
+ ntBean" }method { $name="registerEndpoints" $arguments="{org.cohorte.
+ remote.discovery.signals.EndpointDescriptionBean[],java.lang.String}"
+  $names="{aEndpoints,aSenderAddress}" }method { $name="requestEndpoin
+ ts" $arguments="{java.lang.String}" $names="{aIsolateUid}" }method { 
+ $name="sendEvent" $arguments="{org.cohorte.remote.discovery.signals.E
+ ndpointEventBean}" $names="{aEvent}" }method { $name="validate" }}}
 
