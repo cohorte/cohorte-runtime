@@ -467,9 +467,12 @@ class JabsorbRpcServiceImporter(object):
             _logger.warning("No access URL given: %s", endpoint)
             return
 
-        else:
-            # Get the first URL in the list
-            access_url = access_url.split(',')[0]
+        # Get the first URL in the list
+        access_url = access_url.split(',')[0]
+
+        # Replace the server variable
+        if endpoint.server:
+            access_url = access_url.replace('{server}', endpoint.server)
 
         _logger.debug("Chosen access: %s", access_url)
 
