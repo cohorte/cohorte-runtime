@@ -75,8 +75,8 @@ public class EndpointDescriptionBean {
         pSpecifications = new String[specs.length];
         System.arraycopy(specs, 0, pSpecifications, 0, specs.length);
 
-        // Map copy
-        pProperties.putAll(aEndpoint.getProperties());
+        // Store import properties
+        pProperties.putAll(aEndpoint.makeImportProperties());
     }
 
     /**
@@ -104,7 +104,10 @@ public class EndpointDescriptionBean {
     }
 
     /**
-     * @return the properties
+     * Returns a copy of the endpoint properties, with import properties and no
+     * export property
+     * 
+     * @return the endpoint properties, without export ones
      */
     public Map<String, Object> getProperties() {
 
@@ -155,6 +158,9 @@ public class EndpointDescriptionBean {
     }
 
     /**
+     * Sets the endpoint properties. There must be no export property in the
+     * given map
+     * 
      * @param aProperties
      *            the properties to set
      */
