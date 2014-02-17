@@ -29,9 +29,6 @@ public class EndpointEventBean {
     /** Endpoints */
     private EndpointDescriptionBean[] pEndpoints;
 
-    /** Framework UID of the sender */
-    private String pSender;
-
     /** Kind of event */
     private EEndpointEventType pType;
 
@@ -88,14 +85,6 @@ public class EndpointEventBean {
     }
 
     /**
-     * @return the framework UID of the sender
-     */
-    public String getSender() {
-
-        return pSender;
-    }
-
-    /**
      * @return the type of event
      */
     public EEndpointEventType getType() {
@@ -110,15 +99,6 @@ public class EndpointEventBean {
     public void setEndpoints(final EndpointDescriptionBean[] aEndpoints) {
 
         pEndpoints = Arrays.copyOf(aEndpoints, aEndpoints.length);
-    }
-
-    /**
-     * @param aSender
-     *            the sender to set
-     */
-    public void setSender(final String aSender) {
-
-        pSender = aSender;
     }
 
     /**

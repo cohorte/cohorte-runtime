@@ -37,12 +37,12 @@ __version__ = ".".join(str(x) for x in __version_info__)
 
 # Cohorte
 import cohorte.signals
-import cohorte.java.jabsorb as jabsorb
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
     Invalidate, Requires
 import pelix.remote
+import pelix.remote.beans as beans
 
 # Standard library
 import logging
@@ -60,9 +60,11 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
-EVENT_REGISTERED = "REGISTERED"
-EVENT_MODIFIED = "MODIFIED"
-EVENT_UNREGISTERED = "UNREGISTERED"
+ENDPOINT_EVENT_TYPE = "org.cohorte.remote.discovery.signals.EEndpointEventType"
+EVENT_REGISTERED = {'javaClass': ENDPOINT_EVENT_TYPE, 'enumValue': "REGISTERED"}
+EVENT_MODIFIED = {'javaClass': ENDPOINT_EVENT_TYPE, 'enumValue': "MODIFIED"}
+EVENT_UNREGISTERED = {'javaClass': ENDPOINT_EVENT_TYPE,
+                      'enumValue': "UNREGISTERED"}
 
 class EndpointEventBean(object):
     """
@@ -74,13 +76,41 @@ class EndpointEventBean(object):
     def __init__(self, event_type):
         """
         Sets up members
-
-        TODO: continue implementation: force to have tuples as endpoints
         """
+        self.endpoints = tuple()
         self.type = event_type
 
-        self.endpoints = []
-        self.sender = None
+
+    def set_endpoints(self, export_endpoints):
+        """
+        Make Java beans from endpoints
+        """
+        self.endpoints = tuple(EndpointDescriptionBean(export_endpoint)
+                               for export_endpoint in export_endpoints)
+
+class EndpointDescriptionBean(object):
+    """
+    An endpoint description bean
+    """
+    javaClass = "org.cohorte.remote.discovery.signals.EndpointDescriptionBean"
+    """ Java class (for Jabsorb) """
+
+    def __init__(self, export_endpoint):
+        """
+        Sets up the bean according to the given ExportEndpoint bean
+
+        :param export_endpoint: An ExportEndpoint bean
+        """
+        self.uid = export_endpoint.uid
+        self.frameworkUid = export_endpoint.framework
+        self.name = export_endpoint.name
+
+        # Use tuple to force arrays in the Jabsorb serialization
+        self.configurations = tuple(export_endpoint.configurations)
+        self.specifications = tuple(export_endpoint.specifications)
+
+        # Store merged properties
+        self.properties = export_endpoint.make_import_properties()
 
 # ------------------------------------------------------------------------------
 
@@ -121,7 +151,7 @@ class SignalsDiscovery(object):
         :param: isolate: An isolate UID (optional)
         """
         # Prepare our event, to be sent with the request
-        local_event = jabsorb.to_jabsorb(self._make_exports_event())
+        local_event = self._make_exports_event()
 
         if not isolate:
             raw_results = self._sender.send(SIGNAL_REQUEST_ENDPOINTS,
@@ -145,7 +175,16 @@ class SignalsDiscovery(object):
 
         for isolate_uid, isolate_sigresult in sig_results.items():
             # Get the first result as the event
-            event = jabsorb.from_jabsorb(isolate_sigresult['results'][0])
+            if not isolate_sigresult:
+                _logger.warning("Isolate %s returned None", isolate_uid)
+                continue
+
+            isolate_results = isolate_sigresult['results']
+            if not isolate_results:
+                _logger.warning("Isolate %s returned nothing", isolate_uid)
+                continue
+
+            event = isolate_results[0]
 
             # Get the node of the isolate
             node_uid = self._directory.get_isolate_node(isolate_uid)
@@ -162,7 +201,8 @@ class SignalsDiscovery(object):
         """
         # Get the export endpoints
         event = EndpointEventBean(EVENT_REGISTERED)
-        event.endpoints.extend(self._dispatcher.get_endpoints())
+
+        event.set_endpoints(self._dispatcher.get_endpoints())
         return event
 
 
@@ -172,8 +212,7 @@ class SignalsDiscovery(object):
 
         :param event: An EndpointEventBean
         """
-        self._sender.fire(SIGNAL_REMOTE_EVENT,
-                          jabsorb.to_jabsorb(event),
+        self._sender.fire(SIGNAL_REMOTE_EVENT, event,
                           dir_group=cohorte.signals.GROUP_OTHERS)
 
 
@@ -183,7 +222,7 @@ class SignalsDiscovery(object):
         """
         # Prepare the event bean
         event = EndpointEventBean(EVENT_REGISTERED)
-        event.endpoints.extend(endpoints)
+        event.set_endpoints(endpoints)
 
         # Send the signal
         self._send_event(event)
@@ -195,7 +234,7 @@ class SignalsDiscovery(object):
         """
         # Prepare the event bean
         event = EndpointEventBean(EVENT_MODIFIED)
-        event.endpoints.append(endpoint)
+        event.set_endpoints([endpoint])
 
         # Send the signal
         self._send_event(event)
@@ -209,7 +248,7 @@ class SignalsDiscovery(object):
         """
         # Prepare the event bean
         event = EndpointEventBean(EVENT_UNREGISTERED)
-        event.endpoints.append(endpoint)
+        event.set_endpoints([endpoint])
 
         # Send the signal
         self._send_event(event)
@@ -243,6 +282,24 @@ class SignalsDiscovery(object):
             _logger.warning("Unknown RS event type: %s", kind)
 
 
+    def __register_endpoints(self, endpoints, server):
+        """
+        Registers the new endpoints
+        """
+        for endpoint in endpoints:
+            # Make the ImportEndpoint bean
+            import_endpoint = beans.ImportEndpoint(endpoint['uid'],
+                                                   endpoint['frameworkUid'],
+                                                   endpoint['configurations'],
+                                                   endpoint['name'],
+                                                   endpoint['specifications'],
+                                                   endpoint['properties'])
+            import_endpoint.server = server
+
+            # Notify the import registry
+            self._registry.add(import_endpoint)
+
+
     def handle_isolate_presence(self, uid, node, event):
         """
         Handles an isolate presence event
@@ -269,20 +326,20 @@ class SignalsDiscovery(object):
 
         if name == SIGNAL_REMOTE_EVENT:
             # Received a remote service event
-            data = jabsorb.from_jabsorb(signal_data["signalContent"])
+            data = signal_data["signalContent"]
 
             # Single event
             self.__handle_event(data, sender)
 
         elif name == SIGNAL_REQUEST_ENDPOINTS:
             # An isolate requests all of our exported services
-            event = jabsorb.from_jabsorb(signal_data["signalContent"])
+            event = signal_data["signalContent"]
 
             # Register remote endpoints
             self.__handle_event(event, sender)
 
             # Return our endpoints
-            return jabsorb.to_jabsorb(self._make_exports_event())
+            return self._make_exports_event()
 
 
     @Invalidate
