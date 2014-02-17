@@ -111,9 +111,16 @@ class _JabsorbRpcServlet(SimpleJSONRPCDispatcher):
         return self._dispatch_method(name, params)
 
 
+    def do_GET(self, request, response):
+        """
+        Handles a GET request
+        """
+        response.send_content(200, "Jabsorb-RPC servlet", "text/plain")
+
+
     def do_POST(self, request, response):
         """
-        Handle a post request
+        Handle a POST request
 
         :param request: The HTTP request bean
         :param request: The HTTP response handler
@@ -263,9 +270,8 @@ class JabsorbRpcServiceExporter(object):
             # Prepare extra properties
             properties = {PROP_ENDPOINT_NAME: name}
 
-            # FIXME: setup HTTP accesses
-            # Comma-separated string
-            properties[PROP_HTTP_ACCESSES] = self.get_access()
+            # HTTP accesses, as a comma-separated string
+            properties[PROP_HTTP_ACCESSES] = self.get_accesses()
 
             # Prepare the export endpoint
             try:
@@ -329,16 +335,21 @@ class JabsorbRpcServiceExporter(object):
                 self._context.unget_service(svc_ref)
 
 
-    def get_access(self):
+    def get_accesses(self):
         """
-        Retrieves the URL to access this component
+        Retrieves the URLs to access this component as a comma-separated list.
+        The first URL contains a '{server}' variable
         """
+        # Get HTTP server access
         host, port = self._http.get_access()
         if ':' in host:
             # IPv6 address
             host = '[{0}]'.format(host)
 
-        return "http://{0}:{1}{2}".format(host, port, self._path)
+        # Return two accesses: with a {server} variable and with the
+        # bound address
+        model = "http://{{server}}:{0}{1}".format(port, self._path)
+        return ','.join((model, model.format(server=host)))
 
 
     @Validate
@@ -472,7 +483,12 @@ class JabsorbRpcServiceImporter(object):
 
         # Replace the server variable
         if endpoint.server:
-            access_url = access_url.replace('{server}', endpoint.server)
+            server = endpoint.server
+            if ':' in server and not server[0] == '[':
+                # IPv6 address
+                server = '[{0}]'.format(server)
+
+            access_url = access_url.replace('{server}', server)
 
         _logger.debug("Chosen access: %s", access_url)
 
