@@ -15,6 +15,8 @@
  */
 package org.cohorte.remote.discovery.signals;
 
+import java.util.Arrays;
+
 import org.cohorte.remote.ExportEndpoint;
 
 /**
@@ -82,7 +84,7 @@ public class EndpointEventBean {
      */
     public EndpointDescriptionBean[] getEndpoints() {
 
-        return pEndpoints;
+        return Arrays.copyOf(pEndpoints, pEndpoints.length);
     }
 
     /**
@@ -107,7 +109,7 @@ public class EndpointEventBean {
      */
     public void setEndpoints(final EndpointDescriptionBean[] aEndpoints) {
 
-        pEndpoints = aEndpoints;
+        pEndpoints = Arrays.copyOf(aEndpoints, aEndpoints.length);
     }
 
     /**
