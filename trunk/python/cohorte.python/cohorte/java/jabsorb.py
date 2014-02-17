@@ -44,7 +44,7 @@ JAVA_SETS_PATTERN = re.compile(r"java\.util\..*Set")
 
 # ------------------------------------------------------------------------------
 
-class __hashabledict(dict):
+class hashabledict(dict):
     """
     Small workaround because dictionaries are not hashable in Python
     """
@@ -55,7 +55,7 @@ class __hashabledict(dict):
         return hash(str(sorted(self.items())))
 
 
-class __hashableset(set):
+class hashableset(set):
     """
     Small workaround because sets are not hashable in Python
     """
@@ -66,7 +66,7 @@ class __hashableset(set):
         return hash(str(sorted(self)))
 
 
-class __hashablelist(list):
+class hashablelist(list):
     """
     Small workaround because lists are not hashable in Python
     """
@@ -75,6 +75,27 @@ class __hashablelist(list):
         Computes the hash of the list
         """
         return hash(str(sorted(self)))
+
+
+class attributemap(dict):
+    """
+    Wraps a map to have the same behaviour between getattr and getitem
+    """
+    def __init__(self, *args, **kwargs):
+        """
+        Sets up the wrapper
+
+        :param content: A dictionary
+        """
+        super(attributemap, self).__init__(*args, **kwargs)
+        self.__dict__ = self
+
+
+    def __hash__(self):
+        """
+        Computes the hash of the dictionary
+        """
+        return hash(str(sorted(self.items())))
 
 # ------------------------------------------------------------------------------
 
@@ -170,7 +191,7 @@ def to_jabsorb(value):
 
     elif hasattr(value, JAVA_CLASS):
         # Class with a Java class hint: convert into a dictionary
-        converted_result = __hashabledict((name, to_jabsorb(content))
+        converted_result = hashabledict((name, to_jabsorb(content))
                                           for name, content
             in map(lambda name: (name, getattr(value, name)), dir(value))
             if not name.startswith('_') and not inspect.ismethod(content))
@@ -207,21 +228,21 @@ def from_jabsorb(request):
         if java_class:
             # Java Map ?
             if JAVA_MAPS_PATTERN.match(java_class) is not None:
-                return __hashabledict((from_jabsorb(key), from_jabsorb(value))
+                return hashabledict((from_jabsorb(key), from_jabsorb(value))
                                       for key, value in request["map"].items())
 
             # Java List ?
             elif JAVA_LISTS_PATTERN.match(java_class) is not None:
-                return __hashablelist(from_jabsorb(element)
+                return hashablelist(from_jabsorb(element)
                                       for element in request["list"])
 
             # Java Set ?
             elif JAVA_SETS_PATTERN.match(java_class) is not None:
-                return __hashableset(from_jabsorb(element)
+                return hashableset(from_jabsorb(element)
                                      for element in request["set"])
 
         # Any other case
-        return __hashabledict((from_jabsorb(key), from_jabsorb(value))
+        return attributemap((from_jabsorb(key), from_jabsorb(value))
                               for key, value in request.items())
 
     elif not _is_builtin(request):
