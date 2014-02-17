@@ -27,6 +27,7 @@ import cohorte.boot.loaders.utils as utils
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
     Invalidate, Requires, Property
+import pelix.framework
 
 # Python standard library
 import logging
@@ -163,8 +164,8 @@ class ForkerLoader(object):
         """
         uid = self._context.get_property(cohorte.PROP_UID)
         if not uid:
-            # Generate a new UID (only keep its string representation)
-            uid = str(uuid.uuid4())
+            # Use the framework UID
+            uid = self._context.get_property(pelix.framework.FRAMEWORK_UID)
             self._framework.add_property(cohorte.PROP_UID, uid)
 
         return uid

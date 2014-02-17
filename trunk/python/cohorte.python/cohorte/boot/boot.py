@@ -550,6 +550,9 @@ def main(args=None):
         # The isolate UID has been given
         framework_properties[cohorte.PROP_UID] = args.isolate_uid
 
+        # Force the isolate UID as framework UID
+        framework_properties[pelix.framework.FRAMEWORK_UID] = args.isolate_uid
+
     if args.config_broker:
         # The configuration broker URL has been given, i.e. not a forker isolate
         framework_properties[cohorte.PROP_CONFIG_BROKER] = args.config_broker
