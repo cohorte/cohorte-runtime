@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
@@ -56,6 +58,9 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver {
 
     /** Signal listeners */
     private final Map<String, Set<ISignalListener>> pListeners = new HashMap<String, Set<ISignalListener>>();
+
+    /** Lock to use signal listeners */
+    private final ReadWriteLock pListenersLock = new ReentrantReadWriteLock();
 
     /** Log service */
     @Requires
@@ -142,9 +147,8 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver {
      * org.psem2m.signals.ISignalData, java.lang.String)
      */
     @Override
-    public synchronized SignalResult handleReceivedSignal(
-            final String aSignalName, final ISignalData aSignalData,
-            final String aMode) {
+    public SignalResult handleReceivedSignal(final String aSignalName,
+            final ISignalData aSignalData, final String aMode) {
 
         if (ISignalBroadcaster.MODE_SEND.equalsIgnoreCase(aMode)) {
             // Standard mode
@@ -204,7 +208,12 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver {
     public synchronized void invalidatePojo() throws BundleException {
 
         // Clear listeners
-        pListeners.clear();
+        pListenersLock.writeLock().lock();
+        try {
+            pListeners.clear();
+        } finally {
+            pListenersLock.writeLock().unlock();
+        }
 
         // Stop the executor
         pNotificationExecutor.shutdown();
@@ -245,41 +254,51 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver {
      *            The signal data
      * @return A (code, listeners results) couple
      */
-    protected synchronized SignalResult notifyListeners(
-            final String aSignalName, final ISignalData aSignalData) {
+    protected SignalResult notifyListeners(final String aSignalName,
+            final ISignalData aSignalData) {
 
-        final Set<ISignalListener> signalListeners = new HashSet<ISignalListener>();
+        // Lock listeners map in read mode
+        pListenersLock.readLock().lock();
 
-        // Get the set of listeners
-        for (final String signal : pListeners.keySet()) {
-            // Take care of jokers ('*' and '?')
-            if (Utilities.matchFilter(aSignalName, signal)) {
-                signalListeners.addAll(pListeners.get(signal));
-            }
-        }
+        try {
+            final Set<ISignalListener> signalListeners = new HashSet<ISignalListener>();
 
-        // Notify listeners
-        final List<Object> results = new ArrayList<Object>(pListeners.size());
-        for (final ISignalListener listener : signalListeners) {
-
-            try {
-                final Object result = listener.handleReceivedSignal(
-                        aSignalName, aSignalData);
-                if (result != null) {
-                    results.add(result);
+            // Get the set of listeners
+            for (final String signal : pListeners.keySet()) {
+                // Take care of jokers ('*' and '?')
+                if (Utilities.matchFilter(aSignalName, signal)) {
+                    signalListeners.addAll(pListeners.get(signal));
                 }
-
-            } catch (final Exception ex) {
-                pLogger.logWarn(this, "handleReceivedSignal",
-                        "Exception notifying a signal listener", ex);
-
-            } catch (final Error err) {
-                pLogger.logSevere(this, "handleReceivedSignal",
-                        "Important error notifying a signal listener", err);
             }
-        }
 
-        return new SignalResult(ISignalsConstants.CODE_OK, results);
+            // Notify listeners
+            final List<Object> results = new ArrayList<Object>(
+                    pListeners.size());
+            for (final ISignalListener listener : signalListeners) {
+
+                try {
+                    final Object result = listener.handleReceivedSignal(
+                            aSignalName, aSignalData);
+                    if (result != null) {
+                        results.add(result);
+                    }
+
+                } catch (final Exception ex) {
+                    pLogger.logWarn(this, "handleReceivedSignal",
+                            "Exception notifying a signal listener", ex);
+
+                } catch (final Error err) {
+                    pLogger.logSevere(this, "handleReceivedSignal",
+                            "Important error notifying a signal listener", err);
+                }
+            }
+
+            return new SignalResult(ISignalsConstants.CODE_OK, results);
+
+        } finally {
+            // Unlock listeners map in any case
+            pListenersLock.readLock().unlock();
+        }
     }
 
     /**
@@ -311,7 +330,7 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver {
      * (java.lang.String, org.psem2m.signals.impl.ISignalListener)
      */
     @Override
-    public synchronized void registerListener(final String aSignalName,
+    public void registerListener(final String aSignalName,
             final ISignalListener aListener) {
 
         if (aSignalName == null || aSignalName.isEmpty() || aListener == null) {
@@ -322,14 +341,23 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver {
             return;
         }
 
-        // Get or create the signal listeners set
-        Set<ISignalListener> signalListeners = pListeners.get(aSignalName);
-        if (signalListeners == null) {
-            signalListeners = new LinkedHashSet<ISignalListener>();
-            pListeners.put(aSignalName, signalListeners);
-        }
+        // Lock listeners map in write mode
+        pListenersLock.writeLock().lock();
 
-        signalListeners.add(aListener);
+        try {
+            // Get or create the signal listeners set
+            Set<ISignalListener> signalListeners = pListeners.get(aSignalName);
+            if (signalListeners == null) {
+                signalListeners = new LinkedHashSet<ISignalListener>();
+                pListeners.put(aSignalName, signalListeners);
+            }
+
+            signalListeners.add(aListener);
+
+        } finally {
+            // Release the lock in any case
+            pListenersLock.writeLock().unlock();
+        }
     }
 
     /**
@@ -358,7 +386,7 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver {
      * org.psem2m.signals.impl.ISignalListener)
      */
     @Override
-    public synchronized void unregisterListener(final String aSignalName,
+    public void unregisterListener(final String aSignalName,
             final ISignalListener aListener) {
 
         if (aListener == null) {
@@ -368,20 +396,29 @@ public class SignalReceiver extends CPojoBase implements ISignalReceiver {
             return;
         }
 
-        if (aSignalName == null) {
-            // Remove all occurrences to the listener
-            for (final Set<ISignalListener> signalListeners : pListeners
-                    .values()) {
-                signalListeners.remove(aSignalName);
+        // Lock listeners map in write mode
+        pListenersLock.writeLock().lock();
+
+        try {
+            if (aSignalName == null) {
+                // Remove all occurrences to the listener
+                for (final Set<ISignalListener> signalListeners : pListeners
+                        .values()) {
+                    signalListeners.remove(aSignalName);
+                }
+
+            } else if (!aSignalName.isEmpty()) {
+                // Remove the listener for the given signal only
+                final Set<ISignalListener> signalListeners = pListeners
+                        .get(aSignalName);
+                if (signalListeners != null) {
+                    signalListeners.remove(aListener);
+                }
             }
 
-        } else if (!aSignalName.isEmpty()) {
-            // Remove the listener for the given signal only
-            final Set<ISignalListener> signalListeners = pListeners
-                    .get(aSignalName);
-            if (signalListeners != null) {
-                signalListeners.remove(aListener);
-            }
+        } finally {
+            // Unlock listeners map
+            pListenersLock.writeLock().unlock();
         }
     }
 
