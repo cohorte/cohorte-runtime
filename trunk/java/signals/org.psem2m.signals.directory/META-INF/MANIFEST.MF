@@ -69,67 +69,68 @@ iPOJO-Components: component { $name="psem2m-signals-directory-updater-
  desIsolates" $type="java.util.Map" }field { $name="pNodesNames" $type
  ="java.util.Map" }field { $name="pPlatform" $type="org.psem2m.isolate
  s.services.dirs.IPlatformDirsSvc" }field { $name="pRegistrationStatus
- " $type="org.psem2m.status.storage.IStatusStorage" }field { $name="pS
- tatusCreator" $type="org.psem2m.status.storage.IStatusStorageCreator"
-  }method { $name="bindPresenceListener" $arguments="{org.psem2m.isola
- tes.services.monitoring.IIsolatePresenceListener}" $names="{aListener
- }" }method { $name="dump" $return="java.util.Map" }method { $name="ge
- tAllIsolates" $return="java.lang.String[]" $arguments="{java.lang.Str
- ing,boolean,boolean}" $names="{aPrefix,aIncludeCurrent,aOnlyValidated
- }" }method { $name="getAllNodes" $return="java.lang.String[]" }method
-  { $name="getGroupAccesses" $return="java.util.Map" $arguments="{org.
- psem2m.signals.ISignalDirectory$EBaseGroup}" $names="{aGroup}" }metho
- d { $name="getHostForNode" $return="java.lang.String" $arguments="{ja
- va.lang.String}" $names="{aNodeName}" }method { $name="getIsolateAcce
- ss" $return="org.psem2m.signals.HostAccess" $arguments="{java.lang.St
- ring}" $names="{aIsolateId}" }method { $name="getIsolateName" $return
- ="java.lang.String" $arguments="{java.lang.String}" $names="{aIsolate
- UID}" }method { $name="getIsolateNode" $return="java.lang.String" $ar
- guments="{java.lang.String}" $names="{aIsolateId}" }method { $name="g
- etIsolatesOnNode" $return="java.lang.String[]" $arguments="{java.lang
- .String}" $names="{aNodeUID}" }method { $name="getMinimalCollection" 
- $return="java.util.Collection" $arguments="{java.util.Collection,java
- .lang.String}" $names="{aBaseCollection,aMinimumContent}" }method { $
- name="getNameUIDs" $return="java.lang.String[]" $arguments="{java.lan
- g.String}" $names="{aIsolateName}" }method { $name="getNodeName" $ret
- urn="java.lang.String" $arguments="{java.lang.String}" $names="{aNode
- UID}" }method { $name="getNodeUIDs" $return="java.lang.String[]" $arg
- uments="{java.lang.String}" $names="{aNodeName}" }method { $name="get
- RegistrationState" $return="org.psem2m.signals.directory.impl.EIsolat
- eRegistrationState" $arguments="{java.lang.String}" $names="{aIsolate
- Id}" }method { $name="invalidatePojo" }method { $name="isRegistered" 
- $return="boolean" $arguments="{java.lang.String}" $names="{aIsolateId
- }" }method { $name="isValidated" $return="boolean" $arguments="{java.
- lang.String}" $names="{aIsolateId}" }method { $name="notifyIsolateLos
- t" $arguments="{java.lang.String,java.lang.String,java.lang.String}" 
- $names="{aUID,aName,aNodeUID}" }method { $name="notifyIsolatePresence
- " $return="boolean" $arguments="{java.lang.String}" $names="{aUID}" }
- method { $name="notifyIsolateReady" $arguments="{java.lang.String,jav
- a.lang.String,java.lang.String}" $names="{aUID,aName,aNode}" }method 
- { $name="registerIsolate" $return="boolean" $arguments="{java.lang.St
- ring,java.lang.String,java.lang.String,int}" $names="{aUID,aName,aNod
- e,aPort}" }method { $name="registerIsolateInternal" $return="boolean"
-  $arguments="{java.lang.String,java.lang.String,java.lang.String,int,
- org.psem2m.signals.directory.impl.EIsolateRegistrationState}" $names=
- "{aUID,aName,aNode,aPort,aInitialState}" }method { $name="registerVal
- idated" $return="boolean" $arguments="{java.lang.String,java.lang.Str
- ing,java.lang.String,int}" $names="{aIsolateUID,aIsolateName,aNode,aP
- ort}" }method { $name="registrationStateChange" $return="boolean" $ar
- guments="{java.lang.String,org.psem2m.signals.directory.impl.EIsolate
- RegistrationState}" $names="{aIsolateId,aNewState}" }method { $name="
- registrationStateCreate" $return="boolean" $arguments="{java.lang.Str
- ing,org.psem2m.signals.directory.impl.EIsolateRegistrationState}" $na
- mes="{aIsolateId,aInitialState}" }method { $name="setNodeAddress" $re
- turn="java.lang.String" $arguments="{java.lang.String,java.lang.Strin
- g}" $names="{aNodeName,aHostAddress}" }method { $name="setNodeName" $
- arguments="{java.lang.String,java.lang.String}" $names="{aNodeUID,aNo
- deName}" }method { $name="storeDump" $return="java.lang.String[]" $ar
- guments="{java.util.Map,java.util.Collection,java.util.Collection}" $
- names="{aDumpedDirectory,aIgnoredNodes,aIgnoredIds}" }method { $name=
- "synchronizingIsolatePresence" $return="boolean" $arguments="{java.la
- ng.String}" $names="{aIsolateId}" }method { $name="unregisterIsolate"
-  $return="boolean" $arguments="{java.lang.String}" $names="{aUID}" }m
- ethod { $name="validateIsolatePresence" $return="boolean" $arguments=
- "{java.lang.String}" $names="{aIsolateId}" }method { $name="validateP
- ojo" }}}
+ " $type="org.psem2m.status.storage.IStatusStorage" }field { $name="pR
+ egistriesLock" $type="java.util.concurrent.locks.ReadWriteLock" }fiel
+ d { $name="pStatusCreator" $type="org.psem2m.status.storage.IStatusSt
+ orageCreator" }method { $name="bindPresenceListener" $arguments="{org
+ .psem2m.isolates.services.monitoring.IIsolatePresenceListener}" $name
+ s="{aListener}" }method { $name="dump" $return="java.util.Map" }metho
+ d { $name="getAllIsolates" $return="java.lang.String[]" $arguments="{
+ java.lang.String,boolean,boolean}" $names="{aPrefix,aIncludeCurrent,a
+ OnlyValidated}" }method { $name="getAllNodes" $return="java.lang.Stri
+ ng[]" }method { $name="getGroupAccesses" $return="java.util.Map" $arg
+ uments="{org.psem2m.signals.ISignalDirectory$EBaseGroup}" $names="{aG
+ roup}" }method { $name="getHostForNode" $return="java.lang.String" $a
+ rguments="{java.lang.String}" $names="{aNodeName}" }method { $name="g
+ etIsolateAccess" $return="org.psem2m.signals.HostAccess" $arguments="
+ {java.lang.String}" $names="{aIsolateId}" }method { $name="getIsolate
+ Name" $return="java.lang.String" $arguments="{java.lang.String}" $nam
+ es="{aIsolateUID}" }method { $name="getIsolateNode" $return="java.lan
+ g.String" $arguments="{java.lang.String}" $names="{aIsolateId}" }meth
+ od { $name="getIsolatesOnNode" $return="java.lang.String[]" $argument
+ s="{java.lang.String}" $names="{aNodeUID}" }method { $name="getMinima
+ lCollection" $return="java.util.Collection" $arguments="{java.util.Co
+ llection,java.lang.String}" $names="{aBaseCollection,aMinimumContent}
+ " }method { $name="getNameUIDs" $return="java.lang.String[]" $argumen
+ ts="{java.lang.String}" $names="{aIsolateName}" }method { $name="getN
+ odeName" $return="java.lang.String" $arguments="{java.lang.String}" $
+ names="{aNodeUID}" }method { $name="getNodeUIDs" $return="java.lang.S
+ tring[]" $arguments="{java.lang.String}" $names="{aNodeName}" }method
+  { $name="getRegistrationState" $return="org.psem2m.signals.directory
+ .impl.EIsolateRegistrationState" $arguments="{java.lang.String}" $nam
+ es="{aIsolateId}" }method { $name="invalidatePojo" }method { $name="i
+ sRegistered" $return="boolean" $arguments="{java.lang.String}" $names
+ ="{aIsolateId}" }method { $name="isValidated" $return="boolean" $argu
+ ments="{java.lang.String}" $names="{aIsolateId}" }method { $name="not
+ ifyIsolateLost" $arguments="{java.lang.String,java.lang.String,java.l
+ ang.String}" $names="{aUID,aName,aNodeUID}" }method { $name="notifyIs
+ olatePresence" $return="boolean" $arguments="{java.lang.String}" $nam
+ es="{aUID}" }method { $name="notifyIsolateReady" $arguments="{java.la
+ ng.String,java.lang.String,java.lang.String}" $names="{aUID,aName,aNo
+ de}" }method { $name="registerIsolate" $return="boolean" $arguments="
+ {java.lang.String,java.lang.String,java.lang.String,int}" $names="{aU
+ ID,aName,aNode,aPort}" }method { $name="registerIsolateInternal" $ret
+ urn="boolean" $arguments="{java.lang.String,java.lang.String,java.lan
+ g.String,int,org.psem2m.signals.directory.impl.EIsolateRegistrationSt
+ ate}" $names="{aUID,aName,aNode,aPort,aInitialState}" }method { $name
+ ="registerValidated" $return="boolean" $arguments="{java.lang.String,
+ java.lang.String,java.lang.String,int}" $names="{aIsolateUID,aIsolate
+ Name,aNode,aPort}" }method { $name="registrationStateChange" $return=
+ "boolean" $arguments="{java.lang.String,org.psem2m.signals.directory.
+ impl.EIsolateRegistrationState}" $names="{aIsolateId,aNewState}" }met
+ hod { $name="registrationStateCreate" $return="boolean" $arguments="{
+ java.lang.String,org.psem2m.signals.directory.impl.EIsolateRegistrati
+ onState}" $names="{aIsolateId,aInitialState}" }method { $name="setNod
+ eAddress" $return="java.lang.String" $arguments="{java.lang.String,ja
+ va.lang.String}" $names="{aNodeName,aHostAddress}" }method { $name="s
+ etNodeName" $arguments="{java.lang.String,java.lang.String}" $names="
+ {aNodeUID,aNodeName}" }method { $name="storeDump" $return="java.lang.
+ String[]" $arguments="{java.util.Map,java.util.Collection,java.util.C
+ ollection}" $names="{aDumpedDirectory,aIgnoredNodes,aIgnoredIds}" }me
+ thod { $name="synchronizingIsolatePresence" $return="boolean" $argume
+ nts="{java.lang.String}" $names="{aIsolateId}" }method { $name="unreg
+ isterIsolate" $return="boolean" $arguments="{java.lang.String}" $name
+ s="{aUID}" }method { $name="validateIsolatePresence" $return="boolean
+ " $arguments="{java.lang.String}" $names="{aIsolateId}" }method { $na
+ me="validatePojo" }}}
 

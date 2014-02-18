@@ -221,7 +221,7 @@ public class DirectoryUpdater implements ISignalListener,
      */
     @SuppressWarnings("unchecked")
     @Override
-    public synchronized Object handleReceivedSignal(final String aSignalName,
+    public Object handleReceivedSignal(final String aSignalName,
             final ISignalData aSignalData) {
 
         // The sender ID
