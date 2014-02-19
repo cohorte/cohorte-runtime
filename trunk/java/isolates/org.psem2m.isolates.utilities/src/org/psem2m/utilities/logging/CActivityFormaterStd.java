@@ -16,11 +16,21 @@ public class CActivityFormaterStd extends CActivityFormater {
 	final static char REPLACE_PREFIX = '£';
 	final static char SEP_COLUMN = ' ';
 
+	
 	/**
-   * 
-   */
+	   * 
+	   */
 	public CActivityFormaterStd() {
 		super();
+	}
+
+	/**
+	 * @param aLineDef
+	 *            the list of column in the line
+	 */
+	public CActivityFormaterStd(EActivityLogColumn[] aLineDef) {
+
+		super(aLineDef);
 	}
 
 	/*
@@ -35,8 +45,7 @@ public class CActivityFormaterStd extends CActivityFormater {
 			final String aSourceClassName, final String aSourceMethodName,
 			final String aText, final boolean aWhithEndLine) {
 
-        //pSB.delete(0, pSB.length());
-        StringBuilder pSB = new StringBuilder(128);
+		StringBuilder pSB = new StringBuilder(128);
 
 		pSB.append(PREFIX_LINE);
 		pSB.append(SEP_COLUMN);

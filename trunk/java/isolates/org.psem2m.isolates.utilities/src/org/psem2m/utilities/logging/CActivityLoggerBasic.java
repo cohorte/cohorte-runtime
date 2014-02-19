@@ -28,15 +28,38 @@ public class CActivityLoggerBasic extends CActivityLogger implements
 	public static IActivityLogger newLogger(final String aLoggerName,
 			final String aFilePathPattern, final String aLevel,
 			final int aFileLimit, final int aFileCount) throws Exception {
+
+		return newLogger(aLoggerName, aFilePathPattern, aLevel, aFileLimit,
+				aFileCount, IActivityFormater.LINE_SHORT,
+				!IActivityFormater.MULTILINES_TEXT);
+	}
+
+	/**
+	 * @param aLoggerName
+	 * @param aFilePathPattern
+	 * @param aLevel
+	 * @param aFileLimit
+	 * @param aFileCount
+	 * @param aLineDef
+	 * @return
+	 * @throws Exception
+	 */
+	public static IActivityLogger newLogger(final String aLoggerName,
+			final String aFilePathPattern, final String aLevel,
+			final int aFileLimit, final int aFileCount,
+			EActivityLogColumn[] aLineDef, boolean aMultiLine) throws Exception {
 		CActivityLoggerBasic wLogger = new CActivityLoggerBasic(aLoggerName,
-				aFilePathPattern, aLevel, aFileLimit, aFileCount);
+				aFilePathPattern, aLevel, aFileLimit, aFileCount, aLineDef,
+				aMultiLine);
 		wLogger.initFileHandler();
 		wLogger.open();
 		return wLogger;
 	}
 
+	private final EActivityLogColumn[] pLineDef;
+	private final boolean pMultiLine;
+
 	/**
-	 * @param aTracer
 	 * @param aLoggerName
 	 * @param aFilePathPattern
 	 *            the pattern for naming the output file
@@ -51,7 +74,31 @@ public class CActivityLoggerBasic extends CActivityLogger implements
 	protected CActivityLoggerBasic(final String aLoggerName,
 			final String aFilePathPattern, final String aLevel,
 			final int aFileLimit, final int aFileCount) throws Exception {
+		this(aLoggerName, aFilePathPattern, aLevel, aFileLimit, aFileCount,
+				IActivityFormater.LINE_SHORT,
+				!IActivityFormater.MULTILINES_TEXT);
+	}
+
+	/**
+	 * @param aLoggerName
+	 * @param aFilePathPattern
+	 *            the pattern for naming the output file
+	 * @param aLevel
+	 *            the value for the log level (may be null)
+	 * @param aFileLimit
+	 *            the maximum number of bytes to write to any one file
+	 * @param aFileCount
+	 *            the number of files to use
+	 * @param aLineDef
+	 * @throws Exception
+	 */
+	protected CActivityLoggerBasic(final String aLoggerName,
+			final String aFilePathPattern, final String aLevel,
+			final int aFileLimit, final int aFileCount,
+			EActivityLogColumn[] aLineDef, boolean aMultiLine) throws Exception {
 		super(aLoggerName, aFilePathPattern, aLevel, aFileLimit, aFileCount);
+		pLineDef = aLineDef;
+		pMultiLine = aMultiLine;
 	}
 
 	/*
@@ -89,10 +136,17 @@ public class CActivityLoggerBasic extends CActivityLogger implements
 	 */
 	@Override
 	protected void initFileHandler() throws Exception {
+
 		CActivityFileHandler wFileHandler = new CActivityFileHandler(
 				getFilePathPattern(), getFileLimit(), getFileCount());
-		wFileHandler.setFormatter((Formatter) CActivityFormaterBasic
-				.getInstance());
+
+		IActivityFormater wActivityFormater = CActivityFormaterBasic
+				.getInstance(pLineDef);
+
+		wActivityFormater.acceptMultiline(pMultiLine);
+
+		wFileHandler.setFormatter((Formatter) wActivityFormater);
+
 		super.setFileHandler(wFileHandler);
 	}
 }

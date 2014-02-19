@@ -41,26 +41,45 @@ public class CActivityFormaterBasic extends CActivityFormater {
 	 */
 	public static IActivityFormater getInstance() {
 
-		return getInstance(!SHORT_LINE);
+		return getInstance(LINE_FULL);
 	}
 
 	/**
-	 * @param aShortLine line without unformated milli and nano id true
+	 * @param aShortLine
+	 *            line without unformated milli and nano id true
 	 * @return
 	 */
 	public static IActivityFormater getInstance(boolean aShortLine) {
 
-		return new CActivityFormaterBasic(aShortLine);
+		return getInstance((aShortLine) ? LINE_SHORT : LINE_FULL);
 	}
 
-	private final boolean pShortLine;
+	/**
+	 * @param aColumsDef
+	 *            the list of column in the line
+	 * @return
+	 */
+	public static IActivityFormater getInstance(EActivityLogColumn[] aLineDef) {
+
+		return new CActivityFormaterBasic(aLineDef);
+	}
+
+	private final boolean pWithC1Milli;
+	private final boolean pWithC2Nano;
+	private final boolean pWithC3Date;
+	private final boolean pWithC4Time;
+	private final boolean pWithC5Level;
+	private final boolean pWithC6Thread;
+	private final boolean pWithC7Instance;
+	private final boolean pWithC8Method;
+	private final boolean pWithC9Text;
 
 	/**
 	 * Explicit default constructor
 	 */
 	public CActivityFormaterBasic() {
 
-		this(!SHORT_LINE);
+		this(LINE_FULL);
 	}
 
 	/**
@@ -69,8 +88,33 @@ public class CActivityFormaterBasic extends CActivityFormater {
 	 */
 	public CActivityFormaterBasic(boolean aShortLine) {
 
-		super();
-		pShortLine = aShortLine;
+		this((aShortLine) ? LINE_SHORT : LINE_FULL);
+	}
+	/**
+	 * @param aLineDef
+	 *            the list of column in the line
+	 */
+	public CActivityFormaterBasic(EActivityLogColumn[] aLineDef) {
+
+		super(aLineDef);
+		pWithC1Milli = EActivityLogColumn.isColumnOn(
+				EActivityLogColumn.C1_MILLI, aLineDef);
+		pWithC2Nano = EActivityLogColumn.isColumnOn(EActivityLogColumn.C2_NANO,
+				aLineDef);
+		pWithC3Date = EActivityLogColumn.isColumnOn(EActivityLogColumn.C3_DATE,
+				aLineDef);
+		pWithC4Time = EActivityLogColumn.isColumnOn(EActivityLogColumn.C4_TIME,
+				aLineDef);
+		pWithC5Level = EActivityLogColumn.isColumnOn(
+				EActivityLogColumn.C5_LEVEL, aLineDef);
+		pWithC6Thread = EActivityLogColumn.isColumnOn(
+				EActivityLogColumn.C6_THREAD, aLineDef);
+		pWithC7Instance = EActivityLogColumn.isColumnOn(
+				EActivityLogColumn.C7_INSTANCE, aLineDef);
+		pWithC8Method = EActivityLogColumn.isColumnOn(
+				EActivityLogColumn.C8_METHOD, aLineDef);
+		pWithC9Text = EActivityLogColumn.isColumnOn(EActivityLogColumn.C9_TEXT,
+				aLineDef);
 	}
 
 	/**
@@ -98,33 +142,42 @@ public class CActivityFormaterBasic extends CActivityFormater {
 
 		StringBuilder pSB = new StringBuilder(192);
 
-		if (!pShortLine) {
+		if (pWithC1Milli) {
 			pSB.append(aMillis);
-
 			addColummnDelimitorInLogLine(pSB);
+		}
+		if (pWithC2Nano) {
 			pSB.append(getFormatedNanoSecs());
+			addColummnDelimitorInLogLine(pSB);
+		}
+		if (pWithC3Date) {
+			pSB.append(formatDate(aMillis));
+			addColummnDelimitorInLogLine(pSB);
+		}
+		if (pWithC4Time) {
+			pSB.append(formatTime(aMillis));
 
 			addColummnDelimitorInLogLine(pSB);
 		}
-		pSB.append(formatDate(aMillis));
-
-		addColummnDelimitorInLogLine(pSB);
-		pSB.append(formatTime(aMillis));
-
-		addColummnDelimitorInLogLine(pSB);
-		pSB.append(formatLevel(aLevel));
-
-		addColummnDelimitorInLogLine(pSB);
-		addThreadNameInLogLine(pSB, Thread.currentThread().getName());
-
-		addColummnDelimitorInLogLine(pSB);
-		pSB.append(formatWho(aSourceClassName));
-
-		addColummnDelimitorInLogLine(pSB);
-		pSB.append(formatWhat(aSourceMethodName));
-
-		addColummnDelimitorInLogLine(pSB);
-		pSB.append(formatText(aText));
+		if (pWithC5Level) {
+			pSB.append(formatLevel(aLevel));
+			addColummnDelimitorInLogLine(pSB);
+		}
+		if (pWithC6Thread) {
+			addThreadNameInLogLine(pSB, Thread.currentThread().getName());
+			addColummnDelimitorInLogLine(pSB);
+		}
+		if (pWithC7Instance) {
+			pSB.append(formatWho(aSourceClassName));
+			addColummnDelimitorInLogLine(pSB);
+		}
+		if (pWithC8Method) {
+			pSB.append(formatWhat(aSourceMethodName));
+			addColummnDelimitorInLogLine(pSB);
+		}
+		if (pWithC9Text) {
+			pSB.append(formatText(aText));
+		}
 		if (aWhithEndLine) {
 			pSB.append(SEP_LINE);
 		}
@@ -194,5 +247,7 @@ public class CActivityFormaterBasic extends CActivityFormater {
 						: IConstants.EMPTY, LENGTH_WHO, ' ');
 
 	}
+
+
 
 }

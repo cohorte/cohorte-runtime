@@ -19,12 +19,30 @@ import java.util.logging.LogRecord;
  */
 public interface IActivityFormater {
 
+	
+	public final static EActivityLogColumn[] LINE_FULL = {
+			EActivityLogColumn.C1_MILLI, EActivityLogColumn.C2_NANO,
+			EActivityLogColumn.C3_DATE, EActivityLogColumn.C4_TIME,
+			EActivityLogColumn.C5_LEVEL, EActivityLogColumn.C6_THREAD,
+			EActivityLogColumn.C7_INSTANCE, EActivityLogColumn.C8_METHOD,
+			EActivityLogColumn.C9_TEXT };
+	
+	public final static EActivityLogColumn[] LINE_SHORT = {
+		EActivityLogColumn.C3_DATE, EActivityLogColumn.C4_TIME,
+		EActivityLogColumn.C5_LEVEL, EActivityLogColumn.C6_THREAD,
+		EActivityLogColumn.C7_INSTANCE, EActivityLogColumn.C8_METHOD,
+		EActivityLogColumn.C9_TEXT };
+	
+	public final static EActivityLogColumn[] LINE_SIMPLEFORMATER = {EActivityLogColumn.C6_THREAD,
+		EActivityLogColumn.C7_INSTANCE, EActivityLogColumn.C8_METHOD,
+		EActivityLogColumn.C9_TEXT };
+
 	/**
 	 * the value of the multi-lines-text flag to not replace the end-line in the
 	 * text of the log line
 	 **/
 	public final static boolean MULTILINES_TEXT = true;
-
+	
 	public final static boolean SHORT_LINE = true;
 	
 	/**
@@ -90,5 +108,16 @@ public interface IActivityFormater {
 	public String format(final long aMillis, final Level aLevel,
 			final String aSourceClassName, final String aSourceMethodName,
 			final String aText, final boolean aWhithEndLine);
+	
+	
+	/**
+	 * @return
+	 */
+	public EActivityLogColumn[] getLineDef();
+	
+	/**
+	 * @return
+	 */
+	public String getLineDefInString();
 
 }
