@@ -1,8 +1,8 @@
 Manifest-Version: 1.0
 Bundle-Activator: org.psem2m.isolates.loggers.CBundleLoggersActivator
 Bundle-ManifestVersion: 2
-Bundle-Name: PSEM2M :: Loggers
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-Name: COHORTE :: Loggers
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-SymbolicName: org.psem2m.isolates.loggers
 Bundle-Vendor: isandlaTech.com
 Bundle-Version: 1.0.0.qualifier
