@@ -77,25 +77,21 @@ class TopStorageHandler(object):
         # Top storage services
         self._stores = []
 
-        # Validation flag
-        self.__validated = False
-
         # Thread safety
         self.__lock = threading.RLock()
 
 
-    @BindField('_stores')
+    @BindField('_stores', if_valid=True)
     def _bind_store(self, field, svc, svc_ref):
         """
         New Top storage service bound
         """
         with self.__lock:
-            if self.__validated:
-                # Read what it has to give
-                self.handle_store(svc)
+            # Read what it has to give
+            self.handle_store(svc)
 
-                # Store what we started
-                self.store_all(svc)
+            # Store what we started
+            self.store_all(svc)
 
 
     @Validate
@@ -104,8 +100,6 @@ class TopStorageHandler(object):
         Component validated
         """
         with self.__lock:
-            self.__validated = True
-
             if self._stores:
                 # Handle already bound stores
                 for store in self._stores:
@@ -115,8 +109,8 @@ class TopStorageHandler(object):
                     # Store the current information
                     self.store_all(store)
 
-            # Register to status modifications
-            self._status.add_listener(self)
+        # Register to status modifications
+        self._status.add_listener(self)
 
 
     @Invalidate
@@ -125,7 +119,6 @@ class TopStorageHandler(object):
         Component invalidated
         """
         self._status.remove_listener(self)
-        self.__validated = False
 
 
     def distribution_added(self, uid, name, distribution):
