@@ -1,3 +1,4 @@
+/*
 [ {
 	"node" : "central",
 	"name" : "vlc",
@@ -7,3 +8,5 @@
 	"arguments" : [ "/home/tcalmant/Documents/forker.ods" ],
 	"io_watch" : false
 } ]
+*/
+[]
