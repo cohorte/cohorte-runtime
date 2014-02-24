@@ -47,7 +47,6 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
 
 # Standard library
 import logging
-import threading
 
 # ------------------------------------------------------------------------------
 
@@ -72,8 +71,11 @@ class NodeCommander(object):
         """
         self._status = None
 
-        # Injected
+        # Injected services
         self._injected_composers = []
+
+        # NodeComposer -> ServiceReference
+        self._injected_composers_refs = {}
 
         # Isolate name -> NodeComposer
         self._isolate_composer = {}
@@ -84,42 +86,18 @@ class NodeCommander(object):
         # Node UID
         self._node_uid = None
 
-        # Lock
-        self.__lock = threading.Lock()
-
-
-    def __check_node(self, svc_ref):
-        """
-        Compares the node UID of the given service reference with the local one
-
-        :param svc_ref: A service reference
-        :return: True if the given service is on the local node
-        """
-        return self._node_uid == \
-            svc_ref.get_property(cohorte.composer.PROP_NODE_UID)
-
 
     @BindField('_injected_composers')
     def _bind_composer(self, _, service, svc_ref):
         """
         Called by iPOPO when a new composer is bound
         """
-        # Check node UID
-        if not self.__check_node(svc_ref):
-            # Different node: ignore this isolate composer
-            return
-
-        isolate_name = svc_ref.get_property(cohorte.composer.PROP_ISOLATE_NAME)
-        if not isolate_name:
-            # No node name given, ignore it
-            return
-
-        with self.__lock:
-            self._isolate_composer[isolate_name] = service
+        # Store the service reference
+        self._injected_composers_refs[service] = svc_ref
 
         if self.__validated:
-            # Late composer: give it its order
-            self._late_composer(isolate_name, service)
+            # Handle the new composer
+            self.__handle_composer(svc_ref, service)
 
 
     @UpdateField('_injected_composers')
@@ -127,6 +105,10 @@ class NodeCommander(object):
         """
         Called by iPOPO when the properties of a bound composer changed
         """
+        if not self.__validated:
+            # Do nothing if not in a valid state
+            return
+
         # Check node UID
         if not self.__check_node(svc_ref):
             # Different node: ignore this isolate composer
@@ -157,6 +139,62 @@ class NodeCommander(object):
         """
         Called by iPOPO when a bound composer is gone
         """
+        # Remove its reference
+        del self._injected_composers_refs[service]
+
+        # Get its name
+        isolate_name = svc_ref.get_property(cohorte.composer.PROP_ISOLATE_NAME)
+        if not isolate_name:
+            # No node name given, ignore it
+            return
+
+        # Check if the name is the one we expect
+        if self._isolate_composer[isolate_name] is service:
+            # Forget this composer
+            del self._isolate_composer[isolate_name]
+
+
+    @Invalidate
+    def invalidate(self, context):
+        """
+        Component invalidated
+        """
+        self.__validated = False
+        self._node_uid = None
+
+
+    @Validate
+    def validate(self, context):
+        """
+        Component validated
+        """
+        self.__validated = True
+        self._node_uid = context.get_property(cohorte.PROP_NODE_UID)
+
+        # Handle already injected services
+        for service, svc_ref in self._injected_composers_refs.items():
+            self.__handle_composer(svc_ref, service)
+
+
+    def __check_node(self, svc_ref):
+        """
+        Compares the node UID of the given service reference with the local one
+
+        :param svc_ref: A service reference
+        :return: True if the given service is on the local node
+        """
+        return self._node_uid == \
+            svc_ref.get_property(cohorte.composer.PROP_NODE_UID)
+
+
+    def __handle_composer(self, svc_ref, composer):
+        """
+        Stores the given composer into the isolate -> composer dictionary.
+        Does nothing if the composer node doesn't match our host
+
+        :param svc_ref: Isolate Composer service reference
+        :param composer: Isolate Composer service
+        """
         # Check node UID
         if not self.__check_node(svc_ref):
             # Different node: ignore this isolate composer
@@ -167,57 +205,14 @@ class NodeCommander(object):
             # No node name given, ignore it
             return
 
-        with self.__lock:
-            # Forget the composer
-            del self._isolate_composer[isolate_name]
+        # Store the composer according to its name
+        self._isolate_composer[isolate_name] = composer
+
+        # Give it its orders
+        self.__push_orders(isolate_name, composer)
 
 
-    @Invalidate
-    def invalidate(self, context):
-        """
-        Component invalidated
-        """
-        with self.__lock:
-            self.__validated = False
-            self._node_uid = None
-
-
-    @Validate
-    def validate(self, context):
-        """
-        Component validated
-        """
-        with self.__lock:
-            self.__validated = True
-            self._node_uid = context.get_property(cohorte.PROP_NODE_UID)
-
-            # Call all bound isolate composers
-            for isolate, composer in self._isolate_composer.items():
-                self._late_composer(isolate, composer)
-
-
-    def __start(self, composer, components):
-        """
-        Tells the given composer to start the given components
-
-        :param composer: The node composer to call
-        :param components: The composer to start
-        """
-        # Send converted beans
-        composer.instantiate(components)
-
-
-    def __stop(self, composer, components):
-        """
-        Tells the given composer to stop all of the given components
-
-        :param composer: The node composer to call
-        :param components: The composer to stop
-        """
-        composer.kill({component.name for component in components})
-
-
-    def _late_composer(self, isolate_name, composer):
+    def __push_orders(self, isolate_name, composer):
         """
         Pushes orders to a newly bound composer
 
@@ -227,7 +222,7 @@ class NodeCommander(object):
         components = self._status.get_components_for_isolate(isolate_name)
         if components:
             try:
-                self.__start(composer, components)
+                composer.instantiate(components)
 
             except Exception as ex:
                 _logger.exception("Error calling composer on isolate %s: %s",
