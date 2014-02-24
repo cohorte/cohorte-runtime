@@ -90,7 +90,6 @@ class IsolateComposer(object):
         # Remaining components
         self._remaining = set()
         self.__lock = threading.RLock()
-        self.__validated = False
 
 
     @Validate
@@ -101,7 +100,6 @@ class IsolateComposer(object):
         self._node_uid = context.get_property(cohorte.PROP_NODE_UID)
         self._node_name = context.get_property(cohorte.PROP_NODE_NAME)
         self._isolate_name = context.get_property(cohorte.PROP_NAME)
-        self.__validated = True
 
 
     @Invalidate
@@ -109,7 +107,6 @@ class IsolateComposer(object):
         """
         Component invalidated
         """
-        self.__validated = False
         self._remaining.clear()
 
         self._node_uid = None
@@ -117,16 +114,14 @@ class IsolateComposer(object):
         self._isolate_name = None
 
 
-    @BindField('_agent')
+    @BindField('_agent', if_valid=True)
     def _bind_agent(self, field, service, svc_ref):
         """
         An agent has been bound
         """
-        with self.__lock:
-            if self.__validated and self._agent is not None:
-                # Tell it to handle remaining components
-                self._agent.handle(self._remaining)
-                self._remaining.clear()
+        # Tell it to handle remaining components
+        service.handle(self._remaining)
+        self._remaining.clear()
 
 
     def get_isolate_info(self):
