@@ -20,38 +20,40 @@ iPOJO-Components: instance { $name="cohorte-remote-discovery-signals"
  e.remote.discovery.signals.SignalsDiscovery" provides { $specificatio
  ns="{org.cohorte.remote.IExportEndpointListener,org.psem2m.isolates.s
  ervices.monitoring.IIsolatePresenceListener}" }requires { $field="pDi
- rectory" }requires { $field="pDispatcher" }requires { $field="pReceiv
- er" }requires { $field="pRegistry" }requires { $field="pSender" }call
- back { $transition="invalidate" $method="invalidate" }callback { $tra
- nsition="validate" $method="validate" }manipulation { $classname="org
- .cohorte.remote.discovery.signals.SignalsDiscovery" interface { $name
- ="org.cohorte.remote.IExportEndpointListener" }interface { $name="org
- .psem2m.signals.ISignalListener" }interface { $name="org.psem2m.isola
- tes.services.monitoring.IIsolatePresenceListener" }field { $name="pDi
- rectory" $type="org.psem2m.signals.ISignalDirectory" }field { $name="
- pDispatcher" $type="org.cohorte.remote.IExportsDispatcher" }field { $
- name="pReceiver" $type="org.psem2m.signals.ISignalReceiver" }field { 
- $name="pRegistry" $type="org.cohorte.remote.IImportsRegistry" }field 
- { $name="pSender" $type="org.psem2m.signals.ISignalBroadcaster" }meth
- od { $name="endpointRemoved" $arguments="{org.cohorte.remote.ExportEn
- dpoint}" $names="{aEndpoint}" }method { $name="endpointsAdded" $argum
- ents="{org.cohorte.remote.ExportEndpoint[]}" $names="{aEndpoints}" }m
- ethod { $name="endpointUpdated" $arguments="{org.cohorte.remote.Expor
- tEndpoint,java.util.Map}" $names="{aEndpoint,aOldProperties}" }method
-  { $name="handleEvent" $arguments="{org.cohorte.remote.discovery.sign
- als.EndpointEventBean,java.lang.String}" $names="{aEvent,aSenderAddre
- ss}" }method { $name="handleReceivedSignal" $return="java.lang.Object
- " $arguments="{java.lang.String,org.psem2m.signals.ISignalData}" $nam
- es="{aSignalName,aSignalData}" }method { $name="invalidate" }method {
-  $name="isolateLost" $arguments="{java.lang.String,java.lang.String,j
- ava.lang.String}" $names="{aUID,aName,aNodeUID}" }method { $name="iso
- lateReady" $arguments="{java.lang.String,java.lang.String,java.lang.S
- tring}" $names="{aIsolateUID,aName,aNodeUID}" }method { $name="makeEx
- portsEvent" $return="org.cohorte.remote.discovery.signals.EndpointEve
- ntBean" }method { $name="registerEndpoints" $arguments="{org.cohorte.
- remote.discovery.signals.EndpointDescriptionBean[],java.lang.String}"
-  $names="{aEndpoints,aSenderAddress}" }method { $name="requestEndpoin
- ts" $arguments="{java.lang.String}" $names="{aIsolateUid}" }method { 
- $name="sendEvent" $arguments="{org.cohorte.remote.discovery.signals.E
- ndpointEventBean}" $names="{aEvent}" }method { $name="validate" }}}
+ rectory" }requires { $field="pDispatcher" }requires { $field="pLogger
+ " }requires { $field="pReceiver" }requires { $field="pRegistry" }requ
+ ires { $field="pSender" }callback { $transition="invalidate" $method=
+ "invalidate" }callback { $transition="validate" $method="validate" }m
+ anipulation { $classname="org.cohorte.remote.discovery.signals.Signal
+ sDiscovery" interface { $name="org.cohorte.remote.IExportEndpointList
+ ener" }interface { $name="org.psem2m.signals.ISignalListener" }interf
+ ace { $name="org.psem2m.isolates.services.monitoring.IIsolatePresence
+ Listener" }field { $name="pDirectory" $type="org.psem2m.signals.ISign
+ alDirectory" }field { $name="pDispatcher" $type="org.cohorte.remote.I
+ ExportsDispatcher" }field { $name="pLogger" $type="org.osgi.service.l
+ og.LogService" }field { $name="pReceiver" $type="org.psem2m.signals.I
+ SignalReceiver" }field { $name="pRegistry" $type="org.cohorte.remote.
+ IImportsRegistry" }field { $name="pSender" $type="org.psem2m.signals.
+ ISignalBroadcaster" }method { $name="endpointRemoved" $arguments="{or
+ g.cohorte.remote.ExportEndpoint}" $names="{aEndpoint}" }method { $nam
+ e="endpointsAdded" $arguments="{org.cohorte.remote.ExportEndpoint[]}"
+  $names="{aEndpoints}" }method { $name="endpointUpdated" $arguments="
+ {org.cohorte.remote.ExportEndpoint,java.util.Map}" $names="{aEndpoint
+ ,aOldProperties}" }method { $name="handleEvent" $arguments="{org.coho
+ rte.remote.discovery.signals.EndpointEventBean,java.lang.String}" $na
+ mes="{aEvent,aSenderAddress}" }method { $name="handleReceivedSignal" 
+ $return="java.lang.Object" $arguments="{java.lang.String,org.psem2m.s
+ ignals.ISignalData}" $names="{aSignalName,aSignalData}" }method { $na
+ me="invalidate" }method { $name="isolateLost" $arguments="{java.lang.
+ String,java.lang.String,java.lang.String}" $names="{aUID,aName,aNodeU
+ ID}" }method { $name="isolateReady" $arguments="{java.lang.String,jav
+ a.lang.String,java.lang.String}" $names="{aIsolateUID,aName,aNodeUID}
+ " }method { $name="makeExportsEvent" $return="org.cohorte.remote.disc
+ overy.signals.EndpointEventBean" }method { $name="registerEndpoints" 
+ $arguments="{org.cohorte.remote.discovery.signals.EndpointDescription
+ Bean[],java.lang.String}" $names="{aEndpoints,aSenderAddress}" }metho
+ d { $name="requestEndpoints" $arguments="{java.lang.String}" $names="
+ {aIsolateUid}" }method { $name="sendEvent" $arguments="{org.cohorte.r
+ emote.discovery.signals.EndpointEventBean}" $names="{aEvent}" }method
+  { $name="validate" }}}
 

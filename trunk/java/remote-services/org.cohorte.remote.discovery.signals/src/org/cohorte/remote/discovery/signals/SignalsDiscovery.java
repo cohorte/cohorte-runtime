@@ -29,6 +29,7 @@ import org.cohorte.remote.IExportEndpointListener;
 import org.cohorte.remote.IExportsDispatcher;
 import org.cohorte.remote.IImportsRegistry;
 import org.cohorte.remote.ImportEndpoint;
+import org.osgi.service.log.LogService;
 import org.psem2m.isolates.constants.ISignalsConstants;
 import org.psem2m.isolates.services.monitoring.IIsolatePresenceListener;
 import org.psem2m.signals.ISignalBroadcaster;
@@ -58,6 +59,10 @@ public class SignalsDiscovery implements IExportEndpointListener,
     /** Exported endpoints dispatcher */
     @Requires
     private IExportsDispatcher pDispatcher;
+
+    /** The logger */
+    @Requires
+    private LogService pLogger;
 
     /** Signals receiver */
     @Requires
@@ -208,6 +213,8 @@ public class SignalsDiscovery implements IExportEndpointListener,
         pReceiver.unregisterListener(
                 ISignalsConstants.PREFIX_BROADCASTER_SIGNAL_NAME
                         + ISignalsConstants.MATCH_ALL, this);
+
+        pLogger.log(LogService.LOG_INFO, "Signals Discovery gone");
     }
 
     /*
@@ -316,15 +323,15 @@ public class SignalsDiscovery implements IExportEndpointListener,
             final String isolateUid = entry.getKey();
 
             // Only use the first result
-            Object isolateResult = null;
+            EndpointEventBean isolateEvent = null;
             for (final Object rawIsolateResult : entry.getValue()) {
                 if (rawIsolateResult instanceof EndpointEventBean) {
-                    isolateResult = entry.getValue()[0];
+                    isolateEvent = (EndpointEventBean) rawIsolateResult;
                     break;
                 }
             }
 
-            if (isolateResult == null) {
+            if (isolateEvent == null) {
                 // No valid result for this isolate
                 continue;
             }
@@ -334,7 +341,7 @@ public class SignalsDiscovery implements IExportEndpointListener,
             final String nodeAddress = pDirectory.getHostForNode(isolateNode);
 
             // Handle the event
-            handleEvent(event, nodeAddress);
+            handleEvent(isolateEvent, nodeAddress);
         }
     }
 
@@ -360,6 +367,8 @@ public class SignalsDiscovery implements IExportEndpointListener,
         pReceiver.registerListener(
                 ISignalsConstants.PREFIX_BROADCASTER_SIGNAL_NAME
                         + ISignalsConstants.MATCH_ALL, this);
+
+        pLogger.log(LogService.LOG_INFO, "Signals Discovery ready");
 
         // Request existing endpoints
         requestEndpoints(null);
