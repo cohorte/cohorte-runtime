@@ -337,7 +337,8 @@ class SignalReceiver(object):
             # Fire and forget mode : the client doesn't want a result
             # -> Start a thread to notify listener and return immediately
             threading.Thread(target=self._notify_listeners,
-                             args=(name, data)).start()
+                             args=(name, data),
+                             name="SignalsReceiver-Notify-FORGET").start()
 
             # Success, no result
             return _make_json_result(200, "Signal thread started")
@@ -357,7 +358,8 @@ class SignalReceiver(object):
 
             # Start the treatment in another thread, if necessary
             threading.Thread(target=self._notify_listeners,
-                             args=(name, data)).start()
+                             args=(name, data),
+                             name="SignalsReceiver-Notify-ACK").start()
             return result
 
         # Unknown mode (not implemented error)

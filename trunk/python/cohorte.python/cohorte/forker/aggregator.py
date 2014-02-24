@@ -85,7 +85,9 @@ class MulticastReceiver(object):
 
         # Start the listening thread
         self._stop_event.clear()
-        self._thread = threading.Thread(target=self.__read)
+        self._thread = threading.Thread(target=self.__read,
+                                        name="MulticastReceiver-{0}"\
+                                             .format(self._port))
         self._thread.start()
 
 
@@ -653,7 +655,8 @@ class ForkerAggregator(object):
         self._stopped.clear()
 
         # Start the TTL thread
-        self._lst_thread = threading.Thread(target=self.__lst_loop)
+        self._lst_thread = threading.Thread(target=self.__lst_loop,
+                                            name="Forker-LST-loop")
         self._lst_thread.start()
 
         _logger.info("Forker aggregator validated on group=%s, port=%d",

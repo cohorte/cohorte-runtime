@@ -195,5 +195,6 @@ class Heart(object):
         # self._receiver.register_listener(SIGNAL_MATCH_ALL, self)
 
         # Start the heart
-        self._thread = threading.Thread(target=self._run, name="HeartBeart")
+        self._thread = threading.Thread(target=self._run,
+                                        name="Forker-HeartBeat")
         self._thread.start()

@@ -120,7 +120,8 @@ class SignalsDirectory(object):
 
         # Notify in another thread, with a copy of the listeners list
         listeners = self._listeners[:]
-        threading.Thread(target=notification_loop, args=[listeners]).start()
+        threading.Thread(target=notification_loop, args=[listeners],
+                         name="SignalsDirectory-PresenceNotifier").start()
 
 
     def dump(self):
