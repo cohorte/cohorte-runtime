@@ -12,8 +12,8 @@
 	}, {
 		"name" : "org.cohorte.remote.core"
 	}, {
-		"name" : "org.cohorte.remote.broadcast.signals"
+		"name" : "org.cohorte.remote.dispatcher.servlet"
 	}, {
-		"name" : "org.cohorte.remote.repository"
+		"name" : "org.cohorte.remote.discovery.signals"
 	} ]
 }

@@ -22,7 +22,7 @@
 	}, {
 		"name" : "org.psem2m.signals.serializer.json"
 	}, {
-		"name" : "org.cohorte.remote.jsonrpc"
+		"name" : "org.cohorte.remote.jabsorbrpc"
 	} ],
 
 	/*
