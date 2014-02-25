@@ -20,4 +20,7 @@ public interface ComposerConstants {
 
     /** Name of the hosting node */
     String PROP_NODE_NAME = "cohorte.composer.node.name";
+
+    /** UID of the hosting node */
+    String PROP_NODE_UID = "cohorte.composer.node.uid";
 }

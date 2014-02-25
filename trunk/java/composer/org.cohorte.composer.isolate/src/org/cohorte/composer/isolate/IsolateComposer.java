@@ -61,6 +61,10 @@ public class IsolateComposer implements IIsolateComposer {
     @ServiceProperty(name = ComposerConstants.PROP_NODE_NAME)
     private String pNodeName;
 
+    /** Host node UID */
+    @ServiceProperty(name = ComposerConstants.PROP_NODE_UID)
+    private String pNodeUid;
+
     /**
      * Component creation
      * 
@@ -106,11 +110,12 @@ public class IsolateComposer implements IIsolateComposer {
      * Component invalidated
      */
     @Invalidate
-    public synchronized void invalidate() {
+    public void invalidate() {
 
         // Clean up values
         pIsolateName = null;
         pNodeName = null;
+        pNodeUid = null;
 
         pLogger.log(LogService.LOG_INFO, "Isolate composer invalidated");
     }
@@ -133,12 +138,13 @@ public class IsolateComposer implements IIsolateComposer {
      * Component validated
      */
     @Validate
-    public synchronized void validate() {
+    public void validate() {
 
         // Store isolate information
         pIsolateName = pContext
                 .getProperty(IPlatformProperties.PROP_ISOLATE_NAME);
         pNodeName = pContext.getProperty(IPlatformProperties.PROP_NODE_NAME);
+        pNodeUid = pContext.getProperty(IPlatformProperties.PROP_NODE_UID);
 
         pLogger.log(LogService.LOG_INFO, "Isolate composer validated");
     }
