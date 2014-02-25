@@ -15,6 +15,7 @@
  */
 package org.cohorte.remote.discovery.signals;
 
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -199,5 +200,17 @@ public class EndpointDescriptionBean {
 
         return new ImportEndpoint(pUid, pFrameworkUid, pConfigurations, pName,
                 pSpecifications, pProperties);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+
+        return "EndpointDescription(" + pUid + ", " + pName + ", "
+                + Arrays.toString(pSpecifications) + ")";
     }
 }

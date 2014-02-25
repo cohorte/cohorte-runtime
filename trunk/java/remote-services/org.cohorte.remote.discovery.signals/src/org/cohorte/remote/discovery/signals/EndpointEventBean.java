@@ -109,4 +109,16 @@ public class EndpointEventBean {
 
         pType = aType;
     }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+
+        return "EndpointEvent(" + pType + ", " + Arrays.toString(pEndpoints)
+                + ")";
+    }
 }
