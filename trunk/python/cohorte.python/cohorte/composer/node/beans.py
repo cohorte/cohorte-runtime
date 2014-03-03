@@ -44,6 +44,44 @@ import itertools
 
 # ------------------------------------------------------------------------------
 
+class Event(object):
+    """
+    A composition or component event bean
+    """
+    def __init__(self, uid, name, kind, good):
+        """
+        Sets up members
+
+        :param uid: Source isolate UID
+        :param name: Source isolate name
+        :param kind: Kind of event (string ID)
+        :param good: True if this is a betterment event
+        """
+        # Source Isolate information
+        self.isolate_uid = uid
+        self.isolate_name = name
+
+        # Kind of event
+        self.kind = kind
+        self.good = good
+
+        # Associated RawComponent beans
+        self.components = None
+
+        # Event custom details
+        self.data = None
+
+
+    def __str__(self):
+        """
+        String representation
+        """
+        return "Event on {0} ({1}): {2} ({3})".format(self.isolate_name,
+                                                      self.isolate_uid,
+                                                      self.kind, self.good)
+
+# ------------------------------------------------------------------------------
+
 class EligibleIsolate(object):
     """
     Represents an isolate to be elected

@@ -40,6 +40,7 @@ import cohorte.composer
 import cohorte.composer.node.beans as beans
 
 import cohorte.monitor
+import cohorte.signals
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
@@ -83,9 +84,11 @@ class FactoriesMissing(Exception):
 
 @ComponentFactory()
 @Provides(cohorte.composer.SERVICE_COMPOSER_NODE)
+@Provides(cohorte.signals.SERVICE_ISOLATE_PRESENCE_LISTENER)
 @Property('_node_uid', cohorte.composer.PROP_NODE_UID)
 @Property('_node_name', cohorte.composer.PROP_NODE_NAME)
-@Property('_export', pelix.remote.PROP_EXPORTED_INTERFACES, '*')
+@Property('_export', pelix.remote.PROP_EXPORTED_INTERFACES,
+          [cohorte.composer.SERVICE_COMPOSER_NODE])
 @Property('_export_name', pelix.remote.PROP_ENDPOINT_NAME,
           'composer-node-composer')
 @Requires('_finder', cohorte.composer.SERVICE_COMPONENT_FINDER)
@@ -93,6 +96,7 @@ class FactoriesMissing(Exception):
 @Requires('_status', cohorte.composer.SERVICE_STATUS_NODE)
 @Requires('_commander', cohorte.composer.SERVICE_COMMANDER_NODE)
 @Requires('_monitor', cohorte.monitor.SERVICE_MONITOR)
+@Requires('_directory', cohorte.SERVICE_SIGNALS_DIRECTORY)
 @Instantiate('cohorte-composer-node')
 class NodeComposer(object):
     """
@@ -114,6 +118,7 @@ class NodeComposer(object):
         self._status = None
         self._commander = None
         self._monitor = None
+        self._directory = None
 
         # Thread to start isolates
         self._pool = pelix.threadpool.ThreadPool(3, "NodeComposer-Starter")
@@ -295,3 +300,51 @@ class NodeComposer(object):
         # Tell all isolate composers to stop their components
         # The commander update the status
         self._commander.kill(components)
+
+
+    def handle_isolate_lost(self, uid, node):
+        """
+        Called by the forker when an isolate has been lost
+
+        :param uid: Isolate UID
+        :param node: Isolate node UID
+        """
+        # Check if this is our node
+        if node != self._node_uid:
+            return
+
+        # Get isolate name
+        name = self._directory.get_isolate_name(uid)
+        _logger.debug('Isolate lost: %s - %s', uid, name)
+
+        # Get the lost components beans
+        lost = self._status.get_components_for_isolate(name)
+        if not lost:
+            # No known components on this isolate, ignore it
+            _logger.debug("No known component in the lost isolate %s", name)
+            return
+
+        # Remove them from the status storage
+        self._status.remove(component.name for component in lost)
+
+        # Notify electors
+        event = beans.Event(uid, name, "isolate.lost", False)
+        event.components = lost
+        self._distributor.handle_event(event)
+
+        # Recompute the clustering of the original components
+        self.instantiate(lost)
+
+
+    def handle_isolate_presence(self, uid, node, event):
+        """
+        Handles an isolate presence event
+
+        :param uid: UID of the isolate
+        :param name: Name of the isolate
+        :param node: UID of the node hosting the isolate
+        :param even: Kind of event
+        """
+        if event == cohorte.signals.ISOLATE_UNREGISTERED:
+            # Isolate gone away
+            self.handle_isolate_lost(uid, node)

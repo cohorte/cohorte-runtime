@@ -134,3 +134,17 @@ class IsolateDistributor(object):
                     other_isolate.rejected_rename()
 
         return isolates
+
+
+    def handle_event(self, event):
+        """
+        Handles a component/composition event
+
+        :param event: The event to handle
+        """
+        # Nominate electors
+        electors = set(self._distance_criteria)
+        electors.update(self._reliability_criteria)
+
+        for elector in electors:
+            elector.handle_event(event)

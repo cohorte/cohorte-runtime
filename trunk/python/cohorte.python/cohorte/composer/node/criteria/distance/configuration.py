@@ -60,6 +60,15 @@ class ConfigurationIsolateCriterion(object):
     Vote for the isolate that will host a component according to the
     configuration
     """
+    def handle_event(self, event):
+        """
+        Does nothing: this elector only cares about what is written in
+        configuration files
+        """
+        _logger.debug("Handle event: %s", event)
+        pass
+
+
     def vote(self, component, eligibles):
         """
         Prepares a coup d'État if the isolate that must host the given component
