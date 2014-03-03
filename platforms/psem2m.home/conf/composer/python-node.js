@@ -22,7 +22,7 @@
 		"name" : "cohorte.composer.node.status"
 	}, {
 		"name" : "cohorte.composer.node.commander"
-	},{
+	}, {
 		"name" : "cohorte.composer.node.top_store"
 	},
 	
@@ -36,6 +36,8 @@
 		"name" : "cohorte.composer.node.criteria.distance.configuration"
 	}, {
 		"name" : "cohorte.composer.node.criteria.reliability.crashing"
+	}, {
+		"name" : "cohorte.composer.node.criteria.reliability.timer"
 	} ]
 
 /* All components of the Composer are automatically instantiated */

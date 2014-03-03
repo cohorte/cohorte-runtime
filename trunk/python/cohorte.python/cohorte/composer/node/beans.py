@@ -48,17 +48,15 @@ class Event(object):
     """
     A composition or component event bean
     """
-    def __init__(self, uid, name, kind, good):
+    def __init__(self, name, kind, good):
         """
         Sets up members
 
-        :param uid: Source isolate UID
         :param name: Source isolate name
         :param kind: Kind of event (string ID)
         :param good: True if this is a betterment event
         """
         # Source Isolate information
-        self.isolate_uid = uid
         self.isolate_name = name
 
         # Kind of event
@@ -76,8 +74,7 @@ class Event(object):
         """
         String representation
         """
-        return "Event on {0} ({1}): {2} ({3})".format(self.isolate_name,
-                                                      self.isolate_uid,
+        return "Event on {0}: {2} ({3})".format(self.isolate_name,
                                                       self.kind, self.good)
 
 # ------------------------------------------------------------------------------

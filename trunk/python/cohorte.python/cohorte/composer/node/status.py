@@ -127,6 +127,15 @@ class NodeStatusStorage(object):
                 _logger.warning("Unknown component: %s", name)
 
 
+    def get_isolates(self):
+        """
+        Returns the list of names of known isolates
+
+        :return: A list of isolate names
+        """
+        return sorted(self._isolate_components.keys())
+
+
     def get_components_for_isolate(self, isolate_name):
         """
         Retrieves the components assigned to the given node

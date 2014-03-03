@@ -302,7 +302,7 @@ class NodeComposer(object):
         self._commander.kill(components)
 
 
-    def handle_isolate_lost(self, uid, node):
+    def handle_isolate_lost(self, name, node):
         """
         Called by the forker when an isolate has been lost
 
@@ -313,9 +313,7 @@ class NodeComposer(object):
         if node != self._node_uid:
             return
 
-        # Get isolate name
-        name = self._directory.get_isolate_name(uid)
-        _logger.debug('Isolate lost: %s - %s', uid, name)
+        _logger.debug('Isolate lost: %s', name)
 
         # Get the lost components beans
         lost = self._status.get_components_for_isolate(name)
@@ -328,7 +326,7 @@ class NodeComposer(object):
         self._status.remove(component.name for component in lost)
 
         # Notify electors
-        event = beans.Event(uid, name, "isolate.lost", False)
+        event = beans.Event(name, "isolate.lost", False)
         event.components = lost
         self._distributor.handle_event(event)
 
@@ -346,5 +344,8 @@ class NodeComposer(object):
         :param even: Kind of event
         """
         if event == cohorte.signals.ISOLATE_UNREGISTERED:
+            # Get isolate name
+            name = self._directory.get_isolate_name(uid)
+
             # Isolate gone away
-            self.handle_isolate_lost(uid, node)
+            self.handle_isolate_lost(name, node)

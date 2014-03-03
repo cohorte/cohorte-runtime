@@ -89,17 +89,25 @@ class CrashCriterion(object):
         Does nothing: this elector only cares about what is written in
         configuration files
         """
-        if event.kind != 'isolate.lost':
+        if event.kind not in ('isolate.lost', 'timer'):
             # Ignore other messages
             return
 
         # Get the implicated factories
         factories = set(component.factory for component in event.components)
 
+        if event.good:
+            # Timer event
+            delta = 2
+        else:
+            # Isolate lost
+            delta = -5
+
         # Update their ratings
         for factory in factories:
-            rate = self._ratings[factory] = self._ratings.get(factory, 50.0) - 5
-            _logger.warning("Updating factory rating: %s -> %s", factory, rate)
+            self._ratings[factory] = self._ratings.get(factory, 50.0) + delta
+            _logger.warning("Updating factory rating: %s -> %s",
+                            factory, self._ratings[factory])
 
 
     def compute_stats(self, components):
