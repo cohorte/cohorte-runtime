@@ -15,6 +15,8 @@
 	}, {
 		"name" : "pelix.remote.registry"
 	}, {
+		"name" : "pelix.remote.transport.jabsorb_rpc"
+	}, {
 		"name" : "cohorte.shell.agent"
 	}, {
 		"name" : "cohorte.shell.signals"
@@ -24,8 +26,6 @@
 		"name" : "cohorte.signals.directory"
 	}, {
 		"name" : "cohorte.signals.directory_updater"
-	}, {
-		"name" : "cohorte.remote.jabsorb_rpc"
 	}, {
 		"name" : "cohorte.remote.signals_discovery"
 	}, {
@@ -65,10 +65,10 @@
 		"factory" : "cohorte-remote-discovery-signals-factory",
 		"name" : "cohorte-remote-discovery-signals"
 	}, {
-		"factory" : "cohorte-jabsorbrpc-importer-factory",
-		"name" : "cohorte-jabsorbrpc-importer"
+		"factory" : "pelix-jabsorbrpc-importer-factory",
+		"name" : "pelix-jabsorbrpc-importer"
 	}, {
-		"factory" : "cohorte-jabsorbrpc-exporter-factory",
-		"name" : "cohorte-jabsorbrpc-exporter"
+		"factory" : "pelix-jabsorbrpc-exporter-factory",
+		"name" : "pelix-jabsorbrpc-exporter"
 	} ]
 }

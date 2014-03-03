@@ -25,7 +25,7 @@ __version__ = "1.0.0"
 import cohorte
 
 # Java utilities
-from cohorte.java.jabsorb import to_jabsorb, from_jabsorb, JAVA_CLASS
+from pelix.misc.jabsorb import to_jabsorb, from_jabsorb, JAVA_CLASS
 
 # Pelix/iPOPO
 from pelix.ipopo.decorators import ComponentFactory, Provides, Requires, \
