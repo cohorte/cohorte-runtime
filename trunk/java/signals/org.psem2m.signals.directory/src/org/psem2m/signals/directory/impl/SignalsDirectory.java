@@ -1020,7 +1020,7 @@ public class SignalsDirectory extends CPojoBase implements ISignalDirectory {
                 final Set<String> uids = entry.getValue();
 
                 if (uids.contains(aNodeUID)) {
-                    if (name == aNodeName) {
+                    if (name.equals(aNodeName)) {
                         // Nothing to do
                         return;
 
