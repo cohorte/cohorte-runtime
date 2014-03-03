@@ -28,7 +28,10 @@ import org.cohorte.remote.ExportEndpoint;
 import org.cohorte.remote.IExportEndpointListener;
 import org.cohorte.remote.IExportsDispatcher;
 import org.cohorte.remote.IImportsRegistry;
+import org.cohorte.remote.IRemoteServicesConstants;
 import org.cohorte.remote.ImportEndpoint;
+import org.cohorte.remote.utilities.RSUtils;
+import org.osgi.framework.BundleContext;
 import org.osgi.service.log.LogService;
 import org.psem2m.isolates.constants.ISignalsConstants;
 import org.psem2m.isolates.services.monitoring.IIsolatePresenceListener;
@@ -52,6 +55,9 @@ import org.psem2m.signals.ISignalSendResult;
 public class SignalsDiscovery implements IExportEndpointListener,
         ISignalListener, IIsolatePresenceListener {
 
+    /** The bundle context */
+    private final BundleContext pContext;
+
     /** Signals directory */
     @Requires
     private ISignalDirectory pDirectory;
@@ -59,6 +65,9 @@ public class SignalsDiscovery implements IExportEndpointListener,
     /** Exported endpoints dispatcher */
     @Requires
     private IExportsDispatcher pDispatcher;
+
+    /** The framework UID */
+    private String pFrameworkUid;
 
     /** The logger */
     @Requires
@@ -75,6 +84,17 @@ public class SignalsDiscovery implements IExportEndpointListener,
     /** Signals sender */
     @Requires
     private ISignalBroadcaster pSender;
+
+    /**
+     * Constructor called by iPOJO
+     * 
+     * @param aContext
+     *            the bundle context
+     */
+    public SignalsDiscovery(final BundleContext aContext) {
+
+        pContext = aContext;
+    }
 
     /*
      * (non-Javadoc)
@@ -214,6 +234,7 @@ public class SignalsDiscovery implements IExportEndpointListener,
                 ISignalsConstants.PREFIX_BROADCASTER_SIGNAL_NAME
                         + ISignalsConstants.MATCH_ALL, this);
 
+        pFrameworkUid = null;
         pLogger.log(LogService.LOG_INFO, "Signals Discovery gone");
     }
 
@@ -242,6 +263,11 @@ public class SignalsDiscovery implements IExportEndpointListener,
     @Override
     public void isolateReady(final String aIsolateUID, final String aName,
             final String aNodeUID) {
+
+        if (aIsolateUID.equals(pFrameworkUid)) {
+            // Local isolate is ready, ignore it
+            return;
+        }
 
         // Request the endpoints of the given isolate
         requestEndpoints(aIsolateUID);
@@ -362,6 +388,10 @@ public class SignalsDiscovery implements IExportEndpointListener,
      */
     @Validate
     public void validate() {
+
+        // Setup the isolate UID
+        pFrameworkUid = RSUtils.setupUID(pContext,
+                IRemoteServicesConstants.ISOLATE_UID);
 
         // Register to all broadcast signals
         pReceiver.registerListener(
