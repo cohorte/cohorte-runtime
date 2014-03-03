@@ -34,6 +34,8 @@
 	/* Distributor criteria */
 	{
 		"name" : "cohorte.composer.node.criteria.distance.configuration"
+	}, {
+		"name" : "cohorte.composer.node.criteria.reliability.crashing"
 	} ]
 
 /* All components of the Composer are automatically instantiated */

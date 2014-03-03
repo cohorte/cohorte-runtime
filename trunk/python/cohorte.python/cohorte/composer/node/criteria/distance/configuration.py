@@ -65,7 +65,6 @@ class ConfigurationIsolateCriterion(object):
         Does nothing: this elector only cares about what is written in
         configuration files
         """
-        _logger.debug("Handle event: %s", event)
         pass
 
 
