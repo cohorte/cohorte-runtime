@@ -116,7 +116,8 @@ class SignalsDirectory(object):
                                                      event)
                 except:
                     # Just log...
-                    _logger.exception("Error notifying a presence listener")
+                    _logger.exception("Error notifying a presence listener: %s",
+                                      listener)
 
         # Notify in another thread, with a copy of the listeners list
         listeners = self._listeners[:]
@@ -747,9 +748,6 @@ class SignalsDirectory(object):
                     # Not on this node
                     pass
 
-            # Remove references in names
-            del self._names[isolate_uid]
-
             try:
                 # Remove from the waiting set
                 self._waiting_isolates.remove(isolate_uid)
@@ -759,23 +757,26 @@ class SignalsDirectory(object):
                 self._notify_listeners(isolate_uid, node_uid,
                                        cohorte.signals.ISOLATE_UNREGISTERED)
 
+            # Remove references in names
+            del self._names[isolate_uid]
+
             return True
 
 
-    def validate_isolate_presence(self, isolate_id):
+    def validate_isolate_presence(self, isolate_uid):
         """
         Notifies the directory that an isolate has acknowledged the registration
         of the current isolate.
 
-        :param aIsolateId: An isolate ID
+        :param isolate_uid: An isolate UID
         """
         with self._lock:
-            if isolate_id in self._waiting_isolates:
-                self._waiting_isolates.remove(isolate_id)
+            if isolate_uid in self._waiting_isolates:
+                self._waiting_isolates.remove(isolate_uid)
 
-                _logger.debug("Isolate %s validated", isolate_id)
-                self._notify_listeners(isolate_id,
-                                       self.get_isolate_node(isolate_id),
+                _logger.debug("Isolate %s validated", isolate_uid)
+                self._notify_listeners(isolate_uid,
+                                       self.get_isolate_node(isolate_uid),
                                        cohorte.signals.ISOLATE_REGISTERED)
 
 
