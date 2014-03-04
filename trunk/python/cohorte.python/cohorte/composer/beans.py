@@ -187,6 +187,20 @@ class RawComponent(object):
         """
         return "RawComponent({0}, {1})".format(self.factory, self.name)
 
+
+    def __hash__(self):
+        """
+        A component is unique on a node by its name
+        """
+        return hash(self.name)
+
+
+    def __eq__(self, other):
+        """
+        A component is unique on a node by its name
+        """
+        return self.name == other.name
+
 # ------------------------------------------------------------------------------
 
 class Isolate(object):
@@ -224,3 +238,17 @@ class Isolate(object):
         """
         return "Isolate({0}, {1}, {2})".format(self.name, self.language,
                                                self.components)
+
+
+    def __hash__(self):
+        """
+        An isolate is unique on a node by its name
+        """
+        return hash(self.name)
+
+
+    def __eq__(self, other):
+        """
+        An isolate is unique on a node by its name
+        """
+        return self.name == other.name

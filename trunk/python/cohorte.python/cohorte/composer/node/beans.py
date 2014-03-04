@@ -121,6 +121,21 @@ class EligibleIsolate(object):
                                                        self.language,
                                                        self.__components)
 
+
+    def __hash__(self):
+        """
+        An isolate is unique on a node by its name
+        """
+        return hash(self.name)
+
+
+    def __eq__(self, other):
+        """
+        An isolate is unique on a node by its name
+        """
+        return self.name == other.name
+
+
     @classmethod
     def from_isolate(cls, isolate):
         """
