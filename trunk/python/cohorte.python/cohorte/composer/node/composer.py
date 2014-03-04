@@ -52,6 +52,7 @@ import pelix.threadpool
 
 # Standard library
 import logging
+import threading
 
 # ------------------------------------------------------------------------------
 
@@ -123,12 +124,17 @@ class NodeComposer(object):
         # Thread to start isolates
         self._pool = pelix.threadpool.ThreadPool(3, "NodeComposer-Starter")
 
+        # Redistribution timer
+        self._timer = None
+        self._lock = threading.Lock()
+
 
     @Invalidate
     def invalidate(self, context):
         """
         Component invalidated
         """
+        self.__stop_timer()
         self._pool.stop()
         self._node_name = None
         self._node_uid = None
@@ -142,6 +148,28 @@ class NodeComposer(object):
         self._node_name = context.get_property(cohorte.PROP_NODE_NAME)
         self._node_uid = context.get_property(cohorte.PROP_NODE_UID)
         self._pool.start()
+
+
+    def __start_timer(self, delay=10):
+        """
+        Starts the redistribution timer
+
+        :param delay: Delay until the next call for redistribution (default: 10)
+        """
+        if self._timer is not None:
+            self._timer.cancel()
+
+        self._timer = threading.Timer(delay, self._redistribute)
+        self._timer.start()
+
+
+    def __stop_timer(self):
+        """
+        Stops the redistribution timer
+        """
+        if self._timer is not None:
+            self._timer.cancel()
+            self._timer = None
 
 
     def _compute_bundles(self, components):
@@ -266,29 +294,105 @@ class NodeComposer(object):
         :param components: A list of RawComponent beans
         :return: Missing factories
         """
-        try:
-            # Compute the implementation language of the components
-            bundles = self._compute_bundles(components)
+        with self._lock:
+            # Stop the running timer, if any
+            self.__stop_timer()
 
-        except FactoriesMissing as ex:
-            _logger.error("Error computing bundles providing components: %s",
-                          ex)
-            return ex.factories
+            try:
+                # Compute the implementation language of the components
+                bundles = self._compute_bundles(components)
 
-        # Prepare the list of existing isolates (and their languages)
-        distribution, new_isolates = self._distribute(components,
+            except FactoriesMissing as ex:
+                _logger.error("Error computing bundles providing components: "
+                              "%s", ex)
+                return ex.factories
+
+            # Prepare the list of existing isolates (and their languages)
+            distribution, new_isolates = self._distribute(components,
                                                     self.get_running_isolates())
 
-        # Store the distribution
-        self._status.store(distribution)
+            # Store the distribution
+            self._status.store(distribution)
 
-        # Tell the commander to start the instantiation on existing isolates
-        self._commander.start(distribution.difference(new_isolates))
+            # Tell the commander to start the instantiation on existing isolates
+            self._commander.start(distribution.difference(new_isolates))
 
-        # Tell the monitor to start the new isolates.
-        # The commander will send their orders once there composer will be bound
-        for isolate in new_isolates:
-            self._pool.enqueue(self._start_isolate, isolate, bundles)
+            # Tell the monitor to start the new isolates.
+            # The commander will send their orders once there composer will be
+            # bound
+            for isolate in new_isolates:
+                self._pool.enqueue(self._start_isolate, isolate, bundles)
+
+            # Schedule next redistribution
+            self.__start_timer()
+
+
+    def _redistribute(self):
+        """
+        Redistributes the components of this node
+        """
+        with self._lock:
+            # Get components
+            components = self._status.get_components()
+
+            # Compute a distribution
+            distribution, new_isolates = self._distribute(components,
+                                                    self.get_running_isolates())
+
+            # Compute the differences with the current distribution
+            isolates = set(distribution).difference(new_isolates)
+
+            # Temporary lists
+            extended_isolates = []
+            all_to_remove = []
+
+            for isolate in isolates:
+                current_components = set(self._status \
+                                      .get_components_for_isolate(isolate.name))
+
+                added = set(isolate.components).difference(current_components)
+                removed = current_components.difference(isolate.components)
+
+                if added:
+                    # Isolate components extended
+                    extended_isolates.append(isolate)
+                    isolate.components = added
+
+                if removed:
+                    # Some of its components have to be removed
+                    all_to_remove.extend(removed)
+
+            if not any((all_to_remove, extended_isolates, new_isolates)):
+                _logger.debug("No modification to do")
+                return
+
+            _logger.debug("Storing new distribution: %s", distribution)
+
+            # Store the new distribution
+            self._status.clear()
+            self._status.store(distribution)
+
+            if all_to_remove:
+                # Kill moved components
+                self._commander.kill(all_to_remove)
+
+            if extended_isolates:
+                # Start moved components
+                self._commander.start(extended_isolates)
+
+            # Prepare new isolates
+            if new_isolates:
+                # Compute the implementation language of the components
+                bundles = self._compute_bundles(components)
+
+                # Tell the monitor to start the new isolates.
+                # The commander will send their orders once there composer will
+                # be bound
+                for isolate in new_isolates:
+                    self._pool.enqueue(self._start_isolate, isolate, bundles)
+
+            # Schedule next redistribution
+            self.__start_timer()
 
 
     def kill(self, components):

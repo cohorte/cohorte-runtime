@@ -73,6 +73,15 @@ class NodeStatusStorage(object):
         self._isolate_components = {}
 
 
+    def clear(self):
+        """
+        Clears the status of all of its information
+        """
+        self._component_isolate.clear()
+        self._components.clear()
+        self._isolate_components.clear()
+
+
     def dump(self):
         """
         Dumps the content of the storage
@@ -134,6 +143,15 @@ class NodeStatusStorage(object):
         :return: A list of isolate names
         """
         return sorted(self._isolate_components.keys())
+
+
+    def get_components(self):
+        """
+        Returns the list of all known components
+
+        :return: A list of RawComponent beans
+        """
+        return list(self._components.values())
 
 
     def get_components_for_isolate(self, isolate_name):
