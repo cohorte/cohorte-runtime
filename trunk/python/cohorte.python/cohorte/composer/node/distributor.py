@@ -84,8 +84,14 @@ class IsolateDistributor(object):
         """
         # Filter: component language
         language = component.language
+
+        # FIXME: ugly trick due to python/python3 comparison problem
+        authorized_languages = set((None, language))
+        if language.startswith('python'):
+            authorized_languages.update('python', 'python3')
+
         return {isolate for isolate in isolates
-                if isolate.language in (None, language)}
+                if isolate.language in authorized_languages}
 
 
     def distribute(self, components, existing_isolates):
@@ -96,6 +102,7 @@ class IsolateDistributor(object):
         :param existing_isolates: A set of pre-existing eligible isolates
         :return: A set of EligibleIsolate beans
         """
+        # Ensure we have no doubles
         isolates = set(existing_isolates)
 
         # Nominate electors
@@ -107,10 +114,8 @@ class IsolateDistributor(object):
 
         for component in components:
             # Compute the isolates that could match this component
-            # FIXME: hidden due to python/python3 comparison problem
-            # matching_isolates = self._get_matching_isolates(component,
-            #                                                 isolates)
-            matching_isolates = isolates
+            matching_isolates = self._get_matching_isolates(component,
+                                                            isolates)
 
             # Vote !
             isolate = vote.vote(component, matching_isolates)

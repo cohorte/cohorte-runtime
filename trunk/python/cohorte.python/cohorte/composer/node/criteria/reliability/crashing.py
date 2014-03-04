@@ -140,17 +140,9 @@ class CrashCriterion(object):
             # Rating is too bad: prefer a dedicated isolate (blank vote)
             return None
 
-        # Get component information
-        language = component.language
-
         for eligible in eligibles:
             candidate = eligible.candidate
-            if candidate.language not in (None, language):
-                # Incompatible language ?
-                # => try with next candidate
-                continue
-
-            elif candidate.components:
+            if candidate.components:
                 # Compute the mean and variance of the current components
                 # ratings
                 mean = self.compute_stats(candidate.components)

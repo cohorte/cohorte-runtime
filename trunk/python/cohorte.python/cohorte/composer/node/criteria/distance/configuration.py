@@ -87,16 +87,6 @@ class ConfigurationIsolateCriterion(object):
             candidate = eligible.candidate
 
             if candidate.name == isolate:
-                # Same name
-                if candidate.language not in (None, language):
-                    # Incompatible language ?
-                    # FIXME: an exception should be raised here (like before)
-                    # => Simple warning due to python/python3 naming
-                    _logger.warning("Possible language incompatibility for " \
-                                    "%s (%s) on isolate %s (%s)",
-                                    component.name, language,
-                                    isolate, candidate.language)
-
                 # Found the corresponding isolate
                 raise vote.CoupdEtat(candidate)
 
