@@ -60,7 +60,7 @@ class FileFinder(object):
         """
         Tries to remove a platform root prefix from the given path.
         Non-None result indicates that the given path is a root sub-path.
-        
+
         :param path: Path to be transformed
         :retun: The root-path if any, else None
         """
@@ -98,7 +98,7 @@ class FileFinder(object):
     def _internal_find(self, filename):
         """
         A generator to find the given file in the platform directories.
-        
+
         :param filename: Name of the file to find
         """
         if os.path.isabs(filename) and os.path.exists(filename):
@@ -124,32 +124,44 @@ class FileFinder(object):
     def find_rel(self, filename, base_file):
         """
         A generator to find the given file in the platform folders
-        
+
         :param filename: The file to look for (tries its absolute path then its
                           name)
         :param base_file: Base file reference (filename can be relative to it)
         :return: The matching files
         """
+        # Avoid to give the same file twice
+        handled = set()
+
         if base_file:
             abspath = os.path.abspath
             file_exists = os.path.exists
 
+            # Multiple possibilities...
+            base_dirs = set()
+
             if os.path.isdir(base_file):
-                # The given base is a directory
-                base_dir = abspath(base_file)
+                # The given base is a directory (absolute or relative)
+                base_dirs.add(abspath(base_file))
 
             elif file_exists(base_file):
                 # The given base exists: get its directory
-                base_dir = abspath(os.path.dirname(base_file))
+                base_dirs.add(abspath(os.path.dirname(base_file)))
 
-            else:
-                # Unknown kind of base (maybe a relative one)
-                base_dir = base_file
+            if not os.path.isabs(base_file):
+                # Keep relative paths, as they can be platform-relative
+                base_dirs.add(base_file)
 
-            if base_dir:
+            for base_dir in base_dirs:
                 # Try the base directory directly (as a relative directory)
                 path = os.path.join(base_dir, filename)
                 for found_file in self._internal_find(path):
+                    if found_file in handled:
+                        # Already known
+                        continue
+                    else:
+                        handled.add(found_file)
+
                     yield found_file
 
                 # Try without the platform prefix, if any
@@ -157,10 +169,22 @@ class FileFinder(object):
                 if platform_subdir:
                     path = os.path.join(platform_subdir, filename)
                     for found_file in self._internal_find(path):
+                        if found_file in handled:
+                            # Already known
+                            continue
+                        else:
+                            handled.add(found_file)
+
                         yield found_file
 
         # Find files, the standard way
         for found_file in self._internal_find(filename):
+            if found_file in handled:
+                # Already known
+                continue
+            else:
+                handled.add(found_file)
+
             yield found_file
 
 
@@ -168,7 +192,7 @@ class FileFinder(object):
         """
         Generator to find the files matching the given pattern looking
         recursively in the given directory in the roots (base, home and customs)
-        
+
         :param pattern: A file pattern
         :param base_dir: The name of a sub-directory of "home" or "base"
         :param recursive: If True, searches recursively for the file
@@ -199,7 +223,7 @@ class FileFinder(object):
     def add_custom_root(self, root):
         """
         Adds a custom search root (not ordered)
-        
+
         :param root: The custom root to add
         """
         if root:
@@ -209,7 +233,7 @@ class FileFinder(object):
     def remove_custom_root(self, root):
         """
         Removes a custom search root
-        
+
         :param root: The custom root to remove
         """
         if root:
@@ -238,7 +262,7 @@ class FileFinder(object):
     def validate(self, context):
         """
         Component validated
-        
+
         :param context: The bundle context
         """
         # Store the framework access
@@ -256,7 +280,7 @@ class FileFinder(object):
     def invalidate(self, context):
         """
         Component invalidated
-        
+
         :param context: The bundle context
         """
         # Store the framework access
