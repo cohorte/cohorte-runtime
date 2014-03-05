@@ -236,7 +236,7 @@ class NodeCommander(object):
         :return: A set of isolate beans
         """
         isolates = set()
-        for composer in self._isolate_composer.values():
+        for composer in list(self._isolate_composer.values()):
             try:
                 # Request the description of the composer
                 isolate_info = composer.get_isolate_info()

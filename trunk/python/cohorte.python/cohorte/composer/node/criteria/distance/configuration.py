@@ -81,7 +81,6 @@ class ConfigurationIsolateCriterion(object):
             return
 
         isolate = component.isolate
-        language = component.language
 
         for eligible in eligibles:
             candidate = eligible.candidate
@@ -91,7 +90,6 @@ class ConfigurationIsolateCriterion(object):
                 raise vote.CoupdEtat(candidate)
 
             elif candidate.name is None \
-            and candidate.language in (None, language) \
             and candidate.propose_rename(isolate):
                 # No name yet, same language and renaming accepted
                 eligible.vote()

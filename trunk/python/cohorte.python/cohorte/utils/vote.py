@@ -38,6 +38,11 @@ __docformat__ = "restructuredtext en"
 # Standard library
 import functools
 import itertools
+import logging
+
+# ------------------------------------------------------------------------------
+
+_logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
@@ -110,18 +115,20 @@ class _Vote(object):
         return hash(self.__candidate)
 
 
+    def __eq__(self, other):
+        """
+        Equality based on the candidate
+        """
+        return self.__candidate == other.__candidate
+
+
     def __str__(self):
         """
         String representation
         """
         return '{0:s} ({1:d} votes)'.format(self.__candidate, self.__votes)
 
-
-    def __eq__(self, other):
-        """
-        Equality based on the candidate
-        """
-        return self.__candidate == other.__candidate
+    __repr__ = __str__
 
 
     def __lt__(self, other):
@@ -196,6 +203,10 @@ class MatchVote(object):
         # Sort by number of votes
         results = sorted(votes, reverse=True)
 
+        _logger.critical("-- Results:")
+        for result in results:
+            _logger.warning(".... %s", result)
+
         if results[0].votes >= majority:
             # Elected by majority
             return results[0].candidate
@@ -227,6 +238,7 @@ class MatchVote(object):
 
         elif len(votes) == 1:
             # Only 1 of the candidates has been retained
+            _logger.critical("Only 1 of the candidates has been retained")
             return next(iter(votes)).candidate
 
         else:
@@ -245,8 +257,7 @@ class MatchVote(object):
         :return: The elected candidate
         """
         # Candidate −> Votes
-        candidates = frozenset(_Vote(candidate)
-                               for candidate in initial_candidates)
+        candidates = tuple(_Vote(candidate) for candidate in initial_candidates)
 
         try:
             for _ in range(max_turns):
@@ -261,10 +272,12 @@ class MatchVote(object):
 
                 except NextTurn as ex:
                     # Still not decided
-                    candidates = ex.candidates
+                    candidates = tuple(_Vote(candidate)
+                                       for candidate in ex.candidates)
 
         except CoupdEtat as ex:
             # Well, that escalated quickly...
+            _logger.critical("Coup d'État for %s", ex.claimant)
             elected = ex.claimant
 
         if elected is None:

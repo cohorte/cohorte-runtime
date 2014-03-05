@@ -49,6 +49,13 @@ import cohorte.utils.vote
 from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
     Instantiate
 
+# Standard library
+import logging
+
+# ------------------------------------------------------------------------------
+
+_logger = logging.getLogger(__name__)
+
 # ------------------------------------------------------------------------------
 
 @ComponentFactory()
@@ -90,8 +97,8 @@ class IsolateDistributor(object):
         if language.startswith('python'):
             authorized_languages.update('python', 'python3')
 
-        return {isolate for isolate in isolates
-                if isolate.language in authorized_languages}
+        return [isolate for isolate in isolates
+                if isolate.language in authorized_languages]
 
 
     def distribute(self, components, existing_isolates):
@@ -100,11 +107,8 @@ class IsolateDistributor(object):
 
         :param components: A list of RawComponent beans
         :param existing_isolates: A set of pre-existing eligible isolates
-        :return: A set of EligibleIsolate beans
+        :return: A tuple of tuples: updated and new EligibleIsolate beans
         """
-        # Ensure we have no doubles
-        isolates = set(existing_isolates)
-
         # Nominate electors
         electors = set(self._distance_criteria)
         electors.update(self._reliability_criteria)
@@ -112,33 +116,57 @@ class IsolateDistributor(object):
         # Create a vote
         vote = cohorte.utils.vote.MatchVote(electors)
 
+        # Growing list of candidates
+        all_candidates = set(existing_isolates)
+
+        # Prepare the return
+        updated_isolates = set()
+        new_isolates = set()
+
         for component in components:
             # Compute the isolates that could match this component
             matching_isolates = self._get_matching_isolates(component,
-                                                            isolates)
+                                                            all_candidates)
+
+            # Add an empty isolate in the candidates
+            neutral = beans.EligibleIsolate()
+            matching_isolates.append(neutral)
 
             # Vote !
             isolate = vote.vote(component, matching_isolates)
+
+            _logger.warning("** Vote result for %s :: %s **",
+                            component.name, isolate)
+
             if isolate is None:
                 # Vote without result
-                isolate = beans.EligibleIsolate()
+                isolate = neutral
 
             # Associate the component to the isolate
             isolate.add_component(component)
+
+            # Add the new isolate for the next round
+            all_candidates.add(isolate)
 
             # Isolate rename accepted
             if not isolate.name:
                 isolate.accepted_rename()
 
             # Store the isolate
-            isolates.add(isolate)
+            if isolate is neutral:
+                # New isolate
+                new_isolates.add(isolate)
+
+            elif isolate not in new_isolates:
+                # Old one updated
+                updated_isolates.add(isolate)
 
             # Reset others
             for other_isolate in matching_isolates:
                 if other_isolate is not isolate:
                     other_isolate.rejected_rename()
 
-        return isolates
+        return tuple(updated_isolates), tuple(new_isolates)
 
 
     def handle_event(self, event):

@@ -234,34 +234,29 @@ class NodeComposer(object):
         :return: A tuple (distribution, new_isolates), both parts being sets of
                  Isolate beans
         """
-        # Convert them
-        eligible_isolates = {beans.EligibleIsolate.from_isolate(isolate)
-                             for isolate in existing_isolates}
+        # Convert existing isolates into eligible ones
+        eligible_isolates = [beans.WrappedEligibleIsolate(isolate)
+                             for isolate in existing_isolates]
 
         # Distribute components
-        dist_isolates = self._distributor.distribute(components,
-                                                     eligible_isolates)
+        updated_isolates, new_isolates = self._distributor.distribute(\
+                                                              components,
+                                                              eligible_isolates)
 
-        # Differentiate new and running isolates
-        eligible_isolates.intersection_update(dist_isolates)
-        new_isolates = dist_isolates.difference(eligible_isolates)
-
-        # Generate the name of isolates
+        # Generate the name of new isolates
         for isolate in new_isolates:
             isolate.generate_name(self._node_name)
 
         # Convert back to composer-level beans
-        new_beans = {isolate.to_isolate() for isolate in new_isolates}
+        new_beans = set(isolate.to_isolate() for isolate in new_isolates)
         dist_beans = set(new_beans)
 
-        # Re-use existing beans instead of creating new ones
-        existing_beans = dict((isolate.name, isolate)
-                              for isolate in existing_isolates)
-        for elected in eligible_isolates:
-            isolate = existing_beans[elected.name]
-            isolate.components.update(elected.components)
+        for updated in updated_isolates:
+            isolate = updated.to_isolate()
+            isolate.components.update(updated.new_components)
             dist_beans.add(isolate)
 
+        # FIXME: enhance returned tuple
         return (dist_beans, new_beans)
 
 
@@ -332,6 +327,8 @@ class NodeComposer(object):
         Redistributes the components of this node
         """
         with self._lock:
+            _logger.warning("!! Node Composer starts redistribution !!!")
+
             # Get components
             components = self._status.get_components()
 

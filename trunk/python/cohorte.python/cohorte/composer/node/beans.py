@@ -122,30 +122,6 @@ class EligibleIsolate(object):
                                                        self.__components)
 
 
-    def __hash__(self):
-        """
-        An isolate is unique on a node by its name
-        """
-        return hash(self.name)
-
-
-    def __eq__(self, other):
-        """
-        An isolate is unique on a node by its name
-        """
-        return self.name == other.name
-
-
-    @classmethod
-    def from_isolate(cls, isolate):
-        """
-        Creates a new instance from the values of the given Isolate bean
-
-        :param isolate: An Isolate bean
-        """
-        return cls(isolate.name, isolate.language, isolate.components)
-
-
     def to_isolate(self):
         """
         Returns the corresponding Isolate bean
@@ -234,6 +210,14 @@ class EligibleIsolate(object):
 
 
     @property
+    def new_components(self):
+        """
+        Returns the (frozen) set of components added to this isolate
+        """
+        return frozenset(self.__components)
+
+
+    @property
     def factories(self):
         """
         Returns the (frozen) set of the factories required to instantiate
@@ -251,3 +235,48 @@ class EligibleIsolate(object):
             self.language = component.language
 
         self.__components.add(component)
+
+# ------------------------------------------------------------------------------
+
+class WrappedEligibleIsolate(EligibleIsolate):
+    """
+    An existing isolate is proposed to the vote
+    """
+    def __init__(self, isolate):
+        """
+        Sets up members
+
+        :param isolate: An Isolate bean
+        """
+        super(WrappedEligibleIsolate, self).__init__(isolate.name,
+                                                     isolate.language,
+                                                     isolate.components)
+        self.__isolate = isolate
+        self.__added_components = []
+
+
+    def to_isolate(self):
+        """
+        Returns the corresponding Isolate bean
+        """
+        return self.__isolate
+
+
+    @property
+    def new_components(self):
+        """
+        Returns the (frozen) set of components added to this isolate
+        """
+        return frozenset(self.__added_components)
+
+
+    def add_component(self, component):
+        """
+        Adds a component to the isolate
+        """
+        if self.language is None:
+            # First component tells which language this isolate hosts
+            self.language = component.language
+
+        self.__components.add(component)
+        self.__added_components.add(component)
