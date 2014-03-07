@@ -57,7 +57,7 @@ _logger = logging.getLogger(__name__)
 @Provides(cohorte.vote.SERVICE_VOTE_ENGINE)
 @Property('_kind', cohorte.vote.PROP_VOTE_KIND, 'approbation')
 @Instantiate('vote-engine-approbation')
-class ApprobationEngine(cohorte.vote.AbstractEngine):
+class ApprobationEngine(object):
     """
     Voting system core service
     """
@@ -87,7 +87,7 @@ class ApprobationEngine(cohorte.vote.AbstractEngine):
                 "nb_elected": "Number of candidates to elect. Default: 1"}
 
 
-    def analyze(self, vote_round, ballots, candidates, parameters):
+    def analyze(self, vote_round, ballots, candidates, parameters, vote_bean):
         """
         Analyzes the results of a vote
 
@@ -95,11 +95,9 @@ class ApprobationEngine(cohorte.vote.AbstractEngine):
         :param ballots: All ballots of the vote
         :param candidates: List of all candidates
         :param parameters: Parameters for the vote engine
+        :param vote_bean: A VoteResults bean
         :return: The candidate(s) with the most votes
         """
-        # Debug mode flag
-        debug_mode = parameters.get('debug', False)
-
         # Get the number of votes to take into account
         nb_votes = parameters.get("votes_per_elector", 1)
         nb_elected = parameters.get("nb_elected", 1)
@@ -111,12 +109,9 @@ class ApprobationEngine(cohorte.vote.AbstractEngine):
             for candidate in accepted:
                 results[candidate] = results.get(candidate, 0) + 1
 
-        # Make a sorted list of tuples: (votes, candidate)
-        results = sorted(((item[1], item[0]) for item in results.items()),
-                         reverse=True)
-
-        if debug_mode:
-            self.draw_results(vote_round, ballots, candidates, results)
+        # Store the results, as it makes a sorted list of tuples:
+        # (votes, candidate)
+        results = vote_bean.set_results(results)
 
         if nb_elected == 1:
             # Single result

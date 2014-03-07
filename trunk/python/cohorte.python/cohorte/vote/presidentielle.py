@@ -59,7 +59,7 @@ _logger = logging.getLogger(__name__)
 @Provides(cohorte.vote.SERVICE_VOTE_ENGINE)
 @Property('_kind', cohorte.vote.PROP_VOTE_KIND, 'presidentielle')
 @Instantiate('vote-engine-presidentielle')
-class PresidentielleFrEngine(cohorte.vote.AbstractEngine):
+class PresidentielleFrEngine(object):
     """
     Voting system core service
     """
@@ -87,7 +87,7 @@ class PresidentielleFrEngine(cohorte.vote.AbstractEngine):
         return {}
 
 
-    def analyze(self, vote_round, ballots, candidates, parameters):
+    def analyze(self, vote_round, ballots, candidates, parameters, vote_bean):
         """
         Analyzes the results of a vote
 
@@ -95,11 +95,9 @@ class PresidentielleFrEngine(cohorte.vote.AbstractEngine):
         :param ballots: All ballots of the vote
         :param candidates: List of all candidates
         :param parameters: Parameters for the vote engine
+        :param vote_bean: A VoteResults bean
         :return: The candidate(s) with the most votes
         """
-        # Debug mode flag
-        debug_mode = parameters.get('debug', False)
-
         # Count the number of votes for each candidate
         results = {}
         for ballot in ballots:
@@ -108,12 +106,8 @@ class PresidentielleFrEngine(cohorte.vote.AbstractEngine):
                 # In this kind of election, we can't have additional candidates
                 results[candidate] = results.get(candidate, 0) + 1
 
-        # Make a sorted list of tuples: (votes, candidate)
-        results = sorted(((item[1], item[0]) for item in results.items()),
-                         reverse=True)
-
-        if debug_mode:
-            self.draw_results(vote_round, ballots, candidates, results)
+        # Store the results
+        results = vote_bean.set_results(results)
 
         # Compute the number of votes for absolute majority
         nb_votes = sum(result[0] for result in results)
@@ -126,4 +120,3 @@ class PresidentielleFrEngine(cohorte.vote.AbstractEngine):
         else:
             # We need a new round, with the two best candidates
             raise beans.NextRound(result[1] for result in results[:2])
-

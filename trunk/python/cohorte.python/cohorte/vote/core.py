@@ -54,6 +54,7 @@ _logger = logging.getLogger(__name__)
 
 @ComponentFactory()
 @Provides(cohorte.vote.SERVICE_VOTE_CORE)
+@Requires('_store', cohorte.vote.SERVICE_VOTE_STORE)
 @Requires('_engines', cohorte.vote.SERVICE_VOTE_ENGINE,
           aggregate=True, optional=False)
 @Instantiate('vote-core')
@@ -67,6 +68,12 @@ class VoteCore(object):
         """
         # Vote engines
         self._engines = None
+
+        # Vote results storage
+        self._store = None
+
+        # Votes counter
+        self._nb_votes = 0
 
 
     def get_kinds(self):
@@ -103,6 +110,12 @@ class VoteCore(object):
         # Do not try to shortcut the vote if there is only one candidate:
         # it is possible that an elector has to be notified of the votes
 
+        # Prepare the results bean
+        self._nb_votes += 1
+        vote_bean = beans.VoteResults("Vote {0}".format(self._nb_votes),
+                                      kind, candidates, electors,
+                                      subject, kind_parameters)
+
         # Vote until we have a result
         vote_round = 1
         while True:
@@ -116,18 +129,28 @@ class VoteCore(object):
                 elector.vote(tuple(candidates), subject, ballot)
                 ballots.append(ballot)
 
+            # Store the ballots of this round
+            vote_bean.set_ballots(ballots)
+
             # 3. Analyze votes
             try:
-                return engine.analyze(vote_round, ballots, tuple(candidates),
-                                      kind_parameters)
+                result = engine.analyze(vote_round, ballots, tuple(candidates),
+                                        kind_parameters, vote_bean)
+                break
 
             except beans.NextRound as ex:
                 # Another round is necessary
                 candidates = ex.candidates
                 vote_round += 1
+                vote_bean.next_round(candidates)
 
                 _logger.warning("New round required with: %s", candidates)
 
                 if len(candidates) == 1:
                     # Tricky engine...
-                    return candidates[0]
+                    result = candidates[0]
+                    break
+
+        # Store the vote results
+        self._store.store_vote(vote_bean)
+        return result

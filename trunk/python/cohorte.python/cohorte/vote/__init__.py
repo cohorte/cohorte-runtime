@@ -31,39 +31,6 @@ __docformat__ = "restructuredtext en"
 
 # ------------------------------------------------------------------------------
 
-class AbstractEngine(object):
-    """
-    Abstract vote engine
-    """
-    def draw_results(self, vote_round, ballots, candidates, results):
-        """
-        Writes a bar graph
-        """
-        try:
-            from nvd3 import discreteBarChart
-
-        except ImportError:
-            # Can't work...
-            return
-
-        kind = self.get_kind()
-        chart = discreteBarChart(name='vote_results', height=400, width=600)
-        chart.set_containerheader("\n\n<h2>Vote {0} Round {1}</h2>\n\n" \
-                                  .format(kind, vote_round))
-
-        # Rotate results
-        ydata, xdata = zip(*results)
-        chart.add_serie(y=ydata, x=xdata)
-
-        # Prepare filename
-        filename = "result_{0}_{1}.html".format(kind, vote_round)
-
-        with open(filename, "w+") as fp:
-            chart.buildhtml()
-            fp.write(chart.htmlcontent)
-
-# ------------------------------------------------------------------------------
-
 SERVICE_VOTE_CORE = 'cohorte.vote.core'
 """
 Specification of the core election service, providing:
@@ -95,6 +62,16 @@ Specification of a vote engine, providing:
 
   Analyzes the ballots of a vote and returns a kind- and parameters-dependent
   result. Raises a NextTurn exception if it requires a new turn.
+"""
+
+SERVICE_VOTE_CARTOONIST = 'cohorte.vote.cartoonist'
+"""
+Specification of a chart cartoonist
+"""
+
+SERVICE_VOTE_STORE = 'cohorte.vote.store'
+"""
+Storage for votes (debug, ...)
 """
 
 # ------------------------------------------------------------------------------

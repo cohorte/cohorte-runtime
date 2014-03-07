@@ -141,7 +141,6 @@ class Ballot(object):
         """
         self.__against = list(candidates)
 
-# ------------------------------------------------------------------------------
 
 class SecretBallot(Ballot):
     """
@@ -155,3 +154,109 @@ class SecretBallot(Ballot):
                         signature
         """
         super(SecretBallot, self).__init__(None)
+
+# ------------------------------------------------------------------------------
+
+class VoteResults(object):
+    """
+    Stores the content of a vote, i.e. what to draw. Filled by the vote core and
+    the vote engine.
+    """
+    def __init__(self, name, kind, candidates, electors,
+                 subject=None, parameters=None):
+        """
+        Name/identifier of the vote
+        """
+        # Vote information
+        self.name = name
+        self.kind = kind
+        self.candidates = tuple(sorted(candidates))
+        self.electors = tuple(electors)
+        self.subject = subject
+        self.parameters = parameters.copy() if parameters else {}
+
+        self.round = {}
+        self.rounds = []
+
+        # Prepare the first round
+        self.next_round()
+
+
+    def __str__(self):
+        """
+        String representation
+        """
+        text = "Vote {0}, of kind {1}, in {2} rounds".format(self.name,
+                                                             self.kind,
+                                                             len(self.round))
+        if self.subject:
+            text = "{0}, about {1}".format(text, self.subject)
+
+        return text
+
+
+    def next_round(self, candidates=None):
+        """
+        Prepare for next round
+
+        :param candidates: Candidates for the next round
+        """
+        if candidates:
+            candidates = tuple(sorted(candidates))
+
+        # New round
+        self.round = {'candidates': candidates or self.candidates,
+                      'ballots': {},
+                      'results': {},
+                      'extra': []}
+        self.rounds.append(self.round)
+
+
+    def set_ballots(self, ballots):
+        """
+        Add raw ballots informations
+
+        :param ballots: Ballots of the round
+        """
+        results = self.round['ballots'] = {}
+        secret_id = 1
+
+        for ballot in ballots:
+            elector = ballot.get_elector()
+            if elector is None:
+                name = "<Secret-{0}>".format(secret_id)
+                secret_id += 1
+            else:
+                name = str(elector)
+
+            results[name] = {'for': ballot.get_for(),
+                             'against': ballot.get_against()}
+
+
+    def set_results(self, results):
+        """
+        Results computed by the vote engine (with scoring applied)
+
+        :param results: A Candidate -> Score dictionary
+        :return: A sorted list of tuple (score, candidate)
+        """
+        # Make a sorted list of tuples: (votes, candidate)
+        results = sorted(((item[1], item[0]) for item in results.items()),
+                         reverse=True)
+
+        self.round['results'] = tuple(results)
+        return results
+
+
+    def add_extra(self, title, values, kind='bar'):
+        """
+        Adds an extra information
+
+        :param title: Title of the extra information
+        :param values: A X -> Y dictionary
+        :param kind: Kind of chart to draw
+        """
+        extra = {'title': title,
+                 'kind': kind,
+                 'values': values.copy()}
+        self.round['extra'].append(extra)
