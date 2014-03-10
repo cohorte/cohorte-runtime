@@ -110,6 +110,16 @@ class EligibleIsolate(object):
             self.__components = set(components)
 
 
+    def __str__(self):
+        """
+        String representation
+        """
+        if not self.language:
+            return "Neutral"
+
+        return "{0} {1}".format(self.__name, self.language)
+
+
     def __repr__(self):
         """
         String representation

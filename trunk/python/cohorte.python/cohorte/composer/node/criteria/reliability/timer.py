@@ -83,6 +83,13 @@ class TimerUpdater(object):
         self._lock = threading.Lock()
 
 
+    def __str__(self):
+        """
+        String representation
+        """
+        return "Timer"
+
+
     @Validate
     def validate(self, context):
         """
@@ -158,7 +165,7 @@ class TimerUpdater(object):
                                        for component in event.components)
 
 
-    def vote(self, component, eligibles):
+    def vote(self, candidates, subject, ballot):
         """
         Does nothing
         """

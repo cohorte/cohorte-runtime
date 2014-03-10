@@ -44,6 +44,7 @@ from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
 
 # Standard library
 import logging
+import operator
 
 # ------------------------------------------------------------------------------
 
@@ -65,6 +66,13 @@ class CrashCriterion(object):
         """
         # Factory name -> Rating
         self._ratings = {}
+
+
+    def __str__(self):
+        """
+        String representation
+        """
+        return "Crashing"
 
 
     @Validate
@@ -105,7 +113,16 @@ class CrashCriterion(object):
 
         # Update their ratings
         for factory in factories:
-            self._ratings[factory] = self._ratings.get(factory, 50.0) + delta
+            new_rating = self._ratings.get(factory, 50.0) + delta
+            # Normalize the new rating
+            if new_rating < 0:
+                new_rating = 0
+
+            elif new_rating > 100:
+                new_rating = 100
+
+            self._ratings[factory] = new_rating
+
             _logger.warning("Updating factory rating: %s -> %s",
                             factory, self._ratings[factory])
 
@@ -126,29 +143,40 @@ class CrashCriterion(object):
                    for factory in factories) / len(factories)
 
 
-    def vote(self, component, eligibles):
+    def vote(self, candidates, subject, ballot):
         """
-        Prepares a coup d'État if the isolate that must host the given component
-        has been forced in the configuration
+        Votes the isolate that matches the best the stability of the given
+        component
 
-        :param component: A Component bean
-        :param eligibles: A set of Isolate beans
+        :param candidates: Isolates to vote for
+        :param subject: The component to place
+        :param ballot: The vote ballot
         """
         # Get/Set the rating of the component's factory
-        rating = self._ratings.setdefault(component.factory, 50.0)
-        if rating <= 5:
-            # Rating is too bad: prefer a dedicated isolate (blank vote)
-            return None
+        rating = self._ratings.setdefault(subject.factory, 50.0)
 
-        for eligible in eligibles:
-            candidate = eligible.candidate
-            if candidate.components:
+        # Distance with other components
+        distances = []
+
+        for candidate in candidates:
+            if rating > 10 and candidate.components:
+                # Only accept to work with other components if the given one
+                # is stable enough (> 10% stability rating)
                 # Compute the mean and variance of the current components
                 # ratings
                 mean = self.compute_stats(candidate.components)
-                if abs(mean - rating) < 10:
-                    eligible.vote()
+                distance = abs(mean - rating)
+                if distance < 10:
+                    # Prefer small distances
+                    distances.append((distance, candidate))
 
             else:
                 # First component of this isolate ?
-                eligible.vote()
+                distances.append((0, candidate))
+
+        # Sort computed distances (lower is better)
+        distances.sort(key=operator.itemgetter(0))
+
+        # Use them as our vote
+        ballot.set_for(distance[1] for distance in distances)
+        ballot.lock()

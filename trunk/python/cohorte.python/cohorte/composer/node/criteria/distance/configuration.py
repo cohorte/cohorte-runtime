@@ -38,7 +38,9 @@ __docformat__ = "restructuredtext en"
 # Composer
 import cohorte.composer
 import cohorte.composer.node.beans as beans
-import cohorte.utils.vote as vote
+
+# Vote
+import cohorte.vote.beans as vote
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate
@@ -60,6 +62,13 @@ class ConfigurationIsolateCriterion(object):
     Vote for the isolate that will host a component according to the
     configuration
     """
+    def __str__(self):
+        """
+        String representation
+        """
+        return "Configuration"
+
+
     def handle_event(self, event):
         """
         Does nothing: this elector only cares about what is written in
@@ -68,23 +77,21 @@ class ConfigurationIsolateCriterion(object):
         pass
 
 
-    def vote(self, component, eligibles):
+    def vote(self, candidates, subject, ballot):
         """
-        Prepares a coup d'État if the isolate that must host the given component
-        has been forced in the configuration
+        Votes for the isolate(s) with the minimal compatibility distance
 
-        :param component: A Component bean
-        :param eligibles: A set of Isolate beans
+        :param candidates: Isolates to vote for
+        :param subject: The component to place
+        :param ballot: The vote ballot
         """
-        if not component.isolate:
-            # No isolate configured: blank vote
+        # Get the configured isolate
+        isolate = subject.isolate
+        if not isolate:
+            # No forced isolate: blank vote
             return
 
-        isolate = component.isolate
-
-        for eligible in eligibles:
-            candidate = eligible.candidate
-
+        for candidate in candidates:
             if candidate.name == isolate:
                 # Found the corresponding isolate
                 raise vote.CoupdEtat(candidate)
@@ -92,9 +99,9 @@ class ConfigurationIsolateCriterion(object):
             elif candidate.name is None \
             and candidate.propose_rename(isolate):
                 # No name yet, same language and renaming accepted
-                eligible.vote()
+                ballot.append_for(candidate)
 
         else:
             # Not found, create a new isolate
             # (it will be configured by the node distributor)
-            raise vote.CoupdEtat(beans.EligibleIsolate(component.isolate))
+            raise vote.CoupdEtat(beans.EligibleIsolate(isolate))

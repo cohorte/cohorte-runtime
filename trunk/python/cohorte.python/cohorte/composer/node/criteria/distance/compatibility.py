@@ -46,6 +46,7 @@ import pelix.shell
 # Standard library
 import itertools
 import logging
+import operator
 
 # ------------------------------------------------------------------------------
 
@@ -71,6 +72,13 @@ class CompatibilityCriterion(object):
 
         # Inject Shell utilities
         self._utils = None
+
+
+    def __str__(self):
+        """
+        String representation
+        """
+        return "Compatibility"
 
 
     @Validate
@@ -131,64 +139,72 @@ class CompatibilityCriterion(object):
 
         # Update their compatibility ratings
         for pair in itertools.combinations(factories, 2):
-            self._ratings[pair] = self._ratings.get(pair, 50.0) + delta
+            new_rating = self._ratings.get(pair, 50.0) + delta
+
+            # Normalize the new rating
+            if new_rating < 0:
+                new_rating = 0
+
+            elif new_rating > 100:
+                new_rating = 100
+
+            self._ratings[pair] = new_rating
 
         self.print_matrix()
 
 
-    def vote(self, component, eligibles):
+    def vote(self, candidates, subject, ballot):
         """
-        Votes for the isolate with the best minimal compatibility
+        Votes for the isolate(s) with the minimal compatibility distance
 
-        :param component: A Component bean
-        :param eligibles: A set of Isolate beans
+        :param candidates: Isolates to vote for
+        :param subject: The component to place
+        :param ballot: The vote ballot
         """
-        factory = component.factory
+        factory = subject.factory
         compatibilities = []
-        has_voted = False
 
-        for eligible in eligibles:
-            components = eligible.candidate.components
+        for candidate in candidates:
+            # Analyze each candidate
+            components = candidate.components
             if not components:
                 # No components, we're OK with it
                 _logger.warning("No components, we're OK with it")
-                eligible.vote()
-                has_voted = True
-
-            # Get all factories on the isolate
-            pairs = set(tuple(sorted((factory, component.factory)))
-                        for component in components)
-
-            # Remove identity
-            pairs.discard((factory, factory))
-
-            if pairs:
-                # Compute the worst compatibility rating on this isolate
-                min_compatibility = min(self._ratings.get(pair, 50.0)
-                                        for pair in pairs)
-                compatibilities.append((min_compatibility, eligible))
+                compatibilities.append((100, candidate))
 
             else:
-                # No other factory: vote for it
-                eligible.vote()
-                has_voted = True
+                # Get all factories on the isolate
+                pairs = set(tuple(sorted((factory, component.factory)))
+                            for component in components)
 
-        if not compatibilities:
-            # No isolate found
-            _logger.warning("No isolate found")
-            return
+                # Remove identity
+                pairs.discard((factory, factory))
 
-        if has_voted:
-            _logger.debug("Already voted...")
-            return
+                if pairs:
+                    # Compute the worst compatibility rating on this isolate
+                    min_compatibility = min(self._ratings.get(pair, 50.0)
+                                            for pair in pairs)
+                    compatibilities.append((min_compatibility, candidate))
 
-        compatibilities.sort(reverse=True)
-        best = compatibilities[0]
-        if best[0] > 50:
-            # Best compatibility is good enough
-            _logger.warning("Voting for the best: %s", best)
-            best[1].vote()
+                else:
+                    # No other factory: vote for it
+                    _logger.warning("No other factory on this isolate")
+                    compatibilities.append((100, candidate))
 
-        else:
-            _logger.warning("No vote: compatibility is too low: %s",
-                            compatibilities)
+        # Sort results (greater is better)
+        compatibilities.sort(key=operator.itemgetter(0), reverse=True)
+
+        # Vote
+        for compatibility, candidate in compatibilities:
+            if compatibility >= 50:
+                # >= 50% of compatibility: OK
+                ballot.append_for(candidate)
+
+            elif compatibility < 30:
+                # < 30% of compatibility: Reject
+                ballot.append_against(candidate)
+
+            # else: blank vote
+
+        # Lock our vote
+        ballot.lock()

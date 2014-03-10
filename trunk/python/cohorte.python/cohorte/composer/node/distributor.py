@@ -42,8 +42,8 @@ __docformat__ = "restructuredtext en"
 import cohorte.composer
 import cohorte.composer.node.beans as beans
 
-# Vote utility
-import cohorte.utils.vote
+# Vote service
+import cohorte.vote
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
@@ -65,6 +65,7 @@ _logger = logging.getLogger(__name__)
 @Requires('_reliability_criteria',
           cohorte.composer.SERVICE_NODE_CRITERION_RELIABILITY, aggregate=True,
           optional=True)
+@Requires('_vote', cohorte.vote.SERVICE_VOTE_CORE)
 @Instantiate('cohorte-composer-node-distributor')
 class IsolateDistributor(object):
     """
@@ -79,6 +80,11 @@ class IsolateDistributor(object):
 
         # Reliability criteria
         self._reliability_criteria = []
+
+        # Vote system
+        self._vote = None
+
+        self._nb_distribution = 0
 
 
     def _get_matching_isolates(self, component, isolates):
@@ -113,15 +119,19 @@ class IsolateDistributor(object):
         electors = set(self._distance_criteria)
         electors.update(self._reliability_criteria)
 
-        # Create a vote
-        vote = cohorte.utils.vote.MatchVote(electors)
-
         # Growing list of candidates
         all_candidates = set(existing_isolates)
 
         # Prepare the return
         updated_isolates = set()
         new_isolates = set()
+
+        # Prepare parameters of the vote
+        kind = "approbation"
+        parameters = {}
+
+        self._nb_distribution += 1
+        prefix = "Distribution {0}".format(self._nb_distribution)
 
         for component in components:
             # Compute the isolates that could match this component
@@ -133,7 +143,9 @@ class IsolateDistributor(object):
             matching_isolates.append(neutral)
 
             # Vote !
-            isolate = vote.vote(component, matching_isolates)
+            isolate = self._vote.vote(electors, matching_isolates, component,
+                                      "{0}-{1}".format(prefix, component.name),
+                                      kind, parameters)
 
             _logger.warning("** Vote result for %s :: %s **",
                             component.name, isolate)
