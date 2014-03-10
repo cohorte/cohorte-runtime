@@ -45,7 +45,9 @@ from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate
 import nvd3
 
 # Standard library
+import cgi
 import logging
+import numbers
 import uuid
 
 # ------------------------------------------------------------------------------
@@ -53,6 +55,15 @@ import uuid
 _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
+
+def _normalize(values):
+    """
+    Normalizes the given list of values: it must only contain numbers or strings
+    """
+    return sorted(value
+                  if isinstance(value, (numbers.Number, str)) else str(value)
+                  for value in values)
+
 
 def append_code(html, code, *args):
     """
@@ -74,7 +85,7 @@ def make_html_list(items, tag="ul"):
     :return: The list in HTML
     """
     return "<{0}>\n{1}</{0}>".format(tag, "".join("\t<li>{0}</li>\n" \
-                                                  .format(item)
+                                                  .format(cgi.escape(str(item)))
                                                   for item in items))
 
 def make_chart(*series, **kwargs):
@@ -97,7 +108,7 @@ def make_chart(*series, **kwargs):
 
         if isinstance(serie, dict):
             # If the results are stored as a candidate -> score dictionary
-            xdata, ydata = zip(*((key, serie[key]) for key in sorted(serie)))
+            xdata, ydata = zip(*((key, serie[key]) for key in serie))
 
         else:
             # Rotate results list((score, candidate)
@@ -115,6 +126,10 @@ def make_chart(*series, **kwargs):
                 for key in to_add:
                     xdata.append(key)
                     ydata.append(0)
+
+        # Normalize series
+        xdata = _normalize(xdata)
+        ydata = _normalize(ydata)
 
         # Add the serie
         chart.add_serie(y=ydata, x=xdata)
@@ -138,15 +153,21 @@ def count_ballots(ballots):
     # Count the number of votes for each candidate
     results_for = {}
     results_against = {}
+    blanks = []
 
-    for ballot in ballots.values():
+    for name, ballot in ballots.items():
+        if not ballot['for'] and not ballot['against']:
+            # Blank vote
+            blanks.append(name)
+            continue
+
         for candidate in ballot['for']:
             results_for[candidate] = results_for.get(candidate, 0) + 1
 
         for candidate in ballot['against']:
             results_against[candidate] = results_against.get(candidate, 0) + 1
 
-    return results_for, results_against
+    return results_for, results_against, tuple(sorted(blanks))
 
 # ------------------------------------------------------------------------------
 
@@ -186,9 +207,15 @@ class Cartoonist(object):
 
             # Add the ballots chart
             html = append_code(html, "<h4>Ballots</h4>")
-            ballots_for, ballots_against = count_ballots(round_data['ballots'])
+            ballots_for, ballots_against, blanks = \
+                                            count_ballots(round_data['ballots'])
             html = append_code(html, make_chart(ballots_for, ballots_against,
                                                 required=candidates))
+
+            if blanks:
+                html = append_code(html,
+                                   "<p>{0} electors did not vote</p>\n{1}",
+                                   len(blanks), make_html_list(blanks))
 
             # Add the results chart
             html = append_code(html, "<h4>Engine results</h4>")
@@ -199,6 +226,12 @@ class Cartoonist(object):
             for extra in round_data['extra']:
                 html = append_code(html, "<h4>Extra: {0}</h4>", extra['title'])
                 html = append_code(html, make_chart(extra['values']))
+
+        # Print the result
+        html = append_code(html, "<h4>Results:</h4>\n{0}",
+                           make_html_list((str(result)
+                                           for result in content.results),
+                                          "ol"))
 
         return html
 
