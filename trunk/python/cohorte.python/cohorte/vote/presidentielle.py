@@ -101,10 +101,16 @@ class PresidentielleFrEngine(object):
         # Count the number of votes for each candidate
         results = {}
         for ballot in ballots:
-            candidate = ballot.get_for()[0]
-            if candidate in candidates:
-                # In this kind of election, we can't have additional candidates
-                results[candidate] = results.get(candidate, 0) + 1
+            try:
+                candidate = ballot.get_for()[0]
+                if candidate in candidates:
+                    # In this kind of election, we can't have additional
+                    # candidates
+                    results[candidate] = results.get(candidate, 0) + 1
+
+            except IndexError:
+                # Blank vote
+                continue
 
         # Store the results
         results = vote_bean.set_results(results)
