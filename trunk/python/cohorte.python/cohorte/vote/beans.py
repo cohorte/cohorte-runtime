@@ -35,6 +35,11 @@ __docformat__ = "restructuredtext en"
 
 # ------------------------------------------------------------------------------
 
+# Standard library
+import operator
+
+# ------------------------------------------------------------------------------
+
 class NextRound(Exception):
     """
     A new round is necessary for this vote
@@ -53,6 +58,27 @@ class NextRound(Exception):
         Returns the candidates for the next round
         """
         return self.__candidates
+
+
+class CoupdEtat(Exception):
+    """
+    Election result is forced
+    """
+    def __init__(self, claimant):
+        """
+        Sets up members
+
+        :param claimant: The candidate that claims to be elected
+        """
+        # Do keep a None here
+        self.claimant = claimant
+
+
+    def __str__(self):
+        """
+        String representation
+        """
+        return "Coup d'État by {0:s}.".format(self.claimant)
 
 # ------------------------------------------------------------------------------
 
@@ -108,7 +134,7 @@ class Ballot(object):
 
         :param candidate: One of the candidates
         """
-        if candidate not in self.__against and candidate not in self._for:
+        if candidate not in self.__against and candidate not in self.__for:
             self.__for.append(candidate)
 
 
@@ -118,7 +144,7 @@ class Ballot(object):
 
         :param candidate: One of the candidates
         """
-        if candidate not in self.__against and candidate not in self._for:
+        if candidate not in self.__against and candidate not in self.__for:
             self.__against.append(candidate)
 
 
@@ -170,11 +196,16 @@ class VoteResults(object):
         # Vote information
         self.name = name
         self.kind = kind
-        self.candidates = tuple(sorted(candidates))
+        self.candidates = tuple(candidates)
         self.electors = tuple(electors)
         self.subject = subject
         self.parameters = parameters.copy() if parameters else {}
 
+        # Final results of the vote
+        self.coup_d_etat = False
+        self.results = tuple()
+
+        # Round data
         self.round = {}
         self.rounds = []
 
@@ -192,6 +223,9 @@ class VoteResults(object):
         if self.subject:
             text = "{0}, about {1}".format(text, self.subject)
 
+        if self.coup_d_etat:
+            text = "{0} (Coup d'État !)".format(text)
+
         return text
 
 
@@ -202,7 +236,7 @@ class VoteResults(object):
         :param candidates: Candidates for the next round
         """
         if candidates:
-            candidates = tuple(sorted(candidates))
+            candidates = tuple(candidates)
 
         # New round
         self.round = {'candidates': candidates or self.candidates,
@@ -235,17 +269,33 @@ class VoteResults(object):
 
     def set_results(self, results):
         """
-        Results computed by the vote engine (with scoring applied)
+        Intermediate results computed by the vote engine: scoring has been
+        applied for all candidates
 
         :param results: A Candidate -> Score dictionary
         :return: A sorted list of tuple (score, candidate)
         """
         # Make a sorted list of tuples: (votes, candidate)
         results = sorted(((item[1], item[0]) for item in results.items()),
-                         reverse=True)
+                         key=operator.itemgetter(0), reverse=True)
 
         self.round['results'] = tuple(results)
         return results
+
+
+    def set_vote_results(self, results):
+        """
+        Final results of the vote as seen by the core service after the engine
+        finished its analysis.
+
+        :param results: A list of elected candidates
+        """
+        if not isinstance(results, (list, tuple, set, frozenset)):
+            # Single result
+            self.results = tuple([results])
+        else:
+            # List of results
+            self.results = tuple(results)
 
 
     def add_extra(self, title, values, kind='bar'):
