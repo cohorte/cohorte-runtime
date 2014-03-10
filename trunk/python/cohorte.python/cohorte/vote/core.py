@@ -83,43 +83,61 @@ class VoteCore(object):
         return [engine.get_kind() for engine in self._engines]
 
 
-    def vote(self, kind, electors, candidates, subject=None,
-             kind_parameters=None):
+    def vote(self, electors, candidates, subject=None, name=None,
+             kind=None, parameters=None):
         """
         Runs a vote for the given
 
-        :param kind: Kind of vote
         :param electors: List of electors
         :param candidates: List of candidates
         :param subject: Subject of the vote (optional)
-        :param kind_parameters: Parameters for the vote engine
+        :param name: Name of the vote
+        :param kind: Kind of vote
+        :param parameters: Parameters for the vote engine
         :return: The result of the election (kind-dependent)
         :raise NameError: Unknown kind of vote
         """
         # 1. Select the engine
-        for engine in self._engines:
-            if engine.get_kind() == kind:
-                break
-        else:
-            raise NameError("Unknown kind of vote: {0}".format(kind))
+        if kind is None:
+            if not self._engines:
+                # No engine available
+                raise NameError("No engine available")
 
-        if not isinstance(kind_parameters, dict):
+            # Use the first engine
+            engine = self._engines[0]
+            kind = engine.get_kind()
+
+        else:
+            # Engine given
+            for engine in self._engines:
+                if engine.get_kind() == kind:
+                    break
+            else:
+                raise NameError("Unknown kind of vote: {0}".format(kind))
+
+        # 2. Normalize parameters
+        if not isinstance(parameters, dict):
             # No valid parameters given
-            kind_parameters = {}
+            parameters = {}
+        else:
+            parameters = parameters.copy()
+
+        if not name:
+            # Generate a vote name
+            self._nb_votes += 1
+            name = "Vote {0} ({1})".format(self._nb_votes, kind)
 
         # Do not try to shortcut the vote if there is only one candidate:
         # it is possible that an elector has to be notified of the votes
 
         # Prepare the results bean
-        self._nb_votes += 1
-        vote_bean = beans.VoteResults("Vote {0}".format(self._nb_votes),
-                                      kind, candidates, electors,
-                                      subject, kind_parameters)
+        vote_bean = beans.VoteResults(name, kind, candidates, electors,
+                                      subject, parameters)
 
         # Vote until we have a result
         vote_round = 1
         while True:
-            # 2. Vote
+            # 3. Vote
             ballots = []
             for elector in electors:
                 ballot = beans.Ballot(elector)
@@ -132,10 +150,17 @@ class VoteCore(object):
             # Store the ballots of this round
             vote_bean.set_ballots(ballots)
 
-            # 3. Analyze votes
+            # 4. Analyze votes
             try:
                 result = engine.analyze(vote_round, ballots, tuple(candidates),
-                                        kind_parameters, vote_bean)
+                                        parameters, vote_bean)
+                break
+
+            except beans.CoupdEtat as ex:
+                # Coup d'État !
+                _logger.warning("Coup d'état by %s", ex.claimant)
+                vote_bean.coup_d_etat = True
+                result = ex.claimant
                 break
 
             except beans.NextRound as ex:
@@ -152,5 +177,6 @@ class VoteCore(object):
                     break
 
         # Store the vote results
+        vote_bean.set_vote_results(result)
         self._store.store_vote(vote_bean)
         return result
