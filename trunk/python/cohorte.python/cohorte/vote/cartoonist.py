@@ -165,7 +165,7 @@ def count_ballots(ballots):
             results_for[candidate] = results_for.get(candidate, 0) + 1
 
         for candidate in ballot['against']:
-            results_against[candidate] = results_against.get(candidate, 0) + 1
+            results_against[candidate] = results_against.get(candidate, 0) - 1
 
     return results_for, results_against, tuple(sorted(blanks))
 
