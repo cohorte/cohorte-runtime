@@ -216,8 +216,7 @@ class VoteChartServlet(object):
         all_charts = "<ul>\n{0}</ul>".format("".join(all_items))
 
         # Prepare the HTML body
-        body = """<h1>Cohorte Vote System</h1>
-<h2>All charts (in addition order)</h2>
+        body = """<h2>All charts (in addition order)</h2>
 {all_charts}
 """.format(all_charts=all_charts)
 
