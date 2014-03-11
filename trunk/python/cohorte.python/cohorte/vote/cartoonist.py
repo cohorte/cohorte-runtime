@@ -60,9 +60,8 @@ def _normalize(values):
     """
     Normalizes the given list of values: it must only contain numbers or strings
     """
-    return sorted(value
-                  if isinstance(value, (numbers.Number, str)) else str(value)
-                  for value in values)
+    return [value if isinstance(value, (numbers.Number, str)) else str(value)
+            for value in values]
 
 
 def append_code(html, code, *args):
@@ -128,8 +127,8 @@ def make_chart(*series, **kwargs):
                     ydata.append(0)
 
         # Normalize series
-        xdata = _normalize(xdata)
-        ydata = _normalize(ydata)
+        ydata, xdata = zip(*sorted(zip(_normalize(ydata), _normalize(xdata)),
+                                   reverse=True))
 
         # Add the serie
         chart.add_serie(y=ydata, x=xdata)
