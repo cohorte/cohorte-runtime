@@ -44,6 +44,7 @@ from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
 
 # Standard library
 import logging
+import threading
 import time
 
 # ------------------------------------------------------------------------------
@@ -65,6 +66,7 @@ class NodeHistory(object):
         """
         # Storage: time stamp -> distribution
         self._storage = {}
+        self._lock = threading.Lock()
 
 
     @Invalidate
@@ -79,7 +81,8 @@ class NodeHistory(object):
         """
         Clears the storage
         """
-        self._storage.clear()
+        with self._lock:
+            self._storage.clear()
 
 
     def keep_recent(self, timestamp):
@@ -88,18 +91,20 @@ class NodeHistory(object):
 
         :param timestamp: Minimal timestamp to be kept
         """
-        # Sort times
-        stamps = sorted(self._storage.keys())
-        for stamp in stamps:
-            if stamp < timestamp:
-                del self._storage[stamp]
+        with self._lock:
+            # Sort times
+            stamps = sorted(self._storage.keys())
+            for stamp in stamps:
+                if stamp < timestamp:
+                    del self._storage[stamp]
 
 
     def items(self):
         """
         Returns a sorted list of (time stamp, {isolate -> [names]}) tuples
         """
-        return sorted(self._storage.items())
+        with self._lock:
+            return sorted(self._storage.items())
 
 
     def store(self, distribution):
@@ -108,4 +113,41 @@ class NodeHistory(object):
 
         :param distribution: A isolate -> components names dictionary
         """
-        self._storage[time.time()] = distribution.copy()
+        # Store the stamp ASAP
+        timestamp = time.time()
+
+        with self._lock:
+            # Component -> Isolate
+            comp_iso = {}
+
+            if self._storage:
+                # Copy previous distribution
+                latest = max(self._storage.keys())
+                for isolate, components in self._storage[latest].items():
+                    for component in components:
+                        comp_iso[component] = isolate
+
+            # Forge a complete distribution
+            distribution = dict((isolate, set(components))
+                                for isolate, components in distribution.items())
+
+            # ... filter components indicated in the given distribution
+            for components in distribution.values():
+                for component in components:
+                    try:
+                        comp_iso.pop(component)
+                    except KeyError:
+                        # New component
+                        pass
+
+            # ... add the remaining one (those who didn't move)
+            for component, isolate in comp_iso.items():
+                distribution.setdefault(isolate, set()).add(component)
+
+            # Store our distribution
+            self._storage[timestamp] = dict((isolate, tuple(components))
+                                            for isolate, components \
+                                            in distribution.items())
+
+            from pprint import pformat
+            _logger.critical("Stored in history:\n%s", pformat(self._storage[timestamp]))
