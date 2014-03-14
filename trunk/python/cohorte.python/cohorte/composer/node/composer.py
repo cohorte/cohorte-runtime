@@ -303,8 +303,15 @@ class NodeComposer(object):
                 return ex.factories
 
             # Prepare the list of existing isolates (and their languages)
-            distribution, new_isolates = self._distribute(components,
-                                                    self.get_running_isolates())
+            running = self.get_running_isolates()
+
+            # Compute the distribution
+            distribution, new_isolates = self._distribute(components, running)
+
+            # Kill the previous isolates
+            unused_isolates = set(running).difference(distribution)
+            self.kill_isolates(isolate.name for isolate in unused_isolates
+                               if not isolate.components)
 
             # Store the distribution
             self._status.store(distribution)
@@ -333,11 +340,12 @@ class NodeComposer(object):
             components = self._status.get_components()
 
             # Compute a distribution
-            distribution, new_isolates = self._distribute(components,
-                                                    self.get_running_isolates())
+            running = self.get_running_isolates()
+            distribution, new_isolates = self._distribute(components, running)
 
             # Compute the differences with the current distribution
             isolates = set(distribution).difference(new_isolates)
+            removed_isolates = set(running).difference(distribution)
 
             # Temporary lists
             extended_isolates = []
@@ -361,17 +369,27 @@ class NodeComposer(object):
 
             if not any((all_to_remove, extended_isolates, new_isolates)):
                 _logger.debug("No modification to do")
+
+                # Schedule next redistribution
+                self.__start_timer()
                 return
 
             _logger.debug("Storing new distribution: %s", distribution)
+
+            # Kill components on removed isolates
+            for isolate in removed_isolates:
+                self._commander.kill(isolate.components)
+
+            if all_to_remove:
+                # Kill moved components
+                self._commander.kill(all_to_remove)
 
             # Store the new distribution
             self._status.clear()
             self._status.store(distribution)
 
-            if all_to_remove:
-                # Kill moved components
-                self._commander.kill(all_to_remove)
+            # Stop removed isolates
+            self.kill_isolates(isolate.name for isolate in removed_isolates)
 
             if extended_isolates:
                 # Start moved components
@@ -392,15 +410,38 @@ class NodeComposer(object):
             self.__start_timer()
 
 
+    def kill_isolates(self, names):
+        """
+        Kills the isolates with the given names on the local node
+
+        :param names: A list of isolate names
+        """
+        node_uids = self._directory.get_isolates_on_node(self._node_uid)
+        for uid in node_uids:
+            if self._directory.get_isolate_name(uid) in names:
+                try:
+                    self._monitor.stop_isolate(uid)
+
+                except Exception as ex:
+                    _logger.exception("Error stopping isolate: %s", ex)
+
+
     def kill(self, components):
         """
         Kills the given components
 
         :param components: A list of RawComponent beans
         """
-        # Tell all isolate composers to stop their components
-        # The commander update the status
-        self._commander.kill(components)
+        with self._lock:
+            if self._timer is not None:
+                self._timer.cancel()
+
+            # Tell all isolate composers to stop their components
+            # The commander update the status
+            self._commander.kill(components)
+
+            # Clear status
+            self._status.clear()
 
 
     def handle_isolate_lost(self, name, node):
@@ -415,6 +456,9 @@ class NodeComposer(object):
             return
 
         _logger.debug('Isolate lost: %s', name)
+
+        # Notify the commander
+        self._commander.isolate_lost(name)
 
         # Get the lost components beans
         lost = self._status.get_components_for_isolate(name)
