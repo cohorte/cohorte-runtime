@@ -91,7 +91,15 @@ public final class CXDateTime {
 
 		return sTimeStampIso8601Format.format(aDate);
 	}
+	/**
+	 * 
+	 * @param aDate
+	 * @return a formated time stamp in a string "yyyy-MM-dd'T'HH:mm:ss.SSSSSSSZ"
+	 */
+	public static String getIso8601TimeStamp( long aTime) {
 
+		return sTimeStampIso8601Format.format(new Date(aTime));
+	}
 	/**
 	 * @param aTime
 	 * @return
