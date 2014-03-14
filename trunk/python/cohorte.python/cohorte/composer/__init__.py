@@ -58,6 +58,11 @@ SERVICE_STATUS_NODE = 'cohorte.composer.status.node'
 SERVICE_STATUS_ISOLATE = 'cohorte.composer.status.isolate'
 """ Specification of the Isolate status storage """
 
+# History  #
+
+SERVICE_HISTORY_NODE = 'cohorte.composer.history.node'
+""" Specification of the Node status history """
+
 # Commanders #
 
 SERVICE_COMMANDER_TOP = 'cohorte.composer.commander.top'
