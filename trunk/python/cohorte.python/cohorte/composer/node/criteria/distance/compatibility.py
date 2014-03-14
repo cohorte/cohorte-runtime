@@ -169,8 +169,10 @@ class CompatibilityCriterion(object):
             components = candidate.components
             if not components:
                 # No components, we're OK with it
-                _logger.warning("No components, we're OK with it")
-                compatibilities.append((100, candidate))
+                _logger.info("No components on %s, we're OK with it",
+                                candidate)
+                # Any other empty isolate
+                compatibilities.append((90, candidate))
 
             else:
                 # Get all factories on the isolate
@@ -187,9 +189,15 @@ class CompatibilityCriterion(object):
                     compatibilities.append((min_compatibility, candidate))
 
                 else:
-                    # No other factory: vote for it
-                    _logger.warning("No other factory on this isolate")
-                    compatibilities.append((100, candidate))
+                    # No other factory: vote for this isolate
+                    _logger.info("No other factory on %s", candidate)
+                    if subject in candidate.components:
+                        # Isolate where the component already is
+                        _logger.warning("Previous isolate for component found !")
+                        compatibilities.append((100, candidate))
+                    else:
+                        # Any other empty isolate
+                        compatibilities.append((90, candidate))
 
         # Sort results (greater is better)
         compatibilities.sort(key=operator.itemgetter(0), reverse=True)
