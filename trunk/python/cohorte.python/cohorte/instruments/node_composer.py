@@ -287,19 +287,21 @@ class NodeComposerInstrument(cohorte.instruments.CommonHttp):
         idx = 0
         for timestamp, distribution in history:
             start = scale(timestamp)
-            for components in distribution.values():
+            for isolate, components in distribution.items():
                 idx += 1
-                scenes.append(self.__make_story_scene(idx, start,
+                scenes.append(self.__make_story_scene(idx, isolate, start,
                                                       components, characters))
 
         return tuple(scenes)
 
 
-    def __make_story_scene(self, idx, start, live_characters, all_characters):
+    def __make_story_scene(self, idx, name, start,
+                           live_characters, all_characters):
         """
         Prepares the dictionary that represents the given scene
 
         :param idx: Scene ID
+        :param name: Name of the scene
         :param start: Scene start panel
         :param live_characters: List of the names of the characters in this
                                 scene
@@ -307,6 +309,7 @@ class NodeComposerInstrument(cohorte.instruments.CommonHttp):
         """
         return {
             "id": idx,
+            "name": name,
             "duration": 1,
             "start": start,
             "chars": [all_characters[name] for name in live_characters],

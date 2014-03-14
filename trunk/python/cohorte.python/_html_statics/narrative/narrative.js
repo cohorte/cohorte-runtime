@@ -620,51 +620,8 @@ function draw_nodes(scenes, svg, chart_width, chart_height, folder, safe_name) {
 
     function mouseover(d) {
 	if (d.char_node == true) return;
-
-	var im = new Image();
-	im.name = "Scene panel";
-
-	im.id = "scene" + d.id;
-	im.src = folder + "/scene_images/scene" + d.id + ".png";
-	im.onload = function(e) {
-	    var w = this.width;
-	    var h = this.height;
-	    var x = d.x + d.width;
-	    var y = d.y + d.height;
-	    if (h > chart_height-y) {
-		var max_h = Math.max(y, chart_height-y);
-		if (h > max_h) {
-		    var ratio = max_h/h;
-		    h *= ratio;
-		    w *= ratio;
-		}
-		if (max_h == y) {
-		    y -= h + d.height;
-		}
-	    }
-	    if (w > chart_width-x) {
-		var max_w = Math.max(x, chart_width-x);
-		if (w > max_w) {
-		    var ratio = max_w/w;
-		    h *= ratio;
-		    w *= ratio;
-		}
-		if (max_w == x) {
-		    x -= w + d.width;
-		}
-	    }
-	    svg.append("image")
-	        .data([this])
-                .attr("x", x)
-                .attr("y", y)
-		.attr("xlink:href", this.src)
-	        .attr("transform", null)
-                .style("position", "relative")
-		.attr("id", this.id)
-	        .attr("class", "scene-image")
-		.attr("width", w)
-		.attr("height", h);
-	} // im.onload
+	
+	console.log("Mouse over scene " + d.id + ", isolate=" + d.name);
 
     } // mouseover
 
@@ -737,13 +694,13 @@ function draw_chart(name, safe_name, xml_data, json_data,
 		tie_breaker, center_sort, collapse) {
 	
 	// FIXME: Residue
-	folder = "";
+	var folder = "";
 	
 	// Characters
-    x = StringToXML(xml_data);
+    var x = StringToXML(xml_data);
 
 	// Scenes
-    j = JSON.parse(json_data);
+    var j = JSON.parse(json_data);
 
 	var margin = {top: 20, right: 25, bottom: 20, left: 1};
 	var width = raw_chart_width - margin.left - margin.right;
@@ -767,6 +724,7 @@ function draw_chart(name, safe_name, xml_data, json_data,
 	    scenes[scenes.length] = new SceneNode(jscenes[i]['chars'],
 						  start, duration,
 						  parseInt(jscenes[i]['id']));
+	    scenes[scenes.length-1].name = jscenes[i]['name'];
 	    scenes[scenes.length-1].comic_name = safe_name;
 	    total_panels += duration;
 	} // for
