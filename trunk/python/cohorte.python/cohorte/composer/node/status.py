@@ -41,7 +41,8 @@ __docformat__ = "restructuredtext en"
 import cohorte.composer
 
 # iPOPO Decorators
-from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate
+from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
+    Requires
 
 # Standard library
 import logging
@@ -54,6 +55,7 @@ _logger = logging.getLogger(__name__)
 
 @ComponentFactory()
 @Provides(cohorte.composer.SERVICE_STATUS_NODE)
+@Requires('_history', cohorte.composer.SERVICE_HISTORY_NODE, optional=True)
 @Instantiate('cohorte-composer-node-status')
 class NodeStatusStorage(object):
     """
@@ -63,6 +65,9 @@ class NodeStatusStorage(object):
         """
         Sets up members
         """
+        # History service
+        self._history = None
+
         # Component name -> Isolate name
         self._component_isolate = {}
 
@@ -101,6 +106,9 @@ class NodeStatusStorage(object):
 
         :param isolates: A set of Isolate beans
         """
+        # Distribution for the history service
+        distribution = {}
+
         for isolate in isolates:
             # Isolate name -> Components
             isolate_name = isolate.name
@@ -108,10 +116,20 @@ class NodeStatusStorage(object):
                                                     .update(isolate.components)
 
             # Component name -> Isolate name / RawComponent
+            iso_dist = []
             for component in isolate.components:
                 component_name = component.name
                 self._component_isolate[component_name] = isolate_name
                 self._components[component_name] = component
+                iso_dist.append(component_name)
+
+            # Sort the list of names (prettier)
+            iso_dist.sort()
+            distribution[isolate_name] = tuple(iso_dist)
+
+        # Store the distribution in history
+        if self._history is not None:
+            self._history.store(distribution)
 
 
     def remove(self, names):
