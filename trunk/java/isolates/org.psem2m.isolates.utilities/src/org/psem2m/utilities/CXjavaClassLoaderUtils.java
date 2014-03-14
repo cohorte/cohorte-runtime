@@ -46,6 +46,17 @@ public class CXjavaClassLoaderUtils {
 		}
 	}
 
+	
+	/**
+	 * retrives the classloader of a class
+	 * 
+	 * @param aClass
+	 * @return
+	 */
+	public static ClassLoader getClassLoader (Class<?> aClass){
+		return getClassLoader(aClass.getName());	
+	}
+	
 	/**
 	 * Gestion automatique de la recherche du classLoader
 	 * 
