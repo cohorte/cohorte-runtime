@@ -109,6 +109,9 @@ class EligibleIsolate(object):
         else:
             self.__components = set(components)
 
+        # Components returned by self.components()
+        self.__visible_components = set(self.__components)
+
 
     def __str__(self):
         """
@@ -137,6 +140,26 @@ class EligibleIsolate(object):
         Returns the corresponding Isolate bean
         """
         return beans.Isolate(self.__name, self.language, self.__components)
+
+
+    def hide(self, components):
+        """
+        Hides the given components from the visible list
+
+        :param components: A list of components
+        """
+        self.__visible_components.difference_update(components)
+
+
+    def unhide(self, component):
+        """
+        Unhides the given component. The component must be in the original list,
+        or this method does nothing
+
+        :param component: A component to unhide
+        """
+        if component in self.__components:
+            self.__visible_components.add(component)
 
 
     def accepted_rename(self):
@@ -216,7 +239,7 @@ class EligibleIsolate(object):
         """
         Returns the (frozen) set of components associated to this isolate
         """
-        return frozenset(self.__components)
+        return frozenset(self.__visible_components)
 
 
     @property
@@ -224,7 +247,7 @@ class EligibleIsolate(object):
         """
         Returns the (frozen) set of components added to this isolate
         """
-        return frozenset(self.__components)
+        return frozenset(self.__visible_components)
 
 
     @property
@@ -245,6 +268,7 @@ class EligibleIsolate(object):
             self.language = component.language
 
         self.__components.add(component)
+        self.__visible_components.add(component)
 
 # ------------------------------------------------------------------------------
 
