@@ -221,7 +221,7 @@ class NodeComposerInstrument(cohorte.instruments.CommonHttp):
 {0}
 </characters>
 """.format('\n'.join('\t<character group="{0}" id="{1}" name="{2}"/>'\
-                     .format(idx % 255, idx, id_characters[idx])
+                     .format(idx % 10, idx, id_characters[idx])
                      for idx in sorted(characters_id.values())))
 
         # Prepare "narrative.json"
