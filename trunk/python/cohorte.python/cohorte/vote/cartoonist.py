@@ -251,8 +251,8 @@ class Cartoonist(object):
 <html lang="en">
 <head>
 <link media="all" href="{statics}/nvd3/src/nv.d3.css" type="text/css" rel="stylesheet" />
-<script src="{statics}/d3/d3.min.js" type="text/javascript"></script>
-<script src="{statics}/nvd3/nv.d3.min.js" type="text/javascript"></script>
+<script src="{statics}/d3.min.js" type="text/javascript"></script>
+<script src="{statics}/nv.d3.min.js" type="text/javascript"></script>
 <title>{title}</title>
 </head>
 <body>
