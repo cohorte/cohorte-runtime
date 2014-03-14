@@ -59,7 +59,7 @@ _logger = logging.getLogger(__name__)
 @Requires('_cartoonist', cohorte.vote.SERVICE_VOTE_CARTOONIST)
 @Property('_path', pelix.http.HTTP_SERVLET_PATH, '/votes')
 @Property('_statics', 'html.statics.virtual', '_static')
-@Property('_real_statics', 'html.statics.physical', './bower_components')
+@Property('_real_statics', 'html.statics.physical', './_html_statics')
 @Instantiate('vote-servlet')
 class VoteChartServlet(object):
     """
@@ -179,9 +179,9 @@ class VoteChartServlet(object):
         return """<!DOCTYPE html>
 <html lang="en">
 <head>
-<link media="all" href="{statics}/nvd3/src/nv.d3.css" type="text/css" rel="stylesheet" />
-<script src="{statics}/d3/d3.min.js" type="text/javascript"></script>
-<script src="{statics}/nvd3/nv.d3.min.js" type="text/javascript"></script>
+<link media="all" href="{statics}/nv.d3.css" type="text/css" rel="stylesheet" />
+<script src="{statics}/d3.min.js" type="text/javascript"></script>
+<script src="{statics}/nv.d3.min.js" type="text/javascript"></script>
 <title>{title}</title>
 </head>
 <body>
