@@ -84,7 +84,11 @@ class ApprobationEngine(object):
         """
         return {"votes_per_elector": "Sets the maximum number of votes for an "
                                      "elector. Default: 1",
-                "nb_elected": "Number of candidates to elect. Default: 1"}
+                "nb_elected": "Number of candidates to elect. Default: 1",
+                "penalty": "Penalty implied by a vote against a candidate. "
+                           "Default: 0",
+                "exclusion": "Number of votes against a candidate before his "
+                             "exclusion. Default: 0 (inactive)"}
 
 
     def analyze(self, vote_round, ballots, candidates, parameters, vote_bean):
@@ -101,13 +105,42 @@ class ApprobationEngine(object):
         # Get the number of votes to take into account
         nb_votes = parameters.get("votes_per_elector", 1)
         nb_elected = parameters.get("nb_elected", 1)
+        penalty = parameters.get("penalty", 0)
+        penalty_exclusion = parameters.get("exclusion", 0)
+        exclusion_value = penalty * (penalty_exclusion + 1)
 
         # Count the number of votes for each candidate
         results = {}
+
+        nb_penalties = {}
+        excluded = []
+
         for ballot in ballots:
-            accepted = ballot.get_for()[:nb_votes]
-            for candidate in accepted:
+            # Count supported candidates
+            for candidate in ballot.get_for()[:nb_votes]:
                 results[candidate] = results.get(candidate, 0) + 1
+
+        if penalty > 0 or penalty_exclusion > 0:
+            # Exclusion loop
+            for ballot in ballots:
+                # Count refused candidates
+                refused = (candidate
+                           for candidate in ballot.get_against()
+                           if candidate not in excluded)
+                for candidate in refused:
+                    # Increase the count of penalties
+                    candidate_penalties = results.get(candidate, 0) + 1
+                    nb_penalties[candidate] = candidate_penalties
+
+                    if candidate_penalties > penalty_exclusion \
+                    and penalty_exclusion > 0:
+                        # Candidate is excluded !
+                        excluded.append(candidate)
+                        results[candidate] = exclusion_value
+
+                    # Add the penalty to the votes
+                    if penalty > 0:
+                        results[candidate] = results.get(candidate, 0) - penalty
 
         # Store the results, as it makes a sorted list of tuples:
         # (votes, candidate)
