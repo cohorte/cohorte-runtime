@@ -1,8 +1,8 @@
 Manifest-Version: 1.0
 Bundle-Activator: org.psem2m.isolates.base.internal.CBundleBaseActivator
 Bundle-ManifestVersion: 2
-Bundle-Name: PSEM2M :: Base Services
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-Name: COHORTE :: Base Services
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-SymbolicName: org.psem2m.isolates.base
 Bundle-Vendor: isandlaTech.com
 Bundle-Version: 1.0.0.qualifier

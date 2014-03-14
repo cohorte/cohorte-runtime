@@ -19,7 +19,7 @@ import org.psem2m.utilities.logging.IActivityLogger;
 public class CLogServiceFactory implements ServiceFactory<LogService> {
 
     /** The internal log handler */
-    private final CLogInternal pLogger;
+    private final CLogInternal pLogInternal;
 
     /**
      * Prepares the log service factory
@@ -27,9 +27,12 @@ public class CLogServiceFactory implements ServiceFactory<LogService> {
      * @param aLogger
      *            The internal log handler
      */
-    public CLogServiceFactory(final CLogInternal aLogger) {
+    public CLogServiceFactory(final CLogInternal aLogInternal) {
 
-        pLogger = aLogger;
+        pLogInternal = aLogInternal;
+        
+        pLogInternal.addEntry(new CLogEntry(null,
+                null, LogService.LOG_INFO, String.format("CLogServiceFactory.<init>: instanciated - LogInternal=[%s]",pLogInternal), null));
     }
 
     /*
@@ -43,7 +46,7 @@ public class CLogServiceFactory implements ServiceFactory<LogService> {
     public LogService getService(final Bundle aBundle,
             final ServiceRegistration<LogService> aServiceRegistration) {
 
-        return new CLogServiceImpl(pLogger, aBundle);
+        return new CLogServiceImpl(pLogInternal, aBundle);
     }
 
     /*

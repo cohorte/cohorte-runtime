@@ -241,7 +241,7 @@ public class CXTimer implements IXDescriber {
 	 */
 	public String getDurationStrMilliSec() {
 
-		return nanoSecToMilliSecStr(getDurationNs());
+		return nanoSecToMicroSecStr(getDurationNs());
 	}
 
 	/**

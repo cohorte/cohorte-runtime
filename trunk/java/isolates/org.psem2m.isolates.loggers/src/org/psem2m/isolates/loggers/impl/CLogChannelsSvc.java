@@ -22,6 +22,7 @@ import org.psem2m.isolates.loggers.ILogChannelSvc;
 import org.psem2m.isolates.loggers.ILogChannelsSvc;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.utilities.logging.CActivityLoggerBasic;
+import org.psem2m.utilities.logging.CActivityLoggerBasicConsole;
 import org.psem2m.utilities.logging.IActivityLoggerBase;
 
 /**
@@ -40,6 +41,8 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
      */
     class CActivityLoggerPsem2m extends CActivityLoggerBasic implements
             ILogChannelSvc {
+    	
+    	
 
         /**
          * @param aLoggerName
@@ -58,6 +61,22 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
             open();
         }
 
+    }
+    
+    /**
+     * @author ogattaz
+     *
+     */
+    class CActivityLoggerConsole extends CActivityLoggerBasicConsole implements
+    ILogChannelSvc {
+    	/**
+    	 * @param aLoggerName
+    	 */
+    	CActivityLoggerConsole(final String aLoggerName){
+    		super();
+    		//open();
+    	}
+    	
     }
 
     /**

@@ -65,14 +65,11 @@ public class CXFileBase extends File {
 	}
 
 	/**
-	 * 16w_104 - suppression des ajout systématique d'un "separatorChar" en fin
-	 * de path d'un Dir !
-	 * 
 	 * @param aFile
 	 * @param aSubPath
 	 */
-	public CXFileBase(CXFileDir aFileDir, String aSubPath) {
-		super(aFileDir.getAbsolutePath(), checkSeparator(aSubPath));
+	public CXFileBase(File aFile, String aSubPath) {
+		super(aFile,checkSeparator(aSubPath));
 	}
 
 	/**

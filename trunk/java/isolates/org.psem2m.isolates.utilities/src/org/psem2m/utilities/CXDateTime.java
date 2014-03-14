@@ -21,22 +21,41 @@ import java.util.Date;
 public final class CXDateTime {
 
 	public static final String DATE_SEP = "/";
+	
+	
+	private final static String PATTERN_DURATION = "mm:ss.SSS";
 
-	private static final String PATTERN_TIMESTAMP = "DDD-hh:mm:ss.SSS";
+	private final static String PATTERN_ISO_8601 = "yyyy-MM-dd'T'HH:mm:ss.SSSSSSSZ";
+	
+    private static final String PATTERN_TIMESTAMP = "DDD-hh:mm:ss.SSS";
+    
+    private final static SimpleDateFormat sDurationFormater = new SimpleDateFormat(
+    		PATTERN_DURATION);
+    
+    private final static SimpleDateFormat sTimeStampFormater = new SimpleDateFormat(
+            PATTERN_TIMESTAMP);
 
-	private static final SimpleDateFormat sTimeStampFormater = new SimpleDateFormat(
-			PATTERN_TIMESTAMP);
+	private final static SimpleDateFormat sTimeStampIso8601Format = new SimpleDateFormat(
+			PATTERN_ISO_8601);
 
 	public static final String TIME_SEP = ":";
 
 	/**
-	 * @return a formated time stamp in a string "DDD-hh:mm:ss.SSS"
-	 */
-	public static String getFormatedTimeStamp() {
+     * @return a formated time stamp in a string "HH:mm:ss.SSS"
+     */
+    public static String getFormatedDuration(Long aDuration) {
 
-		return getFormatedTimeStamp(new Date());
-	}
+        return sDurationFormater.format(new Date(aDuration));
+    }
+	
+    /**
+     * @return a formated time stamp in a string "DDD-hh:mm:ss.SSS"
+     */
+    public static String getFormatedTimeStamp() {
 
+        return getFormatedTimeStamp(new Date());
+    }
+	
 	/**
 	 * @param aDate
 	 * @return a formated time stamp in a string "DDD-hh:mm:ss.SSS"
@@ -45,8 +64,8 @@ public final class CXDateTime {
 
 		return sTimeStampFormater.format(aDate);
 	}
-
-	/**
+    
+    /**
 	 * @param aTime
 	 * @return a formated time stamp in a string "DDD-hh:mm:ss.SSS"
 	 */
@@ -55,6 +74,32 @@ public final class CXDateTime {
 		return getFormatedTimeStamp(new Date(aTime));
 	}
 
+	/** 
+	 * @return a formated time stamp in a string "yyyy-MM-dd'T'HH:mm:ss.SSSSSSSZ"
+	 */
+	public static String getIso8601TimeStamp() {
+
+		return getIso8601TimeStamp(new Date());
+	}
+
+	/**
+	 * 
+	 * @param aDate
+	 * @return a formated time stamp in a string "yyyy-MM-dd'T'HH:mm:ss.SSSSSSSZ"
+	 */
+	public static String getIso8601TimeStamp(Date aDate) {
+
+		return sTimeStampIso8601Format.format(aDate);
+	}
+	/**
+	 * 
+	 * @param aDate
+	 * @return a formated time stamp in a string "yyyy-MM-dd'T'HH:mm:ss.SSSSSSSZ"
+	 */
+	public static String getIso8601TimeStamp( long aTime) {
+
+		return sTimeStampIso8601Format.format(new Date(aTime));
+	}
 	/**
 	 * @param aTime
 	 * @return

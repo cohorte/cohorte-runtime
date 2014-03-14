@@ -332,12 +332,18 @@ public class CXFileDir extends CXFileBase implements IXFilesContainer {
 	private int pScanLevel = 0;
 
 	/**
+	 * @param aDir
+	 */
+	public CXFileDir(final File aDir) {
+		super(aDir);
+	}
+	
+	/**
 	 * @param aParentDir
 	 * @param aSubDir
 	 */
-	public CXFileDir(final CXFileDir aParentDir, final String aSubDir) {
-
-		super(aParentDir, checkPath(aSubDir));
+	public CXFileDir(final File aDir, final String aSubDir) {
+		super(aDir, checkPath(aSubDir));
 	}
 
 	/**
