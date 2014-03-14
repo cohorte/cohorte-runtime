@@ -101,7 +101,7 @@ class IsolateDistributor(object):
         # FIXME: ugly trick due to python/python3 comparison problem
         authorized_languages = set((None, language))
         if language.startswith('python'):
-            authorized_languages.update('python', 'python3')
+            authorized_languages.update(('python', 'python3'))
 
         return [isolate for isolate in isolates
                 if isolate.language in authorized_languages]
@@ -122,13 +122,20 @@ class IsolateDistributor(object):
         # Growing list of candidates
         all_candidates = set(existing_isolates)
 
+        # Hide components of the vote
+        for candidate in all_candidates:
+            candidate.hide(components)
+
         # Prepare the return
         updated_isolates = set()
         new_isolates = set()
 
         # Prepare parameters of the vote
         kind = "approbation"
-        parameters = {}
+        parameters = {  # -5 votes on "against"
+                      'penalty': 5,
+                      # Remove candidate after 2 "against"
+                      'exclusion': 2}
 
         self._nb_distribution += 1
         prefix = "Distribution {0}".format(self._nb_distribution)
@@ -142,14 +149,14 @@ class IsolateDistributor(object):
             neutral = beans.EligibleIsolate()
             matching_isolates.append(neutral)
 
+            for candidate in matching_isolates:
+                # Show the component in this vote
+                candidate.unhide(component)
+
             # Vote !
             isolate = self._vote.vote(electors, matching_isolates, component,
                                       "{0}-{1}".format(prefix, component.name),
                                       kind, parameters)
-
-            _logger.warning("** Vote result for %s :: %s **",
-                            component.name, isolate)
-
             if isolate is None:
                 # Vote without result
                 isolate = neutral
@@ -177,6 +184,9 @@ class IsolateDistributor(object):
             for other_isolate in matching_isolates:
                 if other_isolate is not isolate:
                     other_isolate.rejected_rename()
+
+                    # Re-hide component
+                    other_isolate.hide((component,))
 
         return tuple(updated_isolates), tuple(new_isolates)
 
