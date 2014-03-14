@@ -8,172 +8,246 @@ import org.psem2m.utilities.IConstants;
 
 /**
  * 
- * <pre> TimeStamp TimeStamp TimeStamp TimeStamp Level Thread name Instance id
+ * <pre>
+ * TimeStamp TimeStamp TimeStamp TimeStamp Level Thread name Instance id
  * Method LogLine (millis) (nano) (date) (hhmmss.sss)
  * 1309180295049;00000065317000;2011/06/27;15:11:35:049;INFO ;
- * FelixStartLevel;CIsolateLogger_2236 ;__validatePojo ;EnvContext: </pre>
+ * FelixStartLevel;CIsolateLogger_2236 ;__validatePojo ;EnvContext:
+ * </pre>
  * 
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * 
  */
 public class CActivityFormaterBasic extends CActivityFormater {
 
-    /** the width of the level column **/
-    protected final static int LENGTH_LEVEL = 7;
+	/** the width of the level column **/
+	protected final static int LENGTH_LEVEL = 7;
 
-    /** the width of the what column **/
-    protected final static int LENGTH_WHAT = 25;
+	/** the width of the what column **/
+	protected final static int LENGTH_WHAT = 25;
 
-    /** the width of the who column **/
-    protected final static int LENGTH_WHO = 27;
+	/** the width of the who column **/
+	protected final static int LENGTH_WHO = 27;
 
-    /** **/
-    private final static CActivityFormaterBasic sActivityFormaterBasic = new CActivityFormaterBasic();
+	/** the column separator **/
+	protected final static char SEP_COLUMN = ';';
+	protected final static String SEP_COLUMN_DELIM = SEP_COLUMN + " ";
 
-    /** the column separator **/
-    protected final static char SEP_COLUMN = ';';
-    protected final static String SEP_COLUMN_DELIM = SEP_COLUMN + " ";
+	/** the milliseconds separator **/
+	protected final static char SEP_MILLI = '.';
 
-    /** the milliseconds separator **/
-    protected final static char SEP_MILLI = '.';
+	/**
+	 * @return
+	 */
+	public static IActivityFormater getInstance() {
 
-    /**
-     * @return
-     */
-    public static IActivityFormater getInstance() {
+		return getInstance(LINE_FULL);
+	}
 
-        return sActivityFormaterBasic;
-    }
+	/**
+	 * @param aShortLine
+	 *            line without unformated milli and nano id true
+	 * @return
+	 */
+	public static IActivityFormater getInstance(boolean aShortLine) {
 
-    /**
-     * Explicit default constructor
-     */
-    public CActivityFormaterBasic() {
+		return getInstance((aShortLine) ? LINE_SHORT : LINE_FULL);
+	}
 
-        super();
-    }
+	/**
+	 * @param aColumsDef
+	 *            the list of column in the line
+	 * @return
+	 */
+	public static IActivityFormater getInstance(EActivityLogColumn[] aLineDef) {
 
-    /**
-     * Add a column delimitor in the log line
-     * 
-     * @param aSB
-     * @return
-     */
-    StringBuilder addColummnDelimitorInLogLine(final StringBuilder aSB) {
+		return new CActivityFormaterBasic(aLineDef);
+	}
 
-        return super.addColummnDelimitorInLogLine(aSB, SEP_COLUMN_DELIM);
-    }
+	private final boolean pWithC1Milli;
+	private final boolean pWithC2Nano;
+	private final boolean pWithC3Date;
+	private final boolean pWithC4Time;
+	private final boolean pWithC5Level;
+	private final boolean pWithC6Thread;
+	private final boolean pWithC7Instance;
+	private final boolean pWithC8Method;
+	private final boolean pWithC9Text;
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.psem2m.utilities.logging.CActivityFormater#format(long,
-     * java.util.logging.Level, java.lang.String, java.lang.String,
-     * java.lang.String, boolean)
-     */
-    @Override
-    public synchronized String format(final long aMillis, final Level aLevel,
-            final String aSourceClassName, final String aSourceMethodName,
-            final String aText, final boolean aWhithEndLine) {
+	/**
+	 * Explicit default constructor
+	 */
+	public CActivityFormaterBasic() {
 
-        // clean the buffer
-    	//pSB.setLength(0);
-        //pSB.delete(0, pSB.length());
-        StringBuilder pSB = new StringBuilder(128);
+		this(LINE_FULL);
+	}
 
-        pSB.append(aMillis);
+	/**
+	 * 
+	 * @param aShortFormat
+	 */
+	public CActivityFormaterBasic(boolean aShortLine) {
 
-        addColummnDelimitorInLogLine(pSB);
-        pSB.append(getFormatedNanoSecs());
+		this((aShortLine) ? LINE_SHORT : LINE_FULL);
+	}
+	/**
+	 * @param aLineDef
+	 *            the list of column in the line
+	 */
+	public CActivityFormaterBasic(EActivityLogColumn[] aLineDef) {
 
-        addColummnDelimitorInLogLine(pSB);
-        pSB.append(formatDate(aMillis));
+		super(aLineDef);
+		pWithC1Milli = EActivityLogColumn.isColumnOn(
+				EActivityLogColumn.C1_MILLI, aLineDef);
+		pWithC2Nano = EActivityLogColumn.isColumnOn(EActivityLogColumn.C2_NANO,
+				aLineDef);
+		pWithC3Date = EActivityLogColumn.isColumnOn(EActivityLogColumn.C3_DATE,
+				aLineDef);
+		pWithC4Time = EActivityLogColumn.isColumnOn(EActivityLogColumn.C4_TIME,
+				aLineDef);
+		pWithC5Level = EActivityLogColumn.isColumnOn(
+				EActivityLogColumn.C5_LEVEL, aLineDef);
+		pWithC6Thread = EActivityLogColumn.isColumnOn(
+				EActivityLogColumn.C6_THREAD, aLineDef);
+		pWithC7Instance = EActivityLogColumn.isColumnOn(
+				EActivityLogColumn.C7_INSTANCE, aLineDef);
+		pWithC8Method = EActivityLogColumn.isColumnOn(
+				EActivityLogColumn.C8_METHOD, aLineDef);
+		pWithC9Text = EActivityLogColumn.isColumnOn(EActivityLogColumn.C9_TEXT,
+				aLineDef);
+	}
 
-        addColummnDelimitorInLogLine(pSB);
-        pSB.append(formatTime(aMillis));
+	/**
+	 * Add a column delimitor in the log line
+	 * 
+	 * @param aSB
+	 * @return
+	 */
+	StringBuilder addColummnDelimitorInLogLine(final StringBuilder aSB) {
 
-        addColummnDelimitorInLogLine(pSB);
-        pSB.append(formatLevel(aLevel));
+		return super.addColummnDelimitorInLogLine(aSB, SEP_COLUMN_DELIM);
+	}
 
-        addColummnDelimitorInLogLine(pSB);
-        addThreadNameInLogLine(pSB, Thread.currentThread().getName());
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.utilities.logging.CActivityFormater#format(long,
+	 * java.util.logging.Level, java.lang.String, java.lang.String,
+	 * java.lang.String, boolean)
+	 */
+	@Override
+	public synchronized String format(final long aMillis, final Level aLevel,
+			final String aSourceClassName, final String aSourceMethodName,
+			final String aText, final boolean aWhithEndLine) {
 
-        addColummnDelimitorInLogLine(pSB);
-        pSB.append(formatWho(aSourceClassName));
+		StringBuilder pSB = new StringBuilder(192);
 
-        addColummnDelimitorInLogLine(pSB);
-        pSB.append(formatWhat(aSourceMethodName));
+		if (pWithC1Milli) {
+			pSB.append(aMillis);
+			addColummnDelimitorInLogLine(pSB);
+		}
+		if (pWithC2Nano) {
+			pSB.append(getFormatedNanoSecs());
+			addColummnDelimitorInLogLine(pSB);
+		}
+		if (pWithC3Date) {
+			pSB.append(formatDate(aMillis));
+			addColummnDelimitorInLogLine(pSB);
+		}
+		if (pWithC4Time) {
+			pSB.append(formatTime(aMillis));
 
-        addColummnDelimitorInLogLine(pSB);
-        pSB.append(formatText(aText));
-        if (aWhithEndLine) {
-            pSB.append(SEP_LINE);
-        }
-        return pSB.toString();
-    }
+			addColummnDelimitorInLogLine(pSB);
+		}
+		if (pWithC5Level) {
+			pSB.append(formatLevel(aLevel));
+			addColummnDelimitorInLogLine(pSB);
+		}
+		if (pWithC6Thread) {
+			addThreadNameInLogLine(pSB, Thread.currentThread().getName());
+			addColummnDelimitorInLogLine(pSB);
+		}
+		if (pWithC7Instance) {
+			pSB.append(formatWho(aSourceClassName));
+			addColummnDelimitorInLogLine(pSB);
+		}
+		if (pWithC8Method) {
+			pSB.append(formatWhat(aSourceMethodName));
+			addColummnDelimitorInLogLine(pSB);
+		}
+		if (pWithC9Text) {
+			pSB.append(formatText(aText));
+		}
+		if (aWhithEndLine) {
+			pSB.append(SEP_LINE);
+		}
+		return pSB.toString();
+	}
 
-    /**
-     * @param aLevel
-     * @return
-     */
-    protected String formatDate(final long aMillis) {
+	/**
+	 * @param aLevel
+	 * @return
+	 */
+	protected String formatDate(final long aMillis) {
 
-        return CXDateTime.time2StrAAAAMMJJ(aMillis, SEP_DATE);
+		return CXDateTime.time2StrAAAAMMJJ(aMillis, SEP_DATE);
 
-    }
+	}
 
-    /**
-     * @param aLevel
-     * @return
-     */
-    protected String formatLevel(final Level aLevel) {
+	/**
+	 * @param aLevel
+	 * @return
+	 */
+	protected String formatLevel(final Level aLevel) {
 
-        return CXStringUtils.strAdjustLeft(aLevel != null ? aLevel.getName()
-                : IConstants.LIB_NULL, LENGTH_LEVEL, ' ');
+		return CXStringUtils.strAdjustLeft(aLevel != null ? aLevel.getName()
+				: IConstants.LIB_NULL, LENGTH_LEVEL, ' ');
 
-    }
+	}
 
-    protected String formatText(final String aText) {
+	protected String formatText(final String aText) {
 
-        if (aText == null) {
-            return IConstants.LIB_NULL;
-        } else {
-            return isMultiline() ? aText : aText.replace(SEP_LINE, '§');
-        }
-    }
+		if (aText == null) {
+			return IConstants.LIB_NULL;
+		} else {
+			return isMultiline() ? aText : aText.replace(SEP_LINE, '§');
+		}
+	}
 
-    /**
-     * @param aLevel
-     * @return
-     */
-    protected String formatTime(final long aMillis) {
+	/**
+	 * @param aLevel
+	 * @return
+	 */
+	protected String formatTime(final long aMillis) {
 
-        return CXDateTime.time2StrHHMMSSmmm(aMillis, SEP_TIME);
+		return CXDateTime.time2StrHHMMSSmmm(aMillis, SEP_TIME);
 
-    }
+	}
 
-    /**
-     * @param aLevel
-     * @return
-     */
-    protected String formatWhat(final String aMethod) {
+	/**
+	 * @param aLevel
+	 * @return
+	 */
+	protected String formatWhat(final String aMethod) {
 
-        return CXStringUtils.strAdjustRight(
-                aMethod != null ? aMethod.replace(SEP_COLUMN, REPLACE_COLUMN)
-                        : IConstants.EMPTY, LENGTH_WHAT, ' ');
+		return CXStringUtils.strAdjustRight(
+				aMethod != null ? aMethod.replace(SEP_COLUMN, REPLACE_COLUMN)
+						: IConstants.EMPTY, LENGTH_WHAT, ' ');
 
-    }
+	}
 
-    /**
-     * @param aLevel
-     * @return
-     */
-    protected String formatWho(final String aWho) {
+	/**
+	 * @param aLevel
+	 * @return
+	 */
+	protected String formatWho(final String aWho) {
 
-        return CXStringUtils.strAdjustRight(
-                aWho != null ? aWho.replace(SEP_COLUMN, REPLACE_COLUMN)
-                        : IConstants.EMPTY, LENGTH_WHO, ' ');
+		return CXStringUtils.strAdjustRight(
+				aWho != null ? aWho.replace(SEP_COLUMN, REPLACE_COLUMN)
+						: IConstants.EMPTY, LENGTH_WHO, ' ');
 
-    }
+	}
+
+
 
 }

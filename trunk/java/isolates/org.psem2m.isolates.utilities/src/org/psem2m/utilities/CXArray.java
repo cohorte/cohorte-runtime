@@ -136,9 +136,9 @@ public final class CXArray implements IConstants {
 			return aObjects;
 		}
 		int wPreviousLen = aObjects.length;
-		if (wPreviousLen < 1) {
-			return aObjects;
-		}
+//		if (wPreviousLen < 1) {
+//			return aObjects;
+//		}
 
 		validObjectsIndex(aObjects, aIdx);
 
@@ -255,6 +255,9 @@ public final class CXArray implements IConstants {
 			throw new IndexOutOfBoundsException("the target array is null");
 		}
 		int wLen = aObjects.length;
+		if (wLen==0 && aIdx==0 ){
+			return ; // OK
+		}
 		if (aIdx < 0 || aIdx > wLen - 1) {
 			throw new IndexOutOfBoundsException(String.format("index [%d] is less than zero", aIdx));
 		}

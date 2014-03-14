@@ -35,6 +35,7 @@ public class CLogServiceImpl implements LogService {
 
         pLogInternal = aLogInternal;
         pDefaultLogBundle = aDefaultBundle;
+        log(LogService.LOG_INFO,String.format("CLogServiceImpl.<init>: instanciated - SymbolicName=[%s] LogInternal=[%s]",pDefaultLogBundle.getSymbolicName(),pLogInternal));
     }
 
     /*

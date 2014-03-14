@@ -20,14 +20,15 @@ public class CXJavaCallerContext {
 	 * @author ogattaz
 	 * 
 	 */
-	private static class CContextViewer extends SecurityManager {
+	private static class ClassStackContext extends SecurityManager {
 		/**
 		 * @return
 		 */
 		Class<?>[] getContext() {
 			/*
-			 * Returns the current execution stack as an array of classes. The
-			 * length of the array is the number of methods on the execution
+			 * Returns the current execution stack as an array of classes.
+			 * 
+			 * The length of the array is the number of methods on the execution
 			 * stack. The element at index 0 is the class of the currently
 			 * executing method, the element at index 1 is the class of that
 			 * method's caller, and so on.
@@ -36,7 +37,7 @@ public class CXJavaCallerContext {
 		}
 	}
 
-	private static final CContextViewer CONTEXT = new CContextViewer();
+	private static final ClassStackContext CONTEXT = new ClassStackContext();
 
 	private static final int INTERNAL_CALL_COUNT = 1;
 
