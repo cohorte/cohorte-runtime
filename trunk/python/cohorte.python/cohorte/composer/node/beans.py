@@ -139,7 +139,8 @@ class EligibleIsolate(object):
         """
         Returns the corresponding Isolate bean
         """
-        return beans.Isolate(self.__name, self.language, self.__components)
+        return beans.Isolate(self.__name, self.language,
+                             self.__visible_components)
 
 
     def hide(self, components):
@@ -286,7 +287,7 @@ class WrappedEligibleIsolate(EligibleIsolate):
                                                      isolate.language,
                                                      isolate.components)
         self.__isolate = isolate
-        self.__added_components = []
+        self.__added_components = set()
 
 
     def to_isolate(self):
@@ -308,9 +309,5 @@ class WrappedEligibleIsolate(EligibleIsolate):
         """
         Adds a component to the isolate
         """
-        if self.language is None:
-            # First component tells which language this isolate hosts
-            self.language = component.language
-
-        self.__components.add(component)
+        super(WrappedEligibleIsolate, self).add_component(component)
         self.__added_components.add(component)
