@@ -117,37 +117,11 @@ class NodeHistory(object):
         timestamp = time.time()
 
         with self._lock:
-            # Component -> Isolate
-            comp_iso = {}
-
-            if self._storage:
-                # Copy previous distribution
-                latest = max(self._storage.keys())
-                for isolate, components in self._storage[latest].items():
-                    for component in components:
-                        comp_iso[component] = isolate
-
-            # Forge a complete distribution
-            distribution = dict((isolate, set(components))
-                                for isolate, components in distribution.items())
-
-            # ... filter components indicated in the given distribution
-            for components in distribution.values():
-                for component in components:
-                    try:
-                        comp_iso.pop(component)
-                    except KeyError:
-                        # New component
-                        pass
-
-            # ... add the remaining one (those who didn't move)
-            for component, isolate in comp_iso.items():
-                distribution.setdefault(isolate, set()).add(component)
-
             # Store our distribution
             self._storage[timestamp] = dict((isolate, tuple(components))
                                             for isolate, components \
                                             in distribution.items())
 
             from pprint import pformat
-            _logger.critical("Stored in history:\n%s", pformat(self._storage[timestamp]))
+            _logger.critical("Stored in history:\n%s",
+                             pformat(self._storage[timestamp]))

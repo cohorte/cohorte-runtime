@@ -46,6 +46,7 @@ from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
 
 # Standard library
 import logging
+import threading
 
 # ------------------------------------------------------------------------------
 
@@ -77,27 +78,32 @@ class NodeStatusStorage(object):
         # Isolate name -> set(RawComponent)
         self._isolate_components = {}
 
+        # Safety...
+        self.__lock = threading.Lock()
+
 
     def clear(self):
         """
         Clears the status of all of its information
         """
-        self._component_isolate.clear()
-        self._components.clear()
-        self._isolate_components.clear()
+        with self.__lock:
+            self._component_isolate.clear()
+            self._components.clear()
+            self._isolate_components.clear()
 
 
     def dump(self):
         """
         Dumps the content of the storage
         """
-        lines = ['Isolates:']
-        for isolate, components in self._storage.items():
-            lines.append('\t- {0}'.format(isolate))
-            lines.extend('\t\t- {0}'.format(component)
-                         for component in components)
+        with self.__lock:
+            lines = ['Isolates:']
+            for isolate, components in self._storage.items():
+                lines.append('\t- {0}'.format(isolate))
+                lines.extend('\t\t- {0}'.format(component)
+                             for component in components)
 
-        return '\n'.join(lines)
+            return '\n'.join(lines)
 
 
     def store(self, isolates):
@@ -106,30 +112,29 @@ class NodeStatusStorage(object):
 
         :param isolates: A set of Isolate beans
         """
-        # Distribution for the history service
-        distribution = {}
+        with self.__lock:
+            for isolate in isolates:
+                # Isolate name -> Components
+                isolate_name = isolate.name
+                self._isolate_components.setdefault(isolate_name, set()) \
+                                                     .update(isolate.components)
 
-        for isolate in isolates:
-            # Isolate name -> Components
-            isolate_name = isolate.name
-            self._isolate_components.setdefault(isolate_name, set()) \
-                                                    .update(isolate.components)
+                # Component name -> Isolate name / RawComponent
+                for component in isolate.components:
+                    component_name = component.name
+                    self._component_isolate[component_name] = isolate_name
+                    self._components[component_name] = component
 
-            # Component name -> Isolate name / RawComponent
-            iso_dist = []
-            for component in isolate.components:
-                component_name = component.name
-                self._component_isolate[component_name] = isolate_name
-                self._components[component_name] = component
-                iso_dist.append(component_name)
+            # Store the distribution in history
+            if self._history is not None:
+                # Make a complete dictionary
+                distribution = dict((isolate_name,
+                                     sorted(component.name
+                                            for component in components))
+                                    for isolate_name, components \
+                                    in self._isolate_components.copy().items())
 
-            # Sort the list of names (prettier)
-            iso_dist.sort()
-            distribution[isolate_name] = tuple(iso_dist)
-
-        # Store the distribution in history
-        if self._history is not None:
-            self._history.store(distribution)
+                self._history.store(distribution)
 
 
     def remove(self, names):
@@ -138,20 +143,21 @@ class NodeStatusStorage(object):
 
         :param names: A set of names of components
         """
-        for name in names:
-            try:
-                # Remove from the component from the lists
-                isolate = self._component_isolate.pop(name)
-                component = self._components.pop(name)
+        with self.__lock:
+            for name in names:
+                try:
+                    # Remove from the component from the lists
+                    isolate = self._component_isolate.pop(name)
+                    component = self._components.pop(name)
 
-                isolate_components = self._isolate_components[isolate]
-                isolate_components.remove(component)
-                if not isolate_components:
-                    # No more component on this isolate
-                    del self._isolate_components[isolate]
+                    isolate_components = self._isolate_components[isolate]
+                    isolate_components.remove(component)
+                    if not isolate_components:
+                        # No more component on this isolate
+                        del self._isolate_components[isolate]
 
-            except KeyError:
-                _logger.warning("Unknown component: %s", name)
+                except KeyError:
+                    _logger.warning("Unknown component: %s", name)
 
 
     def get_isolates(self):
