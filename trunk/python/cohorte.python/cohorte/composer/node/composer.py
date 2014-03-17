@@ -374,6 +374,7 @@ class NodeComposer(object):
                 self.__start_timer()
                 return
 
+            # FIXME: Incomplete distribution printed !!!
             _logger.debug("Storing new distribution: %s", distribution)
 
             # Kill components on removed isolates
@@ -479,7 +480,7 @@ class NodeComposer(object):
         self.instantiate(lost)
 
 
-    def handle_isolate_presence(self, uid, node, event):
+    def handle_isolate_presence(self, uid, name, node, event):
         """
         Handles an isolate presence event
 
@@ -489,8 +490,5 @@ class NodeComposer(object):
         :param even: Kind of event
         """
         if event == cohorte.signals.ISOLATE_UNREGISTERED:
-            # Get isolate name
-            name = self._directory.get_isolate_name(uid)
-
             # Isolate gone away
             self.handle_isolate_lost(name, node)

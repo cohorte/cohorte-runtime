@@ -87,18 +87,20 @@ class SignalsDirectory(object):
         Notifies newly bound listener of known isolates presence
         """
         with self._lock:
-            for isolate_id in self.get_all_isolates(None, False):
-                isolate_node = self.get_isolate_node(isolate_id)
-                svc.handle_isolate_presence(isolate_id, isolate_node,
+            for uid in self.get_all_isolates(None, False):
+                isolate_node = self.get_isolate_node(uid)
+                svc.handle_isolate_presence(uid, self._names[uid],
+                                            isolate_node,
                                             cohorte.signals.ISOLATE_REGISTERED)
 
 
-    def _notify_listeners(self, isolate_id, isolate_node, event):
+    def _notify_listeners(self, uid, name, node_uid, event):
         """
         Notifies listeners of an isolate presence event
 
-        :param isolate_id: ID of the isolate
-        :param isolate_node: Node of the isolate
+        :param uid: UID of the isolate
+        :param name: Name of the isolate
+        :param node_uid: UID of the node hosting the isolate
         :param event: Kind of event
         """
         if not self._listeners:
@@ -112,8 +114,7 @@ class SignalsDirectory(object):
             # Use a copy of the listeners
             for listener in listeners:
                 try:
-                    listener.handle_isolate_presence(isolate_id, isolate_node,
-                                                     event)
+                    listener.handle_isolate_presence(uid, name, node_uid, event)
                 except:
                     # Just log...
                     _logger.exception("Error notifying a presence listener: %s",
@@ -613,7 +614,7 @@ class SignalsDirectory(object):
                         pass
 
                     # Notify about the removal
-                    self._notify_listeners(uid, old_node_uid,
+                    self._notify_listeners(uid, name, old_node_uid,
                                            cohorte.signals.ISOLATE_UNREGISTERED)
 
             # Store the isolate access
@@ -634,7 +635,7 @@ class SignalsDirectory(object):
 
             else:
                 # Notify about the registration
-                self._notify_listeners(uid, node_uid,
+                self._notify_listeners(uid, name, node_uid,
                                        cohorte.signals.ISOLATE_REGISTERED)
 
         return True
@@ -735,6 +736,9 @@ class SignalsDirectory(object):
             # Remove the isolate access
             del self._accesses[isolate_uid]
 
+            # Remove references in names
+            isolate_name = self._names.pop(isolate_uid)
+
             # Remove isolate reference in its node
             node_uid = None
             for node, node_isolates in self._nodes_isolates.items():
@@ -754,11 +758,8 @@ class SignalsDirectory(object):
 
             except KeyError:
                 # Wasn't in the waiting set, notify listeners
-                self._notify_listeners(isolate_uid, node_uid,
+                self._notify_listeners(isolate_uid, isolate_name, node_uid,
                                        cohorte.signals.ISOLATE_UNREGISTERED)
-
-            # Remove references in names
-            del self._names[isolate_uid]
 
             return True
 
@@ -775,7 +776,7 @@ class SignalsDirectory(object):
                 self._waiting_isolates.remove(isolate_uid)
 
                 _logger.debug("Isolate %s validated", isolate_uid)
-                self._notify_listeners(isolate_uid,
+                self._notify_listeners(isolate_uid, self._names[isolate_uid],
                                        self.get_isolate_node(isolate_uid),
                                        cohorte.signals.ISOLATE_REGISTERED)
 

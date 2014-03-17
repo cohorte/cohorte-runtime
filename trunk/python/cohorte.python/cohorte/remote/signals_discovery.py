@@ -300,11 +300,12 @@ class SignalsDiscovery(object):
             self._registry.add(import_endpoint)
 
 
-    def handle_isolate_presence(self, uid, node, event):
+    def handle_isolate_presence(self, uid, name, node, event):
         """
         Handles an isolate presence event
 
         :param uid: UID of the isolate
+        :param name: Name of the isolate
         :param node: Node of the isolate
         :param event: Kind of event
         """
