@@ -290,6 +290,11 @@ class ForkerBasic(object):
         # Find the starter handling the isolate and tell it to stop it
         starter = self._isolates.pop(uid)
 
+        if not self._platform_stopping:
+            # Send a signal to all other isolates
+            self._sender.fire(cohorte.monitor.SIGNAL_ISOLATE_LOST, uid,
+                              dir_group=cohorte.signals.GROUP_OTHERS)
+
         # Stop the isolate
         starter.stop(uid)
 
@@ -323,6 +328,16 @@ class ForkerBasic(object):
 
         :param uid: The ID of the lost isolate
         """
+        # Locally unregister the isolate
+        self._directory.unregister_isolate(uid)
+
+        try:
+            starter = self._isolates.pop(uid)
+
+        except KeyError:
+            # Already stopped
+            return
+
         _logger.critical("Lost isolate %s", uid)
 
         # FIXME: handle loss of predefined isolates
@@ -330,11 +345,7 @@ class ForkerBasic(object):
         # Clear isolate status
         self._state_dir.clear_isolate(uid)
 
-        # Locally unregister the isolate
-        self._directory.unregister_isolate(uid)
-
         # Tell the starter to remove references to this isolate
-        starter = self._isolates.pop(uid)
         starter.terminate(uid)
 
         if not self._platform_stopping:
