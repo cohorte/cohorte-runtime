@@ -108,10 +108,10 @@ class IsolateWatcher(object):
         for _, event in list(self._io_threads.values()):
             event.set()
 
-        # Wait for threads to stop
+        # Wait for the waiter thread to stop
         self._wait_thread.join()
-        for thread, _ in list(self._io_threads.values()):
-            thread.join()
+
+        # FIXME: Do not wait for I/O threads as they might be stuck
 
         # Stop the notification thread
         self._pool.stop()
@@ -236,12 +236,11 @@ class IsolateWatcher(object):
 
             # Remove from the list of I/O threads
             try:
-                thread, event = self._io_threads.pop(uid)
+                _, event = self._io_threads.pop(uid)
+
+                # Do not wait for the I/O thread as it might be stuck
+                event.set()
 
             except KeyError:
                 # I/O watcher wasn't requested
                 return
-
-        # Stop the I/O thread (out of lock)
-        event.set()
-        thread.join(.2)
