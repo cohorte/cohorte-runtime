@@ -294,6 +294,7 @@ class WrappedEligibleIsolate(EligibleIsolate):
         """
         Returns the corresponding Isolate bean
         """
+        self.__isolate.components = set(self.components)
         return self.__isolate
 
 
