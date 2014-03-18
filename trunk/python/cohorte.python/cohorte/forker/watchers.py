@@ -176,7 +176,7 @@ class IsolateWatcher(object):
         :param event: Loop control event
         """
         # Setup the logger for this isolate
-        logger = logging.getLogger(uid)
+        logger = logging.getLogger("io_watcher.{0}".format(uid))
 
         while not event.is_set():
             line = process.stdout.readline()
