@@ -113,8 +113,6 @@ class ConfigurationCriterion(object):
                     # Store the information
                     isolate_nodes[component.isolate] = node
 
-            print("%s -> %s" % (component.name, component.node))
-
             if node:
                 # Found a node
                 nodes.setdefault(node, set()).add(component)
