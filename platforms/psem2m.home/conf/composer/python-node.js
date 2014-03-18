@@ -30,10 +30,32 @@
 	{
 		"name" : "cohorte.shell.composer_node"
 	},
+	
+	/* Debug instruments */
+	{
+		"name": "cohorte.composer.node.history"
+	}, {
+		"name": "cohorte.instruments.servlet"
+	}, {
+		"name": "cohorte.instruments.node_composer"
+	},
+	
+	/* Voting system */
+	{
+		"name" : "cohorte.vote.core"
+	},{
+		"name" : "cohorte.vote.approbation"
+	},{
+		"name" : "cohorte.vote.cartoonist"
+	},{
+		"name" : "cohorte.vote.servlet"
+	},
 
 	/* Distributor criteria */
 	{
 		"name" : "cohorte.composer.node.criteria.distance.configuration"
+	}, {
+		"name" : "cohorte.composer.node.criteria.distance.compatibility"
 	}, {
 		"name" : "cohorte.composer.node.criteria.reliability.crashing"
 	}, {
