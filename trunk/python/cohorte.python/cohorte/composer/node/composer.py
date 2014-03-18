@@ -361,7 +361,6 @@ class NodeComposer(object):
                 if added:
                     # Isolate components extended
                     extended_isolates.append(isolate)
-                    isolate.components = added
 
                 if removed:
                     # Some of its components have to be removed
@@ -374,7 +373,7 @@ class NodeComposer(object):
                 self.__start_timer()
                 return
 
-            # FIXME: Incomplete distribution printed !!!
+            # Incomplete distribution
             _logger.debug("Storing new distribution: %s", distribution)
 
             # Kill components on removed isolates
