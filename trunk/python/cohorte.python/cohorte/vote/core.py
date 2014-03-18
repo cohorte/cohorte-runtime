@@ -137,21 +137,21 @@ class VoteCore(object):
         # Vote until we have a result
         vote_round = 1
         while True:
-            # 3. Vote
-            ballots = []
-            for elector in electors:
-                ballot = beans.Ballot(elector)
-
-                # TODO: add a "last resort" candidate (if no candidate works)
-
-                elector.vote(tuple(candidates), subject, ballot)
-                ballots.append(ballot)
-
-            # Store the ballots of this round
-            vote_bean.set_ballots(ballots)
-
-            # 4. Analyze votes
             try:
+                # 3. Vote
+                ballots = []
+                for elector in electors:
+                    ballot = beans.Ballot(elector)
+
+                    # TODO: add a "last resort" candidate (if no candidate works)
+
+                    elector.vote(tuple(candidates), subject, ballot)
+                    ballots.append(ballot)
+
+                # Store the ballots of this round
+                vote_bean.set_ballots(ballots)
+
+                # 4. Analyze votes
                 result = engine.analyze(vote_round, ballots, tuple(candidates),
                                         parameters, vote_bean)
                 break
