@@ -199,3 +199,21 @@ class NodeStatusStorage(object):
         :raise KeyError: Unknown component
         """
         return self._component_isolate[component_name]
+
+
+    def neighbours(self, components):
+        """
+        Checks if the given components are in the same isolate
+
+        :param components: A list of components names
+        """
+        if not components:
+            return False
+
+        try:
+            isolate = self._component_isolate[components[0]]
+            return components in self._isolate_components[isolate]
+
+        except KeyError:
+            # Unknown isolate/components
+            return False
