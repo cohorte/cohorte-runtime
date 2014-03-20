@@ -41,44 +41,56 @@ import cohorte.composer
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
     Invalidate, Validate, Requires
-import pelix.shell
 
 # Standard library
 import itertools
 import logging
 import operator
+import time
 
 # ------------------------------------------------------------------------------
 
 _logger = logging.getLogger(__name__)
 
+DEFAULT_RATING = 92
+"""
+Rating to use if not yet known.
+92 because between 90 "empty isolate" and 95 "previous isolate"
+"""
+
 # ------------------------------------------------------------------------------
 
 @ComponentFactory()
 @Provides(cohorte.composer.SERVICE_NODE_CRITERION_DISTANCE)
-@Requires('_utils', pelix.shell.SERVICE_SHELL_UTILS)
+@Requires('_status', cohorte.composer.SERVICE_STATUS_NODE)
 @Instantiate('cohorte-composer-node-criterion-compatibility')
 class CompatibilityCriterion(object):
     """
-    Votes for the isolate that will host a component according to the
-    configuration
+    Votes for the isolate that will host a component according to a
+    compatibility rating between components. This evolves upon time and crashes
     """
     def __init__(self):
         """
         Sets up members
         """
-        # sorted(Factory name, Factory Name) -> Rating
+        # sorted(Component name, Component Name) -> Rating
         self._ratings = {}
 
-        # Inject Shell utilities
-        self._utils = None
+        # sorted(Component name, Component Name) -> Time of last crash
+        self._last_crash = {}
+
+        # Set of sorted(Component name, Component Name)
+        self._incompatible = set()
+
+        # Injected
+        self._status = None
 
 
     def __str__(self):
         """
         String representation
         """
-        return "Compatibility"
+        return "Components compatibility rating"
 
 
     @Validate
@@ -86,7 +98,7 @@ class CompatibilityCriterion(object):
         """
         Component validated
         """
-        # TODO: load initial ratings
+        # TODO: load initial ratings from a file/db...
         self._ratings.clear()
 
 
@@ -96,25 +108,31 @@ class CompatibilityCriterion(object):
         Component invalidated
         """
         self._ratings.clear()
+        self._last_crash.clear()
+        self._incompatible.clear()
 
 
-    def print_matrix(self):
+    def _update_rating(self, pair, delta):
         """
-        Prints a matrix of the factories ratings
+        Updates the rating of the pair with the given delta
+
+        :param pair: A sorted pair of names
+        :param delta: Rating modification
         """
-        all_factories = sorted(set(pair[0] for pair in self._ratings.keys()))
+        # Normalize the new rating
+        new_rating = self._ratings.setdefault(pair, DEFAULT_RATING) + delta
+        if new_rating < 0:
+            new_rating = 0
+        elif new_rating > 100:
+            new_rating = 100
 
-        matrix = []
+        # Store it
+        self._ratings[pair] = new_rating
 
-        for factory_a in all_factories:
-            line = [factory_a]
-            for factory_b in all_factories:
-                line.append(self._ratings.get((factory_a, factory_b), ""))
-
-            matrix.append(line)
-
-        _logger.debug('\n' + self._utils.make_table([''] + all_factories,
-                                                    matrix))
+        if new_rating < 5:
+            # Lower threshold reached: components are incompatible
+            _logger.critical("Pair %s is now incompatible", pair)
+            self._incompatible.add(pair)
 
 
     def handle_event(self, event):
@@ -122,35 +140,76 @@ class CompatibilityCriterion(object):
         Does nothing: this elector only cares about what is written in
         configuration files
         """
-        if event.kind not in ('isolate.lost', 'timer'):
-            # Ignore other messages
-            return
+        # Get the implicated components
+        components = sorted(set(component.name
+                                for component in event.components))
 
-        # Get the implicated factories
-        factories = sorted(set(component.factory
-                               for component in event.components))
+        if event.kind == 'timer':
+            self.on_timer(components)
 
-        if event.good:
-            # Timer event
-            delta = 2
-        else:
-            # Isolate lost
-            delta = -5
+        elif event.kind == 'isolate.lost':
+            self.on_crash(components)
+
+
+    def on_crash(self, components):
+        """
+        An isolate has been lost
+
+        :param components: Names of the components in the crashed isolate
+        """
+        # Get the time of the crash
+        now = time.time()
 
         # Update their compatibility ratings
-        for pair in itertools.combinations(factories, 2):
-            new_rating = self._ratings.get(pair, 50.0) + delta
+        for pair in itertools.combinations(components, 2):
+            # Get the last crash information
+            last_crash = self._last_crash.get(pair, 0)
 
-            # Normalize the new rating
-            if new_rating < 0:
-                new_rating = 0
+            if now - last_crash < 60:
+                # Less than 60s since last crash
+                delta = -5
 
-            elif new_rating > 100:
-                new_rating = 100
+            else:
+                # More than 60s...
+                delta = -1
 
-            self._ratings[pair] = new_rating
+            # Check if components are on the same isolate
+                if self._status.neighbours(pair):
+                    delta *= 3
 
-        self.print_matrix()
+            self._update_rating(pair, delta)
+
+            # Update the last crash information
+            self._last_crash[pair] = now
+
+
+    def on_timer(self, components):
+        """
+        The timer ticks: some components have been OK before last tick and now
+
+        :param components: Names of the components that well behaved
+        """
+        # Get the tick time
+        now = time.time()
+
+        # Update their compatibility ratings
+        for pair in itertools.combinations(components, 2):
+            if pair not in self._incompatible:
+                # Get the last crash information
+                last_crash = self._last_crash.get(pair, 0)
+                if now - last_crash > 60:
+                    # More than 60s since the last crash
+                    delta = +5
+
+                else:
+                    # Less than 60s...
+                    delta = +1
+
+                # Check if components are on the same isolate
+                if self._status.neighbours(pair):
+                    delta *= 2
+
+                self._update_rating(pair, delta)
 
 
     def vote(self, candidates, subject, ballot):
@@ -161,13 +220,19 @@ class CompatibilityCriterion(object):
         :param subject: The component to place
         :param ballot: The vote ballot
         """
-        factory = subject.factory
+        name = subject.name
         compatibilities = []
+        neutral = None
 
         for candidate in candidates:
             # Analyze each candidate
             components = candidate.components
             if not components:
+                # Avoid the "neutral" isolate
+                if not candidate.name:
+                    neutral = candidate
+                    continue
+
                 # No components, we're OK with it
                 _logger.info("No components on %s, we're OK with it",
                                 candidate)
@@ -176,28 +241,23 @@ class CompatibilityCriterion(object):
 
             else:
                 # Get all factories on the isolate
-                pairs = set(tuple(sorted((factory, component.factory)))
+                pairs = set(tuple(sorted((name, component.name)))
                             for component in components)
 
                 # Remove identity
-                pairs.discard((factory, factory))
+                pairs.discard((name, name))
 
                 if pairs:
                     # Compute the worst compatibility rating on this isolate
-                    min_compatibility = min(self._ratings.get(pair, 50.0)
+                    min_compatibility = min(self._ratings.get(pair,
+                                                              DEFAULT_RATING)
                                             for pair in pairs)
                     compatibilities.append((min_compatibility, candidate))
 
-                else:
-                    # No other factory: vote for this isolate
-                    _logger.info("No other factory on %s", candidate)
-                    if subject in candidate.components:
-                        # Isolate where the component already is
-                        _logger.warning("Previous isolate for component found !")
-                        compatibilities.append((100, candidate))
-                    else:
-                        # Any other empty isolate
-                        compatibilities.append((90, candidate))
+                elif subject in candidate.components:
+                    # Isolate where the component already is
+                    _logger.info("Previous isolate for component found !")
+                    compatibilities.append((95, candidate))
 
         # Sort results (greater is better)
         compatibilities.sort(key=operator.itemgetter(0), reverse=True)
@@ -213,6 +273,10 @@ class CompatibilityCriterion(object):
                 ballot.append_against(candidate)
 
             # else: blank vote
+
+        if not ballot.get_for() and neutral is not None:
+            # We voted for no one: vote for neutral
+            ballot.append_for(neutral)
 
         # Lock our vote
         ballot.lock()

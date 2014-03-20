@@ -45,6 +45,7 @@ from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
 # Standard library
 import logging
 import operator
+import time
 
 # ------------------------------------------------------------------------------
 
@@ -64,15 +65,21 @@ class CrashCriterion(object):
         """
         Sets up members
         """
-        # Factory name -> Rating
+        # Component name -> Rating
         self._ratings = {}
+
+        # Component name -> Time of last crash
+        self._last_crash = {}
+
+        # Unstable components names
+        self._unstable = set()
 
 
     def __str__(self):
         """
         String representation
         """
-        return "Crashing"
+        return "Components reliability rating"
 
 
     @Validate
@@ -90,6 +97,30 @@ class CrashCriterion(object):
         Component invalidated
         """
         self._ratings.clear()
+        self._last_crash.clear()
+        self._unstable.clear()
+
+
+    def _update_rating(self, component, delta):
+        """
+        Updates the rating of the component with the given delta
+
+        :param component: A component name
+        :param delta: Rating modification
+        """
+        # Normalize the new rating
+        new_rating = self._ratings.setdefault(component, 50) + delta
+        if new_rating < 0:
+            new_rating = 0
+        elif new_rating > 100:
+            new_rating = 100
+
+        # Store it
+        self._ratings[component] = new_rating
+
+        if new_rating < 5:
+            # Lower threshold reached: components are incompatible
+            self._unstable.add(component)
 
 
     def handle_event(self, event):
@@ -97,35 +128,68 @@ class CrashCriterion(object):
         Does nothing: this elector only cares about what is written in
         configuration files
         """
-        if event.kind not in ('isolate.lost', 'timer'):
-            # Ignore other messages
-            return
+        # Get the implicated components
+        components = sorted(set(component.name
+                                for component in event.components))
 
-        # Get the implicated factories
-        factories = set(component.factory for component in event.components)
+        if event.kind == 'timer':
+            self.on_timer(components)
 
-        if event.good:
-            # Timer event
-            delta = 2
-        else:
-            # Isolate lost
-            delta = -5
+        elif event.kind == 'isolate.lost':
+            self.on_crash(components)
 
-        # Update their ratings
-        for factory in factories:
-            new_rating = self._ratings.get(factory, 50.0) + delta
-            # Normalize the new rating
-            if new_rating < 0:
-                new_rating = 0
 
-            elif new_rating > 100:
-                new_rating = 100
+    def on_crash(self, components):
+        """
+        An isolate has been lost
 
-            self._ratings[factory] = new_rating
+        :param components: Names of the components in the crashed isolate
+        """
+        # Get the time of the crash
+        now = time.time()
 
-            _logger.warning("Updating factory rating: %s -> %s",
-                            factory, self._ratings[factory])
+        # Update their stability ratings
+        for name in components:
+            if name not in self._unstable:
+                # Get the last crash information
+                last_crash = self._last_crash.get(name, 0)
+                time_since_crash = now - last_crash
+                if time_since_crash < 60:
+                    # Less than 60s since the last crash
+                    self._update_rating(name, -10)
 
+                else:
+                    # More than 60s
+                    self._update_rating(name, -5)
+
+            # Update the last crash information
+            self._last_crash[name] = now
+
+
+    def on_timer(self, components):
+        """
+        The timer ticks: some components have been OK before last tick and now
+
+        :param components: Names of the components that well behaved
+        """
+        # Get the tick time
+        now = time.time()
+
+        # Update their stability ratings
+        for name in components:
+            if name not in self._unstable:
+                # Get the last crash information
+                last_crash = self._last_crash.get(name, 0)
+                time_since_crash = now - last_crash
+                if time_since_crash > 120:
+                    # More than 120s since the last crash
+                    self._update_rating(name, +8)
+
+                elif time_since_crash > 60:
+                    # More than 60s since the last crash
+                    self._update_rating(name, +4)
+
+                # do nothing the minute right after a crash
 
     def compute_stats(self, components):
         """
@@ -133,14 +197,14 @@ class CrashCriterion(object):
 
         :param components: Components already assigned to the isolate
         """
-        # Get the components factories
-        factories = set(component.factory for component in components)
+        # Get the components names
+        names = set(component.name for component in components)
 
         # TODO: compute variance too ?
 
         # Mean rating
-        return sum(self._ratings.setdefault(factory, 50.0)
-                   for factory in factories) / len(factories)
+        return sum(self._ratings.setdefault(name, 90)
+                   for name in names) / len(names)
 
 
     def vote(self, candidates, subject, ballot):
@@ -152,27 +216,43 @@ class CrashCriterion(object):
         :param subject: The component to place
         :param ballot: The vote ballot
         """
-        # Get/Set the rating of the component's factory
-        rating = self._ratings.setdefault(subject.factory, 50.0)
+        # Get/Set the rating of the component
+        rating = self._ratings.setdefault(subject.name, 50.0)
 
         # Distance with other components
         distances = []
 
         for candidate in candidates:
-            if rating > 10 and candidate.components:
-                # Only accept to work with other components if the given one
-                # is stable enough (> 10% stability rating)
-                # Compute the mean and variance of the current components
-                # ratings
-                mean = self.compute_stats(candidate.components)
-                distance = abs(mean - rating)
-                if distance < 10:
-                    # Prefer small distances
-                    distances.append((distance, candidate))
+            if candidate.components:
+                if len(candidate.components) == 1 \
+                and subject in candidate.components:
+                    # Single one in the isolate where we were
+                    distances.append((0, candidate))
+
+                elif subject.name in self._unstable:
+                    # Don't try to go with other components...
+                    ballot.append_against(candidate)
+
+                elif rating > 20:
+                    # Only accept to work with other components if the given one
+                    # is stable enough (> 20% stability rating)
+                    # Compute the mean and variance of the current components
+                    # ratings
+                    mean = self.compute_stats(candidate.components)
+                    distance = abs(mean - rating)
+                    if distance < 20:
+                        # Prefer small distances
+                        distances.append((distance, candidate))
 
             else:
-                # First component of this isolate ?
-                distances.append((0, candidate))
+                # Prefer non-"neutral" isolates
+                if not candidate.name:
+                    distances.append((20, candidate))
+
+                else:
+                    # First component of this isolate
+                    distances.append((5, candidate))
+
 
         # Sort computed distances (lower is better)
         distances.sort(key=operator.itemgetter(0))
