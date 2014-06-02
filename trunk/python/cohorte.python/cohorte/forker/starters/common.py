@@ -124,7 +124,7 @@ class CommonStarter(object):
         :raise OSError: Error killing the process
         """
         process = self._isolates.pop(uid)
-        if process.poll() is not None:
+        if process.poll() is None:
             process.terminate()
 
 
