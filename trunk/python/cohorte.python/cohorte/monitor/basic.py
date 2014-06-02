@@ -61,7 +61,8 @@ HANDLED_SIGNALS = (cohorte.monitor.SIGNALS_ISOLATE_PATTERN,
 # ------------------------------------------------------------------------------
 
 @ComponentFactory("cohorte-monitor-basic-factory")
-@Provides(cohorte.monitor.SERVICE_MONITOR)
+@Provides((cohorte.monitor.SERVICE_MONITOR,
+           cohorte.forker.SERVICE_WATCHER_LISTENER))
 @Requires('_config', cohorte.SERVICE_CONFIGURATION_READER)
 @Requires('_finder', cohorte.SERVICE_FILE_FINDER)
 @Requires('_forker', cohorte.SERVICE_FORKER)
@@ -96,6 +97,9 @@ class MonitorBasic(object):
 
         # Platform stopping event
         self._platform_stopping = threading.Event()
+
+        # Auto-run isolates
+        self._auto_isolates = {}
 
 
     def handle_received_signal(self, name, data):
@@ -160,6 +164,8 @@ class MonitorBasic(object):
     def _start_config_isolates(self):
         """
         Starts isolates configured for this node
+
+        :return: True if all isolates have beean started correctly
         """
         try:
             isolates = self._config.read('autorun_isolates.js', True)
@@ -173,37 +179,58 @@ class MonitorBasic(object):
             _logger.debug("No predefined isolates.")
             return
 
+        all_started = True
         for isolate in isolates:
-            # Check isolate node
-            if isolate.get('node') != self._node_name:
-                continue
+            all_started |= self._start_config_isolate(isolate)
 
-            # Check its name
-            name = isolate.get('name')
-            if not name:
-                _logger.warning("Refusing an auto-run isolate without name")
-                continue
+        return all_started
 
-            # Generate an UID
+
+    def _start_config_isolate(self, isolate):
+        """
+        Starts a single configured isolate.
+
+        :param isolate: Isolate configuration
+        :return: True if the isolate has been started, else False
+        """
+        # Check isolate node
+        if isolate.get('node') != self._node_name:
+            return False
+
+        # Check its name
+        name = isolate.get('name')
+        if not name:
+            _logger.warning("Refusing an auto-run isolate without name")
+            return False
+
+        # Use/Generate the isolate UID
+        uid = isolate.get('custom_uid')
+        if not uid:
             uid = str(uuid.uuid4())
 
-            # Store the isolate in the status
-            self._status.add_isolate(uid)
+        # Store it, to force the forker to use the same UID
+        isolate['uid'] = uid
 
-            # Call the forker
-            _logger.debug("Loading predefined isolate: %s", name)
-            self._status.isolate_requested(uid)
-            result = self._forker.start_isolate(isolate)
+        # Store the isolate configuration
+        self._auto_isolates[uid] = isolate
 
-            if result in cohorte.forker.REQUEST_SUCCESSES:
-                # Great success !
-                self._status.isolate_starting(uid)
-                return True
+        # Store the isolate in the status
+        self._status.add_isolate(uid)
 
-            else:
-                # Failed...
-                self._status.isolate_gone(uid)
-                return False
+        # Call the forker
+        _logger.debug("(Re)Loading predefined isolate: %s (%s)", name, uid)
+        self._status.isolate_requested(uid)
+        result = self._forker.start_isolate(isolate)
+
+        if result in cohorte.forker.REQUEST_SUCCESSES:
+            # Great success !
+            self._status.isolate_starting(uid)
+            return True
+
+        else:
+            # Failed...
+            self._status.isolate_gone(uid)
+            return False
 
 
     def start_isolate(self, name, kind, level, sublevel, bundles=None,
@@ -294,7 +321,34 @@ class MonitorBasic(object):
         :param uid: UID of an isolate
         :return: True if the forker knew the isolate
         """
-        return self._forker.stop_isolate(uid)
+        try:
+            self._forker.stop_isolate(uid)
+            return True
+        except KeyError:
+            return False
+
+
+    def handle_lost_isolate(self, uid):
+        """
+        A local isolate has been lost
+        """
+        try:
+            # Find the matching configuration
+            isolate = self._auto_isolates.pop(uid)
+
+        except KeyError:
+            # Not an auto-run isolate: ignore it (let the composer handle it)
+            _logger.error("Unknown isolate: %s", uid)
+            return
+
+        _logger.warning("Auto-run isolate lost: %s (%s)",
+                        isolate.get('name'), uid)
+
+        # Change internal state
+        self._status.isolate_gone(uid)
+
+        # Auto-run isolate has been lost: restart it
+        self._start_config_isolate(isolate)
 
 
     def _handle_lost(self, uid):
@@ -316,11 +370,10 @@ class MonitorBasic(object):
         self._status.isolate_gone(uid)
 
         if state == fsm.ISOLATE_STATE_STOPPING:
-            # TODO: The isolate was stopping, so it's not an error
+            # "Foreign" isolate stopped nicely
             _logger.info("Isolate %s stopped nicely.", uid)
-
         else:
-            # TODO: Isolate lost
+            # "Foreign" isolate lost
             _logger.error("Isolate %s lost", uid)
 
 
@@ -407,6 +460,12 @@ class MonitorBasic(object):
         for signal in HANDLED_SIGNALS:
             self._receiver.unregister_listener(signal, self)
 
+        # Kill auto-run isolates
+        for uid in tuple(self._auto_isolates.keys()):
+            self._forker.stop_isolate(uid)
+
+        # Clean up
+        self._auto_isolates.clear()
         self._node_uid = None
         self._node_name = None
         self._context = None
