@@ -38,7 +38,7 @@ ISOLATE_EVENT_GONE = "/gone"
 def make_isolate_fsm(uid):
     """
     Prepares an isolate FSM.
-    
+
     :param uid: UID of the isolate
     """
     fsm = StateMachine("Agent-{0}".format(uid), uid)

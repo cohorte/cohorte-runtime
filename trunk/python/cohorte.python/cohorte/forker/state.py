@@ -59,7 +59,7 @@ class IsolateStateDirectory(object):
     def prepare_isolate(self, uid):
         """
         Inserts an isolate in the UID, in the INEXISTANT state
-        
+
         :param uid: An isolate UID
         :raise ValueError: The isolate is already known and in another state
         """
@@ -78,7 +78,7 @@ class IsolateStateDirectory(object):
     def knows(self, uid):
         """
         Tests if the given UID is in the directory
-        
+
         :param UID: An isolate UID
         :return: True if the isolate is known
         """
@@ -89,7 +89,7 @@ class IsolateStateDirectory(object):
     def get_state(self, uid):
         """
         Gets the state of the given UID
-        
+
         :param uid: An isolate UID
         :raise KeyError: Unknown UID
         """
@@ -100,7 +100,7 @@ class IsolateStateDirectory(object):
     def change_state(self, uid, new_state):
         """
         Sets the new state of the given isolate
-        
+
         :param uid: An isolate UID
         :param new_state: The new state of the isolate
         :raise KeyError: Unknown isolate
@@ -129,7 +129,7 @@ class IsolateStateDirectory(object):
     def clear_isolate(self, uid):
         """
         Clear all references to the given isolate
-        
+
         :param uid: An isolate UID
         :return: True on success, False if it was unknown
         """
@@ -146,7 +146,7 @@ class IsolateStateDirectory(object):
     def wait_for(self, uid, timeout=None):
         """
         Waits for the given isolate to show up
-        
+
         :param uid: Isolate UID
         :param timeout: An optional wait time out (in seconds)
         :raise KeyError: Unknown UID
@@ -173,7 +173,7 @@ class IsolateStateDirectory(object):
     def validate(self, context):
         """
         Component validated
-        
+
         :param context: The bundle context
         """
         _logger.debug("Isolate directory validated")
@@ -183,7 +183,7 @@ class IsolateStateDirectory(object):
     def invalidate(self, context):
         """
         Component invalidated
-        
+
         :param context: The bundle context
         """
         # Unlock all waiters

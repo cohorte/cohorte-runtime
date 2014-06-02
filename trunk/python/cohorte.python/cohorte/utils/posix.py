@@ -31,7 +31,7 @@ class OSUtils(utils.BaseOSUtils):
     def find_java_interpreter(self, java_home):
         """
         Finds the Java interpreter, in the given Java Home if possible
-        
+
         :param java_home: The preferred Java home
         :return: The path to the first Java interpreter found, or None
         """
@@ -53,7 +53,7 @@ class OSUtils(utils.BaseOSUtils):
     def find_python2_interpreter(self):
         """
         Finds a Python 2 interpreter
-        
+
         :return: The path to the first Python 2 interpreter found, or None
         """
         # Try with embedded interpreter first
@@ -80,7 +80,7 @@ class OSUtils(utils.BaseOSUtils):
     def find_python3_interpreter(self):
         """
         Finds a Python 3 interpreter
-        
+
         :return: The path to the first Python 3 interpreter found, or None
         """
         # Try with embedded interpreter first
@@ -107,7 +107,7 @@ class OSUtils(utils.BaseOSUtils):
     def is_process_running(self, pid):
         """
         Tests if the given process is running
-        
+
         :param pid: PID of the process to test
         :return: True if the process is running else False
         """
@@ -129,7 +129,7 @@ class OSUtils(utils.BaseOSUtils):
     def kill_pid(self, pid):
         """
         Kills the given PID, if possible
-        
+
         :param pid: PID of the process to kill
         :raise ValueError: Invalid PID
         :raise OSError: Unauthorized operation
@@ -144,15 +144,15 @@ class OSUtils(utils.BaseOSUtils):
         """
         Waits for process with the given PID to terminate and return its
         exit status code as an integer.
-    
+
         If PID is not a children of os.getpid() (current process) just
         waits until the process disappears and return None.
-    
+
         If pid does not exist at all return None immediately.
-        
+
         Code from the psutil Python library:
         Copyright (c) 2009, Jay Loden, Giampaolo Rodola'. All rights reserved.
-        
+
         :param pid: The PID to wait for
         :param timeout: The maximum time to wait, in seconds.
                         None to wait forever
@@ -161,7 +161,7 @@ class OSUtils(utils.BaseOSUtils):
         def check_timeout(delay):
             """
             Tests if the time out has expired
-            
+
             :param delay: Delay before the method returns
             :return: The next delay value (max: 4 ms)
             """
@@ -221,7 +221,7 @@ class OSUtils(utils.BaseOSUtils):
     def _test_java_path(self, java_home):
         """
         Tries to return the path to a Java interpreter
-        
+
         :param java_home: The Java home to test
         :return: The Java interpreter path or None
         """

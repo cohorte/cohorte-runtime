@@ -43,7 +43,7 @@ class Module(Artifact):
     def __init__(self, name, version, imports, filename):
         """
         Sets up the bundle details
-        
+
         :param name: Name of the module
         :param version: Version of the module (as a string)
         :param imports: List of names of imported modules
@@ -132,7 +132,7 @@ class AstVisitor(ast.NodeVisitor):
 def _extract_module_info(filename):
     """
     Extract the version and the imports from the given Python file
-    
+
     :param filename: Path to the file to parse
     :return: A (version, [imports]) tuple
     :raise ValueError: Unreadable file
@@ -183,7 +183,7 @@ class PythonModuleRepository(object):
     def __contains__(self, item):
         """
         Tests if the given item is in the repository
-        
+
         :param item: Item to be tested
         :return: True if the item is in the repository
         """
@@ -219,7 +219,7 @@ class PythonModuleRepository(object):
     def __add_module(self, module, registry=None):
         """
         Adds a module to the registry
-        
+
         :param module: A Module object
         :param registry: Registry where to store the module
         """
@@ -240,7 +240,7 @@ class PythonModuleRepository(object):
         """
         Computes the module name of the given file by looking for '__init__.py'
         files in its parent directories
-        
+
         :param filename: Path of the module file
         :return: The Python name of the module
         :raise ValueError: Invalid directory name
@@ -299,7 +299,7 @@ class PythonModuleRepository(object):
     def __test_import(self, name):
         """
         Tries to import the given module, using imp.find_module().
-        
+
         :param name: A module name
         :return: True if the module can be imported
         """
@@ -323,7 +323,7 @@ class PythonModuleRepository(object):
     def add_file(self, filename):
         """
         Adds a Python file to the repository
-        
+
         :param filename: A Python file name
         :raise ValueError: Unreadable file
         """
@@ -344,7 +344,7 @@ class PythonModuleRepository(object):
         """
         Recursively adds all .py modules found in the given directory into the
         repository
-        
+
         :param dirname: A path to a directory
         """
         for root, _, filenames in os.walk(dirname, followlinks=True):
@@ -417,9 +417,9 @@ class PythonModuleRepository(object):
         for module in matching:
             if module.version.matches(version):
                 return module
-        else:
-            raise ValueError('Module {0} not found for version {1}' \
-                             .format(name, version))
+
+        raise ValueError('Module {0} not found for version {1}' \
+                         .format(name, version))
 
 
     def get_language(self):
@@ -476,6 +476,7 @@ class PythonModuleRepository(object):
             # Resolve import ...
             for imported in module._imports:
                 # Find the module
+                registry = None
                 provider = None
                 for registry in (local_modules, self._modules):
                     try:

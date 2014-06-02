@@ -75,7 +75,7 @@ class DefaultLooper(object):
     def run(self, method, *args, **kwargs):
         """
         Runs the given method in the main thread
-        
+
         :param method: The method to call
         :param args: Method arguments
         :param kwargs: Method keyword arguments

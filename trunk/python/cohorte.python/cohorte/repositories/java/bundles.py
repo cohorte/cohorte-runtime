@@ -60,7 +60,7 @@ class Bundle(Artifact):
     def __init__(self, jar_file, manifest):
         """
         Sets up the bundle details
-        
+
         :param jar_file: Path to the JAR file (can be empty, but shouldn't)
         :param manifest: The parsed Manifest of the JAR file (mandatory)
         :raise ValueError: Invalid manifest argument
@@ -129,7 +129,7 @@ class Bundle(Artifact):
     def is_fragment(self):
         """
         Tests if this bundle is a fragment
-        
+
         :return: True if this bundle is a fragment
         """
         return 'Fragment-Host' in self._manifest.entries
@@ -138,7 +138,7 @@ class Bundle(Artifact):
     def get_exported_packages(self):
         """
         Retrieves a Name -> Version dictionary of the exported packages
-        
+
         :return: A Name -> Version dictionary
         """
         return ((name, Version(attributes.get('version')))
@@ -156,7 +156,7 @@ class Bundle(Artifact):
         """
         Retrieves the content of a service description file (like the
         FrameworkFactory service)
-        
+
         :param service_name: The name of a service
         :return: The content of the service description file, or None
         """
@@ -192,6 +192,9 @@ class OSGiBundleRepository(object):
         """
         Sets up the repository
         """
+        # Language (property)
+        self._language = None
+
         # Name -> [Bundle]
         self._bundles = {}
 
@@ -205,7 +208,7 @@ class OSGiBundleRepository(object):
     def __contains__(self, item):
         """
         Tests if the given item is in the repository
-        
+
         :param item: Item to be tested
         :return: True if the item is in the repository
         """
@@ -237,7 +240,7 @@ class OSGiBundleRepository(object):
     def __add_bundle(self, bundle, bundle_registry=None, package_registry=None):
         """
         Adds a bundle to the given registry
-        
+
         :param bundle: A Bundle object
         :param bundle_registry: Registry where to store the bundle
         :param package_registry: Registry where to store the packages of this
@@ -262,7 +265,7 @@ class OSGiBundleRepository(object):
     def __add_package(self, registry, name, version, bundle):
         """
         Adds a Java package to the given registry
-        
+
         :param registry: Registry where to store the package details
         :param name: Name of the package
         :param version: Version of the package
@@ -279,7 +282,7 @@ class OSGiBundleRepository(object):
     def add_file(self, filename):
         """
         Adds a JAR file to the repository
-        
+
         :param filename: A JAR file name
         """
         # Compute the real name of the JAR file
@@ -298,7 +301,7 @@ class OSGiBundleRepository(object):
         """
         Recursively adds all .jar bundles found in the given directory into the
         repository
-        
+
         :param dirname: A path to a directory
         """
         for root, _, filenames in os.walk(dirname, followlinks=True):
@@ -325,7 +328,7 @@ class OSGiBundleRepository(object):
         """
         Generator to find all bundles that declares an implementation of the
         given service (in META-INF/services)
-        
+
         :param service: A service name
         :return: A generator of bundles (can be empty)
         """
@@ -386,9 +389,9 @@ class OSGiBundleRepository(object):
         for bundle in matching:
             if bundle.version.matches(version):
                 return bundle
-        else:
-            raise ValueError('Bundle {0} not found for version {1}' \
-                             .format(name, version))
+
+        raise ValueError('Bundle {0} not found for version {1}' \
+                         .format(name, version))
 
     def get_language(self):
         """
@@ -499,6 +502,7 @@ class OSGiBundleRepository(object):
                                                                  None)
 
                 # Find the bundle
+                registry = None
                 provider = None
                 for registry in (local_bundles, self._bundles):
                     try:

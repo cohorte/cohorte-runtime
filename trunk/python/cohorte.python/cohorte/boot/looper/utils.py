@@ -39,7 +39,7 @@ class EventResult(object):
     def get(self, timeout=None):
         """
         Waits for a result
-        
+
         :param timeout: Maximum time to wait for a result
         :return: The method result
         :raise ValueError: Time out reached

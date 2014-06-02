@@ -65,7 +65,7 @@ class StateUpdater(object):
     def bound_to(self, path, parameters):
         """
         Servlet bound to a HTTP service
-        
+
         :param path: The path to access the servlet
         :param parameters: The server & servlet parameters
         """
@@ -85,7 +85,7 @@ class StateUpdater(object):
     def unbound_from(self, path, parameters):
         """
         Servlet unbound from a HTTP service
-        
+
         :param path: The path to access the servlet
         :param parameters: The server & servlet parameters
         """
@@ -101,7 +101,7 @@ class StateUpdater(object):
     def do_POST(self, request, response):
         """
         Handles a POST request
-        
+
         :param request: The HTTP request bean
         :param request: The HTTP response handler
         """
@@ -140,7 +140,7 @@ class StateUpdater(object):
     def get_url(self):
         """
         Retrieves the URL to access this servlet
-        
+
         :return: The URL to access this servlet
         """
         if not self._svc_flag:
@@ -166,7 +166,7 @@ class StateUpdater(object):
     def validate(self, context):
         """
         Component invalidated
-        
+
         :param context: The bundle context
         """
         _logger.debug("State updater validated")
@@ -176,7 +176,7 @@ class StateUpdater(object):
     def invalidate(self, context):
         """
         Component invalidated
-        
+
         :param context: The bundle context
         """
         _logger.debug("State updater invalidated")

@@ -156,7 +156,7 @@ class IsolateComposer(object):
                 self._agent.handle(components)
             else:
                 # Wait for an agent to come
-                self._remaning.update(components)
+                self._remaining.update(components)
 
 
     def kill(self, names):

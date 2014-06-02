@@ -31,7 +31,7 @@ class Artifact(object):
     def __init__(self, language, name, version=None, filename=None):
         """
         Sets up the artifact
-        
+
         :param language: Language of implementation of the artifact (mandatory)
         :param name: Name of the artifact (will be file name if empty)
         :param version: Version of the artifact (optional)
@@ -229,7 +229,7 @@ class Factory(object):
     def __init__(self, name, language, model, artifact):
         """
         Sets up the component factory
-        
+
         :param name: Name of the component factory
         :param language: Language of implementation of the factory
         :param model: The component model that can handle the factory

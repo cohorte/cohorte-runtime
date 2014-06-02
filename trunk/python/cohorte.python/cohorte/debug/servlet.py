@@ -113,7 +113,7 @@ class DebugServlet(object):
     def make_all(self, request):
         """
         Aggregates all content makers
-        
+
         :param request: The HTTP request
         :return: The aggregation of the result of all other make_* methods
         """
@@ -292,7 +292,7 @@ class DebugServlet(object):
     def do_GET(self, request, response):
         """
         Handles a GET request
-        
+
         :param request: The HTTP request bean
         :param request: The HTTP response handler
         """
@@ -337,7 +337,7 @@ class DebugServlet(object):
     def validate(self, context):
         """
         Component validated
-        
+
         :param context: The bundle context
         """
         # Store the framework access
@@ -349,7 +349,7 @@ class DebugServlet(object):
     def invalidate(self, context):
         """
         Component invalidated
-        
+
         :param context: The bundle context
         """
         # Clear the framework access

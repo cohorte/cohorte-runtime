@@ -9,6 +9,7 @@ configuration broker...
 :author: Thomas Calmant
 :license: GPLv3
 """
+from pelix.ipopo.constants import use_ipopo
 
 # Documentation strings format
 __docformat__ = "restructuredtext en"
@@ -32,7 +33,7 @@ def boot_load(context, boot_config):
     Utility method to do the common isolate boot operations, i.e. applies the
     properties, install the bundles and finally instantiate the components
     indicated in the given boot configuration.
-    
+
     :param context: The bundle context to use to install bundles
     :param boot_config: The boot configuration
     :raise BundleException: Error installing a bundle
@@ -65,19 +66,16 @@ def boot_load(context, boot_config):
 
     if boot_config.composition:
         # Instantiate iPOPO components, if any
-        ipopo_ref, ipopo_svc = constants.get_ipopo_svc_ref(context)
-        for component in boot_config.composition:
-            # If not indicated, tell iPOPO to restart this component after
-            # bundle update
-            if constants.IPOPO_AUTO_RESTART not in component.properties:
-                component.properties[constants.IPOPO_AUTO_RESTART] = True
+        with use_ipopo(context) as ipopo:
+            for component in boot_config.composition:
+                # If not indicated, tell iPOPO to restart this component after
+                # bundle update
+                if constants.IPOPO_AUTO_RESTART not in component.properties:
+                    component.properties[constants.IPOPO_AUTO_RESTART] = True
 
-            # Instantiate the component
-            ipopo_svc.instantiate(component.factory, component.name,
+                # Instantiate the component
+                ipopo.instantiate(component.factory, component.name,
                                   component.properties)
-
-        # We don't need iPOPO anymore
-        context.unget_service(ipopo_ref)
 
     else:
         logger.debug("No component to instantiate")

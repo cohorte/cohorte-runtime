@@ -78,7 +78,7 @@ class ConfigBroker(object):
     def bound_to(self, path, parameters):
         """
         Servlet bound to a HTTP service
-        
+
         :param path: The path to access the servlet
         :param parameters: The server & servlet parameters
         """
@@ -98,7 +98,7 @@ class ConfigBroker(object):
     def unbound_from(self, path, parameters):
         """
         Servlet unbound from a HTTP service
-        
+
         :param path: The path to access the servlet
         :param parameters: The server & servlet parameters
         """
@@ -114,7 +114,7 @@ class ConfigBroker(object):
     def do_GET(self, request, response):
         """
         Handles GET requests
-        
+
         :param request: The HTTP request bean
         :param request: The HTTP response handler
         """
@@ -141,7 +141,7 @@ class ConfigBroker(object):
     def do_DELETE(self, request, response):
         """
         Handles DELETE requests
-        
+
         :param request: The HTTP request bean
         :param request: The HTTP response handler
         """
@@ -169,7 +169,7 @@ class ConfigBroker(object):
     def delete_configuration(self, uid):
         """
         Deletes the configuration of the given isolate
-        
+
         :param uid: An isolate UID
         :return: True if the isolate was known, else False
         """
@@ -185,7 +185,7 @@ class ConfigBroker(object):
     def store_configuration(self, uid, dict_config):
         """
         Stores the configuration of the given isolate
-        
+
         :param uid: An isolate UID
         :param dict_config: The configuration dictionary of the given isolate
         :return: The URL to access this configuration
@@ -215,7 +215,7 @@ class ConfigBroker(object):
     def invalidate(self, context):
         """
         Component invalidated
-        
+
         :param context: The bundle context
         """
         # Reset the service flag

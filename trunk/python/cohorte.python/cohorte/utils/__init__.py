@@ -29,7 +29,7 @@ def get_os_utils():
     """
     Retrieves an a utility class instance, according to the host operating
     system
-    
+
     :return: System utility instance
     """
     module_name = "%s.%s" % (__name__, os.name)
@@ -54,7 +54,7 @@ def get_os_utils():
 def find_file_recursive(file_name, root_directory):
     """
     Finds the given file in the given root directory and its children
-    
+
     :param file_name: Name of the file to find
     :param root_directory: Root folder of recursion
     :return: The path to the found file, or None
@@ -70,7 +70,7 @@ def find_file_recursive(file_name, root_directory):
 def find_in_path(file_name):
     """
     Searches for file in the directories of the PATH environment variable
-    
+
     :param file_name: The file to look for
     :return: The first found file, or None
     """
@@ -91,7 +91,7 @@ def find_in_path(file_name):
 def is_dir(path):
     """
     Tests if the given path points to a directory or to a link to a directory
-    
+
     :param path: A file system path
     :return: True if the path points to a directory or to a link to a directory
     """
@@ -101,7 +101,7 @@ def is_dir(path):
 def is_file(path):
     """
     Tests if the given path points to a file or to a link to a file
-    
+
     :param path: A file system path
     :return: True if the path points to a file or to a link to a file
     """
@@ -112,7 +112,7 @@ def is_file(path):
 def remove_quotes(path):
     """
     Removes the quotes surrounding the given string, if any
-    
+
     :param path: A string
     :return: The string without surrounding quotes
     """
@@ -134,7 +134,7 @@ class TimeoutExpired(Exception):
     def __init__(self, pid):
         """
         Constructor
-        
+
         :param pid: PID of the process that failed to respond
         """
         Exception.__init__(self, "Timeout expired waiting for PID: %d" % pid)
@@ -158,7 +158,7 @@ class BaseOSUtils(object):
     def find_bundle_file(self, bundle_name):
         """
         Search for the given file in PSEM2M local repositories
-        
+
         :param bundle_name: A bundle file name
         :return: The first found file in a repo directory
         """
@@ -168,7 +168,7 @@ class BaseOSUtils(object):
     def find_conf_file(self, file_name):
         """
         Search for the given file in PSEM2M configuration directories
-        
+
         :param file_name: A file name
         :return: The first found file in a conf directory
         """
@@ -178,7 +178,7 @@ class BaseOSUtils(object):
     def find_file(self, file_name, *sub_dirs):
         """
         Finds the given file name in the given PSEM2M sub-directory
-        
+
         :param file_name: A file name
         :param sub_dirs: Possible sub-directories (variable arguments)
         :return: The first found file, or None
@@ -203,7 +203,7 @@ class BaseOSUtils(object):
     def find_java_interpreter(self, java_home):
         """
         Finds the Java interpreter, in the given Java Home if possible
-        
+
         :param java_home: The preferred Java home
         :return: The path to the first Java interpreter found, or None
         """
@@ -213,7 +213,7 @@ class BaseOSUtils(object):
     def find_python2_interpreter(self):
         """
         Finds a Python 2 interpreter
-        
+
         :return: The path to the first Python 2 interpreter found, or None
         """
         raise NotImplementedError("This method must implemented by child class")
@@ -222,7 +222,7 @@ class BaseOSUtils(object):
     def find_python3_interpreter(self):
         """
         Finds a Python 3 interpreter
-        
+
         :return: The path to the first Python 3 interpreter found, or None
         """
         raise NotImplementedError("This method must implemented by child class")
@@ -232,7 +232,7 @@ class BaseOSUtils(object):
         """
         Reads the first non-commented and non-empty line of a framework file.
         Framework files contains the file name of an OSGi framework JAR main file;
-        
+
         :param file_name: Name of the framework file to read
         :return: The framework file content, None if not found
         """

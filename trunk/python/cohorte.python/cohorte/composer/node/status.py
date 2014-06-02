@@ -98,7 +98,7 @@ class NodeStatusStorage(object):
         """
         with self.__lock:
             lines = ['Isolates:']
-            for isolate, components in self._storage.items():
+            for isolate, components in self._isolate_components.items():
                 lines.append('\t- {0}'.format(isolate))
                 lines.extend('\t\t- {0}'.format(component)
                              for component in components)

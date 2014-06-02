@@ -50,7 +50,7 @@ class RuleEngine(Intellect):
     def __check_name(self, name):
         """
         Checks if the given name is a valid Python identifier
-        
+
         :param name: A string
         :return: True if the string can be a valid Python identifier
         """
@@ -65,7 +65,7 @@ class RuleEngine(Intellect):
     def add_callable(self, method, name=None):
         """
         Allows a method to be used from rules
-        
+
         :param method: A reference to the method
         :param name: The method name
         :return: The name of the method (given or computed)
@@ -95,7 +95,7 @@ class RuleEngine(Intellect):
     def remove_callable(self, name):
         """
         Removes the method with the given name
-        
+
         :param name: A method name (result of add_callable())
         :raise KeyError: Unknown method name
         """
@@ -113,7 +113,7 @@ class RuleEngine(Intellect):
     def __getattr__(self, item):
         """
         Uses the dispatch dictionary to find a method used by the rules
-        
+
         :param item: Item to search for
         :return: The found item
         :raise AttributeError: Item not found

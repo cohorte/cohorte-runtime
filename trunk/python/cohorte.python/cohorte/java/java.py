@@ -66,7 +66,7 @@ class JavaVM(object):
     def add_jar(self, jar_file_path):
         """
         Adds a JAR in the JVM class path
-        
+
         :param jar_file_path: Path to the JAR file to add
         :raise KeyError: No JVM is loaded
         :raise ValueError: Error loading the JAR file
@@ -85,7 +85,7 @@ class JavaVM(object):
             jar_url = jar_file.toURL()
 
             # jPype will do the reflection stuffs for us
-            class_loader = ClassLoader.getSystemClassLoader();
+            class_loader = ClassLoader.getSystemClassLoader()
             class_loader.addURL(jar_url)
 
         except jpype.JavaException as ex:
@@ -96,9 +96,9 @@ class JavaVM(object):
     def get_package(self, name):
         """
         Retrieves the wrapper for the given Java package.
-        
+
         Having a result doesn't mean that the package name is correct.
-        
+
         :param name: A Java package name
         :return: The wrapper for this package
         """
@@ -108,7 +108,7 @@ class JavaVM(object):
     def is_running(self):
         """
         Tests if the JVM is currently running
-        
+
         :return: True if the JVM is running
         """
         return self._jvm_running
@@ -117,7 +117,7 @@ class JavaVM(object):
     def load_class(self, name):
         """
         Loads the given class from the JVM
-        
+
         :param name: A Java class name
         :return: The wrapper for this Java class
         :raise ValueError: The class couldn't be loaded
@@ -133,11 +133,11 @@ class JavaVM(object):
         """
         Makes a proxy to be able to use the given instance in the Java world.
         Only the given interface methods will be visible in the Java world.
-        
+
         If no interface is given, this method will look for the JAVA_INTERFACE
         member of the instance, and raise a KeyError exception if it is
         missing.
-        
+
         :param instance: A Python object instance
         :param interface: A Java interface name
         :return: The Java instance proxy
@@ -156,7 +156,7 @@ class JavaVM(object):
     def make_jvm_classpath(self, classpath):
         """
         Prepares the arguments of the JVM
-        
+
         :param classpath: A list of files in the class path
         :return: The corresponding class path argument
         """
@@ -166,7 +166,7 @@ class JavaVM(object):
     def make_jvm_property(self, key, value):
         """
         Formats a JVM property definition (-Dkey=value)
-        
+
         :param key: Property key
         :param value: Property value
         :return: The property definition
@@ -177,7 +177,7 @@ class JavaVM(object):
     def start(self, vm_library=None, *args):
         """
         Starts a JVM with the given parameters
-        
+
         :raise KeyError: A JVM is already running
         :raise ValueError: Invalid parameter
         """
@@ -199,7 +199,7 @@ class JavaVM(object):
     def stop(self):
         """
         Stops the JVM.
-        
+
         :return: True if the JVM has been stopped, else False
         """
         if self._jvm_running:
@@ -214,7 +214,7 @@ class JavaVM(object):
     def validate(self, context):
         """
         Component validated
-        
+
         :param context: The bundle context
         """
         # Store the framework access
@@ -225,7 +225,7 @@ class JavaVM(object):
     def invalidate(self, context):
         """
         Component invalidated
-        
+
         :param context: The bundle context
         """
         # Stop the JVM

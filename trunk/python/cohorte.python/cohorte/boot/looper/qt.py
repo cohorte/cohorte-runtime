@@ -55,7 +55,7 @@ class QtLoader(QtCore.QObject):
     Qt application loader.
     Provides a run_on_ui() method to allow multithreaded application
     construction.
-    
+
     setup(), loop() and stop() should be called in the same thread, which should
     be the process main thread.
     """
@@ -104,12 +104,12 @@ class QtLoader(QtCore.QObject):
     def run(self, method, *args, **kwargs):
         """
         Runs the given method in the main thread
-        
+
         :param method: The method to call
         :param args: Method arguments
         :param kwargs: Method keyword arguments
         :return: The result of the method
-        :raise ValueError: Qt is not started yet 
+        :raise ValueError: Qt is not started yet
         """
         if self.__waiting_calls is None:
             raise ValueError("UI not yet set up")
@@ -150,7 +150,7 @@ class QtLoader(QtCore.QObject):
     def loop(self):
         """
         Blocking event loop.
-        
+
         This method will return when stop() is called or when the quit()
         signal is emitted.
         """

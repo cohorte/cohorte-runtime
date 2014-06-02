@@ -35,7 +35,7 @@ if os.name == "nt":
     def pton(family, address):
         """
         Calls inet_pton
-        
+
         :param family: Socket family
         :param address: A string address
         :return: The binary form of the given address
@@ -82,7 +82,7 @@ else:
     def pton(family, address):
         """
         Calls inet_pton
-        
+
         :param family: Socket family
         :param address: A string address
         :return: The binary form of the given address
@@ -94,7 +94,7 @@ else:
 def make_mreq(family, address):
     """
     Makes a mreq structure object for the given address and socket family.
-    
+
     :param family: A socket family (AF_INET or AF_INET6)
     :param address: A multicast address (group)
     :raise ValueError: Invalid family or address
@@ -132,7 +132,7 @@ def create_multicast_socket(address, port, join=True):
     """
     Creates a multicast socket according to the given address and port.
     Handles both IPv4 and IPv6 addresses.
-    
+
     :param address: Multicast address/group
     :param port: Socket port
     :param join: If False, the socket is not bound and does not join the
@@ -205,9 +205,9 @@ def close_multicast_socket(sock, address):
     """
     Cleans up the given multicast socket.
     Unregisters it of the multicast group.
-    
+
     Parameters should be the result of create_multicast_socket
-    
+
     :param sock: A multicast socket
     :param address: The multicast address used by the socket
     """

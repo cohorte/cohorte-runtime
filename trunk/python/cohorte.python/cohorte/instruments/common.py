@@ -183,5 +183,5 @@ class CommonHttp(object):
                 response.send_content(200, fp.read(), "")
 
         except:
-            self._page_not_found(response,
-                                 "File not found: {0}".format(filename))
+            self.page_not_found(response,
+                                "File not found: {0}".format(filename))

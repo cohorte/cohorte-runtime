@@ -49,7 +49,7 @@ class MonitorStatus(object):
     def add_isolate(self, uid):
         """
         Prepares the FSM of a new isolate
-        
+
         :param uid: UID of the isolate
         :return: The initial state of the isolate (waiting)
         :raise KeyError: Already known & running isolate
@@ -69,7 +69,7 @@ class MonitorStatus(object):
     def remove_isolate(self, uid):
         """
         Removes the references to the given isolate
-        
+
         :param uid: UID of the isolate
         :return: True if the isolate FSM has been deleted, else False
         """
@@ -87,7 +87,7 @@ class MonitorStatus(object):
     def isolate_requested(self, uid):
         """
         The instantiation of the isolate has been requested to a forker
-        
+
         :param uid: UID of the isolate
         :raise KeyError: Unknown UID
         :raise ValueError: Invalid state transition
@@ -98,7 +98,7 @@ class MonitorStatus(object):
     def isolate_starting(self, uid):
         """
         The forker has created the isolate process and lets it boot
-        
+
         :param uid: UID of the isolate
         :raise KeyError: Unknown UID
         :raise ValueError: Invalid state transition
@@ -109,7 +109,7 @@ class MonitorStatus(object):
     def isolate_ready(self, uid):
         """
         The instantiation of the isolate succeeded
-        
+
         :param uid: UID of the isolate
         :raise KeyError: Unknown UID
         :raise ValueError: Invalid state transition
@@ -120,7 +120,7 @@ class MonitorStatus(object):
     def isolate_stopping(self, uid):
         """
         The isolate declares it is stopping
-        
+
         :param uid: UID of the isolate
         :raise KeyError: Unknown UID
         :raise ValueError: Invalid state transition
@@ -131,7 +131,7 @@ class MonitorStatus(object):
     def isolate_gone(self, uid):
         """
         The isolate has been lost (process killed, ...)
-        
+
         :param uid: UID of the isolate
         :raise KeyError: Unknown UID
         :raise ValueError: Invalid state transition
@@ -142,7 +142,7 @@ class MonitorStatus(object):
     def get_running(self):
         """
         Retrieves the UIDs of running isolates, i.e. in requested or ready mode
-        
+
         :return: A list of UIDs (or an empty list)
         """
         return [item[0] for item in self._isolates.items()
@@ -153,7 +153,7 @@ class MonitorStatus(object):
     def get_in_state(self, state):
         """
         Retrieves the UIDs of the isolates in the given state
-        
+
         :param state: A state name
         :return: A list of UIDs
         """
@@ -164,7 +164,7 @@ class MonitorStatus(object):
     def get_state(self, uid):
         """
         Retrieves the state of the given UID
-        
+
         :param uid: UID of an isolate
         :return: The state of the isolate
         :raise KeyError: Unknown UID

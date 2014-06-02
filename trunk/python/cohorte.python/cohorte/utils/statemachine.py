@@ -27,7 +27,7 @@ class State(object):
     def __init__(self, name, data=None, callback=None):
         """
         Sets up the members
-        
+
         :param name: Name of the state
         :param data: Data associated to the state (optional)
         :param callback: Method to call once the state has changed (optional)
@@ -78,7 +78,7 @@ class State(object):
         """
         Adds a transition: if the event if encountered, then the state
         is changed to new_state and callback(state, event, new_state) is called.
-        
+
         :param transition: A Transition object
         :raise KeyError: The transition has already been defined
         """
@@ -93,7 +93,7 @@ class State(object):
     def get_transition(self, event):
         """
         Returns the transition matching the given event
-        
+
         :param event: A transition event
         :return: The transition for the event, or None
         """
@@ -103,7 +103,7 @@ class State(object):
     def notify(self):
         """
         Calls the callback method, if any
-        
+
         :raise: Any exception thrown by the method.
         """
         if self.__callback is not None:
@@ -117,7 +117,7 @@ class Transition(object):
     def __init__(self, state, event, new_state, callback=None):
         """
         Sets up the transition
-        
+
         :param state: Original state
         :param event: Transition event
         :param new_state: New state after transition
@@ -163,7 +163,7 @@ class Transition(object):
     def notify(self):
         """
         Calls the callback method, if any
-        
+
         :raise: Any exception thrown by the method.
         """
         if self.__callback is not None:
@@ -178,7 +178,7 @@ class StateMachine(object):
     def __init__(self, name=None, data=None):
         """
         Sets up members
-        
+
         :param name: FSM/log name
         """
         # Name -> State
@@ -232,10 +232,10 @@ class StateMachine(object):
     def copy(self, name=None, data=None):
         """
         Makes a simple copy of this state machine, without active state.
-        
+
         If no name is given, the current one is used. The data member is not
-        inherited. 
-        
+        inherited.
+
         :param name: Name of the new FSM
         :param data: Data associated to the new FSM
         """
@@ -250,7 +250,7 @@ class StateMachine(object):
     def add_state(self, name, data=None, callback=None):
         """
         Adds a state to the FSM
-        
+
         :param name: State name
         :param data: User-defined data associated to the state*
         :param callback: Method to callback when the set comes active
@@ -271,7 +271,7 @@ class StateMachine(object):
         """
         Adds a transition: if the (state, event) if matched, then the state
         is changed to new_state and callback(state, event, new_state) is called.
-        
+
         :param state: Original state
         :param event: Transition event
         :param new_state: New state after transition
@@ -300,7 +300,7 @@ class StateMachine(object):
         """
         Sets the start state. The state must have appeared into a transition
         to be valid.
-        
+
         :param name: The start state
         :raise KeyError: Current state already set
         :raise ValueError: Unknown state
@@ -320,11 +320,11 @@ class StateMachine(object):
     def handle(self, event):
         """
         Handles the event. Calls the transition call back if defined.
-        
+
         :param event: A transition event
         :return: The new event
-        :raise KeyError: Invalid current state 
-        :raise ValueError: Invalid transition 
+        :raise KeyError: Invalid current state
+        :raise ValueError: Invalid transition
         """
         if self.__state is None:
             raise KeyError("Invalid current state: None (call set_start)")
