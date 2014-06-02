@@ -258,10 +258,14 @@ class IsolateDistributor(object):
         for name, incompat_names in incompat.items():
             idx_name = components_names.index(name)
             for incompat_name in incompat_names:
-                idx_incompat = components_names.index(incompat_name)
+                try:
+                    idx_incompat = components_names.index(incompat_name)
+                    # Store a sorted tuple (hashable)
+                    incompat_matrix.add(tuple(sorted((idx_name, idx_incompat))))
 
-                # Store a sorted tuple (hashable)
-                incompat_matrix.add(tuple(sorted((idx_name, idx_incompat))))
+                except ValueError:
+                    # An incompatible component is not in the composition
+                    pass
 
         # Return a sorted tuple or sorted tuples
         return tuple(sorted(incompat_matrix))
