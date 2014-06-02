@@ -117,6 +117,9 @@ class ForkerBasic(object):
         # Loop control of thread watching isolates
         self._watchers_running = False
 
+        # Small lock for starting isolates asynchronously
+        self.__lock = threading.Lock()
+
 
     @BindField('_starters')
     def _bind_starter(self, field, svc, svc_ref):
@@ -200,24 +203,21 @@ class ForkerBasic(object):
         for kinds, starter in self._starters.items():
             if kind in kinds:
                 break
-
         else:
             raise KeyError("Unhandled kind of isolate: {0}".format(kind))
-
 
         # Tell the state directory to prepare an entry
         self._state_dir.prepare_isolate(uid)
 
-        try:
-            # Start the isolate
-            uses_state = starter.start(isolate_config,
-                                       self._state_updater.get_url())
-
-        except (ValueError, OSError):
-            # Clear the state
-            self._state_dir.clear_isolate(uid)
-            return 2
-
+        with self.__lock:
+            try:
+                # Start the isolate
+                uses_state = starter.start(isolate_config,
+                                           self._state_updater.get_url())
+            except (ValueError, OSError):
+                # Clear the state (error must be logged by the starter)
+                self._state_dir.clear_isolate(uid)
+                return 2
 
         if uses_state:
             # Wait for the isolate to come up
@@ -286,6 +286,7 @@ class ForkerBasic(object):
         :param uid: The UID of the isolate to stop
         :param timeout: Maximum time to wait before killing the isolate process
                         (in seconds)
+        :raise KeyError: Unknown isolate
         """
         # Find the starter handling the isolate and tell it to stop it
         starter = self._isolates.pop(uid)
