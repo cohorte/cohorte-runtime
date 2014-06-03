@@ -182,6 +182,6 @@ class IsolateComposer(object):
 
             else:
                 # Update the remaining components
-                self._remaining.difference_update(component
-                                                for component in self._remaining
-                                                if component.name in names)
+                self._remaining.difference_update(
+                    component for component in self._remaining
+                    if component.name in names)

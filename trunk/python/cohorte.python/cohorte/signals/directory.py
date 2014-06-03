@@ -148,10 +148,10 @@ class SignalsDirectory(object):
                     access = (self.get_local_node(), self._current_isolate_port)
 
                 result["accesses"][isolate_id] = {
-                                             "node_uid": access[0],
-                                             "port": access[1],
-                                             "name": self._names[isolate_id]
-                                             }
+                    "node_uid": access[0],
+                    "port": access[1],
+                    "name": self._names[isolate_id]
+                }
 
             # Copy the node UID -> host Name association
             result['nodes_host'] = self._nodes_host.copy()

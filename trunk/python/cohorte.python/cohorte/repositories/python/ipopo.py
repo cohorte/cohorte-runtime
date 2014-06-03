@@ -39,6 +39,7 @@ class ComponentFactoryVisitor(ast.NodeVisitor):
     """
     AST visitor to extract imports and version
     """
+    # pylint: disable=invalid-name
     def __init__(self):
         """
         Sets up the visitor
@@ -268,7 +269,7 @@ class IPopoRepository(object):
                     # Get the list of factories for this name
                     factories = self._factories[name]
                     providers = resolution.setdefault(name, [])
-                    providers.extend((factory.artifact for factory in factories))
+                    providers.extend(factory.artifact for factory in factories)
 
                 except KeyError:
                     # Factory name not found
@@ -292,7 +293,8 @@ class IPopoRepository(object):
         """
         with self.__lock:
             # Copy the list of artifacts for this factory
-            artifacts = [factory.artifact for factory in self._factories[factory]]
+            artifacts = [factory.artifact
+                         for factory in self._factories[factory]]
 
             if artifact_name is not None:
                 # Artifact must be selected

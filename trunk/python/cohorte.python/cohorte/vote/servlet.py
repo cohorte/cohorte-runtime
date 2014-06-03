@@ -167,9 +167,8 @@ class VoteChartServlet(object):
         """
         Prepares a link
         """
-        return '<a href="{0}/{1}">{2}</a>'.format(self._path,
-                                         '/'.join(str(part) for part in parts),
-                                         text)
+        return '<a href="{0}/{1}">{2}</a>' \
+            .format(self._path, '/'.join(str(part) for part in parts), text)
 
 
     def __make_page(self, title, body):
@@ -237,9 +236,8 @@ class VoteChartServlet(object):
         filename = os.path.join(self._real_statics, filename)
 
         try:
-            with open(filename) as fp:
-                response.send_content(200, fp.read(), "")
-
+            with open(filename) as filep:
+                response.send_content(200, filep.read(), "")
         except:
             response.send_content(404, "File not found: {0}".format(filename),
                                   "text/plain")

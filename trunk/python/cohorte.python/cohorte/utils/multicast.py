@@ -143,7 +143,7 @@ def create_multicast_socket(address, port, join=True):
     # Get the information about a datagram (UDP) socket, of any family
     try:
         addrs_info = socket.getaddrinfo(address, port, socket.AF_UNSPEC,
-                                       socket.SOCK_DGRAM)
+                                        socket.SOCK_DGRAM)
     except socket.gaierror:
         raise ValueError("Error retrieving address informations ({0}, {1})" \
                          .format(address, port))
@@ -166,9 +166,13 @@ def create_multicast_socket(address, port, join=True):
     if join:
         # Reuse address
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        if hasattr(socket, 'SO_REUSEPORT'):
-            # Special for MacOS
+        try:
+            # Special case for MacOS
+            # pylint: disable=no-member
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        except AttributeError:
+
+            pass
 
         # Bind the socket
         if sock.family == socket.AF_INET:

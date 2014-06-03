@@ -65,6 +65,7 @@ class PyBridge(object):
     """
     Python - Java bridge service implementation
     """
+    # pylint: disable=invalid-name
     # Implemented Java interface
     JAVA_INTERFACE = PYTHON_JAVA_BRIDGE_INTERFACE
 
@@ -384,7 +385,8 @@ class JavaOsgiLoader(object):
 
             # DEBUG: Remote debug server
             # java_args.append("-Xdebug")
-            # java_args.append("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005")
+            # java_args.append("-Xrunjdwp:transport=dt_socket,"
+            #                  "server=y,suspend=y,address=5005")
 
             # Set the class path as a parameter
             java_args.append(self._java.make_jvm_classpath(classpath))
@@ -499,8 +501,7 @@ class JavaOsgiLoader(object):
 
         # Find the OSGi JAR file to use
         osgi_jar_file, factory_name = self._find_osgi_jar(
-                                              configuration.get('osgi_jar'),
-                                              configuration.get('osgi_name'))
+            configuration.get('osgi_jar'), configuration.get('osgi_name'))
 
         _logger.debug("Using OSGi JAR file: %s", osgi_jar_file)
 

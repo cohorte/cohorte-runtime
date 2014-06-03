@@ -175,13 +175,12 @@ class DebugServlet(object):
         lines.append('<th>Bundle State</th>')
         lines.append('</tr>')
 
-        Bundle = pelix.framework.Bundle
-        states = {Bundle.ACTIVE: 'ACTIVE',
-                  Bundle.INSTALLED: 'INSTALLED',
-                  Bundle.RESOLVED: 'RESOLVED',
-                  Bundle.STARTING: 'STARTING',
-                  Bundle.STOPPING: 'STOPPING',
-                  Bundle.UNINSTALLED: 'UNINSTALLED'}
+        states = {pelix.framework.Bundle.ACTIVE: 'ACTIVE',
+                  pelix.framework.Bundle.INSTALLED: 'INSTALLED',
+                  pelix.framework.Bundle.RESOLVED: 'RESOLVED',
+                  pelix.framework.Bundle.STARTING: 'STARTING',
+                  pelix.framework.Bundle.STOPPING: 'STOPPING',
+                  pelix.framework.Bundle.UNINSTALLED: 'UNINSTALLED'}
 
         for bundle in self._context.get_bundles():
             # New line

@@ -79,7 +79,8 @@ SERVICE_TOP_CRITERION_DISTANCE = 'cohorte.composer.top.criterion.distance'
 SERVICE_NODE_CRITERION_DISTANCE = 'cohorte.composer.node.criterion.distance'
 """ Specification of a distance criterion service for the node distributor """
 
-SERVICE_NODE_CRITERION_RELIABILITY = 'cohorte.composer.node.criterion.reliability'
+SERVICE_NODE_CRITERION_RELIABILITY = \
+    'cohorte.composer.node.criterion.reliability'
 """ Specification of a factory reliability criterion service """
 
 # Isolate agent #

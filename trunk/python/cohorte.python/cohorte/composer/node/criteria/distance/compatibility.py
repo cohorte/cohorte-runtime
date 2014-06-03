@@ -235,7 +235,7 @@ class CompatibilityCriterion(object):
 
                 # No components, we're OK with it
                 _logger.info("No components on %s, we're OK with it",
-                                candidate)
+                             candidate)
                 # Any other empty isolate
                 compatibilities.append((90, candidate))
 

@@ -276,11 +276,17 @@ class NodeComposerInstrument(cohorte.instruments.CommonHttp):
         if delta == 0:
             # Only one panel
             def scale(stamp):
+                """
+                No need to scale X-axis values
+                """
                 return 1
 
         else:
             # Prepare a scaling method to have indices in [0,50]
             def scale(stamp):
+                """
+                Scales X-axis values (time stamps) in a [0,50] domain
+                """
                 return int(((stamp - min_stamp) * 50) / delta)
 
         scenes = []
@@ -332,12 +338,11 @@ class NodeComposerInstrument(cohorte.instruments.CommonHttp):
             # History there... only use the last scene (forget the timestamp)
             last_dist = hist_scenes[-1][1]
 
-            distribution['children'] = [{'name': isolate,
-                                         'children': [{'name': name,
-                                                       'size': 100}
-                                                      for name in components]
-                                         }
-                                        for isolate, components in last_dist.items()]
+            distribution['children'] = [
+                {'name': isolate, 'children': [{'name': name, 'size': 100}
+                                               for name in components]
+                } for isolate, components in last_dist.items()
+            ]
 
 
 

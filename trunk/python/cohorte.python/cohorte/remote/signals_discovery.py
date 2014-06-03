@@ -92,6 +92,7 @@ class EndpointDescriptionBean(object):
     """
     An endpoint description bean
     """
+    # pylint: disable=invalid-name
     javaClass = "org.cohorte.remote.discovery.signals.EndpointDescriptionBean"
     """ Java class (for Jabsorb) """
 
@@ -154,9 +155,9 @@ class SignalsDiscovery(object):
         local_event = self._make_exports_event()
 
         if not isolate:
-            raw_results = self._sender.send(SIGNAL_REQUEST_ENDPOINTS,
-                                            local_event,
-                                        dir_group=cohorte.signals.GROUP_OTHERS)
+            raw_results = self._sender.send(
+                SIGNAL_REQUEST_ENDPOINTS, local_event,
+                dir_group=cohorte.signals.GROUP_OTHERS)
 
         else:
             raw_results = self._sender.send(SIGNAL_REQUEST_ENDPOINTS,

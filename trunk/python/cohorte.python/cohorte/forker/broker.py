@@ -206,9 +206,9 @@ class ConfigBroker(object):
         else:
             host = self._host
 
-        return 'http://{host}:{port}{path}/{uid}'.format(uid=uid,
-                                                     host=host, port=self._port,
-                                                     path=self._servlet_path)
+        return 'http://{host}:{port}{path}/{uid}'\
+            .format(uid=uid, host=host, port=self._port,
+                    path=self._servlet_path)
 
 
     @Invalidate

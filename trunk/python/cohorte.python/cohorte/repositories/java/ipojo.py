@@ -283,8 +283,8 @@ def parse_ipojo_line(line):
                 element = Element(qname, None)
 
             else:
-                ns, name = qname.split(':', 1)
-                element = Element(name, ns)
+                namespace, name = qname.split(':', 1)
+                element = Element(name, namespace)
 
             elements.append(element)
 
@@ -457,7 +457,7 @@ class IPojoRepository(object):
                     # Get the list of factories for this name
                     factories = self._factories[name]
                     providers = resolution.setdefault(name, [])
-                    providers.extend((factory.artifact for factory in factories))
+                    providers.extend(factory.artifact for factory in factories)
 
                 except KeyError:
                     # Factory name not found
@@ -481,7 +481,8 @@ class IPojoRepository(object):
         """
         with self.__lock:
             # Copy the list of artifacts for this factory
-            artifacts = [factory.artifact for factory in self._factories[factory]]
+            artifacts = [factory.artifact
+                         for factory in self._factories[factory]]
 
             if artifact_name is not None:
                 # Artifact must be selected

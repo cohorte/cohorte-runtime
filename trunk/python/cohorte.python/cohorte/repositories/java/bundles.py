@@ -78,9 +78,12 @@ class Bundle(Artifact):
         Artifact.__init__(self, "java", name, version, jar_file)
 
         # Store Package information
-        self._export = self._manifest.extract_packages_list('Export-Package')
-        self._import = self._manifest.extract_packages_list('Import-Package')
-        self._require = self._manifest.extract_packages_list('Require-Bundle')
+        self.all_exports = \
+            self._manifest.extract_packages_list('Export-Package')
+        self.all_imports = \
+            self._manifest.extract_packages_list('Import-Package')
+        self.all_require = \
+            self._manifest.extract_packages_list('Require-Bundle')
 
 
     def exports(self, package_name, required_version=None):
@@ -91,10 +94,10 @@ class Bundle(Artifact):
         :param required_version: The required version/range of this package
         :return: True if the package is exported by this bundle
         """
-        if package_name not in self._export:
+        if package_name not in self.all_exports:
             return False
 
-        version = Version(self._export[package_name].get('version', None))
+        version = Version(self.all_exports[package_name].get('version'))
         return version.matches(required_version)
 
 
@@ -105,21 +108,21 @@ class Bundle(Artifact):
         :return: True if this bundle imports the other one through
                  Require-Bundle or Import-Package
         """
-        if other_bundle.name in self._require:
+        if other_bundle.name in self.all_require:
             # Bundle referenced with a Require-Bundle
-            requirement = self._require[other_bundle.name]
-            if other_bundle.version.matches(requirement.get('version', None)):
+            requirement = self.all_require[other_bundle.name]
+            if other_bundle.version.matches(requirement.get('version')):
                 # The given bundle matches our requirements
                 return True
 
         # Try with the packages
-        for package in self._import:
-            if package in other_bundle._export:
+        for package in self.all_imports:
+            if package in other_bundle.all_exports:
                 # Get the required version
-                requirement = self._import[package].get('version', None)
+                requirement = self.all_imports[package].get('version')
 
                 # Parse the provided version
-                provided = other_bundle._export[package].get('version', None)
+                provided = other_bundle.all_exports[package].get('version')
                 if Version(provided).matches(requirement):
                     return True
 
@@ -142,7 +145,7 @@ class Bundle(Artifact):
         :return: A Name -> Version dictionary
         """
         return ((name, Version(attributes.get('version')))
-                for name, attributes in self._export.items())
+                for name, attributes in self.all_exports.items())
 
 
     def get_manifest(self):
@@ -496,10 +499,9 @@ class OSGiBundleRepository(object):
             dependencies[bundle] = []
 
             # Resolve Require-Bundle
-            for required in bundle._require:
+            for required in bundle.all_require:
                 # Get the required version
-                required_version = bundle._require[required].get('version',
-                                                                 None)
+                required_version = bundle.all_require[required].get('version')
 
                 # Find the bundle
                 registry = None
@@ -538,9 +540,9 @@ class OSGiBundleRepository(object):
                         to_install.append(provider)
 
             # Resolve Import-Package
-            for imported in bundle._import:
+            for imported in bundle.all_imports:
                 # Get the required version
-                pkg_version = bundle._import[imported].get('version', None)
+                pkg_version = bundle.all_imports[imported].get('version')
 
                 # Self-import ?
                 if bundle.exports(imported, pkg_version):

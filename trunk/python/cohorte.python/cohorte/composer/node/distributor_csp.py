@@ -199,13 +199,16 @@ class IsolateDistributor(object):
 
         # ... assigned isolates values must be updated
         for j in range(max_isolates):
-            solver.Add(assigned_isolates[j] >= nb_isolate_components[j] / nb_components)
+            solver.Add(assigned_isolates[j] \
+                       >= nb_isolate_components[j] / nb_components)
 
         # ... Avoid incompatible components on the same isolate
         for i in range(len(incompat_matrix)):
             for j in range(max_isolates):
                 # Pair on same isolate: sum = 2
-                solver.Add(iso[incompat_matrix[i][0], j] + iso[incompat_matrix[i][1], j] <= assigned_isolates[j])
+                solver.Add(iso[incompat_matrix[i][0], j] \
+                           + iso[incompat_matrix[i][1], j] \
+                           <= assigned_isolates[j])
 
 
         # Define the objective: minimize the number of isolates

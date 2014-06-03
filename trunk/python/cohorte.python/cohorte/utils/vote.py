@@ -58,7 +58,7 @@ class CoupdEtat(Exception):
         """
         # Do keep a None here
         self.claimant = claimant
-
+        super(CoupdEtat, self).__init__(str(self))
 
     def __str__(self):
         """
@@ -78,11 +78,8 @@ class NextTurn(Exception):
         :param candidates: Candidates for the next vote
         """
         # Do not keep a None here
-        if candidates is None:
-            candidates = []
-
-        self.candidates = candidates
-
+        self.candidates = candidates or []
+        super(NextTurn, self).__init__(str(self))
 
     def __str__(self):
         """
@@ -214,6 +211,9 @@ class MatchVote(object):
         # Threshold to go on next turn: > 10% of voters
         threshold = (nb_voters / 10) + 1
         def predicate(result):
+            """
+            Predicate to filter candidates according to their results
+            """
             return result.votes >= threshold
 
         # Call for next turn

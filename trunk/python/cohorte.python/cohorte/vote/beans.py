@@ -51,7 +51,6 @@ class NextRound(Exception):
         super(NextRound, self).__init__("A new round is required")
         self.__candidates = tuple(candidates)
 
-
     @property
     def candidates(self):
         """
@@ -72,7 +71,7 @@ class CoupdEtat(Exception):
         """
         # Do keep a None here
         self.claimant = claimant
-
+        super(CoupdEtat, self).__init__(str(self))
 
     def __str__(self):
         """

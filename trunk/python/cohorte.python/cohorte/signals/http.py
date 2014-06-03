@@ -156,17 +156,19 @@ class SignalReceiver(object):
             self._host = parameters[pelix.http.PARAM_ADDRESS]
             self._port = int(parameters[pelix.http.PARAM_PORT])
 
-            # Update the node name
+            # Get our properties
             node_uid = self._context.get_property(cohorte.PROP_NODE_UID)
-            self._directory.set_node_name(node_uid,
-                             self._context.get_property(cohorte.PROP_NODE_NAME))
+            node_name = self._context.get_property(cohorte.PROP_NODE_NAME)
+            iso_uid = self._context.get_property(cohorte.PROP_UID)
+            iso_name = self._context.get_property(cohorte.PROP_NAME)
+
+
+            # Update the node name
+            self._directory.set_node_name(node_uid, node_name)
 
             # Update the access port in the directory
-            self._directory.register_isolate(
-                             self._context.get_property(cohorte.PROP_UID),
-                             self._context.get_property(cohorte.PROP_NAME),
-                             node_uid,
-                             self._port, True)
+            self._directory.register_isolate(iso_uid, iso_name, node_uid,
+                                             self._port, True)
 
             # Register our service
             _logger.info("Activating SignalReceiver service")
@@ -288,7 +290,8 @@ class SignalReceiver(object):
 
                     # Handle the signal
                     code, content = self.handle_received_signal(signal_name,
-                                                              signal_data, mode)
+                                                                signal_data,
+                                                                mode)
                 except Exception as ex:
                     # Error
                     _logger.exception("Error reading signal '%s': %s",
@@ -349,8 +352,8 @@ class SignalReceiver(object):
                 for pattern in self._listeners:
                     if fnmatch.fnmatch(name, pattern):
                         # Found one !
-                        result = _make_json_result(200,
-                                                  "At least one listener found")
+                        result = _make_json_result(
+                            200, "At least one listener found")
                         break
                 else:
                     # No match found, return immediately
@@ -868,12 +871,15 @@ class SignalSender(object):
         signal_content = {
             # We need that to talk to Java isolates
             JAVA_CLASS: "org.psem2m.signals.SignalData",
-            "senderUID": self._context.get_property(cohorte.PROP_UID),
-            "senderName": self._context.get_property(cohorte.PROP_NAME),
+            "senderUID":
+                self._context.get_property(cohorte.PROP_UID),
+            "senderName":
+                self._context.get_property(cohorte.PROP_NAME),
             # Set up the node name
-            "senderNodeUID": self._context.get_property(cohorte.PROP_NODE_UID),
+            "senderNodeUID":
+                self._context.get_property(cohorte.PROP_NODE_UID),
             "senderNodeName":
-                            self._context.get_property(cohorte.PROP_NODE_NAME),
+                self._context.get_property(cohorte.PROP_NODE_NAME),
             "timestamp": int(time.time() * 1000),
             "signalContent": content
             }

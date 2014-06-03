@@ -121,7 +121,6 @@ class Manifest(object):
         """
         # Clear current entries
         self.entries.clear()
-        self._ipojo = None
 
         if PYTHON3 and not isinstance(manifest, str):
             # Python 3 doesn't like bytes

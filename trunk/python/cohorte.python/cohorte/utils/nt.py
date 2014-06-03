@@ -272,8 +272,8 @@ class OSUtils(utils.BaseOSUtils):
 
         try:
             # Windows loves handles
-            handle = win32api.OpenProcess(SYNCHRONIZE | PROCESS_QUERY_INFORMATION,
-                                          False, pid)
+            handle = win32api.OpenProcess(
+                SYNCHRONIZE | PROCESS_QUERY_INFORMATION, False, pid)
 
         except pywintypes.error as ex:
             # PID not in the system anymore

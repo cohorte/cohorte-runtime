@@ -61,7 +61,7 @@ class PelixLoader(object):
     def load(self, configuration):
         """
         Loads the Pelix isolate
-        
+
         :param configuration: Isolate configuration dictionary (required)
         :raise KeyError: A mandatory property is missing
         :raise ValueError: Invalid parameter/file encountered
@@ -92,7 +92,7 @@ class PelixLoader(object):
     def validate(self, context):
         """
         Component validated
-        
+
         :param context: The bundle context
         """
         # Store the framework access
@@ -103,7 +103,7 @@ class PelixLoader(object):
     def invalidate(self, context):
         """
         Component invalidated
-        
+
         :param context: The bundle context
         """
         # Clear the framework access

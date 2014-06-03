@@ -217,9 +217,8 @@ class ForkerLoader(object):
 * Base.....: {base}
 * Node UID.: {node_uid}
 * Node Name: {node_name}
-* UID......: {uid}'''.format(home=home, base=base,
-                              node_uid=node_uid, node_name=node_name,
-                              uid=uid))
+* UID......: {uid}'''.format(home=home, base=base, node_uid=node_uid,
+                             node_name=node_name, uid=uid))
 
         # Update the file finder, as framework properties may have been modified
         self._finder.update_roots()

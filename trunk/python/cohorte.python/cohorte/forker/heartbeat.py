@@ -132,7 +132,7 @@ class Heart(object):
                               self._context.get_property(cohorte.PROP_UID),
                               self._context.get_property(cohorte.PROP_NODE_UID),
                               self._context.get_property(cohorte.PROP_NODE_NAME)
-                              )
+                             )
 
         while not self._stop_event.is_set() and self._forker.is_alive():
             # Send the heart beat using the multicast socket
@@ -178,7 +178,7 @@ class Heart(object):
         self._port = int(self._port)
 
         _logger.info("Heart validated: multicast group=%s port=%d",
-                      self._group, self._port)
+                     self._group, self._port)
 
         # Create the socket
         self._socket, address = multicast.create_multicast_socket(self._group,

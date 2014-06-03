@@ -53,7 +53,7 @@ class Module(Artifact):
         Artifact.__init__(self, "python", name, version, filename)
 
         # Store informations
-        self._imports = imports
+        self.all_imports = imports
 
 
     def imports(self, artifact):
@@ -67,7 +67,7 @@ class Module(Artifact):
             # No inter-language imports
             return False
 
-        return artifact.name in self._imports
+        return artifact.name in self.all_imports
 
 # ------------------------------------------------------------------------------
 
@@ -75,6 +75,7 @@ class AstVisitor(ast.NodeVisitor):
     """
     AST visitor to extract imports and version
     """
+    # pylint: disable=invalid-name
     def __init__(self):
         """
         Sets up the visitor
@@ -474,7 +475,7 @@ class PythonModuleRepository(object):
             dependencies[module] = []
 
             # Resolve import ...
-            for imported in module._imports:
+            for imported in module.all_imports:
                 # Find the module
                 registry = None
                 provider = None

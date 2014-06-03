@@ -231,7 +231,7 @@ class BaseOSUtils(object):
     def read_framework_file(self, file_name):
         """
         Reads the first non-commented and non-empty line of a framework file.
-        Framework files contains the file name of an OSGi framework JAR main file;
+        Framework files contains the file name of an OSGi framework JAR file
 
         :param file_name: Name of the framework file to read
         :return: The framework file content, None if not found

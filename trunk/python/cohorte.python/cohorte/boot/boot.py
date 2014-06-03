@@ -254,7 +254,6 @@ def _run_framework(framework, state_updater_url, fail_on_pdb):
         except KeyboardInterrupt:
             # Stop waiting on keyboard interruption
             _logger.debug("Got keyboard interruption, stopping.")
-            pass
 
         # Ensure the framework is stopped
         framework.stop()
@@ -525,8 +524,8 @@ def main(args=None):
     # Other options
     parser.add_argument('-t', "--top-composer", action="store_true",
                         dest="top_composer", default=False,
-                        help="If True and given to a monitor, "
-                             "starts the TopComposer")
+                        help="If True and given to a monitor, starts the "
+                        "TopComposer")
 
     parser.add_argument("--version", action="version",
                         version="Cohorte bootstrap {0}".format(__version__))
@@ -576,17 +575,22 @@ def main(args=None):
     use_pdb = args.debug and sys.stdin.isatty()
     if use_pdb:
         import pdb
-        def pm_exception(exctype, value, tb):
-            traceback.print_exception(exctype, value, tb)
+        def pm_exception(exctype, value, traceb):
+            """
+            Post-mortem exception handling (starts PDB)
+            """
+            traceback.print_exception(exctype, value, traceb)
             pdb.pm()
 
         sys.excepthook = pm_exception
 
     else:
-        # Log the unhandled exception
-        def log_exception(ex_cls, ex, tb):
+        def log_exception(ex_cls, ex, traceb):
+            """
+            Logs an unhandled exception
+            """
             logging.critical('{0}: {1}'.format(ex_cls, ex))
-            logging.critical(''.join(traceback.format_tb(tb)))
+            logging.critical(''.join(traceback.format_tb(traceb)))
 
         sys.excepthook = log_exception
 

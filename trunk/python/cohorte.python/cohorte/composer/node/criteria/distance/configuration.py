@@ -101,7 +101,6 @@ class ConfigurationIsolateCriterion(object):
                 # No name yet, same language and renaming accepted
                 ballot.append_for(candidate)
 
-        else:
-            # Not found, create a new isolate
-            # (it will be configured by the node distributor)
-            raise vote.CoupdEtat(beans.EligibleIsolate(isolate))
+        # Not found, create a new isolate
+        # (it will be configured by the node distributor)
+        raise vote.CoupdEtat(beans.EligibleIsolate(isolate))

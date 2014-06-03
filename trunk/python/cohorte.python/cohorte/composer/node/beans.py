@@ -75,7 +75,7 @@ class Event(object):
         String representation
         """
         return "Event on {0}: {2} ({3})".format(self.isolate_name,
-                                                      self.kind, self.good)
+                                                self.kind, self.good)
 
 # ------------------------------------------------------------------------------
 

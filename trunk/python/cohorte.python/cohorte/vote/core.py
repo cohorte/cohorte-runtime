@@ -143,7 +143,8 @@ class VoteCore(object):
                 for elector in electors:
                     ballot = beans.Ballot(elector)
 
-                    # TODO: add a "last resort" candidate (if no candidate works)
+                    # TODO: add a "last resort" candidate
+                    # (if no candidate works)
 
                     elector.vote(tuple(candidates), subject, ballot)
                     ballots.append(ballot)

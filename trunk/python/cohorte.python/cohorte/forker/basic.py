@@ -46,23 +46,8 @@ import pelix.threadpool
 
 # Standard library
 import logging
-import sys
 import threading
 import uuid
-
-# ------------------------------------------------------------------------------
-
-# Ugly code from Recipe 576780 in ActivateState, by
-# http://code.activestate.com/recipes/576780-timeout-for-nearly-any-callable
-#
-# Uses Thread private/protected methods to kill a thread
-if sys.version_info[0] == 3:
-    # Python 3
-    _Thread_stop = getattr(threading.Thread, '_stop', None)
-
-else:
-    # Python 2
-    _Thread_stop = getattr(threading.Thread, '_Thread__stop', None)
 
 # ------------------------------------------------------------------------------
 
@@ -200,6 +185,7 @@ class ForkerBasic(object):
         self._state_dir.prepare_isolate(uid)
 
         # -- Start the isolate --
+        starter = None
         for kinds, starter in self._starters.items():
             if kind in kinds:
                 break

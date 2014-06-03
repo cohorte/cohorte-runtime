@@ -47,9 +47,10 @@ BootConfiguration = collections.namedtuple('BootConfiguration',
                                             'boot_args'))
 
 # Boot configuration + Isolate basic description
-Isolate = collections.namedtuple('Isolate', BootConfiguration._fields
-                                            + ('name', 'kind', 'node',
-                                               'level', 'sublevel'))
+Isolate = collections.namedtuple('Isolate',
+                                 BootConfiguration._fields \
+                                 + ('name', 'kind', 'node',
+                                    'level', 'sublevel'))
 
 def _recursive_namedtuple_convert(data):
     """
@@ -109,10 +110,7 @@ class BootConfigParser(object):
         if json_properties:
             properties.update(json_properties)
 
-        return Bundle(# Mandatory
-                      name=json_object['name'],
-
-                      # Optional
+        return Bundle(name=json_object['name'],
                       filename=json_object.get('file'),
                       properties=properties,
                       version=json_object.get('version'),
@@ -193,8 +191,8 @@ class BootConfigParser(object):
 
 
     def _prepare_configuration(self, uid, name, kind,
-                              bundles=None, composition=None,
-                              base_configuration=None):
+                               bundles=None, composition=None,
+                               base_configuration=None):
         """
         Prepares and returns a configuration dictionary to be stored in the
         configuration broker, to start an isolate of the given kind.
@@ -333,10 +331,10 @@ class BootConfigParser(object):
             properties.update(dict_properties)
 
         # Prepare the bean representation
-        return BootConfiguration(bundles=self._parse_bundles(
-                                               dict_config.get('bundles')),
-                                 composition=self._parse_components(
-                                               dict_config.get('composition')),
+        bundles = self._parse_bundles(dict_config.get('bundles'))
+        composition = self._parse_components(dict_config.get('composition'))
+        return BootConfiguration(bundles=bundles,
+                                 composition=composition,
                                  boot_args=dict_config.get('boot_args'),
                                  environment=environment,
                                  properties=properties)

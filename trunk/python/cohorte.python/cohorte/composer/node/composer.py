@@ -71,15 +71,15 @@ class FactoriesMissing(Exception):
         :param factories: Missing factories
         """
         self.factories = factories
-
+        super(FactoriesMissing, self).__init__(str(self))
 
     def __str__(self):
         """
         String representation
         """
-        missing = '\n'.join('\t- {0}'.format(factory)
-                            for factory in self.factories)
-        return "Missing factories:\n{0}".format(missing)
+        return "Missing factories:\n{0}"\
+            .format('\n'.join('\t- {0}'.format(factory)
+                              for factory in self.factories))
 
 # ------------------------------------------------------------------------------
 

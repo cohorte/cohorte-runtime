@@ -134,7 +134,7 @@ class InstrumentsServlet(cohorte.instruments.CommonHttp):
             except KeyError:
                 # Unknown instrument
                 self.page_not_found(response,
-                                     "Unknown instrument: {0}".format(name))
+                                    "Unknown instrument: {0}".format(name))
 
             else:
                 # Use it

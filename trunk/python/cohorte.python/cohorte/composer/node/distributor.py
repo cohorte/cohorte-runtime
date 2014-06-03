@@ -131,11 +131,10 @@ class IsolateDistributor(object):
         new_isolates = set()
 
         # Prepare parameters of the vote
+        # -> -5 votes on "against"
+        # -> Remove candidate after 2 "against"
         kind = "approbation"
-        parameters = {  # -5 votes on "against"
-                      'penalty': 5,
-                      # Remove candidate after 2 "against"
-                      'exclusion': 2}
+        parameters = {'penalty': 5, 'exclusion': 2}
 
         self._nb_distribution += 1
         prefix = "Distribution {0}".format(self._nb_distribution)

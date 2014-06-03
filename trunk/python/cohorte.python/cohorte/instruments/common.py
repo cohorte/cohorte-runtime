@@ -179,9 +179,8 @@ class CommonHttp(object):
         filename = os.path.join(self._real_statics, filename)
 
         try:
-            with open(filename) as fp:
-                response.send_content(200, fp.read(), "")
-
+            with open(filename) as filep:
+                response.send_content(200, filep.read(), "")
         except:
             self.page_not_found(response,
                                 "File not found: {0}".format(filename))

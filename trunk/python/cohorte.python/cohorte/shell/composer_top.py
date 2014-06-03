@@ -188,5 +188,5 @@ class TopComposerCommands(object):
             io_handler.write_line("{0}", self._status.dump())
 
         else:
-            io_handler.write_line("{0}",
-                          pformat(self._status.get_components_for_node(node)))
+            node_components = self._status.get_components_for_node(node)
+            io_handler.write_line("{0}", pformat(node_components))
