@@ -15,6 +15,9 @@ __version__ = "1.0.0"
 
 # ------------------------------------------------------------------------------
 
+# Cohorte boot constants
+import cohorte.boot.constants as constants
+
 # Pelix framework
 from pelix.ipopo.decorators import ComponentFactory, Requires, Property, \
     Provides, Invalidate, Validate
@@ -26,9 +29,6 @@ import json
 import logging
 
 # ------------------------------------------------------------------------------
-
-# TODO: use a constant module
-STATE_FAILED = -1
 
 _logger = logging.getLogger(__name__)
 
@@ -128,7 +128,7 @@ class StateUpdater(object):
             result['success'] = False
             result['message'] = str(ex)
 
-        if state == STATE_FAILED:
+        if state == constants.STATE_FAILED:
             # The isolate failed: print an error
             _logger.warning("Isolate '%s' sent a failure status:\n%s",
                             uid, extra)

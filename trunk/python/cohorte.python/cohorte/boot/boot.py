@@ -23,6 +23,7 @@ __version__ = "1.0.0"
 
 # COHORTE modules
 import cohorte
+import cohorte.boot.constants as constants
 
 # Pelix framework
 from pelix.ipopo.constants import get_ipopo_svc_ref
@@ -41,11 +42,6 @@ import traceback
 MINIMAL_BUNDLES = ('pelix.ipopo.core', 'cohorte.config.finder',
                    'cohorte.config.reader', 'cohorte.config.parser')
 """ List of bundles to be installed before the isolate loader """
-
-# TODO: use a constant module
-STATE_FAILED = -1
-STATE_LOADING = 2
-STATE_LOADED = 3
 
 _logger = logging.getLogger(__name__)
 
@@ -234,7 +230,7 @@ def _run_framework(framework, state_updater_url, fail_on_pdb):
 
         # Prepare the access to the state updater
         loader.prepare_state_updater(state_updater_url)
-        loader.update_state(STATE_LOADING)
+        loader.update_state(constants.STATE_LOADING)
 
         try:
             # Load the isolate
@@ -242,12 +238,12 @@ def _run_framework(framework, state_updater_url, fail_on_pdb):
 
         except Exception as ex:
             # Something wrong occurred
-            loader.update_state(STATE_FAILED, str(ex))
+            loader.update_state(constants.STATE_FAILED, str(ex))
             raise
 
         else:
             # Isolate loaded
-            loader.update_state(STATE_LOADED)
+            loader.update_state(constants.STATE_LOADED)
             _logger.debug("Isolate loaded.")
 
         # Wait forever for the framework to stop
@@ -353,7 +349,7 @@ class ColorFormatter(logging.Formatter):
                        logging.WARNING: 33,  # YELLOW
                        logging.ERROR: 41,  # RED (background)
                        logging.CRITICAL: 45,  # PURPLE (background)
-                       }
+                      }
 
 
     def format(self, record):
@@ -454,6 +450,12 @@ def configure_logger(logfile, debug, verbose, color):
 
     else:
         root_log.warning("No output log file given.")
+
+
+    # Calm down some loggers
+    for name in ('pelix.remote', 'io_watcher',
+                 'cohorte.composer.node.criteria'):
+        logging.getLogger(name).setLevel(logging.WARNING)
 
     # Done
     root_log.info("Root log configured.")
