@@ -452,8 +452,7 @@ def configure_logger(logfile, debug, verbose, color):
 
 
     # Calm down some loggers
-    for name in ('pelix.remote', 'io_watcher',
-                 'cohorte.composer.node.criteria'):
+    for name in ('pelix.remote', 'io_watcher'):
         logging.getLogger(name).setLevel(logging.WARNING)
 
     # Done
