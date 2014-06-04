@@ -38,6 +38,7 @@ __docformat__ = "restructuredtext en"
 # Composer
 import cohorte.composer
 import cohorte.composer.beans as beans
+from cohorte.repositories.beans import Version
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
@@ -87,6 +88,9 @@ class IsolateComposer(object):
         self._agent = None
         self._status = None
 
+        # Bundle context
+        self._context = None
+
         # Remaining components
         self._remaining = set()
         self.__lock = threading.RLock()
@@ -97,6 +101,7 @@ class IsolateComposer(object):
         """
         Component validated
         """
+        self._context = context
         self._node_uid = context.get_property(cohorte.PROP_NODE_UID)
         self._node_name = context.get_property(cohorte.PROP_NODE_NAME)
         self._isolate_name = context.get_property(cohorte.PROP_NAME)
@@ -109,6 +114,7 @@ class IsolateComposer(object):
         """
         self._remaining.clear()
 
+        self._context = None
         self._node_uid = None
         self._node_name = None
         self._isolate_name = None
@@ -122,6 +128,50 @@ class IsolateComposer(object):
         # Tell it to handle remaining components
         service.handle(self._remaining)
         self._remaining.clear()
+
+
+    def _install_bundles(self, bundles):
+        """
+        Installs & starts the requested bundles, if necessary
+
+        :param bundles: A list of (name, version) tuples
+        """
+        # Convert to dictionaries, for easier filtering
+        pre_installed = dict((bundle.get_symbolic_name(),
+                              Version(bundle.get_version()))
+                             for bundle in self._context.get_bundles())
+        to_install = dict((name, Version(version)) for name, version in bundles)
+
+        for name, installed_version in pre_installed.items():
+            try:
+                # Check the version of the bundle indicated by components
+                version = to_install[name]
+                if installed_version < version:
+                    _logger.warning("Using an older version of %s", name)
+
+                # No need to install it
+                del to_install[name]
+
+            except KeyError:
+                # Bundle not used here
+                pass
+
+        # Install missing bundles
+        new_installed = []
+        for name in to_install:
+            try:
+                new_installed.append(self._context.install_bundle(name))
+                _logger.info("Isolate Composer installed bundle %s", name)
+            except pelix.constants.BundleException as ex:
+                _logger.error("Error installing bundle %s: %s", name, ex)
+
+        # Start installed bundles
+        for bundle in new_installed:
+            try:
+                bundle.start()
+            except pelix.constants.BundleException as ex:
+                _logger.error("Error starting bundle %s: %s",
+                              bundle.get_symbolic_name(), ex)
 
 
     def get_isolate_info(self):
@@ -150,6 +200,11 @@ class IsolateComposer(object):
         with self.__lock:
             # Store the new components
             self._status.store(components)
+
+            # Install required bundles
+            bundles = set((component.bundle_name, component.bundle_version)
+                          for component in components)
+            self._install_bundles(bundles)
 
             if self._agent is not None:
                 # Instantiate them
