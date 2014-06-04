@@ -17,6 +17,9 @@ __version__ = "1.0.0"
 
 # ------------------------------------------------------------------------------
 
+# Cohorte boot constants
+import cohorte.boot.constants as constants
+
 # Pelix framework
 from pelix.ipopo.decorators import ComponentFactory, Validate, Invalidate, \
     Provides
@@ -26,13 +29,6 @@ import logging
 import threading
 
 # ------------------------------------------------------------------------------
-
-# TODO: use a constant module
-STATE_FAILED = -1
-STATE_INEXISTANT = 0
-STATE_BOOTING = 1
-STATE_LOADING = 2
-STATE_LOADED = 3
 
 _logger = logging.getLogger(__name__)
 
@@ -66,12 +62,13 @@ class IsolateStateDirectory(object):
         with self._directory_lock:
             # Test if the isolate is already known
             cur_state = self._directory.get(uid)
-            if cur_state is not None and cur_state != STATE_INEXISTANT:
+            if cur_state is not None \
+                    and cur_state != constants.STATE_INEXISTANT:
                 raise ValueError('{0} is already known in state {1}' \
                                  .format(uid, cur_state))
 
             # Store the isolate and prepare its waiter
-            self._directory[uid] = STATE_INEXISTANT
+            self._directory[uid] = constants.STATE_INEXISTANT
             self._waiters[uid] = threading.Event()
 
 
@@ -113,11 +110,11 @@ class IsolateStateDirectory(object):
                 # Apply the change
                 self._directory[uid] = new_state
 
-                if new_state >= STATE_LOADED:
+                if new_state >= constants.STATE_LOADED:
                     # Isolate is loaded: release waiters
                     self._waiters[uid].set()
 
-            elif new_state == STATE_FAILED:
+            elif new_state == constants.STATE_FAILED:
                 # Forget about it
                 del self._directory[uid]
 

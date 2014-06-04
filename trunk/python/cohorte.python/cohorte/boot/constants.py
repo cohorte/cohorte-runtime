@@ -18,8 +18,14 @@ __version__ = "1.0.0"
 STATE_FAILED = -1
 """ Boot failed """
 
-STATE_LOADING = 1
-""" Isolate is booting (framework is loading) """
+STATE_INEXISTANT = 0
+""" Isolate has been freshly registered in the state directory """
 
-STATE_LOADED = 2
+STATE_BOOTING = 1
+""" Isolate is in booting stage (boot.py) """
+
+STATE_LOADING = 2
+""" Isolate is loading its bundles """
+
+STATE_LOADED = 3
 """ Isolate boot completed """
