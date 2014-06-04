@@ -51,6 +51,7 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
 
 # Standard library
 import logging
+import operator
 
 # ------------------------------------------------------------------------------
 
@@ -140,7 +141,11 @@ class IsolateDistributor(object):
         self._nb_distribution += 1
         prefix = "Distribution {0}".format(self._nb_distribution)
 
-        for component in components:
+        # Sort components by name
+        sorted_components = list(components)
+        sorted_components.sort(key=operator.attrgetter('name'))
+
+        for component in sorted_components:
             # Compute the isolates that could match this component
             matching_isolates = self._get_matching_isolates(component,
                                                             all_candidates)
