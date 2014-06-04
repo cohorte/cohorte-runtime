@@ -174,20 +174,20 @@ class IPopoAgent(object):
                 remaining.discard(component)
                 if not remaining:
                     del self.__remaining[factory]
-
             except KeyError:
                 # Component wasn't a remaining one
                 pass
 
             # Store it
             self.__components.setdefault(factory, set()).add(component)
-
             return True
 
         except TypeError:
             # Missing factory: maybe later
+            _logger.warning("iPOPO agent: factory missing for %s :(", component)
             return False
 
+        _logger.warning("iPOPO agent failed to instantiate %s :(", component)
         return False
 
 
@@ -200,7 +200,7 @@ class IPopoAgent(object):
         :return: The immediately instantiated components
         """
         with self.__lock:
-            # Instantiated component beans
+            # Beans of the components to instantiate
             components = set(components)
             instantiated = set()
 
