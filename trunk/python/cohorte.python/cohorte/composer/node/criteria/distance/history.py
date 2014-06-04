@@ -199,6 +199,8 @@ class HistoryCriterion(object):
                     # Not a crashing solution
                     preference.append((len(components), candidate))
 
+        # TODO: tweak vote preferences to reduce the number of moves
+
         if preference:
             # Sort results (greater is better: it gathers components)
             preference.sort(key=operator.itemgetter(0), reverse=True)
