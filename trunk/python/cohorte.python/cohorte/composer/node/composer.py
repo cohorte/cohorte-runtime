@@ -122,7 +122,7 @@ class NodeComposer(object):
         self._directory = None
 
         # Thread to start isolates
-        self._pool = pelix.threadpool.ThreadPool(3,
+        self._pool = pelix.threadpool.ThreadPool(1,
                                                  logname="NodeComposer-Starter")
 
         # Redistribution timer
