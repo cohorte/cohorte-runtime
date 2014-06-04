@@ -44,7 +44,6 @@ from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
     Invalidate, Validate, Requires
 
 # Standard library
-from pprint import pformat
 import logging
 import operator
 
@@ -116,12 +115,22 @@ class HistoryCriterion(object):
 
         :param components: Names of the components in the crashed isolate
         """
-        # Store the isolate composition at the time of crash
-        self._crashes.add(frozenset(components))
+        # Consolidate history
+        crash = frozenset(components)
+        to_remove = []
+        for old_crash in self._crashes:
+            if crash.issubset(old_crash):
+                to_remove.append(old_crash)
 
-        # TODO: consolidate history
-        _logger.critical("%d crashes in history", len(self._crashes))
-        _logger.critical("Known crashes:\n%s", pformat(self._crashes))
+        for old_crash in to_remove:
+            self._crashes.remove(old_crash)
+
+        # Store the isolate composition at the time of crash
+        self._crashes.add(tuple(sorted(components)))
+
+        _logger.info("%d crash(es) in history:\n%s", len(self._crashes),
+                     '\n'.join('- ' + ', '.join(crash)
+                               for crash in self._crashes))
 
 
     def vote(self, candidates, subject, ballot):
@@ -144,11 +153,11 @@ class HistoryCriterion(object):
         # Prepare a dictionary: candidate -> components
         all_components = {}
         for candidate in candidates:
-            components = [component.name for component in candidate.components]
+            components = sorted(component.name
+                                for component in candidate.components)
             if not components and not candidate.name:
-                # Found the neutral isolate
+                # Found the neutral isolate (do not add it to 'all_components')
                 neutral_candidate = candidate
-
             else:
                 if component_name in components:
                     # Found the isolate where the isolate already is
@@ -168,9 +177,6 @@ class HistoryCriterion(object):
             components = all_components[candidate]
             if not components:
                 # No components, we're OK with it
-                _logger.info("No components on %s, we're OK with it",
-                             candidate)
-                # Any other empty isolate
                 preference.append((0, candidate))
 
             else:
@@ -182,8 +188,11 @@ class HistoryCriterion(object):
                 for crash in self._crashes:
                     if future_content.issuperset(crash):
                         # Solution is (a superset of) a crashing solution
-                        _logger.warning("Known bad solution: %s",
-                                        future_content)
+                        _logger.info(
+                            "Known bad solution for %s:\n%s\ndue to:\n%s",
+                            component_name,
+                            ', '.join(name for name in sorted(future_content)),
+                            ', '.join(name for name in sorted(crash)))
                         ballot.append_against(candidate)
                         break
                 else:
@@ -193,8 +202,9 @@ class HistoryCriterion(object):
         if preference:
             # Sort results (greater is better: it gathers components)
             preference.sort(key=operator.itemgetter(0), reverse=True)
-            _logger.info("Vote preferences for %s: %s",
-                         component_name, preference)
+            _logger.info("Vote preference for %s: %s",
+                         component_name, ', '.join(item[1].name or "Neutral"
+                                                   for item in preference))
 
             # Vote
             for _, candidate in preference:
@@ -202,7 +212,7 @@ class HistoryCriterion(object):
 
         elif neutral_candidate is not None:
             # We voted for no one: vote for neutral
-            _logger.warning("No good candidate for %s", component_name)
+            _logger.info("Using neutral candidate for %s", component_name)
             ballot.append_for(neutral_candidate)
 
         # Lock our vote
