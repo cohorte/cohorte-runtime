@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -- Content-Encoding: UTF-8 --
 """
-Node Composer: Isolate Distributor
+Node Composer: Vote-based isolate distributor
 
 Clusters the components of a composition into groups according to several
 criteria.
@@ -69,7 +69,7 @@ _logger = logging.getLogger(__name__)
 @Instantiate('cohorte-composer-node-distributor')
 class IsolateDistributor(object):
     """
-    Clusters components into groups. Each group corresponds to an isolate.
+    Clusters components into isolates using a vote.
     """
     def __init__(self):
         """
@@ -84,6 +84,7 @@ class IsolateDistributor(object):
         # Vote system
         self._vote = None
 
+        # Distribution loop index
         self._nb_distribution = 0
 
 

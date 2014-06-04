@@ -456,7 +456,7 @@ class NodeComposer(object):
         if node != self._node_uid:
             return
 
-        _logger.debug('Isolate lost: %s', name)
+        _logger.debug("Node composer lost an isolate: %s", name)
 
         # Notify the commander
         self._commander.isolate_lost(name)
@@ -467,6 +467,9 @@ class NodeComposer(object):
             # No known components on this isolate, ignore it
             _logger.debug("No known component in the lost isolate %s", name)
             return
+
+        _logger.debug("We lost components: %s",
+                      [component.name for component in lost])
 
         # Remove them from the status storage
         self._status.remove(component.name for component in lost)
