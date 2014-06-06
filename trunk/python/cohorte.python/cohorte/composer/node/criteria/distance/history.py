@@ -169,7 +169,7 @@ class HistoryCriterion(object):
         # Sort candidates by number of components already there
         sorted_candidates = [(len(content), candidate)
                              for candidate, content in all_components.items()]
-        sorted_candidates.sort(key=operator.itemgetter(0), reverse=True)
+        sorted_candidates.sort(key=lambda x: (-x[0], x[1].name))
 
         # Compute candidate preference (empty or OK)
         for _, candidate in sorted_candidates:

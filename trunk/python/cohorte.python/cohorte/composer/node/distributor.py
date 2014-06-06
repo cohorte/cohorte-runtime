@@ -135,7 +135,7 @@ class IsolateDistributor(object):
         # Prepare parameters of the vote
         # -> -5 votes on "against"
         # -> Remove candidate after 2 "against"
-        kind = "approbation"
+        kind = "alternative"
         parameters = {'penalty': 5, 'exclusion': 2}
 
         self._nb_distribution += 1
@@ -149,6 +149,10 @@ class IsolateDistributor(object):
             # Compute the isolates that could match this component
             matching_isolates = self._get_matching_isolates(component,
                                                             all_candidates)
+
+            # Sort candidates by name
+            matching_isolates = sorted(matching_isolates,
+                                       key=operator.attrgetter('name'))
 
             # Add an empty isolate in the candidates
             neutral = beans.EligibleIsolate()
