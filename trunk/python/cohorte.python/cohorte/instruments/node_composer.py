@@ -46,6 +46,7 @@ from pelix.ipopo.decorators import ComponentFactory, Provides, Requires, \
     Instantiate, Property, Validate
 
 # Standard library
+import datetime
 import json
 import logging
 
@@ -82,6 +83,28 @@ json_scenes = '{json_scenes}';
 draw_chart('Composer Story', 'composer_story',
            characters_xml, json_scenes,
            true, false, false);
+</script>
+</body>
+</html>
+"""
+
+SECOND_STORY_PAGE = """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta charset="UTF-8">
+<title>Node Composer Story</title>
+<script src="{statics}/d3.min.js"></script>
+<script src="{statics}/isolates_story/story.js"></script>
+</head>
+
+<body>
+<p id="chart" />
+
+<script lang="javascript">
+json_data = '{json_data}';
+data = JSON.parse(json_data);
+draw_chart("#chart", data);
 </script>
 </body>
 </html>
@@ -139,6 +162,7 @@ class NodeComposerInstrument(cohorte.instruments.CommonHttp):
 
         # Path -> method
         self._paths = {'story': self._send_story,
+                       'story2': self._send_second_story,
                        'isolates': self._send_isolates}
 
 
@@ -196,6 +220,44 @@ class NodeComposerInstrument(cohorte.instruments.CommonHttp):
         # Send the page
         response.send_content(200,
                               self.make_page("Cohorte Node Composer", body))
+
+
+    def _send_second_story(self, response):
+        """
+        Sends a graph showing the isolate of each component during distribution
+        """
+        hist_scenes = self._history.items()
+        if not hist_scenes:
+            # No history yet
+            response.send_content(200, "<p>No history yet...</p>")
+            return
+
+        # Get the names of all component names
+        all_names = self.__extract_story_characters(hist_scenes)
+
+        # Prepare temporary dictionary
+        data = dict((name, {"name": name, "scenes": []}) for name in all_names)
+
+        # Store data
+        for timestamp, distribution in hist_scenes:
+            for isolate, components in distribution.items():
+                for name in components:
+                    dist_time = datetime.datetime.fromtimestamp(timestamp)
+                    data[name]['scenes'].append(
+                        {"distribution": dist_time.strftime("%X"),
+                         "isolate": isolate})
+
+        # Generate JSON
+        data_json = json.dumps(list(data.values()), indent=True)
+
+        # Escape content: must be Javascript a string declaration
+        data_json = data_json.replace("'", "\\'").replace("\n", " \\\n")
+
+        # Generate the page content
+        page = SECOND_STORY_PAGE.format(statics=self.get_statics_path(),
+                                        json_data=data_json)
+
+        response.send_content(200, page)
 
 
     def _send_story(self, response):

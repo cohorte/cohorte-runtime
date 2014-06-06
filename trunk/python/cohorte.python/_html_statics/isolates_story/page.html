@@ -5,10 +5,262 @@
 <meta charset="UTF-8">
 <title>Node Composer Story</title>
 <script src="../d3.min.js"></script>
+<script src="story.js"></script>
 </head>
 
 <body>
 <p id="chart" />
-<script src="story.js"></script>
+
+<script lang="javascript">
+json_data = '[ \
+ { \
+  "name": "Nemesis-B",  \
+  "scenes": [ \
+   { \
+    "distribution": "10:02:14",  \
+    "isolate": "central-python-auto01" \
+   },  \
+   { \
+    "distribution": "10:02:20",  \
+    "isolate": "central-python-auto02" \
+   },  \
+   { \
+    "distribution": "10:02:26",  \
+    "isolate": "central-python-auto04" \
+   },  \
+   { \
+    "distribution": "10:02:31",  \
+    "isolate": "central-python-auto04" \
+   },  \
+   { \
+    "distribution": "10:02:36",  \
+    "isolate": "central-python-auto06" \
+   },  \
+   { \
+    "distribution": "10:02:41",  \
+    "isolate": "central-python-auto06" \
+   },  \
+   { \
+    "distribution": "10:02:46",  \
+    "isolate": "central-python-auto07" \
+   },  \
+   { \
+    "distribution": "10:02:52",  \
+    "isolate": "central-python-auto09" \
+   },  \
+   { \
+    "distribution": "10:02:57",  \
+    "isolate": "central-python-auto09" \
+   },  \
+   { \
+    "distribution": "10:02:57",  \
+    "isolate": "central-python-auto10" \
+   },  \
+   { \
+    "distribution": "10:03:03",  \
+    "isolate": "central-python-auto12" \
+   } \
+  ] \
+ },  \
+ { \
+  "name": "Slimer",  \
+  "scenes": [ \
+   { \
+    "distribution": "10:02:14",  \
+    "isolate": "central-python-auto01" \
+   },  \
+   { \
+    "distribution": "10:02:20",  \
+    "isolate": "central-python-auto03" \
+   },  \
+   { \
+    "distribution": "10:02:26",  \
+    "isolate": "central-python-auto03" \
+   },  \
+   { \
+    "distribution": "10:02:31",  \
+    "isolate": "central-python-auto04" \
+   },  \
+   { \
+    "distribution": "10:02:36",  \
+    "isolate": "central-python-auto06" \
+   },  \
+   { \
+    "distribution": "10:02:41",  \
+    "isolate": "central-python-auto06" \
+   },  \
+   { \
+    "distribution": "10:02:46",  \
+    "isolate": "central-python-auto08" \
+   },  \
+   { \
+    "distribution": "10:02:52",  \
+    "isolate": "central-python-auto08" \
+   },  \
+   { \
+    "distribution": "10:02:57",  \
+    "isolate": "central-python-auto11" \
+   },  \
+   { \
+    "distribution": "10:02:57",  \
+    "isolate": "central-python-auto11" \
+   },  \
+   { \
+    "distribution": "10:03:03",  \
+    "isolate": "central-python-auto11" \
+   } \
+  ] \
+ },  \
+ { \
+  "name": "Nemesis-A",  \
+  "scenes": [ \
+   { \
+    "distribution": "10:02:14",  \
+    "isolate": "central-python-auto01" \
+   },  \
+   { \
+    "distribution": "10:02:20",  \
+    "isolate": "central-python-auto02" \
+   },  \
+   { \
+    "distribution": "10:02:26",  \
+    "isolate": "central-python-auto03" \
+   },  \
+   { \
+    "distribution": "10:02:31",  \
+    "isolate": "central-python-auto05" \
+   },  \
+   { \
+    "distribution": "10:02:36",  \
+    "isolate": "central-python-auto05" \
+   },  \
+   { \
+    "distribution": "10:02:41",  \
+    "isolate": "central-python-auto06" \
+   },  \
+   { \
+    "distribution": "10:02:46",  \
+    "isolate": "central-python-auto08" \
+   },  \
+   { \
+    "distribution": "10:02:52",  \
+    "isolate": "central-python-auto08" \
+   },  \
+   { \
+    "distribution": "10:02:57",  \
+    "isolate": "central-python-auto10" \
+   },  \
+   { \
+    "distribution": "10:02:57",  \
+    "isolate": "central-python-auto10" \
+   },  \
+   { \
+    "distribution": "10:03:03",  \
+    "isolate": "central-python-auto12" \
+   } \
+  ] \
+ },  \
+ { \
+  "name": "Component-A",  \
+  "scenes": [ \
+   { \
+    "distribution": "10:02:14",  \
+    "isolate": "central-python-auto01" \
+   },  \
+   { \
+    "distribution": "10:02:20",  \
+    "isolate": "central-python-auto02" \
+   },  \
+   { \
+    "distribution": "10:02:26",  \
+    "isolate": "central-python-auto03" \
+   },  \
+   { \
+    "distribution": "10:02:31",  \
+    "isolate": "central-python-auto04" \
+   },  \
+   { \
+    "distribution": "10:02:36",  \
+    "isolate": "central-python-auto05" \
+   },  \
+   { \
+    "distribution": "10:02:41",  \
+    "isolate": "central-python-auto06" \
+   },  \
+   { \
+    "distribution": "10:02:46",  \
+    "isolate": "central-python-auto07" \
+   },  \
+   { \
+    "distribution": "10:02:52",  \
+    "isolate": "central-python-auto08" \
+   },  \
+   { \
+    "distribution": "10:02:57",  \
+    "isolate": "central-python-auto10" \
+   },  \
+   { \
+    "distribution": "10:02:57",  \
+    "isolate": "central-python-auto10" \
+   },  \
+   { \
+    "distribution": "10:03:03",  \
+    "isolate": "central-python-auto11" \
+   } \
+  ] \
+ },  \
+ { \
+  "name": "Component-B",  \
+  "scenes": [ \
+   { \
+    "distribution": "10:02:14",  \
+    "isolate": "central-python-auto01" \
+   },  \
+   { \
+    "distribution": "10:02:20",  \
+    "isolate": "central-python-auto02" \
+   },  \
+   { \
+    "distribution": "10:02:26",  \
+    "isolate": "central-python-auto03" \
+   },  \
+   { \
+    "distribution": "10:02:31",  \
+    "isolate": "central-python-auto04" \
+   },  \
+   { \
+    "distribution": "10:02:36",  \
+    "isolate": "central-python-auto05" \
+   },  \
+   { \
+    "distribution": "10:02:41",  \
+    "isolate": "central-python-auto07" \
+   },  \
+   { \
+    "distribution": "10:02:46",  \
+    "isolate": "central-python-auto07" \
+   },  \
+   { \
+    "distribution": "10:02:52",  \
+    "isolate": "central-python-auto09" \
+   },  \
+   { \
+    "distribution": "10:02:57",  \
+    "isolate": "central-python-auto09" \
+   },  \
+   { \
+    "distribution": "10:02:57",  \
+    "isolate": "central-python-auto11" \
+   },  \
+   { \
+    "distribution": "10:03:03",  \
+    "isolate": "central-python-auto11" \
+   } \
+  ] \
+ } \
+]';
+data = JSON.parse(json_data);
+draw_chart("#chart", data);
+</script>
 </body>
 </html>
