@@ -91,16 +91,22 @@ class ConfigurationIsolateCriterion(object):
             # No forced isolate: blank vote
             return
 
+        found_match = False
         for candidate in candidates:
             if candidate.name == isolate:
                 # Found the corresponding isolate
                 raise vote.CoupdEtat(candidate)
 
-            elif candidate.name is None \
-            and candidate.propose_rename(isolate):
+            elif not candidate.name and candidate.propose_rename(isolate):
                 # No name yet, same language and renaming accepted
                 ballot.append_for(candidate)
+                found_match = True
 
-        # Not found, create a new isolate
-        # (it will be configured by the node distributor)
-        raise vote.CoupdEtat(beans.EligibleIsolate(isolate))
+            else:
+                # Wrong isolate: vote against it
+                ballot.append_against(candidate)
+
+        if not found_match:
+            # Not found, create a new isolate
+            # (it will be configured by the node distributor)
+            raise vote.CoupdEtat(beans.EligibleIsolate(isolate))
