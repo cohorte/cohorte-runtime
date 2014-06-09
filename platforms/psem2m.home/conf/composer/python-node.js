@@ -44,7 +44,7 @@
 	{
 		"name" : "cohorte.vote.core"
 	}, {
-		"name" : "cohorte.vote.alternative"
+		"name" : "cohorte.vote.approbation"
 	}, {
 		"name" : "cohorte.vote.cartoonist"
 	}, {

@@ -135,7 +135,7 @@ class IsolateDistributor(object):
         # Prepare parameters of the vote
         # -> -5 votes on "against"
         # -> Remove candidate after 2 "against"
-        kind = "alternative"
+        kind = "approbation"
         parameters = {'penalty': 5, 'exclusion': 2}
 
         self._nb_distribution += 1
