@@ -77,7 +77,7 @@ class CoupdEtat(Exception):
         """
         String representation
         """
-        return "Coup d'État by {0:s}.".format(self.claimant)
+        return "Coup d'État by {0}.".format(self.claimant)
 
 # ------------------------------------------------------------------------------
 
