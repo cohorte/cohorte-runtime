@@ -81,7 +81,6 @@ def make_heartbeat(port, application_id, isolate_id, node_id, node_name):
 @ComponentFactory("cohorte-forker-heartbeat-multicast-factory")
 @Property('_group', 'multicast.group', "239.0.0.1")
 @Property('_port', 'multicast.port', 42000)
-@Property('_app_id', 'cohorte.application', "<unknown-app>")
 # To have the same life cycle than the forker...
 @Requires("_forker", cohorte.SERVICE_FORKER)
 @Requires("_receiver", cohorte.SERVICE_SIGNALS_RECEIVER)
@@ -96,7 +95,6 @@ class MulticastHeartbeat(object):
         # Injected properties
         self._group = ""
         self._port = 0
-        self._app_id = ""
 
         # Injected services
         self._forker = None
@@ -120,8 +118,9 @@ class MulticastHeartbeat(object):
         """
         # Prepare the packet
         beat = make_heartbeat(
-            self._receiver.get_access_info()[1], self._app_id,
-            self._context.get_property(cohorte.PROP_UID),
+            self._receiver.get_access_info()[1],
+            self._forker.get_appid(),
+            self._forker.get_uid(),
             self._context.get_property(cohorte.PROP_NODE_UID),
             self._context.get_property(cohorte.PROP_NODE_NAME))
 
