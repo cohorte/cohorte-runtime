@@ -23,7 +23,7 @@ import cohorte.signals
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
-    Invalidate, BindField, Provides
+    Invalidate, BindField, Provides, Property
 
 # Pelix utilities
 import pelix.threadpool
@@ -43,6 +43,7 @@ _logger = logging.getLogger(__name__)
 @Requires('_listeners', cohorte.forker.SERVICE_FORKER_LISTENER, True, True)
 @Requires('_receiver', cohorte.SERVICE_SIGNALS_RECEIVER)
 @Requires('_sender', cohorte.SERVICE_SIGNALS_SENDER)
+@Property('_app_id', 'cohorte.application', '<unknown-app>')
 class ForkerDiscovery(object):
     """
     Forker/Node discoverer
@@ -57,6 +58,12 @@ class ForkerDiscovery(object):
         self._receiver = None
         self._sender = None
 
+        # Local Forker UID
+        self._local_uid = None
+
+        # Application ID
+        self._application_id = None
+
         # Forker UID -> Node UID
         self._forkers = {}
 
@@ -69,6 +76,9 @@ class ForkerDiscovery(object):
         """
         Component validated
         """
+        # Store the local UID
+        self._local_uid = context.get_property(cohorte.PROP_UID)
+
         # Start the event pool
         self._events_thread = pelix.threadpool.ThreadPool(
             1, logname="forker-aggregator")
@@ -90,6 +100,7 @@ class ForkerDiscovery(object):
 
         # Clean up
         self._forkers.clear()
+        self._local_uid = None
 
 
     @BindField('_listeners')
@@ -107,6 +118,20 @@ class ForkerDiscovery(object):
             # Notify the listener of all known forkers
             for uid, node_uid in self._forkers.items():
                 forker_ready(uid, node_uid)
+
+
+    def get_appid(self):
+        """
+        Returns the local application ID
+        """
+        return self._application_id or "<unknown-app>"
+
+
+    def get_uid(self):
+        """
+        Returns the local forker UID
+        """
+        return self._local_uid
 
 
     def register_forker(self, uid, node_uid, node_name, host, port):
@@ -143,6 +168,7 @@ class ForkerDiscovery(object):
             _logger.info("Newly registered forker ID=%s Node=%s/%s Port=%d",
                          uid, node_uid, node_name, port)
 
+        # FIXME: do it only once ?
         # Notify listeners
         self._notify_listeners(uid, node_uid, True)
 
