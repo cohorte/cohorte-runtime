@@ -189,8 +189,7 @@ class MulticastReceiver(object):
 
 @ComponentFactory("cohorte-forker-discovery-multicast-factory")
 @Provides(cohorte.signals.SERVICE_ISOLATE_PRESENCE_LISTENER)
-@Requires('_core', cohorte.forker.SERVICE_DISCOVERY)
-@Requires('_directory', cohorte.SERVICE_SIGNALS_DIRECTORY)
+@Requires('_discovery', cohorte.forker.SERVICE_DISCOVERY)
 @Property('_group', 'multicast.group', '239.0.0.1')
 @Property('_port', 'multicast.port', 42000)
 @Property('_forker_ttl', 'forker.ttl', 5)
@@ -203,8 +202,7 @@ class MulticastListener(object):
         Sets up the component
         """
         # Injected services
-        self._core = None
-        self._directory = None
+        self._discovery = None
 
         # Multicast receiver
         self._multicast = None
@@ -232,8 +230,8 @@ class MulticastListener(object):
         # Convert port into integer
         self._port = int(self._port)
 
-        # Get the local node UID
-        self._local_uid = self._directory.get_local_node()
+        # Get the local forker UID
+        self._local_uid = self._discovery.get_uid()
 
         # Start the multicast listener
         self._multicast = MulticastReceiver(self._group, self._port,
@@ -306,8 +304,12 @@ class MulticastListener(object):
         :param host: Address of the node
         :param port: Port to access the forker
         """
-        if node_uid == self._local_uid:
+        if uid == self._local_uid:
             # Ignore this heart beat (sent by us)
+            return
+
+        if application_id != self._discovery.get_appid():
+            # Forker from another application: ignore
             return
 
         with self._lst_lock:
@@ -317,7 +319,7 @@ class MulticastListener(object):
 
         if to_register:
             # The forker wasn't known, register it
-            self._core.register_forker(uid, node_uid, node_name, host, port)
+            self._discovery.register_forker(uid, node_uid, node_name, host, port)
 
 
     def __lst_loop(self):
@@ -364,4 +366,4 @@ class MulticastListener(object):
                 del self._forker_lst[uid]
 
         # Call the forker discovery core
-        self._core.forker_lost(uid, "Forker multicast heartbeat timed out.")
+        self._discovery.forker_lost(uid, "Forker multicast heartbeat timed out.")
