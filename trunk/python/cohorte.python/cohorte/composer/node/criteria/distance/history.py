@@ -115,6 +115,11 @@ class HistoryCriterion(object):
 
         :param components: Names of the components in the crashed isolate
         """
+        if len(components) == 1:
+            # Do not forbid a group of 1 component
+            # (or it would never be instantiated again)
+            return
+
         # Consolidate history
         crash = frozenset(components)
         to_remove = []
