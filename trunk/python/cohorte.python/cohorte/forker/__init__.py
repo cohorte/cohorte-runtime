@@ -22,6 +22,9 @@ FORKER_NAME = 'cohorte.internals.forker'
 SERVICE_AGGREGATOR = 'cohorte.forker.aggregator'
 """ Specification of a forker aggregator """
 
+SERVICE_DISCOVERY = 'cohorte.forker.discovery'
+""" Forker discovery service """
+
 SERVICE_FORKER_LISTENER = 'cohorte.forker.listener'
 """
 Specification of a forker event listener:
