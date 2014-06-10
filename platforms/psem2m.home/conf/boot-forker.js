@@ -39,12 +39,12 @@
 	},
 
 	/*
-	 * Forker aggregator
+	 * Forker discovery
 	 */
 	{
-		"name" : "cohorte.forker.aggregator"
+		"name" : "cohorte.forker.discovery.core"
 	}, {
-		"name" : "cohorte.forker.heartbeat"
+		"name" : "cohorte.forker.discovery.heartbeat_multicast"
 	},
 
 	/*
@@ -106,18 +106,16 @@
 		"name" : "cohorte-forker-state-updater"
 	},
 	
-	/* Forker aggregator */
+	/* Forker discovery */
 	{
-		"factory" : "cohorte-forker-heart-factory",
-		"name" : "cohorte-forker-heartbeat",
+		"factory" : "cohorte-forker-discovery-factory",
+		"name" : "cohorte-forker-discovery",
 		"properties" : {
-			"multicast.group" : "239.0.0.1",
-			"multicast.port" : 42001,
 			"cohorte.application" : "demo-august-2013"
 		}
 	}, {
-		"factory" : "cohorte-forker-aggregator-factory",
-		"name" : "cohorte-forker-aggregator",
+		"factory" : "cohorte-forker-heartbeat-multicast-factory",
+		"name" : "cohorte-forker-heartbeat-multicast",
 		"properties" : {
 			"multicast.group" : "239.0.0.1",
 			"multicast.port" : 42001
