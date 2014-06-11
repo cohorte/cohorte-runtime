@@ -16,7 +16,7 @@ __version__ = "1.0.0"
 # ------------------------------------------------------------------------------
 
 # COHORTE constants
-import cohorte
+import cohorte.forker
 
 # MQTT Client
 import pelix.misc.mqtt_client as mqtt
@@ -24,6 +24,7 @@ import pelix.misc.mqtt_client as mqtt
 # Pelix/iPOPO
 from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
     Invalidate, Property
+from pelix.utilities import to_unicode
 
 # ------------------------------------------------------------------------------
 
@@ -43,6 +44,7 @@ _logger = logging.getLogger(__name__)
 @Property('_topic_pattern', 'mqtt.topic.pattern', 'cohorte/{appid}/heartbeat')
 # To have the same life cycle than the forker...
 @Requires("_forker", cohorte.SERVICE_FORKER)
+@Requires("_discovery", cohorte.forker.SERVICE_DISCOVERY)
 @Requires("_receiver", cohorte.SERVICE_SIGNALS_RECEIVER)
 class MqttHeartbeat(object):
     """
@@ -60,6 +62,7 @@ class MqttHeartbeat(object):
 
         # Injected services
         self._forker = None
+        self._discovery = None
         self._receiver = None
 
         # Bundle context
@@ -77,12 +80,12 @@ class MqttHeartbeat(object):
         """
         # Store local properties
         self._context = context
-        self._local_uid = self._forker.get_uid()
+        self._local_uid = self._discovery.get_uid()
 
         # Normalize properties
         self._port = int(self._port)
         self.__topic = self._topic_pattern \
-            .format(appid=self._forker.get_appid()) \
+            .format(appid=self._discovery.get_appid()) \
             .replace('//', '/')
         if self.__topic[-1] == '/':
             # Remove trailing slash
@@ -145,7 +148,7 @@ class MqttHeartbeat(object):
             node_uid = self._context.get_property(cohorte.PROP_NODE_UID)
             node_name = self._context.get_property(cohorte.PROP_NODE_NAME)
 
-            payload = {"application_id": self._forker.get_appid(),
+            payload = {"application_id": self._discovery.get_appid(),
                        "forker_uid": self._local_uid,
                        "node_uid": node_uid,
                        "node_name":  node_name,
@@ -173,18 +176,18 @@ class MqttHeartbeat(object):
         data = msg.payload
         if not data:
             # Empty message: client lost
-            self._forker.forker_lost(forker_uid)
+            self._discovery.forker_lost(forker_uid)
 
         else:
             # Parse payload
-            payload = json.loads(data)
+            payload = json.loads(to_unicode(data))
 
             # Register the forker
-            self._forker.register_forker(payload['forker_uid'],
-                                         payload['node_uid'],
-                                         payload['node_name'],
-                                         payload['host'],
-                                         payload['port'])
+            self._discovery.register_forker(payload['forker_uid'],
+                                            payload['node_uid'],
+                                            payload['node_name'],
+                                            payload['host'],
+                                            payload['port'])
 
 
     def __on_disconnect(self, client, result_code):
