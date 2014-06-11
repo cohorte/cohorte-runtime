@@ -565,10 +565,23 @@ class JavaOsgiLoader(object):
             else:
                 _logger.warning("Bundle not found: %s", bundle_conf)
 
-        # Start the bundles
-        for bundle in java_bundles:
-            _logger.debug("Starting %s...", bundle.getSymbolicName())
-            bundle.start()
+        try:
+            # Start the bundles
+            for bundle in java_bundles:
+                _logger.debug("Starting %s...", bundle.getSymbolicName())
+                bundle.start()
+
+        except Exception as ex:
+            # Log the bundle exception and its cause
+            _logger.error("Error starting bundle: %s",
+                          ex.__javaobject__.toString())
+            cause = ex.__javaobject__.getCause()
+            while cause is not None:
+                _logger.error("... caused by: %s", cause.toString())
+                cause = cause.getCause()
+
+            # Raise exception to the caller
+            raise
 
         # Start the component instantiation handler
         self._register_bridge(context, java_config)
