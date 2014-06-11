@@ -97,6 +97,11 @@ class NodeCommander(object):
         Called by iPOPO when a new composer is bound
         """
         with self._lock:
+            # Check node UID
+            if not self.__check_node(svc_ref):
+                # Different node: ignore this isolate composer
+                return
+
             # Store the service reference
             self._injected_composers_refs[service] = svc_ref
 
