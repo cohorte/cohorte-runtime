@@ -791,13 +791,19 @@ function draw_chart(name, safe_name, xml_data, json_data,
 	    d3.select(this).text(d.name);
         });
 
+    var boxWidth = (width + margin.left + margin.right);
+    var boxHeight = (height + margin.top + margin.bottom);
     var svg = d3.select("#chart").append("svg")
-	.attr("width", width + margin.left + margin.right)
-	.attr("height", height + margin.top + margin.bottom)
-            .attr("class", "chart")
-            .attr("id", safe_name)
+		.attr("version", "1.1")
+		.attr("width", window.innerWidth * .8)
+		.attr("height", window.innerHeight * .8)
+		.attr("viewBox", "0 0 " + boxWidth + " " + boxHeight)
+		.attr("preserveAspectRatio", "xMidYMax meet")
+        .attr("class", "chart")
+        .attr("id", safe_name)
+        .attr("xmlns", "http://www.w3.org/2000/svg")
 	.append("g")
-	.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+		.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 
     var chars = [];

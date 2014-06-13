@@ -4,8 +4,6 @@
 @import url(http://fonts.googleapis.com/css?family=Cabin+Sketch);
 @import url(http://fonts.googleapis.com/css?family=Short+Stack);
 
-
-
 textarea {
   font-size: 100%;
 }
@@ -57,27 +55,6 @@ svg {
 sup, sub {
   line-height: 0;
 }
-
-/*
-q:before,
-blockquote:before {
-  content: "“";
-}
-
-q:after,
-blockquote:after {
-  content: "”";
-}
-
-blockquote:before {
-  position: absolute;
-  left: 2em;
-}
-
-blockquote:after {
-  position: absolute;
-}
-*/
 
 .scene {
   cursor: move;

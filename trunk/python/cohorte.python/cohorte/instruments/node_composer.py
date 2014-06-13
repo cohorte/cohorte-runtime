@@ -62,7 +62,6 @@ STORY_PAGE = """<!DOCTYPE html>
 <meta charset="UTF-8">
 <title>Node Composer Story</title>
 
-<link rel="stylesheet" type="text/css" media="all" href="{statics}/narrative/style.css">
 <link rel="stylesheet" type="text/css" media="all" href="{statics}/narrative/narrative.css">
 
 <script src="{statics}/d3.min.js"></script>
