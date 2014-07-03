@@ -165,11 +165,12 @@ class ConfigurationFileReader(object):
                 # (this method will be called by _load_file)
                 new_props = self._compute_overridden_props(json_data,
                                                            overridden_props)
+
                 imported_data = self._load_file(from_filename, filename,
                                                 new_props, include_stack)
 
                 # Update properties
-                self._update_properties(imported_data, overridden_props)
+                self._update_properties(imported_data, new_props)
 
                 # Return the imported object
                 return imported_data
@@ -188,10 +189,9 @@ class ConfigurationFileReader(object):
 
                 for import_filename in import_filenames:
                     # Import files
-                    new_props = self._compute_overridden_props(json_data,
-                                                               overridden_props)
                     imported_data = self._load_file(import_filename, filename,
-                                                    new_props, include_stack)
+                                                    overridden_props,
+                                                    include_stack)
 
                     # Update properties in imported data
                     self._update_properties(imported_data, overridden_props)
@@ -218,7 +218,7 @@ class ConfigurationFileReader(object):
                                                            include_stack)
                     if new_value is not value:
                         # The value has been changed
-                        json_data[key] = value
+                        json_data[key] = new_value
 
                 return json_data
 
