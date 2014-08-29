@@ -37,11 +37,15 @@ __version__ = "1.0.0"
 # COHORTE modules
 import cohorte.forker
 import cohorte.monitor
-import cohorte.signals
+
+# Herald
+import herald
+from herald.beans import Message
 
 # Pelix framework
 from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
     Invalidate, Provides, RequiresMap, BindField
+import pelix.http
 import pelix.threadpool
 
 # Standard library
@@ -58,9 +62,9 @@ _logger = logging.getLogger(__name__)
 @ComponentFactory('cohorte-forker-basic-factory')
 @Provides(cohorte.SERVICE_FORKER, '_controller')
 @Provides(cohorte.forker.SERVICE_WATCHER_LISTENER)
-@Requires('_directory', cohorte.SERVICE_SIGNALS_DIRECTORY)
-@Requires('_receiver', cohorte.SERVICE_SIGNALS_RECEIVER)
-@Requires('_sender', cohorte.SERVICE_SIGNALS_SENDER)
+@Requires('_directory', herald.SERVICE_DIRECTORY)
+@Requires('_herald', herald.SERVICE_HERALD)
+@Requires('_http', pelix.http.HTTP_SERVICE)
 @Requires('_state_dir', 'cohorte.forker.state')
 @Requires('_state_updater', 'cohorte.forker.state.updater')
 @RequiresMap('_starters', cohorte.forker.SERVICE_STARTER,
@@ -75,8 +79,8 @@ class ForkerBasic(object):
         """
         # Injected services
         self._directory = None
-        self._receiver = None
-        self._sender = None
+        self._herald = None
+        self._http = None
         self._state_dir = None
         self._state_updater = None
         self._starters = {}
@@ -172,8 +176,8 @@ class ForkerBasic(object):
         # ... in isolate properties
         all_props.append(isolate_config.setdefault('properties', {}))
 
-        # Store the dumper port property
-        dumper_port = self._receiver.get_access_info()[1]
+        # Store the dumper port property (HTTP service port)
+        dumper_port = self._http.get_access[1]
         for props in all_props:
             props[cohorte.PROP_DUMPER_PORT] = dumper_port
 
@@ -279,8 +283,8 @@ class ForkerBasic(object):
 
         if not self._platform_stopping:
             # Send a signal to all other isolates
-            self._sender.fire(cohorte.monitor.SIGNAL_ISOLATE_LOST, uid,
-                              dir_group=cohorte.signals.GROUP_OTHERS)
+            self._herald.fire_group(
+                'all', Message(cohorte.monitor.SIGNAL_ISOLATE_LOST, uid))
 
         # Stop the isolate
         starter.stop(uid)
@@ -316,7 +320,7 @@ class ForkerBasic(object):
         :param uid: The ID of the lost isolate
         """
         # Locally unregister the isolate
-        self._directory.unregister_isolate(uid)
+        self._directory.unregister(uid)
 
         try:
             starter = self._isolates.pop(uid)
@@ -337,8 +341,8 @@ class ForkerBasic(object):
 
         if not self._platform_stopping:
             # Send a signal to all other isolates
-            self._sender.fire(cohorte.monitor.SIGNAL_ISOLATE_LOST, uid,
-                              dir_group=cohorte.signals.GROUP_OTHERS)
+            self._herald.fire_group(
+                'all', Message(cohorte.monitor.SIGNAL_ISOLATE_LOST, uid))
 
 
     def _send_stopping(self):
@@ -355,8 +359,8 @@ class ForkerBasic(object):
                    'node': self._context.get_property(cohorte.PROP_NODE_UID),
                    'isolates': list(self._isolates.keys())}
 
-        self._sender.send(cohorte.forker.SIGNAL_FORKER_STOPPING,
-                          content, dir_group=cohorte.signals.GROUP_OTHERS)
+        self._herald.fire_group(
+                'all', Message(cohorte.forker.SIGNAL_FORKER_STOPPING, content))
 
         # Flag up
         self._sent_stopping = True

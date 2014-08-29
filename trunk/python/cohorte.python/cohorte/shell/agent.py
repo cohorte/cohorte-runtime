@@ -22,7 +22,10 @@ __docformat__ = "restructuredtext en"
 # -----------------------------------------------------------------------------
 
 # Cohorte
-import cohorte.signals
+import cohorte
+
+# Herald
+import herald
 
 # Shell constants
 from pelix.shell import SHELL_COMMAND_SPEC, SHELL_UTILS_SERVICE_SPEC, \
@@ -30,7 +33,7 @@ from pelix.shell import SHELL_COMMAND_SPEC, SHELL_UTILS_SERVICE_SPEC, \
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
-    Instantiate, Validate, Invalidate
+    Instantiate, Property
 
 # Standard library
 import os
@@ -56,11 +59,11 @@ REMOTE_SHELL_FACTORY = "ipopo-remote-shell-factory"
 
 @ComponentFactory("cohorte-shell-agent-commands-factory")
 @Requires('_directory', cohorte.SERVICE_SIGNALS_DIRECTORY)
-@Requires('_receiver', cohorte.SERVICE_SIGNALS_RECEIVER)
 @Requires('_sender', cohorte.SERVICE_SIGNALS_SENDER)
 @Requires('_remote_shell', REMOTE_SHELL_SPEC)
 @Requires('_utils', SHELL_UTILS_SERVICE_SPEC)
-@Provides(SHELL_COMMAND_SPEC)
+@Provides((SHELL_COMMAND_SPEC, herald.SERVICE_LISTENER))
+@Property('_filters', herald.PROP_FILTERS, _SIGNALS_MATCH_ALL)
 @Instantiate("cohorte-shell-agent-commands")
 class ShellAgentCommands(object):
     """
@@ -72,10 +75,12 @@ class ShellAgentCommands(object):
         """
         # Injected services
         self._directory = None
-        self._receiver = None
         self._sender = None
         self._remote_shell = None
         self._utils = None
+
+        # Herald filter property
+        self._filters = None
 
 
     def get_namespace(self):
@@ -268,19 +273,3 @@ class ShellAgentCommands(object):
                 io_handler.write_line("{0} - {1}",
                                       self._directory.get_isolate_name(uid),
                                       uid)
-
-
-    @Validate
-    def validate(self, context):
-        """
-        Component validated
-        """
-        self._receiver.register_listener(_SIGNALS_MATCH_ALL, self)
-
-
-    @Invalidate
-    def invalidate(self, context):
-        """
-        Component invalidated
-        """
-        self._receiver.unregister_listener(_SIGNALS_MATCH_ALL, self)

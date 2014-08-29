@@ -40,11 +40,14 @@ import cohorte.monitor
 import cohorte.monitor.fsm as fsm
 import cohorte.repositories
 import cohorte.repositories.beans as beans
-import cohorte.signals
+
+# Herald
+import herald
+from herald.beans import Message
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
-    Invalidate, Requires
+    Invalidate, Requires, Property
 
 # Standard library
 import logging
@@ -55,22 +58,22 @@ import uuid
 
 _logger = logging.getLogger(__name__)
 
-HANDLED_SIGNALS = (cohorte.monitor.SIGNALS_ISOLATE_PATTERN,
-                   cohorte.monitor.SIGNALS_PLATFORM_PATTERN)
-
 # ------------------------------------------------------------------------------
 
 @ComponentFactory("cohorte-monitor-basic-factory")
 @Provides((cohorte.monitor.SERVICE_MONITOR,
            cohorte.forker.SERVICE_WATCHER_LISTENER))
+@Provides(herald.SERVICE_LISTENER)
 @Requires('_config', cohorte.SERVICE_CONFIGURATION_READER)
 @Requires('_finder', cohorte.SERVICE_FILE_FINDER)
 @Requires('_forker', cohorte.SERVICE_FORKER)
-@Requires('_receiver', cohorte.SERVICE_SIGNALS_RECEIVER)
+@Requires('_herald', herald.SERVICE_HERALD)
 @Requires('_repositories', cohorte.repositories.SERVICE_REPOSITORY_ARTIFACTS,
           aggregate=True)
-@Requires('_sender', cohorte.SERVICE_SIGNALS_SENDER)
 @Requires('_status', cohorte.monitor.SERVICE_STATUS)
+@Property('_filters', herald.PROP_FILTERS,
+          (cohorte.monitor.SIGNALS_ISOLATE_PATTERN,
+           cohorte.monitor.SIGNALS_PLATFORM_PATTERN))
 class MonitorBasic(object):
     """
     Monitor core component: interface to the forker
@@ -83,10 +86,12 @@ class MonitorBasic(object):
         self._config = None
         self._finder = None
         self._forker = None
-        self._receiver = None
+        self._herald = None
         self._repositories = []
-        self._sender = None
         self._status = None
+
+        # Properties
+        self._filters = None
 
         # Node UID
         self._node_uid = None
@@ -394,9 +399,8 @@ class MonitorBasic(object):
         self._forker.set_platform_stopping()
 
         # Send the platform stopping signal to other monitors
-        self._sender.send(cohorte.monitor.SIGNAL_PLATFORM_STOPPING, None,
-                          dir_group=cohorte.signals.GROUP_MONITORS,
-                          excluded=self._context.get_property(cohorte.PROP_UID))
+        self._herald.fire_group(
+            'monitors', Message(cohorte.monitor.SIGNAL_PLATFORM_STOPPING))
 
         # Tell the forker to stop the running isolates
         for uid in self._status.get_running():
@@ -437,10 +441,6 @@ class MonitorBasic(object):
         self._node_uid = context.get_property(cohorte.PROP_NODE_UID)
         self._node_name = context.get_property(cohorte.PROP_NODE_NAME)
 
-        # Register to signals
-        for signal in HANDLED_SIGNALS:
-            self._receiver.register_listener(signal, self)
-
         _logger.info("Monitor core validated")
 
         # Start predefined isolates
@@ -456,10 +456,6 @@ class MonitorBasic(object):
         """
         Component invalidated
         """
-        # Unregister to signals
-        for signal in HANDLED_SIGNALS:
-            self._receiver.unregister_listener(signal, self)
-
         # Kill auto-run isolates
         for uid in tuple(self._auto_isolates.keys()):
             self._forker.stop_isolate(uid)

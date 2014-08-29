@@ -38,9 +38,10 @@ __docformat__ = "restructuredtext en"
 # Composer
 import cohorte.composer
 import cohorte.composer.node.beans as beans
-
 import cohorte.monitor
-import cohorte.signals
+
+# Herald
+import herald
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
@@ -85,7 +86,7 @@ class FactoriesMissing(Exception):
 
 @ComponentFactory()
 @Provides(cohorte.composer.SERVICE_COMPOSER_NODE)
-@Provides(cohorte.signals.SERVICE_ISOLATE_PRESENCE_LISTENER)
+@Provides(herald.SERVICE_DIRECTORY_LISTENER)
 @Property('_node_uid', cohorte.composer.PROP_NODE_UID)
 @Property('_node_name', cohorte.composer.PROP_NODE_NAME)
 @Property('_export', pelix.remote.PROP_EXPORTED_INTERFACES,
@@ -449,7 +450,7 @@ class NodeComposer(object):
         """
         Called by the forker when an isolate has been lost
 
-        :param uid: Isolate UID
+        :param name: Isolate name
         :param node: Isolate node UID
         """
         # Check if this is our node
@@ -483,15 +484,20 @@ class NodeComposer(object):
         self.instantiate(lost)
 
 
-    def handle_isolate_presence(self, uid, name, node, event):
+    def peer_registered(self, peer):
         """
-        Handles an isolate presence event
+        A peer has been registered (ignored)
+        """
+        pass
 
-        :param uid: UID of the isolate
-        :param name: Name of the isolate
-        :param node: UID of the node hosting the isolate
-        :param even: Kind of event
+    def peer_updated(self, peer, access_id, data, previous):
         """
-        if event == cohorte.signals.ISOLATE_UNREGISTERED:
-            # Isolate gone away
-            self.handle_isolate_lost(name, node)
+        A peer has been updated (ignored)
+        """
+        pass
+
+    def peer_unregistered(self, peer):
+        """
+        A peer has been unregistered
+        """
+        self.handle_isolate_lost(peer.name, peer.node_uid)
