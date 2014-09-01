@@ -15,9 +15,9 @@
 		"name" : "cohorte.monitor.core"
 	}, {
 		"name" : "cohorte.monitor.status"
-	}, {
+	}, /* {
 		"name" : "cohorte.forker.aggregator"
-	}, {
+	}, */ {
 		"name" : "cohorte.monitor.node_starter"
 	},
 

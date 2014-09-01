@@ -41,11 +41,13 @@
 	/*
 	 * Forker discovery
 	 */
+	/*
 	{
 		"name" : "cohorte.forker.discovery.core"
 	}, {
 		"name" : "cohorte.forker.discovery.heartbeat_multicast"
 	},
+	*/
 
 	/*
 	 * Monitor bundles
@@ -107,6 +109,7 @@
 	},
 	
 	/* Forker discovery */
+	/*
 	{
 		"factory" : "cohorte-forker-discovery-factory",
 		"name" : "cohorte-forker-discovery",
@@ -121,6 +124,7 @@
 			"multicast.port" : 42001
 		}
 	},
+	*/
 
 	/* Configuration of monitor components */
 	{
