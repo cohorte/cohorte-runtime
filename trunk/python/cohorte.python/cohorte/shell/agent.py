@@ -125,23 +125,14 @@ class ShellAgentCommands(object):
 
         :param uid_or_name: The UID or Name of a peer
         :return: A list of UIDs matching the UID or name
-        :raise KeyError: Unknown Peer (could be a group)
+        :raise KeyError: Unknown isolate (could be a group)
         """
         try:
-            # Try with UID
-            self._directory.get_peer(uid_or_name)
+            # Try with UID or name
+            return self._directory.get_peers_for_name(uid_or_name)
         except KeyError:
-            # Not a UID
-            pass
-        else:
-            # It's a UID
-            return [uid_or_name]
-
-        try:
-            # Try with name (let the exception be propagated)
-            return self._directory.get_uids_for_name(uid_or_name)
-        except KeyError:
-            raise KeyError("No Peer matching name or UID {0}"
+            # Unknown isolate
+            raise KeyError("No isolate matching name or UID {0}"
                            .format(uid_or_name))
 
     def __compute_targets(self, isolate):

@@ -25,6 +25,7 @@ import pelix.misc.mqtt_client as mqtt
 from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
     Invalidate, Property
 from pelix.utilities import to_unicode
+import pelix.http
 
 # ------------------------------------------------------------------------------
 
@@ -45,7 +46,7 @@ _logger = logging.getLogger(__name__)
 # To have the same life cycle than the forker...
 @Requires("_forker", cohorte.SERVICE_FORKER)
 @Requires("_discovery", cohorte.forker.SERVICE_DISCOVERY)
-@Requires("_receiver", cohorte.SERVICE_SIGNALS_RECEIVER)
+@Requires("_http", pelix.http.HTTP_SERVICE)
 class MqttHeartbeat(object):
     """
     The heart beat sender
@@ -63,7 +64,7 @@ class MqttHeartbeat(object):
         # Injected services
         self._forker = None
         self._discovery = None
-        self._receiver = None
+        self._http = None
 
         # Bundle context
         self._context = None
@@ -144,7 +145,7 @@ class MqttHeartbeat(object):
             client.subscribe(self._make_topic('+'))
 
             # Prepare the payload
-            host, port = self._receiver.get_access_info()[:2]
+            host, port = self._http.get_access()
             node_uid = self._context.get_property(cohorte.PROP_NODE_UID)
             node_name = self._context.get_property(cohorte.PROP_NODE_NAME)
 

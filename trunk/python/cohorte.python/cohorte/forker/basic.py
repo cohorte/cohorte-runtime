@@ -177,7 +177,7 @@ class ForkerBasic(object):
         all_props.append(isolate_config.setdefault('properties', {}))
 
         # Store the dumper port property (HTTP service port)
-        dumper_port = self._http.get_access[1]
+        dumper_port = self._http.get_access()[1]
         for props in all_props:
             props[cohorte.PROP_DUMPER_PORT] = dumper_port
 

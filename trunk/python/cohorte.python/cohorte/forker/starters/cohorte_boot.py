@@ -25,6 +25,8 @@ Starts Cohorte isolates using the boot script
     You should have received a copy of the GNU General Public License
     along with Cohorte. If not, see <http://www.gnu.org/licenses/>.
 """
+from herald import beans
+from herald.exceptions import HeraldException
 
 # Documentation strings format
 __docformat__ = "restructuredtext en"
@@ -39,6 +41,9 @@ import cohorte.forker
 import cohorte.forker.starters.common as common
 import cohorte.monitor
 import cohorte.utils
+
+# Herald
+import herald
 
 # Pelix framework
 from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
@@ -61,7 +66,7 @@ _logger = logging.getLogger(__name__)
 @Property('_kinds', cohorte.forker.PROP_STARTER_KINDS,
           ('pelix', 'pelix-py3', 'osgi', 'cohorte-compat'))
 @Requires('_broker', cohorte.SERVICE_CONFIGURATION_BROKER)
-@Requires('_sender', cohorte.SERVICE_SIGNALS_SENDER)
+@Requires('_sender', herald.SERVICE_HERALD)
 @Instantiate('cohorte-starter-boot')
 class CohorteBoot(common.CommonStarter):
     """
@@ -213,15 +218,15 @@ class CohorteBoot(common.CommonStarter):
         # Keep the reference to the process (just in case)
         process = self._isolates[uid]
 
-        # Send the stop signal
-        reached = self._sender.fire(cohorte.monitor.SIGNAL_STOP_ISOLATE,
-                                    None, isolate=uid)
-        if reached is None or uid not in reached:
+        # Send the stop signal, with a 10s time out
+        try:
+            self._sender.send(
+                uid, beans.Message(cohorte.monitor.SIGNAL_STOP_ISOLATE), 10)
+        except HeraldException:
             # Signal not handled
             _logger.warn("Isolate %s (PID: %d) didn't received the 'stop' "
                          "signal: Kill it!", uid, process.pid)
             process.kill()
-
         else:
             # Signal handled
             try:
@@ -230,7 +235,6 @@ class CohorteBoot(common.CommonStarter):
                              uid, process.pid)
                 self._utils.wait_pid(process.pid, self._timeout)
                 _logger.info("Isolate stopped: %s (%d)", uid, process.pid)
-
             except cohorte.utils.TimeoutExpired:
                 # The isolate didn't stop -> kill the process
                 _logger.warn("Isolate timed out: %s (%d). Trying to kill it",
@@ -240,7 +244,6 @@ class CohorteBoot(common.CommonStarter):
         # Process stopped/killed without error
         try:
             del self._isolates[uid]
-
         except KeyError:
             # Isolate might already be removed from this component by the
             # forker

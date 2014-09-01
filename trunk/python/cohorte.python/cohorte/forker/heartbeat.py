@@ -89,8 +89,6 @@ def make_heartbeat(port, application_id, isolate_id, node_id, node_name):
 # Just to have the same life cycle than the forker...
 @Requires("_forker", cohorte.SERVICE_FORKER)
 @Requires("_http", pelix.http.HTTP_SERVICE)
-@Requires("_receiver", cohorte.SERVICE_SIGNALS_RECEIVER)
-@Requires("_sender", cohorte.SERVICE_SIGNALS_SENDER)
 class Heart(object):
     """
     The heart beat sender
@@ -107,8 +105,6 @@ class Heart(object):
         # Injected services
         self._forker = None
         self._http = None
-        self._receiver = None
-        self._sender = None
 
         # Bundle context
         self._context = None
@@ -150,9 +146,6 @@ class Heart(object):
         # Get out of the waiting condition
         self._stop_event.set()
 
-        # Unregister to the signals
-        # self._receiver.unregister_listener(SIGNAL_MATCH_ALL, self)
-
         # Wait for the thread to stop
         self._thread.join(.5)
 
@@ -190,9 +183,6 @@ class Heart(object):
 
         # Prepare the thread controls
         self._stop_event = threading.Event()
-
-        # Register to signals
-        # self._receiver.register_listener(SIGNAL_MATCH_ALL, self)
 
         # Start the heart
         self._thread = threading.Thread(target=self._run,

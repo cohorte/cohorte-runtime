@@ -17,15 +17,19 @@ __version__ = "1.0.0"
 
 # ------------------------------------------------------------------------------
 
-# COHORTE constants
+# COHORTE
 import cohorte.forker
 import cohorte.signals
+
+# Herald
+import herald
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
     Invalidate, BindField, Provides, Property
 
 # Pelix utilities
+import pelix.http
 import pelix.threadpool
 
 # Standard library
@@ -41,7 +45,7 @@ _logger = logging.getLogger(__name__)
 @Provides(cohorte.forker.SERVICE_DISCOVERY)
 @Requires('_directory', cohorte.SERVICE_SIGNALS_DIRECTORY)
 @Requires('_listeners', cohorte.forker.SERVICE_FORKER_LISTENER, True, True)
-@Requires('_receiver', cohorte.SERVICE_SIGNALS_RECEIVER)
+@Requires('_http', pelix.http.HTTP_SERVICE)
 @Requires('_sender', cohorte.SERVICE_SIGNALS_SENDER)
 @Property('_app_id', 'cohorte.application', '<unknown-app>')
 class ForkerDiscovery(object):
@@ -55,7 +59,7 @@ class ForkerDiscovery(object):
         # Injected services
         self._directory = None
         self._listeners = None
-        self._receiver = None
+        self._http = None
         self._sender = None
 
         # Local Forker UID
@@ -256,7 +260,7 @@ class ForkerDiscovery(object):
         """
         try:
             # Get access info
-            local_port = self._receiver.get_access_info()[1]
+            local_port = self._http.get_access()[1]
 
             # Send the contact signal
             result = self._sender.send_to(cohorte.signals.SIGNAL_CONTACT,

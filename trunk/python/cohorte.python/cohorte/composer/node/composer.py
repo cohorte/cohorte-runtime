@@ -98,7 +98,7 @@ class FactoriesMissing(Exception):
 @Requires('_status', cohorte.composer.SERVICE_STATUS_NODE)
 @Requires('_commander', cohorte.composer.SERVICE_COMMANDER_NODE)
 @Requires('_monitor', cohorte.monitor.SERVICE_MONITOR)
-@Requires('_directory', cohorte.SERVICE_SIGNALS_DIRECTORY)
+@Requires('_directory', herald.SERVICE_DIRECTORY)
 @Instantiate('cohorte-composer-node')
 class NodeComposer(object):
     """
@@ -418,12 +418,11 @@ class NodeComposer(object):
 
         :param names: A list of isolate names
         """
-        node_uids = self._directory.get_isolates_on_node(self._node_uid)
-        for uid in node_uids:
-            if self._directory.get_isolate_name(uid) in names:
+        peers = self._directory.get_peers_for_node(self._node_uid)
+        for peer in peers:
+            if peer.name in names:
                 try:
-                    self._monitor.stop_isolate(uid)
-
+                    self._monitor.stop_isolate(peer.uid)
                 except Exception as ex:
                     _logger.exception("Error stopping isolate: %s", ex)
 

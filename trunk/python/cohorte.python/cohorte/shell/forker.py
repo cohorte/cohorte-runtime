@@ -23,6 +23,7 @@ __docformat__ = "restructuredtext en"
 
 # Cohorte
 import cohorte
+import herald
 
 # Shell constants
 from pelix.shell import SHELL_COMMAND_SPEC
@@ -34,7 +35,7 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
 # ------------------------------------------------------------------------------
 
 @ComponentFactory("cohorte-forker-shell-commands-factory")
-@Requires("_directory", cohorte.SERVICE_SIGNALS_DIRECTORY)
+@Requires("_directory", herald.SERVICE_DIRECTORY)
 @Requires("_forker", cohorte.SERVICE_FORKER)
 @Provides(SHELL_COMMAND_SPEC)
 @Instantiate("cohorte-forker-shell-commands")
@@ -100,13 +101,12 @@ class SignalsCommands(object):
         Checks if the given isolate (name or UID) is alive
         """
         try:
-            for uid in self._directory.get_uids(isolate):
+            for peer in self._directory.get_peers_for_name(isolate):
+                uid = peer.uid
                 io_handler.write_line_no_feed("{0}...", uid)
                 result = self._forker.ping(uid)
-                io_handler.write_line("\r{2} - {0} ({1})", uid,
-                                      self._directory.get_isolate_name(uid),
+                io_handler.write_line("\r{2} - {0} ({1})", uid, peer.name,
                                       self.__ping_to_str(result))
-
         except KeyError as ex:
             io_handler.write_line("Error: {0}", ex)
 
@@ -116,9 +116,8 @@ class SignalsCommands(object):
         Stops the given isolate (name or UID)
         """
         try:
-            for uid in self._directory.get_uids(isolate):
+            for uid in self._directory.get_uids_for_name(isolate):
                 io_handler.write_line("Stopping {0}...", uid)
                 self._forker.stop_isolate(uid)
-
         except KeyError as ex:
             io_handler.write_line("Error: {0}", ex)

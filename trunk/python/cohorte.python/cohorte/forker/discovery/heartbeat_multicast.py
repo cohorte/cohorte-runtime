@@ -26,6 +26,7 @@ import cohorte.utils.multicast as multicast
 from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
     Invalidate, Property, Provides
 from pelix.utilities import to_bytes, to_unicode
+import pelix.http
 
 # ------------------------------------------------------------------------------
 
@@ -230,7 +231,7 @@ class MulticastReceiver(object):
 @Provides(cohorte.signals.SERVICE_ISOLATE_PRESENCE_LISTENER)
 @Requires('_discovery', cohorte.forker.SERVICE_DISCOVERY)
 @Requires('_forker', cohorte.SERVICE_FORKER)
-@Requires('_receiver', cohorte.SERVICE_SIGNALS_RECEIVER)
+@Requires('_http', pelix.http.HTTP_SERVICE)
 @Property('_group', 'multicast.group', '239.0.0.1')
 @Property('_port', 'multicast.port', 42000)
 @Property('_forker_ttl', 'forker.ttl', 5)
@@ -245,7 +246,7 @@ class MulticastHeartbeat(object):
         # Injected services
         self._discovery = None
         self._forker = None
-        self._receiver = None
+        self._http = None
 
         # Local information
         self._context = None
@@ -400,7 +401,7 @@ class MulticastHeartbeat(object):
         """
         # Prepare the packet
         beat = make_heartbeat(
-            self._receiver.get_access_info()[1],
+            self._http.get_access()[1],
             self._discovery.get_appid(),
             self._discovery.get_uid(),
             self._context.get_property(cohorte.PROP_NODE_UID),

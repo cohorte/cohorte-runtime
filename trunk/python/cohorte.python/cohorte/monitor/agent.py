@@ -17,13 +17,14 @@ __version__ = "1.0.0"
 
 # ------------------------------------------------------------------------------
 
-# Cohorte modules
+# Cohorte & Herald
 import cohorte.monitor
-import cohorte.signals
+import herald
+import herald.beans as beans
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
-    Invalidate
+    Invalidate, Provides, Property
 
 # Standard library
 import logging
@@ -36,8 +37,9 @@ _logger = logging.getLogger(__name__)
 # ------------------------------------------------------------------------------
 
 @ComponentFactory("cohorte-isolate-agent-factory")
-@Requires('_receiver', cohorte.SERVICE_SIGNALS_RECEIVER)
-@Requires('_sender', cohorte.SERVICE_SIGNALS_SENDER)
+@Requires('_sender', herald.SERVICE_HERALD)
+@Provides(herald.SERVICE_LISTENER)
+@Property('_filters', herald.PROP_FILTERS, cohorte.monitor.SIGNAL_STOP_ISOLATE)
 class IsolateAgent(object):
     """
     Isolate agent component
@@ -47,27 +49,24 @@ class IsolateAgent(object):
         Sets up the component
         """
         # Injected services
-        self._receiver = None
         self._sender = None
 
         # Bundle context
         self._context = None
 
-
-    def handle_received_signal(self, name, data):
+    def herald_message(self, herald_svc, message):
         """
         Handles a signal
 
-        :param name: Signal name
-        :param data: Signal data dictionary
+        :param herald_svc: The Herald service
+        :param message: The received message bean
         """
-        if name == cohorte.monitor.SIGNAL_STOP_ISOLATE:
+        if message.subject == cohorte.monitor.SIGNAL_STOP_ISOLATE:
             # Isolate must stop
             # Let the method return first,
             # in order to return to the caller immediately
             threading.Thread(name="monitor-agent-stop",
                              target=self.stop).start()
-
 
     def stop(self):
         """
@@ -75,13 +74,12 @@ class IsolateAgent(object):
         """
         # Send the "isolate stopping" signal
         _logger.warning(">>> Isolate will stop <<<")
-        self._sender.fire(cohorte.monitor.SIGNAL_ISOLATE_STOPPING,
-                          self._context.get_property(cohorte.PROP_UID),
-                          dir_group=cohorte.signals.GROUP_OTHERS)
+        message = beans.Message(cohorte.monitor.SIGNAL_ISOLATE_STOPPING,
+                                self._context.get_property(cohorte.PROP_UID))
+        self._sender.fire_group('all', message)
 
         _logger.warning(">>> STOPPING isolate <<<")
         self._context.get_bundle(0).stop()
-
 
     @Validate
     def validate(self, context):
@@ -91,32 +89,21 @@ class IsolateAgent(object):
         # Store the context
         self._context = context
 
-        # Register to signals
-        self._receiver.register_listener(cohorte.monitor.SIGNAL_STOP_ISOLATE,
-                                         self)
-
         # FIXME: the directory might not be filled up at this time
         # Send the "ready" signal
-        self._sender.fire(cohorte.monitor.SIGNAL_ISOLATE_READY, None,
-                          dir_group=cohorte.signals.GROUP_MONITORS)
-
+        message = beans.Message(cohorte.monitor.SIGNAL_ISOLATE_READY)
+        self._sender.fire_group('monitors', message)
         _logger.info("Isolate agent validated")
-
 
     @Invalidate
     def invalidate(self, context):
         """
         Component invalidated
         """
-        # Unregister to signals
-        self._receiver.unregister_listener(cohorte.monitor.SIGNAL_STOP_ISOLATE,
-                                           self)
-
         # Send the stopping signal
-        self._sender.fire(cohorte.monitor.SIGNAL_ISOLATE_STOPPING, None,
-                          dir_group=cohorte.signals.GROUP_MONITORS)
+        message = beans.Message(cohorte.monitor.SIGNAL_ISOLATE_STOPPING)
+        self._sender.fire_group('monitors', message)
 
         # Clear the context
         self._context = None
-
         _logger.info("Isolate agent invalidated")
