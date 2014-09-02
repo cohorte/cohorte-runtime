@@ -35,6 +35,7 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
 from pelix.utilities import CountdownEvent
 
 # Standard library
+import logging
 import os
 
 # ------------------------------------------------------------------------------
@@ -50,6 +51,9 @@ SUBJECT_GET_SHELLS = "{0}/get_shells".format(_SUBJECT_PREFIX)
 
 SUBJECT_GET_PID = "{0}/get_pid".format(_SUBJECT_PREFIX)
 """ Signal to request the isolate PID """
+
+
+_logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
@@ -184,7 +188,11 @@ class ShellAgentCommands(object):
 
         # Prepare a count down event
         if group is not None:
-            event = CountdownEvent(len(self._directory.get_peers_for_group()))
+            nb_peers = len(self._directory.get_peers_for_group(group))
+            if nb_peers == 0:
+                io_handler.write_line("No peer found in group '{0}'", group)
+                return
+            event = CountdownEvent(nb_peers)
         else:
             event = CountdownEvent(len(peers))
 
@@ -196,6 +204,7 @@ class ShellAgentCommands(object):
             """
             Failed to send a message
             """
+            _logger.info("Got error: %s", exception)
             target = exception.target
             if target is not None:
                 if target.group is None:
@@ -209,6 +218,7 @@ class ShellAgentCommands(object):
             Got a reply for a message
             """
             # Reply content is a dictionary, extract PID
+            _logger.info("Got response: %s", reply)
             succeeded[reply.sender] = reply.content['pid']
             event.step()
 
@@ -275,7 +285,11 @@ class ShellAgentCommands(object):
 
         # Prepare a count down event
         if group is not None:
-            event = CountdownEvent(len(self._directory.get_peers_for_group()))
+            nb_peers = len(self._directory.get_peers_for_group(group))
+            if nb_peers == 0:
+                io_handler.write_line("No peer found in group '{0}'", group)
+                return
+            event = CountdownEvent(nb_peers)
         else:
             event = CountdownEvent(len(peers))
 
