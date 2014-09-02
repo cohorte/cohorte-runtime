@@ -24,6 +24,9 @@ __version__ = '1.0.0'
 import cohorte
 import cohorte.boot.loaders.utils as utils
 
+# Herald
+import herald
+
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
     Invalidate, Requires, Property
@@ -226,6 +229,16 @@ class ForkerLoader(object):
         # TODO: Set up isolate/forker specific framework properties
         self._framework.add_property(cohorte.PROP_KIND, LOADER_KIND)
         self._framework.add_property(cohorte.PROP_NAME, cohorte.FORKER_NAME)
+
+        # Setup Herald property
+        self._framework.add_property(herald.FWPROP_PEER_UID, uid)
+        self._framework.add_property(herald.FWPROP_PEER_NAME,
+                                     cohorte.FORKER_NAME)
+        self._framework.add_property(herald.FWPROP_NODE_UID, node_uid)
+        self._framework.add_property(herald.FWPROP_NODE_NAME, node_name)
+        self._framework.add_property(herald.FWPROP_PEER_GROUPS,
+                                     ('all', 'forkers', 'monitors',
+                                      node_uid, node_name))
 
         # TODO: Load forker.js configuration file
         # All forkers have the same default ID (discrimination by UID), but the

@@ -19,13 +19,13 @@ __version__ = '1.0.0'
 import cohorte
 import cohorte.boot.loaders.utils as utils
 
+# Herald
+import herald
+
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
     Invalidate, Provides, Property
-
 from pelix.utilities import to_unicode
-
-# ------------------------------------------------------------------------------
 
 # Standard library
 import json
@@ -270,12 +270,25 @@ class BrokerClientLoader(object):
         # Get the kind of this isolate
         kind = json_data['kind']
 
-        # Store basic isolate properties
+        # Store Cohorte isolate and Herald peer properties (same values)
         framework.add_property(cohorte.PROP_UID, json_data['uid'])
-        framework.add_property(cohorte.PROP_NAME, json_data['name'])
-        framework.add_property(cohorte.PROP_NODE_UID, json_data['node_uid'])
-        framework.add_property(cohorte.PROP_NODE_NAME, json_data['node_name'])
+        framework.add_property(herald.FWPROP_PEER_UID, json_data['uid'])
+
+        isolate_name = json_data['name']
+        framework.add_property(cohorte.PROP_NAME, isolate_name)
+        framework.add_property(herald.FWPROP_PEER_NAME, isolate_name)
+
+        node_uid = json_data['node_uid']
+        framework.add_property(cohorte.PROP_NODE_UID, node_uid)
+        framework.add_property(herald.FWPROP_NODE_UID, node_uid)
+
+        node_name = json_data['node_name']
+        framework.add_property(cohorte.PROP_NODE_NAME, node_name)
+        framework.add_property(herald.FWPROP_NODE_NAME, node_name)
+
         framework.add_property(cohorte.PROP_KIND, kind)
+        framework.add_property(herald.FWPROP_PEER_GROUPS,
+                               ('all', isolate_name, node_uid, node_name))
 
         # Get the boot configuration
         if 'boot' in json_data:
