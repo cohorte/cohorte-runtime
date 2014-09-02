@@ -14,9 +14,9 @@
 		"name" : "pelix.remote.dispatcher"
 	}, {
 		"name" : "pelix.remote.registry"
-	}, {
+	}, /* {
 		"name" : "pelix.remote.transport.jabsorb_rpc"
-	}, {
+	}, */ {
 		"name" : "cohorte.shell.agent"
 	}, /* {
 		"name" : "cohorte.shell.signals"
@@ -43,7 +43,7 @@
 		"properties" : {
 			"pelix.http.path" : "/cohorte-debug"
 		}
-	},
+	}
 	
 	/* Signals components */
 	/*
@@ -69,11 +69,12 @@
 		"name" : "cohorte-remote-discovery-signals"
 	},
 	*/
+        /*
 	{
 		"factory" : "pelix-jabsorbrpc-importer-factory",
 		"name" : "pelix-jabsorbrpc-importer"
 	}, {
 		"factory" : "pelix-jabsorbrpc-exporter-factory",
 		"name" : "pelix-jabsorbrpc-exporter"
-	} ]
+	} */ ]
 }
