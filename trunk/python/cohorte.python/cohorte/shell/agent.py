@@ -172,6 +172,31 @@ class ShellAgentCommands(object):
 
         return group, peers
 
+    def __on_error(self, herald_svc, exception, failed_set, countdown):
+        """
+
+        :param herald_svc:
+        :param exception:
+        :param failed_set:
+        :param countdown:
+        :return:
+        """
+        target = exception.target
+        if target is not None:
+            try:
+                if target.group is None:
+                    if target.uid not in failed_set:
+                        failed_set.add(target.uid)
+                        countdown.step()
+                else:
+                    for target_uid in target.uids:
+                        if target_uid not in failed_set:
+                            failed_set.add(target_uid)
+                            countdown.step()
+            except ValueError:
+                # We've gone too far
+                _logger.debug("Got too many answers for a shell request")
+
     def pids(self, io_handler, isolate=None):
         """
         Prints the Process ID of the isolate(s)
@@ -182,9 +207,6 @@ class ShellAgentCommands(object):
         except KeyError as ex:
             io_handler.write_line("{0}", ex)
             return
-
-        # Forge the message
-        message = beans.Message(SUBJECT_GET_PID)
 
         # Prepare a count down event
         if group is not None:
@@ -204,34 +226,31 @@ class ShellAgentCommands(object):
             """
             Failed to send a message
             """
-            _logger.info("Got error: %s", exception)
-            target = exception.target
-            if target is not None:
-                if target.group is None:
-                    failed.add(target.uid)
-                else:
-                    failed.update(target.uids)
-            event.step()
+            self.__on_error(herald_svc, exception, failed, event)
 
         def on_success(herald_svc, reply):
             """
             Got a reply for a message
             """
             # Reply content is a dictionary, extract PID
-            _logger.info("Got response: %s", reply)
+            step_up = reply.sender not in succeeded
             succeeded[reply.sender] = reply.content['pid']
-            event.step()
+            if step_up:
+                event.step()
 
-        # Post the message
+        # Send the message
+        message = beans.Message(SUBJECT_GET_PID)
         if group is not None:
             self._herald.post_group(group, message, on_success, on_error)
         else:
             for uid in peers:
-                self._herald.post(uid, message, on_success, on_error,
-                                  timeout=10)
+                self._herald.post(uid, message, on_success, on_error)
 
         # Wait for results (5 seconds max)
         event.wait(5)
+
+        # Forget about the message
+        self._herald.forget(message.uid)
 
         # Setup the headers
         headers = ('Name', 'UID', 'Node Name', 'Node UID', 'PID')
@@ -280,9 +299,6 @@ class ShellAgentCommands(object):
             io_handler.write_line("{0}", ex)
             return
 
-        # Forge the message
-        message = beans.Message(SUBJECT_GET_SHELLS)
-
         # Prepare a count down event
         if group is not None:
             nb_peers = len(self._directory.get_peers_for_group(group))
@@ -301,13 +317,7 @@ class ShellAgentCommands(object):
             """
             Failed to send a message
             """
-            target = exception.target
-            if target is not None:
-                if target.group is None:
-                    failed.add(target.uid)
-                else:
-                    failed.update(target.uids)
-            event.step()
+            self.__on_error(herald_svc, exception, failed, event)
 
         def on_success(herald_svc, reply):
             """
@@ -321,16 +331,19 @@ class ShellAgentCommands(object):
                 succeeded[reply.sender] = reply.content.copy()
                 event.step()
 
-        # Post the message
+        # Send the message
+        message = beans.Message(SUBJECT_GET_SHELLS)
         if group is not None:
             self._herald.post_group(group, message, on_success, on_error)
         else:
             for uid in peers:
-                self._herald.post(uid, message, on_success, on_error,
-                                  timeout=10)
+                self._herald.post(uid, message, on_success, on_error)
 
         # Wait for results (5 seconds max)
         event.wait(5)
+
+        # Forget about the message
+        self._herald.forget(message.uid)
 
         # Compute the shell names
         shell_names = set()
