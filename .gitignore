@@ -1,8 +1,9 @@
-# Eclipse
+# Eclipse / PyCharm
 .metadata
 RemoteSystemsTempFiles/
+.idea/
 
-# Binaires
+# Binaries
 *.tar.gz
 bin/
 target/
@@ -20,6 +21,7 @@ small-install.zip
 
 # Python
 *.pyc
+*.pyo
 __pycache__/
 
 # Coverage (Python)
