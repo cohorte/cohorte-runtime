@@ -2,9 +2,6 @@
  * Common Java configuration: HTTP / JSON bundles
  */
 {
-	/* Herald HTTP transport */
-	"import-files" : [ "python-herald-http.js" ],
-
 	/*
 	 * Pelix HTTP bundles
 	 */
