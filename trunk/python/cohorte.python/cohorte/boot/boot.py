@@ -450,9 +450,8 @@ def configure_logger(logfile, debug, verbose, color):
     else:
         root_log.warning("No output log file given.")
 
-
     # Calm down some loggers
-    for name in ('pelix.remote', 'io_watcher'):
+    for name in ('pelix.remote', 'io_watcher', 'sleekxmpp', 'requests'):
         logging.getLogger(name).setLevel(logging.WARNING)
 
     # Done
