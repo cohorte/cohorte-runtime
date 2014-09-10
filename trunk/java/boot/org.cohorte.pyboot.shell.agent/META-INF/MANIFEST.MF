@@ -1,30 +1,30 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: COHORTE :: Python Bridge :: Shell Agent
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-SymbolicName: org.cohorte.pyboot.shell.agent
 Bundle-Vendor: isandlaTech.com
 Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
 Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
- .ipojo.architecture;version=1.8.0, org.cohorte.pyboot.api, org.cohort
- e.shell;version=1.0.0, org.osgi.framework;version=1.6.0, org.osgi.ser
- vice.cm;version=1.2, org.osgi.service.log;version=1.3, org.psem2m.sig
- nals;version=1.0.1
+ .ipojo.architecture;version=1.8.0, org.cohorte.herald;version=0.0.1, 
+ org.cohorte.herald.exceptions;version=0.0.1, org.cohorte.pyboot.api, 
+ org.cohorte.shell;version=1.0.0, org.osgi.framework;version=1.6.0, or
+ g.osgi.service.cm;version=1.2, org.osgi.service.log;version=1.3
 iPOJO-Components: instance { $name="cohorte-shell-agent" $component="c
  ohorte-shell-agent-factory" }component { $name="cohorte-shell-agent-f
- actory" $classname="org.cohorte.pyboot.shell.agent.ShellAgent" requir
- es { $field="pBridge" }requires { $field="pReceiver" }requires { $fie
- ld="pRemoteShell" $optional="true" $nullable="true" }callback { $tran
- sition="invalidate" $method="invalidate" }callback { $transition="val
- idate" $method="validate" }manipulation { $classname="org.cohorte.pyb
- oot.shell.agent.ShellAgent" interface { $name="org.psem2m.signals.ISi
- gnalListener" }field { $name="pBridge" $type="org.cohorte.pyboot.api.
- IPyBridge" }field { $name="pReceiver" $type="org.psem2m.signals.ISign
- alReceiver" }field { $name="pRemoteShell" $type="org.cohorte.shell.IR
- emoteShell" }method { $name="getOsgiRemoteShellPort" $return="int" }m
- ethod { $name="handleReceivedSignal" $return="java.lang.Object" $argu
- ments="{java.lang.String,org.psem2m.signals.ISignalData}" $names="{aS
- ignalName,aSignalData}" }method { $name="invalidate" }method { $name=
- "validate" }}}
+ actory" $classname="org.cohorte.pyboot.shell.agent.ShellAgent" provid
+ es { $specifications="{org.cohorte.herald.IMessageListener}" property
+  { $name="herald.filters" $field="pMessageFilter" $value="cohorte/she
+ ll/agent/*" }}requires { $field="pBridge" }requires { $field="pLogger
+ " $optional="true" }requires { $field="pRemoteShell" $optional="true"
+  $nullable="true" }manipulation { $classname="org.cohorte.pyboot.shel
+ l.agent.ShellAgent" interface { $name="org.cohorte.herald.IMessageLis
+ tener" }field { $name="pBridge" $type="org.cohorte.pyboot.api.IPyBrid
+ ge" }field { $name="pLogger" $type="org.osgi.service.log.LogService" 
+ }field { $name="pMessageFilter" $type="java.lang.String" }field { $na
+ me="pRemoteShell" $type="org.cohorte.shell.IRemoteShell" }method { $n
+ ame="getOsgiRemoteShellPort" $return="int" }method { $name="heraldMes
+ sage" $arguments="{org.cohorte.herald.IHerald,org.cohorte.herald.Mess
+ ageReceived}" $names="{aHerald,aMessage}" }}}
 

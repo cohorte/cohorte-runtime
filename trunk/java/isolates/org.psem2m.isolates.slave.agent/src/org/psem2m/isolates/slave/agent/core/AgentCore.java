@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.psem2m.isolates.slave.agent.core;
 
@@ -17,7 +17,14 @@ import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.ServiceProperty;
 import org.apache.felix.ipojo.annotations.Validate;
+import org.cohorte.herald.IConstants;
+import org.cohorte.herald.IHerald;
+import org.cohorte.herald.IMessageListener;
+import org.cohorte.herald.Message;
+import org.cohorte.herald.MessageReceived;
+import org.cohorte.herald.exceptions.NoTransport;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
@@ -31,20 +38,15 @@ import org.psem2m.isolates.base.bundles.BundleInfo;
 import org.psem2m.isolates.constants.ISignalsConstants;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.isolates.slave.agent.ISvcAgent;
-import org.psem2m.signals.ISignalBroadcaster;
-import org.psem2m.signals.ISignalData;
-import org.psem2m.signals.ISignalDirectory.EBaseGroup;
-import org.psem2m.signals.ISignalListener;
-import org.psem2m.signals.ISignalReceiver;
 
 /**
  * Implementation of the isolate Agent
- * 
+ *
  * @author Thomas Calmant
  */
 @Component(name = "psem2m-slave-agent-core-factory")
-@Provides(specifications = ISvcAgent.class)
-public class AgentCore implements ISvcAgent, ISignalListener, BundleListener {
+@Provides(specifications = { ISvcAgent.class, IMessageListener.class })
+public class AgentCore implements ISvcAgent, IMessageListener, BundleListener {
 
     // TODO: inject the Python StateUpdater service
 
@@ -54,9 +56,18 @@ public class AgentCore implements ISvcAgent, ISignalListener, BundleListener {
     /** The agent core critical section flag */
     private final AtomicBoolean pCriticalSection = new AtomicBoolean(false);
 
+    /** Herald core service */
+    @Requires
+    private IHerald pHerald;
+
     /** Isolate logger, injected by iPOJO */
     @Requires
     private IIsolateLoggerSvc pLogger;
+
+    /** Message filters */
+    @ServiceProperty(name = IConstants.PROP_FILTERS,
+            value = ISignalsConstants.ISOLATE_STOP_SIGNAL)
+    private String pMessageFilter;
 
     /** Platform directories service, injected by iPOJO */
     @Requires
@@ -65,20 +76,12 @@ public class AgentCore implements ISvcAgent, ISignalListener, BundleListener {
     /** The scheduler */
     private ScheduledExecutorService pScheduler;
 
-    /** Signal sender */
-    @Requires
-    private ISignalBroadcaster pSender;
-
-    /** Signal receiver */
-    @Requires
-    private ISignalReceiver pSignalReceiver;
-
     /** The update timeouts */
     private final Map<Long, ScheduledFuture<?>> pUpdateTimeouts = new HashMap<Long, ScheduledFuture<?>>();
 
     /**
      * Sets up the agent (called by iPOJO)
-     * 
+     *
      * @param aBundleContext
      *            Bundle context
      */
@@ -90,7 +93,7 @@ public class AgentCore implements ISvcAgent, ISignalListener, BundleListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.osgi.framework.BundleListener#bundleChanged(org.osgi.framework.
      * BundleEvent)
      */
@@ -122,7 +125,7 @@ public class AgentCore implements ISvcAgent, ISignalListener, BundleListener {
             /*
              * A bundle has stopped or unresolved. It can be for an update so
              * wait a little
-             * 
+             *
              * Prepare a ScheduledFuture based timeout
              */
             // Cancel previous timeout
@@ -180,7 +183,7 @@ public class AgentCore implements ISvcAgent, ISignalListener, BundleListener {
 
     /**
      * Cancels a bundle event timeout
-     * 
+     *
      * @param aBundleId
      *            Bundle ID
      */
@@ -200,7 +203,7 @@ public class AgentCore implements ISvcAgent, ISignalListener, BundleListener {
 
     /**
      * Retrieves the context of the bundle with the given ID.
-     * 
+     *
      * @param aBundleId
      *            A bundle ID
      * @return The context of the bundle with the given ID, null if not found
@@ -217,7 +220,7 @@ public class AgentCore implements ISvcAgent, ISignalListener, BundleListener {
 
     /**
      * Retrieves all bundles information
-     * 
+     *
      * @return Bundles information
      */
     public BundleInfo[] getBundlesState() {
@@ -236,15 +239,16 @@ public class AgentCore implements ISvcAgent, ISignalListener, BundleListener {
 
     /*
      * (non-Javadoc)
-     * 
-     * @see org.psem2m.signals.ISignalListener#
-     * handleReceivedSignal(java.lang.String, org.psem2m.signals.ISignalData)
+     *
+     * @see
+     * org.cohorte.herald.IMessageListener#heraldMessage(org.cohorte.herald.
+     * IHerald, org.cohorte.herald.MessageReceived)
      */
     @Override
-    public Object handleReceivedSignal(final String aSignalName,
-            final ISignalData aSignalData) {
+    public void heraldMessage(final IHerald aHerald,
+            final MessageReceived aMessage) {
 
-        if (ISignalsConstants.ISOLATE_STOP_SIGNAL.equals(aSignalName)) {
+        if (ISignalsConstants.ISOLATE_STOP_SIGNAL.equals(aMessage.getSubject())) {
 
             // Log what happened
             pLogger.logInfo(this, "handleReceivedSignal",
@@ -263,13 +267,11 @@ public class AgentCore implements ISvcAgent, ISignalListener, BundleListener {
             // Kill ourselves
             killIsolate();
         }
-
-        return null;
     }
 
     /**
      * Installs the given bundle
-     * 
+     *
      * @param aBundleUrl
      *            A URL (generally file:...) to the bundle file
      * @return The bundle ID
@@ -287,12 +289,14 @@ public class AgentCore implements ISvcAgent, ISignalListener, BundleListener {
     @Invalidate
     public void invalidate() {
 
-        pSignalReceiver.unregisterListener(
-                ISignalsConstants.ISOLATE_STOP_SIGNAL, this);
-
-        // Send the stopping signal
-        pSender.fireGroup(ISignalsConstants.ISOLATE_STOPPING_SIGNAL, null,
-                EBaseGroup.MONITORS);
+        try {
+            // Send the stopping signal
+            pHerald.fireGroup("monitors", new Message(
+                    ISignalsConstants.ISOLATE_STOPPING_SIGNAL));
+        } catch (final NoTransport ex) {
+            pLogger.logSevere(this, "invalidate",
+                    "Error sending the 'stopping' message to monitors: ", ex);
+        }
 
         // Stop the scheduled timeouts
         pScheduler.shutdownNow();
@@ -309,7 +313,7 @@ public class AgentCore implements ISvcAgent, ISignalListener, BundleListener {
     /**
      * Tests if the given bundle is a fragment. Fragment bundles can't be
      * started.
-     * 
+     *
      * @param aBundle
      *            Bundle to be tested
      * @return True if the bundle is a fragment
@@ -321,7 +325,7 @@ public class AgentCore implements ISvcAgent, ISignalListener, BundleListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.isolates.slave.agent.ISvcAgent#killIsolate()
      */
     @Override
@@ -339,8 +343,17 @@ public class AgentCore implements ISvcAgent, ISignalListener, BundleListener {
                 // Send the "isolate stopping" signal
                 pLogger.logWarn(this, "killIsolate",
                         ">>> Isolate will stop <<<");
-                pSender.sendGroup(ISignalsConstants.ISOLATE_STOPPING_SIGNAL,
-                        pPlatformDirs.getIsolateUID(), EBaseGroup.OTHERS);
+                try {
+                    // Send the stopping signal
+                    pHerald.fireGroup("all", new Message(
+                            ISignalsConstants.ISOLATE_STOPPING_SIGNAL));
+                } catch (final NoTransport ex) {
+                    pLogger.logSevere(
+                            this,
+                            "invalidate",
+                            "Error sending the 'stopping' message to monitors: ",
+                            ex);
+                }
 
                 try {
                     // Stop the platform
@@ -359,7 +372,7 @@ public class AgentCore implements ISvcAgent, ISignalListener, BundleListener {
     /**
      * Refreshes packages (like the refresh command in Felix / Equinox). The
      * bundle ID array can be null, to refresh the whole framework.
-     * 
+     *
      * @param aBundleIdArray
      *            An array containing the UID of the bundles to refresh, null to
      *            refresh all
@@ -398,7 +411,7 @@ public class AgentCore implements ISvcAgent, ISignalListener, BundleListener {
 
     /**
      * Starts the given bundle
-     * 
+     *
      * @param aBundleId
      *            Bundle's UID
      * @return True on success, False if the bundle wasn't found
@@ -423,7 +436,7 @@ public class AgentCore implements ISvcAgent, ISignalListener, BundleListener {
 
     /**
      * Stops the given bundle
-     * 
+     *
      * @param aBundleId
      *            Bundle's UID
      * @return True on success, False if the bundle wasn't found
@@ -443,7 +456,7 @@ public class AgentCore implements ISvcAgent, ISignalListener, BundleListener {
 
     /**
      * Removes the given bundle
-     * 
+     *
      * @param aBundleId
      *            Bundle's UID
      * @return True on success, False if the bundle wasn't found
@@ -467,7 +480,7 @@ public class AgentCore implements ISvcAgent, ISignalListener, BundleListener {
 
     /**
      * Updates the given bundle
-     * 
+     *
      * @param aBundleId
      *            Bundle's UID
      * @return True on success, False if the bundle wasn't found
@@ -494,16 +507,17 @@ public class AgentCore implements ISvcAgent, ISignalListener, BundleListener {
         // Set up the scheduler, before the call to addBundleListener.
         pScheduler = Executors.newScheduledThreadPool(1);
 
-        // Register to the signal receiver for the STOP signal
-        pSignalReceiver.registerListener(ISignalsConstants.ISOLATE_STOP_SIGNAL,
-                this);
-
         // Register to bundle events : replaces the guardian thread.
         pContext.addBundleListener(this);
 
-        // Send the "ready" signal (even if the directory is empty)
-        pSender.fireGroup(ISignalsConstants.ISOLATE_READY_SIGNAL, null,
-                EBaseGroup.MONITORS);
+        try {
+            // Send the stopping signal
+            pHerald.fireGroup("monitors", new Message(
+                    ISignalsConstants.ISOLATE_READY_SIGNAL));
+        } catch (final NoTransport ex) {
+            pLogger.logWarn(this, "invalidate",
+                    "Error sending the 'ready' message to monitors: ", ex);
+        }
 
         // Log the validation
         pLogger.logInfo(this, "validate", "Isolate agent ready");

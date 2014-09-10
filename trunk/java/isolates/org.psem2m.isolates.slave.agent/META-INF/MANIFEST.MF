@@ -8,67 +8,69 @@ Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
 Export-Package: org.psem2m.isolates.slave.agent
 Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
- .ipojo.architecture;version=1.8.0, org.osgi.framework;version=1.3.0, 
- org.osgi.framework.wiring;version=1.0.0, org.osgi.service.cm;version=
- 1.2, org.osgi.service.log;version=1.3, org.psem2m.isolates.base;versi
- on=1.0.0, org.psem2m.isolates.base.activators;version=1.0.0, org.psem
- 2m.isolates.base.bundles;version=1.0.0, org.psem2m.isolates.constants
- ;version=1.0.0, org.psem2m.isolates.services.dirs;version=1.0.0, org.
- psem2m.isolates.services.monitoring;version=1.0.0, org.psem2m.signals
- ;version=1.0.0, org.psem2m.utilities.logging;version=1.0.0
+ .ipojo.architecture;version=1.8.0, org.cohorte.herald;version=0.0.1, 
+ org.cohorte.herald.exceptions;version=0.0.1, org.osgi.framework;versi
+ on=1.3.0, org.osgi.framework.wiring;version=1.0.0, org.osgi.service.c
+ m;version=1.2, org.osgi.service.log;version=1.3, org.psem2m.isolates.
+ base;version=1.0.0, org.psem2m.isolates.base.activators;version=1.0.0
+ , org.psem2m.isolates.base.bundles;version=1.0.0, org.psem2m.isolates
+ .constants;version=1.0.0, org.psem2m.isolates.services.dirs;version=1
+ .0.0, org.psem2m.isolates.services.monitoring;version=1.0.0, org.psem
+ 2m.utilities.logging;version=1.0.0
 iPOJO-Components: component { $name="psem2m-slave-agent-core-factory" 
  $classname="org.psem2m.isolates.slave.agent.core.AgentCore" provides 
- { $specifications="{org.psem2m.isolates.slave.agent.ISvcAgent}" }requ
- ires { $field="pLogger" }requires { $field="pPlatformDirs" }requires 
- { $field="pSender" }requires { $field="pSignalReceiver" }callback { $
- transition="invalidate" $method="invalidate" }callback { $transition=
- "validate" $method="validate" }manipulation { $classname="org.psem2m.
- isolates.slave.agent.core.AgentCore" interface { $name="org.psem2m.is
- olates.slave.agent.ISvcAgent" }interface { $name="org.psem2m.signals.
- ISignalListener" }interface { $name="org.osgi.framework.BundleListene
- r" }field { $name="pContext" $type="org.osgi.framework.BundleContext"
-  }field { $name="pCriticalSection" $type="java.util.concurrent.atomic
- .AtomicBoolean" }field { $name="pLogger" $type="org.psem2m.isolates.b
- ase.IIsolateLoggerSvc" }field { $name="pPlatformDirs" $type="org.psem
+ { $specifications="{org.psem2m.isolates.slave.agent.ISvcAgent,org.coh
+ orte.herald.IMessageListener}" property { $name="herald.filters" $fie
+ ld="pMessageFilter" $value="/cohorte/isolate/stop" }}requires { $fiel
+ d="pHerald" }requires { $field="pLogger" }requires { $field="pPlatfor
+ mDirs" }callback { $transition="invalidate" $method="invalidate" }cal
+ lback { $transition="validate" $method="validate" }manipulation { $cl
+ assname="org.psem2m.isolates.slave.agent.core.AgentCore" interface { 
+ $name="org.psem2m.isolates.slave.agent.ISvcAgent" }interface { $name=
+ "org.cohorte.herald.IMessageListener" }interface { $name="org.osgi.fr
+ amework.BundleListener" }field { $name="pContext" $type="org.osgi.fra
+ mework.BundleContext" }field { $name="pCriticalSection" $type="java.u
+ til.concurrent.atomic.AtomicBoolean" }field { $name="pHerald" $type="
+ org.cohorte.herald.IHerald" }field { $name="pLogger" $type="org.psem2
+ m.isolates.base.IIsolateLoggerSvc" }field { $name="pMessageFilter" $t
+ ype="java.lang.String" }field { $name="pPlatformDirs" $type="org.psem
  2m.isolates.services.dirs.IPlatformDirsSvc" }field { $name="pSchedule
  r" $type="java.util.concurrent.ScheduledExecutorService" }field { $na
- me="pSender" $type="org.psem2m.signals.ISignalBroadcaster" }field { $
- name="pSignalReceiver" $type="org.psem2m.signals.ISignalReceiver" }fi
- eld { $name="pUpdateTimeouts" $type="java.util.Map" }method { $name="
- bundleChanged" $arguments="{org.osgi.framework.BundleEvent}" $names="
- {aBundleEvent}" }method { $name="cancelTimeout" $arguments="{long}" $
- names="{aBundleId}" }method { $name="getBundleInfo" $return="org.psem
- 2m.isolates.base.bundles.BundleInfo" $arguments="{long}" $names="{aBu
- ndleId}" }method { $name="getBundlesState" $return="org.psem2m.isolat
- es.base.bundles.BundleInfo[]" }method { $name="handleReceivedSignal" 
- $return="java.lang.Object" $arguments="{java.lang.String,org.psem2m.s
- ignals.ISignalData}" $names="{aSignalName,aSignalData}" }method { $na
- me="installBundle" $return="long" $arguments="{java.lang.String}" $na
- mes="{aBundleUrl}" }method { $name="invalidate" }method { $name="isFr
- agment" $return="boolean" $arguments="{org.osgi.framework.Bundle}" $n
- ames="{aBundle}" }method { $name="killIsolate" }method { $name="refre
- shPackages" $return="boolean" $arguments="{long[]}" $names="{aBundleI
- dArray}" }method { $name="startBundle" $return="boolean" $arguments="
- {long}" $names="{aBundleId}" }method { $name="stopBundle" $return="bo
- olean" $arguments="{long}" $names="{aBundleId}" }method { $name="unin
- stallBundle" $return="boolean" $arguments="{long}" $names="{aBundleId
- }" }method { $name="updateBundle" $return="boolean" $arguments="{long
- }" $names="{aBundleId}" }method { $name="validate" }inner { $name="1"
-  method { $name="run" }}inner { $name="2" method { $name="run" }}}}co
- mponent { $name="psem2m-threads-monitor-factory" $classname="org.psem
- 2m.isolates.slave.agent.threads.ThreadsMonitor" requires { $field="pL
- ogger" }requires { $field="pMonitor" }callback { $transition="invalid
- ate" $method="invalidatePojo" }callback { $transition="validate" $met
- hod="validatePojo" }manipulation { $classname="org.psem2m.isolates.sl
- ave.agent.threads.ThreadsMonitor" field { $name="pLogger" $type="org.
- psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pMonitor" $ty
- pe="org.psem2m.isolates.services.monitoring.IThreadCpuUsageMonitor" }
- field { $name="pScheduledExecutor" $type="java.util.concurrent.Schedu
- ledExecutorService" }method { $name="enumerateThreadGroup" $arguments
- ="{java.util.Map,java.lang.ThreadGroup}" $names="{aResultMap,aThreadG
- roup}" }method { $name="findThreadStarter" $return="java.lang.String"
-  $arguments="{java.lang.Thread}" $names="{aThread}" }method { $name="
- getAllThreads" $return="java.util.Map" }method { $name="invalidatePoj
- o" }method { $name="updateMonitor" }method { $name="validatePojo" }in
- ner { $name="1" method { $name="run" }}}}
+ me="pUpdateTimeouts" $type="java.util.Map" }method { $name="bundleCha
+ nged" $arguments="{org.osgi.framework.BundleEvent}" $names="{aBundleE
+ vent}" }method { $name="cancelTimeout" $arguments="{long}" $names="{a
+ BundleId}" }method { $name="getBundleInfo" $return="org.psem2m.isolat
+ es.base.bundles.BundleInfo" $arguments="{long}" $names="{aBundleId}" 
+ }method { $name="getBundlesState" $return="org.psem2m.isolates.base.b
+ undles.BundleInfo[]" }method { $name="heraldMessage" $arguments="{org
+ .cohorte.herald.IHerald,org.cohorte.herald.MessageReceived}" $names="
+ {aHerald,aMessage}" }method { $name="installBundle" $return="long" $a
+ rguments="{java.lang.String}" $names="{aBundleUrl}" }method { $name="
+ invalidate" }method { $name="isFragment" $return="boolean" $arguments
+ ="{org.osgi.framework.Bundle}" $names="{aBundle}" }method { $name="ki
+ llIsolate" }method { $name="refreshPackages" $return="boolean" $argum
+ ents="{long[]}" $names="{aBundleIdArray}" }method { $name="startBundl
+ e" $return="boolean" $arguments="{long}" $names="{aBundleId}" }method
+  { $name="stopBundle" $return="boolean" $arguments="{long}" $names="{
+ aBundleId}" }method { $name="uninstallBundle" $return="boolean" $argu
+ ments="{long}" $names="{aBundleId}" }method { $name="updateBundle" $r
+ eturn="boolean" $arguments="{long}" $names="{aBundleId}" }method { $n
+ ame="validate" }inner { $name="1" method { $name="run" }}inner { $nam
+ e="2" method { $name="run" }}}}component { $name="psem2m-threads-moni
+ tor-factory" $classname="org.psem2m.isolates.slave.agent.threads.Thre
+ adsMonitor" requires { $field="pLogger" }requires { $field="pMonitor"
+  }callback { $transition="invalidate" $method="invalidatePojo" }callb
+ ack { $transition="validate" $method="validatePojo" }manipulation { $
+ classname="org.psem2m.isolates.slave.agent.threads.ThreadsMonitor" fi
+ eld { $name="pLogger" $type="org.psem2m.isolates.base.IIsolateLoggerS
+ vc" }field { $name="pMonitor" $type="org.psem2m.isolates.services.mon
+ itoring.IThreadCpuUsageMonitor" }field { $name="pScheduledExecutor" $
+ type="java.util.concurrent.ScheduledExecutorService" }method { $name=
+ "enumerateThreadGroup" $arguments="{java.util.Map,java.lang.ThreadGro
+ up}" $names="{aResultMap,aThreadGroup}" }method { $name="findThreadSt
+ arter" $return="java.lang.String" $arguments="{java.lang.Thread}" $na
+ mes="{aThread}" }method { $name="getAllThreads" $return="java.util.Ma
+ p" }method { $name="invalidatePojo" }method { $name="updateMonitor" }
+ method { $name="validatePojo" }inner { $name="1" method { $name="run"
+  }}}}
 
