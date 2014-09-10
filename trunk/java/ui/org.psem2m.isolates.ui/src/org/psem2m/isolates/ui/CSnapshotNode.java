@@ -5,20 +5,26 @@ import java.util.List;
 
 /**
  * @author ogattaz
- * 
+ *
  */
 public class CSnapshotNode extends CSnapshotAbstract {
 
-    private String pHostName;
-
     final List<CSnapshotIsolate> pIsolates = new ArrayList<CSnapshotIsolate>();
+
+    /** Node name */
+    private final String pNodeName;
+
+    /** Node UID */
+    private final String pNodeUid;
 
     /**
      * @param aState
      */
-    public CSnapshotNode(final String aName) {
+    public CSnapshotNode(final String aNodeUid, final String aNodeName) {
 
-        super(aName);
+        super(aNodeUid);
+        pNodeName = aNodeName;
+        pNodeUid = aNodeUid;
     }
 
     /**
@@ -40,7 +46,7 @@ public class CSnapshotNode extends CSnapshotAbstract {
         if (aObj instanceof CSnapshotNode) {
 
             final CSnapshotNode other = (CSnapshotNode) aObj;
-            return pHostName.equals(other.pHostName);
+            return pNodeUid.equals(other.pNodeUid);
         }
 
         return false;
@@ -68,14 +74,6 @@ public class CSnapshotNode extends CSnapshotAbstract {
         return pIsolates.size();
     }
 
-    /**
-     * @return
-     */
-    String getHostName() {
-
-        return pHostName;
-    }
-
     /*
      * (non-Javadoc)
      * 
@@ -91,18 +89,35 @@ public class CSnapshotNode extends CSnapshotAbstract {
 
     /**
      * @param aUID
+     *            The UID of the isolate to look for
      * @return
      */
     public int getIndexOfChild(final String aUID) {
 
         int wIdx = 0;
         for (final CSnapshotIsolate wChild : pIsolates) {
-            if (wChild.getUID().equals(aUID)) {
+            if (wChild.getIsolateUid().equals(aUID)) {
                 return wIdx;
             }
             wIdx++;
         }
         return -1;
+    }
+
+    /**
+     * @return the nodeName
+     */
+    public String getNodeName() {
+
+        return pNodeName;
+    }
+
+    /**
+     * @return the nodeUid
+     */
+    public String getNodeUid() {
+
+        return pNodeUid;
     }
 
     /*
@@ -113,8 +128,7 @@ public class CSnapshotNode extends CSnapshotAbstract {
     @Override
     public String getTextInfo() {
 
-        return String.format("Node:\nName=[%s]\nHostName=[%s]", getName(),
-                pHostName);
+        return String.format("Node:\nName=[%s]\nUID=[%s]", pNodeName, pNodeUid);
     }
 
     /**
@@ -128,14 +142,6 @@ public class CSnapshotNode extends CSnapshotAbstract {
         }
     }
 
-    /**
-     * @param aHostName
-     */
-    void setHostName(final String aHostName) {
-
-        pHostName = aHostName;
-    }
-
     /*
      * (non-Javadoc)
      * 
@@ -144,6 +150,6 @@ public class CSnapshotNode extends CSnapshotAbstract {
     @Override
     public String toString() {
 
-        return String.format("node: %s", getName());
+        return "Node: %s" + pNodeUid;
     }
 }

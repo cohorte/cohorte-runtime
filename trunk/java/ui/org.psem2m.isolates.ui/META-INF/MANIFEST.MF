@@ -9,39 +9,39 @@ Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
 Import-Package: javax.swing, javax.swing.event, javax.swing.tree, org.
  apache.felix.ipojo;version=1.8.0, org.apache.felix.ipojo.architecture
- ;version=1.8.0, org.osgi.framework;version=1.3.0, org.osgi.service.cm
- ;version=1.2, org.osgi.service.log;version=1.3, org.psem2m.isolates.b
- ase;version=1.0.0, org.psem2m.isolates.base.activators;version=1.0.0,
-  org.psem2m.isolates.services.monitoring;version=1.0.1, org.psem2m.is
- olates.ui.admin.api, org.psem2m.signals;version=1.0.1, org.psem2m.uti
- lities, org.psem2m.utilities.logging
+ ;version=1.8.0, org.cohorte.herald;version=0.0.1, org.cohorte.herald.
+ exceptions;version=0.0.1, org.osgi.framework;version=1.3.0, org.osgi.
+ service.cm;version=1.2, org.osgi.service.log;version=1.3, org.psem2m.
+ isolates.base;version=1.0.0, org.psem2m.isolates.base.activators;vers
+ ion=1.0.0, org.psem2m.isolates.services.monitoring;version=1.0.1, org
+ .psem2m.isolates.ui.admin.api, org.psem2m.utilities, org.psem2m.utili
+ ties.logging
 iPOJO-Components: instance { $name="psem2m-isolates-ui-admin" $compone
  nt="psem2m-isolates-ui-admin-factory" }component { $name="psem2m-isol
  ates-ui-admin-factory" $public="false" $classname="org.psem2m.isolate
- s.ui.CUiAdminPanelIsolates" provides { $specifications="{org.psem2m.i
- solates.services.monitoring.IIsolatePresenceListener}" }requires { $f
- ield="pLogger" }requires { $field="pSignalDirectory" }requires { $fie
- ld="pUiAdminSvc" }callback { $transition="invalidate" $method="invali
- datePojo" }callback { $transition="validate" $method="validatePojo" }
- manipulation { $classname="org.psem2m.isolates.ui.CUiAdminPanelIsolat
- es" $super="org.psem2m.isolates.base.activators.CPojoBase" interface 
- { $name="org.psem2m.isolates.ui.admin.api.IUiAdminPanelControler" }in
- terface { $name="org.psem2m.isolates.services.monitoring.IIsolatePres
- enceListener" }field { $name="pIsolatesTreeModel" $type="org.psem2m.i
- solates.ui.CIsolatesTreeModel" }field { $name="pLogger" $type="org.ps
- em2m.isolates.base.IIsolateLoggerSvc" }field { $name="pPanelIsolates"
-  $type="org.psem2m.isolates.ui.CJPanelIsolates" }field { $name="pSign
- alDirectory" $type="org.psem2m.signals.ISignalDirectory" }field { $na
- me="pUiAdminPanel" $type="org.psem2m.isolates.ui.admin.api.IUiAdminPa
- nel" }field { $name="pUiAdminSvc" $type="org.psem2m.isolates.ui.admin
- .api.IUiAdminSvc" }method { $name="destroyContent" }method { $name="i
- nitContent" }method { $name="invalidatePojo" }method { $name="isolate
- Lost" $arguments="{java.lang.String,java.lang.String,java.lang.String
- }" $names="{aUID,aName,aNode}" }method { $name="isolateReady" $argume
- nts="{java.lang.String,java.lang.String,java.lang.String}" $names="{a
- UID,aName,aNode}" }method { $name="setUiAdminFont" $arguments="{org.p
- sem2m.isolates.ui.admin.api.EUiAdminFont}" $names="{aUiAdminFont}" }m
- ethod { $name="validatePojo" }inner { $name="1" method { $name="run" 
- }}inner { $name="2" method { $name="run" }}inner { $name="3" method {
-  $name="run" }}}}
+ s.ui.CUiAdminPanelIsolates" provides { $specifications="{org.cohorte.
+ herald.IDirectoryListener}" }requires { $field="pLogger" }requires { 
+ $field="pUiAdminSvc" }callback { $transition="invalidate" $method="in
+ validatePojo" }callback { $transition="validate" $method="validatePoj
+ o" }manipulation { $classname="org.psem2m.isolates.ui.CUiAdminPanelIs
+ olates" $super="org.psem2m.isolates.base.activators.CPojoBase" interf
+ ace { $name="org.psem2m.isolates.ui.admin.api.IUiAdminPanelControler"
+  }interface { $name="org.cohorte.herald.IDirectoryListener" }field { 
+ $name="pIsolatesTreeModel" $type="org.psem2m.isolates.ui.CIsolatesTre
+ eModel" }field { $name="pLogger" $type="org.psem2m.isolates.base.IIso
+ lateLoggerSvc" }field { $name="pPanelIsolates" $type="org.psem2m.isol
+ ates.ui.CJPanelIsolates" }field { $name="pUiAdminPanel" $type="org.ps
+ em2m.isolates.ui.admin.api.IUiAdminPanel" }field { $name="pUiAdminSvc
+ " $type="org.psem2m.isolates.ui.admin.api.IUiAdminSvc" }method { $nam
+ e="destroyContent" }method { $name="initContent" }method { $name="inv
+ alidatePojo" }method { $name="peerRegistered" $arguments="{org.cohort
+ e.herald.Peer}" $names="{aPeer}" }method { $name="peerUnregistered" $
+ arguments="{org.cohorte.herald.Peer}" $names="{aPeer}" }method { $nam
+ e="peerUpdated" $arguments="{org.cohorte.herald.Peer,java.lang.String
+ ,org.cohorte.herald.Access,org.cohorte.herald.Access}" $names="{aPeer
+ ,aAccessId,aData,aPrevious}" }method { $name="setUiAdminFont" $argume
+ nts="{org.psem2m.isolates.ui.admin.api.EUiAdminFont}" $names="{aUiAdm
+ inFont}" }method { $name="validatePojo" }inner { $name="1" method { $
+ name="run" }}inner { $name="2" method { $name="run" }}inner { $name="
+ 3" method { $name="run" }}}}
 

@@ -1,18 +1,27 @@
 package org.psem2m.isolates.ui;
 
-import org.psem2m.signals.HostAccess;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import org.cohorte.herald.Access;
+import org.cohorte.herald.Peer;
 
 /**
  * @author ogattaz
- * 
+ *
  */
 public class CSnapshotIsolate extends CSnapshotAbstract {
 
-    /** Isolate access */
-    private HostAccess pHostAccess;
+    /** Isolate Name */
+    private final String pIsolateName;
 
     /** Isolate UID */
-    private final String pUID;
+    private final String pIsolateUid;
+
+    /** The Peer bean */
+    private final Peer pPeer;
 
     /**
      * @param aUID
@@ -20,15 +29,17 @@ public class CSnapshotIsolate extends CSnapshotAbstract {
      * @param aName
      *            Isolate name
      */
-    public CSnapshotIsolate(final String aUID, final String aName) {
+    public CSnapshotIsolate(final Peer aPeer) {
 
-        super(aName);
-        pUID = aUID;
+        super(aPeer.getUid());
+        pPeer = aPeer;
+        pIsolateUid = aPeer.getUid();
+        pIsolateName = aPeer.getName();
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.isolates.ui.CSnapshotAbstract#getChild(int)
      */
     @Override
@@ -39,7 +50,7 @@ public class CSnapshotIsolate extends CSnapshotAbstract {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.isolates.ui.CSnapshotAbstract#getChildCount()
      */
     @Override
@@ -48,17 +59,9 @@ public class CSnapshotIsolate extends CSnapshotAbstract {
         return 0;
     }
 
-    /**
-     * @return
-     */
-    HostAccess getHostAccess() {
-
-        return pHostAccess;
-    }
-
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.isolates.ui.CSnapshotAbstract#getIndexOfChild(org.psem2m.isolates
      * .ui.CSnapshotAbstract)
@@ -69,43 +72,55 @@ public class CSnapshotIsolate extends CSnapshotAbstract {
         return -1;
     }
 
+    /**
+     * @return the isolateName
+     */
+    public String getIsolateName() {
+
+        return pIsolateName;
+    }
+
+    /**
+     * @return the isolateUid
+     */
+    public String getIsolateUid() {
+
+        return pIsolateUid;
+    }
+
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.isolates.ui.CSnapshotAbstract#getTextInfo()
      */
     @Override
     public String getTextInfo() {
 
-        return String.format("Isolate:\nUID=[%s]\nName=[%s]\nHostAccess=%s",
-                pUID, getName(), pHostAccess);
-    }
+        String text = String.format("Isolate:\nUID=[%s]\nName=[%s]\n",
+                pIsolateUid, pIsolateName);
 
-    /**
-     * @return the uID
-     */
-    public String getUID() {
+        // Sort the list of accesses IDs
+        final Collection<String> accessesCollection = pPeer.getAccesses();
+        final List<String> accessesList = new ArrayList<String>(
+                accessesCollection);
+        Collections.sort(accessesList);
 
-        return pUID;
-    }
+        for (final String accessId : accessesList) {
+            final Access access = pPeer.getAccess(accessId);
+            text += "- " + accessId + ": " + access + "\n";
+        }
 
-    /**
-     * @param aHostAccess
-     */
-    void setHostAccess(final HostAccess aHostAccess) {
-
-        pHostAccess = aHostAccess;
+        return text;
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see java.lang.Object#toString()
      */
     @Override
     public String toString() {
 
-        return String.format("%s: %s", getName(), pUID);
+        return String.format("%s: %s", pIsolateName, pIsolateUid);
     }
-
 }

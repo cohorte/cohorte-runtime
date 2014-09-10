@@ -17,63 +17,42 @@ import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
-import org.psem2m.signals.ISignalDirectory;
+import org.cohorte.herald.Peer;
 
 /**
  * @author ogattaz
- * 
+ *
  */
 public class CIsolatesTreeModel implements TreeModel {
-
-    private final ISignalDirectory pSignalDirectory;
 
     /** The snapshots list */
     private List<CSnapshotNode> pSnapshotNodes = new ArrayList<CSnapshotNode>();
 
     /**
-     * Sets up the tree model
-     * 
-     * @param aCompositionSnapshot
-     *            A composition snapshot list
-     */
-    CIsolatesTreeModel(final ISignalDirectory aSignalDirectory) {
-
-        super();
-        pSignalDirectory = aSignalDirectory;
-    }
-
-    /**
      * Adds an isolate in the tree
-     * 
-     * @param aUID
-     *            Isolate UID
-     * @param aName
-     *            Isolate name
-     * @param aNode
-     *            Isolate node
+     *
+     * @param aPeer
+     *            The Herald peer representing the isolate
      */
-    public synchronized void addIsolate(final String aUID, final String aName,
-            final String aNode) {
+    public synchronized void addIsolate(final Peer aPeer) {
 
         // Find or create the node
-        CSnapshotNode wNode = findNode(aNode);
+        CSnapshotNode wNode = findNode(aPeer.getNodeUid());
         if (wNode == null) {
-            wNode = new CSnapshotNode(aNode);
-            wNode.setHostName(pSignalDirectory.getHostForNode(aNode));
+            wNode = new CSnapshotNode(aPeer.getNodeUid(), aPeer.getNodeName());
 
             // Store the new node
             pSnapshotNodes.add(wNode);
         }
 
         // Store the isolate
-        final CSnapshotIsolate snapshot = new CSnapshotIsolate(aUID, aName);
-        snapshot.setHostAccess(pSignalDirectory.getIsolateAccess(aUID));
+        final CSnapshotIsolate snapshot = new CSnapshotIsolate(aPeer);
         wNode.add(snapshot);
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.swing.tree.TreeModel#addTreeModelListener(javax.swing.event.
      * TreeModelListener)
      */
@@ -128,7 +107,7 @@ public class CIsolatesTreeModel implements TreeModel {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.swing.tree.TreeModel#getChild(java.lang.Object, int)
      */
     @Override
@@ -147,7 +126,7 @@ public class CIsolatesTreeModel implements TreeModel {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.swing.tree.TreeModel#getChildCount(java.lang.Object)
      */
     @Override
@@ -166,7 +145,7 @@ public class CIsolatesTreeModel implements TreeModel {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.swing.tree.TreeModel#getIndexOfChild(java.lang.Object,
      * java.lang.Object)
      */
@@ -186,7 +165,7 @@ public class CIsolatesTreeModel implements TreeModel {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.swing.tree.TreeModel#getRoot()
      */
     @Override
@@ -197,7 +176,7 @@ public class CIsolatesTreeModel implements TreeModel {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.swing.tree.TreeModel#isLeaf(java.lang.Object)
      */
     @Override
@@ -214,21 +193,16 @@ public class CIsolatesTreeModel implements TreeModel {
 
     /**
      * Removes an isolate from the tree
-     * 
-     * @param aUID
-     *            Isolate UID
-     * @param aName
-     *            Isolate name
-     * @param aNode
-     *            Isolate node
+     *
+     * @param aPeer
+     *            Peer going away
      */
-    public synchronized void removeIsolate(final String aUID,
-            final String aName, final String aNode) {
+    public synchronized void removeIsolate(final Peer aPeer) {
 
         // Find the node index in the list
-        final CSnapshotNode wNode = findNode(aNode);
+        final CSnapshotNode wNode = findNode(aPeer.getNodeUid());
         if (wNode != null) {
-            wNode.removeChild(aUID);
+            wNode.removeChild(aPeer.getUid());
             if (wNode.getChildCount() <= 0) {
                 pSnapshotNodes.remove(wNode);
             }
@@ -237,7 +211,7 @@ public class CIsolatesTreeModel implements TreeModel {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * javax.swing.tree.TreeModel#removeTreeModelListener(javax.swing.event.
      * TreeModelListener)
@@ -249,7 +223,7 @@ public class CIsolatesTreeModel implements TreeModel {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * javax.swing.tree.TreeModel#valueForPathChanged(javax.swing.tree.TreePath,
      * java.lang.Object)
