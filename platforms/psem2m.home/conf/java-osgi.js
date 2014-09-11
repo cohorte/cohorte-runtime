@@ -5,8 +5,9 @@
 	/*
 	 * Common files
 	 */
-	"import-files" : [ "java-common.js", "java-common-signals.js",
-			"java-common-remote.js", "java-common-http.js" ],
+	"import-files" : [ "java-common.js", "java-common-remote.js",
+			"java-common-http.js", "herald/java-core.js",
+			"herald/java-transport.js" ],
 
 	/*
 	 * Java bundles
