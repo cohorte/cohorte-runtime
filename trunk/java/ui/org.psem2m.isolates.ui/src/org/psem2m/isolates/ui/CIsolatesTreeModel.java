@@ -221,6 +221,29 @@ public class CIsolatesTreeModel implements TreeModel {
 
     }
 
+    /**
+     * Set the local peer information
+     *
+     * @param aLocalPeer
+     *            The local peer bean
+     */
+    public void setLocalPeer(final Peer aLocalPeer) {
+
+        // Find or create the node
+        CSnapshotNode wNode = findNode(aLocalPeer.getNodeUid());
+        if (wNode == null) {
+            wNode = new CSnapshotNode(aLocalPeer.getNodeUid(),
+                    aLocalPeer.getNodeName());
+
+            // Store the new node
+            pSnapshotNodes.add(wNode);
+        }
+
+        // Store the isolate
+        final CSnapshotIsolate snapshot = new CSnapshotIsolate(aLocalPeer, true);
+        wNode.add(snapshot);
+    }
+
     /*
      * (non-Javadoc)
      *

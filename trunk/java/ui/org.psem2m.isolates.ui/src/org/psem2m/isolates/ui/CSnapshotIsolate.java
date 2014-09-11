@@ -20,21 +20,38 @@ public class CSnapshotIsolate extends CSnapshotAbstract {
     /** Isolate UID */
     private final String pIsolateUid;
 
+    /** Local peer flag */
+    private final boolean pLocal;
+
     /** The Peer bean */
     private final Peer pPeer;
 
     /**
-     * @param aUID
-     *            Isolate UID
-     * @param aName
-     *            Isolate name
+     * Sets up the snapshot
+     *
+     * @param aPeer
+     *            The peer bean containing all information
      */
     public CSnapshotIsolate(final Peer aPeer) {
+
+        this(aPeer, false);
+    }
+
+    /**
+     * Sets up the snapshot
+     *
+     * @param aPeer
+     *            The peer bean containing all information
+     * @param aLocal
+     *            If True, this is the local peer information
+     */
+    CSnapshotIsolate(final Peer aPeer, final boolean aLocal) {
 
         super(aPeer.getUid());
         pPeer = aPeer;
         pIsolateUid = aPeer.getUid();
         pIsolateName = aPeer.getName();
+        pLocal = aLocal;
     }
 
     /*
@@ -96,8 +113,15 @@ public class CSnapshotIsolate extends CSnapshotAbstract {
     @Override
     public String getTextInfo() {
 
-        String text = String.format("Isolate:\nUID=[%s]\nName=[%s]\n",
-                pIsolateUid, pIsolateName);
+        String text;
+        if (pLocal) {
+            text = "Local Isolate:\n";
+        } else {
+            text = "Peer Isolate:\n";
+        }
+
+        text += String.format("UID=[%s]\nName=[%s]\n", pIsolateUid,
+                pIsolateName);
 
         // Sort the list of accesses IDs
         final Collection<String> accessesCollection = pPeer.getAccesses();
@@ -121,6 +145,11 @@ public class CSnapshotIsolate extends CSnapshotAbstract {
     @Override
     public String toString() {
 
-        return String.format("%s: %s", pIsolateName, pIsolateUid);
+        String prefix = "";
+        if (pLocal) {
+            prefix += "(Local) ";
+        }
+
+        return prefix + pIsolateName + ": " + pIsolateUid;
     }
 }

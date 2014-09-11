@@ -10,6 +10,7 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.cohorte.herald.Access;
+import org.cohorte.herald.IDirectory;
 import org.cohorte.herald.IDirectoryListener;
 import org.cohorte.herald.Peer;
 import org.osgi.framework.BundleException;
@@ -33,6 +34,10 @@ import org.psem2m.isolates.ui.admin.api.IUiAdminSvc;
 @Provides(specifications = IDirectoryListener.class)
 public class CUiAdminPanelIsolates extends CPojoBase implements
         IUiAdminPanelControler, IDirectoryListener {
+
+    /** The Herald directory */
+    @Requires
+    private IDirectory pDirectory;
 
     private CIsolatesTreeModel pIsolatesTreeModel;
 
@@ -76,6 +81,7 @@ public class CUiAdminPanelIsolates extends CPojoBase implements
 
         /* the tree model */
         pIsolatesTreeModel = new CIsolatesTreeModel();
+        pIsolatesTreeModel.setLocalPeer(pDirectory.getLocalPeer());
 
         final Runnable wRunnable = new Runnable() {
 
@@ -199,7 +205,7 @@ public class CUiAdminPanelIsolates extends CPojoBase implements
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.isolates.ui.admin.api.IUiAdminPanelControler#setUiAdminFont
      * (org.psem2m.isolates.ui.admin.api.EUiAdminFont)
@@ -211,7 +217,7 @@ public class CUiAdminPanelIsolates extends CPojoBase implements
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.isolates.base.activators.CPojoBase#validatePojo()
      */
     @Override
