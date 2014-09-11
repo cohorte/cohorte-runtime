@@ -37,7 +37,7 @@ public class CSnapshotNode extends CSnapshotAbstract {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override
@@ -54,7 +54,7 @@ public class CSnapshotNode extends CSnapshotAbstract {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.isolates.ui.CSnapshotAbstract#getChild(int)
      */
     @Override
@@ -65,7 +65,7 @@ public class CSnapshotNode extends CSnapshotAbstract {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.isolates.ui.CSnapshotAbstract#getChildCount()
      */
     @Override
@@ -76,7 +76,7 @@ public class CSnapshotNode extends CSnapshotAbstract {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.isolates.ui.CSnapshotAbstract#getIndexOfChild(org.psem2m.isolates
      * .ui.CSnapshotAbstract)
@@ -122,7 +122,7 @@ public class CSnapshotNode extends CSnapshotAbstract {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.isolates.ui.CSnapshotAbstract#getTextInfo()
      */
     @Override
@@ -144,12 +144,12 @@ public class CSnapshotNode extends CSnapshotAbstract {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see java.lang.Object#toString()
      */
     @Override
     public String toString() {
 
-        return "Node: %s" + pNodeUid;
+        return "Node: " + pNodeUid;
     }
 }
